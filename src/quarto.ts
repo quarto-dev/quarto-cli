@@ -1,8 +1,12 @@
 
 
 
+// https://dev.to/unorthodev/build-a-simple-cli-tool-with-deno-1fmk
 
-for (let i = 0; i < Deno.args.length; i++) {
-  const arg = Deno.args[i];
-  console.log(arg);
-}
+import { parse } from 'https://deno.land/std@0.71.0/flags/mod.ts';
+
+const { args } = Deno;
+
+const parsedArgs = parse(args);
+
+console.log(parsedArgs);
