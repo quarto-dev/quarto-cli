@@ -2,4 +2,6 @@
 *.Rhistory
 .Rproj.user
 sandbox/pyenv
+sandbox/quarto.sh
+
 
