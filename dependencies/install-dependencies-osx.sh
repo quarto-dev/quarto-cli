@@ -14,5 +14,20 @@ brew install deno
 # tinytex
 curl -sL "https://yihui.org/tinytex/install-bin-unix.sh" | sh
 
+# init sandbox
+pushd ../sandbox
+
 # install R dependencies
-(cd sandbox && R --quiet -e "renv::restore()")
+R --quiet -e "renv::restore()"
+
+# install Python dependencies
+if [ -d "pyenv" ] 
+then
+  conda activate ./pyenv
+  conda env update -f environment.yml
+  conda deactivate
+else
+  conda env create -f environment.yml --prefix pyenv
+fi
+
+popd
