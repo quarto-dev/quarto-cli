@@ -10,13 +10,23 @@ const { args } = Deno;
 const parsedArgs = parse(args);
 console.log(parsedArgs);
 
-const p = Deno.run({
-   cmd: ["pandoc", ...args],
- });
- 
- // await its completion
- await p.status();
 
- 
+const mdOutput = 'docs/output.md';
+const knitArgs = [args[0], mdOutput];
+
+// knit
+const knit = Deno.run({
+   cmd: ["Rscript", "../src/preprocess/knitr.R", "--args", ...knitArgs],
+});
+await knit.status();
+
+// run pandoc
+const pandoc = Deno.run({
+   cmd: ["pandoc", mdOutput]
+});
+await pandoc.status();
+
+
+
 
 
