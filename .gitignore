@@ -1,4 +1,5 @@
 *.Rproj
 *.Rhistory
 .Rproj.user
+sandbox/pyenv
 
