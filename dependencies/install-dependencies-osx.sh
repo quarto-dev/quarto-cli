@@ -32,9 +32,10 @@ fi
 
 # generate quarto symlink
 QUARTO_TS=`realpath ../src/quarto.ts`
+QUARTO_IMPORT_MAP=`realpath ../src/import_map.json`
 cat > quarto.sh <<EOL
 #!/bin/zsh
-deno run --allow-run ${QUARTO_TS} \$@
+deno run --unstable --allow-run --importmap=${QUARTO_IMPORT_MAP} ${QUARTO_TS} \$@
 EOL
 chmod +x quarto.sh
 QUARTO_SH=`realpath quarto.sh`
