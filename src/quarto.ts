@@ -3,7 +3,7 @@
 
 // https://dev.to/unorthodev/build-a-simple-cli-tool-with-deno-1fmk
 
-import { parse } from 'https://deno.land/std@0.71.0/flags/mod.ts';
+import { parse } from 'flags/mod.ts';
 
 const { args } = Deno;
 
