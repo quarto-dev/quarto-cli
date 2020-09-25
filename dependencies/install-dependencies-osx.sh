@@ -1,4 +1,8 @@
-#!/usr/bin/env bash
+#!/bin/zsh
+
+# prerequisites:
+#   - Installation of R
+#   - Installation of Conda
 
 # pandoc
 brew install pandoc
