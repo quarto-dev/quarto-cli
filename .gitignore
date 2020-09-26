@@ -4,6 +4,7 @@
 *.ipynb_checkpoints/
 __pycache__/
 .Rproj.user
+sandbox/pyenv
 sandbox/quarto.sh
 
 
