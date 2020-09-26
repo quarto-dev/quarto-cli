@@ -1,4 +1,4 @@
-name: pyenv
+name: quarto-cli
 channels:
   - defaults
 dependencies:

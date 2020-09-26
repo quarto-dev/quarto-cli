@@ -1,32 +1,60 @@
 
+import { basename, extname, dirname, join } from 'path/mod.ts';
 
+const kMarkdownExt = '.md';
+const kKnitrExt = '.Rmd';
+const kNbconvertExt = '.ipynb';
 
-// https://dev.to/unorthodev/build-a-simple-cli-tool-with-deno-1fmk
-
-import { parse } from 'flags/mod.ts';
-
+// parse input
 const { args } = Deno;
+const input = args[0];
+const ext = extname(input);
 
-const parsedArgs = parse(args);
-console.log(parsedArgs);
+// calculate output markdown for input
+const mdOutput = (ext: string) => {
+   const input_dir = dirname(input);
+   const input_base = basename(input, ext);
+   return join(input_dir, input_base + kMarkdownExt);
+}
 
+// determine output file and preprocessor
+let output: string;
+let preprocess: Deno.Process | null = null;
 
-const mdOutput = 'docs/output.md';
-const knitArgs = [args[0], mdOutput];
+// knitr for .Rmd
+if (ext.endsWith(kKnitrExt)) {
+   output = mdOutput(kKnitrExt); 
+   preprocess = Deno.run({
+      cmd: ["Rscript", "../src/preprocess/knitr.R", "--args", input, output],
+   }); 
 
-// knit
-const knit = Deno.run({
-   cmd: ["Rscript", "../src/preprocess/knitr.R", "--args", ...knitArgs],
-});
-await knit.status();
+// nbconvert for .ipynb
+} else if (ext.endsWith(kNbconvertExt)) {
+   output = mdOutput(kNbconvertExt);   
+   preprocess = Deno.run({
+      cmd: ["../src/preprocess/nbconv.py", input, output]
+   });
+      
+
+// no preprocessing for .md
+} else if (ext.endsWith(kMarkdownExt)) {
+
+   output = mdOutput(kMarkdownExt);
+
+// not supported
+} else { 
+   Deno.stderr.write(new TextEncoder().encode('Unsupported input file: ' + input));
+   Deno.exit(1);
+}
+
+// preprocess if necessary
+if (preprocess) {
+   await preprocess.status();
+} 
 
 // run pandoc
 const pandoc = Deno.run({
-   cmd: ["pandoc", mdOutput]
+   cmd: ["pandoc", output]
 });
 await pandoc.status();
-
-
-
-
 

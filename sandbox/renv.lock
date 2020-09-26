@@ -30,6 +30,13 @@
       "Repository": "CRAN",
       "Hash": "39ea11fb3ad0d759f9f1c053fd442957"
     },
+    "Rcpp": {
+      "Package": "Rcpp",
+      "Version": "1.0.5",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "125dc7a0ed375eb68c0ce533b48d291f"
+    },
     "base64enc": {
       "Package": "base64enc",
       "Version": "0.1-3",
@@ -170,12 +177,33 @@
       "Repository": "CRAN",
       "Hash": "68287aec1f476c41d16ce1ace445800c"
     },
+    "png": {
+      "Package": "png",
+      "Version": "0.1-7",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "03b7076c234cb3331288919983326c55"
+    },
+    "rappdirs": {
+      "Package": "rappdirs",
+      "Version": "0.3.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "8c8298583adbbe76f3c2220eef71bebc"
+    },
     "renv": {
       "Package": "renv",
       "Version": "0.12.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "7340c71f46a0fd16506cfa804e224e44"
+    },
+    "reticulate": {
+      "Package": "reticulate",
+      "Version": "1.16",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "5db95d35ae4605b46cea66b6e3bcab3e"
     },
     "rlang": {
       "Package": "rlang",

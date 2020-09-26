@@ -21,14 +21,7 @@ pushd ../sandbox
 R --quiet -e "renv::restore()"
 
 # install Python dependencies
-if [ -d "pyenv" ]
-then
-  conda activate ./pyenv
-  conda env update -f environment.yml
-  conda deactivate
-else
-  conda env create -f environment.yml --prefix pyenv
-fi
+conda env update -f environment.yml
 
 # generate quarto symlink
 QUARTO_TS=`realpath ../src/quarto.ts`
