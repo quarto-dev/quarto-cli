@@ -23,6 +23,7 @@ let preprocess: Deno.Process | null = null;
 
 // knitr for .Rmd
 if (ext.endsWith(kKnitrExt)) {
+
    output = mdOutput(kKnitrExt); 
    preprocess = Deno.run({
       cmd: ["Rscript", "../src/preprocess/knitr.R", "--args", input, output],
@@ -30,6 +31,7 @@ if (ext.endsWith(kKnitrExt)) {
 
 // nbconvert for .ipynb
 } else if (ext.endsWith(kNbconvertExt)) {
+
    output = mdOutput(kNbconvertExt);   
    preprocess = Deno.run({
       cmd: ["../src/preprocess/nbconv.py", input, output]
@@ -37,12 +39,15 @@ if (ext.endsWith(kKnitrExt)) {
       
 // no preprocessing for .md
 } else if (ext.endsWith(kMarkdownExt)) {
+
    output = mdOutput(kMarkdownExt);
 
 // not supported
 } else { 
+
    Deno.stderr.write(new TextEncoder().encode('Unsupported input file: ' + input));
    Deno.exit(1);
+   
 }
 
 // preprocess if necessary
