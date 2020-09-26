@@ -35,10 +35,8 @@ if (ext.endsWith(kKnitrExt)) {
       cmd: ["../src/preprocess/nbconv.py", input, output]
    });
       
-
 // no preprocessing for .md
 } else if (ext.endsWith(kMarkdownExt)) {
-
    output = mdOutput(kMarkdownExt);
 
 // not supported
