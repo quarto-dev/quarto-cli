@@ -34,7 +34,7 @@ if (ext.endsWith(kKnitrExt)) {
 
    output = mdOutput(kNbconvertExt);   
    preprocess = Deno.run({
-      cmd: ["../src/preprocess/nbconv.py", input, output]
+      cmd: ["renv/python/condaenvs/renv-python/bin/python", "../src/preprocess/nbconv.py", input, output]
    });
       
 // no preprocessing for .md
