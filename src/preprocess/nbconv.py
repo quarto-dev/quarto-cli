@@ -1,4 +1,3 @@
-#!/usr/bin/env conda run -n quarto-cli python
 
 import sys
 import nbformat
