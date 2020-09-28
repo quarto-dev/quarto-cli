@@ -4,7 +4,6 @@ import { execProcess } from "../core/process.ts";
 
 import {
   computationPreprocessorForFile,
-  computationPreprocessors,
 } from "../quarto/quarto-extensions.ts";
 
 export async function render(input: string): Promise<void> {

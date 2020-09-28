@@ -3,9 +3,3 @@ export interface ComputationPreprocessor {
   canHandle: (ext: string) => boolean;
   preprocess: (file: string, outputFile: string) => Promise<void>;
 }
-
-/*
-export interface ComputationSource {
-
-}
-*/
