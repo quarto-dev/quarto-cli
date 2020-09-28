@@ -1,11 +1,12 @@
 import type { Args } from "flags/mod.ts";
 
-import { render } from "../command/render.ts";
+import { findCommand } from "../command/command.ts";
 
 export async function quarto(args: Args) {
-  const [command, input] = args["_"];
-  if (command === "render") {
-    await render(input.toString());
+  const name = args["_"][0].toString();
+  const command = findCommand(name);
+  if (command) {
+    await command.exec(args);
   } else {
     throw new Error("Unknown command " + command);
   }
