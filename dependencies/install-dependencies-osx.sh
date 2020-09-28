@@ -18,9 +18,11 @@ curl -sL "https://yihui.org/tinytex/install-bin-unix.sh" | sh
 pushd ../sandbox
 
 # install R dependencies
+# update w: renv::snapshot()
 R --quiet -e "renv::restore()"
 
 # install Python dependencies
+# update w/: conda env export > environment.yml
 conda env update -f environment.yml
 
 # generate quarto symlink
