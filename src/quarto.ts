@@ -1,13 +1,10 @@
-import {
-  logError,
-  exitProcess,
-  commandLineArgs,
-  CommandLineArgs,
-} from "./core/platform.ts";
+import { parse, Args } from "flags/mod.ts";
+
+import { logError } from "./core/log.ts";
 
 import { render } from "./command/render.ts";
 
-export async function quarto(args: CommandLineArgs) {
+export async function quarto(args: Args) {
   const [command, input] = args["_"];
   if (command === "render") {
     await render(input.toString());
@@ -19,9 +16,9 @@ export async function quarto(args: CommandLineArgs) {
 // main
 if (import.meta.main) {
   try {
-    await quarto(commandLineArgs());
+    await quarto(parse(Deno.args));
   } catch (error) {
     logError(error.toString());
-    exitProcess(1);
+    Deno.exit(1);
   }
 }
