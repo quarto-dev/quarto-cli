@@ -1,5 +1,6 @@
 name: quarto-cli
 channels:
+  - conda-forge
   - defaults
 dependencies:
   - appnope=0.1.0=py38_1001
@@ -9,8 +10,8 @@ dependencies:
   - blas=1.0=mkl
   - bleach=3.2.1=py_0
   - brotlipy=0.7.0=py38haf1e3a3_1000
-  - ca-certificates=2020.7.22=0
-  - certifi=2020.6.20=py38_0
+  - ca-certificates=2020.6.20=hecda079_0
+  - certifi=2020.6.20=py38h32f6830_0
   - cffi=1.14.3=py38hed5b41f_0
   - chardet=3.0.4=py38_1003
   - cryptography=3.1=py38hddc9c9b_0
@@ -32,10 +33,12 @@ dependencies:
   - jupyter_core=4.6.3=py38_0
   - jupyterlab=2.2.6=py_0
   - jupyterlab_server=1.2.0=py_0
+  - jupytext=1.6.0=pyh9f0ad1d_0
   - libcxx=10.0.0=1
   - libedit=3.1.20191231=h1de35cc_1
   - libffi=3.3=hb1e8313_2
   - libsodium=1.0.18=h1de35cc_0
+  - markdown-it-py=0.5.4=py_0
   - markupsafe=1.1.1=py38h1de35cc_1
   - mistune=0.8.4=py38h1de35cc_1001
   - mkl=2019.4=233
@@ -68,7 +71,9 @@ dependencies:
   - pysocks=1.7.1=py38_1
   - python=3.8.5=h26836e1_1
   - python-dateutil=2.8.1=py_0
+  - python_abi=3.8=1_cp38
   - pytz=2020.1=py_0
+  - pyyaml=5.3.1=py38h4d0b108_0
   - pyzmq=19.0.2=py38hb1e8313_1
   - readline=8.0=h1de35cc_0
   - requests=2.24.0=py_0
@@ -79,6 +84,7 @@ dependencies:
   - terminado=0.8.3=py38_0
   - testpath=0.4.4=py_0
   - tk=8.6.10=hb0a8c7a_0
+  - toml=0.10.1=pyh9f0ad1d_0
   - tornado=6.0.4=py38h1de35cc_1
   - traitlets=5.0.4=py_0
   - urllib3=1.25.10=py_0
@@ -86,7 +92,8 @@ dependencies:
   - webencodings=0.5.1=py38_1
   - wheel=0.35.1=py_0
   - xz=5.2.5=h1de35cc_0
+  - yaml=0.2.5=haf1e3a3_0
   - zeromq=4.3.2=hb1e8313_3
   - zipp=3.1.0=py_0
   - zlib=1.2.11=h1de35cc_3
-prefix: /Users/jjallaire/quarto/quarto-cli/sandbox/pyenv
+prefix: /Users/jjallaire/opt/miniconda3/envs/quarto-cli
