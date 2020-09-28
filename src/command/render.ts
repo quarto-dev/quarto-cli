@@ -1,4 +1,6 @@
-import { execProcess, getenv, path, ProcessResult } from "../core/platform.ts";
+import { basename, dirname, extname, join } from "path/mod.ts";
+
+import { execProcess, ProcessResult } from "../core/process.ts";
 
 const kMarkdownExt = ".md";
 const kKnitrExt = ".Rmd";
@@ -7,9 +9,9 @@ const kNbconvertExt = ".ipynb";
 export async function render(input: string): Promise<ProcessResult> {
   // calculate output markdown for input
   const mdOutput = (ext: string) => {
-    const input_dir = path.dirname(input);
-    const input_base = path.basename(input, ext);
-    return path.join(input_dir, input_base + kMarkdownExt);
+    const input_dir = dirname(input);
+    const input_base = basename(input, ext);
+    return join(input_dir, input_base + kMarkdownExt);
   };
 
   // determine output file and preprocessor
@@ -17,13 +19,13 @@ export async function render(input: string): Promise<ProcessResult> {
   let preprocess: Promise<ProcessResult> | null = null;
 
   // knitr for .Rmd
-  const ext = path.extname(input);
+  const ext = extname(input);
   if (ext.endsWith(kKnitrExt)) {
     output = mdOutput(kKnitrExt);
     preprocess = execProcess({
       cmd: [
         "Rscript",
-        "../src/extensions/preprocess/knitr.R",
+        "../src/computation/preprocessor/knitr.R",
         "--args",
         input,
         output,
@@ -35,8 +37,8 @@ export async function render(input: string): Promise<ProcessResult> {
     output = mdOutput(kNbconvertExt);
     preprocess = execProcess({
       cmd: [
-        getenv("QUARTO_PYTHON")!,
-        "../src/extensions/preprocess/nbconv.py",
+        Deno.env.get("QUARTO_PYTHON")!,
+        "../src/computation/preprocessor/nbconv.py",
         input,
         output,
       ],
