@@ -26,7 +26,7 @@ R --quiet -e "renv::restore()"
 conda env update -f environment.yml
 
 # generate quarto symlink
-QUARTO_TS=`realpath ../src/quarto.ts`
+QUARTO_TS=`realpath ../src/main.ts`
 QUARTO_IMPORT_MAP=`realpath ../src/import_map.json`
 QUARTO_PYTHON=`realpath ~/opt/miniconda3/envs/quarto-cli/bin/python`
 cat > quarto.sh <<EOL
