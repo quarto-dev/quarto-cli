@@ -22,7 +22,7 @@ export async function execProcess(exec: ProcessExec) : Promise<ProcessResult> {
    const process = await Deno.run({
       cmd: exec.cmd,
       stdout: exec.stdout,
-      stderr: exec.stdout
+      stderr: exec.stderr
    });
 
    // await result
