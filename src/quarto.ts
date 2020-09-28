@@ -24,36 +24,36 @@ let preprocess: Deno.Process | null = null;
 // knitr for .Rmd
 if (ext.endsWith(kKnitrExt)) {
 
-   output = mdOutput(kKnitrExt); 
+   output = mdOutput(kKnitrExt);
    preprocess = Deno.run({
       cmd: ["Rscript", "../src/preprocess/knitr.R", "--args", input, output],
-   }); 
+   });
 
 // nbconvert for .ipynb
 } else if (ext.endsWith(kNbconvertExt)) {
 
-   output = mdOutput(kNbconvertExt);   
+   output = mdOutput(kNbconvertExt);
    preprocess = Deno.run({
-      cmd: ["renv/python/condaenvs/renv-python/bin/python", "../src/preprocess/nbconv.py", input, output]
+      cmd: ["conda", "run", "-n", "quarto-cli", "python", "../src/preprocess/nbconv.py", input, output]
    });
-      
+
 // no preprocessing for .md
 } else if (ext.endsWith(kMarkdownExt)) {
 
    output = mdOutput(kMarkdownExt);
 
 // not supported
-} else { 
+} else {
 
    Deno.stderr.write(new TextEncoder().encode('Unsupported input file: ' + input));
    Deno.exit(1);
-   
+
 }
 
 // preprocess if necessary
 if (preprocess) {
    await preprocess.status();
-} 
+}
 
 // run pandoc
 const pandoc = Deno.run({

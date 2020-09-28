@@ -1,5 +1,9 @@
 #!/bin/zsh
 
+# prerequisites:
+#   - Installation of R
+#   - Installation of Conda
+
 # pandoc
 brew install pandoc
 brew install pandoc-citeproc
@@ -13,8 +17,11 @@ curl -sL "https://yihui.org/tinytex/install-bin-unix.sh" | sh
 # init sandbox
 pushd ../sandbox
 
-# install R and Python dependencies
+# install R dependencies
 R --quiet -e "renv::restore()"
+
+# install Python dependencies
+conda env update -f environment.yml
 
 # generate quarto symlink
 QUARTO_TS=`realpath ../src/quarto.ts`
