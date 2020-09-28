@@ -26,10 +26,17 @@ export async function execProcess(
 
   // return result
   const decoder = new TextDecoder();
+
+  const stdoutText = stdout ? decoder.decode(stdout) : undefined;
+  const stderrText = stderr ? decoder.decode(stderr) : undefined;
+
+  // close the process
+  process.close();
+
   return {
     success: status.success,
     code: status.code,
-    stdout: stdout ? decoder.decode(stdout) : undefined,
-    stderr: stderr ? decoder.decode(stderr) : undefined,
+    stdout: stdoutText,
+    stderr: stderrText,
   };
 }

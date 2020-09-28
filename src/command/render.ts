@@ -37,7 +37,7 @@ export async function render(input: string): Promise<ProcessResult> {
     output = mdOutput(kNbconvertExt);
     preprocess = execProcess({
       cmd: [
-        Deno.env.get("QUARTO_PYTHON")!,
+        Deno.env.get("CONDA_PREFIX")! + "/bin/python",
         "../src/computation/preprocessor/nbconv.py",
         input,
         output,
