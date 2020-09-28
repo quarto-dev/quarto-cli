@@ -15,6 +15,10 @@ export function commandLineArgs(): CommandLineArgs {
    return parse(Deno.args);
 }
 
+export function getenv(name: string, defaultValue?: string) {
+   return Deno.env.get(name) || defaultValue;
+}
+
 
 export async function execProcess(exec: ProcessExec) : Promise<ProcessResult> {
 

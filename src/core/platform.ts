@@ -10,6 +10,8 @@ export interface CommandLineArgs {
 } 
 export { commandLineArgs } from './platform-deno.ts';
 
+// environment variables
+export { getenv } from './platform-deno.ts';
 
 // process execution
 export interface ProcessExec {

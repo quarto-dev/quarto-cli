@@ -1,6 +1,6 @@
 
 
-import { execProcess, path, ProcessResult } from '../core/platform.ts';
+import { execProcess, getenv, path, ProcessResult } from '../core/platform.ts';
 
 const kMarkdownExt = '.md';
 const kKnitrExt = '.Rmd';
@@ -33,7 +33,7 @@ export async function render(input: string) : Promise<ProcessResult> {
 
       output = mdOutput(kNbconvertExt);
       preprocess = execProcess({
-         cmd: [ Deno.env.get("QUARTO_PYTHON")!, "../src/preprocess/nbconv.py", input, output ]
+         cmd: [ getenv("QUARTO_PYTHON")!, "../src/preprocess/nbconv.py", input, output ]
       });
 
    // no preprocessing for .md
