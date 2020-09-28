@@ -96,4 +96,4 @@ dependencies:
   - zeromq=4.3.2=hb1e8313_3
   - zipp=3.1.0=py_0
   - zlib=1.2.11=h1de35cc_3
-prefix: /Users/jjallaire/opt/miniconda3/envs/quarto-cli
+
