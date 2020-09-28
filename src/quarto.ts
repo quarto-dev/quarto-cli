@@ -1,34 +1,30 @@
+import {
+  logError,
+  exitProcess,
+  commandLineArgs,
+  CommandLineArgs,
+} from "./core/platform.ts";
 
+import { render } from "./command/render.ts";
 
-import { logError, exitProcess, commandLineArgs } from './core/platform.ts';
+export async function quarto(args: CommandLineArgs) {
+  const [command, input] = args["_"];
 
-import { render } from './command/render.ts';
-
-
-// parse args
-// TODO: https://github.com/yargs/yargs
-const parsedArgs = commandLineArgs();
-const [ command, input ]  = parsedArgs['_'];
-
-// dispatch command
-try {
-
-   if (command === 'render') {
-
+  // dispatch command
+  try {
+    if (command === "render") {
       await render(input.toString());
-
-   } else {
-
-      logError('Unknown command ' + command);
+    } else {
+      logError("Unknown command " + command);
       exitProcess(1);
-   
-   }
-
-} catch(error) {
-
-   logError(error.toString());
-   exitProcess(1);
-  
+    }
+  } catch (error) {
+    logError(error.toString());
+    exitProcess(1);
+  }
 }
 
-
+// main
+if (import.meta.main) {
+  quarto(commandLineArgs());
+}
