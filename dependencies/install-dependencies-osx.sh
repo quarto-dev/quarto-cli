@@ -5,11 +5,11 @@
 #   - Installation of Conda
 
 # pandoc
-brew install pandoc
-brew install pandoc-citeproc
+brew upgrade pandoc
+brew upgrade pandoc-citeproc
 
 # deno
-brew install deno
+brew upgrade deno
 
 # tinytex
 curl -sL "https://yihui.org/tinytex/install-bin-unix.sh" | sh
