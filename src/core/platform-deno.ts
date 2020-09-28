@@ -19,7 +19,7 @@ export function commandLineArgs(): CommandLineArgs {
 export async function execProcess(exec: ProcessExec) : Promise<ProcessResult> {
 
    // define process
-   const process = await Deno.run({
+   const process = Deno.run({
       cmd: exec.cmd,
       stdout: exec.stdout,
       stderr: exec.stderr
