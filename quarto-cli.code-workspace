@@ -5,6 +5,7 @@
       }
    ],
    "settings": {
-      "editor.tabSize": 3
+      "editor.tabSize": 2,
+      "deno.lint": true
    }
 }
