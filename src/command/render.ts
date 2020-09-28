@@ -1,4 +1,4 @@
-import type { Args } from "flags/mod.ts";
+import { Command } from "cliffy/command/mod.ts";
 import { basename, dirname, extname, join } from "path/mod.ts";
 
 import { execProcess } from "../core/process.ts";
@@ -7,18 +7,13 @@ import {
   computationPreprocessorForFile,
 } from "../quarto/quarto-extensions.ts";
 
-import type { Command } from "./command.ts";
-
-export const renderCommand: Command = {
-  name: "render",
-
-  arguments: [],
-
-  exec: async (args: Args) => {
-    const input = args["_"][1].toString();
+export const renderCommand = new Command()
+  .name("render <input:string>")
+  .description("Render a file")
+  // deno-lint-ignore no-explicit-any
+  .action(async (_options: any, input: string) => {
     return render(input);
-  },
-};
+  });
 
 export async function render(input: string): Promise<void> {
   // determine output file and preprocessor

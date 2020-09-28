@@ -1,6 +1,7 @@
 {
   "imports": {
     "flags/": "https://deno.land/std/flags/",
-    "path/": "https://deno.land/std/path/"
+    "path/": "https://deno.land/std/path/",
+    "cliffy/": "https://deno.land/x/cliffy/"
   }
 }

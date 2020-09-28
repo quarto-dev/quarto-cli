@@ -1,13 +1,16 @@
-import type { Args } from "flags/mod.ts";
+import { commands } from "../command/command.ts";
 
-import { findCommand } from "../command/command.ts";
+import { Command } from "cliffy/command/mod.ts";
 
-export async function quarto(args: Args) {
-  const name = args["_"][0].toString();
-  const command = findCommand(name);
-  if (command) {
-    await command.exec(args);
-  } else {
-    throw new Error("Unknown command " + command);
-  }
+export async function quarto(args: string[]) {
+  const quartoCommand = new Command()
+    .name("quarto")
+    .version("0.1")
+    .description("Quarto CLI");
+
+  commands().forEach((command) => {
+    quartoCommand.command(command.getName(), command);
+  });
+
+  await quartoCommand.parse(args);
 }
