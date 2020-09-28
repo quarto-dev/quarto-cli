@@ -27,7 +27,6 @@ export async function execProcess(exec: ProcessExec) : Promise<ProcessResult> {
 
    // await result
    const status = await process.status();
-
    const stdout = exec.stdout === 'piped' ? await process.output() : undefined;
    const stderr = exec.stderr === 'piped' ? await process.stderrOutput() : undefined;
 
