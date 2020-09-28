@@ -4,6 +4,7 @@ export { path } from "./platform-deno.ts";
 // command line arguments
 export interface CommandLineArgs {
   _: Array<string | number>;
+  // deno-lint-ignore no-explicit-any
   [key: string]: any;
 }
 export { commandLineArgs } from "./platform-deno.ts";
