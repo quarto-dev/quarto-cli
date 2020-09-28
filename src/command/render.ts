@@ -50,7 +50,10 @@ export async function render(input: string) : Promise<ProcessResult> {
 
    // preprocess if necessary
    if (preprocess) {
-      await preprocess;
+      const result = await preprocess;
+      if (!result.success) {
+         return result;
+      }
    }
 
    // run pandoc
