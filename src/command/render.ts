@@ -1,39 +1,39 @@
 
 
-import { basename, extname, dirname, join } from 'path/mod.ts';
+import { execProcess, path, ProcessResult } from '../core/platform.ts';
 
 const kMarkdownExt = '.md';
 const kKnitrExt = '.Rmd';
 const kNbconvertExt = '.ipynb';
 
-export async function render(input: string) : Promise<Deno.ProcessStatus> {
+export async function render(input: string) : Promise<ProcessResult> {
 
    // calculate output markdown for input
    const mdOutput = (ext: string) => {
-      const input_dir = dirname(input);
-      const input_base = basename(input, ext);
-      return join(input_dir, input_base + kMarkdownExt);
+      const input_dir = path.dirname(input);
+      const input_base = path.basename(input, ext);
+      return path.join(input_dir, input_base + kMarkdownExt);
    }
 
    // determine output file and preprocessor
    let output: string;
-   let preprocess: Deno.Process | null = null;
+   let preprocess: Promise<ProcessResult> | null = null;
 
    // knitr for .Rmd
-   const ext = extname(input);
+   const ext = path.extname(input);
    if (ext.endsWith(kKnitrExt)) {
 
       output = mdOutput(kKnitrExt);
-      preprocess = Deno.run({
-         cmd: ["Rscript", "../src/preprocess/knitr.R", "--args", input, output],
+      preprocess = execProcess({
+         cmd: ["Rscript", "../src/preprocess/knitr.R", "--args", input, output]
       });
 
    // nbconvert for .ipynb
    } else if (ext.endsWith(kNbconvertExt)) {
 
       output = mdOutput(kNbconvertExt);
-      preprocess = Deno.run({
-         cmd: ["conda", "run", "-n", "quarto-cli", "python", "../src/preprocess/nbconv.py", input, output]
+      preprocess = execProcess({
+         cmd: [ "conda", "run", "-n", "quarto-cli", "python", "../src/preprocess/nbconv.py", input, output ]
       });
 
    // no preprocessing for .md
@@ -50,14 +50,12 @@ export async function render(input: string) : Promise<Deno.ProcessStatus> {
 
    // preprocess if necessary
    if (preprocess) {
-      await preprocess.status();
+      await preprocess;
    }
 
    // run pandoc
-   const pandoc = Deno.run({
-      cmd: ["pandoc", output]
+   return execProcess({
+      cmd: ["pandoc", output],
    });
-   return pandoc.status();
-
 
 }

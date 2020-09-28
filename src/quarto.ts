@@ -1,12 +1,12 @@
 
-import { parse } from "https://deno.land/std/flags/mod.ts";
-import { CHAR_EXCLAMATION_MARK } from "https://deno.land/std@0.71.0/path/_constants.ts";
+
+import { logError, exitProcess, commandLineArgs } from './core/platform.ts';
 
 import { render } from './command/render.ts';
-import { logError } from './core/log.ts';
+
 
 // parse args
-const parsedArgs = parse(Deno.args);
+const parsedArgs = commandLineArgs();
 const [ command, input ]  = parsedArgs['_'];
 
 // dispatch command
@@ -19,14 +19,14 @@ try {
    } else {
 
       logError('Unknown command ' + command);
-      Deno.exit(1);
+      exitProcess(1);
    
    }
 
 } catch(error) {
 
    logError(error.toString());
-   Deno.exit(1);
+   exitProcess(1);
   
 }
 
