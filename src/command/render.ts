@@ -25,7 +25,7 @@ export async function render(input: string) : Promise<ProcessResult> {
 
       output = mdOutput(kKnitrExt);
       preprocess = execProcess({
-         cmd: ["Rscript", "../src/preprocess/knitr.R", "--args", input, output]
+         cmd: ["Rscript", "../src/extensions/preprocess/knitr.R", "--args", input, output]
       });
 
    // nbconvert for .ipynb
@@ -33,7 +33,7 @@ export async function render(input: string) : Promise<ProcessResult> {
 
       output = mdOutput(kNbconvertExt);
       preprocess = execProcess({
-         cmd: [ getenv("QUARTO_PYTHON")!, "../src/preprocess/nbconv.py", input, output ]
+         cmd: [ getenv("QUARTO_PYTHON")!, "../src/extensions/preprocess/nbconv.py", input, output ]
       });
 
    // no preprocessing for .md
