@@ -33,7 +33,7 @@ export async function render(input: string) : Promise<ProcessResult> {
 
       output = mdOutput(kNbconvertExt);
       preprocess = execProcess({
-         cmd: [ "conda", "run", "-n", "quarto-cli", "python", "../src/preprocess/nbconv.py", input, output ]
+         cmd: [ Deno.env.get("QUARTO_PYTHON")!, "../src/preprocess/nbconv.py", input, output ]
       });
 
    // no preprocessing for .md
