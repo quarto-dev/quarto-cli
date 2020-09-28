@@ -1,5 +1,10 @@
 {
   "deno.enable": true,
   "deno.unstable": true,
-  "deno.import_map": "./src/import_map.json"
+  "deno.import_map": "./src/import_map.json",
+  "[typescript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  },
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2
 }
