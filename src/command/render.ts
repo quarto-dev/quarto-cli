@@ -7,12 +7,26 @@ import {
   computationPreprocessorForFile,
 } from "../quarto/quarto-extensions.ts";
 
+// --to pandoc:html
+
 export const renderCommand = new Command()
   .name("render <input:string>")
   .description("Render a file")
   .option(
+    "-t, --to [to:string]",
+    "Specify output format to convert to (e.g. pandoc:html5)",
+  )
+  .option(
     "-o, --output [output:string]",
     "Write to output file instead of stdout",
+  )
+  .option(
+    "-d, --defaults [defaults:string]",
+    "Specify a set of pandoc command line arguments (https://pandoc.org/MANUAL.html#default-files).",
+  )
+  .option(
+    "--data-dir [data-dir:string]",
+    "Specify the user data directory to search for pandoc data files.",
   )
   .example(
     "Render R Markdown",
@@ -24,35 +38,49 @@ export const renderCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, input: string) => {
-    const result = await render(input, options.output);
+    const result = await render({ input, ...options });
     if (!result.success) {
       Deno.exit(result.code);
     }
   });
 
-export async function render(
-  input: string,
-  output?: string,
-): Promise<ProcessResult> {
+export interface RenderOptions {
+  input: string;
+  to?: string;
+  output?: string;
+  defaults?: string;
+  "data-dir"?: string;
+}
+
+export async function render(options: RenderOptions): Promise<ProcessResult> {
   // determine path to mdInput file and preprocessor
   let preprocessorOutput: string;
 
   // execute computational preprocessor (if any)
-  const ext = extname(input);
+  const ext = extname(options.input);
   const preprocessor = computationPreprocessorForFile(ext);
   if (preprocessor) {
-    const inputDir = dirname(input);
-    const inputBase = basename(input, ext);
+    const inputDir = dirname(options.input);
+    const inputBase = basename(options.input, ext);
     preprocessorOutput = join(inputDir, inputBase + ".md");
-    await preprocessor.preprocess(input, preprocessorOutput);
+    await preprocessor.preprocess(options.input, preprocessorOutput);
   } else {
-    preprocessorOutput = input;
+    preprocessorOutput = options.input;
   }
 
   // build the pandoc command
   const cmd = ["pandoc", preprocessorOutput];
-  if (output) {
-    cmd.push("--output", output);
+  if (options.output) {
+    cmd.push("--output", options.output);
+  }
+  if (options.to) {
+    cmd.push("--to", options.to.replace(/^pandoc:/, ""));
+  }
+  if (options.defaults) {
+    cmd.push("--defaults", options.defaults);
+  }
+  if (options["data-dir"]) {
+    cmd.push("--data-dir", options["data-dir"]);
   }
 
   // run pandoc
