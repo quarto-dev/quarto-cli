@@ -1,7 +1,7 @@
 import { Command } from "cliffy/command/mod.ts";
 import { basename, dirname, extname, join } from "path/mod.ts";
 
-import { execProcess } from "../core/process.ts";
+import { execProcess, ProcessResult } from "../core/process.ts";
 
 import {
   computationPreprocessorForFile,
@@ -12,10 +12,13 @@ export const renderCommand = new Command()
   .description("Render a file")
   // deno-lint-ignore no-explicit-any
   .action(async (_options: any, input: string) => {
-    return render(input);
+    const result = await render(input);
+    if (!result.success) {
+      Deno.exit(result.code);
+    }
   });
 
-export async function render(input: string): Promise<void> {
+export async function render(input: string): Promise<ProcessResult> {
   // determine output file and preprocessor
   let output: string;
 
@@ -32,13 +35,7 @@ export async function render(input: string): Promise<void> {
   }
 
   // run pandoc
-  const result = await execProcess({
+  return execProcess({
     cmd: ["pandoc", output],
-    stderr: "piped",
   });
-
-  // reject promise on error
-  if (!result.success) {
-    return Promise.reject(new Error(result.stderr));
-  }
 }
