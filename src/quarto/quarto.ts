@@ -1,6 +1,6 @@
 import { commands } from "../command/command.ts";
 
-import { Command } from "cliffy/command/mod.ts";
+import { Command, CompletionsCommand } from "cliffy/command/mod.ts";
 
 export async function quarto(args: string[]) {
   const quartoCommand = new Command()
@@ -12,5 +12,7 @@ export async function quarto(args: string[]) {
     quartoCommand.command(command.getName(), command);
   });
 
-  await quartoCommand.parse(args);
+  await quartoCommand
+    .command("completions", new CompletionsCommand())
+    .parse(args);
 }
