@@ -1,3 +1,11 @@
 ```{r}
 cat("Hello, World\n")
 ```
+
+```{r}
+summary(cars)
+```
+
+```{r}
+plot(cars)
+```
