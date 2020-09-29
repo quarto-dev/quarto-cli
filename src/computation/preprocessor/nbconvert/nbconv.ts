@@ -19,7 +19,7 @@ export const nbconvertPreprocessor: ComputationPreprocessor = {
     });
 
     if (!result.success) {
-      return Promise.reject(new Error(result.stderr));
+      return Promise.reject();
     }
   },
 };

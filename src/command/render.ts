@@ -38,9 +38,15 @@ export const renderCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, input: string) => {
-    const result = await render({ input, ...options });
-    if (!result.success) {
-      Deno.exit(result.code);
+    try {
+      const result = await render({ input, ...options });
+      if (!result.success) {
+        // error diagnostics already written to stderr
+        Deno.exit(result.code);
+      }
+    } catch (error) {
+      // error diagnostics already written to stderr
+      Deno.exit(1);
     }
   });
 
