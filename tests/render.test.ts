@@ -1,4 +1,3 @@
-import { render } from "../src/command/render.ts";
 import { quarto } from "../src/quarto/quarto.ts";
 
 Deno.test("Simple Markdown Render", async () => {
