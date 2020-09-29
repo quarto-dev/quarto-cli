@@ -34,6 +34,7 @@ export async function render(input: string): Promise<void> {
   // run pandoc
   const result = await execProcess({
     cmd: ["pandoc", output],
+    stderr: "piped",
   });
 
   // reject promise on error
