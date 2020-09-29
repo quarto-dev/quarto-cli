@@ -1,5 +1,6 @@
 import { Command } from "cliffy/command/mod.ts";
 import { basename, dirname, extname, join } from "path/mod.ts";
+import { writeLine } from "../core/console.ts";
 
 import { execProcess, ProcessResult } from "../core/process.ts";
 
@@ -40,7 +41,11 @@ export const renderCommand = new Command()
   .action(async (options: any, input: string) => {
     try {
       const result = await render({ input, ...options });
-      if (!result.success) {
+      if (result.success) {
+        if (options.output) {
+          writeLine(Deno.stderr, "Output created: " + options.output + "\n");
+        }
+      } else {
         // error diagnostics already written to stderr
         Deno.exit(result.code);
       }
@@ -88,6 +93,9 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   if (options["data-dir"]) {
     cmd.push("--data-dir", options["data-dir"]);
   }
+
+  // print command line
+  writeLine(Deno.stdout, "\n" + cmd.join(" ") + "\n");
 
   // run pandoc
   return execProcess({ cmd });

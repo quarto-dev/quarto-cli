@@ -29,6 +29,6 @@ md_result <- rmarkdown::render(
 )
 
 # rename the markdown file
-file.rename(file.path(dirname(input), md_result), output)
+invisible(file.rename(file.path(dirname(input), md_result), output))
 
 
