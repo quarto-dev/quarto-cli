@@ -10,17 +10,32 @@ import {
 export const renderCommand = new Command()
   .name("render <input:string>")
   .description("Render a file")
+  .option(
+    "-o, --output [output:string]",
+    "Write to output file instead of stdout",
+  )
+  .example(
+    "Render R Markdown",
+    `quarto render notebook.Rmd`,
+  )
+  .example(
+    "Render Jupyter Notebook",
+    `quarto render notebook.ipynb`,
+  )
   // deno-lint-ignore no-explicit-any
-  .action(async (_options: any, input: string) => {
-    const result = await render(input);
+  .action(async (options: any, input: string) => {
+    const result = await render(input, options.output);
     if (!result.success) {
       Deno.exit(result.code);
     }
   });
 
-export async function render(input: string): Promise<ProcessResult> {
-  // determine output file and preprocessor
-  let output: string;
+export async function render(
+  input: string,
+  output?: string,
+): Promise<ProcessResult> {
+  // determine path to mdInput file and preprocessor
+  let preprocessorOutput: string;
 
   // execute computational preprocessor (if any)
   const ext = extname(input);
@@ -28,14 +43,18 @@ export async function render(input: string): Promise<ProcessResult> {
   if (preprocessor) {
     const inputDir = dirname(input);
     const inputBase = basename(input, ext);
-    output = join(inputDir, inputBase + ".md");
-    await preprocessor.preprocess(input, output);
+    preprocessorOutput = join(inputDir, inputBase + ".md");
+    await preprocessor.preprocess(input, preprocessorOutput);
   } else {
-    output = input;
+    preprocessorOutput = input;
+  }
+
+  // build the pandoc command
+  const cmd = ["pandoc", preprocessorOutput];
+  if (output) {
+    cmd.push("--output", output);
   }
 
   // run pandoc
-  return execProcess({
-    cmd: ["pandoc", output],
-  });
+  return execProcess({ cmd });
 }
