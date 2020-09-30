@@ -80,7 +80,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   }
 
   // build the pandoc command
-  const cmd = ["pandoc", preprocessorOutput];
+  const cmd = ["pandoc", basename(preprocessorOutput)];
   if (options.output) {
     cmd.push("--output", options.output);
   }
@@ -94,14 +94,12 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     cmd.push("--data-dir", options["data-dir"]);
   }
 
-  // write pream
-
   // print command line
   writeLine(Deno.stdout, "\n" + cmd.join(" ") + "\n");
 
   // run pandoc
   return execProcess({
     cmd,
-    cwd: resolve(dirname(options.input)),
+    cwd: dirname(preprocessorOutput),
   });
 }

@@ -9,11 +9,7 @@ export async function execProcess(
   options: Deno.RunOptions,
 ): Promise<ProcessResult> {
   // define process
-  const process = Deno.run({
-    cmd: options.cmd,
-    stdout: options.stdout,
-    stderr: options.stderr,
-  });
+  const process = Deno.run(options);
 
   // await result
   const status = await process.status();
