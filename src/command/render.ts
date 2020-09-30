@@ -71,6 +71,8 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   const ext = extname(options.input);
   const preprocessor = computationPreprocessorForFile(ext);
   if (preprocessor) {
+    const metadata = await preprocessor.metadata(options.input);
+    // console.log(metadata);
     const inputDir = dirname(options.input);
     const inputBase = basename(options.input, ext);
     preprocessorOutput = join(inputDir, inputBase + ".md");
