@@ -4,6 +4,19 @@ args <- commandArgs(trailingOnly = TRUE)[-1]
 input <- args[[1]]
 output <- args[[2]]
 
+# post processor for yaml preservation
+ # add post_processor for yaml preservation
+  post_processor <- function(metadata, input_file, output_file, clean, verbose) {
+    input_lines <- rmarkdown:::read_utf8(input_file)
+    partitioned <- rmarkdown:::partition_yaml_front_matter(input_lines)
+    if (!is.null(partitioned$front_matter)) {
+      output_lines <- c(partitioned$front_matter, "", read_utf8(output_file))
+      rmarkdown:::write_utf8(output_lines, output_file)
+    }
+    output_file
+  }
+  
+
 # synthesize output format
 library(rmarkdown)
 knitr_options <- knitr_options_html(
@@ -18,7 +31,8 @@ pandoc_options <- pandoc_options(
 )
 output_format <- output_format(
   knitr = knitr_options,
-  pandoc = pandoc_options
+  pandoc = pandoc_options,
+  post_processor = post_processor
 )
 
 # run knitr but not pandoc
