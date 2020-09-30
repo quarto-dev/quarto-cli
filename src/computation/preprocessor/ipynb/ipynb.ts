@@ -1,6 +1,7 @@
 import type { Metadata } from "../../../core/metadata.ts";
 import { execProcess } from "../../../core/process.ts";
 import type { ComputationPreprocessor } from "../preprocessor.ts";
+import { resourcePath } from "../../../core/resources.ts";
 
 export const ipynbPreprocessor: ComputationPreprocessor = {
   name: "ipynb",
@@ -17,7 +18,7 @@ export const ipynbPreprocessor: ComputationPreprocessor = {
     const result = await execProcess({
       cmd: [
         Deno.env.get("CONDA_PREFIX")! + "/bin/python",
-        "../src/computation/preprocessor/ipynb/ipynb.py",
+        resourcePath("ipynb.py"),
         file,
         outputFile,
       ],

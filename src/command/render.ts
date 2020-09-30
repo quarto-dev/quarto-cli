@@ -1,5 +1,5 @@
 import { Command } from "cliffy/command/mod.ts";
-import { basename, dirname, resolve, extname, join } from "path/mod.ts";
+import { basename, dirname, extname, join } from "path/mod.ts";
 import { writeLine } from "../core/console.ts";
 
 import { execProcess, ProcessResult } from "../core/process.ts";
