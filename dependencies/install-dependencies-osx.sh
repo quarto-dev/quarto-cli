@@ -1,5 +1,6 @@
 #!/bin/zsh
 
+
 # prerequisites:
 #   - Installation of R
 #   - Installation of Conda
@@ -28,8 +29,10 @@ conda env update -f environment.yml
 # generate quarto symlink
 QUARTO_TS=`realpath ../src/main.ts`
 QUARTO_IMPORT_MAP=`realpath ../src/import_map.json`
+QUARTO_RESOURCES=`realpath ../src/resources/`
 cat > quarto.sh <<EOL
 #!/bin/zsh
+export QUARTO_RESOURCES=${QUARTO_RESOURCES}
 deno run --unstable --allow-read --allow-run --allow-env --importmap=${QUARTO_IMPORT_MAP} ${QUARTO_TS} \$@
 EOL
 chmod +x quarto.sh

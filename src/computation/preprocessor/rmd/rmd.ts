@@ -1,6 +1,7 @@
 import type { Metadata } from "../../../core/metadata.ts";
 import { execProcess } from "../../../core/process.ts";
 import type { ComputationPreprocessor } from "../preprocessor.ts";
+import { resourcePath } from "../../../core/resources.ts";
 
 export const rmdPreprocessor: ComputationPreprocessor = {
   name: "rmd",
@@ -17,7 +18,7 @@ export const rmdPreprocessor: ComputationPreprocessor = {
     const result = await execProcess({
       cmd: [
         "Rscript",
-        "../src/computation/preprocessor/rmd/rmd.R",
+        resourcePath("rmd.R"),
         "--args",
         file,
         outputFile,
