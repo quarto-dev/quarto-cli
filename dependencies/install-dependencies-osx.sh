@@ -30,7 +30,7 @@ QUARTO_TS=`realpath ../src/main.ts`
 QUARTO_IMPORT_MAP=`realpath ../src/import_map.json`
 cat > quarto.sh <<EOL
 #!/bin/zsh
-deno run --unstable --allow-run --allow-env --importmap=${QUARTO_IMPORT_MAP} ${QUARTO_TS} \$@
+deno run --unstable --allow-read --allow-run --allow-env --importmap=${QUARTO_IMPORT_MAP} ${QUARTO_TS} \$@
 EOL
 chmod +x quarto.sh
 QUARTO_SH=`realpath quarto.sh`
