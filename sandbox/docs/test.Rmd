@@ -1,5 +1,7 @@
 ---
 title: Foobar
+quarto:
+   foo: "bar"
 ---
 
 
