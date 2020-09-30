@@ -1,8 +1,8 @@
 import type { ComputationPreprocessor } from "../../../api/computation.ts";
 import { execProcess } from "../../../core/process.ts";
 
-export const nbconvertPreprocessor: ComputationPreprocessor = {
-  name: "nbconvert",
+export const ipynbPreprocessor: ComputationPreprocessor = {
+  name: "ipynb",
 
   canHandle: (ext: string) => {
     return [".ipynb"].includes(ext.toLowerCase());
@@ -12,7 +12,7 @@ export const nbconvertPreprocessor: ComputationPreprocessor = {
     const result = await execProcess({
       cmd: [
         Deno.env.get("CONDA_PREFIX")! + "/bin/python",
-        "../src/computation/preprocessor/nbconvert/nbconv.py",
+        "../src/computation/preprocessor/ipynb/ipynb.py",
         file,
         outputFile,
       ],

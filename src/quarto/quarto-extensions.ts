@@ -1,7 +1,7 @@
 import type { ComputationPreprocessor } from "../api/computation.ts";
 
-import { knitrPreprocessor } from "../computation/preprocessor/knitr/knitr.ts";
-import { nbconvertPreprocessor } from "../computation/preprocessor/nbconvert/nbconv.ts";
+import { rmdPreprocessor } from "../computation/preprocessor/rmd/rmd.ts";
+import { ipynbPreprocessor } from "../computation/preprocessor/ipynb/ipynb.ts";
 
 export function computationPreprocessorForFile(
   ext: string,
@@ -17,7 +17,7 @@ export function computationPreprocessorForFile(
 
 export function computationPreprocessors(): ComputationPreprocessor[] {
   return [
-    knitrPreprocessor,
-    nbconvertPreprocessor,
+    rmdPreprocessor,
+    ipynbPreprocessor,
   ];
 }

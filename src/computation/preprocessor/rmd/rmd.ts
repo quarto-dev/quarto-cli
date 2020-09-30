@@ -1,8 +1,8 @@
 import type { ComputationPreprocessor } from "../../../api/computation.ts";
 import { execProcess } from "../../../core/process.ts";
 
-export const knitrPreprocessor: ComputationPreprocessor = {
-  name: "knitr",
+export const rmdPreprocessor: ComputationPreprocessor = {
+  name: "rmd",
 
   canHandle: (ext: string) => {
     return [".rmd", ".rmarkdown"].includes(ext.toLowerCase());
@@ -12,7 +12,7 @@ export const knitrPreprocessor: ComputationPreprocessor = {
     const result = await execProcess({
       cmd: [
         "Rscript",
-        "../src/computation/preprocessor/knitr/knitr.R",
+        "../src/computation/preprocessor/rmd/rmd.R",
         "--args",
         file,
         outputFile,
