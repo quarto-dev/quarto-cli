@@ -82,9 +82,13 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     const fileMetadata = await preprocessor.metadata(options.input);
 
     // derive quarto config from merge of project config into file config
-    const config = mergeConfigs(projConfig, fileMetadata.quarto || {});
+    const _config = mergeConfigs(projConfig, fileMetadata.quarto || {});
 
-    console.log(config);
+    // determine the format by looking at the config
+
+    // call format.create
+
+    // pass all the preprocessor options to the preprocessor
 
     const inputDir = dirname(options.input);
     const inputBase = basename(options.input, ext);
@@ -108,6 +112,10 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   if (options["data-dir"]) {
     cmd.push("--data-dir", options["data-dir"]);
   }
+
+  // use the format to throw args at pandoc
+
+  // use the format for clean_supporting, keep_md, etc.
 
   // print command line
   writeLine(Deno.stdout, "\n" + cmd.join(" ") + "\n");
