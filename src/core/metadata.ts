@@ -10,8 +10,12 @@ export type Metadata = {
 export async function metadataFromMarkdown(
   markdown: string,
 ): Promise<Metadata> {
-  const result = await execProcess(pandocMetadataRunOptions([]), markdown);
-  return handleMetadataResult(result);
+  if (markdown) {
+    const result = await execProcess(pandocMetadataRunOptions([]), markdown);
+    return handleMetadataResult(result);
+  } else {
+    return {};
+  }
 }
 
 export async function metadataFromFile(file: string): Promise<Metadata> {

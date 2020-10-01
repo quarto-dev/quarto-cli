@@ -4,10 +4,10 @@ Deno.test("Simple Markdown Render", async () => {
   await quarto(["render", "docs/test-plain.md"]);
 });
 
-Deno.test("Python Notebook Render", async () => {
+Deno.test("Rmd Render", async () => {
   await quarto(["render", "docs/test.Rmd"]);
 });
 
-Deno.test("R Markdown Render", async () => {
+Deno.test("ipynb render", async () => {
   await quarto(["render", "docs/test.ipynb"]);
 });
