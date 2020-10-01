@@ -2,7 +2,7 @@ import type { Metadata } from "../../../core/metadata.ts";
 import { execProcess } from "../../../core/process.ts";
 import type { ComputationPreprocessor } from "../preprocessor.ts";
 import { resourcePath } from "../../../core/resources.ts";
-import { readMetadata } from "../../../core/pandoc.ts";
+import { metadataFromMarkdown } from "../../../core/metadata.ts";
 
 export const ipynbPreprocessor: ComputationPreprocessor = {
   name: "ipynb",
@@ -24,7 +24,7 @@ export const ipynbPreprocessor: ComputationPreprocessor = {
       }
     }, "");
 
-    return readMetadata(markdown);
+    return metadataFromMarkdown(markdown);
   },
 
   preprocess: async (file: string, outputFile: string): Promise<void> => {
