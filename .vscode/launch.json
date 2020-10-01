@@ -19,6 +19,9 @@
         "--inspect-brk",
         "--allow-all"
       ],
+      "env": {
+        "QUARTO_RESOURCES": "${workspaceFolder}/src/resources"
+      },
       "attachSimplePort": 9229
     }
   ]
