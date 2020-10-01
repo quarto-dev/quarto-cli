@@ -2,6 +2,7 @@
   "imports": {
     "flags/": "https://deno.land/std/flags/",
     "path/": "https://deno.land/std/path/",
-    "cliffy/": "https://deno.land/x/cliffy/"
+    "cliffy/": "https://deno.land/x/cliffy/",
+    "lodash/": "https://deno.land/x/deno_lodash/"
   }
 }
