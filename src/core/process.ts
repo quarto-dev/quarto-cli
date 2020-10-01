@@ -7,9 +7,18 @@ export interface ProcessResult {
 
 export async function execProcess(
   options: Deno.RunOptions,
+  stdin?: string,
 ): Promise<ProcessResult> {
   // define process
-  const process = Deno.run(options);
+  const process = Deno.run({
+    ...options,
+    stdin: stdin ? "piped" : options.stdin,
+  });
+
+  if (stdin) {
+    await process.stdin!.write(new TextEncoder().encode(stdin));
+    process.stdin!.close();
+  }
 
   // await result
   const status = await process.status();
