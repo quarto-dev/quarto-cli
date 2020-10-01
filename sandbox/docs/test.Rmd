@@ -2,6 +2,7 @@
 title: Foobar
 quarto:
    foo: "bar"
+   bar: "bar"
 ---
 
 

@@ -2,7 +2,7 @@ import type { Metadata } from "../../../core/metadata.ts";
 import { execProcess } from "../../../core/process.ts";
 import type { ComputationPreprocessor } from "../preprocessor.ts";
 import { resourcePath } from "../../../core/resources.ts";
-import { readMetadataFromFile } from "../../../core/pandoc.ts";
+import { metadataFromFile } from "../../../core/metadata.ts";
 
 export const rmdPreprocessor: ComputationPreprocessor = {
   name: "rmd",
@@ -11,7 +11,7 @@ export const rmdPreprocessor: ComputationPreprocessor = {
     return [".rmd", ".rmarkdown"].includes(ext.toLowerCase());
   },
 
-  metadata: readMetadataFromFile,
+  metadata: metadataFromFile,
 
   preprocess: async (file: string, outputFile: string): Promise<void> => {
     const result = await execProcess({

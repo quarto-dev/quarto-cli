@@ -1,9 +1,8 @@
 import { Command } from "cliffy/command/mod.ts";
-import { ld } from "lodash/mod.ts";
 
 import { basename, dirname, extname, join } from "path/mod.ts";
+import { mergeConfigs, projectConfig, QuartoConfig } from "../core/config.ts";
 import { writeLine } from "../core/console.ts";
-import type { Metadata } from "../core/metadata.ts";
 
 import { execProcess, ProcessResult } from "../core/process.ts";
 
@@ -53,7 +52,9 @@ export const renderCommand = new Command()
         Deno.exit(result.code);
       }
     } catch (error) {
-      // error diagnostics already written to stderr
+      if (error) {
+        writeLine(Deno.stderr, error.toString());
+      }
       Deno.exit(1);
     }
   });
@@ -67,10 +68,8 @@ export interface RenderOptions {
 }
 
 export async function render(options: RenderOptions): Promise<ProcessResult> {
-  // look for a 'project' _quarto.yml starting with input file dir and
-  // then in all parent directories
-
-  const projectMetadata: Metadata = {};
+  // look for a 'project' _quarto.yml
+  const projConfig: QuartoConfig = await projectConfig(options.input);
 
   // determine path to mdInput file and preprocessor
   let preprocessorOutput: string;
@@ -79,10 +78,13 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   const ext = extname(options.input);
   const preprocessor = computationPreprocessorForFile(ext);
   if (preprocessor) {
+    // extract metadata
     const fileMetadata = await preprocessor.metadata(options.input);
 
-    // merge with project metadata
-    const metadata = ld.merge(projectMetadata, fileMetadata);
+    // derive quarto config from merge of project config into file config
+    const config = mergeConfigs(projConfig, fileMetadata.quarto || {});
+
+    console.log(config);
 
     const inputDir = dirname(options.input);
     const inputBase = basename(options.input, ext);
