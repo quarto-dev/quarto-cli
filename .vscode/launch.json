@@ -9,8 +9,8 @@
       "request": "launch",
       "type": "pwa-node",
       "program": "${workspaceFolder}/src/main.ts",
-      "args": ["render", "docs/test.Rmd"],
-      "cwd": "${workspaceFolder}/sandbox",
+      "args": ["render", "test.ipynb"],
+      "cwd": "${workspaceFolder}/sandbox/docs",
       "runtimeExecutable": "deno",
       "runtimeArgs": [
         "run",

@@ -2,6 +2,7 @@ import type { Metadata } from "../../../core/metadata.ts";
 import { execProcess } from "../../../core/process.ts";
 import type { ComputationPreprocessor } from "../preprocessor.ts";
 import { resourcePath } from "../../../core/resources.ts";
+import { readMetadata } from "../../../core/pandoc.ts";
 
 export const ipynbPreprocessor: ComputationPreprocessor = {
   name: "ipynb",
@@ -11,7 +12,19 @@ export const ipynbPreprocessor: ComputationPreprocessor = {
   },
 
   metadata: async (file: string): Promise<Metadata> => {
-    return {};
+    const decoder = new TextDecoder("utf-8");
+    const ipynbContents = await Deno.readFile(file);
+    const ipynb = JSON.parse(decoder.decode(ipynbContents));
+    const cells = ipynb.cells as Array<{ cell_type: string; source: string[] }>;
+    const markdown = cells.reduce((md, cell) => {
+      if (cell.cell_type === "markdown") {
+        return md + "\n" + cell.source.join("");
+      } else {
+        return md;
+      }
+    }, "");
+
+    return readMetadata(markdown);
   },
 
   preprocess: async (file: string, outputFile: string): Promise<void> => {
