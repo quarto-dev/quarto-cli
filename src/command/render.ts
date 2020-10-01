@@ -1,6 +1,9 @@
 import { Command } from "cliffy/command/mod.ts";
+import { ld } from "lodash/mod.ts";
+
 import { basename, dirname, extname, join } from "path/mod.ts";
 import { writeLine } from "../core/console.ts";
+import type { Metadata } from "../core/metadata.ts";
 
 import { execProcess, ProcessResult } from "../core/process.ts";
 
@@ -64,6 +67,11 @@ export interface RenderOptions {
 }
 
 export async function render(options: RenderOptions): Promise<ProcessResult> {
+  // look for a 'project' _quarto.yml starting with input file dir and
+  // then in all parent directories
+
+  const projectMetadata: Metadata = {};
+
   // determine path to mdInput file and preprocessor
   let preprocessorOutput: string;
 
@@ -71,7 +79,11 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   const ext = extname(options.input);
   const preprocessor = computationPreprocessorForFile(ext);
   if (preprocessor) {
-    const metadata = await preprocessor.metadata(options.input);
+    const fileMetadata = await preprocessor.metadata(options.input);
+
+    // merge with project metadata
+    const metadata = ld.merge(projectMetadata, fileMetadata);
+
     const inputDir = dirname(options.input);
     const inputBase = basename(options.input, ext);
     preprocessorOutput = join(inputDir, inputBase + ".md");
