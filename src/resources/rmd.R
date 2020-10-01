@@ -25,6 +25,9 @@ knitr_options <- knitr_options_html(
   FALSE,
   dev = "png"
 )
+knitr_options$opts_chunk$fig_retina <- 2
+knitr_options$opts_chunk$comment <- NA
+
 pandoc_options <- pandoc_options(
   to = "html"
 )
