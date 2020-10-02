@@ -1,4 +1,6 @@
 
+library(rmarkdown)
+
 # read input from stdin
 stdin <- file("stdin", "r")
 input <- readLines(stdin, warn = FALSE)
@@ -8,7 +10,7 @@ close(stdin)
 params <- jsonlite::parse_json(input)
 format <- params$format
 
- # add post_processor for yaml preservation
+#  post_processor for yaml preservation
 post_processor <- function(metadata, input_file, output_file, clean, verbose) {
   input_lines <- rmarkdown:::read_utf8(input_file)
   partitioned <- rmarkdown:::partition_yaml_front_matter(input_lines)
@@ -19,11 +21,12 @@ post_processor <- function(metadata, input_file, output_file, clean, verbose) {
   output_file
 }
 
-# synthesize output format
-library(rmarkdown)
+# create output format
 
+# may need some knit hooks
 knit_hooks <- list()
 
+# opt_knit for compatibility w/ rmarkdown::render
 opts_knit <- list(
   quarto.version = 1,
   rmarkdown.pandoc.from = format$pandoc$from,
@@ -34,7 +37,9 @@ opts_knit <- list(
   rmarkdown.runtime = "static"
 )
 
+# opts_chunk
 opts_chunk <- list(
+  # options derived from format
   dev = format$preprocessor$fig_format,
   fig_width = format$preprocessor$fig_width,
   fig_height = format$preprocessor$fig_height,
@@ -42,31 +47,30 @@ opts_chunk <- list(
   echo = !format$preprocessor$hide_code,
   warning = format$preprocessor$show_warnings,
   message = format$preprocessor$show_messages,
-  # TODO: should these be configurable?
+  # hard coded (overiddeable in setup chunk but not format)
   fig_retina = 2,
   comment = NA
 )
 
-if (opts_chunk$dev == 'pdf') {
-  # set the dingbats option for the pdf device if required
+# set the dingbats option for the pdf device if required
+if (opts_chunk$dev == 'pdf')
   opts_chunk$dev.args <- list(pdf = list(useDingbats = FALSE))
 
-  # apply cropping if requested and we have pdfcrop and ghostscript
-  crop <- find_program("pdfcrop") != '' && tools::find_gs_cmd() != ''
-  if (crop) {
-    knit_hooks$crop = knitr::hook_pdfcrop
-    opts_chunk$crop = TRUE
-  }
+# apply cropping if requested and we have pdfcrop and ghostscript
+crop <- find_program("pdfcrop") != '' && tools::find_gs_cmd() != ''
+if (crop) {
+  knit_hooks$crop = knitr::hook_pdfcrop
+  opts_chunk$crop = TRUE
 }
 
+# knitr_options
 knitr <- knitr_options(
   opts_knit = opts_knit,
   opts_chunk = opts_chunk,
   knit_hooks = knit_hooks
 )
 
-str(format$pandoc)
-
+# pandoc_options
 pandoc <- pandoc_options(
   to = format$pandoc$to,
   from = format$pandoc$from,
@@ -75,6 +79,7 @@ pandoc <- pandoc_options(
   ext = format$pandoc$ext
 )
 
+# create format
 output_format <- output_format(
   knitr = knitr,
   pandoc = pandoc,
@@ -91,7 +96,10 @@ md_result <- rmarkdown::render(
 )
 
 # rename the markdown file
-invisible(file.rename(file.path(dirname(input), md_result), params$output))
+invisible(file.rename(
+  file.path(dirname(params$input), md_result),
+  params$output
+))
 
 # write the result to stdout
 resultJson <- jsonlite::toJSON(list(
