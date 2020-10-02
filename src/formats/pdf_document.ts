@@ -5,7 +5,10 @@ export const pdfDocument: FormatDefinition = {
   name: "pdf_document",
 
   options: [
-    ...standardDocOptions(),
+    ...standardDocOptions({
+      fig_width: 6.5,
+      fig_height: 4.5,
+    }),
   ],
 
   create: (options: FormatOptions) => {
@@ -15,7 +18,7 @@ export const pdfDocument: FormatDefinition = {
     const fig_height = options.fig_height as number;
 
     // build pandoc args
-    const args: string[] = [];
+    const args: string[] = ["--self-contained"];
 
     // table of contents
     if (toc) {
@@ -33,6 +36,8 @@ export const pdfDocument: FormatDefinition = {
         ext: "pdf",
         args,
       },
+
+      clean_supporting: true,
     };
   },
 };

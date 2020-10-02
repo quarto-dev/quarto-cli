@@ -26,7 +26,7 @@ export interface Format {
     fig_width?: number; // default: 7in
     fig_height?: number; // default: 5in
     fig_format?: "png" | "pdf"; // default: "png"
-    fig_dpi?: number; // default: 72
+    fig_dpi?: number; // default: 96
     hide_code?: boolean; // default: false
     show_warnings?: boolean; // default: false
     show_messages?: boolean; // default: false

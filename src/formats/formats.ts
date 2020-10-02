@@ -1,3 +1,4 @@
+import { fromFileUrl } from "https://deno.land/std@0.71.0/path/win32.ts";
 import type { FormatDefinition, FormatOptions } from "../api/format.ts";
 import type { QuartoConfig } from "../core/config.ts";
 
@@ -15,6 +16,7 @@ export function formatFromConfig(config: QuartoConfig, name?: string) {
       options = config.output[name] || {};
     }
   } else {
+    name = htmlDocument.name;
     if (config.output) {
       const formats = Object.keys(config.output);
       if (formats.length > 0) {
@@ -38,7 +40,34 @@ export function formatFromConfig(config: QuartoConfig, name?: string) {
   });
 
   // create the format
-  return format.create(resolvedOptions);
+  const fmt = format.create(resolvedOptions);
+
+  // provide defaults
+  fmt.preprocessor = fmt.preprocessor || {};
+  fmt.preprocessor = {
+    fig_width: 7,
+    fig_height: 5,
+    fig_format: "png",
+    fig_dpi: 96,
+    hide_code: false,
+    show_warnings: false,
+    show_messages: false,
+    ...fmt.preprocessor,
+  };
+  fmt.pandoc = fmt.pandoc || {};
+  fmt.pandoc = {
+    to: "html5",
+    from: "markdown",
+    ext: undefined,
+    args: [],
+    ...fmt.pandoc,
+  };
+
+  fmt.keep_md = fmt.keep_md || false;
+  fmt.keep_tex = fmt.keep_tex || false;
+  fmt.clean_supporting = fmt.clean_supporting || false;
+
+  return fmt;
 }
 
 const allFormats: FormatDefinition[] = [
