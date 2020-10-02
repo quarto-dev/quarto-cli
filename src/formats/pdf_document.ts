@@ -1,8 +1,8 @@
 import type { FormatDefinition, FormatOptions } from "../api/format.ts";
 import { standardDocOptions } from "./common/options.ts";
 
-export const htmlDocument: FormatDefinition = {
-  name: "html_document",
+export const pdfDocument: FormatDefinition = {
+  name: "pdf_document",
 
   options: [
     ...standardDocOptions(),
@@ -29,7 +29,8 @@ export const htmlDocument: FormatDefinition = {
       },
 
       pandoc: {
-        to: "html5",
+        to: "latex",
+        ext: "pdf",
         args,
       },
     };
