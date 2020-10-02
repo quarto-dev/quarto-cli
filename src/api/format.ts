@@ -11,6 +11,9 @@ export interface FormatDefinition {
   // format options
   options: FormatOption[];
 
+  // tex packages required by this format
+  tex_packages?: string[];
+
   // create an instance of this format w/ the provided options
   create: (options: { [key: string]: unknown }) => Format;
 }
@@ -34,10 +37,10 @@ export interface Format {
     args?: string[]; // pandoc command line arguments
   };
 
-  // clean supporting files?
-  clean_supporting?: boolean;
-
   // keep intermediate markdown or tex?
   keep_md?: boolean;
   keep_tex?: boolean;
+
+  // clean supporting files?
+  clean_supporting?: boolean;
 }
