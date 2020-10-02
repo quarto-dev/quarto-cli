@@ -24,10 +24,6 @@ export const renderCommand = new Command()
     "Write to output file instead of stdout",
   )
   .option(
-    "-d, --defaults [defaults:string]",
-    "Specify a set of pandoc command line arguments (https://pandoc.org/MANUAL.html#default-files).",
-  )
-  .option(
     "--data-dir [data-dir:string]",
     "Specify the user data directory to search for pandoc data files.",
   )
@@ -63,7 +59,6 @@ export interface RenderOptions {
   input: string;
   to?: string;
   output?: string;
-  defaults?: string;
   "data-dir"?: string;
 }
 
@@ -104,11 +99,9 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     cmd.push("--output", options.output);
   }
   if (options.to) {
-    cmd.push("--to", options.to.replace(/^pandoc:/, ""));
+    cmd.push("--to", options.to);
   }
-  if (options.defaults) {
-    cmd.push("--defaults", options.defaults);
-  }
+
   if (options["data-dir"]) {
     cmd.push("--data-dir", options["data-dir"]);
   }
