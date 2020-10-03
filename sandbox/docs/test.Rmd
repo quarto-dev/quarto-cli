@@ -1,4 +1,5 @@
 ---
+title: "Woozy Foobar"
 quarto: 
    output:
       html_document:

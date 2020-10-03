@@ -131,6 +131,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   // TODO: use the format for clean_supporting, keep_md, etc.
 
   // print command line
+  // TODO: escape arguments
   writeLine(Deno.stdout, "\n" + cmd.join(" ") + "\n");
 
   // run pandoc
@@ -139,6 +140,8 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     cwd: dirname(preprocessorOutput),
     stdout: "piped",
   });
+
+  // TODO: print output file (for rstudio preview)
 
   return result;
 }
