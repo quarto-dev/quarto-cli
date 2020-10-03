@@ -92,6 +92,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     format = formatFromConfig(config, options.to);
 
     // TODO: make sure we don't overrwite existing .md
+    // TODO: may want to ensure foo.quarto-rmd.md, foo.quarto-ipynb.md, etc.
 
     const inputDir = dirname(options.input);
     const inputBase = basename(options.input, ext);
@@ -106,6 +107,8 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
 
   if (options.output) {
     cmd.push("--output", options.output);
+
+    // TODO: overwrite protection
   } else if (format?.pandoc?.ext) {
     cmd.push(
       "--output",
@@ -125,7 +128,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     cmd.push("--data-dir", options["data-dir"]);
   }
 
-  // use the format for clean_supporting, keep_md, etc.
+  // TODO: use the format for clean_supporting, keep_md, etc.
 
   // print command line
   writeLine(Deno.stdout, "\n" + cmd.join(" ") + "\n");
@@ -136,8 +139,6 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     cwd: dirname(preprocessorOutput),
     stdout: "piped",
   });
-
-  console.log(result.stdout);
 
   return result;
 }
