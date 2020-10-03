@@ -1,3 +1,5 @@
+import { parse } from "encoding/yaml.ts";
+
 import type { QuartoConfig } from "./config.ts";
 import { execProcess, ProcessResult } from "./process.ts";
 import { resourcePath } from "./resources.ts";
@@ -40,6 +42,10 @@ function pandocMetadataRunOptions(args: string[]): Deno.RunOptions {
     cmd: [
       "pandoc",
       "--template=" + resourcePath("metadata.template"),
+      "--from",
+      "markdown",
+      "--to",
+      "markdown",
       ...args,
     ],
     stdout: "piped",
@@ -49,7 +55,10 @@ function pandocMetadataRunOptions(args: string[]): Deno.RunOptions {
 
 function handleMetadataResult(result: ProcessResult): Promise<Metadata> {
   if (result.success) {
-    const metadata = JSON.parse(result.stdout || "{}");
+    const yaml = (result.stdout || "{}")
+      .replace(/^---/, "")
+      .replace(/---\s*$/, "");
+    const metadata = parse(yaml);
     return Promise.resolve((metadata || {}) as Metadata);
   } else {
     return Promise.reject(new Error(result.stderr));
