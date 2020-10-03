@@ -1,1 +1,3 @@
-$meta-json$
+$if(titleblock)$
+$titleblock$
+$endif$
