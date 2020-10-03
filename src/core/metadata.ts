@@ -7,6 +7,18 @@ export type Metadata = {
   [key: string]: unknown;
 };
 
+// this command line:
+// pandoc test.Rmd  --from markdown  -t markdown --template=metadata.template
+// along w/ this template:
+/*
+$if(titleblock)$
+$titleblock$
+$endif$
+*/
+// would get us the title block but only the title block. may need to actually
+// process the file line by line to get raw yaml (as $meta-json$ interpets
+// true as "true", etc.)
+
 export async function metadataFromMarkdown(
   markdown: string,
 ): Promise<Metadata> {
