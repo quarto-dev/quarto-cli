@@ -110,10 +110,8 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   const cmd = ["pandoc", basename(preprocessorOutput)];
 
   // TODO: currently can't use stdout due to knitr using it
-  const output = options.output || join(
-    dirname(options.input),
-    basename(options.input, ext) + "." + (format?.pandoc?.ext || "html"),
-  );
+  const output = options.output ||
+    basename(options.input, ext) + "." + (format?.pandoc?.ext || "html");
 
   cmd.push("--output", output);
 
