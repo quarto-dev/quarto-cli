@@ -1,14 +1,14 @@
 ---
 title: "Woozy Foobar"
+knit: quarto render
 ---
 
 ---
 quarto: 
-   output:
-      html_document:
-        self_contained: true
+  output:
+    pdf_document:
+      self_contained: true
 ---
-
 
 ```{r}
 plot(cars)
