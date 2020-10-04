@@ -42,7 +42,9 @@ export const ipynbPreprocessor: ComputationPreprocessor = {
       ],
     });
 
-    if (!result.success) {
+    if (result.success) {
+      //
+    } else {
       return Promise.reject();
     }
   },

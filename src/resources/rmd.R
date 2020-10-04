@@ -110,7 +110,9 @@ resultJson <- jsonlite::toJSON(list(
   knit_meta = attr(md_result, "knit_meta"),
   intermediates = attr(md_result, "intermediates")
 ))
-cat(resultJson)
+
+# TODO: communicate this back to the parent somehow
+# (we already use stdout for knitr progress)
 
 
 

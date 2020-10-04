@@ -12,8 +12,6 @@ import {
   computationPreprocessorForFile,
 } from "../quarto/quarto-extensions.ts";
 
-// --to pandoc:html
-
 export const renderCommand = new Command()
   .name("render <input:string>")
   .description("Render a file")
@@ -97,7 +95,13 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     const inputDir = dirname(options.input);
     const inputBase = basename(options.input, ext);
     preprocessorOutput = join(inputDir, inputBase + ".md");
-    await preprocessor.preprocess(options.input, format, preprocessorOutput);
+    const result = await preprocessor.preprocess(
+      options.input,
+      format,
+      preprocessorOutput,
+    );
+
+    // TODO: clean intermediates referenced in result
   } else {
     preprocessorOutput = options.input;
   }
@@ -105,19 +109,14 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   // build the pandoc command
   const cmd = ["pandoc", basename(preprocessorOutput)];
 
-  if (options.output) {
-    cmd.push("--output", options.output);
+  // TODO: currently can't use stdout due to knitr using it
+  const output = options.output || join(
+    dirname(options.input),
+    basename(options.input, ext) + "." + (format?.pandoc?.ext || "html"),
+  );
 
-    // TODO: overwrite protection
-  } else if (format?.pandoc?.ext) {
-    cmd.push(
-      "--output",
-      join(
-        dirname(options.input),
-        basename(options.input, ext) + "." + format.pandoc.ext,
-      ),
-    );
-  }
+  cmd.push("--output", output);
+
   if (format?.pandoc?.to) {
     cmd.push("--to", format?.pandoc?.to);
   }
@@ -132,16 +131,16 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
 
   // print command line
   // TODO: escape arguments
-  writeLine(Deno.stdout, "\n" + cmd.join(" ") + "\n");
+  writeLine(Deno.stdout, cmd.join(" ") + "\n");
 
   // run pandoc
   const result = await execProcess({
     cmd,
     cwd: dirname(preprocessorOutput),
-    stdout: "piped",
   });
 
-  // TODO: print output file (for rstudio preview)
+  // TODO: correct relative path so the IDE will always be able to preview it
+  writeLine(Deno.stderr, "Output created: " + output + "\n");
 
   return result;
 }

@@ -35,7 +35,9 @@ export const rmdPreprocessor: ComputationPreprocessor = {
       input,
     );
 
-    if (!result.success) {
+    if (result.success) {
+      //
+    } else {
       return Promise.reject();
     }
   },
