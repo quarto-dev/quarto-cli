@@ -58,7 +58,7 @@ export function formatFromConfig(config: QuartoConfig, name?: string) {
   fmt.pandoc = {
     to: "html5",
     from: "markdown",
-    ext: undefined,
+    ext: "html",
     args: [],
     ...fmt.pandoc,
   };
