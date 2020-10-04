@@ -13,3 +13,7 @@ quarto:
 ```{r}
 plot(cars)
 ```
+
+```{r}
+summary(cars)
+```
