@@ -1,3 +1,0 @@
-$if(titleblock)$
-$titleblock$
-$endif$
