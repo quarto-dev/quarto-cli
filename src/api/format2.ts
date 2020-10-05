@@ -10,6 +10,7 @@ export interface FormatFigureOptions {
 export interface FormatShowOptions {
   code?: boolean;
   warnings?: boolean;
+  errors?: boolean;
 }
 
 export interface FormatKeepOptions {
@@ -30,8 +31,8 @@ export interface FormatOptions2 {
   pandoc?: FormatPandocOptions;
 }
 
-export function formatOptions(options: FormatOptions2) {
-  return mergeFormatOptions(defaultFormatOptions(), options);
+export function formatOptions(...options: FormatOptions2[]) {
+  return mergeFormatOptions(defaultFormatOptions(), ...options);
 }
 
 export function mergeFormatOptions(
@@ -51,6 +52,7 @@ export function defaultFormatOptions(): FormatOptions2 {
     show: {
       code: true,
       warnings: true,
+      errors: false,
     },
     keep: {
       md: false,

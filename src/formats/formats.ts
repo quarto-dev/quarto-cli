@@ -34,20 +34,16 @@ import { pdfDocument } from "./pdf_document.ts";
      foo: bar
 */
 
+const formatDefaults: { [key: string]: FormatOptions2 } = {
+  pdf: pdfOptions(),
+  beamer: beamerOptions(),
+  html: htmlOptions(),
+  html4: htmlOptions(),
+  html5: htmlOptions(),
+};
+
 export function formatOptionsFromConfig(to: string, config: QuartoConfig) {
-  let options: FormatOptions2 | undefined;
-
-  switch (to) {
-    case "pdf":
-      options = pdfOptions();
-      break;
-
-    case "html":
-    case "html4":
-    case "html5":
-      options = htmlOptions();
-      break;
-  }
+  let defaults = formatDefaults[to] || defaultFormatOptions();
 }
 
 function pdfOptions() {
@@ -58,9 +54,22 @@ function pdfOptions() {
       format: "pdf",
     },
     pandoc: {
+      ext: "pdf",
       args: ["--self-contained"],
     },
   });
+}
+
+function beamerOptions() {
+  return formatOptions(
+    pdfOptions(),
+    {
+      figure: {
+        width: 10,
+        height: 7,
+      },
+    },
+  );
 }
 
 function htmlOptions() {
