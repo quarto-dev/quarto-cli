@@ -1,5 +1,10 @@
 import { fromFileUrl } from "https://deno.land/std@0.71.0/path/win32.ts";
 import type { FormatDefinition, FormatOptions } from "../api/format.ts";
+import {
+  defaultFormatOptions,
+  formatOptions,
+  FormatOptions2,
+} from "../api/format2.ts";
 import type { QuartoConfig } from "../core/config.ts";
 
 import { htmlDocument } from "./html_document.ts";
@@ -7,6 +12,64 @@ import { pdfDocument } from "./pdf_document.ts";
 
 // TODO: currently we ignore invalid options (non-specified or wrong type)
 // need a more robust mechanism here
+
+/*
+
+  figure:
+    width: 7
+    height: 5
+    format: "png"
+    dpi: 96
+
+  show:
+    code: true
+    warnings: false
+
+  keep:
+    md: false
+    tex: false
+    supporting: true
+
+  pandoc: 
+     foo: bar
+*/
+
+export function formatOptionsFromConfig(to: string, config: QuartoConfig) {
+  let options: FormatOptions2 | undefined;
+
+  switch (to) {
+    case "pdf":
+      options = pdfOptions();
+      break;
+
+    case "html":
+    case "html4":
+    case "html5":
+      options = htmlOptions();
+      break;
+  }
+}
+
+function pdfOptions() {
+  return formatOptions({
+    figure: {
+      width: 6.5,
+      height: 4.5,
+      format: "pdf",
+    },
+    pandoc: {
+      args: ["--self-contained"],
+    },
+  });
+}
+
+function htmlOptions() {
+  return formatOptions({
+    pandoc: {
+      args: ["--standalone"],
+    },
+  });
+}
 
 export function formatFromConfig(config: QuartoConfig, name?: string) {
   // if there is an explicit name then look for it in the config
