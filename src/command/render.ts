@@ -14,6 +14,7 @@ import { formatFromConfig } from "../formats/formats.ts";
 //  - we add a 'synthetic' pdf format, that writes latex -> pdf
 //  - pdf and beamer always write pdf, keep_tex or --output test.tex is how you get the latex
 //  - we need to pass --output through to pandoc
+// default --standalone on for html (then allow user to do standalone: false)
 
 // TODO: formats as pandoc passthrough
 //  - handle input file positionally as we do now
