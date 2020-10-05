@@ -30,37 +30,34 @@ import {
 } from "../quarto/quarto-extensions.ts";
 
 export const renderCommand = new Command()
-  .name("render <input:string>")
-  .description("Render a file")
+  .name("render")
+  .stopEarly()
+  .arguments("<input:string> [...pandoc-args:string]")
+  .description(
+    "Render a file using the supplied target format and pandoc command line arguments.",
+  )
   .option(
     "-t, --to [to:string]",
-    "Specify output format to convert to (e.g. pandoc:html5)",
-  )
-  .option(
-    "-o, --output [output:string]",
-    "Write to output file instead of stdout",
-  )
-  .option(
-    "--data-dir [data-dir:string]",
-    "Specify the user data directory to search for pandoc data files.",
+    "Specify output format to convert to (e.g. html, pdf)",
   )
   .example(
     "Render R Markdown",
-    `quarto render notebook.Rmd`,
+    "quarto render notebook.Rmd\n" +
+      "quarto render notebook.Rmd --to html\n" +
+      "quarto render notebook.Rmd --to pdf --toc",
   )
   .example(
     "Render Jupyter Notebook",
-    `quarto render notebook.ipynb`,
+    "quarto render notebook.ipynb\n" +
+      "quarto render notebook.ipynb --to docx\n" +
+      "quarto render notebook.ipynb --to docx --highlight-style=espresso\n",
   )
   // deno-lint-ignore no-explicit-any
-  .action(async (options: any, input: string) => {
+  .action(async (options: any, input: string, pandocArgs: string[]) => {
+    console.log(pandocArgs);
     try {
-      const result = await render({ input, ...options });
-      if (result.success) {
-        if (options.output) {
-          writeLine(Deno.stderr, "Output created: " + options.output + "\n");
-        }
-      } else {
+      const result = await render({ input, to: options.to, pandocArgs });
+      if (!result.success) {
         // error diagnostics already written to stderr
         Deno.exit(result.code);
       }
@@ -75,8 +72,7 @@ export const renderCommand = new Command()
 export interface RenderOptions {
   input: string;
   to?: string;
-  output?: string;
-  "data-dir"?: string;
+  pandocArgs: string[];
 }
 
 // self_contained isn't working (we aren't getting base64 encoded images or intermedates)
@@ -127,8 +123,9 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   const cmd = ["pandoc", basename(preprocessorOutput)];
 
   // TODO: currently can't use stdout due to knitr using it
-  const output = options.output ||
-    basename(options.input, ext) + "." + (format?.pandoc?.ext || "html");
+  // TODO: need to actually respect if a pandoc --output or --O is passed
+  const output = basename(options.input, ext) + "." +
+    (format?.pandoc?.ext || "html");
 
   cmd.push("--output", output);
 
@@ -138,9 +135,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   if (format?.pandoc?.args) {
     cmd.push(...format?.pandoc?.args);
   }
-  if (options["data-dir"]) {
-    cmd.push("--data-dir", options["data-dir"]);
-  }
+  cmd.push(...options.pandocArgs);
 
   // TODO: use the format for clean_supporting, keep_md, etc.
 
