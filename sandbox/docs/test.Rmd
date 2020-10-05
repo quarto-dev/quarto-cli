@@ -10,9 +10,13 @@ quarto:
       self_contained: true
 ---
 
+## Plot 1
+
 ```{r}
 plot(cars)
 ```
+
+## Plot 2
 
 ```{r}
 summary(cars)
