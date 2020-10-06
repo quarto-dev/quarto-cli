@@ -39,9 +39,9 @@ export function optionsFromConfig(writer: string, config: QuartoConfig) {
 const kDefaultFormatOptions: { [key: string]: FormatOptions } = {
   pdf: pdfOptions(),
   beamer: beamerOptions(),
-  html: htmlOptions("html"),
-  html4: htmlOptions("html4"),
-  html5: htmlOptions("html5"),
+  html: htmlOptions(),
+  html4: htmlOptions(),
+  html5: htmlOptions(),
   revealjs: htmlOptions("revealjs", 8, 6),
 };
 
@@ -77,7 +77,7 @@ function beamerOptions() {
   );
 }
 
-function htmlOptions(writer: string, figwidth = 7, figheight = 5) {
+function htmlOptions(figwidth = 7, figheight = 5) {
   return formatOptions("html", {
     figure: {
       width: figwidth,
