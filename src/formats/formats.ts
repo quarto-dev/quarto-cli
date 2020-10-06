@@ -33,8 +33,8 @@ function pdfOptions() {
     },
     pandoc: {
       writer: "latex",
-      ext: "pdf",
-      args: ["--self-contained"],
+      "output-ext": "pdf",
+      "self-contained": true,
     },
   });
 }
@@ -58,7 +58,7 @@ function htmlOptions(writer: string) {
   return formatOptions({
     pandoc: {
       writer,
-      args: ["--standalone"],
+      standalone: true,
     },
   });
 }

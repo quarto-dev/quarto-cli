@@ -5,9 +5,11 @@ import { parse } from "encoding/yaml.ts";
 import { ld } from "lodash/mod.ts";
 
 import { metadataFromFile, metadataFromMarkdown } from "./metadata.ts";
+import type { FormatPandocOptions } from "../api/format.ts";
 
 export interface QuartoConfig {
-  output?: { [key: string]: { [key: string]: unknown } };
+  pandoc?: { [key: string]: unknown };
+  figure?: FormatPandocOptions;
   [key: string]: unknown;
 }
 

@@ -31,7 +31,6 @@ opts_knit <- list(
   quarto.version = 1,
   rmarkdown.pandoc.from = format$pandoc$reader,
   rmarkdown.pandoc.to = format$pandoc$writer,
-  rmarkdown.pandoc.args = format$pandoc$args,
   rmarkdown.keep_md = format$keep$md,
   rmarkdown.version = 3,
   rmarkdown.runtime = "static"
@@ -75,13 +74,18 @@ knitr <- knitr_options(
   knit_hooks = knit_hooks
 )
 
+# note: pandoc_options args is used for various r-specific scenarios:
+#   - https://github.com/rstudio/rmarkdown/pull/1468
+#   - force an id-prefix for runtime: shiny
+# we pass it as empty here b/c we manage interaction w/ pandoc not rmarkdown::render
+
 # pandoc_options
 pandoc <- pandoc_options(
   to = format$pandoc$writer,
   from = format$pandoc$reader,
-  args = format$pandoc$args,
+  args = character(),
   keep_tex = format$keep$tex,
-  ext = format$pandoc$ext
+  ext = format$pandoc[["output-ext"]]
 )
 
 # create format
