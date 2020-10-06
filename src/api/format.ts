@@ -1,49 +1,71 @@
-export interface FormatOptionDefinition<T = unknown> {
-  name: string;
-  description: string;
-  default: T | null;
+import { ld } from "lodash/mod.ts";
+
+export interface FormatFigureOptions {
+  width?: number;
+  height?: number;
+  format?: "png" | "pdf";
+  dpi?: number;
 }
 
-export interface FormatDefinition {
-  // format name
-  name: string;
-
-  // format options
-  options: FormatOptionDefinition[];
-
-  // tex packages required by this format
-  tex_packages?: string[];
-
-  // create an instance of this format w/ the provided options
-  create: (options: FormatOptions) => Format;
+export interface FormatShowOptions {
+  code?: boolean;
+  warning?: boolean;
+  error?: boolean;
 }
 
-export type FormatOptions = { [key: string]: unknown };
+export interface FormatKeepOptions {
+  md?: boolean;
+  tex?: boolean;
+  supporting?: boolean;
+}
 
-export interface Format {
-  // preprocessor options
-  preprocessor?: {
-    fig_width?: number; // default: 7in
-    fig_height?: number; // default: 5in
-    fig_format?: "png" | "pdf"; // default: "png"
-    fig_dpi?: number; // default: 96
-    hide_code?: boolean; // default: false
-    show_warnings?: boolean; // default: false
-    show_messages?: boolean; // default: false
+export interface FormatPandocOptions {
+  reader?: string;
+  writer?: string;
+  ext?: string;
+  args?: string[];
+}
+
+export interface FormatOptions {
+  figure?: FormatFigureOptions;
+  show?: FormatShowOptions;
+  keep?: FormatKeepOptions;
+  pandoc?: FormatPandocOptions;
+}
+
+export function formatOptions(...options: FormatOptions[]) {
+  return mergeFormatOptions(defaultFormatOptions(), ...options);
+}
+
+export function mergeFormatOptions(
+  ...options: FormatOptions[]
+): FormatOptions {
+  return ld.merge(options[0], ...options.slice(1));
+}
+
+export function defaultFormatOptions(): FormatOptions {
+  return {
+    figure: {
+      width: 7,
+      height: 5,
+      format: "png",
+      dpi: 96,
+    },
+    show: {
+      code: true,
+      warning: true,
+      error: false,
+    },
+    keep: {
+      md: false,
+      tex: false,
+      supporting: true,
+    },
+    pandoc: {
+      reader: "markdown",
+      writer: "html",
+      ext: "html",
+      args: [],
+    },
   };
-
-  // pandoc options
-  pandoc?: {
-    to?: string; // any pandoc format
-    ext?: string; // target output extension
-    from?: string; // defaults to 'markdown'
-    args?: string[]; // pandoc command line arguments
-  };
-
-  // keep intermediate markdown or tex?
-  keep_md?: boolean;
-  keep_tex?: boolean;
-
-  // clean supporting files?
-  clean_supporting?: boolean;
 }

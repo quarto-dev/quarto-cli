@@ -3,7 +3,7 @@ import { execProcess } from "../../../core/process.ts";
 import type { ComputationPreprocessor } from "../preprocessor.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { metadataFromMarkdown } from "../../../core/metadata.ts";
-import type { Format } from "../../../api/format.ts";
+import type { FormatOptions } from "../../../api/format.ts";
 
 export const ipynbPreprocessor: ComputationPreprocessor = {
   name: "ipynb",
@@ -30,7 +30,7 @@ export const ipynbPreprocessor: ComputationPreprocessor = {
 
   preprocess: async (
     file: string,
-    format: Format,
+    format: FormatOptions,
     outputFile: string,
   ): Promise<void> => {
     const result = await execProcess({

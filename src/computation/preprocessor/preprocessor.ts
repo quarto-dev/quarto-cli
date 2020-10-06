@@ -1,4 +1,4 @@
-import type { Format } from "../../api/format.ts";
+import type { FormatOptions } from "../../api/format.ts";
 import type { Metadata } from "../../core/metadata.ts";
 
 export interface ComputationPreprocessor {
@@ -7,7 +7,7 @@ export interface ComputationPreprocessor {
   metadata: (file: string) => Promise<Metadata>;
   preprocess: (
     file: string,
-    format: Format,
+    format: FormatOptions,
     outputFile: string,
   ) => Promise<void>;
 }
