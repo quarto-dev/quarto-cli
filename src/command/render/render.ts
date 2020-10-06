@@ -15,9 +15,6 @@ import { execProcess, ProcessResult } from "../../core/process.ts";
 
 import { optionsFromConfig } from "./options.ts";
 
-// TODO: support standard streams
-//  - knitr output needs to go to stderr
-
 // TODO: cleanup all the todos in render and the rmd preprocessor
 
 // TODO: generally, error handling for malformed input (e.g. yaml)

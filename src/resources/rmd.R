@@ -57,8 +57,7 @@ if (opts_chunk$dev == 'pdf')
   opts_chunk$dev.args <- list(pdf = list(useDingbats = FALSE))
 
 # apply cropping if requested and we have pdfcrop and ghostscript
-# TODO: we might need to abstract 'ext' to somethign more pdf specific
-if (identical(format$pandoc$ext, "pdf")) {
+if (identical(format$pandoc[["output-ext"]], "pdf")) {
   crop <- rmarkdown:::find_program("pdfcrop") != '' && tools::find_gs_cmd() != ''
   if (crop) {
     knit_hooks$crop = knitr::hook_pdfcrop
