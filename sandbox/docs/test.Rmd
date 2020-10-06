@@ -8,6 +8,7 @@ quarto:
     indented-code-classes:
       - red
       - white
+      - blue
 ---
 
 ## Plot 1
@@ -21,3 +22,4 @@ plot(cars)
 ```{r}
 summary(cars)
 ```
+
