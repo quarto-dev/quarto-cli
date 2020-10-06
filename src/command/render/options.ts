@@ -42,7 +42,7 @@ const kDefaultFormatOptions: { [key: string]: FormatOptions } = {
   html: htmlOptions(),
   html4: htmlOptions(),
   html5: htmlOptions(),
-  revealjs: htmlOptions("revealjs", 8, 6),
+  revealjs: htmlOptions(8, 6),
 };
 
 function pdfOptions() {
