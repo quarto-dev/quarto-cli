@@ -127,6 +127,9 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   // build the pandoc command
   const cmd = ["pandoc", basename(preprocessorOutput)];
 
+  // TODO: synthesize pandoc args based on combination of
+  // format options and render command linen arguments
+
   // TODO: currently can't use stdout due to knitr using it
   // TODO: need to actually respect if a pandoc --output or --O is passed
   const output = basename(options.input, ext) + "." +
@@ -135,11 +138,6 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   cmd.push("--output", output);
 
   cmd.push("--to", options.to);
-
-  if (format?.pandoc?.args) {
-    cmd.push(...format?.pandoc?.args);
-  }
-  cmd.push(...options.pandocArgs);
 
   // TODO: use the format for clean_supporting, keep_md, etc.
 

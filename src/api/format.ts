@@ -22,8 +22,8 @@ export interface FormatKeepOptions {
 export interface FormatPandocOptions {
   reader?: string;
   writer?: string;
-  ext?: string;
-  args?: string[];
+  "output-ext"?: string;
+  [key: string]: unknown;
 }
 
 export interface FormatOptions {
