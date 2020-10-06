@@ -1,9 +1,6 @@
-import { ld } from "lodash/mod.ts";
-
 import type { FormatOptions } from "../../api/format.ts";
 
 import {
-  arrayMerger,
   mergeFormatOptions,
   QuartoConfig,
 } from "../../core/config.ts";

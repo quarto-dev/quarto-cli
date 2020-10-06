@@ -1,4 +1,3 @@
-import type { Metadata } from "../../../core/metadata.ts";
 import { execProcess } from "../../../core/process.ts";
 import type { ComputationPreprocessor } from "../preprocessor.ts";
 import { resourcePath } from "../../../core/resources.ts";
