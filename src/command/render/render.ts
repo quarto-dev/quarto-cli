@@ -1,12 +1,17 @@
 import { Command } from "cliffy/command/mod.ts";
 
 import { basename, dirname, extname, join } from "path/mod.ts";
-import type { FormatOptions } from "../api/format.ts";
-import { mergeConfigs, projectConfig, QuartoConfig } from "../core/config.ts";
-import { writeLine } from "../core/console.ts";
+import type { FormatOptions } from "../../api/format.ts";
+import {
+  mergeConfigs,
+  projectConfig,
+  QuartoConfig,
+} from "../../core/config.ts";
+import { writeLine } from "../../core/console.ts";
 
-import { execProcess, ProcessResult } from "../core/process.ts";
-import { formatOptionsFromConfig } from "../formats/formats.ts";
+import { execProcess, ProcessResult } from "../../core/process.ts";
+
+import { optionsFromConfig } from "./options.ts";
 
 // TODO: support standard streams
 //  - knitr output needs to go to stder
@@ -29,7 +34,8 @@ import { formatOptionsFromConfig } from "../formats/formats.ts";
 
 import {
   computationPreprocessorForFile,
-} from "../quarto/quarto-extensions.ts";
+} from "../../quarto/quarto-extensions.ts";
+import { stringify } from "https://deno.land/std@0.71.0/encoding/_yaml/stringify.ts";
 
 export const renderCommand = new Command()
   .name("render")
@@ -56,7 +62,6 @@ export const renderCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, input: string, pandocArgs: string[]) => {
-    console.log(pandocArgs);
     try {
       const result = await render({ input, to: options.to, pandocArgs });
       if (!result.success) {
@@ -71,85 +76,95 @@ export const renderCommand = new Command()
     }
   });
 
-export interface RenderOptions {
+export interface RenderArgs {
   input: string;
   to?: string;
   pandocArgs: string[];
 }
 
-// self_contained isn't working (we aren't getting base64 encoded images or intermedates)
-
-export async function render(options: RenderOptions): Promise<ProcessResult> {
+export async function render(renderArgs: RenderArgs): Promise<ProcessResult> {
   // look for a 'project' _quarto.yml
-  const projConfig: QuartoConfig = await projectConfig(options.input);
+  const projConfig: QuartoConfig = await projectConfig(renderArgs.input);
 
   // determine path to mdInput file and preprocessor
   let preprocessorOutput: string;
 
   // execute computational preprocessor (if any)
-  const ext = extname(options.input);
+  const ext = extname(renderArgs.input);
 
   // TODO: still need to read the YAML out of plain markdown
 
-  // provide default for 'to'
-  options.to = options.to || "html";
-
-  let format: FormatOptions | undefined;
+  let options: FormatOptions | undefined;
 
   const preprocessor = computationPreprocessorForFile(ext);
   if (preprocessor) {
     // extract metadata
-    const fileMetadata = await preprocessor.metadata(options.input);
+    const fileMetadata = await preprocessor.metadata(renderArgs.input);
 
     // derive quarto config from merge of project config into file config
     const config = mergeConfigs(projConfig, fileMetadata.quarto || {});
 
     // get the format
-    format = formatOptionsFromConfig(options.to || "html", config);
+    options = optionsFromConfig(config, renderArgs.to);
 
     // TODO: make sure we don't overrwite existing .md
     // TODO: may want to ensure foo.quarto-rmd.md, foo.quarto-ipynb.md, etc.
 
-    const inputDir = dirname(options.input);
-    const inputBase = basename(options.input, ext);
+    const inputDir = dirname(renderArgs.input);
+    const inputBase = basename(renderArgs.input, ext);
     preprocessorOutput = join(inputDir, inputBase + ".md");
     const result = await preprocessor.preprocess(
-      options.input,
-      format,
+      renderArgs.input,
+      options,
       preprocessorOutput,
     );
 
     // TODO: clean intermediates referenced in result
   } else {
-    preprocessorOutput = options.input;
+    preprocessorOutput = renderArgs.input;
   }
 
   // build the pandoc command
   const cmd = ["pandoc", basename(preprocessorOutput)];
 
-  // TODO: synthesize pandoc args based on combination of
-  // format options and render command linen arguments
-
-  // TODO: currently can't use stdout due to knitr using it
-  // TODO: need to actually respect if a pandoc --output or --O is passed
-  const output = basename(options.input, ext) + "." +
-    (format?.pandoc?.ext || "html");
-
+  // default output file
+  // TODO: handle stdout and propagating user-specified output file
+  // to RStudio @ the botoom
+  let output = basename(renderArgs.input, ext) + "." +
+    (options!.pandoc!["output-ext"]!);
   cmd.push("--output", output);
 
-  cmd.push("--to", options.to);
+  // remove output-ext (as it's just for us not pandoc)
+  delete options!.pandoc!["output-ext"];
 
-  // TODO: use the format for clean_supporting, keep_md, etc.
+  // write a temporary default file from the options
+  const yaml = stringify(options!.pandoc!);
+  const yamlFile = await Deno.makeTempFile(
+    { prefix: "quarto-defaults", suffix: ".yml" },
+  );
+  await Deno.writeTextFile(yamlFile, yaml);
+  cmd.push("--defaults", yamlFile);
 
-  // print command line
-  // TODO: escape arguments
-  writeLine(Deno.stdout, cmd.join(" ") + "\n");
+  // add user command line args
+  cmd.push(...renderArgs.pandocArgs);
+
+  writeLine(
+    Deno.stderr,
+    "quarto render " + renderArgs.input + " " + renderArgs.pandocArgs.join(" "),
+  );
+  writeLine(
+    Deno.stderr,
+    " ---\n " + yaml.replaceAll(/\n/g, "\n ") + "---",
+  );
+  writeLine(Deno.stderr, "");
 
   // run pandoc
   const result = await execProcess({
     cmd,
     cwd: dirname(preprocessorOutput),
   });
+
+  // TODO: delete the preprocessorOutput or not based on keep_md
 
   // TODO: correct relative path so the IDE will always be able to preview it
   writeLine(Deno.stderr, "Output created: " + output + "\n");

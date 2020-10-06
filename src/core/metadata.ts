@@ -33,6 +33,8 @@ export async function metadataFromMarkdown(
 }
 
 export async function metadataFromFile(file: string): Promise<Metadata> {
+  // TODO: we need to read the file line by line or with regexes
+  // so that pandoc doesn't sort our output format keys
   const result = await execProcess(pandocMetadataRunOptions([file]));
   return handleMetadataResult(result);
 }

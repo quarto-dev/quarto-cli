@@ -5,12 +5,10 @@ import { parse } from "encoding/yaml.ts";
 import { ld } from "lodash/mod.ts";
 
 import { metadataFromFile, metadataFromMarkdown } from "./metadata.ts";
-import type { FormatPandocOptions } from "../api/format.ts";
+import type { FormatOptions } from "../api/format.ts";
 
 export interface QuartoConfig {
-  pandoc?: { [key: string]: unknown };
-  figure?: FormatPandocOptions;
-  [key: string]: unknown;
+  [key: string]: FormatOptions;
 }
 
 export async function configFromMarkdown(
@@ -52,5 +50,14 @@ export async function projectConfig(file: string): Promise<QuartoConfig> {
 }
 
 export function mergeConfigs(...configs: QuartoConfig[]): QuartoConfig {
+  // resolve 'default' for formats
+  for (let config of configs) {
+    Object.keys(config).forEach((key) => {
+      if (typeof config[key] === "string") {
+        config[key] = {};
+      }
+    });
+  }
+
   return ld.merge(configs[0], ...configs.slice(1));
 }
