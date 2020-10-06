@@ -16,21 +16,7 @@ import { execProcess, ProcessResult } from "../../core/process.ts";
 import { optionsFromConfig } from "./options.ts";
 
 // TODO: support standard streams
-//  - knitr output needs to go to stder
-//  - we do 'auto-write' an output file, including forcing pdf
-//  - we add a 'synthetic' pdf format, that writes latex -> pdf
-//  - pdf and beamer always write pdf, keep_tex or --output test.tex is how you get the latex
-//  - we need to pass --output through to pandoc
-// default --standalone on for html (then allow user to do standalone: false)
-
-// TODO: formats as pandoc passthrough
-//  - handle input file positionally as we do now
-//  - handle negating options (e.g. self-contained: false should remove the flag)
-//  - handle --to for intercepting quarto formats
-//  - forward all the rest to pandoc
-//  - strategy for command line merging?
-//  - infuse the non-pandoc options e.g. knitr, clean-supporting, etc.
-//  - think about how to get preprocessor options through (user and format)
+//  - knitr output needs to go to stderr
 
 // TODO: cleanup all the todos in render and the rmd preprocessor
 
