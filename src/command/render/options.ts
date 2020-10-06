@@ -5,9 +5,6 @@ import {
   QuartoConfig,
 } from "../../core/config.ts";
 
-// TODO: the first format listed in the file needs to take precedence over formats
-// listed in the project file
-
 export function optionsFromConfig(writer: string, config: QuartoConfig) {
   // merge default format options w/ user config
   let options = kDefaultFormatOptions[writer] || formatOptions(writer);
