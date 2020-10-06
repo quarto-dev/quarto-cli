@@ -1,8 +1,6 @@
 import { parse } from "encoding/yaml.ts";
 
 import type { QuartoConfig } from "./config.ts";
-import { execProcess, ProcessResult } from "./process.ts";
-import { resourcePath } from "./resources.ts";
 
 export type Metadata = {
   quarto?: QuartoConfig;
