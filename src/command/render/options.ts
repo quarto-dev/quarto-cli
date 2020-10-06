@@ -2,21 +2,16 @@ import { ld } from "lodash/mod.ts";
 
 import type { FormatOptions } from "../../api/format.ts";
 
-import { arrayMerger, QuartoConfig } from "../../core/config.ts";
+import {
+  arrayMerger,
+  mergeFormatOptions,
+  QuartoConfig,
+} from "../../core/config.ts";
 
 // TODO: the first format listed in the file needs to take precedence over formats
 // listed in the project file
 
-export function optionsFromConfig(config: QuartoConfig, writer?: string) {
-  // if there is writer, then see if the config has a default (otherwise use html)
-  if (!writer) {
-    writer = "html";
-    const formats = Object.keys(config);
-    if (formats.length > 0) {
-      writer = formats[0];
-    }
-  }
-
+export function optionsFromConfig(writer: string, config: QuartoConfig) {
   // merge default format options w/ user config
   let options = kDefaultFormatOptions[writer] || formatOptions(writer);
 
@@ -50,6 +45,7 @@ const kDefaultFormatOptions: { [key: string]: FormatOptions } = {
   html: htmlOptions("html"),
   html4: htmlOptions("html4"),
   html5: htmlOptions("html5"),
+  revealjs: htmlOptions("revealjs", 8, 6),
 };
 
 function pdfOptions() {
@@ -81,8 +77,12 @@ function beamerOptions() {
   );
 }
 
-function htmlOptions(writer: string) {
+function htmlOptions(writer: string, figwidth = 7, figheight = 5) {
   return formatOptions("html", {
+    figure: {
+      width: figwidth,
+      height: figheight,
+    },
     pandoc: {
       standalone: true,
     },
@@ -99,12 +99,6 @@ function formatOptions(ext: string, ...options: FormatOptions[]) {
       },
     },
   );
-}
-
-function mergeFormatOptions(
-  ...options: FormatOptions[]
-): FormatOptions {
-  return ld.mergeWith(options[0], ...options.slice(1), arrayMerger);
 }
 
 function defaultFormatOptions(): FormatOptions {

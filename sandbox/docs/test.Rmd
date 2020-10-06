@@ -1,25 +1,39 @@
 ---
 title: "Woozy Foobar"
 knit: quarto render
-quarto: 
-  pdf:
-    variables:
-       foo: bar
-    indented-code-classes:
-      - red
-      - white
-      - blue
 ---
 
 ## Plot 1
 
-```{r}
-plot(cars)
-```
+---
+quarto: 
+  revealjs:
+    incremental: false
+    indented-code-classes:
+      - red
+      - white
+      - blue
+      
+  common:
+    variables:
+      center: "false"
+      overview: "false"
+---
+
+-   bullet 1
+
+-   bullet 2
+
+-   bullet 3
+
+---
+quarto: 
+  pdf:
+    toc: true
+---
 
 ## Plot 2
 
 ```{r}
 summary(cars)
 ```
-

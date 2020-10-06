@@ -1,4 +1,5 @@
 import { Command } from "cliffy/command/mod.ts";
+import { parseFlags } from "cliffy/flags/mod.ts";
 
 import { basename, dirname, extname, join } from "path/mod.ts";
 import type { FormatOptions } from "../../api/format.ts";
@@ -6,6 +7,7 @@ import {
   mergeConfigs,
   projectConfig,
   QuartoConfig,
+  resolveConfig,
 } from "../../core/config.ts";
 import { writeLine } from "../../core/console.ts";
 
@@ -32,6 +34,8 @@ import { optionsFromConfig } from "./options.ts";
 
 // TODO: cleanup all the todos in render and the rmd preprocessor
 
+// TODO: generally, error handling for malformed input (e.g. yaml)
+
 import {
   computationPreprocessorForFile,
 } from "../../quarto/quarto-extensions.ts";
@@ -43,10 +47,6 @@ export const renderCommand = new Command()
   .arguments("<input:string> [...pandoc-args:string]")
   .description(
     "Render a file using the supplied target format and pandoc command line arguments.",
-  )
-  .option(
-    "-t, --to [to:string]",
-    "Specify output format to convert to (e.g. html, pdf)",
   )
   .example(
     "Render R Markdown",
@@ -63,7 +63,9 @@ export const renderCommand = new Command()
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, input: string, pandocArgs: string[]) => {
     try {
-      const result = await render({ input, to: options.to, pandocArgs });
+      const flags = parseFlags(pandocArgs);
+      const to = flags.flags.t || flags.flags.to;
+      const result = await render({ input, to, pandocArgs });
       if (!result.success) {
         // error diagnostics already written to stderr
         Deno.exit(result.code);
@@ -101,11 +103,28 @@ export async function render(renderArgs: RenderArgs): Promise<ProcessResult> {
     // extract metadata
     const fileMetadata = await preprocessor.metadata(renderArgs.input);
 
+    // get the file config
+    const fileConfig = resolveConfig(fileMetadata.quarto || {});
+
+    // determine which writer to use
+    let writer = renderArgs.to;
+    if (!writer) {
+      writer = "html";
+      const formats = Object.keys(fileConfig).concat(
+        Object.keys(projectConfig),
+      );
+      if (formats.length > 0) {
+        writer = formats[0];
+      }
+    }
+
     // derive quarto config from merge of project config into file config
-    const config = mergeConfigs(projConfig, fileMetadata.quarto || {});
+    const config = mergeConfigs(projConfig, fileConfig);
 
     // get the format
-    options = optionsFromConfig(config, renderArgs.to);
+    options = optionsFromConfig(writer, config);
+
+    // override the writer based on computed (incorporates command line)
 
     // TODO: make sure we don't overrwite existing .md
     // TODO: may want to ensure foo.quarto-rmd.md, foo.quarto-ipynb.md, etc.
@@ -135,10 +154,12 @@ export async function render(renderArgs: RenderArgs): Promise<ProcessResult> {
   cmd.push("--output", output);
 
   // remove output-ext (as it's just for us not pandoc)
-  delete options!.pandoc!["output-ext"];
+  const pandoc = options!.pandoc!;
+  delete pandoc["output-ext"];
 
   // write a temporary default file from the options
-  const yaml = stringify(options!.pandoc!);
+  const yaml = "---\n" + stringify(pandoc);
+
   const yamlFile = await Deno.makeTempFile(
     { prefix: "quarto-defaults", suffix: ".yml" },
   );
@@ -154,7 +175,7 @@ export async function render(renderArgs: RenderArgs): Promise<ProcessResult> {
   );
   writeLine(
     Deno.stderr,
-    " ---\n " + yaml.replaceAll(/\n/g, "\n ") + "---",
+    yaml + "---",
   );
   writeLine(Deno.stderr, "");
 

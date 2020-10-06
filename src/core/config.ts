@@ -44,21 +44,43 @@ export async function projectConfig(file: string): Promise<QuartoConfig> {
     if (await exists(quartoYml)) {
       const decoder = new TextDecoder("utf-8");
       const yml = await Deno.readFile(quartoYml);
-      return parse(decoder.decode(yml)) as QuartoConfig;
+      const config = parse(decoder.decode(yml)) as QuartoConfig;
+      return resolveConfig(config);
     }
   }
 }
 
-export function mergeConfigs(...configs: QuartoConfig[]): QuartoConfig {
-  // resolve 'default' for formats
-  for (let config of configs) {
-    Object.keys(config).forEach((key) => {
-      if (typeof config[key] === "string") {
-        config[key] = {};
-      }
+// resolve 'default' configs and merge common options
+export function resolveConfig(config: QuartoConfig) {
+  // config to return
+  const newConfig = { ...config };
+
+  // resolve 'default'
+  Object.keys(newConfig).forEach((key) => {
+    if (typeof newConfig[key] === "string") {
+      newConfig[key] = {};
+    }
+  });
+
+  if (newConfig.common) {
+    // pull out common
+    const common = newConfig.common;
+    delete newConfig.common;
+
+    // merge with each format
+    Object.keys(newConfig).forEach((key) => {
+      newConfig[key] = mergeFormatOptions(common, newConfig[key]);
     });
   }
 
+  return newConfig;
+}
+
+export function mergeFormatOptions(...options: FormatOptions[]): FormatOptions {
+  return ld.mergeWith(options[0], ...options.slice(1), arrayMerger);
+}
+
+export function mergeConfigs(...configs: QuartoConfig[]): QuartoConfig {
   return ld.mergeWith(configs[0], ...configs.slice(1), arrayMerger);
 }
 
