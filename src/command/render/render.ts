@@ -55,7 +55,7 @@ export const renderCommand = new Command()
       }
     } catch (error) {
       if (error) {
-        writeLine(Deno.stderr, error.toString());
+        writeLine(error.toString());
       }
       Deno.exit(1);
     }
@@ -153,14 +153,12 @@ export async function render(renderArgs: RenderArgs): Promise<ProcessResult> {
   cmd.push(...renderArgs.pandocArgs);
 
   writeLine(
-    Deno.stderr,
     "quarto render " + renderArgs.input + " " + renderArgs.pandocArgs.join(" "),
   );
   writeLine(
-    Deno.stderr,
     yaml + "---",
   );
-  writeLine(Deno.stderr, "");
+  writeLine("");
 
   // run pandoc
   const result = await execProcess({
@@ -175,7 +173,7 @@ export async function render(renderArgs: RenderArgs): Promise<ProcessResult> {
   const flags = parseFlags(renderArgs.pandocArgs);
   const stdout = flags.flags.o === true || flags.flags.output === true;
   if (!stdout) {
-    writeLine(Deno.stderr, "Output created: " + output + "\n");
+    writeLine("Output created: " + output + "\n");
   }
 
   return result;

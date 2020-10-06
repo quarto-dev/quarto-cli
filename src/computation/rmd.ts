@@ -40,7 +40,7 @@ export const rmdEngine: ComputationEngine = {
       },
     );
 
-    writeLine(Deno.stderr, result.stdout!);
+    writeLine(result.stdout!);
 
     if (result.success) {
       //
