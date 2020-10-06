@@ -1,9 +1,9 @@
 ---
 title: "Woozy Foobar"
 knit: quarto render
+quarto: 
+  pdf: default
 ---
-
-
 
 ## Plot 1
 

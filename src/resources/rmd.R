@@ -43,7 +43,7 @@ opts_chunk <- list(
   fig_width = format$figure$width,
   fig_height = format$figure$height,
   dpi = format$figure$dpi,
-  echo = !format$show$code,
+  echo = format$show$code,
   warning = format$show$warning,
   message = format$show$warning,
   error = format$show$error,
@@ -77,13 +77,16 @@ knitr <- knitr_options(
 # note: pandoc_options args is used for various r-specific scenarios:
 #   - https://github.com/rstudio/rmarkdown/pull/1468
 #   - force an id-prefix for runtime: shiny
-# we pass it as empty here b/c we manage interaction w/ pandoc not rmarkdown::render
+# we don't provide them here b/c we manage interaction w/ pandoc not 
+# rmarkdown::render. note though that we do pass a --to argument to 
+# work around an issue w/ rmarkdown where at least 1 argument 
+# must be passed or there is a runtime error
 
 # pandoc_options
 pandoc <- pandoc_options(
   to = format$pandoc$writer,
   from = format$pandoc$reader,
-  args = character(),
+  args = c("--to", format$pandoc$writer),
   keep_tex = format$keep$tex,
   ext = format$pandoc[["output-ext"]]
 )

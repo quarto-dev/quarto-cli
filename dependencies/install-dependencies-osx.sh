@@ -30,7 +30,7 @@ conda env update -f environment.yml
 QUARTO_TS=`realpath ../src/main.ts`
 QUARTO_IMPORT_MAP=`realpath ../src/import_map.json`
 QUARTO_RESOURCES=`realpath ../src/resources/`
-DENO_OPTIONS="--unstable --allow-read --allow-run --allow-env --importmap=${QUARTO_IMPORT_MAP}"
+DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env --importmap=${QUARTO_IMPORT_MAP}"
 
 # generate quarto symlink
 QUARTO_TS=`realpath ../src/main.ts`
