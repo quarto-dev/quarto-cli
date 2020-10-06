@@ -3,6 +3,7 @@ import type { ComputationPreprocessor } from "../preprocessor.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { metadataFromFile } from "../../../core/metadata.ts";
 import type { FormatOptions } from "../../../api/format.ts";
+import { writeLine } from "../../../core/console.ts";
 
 export const rmdPreprocessor: ComputationPreprocessor = {
   name: "rmd",
@@ -30,9 +31,16 @@ export const rmdPreprocessor: ComputationPreprocessor = {
           "Rscript",
           resourcePath("rmd.R"),
         ],
+        stdout: "piped",
       },
       input,
+      // stream stdout to stderr
+      (data: Uint8Array) => {
+        Deno.stderr.writeSync(data);
+      },
     );
+
+    writeLine(Deno.stderr, result.stdout!);
 
     if (result.success) {
       //

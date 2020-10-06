@@ -1,3 +1,5 @@
+import { DenoStdInternalError } from "https://deno.land/std@0.71.0/_util/assert.ts";
+
 export interface ProcessResult {
   success: boolean;
   code: number;
@@ -8,11 +10,13 @@ export interface ProcessResult {
 export async function execProcess(
   options: Deno.RunOptions,
   stdin?: string,
+  stdout?: (data: Uint8Array) => void,
 ): Promise<ProcessResult> {
   // define process
   const process = Deno.run({
     ...options,
     stdin: stdin ? "piped" : options.stdin,
+    stdout: stdout ? "piped" : options.stdout,
   });
 
   if (stdin) {
@@ -20,19 +24,28 @@ export async function execProcess(
     process.stdin!.close();
   }
 
+  // read from stdout
+  const decoder = new TextDecoder();
+  let stdoutText = "";
+  if (stdout || options.stdout === "piped") {
+    for await (const chunk of Deno.iter(process.stdout!)) {
+      if (stdout) {
+        stdout(chunk);
+      }
+      const text = decoder.decode(chunk);
+      stdoutText += text;
+    }
+  }
+
   // await result
   const status = await process.status();
-  const stdout = options.stdout === "piped"
-    ? await process.output()
-    : undefined;
+
+  // collect stderr
   const stderr = options.stderr === "piped"
     ? await process.stderrOutput()
     : undefined;
 
   // return result
-  const decoder = new TextDecoder();
-
-  const stdoutText = stdout ? decoder.decode(stdout) : undefined;
   const stderrText = stderr ? decoder.decode(stderr) : undefined;
 
   // close the process
