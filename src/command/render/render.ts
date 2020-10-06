@@ -17,10 +17,9 @@ import { writeLine } from "../../core/console.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 
 import { optionsFromConfig } from "./options.ts";
+import { metadataFromFile } from "../../core/metadata.ts";
 
 // TODO: correct handling of --output command line
-
-// TODO: cleanup all the todos in render and the rmd engine
 
 // TODO: generally, error handling for malformed input (e.g. yaml)
 
@@ -68,66 +67,61 @@ export interface RenderArgs {
 }
 
 export async function render(renderArgs: RenderArgs): Promise<ProcessResult> {
+  // determine path to pandoc input file and the format options
+  let pandocInput: string;
+  let options: FormatOptions;
+
   // look for a 'project' _quarto.yml
   const projConfig: QuartoConfig = await projectConfig(renderArgs.input);
 
-  // determine path to mdInput file and preprocessor
-  let preprocessorOutput: string;
-
-  // execute computational preprocessor (if any)
+  // get metadata from computational preprocessor (or from the raw .md)
   const ext = extname(renderArgs.input);
-
-  // TODO: still need to read the YAML out of plain markdown
-
-  let options: FormatOptions | undefined;
-
   const engine = computationEngineForFile(ext);
-  if (engine) {
-    // extract metadata
-    const fileMetadata = await engine.metadata(renderArgs.input);
+  const fileMetadata = engine
+    ? await engine.metadata(renderArgs.input)
+    : await metadataFromFile(renderArgs.input);
 
-    // get the file config
-    const fileConfig = resolveConfig(fileMetadata.quarto || {});
+  // get the file config
+  const fileConfig = resolveConfig(fileMetadata.quarto || {});
 
-    // determine which writer to use
-    let writer = renderArgs.to;
-    if (!writer) {
-      writer = "html";
-      const formats = Object.keys(fileConfig).concat(
-        Object.keys(projectConfig),
-      );
-      if (formats.length > 0) {
-        writer = formats[0];
-      }
+  // determine which writer to use
+  let writer = renderArgs.to;
+  if (!writer) {
+    writer = "html";
+    const formats = Object.keys(fileConfig).concat(
+      Object.keys(projectConfig),
+    );
+    if (formats.length > 0) {
+      writer = formats[0];
     }
+  }
 
-    // derive quarto config from merge of project config into file config
-    const config = mergeConfigs(projConfig, fileConfig);
+  // derive quarto config from merge of project config into file config
+  const config = mergeConfigs(projConfig, fileConfig);
 
-    // get the format
-    options = optionsFromConfig(writer, config);
+  // get the format
+  options = optionsFromConfig(writer, config);
 
-    // override the writer based on computed (incorporates command line)
+  // TODO: override the writer based on computed (incorporates command line)
 
-    // TODO: make sure we don't overrwite existing .md
-    // TODO: may want to ensure foo.quarto-rmd.md, foo.quarto-ipynb.md, etc.
+  // TODO: make sure we don't overrwite existing .md
+  // TODO: may want to ensure foo.quarto-rmd.md, foo.quarto-ipynb.md, etc.
 
+  if (engine) {
     const inputDir = dirname(renderArgs.input);
     const inputBase = basename(renderArgs.input, ext);
-    preprocessorOutput = join(inputDir, inputBase + ".md");
+    pandocInput = join(inputDir, inputBase + ".md");
     const result = await engine.process(
       renderArgs.input,
       options,
-      preprocessorOutput,
+      pandocInput,
     );
-
-    // TODO: clean intermediates referenced in result
   } else {
-    preprocessorOutput = renderArgs.input;
+    pandocInput = renderArgs.input;
   }
 
   // build the pandoc command
-  const cmd = ["pandoc", basename(preprocessorOutput)];
+  const cmd = ["pandoc", basename(pandocInput)];
 
   // default output file
   // TODO: handle stdout and propagating user-specified output file
@@ -163,10 +157,10 @@ export async function render(renderArgs: RenderArgs): Promise<ProcessResult> {
   // run pandoc
   const result = await execProcess({
     cmd,
-    cwd: dirname(preprocessorOutput),
+    cwd: dirname(pandocInput),
   });
 
-  // TODO: delete the preprocessorOutput or not based on keep_md
+  // TODO: delete the pandocInput or not based on keep_md
 
   // TODO: correct relative path so the IDE will always be able to preview it
 
