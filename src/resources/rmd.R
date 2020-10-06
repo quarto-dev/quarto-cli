@@ -97,7 +97,9 @@ output_format <- output_format(
   pandoc = pandoc,
   post_processor = post_processor,
   keep_md = format$keep$md,
-  clean_supporting = !format$keep$supporting
+  clean_supporting = !format$keep$md && 
+                     !format$keep$tex && 
+                     !format$keep$supporting
 )
 
 # run knitr but not pandoc

@@ -5,21 +5,6 @@ knit: quarto render
 
 ## Plot 1
 
----
-quarto: 
-  revealjs:
-    incremental: false
-    indented-code-classes:
-      - red
-      - white
-      - blue
-      
-  common:
-    variables:
-      center: "false"
-      overview: "false"
----
-
 -   bullet 1
 
 -   bullet 2
@@ -28,12 +13,16 @@ quarto:
 
 ---
 quarto: 
-  pdf:
+  html:
     toc: true
+    standalone: true
+    self-contained: true
+    keep:
+      supporting: false
 ---
 
 ## Plot 2
 
 ```{r}
-summary(cars)
+plot(cars)
 ```

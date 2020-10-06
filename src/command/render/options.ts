@@ -57,6 +57,9 @@ function pdfOptions() {
         height: 4.5,
         format: "pdf",
       },
+      keep: {
+        supporting: false,
+      },
       pandoc: {
         "self-contained": true,
       },
