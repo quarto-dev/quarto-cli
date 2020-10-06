@@ -35,6 +35,7 @@ export async function execProcess(
       const text = decoder.decode(chunk);
       stdoutText += text;
     }
+    process.stdout!.close();
   }
 
   // await result
