@@ -174,7 +174,12 @@ export async function render(renderArgs: RenderArgs): Promise<ProcessResult> {
   // TODO: delete the preprocessorOutput or not based on keep_md
 
   // TODO: correct relative path so the IDE will always be able to preview it
-  writeLine(Deno.stderr, "Output created: " + output + "\n");
+
+  const flags = parseFlags(renderArgs.pandocArgs);
+  const stdout = flags.flags.o === true || flags.flags.output === true;
+  if (!stdout) {
+    writeLine(Deno.stderr, "Output created: " + output + "\n");
+  }
 
   return result;
 }

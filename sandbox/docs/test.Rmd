@@ -26,3 +26,7 @@ quarto:
 ```{r}
 plot(cars)
 ```
+
+```{r}
+plot(cars)
+```
