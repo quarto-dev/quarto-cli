@@ -29,24 +29,25 @@ knit_hooks <- list()
 # opt_knit for compatibility w/ rmarkdown::render
 opts_knit <- list(
   quarto.version = 1,
-  rmarkdown.pandoc.from = format$pandoc$from,
-  rmarkdown.pandoc.to = format$pandoc$to,
+  rmarkdown.pandoc.from = format$pandoc$reader,
+  rmarkdown.pandoc.to = format$pandoc$writer,
   rmarkdown.pandoc.args = format$pandoc$args,
-  rmarkdown.keep_md = format$keep_md,
-  rmarkdown.version = 2,
+  rmarkdown.keep_md = format$keep$md,
+  rmarkdown.version = 3,
   rmarkdown.runtime = "static"
 )
 
 # opts_chunk
 opts_chunk <- list(
   # options derived from format
-  dev = format$preprocessor$fig_format,
-  fig_width = format$preprocessor$fig_width,
-  fig_height = format$preprocessor$fig_height,
-  dpi = format$preprocessor$fig_dpi,
-  echo = !format$preprocessor$hide_code,
-  warning = format$preprocessor$show_warnings,
-  message = format$preprocessor$show_messages,
+  dev = format$figure$format,
+  fig_width = format$figure$width,
+  fig_height = format$figure$height,
+  dpi = format$figure$dpi,
+  echo = !format$show$code,
+  warning = format$show$warning,
+  message = format$show$warning,
+  error = format$show$error,
   # hard coded (overiddeable in setup chunk but not format)
   fig_retina = 2,
   comment = NA
@@ -60,10 +61,10 @@ if (opts_chunk$dev == 'pdf')
 # TODO: we might need to abstract 'ext' to somethign more pdf specific
 if (identical(format$pandoc$ext, "pdf")) {
   crop <- rmarkdown:::find_program("pdfcrop") != '' && tools::find_gs_cmd() != ''
-if (crop) {
-  knit_hooks$crop = knitr::hook_pdfcrop
-  opts_chunk$crop = TRUE
-}
+  if (crop) {
+    knit_hooks$crop = knitr::hook_pdfcrop
+    opts_chunk$crop = TRUE
+  }
 }
 
 
@@ -76,10 +77,10 @@ knitr <- knitr_options(
 
 # pandoc_options
 pandoc <- pandoc_options(
-  to = format$pandoc$to,
-  from = format$pandoc$from,
+  to = format$pandoc$writer,
+  from = format$pandoc$reader,
   args = format$pandoc$args,
-  keep_tex = format$keep_tex,
+  keep_tex = format$keep$tex,
   ext = format$pandoc$ext
 )
 
@@ -88,8 +89,8 @@ output_format <- output_format(
   knitr = knitr,
   pandoc = pandoc,
   post_processor = post_processor,
-  keep_md = format$keep_md,
-  clean_supporting = format$clean_supporting
+  keep_md = format$keep$md,
+  clean_supporting = !format$keep$supporting
 )
 
 # run knitr but not pandoc

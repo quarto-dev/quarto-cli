@@ -3,12 +3,7 @@ title: "Woozy Foobar"
 knit: quarto render
 ---
 
----
-quarto: 
-  output:
-    pdf_document:
-      self_contained: true
----
+
 
 ## Plot 1
 

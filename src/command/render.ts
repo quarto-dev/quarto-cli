@@ -1,12 +1,12 @@
 import { Command } from "cliffy/command/mod.ts";
 
 import { basename, dirname, extname, join } from "path/mod.ts";
-import type { Format } from "../api/format.ts";
+import type { FormatOptions } from "../api/format.ts";
 import { mergeConfigs, projectConfig, QuartoConfig } from "../core/config.ts";
 import { writeLine } from "../core/console.ts";
 
 import { execProcess, ProcessResult } from "../core/process.ts";
-import { formatFromConfig } from "../formats/formats.ts";
+import { formatOptionsFromConfig } from "../formats/formats.ts";
 
 // TODO: support standard streams
 //  - knitr output needs to go to stder
@@ -91,7 +91,10 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
 
   // TODO: still need to read the YAML out of plain markdown
 
-  let format: Format | undefined;
+  // provide default for 'to'
+  options.to = options.to || "html";
+
+  let format: FormatOptions | undefined;
 
   const preprocessor = computationPreprocessorForFile(ext);
   if (preprocessor) {
@@ -102,7 +105,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     const config = mergeConfigs(projConfig, fileMetadata.quarto || {});
 
     // get the format
-    format = formatFromConfig(config, options.to);
+    format = formatOptionsFromConfig(options.to || "html", config);
 
     // TODO: make sure we don't overrwite existing .md
     // TODO: may want to ensure foo.quarto-rmd.md, foo.quarto-ipynb.md, etc.
@@ -131,9 +134,8 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
 
   cmd.push("--output", output);
 
-  if (format?.pandoc?.to) {
-    cmd.push("--to", format?.pandoc?.to);
-  }
+  cmd.push("--to", options.to);
+
   if (format?.pandoc?.args) {
     cmd.push(...format?.pandoc?.args);
   }

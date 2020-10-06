@@ -1,49 +1,27 @@
-import { fromFileUrl } from "https://deno.land/std@0.71.0/path/win32.ts";
-import type { FormatDefinition, FormatOptions } from "../api/format.ts";
+import type { FormatOptions } from "../api/format.ts";
 import {
   defaultFormatOptions,
   formatOptions,
-  FormatOptions2,
-} from "../api/format2.ts";
+} from "../api/format.ts";
 import type { QuartoConfig } from "../core/config.ts";
-
-import { htmlDocument } from "./html_document.ts";
-import { pdfDocument } from "./pdf_document.ts";
 
 // TODO: currently we ignore invalid options (non-specified or wrong type)
 // need a more robust mechanism here
 
-/*
-
-  figure:
-    width: 7
-    height: 5
-    format: "png"
-    dpi: 96
-
-  show:
-    code: true
-    warnings: false
-
-  keep:
-    md: false
-    tex: false
-    supporting: true
-
-  pandoc: 
-     foo: bar
-*/
-
-const formatDefaults: { [key: string]: FormatOptions2 } = {
+const formatDefaults: { [key: string]: FormatOptions } = {
   pdf: pdfOptions(),
   beamer: beamerOptions(),
-  html: htmlOptions(),
-  html4: htmlOptions(),
-  html5: htmlOptions(),
+  html: htmlOptions("html"),
+  html4: htmlOptions("html4"),
+  html5: htmlOptions("html5"),
 };
 
 export function formatOptionsFromConfig(to: string, config: QuartoConfig) {
   let defaults = formatDefaults[to] || defaultFormatOptions();
+
+  // TODO: do the merge
+
+  return defaults;
 }
 
 function pdfOptions() {
@@ -54,6 +32,7 @@ function pdfOptions() {
       format: "pdf",
     },
     pandoc: {
+      writer: "latex",
       ext: "pdf",
       args: ["--self-contained"],
     },
@@ -68,18 +47,23 @@ function beamerOptions() {
         width: 10,
         height: 7,
       },
+      pandoc: {
+        writer: "beamer",
+      },
     },
   );
 }
 
-function htmlOptions() {
+function htmlOptions(writer: string) {
   return formatOptions({
     pandoc: {
+      writer,
       args: ["--standalone"],
     },
   });
 }
 
+/*
 export function formatFromConfig(config: QuartoConfig, name?: string) {
   // if there is an explicit name then look for it in the config
   let options: FormatOptions = {};
@@ -146,3 +130,4 @@ const allFormats: FormatDefinition[] = [
   htmlDocument,
   pdfDocument,
 ];
+*/
