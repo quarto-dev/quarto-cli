@@ -1,11 +1,11 @@
-import { execProcess } from "../../../core/process.ts";
-import type { ComputationPreprocessor } from "../preprocessor.ts";
-import { resourcePath } from "../../../core/resources.ts";
-import { metadataFromFile } from "../../../core/metadata.ts";
-import type { FormatOptions } from "../../../api/format.ts";
-import { writeLine } from "../../../core/console.ts";
+import { execProcess } from "../core/process.ts";
+import type { ComputationEngine } from "./engine.ts";
+import { resourcePath } from "../core/resources.ts";
+import { metadataFromFile } from "../core/metadata.ts";
+import type { FormatOptions } from "../api/format.ts";
+import { writeLine } from "../core/console.ts";
 
-export const rmdPreprocessor: ComputationPreprocessor = {
+export const rmdEngine: ComputationEngine = {
   name: "rmd",
 
   canHandle: (ext: string) => {
@@ -14,7 +14,7 @@ export const rmdPreprocessor: ComputationPreprocessor = {
 
   metadata: metadataFromFile,
 
-  preprocess: async (
+  process: async (
     file: string,
     format: FormatOptions,
     outputFile: string,
