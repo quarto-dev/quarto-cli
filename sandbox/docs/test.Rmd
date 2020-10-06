@@ -2,7 +2,12 @@
 title: "Woozy Foobar"
 knit: quarto render
 quarto: 
-  pdf: default
+  pdf:
+    variables:
+       foo: bar
+    indented-code-classes:
+      - red
+      - white
 ---
 
 ## Plot 1

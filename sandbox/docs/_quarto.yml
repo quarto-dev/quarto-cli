@@ -1,2 +1,7 @@
 pdf:
   toc: true
+  variables:
+    bar: foo
+  indented-code-classes:
+    - blue
+    - green
