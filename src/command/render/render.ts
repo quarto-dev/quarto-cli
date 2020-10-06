@@ -1,8 +1,11 @@
+import { stringify } from "encoding/yaml.ts";
+
 import { Command } from "cliffy/command/mod.ts";
 import { parseFlags } from "cliffy/flags/mod.ts";
 
 import { basename, dirname, extname, join } from "path/mod.ts";
 import type { FormatOptions } from "../../api/format.ts";
+import { computationEngineForFile } from "../../computation/engine.ts";
 import {
   mergeConfigs,
   projectConfig,
@@ -15,14 +18,11 @@ import { execProcess, ProcessResult } from "../../core/process.ts";
 
 import { optionsFromConfig } from "./options.ts";
 
-// TODO: cleanup all the todos in render and the rmd preprocessor
+// TODO: correct handling of --output command line
+
+// TODO: cleanup all the todos in render and the rmd engine
 
 // TODO: generally, error handling for malformed input (e.g. yaml)
-
-import {
-  computationPreprocessorForFile,
-} from "../../quarto/quarto-extensions.ts";
-import { stringify } from "https://deno.land/std@0.71.0/encoding/_yaml/stringify.ts";
 
 export const renderCommand = new Command()
   .name("render")
@@ -81,10 +81,10 @@ export async function render(renderArgs: RenderArgs): Promise<ProcessResult> {
 
   let options: FormatOptions | undefined;
 
-  const preprocessor = computationPreprocessorForFile(ext);
-  if (preprocessor) {
+  const engine = computationEngineForFile(ext);
+  if (engine) {
     // extract metadata
-    const fileMetadata = await preprocessor.metadata(renderArgs.input);
+    const fileMetadata = await engine.metadata(renderArgs.input);
 
     // get the file config
     const fileConfig = resolveConfig(fileMetadata.quarto || {});
@@ -115,7 +115,7 @@ export async function render(renderArgs: RenderArgs): Promise<ProcessResult> {
     const inputDir = dirname(renderArgs.input);
     const inputBase = basename(renderArgs.input, ext);
     preprocessorOutput = join(inputDir, inputBase + ".md");
-    const result = await preprocessor.preprocess(
+    const result = await engine.process(
       renderArgs.input,
       options,
       preprocessorOutput,

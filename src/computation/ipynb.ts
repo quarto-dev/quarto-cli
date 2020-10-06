@@ -1,11 +1,11 @@
-import type { Metadata } from "../../../core/metadata.ts";
-import { execProcess } from "../../../core/process.ts";
-import type { ComputationPreprocessor } from "../preprocessor.ts";
-import { resourcePath } from "../../../core/resources.ts";
-import { metadataFromMarkdown } from "../../../core/metadata.ts";
-import type { FormatOptions } from "../../../api/format.ts";
+import type { Metadata } from "../core/metadata.ts";
+import { execProcess } from "../core/process.ts";
+import type { ComputationEngine } from "./engine.ts";
+import { resourcePath } from "../core/resources.ts";
+import { metadataFromMarkdown } from "../core/metadata.ts";
+import type { FormatOptions } from "../api/format.ts";
 
-export const ipynbPreprocessor: ComputationPreprocessor = {
+export const ipynbEngine: ComputationEngine = {
   name: "ipynb",
 
   canHandle: (ext: string) => {
@@ -28,7 +28,7 @@ export const ipynbPreprocessor: ComputationPreprocessor = {
     return metadataFromMarkdown(markdown);
   },
 
-  preprocess: async (
+  process: async (
     file: string,
     format: FormatOptions,
     outputFile: string,
