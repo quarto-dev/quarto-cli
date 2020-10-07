@@ -31,7 +31,6 @@ opts_knit <- list(
   quarto.version = 1,
   rmarkdown.pandoc.from = format$pandoc$reader,
   rmarkdown.pandoc.to = format$pandoc$writer,
-  rmarkdown.keep_md = format$keep$md,
   rmarkdown.version = 3,
   rmarkdown.runtime = "static"
 )
@@ -57,7 +56,7 @@ if (opts_chunk$dev == 'pdf')
   opts_chunk$dev.args <- list(pdf = list(useDingbats = FALSE))
 
 # apply cropping if requested and we have pdfcrop and ghostscript
-if (identical(format$pandoc[["output-ext"]], "pdf")) {
+if (identical(format$output$ext, "pdf")) {
   crop <- rmarkdown:::find_program("pdfcrop") != '' && tools::find_gs_cmd() != ''
   if (crop) {
     knit_hooks$crop = knitr::hook_pdfcrop
@@ -76,9 +75,9 @@ knitr <- knitr_options(
 # note: pandoc_options args is used for various r-specific scenarios:
 #   - https://github.com/rstudio/rmarkdown/pull/1468
 #   - force an id-prefix for runtime: shiny
-# we don't provide them here b/c we manage interaction w/ pandoc not 
-# rmarkdown::render. note though that we do pass a --to argument to 
-# work around an issue w/ rmarkdown where at least 1 argument 
+# we don't provide them here b/c we manage interaction w/ pandoc not
+# rmarkdown::render. note though that we do pass a --to argument to
+# work around an issue w/ rmarkdown where at least 1 argument
 # must be passed or there is a runtime error
 
 # pandoc_options
@@ -86,8 +85,8 @@ pandoc <- pandoc_options(
   to = format$pandoc$writer,
   from = format$pandoc$reader,
   args = c("--to", format$pandoc$writer),
-  keep_tex = format$keep$tex,
-  ext = format$pandoc[["output-ext"]]
+  keep_tex = FALSE,
+  ext = format$output$ext
 )
 
 # create format
@@ -95,10 +94,8 @@ output_format <- output_format(
   knitr = knitr,
   pandoc = pandoc,
   post_processor = post_processor,
-  keep_md = format$keep$md,
-  clean_supporting = !format$keep$md && 
-                     !format$keep$tex && 
-                     !format$keep$supporting
+  keep_md = FALSE,
+  clean_supporting = FALSE
 )
 
 # run knitr but not pandoc
@@ -114,14 +111,15 @@ invisible(file.rename(
   params$output
 ))
 
-# write the result to stdout
-resultJson <- jsonlite::toJSON(list(
-  knit_meta = attr(md_result, "knit_meta"),
-  intermediates = attr(md_result, "intermediates")
-))
 
-# TODO: communicate this back to the parent somehow
-# (we already use stdout for knitr progress)
+# write the results the results file
+resultJson <- jsonlite::toJSON(list(
+  # (No method asJSON S3 class: html_dependency)
+  # knit_meta = attr(md_result, "knit_meta"),
+  files_dir = attr(md_result, "files_dir")
+))
+xfun:::write_utf8(paste(resultJson, collapse = "\n"), params$result)
+
 
 
 
