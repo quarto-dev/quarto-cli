@@ -1,32 +1,38 @@
 import { basename, dirname } from "path/mod.ts";
 import { stringify } from "encoding/yaml.ts";
 
-import { parseFlags } from "cliffy/flags/mod.ts";
-
 import type { FormatPandocOptions } from "../../api/format.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 import { writeLine } from "../../core/console.ts";
 
+export interface PandocOptions {
+  input: string;
+  output?: string;
+  format: FormatPandocOptions;
+  args: string[];
+  quiet?: boolean;
+}
+
 export async function runPandoc(
-  input: string,
-  options: FormatPandocOptions,
-  args: string[],
+  options: PandocOptions,
 ): Promise<ProcessResult> {
   // build the pandoc command
-  const cmd = ["pandoc", basename(input)];
+  const cmd = ["pandoc", basename(options.input)];
 
-  // default output file
-  // TODO: handle stdout and propagating user-specified output file
-  // to RStudio @ the botoom
+  // TODO: --output - gets eaten by cliffy, may need to re-inject it
 
-  let output = basename(input, ".md") + "." + (options["output-ext"] as string);
-  cmd.push("--output", output);
+  // provide output argument if not specified by the user
+  if (!options.output && options.output !== "-") {
+    options.output = basename(options.input, ".md") + "." +
+      (options.format["output-ext"] as string);
+    cmd.push("--output", options.output);
+  }
 
   // remove output-ext (as it's just for us not pandoc)
-  delete options["output-ext"];
+  delete options.format["output-ext"];
 
   // write a temporary default file from the options
-  const yaml = "---\n" + stringify(options);
+  const yaml = "---\n" + stringify(options.format);
   const yamlFile = await Deno.makeTempFile(
     { prefix: "quarto-defaults", suffix: ".yml" },
   );
@@ -34,26 +40,26 @@ export async function runPandoc(
   cmd.push("--defaults", yamlFile);
 
   // add user command line args
-  cmd.push(...args);
+  cmd.push(...options.args);
 
   // print command and defaults file
-  writeLine("quarto render " + input + " " + args.join(" "));
-  writeLine(yaml + "---\n");
+  if (!options.quiet) {
+    writeLine("quarto render " + options.input + " " + options.args.join(" "));
+    writeLine(yaml + "---\n");
+  }
 
   // run pandoc
   const result = await execProcess({
     cmd,
-    cwd: dirname(input),
+    cwd: dirname(options.input),
   });
 
   // TODO: delete the pandocInput or not based on keep_md
 
   // write outpput created (read by rstudio for preview) unless output went to stdout
-  const flags = parseFlags(args);
-  const stdout = flags.flags.o === true || flags.flags.output === true;
-  if (!stdout) {
+  if (!options.quiet && options.output !== "-") {
     // TODO: correct relative path so the IDE will always be able to preview it
-    writeLine("Output created: " + output + "\n");
+    writeLine("Output created: " + options.output + "\n");
   }
 
   return result;
