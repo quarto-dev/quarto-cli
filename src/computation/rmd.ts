@@ -1,9 +1,10 @@
+import type { FormatOptions } from "../api/format.ts";
+
 import { execProcess } from "../core/process.ts";
-import type { ComputationEngine, ComputationEngineResult } from "./engine.ts";
 import { resourcePath } from "../core/resources.ts";
 import { metadataFromFile } from "../core/metadata.ts";
-import type { FormatOptions } from "../api/format.ts";
-import { writeLine } from "../core/console.ts";
+
+import type { ComputationEngine, ComputationEngineResult } from "./engine.ts";
 
 export const rmdEngine: ComputationEngine = {
   name: "rmd",

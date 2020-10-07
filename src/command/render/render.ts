@@ -11,6 +11,10 @@ import { runPandoc } from "./pandoc.ts";
 import { fixupPandocArgs, parseRenderFlags, RenderFlags } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 
+// TODO: internal version of FormatOptions w/ everything required
+
+// TODO: fill out all the pandoc formats
+
 // TODO: why is it testhtml_files ???
 
 // TODO: higher level html formats need to set knitr pandoc.to option to "html". investigate
