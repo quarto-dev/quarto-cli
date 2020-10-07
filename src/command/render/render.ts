@@ -15,9 +15,7 @@ import { cleanup } from "./cleanup.ts";
 
 // TODO: fill out all the pandoc formats
 
-// TODO: why is it testhtml_files ???
-
-// TODO: higher level html formats need to set knitr pandoc.to option to "html". investigate
+// TODO: should keep be a vector?
 
 // TODO: general code review of everything (constants, layering, etc.)
 
@@ -62,7 +60,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   });
 
   // cleanup as necessary
-  cleanup(options.flags, formatOptions, computations);
+  cleanup(options.flags, formatOptions, computations, output);
 
   // report
   if (!options.flags.quiet) {
@@ -82,7 +80,7 @@ function resolveOutput(
 ) {
   const args = pandocArgs || [];
   if (!output) {
-    output = basename(input, ".md") + "." + ext;
+    output = basename(input, ".quarto.md") + "." + ext;
     args.unshift("--output", output);
   }
 
