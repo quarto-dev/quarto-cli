@@ -2,6 +2,7 @@ export interface RenderFlags {
   to?: string;
   output?: string;
   quiet?: boolean;
+  "self-contained"?: boolean;
 }
 
 // repair 'damage' done to pandoc args by cliffy (e.g. the - after --output is dropped)
@@ -47,6 +48,11 @@ export function parseRenderFlags(args: string[]) {
 
       case "--quiet":
         flags.quiet = true;
+        arg = argsStack.shift();
+        break;
+
+      case "--self-contained":
+        flags["self-contained"] = true;
         arg = argsStack.shift();
         break;
 

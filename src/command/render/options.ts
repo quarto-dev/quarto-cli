@@ -11,6 +11,7 @@ import {
   resolveConfig,
 } from "../../core/config.ts";
 import { metadataFromFile } from "../../core/metadata.ts";
+import { fixupPandocArgs } from "./flags.ts";
 
 export async function optionsForInputFile(
   input: string,
@@ -67,9 +68,10 @@ function optionsFromConfig(
   options.pandoc = options.pandoc || {};
   Object.keys(options).forEach((key) => {
     if (
-      !["figure", "show", "keep", "pandoc", "extensions", "engine"].includes(
-        key,
-      )
+      !["figure", "show", "keep", "output", "pandoc", "extensions", "engine"]
+        .includes(
+          key,
+        )
     ) {
       options.pandoc![key] = options[key];
       delete options[key];
@@ -85,7 +87,7 @@ const kDefaultFormatOptions: { [key: string]: FormatOptions } = {
   html: htmlOptions(),
   html4: htmlOptions(),
   html5: htmlOptions(),
-  revealjs: htmlOptions(8, 6),
+  revealjs: presentationOptions(8, 6),
 };
 
 function pdfOptions() {
@@ -96,9 +98,6 @@ function pdfOptions() {
         width: 6.5,
         height: 4.5,
         format: "pdf",
-      },
-      keep: {
-        supporting: false,
       },
       pandoc: {
         "self-contained": true,
@@ -115,6 +114,17 @@ function beamerOptions() {
       figure: {
         width: 10,
         height: 7,
+      },
+    },
+  );
+}
+
+function presentationOptions(figwidth = 7, figheight = 5) {
+  return mergeFormatOptions(
+    htmlOptions(figwidth, figheight),
+    {
+      pandoc: {
+        "self-contained": true,
       },
     },
   );
@@ -137,8 +147,8 @@ function formatOptions(ext: string, ...options: FormatOptions[]) {
     defaultFormatOptions(),
     ...options,
     {
-      pandoc: {
-        "output-ext": ext,
+      output: {
+        ext,
       },
     },
   );
@@ -159,8 +169,9 @@ function defaultFormatOptions(): FormatOptions {
     },
     keep: {
       md: false,
-      tex: false,
-      supporting: true,
+    },
+    output: {
+      ext: "html",
     },
     pandoc: {
       reader: "markdown",

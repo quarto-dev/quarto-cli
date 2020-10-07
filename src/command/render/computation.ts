@@ -6,6 +6,7 @@ import {
 
 export interface ComputationsResult {
   output: string;
+  supporting: string[];
 }
 
 export interface ComputationsOptions {
@@ -34,10 +35,12 @@ export async function runComptations(
     // return result
     return {
       output,
+      supporting: result.supporting || [],
     };
   } else {
     return {
       output: options.input,
+      supporting: [],
     };
   }
 }

@@ -1,3 +1,5 @@
+import { basename } from "path/mod.ts";
+
 import { Command } from "cliffy/command/mod.ts";
 
 import { writeLine } from "../../core/console.ts";
@@ -6,36 +8,92 @@ import type { ProcessResult } from "../../core/process.ts";
 import { optionsForInputFile } from "./options.ts";
 import { runComptations } from "./computation.ts";
 import { runPandoc } from "./pandoc.ts";
-import { fixupPandocArgs, parseRenderFlags } from "./flags.ts";
+import { fixupPandocArgs, parseRenderFlags, RenderFlags } from "./flags.ts";
+import { cleanup } from "./cleanup.ts";
+
+// TODO: why is it testhtml_files ???
+
+// TODO: higher level html formats need to set knitr pandoc.to option to "html". investigate
+
+// TODO: general code review of everything (constants, layering, etc.)
 
 // TODO: generally, error handling for malformed input (e.g. yaml)
 export interface RenderOptions {
   input: string;
-  to?: string;
-  output?: string;
+  flags: RenderFlags;
   pandocArgs?: string[];
-  quiet?: boolean;
 }
 
 // TODO: make sure we don't overrwite existing .md
 // TODO: may want to ensure foo.quarto-rmd.md, foo.quarto-ipynb.md, etc.
 
 export async function render(options: RenderOptions): Promise<ProcessResult> {
-  const formatOptions = await optionsForInputFile(options.input, options.to);
+  // derive format options (looks in file and at project level _quarto.yml)
+  const formatOptions = await optionsForInputFile(
+    options.input,
+    options.flags.to,
+  );
 
+  // run computations (if any)
   const computations = await runComptations({
     input: options.input,
     format: formatOptions,
-    quiet: options.quiet,
+    quiet: options.flags.quiet,
   });
 
-  return runPandoc({
+  // resolve output and args
+  const { output, args } = resolveOutput(
+    computations.output,
+    formatOptions.output!.ext!,
+    options.flags.output,
+    options.pandocArgs,
+  );
+
+  // run pandoc conversion
+  const result = await runPandoc({
     input: computations.output,
-    output: options.output,
     format: formatOptions.pandoc!,
-    args: options.pandocArgs || [],
-    quiet: options.quiet,
+    args,
+    quiet: options.flags.quiet,
   });
+
+  // cleanup as necessary
+  cleanup(options.flags, formatOptions, computations);
+
+  // report
+  if (!options.flags.quiet) {
+    reportOutput(output);
+  }
+
+  // return result
+  return result;
+}
+
+// resole output file and --output argument based on input, target ext, and any provided args
+function resolveOutput(
+  input: string,
+  ext: string,
+  output?: string,
+  pandocArgs?: string[],
+) {
+  const args = pandocArgs || [];
+  if (!output) {
+    output = basename(input, ".md") + "." + ext;
+    args.unshift("--output", output);
+  }
+
+  return {
+    output,
+    args,
+  };
+}
+
+function reportOutput(output: string) {
+  if (output !== "-") {
+    // TODO: generally correct handling of rendering outside of the working directory
+    // TODO: correct relative path so the IDE will always be able to preview it
+    writeLine("Output created: " + output + "\n");
+  }
 }
 
 export const renderCommand = new Command()
@@ -82,13 +140,7 @@ export const renderCommand = new Command()
       pandocArgs = fixupPandocArgs(pandocArgs, flags);
 
       // run render
-      const result = await render({
-        input,
-        to: flags.to,
-        output: flags.output,
-        pandocArgs,
-        quiet: flags.quiet,
-      });
+      const result = await render({ input, flags, pandocArgs });
 
       if (!result.success) {
         // error diagnostics already written to stderr

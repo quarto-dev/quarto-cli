@@ -1,6 +1,9 @@
 ---
 title: "Woozy Foobar"
-knit: quarto render
+# knit: quarto render
+output:
+  html_document:
+    self_contained: false
 ---
 
 ## Plot 1
@@ -11,16 +14,6 @@ knit: quarto render
 
 -   bullet 3
 
----
-quarto: 
-  html:
-    toc: true
-    standalone: true
-    self-contained: true
-    keep:
-      supporting: false
----
-
 ## Plot 2
 
 ```{r}
@@ -29,4 +22,10 @@ plot(cars)
 
 ```{r}
 plot(cars)
+```
+
+```{r}
+library(dygraphs)
+lungDeaths <- cbind(mdeaths, fdeaths)
+dygraph(lungDeaths)
 ```
