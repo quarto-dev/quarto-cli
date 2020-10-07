@@ -1,11 +1,57 @@
+import { extname } from "path/mod.ts";
+
 import type { FormatOptions } from "../../api/format.ts";
+import { computationEngineForFile } from "../../computation/engine.ts";
 
 import {
+  mergeConfigs,
   mergeFormatOptions,
+  projectConfig,
   QuartoConfig,
+  resolveConfig,
 } from "../../core/config.ts";
+import { metadataFromFile } from "../../core/metadata.ts";
 
-export function optionsFromConfig(writer: string, config: QuartoConfig) {
+export async function optionsForInputFile(
+  input: string,
+  to?: string,
+): Promise<FormatOptions> {
+  // look for a 'project' _quarto.yml
+  const projConfig: QuartoConfig = await projectConfig(input);
+
+  // get metadata from computational preprocessor (or from the raw .md)
+  const ext = extname(input);
+  const engine = computationEngineForFile(ext);
+  const fileMetadata = engine
+    ? await engine.metadata(input)
+    : await metadataFromFile(input);
+
+  // get the file config
+  const fileConfig = resolveConfig(fileMetadata.quarto || {});
+
+  // determine which writer to use
+  let writer = to;
+  if (!writer) {
+    writer = "html";
+    const formats = Object.keys(fileConfig).concat(
+      Object.keys(projectConfig),
+    );
+    if (formats.length > 0) {
+      writer = formats[0];
+    }
+  }
+
+  // derive quarto config from merge of project config into file config
+  const config = mergeConfigs(projConfig, fileConfig);
+
+  // get the format
+  return optionsFromConfig(writer, config);
+}
+
+function optionsFromConfig(
+  writer: string,
+  config: QuartoConfig,
+): FormatOptions {
   // merge default format options w/ user config
   let options = kDefaultFormatOptions[writer] || formatOptions(writer);
 
