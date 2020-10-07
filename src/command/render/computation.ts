@@ -1,5 +1,7 @@
 import { basename, dirname, extname, join } from "path/mod.ts";
-import type { FormatOptions, FormatPandocOptions } from "../../api/format.ts";
+
+import type { FormatOptions } from "../../api/format.ts";
+
 import {
   computationEngineForFile,
 } from "../../computation/engine.ts";

@@ -1,4 +1,5 @@
 import type { FormatOptions } from "../api/format.ts";
+
 import type { Metadata } from "../core/metadata.ts";
 
 import { rmdEngine } from "./rmd.ts";

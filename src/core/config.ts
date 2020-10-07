@@ -4,8 +4,9 @@ import { parse } from "encoding/yaml.ts";
 
 import { ld } from "lodash/mod.ts";
 
-import { metadataFromFile, metadataFromMarkdown } from "./metadata.ts";
 import type { FormatOptions } from "../api/format.ts";
+
+import { metadataFromFile, metadataFromMarkdown } from "./metadata.ts";
 
 export interface QuartoConfig {
   [key: string]: FormatOptions;
