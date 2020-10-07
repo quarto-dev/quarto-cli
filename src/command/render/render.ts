@@ -1,23 +1,16 @@
-import { stringify } from "encoding/yaml.ts";
-
 import { Command } from "cliffy/command/mod.ts";
 import { parseFlags } from "cliffy/flags/mod.ts";
 
 import { basename, dirname, extname, join } from "path/mod.ts";
-import type { FormatOptions } from "../../api/format.ts";
+
 import { computationEngineForFile } from "../../computation/engine.ts";
-import {
-  mergeConfigs,
-  projectConfig,
-  QuartoConfig,
-  resolveConfig,
-} from "../../core/config.ts";
+
 import { writeLine } from "../../core/console.ts";
+import type { ProcessResult } from "../../core/process.ts";
+import { runComptations } from "./computation.ts";
 
-import { execProcess, ProcessResult } from "../../core/process.ts";
-
-import { optionsFromConfig } from "./options.ts";
-import { metadataFromFile } from "../../core/metadata.ts";
+import { optionsForInputFile } from "./options.ts";
+import { runPandoc } from "./pandoc.ts";
 
 // TODO: correct handling of --output command line
 
@@ -66,109 +59,13 @@ export interface RenderArgs {
   pandocArgs: string[];
 }
 
+// TODO: override the writer based on computed (incorporates command line)
+
+// TODO: make sure we don't overrwite existing .md
+// TODO: may want to ensure foo.quarto-rmd.md, foo.quarto-ipynb.md, etc.
+
 export async function render(renderArgs: RenderArgs): Promise<ProcessResult> {
-  // determine path to pandoc input file and the format options
-  let pandocInput: string;
-  let options: FormatOptions;
-
-  // look for a 'project' _quarto.yml
-  const projConfig: QuartoConfig = await projectConfig(renderArgs.input);
-
-  // get metadata from computational preprocessor (or from the raw .md)
-  const ext = extname(renderArgs.input);
-  const engine = computationEngineForFile(ext);
-  const fileMetadata = engine
-    ? await engine.metadata(renderArgs.input)
-    : await metadataFromFile(renderArgs.input);
-
-  // get the file config
-  const fileConfig = resolveConfig(fileMetadata.quarto || {});
-
-  // determine which writer to use
-  let writer = renderArgs.to;
-  if (!writer) {
-    writer = "html";
-    const formats = Object.keys(fileConfig).concat(
-      Object.keys(projectConfig),
-    );
-    if (formats.length > 0) {
-      writer = formats[0];
-    }
-  }
-
-  // derive quarto config from merge of project config into file config
-  const config = mergeConfigs(projConfig, fileConfig);
-
-  // get the format
-  options = optionsFromConfig(writer, config);
-
-  // TODO: override the writer based on computed (incorporates command line)
-
-  // TODO: make sure we don't overrwite existing .md
-  // TODO: may want to ensure foo.quarto-rmd.md, foo.quarto-ipynb.md, etc.
-
-  if (engine) {
-    const inputDir = dirname(renderArgs.input);
-    const inputBase = basename(renderArgs.input, ext);
-    pandocInput = join(inputDir, inputBase + ".md");
-    const result = await engine.process(
-      renderArgs.input,
-      options,
-      pandocInput,
-    );
-  } else {
-    pandocInput = renderArgs.input;
-  }
-
-  // build the pandoc command
-  const cmd = ["pandoc", basename(pandocInput)];
-
-  // default output file
-  // TODO: handle stdout and propagating user-specified output file
-  // to RStudio @ the botoom
-  let output = basename(renderArgs.input, ext) + "." +
-    (options!.pandoc!["output-ext"]!);
-  cmd.push("--output", output);
-
-  // remove output-ext (as it's just for us not pandoc)
-  const pandoc = options!.pandoc!;
-  delete pandoc["output-ext"];
-
-  // write a temporary default file from the options
-  const yaml = "---\n" + stringify(pandoc);
-
-  const yamlFile = await Deno.makeTempFile(
-    { prefix: "quarto-defaults", suffix: ".yml" },
-  );
-  await Deno.writeTextFile(yamlFile, yaml);
-  cmd.push("--defaults", yamlFile);
-
-  // add user command line args
-  cmd.push(...renderArgs.pandocArgs);
-
-  writeLine(
-    "quarto render " + renderArgs.input + " " + renderArgs.pandocArgs.join(" "),
-  );
-  writeLine(
-    yaml + "---",
-  );
-  writeLine("");
-
-  // run pandoc
-  const result = await execProcess({
-    cmd,
-    cwd: dirname(pandocInput),
-  });
-
-  // TODO: delete the pandocInput or not based on keep_md
-
-  // TODO: correct relative path so the IDE will always be able to preview it
-
-  const flags = parseFlags(renderArgs.pandocArgs);
-  const stdout = flags.flags.o === true || flags.flags.output === true;
-  if (!stdout) {
-    writeLine("Output created: " + output + "\n");
-  }
-
-  return result;
+  const options = await optionsForInputFile(renderArgs.input, renderArgs.to);
+  const computations = await runComptations(renderArgs.input, options);
+  return runPandoc(computations.output, options.pandoc!, renderArgs.pandocArgs);
 }

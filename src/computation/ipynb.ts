@@ -31,14 +31,14 @@ export const ipynbEngine: ComputationEngine = {
   process: async (
     file: string,
     format: FormatOptions,
-    outputFile: string,
+    output: string,
   ): Promise<void> => {
     const result = await execProcess({
       cmd: [
         Deno.env.get("CONDA_PREFIX")! + "/bin/python",
         resourcePath("ipynb.py"),
         file,
-        outputFile,
+        output,
       ],
     });
 

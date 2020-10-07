@@ -17,12 +17,12 @@ export const rmdEngine: ComputationEngine = {
   process: async (
     file: string,
     format: FormatOptions,
-    outputFile: string,
+    output: string,
   ): Promise<void> => {
     const input = JSON.stringify({
       input: file,
       format,
-      output: outputFile,
+      output,
     });
 
     const result = await execProcess(
