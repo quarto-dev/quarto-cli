@@ -85,8 +85,7 @@ pandoc <- pandoc_options(
   to = format$pandoc$writer,
   from = format$pandoc$reader,
   args = c("--to", format$pandoc$writer),
-  keep_tex = FALSE,
-  ext = format$output$ext
+  keep_tex = FALSE
 )
 
 # create format
