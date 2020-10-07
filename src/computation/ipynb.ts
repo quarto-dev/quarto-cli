@@ -32,6 +32,7 @@ export const ipynbEngine: ComputationEngine = {
     file: string,
     format: FormatOptions,
     output: string,
+    quiet?: boolean,
   ): Promise<void> => {
     const result = await execProcess({
       cmd: [

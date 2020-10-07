@@ -18,6 +18,7 @@ export const rmdEngine: ComputationEngine = {
     file: string,
     format: FormatOptions,
     output: string,
+    quiet?: boolean,
   ): Promise<void> => {
     const input = JSON.stringify({
       input: file,
@@ -32,15 +33,16 @@ export const rmdEngine: ComputationEngine = {
           resourcePath("rmd.R"),
         ],
         stdout: "piped",
+        stderr: quiet ? "piped" : undefined,
       },
       input,
       // stream stdout to stderr
       (data: Uint8Array) => {
-        Deno.stderr.writeSync(data);
+        if (!quiet) {
+          Deno.stderr.writeSync(data);
+        }
       },
     );
-
-    writeLine(result.stdout!);
 
     if (result.success) {
       //

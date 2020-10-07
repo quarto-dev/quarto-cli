@@ -12,6 +12,7 @@ export interface ComputationEngine {
     file: string,
     format: FormatOptions,
     output: string,
+    quiet?: boolean,
   ) => Promise<void>;
 }
 
