@@ -1,7 +1,6 @@
 import { basename, dirname, extname, join } from "path/mod.ts";
 import type { FormatOptions } from "../../api/format.ts";
 import {
-  ComputationEngine,
   computationEngineForFile,
 } from "../../computation/engine.ts";
 
