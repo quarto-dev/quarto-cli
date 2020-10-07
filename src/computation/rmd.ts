@@ -2,7 +2,11 @@ import type { FormatOptions } from "../api/format.ts";
 
 import { execProcess } from "../core/process.ts";
 import { resourcePath } from "../core/resources.ts";
-import { metadataFromFile } from "../core/metadata.ts";
+import {
+  Metadata,
+  metadataFromFile,
+  metadataFromMarkdown,
+} from "../core/metadata.ts";
 
 import type { ComputationEngine, ComputationEngineResult } from "./engine.ts";
 
@@ -13,9 +17,28 @@ export const rmdEngine: ComputationEngine = {
     return [".rmd", ".rmarkdown", ".r"].includes(ext.toLowerCase());
   },
 
-  // TODO: we need to get metadata out of .R files (spin them w/ knit = FALSE)
-
-  metadata: metadataFromFile,
+  metadata: async (file: string): Promise<Metadata> => {
+    // if it's an R script, spin it into markdown
+    if (file.toLowerCase().endsWith(".r")) {
+      const result = await execProcess({
+        cmd: [
+          "Rscript",
+          resourcePath("rmd-spin.R"),
+          "--args",
+          file,
+        ],
+        stdout: "piped",
+        stderr: "piped",
+      });
+      if (result.success) {
+        return metadataFromMarkdown(result.stdout!);
+      } else {
+        return Promise.reject(new Error(result.stderr!));
+      }
+    } else {
+      return metadataFromFile(file);
+    }
+  },
 
   process: async (
     file: string,
