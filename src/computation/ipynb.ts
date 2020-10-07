@@ -1,6 +1,6 @@
 import type { Metadata } from "../core/metadata.ts";
 import { execProcess } from "../core/process.ts";
-import type { ComputationEngine } from "./engine.ts";
+import type { ComputationEngine, ComputationEngineResult } from "./engine.ts";
 import { resourcePath } from "../core/resources.ts";
 import { metadataFromMarkdown } from "../core/metadata.ts";
 import type { FormatOptions } from "../api/format.ts";
@@ -33,7 +33,7 @@ export const ipynbEngine: ComputationEngine = {
     format: FormatOptions,
     output: string,
     quiet?: boolean,
-  ): Promise<void> => {
+  ): Promise<ComputationEngineResult> => {
     const result = await execProcess({
       cmd: [
         Deno.env.get("CONDA_PREFIX")! + "/bin/python",
@@ -44,7 +44,7 @@ export const ipynbEngine: ComputationEngine = {
     });
 
     if (result.success) {
-      //
+      return {};
     } else {
       return Promise.reject();
     }
