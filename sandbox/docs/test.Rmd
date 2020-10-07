@@ -4,9 +4,13 @@ title: "Woozy Foobar"
 output:
   html_document:
     self_contained: false
+quarto:
+  revealjs:
+    keep:
+      md: true
 ---
 
-## Plot 1
+## Plot 1: Target
 
 -   bullet 1
 
@@ -25,7 +29,7 @@ plot(cars)
 ```
 
 ```{r}
-library(dygraphs)
-lungDeaths <- cbind(mdeaths, fdeaths)
-dygraph(lungDeaths)
+# library(dygraphs)
+# lungDeaths <- cbind(mdeaths, fdeaths)
+# dygraph(lungDeaths)
 ```

@@ -87,7 +87,7 @@ const kDefaultFormatOptions: { [key: string]: FormatOptions } = {
   html: htmlOptions(),
   html4: htmlOptions(),
   html5: htmlOptions(),
-  revealjs: presentationOptions(8, 6),
+  revealjs: presentationOptions(),
 };
 
 function pdfOptions() {
@@ -119,14 +119,10 @@ function beamerOptions() {
   );
 }
 
-function presentationOptions(figwidth = 7, figheight = 5) {
+function presentationOptions(figwidth = 8, figheight = 6) {
   return mergeFormatOptions(
     htmlOptions(figwidth, figheight),
-    {
-      pandoc: {
-        "self-contained": true,
-      },
-    },
+    {},
   );
 }
 

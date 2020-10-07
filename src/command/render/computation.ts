@@ -26,7 +26,7 @@ export async function runComptations(
   if (engine) {
     const inputDir = dirname(options.input);
     const inputBase = basename(options.input, ext);
-    const output = join(inputDir, inputBase + ".md");
+    const output = join(inputDir, inputBase + ".quarto.md");
     const result = await engine.process(
       options.input,
       options.format,

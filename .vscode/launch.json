@@ -9,7 +9,7 @@
       "request": "launch",
       "type": "pwa-node",
       "program": "${workspaceFolder}/src/main.ts",
-      "args": ["render", "test.Rmd"],
+      "args": ["render", "test.Rmd", "--self-contained"],
       "cwd": "${workspaceFolder}/sandbox/docs",
       "runtimeExecutable": "deno",
       "runtimeArgs": [
