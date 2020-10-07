@@ -1,15 +1,11 @@
 import { Command } from "cliffy/command/mod.ts";
 import { parseFlags } from "cliffy/flags/mod.ts";
 
-import { basename, dirname, extname, join } from "path/mod.ts";
-
-import { computationEngineForFile } from "../../computation/engine.ts";
-
 import { writeLine } from "../../core/console.ts";
 import type { ProcessResult } from "../../core/process.ts";
-import { runComptations } from "./computation.ts";
 
 import { optionsForInputFile } from "./options.ts";
+import { runComptations } from "./computation.ts";
 import { runPandoc } from "./pandoc.ts";
 
 // TODO: correct handling of --output command line
