@@ -27,7 +27,6 @@ export async function runPandoc(
 
   // write a temporary default file from the options
   const yaml = "---\n" + stringify(options);
-
   const yamlFile = await Deno.makeTempFile(
     { prefix: "quarto-defaults", suffix: ".yml" },
   );
@@ -37,6 +36,7 @@ export async function runPandoc(
   // add user command line args
   cmd.push(...args);
 
+  // print command and defaults file
   writeLine("quarto render " + input + " " + args.join(" "));
   writeLine(yaml + "---\n");
 
@@ -48,11 +48,11 @@ export async function runPandoc(
 
   // TODO: delete the pandocInput or not based on keep_md
 
-  // TODO: correct relative path so the IDE will always be able to preview it
-
+  // write outpput created (read by rstudio for preview) unless output went to stdout
   const flags = parseFlags(args);
   const stdout = flags.flags.o === true || flags.flags.output === true;
   if (!stdout) {
+    // TODO: correct relative path so the IDE will always be able to preview it
     writeLine("Output created: " + output + "\n");
   }
 
