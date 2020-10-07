@@ -11,23 +11,23 @@ import { runPandoc } from "./pandoc.ts";
 import { fixupPandocArgs, parseRenderFlags, RenderFlags } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 
-// TODO: internal version of FormatOptions w/ everything required
+// TODO: generally, error handling for malformed input (e.g. yaml)
 
-// TODO: fill out all the pandoc formats
+// TODO: generally correct handling of rendering outside of the working directory
+// TODO: correct relative path for "Output created:" so the IDE will always be able to preview it
 
 // TODO: should keep be a vector?
 
+// TODO: internal version of FormatOptions w/ everything required
+// TODO: fill out all the pandoc formats
+
 // TODO: general code review of everything (constants, layering, etc.)
 
-// TODO: generally, error handling for malformed input (e.g. yaml)
 export interface RenderOptions {
   input: string;
   flags: RenderFlags;
   pandocArgs?: string[];
 }
-
-// TODO: make sure we don't overrwite existing .md
-// TODO: may want to ensure foo.quarto-rmd.md, foo.quarto-ipynb.md, etc.
 
 export async function render(options: RenderOptions): Promise<ProcessResult> {
   // derive format options (looks in file and at project level _quarto.yml)
@@ -92,8 +92,6 @@ function resolveOutput(
 
 function reportOutput(output: string) {
   if (output !== "-") {
-    // TODO: generally correct handling of rendering outside of the working directory
-    // TODO: correct relative path so the IDE will always be able to preview it
     writeLine("Output created: " + output + "\n");
   }
 }

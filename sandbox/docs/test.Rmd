@@ -1,13 +1,9 @@
 ---
 title: "Woozy Foobar"
-# knit: quarto render
-output:
-  html_document:
-    self_contained: false
+knit: quarto render
 quarto:
   revealjs:
-    keep:
-      md: true
+    incremental: true
 ---
 
 ## Plot 1: Target
