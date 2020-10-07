@@ -20,29 +20,32 @@ export interface ComputationsOptions {
 export async function runComptations(
   options: ComputationsOptions,
 ): Promise<ComputationsResult> {
-  // run compute engine if appropriate
+  // compute file paths
   const ext = extname(options.input);
   const engine = computationEngineForFile(ext);
+  const inputDir = dirname(options.input);
+  const inputBase = basename(options.input, ext);
+  const output = join(inputDir, inputBase + ".quarto.md");
+
+  // run compute engine if appropriate
+  const supporting: string[] = [];
   if (engine) {
-    const inputDir = dirname(options.input);
-    const inputBase = basename(options.input, ext);
-    const output = join(inputDir, inputBase + ".quarto.md");
     const result = await engine.process(
       options.input,
       options.format,
       output,
       options.quiet,
     );
-
-    // return result
-    return {
-      output,
-      supporting: result.supporting || [],
-    };
+    if (result.supporting) {
+      supporting.push(...result.supporting);
+    }
   } else {
-    return {
-      output: options.input,
-      supporting: [],
-    };
+    await Deno.copyFile(options.input, output);
   }
+
+  // return result
+  return {
+    output,
+    supporting,
+  };
 }
