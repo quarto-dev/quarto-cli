@@ -11,6 +11,8 @@ import { runPandoc } from "./pandoc.ts";
 import { fixupPandocArgs, parseRenderFlags, RenderFlags } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 
+// TODO: copy htmlDependencies to files dir and include refs in head
+
 // TODO: generally, error handling for malformed input (e.g. yaml)
 
 // TODO: generally correct handling of rendering outside of the working directory
