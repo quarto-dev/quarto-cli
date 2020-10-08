@@ -4,13 +4,12 @@ import type { FormatOptions } from "../../api/format.ts";
 import { computationEngineForFile } from "../../computation/engine.ts";
 
 import {
-  mergeConfigs,
-  mergeFormatOptions,
   projectConfig,
   QuartoConfig,
   resolveConfig,
 } from "../../core/config.ts";
 import { metadataFromFile } from "../../core/metadata.ts";
+import { mergeOptions } from "../../core/options.ts";
 import { fixupPandocArgs } from "./flags.ts";
 
 export async function optionsForInputFile(
@@ -43,7 +42,7 @@ export async function optionsForInputFile(
   }
 
   // derive quarto config from merge of project config into file config
-  const config = mergeConfigs(projConfig, fileConfig);
+  const config = mergeOptions(projConfig, fileConfig);
 
   // get the format
   return optionsFromConfig(writer, config);
@@ -61,7 +60,7 @@ function optionsFromConfig(
 
   // see if there is config for this writer
   if (config[writer] instanceof Object) {
-    options = mergeFormatOptions(options, config[writer]);
+    options = mergeOptions(options, config[writer]);
   }
 
   // any unknown top level option gets folded into pandoc
@@ -120,7 +119,7 @@ function beamerOptions() {
 }
 
 function presentationOptions(figwidth = 8, figheight = 6) {
-  return mergeFormatOptions(
+  return mergeOptions(
     htmlOptions(figwidth, figheight),
     {},
   );
@@ -139,7 +138,7 @@ function htmlOptions(figwidth = 7, figheight = 5) {
 }
 
 function formatOptions(ext: string, ...options: FormatOptions[]) {
-  return mergeFormatOptions(
+  return mergeOptions(
     defaultFormatOptions(),
     ...options,
     {

@@ -28,8 +28,10 @@ export function cleanup(
   // if we aren't keeping the markdown and we are self-contained, then
   // delete the supporting files
   if (!options.keep?.md && selfContained) {
-    computations.supporting.forEach((path) => {
-      Deno.removeSync(path, { recursive: true });
-    });
+    if (computations.supporting) {
+      computations.supporting.forEach((path) => {
+        Deno.removeSync(path, { recursive: true });
+      });
+    }
   }
 }

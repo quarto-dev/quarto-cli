@@ -137,9 +137,8 @@ if (length(dependencies) > 0) {
 }
 
 # write the results the results file
-resultJson <- jsonlite::toJSON(list(
-  # (No method asJSON S3 class: html_dependency)
-  files_dir = attr(md_result, "files_dir"),
+resultJson <- jsonlite::toJSON(auto_unbox = TRUE, list(
+  supporting = I(attr(md_result, "files_dir")),
   includes = extras
 ))
 xfun:::write_utf8(paste(resultJson, collapse = "\n"), params$result)

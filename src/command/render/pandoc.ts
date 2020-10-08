@@ -29,10 +29,14 @@ export async function runPandoc(
   // add user command line args
   cmd.push(...options.args);
 
-  // print command and defaults file
+  // print defaults file and command line args
   if (!options.quiet) {
-    writeLine("quarto render " + options.input + " " + options.args.join(" "));
-    writeLine(yaml + "---\n");
+    if (options.args.length > 0) {
+      writeLine(yaml + "args: " + options.args.join(" "));
+    } else {
+      writeLine(yaml);
+    }
+    writeLine("---\n");
   }
 
   // run pandoc
