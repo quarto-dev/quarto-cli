@@ -46,15 +46,15 @@ opts_knit <- list(
 opts_chunk <- list(
   # options derived from format
   dev = format$figure$format,
-  fig_width = format$figure$width,
-  fig_height = format$figure$height,
+  fig.width = format$figure$width,
+  fig.height = format$figure$height,
   dpi = format$figure$dpi,
   echo = format$show$code,
   warning = format$show$warning,
   message = format$show$warning,
   error = format$show$error,
   # hard coded (overiddeable in setup chunk but not format)
-  fig_retina = 2,
+  fig.retina = 2,
   comment = NA
 )
 
@@ -144,16 +144,39 @@ if (format$pandoc$writer %in% c("s5", "dzslides", "slidy", "slideous", "revealjs
   // Fire the "slideenter" event (handled by htmlwidgets.js) when the current 
   // slide changes (different for each slide format).
   (function () {
-    function fireSlideEnter() {
+    function fireSlideChanged(previousSlide, currentSlide) {
+      
+      // dispatch for htmlwidgets
       const event = window.document.createEvent("Event");
       event.initEvent("slideenter", true, true);
       window.document.dispatchEvent(event);
+
+      // dispatch for shiny
+      if (window.jQuery) {
+        if (previousSlide) {
+          window.jQuery(previousSlide).trigger("hidden");
+        }
+        if (currentSlide) {
+          window.jQuery(currentSlide).trigger("shown");
+        }
+      }
     }
 
     // hookup for reveal
     if (window.Reveal) {
-      window.Reveal.addEventListener("slidechanged", fireSlideEnter);
+      window.Reveal.addEventListener("slidechanged", function(event) {  
+        fireSlideChanged(event.previousSlide, event.currentSlide);
+      });
     }
+
+    // hookup for slidy
+    if (window.w3c_slidy) {
+      window.w3c_slidy.add_observer(function (slide_num) {
+        // slide_num starts at position 1
+        fireSlideChanged(null, w3c_slidy.slides[slide_num - 1]);
+      });
+    }
+    
   })();
 </script>
 '
