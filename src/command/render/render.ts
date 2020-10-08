@@ -12,8 +12,6 @@ import { fixupPandocArgs, parseRenderFlags, RenderFlags } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { mergeOptions } from "../../core/options.ts";
 
-// TODO: do we need some hacks to make widgets work in some pres formats (e.g. revealjs)
-
 // TODO: generally, error handling for malformed input (e.g. yaml)
 
 // TODO: generally correct handling of rendering outside of the working directory
