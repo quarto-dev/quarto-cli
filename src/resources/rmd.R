@@ -136,6 +136,32 @@ if (length(dependencies) > 0) {
   extras$in_header <- paste0(extras$in_header, "\n", deps)
 }
 
+# add slides js for html slides
+if (format$pandoc$writer %in% c("s5", "dzslides", "slidy", "slideous", "revealjs")) {
+  slides_js <- '
+<script>
+  // htmlwidgets need to know to resize themselves when slides are shown/hidden.
+  // Fire the "slideenter" event (handled by htmlwidgets.js) when the current 
+  // slide changes (different for each slide format).
+  (function () {
+    function fireSlideEnter() {
+      const event = window.document.createEvent("Event");
+      event.initEvent("slideenter", true, true);
+      window.document.dispatchEvent(event);
+    }
+
+    // hookup for reveal
+    if (window.Reveal) {
+      window.Reveal.addEventListener("slidechanged", fireSlideEnter);
+    }
+  })();
+</script>
+'
+  extras$after_body <- paste0(extras$after_body, slides_js)
+}
+
+
+
 # write the results the results file
 resultJson <- jsonlite::toJSON(auto_unbox = TRUE, list(
   supporting = I(attr(md_result, "files_dir")),
