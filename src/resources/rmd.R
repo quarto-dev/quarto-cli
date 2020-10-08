@@ -1,6 +1,11 @@
 
 library(rmarkdown)
 
+# utility functions
+`%||%` <- function(x, y) {
+  if (is.null(x)) y else x
+}
+
 # read input from stdin
 stdin <- file("stdin", "r")
 input <- readLines(stdin, warn = FALSE)
@@ -10,8 +15,10 @@ close(stdin)
 params <- jsonlite::parse_json(input)
 format <- params$format
 
-#  post_processor for yaml preservation
+#  post_processor for saving metadata and yaml preservation
+runtime <- NULL
 post_processor <- function(metadata, input_file, output_file, clean, verbose) {
+  runtime <<- metadata$runtime %||% "static"
   input_lines <- rmarkdown:::read_utf8(input_file)
   partitioned <- rmarkdown:::partition_yaml_front_matter(input_lines)
   if (!is.null(partitioned$front_matter)) {
@@ -110,12 +117,30 @@ invisible(file.rename(
   params$output
 ))
 
+# get knit_meta and the files_dir
+knit_meta <-  attr(md_result, "knit_meta")
+files_dir <- attr(md_result, "files_dir")
+
+# get args for extras (e.g. html dependencies)
+extras <- rmarkdown:::html_extras_for_document(
+  knit_meta,
+  runtime,
+  rmarkdown:::html_dependency_resolver,
+  list() # format deps
+)
+# convert dependencies to in_header
+dependencies <- extras$dependencies
+if (length(dependencies) > 0) {
+  deps <- rmarkdown:::html_dependencies_as_string(dependencies, files_dir, dirname(params$input))
+  extras$dependencies <- NULL
+  extras$in_header <- paste0(extras$in_header, "\n", deps)
+}
 
 # write the results the results file
 resultJson <- jsonlite::toJSON(list(
   # (No method asJSON S3 class: html_dependency)
-  # knit_meta = attr(md_result, "knit_meta"),
-  files_dir = attr(md_result, "files_dir")
+  files_dir = attr(md_result, "files_dir"),
+  includes = extras
 ))
 xfun:::write_utf8(paste(resultJson, collapse = "\n"), params$result)
 
