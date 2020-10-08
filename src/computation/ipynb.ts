@@ -46,7 +46,10 @@ export const ipynbEngine: ComputationEngine = {
     });
 
     if (result.success) {
-      return {};
+      return {
+        supporting: [],
+        includes: {},
+      };
     } else {
       return Promise.reject();
     }

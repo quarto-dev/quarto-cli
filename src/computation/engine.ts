@@ -4,9 +4,11 @@ import type { Metadata } from "../core/metadata.ts";
 
 import { rmdEngine } from "./rmd.ts";
 import { ipynbEngine } from "./ipynb.ts";
+import type { PandocIncludes } from "../core/pandoc.ts";
 
 export interface ComputationEngineResult {
-  supporting?: string[];
+  supporting: string[];
+  includes: PandocIncludes;
 }
 
 export interface ComputationEngine {

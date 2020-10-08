@@ -79,14 +79,11 @@ export const rmdEngine: ComputationEngine = {
     if (result.success) {
       // read the results
       const results = await Deno.readTextFile(resultsFile);
-      const resultsJson = JSON.parse(results);
-      let supporting: string[] = [];
-      if (resultsJson.files_dir) {
-        supporting = supporting.concat(resultsJson["files_dir"]);
-      }
       await Deno.remove(resultsFile);
+      const resultsJson = JSON.parse(results);
       return {
-        supporting,
+        supporting: resultsJson.files_dir || [],
+        includes: resultsJson.includes || {},
       };
     } else {
       return Promise.reject();

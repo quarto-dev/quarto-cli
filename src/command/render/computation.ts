@@ -2,6 +2,8 @@ import { basename, dirname, extname, join } from "path/mod.ts";
 
 import type { FormatOptions } from "../../api/format.ts";
 
+import type { PandocIncludes } from "../../core/pandoc.ts";
+
 import {
   computationEngineForFile,
 } from "../../computation/engine.ts";
@@ -9,6 +11,7 @@ import {
 export interface ComputationsResult {
   output: string;
   supporting: string[];
+  includes?: PandocIncludes;
 }
 
 export interface ComputationsOptions {
@@ -28,6 +31,7 @@ export async function runComptations(
   const output = join(inputDir, inputBase + ".quarto.md");
 
   // run compute engine if appropriate
+  let includes: PandocIncludes | undefined;
   const supporting: string[] = [];
   if (engine) {
     const result = await engine.process(
@@ -39,6 +43,7 @@ export async function runComptations(
     if (result.supporting) {
       supporting.push(...result.supporting);
     }
+    includes = result.includes;
   } else {
     await Deno.copyFile(options.input, output);
   }
@@ -47,5 +52,6 @@ export async function runComptations(
   return {
     output,
     supporting,
+    includes,
   };
 }

@@ -2,7 +2,7 @@
 title: "Woozy Foobar"
 knit: quarto render
 quarto:
-  revealjs:
+  html:
     incremental: true
 ---
 
@@ -20,12 +20,16 @@ quarto:
 plot(cars)
 ```
 
+## Plot 3
+
 ```{r}
 plot(cars)
 ```
 
+## Plot 4
+
 ```{r}
-# library(dygraphs)
-# lungDeaths <- cbind(mdeaths, fdeaths)
-# dygraph(lungDeaths)
+library(dygraphs)
+lungDeaths <- cbind(mdeaths, fdeaths)
+dygraph(lungDeaths)
 ```

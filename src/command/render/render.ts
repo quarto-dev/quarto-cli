@@ -10,8 +10,13 @@ import { runComptations } from "./computation.ts";
 import { runPandoc } from "./pandoc.ts";
 import { fixupPandocArgs, parseRenderFlags, RenderFlags } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
+import { pandocIncludesArgs } from "../../core/pandoc.ts";
 
 // TODO: copy htmlDependencies to files dir and include refs in head
+
+// TODO: includes should go into format options (not args)
+
+// TODO: do we need some hacks to make widgets work in some pres formats (e.g. revealjs)
 
 // TODO: generally, error handling for malformed input (e.g. yaml)
 
@@ -20,8 +25,16 @@ import { cleanup } from "./cleanup.ts";
 
 // TODO: should keep be a vector?
 
+// TODO: enable screen capture for htmlwidgets in pdf?
+
+// TODO: html_preserve (either call R Markdown or substitute raw html blocks)
+
 // TODO: internal version of FormatOptions w/ everything required
 // TODO: fill out all the pandoc formats
+
+// TODO: LaTeX w/ TinyTex
+
+// TODO: shiny_prerendered and params may 'just work' (occur before pandoc)
 
 // TODO: general code review of everything (constants, layering, etc.)
 
@@ -53,11 +66,14 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     options.pandocArgs,
   );
 
+  // merge args w/ includes args from compuations
+  const pandocArgs = args.concat(pandocIncludesArgs(computations.includes));
+
   // run pandoc conversion
   const result = await runPandoc({
     input: computations.output,
     format: formatOptions.pandoc!,
-    args,
+    args: pandocArgs,
     quiet: options.flags.quiet,
   });
 
