@@ -2,11 +2,10 @@ import { dirname, join } from "path/mod.ts";
 import { exists } from "fs/exists.ts";
 import { parse } from "encoding/yaml.ts";
 
-import { ld } from "lodash/mod.ts";
-
 import type { FormatOptions } from "../api/format.ts";
 
 import { metadataFromFile, metadataFromMarkdown } from "./metadata.ts";
+import { mergeOptions } from "./options.ts";
 
 export interface QuartoConfig {
   [key: string]: FormatOptions;
@@ -70,26 +69,9 @@ export function resolveConfig(config: QuartoConfig) {
 
     // merge with each format
     Object.keys(newConfig).forEach((key) => {
-      newConfig[key] = mergeFormatOptions(common, newConfig[key]);
+      newConfig[key] = mergeOptions(common, newConfig[key]);
     });
   }
 
   return newConfig;
-}
-
-export function mergeFormatOptions(...options: FormatOptions[]): FormatOptions {
-  return ld.mergeWith(options[0], ...options.slice(1), arrayMerger);
-}
-
-export function mergeConfigs(...configs: QuartoConfig[]): QuartoConfig {
-  return ld.mergeWith(configs[0], ...configs.slice(1), arrayMerger);
-}
-
-export function arrayMerger(objValue: unknown, srcValue: unknown) {
-  if (ld.isArray(objValue) && ld.isArray(srcValue)) {
-    const combined = (objValue as Array<unknown>).concat(
-      srcValue as Array<unknown>,
-    );
-    return ld.uniqBy(combined, ld.toString);
-  }
 }

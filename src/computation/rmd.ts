@@ -82,7 +82,7 @@ export const rmdEngine: ComputationEngine = {
       await Deno.remove(resultsFile);
       const resultsJson = JSON.parse(results);
       return {
-        supporting: resultsJson.files_dir || [],
+        supporting: resultsJson.supporting || [],
         includes: resultsJson.includes || {},
       };
     } else {

@@ -28,7 +28,7 @@ plot(cars)
 
 ## Plot 4
 
-```{r}
+```{r,eval=TRUE}
 library(dygraphs)
 lungDeaths <- cbind(mdeaths, fdeaths)
 dygraph(lungDeaths)
