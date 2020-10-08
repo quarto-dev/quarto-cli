@@ -52,8 +52,8 @@ function optionsFromConfig(
   writer: string,
   config: QuartoConfig,
 ): FormatOptions {
-  // merge default format options w/ user config
-  let options = kDefaultFormatOptions[writer] || formatOptions(writer);
+  // get default options for this writer
+  let options = defaultWriterOptions(writer);
 
   // set the writer
   options.pandoc!.writer = writer;
@@ -63,7 +63,7 @@ function optionsFromConfig(
     options = mergeOptions(options, config[writer]);
   }
 
-  // any unknown top level option gets folded into pandoc
+  // any unknown top level option get folded into pandoc
   options.pandoc = options.pandoc || {};
   Object.keys(options).forEach((key) => {
     if (
@@ -80,14 +80,30 @@ function optionsFromConfig(
   return options!;
 }
 
-const kDefaultFormatOptions: { [key: string]: FormatOptions } = {
-  pdf: pdfOptions(),
-  beamer: beamerOptions(),
-  html: htmlOptions(),
-  html4: htmlOptions(),
-  html5: htmlOptions(),
-  revealjs: presentationOptions(),
-};
+function defaultWriterOptions(writer: string) {
+  switch (writer) {
+    case "html":
+    case "html4":
+    case "html5":
+      return htmlOptions();
+
+    case "pdf":
+      return pdfOptions();
+
+    case "beamer":
+      return beamerOptions();
+
+    case "s5":
+    case "dzslides":
+    case "slidy":
+    case "slideous":
+    case "revealjs":
+      return htmlPresentationOptions();
+
+    default:
+      return formatOptions(writer);
+  }
+}
 
 function pdfOptions() {
   return formatOptions(
@@ -118,10 +134,15 @@ function beamerOptions() {
   );
 }
 
-function presentationOptions(figwidth = 8, figheight = 6) {
+function htmlPresentationOptions(figwidth = 8, figheight = 6) {
   return mergeOptions(
     htmlOptions(figwidth, figheight),
-    {},
+    {
+      show: {
+        code: false,
+        warning: false,
+      },
+    },
   );
 }
 
@@ -139,7 +160,7 @@ function htmlOptions(figwidth = 7, figheight = 5) {
 
 function formatOptions(ext: string, ...options: FormatOptions[]) {
   return mergeOptions(
-    defaultFormatOptions(),
+    defaultOptions(),
     ...options,
     {
       output: {
@@ -149,7 +170,7 @@ function formatOptions(ext: string, ...options: FormatOptions[]) {
   );
 }
 
-function defaultFormatOptions(): FormatOptions {
+function defaultOptions(): FormatOptions {
   return {
     figure: {
       width: 7,
