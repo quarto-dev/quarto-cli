@@ -97,8 +97,9 @@ function defaultWriterOptions(writer: string) {
     case "dzslides":
     case "slidy":
     case "slideous":
+      return htmlPresentationOptions(9.5, 6.5);
     case "revealjs":
-      return htmlPresentationOptions();
+      return htmlPresentationOptions(9, 5);
 
     default:
       return formatOptions(writer);
@@ -134,7 +135,7 @@ function beamerOptions() {
   );
 }
 
-function htmlPresentationOptions(figwidth = 8, figheight = 6) {
+function htmlPresentationOptions(figwidth: number, figheight: number) {
   return mergeOptions(
     htmlOptions(figwidth, figheight),
     {
