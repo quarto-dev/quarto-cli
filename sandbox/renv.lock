@@ -40,9 +40,14 @@
     "dygraphs": {
       "Package": "dygraphs",
       "Version": "1.1.1.6",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "716869fffc16e282c118f8894e082a7d"
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "dygraphs",
+      "RemoteUsername": "rstudio",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "17c1df1920cef7fd895277b031e2db9226495c1f",
+      "Hash": "3afcd56ebecc82fccda54df0cf81fee1"
     },
     "evaluate": {
       "Package": "evaluate",
