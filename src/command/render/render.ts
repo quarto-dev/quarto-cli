@@ -2,6 +2,8 @@ import { basename } from "path/mod.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
+import { mergeOptions } from "../../config/options.ts";
+
 import { writeLine } from "../../core/console.ts";
 import type { ProcessResult } from "../../core/process.ts";
 
@@ -10,7 +12,6 @@ import { runComptations } from "./computation.ts";
 import { runPandoc } from "./pandoc.ts";
 import { fixupPandocArgs, parseRenderFlags, RenderFlags } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
-import { mergeOptions } from "../../core/options.ts";
 
 // TODO: generally, error handling for malformed input (e.g. yaml)
 
@@ -18,8 +19,6 @@ import { mergeOptions } from "../../core/options.ts";
 // TODO: correct relative path for "Output created:" so the IDE will always be able to preview it
 
 // TODO: should keep be a vector?
-
-// TODO: enable screen capture for htmlwidgets in pdf?
 
 // TODO: html_preserve (either call R Markdown or substitute raw html blocks)
 
@@ -29,7 +28,7 @@ import { mergeOptions } from "../../core/options.ts";
 // TODO: Run citeproc / crossref
 // TODO: LaTeX w/ TinyTex
 
-// TODO: shiny_prerendered and params may 'just work' (occur before pandoc)
+// TODO: shiny_prerendered and params may 'just work' (occur before pandoc). Need --params cli arg
 
 // TODO: general code review of everything (constants, layering, etc.)
 
