@@ -8,7 +8,7 @@ import { writeLine } from "../../core/console.ts";
 import type { ProcessResult } from "../../core/process.ts";
 
 import { formatForInputFile } from "../../config/format.ts";
-import { runComptations } from "./computation.ts";
+import { postProcess, runComptations } from "./computation.ts";
 import { runPandoc } from "./pandoc.ts";
 import { fixupPandocArgs, parseRenderFlags, RenderFlags } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
@@ -39,6 +39,9 @@ export interface RenderOptions {
 }
 
 export async function render(options: RenderOptions): Promise<ProcessResult> {
+  // alias quiet
+  const quiet = options.flags.quiet;
+
   // derive format options (looks in file and at project level _quarto.yml)
   const format = await formatForInputFile(
     options.input,
@@ -49,7 +52,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   const computations = await runComptations({
     input: options.input,
     format,
-    quiet: options.flags.quiet,
+    quiet,
   });
 
   // resolve output and args
@@ -65,15 +68,23 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     input: computations.output,
     format: mergeConfigs(format.pandoc!, computations.pandoc),
     args,
-    quiet: options.flags.quiet,
+    quiet,
+  });
+
+  // run post processor
+  const finalOutput = await postProcess({
+    input: options.input,
+    format,
+    output,
+    quiet,
   });
 
   // cleanup as necessary
-  cleanup(options.flags, format, computations, output);
+  cleanup(options.flags, format, computations, finalOutput);
 
   // report
-  if (!options.flags.quiet) {
-    reportOutput(output);
+  if (result.success && !options.flags.quiet) {
+    reportOutput(finalOutput);
   }
 
   // return result

@@ -9,7 +9,7 @@ import {
 import { execProcess } from "../core/process.ts";
 import { resourcePath } from "../core/resources.ts";
 
-import type { ComputationEngine, ComputationEngineResult } from "./engine.ts";
+import type { ComputationEngine, ExecuteResult } from "./engine.ts";
 
 export const rmdEngine: ComputationEngine = {
   name: "rmd",
@@ -46,7 +46,7 @@ export const rmdEngine: ComputationEngine = {
     format: Format,
     output: string,
     quiet?: boolean,
-  ): Promise<ComputationEngineResult> => {
+  ): Promise<ExecuteResult> => {
     // create a temp file for writing the results
     const resultsFile = await Deno.makeTempFile(
       { prefix: "rmd-render-results", suffix: ".json" },
@@ -89,5 +89,13 @@ export const rmdEngine: ComputationEngine = {
     } else {
       return Promise.reject();
     }
+  },
+
+  postProcess: (
+    format: Format,
+    output: string,
+    quiet?: boolean,
+  ) => {
+    return Promise.resolve(output);
   },
 };

@@ -6,7 +6,7 @@ import { rmdEngine } from "./rmd.ts";
 import { ipynbEngine } from "./ipynb.ts";
 import type { PandocIncludes } from "../core/pandoc.ts";
 
-export interface ComputationEngineResult {
+export interface ExecuteResult {
   supporting: string[];
   includes: PandocIncludes;
 }
@@ -20,7 +20,13 @@ export interface ComputationEngine {
     format: Format,
     output: string,
     quiet?: boolean,
-  ) => Promise<ComputationEngineResult>;
+  ) => Promise<ExecuteResult>;
+
+  postProcess: (
+    format: Format,
+    output: string,
+    quiet?: boolean,
+  ) => Promise<string>;
 }
 
 export function computationEngineForFile(ext: string) {
