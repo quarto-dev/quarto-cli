@@ -31,7 +31,7 @@ export const ipynbEngine: ComputationEngine = {
     return metadataFromMarkdown(markdown);
   },
 
-  process: async (
+  execute: async (
     file: string,
     format: Format,
     output: string,

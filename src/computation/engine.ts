@@ -15,7 +15,7 @@ export interface ComputationEngine {
   name: string;
   canHandle: (ext: string) => boolean;
   metadata: (file: string) => Promise<Metadata>;
-  process: (
+  execute: (
     file: string,
     format: Format,
     output: string,
