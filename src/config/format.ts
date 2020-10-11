@@ -1,17 +1,17 @@
 import { extname } from "path/mod.ts";
 
-import type { FormatOptions } from "../../api/format.ts";
-import { computationEngineForFile } from "../../computation/engine.ts";
+import type { FormatOptions } from "../api/format.ts";
+import { computationEngineForFile } from "../computation/engine.ts";
 
 import {
   projectConfig,
   QuartoConfig,
   resolveConfig,
-} from "../../config/config.ts";
-import { metadataFromFile } from "../../config/metadata.ts";
-import { mergeOptions } from "../../config/options.ts";
+} from "./config.ts";
+import { metadataFromFile } from "./metadata.ts";
+import { mergeOptions } from "./merge.ts";
 
-export async function optionsForInputFile(
+export async function formatOptionsForInputFile(
   input: string,
   to?: string,
 ): Promise<FormatOptions> {
