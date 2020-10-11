@@ -2,12 +2,12 @@ import { basename } from "path/mod.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { mergeOptions } from "../../config/options.ts";
+import { mergeOptions } from "../../config/merge.ts";
 
 import { writeLine } from "../../core/console.ts";
 import type { ProcessResult } from "../../core/process.ts";
 
-import { optionsForInputFile } from "./options.ts";
+import { formatOptionsForInputFile } from "../../config/format.ts";
 import { runComptations } from "./computation.ts";
 import { runPandoc } from "./pandoc.ts";
 import { fixupPandocArgs, parseRenderFlags, RenderFlags } from "./flags.ts";
@@ -40,7 +40,7 @@ export interface RenderOptions {
 
 export async function render(options: RenderOptions): Promise<ProcessResult> {
   // derive format options (looks in file and at project level _quarto.yml)
-  const formatOptions = await optionsForInputFile(
+  const formatOptions = await formatOptionsForInputFile(
     options.input,
     options.flags.to,
   );

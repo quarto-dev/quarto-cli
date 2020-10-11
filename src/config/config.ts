@@ -5,7 +5,7 @@ import { parse } from "encoding/yaml.ts";
 import type { FormatOptions } from "../api/format.ts";
 
 import { metadataFromFile, metadataFromMarkdown } from "./metadata.ts";
-import { mergeOptions } from "./options.ts";
+import { mergeOptions } from "./merge.ts";
 
 export interface QuartoConfig {
   [key: string]: FormatOptions;
