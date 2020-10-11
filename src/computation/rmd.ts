@@ -41,7 +41,7 @@ export const rmdEngine: ComputationEngine = {
     }
   },
 
-  process: async (
+  execute: async (
     file: string,
     format: Format,
     output: string,

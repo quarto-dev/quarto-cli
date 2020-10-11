@@ -32,7 +32,7 @@ export async function runComptations(
 
   // run compute engine if appropriate
   if (engine) {
-    const result = await engine.process(
+    const result = await engine.execute(
       options.input,
       options.format,
       output,
