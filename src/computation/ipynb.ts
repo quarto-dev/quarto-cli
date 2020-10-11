@@ -6,7 +6,7 @@ import { metadataFromMarkdown } from "../config/metadata.ts";
 import { execProcess } from "../core/process.ts";
 import { resourcePath } from "../core/resources.ts";
 
-import type { ComputationEngine, ComputationEngineResult } from "./engine.ts";
+import type { ComputationEngine, ExecuteResult } from "./engine.ts";
 
 export const ipynbEngine: ComputationEngine = {
   name: "ipynb",
@@ -36,7 +36,7 @@ export const ipynbEngine: ComputationEngine = {
     format: Format,
     output: string,
     quiet?: boolean,
-  ): Promise<ComputationEngineResult> => {
+  ): Promise<ExecuteResult> => {
     const result = await execProcess({
       cmd: [
         Deno.env.get("CONDA_PREFIX")! + "/bin/python",
@@ -54,5 +54,13 @@ export const ipynbEngine: ComputationEngine = {
     } else {
       return Promise.reject();
     }
+  },
+
+  postProcess: (
+    format: Format,
+    output: string,
+    quiet?: boolean,
+  ) => {
+    return Promise.resolve(output);
   },
 };

@@ -54,3 +54,21 @@ export async function runComptations(
     };
   }
 }
+
+export interface PostProcessOptions {
+  input: string;
+  format: Format;
+  output: string;
+  quiet?: boolean;
+}
+
+export async function postProcess(
+  options: PostProcessOptions,
+): Promise<string> {
+  const engine = computationEngineForFile(extname(options.input));
+  if (engine && engine.postProcess) {
+    return engine.postProcess(options.format, options.output, options.quiet);
+  } else {
+    return Promise.resolve(options.output);
+  }
+}
