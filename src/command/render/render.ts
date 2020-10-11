@@ -2,12 +2,12 @@ import { basename } from "path/mod.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { mergeOptions } from "../../config/merge.ts";
+import { mergeConfigs } from "../../config/merge.ts";
 
 import { writeLine } from "../../core/console.ts";
 import type { ProcessResult } from "../../core/process.ts";
 
-import { formatOptionsForInputFile } from "../../config/format.ts";
+import { formatForInputFile } from "../../config/format.ts";
 import { runComptations } from "./computation.ts";
 import { runPandoc } from "./pandoc.ts";
 import { fixupPandocArgs, parseRenderFlags, RenderFlags } from "./flags.ts";
@@ -22,7 +22,7 @@ import { cleanup } from "./cleanup.ts";
 
 // TODO: html_preserve (either call R Markdown or substitute raw html blocks)
 
-// TODO: internal version of FormatOptions w/ everything required
+// TODO: internal version of Format w/ everything required
 // TODO: fill out all the pandoc formats
 
 // TODO: Run citeproc / crossref
@@ -40,7 +40,7 @@ export interface RenderOptions {
 
 export async function render(options: RenderOptions): Promise<ProcessResult> {
   // derive format options (looks in file and at project level _quarto.yml)
-  const formatOptions = await formatOptionsForInputFile(
+  const format = await formatForInputFile(
     options.input,
     options.flags.to,
   );
@@ -48,14 +48,14 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   // run computations (if any)
   const computations = await runComptations({
     input: options.input,
-    format: formatOptions,
+    format,
     quiet: options.flags.quiet,
   });
 
   // resolve output and args
   const { output, args } = resolveOutput(
     computations.output,
-    formatOptions.output!.ext!,
+    format.output!.ext!,
     options.flags.output,
     options.pandocArgs,
   );
@@ -63,13 +63,13 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   // run pandoc conversion
   const result = await runPandoc({
     input: computations.output,
-    format: mergeOptions(formatOptions.pandoc!, computations.pandoc),
+    format: mergeConfigs(format.pandoc!, computations.pandoc),
     args,
     quiet: options.flags.quiet,
   });
 
   // cleanup as necessary
-  cleanup(options.flags, formatOptions, computations, output);
+  cleanup(options.flags, format, computations, output);
 
   // report
   if (!options.flags.quiet) {

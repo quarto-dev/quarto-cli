@@ -1,5 +1,5 @@
 import type {
-  FormatPandocOptions,
+  FormatPandoc,
 } from "../api/format.ts";
 
 export interface PandocIncludes {
@@ -10,8 +10,8 @@ export interface PandocIncludes {
 
 export function pandocIncludesOptions(
   includes?: PandocIncludes,
-): FormatPandocOptions {
-  const pandoc: FormatPandocOptions = {};
+): FormatPandoc {
+  const pandoc: FormatPandoc = {};
   if (includes) {
     const include = (name: string, value?: string) => {
       if (value) {

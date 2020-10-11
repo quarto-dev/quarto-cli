@@ -1,4 +1,4 @@
-import type { FormatOptions } from "../api/format.ts";
+import type { Format } from "../api/format.ts";
 
 import {
   Metadata,
@@ -43,7 +43,7 @@ export const rmdEngine: ComputationEngine = {
 
   process: async (
     file: string,
-    format: FormatOptions,
+    format: Format,
     output: string,
     quiet?: boolean,
   ): Promise<ComputationEngineResult> => {

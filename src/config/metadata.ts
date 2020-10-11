@@ -1,9 +1,9 @@
 import { parse } from "encoding/yaml.ts";
 
-import type { QuartoConfig } from "./config.ts";
+import type { Config } from "./config.ts";
 
 export type Metadata = {
-  quarto?: QuartoConfig;
+  quarto?: Config;
   [key: string]: unknown;
 };
 

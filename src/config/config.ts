@@ -2,28 +2,28 @@ import { dirname, join } from "path/mod.ts";
 import { exists } from "fs/exists.ts";
 import { parse } from "encoding/yaml.ts";
 
-import type { FormatOptions } from "../api/format.ts";
+import type { Format } from "../api/format.ts";
 
 import { metadataFromFile, metadataFromMarkdown } from "./metadata.ts";
-import { mergeOptions } from "./merge.ts";
+import { mergeConfigs } from "./merge.ts";
 
-export interface QuartoConfig {
-  [key: string]: FormatOptions;
+export interface Config {
+  [key: string]: Format;
 }
 
 export async function configFromMarkdown(
   markdown: string,
-): Promise<QuartoConfig> {
+): Promise<Config> {
   return (await metadataFromMarkdown(markdown)).quarto || {};
 }
 
 export async function configFromMarkdownFile(
   file: string,
-): Promise<QuartoConfig> {
+): Promise<Config> {
   return (await metadataFromFile(file)).quarto || {};
 }
 
-export async function projectConfig(file: string): Promise<QuartoConfig> {
+export async function projectConfig(file: string): Promise<Config> {
   file = await Deno.realPath(file);
   let dir: string | undefined;
   while (true) {
@@ -44,14 +44,14 @@ export async function projectConfig(file: string): Promise<QuartoConfig> {
     if (await exists(quartoYml)) {
       const decoder = new TextDecoder("utf-8");
       const yml = await Deno.readFile(quartoYml);
-      const config = parse(decoder.decode(yml)) as QuartoConfig;
+      const config = parse(decoder.decode(yml)) as Config;
       return resolveConfig(config);
     }
   }
 }
 
 // resolve 'default' configs and merge common options
-export function resolveConfig(config: QuartoConfig) {
+export function resolveConfig(config: Config) {
   // config to return
   const newConfig = { ...config };
 
@@ -69,7 +69,7 @@ export function resolveConfig(config: QuartoConfig) {
 
     // merge with each format
     Object.keys(newConfig).forEach((key) => {
-      newConfig[key] = mergeOptions(common, newConfig[key]);
+      newConfig[key] = mergeConfigs(common, newConfig[key]);
     });
   }
 

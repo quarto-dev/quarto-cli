@@ -1,4 +1,4 @@
-import type { FormatOptions } from "../api/format.ts";
+import type { Format } from "../api/format.ts";
 
 import type { Metadata } from "../config/metadata.ts";
 
@@ -17,7 +17,7 @@ export interface ComputationEngine {
   metadata: (file: string) => Promise<Metadata>;
   process: (
     file: string,
-    format: FormatOptions,
+    format: Format,
     output: string,
     quiet?: boolean,
   ) => Promise<ComputationEngineResult>;

@@ -1,10 +1,10 @@
 import { ld } from "lodash/mod.ts";
 
-export function mergeOptions<T>(...configs: T[]): T {
-  return ld.mergeWith(configs[0], ...configs.slice(1), optionMerger);
+export function mergeConfigs<T>(...configs: T[]): T {
+  return ld.mergeWith(configs[0], ...configs.slice(1), configMerger);
 }
 
-function optionMerger(objValue: unknown, srcValue: unknown) {
+function configMerger(objValue: unknown, srcValue: unknown) {
   if (ld.isArray(objValue) && ld.isArray(srcValue)) {
     const combined = (objValue as Array<unknown>).concat(
       srcValue as Array<unknown>,
