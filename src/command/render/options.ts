@@ -7,10 +7,9 @@ import {
   projectConfig,
   QuartoConfig,
   resolveConfig,
-} from "../../core/config.ts";
-import { metadataFromFile } from "../../core/metadata.ts";
-import { mergeOptions } from "../../core/options.ts";
-import { fixupPandocArgs } from "./flags.ts";
+} from "../../config/config.ts";
+import { metadataFromFile } from "../../config/metadata.ts";
+import { mergeOptions } from "../../config/options.ts";
 
 export async function optionsForInputFile(
   input: string,

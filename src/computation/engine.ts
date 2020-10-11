@@ -1,6 +1,6 @@
 import type { FormatOptions } from "../api/format.ts";
 
-import type { Metadata } from "../core/metadata.ts";
+import type { Metadata } from "../config/metadata.ts";
 
 import { rmdEngine } from "./rmd.ts";
 import { ipynbEngine } from "./ipynb.ts";

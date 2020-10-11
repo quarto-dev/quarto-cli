@@ -1,9 +1,10 @@
 import type { FormatOptions } from "../api/format.ts";
 
-import type { Metadata } from "../core/metadata.ts";
+import type { Metadata } from "../config/metadata.ts";
+import { metadataFromMarkdown } from "../config/metadata.ts";
+
 import { execProcess } from "../core/process.ts";
 import { resourcePath } from "../core/resources.ts";
-import { metadataFromMarkdown } from "../core/metadata.ts";
 
 import type { ComputationEngine, ComputationEngineResult } from "./engine.ts";
 
