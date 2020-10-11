@@ -1,8 +1,8 @@
 import { basename, dirname, extname, join } from "path/mod.ts";
 
-import type { FormatOptions, FormatPandocOptions } from "../../api/format.ts";
+import type { Format, FormatPandoc } from "../../api/format.ts";
 
-import { PandocIncludes, pandocIncludesOptions } from "../../core/pandoc.ts";
+import { pandocIncludesOptions } from "../../core/pandoc.ts";
 
 import {
   computationEngineForFile,
@@ -11,12 +11,12 @@ import {
 export interface ComputationsResult {
   output: string;
   supporting: string[];
-  pandoc: FormatPandocOptions;
+  pandoc: FormatPandoc;
 }
 
 export interface ComputationsOptions {
   input: string;
-  format: FormatOptions;
+  format: Format;
   quiet?: boolean;
 }
 

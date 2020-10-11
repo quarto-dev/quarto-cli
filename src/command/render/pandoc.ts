@@ -1,13 +1,13 @@
 import { basename, dirname } from "path/mod.ts";
 import { stringify } from "encoding/yaml.ts";
 
-import type { FormatPandocOptions } from "../../api/format.ts";
+import type { FormatPandoc } from "../../api/format.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 import { writeLine } from "../../core/console.ts";
 
 export interface PandocOptions {
   input: string;
-  format: FormatPandocOptions;
+  format: FormatPandoc;
   args: string[];
   quiet?: boolean;
 }

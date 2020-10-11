@@ -1,35 +1,35 @@
-export interface FormatFigureOptions {
+export interface FormatFigure {
   width?: number;
   height?: number;
   format?: "png" | "pdf";
   dpi?: number;
 }
 
-export interface FormatShowOptions {
+export interface FormatShow {
   code?: boolean;
   warning?: boolean;
   error?: boolean;
 }
 
-export interface FormatKeepOptions {
+export interface FormatKeep {
   md?: boolean;
 }
 
-export interface FormatOutputOptions {
+export interface FormatOutput {
   ext?: string;
 }
 
-export interface FormatPandocOptions {
+export interface FormatPandoc {
   reader?: string;
   writer?: string;
   [key: string]: unknown;
 }
 
-export interface FormatOptions {
-  figure?: FormatFigureOptions;
-  show?: FormatShowOptions;
-  keep?: FormatKeepOptions;
-  output?: FormatOutputOptions;
-  pandoc?: FormatPandocOptions;
+export interface Format {
+  figure?: FormatFigure;
+  show?: FormatShow;
+  keep?: FormatKeep;
+  output?: FormatOutput;
+  pandoc?: FormatPandoc;
   [key: string]: unknown;
 }

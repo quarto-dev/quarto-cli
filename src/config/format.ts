@@ -1,22 +1,22 @@
 import { extname } from "path/mod.ts";
 
-import type { FormatOptions } from "../api/format.ts";
+import type { Format } from "../api/format.ts";
 import { computationEngineForFile } from "../computation/engine.ts";
 
 import {
   projectConfig,
-  QuartoConfig,
+  Config,
   resolveConfig,
 } from "./config.ts";
 import { metadataFromFile } from "./metadata.ts";
-import { mergeOptions } from "./merge.ts";
+import { mergeConfigs } from "./merge.ts";
 
-export async function formatOptionsForInputFile(
+export async function formatForInputFile(
   input: string,
   to?: string,
-): Promise<FormatOptions> {
+): Promise<Format> {
   // look for a 'project' _quarto.yml
-  const projConfig: QuartoConfig = await projectConfig(input);
+  const projConfig: Config = await projectConfig(input);
 
   // get metadata from computational preprocessor (or from the raw .md)
   const ext = extname(input);
@@ -41,72 +41,72 @@ export async function formatOptionsForInputFile(
   }
 
   // derive quarto config from merge of project config into file config
-  const config = mergeOptions(projConfig, fileConfig);
+  const config = mergeConfigs(projConfig, fileConfig);
 
   // get the format
-  return optionsFromConfig(writer, config);
+  return formatFromConfig(writer, config);
 }
 
-function optionsFromConfig(
+function formatFromConfig(
   writer: string,
-  config: QuartoConfig,
-): FormatOptions {
+  config: Config,
+): Format {
   // get default options for this writer
-  let options = defaultWriterOptions(writer);
+  let format = defaultWriterFormat(writer);
 
   // set the writer
-  options.pandoc!.writer = writer;
+  format.pandoc!.writer = writer;
 
   // see if there is config for this writer
   if (config[writer] instanceof Object) {
-    options = mergeOptions(options, config[writer]);
+    format = mergeConfigs(format, config[writer]);
   }
 
   // any unknown top level option get folded into pandoc
-  options.pandoc = options.pandoc || {};
-  Object.keys(options).forEach((key) => {
+  format.pandoc = format.pandoc || {};
+  Object.keys(format).forEach((key) => {
     if (
       !["figure", "show", "keep", "output", "pandoc", "extensions", "engine"]
         .includes(
           key,
         )
     ) {
-      options.pandoc![key] = options[key];
-      delete options[key];
+      format.pandoc![key] = format[key];
+      delete format[key];
     }
   });
 
-  return options!;
+  return format!;
 }
 
-function defaultWriterOptions(writer: string) {
+function defaultWriterFormat(writer: string) {
   switch (writer) {
     case "html":
     case "html4":
     case "html5":
-      return htmlOptions();
+      return htmlFormat();
 
     case "pdf":
-      return pdfOptions();
+      return pdfFormat();
 
     case "beamer":
-      return beamerOptions();
+      return beamerFormat();
 
     case "s5":
     case "dzslides":
     case "slidy":
     case "slideous":
-      return htmlPresentationOptions(9.5, 6.5);
+      return htmlPresentationFormat(9.5, 6.5);
     case "revealjs":
-      return htmlPresentationOptions(9, 5);
+      return htmlPresentationFormat(9, 5);
 
     default:
-      return formatOptions(writer);
+      return format(writer);
   }
 }
 
-function pdfOptions() {
-  return formatOptions(
+function pdfFormat() {
+  return format(
     "pdf",
     {
       figure: {
@@ -121,10 +121,10 @@ function pdfOptions() {
   );
 }
 
-function beamerOptions() {
-  return formatOptions(
+function beamerFormat() {
+  return format(
     "pdf",
-    pdfOptions(),
+    pdfFormat(),
     {
       figure: {
         width: 10,
@@ -134,9 +134,9 @@ function beamerOptions() {
   );
 }
 
-function htmlPresentationOptions(figwidth: number, figheight: number) {
-  return mergeOptions(
-    htmlOptions(figwidth, figheight),
+function htmlPresentationFormat(figwidth: number, figheight: number) {
+  return mergeConfigs(
+    htmlFormat(figwidth, figheight),
     {
       show: {
         code: false,
@@ -146,8 +146,8 @@ function htmlPresentationOptions(figwidth: number, figheight: number) {
   );
 }
 
-function htmlOptions(figwidth = 7, figheight = 5) {
-  return formatOptions("html", {
+function htmlFormat(figwidth = 7, figheight = 5) {
+  return format("html", {
     figure: {
       width: figwidth,
       height: figheight,
@@ -158,10 +158,10 @@ function htmlOptions(figwidth = 7, figheight = 5) {
   });
 }
 
-function formatOptions(ext: string, ...options: FormatOptions[]) {
-  return mergeOptions(
-    defaultOptions(),
-    ...options,
+function format(ext: string, ...formats: Format[]) {
+  return mergeConfigs(
+    defaultForamt(),
+    ...formats,
     {
       output: {
         ext,
@@ -170,7 +170,7 @@ function formatOptions(ext: string, ...options: FormatOptions[]) {
   );
 }
 
-function defaultOptions(): FormatOptions {
+function defaultForamt(): Format {
   return {
     figure: {
       width: 7,
