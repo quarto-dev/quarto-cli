@@ -23,7 +23,7 @@ export function cleanup(
 
   // determine if we will be self contained
   const selfContained = flags["self-contained"] ||
-    format.pandoc!["self-contained"];
+    (format.pandoc && format.pandoc["self-contained"]);
 
   // if we aren't keeping the markdown and we are self-contained, then
   // delete the supporting files

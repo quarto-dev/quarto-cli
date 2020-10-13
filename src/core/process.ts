@@ -17,23 +17,23 @@ export async function execProcess(
     stdout: stdout ? "piped" : options.stdout,
   });
 
-  if (stdin) {
-    await process.stdin!.write(new TextEncoder().encode(stdin));
-    process.stdin!.close();
+  if (stdin && process.stdin) {
+    await process.stdin.write(new TextEncoder().encode(stdin));
+    process.stdin.close();
   }
 
   // read from stdout
   const decoder = new TextDecoder();
   let stdoutText = "";
-  if (stdout || options.stdout === "piped") {
-    for await (const chunk of Deno.iter(process.stdout!)) {
+  if ((stdout || options.stdout === "piped") && process.stdout) {
+    for await (const chunk of Deno.iter(process.stdout)) {
       if (stdout) {
         stdout(chunk);
       }
       const text = decoder.decode(chunk);
       stdoutText += text;
     }
-    process.stdout!.close();
+    process.stdout.close();
   }
 
   // await result

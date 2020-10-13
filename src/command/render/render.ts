@@ -59,7 +59,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   // resolve output and args
   const { output, args } = resolveOutput(
     computations.output,
-    format.output!.ext!,
+    format.output?.ext,
     options.flags.output,
     options.pandocArgs,
   );
@@ -67,7 +67,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   // run pandoc conversion
   const result = await runPandoc({
     input: computations.output,
-    format: mergeConfigs(format.pandoc!, computations.pandoc),
+    format: mergeConfigs(format.pandoc || {}, computations.pandoc),
     args,
     quiet,
   });
@@ -95,10 +95,11 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
 // resole output file and --output argument based on input, target ext, and any provided args
 function resolveOutput(
   input: string,
-  ext: string,
+  ext?: string,
   output?: string,
   pandocArgs?: string[],
 ) {
+  ext = ext || "html";
   const args = pandocArgs || [];
   if (!output) {
     output = basename(input, ".quarto.md") + "." + ext;

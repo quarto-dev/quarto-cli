@@ -37,9 +37,13 @@ export const ipynbEngine: ComputationEngine = {
     output: string,
     quiet?: boolean,
   ): Promise<ExecuteResult> => {
+    const condaPrefix = Deno.env.get("CONDA_PREFIX");
+    if (!condaPrefix) {
+      throw new Error("CONDA_PREFIX not defined");
+    }
     const result = await execProcess({
       cmd: [
-        Deno.env.get("CONDA_PREFIX")! + "/bin/python",
+        condaPrefix + "/bin/python",
         resourcePath("ipynb.py"),
         file,
         output,
