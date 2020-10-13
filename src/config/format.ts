@@ -50,9 +50,6 @@ function formatFromConfig(
   // get default options for this writer
   let format = defaultWriterFormat(writer);
 
-  // set the writer
-  format.pandoc!.writer = writer;
-
   // see if there is config for this writer
   if (config[writer] instanceof Object) {
     format = mergeConfigs(format, config[writer]);
@@ -67,38 +64,53 @@ function formatFromConfig(
           key,
         )
     ) {
-      format.pandoc![key] = format[key];
+      format.pandoc = format.pandoc || {};
+      format.pandoc[key] = format[key];
       delete format[key];
     }
   });
 
-  return format!;
+  return format;
 }
 
 function defaultWriterFormat(writer: string) {
+  // get defaults for writer
+  let writerFormat: Format;
   switch (writer) {
     case "html":
     case "html4":
     case "html5":
-      return htmlFormat();
+      writerFormat = htmlFormat();
+      break;
 
     case "pdf":
-      return pdfFormat();
+      writerFormat = pdfFormat();
+      break;
 
     case "beamer":
-      return beamerFormat();
+      writerFormat = beamerFormat();
+      break;
 
     case "s5":
     case "dzslides":
     case "slidy":
     case "slideous":
-      return htmlPresentationFormat(9.5, 6.5);
+      writerFormat = htmlPresentationFormat(9.5, 6.5);
+      break;
     case "revealjs":
-      return htmlPresentationFormat(9, 5);
+      writerFormat = htmlPresentationFormat(9, 5);
+      break;
 
     default:
-      return format(writer);
+      writerFormat = format(writer);
   }
+
+  // set the writer
+  writerFormat.pandoc = writerFormat.pandoc || {};
+  writerFormat.pandoc.writer = writer;
+
+  // return the format
+  return writerFormat;
 }
 
 function pdfFormat() {

@@ -32,9 +32,9 @@ export const rmdEngine: ComputationEngine = {
         stderr: "piped",
       });
       if (result.success) {
-        return metadataFromMarkdown(result.stdout!);
+        return metadataFromMarkdown(result.stdout || "");
       } else {
-        return Promise.reject(new Error(result.stderr!));
+        return Promise.reject(new Error(result.stderr || "Unknown error"));
       }
     } else {
       return metadataFromFile(file);
