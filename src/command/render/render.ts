@@ -20,9 +20,8 @@ import { cleanup } from "./cleanup.ts";
 
 // TODO: should keep be a vector? or should keep_md be part of 'output'
 
+// TODO: postprocessor / R and .py scripts become single script w/ "action", "params"
 // TODO: html_preserve (either call R Markdown or substitute raw html blocks)
-
-// TODO: why don't htmlwidgets preserve in pdf
 
 // TODO: internal version of Format w/ everything required
 // TODO: fill out all the pandoc formats
