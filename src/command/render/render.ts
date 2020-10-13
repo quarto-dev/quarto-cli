@@ -13,25 +13,25 @@ import { runPandoc } from "./pandoc.ts";
 import { fixupPandocArgs, parseRenderFlags, RenderFlags } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 
+// TODO: general code review of everything (constants, layering, etc.)
+
 // TODO: generally, error handling for malformed input (e.g. yaml)
 
 // TODO: generally correct handling of rendering outside of the working directory
 // TODO: correct relative path for "Output created:" so the IDE will always be able to preview it
 
-// TODO: should keep be a vector? or should keep_md be part of 'output'
+// TODO: new config system
+// TODO: fill out all the pandoc formats
 
 // TODO: postprocessor / R and .py scripts become single script w/ "action", "params"
 // TODO: html_preserve (either call R Markdown or substitute raw html blocks)
 
-// TODO: internal version of Format w/ everything required
-// TODO: fill out all the pandoc formats
+// TODO: shiny_prerendered  (quarto run)
+// TODO: --params argument
 
+// TODO: keep_tex
 // TODO: Run citeproc / crossref
 // TODO: LaTeX w/ TinyTex
-
-// TODO: shiny_prerendered and params may 'just work' (occur before pandoc). Need --params cli arg
-
-// TODO: general code review of everything (constants, layering, etc.)
 
 export interface RenderOptions {
   input: string;
