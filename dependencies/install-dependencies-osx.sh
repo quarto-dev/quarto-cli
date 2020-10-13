@@ -6,8 +6,8 @@
 #   - Installation of Conda
 
 # pandoc
-brew upgrade pandoc
-brew upgrade pandoc-citeproc
+brew install pandoc
+brew install pandoc-citeproc
 
 # deno
 brew upgrade deno
