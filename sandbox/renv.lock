@@ -478,15 +478,10 @@
     },
     "rmarkdown": {
       "Package": "rmarkdown",
-      "Version": "2.4.1",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "rmarkdown",
-      "RemoteUsername": "rstudio",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "eae4afa90ff4a5a965758d4e7c137fe4e1c98b47",
-      "Hash": "7266942caa7740665c8104e8c580b671"
+      "Version": "2.4.4",
+      "Source": "Repository",
+      "Repository": null,
+      "Hash": "cadc6e39eb52a5e71427a0d8e743e9a1"
     },
     "rprojroot": {
       "Package": "rprojroot",
