@@ -39,6 +39,7 @@ QUARTO_RESOURCES=`realpath ../src/resources/`
 cat > quarto.sh <<EOL
 #!/bin/zsh
 export QUARTO_RESOURCES=${QUARTO_RESOURCES}
+export PATH="$RSTUDIO_PANDOC:$PATH"
 deno run ${DENO_OPTIONS} ${QUARTO_TS} \$@
 EOL
 chmod +x quarto.sh
@@ -49,6 +50,7 @@ ln -fs ${QUARTO_SH} /usr/local/bin/quarto
 cat > ../tests/run-tests.sh <<EOL
 #!/bin/zsh
 export QUARTO_RESOURCES=${QUARTO_RESOURCES}
+export PATH="$RSTUDIO_PANDOC:$PATH"
 deno test ${DENO_OPTIONS} \$@
 EOL
 chmod +x ../tests/run-tests.sh
