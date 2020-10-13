@@ -30,14 +30,20 @@ post_processor <- function(metadata, input_file, output_file, clean, verbose) {
 
 # create output format
 
+# some global options that affect knitr behavior
+options(knitr.include_graphics.ext = TRUE)
+
 # may need some knit hooks
 knit_hooks <- list()
 
 # opt_knit for compatibility w/ rmarkdown::render
+to <- format$pandoc$writer
+if (identical(to, "pdf"))
+  to <- "latex"
 opts_knit <- list(
   quarto.version = 1,
   rmarkdown.pandoc.from = format$pandoc$reader,
-  rmarkdown.pandoc.to = format$pandoc$writer,
+  rmarkdown.pandoc.to = to,
   rmarkdown.version = 3,
   rmarkdown.runtime = "static"
 )
@@ -53,10 +59,15 @@ opts_chunk <- list(
   warning = format$show$warning,
   message = format$show$warning,
   error = format$show$error,
-  # hard coded (overiddeable in setup chunk but not format)
-  fig.retina = 2,
+  # hard coded (overideable in setup chunk but not format)
   comment = NA
 )
+
+# add fig.retina if it's an html based format (if we add this for PDF
+# it forces the use of \includegraphics)
+if (knitr:::is_html_output(to)) {
+  opts_chunk$set(fig.retina = 2)
+}
 
 # set the dingbats option for the pdf device if required
 if (opts_chunk$dev == 'pdf')
@@ -91,7 +102,7 @@ knitr <- knitr_options(
 pandoc <- pandoc_options(
   to = format$pandoc$writer,
   from = format$pandoc$reader,
-  args = c("--to", format$pandoc$writer),
+  args = c("--to", to),
   keep_tex = FALSE
 )
 
@@ -141,11 +152,11 @@ if (format$pandoc$writer %in% c("s5", "dzslides", "slidy", "slideous", "revealjs
   slides_js <- '
 <script>
   // htmlwidgets need to know to resize themselves when slides are shown/hidden.
-  // Fire the "slideenter" event (handled by htmlwidgets.js) when the current 
+  // Fire the "slideenter" event (handled by htmlwidgets.js) when the current
   // slide changes (different for each slide format).
   (function () {
     function fireSlideChanged(previousSlide, currentSlide) {
-      
+
       // dispatch for htmlwidgets
       const event = window.document.createEvent("Event");
       event.initEvent("slideenter", true, true);
@@ -164,7 +175,7 @@ if (format$pandoc$writer %in% c("s5", "dzslides", "slidy", "slideous", "revealjs
 
     // hookup for reveal
     if (window.Reveal) {
-      window.Reveal.addEventListener("slidechanged", function(event) {  
+      window.Reveal.addEventListener("slidechanged", function(event) {
         fireSlideChanged(event.previousSlide, event.currentSlide);
       });
     }
@@ -176,7 +187,7 @@ if (format$pandoc$writer %in% c("s5", "dzslides", "slidy", "slideous", "revealjs
         fireSlideChanged(null, w3c_slidy.slides[slide_num - 1]);
       });
     }
-    
+
   })();
 </script>
 '
