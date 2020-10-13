@@ -53,9 +53,12 @@ export const rmdEngine: ComputationEngine = {
     );
 
     const input = JSON.stringify({
-      input: file,
-      format,
-      output,
+      action: "execute",
+      params: {
+        input: file,
+        format,
+        output,
+      },
       results: resultsFile,
     });
 
