@@ -66,7 +66,7 @@ opts_chunk <- list(
 # add fig.retina if it's an html based format (if we add this for PDF
 # it forces the use of \includegraphics)
 if (knitr:::is_html_output(to)) {
-  opts_chunk$set(fig.retina = 2)
+  opts_chunk$fig.retina = 2
 }
 
 # set the dingbats option for the pdf device if required
