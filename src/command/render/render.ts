@@ -18,9 +18,11 @@ import { cleanup } from "./cleanup.ts";
 // TODO: generally correct handling of rendering outside of the working directory
 // TODO: correct relative path for "Output created:" so the IDE will always be able to preview it
 
-// TODO: should keep be a vector?
+// TODO: should keep be a vector? or should keep_md be part of 'output'
 
 // TODO: html_preserve (either call R Markdown or substitute raw html blocks)
+
+// TODO: why don't htmlwidgets preserve in pdf
 
 // TODO: internal version of Format w/ everything required
 // TODO: fill out all the pandoc formats
