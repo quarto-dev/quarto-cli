@@ -2,8 +2,8 @@
 title: "Woozy Foobar"
 knit: quarto render
 quarto:
-  html:
-    incremental: true
+  pdf:
+    toc: true
 ---
 
 ## Plot 1: Target
