@@ -471,17 +471,22 @@
     },
     "rlang": {
       "Package": "rlang",
-      "Version": "0.4.7",
+      "Version": "0.4.8",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "c06d2a6887f4b414f8e927afd9ee976a"
+      "Hash": "843a6af51414bce7f8a8e372f11d6cd0"
     },
     "rmarkdown": {
       "Package": "rmarkdown",
       "Version": "2.4.4",
-      "Source": "Repository",
-      "Repository": null,
-      "Hash": "cadc6e39eb52a5e71427a0d8e743e9a1"
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "rmarkdown",
+      "RemoteUsername": "rstudio",
+      "RemoteRef": "master",
+      "RemoteSha": "4722ac66ac5059888628fcbd0ac549a91c53972e",
+      "Hash": "d658d7a9818a4f0d580fd5f4533e68d3"
     },
     "rprojroot": {
       "Package": "rprojroot",
