@@ -27,7 +27,10 @@ export async function runPandoc(
   cmd.push("--defaults", yamlFile);
 
   // add user command line args
-  cmd.push(...options.args);
+  cmd.push(...[
+    "--citeproc",
+    ...options.args,
+  ]);
 
   // print defaults file and command line args
   if (!options.quiet) {
