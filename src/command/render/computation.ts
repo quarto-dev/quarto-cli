@@ -19,7 +19,7 @@ export interface ComputationsOptions {
   quiet?: boolean;
 }
 
-export async function runComptations(
+export async function runComputations(
   options: ComputationsOptions,
 ): Promise<ComputationsResult> {
   // compute file paths
