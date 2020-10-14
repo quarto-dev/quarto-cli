@@ -27,15 +27,12 @@ R --quiet -e "renv::restore()"
 conda env update -f environment.yml
 
 # generate scripts, first some common vars
-QUARTO_TS=`realpath ../src/main.ts`
+QUARTO_TS=`realpath ../src/quarto.ts`
 QUARTO_IMPORT_MAP=`realpath ../src/import_map.json`
 QUARTO_RESOURCES=`realpath ../src/resources/`
 DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env --importmap=${QUARTO_IMPORT_MAP}"
 
 # generate quarto symlink
-QUARTO_TS=`realpath ../src/main.ts`
-QUARTO_IMPORT_MAP=`realpath ../src/import_map.json`
-QUARTO_RESOURCES=`realpath ../src/resources/`
 cat > quarto.sh <<EOL
 #!/bin/zsh
 export QUARTO_RESOURCES=${QUARTO_RESOURCES}
