@@ -1,4 +1,11 @@
-import { basename, dirname, extname, join } from "path/mod.ts";
+import {
+  basename,
+  dirname,
+  extname,
+  isAbsolute,
+  join,
+  relative,
+} from "path/mod.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
@@ -6,23 +13,28 @@ import { mergeConfigs } from "../../config/config.ts";
 
 import { consoleWriteLine } from "../../core/console.ts";
 import type { ProcessResult } from "../../core/process.ts";
+import { readYAML } from "../../core/yaml.ts";
 
 import { formatForInputFile } from "../../config/format.ts";
 import { postProcess as postprocess, runComputations } from "./computation.ts";
 import { runPandoc } from "./pandoc.ts";
-import { fixupPandocArgs, parseRenderFlags, RenderFlags } from "./flags.ts";
+import {
+  fixupPandocArgs,
+  parseRenderFlags,
+  RenderFlags,
+  replacePandocArg,
+} from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
-import { readYAML } from "../../core/yaml.ts";
 
-// TODO: generally correct handling of rendering outside of the working directory
+// TODO: test to see whether any artifacts are left around by rendering to/from varoius dirs
 // TODO: correct relative path for "Output created:" so the IDE will always be able to preview it
+
+// TODO: add --self-contained to documented render flags
 
 // TODO: output system:
 //   - coloring
 //   - progress
 //   - error reporting
-
-// TODO: integrate w/ pandoc log
 
 // TODO: new config system
 // TODO: fill out all the pandoc formats
@@ -51,8 +63,8 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
 
   // derive the output file
   const inputDir = dirname(options.input);
-  const inputBase = basename(options.input, extname(options.input));
-  const computationOutput = join(inputDir, inputBase + ".quarto.md");
+  const inputStem = basename(options.input, extname(options.input));
+  const computationOutput = join(inputDir, inputStem + ".quarto.md");
 
   // resolve parameters (if any)
   const params = resolveParams(options.flags.params);
@@ -68,7 +80,8 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
 
   // resolve output and args
   const { output, args } = resolveOutput(
-    inputBase,
+    inputDir,
+    inputStem,
     format.output?.ext,
     options.flags.output,
     options.pandocArgs,
@@ -117,18 +130,25 @@ function resolveParams(params?: string) {
 
 // resole output file and --output argument based on input, target ext, and any provided args
 function resolveOutput(
-  stem: string,
+  inputDir: string,
+  inputStem: string,
   ext?: string,
   output?: string,
   pandocArgs?: string[],
 ) {
   ext = ext || "html";
-  const args = pandocArgs || [];
+  let args = pandocArgs || [];
+  // no output on the command line: insert our derived output file path
   if (!output) {
-    output = stem + "." + ext;
+    output = join(inputStem + "." + ext);
     args.unshift("--output", output);
+    // relatve output file on the command line: make it relative to the input dir
+  } else if (!isAbsolute(output)) {
+    output = relative(inputDir, output);
+    args = replacePandocArg(args, "--output", output);
   }
 
+  // return
   return {
     output,
     args,

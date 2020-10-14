@@ -63,6 +63,22 @@ export function parseRenderFlags(args: string[]) {
   return flags;
 }
 
+export function replacePandocArg(
+  pandocArgs: string[],
+  arg: string,
+  value: string,
+) {
+  const newArgs = [...pandocArgs];
+  const argIndex = pandocArgs.indexOf(arg);
+  if (argIndex !== -1) {
+    newArgs[argIndex + 1] = value;
+  } else {
+    newArgs.push(arg);
+    newArgs.push(value);
+  }
+  return newArgs;
+}
+
 // repair 'damage' done to pandoc args by cliffy (e.g. the - after --output is dropped)
 export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   // --output - gets eaten by cliffy, re-inject it if necessary
