@@ -54,6 +54,7 @@ export const ipynbEngine: ComputationEngine = {
       return {
         supporting: [],
         includes: {},
+        preserved: {},
       };
     } else {
       return Promise.reject();
@@ -63,6 +64,7 @@ export const ipynbEngine: ComputationEngine = {
   postProcess: (
     format: Format,
     output: string,
+    preserved: { [key: string]: string },
     quiet?: boolean,
   ) => {
     return Promise.resolve(output);

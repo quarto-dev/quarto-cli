@@ -79,6 +79,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     input: options.input,
     format,
     output,
+    preserved: computations.preserved,
     quiet,
   });
 

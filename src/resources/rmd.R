@@ -31,8 +31,12 @@ execute <- function(input, format, output) {
   knit_meta <-  attr(render_output, "knit_meta")
   files_dir <- attr(render_output, "files_dir")
 
+  # preserve chunks as necessary
+  output_file <- file.path(dirname(input), render_output)
+  preserved <- extract_preserve_chunks(output_file, format)
+
   # rename the markdown file to the requested output file
-  file.rename(file.path(dirname(input), render_output), output)
+  file.rename(output_file, output)
 
   # get includes from render
   includes <- includes_from_render(input, files_dir, knit_meta)
@@ -43,9 +47,62 @@ execute <- function(input, format, output) {
   # results
   list(
     supporting = I(attr(render_output, "files_dir")),
-    includes = includes
+    includes = includes,
+    preserved = split(unname(preserved),names(preserved))
   )
 }
+
+# postprocess (restore preserved)
+postprocess <- function(format, output_file, preserved_chunks) {
+
+  # if there are no preserved chunks to restore then no post-processing is necessary
+  if (length(preserved_chunks) == 0)
+    return(output_file)
+
+  # convert preserved chunks to named character vector
+  names <- names(preserved_chunks)
+  preserved_chunks <- as.character(preserved_chunks)
+  names(preserved_chunks) <- names
+
+  # read the output file
+  output_str <- xfun::read_utf8(output_file)
+
+  if (knitr::is_html_output(format$pandoc$writer)) {
+    # Pandoc adds an empty <p></p> around the IDs of preserved chunks, and we
+    # need to remove these empty tags, otherwise we may have invalid HTML like
+    # <p><div>...</div></p>. For the reason of the second gsub(), see
+    # https://github.com/rstudio/rmarkdown/issues/133.
+    output_res <- output_str
+    for (i in names(preserved_chunks)) {
+      output_res <- gsub(paste0("<p>", i, "</p>"), i, output_res,
+                         fixed = TRUE, useBytes = TRUE)
+      output_res <- gsub(paste0(' id="[^"]*?', i, '[^"]*?" '), ' ', output_res,
+                         useBytes = TRUE)
+    }
+    output_res <- htmltools::restorePreserveChunks(output_res, preserved_chunks)
+
+  } else {
+
+    output_res <- knitr::restore_raw_output(output_str, preserved_chunks)
+  }
+
+  if (!identical(output_str, output_res))
+    xfun::write_utf8(output_res, output_file)
+
+  output_file
+}
+
+# preserve chunks marked w/ e.g. html_preserve
+extract_preserve_chunks <- function(output_file, format) {
+  if (knitr::is_html_output(format$pandoc$writer)) {
+    extract <- htmltools::extractPreserveChunks
+  } else {
+    extract <- knitr::extract_raw_output
+  }
+  rmarkdown:::extract_preserve_chunks(output_file, extract)
+}
+
+
 
 pandoc_options <- function(format) {
   # note: pandoc_options args is used for various r-specific scenarios:
@@ -219,6 +276,8 @@ main <- function() {
     result <- spin(params$input)
   } else if (request$action == "execute") {
     result <- execute(params$input, params$format, params$output)
+  } else if (request$action == "postprocess") {
+    result <- postprocess(params$format, params$output, params$preserved)
   }
 
   # write results
