@@ -1,11 +1,11 @@
 import { dirname, join } from "path/mod.ts";
 import { exists } from "fs/exists.ts";
 import { parse } from "encoding/yaml.ts";
+import { ld } from "lodash/mod.ts";
 
 import type { Format } from "../api/format.ts";
 
 import { metadataFromFile, metadataFromMarkdown } from "./metadata.ts";
-import { mergeConfigs } from "./merge.ts";
 
 export interface Config {
   [key: string]: Format;
@@ -74,4 +74,19 @@ export function resolveConfig(config: Config) {
   }
 
   return newConfig;
+}
+
+export function mergeConfigs<T>(...configs: T[]): T {
+  return ld.mergeWith(
+    configs[0],
+    ...configs.slice(1),
+    (objValue: unknown, srcValue: unknown) => {
+      if (ld.isArray(objValue) && ld.isArray(srcValue)) {
+        const combined = (objValue as Array<unknown>).concat(
+          srcValue as Array<unknown>,
+        );
+        return ld.uniqBy(combined, ld.toString);
+      }
+    },
+  );
 }
