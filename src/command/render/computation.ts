@@ -5,6 +5,7 @@ import type { Format, FormatPandoc } from "../../api/format.ts";
 import { pandocIncludesOptions } from "../../core/pandoc.ts";
 
 import { computationEngineForFile } from "../../computation/engine.ts";
+import { consoleWriteLine } from "../../core/console.ts";
 
 export interface ComputationsResult {
   output: string;
@@ -15,6 +16,7 @@ export interface ComputationsResult {
 
 export interface ComputationsOptions {
   input: string;
+  output: string;
   format: Format;
   quiet?: boolean;
 }
@@ -24,30 +26,27 @@ export async function runComputations(
 ): Promise<ComputationsResult> {
   // compute file paths
   const engine = computationEngineForFile(options.input);
-  const inputDir = dirname(options.input);
-  const inputBase = basename(options.input, extname(options.input));
-  const output = join(inputDir, inputBase + ".quarto.md");
 
   // run compute engine if appropriate
   if (engine) {
     const result = await engine.execute(
       options.input,
       options.format,
-      output,
+      options.output,
       options.quiet,
     );
 
     return {
-      output,
+      output: options.output,
       supporting: result.supporting,
       pandoc: pandocIncludesOptions(result.includes),
       postprocess: result.postprocess,
     };
     // no compute engine, just copy the file
   } else {
-    await Deno.copyFile(options.input, output);
+    await Deno.copyFile(options.input, options.output);
     return {
-      output,
+      output: options.output,
       supporting: [],
       pandoc: {},
     };
