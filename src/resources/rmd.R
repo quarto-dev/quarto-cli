@@ -14,20 +14,58 @@ spin <- function(input) {
 # execute rmarkdown::render
 execute <- function(input, format, output) {
 
-  #  post_processor for saving metadata and yaml preservation
-  runtime <- NULL
-  post_processor <- function(metadata, input_file, output_file, clean, verbose) {
-    runtime <<- metadata$runtime %||% "static"
-    input_lines <- rmarkdown:::read_utf8(input_file)
-    partitioned <- rmarkdown:::partition_yaml_front_matter(input_lines)
-    if (!is.null(partitioned$front_matter)) {
-      output_lines <- c(partitioned$front_matter, "", read_utf8(output_file))
-      rmarkdown:::write_utf8(output_lines, output_file)
-    }
-    output_file
-  }
+  # synthesize rmarkdown output format
+  output_format <- rmarkdown::output_format(
+    knitr = knitr_options(format),
+    pandoc = pandoc_options(format),
+    post_processor = preserve_yaml_post_processor,
+    keep_md = FALSE,
+    clean_supporting = FALSE
+  )
 
-  # create output format
+  # run knitr but not pandoc and capture the results
+  render_output <- rmarkdown::render(
+    input = input,
+    output_format = output_format,
+    run_pandoc = FALSE
+  )
+  knit_meta <-  attr(render_output, "knit_meta")
+  files_dir <- attr(render_output, "files_dir")
+
+  # rename the markdown file to the requested output file
+  file.rename(file.path(dirname(input), render_output), output)
+
+  # get includes from render
+  includes <- includes_from_render(input, files_dir, knit_meta)
+
+  # apply any required patches
+  includes <- apply_patches(format, includes)
+
+  # results
+  list(
+    supporting = I(attr(render_output, "files_dir")),
+    includes = includes
+  )
+}
+
+pandoc_options <- function(format) {
+  # note: pandoc_options args is used for various r-specific scenarios:
+  #   - https://github.com/rstudio/rmarkdown/pull/1468
+  #   - force an id-prefix for runtime: shiny
+  # we don't provide them here b/c we manage interaction w/ pandoc not
+  # rmarkdown::render. note though that we do pass a --to argument to
+  # work around an issue w/ rmarkdown where at least 1 argument
+  # must be passed or there is a runtime error
+  rmarkdown::pandoc_options(
+    to = format$pandoc$writer,
+    from = format$pandoc$reader,
+    args = c("--to", format$pandoc$writer),
+    keep_tex = FALSE
+  )
+}
+
+# knitr options for format
+knitr_options <- function(format) {
 
   # may need some knit hooks
   knit_hooks <- list()
@@ -61,7 +99,7 @@ execute <- function(input, format, output) {
 
   # add fig.retina if it's an html based format (if we add this for PDF
   # it forces the use of \includegraphics)
-  if (knitr:::is_html_output(to)) {
+  if (knitr:::is_html_output(format$pandoc$writer)) {
     opts_chunk$fig.retina = 2
   }
 
@@ -78,71 +116,59 @@ execute <- function(input, format, output) {
     }
   }
 
-
-  # knitr_options
-  knitr <- rmarkdown::knitr_options(
+  # return options
+  rmarkdown::knitr_options(
     opts_knit = opts_knit,
     opts_chunk = opts_chunk,
     knit_hooks = knit_hooks
   )
+}
 
-  # note: pandoc_options args is used for various r-specific scenarios:
-  #   - https://github.com/rstudio/rmarkdown/pull/1468
-  #   - force an id-prefix for runtime: shiny
-  # we don't provide them here b/c we manage interaction w/ pandoc not
-  # rmarkdown::render. note though that we do pass a --to argument to
-  # work around an issue w/ rmarkdown where at least 1 argument
-  # must be passed or there is a runtime error
+# post_processor for yaml preservation
+preserve_yaml_post_processor <- function(metadata, input_file, output_file, clean, verbose) {
+  input_lines <- rmarkdown:::read_utf8(input_file)
+  partitioned <- rmarkdown:::partition_yaml_front_matter(input_lines)
+  if (!is.null(partitioned$front_matter)) {
+    output_lines <- c(partitioned$front_matter, "", read_utf8(output_file))
+    rmarkdown:::write_utf8(output_lines, output_file)
+  }
+  output_file
+}
 
-  # pandoc_options
-  pandoc <- rmarkdown::pandoc_options(
-    to = format$pandoc$writer,
-    from = format$pandoc$reader,
-    args = c("--to", to),
-    keep_tex = FALSE
-  )
+# get includes implied by the result of render (e.g. html dependencies)
+includes_from_render <-function(input, files_dir, knit_meta) {
 
-  # create format
-  output_format <- rmarkdown::output_format(
-    knitr = knitr,
-    pandoc = pandoc,
-    post_processor = post_processor,
-    keep_md = FALSE,
-    clean_supporting = FALSE
-  )
-
-  # run knitr but not pandoc
-  md_result <- rmarkdown::render(
-    input = input,
-    output_format = output_format,
-    run_pandoc = FALSE
-  )
-
-  # rename the markdown file
-  file.rename(file.path(dirname(input), md_result), output)
-
-  # get knit_meta and the files_dir
-  knit_meta <-  attr(md_result, "knit_meta")
-  files_dir <- attr(md_result, "files_dir")
-
-  # get args for extras (e.g. html dependencies)
+  # get extras (e.g. html dependencies)
   extras <- rmarkdown:::html_extras_for_document(
     knit_meta,
-    runtime,
+    "static",
     rmarkdown:::html_dependency_resolver,
     list() # format deps
   )
-  # convert dependencies to in_header
+  # convert dependencies to in_header includes
+  includes <- list()
   dependencies <- extras$dependencies
   if (length(dependencies) > 0) {
     deps <- rmarkdown:::html_dependencies_as_string(dependencies, files_dir, dirname(input))
     extras$dependencies <- NULL
-    extras$in_header <- paste0(extras$in_header, "\n", deps)
+    includes$in_header <- deps
   }
+  # return includes
+  includes
 
-  # add slides js for html slides
-  if (format$pandoc$writer %in% c("s5", "dzslides", "slidy", "slideous", "revealjs")) {
-    slides_js <- '
+}
+
+# apply patches to output as required
+apply_patches <- function(format, includes) {
+  if (format$pandoc$writer %in% c("slidy", "revealjs"))
+    includes <- apply_slides_patch(includes)
+  includes
+}
+
+# patch to ensure that htmlwidgets size correctly when slide changes
+apply_slides_patch <- function(includes) {
+
+  slides_js <- '
 <script>
   // htmlwidgets need to know to resize themselves when slides are shown/hidden.
   // Fire the "slideenter" event (handled by htmlwidgets.js) when the current
@@ -184,20 +210,10 @@ execute <- function(input, format, output) {
   })();
 </script>
 '
-    extras$after_body <- paste0(extras$after_body, slides_js)
-  }
-
-  # results
-  list(
-    supporting = I(attr(md_result, "files_dir")),
-    includes = extras
-  )
+  includes$after_body <- paste0(includes$after_body, slides_js)
+  includes
 }
 
-# utility functions
-`%||%` <- function(x, y) {
-  if (is.null(x)) y else x
-}
 
 # main
 main <- function() {
