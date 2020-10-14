@@ -4,6 +4,8 @@ knit: quarto render
 quarto:
   html:
     toc: true
+    keep: 
+      md: true
 ---
 
 ## Plot 1: Target
@@ -13,6 +15,11 @@ quarto:
 -   bullet 2
 
 -   bullet 3
+
+<!--html_preserve-->
+    <strong>This will render as HTML not preformatted text</strong>
+<!--/html_preserve-->
+
 
 ## Plot 2
 

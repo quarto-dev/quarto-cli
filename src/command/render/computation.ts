@@ -4,13 +4,12 @@ import type { Format, FormatPandoc } from "../../api/format.ts";
 
 import { pandocIncludesOptions } from "../../core/pandoc.ts";
 
-import {
-  computationEngineForFile,
-} from "../../computation/engine.ts";
+import { computationEngineForFile } from "../../computation/engine.ts";
 
 export interface ComputationsResult {
   output: string;
   supporting: string[];
+  preserved: { [key: string]: string };
   pandoc: FormatPandoc;
 }
 
@@ -42,6 +41,7 @@ export async function runComptations(
     return {
       output,
       supporting: result.supporting,
+      preserved: result.preserved,
       pandoc: pandocIncludesOptions(result.includes),
     };
     // no compute engine, just copy the file
@@ -50,6 +50,7 @@ export async function runComptations(
     return {
       output,
       supporting: [],
+      preserved: {},
       pandoc: {},
     };
   }
@@ -59,6 +60,7 @@ export interface PostProcessOptions {
   input: string;
   format: Format;
   output: string;
+  preserved: { [key: string]: string };
   quiet?: boolean;
 }
 
@@ -67,7 +69,12 @@ export async function postProcess(
 ): Promise<string> {
   const engine = computationEngineForFile(extname(options.input));
   if (engine && engine.postProcess) {
-    return engine.postProcess(options.format, options.output, options.quiet);
+    return engine.postProcess(
+      options.format,
+      options.output,
+      options.preserved,
+      options.quiet,
+    );
   } else {
     return Promise.resolve(options.output);
   }

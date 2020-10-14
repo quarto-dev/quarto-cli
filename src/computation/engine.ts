@@ -9,6 +9,7 @@ import type { PandocIncludes } from "../core/pandoc.ts";
 export interface ExecuteResult {
   supporting: string[];
   includes: PandocIncludes;
+  preserved: { [key: string]: string };
 }
 
 export interface ComputationEngine {
@@ -25,6 +26,7 @@ export interface ComputationEngine {
   postProcess: (
     format: Format,
     output: string,
+    preserved: { [key: string]: string },
     quiet?: boolean,
   ) => Promise<string>;
 }

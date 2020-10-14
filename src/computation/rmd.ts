@@ -55,9 +55,22 @@ export const rmdEngine: ComputationEngine = {
   postProcess: (
     format: Format,
     output: string,
+    preserved: { [key: string]: string },
     quiet?: boolean,
   ) => {
-    return Promise.resolve(output);
+    if (Object.keys(preserved).length > 0) {
+      return callR<string>(
+        "postprocess",
+        {
+          format,
+          output,
+          preserved,
+        },
+        quiet,
+      );
+    } else {
+      return Promise.resolve(output);
+    }
   },
 };
 
