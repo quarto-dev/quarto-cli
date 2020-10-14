@@ -1,5 +1,7 @@
-import { basename } from "https://deno.land/std@0.71.0/path/mod.ts";
+import { basename } from "path/mod.ts";
+
 import type { Format } from "../../api/format.ts";
+import { kSelfContained } from "../../config/constants.ts";
 
 import type { ComputationsResult } from "./computation.ts";
 import type { RenderFlags } from "./flags.ts";
@@ -22,8 +24,8 @@ export function cleanup(
   Deno.removeSync(computations.output);
 
   // determine if we will be self contained
-  const selfContained = flags["self-contained"] ||
-    (format.pandoc && format.pandoc["self-contained"]);
+  const selfContained = flags[kSelfContained] ||
+    (format.pandoc && format.pandoc[kSelfContained]);
 
   // if we aren't keeping the markdown and we are self-contained, then
   // delete the supporting files
