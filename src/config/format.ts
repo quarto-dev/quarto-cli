@@ -5,7 +5,7 @@ import { computationEngineForFile } from "../computation/engine.ts";
 
 import { Config, projectConfig, resolveConfig } from "./config.ts";
 import { metadataFromFile } from "./metadata.ts";
-import { mergeConfigs } from "./merge.ts";
+import { mergeConfigs } from "./config.ts";
 
 export async function formatForInputFile(
   input: string,

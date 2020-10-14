@@ -2,7 +2,7 @@ import { basename } from "path/mod.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { mergeConfigs } from "../../config/merge.ts";
+import { mergeConfigs } from "../../config/config.ts";
 
 import { consoleWriteLine } from "../../core/console.ts";
 import type { ProcessResult } from "../../core/process.ts";
