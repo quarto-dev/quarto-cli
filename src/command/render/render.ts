@@ -23,7 +23,8 @@ import { cleanup } from "./cleanup.ts";
 // TODO: new config system
 // TODO: fill out all the pandoc formats
 
-// TODO: postprocessor / R and .py scripts become single script w/ "action", "params"
+// TODO: refactor rmd.r
+// TODO: postprocessor (for html preserve)
 // TODO: html_preserve (either call R Markdown or substitute raw html blocks)
 
 // TODO: shiny_prerendered  (quarto run)
