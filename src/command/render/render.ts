@@ -4,7 +4,7 @@ import { Command } from "cliffy/command/mod.ts";
 
 import { mergeConfigs } from "../../config/merge.ts";
 
-import { writeLine } from "../../core/console.ts";
+import { consoleWriteLine } from "../../core/console.ts";
 import type { ProcessResult } from "../../core/process.ts";
 
 import { formatForInputFile } from "../../config/format.ts";
@@ -22,6 +22,8 @@ import { cleanup } from "./cleanup.ts";
 //   - coloring
 //   - progress
 //   - error reporting
+
+// TODO: integrate w/ pandoc log
 
 // TODO: new config system
 // TODO: fill out all the pandoc formats
@@ -115,7 +117,7 @@ function resolveOutput(
 
 function reportOutput(output: string) {
   if (output !== "-") {
-    writeLine("Output created: " + output + "\n");
+    consoleWriteLine("Output created: " + output + "\n");
   }
 }
 
@@ -171,7 +173,7 @@ export const renderCommand = new Command()
       }
     } catch (error) {
       if (error) {
-        writeLine(error.toString());
+        consoleWriteLine(error.toString());
       }
       Deno.exit(1);
     }

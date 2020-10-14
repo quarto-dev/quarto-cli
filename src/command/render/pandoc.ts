@@ -3,7 +3,7 @@ import { stringify } from "encoding/yaml.ts";
 
 import type { FormatPandoc } from "../../api/format.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
-import { writeLine } from "../../core/console.ts";
+import { consoleWriteLine } from "../../core/console.ts";
 
 export interface PandocOptions {
   input: string;
@@ -35,11 +35,11 @@ export async function runPandoc(
   // print defaults file and command line args
   if (!options.quiet) {
     if (options.args.length > 0) {
-      writeLine(yaml + "args: " + options.args.join(" "));
+      consoleWriteLine(yaml + "args: " + options.args.join(" "));
     } else {
-      writeLine(yaml);
+      consoleWriteLine(yaml);
     }
-    writeLine("---\n");
+    consoleWriteLine("---\n");
   }
 
   // run pandoc

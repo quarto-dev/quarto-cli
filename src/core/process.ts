@@ -17,7 +17,10 @@ export async function execProcess(
     stdout: stdout ? "piped" : options.stdout,
   });
 
-  if (stdin && process.stdin) {
+  if (stdin) {
+    if (!process.stdin) {
+      throw new Error("Process stdin not available");
+    }
     await process.stdin.write(new TextEncoder().encode(stdin));
     process.stdin.close();
   }
@@ -25,7 +28,11 @@ export async function execProcess(
   // read from stdout
   const decoder = new TextDecoder();
   let stdoutText = "";
-  if ((stdout || options.stdout === "piped") && process.stdout) {
+  if (stdout || options.stdout === "piped") {
+    if (!process.stdout) {
+      throw new Error("Process stdout not available");
+    }
+
     for await (const chunk of Deno.iter(process.stdout)) {
       if (stdout) {
         stdout(chunk);
@@ -43,8 +50,6 @@ export async function execProcess(
   const stderr = options.stderr === "piped"
     ? await process.stderrOutput()
     : undefined;
-
-  // return result
   const stderrText = stderr ? decoder.decode(stderr) : undefined;
 
   // close the process

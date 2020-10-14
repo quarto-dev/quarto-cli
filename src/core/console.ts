@@ -1,3 +1,3 @@
-export function writeLine(line: string, writer = Deno.stderr) {
-  writer.writeSync(new TextEncoder().encode(line + "\n"));
+export function consoleWriteLine(line: string) {
+  Deno.stderr.writeSync(new TextEncoder().encode(line + "\n"));
 }
