@@ -16,6 +16,14 @@ export interface ExecuteOptions {
   quiet?: boolean;
 }
 
+export interface PostProcessOptions {
+  input: string;
+  format: Format;
+  output: string;
+  data: unknown;
+  quiet?: boolean;
+}
+
 export interface ExecuteResult {
   supporting: string[];
   includes: PandocIncludes;
@@ -27,13 +35,7 @@ export interface ComputationEngine {
   canHandle: (ext: string) => boolean;
   metadata: (file: string) => Promise<Metadata>;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
-
-  postprocess: (
-    format: Format,
-    output: string,
-    data: unknown,
-    quiet?: boolean,
-  ) => Promise<string>;
+  postprocess: (options: PostProcessOptions) => Promise<string>;
 }
 
 export function computationEngineForFile(file: string) {

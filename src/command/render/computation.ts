@@ -7,6 +7,7 @@ import { pandocIncludesOptions } from "../../core/pandoc.ts";
 import {
   computationEngineForFile,
   ExecuteOptions,
+  PostProcessOptions,
 } from "../../computation/engine.ts";
 
 export interface ComputationsResult {
@@ -42,25 +43,12 @@ export async function runComputations(
   }
 }
 
-export interface PostProcessOptions {
-  input: string;
-  format: Format;
-  output: string;
-  data: unknown;
-  quiet?: boolean;
-}
-
 export async function postProcess(
   options: PostProcessOptions,
 ): Promise<string> {
   const engine = computationEngineForFile(options.input);
   if (engine && engine.postprocess) {
-    return engine.postprocess(
-      options.format,
-      options.output,
-      options.data,
-      options.quiet,
-    );
+    return engine.postprocess(options);
   } else {
     return Promise.resolve(options.output);
   }

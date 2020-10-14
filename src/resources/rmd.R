@@ -71,11 +71,16 @@ execute <- function(input, format, output, params) {
 }
 
 # postprocess (restore preserved)
-postprocess <- function(format, output_file, preserved_chunks) {
+postprocess <- function(input, format, output, preserved_chunks) {
+
+  # change to input dir and make input relative
+  oldwd <- setwd(dirname(rmarkdown:::abs_path(input)))
+  on.exit(setwd(oldwd), add = TRUE)
+  input <- basename(input)
 
   # if there are no preserved chunks to restore then no post-processing is necessary
   if (length(preserved_chunks) == 0)
-    return(output_file)
+    return(output)
 
   # convert preserved chunks to named character vector
   names <- names(preserved_chunks)
@@ -83,7 +88,7 @@ postprocess <- function(format, output_file, preserved_chunks) {
   names(preserved_chunks) <- names
 
   # read the output file
-  output_str <- xfun::read_utf8(output_file)
+  output_str <- xfun::read_utf8(output)
 
   if (knitr::is_html_output(format$pandoc$writer)) {
     # Pandoc adds an empty <p></p> around the IDs of preserved chunks, and we
@@ -105,9 +110,9 @@ postprocess <- function(format, output_file, preserved_chunks) {
   }
 
   if (!identical(output_str, output_res))
-    xfun::write_utf8(output_res, output_file)
+    xfun::write_utf8(output_res, output)
 
-  output_file
+  output
 }
 
 # preserve chunks marked w/ e.g. html_preserve
@@ -295,7 +300,7 @@ main <- function() {
   } else if (request$action == "execute") {
     result <- execute(params$input, params$format, params$output, params$params)
   } else if (request$action == "postprocess") {
-    result <- postprocess(params$format, params$output, params$data)
+    result <- postprocess(params$input, params$format, params$output, params$data)
   }
 
   # write results

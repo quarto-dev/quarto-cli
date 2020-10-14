@@ -11,6 +11,7 @@ import type {
   ComputationEngine,
   ExecuteOptions,
   ExecuteResult,
+  PostProcessOptions,
 } from "./engine.ts";
 
 export const ipynbEngine: ComputationEngine = {
@@ -57,12 +58,7 @@ export const ipynbEngine: ComputationEngine = {
     }
   },
 
-  postprocess: (
-    format: Format,
-    output: string,
-    data: unknown,
-    quiet?: boolean,
-  ) => {
-    return Promise.resolve(output);
+  postprocess: (options: PostProcessOptions) => {
+    return Promise.resolve(options.output);
   },
 };

@@ -15,6 +15,7 @@ import type {
   ComputationEngine,
   ExecuteOptions,
   ExecuteResult,
+  PostProcessOptions,
 } from "./engine.ts";
 
 const kRmdExtensions = [".rmd", ".rmarkdown"];
@@ -53,20 +54,11 @@ export const rmdEngine: ComputationEngine = {
     );
   },
 
-  postprocess: async (
-    format: Format,
-    output: string,
-    data: unknown,
-    quiet?: boolean,
-  ) => {
+  postprocess: async (options: PostProcessOptions) => {
     return callR<string>(
       "postprocess",
-      {
-        format,
-        output,
-        data,
-      },
-      quiet,
+      options,
+      options.quiet,
     );
   },
 };
