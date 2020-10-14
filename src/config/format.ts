@@ -15,8 +15,7 @@ export async function formatForInputFile(
   const projConfig: Config = await projectConfig(input);
 
   // get metadata from computational preprocessor (or from the raw .md)
-  const ext = extname(input);
-  const engine = computationEngineForFile(ext);
+  const engine = computationEngineForFile(input);
   const fileMetadata = engine
     ? await engine.metadata(input)
     : await metadataFromFile(input);

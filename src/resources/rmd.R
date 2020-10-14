@@ -48,7 +48,7 @@ execute <- function(input, format, output) {
   list(
     supporting = I(attr(render_output, "files_dir")),
     includes = includes,
-    preserved = split(unname(preserved),names(preserved))
+    postprocess = split(unname(preserved),names(preserved))
   )
 }
 
@@ -277,7 +277,7 @@ main <- function() {
   } else if (request$action == "execute") {
     result <- execute(params$input, params$format, params$output)
   } else if (request$action == "postprocess") {
-    result <- postprocess(params$format, params$output, params$preserved)
+    result <- postprocess(params$format, params$output, params$data)
   }
 
   # write results
