@@ -9,8 +9,8 @@ import { computationEngineForFile } from "../../computation/engine.ts";
 export interface ComputationsResult {
   output: string;
   supporting: string[];
-  preserved: { [key: string]: string };
   pandoc: FormatPandoc;
+  postprocess?: unknown;
 }
 
 export interface ComputationsOptions {
@@ -23,10 +23,9 @@ export async function runComptations(
   options: ComputationsOptions,
 ): Promise<ComputationsResult> {
   // compute file paths
-  const ext = extname(options.input);
-  const engine = computationEngineForFile(ext);
+  const engine = computationEngineForFile(options.input);
   const inputDir = dirname(options.input);
-  const inputBase = basename(options.input, ext);
+  const inputBase = basename(options.input, extname(options.input));
   const output = join(inputDir, inputBase + ".quarto.md");
 
   // run compute engine if appropriate
@@ -41,8 +40,8 @@ export async function runComptations(
     return {
       output,
       supporting: result.supporting,
-      preserved: result.preserved,
       pandoc: pandocIncludesOptions(result.includes),
+      postprocess: result.postprocess,
     };
     // no compute engine, just copy the file
   } else {
@@ -50,7 +49,6 @@ export async function runComptations(
     return {
       output,
       supporting: [],
-      preserved: {},
       pandoc: {},
     };
   }
@@ -60,19 +58,19 @@ export interface PostProcessOptions {
   input: string;
   format: Format;
   output: string;
-  preserved: { [key: string]: string };
+  data: unknown;
   quiet?: boolean;
 }
 
 export async function postProcess(
   options: PostProcessOptions,
 ): Promise<string> {
-  const engine = computationEngineForFile(extname(options.input));
-  if (engine && engine.postProcess) {
-    return engine.postProcess(
+  const engine = computationEngineForFile(options.input);
+  if (engine && engine.postprocess) {
+    return engine.postprocess(
       options.format,
       options.output,
-      options.preserved,
+      options.data,
       options.quiet,
     );
   } else {

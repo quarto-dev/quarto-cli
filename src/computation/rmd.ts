@@ -1,3 +1,5 @@
+import { extname } from "path/mod.ts";
+
 import type { Format } from "../api/format.ts";
 
 import {
@@ -11,16 +13,20 @@ import { resourcePath } from "../core/resources.ts";
 
 import type { ComputationEngine, ExecuteResult } from "./engine.ts";
 
+const kRmdExtensions = [".rmd", ".rmarkdown"];
+const kRScriptExtensions = [".r", ".s", ".q"];
+const kEngineExtensions = [...kRmdExtensions, ...kRScriptExtensions];
+
 export const rmdEngine: ComputationEngine = {
   name: "rmd",
 
   canHandle: (ext: string) => {
-    return [".rmd", ".rmarkdown", ".r"].includes(ext.toLowerCase());
+    return kEngineExtensions.includes(ext.toLowerCase());
   },
 
   metadata: async (file: string): Promise<Metadata> => {
-    // if it's an R script, spin it into markdown
-    if (file.toLowerCase().endsWith(".r")) {
+    if (kRScriptExtensions.includes(extname(file.toLowerCase()))) {
+      // if it's an R script, spin it into markdown
       const result = await callR<string>(
         "spin",
         {
@@ -29,14 +35,14 @@ export const rmdEngine: ComputationEngine = {
         true,
       );
       return metadataFromMarkdown(result);
-      // otherwise just read the metadata from the file
     } else {
+      // otherwise just read the metadata from the file
       return metadataFromFile(file);
     }
   },
 
   execute: async (
-    file: string,
+    input: string,
     format: Format,
     output: string,
     quiet?: boolean,
@@ -44,7 +50,7 @@ export const rmdEngine: ComputationEngine = {
     return callR<ExecuteResult>(
       "execute",
       {
-        input: file,
+        input,
         format,
         output,
       },
@@ -52,25 +58,21 @@ export const rmdEngine: ComputationEngine = {
     );
   },
 
-  postProcess: (
+  postprocess: async (
     format: Format,
     output: string,
-    preserved: { [key: string]: string },
+    data: unknown,
     quiet?: boolean,
   ) => {
-    if (Object.keys(preserved).length > 0) {
-      return callR<string>(
-        "postprocess",
-        {
-          format,
-          output,
-          preserved,
-        },
-        quiet,
-      );
-    } else {
-      return Promise.resolve(output);
-    }
+    return callR<string>(
+      "postprocess",
+      {
+        format,
+        output,
+        data,
+      },
+      quiet,
+    );
   },
 };
 
@@ -109,7 +111,6 @@ async function callR<T>(
   );
 
   if (result.success) {
-    // read the results
     const results = await Deno.readTextFile(resultsFile);
     await Deno.remove(resultsFile);
     const resultsJson = JSON.parse(results);

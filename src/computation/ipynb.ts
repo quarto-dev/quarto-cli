@@ -33,7 +33,7 @@ export const ipynbEngine: ComputationEngine = {
   },
 
   execute: async (
-    file: string,
+    input: string,
     format: Format,
     output: string,
     quiet?: boolean,
@@ -43,7 +43,7 @@ export const ipynbEngine: ComputationEngine = {
       cmd: [
         condaPrefix + "/bin/python",
         resourcePath("ipynb.py"),
-        file,
+        input,
         output,
       ],
     });
@@ -52,17 +52,16 @@ export const ipynbEngine: ComputationEngine = {
       return {
         supporting: [],
         includes: {},
-        preserved: {},
       };
     } else {
       return Promise.reject();
     }
   },
 
-  postProcess: (
+  postprocess: (
     format: Format,
     output: string,
-    preserved: { [key: string]: string },
+    data: unknown,
     quiet?: boolean,
   ) => {
     return Promise.resolve(output);

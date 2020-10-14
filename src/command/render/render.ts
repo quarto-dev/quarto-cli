@@ -75,13 +75,16 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   });
 
   // run post processor
-  const finalOutput = await postProcess({
-    input: options.input,
-    format,
-    output,
-    preserved: computations.preserved,
-    quiet,
-  });
+  let finalOutput = output;
+  if (computations.postprocess) {
+    finalOutput = await postProcess({
+      input: options.input,
+      format,
+      output,
+      data: computations.postprocess,
+      quiet,
+    });
+  }
 
   // cleanup as necessary
   cleanup(options.flags, format, computations, finalOutput);

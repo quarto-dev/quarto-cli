@@ -1,3 +1,5 @@
+import { extname } from "path/mod.ts";
+
 import type { Format } from "../api/format.ts";
 
 import type { Metadata } from "../config/metadata.ts";
@@ -9,7 +11,7 @@ import type { PandocIncludes } from "../core/pandoc.ts";
 export interface ExecuteResult {
   supporting: string[];
   includes: PandocIncludes;
-  preserved: { [key: string]: string };
+  postprocess?: unknown;
 }
 
 export interface ComputationEngine {
@@ -17,26 +19,27 @@ export interface ComputationEngine {
   canHandle: (ext: string) => boolean;
   metadata: (file: string) => Promise<Metadata>;
   execute: (
-    file: string,
+    input: string,
     format: Format,
     output: string,
     quiet?: boolean,
   ) => Promise<ExecuteResult>;
 
-  postProcess: (
+  postprocess: (
     format: Format,
     output: string,
-    preserved: { [key: string]: string },
+    data: unknown,
     quiet?: boolean,
   ) => Promise<string>;
 }
 
-export function computationEngineForFile(ext: string) {
+export function computationEngineForFile(file: string) {
   const engines = [
     rmdEngine,
     ipynbEngine,
   ];
 
+  const ext = extname(file);
   for (const engine of engines) {
     if (engine.canHandle(ext)) {
       return engine;
