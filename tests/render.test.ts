@@ -12,6 +12,10 @@ Deno.test("R Script Render", async () => {
   await quarto(["render", "docs/test.R"]);
 });
 
+Deno.test("Rmd with Params", async () => {
+  await quarto(["render", "docs/test.Rmd", "--params", "params.yml"]);
+});
+
 Deno.test("ipynb render", async () => {
   await quarto(["render", "docs/test.ipynb"]);
 });
