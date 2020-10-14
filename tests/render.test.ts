@@ -1,11 +1,15 @@
 import { quarto } from "../src/quarto/quarto.ts";
 
-Deno.test("Simple Markdown Render", async () => {
+Deno.test("Markdown Render", async () => {
   await quarto(["render", "docs/test-plain.md"]);
 });
 
 Deno.test("Rmd Render", async () => {
   await quarto(["render", "docs/test.Rmd"]);
+});
+
+Deno.test("R Script Render", async () => {
+  await quarto(["render", "docs/test.R"]);
 });
 
 Deno.test("ipynb render", async () => {

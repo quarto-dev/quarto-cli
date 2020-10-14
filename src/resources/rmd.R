@@ -1,5 +1,16 @@
 
 
+# execute knitr::spin
+spin <- function(input) {
+
+  # read file
+  text <- xfun::read_utf8(input)
+
+  # spin and return
+  knitr::spin(text = text, knit = FALSE)
+
+}
+
 # execute rmarkdown::render
 execute <- function(input, format, output) {
 
@@ -17,9 +28,6 @@ execute <- function(input, format, output) {
   }
 
   # create output format
-
-  # some global options that affect knitr behavior
-  options(knitr.include_graphics.ext = TRUE)
 
   # may need some knit hooks
   knit_hooks <- list()
@@ -203,12 +211,14 @@ main <- function() {
   params <- request$params
 
   # dispatch request
-  if (request$action == "execute") {
+  if (request$action == "spin") {
+    result <- spin(params$input)
+  } else if (request$action == "execute") {
     result <- execute(params$input, params$format, params$output)
   }
 
   # write results
-  resultJson <- jsonlite::toJSON(auto_unbox = TRUE,  result)
+  resultJson <- jsonlite::toJSON(auto_unbox = TRUE, result)
   xfun:::write_utf8(paste(resultJson, collapse = "\n"), request$result)
 }
 
