@@ -1,10 +1,11 @@
 import type { Format } from "../api/format.ts";
 
-import type { Metadata } from "../config/metadata.ts";
-import { metadataFromMarkdown } from "../config/metadata.ts";
-
+import { getenv } from "../core/env.ts";
 import { execProcess } from "../core/process.ts";
 import { resourcePath } from "../core/resources.ts";
+
+import type { Metadata } from "../config/metadata.ts";
+import { metadataFromMarkdown } from "../config/metadata.ts";
 
 import type { ComputationEngine, ExecuteResult } from "./engine.ts";
 
@@ -37,10 +38,7 @@ export const ipynbEngine: ComputationEngine = {
     output: string,
     quiet?: boolean,
   ): Promise<ExecuteResult> => {
-    const condaPrefix = Deno.env.get("CONDA_PREFIX");
-    if (!condaPrefix) {
-      throw new Error("CONDA_PREFIX not defined");
-    }
+    const condaPrefix = getenv("CONDA_PREFIX");
     const result = await execProcess({
       cmd: [
         condaPrefix + "/bin/python",

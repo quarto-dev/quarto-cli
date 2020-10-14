@@ -1,6 +1,4 @@
-import type {
-  FormatPandoc,
-} from "../api/format.ts";
+import type { FormatPandoc } from "../api/format.ts";
 
 export interface PandocIncludes {
   in_header?: string;
@@ -8,6 +6,7 @@ export interface PandocIncludes {
   after_body?: string;
 }
 
+// provide pandoc include-* arguments from strings
 export function pandocIncludesOptions(
   includes?: PandocIncludes,
 ): FormatPandoc {
