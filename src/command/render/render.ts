@@ -20,15 +20,15 @@ import { postProcess as postprocess, runComputations } from "./computation.ts";
 import { runPandoc } from "./pandoc.ts";
 import {
   fixupPandocArgs,
+  kStdOut,
   parseRenderFlags,
   RenderFlags,
   replacePandocArg,
 } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 
-// TODO: test to see whether any artifacts are left around by rendering to/from varoius dirs
 // TODO: correct relative path for "Output created:" so the IDE will always be able to preview it
-
+// TODO: --compute-dir option for knit_root_dir
 // TODO: add --self-contained to documented render flags
 
 // TODO: output system:
@@ -143,7 +143,7 @@ function resolveOutput(
     output = join(inputStem + "." + ext);
     args.unshift("--output", output);
     // relatve output file on the command line: make it relative to the input dir
-  } else if (!isAbsolute(output)) {
+  } else if (!isAbsolute(output) && output !== kStdOut) {
     output = relative(inputDir, output);
     args = replacePandocArg(args, "--output", output);
   }

@@ -1,5 +1,7 @@
 import { kSelfContained } from "../../config/constants.ts";
 
+export const kStdOut = "-";
+
 export interface RenderFlags {
   to?: string;
   output?: string;
@@ -28,7 +30,7 @@ export function parseRenderFlags(args: string[]) {
       case "--output":
         arg = argsStack.shift();
         if (!arg || arg.startsWith("-")) {
-          flags.output = "-";
+          flags.output = kStdOut;
         } else {
           flags.output = arg;
         }
@@ -85,11 +87,11 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   pandocArgs = pandocArgs.reduce((args, arg, index) => {
     args.push(arg);
     if (
-      flags.output === "-" &&
-      pandocArgs[index + 1] !== "-" &&
+      flags.output === kStdOut &&
+      pandocArgs[index + 1] !== kStdOut &&
       (arg === "-o" || arg === "--output")
     ) {
-      args.push("-");
+      args.push(kStdOut);
     }
     return args;
   }, new Array<string>());
