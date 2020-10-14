@@ -4,8 +4,10 @@ import type { Format, FormatPandoc } from "../../api/format.ts";
 
 import { pandocIncludesOptions } from "../../core/pandoc.ts";
 
-import { computationEngineForFile } from "../../computation/engine.ts";
-import { consoleWriteLine } from "../../core/console.ts";
+import {
+  computationEngineForFile,
+  ExecuteOptions,
+} from "../../computation/engine.ts";
 
 export interface ComputationsResult {
   output: string;
@@ -14,28 +16,15 @@ export interface ComputationsResult {
   postprocess?: unknown;
 }
 
-export interface ComputationsOptions {
-  input: string;
-  output: string;
-  format: Format;
-  quiet?: boolean;
-}
-
 export async function runComputations(
-  options: ComputationsOptions,
+  options: ExecuteOptions,
 ): Promise<ComputationsResult> {
   // compute file paths
   const engine = computationEngineForFile(options.input);
 
   // run compute engine if appropriate
   if (engine) {
-    const result = await engine.execute(
-      options.input,
-      options.format,
-      options.output,
-      options.quiet,
-    );
-
+    const result = await engine.execute(options);
     return {
       output: options.output,
       supporting: result.supporting,

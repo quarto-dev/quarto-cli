@@ -1,11 +1,11 @@
 import { dirname, join } from "path/mod.ts";
 import { exists } from "fs/exists.ts";
-import { parse } from "encoding/yaml.ts";
 import { ld } from "lodash/mod.ts";
 
 import type { Format } from "../api/format.ts";
 
 import { metadataFromFile, metadataFromMarkdown } from "./metadata.ts";
+import { readYAML } from "../core/yaml.ts";
 
 export interface Config {
   [key: string]: Format;
@@ -42,9 +42,7 @@ export async function projectConfig(file: string): Promise<Config> {
     // see if there is a quarto yml file there
     const quartoYml = join(dir, "_quarto.yml");
     if (await exists(quartoYml)) {
-      const decoder = new TextDecoder("utf-8");
-      const yml = await Deno.readFile(quartoYml);
-      const config = parse(decoder.decode(yml)) as Config;
+      const config = readYAML(quartoYml) as Config;
       return resolveConfig(config);
     }
   }

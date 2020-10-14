@@ -12,8 +12,7 @@ import { postProcess as postprocess, runComputations } from "./computation.ts";
 import { runPandoc } from "./pandoc.ts";
 import { fixupPandocArgs, parseRenderFlags, RenderFlags } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
-
-// TODO: general code review of everything (constants, layering, etc.)
+import { readYAML } from "../../core/yaml.ts";
 
 // TODO: generally correct handling of rendering outside of the working directory
 // TODO: correct relative path for "Output created:" so the IDE will always be able to preview it
@@ -56,11 +55,15 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   const inputBase = basename(options.input, extname(options.input));
   const computationOutput = join(inputDir, inputBase + ".quarto.md");
 
+  // resolve parameters (if any)
+  const params = resolveParams(options.flags.params);
+
   // run computations (if any)
   const computations = await runComputations({
     input: options.input,
     output: computationOutput,
     format,
+    params,
     quiet,
   });
 
@@ -104,6 +107,15 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   return result;
 }
 
+// resolve parameters (if any)
+function resolveParams(params?: string) {
+  if (!params || params === "ask") {
+    return params;
+  } else {
+    return readYAML(params) as { [key: string]: unknown };
+  }
+}
+
 // resole output file and --output argument based on input, target ext, and any provided args
 function resolveOutput(
   stem: string,
@@ -138,12 +150,22 @@ export const renderCommand = new Command()
     "Render a file using the supplied target format and pandoc command line arguments.\n" +
       "See pandoc --help for documentation on all available options.",
   )
-  .option("-t, --to [to:string]", "Specify output format (defaults to html).")
+  .option(
+    "-t, --to [to:string]",
+    "Specify output format (defaults to html).",
+  )
   .option(
     "-o, --output [output:string]",
     "Write output to FILE (use '--output -' for stdout).",
   )
-  .option("--quiet [quiet:boolean]", "Suppress warning and other messages.")
+  .option(
+    "--params [params:string]",
+    "YAML file with parameter values (or 'ask' to prompt)",
+  )
+  .option(
+    "--quiet [quiet:boolean]",
+    "Suppress warning and other messages.",
+  )
   .option(
     "[...pandoc-args:string]",
     "Additional pandoc command line arguments.",
