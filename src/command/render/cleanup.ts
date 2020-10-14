@@ -12,8 +12,11 @@ export function cleanup(
   computations: ComputationsResult,
   output: string,
 ) {
+  // check for keep_md
+  const keepMd = format.keep?.md || flags.keepAll;
+
   // if keep.md is requested then copy markdown created by computations to output.md
-  if (format.keep?.md) {
+  if (keepMd) {
     Deno.copyFileSync(
       computations.output,
       basename(output, "." + format.output?.ext) + ".md",
@@ -29,7 +32,7 @@ export function cleanup(
 
   // if we aren't keeping the markdown and we are self-contained, then
   // delete the supporting files
-  if (!format.keep?.md && selfContained) {
+  if (!keepMd && selfContained) {
     if (computations.supporting) {
       computations.supporting.forEach((path) => {
         Deno.removeSync(path, { recursive: true });
