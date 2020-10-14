@@ -28,7 +28,6 @@ import { readYAML } from "../../core/yaml.ts";
 // TODO: fill out all the pandoc formats
 
 // TODO: shiny_prerendered  (quarto run)
-// TODO: --params argument
 
 // TODO: keep_tex
 // TODO: Run citeproc / crossref
@@ -161,6 +160,10 @@ export const renderCommand = new Command()
   .option(
     "--params [params:string]",
     "YAML file with parameter values (or 'ask' to prompt)",
+  )
+  .option(
+    "--keep-all [keep-all:boolean]",
+    "Keep all intermediate files (e.g. markdown, tex, plots, etc.) ",
   )
   .option(
     "--quiet [quiet:boolean]",
