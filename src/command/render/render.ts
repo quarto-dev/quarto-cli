@@ -23,7 +23,8 @@ import { cleanup } from "./cleanup.ts";
 // TODO: new config system
 // TODO: fill out all the pandoc formats
 
-// TODO: refactor rmd.r
+// TODO: consider show -> output_prefix: option( for e.g. '##')
+
 // TODO: postprocessor (for html preserve)
 // TODO: html_preserve (either call R Markdown or substitute raw html blocks)
 

@@ -18,7 +18,6 @@ execute <- function(input, format, output) {
   output_format <- rmarkdown::output_format(
     knitr = knitr_options(format),
     pandoc = pandoc_options(format),
-    post_processor = preserve_yaml_post_processor,
     keep_md = FALSE,
     clean_supporting = FALSE
   )
@@ -122,17 +121,6 @@ knitr_options <- function(format) {
     opts_chunk = opts_chunk,
     knit_hooks = knit_hooks
   )
-}
-
-# post_processor for yaml preservation
-preserve_yaml_post_processor <- function(metadata, input_file, output_file, clean, verbose) {
-  input_lines <- rmarkdown:::read_utf8(input_file)
-  partitioned <- rmarkdown:::partition_yaml_front_matter(input_lines)
-  if (!is.null(partitioned$front_matter)) {
-    output_lines <- c(partitioned$front_matter, "", read_utf8(output_file))
-    rmarkdown:::write_utf8(output_lines, output_file)
-  }
-  output_file
 }
 
 # get includes implied by the result of render (e.g. html dependencies)
