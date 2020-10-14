@@ -1,4 +1,4 @@
-import { basename } from "path/mod.ts";
+import { basename, dirname, extname, join } from "path/mod.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
@@ -51,16 +51,22 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     options.flags.to,
   );
 
+  // derive the output file
+  const inputDir = dirname(options.input);
+  const inputBase = basename(options.input, extname(options.input));
+  const computationOutput = join(inputDir, inputBase + ".quarto.md");
+
   // run computations (if any)
   const computations = await runComputations({
     input: options.input,
+    output: computationOutput,
     format,
     quiet,
   });
 
   // resolve output and args
   const { output, args } = resolveOutput(
-    computations.output,
+    inputBase,
     format.output?.ext,
     options.flags.output,
     options.pandocArgs,
@@ -68,7 +74,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
 
   // run pandoc conversion
   const result = await runPandoc({
-    input: computations.output,
+    input: computationOutput,
     format: mergeConfigs(format.pandoc || {}, computations.pandoc),
     args,
     quiet,
@@ -100,7 +106,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
 
 // resole output file and --output argument based on input, target ext, and any provided args
 function resolveOutput(
-  input: string,
+  stem: string,
   ext?: string,
   output?: string,
   pandocArgs?: string[],
@@ -108,7 +114,7 @@ function resolveOutput(
   ext = ext || "html";
   const args = pandocArgs || [];
   if (!output) {
-    output = basename(input, ".quarto.md") + "." + ext;
+    output = stem + "." + ext;
     args.unshift("--output", output);
   }
 
