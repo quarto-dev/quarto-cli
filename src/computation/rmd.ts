@@ -11,7 +11,11 @@ import {
 import { execProcess } from "../core/process.ts";
 import { resourcePath } from "../core/resources.ts";
 
-import type { ComputationEngine, ExecuteResult } from "./engine.ts";
+import type {
+  ComputationEngine,
+  ExecuteOptions,
+  ExecuteResult,
+} from "./engine.ts";
 
 const kRmdExtensions = [".rmd", ".rmarkdown"];
 const kRScriptExtensions = [".r", ".s", ".q"];
@@ -41,20 +45,11 @@ export const rmdEngine: ComputationEngine = {
     }
   },
 
-  execute: async (
-    input: string,
-    format: Format,
-    output: string,
-    quiet?: boolean,
-  ): Promise<ExecuteResult> => {
+  execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
     return callR<ExecuteResult>(
       "execute",
-      {
-        input,
-        format,
-        output,
-      },
-      quiet,
+      options,
+      options.quiet,
     );
   },
 
@@ -78,7 +73,7 @@ export const rmdEngine: ComputationEngine = {
 
 async function callR<T>(
   action: string,
-  params: { [key: string]: unknown },
+  params: unknown,
   quiet?: boolean,
 ): Promise<T> {
   // create a temp file for writing the results

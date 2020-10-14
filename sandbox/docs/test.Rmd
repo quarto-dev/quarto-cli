@@ -1,12 +1,32 @@
 ---
 title: "Woozy Foobar"
-knit: quarto render
+# knit: quarto render
 quarto:
   html:
     toc: true
     keep: 
       md: true
+params:
+  minimum: 
+    label: "Minimum:"
+    value: 100
+    input: slider
+    min: 0
+    max: 1000
+  region:
+    label: "Region:"
+    value: east
+    input: select
+    choices: [east, west, north, south]
+  data: 
+    label: "Input dataset:"
+    value: results.csv
+    input: file
 ---
+
+```{r}
+str(params)
+```
 
 ## Plot 1: Target
 

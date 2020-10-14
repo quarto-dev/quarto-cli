@@ -3,6 +3,7 @@ import { kSelfContained } from "../../config/constants.ts";
 export interface RenderFlags {
   to?: string;
   output?: string;
+  params?: string;
   quiet?: boolean;
   [kSelfContained]?: boolean;
 }
@@ -32,6 +33,11 @@ export function parseRenderFlags(args: string[]) {
         }
         break;
 
+      case "--params":
+        arg = argsStack.shift();
+        flags.params = arg;
+        break;
+
       case "--quiet":
         flags.quiet = true;
         arg = argsStack.shift();
@@ -54,7 +60,7 @@ export function parseRenderFlags(args: string[]) {
 // repair 'damage' done to pandoc args by cliffy (e.g. the - after --output is dropped)
 export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   // --output - gets eaten by cliffy, re-inject it if necessary
-  return pandocArgs.reduce((args, arg, index) => {
+  pandocArgs = pandocArgs.reduce((args, arg, index) => {
     args.push(arg);
     if (
       flags.output === "-" &&
@@ -62,6 +68,24 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
       (arg === "-o" || arg === "--output")
     ) {
       args.push("-");
+    }
+    return args;
+  }, new Array<string>());
+
+  // remove other args as needed
+  const removeArgs = new Map<string, boolean>();
+  removeArgs.set("--params", true);
+  removeArgs.set("--clean", false);
+  removeArgs.set("--computation-dir", true);
+  let removeNext = false;
+  return pandocArgs.reduce((args, arg) => {
+    if (!removeArgs.has(arg)) {
+      if (!removeNext) {
+        args.push(arg);
+      }
+      removeNext = false;
+    } else {
+      removeNext = removeArgs.get(arg)!;
     }
     return args;
   }, new Array<string>());

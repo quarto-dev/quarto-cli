@@ -7,7 +7,11 @@ import { resourcePath } from "../core/resources.ts";
 import type { Metadata } from "../config/metadata.ts";
 import { metadataFromMarkdown } from "../config/metadata.ts";
 
-import type { ComputationEngine, ExecuteResult } from "./engine.ts";
+import type {
+  ComputationEngine,
+  ExecuteOptions,
+  ExecuteResult,
+} from "./engine.ts";
 
 export const ipynbEngine: ComputationEngine = {
   name: "ipynb",
@@ -32,19 +36,14 @@ export const ipynbEngine: ComputationEngine = {
     return metadataFromMarkdown(markdown);
   },
 
-  execute: async (
-    input: string,
-    format: Format,
-    output: string,
-    quiet?: boolean,
-  ): Promise<ExecuteResult> => {
+  execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
     const condaPrefix = getenv("CONDA_PREFIX");
     const result = await execProcess({
       cmd: [
         condaPrefix + "/bin/python",
         resourcePath("ipynb.py"),
-        input,
-        output,
+        options.input,
+        options.output,
       ],
     });
 

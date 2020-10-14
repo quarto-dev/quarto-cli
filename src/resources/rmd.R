@@ -12,7 +12,7 @@ spin <- function(input) {
 }
 
 # execute rmarkdown::render
-execute <- function(input, format, output) {
+execute <- function(input, format, output, params) {
 
   # synthesize rmarkdown output format
   output_format <- rmarkdown::output_format(
@@ -26,7 +26,9 @@ execute <- function(input, format, output) {
   render_output <- rmarkdown::render(
     input = input,
     output_format = output_format,
-    run_pandoc = FALSE
+    params = params,
+    run_pandoc = FALSE,
+    envir = new.env()
   )
   knit_meta <-  attr(render_output, "knit_meta")
   files_dir <- attr(render_output, "files_dir")
@@ -275,7 +277,7 @@ main <- function() {
   if (request$action == "spin") {
     result <- spin(params$input)
   } else if (request$action == "execute") {
-    result <- execute(params$input, params$format, params$output)
+    result <- execute(params$input, params$format, params$output, params$params)
   } else if (request$action == "postprocess") {
     result <- postprocess(params$format, params$output, params$data)
   }

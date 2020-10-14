@@ -8,6 +8,14 @@ import { rmdEngine } from "./rmd.ts";
 import { ipynbEngine } from "./ipynb.ts";
 import type { PandocIncludes } from "../core/pandoc.ts";
 
+export interface ExecuteOptions {
+  input: string;
+  output: string;
+  format: Format;
+  params?: string | { [key: string]: unknown };
+  quiet?: boolean;
+}
+
 export interface ExecuteResult {
   supporting: string[];
   includes: PandocIncludes;
@@ -18,12 +26,7 @@ export interface ComputationEngine {
   name: string;
   canHandle: (ext: string) => boolean;
   metadata: (file: string) => Promise<Metadata>;
-  execute: (
-    input: string,
-    format: Format,
-    output: string,
-    quiet?: boolean,
-  ) => Promise<ExecuteResult>;
+  execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
 
   postprocess: (
     format: Format,
