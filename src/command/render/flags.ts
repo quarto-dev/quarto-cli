@@ -1,8 +1,10 @@
+import { kSelfContained } from "../../config/constants.ts";
+
 export interface RenderFlags {
   to?: string;
   output?: string;
   quiet?: boolean;
-  "self-contained"?: boolean;
+  [kSelfContained]?: boolean;
 }
 
 // repair 'damage' done to pandoc args by cliffy (e.g. the - after --output is dropped)
@@ -52,7 +54,7 @@ export function parseRenderFlags(args: string[]) {
         break;
 
       case "--self-contained":
-        flags["self-contained"] = true;
+        flags[kSelfContained] = true;
         arg = argsStack.shift();
         break;
 

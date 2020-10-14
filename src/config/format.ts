@@ -6,6 +6,7 @@ import { computationEngineForFile } from "../computation/engine.ts";
 import { Config, projectConfig, resolveConfig } from "./config.ts";
 import { metadataFromFile } from "./metadata.ts";
 import { mergeConfigs } from "./config.ts";
+import { kSelfContained } from "./constants.ts";
 
 export async function formatForInputFile(
   input: string,
@@ -122,7 +123,7 @@ function pdfFormat() {
         format: "pdf",
       },
       pandoc: {
-        "self-contained": true,
+        [kSelfContained]: true,
         variables: {
           graphics: true,
         },
