@@ -15,18 +15,16 @@ import { cleanup } from "./cleanup.ts";
 
 // TODO: general code review of everything (constants, layering, etc.)
 
-// TODO: generally, error handling for malformed input (e.g. yaml)
-
 // TODO: generally correct handling of rendering outside of the working directory
 // TODO: correct relative path for "Output created:" so the IDE will always be able to preview it
 
+// TODO: output system:
+//   - coloring
+//   - progress
+//   - error reporting
+
 // TODO: new config system
 // TODO: fill out all the pandoc formats
-
-// TODO: consider show -> output_prefix: option( for e.g. '##')
-
-// TODO: postprocessor (for html preserve)
-// TODO: html_preserve (either call R Markdown or substitute raw html blocks)
 
 // TODO: shiny_prerendered  (quarto run)
 // TODO: --params argument
