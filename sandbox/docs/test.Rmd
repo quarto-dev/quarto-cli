@@ -2,7 +2,7 @@
 title: "Woozy Foobar"
 knit: quarto render
 quarto:
-  html:
+  pdf:
     toc: true
 ---
 
