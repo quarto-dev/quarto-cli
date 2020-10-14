@@ -8,7 +8,7 @@ import { consoleWriteLine } from "../../core/console.ts";
 import type { ProcessResult } from "../../core/process.ts";
 
 import { formatForInputFile } from "../../config/format.ts";
-import { postProcess as postprocess, runComptations } from "./computation.ts";
+import { postProcess as postprocess, runComputations } from "./computation.ts";
 import { runPandoc } from "./pandoc.ts";
 import { fixupPandocArgs, parseRenderFlags, RenderFlags } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
@@ -52,7 +52,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   );
 
   // run computations (if any)
-  const computations = await runComptations({
+  const computations = await runComputations({
     input: options.input,
     format,
     quiet,
