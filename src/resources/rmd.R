@@ -14,6 +14,16 @@ spin <- function(input) {
 # execute rmarkdown::render
 execute <- function(input, format, output, params) {
 
+  # calcluate absolute path to output (before we setwd below)
+  output_dir <- tools::file_path_as_absolute(dirname(output))
+  output <- file.path(output_dir, basename(output))
+
+  # change to input dir and make input relative (matches
+  # behavior/expectations of rmarkdown::render code)
+  oldwd <- setwd(dirname(rmarkdown:::abs_path(input)))
+  on.exit(setwd(oldwd), add = TRUE)
+  input <- basename(input)
+
   # synthesize rmarkdown output format
   output_format <- rmarkdown::output_format(
     knitr = knitr_options(format),
@@ -46,9 +56,15 @@ execute <- function(input, format, output, params) {
   # apply any required patches
   includes <- apply_patches(format, includes)
 
+  # include supportring files
+  supporting <- if (file_test("-d", files_dir))
+    rmarkdown:::abs_path(files_dir)
+  else
+    character()
+
   # results
   list(
-    supporting = I(attr(render_output, "files_dir")),
+    supporting = I(supporting),
     includes = includes,
     postprocess = split(unname(preserved),names(preserved))
   )
