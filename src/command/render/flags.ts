@@ -7,22 +7,6 @@ export interface RenderFlags {
   [kSelfContained]?: boolean;
 }
 
-// repair 'damage' done to pandoc args by cliffy (e.g. the - after --output is dropped)
-export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
-  // --output - gets eaten by cliffy, re-inject it if necessary
-  return pandocArgs.reduce((args, arg, index) => {
-    args.push(arg);
-    if (
-      flags.output === "-" &&
-      pandocArgs[index + 1] !== "-" &&
-      (arg === "-o" || arg === "--output")
-    ) {
-      args.push("-");
-    }
-    return args;
-  }, new Array<string>());
-}
-
 export function parseRenderFlags(args: string[]) {
   const flags: RenderFlags = {};
 
@@ -65,4 +49,20 @@ export function parseRenderFlags(args: string[]) {
   }
 
   return flags;
+}
+
+// repair 'damage' done to pandoc args by cliffy (e.g. the - after --output is dropped)
+export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
+  // --output - gets eaten by cliffy, re-inject it if necessary
+  return pandocArgs.reduce((args, arg, index) => {
+    args.push(arg);
+    if (
+      flags.output === "-" &&
+      pandocArgs[index + 1] !== "-" &&
+      (arg === "-o" || arg === "--output")
+    ) {
+      args.push("-");
+    }
+    return args;
+  }, new Array<string>());
 }

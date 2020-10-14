@@ -16,7 +16,7 @@ export function cleanup(
   if (format.keep?.md) {
     Deno.copyFileSync(
       computations.output,
-      basename(output, format.output?.ext) + "md",
+      basename(output, "." + format.output?.ext) + ".md",
     );
   }
 
