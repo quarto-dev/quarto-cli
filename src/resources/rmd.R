@@ -14,11 +14,6 @@ spin <- function(input) {
 # execute rmarkdown::render
 execute <- function(input, format, output, cwd, params) {
 
-  # redirect knitr file progress and other messages to stdout
-  # (so we can capture them in our stdout stream)
-  sink(stdout(), type = "message")
-  on.exit(sink(type = "message"), add = TRUE)
-
   # calculate knit_root_dir (before we setwd below)
   knit_root_dir <- if (!is.null(cwd)) tools::file_path_as_absolute(cwd) else NULL
 
