@@ -35,8 +35,6 @@ import { cleanup } from "./cleanup.ts";
 // TODO: new config system
 // TODO: fill out all the pandoc formats
 
-// TODO: shiny_prerendered  (quarto run)
-
 // TODO: keep_tex
 // TODO: Run citeproc / crossref
 // TODO: LaTeX w/ TinyTex
