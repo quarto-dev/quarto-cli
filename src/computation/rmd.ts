@@ -62,7 +62,7 @@ export const rmdEngine: ComputationEngine = {
   },
 
   run: (options: RunOptions) => {
-    return callR<void>(
+    return callR<ProcessResult>(
       "run",
       options,
     );

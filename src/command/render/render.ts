@@ -43,18 +43,19 @@ import { cleanup } from "./cleanup.ts";
 
 export interface RenderOptions {
   input: string;
-  flags: RenderFlags;
+  flags?: RenderFlags;
   pandocArgs?: string[];
 }
 
 export async function render(options: RenderOptions): Promise<ProcessResult> {
   // alias quiet
-  const quiet = options.flags.quiet;
+  const flags = options.flags || {};
+  const quiet = flags.quiet;
 
   // derive format options (looks in file and at project level _quarto.yml)
   const format = await formatForInputFile(
     options.input,
-    options.flags.to,
+    flags.to,
   );
 
   // derive the output file
@@ -63,14 +64,14 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   const computationOutput = join(inputDir, inputStem + ".quarto.md");
 
   // resolve parameters (if any)
-  const params = resolveParams(options.flags.params);
+  const params = resolveParams(flags.params);
 
   // run computations (if any)
   const computations = await runComputations({
     input: options.input,
     output: computationOutput,
     format,
-    cwd: options.flags.computeDir,
+    cwd: flags.computeDir,
     params,
     quiet,
   });
@@ -80,7 +81,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     inputDir,
     inputStem,
     format.output?.ext,
-    options.flags.output,
+    options.flags?.output,
     options.pandocArgs,
   );
 
@@ -105,10 +106,10 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   }
 
   // cleanup as necessary
-  cleanup(options.flags, format, computations, finalOutput);
+  cleanup(flags, format, computations, finalOutput);
 
   // report
-  if (result.success && !options.flags.quiet) {
+  if (result.success && !flags.quiet) {
     reportOutput(finalOutput);
   }
 

@@ -1,4 +1,8 @@
-import { Command, CompletionsCommand } from "cliffy/command/mod.ts";
+import {
+  Command,
+  CompletionsCommand,
+  HelpCommand,
+} from "cliffy/command/mod.ts";
 
 import { commands } from "./command/command.ts";
 import { logError } from "./core/log.ts";
@@ -14,7 +18,8 @@ export async function quarto(args: string[]) {
   });
 
   await quartoCommand
-    .command("completions", new CompletionsCommand())
+    .command("help", new HelpCommand().global())
+    .command("completions", new CompletionsCommand()).hidden()
     .parse(args);
 }
 

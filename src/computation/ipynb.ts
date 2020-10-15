@@ -1,7 +1,7 @@
 import type { Format } from "../api/format.ts";
 
 import { getenv } from "../core/env.ts";
-import { execProcess } from "../core/process.ts";
+import { execProcess, processSuccessResult } from "../core/process.ts";
 import { resourcePath } from "../core/resources.ts";
 
 import type { Metadata } from "../config/metadata.ts";
@@ -59,11 +59,11 @@ export const ipynbEngine: ComputationEngine = {
     }
   },
 
-  postprocess: (options: PostProcessOptions) => {
+  postprocess: async (options: PostProcessOptions) => {
     return Promise.resolve(options.output);
   },
 
-  run: (options: RunOptions) => {
-    return Promise.resolve();
+  run: async (options: RunOptions) => {
+    return processSuccessResult();
   },
 };
