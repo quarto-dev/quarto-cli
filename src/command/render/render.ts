@@ -27,9 +27,7 @@ import {
 } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 
-// TODO: correct relative path for "Output created:" so the IDE will always be able to preview it
 // TODO: --compute-dir option for knit_root_dir
-// TODO: add --self-contained to documented render flags
 
 // TODO: output system:
 //   - coloring
@@ -178,12 +176,16 @@ export const renderCommand = new Command()
     "Write output to FILE (use '--output -' for stdout).",
   )
   .option(
-    "--params [params:string]",
-    "YAML file with parameter values (or 'ask' to prompt)",
+    "--self-contained [self-contained:boolean]",
+    "Produce a standalone HTML file with no external dependencies, using data: URIs to incorporate the contents of linked scripts, stylesheets, images, and videos",
   )
   .option(
     "--keep-all [keep-all:boolean]",
-    "Keep all intermediate files (e.g. markdown, tex, plots, etc.) ",
+    "Keep all intermediate files (e.g. markdown, tex, plots, etc.) even when producing a --self-contained document.",
+  )
+  .option(
+    "--params [params:string]",
+    "YAML file with parameter values (or 'ask' to prompt)",
   )
   .option(
     "--quiet [quiet:boolean]",
