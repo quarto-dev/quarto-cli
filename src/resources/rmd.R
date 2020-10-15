@@ -129,16 +129,13 @@ postprocess <- function(input, format, output, preserved_chunks) {
   output
 }
 
-# preserve chunks marked w/ e.g. html_preserve
-extract_preserve_chunks <- function(output_file, format) {
-  if (knitr::is_html_output(format$pandoc$writer)) {
-    extract <- htmltools::extractPreserveChunks
-  } else {
-    extract <- knitr::extract_raw_output
-  }
-  rmarkdown:::extract_preserve_chunks(output_file, extract)
+run <- function(input, port) {
+  shiny_args <- list()
+  if (!is.null(port))
+    shiny_args$port <- port
+  Sys.setenv(RMARKDOWN_RUN_PRERENDER = "0")  
+  rmarkdown::run(input, shiny_args = shiny_args)
 }
-
 
 
 pandoc_options <- function(format) {
@@ -316,6 +313,16 @@ apply_slides_patch <- function(includes) {
   includes
 }
 
+# preserve chunks marked w/ e.g. html_preserve
+extract_preserve_chunks <- function(output_file, format) {
+  if (knitr::is_html_output(format$pandoc$writer)) {
+    extract <- htmltools::extractPreserveChunks
+  } else {
+    extract <- knitr::extract_raw_output
+  }
+  rmarkdown:::extract_preserve_chunks(output_file, extract)
+}
+
 
 # main
 main <- function() {
@@ -335,6 +342,8 @@ main <- function() {
     result <- execute(params$input, params$format, params$output, params$cwd, params$params)
   } else if (request$action == "postprocess") {
     result <- postprocess(params$input, params$format, params$output, params$data)
+  } else if (request$action == "run") {
+    result <- run(params$input, params$port)
   }
 
   # write results

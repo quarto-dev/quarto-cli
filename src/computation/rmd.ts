@@ -1,14 +1,12 @@
 import { extname } from "path/mod.ts";
 
-import type { Format } from "../api/format.ts";
-
 import {
   Metadata,
   metadataFromFile,
   metadataFromMarkdown,
 } from "../config/metadata.ts";
 
-import { execProcess } from "../core/process.ts";
+import { execProcess, ProcessResult } from "../core/process.ts";
 import { resourcePath } from "../core/resources.ts";
 
 import type {
@@ -16,6 +14,7 @@ import type {
   ExecuteOptions,
   ExecuteResult,
   PostProcessOptions,
+  RunOptions,
 } from "./engine.ts";
 
 const kRmdExtensions = [".rmd", ".rmarkdown"];
@@ -59,6 +58,13 @@ export const rmdEngine: ComputationEngine = {
       "postprocess",
       options,
       options.quiet,
+    );
+  },
+
+  run: (options: RunOptions) => {
+    return callR<void>(
+      "run",
+      options,
     );
   },
 };
