@@ -1,4 +1,4 @@
-import { basename } from "path/mod.ts";
+import { basename, dirname, join } from "path/mod.ts";
 
 import type { Format } from "../../api/format.ts";
 import { kSelfContained } from "../../config/constants.ts";
@@ -17,10 +17,11 @@ export function cleanup(
 
   // if keep.md is requested then copy markdown created by computations to output.md
   if (keepMd) {
-    Deno.copyFileSync(
-      computations.output,
+    const mdOutput = join(
+      dirname(computations.output),
       basename(output, "." + format.output?.ext) + ".md",
     );
+    Deno.copyFileSync(computations.output, mdOutput);
   }
 
   // always remove markdown created by computations
