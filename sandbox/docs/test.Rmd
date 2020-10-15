@@ -24,6 +24,7 @@ params:
 
 ```{r}
 str(params)
+str(getwd())
 ```
 
 ## Plot 1: Target

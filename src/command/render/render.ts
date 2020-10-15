@@ -27,8 +27,6 @@ import {
 } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 
-// TODO: --compute-dir option for knit_root_dir
-
 // TODO: output system:
 //   - coloring
 //   - progress
@@ -72,6 +70,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     input: options.input,
     output: computationOutput,
     format,
+    cwd: options.flags.computeDir,
     params,
     quiet,
   });
@@ -184,6 +183,10 @@ export const renderCommand = new Command()
     "Keep all intermediate files (e.g. markdown, tex, plots, etc.) even when producing a --self-contained document.",
   )
   .option(
+    "--compute-dir [compute-dir:string]",
+    "Working directory for computational preprocessing (e.g. knitr, nbconvert)",
+  )
+  .option(
     "--params [params:string]",
     "YAML file with parameter values (or 'ask' to prompt)",
   )
@@ -192,7 +195,7 @@ export const renderCommand = new Command()
     "Suppress warning and other messages.",
   )
   .option(
-    "[...pandoc-args:string]",
+    "pandoc-args... [...pandoc-args:string]",
     "Additional pandoc command line arguments.",
   )
   .example(
