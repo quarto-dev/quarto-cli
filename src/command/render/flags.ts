@@ -6,6 +6,7 @@ export interface RenderFlags {
   to?: string;
   output?: string;
   params?: string;
+  computeDir?: string;
   keepAll?: boolean;
   quiet?: boolean;
   [kSelfContained]?: boolean;
@@ -39,6 +40,11 @@ export function parseRenderFlags(args: string[]) {
       case "--params":
         arg = argsStack.shift();
         flags.params = arg;
+        break;
+
+      case "--compute-dir":
+        arg = argsStack.shift();
+        flags.computeDir = arg;
         break;
 
       case "--keep-all":
@@ -100,7 +106,7 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   const removeArgs = new Map<string, boolean>();
   removeArgs.set("--params", true);
   removeArgs.set("--keep-all", false);
-  removeArgs.set("--computation-dir", true);
+  removeArgs.set("--compute-dir", true);
   let removeNext = false;
   return pandocArgs.reduce((args, arg) => {
     if (!removeArgs.has(arg)) {

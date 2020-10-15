@@ -12,7 +12,10 @@ spin <- function(input) {
 }
 
 # execute rmarkdown::render
-execute <- function(input, format, output, params) {
+execute <- function(input, format, output, cwd, params) {
+
+  # calculate knit_root_dir (before we setwd below)
+  knit_root_dir <- if (!is.null(cwd)) tools::file_path_as_absolute(cwd) else NULL
 
   # calcluate absolute path to output (before we setwd below)
   output_dir <- tools::file_path_as_absolute(dirname(output))
@@ -36,6 +39,7 @@ execute <- function(input, format, output, params) {
   render_output <- rmarkdown::render(
     input = input,
     output_format = output_format,
+    knit_root_dir = knit_root_dir,
     params = params,
     run_pandoc = FALSE,
     envir = new.env()
@@ -298,7 +302,7 @@ main <- function() {
   if (request$action == "spin") {
     result <- spin(params$input)
   } else if (request$action == "execute") {
-    result <- execute(params$input, params$format, params$output, params$params)
+    result <- execute(params$input, params$format, params$output, params$cwd, params$params)
   } else if (request$action == "postprocess") {
     result <- postprocess(params$input, params$format, params$output, params$data)
   }

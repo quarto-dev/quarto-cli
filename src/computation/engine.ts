@@ -12,6 +12,7 @@ export interface ExecuteOptions {
   input: string;
   output: string;
   format: Format;
+  cwd?: string;
   params?: string | { [key: string]: unknown };
   quiet?: boolean;
 }
