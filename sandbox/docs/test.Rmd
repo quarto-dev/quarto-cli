@@ -46,6 +46,9 @@ str(getwd())
 plot(cars)
 ```
 
+```{r child="child.Rmd"}
+```
+
 ## Plot 3
 
 ```{r}
