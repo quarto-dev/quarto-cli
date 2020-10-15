@@ -59,7 +59,6 @@ execute <- function(input, format, output, cwd, params) {
 
   # embed shiny_prerendered dependencies
   if (!is.null(dependencies$shiny)) {
-    str(dependencies$shiny)
     rmarkdown:::shiny_prerendered_append_dependencies(
       output,
       dependencies$shiny,
@@ -133,7 +132,11 @@ run <- function(input, port) {
   shiny_args <- list()
   if (!is.null(port))
     shiny_args$port <- port
+
+  # we already ran quarto render before the call to run
   Sys.setenv(RMARKDOWN_RUN_PRERENDER = "0")  
+  
+  # run the doc
   rmarkdown::run(input, shiny_args = shiny_args)
 }
 

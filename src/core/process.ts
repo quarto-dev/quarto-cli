@@ -62,3 +62,10 @@ export async function execProcess(
     stderr: stderrText,
   };
 }
+
+export function processSuccessResult(): ProcessResult {
+  return {
+    success: true,
+    code: 0,
+  };
+}

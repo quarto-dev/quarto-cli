@@ -7,6 +7,7 @@ import type { Metadata } from "../config/metadata.ts";
 import { rmdEngine } from "./rmd.ts";
 import { ipynbEngine } from "./ipynb.ts";
 import type { PandocIncludes } from "../core/pandoc.ts";
+import { ProcessResult } from "../core/process.ts";
 
 export interface ExecuteOptions {
   input: string;
@@ -27,6 +28,7 @@ export interface PostProcessOptions {
 
 export interface RunOptions {
   input: string;
+  render: boolean;
   port?: number;
 }
 
@@ -42,7 +44,7 @@ export interface ComputationEngine {
   metadata: (file: string) => Promise<Metadata>;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
   postprocess: (options: PostProcessOptions) => Promise<string>;
-  run: (options: RunOptions) => Promise<void>;
+  run: (options: RunOptions) => Promise<ProcessResult>;
 }
 
 export function computationEngineForFile(file: string) {
