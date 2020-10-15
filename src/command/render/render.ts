@@ -27,10 +27,8 @@ import {
 } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 
-// TODO: output system:
-//   - coloring
-//   - progress
-//   - error reporting
+// TODO: trap stdout from pandoc so we can run the preprocessor on it
+// TODO: generally, test stdout scenario
 
 // TODO: new config system
 // TODO: fill out all the pandoc formats
