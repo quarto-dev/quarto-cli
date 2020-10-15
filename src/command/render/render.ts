@@ -163,8 +163,7 @@ export const renderCommand = new Command()
   .stopEarly()
   .arguments("<input:string> [...pandoc-args:string]")
   .description(
-    "Render a file using the supplied target format and pandoc command line arguments.\n" +
-      "See pandoc --help for documentation on all available options.",
+    "Render a Quarto document.",
   )
   .option(
     "-t, --to [to:string]",
@@ -196,7 +195,8 @@ export const renderCommand = new Command()
   )
   .option(
     "pandoc-args... [...pandoc-args:string]",
-    "Additional pandoc command line arguments.",
+    "Additional pandoc command line arguments. " +
+      "See pandoc --help for documentation on all available options.",
   )
   .example(
     "Render R Markdown",
