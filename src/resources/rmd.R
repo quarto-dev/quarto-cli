@@ -54,11 +54,21 @@ execute <- function(input, format, output, cwd, params) {
   # rename the markdown file to the requested output file
   file.rename(output_file, output)
 
-  # get includes from render
-  includes <- includes_from_render(input, files_dir, knit_meta)
+  # get dependencies from render
+  dependencies <- dependencies_from_render(input, files_dir, knit_meta)
+
+  # embed shiny_prerendered dependencies
+  if (!is.null(dependencies$shiny)) {
+    str(dependencies$shiny)
+    rmarkdown:::shiny_prerendered_append_dependencies(
+      output,
+      dependencies$shiny,
+      files_dir,
+      dirname(input))
+  }
 
   # apply any required patches
-  includes <- apply_patches(format, includes)
+  includes <- apply_patches(format, dependencies$includes)
 
   # include supportring files
   supporting <- if (file_test("-d", files_dir))
@@ -207,26 +217,46 @@ knitr_options <- function(format) {
   )
 }
 
-# get includes implied by the result of render (e.g. html dependencies)
-includes_from_render <-function(input, files_dir, knit_meta) {
+# get dependencies implied by the result of render (e.g. html dependencies)
+dependencies_from_render <-function(input, files_dir, knit_meta) {
+
+  # check for runtime
+  front_matter <- rmarkdown::yaml_front_matter(input)
+  runtime <- front_matter$runtime
+  if (is.null(runtime))
+    runtime <- "static"
+
+  # dependencies to return
+  dependencies <- list()
+
+  # determine dependency resolver (special resolver for shiny_prerendered)
+  resolver <- rmarkdown:::html_dependency_resolver
+  if (rmarkdown:::is_shiny_prerendered(runtime)) {
+    resolver <- function(deps) {
+      dependencies$shiny <<- list(
+        deps = deps,
+        packages =  rmarkdown:::get_loaded_packages()
+      )
+      list()
+    }
+  }
 
   # get extras (e.g. html dependencies)
   extras <- rmarkdown:::html_extras_for_document(
     knit_meta,
-    "static",
-    rmarkdown:::html_dependency_resolver,
+    runtime,
+    resolver,
     list() # format deps
   )
   # convert dependencies to in_header includes
-  includes <- list()
-  dependencies <- extras$dependencies
-  if (length(dependencies) > 0) {
-    deps <- rmarkdown:::html_dependencies_as_string(dependencies, files_dir, dirname(input))
-    extras$dependencies <- NULL
-    includes$in_header <- deps
+  dependencies$includes <- list()
+  if (length(extras$dependencies) > 0) {
+    deps <- rmarkdown:::html_dependencies_as_string(extras$dependencies, files_dir, dirname(input))
+    dependencies$includes$in_header <- deps
   }
-  # return includes
-  includes
+
+  # return dependencies
+  dependencies
 
 }
 
