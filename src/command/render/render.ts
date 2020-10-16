@@ -26,7 +26,6 @@ import {
   replacePandocArg,
 } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
-import { DenoStdInternalError } from "https://deno.land/std@0.71.0/_util/assert.ts";
 
 // TODO: new config system
 // TODO: fill out all the pandoc formats

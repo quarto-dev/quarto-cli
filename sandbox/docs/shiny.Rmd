@@ -1,7 +1,7 @@
 ---
 title: "Hello Prerendered Shiny"
 knit: quarto render
-runtime: shiny_prerendered
+runtime: shinyrmd
 ---
 
 ```{r, echo=FALSE}
