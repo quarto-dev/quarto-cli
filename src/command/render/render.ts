@@ -28,14 +28,11 @@ import {
 import { cleanup } from "./cleanup.ts";
 import { DenoStdInternalError } from "https://deno.land/std@0.71.0/_util/assert.ts";
 
-// TODO: trap stdout from pandoc so we can run the preprocessor on it
-// TODO: generally, test stdout scenario
-
 // TODO: new config system
 // TODO: fill out all the pandoc formats
 
 // TODO: keep_tex
-// TODO: Run citeproc / crossref
+// TODO: Run citeproc (conditionally) / crossref
 // TODO: LaTeX w/ TinyTex
 
 export interface RenderOptions {
