@@ -4,6 +4,8 @@ knit: quarto render
 quarto:
   pdf:
     toc: true
+    keep:
+      tex: false
 params:
   minimum: 
     label: "Minimum:"
@@ -35,11 +37,6 @@ str(getwd())
 
 -   bullet 3
 
-<!--html_preserve-->
-    <strong>This will render as HTML not preformatted text</strong>
-<!--/html_preserve-->
-
-
 ## Plot 2
 
 ```{r}
@@ -55,10 +52,3 @@ plot(cars)
 plot(cars)
 ```
 
-## Plot 4
-
-```{r,eval=TRUE}
-library(dygraphs)
-lungDeaths <- cbind(mdeaths, fdeaths)
-dygraph(lungDeaths)
-```

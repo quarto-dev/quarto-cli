@@ -13,6 +13,7 @@ export interface FormatShow {
 
 export interface FormatKeep {
   md?: boolean;
+  tex?: boolean;
 }
 
 export interface FormatOutput {

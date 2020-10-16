@@ -12,7 +12,7 @@ import { Command } from "cliffy/command/mod.ts";
 import { mergeConfigs } from "../../config/config.ts";
 
 import { consoleWriteLine } from "../../core/console.ts";
-import type { ProcessResult } from "../../core/process.ts";
+import { execProcess, ProcessResult } from "../../core/process.ts";
 import { readYAML } from "../../core/yaml.ts";
 
 import { formatForInputFile } from "../../config/format.ts";
@@ -26,6 +26,7 @@ import {
   replacePandocArg,
 } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
+import { Format } from "../../api/format.ts";
 
 // TODO: new config system
 // TODO: fill out all the pandoc formats
@@ -85,45 +86,44 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   });
 
   // resolve output and args
-  const { output, args, complete } = resolveOutput(
+  const recipe = outputRecipe(
+    options,
     inputDir,
     inputStem,
-    format.output?.ext,
-    flags.output,
-    options.pandocArgs,
+    format,
   );
 
   // run pandoc conversion
   const result = await runPandoc({
     input: computationOutput,
     format: mergeConfigs(format.pandoc || {}, computations.pandoc),
-    args,
+    args: recipe.args,
     quiet,
   });
 
   // run post processor
-  let finalOutput = output;
+
+  // TODO: change the contract of postprocess so it can't change the output
+
   if (computations.postprocess) {
-    finalOutput = await postprocess({
+    await postprocess({
       input: options.input,
       format,
-      output,
+      output: recipe.output,
       data: computations.postprocess,
       quiet,
     });
   }
 
-  // call optional complete function
-  if (complete) {
-    await complete();
-  }
+  // complete recipe!
+  const outputCreated = await recipe.complete() || recipe.output;
 
   // cleanup as necessary
-  cleanup(flags, format, computations, finalOutput);
+  cleanup(flags, format, computations, recipe.output);
 
   // report
   if (result.success && !flags.quiet && flags.output !== kStdOut) {
-    consoleWriteLine("Output created: " + output + "\n");
+    consoleWriteLine("\nOutput created: " + outputCreated + "\n");
   }
 
   // return result
@@ -140,43 +140,98 @@ function resolveParams(params?: string) {
 }
 
 // resole output file and --output argument based on input, target ext, and any provided args
-function resolveOutput(
+function outputRecipe(
+  options: RenderOptions,
   inputDir: string,
   inputStem: string,
-  ext?: string,
-  output?: string,
-  pandocArgs?: string[],
+  format: Format,
 ) {
-  ext = ext || "html";
-  let complete: (() => Promise<void>) | undefined;
-  let args = pandocArgs || [];
-  // no output on the command line: insert our derived output file path
-  if (!output) {
-    output = join(inputStem + "." + ext);
-    args.unshift("--output", output);
-    // output to stdout
-  } else if (output === kStdOut) {
-    output = Deno.makeTempFileSync({ suffix: "." + ext });
-    args.unshift("--output", output);
-    complete = async () => {
-      const file = Deno.openSync(output!, { read: true });
-      const contents = Deno.readAllSync(file);
-      Deno.writeAllSync(Deno.stdout, contents);
-      Deno.close(file.rid);
-      Deno.removeSync(output!);
+  // alias some variables
+  const writer = format.pandoc?.writer;
+  const ext = format.output?.ext || "html";
+
+  // these variables constitute the recipe
+  const recipe = {
+    output: options.flags?.output!,
+    args: options.pandocArgs || [],
+    complete: async (): Promise<string | undefined> => {
+      return;
+    },
+  };
+
+  // if the writer is latex or beamer, and the extension is pdf, then we need to
+  // change the extension to .tex and arrange to process the pdf after the fact
+  if (["latex", "beamer"].includes(writer || "") && ext === "pdf") {
+    // provide an output destination for pandoc
+    recipe.output = Deno.makeTempFileSync({ dir: inputDir, suffix: ".tex" });
+    recipe.output = relative(inputDir, recipe.output);
+    recipe.args = replacePandocArg(recipe.args, "--output", recipe.output);
+
+    // when pandoc is done, we need to run pdf latex, and copy the
+    // ouptut to the user's requested destination
+    recipe.complete = async () => {
+      // TODO: these need to be nicer looking filenames
+
+      // TODO: make sure all the keep stuff actually works
+
+      // run pdflatex
+      const texFile = join(inputDir, recipe.output);
+      const pdfFile = basename(recipe.output, ".tex") + ".pdf";
+      const result = await execProcess({
+        cmd: ["pdflatex", texFile],
+        cwd: inputDir,
+      });
+      if (!result.success) {
+        return Promise.reject();
+      }
+      // remove tex if it's not being kept
+      if (options.flags?.keepAll || format.keep?.tex) {
+        Deno.renameSync(texFile, join(inputStem + ".tex"));
+      } else {
+        Deno.removeSync(texFile);
+      }
+
+      let output = options.flags?.output;
+      if (!output) {
+        output = join(inputStem + ".pdf");
+        Deno.renameSync(pdfFile, output);
+      } else if (recipe.output === kStdOut) {
+        writeFileToStdout(pdfFile);
+        Deno.removeSync(pdfFile);
+      } else {
+        Deno.renameSync(pdfFile, output);
+      }
+      return output;
     };
+
+    // no output on the command line: insert our derived output file path
+  } else if (!recipe.output) {
+    recipe.output = join(inputStem + "." + ext);
+    recipe.args.unshift("--output", recipe.output);
+    // output to stdout
+  } else if (recipe.output === kStdOut) {
+    recipe.output = Deno.makeTempFileSync({ suffix: "." + ext });
+    recipe.complete = async () => {
+      writeFileToStdout(recipe.output);
+      Deno.removeSync(recipe.output);
+      return undefined;
+    };
+
     // relatve output file on the command line: make it relative to the input dir
-  } else if (!isAbsolute(output)) {
-    output = relative(inputDir, output);
-    args = replacePandocArg(args, "--output", output);
+  } else if (!isAbsolute(recipe.output)) {
+    recipe.output = relative(inputDir, recipe.output);
+    recipe.args = replacePandocArg(recipe.args, "--output", recipe.output);
   }
 
   // return
-  return {
-    output,
-    args,
-    complete,
-  };
+  return recipe;
+}
+
+function writeFileToStdout(file: string) {
+  const df = Deno.openSync(file, { read: true });
+  const contents = Deno.readAllSync(df);
+  Deno.writeAllSync(Deno.stdout, contents);
+  Deno.close(df.rid);
 }
 
 export const renderCommand = new Command()
