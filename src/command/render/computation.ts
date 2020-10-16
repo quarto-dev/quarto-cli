@@ -45,11 +45,11 @@ export async function runComputations(
 
 export async function postProcess(
   options: PostProcessOptions,
-): Promise<string> {
+): Promise<void> {
   const engine = computationEngineForFile(options.input);
   if (engine && engine.postprocess) {
     return engine.postprocess(options);
   } else {
-    return Promise.resolve(options.output);
+    return Promise.resolve();
   }
 }
