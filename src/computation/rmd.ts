@@ -54,7 +54,7 @@ export const rmdEngine: ComputationEngine = {
   },
 
   postprocess: async (options: PostProcessOptions) => {
-    return callR<string>(
+    return callR<void>(
       "postprocess",
       options,
       options.quiet,

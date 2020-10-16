@@ -101,10 +101,12 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     quiet,
   });
 
+  // return if we had an error
+  if (!result.success) {
+    return result;
+  }
+
   // run post processor
-
-  // TODO: change the contract of postprocess so it can't change the output
-
   if (computations.postprocess) {
     await postprocess({
       input: options.input,
@@ -121,8 +123,8 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   // cleanup as necessary
   cleanup(flags, format, computations, recipe.output);
 
-  // report
-  if (result.success && !flags.quiet && flags.output !== kStdOut) {
+  // report output created
+  if (!flags.quiet && flags.output !== kStdOut) {
     consoleWriteLine("\nOutput created: " + outputCreated + "\n");
   }
 

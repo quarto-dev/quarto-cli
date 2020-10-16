@@ -124,8 +124,6 @@ postprocess <- function(input, format, output, preserved_chunks) {
 
   if (!identical(output_str, output_res))
     xfun::write_utf8(output_res, output)
-
-  output
 }
 
 run <- function(input, port) {

@@ -43,7 +43,7 @@ export interface ComputationEngine {
   canHandle: (ext: string) => boolean;
   metadata: (file: string) => Promise<Metadata>;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
-  postprocess: (options: PostProcessOptions) => Promise<string>;
+  postprocess: (options: PostProcessOptions) => Promise<void>;
   run: (options: RunOptions) => Promise<ProcessResult>;
 }
 
