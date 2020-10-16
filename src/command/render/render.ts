@@ -26,6 +26,7 @@ import {
   replacePandocArg,
 } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
+import { DenoStdInternalError } from "https://deno.land/std@0.71.0/_util/assert.ts";
 
 // TODO: trap stdout from pandoc so we can run the preprocessor on it
 // TODO: generally, test stdout scenario
@@ -73,7 +74,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   });
 
   // resolve output and args
-  const { output, args } = resolveOutput(
+  const { output, stdout, args } = resolveOutput(
     inputDir,
     inputStem,
     format.output?.ext,
@@ -101,12 +102,20 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     });
   }
 
+  // if output was directed to stdout then pipe if from the file to stdout
+  if (stdout) {
+    const file = Deno.openSync(output, { read: true });
+    const contents = Deno.readAllSync(file);
+    Deno.writeAllSync(Deno.stdout, contents);
+    Deno.close(file.rid);
+  }
+
   // cleanup as necessary
   cleanup(flags, format, computations, finalOutput);
 
   // report
-  if (result.success && !flags.quiet) {
-    reportOutput(finalOutput);
+  if (result.success && !flags.quiet && !stdout) {
+    consoleWriteLine("Output created: " + output + "\n");
   }
 
   // return result
@@ -131,13 +140,19 @@ function resolveOutput(
   pandocArgs?: string[],
 ) {
   ext = ext || "html";
+  let stdout = false;
   let args = pandocArgs || [];
   // no output on the command line: insert our derived output file path
   if (!output) {
     output = join(inputStem + "." + ext);
     args.unshift("--output", output);
+    // output to stdout
+  } else if (output === kStdOut) {
+    output = Deno.makeTempFileSync({ suffix: "." + ext });
+    args.unshift("--output", output);
+    stdout = true;
     // relatve output file on the command line: make it relative to the input dir
-  } else if (!isAbsolute(output) && output !== kStdOut) {
+  } else if (!isAbsolute(output)) {
     output = relative(inputDir, output);
     args = replacePandocArg(args, "--output", output);
   }
@@ -145,14 +160,9 @@ function resolveOutput(
   // return
   return {
     output,
+    stdout,
     args,
   };
-}
-
-function reportOutput(output: string) {
-  if (output !== "-") {
-    consoleWriteLine("Output created: " + output + "\n");
-  }
 }
 
 export const renderCommand = new Command()
