@@ -32,16 +32,16 @@ export function outputRecipe(
   // if the writer is latex or beamer, and the extension is pdf, then we need to
   // change the extension to .tex and arrange to process the pdf after the fact
   if (["latex", "beamer"].includes(writer || "") && ext === "pdf") {
-    // provide an output destination for pandoc
-    recipe.output = Deno.makeTempFileSync({ dir: inputDir, suffix: ".tex" });
-    recipe.output = relative(inputDir, recipe.output);
+    // provide an output destination for pandoc (remove chars that latex might have trobule with)
+    const safeInputStem = inputStem
+      .replaceAll(/[ <>()|\:&;#?*']/g, "-")
+      .replaceAll(/-+/g, "-");
+    recipe.output = safeInputStem + ".quarto.tex";
     recipe.args = replacePandocArg(recipe.args, "--output", recipe.output);
 
     // when pandoc is done, we need to run pdf latex, and copy the
     // ouptut to the user's requested destination
     recipe.complete = async () => {
-      // TODO: these need to be nicer looking filenames
-
       // run pdflatex
       const texFile = recipe.output;
       const texStem = basename(texFile, ".tex");
@@ -59,26 +59,25 @@ export function outputRecipe(
       });
 
       // keep tex if requested
+      const compileTex = join(inputDir, texFile);
+      const outputTex = join(inputDir, safeInputStem + ".tex");
       if (options.flags?.keepAll || format.keep?.tex) {
-        Deno.renameSync(
-          join(inputDir, texFile),
-          join(inputDir, inputStem + ".tex"),
-        );
+        Deno.renameSync(compileTex, outputTex);
       } else {
-        Deno.removeSync(join(inputDir, texFile));
-        removeIfExists(join(inputDir, inputStem + ".tex"));
+        Deno.removeSync(compileTex);
+        removeIfExists(outputTex); // from previous renders
       }
 
-      const pdfFile = join(inputDir, texStem + ".pdf");
+      const compilePdf = join(inputDir, texStem + ".pdf");
       let output = options.flags?.output;
       if (!output) {
-        output = join(inputDir, inputStem + ".pdf");
-        Deno.renameSync(pdfFile, output);
+        output = join(inputDir, safeInputStem + ".pdf");
+        Deno.renameSync(compilePdf, output);
       } else if (recipe.output === kStdOut) {
-        writeFileToStdout(pdfFile);
-        Deno.removeSync(pdfFile);
+        writeFileToStdout(compilePdf);
+        Deno.removeSync(compilePdf);
       } else {
-        Deno.renameSync(pdfFile, output);
+        Deno.renameSync(compilePdf, output);
       }
       return output;
     };
