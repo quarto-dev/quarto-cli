@@ -2,6 +2,7 @@ import { basename, isAbsolute, join, relative } from "path/mod.ts";
 
 import { Format } from "../../api/format.ts";
 import { writeFileToStdout } from "../../core/console.ts";
+import { removeIfExists } from "../../core/path.ts";
 
 import { execProcess } from "../../core/process.ts";
 
@@ -41,11 +42,9 @@ export function outputRecipe(
     recipe.complete = async () => {
       // TODO: these need to be nicer looking filenames
 
-      // TODO: make sure all the keep stuff actually works
-
       // run pdflatex
-      const texFile = join(inputDir, recipe.output);
-      const pdfFile = basename(recipe.output, ".tex") + ".pdf";
+      const texFile = recipe.output;
+      const texStem = basename(texFile, ".tex");
       const result = await execProcess({
         cmd: ["pdflatex", texFile],
         cwd: inputDir,
@@ -54,17 +53,26 @@ export function outputRecipe(
         return Promise.reject();
       }
 
-      // remove tex if it's not being kept
+      // cleanup intermediates
+      ["toc", "out", "aux", "log"].forEach((ext) => {
+        removeIfExists(join(inputDir, texStem + "." + ext));
+      });
+
+      // keep tex if requested
       if (options.flags?.keepAll || format.keep?.tex) {
-        console.log("keeping tex");
-        Deno.renameSync(texFile, join(inputStem + ".tex"));
+        Deno.renameSync(
+          join(inputDir, texFile),
+          join(inputDir, inputStem + ".tex"),
+        );
       } else {
-        Deno.removeSync(texFile);
+        Deno.removeSync(join(inputDir, texFile));
+        removeIfExists(join(inputDir, inputStem + ".tex"));
       }
 
+      const pdfFile = join(inputDir, texStem + ".pdf");
       let output = options.flags?.output;
       if (!output) {
-        output = join(inputStem + ".pdf");
+        output = join(inputDir, inputStem + ".pdf");
         Deno.renameSync(pdfFile, output);
       } else if (recipe.output === kStdOut) {
         writeFileToStdout(pdfFile);
