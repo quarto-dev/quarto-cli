@@ -32,6 +32,14 @@ import { cleanup } from "./cleanup.ts";
 
 // TODO: discover index.Rmd or ui.Rmd for quarto run
 
+// PDF output will always make a tex file first
+// We will always render to a "tex-safe" temp file
+
+// we will delete the tex file if !keep_tex or !keep-all
+
+// we will produce the pdf from the tex if requested.
+// naive implementation of this is pdflatex (or other engine)
+
 // https://github.com/rstudio/rmarkdown/blob/08c7567d6a2906d8f4471e0b295591d8e548d62e/R/render.R
 // TODO: keep_tex
 // TOOD: shell cars for tex
@@ -77,11 +85,11 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   });
 
   // resolve output and args
-  const { output, stdout, args } = resolveOutput(
+  const { output, args, complete } = resolveOutput(
     inputDir,
     inputStem,
     format.output?.ext,
-    options.flags?.output,
+    flags.output,
     options.pandocArgs,
   );
 
@@ -105,19 +113,16 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     });
   }
 
-  // if output was directed to stdout then pipe if from the file to stdout
-  if (stdout) {
-    const file = Deno.openSync(output, { read: true });
-    const contents = Deno.readAllSync(file);
-    Deno.writeAllSync(Deno.stdout, contents);
-    Deno.close(file.rid);
+  // call optional complete function
+  if (complete) {
+    await complete();
   }
 
   // cleanup as necessary
   cleanup(flags, format, computations, finalOutput);
 
   // report
-  if (result.success && !flags.quiet && !stdout) {
+  if (result.success && !flags.quiet && flags.output !== kStdOut) {
     consoleWriteLine("Output created: " + output + "\n");
   }
 
@@ -143,7 +148,7 @@ function resolveOutput(
   pandocArgs?: string[],
 ) {
   ext = ext || "html";
-  let stdout = false;
+  let complete: (() => Promise<void>) | undefined;
   let args = pandocArgs || [];
   // no output on the command line: insert our derived output file path
   if (!output) {
@@ -153,7 +158,13 @@ function resolveOutput(
   } else if (output === kStdOut) {
     output = Deno.makeTempFileSync({ suffix: "." + ext });
     args.unshift("--output", output);
-    stdout = true;
+    complete = async () => {
+      const file = Deno.openSync(output!, { read: true });
+      const contents = Deno.readAllSync(file);
+      Deno.writeAllSync(Deno.stdout, contents);
+      Deno.close(file.rid);
+      Deno.removeSync(output!);
+    };
     // relatve output file on the command line: make it relative to the input dir
   } else if (!isAbsolute(output)) {
     output = relative(inputDir, output);
@@ -163,8 +174,8 @@ function resolveOutput(
   // return
   return {
     output,
-    stdout,
     args,
+    complete,
   };
 }
 
