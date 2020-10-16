@@ -1,0 +1,14 @@
+---
+title: "Hello Prerendered Shiny"
+knit: quarto render
+runtime: shinyrmd
+---
+
+```{r, echo=FALSE}
+sliderInput("bins", "Number of bins:", min = 1, max = 50, value = 30)
+plotOutput("distPlot")
+```
+
+```{r}
+rmarkdown::paged_table(dataset)
+```

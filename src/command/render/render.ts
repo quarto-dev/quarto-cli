@@ -30,9 +30,16 @@ import { cleanup } from "./cleanup.ts";
 // TODO: new config system
 // TODO: fill out all the pandoc formats
 
+// TODO: discover index.Rmd or ui.Rmd for quarto run
+
+// https://github.com/rstudio/rmarkdown/blob/08c7567d6a2906d8f4471e0b295591d8e548d62e/R/render.R
 // TODO: keep_tex
+// TOOD: shell cars for tex
 // TODO: Run citeproc (conditionally) / crossref
 // TODO: LaTeX w/ TinyTex
+
+// R-only features:
+//
 
 export interface RenderOptions {
   input: string;
