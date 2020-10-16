@@ -212,6 +212,7 @@ function defaultForamt(): Format {
     },
     keep: {
       md: false,
+      tex: false,
     },
     output: {
       ext: "html",

@@ -148,10 +148,10 @@ pandoc_options <- function(format) {
   # work around an issue w/ rmarkdown where at least 1 argument
   # must be passed or there is a runtime error
   rmarkdown::pandoc_options(
-    to = format$pandoc$writer,
+    to = format$pandoc$writer,   
     from = format$pandoc$reader,
     args = c("--to", format$pandoc$writer),
-    keep_tex = FALSE
+    keep_tex = isTRUE(format$keep$tex)
   )
 }
 
