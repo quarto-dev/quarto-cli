@@ -91,6 +91,10 @@ function defaultWriterFormat(writer: string) {
       writerFormat = beamerFormat();
       break;
 
+    case "latex":
+      writerFormat = latexFormat();
+      break;
+
     case "s5":
     case "dzslides":
     case "slidy":
@@ -103,6 +107,11 @@ function defaultWriterFormat(writer: string) {
 
     default:
       writerFormat = format(writer);
+  }
+
+  // pdf writer means 'latex' b/c we never ask pandoc for pdf
+  if (writer === "pdf") {
+    writer = "latex";
   }
 
   // set the writer
@@ -142,6 +151,13 @@ function beamerFormat() {
         height: 7,
       },
     },
+  );
+}
+
+function latexFormat() {
+  return format(
+    "tex",
+    pdfFormat(),
   );
 }
 
