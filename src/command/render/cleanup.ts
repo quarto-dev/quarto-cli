@@ -2,6 +2,7 @@ import { basename, dirname, join } from "path/mod.ts";
 
 import type { Format } from "../../api/format.ts";
 import { kSelfContained } from "../../config/constants.ts";
+import { removeIfExists } from "../../core/path.ts";
 
 import type { ComputationsResult } from "./computation.ts";
 import type { RenderFlags } from "./flags.ts";
@@ -16,12 +17,14 @@ export function cleanup(
   const keepMd = format.keep?.md || flags.keepAll;
 
   // if keep.md is requested then copy markdown created by computations to output.md
+  const mdOutput = join(
+    dirname(computations.output),
+    basename(output, "." + format.output?.ext) + ".md",
+  );
   if (keepMd) {
-    const mdOutput = join(
-      dirname(computations.output),
-      basename(output, "." + format.output?.ext) + ".md",
-    );
     Deno.copyFileSync(computations.output, mdOutput);
+  } else {
+    removeIfExists(mdOutput);
   }
 
   // always remove markdown created by computations

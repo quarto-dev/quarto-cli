@@ -109,7 +109,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   const outputCreated = await recipe.complete() || recipe.output;
 
   // cleanup as necessary
-  cleanup(flags, format, computations, recipe.output);
+  cleanup(flags, format, computations, outputCreated);
 
   // report output created
   if (!flags.quiet && flags.output !== kStdOut) {
