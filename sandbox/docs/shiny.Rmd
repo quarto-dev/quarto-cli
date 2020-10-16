@@ -16,4 +16,3 @@ output$distPlot <- renderPlot({
   hist(x, breaks = bins, col = 'darkgray', border = 'white')
 })
 ```
-
