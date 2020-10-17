@@ -107,10 +107,10 @@ export interface PdfEngine {
 export function pdfEngine(
   metadata: Metadata,
   flags?: RenderFlags,
-): PdfEngine | undefined {
+): PdfEngine {
   // determine pdfengine
-  const pdfEngine = (flags?.pdfEngine || metadata["pdf-engine"] as string ||
-    "pdflatex");
+  const pdfEngine =
+    (flags?.pdfEngine || metadata["pdf-engine"] as string || "pdflatex");
 
   // collect all engine opts
   const pdfEngineOpts = (metadata["pdf-engine-opts"] as string[] || []);
