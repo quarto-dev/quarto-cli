@@ -2,15 +2,11 @@ import { basename, dirname } from "path/mod.ts";
 import { stringify } from "encoding/yaml.ts";
 
 import type { FormatPandoc } from "../../api/format.ts";
-import {
-  execProcess,
-  ProcessResult,
-  processSuccessResult,
-} from "../../core/process.ts";
+import { execProcess, ProcessResult } from "../../core/process.ts";
 import { consoleWriteLine } from "../../core/console.ts";
 import { Metadata, metadataFromFile } from "../../config/metadata.ts";
 import { mergeConfigs } from "../../config/config.ts";
-import { isPdfOutput } from "./output-pdf.ts";
+import { isPdfOutput } from "./output.ts";
 
 export interface PandocOptions {
   input: string;
