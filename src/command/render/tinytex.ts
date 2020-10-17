@@ -13,16 +13,15 @@
  *
  */
 
-// ported from tinytex package:
-// https://github.com/yihui/tinytex/blob/5199a89d0d7c01b166eb7dced1b117c67b569774/R/latex.R
-
 import { basename, join } from "path/mod.ts";
-import { Format } from "../../api/format.ts";
-import { TinytexConfig } from "../../config/metadata.ts";
-import { writeFileToStdout } from "../../core/console.ts";
 
+import { Format } from "../../api/format.ts";
+
+import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, removeIfExists } from "../../core/path.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
+
+import { TinytexConfig } from "../../config/metadata.ts";
 
 import {
   pandocMetadata,
@@ -69,7 +68,7 @@ export function tinyTexOutputRecipe(
   const output = safeInputStem + ".quarto.tex";
   const args = replacePandocArg(options.pandocArgs || [], "--output", output);
 
-  // when pandoc is done, we need to run pdf latex and then copy the
+  // when pandoc is done, we need to run tinytex and then copy the
   // ouptut to the user's requested destination
   const complete = async (pandocOptions: PandocOptions) => {
     // compute texStem
