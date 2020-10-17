@@ -22,7 +22,7 @@ import { dirAndStem, removeIfExists } from "../../core/path.ts";
 import { kStdOut, RenderFlags, replacePandocArg } from "./flags.ts";
 import { pandocMetadata, PandocOptions, pdfEngine } from "./pandoc.ts";
 import { RenderOptions } from "./render.ts";
-import { runTinytex } from "./tinytex.ts";
+import { runTinytex, TinytexOptions } from "./tinytex.ts";
 
 // render command lines imply the --output argument for pandoc and the final
 // output file to create for the user, but we need a 'recipe' to go from
@@ -135,10 +135,11 @@ export function tinyTexOutputRecipe(
 
     // determine tinytex options
     const metadata = pandocMetadata(pandocOptions.input, pandocOptions.format);
-    const ttOptions = {
+    const ttOptions: TinytexOptions = {
       input: join(inputDir, output),
       output: texStem + ".pdf",
       pdfEngine: pdfEngine(metadata, pandocOptions.flags),
+      config: metadata.tinytex,
     };
 
     // run tinytex

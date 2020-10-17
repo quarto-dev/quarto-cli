@@ -17,6 +17,7 @@
 // https://github.com/yihui/tinytex/blob/5199a89d0d7c01b166eb7dced1b117c67b569774/R/latex.R
 
 import { basename, join } from "path/mod.ts";
+import { TinytexConfig } from "../../config/metadata.ts";
 
 import { dirAndStem, removeIfExists } from "../../core/path.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
@@ -26,10 +27,7 @@ export interface TinytexOptions {
   input: string;
   output?: string; // default: input.pdf
   pdfEngine?: PdfEngine; // default: pdflatex
-  install?: boolean; // default: true
-  minTimes?: number; // default: 1
-  maxTimes?: number; // default: 10
-  clean?: boolean; // default: true
+  config?: TinytexConfig;
 }
 
 export async function runTinytex(
@@ -39,17 +37,21 @@ export async function runTinytex(
   const {
     input,
     pdfEngine = { pdfEngine: "pdflatex" },
-    install = true,
-    minTimes = 1,
-    maxTimes = 10,
-    clean = true,
   } = options;
-
-  // TODO: how to tinytex options get propagated?
-
-  // provide output if needed
   const [inputDir, inputStem] = dirAndStem(input);
   const output = options.output ? options.output : join(inputStem + ".pdf");
+  const config = options.config || {};
+  const { install = true, clean = true } = config;
+  const minTimes = typeof config["min-times"] === "number"
+    ? config["min-times"]
+    : 1;
+  const maxTimes = typeof config["max-times"] === "number"
+    ? config["max-times"]
+    : 10;
+
+  console.log(minTimes);
+  console.log(maxTimes);
+  console.log(install);
 
   // run
   const result = await execProcess({
