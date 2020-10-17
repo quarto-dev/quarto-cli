@@ -67,7 +67,7 @@ export function pdfOutputRecipe(
     if (!finalOutput) {
       // no output specified on command line, write alongside input
       finalOutput = join(inputDir, safeInputStem + ".pdf");
-      Deno.renameSync(compilePdf, output);
+      Deno.renameSync(compilePdf, finalOutput);
     } else if (finalOutput === kStdOut) {
       // stdout specified on the command line
       writeFileToStdout(compilePdf);
