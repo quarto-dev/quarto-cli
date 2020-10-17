@@ -1,6 +1,4 @@
-import { basename, dirname, extname, join } from "path/mod.ts";
-
-import type { Format, FormatPandoc } from "../../api/format.ts";
+import type { FormatPandoc } from "../../api/format.ts";
 
 import { pandocIncludesOptions } from "../../core/pandoc.ts";
 

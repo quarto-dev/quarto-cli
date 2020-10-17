@@ -1,4 +1,4 @@
-import { basename, dirname, extname, join } from "path/mod.ts";
+import { join } from "path/mod.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 

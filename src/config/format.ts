@@ -1,12 +1,9 @@
-import { extname } from "path/mod.ts";
-
 import type { Format } from "../api/format.ts";
 import { computationEngineForFile } from "../computation/engine.ts";
 
 import { Config, projectConfig, resolveConfig } from "./config.ts";
 import { metadataFromFile } from "./metadata.ts";
 import { mergeConfigs } from "./config.ts";
-import { kSelfContained } from "./constants.ts";
 
 export async function formatForInputFile(
   input: string,

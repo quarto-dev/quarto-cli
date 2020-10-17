@@ -1,5 +1,3 @@
-import type { Format } from "../api/format.ts";
-
 import { getenv } from "../core/env.ts";
 import { execProcess, processSuccessResult } from "../core/process.ts";
 import { resourcePath } from "../core/resources.ts";
