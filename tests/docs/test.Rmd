@@ -2,26 +2,10 @@
 title: "Woozy Foobar"
 # knit: quarto render
 quarto:
-  html:
+  pdf:
     toc: true
-    keep: 
-      md: true
-params:
-  minimum: 
-    label: "Minimum:"
-    value: 100
-    input: slider
-    min: 0
-    max: 1000
-  region:
-    label: "Region:"
-    value: east
-    input: select
-    choices: [east, west, north, south]
-  data: 
-    label: "Input dataset:"
-    value: results.csv
-    input: file
+    pdf-engine: "lualatex"
+bibliography: references.bib
 ---
 
 ```{r}

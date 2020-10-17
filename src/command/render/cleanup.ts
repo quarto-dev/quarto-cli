@@ -1,4 +1,4 @@
-import { basename, dirname, join } from "path/mod.ts";
+import { basename, dirname, extname, join } from "path/mod.ts";
 
 import type { Format } from "../../api/format.ts";
 import { kSelfContained } from "../../config/constants.ts";
@@ -32,7 +32,8 @@ export function cleanup(
 
   // determine if we will be self contained
   const selfContained = flags[kSelfContained] ||
-    (format.pandoc && format.pandoc[kSelfContained]);
+    (format.pandoc && format.pandoc[kSelfContained]) ||
+    extname(output) === ".pdf";
 
   // if we aren't keeping the markdown and we are self-contained, then
   // delete the supporting files

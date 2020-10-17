@@ -11,16 +11,16 @@ export interface Config {
   [key: string]: Format;
 }
 
-export async function configFromMarkdown(
+export function configFromMarkdown(
   markdown: string,
-): Promise<Config> {
-  return (await metadataFromMarkdown(markdown)).quarto || {};
+): Config {
+  return (metadataFromMarkdown(markdown)).quarto || {};
 }
 
-export async function configFromMarkdownFile(
+export function configFromMarkdownFile(
   file: string,
-): Promise<Config> {
-  return (await metadataFromFile(file)).quarto || {};
+): Config {
+  return (metadataFromFile(file)).quarto || {};
 }
 
 export async function projectConfig(file: string): Promise<Config> {

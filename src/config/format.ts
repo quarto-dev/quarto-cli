@@ -19,7 +19,7 @@ export async function formatForInputFile(
   const engine = computationEngineForFile(input);
   const fileMetadata = engine
     ? await engine.metadata(input)
-    : await metadataFromFile(input);
+    : metadataFromFile(input);
 
   // get the file config
   const fileConfig = resolveConfig(fileMetadata.quarto || {});
@@ -109,11 +109,6 @@ function defaultWriterFormat(writer: string) {
       writerFormat = format(writer);
   }
 
-  // pdf writer means 'latex' b/c we never ask pandoc for pdf
-  if (writer === "pdf") {
-    writer = "latex";
-  }
-
   // set the writer
   writerFormat.pandoc = writerFormat.pandoc || {};
   writerFormat.pandoc.writer = writer;
@@ -132,7 +127,7 @@ function pdfFormat() {
         format: "pdf",
       },
       pandoc: {
-        [kSelfContained]: true,
+        standalone: true,
         variables: {
           graphics: true,
         },

@@ -1,10 +1,11 @@
 import { basename, isAbsolute, join, relative } from "path/mod.ts";
 
-import { Format } from "../../api/format.ts";
+import { Format, FormatPandoc } from "../../api/format.ts";
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, removeIfExists } from "../../core/path.ts";
 
 import { kStdOut, replacePandocArg } from "./flags.ts";
+import { pandocMetadata, PandocOptions, pdfEngine } from "./pandoc.ts";
 import { RenderOptions } from "./render.ts";
 import { runTinytex } from "./tinytex.ts";
 
@@ -19,9 +20,12 @@ export interface OutputRecipe {
   output: string;
   // transformed pandoc args reflecting 'output'
   args: string[];
+  // modifications to pandoc format spec
+  pandoc: FormatPandoc;
   // callback for completing the output recipe (e.g. might run pdflatex, etc.).
-  // can optionally return an alternate output path
-  complete: () => Promise<string | undefined>;
+  // can optionally return an alternate output path. passed the actual
+  // options used to run pandoc (for deducing e.g. pdf engine options)
+  complete: (options: PandocOptions) => Promise<string | undefined>;
 }
 
 export function outputRecipe(
@@ -40,6 +44,7 @@ export function outputRecipe(
     const recipe = {
       output: options.flags?.output!,
       args: options.pandocArgs || [],
+      pandoc: {},
       complete: async (): Promise<string | undefined> => {
         return;
       },
@@ -96,9 +101,20 @@ export function pdfOutputRecipe(
 
   // when pandoc is done, we need to run pdf latex and then copy the
   // ouptut to the user's requested destination
-  const complete = async () => {
-    // TODO: determine pdf-engine, pdf-engine-args, and bib engine
-    const result = await runTinytex(join(inputDir, output), "", [], "");
+  const complete = async (pandocOptions: PandocOptions) => {
+    // compute texStem
+    const texStem = basename(output, ".tex");
+
+    // determine tinytex options
+    const metadata = pandocMetadata(pandocOptions);
+    const ttOptions = {
+      input: join(inputDir, output),
+      output: texStem + ".pdf",
+      pdfEngine: pdfEngine(metadata, pandocOptions.flags),
+    };
+
+    // run tinytex
+    const result = await runTinytex(ttOptions);
     if (!result.success) {
       return Promise.reject();
     }
@@ -114,7 +130,6 @@ export function pdfOutputRecipe(
     }
 
     // copy (or write for stdout) compiled pdf to final output location
-    const texStem = basename(output, ".tex");
     const compilePdf = join(inputDir, texStem + ".pdf");
     let finalOutput = options.flags?.output;
     if (!finalOutput) {
@@ -134,10 +149,18 @@ export function pdfOutputRecipe(
     return finalOutput;
   };
 
+  // tweak writer if it's pdf
+  const writer = format.pandoc?.writer === "pdf"
+    ? "latex"
+    : format.pandoc?.writer;
+
   // return recipe
   return {
     output,
     args,
+    pandoc: {
+      writer,
+    },
     complete,
   };
 }
