@@ -4,11 +4,10 @@ import { Format } from "../../api/format.ts";
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, removeIfExists } from "../../core/path.ts";
 
-import { execProcess } from "../../core/process.ts";
-
 import { kStdOut, replacePandocArg } from "./flags.ts";
 import { OutputRecipe } from "./output.ts";
 import { RenderOptions } from "./render.ts";
+import { runTinytex } from "./tinytex.ts";
 
 export function isPdfOutput(writer?: string, ext?: string) {
   return ["latex", "beamer", "pdf"].includes(writer || "") && ext === "pdf";
@@ -33,24 +32,14 @@ export function pdfOutputRecipe(
   // when pandoc is done, we need to run pdf latex and then copy the
   // ouptut to the user's requested destination
   const complete = async () => {
-    // run pdflatex (wihin the inputDir so we are not exposed to any parent path issues)
-    const texFile = output;
-    const texStem = basename(texFile, ".tex");
-    const result = await execProcess({
-      cmd: ["pdflatex", texFile],
-      cwd: inputDir,
-    });
+    // TODO: determine pdf-engine, pdf-engine-args, and bib engine
+    const result = await runTinytex(join(inputDir, output), "", [], "");
     if (!result.success) {
       return Promise.reject();
     }
 
-    // cleanup intermediates
-    ["toc", "out", "aux", "log"].forEach((ext) => {
-      removeIfExists(join(inputDir, texStem + "." + ext));
-    });
-
     // keep tex if requested
-    const compileTex = join(inputDir, texFile);
+    const compileTex = join(inputDir, output);
     const outputTex = join(inputDir, safeInputStem + ".tex");
     if (options.flags?.keepAll || format.keep?.tex) {
       Deno.renameSync(compileTex, outputTex);
@@ -60,6 +49,7 @@ export function pdfOutputRecipe(
     }
 
     // copy (or write for stdout) compiled pdf to final output location
+    const texStem = basename(output, ".tex");
     const compilePdf = join(inputDir, texStem + ".pdf");
     let finalOutput = options.flags?.output;
     if (!finalOutput) {
