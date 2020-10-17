@@ -7,6 +7,7 @@ import { mergeConfigs } from "../../config/config.ts";
 import { consoleWriteLine } from "../../core/console.ts";
 import { ProcessResult } from "../../core/process.ts";
 import { readYAML } from "../../core/yaml.ts";
+import { dirAndStem } from "../../core/path.ts";
 
 import { formatForInputFile } from "../../config/format.ts";
 
@@ -26,11 +27,8 @@ import { outputRecipe } from "./output.ts";
 
 // TODO: discover index.Rmd or ui.Rmd for quarto run
 
-// handle conditional pandoc-citeproc and forward of --natbib and --biblatex
-// naitve implementation of tinytex
-
 // https://github.com/rstudio/rmarkdown/blob/08c7567d6a2906d8f4471e0b295591d8e548d62e/R/render.R
-// TODO: Run citeproc (conditionally) / crossref
+// TODO: crossref
 // TODO: LaTeX w/ TinyTex
 
 export interface RenderOptions {
@@ -51,8 +49,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   );
 
   // derive the computate engine's output file
-  const inputDir = dirname(options.input);
-  const inputStem = basename(options.input, extname(options.input));
+  const [inputDir, inputStem] = dirAndStem(options.input);
   const computationOutput = join(inputDir, inputStem + ".quarto.md");
 
   // resolve parameters
@@ -69,7 +66,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   });
 
   // get pandoc output recipe (target file, args, complete handler)
-  const recipe = outputRecipe(options, inputDir, inputStem, format);
+  const recipe = outputRecipe(options, format);
 
   // run pandoc conversion
   const result = await runPandoc({

@@ -2,23 +2,25 @@ import { basename, join } from "path/mod.ts";
 
 import { Format } from "../../api/format.ts";
 import { writeFileToStdout } from "../../core/console.ts";
-import { removeIfExists } from "../../core/path.ts";
+import { dirAndStem, removeIfExists } from "../../core/path.ts";
 
 import { execProcess } from "../../core/process.ts";
 
 import { kStdOut, replacePandocArg } from "./flags.ts";
+import { OutputRecipe } from "./output.ts";
 import { RenderOptions } from "./render.ts";
 
 export function isPdfOutput(writer?: string, ext?: string) {
-  return ["latex", "beamer"].includes(writer || "") && ext === "pdf";
+  return ["latex", "beamer", "pdf"].includes(writer || "") && ext === "pdf";
 }
 
 export function pdfOutputRecipe(
   options: RenderOptions,
-  inputDir: string,
-  inputStem: string,
   format: Format,
-) {
+): OutputRecipe {
+  // break apart input file
+  const [inputDir, inputStem] = dirAndStem(options.input);
+
   // there are many characters that give tex trouble in filenames, create
   // a target stem that replaces them with the '-' character
   const safeInputStem = inputStem.replaceAll(/[ <>()|\:&;#?*']/g, "-");

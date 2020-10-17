@@ -2,6 +2,7 @@ import { isAbsolute, join, relative } from "path/mod.ts";
 
 import { Format } from "../../api/format.ts";
 import { writeFileToStdout } from "../../core/console.ts";
+import { dirAndStem } from "../../core/path.ts";
 
 import { kStdOut, replacePandocArg } from "./flags.ts";
 import { isPdfOutput, pdfOutputRecipe } from "./output-pdf.ts";
@@ -12,19 +13,28 @@ import { RenderOptions } from "./render.ts";
 // this spec to what we should actually pass on the command line. considerations
 // include providing the default extension, dealing with output to stdout,
 // and rendering pdfs (which require an additional step after pandoc)
+
+export interface OutputRecipe {
+  // --output file that pandoc will produce
+  output: string;
+  // transformed pandoc args reflecting 'output'
+  args: string[];
+  // callback for completing the output recipe (e.g. might run pdflatex, etc.).
+  // can optionally return an alternate output path
+  complete: () => Promise<string | undefined>;
+}
+
 export function outputRecipe(
   options: RenderOptions,
-  inputDir: string,
-  inputStem: string,
   format: Format,
-) {
+): OutputRecipe {
   // alias & provide defaults for some variables
   const writer = format.pandoc?.writer;
   const ext = format.output?.ext || "html";
 
   // pdfs have their own special set of rules
   if (isPdfOutput(writer, ext)) {
-    return pdfOutputRecipe(options, inputDir, inputStem, format);
+    return pdfOutputRecipe(options, format);
   } else {
     // default recipe spec based on user input
     const recipe = {
@@ -34,6 +44,9 @@ export function outputRecipe(
         return;
       },
     };
+
+    // compute dir and stem
+    const [inputDir, inputStem] = dirAndStem(options.input);
 
     if (!recipe.output) {
       // no output on the command line: derive an output path from the extension
