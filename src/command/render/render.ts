@@ -36,6 +36,7 @@ import {
 } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
+import { pandocIncludesOptions } from "../../core/pandoc.ts";
 
 // TODO: new config system
 // TODO: fill out all the pandoc formats
@@ -81,7 +82,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   });
 
   // get pandoc output recipe (target file, args, complete handler)
-  const recipe = outputRecipe(options, format);
+  const recipe = outputRecipe(computationOutput, options, format);
 
   // run pandoc conversion
   const pandocOptions = {
@@ -95,6 +96,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     flags: options.flags,
     quiet,
   };
+
   const result = await runPandoc(pandocOptions);
 
   // return if we had an error

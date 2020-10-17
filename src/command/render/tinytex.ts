@@ -13,14 +13,14 @@
  *
  */
 
+// ported from tinytex package:
+// https://github.com/yihui/tinytex/blob/5199a89d0d7c01b166eb7dced1b117c67b569774/R/latex.R
+
 import { basename, join } from "path/mod.ts";
 
 import { dirAndStem, removeIfExists } from "../../core/path.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 import { PdfEngine } from "./pandoc.ts";
-
-// ported from tinytex package:
-// https://github.com/yihui/tinytex/blob/5199a89d0d7c01b166eb7dced1b117c67b569774/R/latex.R
 
 export interface TinytexOptions {
   input: string;
@@ -73,9 +73,13 @@ export async function runTinytex(
   return result;
 }
 
-function cleanup(input: string) {
+function auxFile(stem: string, ext: string) {
+  return `${stem}.${ext}`;
+}
+
+function cleanup(input: string, pdfEngineOpts: string[]) {
   const [inputDir, inputStem] = dirAndStem(input);
-  const aux = [
+  const auxFiles = [
     "log",
     "idx",
     "aux",
@@ -95,5 +99,5 @@ function cleanup(input: string) {
     "xwm",
     "brf",
     "run.xml",
-  ];
+  ].map((aux) => join(inputDir, auxFile(inputStem, aux)));
 }

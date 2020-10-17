@@ -1,10 +1,9 @@
 ---
 title: "Woozy Foobar"
-# knit: quarto render
+knit: quarto render
 quarto:
   pdf:
     toc: true
-    pdf-engine: "lualatex"
 bibliography: references.bib
 ---
 

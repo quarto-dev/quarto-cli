@@ -77,7 +77,7 @@ export function citeMethod(
   options: PandocOptions,
 ): CiteMethod | null {
   // collect config
-  const metadata = pandocMetadata(options);
+  const metadata = pandocMetadata(options.input, options.format);
   const pdf = pdfEngine(metadata, options.flags);
 
   // no handler if no references
@@ -108,6 +108,10 @@ export function pdfEngine(
   metadata: Metadata,
   flags?: RenderFlags,
 ): PdfEngine | undefined {
+  // determine pdfengine
+  const pdfEngine = (flags?.pdfEngine || metadata["pdf-engine"] as string ||
+    "pdflatex");
+
   // collect all engine opts
   const pdfEngineOpts = (metadata["pdf-engine-opts"] as string[] || []);
   if (metadata["pdf-engine-opt"]) {
@@ -118,8 +122,7 @@ export function pdfEngine(
   }
 
   return {
-    pdfEngine: flags?.pdfEngine || metadata["pdf-engine"] as string ||
-      "pdflatex",
+    pdfEngine,
     pdfEngineOpts,
     bibEngine: flags?.natbib
       ? "natbib"
@@ -133,12 +136,10 @@ export function pdfEngine(
   };
 }
 
-export function pandocMetadata(
-  options: PandocOptions,
-): Metadata {
+export function pandocMetadata(file: string, format?: FormatPandoc): Metadata {
   // get all metadata from the input file
-  const inputMetadata = metadataFromFile(options.input);
+  const inputMetadata = metadataFromFile(file);
 
   // derive 'final' metadata by merging the intputMetadata intot the format definition
-  return mergeConfigs(options.format, inputMetadata);
+  return mergeConfigs(format || {}, inputMetadata);
 }
