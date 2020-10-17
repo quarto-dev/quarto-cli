@@ -34,8 +34,7 @@ export function outputRecipe(
   if (["latex", "beamer"].includes(writer || "") && ext === "pdf") {
     // provide an output destination for pandoc (remove chars that latex might have trobule with)
     const safeInputStem = inputStem
-      .replaceAll(/[ <>()|\:&;#?*']/g, "-")
-      .replaceAll(/-+/g, "-");
+      .replaceAll(/[ <>()|\:&;#?*']/g, "-");
     recipe.output = safeInputStem + ".quarto.tex";
     recipe.args = replacePandocArg(recipe.args, "--output", recipe.output);
 
