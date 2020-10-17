@@ -9,10 +9,6 @@ import { execProcess } from "../../core/process.ts";
 import { kStdOut, replacePandocArg } from "./flags.ts";
 import { RenderOptions } from "./render.ts";
 
-// TOOD: some constants for file extensions
-
-// TODO: we seem to leave the text file laying around
-
 export function isPdfOutput(writer?: string, ext?: string) {
   return ["latex", "beamer"].includes(writer || "") && ext === "pdf";
 }
