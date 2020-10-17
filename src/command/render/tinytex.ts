@@ -1,8 +1,26 @@
+/*
+ * tinytex.ts
+ *
+ * Copyright (C) 2020 by RStudio, PBC
+ *
+ * Unless you have received this program directly from RStudio pursuant
+ * to the terms of a commercial license agreement with RStudio, then
+ * this program is licensed to you under the terms of version 3 of the
+ * GNU General Public License. This program is distributed WITHOUT
+ * ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING THOSE OF NON-INFRINGEMENT,
+ * MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. Please refer to the
+ * GPL (http://www.gnu.org/licenses/gpl-3.0.txt) for more details.
+ *
+ */
+
 import { basename, join } from "path/mod.ts";
 
 import { dirAndStem, removeIfExists } from "../../core/path.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 import { PdfEngine } from "./pandoc.ts";
+
+// ported from tinytex package:
+// https://github.com/yihui/tinytex/blob/5199a89d0d7c01b166eb7dced1b117c67b569774/R/latex.R
 
 export interface TinytexOptions {
   input: string;
@@ -53,4 +71,29 @@ export async function runTinytex(
   });
 
   return result;
+}
+
+function cleanup(input: string) {
+  const [inputDir, inputStem] = dirAndStem(input);
+  const aux = [
+    "log",
+    "idx",
+    "aux",
+    "bcf",
+    "blg",
+    "bbl",
+    "fls",
+    "out",
+    "lof",
+    "lot",
+    "toc",
+    "nav",
+    "snm",
+    "vrb",
+    "ilg",
+    "ind",
+    "xwm",
+    "brf",
+    "run.xml",
+  ];
 }
