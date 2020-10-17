@@ -90,6 +90,9 @@ export function resolveConfig(config: Config) {
 }
 
 export function mergeConfigs<T>(...configs: T[]): T {
+  // copy all configs so we don't mutate them
+  configs = ld.cloneDeep(configs);
+
   return ld.mergeWith(
     configs[0],
     ...configs.slice(1),

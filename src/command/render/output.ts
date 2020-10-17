@@ -19,7 +19,7 @@ import { Format, FormatPandoc } from "../../api/format.ts";
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, removeIfExists } from "../../core/path.ts";
 
-import { kStdOut, replacePandocArg } from "./flags.ts";
+import { kStdOut, RenderFlags, replacePandocArg } from "./flags.ts";
 import { pandocMetadata, PandocOptions, pdfEngine } from "./pandoc.ts";
 import { RenderOptions } from "./render.ts";
 import { runTinytex } from "./tinytex.ts";
@@ -44,16 +44,13 @@ export interface OutputRecipe {
 }
 
 export function outputRecipe(
+  input: string,
   options: RenderOptions,
   format: Format,
 ): OutputRecipe {
-  // alias & provide defaults for some variables
-  const writer = format.pandoc?.writer;
-  const ext = format.output?.ext || "html";
-
-  // pdfs have their own special set of rules
-  if (isPdfOutput(writer, ext)) {
-    return pdfOutputRecipe(options, format);
+  if (useTinyTex(input, format, options.flags)) {
+    // use tinytex for pdfs created w/ pdflatex, xelatex, and lualatex
+    return tinyTexOutputRecipe(options, format);
   } else {
     // default recipe spec based on user input
     const recipe = {
@@ -65,7 +62,8 @@ export function outputRecipe(
       },
     };
 
-    // compute dir and stem
+    // some path attributes
+    const ext = format.output?.ext || "html";
     const [inputDir, inputStem] = dirAndStem(options.input);
 
     if (!recipe.output) {
@@ -94,11 +92,26 @@ export function outputRecipe(
   }
 }
 
-export function isPdfOutput(writer?: string, ext?: string) {
-  return ["latex", "beamer", "pdf"].includes(writer || "") && ext === "pdf";
+export function useTinyTex(input: string, format: Format, flags?: RenderFlags) {
+  // check writer and extension
+  const writer = format.pandoc?.writer;
+  const ext = format.output?.ext || "html";
+
+  // if we are creating pdf output
+  if (["beamer", "pdf"].includes(writer || "") && ext === "pdf") {
+    // and we are using one of the engines supported by tinytex
+    const metadata = pandocMetadata(input, format.pandoc);
+    const engine = pdfEngine(metadata, flags);
+    return ["pdflatex", "xelatex", "lualatex"].includes(
+      engine?.pdfEngine || "",
+    );
+  }
+
+  // default to false
+  return false;
 }
 
-export function pdfOutputRecipe(
+export function tinyTexOutputRecipe(
   options: RenderOptions,
   format: Format,
 ): OutputRecipe {
@@ -121,7 +134,7 @@ export function pdfOutputRecipe(
     const texStem = basename(output, ".tex");
 
     // determine tinytex options
-    const metadata = pandocMetadata(pandocOptions);
+    const metadata = pandocMetadata(pandocOptions.input, pandocOptions.format);
     const ttOptions = {
       input: join(inputDir, output),
       output: texStem + ".pdf",
