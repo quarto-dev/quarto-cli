@@ -26,22 +26,12 @@ import { outputRecipe } from "./output.ts";
 
 // TODO: discover index.Rmd or ui.Rmd for quarto run
 
-// PDF output will always make a tex file first
-// We will always render to a "tex-safe" temp file
-
-// we will delete the tex file if !keep_tex or !keep-all
-
-// we will produce the pdf from the tex if requested.
-// naive implementation of this is pdflatex (or other engine)
+// handle conditional pandoc-citeproc and forward of --natbib and --biblatex
+// naitve implementation of tinytex
 
 // https://github.com/rstudio/rmarkdown/blob/08c7567d6a2906d8f4471e0b295591d8e548d62e/R/render.R
-// TODO: keep_tex
-// TOOD: shell cars for tex
 // TODO: Run citeproc (conditionally) / crossref
 // TODO: LaTeX w/ TinyTex
-
-// R-only features:
-//
 
 export interface RenderOptions {
   input: string;
