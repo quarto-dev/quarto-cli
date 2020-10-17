@@ -2,7 +2,6 @@ import { basename, join } from "path/mod.ts";
 
 import { dirAndStem, removeIfExists } from "../../core/path.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
-import { pdfOutputRecipe } from "./output.ts";
 import { PdfEngine } from "./pandoc.ts";
 
 export interface TinytexOptions {
