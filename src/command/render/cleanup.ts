@@ -24,7 +24,7 @@ export function cleanup(
   if (keepMd) {
     Deno.copyFileSync(computations.output, mdOutput);
   } else {
-    removeIfExists(mdOutput);
+    removeIfExists(mdOutput); // from previous renders
   }
 
   // always remove markdown created by computations
