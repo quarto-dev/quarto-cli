@@ -26,8 +26,7 @@ export interface TinytexOptions {
   input: string;
   output?: string; // default: input.pdf
   pdfEngine?: PdfEngine; // default: pdflatex
-  emulation?: boolean; // default: true
-  install?: boolean; // default: emulation
+  install?: boolean; // default: true
   minTimes?: number; // default: 1
   maxTimes?: number; // default: 10
   clean?: boolean; // default: true
@@ -40,12 +39,13 @@ export async function runTinytex(
   const {
     input,
     pdfEngine = { pdfEngine: "pdflatex" },
-    emulation = true,
-    install = emulation,
+    install = true,
     minTimes = 1,
     maxTimes = 10,
     clean = true,
   } = options;
+
+  // TODO: how to tinytex options get propagated?
 
   // provide output if needed
   const [inputDir, inputStem] = dirAndStem(input);
