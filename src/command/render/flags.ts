@@ -5,6 +5,10 @@ export const kStdOut = "-";
 export interface RenderFlags {
   to?: string;
   output?: string;
+  pdfEngine?: string;
+  pdfEngineOpts?: string[];
+  natbib?: boolean;
+  biblatex?: boolean;
   params?: string;
   computeDir?: string;
   keepAll?: boolean;
@@ -35,6 +39,29 @@ export function parseRenderFlags(args: string[]) {
         } else {
           flags.output = arg;
         }
+        break;
+
+      case "--pdf-engine":
+        arg = argsStack.shift();
+        flags.pdfEngine = arg;
+        break;
+
+      case "--pdf-engine-opt":
+        arg = argsStack.shift();
+        if (arg) {
+          flags.pdfEngineOpts = flags.pdfEngineOpts || [];
+          flags.pdfEngineOpts.push(arg);
+        }
+        break;
+
+      case "--natbib":
+        arg = argsStack.shift();
+        flags.natbib = true;
+        break;
+
+      case "--biblatex":
+        arg = argsStack.shift();
+        flags.biblatex = true;
         break;
 
       case "--params":

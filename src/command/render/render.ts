@@ -38,7 +38,7 @@ export interface RenderOptions {
 }
 
 export async function render(options: RenderOptions): Promise<ProcessResult> {
-  // alias quiet
+  // alias flags
   const flags = options.flags || {};
   const quiet = flags.quiet;
 
@@ -52,7 +52,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   const [inputDir, inputStem] = dirAndStem(options.input);
   const computationOutput = join(inputDir, inputStem + ".quarto.md");
 
-  // resolve parameters
+  // resolve computation parameters
   const params = resolveParams(flags.params);
 
   // run computations
@@ -69,19 +69,25 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   const recipe = outputRecipe(options, format);
 
   // run pandoc conversion
-  const result = await runPandoc({
+  const pandocOptions = {
     input: computationOutput,
-    format: mergeConfigs(format.pandoc || {}, computations.pandoc),
+    format: mergeConfigs(
+      format.pandoc || {},
+      computations.pandoc,
+      recipe.pandoc,
+    ),
     args: recipe.args,
+    flags: options.flags,
     quiet,
-  });
+  };
+  const result = await runPandoc(pandocOptions);
 
   // return if we had an error
   if (!result.success) {
     return result;
   }
 
-  // run post processor
+  // run optional post-processor
   if (computations.postprocess) {
     await postprocess({
       input: options.input,
@@ -92,8 +98,8 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     });
   }
 
-  // call complete handler
-  const outputCreated = await recipe.complete() || recipe.output;
+  // call complete handler (might e.g. run tinytex tc complete the render)
+  const outputCreated = await recipe.complete(pandocOptions) || recipe.output;
 
   // cleanup as necessary
   cleanup(flags, format, computations, outputCreated);

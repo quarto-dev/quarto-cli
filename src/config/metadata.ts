@@ -7,9 +7,9 @@ export type Metadata = {
   [key: string]: unknown;
 };
 
-export async function metadataFromMarkdown(
+export function metadataFromMarkdown(
   markdown: string,
-): Promise<Metadata> {
+): Metadata {
   if (markdown) {
     // capture all yaml blocks as a single yaml doc
     let yaml = "";
@@ -27,13 +27,13 @@ export async function metadataFromMarkdown(
 
     // parse the yaml
     const metadata = parse(yaml, { json: true });
-    return Promise.resolve((metadata || {}) as Metadata);
+    return (metadata || {}) as Metadata;
   } else {
     return {};
   }
 }
 
-export async function metadataFromFile(file: string): Promise<Metadata> {
-  const markdown = await Deno.readTextFile(file);
+export function metadataFromFile(file: string): Metadata {
+  const markdown = Deno.readTextFileSync(file);
   return metadataFromMarkdown(markdown);
 }
