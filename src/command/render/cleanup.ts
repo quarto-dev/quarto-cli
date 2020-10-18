@@ -13,7 +13,7 @@
 *
 */
 
-import { basename, dirname, extname, join } from "path/mod.ts";
+import { basename, dirname, extname, join, normalize } from "path/mod.ts";
 
 import type { Format } from "../../api/format.ts";
 
@@ -25,6 +25,7 @@ import type { ComputationsResult } from "./computation.ts";
 import type { RenderFlags } from "./flags.ts";
 
 export function cleanup(
+  input: string,
   flags: RenderFlags,
   format: Format,
   computations: ComputationsResult,
@@ -41,7 +42,11 @@ export function cleanup(
   if (keepMd) {
     Deno.copyFileSync(computations.output, mdOutput);
   } else {
-    removeIfExists(mdOutput); // from previous renders
+    // remove md output that may be left from previous renders
+    // (don't do this though if it's the same as the input!)
+    if (normalize(mdOutput) !== normalize(input)) {
+      removeIfExists(mdOutput); // from previous renders
+    }
   }
 
   // always remove markdown created by computations
