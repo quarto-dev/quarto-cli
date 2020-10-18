@@ -23,14 +23,14 @@ import { dirAndStem } from "../../core/path.ts";
 import { kStdOut, replacePandocArg } from "./flags.ts";
 import { PandocOptions } from "./pandoc.ts";
 import { RenderOptions } from "./render.ts";
-import { tinyTexOutputRecipe, useTinyTex } from "./tinytex.ts";
+import { latexmkOutputRecipe, useLatexmk } from "./latexmk.ts";
 
 // render commands imply the --output argument for pandoc and the final
 // output file to create for the user, but we need a 'recipe' to go from
 // this spec to what we should actually pass to pandoc on the command line.
 // considerations include providing the default extension, dealing with
 // output to stdout, and rendering pdfs (which can require an additional
-// step after pandoc e.g. for tinytex)
+// step after pandoc e.g. for latexmk)
 
 export interface OutputRecipe {
   // --output file that pandoc will produce
@@ -50,9 +50,9 @@ export function outputRecipe(
   input: string,
   format: Format,
 ): OutputRecipe {
-  if (useTinyTex(input, format, options.flags)) {
-    // use tinytex for pdfs created w/ pdflatex, xelatex, and lualatex
-    return tinyTexOutputRecipe(options, format);
+  if (useLatexmk(input, format, options.flags)) {
+    // use latexmk for pdfs created w/ pdflatex, xelatex, and lualatex
+    return latexmkOutputRecipe(options, format);
   } else {
     // default recipe spec based on user input
     const recipe = {

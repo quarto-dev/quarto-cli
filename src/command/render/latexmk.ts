@@ -1,5 +1,5 @@
 /*
- * tinytex.ts
+ * latexmk.ts
  *
  * Copyright (C) 2020 by RStudio, PBC
  *
@@ -13,7 +13,7 @@
  *
  */
 
-import { basename, join } from "path/mod.ts";
+import { basename, dirname, join } from "path/mod.ts";
 
 import { Format } from "../../api/format.ts";
 
@@ -21,26 +21,23 @@ import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, removeIfExists } from "../../core/path.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 
-import { TinytexConfig } from "../../config/metadata.ts";
+import { pdfEngine } from "../../config/pdf.ts";
 
-import {
-  pandocMetadata,
-  PandocOptions,
-  PdfEngine,
-  pdfEngine,
-} from "./pandoc.ts";
+import { LatexmkOptions } from "../../computation/engine.ts";
+
+import { pandocMetadata, PandocOptions } from "./pandoc.ts";
 import { RenderOptions } from "./render.ts";
 import { kStdOut, RenderFlags, replacePandocArg } from "./flags.ts";
 import { OutputRecipe } from "./output.ts";
 
-export function useTinyTex(input: string, format: Format, flags?: RenderFlags) {
+export function useLatexmk(input: string, format: Format, flags?: RenderFlags) {
   // check writer and extension
   const writer = format.pandoc?.writer;
   const ext = format.output?.ext || "html";
 
   // if we are creating pdf output
   if (["beamer", "pdf"].includes(writer || "") && ext === "pdf") {
-    // and we are using one of the engines supported by tinytex
+    // and we are using one of the engines supported by latexmk
     const metadata = pandocMetadata(input, format.pandoc);
     const engine = pdfEngine(metadata, flags);
     return ["pdflatex", "xelatex", "lualatex"].includes(
@@ -52,7 +49,7 @@ export function useTinyTex(input: string, format: Format, flags?: RenderFlags) {
   return false;
 }
 
-export function tinyTexOutputRecipe(
+export function latexmkOutputRecipe(
   options: RenderOptions,
   format: Format,
 ): OutputRecipe {
@@ -68,23 +65,21 @@ export function tinyTexOutputRecipe(
   const output = safeInputStem + ".quarto.tex";
   const args = replacePandocArg(options.pandocArgs || [], "--output", output);
 
-  // when pandoc is done, we need to run tinytex and then copy the
+  // when pandoc is done, we need to run latexmk and then copy the
   // ouptut to the user's requested destination
   const complete = async (pandocOptions: PandocOptions) => {
     // compute texStem
     const texStem = basename(output, ".tex");
 
-    // determine tinytex options
+    // determine latexmk options
     const metadata = pandocMetadata(pandocOptions.input, pandocOptions.format);
-    const ttOptions: TinytexOptions = {
+    const ttOptions: LatexmkOptions = {
       input: join(inputDir, output),
-      output: texStem + ".pdf",
       pdfEngine: pdfEngine(metadata, pandocOptions.flags),
-      config: metadata.tinytex,
     };
 
-    // run tinytex
-    const result = await runTinytex(ttOptions);
+    // run latexmk
+    const result = await runLatexmk(ttOptions);
     if (!result.success) {
       return Promise.reject();
     }
@@ -135,50 +130,64 @@ export function tinyTexOutputRecipe(
   };
 }
 
-interface TinytexOptions {
-  input: string;
-  output?: string; // default: input.pdf
-  pdfEngine?: PdfEngine; // default: pdflatex
-  config?: TinytexConfig;
-}
-
-async function runTinytex(
-  options: TinytexOptions,
-): Promise<ProcessResult> {
+async function runLatexmk(options: LatexmkOptions): Promise<ProcessResult> {
   // provide argument defaults
   const {
     input,
     pdfEngine = { pdfEngine: "pdflatex" },
   } = options;
-  const [inputDir, inputStem] = dirAndStem(input);
-  const output = options.output ? options.output : join(inputStem + ".pdf");
-  const config = options.config || {};
-  const { install = true, clean = true } = config;
-  const minTimes = typeof config["min-times"] === "number"
-    ? config["min-times"]
-    : 1;
-  const maxTimes = typeof config["max-times"] === "number"
-    ? config["max-times"]
-    : 10;
+
+  // build latexmk command line
+  const cmd = ["latexmk"];
+
+  // pdf engine
+  switch (pdfEngine.pdfEngine) {
+    case "xelatex":
+      cmd.push("-xelatex");
+      break;
+    case "lualatex":
+      cmd.push("-lualatex");
+      break;
+    case "pdflatex":
+      cmd.push("-pdf");
+      break;
+    default:
+      cmd.push("-pdf");
+      break;
+  }
+
+  // pdf engine opts
+  const engineOpts = [
+    "-halt-on-error",
+    "-interaction=batchmode",
+  ];
+  if (pdfEngine.pdfEngineOpts) {
+    engineOpts.push(...pdfEngine.pdfEngineOpts);
+  }
+  cmd.push(...engineOpts.map((opt) => `-latexoption=${opt}`));
+
+  // input file
+  cmd.push(basename(input));
 
   // run
   const result = await execProcess({
-    cmd: [
-      "pdflatex",
-      "-halt-on-error",
-      "-interaction=batchmode",
-      basename(input),
-    ],
-    cwd: inputDir,
+    cmd,
+    cwd: dirname(input),
+    stdout: "piped",
   });
   if (!result.success) {
     return Promise.reject();
   }
 
-  // cleanup intermediates
-  ["toc", "out", "aux", "log"].forEach((ext) => {
-    removeIfExists(join(inputDir, inputStem + "." + ext));
+  // cleanup
+  const cleanupResult = await execProcess({
+    cmd: ["latexmk", "-c", basename(input)],
+    cwd: dirname(input),
+    stdout: "piped",
   });
+  if (!cleanupResult.success) {
+    return Promise.reject();
+  }
 
   return result;
 }

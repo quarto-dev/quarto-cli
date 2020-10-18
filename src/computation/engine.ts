@@ -23,6 +23,7 @@ import type { Metadata } from "../config/metadata.ts";
 
 import { rmdEngine } from "./rmd.ts";
 import { ipynbEngine } from "./ipynb.ts";
+import { PdfEngine } from "../config/pdf.ts";
 
 // execute options
 export interface ExecuteOptions {
@@ -55,6 +56,12 @@ export interface PostProcessOptions {
   output: string;
   data: unknown;
   quiet?: boolean;
+}
+
+// latexmk options
+export interface LatexmkOptions {
+  input: string;
+  pdfEngine: PdfEngine;
 }
 
 // run options
