@@ -47,12 +47,26 @@ import { outputRecipe } from "./output.ts";
 
 // TODO: add --citeproc to printed command line
 
-// TODO: had to do this to get biblatex working w/ tinytex
+// TODO: had to do this to get biblatex working w/ latexmk
+// (may want to automate installation if no biber + auto-map TinyTeX to path)
 //   tlmgr install biblatex
 //   tlmgr install biber
 //   ln -sf /Users/jjallaire/Library/TinyTeX/bin/x86_64-darwin/biber /usr/local/bin/biber
 
 // TODO: latexmk backend for Rmd (via tinytex)
+
+// TODO: memo/proposal on _quarto directory
+
+// TODO: memo/proposal on computations:
+// will be able to use RStudio chunk output and/or notebook for compute?
+// or perhaps require html_notebook?
+// computations could even be at a URL!!!
+/*
+     {{= notebook.Rmd#chunk-label =}}
+
+     computations:
+         stuff: notebook.Rmd
+*/
 
 // TODO: crossref
 
