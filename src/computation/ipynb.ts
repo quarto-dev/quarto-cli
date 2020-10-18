@@ -73,10 +73,5 @@ export const ipynbEngine: ComputationEngine = {
   },
 
   postprocess: async (options: PostProcessOptions) => {
-    return Promise.resolve();
-  },
-
-  run: async (options: RunOptions) => {
-    return processSuccessResult();
   },
 };

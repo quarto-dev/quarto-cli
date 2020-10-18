@@ -24,6 +24,7 @@ import { kStdOut, replacePandocArg } from "./flags.ts";
 import { PandocOptions } from "./pandoc.ts";
 import { RenderOptions } from "./render.ts";
 import { latexmkOutputRecipe, useLatexmk } from "./latexmk.ts";
+import { computationEngineForFile } from "../../computation/engine.ts";
 
 // render commands imply the --output argument for pandoc and the final
 // output file to create for the user, but we need a 'recipe' to go from
@@ -51,8 +52,8 @@ export function outputRecipe(
   format: Format,
 ): OutputRecipe {
   if (useLatexmk(input, format, options.flags)) {
-    // use latexmk for pdfs created w/ pdflatex, xelatex, and lualatex
-    return latexmkOutputRecipe(options, format);
+    const engine = computationEngineForFile(options.input);
+    return latexmkOutputRecipe(options, format, engine?.latexmk);
   } else {
     // default recipe spec based on user input
     const recipe = {

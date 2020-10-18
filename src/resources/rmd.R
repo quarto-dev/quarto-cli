@@ -137,6 +137,25 @@ postprocess <- function(input, format, output, preserved_chunks) {
     xfun::write_utf8(output_res, output)
 }
 
+latexmk <- function(input, engine) {
+
+  # use verbose mode (will show package installation messages)
+  options(tinytex.verbose = TRUE)
+
+  # change to input dir and make input relative
+  oldwd <- setwd(dirname(rmarkdown:::abs_path(input)))
+  on.exit(setwd(oldwd), add = TRUE)
+  input <- basename(input)
+
+  # build args
+  pdf_engine <- engine$pdfEngine
+  bib_engine <- ifelse(identical(engine$bibEngine,"biblatex"), "biber", "bibtex")
+  engine_args <- if (!is.null(engine$pdfEngineOpts)) engine$pdfEngineOpts
+
+  # call tinytex
+  tinytex::latexmk(input, pdf_engine, bib_engine, engine_args)
+}
+
 run <- function(input, port) {
   shiny_args <- list()
   if (!is.null(port))
@@ -159,7 +178,7 @@ pandoc_options <- function(format) {
   # work around an issue w/ rmarkdown where at least 1 argument
   # must be passed or there is a runtime error
   rmarkdown::pandoc_options(
-    to = format$pandoc$writer,   
+    to = format$pandoc$writer,
     from = format$pandoc$reader,
     args = c("--to", format$pandoc$writer),
     keep_tex = isTRUE(format$keep$tex)
@@ -354,6 +373,8 @@ main <- function() {
     result <- execute(params$input, params$format, params$output, params$cwd, params$params)
   } else if (request$action == "postprocess") {
     result <- postprocess(params$input, params$format, params$output, params$data)
+  } else if (request$action == "latexmk") {
+    result <- latexmk(params$input, params$engine)
   } else if (request$action == "run") {
     result <- run(params$input, params$port)
   }

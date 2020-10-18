@@ -28,6 +28,7 @@ import type {
   ComputationEngine,
   ExecuteOptions,
   ExecuteResult,
+  LatexmkOptions,
   PostProcessOptions,
   RunOptions,
 } from "./engine.ts";
@@ -76,8 +77,15 @@ export const rmdEngine: ComputationEngine = {
     );
   },
 
+  latexmk: (options: LatexmkOptions) => {
+    return callR<void>(
+      "latexmk",
+      options,
+    );
+  },
+
   run: (options: RunOptions) => {
-    return callR<ProcessResult>(
+    return callR<void>(
       "run",
       options,
     );

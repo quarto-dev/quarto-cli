@@ -27,7 +27,7 @@ import { render } from "../render/render.ts";
 
 export async function run(options: RunOptions): Promise<ProcessResult> {
   const engine = computationEngineForFile(options.input);
-  if (engine) {
+  if (engine?.run) {
     // render if requested
     if (options.render) {
       const result = await render({ input: options.input });
