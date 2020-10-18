@@ -45,8 +45,16 @@ import { outputRecipe } from "./output.ts";
 // TODO: new config system
 // TODO: fill out all the pandoc formats
 
+// TODO: add --citeproc to printed command line
+
+// TODO: had to do this to get biblatex working w/ tinytex
+//   tlmgr install biblatex
+//   tlmgr install biber
+//   ln -sf /Users/jjallaire/Library/TinyTeX/bin/x86_64-darwin/biber /usr/local/bin/biber
+
+// TODO: latexmk backend for Rmd (via tinytex)
+
 // TODO: crossref
-// TODO: LaTeX w/ TinyTex
 
 // command line options for render
 export interface RenderOptions {
@@ -117,7 +125,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     });
   }
 
-  // call complete handler (might e.g. run tinytex tc complete the render)
+  // call complete handler (might e.g. run latexmk to complete the render)
   const finalOutput = await recipe.complete(pandocOptions) || recipe.output;
 
   // cleanup as necessary

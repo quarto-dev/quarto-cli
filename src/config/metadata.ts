@@ -19,16 +19,8 @@ import type { Config } from "./config.ts";
 
 export type Metadata = {
   quarto?: Config;
-  tinytex?: TinytexConfig;
   [key: string]: unknown;
 };
-
-export interface TinytexConfig {
-  install?: boolean; // default: true
-  ["min-times"]?: number; // default: 1
-  ["max-times"]?: number; // default: 10
-  clean?: boolean; // default: true
-}
 
 export function metadataFromMarkdown(
   markdown: string,

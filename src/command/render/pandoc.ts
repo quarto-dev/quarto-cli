@@ -22,6 +22,7 @@ import { execProcess, ProcessResult } from "../../core/process.ts";
 import { consoleWriteLine } from "../../core/console.ts";
 
 import { Metadata, metadataFromFile } from "../../config/metadata.ts";
+import { PdfEngine, pdfEngine } from "../../config/pdf.ts";
 import { mergeConfigs } from "../../config/config.ts";
 
 import { RenderFlags } from "./flags.ts";
@@ -106,46 +107,6 @@ export function citeMethod(
   } else {
     return null;
   }
-}
-
-// union of metadata and command line flags which determine
-// the requested pdf engine, it's options, and the bib engine
-export interface PdfEngine {
-  pdfEngine: string;
-  pdfEngineOpts?: string[];
-  bibEngine?: "natbib" | "biblatex";
-}
-
-export function pdfEngine(
-  metadata: Metadata,
-  flags?: RenderFlags,
-): PdfEngine {
-  // determine pdfengine
-  const pdfEngine =
-    (flags?.pdfEngine || metadata["pdf-engine"] as string || "pdflatex");
-
-  // collect all engine opts
-  const pdfEngineOpts = (metadata["pdf-engine-opts"] as string[] || []);
-  if (metadata["pdf-engine-opt"]) {
-    pdfEngineOpts.push(metadata["pdf-engine-opt"] as string);
-  }
-  if (flags?.pdfEngineOpts) {
-    pdfEngineOpts.push(...flags?.pdfEngineOpts);
-  }
-
-  return {
-    pdfEngine,
-    pdfEngineOpts,
-    bibEngine: flags?.natbib
-      ? "natbib"
-      : flags?.biblatex
-      ? "biblatex"
-      : metadata["cite-method"] === "natbib"
-      ? "natbib"
-      : metadata["cite-method"] == "biblatex"
-      ? "biblatex"
-      : undefined,
-  };
 }
 
 export function pandocMetadata(file: string, format?: FormatPandoc): Metadata {
