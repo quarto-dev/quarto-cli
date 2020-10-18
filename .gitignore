@@ -8,7 +8,6 @@ __pycache__/
 sandbox/quarto.sh
 tests/run-tests.sh
 tests/docs/test.md
-tests/docs/test.html
-tests/docs/test.undefined
-tests/docs/test-plain.html
+tests/docs/*.html
+tests/docs/*.pdf
 sandbox/docs/pdflatex/
