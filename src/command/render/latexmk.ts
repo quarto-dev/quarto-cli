@@ -52,7 +52,11 @@ export function useLatexmk(input: string, format: Format, flags?: RenderFlags) {
 export function latexmkOutputRecipe(
   options: RenderOptions,
   format: Format,
+  latexmk?: (options: LatexmkOptions) => Promise<void>,
 ): OutputRecipe {
+  // provide default latexmk if necessary
+  const latexmkHandler = latexmk ? latexmk : runLatexmk;
+
   // break apart input file
   const [inputDir, inputStem] = dirAndStem(options.input);
 
@@ -75,14 +79,11 @@ export function latexmkOutputRecipe(
     const metadata = pandocMetadata(pandocOptions.input, pandocOptions.format);
     const ttOptions: LatexmkOptions = {
       input: join(inputDir, output),
-      pdfEngine: pdfEngine(metadata, pandocOptions.flags),
+      engine: pdfEngine(metadata, pandocOptions.flags),
     };
 
     // run latexmk
-    const result = await runLatexmk(ttOptions);
-    if (!result.success) {
-      return Promise.reject();
-    }
+    await latexmkHandler(ttOptions);
 
     // keep tex if requested
     const compileTex = join(inputDir, output);
@@ -134,7 +135,7 @@ async function runLatexmk(options: LatexmkOptions): Promise<ProcessResult> {
   // provide argument defaults
   const {
     input,
-    pdfEngine = { pdfEngine: "pdflatex" },
+    engine: pdfEngine = { pdfEngine: "pdflatex" },
   } = options;
 
   // build latexmk command line

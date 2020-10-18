@@ -61,7 +61,7 @@ export interface PostProcessOptions {
 // latexmk options
 export interface LatexmkOptions {
   input: string;
-  pdfEngine: PdfEngine;
+  engine: PdfEngine;
 }
 
 // run options
@@ -77,7 +77,8 @@ export interface ComputationEngine {
   metadata: (file: string) => Promise<Metadata>;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;
-  run: (options: RunOptions) => Promise<ProcessResult>;
+  latexmk?: (options: LatexmkOptions) => Promise<void>;
+  run?: (options: RunOptions) => Promise<void>;
 }
 
 export function computationEngineForFile(file: string) {
