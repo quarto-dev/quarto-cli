@@ -46,8 +46,8 @@ export interface OutputRecipe {
 }
 
 export function outputRecipe(
-  input: string,
   options: RenderOptions,
+  input: string,
   format: Format,
 ): OutputRecipe {
   if (useTinyTex(input, format, options.flags)) {
