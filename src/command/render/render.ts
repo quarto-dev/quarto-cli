@@ -17,13 +17,12 @@ import { join } from "path/mod.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { mergeConfigs } from "../../config/config.ts";
-
 import { consoleWriteLine } from "../../core/console.ts";
 import { ProcessResult } from "../../core/process.ts";
 import { readYAML } from "../../core/yaml.ts";
 import { dirAndStem } from "../../core/path.ts";
 
+import { mergeConfigs } from "../../config/config.ts";
 import { formatForInputFile } from "../../config/format.ts";
 
 import { postProcess as postprocess, runComputations } from "./computation.ts";
@@ -36,7 +35,6 @@ import {
 } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
-import { pandocIncludesOptions } from "../../core/pandoc.ts";
 
 // TODO: new config system
 // TODO: fill out all the pandoc formats

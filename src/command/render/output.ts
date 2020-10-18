@@ -16,6 +16,7 @@
 import { isAbsolute, join, relative } from "path/mod.ts";
 
 import { Format, FormatPandoc } from "../../api/format.ts";
+
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem } from "../../core/path.ts";
 
