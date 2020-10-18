@@ -15,11 +15,10 @@
 
 import type { FormatPandoc } from "../../api/format.ts";
 
-import { pandocIncludesOptions } from "../../core/pandoc.ts";
-
 import {
   computationEngineForFile,
   ExecuteOptions,
+  PandocIncludes,
   PostProcessOptions,
 } from "../../computation/engine.ts";
 
@@ -42,7 +41,7 @@ export async function runComputations(
     return {
       output: options.output,
       supporting: result.supporting,
-      pandoc: pandocIncludesOptions(result.includes),
+      pandoc: pandocIncludeFiles(result.includes),
       postprocess: result.postprocess,
     };
     // no compute engine, just copy the file
@@ -65,4 +64,24 @@ export async function postProcess(
   } else {
     return Promise.resolve();
   }
+}
+
+// provide pandoc include-* arguments from strings
+function pandocIncludeFiles(
+  includes?: PandocIncludes,
+): FormatPandoc {
+  const pandoc: FormatPandoc = {};
+  if (includes) {
+    const include = (name: string, value?: string) => {
+      if (value) {
+        const includeFile = Deno.makeTempFileSync();
+        Deno.writeTextFileSync(includeFile, value);
+        pandoc[name] = [includeFile];
+      }
+    };
+    include("include-in-header", includes.in_header);
+    include("include-before-body", includes.before_body);
+    include("include-after-body", includes.after_body);
+  }
+  return pandoc;
 }

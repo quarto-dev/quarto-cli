@@ -15,14 +15,14 @@
 
 import { extname } from "path/mod.ts";
 
+import { execProcess, ProcessResult } from "../core/process.ts";
+import { resourcePath } from "../core/resources.ts";
+
 import {
   Metadata,
   metadataFromFile,
   metadataFromMarkdown,
 } from "../config/metadata.ts";
-
-import { execProcess, ProcessResult } from "../core/process.ts";
-import { resourcePath } from "../core/resources.ts";
 
 import type {
   ComputationEngine,

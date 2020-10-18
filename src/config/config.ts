@@ -19,8 +19,9 @@ import { ld } from "lodash/mod.ts";
 
 import type { Format } from "../api/format.ts";
 
-import { metadataFromFile, metadataFromMarkdown } from "./metadata.ts";
 import { readYAML } from "../core/yaml.ts";
+
+import { metadataFromFile, metadataFromMarkdown } from "./metadata.ts";
 
 export interface Config {
   [key: string]: Format;

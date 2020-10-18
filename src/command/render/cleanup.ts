@@ -16,8 +16,10 @@
 import { basename, dirname, extname, join } from "path/mod.ts";
 
 import type { Format } from "../../api/format.ts";
-import { kSelfContained } from "../../config/constants.ts";
+
 import { removeIfExists } from "../../core/path.ts";
+
+import { kSelfContained } from "../../config/constants.ts";
 
 import type { ComputationsResult } from "./computation.ts";
 import type { RenderFlags } from "./flags.ts";

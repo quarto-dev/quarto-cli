@@ -17,12 +17,12 @@ import { extname } from "path/mod.ts";
 
 import type { Format } from "../api/format.ts";
 
+import { ProcessResult } from "../core/process.ts";
+
 import type { Metadata } from "../config/metadata.ts";
 
 import { rmdEngine } from "./rmd.ts";
 import { ipynbEngine } from "./ipynb.ts";
-import type { PandocIncludes } from "../core/pandoc.ts";
-import { ProcessResult } from "../core/process.ts";
 
 export interface ExecuteOptions {
   input: string;
@@ -51,6 +51,12 @@ export interface ExecuteResult {
   supporting: string[];
   includes: PandocIncludes;
   postprocess?: unknown;
+}
+
+export interface PandocIncludes {
+  in_header?: string;
+  before_body?: string;
+  after_body?: string;
 }
 
 export interface ComputationEngine {
