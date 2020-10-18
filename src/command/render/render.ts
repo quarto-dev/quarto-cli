@@ -36,6 +36,8 @@ import {
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
 
+// TODO: targeting markdown to markdown
+
 // TODO: new config system
 // TODO: fill out all the pandoc formats
 
@@ -114,14 +116,14 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   }
 
   // call complete handler (might e.g. run tinytex tc complete the render)
-  const outputCreated = await recipe.complete(pandocOptions) || recipe.output;
+  const finalOutput = await recipe.complete(pandocOptions) || recipe.output;
 
   // cleanup as necessary
-  cleanup(flags, format, computations, outputCreated);
+  cleanup(options.input, flags, format, computations, finalOutput);
 
   // report output created
   if (!flags.quiet && flags.output !== kStdOut) {
-    consoleWriteLine("\nOutput created: " + outputCreated + "\n");
+    consoleWriteLine("\nOutput created: " + finalOutput + "\n");
   }
 
   // return result
