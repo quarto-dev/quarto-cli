@@ -36,12 +36,14 @@ import {
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
 
-// TODO: targeting markdown to markdown
+// TODO: targeting markdown to markdown. we need to account for:
+//    - specifying the active mardkown extensions
+//    - using a .md as the output extension *unless* it's markdown to markdown
+
+// TODO: discover index.Rmd or ui.Rmd for quarto run
 
 // TODO: new config system
 // TODO: fill out all the pandoc formats
-
-// TODO: discover index.Rmd or ui.Rmd for quarto run
 
 // TODO: crossref
 // TODO: LaTeX w/ TinyTex
@@ -82,7 +84,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   });
 
   // get pandoc output recipe (target file, args, complete handler)
-  const recipe = outputRecipe(computationOutput, options, format);
+  const recipe = outputRecipe(options, computationOutput, format);
 
   // run pandoc conversion
   const pandocOptions = {
