@@ -17,18 +17,21 @@ import { kSelfContained } from "../../config/constants.ts";
 
 export const kStdOut = "-";
 
+// command line flags that we need to inspect
 export interface RenderFlags {
+  // pandoc flags
   to?: string;
   output?: string;
+  [kSelfContained]?: boolean;
   pdfEngine?: string;
   pdfEngineOpts?: string[];
   natbib?: boolean;
   biblatex?: boolean;
+  // quarto flags
   params?: string;
   computeDir?: string;
   keepAll?: boolean;
   quiet?: boolean;
-  [kSelfContained]?: boolean;
 }
 
 export function parseRenderFlags(args: string[]) {

@@ -24,6 +24,7 @@ import type { Metadata } from "../config/metadata.ts";
 import { rmdEngine } from "./rmd.ts";
 import { ipynbEngine } from "./ipynb.ts";
 
+// execute options
 export interface ExecuteOptions {
   input: string;
   output: string;
@@ -33,6 +34,21 @@ export interface ExecuteOptions {
   quiet?: boolean;
 }
 
+// result of execution
+export interface ExecuteResult {
+  supporting: string[];
+  includes: PandocIncludes;
+  postprocess?: unknown;
+}
+
+// text to include in pandoc output
+export interface PandocIncludes {
+  in_header?: string;
+  before_body?: string;
+  after_body?: string;
+}
+
+// post processing options
 export interface PostProcessOptions {
   input: string;
   format: Format;
@@ -41,22 +57,11 @@ export interface PostProcessOptions {
   quiet?: boolean;
 }
 
+// run options
 export interface RunOptions {
   input: string;
   render: boolean;
   port?: number;
-}
-
-export interface ExecuteResult {
-  supporting: string[];
-  includes: PandocIncludes;
-  postprocess?: unknown;
-}
-
-export interface PandocIncludes {
-  in_header?: string;
-  before_body?: string;
-  after_body?: string;
 }
 
 export interface ComputationEngine {

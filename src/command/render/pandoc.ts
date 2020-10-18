@@ -26,11 +26,18 @@ import { mergeConfigs } from "../../config/config.ts";
 
 import { RenderFlags } from "./flags.ts";
 
+// options required to run pandoc
 export interface PandocOptions {
+  // input file
   input: string;
+  // metadata for target format
   format: FormatPandoc;
+  // command line args for pandoc
   args: string[];
+  // command line flags (e.g. could be
+  // used to specify a pdf or bib engine)
   flags?: RenderFlags;
+  // quiet mode?
   quiet?: boolean;
 }
 
@@ -101,6 +108,8 @@ export function citeMethod(
   }
 }
 
+// union of metadata and command line flags which determine
+// the requested pdf engine, it's options, and the bib engine
 export interface PdfEngine {
   pdfEngine: string;
   pdfEngineOpts?: string[];

@@ -22,10 +22,18 @@ import {
   PostProcessOptions,
 } from "../../computation/engine.ts";
 
+// result from computational preprocessor
 export interface ComputationsResult {
+  // name of file created
   output: string;
+  // additional supporting files (can be removed
+  // for --self-contained or pdf output)
   supporting: string[];
+  // additional pandoc metadata resulting from
+  // the computations
   pandoc: FormatPandoc;
+  // request for a postprocessing step (the value
+  // will be passed back to the postprocessor)
   postprocess?: unknown;
 }
 
