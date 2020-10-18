@@ -41,10 +41,10 @@ import { outputRecipe } from "./output.ts";
 
 // TODO: discover index.Rmd or ui.Rmd for quarto run
 
-// https://github.com/rstudio/rmarkdown/blob/08c7567d6a2906d8f4471e0b295591d8e548d62e/R/render.R
 // TODO: crossref
 // TODO: LaTeX w/ TinyTex
 
+// command line options for render
 export interface RenderOptions {
   input: string;
   flags?: RenderFlags;

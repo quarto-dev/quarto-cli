@@ -25,11 +25,12 @@ import { PandocOptions } from "./pandoc.ts";
 import { RenderOptions } from "./render.ts";
 import { tinyTexOutputRecipe, useTinyTex } from "./tinytex.ts";
 
-// render command lines imply the --output argument for pandoc and the final
+// render commands imply the --output argument for pandoc and the final
 // output file to create for the user, but we need a 'recipe' to go from
-// this spec to what we should actually pass on the command line. considerations
-// include providing the default extension, dealing with output to stdout,
-// and rendering pdfs (which require an additional step after pandoc)
+// this spec to what we should actually pass to pandoc on the command line.
+// considerations include providing the default extension, dealing with
+// output to stdout, and rendering pdfs (which can require an additional
+// step after pandoc e.g. for tinytex)
 
 export interface OutputRecipe {
   // --output file that pandoc will produce

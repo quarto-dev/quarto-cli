@@ -13,6 +13,22 @@
 *
 */
 
+// pandoc output format
+export interface Format {
+  // figure defaults
+  figure?: FormatFigure;
+  // show code/warning/error defaults
+  show?: FormatShow;
+  // keep md, tex, etc.
+  keep?: FormatKeep;
+  // output attributes (e.g. file extension)
+  output?: FormatOutput;
+  // per-format pandoc metadata
+  pandoc?: FormatPandoc;
+  // per-format pandoc metadata (also allowed at root)
+  [key: string]: unknown;
+}
+
 export interface FormatFigure {
   width?: number;
   height?: number;
@@ -38,14 +54,5 @@ export interface FormatOutput {
 export interface FormatPandoc {
   reader?: string;
   writer?: string;
-  [key: string]: unknown;
-}
-
-export interface Format {
-  figure?: FormatFigure;
-  show?: FormatShow;
-  keep?: FormatKeep;
-  output?: FormatOutput;
-  pandoc?: FormatPandoc;
   [key: string]: unknown;
 }
