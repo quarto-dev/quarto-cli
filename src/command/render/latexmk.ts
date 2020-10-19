@@ -77,13 +77,14 @@ export function latexmkOutputRecipe(
 
     // determine latexmk options
     const metadata = pandocMetadata(pandocOptions.input, pandocOptions.format);
-    const ttOptions: LatexmkOptions = {
+    const mkOptions: LatexmkOptions = {
       input: join(inputDir, output),
       engine: pdfEngine(metadata, pandocOptions.flags),
+      quiet: pandocOptions.quiet,
     };
 
     // run latexmk
-    await latexmkHandler(ttOptions);
+    await latexmkHandler(mkOptions);
 
     // keep tex if requested
     const compileTex = join(inputDir, output);
@@ -166,6 +167,11 @@ async function runLatexmk(options: LatexmkOptions): Promise<ProcessResult> {
     engineOpts.push(...pdfEngine.pdfEngineOpts);
   }
   cmd.push(...engineOpts.map((opt) => `-latexoption=${opt}`));
+
+  // quiet flag
+  if (options.quiet) {
+    cmd.push("-quiet");
+  }
 
   // input file
   cmd.push(basename(input));

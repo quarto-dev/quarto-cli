@@ -65,6 +65,11 @@ export async function runPandoc(
     args.unshift("--citeproc");
   }
 
+  // propagate quiet
+  if (options.quiet) {
+    args.push("--quiet");
+  }
+
   // add user command line args
   cmd.push(...args);
 
