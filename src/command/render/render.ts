@@ -13,7 +13,8 @@
 *
 */
 
-import { join } from "path/mod.ts";
+import { join, relative } from "path/mod.ts";
+import { expandGlob } from "fs/expand_glob.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
@@ -40,8 +41,6 @@ import { outputRecipe } from "./output.ts";
 // TODO: experiment with --compute-dir and _files (in both rmarkdown and quarto)
 
 // TODO: support for -output-directory (option and/or do it by default)
-
-// TODO: Support for multiple render targets (including globs)
 
 // TODO: support tinytex: false, crossref: false (citeproc: false)
 
@@ -198,9 +197,9 @@ function resolveParams(params?: string) {
 export const renderCommand = new Command()
   .name("render")
   .stopEarly()
-  .arguments("<input:string> [...pandoc-args:string]")
+  .arguments("<input-files:string> [...pandoc-args:string]")
   .description(
-    "Render a Quarto document.",
+    "Render input file(s) to various document types.",
   )
   .option(
     "-t, --to [to:string]",
@@ -252,20 +251,31 @@ export const renderCommand = new Command()
     "quarto render notebook.Rmd --output -",
   )
   // deno-lint-ignore no-explicit-any
-  .action(async (options: any, input: string, pandocArgs: string[]) => {
+  .action(async (options: any, inputFiles: string, pandocArgs: string[]) => {
     try {
-      // extract pandoc flags we know/care about (they will still go to pandoc)
-      const flags = parseRenderFlags(pandocArgs);
+      // pull inputs out of the beginning of flags
+      const inputs = [inputFiles];
+      const firstPandocArg = pandocArgs.findIndex((arg) => arg.startsWith("-"));
+      if (firstPandocArg !== -1) {
+        inputs.push(...pandocArgs.slice(0, firstPandocArg));
+        pandocArgs = pandocArgs.slice(firstPandocArg);
+      }
 
-      // fixup args as necessary
+      // extract pandoc flag values we know/care about, then fixup args as
+      // necessary (remove our flags that pandoc doesn't know about)
+      const flags = parseRenderFlags(pandocArgs);
       pandocArgs = fixupPandocArgs(pandocArgs, flags);
 
-      // run render
-      const result = await render({ input, flags, pandocArgs });
-
-      if (!result.success) {
-        // error diagnostics already written to stderr
-        Deno.exit(result.code);
+      // run render on input files
+      for await (const input of inputs) {
+        for await (const walk of expandGlob(input)) {
+          const input = relative(Deno.cwd(), walk.path);
+          const result = await render({ input, flags, pandocArgs });
+          if (!result.success) {
+            // error diagnostics already written to stderr
+            Deno.exit(result.code);
+          }
+        }
       }
     } catch (error) {
       if (error) {
