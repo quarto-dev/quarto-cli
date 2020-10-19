@@ -52,9 +52,8 @@ export async function runComputations(
       pandoc: pandocIncludeFiles(result.includes),
       postprocess: result.postprocess,
     };
-    // no compute engine, just copy the file
+    // no compute engine, just return the output
   } else {
-    await Deno.copyFile(options.input, options.output);
     return {
       output: options.output,
       supporting: [],

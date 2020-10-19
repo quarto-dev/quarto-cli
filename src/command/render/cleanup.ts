@@ -34,23 +34,13 @@ export function cleanup(
   // check for keep_md
   const keepMd = format.keep?.md || flags.keepAll;
 
-  // if keep.md is requested then copy markdown created by computations to output.md
-  const mdOutput = join(
-    dirname(computations.output),
-    basename(output, "." + format.output?.ext) + ".md",
-  );
-  if (keepMd) {
-    Deno.copyFileSync(computations.output, mdOutput);
-  } else {
-    // remove md output that may be left from previous renders
-    // (don't do this though if it's the same as the input!)
-    if (normalize(mdOutput) !== normalize(input)) {
-      removeIfExists(mdOutput); // from previous renders
+  // remove md file created by computations
+  if (!keepMd) {
+    // don't do this for plain markdown renders as input is the same as output
+    if (normalize(computations.output) !== normalize(input)) {
+      removeIfExists(computations.output);
     }
   }
-
-  // always remove markdown created by computations
-  Deno.removeSync(computations.output);
 
   // determine if we will be self contained
   const selfContained = flags[kSelfContained] ||

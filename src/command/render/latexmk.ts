@@ -13,7 +13,7 @@
  *
  */
 
-import { basename, dirname, join } from "path/mod.ts";
+import { basename, dirname, join, normalize } from "path/mod.ts";
 
 import { Format } from "../../api/format.ts";
 
@@ -62,19 +62,16 @@ export function latexmkOutputRecipe(
 
   // there are many characters that give tex trouble in filenames, create
   // a target stem that replaces them with the '-' character
-  const safeInputStem = inputStem.replaceAll(/[ <>()|\:&;#?*']/g, "-");
+  const texStem = inputStem.replaceAll(/[ <>()|\:&;#?*']/g, "-");
 
   // cacluate output and args for pandoc (this is an intermediate file
   // which we will then compile to a pdf and rename to .tex)
-  const output = safeInputStem + ".quarto.tex";
+  const output = texStem + ".tex";
   const args = replacePandocArg(options.pandocArgs || [], "--output", output);
 
   // when pandoc is done, we need to run latexmk and then copy the
   // ouptut to the user's requested destination
   const complete = async (pandocOptions: PandocOptions) => {
-    // compute texStem
-    const texStem = basename(output, ".tex");
-
     // determine latexmk options
     const metadata = pandocMetadata(pandocOptions.input, pandocOptions.format);
     const mkOptions: LatexmkOptions = {
@@ -88,32 +85,26 @@ export function latexmkOutputRecipe(
 
     // keep tex if requested
     const compileTex = join(inputDir, output);
-    const outputTex = join(inputDir, safeInputStem + ".tex");
-    if (options.flags?.keepAll || format.keep?.tex) {
-      Deno.renameSync(compileTex, outputTex);
-    } else {
+    if (!options.flags?.keepAll && !format.keep?.tex) {
       Deno.removeSync(compileTex);
-      removeIfExists(outputTex); // from previous renders
     }
 
     // copy (or write for stdout) compiled pdf to final output location
     const compilePdf = join(inputDir, texStem + ".pdf");
-    let finalOutput = options.flags?.output;
-    if (!finalOutput) {
-      // no output specified on command line, write alongside input
-      finalOutput = join(inputDir, safeInputStem + ".pdf");
-      Deno.renameSync(compilePdf, finalOutput);
-    } else if (finalOutput === kStdOut) {
-      // stdout specified on the command line
-      writeFileToStdout(compilePdf);
-      Deno.removeSync(compilePdf);
+    const finalOutput = options.flags?.output;
+    if (finalOutput) {
+      if (finalOutput === kStdOut) {
+        writeFileToStdout(compilePdf);
+        Deno.removeSync(compilePdf);
+      } else {
+        if (normalize(compilePdf) !== normalize(finalOutput)) {
+          Deno.renameSync(compilePdf, finalOutput);
+        }
+      }
+      return finalOutput;
     } else {
-      // some other explicit path specified on the command line
-      Deno.renameSync(compilePdf, finalOutput);
+      return compilePdf;
     }
-
-    // return path to file we ultimately created (for printing to user)
-    return finalOutput;
   };
 
   // tweak writer if it's pdf

@@ -36,14 +36,6 @@ import {
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
 
-// TODO: "Running.....DONE" for pdf generation
-
-// TODO: Propagate '--quiet'
-
-// TODO: add --citeproc to printed command line
-
-// TODO: .quarto extension is kind of unfortunately for optics
-
 // TODO: experiment with --compute-dir and _files (in both rmarkdown and quarto)
 
 // TODO: consider status of filesystem after errors
@@ -79,9 +71,6 @@ import { outputRecipe } from "./output.ts";
 // computations could even be at a URL!!!
 /*
      {{= notebook.Rmd#chunk-label =}}
-
-     computations:
-         stuff: notebook.Rmd
 */
 
 // TODO: crossref
@@ -106,7 +95,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
 
   // derive the computate engine's output file
   const [inputDir, inputStem] = dirAndStem(options.input);
-  const computationOutput = join(inputDir, inputStem + ".quarto.md");
+  const computationOutput = join(inputDir, inputStem + ".md");
 
   // resolve computation parameters
   const params = resolveParams(flags.params);
@@ -136,7 +125,6 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     flags: options.flags,
     quiet,
   };
-
   const result = await runPandoc(pandocOptions);
 
   // return if we had an error
