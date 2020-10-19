@@ -137,10 +137,11 @@ postprocess <- function(input, format, output, preserved_chunks) {
     xfun::write_utf8(output_res, output)
 }
 
-latexmk <- function(input, engine) {
+latexmk <- function(input, engine, quiet) {
 
   # use verbose mode (will show package installation messages)
-  options(tinytex.verbose = TRUE)
+  if (!isTRUE(quiet))
+    options(tinytex.verbose = TRUE)
 
   # change to input dir and make input relative
   oldwd <- setwd(dirname(rmarkdown:::abs_path(input)))
@@ -374,7 +375,7 @@ main <- function() {
   } else if (request$action == "postprocess") {
     result <- postprocess(params$input, params$format, params$output, params$data)
   } else if (request$action == "latexmk") {
-    result <- latexmk(params$input, params$engine)
+    result <- latexmk(params$input, params$engine, params$quiet)
   } else if (request$action == "run") {
     result <- run(params$input, params$port)
   }
