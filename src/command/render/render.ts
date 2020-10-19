@@ -36,16 +36,21 @@ import {
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
 
-// TODO: targeting markdown to markdown. we need to account for:
-//    - specifying the active mardkown extensions
-//    - using a .md as the output extension *unless* it's markdown to markdown
+// TODO: "Running.....DONE" for pdf generation
 
-// TODO: discover index.Rmd or ui.Rmd for quarto run
-
-// TODO: new config system
-// TODO: fill out all the pandoc formats
+// TODO: Propagate '--quiet'
 
 // TODO: add --citeproc to printed command line
+
+// TODO: .quarto extension is kind of unfortunately for optics
+
+// TODO: experiment with --compute-dir and _files (in both rmarkdown and quarto)
+
+// TODO: consider status of filesystem after errors
+
+// TODO: Support for multiple inputs (including globs): render w/o calling pandoc for multiple
+
+// TODO: support tinytex: false, crossref: false
 
 // TODO: had to do this to get biblatex working w/ latexmk
 // (may want to automate installation if no biber + auto-map TinyTeX to path)
@@ -53,7 +58,18 @@ import { outputRecipe } from "./output.ts";
 //   tlmgr install biber
 //   ln -sf /Users/jjallaire/Library/TinyTeX/bin/x86_64-darwin/biber /usr/local/bin/biber
 
-// TODO: latexmk backend for Rmd (via tinytex)
+// TODO: targeting markdown to markdown. we need to account for:
+//    - specifying the active mardkown extensions
+//    - using a .md as the output extension *unless* it's markdown to markdown
+
+// TODO: discover index.Rmd or ui.Rmd for quarto run
+
+// TODO: consider whether we want to do fig-width, fig-height, keep-md, keep-tex,
+// show-code, show-warning, output-ext compatible w/ existing pandoc args / config
+// schema, compatible w/ command line
+
+// TODO: new config system
+// TODO: fill out all the pandoc formats
 
 // TODO: memo/proposal on _quarto directory
 
