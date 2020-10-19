@@ -41,7 +41,7 @@ import { outputRecipe } from "./output.ts";
 
 // TODO: support for -output-directory (option and/or do it by default)
 
-// TODO: Support for multiple inputs (including globs): render w/o calling pandoc for multiple
+// TODO: Support for multiple render targets (including globs)
 
 // TODO: support tinytex: false, crossref: false (citeproc: false)
 
@@ -51,21 +51,46 @@ import { outputRecipe } from "./output.ts";
 
 // TODO: discover index.Rmd or ui.Rmd for quarto run
 
-// TODO: consider whether we want to do fig-width, fig-height, keep-md, keep-tex,
-// show-code, show-warning, output-ext compatible w/ existing pandoc args / config
+// TODO: make options top level
+///   fig-width,
+//    fig-height,
+//    keep-md,
+//    keep-tex,
+//    show-code,
+//    show-warning,
+//    output-ext
+// compatible w/ existing pandoc args / config
 // schema, compatible w/ command line
 
 // TODO: new config system
 // TODO: fill out all the pandoc formats
 
 // TODO: memo/proposal on _quarto directory
+//    _quarto
+//       .gitignore
+//       _quarto.yml
+//       _quarto.lock
+//       snapshot/
 
 // TODO: memo/proposal on computations:
 // will be able to use RStudio chunk output and/or notebook for compute?
 // or perhaps require html_notebook?
 // computations could even be at a URL!!!
+
 /*
-     {{= notebook.Rmd#chunk-label =}}
+    {{= notebook.ipynb#visualization =}}
+    {{< computation notebook.Rmd#chunk-label >}}
+
+    {{< figure projections.xlsx#chunk-label caption="asfdasdf" label="" >}}
+
+    {{< table projections.xlsx#fy-2019 >}}
+
+    {{< text notebook.Rmd##chunk-label >}}
+
+    {{< tweet https://twitter.com/foo/status/34453323455 >}}
+
+    {{< video https://youtube.com/foo/status/34453323455 >}}
+
 */
 
 // TODO: crossref
