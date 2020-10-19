@@ -36,19 +36,14 @@ import {
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
 
+// TODO: this yields an error: quarto render test.Rmd  --output "~/Desktop/foo bar dar.pdf"
 // TODO: experiment with --compute-dir and _files (in both rmarkdown and quarto)
 
-// TODO: consider status of filesystem after errors
+// TODO: support for -output-directory (option and/or do it by default)
 
 // TODO: Support for multiple inputs (including globs): render w/o calling pandoc for multiple
 
-// TODO: support tinytex: false, crossref: false
-
-// TODO: had to do this to get biblatex working w/ latexmk
-// (may want to automate installation if no biber + auto-map TinyTeX to path)
-//   tlmgr install biblatex
-//   tlmgr install biber
-//   ln -sf /Users/jjallaire/Library/TinyTeX/bin/x86_64-darwin/biber /usr/local/bin/biber
+// TODO: support tinytex: false, crossref: false (citeproc: false)
 
 // TODO: targeting markdown to markdown. we need to account for:
 //    - specifying the active mardkown extensions
@@ -74,6 +69,14 @@ import { outputRecipe } from "./output.ts";
 */
 
 // TODO: crossref
+
+// TODO: Port tinytex to JS; OR we need to implmeent various auto-install behaviors for latexmk, eg.
+//    had to do this to get biblatex working w/ latexmk
+//    (may want to automate installation if no biber + auto-map TinyTeX to path)
+//       tlmgr install biblatex
+//       tlmgr install biber
+//       ln -sf /Users/jjallaire/Library/TinyTeX/bin/x86_64-darwin/biber /usr/local/bin/biber
+//
 
 // command line options for render
 export interface RenderOptions {
