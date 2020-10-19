@@ -56,19 +56,22 @@ export async function runPandoc(
   await Deno.writeTextFile(yamlFile, yaml);
   cmd.push("--defaults", yamlFile);
 
+  // build command line args
+  const args = [...options.args];
+
   // add citeproc if necessary
   const citeproc = citeMethod(options) === "citeproc";
   if (citeproc) {
-    cmd.push("--citeproc");
+    args.unshift("--citeproc");
   }
 
   // add user command line args
-  cmd.push(...options.args);
+  cmd.push(...args);
 
   // print defaults file and command line args
   if (!options.quiet) {
     if (options.args.length > 0) {
-      consoleWriteLine(yaml + "args: " + options.args.join(" "));
+      consoleWriteLine(yaml + "args: " + args.join(" "));
     } else {
       consoleWriteLine(yaml);
     }
