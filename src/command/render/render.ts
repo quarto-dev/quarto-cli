@@ -42,6 +42,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   // derive format options (looks in file and at project level _quarto.yml)
   const format = await formatForInputFile(
     options.input,
+    flags.formatOptions,
     flags.to,
   );
 

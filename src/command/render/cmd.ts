@@ -30,27 +30,31 @@ export const renderCommand = new Command()
     "Render input file(s) to various document types.",
   )
   .option(
-    "-t, --to [to:string]",
+    "-t, --to",
     "Specify output format (defaults to html).",
   )
   .option(
-    "-o, --output [output:string]",
+    "-o, --output",
     "Write output to FILE (use '--output -' for stdout).",
   )
   .option(
-    "--compute-params [compute-params:string]",
-    "YAML file with parameter values (or 'ask' to prompt)",
+    "--format-options",
+    "YAML file specifying additional output format options.",
   )
   .option(
-    "--compute-dir [compute-dir:string]",
-    "Working directory for computational preprocessing (e.g. knitr, nbconvert)",
+    "--compute-params",
+    "Computation parameters (in YAML file). Specify 'ask' to prompt for values.",
   )
   .option(
-    "--quiet [quiet:boolean]",
+    "--compute-dir",
+    "Working directory for computations (e.g. knitr, nbconvert)",
+  )
+  .option(
+    "--quiet",
     "Suppress warning and other messages.",
   )
   .option(
-    "pandoc-args... [...pandoc-args:string]",
+    "pandoc-args...",
     "Additional pandoc command line arguments. " +
       "See pandoc --help for documentation on all available options.",
   )
