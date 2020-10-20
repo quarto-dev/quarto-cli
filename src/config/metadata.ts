@@ -14,13 +14,28 @@
 */
 
 import { parse } from "encoding/yaml.ts";
+import { extname } from "https://deno.land/std@0.71.0/path/mod.ts";
 
 import type { Config } from "./config.ts";
+
+const kRegExYAML =
+  /(^)(---[ \t]*\n(?![ \t]*\n)[\W\w]*?\n(?:---|\.\.\.))([ \t]*)$/gm;
 
 export type Metadata = {
   quarto?: Config;
   [key: string]: unknown;
 };
+
+export function titleBlockYAMLFromMarkdown(markdown: string): string | null {
+  kRegExYAML.lastIndex = 0;
+  const match = kRegExYAML.exec(markdown);
+  kRegExYAML.lastIndex = 0;
+  if (match) {
+    return match[2];
+  } else {
+    return null;
+  }
+}
 
 export function metadataFromMarkdown(
   markdown: string,
@@ -28,8 +43,6 @@ export function metadataFromMarkdown(
   if (markdown) {
     // capture all yaml blocks as a single yaml doc
     let yaml = "";
-    const kRegExYAML =
-      /(^)(---[ \t]*\n(?![ \t]*\n)[\W\w]*?\n(?:---|\.\.\.))([ \t]*)$/gm;
     kRegExYAML.lastIndex = 0;
     let match = kRegExYAML.exec(markdown);
     while (match != null) {
