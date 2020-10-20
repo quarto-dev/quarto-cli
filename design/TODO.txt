@@ -1,8 +1,5 @@
 
 
-keep-yaml may need to move to main loop (perhaps a complete function) since it currently doesn't work for .md input
-
-should we add a '--clean' param?
 
 
 make options top level
