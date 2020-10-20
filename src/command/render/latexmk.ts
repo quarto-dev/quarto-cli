@@ -27,7 +27,12 @@ import { LatexmkOptions } from "../../computation/engine.ts";
 
 import { pandocMetadata, PandocOptions } from "./pandoc.ts";
 import { RenderOptions } from "./render.ts";
-import { kStdOut, RenderFlags, replacePandocArg } from "./flags.ts";
+import {
+  kStdOut,
+  removePandocArgs,
+  RenderFlags,
+  replacePandocArg,
+} from "./flags.ts";
 import { OutputRecipe } from "./output.ts";
 
 export function useLatexmk(input: string, format: Format, flags?: RenderFlags) {
@@ -67,7 +72,13 @@ export function latexmkOutputRecipe(
   // cacluate output and args for pandoc (this is an intermediate file
   // which we will then compile to a pdf and rename to .tex)
   const output = texStem + ".tex";
-  const args = replacePandocArg(options.pandocArgs || [], "--output", output);
+  let args = replacePandocArg(options.pandocArgs || [], "--output", output);
+
+  // remove --to argument if it's there, since we've already folded it
+  // into the yaml, and it will be "beamer" or "pdf" so actually incorrect
+  const removeArgs = new Map<string, boolean>();
+  removeArgs.set("--to", true);
+  args = removePandocArgs(args, removeArgs);
 
   // when pandoc is done, we need to run latexmk and then copy the
   // ouptut to the user's requested destination
