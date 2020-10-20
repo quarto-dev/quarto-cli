@@ -29,7 +29,6 @@ import { pandocMetadata, PandocOptions } from "./pandoc.ts";
 import { RenderOptions } from "./render.ts";
 import { kStdOut, RenderFlags, replacePandocArg } from "./flags.ts";
 import { OutputRecipe } from "./output.ts";
-import { existsSync } from "https://deno.land/std@0.71.0/fs/exists.ts";
 
 export function useLatexmk(input: string, format: Format, flags?: RenderFlags) {
   // check writer and extension
@@ -119,6 +118,7 @@ export function latexmkOutputRecipe(
     output,
     args,
     pandoc: {
+      ...format.pandoc,
       writer,
     },
     complete,
