@@ -44,6 +44,7 @@ export interface FormatShow {
 
 export interface FormatKeep {
   md?: boolean;
+  yaml?: boolean;
   tex?: boolean;
 }
 

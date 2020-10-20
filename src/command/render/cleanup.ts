@@ -36,8 +36,14 @@ export function cleanup(
 
   // remove md file created by computations
   if (!keepMd) {
-    // don't do this for plain markdown renders as input is the same as output
-    if (normalize(computations.output) !== normalize(input)) {
+    // don't remove computational output if it's the same as either
+    // (1) the original input (which would be the case for rendering
+    // a plain markdown file); or (2) The final output (which would
+    // be the case for a markdown to markdown rendering)
+    if (
+      normalize(computations.output) !== normalize(input) &&
+      normalize(computations.output) !== normalize(output)
+    ) {
       removeIfExists(computations.output);
     }
   }

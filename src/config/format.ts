@@ -117,6 +117,17 @@ function defaultWriterFormat(writer: string) {
       writerFormat = htmlPresentationFormat(9, 5);
       break;
 
+    case "markdown":
+    case "markdown_phpextra":
+    case "markdown_github":
+    case "markdown_mmd":
+    case "markdown_strict":
+    case "commonmark":
+    case "gfm":
+    case "commonmark_x":
+      writerFormat = markdownFormat();
+      break;
+
     default:
       writerFormat = format(writer);
   }
@@ -188,6 +199,21 @@ function htmlFormat(figwidth = 7, figheight = 5) {
     },
     pandoc: {
       standalone: true,
+    },
+  });
+}
+
+function markdownFormat() {
+  return format("md", {
+    figure: {
+      width: 7,
+      height: 5,
+    },
+    pandoc: {
+      standalone: true,
+      // NOTE: this will become the default in the next
+      // version of pandoc, remove this flag after that
+      ["atx-headers"]: true,
     },
   });
 }

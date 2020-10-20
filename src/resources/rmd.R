@@ -102,10 +102,6 @@ postprocess <- function(input, format, output, preserved_chunks) {
   on.exit(setwd(oldwd), add = TRUE)
   input <- basename(input)
 
-  # if there are no preserved chunks to restore then no post-processing is necessary
-  if (length(preserved_chunks) == 0)
-    return(output)
-
   # convert preserved chunks to named character vector
   names <- names(preserved_chunks)
   preserved_chunks <- as.character(preserved_chunks)
@@ -133,6 +129,17 @@ postprocess <- function(input, format, output, preserved_chunks) {
     output_res <- knitr::restore_raw_output(output_str, preserved_chunks)
   }
 
+  # front matter if requested and we aren't using the base pandoc
+  # markdown (which will implement keep-yaml via --standalone)
+  if (isTRUE(format$keep$yaml) && !grepl("^markdown(\\+|$)", format$pandoc$writer)) {
+    input_lines <- xfun::read_utf8(input)
+    partitioned <- rmarkdown:::partition_yaml_front_matter(input_lines)
+    if (!is.null(partitioned$front_matter)) {
+      output_res <- c(partitioned$front_matter, "", output_res)
+    }
+  }
+
+  # re-write output if necessary
   if (!identical(output_str, output_res))
     xfun::write_utf8(output_res, output)
 }
