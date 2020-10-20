@@ -103,7 +103,6 @@ export interface RenderOptions {
 export async function render(options: RenderOptions): Promise<ProcessResult> {
   // alias flags
   const flags = options.flags || {};
-  const quiet = flags.quiet;
 
   // derive format options (looks in file and at project level _quarto.yml)
   const format = await formatForInputFile(
@@ -111,29 +110,30 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     flags.to,
   );
 
-  // derive the computate engine's output file
+  // derive the pandoc input file path (computations will create this)
   const [inputDir, inputStem] = dirAndStem(options.input);
-  const computationOutput = join(inputDir, inputStem + ".md");
-
-  // resolve computation parameters
-  const params = resolveParams(flags.params);
+  const mdInput = join(inputDir, inputStem + ".md");
 
   // run computations
   const computations = await runComputations({
     input: options.input,
-    output: computationOutput,
+    output: mdInput,
     format,
     cwd: flags.computeDir,
-    params,
-    quiet,
+    params: resolveParams(flags.params),
+    quiet: flags.quiet,
   });
 
   // get pandoc output recipe (target file, args, complete handler)
-  const recipe = outputRecipe(options, computationOutput, format);
+  // this is necessary b/c we may need to providing a default extension,
+  // deal with output to stdout, or even define a step that is
+  // required after pandoc to complete the conversion (e.g. running
+  // latexmk on a .tex file created by pandoc)
+  const recipe = outputRecipe(options, mdInput, format);
 
   // run pandoc conversion
   const pandocOptions = {
-    input: computationOutput,
+    input: mdInput,
     format: mergeConfigs(
       format.pandoc || {},
       computations.pandoc,
@@ -141,23 +141,22 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     ),
     args: recipe.args,
     flags: options.flags,
-    quiet,
   };
   const result = await runPandoc(pandocOptions);
 
-  // return if we had an error
+  // exit if we had an error
   if (!result.success) {
     return result;
   }
 
-  // run optional post-processor
+  // run optional post-processor (e.g. to restore html-preserve regions)
   if (computations.postprocess) {
     await postprocess({
       input: options.input,
       format,
       output: recipe.output,
       data: computations.postprocess,
-      quiet,
+      quiet: flags.quiet,
     });
   }
 
