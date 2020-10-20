@@ -13,7 +13,7 @@
 *
 */
 
-import { isAbsolute, join, relative } from "path/mod.ts";
+import { extname, isAbsolute, join, relative } from "path/mod.ts";
 
 import { Format, FormatPandoc } from "../../api/format.ts";
 
@@ -48,10 +48,10 @@ export interface OutputRecipe {
 
 export function outputRecipe(
   options: RenderOptions,
-  input: string,
+  mdInput: string,
   format: Format,
 ): OutputRecipe {
-  if (useLatexmk(input, format, options.flags)) {
+  if (useLatexmk(mdInput, format, options.flags)) {
     const engine = computationEngineForFile(options.input);
     return latexmkOutputRecipe(options, format, engine?.latexmk);
   } else {
@@ -71,7 +71,13 @@ export function outputRecipe(
 
     if (!recipe.output) {
       // no output on the command line: derive an output path from the extension
-      recipe.output = join(inputStem + "." + ext);
+
+      // special case for .md to .md, need to use the writer to create a unique extension
+      let outputExt = ext;
+      if (extname(options.input) === ".md" && ext === "md") {
+        outputExt = `${format.pandoc?.writer}.md`;
+      }
+      recipe.output = join(inputStem + "." + outputExt);
       recipe.args.unshift("--output", recipe.output);
     } else if (recipe.output === kStdOut) {
       // output to stdout: direct pandoc to write to a temp file then we'll
