@@ -43,7 +43,7 @@ execute <- function(input, format, output, cwd, params) {
     knitr = knitr_options(format),
     pandoc = pandoc_options(format),
     keep_md = FALSE,
-    clean_supporting = FALSE
+    clean_supporting = TRUE
   )
 
   # run knitr but not pandoc and capture the results
@@ -57,6 +57,7 @@ execute <- function(input, format, output, cwd, params) {
   )
   knit_meta <-  attr(render_output, "knit_meta")
   files_dir <- attr(render_output, "files_dir")
+  intermediates_dir <- attr(render_output, "intermediates_dir")
 
   # preserve chunks as necessary
   output_file <- file.path(dirname(input), render_output)
@@ -81,8 +82,8 @@ execute <- function(input, format, output, cwd, params) {
   includes <- apply_patches(format, dependencies$includes)
 
   # include supportring files
-  supporting <- if (file_test("-d", files_dir))
-    rmarkdown:::abs_path(files_dir)
+  supporting <- if (file_test("-d", intermediates_dir))
+    rmarkdown:::abs_path(intermediates_dir)
   else
     character()
 
