@@ -19,9 +19,11 @@ import { computationEngineForFile } from "../computation/engine.ts";
 import { Config, projectConfig, resolveConfig } from "./config.ts";
 import { metadataFromFile } from "./metadata.ts";
 import { mergeConfigs } from "./config.ts";
+import { readYAML } from "../core/yaml.ts";
 
 export async function formatForInputFile(
   input: string,
+  formatOptions?: string,
   to?: string,
 ): Promise<Format> {
   // look for a 'project' _quarto.yml
@@ -29,9 +31,15 @@ export async function formatForInputFile(
 
   // get metadata from computational preprocessor (or from the raw .md)
   const engine = computationEngineForFile(input);
-  const fileMetadata = engine
+  let fileMetadata = engine
     ? await engine.metadata(input)
     : metadataFromFile(input);
+
+  // merge in any options provided via file
+  if (formatOptions) {
+    const format = readYAML(formatOptions) as Config;
+    fileMetadata = mergeConfigs(fileMetadata, { quarto: format });
+  }
 
   // get the file config
   const fileConfig = resolveConfig(fileMetadata.quarto || {});
