@@ -14,3 +14,4 @@
 */
 
 export const kSelfContained = "self-contained";
+export const kMdExtensions = "md-extensions";

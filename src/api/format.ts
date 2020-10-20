@@ -12,6 +12,7 @@
 * GPL (http://www.gnu.org/licenses/gpl-3.0.txt) for more details.
 *
 */
+import { kMdExtensions } from "../config/constants.ts";
 
 // pandoc output format
 export interface Format {
@@ -55,5 +56,6 @@ export interface FormatOutput {
 export interface FormatPandoc {
   reader?: string;
   writer?: string;
+  [kMdExtensions]?: string;
   [key: string]: unknown;
 }

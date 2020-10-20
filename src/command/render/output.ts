@@ -25,6 +25,7 @@ import { PandocOptions } from "./pandoc.ts";
 import { RenderOptions } from "./render.ts";
 import { latexmkOutputRecipe, useLatexmk } from "./latexmk.ts";
 import { computationEngineForFile } from "../../computation/engine.ts";
+import { kMdExtensions } from "../../config/constants.ts";
 
 // render commands imply the --output argument for pandoc and the final
 // output file to create for the user, but we need a 'recipe' to go from
@@ -59,7 +60,7 @@ export function outputRecipe(
     const recipe = {
       output: options.flags?.output!,
       args: options.pandocArgs || [],
-      pandoc: {},
+      pandoc: format.pandoc || {},
       complete: async (): Promise<string | undefined> => {
         return;
       },
@@ -68,6 +69,15 @@ export function outputRecipe(
     // some path attributes
     const ext = format.output?.ext || "html";
     const [inputDir, inputStem] = dirAndStem(options.input);
+
+    // tweak pandoc writer if we have extensions declared
+    if (format.pandoc?.[kMdExtensions]) {
+      recipe.pandoc = {
+        ...recipe.pandoc,
+        writer: `${format.pandoc?.writer}${format.pandoc?.[kMdExtensions]}`,
+      };
+      delete recipe.pandoc?.[kMdExtensions];
+    }
 
     if (!recipe.output) {
       // no output on the command line: derive an output path from the extension

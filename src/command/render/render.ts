@@ -59,17 +59,16 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     quiet: flags.quiet,
   });
 
+  // merge any pandoc options provided the computation
+  format.pandoc = mergeConfigs(format.pandoc || {}, computations.pandoc);
+
   // pandoc output recipe (target file, args, complete handler)
   const recipe = outputRecipe(options, mdInput, format);
 
   // pandoc options
   const pandocOptions = {
     input: mdInput,
-    format: mergeConfigs(
-      format.pandoc || {},
-      computations.pandoc,
-      recipe.pandoc,
-    ),
+    format: recipe.pandoc,
     args: recipe.args,
     flags: options.flags,
   };
