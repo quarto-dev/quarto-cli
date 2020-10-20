@@ -34,11 +34,12 @@ import {
   replacePandocArg,
 } from "./flags.ts";
 import { OutputRecipe } from "./output.ts";
+import { kKeepTex, kOutputExt } from "../../config/constants.ts";
 
 export function useLatexmk(input: string, format: Format, flags?: RenderFlags) {
   // check writer and extension
   const to = format.pandoc?.to;
-  const ext = format.output?.ext || "html";
+  const ext = format?.[kOutputExt] || "html";
 
   // if we are creating pdf output
   if (["beamer", "pdf"].includes(to || "") && ext === "pdf") {
@@ -97,7 +98,7 @@ export function latexmkOutputRecipe(
 
     // keep tex if requested
     const compileTex = join(inputDir, output);
-    if (!format.keep?.tex) {
+    if (!format?.[kKeepTex]) {
       Deno.removeSync(compileTex);
     }
 

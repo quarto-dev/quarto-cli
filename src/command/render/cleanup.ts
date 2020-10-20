@@ -19,7 +19,7 @@ import type { Format } from "../../api/format.ts";
 
 import { removeIfExists } from "../../core/path.ts";
 
-import { kSelfContained } from "../../config/constants.ts";
+import { kKeepMd, kKeepTex, kSelfContained } from "../../config/constants.ts";
 
 import type { ComputationsResult } from "./computation.ts";
 import type { RenderFlags } from "./flags.ts";
@@ -32,7 +32,7 @@ export function cleanup(
   output: string,
 ) {
   // remove md file created by computations
-  if (!format.keep?.md) {
+  if (!format?.[kKeepMd]) {
     // don't remove computational output if it's the same as either
     // (1) the original input (which would be the case for rendering
     // a plain markdown file); or (2) The final output (which would
@@ -52,7 +52,7 @@ export function cleanup(
 
   // if we aren't keeping the markdown and we are self-contained, then
   // delete the supporting files
-  if (!format.keep?.md && !format.keep?.tex && selfContained) {
+  if (!format?.[kKeepMd] && !format?.[kKeepTex] && selfContained) {
     if (computations.supporting) {
       computations.supporting.forEach((path) => {
         Deno.removeSync(path, { recursive: true });
