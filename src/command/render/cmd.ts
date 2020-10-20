@@ -18,7 +18,7 @@ import { expandGlob } from "fs/expand_glob.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { consoleWriteLine } from "../../core/console.ts";
+import { message } from "../../core/console.ts";
 
 import { fixupPandocArgs, parseRenderFlags } from "./flags.ts";
 

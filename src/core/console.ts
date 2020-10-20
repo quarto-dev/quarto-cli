@@ -13,7 +13,7 @@
 *
 */
 
-export function consoleWriteLine(line: string) {
+export function message(line: string) {
   Deno.stderr.writeSync(new TextEncoder().encode(line + "\n"));
 }
 export function writeFileToStdout(file: string) {
