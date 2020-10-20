@@ -29,7 +29,6 @@ import { kStdOut, RenderFlags } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
 
-// TODO: this yields an error: quarto render test.Rmd  --output "~/Desktop/foo bar dar.pdf"
 // TODO: experiment with --compute-dir and _files (in both rmarkdown and quarto)
 
 // TODO: support for -output-directory (option and/or do it by default)

@@ -18,7 +18,7 @@ import { basename, dirname, join, normalize } from "path/mod.ts";
 import { Format } from "../../api/format.ts";
 
 import { writeFileToStdout } from "../../core/console.ts";
-import { dirAndStem, removeIfExists } from "../../core/path.ts";
+import { dirAndStem, expandPath } from "../../core/path.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 
 import { pdfEngine } from "../../config/pdf.ts";
@@ -29,6 +29,7 @@ import { pandocMetadata, PandocOptions } from "./pandoc.ts";
 import { RenderOptions } from "./render.ts";
 import { kStdOut, RenderFlags, replacePandocArg } from "./flags.ts";
 import { OutputRecipe } from "./output.ts";
+import { existsSync } from "https://deno.land/std@0.71.0/fs/exists.ts";
 
 export function useLatexmk(input: string, format: Format, flags?: RenderFlags) {
   // check writer and extension
@@ -97,8 +98,9 @@ export function latexmkOutputRecipe(
         writeFileToStdout(compilePdf);
         Deno.removeSync(compilePdf);
       } else {
-        if (normalize(compilePdf) !== normalize(finalOutput)) {
-          Deno.renameSync(compilePdf, finalOutput);
+        const outputPdf = expandPath(finalOutput);
+        if (normalize(compilePdf) !== normalize(outputPdf)) {
+          Deno.renameSync(compilePdf, outputPdf);
         }
       }
       return finalOutput;

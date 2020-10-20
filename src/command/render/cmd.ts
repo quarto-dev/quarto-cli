@@ -82,35 +82,28 @@ export const renderCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, inputFiles: string, pandocArgs: string[]) => {
-    try {
-      // pull inputs out of the beginning of flags
-      const inputs = [inputFiles];
-      const firstPandocArg = pandocArgs.findIndex((arg) => arg.startsWith("-"));
-      if (firstPandocArg !== -1) {
-        inputs.push(...pandocArgs.slice(0, firstPandocArg));
-        pandocArgs = pandocArgs.slice(firstPandocArg);
-      }
+    // pull inputs out of the beginning of flags
+    const inputs = [inputFiles];
+    const firstPandocArg = pandocArgs.findIndex((arg) => arg.startsWith("-"));
+    if (firstPandocArg !== -1) {
+      inputs.push(...pandocArgs.slice(0, firstPandocArg));
+      pandocArgs = pandocArgs.slice(firstPandocArg);
+    }
 
-      // extract pandoc flag values we know/care about, then fixup args as
-      // necessary (remove our flags that pandoc doesn't know about)
-      const flags = parseRenderFlags(pandocArgs);
-      pandocArgs = fixupPandocArgs(pandocArgs, flags);
+    // extract pandoc flag values we know/care about, then fixup args as
+    // necessary (remove our flags that pandoc doesn't know about)
+    const flags = parseRenderFlags(pandocArgs);
+    pandocArgs = fixupPandocArgs(pandocArgs, flags);
 
-      // run render on input files
-      for await (const input of inputs) {
-        for await (const walk of expandGlob(input)) {
-          const input = relative(Deno.cwd(), walk.path);
-          const result = await render({ input, flags, pandocArgs });
-          if (!result.success) {
-            // error diagnostics already written to stderr
-            Deno.exit(result.code);
-          }
+    // run render on input files
+    for await (const input of inputs) {
+      for await (const walk of expandGlob(input)) {
+        const input = relative(Deno.cwd(), walk.path);
+        const result = await render({ input, flags, pandocArgs });
+        if (!result.success) {
+          // error diagnostics already written to stderr
+          Deno.exit(result.code);
         }
       }
-    } catch (error) {
-      if (error) {
-        consoleWriteLine(error.toString());
-      }
-      Deno.exit(1);
     }
   });

@@ -18,7 +18,7 @@ import { isAbsolute, join, relative } from "path/mod.ts";
 import { Format, FormatPandoc } from "../../api/format.ts";
 
 import { writeFileToStdout } from "../../core/console.ts";
-import { dirAndStem } from "../../core/path.ts";
+import { dirAndStem, expandPath } from "../../core/path.ts";
 
 import { kStdOut, replacePandocArg } from "./flags.ts";
 import { PandocOptions } from "./pandoc.ts";
@@ -87,6 +87,10 @@ export function outputRecipe(
       // relatve output file on the command line: make it relative to the input dir
       // for pandoc (which will run in the input dir)
       recipe.output = relative(inputDir, recipe.output);
+      recipe.args = replacePandocArg(recipe.args, "--output", recipe.output);
+    } else {
+      // absolute path may need ~ substitution
+      recipe.output = expandPath(recipe.output);
       recipe.args = replacePandocArg(recipe.args, "--output", recipe.output);
     }
 
