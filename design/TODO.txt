@@ -1,15 +1,11 @@
 
-experiment with --compute-dir and _files (in both rmarkdown and quarto)
-
-support for -output-directory (option and/or do it by default)
-
-support tinytex: false, crossref: false (citeproc: false)
 
 targeting markdown to markdown. we need to account for:
    - specifying the active mardkown extensions
    - using a .md as the output extension *unless* it's markdown to markdown
 
-discover index.Rmd or ui.Rmd for quarto run
+discover index.Rmd or ui.Rmd for quarto run. may need an
+engine specific method to discover run target in dir
 
 make options top level
   fig-width,
@@ -51,7 +47,7 @@ omputations could even be at a URL!!!
   {{< video https://youtube.com/foo/status/34453323455 >}}
 
 
-crossref
+crossref (also implement crossref: false)
 
 Port tinytex to JS; OR we need to implmeent various auto-install behaviors for latexmk, eg.
   had to do this to get biblatex working w/ latexmk
@@ -59,4 +55,4 @@ Port tinytex to JS; OR we need to implmeent various auto-install behaviors for l
     tlmgr install biblatex
     tlmgr install biber
     ln -sf /Users/jjallaire/Library/TinyTeX/bin/x86_64-darwin/biber /usr/local/bin/biber
-
+Note need to implement tinytex: false and tinytex options (e.g. min-runs, clean, output-dir, etc.)
