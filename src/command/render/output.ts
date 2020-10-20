@@ -25,7 +25,12 @@ import { PandocOptions } from "./pandoc.ts";
 import { RenderOptions } from "./render.ts";
 import { latexmkOutputRecipe, useLatexmk } from "./latexmk.ts";
 import { computationEngineForFile } from "../../computation/engine.ts";
-import { kMdExtensions, kStandalone } from "../../config/constants.ts";
+import {
+  kKeepYaml,
+  kMdExtensions,
+  kOutputExt,
+  kStandalone,
+} from "../../config/constants.ts";
 import { titleBlockYAMLFromMarkdown } from "../../config/metadata.ts";
 
 // render commands imply the --output argument for pandoc and the final
@@ -69,7 +74,7 @@ export function outputRecipe(
     };
 
     // alias some path attributes
-    const ext = format.output?.ext || "html";
+    const ext = format?.[kOutputExt] || "html";
     const [inputDir, inputStem] = dirAndStem(options.input);
 
     // tweak pandoc writer if we have extensions declared
@@ -82,7 +87,9 @@ export function outputRecipe(
     }
 
     // complete hook for keep-yaml (to: markdown already implements keep-yaml by default)
-    if (format.keep?.yaml && !/^markdown(\+|$)/.test(format.pandoc?.to || "")) {
+    if (
+      format?.[kKeepYaml] && !/^markdown(\+|$)/.test(format.pandoc?.to || "")
+    ) {
       completeActions.push(() => {
         // read yaml and output markdown
         const yamlMd = titleBlockYAMLFromMarkdown(

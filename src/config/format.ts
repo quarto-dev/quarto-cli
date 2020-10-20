@@ -20,6 +20,19 @@ import { Config, projectConfig, resolveConfig } from "./config.ts";
 import { metadataFromFile } from "./metadata.ts";
 import { mergeConfigs } from "./config.ts";
 import { readYAML } from "../core/yaml.ts";
+import {
+  kFigDpi,
+  kFigFormat,
+  kFigHeight,
+  kFigWidth,
+  kKeepMd,
+  kKeepTex,
+  kKeepYaml,
+  kOutputExt,
+  kShowCode,
+  kShowError,
+  kShowWarning,
+} from "./constants.ts";
 
 export async function formatForInputFile(
   input: string,
@@ -65,9 +78,8 @@ export async function formatForInputFile(
 
   // force keep_md and keep_tex if we are in debug mode
   if (debug) {
-    format.keep = format.keep || {};
-    format.keep.md = true;
-    format.keep.tex = true;
+    format[kKeepMd] = true;
+    format[kKeepTex] = true;
   }
 
   return format;
@@ -89,10 +101,22 @@ function formatFromConfig(
   format.pandoc = format.pandoc || {};
   Object.keys(format).forEach((key) => {
     if (
-      !["figure", "show", "keep", "output", "pandoc", "extensions", "engine"]
-        .includes(
-          key,
-        )
+      ![
+        kFigWidth,
+        kFigHeight,
+        kFigFormat,
+        kFigDpi,
+        kShowCode,
+        kShowWarning,
+        kShowError,
+        kKeepMd,
+        kKeepYaml,
+        kKeepTex,
+        kOutputExt,
+        "pandoc",
+      ].includes(
+        key,
+      )
     ) {
       format.pandoc = format.pandoc || {};
       format.pandoc[key] = format[key];
@@ -162,11 +186,9 @@ function pdfFormat() {
   return format(
     "pdf",
     {
-      figure: {
-        width: 6.5,
-        height: 4.5,
-        format: "pdf",
-      },
+      [kFigWidth]: 6.5,
+      [kFigHeight]: 4.5,
+      [kFigFormat]: "pdf",
       pandoc: {
         standalone: true,
         variables: {
@@ -182,10 +204,8 @@ function beamerFormat() {
     "pdf",
     pdfFormat(),
     {
-      figure: {
-        width: 10,
-        height: 7,
-      },
+      [kFigWidth]: 10,
+      [kFigHeight]: 7,
     },
   );
 }
@@ -201,20 +221,16 @@ function htmlPresentationFormat(figwidth: number, figheight: number) {
   return mergeConfigs(
     htmlFormat(figwidth, figheight),
     {
-      show: {
-        code: false,
-        warning: false,
-      },
+      [kShowCode]: false,
+      [kShowWarning]: false,
     },
   );
 }
 
 function htmlFormat(figwidth = 7, figheight = 5) {
   return format("html", {
-    figure: {
-      width: figwidth,
-      height: figheight,
-    },
+    [kFigWidth]: figwidth,
+    [kFigHeight]: figheight,
     pandoc: {
       standalone: true,
     },
@@ -223,10 +239,8 @@ function htmlFormat(figwidth = 7, figheight = 5) {
 
 function markdownFormat() {
   return format("md", {
-    figure: {
-      width: 7,
-      height: 5,
-    },
+    [kFigWidth]: 7,
+    [kFigHeight]: 5,
     pandoc: {
       standalone: true,
       // NOTE: this will become the default in the next
@@ -238,36 +252,26 @@ function markdownFormat() {
 
 function format(ext: string, ...formats: Format[]) {
   return mergeConfigs(
-    defaultForamt(),
+    defaultFormat(),
     ...formats,
     {
-      output: {
-        ext,
-      },
+      [kOutputExt]: ext,
     },
   );
 }
 
-function defaultForamt(): Format {
+function defaultFormat(): Format {
   return {
-    figure: {
-      width: 7,
-      height: 5,
-      format: "png",
-      dpi: 96,
-    },
-    show: {
-      code: true,
-      warning: true,
-      error: false,
-    },
-    keep: {
-      md: false,
-      tex: false,
-    },
-    output: {
-      ext: "html",
-    },
+    [kFigWidth]: 7,
+    [kFigHeight]: 5,
+    [kFigFormat]: "png",
+    [kFigDpi]: 96,
+    [kShowCode]: true,
+    [kShowWarning]: true,
+    [kShowError]: false,
+    [kKeepMd]: false,
+    [kKeepTex]: false,
+    [kOutputExt]: "html",
     pandoc: {
       from: "markdown",
     },

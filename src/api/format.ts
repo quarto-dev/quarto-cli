@@ -12,20 +12,37 @@
 * GPL (http://www.gnu.org/licenses/gpl-3.0.txt) for more details.
 *
 */
-import { kMdExtensions } from "../config/constants.ts";
+import {
+  kFigDpi,
+  kFigFormat,
+  kFigHeight,
+  kFigWidth,
+  kKeepTex,
+  kKeepYaml,
+  kMdExtensions,
+  kOutputExt,
+  kShowCode,
+  kShowError,
+  kShowWarning,
+} from "../config/constants.ts";
 
 // pandoc output format
 export interface Format {
-  // figure defaults
-  figure?: FormatFigure;
-  // show code/warning/error defaults
-  show?: FormatShow;
-  // keep md, tex, etc.
-  keep?: FormatKeep;
-  // output attributes (e.g. file extension)
-  output?: FormatOutput;
-  // per-format pandoc metadata
+  [kFigWidth]?: number;
+  [kFigHeight]?: number;
+  [kFigFormat]?: "png" | "pdf";
+  [kFigDpi]?: number;
+  [kShowCode]?: boolean;
+  [kShowWarning]?: boolean;
+  [kShowError]?: boolean;
+  [kKeepTex]?: boolean;
+  [kKeepYaml]?: boolean;
+  [kKeepTex]?: boolean;
+  [kOutputExt]?: string;
+
+  // pandoc
   pandoc?: FormatPandoc;
+
   // per-format pandoc metadata (also allowed at root)
   [key: string]: unknown;
 }

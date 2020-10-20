@@ -16,3 +16,15 @@
 export const kSelfContained = "self-contained";
 export const kStandalone = "standalone";
 export const kMdExtensions = "md-extensions";
+
+export const kFigWidth = "fig-width";
+export const kFigHeight = "fig-height";
+export const kFigFormat = "fig-format";
+export const kFigDpi = "fig-dpi";
+export const kShowCode = "show-code";
+export const kShowWarning = "show-warning";
+export const kShowError = "show-error";
+export const kKeepMd = "keep-md";
+export const kKeepYaml = "keep-yaml";
+export const kKeepTex = "keep-tex";
+export const kOutputExt = "output-ext";
