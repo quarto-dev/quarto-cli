@@ -14,7 +14,7 @@
 */
 
 import { relative } from "path/mod.ts";
-import { expandGlob } from "fs/expand_glob.ts";
+import { expandGlobSync } from "fs/expand_glob.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
@@ -90,8 +90,8 @@ export const renderCommand = new Command()
     pandocArgs = fixupPandocArgs(pandocArgs, flags);
 
     // run render on input files
-    for await (const input of inputs) {
-      for await (const walk of expandGlob(input)) {
+    for (const input of inputs) {
+      for (const walk of expandGlobSync(input)) {
         const input = relative(Deno.cwd(), walk.path);
         const result = await render({ input, flags, pandocArgs });
         if (!result.success) {
