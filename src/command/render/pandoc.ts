@@ -19,7 +19,7 @@ import { stringify } from "encoding/yaml.ts";
 import type { FormatPandoc } from "../../api/format.ts";
 
 import { execProcess, ProcessResult } from "../../core/process.ts";
-import { consoleWriteLine } from "../../core/console.ts";
+import { message } from "../../core/console.ts";
 
 import { Metadata, metadataFromFile } from "../../config/metadata.ts";
 import { PdfEngine, pdfEngine } from "../../config/pdf.ts";
@@ -74,11 +74,11 @@ export async function runPandoc(
   // print defaults file and command line args
   if (!options.flags?.quiet) {
     if (options.args.length > 0) {
-      consoleWriteLine(yaml + "args: " + args.join(" "));
+      message(yaml + "args: " + args.join(" "));
     } else {
-      consoleWriteLine(yaml);
+      message(yaml);
     }
-    consoleWriteLine("---\n");
+    message("---\n");
   }
 
   // run pandoc

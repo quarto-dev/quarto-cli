@@ -15,7 +15,7 @@
 
 import { join } from "path/mod.ts";
 
-import { consoleWriteLine } from "../../core/console.ts";
+import { message } from "../../core/console.ts";
 import { ProcessResult } from "../../core/process.ts";
 import { readYAML } from "../../core/yaml.ts";
 import { dirAndStem } from "../../core/path.ts";
@@ -104,7 +104,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
 
   // report output created
   if (!flags.quiet && flags.output !== kStdOut) {
-    consoleWriteLine("\nOutput created: " + finalOutput + "\n");
+    message("\nOutput created: " + finalOutput + "\n");
   }
 
   // return result
