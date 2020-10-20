@@ -25,6 +25,7 @@ export async function formatForInputFile(
   input: string,
   formatOptions?: string,
   to?: string,
+  debug?: boolean,
 ): Promise<Format> {
   // look for a 'project' _quarto.yml
   const projConfig: Config = await projectConfig(input);
@@ -60,7 +61,16 @@ export async function formatForInputFile(
   const config = mergeConfigs(projConfig, fileConfig);
 
   // get the format
-  return formatFromConfig(writer, config);
+  const format = formatFromConfig(writer, config);
+
+  // force keep_md and keep_tex if we are in debug mode
+  if (debug) {
+    format.keep = format.keep || {};
+    format.keep.md = true;
+    format.keep.tex = true;
+  }
+
+  return format;
 }
 
 function formatFromConfig(

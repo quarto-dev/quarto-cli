@@ -31,7 +31,8 @@ export const renderCommand = new Command()
   )
   .option(
     "-t, --to",
-    "Specify output format (defaults to html).",
+    "Specify output format.",
+    { default: "html" },
   )
   .option(
     "-o, --output",
@@ -47,16 +48,21 @@ export const renderCommand = new Command()
   )
   .option(
     "--compute-dir",
-    "Working directory for computations (e.g. knitr, nbconvert)",
+    "Working directory for computations (e.g. knitr, nbconvert).",
+  )
+  .option(
+    "--debug",
+    "Leave intermediate files in place after render.",
+    { default: false },
   )
   .option(
     "--quiet",
     "Suppress warning and other messages.",
+    { default: false },
   )
   .option(
     "pandoc-args...",
-    "Additional pandoc command line arguments. " +
-      "See pandoc --help for documentation on all available options.",
+    "Additional pandoc command line arguments.",
   )
   .example(
     "Render R Markdown",
