@@ -21,6 +21,7 @@ import { Command } from "cliffy/command/mod.ts";
 import { fixupPandocArgs, parseRenderFlags } from "./flags.ts";
 
 import { render } from "./render.ts";
+import { existsSync } from "https://deno.land/std@0.69.0/fs/exists.ts";
 
 export const renderCommand = new Command()
   .name("render")
@@ -96,14 +97,19 @@ export const renderCommand = new Command()
     pandocArgs = fixupPandocArgs(pandocArgs, flags);
 
     // run render on input files
+    let rendered = false;
     for (const input of inputs) {
       for (const walk of expandGlobSync(input)) {
         const input = relative(Deno.cwd(), walk.path);
+        rendered = true;
         const result = await render({ input, flags, pandocArgs });
         if (!result.success) {
           // error diagnostics already written to stderr
           Deno.exit(result.code);
         }
       }
+    }
+    if (!rendered) {
+      throw new Error(`No valid input files passed to render`);
     }
   });
