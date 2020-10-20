@@ -110,7 +110,7 @@ postprocess <- function(input, format, output, preserved_chunks) {
   # read the output file
   output_str <- xfun::read_utf8(output)
 
-  if (knitr::is_html_output(format$pandoc$writer)) {
+  if (knitr::is_html_output(format$pandoc$to)) {
     # Pandoc adds an empty <p></p> around the IDs of preserved chunks, and we
     # need to remove these empty tags, otherwise we may have invalid HTML like
     # <p><div>...</div></p>. For the reason of the second gsub(), see
@@ -131,7 +131,7 @@ postprocess <- function(input, format, output, preserved_chunks) {
 
   # front matter if requested and we aren't using the base pandoc
   # markdown (which will implement keep-yaml via --standalone)
-  if (isTRUE(format$keep$yaml) && !grepl("^markdown(\\+|$)", format$pandoc$writer)) {
+  if (isTRUE(format$keep$yaml) && !grepl("^markdown(\\+|$)", format$pandoc$to)) {
     input_lines <- xfun::read_utf8(input)
     partitioned <- rmarkdown:::partition_yaml_front_matter(input_lines)
     if (!is.null(partitioned$front_matter)) {
@@ -186,9 +186,9 @@ pandoc_options <- function(format) {
   # work around an issue w/ rmarkdown where at least 1 argument
   # must be passed or there is a runtime error
   rmarkdown::pandoc_options(
-    to = format$pandoc$writer,
-    from = format$pandoc$reader,
-    args = c("--to", format$pandoc$writer),
+    to = format$pandoc$to,
+    from = format$pandoc$from,
+    args = c("--to", format$pandoc$to),
     keep_tex = isTRUE(format$keep$tex)
   )
 }
@@ -200,12 +200,12 @@ knitr_options <- function(format) {
   knit_hooks <- list()
 
   # opt_knit for compatibility w/ rmarkdown::render
-  to <- format$pandoc$writer
+  to <- format$pandoc$to
   if (identical(to, "pdf"))
     to <- "latex"
   opts_knit <- list(
     quarto.version = 1,
-    rmarkdown.pandoc.from = format$pandoc$reader,
+    rmarkdown.pandoc.from = format$pandoc$from,
     rmarkdown.pandoc.to = to,
     rmarkdown.version = 3,
     rmarkdown.runtime = "static"
@@ -228,7 +228,7 @@ knitr_options <- function(format) {
 
   # add fig.retina if it's an html based format (if we add this for PDF
   # it forces the use of \includegraphics)
-  if (knitr:::is_html_output(format$pandoc$writer)) {
+  if (knitr:::is_html_output(format$pandoc$to)) {
     opts_chunk$fig.retina = 2
   }
 
@@ -298,7 +298,7 @@ dependencies_from_render <-function(input, files_dir, knit_meta) {
 
 # apply patches to output as required
 apply_patches <- function(format, includes) {
-  if (format$pandoc$writer %in% c("slidy", "revealjs"))
+  if (format$pandoc$to %in% c("slidy", "revealjs"))
     includes <- apply_slides_patch(includes)
   includes
 }
@@ -354,7 +354,7 @@ apply_slides_patch <- function(includes) {
 
 # preserve chunks marked w/ e.g. html_preserve
 extract_preserve_chunks <- function(output_file, format) {
-  if (knitr::is_html_output(format$pandoc$writer)) {
+  if (knitr::is_html_output(format$pandoc$to)) {
     extract <- htmltools::extractPreserveChunks
   } else {
     extract <- knitr::extract_raw_output

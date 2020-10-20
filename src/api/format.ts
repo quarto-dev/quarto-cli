@@ -54,8 +54,8 @@ export interface FormatOutput {
 }
 
 export interface FormatPandoc {
-  reader?: string;
-  writer?: string;
+  from?: string;
+  to?: string;
   [kMdExtensions]?: string;
   [key: string]: unknown;
 }

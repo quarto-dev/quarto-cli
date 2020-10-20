@@ -74,7 +74,7 @@ export function outputRecipe(
     if (format.pandoc?.[kMdExtensions]) {
       recipe.pandoc = {
         ...recipe.pandoc,
-        writer: `${format.pandoc?.writer}${format.pandoc?.[kMdExtensions]}`,
+        to: `${format.pandoc?.to}${format.pandoc?.[kMdExtensions]}`,
       };
       delete recipe.pandoc?.[kMdExtensions];
     }
@@ -85,7 +85,7 @@ export function outputRecipe(
       // special case for .md to .md, need to use the writer to create a unique extension
       let outputExt = ext;
       if (extname(options.input) === ".md" && ext === "md") {
-        outputExt = `${format.pandoc?.writer}.md`;
+        outputExt = `${format.pandoc?.to}.md`;
       }
       recipe.output = join(inputStem + "." + outputExt);
       recipe.args.unshift("--output", recipe.output);
