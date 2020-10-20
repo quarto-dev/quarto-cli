@@ -1,18 +1,5 @@
 
 
-
-
-make options top level
-  fig-width,
-  fig-height,
-  keep-md,
-  keep-tex,
-  show-code,
-  show-warning,
-  output-ext
-  compatible w/ existing pandoc args / config
-  schema, compatible w/ command line
-
 new config system
 fill out all the pandoc formats
 
