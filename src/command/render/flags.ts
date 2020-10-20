@@ -15,6 +15,7 @@
 
 import { kSelfContained } from "../../config/constants.ts";
 import { PandocFlags } from "../../config/flags.ts";
+import { readYAML } from "../../core/yaml.ts";
 
 export const kStdOut = "-";
 
@@ -156,4 +157,13 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
     }
     return args;
   }, new Array<string>());
+}
+
+// resolve parameters (if any)
+export function resolveParams(params?: string) {
+  if (!params || params === "ask") {
+    return params;
+  } else {
+    return readYAML(params) as { [key: string]: unknown };
+  }
 }

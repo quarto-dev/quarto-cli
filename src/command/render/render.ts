@@ -17,7 +17,6 @@ import { join } from "path/mod.ts";
 
 import { message } from "../../core/console.ts";
 import { ProcessResult } from "../../core/process.ts";
-import { readYAML } from "../../core/yaml.ts";
 import { dirAndStem } from "../../core/path.ts";
 
 import { mergeConfigs } from "../../config/config.ts";
@@ -25,7 +24,7 @@ import { formatForInputFile } from "../../config/format.ts";
 
 import { postProcess as postprocess, runComputations } from "./computation.ts";
 import { runPandoc } from "./pandoc.ts";
-import { kStdOut, RenderFlags } from "./flags.ts";
+import { kStdOut, RenderFlags, resolveParams } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
 
@@ -60,14 +59,10 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     quiet: flags.quiet,
   });
 
-  // get pandoc output recipe (target file, args, complete handler)
-  // this is necessary b/c we may need to providing a default extension,
-  // deal with output to stdout, or even define a step that is
-  // required after pandoc to complete the conversion (e.g. running
-  // latexmk on a .tex file created by pandoc)
+  // pandoc output recipe (target file, args, complete handler)
   const recipe = outputRecipe(options, mdInput, format);
 
-  // run pandoc conversion
+  // pandoc options
   const pandocOptions = {
     input: mdInput,
     format: mergeConfigs(
@@ -78,9 +73,9 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     args: recipe.args,
     flags: options.flags,
   };
-  const result = await runPandoc(pandocOptions);
 
-  // exit if we had an error
+  // run pandoc conversion (exit on failure)
+  const result = await runPandoc(pandocOptions);
   if (!result.success) {
     return result;
   }
@@ -99,7 +94,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   // call complete handler (might e.g. run latexmk to complete the render)
   const finalOutput = await recipe.complete(pandocOptions) || recipe.output;
 
-  // cleanup as necessary
+  // cleanup as required
   cleanup(options.input, flags, format, computations, finalOutput);
 
   // report output created
@@ -109,13 +104,4 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
 
   // return result
   return result;
-}
-
-// resolve parameters (if any)
-function resolveParams(params?: string) {
-  if (!params || params === "ask") {
-    return params;
-  } else {
-    return readYAML(params) as { [key: string]: unknown };
-  }
 }

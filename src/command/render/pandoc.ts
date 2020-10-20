@@ -22,7 +22,7 @@ import { execProcess, ProcessResult } from "../../core/process.ts";
 import { message } from "../../core/console.ts";
 
 import { Metadata, metadataFromFile } from "../../config/metadata.ts";
-import { PdfEngine, pdfEngine } from "../../config/pdf.ts";
+import { pdfEngine } from "../../config/pdf.ts";
 import { mergeConfigs } from "../../config/config.ts";
 
 import { RenderFlags } from "./flags.ts";
@@ -119,6 +119,6 @@ export function pandocMetadata(file: string, format?: FormatPandoc): Metadata {
   // get all metadata from the input file
   const inputMetadata = metadataFromFile(file);
 
-  // derive 'final' metadata by merging the intputMetadata intot the format definition
+  // derive 'final' metadata by merging the intputMetadata into the format definition
   return mergeConfigs(format || {}, inputMetadata);
 }
