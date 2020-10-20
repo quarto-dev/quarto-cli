@@ -31,11 +31,8 @@ export function cleanup(
   computations: ComputationsResult,
   output: string,
 ) {
-  // check for keep_md
-  const keepMd = format.keep?.md || flags.keepAll;
-
   // remove md file created by computations
-  if (!keepMd) {
+  if (!format.keep?.md) {
     // don't remove computational output if it's the same as either
     // (1) the original input (which would be the case for rendering
     // a plain markdown file); or (2) The final output (which would
@@ -55,7 +52,7 @@ export function cleanup(
 
   // if we aren't keeping the markdown and we are self-contained, then
   // delete the supporting files
-  if (!keepMd && !format.keep?.tex && selfContained) {
+  if (!format.keep?.md && !format.keep?.tex && selfContained) {
     if (computations.supporting) {
       computations.supporting.forEach((path) => {
         Deno.removeSync(path, { recursive: true });
