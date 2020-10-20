@@ -32,11 +32,11 @@ import { OutputRecipe } from "./output.ts";
 
 export function useLatexmk(input: string, format: Format, flags?: RenderFlags) {
   // check writer and extension
-  const writer = format.pandoc?.writer;
+  const to = format.pandoc?.to;
   const ext = format.output?.ext || "html";
 
   // if we are creating pdf output
-  if (["beamer", "pdf"].includes(writer || "") && ext === "pdf") {
+  if (["beamer", "pdf"].includes(to || "") && ext === "pdf") {
     // and we are using one of the engines supported by latexmk
     const metadata = pandocMetadata(input, format.pandoc);
     const engine = pdfEngine(metadata, flags);
@@ -109,9 +109,7 @@ export function latexmkOutputRecipe(
   };
 
   // tweak writer if it's pdf
-  const writer = format.pandoc?.writer === "pdf"
-    ? "latex"
-    : format.pandoc?.writer;
+  const to = format.pandoc?.to === "pdf" ? "latex" : format.pandoc?.to;
 
   // return recipe
   return {
@@ -119,7 +117,7 @@ export function latexmkOutputRecipe(
     args,
     pandoc: {
       ...format.pandoc,
-      writer,
+      to,
     },
     complete,
   };

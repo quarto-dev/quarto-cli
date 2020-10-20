@@ -85,10 +85,10 @@ function formatFromConfig(
   return format;
 }
 
-function defaultWriterFormat(writer: string) {
+function defaultWriterFormat(to: string) {
   // get defaults for writer
   let writerFormat: Format;
-  switch (writer) {
+  switch (to) {
     case "html":
     case "html4":
     case "html5":
@@ -129,12 +129,12 @@ function defaultWriterFormat(writer: string) {
       break;
 
     default:
-      writerFormat = format(writer);
+      writerFormat = format(to);
   }
 
   // set the writer
   writerFormat.pandoc = writerFormat.pandoc || {};
-  writerFormat.pandoc.writer = writer;
+  writerFormat.pandoc.to = to;
 
   // return the format
   return writerFormat;
@@ -251,7 +251,7 @@ function defaultForamt(): Format {
       ext: "html",
     },
     pandoc: {
-      reader: "markdown",
+      from: "markdown",
     },
   };
 }
