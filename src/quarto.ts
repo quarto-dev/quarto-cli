@@ -26,7 +26,8 @@ export async function quarto(args: string[]) {
   const quartoCommand = new Command()
     .name("quarto")
     .version("0.1")
-    .description("Quarto CLI");
+    .description("Quarto CLI")
+    .throwErrors();
 
   commands().forEach((command) => {
     quartoCommand.command(command.getName(), command);
@@ -42,7 +43,9 @@ if (import.meta.main) {
   try {
     await quarto(Deno.args);
   } catch (error) {
-    logError(error.toString());
+    if (error) {
+      logError(`${error.stack}\n${error.toString()}`);
+    }
     Deno.exit(1);
   }
 }
