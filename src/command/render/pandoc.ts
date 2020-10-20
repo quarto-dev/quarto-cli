@@ -38,8 +38,6 @@ export interface PandocOptions {
   // command line flags (e.g. could be
   // used to specify a pdf or bib engine)
   flags?: RenderFlags;
-  // quiet mode?
-  quiet?: boolean;
 }
 
 export async function runPandoc(
@@ -66,7 +64,7 @@ export async function runPandoc(
   }
 
   // propagate quiet
-  if (options.quiet) {
+  if (options.flags?.quiet) {
     args.push("--quiet");
   }
 
@@ -74,7 +72,7 @@ export async function runPandoc(
   cmd.push(...args);
 
   // print defaults file and command line args
-  if (!options.quiet) {
+  if (!options.flags?.quiet) {
     if (options.args.length > 0) {
       consoleWriteLine(yaml + "args: " + args.join(" "));
     } else {

@@ -78,7 +78,7 @@ export function latexmkOutputRecipe(
     const mkOptions: LatexmkOptions = {
       input: join(inputDir, output),
       engine: pdfEngine(metadata, pandocOptions.flags),
-      quiet: pandocOptions.quiet,
+      quiet: pandocOptions.flags?.quiet,
     };
 
     // run latexmk
