@@ -134,7 +134,7 @@ postprocess <- function(input, format, output, preserved_chunks) {
     xfun::write_utf8(output_res, output)
 }
 
-latexmk <- function(input, engine, quiet) {
+latexmk <- function(input, engine, clean, quiet) {
 
   # use verbose mode (will show package installation messages)
   if (!isTRUE(quiet))
@@ -151,7 +151,17 @@ latexmk <- function(input, engine, quiet) {
   engine_args <- if (!is.null(engine$pdfEngineOpts)) engine$pdfEngineOpts
 
   # call tinytex
-  tinytex::latexmk(input, pdf_engine, bib_engine, engine_args)
+  tinytex::latexmk(input, pdf_engine, bib_engine, engine_args, clean = clean)
+
+  # cleanup some files that might be left over by tinytex
+  if (clean) {
+    for (aux in c("aux", "out", "toc")) {
+      file <- rmarkdown:::file_with_ext(input, aux)
+      if (file.exists(file))
+        unlink(file)
+    }
+
+  }
 }
 
 run <- function(input, port) {
@@ -372,7 +382,7 @@ main <- function() {
   } else if (request$action == "postprocess") {
     result <- postprocess(params$input, params$format, params$output, params$data)
   } else if (request$action == "latexmk") {
-    result <- latexmk(params$input, params$engine, params$quiet)
+    result <- latexmk(params$input, params$engine, params$clean, params$quiet)
   } else if (request$action == "run") {
     result <- run(params$input, params$port)
   }

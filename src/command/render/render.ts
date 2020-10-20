@@ -44,6 +44,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     options.input,
     flags.formatOptions,
     flags.to,
+    flags.debug,
   );
 
   // derive the pandoc input file path (computations will create this)

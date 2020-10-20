@@ -24,6 +24,7 @@ export interface RenderFlags extends PandocFlags {
   formatOptions?: string;
   computeParams?: string;
   computeDir?: string;
+  debug?: boolean;
   quiet?: boolean;
 }
 
@@ -50,6 +51,11 @@ export function parseRenderFlags(args: string[]) {
         } else {
           flags.output = arg;
         }
+        break;
+
+      case "--self-contained":
+        flags[kSelfContained] = true;
+        arg = argsStack.shift();
         break;
 
       case "--pdf-engine":
@@ -90,13 +96,13 @@ export function parseRenderFlags(args: string[]) {
         flags.computeDir = arg;
         break;
 
-      case "--quiet":
-        flags.quiet = true;
+      case "--debug":
+        flags.debug = true;
         arg = argsStack.shift();
         break;
 
-      case "--self-contained":
-        flags[kSelfContained] = true;
+      case "--quiet":
+        flags.quiet = true;
         arg = argsStack.shift();
         break;
 
@@ -142,6 +148,7 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
 
   // remove other args as needed
   const removeArgs = new Map<string, boolean>();
+  removeArgs.set("--debug", false);
   removeArgs.set("--format-options", true);
   removeArgs.set("--compute-params", true);
   removeArgs.set("--compute-dir", true);

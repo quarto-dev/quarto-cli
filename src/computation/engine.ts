@@ -62,6 +62,7 @@ export interface PostProcessOptions {
 export interface LatexmkOptions {
   input: string;
   engine: PdfEngine;
+  clean?: boolean;
   quiet?: boolean;
 }
 

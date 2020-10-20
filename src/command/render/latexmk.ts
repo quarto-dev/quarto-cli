@@ -77,6 +77,7 @@ export function latexmkOutputRecipe(
     const mkOptions: LatexmkOptions = {
       input: join(inputDir, output),
       engine: pdfEngine(metadata, pandocOptions.flags),
+      clean: !options.flags?.debug,
       quiet: pandocOptions.flags?.quiet,
     };
 
@@ -177,14 +178,16 @@ async function runLatexmk(options: LatexmkOptions): Promise<ProcessResult> {
     return Promise.reject();
   }
 
-  // cleanup
-  const cleanupResult = await execProcess({
-    cmd: ["latexmk", "-c", basename(input)],
-    cwd: dirname(input),
-    stdout: "piped",
-  });
-  if (!cleanupResult.success) {
-    return Promise.reject();
+  // cleanup if requested
+  if (options.clean) {
+    const cleanupResult = await execProcess({
+      cmd: ["latexmk", "-c", basename(input)],
+      cwd: dirname(input),
+      stdout: "piped",
+    });
+    if (!cleanupResult.success) {
+      return Promise.reject();
+    }
   }
 
   return result;
