@@ -8,8 +8,8 @@
       "name": "Launch Deno",
       "request": "launch",
       "type": "pwa-node",
-      "program": "${workspaceFolder}/src/main.ts",
-      "args": ["render", "test.Rmd", "--self-contained"],
+      "program": "${workspaceFolder}/src/quarto.ts",
+      "args": ["render", "test.Rmd"],
       "cwd": "${workspaceFolder}/sandbox/docs",
       "runtimeExecutable": "deno",
       "runtimeArgs": [
