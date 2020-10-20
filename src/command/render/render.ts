@@ -55,7 +55,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
     output: mdInput,
     format,
     cwd: flags.computeDir,
-    params: resolveParams(flags.params),
+    params: resolveParams(flags.computeParams),
     quiet: flags.quiet,
   });
 

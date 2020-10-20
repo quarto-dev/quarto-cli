@@ -18,8 +18,6 @@ import { expandGlob } from "fs/expand_glob.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { message } from "../../core/console.ts";
-
 import { fixupPandocArgs, parseRenderFlags } from "./flags.ts";
 
 import { render } from "./render.ts";
@@ -40,20 +38,12 @@ export const renderCommand = new Command()
     "Write output to FILE (use '--output -' for stdout).",
   )
   .option(
-    "--self-contained [self-contained:boolean]",
-    "Produce a standalone HTML file with no external dependencies, using data: URIs to incorporate the contents of linked scripts, stylesheets, images, and videos",
-  )
-  .option(
-    "--keep-all [keep-all:boolean]",
-    "Keep all intermediate files (e.g. markdown, tex, plots, etc.) even when producing a --self-contained document.",
+    "--compute-params [compute-params:string]",
+    "YAML file with parameter values (or 'ask' to prompt)",
   )
   .option(
     "--compute-dir [compute-dir:string]",
     "Working directory for computational preprocessing (e.g. knitr, nbconvert)",
-  )
-  .option(
-    "--params [params:string]",
-    "YAML file with parameter values (or 'ask' to prompt)",
   )
   .option(
     "--quiet [quiet:boolean]",

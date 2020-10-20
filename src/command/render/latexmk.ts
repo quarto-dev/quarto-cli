@@ -85,7 +85,7 @@ export function latexmkOutputRecipe(
 
     // keep tex if requested
     const compileTex = join(inputDir, output);
-    if (!options.flags?.keepAll && !format.keep?.tex) {
+    if (!format.keep?.tex) {
       Deno.removeSync(compileTex);
     }
 
