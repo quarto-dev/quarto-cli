@@ -1,0 +1,62 @@
+
+experiment with --compute-dir and _files (in both rmarkdown and quarto)
+
+support for -output-directory (option and/or do it by default)
+
+support tinytex: false, crossref: false (citeproc: false)
+
+targeting markdown to markdown. we need to account for:
+   - specifying the active mardkown extensions
+   - using a .md as the output extension *unless* it's markdown to markdown
+
+discover index.Rmd or ui.Rmd for quarto run
+
+make options top level
+  fig-width,
+  fig-height,
+  keep-md,
+  keep-tex,
+  show-code,
+  show-warning,
+  output-ext
+  compatible w/ existing pandoc args / config
+  schema, compatible w/ command line
+
+new config system
+fill out all the pandoc formats
+
+memo/proposal on _quarto directory
+  _quarto
+    .gitignore
+    _quarto.yml
+    _quarto.lock
+    snapshot/
+
+memo/proposal on computations:
+will be able to use RStudio chunk output and/or notebook for compute?
+or perhaps require html_notebook?
+omputations could even be at a URL!!!
+
+  {{= notebook.ipynb#visualization =}}
+  {{< computation notebook.Rmd#chunk-label >}}
+
+  {{< figure projections.xlsx#chunk-label caption="asfdasdf" label="" >}}
+
+  {{< table projections.xlsx#fy-2019 >}}
+
+  {{< text notebook.Rmd##chunk-label >}}
+
+  {{< tweet https://twitter.com/foo/status/34453323455 >}}
+
+  {{< video https://youtube.com/foo/status/34453323455 >}}
+
+
+crossref
+
+Port tinytex to JS; OR we need to implmeent various auto-install behaviors for latexmk, eg.
+  had to do this to get biblatex working w/ latexmk
+  (may want to automate installation if no biber + auto-map TinyTeX to path)
+    tlmgr install biblatex
+    tlmgr install biber
+    ln -sf /Users/jjallaire/Library/TinyTeX/bin/x86_64-darwin/biber /usr/local/bin/biber
+
