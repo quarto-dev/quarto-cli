@@ -44,7 +44,7 @@ if (import.meta.main) {
     await quarto(Deno.args);
   } catch (error) {
     if (error) {
-      logError(`${error.stack}\n${error.toString()}`);
+      logError(`${error.stack}\n\n${error.toString()}\n`);
     }
     Deno.exit(1);
   }
