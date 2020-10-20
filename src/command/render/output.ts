@@ -25,7 +25,8 @@ import { PandocOptions } from "./pandoc.ts";
 import { RenderOptions } from "./render.ts";
 import { latexmkOutputRecipe, useLatexmk } from "./latexmk.ts";
 import { computationEngineForFile } from "../../computation/engine.ts";
-import { kMdExtensions } from "../../config/constants.ts";
+import { kMdExtensions, kStandalone } from "../../config/constants.ts";
+import { titleBlockYAMLFromMarkdown } from "../../config/metadata.ts";
 
 // render commands imply the --output argument for pandoc and the final
 // output file to create for the user, but we need a 'recipe' to go from
@@ -44,7 +45,7 @@ export interface OutputRecipe {
   // callback for completing the output recipe (e.g. might run pdflatex, etc.).
   // can optionally return an alternate output path. passed the actual
   // options used to run pandoc (for deducing e.g. pdf engine options)
-  complete: (options: PandocOptions) => Promise<string | undefined>;
+  complete: (options: PandocOptions) => Promise<string | void>;
 }
 
 export function outputRecipe(
@@ -57,16 +58,17 @@ export function outputRecipe(
     return latexmkOutputRecipe(options, format, engine?.latexmk);
   } else {
     // default recipe spec based on user input
+    const completeActions: VoidFunction[] = [];
     const recipe = {
       output: options.flags?.output!,
       args: options.pandocArgs || [],
       pandoc: format.pandoc || {},
-      complete: async (): Promise<string | undefined> => {
-        return;
+      complete: async (): Promise<string | void> => {
+        completeActions.forEach((action) => action());
       },
     };
 
-    // some path attributes
+    // alias some path attributes
     const ext = format.output?.ext || "html";
     const [inputDir, inputStem] = dirAndStem(options.input);
 
@@ -77,6 +79,20 @@ export function outputRecipe(
         to: `${format.pandoc?.to}${format.pandoc?.[kMdExtensions]}`,
       };
       delete recipe.pandoc?.[kMdExtensions];
+    }
+
+    // complete hook for keep-yaml (to: markdown already implements keep-yaml by default)
+    if (format.keep?.yaml && !/^markdown(\+|$)/.test(format.pandoc?.to || "")) {
+      completeActions.push(() => {
+        // read yaml and output markdown
+        const yamlMd = titleBlockYAMLFromMarkdown(
+          Deno.readTextFileSync(options.input),
+        );
+        if (yamlMd) {
+          const outputMd = Deno.readTextFileSync(recipe.output);
+          Deno.writeTextFileSync(recipe.output, yamlMd + "\n\n" + outputMd);
+        }
+      });
     }
 
     if (!recipe.output) {
@@ -94,11 +110,10 @@ export function outputRecipe(
       // forward to stdout (necessary b/c a postprocesor may need to act on
       // the output before its complete)
       recipe.output = Deno.makeTempFileSync({ suffix: "." + ext });
-      recipe.complete = async () => {
+      completeActions.push(() => {
         writeFileToStdout(recipe.output);
         Deno.removeSync(recipe.output);
-        return undefined;
-      };
+      });
     } else if (!isAbsolute(recipe.output)) {
       // relatve output file on the command line: make it relative to the input dir
       // for pandoc (which will run in the input dir)

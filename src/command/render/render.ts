@@ -99,7 +99,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
 
   // report output created
   if (!flags.quiet && flags.output !== kStdOut) {
-    message("\nOutput created: " + finalOutput + "\n");
+    message("Output created: " + finalOutput + "\n");
   }
 
   // return result
