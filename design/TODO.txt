@@ -2,12 +2,8 @@
 
 keep-yaml may need to move to main loop (perhaps a complete function) since it currently doesn't work for .md input
 
-reconsider --keep-all flag. perhaps instead allow passing a --format-options yaml (similar to output_options)
-that would also substitute for --self-contained
+should we add a '--clean' param?
 
-discover index.Rmd or ui.Rmd for quarto run. may need an
-engine specific method to discover run target in dir. Or allow
-engine to take path and discover that way
 
 make options top level
   fig-width,
@@ -58,3 +54,9 @@ Port tinytex to JS; OR we need to implmeent various auto-install behaviors for l
     tlmgr install biber
     ln -sf /Users/jjallaire/Library/TinyTeX/bin/x86_64-darwin/biber /usr/local/bin/biber
 Note need to implement tinytex: false and tinytex options (e.g. min-runs, clean, output-dir, etc.)
+
+Merge -M and --metadata-file with _quarto.yml and in-file YAML with same 
+semantics as Pandoc
+
+discover index.Rmd or ui.Rmd for quarto run. can't rely on 
+rmarkdown::run b/c we need to figure out which Rmd to render

@@ -2,10 +2,8 @@
 title: "Woozy Foobar"
 knit: quarto render
 quarto:
-  pdf:
+  html:
     toc: true
-    keep:
-      tex: false
 params:
   minimum: 
     label: "Minimum:"
@@ -24,9 +22,15 @@ params:
     input: file
 ---
 
+term1
+
+:   This is the definition of term 1.
+
+
 ```{r}
 str(params)
 str(getwd())
+Sys.getenv()
 ```
 
 ## Plot 1: Target
@@ -39,6 +43,7 @@ str(getwd())
 
 ## Plot 2
 
+
 ```{r}
 plot(cars)
 ```
@@ -48,7 +53,10 @@ plot(cars)
 
 ## Plot 3
 
+
 ```{r}
-plot(cars)
+library(dygraphs)
+dygraph(nhtemp, main = "New Haven Temperatures") %>% 
+  dyRangeSelector(dateWindow = c("1920-01-01", "1960-01-01"))
 ```
 
