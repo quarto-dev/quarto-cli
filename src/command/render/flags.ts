@@ -152,6 +152,13 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   removeArgs.set("--format-options", true);
   removeArgs.set("--compute-params", true);
   removeArgs.set("--compute-dir", true);
+  return removePandocArgs(pandocArgs, removeArgs);
+}
+
+export function removePandocArgs(
+  pandocArgs: string[],
+  removeArgs: Map<string, boolean>,
+) {
   let removeNext = false;
   return pandocArgs.reduce((args, arg) => {
     if (!removeArgs.has(arg)) {
