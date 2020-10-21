@@ -1,5 +1,7 @@
 
 
+str(params) should yield an error when no params
+
 new config system
 fill out all the pandoc formats
 
@@ -18,11 +20,15 @@ omputations could even be at a URL!!!
   {{= notebook.ipynb#visualization =}}
   {{< computation notebook.Rmd#chunk-label >}}
 
+  
+  
   {{< figure projections.xlsx#chunk-label caption="asfdasdf" label="" >}}
 
-  {{< table projections.xlsx#fy-2019 >}}
+  {{< table projections.xlsx#fy-2019 label="projections" >}}
 
   {{< text notebook.Rmd##chunk-label >}}
+
+  {{<   >}}
 
   {{< tweet https://twitter.com/foo/status/34453323455 >}}
 
