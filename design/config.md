@@ -20,9 +20,7 @@ format:
       method: katex
       url: https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/
 
-params:
-   region: east
-   max: 20
+
 
 filters:
   - downlit

@@ -14,14 +14,23 @@
 */
 
 import { kSelfContained } from "../../config/constants.ts";
-import { PandocFlags } from "../../config/flags.ts";
-import { readYAML } from "../../core/yaml.ts";
+import { readYaml } from "../../core/yaml.ts";
 
 export const kStdOut = "-";
 
 // command line flags that we need to inspect
-export interface RenderFlags extends PandocFlags {
-  formatOptions?: string;
+export interface RenderFlags {
+  // pandoc flags
+  to?: string;
+  output?: string;
+  [kSelfContained]?: boolean;
+  pdfEngine?: string;
+  pdfEngineOpts?: string[];
+  natbib?: boolean;
+  biblatex?: boolean;
+
+  // quarto flags
+  config?: string;
   computeParams?: string;
   computeDir?: string;
   debug?: boolean;
@@ -81,9 +90,9 @@ export function parseRenderFlags(args: string[]) {
         flags.biblatex = true;
         break;
 
-      case "--format-options":
+      case "--config":
         arg = argsStack.shift();
-        flags.formatOptions = arg;
+        flags.config = arg;
         break;
 
       case "--compute-params":
@@ -149,7 +158,7 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   // remove other args as needed
   const removeArgs = new Map<string, boolean>();
   removeArgs.set("--debug", false);
-  removeArgs.set("--format-options", true);
+  removeArgs.set("--config", true);
   removeArgs.set("--compute-params", true);
   removeArgs.set("--compute-dir", true);
   return removePandocArgs(pandocArgs, removeArgs);
@@ -178,6 +187,6 @@ export function resolveParams(params?: string) {
   if (!params || params === "ask") {
     return params;
   } else {
-    return readYAML(params) as { [key: string]: unknown };
+    return readYaml(params) as { [key: string]: unknown };
   }
 }

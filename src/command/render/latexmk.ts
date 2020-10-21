@@ -15,17 +15,15 @@
 
 import { basename, dirname, join, normalize } from "path/mod.ts";
 
-import { Format } from "../../api/format.ts";
-
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 
-import { pdfEngine } from "../../config/pdf.ts";
+import { pdfEngine } from "./pdf.ts";
 
 import { LatexmkOptions } from "../../computation/engine.ts";
 
-import { pandocMetadata, PandocOptions } from "./pandoc.ts";
+import { PandocOptions } from "./pandoc.ts";
 import { RenderOptions } from "./render.ts";
 import {
   kStdOut,
@@ -35,16 +33,17 @@ import {
 } from "./flags.ts";
 import { OutputRecipe } from "./output.ts";
 import { kKeepTex, kOutputExt } from "../../config/constants.ts";
+import { Format } from "../../config/config.ts";
 
 export function useLatexmk(input: string, format: Format, flags?: RenderFlags) {
   // check writer and extension
-  const to = format.pandoc?.to;
+  const to = format.defaults?.to;
   const ext = format?.[kOutputExt] || "html";
 
   // if we are creating pdf output
   if (["beamer", "pdf"].includes(to || "") && ext === "pdf") {
     // and we are using one of the engines supported by latexmk
-    const metadata = pandocMetadata(input, format.pandoc);
+    const metadata = {};
     const engine = pdfEngine(metadata, flags);
     return ["pdflatex", "xelatex", "lualatex"].includes(
       engine.pdfEngine,
@@ -85,7 +84,7 @@ export function latexmkOutputRecipe(
   // ouptut to the user's requested destination
   const complete = async (pandocOptions: PandocOptions) => {
     // determine latexmk options
-    const metadata = pandocMetadata(pandocOptions.input, pandocOptions.format);
+    const metadata = {};
     const mkOptions: LatexmkOptions = {
       input: join(inputDir, output),
       engine: pdfEngine(metadata, pandocOptions.flags),
@@ -122,14 +121,14 @@ export function latexmkOutputRecipe(
   };
 
   // tweak writer if it's pdf
-  const to = format.pandoc?.to === "pdf" ? "latex" : format.pandoc?.to;
+  const to = format.defaults?.to === "pdf" ? "latex" : format.defaults?.to;
 
   // return recipe
   return {
     output,
     args,
     pandoc: {
-      ...format.pandoc,
+      ...format.defaults,
       to,
     },
     complete,

@@ -15,8 +15,6 @@
 
 import { extname, isAbsolute, join, relative } from "path/mod.ts";
 
-import { Format, FormatPandoc } from "../../api/format.ts";
-
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
 
@@ -29,9 +27,9 @@ import {
   kKeepYaml,
   kMdExtensions,
   kOutputExt,
-  kStandalone,
 } from "../../config/constants.ts";
-import { titleBlockYAMLFromMarkdown } from "../../config/metadata.ts";
+import { readYamlFrontMatterFromMarkdown } from "../../core/yaml.ts";
+import { Format, PandocDefaults } from "../../config/config.ts";
 
 // render commands imply the --output argument for pandoc and the final
 // output file to create for the user, but we need a 'recipe' to go from
@@ -46,7 +44,7 @@ export interface OutputRecipe {
   // transformed pandoc args reflecting 'output'
   args: string[];
   // modifications to pandoc format spec
-  pandoc: FormatPandoc;
+  pandoc: PandocDefaults;
   // callback for completing the output recipe (e.g. might run pdflatex, etc.).
   // can optionally return an alternate output path. passed the actual
   // options used to run pandoc (for deducing e.g. pdf engine options)
@@ -67,7 +65,7 @@ export function outputRecipe(
     const recipe = {
       output: options.flags?.output!,
       args: options.pandocArgs || [],
-      pandoc: format.pandoc || {},
+      pandoc: format.defaults || {},
       complete: async (): Promise<string | void> => {
         completeActions.forEach((action) => action());
       },
@@ -78,21 +76,21 @@ export function outputRecipe(
     const [inputDir, inputStem] = dirAndStem(options.input);
 
     // tweak pandoc writer if we have extensions declared
-    if (format.pandoc?.[kMdExtensions]) {
+    if (format.defaults?.[kMdExtensions]) {
       recipe.pandoc = {
         ...recipe.pandoc,
-        to: `${format.pandoc?.to}${format.pandoc?.[kMdExtensions]}`,
+        to: `${format.defaults?.to}${format.defaults?.[kMdExtensions]}`,
       };
       delete recipe.pandoc?.[kMdExtensions];
     }
 
     // complete hook for keep-yaml (to: markdown already implements keep-yaml by default)
     if (
-      format?.[kKeepYaml] && !/^markdown(\+|$)/.test(format.pandoc?.to || "")
+      format?.[kKeepYaml] && !/^markdown(\+|$)/.test(format.defaults?.to || "")
     ) {
       completeActions.push(() => {
         // read yaml and output markdown
-        const yamlMd = titleBlockYAMLFromMarkdown(
+        const yamlMd = readYamlFrontMatterFromMarkdown(
           Deno.readTextFileSync(options.input),
         );
         if (yamlMd) {
@@ -108,7 +106,7 @@ export function outputRecipe(
       // special case for .md to .md, need to use the writer to create a unique extension
       let outputExt = ext;
       if (extname(options.input) === ".md" && ext === "md") {
-        outputExt = `${format.pandoc?.to}.md`;
+        outputExt = `${format.defaults?.to}.md`;
       }
       recipe.output = join(inputStem + "." + outputExt);
       recipe.args.unshift("--output", recipe.output);

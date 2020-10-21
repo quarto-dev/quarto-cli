@@ -14,15 +14,14 @@
 */
 
 import { extname } from "path/mod.ts";
+import { Config } from "../config/config.ts";
 
-import { execProcess, ProcessResult } from "../core/process.ts";
+import { execProcess } from "../core/process.ts";
 import { resourcePath } from "../core/resources.ts";
-
 import {
-  Metadata,
-  metadataFromFile,
-  metadataFromMarkdown,
-} from "../config/metadata.ts";
+  readYamlFromMarkdown,
+  readYamlFromMarkdownFile,
+} from "../core/yaml.ts";
 
 import type {
   ComputationEngine,
@@ -44,7 +43,7 @@ export const rmdEngine: ComputationEngine = {
     return kEngineExtensions.includes(ext.toLowerCase());
   },
 
-  metadata: async (file: string): Promise<Metadata> => {
+  metadata: async (file: string): Promise<Config> => {
     if (kRScriptExtensions.includes(extname(file.toLowerCase()))) {
       // if it's an R script, spin it into markdown
       const result = await callR<string>(
@@ -54,10 +53,10 @@ export const rmdEngine: ComputationEngine = {
         },
         true,
       );
-      return metadataFromMarkdown(result);
+      return readYamlFromMarkdown(result);
     } else {
       // otherwise just read the metadata from the file
-      return metadataFromFile(file);
+      return readYamlFromMarkdownFile(file);
     }
   },
 
