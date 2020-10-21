@@ -13,9 +13,7 @@
 *
 */
 
-import { basename, dirname, extname, join, normalize } from "path/mod.ts";
-
-import type { Format } from "../../api/format.ts";
+import { extname, normalize } from "path/mod.ts";
 
 import { removeIfExists } from "../../core/path.ts";
 
@@ -23,6 +21,7 @@ import { kKeepMd, kKeepTex, kSelfContained } from "../../config/constants.ts";
 
 import type { ComputationsResult } from "./computation.ts";
 import type { RenderFlags } from "./flags.ts";
+import { Format } from "../../config/config.ts";
 
 export function cleanup(
   input: string,
@@ -47,7 +46,7 @@ export function cleanup(
 
   // determine if we will be self contained
   const selfContained = flags[kSelfContained] ||
-    (format.pandoc && format.pandoc[kSelfContained]) ||
+    (format.defaults && format.defaults[kSelfContained]) ||
     extname(output) === ".pdf";
 
   // if we aren't keeping the markdown and we are self-contained, then

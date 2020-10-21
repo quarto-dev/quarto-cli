@@ -15,28 +15,164 @@
 
 import { dirname, join } from "path/mod.ts";
 import { exists } from "fs/exists.ts";
-import { ld } from "lodash/mod.ts";
 
-import type { Format } from "../api/format.ts";
+import { readYaml, readYamlFromMarkdownFile } from "../core/yaml.ts";
 
-import { readYAML } from "../core/yaml.ts";
+import {
+  kFigDpi,
+  kFigFormat,
+  kFigHeight,
+  kFigWidth,
+  kKeepMd,
+  kKeepTex,
+  kKeepYaml,
+  kMdExtensions,
+  kOutputExt,
+  kPandocDefaults,
+  kPandocMetadata,
+  kShowCode,
+  kShowError,
+  kShowWarning,
+} from "./constants.ts";
+import { computationEngineForFile } from "../computation/engine.ts";
+import { defaultWriterFormat } from "./formats.ts";
+import { mergeConfigs } from "../core/config.ts";
 
-import { metadataFromFile, metadataFromMarkdown } from "./metadata.ts";
+export type Config = {
+  format?: { [key: string]: Format };
+  [key: string]: unknown;
+};
 
-export interface Config {
-  [key: string]: Format;
+// pandoc output format
+export interface Format {
+  [kFigWidth]?: number;
+  [kFigHeight]?: number;
+  [kFigFormat]?: "png" | "pdf";
+  [kFigDpi]?: number;
+  [kShowCode]?: boolean;
+  [kShowWarning]?: boolean;
+  [kShowError]?: boolean;
+  [kKeepMd]?: boolean;
+  [kKeepYaml]?: boolean;
+  [kKeepTex]?: boolean;
+  [kOutputExt]?: string;
+  defaults?: PandocDefaults;
+  metadata?: { [key: string]: unknown };
 }
 
-export function configFromMarkdown(
-  markdown: string,
-): Config {
-  return (metadataFromMarkdown(markdown)).quarto || {};
+export interface PandocDefaults {
+  from?: string;
+  to?: string;
+  [kMdExtensions]?: string;
+  [key: string]: unknown;
 }
 
-export function configFromMarkdownFile(
-  file: string,
-): Config {
-  return (metadataFromFile(file)).quarto || {};
+export interface InputFileConfig {
+  config: Config;
+  defaultWriter: string;
+}
+
+export async function inputFileConfig(
+  input: string,
+  configOverrides?: string,
+  to?: string,
+): Promise<InputFileConfig> {
+  // look for a 'project' _quarto.yml
+  const projConfig: Config = await projectConfig(input);
+
+  // get metadata from computational preprocessor (or from the raw .md)
+  const engine = computationEngineForFile(input);
+  let inputConfig = engine
+    ? await engine.metadata(input)
+    : readYamlFromMarkdownFile(input);
+
+  // merge in any options provided via file
+  if (configOverrides) {
+    const overrides = readYaml(configOverrides) as Config;
+    inputConfig = mergeConfigs(inputConfig, overrides);
+  }
+
+  // determine which writer to use
+  let defaultWriter = to;
+  if (!defaultWriter) {
+    defaultWriter = "html";
+    const formats = Object.keys(inputConfig).concat(
+      Object.keys(projectConfig),
+    );
+    if (formats.length > 0) {
+      defaultWriter = formats[0];
+    }
+  }
+
+  // derive quarto config from merge of project config into file config
+  const config = mergeConfigs(projConfig, inputConfig);
+
+  return {
+    config,
+    defaultWriter,
+  };
+}
+
+export function resolveFormatFromConfig(
+  to: string,
+  config: Config,
+  debug?: boolean,
+) {
+  // get the format
+  const format = formatFromConfig(to, config);
+
+  // force keep_md and keep_tex if we are in debug mode
+  if (debug) {
+    format[kKeepMd] = true;
+    format[kKeepTex] = true;
+  }
+
+  return format;
+}
+
+function formatFromConfig(
+  to: string,
+  config: Config,
+): Format {
+  // get default options for this writer
+  let format = defaultWriterFormat(to);
+
+  // see if there is config for this writer
+  if (config.format?.[to] instanceof Object) {
+    format = mergeConfigs(format, config.format?.[to]);
+  }
+
+  // move top-level keys to the appropriate subkey
+
+  Object.keys(format).forEach((key) => {
+    if (
+      ![
+        kFigWidth,
+        kFigHeight,
+        kFigFormat,
+        kFigDpi,
+        kShowCode,
+        kShowWarning,
+        kShowError,
+        kKeepMd,
+        kKeepYaml,
+        kKeepTex,
+        kOutputExt,
+        kPandocDefaults,
+        kPandocMetadata,
+      ].includes(
+        key,
+      )
+    ) {
+      format.defaults = format.defaults || {};
+      // deno-lint-ignore no-explicit-any
+      format.defaults[key] = (format as any)[key];
+      // deno-lint-ignore no-explicit-any
+      delete (format as any)[key];
+    }
+  });
+
+  return format;
 }
 
 export async function projectConfig(file: string): Promise<Config> {
@@ -58,52 +194,7 @@ export async function projectConfig(file: string): Promise<Config> {
     // see if there is a quarto yml file there
     const quartoYml = join(dir, "_quarto.yml");
     if (await exists(quartoYml)) {
-      const config = readYAML(quartoYml) as Config;
-      return resolveConfig(config);
+      return readYaml(quartoYml) as Config;
     }
   }
-}
-
-// resolve 'default' configs and merge common options
-export function resolveConfig(config: Config) {
-  // config to return
-  const newConfig = { ...config };
-
-  // resolve 'default'
-  Object.keys(newConfig).forEach((key) => {
-    if (typeof newConfig[key] === "string") {
-      newConfig[key] = {};
-    }
-  });
-
-  if (newConfig.common) {
-    // pull out common
-    const common = newConfig.common;
-    delete newConfig.common;
-
-    // merge with each format
-    Object.keys(newConfig).forEach((key) => {
-      newConfig[key] = mergeConfigs(common, newConfig[key]);
-    });
-  }
-
-  return newConfig;
-}
-
-export function mergeConfigs<T>(...configs: T[]): T {
-  // copy all configs so we don't mutate them
-  configs = ld.cloneDeep(configs);
-
-  return ld.mergeWith(
-    configs[0],
-    ...configs.slice(1),
-    (objValue: unknown, srcValue: unknown) => {
-      if (ld.isArray(objValue) && ld.isArray(srcValue)) {
-        const combined = (objValue as Array<unknown>).concat(
-          srcValue as Array<unknown>,
-        );
-        return ld.uniqBy(combined, ld.toString);
-      }
-    },
-  );
 }

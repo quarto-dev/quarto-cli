@@ -16,23 +16,18 @@
 import { basename, dirname } from "path/mod.ts";
 import { stringify } from "encoding/yaml.ts";
 
-import type { FormatPandoc } from "../../api/format.ts";
-
 import { execProcess, ProcessResult } from "../../core/process.ts";
 import { message } from "../../core/console.ts";
 
-import { Metadata, metadataFromFile } from "../../config/metadata.ts";
-import { pdfEngine } from "../../config/pdf.ts";
-import { mergeConfigs } from "../../config/config.ts";
-
 import { RenderFlags } from "./flags.ts";
+import { PandocDefaults } from "../../config/config.ts";
 
 // options required to run pandoc
 export interface PandocOptions {
   // input file
   input: string;
   // metadata for target format
-  format: FormatPandoc;
+  format: PandocDefaults;
   // command line args for pandoc
   args: string[];
   // command line flags (e.g. could be
@@ -93,32 +88,5 @@ export type CiteMethod = "citeproc" | "natbib" | "biblatex";
 export function citeMethod(
   options: PandocOptions,
 ): CiteMethod | null {
-  // collect config
-  const metadata = pandocMetadata(options.input, options.format);
-  const pdf = pdfEngine(metadata, options.flags);
-
-  // no handler if no references
-  if (!metadata.bibliography && !metadata.references) {
-    return null;
-  }
-
-  // if it's pdf-based output check for natbib or biblatex
-  if (pdf?.bibEngine) {
-    return pdf.bibEngine;
-  }
-
-  // otherwise it's citeproc unless expressly disabled
-  if (metadata.citeproc !== false) {
-    return "citeproc";
-  } else {
-    return null;
-  }
-}
-
-export function pandocMetadata(file: string, format?: FormatPandoc): Metadata {
-  // get all metadata from the input file
-  const inputMetadata = metadataFromFile(file);
-
-  // derive 'final' metadata by merging the intputMetadata into the format definition
-  return mergeConfigs(format || {}, inputMetadata);
+  return "citeproc";
 }

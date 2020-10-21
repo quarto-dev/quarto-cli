@@ -1,5 +1,5 @@
 /*
-* format.ts
+* formats.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
@@ -13,13 +13,10 @@
 *
 */
 
-import type { Format } from "../api/format.ts";
-import { computationEngineForFile } from "../computation/engine.ts";
+import { kStandalone } from "../config/constants.ts";
+import { mergeConfigs } from "../core/config.ts";
+import { Format } from "./config.ts";
 
-import { Config, projectConfig, resolveConfig } from "./config.ts";
-import { metadataFromFile } from "./metadata.ts";
-import { mergeConfigs } from "./config.ts";
-import { readYAML } from "../core/yaml.ts";
 import {
   kFigDpi,
   kFigFormat,
@@ -27,107 +24,13 @@ import {
   kFigWidth,
   kKeepMd,
   kKeepTex,
-  kKeepYaml,
   kOutputExt,
   kShowCode,
   kShowError,
   kShowWarning,
 } from "./constants.ts";
 
-export async function formatForInputFile(
-  input: string,
-  formatOptions?: string,
-  to?: string,
-  debug?: boolean,
-): Promise<Format> {
-  // look for a 'project' _quarto.yml
-  const projConfig: Config = await projectConfig(input);
-
-  // get metadata from computational preprocessor (or from the raw .md)
-  const engine = computationEngineForFile(input);
-  let fileMetadata = engine
-    ? await engine.metadata(input)
-    : metadataFromFile(input);
-
-  // merge in any options provided via file
-  if (formatOptions) {
-    const format = readYAML(formatOptions) as Config;
-    fileMetadata = mergeConfigs(fileMetadata, { quarto: format });
-  }
-
-  // get the file config
-  const fileConfig = resolveConfig(fileMetadata.quarto || {});
-
-  // determine which writer to use
-  let writer = to;
-  if (!writer) {
-    writer = "html";
-    const formats = Object.keys(fileConfig).concat(
-      Object.keys(projectConfig),
-    );
-    if (formats.length > 0) {
-      writer = formats[0];
-    }
-  }
-
-  // derive quarto config from merge of project config into file config
-  const config = mergeConfigs(projConfig, fileConfig);
-
-  // get the format
-  const format = formatFromConfig(writer, config);
-
-  // force keep_md and keep_tex if we are in debug mode
-  if (debug) {
-    format[kKeepMd] = true;
-    format[kKeepTex] = true;
-  }
-
-  return format;
-}
-
-function formatFromConfig(
-  writer: string,
-  config: Config,
-): Format {
-  // get default options for this writer
-  let format = defaultWriterFormat(writer);
-
-  // see if there is config for this writer
-  if (config[writer] instanceof Object) {
-    format = mergeConfigs(format, config[writer]);
-  }
-
-  // any unknown top level option get folded into pandoc
-  format.pandoc = format.pandoc || {};
-  Object.keys(format).forEach((key) => {
-    if (
-      ![
-        kFigWidth,
-        kFigHeight,
-        kFigFormat,
-        kFigDpi,
-        kShowCode,
-        kShowWarning,
-        kShowError,
-        kKeepMd,
-        kKeepYaml,
-        kKeepTex,
-        kOutputExt,
-        "pandoc",
-      ].includes(
-        key,
-      )
-    ) {
-      format.pandoc = format.pandoc || {};
-      format.pandoc[key] = format[key];
-      delete format[key];
-    }
-  });
-
-  return format;
-}
-
-function defaultWriterFormat(to: string) {
+export function defaultWriterFormat(to: string) {
   // get defaults for writer
   let writerFormat: Format;
   switch (to) {
@@ -175,8 +78,8 @@ function defaultWriterFormat(to: string) {
   }
 
   // set the writer
-  writerFormat.pandoc = writerFormat.pandoc || {};
-  writerFormat.pandoc.to = to;
+  writerFormat.defaults = writerFormat.defaults || {};
+  writerFormat.defaults.to = to;
 
   // return the format
   return writerFormat;
@@ -189,8 +92,8 @@ function pdfFormat() {
       [kFigWidth]: 6.5,
       [kFigHeight]: 4.5,
       [kFigFormat]: "pdf",
-      pandoc: {
-        standalone: true,
+      defaults: {
+        [kStandalone]: true,
         variables: {
           graphics: true,
         },
@@ -231,8 +134,8 @@ function htmlFormat(figwidth = 7, figheight = 5) {
   return format("html", {
     [kFigWidth]: figwidth,
     [kFigHeight]: figheight,
-    pandoc: {
-      standalone: true,
+    defaults: {
+      [kStandalone]: true,
     },
   });
 }
@@ -241,8 +144,8 @@ function markdownFormat() {
   return format("md", {
     [kFigWidth]: 7,
     [kFigHeight]: 5,
-    pandoc: {
-      standalone: true,
+    defaults: {
+      [kStandalone]: true,
       // NOTE: this will become the default in the next
       // version of pandoc, remove this flag after that
       ["atx-headers"]: true,
@@ -272,7 +175,7 @@ function defaultFormat(): Format {
     [kKeepMd]: false,
     [kKeepTex]: false,
     [kOutputExt]: "html",
-    pandoc: {
+    defaults: {
       from: "markdown",
     },
   };

@@ -17,6 +17,9 @@ export const kSelfContained = "self-contained";
 export const kStandalone = "standalone";
 export const kMdExtensions = "md-extensions";
 
+export const kPandocDefaults = "defaults";
+export const kPandocMetadata = "metadata";
+
 export const kFigWidth = "fig-width";
 export const kFigHeight = "fig-height";
 export const kFigFormat = "fig-format";

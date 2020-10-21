@@ -40,8 +40,8 @@ export const renderCommand = new Command()
     "Write output to FILE (use '--output -' for stdout).",
   )
   .option(
-    "--format-options",
-    "YAML file specifying additional output format options.",
+    "--config",
+    "YAML file specifying configuration overrides.",
   )
   .option(
     "--compute-params",

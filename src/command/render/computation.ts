@@ -13,14 +13,13 @@
 *
 */
 
-import type { FormatPandoc } from "../../api/format.ts";
-
 import {
   computationEngineForFile,
   ExecuteOptions,
   PandocIncludes,
   PostProcessOptions,
 } from "../../computation/engine.ts";
+import { PandocDefaults } from "../../config/config.ts";
 
 // result from computational preprocessor
 export interface ComputationsResult {
@@ -31,7 +30,7 @@ export interface ComputationsResult {
   supporting: string[];
   // additional pandoc metadata resulting from
   // the computations
-  pandoc: FormatPandoc;
+  pandoc: PandocDefaults;
   // request for a postprocessing step (the value
   // will be passed back to the postprocessor)
   postprocess?: unknown;
@@ -76,8 +75,8 @@ export async function postProcess(
 // provide pandoc include-* arguments from strings
 function pandocIncludeFiles(
   includes?: PandocIncludes,
-): FormatPandoc {
-  const pandoc: FormatPandoc = {};
+): PandocDefaults {
+  const pandoc: PandocDefaults = {};
   if (includes) {
     const include = (name: string, value?: string) => {
       if (value) {

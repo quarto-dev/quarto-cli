@@ -13,19 +13,17 @@
 *
 */
 
+import { Config } from "../config/config.ts";
 import { getenv } from "../core/env.ts";
-import { execProcess, processSuccessResult } from "../core/process.ts";
+import { execProcess } from "../core/process.ts";
 import { resourcePath } from "../core/resources.ts";
-
-import type { Metadata } from "../config/metadata.ts";
-import { metadataFromMarkdown } from "../config/metadata.ts";
+import { readYamlFromMarkdown } from "../core/yaml.ts";
 
 import type {
   ComputationEngine,
   ExecuteOptions,
   ExecuteResult,
   PostProcessOptions,
-  RunOptions,
 } from "./engine.ts";
 
 export const ipynbEngine: ComputationEngine = {
@@ -35,7 +33,7 @@ export const ipynbEngine: ComputationEngine = {
     return [".ipynb"].includes(ext.toLowerCase());
   },
 
-  metadata: async (file: string): Promise<Metadata> => {
+  metadata: async (file: string): Promise<Config> => {
     const decoder = new TextDecoder("utf-8");
     const ipynbContents = await Deno.readFile(file);
     const ipynb = JSON.parse(decoder.decode(ipynbContents));
@@ -48,7 +46,7 @@ export const ipynbEngine: ComputationEngine = {
       }
     }, "");
 
-    return metadataFromMarkdown(markdown);
+    return readYamlFromMarkdown(markdown);
   },
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
