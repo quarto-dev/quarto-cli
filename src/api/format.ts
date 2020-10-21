@@ -47,29 +47,6 @@ export interface Format {
   [key: string]: unknown;
 }
 
-export interface FormatFigure {
-  width?: number;
-  height?: number;
-  format?: "png" | "pdf";
-  dpi?: number;
-}
-
-export interface FormatShow {
-  code?: boolean;
-  warning?: boolean;
-  error?: boolean;
-}
-
-export interface FormatKeep {
-  md?: boolean;
-  yaml?: boolean;
-  tex?: boolean;
-}
-
-export interface FormatOutput {
-  ext?: string;
-}
-
 export interface FormatPandoc {
   from?: string;
   to?: string;
