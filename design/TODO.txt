@@ -44,3 +44,6 @@ semantics as Pandoc
 
 discover index.Rmd or ui.Rmd for quarto run. can't rely on 
 rmarkdown::run b/c we need to figure out which Rmd to render
+
+consider pluto notebooks (julia)
+
