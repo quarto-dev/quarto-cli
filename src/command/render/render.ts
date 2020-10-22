@@ -75,6 +75,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   // pandoc options
   const pandocOptions = {
     input: mdInput,
+    config,
     format: recipe.format,
     args: recipe.args,
     flags: options.flags,

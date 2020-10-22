@@ -19,19 +19,23 @@ import { stringify } from "encoding/yaml.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 import { message } from "../../core/console.ts";
 
+import { Config, Format } from "../../config/config.ts";
+import { pdfEngine } from "../../config/pdf.ts";
+
 import { RenderFlags } from "./flags.ts";
-import { Format, PandocDefaults } from "../../config/config.ts";
 
 // options required to run pandoc
 export interface PandocOptions {
   // input file
   input: string;
-  // metadata for target format
+  // full merged config
+  config: Config;
+  // target format
   format: Format;
   // command line args for pandoc
   args: string[];
-  // command line flags (e.g. could be
-  // used to specify a pdf or bib engine)
+  // command line flags (e.g. could be used
+  // to specify e.g. quiet or pdf engine)
   flags?: RenderFlags;
 }
 
@@ -91,5 +95,23 @@ export type CiteMethod = "citeproc" | "natbib" | "biblatex";
 export function citeMethod(
   options: PandocOptions,
 ): CiteMethod | null {
-  return "citeproc";
+  // collect config
+  const pdf = pdfEngine(options.format.defaults, options.flags);
+
+  // no handler if no references
+  if (!options.config.bibliography && !options.config.references) {
+    return null;
+  }
+
+  // if it's pdf-based output check for natbib or biblatex
+  if (pdf?.bibEngine) {
+    return pdf.bibEngine;
+  }
+
+  // otherwise it's citeproc unless expressly disabled
+  if (options.config.citeproc !== false) {
+    return "citeproc";
+  } else {
+    return null;
+  }
 }
