@@ -1,6 +1,6 @@
 // union of metadata and command line flags which determine
-import { PandocDefaults } from "../../config/config.ts";
-import { RenderFlags } from "./flags.ts";
+import { PandocDefaults } from "./config.ts";
+import { PandocFlags } from "./flags.ts";
 
 // the requested pdf engine, it's options, and the bib engine
 export interface PdfEngine {
@@ -11,7 +11,7 @@ export interface PdfEngine {
 
 export function pdfEngine(
   defaults: PandocDefaults,
-  flags?: RenderFlags,
+  flags?: PandocFlags,
 ): PdfEngine {
   // determine pdfengine
   const pdfEngine =

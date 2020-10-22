@@ -14,21 +14,13 @@
 */
 
 import { kSelfContained } from "../../config/constants.ts";
+import { PandocFlags } from "../../config/flags.ts";
 import { readYaml } from "../../core/yaml.ts";
 
 export const kStdOut = "-";
 
 // command line flags that we need to inspect
-export interface RenderFlags {
-  // pandoc flags
-  to?: string;
-  output?: string;
-  [kSelfContained]?: boolean;
-  pdfEngine?: string;
-  pdfEngineOpts?: string[];
-  natbib?: boolean;
-  biblatex?: boolean;
-
+export interface RenderFlags extends PandocFlags {
   // quarto flags
   config?: string;
   computeParams?: string;

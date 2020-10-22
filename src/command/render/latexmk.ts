@@ -19,7 +19,9 @@ import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 
-import { pdfEngine } from "./pdf.ts";
+import { kKeepTex, kOutputExt } from "../../config/constants.ts";
+import { Format } from "../../config/config.ts";
+import { pdfEngine } from "../../config/pdf.ts";
 
 import { LatexmkOptions } from "../../computation/engine.ts";
 
@@ -32,8 +34,6 @@ import {
   replacePandocArg,
 } from "./flags.ts";
 import { OutputRecipe } from "./output.ts";
-import { kKeepTex, kOutputExt } from "../../config/constants.ts";
-import { Format } from "../../config/config.ts";
 
 export function useLatexmk(input: string, format: Format, flags?: RenderFlags) {
   // check writer and extension
