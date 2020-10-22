@@ -42,9 +42,7 @@ export function useLatexmk(input: string, format: Format, flags?: RenderFlags) {
 
   // if we are creating pdf output
   if (["beamer", "pdf"].includes(to || "") && ext === "pdf") {
-    // and we are using one of the engines supported by latexmk
-    const metadata = {};
-    const engine = pdfEngine(metadata, flags);
+    const engine = pdfEngine(format.defaults, flags);
     return ["pdflatex", "xelatex", "lualatex"].includes(
       engine.pdfEngine,
     );
@@ -84,10 +82,9 @@ export function latexmkOutputRecipe(
   // ouptut to the user's requested destination
   const complete = async (pandocOptions: PandocOptions) => {
     // determine latexmk options
-    const metadata = {};
     const mkOptions: LatexmkOptions = {
       input: join(inputDir, output),
-      engine: pdfEngine(metadata, pandocOptions.flags),
+      engine: pdfEngine(format.metadata, pandocOptions.flags),
       clean: !options.flags?.debug,
       quiet: pandocOptions.flags?.quiet,
     };
