@@ -15,9 +15,9 @@
 
 import { mergeConfigs } from "../core/config.ts";
 
-import { kKeepYaml, kStandalone } from "../config/constants.ts";
+import { kKeepYaml, kMdExtensions, kStandalone } from "../config/constants.ts";
 
-import { Format } from "./config.ts";
+import { Metadata } from "./metadata.ts";
 
 import {
   kFigFormat,
@@ -29,6 +29,36 @@ import {
   kShowCode,
   kShowWarning,
 } from "./constants.ts";
+
+// pandoc output format
+export interface Format {
+  render?: FormatRender;
+  compute?: FormatCompute;
+  pandoc?: FormatPandoc;
+  metadata?: Metadata;
+}
+
+export interface FormatRender {
+  [kKeepMd]?: boolean;
+  [kKeepYaml]?: boolean;
+  [kKeepTex]?: boolean;
+}
+
+export interface FormatCompute {
+  [kFigWidth]?: number;
+  [kFigHeight]?: number;
+  [kFigFormat]?: "png" | "pdf";
+  [kShowCode]?: boolean;
+  [kShowWarning]?: boolean;
+}
+
+export interface FormatPandoc {
+  from?: string;
+  to?: string;
+  [kMdExtensions]?: string;
+  [kOutputExt]?: string;
+  [key: string]: unknown;
+}
 
 export function defaultWriterFormat(to: string) {
   // get defaults for writer

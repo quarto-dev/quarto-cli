@@ -13,7 +13,7 @@
 *
 */
 
-import { FormatPandoc } from "../../config/config.ts";
+import { FormatPandoc } from "../../config/format.ts";
 
 import {
   computationEngineForFile,

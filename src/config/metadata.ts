@@ -1,0 +1,165 @@
+/*
+* config.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+* Unless you have received this program directly from RStudio pursuant
+* to the terms of a commercial license agreement with RStudio, then
+* this program is licensed to you under the terms of version 3 of the
+* GNU General Public License. This program is distributed WITHOUT
+* ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING THOSE OF NON-INFRINGEMENT,
+* MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. Please refer to the
+* GPL (http://www.gnu.org/licenses/gpl-3.0.txt) for more details.
+*
+*/
+
+import { dirname, join } from "path/mod.ts";
+import { exists } from "fs/exists.ts";
+
+import { readYaml, readYamlFromMarkdownFile } from "../core/yaml.ts";
+import { mergeConfigs } from "../core/config.ts";
+
+import { computationEngineForFile } from "../computation/engine.ts";
+
+import {
+  kComputeDefaults,
+  kComputeDefaultsKeys,
+  kKeepMd,
+  kKeepTex,
+  kMetadataFormat,
+  kPandocDefaults,
+  kPandocDefaultsKeys,
+  kPandocMetadata,
+  kRenderDefaults,
+  kRenderDefaultsKeys,
+} from "./constants.ts";
+import { defaultWriterFormat, Format } from "./format.ts";
+
+export type Metadata = {
+  [key: string]: unknown;
+};
+
+export interface InputFileConfig {
+  metadata: Metadata;
+  defaultWriter: string;
+}
+
+export async function inputFileConfig(
+  input: string,
+  overridesFile?: string,
+  to?: string,
+): Promise<InputFileConfig> {
+  // look for a 'project' _quarto.yml
+  const projMetadata: Metadata = await projectMetadata(input);
+
+  // get metadata from computational preprocessor (or from the raw .md)
+  const engine = computationEngineForFile(input);
+  let inputMetadata = engine
+    ? await engine.metadata(input)
+    : readYamlFromMarkdownFile(input);
+
+  // merge in any options provided via file
+  if (overridesFile) {
+    const overrides = readYaml(overridesFile) as Metadata;
+    inputMetadata = mergeConfigs(inputMetadata, overrides);
+  }
+
+  // determine which writer to use
+  let defaultWriter = to;
+  if (!defaultWriter) {
+    defaultWriter = "html";
+    const formats = Object.keys(inputMetadata).concat(
+      Object.keys(projectMetadata),
+    );
+    if (formats.length > 0) {
+      defaultWriter = formats[0];
+    }
+  }
+
+  // derive quarto config from merge of project config into file config
+  const metadata = mergeConfigs(projMetadata, inputMetadata);
+
+  return {
+    metadata,
+    defaultWriter,
+  };
+}
+
+export async function projectMetadata(file: string): Promise<Metadata> {
+  file = await Deno.realPath(file);
+  let dir: string | undefined;
+  while (true) {
+    // determine next directory to inspect (terminate if we can't go any higher)
+    if (!dir) {
+      dir = dirname(file);
+    } else {
+      const nextDir = dirname(dir);
+      if (nextDir === dir) {
+        return {};
+      } else {
+        dir = nextDir;
+      }
+    }
+
+    // see if there is a quarto yml file there
+    const quartoYml = join(dir, "_quarto.yml");
+    if (await exists(quartoYml)) {
+      return readYaml(quartoYml) as Metadata;
+    }
+  }
+}
+
+export function formatFromMetadata(
+  to: string,
+  config: Metadata,
+  debug?: boolean,
+): Format {
+  // user format options (allow any b/c this is just untyped yaml)
+  // deno-lint-ignore no-explicit-any
+  const format: any = {
+    render: {},
+    compute: {},
+    pandoc: {},
+    metadata: {},
+  };
+
+  // see if there is user config for this writer that we need to merge in
+  const configFormats = config?.[kMetadataFormat];
+  if (configFormats instanceof Object) {
+    // deno-lint-ignore no-explicit-any
+    const configFormat = (configFormats as any)[to] as any;
+    if (configFormat instanceof Object) {
+      Object.keys(configFormat).forEach((key) => {
+        // allow stuff already sorted into a top level key through unmodified
+        if (
+          [kRenderDefaults, kComputeDefaults, kPandocDefaults, kPandocMetadata]
+            .includes(key)
+        ) {
+          format[key] = configFormat[key];
+        } else {
+          // move the key into the appropriate top level key
+          if (kRenderDefaultsKeys.includes(key)) {
+            format.render[key] = configFormat[key];
+          } else if (kComputeDefaultsKeys.includes(key)) {
+            format.compute[key] = configFormat[key];
+          } else if (kPandocDefaultsKeys.includes(key)) {
+            format.pandoc[key] = configFormat[key];
+          } else {
+            format.metadata[key] = configFormat[key];
+          }
+        }
+      });
+    }
+  }
+
+  // merge user config into default config
+  const mergedFormat = mergeConfigs(defaultWriterFormat(to), format);
+
+  // force keep_md and keep_tex if we are in debug mode
+  if (debug) {
+    mergedFormat.render[kKeepMd] = true;
+    mergedFormat.render[kKeepTex] = true;
+  }
+
+  return mergedFormat;
+}

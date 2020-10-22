@@ -22,7 +22,7 @@ import {
   readYamlFromMarkdownFile,
 } from "../core/yaml.ts";
 
-import { Config } from "../config/config.ts";
+import { Metadata } from "../config/metadata.ts";
 
 import type {
   ComputationEngine,
@@ -44,7 +44,7 @@ export const rmdEngine: ComputationEngine = {
     return kEngineExtensions.includes(ext.toLowerCase());
   },
 
-  metadata: async (file: string): Promise<Config> => {
+  metadata: async (file: string): Promise<Metadata> => {
     if (kRScriptExtensions.includes(extname(file.toLowerCase()))) {
       // if it's an R script, spin it into markdown
       const result = await callR<string>(

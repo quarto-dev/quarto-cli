@@ -4,59 +4,26 @@ knit: quarto render
 quarto:
   html:
     toc: true
-params:
-  minimum: 
-    label: "Minimum:"
-    value: 100
-    input: slider
-    min: 0
-    max: 1000
-  region:
-    label: "Region:"
-    value: east
-    input: select
-    choices: [east, west, north, south]
-  data: 
-    label: "Input dataset:"
-    value: results.csv
-    input: file
 ---
 
 term1
 
 :   This is the definition of term 1.
 
+## Summary 1
 
 ```{r}
-str(params)
-str(getwd())
-Sys.getenv()
+summary(mtcars)
 ```
 
-## Plot 1: Target
-
--   bullet 1
-
--   bullet 2
-
--   bullet 3
-
 ## Plot 2
-
 
 ```{r}
 plot(cars)
 ```
 
-```{r child="child.Rmd"}
-```
-
 ## Plot 3
 
-
 ```{r}
-library(dygraphs)
-dygraph(nhtemp, main = "New Haven Temperatures") %>% 
-  dyRangeSelector(dateWindow = c("1920-01-01", "1960-01-01"))
+plot(pressure)
 ```
-
