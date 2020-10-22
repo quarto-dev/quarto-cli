@@ -13,6 +13,8 @@
 *
 */
 
+export const kMetadataFormat = "format";
+
 export const kRenderDefaults = "render";
 export const kComputeDefaults = "compute";
 export const kPandocDefaults = "pandoc";

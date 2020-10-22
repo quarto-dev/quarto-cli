@@ -15,8 +15,9 @@
 
 import { extname } from "path/mod.ts";
 
-import { Config, Format } from "../config/config.ts";
+import { Format } from "../config/format.ts";
 import { PdfEngine } from "../config/pdf.ts";
+import { Metadata } from "../config/metadata.ts";
 
 import { rmdEngine } from "./rmd.ts";
 import { ipynbEngine } from "./ipynb.ts";
@@ -72,7 +73,7 @@ export interface RunOptions {
 export interface ComputationEngine {
   name: string;
   canHandle: (ext: string) => boolean;
-  metadata: (file: string) => Promise<Config>;
+  metadata: (file: string) => Promise<Metadata>;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;
   latexmk?: (options: LatexmkOptions) => Promise<void>;

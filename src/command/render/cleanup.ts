@@ -17,7 +17,7 @@ import { extname, normalize } from "path/mod.ts";
 
 import { removeIfExists } from "../../core/path.ts";
 
-import { Format } from "../../config/config.ts";
+import { Format } from "../../config/format.ts";
 import { kKeepMd, kKeepTex, kSelfContained } from "../../config/constants.ts";
 
 import type { ComputationsResult } from "./computation.ts";

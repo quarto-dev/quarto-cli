@@ -20,7 +20,7 @@ import { ProcessResult } from "../../core/process.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
 
-import { formatFromConfig, inputFileConfig } from "../../config/config.ts";
+import { formatFromMetadata, inputFileConfig } from "../../config/metadata.ts";
 
 import { postProcess as postprocess, runComputations } from "./computation.ts";
 import { runPandoc } from "./pandoc.ts";
@@ -40,14 +40,14 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   const flags = options.flags || {};
 
   // derive format options (looks in file and at project level _quarto.yml)
-  const { config, defaultWriter } = await inputFileConfig(
+  const { metadata, defaultWriter } = await inputFileConfig(
     options.input,
     flags.config,
     flags.to,
   );
 
   // resolve the target format
-  const format = formatFromConfig(defaultWriter, config, flags.debug);
+  const format = formatFromMetadata(defaultWriter, metadata, flags.debug);
 
   // derive the pandoc input file path (computations will create this)
   const [inputDir, inputStem] = dirAndStem(options.input);
@@ -72,7 +72,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   // pandoc options
   const pandocOptions = {
     input: mdInput,
-    config,
+    metadata,
     format: recipe.format,
     args: recipe.args,
     flags: options.flags,

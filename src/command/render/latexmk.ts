@@ -20,7 +20,7 @@ import { dirAndStem, expandPath } from "../../core/path.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 
 import { kKeepTex, kOutputExt } from "../../config/constants.ts";
-import { Format } from "../../config/config.ts";
+import { Format } from "../../config/format.ts";
 import { pdfEngine } from "../../config/pdf.ts";
 
 import { LatexmkOptions } from "../../computation/engine.ts";

@@ -18,7 +18,7 @@ import { execProcess } from "../core/process.ts";
 import { resourcePath } from "../core/resources.ts";
 import { readYamlFromMarkdown } from "../core/yaml.ts";
 
-import { Config } from "../config/config.ts";
+import { Metadata } from "../config/metadata.ts";
 
 import type {
   ComputationEngine,
@@ -34,7 +34,7 @@ export const ipynbEngine: ComputationEngine = {
     return [".ipynb"].includes(ext.toLowerCase());
   },
 
-  metadata: async (file: string): Promise<Config> => {
+  metadata: async (file: string): Promise<Metadata> => {
     const decoder = new TextDecoder("utf-8");
     const ipynbContents = await Deno.readFile(file);
     const ipynb = JSON.parse(decoder.decode(ipynbContents));

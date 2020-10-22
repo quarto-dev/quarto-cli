@@ -24,7 +24,7 @@ import {
   kMdExtensions,
   kOutputExt,
 } from "../../config/constants.ts";
-import { Format } from "../../config/config.ts";
+import { Format } from "../../config/format.ts";
 
 import { computationEngineForFile } from "../../computation/engine.ts";
 

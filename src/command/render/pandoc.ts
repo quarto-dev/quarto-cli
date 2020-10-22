@@ -19,8 +19,9 @@ import { stringify } from "encoding/yaml.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 import { message } from "../../core/console.ts";
 
-import { Config, Format } from "../../config/config.ts";
+import { Format } from "../../config/format.ts";
 import { pdfEngine } from "../../config/pdf.ts";
+import { Metadata } from "../../config/metadata.ts";
 
 import { RenderFlags } from "./flags.ts";
 
@@ -29,7 +30,7 @@ export interface PandocOptions {
   // input file
   input: string;
   // full merged config
-  config: Config;
+  metadata: Metadata;
   // target format
   format: Format;
   // command line args for pandoc
@@ -99,7 +100,7 @@ export function citeMethod(
   const pdf = pdfEngine(options.format.pandoc, options.flags);
 
   // no handler if no references
-  if (!options.config.bibliography && !options.config.references) {
+  if (!options.metadata.bibliography && !options.metadata.references) {
     return null;
   }
 
@@ -109,7 +110,7 @@ export function citeMethod(
   }
 
   // otherwise it's citeproc unless expressly disabled
-  if (options.config.citeproc !== false) {
+  if (options.metadata.citeproc !== false) {
     return "citeproc";
   } else {
     return null;

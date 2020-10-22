@@ -1,5 +1,5 @@
 // union of metadata and command line flags which determine
-import { FormatPandoc } from "./config.ts";
+import { FormatPandoc } from "./format.ts";
 import { PandocFlags } from "./flags.ts";
 
 // the requested pdf engine, it's options, and the bib engine
