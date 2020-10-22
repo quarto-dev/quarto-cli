@@ -1,10 +1,6 @@
 
 
 
-useLatexmk also needs needs to get re-writtent to take advantage of config
-LatexmkOptions same (needs config)
-
-citeMethod needs to get re-written to take advantage of merged config
 
 str(params) should yield an error when no params
 
