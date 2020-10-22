@@ -127,9 +127,12 @@ export function latexmkOutputRecipe(
   return {
     output,
     args,
-    pandoc: {
-      ...format.defaults,
-      to,
+    format: {
+      ...format,
+      defaults: {
+        ...format.defaults,
+        to,
+      },
     },
     complete,
   };

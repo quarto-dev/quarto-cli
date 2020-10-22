@@ -43,8 +43,8 @@ export interface OutputRecipe {
   output: string;
   // transformed pandoc args reflecting 'output'
   args: string[];
-  // modifications to pandoc format spec
-  pandoc: PandocDefaults;
+  // modifications to format spec
+  format: Format;
   // callback for completing the output recipe (e.g. might run pdflatex, etc.).
   // can optionally return an alternate output path. passed the actual
   // options used to run pandoc (for deducing e.g. pdf engine options)
@@ -65,7 +65,7 @@ export function outputRecipe(
     const recipe = {
       output: options.flags?.output!,
       args: options.pandocArgs || [],
-      pandoc: format.defaults || {},
+      format: format,
       complete: async (): Promise<string | void> => {
         completeActions.forEach((action) => action());
       },
@@ -77,11 +77,14 @@ export function outputRecipe(
 
     // tweak pandoc writer if we have extensions declared
     if (format.defaults?.[kMdExtensions]) {
-      recipe.pandoc = {
-        ...recipe.pandoc,
-        to: `${format.defaults?.to}${format.defaults?.[kMdExtensions]}`,
+      recipe.format = {
+        ...recipe.format,
+        defaults: {
+          ...recipe.format.defaults,
+          to: `${format.defaults?.to}${format.defaults?.[kMdExtensions]}`,
+        },
       };
-      delete recipe.pandoc?.[kMdExtensions];
+      delete recipe.format.defaults?.[kMdExtensions];
     }
 
     // complete hook for keep-yaml (to: markdown already implements keep-yaml by default)
