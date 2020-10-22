@@ -19,7 +19,8 @@ import { exists } from "fs/exists.ts";
 import { readYaml, readYamlFromMarkdownFile } from "../core/yaml.ts";
 
 import {
-  kFigDpi,
+  kComputeDefaults,
+  kComputeDefaultsKeys,
   kFigFormat,
   kFigHeight,
   kFigWidth,
@@ -29,9 +30,11 @@ import {
   kMdExtensions,
   kOutputExt,
   kPandocDefaults,
+  kPandocDefaultsKeys,
   kPandocMetadata,
+  kRenderDefaults,
+  kRenderDefaultsKeys,
   kShowCode,
-  kShowError,
   kShowWarning,
 } from "./constants.ts";
 import { computationEngineForFile } from "../computation/engine.ts";
@@ -45,25 +48,35 @@ export type Config = {
 
 // pandoc output format
 export interface Format {
-  [kFigWidth]?: number;
-  [kFigHeight]?: number;
-  [kFigFormat]?: "png" | "pdf";
-  [kFigDpi]?: number;
-  [kShowCode]?: boolean;
-  [kShowWarning]?: boolean;
-  [kShowError]?: boolean;
+  render?: FormatRender;
+  compute?: FormatCompute;
+  pandoc?: FormatPandoc;
+  metadata?: FormatMetadata;
+}
+
+export interface FormatRender {
   [kKeepMd]?: boolean;
   [kKeepYaml]?: boolean;
   [kKeepTex]?: boolean;
-  [kOutputExt]?: string;
-  defaults?: PandocDefaults;
-  metadata?: { [key: string]: unknown };
 }
 
-export interface PandocDefaults {
+export interface FormatCompute {
+  [kFigWidth]?: number;
+  [kFigHeight]?: number;
+  [kFigFormat]?: "png" | "pdf";
+  [kShowCode]?: boolean;
+  [kShowWarning]?: boolean;
+}
+
+export interface FormatPandoc {
   from?: string;
   to?: string;
   [kMdExtensions]?: string;
+  [kOutputExt]?: string;
+  [key: string]: unknown;
+}
+
+export interface FormatMetadata {
   [key: string]: unknown;
 }
 
@@ -74,7 +87,7 @@ export interface InputFileConfig {
 
 export async function inputFileConfig(
   input: string,
-  configOverrides?: string,
+  overridesFile?: string,
   to?: string,
 ): Promise<InputFileConfig> {
   // look for a 'project' _quarto.yml
@@ -87,8 +100,8 @@ export async function inputFileConfig(
     : readYamlFromMarkdownFile(input);
 
   // merge in any options provided via file
-  if (configOverrides) {
-    const overrides = readYaml(configOverrides) as Config;
+  if (overridesFile) {
+    const overrides = readYaml(overridesFile) as Config;
     inputConfig = mergeConfigs(inputConfig, overrides);
   }
 
@@ -113,68 +126,6 @@ export async function inputFileConfig(
   };
 }
 
-export function resolveFormatFromConfig(
-  to: string,
-  config: Config,
-  debug?: boolean,
-) {
-  // get the format
-  const format = formatFromConfig(to, config);
-
-  // force keep_md and keep_tex if we are in debug mode
-  if (debug) {
-    format[kKeepMd] = true;
-    format[kKeepTex] = true;
-  }
-
-  return format;
-}
-
-function formatFromConfig(
-  to: string,
-  config: Config,
-): Format {
-  // get default options for this writer
-  let format = defaultWriterFormat(to);
-
-  // see if there is config for this writer
-  if (config.format?.[to] instanceof Object) {
-    format = mergeConfigs(format, config.format?.[to]);
-  }
-
-  // move top-level keys to the appropriate subkey
-
-  Object.keys(format).forEach((key) => {
-    if (
-      ![
-        kFigWidth,
-        kFigHeight,
-        kFigFormat,
-        kFigDpi,
-        kShowCode,
-        kShowWarning,
-        kShowError,
-        kKeepMd,
-        kKeepYaml,
-        kKeepTex,
-        kOutputExt,
-        kPandocDefaults,
-        kPandocMetadata,
-      ].includes(
-        key,
-      )
-    ) {
-      format.defaults = format.defaults || {};
-      // deno-lint-ignore no-explicit-any
-      format.defaults[key] = (format as any)[key];
-      // deno-lint-ignore no-explicit-any
-      delete (format as any)[key];
-    }
-  });
-
-  return format;
-}
-
 export async function projectConfig(file: string): Promise<Config> {
   file = await Deno.realPath(file);
   let dir: string | undefined;
@@ -197,4 +148,54 @@ export async function projectConfig(file: string): Promise<Config> {
       return readYaml(quartoYml) as Config;
     }
   }
+}
+
+export function formatFromConfig(
+  to: string,
+  config: Config,
+  debug?: boolean,
+): Format {
+  // user format options (allow any b/c this is just untyped yaml)
+  // deno-lint-ignore no-explicit-any
+  let format: any = {};
+
+  // see if there is user config for this writer that we need to merge in
+  if (config.format?.[to] instanceof Object) {
+    format = config.format?.[to];
+    Object.keys(format).forEach((key) => {
+      // allow stuff already sorted into a top level key through unmodified
+      if (
+        ![kRenderDefaults, kComputeDefaults, kPandocDefaults, kPandocMetadata]
+          .includes(key)
+      ) {
+        // move the key into the appropriate top level key
+        if (kRenderDefaultsKeys.includes(key)) {
+          format.render = format.render || {};
+          format.render[key] = format[key];
+        } else if (kComputeDefaultsKeys.includes(key)) {
+          format.compute = format.compute || {};
+          format.compute[key] = format[key];
+        } else if (kPandocDefaultsKeys.includes(key)) {
+          format.pandoc = format.pandoc || {};
+          format.pandoc[key] = format[key];
+        } else {
+          format.metadata[key] = format[key];
+        }
+        // remove the key (since we moved it)
+        delete format[key];
+      }
+    });
+  }
+
+  // merge user config into default config
+  format = mergeConfigs(defaultWriterFormat(to), format);
+
+  // force keep_md and keep_tex if we are in debug mode
+  if (debug) {
+    format.render = format.render || {};
+    format.render[kKeepMd] = true;
+    format.render[kKeepTex] = true;
+  }
+
+  return format;
 }

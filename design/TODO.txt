@@ -4,7 +4,13 @@
 
 str(params) should yield an error when no params
 
-new config system
+new config system:
+
+  - !file directive
+  - implement "common" or "_common"
+  - implement "default" for format
+
+
 fill out all the pandoc formats
 
 memo/proposal on _quarto directory

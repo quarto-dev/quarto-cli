@@ -190,7 +190,7 @@ pandoc_options <- function(format) {
     to = format$pandoc$to,
     from = format$pandoc$from,
     args = c("--to", format$pandoc$to),
-    keep_tex = isTRUE(format$`keep-tex`)
+    keep_tex = isTRUE(format$render$`keep-tex`)
   )
 }
 
@@ -215,15 +215,14 @@ knitr_options <- function(format) {
   # opts_chunk
   opts_chunk <- list(
     # options derived from format
-    dev = format$`fig-format`,
-    fig.width = format$`fig-width`,
-    fig.height = format$`fig-height`,
-    dpi = format$`fig-dpi`,
-    echo = format$`show-code`,
-    warning = format$`show-warning`,
-    message = format$`show-warning`,
-    error = format$`show-error`,
+    fig.width = format$compute$`fig-width`,
+    fig.height = format$compute$`fig-height`,
+    dev = format$compute$`fig-format`,
+    echo = format$compute$`show-code`,
+    warning = format$compute$`show-warning`,
+    message = format$compute$`show-warning`,
     # hard coded (overideable in setup chunk but not format)
+    dpi = 96,
     comment = NA
   )
 
@@ -234,18 +233,15 @@ knitr_options <- function(format) {
   }
 
   # set the dingbats option for the pdf device if required
-  if (opts_chunk$dev == 'pdf')
+  if (opts_chunk$dev == 'pdf') {
     opts_chunk$dev.args <- list(pdf = list(useDingbats = FALSE))
-
-  # apply cropping if requested and we have pdfcrop and ghostscript
-  if (identical(format$`output-ext`, "pdf")) {
     crop <- rmarkdown:::find_program("pdfcrop") != '' && tools::find_gs_cmd() != ''
     if (crop) {
       knit_hooks$crop = knitr::hook_pdfcrop
       opts_chunk$crop = TRUE
     }
   }
-
+  
   # return options
   rmarkdown::knitr_options(
     opts_knit = opts_knit,

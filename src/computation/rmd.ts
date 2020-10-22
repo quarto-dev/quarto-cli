@@ -14,7 +14,6 @@
 */
 
 import { extname } from "path/mod.ts";
-import { Config } from "../config/config.ts";
 
 import { execProcess } from "../core/process.ts";
 import { resourcePath } from "../core/resources.ts";
@@ -22,6 +21,8 @@ import {
   readYamlFromMarkdown,
   readYamlFromMarkdownFile,
 } from "../core/yaml.ts";
+
+import { Config } from "../config/config.ts";
 
 import type {
   ComputationEngine,

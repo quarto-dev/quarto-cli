@@ -21,7 +21,6 @@ import { Command } from "cliffy/command/mod.ts";
 import { fixupPandocArgs, parseRenderFlags } from "./flags.ts";
 
 import { render } from "./render.ts";
-import { existsSync } from "https://deno.land/std@0.69.0/fs/exists.ts";
 
 export const renderCommand = new Command()
   .name("render")

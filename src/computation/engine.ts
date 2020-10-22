@@ -15,10 +15,11 @@
 
 import { extname } from "path/mod.ts";
 
+import { Config, Format } from "../config/config.ts";
+import { PdfEngine } from "../config/pdf.ts";
+
 import { rmdEngine } from "./rmd.ts";
 import { ipynbEngine } from "./ipynb.ts";
-import { Config, Format } from "../config/config.ts";
-import { PdfEngine } from "../command/render/pdf.ts";
 
 // execute options
 export interface ExecuteOptions {

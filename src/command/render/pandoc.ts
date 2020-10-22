@@ -47,8 +47,8 @@ export async function runPandoc(
 
   // write a temporary defaults file
   let yaml = "";
-  if (options.format.defaults) {
-    yaml = "---\n" + stringify(options.format.defaults);
+  if (options.format.pandoc) {
+    yaml = "---\n" + stringify(options.format.pandoc);
     const yamlFile = await Deno.makeTempFile(
       { prefix: "quarto-defaults", suffix: ".yml" },
     );
@@ -96,7 +96,7 @@ export function citeMethod(
   options: PandocOptions,
 ): CiteMethod | null {
   // collect config
-  const pdf = pdfEngine(options.format.defaults, options.flags);
+  const pdf = pdfEngine(options.format.pandoc, options.flags);
 
   // no handler if no references
   if (!options.config.bibliography && !options.config.references) {

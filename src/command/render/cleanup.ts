@@ -17,11 +17,11 @@ import { extname, normalize } from "path/mod.ts";
 
 import { removeIfExists } from "../../core/path.ts";
 
+import { Format } from "../../config/config.ts";
 import { kKeepMd, kKeepTex, kSelfContained } from "../../config/constants.ts";
 
 import type { ComputationsResult } from "./computation.ts";
 import type { RenderFlags } from "./flags.ts";
-import { Format } from "../../config/config.ts";
 
 export function cleanup(
   input: string,
@@ -31,7 +31,7 @@ export function cleanup(
   output: string,
 ) {
   // remove md file created by computations
-  if (!format?.[kKeepMd]) {
+  if (!format?.render?.[kKeepMd]) {
     // don't remove computational output if it's the same as either
     // (1) the original input (which would be the case for rendering
     // a plain markdown file); or (2) The final output (which would
@@ -46,12 +46,14 @@ export function cleanup(
 
   // determine if we will be self contained
   const selfContained = flags[kSelfContained] ||
-    (format.defaults && format.defaults[kSelfContained]) ||
+    (format.pandoc && format.pandoc[kSelfContained]) ||
     extname(output) === ".pdf";
 
   // if we aren't keeping the markdown and we are self-contained, then
   // delete the supporting files
-  if (!format?.[kKeepMd] && !format?.[kKeepTex] && selfContained) {
+  if (
+    !format?.render?.[kKeepMd] && !format?.render?.[kKeepTex] && selfContained
+  ) {
     if (computations.supporting) {
       computations.supporting.forEach((path) => {
         Deno.removeSync(path, { recursive: true });

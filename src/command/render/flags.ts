@@ -13,9 +13,10 @@
 *
 */
 
+import { readYaml } from "../../core/yaml.ts";
+
 import { kSelfContained } from "../../config/constants.ts";
 import { PandocFlags } from "../../config/flags.ts";
-import { readYaml } from "../../core/yaml.ts";
 
 export const kStdOut = "-";
 
