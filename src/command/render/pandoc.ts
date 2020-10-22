@@ -20,14 +20,14 @@ import { execProcess, ProcessResult } from "../../core/process.ts";
 import { message } from "../../core/console.ts";
 
 import { RenderFlags } from "./flags.ts";
-import { PandocDefaults } from "../../config/config.ts";
+import { Format, PandocDefaults } from "../../config/config.ts";
 
 // options required to run pandoc
 export interface PandocOptions {
   // input file
   input: string;
   // metadata for target format
-  format: PandocDefaults;
+  format: Format;
   // command line args for pandoc
   args: string[];
   // command line flags (e.g. could be
@@ -41,13 +41,16 @@ export async function runPandoc(
   // build the pandoc command
   const cmd = ["pandoc", basename(options.input)];
 
-  // write a temporary default file from the options
-  const yaml = "---\n" + stringify(options.format);
-  const yamlFile = await Deno.makeTempFile(
-    { prefix: "quarto-defaults", suffix: ".yml" },
-  );
-  await Deno.writeTextFile(yamlFile, yaml);
-  cmd.push("--defaults", yamlFile);
+  // write a temporary defaults file
+  let yaml = "";
+  if (options.format.defaults) {
+    yaml = "---\n" + stringify(options.format.defaults);
+    const yamlFile = await Deno.makeTempFile(
+      { prefix: "quarto-defaults", suffix: ".yml" },
+    );
+    await Deno.writeTextFile(yamlFile, yaml);
+    cmd.push("--defaults", yamlFile);
+  }
 
   // build command line args
   const args = [...options.args];
