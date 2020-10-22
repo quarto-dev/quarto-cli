@@ -9,17 +9,21 @@ format:
     # html specific variables
     fontsize: 14px
 
-    # knitr options (could be nbconvert)
-    knitr:
-      opts_chunk:
-        fig.width: 5
-        fig.height: 4
-
     # defaults file (command line args)
     highlight-style: pygments
     html-math-method:
       method: katex
       url: https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/
+
+    # we'll do this
+    r-options:
+      width: 80
+
+    # quarto: knitr options (could be nbconvert)
+    knitr:
+      opts_chunk:
+        fig.width: 5
+        fig.height: 4
 
 # nbconvert command line options / confile file options
 # (note that kntir and nbcovert are mutually exclusive

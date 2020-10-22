@@ -12,10 +12,17 @@ new config system:
   - do we need to pass all the metadata in pandoc options? (use by citeproc)
   - is in-file metadata properly overriden by format-based metadata (we think not)
 
+  RUN
+
   - !file directive
   - implement "common" or "_common"
   - implement "default" for format
-  - implmeent "+" for formats
+  - implement "+" for formats
+
+  - directories? (_quarto)
+
+  - implement knitr (allow dash)
+  - implement r-options
 
 
 fill out all the pandoc formats
@@ -35,7 +42,6 @@ omputations could even be at a URL!!!
   {{= notebook.ipynb#visualization =}}
   {{< computation notebook.Rmd#chunk-label >}}
 
-  
   
   {{< figure projections.xlsx#chunk-label caption="asfdasdf" label="" >}}
 
