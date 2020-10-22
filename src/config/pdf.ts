@@ -1,5 +1,5 @@
 // union of metadata and command line flags which determine
-import { PandocDefaults } from "./config.ts";
+import { FormatPandoc } from "./config.ts";
 import { PandocFlags } from "./flags.ts";
 
 // the requested pdf engine, it's options, and the bib engine
@@ -10,7 +10,7 @@ export interface PdfEngine {
 }
 
 export function pdfEngine(
-  defaults?: PandocDefaults,
+  defaults?: FormatPandoc,
   flags?: PandocFlags,
 ): PdfEngine {
   // provide for misssing defaults

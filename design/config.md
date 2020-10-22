@@ -2,11 +2,6 @@
 title: "Here we go"
 format:
   html:
-    # quarto schema
-    fig-width: 8
-    fig-height: 5
-    show-code: false
-
     # standard variables
     toc: true
     toc-depth: 2
@@ -14,13 +9,25 @@ format:
     # html specific variables
     fontsize: 14px
 
+    # knitr options (could be nbconvert)
+    knitr:
+      opts_chunk:
+        fig.width: 5
+        fig.height: 4
+
     # defaults file (command line args)
     highlight-style: pygments
     html-math-method:
       method: katex
       url: https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/
 
-
+# nbconvert command line options / confile file options
+# (note that kntir and nbcovert are mutually exclusive
+# for a given soure file)
+nbconvert:
+  no-prompt: true
+  no-input: true
+  allow-errors: true
 
 filters:
   - downlit
@@ -32,7 +39,7 @@ filters:
 tinytex:
   min-runs: 1
   max-runs: 8
-  output-dir: 'latex.out'
+  output-dir: "latex.out"
 
 crossref:
   cref: false
@@ -42,10 +49,6 @@ crossref:
 tools:
   pandoc: 2.11.0.2
   tinytex: 2020.10.2
-
-project:
-  type: @ropensci/docpages
-  output_dir: '.'
 ---
 
 When we process the above, we need to divide into:

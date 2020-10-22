@@ -35,14 +35,18 @@ import {
 } from "./flags.ts";
 import { OutputRecipe } from "./output.ts";
 
-export function useLatexmk(input: string, format: Format, flags?: RenderFlags) {
+export function useLatexmk(
+  input: string,
+  format: Format,
+  flags?: RenderFlags,
+) {
   // check writer and extension
-  const to = format.defaults?.to;
-  const ext = format?.[kOutputExt] || "html";
+  const to = format.pandoc?.to;
+  const ext = format?.pandoc?.[kOutputExt] || "html";
 
   // if we are creating pdf output
   if (["beamer", "pdf"].includes(to || "") && ext === "pdf") {
-    const engine = pdfEngine(format.defaults, flags);
+    const engine = pdfEngine(format.pandoc, flags);
     return ["pdflatex", "xelatex", "lualatex"].includes(
       engine.pdfEngine,
     );
@@ -94,7 +98,7 @@ export function latexmkOutputRecipe(
 
     // keep tex if requested
     const compileTex = join(inputDir, output);
-    if (!format?.[kKeepTex]) {
+    if (!format?.render?.[kKeepTex]) {
       Deno.removeSync(compileTex);
     }
 
@@ -118,7 +122,7 @@ export function latexmkOutputRecipe(
   };
 
   // tweak writer if it's pdf
-  const to = format.defaults?.to === "pdf" ? "latex" : format.defaults?.to;
+  const to = format.pandoc?.to === "pdf" ? "latex" : format.pandoc?.to;
 
   // return recipe
   return {
@@ -126,8 +130,8 @@ export function latexmkOutputRecipe(
     args,
     format: {
       ...format,
-      defaults: {
-        ...format.defaults,
+      pandoc: {
+        ...format.pandoc,
         to,
       },
     },

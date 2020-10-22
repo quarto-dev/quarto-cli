@@ -13,12 +13,13 @@
 *
 */
 
-import { kStandalone } from "../config/constants.ts";
 import { mergeConfigs } from "../core/config.ts";
+
+import { kKeepYaml, kStandalone } from "../config/constants.ts";
+
 import { Format } from "./config.ts";
 
 import {
-  kFigDpi,
   kFigFormat,
   kFigHeight,
   kFigWidth,
@@ -26,7 +27,6 @@ import {
   kKeepTex,
   kOutputExt,
   kShowCode,
-  kShowError,
   kShowWarning,
 } from "./constants.ts";
 
@@ -78,8 +78,8 @@ export function defaultWriterFormat(to: string) {
   }
 
   // set the writer
-  writerFormat.defaults = writerFormat.defaults || {};
-  writerFormat.defaults.to = to;
+  writerFormat.pandoc = writerFormat.pandoc || {};
+  writerFormat.pandoc.to = to;
 
   // return the format
   return writerFormat;
@@ -89,10 +89,12 @@ function pdfFormat() {
   return format(
     "pdf",
     {
-      [kFigWidth]: 6.5,
-      [kFigHeight]: 4.5,
-      [kFigFormat]: "pdf",
-      defaults: {
+      compute: {
+        [kFigWidth]: 6.5,
+        [kFigHeight]: 4.5,
+        [kFigFormat]: "pdf",
+      },
+      pandoc: {
         [kStandalone]: true,
         variables: {
           graphics: true,
@@ -107,8 +109,10 @@ function beamerFormat() {
     "pdf",
     pdfFormat(),
     {
-      [kFigWidth]: 10,
-      [kFigHeight]: 7,
+      compute: {
+        [kFigWidth]: 10,
+        [kFigHeight]: 7,
+      },
     },
   );
 }
@@ -124,17 +128,21 @@ function htmlPresentationFormat(figwidth: number, figheight: number) {
   return mergeConfigs(
     htmlFormat(figwidth, figheight),
     {
-      [kShowCode]: false,
-      [kShowWarning]: false,
+      compute: {
+        [kShowCode]: false,
+        [kShowWarning]: false,
+      },
     },
   );
 }
 
 function htmlFormat(figwidth = 7, figheight = 5) {
   return format("html", {
-    [kFigWidth]: figwidth,
-    [kFigHeight]: figheight,
-    defaults: {
+    compute: {
+      [kFigWidth]: figwidth,
+      [kFigHeight]: figheight,
+    },
+    pandoc: {
       [kStandalone]: true,
     },
   });
@@ -142,9 +150,11 @@ function htmlFormat(figwidth = 7, figheight = 5) {
 
 function markdownFormat() {
   return format("md", {
-    [kFigWidth]: 7,
-    [kFigHeight]: 5,
-    defaults: {
+    compute: {
+      [kFigWidth]: 7,
+      [kFigHeight]: 5,
+    },
+    pandoc: {
       [kStandalone]: true,
       // NOTE: this will become the default in the next
       // version of pandoc, remove this flag after that
@@ -158,25 +168,31 @@ function format(ext: string, ...formats: Format[]) {
     defaultFormat(),
     ...formats,
     {
-      [kOutputExt]: ext,
+      pandoc: {
+        [kOutputExt]: ext,
+      },
     },
   );
 }
 
 function defaultFormat(): Format {
   return {
-    [kFigWidth]: 7,
-    [kFigHeight]: 5,
-    [kFigFormat]: "png",
-    [kFigDpi]: 96,
-    [kShowCode]: true,
-    [kShowWarning]: true,
-    [kShowError]: false,
-    [kKeepMd]: false,
-    [kKeepTex]: false,
-    [kOutputExt]: "html",
-    defaults: {
-      from: "markdown",
+    compute: {
+      [kFigWidth]: 7,
+      [kFigHeight]: 5,
+      [kFigFormat]: "png",
+      [kShowCode]: true,
+      [kShowWarning]: true,
     },
+    render: {
+      [kKeepMd]: false,
+      [kKeepTex]: false,
+      [kKeepYaml]: false,
+    },
+    pandoc: {
+      from: "markdown",
+      [kOutputExt]: "html",
+    },
+    metadata: {},
   };
 }

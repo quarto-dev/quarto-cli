@@ -13,11 +13,12 @@
 *
 */
 
-import { Config } from "../config/config.ts";
 import { getenv } from "../core/env.ts";
 import { execProcess } from "../core/process.ts";
 import { resourcePath } from "../core/resources.ts";
 import { readYamlFromMarkdown } from "../core/yaml.ts";
+
+import { Config } from "../config/config.ts";
 
 import type {
   ComputationEngine,

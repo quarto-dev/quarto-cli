@@ -15,7 +15,6 @@
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { message } from "../../core/console.ts";
 import { run } from "./run.ts";
 
 export const runCommand = new Command()
