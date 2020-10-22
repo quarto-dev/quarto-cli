@@ -10,9 +10,12 @@ export interface PdfEngine {
 }
 
 export function pdfEngine(
-  defaults: PandocDefaults,
+  defaults?: PandocDefaults,
   flags?: PandocFlags,
 ): PdfEngine {
+  // provide for misssing defaults
+  defaults = defaults || {};
+
   // determine pdfengine
   const pdfEngine =
     (flags?.pdfEngine || defaults["pdf-engine"] as string || "pdflatex");
