@@ -19,8 +19,15 @@ import { message } from "../../core/console.ts";
 import { ProcessResult } from "../../core/process.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
+import { readYaml, readYamlFromMarkdownFile } from "../../core/yaml.ts";
 
-import { formatFromMetadata, inputFileConfig } from "../../config/metadata.ts";
+import {
+  formatFromMetadata,
+  Metadata,
+  projectMetadata,
+} from "../../config/metadata.ts";
+
+import { computationEngineForFile } from "../../computation/engine.ts";
 
 import { postProcess as postprocess, runComputations } from "./computation.ts";
 import { runPandoc } from "./pandoc.ts";
@@ -39,15 +46,11 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   // alias flags
   const flags = options.flags || {};
 
-  // derive format options (looks in file and at project level _quarto.yml)
-  const { metadata, defaultWriter } = await inputFileConfig(
-    options.input,
-    flags.config,
-    flags.to,
-  );
+  // resolve metadata and 'to' target
+  const { metadata, to } = await resolveTarget(options);
 
-  // resolve the target format
-  const format = formatFromMetadata(defaultWriter, metadata, flags.debug);
+  // determine the format
+  const format = formatFromMetadata(metadata, to, flags.debug);
 
   // derive the pandoc input file path (computations will create this)
   const [inputDir, inputStem] = dirAndStem(options.input);
@@ -108,4 +111,46 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
 
   // return result
   return result;
+}
+
+async function resolveTarget(options: RenderOptions) {
+  const input = options.input;
+  const override = options.flags?.metadataOverride;
+
+  // look for a 'project' _quarto.yml
+  const projMetadata: Metadata = projectMetadata(input);
+
+  // get metadata from computational preprocessor (or from the raw .md)
+  const engine = computationEngineForFile(input);
+  let inputMetadata = engine
+    ? await engine.metadata(input)
+    : readYamlFromMarkdownFile(input);
+
+  // merge in any options provided via override file
+  if (override) {
+    inputMetadata = mergeConfigs(
+      inputMetadata,
+      readYaml(override) as Metadata,
+    );
+  }
+
+  // determine which writer to use
+  let to = options.flags?.to;
+  if (!to) {
+    to = "html";
+    const formats = Object.keys(inputMetadata).concat(
+      Object.keys(projectMetadata),
+    );
+    if (formats.length > 0) {
+      to = formats[0];
+    }
+  }
+
+  // derive quarto config from merge of project config into file config
+  const metadata = mergeConfigs(projMetadata, inputMetadata);
+
+  return {
+    metadata,
+    to,
+  };
 }
