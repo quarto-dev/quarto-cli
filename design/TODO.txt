@@ -6,12 +6,6 @@ str(params) should yield an error when no params
 
 new config system:
 
-  - consider name of --config command line option? --override?
-  - inputFileConfig feels like it wants a differnet name
-
-  - do we need to pass all the metadata in pandoc options? (use by citeproc)
-  - is in-file metadata properly overriden by format-based metadata (we think not)
-
   RUN
 
   - !file directive
