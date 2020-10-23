@@ -84,7 +84,7 @@ export function formatFromMetadata(
   };
 
   // see if there is user config for this writer that we need to merge in
-  const configFormats = config?.[kMetadataFormat];
+  const configFormats = config[kMetadataFormat];
   if (configFormats instanceof Object) {
     // deno-lint-ignore no-explicit-any
     const configFormat = (configFormats as any)[to];
@@ -133,5 +133,5 @@ export function metadataAsFormat(metadata: Metadata): Format {
       }
     }
   });
-  return format;
+  return format as Format;
 }

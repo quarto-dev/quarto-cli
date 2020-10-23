@@ -80,8 +80,8 @@ export async function runPandoc(
   cmd.push(...args);
 
   // print full resolved input to pandoc
-  if (!options.flags?.quiet && options.format?.metadata) {
-    runPandocMessage(options.format?.metadata, options.format?.pandoc, args);
+  if (!options.flags?.quiet && options.format.metadata) {
+    runPandocMessage(options.format.metadata, options.format.pandoc, args);
   }
 
   // run pandoc

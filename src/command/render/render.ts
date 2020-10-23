@@ -125,7 +125,7 @@ async function resolveFormat(options: RenderOptions) {
   let to = options.flags?.to;
   if (!to) {
     // see if there is a 'to' or 'writer' specified in defaults
-    to = baseFormat.pandoc?.to || baseFormat.pandoc?.writer || "html";
+    to = baseFormat.pandoc.to || baseFormat.pandoc.writer || "html";
     to = to.split("+")[0];
     const formatKeys = (metadata: Metadata): string[] => {
       if (metadata[kMetadataFormat] instanceof Object) {

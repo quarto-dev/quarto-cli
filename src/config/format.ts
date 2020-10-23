@@ -17,10 +17,15 @@ import { mergeConfigs } from "../core/config.ts";
 
 import {
   kAtxHeaders,
+  kCiteMethod,
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
   kKeepYaml,
+  kPdfEngine,
+  kPdfEngineOpt,
+  kPdfEngineOpts,
+  kSelfContained,
   kStandalone,
   kVariant,
 } from "../config/constants.ts";
@@ -40,10 +45,10 @@ import {
 
 // pandoc output format
 export interface Format {
-  render?: FormatRender;
-  compute?: FormatCompute;
-  pandoc?: FormatPandoc;
-  metadata?: Metadata;
+  render: FormatRender;
+  compute: FormatCompute;
+  pandoc: FormatPandoc;
+  metadata: Metadata;
 }
 
 export interface FormatRender {
@@ -67,14 +72,19 @@ export interface FormatPandoc {
   to?: string;
   writer?: string;
   standalone?: boolean;
+  [kSelfContained]?: boolean;
   variables?: { [key: string]: unknown };
   [kAtxHeaders]?: boolean;
   [kIncludeBeforeBody]?: string[];
   [kIncludeAfterBody]?: string[];
   [kIncludeInHeader]?: string[];
+  [kCiteMethod]?: string;
+  [kPdfEngine]?: string;
+  [kPdfEngineOpts]?: string[];
+  [kPdfEngineOpt]?: string;
 }
 
-export function defaultWriterFormat(to: string) {
+export function defaultWriterFormat(to: string): Format {
   // get defaults for writer
   let writerFormat: Format;
   switch (to) {
@@ -129,7 +139,7 @@ export function defaultWriterFormat(to: string) {
   return writerFormat;
 }
 
-function pdfFormat() {
+function pdfFormat(): Format {
   return format(
     "pdf",
     {
@@ -148,7 +158,7 @@ function pdfFormat() {
   );
 }
 
-function beamerFormat() {
+function beamerFormat(): Format {
   return format(
     "pdf",
     pdfFormat(),
@@ -161,14 +171,14 @@ function beamerFormat() {
   );
 }
 
-function latexFormat() {
+function latexFormat(): Format {
   return format(
     "tex",
     pdfFormat(),
   );
 }
 
-function htmlPresentationFormat(figwidth: number, figheight: number) {
+function htmlPresentationFormat(figwidth: number, figheight: number): Format {
   return mergeConfigs(
     htmlFormat(figwidth, figheight),
     {
@@ -180,7 +190,7 @@ function htmlPresentationFormat(figwidth: number, figheight: number) {
   );
 }
 
-function htmlFormat(figwidth = 7, figheight = 5) {
+function htmlFormat(figwidth = 7, figheight = 5): Format {
   return format("html", {
     compute: {
       [kFigWidth]: figwidth,
@@ -192,7 +202,7 @@ function htmlFormat(figwidth = 7, figheight = 5) {
   });
 }
 
-function markdownFormat() {
+function markdownFormat(): Format {
   return format("md", {
     compute: {
       [kFigWidth]: 7,
@@ -207,7 +217,7 @@ function markdownFormat() {
   });
 }
 
-function format(ext: string, ...formats: Format[]) {
+function format(ext: string, ...formats: Array<unknown>): Format {
   return mergeConfigs(
     defaultFormat(),
     ...formats,
