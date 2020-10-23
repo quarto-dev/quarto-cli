@@ -13,7 +13,25 @@
 *
 */
 
-export function message(line: string) {
+import * as colors from "fmt/colors.ts";
+
+export interface MessageOptions {
+  bold?: boolean;
+  indent?: number;
+}
+
+export function message(line: string, options?: MessageOptions) {
+  const { bold = false, indent = 0 } = options || {};
+  if (indent) {
+    const pad = " ".repeat(indent);
+    line = line
+      .split(/\r?\n/)
+      .map((line) => pad + line)
+      .join("\n");
+  }
+  if (bold) {
+    line = colors.bold(line);
+  }
   Deno.stderr.writeSync(new TextEncoder().encode(line + "\n"));
 }
 export function writeFileToStdout(file: string) {

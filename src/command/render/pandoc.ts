@@ -81,7 +81,11 @@ export async function runPandoc(
 
   // print full resolved input to pandoc
   if (!options.flags?.quiet && options.format.metadata) {
-    runPandocMessage(options.format.metadata, options.format.pandoc, args);
+    runPandocMessage(
+      options.format.metadata,
+      options.format.pandoc,
+      [options.input, ...args],
+    );
   }
 
   // run pandoc
@@ -124,9 +128,13 @@ function runPandocMessage(
   pandoc: FormatPandoc | undefined,
   args: string[],
 ) {
-  message(`\n---\n${stringify(metadata)}---\n`);
+  message(`pandoc ${args.join(" ")}`, { bold: true });
   if (pandoc) {
-    message(`\n---\n${stringify(pandoc as Record<string, unknown>)}---\n`);
+    message(stringify(pandoc as Record<string, unknown>), { indent: 2 });
   }
-  message(`\npandoc ${args.join(" ")}\n`);
+
+  message("metadata:", { bold: true });
+  const printMetadata = { ...metadata };
+  delete printMetadata.format;
+  message(stringify(printMetadata), { indent: 2 });
 }
