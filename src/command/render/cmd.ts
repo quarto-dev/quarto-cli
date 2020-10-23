@@ -39,16 +39,16 @@ export const renderCommand = new Command()
     "Write output to FILE (use '--output -' for stdout).",
   )
   .option(
-    "--config",
-    "YAML file specifying configuration overrides.",
-  )
-  .option(
     "--compute-params",
-    "Computation parameters (in YAML file). Specify 'ask' to prompt for values.",
+    "YAML file with computation parameters ('ask' to prompt).",
   )
   .option(
     "--compute-dir",
     "Working directory for computations (e.g. knitr, nbconvert).",
+  )
+  .option(
+    "--metadata-override",
+    "YAML file specifying metadata overrides.",
   )
   .option(
     "--debug",

@@ -14,12 +14,10 @@
 */
 
 import { dirname, join } from "path/mod.ts";
-import { exists } from "fs/exists.ts";
+import { exists, existsSync } from "fs/exists.ts";
 
-import { readYaml, readYamlFromMarkdownFile } from "../core/yaml.ts";
+import { readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
-
-import { computationEngineForFile } from "../computation/engine.ts";
 
 import {
   kComputeDefaults,
@@ -39,54 +37,8 @@ export type Metadata = {
   [key: string]: unknown;
 };
 
-export interface InputFileConfig {
-  metadata: Metadata;
-  defaultWriter: string;
-}
-
-export async function inputFileConfig(
-  input: string,
-  overridesFile?: string,
-  to?: string,
-): Promise<InputFileConfig> {
-  // look for a 'project' _quarto.yml
-  const projMetadata: Metadata = await projectMetadata(input);
-
-  // get metadata from computational preprocessor (or from the raw .md)
-  const engine = computationEngineForFile(input);
-  let inputMetadata = engine
-    ? await engine.metadata(input)
-    : readYamlFromMarkdownFile(input);
-
-  // merge in any options provided via file
-  if (overridesFile) {
-    const overrides = readYaml(overridesFile) as Metadata;
-    inputMetadata = mergeConfigs(inputMetadata, overrides);
-  }
-
-  // determine which writer to use
-  let defaultWriter = to;
-  if (!defaultWriter) {
-    defaultWriter = "html";
-    const formats = Object.keys(inputMetadata).concat(
-      Object.keys(projectMetadata),
-    );
-    if (formats.length > 0) {
-      defaultWriter = formats[0];
-    }
-  }
-
-  // derive quarto config from merge of project config into file config
-  const metadata = mergeConfigs(projMetadata, inputMetadata);
-
-  return {
-    metadata,
-    defaultWriter,
-  };
-}
-
-export async function projectMetadata(file: string): Promise<Metadata> {
-  file = await Deno.realPath(file);
+export function projectMetadata(file: string): Metadata {
+  file = Deno.realPathSync(file);
   let dir: string | undefined;
   while (true) {
     // determine next directory to inspect (terminate if we can't go any higher)
@@ -103,15 +55,15 @@ export async function projectMetadata(file: string): Promise<Metadata> {
 
     // see if there is a quarto yml file there
     const quartoYml = join(dir, "_quarto.yml");
-    if (await exists(quartoYml)) {
+    if (existsSync(quartoYml)) {
       return readYaml(quartoYml) as Metadata;
     }
   }
 }
 
 export function formatFromMetadata(
-  to: string,
   config: Metadata,
+  to: string,
   debug?: boolean,
 ): Format {
   // user format options (allow any b/c this is just untyped yaml)
