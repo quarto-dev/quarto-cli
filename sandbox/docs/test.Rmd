@@ -1,19 +1,18 @@
 ---
 title: "Woozy Foobar"
 knit: quarto render
-format:
+format: 
+  html:
+    toc: true
+    highlight-style: pygments
   beamer: 
     toc: true
     slide-level: 2
     incremental: false
     theme: Berkeley
     colortheme: default
-      
   slidy:
     incremental: false
-  html:
-    toc: true
-    highlight-style: pygments
 ---
 
 ## Summary 1
