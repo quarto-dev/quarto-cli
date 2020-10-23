@@ -35,20 +35,28 @@ export const kComputeDefaultsKeys = [
 ];
 
 export const kKeepMd = "keep-md";
-export const kKeepYaml = "keep-yaml";
 export const kKeepTex = "keep-tex";
-
-export const kRenderDefaultsKeys = [kKeepMd, kKeepTex, kKeepYaml];
-
-export const kMdExtensions = "md-extensions";
+export const kKeepYaml = "keep-yaml";
+export const kVariant = "variant";
 export const kOutputExt = "output-ext";
+
+export const kRenderDefaultsKeys = [
+  kKeepMd,
+  kKeepTex,
+  kKeepYaml,
+  kVariant,
+  kOutputExt,
+];
+
+export const kAtxHeaders = "atx-headers";
 export const kStandalone = "standalone";
 export const kSelfContained = "self-contained";
+export const kIncludeBeforeBody = "include-before-body";
+export const kIncludeAfterBody = "include-after-body";
+export const kIncludeInHeader = "include-in-header";
 
 // https://pandoc.org/MANUAL.html#default-files
 export const kPandocDefaultsKeys = [
-  kMdExtensions,
-  kOutputExt, // our special additions (which are resolved prior to sending to pandoc)
   "to",
   "from",
   "reader",
@@ -62,9 +70,9 @@ export const kPandocDefaultsKeys = [
   "metadata",
   "metadata-files",
   "metadata-file",
-  "include-before-body",
-  "include-after-body",
-  "include-in-header",
+  kIncludeBeforeBody,
+  kIncludeAfterBody,
+  kIncludeInHeader,
   "resource-path",
   "citeproc",
   "csl",
@@ -117,7 +125,7 @@ export const kPandocDefaultsKeys = [
   "epub-cover-image",
   "reference-links",
   "reference-location",
-  "atx-headers",
+  kAtxHeaders,
   "track-changes",
   "html-q-tags",
   "css",

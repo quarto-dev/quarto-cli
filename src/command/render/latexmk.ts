@@ -42,7 +42,7 @@ export function useLatexmk(
 ) {
   // check writer and extension
   const to = format.pandoc?.to;
-  const ext = format?.pandoc?.[kOutputExt] || "html";
+  const ext = format?.render?.[kOutputExt] || "html";
 
   // if we are creating pdf output
   if (["beamer", "pdf"].includes(to || "") && ext === "pdf") {
@@ -88,7 +88,7 @@ export function latexmkOutputRecipe(
     // determine latexmk options
     const mkOptions: LatexmkOptions = {
       input: join(inputDir, output),
-      engine: pdfEngine(format.metadata, pandocOptions.flags),
+      engine: pdfEngine(format.pandoc, pandocOptions.flags),
       clean: !options.flags?.debug,
       quiet: pandocOptions.flags?.quiet,
     };

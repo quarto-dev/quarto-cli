@@ -76,7 +76,7 @@ export function formatFromMetadata(
 ): Format {
   // user format options (allow any b/c this is just untyped yaml)
   // deno-lint-ignore no-explicit-any
-  const format: any = {
+  let format: any = {
     render: {},
     compute: {},
     pandoc: {},
@@ -87,28 +87,9 @@ export function formatFromMetadata(
   const configFormats = config?.[kMetadataFormat];
   if (configFormats instanceof Object) {
     // deno-lint-ignore no-explicit-any
-    const configFormat = (configFormats as any)[to] as any;
+    const configFormat = (configFormats as any)[to];
     if (configFormat instanceof Object) {
-      Object.keys(configFormat).forEach((key) => {
-        // allow stuff already sorted into a top level key through unmodified
-        if (
-          [kRenderDefaults, kComputeDefaults, kPandocDefaults, kPandocMetadata]
-            .includes(key)
-        ) {
-          format[key] = configFormat[key];
-        } else {
-          // move the key into the appropriate top level key
-          if (kRenderDefaultsKeys.includes(key)) {
-            format.render[key] = configFormat[key];
-          } else if (kComputeDefaultsKeys.includes(key)) {
-            format.compute[key] = configFormat[key];
-          } else if (kPandocDefaultsKeys.includes(key)) {
-            format.pandoc[key] = configFormat[key];
-          } else {
-            format.metadata[key] = configFormat[key];
-          }
-        }
-      });
+      format = metadataAsFormat(configFormat);
     }
   }
 
@@ -122,4 +103,35 @@ export function formatFromMetadata(
   }
 
   return mergedFormat;
+}
+
+export function metadataAsFormat(metadata: Metadata): Format {
+  // deno-lint-ignore no-explicit-any
+  const format: { [key: string]: any } = {
+    render: {},
+    compute: {},
+    pandoc: {},
+    metadata: {},
+  };
+  Object.keys(metadata).forEach((key) => {
+    // allow stuff already sorted into a top level key through unmodified
+    if (
+      [kRenderDefaults, kComputeDefaults, kPandocDefaults, kPandocMetadata]
+        .includes(key)
+    ) {
+      format[key] = metadata[key];
+    } else {
+      // move the key into the appropriate top level key
+      if (kRenderDefaultsKeys.includes(key)) {
+        format.render[key] = metadata[key];
+      } else if (kComputeDefaultsKeys.includes(key)) {
+        format.compute[key] = metadata[key];
+      } else if (kPandocDefaultsKeys.includes(key)) {
+        format.pandoc[key] = metadata[key];
+      } else {
+        format.metadata[key] = metadata[key];
+      }
+    }
+  });
+  return format;
 }

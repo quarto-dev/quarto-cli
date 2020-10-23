@@ -21,6 +21,11 @@ import {
   PandocIncludes,
   PostProcessOptions,
 } from "../../computation/engine.ts";
+import {
+  kIncludeAfterBody,
+  kIncludeBeforeBody,
+  kIncludeInHeader,
+} from "../../config/constants.ts";
 
 // result from computational preprocessor
 export interface ComputationsResult {
@@ -83,12 +88,13 @@ function pandocIncludeFiles(
       if (value) {
         const includeFile = Deno.makeTempFileSync();
         Deno.writeTextFileSync(includeFile, value);
-        pandoc[name] = [includeFile];
+        // deno-lint-ignore no-explicit-any
+        (pandoc as any)[name] = [includeFile];
       }
     };
-    include("include-in-header", includes.in_header);
-    include("include-before-body", includes.before_body);
-    include("include-after-body", includes.after_body);
+    include(kIncludeInHeader, includes.in_header);
+    include(kIncludeBeforeBody, includes.before_body);
+    include(kIncludeAfterBody, includes.after_body);
   }
   return pandoc;
 }

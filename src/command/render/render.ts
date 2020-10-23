@@ -25,6 +25,7 @@ import {
   fileMetadata,
   formatFromMetadata,
   Metadata,
+  metadataAsFormat,
   projectMetadata,
 } from "../../config/metadata.ts";
 
@@ -33,6 +34,7 @@ import { runPandoc } from "./pandoc.ts";
 import { kStdOut, RenderFlags, resolveParams } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
+import { kMetadataFormat } from "../../config/constants.ts";
 
 // command line options for render
 export interface RenderOptions {
@@ -46,15 +48,15 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   const flags = options.flags || {};
 
   // resolve render target
-  const { input, metadata, format } = await resolveTarget(options);
+  const format = await resolveFormat(options);
 
   // derive the pandoc input file path (computations will create this)
-  const [inputDir, inputStem] = dirAndStem(input);
+  const [inputDir, inputStem] = dirAndStem(options.input);
   const mdInput = join(inputDir, inputStem + ".md");
 
   // run computations
   const computations = await runComputations({
-    input,
+    input: options.input,
     output: mdInput,
     format,
     cwd: flags.computeDir,
@@ -71,7 +73,6 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   // pandoc options
   const pandocOptions = {
     input: mdInput,
-    metadata,
     format: recipe.format,
     args: recipe.args,
     flags: options.flags,
@@ -86,7 +87,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   // run optional post-processor (e.g. to restore html-preserve regions)
   if (computations.postprocess) {
     await postprocess({
-      input,
+      input: options.input,
       format,
       output: recipe.output,
       data: computations.postprocess,
@@ -98,7 +99,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   const finalOutput = await recipe.complete(pandocOptions) || recipe.output;
 
   // cleanup as required
-  cleanup(input, flags, format, computations, finalOutput);
+  cleanup(options.input, flags, format, computations, finalOutput);
 
   // report output created
   if (!flags.quiet && flags.output !== kStdOut) {
@@ -109,48 +110,43 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   return result;
 }
 
-async function resolveTarget(options: RenderOptions) {
-  const input = options.input;
-
+async function resolveFormat(options: RenderOptions) {
   // merge input metadata into project metadata
-  const inputMetadata = await fileMetadata(input);
-  const projMetadata = projectMetadata(input);
+  const inputMetadata = await fileMetadata(options.input);
+  const projMetadata = projectMetadata(options.input);
   const baseMetadata = mergeConfigs(projMetadata, inputMetadata);
+
+  // divide metadata into format buckets
+  const baseFormat = metadataAsFormat(baseMetadata);
 
   // determine which writer to use (use original input and
   // project metadata to preserve order of keys and to
   // prefer input-level format keys to project-level)
   let to = options.flags?.to;
   if (!to) {
-    to = "html";
-    const formats = Object.keys(inputMetadata).concat(
-      Object.keys(projectMetadata),
-    );
+    // see if there is a 'to' or 'writer' specified in defaults
+    to = baseFormat.pandoc?.to || baseFormat.pandoc?.writer || "html";
+    to = to.split("+")[0];
+    const formatKeys = (metadata: Metadata): string[] => {
+      if (metadata[kMetadataFormat] instanceof Object) {
+        return Object.keys(metadata[kMetadataFormat] as Metadata);
+      } else {
+        return [];
+      }
+    };
+    const formats = formatKeys(inputMetadata).concat(formatKeys(projMetadata));
     if (formats.length > 0) {
       to = formats[0];
     }
   }
 
   // determine the target format
-  const format = formatFromMetadata(baseMetadata, to, options.flags?.debug);
-
-  // get any override metadata
-  const overrideMetadata = options.flags?.metadataOverride
-    ? readYaml(options.flags?.metadataOverride) as Metadata
-    : {};
-
-  // merge pandoc metadata within the format into the base metadata
-  // found within the input file and any project file(s)
-  const metadata = mergeConfigs(
-    baseMetadata,
-    format.metadata || {},
-    overrideMetadata,
+  const format = formatFromMetadata(
+    baseFormat.metadata || {},
+    to,
+    options.flags?.debug,
   );
 
   // return target
-  return {
-    input,
-    metadata,
-    format,
-  };
+  return mergeConfigs(baseFormat, format);
 }
