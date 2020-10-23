@@ -39,23 +39,10 @@ export type Metadata = {
   [key: string]: unknown;
 };
 
-export async function fileMetadata(file: string, override?: string) {
+export async function fileMetadata(file: string) {
   // get metadata from computational preprocessor (or from the raw .md)
   const engine = computeEngineForFile(file);
-  let fileMetadata = engine
-    ? await engine.metadata(file)
-    : readYamlFromMarkdownFile(file);
-
-  // merge in any metadata provided via override file
-  if (override) {
-    fileMetadata = mergeConfigs(
-      fileMetadata,
-      readYaml(override) as Metadata,
-    );
-  }
-
-  // return
-  return fileMetadata;
+  return engine ? await engine.metadata(file) : readYamlFromMarkdownFile(file);
 }
 
 export function projectMetadata(file: string): Metadata {

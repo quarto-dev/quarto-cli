@@ -19,7 +19,7 @@ import { message } from "../../core/console.ts";
 import { ProcessResult } from "../../core/process.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
-import { readYaml, readYamlFromMarkdownFile } from "../../core/yaml.ts";
+import { readYaml } from "../../core/yaml.ts";
 
 import {
   fileMetadata,
@@ -27,8 +27,6 @@ import {
   Metadata,
   projectMetadata,
 } from "../../config/metadata.ts";
-
-import { computeEngineForFile } from "../../computation/engine.ts";
 
 import { postProcess as postprocess, runComputations } from "./computation.ts";
 import { runPandoc } from "./pandoc.ts";
@@ -113,10 +111,9 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
 
 async function resolveTarget(options: RenderOptions) {
   const input = options.input;
-  const override = options.flags?.metadataOverride;
 
   // merge input metadata into project metadata
-  const inputMetadata = await fileMetadata(input, override);
+  const inputMetadata = await fileMetadata(input);
   const projMetadata = projectMetadata(input);
   const baseMetadata = mergeConfigs(projMetadata, inputMetadata);
 
@@ -137,9 +134,18 @@ async function resolveTarget(options: RenderOptions) {
   // determine the target format
   const format = formatFromMetadata(baseMetadata, to, options.flags?.debug);
 
+  // get any override metadata
+  const overrideMetadata = options.flags?.metadataOverride
+    ? readYaml(options.flags?.metadataOverride) as Metadata
+    : {};
+
   // merge pandoc metadata within the format into the base metadata
   // found within the input file and any project file(s)
-  const metadata = mergeConfigs(baseMetadata, format.metadata || {});
+  const metadata = mergeConfigs(
+    baseMetadata,
+    format.metadata || {},
+    overrideMetadata,
+  );
 
   // return target
   return {
