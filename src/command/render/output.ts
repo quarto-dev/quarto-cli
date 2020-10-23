@@ -19,11 +19,7 @@ import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
 import { readYamlFrontMatterFromMarkdown } from "../../core/yaml.ts";
 
-import {
-  kKeepYaml,
-  kMdExtensions,
-  kOutputExt,
-} from "../../config/constants.ts";
+import { kKeepYaml, kOutputExt, kVariant } from "../../config/constants.ts";
 import { Format } from "../../config/format.ts";
 
 import { computeEngineForFile } from "../../computation/engine.ts";
@@ -67,26 +63,30 @@ export function outputRecipe(
     const recipe = {
       output: options.flags?.output!,
       args: options.pandocArgs || [],
-      format: format,
+      format: { ...format },
       complete: async (): Promise<string | void> => {
         completeActions.forEach((action) => action());
       },
     };
 
-    // alias some path attributes
-    const ext = format?.pandoc?.[kOutputExt] || "html";
+    // read and remove output-ext if it's there
+    const ext = format?.render?.[kOutputExt] || "html";
+    if (format?.render?.[kOutputExt]) {
+      delete format?.render?.[kOutputExt];
+    }
+
+    // compute dir and stem
     const [inputDir, inputStem] = dirAndStem(options.input);
 
     // tweak pandoc writer if we have extensions declared
-    if (format.pandoc?.[kMdExtensions]) {
+    if (format.render?.[kVariant]) {
       recipe.format = {
         ...recipe.format,
         pandoc: {
           ...recipe.format.pandoc,
-          to: `${format.pandoc?.to}${format.pandoc?.[kMdExtensions]}`,
+          to: `${format.pandoc?.to}${format.render?.[kVariant]}`,
         },
       };
-      delete recipe.format.pandoc?.[kMdExtensions];
     }
 
     // complete hook for keep-yaml (to: markdown already implements keep-yaml by default)

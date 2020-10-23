@@ -15,15 +15,12 @@
 
 import { ProcessResult, processSuccessResult } from "../../core/process.ts";
 
-import {
-  computationEngineForFile,
-  RunOptions,
-} from "../../computation/engine.ts";
+import { computeEngineForFile, RunOptions } from "../../computation/engine.ts";
 
 import { render } from "../render/render.ts";
 
 export async function run(options: RunOptions): Promise<ProcessResult> {
-  const engine = computationEngineForFile(options.input);
+  const engine = computeEngineForFile(options.input);
   if (engine?.run) {
     // render if requested
     if (options.render) {

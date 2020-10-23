@@ -23,7 +23,6 @@ export const kStdOut = "-";
 // command line flags that we need to inspect
 export interface RenderFlags extends PandocFlags {
   // quarto flags
-  metadataOverride?: string;
   computeParams?: string;
   computeDir?: string;
   debug?: boolean;
@@ -81,11 +80,6 @@ export function parseRenderFlags(args: string[]) {
       case "--biblatex":
         arg = argsStack.shift();
         flags.biblatex = true;
-        break;
-
-      case "--metadata-override":
-        arg = argsStack.shift();
-        flags.metadataOverride = arg;
         break;
 
       case "--compute-params":

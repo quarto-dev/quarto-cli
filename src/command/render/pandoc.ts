@@ -29,8 +29,6 @@ import { RenderFlags } from "./flags.ts";
 export interface PandocOptions {
   // input file
   input: string;
-  // full merged config
-  metadata: Metadata;
   // target format
   format: Format;
   // command line args for pandoc
@@ -48,14 +46,15 @@ export async function runPandoc(
   // values, overrides the metadata contained within the file). we'll feed the
   // input to pandoc on stdin
   const input = Deno.readTextFileSync(options.input) +
-    `\n---\n${stringify(options.metadata)}\n---\n`;
+    `\n---\n${stringify(options.format.metadata || {})}\n---\n`;
 
   // build the pandoc command (we'll feed it the input on stdin)
   const cmd = ["pandoc"];
 
   // write a temporary defaults file
   if (options.format.pandoc) {
-    const defaults = "---\n" + stringify(options.format.pandoc);
+    const defaults = "---\n" +
+      stringify(options.format.pandoc as Record<string, unknown>);
     const defaultsFile = await Deno.makeTempFile(
       { prefix: "quarto-defaults", suffix: ".yml" },
     );
@@ -81,8 +80,8 @@ export async function runPandoc(
   cmd.push(...args);
 
   // print full resolved input to pandoc
-  if (!options.flags?.quiet) {
-    runPandocMessage(options.metadata, options.format?.pandoc, args);
+  if (!options.flags?.quiet && options.format?.metadata) {
+    runPandocMessage(options.format?.metadata, options.format?.pandoc, args);
   }
 
   // run pandoc
@@ -99,7 +98,8 @@ type CiteMethod = "citeproc" | "natbib" | "biblatex";
 
 function citeMethod(options: PandocOptions): CiteMethod | null {
   // no handler if no references
-  if (!options.metadata.bibliography && !options.metadata.references) {
+  const metadata = options.format.metadata;
+  if (metadata && !metadata.bibliography && !metadata.references) {
     return null;
   }
 
@@ -112,7 +112,7 @@ function citeMethod(options: PandocOptions): CiteMethod | null {
   }
 
   // otherwise it's citeproc unless expressly disabled
-  if (options.metadata.citeproc !== false) {
+  if (metadata && metadata.citeproc !== false) {
     return "citeproc";
   } else {
     return null;
@@ -126,7 +126,7 @@ function runPandocMessage(
 ) {
   message(`\n---\n${stringify(metadata)}---\n`);
   if (pandoc) {
-    message(`\n---\n${stringify(pandoc)}---\n`);
+    message(`\n---\n${stringify(pandoc as Record<string, unknown>)}---\n`);
   }
   message(`\npandoc ${args.join(" ")}\n`);
 }

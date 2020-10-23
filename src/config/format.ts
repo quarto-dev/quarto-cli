@@ -15,7 +15,15 @@
 
 import { mergeConfigs } from "../core/config.ts";
 
-import { kKeepYaml, kMdExtensions, kStandalone } from "../config/constants.ts";
+import {
+  kAtxHeaders,
+  kIncludeAfterBody,
+  kIncludeBeforeBody,
+  kIncludeInHeader,
+  kKeepYaml,
+  kStandalone,
+  kVariant,
+} from "../config/constants.ts";
 
 import { Metadata } from "./metadata.ts";
 
@@ -42,6 +50,8 @@ export interface FormatRender {
   [kKeepMd]?: boolean;
   [kKeepYaml]?: boolean;
   [kKeepTex]?: boolean;
+  [kVariant]?: string;
+  [kOutputExt]?: string;
 }
 
 export interface FormatCompute {
@@ -55,9 +65,13 @@ export interface FormatCompute {
 export interface FormatPandoc {
   from?: string;
   to?: string;
-  [kMdExtensions]?: string;
-  [kOutputExt]?: string;
-  [key: string]: unknown;
+  writer?: string;
+  standalone?: boolean;
+  variables?: { [key: string]: unknown };
+  [kAtxHeaders]?: boolean;
+  [kIncludeBeforeBody]?: string[];
+  [kIncludeAfterBody]?: string[];
+  [kIncludeInHeader]?: string[];
 }
 
 export function defaultWriterFormat(to: string) {
@@ -125,7 +139,7 @@ function pdfFormat() {
         [kFigFormat]: "pdf",
       },
       pandoc: {
-        [kStandalone]: true,
+        standalone: true,
         variables: {
           graphics: true,
         },
@@ -185,7 +199,7 @@ function markdownFormat() {
       [kFigHeight]: 5,
     },
     pandoc: {
-      [kStandalone]: true,
+      standalone: true,
       // NOTE: this will become the default in the next
       // version of pandoc, remove this flag after that
       ["atx-headers"]: true,
@@ -198,7 +212,7 @@ function format(ext: string, ...formats: Format[]) {
     defaultFormat(),
     ...formats,
     {
-      pandoc: {
+      render: {
         [kOutputExt]: ext,
       },
     },
@@ -218,10 +232,10 @@ function defaultFormat(): Format {
       [kKeepMd]: false,
       [kKeepTex]: false,
       [kKeepYaml]: false,
+      [kOutputExt]: "html",
     },
     pandoc: {
       from: "markdown",
-      [kOutputExt]: "html",
     },
     metadata: {},
   };
