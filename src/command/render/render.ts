@@ -46,19 +46,19 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   // alias flags
   const flags = options.flags || {};
 
-  // resolve metadata and 'to' target
-  const { metadata, to } = await resolveTarget(options);
+  // resolve render target
+  const { input, metadata, to } = await resolveTarget(options);
 
   // determine the format
   const format = formatFromMetadata(metadata, to, flags.debug);
 
   // derive the pandoc input file path (computations will create this)
-  const [inputDir, inputStem] = dirAndStem(options.input);
+  const [inputDir, inputStem] = dirAndStem(input);
   const mdInput = join(inputDir, inputStem + ".md");
 
   // run computations
   const computations = await runComputations({
-    input: options.input,
+    input,
     output: mdInput,
     format,
     cwd: flags.computeDir,
@@ -90,7 +90,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   // run optional post-processor (e.g. to restore html-preserve regions)
   if (computations.postprocess) {
     await postprocess({
-      input: options.input,
+      input,
       format,
       output: recipe.output,
       data: computations.postprocess,
@@ -102,7 +102,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   const finalOutput = await recipe.complete(pandocOptions) || recipe.output;
 
   // cleanup as required
-  cleanup(options.input, flags, format, computations, finalOutput);
+  cleanup(input, flags, format, computations, finalOutput);
 
   // report output created
   if (!flags.quiet && flags.output !== kStdOut) {
@@ -149,7 +149,9 @@ async function resolveTarget(options: RenderOptions) {
   // derive quarto config from merge of project config into file config
   const metadata = mergeConfigs(projMetadata, inputMetadata);
 
+  // return target
   return {
+    input,
     metadata,
     to,
   };
