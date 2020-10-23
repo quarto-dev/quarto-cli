@@ -54,6 +54,10 @@ export const kSelfContained = "self-contained";
 export const kIncludeBeforeBody = "include-before-body";
 export const kIncludeAfterBody = "include-after-body";
 export const kIncludeInHeader = "include-in-header";
+export const kCiteMethod = "cite-method";
+export const kPdfEngine = "pdf-engine";
+export const kPdfEngineOpts = "pdf-engine-opts";
+export const kPdfEngineOpt = "pdf-engine-opt";
 
 // https://pandoc.org/MANUAL.html#default-files
 export const kPandocDefaultsKeys = [
@@ -82,12 +86,12 @@ export const kPandocDefaultsKeys = [
   "data-dir",
   "verbosity",
   "log-file",
-  "cite-method",
+  kCiteMethod,
   "top-level-division",
   "abbreviations",
-  "pdf-engine",
-  "pdf-engine-opts",
-  "pdf-engine-opt",
+  kPdfEngine,
+  kPdfEngineOpts,
+  kPdfEngineOpt,
   "wrap",
   "columns",
   "dpi",

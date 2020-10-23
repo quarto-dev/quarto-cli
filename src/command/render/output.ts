@@ -70,29 +70,29 @@ export function outputRecipe(
     };
 
     // read and remove output-ext if it's there
-    const ext = format?.render?.[kOutputExt] || "html";
-    if (format?.render?.[kOutputExt]) {
-      delete format?.render?.[kOutputExt];
+    const ext = format.render[kOutputExt] || "html";
+    if (format.render[kOutputExt]) {
+      delete format.render[kOutputExt];
     }
 
     // compute dir and stem
     const [inputDir, inputStem] = dirAndStem(options.input);
 
     // tweak pandoc writer if we have extensions declared
-    if (format.render?.[kVariant]) {
+    if (format.render[kVariant]) {
       recipe.format = {
         ...recipe.format,
         pandoc: {
           ...recipe.format.pandoc,
-          to: `${format.pandoc?.to}${format.render?.[kVariant]}`,
+          to: `${format.pandoc.to}${format.render[kVariant]}`,
         },
       };
     }
 
     // complete hook for keep-yaml (to: markdown already implements keep-yaml by default)
     if (
-      format?.render?.[kKeepYaml] &&
-      !/^markdown(\+|$)/.test(format.pandoc?.to || "")
+      format.render[kKeepYaml] &&
+      !/^markdown(\+|$)/.test(format.pandoc.to || "")
     ) {
       completeActions.push(() => {
         // read yaml and output markdown
@@ -112,7 +112,7 @@ export function outputRecipe(
       // special case for .md to .md, need to use the writer to create a unique extension
       let outputExt = ext;
       if (extname(options.input) === ".md" && ext === "md") {
-        outputExt = `${format.pandoc?.to}.md`;
+        outputExt = `${format.pandoc.to}.md`;
       }
       recipe.output = join(inputStem + "." + outputExt);
       recipe.args.unshift("--output", recipe.output);

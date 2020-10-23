@@ -41,8 +41,8 @@ export function useLatexmk(
   flags?: RenderFlags,
 ) {
   // check writer and extension
-  const to = format.pandoc?.to;
-  const ext = format?.render?.[kOutputExt] || "html";
+  const to = format.pandoc.to;
+  const ext = format.render[kOutputExt] || "html";
 
   // if we are creating pdf output
   if (["beamer", "pdf"].includes(to || "") && ext === "pdf") {
@@ -98,7 +98,7 @@ export function latexmkOutputRecipe(
 
     // keep tex if requested
     const compileTex = join(inputDir, output);
-    if (!format?.render?.[kKeepTex]) {
+    if (!format.render[kKeepTex]) {
       Deno.removeSync(compileTex);
     }
 
@@ -122,7 +122,7 @@ export function latexmkOutputRecipe(
   };
 
   // tweak writer if it's pdf
-  const to = format.pandoc?.to === "pdf" ? "latex" : format.pandoc?.to;
+  const to = format.pandoc.to === "pdf" ? "latex" : format.pandoc.to;
 
   // return recipe
   return {

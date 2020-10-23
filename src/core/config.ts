@@ -15,13 +15,14 @@
 
 import { ld } from "lodash/mod.ts";
 
-export function mergeConfigs<T>(...configs: T[]): T {
+export function mergeConfigs<T>(config: T, ...configs: Array<unknown>): T {
   // copy all configs so we don't mutate them
+  config = ld.cloneDeep(config);
   configs = ld.cloneDeep(configs);
 
   return ld.mergeWith(
-    configs[0],
-    ...configs.slice(1),
+    config,
+    ...configs,
     (objValue: unknown, srcValue: unknown) => {
       if (ld.isArray(objValue) && ld.isArray(srcValue)) {
         const combined = (objValue as Array<unknown>).concat(
