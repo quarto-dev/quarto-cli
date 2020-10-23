@@ -26,7 +26,7 @@ import {
 } from "../../config/constants.ts";
 import { Format } from "../../config/format.ts";
 
-import { computationEngineForFile } from "../../computation/engine.ts";
+import { computeEngineForFile } from "../../computation/engine.ts";
 
 import { kStdOut, replacePandocArg } from "./flags.ts";
 import { PandocOptions } from "./pandoc.ts";
@@ -59,7 +59,7 @@ export function outputRecipe(
   format: Format,
 ): OutputRecipe {
   if (useLatexmk(mdInput, format, options.flags)) {
-    const engine = computationEngineForFile(options.input);
+    const engine = computeEngineForFile(options.input);
     return latexmkOutputRecipe(options, format, engine?.latexmk);
   } else {
     // default recipe spec based on user input

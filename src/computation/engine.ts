@@ -80,7 +80,7 @@ export interface ComputationEngine {
   run?: (options: RunOptions) => Promise<void>;
 }
 
-export function computationEngineForFile(file: string) {
+export function computeEngineForFile(file: string) {
   const engines = [
     rmdEngine,
     ipynbEngine,

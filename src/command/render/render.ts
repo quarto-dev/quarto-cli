@@ -27,7 +27,7 @@ import {
   projectMetadata,
 } from "../../config/metadata.ts";
 
-import { computationEngineForFile } from "../../computation/engine.ts";
+import { computeEngineForFile } from "../../computation/engine.ts";
 
 import { postProcess as postprocess, runComputations } from "./computation.ts";
 import { runPandoc } from "./pandoc.ts";
@@ -121,7 +121,7 @@ async function resolveTarget(options: RenderOptions) {
   const projMetadata: Metadata = projectMetadata(input);
 
   // get metadata from computational preprocessor (or from the raw .md)
-  const engine = computationEngineForFile(input);
+  const engine = computeEngineForFile(input);
   let inputMetadata = engine
     ? await engine.metadata(input)
     : readYamlFromMarkdownFile(input);
