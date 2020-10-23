@@ -19,7 +19,7 @@ import { stringify } from "encoding/yaml.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 import { message } from "../../core/console.ts";
 
-import { Format } from "../../config/format.ts";
+import { Format, FormatPandoc } from "../../config/format.ts";
 import { pdfEngine } from "../../config/pdf.ts";
 import { Metadata } from "../../config/metadata.ts";
 
@@ -57,14 +57,13 @@ export async function runPandoc(
   const cmd = ["pandoc"];
 
   // write a temporary defaults file
-  let yaml = "";
   if (options.format.pandoc) {
-    yaml = "---\n" + stringify(options.format.pandoc);
-    const yamlFile = await Deno.makeTempFile(
+    const defaults = "---\n" + stringify(options.format.pandoc);
+    const defaultsFile = await Deno.makeTempFile(
       { prefix: "quarto-defaults", suffix: ".yml" },
     );
-    await Deno.writeTextFile(yamlFile, yaml);
-    cmd.push("--defaults", yamlFile);
+    await Deno.writeTextFile(defaultsFile, defaults);
+    cmd.push("--defaults", defaultsFile);
   }
 
   // build command line args
@@ -84,14 +83,9 @@ export async function runPandoc(
   // add user command line args
   cmd.push(...args);
 
-  // print defaults file and command line args
+  // print full resolved input to pandoc
   if (!options.flags?.quiet) {
-    if (options.args.length > 0) {
-      message(yaml + "args: " + args.join(" "));
-    } else {
-      message(yaml);
-    }
-    message("---\n");
+    runPandocMessage(options.metadata, options.format?.pandoc, args);
   }
 
   // run pandoc
@@ -104,11 +98,9 @@ export async function runPandoc(
   );
 }
 
-export type CiteMethod = "citeproc" | "natbib" | "biblatex";
+type CiteMethod = "citeproc" | "natbib" | "biblatex";
 
-export function citeMethod(
-  options: PandocOptions,
-): CiteMethod | null {
+function citeMethod(options: PandocOptions): CiteMethod | null {
   // no handler if no references
   if (!options.metadata.bibliography && !options.metadata.references) {
     return null;
@@ -128,4 +120,16 @@ export function citeMethod(
   } else {
     return null;
   }
+}
+
+function runPandocMessage(
+  metadata: Metadata,
+  pandoc: FormatPandoc | undefined,
+  args: string[],
+) {
+  message(`\n---\n${stringify(metadata)}---\n`);
+  if (pandoc) {
+    message(`\n---\n${stringify(pandoc)}---\n`);
+  }
+  message(`\npandoc ${args.join(" ")}\n`);
 }
