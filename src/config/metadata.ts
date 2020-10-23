@@ -14,9 +14,11 @@
 */
 
 import { dirname, join } from "path/mod.ts";
-import { exists, existsSync } from "fs/exists.ts";
+import { existsSync } from "fs/exists.ts";
 
-import { readYaml } from "../core/yaml.ts";
+import { computeEngineForFile } from "../computation/engine.ts";
+
+import { readYaml, readYamlFromMarkdownFile } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
 
 import {
@@ -36,6 +38,25 @@ import { defaultWriterFormat, Format } from "./format.ts";
 export type Metadata = {
   [key: string]: unknown;
 };
+
+export async function fileMetadata(file: string, override?: string) {
+  // get metadata from computational preprocessor (or from the raw .md)
+  const engine = computeEngineForFile(file);
+  let fileMetadata = engine
+    ? await engine.metadata(file)
+    : readYamlFromMarkdownFile(file);
+
+  // merge in any metadata provided via override file
+  if (override) {
+    fileMetadata = mergeConfigs(
+      fileMetadata,
+      readYaml(override) as Metadata,
+    );
+  }
+
+  // return
+  return fileMetadata;
+}
 
 export function projectMetadata(file: string): Metadata {
   file = Deno.realPathSync(file);
