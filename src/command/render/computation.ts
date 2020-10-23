@@ -16,7 +16,7 @@
 import { FormatPandoc } from "../../config/format.ts";
 
 import {
-  computationEngineForFile,
+  computeEngineForFile,
   ExecuteOptions,
   PandocIncludes,
   PostProcessOptions,
@@ -41,7 +41,7 @@ export async function runComputations(
   options: ExecuteOptions,
 ): Promise<ComputationsResult> {
   // compute file paths
-  const engine = computationEngineForFile(options.input);
+  const engine = computeEngineForFile(options.input);
 
   // run compute engine if appropriate
   if (engine) {
@@ -65,7 +65,7 @@ export async function runComputations(
 export async function postProcess(
   options: PostProcessOptions,
 ): Promise<void> {
-  const engine = computationEngineForFile(options.input);
+  const engine = computeEngineForFile(options.input);
   if (engine && engine.postprocess) {
     return engine.postprocess(options);
   } else {
