@@ -24,6 +24,7 @@ import { pdfEngine } from "../../config/pdf.ts";
 import { Metadata } from "../../config/metadata.ts";
 
 import { RenderFlags } from "./flags.ts";
+import { kMetadataFormat } from "../../config/constants.ts";
 
 // options required to run pandoc
 export interface PandocOptions {
@@ -43,8 +44,17 @@ export interface PandocOptions {
 export async function runPandoc(
   options: PandocOptions,
 ): Promise<ProcessResult> {
-  // build the pandoc command
-  const cmd = ["pandoc", basename(options.input)];
+  // read the input file then append the metadata to the file (this is to that)
+  // our fully resolved metadata, which incorporates project and format-specific
+  // values, overrides the metadata contained within the file). we'll feed the
+  // input to pandoc on stdin
+  let input = await Deno.readTextFile(options.input);
+  if (Object.keys(options.metadata).length > 0) {
+    input += `\n---\n${stringify(options.metadata)}\n---\n`;
+  }
+
+  // build the pandoc command (we'll feed it the input on stdin)
+  const cmd = ["pandoc"];
 
   // write a temporary defaults file
   let yaml = "";
@@ -85,10 +95,13 @@ export async function runPandoc(
   }
 
   // run pandoc
-  return await execProcess({
-    cmd,
-    cwd: dirname(options.input),
-  });
+  return await execProcess(
+    {
+      cmd,
+      cwd: dirname(options.input),
+    },
+    input,
+  );
 }
 
 export type CiteMethod = "citeproc" | "natbib" | "biblatex";
@@ -96,13 +109,13 @@ export type CiteMethod = "citeproc" | "natbib" | "biblatex";
 export function citeMethod(
   options: PandocOptions,
 ): CiteMethod | null {
-  // collect config
-  const pdf = pdfEngine(options.format.pandoc, options.flags);
-
   // no handler if no references
   if (!options.metadata.bibliography && !options.metadata.references) {
     return null;
   }
+
+  // collect config
+  const pdf = pdfEngine(options.format.pandoc, options.flags);
 
   // if it's pdf-based output check for natbib or biblatex
   if (pdf?.bibEngine) {

@@ -22,6 +22,7 @@ import { mergeConfigs } from "../../core/config.ts";
 import { readYaml, readYamlFromMarkdownFile } from "../../core/yaml.ts";
 
 import {
+  fileMetadata,
   formatFromMetadata,
   Metadata,
   projectMetadata,
@@ -47,10 +48,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   const flags = options.flags || {};
 
   // resolve render target
-  const { input, metadata, to } = await resolveTarget(options);
-
-  // determine the format
-  const format = formatFromMetadata(metadata, to, flags.debug);
+  const { input, metadata, format } = await resolveTarget(options);
 
   // derive the pandoc input file path (computations will create this)
   const [inputDir, inputStem] = dirAndStem(input);
@@ -117,24 +115,14 @@ async function resolveTarget(options: RenderOptions) {
   const input = options.input;
   const override = options.flags?.metadataOverride;
 
-  // look for a 'project' _quarto.yml
-  const projMetadata: Metadata = projectMetadata(input);
+  // merge input metadata into project metadata
+  const inputMetadata = await fileMetadata(input, override);
+  const projMetadata = projectMetadata(input);
+  const baseMetadata = mergeConfigs(projMetadata, inputMetadata);
 
-  // get metadata from computational preprocessor (or from the raw .md)
-  const engine = computeEngineForFile(input);
-  let inputMetadata = engine
-    ? await engine.metadata(input)
-    : readYamlFromMarkdownFile(input);
-
-  // merge in any options provided via override file
-  if (override) {
-    inputMetadata = mergeConfigs(
-      inputMetadata,
-      readYaml(override) as Metadata,
-    );
-  }
-
-  // determine which writer to use
+  // determine which writer to use (use original input and
+  // project metadata to preserve order of keys and to
+  // prefer input-level format keys to project-level)
   let to = options.flags?.to;
   if (!to) {
     to = "html";
@@ -146,13 +134,17 @@ async function resolveTarget(options: RenderOptions) {
     }
   }
 
-  // derive quarto config from merge of project config into file config
-  const metadata = mergeConfigs(projMetadata, inputMetadata);
+  // determine the target format
+  const format = formatFromMetadata(baseMetadata, to, options.flags?.debug);
+
+  // merge pandoc metadata within the format into the base metadata
+  // found within the input file and any project file(s)
+  const metadata = mergeConfigs(baseMetadata, format.metadata || {});
 
   // return target
   return {
     input,
     metadata,
-    to,
+    format,
   };
 }
