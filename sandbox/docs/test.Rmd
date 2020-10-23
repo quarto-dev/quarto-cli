@@ -1,14 +1,20 @@
 ---
 title: "Woozy Foobar"
 knit: quarto render
-quarto:
+format:
+  beamer: 
+    toc: true
+    slide-level: 2
+    incremental: false
+    theme: Berkeley
+    colortheme: default
+      
+  slidy:
+    incremental: false
   html:
     toc: true
+    highlight-style: pygments
 ---
-
-term1
-
-:   This is the definition of term 1.
 
 ## Summary 1
 
@@ -16,10 +22,18 @@ term1
 summary(mtcars)
 ```
 
+## Pause
+
+content before the pause
+
+. . .
+
+content after the pause
+
 ## Plot 2
 
 ```{r}
-plot(cars)
+plot(pressure)
 ```
 
 ## Plot 3
