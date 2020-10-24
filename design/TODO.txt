@@ -4,29 +4,20 @@
 
 str(params) should yield an error when no params
 
-new config system:
-
-  RUN
-
+  - examine 'output-file' when examining '--output' from command line
+    (perhaps set '--output-file' rather than mucking with '--output')?
+    
   - !file directive
   - implement "common" or "_common"
   - implement "default" for format
   - implement "+" for formats
 
-  - directories? (_quarto)
-
-  - implement knitr (allow dash)
+  - implement knitr (allow dashes)
   - implement r-options
-
 
 fill out all the pandoc formats
 
-memo/proposal on _quarto directory
-  _quarto
-    .gitignore
-    _quarto.yml
-    _quarto.lock
-    snapshot/
+implmeent tinytex: output_dir, etc. tinytex: false
 
 memo/proposal on computations:
 will be able to use RStudio chunk output and/or notebook for compute?
