@@ -32,7 +32,9 @@ content after the pause
 ## Plot 2
 
 ```{r}
-plot(pressure)
+library(dygraphs)
+dygraph(nhtemp, main = "New Haven Temperatures") %>% 
+  dyRangeSelector(dateWindow = c("1920-01-01", "1960-01-01"))
 ```
 
 ## Plot 3
