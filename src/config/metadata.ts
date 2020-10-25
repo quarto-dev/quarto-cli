@@ -88,7 +88,9 @@ export function formatFromMetadata(
   if (configFormats instanceof Object) {
     // deno-lint-ignore no-explicit-any
     const configFormat = (configFormats as any)[to];
-    if (configFormat instanceof Object) {
+    if (configFormat === "default") {
+      format = metadataAsFormat({});
+    } else if (configFormat instanceof Object) {
       format = metadataAsFormat(configFormat);
     }
   }

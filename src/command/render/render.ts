@@ -128,7 +128,9 @@ async function resolveFormat(options: RenderOptions) {
     to = baseFormat.pandoc.to || baseFormat.pandoc.writer || "html";
     to = to.split("+")[0];
     const formatKeys = (metadata: Metadata): string[] => {
-      if (metadata[kMetadataFormat] instanceof Object) {
+      if (typeof metadata[kMetadataFormat] === "string") {
+        return [metadata[kMetadataFormat] as string];
+      } else if (metadata[kMetadataFormat] instanceof Object) {
         return Object.keys(metadata[kMetadataFormat] as Metadata);
       } else {
         return [];
