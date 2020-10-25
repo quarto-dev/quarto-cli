@@ -1,6 +1,8 @@
 ---
 title: "Woozy Foobar"
 knit: quarto render
+output:
+  html_document: default
 format: 
   html:
     toc: true
@@ -13,12 +15,14 @@ format:
     colortheme: default
   slidy:
     incremental: false
+params:
+  region: east
 ---
 
 ## Summary 1
 
 ```{r}
-summary(mtcars)
+str(params)
 ```
 
 ## Pause
@@ -42,3 +46,4 @@ dygraph(nhtemp, main = "New Haven Temperatures") %>%
 ```{r}
 plot(pressure)
 ```
+

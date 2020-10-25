@@ -1,12 +1,9 @@
 
 
 
-
-str(params) should yield an error when no params
-
   - examine 'output-file' when examining '--output' from command line
-    (perhaps set '--output-file' rather than mucking with '--output')?
-    
+    (perhaps set 'output-file: ' rather than mucking with '--output')?
+
   - !file directive
   - implement "common" or "_common"
   - implement "default" for format
