@@ -22,6 +22,7 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
   kKeepYaml,
+  kOutputFile,
   kPdfEngine,
   kPdfEngineOpt,
   kPdfEngineOpts,
@@ -71,6 +72,7 @@ export interface FormatPandoc {
   from?: string;
   to?: string;
   writer?: string;
+  [kOutputFile]?: string;
   standalone?: boolean;
   [kSelfContained]?: boolean;
   variables?: { [key: string]: unknown };

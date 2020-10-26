@@ -19,7 +19,12 @@ import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
 import { readYamlFrontMatterFromMarkdown } from "../../core/yaml.ts";
 
-import { kKeepYaml, kOutputExt, kVariant } from "../../config/constants.ts";
+import {
+  kKeepYaml,
+  kOutputExt,
+  kOutputFile,
+  kVariant,
+} from "../../config/constants.ts";
 import { Format } from "../../config/format.ts";
 
 import { computeEngineForFile } from "../../computation/engine.ts";
@@ -61,12 +66,22 @@ export function outputRecipe(
     // default recipe spec based on user input
     const completeActions: VoidFunction[] = [];
     const recipe = {
-      output: options.flags?.output!,
+      output: options.flags?.output || format.pandoc[kOutputFile] || "",
       args: options.pandocArgs || [],
       format: { ...format },
       complete: async (): Promise<string | void> => {
         completeActions.forEach((action) => action());
       },
+    };
+
+    // helper function to re-write output
+    const updateOutput = (output: string) => {
+      recipe.output = output;
+      if (options.flags?.output) {
+        recipe.args = replacePandocArg(recipe.args, "--output", output);
+      } else {
+        format.pandoc[kOutputFile] = output;
+      }
     };
 
     // read and remove output-ext if it's there
@@ -107,15 +122,14 @@ export function outputRecipe(
     }
 
     if (!recipe.output) {
-      // no output on the command line: derive an output path from the extension
+      // no output specified: derive an output path from the extension
 
       // special case for .md to .md, need to use the writer to create a unique extension
       let outputExt = ext;
       if (extname(options.input) === ".md" && ext === "md") {
         outputExt = `${format.pandoc.to}.md`;
       }
-      recipe.output = join(inputStem + "." + outputExt);
-      recipe.args.unshift("--output", recipe.output);
+      updateOutput(inputStem + "." + outputExt);
     } else if (recipe.output === kStdOut) {
       // output to stdout: direct pandoc to write to a temp file then we'll
       // forward to stdout (necessary b/c a postprocesor may need to act on
@@ -128,12 +142,10 @@ export function outputRecipe(
     } else if (!isAbsolute(recipe.output)) {
       // relatve output file on the command line: make it relative to the input dir
       // for pandoc (which will run in the input dir)
-      recipe.output = relative(inputDir, recipe.output);
-      recipe.args = replacePandocArg(recipe.args, "--output", recipe.output);
+      updateOutput(relative(inputDir, recipe.output));
     } else {
       // absolute path may need ~ substitution
-      recipe.output = expandPath(recipe.output);
-      recipe.args = replacePandocArg(recipe.args, "--output", recipe.output);
+      updateOutput(expandPath(recipe.output));
     }
 
     // return
