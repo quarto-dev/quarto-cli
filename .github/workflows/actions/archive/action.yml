@@ -1,0 +1,78 @@
+name: 'Archive'
+description: 'Archive a Dependency'
+inputs:
+  binary-name:
+    description: 'The binary name'
+    required: true
+    default: ''
+
+  version:  
+    description: 'The binary version'
+    required: true
+    default: ''
+
+  base-url:
+    description: 'The base url for downloading the binary'
+    required: true
+    default: ''
+
+  files:
+      description: 'The files that should be archived'
+      required: true
+      default: ''
+
+  bucket:
+      description: 'The S3 bucket'
+      required: true
+      default: ''
+
+  working-dir:
+    description: 'The working directory'
+    required: false
+    default: 'out'
+
+runs:
+  using: "composite"
+  steps: 
+     - name: Check For Existing Archive
+       run: |
+            echo "NEEDS_ARCHIVE=0" >> $GITHUB_ENV
+            aws s3 ls s3://${{ inputs.bucket }}/${{ inputs.binary-name }}/${{inputs.version }} || echo "NEEDS_ARCHIVE=1" >> $GITHUB_ENV
+       shell: bash
+
+     - name: Download Local Copies
+       run: |
+            if [ ${{ env.NEEDS_ARCHIVE }} == 1 ]; then
+              
+              TARGET_DIRECTORY=${{ inputs.binary-name }}/${{ inputs.version }}
+
+              if [ ! -d "${{ inputs.working-dir }}" ]; then
+               mkdir -p ${{ inputs.working-dir }}
+              fi
+
+              pushd ${{ inputs.working-dir }}
+              for FILENAME in ${{ inputs.files }}; do
+               curl -fail -L -o $FILENAME ${{ inputs.base-url }}${{ inputs.version }}/$FILENAME
+               
+               if [ ! -d "$TARGET_DIRECTORY" ]; then
+                mkdir -p $TARGET_DIRECTORY
+               fi
+               mv $FILENAME $TARGET_DIRECTORY/$FILENAME
+               
+              done
+              popd
+            fi
+       shell: bash
+
+     - name: Upload to S3
+       run: |
+            if [ ${{ env.NEEDS_ARCHIVE }} == 1 ]; then
+              pushd ${{ inputs.working-dir }}
+              aws s3 sync . s3://${{ inputs.bucket }}
+              popd
+            fi
+       shell: bash
+
+     - name: Cleanup Local Copies
+       run: rm -rf ${{ inputs.working-dir }}
+       shell: bash
