@@ -237,6 +237,8 @@ function beamerFormat(): Format {
       compute: {
         [kFigWidth]: 10,
         [kFigHeight]: 7,
+        [kShowCode]: false,
+        [kShowWarning]: false,
       },
     },
   );
@@ -288,6 +290,8 @@ function powerpointFormat(): Format {
     compute: {
       [kFigWidth]: 7.5,
       [kFigHeight]: 5.5,
+      [kShowCode]: false,
+      [kShowWarning]: false,
     },
   });
 }
