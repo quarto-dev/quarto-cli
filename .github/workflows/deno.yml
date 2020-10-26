@@ -5,6 +5,8 @@
   push:
     paths:
     - package/versions.txt
+    branches:
+    - master
 
  jobs:
    archive-deno:
