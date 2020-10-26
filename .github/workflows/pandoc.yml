@@ -4,6 +4,8 @@
  on:
   workflow_dispatch:
   push:
+    branches:
+    - master
     paths:
     - package/versions.txt
 
