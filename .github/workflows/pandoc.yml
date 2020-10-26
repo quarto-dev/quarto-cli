@@ -1,54 +1,37 @@
-# This is a basic workflow that is manually triggered
 
  name: Archive Pandoc
 
- # Controls when the action will run. Workflow runs when manually triggered using the UI
- # or API.
  on:
-   workflow_dispatch:
-     # Inputs the workflow accepts.
-     inputs:
-       version:
-         # Friendly description to be shown in the UI instead of 'name'
-         description: 'Pandoc Version to Archive'
-         # Default value if no value is explicitly provided
-         default: ''
-         # Input has to be provided for the workflow to run
-         required: true
+  workflow_dispatch:
+  push:
+    paths:
+    - package/versions.txt
 
- # A workflow run is made up of one or more jobs that can run sequentially or in parallel
  jobs:
-   # This workflow contains a single job called "greet"
    archive-pandoc:
+
      env:
-      PLATFORMS: linux-amd64.tar.gz macOS.zip windows-x86_64.zip 
-      TARGET_DIRECTORY: pandoc/${{ github.event.inputs.version }}/
-     # The type of runner that the job will run on
+      AWS_S3_BUCKET: ${{ secrets.AWS_ARCHIVE_BUCKET }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ARCHIVE_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ARCHIVE_ACCESS_KEY }}      
+
      runs-on: ubuntu-latest
 
-     # Steps represent a sequence of tasks that will be executed as part of the job
      steps:
-     # Runs a single command using the runners shell
-     - name: Download Local Copies
-       run: |
-            for PLATFORM in $PLATFORMS; do
-             FILENAME=pandoc-${{ github.event.inputs.version }}-$PLATFORM
-             curl -fail -L -o $FILENAME https://github.com/jgm/pandoc/releases/download/${{ github.event.inputs.version }}/$FILENAME
-             
-             if [ ! -d "$TARGET_DIRECTORY" ]; then
-              mkdir -p $TARGET_DIRECTORY
-             fi
-             mv $FILENAME $TARGET_DIRECTORY$FILENAME
-             
-            done
-            
-     - name: Upload to S3
-       env:
-        AWS_S3_BUCKET: ${{ secrets.AWS_ARCHIVE_BUCKET }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ARCHIVE_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ARCHIVE_ACCESS_KEY }}      
-       run: |
-             aws s3 sync . s3://$AWS_S3_BUCKET      
+     - uses: actions/checkout@v2
 
-     - name: Cleanup Local Copies
-       run: rm -rf $TARGET_DIRECTORY
+     - name: Setup Environment
+       run: |
+            source package/versions.txt
+            echo "VERSION=$PANDOC" >> $GITHUB_ENV           
+            echo "BASEURL=https://github.com/jgm/pandoc/releases/download/" >> $GITHUB_ENV
+            echo "FILENAMES=pandoc-$PANDOC-linux-amd64.tar.gz pandoc-$PANDOC-macOS.zip pandoc-$PANDOC-windows-x86_64.zip" >> $GITHUB_ENV
+
+     - uses: ./.github/workflows/actions/archive
+       with:
+         binary-name: 'pandoc'
+         version: ${{ env.VERSION }}
+         base-url: ${{ env.BASEURL }}
+         files: ${{ env.FILENAMES }}
+         bucket: ${{ env.AWS_S3_BUCKET }}
+
