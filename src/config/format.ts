@@ -144,10 +144,29 @@ export function defaultWriterFormat(to: string): Format {
       writerFormat = plaintextFormat("xml");
       break;
 
+    case "docx":
+      writerFormat = wordprocessorFormat("docx");
+      break;
+
+    case "pptx":
+      writerFormat = powerpointFormat();
+      break;
+
+    case "odt":
+      writerFormat = wordprocessorFormat("odt");
+      break;
+
+    case "opendocument":
+      writerFormat = wordprocessorFormat("xml");
+      break;
+
+    case "rtf":
+      writerFormat = rtfFormat();
+      break;
+
     /*
  
  
-    docx
     dokuwiki
     dzslides
     epub
@@ -168,14 +187,10 @@ export function defaultWriterFormat(to: string): Format {
     ms
     muse
     native
-    odt
-    opendocument
     opml
     org
     plain
-    pptx
     rst
-    rtf
     tei
     texinfo
     textile
@@ -264,6 +279,32 @@ function markdownFormat(): Format {
       // NOTE: this will become the default in the next
       // version of pandoc, remove this flag after that
       ["atx-headers"]: true,
+    },
+  });
+}
+
+function powerpointFormat(): Format {
+  return format("pptx", {
+    compute: {
+      [kFigWidth]: 7.5,
+      [kFigHeight]: 5.5,
+    },
+  });
+}
+
+function wordprocessorFormat(ext: string): Format {
+  return format(ext, {
+    compute: {
+      [kFigWidth]: 5,
+      [kFigHeight]: 4,
+    },
+  });
+}
+
+function rtfFormat(): Format {
+  return format("rtf", wordprocessorFormat("rtf"), {
+    pandoc: {
+      standalone: true,
     },
   });
 }
