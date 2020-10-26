@@ -14,6 +14,11 @@
 # main
 .main <- function() {
 
+  # utility functions
+  `%||%` <- function(x, y) {
+    if (is.null(x)) y else x
+  }
+
   # execute knitr::spin
   spin <- function(input) {
 
@@ -40,6 +45,12 @@
     oldwd <- setwd(dirname(rmarkdown:::abs_path(input)))
     on.exit(setwd(oldwd), add = TRUE)
     input <- basename(input)
+
+    # apply r-options (if any)
+    r_options <- format$metadata$`r-options`
+    if (!is.null(r_options)) {
+      do.call(options, r_options)
+    }
 
     # synthesize rmarkdown output format
     output_format <- rmarkdown::output_format(
@@ -112,6 +123,12 @@
     oldwd <- setwd(dirname(rmarkdown:::abs_path(input)))
     on.exit(setwd(oldwd), add = TRUE)
     input <- basename(input)
+
+    # apply r-options (if any)
+    r_options <- format$metadata$`r-options`
+    if (!is.null(r_options)) {
+      do.call(options, r_options)
+    }
 
     # convert preserved chunks to named character vector
     names <- names(preserved_chunks)
@@ -253,10 +270,10 @@
     }
 
     # return options
+    knitr <- format$metadata$knitr %||% list()
     rmarkdown::knitr_options(
-      opts_knit = opts_knit,
-      opts_chunk = opts_chunk,
-      knit_hooks = knit_hooks
+      opts_knit = rmarkdown:::merge_lists(opts_knit, knitr$opts_knit),
+      opts_chunk = rmarkdown:::merge_lists(opts_chunk, knitr$opts_chunk),
     )
   }
 
