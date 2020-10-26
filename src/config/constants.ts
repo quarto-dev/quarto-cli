@@ -48,6 +48,7 @@ export const kRenderDefaultsKeys = [
   kOutputExt,
 ];
 
+export const kOutputFile = "output-file";
 export const kAtxHeaders = "atx-headers";
 export const kStandalone = "standalone";
 export const kSelfContained = "self-contained";
@@ -65,7 +66,7 @@ export const kPandocDefaultsKeys = [
   "from",
   "reader",
   "writer",
-  "output-file",
+  kOutputFile,
   "input-files",
   "template",
   kStandalone,

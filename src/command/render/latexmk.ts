@@ -19,7 +19,7 @@ import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 
-import { kKeepTex, kOutputExt } from "../../config/constants.ts";
+import { kKeepTex, kOutputExt, kOutputFile } from "../../config/constants.ts";
 import { Format } from "../../config/format.ts";
 import { pdfEngine } from "../../config/pdf.ts";
 
@@ -74,7 +74,13 @@ export function latexmkOutputRecipe(
   // cacluate output and args for pandoc (this is an intermediate file
   // which we will then compile to a pdf and rename to .tex)
   const output = texStem + ".tex";
-  let args = replacePandocArg(options.pandocArgs || [], "--output", output);
+  let args = options.pandocArgs || [];
+  const pandoc = { ...format.pandoc };
+  if (options.flags?.output) {
+    args = replacePandocArg(args, "--output", output);
+  } else {
+    pandoc[kOutputFile] = output;
+  }
 
   // remove --to argument if it's there, since we've already folded it
   // into the yaml, and it will be "beamer" or "pdf" so actually incorrect
@@ -104,7 +110,7 @@ export function latexmkOutputRecipe(
 
     // copy (or write for stdout) compiled pdf to final output location
     const compilePdf = join(inputDir, texStem + ".pdf");
-    const finalOutput = options.flags?.output;
+    const finalOutput = options.flags?.output || format.pandoc[kOutputFile];
     if (finalOutput) {
       if (finalOutput === kStdOut) {
         writeFileToStdout(compilePdf);
@@ -131,7 +137,7 @@ export function latexmkOutputRecipe(
     format: {
       ...format,
       pandoc: {
-        ...format.pandoc,
+        ...pandoc,
         to,
       },
     },
