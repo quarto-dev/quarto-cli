@@ -105,6 +105,7 @@ export function defaultWriterFormat(to: string): Format {
       break;
 
     case "latex":
+    case "context":
       writerFormat = latexFormat();
       break;
 
@@ -123,11 +124,64 @@ export function defaultWriterFormat(to: string): Format {
     case "markdown_github":
     case "markdown_mmd":
     case "markdown_strict":
-    case "commonmark":
     case "gfm":
+    case "commonmark":
     case "commonmark_x":
       writerFormat = markdownFormat();
       break;
+
+    case "asciidoc":
+      writerFormat = plaintextFormat("txt");
+      break;
+
+    case "asciidoctor":
+      writerFormat = plaintextFormat("adoc");
+      break;
+
+    case "docbook":
+    case "docbook4":
+    case "docbook5":
+      writerFormat = plaintextFormat("xml");
+      break;
+
+    /*
+ 
+ 
+    docx
+    dokuwiki
+    dzslides
+    epub
+    epub2
+    epub3
+    fb2
+    haddock
+    icml
+    ipynb
+    jats
+    jats_archiving
+    jats_articleauthoring
+    jats_publishing
+    jira
+    json
+    man
+    mediawiki
+    ms
+    muse
+    native
+    odt
+    opendocument
+    opml
+    org
+    plain
+    pptx
+    rst
+    rtf
+    tei
+    texinfo
+    textile
+    xwiki
+    zimwiki
+    */
 
     default:
       writerFormat = format(to);
@@ -205,16 +259,19 @@ function htmlFormat(figwidth = 7, figheight = 5): Format {
 }
 
 function markdownFormat(): Format {
-  return format("md", {
-    compute: {
-      [kFigWidth]: 7,
-      [kFigHeight]: 5,
-    },
+  return format("md", plaintextFormat("md"), {
     pandoc: {
-      standalone: true,
       // NOTE: this will become the default in the next
       // version of pandoc, remove this flag after that
       ["atx-headers"]: true,
+    },
+  });
+}
+
+function plaintextFormat(ext: string): Format {
+  return format(ext, {
+    pandoc: {
+      standalone: true,
     },
   });
 }
