@@ -24,6 +24,14 @@ import { pdfEngine } from "../../config/pdf.ts";
 import { Metadata } from "../../config/metadata.ts";
 
 import { RenderFlags } from "./flags.ts";
+import {
+  kFrom,
+  kOutputFile,
+  kSelfContained,
+  kStandalone,
+  kTemplate,
+  kTo,
+} from "../../config/constants.ts";
 
 // options required to run pandoc
 export interface PandocOptions {
@@ -82,9 +90,9 @@ export async function runPandoc(
   // print full resolved input to pandoc
   if (!options.flags?.quiet && options.format.metadata) {
     runPandocMessage(
-      options.format.metadata,
-      options.format.pandoc,
       [options.input, ...args],
+      options.format.pandoc,
+      options.format.metadata,
     );
   }
 
@@ -124,17 +132,42 @@ function citeMethod(options: PandocOptions): CiteMethod | null {
 }
 
 function runPandocMessage(
-  metadata: Metadata,
-  pandoc: FormatPandoc | undefined,
   args: string[],
+  pandoc: FormatPandoc | undefined,
+  metadata: Metadata,
 ) {
   message(`pandoc ${args.join(" ")}`, { bold: true });
   if (pandoc) {
-    message(stringify(pandoc as Record<string, unknown>), { indent: 2 });
+    message(pandocDefaultsMessage(pandoc), { indent: 2 });
   }
 
   message("metadata:", { bold: true });
   const printMetadata = { ...metadata };
   delete printMetadata.format;
   message(stringify(printMetadata), { indent: 2 });
+}
+
+function pandocDefaultsMessage(pandoc: FormatPandoc) {
+  const order = [
+    kTo,
+    kFrom,
+    kOutputFile,
+    kTemplate,
+    kStandalone,
+    kSelfContained,
+  ];
+  const defaults: FormatPandoc = {};
+  order.forEach((key) => {
+    if (Object.keys(pandoc).includes(key)) {
+      // deno-lint-ignore no-explicit-any
+      (defaults as any)[key] = (pandoc as any)[key];
+    }
+  });
+  Object.keys(pandoc).forEach((key) => {
+    if (!order.includes(key)) {
+      // deno-lint-ignore no-explicit-any
+      (defaults as any)[key] = (pandoc as any)[key];
+    }
+  });
+  return stringify(defaults as Record<string, unknown>);
 }
