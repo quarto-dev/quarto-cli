@@ -1,10 +1,6 @@
 
 
 
-- experiment with pandoc-crossref:
-    - ability to reference arbitrary divs as figure, table, etc.
-    - ability to do equivalent of bookdown theroems
-
   - !file directive
 
   - implement knitr (allow dashes)
@@ -12,7 +8,9 @@
 
 fill out all the pandoc formats
 
-implmeent tinytex: output_dir, etc. tinytex: false
+<< write tests >>
+
+Python
 
 memo/proposal on computations:
 will be able to use RStudio chunk output and/or notebook for compute?
@@ -21,7 +19,6 @@ omputations could even be at a URL!!!
 
   {{= notebook.ipynb#visualization =}}
   {{< computation notebook.Rmd#chunk-label >}}
-
   
   {{< figure projections.xlsx#chunk-label caption="asfdasdf" label="" >}}
 
@@ -36,8 +33,18 @@ omputations could even be at a URL!!!
   {{< video https://youtube.com/foo/status/34453323455 >}}
 
 
-crossref (also implement crossref: false)
 
+- Crossref system 
+  - Adopt pandoc-crossref if custom labels PR is merged
+  - Implement our own w/ largely similar syntax but thereom's, etc.
+    Lua vs. Typescript
+
+Project system:
+  - Terminate at _quarto.yml w/ project: true
+    (need to first determine if there is a project somewhere in the parent tree,
+     if there is, then use this behavior, if not, use the first match)
+  - External interactions with projects (output_dir, clean, etc.)
+  
 Port tinytex to JS; OR we need to implmeent various auto-install behaviors for latexmk, eg.
   had to do this to get biblatex working w/ latexmk
   (may want to automate installation if no biber + auto-map TinyTeX to path)
@@ -52,5 +59,15 @@ semantics as Pandoc
 discover index.Rmd or ui.Rmd for quarto run. can't rely on 
 rmarkdown::run b/c we need to figure out which Rmd to render
 
+
+
+
+
+
+
 consider pluto notebooks (julia)
+
+Meta-concepts on top of AST: e.g. tabs
+
+
 

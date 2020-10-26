@@ -4,12 +4,7 @@ knit: quarto render
 output:
   html_document: default
 format: 
-  beamer: 
-    toc: true
-    slide-level: 2
-    incremental: false
-    theme: Berkeley
-    colortheme: default
+  beamer: default
   revealjs:
     incremental: true
   html:
