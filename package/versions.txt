@@ -1,0 +1,4 @@
+export PANDOC=2.11.0.2
+export PANDOCCROSSREF=v0.3.8.2
+export DENO=v1.4.6
+export TINYTEX=v2020.10
