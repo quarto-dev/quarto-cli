@@ -4,24 +4,27 @@ knit: quarto render
 output:
   html_document: default
 format: 
-  html:
-    toc: true
-    highlight-style: pygments
   beamer: 
     toc: true
     slide-level: 2
     incremental: false
     theme: Berkeley
     colortheme: default
+  revealjs:
+    incremental: true
+  html:
+    toc: true
   slidy:
     incremental: false
 params:
   region: east
+highlight-style: tango
 ---
 
 ## Summary 1
 
 ```{r}
+# here is the tango style
 str(params)
 ```
 
@@ -46,4 +49,3 @@ dygraph(nhtemp, main = "New Haven Temperatures") %>%
 ```{r}
 plot(pressure)
 ```
-
