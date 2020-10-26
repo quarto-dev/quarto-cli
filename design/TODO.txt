@@ -1,12 +1,7 @@
 
 
 
-  - !file directive
-
-  - implement knitr (allow dashes)
-  - implement r-options
-
-fill out all the pandoc formats
+- fill out all the pandoc formats
 
 << write tests >>
 
@@ -19,7 +14,7 @@ omputations could even be at a URL!!!
 
   {{= notebook.ipynb#visualization =}}
   {{< computation notebook.Rmd#chunk-label >}}
-  
+
   {{< figure projections.xlsx#chunk-label caption="asfdasdf" label="" >}}
 
   {{< table projections.xlsx#fy-2019 label="projections" >}}

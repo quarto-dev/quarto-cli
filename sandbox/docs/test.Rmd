@@ -4,13 +4,20 @@ knit: quarto render
 output:
   html_document: default
 format: 
-  beamer: default
+  html: 
+    r-options:
+      width: 30
   revealjs:
     incremental: true
-  html:
-    toc: true
   slidy:
     incremental: false
+
+
+  
+knitr:
+  opts_chunk:
+    fig.width: 9
+    fig.height: 3
 params:
   region: east
 highlight-style: tango
@@ -20,7 +27,7 @@ highlight-style: tango
 
 ```{r}
 # here is the tango style
-str(params)
+summary(mtcars)
 ```
 
 ## Pause
@@ -34,9 +41,9 @@ content after the pause
 ## Plot 2
 
 ```{r}
-library(dygraphs)
-dygraph(nhtemp, main = "New Haven Temperatures") %>% 
-  dyRangeSelector(dateWindow = c("1920-01-01", "1960-01-01"))
+# library(dygraphs)
+# dygraph(nhtemp, main = "New Haven Temperatures") %>% 
+#   dyRangeSelector(dateWindow = c("1920-01-01", "1960-01-01"))
 ```
 
 ## Plot 3
