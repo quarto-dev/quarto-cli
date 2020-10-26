@@ -48,8 +48,13 @@ export const kRenderDefaultsKeys = [
   kOutputExt,
 ];
 
+export const kTo = "to";
+export const kFrom = "from";
+export const kReader = "reader";
+export const kWriter = "writer";
 export const kOutputFile = "output-file";
 export const kAtxHeaders = "atx-headers";
+export const kTemplate = "template";
 export const kStandalone = "standalone";
 export const kSelfContained = "self-contained";
 export const kIncludeBeforeBody = "include-before-body";
@@ -62,13 +67,13 @@ export const kPdfEngineOpt = "pdf-engine-opt";
 
 // https://pandoc.org/MANUAL.html#default-files
 export const kPandocDefaultsKeys = [
-  "to",
-  "from",
-  "reader",
-  "writer",
+  kTo,
+  kFrom,
+  kReader,
+  kWriter,
   kOutputFile,
   "input-files",
-  "template",
+  kTemplate,
   kStandalone,
   kSelfContained,
   "variables",
