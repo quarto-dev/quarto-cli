@@ -64,7 +64,7 @@ export function projectMetadata(file: string): Metadata {
     // see if there is a quarto yml file there
     const quartoYml = join(dir, "_quarto.yml");
     if (existsSync(quartoYml)) {
-      return readYaml(quartoYml) as Metadata;
+      return readQuartoYaml(quartoYml);
     }
   }
 }
@@ -136,4 +136,10 @@ export function metadataAsFormat(metadata: Metadata): Format {
     }
   });
   return format as Format;
+}
+
+function readQuartoYaml(file: string) {
+  const yaml = readYaml(file) as Metadata;
+
+  return yaml;
 }
