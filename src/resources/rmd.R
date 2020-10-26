@@ -108,16 +108,27 @@
     else
       character()
 
+    # include postprocessing if required
+    if (!is.null(preserved)) {
+      postprocess <- split(unname(preserved),names(preserved))
+    } else {
+      postprocess <- list()
+    }
+
     # results
     list(
       supporting = I(supporting),
       includes = includes,
-      postprocess = split(unname(preserved),names(preserved))
+      postprocess = postprocess 
     )
   }
 
   # postprocess (restore preserved)
   postprocess <- function(input, format, output, preserved_chunks) {
+
+    # bail if we don't have any perserved chunks
+    if (length(preserved_chunks) == 0)
+      return()
 
     # change to input dir and make input relative
     oldwd <- setwd(dirname(rmarkdown:::abs_path(input)))
@@ -380,10 +391,16 @@
   extract_preserve_chunks <- function(output_file, format) {
     if (knitr::is_html_output(format$pandoc$to)) {
       extract <- htmltools::extractPreserveChunks
-    } else {
+    } else if (format$pandoc$to == "rtf") {
       extract <- knitr::extract_raw_output
+    } else {
+      extract <- NULL
     }
-    rmarkdown:::extract_preserve_chunks(output_file, extract)
+    if (!is.null(extract)) {
+      rmarkdown:::extract_preserve_chunks(output_file, extract)
+    } else {
+      NULL
+    }
   }
 
   # read request from stdin
