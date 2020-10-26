@@ -3,10 +3,10 @@
  on:
   workflow_dispatch:
   push:
-    paths:
-    - package/versions.txt
     branches:
     - master
+    paths:
+    - package/versions.txt
 
  jobs:
    archive-deno:
