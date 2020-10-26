@@ -1,54 +1,39 @@
-# This is a basic workflow that is manually triggered
-
  name: Archive Deno
 
- # Controls when the action will run. Workflow runs when manually triggered using the UI
- # or API.
  on:
-   workflow_dispatch:
-     # Inputs the workflow accepts.
-     inputs:
-       version:
-         # Friendly description to be shown in the UI instead of 'name'
-         description: 'Deno Version to Archive'
-         # Default value if no value is explicitly provided
-         default: ''
-         # Input has to be provided for the workflow to run
-         required: true
+  workflow_dispatch:
+  push:
+    paths:
+    - package/versions.txt
+    branches:
+    - master
 
- # A workflow run is made up of one or more jobs that can run sequentially or in parallel
  jobs:
-   # This workflow contains a single job called "greet"
    archive-deno:
-
+     
+     if: github.ref == 'refs/heads/main'
+     
      env:
-      FILENAMES: deno-x86_64-unknown-linux-gnu.zip deno-x86_64-apple-darwin.zip deno-x86_64-pc-windows-msvc.zip
-      TARGET_DIRECTORY: deno/${{ github.event.inputs.version }}/
-     # The type of runner that the job will run on
+      AWS_S3_BUCKET: ${{ secrets.AWS_ARCHIVE_BUCKET }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ARCHIVE_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ARCHIVE_ACCESS_KEY }}      
+
      runs-on: ubuntu-latest
 
-     # Steps represent a sequence of tasks that will be executed as part of the job
      steps:
-     # Runs a single command using the runners shell
-     - name: Download Local Copies
-       run: |
-            for FILENAME in $FILENAMES; do
-             curl -fail -L -o $FILENAME https://github.com/denoland/deno/releases/download/${{ github.event.inputs.version }}/$FILENAME
-             
-             if [ ! -d "$TARGET_DIRECTORY" ]; then
-              mkdir -p $TARGET_DIRECTORY
-             fi
-             mv $FILENAME $TARGET_DIRECTORY$FILENAME
-             
-            done
-            
-     - name: Upload to S3
-       env:
-        AWS_S3_BUCKET: ${{ secrets.AWS_ARCHIVE_BUCKET }}
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ARCHIVE_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ARCHIVE_ACCESS_KEY }}      
-       run: |
-             aws s3 sync . s3://$AWS_S3_BUCKET      
+     - uses: actions/checkout@v2
 
-     - name: Cleanup Local Copies
-       run: rm -rf $TARGET_DIRECTORY
+     - name: Setup Environment
+       run: |
+            source package/versions.txt
+            echo "VERSION=$DENO" >> $GITHUB_ENV
+            echo "BASEURL=https://github.com/denoland/deno/releases/download/" >> $GITHUB_ENV
+            echo "FILENAMES=deno-x86_64-unknown-linux-gnu.zip deno-x86_64-apple-darwin.zip deno-x86_64-pc-windows-msvc.zip" >> $GITHUB_ENV
+
+     - uses: ./.github/workflows/actions/archive
+       with:
+         binary-name: 'deno'
+         version: ${{ env.VERSION }}
+         base-url: ${{ env.BASEURL }}
+         files: ${{ env.FILENAMES }}
+         bucket: ${{ env.AWS_S3_BUCKET }}
