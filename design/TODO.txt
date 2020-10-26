@@ -1,13 +1,11 @@
 
 
 
-  - examine 'output-file' when examining '--output' from command line
-    (perhaps set 'output-file: ' rather than mucking with '--output')?
+- experiment with pandoc-crossref:
+    - ability to reference arbitrary divs as figure, table, etc.
+    - ability to do equivalent of bookdown theroems
 
   - !file directive
-  - implement "common" or "_common"
-  - implement "default" for format
-  - implement "+" for formats
 
   - implement knitr (allow dashes)
   - implement r-options
