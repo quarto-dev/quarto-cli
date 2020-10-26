@@ -1,25 +1,24 @@
+![Caption](file.png){#fig:label}
 
-::: {#tbl:label2}
-<strong>Figure</strong>
-:::
+$$ math $$ {#eq:label}
 
+a b c
 
-See the @tbl:label2.
+---
 
+1 2 3
+4 5 6
 
+: Caption {#tbl:label}
 
-::: {#lst:code .listing}
-Listing caption Listing captionListing captionListing caption\
-Listing captionListing captionListing caption
-```{.haskell}
-main :: IO ()
-main = putStrLn "Hello World!"
-```
-qwerqwerqwe
-qwerwqer
-:::
+## Section {#sec:section}
 
-See @lst:code for more info.
+This is a section
 
+See @fig:label for more.
 
+See @eq:label for an eqution.
 
+See @tbl:label for a table.
+
+See section @sec:section.
