@@ -45,34 +45,20 @@ export interface ComputationsResult {
 export async function runComputations(
   options: ExecuteOptions,
 ): Promise<ComputationsResult> {
-  // compute file paths
-  const engine = computeEngineForFile(options.input);
-
-  // run compute engine if appropriate
-  if (engine) {
-    const result = await engine.execute(options);
-    return {
-      output: options.output,
-      supporting: result.supporting,
-      pandoc: pandocIncludeFiles(result.includes),
-      postprocess: result.postprocess,
-    };
-    // no compute engine, just return the output
-  } else {
-    return {
-      output: options.output,
-      supporting: [],
-      pandoc: {},
-    };
-  }
+  const result = await options.engine.execute(options);
+  return {
+    output: options.output,
+    supporting: result.supporting,
+    pandoc: pandocIncludeFiles(result.includes),
+    postprocess: result.postprocess,
+  };
 }
 
 export async function postProcess(
   options: PostProcessOptions,
 ): Promise<void> {
-  const engine = computeEngineForFile(options.input);
-  if (engine && engine.postprocess) {
-    return engine.postprocess(options);
+  if (options.engine.postprocess) {
+    return options.engine.postprocess(options);
   } else {
     return Promise.resolve();
   }
