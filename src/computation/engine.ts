@@ -21,9 +21,11 @@ import { Metadata } from "../config/metadata.ts";
 
 import { rmdEngine } from "./rmd.ts";
 import { ipynbEngine } from "./ipynb.ts";
+import { readYamlFromMarkdownFile } from "../core/yaml.ts";
 
 // execute options
 export interface ExecuteOptions {
+  engine: ComputationEngine;
   input: string;
   output: string;
   format: Format;
@@ -48,6 +50,7 @@ export interface PandocIncludes {
 
 // post processing options
 export interface PostProcessOptions {
+  engine: ComputationEngine;
   input: string;
   format: Format;
   output: string;
@@ -86,6 +89,7 @@ export function computeEngineForFile(file: string) {
     ipynbEngine,
   ];
 
+  // try to find an engine
   const ext = extname(file);
   for (const engine of engines) {
     if (engine.canHandle(ext)) {
@@ -93,5 +97,21 @@ export function computeEngineForFile(file: string) {
     }
   }
 
-  return null;
+  // if there is no engine, this is plain markdown
+  return markdownEngine();
+}
+
+function markdownEngine(): ComputationEngine {
+  return {
+    name: "markdown",
+    canHandle: (_ext: string) => true,
+    metadata: (file: string) =>
+      Promise.resolve(readYamlFromMarkdownFile(file) as Metadata),
+    execute: (_options: ExecuteOptions) =>
+      Promise.resolve({
+        supporting: [],
+        includes: {} as PandocIncludes,
+      }),
+    postprocess: (_options: PostProcessOptions) => Promise.resolve(),
+  };
 }

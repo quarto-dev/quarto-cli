@@ -22,7 +22,6 @@ import { mergeConfigs } from "../../core/config.ts";
 import { readYaml } from "../../core/yaml.ts";
 
 import {
-  fileMetadata,
   formatFromMetadata,
   Metadata,
   metadataAsFormat,
@@ -35,6 +34,10 @@ import { kStdOut, RenderFlags, resolveParams } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
 import { kMetadataFormat } from "../../config/constants.ts";
+import {
+  ComputationEngine,
+  computeEngineForFile,
+} from "../../computation/engine.ts";
 
 // command line options for render
 export interface RenderOptions {
@@ -47,8 +50,11 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   // alias flags
   const flags = options.flags || {};
 
+  // determine the computation engine
+  const engine = computeEngineForFile(options.input);
+
   // resolve render target
-  const format = await resolveFormat(options);
+  const format = await resolveFormat(options, engine);
 
   // derive the pandoc input file path (computations will create this)
   const [inputDir, inputStem] = dirAndStem(options.input);
@@ -56,6 +62,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
 
   // run computations
   const computations = await runComputations({
+    engine,
     input: options.input,
     output: mdInput,
     format,
@@ -68,7 +75,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   format.pandoc = mergeConfigs(format.pandoc || {}, computations.pandoc);
 
   // pandoc output recipe (target file, args, complete handler)
-  const recipe = outputRecipe(options, mdInput, format);
+  const recipe = outputRecipe(options, mdInput, format, engine);
 
   // pandoc options
   const pandocOptions = {
@@ -87,6 +94,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   // run optional post-processor (e.g. to restore html-preserve regions)
   if (computations.postprocess) {
     await postprocess({
+      engine,
       input: options.input,
       format,
       output: recipe.output,
@@ -110,9 +118,12 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   return result;
 }
 
-async function resolveFormat(options: RenderOptions) {
+async function resolveFormat(
+  options: RenderOptions,
+  engine: ComputationEngine,
+) {
   // merge input metadata into project metadata
-  const inputMetadata = await fileMetadata(options.input);
+  const inputMetadata = await engine.metadata(options.input);
   const projMetadata = projectMetadata(options.input);
   const baseMetadata = mergeConfigs(projMetadata, inputMetadata);
 

@@ -16,7 +16,10 @@
 import { dirname, join } from "path/mod.ts";
 import { existsSync } from "fs/exists.ts";
 
-import { computeEngineForFile } from "../computation/engine.ts";
+import {
+  ComputationEngine,
+  computeEngineForFile,
+} from "../computation/engine.ts";
 
 import { readYaml, readYamlFromMarkdownFile } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
@@ -38,12 +41,6 @@ import { defaultWriterFormat, Format } from "./format.ts";
 export type Metadata = {
   [key: string]: unknown;
 };
-
-export async function fileMetadata(file: string) {
-  // get metadata from computational preprocessor (or from the raw .md)
-  const engine = computeEngineForFile(file);
-  return engine ? await engine.metadata(file) : readYamlFromMarkdownFile(file);
-}
 
 export function projectMetadata(file: string): Metadata {
   file = Deno.realPathSync(file);
