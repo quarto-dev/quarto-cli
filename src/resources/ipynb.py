@@ -13,16 +13,30 @@
 import sys
 import nbformat
 import nbconvert
+from pathlib import Path
 
 # read args
 input = sys.argv[1]
 output = sys.argv[2]
 
+# output dir
+output_dir = Path(output).stem + "_files/figure-ipynb"
+
 # convert to markdown
 notebook_node = nbformat.read(input, as_version=4)
 md_exporter = nbconvert.MarkdownExporter()
-result = md_exporter.from_notebook_node(notebook_node)
+result = md_exporter.from_notebook_node(
+  notebook_node, 
+  resources = { "output_files_dir": output_dir}
+)
 markdown = result[0]
+
+# write the figures
+resources = result[1]
+outputs = resources["outputs"]
+for path, data in outputs.items():
+   with open(path, "wb") as file:
+      file.write(data)
 
 # write markdown 
 with open(output, "w") as file:
