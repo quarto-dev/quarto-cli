@@ -40,8 +40,8 @@ const kEngineExtensions = [...kRmdExtensions, ...kRScriptExtensions];
 export const rmdEngine: ComputationEngine = {
   name: "rmd",
 
-  canHandle: (ext: string) => {
-    return kEngineExtensions.includes(ext.toLowerCase());
+  canHandle: (file: string) => {
+    return kEngineExtensions.includes(extname(file).toLowerCase());
   },
 
   metadata: async (file: string): Promise<Metadata> => {
