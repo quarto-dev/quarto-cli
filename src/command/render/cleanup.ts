@@ -23,6 +23,19 @@ import { kKeepMd, kKeepTex, kSelfContained } from "../../config/constants.ts";
 import type { ComputationsResult } from "./computation.ts";
 import type { RenderFlags } from "./flags.ts";
 
+// some extensions are 'known' to be standalone/self-contained
+// see https://pandoc.org/MANUAL.html#option--standalone
+const kStandaloneExtensions = [
+  ".pdf",
+  ".epub",
+  ".fb2",
+  ".docx",
+  ".rtf",
+  ".pptx",
+  ".odt",
+  ".ipynb",
+];
+
 export function cleanup(
   input: string,
   flags: RenderFlags,
@@ -47,7 +60,7 @@ export function cleanup(
   // determine if we will be self contained
   const selfContained = flags[kSelfContained] ||
     (format.pandoc && format.pandoc[kSelfContained]) ||
-    extname(output) === ".pdf";
+    kStandaloneExtensions.includes(extname(output));
 
   // if we aren't keeping the markdown and we are self-contained, then
   // delete the supporting files

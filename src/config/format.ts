@@ -168,40 +168,47 @@ export function defaultWriterFormat(to: string): Format {
       writerFormat = plaintextFormat("txt");
       break;
 
-    /*
- 
- 
-    dokuwiki
-    epub
-    epub2
-    epub3
-    fb2
-    haddock
-    icml
-    ipynb
-    jats
-    jats_archiving
-    jats_articleauthoring
-    jats_publishing
-    jira
-    mediawiki
-    ms
-    muse
-    native
-    opml
-    org
-    rst
-    tei
-    texinfo
-    textile
-    xwiki
-    zimwiki
-    */
+    case "epub":
+    case "epub2":
+    case "epub3":
+      writerFormat = ebookFormat("epub");
+      break;
+
+    case "fb2":
+      writerFormat = ebookFormat("fb2");
+      break;
+
+    case "zimwiki":
+      writerFormat = plaintextFormat("zim");
+      break;
+
+    case "jats":
+    case "jats_archiving":
+    case "jats_articleauthoring":
+    case "jats_publishing":
+      writerFormat = plaintextFormat("xml");
+      break;
 
     default:
-      // json
+      // textile
+      // texinfo
+      // tei
+      // rst
+      // org
+      // opml
+      // muse
+      // ms
+      // native
       // man
-      writerFormat = format(to);
+      // dokuwiki
+      // haddock
+      // json
+      // icml
+      // ipynb
+      // jira
+      // mediawiki
+      // xwiki
+      writerFormat = plaintextFormat(to);
   }
 
   // set the writer
@@ -319,6 +326,15 @@ function plaintextFormat(ext: string): Format {
   return format(ext, {
     pandoc: {
       standalone: true,
+    },
+  });
+}
+
+function ebookFormat(ext: string): Format {
+  return format(ext, {
+    compute: {
+      [kFigWidth]: 5,
+      [kFigHeight]: 4,
     },
   });
 }
