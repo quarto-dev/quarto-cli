@@ -75,7 +75,7 @@ export interface RunOptions {
 
 export interface ComputationEngine {
   name: string;
-  canHandle: (ext: string) => boolean;
+  canHandle: (file: string) => boolean;
   metadata: (file: string) => Promise<Metadata>;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;
@@ -85,14 +85,13 @@ export interface ComputationEngine {
 
 export function computeEngineForFile(file: string) {
   const engines = [
-    rmdEngine,
     ipynbEngine,
+    rmdEngine,
   ];
 
   // try to find an engine
-  const ext = extname(file);
   for (const engine of engines) {
-    if (engine.canHandle(ext)) {
+    if (engine.canHandle(file)) {
       return engine;
     }
   }
@@ -104,7 +103,7 @@ export function computeEngineForFile(file: string) {
 function markdownEngine(): ComputationEngine {
   return {
     name: "markdown",
-    canHandle: (_ext: string) => true,
+    canHandle: (_file: string) => true,
     metadata: (file: string) =>
       Promise.resolve(readYamlFromMarkdownFile(file) as Metadata),
     execute: (_options: ExecuteOptions) =>

@@ -13,6 +13,7 @@
 *
 */
 
+import { extname } from "path/mod.ts";
 import { getenv } from "../core/env.ts";
 import { execProcess } from "../core/process.ts";
 import { resourcePath } from "../core/resources.ts";
@@ -30,8 +31,15 @@ import type {
 export const ipynbEngine: ComputationEngine = {
   name: "ipynb",
 
-  canHandle: (ext: string) => {
-    return [".ipynb"].includes(ext.toLowerCase());
+  canHandle: (file: string) => {
+    // if it's an .Rmd or .md file, then read the YAML to see if has jupytext,
+    // if it does, check for paired paths
+
+    // if it's a .py file, then check for paired paths
+
+    // if it's an .ipynb file, then check for paired paths and use --sync
+
+    return [".ipynb"].includes(extname(file).toLowerCase());
   },
 
   metadata: async (file: string): Promise<Metadata> => {
