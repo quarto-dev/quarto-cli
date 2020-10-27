@@ -10,17 +10,25 @@
 # MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. Please refer to the
 # GPL (http://www.gnu.org/licenses/gpl-3.0.txt) for more details.
 
+import os
 import sys
 import nbformat
 import nbconvert
+import json
 from pathlib import Path
 
 # read args
 input = sys.argv[1]
 output = sys.argv[2]
 
+# change working directory and strip dir off of paths
+os.chdir(Path(input).parent)
+input = Path(input).name
+output = Path(output).name
+
 # output dir
-output_dir = Path(output).stem + "_files/figure-ipynb"
+files_dir = Path(output).stem + "_files"
+output_dir = files_dir + "/figure-ipynb"
 
 # convert to markdown
 notebook_node = nbformat.read(input, as_version=4)
@@ -41,4 +49,13 @@ for path, data in outputs.items():
 # write markdown 
 with open(output, "w") as file:
    file.write(markdown)
+
+# return result
+result = {
+   "supporting": [files_dir],
+   "includes": {},
+   "postprocess": None
+}
+json.dump(result, sys.stdout)
+
 

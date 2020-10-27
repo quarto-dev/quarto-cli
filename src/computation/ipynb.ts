@@ -59,13 +59,11 @@ export const ipynbEngine: ComputationEngine = {
         options.input,
         options.output,
       ],
+      stdout: "piped",
     });
 
     if (result.success) {
-      return {
-        supporting: [],
-        includes: {},
-      };
+      return JSON.parse(result.stdout!);
     } else {
       return Promise.reject();
     }
