@@ -3,8 +3,6 @@
 
 - fill out all the pandoc formats
 
--t context, -t html, or -t ms w/ output file pdf should work
-
 << write tests >>
 
 
