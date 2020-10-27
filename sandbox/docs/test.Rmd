@@ -1,8 +1,8 @@
 ---
 title: "Woozy Foobar"
-knit: quarto render
+# knit: quarto render
 output:
-  html_document: default
+  rtf_document: default
 format: 
   html: 
     r-options:

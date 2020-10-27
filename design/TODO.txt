@@ -1,12 +1,14 @@
 
 
 
-- fill out all the pandoc formats
-
-<< write tests >>
 
 
 Python
+
+
+https://jupytext.readthedocs.io/en/latest/formats.html#jupytext-markdown
+https://jupyter-cache.readthedocs.io/en/latest/
+papermill (use their convention for parameters)
 
 memo/proposal on computations:
 will be able to use RStudio chunk output and/or notebook for compute?
@@ -29,6 +31,7 @@ omputations could even be at a URL!!!
   {{< video https://youtube.com/foo/status/34453323455 >}}
 
 
+<< write tests >>
 
 - Crossref system 
   - Adopt pandoc-crossref if custom labels PR is merged
