@@ -164,11 +164,14 @@ export function defaultWriterFormat(to: string): Format {
       writerFormat = rtfFormat();
       break;
 
+    case "plain":
+      writerFormat = plaintextFormat("txt");
+      break;
+
     /*
  
  
     dokuwiki
-    dzslides
     epub
     epub2
     epub3
@@ -181,15 +184,12 @@ export function defaultWriterFormat(to: string): Format {
     jats_articleauthoring
     jats_publishing
     jira
-    json
-    man
     mediawiki
     ms
     muse
     native
     opml
     org
-    plain
     rst
     tei
     texinfo
@@ -199,6 +199,8 @@ export function defaultWriterFormat(to: string): Format {
     */
 
     default:
+      // json
+      // man
       writerFormat = format(to);
   }
 
