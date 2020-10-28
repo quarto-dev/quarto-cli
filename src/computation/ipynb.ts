@@ -36,7 +36,7 @@ const kNotebookExtensions = [
   ".ipynb",
 ];
 const kJupytextMdExtensions = [
-  ".rmd",
+  ".Rmd",
   ".md",
   ".markdown",
 ];
