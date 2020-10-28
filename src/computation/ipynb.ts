@@ -57,47 +57,27 @@ export const ipynbEngine: ComputationEngine = {
   name: "ipynb",
 
   handle: async (file: string) => {
-    // see if there is a target notebook (could be something paired w/ .md or .py)
-    const targetNotebook = async () => {
-      // if it's an .Rmd or .md file, then read the YAML to see if has jupytext,
-      // if it does, check for a paired notebook
-      const ext = extname(file);
-      if (kJupytextMdExtensions.includes(ext)) {
-        if (isJupytextMd(file)) {
-          return await pairedNotebook(file);
-        }
-      } // if it's a code file, then check for a paired notebook
-      else if (kCodeExtensions.includes(ext)) {
+    // if it's an .Rmd or .md file, then read the YAML to see if has jupytext,
+    // if it does, check for a paired notebook and return it
+    const ext = extname(file);
+    if (kJupytextMdExtensions.includes(ext)) {
+      if (isJupytextMd(file)) {
         return await pairedNotebook(file);
-      } else {
-        if (isNotebook(file)) {
-          return file;
-        }
       }
-    };
-
-    // if we have a target notebook then sync & execute it and return it's path
-    const notebook = await targetNotebook();
-    if (notebook) {
-      const result = await execProcess({
-        cmd: [
-          pythonBinary("jupytext"),
-          "--sync",
-          "--execute",
-          notebook,
-        ],
-        stdout: "piped",
-        stderr: "piped",
-      });
-      if (!result.success) {
-        throw new Error(result.stderr || "Unknown error syncing jupytext");
-      } else {
-        return notebook;
-      }
+    } // if it's a code file, then check for a paired notebook and return it
+    else if (kCodeExtensions.includes(ext)) {
+      return await pairedNotebook(file);
+      // if it's a notebook file then return it
+    } else if (isNotebook(file)) {
+      return file;
     }
   },
 
   metadata: async (file: string): Promise<Metadata> => {
+    // jupytext sync before reading metadata
+    await jupytext("--sync", file);
+
+    // read metadata
     const decoder = new TextDecoder("utf-8");
     const ipynbContents = await Deno.readFile(file);
     const ipynb = JSON.parse(decoder.decode(ipynbContents));
@@ -114,6 +94,10 @@ export const ipynbEngine: ComputationEngine = {
   },
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
+    // jupytext execute before converting to markdown
+    await jupytext("--execute", options.input);
+
+    // convert to markdown
     const result = await execProcess({
       cmd: [
         pythonBinary(),
@@ -150,7 +134,6 @@ async function pairedNotebook(file: string) {
       file,
     ],
     stdout: "piped",
-    stderr: "piped",
   });
   if (result.stdout) {
     const pairedFiles = result.stdout.split(/\r?\n/);
@@ -167,4 +150,16 @@ function isNotebook(file: string) {
 function pythonBinary(binary = "python") {
   const condaPrefix = getenv("CONDA_PREFIX");
   return condaPrefix + "/bin/" + binary;
+}
+
+async function jupytext(...args: string[]) {
+  const result = await execProcess({
+    cmd: [
+      pythonBinary("jupytext"),
+      ...args,
+    ],
+  });
+  if (!result.success) {
+    throw new Error(result.stderr || "Error syncing jupytext");
+  }
 }
