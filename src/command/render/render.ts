@@ -52,7 +52,7 @@ export async function render(
   const flags = options.flags || {};
 
   // determine the computation engine and any alternate input file
-  const { input, engine } = await computationEngine(file);
+  const { input, engine } = await computationEngine(file, flags.quiet);
 
   // resolve render target
   const format = await resolveFormat(input, engine, options.flags);
