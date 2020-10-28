@@ -55,13 +55,14 @@ export interface OutputRecipe {
 }
 
 export function outputRecipe(
+  input: string,
   options: RenderOptions,
   mdInput: string,
   format: Format,
   engine: ComputationEngine,
 ): OutputRecipe {
   if (useLatexmk(mdInput, format, options.flags)) {
-    return latexmkOutputRecipe(options, format, engine.latexmk);
+    return latexmkOutputRecipe(input, options, format, engine.latexmk);
   } else {
     // default recipe spec based on user input
     const completeActions: VoidFunction[] = [];
@@ -91,7 +92,7 @@ export function outputRecipe(
     }
 
     // compute dir and stem
-    const [inputDir, inputStem] = dirAndStem(options.input);
+    const [inputDir, inputStem] = dirAndStem(input);
 
     // tweak pandoc writer if we have extensions declared
     if (format.render[kVariant]) {
@@ -112,7 +113,7 @@ export function outputRecipe(
       completeActions.push(() => {
         // read yaml and output markdown
         const yamlMd = readYamlFrontMatterFromMarkdown(
-          Deno.readTextFileSync(options.input),
+          Deno.readTextFileSync(input),
         );
         if (yamlMd) {
           const outputMd = Deno.readTextFileSync(recipe.output);
@@ -126,7 +127,7 @@ export function outputRecipe(
 
       // special case for .md to .md, need to use the writer to create a unique extension
       let outputExt = ext;
-      if (extname(options.input) === ".md" && ext === "md") {
+      if (extname(input) === ".md" && ext === "md") {
         outputExt = `${format.pandoc.to}.md`;
       }
       updateOutput(inputStem + "." + outputExt);
