@@ -13,7 +13,7 @@
 *
 */
 
-import { extname } from "path/mod.ts";
+import { extname, join } from "path/mod.ts";
 import { getenv } from "../core/env.ts";
 import { execProcess } from "../core/process.ts";
 import { resourcePath } from "../core/resources.ts";
@@ -30,6 +30,8 @@ import type {
   ExecuteResult,
   PostProcessOptions,
 } from "./engine.ts";
+import { dirAndStem } from "../core/path.ts";
+import { json } from "https://deno.land/std@0.71.0/encoding/_yaml/schema/json.ts";
 
 const kNotebookExtensions = [
   ".ipynb",
@@ -115,6 +117,11 @@ export const ipynbEngine: ComputationEngine = {
   },
 
   postprocess: async (options: PostProcessOptions) => {
+  },
+
+  keepMd: async (mdOutput: string, mdKeep: string) => {
+    const [keepDir, keepStem] = dirAndStem(mdKeep);
+    await Deno.copyFile(mdOutput, join(keepDir, keepStem + ".ipynb.md"));
   },
 };
 

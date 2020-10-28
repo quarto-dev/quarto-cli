@@ -37,24 +37,16 @@ const kStandaloneExtensions = [
 ];
 
 export function cleanup(
-  input: string,
   flags: RenderFlags,
   format: Format,
   computations: ComputationsResult,
   output: string,
 ) {
-  // remove md file created by computations
-  if (!format.render[kKeepMd]) {
-    // don't remove computational output if it's the same as either
-    // (1) the original input (which would be the case for rendering
-    // a plain markdown file); or (2) The final output (which would
-    // be the case for a markdown to markdown rendering)
-    if (
-      normalize(computations.output) !== normalize(input) &&
-      normalize(computations.output) !== normalize(output)
-    ) {
-      removeIfExists(computations.output);
-    }
+  console.log(computations);
+
+  // always get rid of computations output unless we are in debug mode (it's an intermediate file)
+  if (!flags.debug) {
+    removeIfExists(computations.output);
   }
 
   // determine if we will be self contained

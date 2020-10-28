@@ -36,7 +36,6 @@ import {
 import { OutputRecipe } from "./output.ts";
 
 export function useLatexmk(
-  input: string,
   format: Format,
   flags?: RenderFlags,
 ) {
