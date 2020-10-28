@@ -23,14 +23,17 @@ export const kPandocMetadata = "metadata";
 export const kFigWidth = "fig-width";
 export const kFigHeight = "fig-height";
 export const kFigFormat = "fig-format";
-export const kShowCode = "show-code";
+
+export const kShowInput = "show-input";
+export const kShowOutput = "show-output";
 export const kShowWarning = "show-warning";
 
 export const kComputeDefaultsKeys = [
   kFigWidth,
   kFigHeight,
   kFigFormat,
-  kShowCode,
+  kShowInput,
+  kShowOutput,
   kShowWarning,
 ];
 
