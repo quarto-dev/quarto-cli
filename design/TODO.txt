@@ -5,15 +5,35 @@
 
 Python
 
+// TODO: controlling jupytext metadata propogation (see https://jupytext.readthedocs.io/en/latest/config.html)
+
+// TODO: raw py script could be auto-paired: jupytext --set-formats ipynb,py [--sync] notebook.ipynb
+// TODO: jupyter md could be auto-paired, perhaps based on .Jmd extension? (already used by Julia w/ ```math engine)
+
 // TODO: quiet for jupytext
 // TODO: keep-md
 // TODO: where to execute
 
+// TODO: sharing author and title between jupyter: and top-level
+
+// TODO: knitr equivalents for hide code, show code, figure sizes
+
+// TODO: Python widgets (e.g.. try out https://github.com/mwouts/itables)
+//  they create:
+//    <div class="output_area">
+      <div class="prompt output_prompt">Out[1]:</div>
+      <div class="output_html rendered_html output_subarea output_execute_result">
+      </div>
+      </div>
+      </div>
+//
+//
 
 
 https://jupytext.readthedocs.io/en/latest/formats.html#jupytext-markdown
 https://jupyter-cache.readthedocs.io/en/latest/
 papermill (use their convention for parameters)
+
 
 memo/proposal on computations:
 will be able to use RStudio chunk output and/or notebook for compute?
