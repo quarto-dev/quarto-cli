@@ -13,8 +13,9 @@
 *
 */
 
-import { extname } from "path/mod.ts";
+import { extname, join } from "path/mod.ts";
 
+import { dirAndStem } from "../core/path.ts";
 import { execProcess } from "../core/process.ts";
 import { resourcePath } from "../core/resources.ts";
 import {
@@ -79,11 +80,9 @@ export const rmdEngine: ComputationEngine = {
     );
   },
 
-  keepMd: async (mdOutput: string, mdKeep: string) => {
-    console.log(mdOutput);
-    console.log(mdKeep);
-
-    await Deno.copyFile(mdOutput, mdKeep);
+  keepMd: (input: string) => {
+    const [inputDir, inputStem] = dirAndStem(input);
+    return join(inputDir, inputStem + ".md");
   },
 
   latexmk: (options: LatexmkOptions) => {
