@@ -10,14 +10,16 @@ dependencies:
   - blas=1.0=mkl
   - bleach=3.2.1=py_0
   - brotlipy=0.7.0=py38haf1e3a3_1000
-  - ca-certificates=2020.6.20=hecda079_0
-  - certifi=2020.6.20=py38h32f6830_0
+  - ca-certificates=2020.10.14=0
+  - certifi=2020.6.20=py38_0
   - cffi=1.14.3=py38hed5b41f_0
   - chardet=3.0.4=py38_1003
   - cryptography=3.1=py38hddc9c9b_0
+  - cycler=0.10.0=py38_0
   - decorator=4.4.2=py_0
   - defusedxml=0.6.0=py_0
   - entrypoints=0.3=py38_0
+  - freetype=2.10.4=ha233b18_0
   - idna=2.10=py_0
   - importlib-metadata=1.7.0=py38_0
   - importlib_metadata=1.7.0=0
@@ -27,6 +29,7 @@ dependencies:
   - ipython_genutils=0.2.0=py38_0
   - jedi=0.17.2=py38_0
   - jinja2=2.11.2=py_0
+  - jpeg=9b=he5867d9_2
   - json5=0.9.5=py_0
   - jsonschema=3.2.0=py38_1
   - jupyter_client=6.1.6=py_0
@@ -34,12 +37,19 @@ dependencies:
   - jupyterlab=2.2.6=py_0
   - jupyterlab_server=1.2.0=py_0
   - jupytext=1.6.0=pyh9f0ad1d_0
+  - kiwisolver=1.2.0=py38h04f5b5a_0
+  - lcms2=2.11=h92f6f08_0
   - libcxx=10.0.0=1
   - libedit=3.1.20191231=h1de35cc_1
   - libffi=3.3=hb1e8313_2
+  - libpng=1.6.37=ha441bb4_0
   - libsodium=1.0.18=h1de35cc_0
+  - libtiff=4.1.0=hcb84e12_1
+  - lz4-c=1.9.2=h79c402e_3
   - markdown-it-py=0.5.4=py_0
   - markupsafe=1.1.1=py38h1de35cc_1
+  - matplotlib=3.3.2=0
+  - matplotlib-base=3.3.2=py38h181983e_0
   - mistune=0.8.4=py38h1de35cc_1001
   - mkl=2019.4=233
   - mkl-service=2.3.0=py38hfbe908c_0
@@ -51,6 +61,7 @@ dependencies:
   - notebook=6.1.1=py38_0
   - numpy=1.19.1=py38h3b9f5b6_0
   - numpy-base=1.19.1=py38hcfb5961_0
+  - olefile=0.46=py_0
   - openssl=1.1.1h=haf1e3a3_0
   - packaging=20.4=py_0
   - pandas=1.1.1=py38hb1e8313_0
@@ -59,6 +70,7 @@ dependencies:
   - parso=0.7.0=py_0
   - pexpect=4.8.0=py38_1
   - pickleshare=0.7.5=py38_1001
+  - pillow=8.0.0=py38h1a82f1a_0
   - pip=20.2.2=py38_0
   - prometheus_client=0.8.0=py_0
   - prompt-toolkit=3.0.7=py_0
@@ -96,4 +108,4 @@ dependencies:
   - zeromq=4.3.2=hb1e8313_3
   - zipp=3.1.0=py_0
   - zlib=1.2.11=h1de35cc_3
-
+  - zstd=1.4.5=h41d2c2f_0
