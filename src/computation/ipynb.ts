@@ -20,7 +20,6 @@ import { resourcePath } from "../core/resources.ts";
 import {
   readYamlFromMarkdown,
   readYamlFromMarkdownFile,
-  readYamlFrontMatterFromMarkdown,
 } from "../core/yaml.ts";
 
 import { Metadata } from "../config/metadata.ts";
@@ -153,12 +152,18 @@ function pythonBinary(binary = "python") {
 }
 
 async function jupytext(...args: string[]) {
-  const result = await execProcess({
-    cmd: [
-      pythonBinary("jupytext"),
-      ...args,
-    ],
-  });
+  const result = await execProcess(
+    {
+      cmd: [
+        pythonBinary("jupytext"),
+        ...args,
+      ],
+    },
+    undefined,
+    (data: Uint8Array) => {
+      Deno.stderr.writeSync(data);
+    },
+  );
   if (!result.success) {
     throw new Error(result.stderr || "Error syncing jupytext");
   }
