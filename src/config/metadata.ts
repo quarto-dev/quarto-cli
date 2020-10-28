@@ -16,9 +16,7 @@
 import { dirname, join } from "path/mod.ts";
 import { existsSync } from "fs/exists.ts";
 
-import { ComputationEngine, computationEngine } from "../computation/engine.ts";
-
-import { readYaml, readYamlFromMarkdownFile } from "../core/yaml.ts";
+import { readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
 
 import {
@@ -64,7 +62,7 @@ export function projectMetadata(file: string): Metadata {
 }
 
 export function formatFromMetadata(
-  config: Metadata,
+  baseFormat: Format,
   to: string,
   debug?: boolean,
 ): Format {
@@ -78,7 +76,7 @@ export function formatFromMetadata(
   };
 
   // see if there is user config for this writer that we need to merge in
-  const configFormats = config[kMetadataFormat];
+  const configFormats = baseFormat.metadata[kMetadataFormat];
   if (configFormats instanceof Object) {
     // deno-lint-ignore no-explicit-any
     const configFormat = (configFormats as any)[to];
@@ -90,7 +88,11 @@ export function formatFromMetadata(
   }
 
   // merge user config into default config
-  const mergedFormat = mergeConfigs(defaultWriterFormat(to), format);
+  const mergedFormat = mergeConfigs(
+    defaultWriterFormat(to),
+    baseFormat,
+    format,
+  );
 
   // force keep_md and keep_tex if we are in debug mode
   if (debug) {
