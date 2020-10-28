@@ -18,11 +18,12 @@
 # %%
 print ("Hello, World!!!\n")
 
+
 # %%
 import matplotlib.pyplot as plt
 
 
-labels = ['G1', 'G2', 'G3', 'G4', 'G5']
+labels = ['G1', 'G2', 'G3', 'G4', 'G6']
 men_means = [20, 35, 30, 35, 27]
 women_means = [25, 32, 34, 20, 25]
 men_std = [2, 3, 4, 1, 2]
@@ -36,11 +37,8 @@ ax.bar(labels, women_means, width, yerr=women_std, bottom=men_means,
        label='Women')
 
 ax.set_ylabel('Scores')
-ax.set_title('Scores broken out by group/gender')
+ax.set_title('Scores broken out by group as well as gender')
 ax.legend()
 
 plt.show()
 
-# %%
-
-# %%
