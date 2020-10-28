@@ -60,6 +60,8 @@ export const kSelfContained = "self-contained";
 export const kIncludeBeforeBody = "include-before-body";
 export const kIncludeAfterBody = "include-after-body";
 export const kIncludeInHeader = "include-in-header";
+export const kBibliography = "bibliography";
+export const kCiteproc = "citeproc";
 export const kCiteMethod = "cite-method";
 export const kPdfEngine = "pdf-engine";
 export const kPdfEngineOpts = "pdf-engine-opts";
@@ -84,15 +86,15 @@ export const kPandocDefaultsKeys = [
   kIncludeAfterBody,
   kIncludeInHeader,
   "resource-path",
-  "citeproc",
+  kCiteproc,
   "csl",
-  "bibliography",
+  kBibliography,
+  kCiteMethod,
   "filters",
   "file-scope",
   "data-dir",
   "verbosity",
   "log-file",
-  kCiteMethod,
   "top-level-division",
   "abbreviations",
   kPdfEngine,

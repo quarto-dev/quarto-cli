@@ -25,6 +25,7 @@ import { Metadata } from "../../config/metadata.ts";
 
 import { RenderFlags } from "./flags.ts";
 import {
+  kBibliography,
   kFrom,
   kOutputFile,
   kSelfContained,
@@ -110,8 +111,9 @@ type CiteMethod = "citeproc" | "natbib" | "biblatex";
 
 function citeMethod(options: PandocOptions): CiteMethod | null {
   // no handler if no references
+  const pandoc = options.format.pandoc;
   const metadata = options.format.metadata;
-  if (metadata && !metadata.bibliography && !metadata.references) {
+  if (!pandoc[kBibliography] && !metadata.references) {
     return null;
   }
 
@@ -124,7 +126,7 @@ function citeMethod(options: PandocOptions): CiteMethod | null {
   }
 
   // otherwise it's citeproc unless expressly disabled
-  if (metadata && metadata.citeproc !== false) {
+  if (pandoc.citeproc !== false) {
     return "citeproc";
   } else {
     return null;
