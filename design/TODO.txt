@@ -5,6 +5,11 @@
 
 Python
 
+// TODO: quiet for jupytext
+// TODO: keep-md
+// TODO: where to execute
+
+
 
 https://jupytext.readthedocs.io/en/latest/formats.html#jupytext-markdown
 https://jupyter-cache.readthedocs.io/en/latest/
