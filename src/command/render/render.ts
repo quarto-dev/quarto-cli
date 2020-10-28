@@ -19,7 +19,6 @@ import { message } from "../../core/console.ts";
 import { ProcessResult } from "../../core/process.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
-import { readYaml } from "../../core/yaml.ts";
 
 import {
   formatFromMetadata,
@@ -41,17 +40,19 @@ import {
 
 // command line options for render
 export interface RenderOptions {
-  input: string;
   flags?: RenderFlags;
   pandocArgs?: string[];
 }
 
-export async function render(options: RenderOptions): Promise<ProcessResult> {
+export async function render(
+  file: string,
+  options: RenderOptions,
+): Promise<ProcessResult> {
   // alias flags
   const flags = options.flags || {};
 
   // determine the computation engine and any alternate input file
-  const { input, engine } = await computationEngine(options.input);
+  const { input, engine } = await computationEngine(file);
 
   // resolve render target
   const format = await resolveFormat(input, engine, options.flags);
@@ -75,7 +76,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   format.pandoc = mergeConfigs(format.pandoc || {}, computations.pandoc);
 
   // pandoc output recipe (target file, args, complete handler)
-  const recipe = outputRecipe(options, mdInput, format, engine);
+  const recipe = outputRecipe(input, options, mdInput, format, engine);
 
   // pandoc options
   const pandocOptions = {

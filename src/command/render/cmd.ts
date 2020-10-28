@@ -101,7 +101,7 @@ export const renderCommand = new Command()
       for (const walk of expandGlobSync(input)) {
         const input = relative(Deno.cwd(), walk.path);
         rendered = true;
-        const result = await render({ input, flags, pandocArgs });
+        const result = await render(input, { flags, pandocArgs });
         if (!result.success) {
           // error diagnostics already written to stderr
           Deno.exit(result.code);

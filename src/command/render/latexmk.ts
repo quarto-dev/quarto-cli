@@ -57,6 +57,7 @@ export function useLatexmk(
 }
 
 export function latexmkOutputRecipe(
+  input: string,
   options: RenderOptions,
   format: Format,
   latexmk?: (options: LatexmkOptions) => Promise<void>,
@@ -65,7 +66,7 @@ export function latexmkOutputRecipe(
   const latexmkHandler = latexmk ? latexmk : runLatexmk;
 
   // break apart input file
-  const [inputDir, inputStem] = dirAndStem(options.input);
+  const [inputDir, inputStem] = dirAndStem(input);
 
   // there are many characters that give tex trouble in filenames, create
   // a target stem that replaces them with the '-' character
