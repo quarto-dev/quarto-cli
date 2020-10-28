@@ -107,15 +107,8 @@ export async function render(
   // call complete handler (might e.g. run latexmk to complete the render)
   const finalOutput = await recipe.complete(pandocOptions) || recipe.output;
 
-  console.log(format);
-
-  // keep md output file if requested
-  if (format.render[kKeepMd]) {
-    await engine.keepMd(mdOutput, join(inputDir, inputStem + ".md"));
-  }
-
   // cleanup as required
-  cleanup(flags, format, computations, finalOutput);
+  cleanup(flags, format, computations, finalOutput, engine.keepMd(input));
 
   // report output created
   if (!flags.quiet && flags.output !== kStdOut) {

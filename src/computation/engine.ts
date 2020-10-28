@@ -79,7 +79,7 @@ export interface ComputationEngine {
   metadata: (input: string) => Promise<Metadata>;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;
-  keepMd: (mdOutput: string, mdKeep: string) => Promise<void>;
+  keepMd: (input: string) => string | undefined;
   latexmk?: (options: LatexmkOptions) => Promise<void>;
   run?: (options: RunOptions) => Promise<void>;
 }
@@ -116,7 +116,6 @@ function markdownEngine(): ComputationEngine {
       });
     },
     postprocess: (_options: PostProcessOptions) => Promise.resolve(),
-    // no-op (as our input was already a .md)
-    keepMd: (_mdOutput: string, _mdKeep: string) => Promise.resolve(),
+    keepMd: (_input: string) => undefined,
   };
 }

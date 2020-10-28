@@ -32,6 +32,7 @@ import type {
 } from "./engine.ts";
 import { dirAndStem } from "../core/path.ts";
 import { json } from "https://deno.land/std@0.71.0/encoding/_yaml/schema/json.ts";
+import { basename, dirname } from "https://deno.land/std@0.71.0/path/win32.ts";
 
 const kNotebookExtensions = [
   ".ipynb",
@@ -119,9 +120,8 @@ export const ipynbEngine: ComputationEngine = {
   postprocess: async (options: PostProcessOptions) => {
   },
 
-  keepMd: async (mdOutput: string, mdKeep: string) => {
-    const [keepDir, keepStem] = dirAndStem(mdKeep);
-    await Deno.copyFile(mdOutput, join(keepDir, keepStem + ".ipynb.md"));
+  keepMd: (input: string) => {
+    return join(dirname(input), basename(input) + ".md");
   },
 };
 

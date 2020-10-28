@@ -41,8 +41,16 @@ export function cleanup(
   format: Format,
   computations: ComputationsResult,
   output: string,
+  keepMd?: string,
 ) {
-  console.log(computations);
+  // if we have a keep md then copy to it (otherwise remote any existing version)
+  if (keepMd) {
+    if (format.render[kKeepMd]) {
+      Deno.copyFileSync(computations.output, keepMd);
+    } else {
+      removeIfExists(keepMd);
+    }
+  }
 
   // always get rid of computations output unless we are in debug mode (it's an intermediate file)
   if (!flags.debug) {
