@@ -16,7 +16,6 @@
 import { FormatPandoc } from "../../config/format.ts";
 
 import {
-  computeEngineForFile,
   ExecuteOptions,
   PandocIncludes,
   PostProcessOptions,

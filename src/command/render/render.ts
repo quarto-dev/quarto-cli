@@ -36,7 +36,7 @@ import { outputRecipe } from "./output.ts";
 import { kMetadataFormat } from "../../config/constants.ts";
 import {
   ComputationEngine,
-  computeEngineForFile,
+  computationEngine,
 } from "../../computation/engine.ts";
 
 // command line options for render
@@ -50,20 +50,20 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   // alias flags
   const flags = options.flags || {};
 
-  // determine the computation engine
-  const engine = computeEngineForFile(options.input);
+  // determine the computation engine and any alternate input file
+  const { input, engine } = await computationEngine(options.input);
 
   // resolve render target
-  const format = await resolveFormat(options, engine);
+  const format = await resolveFormat(input, engine, options.flags);
 
   // derive the pandoc input file path (computations will create this)
-  const [inputDir, inputStem] = dirAndStem(options.input);
+  const [inputDir, inputStem] = dirAndStem(input);
   const mdInput = join(inputDir, inputStem + ".md");
 
   // run computations
   const computations = await runComputations({
     engine,
-    input: options.input,
+    input,
     output: mdInput,
     format,
     cwd: flags.computeDir,
@@ -95,7 +95,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   if (computations.postprocess) {
     await postprocess({
       engine,
-      input: options.input,
+      input,
       format,
       output: recipe.output,
       data: computations.postprocess,
@@ -107,7 +107,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
   const finalOutput = await recipe.complete(pandocOptions) || recipe.output;
 
   // cleanup as required
-  cleanup(options.input, flags, format, computations, finalOutput);
+  cleanup(input, flags, format, computations, finalOutput);
 
   // report output created
   if (!flags.quiet && flags.output !== kStdOut) {
@@ -119,12 +119,13 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
 }
 
 async function resolveFormat(
-  options: RenderOptions,
+  input: string,
   engine: ComputationEngine,
+  flags?: RenderFlags,
 ) {
   // merge input metadata into project metadata
-  const inputMetadata = await engine.metadata(options.input);
-  const projMetadata = projectMetadata(options.input);
+  const inputMetadata = await engine.metadata(input);
+  const projMetadata = projectMetadata(input);
   const baseMetadata = mergeConfigs(projMetadata, inputMetadata);
 
   // divide metadata into format buckets
@@ -133,7 +134,7 @@ async function resolveFormat(
   // determine which writer to use (use original input and
   // project metadata to preserve order of keys and to
   // prefer input-level format keys to project-level)
-  let to = options.flags?.to;
+  let to = flags?.to;
   if (!to) {
     // see if there is a 'to' or 'writer' specified in defaults
     to = baseFormat.pandoc.to || baseFormat.pandoc.writer || "html";
@@ -157,7 +158,7 @@ async function resolveFormat(
   const format = formatFromMetadata(
     baseFormat.metadata || {},
     to,
-    options.flags?.debug,
+    flags?.debug,
   );
 
   // return target

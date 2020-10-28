@@ -27,10 +27,7 @@ import {
 } from "../../config/constants.ts";
 import { Format } from "../../config/format.ts";
 
-import {
-  ComputationEngine,
-  computeEngineForFile,
-} from "../../computation/engine.ts";
+import { ComputationEngine } from "../../computation/engine.ts";
 
 import { kStdOut, replacePandocArg } from "./flags.ts";
 import { PandocOptions } from "./pandoc.ts";
