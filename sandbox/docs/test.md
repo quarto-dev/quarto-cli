@@ -1,25 +1,26 @@
-# ---
-# title: "Here we go"
-# author: "J.J. Allaire"
-# jupyter:
-#   jupytext:
-#     formats: ipynb,md,py:percent
-#     text_representation:
-#       extension: .py
-#       format_name: percent
-#       format_version: '1.3'
-#       jupytext_version: 1.6.0
-#   kernelspec:
-#     display_name: Python 3
-#     language: python
-#     name: python3
-# ---
+---
+title: "Here we go"
+author: "J.J. Allaire"
+jupyter:
+  jupytext:
+    formats: ipynb,md,py:percent
+    text_representation:
+      extension: .md
+      format_name: markdown
+      format_version: '1.2'
+      jupytext_version: 1.6.0
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
 
-# %%
+```python
 print ("Hello, World Again and Again!!!\n")
+```
 
 
-# %%
+```python
 import matplotlib.pyplot as plt
 
 
@@ -41,4 +42,5 @@ ax.set_title('Scores broken out by group and even gender')
 ax.legend()
 
 plt.show()
+```
 
