@@ -110,7 +110,7 @@ export const ipynbEngine: ComputationEngine = {
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
     // jupytext execute before converting to markdown
-    const args = ["--execute", options.input];
+    const args = ["--execute", "--sync", options.input];
     if (options.quiet) {
       args.push("--quiet");
     }

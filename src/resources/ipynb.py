@@ -16,6 +16,7 @@ import nbformat
 import nbconvert
 import json
 from pathlib import Path
+from traitlets.config import Config
 
 # read args
 input = sys.argv[1]
@@ -31,9 +32,17 @@ files_dir = Path(input).stem + "_files"
 output_dir = files_dir + "/figure-ipynb"
 Path(output_dir).mkdir(parents=True, exist_ok=True)
 
+# setup for cell/output/input tags
+# TODO: we need the global versions + "include-cell", "include-output"
+config = Config()
+config.TagRemovePreprocessor.enabled = True
+config.TagRemovePreprocessor.remove_cell_tags = ("remove-cell",)
+config.TagRemovePreprocessor.remove_all_outputs_tags = ('remove-output',)
+config.TagRemovePreprocessor.remove_input_tags = ('remove-input',)
+
 # convert to markdown
 notebook_node = nbformat.read(input, as_version=4)
-md_exporter = nbconvert.MarkdownExporter()
+md_exporter = nbconvert.MarkdownExporter(config = config)
 result = md_exporter.from_notebook_node(
   notebook_node, 
   resources = { "output_files_dir": output_dir}
