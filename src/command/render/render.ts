@@ -58,7 +58,7 @@ export async function render(options: RenderOptions): Promise<ProcessResult> {
 
   // derive the pandoc input file path (computations will create this)
   const [inputDir, inputStem] = dirAndStem(input);
-  const mdInput = join(inputDir, inputStem + ".md");
+  const mdInput = join(inputDir, inputStem + ".quarto.md");
 
   // run computations
   const computations = await runComputations({
