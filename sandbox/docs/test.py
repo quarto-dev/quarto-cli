@@ -1,9 +1,12 @@
 # ---
 # title: "Here we go"
 # author: "J.J. Allaire"
+# knit: quarto render
+# format: html
+# bibliography: references.bib
 # jupyter:
 #   jupytext:
-#     formats: ipynb,md,py:percent
+#     formats: ipynb,md,py:percent,Rmd
 #     text_representation:
 #       extension: .py
 #       format_name: percent
@@ -16,8 +19,17 @@
 # ---
 
 # %%
-print ("Hello, World Again and Again!!!\n")
+print ("Hello, World!!!\n")
 
+
+# %% [markdown]
+# ## Visual Editor
+#
+# @pirzada2020
+#
+# Definition
+#
+# :   Here we go
 
 # %%
 import matplotlib.pyplot as plt
@@ -37,8 +49,11 @@ ax.bar(labels, women_means, width, yerr=women_std, bottom=men_means,
        label='Women')
 
 ax.set_ylabel('Scores')
-ax.set_title('Scores broken out by group and even gender')
+ax.set_title('Scores broken out by group as well as gender')
 ax.legend()
 
 plt.show()
 
+
+# %% [markdown]
+#

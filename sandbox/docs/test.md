@@ -1,13 +1,16 @@
 ---
 title: "Here we go"
 author: "J.J. Allaire"
+knit: quarto render
+format: html
+bibliography: references.bib
 jupyter:
   jupytext:
-    formats: ipynb,md,py:percent
+    formats: ipynb,md,py:percent,Rmd
     text_representation:
       extension: .md
       format_name: markdown
-      format_version: '1.2'
+      format_version: "1.2"
       jupytext_version: 1.6.0
   kernelspec:
     display_name: Python 3
@@ -16,9 +19,16 @@ jupyter:
 ---
 
 ```python
-print ("Hello, World Again and Again!!!\n")
+print ("Hello, World!!!\n")
 ```
 
+## Visual Editor
+
+@pirzada2020
+
+Definition
+
+: Here we go
 
 ```python
 import matplotlib.pyplot as plt
@@ -38,9 +48,8 @@ ax.bar(labels, women_means, width, yerr=women_std, bottom=men_means,
        label='Women')
 
 ax.set_ylabel('Scores')
-ax.set_title('Scores broken out by group and even gender')
+ax.set_title('Scores broken out by group as well as gender')
 ax.legend()
 
 plt.show()
 ```
-
