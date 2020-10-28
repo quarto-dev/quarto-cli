@@ -157,7 +157,7 @@ async function resolveFormat(
 
   // determine the target format
   const format = formatFromMetadata(
-    baseFormat.metadata || {},
+    baseFormat,
     to,
     flags?.debug,
   );
