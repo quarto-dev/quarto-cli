@@ -6,6 +6,7 @@
    ],
    "settings": {
       "editor.tabSize": 2,
-      "deno.lint": true
+      "deno.lint": true,
+      "debug.javascript.unmapMissingSources": true
    }
 }

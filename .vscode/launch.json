@@ -9,7 +9,7 @@
       "request": "launch",
       "type": "pwa-node",
       "program": "${workspaceFolder}/src/quarto.ts",
-      "args": ["render", "test.Rmd"],
+      "args": ["render", "test.py"],
       "cwd": "${workspaceFolder}/sandbox/docs",
       "runtimeExecutable": "deno",
       "runtimeArgs": [
