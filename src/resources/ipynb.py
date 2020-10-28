@@ -27,7 +27,7 @@ input = Path(input).name
 output = Path(output).name
 
 # output dir
-files_dir = Path(output).stem + "_files"
+files_dir = Path(input).stem + "_files"
 output_dir = files_dir + "/figure-ipynb"
 Path(output_dir).mkdir(parents=True, exist_ok=True)
 
