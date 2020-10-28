@@ -109,3 +109,7 @@ dependencies:
   - zipp=3.1.0=py_0
   - zlib=1.2.11=h1de35cc_3
   - zstd=1.4.5=h41d2c2f_0
+  - pip:
+      - cachetools==4.1.1
+      - itables==0.2.2
+      - world-bank-data==0.1.3
