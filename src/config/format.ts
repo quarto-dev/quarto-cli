@@ -42,7 +42,8 @@ import {
   kKeepMd,
   kKeepTex,
   kOutputExt,
-  kShowCode,
+  kShowInput,
+  kShowOutput,
   kShowWarning,
 } from "./constants.ts";
 
@@ -66,7 +67,8 @@ export interface FormatCompute {
   [kFigWidth]?: number;
   [kFigHeight]?: number;
   [kFigFormat]?: "png" | "pdf";
-  [kShowCode]?: boolean;
+  [kShowInput]?: boolean;
+  [kShowOutput]?: boolean;
   [kShowWarning]?: boolean;
 }
 
@@ -250,7 +252,7 @@ function beamerFormat(): Format {
       compute: {
         [kFigWidth]: 10,
         [kFigHeight]: 7,
-        [kShowCode]: false,
+        [kShowInput]: false,
         [kShowWarning]: false,
       },
     },
@@ -269,7 +271,7 @@ function htmlPresentationFormat(figwidth: number, figheight: number): Format {
     htmlFormat(figwidth, figheight),
     {
       compute: {
-        [kShowCode]: false,
+        [kShowInput]: false,
         [kShowWarning]: false,
       },
     },
@@ -303,7 +305,7 @@ function powerpointFormat(): Format {
     compute: {
       [kFigWidth]: 7.5,
       [kFigHeight]: 5.5,
-      [kShowCode]: false,
+      [kShowInput]: false,
       [kShowWarning]: false,
     },
   });
@@ -361,7 +363,8 @@ function defaultFormat(): Format {
       [kFigWidth]: 7,
       [kFigHeight]: 5,
       [kFigFormat]: "png",
-      [kShowCode]: true,
+      [kShowInput]: true,
+      [kShowOutput]: true,
       [kShowWarning]: true,
     },
     render: {

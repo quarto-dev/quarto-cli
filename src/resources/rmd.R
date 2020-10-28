@@ -256,9 +256,10 @@
       fig.width = format$compute$`fig-width`,
       fig.height = format$compute$`fig-height`,
       dev = format$compute$`fig-format`,
-      echo = format$compute$`show-code`,
+      echo = format$compute$`show-input`,
       warning = format$compute$`show-warning`,
       message = format$compute$`show-warning`,
+      include = format$compute$`show-output`,
       # hard coded (overideable in setup chunk but not format)
       dpi = 96,
       comment = NA
