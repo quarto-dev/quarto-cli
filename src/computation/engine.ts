@@ -76,7 +76,7 @@ export interface RunOptions {
 export interface ComputationEngine {
   name: string;
   handle: (file: string) => Promise<string | undefined>;
-  metadata: (file: string) => Promise<Metadata>;
+  metadata: (input: string) => Promise<Metadata>;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;
   latexmk?: (options: LatexmkOptions) => Promise<void>;

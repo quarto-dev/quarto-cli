@@ -72,13 +72,13 @@ export const ipynbEngine: ComputationEngine = {
     }
   },
 
-  metadata: async (file: string): Promise<Metadata> => {
+  metadata: async (input: string): Promise<Metadata> => {
     // jupytext sync before reading metadata
-    await jupytext("--sync", file);
+    await jupytext("--sync", input);
 
     // read metadata
     const decoder = new TextDecoder("utf-8");
-    const ipynbContents = await Deno.readFile(file);
+    const ipynbContents = await Deno.readFile(input);
     const ipynb = JSON.parse(decoder.decode(ipynbContents));
     const cells = ipynb.cells as Array<{ cell_type: string; source: string[] }>;
     const markdown = cells.reduce((md, cell) => {
