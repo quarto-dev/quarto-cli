@@ -17,7 +17,9 @@ import { mergeConfigs } from "../core/config.ts";
 
 import {
   kAtxHeaders,
+  kBibliography,
   kCiteMethod,
+  kCiteproc,
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
@@ -80,6 +82,8 @@ export interface FormatPandoc {
   [kIncludeBeforeBody]?: string[];
   [kIncludeAfterBody]?: string[];
   [kIncludeInHeader]?: string[];
+  [kBibliography]?: string[];
+  [kCiteproc]?: boolean;
   [kCiteMethod]?: string;
   [kPdfEngine]?: string;
   [kPdfEngineOpts]?: string[];
