@@ -75,7 +75,7 @@ export interface RunOptions {
 
 export interface ComputationEngine {
   name: string;
-  handle: (file: string) => Promise<string | undefined>;
+  handle: (file: string, quiet?: boolean) => Promise<string | undefined>;
   metadata: (input: string) => Promise<Metadata>;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;
@@ -84,7 +84,7 @@ export interface ComputationEngine {
   run?: (options: RunOptions) => Promise<void>;
 }
 
-export async function computationEngine(file: string) {
+export async function computationEngine(file: string, quiet?: boolean) {
   const engines = [
     ipynbEngine,
     rmdEngine,
@@ -92,7 +92,7 @@ export async function computationEngine(file: string) {
 
   // try to find an engine
   for await (const engine of engines) {
-    const input = await engine.handle(file);
+    const input = await engine.handle(file, quiet);
     if (input) {
       return { input, engine };
     }

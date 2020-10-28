@@ -58,27 +58,40 @@ const kCodeExtensions = [
 export const ipynbEngine: ComputationEngine = {
   name: "ipynb",
 
-  handle: async (file: string) => {
-    // if it's an .Rmd or .md file, then read the YAML to see if has jupytext,
-    // if it does, check for a paired notebook and return it
-    const ext = extname(file);
-    if (kJupytextMdExtensions.includes(ext)) {
-      if (isJupytextMd(file)) {
-        return await pairedNotebook(file);
+  handle: async (file: string, quiet?: boolean) => {
+    const notebookTarget = async () => {
+      // if it's an .Rmd or .md file, then read the YAML to see if has jupytext,
+      // if it does, check for a paired notebook and return it
+      const ext = extname(file);
+      if (kJupytextMdExtensions.includes(ext)) {
+        if (isJupytextMd(file)) {
+          return { sync: true, notebook: await pairedNotebook(file) };
+        }
+      } // if it's a code file, then check for a paired notebook and return it
+      else if (kCodeExtensions.includes(ext)) {
+        return { sync: true, notebook: await pairedNotebook(file) };
+        // if it's a notebook file then return it
+      } else if (isNotebook(file)) {
+        const paired = pairedPaths(file);
+        return { sync: !!(await pairedPaths(file)).length, notebook: file };
       }
-    } // if it's a code file, then check for a paired notebook and return it
-    else if (kCodeExtensions.includes(ext)) {
-      return await pairedNotebook(file);
-      // if it's a notebook file then return it
-    } else if (isNotebook(file)) {
-      return file;
+    };
+
+    // see if there is a notebook target, if there is then sync it if required and return
+    const target = await notebookTarget();
+    if (target && target.notebook) {
+      if (target.sync) {
+        const args = ["--sync", target.notebook];
+        if (quiet) {
+          args.push("--quiet");
+        }
+        await jupytext(...args);
+      }
+      return target.notebook;
     }
   },
 
   metadata: async (input: string): Promise<Metadata> => {
-    // jupytext sync before reading metadata
-    await jupytext("--sync", input);
-
     // read metadata
     const decoder = new TextDecoder("utf-8");
     const ipynbContents = await Deno.readFile(input);
@@ -97,7 +110,11 @@ export const ipynbEngine: ComputationEngine = {
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
     // jupytext execute before converting to markdown
-    await jupytext("--execute", options.input);
+    const args = ["--execute", options.input];
+    if (options.quiet) {
+      args.push("--quiet");
+    }
+    await jupytext(...args);
 
     // convert to markdown
     const result = await execProcess({
@@ -132,7 +149,7 @@ async function isJupytextMd(file: string) {
     Object.keys(yaml.jupyter).includes("jupytext");
 }
 
-async function pairedNotebook(file: string) {
+async function pairedPaths(file: string) {
   const result = await execProcess({
     cmd: [
       pythonBinary("jupytext"),
@@ -142,8 +159,16 @@ async function pairedNotebook(file: string) {
     stdout: "piped",
   });
   if (result.stdout) {
-    const pairedFiles = result.stdout.split(/\r?\n/);
-    return pairedFiles.find(isNotebook);
+    return result.stdout.split(/\r?\n/);
+  } else {
+    return [];
+  }
+}
+
+async function pairedNotebook(file: string) {
+  const paired = await pairedPaths(file);
+  if (paired) {
+    return paired.find(isNotebook);
   } else {
     return undefined;
   }
