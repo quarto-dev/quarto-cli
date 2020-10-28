@@ -107,11 +107,13 @@ function markdownEngine(): ComputationEngine {
     handle: (file: string) => Promise.resolve(file),
     metadata: (file: string) =>
       Promise.resolve(readYamlFromMarkdownFile(file) as Metadata),
-    execute: (_options: ExecuteOptions) =>
-      Promise.resolve({
+    execute: async (options: ExecuteOptions) => {
+      await Deno.copyFile(options.input, options.output);
+      return Promise.resolve({
         supporting: [],
         includes: {} as PandocIncludes,
-      }),
+      });
+    },
     postprocess: (_options: PostProcessOptions) => Promise.resolve(),
   };
 }
