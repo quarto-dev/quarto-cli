@@ -79,6 +79,13 @@ export const rmdEngine: ComputationEngine = {
     );
   },
 
+  keepMd: async (mdOutput: string, mdKeep: string) => {
+    console.log(mdOutput);
+    console.log(mdKeep);
+
+    await Deno.copyFile(mdOutput, mdKeep);
+  },
+
   latexmk: (options: LatexmkOptions) => {
     return callR<void>(
       "latexmk",

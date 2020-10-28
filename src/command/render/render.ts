@@ -32,7 +32,7 @@ import { runPandoc } from "./pandoc.ts";
 import { kStdOut, RenderFlags, resolveParams } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
-import { kMetadataFormat } from "../../config/constants.ts";
+import { kKeepMd, kMetadataFormat } from "../../config/constants.ts";
 import {
   ComputationEngine,
   computationEngine,
@@ -59,13 +59,13 @@ export async function render(
 
   // derive the pandoc input file path (computations will create this)
   const [inputDir, inputStem] = dirAndStem(input);
-  const mdInput = join(inputDir, inputStem + ".quarto.md");
+  const mdOutput = join(inputDir, inputStem + ".quarto.md");
 
   // run computations
   const computations = await runComputations({
     engine,
     input,
-    output: mdInput,
+    output: mdOutput,
     format,
     cwd: flags.computeDir,
     params: resolveParams(flags.computeParams),
@@ -76,11 +76,11 @@ export async function render(
   format.pandoc = mergeConfigs(format.pandoc || {}, computations.pandoc);
 
   // pandoc output recipe (target file, args, complete handler)
-  const recipe = outputRecipe(input, options, mdInput, format, engine);
+  const recipe = outputRecipe(input, options, format, engine);
 
   // pandoc options
   const pandocOptions = {
-    input: mdInput,
+    input: mdOutput,
     format: recipe.format,
     args: recipe.args,
     flags: options.flags,
@@ -107,8 +107,15 @@ export async function render(
   // call complete handler (might e.g. run latexmk to complete the render)
   const finalOutput = await recipe.complete(pandocOptions) || recipe.output;
 
+  console.log(format);
+
+  // keep md output file if requested
+  if (format.render[kKeepMd]) {
+    await engine.keepMd(mdOutput, join(inputDir, inputStem + ".md"));
+  }
+
   // cleanup as required
-  cleanup(input, flags, format, computations, finalOutput);
+  cleanup(flags, format, computations, finalOutput);
 
   // report output created
   if (!flags.quiet && flags.output !== kStdOut) {

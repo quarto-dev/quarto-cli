@@ -57,11 +57,10 @@ export interface OutputRecipe {
 export function outputRecipe(
   input: string,
   options: RenderOptions,
-  mdInput: string,
   format: Format,
   engine: ComputationEngine,
 ): OutputRecipe {
-  if (useLatexmk(mdInput, format, options.flags)) {
+  if (useLatexmk(format, options.flags)) {
     return latexmkOutputRecipe(input, options, format, engine.latexmk);
   } else {
     // default recipe spec based on user input
