@@ -17,7 +17,11 @@ import { extname } from "path/mod.ts";
 import { getenv } from "../core/env.ts";
 import { execProcess } from "../core/process.ts";
 import { resourcePath } from "../core/resources.ts";
-import { readYamlFromMarkdown } from "../core/yaml.ts";
+import {
+  readYamlFromMarkdown,
+  readYamlFromMarkdownFile,
+  readYamlFrontMatterFromMarkdown,
+} from "../core/yaml.ts";
 
 import { Metadata } from "../config/metadata.ts";
 
@@ -28,18 +32,69 @@ import type {
   PostProcessOptions,
 } from "./engine.ts";
 
+const kNotebookExtensions = [
+  ".ipynb",
+];
+const kJupytextMdExtensions = [
+  ".rmd",
+  ".md",
+  ".markdown",
+];
+const kCodeExtensions = [
+  ".py",
+  ".jl",
+  ".R",
+  ".r",
+  ".clj",
+  ".js",
+  ".ts",
+  ".cs",
+  ".java",
+  ".groovy",
+];
+
 export const ipynbEngine: ComputationEngine = {
   name: "ipynb",
 
-  canHandle: (file: string) => {
-    // if it's an .Rmd or .md file, then read the YAML to see if has jupytext,
-    // if it does, check for paired paths
+  handle: async (file: string) => {
+    // see if there is a target notebook (could be something paired w/ .md or .py)
+    const targetNotebook = async () => {
+      // if it's an .Rmd or .md file, then read the YAML to see if has jupytext,
+      // if it does, check for a paired notebook
+      const ext = extname(file);
+      if (kJupytextMdExtensions.includes(ext)) {
+        if (isJupytextMd(file)) {
+          return await pairedNotebook(file);
+        }
+      } // if it's a code file, then check for a paired notebook
+      else if (kCodeExtensions.includes(ext)) {
+        return await pairedNotebook(file);
+      } else {
+        if (isNotebook(file)) {
+          return file;
+        }
+      }
+    };
 
-    // if it's a .py file, then check for paired paths
-
-    // if it's an .ipynb file, then check for paired paths and use --sync
-
-    return [".ipynb"].includes(extname(file).toLowerCase());
+    // if we have a target notebook then sync & execute it and return it's path
+    const notebook = await targetNotebook();
+    if (notebook) {
+      const result = await execProcess({
+        cmd: [
+          pythonBinary("jupytext"),
+          "--sync",
+          "--execute",
+          notebook,
+        ],
+        stdout: "piped",
+        stderr: "piped",
+      });
+      if (!result.success) {
+        throw new Error(result.stderr || "Unknown error syncing jupytext");
+      } else {
+        return notebook;
+      }
+    }
   },
 
   metadata: async (file: string): Promise<Metadata> => {
@@ -48,7 +103,7 @@ export const ipynbEngine: ComputationEngine = {
     const ipynb = JSON.parse(decoder.decode(ipynbContents));
     const cells = ipynb.cells as Array<{ cell_type: string; source: string[] }>;
     const markdown = cells.reduce((md, cell) => {
-      if (cell.cell_type === "markdown") {
+      if (["markdown", "raw"].includes(cell.cell_type)) {
         return md + "\n" + cell.source.join("");
       } else {
         return md;
@@ -59,10 +114,9 @@ export const ipynbEngine: ComputationEngine = {
   },
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
-    const condaPrefix = getenv("CONDA_PREFIX");
     const result = await execProcess({
       cmd: [
-        condaPrefix + "/bin/python",
+        pythonBinary(),
         resourcePath("ipynb.py"),
         options.input,
         options.output,
@@ -80,3 +134,37 @@ export const ipynbEngine: ComputationEngine = {
   postprocess: async (options: PostProcessOptions) => {
   },
 };
+
+async function isJupytextMd(file: string) {
+  const yaml = readYamlFromMarkdownFile(file);
+  return yaml instanceof Object &&
+    yaml.jupyter instanceof Object &&
+    Object.keys(yaml.jupyter).includes("jupytext");
+}
+
+async function pairedNotebook(file: string) {
+  const result = await execProcess({
+    cmd: [
+      pythonBinary("jupytext"),
+      "--paired-paths",
+      file,
+    ],
+    stdout: "piped",
+    stderr: "piped",
+  });
+  if (result.stdout) {
+    const pairedFiles = result.stdout.split(/\r?\n/);
+    return pairedFiles.find(isNotebook);
+  } else {
+    return undefined;
+  }
+}
+
+function isNotebook(file: string) {
+  return kNotebookExtensions.includes(extname(file).toLowerCase());
+}
+
+function pythonBinary(binary = "python") {
+  const condaPrefix = getenv("CONDA_PREFIX");
+  return condaPrefix + "/bin/" + binary;
+}

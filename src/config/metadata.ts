@@ -16,10 +16,7 @@
 import { dirname, join } from "path/mod.ts";
 import { existsSync } from "fs/exists.ts";
 
-import {
-  ComputationEngine,
-  computeEngineForFile,
-} from "../computation/engine.ts";
+import { ComputationEngine, computationEngine } from "../computation/engine.ts";
 
 import { readYaml, readYamlFromMarkdownFile } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
