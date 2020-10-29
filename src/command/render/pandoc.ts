@@ -138,7 +138,7 @@ function runPandocMessage(
   pandoc: FormatPandoc | undefined,
   metadata: Metadata,
 ) {
-  message(`pandoc ${args.join(" ")}`, { bold: true });
+  message(`\npandoc ${args.join(" ")}`, { bold: true });
   if (pandoc) {
     message(pandocDefaultsMessage(pandoc), { indent: 2 });
   }
