@@ -24,7 +24,7 @@ export const kFigWidth = "fig-width";
 export const kFigHeight = "fig-height";
 export const kFigFormat = "fig-format";
 
-export const kIncludeInput = "include-input";
+export const kIncludeCode = "include-code";
 export const kIncludeOutput = "include-output";
 export const kIncludeWarnings = "include-warnings";
 export const kAllowErrors = "allow-errors";
@@ -33,7 +33,7 @@ export const kExecuteDefaultsKeys = [
   kFigWidth,
   kFigHeight,
   kFigFormat,
-  kIncludeInput,
+  kIncludeCode,
   kIncludeOutput,
   kIncludeWarnings,
   kAllowErrors,

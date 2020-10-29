@@ -21,7 +21,7 @@ from traitlets.config import Config
 from nbconvert.preprocessors import Preprocessor
 from nbconvert.preprocessors import ExecutePreprocessor
 
-# https://github.com/mwouts/jupytext/issues/337
+# see discussion at: https://github.com/mwouts/jupytext/issues/337
 
 # execute:
 #   include-code         
@@ -45,7 +45,6 @@ class QuartoExecutePreprocessor(ExecutePreprocessor):
    
    no_execute_tags = Set({'no-execute'})
 
-   
    def preprocess_cell(self, cell, resources, index):
 
       tags = cell.get('metadata', {}).get('tags', [])
@@ -59,17 +58,17 @@ class QuartoExecutePreprocessor(ExecutePreprocessor):
 class RemovePreprocessor(Preprocessor):
    
    # default show behavior
-   include_input = Bool(True).tag(config=True)
+   include_code = Bool(True).tag(config=True)
    include_output = Bool(True).tag(config=True)
 
    # available tags 
-   # dash variations for compatiblity with jupyterbook
-   # underscore variety for compatibility w/ runtools / jupytext)
-   include_input_tags = Set({'include-input'})
+   # 'remove-input' for compatiblity with jupyterbook
+   # 'remove_*' for compatibility w/ runtools
+   include_code_tags = Set({'include-code'})
    include_output_tags = Set({'include-output'})
    remove_cell_tags = Set({'remove-cell', 'remove_cell'})
    remove_output_tags = Set({'remove-output', 'remove_output'})
-   remove_input_tags = Set({'remove-input', 'remove_input'})
+   remove_code_tags = Set({'remove-code', 'remove-input', 'remove_input'})
    remove_metadata_fields = Set({'collapsed', 'scrolled'})
   
    def check_cell_conditions(self, cell, resources, index):
@@ -80,7 +79,7 @@ class RemovePreprocessor(Preprocessor):
       # Skip preprocessing if the list of patterns is empty
       if not any([self.remove_cell_tags,
                   self.remove_output_tags,
-                  self.remove_input_tags
+                  self.remove_code_tags
                   ]):
          return nb, resources
 
@@ -107,10 +106,12 @@ class RemovePreprocessor(Preprocessor):
                for field in self.remove_metadata_fields:
                   cell.metadata.pop(field, None)
             
-         if ((not self.include_input and not bool(self.include_input_tags.intersection(tags)))
-              or bool(self.remove_input_tags.intersection(tags))):
+         if ((not self.include_code and not bool(self.include_code_tags.intersection(tags)))
+              or bool(self.remove_code_tags.intersection(tags))):
 
             cell.transient = { 'remove_source': True }
+
+         
        
       return cell, resources
 
@@ -158,7 +159,7 @@ Path(output_dir).mkdir(parents=True, exist_ok=True)
 mdConfig = Config()
 
 # setup removal preprocessor
-mdConfig.RemovePreprocessor.include_input = bool(format["execute"]["include-input"])
+mdConfig.RemovePreprocessor.include_code = bool(format["execute"]["include-code"])
 mdConfig.RemovePreprocessor.include_output = bool(format["execute"]["include-output"])
 mdConfig.MarkdownExporter.preprocessors = [RemovePreprocessor]
 

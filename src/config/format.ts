@@ -40,7 +40,7 @@ import {
   kFigFormat,
   kFigHeight,
   kFigWidth,
-  kIncludeInput,
+  kIncludeCode,
   kIncludeOutput,
   kIncludeWarnings,
   kKeepMd,
@@ -68,7 +68,7 @@ export interface FormatExecute {
   [kFigWidth]?: number;
   [kFigHeight]?: number;
   [kFigFormat]?: "png" | "pdf";
-  [kIncludeInput]?: boolean;
+  [kIncludeCode]?: boolean;
   [kIncludeOutput]?: boolean;
   [kIncludeWarnings]?: boolean;
   [kAllowErrors]?: boolean;
@@ -254,7 +254,7 @@ function beamerFormat(): Format {
       execute: {
         [kFigWidth]: 10,
         [kFigHeight]: 7,
-        [kIncludeInput]: false,
+        [kIncludeCode]: false,
         [kIncludeWarnings]: false,
       },
     },
@@ -273,7 +273,7 @@ function htmlPresentationFormat(figwidth: number, figheight: number): Format {
     htmlFormat(figwidth, figheight),
     {
       execute: {
-        [kIncludeInput]: false,
+        [kIncludeCode]: false,
         [kIncludeWarnings]: false,
       },
     },
@@ -307,7 +307,7 @@ function powerpointFormat(): Format {
     execute: {
       [kFigWidth]: 7.5,
       [kFigHeight]: 5.5,
-      [kIncludeInput]: false,
+      [kIncludeCode]: false,
       [kIncludeWarnings]: false,
     },
   });
@@ -365,7 +365,7 @@ function defaultFormat(): Format {
       [kFigWidth]: 7,
       [kFigHeight]: 5,
       [kFigFormat]: "png",
-      [kIncludeInput]: true,
+      [kIncludeCode]: true,
       [kIncludeOutput]: true,
       [kIncludeWarnings]: true,
       [kAllowErrors]: false,
