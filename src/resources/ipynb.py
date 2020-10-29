@@ -24,11 +24,11 @@ from nbconvert.preprocessors import Preprocessor
 class RemovePreprocessor(Preprocessor):
    
    # default show behavior
-   show_input = Bool(True).tag(config=True)
-   show_output = Bool(True).tag(config=True)
+   include_input = Bool(True).tag(config=True)
+   include_output = Bool(True).tag(config=True)
 
-   show_input_tags = Set({'show-input'})
-   show_output_tags = Set({'show-output'})
+   include_input_tags = Set({'include-input'})
+   include_output_tags = Set({'include-output'})
    remove_cell_tags = Set({'remove-cell'})
    remove_output_tags = Set({'remove-output'})
    remove_input_tags = Set({'remove-input'})
@@ -59,7 +59,7 @@ class RemovePreprocessor(Preprocessor):
 
          tags = cell.get('metadata', {}).get('tags', [])
 
-         if ((not self.show_output and not bool(self.show_output_tags.intersection(tags)))
+         if ((not self.include_output and not bool(self.include_output_tags.intersection(tags)))
                or bool(self.remove_output_tags.intersection(tags))):
 
             cell.outputs = []
@@ -69,7 +69,7 @@ class RemovePreprocessor(Preprocessor):
                for field in self.remove_metadata_fields:
                   cell.metadata.pop(field, None)
             
-         if ((not self.show_input and not bool(self.show_input_tags.intersection(tags)))
+         if ((not self.include_input and not bool(self.include_input_tags.intersection(tags)))
               or bool(self.remove_input_tags.intersection(tags))):
 
             cell.transient = { 'remove_source': True }
@@ -95,8 +95,8 @@ Path(output_dir).mkdir(parents=True, exist_ok=True)
 
 # setup removal preprocessor
 config = Config()
-config.RemovePreprocessor.show_input = bool(format["compute"]["show-input"])
-config.RemovePreprocessor.show_output = bool(format["compute"]["show-output"])
+config.RemovePreprocessor.include_input = bool(format["compute"]["include-input"])
+config.RemovePreprocessor.include_output = bool(format["compute"]["include-output"])
 config.MarkdownExporter.preprocessors = [RemovePreprocessor]
 
 # convert to markdown
