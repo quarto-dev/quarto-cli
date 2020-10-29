@@ -103,13 +103,6 @@ export const ipynbEngine: ExecutionEngine = {
   },
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
-    // jupytext execute before converting to markdown
-    const args = ["--execute", "--sync", options.input];
-    if (options.quiet) {
-      args.push("--quiet");
-    }
-    await jupytext(...args);
-
     // convert to markdown
     const result = await execProcess(
       {
@@ -123,6 +116,8 @@ export const ipynbEngine: ExecutionEngine = {
     );
 
     if (result.success) {
+      // TODO: touch the paired representations (look in json for this?)
+
       return JSON.parse(result.stdout!);
     } else {
       return Promise.reject();

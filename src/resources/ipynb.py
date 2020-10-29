@@ -20,6 +20,23 @@ from traitlets import Bool, Set, Unicode
 from traitlets.config import Config
 from nbconvert.preprocessors import Preprocessor
 
+# https://github.com/mwouts/jupytext/issues/337
+
+# execute options:
+#   include-input
+#   include-output
+#   include-warnings
+#   allow-errors
+
+# cell tags:
+#   include-input, 
+#   include-output
+#   remove-cell
+#   remove-input
+#   remove-output
+#
+#   raises-exception
+
 
 class RemovePreprocessor(Preprocessor):
    
@@ -88,20 +105,40 @@ os.chdir(Path(input).parent)
 input = Path(input).name
 output = Path(output).name
 
+# execute notebook in place
+execConfig = Config()
+execConfig.NbConvertApp.use_output_suffix = False
+execConfig.NbConvertApp.export_format = "notebook"
+execConfig.FilesWriter.build_directory = ""
+execConfig.ClearOutputPreprocessor.enabled = True
+execConfig.ExecutePreprocessor.enabled = True
+execConfig.ExecutePreprocessor.allow_errors = bool(format["execute"]["allow-errors"])
+nb_exporter = nbconvert.NotebookExporter(config = execConfig)
+notebook_node = nbformat.read(input, as_version=4)
+(outputstr, _) = nbconvert.exporters.export(nb_exporter, notebook_node, config = execConfig)
+
+# re-write contents back to input file
+with open(input, "w") as file:
+   file.write(outputstr)
+
+# ...now export to markdown
+
 # output dir
 files_dir = Path(input).stem + "_files"
 output_dir = files_dir + "/figure-ipynb"
 Path(output_dir).mkdir(parents=True, exist_ok=True)
 
+# init config
+mdConfig = Config()
+
 # setup removal preprocessor
-config = Config()
-config.RemovePreprocessor.include_input = bool(format["execute"]["include-input"])
-config.RemovePreprocessor.include_output = bool(format["execute"]["include-output"])
-config.MarkdownExporter.preprocessors = [RemovePreprocessor]
+mdConfig.RemovePreprocessor.include_input = bool(format["execute"]["include-input"])
+mdConfig.RemovePreprocessor.include_output = bool(format["execute"]["include-output"])
+mdConfig.MarkdownExporter.preprocessors = [RemovePreprocessor]
 
 # convert to markdown
 notebook_node = nbformat.read(input, as_version=4)
-md_exporter = nbconvert.MarkdownExporter(config = config)
+md_exporter = nbconvert.MarkdownExporter(config = mdConfig)
 result = md_exporter.from_notebook_node(
   notebook_node, 
   resources = { "output_files_dir": output_dir}

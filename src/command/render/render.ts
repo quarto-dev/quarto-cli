@@ -72,8 +72,6 @@ export async function render(
     quiet: flags.quiet,
   });
 
-  console.log(executeResult);
-
   // merge any pandoc options provided the computation
   format.pandoc = mergeConfigs(format.pandoc || {}, executeResult.pandoc);
 
