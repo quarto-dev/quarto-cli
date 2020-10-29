@@ -1,28 +1,32 @@
 ---
-title: "Here we go"
+title: "Here we go again and again"
 author: "J.J. Allaire"
 knit: quarto render
 format:
   html:
     keep-md: false
-    include-input: false
+execute:
+  include-code: true
+  allow-errors: true
 bibliography: references.bib
 jupyter:
   jupytext:
-    formats: ipynb,md,Rmd
-    text_representation:
-      extension: .md
-      format_name: markdown
-      format_version: '1.2'
-      jupytext_version: 1.6.0
+    formats: ipynb,md
   kernelspec:
     display_name: Python 3
     language: python
     name: python3
 ---
 
-```python tags=["remove-output"]
+```python tags=["remove-cell"]
+import warnings
+warnings.filterwarnings('ignore')
+```
+
+
+```python
 print ("Hello, World Again and Again\n")
+warnings.warn("we better watch out!")
 ```
 
 
@@ -34,7 +38,7 @@ Definition is the tip
 
 : Here we go
 
-```python tags=["include-input"]
+```python tags=["include-code"]
 import matplotlib.pyplot as plt
 
 
@@ -52,7 +56,7 @@ ax.bar(labels, women_means, width, yerr=women_std, bottom=men_means,
        label='Women')
 
 ax.set_ylabel('Scores')
-ax.set_title('Scores broken out by group as well as gender')
+ax.set_title('Scores broken out by group and gender')
 ax.legend()
 
 plt.show()
@@ -64,6 +68,4 @@ from jupytext.config import find_jupytext_configuration_file
 find_jupytext_configuration_file('.')
 ```
 
-```python
 
-```
