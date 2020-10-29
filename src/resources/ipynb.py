@@ -30,21 +30,11 @@ class RemovePreprocessor(Preprocessor):
     remove_metadata_fields = Set({'collapsed', 'scrolled'})
 
     def check_cell_conditions(self, cell, resources, index):
-        """
-        Checks that a cell has a tag that is to be removed
-
-        Returns: Boolean.
-        True means cell should *not* be removed.
-        """
-
         # Return true if any of the tags in the cell are removable.
         return not self.remove_cell_tags.intersection(
                 cell.get('metadata', {}).get('tags', []))
 
     def preprocess(self, nb, resources):
-        """
-        Preprocessing to apply to each notebook. See base.py for details.
-        """
         # Skip preprocessing if the list of patterns is empty
         if not any([self.remove_cell_tags,
                     self.remove_output_tags,
@@ -59,11 +49,7 @@ class RemovePreprocessor(Preprocessor):
 
         return nb, resources
 
-    def preprocess_cell(self, cell, resources, cell_index):
-        """
-        Apply a transformation on each cell. See base.py for details.
-        """
-        
+    def preprocess_cell(self, cell, resources, cell_index): 
         if (self.remove_output_tags.intersection(
             cell.get('metadata', {}).get('tags', []))
             and cell.cell_type == 'code'):
