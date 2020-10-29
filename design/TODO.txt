@@ -7,14 +7,12 @@ Python
 
 // TODO: display 'execute' metadata. what happended into 'keep_md'
 
-// TODO: don't round trip text-representation
-
 // TODO: progress for cell rendering
 
-// TODO: implement new scheme w/ aliases
-
-// TODO: 'allow-errors' as alias for 'raises-exception'
 // TODO: implement global and cell level include-warnings
+
+// TODO: sometimes execution metadata creeps into .md file. why? it happens if you 
+//       execute the file a second time w/o edits (sync or touch will solve?)
 
 // TODO: need to touch the related files after executing
 
@@ -23,9 +21,7 @@ Python
 
 // figure format/sizes?
 
-// TODO: sharing author and title between jupyter: and top-level. 
-// probably we just need to pull them out of jupyter and include them for pandoc's benefit
-
+// --run-path (for jupytext or nbconvert equivaent)
 
 // TODO: Python widgets (e.g.. try out https://github.com/mwouts/itables)
 //  they create:
@@ -38,8 +34,6 @@ Python
 //
 //
 
-
---run-path (for jupytext or nbconvert equivaent)
 
 https://jupytext.readthedocs.io/en/latest/formats.html#jupytext-markdown
 https://jupyter-cache.readthedocs.io/en/latest/
