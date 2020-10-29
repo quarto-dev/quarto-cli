@@ -55,7 +55,7 @@ const kCodeExtensions = [
 export const ipynbEngine: ExecutionEngine = {
   name: "ipynb",
 
-  handle: async (file: string) => {
+  handle: async (file: string, quiet: boolean) => {
     const notebookTarget = async () => {
       // if it's an .Rmd or .md file, then read the YAML to see if has jupytext,
       // if it does, check for a paired notebook and return it
@@ -78,7 +78,7 @@ export const ipynbEngine: ExecutionEngine = {
     const target = await notebookTarget();
     if (target && target.notebook) {
       if (target.sync) {
-        await jupytextSync(target.notebook);
+        await jupytextSync(target.notebook, quiet);
       }
       return target.notebook;
     }
@@ -170,13 +170,16 @@ function pythonBinary(binary = "python") {
   return condaPrefix + "/bin/" + binary;
 }
 
-async function jupytextSync(file: string) {
+async function jupytextSync(file: string, quiet?: boolean) {
   const args = [
     "--sync",
     "--opt",
     "cell_metadata_filter=-execution",
     file,
   ];
+  if (quiet) {
+    args.push("--quiet");
+  }
   await jupytext(...args);
 }
 

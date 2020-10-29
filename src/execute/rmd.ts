@@ -41,7 +41,7 @@ const kEngineExtensions = [...kRmdExtensions, ...kRScriptExtensions];
 export const rmdEngine: ExecutionEngine = {
   name: "rmd",
 
-  handle: async (file: string) => {
+  handle: async (file: string, _quiet: boolean) => {
     if (kEngineExtensions.includes(extname(file).toLowerCase())) {
       return file;
     }
