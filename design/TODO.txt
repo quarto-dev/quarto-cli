@@ -5,23 +5,20 @@
 
 Python
 
+
 // TODO: display 'execute' metadata. what happended into 'keep_md'
 
 // TODO: progress for cell rendering
 
-// TODO: implement global and cell level include-warnings
-
-// TODO: sometimes execution metadata creeps into .md file. why? it happens if you 
-//       execute the file a second time w/o edits (sync or touch will solve?)
-
-// TODO: need to touch the related files after executing
-
-// include-warning (global)
-// no-execute (cell level). requires that we do the execution which could make sync less efficient
+// --run-path (for jupytext or nbconvert equivaent)
 
 // figure format/sizes?
 
-// --run-path (for jupytext or nbconvert equivaent)
+// TODO: warnings don't come out clean for markdown:
+//  
+// <ipython-input-1-b4d6cb16b4ca>:2: UserWarning: we better watch out!
+// so we will implement ignore-warnings by "catching" these specially tagged outputs
+//
 
 // TODO: Python widgets (e.g.. try out https://github.com/mwouts/itables)
 //  they create:
@@ -43,7 +40,7 @@ papermill (use their convention for parameters)
 memo/proposal on computations:
 will be able to use RStudio chunk output and/or notebook for compute?
 or perhaps require html_notebook?
-omputations could even be at a URL!!!
+computations could even be at a URL!!!
 
   {{= notebook.ipynb#visualization =}}
   {{< computation notebook.Rmd#chunk-label >}}
