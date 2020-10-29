@@ -75,7 +75,7 @@ export interface RunOptions {
 
 export interface ComputationEngine {
   name: string;
-  handle: (file: string, quiet?: boolean) => Promise<string | undefined>;
+  handle: (file: string) => Promise<string | undefined>;
   metadata: (input: string) => Promise<Metadata>;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;
@@ -92,7 +92,7 @@ export async function computationEngine(file: string, quiet?: boolean) {
 
   // try to find an engine
   for await (const engine of engines) {
-    const input = await engine.handle(file, quiet);
+    const input = await engine.handle(file);
     if (input) {
       return { input, engine };
     }
