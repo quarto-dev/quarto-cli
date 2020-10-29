@@ -16,7 +16,7 @@
 export const kMetadataFormat = "format";
 
 export const kRenderDefaults = "render";
-export const kComputeDefaults = "compute";
+export const kExecuteDefaults = "execute";
 export const kPandocDefaults = "pandoc";
 export const kPandocMetadata = "metadata";
 
@@ -26,15 +26,15 @@ export const kFigFormat = "fig-format";
 
 export const kIncludeInput = "include-input";
 export const kIncludeOutput = "include-output";
-export const kIncludeWarning = "include-warning";
+export const kIncludeWarnings = "include-warnings";
 
-export const kComputeDefaultsKeys = [
+export const kExecuteDefaultsKeys = [
   kFigWidth,
   kFigHeight,
   kFigFormat,
   kIncludeInput,
   kIncludeOutput,
-  kIncludeWarning,
+  kIncludeWarnings,
 ];
 
 export const kKeepMd = "keep-md";

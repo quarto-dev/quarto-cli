@@ -13,7 +13,7 @@
 *
 */
 
-import { Format } from "../config/format.ts";
+import { Format, FormatPandoc } from "../config/format.ts";
 import { PdfEngine } from "../config/pdf.ts";
 import { Metadata } from "../config/metadata.ts";
 
@@ -21,11 +21,23 @@ import { rmdEngine } from "./rmd.ts";
 import { ipynbEngine } from "./ipynb.ts";
 import { readYamlFromMarkdownFile } from "../core/yaml.ts";
 
+export interface ExecutionEngine {
+  name: string;
+  handle: (file: string) => Promise<string | undefined>;
+  metadata: (input: string) => Promise<Metadata>;
+  execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
+  postprocess: (options: PostProcessOptions) => Promise<void>;
+  keepMd: (input: string) => string | undefined;
+  latexmk?: (options: LatexmkOptions) => Promise<void>;
+  run?: (options: RunOptions) => Promise<void>;
+}
+
 // execute options
 export interface ExecuteOptions {
   input: string;
   output: string;
   format: Format;
+  tempDir: string;
   cwd?: string;
   params?: string | { [key: string]: unknown };
   quiet?: boolean;
@@ -34,20 +46,13 @@ export interface ExecuteOptions {
 // result of execution
 export interface ExecuteResult {
   supporting: string[];
-  includes: PandocIncludes;
+  pandoc: FormatPandoc;
   postprocess?: unknown;
-}
-
-// text to include in pandoc output
-export interface PandocIncludes {
-  in_header?: string;
-  before_body?: string;
-  after_body?: string;
 }
 
 // post processing options
 export interface PostProcessOptions {
-  engine: ComputationEngine;
+  engine: ExecutionEngine;
   input: string;
   format: Format;
   output: string;
@@ -70,18 +75,7 @@ export interface RunOptions {
   port?: number;
 }
 
-export interface ComputationEngine {
-  name: string;
-  handle: (file: string) => Promise<string | undefined>;
-  metadata: (input: string) => Promise<Metadata>;
-  execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
-  postprocess: (options: PostProcessOptions) => Promise<void>;
-  keepMd: (input: string) => string | undefined;
-  latexmk?: (options: LatexmkOptions) => Promise<void>;
-  run?: (options: RunOptions) => Promise<void>;
-}
-
-export async function computationEngine(file: string, quiet?: boolean) {
+export async function executionEngine(file: string) {
   const engines = [
     ipynbEngine,
     rmdEngine,
@@ -99,7 +93,7 @@ export async function computationEngine(file: string, quiet?: boolean) {
   return { input: file, engine: markdownEngine() };
 }
 
-function markdownEngine(): ComputationEngine {
+function markdownEngine(): ExecutionEngine {
   return {
     name: "markdown",
     handle: (file: string) => Promise.resolve(file),
@@ -109,7 +103,7 @@ function markdownEngine(): ComputationEngine {
       await Deno.copyFile(options.input, options.output);
       return Promise.resolve({
         supporting: [],
-        includes: {} as PandocIncludes,
+        pandoc: {} as FormatPandoc,
       });
     },
     postprocess: (_options: PostProcessOptions) => Promise.resolve(),

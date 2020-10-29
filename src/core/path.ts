@@ -20,7 +20,7 @@ import { getenv } from "./env.ts";
 
 export function removeIfExists(file: string) {
   if (existsSync(file)) {
-    Deno.removeSync(file);
+    Deno.removeSync(file, { recursive: true });
   }
 }
 

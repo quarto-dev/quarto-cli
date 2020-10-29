@@ -41,7 +41,7 @@ import {
   kFigWidth,
   kIncludeInput,
   kIncludeOutput,
-  kIncludeWarning,
+  kIncludeWarnings,
   kKeepMd,
   kKeepTex,
   kOutputExt,
@@ -50,7 +50,7 @@ import {
 // pandoc output format
 export interface Format {
   render: FormatRender;
-  compute: FormatCompute;
+  execute: FormatExecute;
   pandoc: FormatPandoc;
   metadata: Metadata;
 }
@@ -63,13 +63,13 @@ export interface FormatRender {
   [kOutputExt]?: string;
 }
 
-export interface FormatCompute {
+export interface FormatExecute {
   [kFigWidth]?: number;
   [kFigHeight]?: number;
   [kFigFormat]?: "png" | "pdf";
   [kIncludeInput]?: boolean;
   [kIncludeOutput]?: boolean;
-  [kIncludeWarning]?: boolean;
+  [kIncludeWarnings]?: boolean;
 }
 
 export interface FormatPandoc {
@@ -229,7 +229,7 @@ function pdfFormat(): Format {
   return format(
     "pdf",
     {
-      compute: {
+      execute: {
         [kFigWidth]: 6.5,
         [kFigHeight]: 4.5,
         [kFigFormat]: "pdf",
@@ -249,11 +249,11 @@ function beamerFormat(): Format {
     "pdf",
     pdfFormat(),
     {
-      compute: {
+      execute: {
         [kFigWidth]: 10,
         [kFigHeight]: 7,
         [kIncludeInput]: false,
-        [kIncludeWarning]: false,
+        [kIncludeWarnings]: false,
       },
     },
   );
@@ -270,9 +270,9 @@ function htmlPresentationFormat(figwidth: number, figheight: number): Format {
   return mergeConfigs(
     htmlFormat(figwidth, figheight),
     {
-      compute: {
+      execute: {
         [kIncludeInput]: false,
-        [kIncludeWarning]: false,
+        [kIncludeWarnings]: false,
       },
     },
   );
@@ -280,7 +280,7 @@ function htmlPresentationFormat(figwidth: number, figheight: number): Format {
 
 function htmlFormat(figwidth = 7, figheight = 5): Format {
   return format("html", {
-    compute: {
+    execute: {
       [kFigWidth]: figwidth,
       [kFigHeight]: figheight,
     },
@@ -302,18 +302,18 @@ function markdownFormat(): Format {
 
 function powerpointFormat(): Format {
   return format("pptx", {
-    compute: {
+    execute: {
       [kFigWidth]: 7.5,
       [kFigHeight]: 5.5,
       [kIncludeInput]: false,
-      [kIncludeWarning]: false,
+      [kIncludeWarnings]: false,
     },
   });
 }
 
 function wordprocessorFormat(ext: string): Format {
   return format(ext, {
-    compute: {
+    execute: {
       [kFigWidth]: 5,
       [kFigHeight]: 4,
     },
@@ -338,7 +338,7 @@ function plaintextFormat(ext: string): Format {
 
 function ebookFormat(ext: string): Format {
   return format(ext, {
-    compute: {
+    execute: {
       [kFigWidth]: 5,
       [kFigHeight]: 4,
     },
@@ -359,13 +359,13 @@ function format(ext: string, ...formats: Array<unknown>): Format {
 
 function defaultFormat(): Format {
   return {
-    compute: {
+    execute: {
       [kFigWidth]: 7,
       [kFigHeight]: 5,
       [kFigFormat]: "png",
       [kIncludeInput]: true,
       [kIncludeOutput]: true,
-      [kIncludeWarning]: true,
+      [kIncludeWarnings]: true,
     },
     render: {
       [kKeepMd]: false,

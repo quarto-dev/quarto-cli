@@ -39,12 +39,12 @@ export const renderCommand = new Command()
     "Write output to FILE (use '--output -' for stdout).",
   )
   .option(
-    "--compute-params",
-    "YAML file with computation parameters ('ask' to prompt).",
+    "--execute-params",
+    "YAML file with execution parameters ('ask' to prompt).",
   )
   .option(
-    "--compute-dir",
-    "Working directory for computations (e.g. knitr, nbconvert).",
+    "--execute-dir",
+    "Working directory for document execution.",
   )
   .option(
     "--metadata-override",

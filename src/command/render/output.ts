@@ -13,7 +13,7 @@
 *
 */
 
-import { extname, isAbsolute, join, relative } from "path/mod.ts";
+import { extname, isAbsolute, relative } from "path/mod.ts";
 
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
@@ -27,7 +27,7 @@ import {
 } from "../../config/constants.ts";
 import { Format } from "../../config/format.ts";
 
-import { ComputationEngine } from "../../computation/engine.ts";
+import { ExecutionEngine } from "../../execute/engine.ts";
 
 import { kStdOut, replacePandocArg } from "./flags.ts";
 import { PandocOptions } from "./pandoc.ts";
@@ -58,7 +58,7 @@ export function outputRecipe(
   input: string,
   options: RenderOptions,
   format: Format,
-  engine: ComputationEngine,
+  engine: ExecutionEngine,
 ): OutputRecipe {
   if (useLatexmk(format, options.flags)) {
     return latexmkOutputRecipe(input, options, format, engine.latexmk);

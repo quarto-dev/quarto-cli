@@ -26,9 +26,9 @@ import {
 import { Metadata } from "../config/metadata.ts";
 
 import type {
-  ComputationEngine,
   ExecuteOptions,
   ExecuteResult,
+  ExecutionEngine,
   LatexmkOptions,
   PostProcessOptions,
   RunOptions,
@@ -38,7 +38,7 @@ const kRmdExtensions = [".rmd", ".rmarkdown"];
 const kRScriptExtensions = [".r", ".s", ".q"];
 const kEngineExtensions = [...kRmdExtensions, ...kRScriptExtensions];
 
-export const rmdEngine: ComputationEngine = {
+export const rmdEngine: ExecutionEngine = {
   name: "rmd",
 
   handle: async (file: string) => {

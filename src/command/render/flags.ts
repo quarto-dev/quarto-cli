@@ -23,8 +23,8 @@ export const kStdOut = "-";
 // command line flags that we need to inspect
 export interface RenderFlags extends PandocFlags {
   // quarto flags
-  computeParams?: string;
-  computeDir?: string;
+  executeParams?: string;
+  executeDir?: string;
   debug?: boolean;
   quiet?: boolean;
 }
@@ -82,14 +82,14 @@ export function parseRenderFlags(args: string[]) {
         flags.biblatex = true;
         break;
 
-      case "--compute-params":
+      case "--execute-params":
         arg = argsStack.shift();
-        flags.computeParams = arg;
+        flags.executeParams = arg;
         break;
 
-      case "--compute-dir":
+      case "--execute-dir":
         arg = argsStack.shift();
-        flags.computeDir = arg;
+        flags.executeDir = arg;
         break;
 
       case "--debug":
@@ -144,8 +144,8 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
 
   // remove other args as needed
   const removeArgs = new Map<string, boolean>();
-  removeArgs.set("--compute-params", true);
-  removeArgs.set("--compute-dir", true);
+  removeArgs.set("--execute-params", true);
+  removeArgs.set("--execute-dir", true);
   removeArgs.set("--metadata-override", true);
   removeArgs.set("--debug", false);
   return removePandocArgs(pandocArgs, removeArgs);
