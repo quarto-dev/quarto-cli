@@ -11,3 +11,5 @@ tests/docs/test.md
 tests/docs/*.html
 tests/docs/*.pdf
 sandbox/docs/pdflatex/
+sandbox/docs/jupytext/*.html
+sandbox/docs/jupytext/*_files
