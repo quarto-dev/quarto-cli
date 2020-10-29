@@ -23,7 +23,7 @@
 
      - name: Setup Environment
        run: |
-            source package/versions.txt
+            source package/configure
             echo "VERSION=$PANDOCCROSSREF" >> $GITHUB_ENV
             echo "BASEURL= https://github.com/lierdakil/pandoc-crossref/releases/download/" >> $GITHUB_ENV
             echo "FILENAMES=pandoc-crossref-macOS.tar.xz pandoc-crossref-Linux.tar.xz pandoc-crossref-Windows.7z" >> $GITHUB_ENV
