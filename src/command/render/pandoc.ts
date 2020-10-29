@@ -94,7 +94,7 @@ export async function runPandoc(
   // print full resolved input to pandoc
   if (!options.flags?.quiet && options.format.metadata) {
     runPandocMessage(
-      [options.input, ...args],
+      args,
       options.format.pandoc,
       options.format.metadata,
     );
