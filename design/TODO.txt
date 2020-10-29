@@ -5,14 +5,26 @@
 
 Python
 
-// TODO: where to execute? Probably in nbconvert but then
-// call jupytext --sync afterwards
+// TODO: display 'execute' metadata. what happended into 'keep_md'
 
-// TODO: knitr equivalents for hide code, show code, show warnings, figure sizes
+// TODO: don't round trip text-representation
+
+// TODO: progress for cell rendering
+
+// TODO: implement new scheme w/ aliases
+
+// TODO: 'allow-errors' as alias for 'raises-exception'
+// TODO: implement global and cell level include-warnings
+
+// TODO: need to touch the related files after executing
+
+// include-warning (global)
+// no-execute (cell level). requires that we do the execution which could make sync less efficient
+
+// figure format/sizes?
 
 // TODO: sharing author and title between jupyter: and top-level. 
 // probably we just need to pull them out of jupyter and include them for pandoc's benefit
-
 
 
 // TODO: Python widgets (e.g.. try out https://github.com/mwouts/itables)
