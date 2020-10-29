@@ -51,7 +51,7 @@ export async function render(
   const tempDir = await Deno.makeTempDir({ prefix: "quarto" });
 
   // determine the computation engine and any alternate input file
-  const { input, engine } = await executionEngine(file);
+  const { input, engine } = await executionEngine(file, flags.quiet);
 
   // resolve render target
   const format = await resolveFormat(input, engine, options.flags);

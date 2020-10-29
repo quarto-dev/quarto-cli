@@ -20,7 +20,7 @@ import { executionEngine, RunOptions } from "../../execute/engine.ts";
 import { render } from "../render/render.ts";
 
 export async function run(options: RunOptions): Promise<ProcessResult> {
-  const { input, engine } = await executionEngine(options.input);
+  const { input, engine } = await executionEngine(options.input, false);
   if (engine?.run) {
     // render if requested
     if (options.render) {
