@@ -29,7 +29,7 @@ print ("Hello, World!!!\n")
 #
 # Definition
 #
-# :   Here we go
+# : Here we go
 
 # %%
 import matplotlib.pyplot as plt
@@ -54,6 +54,3 @@ ax.legend()
 
 plt.show()
 
-
-# %% [markdown]
-#
