@@ -259,7 +259,7 @@
       fig.width = format$execute$`fig-width`,
       fig.height = format$execute$`fig-height`,
       dev = format$execute$`fig-format`,
-      echo = format$execute$`include-input`,
+      echo = format$execute$`include-code`,
       warning = format$execute$`include-warnings`,
       message = format$execute$`include-warnings`,
       error = format$execute$`allow-errors`,
