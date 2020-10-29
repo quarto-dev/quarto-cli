@@ -19,8 +19,12 @@ from pathlib import Path
 from traitlets import Bool, Set, Unicode
 from traitlets.config import Config
 from nbconvert.preprocessors import Preprocessor
+from nbconvert.preprocessors import ExecutePreprocessor
 
 # https://github.com/mwouts/jupytext/issues/337
+
+
+# TODO: 'allow-errors' as alias for 'raises-exception'
 
 # execute options:
 #   include-input
@@ -38,19 +42,39 @@ from nbconvert.preprocessors import Preprocessor
 #   raises-exception
 
 
+class QuartoExecutePreprocessor(ExecutePreprocessor):
+
+   include_warnings = Bool(True).tag(config=True)
+   
+   no_execute_tags = Set({'no-execute'})
+
+   
+   def preprocess_cell(self, cell, resources, index):
+
+      tags = cell.get('metadata', {}).get('tags', [])
+      if (not bool(self.no_execute_tags.intersection(tags))):
+         return super().preprocess_cell(cell, resources, index)
+      else:
+         return cell, resources
+     
+
+
 class RemovePreprocessor(Preprocessor):
    
    # default show behavior
    include_input = Bool(True).tag(config=True)
    include_output = Bool(True).tag(config=True)
 
+   # available tags 
+   # dash variations for compatiblity with jupyterbook
+   # underscore variety for compatibility w/ runtools / jupytext)
    include_input_tags = Set({'include-input'})
    include_output_tags = Set({'include-output'})
-   remove_cell_tags = Set({'remove-cell'})
-   remove_output_tags = Set({'remove-output'})
-   remove_input_tags = Set({'remove-input'})
+   remove_cell_tags = Set({'remove-cell', 'remove_cell'})
+   remove_output_tags = Set({'remove-output', 'remove_output'})
+   remove_input_tags = Set({'remove-input', 'remove_input'})
    remove_metadata_fields = Set({'collapsed', 'scrolled'})
-
+  
    def check_cell_conditions(self, cell, resources, index):
       # Return true if any of the tags in the cell are removable.
       return not self.remove_cell_tags.intersection(cell.get('metadata', {}).get('tags', []))
@@ -111,8 +135,13 @@ execConfig.NbConvertApp.use_output_suffix = False
 execConfig.NbConvertApp.export_format = "notebook"
 execConfig.FilesWriter.build_directory = ""
 execConfig.ClearOutputPreprocessor.enabled = True
-execConfig.ExecutePreprocessor.enabled = True
-execConfig.ExecutePreprocessor.allow_errors = bool(format["execute"]["allow-errors"])
+
+# use our own ExecutePreprocessor
+execConfig.ExecutePreprocessor.enabled = False
+execConfig.QuartoExecutePreprocessor.allow_errors = bool(format["execute"]["allow-errors"])
+execConfig.NotebookExporter.preprocessors = [QuartoExecutePreprocessor]
+
+# do the export
 nb_exporter = nbconvert.NotebookExporter(config = execConfig)
 notebook_node = nbformat.read(input, as_version=4)
 (outputstr, _) = nbconvert.exporters.export(nb_exporter, notebook_node, config = execConfig)
