@@ -81,7 +81,7 @@ export const ipynbEngine: ComputationEngine = {
     const target = await notebookTarget();
     if (target && target.notebook) {
       if (target.sync) {
-        const args = ["--sync", "--quiet", target.notebook];
+        const args = ["--sync", target.notebook];
         await jupytext(...args);
       }
       return target.notebook;
