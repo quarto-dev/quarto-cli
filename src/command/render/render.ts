@@ -60,8 +60,7 @@ export async function render(
   const [inputDir, inputStem] = dirAndStem(input);
   const mdOutput = join(inputDir, inputStem + ".quarto.md");
 
-  // run computations
-
+  // execute computations
   const executeResult = await engine.execute({
     input,
     output: mdOutput,

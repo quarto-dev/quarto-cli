@@ -73,6 +73,11 @@ export const kPdfEngineOpts = "pdf-engine-opts";
 export const kPdfEngineOpt = "pdf-engine-opt";
 
 // https://pandoc.org/MANUAL.html#default-files
+// note: we are keeping some thing sout of 'defaults' b/ca
+// they are known to be valid in metadata. this includes:
+//    "csl",
+//    "bibliography",
+//
 export const kPandocDefaultsKeys = [
   kTo,
   kFrom,
@@ -92,8 +97,6 @@ export const kPandocDefaultsKeys = [
   kIncludeInHeader,
   "resource-path",
   kCiteproc,
-  "csl",
-  kBibliography,
   kCiteMethod,
   "filters",
   "file-scope",
