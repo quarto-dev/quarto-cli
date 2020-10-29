@@ -27,6 +27,9 @@ import { RenderFlags } from "./flags.ts";
 import {
   kBibliography,
   kFrom,
+  kIncludeAfterBody,
+  kIncludeBeforeBody,
+  kIncludeInHeader,
   kOutputFile,
   kSelfContained,
   kStandalone,
@@ -137,10 +140,11 @@ function runPandocMessage(
   args: string[],
   pandoc: FormatPandoc | undefined,
   metadata: Metadata,
+  debug?: boolean,
 ) {
   message(`\npandoc ${args.join(" ")}`, { bold: true });
   if (pandoc) {
-    message(pandocDefaultsMessage(pandoc), { indent: 2 });
+    message(pandocDefaultsMessage(pandoc, debug), { indent: 2 });
   }
 
   if (Object.keys(metadata).length > 0) {
@@ -151,8 +155,13 @@ function runPandocMessage(
   }
 }
 
-function pandocDefaultsMessage(pandoc: FormatPandoc) {
-  const order = [
+function pandocDefaultsMessage(pandoc: FormatPandoc, debug?: boolean) {
+  const kDebugOnly = [
+    kIncludeInHeader,
+    kIncludeBeforeBody,
+    kIncludeAfterBody,
+  ];
+  const kOrder = [
     kTo,
     kFrom,
     kOutputFile,
@@ -161,14 +170,14 @@ function pandocDefaultsMessage(pandoc: FormatPandoc) {
     kSelfContained,
   ];
   const defaults: FormatPandoc = {};
-  order.forEach((key) => {
+  kOrder.forEach((key) => {
     if (Object.keys(pandoc).includes(key)) {
       // deno-lint-ignore no-explicit-any
       (defaults as any)[key] = (pandoc as any)[key];
     }
   });
   Object.keys(pandoc).forEach((key) => {
-    if (!order.includes(key)) {
+    if (!kOrder.includes(key) && (debug || !kDebugOnly.includes(key))) {
       // deno-lint-ignore no-explicit-any
       (defaults as any)[key] = (pandoc as any)[key];
     }

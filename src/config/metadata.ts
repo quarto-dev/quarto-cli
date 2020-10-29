@@ -20,8 +20,8 @@ import { readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
 
 import {
-  kComputeDefaults,
-  kComputeDefaultsKeys,
+  kExecuteDefaults,
+  kExecuteDefaultsKeys,
   kKeepMd,
   kKeepTex,
   kMetadataFormat,
@@ -70,7 +70,7 @@ export function formatFromMetadata(
   // deno-lint-ignore no-explicit-any
   let format: any = {
     render: {},
-    compute: {},
+    execute: {},
     pandoc: {},
     metadata: {},
   };
@@ -107,14 +107,14 @@ export function metadataAsFormat(metadata: Metadata): Format {
   // deno-lint-ignore no-explicit-any
   const format: { [key: string]: any } = {
     render: {},
-    compute: {},
+    execute: {},
     pandoc: {},
     metadata: {},
   };
   Object.keys(metadata).forEach((key) => {
     // allow stuff already sorted into a top level key through unmodified
     if (
-      [kRenderDefaults, kComputeDefaults, kPandocDefaults, kPandocMetadata]
+      [kRenderDefaults, kExecuteDefaults, kPandocDefaults, kPandocMetadata]
         .includes(key)
     ) {
       format[key] = metadata[key];
@@ -122,8 +122,8 @@ export function metadataAsFormat(metadata: Metadata): Format {
       // move the key into the appropriate top level key
       if (kRenderDefaultsKeys.includes(key)) {
         format.render[key] = metadata[key];
-      } else if (kComputeDefaultsKeys.includes(key)) {
-        format.compute[key] = metadata[key];
+      } else if (kExecuteDefaultsKeys.includes(key)) {
+        format.execute[key] = metadata[key];
       } else if (kPandocDefaultsKeys.includes(key)) {
         format.pandoc[key] = metadata[key];
       } else {

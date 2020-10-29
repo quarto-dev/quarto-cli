@@ -13,7 +13,7 @@
 *
 */
 
-import { extname, join } from "path/mod.ts";
+import { basename, dirname, extname, join } from "path/mod.ts";
 import { getenv } from "../core/env.ts";
 import { execProcess } from "../core/process.ts";
 import { resourcePath } from "../core/resources.ts";
@@ -25,14 +25,11 @@ import {
 import { Metadata } from "../config/metadata.ts";
 
 import type {
-  ComputationEngine,
   ExecuteOptions,
   ExecuteResult,
+  ExecutionEngine,
   PostProcessOptions,
 } from "./engine.ts";
-import { dirAndStem } from "../core/path.ts";
-import { json } from "https://deno.land/std@0.71.0/encoding/_yaml/schema/json.ts";
-import { basename, dirname } from "https://deno.land/std@0.71.0/path/win32.ts";
 
 const kNotebookExtensions = [
   ".ipynb",
@@ -55,7 +52,7 @@ const kCodeExtensions = [
   ".groovy",
 ];
 
-export const ipynbEngine: ComputationEngine = {
+export const ipynbEngine: ExecutionEngine = {
   name: "ipynb",
 
   handle: async (file: string) => {

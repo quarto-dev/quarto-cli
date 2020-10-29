@@ -13,7 +13,7 @@ Deno.test("R Script Render", async () => {
 });
 
 Deno.test("Rmd with Params", async () => {
-  await quarto(["render", "docs/test.Rmd", "--compute-params", "params.yml"]);
+  await quarto(["render", "docs/test.Rmd", "--execute-params", "params.yml"]);
 });
 
 Deno.test("ipynb render", async () => {

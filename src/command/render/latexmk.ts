@@ -23,7 +23,7 @@ import { kKeepTex, kOutputExt, kOutputFile } from "../../config/constants.ts";
 import { Format } from "../../config/format.ts";
 import { pdfEngine } from "../../config/pdf.ts";
 
-import { LatexmkOptions } from "../../computation/engine.ts";
+import { LatexmkOptions } from "../../execute/engine.ts";
 
 import { PandocOptions } from "./pandoc.ts";
 import { RenderOptions } from "./render.ts";

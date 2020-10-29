@@ -31,7 +31,7 @@
   }
 
   # execute rmarkdown::render
-  execute <- function(input, format, output, cwd, params) {
+  execute <- function(input, format, output, tempDir, cwd, params) {
 
     # calculate knit_root_dir (before we setwd below)
     knit_root_dir <- if (!is.null(cwd)) tools::file_path_as_absolute(cwd) else NULL
@@ -115,10 +115,13 @@
       postprocess <- list()
     }
 
+    # write the includes to temp files
+    pandoc <- format_pandoc(includes, tempDir)
+
     # results
     list(
       supporting = I(supporting),
-      includes = includes,
+      pandoc = pandoc,
       postprocess = postprocess 
     )
   }
@@ -253,13 +256,13 @@
     # opts_chunk
     opts_chunk <- list(
       # options derived from format
-      fig.width = format$compute$`fig-width`,
-      fig.height = format$compute$`fig-height`,
-      dev = format$compute$`fig-format`,
-      echo = format$compute$`include-input`,
-      warning = format$compute$`include-warning`,
-      message = format$compute$`include-warning`,
-      include = format$compute$`include-output`,
+      fig.width = format$execute$`fig-width`,
+      fig.height = format$execute$`fig-height`,
+      dev = format$execute$`fig-format`,
+      echo = format$execute$`include-input`,
+      warning = format$execute$`include-warnings`,
+      message = format$execute$`include-warnings`,
+      include = format$execute$`include-output`,
       # hard coded (overideable in setup chunk but not format)
       dpi = 96,
       comment = NA
@@ -330,6 +333,22 @@
     # return dependencies
     dependencies
 
+  }
+
+  format_pandoc <- function(includes, tempDir) {
+    pandoc <- list()
+    write_includes <- function(from, to) {
+      content <- includes[[from]]
+      if (!is.null(content)) {
+        path <- tempfile(tmpdir = tempDir)
+        xfun::write_utf8(content, path)
+        pandoc[[to]] <<- I(path)
+      }
+    }
+    write_includes("in_header", "include-in-header")
+    write_includes("before_body", "include-before-body")
+    write_includes("after_body", "include-after-body")
+    pandoc
   }
 
   # apply patches to output as required
@@ -417,7 +436,7 @@
   if (request$action == "spin") {
     result <- spin(params$input)
   } else if (request$action == "execute") {
-    result <- execute(params$input, params$format, params$output, params$cwd, params$params)
+    result <- execute(params$input, params$format, params$output, params$tempDir, params$cwd, params$params)
   } else if (request$action == "postprocess") {
     result <- postprocess(params$input, params$format, params$output, params$data)
   } else if (request$action == "latexmk") {

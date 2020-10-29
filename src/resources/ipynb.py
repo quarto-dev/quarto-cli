@@ -95,8 +95,8 @@ Path(output_dir).mkdir(parents=True, exist_ok=True)
 
 # setup removal preprocessor
 config = Config()
-config.RemovePreprocessor.include_input = bool(format["compute"]["include-input"])
-config.RemovePreprocessor.include_output = bool(format["compute"]["include-output"])
+config.RemovePreprocessor.include_input = bool(format["execute"]["include-input"])
+config.RemovePreprocessor.include_output = bool(format["execute"]["include-output"])
 config.MarkdownExporter.preprocessors = [RemovePreprocessor]
 
 # convert to markdown
@@ -122,7 +122,7 @@ with open(output, "w") as file:
 # return result
 result = {
    "supporting": [files_dir],
-   "includes": {},
+   "pandoc": {},
    "postprocess": None
 }
 json.dump(result, sys.stdout)

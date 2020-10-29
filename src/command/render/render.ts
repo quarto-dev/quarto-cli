@@ -27,16 +27,12 @@ import {
   projectMetadata,
 } from "../../config/metadata.ts";
 
-import { postProcess as postprocess, runComputations } from "./computation.ts";
 import { runPandoc } from "./pandoc.ts";
 import { kStdOut, RenderFlags, resolveParams } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
-import { kKeepMd, kMetadataFormat } from "../../config/constants.ts";
-import {
-  ComputationEngine,
-  computationEngine,
-} from "../../computation/engine.ts";
+import { kMetadataFormat } from "../../config/constants.ts";
+import { ExecutionEngine, executionEngine } from "../../execute/engine.ts";
 
 // command line options for render
 export interface RenderOptions {
@@ -51,8 +47,11 @@ export async function render(
   // alias flags
   const flags = options.flags || {};
 
+  // create a tempDir to be used during computations
+  const tempDir = await Deno.makeTempDir({ prefix: "quarto" });
+
   // determine the computation engine and any alternate input file
-  const { input, engine } = await computationEngine(file, flags.quiet);
+  const { input, engine } = await executionEngine(file);
 
   // resolve render target
   const format = await resolveFormat(input, engine, options.flags);
@@ -62,17 +61,21 @@ export async function render(
   const mdOutput = join(inputDir, inputStem + ".quarto.md");
 
   // run computations
-  const computations = await runComputations(engine, {
+
+  const executeResult = await engine.execute({
     input,
     output: mdOutput,
+    tempDir,
     format,
-    cwd: flags.computeDir,
-    params: resolveParams(flags.computeParams),
+    cwd: flags.executeDir,
+    params: resolveParams(flags.executeParams),
     quiet: flags.quiet,
   });
 
+  console.log(executeResult);
+
   // merge any pandoc options provided the computation
-  format.pandoc = mergeConfigs(format.pandoc || {}, computations.pandoc);
+  format.pandoc = mergeConfigs(format.pandoc || {}, executeResult.pandoc);
 
   // pandoc output recipe (target file, args, complete handler)
   const recipe = outputRecipe(input, options, format, engine);
@@ -86,19 +89,19 @@ export async function render(
   };
 
   // run pandoc conversion (exit on failure)
-  const result = await runPandoc(pandocOptions);
-  if (!result.success) {
-    return result;
+  const pandocResult = await runPandoc(pandocOptions);
+  if (!pandocResult.success) {
+    return pandocResult;
   }
 
   // run optional post-processor (e.g. to restore html-preserve regions)
-  if (computations.postprocess) {
-    await postprocess({
+  if (executeResult.postprocess && engine.postprocess) {
+    await engine.postprocess({
       engine,
       input,
       format,
       output: recipe.output,
-      data: computations.postprocess,
+      data: executeResult.postprocess,
       quiet: flags.quiet,
     });
   }
@@ -107,7 +110,15 @@ export async function render(
   const finalOutput = await recipe.complete(pandocOptions) || recipe.output;
 
   // cleanup as required
-  cleanup(flags, format, computations, finalOutput, engine.keepMd(input));
+  cleanup(
+    flags,
+    format,
+    mdOutput,
+    finalOutput,
+    executeResult.supporting,
+    tempDir,
+    engine.keepMd(input),
+  );
 
   // report output created
   if (!flags.quiet && flags.output !== kStdOut) {
@@ -115,12 +126,12 @@ export async function render(
   }
 
   // return result
-  return result;
+  return pandocResult;
 }
 
 async function resolveFormat(
   input: string,
-  engine: ComputationEngine,
+  engine: ExecutionEngine,
   flags?: RenderFlags,
 ) {
   // merge input metadata into project metadata
