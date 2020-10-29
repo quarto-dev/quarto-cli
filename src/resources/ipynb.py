@@ -72,9 +72,8 @@ class RemovePreprocessor(Preprocessor):
             
             if ((not self.show_input and not bool(self.show_input_tags.intersection(tags)))
                  or bool(self.remove_input_tags.intersection(tags))):
-                cell.transient = {
-                    'remove_source': True
-                    }
+                 
+                cell.transient = { 'remove_source': True }
        
         return cell, resources
 

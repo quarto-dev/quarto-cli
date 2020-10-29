@@ -5,11 +5,14 @@
 
 Python
 
+// TODO: where to execute? Probably in nbconvert but then
+// call jupytext --sync afterwards
 
-// TODO: sharing author and title between jupyter: and top-level
+// TODO: knitr equivalents for hide code, show code, show warnings, figure sizes
 
-// TODO: where to execute
-// TODO: knitr equivalents for hide code, show code, figure sizes
+// TODO: sharing author and title between jupyter: and top-level. 
+// probably we just need to pull them out of jupyter and include them for pandoc's benefit
+
 
 
 // TODO: Python widgets (e.g.. try out https://github.com/mwouts/itables)
@@ -24,7 +27,7 @@ Python
 //
 
 
---run-path (or nbconvert equivaent)
+--run-path (for jupytext or nbconvert equivaent)
 
 https://jupytext.readthedocs.io/en/latest/formats.html#jupytext-markdown
 https://jupyter-cache.readthedocs.io/en/latest/
