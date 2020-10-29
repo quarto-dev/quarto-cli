@@ -39,12 +39,12 @@ import {
   kFigFormat,
   kFigHeight,
   kFigWidth,
+  kIncludeInput,
+  kIncludeOutput,
+  kIncludeWarning,
   kKeepMd,
   kKeepTex,
   kOutputExt,
-  kShowInput,
-  kShowOutput,
-  kShowWarning,
 } from "./constants.ts";
 
 // pandoc output format
@@ -67,9 +67,9 @@ export interface FormatCompute {
   [kFigWidth]?: number;
   [kFigHeight]?: number;
   [kFigFormat]?: "png" | "pdf";
-  [kShowInput]?: boolean;
-  [kShowOutput]?: boolean;
-  [kShowWarning]?: boolean;
+  [kIncludeInput]?: boolean;
+  [kIncludeOutput]?: boolean;
+  [kIncludeWarning]?: boolean;
 }
 
 export interface FormatPandoc {
@@ -252,8 +252,8 @@ function beamerFormat(): Format {
       compute: {
         [kFigWidth]: 10,
         [kFigHeight]: 7,
-        [kShowInput]: false,
-        [kShowWarning]: false,
+        [kIncludeInput]: false,
+        [kIncludeWarning]: false,
       },
     },
   );
@@ -271,8 +271,8 @@ function htmlPresentationFormat(figwidth: number, figheight: number): Format {
     htmlFormat(figwidth, figheight),
     {
       compute: {
-        [kShowInput]: false,
-        [kShowWarning]: false,
+        [kIncludeInput]: false,
+        [kIncludeWarning]: false,
       },
     },
   );
@@ -305,8 +305,8 @@ function powerpointFormat(): Format {
     compute: {
       [kFigWidth]: 7.5,
       [kFigHeight]: 5.5,
-      [kShowInput]: false,
-      [kShowWarning]: false,
+      [kIncludeInput]: false,
+      [kIncludeWarning]: false,
     },
   });
 }
@@ -363,9 +363,9 @@ function defaultFormat(): Format {
       [kFigWidth]: 7,
       [kFigHeight]: 5,
       [kFigFormat]: "png",
-      [kShowInput]: true,
-      [kShowOutput]: true,
-      [kShowWarning]: true,
+      [kIncludeInput]: true,
+      [kIncludeOutput]: true,
+      [kIncludeWarning]: true,
     },
     render: {
       [kKeepMd]: false,

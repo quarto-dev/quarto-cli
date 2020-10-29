@@ -24,17 +24,17 @@ export const kFigWidth = "fig-width";
 export const kFigHeight = "fig-height";
 export const kFigFormat = "fig-format";
 
-export const kShowInput = "show-input";
-export const kShowOutput = "show-output";
-export const kShowWarning = "show-warning";
+export const kIncludeInput = "include-input";
+export const kIncludeOutput = "include-output";
+export const kIncludeWarning = "include-warning";
 
 export const kComputeDefaultsKeys = [
   kFigWidth,
   kFigHeight,
   kFigFormat,
-  kShowInput,
-  kShowOutput,
-  kShowWarning,
+  kIncludeInput,
+  kIncludeOutput,
+  kIncludeWarning,
 ];
 
 export const kKeepMd = "keep-md";
