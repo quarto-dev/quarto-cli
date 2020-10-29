@@ -23,7 +23,7 @@ from nbconvert.preprocessors import ExecutePreprocessor
 
 # see discussion at: https://github.com/mwouts/jupytext/issues/337
 
-# execute:
+# execute options:
 #   include-code         
 #   include-output
 #   include-warnings
@@ -38,19 +38,29 @@ from nbconvert.preprocessors import ExecutePreprocessor
 #   remove-cell          [remove_cell]
 #   allow-errors         [raises-exception]
 
-
 class QuartoExecutePreprocessor(ExecutePreprocessor):
 
    include_warnings = Bool(True).tag(config=True)
    
    no_execute_tags = Set({'no-execute'})
+   allow_errors_tags = Set({'allow-errors'})
 
    def preprocess_cell(self, cell, resources, index):
 
       tags = cell.get('metadata', {}).get('tags', [])
+     
       if (not bool(self.no_execute_tags.intersection(tags))):
+         
+         # if we see 'allow-errors' then add 'raises-exception'
+         if (bool(self.allow_errors_tags.intersection(tags))):
+            cell.metatata = cell.get('metadata', {})
+            cell.metadata.tags = tags + ['raises-exception'] 
+
+         # continue with execution
          return super().preprocess_cell(cell, resources, index)
+      
       else:
+         
          return cell, resources
      
 
