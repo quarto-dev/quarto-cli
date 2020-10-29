@@ -29,14 +29,13 @@ conda env update -f environment.yml
 # generate scripts, first some common vars
 QUARTO_TS=`realpath ../src/quarto.ts`
 QUARTO_IMPORT_MAP=`realpath ../src/import_map.json`
-QUARTO_RESOURCES=`realpath ../src/resources/`
+QUARTO_PATH=`realpath ../src/`
 DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env --importmap=${QUARTO_IMPORT_MAP}"
 
 # generate quarto symlink
 cat > quarto.sh <<EOL
 #!/bin/zsh
-export QUARTO_RESOURCES=${QUARTO_RESOURCES}
-export PATH="$RSTUDIO_PANDOC:$PATH"
+export QUARTO_PATH=${QUARTO_PATH}
 deno run ${DENO_OPTIONS} ${QUARTO_TS} \$@
 EOL
 chmod +x quarto.sh
@@ -46,8 +45,7 @@ ln -fs ${QUARTO_SH} /usr/local/bin/quarto
 # generate test script
 cat > ../tests/run-tests.sh <<EOL
 #!/bin/zsh
-export QUARTO_RESOURCES=${QUARTO_RESOURCES}
-export PATH="$RSTUDIO_PANDOC:$PATH"
+export QUARTO_PATH=${QUARTO_PATH}
 deno test ${DENO_OPTIONS} \$@
 EOL
 chmod +x ../tests/run-tests.sh
