@@ -23,23 +23,20 @@ from nbconvert.preprocessors import ExecutePreprocessor
 
 # https://github.com/mwouts/jupytext/issues/337
 
-
-# TODO: 'allow-errors' as alias for 'raises-exception'
-
-# execute options:
-#   include-input
+# execute:
+#   include-code         
 #   include-output
 #   include-warnings
-#   allow-errors
+#   allow-errors         
 
 # cell tags:
-#   include-input, 
-#   include-output
-#   remove-cell
-#   remove-input
-#   remove-output
-#
-#   raises-exception
+#   include-code         
+#   include-output  
+#   include-warnings
+#   remove-code          [remove-input, remove_input]
+#   remove-output        [remove_output]
+#   remove-cell          [remove_cell]
+#   allow-errors         [raises-exception]
 
 
 class QuartoExecutePreprocessor(ExecutePreprocessor):
