@@ -262,6 +262,7 @@
       echo = format$execute$`include-input`,
       warning = format$execute$`include-warnings`,
       message = format$execute$`include-warnings`,
+      error = format$execute$`allow-errors`,
       include = format$execute$`include-output`,
       # hard coded (overideable in setup chunk but not format)
       dpi = 96,

@@ -36,6 +36,7 @@ import {
 import { Metadata } from "./metadata.ts";
 
 import {
+  kAllowErrors,
   kFigFormat,
   kFigHeight,
   kFigWidth,
@@ -70,6 +71,7 @@ export interface FormatExecute {
   [kIncludeInput]?: boolean;
   [kIncludeOutput]?: boolean;
   [kIncludeWarnings]?: boolean;
+  [kAllowErrors]?: boolean;
 }
 
 export interface FormatPandoc {
@@ -366,6 +368,7 @@ function defaultFormat(): Format {
       [kIncludeInput]: true,
       [kIncludeOutput]: true,
       [kIncludeWarnings]: true,
+      [kAllowErrors]: false,
     },
     render: {
       [kKeepMd]: false,

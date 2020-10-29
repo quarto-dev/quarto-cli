@@ -27,6 +27,7 @@ export const kFigFormat = "fig-format";
 export const kIncludeInput = "include-input";
 export const kIncludeOutput = "include-output";
 export const kIncludeWarnings = "include-warnings";
+export const kAllowErrors = "allow-errors";
 
 export const kExecuteDefaultsKeys = [
   kFigWidth,
@@ -35,6 +36,7 @@ export const kExecuteDefaultsKeys = [
   kIncludeInput,
   kIncludeOutput,
   kIncludeWarnings,
+  kAllowErrors,
 ];
 
 export const kKeepMd = "keep-md";
