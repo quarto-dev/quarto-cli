@@ -5,6 +5,7 @@ knit: quarto render
 format:
   html:
     keep-md: false
+    include-input: false
 bibliography: references.bib
 jupyter:
   jupytext:
@@ -20,8 +21,7 @@ jupyter:
     name: python3
 ---
 
-
-```{python}
+```{python tags=c("remove-output")}
 print ("Hello, World Again and Again\n")
 ```
 
@@ -34,7 +34,7 @@ Definition is the tip
 
 : Here we go
 
-```{python tags=c("remove-input")}
+```{python tags=c("include-input")}
 import matplotlib.pyplot as plt
 
 
