@@ -77,9 +77,11 @@ class RemovePreprocessor(Preprocessor):
       return cell, resources
 
 
-# read args
-input = sys.argv[1]
-output = sys.argv[2]
+# read args from stdin
+input_json = json.load(sys.stdin)
+input = input_json["input"]
+output = input_json["output"]
+format = input_json["format"]
 
 # change working directory and strip dir off of paths
 os.chdir(Path(input).parent)
@@ -93,8 +95,8 @@ Path(output_dir).mkdir(parents=True, exist_ok=True)
 
 # setup removal preprocessor
 config = Config()
-config.RemovePreprocessor.show_input = True
-config.RemovePreprocessor.show_output = True
+config.RemovePreprocessor.show_input = bool(format["compute"]["show-input"])
+config.RemovePreprocessor.show_output = bool(format["compute"]["show-output"])
 config.MarkdownExporter.preprocessors = [RemovePreprocessor]
 
 # convert to markdown

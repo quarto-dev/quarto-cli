@@ -114,15 +114,16 @@ export const ipynbEngine: ComputationEngine = {
     await jupytext(...args);
 
     // convert to markdown
-    const result = await execProcess({
-      cmd: [
-        pythonBinary(),
-        resourcePath("ipynb.py"),
-        options.input,
-        options.output,
-      ],
-      stdout: "piped",
-    });
+    const result = await execProcess(
+      {
+        cmd: [
+          pythonBinary(),
+          resourcePath("ipynb.py"),
+        ],
+        stdout: "piped",
+      },
+      JSON.stringify(options),
+    );
 
     if (result.success) {
       return JSON.parse(result.stdout!);

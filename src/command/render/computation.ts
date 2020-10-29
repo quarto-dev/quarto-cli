@@ -16,6 +16,7 @@
 import { FormatPandoc } from "../../config/format.ts";
 
 import {
+  ComputationEngine,
   ExecuteOptions,
   PandocIncludes,
   PostProcessOptions,
@@ -42,9 +43,10 @@ export interface ComputationsResult {
 }
 
 export async function runComputations(
+  engine: ComputationEngine,
   options: ExecuteOptions,
 ): Promise<ComputationsResult> {
-  const result = await options.engine.execute(options);
+  const result = await engine.execute(options);
   return {
     output: options.output,
     supporting: result.supporting,
