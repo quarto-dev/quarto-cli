@@ -16,14 +16,19 @@ import nbformat
 import nbconvert
 import json
 from pathlib import Path
-from traitlets import Set, Unicode
+from traitlets import Bool, Set, Unicode
 from traitlets.config import Config
 from nbconvert.preprocessors import Preprocessor
 
 
 class RemovePreprocessor(Preprocessor):
    
+    # default show behavior
+    show_input = Bool(True).tag(config=True)
+    show_output = Bool(True).tag(config=True)
 
+    show_input_tags = Set({'show-input'})
+    show_output_tags = Set({'show-output'})
     remove_cell_tags = Set({'remove-cell'})
     remove_output_tags = Set({'remove-output'})
     remove_input_tags = Set({'remove-input'})
@@ -50,22 +55,26 @@ class RemovePreprocessor(Preprocessor):
         return nb, resources
 
     def preprocess_cell(self, cell, resources, cell_index): 
-        if (self.remove_output_tags.intersection(
-            cell.get('metadata', {}).get('tags', []))
-            and cell.cell_type == 'code'):
 
-            cell.outputs = []
-            cell.execution_count = None
-            # Remove metadata associated with output
-            if 'metadata' in cell:
-                for field in self.remove_metadata_fields:
-                    cell.metadata.pop(field, None)
-        
-        if (self.remove_input_tags.intersection(
-                cell.get('metadata', {}).get('tags', []))):
-            cell.transient = {
-                'remove_source': True
-                }
+        if (cell.cell_type == 'code'):
+
+            tags = cell.get('metadata', {}).get('tags', [])
+
+            if ((not self.show_output and not bool(self.show_output_tags.intersection(tags)))
+                 or bool(self.remove_output_tags.intersection(tags))):
+
+                cell.outputs = []
+                cell.execution_count = None
+                # Remove metadata associated with output
+                if 'metadata' in cell:
+                    for field in self.remove_metadata_fields:
+                        cell.metadata.pop(field, None)
+            
+            if ((not self.show_input and not bool(self.show_input_tags.intersection(tags)))
+                 or bool(self.remove_input_tags.intersection(tags))):
+                cell.transient = {
+                    'remove_source': True
+                    }
        
         return cell, resources
 
@@ -86,6 +95,8 @@ Path(output_dir).mkdir(parents=True, exist_ok=True)
 
 # setup removal preprocessor
 config = Config()
+config.RemovePreprocessor.show_input = True
+config.RemovePreprocessor.show_output = True
 config.MarkdownExporter.preprocessors = [RemovePreprocessor]
 
 # convert to markdown
