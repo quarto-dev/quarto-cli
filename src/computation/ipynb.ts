@@ -58,7 +58,7 @@ const kCodeExtensions = [
 export const ipynbEngine: ComputationEngine = {
   name: "ipynb",
 
-  handle: async (file: string, quiet?: boolean) => {
+  handle: async (file: string) => {
     const notebookTarget = async () => {
       // if it's an .Rmd or .md file, then read the YAML to see if has jupytext,
       // if it does, check for a paired notebook and return it
@@ -81,10 +81,7 @@ export const ipynbEngine: ComputationEngine = {
     const target = await notebookTarget();
     if (target && target.notebook) {
       if (target.sync) {
-        const args = ["--sync", target.notebook];
-        if (quiet) {
-          args.push("--quiet");
-        }
+        const args = ["--sync", "--quiet", target.notebook];
         await jupytext(...args);
       }
       return target.notebook;
