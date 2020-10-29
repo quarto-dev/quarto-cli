@@ -13,8 +13,6 @@
 *
 */
 
-import { extname } from "path/mod.ts";
-
 import { Format } from "../config/format.ts";
 import { PdfEngine } from "../config/pdf.ts";
 import { Metadata } from "../config/metadata.ts";
@@ -25,7 +23,6 @@ import { readYamlFromMarkdownFile } from "../core/yaml.ts";
 
 // execute options
 export interface ExecuteOptions {
-  engine: ComputationEngine;
   input: string;
   output: string;
   format: Format;
