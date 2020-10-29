@@ -78,13 +78,7 @@ export const ipynbEngine: ExecutionEngine = {
     const target = await notebookTarget();
     if (target && target.notebook) {
       if (target.sync) {
-        const args = [
-          "--sync",
-          "--opt",
-          "cell_metadata_filter=-execution",
-          target.notebook,
-        ];
-        await jupytext(...args);
+        await jupytextSync(target.notebook);
       }
       return target.notebook;
     }
@@ -121,8 +115,6 @@ export const ipynbEngine: ExecutionEngine = {
     );
 
     if (result.success) {
-      // TODO: touch the paired representations (look in json for this?)
-
       return JSON.parse(result.stdout!);
     } else {
       return Promise.reject();
@@ -154,7 +146,7 @@ async function pairedPaths(file: string) {
     stdout: "piped",
   });
   if (result.stdout) {
-    return result.stdout.split(/\r?\n/);
+    return result.stdout.split(/\r?\n/).filter((line) => line.length > 0);
   } else {
     return [];
   }
@@ -176,6 +168,16 @@ function isNotebook(file: string) {
 function pythonBinary(binary = "python") {
   const condaPrefix = getenv("CONDA_PREFIX");
   return condaPrefix + "/bin/" + binary;
+}
+
+async function jupytextSync(file: string) {
+  const args = [
+    "--sync",
+    "--opt",
+    "cell_metadata_filter=-execution",
+    file,
+  ];
+  await jupytext(...args);
 }
 
 async function jupytext(...args: string[]) {

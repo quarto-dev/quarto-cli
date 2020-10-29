@@ -146,6 +146,7 @@ execConfig.ClearOutputPreprocessor.enabled = True
 
 # use our own ExecutePreprocessor
 execConfig.ExecutePreprocessor.enabled = False
+execConfig.QuartoExecutePreprocessor.record_timing = False
 execConfig.QuartoExecutePreprocessor.allow_errors = bool(format["execute"]["allow-errors"])
 execConfig.NotebookExporter.preprocessors = [QuartoExecutePreprocessor]
 
