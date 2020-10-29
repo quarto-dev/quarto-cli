@@ -78,7 +78,7 @@ export const ipynbEngine: ExecutionEngine = {
     const target = await notebookTarget();
     if (target && target.notebook) {
       if (target.sync) {
-        await jupytextSync(target.notebook, quiet);
+        await jupytextSync(file, quiet);
       }
       return target.notebook;
     }
@@ -174,7 +174,7 @@ async function jupytextSync(file: string, quiet?: boolean) {
   const args = [
     "--sync",
     "--opt",
-    "cell_metadata_filter=-execution",
+    "notebook_metadata_filter=-jupytext.text_representation,-jupytext.notebook_metadata_filter",
     file,
   ];
   if (quiet) {
