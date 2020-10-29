@@ -23,59 +23,58 @@ from nbconvert.preprocessors import Preprocessor
 
 class RemovePreprocessor(Preprocessor):
    
-    # default show behavior
-    show_input = Bool(True).tag(config=True)
-    show_output = Bool(True).tag(config=True)
+   # default show behavior
+   show_input = Bool(True).tag(config=True)
+   show_output = Bool(True).tag(config=True)
 
-    show_input_tags = Set({'show-input'})
-    show_output_tags = Set({'show-output'})
-    remove_cell_tags = Set({'remove-cell'})
-    remove_output_tags = Set({'remove-output'})
-    remove_input_tags = Set({'remove-input'})
-    remove_metadata_fields = Set({'collapsed', 'scrolled'})
+   show_input_tags = Set({'show-input'})
+   show_output_tags = Set({'show-output'})
+   remove_cell_tags = Set({'remove-cell'})
+   remove_output_tags = Set({'remove-output'})
+   remove_input_tags = Set({'remove-input'})
+   remove_metadata_fields = Set({'collapsed', 'scrolled'})
 
-    def check_cell_conditions(self, cell, resources, index):
-        # Return true if any of the tags in the cell are removable.
-        return not self.remove_cell_tags.intersection(
-                cell.get('metadata', {}).get('tags', []))
+   def check_cell_conditions(self, cell, resources, index):
+      # Return true if any of the tags in the cell are removable.
+      return not self.remove_cell_tags.intersection(cell.get('metadata', {}).get('tags', []))
 
-    def preprocess(self, nb, resources):
-        # Skip preprocessing if the list of patterns is empty
-        if not any([self.remove_cell_tags,
-                    self.remove_output_tags,
-                    self.remove_input_tags
-                    ]):
-            return nb, resources
+   def preprocess(self, nb, resources):
+      # Skip preprocessing if the list of patterns is empty
+      if not any([self.remove_cell_tags,
+                  self.remove_output_tags,
+                  self.remove_input_tags
+                  ]):
+         return nb, resources
 
-        # Filter out cells that meet the conditions
-        nb.cells = [self.preprocess_cell(cell, resources, index)[0]
-                    for index, cell in enumerate(nb.cells)
-                    if self.check_cell_conditions(cell, resources, index)]
+      # Filter out cells that meet the conditions
+      nb.cells = [self.preprocess_cell(cell, resources, index)[0]
+                  for index, cell in enumerate(nb.cells)
+                  if self.check_cell_conditions(cell, resources, index)]
 
-        return nb, resources
+      return nb, resources
 
-    def preprocess_cell(self, cell, resources, cell_index): 
+   def preprocess_cell(self, cell, resources, cell_index): 
 
-        if (cell.cell_type == 'code'):
+      if (cell.cell_type == 'code'):
 
-            tags = cell.get('metadata', {}).get('tags', [])
+         tags = cell.get('metadata', {}).get('tags', [])
 
-            if ((not self.show_output and not bool(self.show_output_tags.intersection(tags)))
-                 or bool(self.remove_output_tags.intersection(tags))):
+         if ((not self.show_output and not bool(self.show_output_tags.intersection(tags)))
+               or bool(self.remove_output_tags.intersection(tags))):
 
-                cell.outputs = []
-                cell.execution_count = None
-                # Remove metadata associated with output
-                if 'metadata' in cell:
-                    for field in self.remove_metadata_fields:
-                        cell.metadata.pop(field, None)
+            cell.outputs = []
+            cell.execution_count = None
+            # Remove metadata associated with output
+            if 'metadata' in cell:
+               for field in self.remove_metadata_fields:
+                  cell.metadata.pop(field, None)
             
-            if ((not self.show_input and not bool(self.show_input_tags.intersection(tags)))
-                 or bool(self.remove_input_tags.intersection(tags))):
-                 
-                cell.transient = { 'remove_source': True }
+         if ((not self.show_input and not bool(self.show_input_tags.intersection(tags)))
+              or bool(self.remove_input_tags.intersection(tags))):
+
+            cell.transient = { 'remove_source': True }
        
-        return cell, resources
+      return cell, resources
 
 
 # read args
