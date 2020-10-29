@@ -22,42 +22,12 @@ from nbconvert.preprocessors import Preprocessor
 
 
 class RemovePreprocessor(Preprocessor):
-    """
-    Removes inputs, outputs, or cells from a notebook that
-    have tags that designate they are to be removed prior to exporting
-    the notebook.
+   
 
-    remove_cell_tags
-        removes cells tagged with these values
-
-    remove_all_outputs_tags
-        removes entire output areas on cells
-        tagged with these values
-
-    remove_single_output_tags
-        removes individual output objects on
-        outputs tagged with these values
-
-    remove_input_tags
-        removes inputs tagged with these values
-    """
-
-    remove_cell_tags = Set(Unicode(), default_value=[],
-            help=("Tags indicating which cells are to be removed,"
-                  "matches tags in ``cell.metadata.tags``.")).tag(config=True)
-    remove_all_outputs_tags = Set(Unicode(), default_value=[],
-            help=("Tags indicating cells for which the outputs are to be removed,"
-                  "matches tags in ``cell.metadata.tags``.")).tag(config=True)
-    remove_single_output_tags = Set(Unicode(), default_value=[],
-            help=("Tags indicating which individual outputs are to be removed,"
-                  "matches output *i* tags in ``cell.outputs[i].metadata.tags``.")
-            ).tag(config=True)
-    remove_input_tags = Set(Unicode(), default_value=[],
-            help=("Tags indicating cells for which input is to be removed,"
-                  "matches tags in ``cell.metadata.tags``.")).tag(config=True)
-    remove_metadata_fields = Set(
-        {'collapsed', 'scrolled'}
-    ).tag(config=True)
+    remove_cell_tags = Set({'remove-cell'})
+    remove_output_tags = Set({'remove-output'})
+    remove_input_tags = Set({'remove-input'})
+    remove_metadata_fields = Set({'collapsed', 'scrolled'})
 
     def check_cell_conditions(self, cell, resources, index):
         """
@@ -77,8 +47,7 @@ class RemovePreprocessor(Preprocessor):
         """
         # Skip preprocessing if the list of patterns is empty
         if not any([self.remove_cell_tags,
-                    self.remove_all_outputs_tags,
-                    self.remove_single_output_tags,
+                    self.remove_output_tags,
                     self.remove_input_tags
                     ]):
             return nb, resources
@@ -95,7 +64,7 @@ class RemovePreprocessor(Preprocessor):
         Apply a transformation on each cell. See base.py for details.
         """
         
-        if (self.remove_all_outputs_tags.intersection(
+        if (self.remove_output_tags.intersection(
             cell.get('metadata', {}).get('tags', []))
             and cell.cell_type == 'code'):
 
@@ -111,28 +80,9 @@ class RemovePreprocessor(Preprocessor):
             cell.transient = {
                 'remove_source': True
                 }
-
-        if cell.get('outputs', []):
-            cell.outputs = [output
-                            for output_index, output in enumerate(cell.outputs)
-                            if self.check_output_conditions(output,
-                                                            resources,
-                                                            cell_index,
-                                                            output_index)
-                            ]
+       
         return cell, resources
 
-    def check_output_conditions(self, output, resources,
-                                cell_index, output_index):
-        """
-        Checks that an output has a tag that indicates removal.
-
-        Returns: Boolean.
-        True means output should *not* be removed.
-        """
-        return not self.remove_single_output_tags.intersection(
-                output.get('metadata', {}).get('tags', []))
-   
 
 # read args
 input = sys.argv[1]
@@ -148,13 +98,9 @@ files_dir = Path(input).stem + "_files"
 output_dir = files_dir + "/figure-ipynb"
 Path(output_dir).mkdir(parents=True, exist_ok=True)
 
-# setup for cell/output/input tags
+# setup removal preprocessor
 config = Config()
 config.MarkdownExporter.preprocessors = [RemovePreprocessor]
-config.RemovePreprocessor.enabled = True
-config.RemovePreprocessor.remove_cell_tags = ("remove-cell",)
-config.RemovePreprocessor.remove_all_outputs_tags = ('remove-output',)
-config.RemovePreprocessor.remove_input_tags = ('remove-input',)
 
 # convert to markdown
 notebook_node = nbformat.read(input, as_version=4)
