@@ -15,6 +15,7 @@ import sys
 import nbformat
 import nbconvert
 import json
+import pprint
 from pathlib import Path
 from traitlets import Bool, Set, Unicode
 from traitlets.config import Config
@@ -27,11 +28,12 @@ from nbconvert.preprocessors import ExecutePreprocessor
 #   'raises-exception' for compatibility w/ nbconvert ExecutePreprocessor
 
 # execute options:
+#   run-code
+#   allow-errors   
 #   include-code         
 #   include-output
 #   include-warnings
-#   allow-errors         
-
+      
 # cell tags:
 #   include-code         
 #   include-output  
@@ -41,12 +43,17 @@ from nbconvert.preprocessors import ExecutePreprocessor
 #   remove-cell          [remove_cell]
 #   allow-errors         [raises-exception]
 
+def warningFilter(output):
+   return output["output_type"] != "stream" or output["name"] != "stderr"
+
 class QuartoExecutePreprocessor(ExecutePreprocessor):
 
+   include_warnings = Bool(True).tag(config=True)
    quiet = Bool(False).tag(config=True)
    
    no_execute_tags = Set({'no-execute'})
    allow_errors_tags = Set({'allow-errors'})
+   include_warnings_tags = Set({'include-warnings'})
 
    total_code_cells = 0
    current_code_cell = 0
@@ -81,17 +88,18 @@ class QuartoExecutePreprocessor(ExecutePreprocessor):
             )
 
          # execute
-         result = super().preprocess_cell(cell, resources, index)
+         cell, resources = super().preprocess_cell(cell, resources, index)
+
+         # filter warnings if requested
+         if not self.include_warnings and not bool(self.include_warnings_tags.intersection(tags)) and "outputs" in cell:
+            cell["outputs"] = list(filter(warningFilter, cell["outputs"]))
 
          # end progress
          if progress:
-            sys.stderr.write("Done\n")
-
-         return result
+            sys.stderr.write("Done\n")    
       
-      else:
-         
-         return cell, resources
+      # return 
+      return cell, resources
      
 
 
@@ -171,19 +179,24 @@ output = Path(output).name
 if not quiet:
    sys.stderr.write("\nExecuting '{0}'\n".format(input))
 
-# execute notebook in place
+# execution config
 execConfig = Config()
+execConfig.JupyterApp.answer_yes = True
+
+# execute notebook in place
 execConfig.NbConvertApp.use_output_suffix = False
 execConfig.NbConvertApp.export_format = "notebook"
 execConfig.FilesWriter.build_directory = ""
 execConfig.ClearOutputPreprocessor.enabled = True
 
-# use our own ExecutePreprocessor
-execConfig.JupyterApp.answer_yes = True
-execConfig.ExecutePreprocessor.enabled = False
+# NotebookClient config
 execConfig.QuartoExecutePreprocessor.record_timing = False
 execConfig.QuartoExecutePreprocessor.allow_errors = bool(format["execute"]["allow-errors"])
+# QuartoExecutePreprocessor confiug
+execConfig.QuartoExecutePreprocessor.include_warnings = bool(format["execute"]["include-warnings"])
 execConfig.QuartoExecutePreprocessor.quiet = quiet
+# Enable our custom ExecutePreprocessor
+execConfig.ExecutePreprocessor.enabled = False
 execConfig.NotebookExporter.preprocessors = [QuartoExecutePreprocessor]
 
 # provide resources
