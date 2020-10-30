@@ -5,13 +5,14 @@ channels:
 dependencies:
   - appnope=0.1.0=py38_1001
   - argon2-cffi=20.1.0=py38haf1e3a3_1
+  - async_generator=1.10=py_0
   - attrs=20.2.0=py_0
   - backcall=0.2.0=py_0
   - blas=1.0=mkl
   - bleach=3.2.1=py_0
   - brotlipy=0.7.0=py38haf1e3a3_1000
   - ca-certificates=2020.10.14=0
-  - certifi=2020.6.20=py38_0
+  - certifi=2020.6.20=py38hecd8cb5_2
   - cffi=1.14.3=py38hed5b41f_0
   - chardet=3.0.4=py38_1003
   - cryptography=3.1=py38hddc9c9b_0
@@ -35,6 +36,7 @@ dependencies:
   - jupyter_client=6.1.6=py_0
   - jupyter_core=4.6.3=py38_0
   - jupyterlab=2.2.6=py_0
+  - jupyterlab_pygments=0.1.2=py_0
   - jupyterlab_server=1.2.0=py_0
   - jupytext=1.6.0=pyh9f0ad1d_0
   - kiwisolver=1.2.0=py38h04f5b5a_0
@@ -55,9 +57,11 @@ dependencies:
   - mkl-service=2.3.0=py38hfbe908c_0
   - mkl_fft=1.2.0=py38hc64f4ea_0
   - mkl_random=1.1.1=py38h959d312_0
-  - nbconvert=5.6.1=py38_1
+  - nbclient=0.5.1=py_0
+  - nbconvert=6.0.7=py38_0
   - nbformat=5.0.7=py_0
   - ncurses=6.2=h0a44026_1
+  - nest-asyncio=1.4.1=py_0
   - notebook=6.1.1=py38_0
   - numpy=1.19.1=py38h3b9f5b6_0
   - numpy-base=1.19.1=py38hcfb5961_0
@@ -72,6 +76,7 @@ dependencies:
   - pickleshare=0.7.5=py38_1001
   - pillow=8.0.0=py38h1a82f1a_0
   - pip=20.2.2=py38_0
+  - plotly=4.11.0=py_0
   - prometheus_client=0.8.0=py_0
   - prompt-toolkit=3.0.7=py_0
   - ptyprocess=0.6.0=py38_0
@@ -89,6 +94,7 @@ dependencies:
   - pyzmq=19.0.2=py38hb1e8313_1
   - readline=8.0=h1de35cc_0
   - requests=2.24.0=py_0
+  - retrying=1.3.3=py_2
   - send2trash=1.5.0=py38_0
   - setuptools=49.6.0=py38_0
   - six=1.15.0=py_0
