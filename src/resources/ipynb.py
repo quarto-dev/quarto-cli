@@ -61,7 +61,8 @@ class QuartoExecutePreprocessor(ExecutePreprocessor):
    def preprocess(self, nb, resources=None, km=None):
 
       # figure cell
-      cell =  {'cell_type': 'code', 'execution_count': None, 'metadata': {'lines_to_next_cell': 2, 'tags': ['raises-exception']}, 'outputs': [],'source': "import matplotlib.pyplot as plt\nplt.rc('figure',figsize = (8,3))"}
+
+      cell = nbformat.v4.new_code_cell(source="import matplotlib.pyplot as plt\nplt.rc('figure',figsize = (8,3))", metadata={'lines_to_next_cell': 2, 'tags': ['raises-exception']})
       nb.cells.insert(0, cell)
 
       # compute total code cells (for progress)
@@ -83,8 +84,6 @@ class QuartoExecutePreprocessor(ExecutePreprocessor):
       # execute unless the 'no-execute' tag is active
       if (not bool(self.no_execute_tags.intersection(tags))):
          
-         sys.stderr.write("\n" + pprint.pformat(cell) + "\n")
-
          # if we see 'allow-errors' then add 'raises-exception'
          if (bool(self.allow_errors_tags.intersection(tags))):
             cell.metatata = cell.get('metadata', {})
@@ -93,11 +92,11 @@ class QuartoExecutePreprocessor(ExecutePreprocessor):
          # progress 
          progress = not self.quiet and cell.cell_type == 'code'
          if progress:
-            if self.current_code_cell > 0:
+            if self.current_code_cell > -1:
                sys.stderr.write("  Cell {0}/{1}...".format(
-                  self.current_code_cell, self.total_code_cells)
+                  self.current_code_cell + 1, self.total_code_cells + 1)
                )
-               self.current_code_cell += 1
+            self.current_code_cell += 1
 
          # execute
          cell, resources = super().preprocess_cell(cell, resources, index)
