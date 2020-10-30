@@ -20,11 +20,12 @@ jupyter:
 
 ```python tags=["remove-cell"]
 import warnings
-warnings.filterwarnings('ignore')
 ```
 
 
 ```python
+import os
+print(os.getcwd())
 print ("Hello, World Again and Again\n")
 warnings.warn("we better watch out!")
 ```
