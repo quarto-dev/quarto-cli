@@ -40,6 +40,7 @@ from nbconvert.preprocessors import ExecutePreprocessor
 #   include-warnings
 #   remove-code          [remove-input, remove_input]
 #   remove-output        [remove_output]
+#   remove-warnings
 #   remove-cell          [remove_cell]
 #   allow-errors         [raises-exception]
 
@@ -58,6 +59,7 @@ class QuartoExecutePreprocessor(ExecutePreprocessor):
    no_execute_tags = Set({'no-execute'})
    allow_errors_tags = Set({'allow-errors'})
    include_warnings_tags = Set({'include-warnings'})
+   remove_warnings_tags = Set({'remove-warnings'})
 
    total_code_cells = 0
    current_code_cell = 0
@@ -111,8 +113,14 @@ class QuartoExecutePreprocessor(ExecutePreprocessor):
          cell, resources = super().preprocess_cell(cell, resources, index)
 
          # filter warnings if requested
-         if not self.include_warnings and not bool(self.include_warnings_tags.intersection(tags)) and "outputs" in cell:
-            cell["outputs"] = list(filter(warningFilter, cell["outputs"]))
+         if "outputs" in cell:
+            if ((not self.include_warnings and not bool(self.include_warnings_tags.intersection(tags)))
+                or bool(self.remove_warnings_tags.intersection(tags))):
+               cell["outputs"] = list(filter(warningFilter, cell["outputs"]))
+
+         # remove injected raises-exception
+         if (bool(self.allow_errors_tags.intersection(tags))):
+            cell.metatata.tags.remove('raises-exception')
 
          # end progress
          if progress:
