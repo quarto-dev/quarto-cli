@@ -168,8 +168,8 @@ input = Path(input).name
 output = Path(output).name
 
 # progress
-if (not quiet):
-   sys.stderr.write("\nExecuting {0}\n".format(input))
+if not quiet:
+   sys.stderr.write("\nExecuting '{0}'\n".format(input))
 
 # execute notebook in place
 execConfig = Config()
@@ -205,14 +205,10 @@ notebook_node = nbformat.read(input, as_version=4)
 with open(input, "w") as file:
    file.write(outputstr)
 
+if not quiet:
+   sys.stderr.write("\n")
+
 # ...now export to markdown
-
-# output dir
-files_dir = Path(input).stem + "_files"
-output_dir = files_dir + "/figure-ipynb"
-Path(output_dir).mkdir(parents=True, exist_ok=True)
-
-# init config
 mdConfig = Config()
 
 # setup removal preprocessor
@@ -220,7 +216,12 @@ mdConfig.RemovePreprocessor.include_code = bool(format["execute"]["include-code"
 mdConfig.RemovePreprocessor.include_output = bool(format["execute"]["include-output"])
 mdConfig.MarkdownExporter.preprocessors = [RemovePreprocessor]
 
-# convert to markdown
+# setup output dir
+files_dir = Path(input).stem + "_files"
+output_dir = files_dir + "/figure-ipynb"
+Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+# run conversion
 notebook_node = nbformat.read(input, as_version=4)
 md_exporter = nbconvert.MarkdownExporter(config = mdConfig)
 result = md_exporter.from_notebook_node(

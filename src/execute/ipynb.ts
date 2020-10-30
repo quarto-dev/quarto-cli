@@ -30,6 +30,7 @@ import type {
   ExecutionEngine,
   PostProcessOptions,
 } from "./engine.ts";
+import { message } from "../core/console.ts";
 
 const kNotebookExtensions = [
   ".ipynb",
@@ -115,6 +116,9 @@ export const ipynbEngine: ExecutionEngine = {
     );
 
     if (result.success) {
+      // sync so that jupyter[lab] can open the .ipynb w/o errors
+      await jupytextSync(options.input, options.quiet);
+      // return results
       return JSON.parse(result.stdout!);
     } else {
       return Promise.reject();
