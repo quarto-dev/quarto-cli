@@ -27,6 +27,13 @@ Python
 
 https://jupytext.readthedocs.io/en/latest/formats.html#jupytext-markdown
 https://jupyter-cache.readthedocs.io/en/latest/
+  --execute-cache=enable|disable|reset
+   where 'enable' means use it, 'disable' means don't, and 'reset' 
+   means use it but re-hydrate this run
+  --execute-cache=auto|none|clear
+  --execute-cache=true|false|reset
+
+
 papermill (use their convention for parameters)
 
 
