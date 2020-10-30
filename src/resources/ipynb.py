@@ -17,7 +17,7 @@ import nbconvert
 import json
 import pprint
 from pathlib import Path
-from traitlets import Bool, Set, Unicode
+from traitlets import Float, Bool, Set, Unicode
 from traitlets.config import Config
 from nbconvert.preprocessors import Preprocessor
 from nbconvert.preprocessors import ExecutePreprocessor
@@ -46,10 +46,12 @@ from nbconvert.preprocessors import ExecutePreprocessor
 def warningFilter(output):
    return output["output_type"] != "stream" or output["name"] != "stderr"
 
-kInjectableCode = { 'python' : "import matplotlib.pyplot as plt\nplt.rc('figure',figsize = (2,9))"}
+kInjectableCode = { 'python' : "import matplotlib.pyplot as plt\nplt.rc('figure',figsize = ({0},{1}), dpi=96)"}
 
 class QuartoExecutePreprocessor(ExecutePreprocessor):
 
+   fig_width = Float(7).tag(config=True)
+   fig_height = Float(5).tag(config=True)
    include_warnings = Bool(True).tag(config=True)
    quiet = Bool(False).tag(config=True)
    
@@ -66,7 +68,7 @@ class QuartoExecutePreprocessor(ExecutePreprocessor):
       kernelLanguage = nb.metadata.kernelspec.language
       cell_code = ''
       if kernelLanguage in kInjectableCode:
-         cell_code = kInjectableCode[kernelLanguage]  
+         cell_code = kInjectableCode[kernelLanguage].format(self.fig_width, self.fig_height)  
 
       # figure cell
       cell = nbformat.v4.new_code_cell(
@@ -99,13 +101,11 @@ class QuartoExecutePreprocessor(ExecutePreprocessor):
             cell.metadata.tags = tags + ['raises-exception'] 
 
          # progress 
-         progress = not self.quiet and cell.cell_type == 'code'
+         progress = not self.quiet and cell.cell_type == 'code' and self.current_code_cell > 0
          if progress:
-            if self.current_code_cell > -1:
-               sys.stderr.write("  Cell {0}/{1}...".format(
-                  self.current_code_cell + 1, self.total_code_cells + 1)
-               )
-            self.current_code_cell += 1
+            sys.stderr.write("  Cell {0}/{1}...".format(
+               self.current_code_cell, self.total_code_cells)
+            )
 
          # execute
          cell, resources = super().preprocess_cell(cell, resources, index)
@@ -116,7 +116,11 @@ class QuartoExecutePreprocessor(ExecutePreprocessor):
 
          # end progress
          if progress:
-            sys.stderr.write("Done\n")    
+            sys.stderr.write("Done\n")  
+
+         # bump code cell
+         if cell.cell_type == 'code':  
+            self.current_code_cell += 1
       
       # return 
       return cell, resources
@@ -195,6 +199,12 @@ os.chdir(Path(input).parent)
 input = Path(input).name
 output = Path(output).name
 
+# set environment variables
+fig_width = format["execute"]["fig-width"]
+fig_height = format["execute"]["fig-height"]
+os.environ["JUPYTER_FIG_WIDTH"] = str(fig_width)
+os.environ["JUPYTER_FIG_HEIGHT"] = str(fig_height)
+
 # progress
 if not quiet:
    sys.stderr.write("\nExecuting '{0}'\n".format(input))
@@ -213,6 +223,8 @@ execConfig.ClearOutputPreprocessor.enabled = True
 execConfig.QuartoExecutePreprocessor.record_timing = False
 execConfig.QuartoExecutePreprocessor.allow_errors = bool(format["execute"]["allow-errors"])
 # QuartoExecutePreprocessor confiug
+execConfig.QuartoExecutePreprocessor.fig_width = fig_width
+execConfig.QuartoExecutePreprocessor.fig_height = fig_height
 execConfig.QuartoExecutePreprocessor.include_warnings = bool(format["execute"]["include-warnings"])
 execConfig.QuartoExecutePreprocessor.quiet = quiet
 # Enable our custom ExecutePreprocessor
