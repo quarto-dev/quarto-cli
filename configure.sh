@@ -59,7 +59,7 @@ rm $TINYTEXFILE
 popd
 
 # Create the Deno bundle
-$BIN_DIR/deno bundle --unstable --importmap=/Users/charlesteague/Development/quarto/quarto-cli/src/import_map.json ../../src/quarto.ts bin/quarto.js
+$BIN_DIR/deno bundle --unstable --importmap=../../src/import_map.json ../../src/quarto.ts bin/quarto.js
 
 # Move the quarto shell script into place
 cp ../quarto $BIN_DIR/quarto
@@ -68,6 +68,8 @@ cp ../quarto $BIN_DIR/quarto
 cp ../../COPYRIGHT .
 cp ../../COPYING.md .
 
+
+ln -fs ${QUARTO_SH} /usr/local/bin/quarto
 
 # ^^^ PACKAGING
 
