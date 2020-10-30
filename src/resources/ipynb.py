@@ -45,6 +45,15 @@ class QuartoExecutePreprocessor(ExecutePreprocessor):
    no_execute_tags = Set({'no-execute'})
    allow_errors_tags = Set({'allow-errors'})
 
+   total_code_cells = 0
+   current_code_cell = 0
+
+   def preprocess(self, nb, resources=None, km=None):
+
+      self.total_code_cells = sum(cell.cell_type == 'code' for cell in nb.cells)
+
+      return super().preprocess(nb, resources, km)
+
    def preprocess_cell(self, cell, resources, index):
 
       tags = cell.get('metadata', {}).get('tags', [])
@@ -56,8 +65,21 @@ class QuartoExecutePreprocessor(ExecutePreprocessor):
             cell.metatata = cell.get('metadata', {})
             cell.metadata.tags = tags + ['raises-exception'] 
 
-         # continue with execution
-         return super().preprocess_cell(cell, resources, index)
+         # progress 
+         if (cell.cell_type == 'code'):
+            self.current_code_cell += 1
+            sys.stderr.write("  Cell {0}/{1}...".format(
+               self.current_code_cell, self.total_code_cells)
+            )
+
+         # execute
+         result = super().preprocess_cell(cell, resources, index)
+
+         # end progress
+         if (cell.cell_type == 'code'):
+            sys.stderr.write("Done\n")
+
+         return result
       
       else:
          
@@ -136,6 +158,9 @@ format = input_json["format"]
 os.chdir(Path(input).parent)
 input = Path(input).name
 output = Path(output).name
+
+# progress
+sys.stderr.write("\nExecuting {0}\n".format(input))
 
 # execute notebook in place
 execConfig = Config()
