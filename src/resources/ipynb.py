@@ -173,6 +173,7 @@ execConfig.FilesWriter.build_directory = ""
 execConfig.ClearOutputPreprocessor.enabled = True
 
 # use our own ExecutePreprocessor
+execConfig.JupyterApp.answer_yes = True
 execConfig.ExecutePreprocessor.enabled = False
 execConfig.QuartoExecutePreprocessor.record_timing = False
 execConfig.QuartoExecutePreprocessor.allow_errors = bool(format["execute"]["allow-errors"])

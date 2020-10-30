@@ -148,7 +148,7 @@ function runPandocMessage(
   }
 
   if (Object.keys(metadata).length > 0) {
-    message("metadata:", { bold: true });
+    message("metadata", { bold: true });
     const printMetadata = { ...metadata };
     delete printMetadata.format;
     message(stringify(printMetadata), { indent: 2 });
