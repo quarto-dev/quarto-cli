@@ -40,7 +40,7 @@ from nbconvert.preprocessors import ExecutePreprocessor
 
 class QuartoExecutePreprocessor(ExecutePreprocessor):
 
-   include_warnings = Bool(True).tag(config=True)
+   quiet = Bool(False).tag(config=True)
    
    no_execute_tags = Set({'no-execute'})
    allow_errors_tags = Set({'allow-errors'})
@@ -66,7 +66,8 @@ class QuartoExecutePreprocessor(ExecutePreprocessor):
             cell.metadata.tags = tags + ['raises-exception'] 
 
          # progress 
-         if (cell.cell_type == 'code'):
+         progress = not self.quiet and cell.cell_type == 'code'
+         if progress:
             self.current_code_cell += 1
             sys.stderr.write("  Cell {0}/{1}...".format(
                self.current_code_cell, self.total_code_cells)
@@ -76,7 +77,7 @@ class QuartoExecutePreprocessor(ExecutePreprocessor):
          result = super().preprocess_cell(cell, resources, index)
 
          # end progress
-         if (cell.cell_type == 'code'):
+         if progress:
             sys.stderr.write("Done\n")
 
          return result
@@ -153,6 +154,7 @@ input_json = json.load(sys.stdin)
 input = input_json["input"]
 output = input_json["output"]
 format = input_json["format"]
+quiet = input_json.get('quiet', False)
 
 # change working directory and strip dir off of paths
 os.chdir(Path(input).parent)
@@ -160,7 +162,8 @@ input = Path(input).name
 output = Path(output).name
 
 # progress
-sys.stderr.write("\nExecuting {0}\n".format(input))
+if (not quiet):
+   sys.stderr.write("\nExecuting {0}\n".format(input))
 
 # execute notebook in place
 execConfig = Config()
@@ -173,6 +176,7 @@ execConfig.ClearOutputPreprocessor.enabled = True
 execConfig.ExecutePreprocessor.enabled = False
 execConfig.QuartoExecutePreprocessor.record_timing = False
 execConfig.QuartoExecutePreprocessor.allow_errors = bool(format["execute"]["allow-errors"])
+execConfig.QuartoExecutePreprocessor.quiet = quiet
 execConfig.NotebookExporter.preprocessors = [QuartoExecutePreprocessor]
 
 # do the export
