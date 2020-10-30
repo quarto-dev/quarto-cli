@@ -5,13 +5,6 @@
 
 Python
 
-
-// TODO: display 'execute' metadata. what happended into 'keep_md'
-
-// TODO: progress for cell rendering
-
-// --run-path (for jupytext or nbconvert equivaent)
-
 // figure format/sizes?
 
 // TODO: warnings don't come out clean for markdown:
