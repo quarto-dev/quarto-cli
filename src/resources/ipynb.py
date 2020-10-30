@@ -61,8 +61,10 @@ class QuartoExecutePreprocessor(ExecutePreprocessor):
    def preprocess(self, nb, resources=None, km=None):
 
       # figure cell
-
-      cell = nbformat.v4.new_code_cell(source="import matplotlib.pyplot as plt\nplt.rc('figure',figsize = (8,3))", metadata={'lines_to_next_cell': 2, 'tags': ['raises-exception']})
+      cell_code = "import matplotlib.pyplot as plt\nplt.rc('figure',figsize = (8,3))"
+      cell = nbformat.v4.new_code_cell(
+         source=cell_code, 
+         metadata={'lines_to_next_cell': cell_code.count("\n") + 1, 'tags': ['raises-exception']})
       nb.cells.insert(0, cell)
 
       # compute total code cells (for progress)
