@@ -14,4 +14,4 @@ tests/run-tests.sh
 *_files
 .jupyter_cache
 .julia-cache
-
+package/dist/**

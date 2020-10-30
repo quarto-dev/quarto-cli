@@ -1,7 +1,20 @@
 #!/bin/bash
+
+
+if [ -f "$FILE" ]; then
+    echo "$FILE exists."
+fi
+
+#Environment may provide an import map
+if [ -z "$QUARTO_IMPORT_MAP" ]; then
+	QUARTO_IMPORT_ARGMAP=--importmap="${QUARTO_IMPORT_MAP}"
+fi 
+
+# Environment can point deno at another entry point (e.g. the typescript file)
+if [ -z "$QUARTO_SRC" ]; then
+	QUARTO_SRC=/bin/quarto.js
+fi
+
+QUARTO_DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env"
 export QUARTO_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. >/dev/null 2>&1 && pwd )"
-
-echo $QUARTO_PATH
-
-DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env"
-${QUARTO_PATH}/bin/deno run ${DENO_OPTIONS} ${QUARTO_PATH}/bin/quarto.js $@
+${QUARTO_PATH}/bin/deno run ${QUARTO_DENO_OPTIONS} ${QUARTO_IMPORT_ARGMAP} ${QUARTO_PATH}${QUARTO_SRC} $@

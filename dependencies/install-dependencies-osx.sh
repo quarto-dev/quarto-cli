@@ -5,16 +5,6 @@
 #   - Installation of R
 #   - Installation of Conda
 
-# pandoc
-brew install pandoc
-brew install pandoc-citeproc
-
-# deno
-brew upgrade deno
-
-# tinytex
-curl -sL "https://yihui.org/tinytex/install-bin-unix.sh" | sh
-
 # init sandbox
 pushd ../sandbox
 
@@ -29,7 +19,7 @@ conda env update -f environment.yml
 # generate scripts, first some common vars
 QUARTO_TS=`realpath ../src/quarto.ts`
 QUARTO_IMPORT_MAP=`realpath ../src/import_map.json`
-QUARTO_PATH=`realpath ../src/`
+QUARTO_PATH=`realpath ..`
 DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env --importmap=${QUARTO_IMPORT_MAP}"
 
 # generate quarto symlink
