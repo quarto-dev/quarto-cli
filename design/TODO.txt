@@ -1,17 +1,19 @@
 
 
-
-
-
 Python
 
-// figure format/sizes?
+
+// TODO: implement include-warnings
+
+// figure format/sizes? different kernels means there is no language independent way to forward
+// (perhaps just use environment variables....JUPYTER_FIGURE_WIDTH, JUPYTER_FIGURE_HEIGHT)
+figwidth = os.getenv('JUPYTER_FIGURE_WIDTH', 7)
 
 // TODO: warnings don't come out clean for markdown:
-//  
 // <ipython-input-1-b4d6cb16b4ca>:2: UserWarning: we better watch out!
 // so we will implement ignore-warnings by "catching" these specially tagged outputs
-//
+// see cell.outputs
+
 
 // TODO: Python widgets (e.g.. try out https://github.com/mwouts/itables)
 //  they create:
@@ -27,12 +29,10 @@ Python
 
 https://jupytext.readthedocs.io/en/latest/formats.html#jupytext-markdown
 https://jupyter-cache.readthedocs.io/en/latest/
-  --execute-cache=enable|disable|reset
-   where 'enable' means use it, 'disable' means don't, and 'reset' 
-   means use it but re-hydrate this run
-  --execute-cache=auto|none|clear
-  --execute-cache=true|false|reset
-
+  or just '--execute-run-code': all,cache,none
+execute:
+   run-code: 
+   include-code: false
 
 papermill (use their convention for parameters)
 
