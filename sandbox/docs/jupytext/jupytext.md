@@ -1,5 +1,5 @@
 ---
-title: "Here we go again and again"
+title: "Here we go boys"
 author: "J.J. Allaire"
 knit: quarto render
 format:
@@ -7,7 +7,7 @@ format:
     keep-md: false
 execute:
   include-code: true
-  allow-errors: true
+  include-warnings: true
 bibliography: references.bib
 jupyter:
   jupytext:
@@ -19,14 +19,12 @@ jupyter:
 ---
 
 ```python tags=["remove-cell"]
+import os
 import warnings
 ```
 
 
 ```python
-import os
-print(os.getcwd())
-print ("Hello, World Again and Again\n")
 warnings.warn("we better watch out!")
 ```
 
@@ -39,7 +37,9 @@ Definition is the tip
 
 : Here we go
 
-```python tags=["include-code"]
+## Slide with Plot
+
+```python tags=["remove-code"]
 import matplotlib.pyplot as plt
 
 
@@ -63,6 +63,8 @@ ax.legend()
 plt.show()
 ```
 
+
+## Next Slide
 
 ```python
 from jupytext.config import find_jupytext_configuration_file
