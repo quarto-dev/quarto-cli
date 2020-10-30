@@ -3,11 +3,17 @@
 Python
 
 
-// TODO: implement include-warnings
 
-// figure format/sizes? different kernels means there is no language independent way to forward
-// (perhaps just use environment variables....JUPYTER_FIGURE_WIDTH, JUPYTER_FIGURE_HEIGHT)
-figwidth = os.getenv('JUPYTER_FIGURE_WIDTH', 7)
+
+
+
+
+
+https://github.com/jupyter/nbconvert/blob/8809e7cc454ea121a219ab3ae666c691f9f847b2/share/jupyter/nbconvert/templates/base/null.j2
+https://ipython.org/ipython-doc/dev/notebook/nbformat.html
+
+
+
 
 // TODO: warnings don't come out clean for markdown:
 // <ipython-input-1-b4d6cb16b4ca>:2: UserWarning: we better watch out!
@@ -16,6 +22,7 @@ figwidth = os.getenv('JUPYTER_FIGURE_WIDTH', 7)
 
 
 // TODO: Python widgets (e.g.. try out https://github.com/mwouts/itables)
+// propagate figure width and height
 //  they create:
 //    <div class="output_area">
       <div class="prompt output_prompt">Out[1]:</div>
@@ -25,6 +32,8 @@ figwidth = os.getenv('JUPYTER_FIGURE_WIDTH', 7)
       </div>
 //
 //
+
+// TODO: code review of .py file
 
 
 https://jupytext.readthedocs.io/en/latest/formats.html#jupytext-markdown
