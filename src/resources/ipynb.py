@@ -22,6 +22,9 @@ from nbconvert.preprocessors import Preprocessor
 from nbconvert.preprocessors import ExecutePreprocessor
 
 # see discussion at: https://github.com/mwouts/jupytext/issues/337
+#   'remove-input' for compatiblity with jupyterbook
+#   'remove_*' for compatibility w/ runtools
+#   'raises-exception' for compatibility w/ nbconvert ExecutePreprocessor
 
 # execute options:
 #   include-code         
@@ -50,14 +53,18 @@ class QuartoExecutePreprocessor(ExecutePreprocessor):
 
    def preprocess(self, nb, resources=None, km=None):
 
+      # compute total code cells (for progress)
       self.total_code_cells = sum(cell.cell_type == 'code' for cell in nb.cells)
 
+      # delegate to super
       return super().preprocess(nb, resources, km)
 
    def preprocess_cell(self, cell, resources, index):
 
+      # get active tags
       tags = cell.get('metadata', {}).get('tags', [])
      
+      # execute unless the 'no-execute' tag is active
       if (not bool(self.no_execute_tags.intersection(tags))):
          
          # if we see 'allow-errors' then add 'raises-exception'
@@ -95,8 +102,6 @@ class RemovePreprocessor(Preprocessor):
    include_output = Bool(True).tag(config=True)
 
    # available tags 
-   # 'remove-input' for compatiblity with jupyterbook
-   # 'remove_*' for compatibility w/ runtools
    include_code_tags = Set({'include-code'})
    include_output_tags = Set({'include-output'})
    remove_cell_tags = Set({'remove-cell', 'remove_cell'})
@@ -154,6 +159,7 @@ input_json = json.load(sys.stdin)
 input = input_json["input"]
 output = input_json["output"]
 format = input_json["format"]
+run_path = input_json.get("cwd", "")
 quiet = input_json.get('quiet', False)
 
 # change working directory and strip dir off of paths
@@ -180,10 +186,20 @@ execConfig.QuartoExecutePreprocessor.allow_errors = bool(format["execute"]["allo
 execConfig.QuartoExecutePreprocessor.quiet = quiet
 execConfig.NotebookExporter.preprocessors = [QuartoExecutePreprocessor]
 
+# provide resources
+resources = dict()
+if run_path:
+   resources["metadata"] = { "path": run_path }
+
 # do the export
 nb_exporter = nbconvert.NotebookExporter(config = execConfig)
 notebook_node = nbformat.read(input, as_version=4)
-(outputstr, _) = nbconvert.exporters.export(nb_exporter, notebook_node, config = execConfig)
+(outputstr, _) = nbconvert.exporters.export(
+   nb_exporter, 
+   notebook_node, 
+   config = execConfig, 
+   resources = resources
+)
 
 # re-write contents back to input file
 with open(input, "w") as file:
