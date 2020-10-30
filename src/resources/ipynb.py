@@ -46,6 +46,8 @@ from nbconvert.preprocessors import ExecutePreprocessor
 def warningFilter(output):
    return output["output_type"] != "stream" or output["name"] != "stderr"
 
+kInjectableCode = { 'python' : "import matplotlib.pyplot as plt\nplt.rc('figure',figsize = (2,9))"}
+
 class QuartoExecutePreprocessor(ExecutePreprocessor):
 
    include_warnings = Bool(True).tag(config=True)
@@ -60,8 +62,13 @@ class QuartoExecutePreprocessor(ExecutePreprocessor):
 
    def preprocess(self, nb, resources=None, km=None):
 
+      # lookup kernel language and any injectableCode
+      kernelLanguage = nb.metadata.kernelspec.language
+      cell_code = ''
+      if kernelLanguage in kInjectableCode:
+         cell_code = kInjectableCode[kernelLanguage]  
+
       # figure cell
-      cell_code = "import matplotlib.pyplot as plt\nplt.rc('figure',figsize = (8,3))"
       cell = nbformat.v4.new_code_cell(
          source=cell_code, 
          metadata={'lines_to_next_cell': cell_code.count("\n") + 1, 'tags': ['raises-exception']})
