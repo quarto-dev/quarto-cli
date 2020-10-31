@@ -120,7 +120,7 @@ async function callR<T>(
     {
       cmd: [
         "Rscript",
-        resourcePath("rmd.R"),
+        resourcePath("rmarkdown.R"),
       ],
       stdout: "piped",
       stderr: quiet ? "piped" : undefined,

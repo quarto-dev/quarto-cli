@@ -1,4 +1,4 @@
-# rmd.R
+# rmarkdown.R
 #
 # Copyright (C) 2020 by RStudio, PBC
 #

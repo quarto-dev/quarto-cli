@@ -18,7 +18,7 @@ import { PdfEngine } from "../config/pdf.ts";
 import { Metadata } from "../config/metadata.ts";
 
 import { rmdEngine } from "./rmd.ts";
-import { ipynbEngine } from "./ipynb.ts";
+import { jupyterEngine } from "./jupyter.ts";
 import { readYamlFromMarkdownFile } from "../core/yaml.ts";
 
 export interface ExecutionEngine {
@@ -78,7 +78,7 @@ export interface RunOptions {
 
 export async function executionEngine(file: string, quiet?: boolean) {
   const engines = [
-    ipynbEngine,
+    jupyterEngine,
     rmdEngine,
   ];
 
