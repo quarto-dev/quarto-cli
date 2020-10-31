@@ -45,21 +45,7 @@ from nbconvert.preprocessors import ExecutePreprocessor
 #   allow-errors         [raises-exception]
 
 
-
-def main():
-
-   # read args from stdin
-   input_json = json.load(sys.stdin)
-   input = input_json["input"]
-   output = input_json["output"]
-   format = input_json["format"]
-   run_path = input_json.get("cwd", "")
-   quiet = input_json.get('quiet', False)
-
-   # change working directory and strip dir off of paths
-   os.chdir(Path(input).parent)
-   input = Path(input).name
-   output = Path(output).name
+def notebook_convert(input, output, format, run_path, quiet):
 
    # execute notebook
    notebook_execute(input, format, run_path, quiet)
@@ -68,13 +54,11 @@ def main():
    files_dir = notebook_to_markdown(input, output, format)
 
    # return result
-   result = {
+   return {
       "supporting": [files_dir],
       "pandoc": {},
       "postprocess": None
    }
-   json.dump(result, sys.stdout)
-
 
 def notebook_execute(input, format, run_path, quiet):
 
@@ -82,9 +66,10 @@ def notebook_execute(input, format, run_path, quiet):
    if not quiet:
       sys.stderr.write("\nExecuting '{0}'\n".format(input))
 
-    # read variables out of format
-   fig_width = format["execute"]["fig-width"]
-   fig_height = format["execute"]["fig-height"]
+   # read variables out of format
+   execute = format["execute"]
+   fig_width = execute["fig-width"]
+   fig_height = execute["fig-height"]
 
     # set environment variables
    os.environ["JUPYTER_FIG_WIDTH"] = str(fig_width)
@@ -102,11 +87,11 @@ def notebook_execute(input, format, run_path, quiet):
 
    # NotebookClient config
    execConfig.QuartoExecutePreprocessor.record_timing = False
-   execConfig.QuartoExecutePreprocessor.allow_errors = bool(format["execute"]["allow-errors"])
+   execConfig.QuartoExecutePreprocessor.allow_errors = bool(execute["allow-errors"])
    # QuartoExecutePreprocessor confiug
    execConfig.QuartoExecutePreprocessor.fig_width = fig_width
    execConfig.QuartoExecutePreprocessor.fig_height = fig_height
-   execConfig.QuartoExecutePreprocessor.include_warnings = bool(format["execute"]["include-warnings"])
+   execConfig.QuartoExecutePreprocessor.include_warnings = bool(execute["include-warnings"])
    execConfig.QuartoExecutePreprocessor.quiet = quiet
    # Enable our custom ExecutePreprocessor
    execConfig.ExecutePreprocessor.enabled = False
@@ -141,8 +126,9 @@ def notebook_to_markdown(input, output, format):
    mdConfig = Config()
 
    # setup removal preprocessor
-   mdConfig.RemovePreprocessor.include_code = bool(format["execute"]["include-code"])
-   mdConfig.RemovePreprocessor.include_output = bool(format["execute"]["include-output"])
+   execute = format["execute"]
+   mdConfig.RemovePreprocessor.include_code = bool(execute["include-code"])
+   mdConfig.RemovePreprocessor.include_output = bool(execute["include-output"])
    mdConfig.MarkdownExporter.preprocessors = [RemovePreprocessor]
 
    # setup output dir
@@ -172,6 +158,7 @@ def notebook_to_markdown(input, output, format):
 
    # return files_dir
    return files_dir
+
 
 class QuartoExecutePreprocessor(ExecutePreprocessor):
 
@@ -311,18 +298,38 @@ class RemovePreprocessor(Preprocessor):
               or bool(self.remove_code_tags.intersection(tags))):
 
             cell.transient = { 'remove_source': True }
-
          
-       
       return cell, resources
 
 
 def warningFilter(output):
    return output["output_type"] != "stream" or output["name"] != "stderr"
 
-kInjectableCode = { 'python' : "import matplotlib.pyplot as plt\nplt.rc('figure',figsize = ({0},{1}), dpi=96)"}
+kInjectableCode = { 
+   'python' : "import matplotlib.pyplot as plt\nplt.rc('figure',figsize = ({0},{1}), dpi=96)"
+}
 
 
+# main
+if __name__ == "__main__":
+  
+   # read args from stdin
+   input_json = json.load(sys.stdin)
+   input = input_json["input"]
+   output = input_json["output"]
+   format = input_json["format"]
+   run_path = input_json.get("cwd", "")
+   quiet = input_json.get('quiet', False)
 
-# run
-main()
+   # change working directory and strip dir off of paths
+   oldwd = os.getcwd()
+   os.chdir(Path(input).parent)
+   input = Path(input).name
+   output = Path(output).name
+
+   # convert
+   result = notebook_convert(input, output, format, run_path, quiet)
+
+   # write results to stdout
+   json.dump(result, sys.stdout)
+
