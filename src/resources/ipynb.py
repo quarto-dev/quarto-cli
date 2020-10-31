@@ -14,13 +14,13 @@ import os
 import sys
 import nbformat
 import nbconvert
+from nbclient import NotebookClient
 import json
 import pprint
 from pathlib import Path
 from traitlets import Float, Bool, Set, Unicode
 from traitlets.config import Config
 from nbconvert.preprocessors import Preprocessor
-from nbconvert.preprocessors import ExecutePreprocessor
 
 # see discussion at: https://github.com/mwouts/jupytext/issues/337
 #   'remove-input' for compatiblity with jupyterbook
@@ -62,62 +62,148 @@ def notebook_convert(input, output, format, run_path, quiet):
 
 def notebook_execute(input, format, run_path, quiet):
 
-   # progress
+    # progress
    if not quiet:
       sys.stderr.write("\nExecuting '{0}'\n".format(input))
 
    # read variables out of format
    execute = format["execute"]
+   allow_errors = bool(execute["allow-errors"])
+   include_warnings = bool(execute["include-warnings"])
    fig_width = execute["fig-width"]
    fig_height = execute["fig-height"]
 
-    # set environment variables
+   # set environment variables
    os.environ["JUPYTER_FIG_WIDTH"] = str(fig_width)
    os.environ["JUPYTER_FIG_HEIGHT"] = str(fig_height)
 
-   # execution config
-   execConfig = Config()
-   execConfig.JupyterApp.answer_yes = True
+   # read the notebook
+   nb = nbformat.read(input, as_version = nbformat.current_nbformat)
 
-   # execute notebook in place
-   execConfig.NbConvertApp.use_output_suffix = False
-   execConfig.NbConvertApp.export_format = "notebook"
-   execConfig.FilesWriter.build_directory = ""
-   execConfig.ClearOutputPreprocessor.enabled = True
-
-   # NotebookClient config
-   execConfig.QuartoExecutePreprocessor.record_timing = False
-   execConfig.QuartoExecutePreprocessor.allow_errors = bool(execute["allow-errors"])
-   # QuartoExecutePreprocessor confiug
-   execConfig.QuartoExecutePreprocessor.fig_width = fig_width
-   execConfig.QuartoExecutePreprocessor.fig_height = fig_height
-   execConfig.QuartoExecutePreprocessor.include_warnings = bool(execute["include-warnings"])
-   execConfig.QuartoExecutePreprocessor.quiet = quiet
-   # Enable our custom ExecutePreprocessor
-   execConfig.ExecutePreprocessor.enabled = False
-   execConfig.NotebookExporter.preprocessors = [QuartoExecutePreprocessor]
-
-   # provide resources
+   # create resources for execution
    resources = dict()
    if run_path:
       resources["metadata"] = { "path": run_path }
 
-   # do the export
-   nb_exporter = nbconvert.NotebookExporter(config = execConfig)
-   notebook_node = nbformat.read(input, as_version=4)
-   (outputstr, _) = nbconvert.exporters.export(
-      nb_exporter, 
-      notebook_node, 
-      config = execConfig, 
-      resources = resources
-   )
+   # create NotebookClient
+   client = NotebookClient(nb, resources = resources)
+   client.allow_errors = allow_errors
+   client.record_timing = False
+
+   # run 
+   with client.setup_kernel():
+      # set language_info
+      info_msg = client.wait_for_reply(client.kc.kernel_info())
+      client.nb.metadata['language_info'] = info_msg['content']['language_info']
+
+      # compute total code cells (for progress)
+      current_code_cell = 1
+      total_code_cells = sum(cell.cell_type == 'code' for cell in client.nb.cells)
+
+      # insert setup cell
+      setup_cell = nb_setup_cell(client, fig_width, fig_height)
+      client.nb.cells.insert(0, setup_cell)
+
+      # execute the cells
+      for index, cell in enumerate(client.nb.cells):
+         # progress
+         progress = not quiet and cell.cell_type == 'code' and index > 0
+         if progress:
+            sys.stderr.write("  Cell {0}/{1}...".format(
+               current_code_cell, total_code_cells)
+            )
+
+         # execute cell
+         client.nb.cells[index] = cell_execute(
+            client, 
+            cell, 
+            index, 
+            include_warnings, 
+            index > 0 # add_to_history
+         )
+
+         # end progress
+         if progress:
+            current_code_cell += 1
+            sys.stderr.write("Done\n")  
+
+      # remove setup cell
+      client.nb.cells.pop(0)
+
+   # set widgets metadata   
+   client.set_widgets_metadata()
+
+   # get notebook as string
+   outputstr = nbformat.writes(client.nb, version = nbformat.current_nbformat)
+   if not outputstr.endswith("\n"):
+      outputstr = outputstr + "\n"
 
    # re-write contents back to input file
    with open(input, "w") as file:
       file.write(outputstr)
 
+   # progress
    if not quiet:
       sys.stderr.write("\n")
+
+def nb_setup_cell(client, fig_width, fig_height):
+
+   # lookup kernel language and any injectableCode
+   kernelLanguage = client.nb.metadata.kernelspec.language
+   cell_code = ''
+   if kernelLanguage in kInjectableCode:
+      cell_code = kInjectableCode[kernelLanguage].format(fig_width, fig_height)  
+
+   # create cell
+   return nbformat.versions[nbformat.current_nbformat].new_code_cell(
+      source=cell_code, 
+      metadata={'lines_to_next_cell': cell_code.count("\n") + 1, 'tags': ['raises-exception']}
+   )
+
+def cell_execute(client, cell, index, include_warnings, store_history):
+
+   no_execute_tag = 'no-execute'
+   allow_errors_tag = 'allow-errors'
+   include_warnings_tag = 'include-warnings'
+   remove_warnings_tag = 'remove-warnings'
+
+   # get active tags
+   tags = cell.get('metadata', {}).get('tags', [])
+     
+   # execute unless the 'no-execute' tag is active
+   if not no_execute_tag in tags:
+      
+      # if we see 'allow-errors' then add 'raises-exception'
+      if allow_errors_tag in tags:
+         cell.metatata = cell.get('metadata', {})
+         cell.metadata.tags = tags + ['raises-exception'] 
+
+      # execute
+      cell = client.execute_cell(cell, index, store_history = store_history)
+      
+      # filter warnings if requested
+      if "outputs" in cell:
+         if ((not include_warnings and not include_warnings_tag in tags)
+               or remove_warnings_tag in tags):
+            cell["outputs"] = list(filter(warningFilter, cell["outputs"]))
+
+      # remove injected raises-exception
+      if allow_errors_tag in tags:
+         cell.metatata.tags.remove('raises-exception')
+
+   # return cell
+   return cell
+   
+
+def cell_clear_output(cell):
+   remove_metadata = ['collapsed', 'scrolled']
+   if cell.cell_type == 'code':
+      cell.outputs = []
+      cell.execution_count = None
+      if 'metadata' in cell:
+         for field in remove_metadata:
+            cell.metadata.pop(field, None)
+   return cell
 
 
 def notebook_to_markdown(input, output, format):
@@ -158,92 +244,6 @@ def notebook_to_markdown(input, output, format):
 
    # return files_dir
    return files_dir
-
-
-class QuartoExecutePreprocessor(ExecutePreprocessor):
-
-   fig_width = Float(7).tag(config=True)
-   fig_height = Float(5).tag(config=True)
-   include_warnings = Bool(True).tag(config=True)
-   quiet = Bool(False).tag(config=True)
-   
-   no_execute_tags = Set({'no-execute'})
-   allow_errors_tags = Set({'allow-errors'})
-   include_warnings_tags = Set({'include-warnings'})
-   remove_warnings_tags = Set({'remove-warnings'})
-
-   total_code_cells = 0
-   current_code_cell = 0
-
-   def preprocess(self, nb, resources=None, km=None):
-
-      # lookup kernel language and any injectableCode
-      kernelLanguage = nb.metadata.kernelspec.language
-      cell_code = ''
-      if kernelLanguage in kInjectableCode:
-         cell_code = kInjectableCode[kernelLanguage].format(self.fig_width, self.fig_height)  
-
-      # figure cell
-      cell = nbformat.v4.new_code_cell(
-         source=cell_code, 
-         metadata={'lines_to_next_cell': cell_code.count("\n") + 1, 'tags': ['raises-exception']})
-      nb.cells.insert(0, cell)
-
-      # compute total code cells (for progress)
-      self.total_code_cells = sum(cell.cell_type == 'code' for cell in nb.cells) - 1
-
-      # delegate to super
-      result = super().preprocess(nb, resources, km)
-
-      # remove injected cell
-      nb.cells.pop(0)
-
-      return result
-
-   def preprocess_cell(self, cell, resources, index):
-
-      # get active tags
-      tags = cell.get('metadata', {}).get('tags', [])
-     
-      # execute unless the 'no-execute' tag is active
-      if (not bool(self.no_execute_tags.intersection(tags))):
-         
-         # if we see 'allow-errors' then add 'raises-exception'
-         if (bool(self.allow_errors_tags.intersection(tags))):
-            cell.metatata = cell.get('metadata', {})
-            cell.metadata.tags = tags + ['raises-exception'] 
-
-         # progress 
-         progress = not self.quiet and cell.cell_type == 'code' and self.current_code_cell > 0
-         if progress:
-            sys.stderr.write("  Cell {0}/{1}...".format(
-               self.current_code_cell, self.total_code_cells)
-            )
-
-         # execute
-         cell, resources = super().preprocess_cell(cell, resources, index)
-
-         # filter warnings if requested
-         if "outputs" in cell:
-            if ((not self.include_warnings and not bool(self.include_warnings_tags.intersection(tags)))
-                or bool(self.remove_warnings_tags.intersection(tags))):
-               cell["outputs"] = list(filter(warningFilter, cell["outputs"]))
-
-         # remove injected raises-exception
-         if (bool(self.allow_errors_tags.intersection(tags))):
-            cell.metatata.tags.remove('raises-exception')
-
-         # end progress
-         if progress:
-            sys.stderr.write("Done\n")  
-
-         # bump code cell
-         if cell.cell_type == 'code':  
-            self.current_code_cell += 1
-      
-      # return 
-      return cell, resources
-     
 
 class RemovePreprocessor(Preprocessor):
    
