@@ -44,10 +44,134 @@ from nbconvert.preprocessors import ExecutePreprocessor
 #   remove-cell          [remove_cell]
 #   allow-errors         [raises-exception]
 
-def warningFilter(output):
-   return output["output_type"] != "stream" or output["name"] != "stderr"
 
-kInjectableCode = { 'python' : "import matplotlib.pyplot as plt\nplt.rc('figure',figsize = ({0},{1}), dpi=96)"}
+
+def main():
+
+   # read args from stdin
+   input_json = json.load(sys.stdin)
+   input = input_json["input"]
+   output = input_json["output"]
+   format = input_json["format"]
+   run_path = input_json.get("cwd", "")
+   quiet = input_json.get('quiet', False)
+
+   # change working directory and strip dir off of paths
+   os.chdir(Path(input).parent)
+   input = Path(input).name
+   output = Path(output).name
+
+   # execute notebook
+   notebook_execute(input, format, run_path, quiet)
+
+   # export to markdown
+   files_dir = notebook_to_markdown(input, output, format)
+
+   # return result
+   result = {
+      "supporting": [files_dir],
+      "pandoc": {},
+      "postprocess": None
+   }
+   json.dump(result, sys.stdout)
+
+
+def notebook_execute(input, format, run_path, quiet):
+
+   # progress
+   if not quiet:
+      sys.stderr.write("\nExecuting '{0}'\n".format(input))
+
+    # read variables out of format
+   fig_width = format["execute"]["fig-width"]
+   fig_height = format["execute"]["fig-height"]
+
+    # set environment variables
+   os.environ["JUPYTER_FIG_WIDTH"] = str(fig_width)
+   os.environ["JUPYTER_FIG_HEIGHT"] = str(fig_height)
+
+   # execution config
+   execConfig = Config()
+   execConfig.JupyterApp.answer_yes = True
+
+   # execute notebook in place
+   execConfig.NbConvertApp.use_output_suffix = False
+   execConfig.NbConvertApp.export_format = "notebook"
+   execConfig.FilesWriter.build_directory = ""
+   execConfig.ClearOutputPreprocessor.enabled = True
+
+   # NotebookClient config
+   execConfig.QuartoExecutePreprocessor.record_timing = False
+   execConfig.QuartoExecutePreprocessor.allow_errors = bool(format["execute"]["allow-errors"])
+   # QuartoExecutePreprocessor confiug
+   execConfig.QuartoExecutePreprocessor.fig_width = fig_width
+   execConfig.QuartoExecutePreprocessor.fig_height = fig_height
+   execConfig.QuartoExecutePreprocessor.include_warnings = bool(format["execute"]["include-warnings"])
+   execConfig.QuartoExecutePreprocessor.quiet = quiet
+   # Enable our custom ExecutePreprocessor
+   execConfig.ExecutePreprocessor.enabled = False
+   execConfig.NotebookExporter.preprocessors = [QuartoExecutePreprocessor]
+
+   # provide resources
+   resources = dict()
+   if run_path:
+      resources["metadata"] = { "path": run_path }
+
+   # do the export
+   nb_exporter = nbconvert.NotebookExporter(config = execConfig)
+   notebook_node = nbformat.read(input, as_version=4)
+   (outputstr, _) = nbconvert.exporters.export(
+      nb_exporter, 
+      notebook_node, 
+      config = execConfig, 
+      resources = resources
+   )
+
+   # re-write contents back to input file
+   with open(input, "w") as file:
+      file.write(outputstr)
+
+   if not quiet:
+      sys.stderr.write("\n")
+
+
+def notebook_to_markdown(input, output, format):
+
+   # ...now export to markdown
+   mdConfig = Config()
+
+   # setup removal preprocessor
+   mdConfig.RemovePreprocessor.include_code = bool(format["execute"]["include-code"])
+   mdConfig.RemovePreprocessor.include_output = bool(format["execute"]["include-output"])
+   mdConfig.MarkdownExporter.preprocessors = [RemovePreprocessor]
+
+   # setup output dir
+   files_dir = Path(input).stem + "_files"
+   output_dir = files_dir + "/figure-ipynb"
+   Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+   # run conversion
+   notebook_node = nbformat.read(input, as_version=4)
+   md_exporter = nbconvert.MarkdownExporter(config = mdConfig)
+   result = md_exporter.from_notebook_node(
+   notebook_node, 
+   resources = { "output_files_dir": output_dir}
+   )
+   markdown = result[0]
+
+   # write the figures
+   resources = result[1]
+   outputs = resources["outputs"]
+   for path, data in outputs.items():
+      with open(path, "wb") as file:
+         file.write(data)
+
+   # write markdown 
+   with open(output, "w") as file:
+      file.write(markdown)
+
+   # return files_dir
+   return files_dir
 
 class QuartoExecutePreprocessor(ExecutePreprocessor):
 
@@ -134,7 +258,6 @@ class QuartoExecutePreprocessor(ExecutePreprocessor):
       return cell, resources
      
 
-
 class RemovePreprocessor(Preprocessor):
    
    # default show behavior
@@ -194,111 +317,12 @@ class RemovePreprocessor(Preprocessor):
       return cell, resources
 
 
-# read args from stdin
-input_json = json.load(sys.stdin)
-input = input_json["input"]
-output = input_json["output"]
-format = input_json["format"]
-run_path = input_json.get("cwd", "")
-quiet = input_json.get('quiet', False)
+def warningFilter(output):
+   return output["output_type"] != "stream" or output["name"] != "stderr"
 
-# change working directory and strip dir off of paths
-os.chdir(Path(input).parent)
-input = Path(input).name
-output = Path(output).name
+kInjectableCode = { 'python' : "import matplotlib.pyplot as plt\nplt.rc('figure',figsize = ({0},{1}), dpi=96)"}
 
-# set environment variables
-fig_width = format["execute"]["fig-width"]
-fig_height = format["execute"]["fig-height"]
-os.environ["JUPYTER_FIG_WIDTH"] = str(fig_width)
-os.environ["JUPYTER_FIG_HEIGHT"] = str(fig_height)
 
-# progress
-if not quiet:
-   sys.stderr.write("\nExecuting '{0}'\n".format(input))
 
-# execution config
-execConfig = Config()
-execConfig.JupyterApp.answer_yes = True
-
-# execute notebook in place
-execConfig.NbConvertApp.use_output_suffix = False
-execConfig.NbConvertApp.export_format = "notebook"
-execConfig.FilesWriter.build_directory = ""
-execConfig.ClearOutputPreprocessor.enabled = True
-
-# NotebookClient config
-execConfig.QuartoExecutePreprocessor.record_timing = False
-execConfig.QuartoExecutePreprocessor.allow_errors = bool(format["execute"]["allow-errors"])
-# QuartoExecutePreprocessor confiug
-execConfig.QuartoExecutePreprocessor.fig_width = fig_width
-execConfig.QuartoExecutePreprocessor.fig_height = fig_height
-execConfig.QuartoExecutePreprocessor.include_warnings = bool(format["execute"]["include-warnings"])
-execConfig.QuartoExecutePreprocessor.quiet = quiet
-# Enable our custom ExecutePreprocessor
-execConfig.ExecutePreprocessor.enabled = False
-execConfig.NotebookExporter.preprocessors = [QuartoExecutePreprocessor]
-
-# provide resources
-resources = dict()
-if run_path:
-   resources["metadata"] = { "path": run_path }
-
-# do the export
-nb_exporter = nbconvert.NotebookExporter(config = execConfig)
-notebook_node = nbformat.read(input, as_version=4)
-(outputstr, _) = nbconvert.exporters.export(
-   nb_exporter, 
-   notebook_node, 
-   config = execConfig, 
-   resources = resources
-)
-
-# re-write contents back to input file
-with open(input, "w") as file:
-   file.write(outputstr)
-
-if not quiet:
-   sys.stderr.write("\n")
-
-# ...now export to markdown
-mdConfig = Config()
-
-# setup removal preprocessor
-mdConfig.RemovePreprocessor.include_code = bool(format["execute"]["include-code"])
-mdConfig.RemovePreprocessor.include_output = bool(format["execute"]["include-output"])
-mdConfig.MarkdownExporter.preprocessors = [RemovePreprocessor]
-
-# setup output dir
-files_dir = Path(input).stem + "_files"
-output_dir = files_dir + "/figure-ipynb"
-Path(output_dir).mkdir(parents=True, exist_ok=True)
-
-# run conversion
-notebook_node = nbformat.read(input, as_version=4)
-md_exporter = nbconvert.MarkdownExporter(config = mdConfig)
-result = md_exporter.from_notebook_node(
-  notebook_node, 
-  resources = { "output_files_dir": output_dir}
-)
-markdown = result[0]
-
-# write the figures
-resources = result[1]
-outputs = resources["outputs"]
-for path, data in outputs.items():
-   with open(path, "wb") as file:
-      file.write(data)
-
-# write markdown 
-with open(output, "w") as file:
-   file.write(markdown)
-
-# return result
-result = {
-   "supporting": [files_dir],
-   "pandoc": {},
-   "postprocess": None
-}
-json.dump(result, sys.stdout)
-
+# run
+main()
