@@ -116,7 +116,7 @@ function citeMethod(options: PandocOptions): CiteMethod | null {
   // no handler if no references
   const pandoc = options.format.pandoc;
   const metadata = options.format.metadata;
-  if (!pandoc[kBibliography] && !metadata.references) {
+  if (!metadata[kBibliography] && !metadata.references) {
     return null;
   }
 

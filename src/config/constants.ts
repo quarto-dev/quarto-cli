@@ -53,6 +53,7 @@ export const kRenderDefaultsKeys = [
   kOutputExt,
 ];
 
+// 'defaults' fields
 export const kTo = "to";
 export const kFrom = "from";
 export const kReader = "reader";
@@ -65,15 +66,17 @@ export const kSelfContained = "self-contained";
 export const kIncludeBeforeBody = "include-before-body";
 export const kIncludeAfterBody = "include-after-body";
 export const kIncludeInHeader = "include-in-header";
-export const kBibliography = "bibliography";
 export const kCiteproc = "citeproc";
 export const kCiteMethod = "cite-method";
 export const kPdfEngine = "pdf-engine";
 export const kPdfEngineOpts = "pdf-engine-opts";
 export const kPdfEngineOpt = "pdf-engine-opt";
 
+// metadata fields
+export const kBibliography = "bibliography";
+
 // https://pandoc.org/MANUAL.html#default-files
-// note: we are keeping some thing sout of 'defaults' b/ca
+// note: we are keeping some things out of 'defaults' b/ca
 // they are known to be valid in metadata. this includes:
 //    "csl",
 //    "bibliography",
