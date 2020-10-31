@@ -1,5 +1,5 @@
 /*
-* ipynb.ts
+* jupyter.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
@@ -30,7 +30,10 @@ import type {
   ExecutionEngine,
   PostProcessOptions,
 } from "./engine.ts";
-import { message } from "../core/console.ts";
+import {
+  jupyterNotebookAssets,
+  jupyterNotebookToMarkdown,
+} from "../core/jupyter.ts";
 
 const kNotebookExtensions = [
   ".ipynb",
@@ -53,8 +56,8 @@ const kCodeExtensions = [
   ".groovy",
 ];
 
-export const ipynbEngine: ExecutionEngine = {
-  name: "ipynb",
+export const jupyterEngine: ExecutionEngine = {
+  name: "jupyter",
 
   handle: async (file: string, quiet: boolean) => {
     const notebookTarget = async () => {
@@ -88,9 +91,9 @@ export const ipynbEngine: ExecutionEngine = {
   metadata: async (input: string): Promise<Metadata> => {
     // read metadata
     const decoder = new TextDecoder("utf-8");
-    const ipynbContents = await Deno.readFile(input);
-    const ipynb = JSON.parse(decoder.decode(ipynbContents));
-    const cells = ipynb.cells as Array<{ cell_type: string; source: string[] }>;
+    const nbContents = await Deno.readFile(input);
+    const nb = JSON.parse(decoder.decode(nbContents));
+    const cells = nb.cells as Array<{ cell_type: string; source: string[] }>;
     const markdown = cells.reduce((md, cell) => {
       if (["markdown", "raw"].includes(cell.cell_type)) {
         return md + "\n" + cell.source.join("");
@@ -108,7 +111,7 @@ export const ipynbEngine: ExecutionEngine = {
       {
         cmd: [
           pythonBinary(),
-          resourcePath("ipynb.py"),
+          resourcePath("jupyter.py"),
         ],
         stdout: "piped",
       },
@@ -116,10 +119,23 @@ export const ipynbEngine: ExecutionEngine = {
     );
 
     if (result.success) {
+      // parse the notebook
+      const nbContents = await Deno.readTextFile(options.input);
+      const nb = JSON.parse(nbContents);
+
+      // convert to markdown and write to target
+      const assets = jupyterNotebookAssets(options.input);
+      const markdown = jupyterNotebookToMarkdown(nb, assets);
+      await Deno.writeTextFile(options.output, markdown);
+
       // sync so that jupyter[lab] can open the .ipynb w/o errors
       await jupytextSync(options.input, options.quiet);
+
       // return results
-      return JSON.parse(result.stdout!);
+      return {
+        supporting: [assets.files_dir],
+        pandoc: {},
+      };
     } else {
       return Promise.reject();
     }

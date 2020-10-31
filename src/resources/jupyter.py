@@ -1,4 +1,4 @@
-# ipynb.py
+# jupyter.py
 #
 # Copyright (C) 2020 by RStudio, PBC
 #
@@ -44,21 +44,6 @@ from nbconvert.preprocessors import Preprocessor
 #   remove-cell          [remove_cell]
 #   allow-errors         [raises-exception]
 
-
-def notebook_convert(input, output, format, run_path, quiet):
-
-   # execute notebook
-   notebook_execute(input, format, run_path, quiet)
-
-   # export to markdown
-   files_dir = notebook_to_markdown(input, output, format)
-
-   # return result
-   return {
-      "supporting": [files_dir],
-      "pandoc": {},
-      "postprocess": None
-   }
 
 def notebook_execute(input, format, run_path, quiet):
 
@@ -145,6 +130,7 @@ def notebook_execute(input, format, run_path, quiet):
    # progress
    if not quiet:
       sys.stderr.write("\n")
+
 
 def nb_setup_cell(client, fig_width, fig_height):
 
@@ -316,7 +302,6 @@ if __name__ == "__main__":
    # read args from stdin
    input_json = json.load(sys.stdin)
    input = input_json["input"]
-   output = input_json["output"]
    format = input_json["format"]
    run_path = input_json.get("cwd", "")
    quiet = input_json.get('quiet', False)
@@ -325,11 +310,7 @@ if __name__ == "__main__":
    oldwd = os.getcwd()
    os.chdir(Path(input).parent)
    input = Path(input).name
-   output = Path(output).name
 
-   # convert
-   result = notebook_convert(input, output, format, run_path, quiet)
-
-   # write results to stdout
-   json.dump(result, sys.stdout)
+   # execute in place
+   notebook_execute(input, format, run_path, quiet)
 
