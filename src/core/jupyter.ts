@@ -3,6 +3,9 @@ import { join } from "path/mod.ts";
 
 import { dirAndStem } from "./path.ts";
 
+// nbformat v4
+// https://ipython.org/ipython-doc/dev/notebook/nbformat.html
+
 export interface JupyterNotebook {
   metadata: {
     kernelspec: {
@@ -15,10 +18,47 @@ export interface JupyterNotebook {
 export interface JupyterCell {
   cell_type: "markdown" | "code" | "raw";
   metadata: {
+    // nbformat v4 spec
+    collapsed?: boolean;
+    autoscroll?: boolean | "auto";
+    deletable?: boolean;
+    format?: string; // for "raw"
+    name?: string;
     tags?: string[];
+    // used by jupytext to preserve line spacing
     lines_to_next_cell?: number;
   };
   source: string[];
+  outputs?: JupyterOutput[];
+}
+
+export interface JupyterOutput {
+  output_type: "stream" | "display_data" | "execute_result" | "error";
+  isolated?: boolean;
+}
+
+export interface JupyterOutputStream extends JupyterOutput {
+  name: string;
+  text: string[];
+}
+
+// TODO: consider marking up same as pandoc
+
+// TODO: JUPYTER_OUTPUT_TYPE (mime type)
+
+export interface JupyterOutputDisplayData extends JupyterOutput {
+  data: { [mimeType: string]: unknown };
+  metadata: { [mimeType: string]: unknown };
+}
+
+export interface JupyterOutputExecuteResult extends JupyterOutputDisplayData {
+  execution_count: number;
+}
+
+export interface JupyterOutputError extends JupyterOutput {
+  ename: string;
+  evalue: string;
+  traceback: string[];
 }
 
 export function jupyterFromFile(input: string) {
@@ -67,13 +107,13 @@ export function jupyterToMarkdown(
   nb: JupyterNotebook,
   options: JupyterToMarkdownOptions,
 ) {
-  // https://github.com/mwouts/jupytext/blob/master/jupytext/cell_to_text.py
-
   const md: string[] = [];
 
   for (const cell of nb.cells) {
-    if (["markdown", "raw"].includes(cell.cell_type)) {
+    if (cell.cell_type === "markdown") {
       md.push(...mdFromContentCell(cell));
+    } else if (cell.cell_type === "raw") {
+      md.push(...mdFromRawCell(cell));
     } else if (cell.cell_type === "code") {
       md.push(...mdFromCodeCell(cell, options));
     } else {
@@ -89,6 +129,12 @@ function mdFromContentCell(cell: JupyterCell) {
   return [...cell.source, "\n\n"];
 }
 
+// TODO: raw needs to look at format and use pandoc raw tags where appropriate
+
+function mdFromRawCell(cell: JupyterCell) {
+  return mdFromContentCell(cell);
+}
+
 // cell output control tags. also define some aliases for tags used in
 // jupyterbook/runtools: https://github.com/mwouts/jupytext/issues/337
 const kIncludeCodeTags = ["include-code"];
@@ -99,6 +145,8 @@ const kRemoveOutputTags = ["remove-output", "remove_output"];
 const kRemoveWarningsTags = ["remove-warnings"];
 const kRemoveCellTags = ["remove-cell", "remove_cell"];
 
+// https://ipython.org/ipython-doc/dev/notebook/nbformat.html
+// https://github.com/mwouts/jupytext/blob/master/jupytext/cell_to_text.py
 function mdFromCodeCell(
   cell: JupyterCell,
   options: JupyterToMarkdownOptions,
@@ -111,8 +159,11 @@ function mdFromCodeCell(
   // markdown to return
   const md: string[] = [];
 
+  // TODO: propagate tags as css classes, other attributes?
+  // e.g. name as id?, data attributes
+
   if (includeCode(cell, options.includeCode)) {
-    md.push("```" + options.language + "\n");
+    md.push("```{" + options.language + "}\n");
     md.push(...cell.source, "\n");
     md.push("```\n");
   }
