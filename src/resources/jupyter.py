@@ -22,28 +22,12 @@ from traitlets import Float, Bool, Set, Unicode
 from traitlets.config import Config
 from nbconvert.preprocessors import Preprocessor
 
-# see discussion at: https://github.com/mwouts/jupytext/issues/337
-#   'remove-input' for compatiblity with jupyterbook
-#   'remove_*' for compatibility w/ runtools
-#   'raises-exception' for compatibility w/ nbconvert ExecutePreprocessor
 
-# execute options:
-#   run-code
+# execute options in format:
 #   allow-errors   
 #   include-code         
 #   include-output
 #   include-warnings
-      
-# cell tags:
-#   include-code         
-#   include-output  
-#   include-warnings
-#   remove-code          [remove-input, remove_input]
-#   remove-output        [remove_output]
-#   remove-warnings
-#   remove-cell          [remove_cell]
-#   allow-errors         [raises-exception]
-
 
 def notebook_execute(input, format, run_path, quiet):
 
@@ -54,7 +38,6 @@ def notebook_execute(input, format, run_path, quiet):
    # read variables out of format
    execute = format["execute"]
    allow_errors = bool(execute["allow-errors"])
-   include_warnings = bool(execute["include-warnings"])
    fig_width = execute["fig-width"]
    fig_height = execute["fig-height"]
 
@@ -103,7 +86,6 @@ def notebook_execute(input, format, run_path, quiet):
             client, 
             cell, 
             index, 
-            include_warnings, 
             index > 0 # add_to_history
          )
 
@@ -146,12 +128,10 @@ def nb_setup_cell(client, fig_width, fig_height):
       metadata={'lines_to_next_cell': cell_code.count("\n") + 1, 'tags': ['raises-exception']}
    )
 
-def cell_execute(client, cell, index, include_warnings, store_history):
+def cell_execute(client, cell, index, store_history):
 
    no_execute_tag = 'no-execute'
    allow_errors_tag = 'allow-errors'
-   include_warnings_tag = 'include-warnings'
-   remove_warnings_tag = 'remove-warnings'
 
    # get active tags
    tags = cell.get('metadata', {}).get('tags', [])
@@ -167,12 +147,6 @@ def cell_execute(client, cell, index, include_warnings, store_history):
       # execute
       cell = client.execute_cell(cell, index, store_history = store_history)
       
-      # filter warnings if requested
-      if "outputs" in cell:
-         if ((not include_warnings and not include_warnings_tag in tags)
-               or remove_warnings_tag in tags):
-            cell["outputs"] = list(filter(warningFilter, cell["outputs"]))
-
       # remove injected raises-exception
       if allow_errors_tag in tags:
          cell.metatata.tags.remove('raises-exception')

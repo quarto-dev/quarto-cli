@@ -31,9 +31,15 @@ import type {
   PostProcessOptions,
 } from "./engine.ts";
 import {
-  jupyterNotebookAssets,
-  jupyterNotebookToMarkdown,
+  jupyterAssets,
+  jupyterFromFile,
+  jupyterToMarkdown,
 } from "../core/jupyter.ts";
+import {
+  kIncludeCode,
+  kIncludeOutput,
+  kIncludeWarnings,
+} from "../config/constants.ts";
 
 const kNotebookExtensions = [
   ".ipynb",
@@ -119,13 +125,19 @@ export const jupyterEngine: ExecutionEngine = {
     );
 
     if (result.success) {
-      // parse the notebook
-      const nbContents = await Deno.readTextFile(options.input);
-      const nb = JSON.parse(nbContents);
-
       // convert to markdown and write to target
-      const assets = jupyterNotebookAssets(options.input);
-      const markdown = jupyterNotebookToMarkdown(nb, assets);
+      const nb = jupyterFromFile(options.input);
+      const assets = jupyterAssets(options.input);
+      const markdown = jupyterToMarkdown(
+        nb,
+        {
+          language: nb.metadata.kernelspec.language,
+          assets,
+          includeCode: options.format.execute[kIncludeCode],
+          includeOutput: options.format.execute[kIncludeOutput],
+          includeWarnings: options.format.execute[kIncludeWarnings],
+        },
+      );
       await Deno.writeTextFile(options.output, markdown);
 
       // sync so that jupyter[lab] can open the .ipynb w/o errors
