@@ -3,6 +3,9 @@ import { join } from "path/mod.ts";
 
 import { dirAndStem } from "./path.ts";
 
+// TODO: raw needs to look at format and use pandoc raw tags where appropriate
+// TODO: JUPYTER_OUTPUT_TYPE (mime type) as part of format
+
 // nbformat v4
 // https://ipython.org/ipython-doc/dev/notebook/nbformat.html
 
@@ -15,18 +18,33 @@ export interface JupyterNotebook {
   cells: JupyterCell[];
 }
 
+export const kCellCollapsed = "collapsed";
+export const kCellAutoscroll = "autoscroll";
+export const kCellDeletable = "deletable";
+export const kCellFormat = "format";
+export const kCellName = "name";
+export const kCellTags = "tags";
+export const kCellId = "id";
+export const kCellClass = "class";
+export const kCellLinesToNext = "lines_to_next_cell";
+
 export interface JupyterCell {
   cell_type: "markdown" | "code" | "raw";
   metadata: {
     // nbformat v4 spec
-    collapsed?: boolean;
-    autoscroll?: boolean | "auto";
-    deletable?: boolean;
-    format?: string; // for "raw"
-    name?: string;
-    tags?: string[];
+    [kCellCollapsed]?: boolean;
+    [kCellAutoscroll]?: boolean | "auto";
+    [kCellDeletable]?: boolean;
+    [kCellFormat]?: string; // for "raw"
+    [kCellName]?: string;
+    [kCellTags]?: string[];
+
+    // id and classes for pandoc
+    [kCellId]?: string;
+    [kCellClass]?: string;
+
     // used by jupytext to preserve line spacing
-    lines_to_next_cell?: number;
+    [kCellLinesToNext]?: number;
   };
   source: string[];
   outputs?: JupyterOutput[];
@@ -38,13 +56,9 @@ export interface JupyterOutput {
 }
 
 export interface JupyterOutputStream extends JupyterOutput {
-  name: string;
+  name: "stdout" | "stderr";
   text: string[];
 }
-
-// TODO: consider marking up same as pandoc
-
-// TODO: JUPYTER_OUTPUT_TYPE (mime type)
 
 export interface JupyterOutputDisplayData extends JupyterOutput {
   data: { [mimeType: string]: unknown };
@@ -110,14 +124,18 @@ export function jupyterToMarkdown(
   const md: string[] = [];
 
   for (const cell of nb.cells) {
-    if (cell.cell_type === "markdown") {
-      md.push(...mdFromContentCell(cell));
-    } else if (cell.cell_type === "raw") {
-      md.push(...mdFromRawCell(cell));
-    } else if (cell.cell_type === "code") {
-      md.push(...mdFromCodeCell(cell, options));
-    } else {
-      throw new Error("Unexpected cell type " + cell.cell_type);
+    switch (cell.cell_type) {
+      case "markdown":
+        md.push(...mdFromContentCell(cell));
+        break;
+      case "raw":
+        md.push(...mdFromRawCell(cell));
+        break;
+      case "code":
+        md.push(...mdFromCodeCell(cell, options));
+        break;
+      default:
+        throw new Error("Unexpected cell type " + cell.cell_type);
     }
   }
 
@@ -128,8 +146,6 @@ export function jupyterToMarkdown(
 function mdFromContentCell(cell: JupyterCell) {
   return [...cell.source, "\n\n"];
 }
-
-// TODO: raw needs to look at format and use pandoc raw tags where appropriate
 
 function mdFromRawCell(cell: JupyterCell) {
   return mdFromContentCell(cell);
@@ -159,22 +175,104 @@ function mdFromCodeCell(
   // markdown to return
   const md: string[] = [];
 
-  // TODO: propagate tags as css classes, other attributes?
-  // e.g. name as id?, data attributes
+  // write div enclosure
+  const divMd: string[] = [`::: {`];
 
+  // metadata to exlucde from cell div attributes
+  const kCellMetadataFilter = [
+    kCellCollapsed,
+    kCellAutoscroll,
+    kCellDeletable,
+    kCellFormat,
+    kCellName,
+    kCellTags,
+    kCellId,
+    kCellClass,
+    kCellLinesToNext,
+  ];
+
+  // id/name
+  const id = cell.metadata.id || cell.metadata.name;
+  if (id) {
+    divMd.push(`#${id.replace(/^#/, "")} `);
+  }
+
+  // cell_type classes
+  divMd.push(`.cell .code `);
+
+  // css classes
+  if (cell.metadata.class) {
+    divMd.push(cell.metadata.class + " ");
+  }
+
+  // forward other attributes we don't know about
+  for (const key of Object.keys(cell.metadata)) {
+    if (!kCellMetadataFilter.includes(key.toLowerCase())) {
+      // deno-lint-ignore no-explicit-any
+      divMd.push(`${key}="${(cell.metadata as any)[key]}" `);
+    }
+  }
+
+  // strip trailing space and add terminator
+  md.push(divMd.join("").replace(/ $/, "").concat("}\n"));
+
+  // write code if appropriate
   if (includeCode(cell, options.includeCode)) {
     md.push("```{" + options.language + "}\n");
     md.push(...cell.source, "\n");
     md.push("```\n");
   }
 
+  // write output if approproate
   if (includeOutput(cell, options.includeOutput)) {
-    //
+    for (const output of cell.outputs || []) {
+      // filter warnings if necessary
+      if (
+        output.output_type === "stream" &&
+        (output as JupyterOutputStream).name === "stderr" &&
+        !includeWarnings(cell, options.includeWarnings)
+      ) {
+        continue;
+      }
 
-    if (includeWarnings(cell, options.includeWarnings)) {
-      //
+      // leading newline
+      md.push("\n");
+
+      // div preamble
+      md.push(`::: {.output .${output.output_type} `);
+
+      // add stream name class if necessary
+      if (output.output_type === "stream") {
+        const stream = output as JupyterOutputStream;
+        md.push(`.${stream.name}`);
+      }
+      md.push("}\n");
+
+      // produce output
+      switch (output.output_type) {
+        case "stream":
+          md.push(mdOutputStream(output as JupyterOutputStream));
+          break;
+        case "error":
+          md.push(mdOutputError(output as JupyterOutputError));
+          break;
+        case "display_data":
+          md.push(mdOutputDisplayData(output as JupyterOutputDisplayData));
+          break;
+        case "execute_result":
+          md.push(mdOutputExecuteResult(output as JupyterOutputExecuteResult));
+          break;
+        default:
+          throw new Error("Unexpected output type " + output.output_type);
+      }
+
+      // terminate div
+      md.push(`:::\n`);
     }
   }
+
+  // end div
+  md.push(":::\n");
 
   // lines to next cell
   if (cell.metadata.lines_to_next_cell) {
@@ -229,4 +327,31 @@ function hasTag(cell: JupyterCell, tags: string[]) {
     return false;
   }
   return cell.metadata.tags.filter((tag) => tags.includes(tag)).length > 0;
+}
+
+function mdOutputStream(output: JupyterOutputStream) {
+  const md: string[] = [
+    "```\n",
+    output.text.join("") + "\n",
+    "```\n",
+  ];
+  return md.join("");
+}
+
+function mdOutputError(output: JupyterOutputError) {
+  const md: string[] = [];
+
+  return md.join("") + "\n";
+}
+
+function mdOutputDisplayData(output: JupyterOutputDisplayData) {
+  const md: string[] = [];
+
+  return md.join("") + "\n";
+}
+
+function mdOutputExecuteResult(output: JupyterOutputExecuteResult) {
+  const md: string[] = [];
+
+  return md.join("") + "\n";
 }
