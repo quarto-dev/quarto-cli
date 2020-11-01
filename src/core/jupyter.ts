@@ -209,7 +209,10 @@ function mdFromCodeCell(
 
   // css classes
   if (cell.metadata.class) {
-    divMd.push(cell.metadata.class + " ");
+    const classes = cell.metadata.class.trim().split(/\s+/)
+      .map((clz) => clz.startsWith(".") ? clz : ("." + clz))
+      .join(" ");
+    divMd.push(classes + " ");
   }
 
   // forward other attributes we don't know about
