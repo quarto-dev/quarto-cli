@@ -3,6 +3,13 @@ import { join } from "path/mod.ts";
 
 import { dirAndStem } from "./path.ts";
 
+// TODO: display errors ("allow-errors")
+
+// TODO: images for "display_data" / "execute_result"
+
+// TODO: JS/CSS/etc. for other mime types
+
+// TODO: warning needs to get rid of wierd '<ipython>' artifact
 // TODO: raw needs to look at format and use pandoc raw tags where appropriate
 // TODO: JUPYTER_OUTPUT_TYPE (mime type) as part of format
 
@@ -330,18 +337,11 @@ function hasTag(cell: JupyterCell, tags: string[]) {
 }
 
 function mdOutputStream(output: JupyterOutputStream) {
-  const md: string[] = [
-    "```\n",
-    output.text.join("") + "\n",
-    "```\n",
-  ];
-  return md.join("");
+  return mdCodeOutput(output.text.join());
 }
 
 function mdOutputError(output: JupyterOutputError) {
-  const md: string[] = [];
-
-  return md.join("") + "\n";
+  return mdCodeOutput(output.ename + ": " + output.evalue);
 }
 
 function mdOutputDisplayData(output: JupyterOutputDisplayData) {
@@ -354,4 +354,13 @@ function mdOutputExecuteResult(output: JupyterOutputExecuteResult) {
   const md: string[] = [];
 
   return md.join("") + "\n";
+}
+
+function mdCodeOutput(code: string) {
+  const md: string[] = [
+    "```\n",
+    code + "\n",
+    "```\n",
+  ];
+  return md.join("");
 }
