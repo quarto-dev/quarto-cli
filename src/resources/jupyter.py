@@ -22,6 +22,7 @@ from traitlets import Float, Bool, Set, Unicode
 from traitlets.config import Config
 from nbconvert.preprocessors import Preprocessor
 
+NB_FORMAT_VERSION = 4
 
 # execute options in format:
 #   allow-errors   
@@ -46,7 +47,7 @@ def notebook_execute(input, format, run_path, quiet):
    os.environ["JUPYTER_FIG_HEIGHT"] = str(fig_height)
 
    # read the notebook
-   nb = nbformat.read(input, as_version = nbformat.current_nbformat)
+   nb = nbformat.read(input, as_version = NB_FORMAT_VERSION)
 
    # create resources for execution
    resources = dict()
@@ -101,7 +102,7 @@ def notebook_execute(input, format, run_path, quiet):
    client.set_widgets_metadata()
 
    # get notebook as string
-   outputstr = nbformat.writes(client.nb, version = nbformat.current_nbformat)
+   outputstr = nbformat.writes(client.nb, version = NB_FORMAT_VERSION)
    if not outputstr.endswith("\n"):
       outputstr = outputstr + "\n"
 
@@ -123,7 +124,7 @@ def nb_setup_cell(client, fig_width, fig_height):
       cell_code = kInjectableCode[kernelLanguage].format(fig_width, fig_height)  
 
    # create cell
-   return nbformat.versions[nbformat.current_nbformat].new_code_cell(
+   return nbformat.versions[NB_FORMAT_VERSION].new_code_cell(
       source=cell_code, 
       metadata={'lines_to_next_cell': cell_code.count("\n") + 1, 'tags': ['raises-exception']}
    )
@@ -183,7 +184,7 @@ def notebook_to_markdown(input, output, format):
    Path(output_dir).mkdir(parents=True, exist_ok=True)
 
    # run conversion
-   notebook_node = nbformat.read(input, as_version=4)
+   notebook_node = nbformat.read(input, as_version=NB_FORMAT_VERSION)
    md_exporter = nbconvert.MarkdownExporter(config = mdConfig)
    result = md_exporter.from_notebook_node(
    notebook_node, 
