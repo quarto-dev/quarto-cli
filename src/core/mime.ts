@@ -27,6 +27,9 @@ export const kApplicationJupyterWidgetState =
 export const kApplicationJupyterWidgetView =
   "application/vnd.jupyter.widget-view+json";
 
+export const kRestructuredText = "text/restructuredtext";
+export const kApplicationRtf = "application/rtf";
+
 export function extensionForMimeImageType(mimeType: string) {
   switch (mimeType) {
     case kImagePng:
