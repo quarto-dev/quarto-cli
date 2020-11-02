@@ -356,8 +356,6 @@ function mdOutputDisplayData(
   output: JupyterOutputDisplayData,
   assets: JupyterAssets,
 ) {
-  console.log(output);
-
   // determine display mime type
   const displayMimeType = () => {
     const kDisplayPriority = [
