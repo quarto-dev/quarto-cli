@@ -127,7 +127,7 @@ export const jupyterEngine: ExecutionEngine = {
     if (result.success) {
       // convert to markdown and write to target
       const nb = jupyterFromFile(options.input);
-      const assets = jupyterAssets(options.input);
+      const assets = jupyterAssets(options.input, options.format.pandoc);
       const markdown = jupyterToMarkdown(
         nb,
         {
@@ -145,7 +145,7 @@ export const jupyterEngine: ExecutionEngine = {
 
       // return results
       return {
-        supporting: [assets.files_dir],
+        supporting: [assets.supporting_dir],
         pandoc: {},
       };
     } else {

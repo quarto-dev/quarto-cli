@@ -1,5 +1,6 @@
 import { ensureDirSync } from "fs/ensure_dir.ts";
 import { join } from "path/mod.ts";
+import { walkSync } from "fs/walk.ts";
 import { decode as base64decode } from "encoding/base64.ts";
 import {
   extensionForMimeImageType,
@@ -20,6 +21,8 @@ import {
 
 import { dirAndStem } from "./path.ts";
 
+import { FormatPandoc } from "../config/format.ts";
+
 // TODO: consider "include-input" (jupytext syncing w/ Rmd)
 // TODO: hide-input, hide-output, hide-cell from jupyterbook
 // TODO: consider using include-input/remove-input rather than include-code
@@ -33,9 +36,6 @@ import { dirAndStem } from "./path.ts";
 // TODO: see about setting dpi / retina for matplotlib
 
 // TODO: throw error if name/id is not unique across the document
-
-// TODO: need to create pandoc format based figures dir and
-// mirror supporting files logic from rmarkdown
 
 // TODO: warning needs to get rid of wierd '<ipython>' artifact
 
@@ -130,19 +130,36 @@ export function jupyterFromFile(input: string) {
 
 export interface JupyterAssets {
   base_dir: string;
-  files_dir: string;
   figures_dir: string;
+  supporting_dir: string;
 }
 
-export function jupyterAssets(input: string) {
+export function jupyterAssets(input: string, format: FormatPandoc) {
+  // calculate and create directories
   const [base_dir, stem] = dirAndStem(input);
   const files_dir = stem + "_files";
-  const figures_dir = join(files_dir, "figure-ipynb");
+  const to = (format.to || "html").replace(/[\+\-].*$/, "");
+  const figures_dir = join(files_dir, "figure-" + to);
   ensureDirSync(figures_dir);
+
+  // determine supporting_dir (if there are no other figures dirs then it's
+  // the files dir, otherwise it's just the figures dir). note that
+  // supporting_dir is the directory that gets removed after a self-contained
+  // or non-keeping render is complete
+  let supporting_dir = files_dir;
+  for (
+    const walk of walkSync(join(base_dir, files_dir), { maxDepth: 1 })
+  ) {
+    if (walk.path !== files_dir && walk.path !== figures_dir) {
+      supporting_dir = figures_dir;
+      break;
+    }
+  }
+
   return {
     base_dir,
-    files_dir,
     figures_dir,
+    supporting_dir,
   };
 }
 
@@ -386,8 +403,6 @@ function mdOutputDisplayData(
     }
     return null;
   };
-
-  // https://github.com/jupyter/nbconvert/blob/06f3a90f6b7b578a78efe1f17138a4fea43fcfa5/nbconvert/preprocessors/extractoutput.py#L89
 
   const mimeType = displayMimeType();
   if (mimeType) {
