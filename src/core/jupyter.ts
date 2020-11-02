@@ -395,6 +395,7 @@ function mdOutputDisplayData(
           assets,
           output.data[mimeType] as string[],
           output.metadata[mimeType],
+          output.data[kTextPlain] as string[],
         );
       case kTextMarkdown:
       case kTextPlain:
@@ -423,13 +424,14 @@ function mdImageOutput(
   assets: JupyterAssets,
   data: unknown,
   metadata?: Record<string, unknown>,
+  textPlain?: string[],
 ) {
   // attributes (e.g. width/height/alt)
   function metadataValue<T>(key: string, defaultValue: T) {
     return metadata && metadata[key] ? metadata["key"] as T : defaultValue;
   }
-  const height = metadataValue("height", 0);
   const width = metadataValue("width", 0);
+  const height = metadataValue("height", 0);
   const alt = metadataValue("alt", "");
 
   // calculate output file name
@@ -450,7 +452,21 @@ function mdImageOutput(
     Deno.writeTextFileSync(outputFile, imageText);
   }
 
-  return mdMarkdownOutput([`![](${imageFile})`]);
+  let image = `![${alt}](${imageFile})`;
+  if (width || height) {
+    image += "{";
+    if (width) {
+      image += `width=${width}`;
+    }
+    if (height) {
+      if (width) {
+        image += " ";
+      }
+      image += `height=${height}`;
+    }
+    image += "}";
+  }
+  return mdMarkdownOutput([image]);
 }
 
 function mdMarkdownOutput(md: string[]) {
