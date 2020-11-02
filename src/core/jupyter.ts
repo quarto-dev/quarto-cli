@@ -1,13 +1,43 @@
 import { ensureDirSync } from "fs/ensure_dir.ts";
 import { join } from "path/mod.ts";
+import { decode as base64decode } from "encoding/base64.ts";
+import {
+  extensionForMimeImageType,
+  kApplicationJavascript,
+  kApplicationJupyterWidgetState,
+  kApplicationJupyterWidgetView,
+  kApplicationPdf,
+  kImageJpeg,
+  kImagePng,
+  kImageSvg,
+  kTextHtml,
+  kTextLatex,
+  kTextMarkdown,
+  kTextPlain,
+} from "./mime.ts";
 
 import { dirAndStem } from "./path.ts";
 
-// TODO: display errors ("allow-errors")
+// TODO: hide-input, hide-output, hide-cell from jupyterbook
+// TODO: consider using include-input/remove-input rather than include-code
 
 // TODO: images for "display_data" / "execute_result"
 
+// TODO: need a concept of display_data_priority based on what the underlying
+// target format is (html vs. latex for sure, perhaps others). see:
+// https://github.com/jupyter/nbconvert/blob/master/nbconvert/exporters/latex.py
+
 // TODO: JS/CSS/etc. for other mime types
+
+// TODO: height/width/alt for images
+// TODO: matplot lib seems to provide image dimensions in text/plain
+
+// TODO: throw error if name/id is not unique across the document
+
+// TODO: need to create pandoc format based figures dir and
+// mirror supporting files logic from rmarkdown
+
+// TODO: consider "include-input" (jupytext syncing w/ Rmd)
 
 // TODO: warning needs to get rid of wierd '<ipython>' artifact
 // TODO: raw needs to look at format and use pandoc raw tags where appropriate
@@ -15,15 +45,6 @@ import { dirAndStem } from "./path.ts";
 
 // nbformat v4
 // https://ipython.org/ipython-doc/dev/notebook/nbformat.html
-
-export interface JupyterNotebook {
-  metadata: {
-    kernelspec: {
-      language: string;
-    };
-  };
-  cells: JupyterCell[];
-}
 
 export const kCellCollapsed = "collapsed";
 export const kCellAutoscroll = "autoscroll";
@@ -34,6 +55,15 @@ export const kCellTags = "tags";
 export const kCellId = "id";
 export const kCellClass = "class";
 export const kCellLinesToNext = "lines_to_next_cell";
+
+export interface JupyterNotebook {
+  metadata: {
+    kernelspec: {
+      language: string;
+    };
+  };
+  cells: JupyterCell[];
+}
 
 export interface JupyterCell {
   cell_type: "markdown" | "code" | "raw";
@@ -69,7 +99,7 @@ export interface JupyterOutputStream extends JupyterOutput {
 
 export interface JupyterOutputDisplayData extends JupyterOutput {
   data: { [mimeType: string]: unknown };
-  metadata: { [mimeType: string]: unknown };
+  metadata: { [mimeType: string]: Record<string, unknown> };
 }
 
 export interface JupyterOutputExecuteResult extends JupyterOutputDisplayData {
@@ -101,16 +131,18 @@ export function jupyterFromFile(input: string) {
 }
 
 export interface JupyterAssets {
+  base_dir: string;
   files_dir: string;
   figures_dir: string;
 }
 
 export function jupyterAssets(input: string) {
-  const [_, stem] = dirAndStem(input);
+  const [base_dir, stem] = dirAndStem(input);
   const files_dir = stem + "_files";
   const figures_dir = join(files_dir, "figure-ipynb");
   ensureDirSync(figures_dir);
   return {
+    base_dir,
     files_dir,
     figures_dir,
   };
@@ -130,6 +162,7 @@ export function jupyterToMarkdown(
 ) {
   const md: string[] = [];
 
+  let codeCellIndex = 0;
   for (const cell of nb.cells) {
     switch (cell.cell_type) {
       case "markdown":
@@ -139,7 +172,7 @@ export function jupyterToMarkdown(
         md.push(...mdFromRawCell(cell));
         break;
       case "code":
-        md.push(...mdFromCodeCell(cell, options));
+        md.push(...mdFromCodeCell(cell, ++codeCellIndex, options));
         break;
       default:
         throw new Error("Unexpected cell type " + cell.cell_type);
@@ -155,6 +188,13 @@ function mdFromContentCell(cell: JupyterCell) {
 }
 
 function mdFromRawCell(cell: JupyterCell) {
+  // TODO: handle raw mime types (e.g. text/latex)
+  // LaTeX
+  // reST
+  // HTML
+  // markdown
+  // Python
+  // custom
   return mdFromContentCell(cell);
 }
 
@@ -172,6 +212,7 @@ const kRemoveCellTags = ["remove-cell", "remove_cell"];
 // https://github.com/mwouts/jupytext/blob/master/jupytext/cell_to_text.py
 function mdFromCodeCell(
   cell: JupyterCell,
+  cellIndex: number,
   options: JupyterToMarkdownOptions,
 ) {
   // bail if "remove-cell" is defined
@@ -199,9 +240,9 @@ function mdFromCodeCell(
   ];
 
   // id/name
-  const id = cell.metadata.id || cell.metadata.name;
+  const id = (cell.metadata.id || cell.metadata.name || "").replace(/^#/, "");
   if (id) {
-    divMd.push(`#${id.replace(/^#/, "")} `);
+    divMd.push(`#${id} `);
   }
 
   // cell_type classes
@@ -235,7 +276,15 @@ function mdFromCodeCell(
 
   // write output if approproate
   if (includeOutput(cell, options.includeOutput)) {
-    for (const output of cell.outputs || []) {
+    // compute label prefix for output (in case we need it for files, etc.)
+    const outputName = (id ? id : "cell-" + (cellIndex + 1)) + "-output";
+
+    for (
+      const { index, output } of (cell.outputs || []).map((value, index) => ({
+        index,
+        output: value,
+      }))
+    ) {
       // filter warnings if necessary
       if (
         output.output_type === "stream" &&
@@ -267,10 +316,12 @@ function mdFromCodeCell(
           md.push(mdOutputError(output as JupyterOutputError));
           break;
         case "display_data":
-          md.push(mdOutputDisplayData(output as JupyterOutputDisplayData));
-          break;
         case "execute_result":
-          md.push(mdOutputExecuteResult(output as JupyterOutputExecuteResult));
+          md.push(mdOutputDisplayData(
+            outputName + "-" + (index + 1),
+            output as JupyterOutputDisplayData,
+            options.assets,
+          ));
           break;
         default:
           throw new Error("Unexpected output type " + output.output_type);
@@ -290,6 +341,160 @@ function mdFromCodeCell(
   }
 
   return md;
+}
+
+function mdOutputStream(output: JupyterOutputStream) {
+  return mdCodeOutput(output.text);
+}
+
+function mdOutputError(output: JupyterOutputError) {
+  return mdCodeOutput([output.ename + ": " + output.evalue]);
+}
+
+function mdOutputDisplayData(
+  name: string,
+  output: JupyterOutputDisplayData,
+  assets: JupyterAssets,
+) {
+  console.log(output);
+
+  // determine display mime type
+  const displayMimeType = () => {
+    const kDisplayPriority = [
+      kApplicationJupyterWidgetState,
+      kApplicationJupyterWidgetView,
+      kApplicationJavascript,
+      kTextHtml,
+      kTextMarkdown,
+      kImageSvg,
+      kTextLatex,
+      kApplicationPdf,
+      kImagePng,
+      kImageJpeg,
+      kTextPlain,
+    ];
+    const availDisplay = Object.keys(output.data);
+    for (const display of kDisplayPriority) {
+      if (availDisplay.includes(display)) {
+        return display;
+      }
+    }
+    return null;
+  };
+
+  // https://github.com/jupyter/nbconvert/blob/06f3a90f6b7b578a78efe1f17138a4fea43fcfa5/nbconvert/preprocessors/extractoutput.py#L89
+
+  const mimeType = displayMimeType();
+  if (mimeType) {
+    switch (mimeType) {
+      case kImagePng:
+      case kImageJpeg:
+      case kImageSvg:
+      case kApplicationPdf:
+        return mdImageOutput(
+          name,
+          mimeType,
+          assets,
+          output.data[mimeType] as string[],
+          output.metadata[mimeType],
+        );
+      case kTextMarkdown:
+      case kTextPlain:
+        return mdMarkdownOutput(output.data[mimeType] as string[]);
+      case kTextLatex:
+        return mdLatexOutput(output.data[mimeType] as string[]);
+      case kTextHtml:
+        return mdHtmlOutput(output.data[mimeType] as string[]);
+      case kApplicationJupyterWidgetState:
+      case kApplicationJupyterWidgetView:
+      case kApplicationJavascript:
+        return mdScriptOutput(mimeType, output.data[mimeType] as string[]);
+    }
+  }
+
+  // no type match found
+  return mdWarningOutput(
+    "Unable to display output for mime type(s): " +
+      Object.keys(output.data).join(", "),
+  );
+}
+
+function mdImageOutput(
+  name: string,
+  mimeType: string,
+  assets: JupyterAssets,
+  data: unknown,
+  metadata?: Record<string, unknown>,
+) {
+  // attributes (e.g. width/height/alt)
+  function metadataValue<T>(key: string, defaultValue: T) {
+    return metadata && metadata[key] ? metadata["key"] as T : defaultValue;
+  }
+  const height = metadataValue("height", 0);
+  const width = metadataValue("width", 0);
+  const alt = metadataValue("alt", "");
+
+  // calculate output file name
+  const ext = extensionForMimeImageType(mimeType);
+  const imageFile = join(assets.figures_dir, name + "." + ext);
+
+  // get the data
+  const imageText = Array.isArray(data)
+    ? (data as string[]).join("")
+    : data as string;
+
+  // base64 decode if it's not svg
+  const outputFile = join(assets.base_dir, imageFile);
+  if (mimeType !== kImageSvg) {
+    const imageData = base64decode(imageText);
+    Deno.writeFileSync(outputFile, imageData);
+  } else {
+    Deno.writeTextFileSync(outputFile, imageText);
+  }
+
+  return mdMarkdownOutput([`![](${imageFile})`]);
+}
+
+function mdMarkdownOutput(md: string[]) {
+  return md.join("") + "\n";
+}
+
+function mdLatexOutput(latex: string[]) {
+  return mdEnclosedOutput("```{=tex}", latex, "```");
+}
+
+function mdHtmlOutput(html: string[]) {
+  return mdEnclosedOutput("```{=html}", html, "```");
+}
+
+function mdScriptOutput(mimeType: string, script: string[]) {
+  const scriptTag = [
+    `<script type="${mimeType}">\n`,
+    ...script,
+    "\n</script>",
+  ];
+  return mdHtmlOutput(scriptTag);
+}
+
+function mdCodeOutput(code: string[]) {
+  return mdEnclosedOutput("```", code, "```");
+}
+
+function mdEnclosedOutput(begin: string, text: string[], end: string) {
+  const md: string[] = [
+    begin + "\n",
+    text.join("") + "\n",
+    end + "\n",
+  ];
+  return md.join("");
+}
+
+function mdWarningOutput(msg: string) {
+  return mdOutputStream({
+    output_type: "stream",
+    name: "stderr",
+    text: [msg],
+  });
 }
 
 function includeCode(cell: JupyterCell, includeDefault?: boolean) {
@@ -337,33 +542,4 @@ function hasTag(cell: JupyterCell, tags: string[]) {
     return false;
   }
   return cell.metadata.tags.filter((tag) => tags.includes(tag)).length > 0;
-}
-
-function mdOutputStream(output: JupyterOutputStream) {
-  return mdCodeOutput(output.text.join());
-}
-
-function mdOutputError(output: JupyterOutputError) {
-  return mdCodeOutput(output.ename + ": " + output.evalue);
-}
-
-function mdOutputDisplayData(output: JupyterOutputDisplayData) {
-  const md: string[] = [];
-
-  return md.join("") + "\n";
-}
-
-function mdOutputExecuteResult(output: JupyterOutputExecuteResult) {
-  const md: string[] = [];
-
-  return md.join("") + "\n";
-}
-
-function mdCodeOutput(code: string) {
-  const md: string[] = [
-    "```\n",
-    code + "\n",
-    "```\n",
-  ];
-  return md.join("");
 }
