@@ -7,9 +7,11 @@ import {
   kApplicationJupyterWidgetState,
   kApplicationJupyterWidgetView,
   kApplicationPdf,
+  kApplicationRtf,
   kImageJpeg,
   kImagePng,
   kImageSvg,
+  kRestructuredText,
   kTextHtml,
   kTextLatex,
   kTextMarkdown,
@@ -18,10 +20,9 @@ import {
 
 import { dirAndStem } from "./path.ts";
 
+// TODO: consider "include-input" (jupytext syncing w/ Rmd)
 // TODO: hide-input, hide-output, hide-cell from jupyterbook
 // TODO: consider using include-input/remove-input rather than include-code
-
-// TODO: images for "display_data" / "execute_result"
 
 // TODO: need a concept of display_data_priority based on what the underlying
 // target format is (html vs. latex for sure, perhaps others). see:
@@ -29,19 +30,14 @@ import { dirAndStem } from "./path.ts";
 
 // TODO: JS/CSS/etc. for other mime types
 
-// TODO: height/width/alt for images
-// TODO: matplot lib seems to provide image dimensions in text/plain
+// TODO: see about setting dpi / retina for matplotlib
 
 // TODO: throw error if name/id is not unique across the document
 
 // TODO: need to create pandoc format based figures dir and
 // mirror supporting files logic from rmarkdown
 
-// TODO: consider "include-input" (jupytext syncing w/ Rmd)
-
 // TODO: warning needs to get rid of wierd '<ipython>' artifact
-// TODO: raw needs to look at format and use pandoc raw tags where appropriate
-// TODO: JUPYTER_OUTPUT_TYPE (mime type) as part of format
 
 // nbformat v4
 // https://ipython.org/ipython-doc/dev/notebook/nbformat.html
@@ -55,6 +51,7 @@ export const kCellTags = "tags";
 export const kCellId = "id";
 export const kCellClass = "class";
 export const kCellLinesToNext = "lines_to_next_cell";
+export const kRawMimeType = "raw_mimetype";
 
 export interface JupyterNotebook {
   metadata: {
@@ -75,6 +72,7 @@ export interface JupyterCell {
     [kCellFormat]?: string; // for "raw"
     [kCellName]?: string;
     [kCellTags]?: string[];
+    [kRawMimeType]?: string;
 
     // id and classes for pandoc
     [kCellId]?: string;
@@ -188,13 +186,22 @@ function mdFromContentCell(cell: JupyterCell) {
 }
 
 function mdFromRawCell(cell: JupyterCell) {
-  // TODO: handle raw mime types (e.g. text/latex)
-  // LaTeX
-  // reST
-  // HTML
-  // markdown
-  // Python
-  // custom
+  const mimeType = cell.metadata?.[kRawMimeType];
+  if (mimeType) {
+    switch (mimeType) {
+      case kTextHtml:
+        return mdHtmlOutput(cell.source);
+      case kTextLatex:
+        return mdLatexOutput(cell.source);
+      case kRestructuredText:
+        return mdFormatOutput("rst", cell.source);
+      case kApplicationRtf:
+        return mdFormatOutput("rtf", cell.source);
+      case kApplicationJavascript:
+        return mdScriptOutput(mimeType, cell.source);
+    }
+  }
+
   return mdFromContentCell(cell);
 }
 
@@ -395,7 +402,6 @@ function mdOutputDisplayData(
           assets,
           output.data[mimeType] as string[],
           output.metadata[mimeType],
-          output.data[kTextPlain] as string[],
         );
       case kTextMarkdown:
       case kTextPlain:
@@ -424,7 +430,6 @@ function mdImageOutput(
   assets: JupyterAssets,
   data: unknown,
   metadata?: Record<string, unknown>,
-  textPlain?: string[],
 ) {
   // attributes (e.g. width/height/alt)
   function metadataValue<T>(key: string, defaultValue: T) {
@@ -473,12 +478,16 @@ function mdMarkdownOutput(md: string[]) {
   return md.join("") + "\n";
 }
 
+function mdFormatOutput(format: string, source: string[]) {
+  return mdEnclosedOutput("```{=" + format + "}", source, "```");
+}
+
 function mdLatexOutput(latex: string[]) {
-  return mdEnclosedOutput("```{=tex}", latex, "```");
+  return mdFormatOutput("tex", latex);
 }
 
 function mdHtmlOutput(html: string[]) {
-  return mdEnclosedOutput("```{=html}", html, "```");
+  return mdFormatOutput("html", html);
 }
 
 function mdScriptOutput(mimeType: string, script: string[]) {
