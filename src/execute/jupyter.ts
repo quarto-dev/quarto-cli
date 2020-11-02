@@ -112,7 +112,7 @@ export const jupyterEngine: ExecutionEngine = {
   },
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
-    // convert to markdown
+    // execute the notebook (save back in place)
     const result = await execProcess(
       {
         cmd: [

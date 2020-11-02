@@ -12,15 +12,12 @@
 
 import os
 import sys
-import nbformat
-import nbconvert
-from nbclient import NotebookClient
 import json
 import pprint
 from pathlib import Path
-from traitlets import Float, Bool, Set, Unicode
-from traitlets.config import Config
-from nbconvert.preprocessors import Preprocessor
+
+import nbformat
+from nbclient import NotebookClient
 
 NB_FORMAT_VERSION = 4
 
@@ -82,6 +79,9 @@ def notebook_execute(input, format, run_path, quiet):
                current_code_cell, total_code_cells)
             )
 
+         # clear cell output
+         cell = cell_clear_output(cell)
+
          # execute cell
          client.nb.cells[index] = cell_execute(
             client, 
@@ -134,7 +134,7 @@ def cell_execute(client, cell, index, store_history):
    no_execute_tag = 'no-execute'
    allow_errors_tag = 'allow-errors'
 
-   # get active tags
+   # ensure we have tags
    tags = cell.get('metadata', {}).get('tags', [])
      
    # execute unless the 'no-execute' tag is active
@@ -142,15 +142,17 @@ def cell_execute(client, cell, index, store_history):
       
       # if we see 'allow-errors' then add 'raises-exception'
       if allow_errors_tag in tags:
-         cell.metatata = cell.get('metadata', {})
-         cell.metadata.tags = tags + ['raises-exception'] 
+         if not "metadata" in cell:
+            cell["metadata"] = {}
+         cell["metadata"]["tags"] = tags + ['raises-exception'] 
 
       # execute
       cell = client.execute_cell(cell, index, store_history = store_history)
       
       # remove injected raises-exception
       if allow_errors_tag in tags:
-         cell.metatata.tags.remove('raises-exception')
+        cell["metadata"]["tags"].remove('raises-exception')
+
 
    # return cell
    return cell
@@ -166,105 +168,6 @@ def cell_clear_output(cell):
             cell.metadata.pop(field, None)
    return cell
 
-
-def notebook_to_markdown(input, output, format):
-
-   # ...now export to markdown
-   mdConfig = Config()
-
-   # setup removal preprocessor
-   execute = format["execute"]
-   mdConfig.RemovePreprocessor.include_code = bool(execute["include-code"])
-   mdConfig.RemovePreprocessor.include_output = bool(execute["include-output"])
-   mdConfig.MarkdownExporter.preprocessors = [RemovePreprocessor]
-
-   # setup output dir
-   files_dir = Path(input).stem + "_files"
-   output_dir = files_dir + "/figure-ipynb"
-   Path(output_dir).mkdir(parents=True, exist_ok=True)
-
-   # run conversion
-   notebook_node = nbformat.read(input, as_version=NB_FORMAT_VERSION)
-   md_exporter = nbconvert.MarkdownExporter(config = mdConfig)
-   result = md_exporter.from_notebook_node(
-   notebook_node, 
-   resources = { "output_files_dir": output_dir}
-   )
-   markdown = result[0]
-
-   # write the figures
-   resources = result[1]
-   outputs = resources["outputs"]
-   for path, data in outputs.items():
-      with open(path, "wb") as file:
-         file.write(data)
-
-   # write markdown 
-   with open(output, "w") as file:
-      file.write(markdown)
-
-   # return files_dir
-   return files_dir
-
-class RemovePreprocessor(Preprocessor):
-   
-   # default show behavior
-   include_code = Bool(True).tag(config=True)
-   include_output = Bool(True).tag(config=True)
-
-   # available tags 
-   include_code_tags = Set({'include-code'})
-   include_output_tags = Set({'include-output'})
-   remove_cell_tags = Set({'remove-cell', 'remove_cell'})
-   remove_output_tags = Set({'remove-output', 'remove_output'})
-   remove_code_tags = Set({'remove-code', 'remove-input', 'remove_input'})
-   remove_metadata_fields = Set({'collapsed', 'scrolled'})
-  
-   def check_cell_conditions(self, cell, resources, index):
-      # Return true if any of the tags in the cell are removable.
-      return not self.remove_cell_tags.intersection(cell.get('metadata', {}).get('tags', []))
-
-   def preprocess(self, nb, resources):
-      # Skip preprocessing if the list of patterns is empty
-      if not any([self.remove_cell_tags,
-                  self.remove_output_tags,
-                  self.remove_code_tags
-                  ]):
-         return nb, resources
-
-      # Filter out cells that meet the conditions
-      nb.cells = [self.preprocess_cell(cell, resources, index)[0]
-                  for index, cell in enumerate(nb.cells)
-                  if self.check_cell_conditions(cell, resources, index)]
-
-      return nb, resources
-
-   def preprocess_cell(self, cell, resources, cell_index): 
-
-      if (cell.cell_type == 'code'):
-
-         tags = cell.get('metadata', {}).get('tags', [])
-
-         if ((not self.include_output and not bool(self.include_output_tags.intersection(tags)))
-               or bool(self.remove_output_tags.intersection(tags))):
-
-            cell.outputs = []
-            cell.execution_count = None
-            # Remove metadata associated with output
-            if 'metadata' in cell:
-               for field in self.remove_metadata_fields:
-                  cell.metadata.pop(field, None)
-            
-         if ((not self.include_code and not bool(self.include_code_tags.intersection(tags)))
-              or bool(self.remove_code_tags.intersection(tags))):
-
-            cell.transient = { 'remove_source': True }
-         
-      return cell, resources
-
-
-def warningFilter(output):
-   return output["output_type"] != "stream" or output["name"] != "stderr"
 
 kInjectableCode = { 
    'python' : "import matplotlib.pyplot as plt\nplt.rc('figure',figsize = ({0},{1}), dpi=96)"
