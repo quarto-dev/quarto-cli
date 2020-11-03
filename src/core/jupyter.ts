@@ -404,6 +404,19 @@ function mdFromCodeCell(
 }
 
 function mdOutputStream(output: JupyterOutputStream) {
+  // trim off warning source line for notebook
+  if (output.name === "stderr") {
+    const firstLine = output.text[0];
+    if (output.text[0]) {
+      const firstLine = output.text[0].replace(
+        /<ipython-input.*?>:\d+:\s+/,
+        "",
+      );
+      return mdCodeOutput([firstLine, ...output.text.slice(1)]);
+    }
+  }
+
+  // normal default handling
   return mdCodeOutput(output.text);
 }
 
