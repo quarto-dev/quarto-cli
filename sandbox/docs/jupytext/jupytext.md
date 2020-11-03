@@ -4,14 +4,22 @@ author: "J.J. Allaire"
 knit: quarto render
 format:
   html:
-    keep-md: false
+    keep-md: true
+    self-contained: false
+    fig-width: 8
+    fig-height: 2
 execute:
-  include-code: true
+  include-code: false
   include-warnings: true
 bibliography: references.bib
 jupyter:
   jupytext:
     formats: ipynb,md
+    text_representation:
+      extension: .md
+      format_name: markdown
+      format_version: '1.2'
+      jupytext_version: 1.6.0
   kernelspec:
     display_name: Python 3
     language: python
@@ -24,8 +32,23 @@ import warnings
 ```
 
 
-```python
+```python class="foo bar" tags=["include-code", "allow-errors", "raises-exception"]
+print("here we go again")
 warnings.warn("we better watch out!")
+```
+
+
+## Leaflet
+
+```python tags=["no-execute"]
+from ipyleaflet import Map, Marker, basemaps, basemap_to_tiles
+m = Map(
+    basemap=basemap_to_tiles(basemaps.NASAGIBS.ModisTerraTrueColorCR, "2017-04-08"),
+    center=(52.204793, 360.121558),
+    zoom=4
+)
+m.add_layer(Marker(location=(52.204793, 360.121558)))
+m
 ```
 
 
@@ -33,15 +56,31 @@ warnings.warn("we better watch out!")
 
 @pirzada2020
 
-Definition is the tip
+## iTables
 
-: Here we go
+```python
+import itables.interactive
+import world_bank_data as wb
+
+df = wb.get_countries()
+df
+```
+
+## Plotly FTW
+
+```python tags=["no-execute"]
+import plotly.graph_objects as go
+fig = go.Figure(
+    data=[go.Bar(y=[2, 1, 3])],
+    layout_title_text="A Figure Displayed with fig.show()"
+)
+fig.show()
+```
 
 ## Slide with Plot
 
-```python tags=["remove-code"]
+```python class=".rich .internet .output" foo="bar" id="myplot" tags=["include-code"]
 import matplotlib.pyplot as plt
-
 
 labels = ['G1', 'G2', 'G3', 'G4', 'G6']
 men_means = [20, 35, 30, 35, 27]
