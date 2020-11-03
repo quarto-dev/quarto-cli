@@ -1,7 +1,10 @@
 ---
 title: "Untitled"
-format: html
-knit: quarto render
+output:
+   html_document: 
+      self_contained: false
+   
+# knit: quarto render
 ---
 
 ```{r setup, include=FALSE}
@@ -9,6 +12,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## R Markdown
+
+```{=latex}
+\textbf{some bold text}
+```
 
 This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
@@ -22,7 +29,7 @@ summary(cars)
 
 You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
+```{r, fig.cap="Presure Time"}
 plot(pressure)
 ```
 
