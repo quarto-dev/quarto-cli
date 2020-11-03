@@ -93,6 +93,31 @@ export interface FormatPandoc {
   [kPdfEngineOpt]?: string;
 }
 
+export function isLatexFormat(format: FormatPandoc) {
+  return ["pdf", "latex", "beamer"].includes(format.to || "");
+}
+
+export function isHtmlFormat(format: FormatPandoc) {
+  return [
+    "html",
+    "html4",
+    "html5",
+    "s5",
+    "dzslides",
+    "slidy",
+    "slideous",
+    "revealjs",
+    "epub",
+    "epub2",
+    "epub3",
+  ].includes(format.to || "html");
+}
+
+export function isMarkdownFormat(format: FormatPandoc) {
+  const to = (format.to || "").replace(/[\+\-_].*$/, "");
+  return ["markdown", "gfm", "commonmark"].includes(to);
+}
+
 export function defaultWriterFormat(to: string): Format {
   // get defaults for writer
   let writerFormat: Format;
