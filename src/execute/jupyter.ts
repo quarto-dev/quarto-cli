@@ -169,12 +169,11 @@ export const jupyterEngine: ExecutionEngine = {
 
     // substitute
     const htmlPreserve = options.data as Record<string, string>;
-    const keys = Object.keys(htmlPreserve);
-    for (let i = 0; i < keys.length; i++) {
-      const keyLoc = output.indexOf(keys[i]);
-      output = output.slice(0, keyLoc) + htmlPreserve[keys[i]] +
-        output.slice(keyLoc + keys[i].length);
-    }
+    Object.keys(htmlPreserve).forEach((key) => {
+      const keyLoc = output.indexOf(key);
+      output = output.slice(0, keyLoc) + htmlPreserve[key] +
+        output.slice(keyLoc + key.length);
+    });
 
     // re-write the output
     Deno.writeTextFileSync(options.output, output);
