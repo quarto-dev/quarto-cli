@@ -214,8 +214,6 @@ function pythonBinary(binary = "python") {
 async function jupytextSync(file: string, quiet?: boolean) {
   const args = [
     "--sync",
-    "--opt",
-    "notebook_metadata_filter=-jupytext.text_representation,-jupytext.notebook_metadata_filter",
     file,
   ];
   if (quiet) {
