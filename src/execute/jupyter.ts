@@ -45,6 +45,7 @@ import {
   isLatexFormat,
   isMarkdownFormat,
 } from "../config/format.ts";
+import { outputRecipe } from "../command/render/output.ts";
 
 const kNotebookExtensions = [
   ".ipynb",
@@ -163,6 +164,20 @@ export const jupyterEngine: ExecutionEngine = {
   },
 
   postprocess: async (options: PostProcessOptions) => {
+    // read the output file
+    let output = Deno.readTextFileSync(options.output);
+
+    // substitute
+    const htmlPreserve = options.data as Record<string, string>;
+    const keys = Object.keys(htmlPreserve);
+    for (let i = 0; i < keys.length; i++) {
+      const keyLoc = output.indexOf(keys[i]);
+      output = output.slice(0, keyLoc) + htmlPreserve[keys[i]] +
+        output.slice(keyLoc + keys[i].length);
+    }
+
+    // re-write the output
+    Deno.writeTextFileSync(options.output, output);
   },
 
   keepMd: (input: string) => {
