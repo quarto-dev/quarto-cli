@@ -17,7 +17,6 @@ import { mergeConfigs } from "../core/config.ts";
 
 import {
   kAtxHeaders,
-  kBibliography,
   kCiteMethod,
   kCiteproc,
   kIncludeAfterBody,
@@ -264,6 +263,7 @@ function pdfFormat(): Format {
         standalone: true,
         variables: {
           graphics: true,
+          tables: true,
         },
       },
     },
