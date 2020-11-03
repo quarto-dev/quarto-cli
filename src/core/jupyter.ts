@@ -2,6 +2,9 @@ import { ensureDirSync } from "fs/ensure_dir.ts";
 import { join } from "path/mod.ts";
 import { walkSync } from "fs/walk.ts";
 import { decode as base64decode } from "encoding/base64.ts";
+
+import { FormatPandoc } from "../config/format.ts";
+
 import {
   extensionForMimeImageType,
   kApplicationJavascript,
@@ -20,8 +23,7 @@ import {
 } from "./mime.ts";
 
 import { dirAndStem } from "./path.ts";
-
-import { FormatPandoc } from "../config/format.ts";
+import { kIncludeAfterBody, kIncludeInHeader } from "../config/constants.ts";
 
 // TODO: consider "include-input" (jupytext syncing w/ Rmd)
 // TODO: hide-input, hide-output, hide-cell from jupyterbook
@@ -94,6 +96,7 @@ export interface JupyterNotebook {
     kernelspec: {
       language: string;
     };
+    widgets: Record<string, unknown>;
   };
   cells: JupyterCell[];
 }
@@ -210,12 +213,21 @@ export interface JupyterToMarkdownOptions {
   toMarkdown?: boolean;
 }
 
+export interface JupyterToMarkdownResult {
+  markdown: string;
+  pandoc: FormatPandoc;
+  htmlPreserve?: Record<string, string>;
+}
+
 export function jupyterToMarkdown(
   nb: JupyterNotebook,
   options: JupyterToMarkdownOptions,
-) {
-  const md: string[] = [];
+): JupyterToMarkdownResult {
+  // preprocess notebook for widgets if we are targeting html
+  const widgetReqs = options.toHtml ? preprocessForWidgets(nb) : { pandoc: {} };
 
+  // generate markdown
+  const md: string[] = [];
   let codeCellIndex = 0;
   for (const cell of nb.cells) {
     switch (cell.cell_type) {
@@ -233,8 +245,87 @@ export function jupyterToMarkdown(
     }
   }
 
-  // return markdown
-  return md.join("");
+  // return markdown and any widget requirements
+  return {
+    markdown: md.join(""),
+    ...widgetReqs,
+  };
+}
+
+function preprocessForWidgets(nb: JupyterNotebook) {
+  let htmlPreserve: Record<string, string> | undefined;
+
+  // a 'javascript' widget doesn't use the jupyter widgets protocol, but rather just injects
+  // a script tag, in many cases which assumes that require.js and jquery are available. for
+  // example, itables: https://github.com/mwouts/itables
+  const haveJavascriptWidgets = nb.cells.some((cell) => {
+    if (cell.cell_type === "code" && cell.outputs) {
+      return cell.outputs.some((output) => {
+        return ["display_data", "execute_result"].includes(
+          output.output_type,
+        ) &&
+          !!(output as JupyterOutputDisplayData).data[kApplicationJavascript];
+      });
+    } else {
+      return false;
+    }
+  });
+
+  // jupyter widgets confirm to the jupyter widget embedding protocol:
+  // https://ipywidgets.readthedocs.io/en/latest/embedding.html#embeddable-html-snippet
+  const haveJupyterWidgets = !!nb.metadata
+    .widgets?.[kApplicationJupyterWidgetState];
+
+  // write required dependencies into head
+  const head: string[] = [];
+  if (haveJavascriptWidgets || haveJupyterWidgets) {
+    head.push(
+      '<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>',
+    );
+  }
+  if (haveJupyterWidgets) {
+    head.push(
+      '<script src="https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js" crossorigin="anonymous"></script>',
+    );
+  }
+  if (haveJavascriptWidgets) {
+    head.push(
+      '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>',
+    );
+    head.push(
+      "<script type=\"application/javascript\">define('jquery', [],function() {return window.jQuery;})</script>",
+    );
+  }
+
+  // write jupyter widget state after body if it exists
+  const afterBody: string[] = [];
+  if (haveJupyterWidgets) {
+    afterBody.push(`<script type=${kApplicationJupyterWidgetState}>`);
+    afterBody.push(
+      JSON.stringify(nb.metadata.widgets[kApplicationJupyterWidgetState]),
+    );
+    afterBody.push("</script>");
+  }
+
+  // create pandoc includes for our head and afterBody
+  const widgetTempFile = (lines: string[]) => {
+    const tempFile = Deno.makeTempFileSync(
+      { prefix: "jupyter-widgets-", suffix: ".html" },
+    );
+    Deno.writeTextFileSync(tempFile, lines.join("\n") + "\n");
+    return tempFile;
+  };
+  const includeInHeader = widgetTempFile(head);
+  const includeAfterBody = widgetTempFile(afterBody);
+
+  // return result
+  return {
+    pandoc: {
+      [kIncludeInHeader]: [includeInHeader],
+      [kIncludeAfterBody]: [includeAfterBody],
+    },
+    htmlPreserve,
+  };
 }
 
 function mdFromContentCell(cell: JupyterCell) {
@@ -280,6 +371,11 @@ function mdFromCodeCell(
 ) {
   // bail if "remove-cell" is defined
   if (hasTag(cell, kRemoveCellTags)) {
+    return [];
+  }
+
+  // redact if the cell has no source and no output
+  if (!cell.source.length && !cell.outputs?.length) {
     return [];
   }
 
@@ -332,7 +428,7 @@ function mdFromCodeCell(
 
   // write code if appropriate
   if (includeCode(cell, options.includeCode)) {
-    md.push("```{" + options.language + "}\n");
+    md.push("```{." + options.language + "}\n");
     md.push(...cell.source, "\n");
     md.push("```\n");
   }
@@ -399,9 +495,7 @@ function mdFromCodeCell(
   md.push(":::\n");
 
   // lines to next cell
-  if (cell.metadata.lines_to_next_cell) {
-    md.push("\n".repeat(cell.metadata.lines_to_next_cell));
-  }
+  md.push("\n".repeat((cell.metadata.lines_to_next_cell || 1)));
 
   return md;
 }

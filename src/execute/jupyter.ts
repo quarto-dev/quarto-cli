@@ -133,7 +133,7 @@ export const jupyterEngine: ExecutionEngine = {
       // convert to markdown and write to target
       const nb = jupyterFromFile(options.input);
       const assets = jupyterAssets(options.input, options.format.pandoc);
-      const markdown = jupyterToMarkdown(
+      const result = jupyterToMarkdown(
         nb,
         {
           language: nb.metadata.kernelspec.language,
@@ -146,7 +146,7 @@ export const jupyterEngine: ExecutionEngine = {
           toMarkdown: isMarkdownFormat(options.format.pandoc),
         },
       );
-      await Deno.writeTextFile(options.output, markdown);
+      await Deno.writeTextFile(options.output, result.markdown);
 
       // sync so that jupyter[lab] can open the .ipynb w/o errors
       await jupytextSync(options.input, options.quiet);
@@ -154,7 +154,8 @@ export const jupyterEngine: ExecutionEngine = {
       // return results
       return {
         supporting: [assets.supporting_dir],
-        pandoc: {},
+        pandoc: result.pandoc,
+        postprocess: result.htmlPreserve,
       };
     } else {
       return Promise.reject();
