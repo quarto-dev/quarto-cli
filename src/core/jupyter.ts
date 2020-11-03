@@ -34,6 +34,7 @@ import { FormatPandoc } from "../config/format.ts";
 // we need to embed jquery, requirejs, and the jupyter widgets embed bootstrapper:
 /*
 https://github.com/jupyter/nbconvert/blob/d88021657ff2177619d79b37fe136ef0ac759efe/share/jupyter/nbconvert/templates/classic/index.html.j2#L15-L28
+https://github.com/jupyter/nbconvert/blob/master/share/jupyter/nbconvert/templates/base/jupyter_widgets.html.j2
 */
 // see also ways to get the correct URLs in python: https://github.com/jupyter-widgets/ipywidgets/issues/2284
 
