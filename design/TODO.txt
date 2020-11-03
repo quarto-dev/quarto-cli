@@ -2,38 +2,8 @@
 
 Python
 
+Support for text-only notebooks (sync temporarily then remove)
 
-
-
-
-
-
-
-https://github.com/jupyter/nbconvert/blob/8809e7cc454ea121a219ab3ae666c691f9f847b2/share/jupyter/nbconvert/templates/base/null.j2
-https://ipython.org/ipython-doc/dev/notebook/nbformat.html
-
-
-
-
-// TODO: warnings don't come out clean for markdown:
-// <ipython-input-1-b4d6cb16b4ca>:2: UserWarning: we better watch out!
-// so we will implement ignore-warnings by "catching" these specially tagged outputs
-// see cell.outputs
-
-
-// TODO: Python widgets (e.g.. try out https://github.com/mwouts/itables)
-// propagate figure width and height
-//  they create:
-//    <div class="output_area">
-      <div class="prompt output_prompt">Out[1]:</div>
-      <div class="output_html rendered_html output_subarea output_execute_result">
-      </div>
-      </div>
-      </div>
-//
-//
-
-// TODO: code review of .py file
 
 
 https://jupytext.readthedocs.io/en/latest/formats.html#jupytext-markdown
@@ -43,7 +13,29 @@ execute:
    run-code: 
    include-code: false
 
+fig-format support for jupyter
+
+investimate viola (deploy notebooks w/ a backend)
+
+keep-source (for html formats, puts source in script tag)
+
+bs4 family of formats:
+
+bs4-notebook 
+bs4-article
+bs4-dashboard
+bs4-presentation
+bs4-website
+bs4-book
+
 papermill (use their convention for parameters)
+
+consider automatic id resolution for "name" property. does it need to 
+take account of pandoc format? important: relationship to crossref and
+use of : in id (does crossref strip this out?)
+
+consider id and class for knitr (including wrapping div). consider 
+similar/generic dom structure for chunks and code cells (show/hide)
 
 
 memo/proposal on computations:
