@@ -30,51 +30,7 @@ import { kIncludeAfterBody, kIncludeInHeader } from "../config/constants.ts";
 // TODO: hide-input, hide-output, hide-cell from jupyterbook
 // TODO: consider using include-input/remove-input rather than include-code
 
-// TODO: test other mime types (e.g. latex)
-
-// TODO: test jupyter widgets
-
-// we need to embed jquery, requirejs, and the jupyter widgets embed bootstrapper:
-/*
-https://github.com/jupyter/nbconvert/blob/d88021657ff2177619d79b37fe136ef0ac759efe/share/jupyter/nbconvert/templates/classic/index.html.j2#L15-L28
-https://github.com/jupyter/nbconvert/blob/master/share/jupyter/nbconvert/templates/base/jupyter_widgets.html.j2
-*/
-// see also ways to get the correct URLs in python: https://github.com/jupyter-widgets/ipywidgets/issues/2284
-
-// TODO: investimate viola (deploy notebooks w/ a backend)
-// widget example: ipyleaflet, need to check for metadata.widgets to see if we need the widget srcipt
-// (seems like require and jquery are included unqualfied), inject those via jwidgets.html resource
-// this is the output....need to figure out how to treat that in pandoc.
-// may need to render the widget data from the metadata.widgets into somewhere else in the doc
-/*
-"data": {
-      "application/vnd.jupyter.widget-view+json": {
-       "model_id": "178d9687b44342a39e90b009536bbc16",
-       "version_major": 2,
-       "version_minor": 0
-      },
-      "text/plain": [
-       "Map(center=[52.204793, 360.121558], controls=(ZoomControl(options=['position', 'zoom_in_text', 'zoom_in_title'…"
-      ]
-     },
-
-*/
-
-// footer gets all of the widget data (do this after cell loop)
-// may want this to be a pandoc include
-// note: may also need require.js, widget bootstrapper in head (also pandoc includes)
-/*
-  {%- block footer %}
-  {% set mimetype = 'application/vnd.jupyter.widget-state+json'%} 
-  {% if mimetype in nb.metadata.get("widgets",{})%}
-  <script type="{{ mimetype }}">
-  {{ nb.metadata.widgets[mimetype] | json_dumps }}
-  </script>
-  */
-
 // TODO: see about setting dpi / retina for matplotlib
-
-// TODO: throw error if name/id is not unique across the document
 
 // TODO: warning needs to get rid of wierd '<ipython>' artifact
 
@@ -232,10 +188,26 @@ export function jupyterToMarkdown(
     htmlPreserve = removeAndPreserveRawHtml(nb);
   }
 
+  // some state we track across cell iteration
+  const cellIds = new Set<string>();
+  let codeCellIndex = 0;
+
   // generate markdown
   const md: string[] = [];
-  let codeCellIndex = 0;
   for (const cell of nb.cells) {
+    // verify unique ids
+    const id = cellId(cell);
+    if (id) {
+      if (cellIds.has(id)) {
+        throw new Error(
+          "Cell name/id must be unique (found duplicate '" + id + "')",
+        );
+      } else {
+        cellIds.add(id);
+      }
+    }
+
+    // markdown from cell
     switch (cell.cell_type) {
       case "markdown":
         md.push(...mdFromContentCell(cell));
@@ -330,7 +302,7 @@ function mdFromCodeCell(
   ];
 
   // id/name
-  const id = (cell.metadata.id || cell.metadata.name || "").replace(/^#/, "");
+  const id = cellId(cell);
   if (id) {
     divMd.push(`#${id} `);
   }
@@ -659,6 +631,11 @@ function shouldInclude(
   } else {
     return hasTag(cell, includeTags);
   }
+}
+
+function cellId(cell: JupyterCell) {
+  return (cell.metadata.id || cell.metadata.name || "").replace(/^#/, "")
+    .toLowerCase();
 }
 
 function hasTag(cell: JupyterCell, tags: string[]) {
