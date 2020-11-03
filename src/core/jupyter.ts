@@ -26,16 +26,11 @@ import {
 import { dirAndStem } from "./path.ts";
 import { kIncludeAfterBody, kIncludeInHeader } from "../config/constants.ts";
 
+// TODO: include, hide, etc. don't really belong in execute. perhaps output?
+
 // TODO: consider "include-input" (jupytext syncing w/ Rmd)
 // TODO: hide-input, hide-output, hide-cell from jupyterbook
 // TODO: consider using include-input/remove-input rather than include-code
-
-// TODO: see about setting dpi / retina for matplotlib
-
-// TODO: warning needs to get rid of wierd '<ipython>' artifact
-
-// nbformat v4
-// https://ipython.org/ipython-doc/dev/notebook/nbformat.html
 
 export const kCellCollapsed = "collapsed";
 export const kCellAutoscroll = "autoscroll";
@@ -260,7 +255,7 @@ function mdFromRawCell(cell: JupyterCell) {
 const kIncludeCodeTags = ["include-code"];
 const kIncludeOutputTags = ["include-output"];
 const kIncludeWarningsTags = ["include-warnings"];
-const kRemoveCodeTags = ["remove-code", "remove-input", "remove_inupt"];
+const kRemoveCodeTags = ["remove-code", "remove-input", "remove_input"];
 const kRemoveOutputTags = ["remove-output", "remove_output"];
 const kRemoveWarningsTags = ["remove-warnings"];
 const kRemoveCellTags = ["remove-cell", "remove_cell"];
