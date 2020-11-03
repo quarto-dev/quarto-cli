@@ -40,6 +40,11 @@ import {
   kIncludeOutput,
   kIncludeWarnings,
 } from "../config/constants.ts";
+import {
+  isHtmlFormat,
+  isLatexFormat,
+  isMarkdownFormat,
+} from "../config/format.ts";
 
 const kNotebookExtensions = [
   ".ipynb",
@@ -136,6 +141,9 @@ export const jupyterEngine: ExecutionEngine = {
           includeCode: options.format.execute[kIncludeCode],
           includeOutput: options.format.execute[kIncludeOutput],
           includeWarnings: options.format.execute[kIncludeWarnings],
+          toHtml: isHtmlFormat(options.format.pandoc),
+          toLatex: isLatexFormat(options.format.pandoc),
+          toMarkdown: isMarkdownFormat(options.format.pandoc),
         },
       );
       await Deno.writeTextFile(options.output, markdown);

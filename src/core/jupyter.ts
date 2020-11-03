@@ -27,11 +27,9 @@ import { FormatPandoc } from "../config/format.ts";
 // TODO: hide-input, hide-output, hide-cell from jupyterbook
 // TODO: consider using include-input/remove-input rather than include-code
 
-// TODO: need a concept of display_data_priority based on what the underlying
-// target format is (html vs. latex for sure, perhaps others). see:
-// https://github.com/jupyter/nbconvert/blob/master/nbconvert/exporters/latex.py
+// TODO: test other mime types (e.g. latex)
 
-// TODO: JS/CSS/etc. for other mime types
+// TODO: test jupyter widgets
 
 // TODO: see about setting dpi / retina for matplotlib
 
@@ -169,6 +167,9 @@ export interface JupyterToMarkdownOptions {
   includeCode?: boolean;
   includeOutput?: boolean;
   includeWarnings?: boolean;
+  toHtml?: boolean;
+  toLatex?: boolean;
+  toMarkdown?: boolean;
 }
 
 export function jupyterToMarkdown(
@@ -344,7 +345,7 @@ function mdFromCodeCell(
           md.push(mdOutputDisplayData(
             outputName + "-" + (index + 1),
             output as JupyterOutputDisplayData,
-            options.assets,
+            options,
           ));
           break;
         default:
@@ -378,25 +379,39 @@ function mdOutputError(output: JupyterOutputError) {
 function mdOutputDisplayData(
   name: string,
   output: JupyterOutputDisplayData,
-  assets: JupyterAssets,
+  options: JupyterToMarkdownOptions,
 ) {
   // determine display mime type
   const displayMimeType = () => {
-    const kDisplayPriority = [
-      kApplicationJupyterWidgetState,
-      kApplicationJupyterWidgetView,
-      kApplicationJavascript,
-      kTextHtml,
+    const displayPriority = [
       kTextMarkdown,
       kImageSvg,
-      kTextLatex,
-      kApplicationPdf,
       kImagePng,
       kImageJpeg,
-      kTextPlain,
     ];
+    if (options.toHtml) {
+      displayPriority.push(
+        kApplicationJupyterWidgetState,
+        kApplicationJupyterWidgetView,
+        kApplicationJavascript,
+        kTextHtml,
+      );
+    } else if (options.toLatex) {
+      displayPriority.push(
+        kTextLatex,
+        kApplicationPdf,
+      );
+    } else if (options.toMarkdown) {
+      displayPriority.push(
+        kTextHtml,
+      );
+    }
+    displayPriority.push(
+      kTextPlain,
+    );
+
     const availDisplay = Object.keys(output.data);
-    for (const display of kDisplayPriority) {
+    for (const display of displayPriority) {
       if (availDisplay.includes(display)) {
         return display;
       }
@@ -414,7 +429,7 @@ function mdOutputDisplayData(
         return mdImageOutput(
           name,
           mimeType,
-          assets,
+          options.assets,
           output.data[mimeType] as string[],
           output.metadata[mimeType],
         );
