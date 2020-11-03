@@ -1,6 +1,7 @@
 import { ensureDirSync } from "fs/ensure_dir.ts";
 import { join } from "path/mod.ts";
 import { walkSync } from "fs/walk.ts";
+import { generate as generateUuid } from "uuid/v4.ts";
 import { decode as base64decode } from "encoding/base64.ts";
 
 import { FormatPandoc } from "../config/format.ts";
@@ -223,8 +224,13 @@ export function jupyterToMarkdown(
   nb: JupyterNotebook,
   options: JupyterToMarkdownOptions,
 ): JupyterToMarkdownResult {
-  // preprocess notebook for widgets if we are targeting html
-  const widgetReqs = options.toHtml ? preprocessForWidgets(nb) : { pandoc: {} };
+  // optional content injection / html preservation for html output
+  let pandoc: FormatPandoc = {};
+  let htmlPreserve: Record<string, string> | undefined;
+  if (options.toHtml) {
+    pandoc = widgetPandocIncludes(nb);
+    htmlPreserve = removeAndPreserveRawHtml(nb);
+  }
 
   // generate markdown
   const md: string[] = [];
@@ -248,82 +254,7 @@ export function jupyterToMarkdown(
   // return markdown and any widget requirements
   return {
     markdown: md.join(""),
-    ...widgetReqs,
-  };
-}
-
-function preprocessForWidgets(nb: JupyterNotebook) {
-  let htmlPreserve: Record<string, string> | undefined;
-
-  // a 'javascript' widget doesn't use the jupyter widgets protocol, but rather just injects
-  // a script tag, in many cases which assumes that require.js and jquery are available. for
-  // example, itables: https://github.com/mwouts/itables
-  const haveJavascriptWidgets = nb.cells.some((cell) => {
-    if (cell.cell_type === "code" && cell.outputs) {
-      return cell.outputs.some((output) => {
-        return ["display_data", "execute_result"].includes(
-          output.output_type,
-        ) &&
-          !!(output as JupyterOutputDisplayData).data[kApplicationJavascript];
-      });
-    } else {
-      return false;
-    }
-  });
-
-  // jupyter widgets confirm to the jupyter widget embedding protocol:
-  // https://ipywidgets.readthedocs.io/en/latest/embedding.html#embeddable-html-snippet
-  const haveJupyterWidgets = !!nb.metadata
-    .widgets?.[kApplicationJupyterWidgetState];
-
-  // write required dependencies into head
-  const head: string[] = [];
-  if (haveJavascriptWidgets || haveJupyterWidgets) {
-    head.push(
-      '<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>',
-    );
-  }
-  if (haveJupyterWidgets) {
-    head.push(
-      '<script src="https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js" crossorigin="anonymous"></script>',
-    );
-  }
-  if (haveJavascriptWidgets) {
-    head.push(
-      '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>',
-    );
-    head.push(
-      "<script type=\"application/javascript\">define('jquery', [],function() {return window.jQuery;})</script>",
-    );
-  }
-
-  // write jupyter widget state after body if it exists
-  const afterBody: string[] = [];
-  if (haveJupyterWidgets) {
-    afterBody.push(`<script type=${kApplicationJupyterWidgetState}>`);
-    afterBody.push(
-      JSON.stringify(nb.metadata.widgets[kApplicationJupyterWidgetState]),
-    );
-    afterBody.push("</script>");
-  }
-
-  // create pandoc includes for our head and afterBody
-  const widgetTempFile = (lines: string[]) => {
-    const tempFile = Deno.makeTempFileSync(
-      { prefix: "jupyter-widgets-", suffix: ".html" },
-    );
-    Deno.writeTextFileSync(tempFile, lines.join("\n") + "\n");
-    return tempFile;
-  };
-  const includeInHeader = widgetTempFile(head);
-  const includeAfterBody = widgetTempFile(afterBody);
-
-  // return result
-  return {
-    pandoc: {
-      [kIncludeInHeader]: [includeInHeader],
-      [kIncludeAfterBody]: [includeAfterBody],
-    },
+    pandoc,
     htmlPreserve,
   };
 }
@@ -735,4 +666,114 @@ function hasTag(cell: JupyterCell, tags: string[]) {
     return false;
   }
   return cell.metadata.tags.filter((tag) => tags.includes(tag)).length > 0;
+}
+
+function widgetPandocIncludes(nb: JupyterNotebook): FormatPandoc {
+  // a 'javascript' widget doesn't use the jupyter widgets protocol, but rather just injects
+  // text/html or application/javascript directly. futhermore these 'widgets' often assume
+  // that require.js and jquery are available. for example, see:
+  //   - https://github.com/mwouts/itables
+  //   - https://plotly.com/python/
+  const haveJavascriptWidgets = nb.cells.some((cell) => {
+    if (cell.cell_type === "code" && cell.outputs) {
+      return cell.outputs.some((output) => {
+        return ["display_data", "execute_result"].includes(
+          output.output_type,
+        ) && (
+          !!(output as JupyterOutputDisplayData).data[kApplicationJavascript] ||
+          !!(output as JupyterOutputDisplayData).data[kTextHtml]
+        );
+      });
+    } else {
+      return false;
+    }
+  });
+
+  // jupyter widgets confirm to the jupyter widget embedding protocol:
+  // https://ipywidgets.readthedocs.io/en/latest/embedding.html#embeddable-html-snippet
+  const haveJupyterWidgets = !!nb.metadata
+    .widgets?.[kApplicationJupyterWidgetState];
+
+  //
+
+  // write required dependencies into head
+  const head: string[] = [];
+  if (haveJavascriptWidgets || haveJupyterWidgets) {
+    head.push(
+      '<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>',
+    );
+    head.push(
+      '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>',
+    );
+    head.push(
+      "<script type=\"application/javascript\">define('jquery', [],function() {return window.jQuery;})</script>",
+    );
+  }
+  if (haveJupyterWidgets) {
+    head.push(
+      '<script src="https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js" crossorigin="anonymous"></script>',
+    );
+  }
+
+  // write jupyter widget state after body if it exists
+  const afterBody: string[] = [];
+  if (haveJupyterWidgets) {
+    afterBody.push(`<script type=${kApplicationJupyterWidgetState}>`);
+    afterBody.push(
+      JSON.stringify(nb.metadata.widgets[kApplicationJupyterWidgetState]),
+    );
+    afterBody.push("</script>");
+  }
+
+  // create pandoc includes for our head and afterBody
+  const widgetTempFile = (lines: string[]) => {
+    const tempFile = Deno.makeTempFileSync(
+      { prefix: "jupyter-widgets-", suffix: ".html" },
+    );
+    Deno.writeTextFileSync(tempFile, lines.join("\n") + "\n");
+    return tempFile;
+  };
+  const includeInHeader = widgetTempFile(head);
+  const includeAfterBody = widgetTempFile(afterBody);
+
+  // return result
+  return {
+    [kIncludeInHeader]: [includeInHeader],
+    [kIncludeAfterBody]: [includeAfterBody],
+  };
+}
+
+function removeAndPreserveRawHtml(
+  nb: JupyterNotebook,
+): Record<string, string> | undefined {
+  const htmlPreserve: { [key: string]: string } = {};
+
+  nb.cells.forEach((cell) => {
+    if (cell.cell_type === "code") {
+      cell.outputs?.forEach((output) => {
+        if (
+          output.output_type === "display_data" ||
+          output.output_type === "execute_result"
+        ) {
+          const displayOutput = output as JupyterOutputDisplayData;
+          const html = displayOutput.data[kTextHtml];
+          const htmlText = Array.isArray(html) ? html.join("") : html as string;
+          if (html) {
+            const key = generateUuid();
+            htmlPreserve[key] = htmlText;
+            displayOutput.data[kTextMarkdown] = [
+              "```{=html}\n" + key + "\n```\n",
+            ];
+            delete displayOutput.data[kTextHtml];
+          }
+        }
+      });
+    }
+  });
+
+  if (Object.keys(htmlPreserve).length > 0) {
+    return htmlPreserve;
+  } else {
+    return undefined;
+  }
 }
