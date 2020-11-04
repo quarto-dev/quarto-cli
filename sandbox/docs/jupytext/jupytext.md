@@ -81,6 +81,11 @@ fig.show()
 
 ```python class=".rich .internet .output" foo="bar" id="myplot" tags=["include-code"]
 import matplotlib.pyplot as plt
+from IPython.display import set_matplotlib_formats
+import inspect
+
+plt.rcParams['figure.figsize'] = 10, 2
+set_matplotlib_formats('pdf')
 
 labels = ['G1', 'G2', 'G3', 'G4', 'G6']
 men_means = [20, 35, 30, 35, 27]
@@ -98,7 +103,6 @@ ax.bar(labels, women_means, width, yerr=women_std, bottom=men_means,
 ax.set_ylabel('Scores')
 ax.set_title('Scores broken out by group and gender')
 ax.legend()
-
 plt.show()
 ```
 

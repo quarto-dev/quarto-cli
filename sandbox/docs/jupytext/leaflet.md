@@ -3,7 +3,11 @@ title: "leaflet"
 knit: quarto render
 jupyter:
   jupytext:
-    formats: ipynb,md
+    text_representation:
+      extension: .md
+      format_name: markdown
+      format_version: "1.2"
+      jupytext_version: 1.6.0
   kernelspec:
     display_name: Python 3
     language: python
@@ -19,14 +23,6 @@ m = Map(
 )
 m.add_layer(Marker(location=(52.204793, 360.121558)))
 m
-```
-
-```python
-import itables.interactive
-import world_bank_data as wb
-
-df = wb.get_countries()
-df
 ```
 
 ```python
