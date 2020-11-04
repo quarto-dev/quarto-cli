@@ -186,7 +186,14 @@ kInjectableCode = {
               "    pd.set_option('display.latex.repr', True)\n" +
               "except Exception:\n" +
               "  pass\n"
+              "try:\n" +
+              "  import plotly.express as px\n" +
+              "  px.defaults.width = {0} * {3}\n" +
+              "  px.defaults.height = {1} * {3}\n" +
+              "except Exception:\n" +
+              "  pass\n"
 }
+
 
 # main
 if __name__ == "__main__":
