@@ -4,9 +4,16 @@ Python
 
 supporting file directory is wrong when e.g. docs/foo.md
 
+special tag named "label" that becomes #id in the AST, AND 
+special tag named "caption" that becomes the alt text for figures
+how does pandoc derive image label?
+http://lierdakil.github.io/pandoc-crossref/#image-labels
+
 figure size for pdf format
 
 better injectability ergonimics for jupyter
+
+auto-provide title and author from notebook_title notebook_author
 
 https://jupytext.readthedocs.io/en/latest/formats.html#jupytext-markdown
 https://jupyter-cache.readthedocs.io/en/latest/
