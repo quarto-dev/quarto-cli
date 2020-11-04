@@ -25,6 +25,7 @@ import {
 
 import { dirAndStem } from "./path.ts";
 import { kIncludeAfterBody, kIncludeInHeader } from "../config/constants.ts";
+import PngImage from "./png.ts";
 
 // TODO: include, hide, etc. don't really belong in execute. perhaps output?
 
@@ -163,6 +164,8 @@ export interface JupyterToMarkdownOptions {
   toHtml?: boolean;
   toLatex?: boolean;
   toMarkdown?: boolean;
+  figFormat?: string;
+  figDpi?: number;
 }
 
 export interface JupyterToMarkdownResult {
@@ -475,6 +478,8 @@ function mdOutputDisplayData(
           options.assets,
           output.data[mimeType] as string[],
           output.metadata[mimeType],
+          options.figFormat,
+          options.figDpi,
         );
       case kTextMarkdown:
       case kTextPlain:
@@ -507,13 +512,15 @@ function mdImageOutput(
   assets: JupyterAssets,
   data: unknown,
   metadata?: Record<string, unknown>,
+  figFormat?: string,
+  figDpi?: number,
 ) {
   // attributes (e.g. width/height/alt)
   function metadataValue<T>(key: string, defaultValue: T) {
     return metadata && metadata[key] ? metadata["key"] as T : defaultValue;
   }
-  const width = metadataValue("width", 0);
-  const height = metadataValue("height", 0);
+  let width = metadataValue("width", 0);
+  let height = metadataValue("height", 0);
   const alt = metadataValue("alt", "");
 
   // calculate output file name
@@ -529,6 +536,16 @@ function mdImageOutput(
   const outputFile = join(assets.base_dir, imageFile);
   if (mimeType !== kImageSvg) {
     const imageData = base64decode(imageText);
+
+    // if we are in retina mode, then derive width and height from the image
+    if (mimeType === kImagePng && figFormat === "retina" && figDpi) {
+      const png = new PngImage(imageData);
+      if (png.dpiX === (figDpi * 2) && png.dpiY === (figDpi * 2)) {
+        width = png.width / 2;
+        height = png.height / 2;
+      }
+    }
+
     Deno.writeFileSync(outputFile, imageData);
   } else {
     Deno.writeTextFileSync(outputFile, imageText);

@@ -38,6 +38,8 @@ def notebook_execute(input, format, run_path, quiet):
    allow_errors = bool(execute["allow-errors"])
    fig_width = execute["fig-width"]
    fig_height = execute["fig-height"]
+   fig_format = execute["fig-format"]
+   fig_dpi = execute["fig-dpi"]
 
    # set environment variables
    os.environ["JUPYTER_FIG_WIDTH"] = str(fig_width)
@@ -67,7 +69,7 @@ def notebook_execute(input, format, run_path, quiet):
       total_code_cells = sum(cell.cell_type == 'code' for cell in client.nb.cells)
 
       # insert setup cell
-      setup_cell = nb_setup_cell(client, fig_width, fig_height)
+      setup_cell = nb_setup_cell(client, fig_width, fig_height, fig_format, fig_dpi)
       client.nb.cells.insert(0, setup_cell)
 
       # execute the cells
@@ -115,18 +117,18 @@ def notebook_execute(input, format, run_path, quiet):
       sys.stderr.write("\n")
 
 
-def nb_setup_cell(client, fig_width, fig_height):
+def nb_setup_cell(client, fig_width, fig_height, fig_format, fig_dpi):
 
    # lookup kernel language and any injectableCode
    kernelLanguage = client.nb.metadata.kernelspec.language
    cell_code = ''
    if kernelLanguage in kInjectableCode:
-      cell_code = kInjectableCode[kernelLanguage].format(fig_width, fig_height)  
+      cell_code = kInjectableCode[kernelLanguage].format(fig_width, fig_height, fig_format, fig_dpi)  
 
    # create cell
    return nbformat.versions[NB_FORMAT_VERSION].new_code_cell(
       source=cell_code, 
-      metadata={'lines_to_next_cell': cell_code.count("\n") + 1, 'tags': ['raises-exception']}
+      metadata={ 'lines_to_next_cell': cell_code.count("\n") + 1 } 
    )
 
 def cell_execute(client, cell, index, store_history):
@@ -168,11 +170,21 @@ def cell_clear_output(cell):
             cell.metadata.pop(field, None)
    return cell
 
+# TODO: figure size for pdf format
+# TODO: retina width/height for output
+
 
 kInjectableCode = { 
-   'python' : "import matplotlib.pyplot as plt\nplt.rc('figure',figsize = ({0},{1}), dpi=96)"
+   'python' : "try:\n" +
+              "  import matplotlib.pyplot as plt\n" + 
+              "  from IPython.display import set_matplotlib_formats\n" +
+              "  plt.rcParams['figure.dpi'] = {3}\n" +
+              "  plt.rcParams['savefig.dpi'] = {3}\n" +
+              "  plt.rcParams['figure.figsize'] = {0}, {1}\n"
+              "  set_matplotlib_formats('{2}')\n" +
+              "except Exception:\n" +
+              "  pass\n"
 }
-
 
 # main
 if __name__ == "__main__":

@@ -19,6 +19,7 @@ import {
   kAtxHeaders,
   kCiteMethod,
   kCiteproc,
+  kFigDpi,
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
@@ -66,7 +67,8 @@ export interface FormatRender {
 export interface FormatExecute {
   [kFigWidth]?: number;
   [kFigHeight]?: number;
-  [kFigFormat]?: "png" | "pdf";
+  [kFigFormat]?: "retina" | "png" | "jpeg" | "svg" | "pdf";
+  [kFigDpi]?: number;
   [kIncludeCode]?: boolean;
   [kIncludeOutput]?: boolean;
   [kIncludeWarnings]?: boolean;
@@ -258,6 +260,7 @@ function pdfFormat(): Format {
         [kFigWidth]: 6.5,
         [kFigHeight]: 4.5,
         [kFigFormat]: "pdf",
+        [kFigDpi]: 300,
       },
       pandoc: {
         standalone: true,
@@ -307,6 +310,7 @@ function htmlPresentationFormat(figwidth: number, figheight: number): Format {
 function htmlFormat(figwidth = 7, figheight = 5): Format {
   return format("html", {
     execute: {
+      [kFigFormat]: "retina",
       [kFigWidth]: figwidth,
       [kFigHeight]: figheight,
     },
@@ -389,6 +393,7 @@ function defaultFormat(): Format {
       [kFigWidth]: 7,
       [kFigHeight]: 5,
       [kFigFormat]: "png",
+      [kFigDpi]: 96,
       [kIncludeCode]: true,
       [kIncludeOutput]: true,
       [kIncludeWarnings]: true,
