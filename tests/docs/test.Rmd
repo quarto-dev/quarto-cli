@@ -1,14 +1,11 @@
 ---
-title: "Woozy Foobar"
+title: "Plot Test"
 knit: quarto render
-quarto:
-  pdf:
-    toc: true
 bibliography: references.bib
 ---
 
 ```{r}
-str(params)
+plot(cars)
 ```
 
 ## Plot 1: Target
@@ -18,3 +15,5 @@ str(params)
 -   bullet 2
 
 -   bullet 3
+
+

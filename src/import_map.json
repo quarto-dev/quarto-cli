@@ -7,6 +7,7 @@
     "encoding/": "https://deno.land/std/encoding/",
     "uuid/": "https://deno.land/std/uuid/",
     "cliffy/": "https://deno.land/x/cliffy/",
-    "lodash/": "https://deno.land/x/deno_lodash/"
+    "lodash/": "https://deno.land/x/deno_lodash/",
+    "testing/": "https://deno.land/std/testing/"
   }
 }
