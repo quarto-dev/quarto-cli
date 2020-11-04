@@ -22,6 +22,8 @@ import {
   readYamlFromMarkdownFile,
 } from "../core/yaml.ts";
 
+import { dirAndStem } from "../core/path.ts";
+
 import { Metadata } from "../config/metadata.ts";
 
 import type {
@@ -45,7 +47,6 @@ import {
   isLatexFormat,
   isMarkdownFormat,
 } from "../config/format.ts";
-import { outputRecipe } from "../command/render/output.ts";
 
 const kNotebookExtensions = [
   ".ipynb",
@@ -67,6 +68,10 @@ const kCodeExtensions = [
   ".java",
   ".groovy",
 ];
+
+// extension for notebooks that are only for execution
+// (i.e. they are transient and not synced)
+const kTransientNotebookExtension = ".exec.ipynb";
 
 export const jupyterEngine: ExecutionEngine = {
   name: "jupyter",
@@ -92,11 +97,24 @@ export const jupyterEngine: ExecutionEngine = {
 
     // see if there is a notebook target, if there is then sync it if required and return
     const target = await notebookTarget();
-    if (target && target.notebook) {
+    if (target) {
       if (target.sync) {
-        await jupytextSync(file, quiet);
+        // if there is no paired notebook then create a transient one
+        if (!target.notebook) {
+          const [fileDir, fileStem] = dirAndStem(file);
+          const notebook = join(
+            fileDir,
+            fileStem + kTransientNotebookExtension,
+          );
+          await jupytextTo(file, "ipynb", notebook, quiet);
+          return notebook;
+        } else {
+          await jupytextSync(file, quiet);
+          return target.notebook;
+        }
+      } else if (target.notebook) {
+        return target.notebook;
       }
-      return target.notebook;
     }
   },
 
@@ -149,8 +167,13 @@ export const jupyterEngine: ExecutionEngine = {
       );
       await Deno.writeTextFile(options.output, result.markdown);
 
+      // if it's a transient notebook then remove it, otherwise
       // sync so that jupyter[lab] can open the .ipynb w/o errors
-      await jupytextSync(options.input, options.quiet);
+      if (options.input.endsWith(kTransientNotebookExtension)) {
+        Deno.removeSync(options.input);
+      } else {
+        await jupytextSync(options.input, options.quiet);
+      }
 
       // return results
       return {
@@ -228,6 +251,52 @@ function pythonBinary(binary = "python") {
 async function jupytextSync(file: string, quiet?: boolean) {
   const args = [
     "--sync",
+    file,
+  ];
+  if (quiet) {
+    args.push("--quiet");
+  }
+  await jupytext(...args);
+}
+
+async function jupytextTo(
+  file: string,
+  format: string,
+  output?: string,
+  quiet?: boolean,
+) {
+  const args = [file, "--to", format];
+  if (output) {
+    args.push("--output");
+    args.push(output);
+  }
+  if (quiet) {
+    args.push("--quiet");
+  }
+  await jupytext(...args);
+}
+
+async function jupytextSetFormats(
+  file: string,
+  formats: string[],
+  quiet?: boolean,
+) {
+  // create ipynb
+  const args = ["--set-formats", formats.join(","), file];
+  if (quiet) {
+    args.push("--quiet");
+  }
+  await jupytext(...args);
+}
+
+async function jupytextUpdateMetadata(
+  file: string,
+  metadata: Record<string, unknown>,
+  quiet?: boolean,
+) {
+  const args = [
+    "--update-metadata",
+    JSON.stringify(metadata),
     file,
   ];
   if (quiet) {
