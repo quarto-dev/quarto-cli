@@ -129,7 +129,7 @@ export interface JupyterAssets {
 export function jupyterAssets(input: string, format: FormatPandoc) {
   // calculate and create directories
   const [base_dir, stem] = dirAndStem(input);
-  const files_dir = stem + "_files";
+  const files_dir = join(base_dir, stem + "_files");
   const to = (format.to || "html").replace(/[\+\-].*$/, "");
   const figures_dir = join(files_dir, "figure-" + to);
   ensureDirSync(figures_dir);
@@ -140,8 +140,9 @@ export function jupyterAssets(input: string, format: FormatPandoc) {
   // or non-keeping render is complete
   let supporting_dir = files_dir;
   for (
-    const walk of walkSync(join(base_dir, files_dir), { maxDepth: 1 })
+    const walk of walkSync(join(files_dir), { maxDepth: 1 })
   ) {
+    console.log(walk.path, figures_dir);
     if (walk.path !== files_dir && walk.path !== figures_dir) {
       supporting_dir = figures_dir;
       break;
