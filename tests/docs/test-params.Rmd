@@ -1,0 +1,18 @@
+---
+title: "Params Test"
+params:
+  minimum: 0
+  region: ""
+---
+
+```{r}
+str(params)
+
+if (params$region != "west") {
+  stop("Incorrect region param")
+}
+
+if (params$minimum != "200") {
+  stop("Incorrect minimum param")
+}
+```
