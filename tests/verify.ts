@@ -10,3 +10,8 @@ export function verifyAndCleanOutput(
     Deno.removeSync(output, { recursive: true });
   }
 }
+
+export function verifyNoPath(path: string) {
+  const pathExists = existsSync(path);
+  assert(!pathExists, `Path ${path} is not expected to be present.`);
+}
