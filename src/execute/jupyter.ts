@@ -38,6 +38,8 @@ import {
   jupyterToMarkdown,
 } from "../core/jupyter.ts";
 import {
+  kFigDpi,
+  kFigFormat,
   kIncludeCode,
   kIncludeOutput,
   kIncludeWarnings,
@@ -163,6 +165,8 @@ export const jupyterEngine: ExecutionEngine = {
           toHtml: isHtmlFormat(options.format.pandoc),
           toLatex: isLatexFormat(options.format.pandoc),
           toMarkdown: isMarkdownFormat(options.format.pandoc),
+          figFormat: options.format.execute[kFigFormat],
+          figDpi: options.format.execute[kFigDpi],
         },
       );
       await Deno.writeTextFile(options.output, result.markdown);

@@ -23,6 +23,7 @@ export const kPandocMetadata = "metadata";
 export const kFigWidth = "fig-width";
 export const kFigHeight = "fig-height";
 export const kFigFormat = "fig-format";
+export const kFigDpi = "fig-dpi";
 
 export const kIncludeCode = "include-code";
 export const kIncludeOutput = "include-output";

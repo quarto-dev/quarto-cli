@@ -259,21 +259,21 @@
       fig.width = format$execute$`fig-width`,
       fig.height = format$execute$`fig-height`,
       dev = format$execute$`fig-format`,
+      dpi = format$execute$`fig-dpi`,
       echo = format$execute$`include-code`,
       warning = format$execute$`include-warnings`,
       message = format$execute$`include-warnings`,
       error = format$execute$`allow-errors`,
       include = format$execute$`include-output`,
       # hard coded (overideable in setup chunk but not format)
-      dpi = 96,
       comment = NA
     )
 
-    # add fig.retina if it's an html based format (if we add this for PDF
-    # it forces the use of \includegraphics)
-    if (knitr:::is_html_output(format$pandoc$to)) {
+    # add fig.retina if requested 
+    if (opts_chunk$dev == "retina"){
+      opts_chunk$dev <- "png"
       opts_chunk$fig.retina = 2
-    }
+    } 
 
     # set the dingbats option for the pdf device if required
     if (opts_chunk$dev == 'pdf') {
