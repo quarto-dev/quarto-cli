@@ -1,7 +1,6 @@
 ---
 title: "Plot Test"
 knit: quarto render
-bibliography: references.bib
 ---
 
 ```{r}
