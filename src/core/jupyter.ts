@@ -142,7 +142,6 @@ export function jupyterAssets(input: string, format: FormatPandoc) {
   for (
     const walk of walkSync(join(files_dir), { maxDepth: 1 })
   ) {
-    console.log(walk.path, figures_dir);
     if (walk.path !== files_dir && walk.path !== figures_dir) {
       supporting_dir = figures_dir;
       break;
