@@ -211,7 +211,7 @@ export const jupyterEngine: ExecutionEngine = {
   },
 };
 
-async function isJupytextMd(file: string) {
+function isJupytextMd(file: string) {
   const yaml = readYamlFromMarkdownFile(file);
   return yaml instanceof Object &&
     yaml.jupyter instanceof Object &&
