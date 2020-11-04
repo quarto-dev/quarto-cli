@@ -17,16 +17,6 @@ jupyter:
     name: python3
 ---
 
-```python
-import pandas as pd
-
-pd.set_option('display.notebook_repr_html', True)
-
-def _repr_latex_(self):
-    return "\centering{%s}" % self.to_latex()
-
-pd.DataFrame._repr_latex_ = _repr_latex_  # monkey patch pandas DataFrame
-```
 
 ```python
 import pandas as pd
@@ -36,6 +26,4 @@ df = pd.DataFrame(d)
 df
 ```
 
-```python
 
-```

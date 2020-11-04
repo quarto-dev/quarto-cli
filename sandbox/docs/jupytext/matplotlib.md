@@ -4,8 +4,8 @@ author: "J.J. Allaire"
 knit: quarto render
 format:
   html:
-    fig-width: 3
-    fig-height: 8
+    fig-width: 6
+    fig-height: 2
 jupyter:
   jupytext:
     formats: ipynb,md
@@ -22,7 +22,7 @@ jupyter:
 
 ## Slide with Plot
 
-```python class=".rich .internet .output" foo="bar" id="myplot" tags=["include-code"]
+```python tags=["remove-code"]
 import matplotlib.pyplot as plt
 
 labels = ['G1', 'G2', 'G3', 'G4', 'G6']
@@ -43,6 +43,12 @@ ax.set_title('Scores broken out by group and gender')
 ax.legend()
 plt.show()
 ```
+
+
+
+
+
+
 
 
 

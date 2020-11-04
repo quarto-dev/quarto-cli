@@ -25,6 +25,4 @@ m.add_layer(Marker(location=(52.204793, 360.121558)))
 m
 ```
 
-```python
 
-```

@@ -1,6 +1,10 @@
 ---
 title: "plotly"
 knit: quarto render
+format: 
+  html:
+    fig-width: 8
+    fig-height: 3
 jupyter:
   jupytext:
     formats: ipynb,md
@@ -15,19 +19,10 @@ jupyter:
     name: python3
 ---
 
-```python name="foo"
-import warnings
-def try_it():
-  warnings.warn("we better watch out!")
-try_it()
-```
-
 ```python name="bar"
-import plotly.graph_objects as go
-fig = go.Figure(
-    data=[go.Bar(y=[2, 1, 3])],
-    layout_title_text="A Figure Displayed with fig.show()"
-)
+import plotly.express as px
+df = px.data.iris()
+fig = px.scatter(df, x="sepal_width", y="sepal_length", color="species")
 fig.show()
 ```
 
