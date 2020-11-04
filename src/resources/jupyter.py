@@ -170,10 +170,6 @@ def cell_clear_output(cell):
             cell.metadata.pop(field, None)
    return cell
 
-# TODO: figure size for pdf format
-# TODO: retina width/height for output
-
-
 kInjectableCode = { 
    'python' : "try:\n" +
               "  import matplotlib.pyplot as plt\n" + 
@@ -182,6 +178,12 @@ kInjectableCode = {
               "  plt.rcParams['savefig.dpi'] = {3}\n" +
               "  plt.rcParams['figure.figsize'] = {0}, {1}\n"
               "  set_matplotlib_formats('{2}')\n" +
+              "except Exception:\n" +
+              "  pass\n" +
+              "try:\n" +
+              "  import pandas as pd\n" +
+              "  if '{2}' == 'pdf':"
+              "    pd.set_option('display.latex.repr', True)\n" +
               "except Exception:\n" +
               "  pass\n"
 }
