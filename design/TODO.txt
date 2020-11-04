@@ -2,6 +2,12 @@
 
 Python
 
+supporting file directory is wrong when e.g. docs/foo.md
+
+figure size for pdf format
+
+better injectability ergonimics for jupyter
+
 https://jupytext.readthedocs.io/en/latest/formats.html#jupytext-markdown
 https://jupyter-cache.readthedocs.io/en/latest/
   or just '--execute-run-code': all,cache,none
@@ -11,9 +17,6 @@ execute:
 
 review: http://blog.juliusschulz.de/blog/ultimate-ipython-notebook
 
-see also plt.rcParams['text.usetex'] = True
-
-Pandas hack for latex tables?
 
 export interface FormatCell {
   "hide-cell": boolean;
