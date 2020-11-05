@@ -5,6 +5,7 @@ import { generate as generateUuid } from "uuid/v4.ts";
 import { decode as base64decode } from "encoding/base64.ts";
 
 import { FormatPandoc } from "../config/format.ts";
+import { kIncludeAfterBody, kIncludeInHeader } from "../config/constants.ts";
 
 import {
   extensionForMimeImageType,
@@ -23,15 +24,10 @@ import {
   kTextPlain,
 } from "./mime.ts";
 
+import { pandocAutoIdentifier } from "./pandoc/pandoc_id.ts";
+
 import { dirAndStem } from "./path.ts";
-import { kIncludeAfterBody, kIncludeInHeader } from "../config/constants.ts";
 import PngImage from "./png.ts";
-
-// TODO: include, hide, etc. don't really belong in execute. perhaps output?
-
-// TODO: consider "include-input" (jupytext syncing w/ Rmd)
-// TODO: hide-input, hide-output, hide-cell from jupyterbook
-// TODO: consider using include-input/remove-input rather than include-code
 
 export const kCellCollapsed = "collapsed";
 export const kCellAutoscroll = "autoscroll";
@@ -39,10 +35,17 @@ export const kCellDeletable = "deletable";
 export const kCellFormat = "format";
 export const kCellName = "name";
 export const kCellTags = "tags";
-export const kCellId = "id";
-export const kCellClass = "class";
 export const kCellLinesToNext = "lines_to_next_cell";
 export const kRawMimeType = "raw_mimetype";
+
+export const kCellLabel = "label";
+export const kCellCaption = "caption";
+export const kCellClasses = "classes";
+export const kCellWidth = "width";
+export const kCellHeight = "height";
+export const kCellAlt = "alt";
+
+export const kFigLabel = "fig";
 
 export interface JupyterNotebook {
   metadata: {
@@ -66,9 +69,11 @@ export interface JupyterCell {
     [kCellTags]?: string[];
     [kRawMimeType]?: string;
 
-    // id and classes for pandoc
-    [kCellId]?: string;
-    [kCellClass]?: string;
+    // quarto schema (note that 'name' from nbformat is
+    // automatically used as an alias for 'label')
+    [kCellLabel]?: string;
+    [kCellCaption]?: string | string[];
+    [kCellClasses]?: string;
 
     // used by jupytext to preserve line spacing
     [kCellLinesToNext]?: number;
@@ -186,24 +191,18 @@ export function jupyterToMarkdown(
     htmlPreserve = removeAndPreserveRawHtml(nb);
   }
 
-  // some state we track across cell iteration
-  const cellIds = new Set<string>();
-  let codeCellIndex = 0;
-
   // generate markdown
   const md: string[] = [];
+
+  // validate unique cell labels as we go
+  const validateCellLabel = cellLabelValidator();
+
+  // track current code cell index (for progress)
+  let codeCellIndex = 0;
+
   for (const cell of nb.cells) {
-    // verify unique ids
-    const id = cellId(cell);
-    if (id) {
-      if (cellIds.has(id)) {
-        throw new Error(
-          "Cell name/id must be unique (found duplicate '" + id + "')",
-        );
-      } else {
-        cellIds.add(id);
-      }
-    }
+    // validate unique cell labels
+    validateCellLabel(cell);
 
     // markdown from cell
     switch (cell.cell_type) {
@@ -294,23 +293,29 @@ function mdFromCodeCell(
     kCellFormat,
     kCellName,
     kCellTags,
-    kCellId,
-    kCellClass,
+    kCellLabel,
+    kCellCaption,
+    kCellClasses,
+    kCellWidth,
+    kCellHeight,
+    kCellAlt,
     kCellLinesToNext,
   ];
 
-  // id/name
-  const id = cellId(cell);
-  if (id) {
-    divMd.push(`#${id} `);
+  // determine label -- this will be forwarded to the output (e.g. a figure)
+  // if there is a single output. otherwise it will included on the enclosing
+  // div and used as a prefix for the individual outputs
+  const label = cellContainerLabel(cellLabel(cell), cell, options);
+  if (label) {
+    divMd.push(`#${label} `);
   }
 
   // cell_type classes
   divMd.push(`.cell .code `);
 
   // css classes
-  if (cell.metadata.class) {
-    const classes = cell.metadata.class.trim().split(/\s+/)
+  if (cell.metadata.classes) {
+    const classes = cell.metadata.classes.trim().split(/\s+/)
       .map((clz) => clz.startsWith(".") ? clz : ("." + clz))
       .join(" ");
     divMd.push(classes + " ");
@@ -337,7 +342,10 @@ function mdFromCodeCell(
   // write output if approproate
   if (includeOutput(cell, options.includeOutput)) {
     // compute label prefix for output (in case we need it for files, etc.)
-    const outputName = (id ? id : "cell-" + (cellIndex + 1)) + "-output";
+    const labelName = label
+      ? label.replaceAll(":", "-")
+      : ("cell-" + (cellIndex + 1));
+    const outputName = labelName + "-output";
 
     for (
       const { index, output } of (cell.outputs || []).map((value, index) => ({
@@ -368,23 +376,27 @@ function mdFromCodeCell(
       md.push("}\n");
 
       // produce output
-      switch (output.output_type) {
-        case "stream":
-          md.push(mdOutputStream(output as JupyterOutputStream));
-          break;
-        case "error":
-          md.push(mdOutputError(output as JupyterOutputError));
-          break;
-        case "display_data":
-        case "execute_result":
-          md.push(mdOutputDisplayData(
-            outputName + "-" + (index + 1),
-            output as JupyterOutputDisplayData,
-            options,
-          ));
-          break;
-        default:
-          throw new Error("Unexpected output type " + output.output_type);
+      if (output.output_type === "stream") {
+        md.push(mdOutputStream(output as JupyterOutputStream));
+      } else if (output.output_type === "error") {
+        md.push(mdOutputError(output as JupyterOutputError));
+      } else if (isDisplayData(output)) {
+        const outputLabel = label
+          ? (label + "-" + (index + 1))
+          : cellLabel(cell);
+        const outputCaption = Array.isArray(cell.metadata.caption)
+          ? cell.metadata.caption[index]
+          : cell.metadata.caption as string;
+
+        md.push(mdOutputDisplayData(
+          outputLabel,
+          outputCaption || null,
+          outputName + "-" + (index + 1),
+          output as JupyterOutputDisplayData,
+          options,
+        ));
+      } else {
+        throw new Error("Unexpected output type " + output.output_type);
       }
 
       // terminate div
@@ -423,79 +435,39 @@ function mdOutputError(output: JupyterOutputError) {
 }
 
 function mdOutputDisplayData(
-  name: string,
+  label: string | null,
+  caption: string | null,
+  filename: string,
   output: JupyterOutputDisplayData,
   options: JupyterToMarkdownOptions,
 ) {
-  // determine display mime type
-  const displayMimeType = () => {
-    const displayPriority = [
-      kTextMarkdown,
-      kImageSvg,
-      kImagePng,
-      kImageJpeg,
-    ];
-    if (options.toHtml) {
-      displayPriority.push(
-        kApplicationJupyterWidgetState,
-        kApplicationJupyterWidgetView,
-        kApplicationJavascript,
-        kTextHtml,
-      );
-    } else if (options.toLatex) {
-      displayPriority.push(
-        kTextLatex,
-        kApplicationPdf,
-      );
-    } else if (options.toMarkdown) {
-      displayPriority.push(
-        kTextHtml,
-      );
-    }
-    displayPriority.push(
-      kTextPlain,
-    );
-
-    const availDisplay = Object.keys(output.data);
-    for (const display of displayPriority) {
-      if (availDisplay.includes(display)) {
-        return display;
-      }
-    }
-    return null;
-  };
-
-  const mimeType = displayMimeType();
+  const mimeType = displayDataMimeType(output, options);
   if (mimeType) {
-    switch (mimeType) {
-      case kImagePng:
-      case kImageJpeg:
-      case kImageSvg:
-      case kApplicationPdf:
-        return mdImageOutput(
-          name,
-          mimeType,
-          options.assets,
-          output.data[mimeType] as string[],
-          output.metadata[mimeType],
-          options.figFormat,
-          options.figDpi,
-        );
-      case kTextMarkdown:
-      case kTextPlain:
-        return mdMarkdownOutput(output.data[mimeType] as string[]);
-      case kTextLatex:
-        return mdLatexOutput(output.data[mimeType] as string[]);
-      case kTextHtml:
-        return mdHtmlOutput(output.data[mimeType] as string[]);
-      case kApplicationJupyterWidgetState:
-      case kApplicationJupyterWidgetView:
-        return mdJsonOutput(
-          mimeType,
-          output.data[mimeType] as Record<string, unknown>,
-        );
-      case kApplicationJavascript:
-        return mdScriptOutput(mimeType, output.data[mimeType] as string[]);
+    if (displayDataIsImage(mimeType)) {
+      return mdImageOutput(
+        label,
+        caption,
+        filename,
+        mimeType,
+        options.assets,
+        output.data[mimeType] as string[],
+        output.metadata[mimeType],
+        options.figFormat,
+        options.figDpi,
+      );
+    } else if (displayDataIsMarkdown(mimeType)) {
+      return mdMarkdownOutput(output.data[mimeType] as string[]);
+    } else if (displayDataIsLatex(mimeType)) {
+      return mdLatexOutput(output.data[mimeType] as string[]);
+    } else if (displayDataIsHtml(mimeType)) {
+      return mdHtmlOutput(output.data[mimeType] as string[]);
+    } else if (displayDataIsJson(mimeType)) {
+      return mdJsonOutput(
+        mimeType,
+        output.data[mimeType] as Record<string, unknown>,
+      );
+    } else if (displayDataIsJavascript(mimeType)) {
+      return mdScriptOutput(mimeType, output.data[mimeType] as string[]);
     }
   }
 
@@ -506,8 +478,75 @@ function mdOutputDisplayData(
   );
 }
 
+function displayDataMimeType(
+  output: JupyterOutputDisplayData,
+  options: JupyterToMarkdownOptions,
+) {
+  const displayPriority = [
+    kTextMarkdown,
+    kImageSvg,
+    kImagePng,
+    kImageJpeg,
+  ];
+  if (options.toHtml) {
+    displayPriority.push(
+      kApplicationJupyterWidgetState,
+      kApplicationJupyterWidgetView,
+      kApplicationJavascript,
+      kTextHtml,
+    );
+  } else if (options.toLatex) {
+    displayPriority.push(
+      kTextLatex,
+      kApplicationPdf,
+    );
+  } else if (options.toMarkdown) {
+    displayPriority.push(
+      kTextHtml,
+    );
+  }
+  displayPriority.push(
+    kTextPlain,
+  );
+
+  const availDisplay = Object.keys(output.data);
+  for (const display of displayPriority) {
+    if (availDisplay.includes(display)) {
+      return display;
+    }
+  }
+  return null;
+}
+
+function displayDataIsImage(mimeType: string) {
+  return [kImagePng, kImageJpeg, kImageSvg, kApplicationPdf].includes(mimeType);
+}
+
+function displayDataIsMarkdown(mimeType: string) {
+  return [kTextMarkdown, kTextPlain].includes(mimeType);
+}
+
+function displayDataIsLatex(mimeType: string) {
+  return [kTextLatex].includes(mimeType);
+}
+
+function displayDataIsHtml(mimeType: string) {
+  return [kTextHtml].includes(mimeType);
+}
+
+function displayDataIsJson(mimeType: string) {
+  return [kApplicationJupyterWidgetState, kApplicationJupyterWidgetView]
+    .includes(mimeType);
+}
+
+function displayDataIsJavascript(mimeType: string) {
+  return [kApplicationJavascript].includes(mimeType);
+}
+
 function mdImageOutput(
-  name: string,
+  label: string | null,
+  caption: string | null,
+  filename: string,
   mimeType: string,
   assets: JupyterAssets,
   data: unknown,
@@ -519,13 +558,13 @@ function mdImageOutput(
   function metadataValue<T>(key: string, defaultValue: T) {
     return metadata && metadata[key] ? metadata["key"] as T : defaultValue;
   }
-  let width = metadataValue("width", 0);
-  let height = metadataValue("height", 0);
-  const alt = metadataValue("alt", "");
+  let width = metadataValue(kCellWidth, 0);
+  let height = metadataValue(kCellHeight, 0);
+  const alt = caption || metadataValue(kCellAlt, "");
 
   // calculate output file name
   const ext = extensionForMimeImageType(mimeType);
-  const imageFile = join(assets.figures_dir, name + "." + ext);
+  const imageFile = join(assets.figures_dir, filename + "." + ext);
 
   // get the data
   const imageText = Array.isArray(data)
@@ -552,18 +591,18 @@ function mdImageOutput(
   }
 
   let image = `![${alt}](${imageFile})`;
-  if (width || height) {
+  if (label || width || height) {
     image += "{";
+    if (label) {
+      image += `#${kFigLabel}:${label} `;
+    }
     if (width) {
-      image += `width=${width}`;
+      image += `width=${width} `;
     }
     if (height) {
-      if (width) {
-        image += " ";
-      }
-      image += `height=${height}`;
+      image += `height=${height} `;
     }
-    image += "}";
+    image = image.trimRight() + "}";
   }
   return mdMarkdownOutput([image]);
 }
@@ -658,16 +697,114 @@ function shouldInclude(
   }
 }
 
-function cellId(cell: JupyterCell) {
-  return (cell.metadata.id || cell.metadata.name || "").replace(/^#/, "")
-    .toLowerCase();
-}
-
 function hasTag(cell: JupyterCell, tags: string[]) {
   if (!cell.metadata.tags) {
     return false;
   }
   return cell.metadata.tags.filter((tag) => tags.includes(tag)).length > 0;
+}
+
+function isDisplayData(output: JupyterOutput) {
+  return ["display_data", "execute_result"].includes(output.output_type);
+}
+
+function cellLabel(cell: JupyterCell) {
+  return (cell.metadata[kCellLabel] || cell.metadata[kCellName] || "")
+    .toLowerCase();
+}
+
+function cellContainerLabel(
+  label: string,
+  cell: JupyterCell,
+  options: JupyterToMarkdownOptions,
+) {
+  if (label) {
+    // apply pandoc auto-identifier treatment (but allow prefix)
+    label = label.replace(/(^\w+\:)?(.*)$/, (str, p1, p2) => {
+      return (p1 || "") + pandocAutoIdentifier(p2, true);
+    });
+
+    // no outputs
+    if (!cell.outputs) {
+      return label;
+    }
+
+    // not including output
+    if (!includeOutput(cell, options.includeOutput)) {
+      return label;
+    }
+
+    // no display data outputs
+    const displayDataOutputs = cell.outputs.filter(isDisplayData);
+    if (displayDataOutputs.length === 0) {
+      return label;
+    }
+
+    // multiple display data outputs (apply to container then apply sub-labels to outputs)
+    if (displayDataOutputs.length > 1) {
+      // see if the outputs share a common label type, if they do then apply
+      // that label type to the parent
+      const labelTypes = displayDataOutputs.map((output) =>
+        outputLabelType(output, options)
+      );
+      const labelType = labelTypes[0];
+      if (labelType && labelTypes.every((type) => labelType === type)) {
+        if (!label.startsWith(labelType + ":")) {
+          return `${labelType}:${label}`;
+        } else {
+          return label;
+        }
+      } else {
+        return label;
+      }
+    }
+
+    // in the case of a single display data output, check to see if it is directly
+    // targetable with a label (e.g. a figure). if it's not then just apply the
+    // label to the container
+    if (!outputLabelType(cell.outputs[0], options)) {
+      return label;
+    }
+
+    // not targetable
+    return null;
+  } else {
+    return null;
+  }
+}
+
+// see if an output is one of our known types (e.g. 'fig')
+function outputLabelType(
+  output: JupyterOutput,
+  options: JupyterToMarkdownOptions,
+) {
+  if (isDisplayData(output)) {
+    const mimeType = displayDataMimeType(
+      output as JupyterOutputDisplayData,
+      options,
+    );
+    if (mimeType && displayDataIsImage(mimeType)) {
+      return kFigLabel;
+    }
+  }
+  return null;
+}
+
+// validate unique labels
+function cellLabelValidator() {
+  const cellLabels = new Set<string>();
+  return function (cell: JupyterCell) {
+    const label = cellLabel(cell);
+    if (label) {
+      if (cellLabels.has(label)) {
+        throw new Error(
+          "Cell label names must be unique (found duplicate '" + label + "')",
+        );
+      } else {
+        cellLabels.add(label);
+      }
+    }
+  };
 }
 
 function widgetPandocIncludes(nb: JupyterNotebook): FormatPandoc {
@@ -679,9 +816,7 @@ function widgetPandocIncludes(nb: JupyterNotebook): FormatPandoc {
   const haveJavascriptWidgets = nb.cells.some((cell) => {
     if (cell.cell_type === "code" && cell.outputs) {
       return cell.outputs.some((output) => {
-        return ["display_data", "execute_result"].includes(
-          output.output_type,
-        ) && (
+        return isDisplayData(output) && (
           !!(output as JupyterOutputDisplayData).data[kApplicationJavascript] ||
           !!(output as JupyterOutputDisplayData).data[kTextHtml]
         );
@@ -753,10 +888,7 @@ function removeAndPreserveRawHtml(
   nb.cells.forEach((cell) => {
     if (cell.cell_type === "code") {
       cell.outputs?.forEach((output) => {
-        if (
-          output.output_type === "display_data" ||
-          output.output_type === "execute_result"
-        ) {
+        if (isDisplayData(output)) {
           const displayOutput = output as JupyterOutputDisplayData;
           const html = displayOutput.data[kTextHtml];
           const htmlText = Array.isArray(html) ? html.join("") : html as string;
