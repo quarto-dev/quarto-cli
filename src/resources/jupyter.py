@@ -172,11 +172,11 @@ def cell_clear_output(cell):
 
 kInjectableCode = { 
    'python' : "try:\n" +
-              "  import matplotlib.pyplot as plt\n" + 
-              "  from IPython.display import set_matplotlib_formats\n" +
+              "  import matplotlib.pyplot as plt\n" +
+              "  plt.rcParams['figure.figsize'] = ({0}, {1})\n" +
               "  plt.rcParams['figure.dpi'] = {3}\n" +
-              "  plt.rcParams['savefig.dpi'] = {3}\n" +
-              "  plt.rcParams['figure.figsize'] = {0}, {1}\n"
+              "  plt.rcParams['savefig.dpi'] = {3}\n" + 
+              "  from IPython.display import set_matplotlib_formats\n" +
               "  set_matplotlib_formats('{2}')\n" +
               "except Exception:\n" +
               "  pass\n" +
