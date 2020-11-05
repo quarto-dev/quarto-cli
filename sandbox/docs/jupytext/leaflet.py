@@ -1,17 +1,18 @@
----
-title: "leaflet"
-knit: quarto render
-jupyter:
-  jupytext:
-    formats: md,py:percent
-  kernelspec:
-    display_name: Python 3
-    language: python
-    name: python3
----
+# ---
+# title: "leaflet"
+# knit: quarto render
+# jupyter:
+#   jupytext:
+#     formats: md,py:percent
+#   kernelspec:
+#     display_name: Python 3
+#     language: python
+#     name: python3
+# ---
 
-
-```python
+# %% [markdown]
+#
+# %%
 from ipyleaflet import Map, Marker, basemaps, basemap_to_tiles
 m = Map(
   basemap=basemap_to_tiles(
@@ -22,6 +23,6 @@ m = Map(
 )
 m.add_layer(Marker(location=(52.204793, 360.121558)))
 m
-```
-
-
+# %% [markdown]
+#
+#

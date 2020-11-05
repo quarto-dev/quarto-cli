@@ -14,10 +14,10 @@ jupyter:
     name: python3
 ---
 
-```python
+```python label="foo"
 print("1,2,3")
 ```
 
-```python
+```python label="foo"
 
 ```
