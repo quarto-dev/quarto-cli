@@ -87,39 +87,38 @@ export const jupyterEngine: ExecutionEngine = {
       const ext = extname(file);
       if (kJupytextMdExtensions.includes(ext)) {
         if (isJupytextMd(file)) {
-          return { sync: true, notebook: await pairedNotebook(file) };
+          return { sync: true, paired: [file, ...await pairedPaths(file)] };
         }
       } // if it's a code file, then check for a paired notebook and return it
       else if (kCodeExtensions.includes(ext)) {
-        const paired = await pairedNotebook(file);
-        return { sync: paired !== undefined, notebook: paired };
+        const paired = await pairedPaths(file);
+        return { sync: true, paired: [file, ...paired] };
         // if it's a notebook file then return it
       } else if (isNotebook(file)) {
-        const paired = pairedPaths(file);
-        return { sync: !!(await pairedPaths(file)).length, notebook: file };
+        const paired = await pairedPaths(file);
+        return { sync: paired.length > 0, paired: [file, ...paired] };
       }
     };
 
     // see if there is a notebook target, if there is then sync it if required and return
     const target = await notebookTarget();
     if (target) {
+      let notebook = pairedPath(target.paired, isNotebook);
       if (target.sync) {
+        // perform the sync
+        await jupytextSync(file, lightMetdata(target.paired), quiet);
         // if there is no paired notebook then create a transient one
-        if (!target.notebook) {
+        if (!notebook) {
           const [fileDir, fileStem] = dirAndStem(file);
-          const notebook = join(
+          notebook = join(
             fileDir,
             fileStem + kTransientNotebookExtension,
           );
           await jupytextTo(file, "ipynb", notebook, quiet);
-          return notebook;
-        } else {
-          await jupytextSync(file, quiet);
-          return target.notebook;
         }
-      } else if (target.notebook) {
-        return target.notebook;
       }
+
+      return notebook;
     }
   },
 
@@ -179,7 +178,7 @@ export const jupyterEngine: ExecutionEngine = {
       if (options.input.endsWith(kTransientNotebookExtension)) {
         Deno.removeSync(options.input);
       } else {
-        await jupytextSync(options.input, options.quiet);
+        await jupytextSync(options.input, false, options.quiet);
       }
 
       // return results
@@ -226,6 +225,27 @@ function isJupytextMd(file: string) {
     Object.keys(yaml.jupyter).includes("jupytext");
 }
 
+function lightMetdata(paired: string[]) {
+  // if there is a markdown file in the paried representations that doesn't have
+  // the jupytext text_representation & notebook_metadata_filter fields then
+  // we've opted in to a lighter metadata treatment
+  const markdown = pairedPath(paired, isMarkdown);
+  if (markdown) {
+    const yaml = readYamlFromMarkdownFile(markdown) as Record<
+      string,
+      // deno-lint-ignore no-explicit-any
+      any
+    >;
+    if (
+      !yaml.jupyter?.jupytext?.text_representation &&
+      !yaml.jupyter?.jupytext?.notebook_metadata_filter
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
 async function pairedPaths(file: string) {
   const result = await execProcess({
     cmd: [
@@ -242,10 +262,9 @@ async function pairedPaths(file: string) {
   }
 }
 
-async function pairedNotebook(file: string) {
-  const paired = await pairedPaths(file);
+function pairedPath(paired: string[], selector: (file: string) => boolean) {
   if (paired) {
-    return paired.find(isNotebook);
+    return paired.find(selector);
   } else {
     return undefined;
   }
@@ -255,16 +274,30 @@ function isNotebook(file: string) {
   return kNotebookExtensions.includes(extname(file).toLowerCase());
 }
 
+function isMarkdown(file: string) {
+  return kJupytextMdExtensions.includes(extname(file).toLowerCase());
+}
+
 function pythonBinary(binary = "python") {
   const condaPrefix = getenv("CONDA_PREFIX");
   return condaPrefix + "/bin/" + binary;
 }
 
-async function jupytextSync(file: string, quiet?: boolean) {
+async function jupytextSync(
+  file: string,
+  lightMetdata: boolean,
+  quiet?: boolean,
+) {
   const args = [
     "--sync",
     file,
   ];
+  if (lightMetdata) {
+    args.push(
+      "--opt",
+      "notebook_metadata_filter=-jupytext.text_representation,-jupytext.notebook_metadata_filter",
+    );
+  }
   if (quiet) {
     args.push("--quiet");
   }
