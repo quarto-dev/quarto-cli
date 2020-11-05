@@ -2,18 +2,16 @@
 
 Python
 
-supporting file directory is wrong when e.g. docs/foo.md
-
-special tag named "label" that becomes #id in the AST, AND 
+special tag named "label" that becomes #id in the AST, AND  #fig:label or #label
+  -- if it's an image then use fig: prefix automatically, otherwise just #label,
+     furthermore allow explcit fig: 
 special tag named "caption" that becomes the alt text for figures
+use "classes" rather than "class"
+get rid of id/name handling. 
+
 how does pandoc derive image label?
 http://lierdakil.github.io/pandoc-crossref/#image-labels
 
-figure size for pdf format
-
-better injectability ergonimics for jupyter
-
-auto-provide title and author from notebook_title notebook_author
 
 https://jupytext.readthedocs.io/en/latest/formats.html#jupytext-markdown
 https://jupyter-cache.readthedocs.io/en/latest/
@@ -21,9 +19,6 @@ https://jupyter-cache.readthedocs.io/en/latest/
 execute:
    run-code: 
    include-code: false
-
-review: http://blog.juliusschulz.de/blog/ultimate-ipython-notebook
-
 
 export interface FormatCell {
   "hide-cell": boolean;
@@ -82,10 +77,6 @@ keep-source (for html formats, puts source in script tag)
 
 
 papermill (use their convention for parameters)
-
-consider automatic id resolution for "name" property. does it need to 
-take account of pandoc format? important: relationship to crossref and
-use of : in id (does crossref strip this out?)
 
 consider id and class for knitr (including wrapping div). consider 
 similar/generic dom structure for chunks and code cells (show/hide)
