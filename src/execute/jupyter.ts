@@ -40,7 +40,9 @@ import {
 import {
   kFigDpi,
   kFigFormat,
+  kIncludeAfterBody,
   kIncludeCode,
+  kIncludeInHeader,
   kIncludeOutput,
   kIncludeWarnings,
 } from "../config/constants.ts";
@@ -154,7 +156,7 @@ export const jupyterEngine: ExecutionEngine = {
     if (result.success) {
       // convert to markdown and write to target
       const nb = jupyterFromFile(options.input);
-      const assets = jupyterAssets(options.input, options.format.pandoc);
+      const assets = jupyterAssets(options.input, options.format.pandoc.to);
       const result = jupyterToMarkdown(
         nb,
         {
@@ -183,7 +185,12 @@ export const jupyterEngine: ExecutionEngine = {
       // return results
       return {
         supporting: [assets.supporting_dir],
-        pandoc: result.pandoc,
+        pandoc: result.includeFiles
+          ? {
+            [kIncludeInHeader]: result.includeFiles.inHeader,
+            [kIncludeAfterBody]: result.includeFiles.afterBody,
+          }
+          : {},
         postprocess: result.htmlPreserve,
       };
     } else {
