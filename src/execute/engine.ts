@@ -79,8 +79,8 @@ export interface RunOptions {
 
 export async function executionEngine(file: string, quiet?: boolean) {
   const engines = [
-    jupyterEngine,
     rmdEngine,
+    jupyterEngine,
   ];
 
   // try to find an engine
