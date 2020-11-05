@@ -6,18 +6,12 @@ format:
     fig-width: 10
     fig-height: 4
     keep-md: true
-jupyter:
-  jupytext:
-    formats: ipynb,md
-  kernelspec:
-    display_name: Python 3
-    language: python
-    name: python3
 ---
 
 
 
-```python caption="my plot" label="myplot"
+::: {.cell .code}
+```{.python}
 import matplotlib.pyplot as plt
 
 labels = ['G1', 'G2', 'G3', 'G4', 'G6']
@@ -38,3 +32,9 @@ ax.set_title('Scores broken out by group and gender')
 ax.legend()
 plt.show()
 ```
+
+::: {.output .display_data }
+![my plot](matplotlib_files/figure-html/cell-2-output-1.png){#fig:myplot width=807.5 height=351}
+:::
+:::
+
