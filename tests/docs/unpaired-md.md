@@ -1,7 +1,7 @@
 ---
 jupyter:
   jupytext:
-    formats: ipynb,md,py:percent
+    formats: md
     text_representation:
       extension: .md
       format_name: markdown
@@ -12,3 +12,11 @@ jupyter:
     language: python
     name: python3
 ---
+
+```python
+print("Hello World")
+```
+
+```python
+
+```

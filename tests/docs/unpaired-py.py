@@ -1,7 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,md,py:percent
+#     formats: py:percent
 #     text_representation:
 #       extension: .py
 #       format_name: percent
@@ -12,3 +12,8 @@
 #     language: python
 #     name: python3
 # ---
+
+# %%
+print("Hello World")
+
+# %%
