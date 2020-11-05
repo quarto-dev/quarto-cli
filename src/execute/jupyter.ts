@@ -89,7 +89,8 @@ export const jupyterEngine: ExecutionEngine = {
         }
       } // if it's a code file, then check for a paired notebook and return it
       else if (kCodeExtensions.includes(ext)) {
-        return { sync: true, notebook: await pairedNotebook(file) };
+        const paired = await pairedNotebook(file);
+        return { sync: paired !== undefined, notebook: paired };
         // if it's a notebook file then return it
       } else if (isNotebook(file)) {
         const paired = pairedPaths(file);
