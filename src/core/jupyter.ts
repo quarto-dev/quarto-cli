@@ -4,9 +4,6 @@ import { walkSync } from "fs/walk.ts";
 import { generate as generateUuid } from "uuid/v4.ts";
 import { decode as base64decode } from "encoding/base64.ts";
 
-import { FormatPandoc } from "../config/format.ts";
-import { kIncludeAfterBody, kIncludeInHeader } from "../config/constants.ts";
-
 import {
   extensionForMimeImageType,
   kApplicationJavascript,
@@ -131,11 +128,11 @@ export interface JupyterAssets {
   supporting_dir: string;
 }
 
-export function jupyterAssets(input: string, format: FormatPandoc) {
+export function jupyterAssets(input: string, to?: string) {
   // calculate and create directories
   const [base_dir, stem] = dirAndStem(input);
   const files_dir = join(base_dir, stem + "_files");
-  const to = (format.to || "html").replace(/[\+\-].*$/, "");
+  to = (to || "html").replace(/[\+\-].*$/, "");
   const figures_dir = join(files_dir, "figure-" + to);
   ensureDirSync(figures_dir);
 
@@ -175,7 +172,11 @@ export interface JupyterToMarkdownOptions {
 
 export interface JupyterToMarkdownResult {
   markdown: string;
-  pandoc: FormatPandoc;
+  includeFiles?: {
+    inHeader?: string[];
+    beforeBody?: string[];
+    afterBody?: string[];
+  };
   htmlPreserve?: Record<string, string>;
 }
 
@@ -184,12 +185,10 @@ export function jupyterToMarkdown(
   options: JupyterToMarkdownOptions,
 ): JupyterToMarkdownResult {
   // optional content injection / html preservation for html output
-  let pandoc: FormatPandoc = {};
-  let htmlPreserve: Record<string, string> | undefined;
-  if (options.toHtml) {
-    pandoc = widgetPandocIncludes(nb);
-    htmlPreserve = removeAndPreserveRawHtml(nb);
-  }
+  const includeFiles = options.toHtml ? widgetPandocIncludes(nb) : undefined;
+  const htmlPreserve = options.toHtml
+    ? removeAndPreserveRawHtml(nb)
+    : undefined;
 
   // generate markdown
   const md: string[] = [];
@@ -223,7 +222,7 @@ export function jupyterToMarkdown(
   // return markdown and any widget requirements
   return {
     markdown: md.join(""),
-    pandoc,
+    includeFiles,
     htmlPreserve,
   };
 }
@@ -807,7 +806,7 @@ function cellLabelValidator() {
   };
 }
 
-function widgetPandocIncludes(nb: JupyterNotebook): FormatPandoc {
+function widgetPandocIncludes(nb: JupyterNotebook) {
   // a 'javascript' widget doesn't use the jupyter widgets protocol, but rather just injects
   // text/html or application/javascript directly. futhermore these 'widgets' often assume
   // that require.js and jquery are available. for example, see:
@@ -870,13 +869,13 @@ function widgetPandocIncludes(nb: JupyterNotebook): FormatPandoc {
     Deno.writeTextFileSync(tempFile, lines.join("\n") + "\n");
     return tempFile;
   };
-  const includeInHeader = widgetTempFile(head);
-  const includeAfterBody = widgetTempFile(afterBody);
+  const inHeaderFile = widgetTempFile(head);
+  const afterBodyFile = widgetTempFile(afterBody);
 
   // return result
   return {
-    [kIncludeInHeader]: [includeInHeader],
-    [kIncludeAfterBody]: [includeAfterBody],
+    inHeader: [inHeaderFile],
+    afterBody: [afterBodyFile],
   };
 }
 
