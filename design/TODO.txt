@@ -2,6 +2,8 @@
 
 Python
 
+Unpaired MD/PY files produce supporting directory unpaired.exec_files (since they are named unpaired.exec.ipynb as an intermediary)
+
 special tag named "label" that becomes #id in the AST, AND  #fig:label or #label
   -- if it's an image then use fig: prefix automatically, otherwise just #label,
      furthermore allow explcit fig: 
