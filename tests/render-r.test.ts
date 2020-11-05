@@ -19,14 +19,14 @@ Deno.test("Rmd Render", async () => {
 
 // Basic script rendering
 Deno.test("R Script Render", async () => {
-  await testRender("docs/test.R");
+  await testRender("docs/test.R", false);
 });
 
 // Params rendering
 Deno.test("Rmd with Params", async () => {
   await testRender(
     "docs/test.R",
-    true,
+    false,
     "html",
     ["--execute-params", "params.yml"],
   );
