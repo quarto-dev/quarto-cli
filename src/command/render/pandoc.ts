@@ -13,7 +13,7 @@
 *
 */
 
-import { dirname } from "path/mod.ts";
+import { basename, dirname, extname } from "path/mod.ts";
 import { stringify } from "encoding/yaml.ts";
 
 import { execProcess, ProcessResult } from "../../core/process.ts";
@@ -76,6 +76,14 @@ export async function runPandoc(
 
   // build command line args
   const args = [...options.args];
+
+  // provide default title based on filename if necessdary
+  if (!options.format.metadata["title"]) {
+    args.push(
+      "--metadata",
+      "title:" + options.input.slice(0, options.input.indexOf(".")),
+    );
+  }
 
   // add citeproc if necessary
   const citeproc = citeMethod(options) === "citeproc";
