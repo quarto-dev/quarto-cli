@@ -38,6 +38,7 @@ export interface ExecuteOptions {
   output: string;
   format: Format;
   tempDir: string;
+  resourceDir: string;
   cwd?: string;
   params?: string | { [key: string]: unknown };
   quiet?: boolean;

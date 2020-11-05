@@ -21,13 +21,7 @@ from nbclient import NotebookClient
 
 NB_FORMAT_VERSION = 4
 
-# execute options in format:
-#   allow-errors   
-#   include-code         
-#   include-output
-#   include-warnings
-
-def notebook_execute(input, format, run_path, quiet):
+def notebook_execute(input, format, run_path, resource_dir, quiet):
 
     # progress
    if not quiet:
@@ -69,7 +63,7 @@ def notebook_execute(input, format, run_path, quiet):
       total_code_cells = sum(cell.cell_type == 'code' for cell in client.nb.cells)
 
       # insert setup cell
-      setup_cell = nb_setup_cell(client, fig_width, fig_height, fig_format, fig_dpi)
+      setup_cell = nb_setup_cell(client, resource_dir, fig_width, fig_height, fig_format, fig_dpi)
       client.nb.cells.insert(0, setup_cell)
 
       # execute the cells
@@ -117,18 +111,23 @@ def notebook_execute(input, format, run_path, quiet):
       sys.stderr.write("\n")
 
 
-def nb_setup_cell(client, fig_width, fig_height, fig_format, fig_dpi):
+def nb_setup_cell(client, resource_dir, fig_width, fig_height, fig_format, fig_dpi):
 
-   # lookup kernel language and any injectableCode
+   # determine setup code based on current kernel language
+   setup_code = ''
+   kSetupScript = { 
+      'python' : 'setup.py'
+   }
    kernelLanguage = client.nb.metadata.kernelspec.language
-   cell_code = ''
-   if kernelLanguage in kInjectableCode:
-      cell_code = kInjectableCode[kernelLanguage].format(fig_width, fig_height, fig_format, fig_dpi)  
+   if kernelLanguage in kSetupScript:
+      setup = os.path.join(resource_dir, 'jupyter', 'setup', kSetupScript[kernelLanguage])
+      with open(setup, 'r') as file:
+         setup_code = file.read().format(fig_width, fig_height, fig_format, fig_dpi)  
 
    # create cell
    return nbformat.versions[NB_FORMAT_VERSION].new_code_cell(
-      source=cell_code, 
-      metadata={ 'lines_to_next_cell': cell_code.count("\n") + 1 } 
+      source = setup_code, 
+      metadata= { 'lines_to_next_cell': setup_code.count("\n") + 1 } 
    )
 
 def cell_execute(client, cell, index, store_history):
@@ -170,31 +169,6 @@ def cell_clear_output(cell):
             cell.metadata.pop(field, None)
    return cell
 
-kInjectableCode = { 
-   'python' : "try:\n" +
-              "  import matplotlib.pyplot as plt\n" +
-              "  plt.rcParams['figure.figsize'] = ({0}, {1})\n" +
-              "  plt.rcParams['figure.dpi'] = {3}\n" +
-              "  plt.rcParams['savefig.dpi'] = {3}\n" + 
-              "  from IPython.display import set_matplotlib_formats\n" +
-              "  set_matplotlib_formats('{2}')\n" +
-              "except Exception:\n" +
-              "  pass\n" +
-              "try:\n" +
-              "  import pandas as pd\n" +
-              "  if '{2}' == 'pdf':"
-              "    pd.set_option('display.latex.repr', True)\n" +
-              "except Exception:\n" +
-              "  pass\n"
-              "try:\n" +
-              "  import plotly.express as px\n" +
-              "  px.defaults.width = {0} * {3}\n" +
-              "  px.defaults.height = {1} * {3}\n" +
-              "except Exception:\n" +
-              "  pass\n"
-}
-
-
 # main
 if __name__ == "__main__":
   
@@ -202,6 +176,7 @@ if __name__ == "__main__":
    input_json = json.load(sys.stdin)
    input = input_json["input"]
    format = input_json["format"]
+   resource_dir = input_json["resourceDir"]
    run_path = input_json.get("cwd", "")
    quiet = input_json.get('quiet', False)
 
@@ -211,5 +186,5 @@ if __name__ == "__main__":
    input = Path(input).name
 
    # execute in place
-   notebook_execute(input, format, run_path, quiet)
+   notebook_execute(input, format, run_path, resource_dir ,quiet)
 
