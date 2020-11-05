@@ -1,8 +1,10 @@
+# figure size/format
 fig_width = {0}
 fig_height = {1}
 fig_format = '{2}'
 fig_dpi = {3}
 
+# matplotlib defaults / format
 try:
   import matplotlib.pyplot as plt
   plt.rcParams['figure.figsize'] = (fig_width, fig_height)
@@ -13,6 +15,7 @@ try:
 except Exception:
   pass
 
+# plotly express width/height defaults
 try:
   import plotly.express as px
   px.defaults.width = fig_width * fig_dpi
@@ -20,6 +23,7 @@ try:
 except Exception:
   pass
 
+# enable pandas latex repr when targeting pdfs
 try:
   import pandas as pd
   if fig_format == 'pdf':
