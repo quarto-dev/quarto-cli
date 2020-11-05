@@ -1,5 +1,5 @@
 ---
-title: "foo"
+title: "bonanza"
 knit: quarto render
 jupyter:
   jupytext:

@@ -1,5 +1,4 @@
 ---
-title: "pandas"
 knit: quarto render
 format: 
   pdf: default
