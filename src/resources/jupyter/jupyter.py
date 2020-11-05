@@ -150,6 +150,11 @@ def cell_execute(client, cell, index, store_history):
       # execute
       cell = client.execute_cell(cell, index, store_history = store_history)
       
+      # if lines_to_next_cell is 0 then fix it to be 1
+      lines_to_next_cell = cell.get('metadata', {}).get('lines_to_next_cell', -1)
+      if lines_to_next_cell == 0:
+         cell["metadata"]["lines_to_next_cell"] = 1
+
       # remove injected raises-exception
       if allow_errors_tag in tags:
         cell["metadata"]["tags"].remove('raises-exception')
