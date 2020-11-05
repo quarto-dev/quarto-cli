@@ -1,5 +1,6 @@
 ---
 title: "Params Test"
+knit: quarto render
 params:
   minimum: 0
   region: ""
