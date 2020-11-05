@@ -143,7 +143,7 @@ export const jupyterEngine: ExecutionEngine = {
       {
         cmd: [
           pythonBinary(),
-          resourcePath("jupyter.py"),
+          resourcePath("jupyter/jupyter.py"),
         ],
         stdout: "piped",
       },

@@ -19,6 +19,7 @@ import { message } from "../../core/console.ts";
 import { ProcessResult } from "../../core/process.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
+import { resourcePath } from "../../core/resources.ts";
 
 import {
   formatFromMetadata,
@@ -65,6 +66,7 @@ export async function render(
     input,
     output: mdOutput,
     tempDir,
+    resourceDir: resourcePath(),
     format,
     cwd: flags.executeDir,
     params: resolveParams(flags.executeParams),
