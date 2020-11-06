@@ -9,7 +9,6 @@ export async function testRender(
   quartoArgs?: string[],
   verify?: () => void,
 ) {
-  console.log("Test Render: " + inputFile);
   const dir = dirname(inputFile);
   const stem = basename(inputFile, extname(inputFile));
 

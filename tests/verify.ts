@@ -5,7 +5,7 @@ export function verifyAndCleanOutput(
   output: string,
 ) {
   const outputExists = existsSync(output);
-  assert(outputExists, `Failed to create output ${output}`);
+  assert(outputExists, `Missing output: ${output}`);
   if (outputExists) {
     Deno.removeSync(output, { recursive: true });
   }
@@ -13,5 +13,5 @@ export function verifyAndCleanOutput(
 
 export function verifyNoPath(path: string) {
   const pathExists = existsSync(path);
-  assert(!pathExists, `Path ${path} is not expected to be present.`);
+  assert(!pathExists, `Unexpected directory: ${path}`);
 }
