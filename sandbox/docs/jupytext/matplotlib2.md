@@ -1,11 +1,10 @@
 ---
 title: "MPL slides"
 format:
+  revealjs: default
   html: default
   beamer: 
     keep-tex: true
-  revealjs: 
-    template: revealjs.template
 knit: quarto render
 jupyter:
   jupytext:
@@ -44,6 +43,54 @@ ax.set_title('Scores broken out by group and gender')
 ax.legend()
 plt.show()
 ```
+
+## Slide 2
+
+```python
+from ipyleaflet import Map, Marker, basemaps, basemap_to_tiles
+m = Map(
+  basemap=basemap_to_tiles(
+    basemaps.NASAGIBS.ModisTerraTrueColorCR, "2017-04-08"
+  ),
+  center=(52.204793, 360.121558),
+  zoom=4
+)
+m.add_layer(Marker(location=(52.204793, 360.121558)))
+m
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

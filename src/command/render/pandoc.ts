@@ -23,7 +23,6 @@ import { Format, FormatPandoc } from "../../config/format.ts";
 import { pdfEngine } from "../../config/pdf.ts";
 import { Metadata } from "../../config/metadata.ts";
 
-import { RenderFlags } from "./flags.ts";
 import {
   kBibliography,
   kFrom,
@@ -36,6 +35,9 @@ import {
   kTemplate,
   kTo,
 } from "../../config/constants.ts";
+
+import { kPatchedTemplateExt } from "./output.ts";
+import { RenderFlags } from "./flags.ts";
 
 // options required to run pandoc
 export interface PandocOptions {
@@ -190,5 +192,11 @@ function pandocDefaultsMessage(pandoc: FormatPandoc, debug?: boolean) {
       (defaults as any)[key] = (pandoc as any)[key];
     }
   });
+
+  // remove template if it's patched
+  if (defaults.template && extname(defaults.template) === kPatchedTemplateExt) {
+    delete defaults.template;
+  }
+
   return stringify(defaults as Record<string, unknown>);
 }

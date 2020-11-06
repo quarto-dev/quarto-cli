@@ -10,7 +10,6 @@ jupyter:
     name: python3
 ---
 
-
 ```python
 from ipyleaflet import Map, Marker, basemaps, basemap_to_tiles
 m = Map(
@@ -23,5 +22,3 @@ m = Map(
 m.add_layer(Marker(location=(52.204793, 360.121558)))
 m
 ```
-
-

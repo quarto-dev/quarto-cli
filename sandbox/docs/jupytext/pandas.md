@@ -11,8 +11,6 @@ jupyter:
     name: python3
 ---
 
-
-
 ```python
 import pandas as pd
 d = {'one' : [1., 2., 3., 4.],

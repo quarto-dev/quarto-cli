@@ -33,7 +33,11 @@ import { kStdOut, RenderFlags, resolveParams } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
 import { kMetadataFormat } from "../../config/constants.ts";
-import { ExecutionEngine, executionEngine } from "../../execute/engine.ts";
+import {
+  ExecutionEngine,
+  executionEngine,
+  ExecutionTarget,
+} from "../../execute/engine.ts";
 
 // command line options for render
 export interface RenderOptions {
@@ -52,18 +56,18 @@ export async function render(
   const tempDir = await Deno.makeTempDir({ prefix: "quarto" });
 
   // determine the computation engine and any alternate input file
-  const { input, engine } = await executionEngine(file, flags.quiet);
+  const { target, engine } = await executionEngine(file, flags.quiet);
 
   // resolve render target
-  const format = await resolveFormat(input, engine, options.flags);
+  const format = await resolveFormat(target, engine, options.flags);
 
   // derive the pandoc input file path (computations will create this)
-  const [inputDir, inputStem] = dirAndStem(input);
+  const [inputDir, inputStem] = dirAndStem(target.input);
   const mdOutput = join(inputDir, inputStem + ".quarto.md");
 
   // execute computations
   const executeResult = await engine.execute({
-    input,
+    target,
     output: mdOutput,
     tempDir,
     resourceDir: resourcePath(),
@@ -77,7 +81,7 @@ export async function render(
   format.pandoc = mergeConfigs(format.pandoc || {}, executeResult.pandoc);
 
   // pandoc output recipe (target file, args, complete handler)
-  const recipe = outputRecipe(file, options, format, engine);
+  const recipe = await outputRecipe(file, options, format, engine);
 
   // pandoc options
   const pandocOptions = {
@@ -97,7 +101,7 @@ export async function render(
   if (executeResult.postprocess && engine.postprocess) {
     await engine.postprocess({
       engine,
-      input,
+      target,
       format,
       output: recipe.output,
       data: executeResult.postprocess,
@@ -116,7 +120,7 @@ export async function render(
     finalOutput,
     executeResult.supporting,
     tempDir,
-    engine.keepMd(input),
+    engine.keepMd(target.input),
   );
 
   // report output created
@@ -129,13 +133,13 @@ export async function render(
 }
 
 async function resolveFormat(
-  input: string,
+  target: ExecutionTarget,
   engine: ExecutionEngine,
   flags?: RenderFlags,
 ) {
   // merge input metadata into project metadata
-  const inputMetadata = await engine.metadata(input);
-  const projMetadata = projectMetadata(input);
+  const inputMetadata = await engine.metadata(target);
+  const projMetadata = projectMetadata(target.input);
   const baseMetadata = mergeConfigs(projMetadata, inputMetadata);
 
   // divide metadata into format buckets

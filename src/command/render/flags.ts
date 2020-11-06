@@ -111,6 +111,10 @@ export function parseRenderFlags(args: string[]) {
   return flags;
 }
 
+export function havePandocArg(pandocArgs: string[], arg: string) {
+  return pandocArgs.indexOf(arg) !== -1;
+}
+
 export function replacePandocArg(
   pandocArgs: string[],
   arg: string,
