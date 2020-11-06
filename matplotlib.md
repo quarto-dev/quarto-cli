@@ -3,15 +3,24 @@ title: "matplotlib"
 knit: quarto render
 format:
   html:
-    fig-width: 10
+    fig-width: 9
     fig-height: 4
     keep-md: true
+jupyter:
+  jupytext:
+    formats: ipynb,md
+    text_representation:
+      extension: .md
+      format_name: markdown
+      format_version: '1.2'
+      jupytext_version: 1.6.0
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
 ---
 
-
-
-::: {.cell .code}
-```{.python}
+```python caption="my plot" label="myplot" tags=["remove-code"]
 import matplotlib.pyplot as plt
 
 labels = ['G1', 'G2', 'G3', 'G4', 'G6']
@@ -33,8 +42,6 @@ ax.legend()
 plt.show()
 ```
 
-::: {.output .display_data }
-![my plot](matplotlib_files/figure-html/cell-2-output-1.png){#fig:myplot width=807.5 height=351}
-:::
-:::
+```python
 
+```

@@ -45,6 +45,22 @@ ax.legend()
 plt.show()
 ```
 
+## Slide 2
+
+```python
+import itables.interactive
+import world_bank_data as wb
+
+df = wb.get_countries()
+df
+```
+
+
+
+
+
+
+
 
 
 
