@@ -1,29 +1,29 @@
 import { testRender } from "./render.ts";
 
-Deno.test("ipynb render (paired)", async () => {
+Deno.test("render: ipynb (paired)", async () => {
   await testRender("docs/test-jupyter.ipynb");
 });
 
-Deno.test("Jupyter Markdown Render (paired)", async () => {
+Deno.test("render: jupytext md (paired)", async () => {
   await testRender("docs/test-jupyter.md");
 });
 
-Deno.test("Python Jupytext Render (paired)", async () => {
+Deno.test("render: py file (paired)", async () => {
   await testRender("docs/test-jupyter.py");
 });
 
-Deno.test("Python Markdown PDF Render (paired)", async () => {
+Deno.test("render: jupytext md to pdf", async () => {
   await testRender("docs/test-jupyter.md", false, "pdf");
 });
 
-Deno.test("ipynb render (unpaired)", async () => {
+Deno.test("render: ipynb (unpaired)", async () => {
   await testRender("docs/unpaired.ipynb");
 });
 
-Deno.test("md render (unpaired)", async () => {
+Deno.test("render: jupytext md (unpaired)", async () => {
   await testRender("docs/unpaired-md.md");
 });
 
-Deno.test("py render (unpaired)", async () => {
+Deno.test("render: py file (unpaired)", async () => {
   await testRender("docs/unpaired-py.py");
 });
