@@ -2,7 +2,7 @@
 title: "plotly"
 knit: quarto render
 format: 
-  html:
+  revealjs:
     fig-width: 8
     fig-height: 3
 jupyter:
