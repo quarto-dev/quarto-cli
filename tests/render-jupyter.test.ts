@@ -1,33 +1,29 @@
+import { testRender } from "./render.ts";
 
-// TODO: Intermediary test.exec.ipynb is hangout around after test completion
-
-import { quarto } from "../src/quarto.ts";
-import { verifyAndCleanOutput, verifyNoPath } from "./verify.ts";
-
-
-const htmlOutput = "docs/test-jupyter.html";
-const supportFilesPath = "docs/test-jupyter_files";
-
-Deno.test("ipynb render", async () => {
-  await quarto(["render", "docs/test-jupyter.ipynb"]);
-  verifyAndCleanOutput(htmlOutput);
-  verifyAndCleanOutput(supportFilesPath);
+Deno.test("ipynb render (paired)", async () => {
+  await testRender("docs/test-jupyter.ipynb");
 });
 
-Deno.test("Jupyter Markdown Render", async () => {
-  await quarto(["render", "docs/test-jupyter.md"]);
-  verifyAndCleanOutput(htmlOutput);
-  verifyAndCleanOutput(supportFilesPath);
+Deno.test("Jupyter Markdown Render (paired)", async () => {
+  await testRender("docs/test-jupyter.md");
 });
 
-Deno.test("Python Jupytext Render", async () => {
-  await quarto(["render", "docs/test-jupyter.py"]);
-  verifyAndCleanOutput(htmlOutput);
-  verifyAndCleanOutput(supportFilesPath);
+Deno.test("Python Jupytext Render (paired)", async () => {
+  await testRender("docs/test-jupyter.py");
 });
 
-Deno.test("Python Markdown PDF Render", async () => {
-  await quarto(["render", "docs/test-jupyter.md", "--to", "pdf"]);
-  verifyAndCleanOutput("docs/test-jupyter.pdf");
-  verifyNoPath(supportFilesPath);
+Deno.test("Python Markdown PDF Render (paired)", async () => {
+  await testRender("docs/test-jupyter.md", false, "pdf");
+});
+
+Deno.test("ipynb render (unpaired)", async () => {
+  await testRender("docs/unpaired.ipynb");
+});
+
+Deno.test("md render (unpaired)", async () => {
+  await testRender("docs/unpaired-md.md");
+});
+
+Deno.test("py render (unpaired)", async () => {
+  await testRender("docs/unpaired-py.py");
 });

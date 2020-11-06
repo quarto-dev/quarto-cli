@@ -3,6 +3,8 @@
 Python
 
 
+Unpaired MD/PY files produce supporting directory unpaired.exec_files (since they are named unpaired.exec.ipynb as an intermediary)
+
 - revealjs js error
 
 break core/jupyter.ts into multiple files
