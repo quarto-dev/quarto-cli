@@ -23,8 +23,11 @@ import { readYamlFromMarkdownFile } from "../core/yaml.ts";
 
 export interface ExecutionEngine {
   name: string;
-  handle: (file: string, quiet: boolean) => Promise<string | undefined>;
-  metadata: (input: string) => Promise<Metadata>;
+  handle: (
+    file: string,
+    quiet: boolean,
+  ) => Promise<ExecutionTarget | undefined>;
+  metadata: (target: ExecutionTarget) => Promise<Metadata>;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;
   keepMd: (input: string) => string | undefined;
@@ -32,9 +35,15 @@ export interface ExecutionEngine {
   run?: (options: RunOptions) => Promise<void>;
 }
 
+// execution target (filename and context 'cookie')
+export interface ExecutionTarget {
+  input: string;
+  data?: unknown;
+}
+
 // execute options
 export interface ExecuteOptions {
-  input: string;
+  target: ExecutionTarget;
   output: string;
   format: Format;
   tempDir: string;
@@ -54,7 +63,7 @@ export interface ExecuteResult {
 // post processing options
 export interface PostProcessOptions {
   engine: ExecutionEngine;
-  input: string;
+  target: ExecutionTarget;
   format: Format;
   output: string;
   data: unknown;
@@ -85,24 +94,24 @@ export async function executionEngine(file: string, quiet?: boolean) {
 
   // try to find an engine
   for await (const engine of engines) {
-    const input = await engine.handle(file, !!quiet);
-    if (input) {
-      return { input, engine };
+    const target = await engine.handle(file, !!quiet);
+    if (target) {
+      return { target, engine };
     }
   }
 
   // if there is no engine, this is plain markdown
-  return { input: file, engine: markdownEngine() };
+  return { target: { input: file }, engine: markdownEngine() };
 }
 
 function markdownEngine(): ExecutionEngine {
   return {
     name: "markdown",
-    handle: (file: string) => Promise.resolve(file),
-    metadata: (file: string) =>
-      Promise.resolve(readYamlFromMarkdownFile(file) as Metadata),
+    handle: (file: string) => Promise.resolve({ input: file }),
+    metadata: (context: ExecutionTarget) =>
+      Promise.resolve(readYamlFromMarkdownFile(context.input) as Metadata),
     execute: async (options: ExecuteOptions) => {
-      await Deno.copyFile(options.input, options.output);
+      await Deno.copyFile(options.target.input, options.output);
       return Promise.resolve({
         supporting: [],
         pandoc: {} as FormatPandoc,

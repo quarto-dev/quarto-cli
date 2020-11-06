@@ -30,6 +30,7 @@ import type {
   ExecuteOptions,
   ExecuteResult,
   ExecutionEngine,
+  ExecutionTarget,
   PostProcessOptions,
 } from "./engine.ts";
 import {
@@ -70,10 +71,6 @@ const kCodeExtensions = [
   ".groovy",
 ];
 
-// extension for notebooks that are only for execution
-// (i.e. they are transient and not synced)
-const kTransientNotebookExtension = ".exec.ipynb";
-
 export const jupyterEngine: ExecutionEngine = {
   name: "jupyter",
 
@@ -101,28 +98,31 @@ export const jupyterEngine: ExecutionEngine = {
     const target = await notebookTarget();
     if (target) {
       let notebook = pairedPath(target.paired, isNotebook);
+      let transient = false;
       if (target.sync) {
         // perform the sync
         await jupytextSync(file, lightMetdata(target.paired), quiet);
         // if there is no paired notebook then create a transient one
         if (!notebook) {
+          transient = true;
           const [fileDir, fileStem] = dirAndStem(file);
-          notebook = join(
-            fileDir,
-            fileStem + kTransientNotebookExtension,
-          );
+          notebook = join(fileDir, fileStem + ".ipynb");
           await jupytextTo(file, "ipynb", notebook, quiet);
         }
       }
 
-      return notebook;
+      if (notebook) {
+        return { input: notebook, data: transient };
+      } else {
+        return undefined;
+      }
     }
   },
 
-  metadata: async (input: string): Promise<Metadata> => {
+  metadata: async (target: ExecutionTarget): Promise<Metadata> => {
     // read metadata
     const decoder = new TextDecoder("utf-8");
-    const nbContents = await Deno.readFile(input);
+    const nbContents = await Deno.readFile(target.input);
     const nb = JSON.parse(decoder.decode(nbContents));
     const cells = nb.cells as Array<{ cell_type: string; source: string[] }>;
     const markdown = cells.reduce((md, cell) => {
@@ -151,8 +151,11 @@ export const jupyterEngine: ExecutionEngine = {
 
     if (result.success) {
       // convert to markdown and write to target
-      const nb = jupyterFromFile(options.input);
-      const assets = jupyterAssets(options.input, options.format.pandoc.to);
+      const nb = jupyterFromFile(options.target.input);
+      const assets = jupyterAssets(
+        options.target.input,
+        options.format.pandoc.to,
+      );
       const result = jupyterToMarkdown(
         nb,
         {
@@ -172,10 +175,10 @@ export const jupyterEngine: ExecutionEngine = {
 
       // if it's a transient notebook then remove it, otherwise
       // sync so that jupyter[lab] can open the .ipynb w/o errors
-      if (options.input.endsWith(kTransientNotebookExtension)) {
-        Deno.removeSync(options.input);
+      if (options.target.data) {
+        Deno.removeSync(options.target.input);
       } else {
-        await jupytextSync(options.input, false, options.quiet);
+        await jupytextSync(options.target.input, false, options.quiet);
       }
 
       // return results

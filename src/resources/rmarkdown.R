@@ -437,7 +437,7 @@
   if (request$action == "spin") {
     result <- spin(params$input)
   } else if (request$action == "execute") {
-    result <- execute(params$input, params$format, params$output, params$tempDir, params$cwd, params$params)
+    result <- execute(params$target$input, params$format, params$output, params$tempDir, params$cwd, params$params)
   } else if (request$action == "postprocess") {
     result <- postprocess(params$input, params$format, params$output, params$data)
   } else if (request$action == "latexmk") {
