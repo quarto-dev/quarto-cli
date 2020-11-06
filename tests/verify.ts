@@ -13,5 +13,5 @@ export function verifyAndCleanOutput(
 
 export function verifyNoPath(path: string) {
   const pathExists = existsSync(path);
-  assert(!pathExists, `Missing directory: ${path}`);
+  assert(!pathExists, `Unexpected directory: ${path}`);
 }
