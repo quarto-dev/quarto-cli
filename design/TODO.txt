@@ -1,27 +1,4 @@
 
-
-Python
-
-Unpaired MD/PY files produce supporting directory unpaired.exec_files (since they are named unpaired.exec.ipynb as an intermediary)
-
-special tag named "label" that becomes #id in the AST, AND  #fig:label or #label
-  -- if it's an image then use fig: prefix automatically, otherwise just #label,
-     furthermore allow explcit fig: 
-special tag named "caption" that becomes the alt text for figures
-use "classes" rather than "class"
-get rid of id/name handling. 
-
-how does pandoc derive image label?
-http://lierdakil.github.io/pandoc-crossref/#image-labels
-
-
-https://jupytext.readthedocs.io/en/latest/formats.html#jupytext-markdown
-https://jupyter-cache.readthedocs.io/en/latest/
-  or just '--execute-run-code': all,cache,none
-execute:
-   run-code: 
-   include-code: false
-
 export interface FormatCell {
   "hide-cell": boolean;
   "hide-code": boolean;
@@ -72,16 +49,24 @@ const kRemoveWarningsTags = ["remove-warnings"];
 const kRemoveCellTags = ["remove-cell", "remove_cell"];
 
 
+https://jupytext.readthedocs.io/en/latest/formats.html#jupytext-markdown
+https://jupyter-cache.readthedocs.io/en/latest/
+  or just '--execute-run-code': all,cache,none
+execute:
+   run-code: 
+   include-code: false
 
-investimate viola (deploy notebooks w/ a backend)
 
-keep-source (for html formats, puts source in script tag)
 
 
 papermill (use their convention for parameters)
 
-consider id and class for knitr (including wrapping div). consider 
+consider classes attribute for knitr (including wrapping div). consider 
 similar/generic dom structure for chunks and code cells (show/hide)
+
+keep-source (for html formats, puts source in script tag)
+
+investimate viola (deploy notebooks w/ a backend)
 
 bs4 family of formats:
 
@@ -92,7 +77,8 @@ bs4-presentation
 bs4-website
 bs4-book
 
-NOTE: matplotlib fig sizes don't work for pdf
+NOTE: jupytext should fix it's lines_to_next_cell so that if there is content below a code cell
+      then it's max(lines_to_next_cell, 1)
 
 memo/proposal on computations:
 will be able to use RStudio chunk output and/or notebook for compute?
