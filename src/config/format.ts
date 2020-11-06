@@ -30,6 +30,7 @@ import {
   kPdfEngineOpts,
   kSelfContained,
   kStandalone,
+  kTemplate,
   kVariant,
 } from "../config/constants.ts";
 
@@ -79,6 +80,7 @@ export interface FormatPandoc {
   from?: string;
   to?: string;
   writer?: string;
+  [kTemplate]?: string;
   [kOutputFile]?: string;
   standalone?: boolean;
   [kSelfContained]?: boolean;
