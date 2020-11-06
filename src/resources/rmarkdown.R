@@ -260,11 +260,11 @@
       fig.height = format$execute$`fig-height`,
       dev = format$execute$`fig-format`,
       dpi = format$execute$`fig-dpi`,
-      echo = format$execute$`include-code`,
-      warning = format$execute$`include-warnings`,
-      message = format$execute$`include-warnings`,
       error = format$execute$`allow-errors`,
-      include = format$execute$`include-output`,
+      echo = !isTRUE(format$cell$`hide-code`),
+      warning = !isTRUE(format$cell$`hide-warnings`),
+      message = !isTRUE(format$cell$`hide-warnings`),
+      include = !isTRUE(format$cell$`hide-output`),
       # hard coded (overideable in setup chunk but not format)
       comment = NA
     )

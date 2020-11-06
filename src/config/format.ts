@@ -23,12 +23,16 @@ import {
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
+  kKeepHidden,
   kKeepYaml,
   kOutputFile,
   kPdfEngine,
   kPdfEngineOpt,
   kPdfEngineOpts,
   kSelfContained,
+  kShowCode,
+  kShowOutput,
+  kShowWarnings,
   kStandalone,
   kTemplate,
   kVariant,
@@ -42,7 +46,6 @@ import {
   kFigHeight,
   kFigWidth,
   kIncludeCode,
-  kIncludeOutput,
   kIncludeWarnings,
   kKeepMd,
   kKeepTex,
@@ -53,6 +56,7 @@ import {
 export interface Format {
   render: FormatRender;
   execute: FormatExecute;
+  cell: FormatCell;
   pandoc: FormatPandoc;
   metadata: Metadata;
 }
@@ -70,10 +74,14 @@ export interface FormatExecute {
   [kFigHeight]?: number;
   [kFigFormat]?: "retina" | "png" | "jpeg" | "svg" | "pdf";
   [kFigDpi]?: number;
-  [kIncludeCode]?: boolean;
-  [kIncludeOutput]?: boolean;
-  [kIncludeWarnings]?: boolean;
   [kAllowErrors]?: boolean;
+}
+
+export interface FormatCell {
+  [kShowCode]?: boolean;
+  [kShowOutput]?: boolean;
+  [kShowWarnings]?: boolean;
+  [kKeepHidden]?: boolean;
 }
 
 export interface FormatPandoc {
@@ -396,10 +404,13 @@ function defaultFormat(): Format {
       [kFigHeight]: 5,
       [kFigFormat]: "png",
       [kFigDpi]: 96,
-      [kIncludeCode]: true,
-      [kIncludeOutput]: true,
-      [kIncludeWarnings]: true,
       [kAllowErrors]: false,
+    },
+    cell: {
+      [kKeepHidden]: false,
+      [kShowCode]: true,
+      [kShowOutput]: true,
+      [kShowWarnings]: true,
     },
     render: {
       [kKeepMd]: false,

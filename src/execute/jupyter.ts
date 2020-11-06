@@ -42,10 +42,7 @@ import {
   kFigDpi,
   kFigFormat,
   kIncludeAfterBody,
-  kIncludeCode,
   kIncludeInHeader,
-  kIncludeOutput,
-  kIncludeWarnings,
 } from "../config/constants.ts";
 import {
   isHtmlFormat,
@@ -162,9 +159,7 @@ export const jupyterEngine: ExecutionEngine = {
         {
           language: nb.metadata.kernelspec.language,
           assets,
-          includeCode: options.format.execute[kIncludeCode],
-          includeOutput: options.format.execute[kIncludeOutput],
-          includeWarnings: options.format.execute[kIncludeWarnings],
+          formatCell: options.format.cell,
           toHtml: isHtmlFormat(options.format.pandoc),
           toLatex: isLatexFormat(options.format.pandoc),
           toMarkdown: isMarkdownFormat(options.format.pandoc),

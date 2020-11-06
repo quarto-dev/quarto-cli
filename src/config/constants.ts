@@ -17,6 +17,7 @@ export const kMetadataFormat = "format";
 
 export const kRenderDefaults = "render";
 export const kExecuteDefaults = "execute";
+export const kCellDefaults = "cell";
 export const kPandocDefaults = "pandoc";
 export const kPandocMetadata = "metadata";
 
@@ -25,10 +26,19 @@ export const kFigHeight = "fig-height";
 export const kFigFormat = "fig-format";
 export const kFigDpi = "fig-dpi";
 
+export const kHideCell = "hide-cell";
+export const kHideCode = "hide-code";
+export const kHideOutput = "hide-output";
 export const kIncludeCode = "include-code";
 export const kIncludeOutput = "include-output";
 export const kIncludeWarnings = "include-warnings";
 export const kAllowErrors = "allow-errors";
+
+export const kHideWarnings = "hide-warnings";
+export const kRemoveCell = "remove-cell";
+export const kRemoveCode = "remove-code";
+export const kRemoveOutput = "remove-output";
+export const kRemoveWarnings = "remove-warnings";
 
 export const kExecuteDefaultsKeys = [
   kFigWidth,
@@ -38,6 +48,18 @@ export const kExecuteDefaultsKeys = [
   kIncludeOutput,
   kIncludeWarnings,
   kAllowErrors,
+];
+
+export const kKeepHidden = "keep-hidden";
+export const kShowCode = "show-code";
+export const kShowOutput = "show-output";
+export const kShowWarnings = "show-warnings";
+
+export const kCellDefaultsKeys = [
+  kKeepHidden,
+  kShowCode,
+  kShowOutput,
+  kShowWarnings,
 ];
 
 export const kKeepMd = "keep-md";
