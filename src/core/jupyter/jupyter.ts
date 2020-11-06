@@ -1,30 +1,56 @@
+/*
+* jupyter.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+* Unless you have received this program directly from RStudio pursuant
+* to the terms of a commercial license agreement with RStudio, then
+* this program is licensed to you under the terms of version 3 of the
+* GNU General Public License. This program is distributed WITHOUT
+* ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING THOSE OF NON-INFRINGEMENT,
+* MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. Please refer to the
+* GPL (http://www.gnu.org/licenses/gpl-3.0.txt) for more details.
+*
+*/
+
 import { ensureDirSync } from "fs/ensure_dir.ts";
 import { join } from "path/mod.ts";
 import { walkSync } from "fs/walk.ts";
-import { generate as generateUuid } from "uuid/v4.ts";
 import { decode as base64decode } from "encoding/base64.ts";
 
 import {
   extensionForMimeImageType,
   kApplicationJavascript,
-  kApplicationJupyterWidgetState,
-  kApplicationJupyterWidgetView,
-  kApplicationPdf,
   kApplicationRtf,
-  kImageJpeg,
   kImagePng,
   kImageSvg,
   kRestructuredText,
   kTextHtml,
   kTextLatex,
-  kTextMarkdown,
-  kTextPlain,
-} from "./mime.ts";
+} from "../mime.ts";
 
-import { pandocAutoIdentifier } from "./pandoc/pandoc_id.ts";
+import { dirAndStem } from "../path.ts";
+import PngImage from "../png.ts";
 
-import { dirAndStem } from "./path.ts";
-import PngImage from "./png.ts";
+import {
+  includeCell,
+  includeCode,
+  includeOutput,
+  includeWarnings,
+} from "./tags.ts";
+import { cellContainerLabel, cellLabel, cellLabelValidator } from "./labels.ts";
+import {
+  displayDataIsHtml,
+  displayDataIsImage,
+  displayDataIsJavascript,
+  displayDataIsJson,
+  displayDataIsLatex,
+  displayDataIsMarkdown,
+  displayDataMimeType,
+  isDisplayData,
+} from "./display_data.ts";
+import { widgetIncludeFiles } from "./widgets.ts";
+import { removeAndPreserveHtml } from "./preserve.ts";
 
 export const kCellCollapsed = "collapsed";
 export const kCellAutoscroll = "autoscroll";
@@ -185,10 +211,8 @@ export function jupyterToMarkdown(
   options: JupyterToMarkdownOptions,
 ): JupyterToMarkdownResult {
   // optional content injection / html preservation for html output
-  const includeFiles = options.toHtml ? widgetPandocIncludes(nb) : undefined;
-  const htmlPreserve = options.toHtml
-    ? removeAndPreserveRawHtml(nb)
-    : undefined;
+  const includeFiles = options.toHtml ? widgetIncludeFiles(nb) : undefined;
+  const htmlPreserve = options.toHtml ? removeAndPreserveHtml(nb) : undefined;
 
   // generate markdown
   const md: string[] = [];
@@ -251,16 +275,6 @@ function mdFromRawCell(cell: JupyterCell) {
   return mdFromContentCell(cell);
 }
 
-// cell output control tags. also define some aliases for tags used in
-// jupyterbook/runtools: https://github.com/mwouts/jupytext/issues/337
-const kIncludeCodeTags = ["include-code"];
-const kIncludeOutputTags = ["include-output"];
-const kIncludeWarningsTags = ["include-warnings"];
-const kRemoveCodeTags = ["remove-code", "remove-input", "remove_input"];
-const kRemoveOutputTags = ["remove-output", "remove_output"];
-const kRemoveWarningsTags = ["remove-warnings"];
-const kRemoveCellTags = ["remove-cell", "remove_cell"];
-
 // https://ipython.org/ipython-doc/dev/notebook/nbformat.html
 // https://github.com/mwouts/jupytext/blob/master/jupytext/cell_to_text.py
 function mdFromCodeCell(
@@ -268,8 +282,8 @@ function mdFromCodeCell(
   cellIndex: number,
   options: JupyterToMarkdownOptions,
 ) {
-  // bail if "remove-cell" is defined
-  if (hasTag(cell, kRemoveCellTags)) {
+  // bail if we aren't including this cell
+  if (!includeCell(cell)) {
     return [];
   }
 
@@ -304,7 +318,7 @@ function mdFromCodeCell(
   // determine label -- this will be forwarded to the output (e.g. a figure)
   // if there is a single output. otherwise it will included on the enclosing
   // div and used as a prefix for the individual outputs
-  const label = cellContainerLabel(cellLabel(cell), cell, options);
+  const label = cellContainerLabel(cell, options);
   if (label) {
     divMd.push(`#${label} `);
   }
@@ -477,71 +491,6 @@ function mdOutputDisplayData(
   );
 }
 
-function displayDataMimeType(
-  output: JupyterOutputDisplayData,
-  options: JupyterToMarkdownOptions,
-) {
-  const displayPriority = [
-    kTextMarkdown,
-    kImageSvg,
-    kImagePng,
-    kImageJpeg,
-  ];
-  if (options.toHtml) {
-    displayPriority.push(
-      kApplicationJupyterWidgetState,
-      kApplicationJupyterWidgetView,
-      kApplicationJavascript,
-      kTextHtml,
-    );
-  } else if (options.toLatex) {
-    displayPriority.push(
-      kTextLatex,
-      kApplicationPdf,
-    );
-  } else if (options.toMarkdown) {
-    displayPriority.push(
-      kTextHtml,
-    );
-  }
-  displayPriority.push(
-    kTextPlain,
-  );
-
-  const availDisplay = Object.keys(output.data);
-  for (const display of displayPriority) {
-    if (availDisplay.includes(display)) {
-      return display;
-    }
-  }
-  return null;
-}
-
-function displayDataIsImage(mimeType: string) {
-  return [kImagePng, kImageJpeg, kImageSvg, kApplicationPdf].includes(mimeType);
-}
-
-function displayDataIsMarkdown(mimeType: string) {
-  return [kTextMarkdown, kTextPlain].includes(mimeType);
-}
-
-function displayDataIsLatex(mimeType: string) {
-  return [kTextLatex].includes(mimeType);
-}
-
-function displayDataIsHtml(mimeType: string) {
-  return [kTextHtml].includes(mimeType);
-}
-
-function displayDataIsJson(mimeType: string) {
-  return [kApplicationJupyterWidgetState, kApplicationJupyterWidgetView]
-    .includes(mimeType);
-}
-
-function displayDataIsJavascript(mimeType: string) {
-  return [kApplicationJavascript].includes(mimeType);
-}
-
 function mdImageOutput(
   label: string | null,
   caption: string | null,
@@ -653,271 +602,5 @@ function mdWarningOutput(msg: string) {
     output_type: "stream",
     name: "stderr",
     text: [msg],
-  });
-}
-
-function includeCode(cell: JupyterCell, includeDefault?: boolean) {
-  return shouldInclude(
-    cell,
-    !!includeDefault,
-    kIncludeCodeTags,
-    kRemoveCodeTags,
-  );
-}
-
-function includeOutput(cell: JupyterCell, includeDefault?: boolean) {
-  return shouldInclude(
-    cell,
-    !!includeDefault,
-    kIncludeOutputTags,
-    kRemoveOutputTags,
-  );
-}
-
-function includeWarnings(cell: JupyterCell, includeDefault?: boolean) {
-  return shouldInclude(
-    cell,
-    !!includeDefault,
-    kIncludeWarningsTags,
-    kRemoveWarningsTags,
-  );
-}
-
-function shouldInclude(
-  cell: JupyterCell,
-  includeDefault: boolean,
-  includeTags: string[],
-  removeTags: string[],
-) {
-  if (includeDefault) {
-    return !hasTag(cell, removeTags);
-  } else {
-    return hasTag(cell, includeTags);
-  }
-}
-
-function hasTag(cell: JupyterCell, tags: string[]) {
-  if (!cell.metadata.tags) {
-    return false;
-  }
-  return cell.metadata.tags.filter((tag) => tags.includes(tag)).length > 0;
-}
-
-function isDisplayData(output: JupyterOutput) {
-  return ["display_data", "execute_result"].includes(output.output_type);
-}
-
-function cellLabel(cell: JupyterCell) {
-  return (cell.metadata[kCellLabel] || cell.metadata[kCellName] || "")
-    .toLowerCase();
-}
-
-function cellContainerLabel(
-  label: string,
-  cell: JupyterCell,
-  options: JupyterToMarkdownOptions,
-) {
-  if (label) {
-    // apply pandoc auto-identifier treatment (but allow prefix)
-    label = label.replace(/(^\w+\:)?(.*)$/, (str, p1, p2) => {
-      return (p1 || "") + pandocAutoIdentifier(p2, true);
-    });
-
-    // no outputs
-    if (!cell.outputs) {
-      return label;
-    }
-
-    // not including output
-    if (!includeOutput(cell, options.includeOutput)) {
-      return label;
-    }
-
-    // no display data outputs
-    const displayDataOutputs = cell.outputs.filter(isDisplayData);
-    if (displayDataOutputs.length === 0) {
-      return label;
-    }
-
-    // multiple display data outputs (apply to container then apply sub-labels to outputs)
-    if (displayDataOutputs.length > 1) {
-      // see if the outputs share a common label type, if they do then apply
-      // that label type to the parent
-      const labelTypes = displayDataOutputs.map((output) =>
-        outputLabelType(output, options)
-      );
-      const labelType = labelTypes[0];
-      if (labelType && labelTypes.every((type) => labelType === type)) {
-        if (!label.startsWith(labelType + ":")) {
-          return `${labelType}:${label}`;
-        } else {
-          return label;
-        }
-      } else {
-        return label;
-      }
-    }
-
-    // in the case of a single display data output, check to see if it is directly
-    // targetable with a label (e.g. a figure). if it's not then just apply the
-    // label to the container
-    if (!outputLabelType(cell.outputs[0], options)) {
-      return label;
-    }
-
-    // not targetable
-    return null;
-  } else {
-    return null;
-  }
-}
-
-// see if an output is one of our known types (e.g. 'fig')
-function outputLabelType(
-  output: JupyterOutput,
-  options: JupyterToMarkdownOptions,
-) {
-  if (isDisplayData(output)) {
-    const mimeType = displayDataMimeType(
-      output as JupyterOutputDisplayData,
-      options,
-    );
-    if (mimeType && displayDataIsImage(mimeType)) {
-      return kFigLabel;
-    }
-  }
-  return null;
-}
-
-// validate unique labels
-function cellLabelValidator() {
-  const cellLabels = new Set<string>();
-  return function (cell: JupyterCell) {
-    const label = cellLabel(cell);
-    if (label) {
-      if (cellLabels.has(label)) {
-        throw new Error(
-          "Cell label names must be unique (found duplicate '" + label + "')",
-        );
-      } else {
-        cellLabels.add(label);
-      }
-    }
-  };
-}
-
-function widgetPandocIncludes(nb: JupyterNotebook) {
-  // a 'javascript' widget doesn't use the jupyter widgets protocol, but rather just injects
-  // text/html or application/javascript directly. futhermore these 'widgets' often assume
-  // that require.js and jquery are available. for example, see:
-  //   - https://github.com/mwouts/itables
-  //   - https://plotly.com/python/
-  const haveJavascriptWidgets = haveOutputType(
-    nb,
-    [kApplicationJavascript, kTextHtml],
-  );
-
-  // jupyter widgets confirm to the jupyter widget embedding protocol:
-  // https://ipywidgets.readthedocs.io/en/latest/embedding.html#embeddable-html-snippet
-  const haveJupyterWidgets = haveOutputType(
-    nb,
-    [kApplicationJupyterWidgetView],
-  );
-
-  // write required dependencies into head
-  const head: string[] = [];
-  if (haveJavascriptWidgets || haveJupyterWidgets) {
-    head.push(
-      '<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>',
-    );
-    head.push(
-      '<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>',
-    );
-    head.push(
-      "<script type=\"application/javascript\">define('jquery', [],function() {return window.jQuery;})</script>",
-    );
-  }
-  if (haveJupyterWidgets) {
-    head.push(
-      '<script src="https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js" crossorigin="anonymous"></script>',
-    );
-  }
-
-  // write jupyter widget state after body if it exists
-  const afterBody: string[] = [];
-  if (haveJupyterWidgets) {
-    afterBody.push(`<script type=${kApplicationJupyterWidgetState}>`);
-    afterBody.push(
-      JSON.stringify(nb.metadata.widgets[kApplicationJupyterWidgetState]),
-    );
-    afterBody.push("</script>");
-  }
-
-  // create pandoc includes for our head and afterBody
-  const widgetTempFile = (lines: string[]) => {
-    const tempFile = Deno.makeTempFileSync(
-      { prefix: "jupyter-widgets-", suffix: ".html" },
-    );
-    Deno.writeTextFileSync(tempFile, lines.join("\n") + "\n");
-    return tempFile;
-  };
-  const inHeaderFile = widgetTempFile(head);
-  const afterBodyFile = widgetTempFile(afterBody);
-
-  // return result
-  return {
-    inHeader: [inHeaderFile],
-    afterBody: [afterBodyFile],
-  };
-}
-
-function removeAndPreserveRawHtml(
-  nb: JupyterNotebook,
-): Record<string, string> | undefined {
-  const htmlPreserve: { [key: string]: string } = {};
-
-  nb.cells.forEach((cell) => {
-    if (cell.cell_type === "code") {
-      cell.outputs?.forEach((output) => {
-        if (isDisplayData(output)) {
-          const displayOutput = output as JupyterOutputDisplayData;
-          const html = displayOutput.data[kTextHtml];
-          const htmlText = Array.isArray(html) ? html.join("") : html as string;
-          if (html) {
-            const key = generateUuid();
-            htmlPreserve[key] = htmlText;
-            displayOutput.data[kTextMarkdown] = [
-              "```{=html}\n" + key + "\n```\n",
-            ];
-            delete displayOutput.data[kTextHtml];
-          }
-        }
-      });
-    }
-  });
-
-  if (Object.keys(htmlPreserve).length > 0) {
-    return htmlPreserve;
-  } else {
-    return undefined;
-  }
-}
-
-function haveOutputType(nb: JupyterNotebook, mimeTypes: string[]) {
-  return nb.cells.some((cell) => {
-    if (cell.cell_type === "code" && cell.outputs) {
-      return cell.outputs.some((output) => {
-        if (isDisplayData(output)) {
-          const outputTypes = Object.keys(
-            (output as JupyterOutputDisplayData).data,
-          );
-          return outputTypes.some((type) => mimeTypes.includes(type));
-        } else {
-          return false;
-        }
-      });
-    } else {
-      return false;
-    }
   });
 }

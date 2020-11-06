@@ -37,7 +37,7 @@ import {
   jupyterAssets,
   jupyterFromFile,
   jupyterToMarkdown,
-} from "../core/jupyter.ts";
+} from "../core/jupyter/jupyter.ts";
 import {
   kFigDpi,
   kFigFormat,
@@ -52,6 +52,7 @@ import {
   isLatexFormat,
   isMarkdownFormat,
 } from "../config/format.ts";
+import { restorePreservedHtml } from "../core/jupyter/preserve.ts";
 
 const kNotebookExtensions = [
   ".ipynb",
@@ -202,12 +203,10 @@ export const jupyterEngine: ExecutionEngine = {
     let output = Deno.readTextFileSync(options.output);
 
     // substitute
-    const htmlPreserve = options.data as Record<string, string>;
-    Object.keys(htmlPreserve).forEach((key) => {
-      const keyLoc = output.indexOf(key);
-      output = output.slice(0, keyLoc) + htmlPreserve[key] +
-        output.slice(keyLoc + key.length);
-    });
+    output = restorePreservedHtml(
+      output,
+      options.data as Record<string, string>,
+    );
 
     // re-write the output
     Deno.writeTextFileSync(options.output, output);
