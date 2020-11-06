@@ -9,7 +9,7 @@
       "request": "launch",
       "type": "pwa-node",
       "program": "${workspaceFolder}/src/quarto.ts",
-      "args": ["render", "test.py"],
+      "args": ["render", "visibility.md"],
       "cwd": "${workspaceFolder}/sandbox/docs",
       "runtimeExecutable": "deno",
       "runtimeArgs": [
@@ -20,7 +20,8 @@
         "--allow-all"
       ],
       "env": {
-        "QUARTO_RESOURCES": "${workspaceFolder}/src/resources"
+        "QUARTO_RESOURCES": "${workspaceFolder}/src/resources",
+        "CONDA_PREFIX": "${env:HOME}/Library/r-miniconda/envs/quarto-cli"
       },
       "attachSimplePort": 9229
     }
