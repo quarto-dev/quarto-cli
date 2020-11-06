@@ -812,25 +812,17 @@ function widgetPandocIncludes(nb: JupyterNotebook) {
   // that require.js and jquery are available. for example, see:
   //   - https://github.com/mwouts/itables
   //   - https://plotly.com/python/
-  const haveJavascriptWidgets = nb.cells.some((cell) => {
-    if (cell.cell_type === "code" && cell.outputs) {
-      return cell.outputs.some((output) => {
-        return isDisplayData(output) && (
-          !!(output as JupyterOutputDisplayData).data[kApplicationJavascript] ||
-          !!(output as JupyterOutputDisplayData).data[kTextHtml]
-        );
-      });
-    } else {
-      return false;
-    }
-  });
+  const haveJavascriptWidgets = haveOutputType(
+    nb,
+    [kApplicationJavascript, kTextHtml],
+  );
 
   // jupyter widgets confirm to the jupyter widget embedding protocol:
   // https://ipywidgets.readthedocs.io/en/latest/embedding.html#embeddable-html-snippet
-  const haveJupyterWidgets = !!nb.metadata
-    .widgets?.[kApplicationJupyterWidgetState];
-
-  //
+  const haveJupyterWidgets = haveOutputType(
+    nb,
+    [kApplicationJupyterWidgetView],
+  );
 
   // write required dependencies into head
   const head: string[] = [];
@@ -909,4 +901,23 @@ function removeAndPreserveRawHtml(
   } else {
     return undefined;
   }
+}
+
+function haveOutputType(nb: JupyterNotebook, mimeTypes: string[]) {
+  return nb.cells.some((cell) => {
+    if (cell.cell_type === "code" && cell.outputs) {
+      return cell.outputs.some((output) => {
+        if (isDisplayData(output)) {
+          const outputTypes = Object.keys(
+            (output as JupyterOutputDisplayData).data,
+          );
+          return outputTypes.some((type) => mimeTypes.includes(type));
+        } else {
+          return false;
+        }
+      });
+    } else {
+      return false;
+    }
+  });
 }
