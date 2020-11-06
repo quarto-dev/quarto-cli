@@ -1,5 +1,5 @@
 import { testRender } from "./render.ts";
 
-Deno.test("Markdown Render", async () => {
+Deno.test("render: plain md", async () => {
   await testRender("docs/test-plain.md", false);
 });
