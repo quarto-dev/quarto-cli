@@ -179,7 +179,7 @@ if __name__ == "__main__":
   
    # read args from stdin
    input_json = json.load(sys.stdin)
-   input = input_json["input"]
+   input = input_json["target"]["input"]
    format = input_json["format"]
    resource_dir = input_json["resourceDir"]
    run_path = input_json.get("cwd", "")

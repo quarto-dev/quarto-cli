@@ -29,6 +29,7 @@ import type {
   ExecuteOptions,
   ExecuteResult,
   ExecutionEngine,
+  ExecutionTarget,
   LatexmkOptions,
   PostProcessOptions,
   RunOptions,
@@ -43,24 +44,24 @@ export const rmdEngine: ExecutionEngine = {
 
   handle: async (file: string, _quiet: boolean) => {
     if (kEngineExtensions.includes(extname(file).toLowerCase())) {
-      return file;
+      return { input: file };
     }
   },
 
-  metadata: async (input: string): Promise<Metadata> => {
-    if (kRScriptExtensions.includes(extname(input.toLowerCase()))) {
+  metadata: async (target: ExecutionTarget): Promise<Metadata> => {
+    if (kRScriptExtensions.includes(extname(target.input.toLowerCase()))) {
       // if it's an R script, spin it into markdown
       const result = await callR<string>(
         "spin",
         {
-          input: input,
+          input: target.input,
         },
         true,
       );
       return readYamlFromMarkdown(result);
     } else {
       // otherwise just read the metadata from the file
-      return readYamlFromMarkdownFile(input);
+      return readYamlFromMarkdownFile(target.input);
     }
   },
 
