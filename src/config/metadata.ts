@@ -20,6 +20,8 @@ import { readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
 
 import {
+  kCellDefaults,
+  kCellDefaultsKeys,
   kExecuteDefaults,
   kExecuteDefaultsKeys,
   kKeepMd,
@@ -108,13 +110,20 @@ export function metadataAsFormat(metadata: Metadata): Format {
   const format: { [key: string]: any } = {
     render: {},
     execute: {},
+    cell: {},
     pandoc: {},
     metadata: {},
   };
   Object.keys(metadata).forEach((key) => {
     // allow stuff already sorted into a top level key through unmodified
     if (
-      [kRenderDefaults, kExecuteDefaults, kPandocDefaults, kPandocMetadata]
+      [
+        kRenderDefaults,
+        kExecuteDefaults,
+        kCellDefaults,
+        kPandocDefaults,
+        kPandocMetadata,
+      ]
         .includes(key)
     ) {
       format[key] = metadata[key];
@@ -124,6 +133,8 @@ export function metadataAsFormat(metadata: Metadata): Format {
         format.render[key] = metadata[key];
       } else if (kExecuteDefaultsKeys.includes(key)) {
         format.execute[key] = metadata[key];
+      } else if (kCellDefaultsKeys.includes(key)) {
+        format.cell[key] = metadata[key];
       } else if (kPandocDefaultsKeys.includes(key)) {
         format.pandoc[key] = metadata[key];
       } else {

@@ -55,7 +55,7 @@ export function cellContainerLabel(
     }
 
     // not including output
-    if (!includeOutput(cell, options.includeOutput)) {
+    if (!includeOutput(cell, options.formatCell)) {
       return label;
     }
 

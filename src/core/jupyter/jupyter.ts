@@ -33,6 +33,11 @@ import { dirAndStem } from "../path.ts";
 import PngImage from "../png.ts";
 
 import {
+  convertVisibilityTags,
+  hideCell,
+  hideCode,
+  hideOutput,
+  hideWarnings,
   includeCell,
   includeCode,
   includeOutput,
@@ -51,6 +56,8 @@ import {
 } from "./display_data.ts";
 import { widgetIncludeFiles } from "./widgets.ts";
 import { removeAndPreserveHtml } from "./preserve.ts";
+import { FormatCell } from "../../config/format.ts";
+import { kKeepHidden } from "../../config/constants.ts";
 
 export const kCellCollapsed = "collapsed";
 export const kCellAutoscroll = "autoscroll";
@@ -186,9 +193,7 @@ export function jupyterAssets(input: string, to?: string) {
 export interface JupyterToMarkdownOptions {
   language: string;
   assets: JupyterAssets;
-  includeCode?: boolean;
-  includeOutput?: boolean;
-  includeWarnings?: boolean;
+  formatCell: FormatCell;
   toHtml?: boolean;
   toLatex?: boolean;
   toMarkdown?: boolean;
@@ -282,6 +287,11 @@ function mdFromCodeCell(
   cellIndex: number,
   options: JupyterToMarkdownOptions,
 ) {
+  // if we aren't keeping hidden, then all show/hide tags are equivalent to include/remove
+  if (!options.formatCell[kKeepHidden]) {
+    cell.metadata[kCellTags] = convertVisibilityTags(cell.metadata[kCellTags]);
+  }
+
   // bail if we aren't including this cell
   if (!includeCell(cell)) {
     return [];
@@ -305,7 +315,6 @@ function mdFromCodeCell(
     kCellDeletable,
     kCellFormat,
     kCellName,
-    kCellTags,
     kCellLabel,
     kCellCaption,
     kCellClasses,
@@ -326,6 +335,11 @@ function mdFromCodeCell(
   // cell_type classes
   divMd.push(`.cell .code `);
 
+  // add hidden if requested
+  if (hideCell(cell)) {
+    divMd.push(`.hidden `);
+  }
+
   // css classes
   if (cell.metadata.classes) {
     const classes = cell.metadata.classes.trim().split(/\s+/)
@@ -337,8 +351,9 @@ function mdFromCodeCell(
   // forward other attributes we don't know about
   for (const key of Object.keys(cell.metadata)) {
     if (!kCellMetadataFilter.includes(key.toLowerCase())) {
+      const tagName = key === kCellTags ? "data-tags" : key;
       // deno-lint-ignore no-explicit-any
-      divMd.push(`${key}="${(cell.metadata as any)[key]}" `);
+      divMd.push(`${tagName}="${(cell.metadata as any)[key]}" `);
     }
   }
 
@@ -346,14 +361,18 @@ function mdFromCodeCell(
   md.push(divMd.join("").replace(/ $/, "").concat("}\n"));
 
   // write code if appropriate
-  if (includeCode(cell, options.includeCode)) {
-    md.push("```{." + options.language + "}\n");
+  if (includeCode(cell, options.formatCell)) {
+    md.push("```{." + options.language);
+    if (hideCode(cell, options.formatCell)) {
+      md.push(" .hidden");
+    }
+    md.push("}\n");
     md.push(...cell.source, "\n");
     md.push("```\n");
   }
 
   // write output if approproate
-  if (includeOutput(cell, options.includeOutput)) {
+  if (includeOutput(cell, options.formatCell)) {
     // compute label prefix for output (in case we need it for files, etc.)
     const labelName = label
       ? label.replaceAll(":", "-")
@@ -370,7 +389,7 @@ function mdFromCodeCell(
       if (
         output.output_type === "stream" &&
         (output as JupyterOutputStream).name === "stderr" &&
-        !includeWarnings(cell, options.includeWarnings)
+        !includeWarnings(cell, options.formatCell)
       ) {
         continue;
       }
@@ -379,13 +398,22 @@ function mdFromCodeCell(
       md.push("\n");
 
       // div preamble
-      md.push(`::: {.output .${output.output_type} `);
+      md.push(`::: {.output .${output.output_type}`);
 
       // add stream name class if necessary
       if (output.output_type === "stream") {
         const stream = output as JupyterOutputStream;
-        md.push(`.${stream.name}`);
+        md.push(` .${stream.name}`);
       }
+
+      // add hidden if necessary
+      if (
+        hideOutput(cell, options.formatCell) ||
+        (isWarningOutput(output) && hideWarnings(cell, options.formatCell))
+      ) {
+        md.push(` .hidden`);
+      }
+
       md.push("}\n");
 
       // produce output
@@ -603,4 +631,13 @@ function mdWarningOutput(msg: string) {
     name: "stderr",
     text: [msg],
   });
+}
+
+function isWarningOutput(output: JupyterOutput) {
+  if (output.output_type === "stream") {
+    const stream = output as JupyterOutputStream;
+    return stream.name === "stderr";
+  } else {
+    return false;
+  }
 }
