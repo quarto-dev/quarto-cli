@@ -1,7 +1,10 @@
 import { assert } from "https://deno.land/std/testing/asserts.ts";
 import { resourcePath } from "../src/core/resources.ts";
 
-Deno.test("Read Pandoc Metadata Template", async () => {
+Deno.test("environment: resource path available", async () => {
   const path = resourcePath("metadata.template");
-  assert(path.length > 0, "Failed to read resource metadata.template");
+  assert(
+    path.length > 0,
+    "Unable to get path using resourcePath('metadata.template')",
+  );
 });
