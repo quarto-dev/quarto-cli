@@ -1,53 +1,12 @@
 
-export interface FormatCell {
-  "hide-cell": boolean;
-  "hide-code": boolean;
-  "hide-output": boolean;
-  "hide-warnings": boolean;
 
-  "remove-cell": boolean;
-  "remove-code": boolean;
-  "remove-output": boolean;
-  "remove-warnings": boolean;
 
-  "cell-folding": boolean;
-}
+consider classes attribute for knitr (including wrapping div). consider 
+similar/generic dom structure for chunks and code cells (show/hide)
 
-// cell level tags:
-/*
+keep-source (for html formats, puts source in script tag)
 
-hide-cell
-hide-code
-hide-output
-hide-warnings
-
-show-cell
-show-code
-show-output
-show-warnings
-
-remove-cell
-remove-code
-remove-output
-remove-warnings
-
-include-cell
-include-code
-include-output
-include-warnings
-
-*/
-
-// cell output control tags. also define some aliases for tags used in
-// jupyterbook/runtools: https://github.com/mwouts/jupytext/issues/337
-const kIncludeCodeTags = ["include-code"];
-const kIncludeOutputTags = ["include-output"];
-const kIncludeWarningsTags = ["include-warnings"];
-const kRemoveCodeTags = ["remove-code", "remove-input", "remove_inupt"];
-const kRemoveOutputTags = ["remove-output", "remove_output"];
-const kRemoveWarningsTags = ["remove-warnings"];
-const kRemoveCellTags = ["remove-cell", "remove_cell"];
-
+papermill (use their convention for parameters)
 
 https://jupytext.readthedocs.io/en/latest/formats.html#jupytext-markdown
 https://jupyter-cache.readthedocs.io/en/latest/
@@ -57,16 +16,7 @@ execute:
    include-code: false
 
 
-
-
-papermill (use their convention for parameters)
-
-consider classes attribute for knitr (including wrapping div). consider 
-similar/generic dom structure for chunks and code cells (show/hide)
-
-keep-source (for html formats, puts source in script tag)
-
-investimate viola (deploy notebooks w/ a backend)
+investigate viola (deploy notebooks w/ a backend)
 
 bs4 family of formats:
 
@@ -107,6 +57,10 @@ computations could even be at a URL!!!
   - Adopt pandoc-crossref if custom labels PR is merged
   - Implement our own w/ largely similar syntax but thereom's, etc.
     Lua vs. Typescript
+  figures for html/js blobs:
+- display_data with type text/html
+- display_data with type widget+view+json
+
 
 Project system:
   - Terminate at _quarto.yml w/ project: true
@@ -127,12 +81,6 @@ semantics as Pandoc
 
 discover index.Rmd or ui.Rmd for quarto run. can't rely on 
 rmarkdown::run b/c we need to figure out which Rmd to render
-
-
-
-
-
-
 
 consider pluto notebooks (julia)
 
