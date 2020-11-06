@@ -13,7 +13,7 @@
 *
 */
 
-import { extname, isAbsolute, relative } from "path/mod.ts";
+import { extname, isAbsolute, join, relative } from "path/mod.ts";
 
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
@@ -23,16 +23,18 @@ import {
   kKeepYaml,
   kOutputExt,
   kOutputFile,
+  kTemplate,
   kVariant,
 } from "../../config/constants.ts";
 import { Format } from "../../config/format.ts";
 
 import { ExecutionEngine } from "../../execute/engine.ts";
 
-import { kStdOut, replacePandocArg } from "./flags.ts";
+import { havePandocArg, kStdOut, replacePandocArg } from "./flags.ts";
 import { PandocOptions } from "./pandoc.ts";
 import { RenderOptions } from "./render.ts";
 import { latexmkOutputRecipe, useLatexmk } from "./latexmk.ts";
+import { execProcess } from "../../core/process.ts";
 
 // render commands imply the --output argument for pandoc and the final
 // output file to create for the user, but we need a 'recipe' to go from
@@ -40,6 +42,8 @@ import { latexmkOutputRecipe, useLatexmk } from "./latexmk.ts";
 // considerations include providing the default extension, dealing with
 // output to stdout, and rendering pdfs (which can require an additional
 // step after pandoc e.g. for latexmk)
+
+export const kPatchedTemplateExt = ".patched";
 
 export interface OutputRecipe {
   // --output file that pandoc will produce
@@ -54,12 +58,12 @@ export interface OutputRecipe {
   complete: (options: PandocOptions) => Promise<string | void>;
 }
 
-export function outputRecipe(
+export async function outputRecipe(
   input: string,
   options: RenderOptions,
   format: Format,
   engine: ExecutionEngine,
-): OutputRecipe {
+): Promise<OutputRecipe> {
   if (useLatexmk(format, options.flags)) {
     return latexmkOutputRecipe(input, options, format, engine.latexmk);
   } else {
@@ -73,6 +77,16 @@ export function outputRecipe(
         completeActions.forEach((action) => action());
       },
     };
+
+    // patch templates as necessary (don't patch if there is a user specified template)
+    if (
+      !format.pandoc[kTemplate] && !havePandocArg(recipe.args, "--template")
+    ) {
+      if (format.pandoc.to === "revealjs") {
+        const template = await patchRevealsJsTemplate();
+        recipe.format.pandoc[kTemplate] = template;
+      }
+    }
 
     // helper function to re-write output
     const updateOutput = (output: string) => {
@@ -150,5 +164,57 @@ export function outputRecipe(
 
     // return
     return recipe;
+  }
+}
+
+async function patchRevealsJsTemplate() {
+  return await patchTemplate("revealjs", (template) => {
+    template = template.replace(
+      /(<script src="\$revealjs-url\$\/dist\/reveal.js"><\/script>)/m,
+      "<script>window.backupDefine = window.define; window.define = undefined;</script>\n  $1",
+    );
+    template = template.replace(
+      /(<script src="\$revealjs-url\$\/plugin\/math\/math.js"><\/script>\n\$endif\$)/,
+      "$1\n  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>\n",
+    );
+
+    return template;
+  });
+}
+
+async function patchTemplate(
+  format: string,
+  patch: (template: string) => string,
+) {
+  // get the default pandoc template for the format
+  const result = await execProcess({
+    cmd: ["pandoc", "-D", format],
+    stdout: "piped",
+  });
+
+  // get the shared styles template
+  const stylesResult = await execProcess({
+    cmd: ["pandoc", "--print-default-data-file", "templates/styles.html"],
+    stdout: "piped",
+  });
+
+  // transform it
+  if (result.success && stylesResult.success) {
+    const patched = patch(result.stdout!);
+    console.log(patched);
+
+    // write a temp file w/ the patched template
+    const templateDir = await Deno.makeTempDir();
+    const template = await Deno.makeTempFile(
+      { suffix: kPatchedTemplateExt, dir: templateDir },
+    );
+    await Deno.writeTextFile(template, patched);
+    // write styles file
+    const styles = join(templateDir, "styles.html");
+    await Deno.writeTextFile(styles, stylesResult.stdout!);
+
+    return template;
+  } else {
+    throw new Error();
   }
 }

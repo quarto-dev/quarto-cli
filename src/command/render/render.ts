@@ -77,7 +77,7 @@ export async function render(
   format.pandoc = mergeConfigs(format.pandoc || {}, executeResult.pandoc);
 
   // pandoc output recipe (target file, args, complete handler)
-  const recipe = outputRecipe(file, options, format, engine);
+  const recipe = await outputRecipe(file, options, format, engine);
 
   // pandoc options
   const pandocOptions = {
