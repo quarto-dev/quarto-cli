@@ -201,7 +201,6 @@ async function patchTemplate(
   // transform it
   if (result.success && stylesResult.success) {
     const patched = patch(result.stdout!);
-    console.log(patched);
 
     // write a temp file w/ the patched template
     const templateDir = await Deno.makeTempDir();
