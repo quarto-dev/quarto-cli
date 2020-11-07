@@ -20,13 +20,15 @@ import { dirAndStem, expandPath } from "../../core/path.ts";
 import { readYamlFrontMatterFromMarkdown } from "../../core/yaml.ts";
 
 import {
+  kIncludeAfterBody,
+  kKeepSource,
   kKeepYaml,
   kOutputExt,
   kOutputFile,
   kTemplate,
   kVariant,
 } from "../../config/constants.ts";
-import { Format } from "../../config/format.ts";
+import { Format, isHtmlFormat } from "../../config/format.ts";
 
 import { ExecutionEngine } from "../../execute/engine.ts";
 
@@ -77,6 +79,12 @@ export async function outputRecipe(
         completeActions.forEach((action) => action());
       },
     };
+
+    // keep source if requested (and we are targeting html)
+    if (format.render[kKeepSource] && isHtmlFormat(format.pandoc)) {
+      format.pandoc[kIncludeAfterBody] = format.pandoc[kIncludeAfterBody] || [];
+      format.pandoc[kIncludeAfterBody]?.push(embeddedSourceCode(input));
+    }
 
     // patch templates as necessary (don't patch if there is a user specified template)
     if (
@@ -165,6 +173,15 @@ export async function outputRecipe(
     // return
     return recipe;
   }
+}
+
+function embeddedSourceCode(file: string) {
+  const code = Deno.readTextFileSync(file);
+  const scriptTag =
+    `<script id="quarto-embedded-source-code" type="text/plain">\n${code}</script>`;
+  const tempFile = Deno.makeTempFileSync({ suffix: ".html" });
+  Deno.writeTextFileSync(tempFile, scriptTag);
+  return tempFile;
 }
 
 async function patchRevealsJsTemplate() {

@@ -45,9 +45,8 @@ import {
   kFigFormat,
   kFigHeight,
   kFigWidth,
-  kIncludeCode,
-  kIncludeWarnings,
   kKeepMd,
+  kKeepSource,
   kKeepTex,
   kOutputExt,
 } from "./constants.ts";
@@ -63,8 +62,9 @@ export interface Format {
 
 export interface FormatRender {
   [kKeepMd]?: boolean;
-  [kKeepYaml]?: boolean;
   [kKeepTex]?: boolean;
+  [kKeepYaml]?: boolean;
+  [kKeepSource]?: boolean;
   [kVariant]?: string;
   [kOutputExt]?: string;
 }
