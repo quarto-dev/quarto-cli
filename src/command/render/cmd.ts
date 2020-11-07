@@ -40,7 +40,7 @@ export const renderCommand = new Command()
   )
   .option(
     "--execute-params",
-    "YAML file with execution parameters ('ask' to prompt).",
+    "YAML file with execution parameters.",
   )
   .option(
     "--execute-dir",

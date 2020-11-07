@@ -175,9 +175,9 @@ export function removePandocArgs(
 
 // resolve parameters (if any)
 export function resolveParams(params?: string) {
-  if (!params || params === "ask") {
-    return params;
-  } else {
+  if (params) {
     return readYaml(params) as { [key: string]: unknown };
+  } else {
+    return undefined;
   }
 }
