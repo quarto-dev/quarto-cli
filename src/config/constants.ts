@@ -65,6 +65,7 @@ export const kCellDefaultsKeys = [
 export const kKeepMd = "keep-md";
 export const kKeepTex = "keep-tex";
 export const kKeepYaml = "keep-yaml";
+export const kKeepSource = "keep-source";
 export const kVariant = "variant";
 export const kOutputExt = "output-ext";
 
@@ -72,6 +73,7 @@ export const kRenderDefaultsKeys = [
   kKeepMd,
   kKeepTex,
   kKeepYaml,
+  kKeepSource,
   kVariant,
   kOutputExt,
 ];
