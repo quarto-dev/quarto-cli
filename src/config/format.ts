@@ -291,8 +291,10 @@ function beamerFormat(): Format {
       execute: {
         [kFigWidth]: 10,
         [kFigHeight]: 7,
-        [kIncludeCode]: false,
-        [kIncludeWarnings]: false,
+      },
+      cell: {
+        [kShowCode]: false,
+        [kShowWarnings]: false,
       },
     },
   );
@@ -309,9 +311,9 @@ function htmlPresentationFormat(figwidth: number, figheight: number): Format {
   return mergeConfigs(
     htmlFormat(figwidth, figheight),
     {
-      execute: {
-        [kIncludeCode]: false,
-        [kIncludeWarnings]: false,
+      cell: {
+        [kShowCode]: false,
+        [kShowWarnings]: false,
       },
     },
   );
@@ -345,8 +347,10 @@ function powerpointFormat(): Format {
     execute: {
       [kFigWidth]: 7.5,
       [kFigHeight]: 5.5,
-      [kIncludeCode]: false,
-      [kIncludeWarnings]: false,
+    },
+    cell: {
+      [kShowCode]: false,
+      [kShowWarnings]: false,
     },
   });
 }
