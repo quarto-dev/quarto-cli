@@ -261,10 +261,10 @@
       dev = format$execute$`fig-format`,
       dpi = format$execute$`fig-dpi`,
       error = format$execute$`allow-errors`,
-      echo = !isTRUE(format$cell$`hide-code`),
-      warning = !isTRUE(format$cell$`hide-warnings`),
-      message = !isTRUE(format$cell$`hide-warnings`),
-      include = !isTRUE(format$cell$`hide-output`),
+      echo = isTRUE(format$cell$`show-code`),
+      warning = isTRUE(format$cell$`show-warnings`),
+      message = isTRUE(format$cell$`show-warnings`),
+      include = isTRUE(format$cell$`show-output`),
       # hard coded (overideable in setup chunk but not format)
       comment = NA
     )
