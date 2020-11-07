@@ -18,6 +18,7 @@ import { existsSync } from "fs/exists.ts";
 
 import { readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
+import { message } from "../core/console.ts";
 
 import {
   kCellDefaults,
@@ -146,7 +147,11 @@ export function metadataAsFormat(metadata: Metadata): Format {
 }
 
 function readQuartoYaml(file: string) {
-  const yaml = readYaml(file) as Metadata;
-
-  return yaml;
+  try {
+    const yaml = readYaml(file) as Metadata;
+    return yaml;
+  } catch (e) {
+    message("\nError reading quarto config file at " + file + "\n");
+    throw e;
+  }
 }
