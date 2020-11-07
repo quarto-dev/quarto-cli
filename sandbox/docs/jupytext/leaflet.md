@@ -10,7 +10,7 @@ jupyter:
     name: python3
 ---
 
-```python
+```python label="fig:leaflet" caption="my map" tags=["remove-code"]
 from ipyleaflet import Map, Marker, basemaps, basemap_to_tiles
 m = Map(
   basemap=basemap_to_tiles(
