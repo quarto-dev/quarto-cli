@@ -30,6 +30,10 @@ export function readYaml(file: string) {
   }
 }
 
+export function readYamlFromString(yml: string) {
+  return parse(yml);
+}
+
 export function readYamlFromMarkdown(
   markdown: string,
 ): { [key: string]: unknown } {

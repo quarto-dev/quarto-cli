@@ -19,7 +19,7 @@ import { stringify } from "encoding/yaml.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 import { message } from "../../core/console.ts";
 
-import { Format, FormatPandoc } from "../../config/format.ts";
+import { Format, FormatPandoc, isHtmlFormat } from "../../config/format.ts";
 import { pdfEngine } from "../../config/pdf.ts";
 import { Metadata } from "../../config/metadata.ts";
 
@@ -38,6 +38,9 @@ import {
 
 import { kPatchedTemplateExt } from "./output.ts";
 import { RenderFlags } from "./flags.ts";
+import { mergeConfigs } from "../../core/config.ts";
+import { resourcePath } from "../../core/resources.ts";
+import { readYamlFromString } from "../../core/yaml.ts";
 
 // options required to run pandoc
 export interface PandocOptions {
@@ -66,9 +69,18 @@ export async function runPandoc(
   const cmd = ["pandoc"];
 
   // write a temporary defaults file
-  if (options.format.pandoc) {
+  let allDefaults: FormatPandoc | undefined;
+  const detectedDefaults = await detectDefaults(
+    options.input,
+    options.format.pandoc,
+  );
+  if (detectedDefaults || options.format.pandoc) {
+    allDefaults = mergeConfigs(
+      detectedDefaults || {},
+      options.format.pandoc || {},
+    );
     const defaults = "---\n" +
-      stringify(options.format.pandoc as Record<string, unknown>);
+      stringify(allDefaults as Record<string, unknown>);
     const defaultsFile = await Deno.makeTempFile(
       { prefix: "quarto-defaults", suffix: ".yml" },
     );
@@ -105,7 +117,7 @@ export async function runPandoc(
   if (!options.flags?.quiet && options.format.metadata) {
     runPandocMessage(
       args,
-      options.format.pandoc,
+      allDefaults,
       options.format.metadata,
     );
   }
@@ -118,6 +130,33 @@ export async function runPandoc(
     },
     input,
   );
+}
+
+async function detectDefaults(
+  file: string,
+  format: FormatPandoc,
+): Promise<FormatPandoc | undefined> {
+  if (isHtmlFormat(format)) {
+    const cmd = [
+      "pandoc",
+      file,
+      "--to",
+      resourcePath("filters/html-defaults.lua"),
+    ];
+    const result = await execProcess({ cmd, stdout: "piped" });
+    if (result.success) {
+      const defaults = (result.stdout || "").trim();
+      if (defaults) {
+        return readYamlFromString(`---\n${defaults}\n`) as FormatPandoc;
+      } else {
+        return undefined;
+      }
+    } else {
+      throw new Error();
+    }
+  } else {
+    return undefined;
+  }
 }
 
 type CiteMethod = "citeproc" | "natbib" | "biblatex";
