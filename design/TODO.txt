@@ -1,18 +1,18 @@
 
 
 consider classes attribute for knitr (including wrapping div). consider 
-similar/generic dom structure for chunks and code cells (show/hide)
+similar/generic dom structure for chunks and code cells (show/hide).
 
-papermill (use their convention for parameters)
+- implement keep-hidden 
+- consider that knitr already has some way to do attribute and class forwarding,
+  I think it might be just attr. and class, check it out
+  we may need to intercept this
 
-  parameters
-  injected-parameters (right after, or at top if no parameters)
 
-https://jupytext.readthedocs.io/en/latest/formats.html#jupytext-markdown
+
 https://jupyter-cache.readthedocs.io/en/latest/
   or just '--execute-run-code': all,cache,none
-execute:
-   run-code: 
+   run-code: all
    include-code: false
 
 
