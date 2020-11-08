@@ -1,12 +1,12 @@
 
 
-
 consider classes attribute for knitr (including wrapping div). consider 
 similar/generic dom structure for chunks and code cells (show/hide)
 
-keep-source (for html formats, puts source in script tag)
-
 papermill (use their convention for parameters)
+
+  parameters
+  injected-parameters (right after, or at top if no parameters)
 
 https://jupytext.readthedocs.io/en/latest/formats.html#jupytext-markdown
 https://jupyter-cache.readthedocs.io/en/latest/
@@ -16,8 +16,6 @@ execute:
    include-code: false
 
 
-investigate viola (deploy notebooks w/ a backend)
-
 bs4 family of formats:
 
 bs4-notebook 
@@ -26,9 +24,6 @@ bs4-dashboard
 bs4-presentation
 bs4-website
 bs4-book
-
-NOTE: jupytext should fix it's lines_to_next_cell so that if there is content below a code cell
-      then it's max(lines_to_next_cell, 1)
 
 memo/proposal on computations:
 will be able to use RStudio chunk output and/or notebook for compute?
