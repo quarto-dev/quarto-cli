@@ -360,8 +360,9 @@ function mdFromCodeCell(
     }
   }
 
-  // strip trailing space and add terminator
-  md.push(divMd.join("").replace(/ $/, "").concat("}\n"));
+  // create string for div enclosure (we'll use it later but
+  // only if there is actually content in the div)
+  const divBeginMd = divMd.join("").replace(/ $/, "").concat("}\n");
 
   // write code if appropriate
   if (includeCode(cell, options.formatCell)) {
@@ -448,11 +449,15 @@ function mdFromCodeCell(
     }
   }
 
-  // end div
-  md.push(":::\n");
+  // write md w/ div enclosure (if there is any md to write)
+  if (md.length > 0) {
+    // begin and end
+    md.unshift(divBeginMd);
+    md.push(":::\n");
 
-  // lines to next cell
-  md.push("\n".repeat((cell.metadata.lines_to_next_cell || 1)));
+    // lines to next cell
+    md.push("\n".repeat((cell.metadata.lines_to_next_cell || 1)));
+  }
 
   return md;
 }
