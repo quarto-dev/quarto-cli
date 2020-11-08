@@ -348,12 +348,16 @@ function mdFromCodeCell(
     divMd.push(classes + " ");
   }
 
+  console.log(cell.metadata);
   // forward other attributes we don't know about
   for (const key of Object.keys(cell.metadata)) {
     if (!kCellMetadataFilter.includes(key.toLowerCase())) {
-      const tagName = key === kCellTags ? "data-tags" : key;
       // deno-lint-ignore no-explicit-any
-      divMd.push(`${tagName}="${(cell.metadata as any)[key]}" `);
+      const value = (cell.metadata as any)[key];
+      if (value) {
+        const tagName = key === kCellTags ? "data-tags" : key;
+        divMd.push(`${tagName}="${value}" `);
+      }
     }
   }
 
