@@ -122,7 +122,7 @@
     list(
       supporting = I(supporting),
       pandoc = pandoc,
-      postprocess = postprocess 
+      postprocess = postprocess
     )
   }
 
@@ -269,11 +269,11 @@
       comment = NA
     )
 
-    # add fig.retina if requested 
+    # add fig.retina if requested
     if (opts_chunk$dev == "retina"){
       opts_chunk$dev <- "png"
       opts_chunk$fig.retina = 2
-    } 
+    }
 
     # set the dingbats option for the pdf device if required
     if (opts_chunk$dev == 'pdf') {
@@ -285,11 +285,44 @@
       }
     }
 
+    # hooks for marking up output
+    default_hooks <- knitr::hooks_markdown()
+    delegating_hook <- function(name, hook) {
+      function(x, options) {
+        x <- default_hooks[[name]](x, options)
+        hook(x, options)
+      }
+    }
+    # entire chunk
+    knit_hooks$chunk <- delegating_hook("chunk", function(x, options) {
+      x <- gsub("<!--html_preserve-->", "::: {.output .display_data}\n<!--html_preserve-->", x)
+      x <- gsub("<!--/html_preserve-->", "<!--/html_preserve-->\n:::", x)
+      paste0("::: {.cell .code}", x, "\n:::")
+    })
+    # text output
+    knit_hooks$output <- delegating_hook("output", function(x, options) {
+      paste0("::: {.output .stream .stdout}\n", trimws(x), "\n:::")
+    })
+    # warnings and messages
+    knit_hooks$warning <- delegating_hook("warning", function(x, options) {
+      paste0("::: {.output .stream .stderr}\n", trimws(x), "\n:::")
+    })
+    knit_hooks$message <- knit_hooks$warning
+    # errors
+    knit_hooks$error <- delegating_hook("error", function(x, options) {
+      paste0("::: {.output .error}\n", trimws(x), "\n:::")
+    })
+    # plots
+    knit_hooks$plot <- delegating_hook("plot", function(x, options) {
+      paste0("::: {.output .display_data}\n", trimws(x), "\n:::")
+    })
+
     # return options
     knitr <- format$metadata$knitr %||% list()
     rmarkdown::knitr_options(
       opts_knit = rmarkdown:::merge_lists(opts_knit, knitr$opts_knit),
       opts_chunk = rmarkdown:::merge_lists(opts_chunk, knitr$opts_chunk),
+      knit_hooks = knit_hooks
     )
   }
 
