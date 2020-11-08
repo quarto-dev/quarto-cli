@@ -19,9 +19,15 @@ from pathlib import Path
 import nbformat
 from nbclient import NotebookClient
 
+# optional import of papermill for params support
+try:
+   from papermill import translators as papermill_translate
+except ImportError:
+   papermill_translate = None
+
 NB_FORMAT_VERSION = 4
 
-def notebook_execute(input, format, run_path, resource_dir, quiet):
+def notebook_execute(input, format, params, run_path, resource_dir, quiet):
 
     # progress
    if not quiet:
@@ -42,6 +48,10 @@ def notebook_execute(input, format, run_path, resource_dir, quiet):
    # read the notebook
    nb = nbformat.read(input, as_version = NB_FORMAT_VERSION)
 
+   # inject parameters if provided
+   if params:
+      nb_parameterize(nb, params)
+     
    # create resources for execution
    resources = dict()
    if run_path:
@@ -174,6 +184,60 @@ def cell_clear_output(cell):
             cell.metadata.pop(field, None)
    return cell
 
+def nb_parameterize(nb, params):
+
+   # verify papermill import
+   if not papermill_translate:
+      raise ImportError('The papermill package is required for --execute-params')
+
+   # Generate parameter content based on the kernel_name
+   kernel_name = nb.metadata.kernelspec.name
+   language = nb.metadata.kernelspec.language
+   params_content = papermill_translate.translate_parameters(
+      kernel_name, 
+      language, 
+      params, 
+      'Injected Parameters'
+   )
+   # create params cell
+   params_cell = nbformat.v4.new_code_cell(source=params_content)
+   params_cell.metadata['tags'] = ['injected-parameters']
+
+   # find params index
+   params_index = find_first_tagged_cell_index(nb, "parameters")
+   injected_params_index = find_first_tagged_cell_index(nb, 'injected-parameters')
+
+   # TODO: should we purge injected after render? (seems like we should)
+   # TODO: propagation of visibility attributes
+
+   if injected_params_index >= 0:
+      # Replace the injected cell with a new version
+      before = nb.cells[:injected_params_index]
+      after = nb.cells[injected_params_index + 1 :]
+   elif params_index >= 0:
+      # Add an injected cell after the parameter cell
+      before = nb.cells[: params_index + 1]
+      after = nb.cells[params_index + 1 :]
+   else:
+      # Inject to the top of the notebook
+      before = []
+      after = nb.cells
+
+   nb.cells = before + [params_cell] + after
+   if not nb.metadata.get('papermill'):
+      nb.metadata.papermill = {}
+   nb.metadata.papermill['parameters'] = params
+      
+
+def find_first_tagged_cell_index(nb, tag):
+   parameters_indices = []
+   for idx, cell in enumerate(nb.cells):
+      if tag in cell.get('metadata', {}).get('tags', {}):
+         parameters_indices.append(idx)
+   if not parameters_indices:
+      return -1
+   return parameters_indices[0]
+
 # main
 if __name__ == "__main__":
   
@@ -182,6 +246,7 @@ if __name__ == "__main__":
    input = input_json["target"]["input"]
    format = input_json["format"]
    resource_dir = input_json["resourceDir"]
+   params = input_json.get("params", None)
    run_path = input_json.get("cwd", "")
    quiet = input_json.get('quiet', False)
 
@@ -191,5 +256,5 @@ if __name__ == "__main__":
    input = Path(input).name
 
    # execute in place
-   notebook_execute(input, format, run_path, resource_dir ,quiet)
+   notebook_execute(input, format, params, run_path, resource_dir, quiet)
 
