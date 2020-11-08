@@ -439,7 +439,7 @@
   } else if (request$action == "execute") {
     result <- execute(params$target$input, params$format, params$output, params$tempDir, params$cwd, params$params)
   } else if (request$action == "postprocess") {
-    result <- postprocess(params$input, params$format, params$output, params$data)
+    result <- postprocess(params$target$input, params$format, params$output, params$data)
   } else if (request$action == "latexmk") {
     result <- latexmk(params$input, params$engine, params$clean, params$quiet)
   } else if (request$action == "run") {
