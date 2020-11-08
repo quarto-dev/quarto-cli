@@ -199,17 +199,23 @@ def nb_parameterize(nb, params):
       params, 
       'Injected Parameters'
    )
+
+    # find params index and note any tags on it
+   params_index = find_first_tagged_cell_index(nb, "parameters")
+   if params_index != -1:
+      params_cell_tags = nb.cells[params_index].get('metadata', {}).get('tags', []).copy()
+      params_cell_tags.remove("parameters")
+   else:
+      params_cell_tags = []
+      
    # create params cell
    params_cell = nbformat.v4.new_code_cell(source=params_content)
-   params_cell.metadata['tags'] = ['injected-parameters']
+   params_cell.metadata['tags'] = ['injected-parameters'] + params_cell_tags
 
-   # find params index
-   params_index = find_first_tagged_cell_index(nb, "parameters")
+    # find existing injected params index
    injected_params_index = find_first_tagged_cell_index(nb, 'injected-parameters')
 
-   # TODO: should we purge injected after render? (seems like we should)
-   # TODO: propagation of visibility attributes
-
+   # find the right insertion/replace point for the injected params
    if injected_params_index >= 0:
       # Replace the injected cell with a new version
       before = nb.cells[:injected_params_index]
