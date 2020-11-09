@@ -345,13 +345,14 @@
       # return cell
       paste0("::: {.cell .code}\n", x, "\n:::")
     })
-    knit_hooks$source <- function(x, options) {
-      fence <- paste0("```{.", tolower(options$engine))
-      if (isTRUE(options[["source.hidden"]]))
-        fence <- paste0(fence, " .hidden")
-      fence <- paste0(fence, "}\n")
-      paste0(fence, x, "\n```\n\n")
-    }
+    knit_hooks$source <- delegating_hook("source", function(x, options) {
+      if (isTRUE(options[["source.hidden"]])) {
+        engine <- tolower(options$engine)
+        pattern <- paste0("```( ?\\{\\.r|r)([^\\}\n]*)\\}?")
+        x <- gsub(pattern, paste0("``` {.", engine, " .hidden\\2}"), x)
+      }
+      x
+    })
     knit_hooks$output <- delegating_output_hook("output", c("stream", "stdout"))
     knit_hooks$warning <- delegating_output_hook("warning", c("stream", "stderr"))
     knit_hooks$message <- delegating_output_hook("message", c("stream", "stderr"))
