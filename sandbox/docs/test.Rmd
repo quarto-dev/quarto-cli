@@ -2,12 +2,32 @@
 title: "Here we go"
 author: "J.J. Allaire"
 knit: quarto render
+output: 
+  html_document: 
+    keep_md: true
 keep-md: true
 bibliography: references.bib
 ---
 
 ```{python}
-print ("Hello, World\n")
+print ("Hello, World")
+```
+
+```{r, error=TRUE, warning=FALSE}
+print("Hello from R\n")
+warning("This is a warning")
+stop("this is an error!")
+```
+
+```{r}
+plot(cars)
+warning("you should be warned!")
+```
+
+
+```{r}
+library(dygraphs)
+dygraph(discoveries)
 ```
 
 

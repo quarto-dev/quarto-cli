@@ -1,16 +1,11 @@
 # ---
-# title: "leaflet"
-# knit: quarto render
 # jupyter:
-#   jupytext:
-#     formats: md,py:percent
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
 #     name: python3
 # ---
 
-# %% label="fig:leaflet" caption="my map" tags=["remove-code"]
 from ipyleaflet import Map, Marker, basemaps, basemap_to_tiles
 m = Map(
   basemap=basemap_to_tiles(

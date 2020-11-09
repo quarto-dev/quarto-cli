@@ -2,18 +2,88 @@
 title: "Here we go"
 author: "J.J. Allaire"
 knit: quarto render
+output: 
+  html_document: 
+    keep_md: true
 keep-md: true
 bibliography: references.bib
 ---
 
-
+::: {.cell .code}
 ```python
-print ("Hello, World\n")
+print ("Hello, World")
 ```
 
+::: {.output .stream .stdout}
 ```
 Hello, World
 ```
+:::
+:::
+
+::: {.cell .code}
+```r
+print("Hello from R\n")
+```
+
+::: {.output .stream .stdout}
+```
+[1] "Hello from R\n"
+```
+:::
+
+```r
+warning("This is a warning")
+```
+
+::: {.output .output .stream .stderr .hidden}
+```
+Warning: This is a warning
+```
+:::
+
+```r
+stop("this is an error!")
+```
+
+::: {.output .error}
+```
+Error in eval(expr, envir, enclos): this is an error!
+```
+:::
+:::
+
+::: {.cell .code}
+```r
+plot(cars)
+```
+
+::: {.output .display_data}
+<img src="test_files/figure-html/unnamed-chunk-3-1.png" width="672" />
+:::
+
+```r
+warning("you should be warned!")
+```
+
+::: {.output .output .stream .stderr}
+```
+Warning: you should be warned!
+```
+:::
+:::
+
+
+::: {.cell .code}
+```r
+library(dygraphs)
+dygraph(discoveries)
+```
+
+::: {.output .display_data}
+preservefa9cf461874d7c30
+:::
+:::
 
 
 ## Visual Editor
@@ -24,7 +94,7 @@ Definition
 
 : Here we go
 
-
+::: {.cell .code}
 ```python
 # import matplotlib.pyplot as plt
 # 
@@ -48,4 +118,5 @@ Definition
 # 
 # plt.show()
 ```
+:::
 

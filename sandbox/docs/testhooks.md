@@ -1,0 +1,20 @@
+---
+title: "Here we go"
+author: "J.J. Allaire"
+knit: quarto render
+output: 
+  html_document: 
+    keep_md: true
+keep-md: true
+keep-hidden: false
+bibliography: references.bib
+---
+
+::: {.cell .code}
+::: {.output .stream .stdout}
+```
+foobar
+```
+:::
+:::
+

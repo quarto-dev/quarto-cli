@@ -5,6 +5,7 @@ format:
   html:
     fig-width: 6
     fig-height: 4
+    keep-source: true
 jupyter:
   jupytext:
     formats: md

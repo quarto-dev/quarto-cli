@@ -1,8 +1,9 @@
 ---
 title: "MPL slides"
 format:
+  html: 
+    html-math-method: katex
   revealjs: default
-  html: default
   beamer: 
     keep-tex: true
 knit: quarto render
@@ -19,6 +20,10 @@ jupyter:
     language: python
     name: python3
 ---
+
+## Slide 0
+
+$$x + y$$
 
 ## Slide 1
 
@@ -58,6 +63,13 @@ m = Map(
 m.add_layer(Marker(location=(52.204793, 360.121558)))
 m
 ```
+
+
+
+
+
+
+
 
 
 
