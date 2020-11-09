@@ -37,7 +37,7 @@ ggplot(mpg, aes(displ, hwy, colour = class)) +
 warning("Be warned!")
 ```
 
-::: {.output .stream .stderr}
+::: {.output .stream .stderr .hidden}
     Warning: Be warned!
 :::
 :::

@@ -289,7 +289,7 @@
     # opts hooks for implementing keep-hidden
     register_hidden_hook <- function(option, hidden = option) {
       opts_hooks[[option]] <<- function(options) {
-        if (!isTRUE(options[[option]])) {
+        if (identical(options[[option]], FALSE)) {
           options[[option]] <- TRUE
           for (hide in hidden)
             options[[paste0(hide,".hidden")]] <- TRUE

@@ -16,7 +16,7 @@ cat(1 + 1)
 
 ## Plot
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 library(ggplot2)
 ggplot(mpg, aes(displ, hwy, colour = class)) + 
   geom_point()
