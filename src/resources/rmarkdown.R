@@ -238,8 +238,9 @@
   # knitr options for format
   knitr_options <- function(format) {
 
-    # may need some knit hooks
+    # may need some knit or opts hooks
     knit_hooks <- list()
+    opts_hooks <- list()
 
     # opt_knit for compatibility w/ rmarkdown::render
     to <- format$pandoc$to
@@ -285,6 +286,35 @@
       }
     }
 
+    # opts hooks for implementing keep-hidden
+    register_hidden_hook <- function(option, hidden = option) {
+      opts_hooks[[option]] <<- function(options) {
+        if (!isTRUE(options[[option]])) {
+          options[[option]] <- TRUE
+          for (hide in hidden)
+            options[[paste0(hide,".hidden")]] <- TRUE
+        }
+        options
+      }
+    }
+    if (isTRUE(format$cell[["keep-hidden"]])) {
+      register_hidden_hook("echo", c("source"))
+      register_hidden_hook("include", c("output", "plot"))
+      register_hidden_hook("warning")
+      register_hidden_hook("message")
+    }
+
+    # helper to create an output div
+    output_div <- function(x, classes) {
+      paste0(
+        "::: {",
+        paste(paste0(".", classes), collapse = " ") ,
+        "}\n",
+        trimws(x),
+        "\n:::"
+      )
+    }
+
     # hooks for marking up output
     default_hooks <- knitr::hooks_markdown()
     delegating_hook <- function(name, hook) {
@@ -293,35 +323,47 @@
         hook(x, options)
       }
     }
+    delegating_output_hook = function(type, classes) {
+      delegating_hook(type, function(x, options) {
+        classes <- c("output", classes)
+        # add .hidden class if keep-hidden hook injected an option
+        if (isTRUE(options[[paste0(type,".hidden")]]))
+          classes <- c(classes, "hidden")
+        output_div(x, classes)
+      })
+    }
+
     # entire chunk
     knit_hooks$chunk <- delegating_hook("chunk", function(x, options) {
-      x <- gsub("<!--html_preserve-->", "::: {.output .display_data}\n<!--html_preserve-->", x)
+      # enclose raw html in display_data (use hidden if necessary)
+      classes <- ".output .display_data"
+      if (isTRUE(options[["output.hidden"]]))
+        classes <- paste0(classes, " .hidden")
+      x <- gsub("<!--html_preserve-->", paste0("::: {.output ", classes, "}\n<!--html_preserve-->"), x)
       x <- gsub("<!--/html_preserve-->", "<!--/html_preserve-->\n:::", x)
-      paste0("::: {.cell .code}", x, "\n:::")
+
+      # return cell
+      paste0("::: {.cell .code}\n", x, "\n:::")
     })
-    # text output
-    knit_hooks$output <- delegating_hook("output", function(x, options) {
-      paste0("::: {.output .stream .stdout}\n", trimws(x), "\n:::")
-    })
-    # warnings and messages
-    knit_hooks$warning <- delegating_hook("warning", function(x, options) {
-      paste0("::: {.output .stream .stderr}\n", trimws(x), "\n:::")
-    })
-    knit_hooks$message <- knit_hooks$warning
-    # errors
-    knit_hooks$error <- delegating_hook("error", function(x, options) {
-      paste0("::: {.output .error}\n", trimws(x), "\n:::")
-    })
-    # plots
-    knit_hooks$plot <- delegating_hook("plot", function(x, options) {
-      paste0("::: {.output .display_data}\n", trimws(x), "\n:::")
-    })
+    knit_hooks$source <- function(x, options) {
+      fence <- paste0("```{.", tolower(options$engine))
+      if (isTRUE(options[["source.hidden"]]))
+        fence <- paste0(fence, " .hidden")
+      fence <- paste0(fence, "}\n")
+      paste0(fence, x, "\n```\n\n")
+    }
+    knit_hooks$output <- delegating_output_hook("output", c("stream", "stdout"))
+    knit_hooks$warning <- delegating_output_hook("warning", c("stream", "stderr"))
+    knit_hooks$message <- delegating_output_hook("message", c("stream", "stderr"))
+    knit_hooks$plot <- delegating_output_hook("plot", c("display_data"))
+    knit_hooks$error <- delegating_output_hook("error", c("error"))
 
     # return options
     knitr <- format$metadata$knitr %||% list()
     rmarkdown::knitr_options(
       opts_knit = rmarkdown:::merge_lists(opts_knit, knitr$opts_knit),
       opts_chunk = rmarkdown:::merge_lists(opts_chunk, knitr$opts_chunk),
+      opts_hooks = opts_hooks,
       knit_hooks = knit_hooks
     )
   }
