@@ -5,7 +5,7 @@ format:
      output-file: knitr-quarto.md
 output:
    md_document: default
-# knit: quarto render
+knit: quarto render
 ---
 
 ## Text
