@@ -23,10 +23,11 @@ export const kStdOut = "-";
 // command line flags that we need to inspect
 export interface RenderFlags extends PandocFlags {
   // quarto flags
-  executeCache?: string;
-  executeCacheDir?: string;
   executeParams?: string;
   executeDir?: string;
+  executeCode?: boolean;
+  executeCache?: string;
+  executeCacheDir?: string;
   debug?: boolean;
   quiet?: boolean;
 }
@@ -82,6 +83,16 @@ export function parseRenderFlags(args: string[]) {
       case "--biblatex":
         arg = argsStack.shift();
         flags.biblatex = true;
+        break;
+
+      case "--execute-code":
+        flags.executeCode = true;
+        arg = argsStack.shift();
+        break;
+
+      case "--no-execute-code":
+        flags.executeCode = false;
+        arg = argsStack.shift();
         break;
 
       case "--execute-cache":
@@ -160,6 +171,8 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
 
   // remove other args as needed
   const removeArgs = new Map<string, boolean>();
+  removeArgs.set("--execute-code", false);
+  removeArgs.set("--no-execute-code", false);
   removeArgs.set("--execute-cache", true);
   removeArgs.set("--execute-cache-dir", true);
   removeArgs.set("--execute-params", true);

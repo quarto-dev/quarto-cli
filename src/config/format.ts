@@ -21,6 +21,7 @@ import {
   kCiteproc,
   kExecuteCache,
   kExecuteCacheDir,
+  kExecuteCode,
   kFigDpi,
   kIncludeAfterBody,
   kIncludeBeforeBody,
@@ -77,6 +78,7 @@ export interface FormatExecute {
   [kFigFormat]?: "retina" | "png" | "jpeg" | "svg" | "pdf";
   [kFigDpi]?: number;
   [kAllowErrors]?: boolean;
+  [kExecuteCode]?: boolean;
   [kExecuteCache]?: "user" | "all" | "refresh" | "none";
   [kExecuteCacheDir]: string;
 }
@@ -413,6 +415,7 @@ function defaultFormat(): Format {
       [kFigFormat]: "png",
       [kFigDpi]: 96,
       [kAllowErrors]: false,
+      [kExecuteCode]: true,
       [kExecuteCache]: "user",
       [kExecuteCacheDir]: "",
     },

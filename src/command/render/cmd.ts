@@ -47,13 +47,18 @@ export const renderCommand = new Command()
     "Working directory for execution.",
   )
   .option(
+    "--execute-code",
+    "Execute code (pass --no-execute-code to skip execution).",
+    { default: true },
+  )
+  .option(
     "--execute-cache",
     "Cache execution outputs (user, all, refresh, or none).",
     { default: "user" },
   )
   .option(
     "--execute-cache-dir",
-    "Base directory for storing cached execution outputs",
+    "Base directory for storing cached execution outputs.",
   )
   .option(
     "--metadata-override",
