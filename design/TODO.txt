@@ -1,21 +1,36 @@
 
 
+keep-hidden with warning seems to force .hidden
+
+try out markdown table output
+
+
 https://jupyter-cache.readthedocs.io/en/latest/
   or just '--execute-run-code': all,cache,none
    run-code: all
    include-code: false
 
+--execute-code, --no-execute-code
+
+execute-code: false
+execute-cache: user
+execute-allow-errors: false
+
+
+execute:
+  code: false
+  allow-errors: false
 
 --execute-cache
     user,
-    all,
     refresh,
+    all,
     none,
 
 
 execute:
   cache: refresh
-  allow-errors: 
+  allow-errors:
 
 
 bs4 family of formats:
