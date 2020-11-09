@@ -15,7 +15,7 @@
 
 import { basename, dirname, extname, join } from "path/mod.ts";
 import { getenv } from "../core/env.ts";
-import { execProcess } from "../core/process.ts";
+import { execProcess, ProcessResult } from "../core/process.ts";
 import { resourcePath } from "../core/resources.ts";
 import {
   readYamlFromMarkdown,
@@ -39,6 +39,7 @@ import {
   jupyterToMarkdown,
 } from "../core/jupyter/jupyter.ts";
 import {
+  kExecuteCode,
   kFigDpi,
   kFigFormat,
   kIncludeAfterBody,
@@ -135,19 +136,26 @@ export const jupyterEngine: ExecutionEngine = {
   },
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
-    // execute the notebook (save back in place)
-    const result = await execProcess(
-      {
-        cmd: [
-          pythonBinary(),
-          resourcePath("jupyter/jupyter.py"),
-        ],
-        stdout: "piped",
-      },
-      JSON.stringify(options),
-    );
+    // optional process result from execution
+    let result: ProcessResult | undefined;
 
-    if (result.success) {
+    // execute if we need to
+    if (options.format.execute[kExecuteCode] === true) {
+      // execute the notebook (save back in place)
+      result = await execProcess(
+        {
+          cmd: [
+            pythonBinary(),
+            resourcePath("jupyter/jupyter.py"),
+          ],
+          stdout: "piped",
+        },
+        JSON.stringify(options),
+      );
+    }
+
+    // convert to markdown
+    if (!result || result.success) {
       // convert to markdown and write to target
       const nb = jupyterFromFile(options.target.input);
       const assets = jupyterAssets(

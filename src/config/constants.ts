@@ -51,6 +51,9 @@ export const kExecuteDefaultsKeys = [
   kIncludeOutput,
   kIncludeWarnings,
   kAllowErrors,
+  kExecuteCode,
+  kExecuteCache,
+  kExecuteCacheDir,
 ];
 
 export const kKeepHidden = "keep-hidden";
