@@ -32,7 +32,7 @@ import { runPandoc } from "./pandoc.ts";
 import { kStdOut, RenderFlags, resolveParams } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
-import { kMetadataFormat } from "../../config/constants.ts";
+import { kExecuteCode, kMetadataFormat } from "../../config/constants.ts";
 import {
   ExecutionEngine,
   executionEngine,
@@ -175,6 +175,16 @@ async function resolveFormat(
     flags?.debug,
   );
 
-  // return target
-  return mergeConfigs(baseFormat, format);
+  // merge configs
+  const config = mergeConfigs(baseFormat, format);
+
+  // apply command line arguments
+
+  // forward --no-execute-code
+  if (flags?.executeCode === false) {
+    config.execute[kExecuteCode] = false;
+  }
+
+  // return
+  return config;
 }

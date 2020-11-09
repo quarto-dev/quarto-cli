@@ -261,6 +261,7 @@
       fig.height = format$execute$`fig-height`,
       dev = format$execute$`fig-format`,
       dpi = format$execute$`fig-dpi`,
+      eval = format$execute$`execute-code`,
       error = format$execute$`allow-errors`,
       echo = isTRUE(format$cell$`show-code`),
       warning = isTRUE(format$cell$`show-warnings`),
