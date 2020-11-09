@@ -6,6 +6,18 @@ https://jupyter-cache.readthedocs.io/en/latest/
    include-code: false
 
 
+--execute-cache
+    user,
+    all,
+    refresh,
+    none,
+
+
+execute:
+  cache: refresh
+  allow-errors: 
+
+
 bs4 family of formats:
 
 bs4-notebook
