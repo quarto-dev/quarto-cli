@@ -1,37 +1,13 @@
 
+data-tags remove-code ends up on hide-code
 
 no longer get code block background color from pandoc
+
 try out markdown table output
 
 extra line is added each time .md file is executed by jupytext/jupyter
 
-
 https://jupyter-cache.readthedocs.io/en/latest/
-  or just '--execute-run-code': all,cache,none
-   run-code: all
-   include-code: false
-
---execute-code, --no-execute-code
-
-execute-code: false
-execute-cache: user
-execute-allow-errors: false
-
-
-execute:
-  code: false
-  allow-errors: false
-
---execute-cache
-    user,
-    refresh,
-    all,
-    none,
-
-
-execute:
-  cache: refresh
-  allow-errors:
 
 
 bs4 family of formats:
