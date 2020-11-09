@@ -34,7 +34,6 @@ export const kIncludeOutput = "include-output";
 export const kIncludeWarnings = "include-warnings";
 export const kExecuteCode = "execute-code";
 export const kExecuteCache = "execute-cache";
-export const kExecuteCacheDir = "execute-cache-dir";
 export const kAllowErrors = "allow-errors";
 
 export const kHideWarnings = "hide-warnings";
@@ -53,7 +52,6 @@ export const kExecuteDefaultsKeys = [
   kAllowErrors,
   kExecuteCode,
   kExecuteCache,
-  kExecuteCacheDir,
 ];
 
 export const kKeepHidden = "keep-hidden";

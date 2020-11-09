@@ -20,7 +20,6 @@ import {
   kCiteMethod,
   kCiteproc,
   kExecuteCache,
-  kExecuteCacheDir,
   kExecuteCode,
   kFigDpi,
   kIncludeAfterBody,
@@ -80,7 +79,6 @@ export interface FormatExecute {
   [kAllowErrors]?: boolean;
   [kExecuteCode]?: boolean;
   [kExecuteCache]?: "user" | "all" | "refresh" | "none";
-  [kExecuteCacheDir]: string;
 }
 
 export interface FormatCell {
@@ -417,7 +415,6 @@ function defaultFormat(): Format {
       [kAllowErrors]: false,
       [kExecuteCode]: true,
       [kExecuteCache]: "user",
-      [kExecuteCacheDir]: "",
     },
     cell: {
       [kKeepHidden]: false,

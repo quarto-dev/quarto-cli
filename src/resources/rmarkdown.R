@@ -52,9 +52,15 @@
       do.call(options, r_options)
     }
 
+    # get kntir options
+    knitr <- knitr_options(format)
+
+    # fixup options for cache
+    knitr <- knitr_options_with_cache(input, format, knitr)
+
     # synthesize rmarkdown output format
     output_format <- rmarkdown::output_format(
-      knitr = knitr_options(format),
+      knitr = knitr,
       pandoc = pandoc_options(format),
       keep_md = FALSE,
       clean_supporting = TRUE
@@ -102,8 +108,8 @@
     # apply any required patches
     includes <- apply_patches(format, dependencies$includes)
 
-    # include supportring files
-    supporting <- if (file_test("-d", intermediates_dir))
+    # include supporting files
+    supporting <- if (!is.null(intermediates_dir) && file_test("-d", intermediates_dir))
       rmarkdown:::abs_path(intermediates_dir)
     else
       character()
@@ -368,6 +374,39 @@
       opts_hooks = opts_hooks,
       knit_hooks = knit_hooks
     )
+  }
+
+  knitr_options_with_cache <- function(input, format, opts) {
+    # handle cache behavior
+    cache <- format$execute$`execute-cache`
+    if (!identical(cache, "user")) {
+      # remove the cache dir for refresh
+      if (identical(cache, "refresh")) {
+        cache_dir <- knitr_cache_dir(input, format)
+        if (rmarkdown:::dir_exists(cache_dir)) {
+          unlink(cache_dir, recursive = TRUE)
+        }
+        cache <- "all"
+      }
+
+      # force the cache on or off as appropriate
+      force_cache <- ifelse(identical(cache, "all"), TRUE, FALSE)
+      opts$opts_chunk$cache <- force_cache
+      opts$opts_hooks$cache <- function(options) {
+        options$cache <- force_cache
+        options
+      }
+      opts
+    }
+  }
+
+  knitr_cache_dir <- function(input, format) {
+    pandoc_to <- format$pandoc$to
+    base_pandoc_to <- gsub('[-+].*', '', pandoc_to)
+    if (base_pandoc_to == 'html4') base_pandoc_to <- 'html'
+    cache_dir <- rmarkdown:::knitr_cache_dir(input, base_pandoc_to)
+    cache_dir <- gsub("/$", "", cache_dir)
+    cache_dir
   }
 
   # get dependencies implied by the result of render (e.g. html dependencies)
