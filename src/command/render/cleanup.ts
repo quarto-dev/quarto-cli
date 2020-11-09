@@ -45,11 +45,11 @@ export function cleanup(
   tempDir: string,
   keepMd?: string,
 ) {
-  // if we have a keep md then copy to it (otherwise remote any existing version)
+  // if we have a keep md then copy to it (otherwise remove any existing version)
   if (keepMd) {
     if (format.render[kKeepMd]) {
       Deno.copyFileSync(mdOutput, keepMd);
-    } else {
+    } else if (keepMd !== finalOutput) {
       removeIfExists(keepMd);
     }
   }
