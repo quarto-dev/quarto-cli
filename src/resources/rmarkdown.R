@@ -398,6 +398,7 @@
       }
       opts
     }
+    opts
   }
 
   knitr_cache_dir <- function(input, format) {
