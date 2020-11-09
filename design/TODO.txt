@@ -1,8 +1,9 @@
 
 
-keep-hidden with warning seems to force .hidden
-
+no longer get code block background color from pandoc
 try out markdown table output
+
+extra line is added each time .md file is executed by jupytext/jupyter
 
 
 https://jupyter-cache.readthedocs.io/en/latest/
