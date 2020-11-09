@@ -57,10 +57,6 @@ export const renderCommand = new Command()
     { default: "user" },
   )
   .option(
-    "--execute-cache-dir",
-    "Base directory for storing cached execution outputs.",
-  )
-  .option(
     "--metadata-override",
     "YAML file specifying metadata overrides.",
   )

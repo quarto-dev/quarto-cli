@@ -26,7 +26,7 @@ export interface RenderFlags extends PandocFlags {
   executeParams?: string;
   executeDir?: string;
   executeCode?: boolean;
-  executeCache?: string;
+  executeCache?: "user" | "all" | "refresh" | "none";
   executeCacheDir?: string;
   debug?: boolean;
   quiet?: boolean;
@@ -97,12 +97,11 @@ export function parseRenderFlags(args: string[]) {
 
       case "--execute-cache":
         arg = argsStack.shift();
-        flags.executeCache = arg;
-        break;
-
-      case "--execute-cache-dir":
-        arg = argsStack.shift();
-        flags.executeCacheDir = arg;
+        if (!["none", "all", "refresh", "user"].includes(arg || "")) {
+          throw new Error("Invalid argument for --execute-cache (" + arg + ")");
+        }
+        // deno-lint-ignore no-explicit-any
+        flags.executeCache = arg as any;
         break;
 
       case "--execute-params":
@@ -174,7 +173,6 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   removeArgs.set("--execute-code", false);
   removeArgs.set("--no-execute-code", false);
   removeArgs.set("--execute-cache", true);
-  removeArgs.set("--execute-cache-dir", true);
   removeArgs.set("--execute-params", true);
   removeArgs.set("--execute-root-dir", true);
   removeArgs.set("--metadata-override", true);
