@@ -86,6 +86,8 @@ Port tinytex to JS; OR we need to implmeent various auto-install behaviors for l
     ln -sf /Users/jjallaire/Library/TinyTeX/bin/x86_64-darwin/biber /usr/local/bin/biber
 Note need to implement tinytex: false and tinytex options (e.g. min-runs, clean, output-dir, etc.)
 
+Extracate the cache dir logic from rmarkdown::render and call that
+
 Merge -M and --metadata-file with _quarto.yml and in-file YAML with same
 semantics as Pandoc
 
