@@ -43,8 +43,17 @@ export const renderCommand = new Command()
     "YAML file with execution parameters.",
   )
   .option(
-    "--execute-dir",
-    "Working directory for document execution.",
+    "--execute-root-dir",
+    "Working directory for execution.",
+  )
+  .option(
+    "--execute-cache",
+    "Cache execution outputs (user, all, refresh, or none).",
+    { default: "user" },
+  )
+  .option(
+    "--execute-cache-dir",
+    "Base directory for storing cached execution outputs",
   )
   .option(
     "--metadata-override",
