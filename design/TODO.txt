@@ -1,15 +1,5 @@
 
 
-consider classes attribute for knitr (including wrapping div). consider 
-similar/generic dom structure for chunks and code cells (show/hide).
-
-- implement keep-hidden 
-- consider that knitr already has some way to do attribute and class forwarding,
-  I think it might be just attr. and class, check it out
-  we may need to intercept this
-
-
-
 https://jupyter-cache.readthedocs.io/en/latest/
   or just '--execute-run-code': all,cache,none
    run-code: all
@@ -18,7 +8,7 @@ https://jupyter-cache.readthedocs.io/en/latest/
 
 bs4 family of formats:
 
-bs4-notebook 
+bs4-notebook
 bs4-article
 bs4-dashboard
 bs4-presentation
@@ -30,16 +20,13 @@ will be able to use RStudio chunk output and/or notebook for compute?
 or perhaps require html_notebook?
 computations could even be at a URL!!!
 
-  {{= notebook.ipynb#visualization =}}
-  {{< computation notebook.Rmd#chunk-label >}}
+  {{= print("hello") }}
 
   {{< figure projections.xlsx#chunk-label caption="asfdasdf" label="" >}}
 
   {{< table projections.xlsx#fy-2019 label="projections" >}}
 
   {{< text notebook.Rmd##chunk-label >}}
-
-  {{<   >}}
 
   {{< tweet https://twitter.com/foo/status/34453323455 >}}
 
@@ -48,7 +35,7 @@ computations could even be at a URL!!!
 
 << write tests >>
 
-- Crossref system 
+- Crossref system
   - Adopt pandoc-crossref if custom labels PR is merged
   - Implement our own w/ largely similar syntax but thereom's, etc.
     Lua vs. Typescript
@@ -62,7 +49,7 @@ Project system:
     (need to first determine if there is a project somewhere in the parent tree,
      if there is, then use this behavior, if not, use the first match)
   - External interactions with projects (output_dir, clean, etc.)
-  
+
 Port tinytex to JS; OR we need to implmeent various auto-install behaviors for latexmk, eg.
   had to do this to get biblatex working w/ latexmk
   (may want to automate installation if no biber + auto-map TinyTeX to path)
@@ -71,10 +58,10 @@ Port tinytex to JS; OR we need to implmeent various auto-install behaviors for l
     ln -sf /Users/jjallaire/Library/TinyTeX/bin/x86_64-darwin/biber /usr/local/bin/biber
 Note need to implement tinytex: false and tinytex options (e.g. min-runs, clean, output-dir, etc.)
 
-Merge -M and --metadata-file with _quarto.yml and in-file YAML with same 
+Merge -M and --metadata-file with _quarto.yml and in-file YAML with same
 semantics as Pandoc
 
-discover index.Rmd or ui.Rmd for quarto run. can't rely on 
+discover index.Rmd or ui.Rmd for quarto run. can't rely on
 rmarkdown::run b/c we need to figure out which Rmd to render
 
 consider pluto notebooks (julia)
