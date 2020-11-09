@@ -1,7 +1,7 @@
 ---
 format:
   markdown:
-    output-file: knitr-quarto.md
+    keep-hidden: true
 knit: quarto render
 output:
   md_document: default
@@ -20,28 +20,24 @@ cat(1 + 1)
 :::
 :::
 
-## Warning
-
-::: {.cell .code}
-``` {.r}
-warning("Be warned!")
-```
-
-::: {.output .stream .stderr}
-    Warning: Be warned!
-:::
-:::
-
 ## Plot
 
 ::: {.cell .code}
-``` {.r}
+``` {.r .hidden}
 library(ggplot2)
 ggplot(mpg, aes(displ, hwy, colour = class)) + 
   geom_point()
 ```
 
 ::: {.output .display_data}
-![](knitr_files/figure-markdown/unnamed-chunk-3-1.png)
+![](knitr-hide_files/figure-markdown/unnamed-chunk-2-1.png)
+:::
+
+``` {.r .hidden}
+warning("Be warned!")
+```
+
+::: {.output .stream .stderr}
+    Warning: Be warned!
 :::
 :::

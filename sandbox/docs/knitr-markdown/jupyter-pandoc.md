@@ -23,11 +23,28 @@ print(1 + 1)
 :::
 
 ::: {.cell .markdown}
+Warning
+-------
+:::
+
+::: {.cell .code execution_count="2"}
+``` {.python}
+from warnings import warn
+warn("Be warned!")
+```
+
+::: {.output .stream .stderr}
+    <ipython-input-2-6dfb7269776a>:2: UserWarning: Be warned!
+      warn("Be warned!")
+:::
+:::
+
+::: {.cell .markdown}
 Plot
 ----
 :::
 
-::: {.cell .code execution_count="2" lines_to_next_cell="1"}
+::: {.cell .code execution_count="3" lines_to_next_cell="1"}
 ``` {.python}
 import matplotlib.pyplot as plt
 

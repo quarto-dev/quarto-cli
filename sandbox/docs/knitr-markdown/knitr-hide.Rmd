@@ -1,11 +1,11 @@
 ---
 title: "Knitr"
+output: 
+  md_document: default
 format: 
-   markdown:
-     output-file: knitr-quarto.md
-output:
-   md_document: default
-# knit: quarto render
+   markdown: 
+     keep-hidden: true
+knit: quarto render
 ---
 
 ## Text
@@ -14,19 +14,13 @@ output:
 cat(1 + 1)
 ```
 
-## Warning
-
-```{r}
-warning("Be warned!")
-```
-
-
 ## Plot
 
-```{r}
+```{r, echo=FALSE}
 library(ggplot2)
 ggplot(mpg, aes(displ, hwy, colour = class)) + 
   geom_point()
+warning("Be warned!")
 ```
 
 

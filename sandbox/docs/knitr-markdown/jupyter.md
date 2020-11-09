@@ -1,6 +1,9 @@
 ---
 title: "Jupyter"
 knit: quarto render
+format:
+  markdown:
+    output-file: jupyter-quarto.md
 jupyter:
   jupytext:
     formats: md,ipynb
@@ -14,6 +17,13 @@ jupyter:
 
 ```python
 print(1 + 1)
+```
+
+## Warning
+
+```python
+from warnings import warn
+warn("Be warned!")
 ```
 
 ## Plot
@@ -39,6 +49,10 @@ ax.set_title('Scores broken out by group and gender')
 ax.legend()
 plt.show()
 ```
+
+
+
+
 
 
 

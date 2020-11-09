@@ -18,6 +18,20 @@ print(1 + 1)
 :::
 :::
 
+## Warning
+
+::: {.cell .code}
+``` {.python}
+from warnings import warn
+warn("Be warned!")
+```
+
+::: {.output .stream .stderr}
+    UserWarning: Be warned!
+      warn("Be warned!")
+:::
+:::
+
 ## Plot
 
 ::: {.cell .code}
@@ -44,6 +58,6 @@ plt.show()
 ```
 
 ::: {.output .display_data}
-![](jupyter_files/figure-markdown/cell-3-output-1.png)
+![](jupyter_files/figure-markdown/cell-4-output-1.png)
 :::
 :::
