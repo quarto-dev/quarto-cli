@@ -1,0 +1,40 @@
+---
+title: "Knitr"
+knit: quarto render
+format: 
+   markdown:
+     output-file: knitr-quarto.md
+output:
+   html_document: 
+     keep_md: true
+---
+
+## Text
+
+```{r}
+cat(1 + 1)
+```
+
+## Plot
+
+```{r}
+library(ggplot2)
+ggplot(mpg, aes(displ, hwy, colour = class)) + 
+  geom_point()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
