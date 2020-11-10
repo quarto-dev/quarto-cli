@@ -39,22 +39,22 @@ export const renderCommand = new Command()
     "Write output to FILE (use '--output -' for stdout).",
   )
   .option(
-    "--execute-params",
-    "YAML file with execution parameters.",
-  )
-  .option(
-    "--execute-root-dir",
-    "Working directory for execution.",
-  )
-  .option(
     "--execute",
     "Execute code (pass --no-execute to skip execution).",
     { default: true },
   )
   .option(
     "--execute-cache",
-    "Cache execution outputs (user, all, refresh, or none).",
+    "Cache execution outputs (user, all, refresh, or off).",
     { default: "user" },
+  )
+  .option(
+    "--execute-root-dir",
+    "Working directory for execution.",
+  )
+  .option(
+    "--execute-params",
+    "YAML file with execution parameters.",
   )
   .option(
     "--metadata-override",
