@@ -1,7 +1,6 @@
 ---
 title: "Here we go"
 knit: quarto render
-execute-cache: none
 jupyter:
   jupytext:
     formats: md,ipynb
@@ -11,7 +10,7 @@ jupyter:
     name: python3
 ---
 
-## Text is something that I can relate to
+## New title
 
 ```python
 print(1 + 1)
@@ -26,7 +25,7 @@ warn("Be warned!")
 
 ## Plot
 
-```python
+```python tags=["hide-code"]
 import matplotlib.pyplot as plt
 
 labels = ['G1', 'G2', 'G3', 'G4', 'G5']
@@ -47,6 +46,24 @@ ax.set_title('Scores broken out by group and gender')
 ax.legend()
 plt.show()
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

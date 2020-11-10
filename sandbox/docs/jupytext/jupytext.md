@@ -8,9 +8,6 @@ format:
     self-contained: false
     fig-width: 8
     fig-height: 2
-execute:
-  include-code: false
-  include-warnings: true
 bibliography: references.bib
 jupyter:
   jupytext:
@@ -113,5 +110,9 @@ plt.show()
 from jupytext.config import find_jupytext_configuration_file
 find_jupytext_configuration_file('.')
 ```
+
+
+
+
 
 
