@@ -25,6 +25,13 @@ try:
 except ImportError:
    papermill_translate = None
 
+# optional import of jupyter-cache
+try:
+   from jupyter_cache import get_cache
+   from jupyter_cache.base import NbBundleIn
+except ImportError:
+   get_cache = None
+
 NB_FORMAT_VERSION = 4
 
 def notebook_execute(input, format, params, run_path, resource_dir, quiet):
@@ -40,6 +47,7 @@ def notebook_execute(input, format, params, run_path, resource_dir, quiet):
    fig_height = execute["fig-height"]
    fig_format = execute["fig-format"]
    fig_dpi = execute["fig-dpi"]
+   cache = execute["execute-cache"]
 
    # set environment variables
    os.environ["JUPYTER_FIG_WIDTH"] = str(fig_width)
@@ -51,7 +59,24 @@ def notebook_execute(input, format, params, run_path, resource_dir, quiet):
    # inject parameters if provided
    if params:
       nb_parameterize(nb, params)
-     
+
+   # insert setup cell
+   setup_cell = nb_setup_cell(nb.metadata.kernelspec, resource_dir, fig_width, fig_height, fig_format, fig_dpi)
+   nb.cells.insert(0, setup_cell)
+
+   # interact with cache as needed
+   if cache == "all" or cache == "refresh":
+      if not get_cache:
+          raise ImportError('The jupyter-cache package is required for cached execution')
+      nb_cache = get_cache(".jupyter_cache")
+   else:
+      nb_cache = None
+      
+
+   #
+   # TODO: check for cache
+   #
+  
    # create resources for execution
    resources = dict()
    if run_path:
@@ -72,10 +97,6 @@ def notebook_execute(input, format, params, run_path, resource_dir, quiet):
       current_code_cell = 1
       total_code_cells = sum(cell.cell_type == 'code' for cell in client.nb.cells)
 
-      # insert setup cell
-      setup_cell = nb_setup_cell(client, resource_dir, fig_width, fig_height, fig_format, fig_dpi)
-      client.nb.cells.insert(0, setup_cell)
-
       # execute the cells
       for index, cell in enumerate(client.nb.cells):
          # progress
@@ -93,16 +114,30 @@ def notebook_execute(input, format, params, run_path, resource_dir, quiet):
             client, 
             cell, 
             index, 
+            current_code_cell,
             index > 0 # add_to_history
          )
 
+         # increment current code cell
+         if cell.cell_type == 'code':
+            current_code_cell += 1
+
          # end progress
          if progress:
-            current_code_cell += 1
             sys.stderr.write("Done\n")  
 
-      # remove setup cell
-      client.nb.cells.pop(0)
+   # write to the cache
+   if nb_cache:
+      nb_bundle = NbBundleIn(
+         nb = client.nb,
+         uri = Path(input),
+         data ={}
+      )
+      nb_cache.cache_notebook_bundle(nb_bundle, overwrite = True)
+
+
+   # remove setup cell
+   client.nb.cells.pop(0)
 
    # set widgets metadata   
    client.set_widgets_metadata()
@@ -121,14 +156,14 @@ def notebook_execute(input, format, params, run_path, resource_dir, quiet):
       sys.stderr.write("\n")
 
 
-def nb_setup_cell(client, resource_dir, fig_width, fig_height, fig_format, fig_dpi):
+def nb_setup_cell(kernelspec, resource_dir, fig_width, fig_height, fig_format, fig_dpi):
 
    # determine setup code based on current kernel language
    setup_code = ''
    kSetupScript = { 
       'python' : 'setup.py'
    }
-   kernelLanguage = client.nb.metadata.kernelspec.language
+   kernelLanguage = kernelspec.language
    if kernelLanguage in kSetupScript:
       setup = os.path.join(resource_dir, 'jupyter', 'setup', kSetupScript[kernelLanguage])
       with open(setup, 'r') as file:
@@ -136,11 +171,10 @@ def nb_setup_cell(client, resource_dir, fig_width, fig_height, fig_format, fig_d
 
    # create cell
    return nbformat.versions[NB_FORMAT_VERSION].new_code_cell(
-      source = setup_code, 
-      metadata= { 'lines_to_next_cell': setup_code.count("\n") + 1 } 
+      source = setup_code
    )
 
-def cell_execute(client, cell, index, store_history):
+def cell_execute(client, cell, index, execution_count, store_history):
 
    no_execute_tag = 'no-execute'
    allow_errors_tag = 'allow-errors'
@@ -158,7 +192,12 @@ def cell_execute(client, cell, index, store_history):
          cell["metadata"]["tags"] = tags + ['raises-exception'] 
 
       # execute
-      cell = client.execute_cell(cell, index, store_history = store_history)
+      cell = client.execute_cell(
+         cell = cell, 
+         cell_index = index, 
+         execution_count = execution_count,
+         store_history = store_history
+      )
       
       # if lines_to_next_cell is 0 then fix it to be 1
       lines_to_next_cell = cell.get('metadata', {}).get('lines_to_next_cell', -1)
@@ -169,6 +208,8 @@ def cell_execute(client, cell, index, store_history):
       if allow_errors_tag in tags:
         cell["metadata"]["tags"].remove('raises-exception')
 
+   else:
+      cell.execution_count = execution_count
 
    # return cell
    return cell
