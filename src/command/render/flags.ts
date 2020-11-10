@@ -25,7 +25,7 @@ export interface RenderFlags extends PandocFlags {
   // quarto flags
   executeParams?: string;
   executeDir?: string;
-  executeCode?: boolean;
+  execute?: boolean;
   executeCache?: "user" | "all" | "refresh" | "none";
   executeCacheDir?: string;
   debug?: boolean;
@@ -85,13 +85,13 @@ export function parseRenderFlags(args: string[]) {
         flags.biblatex = true;
         break;
 
-      case "--execute-code":
-        flags.executeCode = true;
+      case "--execute":
+        flags.execute = true;
         arg = argsStack.shift();
         break;
 
-      case "--no-execute-code":
-        flags.executeCode = false;
+      case "--no-execute":
+        flags.execute = false;
         arg = argsStack.shift();
         break;
 
@@ -170,8 +170,8 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
 
   // remove other args as needed
   const removeArgs = new Map<string, boolean>();
-  removeArgs.set("--execute-code", false);
-  removeArgs.set("--no-execute-code", false);
+  removeArgs.set("--execute", false);
+  removeArgs.set("--no-execute", false);
   removeArgs.set("--execute-cache", true);
   removeArgs.set("--execute-params", true);
   removeArgs.set("--execute-root-dir", true);

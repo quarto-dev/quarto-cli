@@ -39,7 +39,7 @@ import {
   jupyterToMarkdown,
 } from "../core/jupyter/jupyter.ts";
 import {
-  kExecuteCode,
+  kExecute,
   kFigDpi,
   kFigFormat,
   kIncludeAfterBody,
@@ -140,7 +140,7 @@ export const jupyterEngine: ExecutionEngine = {
     let result: ProcessResult | undefined;
 
     // execute if we need to
-    if (options.format.execute[kExecuteCode] === true) {
+    if (options.format.execution[kExecute] === true) {
       // execute the notebook (save back in place)
       result = await execProcess(
         {
@@ -167,12 +167,12 @@ export const jupyterEngine: ExecutionEngine = {
         {
           language: nb.metadata.kernelspec.language,
           assets,
-          formatCell: options.format.cell,
+          execution: options.format.execution,
           toHtml: isHtmlFormat(options.format.pandoc),
           toLatex: isLatexFormat(options.format.pandoc),
           toMarkdown: isMarkdownFormat(options.format.pandoc),
-          figFormat: options.format.execute[kFigFormat],
-          figDpi: options.format.execute[kFigDpi],
+          figFormat: options.format.execution[kFigFormat],
+          figDpi: options.format.execution[kFigDpi],
         },
       );
       await Deno.writeTextFile(options.output, result.markdown);

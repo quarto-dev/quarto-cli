@@ -19,8 +19,8 @@ import {
   kAtxHeaders,
   kCiteMethod,
   kCiteproc,
+  kExecute,
   kExecuteCache,
-  kExecuteCode,
   kFigDpi,
   kIncludeAfterBody,
   kIncludeBeforeBody,
@@ -56,8 +56,7 @@ import {
 // pandoc output format
 export interface Format {
   render: FormatRender;
-  execute: FormatExecute;
-  cell: FormatCell;
+  execution: FormatExecution;
   pandoc: FormatPandoc;
   metadata: Metadata;
 }
@@ -71,17 +70,14 @@ export interface FormatRender {
   [kOutputExt]?: string;
 }
 
-export interface FormatExecute {
+export interface FormatExecution {
   [kFigWidth]?: number;
   [kFigHeight]?: number;
   [kFigFormat]?: "retina" | "png" | "jpeg" | "svg" | "pdf";
   [kFigDpi]?: number;
   [kAllowErrors]?: boolean;
-  [kExecuteCode]?: boolean;
+  [kExecute]?: boolean;
   [kExecuteCache]?: "user" | "all" | "refresh" | "none";
-}
-
-export interface FormatCell {
   [kShowCode]?: boolean;
   [kShowOutput]?: boolean;
   [kShowWarnings]?: boolean;
@@ -270,7 +266,7 @@ function pdfFormat(): Format {
   return format(
     "pdf",
     {
-      execute: {
+      execution: {
         [kFigWidth]: 6.5,
         [kFigHeight]: 4.5,
         [kFigFormat]: "pdf",
@@ -292,11 +288,9 @@ function beamerFormat(): Format {
     "pdf",
     pdfFormat(),
     {
-      execute: {
+      execution: {
         [kFigWidth]: 10,
         [kFigHeight]: 7,
-      },
-      cell: {
         [kShowCode]: false,
         [kShowWarnings]: false,
       },
@@ -315,7 +309,7 @@ function htmlPresentationFormat(figwidth: number, figheight: number): Format {
   return mergeConfigs(
     htmlFormat(figwidth, figheight),
     {
-      cell: {
+      execution: {
         [kShowCode]: false,
         [kShowWarnings]: false,
       },
@@ -325,7 +319,7 @@ function htmlPresentationFormat(figwidth: number, figheight: number): Format {
 
 function htmlFormat(figwidth = 7, figheight = 5): Format {
   return format("html", {
-    execute: {
+    execution: {
       [kFigFormat]: "retina",
       [kFigWidth]: figwidth,
       [kFigHeight]: figheight,
@@ -348,11 +342,9 @@ function markdownFormat(): Format {
 
 function powerpointFormat(): Format {
   return format("pptx", {
-    execute: {
+    execution: {
       [kFigWidth]: 7.5,
       [kFigHeight]: 5.5,
-    },
-    cell: {
       [kShowCode]: false,
       [kShowWarnings]: false,
     },
@@ -361,7 +353,7 @@ function powerpointFormat(): Format {
 
 function wordprocessorFormat(ext: string): Format {
   return format(ext, {
-    execute: {
+    execution: {
       [kFigWidth]: 5,
       [kFigHeight]: 4,
     },
@@ -386,7 +378,7 @@ function plaintextFormat(ext: string): Format {
 
 function ebookFormat(ext: string): Format {
   return format(ext, {
-    execute: {
+    execution: {
       [kFigWidth]: 5,
       [kFigHeight]: 4,
     },
@@ -407,16 +399,14 @@ function format(ext: string, ...formats: Array<unknown>): Format {
 
 function defaultFormat(): Format {
   return {
-    execute: {
+    execution: {
       [kFigWidth]: 7,
       [kFigHeight]: 5,
       [kFigFormat]: "png",
       [kFigDpi]: 96,
       [kAllowErrors]: false,
-      [kExecuteCode]: true,
+      [kExecute]: true,
       [kExecuteCache]: "user",
-    },
-    cell: {
       [kKeepHidden]: false,
       [kShowCode]: true,
       [kShowOutput]: true,

@@ -34,7 +34,7 @@ def notebook_execute(input, format, params, run_path, resource_dir, quiet):
       sys.stderr.write("\nExecuting '{0}'\n".format(input))
 
    # read variables out of format
-   execute = format["execute"]
+   execute = format["execution"]
    allow_errors = bool(execute["allow-errors"])
    fig_width = execute["fig-width"]
    fig_height = execute["fig-height"]

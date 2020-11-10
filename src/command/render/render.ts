@@ -33,8 +33,8 @@ import { kStdOut, RenderFlags, resolveParams } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
 import {
+  kExecute,
   kExecuteCache,
-  kExecuteCode,
   kMetadataFormat,
 } from "../../config/constants.ts";
 import {
@@ -185,13 +185,13 @@ async function resolveFormat(
   // apply command line arguments
 
   // --no-execute-code
-  if (flags?.executeCode === false) {
-    config.execute[kExecuteCode] = false;
+  if (flags?.execute === false) {
+    config.execution[kExecute] = false;
   }
 
   // --execute-cache
   if (flags?.executeCache) {
-    config.execute[kExecuteCache] = flags?.executeCache;
+    config.execution[kExecuteCache] = flags?.executeCache;
   }
 
   // return

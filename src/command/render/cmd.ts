@@ -47,8 +47,8 @@ export const renderCommand = new Command()
     "Working directory for execution.",
   )
   .option(
-    "--execute-code",
-    "Execute code (pass --no-execute-code to skip execution).",
+    "--execute",
+    "Execute code (pass --no-execute to skip execution).",
     { default: true },
   )
   .option(

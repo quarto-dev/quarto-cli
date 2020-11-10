@@ -263,16 +263,16 @@
     # opts_chunk
     opts_chunk <- list(
       # options derived from format
-      fig.width = format$execute$`fig-width`,
-      fig.height = format$execute$`fig-height`,
-      dev = format$execute$`fig-format`,
-      dpi = format$execute$`fig-dpi`,
-      eval = format$execute$`execute-code`,
-      error = format$execute$`allow-errors`,
-      echo = isTRUE(format$cell$`show-code`),
-      warning = isTRUE(format$cell$`show-warnings`),
-      message = isTRUE(format$cell$`show-warnings`),
-      include = isTRUE(format$cell$`show-output`),
+      fig.width = format$execution$`fig-width`,
+      fig.height = format$execution$`fig-height`,
+      dev = format$execution$`fig-format`,
+      dpi = format$execution$`fig-dpi`,
+      eval = format$execution$`execute`,
+      error = format$execution$`allow-errors`,
+      echo = isTRUE(format$execution$`show-code`),
+      warning = isTRUE(format$execution$`show-warnings`),
+      message = isTRUE(format$execution$`show-warnings`),
+      include = isTRUE(format$execution$`show-output`),
       # hard coded (overideable in setup chunk but not format)
       comment = NA
     )
@@ -304,7 +304,7 @@
         options
       }
     }
-    if (isTRUE(format$cell[["keep-hidden"]])) {
+    if (isTRUE(format$execution[["keep-hidden"]])) {
       register_hidden_hook("echo", c("source"))
       register_hidden_hook("include", c("output", "plot"))
       register_hidden_hook("warning")

@@ -30,7 +30,7 @@ import {
   kShowOutput,
   kShowWarnings,
 } from "../../config/constants.ts";
-import { FormatCell } from "../../config/format.ts";
+import { FormatExecution } from "../../config/format.ts";
 
 import { JupyterCell } from "./jupyter.ts";
 
@@ -54,64 +54,64 @@ export function hideCell(cell: JupyterCell) {
   return hasTag(cell, kHideCellTags);
 }
 
-export function hideCode(cell: JupyterCell, formatCell: FormatCell) {
+export function hideCode(cell: JupyterCell, execution: FormatExecution) {
   return shouldHide(
     cell,
-    !formatCell[kShowCode],
+    !execution[kShowCode],
     kHideCodeTags,
     kShowCodeTags,
   );
 }
 
-export function hideOutput(cell: JupyterCell, formatCell: FormatCell) {
+export function hideOutput(cell: JupyterCell, execution: FormatExecution) {
   return shouldHide(
     cell,
-    !formatCell[kShowOutput],
+    !execution[kShowOutput],
     kHideOutputTags,
     kShowOutputTags,
   );
 }
 
-export function hideWarnings(cell: JupyterCell, formatCell: FormatCell) {
+export function hideWarnings(cell: JupyterCell, execution: FormatExecution) {
   return shouldHide(
     cell,
-    !formatCell[kShowWarnings],
+    !execution[kShowWarnings],
     kHideWarningsTags,
     kShowWarningsTags,
   );
 }
 
-export function includeCell(cell: JupyterCell, formatCell: FormatCell) {
+export function includeCell(cell: JupyterCell, execution: FormatExecution) {
   const removeTags = kRemoveCellTags.concat(
-    !formatCell[kKeepHidden] ? kHideCellTags : [],
+    !execution[kKeepHidden] ? kHideCellTags : [],
   );
   return !hasTag(cell, removeTags);
 }
 
-export function includeCode(cell: JupyterCell, formatCell: FormatCell) {
+export function includeCode(cell: JupyterCell, execution: FormatExecution) {
   return shouldInclude(
     cell,
-    formatCell,
+    execution,
     kShowCode,
     kIncludeCodeTags,
     kRemoveCodeTags,
   );
 }
 
-export function includeOutput(cell: JupyterCell, formatCell: FormatCell) {
+export function includeOutput(cell: JupyterCell, execution: FormatExecution) {
   return shouldInclude(
     cell,
-    formatCell,
+    execution,
     kShowOutput,
     kIncludeOutputTags,
     kRemoveOutputTags,
   );
 }
 
-export function includeWarnings(cell: JupyterCell, formatCell: FormatCell) {
+export function includeWarnings(cell: JupyterCell, execution: FormatExecution) {
   return shouldInclude(
     cell,
-    formatCell,
+    execution,
     kShowWarnings,
     kIncludeWarningsTags,
     kRemoveWarningsTags,
@@ -133,13 +133,13 @@ function shouldHide(
 
 function shouldInclude(
   cell: JupyterCell,
-  formatCell: FormatCell,
+  execution: FormatExecution,
   context: "show-code" | "show-output" | "show-warnings",
   includeTags: string[],
   removeTags: string[],
 ) {
   // if we aren't keeping hidden then show == include and hide == remove
-  if (!formatCell[kKeepHidden]) {
+  if (!execution[kKeepHidden]) {
     switch (context) {
       case "show-code":
         includeTags = includeTags.concat(kShowCodeTags);
@@ -155,7 +155,7 @@ function shouldInclude(
         break;
     }
   }
-  const includeDefault = formatCell[kKeepHidden] || formatCell[context];
+  const includeDefault = execution[kKeepHidden] || execution[context];
   if (includeDefault) {
     return !hasTag(cell, removeTags);
   } else {
