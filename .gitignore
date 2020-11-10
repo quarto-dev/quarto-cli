@@ -14,3 +14,4 @@ sandbox/docs/pdflatex/
 sandbox/docs/jupytext/*.html
 sandbox/docs/jupytext/*_files
 sandbox/docs/jupytext/*.pdf
+sandbox/.jupyter_cache/
