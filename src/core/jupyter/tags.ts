@@ -50,27 +50,6 @@ const kRemoveOutputTags = [kRemoveOutput];
 const kRemoveWarningsTags = [kRemoveWarnings];
 const kRemoveCellTags = [kRemoveCell];
 
-export function convertVisibilityTags(tags: string[] | undefined) {
-  if (tags) {
-    const replaceTag = (from: string, to: string) => {
-      const idx = tags.indexOf(from);
-      if (idx !== -1) {
-        tags[idx] = to;
-      }
-    };
-    replaceTag(kHideCell, kRemoveCell);
-    replaceTag(kHideCode, kRemoveCode);
-    replaceTag(kHideOutput, kRemoveOutput);
-    replaceTag(kHideWarnings, kRemoveWarnings);
-    replaceTag(kShowCode, kIncludeCode);
-    replaceTag(kShowOutput, kIncludeOutput);
-    replaceTag(kShowWarnings, kIncludeWarnings);
-    return tags;
-  } else {
-    return tags;
-  }
-}
-
 export function hideCell(cell: JupyterCell) {
   return hasTag(cell, kHideCellTags);
 }
@@ -102,8 +81,11 @@ export function hideWarnings(cell: JupyterCell, formatCell: FormatCell) {
   );
 }
 
-export function includeCell(cell: JupyterCell) {
-  return !hasTag(cell, kRemoveCellTags);
+export function includeCell(cell: JupyterCell, formatCell: FormatCell) {
+  const removeTags = kRemoveCellTags.concat(
+    !formatCell[kKeepHidden] ? kHideCellTags : [],
+  );
+  return !hasTag(cell, removeTags);
 }
 
 export function includeCode(cell: JupyterCell, formatCell: FormatCell) {
@@ -156,6 +138,23 @@ function shouldInclude(
   includeTags: string[],
   removeTags: string[],
 ) {
+  // if we aren't keeping hidden then show == include and hide == remove
+  if (!formatCell[kKeepHidden]) {
+    switch (context) {
+      case "show-code":
+        includeTags = includeTags.concat(kShowCodeTags);
+        removeTags = removeTags.concat(kHideCodeTags);
+        break;
+      case "show-output":
+        includeTags = includeTags.concat(kShowOutputTags);
+        removeTags = removeTags.concat(kHideOutputTags);
+        break;
+      case "show-warnings":
+        includeTags = includeTags.concat(kShowWarningsTags);
+        removeTags = removeTags.concat(kHideWarningsTags);
+        break;
+    }
+  }
   const includeDefault = formatCell[kKeepHidden] || formatCell[context];
   if (includeDefault) {
     return !hasTag(cell, removeTags);

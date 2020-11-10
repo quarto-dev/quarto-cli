@@ -33,7 +33,6 @@ import { dirAndStem } from "../path.ts";
 import PngImage from "../png.ts";
 
 import {
-  convertVisibilityTags,
   hideCell,
   hideCode,
   hideOutput,
@@ -287,13 +286,8 @@ function mdFromCodeCell(
   cellIndex: number,
   options: JupyterToMarkdownOptions,
 ) {
-  // if we aren't keeping hidden, then all show/hide tags are equivalent to include/remove
-  if (!options.formatCell[kKeepHidden]) {
-    cell.metadata[kCellTags] = convertVisibilityTags(cell.metadata[kCellTags]);
-  }
-
   // bail if we aren't including this cell
-  if (!includeCell(cell)) {
+  if (!includeCell(cell, options.formatCell)) {
     return [];
   }
 
