@@ -1,9 +1,5 @@
 
 
-
-https://jupyter-cache.readthedocs.io/en/latest/
-
-
 bs4 family of formats:
 
 bs4-notebook
@@ -43,6 +39,7 @@ computations could even be at a URL!!!
 
 
 Project system:
+  - See MkDocs: https://docs.google.com/document/d/16Lp39BolpTR0NzbQQ6ebr9bawYth8EeivBo0q4qapVY/edit#heading=h.ibf8kici39py
   - Terminate at _quarto.yml w/ project: true
     (need to first determine if there is a project somewhere in the parent tree,
      if there is, then use this behavior, if not, use the first match)
