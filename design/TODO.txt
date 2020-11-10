@@ -1,11 +1,5 @@
 
-data-tags remove-code ends up on hide-code
 
-no longer get code block background color from pandoc
-
-try out markdown table output
-
-extra line is added each time .md file is executed by jupytext/jupyter
 
 https://jupyter-cache.readthedocs.io/en/latest/
 
@@ -53,6 +47,8 @@ Project system:
     (need to first determine if there is a project somewhere in the parent tree,
      if there is, then use this behavior, if not, use the first match)
   - External interactions with projects (output_dir, clean, etc.)
+
+Why did Beamer fail to render w/ missing caption package w/ our pipeline but work for pandoc pdflatex?
 
 Port tinytex to JS; OR we need to implmeent various auto-install behaviors for latexmk, eg.
   had to do this to get biblatex working w/ latexmk
