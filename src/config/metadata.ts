@@ -68,13 +68,14 @@ export function formatFromMetadata(
   debug?: boolean,
 ): Format {
   // user format options (allow any b/c this is just untyped yaml)
-  // deno-lint-ignore no-explicit-any
-  let format: any = {
+  const typedFormat: Format = {
     render: {},
-    execute: {},
+    execution: {},
     pandoc: {},
     metadata: {},
   };
+  // deno-lint-ignore no-explicit-any
+  let format = typedFormat as any;
 
   // see if there is user config for this writer that we need to merge in
   const configFormats = baseFormat.metadata[kMetadataFormat];

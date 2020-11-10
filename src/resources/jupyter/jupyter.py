@@ -47,7 +47,7 @@ def notebook_execute(input, format, params, run_path, resource_dir, quiet):
    fig_height = execute["fig-height"]
    fig_format = execute["fig-format"]
    fig_dpi = execute["fig-dpi"]
-   cache = execute["execute-cache"]
+   cache = execute["cache"]
 
    # set environment variables
    os.environ["JUPYTER_FIG_WIDTH"] = str(fig_width)
@@ -254,7 +254,7 @@ def nb_parameterize(nb, params):
 
    # verify papermill import
    if not papermill_translate:
-      raise ImportError('The papermill package is required for --execute-params')
+      raise ImportError('The papermill package is required for processing --params')
 
    # Generate parameter content based on the kernel_name
    kernel_name = nb.metadata.kernelspec.name

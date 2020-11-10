@@ -32,11 +32,7 @@ import { runPandoc } from "./pandoc.ts";
 import { kStdOut, RenderFlags, resolveParams } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
-import {
-  kExecute,
-  kExecuteCache,
-  kMetadataFormat,
-} from "../../config/constants.ts";
+import { kCache, kExecute, kMetadataFormat } from "../../config/constants.ts";
 import {
   ExecutionEngine,
   executionEngine,
@@ -189,9 +185,9 @@ async function resolveFormat(
     config.execution[kExecute] = false;
   }
 
-  // --execute-cache
+  // --cache
   if (flags?.executeCache) {
-    config.execution[kExecuteCache] = flags?.executeCache;
+    config.execution[kCache] = flags?.executeCache;
   }
 
   // return

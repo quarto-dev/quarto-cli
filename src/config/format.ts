@@ -17,10 +17,10 @@ import { mergeConfigs } from "../core/config.ts";
 
 import {
   kAtxHeaders,
+  kCache,
   kCiteMethod,
   kCiteproc,
   kExecute,
-  kExecuteCache,
   kFigDpi,
   kIncludeAfterBody,
   kIncludeBeforeBody,
@@ -77,7 +77,7 @@ export interface FormatExecution {
   [kFigDpi]?: number;
   [kAllowErrors]?: boolean;
   [kExecute]?: boolean;
-  [kExecuteCache]?: "user" | "all" | "refresh" | "none";
+  [kCache]?: "user" | "all" | "refresh" | "none";
   [kShowCode]?: boolean;
   [kShowOutput]?: boolean;
   [kShowWarnings]?: boolean;
@@ -406,7 +406,7 @@ function defaultFormat(): Format {
       [kFigDpi]: 96,
       [kAllowErrors]: false,
       [kExecute]: true,
-      [kExecuteCache]: "user",
+      [kCache]: "user",
       [kKeepHidden]: false,
       [kShowCode]: true,
       [kShowOutput]: true,

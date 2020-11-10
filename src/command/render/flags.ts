@@ -95,21 +95,21 @@ export function parseRenderFlags(args: string[]) {
         arg = argsStack.shift();
         break;
 
-      case "--execute-cache":
+      case "--cache":
         arg = argsStack.shift();
         if (!["none", "all", "refresh", "user"].includes(arg || "")) {
-          throw new Error("Invalid argument for --execute-cache (" + arg + ")");
+          throw new Error("Invalid argument for --cache (" + arg + ")");
         }
         // deno-lint-ignore no-explicit-any
         flags.executeCache = arg as any;
         break;
 
-      case "--execute-params":
+      case "--params":
         arg = argsStack.shift();
         flags.executeParams = arg;
         break;
 
-      case "--execute-root-dir":
+      case "--root-dir":
         arg = argsStack.shift();
         flags.executeDir = arg;
         break;
@@ -172,10 +172,9 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   const removeArgs = new Map<string, boolean>();
   removeArgs.set("--execute", false);
   removeArgs.set("--no-execute", false);
-  removeArgs.set("--execute-cache", true);
-  removeArgs.set("--execute-params", true);
-  removeArgs.set("--execute-root-dir", true);
-  removeArgs.set("--metadata-override", true);
+  removeArgs.set("--cache", true);
+  removeArgs.set("--params", true);
+  removeArgs.set("--root-dir", true);
   removeArgs.set("--debug", false);
   return removePandocArgs(pandocArgs, removeArgs);
 }
