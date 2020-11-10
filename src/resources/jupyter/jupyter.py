@@ -11,6 +11,7 @@
 # GPL (http://www.gnu.org/licenses/gpl-3.0.txt) for more details.
 
 import os
+import copy
 import sys
 import json
 import pprint
@@ -28,7 +29,6 @@ except ImportError:
 # optional import of jupyter-cache
 try:
    from jupyter_cache import get_cache
-   from jupyter_cache.base import NbBundleIn
 except ImportError:
    get_cache = None
 
@@ -64,19 +64,23 @@ def notebook_execute(input, format, params, run_path, resource_dir, quiet):
    setup_cell = nb_setup_cell(nb.metadata.kernelspec, resource_dir, fig_width, fig_height, fig_format, fig_dpi)
    nb.cells.insert(0, setup_cell)
 
-   # interact with cache as needed
+   # are we using the cache, if so connect to the cache, and then if we aren't in 'refresh'
+   # (forced re-execution) mode then try to satisfy the execution request from the cache
    if cache == "all" or cache == "refresh":
       if not get_cache:
           raise ImportError('The jupyter-cache package is required for cached execution')
       nb_cache = get_cache(".jupyter_cache")
+      if not cache == "refresh":
+         cached_nb = nb_from_cache(nb, nb_cache)
+         if cached_nb:
+            cached_nb.cells.pop(0)
+            nb_write(cached_nb, input)
+            if not quiet:
+                sys.stderr.write("(Notebook read from cache)\n\n")
+            return
    else:
       nb_cache = None
       
-
-   #
-   # TODO: check for cache
-   #
-  
    # create resources for execution
    resources = dict()
    if run_path:
@@ -103,7 +107,7 @@ def notebook_execute(input, format, params, run_path, resource_dir, quiet):
          progress = not quiet and cell.cell_type == 'code' and index > 0
          if progress:
             sys.stderr.write("  Cell {0}/{1}...".format(
-               current_code_cell, total_code_cells)
+               current_code_cell- 1, total_code_cells - 1)
             )
 
          # clear cell output
@@ -126,34 +130,33 @@ def notebook_execute(input, format, params, run_path, resource_dir, quiet):
          if progress:
             sys.stderr.write("Done\n")  
 
+   # set widgets metadata   
+   client.set_widgets_metadata()
+
    # write to the cache
    if nb_cache:
-      nb_bundle = NbBundleIn(
-         nb = client.nb,
-         uri = Path(input),
-         data ={}
-      )
-      nb_cache.cache_notebook_bundle(nb_bundle, overwrite = True)
-
+      nb_write(client.nb, input)
+      nb_cache.cache_notebook_file(path = Path(input), overwrite = True)
 
    # remove setup cell
    client.nb.cells.pop(0)
 
-   # set widgets metadata   
-   client.set_widgets_metadata()
+   # re-write without setup cell
+   nb_write(client.nb, input)
 
-   # get notebook as string
-   outputstr = nbformat.writes(client.nb, version = NB_FORMAT_VERSION)
+   # progress
+   if not quiet:
+      sys.stderr.write("\n")
+
+
+def nb_write(nb, input):
+   outputstr = nbformat.writes(nb, version = NB_FORMAT_VERSION)
    if not outputstr.endswith("\n"):
       outputstr = outputstr + "\n"
 
    # re-write contents back to input file
    with open(input, "w") as file:
       file.write(outputstr)
-
-   # progress
-   if not quiet:
-      sys.stderr.write("\n")
 
 
 def nb_setup_cell(kernelspec, resource_dir, fig_width, fig_height, fig_format, fig_dpi):
@@ -173,6 +176,28 @@ def nb_setup_cell(kernelspec, resource_dir, fig_width, fig_height, fig_format, f
    return nbformat.versions[NB_FORMAT_VERSION].new_code_cell(
       source = setup_code
    )
+
+def nb_from_cache(nb, nb_cache, nb_meta = ("kernelspec", "language_info", "widgets")):
+   try:
+      cache_record = nb_cache.match_cache_notebook(nb)
+      cache_bundle = nb_cache.get_cache_bundle(cache_record.pk)
+      cache_nb = cache_bundle.nb
+      nb = copy.deepcopy(nb)
+      # selected (execution-oriented) metadata
+      if nb_meta is None:
+         nb.metadata = cache_nb.metadata
+      else:
+         for key in nb_meta:
+            if key in cache_nb.metadata:
+               nb.metadata[key] = cache_nb.metadata[key]
+      # code cells
+      for idx in range(len(nb.cells)):
+         if nb.cells[idx].cell_type == "code":
+            cache_cell = cache_nb.cells.pop(0)    
+            nb.cells[idx] = cache_cell
+      return nb
+   except KeyError:
+      return None
 
 def cell_execute(client, cell, index, execution_count, store_history):
 
