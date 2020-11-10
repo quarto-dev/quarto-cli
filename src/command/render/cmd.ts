@@ -25,7 +25,7 @@ import { render } from "./render.ts";
 export const renderCommand = new Command()
   .name("render")
   .stopEarly()
-  .arguments("<input-files:string> [...pandoc-args:string]")
+  .arguments("<input-files:string> [...args]")
   .description(
     "Render input file(s) to various document types.",
   )
@@ -44,21 +44,17 @@ export const renderCommand = new Command()
     { default: true },
   )
   .option(
-    "--execute-cache",
+    "--cache",
     "Cache execution outputs (user, all, refresh, or off).",
     { default: "user" },
   )
   .option(
-    "--execute-root-dir",
-    "Working directory for execution.",
+    "--root-dir",
+    "Working directory for code execution.",
   )
   .option(
-    "--execute-params",
+    "--params",
     "YAML file with execution parameters.",
-  )
-  .option(
-    "--metadata-override",
-    "YAML file specifying metadata overrides.",
   )
   .option(
     "--debug",
@@ -91,19 +87,19 @@ export const renderCommand = new Command()
     "quarto render notebook.Rmd --output -",
   )
   // deno-lint-ignore no-explicit-any
-  .action(async (options: any, inputFiles: string, pandocArgs: string[]) => {
+  .action(async (options: any, inputFiles: string, args: string[]) => {
     // pull inputs out of the beginning of flags
     const inputs = [inputFiles];
-    const firstPandocArg = pandocArgs.findIndex((arg) => arg.startsWith("-"));
+    const firstPandocArg = args.findIndex((arg) => arg.startsWith("-"));
     if (firstPandocArg !== -1) {
-      inputs.push(...pandocArgs.slice(0, firstPandocArg));
-      pandocArgs = pandocArgs.slice(firstPandocArg);
+      inputs.push(...args.slice(0, firstPandocArg));
+      args = args.slice(firstPandocArg);
     }
 
     // extract pandoc flag values we know/care about, then fixup args as
     // necessary (remove our flags that pandoc doesn't know about)
-    const flags = parseRenderFlags(pandocArgs);
-    pandocArgs = fixupPandocArgs(pandocArgs, flags);
+    const flags = parseRenderFlags(args);
+    args = fixupPandocArgs(args, flags);
 
     // run render on input files
     let rendered = false;
@@ -111,7 +107,7 @@ export const renderCommand = new Command()
       for (const walk of expandGlobSync(input)) {
         const input = relative(Deno.cwd(), walk.path);
         rendered = true;
-        const result = await render(input, { flags, pandocArgs });
+        const result = await render(input, { flags, pandocArgs: args });
         if (!result.success) {
           // error diagnostics already written to stderr
           Deno.exit(result.code);

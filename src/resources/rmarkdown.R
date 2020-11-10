@@ -378,7 +378,7 @@
 
   knitr_options_with_cache <- function(input, format, opts) {
     # handle cache behavior
-    cache <- format$execute$`execute-cache`
+    cache <- format$execute$`cache`
     if (!identical(cache, "user")) {
       # remove the cache dir for refresh
       if (identical(cache, "refresh")) {
