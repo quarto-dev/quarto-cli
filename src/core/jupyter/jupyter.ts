@@ -55,8 +55,7 @@ import {
 } from "./display_data.ts";
 import { widgetIncludeFiles } from "./widgets.ts";
 import { removeAndPreserveHtml } from "./preserve.ts";
-import { FormatCell } from "../../config/format.ts";
-import { kKeepHidden } from "../../config/constants.ts";
+import { FormatExecution } from "../../config/format.ts";
 
 export const kCellCollapsed = "collapsed";
 export const kCellAutoscroll = "autoscroll";
@@ -192,7 +191,7 @@ export function jupyterAssets(input: string, to?: string) {
 export interface JupyterToMarkdownOptions {
   language: string;
   assets: JupyterAssets;
-  formatCell: FormatCell;
+  execution: FormatExecution;
   toHtml?: boolean;
   toLatex?: boolean;
   toMarkdown?: boolean;
@@ -287,7 +286,7 @@ function mdFromCodeCell(
   options: JupyterToMarkdownOptions,
 ) {
   // bail if we aren't including this cell
-  if (!includeCell(cell, options.formatCell)) {
+  if (!includeCell(cell, options.execution)) {
     return [];
   }
 
@@ -359,9 +358,9 @@ function mdFromCodeCell(
   const divBeginMd = divMd.join("").replace(/ $/, "").concat("}\n");
 
   // write code if appropriate
-  if (includeCode(cell, options.formatCell)) {
+  if (includeCode(cell, options.execution)) {
     md.push("```{." + options.language);
-    if (hideCode(cell, options.formatCell)) {
+    if (hideCode(cell, options.execution)) {
       md.push(" .hidden");
     }
     md.push("}\n");
@@ -370,7 +369,7 @@ function mdFromCodeCell(
   }
 
   // write output if approproate
-  if (includeOutput(cell, options.formatCell)) {
+  if (includeOutput(cell, options.execution)) {
     // compute label prefix for output (in case we need it for files, etc.)
     const labelName = label
       ? label.replaceAll(":", "-")
@@ -387,7 +386,7 @@ function mdFromCodeCell(
       if (
         output.output_type === "stream" &&
         (output as JupyterOutputStream).name === "stderr" &&
-        !includeWarnings(cell, options.formatCell)
+        !includeWarnings(cell, options.execution)
       ) {
         continue;
       }
@@ -406,8 +405,8 @@ function mdFromCodeCell(
 
       // add hidden if necessary
       if (
-        hideOutput(cell, options.formatCell) ||
-        (isWarningOutput(output) && hideWarnings(cell, options.formatCell))
+        hideOutput(cell, options.execution) ||
+        (isWarningOutput(output) && hideWarnings(cell, options.execution))
       ) {
         md.push(` .hidden`);
       }

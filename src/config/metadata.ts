@@ -21,10 +21,8 @@ import { mergeConfigs } from "../core/config.ts";
 import { message } from "../core/console.ts";
 
 import {
-  kCellDefaults,
-  kCellDefaultsKeys,
-  kExecuteDefaults,
-  kExecuteDefaultsKeys,
+  kExecutionDefaults,
+  kExecutionDefaultsKeys,
   kKeepMd,
   kKeepTex,
   kMetadataFormat,
@@ -107,21 +105,20 @@ export function formatFromMetadata(
 }
 
 export function metadataAsFormat(metadata: Metadata): Format {
-  // deno-lint-ignore no-explicit-any
-  const format: { [key: string]: any } = {
+  const typedFormat: Format = {
     render: {},
-    execute: {},
-    cell: {},
+    execution: {},
     pandoc: {},
     metadata: {},
   };
+  // deno-lint-ignore no-explicit-any
+  const format = typedFormat as { [key: string]: any };
   Object.keys(metadata).forEach((key) => {
     // allow stuff already sorted into a top level key through unmodified
     if (
       [
         kRenderDefaults,
-        kExecuteDefaults,
-        kCellDefaults,
+        kExecutionDefaults,
         kPandocDefaults,
         kPandocMetadata,
       ]
@@ -132,10 +129,8 @@ export function metadataAsFormat(metadata: Metadata): Format {
       // move the key into the appropriate top level key
       if (kRenderDefaultsKeys.includes(key)) {
         format.render[key] = metadata[key];
-      } else if (kExecuteDefaultsKeys.includes(key)) {
-        format.execute[key] = metadata[key];
-      } else if (kCellDefaultsKeys.includes(key)) {
-        format.cell[key] = metadata[key];
+      } else if (kExecutionDefaultsKeys.includes(key)) {
+        format.execution[key] = metadata[key];
       } else if (kPandocDefaultsKeys.includes(key)) {
         format.pandoc[key] = metadata[key];
       } else {
@@ -143,7 +138,7 @@ export function metadataAsFormat(metadata: Metadata): Format {
       }
     }
   });
-  return format as Format;
+  return typedFormat;
 }
 
 function readQuartoYaml(file: string) {
