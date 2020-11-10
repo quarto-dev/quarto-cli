@@ -1,9 +1,7 @@
 ---
-title: "Jupyter"
+title: "Here we go"
 knit: quarto render
-format:
-  markdown:
-    output-file: jupyter-quarto.md
+execute-cache: none
 jupyter:
   jupytext:
     formats: md,ipynb
@@ -13,7 +11,7 @@ jupyter:
     name: python3
 ---
 
-## Text
+## Text is something that I can relate to
 
 ```python
 print(1 + 1)
@@ -49,6 +47,47 @@ ax.set_title('Scores broken out by group and gender')
 ax.legend()
 plt.show()
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
