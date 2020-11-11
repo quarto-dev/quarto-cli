@@ -61,7 +61,6 @@ const kJupytextMdExtensions = [
 ];
 const kCodeExtensions = [
   ".py",
-  ".jl",
   ".clj",
   ".js",
   ".ts",

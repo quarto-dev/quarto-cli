@@ -13,13 +13,15 @@
 *
 */
 
+import { readYamlFromMarkdownFile } from "../core/yaml.ts";
+
 import { Format, FormatPandoc } from "../config/format.ts";
 import { PdfEngine } from "../config/pdf.ts";
 import { Metadata } from "../config/metadata.ts";
 
 import { rmdEngine } from "./rmd.ts";
 import { jupyterEngine } from "./jupyter.ts";
-import { readYamlFromMarkdownFile } from "../core/yaml.ts";
+import { juliaEngine } from "./julia.ts";
 
 export interface ExecutionEngine {
   name: string;
@@ -89,6 +91,7 @@ export interface RunOptions {
 export async function executionEngine(file: string, quiet?: boolean) {
   const engines = [
     rmdEngine,
+    juliaEngine,
     jupyterEngine,
   ];
 
