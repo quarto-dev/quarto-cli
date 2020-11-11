@@ -1,15 +1,31 @@
-![Caption](file.png){#fig:label}
+---
+title: "Test crossrefs"
+format:
+   html:
+     filters:
+       - pandoc-crossref
+knit: quarto render
+linkReferences: true
+nameInLink: true
+---
+
+## Image
+
+![Caption](file.jpg){#fig:label width="100" height="100"}
+
+## Math
 
 $$ math $$ {#eq:label}
 
-a b c
+## Table
 
----
+| Col1 | Col2 | Col3 |
+|------|------|------|
+|      |      |      |
+|      |      |      |
+|      |      |      |
 
-1 2 3
-4 5 6
-
-: Caption {#tbl:label}
+:  This is the caption {#tbl:label}
 
 ## Section {#sec:section}
 
