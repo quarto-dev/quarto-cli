@@ -1,0 +1,33 @@
+---
+title: FIR filter design with Julia
+author: Matti Pastell
+date: 21th April 2016
+format: 
+   html: default
+knit: quarto render
+---
+
+# Introduction
+
+This an example of a julia script that can be published using
+[Weave](http://weavejl.mpastell.com/dev/usage/).
+The script can be executed normally using Julia
+or published to HTML or pdf with Weave.
+Text is written in markdown in lines starting with "`#'` " and code
+is executed and results are included in the published document.
+
+```julia
+println("hello world 1")
+```
+
+
+```julia
+println("hello world 2")
+```
+
+Here is an example of a plot:
+
+```julia
+using Plots
+plot([cumsum(rand(500) .- 0.5), cumsum(rand(500) .- 0.5)])
+```
