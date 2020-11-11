@@ -1,20 +1,42 @@
 
 
-bs4 family of formats:
+- Crossref system
+  - Adopt pandoc-crossref if custom labels PR is merged
+  - Implement our own w/ largely similar syntax but thereom's, etc.
+    Lua vs. Typescript
+  figures for html/js blobs:
+- display_data with type text/html
+- display_data with type widget+view+json
 
+
+# Package/extension system
+
+Port a dozen or rticles formats
+# markdown for bootstrap concepts/constructs
+# standalone document formats
 bs4-notebook
 bs4-article
-bs4-dashboard
-bs4-presentation
+
+Project system:
+  - See MkDocs: https://docs.google.com/document/d/16Lp39BolpTR0NzbQQ6ebr9bawYth8EeivBo0q4qapVY/edit#heading=h.ibf8kici39py
+  - Terminate at _quarto.yml w/ project: true
+    (need to first determine if there is a project somewhere in the parent tree,
+     if there is, then use this behavior, if not, use the first match)
+  - External interactions with projects (output_dir, clean, etc.)
+
+# static site generator (project system)
 bs4-website
 bs4-book
+
+bs4-dashboard
+bs4-presentation
 
 memo/proposal on computations:
 will be able to use RStudio chunk output and/or notebook for compute?
 or perhaps require html_notebook?
 computations could even be at a URL!!!
 
-  {{= print("hello") }}
+  {{= print("x") }} 
 
   {{< figure projections.xlsx#chunk-label caption="asfdasdf" label="" >}}
 
@@ -29,21 +51,6 @@ computations could even be at a URL!!!
 
 << write tests >>
 
-- Crossref system
-  - Adopt pandoc-crossref if custom labels PR is merged
-  - Implement our own w/ largely similar syntax but thereom's, etc.
-    Lua vs. Typescript
-  figures for html/js blobs:
-- display_data with type text/html
-- display_data with type widget+view+json
-
-
-Project system:
-  - See MkDocs: https://docs.google.com/document/d/16Lp39BolpTR0NzbQQ6ebr9bawYth8EeivBo0q4qapVY/edit#heading=h.ibf8kici39py
-  - Terminate at _quarto.yml w/ project: true
-    (need to first determine if there is a project somewhere in the parent tree,
-     if there is, then use this behavior, if not, use the first match)
-  - External interactions with projects (output_dir, clean, etc.)
 
 Why did Beamer fail to render w/ missing caption package w/ our pipeline but work for pandoc pdflatex?
 
@@ -55,6 +62,8 @@ Port tinytex to JS; OR we need to implmeent various auto-install behaviors for l
     ln -sf /Users/jjallaire/Library/TinyTeX/bin/x86_64-darwin/biber /usr/local/bin/biber
 Note need to implement tinytex: false and tinytex options (e.g. min-runs, clean, output-dir, etc.)
 
+More robust Julia backend
+
 Extracate the cache dir logic from rmarkdown::render and call that
 
 Merge -M and --metadata-file with _quarto.yml and in-file YAML with same
@@ -62,8 +71,6 @@ semantics as Pandoc
 
 discover index.Rmd or ui.Rmd for quarto run. can't rely on
 rmarkdown::run b/c we need to figure out which Rmd to render
-
-consider pluto notebooks (julia)
 
 Meta-concepts on top of AST: e.g. tabs
 
