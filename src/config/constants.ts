@@ -50,6 +50,7 @@ export const kExecutionDefaultsKeys = [
   kFigWidth,
   kFigHeight,
   kFigFormat,
+  kFigDpi,
   kIncludeCode,
   kIncludeOutput,
   kIncludeWarnings,
