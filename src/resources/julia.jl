@@ -1,28 +1,15 @@
 using JSON
 using Weave
 
-# - Forwarding of 'show-warnings' (doesn't seem to be supported right now)
 #
-# - Plots doesn't seem to respect fig_width and fig_height
 #
 # - Implement support for fig-format 'retina'
-#
-# - Allow 'weave_options' to be specified per-format. For this to work the 
-#   weave_options need to be hoisted out of the options.metadata passed
-#   to exeute and either merged w/ the source or merged using our own 
-#   implementation of weave
 #
 # - Integrate quarto cache directives with Jweave cache. Note that we currently
 #   return [] for supporting in case the user activates the cache unknown to
 #   us (as supporting files need to hang around if there is a cache)
 #
-# - Markup up output w/ pandoc-compatible div structure (e.g. ::: {.cell .code})
-#   Note that to do this it's likely we need to call WeaveDoc/run_doc directly
-#   and then just operate directly on the chunks
-# 
 # - Implement 'keep-hidden' (need the lower level approach for this)
-#
-# - Implement 'execute: false' (again, likely need lower level approach for this)
 #
 # - correct handling of rich (e.g. plotly) outputs  
 #
