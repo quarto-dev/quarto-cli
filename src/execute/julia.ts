@@ -1,9 +1,6 @@
 import { extname, join } from "path/mod.ts";
 
-import {
-  readYamlFromMarkdown,
-  readYamlFromMarkdownFile,
-} from "../core/yaml.ts";
+import { readYamlFromMarkdownFile } from "../core/yaml.ts";
 
 import { dirAndStem } from "../core/path.ts";
 
@@ -18,6 +15,7 @@ import type {
 } from "./engine.ts";
 import { execProcess } from "../core/process.ts";
 import { resourcePath } from "../core/resources.ts";
+import { message } from "../core/console.ts";
 
 const kJmdExtensions = [".jmd"];
 const kEngineExtensions = [...kJmdExtensions];
@@ -46,6 +44,11 @@ export const juliaEngine: ExecutionEngine = {
       return Promise.reject(
         new Error("--root-dir is not supported for Julia Markdown"),
       );
+    }
+
+    // show progress
+    if (!options.quiet) {
+      message(`Weaving ${options.target.input}\n`);
     }
 
     const result = await execProcess(

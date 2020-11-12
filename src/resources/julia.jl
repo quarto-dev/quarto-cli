@@ -51,11 +51,6 @@ function execute(input, output, format, quiet)
   pandoc = get(format, "pandoc", Dict([]))
   to = get(pandoc, "to", "html")
 
-  # show progress
-  if !quiet 
-    write(stderr, string("Weaving ", input, "\n\n"))
-  end  
-
   # compute the fig_path
   stem = splitext(basename(input))[1]
   files_dir = string(stem, "_files")
