@@ -1,7 +1,7 @@
 ---
 title: "Test crossrefs"
 format:
-   html:
+   latex:
      filters:
        - pandoc-crossref
 knit: quarto render
@@ -15,15 +15,17 @@ nameInLink: true
 
 ## Math
 
-$$ math $$ {#eq:label}
+$$ 
+math 
+$$ {#eq:label}
 
 ## Table
 
 | Col1 | Col2 | Col3 |
 |------|------|------|
+|   a  |      |      |
 |      |      |      |
-|      |      |      |
-|      |      |      |
+|      |      |  c   |
 
 :  This is the caption {#tbl:label}
 
