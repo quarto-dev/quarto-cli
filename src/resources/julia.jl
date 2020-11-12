@@ -85,7 +85,7 @@ function execute(input, output, format, quiet)
   end
 
   # weave the doc
-  doc = weave_doc(input, metadata, execute)
+  yaml, doc = weave_doc(input, metadata, execute)
 
   # run the doc
   doc = Weave.run_doc(
@@ -98,20 +98,24 @@ function execute(input, output, format, quiet)
     cache=Symbol(cache),
   )
   
+  # render markdown
+  markdown = []
 
-  # render chunks
-  Weave.restore_header!(doc)
-  body = []
+  # include yaml if we have it
+  if !isnothing(yaml)
+    append!(markdown, "---$(yaml)---")
+  end
+
+  # render chunks to markdown
   for (index, value) in enumerate(copy(doc.chunks))
     rendered = render_chunk(value)
-    append!(body, rendered)
-    append!(body, "\n")
+    append!(markdown, rendered)
+    append!(markdown, "\n")
   end
-  body = join(body, "")
-
+  
   # write out the results
   open(output, "w") do io
-    write(io, body)
+    write(io, join(markdown, ""))
   end;
 
   # check if cache was used (affects supporting)
@@ -127,18 +131,22 @@ end
 
 function weave_doc(input, metadata, execute)
 
-  # weave the doc
-  header, chunks = Weave.parse_doc(read(input, String), "markdown")
+  # read document source and extract yaml header
+  source = read(input, String)
+  yaml = yaml_header_from_source(source)
 
-  # resolve chunk defaults
+  # parse the doc into chunks
+  header, chunks = Weave.parse_doc(source, "markdown")
+
+  # merge in metadata 'weave_options'
   chunk_defaults = resolve_chunk_defaults(metadata)
   
-  # some paths
+  # calculate paths for weave
   path = abspath(input)
   _, fname = splitdir(path)
   basename = splitext(fname)[1]
 
-  # do the weave
+  # weave 
   doc = Weave.WeaveDoc(
     input,
     basename,
@@ -162,8 +170,19 @@ function weave_doc(input, metadata, execute)
   end
 
   # return 
-  return doc
+  return yaml, doc
+end
 
+
+# extract yaml header from source
+const YAML_REGEX = r"^---$(?<header>((?!---).)+)^---$"ms
+function yaml_header_from_source(source)
+  m = match(YAML_REGEX, source)
+  if !isnothing(m)
+    return m[:header]
+  else
+    return nothing
+  end
 end
 
 # merge 'weave_options' from document metadata
