@@ -25,8 +25,9 @@ using Weave
 # - Implement 'execute: false' (again, likely need lower level approach for this)
 #
 # - correct handling of rich (e.g. plotly) outputs 
+#
+# - --root-dir and --params don't work
 # 
-# - yaml seems to get re-ordered (see restore_header, parse_markdown)
 #
 
 function execute(input, output, format, quiet)
@@ -287,7 +288,11 @@ function chunk_has_figures(chunk)
 end
 
 function render_code(code)
-  return string("```julia", code, "```\n")
+  output = code
+  if !endswith(output, "\n")
+    output *= "\n"
+  end
+  return string("```julia", output, "```\n")
 end
 
 function render_output(output, classes)
