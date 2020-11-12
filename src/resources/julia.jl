@@ -24,10 +24,7 @@ using Weave
 #
 # - Implement 'execute: false' (again, likely need lower level approach for this)
 #
-# - correct handling of rich (e.g. plotly) outputs 
-#
-# - --root-dir and --params don't work
-# 
+# - correct handling of rich (e.g. plotly) outputs  
 #
 
 function execute(input, output, format, quiet)
