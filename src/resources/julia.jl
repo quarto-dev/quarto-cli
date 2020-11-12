@@ -100,13 +100,11 @@ function execute(target, output, format, quiet)
     
 
     # render chunks
-    pandoc_format = Weave.Pandoc()
     Weave.restore_header!(doc)
     body = []
-    docformat = doc.format
     chunks = copy(doc.chunks)
     for (index, value) in enumerate(chunks)
-        rendered = render_chunk(pandoc_format, value)
+        rendered = render_chunk(value)
         append!(body, rendered)
         append!(body, "\n")
     end
@@ -177,31 +175,11 @@ function weave_doc(input, metadata)
 
 end
 
-render_chunk(docformat::Weave.WeaveFormat, chunk::Weave.DocChunk) = join((Weave.render_inline(c) for c in chunk.content))
+function render_chunk(chunk::Weave.DocChunk)
+    return join((Weave.render_inline(c) for c in chunk.content))
+end 
 
-
-function render_code(code)
-    return string("```julia", code, "```\n")
-end
-
-function render_output(output, classes)
-    result = string("\n::: {.output ", classes, "}", "\n")
-    result *= output
-    result *= "\n:::\n"
-    return result
-end
-
-function render_raw_output(output, type)
-    raw = string("```{=", type, "}\n")
-    raw *= output
-    if !endswith(raw, "\n")
-        raw *= "\n"
-    end
-    raw *= "```"
-    return render_output(raw, ".display_data")
-end
-
-function render_chunk(docformat::Weave.WeaveFormat, chunk::Weave.CodeChunk)
+function render_chunk(chunk::Weave.CodeChunk)
 
     # code cell div
     result = string("::: {.cell .code}", "\n")
@@ -260,12 +238,73 @@ function render_chunk(docformat::Weave.WeaveFormat, chunk::Weave.CodeChunk)
 
     # Handle figures
     if chunk.options[:fig] && length(chunk.figures) > 0
-        result *= Weave.render_figures(docformat, chunk)
+        result *= render_figures(chunk)
     end
 
     result *= ":::\n"
 
     return result
+end
+
+function render_code(code)
+    return string("```julia", code, "```\n")
+end
+
+function render_output(output, classes)
+    result = string("\n::: {.output ", classes, "}", "\n")
+    result *= output
+    if !endswith(result, "\n")
+        result *= "\n"
+    end
+    result *= ":::\n"
+    return result
+end
+
+function render_raw_output(output, type)
+    raw = string("```{=", type, "}\n")
+    raw *= output
+    if !endswith(raw, "\n")
+        raw *= "\n"
+    end
+    raw *= "```"
+    return render_output(raw, ".display_data")
+end
+
+function render_figures(chunk)
+
+    fignames = chunk.figures
+    length(fignames) > 0 || (return "")
+
+    caption = chunk.options[:fig_cap]
+    label = get(chunk.options, :label, nothing)
+    result = ""
+    figstring = ""
+    attribs = ""
+    width = chunk.options[:out_width]
+    height = chunk.options[:out_height]
+
+    # Build figure attibutes
+    attribs = String[]
+    isnothing(width) || push!(attribs, "width=$width")
+    isnothing(height) || push!(attribs, "height=$height")
+    isnothing(label) || push!(attribs, "#fig:$label")
+    attribs = isempty(attribs) ? "" : "{" * join(attribs, " ") * "}"
+
+    if !isnothing(caption)
+        result *= render_figure(caption, fignames[1], attribs)
+        for fig in fignames[2:end]
+            result *= render_figure("", fig, attribs)
+        end
+    else
+        for fig in fignames
+            result *= render_figure("", fig, attribs)
+        end
+    end
+    return result
+end
+
+function render_figure(caption, path, attribs)
+    return render_output("![$caption]($(path))$attribs", ".display_data")
 end
 
 
