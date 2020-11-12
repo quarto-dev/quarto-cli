@@ -2,9 +2,6 @@ using JSON
 using Weave
 
 #
-#
-# - Implement support for fig-format 'retina'
-#
 # - Integrate quarto cache directives with Jweave cache. Note that we currently
 #   return [] for supporting in case the user activates the cache unknown to
 #   us (as supporting files need to hang around if there is a cache)
@@ -14,7 +11,7 @@ using Weave
 # - correct handling of rich (e.g. plotly) outputs  
 #
 
-function execute(input, output, format, quiet)
+function execute(input, output, format)
  
   # execution 
   execution = get(format, "execution", Dict([]))
@@ -357,7 +354,7 @@ format = get(options, "format", Dict([]))
 quiet = get(options, "quiet", false)
 
 # execute
-result = execute(input, output, format, quiet)
+result = execute(input, output, format)
 
 # write result to stdout
 JSON.print(stdout, result)
