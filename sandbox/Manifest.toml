@@ -535,6 +535,12 @@ git-tree-sha1 = "1b556ad51dceefdbf30e86ffa8f528b73c7df2bb"
 uuid = "2f80f16e-611a-54ab-bc61-aa92de5b98fc"
 version = "8.42.0+4"
 
+[[PackageCompiler]]
+deps = ["Libdl", "Pkg", "UUIDs"]
+git-tree-sha1 = "3eee77c94646163f15bd8626acf494360897f890"
+uuid = "9b87118b-4619-50d2-8e1e-99f35a4d4d9d"
+version = "1.2.3"
+
 [[Parsers]]
 deps = ["Dates"]
 git-tree-sha1 = "b417be52e8be24e916e34b3d70ec2da7bdf56a68"
