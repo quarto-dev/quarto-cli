@@ -36,6 +36,18 @@ export const juliaEngine: ExecutionEngine = {
   },
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
+    // --params and --root-dir are not supported
+    if (options.params) {
+      return Promise.reject(
+        new Error("--params is not supported for Julia Markdown"),
+      );
+    }
+    if (options.cwd) {
+      return Promise.reject(
+        new Error("--root-dir is not supported for Julia Markdown"),
+      );
+    }
+
     const result = await execProcess(
       {
         cmd: ["julia", resourcePath("julia.jl")],
