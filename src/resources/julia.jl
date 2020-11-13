@@ -22,6 +22,7 @@ function execute(input, output, format, temp_dir)
   # execution 
   execution = get(format, "execution", Dict([]))
   execute = get(execution, "execute", true)
+  keep_hidden = get(execution, "keep-hidden", false)
   # cache
   cache = get(execution, "cache", "user")
   if cache == "none"
@@ -91,7 +92,7 @@ function execute(input, output, format, temp_dir)
 
   # render chunks to markdown
   for (index, value) in enumerate(copy(doc.chunks))
-    rendered = render_chunk(value)
+    rendered = render_chunk(value, keep_hidden)
     append!(markdown, rendered)
     append!(markdown, "\n")
   end
@@ -191,11 +192,11 @@ function resolve_chunk_defaults(metadata)
   return chunk_defaults
 end
 
-function render_chunk(chunk::Weave.DocChunk)
+function render_chunk(chunk::Weave.DocChunk, keep_hidden)
   return join((Weave.render_inline(c) for c in chunk.content))
 end 
 
-function render_chunk(chunk::Weave.CodeChunk)
+function render_chunk(chunk::Weave.CodeChunk, keep_hidden)
 
   # code cell div
   result = string("::: {.cell .code}", "\n")
@@ -203,10 +204,15 @@ function render_chunk(chunk::Weave.CodeChunk)
   # check echo option
   echo = chunk.options[:echo]
 
+  # check for hidden code/output
+  hide_code = !echo && keep_hidden
+  hide_output = chunk.options[:results] == "hidden" && keep_hidden
+  hide_figures = !chunk.options[:fig] && keep_hidden
+
   # return just code if there is no eval
   if !chunk.options[:eval]
-    if echo
-      result *= render_code(chunk.content)
+    if echo || hide_code
+      result *= render_code(chunk.content, hide_code)
       result *= ":::\n"
       return result
     else
@@ -215,24 +221,24 @@ function render_chunk(chunk::Weave.CodeChunk)
   end
 
   if chunk.options[:term]
-    if Weave.should_render(chunk)
-      result *= render_code(chunk.output)
+    if chunk_has_term_output(chunk) || hide_code
+      result *= render_code(chunk.output, hide_code)
     end
   else
-    if echo
-      result *= render_code(chunk.content)
+    if echo || hide_code
+      result *= render_code(chunk.content, hide_code)
     end
     
     # handle terminal and rich outputs
-    if chunk_has_output(chunk)
+    if chunk_has_output(chunk) || hide_output
       # raw output (e.g. tex or html)
-      if chunk_has_raw_output(chunk)
+      if chunk_has_raw_output(chunk) && !hide_output
         type = chunk.options[:results]
         if strip(chunk.output) ≠ ""
-          result *= render_raw_output(chunk.output, type)
+          result *= render_raw_output(chunk.output, type, hide_output)
         end
         if strip(chunk.rich_output) ≠ ""
-          result *= render_raw_output(chunk.rich_output, type)
+          result *= render_raw_output(chunk.rich_output, type, hide_output)
         end
       # normal markup output
       else
@@ -244,19 +250,19 @@ function render_chunk(chunk::Weave.CodeChunk)
         end
         #  normal output
         if strip(chunk.output) ≠ ""
-          result *= render_output(chunk.output, ".stream .stdout")
+          result *= render_stream_output(chunk.output, hide_output)
         end
         # rich output
         if strip(chunk.rich_output) ≠ ""
-          result *= render_output(chunk.rich_output, ".display_data")
+          result *= render_output(chunk.rich_output, ".display_data", hide_output)
         end
       end
     end
   end
 
   # handle figure output
-  if chunk_has_figures(chunk)
-    result *= render_figures(chunk)
+  if chunk_has_figures(chunk) || hide_figures
+    result *= render_figures(chunk, hide_figures)
   end
 
   # terminate div
@@ -264,6 +270,10 @@ function render_chunk(chunk::Weave.CodeChunk)
 
   # return result
   return result
+end
+
+function chunk_has_term_output(chunk)
+  return chunk.options[:echo] && chunk.options[:results] ≠ "hidden"
 end
 
 function chunk_has_output(chunk)
@@ -279,15 +289,22 @@ function chunk_has_figures(chunk)
   return chunk.options[:fig] && length(chunk.figures) > 0
 end
 
-function render_code(code)
+function render_code(code, hidden)
   output = code
+  if (!startswith(output, "\n"))
+    output = string("\n", output)
+  end
   if !endswith(output, "\n")
     output *= "\n"
   end
-  return string("```julia", output, "```\n")
+  blockattrs = ifelse(hidden, "{.julia .hidden}", "julia")
+  return string("```", blockattrs, output, "```\n")
 end
 
-function render_output(output, classes)
+function render_output(output, classes, hidden)
+  if hidden
+    classes *= " .hidden"
+  end
   result = string("\n::: {.output ", classes, "}", "\n")
   result *= output
   if !endswith(result, "\n")
@@ -297,17 +314,21 @@ function render_output(output, classes)
   return result
 end
 
-function render_raw_output(output, type)
+function render_stream_output(output, hidden)
+  render_output(string("```\n", strip(output), "\n```"),  ".stream .stdout", hidden)
+end
+
+function render_raw_output(output, type, hidden)
   raw = string("```{=", type, "}\n")
   raw *= output
   if !endswith(raw, "\n")
     raw *= "\n"
   end
   raw *= "```"
-  return render_output(raw, ".display_data")
+  return render_output(raw, ".display_data", hidden)
 end
 
-function render_figures(chunk)
+function render_figures(chunk, hidden)
   # return nothing for no figures
   fignames = chunk.figures
   if length(fignames) == 0
@@ -342,13 +363,13 @@ function render_figures(chunk)
   result = ""
   caption = chunk.options[:fig_cap]
   if !isnothing(caption)
-    result *= render_figure(caption, fignames[1], attribs)
+    result *= render_figure(caption, fignames[1], attribs, hidden)
     for fig in fignames[2:end]
-      result *= render_figure("", fig, attribs)
+      result *= render_figure("", fig, attribs, hidden)
     end
   else
     for fig in fignames
-      result *= render_figure("", fig, attribs)
+      result *= render_figure("", fig, attribs, hidden)
     end
   end
 
@@ -356,8 +377,8 @@ function render_figures(chunk)
   return result
 end
 
-function render_figure(caption, path, attribs)
-  return render_output("![$caption]($(path))$attribs", ".display_data")
+function render_figure(caption, path, attribs, hidden)
+  return render_output("![$caption]($(path))$attribs", ".display_data", hidden)
 end
 
 function figure_size_hook!(chunk)
