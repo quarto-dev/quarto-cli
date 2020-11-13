@@ -10,6 +10,7 @@ VERSION=0.1
 WORKING_DIR=dist
 RESOURCES_DIR=share
 BIN_DIR=bin
+CONF_DIR=conf
 
 pushd package
 
@@ -40,8 +41,11 @@ rm $DENOFILE
 
 PANDOCURL=https://github.com/jgm/pandoc/releases/download/
 PANDOCFILE=pandoc-$PANDOC-macOS.zip
+PANDOCDIR=pandoc-$PANDOC
 curl -fail -L $PANDOCURL/$PANDOC/$PANDOCFILE -o $PANDOCFILE --no-include
 unzip -o $PANDOCFILE
+cp $PANDOCDIR/bin/pandoc .
+rm -rf $PANDOCDIR
 rm $PANDOCFILE
 
 PANDOCCROSSREFURL=https://github.com/lierdakil/pandoc-crossref/releases/download/
@@ -68,8 +72,16 @@ cp ../quarto $BIN_DIR/quarto
 cp ../../COPYRIGHT .
 cp ../../COPYING.md .
 
+if [ ! -d "$CONF_DIR" ]; then
+	mkdir -p "$CONF_DIR"
+fi
+pushd $CONF_DIR
 
-ln -fs ${QUARTO_SH} /usr/local/bin/quarto
+cp ../../link.sh .
+cp ../../unlink.sh .
+
+popd
+
 
 # ^^^ PACKAGING
 

@@ -24,6 +24,7 @@ import { message } from "../../core/console.ts";
 import { Format, FormatPandoc } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
 import { kListings } from "../../config/constants.ts";
+import { binaryPath } from "../../core/resources.ts";
 
 import { RenderFlags } from "./flags.ts";
 import {
@@ -49,7 +50,7 @@ export async function runPandoc(
   options: PandocOptions,
 ): Promise<ProcessResult> {
   // build the pandoc command (we'll feed it the input on stdin)
-  const cmd = ["pandoc"];
+  const cmd = [binaryPath("pandoc")];
 
   // generate defaults and write a defaults file if need be
   const allDefaults = await generateDefaults(options);
