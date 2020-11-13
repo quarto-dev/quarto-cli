@@ -5,14 +5,24 @@ using Plots
 # TODO: Do something to amortize the jit cost. e.g. have a persistent process that
 # serves render requests, use a pre-compiled sysimage, etc. 
 
+# This seemed to make a small difference in performance:
+# using PackageCompiler
+# using Weave
+# using JSON
+# using Plots
+# using Plotly
+# using PlotlyBase
+# using PlotlyJS
+# create_sysimage(
+#   [:Weave,:JSON,:Plots,:Plotly,:PlotlyBase,:PlotlyJS],
+#   sysimage_path="quarto.so"
+# )
+# julia --sysimage "quarto.so" juila.jl
+
+
 # TODO: Was not able to get plotly actually working (but in any case do capture the 
 # doc.header_script and forward it to pandoc). Seeing same errors as reported here:
 # https://github.com/JunoLab/Weave.jl/issues/235
-
-#
-# - Integrate quarto cache directives with Jweave cache. Note that we currently
-#   return [] for supporting in case the user activates the cache unknown to
-#   us (as supporting files need to hang around if there is a cache)
 
 
 function execute(input, output, format, temp_dir)
