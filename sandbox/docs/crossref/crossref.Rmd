@@ -1,0 +1,64 @@
+---
+title: "Test crossrefs"
+format:
+   pdf:  
+     keep-md: true
+     keep-tex: true
+knit: quarto render
+linkReferences: true
+nameInLink: true
+bibliography: references.bib
+---
+
+[@pirzada2020]
+
+
+```{.haskell}
+main :: IO ()
+main = putStrLn "Hello World!"
+```
+
+
+
+
+```{r listing="foo" listing-cap = "foo"}
+knitr::kable(
+  head(mtcars[, 1:8], 10), booktabs = TRUE,
+  caption = 'A table of the first 10 rows of the mtcars data.'
+)
+```
+
+
+
+## Image
+
+![Caption](file.jpg){#fig:label width="100" height="100"}
+
+## Table
+
+| Col1 | Col2 | Col3 |
+|------|------|------|
+| a    |      |      |
+|      |      |      |
+|      |      | c    |
+
+: This is the caption {#tbl:label}
+
+## Section {#sec:section}
+
+This is a section
+
+See @fig:label for more.
+
+See @eq:label for an equation.
+
+See @tbl:label for a table.
+
+See section @sec:section.
+
+## Math
+
+$$ 
+math 
+$$ {#eq:label}
+
