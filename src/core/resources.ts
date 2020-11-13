@@ -24,3 +24,13 @@ export function resourcePath(resource?: string): string {
   	return join(quartoPath, "share");
   }
 }
+
+export function binaryPath(binary: string): string {
+  const quartoPath = getenv("QUARTO_PATH");
+  return join(quartoPath, binary);
+}
+
+export function rPath(file: string): string {
+  const rPath = getenv("R_PATH");
+  return join(rPath, file);
+}
