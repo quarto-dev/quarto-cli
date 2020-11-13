@@ -1,5 +1,13 @@
 using JSON
 using Weave
+using Plots
+
+# TODO: Do something to amortize the jit cost. e.g. have a persistent process that
+# serves render requests, use a pre-compiled sysimage, etc. 
+
+# TODO: Was not able to get plotly actually working (but in any case do capture the 
+# doc.header_script and forward it to pandoc). Seeing same errors as reported here:
+# https://github.com/JunoLab/Weave.jl/issues/235
 
 #
 # - Integrate quarto cache directives with Jweave cache. Note that we currently
@@ -7,11 +15,9 @@ using Weave
 #   us (as supporting files need to hang around if there is a cache)
 #
 # - Implement 'keep-hidden' (need the lower level approach for this)
-#
-# - correct handling of rich (e.g. plotly) outputs  
-#
 
-function execute(input, output, format)
+
+function execute(input, output, format, temp_dir)
  
   # execution 
   execution = get(format, "execution", Dict([]))
@@ -95,6 +101,16 @@ function execute(input, output, format)
     write(io, join(markdown, ""))
   end;
 
+  # write the header_script to a temp file
+  pandoc = Dict()
+  if doc.header_script ≠ ""
+    in_header = tempname(temp_dir; cleanup=false)
+    open(in_header, "w") do io
+      write(io, doc.header_script)
+    end;
+    pandoc.set("include-in-header", [in_header])
+  end
+
   # check if cache was used (affects supporting)
   defaults = get_chunk_defaults()
   cache_active = get(defaults, "cache", false)
@@ -102,7 +118,7 @@ function execute(input, output, format)
   # return result
   return Dict([
     ("supporting", ifelse(cache_active, [], [fig_dir])), 
-    ("pandoc", Dict())
+    ("pandoc", pandoc)
   ])
 end
 
@@ -344,6 +360,11 @@ function render_figure(caption, path, attribs)
   return render_output("![$caption]($(path))$attribs", ".display_data")
 end
 
+function figure_size_hook!(chunk)
+  w = chunk.options[:fig_width] * chunk.options[:dpi]
+  h = chunk.options[:fig_height] * chunk.options[:dpi]
+  Plots.default(size=(w, h))
+end
 
 # read options from stdin
 options = JSON.parse(readline(stdin))
@@ -351,10 +372,14 @@ target = get(options, "target", Dict([]))
 input = get(target, "input", "")
 output = get(options, "output", "")
 format = get(options, "format", Dict([]))
+temp_dir = get(options, "tempDir", "")
 quiet = get(options, "quiet", false)
 
+# regsiter hooks
+Weave.push_preexecution_hook!(figure_size_hook!)
+
 # execute
-result = execute(input, output, format)
+result = execute(input, output, format, temp_dir)
 
 # write result to stdout
 JSON.print(stdout, result)
