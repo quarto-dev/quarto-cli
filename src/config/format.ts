@@ -22,6 +22,7 @@ import {
   kCiteproc,
   kExecute,
   kFigDpi,
+  kFilters,
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
@@ -99,6 +100,7 @@ export interface FormatPandoc {
   [kIncludeInHeader]?: string[];
   [kCiteproc]?: boolean;
   [kCiteMethod]?: string;
+  [kFilters]?: string[];
   [kPdfEngine]?: string;
   [kPdfEngineOpts]?: string[];
   [kPdfEngineOpt]?: string;
