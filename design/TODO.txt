@@ -1,12 +1,34 @@
 
 
 - Crossref system
-  - Adopt pandoc-crossref if custom labels PR is merged
-  - Implement our own w/ largely similar syntax but thereom's, etc.
-    Lua vs. Typescript
-  figures for html/js blobs:
-- display_data with type text/html
-- display_data with type widget+view+json
+
+TODO:
+
+Figures:
+
+- For knitr, label="fig:foo" need to go to knitr as "foo" (only when it's generating latex)
+- For knitr, fig.cap, fig.subcap
+- Overall caption for a panel of figures at the bottom of the containing div
+    - How do we specify the figure vs. subfigure captions
+- For a labeled Rmd chunk, a single plot gets #fig:label. Multiple plots
+  gets #fig:label-1.
+- Also for Julia
+- For Jupyter, the "overflow" in the caption array should be output at the bottom of the div as the overall caption
+- For Jupyter, we need to inherit out type from the label (if provided)
+
+
+Tables:
+
+- Knitr uses tab:__, we need to it to be tbl:___ (done in a filter?)
+- Investigate kable, investigate the gt package
+- enclosing rich output with div/id, injecting id into markdown output
+
+Listing: 
+
+- Test to make sure it works at all
+  listing="foo" listing-cap = "foo", or listing="foo" listing-caption = "foo"
+
+
 
 
 # Package/extension system
@@ -38,9 +60,9 @@ computations could even be at a URL!!!
 
   {{= print("x") }} 
 
-  {{< figure projections.xlsx#chunk-label caption="asfdasdf" label="" >}}
+  {{< figure projections.xlsx#chunk-label caption="asfdasdf" label="myplot" >}}
 
-  {{< table projections.xlsx#fy-2019 label="projections" >}}
+  {{< table projections.xlsx#fy-2019 label="projections" label="">}}
 
   {{< text notebook.Rmd##chunk-label >}}
 
