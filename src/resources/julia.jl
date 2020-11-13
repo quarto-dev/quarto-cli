@@ -13,8 +13,6 @@ using Plots
 # - Integrate quarto cache directives with Jweave cache. Note that we currently
 #   return [] for supporting in case the user activates the cache unknown to
 #   us (as supporting files need to hang around if there is a cache)
-#
-# - Implement 'keep-hidden' (need the lower level approach for this)
 
 
 function execute(input, output, format, temp_dir)
@@ -61,13 +59,6 @@ function execute(input, output, format, temp_dir)
     :dpi => get(execution, "fig-dpi", 96)
   )
 
-  # set the cache default correctly if it's not 'user'
-  if cache == "all" || cache == "refresh"
-    set_chunk_defaults!(:cache => true)
-  elseif cache == "off"
-    set_chunk_defaults!(:cache => false)
-  end
-
   # weave the doc
   yaml, doc = weave_doc(input, metadata, execute)
 
@@ -102,6 +93,9 @@ function execute(input, output, format, temp_dir)
     write(io, join(markdown, ""))
   end;
 
+  # supporting files (none if the cache is active)
+  suppporting = ifelse(cache_active(cache, doc), [], [fig_dir])
+
   # write the header_script to a temp file
   pandoc = Dict()
   if doc.header_script ≠ ""
@@ -111,14 +105,10 @@ function execute(input, output, format, temp_dir)
     end;
     pandoc.set("include-in-header", [in_header])
   end
-
-  # check if cache was used (affects supporting)
-  defaults = get_chunk_defaults()
-  cache_active = get(defaults, "cache", false)
-
+ 
   # return result
   return Dict([
-    ("supporting", ifelse(cache_active, [], [fig_dir])), 
+    ("supporting", suppporting), 
     ("pandoc", pandoc)
   ])
 end
@@ -190,6 +180,20 @@ function resolve_chunk_defaults(metadata)
     end
   end
   return chunk_defaults
+end
+
+# determine if the cache was used for this render
+function cache_active(cache_setting, doc)
+  if cache_setting == "user"
+    for (_, chunk) in enumerate(doc.chunks)
+      if (typeof(chunk) == Weave.CodeChunk) && chunk.options[:cache]
+        return true
+      end
+    end
+    return false
+  else
+    return cache_setting == "all" || cache_setting == "refresh"
+  end
 end
 
 function render_chunk(chunk::Weave.DocChunk, keep_hidden)
