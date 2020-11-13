@@ -16,3 +16,5 @@ sandbox/docs/jupytext/*_files
 sandbox/docs/jupytext/*.pdf
 sandbox/.jupyter_cache/
 sandbox/docs/crossref/*.html
+sandbox/docs/julia/.julia-cache
+sandbox/docs/julia/*.html
