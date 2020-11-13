@@ -3,7 +3,11 @@ title: FIR filter design with Julia
 author: Matti Pastell
 date: 21th April 2016
 format: 
-   html: default
+   html: 
+     fig-width: 10
+     fig-height: 3
+     keep-hidden: true
+     self-contained: true
 knit: quarto render
 ---
 
@@ -16,12 +20,13 @@ or published to HTML or pdf with Weave.
 Text is written in markdown in lines starting with "`#'` " and code
 is executed and results are included in the published document.
 
-```julia
-println("hello world 1")
+```julia; results="hidden"
+using Pkg
+Pkg.status()
 ```
 
 
-```julia
+```julia; echo=false
 println("hello world 2")
 ```
 

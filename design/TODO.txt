@@ -51,6 +51,7 @@ computations could even be at a URL!!!
 
 << write tests >>
 
+https://github.com/microsoft/vscode-jupyter
 
 Why did Beamer fail to render w/ missing caption package w/ our pipeline but work for pandoc pdflatex?
 
