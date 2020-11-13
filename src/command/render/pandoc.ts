@@ -25,6 +25,7 @@ import { Metadata } from "../../config/metadata.ts";
 
 import {
   kBibliography,
+  kFilters,
   kFrom,
   kIncludeAfterBody,
   kIncludeBeforeBody,
@@ -79,6 +80,12 @@ export async function runPandoc(
       detectedDefaults || {},
       options.format.pandoc || {},
     );
+    // resolve filters
+    const filters = resolveFilters(allDefaults[kFilters], options);
+    if (filters) {
+      allDefaults[kFilters] = filters;
+    }
+
     const defaults = "---\n" +
       stringify(allDefaults as Record<string, unknown>);
     const defaultsFile = await Deno.makeTempFile(
@@ -97,12 +104,6 @@ export async function runPandoc(
       "--metadata",
       "title:" + options.input.slice(0, options.input.indexOf(".")),
     );
-  }
-
-  // add citeproc if necessary
-  const citeproc = citeMethod(options) === "citeproc";
-  if (citeproc) {
-    args.unshift("--citeproc");
   }
 
   // propagate quiet
@@ -182,6 +183,30 @@ function citeMethod(options: PandocOptions): CiteMethod | null {
     return "citeproc";
   } else {
     return null;
+  }
+}
+
+function resolveFilters(filters: string[] | undefined, options: PandocOptions) {
+  filters = filters || [];
+
+  // add citeproc filter if necessary
+  const citeproc = citeMethod(options) === "citeproc";
+  if (citeproc && !filters.includes("citeproc")) {
+    filters.unshift("citeproc");
+  }
+
+  // add crossref filter if necessary (unshift will put it before citeproc)
+  if (
+    options.format.metadata["crossref"] !== false &&
+    !filters.includes("pandoc-crossref")
+  ) {
+    filters.unshift("pandoc-crossref");
+  }
+
+  if (filters.length > 0) {
+    return filters;
+  } else {
+    return undefined;
   }
 }
 
