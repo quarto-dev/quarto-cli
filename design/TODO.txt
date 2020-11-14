@@ -1,5 +1,13 @@
 
 
+Syncing:
+
+- Only sync metadata that is in the .md (always require jupytext:formats)
+- See what happens if you turn off metadata syncing in the notebook
+  (perhaps this can even be done in the .ipynb)
+- Render with sparse metadata treated as positive assertion that that
+  is the metadata you want in the .md
+
 - Crossref system
 
 TODO:
