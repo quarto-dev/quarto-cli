@@ -10,15 +10,19 @@ import {
   JupyterOutput,
   JupyterOutputDisplayData,
   JupyterToMarkdownOptions,
+  kCellCaption,
   kCellLabel,
   kCellName,
-  kFigLabel,
 } from "./jupyter.ts";
 import { includeOutput } from "./tags.ts";
 
 export function cellLabel(cell: JupyterCell) {
-  return (cell.metadata[kCellLabel] || cell.metadata[kCellName] || "")
+  const label = (cell.metadata[kCellLabel] || cell.metadata[kCellName] || "")
     .toLowerCase();
+  // apply pandoc auto-identifier treatment (but allow prefix)
+  return label.replace(/(^\w+\:)?(.*)$/, (str, p1, p2) => {
+    return (p1 || "") + pandocAutoIdentifier(p2, true);
+  });
 }
 
 // validate unique labels
@@ -38,79 +42,71 @@ export function cellLabelValidator() {
   };
 }
 
-export function cellContainerLabel(
+export function shouldLabelCellContainer(
   cell: JupyterCell,
   options: JupyterToMarkdownOptions,
 ) {
-  let label = cellLabel(cell);
-  if (label) {
-    // apply pandoc auto-identifier treatment (but allow prefix)
-    label = label.replace(/(^\w+\:)?(.*)$/, (str, p1, p2) => {
-      return (p1 || "") + pandocAutoIdentifier(p2, true);
-    });
-
-    // no outputs
-    if (!cell.outputs) {
-      return label;
-    }
-
-    // not including output
-    if (!includeOutput(cell, options.execution)) {
-      return label;
-    }
-
-    // no display data outputs
-    const displayDataOutputs = cell.outputs.filter(isDisplayData);
-    if (displayDataOutputs.length === 0) {
-      return label;
-    }
-
-    // multiple display data outputs (apply to container then apply sub-labels to outputs)
-    if (displayDataOutputs.length > 1) {
-      // see if the outputs share a common label type, if they do then apply
-      // that label type to the parent
-      const labelTypes = displayDataOutputs.map((output) =>
-        outputLabelType(output, options)
-      );
-      const labelType = labelTypes[0];
-      if (labelType && labelTypes.every((type) => labelType === type)) {
-        if (!label.startsWith(labelType + ":")) {
-          return `${labelType}:${label}`;
-        } else {
-          return label;
-        }
-      } else {
-        return label;
-      }
-    }
-
-    // in the case of a single display data output, check to see if it is directly
-    // targetable with a label (e.g. a figure). if it's not then just apply the
-    // label to the container
-    if (!outputLabelType(cell.outputs[0], options)) {
-      return label;
-    }
-
-    // not targetable
-    return null;
-  } else {
-    return null;
+  // no outputs
+  if (!cell.outputs) {
+    return true;
   }
+
+  // not including output
+  if (!includeOutput(cell, options.execution)) {
+    return true;
+  }
+
+  // no display data outputs
+  const displayDataOutputs = cell.outputs.filter(isDisplayData);
+  if (displayDataOutputs.length === 0) {
+    return true;
+  }
+
+  // multiple display data outputs
+  if (displayDataOutputs.length > 1) {
+    return true;
+  }
+
+  // don't label it (single display_data output)
+  return false;
 }
 
-// see if an output is one of our known types (e.g. 'fig')
-function outputLabelType(
+export function shouldLabelOutputContainer(
   output: JupyterOutput,
   options: JupyterToMarkdownOptions,
 ) {
+  // label output container unless this is an image (which gets it's id directly assigned)
   if (isDisplayData(output)) {
     const mimeType = displayDataMimeType(
       output as JupyterOutputDisplayData,
       options,
     );
-    if (mimeType && displayDataIsImage(mimeType)) {
-      return kFigLabel;
+    if (mimeType) {
+      if (displayDataIsImage(mimeType)) {
+        return false;
+      }
     }
   }
-  return null;
+  return true;
+}
+
+export function resolveCaptions(cell: JupyterCell) {
+  const soloCaption = (caption: string | undefined) => ({
+    cellCaption: caption,
+    outputCaptions: [],
+  });
+
+  // if we have display data outputs, then break off their captions
+  if (Array.isArray(cell.metadata.caption)) {
+    if (cell.outputs && cell.outputs.filter(isDisplayData).length > 0) {
+      return {
+        cellCaption: cell.metadata.caption[0],
+        outputCaptions: cell.metadata.caption.slice(1),
+      };
+    } else {
+      return soloCaption(cell.metadata.caption[0]);
+    }
+  } else {
+    return soloCaption(cell.metadata.caption);
+  }
 }
