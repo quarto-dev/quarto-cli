@@ -63,6 +63,7 @@ const kJupytextMdExtensions = [
 const kCodeExtensions = [
   ".py",
   ".clj",
+  ".jl",
   ".js",
   ".ts",
   ".cs",
@@ -97,8 +98,12 @@ export const jupyterEngine: ExecutionEngine = {
     const target = await notebookTarget();
     if (target) {
       let notebook = pairedPath(target.paired, isNotebook);
+      // track whether the notebook is transient or a permanent artifact
       let transient = false;
+      // sync if there are paired represenations in play (wouldn't sync if e.g.
+      // this was just a plain .ipynb file w/ no jupytext peers)
       if (target.sync) {
+        // progress
         if (!quiet) {
           const pairedExts = target.paired.map((p) => extname(p).slice(1));
           if (!notebook) {
@@ -107,14 +112,16 @@ export const jupyterEngine: ExecutionEngine = {
           message("[jupytext] " + "Syncing " + pairedExts.join(","));
         }
 
+        // perform the sync
         await jupytextSync(file, target.paired, true);
+
         // if there is no paired notebook then create a transient one
         if (!notebook) {
           transient = true;
-          // if there is no kernelspec in the source, then set to default
-          const setKernel = removeMetadata(target.paired).includes(
-            "kernelspec",
-          );
+          // if there is no kernelspec in the source, then set to the
+          // curret default python kernel
+          const filtered = filteredMetadata(target.paired);
+          const setKernel = filtered.includes("kernelspec");
           const [fileDir, fileStem] = dirAndStem(file);
           notebook = join(fileDir, fileStem + ".ipynb");
           await jupytextTo(
@@ -244,7 +251,7 @@ function isJupytextMd(file: string) {
     Object.keys(yaml.jupyter).includes("jupytext");
 }
 
-function removeMetadata(paired: string[]) {
+function filteredMetadata(paired: string[]) {
   // if there is a markdown file in the paried representations that doesn't have
   // the jupytext text_representation & notebook_metadata_filter fields then
   // we've opted in to a lighter metadata treatment
@@ -255,20 +262,20 @@ function removeMetadata(paired: string[]) {
       // deno-lint-ignore no-explicit-any
       any
     >;
-    const remove: string[] = [];
+    const filter: string[] = [];
     if (!yaml.jupyter?.jupytext?.text_representation) {
-      remove.push("jupytext.text_representation");
+      filter.push("jupytext.text_representation");
     }
     if (!yaml.jupyter?.jupytext?.notebook_metadata_filter) {
-      remove.push("jupytext.notebook_metadata_filter");
+      filter.push("jupytext.notebook_metadata_filter");
     }
     if (!yaml.jupyter?.jupytext?.main_language) {
-      remove.push("jupytext.main_language");
+      filter.push("jupytext.main_language");
     }
     if (!yaml.jupyter?.kernelspec) {
-      remove.push("kernelspec");
+      filter.push("kernelspec");
     }
-    return remove;
+    return filter;
   }
   return [];
 }
@@ -321,15 +328,15 @@ async function jupytextSync(
     file,
   ];
   if (paired.length > 0) {
-    const remove = removeMetadata(paired);
+    const filtered = filteredMetadata(paired);
     args.push(
       "--opt",
       "notebook_metadata_filter=" +
-        remove.map((m) => `-${m}`).join(","),
+        filtered.map((m) => `-${m}`).join(","),
     );
-    // if we are removing the kernelspec and there is no existing ipynb,
-    // then provide the current default python kernel
-    if (remove.includes("kernelspec") && paired.filter(isNotebook).length) {
+    // if we are filtering the kernelspec then make sure we
+    // set the kernel when syncing the notebook
+    if (filtered.includes("kernelspec")) {
       args.push(
         "--set-kernel",
         "-",
