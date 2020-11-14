@@ -109,7 +109,10 @@ export const jupyterEngine: ExecutionEngine = {
           if (!notebook) {
             pairedExts.push("ipynb");
           }
-          message("[jupytext] " + "Syncing " + pairedExts.join(","));
+          message(
+            "[jupytext] " + "Syncing " + pairedExts.join(",") + "...",
+            { newline: false },
+          );
         }
 
         // perform the sync
@@ -132,6 +135,10 @@ export const jupyterEngine: ExecutionEngine = {
             true,
           );
         }
+      }
+
+      if (!quiet) {
+        message("Done");
       }
 
       if (notebook) {
