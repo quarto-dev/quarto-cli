@@ -1,27 +1,15 @@
 ---
 title: "MPL slides"
 format:
-  markdown: default
-  html: 
+  html:
     keep-md: true
 knit: quarto render
-jupyter:
-  jupytext:
-    formats: ipynb,md
-  kernelspec:
-    display_name: Python 3
-    language: python
-    name: python3
 ---
 
-## Slide 1
-
-```python listing="foo" listing-cap ="Connecting to the database"]
 
 
-```
-
-```python caption=["Caption1", "Caption2"] label="fig:foo"
+::: {#fig:scores .cell .code}
+```{.python}
 import matplotlib.pyplot as plt
 
 labels = ['G1', 'G2', 'G3', 'G4', 'G5']
@@ -42,6 +30,8 @@ ax.set_title('Scores broken out by group and gender')
 ax.legend()
 plt.show()
 
+print("Some console output\n")
+
 fig, ax = plt.subplots()
 
 ax.bar(labels, men_means, width, yerr=men_std, label='Men')
@@ -52,12 +42,33 @@ ax.set_ylabel('Scores')
 ax.set_title('Scores broken out by group and gender')
 ax.legend()
 plt.show()
+
 ```
 
+:::{.output .display_data}
+![My figure](matplotlib_files/figure-html/fig-scores-output-1.png){#fig:scores-a width=584.5 height=423.5}
+:::
+
+:::{#fig:scores .output .stream .stdout}
+```
+Some console output
 
 
+```
+:::
 
+:::{.output .display_data}
+![My other figure](matplotlib_files/figure-html/fig-scores-output-3.png){#fig:scores-b width=584.5 height=423.5}
+:::
 
+Main caption
+:::
+
+See @fig:scores for more details.
+
+See @fig:scores-a for more details.
+
+See @fig:scores-b for more details.
 
 
 

@@ -1,11 +1,24 @@
 # ---
+# title: "leaflet"
+# knit: quarto render
+# format:
+#   html:
+#     keep-source: true
 # jupyter:
+#   jupytext:
+#     formats: md,py:percent
+#     text_representation:
+#       extension: .py
+#       format_name: percent
+#       format_version: '1.3'
+#       jupytext_version: 1.6.0
 #   kernelspec:
 #     display_name: Python 3
 #     language: python
 #     name: python3
 # ---
 
+# %% label="fig:leaflet" caption="my map" tags=["remove-code"]
 from ipyleaflet import Map, Marker, basemaps, basemap_to_tiles
 m = Map(
   basemap=basemap_to_tiles(
@@ -16,3 +29,5 @@ m = Map(
 )
 m.add_layer(Marker(location=(52.204793, 360.121558)))
 m
+
+# %%

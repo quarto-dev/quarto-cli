@@ -10,11 +10,6 @@ knit: quarto render
 jupyter:
   jupytext:
     formats: ipynb,md
-    text_representation:
-      extension: .md
-      format_name: markdown
-      format_version: '1.2'
-      jupytext_version: 1.6.0
   kernelspec:
     display_name: Python 3
     language: python
@@ -44,6 +39,7 @@ ax.set_title('Scores broken out by group and gender')
 ax.legend()
 plt.show()
 ```
+
 
 
 

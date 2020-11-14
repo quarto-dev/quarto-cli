@@ -1,0 +1,6 @@
+### Hello world
+
+```{r gui-boy}
+plot(cars)
+
+```

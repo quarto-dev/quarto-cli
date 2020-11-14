@@ -1,0 +1,44 @@
+---
+title: "Woozy Foobar"
+# knit: quarto render
+quarto:
+  html:
+    toc: true
+    number-sections: true
+    keep-md: true
+bibliography: references.bib
+fontsize: 30px
+---
+
+[@guo2020]
+
+```{r}
+str(getwd())
+```
+
+# Plot 1: Target
+
+-   bullet 1
+
+-   bullet 2
+
+-   bullet 3
+
+# Plot 2
+
+```{r}
+plot(cars)
+```
+
+```{r child="child.Rmd"}
+
+```
+
+# Plt 3
+
+```{r}
+str(press)
+str(cars)
+```
+
+# Reces
