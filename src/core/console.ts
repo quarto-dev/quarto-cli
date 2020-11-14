@@ -16,12 +16,13 @@
 import * as colors from "fmt/colors.ts";
 
 export interface MessageOptions {
+  newline?: boolean;
   bold?: boolean;
   indent?: number;
 }
 
 export function message(line: string, options?: MessageOptions) {
-  const { bold = false, indent = 0 } = options || {};
+  const { newline = true, bold = false, indent = 0 } = options || {};
   if (indent) {
     const pad = " ".repeat(indent);
     line = line
@@ -32,7 +33,7 @@ export function message(line: string, options?: MessageOptions) {
   if (bold) {
     line = colors.bold(line);
   }
-  Deno.stderr.writeSync(new TextEncoder().encode(line + "\n"));
+  Deno.stderr.writeSync(new TextEncoder().encode(line + (newline ? "\n" : "")));
 }
 export function writeFileToStdout(file: string) {
   const df = Deno.openSync(file, { read: true });
