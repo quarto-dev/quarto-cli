@@ -8,6 +8,9 @@ using Plots
 # A few approaches described here: https://discourse.julialang.org/t/how-to-attach-to-an-existing-remote-repl/27608/22
 # Persistent process might require something like this:
 #  https://timholy.github.io/Revise.jl/stable/
+# Web server:
+#  https://github.com/JuliaWeb/HTTP.jl
+#  w/ revise: https://github.com/JuliaWeb/HTTP.jl/issues/587
 
 # This seemed to make a small difference in performance:
 # using PackageCompiler
