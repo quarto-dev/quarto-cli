@@ -5,6 +5,10 @@ using Plots
 # TODO: Do something to amortize the jit cost. e.g. have a persistent process that
 # serves render requests, use a pre-compiled sysimage, etc. 
 
+# A few approaches described here: https://discourse.julialang.org/t/how-to-attach-to-an-existing-remote-repl/27608/22
+# Persistent process might require something like this:
+#  https://timholy.github.io/Revise.jl/stable/
+
 # This seemed to make a small difference in performance:
 # using PackageCompiler
 # using Weave
@@ -367,7 +371,7 @@ function render_figures(chunk, hidden)
   # label
   label = get(chunk.options, :label, nothing)
   if !isnothing(label)
-    push!(attribs, "#fig:$label")
+    push!(attribs, "#$label")
   end
 
   # enclose attribs in {} if we have them

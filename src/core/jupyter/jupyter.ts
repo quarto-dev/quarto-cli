@@ -42,7 +42,13 @@ import {
   includeOutput,
   includeWarnings,
 } from "./tags.ts";
-import { cellContainerLabel, cellLabel, cellLabelValidator } from "./labels.ts";
+import {
+  cellLabel,
+  cellLabelValidator,
+  resolveCaptions,
+  shouldLabelCellContainer,
+  shouldLabelOutputContainer,
+} from "./labels.ts";
 import {
   displayDataIsHtml,
   displayDataIsImage,
@@ -320,10 +326,14 @@ function mdFromCodeCell(
   // determine label -- this will be forwarded to the output (e.g. a figure)
   // if there is a single output. otherwise it will included on the enclosing
   // div and used as a prefix for the individual outputs
-  const label = cellContainerLabel(cell, options);
-  if (label) {
+  const label = cellLabel(cell);
+  const labelCellContainer = shouldLabelCellContainer(cell, options);
+  if (label && labelCellContainer) {
     divMd.push(`#${label} `);
   }
+
+  // resolve caption (main vs. sub)
+  const { cellCaption, outputCaptions } = resolveCaptions(cell);
 
   // cell_type classes
   divMd.push(`.cell .code `);
@@ -376,6 +386,8 @@ function mdFromCodeCell(
       : ("cell-" + (cellIndex + 1));
     const outputName = labelName + "-output";
 
+    let nextOutputSuffix = 97;
+    "a";
     for (
       const { index, output } of (cell.outputs || []).map((value, index) => ({
         index,
@@ -391,11 +403,19 @@ function mdFromCodeCell(
         continue;
       }
 
-      // leading newline
-      md.push("\n");
+      // leading newline and beginning of div
+      md.push("\n:::{");
+
+      // include label/id if appropriate
+      const outputLabel = label && labelCellContainer && isDisplayData(output)
+        ? (label + "-" + (String.fromCharCode(nextOutputSuffix++)))
+        : label;
+      if (shouldLabelOutputContainer(output, options)) {
+        md.push("#" + outputLabel + " ");
+      }
 
       // div preamble
-      md.push(`::: {.output .${output.output_type}`);
+      md.push(`.output .${output.output_type}`);
 
       // add stream name class if necessary
       if (output.output_type === "stream") {
@@ -419,16 +439,9 @@ function mdFromCodeCell(
       } else if (output.output_type === "error") {
         md.push(mdOutputError(output as JupyterOutputError));
       } else if (isDisplayData(output)) {
-        const outputLabel = label
-          ? (label + "-" + (index + 1))
-          : cellLabel(cell);
-        const outputCaption = Array.isArray(cell.metadata.caption)
-          ? cell.metadata.caption[index]
-          : cell.metadata.caption as string;
-
         md.push(mdOutputDisplayData(
           outputLabel,
-          outputCaption || null,
+          outputCaptions.shift() || null,
           outputName + "-" + (index + 1),
           output as JupyterOutputDisplayData,
           options,
@@ -444,8 +457,15 @@ function mdFromCodeCell(
 
   // write md w/ div enclosure (if there is any md to write)
   if (md.length > 0) {
-    // begin and end
+    // begin
     md.unshift(divBeginMd);
+
+    // see if there is a cell caption
+    if (cellCaption) {
+      md.push("\n" + cellCaption + "\n");
+    }
+
+    // end div
     md.push(":::\n");
 
     // lines to next cell
@@ -571,7 +591,7 @@ function mdImageOutput(
   if (label || width || height) {
     image += "{";
     if (label) {
-      image += `#${kFigLabel}:${label} `;
+      image += `#${label} `;
     }
     if (width) {
       image += `width=${width} `;
