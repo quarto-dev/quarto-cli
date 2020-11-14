@@ -23,6 +23,7 @@ import {
 } from "../core/yaml.ts";
 
 import { dirAndStem } from "../core/path.ts";
+import { message } from "../core/console.ts";
 
 import { Metadata } from "../config/metadata.ts";
 
@@ -98,14 +99,31 @@ export const jupyterEngine: ExecutionEngine = {
       let notebook = pairedPath(target.paired, isNotebook);
       let transient = false;
       if (target.sync) {
-        // perform the sync
-        await jupytextSync(file, lightMetdata(target.paired), quiet);
+        if (!quiet) {
+          const pairedExts = target.paired.map((p) => extname(p).slice(1));
+          if (!notebook) {
+            pairedExts.push("ipynb");
+          }
+          message("[jupytext] " + "Syncing " + pairedExts.join(","));
+        }
+
+        await jupytextSync(file, target.paired, true);
         // if there is no paired notebook then create a transient one
         if (!notebook) {
           transient = true;
+          // if there is no kernelspec in the source, then set to default
+          const setKernel = removeMetadata(target.paired).includes(
+            "kernelspec",
+          );
           const [fileDir, fileStem] = dirAndStem(file);
           notebook = join(fileDir, fileStem + ".ipynb");
-          await jupytextTo(file, "ipynb", notebook, quiet);
+          await jupytextTo(
+            file,
+            "ipynb",
+            setKernel ? "-" : undefined,
+            notebook,
+            true,
+          );
         }
       }
 
@@ -181,7 +199,7 @@ export const jupyterEngine: ExecutionEngine = {
       if (options.target.data) {
         Deno.removeSync(options.target.input);
       } else {
-        await jupytextSync(options.target.input, false, options.quiet);
+        await jupytextSync(options.target.input, [], true);
       }
 
       // return results
@@ -226,7 +244,7 @@ function isJupytextMd(file: string) {
     Object.keys(yaml.jupyter).includes("jupytext");
 }
 
-function lightMetdata(paired: string[]) {
+function removeMetadata(paired: string[]) {
   // if there is a markdown file in the paried representations that doesn't have
   // the jupytext text_representation & notebook_metadata_filter fields then
   // we've opted in to a lighter metadata treatment
@@ -237,14 +255,22 @@ function lightMetdata(paired: string[]) {
       // deno-lint-ignore no-explicit-any
       any
     >;
-    if (
-      !yaml.jupyter?.jupytext?.text_representation &&
-      !yaml.jupyter?.jupytext?.notebook_metadata_filter
-    ) {
-      return true;
+    const remove: string[] = [];
+    if (!yaml.jupyter?.jupytext?.text_representation) {
+      remove.push("jupytext.text_representation");
     }
+    if (!yaml.jupyter?.jupytext?.notebook_metadata_filter) {
+      remove.push("jupytext.notebook_metadata_filter");
+    }
+    if (!yaml.jupyter?.jupytext?.main_language) {
+      remove.push("jupytext.main_language");
+    }
+    if (!yaml.jupyter?.kernelspec) {
+      remove.push("kernelspec");
+    }
+    return remove;
   }
-  return false;
+  return [];
 }
 
 async function pairedPaths(file: string) {
@@ -252,6 +278,7 @@ async function pairedPaths(file: string) {
     cmd: [
       pythonBinary("jupytext"),
       "--paired-paths",
+      "--quiet",
       file,
     ],
     stdout: "piped",
@@ -286,18 +313,28 @@ function pythonBinary(binary = "python") {
 
 async function jupytextSync(
   file: string,
-  lightMetdata: boolean,
+  paired: string[],
   quiet?: boolean,
 ) {
   const args = [
     "--sync",
     file,
   ];
-  if (lightMetdata) {
+  if (paired.length > 0) {
+    const remove = removeMetadata(paired);
     args.push(
       "--opt",
-      "notebook_metadata_filter=-jupytext.text_representation,-jupytext.notebook_metadata_filter",
+      "notebook_metadata_filter=" +
+        remove.map((m) => `-${m}`).join(","),
     );
+    // if we are removing the kernelspec and there is no existing ipynb,
+    // then provide the current default python kernel
+    if (remove.includes("kernelspec") && paired.filter(isNotebook).length) {
+      args.push(
+        "--set-kernel",
+        "-",
+      );
+    }
   }
   if (quiet) {
     args.push("--quiet");
@@ -308,10 +345,15 @@ async function jupytextSync(
 async function jupytextTo(
   file: string,
   format: string,
+  kernel?: string,
   output?: string,
   quiet?: boolean,
 ) {
   const args = [file, "--to", format];
+  if (kernel) {
+    args.push("--set-kernel");
+    args.push("-");
+  }
   if (output) {
     args.push("--output");
     args.push(output);
