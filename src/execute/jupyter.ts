@@ -81,7 +81,8 @@ export const jupyterEngine: ExecutionEngine = {
       const ext = extname(file);
       if (kJupytextMdExtensions.includes(ext)) {
         if (isJupytextMd(file)) {
-          return { sync: true, paired: [file, ...await pairedPaths(file)] };
+          const paired = await pairedPaths(file);
+          return { sync: true, paired: [file, ...paired] };
         }
       } // if it's a code file, then check for a paired notebook and return it
       else if (kCodeExtensions.includes(ext)) {
@@ -115,8 +116,10 @@ export const jupyterEngine: ExecutionEngine = {
           );
         }
 
-        // perform the sync
-        await jupytextSync(file, target.paired, true);
+        // perform the sync if there are other targets
+        if (target.paired.length > 1) {
+          await jupytextSync(file, target.paired, true);
+        }
 
         // if there is no paired notebook then create a transient one
         if (!notebook) {
@@ -253,9 +256,7 @@ export const jupyterEngine: ExecutionEngine = {
 
 function isJupytextMd(file: string) {
   const yaml = readYamlFromMarkdownFile(file);
-  return yaml instanceof Object &&
-    yaml.jupyter instanceof Object &&
-    Object.keys(yaml.jupyter).includes("jupytext");
+  return Object.keys(yaml).includes("jupyter");
 }
 
 function filteredMetadata(paired: string[]) {
@@ -270,18 +271,26 @@ function filteredMetadata(paired: string[]) {
       any
     >;
     const filter: string[] = [];
-    if (!yaml.jupyter?.jupytext?.text_representation) {
-      filter.push("jupytext.text_representation");
-    }
-    if (!yaml.jupyter?.jupytext?.notebook_metadata_filter) {
-      filter.push("jupytext.notebook_metadata_filter");
-    }
-    if (!yaml.jupyter?.jupytext?.main_language) {
-      filter.push("jupytext.main_language");
-    }
     if (!yaml.jupyter?.kernelspec) {
       filter.push("kernelspec");
     }
+    if (!yaml.jupyter?.jupytext) {
+      filter.push("jupytext");
+    } else {
+      if (!yaml.jupyter?.jupytext?.formats) {
+        filter.push("jupytext.formats");
+      }
+      if (!yaml.jupyter?.jupytext?.text_representation) {
+        filter.push("jupytext.text_representation");
+      }
+      if (!yaml.jupyter?.jupytext?.notebook_metadata_filter) {
+        filter.push("jupytext.notebook_metadata_filter");
+      }
+      if (!yaml.jupyter?.jupytext?.main_language) {
+        filter.push("jupytext.main_language");
+      }
+    }
+
     return filter;
   }
   return [];
