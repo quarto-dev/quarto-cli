@@ -216,7 +216,7 @@ function runPandocMessage(
   metadata: Metadata,
   debug?: boolean,
 ) {
-  message(`\npandoc ${args.join(" ")}`, { bold: true });
+  message(`pandoc ${args.join(" ")}`, { bold: true });
   if (pandoc) {
     message(pandocDefaultsMessage(pandoc, debug), { indent: 2 });
   }
