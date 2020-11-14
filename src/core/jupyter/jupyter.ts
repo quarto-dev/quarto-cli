@@ -410,7 +410,7 @@ function mdFromCodeCell(
       const outputLabel = label && labelCellContainer && isDisplayData(output)
         ? (label + "-" + (String.fromCharCode(nextOutputSuffix++)))
         : label;
-      if (shouldLabelOutputContainer(output, options)) {
+      if (outputLabel && shouldLabelOutputContainer(output, options)) {
         md.push("#" + outputLabel + " ");
       }
 
