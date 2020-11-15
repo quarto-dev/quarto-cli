@@ -32,7 +32,6 @@ export const renderCommand = new Command()
   .option(
     "-t, --to",
     "Specify output format.",
-    { default: "html" },
   )
   .option(
     "-o, --output",
@@ -40,31 +39,31 @@ export const renderCommand = new Command()
   )
   .option(
     "--execute",
-    "Execute code (pass --no-execute to skip execution).",
-    { default: true },
+    "Execute code (--no-execute to skip execution).",
   )
   .option(
-    "--cache",
-    "Cache execution outputs (user, all, refresh, or off).",
-    { default: "user" },
+    "--execute-params",
+    "YAML file with execution parameters.",
   )
   .option(
-    "--root-dir",
+    "--execute-root-dir",
     "Working directory for code execution.",
   )
   .option(
-    "--params",
-    "YAML file with execution parameters.",
+    "--cache",
+    "Cache execution output (--no-cache to prevent cache).",
+  )
+  .option(
+    "--cache-refresh",
+    "Force refresh of execution cache.",
   )
   .option(
     "--debug",
     "Leave intermediate files in place after render.",
-    { default: false },
   )
   .option(
     "--quiet",
     "Suppress warning and other messages.",
-    { default: false },
   )
   .option(
     "pandoc-args...",

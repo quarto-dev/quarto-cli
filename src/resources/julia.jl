@@ -40,7 +40,9 @@ function execute(input, output, format, temp_dir)
   keep_hidden = get(execution, "keep-hidden", false)
   # cache
   cache = get(execution, "cache", "user")
-  if cache == "none"
+  if cache == true
+    cache = "all"
+  elseif cache == false
     cache = "off"
   end
   # fig_format

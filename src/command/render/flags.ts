@@ -26,8 +26,7 @@ export interface RenderFlags extends PandocFlags {
   executeParams?: string;
   executeDir?: string;
   execute?: boolean;
-  executeCache?: "user" | "all" | "refresh" | "none";
-  executeCacheDir?: string;
+  executeCache?: true | false | "refresh";
   debug?: boolean;
   quiet?: boolean;
 }
@@ -95,23 +94,29 @@ export function parseRenderFlags(args: string[]) {
         arg = argsStack.shift();
         break;
 
-      case "--cache":
-        arg = argsStack.shift();
-        if (!["none", "all", "refresh", "user"].includes(arg || "")) {
-          throw new Error("Invalid argument for --cache (" + arg + ")");
-        }
-        // deno-lint-ignore no-explicit-any
-        flags.executeCache = arg as any;
-        break;
-
-      case "--params":
+      case "--execute-params":
         arg = argsStack.shift();
         flags.executeParams = arg;
         break;
 
-      case "--root-dir":
+      case "--execute-root-dir":
         arg = argsStack.shift();
         flags.executeDir = arg;
+        break;
+
+      case "--cache":
+        arg = argsStack.shift();
+        flags.executeCache = true;
+        break;
+
+      case "--no-cache":
+        arg = argsStack.shift();
+        flags.executeCache = false;
+        break;
+
+      case "--cache-refresh":
+        arg = argsStack.shift();
+        flags.executeCache = "refresh";
         break;
 
       case "--debug":
@@ -172,9 +177,11 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   const removeArgs = new Map<string, boolean>();
   removeArgs.set("--execute", false);
   removeArgs.set("--no-execute", false);
-  removeArgs.set("--cache", true);
-  removeArgs.set("--params", true);
-  removeArgs.set("--root-dir", true);
+  removeArgs.set("--execute-params", true);
+  removeArgs.set("--execute-root-dir", true);
+  removeArgs.set("--cache", false);
+  removeArgs.set("--no-cache", false);
+  removeArgs.set("--cache-refresh", false);
   removeArgs.set("--debug", false);
   return removePandocArgs(pandocArgs, removeArgs);
 }
