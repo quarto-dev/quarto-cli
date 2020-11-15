@@ -73,13 +73,12 @@ export const kCellLinesToNext = "lines_to_next_cell";
 export const kRawMimeType = "raw_mimetype";
 
 export const kCellLabel = "label";
-export const kCellCaption = "caption";
+export const kCellFigCap = "figcap";
+export const kCellFigSubCap = "figsubcap";
 export const kCellClasses = "classes";
 export const kCellWidth = "width";
 export const kCellHeight = "height";
 export const kCellAlt = "alt";
-
-export const kFigLabel = "fig";
 
 export interface JupyterNotebook {
   metadata: {
@@ -106,7 +105,8 @@ export interface JupyterCell {
     // quarto schema (note that 'name' from nbformat is
     // automatically used as an alias for 'label')
     [kCellLabel]?: string;
-    [kCellCaption]?: string | string[];
+    [kCellFigCap]?: string | string[];
+    [kCellFigSubCap]?: string[];
     [kCellClasses]?: string;
 
     // used by jupytext to preserve line spacing
@@ -315,7 +315,7 @@ function mdFromCodeCell(
     kCellFormat,
     kCellName,
     kCellLabel,
-    kCellCaption,
+    kCellFigCap,
     kCellClasses,
     kCellWidth,
     kCellHeight,

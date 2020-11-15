@@ -10,7 +10,8 @@ import {
   JupyterOutput,
   JupyterOutputDisplayData,
   JupyterToMarkdownOptions,
-  kCellCaption,
+  kCellFigCap,
+  kCellFigSubCap,
   kCellLabel,
   kCellName,
 } from "./jupyter.ts";
@@ -97,16 +98,28 @@ export function resolveCaptions(cell: JupyterCell) {
   });
 
   // if we have display data outputs, then break off their captions
-  if (Array.isArray(cell.metadata.caption)) {
+  if (Array.isArray(cell.metadata[kCellFigCap])) {
+    const figCap = cell.metadata[kCellFigCap] as string[];
     if (cell.outputs && cell.outputs.filter(isDisplayData).length > 0) {
-      return {
-        cellCaption: cell.metadata.caption[0],
-        outputCaptions: cell.metadata.caption.slice(1),
-      };
+      const numOutputs = cell.outputs.filter(isDisplayData).length;
+      if (figCap.length > numOutputs) {
+        return {
+          cellCaption: figCap[0],
+          outputCaptions: figCap.slice(1),
+        };
+      } else {
+        return {
+          cellCaption: undefined,
+          outputCaptions: figCap,
+        };
+      }
     } else {
-      return soloCaption(cell.metadata.caption[0]);
+      return soloCaption(figCap[0]);
     }
   } else {
-    return soloCaption(cell.metadata.caption);
+    return {
+      cellCaption: cell.metadata[kCellFigCap],
+      outputCaptions: cell.metadata[kCellFigSubCap] || [],
+    };
   }
 }
