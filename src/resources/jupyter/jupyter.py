@@ -42,12 +42,16 @@ def notebook_execute(input, format, params, run_path, resource_dir, quiet):
 
    # read variables out of format
    execute = format["execution"]
+
    allow_errors = bool(execute["allow-errors"])
    fig_width = execute["fig-width"]
    fig_height = execute["fig-height"]
    fig_format = execute["fig-format"]
    fig_dpi = execute["fig-dpi"]
-   cache = execute["cache"]
+   if "cache" in execute:
+      cache = execute["cache"]
+   else:
+      cache = "user"
 
    # set environment variables
    os.environ["JUPYTER_FIG_WIDTH"] = str(fig_width)
@@ -66,7 +70,7 @@ def notebook_execute(input, format, params, run_path, resource_dir, quiet):
 
    # are we using the cache, if so connect to the cache, and then if we aren't in 'refresh'
    # (forced re-execution) mode then try to satisfy the execution request from the cache
-   if cache == "all" or cache == "refresh":
+   if cache == True or cache == "refresh":
       if not get_cache:
           raise ImportError('The jupyter-cache package is required for cached execution')
       nb_cache = get_cache(".jupyter_cache")

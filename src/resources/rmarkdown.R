@@ -378,19 +378,19 @@
 
   knitr_options_with_cache <- function(input, format, opts) {
     # handle cache behavior
-    cache <- format$execute$`cache`
-    if (!identical(cache, "user")) {
-      # remove the cache dir for refresh
+    cache <- format$execution$`cache`
+    if (!is.null(cache)) {
+      # remove the cache dir for refresh or false
       if (identical(cache, "refresh")) {
         cache_dir <- knitr_cache_dir(input, format)
         if (rmarkdown:::dir_exists(cache_dir)) {
           unlink(cache_dir, recursive = TRUE)
         }
-        cache <- "all"
+        cache <- TRUE
       }
 
       # force the cache on or off as appropriate
-      force_cache <- ifelse(identical(cache, "all"), TRUE, FALSE)
+      force_cache <- isTRUE(cache)
       opts$opts_chunk$cache <- force_cache
       opts$opts_hooks$cache <- function(options) {
         options$cache <- force_cache

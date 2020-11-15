@@ -78,7 +78,7 @@ export interface FormatExecution {
   [kFigDpi]?: number;
   [kAllowErrors]?: boolean;
   [kExecute]?: boolean;
-  [kCache]?: "user" | "all" | "refresh" | "none";
+  [kCache]?: true | false | "refresh";
   [kShowCode]?: boolean;
   [kShowOutput]?: boolean;
   [kShowWarnings]?: boolean;
@@ -408,7 +408,7 @@ function defaultFormat(): Format {
       [kFigDpi]: 96,
       [kAllowErrors]: false,
       [kExecute]: true,
-      [kCache]: "user",
+      [kCache]: undefined,
       [kKeepHidden]: false,
       [kShowCode]: true,
       [kShowOutput]: true,

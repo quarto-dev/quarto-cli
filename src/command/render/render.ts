@@ -186,7 +186,7 @@ async function resolveFormat(
   }
 
   // --cache
-  if (flags?.executeCache) {
+  if (flags?.executeCache !== undefined) {
     config.execution[kCache] = flags?.executeCache;
   }
 
