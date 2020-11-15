@@ -101,18 +101,10 @@ export function resolveCaptions(cell: JupyterCell) {
   if (Array.isArray(cell.metadata[kCellFigCap])) {
     const figCap = cell.metadata[kCellFigCap] as string[];
     if (cell.outputs && cell.outputs.filter(isDisplayData).length > 0) {
-      const numOutputs = cell.outputs.filter(isDisplayData).length;
-      if (figCap.length > numOutputs) {
-        return {
-          cellCaption: figCap[0],
-          outputCaptions: figCap.slice(1),
-        };
-      } else {
-        return {
-          cellCaption: undefined,
-          outputCaptions: figCap,
-        };
-      }
+      return {
+        cellCaption: undefined,
+        outputCaptions: figCap,
+      };
     } else {
       return soloCaption(figCap[0]);
     }
