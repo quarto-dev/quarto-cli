@@ -8,6 +8,7 @@ format:
      fig-height: 3
      keep-hidden: true
      self-contained: true
+     cache: refresh
 knit: quarto render
 ---
 

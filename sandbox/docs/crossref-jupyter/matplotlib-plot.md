@@ -1,15 +1,14 @@
 ---
 title: "MPL slides"
 format:
-  html:
-    keep-md: true
+  html: default
 knit: quarto render
+jupyter: true
+cache: true
 ---
 
 
-
-::: {#fig:scores .cell .code}
-```{.python}
+```python caption=["Main caption", "My figure", "My other figure"] label="fig:scores"
 import matplotlib.pyplot as plt
 
 labels = ['G1', 'G2', 'G3', 'G4', 'G5']
@@ -45,31 +44,11 @@ plt.show()
 
 ```
 
-:::{.output .display_data}
-![My figure](matplotlib_files/figure-html/fig-scores-output-1.png){#fig:scores-a width=584.5 height=423.5}
-:::
-
-:::{#fig:scores .output .stream .stdout}
-```
-Some console output
-
-
-```
-:::
-
-:::{.output .display_data}
-![My other figure](matplotlib_files/figure-html/fig-scores-output-3.png){#fig:scores-b width=584.5 height=423.5}
-:::
-
-Main caption
-:::
-
 See @fig:scores for more details.
 
 See @fig:scores-a for more details.
 
 See @fig:scores-b for more details.
-
 
 
 
