@@ -73,8 +73,8 @@ export const kCellLinesToNext = "lines_to_next_cell";
 export const kRawMimeType = "raw_mimetype";
 
 export const kCellLabel = "label";
-export const kCellFigCap = "figcap";
-export const kCellFigSubCap = "figsubcap";
+export const kCellFigCap = "fig.cap";
+export const kCellFigSubCap = "fig.subcap";
 export const kCellClasses = "classes";
 export const kCellWidth = "width";
 export const kCellHeight = "height";
