@@ -1,4 +1,48 @@
 
+# override wrapping behavior for knitr_asis output (including htmlwidgets)
+# to provide for enclosing output div and support for figure captions
+knitr_wrap <- knitr:::wrap
+wrap <- function(x, options = list(), ...) {
+  if (inherits(x, "knit_asis")) {
+
+    # delegate
+    is_html_widget <- inherits(x, "knit_asis_htmlwidget")
+    x <- knitr:::wrap.knit_asis(x, options, ...)
+
+    # if it's an html widget then it was already wrapped
+    # by add_html_caption
+    if (is_html_widget) {
+      x
+    } else {
+      wrap_asis_output(options, x)
+    }
+  } else {
+    knitr_wrap(x, options, ...)
+  }
+}
+add_html_caption <- function(options, x) {
+  if (inherits(x, 'knit_asis_htmlwidget')) {
+    wrap_asis_output(options, x)
+  } else {
+    x
+  }
+}
+wrap_asis_output <- function(options, x) {
+
+  # generate output div
+  caption <- figure_cap(options)
+  if (!is.null(caption)) {
+    x <- paste0(x, "\n\n", caption)
+  }
+  classes <- "display_data"
+  if (isTRUE(options[["output.hidden"]]))
+    classes <- paste0(classes, " .hidden")
+  output_div(x, figure_id(options), classes)
+}
+assignInNamespace("wrap", wrap, ns = "knitr")
+assignInNamespace("add_html_caption", add_html_caption, ns = "knitr")
+
+
 knitr_hooks <- function(format) {
 
   knit_hooks <- list()
@@ -35,21 +79,22 @@ knitr_hooks <- function(format) {
       # add .hidden class if keep-hidden hook injected an option
       if (isTRUE(options[[paste0(type,".hidden")]]))
         classes <- c(classes, "hidden")
-      output_div(x, classes)
+      output_div(x, "", classes)
     })
   }
 
   # entire chunk
   knit_hooks$chunk <- delegating_hook("chunk", function(x, options) {
-    # enclose raw html in display_data (use hidden if necessary)
-    classes <- ".cell-output .display_data"
-    if (isTRUE(options[["output.hidden"]]))
-      classes <- paste0(classes, " .hidden")
-    x <- gsub("<!--html_preserve-->", paste0("::: {.cell-output ", classes, "}\n<!--html_preserve-->"), x)
-    x <- gsub("<!--/html_preserve-->", "<!--/html_preserve-->\n:::", x)
+
+    # fixup duplicate figure labels
+    label = figure_label(options)
+    pattern <- paste0("(^|\n)::: \\{#", label, " ")
+    figs <- length(regmatches(x, gregexpr(pattern, x))[[1]])
+    for (i in 1:figs) {
+      x <- sub(pattern, paste0("\\1::: {#", label, "-", i, " "), x)
+    }
 
     # apply parent caption if we have subcaptions
-    label = figure_label(options)
     fig.cap = options[["fig.cap"]]
     fig.subcap = options[["fig.subcap"]]
     if (!is.null(label) && !is.null(fig.cap) && !is.null(fig.subcap)) {
@@ -92,14 +137,7 @@ knitr_plot_hook <- function(default_plot_hook) {
       classes <- c(classes, "hidden")
 
     # id
-    id <- ""
-    label <- figure_label(options)
-    if (!is.null(label)) {
-      if (options[["fig.num"]] > 1) {
-        label <- paste0(label, "-", options[["fig.cur"]])
-      }
-      id <- paste0("#", label)
-    }
+    id <- figure_id(options)
 
     # add attributes
     attr = paste(id, paste(
@@ -117,26 +155,48 @@ knitr_plot_hook <- function(default_plot_hook) {
     }
 
     # generate markdown for image
-    fig.subcap <- options[["fig.subcap"]]
-    cap <- if (!is.null(fig.subcap)) fig.subcap else options[["fig.cap"]]
-    md <- sprintf("![%s](%s)%s", cap, x, attr)
+    md <- sprintf("![%s](%s)%s", figure_cap(options), x, attr)
 
     # enclose in output div
-    output_div(md, classes)
+    output_div(md, "", classes)
   }
 }
 
 # helper to create an output div
-output_div <- function(x, classes) {
+output_div <- function(x, id, classes) {
+  div <- "::: {"
+  if (nzchar(id)) {
+    div <- paste0(div, id, " ")
+  }
   paste0(
-    "::: {.cell-output ",
+    div, ".cell-output ",
     paste(paste0(".", classes), collapse = " ") ,
     "}\n",
     trimws(x),
-    "\n:::\n"
+    "\n:::\n\n"
   )
 }
 
+figure_id <- function(options) {
+  label <- figure_label(options)
+  if (!is.null(label)) {
+    if (options[["fig.num"]] > 1) {
+      label <- paste0(label, "-", options[["fig.cur"]])
+    }
+    id <- paste0("#", label)
+    id
+  } else {
+    ""
+  }
+}
+
+figure_cap <- function(options) {
+  fig.subcap <- options[["fig.subcap"]]
+  if (!is.null(fig.subcap))
+    fig.subcap
+  else
+    options[["fig.cap"]]
+}
 
 figure_label <- function(options) {
   label <- options[["label"]]
