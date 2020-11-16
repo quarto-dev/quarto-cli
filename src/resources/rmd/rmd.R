@@ -311,17 +311,6 @@
       register_hidden_hook("message")
     }
 
-    # helper to create an output div
-    output_div <- function(x, classes) {
-      paste0(
-        "::: {",
-        paste(paste0(".", classes), collapse = " ") ,
-        "}\n",
-        trimws(x),
-        "\n:::"
-      )
-    }
-
     # hooks for marking up output
     default_hooks <- knitr::hooks_markdown()
     delegating_hook <- function(name, hook) {
@@ -363,7 +352,7 @@
     knit_hooks$output <- delegating_output_hook("output", c("stream", "stdout"))
     knit_hooks$warning <- delegating_output_hook("warning", c("stream", "stderr"))
     knit_hooks$message <- delegating_output_hook("message", c("stream", "stderr"))
-    knit_hooks$plot <- delegating_output_hook("plot", c("display_data"))
+    knit_hooks$plot <- knitr_plot_hook(default_hooks[["plot"]])
     knit_hooks$error <- delegating_output_hook("error", c("error"))
 
     # return options
@@ -374,6 +363,35 @@
       opts_hooks = opts_hooks,
       knit_hooks = knit_hooks
     )
+  }
+
+  # helper to create an output div
+  output_div <- function(x, classes) {
+    paste0(
+      "::: {",
+      paste(paste0(".", classes), collapse = " ") ,
+      "}\n",
+      trimws(x),
+      "\n:::"
+    )
+  }
+
+  knitr_plot_hook <- function(default_plot_hook) {
+    function(x, options) {
+      # classes
+      classes <- c("output", "display_data")
+      if (isTRUE(options[["plot.hidden"]]))
+        classes <- c(classes, "hidden")
+
+      # attributes
+      attr <- ""
+
+      # generate markdown for image
+      md <- sprintf("![%s](%s)%s", options[["fig.cap"]], x, attr)
+
+      # enclose in output div
+      output_div(md, classes)
+    }
   }
 
   knitr_options_with_cache <- function(input, format, opts) {
