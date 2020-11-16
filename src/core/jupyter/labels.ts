@@ -92,11 +92,6 @@ export function shouldLabelOutputContainer(
 }
 
 export function resolveCaptions(cell: JupyterCell) {
-  const soloCaption = (caption: string | undefined) => ({
-    cellCaption: caption,
-    outputCaptions: [],
-  });
-
   // if we have display data outputs, then break off their captions
   if (Array.isArray(cell.metadata[kCellFigCap])) {
     const figCap = cell.metadata[kCellFigCap] as string[];
@@ -106,12 +101,27 @@ export function resolveCaptions(cell: JupyterCell) {
         outputCaptions: figCap,
       };
     } else {
-      return soloCaption(figCap[0]);
+      return {
+        cellCaption: undefined,
+        outputCaptions: [],
+      };
+    }
+  } else if (cell.metadata[kCellFigCap]) {
+    if (cell.metadata[kCellFigSubCap]) {
+      return {
+        cellCaption: cell.metadata[kCellFigCap],
+        outputCaptions: cell.metadata[kCellFigSubCap] || [],
+      };
+    } else {
+      return {
+        cellCaption: undefined,
+        outputCaptions: [cell.metadata[kCellFigCap] as string],
+      };
     }
   } else {
     return {
-      cellCaption: cell.metadata[kCellFigCap],
-      outputCaptions: cell.metadata[kCellFigSubCap] || [],
+      cellCaption: undefined,
+      outputCaptions: [],
     };
   }
 }

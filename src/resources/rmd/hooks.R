@@ -32,7 +32,6 @@ knitr_hooks <- function(format) {
   }
   delegating_output_hook = function(type, classes) {
     delegating_hook(type, function(x, options) {
-      classes <- c("output", classes)
       # add .hidden class if keep-hidden hook injected an option
       if (isTRUE(options[[paste0(type,".hidden")]]))
         classes <- c(classes, "hidden")
@@ -43,14 +42,26 @@ knitr_hooks <- function(format) {
   # entire chunk
   knit_hooks$chunk <- delegating_hook("chunk", function(x, options) {
     # enclose raw html in display_data (use hidden if necessary)
-    classes <- ".output .display_data"
+    classes <- ".cell-output .display_data"
     if (isTRUE(options[["output.hidden"]]))
       classes <- paste0(classes, " .hidden")
-    x <- gsub("<!--html_preserve-->", paste0("::: {.output ", classes, "}\n<!--html_preserve-->"), x)
+    x <- gsub("<!--html_preserve-->", paste0("::: {.cell-output ", classes, "}\n<!--html_preserve-->"), x)
     x <- gsub("<!--/html_preserve-->", "<!--/html_preserve-->\n:::", x)
 
+    # apply parent caption if we have subcaptions
+    label = figure_label(options)
+    fig.cap = options[["fig.cap"]]
+    fig.subcap = options[["fig.subcap"]]
+    if (!is.null(label) && !is.null(fig.cap) && !is.null(fig.subcap)) {
+      label <- paste0("#", label, " ")
+      fig.cap <- paste0("\n", fig.cap, "\n")
+    } else {
+      label = NULL
+      fig.cap = NULL
+    }
+
     # return cell
-    paste0("::: {.cell .code}\n", x, "\n:::")
+    paste0("::: {", label ,".cell .code}\n", x, "\n", fig.cap ,":::")
   })
   knit_hooks$source <- delegating_hook("source", function(x, options) {
     if (isTRUE(options[["source.hidden"]])) {
@@ -72,31 +83,68 @@ knitr_hooks <- function(format) {
   )
 }
 
-# helper to create an output div
-output_div <- function(x, classes) {
-  paste0(
-    "::: {",
-    paste(paste0(".", classes), collapse = " ") ,
-    "}\n",
-    trimws(x),
-    "\n:::"
-  )
-}
-
 knitr_plot_hook <- function(default_plot_hook) {
   function(x, options) {
+
     # classes
-    classes <- c("output", "display_data")
+    classes <- c("display_data", "image")
     if (isTRUE(options[["plot.hidden"]]))
       classes <- c(classes, "hidden")
 
-    # attributes
-    attr <- ""
+    # id
+    id <- ""
+    label <- figure_label(options)
+    if (!is.null(label)) {
+      if (options[["fig.num"]] > 1) {
+        label <- paste0(label, "-", options[["fig.cur"]])
+      }
+      id <- paste0("#", label)
+    }
+
+    # add attributes
+    attr = paste(id, paste(
+      c(
+        sprintf('width=%s', options[['out.width']]),
+        sprintf('height=%s', options[['out.height']]),
+        options[['out.extra']]
+      ),
+      collapse = ' '
+    ))
+
+
+    if (nzchar(attr)) {
+      attr <- paste0("{", attr, "}")
+    }
 
     # generate markdown for image
-    md <- sprintf("![%s](%s)%s", options[["fig.cap"]], x, attr)
+    fig.subcap <- options[["fig.subcap"]]
+    cap <- if (!is.null(fig.subcap)) fig.subcap else options[["fig.cap"]]
+    md <- sprintf("![%s](%s)%s", cap, x, attr)
 
     # enclose in output div
     output_div(md, classes)
   }
 }
+
+# helper to create an output div
+output_div <- function(x, classes) {
+  paste0(
+    "::: {.cell-output ",
+    paste(paste0(".", classes), collapse = " ") ,
+    "}\n",
+    trimws(x),
+    "\n:::\n"
+  )
+}
+
+
+figure_label <- function(options) {
+  label <- options[["label"]]
+  if (!is.null(label)) {
+    if (!startsWith(label, "fig:")) {
+      label <- paste0("fig:", label)
+    }
+  }
+  label
+}
+

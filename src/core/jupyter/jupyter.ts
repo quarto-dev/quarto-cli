@@ -386,8 +386,7 @@ function mdFromCodeCell(
       : ("cell-" + (cellIndex + 1));
     const outputName = labelName + "-output";
 
-    let nextOutputSuffix = 97;
-    "a";
+    let nextOutputSuffix = 1;
     for (
       const { index, output } of (cell.outputs || []).map((value, index) => ({
         index,
@@ -408,19 +407,25 @@ function mdFromCodeCell(
 
       // include label/id if appropriate
       const outputLabel = label && labelCellContainer && isDisplayData(output)
-        ? (label + "-" + (String.fromCharCode(nextOutputSuffix++)))
+        ? (label + "-" + nextOutputSuffix++)
         : label;
       if (outputLabel && shouldLabelOutputContainer(output, options)) {
         md.push("#" + outputLabel + " ");
       }
 
       // div preamble
-      md.push(`.output .${output.output_type}`);
+      md.push(`.cell-output .${output.output_type}`);
 
       // add stream name class if necessary
       if (output.output_type === "stream") {
         const stream = output as JupyterOutputStream;
         md.push(` .${stream.name}`);
+      }
+
+      // add image class if necessary
+      const image = isImage(output, options);
+      if (image) {
+        md.push(" .image");
       }
 
       // add hidden if necessary
@@ -433,6 +438,9 @@ function mdFromCodeCell(
 
       md.push("}\n");
 
+      // compute caption
+      const caption = outputCaptions.shift() || null;
+
       // produce output
       if (output.output_type === "stream") {
         md.push(mdOutputStream(output as JupyterOutputStream));
@@ -441,13 +449,18 @@ function mdFromCodeCell(
       } else if (isDisplayData(output)) {
         md.push(mdOutputDisplayData(
           outputLabel,
-          outputCaptions.shift() || null,
+          caption,
           outputName + "-" + (index + 1),
           output as JupyterOutputDisplayData,
           options,
         ));
       } else {
         throw new Error("Unexpected output type " + output.output_type);
+      }
+
+      // if this isn't an image and we have a caption, place it at the bottom of the div
+      if (caption && !image) {
+        md.push(`\n${caption}\n`);
       }
 
       // terminate div
@@ -473,6 +486,21 @@ function mdFromCodeCell(
   }
 
   return md;
+}
+
+function isImage(output: JupyterOutput, options: JupyterToMarkdownOptions) {
+  if (isDisplayData(output)) {
+    const mimeType = displayDataMimeType(
+      output as JupyterOutputDisplayData,
+      options,
+    );
+    if (mimeType) {
+      if (displayDataIsImage(mimeType)) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 function mdOutputStream(output: JupyterOutputStream) {
