@@ -328,7 +328,7 @@ function render_output(output, classes, hidden)
   if hidden
     classes *= " .hidden"
   end
-  result = string("\n::: {.output ", classes, "}", "\n")
+  result = string("\n::: {.cell-output ", classes, "}", "\n")
   result *= output
   if !endswith(result, "\n")
     result *= "\n"
@@ -401,7 +401,7 @@ function render_figures(chunk, hidden)
 end
 
 function render_figure(caption, path, attribs, hidden)
-  return render_output("![$caption]($(path))$attribs", ".display_data", hidden)
+  return render_output("![$caption]($(path))$attribs", ".display_data .image", hidden)
 end
 
 function figure_size_hook!(chunk)
