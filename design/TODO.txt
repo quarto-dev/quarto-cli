@@ -11,10 +11,8 @@ Figures:
 - Overall caption for a panel of figures at the bottom of the containing div
     - How do we specify the figure vs. subfigure captions
 - For a labeled Rmd chunk, a single plot gets #fig:label. Multiple plots
-  gets #fig:label-1.
+  gets #fig:label-a.
 - Also for Julia
-- For Jupyter, the "overflow" in the caption array should be output at the bottom of the div as the overall caption
-- For Jupyter, we need to inherit out type from the label (if provided)
 
 
 Tables:
@@ -26,7 +24,7 @@ Tables:
 Listing: 
 
 - Test to make sure it works at all
-  listing="foo" listing-cap = "foo", or listing="foo" listing-caption = "foo"
+  lst.label="foo" lst.cap = "foo", or listing="foo" listing-caption = "foo"
 
 
 
