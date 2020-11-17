@@ -33,7 +33,7 @@ import {
   RenderFlags,
   replacePandocArg,
 } from "./flags.ts";
-import { OutputRecipe } from "./output.ts";
+import { OutputRecipe, renderDirAndStem } from "./output.ts";
 
 export function useLatexmk(
   format: Format,
@@ -65,7 +65,7 @@ export function latexmkOutputRecipe(
   const latexmkHandler = latexmk ? latexmk : runLatexmk;
 
   // break apart input file
-  const [inputDir, inputStem] = dirAndStem(input);
+  const [inputDir, inputStem] = renderDirAndStem(input);
 
   // there are many characters that give tex trouble in filenames, create
   // a target stem that replaces them with the '-' character
