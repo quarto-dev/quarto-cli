@@ -13,6 +13,8 @@
 *
 */
 
+import { existsSync } from "fs/exists.ts";
+
 import { readYamlFromMarkdownFile } from "../core/yaml.ts";
 
 import { Format, FormatPandoc } from "../config/format.ts";
@@ -114,7 +116,15 @@ function markdownEngine(): ExecutionEngine {
     metadata: (context: ExecutionTarget) =>
       Promise.resolve(readYamlFromMarkdownFile(context.input) as Metadata),
     execute: async (options: ExecuteOptions) => {
-      await Deno.copyFile(options.target.input, options.output);
+      // copy input to output (unless they are the same path)
+      if (
+        !existsSync(options.output) ||
+        (Deno.realPathSync(options.target.input) !==
+          Deno.realPathSync(options.output))
+      ) {
+        await Deno.copyFile(options.target.input, options.output);
+      }
+
       return Promise.resolve({
         supporting: [],
         pandoc: {} as FormatPandoc,
