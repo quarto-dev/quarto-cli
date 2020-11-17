@@ -90,9 +90,12 @@ knitr_hooks <- function(format) {
     label = figure_label(options)
     pattern <- paste0("(^|\n)::: \\{#", label, " ")
     figs <- length(regmatches(x, gregexpr(pattern, x))[[1]])
-    for (i in 1:figs) {
-      x <- sub(pattern, paste0("\\1::: {#", label, "-", i, " "), x)
+    if (figs > 1) {
+      for (i in 1:figs) {
+        x <- sub(pattern, paste0("\\1::: {#", label, "-", i, " "), x)
+      }
     }
+    
 
     # apply parent caption if we have subcaptions
     fig.cap = options[["fig.cap"]]
@@ -200,11 +203,10 @@ figure_cap <- function(options) {
 
 figure_label <- function(options) {
   label <- options[["label"]]
-  if (!is.null(label)) {
-    if (!startsWith(label, "fig:")) {
-      label <- paste0("fig:", label)
-    }
+  if (!is.null(label) && startsWith(label, "fig:")) {
+    label
+  } else {
+    NULL
   }
-  label
 }
 
