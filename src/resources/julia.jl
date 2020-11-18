@@ -328,7 +328,7 @@ function render_output(output, classes, hidden)
   if hidden
     classes *= " .hidden"
   end
-  result = string("\n::: {.cell-output ", classes, "}", "\n")
+  result = string("\n::: {.output ", classes, "}", "\n")
   result *= output
   if !endswith(result, "\n")
     result *= "\n"

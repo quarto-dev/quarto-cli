@@ -123,6 +123,10 @@ export async function runPandoc(
     );
   }
 
+  // apply workaround for .output suppression
+  // https://github.com/jgm/pandoc/issues/6841#issuecomment-728281039
+  cmd.push("--ipynb-output=all");
+
   // run pandoc
   return await execProcess(
     {
