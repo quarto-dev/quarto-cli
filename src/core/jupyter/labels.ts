@@ -2,6 +2,7 @@ import { pandocAutoIdentifier } from "../pandoc/pandoc_id.ts";
 import {
   displayDataIsImage,
   displayDataMimeType,
+  isCaptionableData,
   isDisplayData,
 } from "./display_data.ts";
 
@@ -78,6 +79,10 @@ export function shouldLabelOutputContainer(
 ) {
   // label output container unless this is an image (which gets it's id directly assigned)
   if (isDisplayData(output)) {
+    if (!isCaptionableData(output)) {
+      return false;
+    }
+
     const mimeType = displayDataMimeType(
       output as JupyterOutputDisplayData,
       options,
@@ -101,7 +106,10 @@ export function resolveCaptions(cell: JupyterCell) {
   // if we have display data outputs, then break off their captions
   if (Array.isArray(cell.metadata[kCellFigCap])) {
     const figCap = cell.metadata[kCellFigCap] as string[];
-    if (cell.outputs && cell.outputs.filter(isDisplayData).length > 0) {
+    if (
+      cell.outputs &&
+      cell.outputs.filter(isCaptionableData).length > 0
+    ) {
       return {
         cellCaption: undefined,
         outputCaptions: figCap,

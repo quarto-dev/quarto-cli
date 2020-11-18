@@ -32,11 +32,12 @@ export function removeAndPreserveHtml(
           const html = displayOutput.data[kTextHtml];
           const htmlText = Array.isArray(html) ? html.join("") : html as string;
           if (html) {
-            const key = generateUuid();
+            const key = "preserve" + generateUuid().replaceAll("-", "");
             htmlPreserve[key] = htmlText;
-            displayOutput.data[kTextMarkdown] = [
-              "```{=html}\n" + key + "\n```\n",
-            ];
+            displayOutput.data[kTextMarkdown] = [key];
+            // plotly includes pure js within display_data, prevent it from receiving a caption
+            displayOutput.noCaption = /^\s*<script type="text\/javascript">/
+              .test(htmlText);
             delete displayOutput.data[kTextHtml];
           }
         }
