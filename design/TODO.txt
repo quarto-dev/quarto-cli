@@ -1,17 +1,9 @@
 
 
-- Consdier changing class names for output divs (as special meaning/behavior from ipynb exporter can occur)
 
-- Crossref system
+- Should remove jupyter: from keep-md 
 
 - Filter:
-
-    - Emit markdown from the computational pass that has correctly incrementing ids
-      (go back through existing code to make sure, support either fig: or tbl: or 
-      no prefix for auto, look inside html and latex for tables, etc.)
-
-    - Prefix for labels is either "assigned" in the chunk label, or is automatically
-      determined (figure for most things, table for markdown,html,or latex table)
 
     - In order to 'edit' the preserved html, we will need it to be written to disk
       somewhere and have it read and re-written by the filter
@@ -95,6 +87,7 @@ computations could even be at a URL!!!
 << write tests >>
 
 https://github.com/microsoft/vscode-jupyter
+https://devblogs.microsoft.com/python/introducing-the-jupyter-extension-for-vs-code/
 
 
 More robust Julia backend
