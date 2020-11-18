@@ -10,14 +10,10 @@ jupyter:
     name: python3
 ---
 
-```python
+```python label="tbl:countries"
 import itables.interactive
 import world_bank_data as wb
 
 df = wb.get_countries()
 df
-```
-
-```python
-
 ```
