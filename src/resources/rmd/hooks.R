@@ -172,7 +172,7 @@ output_div <- function(x, id, classes) {
     div <- paste0(div, id, " ")
   }
   paste0(
-    div, ".cell-output ",
+    div, ".output ",
     paste(paste0(".", classes), collapse = " ") ,
     "}\n",
     trimws(x),

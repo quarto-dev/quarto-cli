@@ -414,7 +414,7 @@ function mdFromCodeCell(
       }
 
       // div preamble
-      md.push(`.cell-output .${output.output_type}`);
+      md.push(`.output .${output.output_type}`);
 
       // add stream name class if necessary
       if (output.output_type === "stream") {
