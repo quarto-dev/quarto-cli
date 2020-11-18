@@ -58,6 +58,7 @@ import {
   displayDataIsLatex,
   displayDataIsMarkdown,
   displayDataMimeType,
+  isCaptionableData,
   isDisplayData,
 } from "./display_data.ts";
 import { widgetIncludeFiles } from "./widgets.ts";
@@ -130,6 +131,7 @@ export interface JupyterOutputStream extends JupyterOutput {
 export interface JupyterOutputDisplayData extends JupyterOutput {
   data: { [mimeType: string]: unknown };
   metadata: { [mimeType: string]: Record<string, unknown> };
+  noCaption?: boolean;
 }
 
 export interface JupyterOutputExecuteResult extends JupyterOutputDisplayData {
@@ -439,8 +441,10 @@ function mdFromCodeCell(
       } else if (output.output_type === "error") {
         md.push(mdOutputError(output as JupyterOutputError));
       } else if (isDisplayData(output)) {
-        const caption = outputCaptions.shift() ||
-          (isFigureLabel(outputLabel) ? "(Untitled)" : null);
+        const caption = isCaptionableData(output)
+          ? outputCaptions.shift() ||
+            (isFigureLabel(outputLabel) ? "(Untitled)" : null)
+          : null;
         md.push(mdOutputDisplayData(
           outputLabel,
           caption,

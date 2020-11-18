@@ -36,6 +36,15 @@ export function isDisplayData(output: JupyterOutput) {
   return ["display_data", "execute_result"].includes(output.output_type);
 }
 
+export function isCaptionableData(output: JupyterOutput) {
+  if (isDisplayData(output)) {
+    const displayData = output as JupyterOutputDisplayData;
+    return !displayData.noCaption;
+  } else {
+    return false;
+  }
+}
+
 export function displayDataMimeType(
   output: JupyterOutputDisplayData,
   options: JupyterToMarkdownOptions,
