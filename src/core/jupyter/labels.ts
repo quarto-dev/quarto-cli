@@ -93,6 +93,10 @@ export function shouldLabelOutputContainer(
   }
 }
 
+export function isFigureLabel(label: string) {
+  return label && label.startsWith("fig:");
+}
+
 export function resolveCaptions(cell: JupyterCell) {
   // if we have display data outputs, then break off their captions
   if (Array.isArray(cell.metadata[kCellFigCap])) {

@@ -45,6 +45,7 @@ import {
 import {
   cellLabel,
   cellLabelValidator,
+  isFigureLabel,
   resolveCaptions,
   shouldLabelCellContainer,
   shouldLabelOutputContainer,
@@ -369,7 +370,7 @@ function mdFromCodeCell(
 
   // write code if appropriate
   if (includeCode(cell, options.execution)) {
-    md.push("```{." + options.language);
+    md.push("``` {." + options.language);
     if (hideCode(cell, options.execution)) {
       md.push(" .hidden");
     }
@@ -403,7 +404,7 @@ function mdFromCodeCell(
       }
 
       // leading newline and beginning of div
-      md.push("\n:::{");
+      md.push("\n::: {");
 
       // include label/id if appropriate
       const outputLabel = label && labelCellContainer && isDisplayData(output)
@@ -439,7 +440,7 @@ function mdFromCodeCell(
         md.push(mdOutputError(output as JupyterOutputError));
       } else if (isDisplayData(output)) {
         const caption = outputCaptions.shift() ||
-          (outputLabel ? "(Untitled)" : null);
+          (isFigureLabel(outputLabel) ? "(Untitled)" : null);
         md.push(mdOutputDisplayData(
           outputLabel,
           caption,
