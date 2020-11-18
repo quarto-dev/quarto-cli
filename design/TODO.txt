@@ -1,32 +1,54 @@
 
 
+- Consdier changing class names for output divs (as special meaning/behavior from ipynb exporter can occur)
+
 - Crossref system
 
-TODO:
+- Filter:
 
-Figures:
+    - Emit markdown from the computational pass that has correctly incrementing ids
+      (go back through existing code to make sure, support either fig: or tbl: or 
+      no prefix for auto, look inside html and latex for tables, etc.)
 
-- For knitr, label="fig:foo" need to go to knitr as "foo" (only when it's generating latex)
-- For knitr, fig.cap, fig.subcap
-- Overall caption for a panel of figures at the bottom of the containing div
-    - How do we specify the figure vs. subfigure captions
-- For a labeled Rmd chunk, a single plot gets #fig:label. Multiple plots
-  gets #fig:label-a.
-- Also for Julia
+    - Prefix for labels is either "assigned" in the chunk label, or is automatically
+      determined (figure for most things, table for markdown,html,or latex table)
+
+    - In order to 'edit' the preserved html, we will need it to be written to disk
+      somewhere and have it read and re-written by the filter
+
+    - Lua filter
+
+    - Many ways to generate HTML tables, we need to reach into HTML tables 
+      for the <caption> to look for cross-referenceable tables and from
+      that create a reference 
+    - Tables from arbitrary divs (caption at bottom of div)
+
+    - Comparable table handling for LaTeX output
+      For LaTeX tables, it appears as if label goes inside \caption
+      \caption{\label{tab:test}This title describes the content of this table.}
+      So we could look for the #tbl:caption at the end and substitute the label
+      Some R packages e.g. modelsummary already do this automatically so would need to 
+      substitute: \caption{\label{tab:mytable}This title describes the content of this table. {#tbl:content}}
+
+      \caption{\label{tab:mytable} This title describes the content of this table.}
 
 
-Tables:
 
-- Knitr uses tab:__, we need to it to be tbl:___ (done in a filter?)
-- Investigate kable, investigate the gt package
-- enclosing rich output with div/id, injecting id into markdown output
+    - Forwarding of fig chunk options to data attributes (and HTML/LaTeX generation)
 
-Listing: 
-
-- Test to make sure it works at all
-  lst.label="foo" lst.cap = "foo", or listing="foo" listing-caption = "foo"
+    - Listings for Jupyter and Rmd:
+       lst.label="foo" lst.cap = "foo"
 
 
+Port tinytex to JS; OR we need to implmeent various auto-install behaviors for latexmk, eg.
+  had to do this to get biblatex working w/ latexmk
+  (may want to automate installation if no biber + auto-map TinyTeX to path)
+    tlmgr install biblatex
+    tlmgr install biber
+    ln -sf /Users/jjallaire/Library/TinyTeX/bin/x86_64-darwin/biber /usr/local/bin/biber
+Note need to implement tinytex: false and tinytex options (e.g. min-runs, clean, output-dir, etc.)
+
+Why did Beamer fail to render w/ missing caption package w/ our pipeline but work for pandoc pdflatex?
 
 
 # Package/extension system
@@ -45,6 +67,7 @@ Project system:
   - External interactions with projects (output_dir, clean, etc.)
 
 # static site generator (project system)
+https://victoria.dev/blog/hugo-vs-jekyll-an-epic-battle-of-static-site-generator-themes/
 bs4-website
 bs4-book
 
@@ -73,15 +96,6 @@ computations could even be at a URL!!!
 
 https://github.com/microsoft/vscode-jupyter
 
-Why did Beamer fail to render w/ missing caption package w/ our pipeline but work for pandoc pdflatex?
-
-Port tinytex to JS; OR we need to implmeent various auto-install behaviors for latexmk, eg.
-  had to do this to get biblatex working w/ latexmk
-  (may want to automate installation if no biber + auto-map TinyTeX to path)
-    tlmgr install biblatex
-    tlmgr install biber
-    ln -sf /Users/jjallaire/Library/TinyTeX/bin/x86_64-darwin/biber /usr/local/bin/biber
-Note need to implement tinytex: false and tinytex options (e.g. min-runs, clean, output-dir, etc.)
 
 More robust Julia backend
 
