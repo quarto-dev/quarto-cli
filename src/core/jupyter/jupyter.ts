@@ -438,7 +438,8 @@ function mdFromCodeCell(
       } else if (output.output_type === "error") {
         md.push(mdOutputError(output as JupyterOutputError));
       } else if (isDisplayData(output)) {
-        const caption = outputCaptions.shift() || null;
+        const caption = outputCaptions.shift() ||
+          (outputLabel ? "(Untitled)" : null);
         md.push(mdOutputDisplayData(
           outputLabel,
           caption,
