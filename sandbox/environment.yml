@@ -12,8 +12,8 @@ dependencies:
   - bleach=3.2.1=py_0
   - branca=0.3.1=py_0
   - brotlipy=0.7.0=py38haf1e3a3_1000
-  - ca-certificates=2020.6.20=hecda079_0
-  - certifi=2020.6.20=py38h5347e94_2
+  - ca-certificates=2020.10.14=0
+  - certifi=2020.6.20=pyhd3eb1b0_3
   - cffi=1.14.3=py38hed5b41f_0
   - chardet=3.0.4=py38_1003
   - cryptography=3.1=py38hddc9c9b_0
@@ -102,6 +102,7 @@ dependencies:
   - setuptools=49.6.0=py38_0
   - six=1.15.0=py_0
   - sqlite=3.33.0=hffcf06c_0
+  - tabulate=0.8.7=py38_0
   - terminado=0.8.3=py38_0
   - testpath=0.4.4=py_0
   - tk=8.6.10=hb0a8c7a_0
