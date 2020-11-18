@@ -31,7 +31,7 @@ wrap_asis_output <- function(options, x) {
 
   # generate output div
   caption <- figure_cap(options)
-  if (!is.null(caption)) {
+  if (nzchar(caption)) {
     x <- paste0(x, "\n\n", caption)
   }
   classes <- "display_data"
@@ -194,11 +194,14 @@ figure_id <- function(options) {
 }
 
 figure_cap <- function(options) {
+  fig.cap <- options[["fig.cap"]]
   fig.subcap <- options[["fig.subcap"]]
   if (!is.null(fig.subcap))
     fig.subcap
+  else if (!is.null(fig.cap))
+    fig.cap
   else
-    options[["fig.cap"]]
+    ""
 }
 
 figure_label <- function(options) {
