@@ -7,18 +7,12 @@ format:
   revealjs: 
     template: revealjs.template
 knit: quarto render
-jupyter:
-  jupytext:
-    formats: ipynb,md
-  kernelspec:
-    display_name: Python 3
-    language: python
-    name: python3
 ---
 
 ## Slide 1
 
-```python
+::: {.cell .code}
+```{.python}
 import matplotlib.pyplot as plt
 
 labels = ['G1', 'G2', 'G3', 'G4', 'G5']
@@ -39,6 +33,12 @@ ax.set_title('Scores broken out by group and gender')
 ax.legend()
 plt.show()
 ```
+
+:::{.cell-output .display_data .image}
+![](matplotlib_files/figure-html/cell-2-output-1.png){width=584.5 height=423.5}
+:::
+:::
+
 
 
 

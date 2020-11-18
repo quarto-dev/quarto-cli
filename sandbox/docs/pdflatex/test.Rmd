@@ -37,7 +37,7 @@ plot(cars)
 # Plt 3
 
 ```{r}
-str(press)
+str(pressure)
 str(cars)
 ```
 

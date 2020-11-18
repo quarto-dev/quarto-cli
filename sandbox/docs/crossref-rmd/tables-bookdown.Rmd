@@ -1,35 +1,36 @@
 ---
 title: "Untitled"
+output:
+  bookdown::pdf_document2:
+    keep_tex: true
+  bookdown::html_document2:
+    keep_md: true
 format:
-  html: 
+  html:
     keep-md: true
-    cache: true
 knit: quarto render
 ---
 
 ```{r setup, include=FALSE}
+library(knitr)
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## R Markdown
 
-```{=latex}
-\textbf{some bold text}
-```
 This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars, cache=FALSE}
-Sys.sleep(5)
-summary(cars)
+```{r tbl:cars}
+knitr::kable(head(mtcars), caption = "My table")
 ```
 
 ## Including Plots
 
 You can also embed plots, for example:
 
-```{r, fig.cap="Presure Time"}
+```{r pressure, echo=FALSE}
 plot(pressure)
 ```
 

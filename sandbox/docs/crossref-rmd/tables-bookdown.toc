@@ -1,0 +1,2 @@
+\contentsline {subsection}{\numberline {0.1}R Markdown}{1}{subsection.0.1}%
+\contentsline {subsection}{\numberline {0.2}Including Plots}{1}{subsection.0.2}%

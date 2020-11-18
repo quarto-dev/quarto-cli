@@ -1,0 +1,72 @@
+---
+title: "Untitled"
+format: 
+  html:
+    keep-md: true
+knit: quarto render
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+You can also embed plots, for example:
+
+```{r tbl:foobar}
+knitr::kable(head(mtcars), caption = "Here is the caption")
+
+knitr::kable(head(pressure), caption = "Feel the pressure!")
+```
+
+::: {#thm:charles}
+### My Caption
+
+asdfasdfasdfasdfsadf
+afasdfsdf
+
+$$
+math
+$$
+:::
+
+
+```{r fig:pressure, fig.cap="Foocap", fig.subcap=c("Feeling Pressure", "Cars"), echo=FALSE}
+plot(pressure)
+plot(cars)
+```
+
+Here is a single plot:
+
+```{r fig:mtcars, fig.cap="Mtcars"}
+plot(mtcars)
+```
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r fig:lungs, echo = FALSE}
+library(dygraphs)
+lungDeaths <- cbind(mdeaths, fdeaths)
+dygraph(lungDeaths) %>%
+  dySeries("mdeaths", label = "Male") %>%
+  dySeries("fdeaths", label = "Female") %>%
+  dyOptions(stackedGraph = TRUE) %>%
+  dyRangeSelector(height = 20)
+
+dygraph(lungDeaths) %>%
+  dySeries("mdeaths", label = "Male2") %>%
+  dySeries("fdeaths", label = "Female2") %>%
+  dyOptions(stackedGraph = TRUE) %>%
+  dyRangeSelector(height = 20)
+```
+
+
+
+@fig:pressure-1
+
+@fig:lungs-2
+
+@tbl:foobar-1
+
+@tbl:foobar-2
+
