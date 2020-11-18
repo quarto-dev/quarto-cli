@@ -599,8 +599,8 @@ function mdImageOutput(
     if (mimeType === kImagePng && figFormat === "retina" && figDpi) {
       const png = new PngImage(imageData);
       if (png.dpiX === (figDpi * 2) && png.dpiY === (figDpi * 2)) {
-        width = png.width / 2;
-        height = png.height / 2;
+        width = Math.round(png.width / 2);
+        height = Math.round(png.height / 2);
       }
     }
 
