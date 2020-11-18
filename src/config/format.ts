@@ -234,6 +234,10 @@ export function defaultWriterFormat(to: string): Format {
       writerFormat = plaintextFormat("xml");
       break;
 
+    case "ipynb":
+      writerFormat = ipynbFormat();
+      break;
+
     default:
       // textile
       // texinfo
@@ -249,7 +253,6 @@ export function defaultWriterFormat(to: string): Format {
       // haddock
       // json
       // icml
-      // ipynb
       // jira
       // mediawiki
       // xwiki
@@ -366,6 +369,15 @@ function rtfFormat(): Format {
   return format("rtf", wordprocessorFormat("rtf"), {
     pandoc: {
       standalone: true,
+    },
+  });
+}
+
+function ipynbFormat(): Format {
+  return format("ipynb", {
+    pandoc: {
+      standalone: true,
+      "ipynb-output": "all",
     },
   });
 }
