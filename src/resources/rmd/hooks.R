@@ -37,7 +37,7 @@ wrap_asis_output <- function(options, x) {
   classes <- "display_data"
   if (isTRUE(options[["output.hidden"]]))
     classes <- paste0(classes, " .hidden")
-  output_div(x, figure_label_placeholder(options), classes)
+  output_div(x, output_label_placeholder(options), classes)
 }
 assignInNamespace("wrap", wrap, ns = "knitr")
 assignInNamespace("add_html_caption", add_html_caption, ns = "knitr")
@@ -79,7 +79,7 @@ knitr_hooks <- function(format) {
       # add .hidden class if keep-hidden hook injected an option
       if (isTRUE(options[[paste0(type,".hidden")]]))
         classes <- c(classes, "hidden")
-      output_div(x, "", classes)
+      output_div(x, NULL, classes)
     })
   }
 
@@ -87,10 +87,10 @@ knitr_hooks <- function(format) {
   knit_hooks$chunk <- delegating_hook("chunk", function(x, options) {
 
     # fixup duplicate figure labels
-    placeholder <- figure_label_placeholder(options)
+    placeholder <- output_label_placeholder(options)
     if (!is.null(placeholder)) {
       figs <- length(regmatches(x, gregexpr(placeholder, x, fixed = TRUE))[[1]])
-      label <- figure_label(options)
+      label <- output_label(options)
       for (i in 1:figs) {
         suffix <- ifelse(figs > 1, paste0("-", i), "")
         x <- sub(placeholder, paste0(label, suffix), fixed = TRUE, x)
@@ -99,10 +99,10 @@ knitr_hooks <- function(format) {
 
 
     # apply parent caption if we have subcaptions
-    label <- figure_label(options)
+    label <- output_label(options)
     fig.cap = options[["fig.cap"]]
     fig.subcap = options[["fig.subcap"]]
-    if (!is.null(label) && !is.null(fig.cap) && !is.null(fig.subcap)) {
+    if (is_figure_label(label) && !is.null(fig.cap) && !is.null(fig.subcap)) {
       label <- paste0("#", label, " ")
       fig.cap <- paste0("\n", fig.cap, "\n")
     } else {
@@ -142,7 +142,12 @@ knitr_plot_hook <- function(default_plot_hook) {
       classes <- c(classes, "hidden")
 
     # id
-    id <- paste0("#", figure_label_placeholder(options))
+    placeholder <- output_label_placeholder(options)
+    id <- ifelse(
+      is_figure_label(placeholder),
+      paste0("#", placeholder),
+      ""
+    )
 
     # add attributes
     attr = paste(id, paste(
@@ -163,14 +168,14 @@ knitr_plot_hook <- function(default_plot_hook) {
     md <- sprintf("![%s](%s)%s", figure_cap(options), x, attr)
 
     # enclose in output div
-    output_div(md, "", classes)
+    output_div(md, NULL, classes)
   }
 }
 
 # helper to create an output div
 output_div <- function(x, label, classes) {
   div <- "::: {"
-  if (nzchar(label)) {
+  if (!is.null(label)) {
     div <- paste0(div, "#", label, " ")
   }
   paste0(
@@ -184,33 +189,44 @@ output_div <- function(x, label, classes) {
 
 
 figure_cap <- function(options) {
-  fig.cap <- options[["fig.cap"]]
-  fig.subcap <- options[["fig.subcap"]]
-  if (!is.null(fig.subcap))
-    fig.subcap
-  else if (!is.null(fig.cap))
-    fig.cap
-  else if (!is.null(figure_label(options)))
-    "(Untitled)"
-  else
+  output_label <- output_label(options)
+  if (is.null(output_label) || is_figure_label(output_label)) {
+    fig.cap <- options[["fig.cap"]]
+    fig.subcap <- options[["fig.subcap"]]
+    if (!is.null(fig.subcap))
+      fig.subcap
+    else if (!is.null(fig.cap))
+      fig.cap
+    else if (!is.null(output_label))
+      "(Untitled)"
+    else
+      ""
+  } else {
     ""
+  }
 }
 
-figure_label <- function(options) {
+
+output_label <- function(options) {
   label <- options[["label"]]
-  if (!is.null(label) && startsWith(label, "fig:")) {
+  if (!is.null(label) && (startsWith(label, "fig:") || startsWith(label, "tbl:"))) {
     label
   } else {
     NULL
   }
 }
 
-figure_label_placeholder <- function(options) {
+output_label_placeholder <- function(options) {
   kPlaceholder <- "D08295A6-16DC-499D-85A8-8BA656E013A2"
-  label <- figure_label(options)
+  label <- output_label(options)
   if (!is.null(label))
     paste0(label, kPlaceholder)
   else
     NULL
 }
+
+is_figure_label <- function(label) {
+  !is.null(label) && startsWith(label, "fig:")
+}
+
 
