@@ -135,7 +135,7 @@ knitr_plot_hook <- function(default_plot_hook) {
   function(x, options) {
 
     # classes
-    classes <- c("display_data", "image")
+    classes <- c("display_data")
     if (isTRUE(options[["plot.hidden"]]))
       classes <- c(classes, "hidden")
 
