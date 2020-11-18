@@ -37,7 +37,7 @@ wrap_asis_output <- function(options, x) {
   classes <- "display_data"
   if (isTRUE(options[["output.hidden"]]))
     classes <- paste0(classes, " .hidden")
-  output_div(x, figure_id(options), classes)
+  output_div(x, figure_label_placeholder(options), classes)
 }
 assignInNamespace("wrap", wrap, ns = "knitr")
 assignInNamespace("add_html_caption", add_html_caption, ns = "knitr")
@@ -87,17 +87,19 @@ knitr_hooks <- function(format) {
   knit_hooks$chunk <- delegating_hook("chunk", function(x, options) {
 
     # fixup duplicate figure labels
-    label = figure_label(options)
-    pattern <- paste0("(^|\n)::: \\{#", label, " ")
-    figs <- length(regmatches(x, gregexpr(pattern, x))[[1]])
-    if (figs > 1) {
+    placeholder <- figure_label_placeholder(options)
+    if (!is.null(placeholder)) {
+      figs <- length(regmatches(x, gregexpr(placeholder, x, fixed = TRUE))[[1]])
+      label <- figure_label(options)
       for (i in 1:figs) {
-        x <- sub(pattern, paste0("\\1::: {#", label, "-", i, " "), x)
+        suffix <- ifelse(figs > 1, paste0("-", i), "")
+        x <- sub(placeholder, paste0(label, suffix), fixed = TRUE, x)
       }
     }
-    
+
 
     # apply parent caption if we have subcaptions
+    label <- figure_label(options)
     fig.cap = options[["fig.cap"]]
     fig.subcap = options[["fig.subcap"]]
     if (!is.null(label) && !is.null(fig.cap) && !is.null(fig.subcap)) {
@@ -140,7 +142,7 @@ knitr_plot_hook <- function(default_plot_hook) {
       classes <- c(classes, "hidden")
 
     # id
-    id <- figure_id(options)
+    id <- paste0("#", figure_label_placeholder(options))
 
     # add attributes
     attr = paste(id, paste(
@@ -166,10 +168,10 @@ knitr_plot_hook <- function(default_plot_hook) {
 }
 
 # helper to create an output div
-output_div <- function(x, id, classes) {
+output_div <- function(x, label, classes) {
   div <- "::: {"
-  if (nzchar(id)) {
-    div <- paste0(div, id, " ")
+  if (nzchar(label)) {
+    div <- paste0(div, "#", label, " ")
   }
   paste0(
     div, ".output ",
@@ -180,18 +182,6 @@ output_div <- function(x, id, classes) {
   )
 }
 
-figure_id <- function(options) {
-  label <- figure_label(options)
-  if (!is.null(label)) {
-    if (options[["fig.num"]] > 1) {
-      label <- paste0(label, "-", options[["fig.cur"]])
-    }
-    id <- paste0("#", label)
-    id
-  } else {
-    ""
-  }
-}
 
 figure_cap <- function(options) {
   fig.cap <- options[["fig.cap"]]
@@ -200,6 +190,8 @@ figure_cap <- function(options) {
     fig.subcap
   else if (!is.null(fig.cap))
     fig.cap
+  else if (!is.null(figure_label(options)))
+    "(Untitled)"
   else
     ""
 }
@@ -211,5 +203,14 @@ figure_label <- function(options) {
   } else {
     NULL
   }
+}
+
+figure_label_placeholder <- function(options) {
+  kPlaceholder <- "D08295A6-16DC-499D-85A8-8BA656E013A2"
+  label <- figure_label(options)
+  if (!is.null(label))
+    paste0(label, kPlaceholder)
+  else
+    NULL
 }
 
