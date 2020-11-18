@@ -422,12 +422,6 @@ function mdFromCodeCell(
         md.push(` .${stream.name}`);
       }
 
-      // add image class if necessary
-      const image = isImage(output, options);
-      if (image) {
-        md.push(" .image");
-      }
-
       // add hidden if necessary
       if (
         hideOutput(cell, options.execution) ||
@@ -459,7 +453,7 @@ function mdFromCodeCell(
       }
 
       // if this isn't an image and we have a caption, place it at the bottom of the div
-      if (caption && !image) {
+      if (caption && !isImage(output, options)) {
         md.push(`\n${caption}\n`);
       }
 

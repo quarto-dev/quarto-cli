@@ -401,7 +401,7 @@ function render_figures(chunk, hidden)
 end
 
 function render_figure(caption, path, attribs, hidden)
-  return render_output("![$caption]($(path))$attribs", ".display_data .image", hidden)
+  return render_output("![$caption]($(path))$attribs", ".display_data", hidden)
 end
 
 function figure_size_hook!(chunk)
