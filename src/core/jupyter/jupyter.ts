@@ -432,15 +432,13 @@ function mdFromCodeCell(
 
       md.push("}\n");
 
-      // compute caption
-      const caption = outputCaptions.shift() || null;
-
       // produce output
       if (output.output_type === "stream") {
         md.push(mdOutputStream(output as JupyterOutputStream));
       } else if (output.output_type === "error") {
         md.push(mdOutputError(output as JupyterOutputError));
       } else if (isDisplayData(output)) {
+        const caption = outputCaptions.shift() || null;
         md.push(mdOutputDisplayData(
           outputLabel,
           caption,
@@ -448,13 +446,12 @@ function mdFromCodeCell(
           output as JupyterOutputDisplayData,
           options,
         ));
+        // if this isn't an image and we have a caption, place it at the bottom of the div
+        if (caption && !isImage(output, options)) {
+          md.push(`\n${caption}\n`);
+        }
       } else {
         throw new Error("Unexpected output type " + output.output_type);
-      }
-
-      // if this isn't an image and we have a caption, place it at the bottom of the div
-      if (caption && !isImage(output, options)) {
-        md.push(`\n${caption}\n`);
       }
 
       // terminate div
@@ -660,9 +657,10 @@ function mdCodeOutput(code: string[]) {
 }
 
 function mdEnclosedOutput(begin: string, text: string[], end: string) {
+  const output = text.join("");
   const md: string[] = [
     begin + "\n",
-    text.join("") + "\n",
+    output + (output.endsWith("\n") ? "" : "\n"),
     end + "\n",
   ];
   return md.join("");

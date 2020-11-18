@@ -87,8 +87,10 @@ export function shouldLabelOutputContainer(
         return false;
       }
     }
+    return true;
+  } else {
+    return false;
   }
-  return true;
 }
 
 export function resolveCaptions(cell: JupyterCell) {
