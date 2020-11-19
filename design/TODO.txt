@@ -1,7 +1,8 @@
 
 
 
-- Consider purging sandbox history from repo:
+- Consider purging sandbox history from repo and creating new 
+  quarto-sandbox repo
   https://github.com/newren/git-filter-repo/
 
 - Filter:
