@@ -64,7 +64,6 @@ import {
 import { widgetIncludeFiles } from "./widgets.ts";
 import { removeAndPreserveHtml } from "./preserve.ts";
 import { FormatExecution } from "../../config/format.ts";
-import { CHAR_NO_BREAK_SPACE } from "https://deno.land/std@0.76.0/path/_constants.ts";
 
 export const kCellCollapsed = "collapsed";
 export const kCellAutoscroll = "autoscroll";
