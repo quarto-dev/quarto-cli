@@ -200,11 +200,8 @@ function resolveFilters(filters: string[] | undefined, options: PandocOptions) {
   }
 
   // add crossref filter if necessary (unshift will put it before citeproc)
-  if (
-    options.format.metadata["crossref"] !== false &&
-    !filters.includes("pandoc-crossref")
-  ) {
-    filters.unshift("pandoc-crossref");
+  if (options.format.metadata["crossref"] !== false) {
+    filters.unshift(resourcePath("filters/crossref.lua"));
   }
 
   if (filters.length > 0) {
