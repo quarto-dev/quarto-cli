@@ -228,7 +228,8 @@ export const jupyterEngine: ExecutionEngine = {
             [kIncludeAfterBody]: result.includeFiles.afterBody,
           }
           : {},
-        postprocess: result.htmlPreserve,
+        preserve: result.htmlPreserve,
+        postprocess: !!result.htmlPreserve,
       };
     } else {
       return Promise.reject();
@@ -242,7 +243,7 @@ export const jupyterEngine: ExecutionEngine = {
     // substitute
     output = restorePreservedHtml(
       output,
-      options.data as Record<string, string>,
+      options.preserve,
     );
 
     // re-write the output

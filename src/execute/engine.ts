@@ -60,6 +60,7 @@ export interface ExecuteOptions {
 export interface ExecuteResult {
   supporting: string[];
   pandoc: FormatPandoc;
+  preserve?: Record<string, string>;
   postprocess?: unknown;
 }
 
@@ -69,7 +70,8 @@ export interface PostProcessOptions {
   target: ExecutionTarget;
   format: Format;
   output: string;
-  data: unknown;
+  preserve?: Record<string, string>;
+  data?: unknown;
   quiet?: boolean;
 }
 

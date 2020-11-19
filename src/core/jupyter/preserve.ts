@@ -54,12 +54,14 @@ export function removeAndPreserveHtml(
 
 export function restorePreservedHtml(
   html: string,
-  preserved: Record<string, string>,
+  preserve?: Record<string, string>,
 ) {
-  Object.keys(preserved).forEach((key) => {
-    const keyLoc = html.indexOf(key);
-    html = html.slice(0, keyLoc) + preserved[key] +
-      html.slice(keyLoc + key.length);
-  });
+  if (preserve) {
+    Object.keys(preserve).forEach((key) => {
+      const keyLoc = html.indexOf(key);
+      html = html.slice(0, keyLoc) + preserve[key] +
+        html.slice(keyLoc + key.length);
+    });
+  }
   return html;
 }
