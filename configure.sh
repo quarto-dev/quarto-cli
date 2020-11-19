@@ -25,7 +25,7 @@ pushd $WORKING_DIR
 if [ ! -d "$RESOURCES_DIR" ]; then
 	mkdir -p "$RESOURCES_DIR"
 fi
-cp ../../src/resources/* $RESOURCES_DIR/
+cp -a ../../src/resources/* $RESOURCES_DIR/
 
 if [ ! -d "$BIN_DIR" ]; then
 	mkdir -p "$BIN_DIR"
@@ -54,12 +54,6 @@ curl -fail -L $PANDOCCROSSREFURL/$PANDOCCROSSREF/$PANDOCCROSSREFFILE -o $PANDOCC
 tar -xf $PANDOCCROSSREFFILE
 rm $PANDOCCROSSREFFILE
 
-TINYTEXURL=https://github.com/yihui/tinytex-releases/releases/download/
-TINYTEXFILE=TinyTeX-1-$TINYTEX.tgz
-curl -fail -L $TINYTEXURL/$TINYTEX/$TINYTEXFILE -o $TINYTEXFILE --no-include
-tar -xf $TINYTEXFILE
-rm $TINYTEXFILE
-
 popd
 
 # Create the Deno bundle
@@ -85,20 +79,13 @@ popd
 
 # ^^^ PACKAGING
 
-
-
 # notarize the package
 	# generate an hcl to notarize (gon ./gon.hcl)
 		# productbuild
 			# pkgbuild
 				# sign files at all? probably not useful
-					# Build directory and paths
+					# Build direcquartotory and paths
 
 
 
 # /\/\/\/\/\/\/\/ INSTALLATION ON USER SYSTEM
-
-# TODO: export QUARTO_RESOURCES=$(realpath ./resources)
-# TODO: export PATH="$(realpath ./bin):$(realpath ./bin/pandoc-$PANDOC/bin):$PATH"
-# TODO: need to 'Add /Users/charlesteague/.deno/bin to PATH'
-

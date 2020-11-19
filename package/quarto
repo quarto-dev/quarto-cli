@@ -1,30 +1,41 @@
 #!/bin/bash
 
-
-if [ -f "$FILE" ]; then
-    echo "$FILE exists."
-fi
-
-#Environment may provide an import map
-if [ -n "$QUARTO_IMPORT_MAP" ]; then
-	QUARTO_IMPORT_ARGMAP=--importmap="${QUARTO_IMPORT_MAP}"
-fi 
-
-# Environment can point deno at another entry point (e.g. the typescript file)
-if [ -z "$QUARTO_SRC" ]; then
-	QUARTO_SRC=quarto.js
-fi
-
-
-# Figure out the path that we're using
+# Determine the path to this script (we'll use this to figure out relative positions of other files)
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
-  QUARTO_PATH="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  SCRIPT_PATH="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
   SOURCE="$(readlink "$SOURCE")"
   [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
 done
-export QUARTO_PATH="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
-export R_PATH="/Library/Frameworks/R.framework/Resources/bin/"
+export SCRIPT_PATH="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+
+# Check if we are running 'Dev Mode' and if so, override values for devs
+DEV_PATH=$SCRIPT_PATH/../../../src/quarto.ts
+if [ -f "$DEV_PATH" ]; then
+
+  # Caller can point deno at another entry point (e.g. the typescript file)
+if [ -z ${QUARTO_ACTION+x} ]; then
+  QUARTO_ACTION=run
+fi
+
+QUARTO_IMPORT_ARGMAP=--importmap=$(realpath $SCRIPT_PATH/../../../src/import_map.json)
+
+  # Allow calls to override the target
+  if [ -z ${QUARTO_TARGET+x}]; then
+    QUARTO_TARGET=$(realpath $DEV_PATH)
+  fi
+  export QUARTO_BIN_PATH=$(realpath $SCRIPT_PATH)
+  export QUARTO_SHARE_PATH=$(realpath $SCRIPT_PATH/../../../src/resources/)
+  export QUARTO_R_PATH="/Library/Frameworks/R.framework/Resources/bin/"
+else 
+  
+  QUARTO_ACTION=run
+  QUARTO_TARGET=${SCRIPT_PATH}/quarto.js
+  export QUARTO_BIN_PATH=$(realpath $SCRIPT_PATH)
+  export QUARTO_SHARE_PATH=$(realpath $SCRIPT_PATH/../share)
+  export QUARTO_R_PATH="/Library/Frameworks/R.framework/Resources/bin/"
+fi
+
 
 QUARTO_DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env"
-${QUARTO_PATH}/deno run ${QUARTO_DENO_OPTIONS} ${QUARTO_IMPORT_ARGMAP} ${QUARTO_PATH}/${QUARTO_SRC} $@
+${SCRIPT_PATH}/deno ${QUARTO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_IMPORT_ARGMAP} ${QUARTO_TARGET} $@
