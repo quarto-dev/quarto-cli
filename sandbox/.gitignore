@@ -1,4 +1,4 @@
-docs/test.md
 docs/*.html
 docs/*.pdf
+docs/*.ipynb
 docs/*_files/
