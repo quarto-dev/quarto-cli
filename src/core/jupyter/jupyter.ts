@@ -64,6 +64,7 @@ import {
 import { widgetIncludeFiles } from "./widgets.ts";
 import { removeAndPreserveHtml } from "./preserve.ts";
 import { FormatExecution } from "../../config/format.ts";
+import { CHAR_NO_BREAK_SPACE } from "https://deno.land/std@0.76.0/path/_constants.ts";
 
 export const kCellCollapsed = "collapsed";
 export const kCellAutoscroll = "autoscroll";
@@ -235,7 +236,10 @@ export function jupyterToMarkdown(
   // track current code cell index (for progress)
   let codeCellIndex = 0;
 
-  for (const cell of nb.cells) {
+  for (let i = 0; i < nb.cells.length; i++) {
+    // get cell
+    const cell = nb.cells[i];
+
     // validate unique cell labels
     validateCellLabel(cell);
 
@@ -245,7 +249,7 @@ export function jupyterToMarkdown(
         md.push(...mdFromContentCell(cell));
         break;
       case "raw":
-        md.push(...mdFromRawCell(cell));
+        md.push(...mdFromRawCell(cell, i === 0));
         break;
       case "code":
         md.push(...mdFromCodeCell(cell, ++codeCellIndex, options));
@@ -267,7 +271,7 @@ function mdFromContentCell(cell: JupyterCell) {
   return [...cell.source, "\n\n"];
 }
 
-function mdFromRawCell(cell: JupyterCell) {
+function mdFromRawCell(cell: JupyterCell, firstCell: boolean) {
   const mimeType = cell.metadata?.[kRawMimeType];
   if (mimeType) {
     switch (mimeType) {
@@ -284,7 +288,20 @@ function mdFromRawCell(cell: JupyterCell) {
     }
   }
 
-  return mdFromContentCell(cell);
+  // if it's the first cell then it may be the yaml block, do some
+  // special handling to remove any "jupyter" metadata so that if
+  // the file is run through "quarto render" it's treated as a plain
+  // markdown file
+  if (firstCell) {
+    return mdFromContentCell({
+      ...cell,
+      source: cell.source.filter((line) => {
+        return !/^jupyter:\s+true\s*$/.test(line);
+      }),
+    });
+  } else {
+    return mdFromContentCell(cell);
+  }
 }
 
 // https://ipython.org/ipython-doc/dev/notebook/nbformat.html
