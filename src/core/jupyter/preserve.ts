@@ -31,13 +31,13 @@ export function removeAndPreserveHtml(
           const displayOutput = output as JupyterOutputDisplayData;
           const html = displayOutput.data[kTextHtml];
           const htmlText = Array.isArray(html) ? html.join("") : html as string;
-          if (html) {
+          // we've seen pandoc choke on plotly's script as HTML, so preserve it
+          // and prevent it from receiving a caption
+          if (html && isPlotlyLibrary(htmlText)) {
             const key = "preserve" + generateUuid().replaceAll("-", "");
             htmlPreserve[key] = htmlText;
             displayOutput.data[kTextMarkdown] = [key];
-            // plotly includes pure js within display_data, prevent it from receiving a caption
-            displayOutput.noCaption = /^\s*<script type="text\/javascript">/
-              .test(htmlText);
+            displayOutput.noCaption = true;
             delete displayOutput.data[kTextHtml];
           }
         }
@@ -64,4 +64,9 @@ export function restorePreservedHtml(
     });
   }
   return html;
+}
+
+function isPlotlyLibrary(html: string) {
+  return /^\s*<script type="text\/javascript">/.test(html) &&
+    /define\('plotly'/.test(html);
 }
