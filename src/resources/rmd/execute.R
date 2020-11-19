@@ -86,9 +86,11 @@ execute <- function(input, format, output, tempDir, cwd, params) {
 
   # include postprocessing if required
   if (!is.null(preserved)) {
-    postprocess <- split(unname(preserved),names(preserved))
+    preserve <- split(unname(preserved),names(preserved))
+    postprocess <- TRUE
   } else {
-    postprocess <- list()
+    preserve <- list()
+    postprocess <- FALSE
   }
 
   # write the includes to temp files
@@ -98,6 +100,7 @@ execute <- function(input, format, output, tempDir, cwd, params) {
   list(
     supporting = I(supporting),
     pandoc = pandoc,
+    preserve = preserve,
     postprocess = postprocess
   )
 }

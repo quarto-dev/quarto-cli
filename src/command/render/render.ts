@@ -104,6 +104,7 @@ export async function render(
       target,
       format,
       output: recipe.output,
+      preserve: executeResult.preserve,
       data: executeResult.postprocess,
       quiet: flags.quiet,
     });
