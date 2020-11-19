@@ -1,6 +1,9 @@
 
 
 
+- Consider purging sandbox history from repo:
+  https://github.com/newren/git-filter-repo/
+
 - Filter:
 
     - In order to 'edit' the preserved html, we will need it to be written to disk
