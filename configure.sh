@@ -5,12 +5,13 @@
 #  get the versions
 source configure
 
-VERSION=0.1
-
 WORKING_DIR=dist
 RESOURCES_DIR=share
 BIN_DIR=bin
-CONF_DIR=conf
+SCRIPTS_DIR=scripts/macos/pkg
+OUT_DIR=out
+
+PKGNAME=quarto
 
 pushd package
 
@@ -31,6 +32,7 @@ if [ ! -d "$BIN_DIR" ]; then
 	mkdir -p "$BIN_DIR"
 fi
 pushd $BIN_DIR
+
 
 # Download Dependencies
 DENOURL=https://github.com/denoland/deno/releases/download/
@@ -54,28 +56,45 @@ curl -fail -L $PANDOCCROSSREFURL/$PANDOCCROSSREF/$PANDOCCROSSREFFILE -o $PANDOCC
 tar -xf $PANDOCCROSSREFFILE
 rm $PANDOCCROSSREFFILE
 
+
 popd
 
 # Create the Deno bundle
 $BIN_DIR/deno bundle --unstable --importmap=../../src/import_map.json ../../src/quarto.ts bin/quarto.js
 
 # Move the quarto shell script into place
-cp ../quarto $BIN_DIR/quarto
+cp ../scripts/macos/quarto $BIN_DIR/quarto
 
 ## Gather license and other information
 cp ../../COPYRIGHT .
 cp ../../COPYING.md .
 
-if [ ! -d "$CONF_DIR" ]; then
-	mkdir -p "$CONF_DIR"
-fi
-pushd $CONF_DIR
 
-cp ../../link.sh .
-cp ../../unlink.sh .
+# pkgbuild --root "dist" --identifier=org.rstudio.quarto --version 0.1 --install-location "/Library/Quarto" quarto.pkg
+
 
 popd
 
+
+rm -rf $OUT_DIR
+mkdir $OUT_DIR
+
+echo pkgbuild --root "${WORKING_DIR}" --identifier "${IDENTIFIER}" --version "${VERSION}" --install-location "/Library/Quarto" --scripts ${SCRIPTS_DIR} ${OUT_DIR}/${PKGNAME}.pkg
+pkgbuild --root "${WORKING_DIR}" --identifier "${IDENTIFIER}" --version "${VERSION}" --install-location "/Library/Quarto" --scripts ${SCRIPTS_DIR} ${OUT_DIR}/${PKGNAME}.pkg
+
+
+#mkdir scripts
+# make file postinstall
+
+# What are we getting out of bundling, if anything
+	# maybe should just bundle ts files to get good stack traces
+	# if better than 200ms startup time, that would be worth it
+	# test with wrapper doing simple render and timing it
+
+#!/bin/sh
+# echo "Running postinstall" > /tmp/my_postinstall.log
+# TODO: symlink quarto
+# exit 0 # all good
 
 # ^^^ PACKAGING
 

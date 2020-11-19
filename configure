@@ -3,4 +3,7 @@ export PANDOCCROSSREF=v0.3.8.3
 export DENO=v1.4.6
 export TINYTEX=v2020.10
 
+export IDENTIFIER=org.rstudio.quarto
+export VERSION=0.1
+
 export DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env"
