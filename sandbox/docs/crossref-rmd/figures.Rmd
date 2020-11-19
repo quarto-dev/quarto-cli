@@ -12,8 +12,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 You can also embed plots, for example:
 
+
+
+
 ```{r tbl:foobar}
-knitr::kable(head(mtcars), caption = "Here is the caption")
+knitr::kable(head(mtcars), format="html", caption = "Here is the caption")
 
 knitr::kable(head(pressure), caption = "Feel the pressure!")
 ```
@@ -30,7 +33,7 @@ $$
 :::
 
 
-```{r fig:pressure, fig.cap="Foocap", fig.subcap=c("Feeling Pressure", "Cars"), echo=FALSE}
+```{r pressure, echo=FALSE}
 plot(pressure)
 plot(cars)
 ```
@@ -44,7 +47,7 @@ plot(mtcars)
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 
-```{r fig:lungs, echo = FALSE}
+```{r fig:lungs, fig.cap=c("Fig 1", "Fig 2"), echo = FALSE}
 library(dygraphs)
 lungDeaths <- cbind(mdeaths, fdeaths)
 dygraph(lungDeaths) %>%

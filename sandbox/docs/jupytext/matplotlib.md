@@ -1,19 +1,14 @@
 ---
 title: "MPL slides"
 format:
-  html: default
+  html: 
+    keep-md: true
   beamer: 
     keep-tex: true
   revealjs: 
     template: revealjs.template
 knit: quarto render
-jupyter:
-  jupytext:
-    formats: ipynb,md
-  kernelspec:
-    display_name: Python 3
-    language: python
-    name: python3
+jupyter: true
 ---
 
 ## Slide 1

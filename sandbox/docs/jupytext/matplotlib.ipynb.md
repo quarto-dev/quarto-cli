@@ -1,7 +1,8 @@
 ---
 title: "MPL slides"
 format:
-  html: default
+  html: 
+    keep-md: true
   beamer: 
     keep-tex: true
   revealjs: 
@@ -12,7 +13,7 @@ knit: quarto render
 ## Slide 1
 
 ::: {.cell .code}
-```{.python}
+``` {.python}
 import matplotlib.pyplot as plt
 
 labels = ['G1', 'G2', 'G3', 'G4', 'G5']
@@ -34,10 +35,11 @@ ax.legend()
 plt.show()
 ```
 
-:::{.cell-output .display_data .image}
-![](matplotlib_files/figure-html/cell-2-output-1.png){width=584.5 height=423.5}
+::: {.output .display_data}
+![](matplotlib_files/figure-html/cell-2-output-1.png){width=585 height=424}
 :::
 :::
+
 
 
 

@@ -3,8 +3,8 @@ title: "plotly"
 knit: quarto render
 format: 
   html:
-    fig-width: 6
-    fig-height: 4
+    fig-width: 8
+    fig-height: 6
     keep-md: true
 jupyter:
   jupytext:
