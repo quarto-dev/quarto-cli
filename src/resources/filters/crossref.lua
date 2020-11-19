@@ -10,49 +10,60 @@ function Pandoc(doc)
 end
 
 
+-- TODO: track the current parent globally. how do we un-set
+-- the parent after we leave it's scope
 
+-- TODO: use the parent to assign subindexes / subfigures
 
 function processFigures(doc)
 
   -- table of figures we will return along with the doc
-  local figures = {}
+  local index = {
+    next = 1,
+    entries = {}
+  }
 
-  -- look for figures within divs and images
-  local walkBlock
-  local walkFigures = {
-    Div = walkBlock,
-    Image = function(el)
-      if hasFigureLabel(el) then
-        if #el.caption > 0 then
-          processFigure(el.attr.identifier, el.caption, figures)
-        end
-      end
-      return el
-    end
-  };
-
-  -- check blocks for being figure divs, then process children
-  walkBlock = function(el)
-    if isFigureDiv(el) then
-      el = processFigureDiv(el, figures)
-    end
-    return pandoc.walk_block(el, walkFigures)
-  end
+  -- current parent figure
+  local parent = nil
 
   -- walk all blocks in the document
   for i,el in pairs(doc.blocks) do
-    doc.blocks[i] = walkBlock(el)
+
+    -- process any root level figure divs
+    if isFigureDiv(el) then
+      parent, el = processFigureDiv(el, parent, index)
+    end
+
+    -- walk the document recursively
+    doc.blocks[i] = pandoc.walk_block(el, {
+      Div = function(el)
+        if isFigureDiv(el) then
+          parent, el = processFigureDiv(el, parent, index)
+        end
+        return el
+      end,
+      Image = function(el)
+        if hasFigureLabel(el) then
+          if #el.caption > 0 then
+            local label = el.attr.identifier
+            processFigure(label, el.caption, parent, index)
+          end
+        end
+        return el
+      end
+    }
+  )
   end
 
   -- return figure table and doc
-  return figures, doc
+  return index, doc
 end
 
 function isFigureDiv(el)
   return el.t == "Div" and hasFigureLabel(el)
 end
 
-function processFigureDiv(el, figures)
+function processFigureDiv(el, parent, index)
 
   -- ensure that there is a trailing paragraph to serve as caption
   local last = el.content[#el.content]
@@ -62,23 +73,27 @@ function processFigureDiv(el, figures)
   end
 
   -- process figure
-  processFigure(el.attr.identifier, last.content, figures)
+  local label = el.attr.identifier
+  processFigure(label, last.content, parent, index)
 
-  -- return the modified element
-  return el
+  -- return label and the modified element
+  return label, el
 
 end
 
-function processFigure(label, caption, figures)
-  -- increment index and insert prefix
-  local index = #figures + 1
-  table.insert(caption, 1, pandoc.Str("Figure " .. index .. ": "))
+function processFigure(label, caption, parent, index)
+
+  -- insert prefix
+  table.insert(caption, 1, pandoc.Str("Figure " .. index.next .. ": "))
 
   -- update the index
-  table.insert(figures, {
-    index = index,
-    label = label,
-  })
+  index.entries[label] = {
+    index = index.next
+  }
+  index.next = index.next + 1
+
+
+
 end
 
 function hasFigureLabel(el)
