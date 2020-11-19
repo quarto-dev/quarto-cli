@@ -1,8 +1,6 @@
 
 
 
-- Should remove jupyter: from keep-md in .ipynb output
-
 - Filter:
 
     - In order to 'edit' the preserved html, we will need it to be written to disk
