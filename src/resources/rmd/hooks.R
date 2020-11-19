@@ -1,4 +1,26 @@
 
+# prefer raw_attribute for html_preserve
+options(htmltools.preserve.raw = TRUE)
+
+# NOTE: this option will work after this PR is merged:
+# https://github.com/rstudio/htmltools/pull/191
+# In the meantime overwrite the method.....
+htmlPreserve <- function(x) {
+  x <- paste(x, collapse = "\n")
+  if (nzchar(x)) {
+    # use fenced code block if there are embedded newlines
+    if (grepl("\n", x, fixed = TRUE))
+      sprintf("\n```{=html}\n%s\n```\n", x)
+    # otherwise use inline span
+    else
+      sprintf("`%s`{=html}", x)
+  } else {
+    x
+  }
+}
+assignInNamespace("htmlPreserve", htmlPreserve, ns = "htmltools")
+
+
 # override wrapping behavior for knitr_asis output (including htmlwidgets)
 # to provide for enclosing output div and support for figure captions
 knitr_wrap <- knitr:::wrap
@@ -41,7 +63,6 @@ wrap_asis_output <- function(options, x) {
 }
 assignInNamespace("wrap", wrap, ns = "knitr")
 assignInNamespace("add_html_caption", add_html_caption, ns = "knitr")
-
 
 knitr_hooks <- function(format) {
 
