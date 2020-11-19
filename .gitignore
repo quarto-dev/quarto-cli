@@ -15,3 +15,4 @@ tests/run-tests.sh
 .jupyter_cache
 .julia-cache
 package/dist/**
+/package/out

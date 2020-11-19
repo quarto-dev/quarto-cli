@@ -1,0 +1,10 @@
+#!/bin/sh
+
+echo $2
+echo $PWD
+echo ln -fs $2/bin/quarto /usr/local/bin/quarto
+
+ln -fs $2/bin/quarto /usr/local/bin/quarto
+
+exit 0
+
