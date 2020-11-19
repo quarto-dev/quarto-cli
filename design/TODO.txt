@@ -1,14 +1,16 @@
 
 
 
-- Should remove jupyter: from keep-md 
+- Should remove jupyter: from keep-md in .ipynb output
 
 - Filter:
 
     - In order to 'edit' the preserved html, we will need it to be written to disk
-      somewhere and have it read and re-written by the filter
+      somewhere and have it read and re-written by the filter:
+      https://github.com/rxi/json.lua/blob/master/json.lua
 
     - Lua filter
+      
 
     - Many ways to generate HTML tables, we need to reach into HTML tables 
       for the <caption> to look for cross-referenceable tables and from
