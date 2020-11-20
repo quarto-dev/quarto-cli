@@ -2,7 +2,7 @@
 
 function Pandoc(doc)
 
-  figures, doc = processFigures(doc)
+  local figures = processFigures(doc)
 
   dump(figures)
 
@@ -10,40 +10,43 @@ function Pandoc(doc)
 end
 
 
--- TODO: track the current parent globally. how do we un-set
--- the parent after we leave it's scope
-
--- TODO: use the parent to assign subindexes / subfigures
-
+-- process all figures, fixing up figure captions as required and
+-- and returning an index of all the figures
 function processFigures(doc)
 
-  -- table of figures we will return along with the doc
+  -- figure index (also track figure/subfigure sequences)
   local index = {
-    next = 1,
+    nextOrder = 1,
+    nextSuborder = 1,
     entries = {}
   }
 
-  -- current parent figure
-  local parent = nil
+  -- look for figures in Div and Image elements. Note that both of the
+  -- Div and Image handlers verify that they aren't already in the
+  -- index before proceeding. This is because the pandoc.walk_block
+  -- function will traverse the entire tree, however in the case of
+  -- parent figure divs we may have already traversed the subtree
+  -- beneath the parent div (and there is no way to stop walk_block
+  -- from re-traversing)
+  local walkFigures = function(parent)
+    return {
 
-  -- walk all blocks in the document
-  for i,el in pairs(doc.blocks) do
-
-    -- process any root level figure divs
-    if isFigureDiv(el) then
-      parent, el = processFigureDiv(el, parent, index)
-    end
-
-    -- walk the document recursively
-    doc.blocks[i] = pandoc.walk_block(el, {
+      -- if it's a figure div we haven't seen before then process
+      -- it and walk it's children to find subfigures
       Div = function(el)
-        if isFigureDiv(el) then
-          parent, el = processFigureDiv(el, parent, index)
+        if isFigureDiv(el) and not indexHasElement(index, el) then
+          processFigureDiv(el, parent, index)
+          pandoc.walk_block(el, walkFigures(el))
+          -- update caption of parent
+
         end
         return el
       end,
+
+      -- if it's a figure image we haven't seen before then process it
+      -- if it carries a caption
       Image = function(el)
-        if hasFigureLabel(el) then
+        if hasFigureLabel(el) and not indexHasElement(index, el) then
           if #el.caption > 0 then
             local label = el.attr.identifier
             processFigure(label, el.caption, parent, index)
@@ -52,15 +55,28 @@ function processFigures(doc)
         return el
       end
     }
-  )
   end
 
-  -- return figure table and doc
-  return index, doc
-end
+  -- walk all blocks in the document
+  for i,el in pairs(doc.blocks) do
 
-function isFigureDiv(el)
-  return el.t == "Div" and hasFigureLabel(el)
+    -- process any root level figure divs (note parent for
+    -- potential subfigure discovery)
+    local parent = nil
+    if isFigureDiv(el) then
+      processFigureDiv(el, parent, index)
+      parent = el
+    end
+
+    -- walk the black
+    doc.blocks[i] = pandoc.walk_block(el, walkFigures(parent))
+
+    -- update caption of parent if we had subfigures
+
+  end
+
+  -- return figure table
+  return index.entries
 end
 
 function processFigureDiv(el, parent, index)
@@ -76,31 +92,57 @@ function processFigureDiv(el, parent, index)
   local label = el.attr.identifier
   processFigure(label, last.content, parent, index)
 
-  -- return label and the modified element
-  return label, el
-
 end
 
-function processFigure(label, caption, parent, index)
+function processFigure(label, captionEl, parentEl, index)
 
-  -- insert prefix
-  table.insert(caption, 1, pandoc.Str("Figure " .. index.next .. ": "))
+  -- get base caption
+  local caption = pandoc.utils.stringify(captionEl)
+
+  -- determine parent, order, and displayed caption
+  local parent = nil
+  local order
+  if (parentEl) then
+    parent = parentEl.attr.identifier
+    order = index.nextSuborder
+    index.nextSuborder = index.nextSuborder + 1
+    -- we have a parent, so clear the table then insert a letter (e.g. 'a')
+    clearTable(captionEl)
+    table.insert(captionEl, pandoc.Str(string.char(96 + order)))
+  else
+    order = index.nextOrder
+    index.nextOrder = index.nextOrder + 1
+    index.nextSuborder = 1
+    -- insert figure prefix
+    table.insert(captionEl, 1, pandoc.Str("Figure " .. order .. ": "))
+  end
 
   -- update the index
   index.entries[label] = {
-    index = index.next
+    parent = parent,
+    order = order,
+    caption = caption
   }
-  index.next = index.next + 1
 
+end
 
-
+function isFigureDiv(el)
+  return el.t == "Div" and hasFigureLabel(el)
 end
 
 function hasFigureLabel(el)
   return string.match(el.attr.identifier, "^fig:")
 end
 
+function indexHasElement(index, el)
+  return index.entries[el.attr.identifier] ~= nil
+end
 
+function clearTable(t)
+  for k,v in pairs(t) do
+    t[k] = nil
+  end
+end
 
 function dump(o)
   if type(o) == 'table' then
