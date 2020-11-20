@@ -1,5 +1,31 @@
 
 
+-- append values to table
+function tappend(t, values)
+  for i,value in pairs(values) do
+    table.insert(t, value)
+  end
+end
+
+-- prepend values to table
+function tprepend(t, values)
+  for i=1, #values do
+   table.insert(t, 1, values[#values + 1 - i])
+  end
+end
+
+-- does the table contain a value
+function tcontains(t,value)
+  if t and type(t)=="table" and value then
+    for _, v in ipairs (t) do
+      if v == value then
+        return true
+      end
+    end
+    return false
+  end
+  return false
+end
 
 -- clear a table
 function tclear(t)

@@ -1,18 +1,29 @@
 
--- imports
-function script_path()
-  local str = debug.getinfo(2, "S").source:sub(2)
-  return str:match("(.*/)")
+-- [import]
+function import(script)
+  local path = PANDOC_SCRIPT_FILE:match("(.*/)")
+  dofile(path .. script)
 end
-dofile(script_path() .. "figure.lua")
-dofile(script_path() .. "index.lua")
-dofile(script_path() .. "utils.lua")
+-- [/import]
 
--- crossref document
+-- global crossref state
+crossref = {}
+
+-- imports
+import("figure.lua")
+import("index.lua")
+import("format.lua")
+import("options.lua")
+import("utils.lua")
+
+
 function Pandoc(doc)
 
+  -- initialize submodules
+  indexInit()
+  optionsInit(doc.meta)
 
-  local figures = processFigures(doc)
+  processFigures(doc)
 
   return doc
 end
