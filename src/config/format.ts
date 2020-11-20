@@ -28,6 +28,7 @@ import {
   kIncludeInHeader,
   kKeepHidden,
   kKeepYaml,
+  kMarkdownHeadings,
   kOutputFile,
   kPdfEngine,
   kPdfEngineOpt,
@@ -95,6 +96,7 @@ export interface FormatPandoc {
   [kSelfContained]?: boolean;
   variables?: { [key: string]: unknown };
   [kAtxHeaders]?: boolean;
+  [kMarkdownHeadings]?: boolean;
   [kIncludeBeforeBody]?: string[];
   [kIncludeAfterBody]?: string[];
   [kIncludeInHeader]?: string[];
@@ -336,13 +338,7 @@ function htmlFormat(figwidth = 7, figheight = 5): Format {
 }
 
 function markdownFormat(): Format {
-  return format("md", plaintextFormat("md"), {
-    pandoc: {
-      // NOTE: this will become the default in the next
-      // version of pandoc, remove this flag after that
-      ["atx-headers"]: true,
-    },
-  });
+  return format("md", plaintextFormat("md"), {});
 }
 
 function powerpointFormat(): Format {
