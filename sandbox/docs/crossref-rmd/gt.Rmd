@@ -3,10 +3,32 @@ title: "GT SUmmary"
 output: 
   html_document:
     keep_md: true
+format:
+  html:
+    keep-md: true
+knit: quarto render
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+
+```{r}
+library(htmltools)
+div(class = "mydiv", "This is the div")
+```
+
+
+## Modelsummary
+
+```{r test, echo=FALSE}
+options(modelsummary_html = 'kableExtra')
+library(modelsummary)
+library(kableExtra)
+mod <- lm(hp ~ mpg, mtcars)
+msummary(mod, title = 'This title describes the content of this table.') %>%
+    kable_styling()
 ```
 
 ## GT Summary

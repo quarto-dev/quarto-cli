@@ -1,0 +1,48 @@
+---
+title: "Figure"
+format:
+  html: 
+    keep-md: true
+    # crossref: false
+    # filters:
+    #   - pandoc-crossref
+knit: quarto render
+---
+
+::: {.foobar}
+
+::: {#fig:markdown}
+
+
+My Caption, My Caption
+:::
+
+:::
+
+
+
+
+::: {.myparent}
+::: {.myclass}
+![Caption](https://www.lua.org/pil/capa.jpg){#fig:lua}
+:::
+:::
+
+
+
+```{r fig:parent, fig.cap="Everything", fig.subcap=c("Cars", "Pressure")}
+plot(cars)
+plot(pressure)
+```
+
+
+```{r fig:pressure, fig.cap="Show the pressure"}
+plot(pressure)
+```
+
+
+See @fig:cars again.
+
+See @fig:pressure.
+
+

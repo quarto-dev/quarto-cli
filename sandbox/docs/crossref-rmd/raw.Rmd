@@ -1,0 +1,17 @@
+---
+title: "GT SUmmary"
+output: 
+  html_document:
+    keep_md: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+
+```{r}
+library(htmltools)
+div(class = "mydiv", "This is the div")
+```
+

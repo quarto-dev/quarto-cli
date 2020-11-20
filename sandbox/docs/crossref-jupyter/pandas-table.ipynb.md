@@ -3,7 +3,6 @@ title: "Pandas"
 format:
   html:
     keep-md: true
-knit: quarto render
 ---
 
 
