@@ -146,7 +146,7 @@ async function detectDefaults(
       "pandoc",
       file,
       "--to",
-      resourcePath("filters/html-defaults.lua"),
+      resourcePath("lua/html-defaults.lua"),
     ];
     const result = await execProcess({ cmd, stdout: "piped" });
     if (result.success) {
@@ -201,7 +201,7 @@ function resolveFilters(filters: string[] | undefined, options: PandocOptions) {
 
   // add crossref filter if necessary (unshift will put it before citeproc)
   if (options.format.metadata["crossref"] !== false) {
-    filters.unshift(resourcePath("filters/crossref.lua"));
+    filters.unshift(resourcePath("lua/crossref/crossref.lua"));
   }
 
   if (filters.length > 0) {
