@@ -1,9 +1,22 @@
+
+
+# Dependency versions
 export PANDOC=2.11.0.4
-export PANDOCCROSSREF=v0.3.8.3
 export DENO=v1.4.6
 export TINYTEX=v2020.10
 
-export IDENTIFIER=org.rstudio.quarto
+# Version
 export VERSION=0.1
 
+# Global deno flags
 export DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env"
+
+# Configuration
+export WORKING_DIR=dist
+export RESOURCES_DIR=share
+export BIN_DIR=bin
+
+# Packaging
+export IDENTIFIER=org.rstudio.quarto
+export PKGNAME=quarto-${VERSION}.pkg
+export OUT_DIR=out
