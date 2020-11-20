@@ -22,10 +22,11 @@ function processFigures(doc)
       -- it and walk it's children to find subfigures
       Div = function(el)
         if isFigureDiv(el) and not indexHasElement(index, el) then
-          processFigureDiv(el, parent, index)
-          el = pandoc.walk_block(el, walkFigures(el))
-          -- update caption of parent if we had subfigures
-          appendSubfigureCaptions(el, index)
+          if processFigureDiv(el, parent, index) then
+            el = pandoc.walk_block(el, walkFigures(el))
+            -- update caption of parent if we had subfigures
+            appendSubfigureCaptions(el, index)
+          end
         end
         return el
       end,
@@ -51,8 +52,9 @@ function processFigures(doc)
     -- potential subfigure discovery)
     local parent = nil
     if isFigureDiv(el) then
-      processFigureDiv(el, parent, index)
-      parent = el
+      if processFigureDiv(el, parent, index) then
+        parent = el
+      end
     end
 
     -- walk the black
@@ -74,15 +76,14 @@ function processFigureDiv(el, parent, index)
 
   -- ensure that there is a trailing paragraph to serve as caption
   local last = el.content[#el.content]
-  if not last or last.t ~= "Para" then
-    table.insert(last.content, pandoc.Para{pandoc.Str("(Untitled)")})
-    last = el.content[#el.content]
+  if last and last.t == "Para" and #el.content > 1 then
+    -- process figure
+    local label = el.attr.identifier
+    processFigure(label, last.content, parent, index)
+    return true
+  else
+    return false
   end
-
-  -- process figure
-  local label = el.attr.identifier
-  processFigure(label, last.content, parent, index)
-
 end
 
 -- process a figure, re-writing it's caption as necessary and
