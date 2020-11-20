@@ -1,29 +1,35 @@
 
 
 
-- Consider purging sandbox history from repo and creating new 
+- Consider purging sandbox history from repo and creating new
   quarto-sandbox repo
   https://github.com/newren/git-filter-repo/
 
 - Filter:
 
-    - In order to 'edit' the preserved html, we will need it to be written to disk
-      somewhere and have it read and re-written by the filter:
-      https://github.com/rxi/json.lua/blob/master/json.lua
+    - get colon out of file path and investigate title in Image token
+        src: figure_files/figure-html/fig:cars-1.png
+        title: fig:
+
+
+    - kable, kableExtra, hutable, flextable
+    - paged_table
+    - gt
+
 
     - Lua filter
-      
 
-    - Many ways to generate HTML tables, we need to reach into HTML tables 
+
+    - Many ways to generate HTML tables, we need to reach into HTML tables
       for the <caption> to look for cross-referenceable tables and from
-      that create a reference 
+      that create a reference
     - Tables from arbitrary divs (caption at bottom of div)
 
     - Comparable table handling for LaTeX output
       For LaTeX tables, it appears as if label goes inside \caption
       \caption{\label{tab:test}This title describes the content of this table.}
       So we could look for the #tbl:caption at the end and substitute the label
-      Some R packages e.g. modelsummary already do this automatically so would need to 
+      Some R packages e.g. modelsummary already do this automatically so would need to
       substitute: \caption{\label{tab:mytable}This title describes the content of this table. {#tbl:content}}
 
       \caption{\label{tab:mytable} This title describes the content of this table.}
@@ -75,7 +81,7 @@ will be able to use RStudio chunk output and/or notebook for compute?
 or perhaps require html_notebook?
 computations could even be at a URL!!!
 
-  {{= print("x") }} 
+  {{= print("x") }}
 
   {{< figure projections.xlsx#chunk-label caption="asfdasdf" label="myplot" >}}
 
