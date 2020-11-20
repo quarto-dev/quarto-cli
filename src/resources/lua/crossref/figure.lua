@@ -95,7 +95,7 @@ function processFigure(el, captionEl, parentEl)
     -- we have a parent, so clear the table then insert a letter (e.g. 'a')
     tclear(captionEl)
     if subfigCaptions() and not tcontains(el.attr.classes, "nocaption") then
-      local letterStr = pandoc.Str(string.char(96 + order))
+      local letterStr = pandoc.Str(subfigNumber(order))
       table.insert(captionEl, letterStr)
     end
   else
@@ -130,7 +130,8 @@ function appendSubfigureCaptions(div)
     else
       tappend(captionEl, ccsDelim())
     end
-    table.insert(captionEl, pandoc.Str(string.char(96 + figure.order)))
+
+    table.insert(captionEl, pandoc.Str(subfigNumber(figure.order)))
     tappend(captionEl, ccsLabelSep())
     table.insert(captionEl, pandoc.Str(figure.caption))
   end
