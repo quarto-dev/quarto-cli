@@ -86,6 +86,7 @@ export const kReader = "reader";
 export const kWriter = "writer";
 export const kOutputFile = "output-file";
 export const kAtxHeaders = "atx-headers";
+export const kMarkdownHeadings = "markdown-headings";
 export const kTemplate = "template";
 export const kStandalone = "standalone";
 export const kSelfContained = "self-contained";
@@ -176,6 +177,7 @@ export const kPandocDefaultsKeys = [
   "reference-links",
   "reference-location",
   kAtxHeaders,
+  kMarkdownHeadings,
   "track-changes",
   "html-q-tags",
   "css",
