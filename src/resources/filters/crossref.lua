@@ -4,8 +4,6 @@ function Pandoc(doc)
 
   local figures = processFigures(doc)
 
-  dump(figures)
-
   return doc
 end
 
@@ -28,7 +26,8 @@ function processFigures(doc)
   -- parent figure divs we may have already traversed the subtree
   -- beneath the parent div (and there is no way to stop walk_block
   -- from re-traversing)
-  local walkFigures = function(parent)
+  local walkFigures
+  walkFigures = function(parent)
     return {
 
       -- if it's a figure div we haven't seen before then process
@@ -36,9 +35,9 @@ function processFigures(doc)
       Div = function(el)
         if isFigureDiv(el) and not indexHasElement(index, el) then
           processFigureDiv(el, parent, index)
-          pandoc.walk_block(el, walkFigures(el))
-          -- update caption of parent
-
+          el = pandoc.walk_block(el, walkFigures(el))
+          -- update caption of parent if we had subfigures
+          appendSubfigureCaptions(el, index)
         end
         return el
       end,
@@ -72,13 +71,17 @@ function processFigures(doc)
     doc.blocks[i] = pandoc.walk_block(el, walkFigures(parent))
 
     -- update caption of parent if we had subfigures
-
+    if parent then
+       appendSubfigureCaptions(doc.blocks[i], index)
+    end
   end
 
   -- return figure table
   return index.entries
 end
 
+-- process a div labeled as a figure (ensures that it has a caption before
+-- delegating to processFigure)
 function processFigureDiv(el, parent, index)
 
   -- ensure that there is a trailing paragraph to serve as caption
@@ -94,8 +97,9 @@ function processFigureDiv(el, parent, index)
 
 end
 
+-- process a figure, re-writing it's caption as necessary and
+-- adding it to the global index of figures
 function processFigure(label, captionEl, parentEl, index)
-
   -- get base caption
   local caption = pandoc.utils.stringify(captionEl)
 
@@ -108,7 +112,8 @@ function processFigure(label, captionEl, parentEl, index)
     index.nextSuborder = index.nextSuborder + 1
     -- we have a parent, so clear the table then insert a letter (e.g. 'a')
     clearTable(captionEl)
-    table.insert(captionEl, pandoc.Str(string.char(96 + order)))
+    local letterStr = pandoc.Str(string.char(96 + order))
+    table.insert(captionEl, letterStr)
   else
     order = index.nextOrder
     index.nextOrder = index.nextOrder + 1
@@ -123,27 +128,82 @@ function processFigure(label, captionEl, parentEl, index)
     order = order,
     caption = caption
   }
-
 end
 
+-- append any avavilable subfigure captions to the div
+function appendSubfigureCaptions(div, index)
+
+  -- look for subfigures
+  local subfigures = {}
+  for label,figure in pairs(index.entries) do
+    if (div.attr.identifier == figure.parent) then
+      subfigures[label] = figure
+    end
+  end
+
+  -- get caption element
+  local captionEl = div.content[#div.content].content
+
+  -- append to caption in order of insertion
+  for label,figure in spairs(subfigures, function(t, a, b) return t[a].order < t[b].order end) do
+    if figure.order == 1 then
+      table.insert(captionEl, pandoc.Str(". "))
+    else
+      table.insert(captionEl, pandoc.Str(", "))
+    end
+    table.insert(captionEl, pandoc.Str(string.char(96 + figure.order)))
+    table.insert(captionEl, pandoc.Str(" — "))
+    table.insert(captionEl, pandoc.Str(figure.caption))
+  end
+end
+
+-- is this a Div containing a figure
 function isFigureDiv(el)
   return el.t == "Div" and hasFigureLabel(el)
 end
 
+-- does this element have a figure label?
 function hasFigureLabel(el)
   return string.match(el.attr.identifier, "^fig:")
 end
 
+-- does our index already contain this element?
 function indexHasElement(index, el)
   return index.entries[el.attr.identifier] ~= nil
 end
 
+-- clear a table
 function clearTable(t)
   for k,v in pairs(t) do
     t[k] = nil
   end
 end
 
+-- sorted pairs. order function takes (t, a,)
+function spairs(t, order)
+  -- collect the keys
+  local keys = {}
+  for k in pairs(t) do keys[#keys+1] = k end
+
+  -- if order function given, sort by it by passing the table and keys a, b,
+  -- otherwise just sort the keys
+  if order then
+      table.sort(keys, function(a,b) return order(t, a, b) end)
+  else
+      table.sort(keys)
+  end
+
+  -- return the iterator function
+  local i = 0
+  return function()
+      i = i + 1
+      if keys[i] then
+          return keys[i], t[keys[i]]
+      end
+  end
+end
+
+-- dump an object to stdout
 function dump(o)
   if type(o) == 'table' then
     tdump(o)
@@ -152,6 +212,7 @@ function dump(o)
   end
 end
 
+-- improved formatting for dumping tables
 function tdump (tbl, indent)
   if not indent then indent = 0 end
   for k, v in pairs(tbl) do
