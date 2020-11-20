@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-#  get the versions
+#  common data
 source configure
 
 pushd package
@@ -22,7 +22,6 @@ if [ ! -d "$BIN_DIR" ]; then
 	mkdir -p "$BIN_DIR"
 fi
 pushd $BIN_DIR
-
 
 # Download Dependencies
 DENOURL=https://github.com/denoland/deno/releases/download/
@@ -59,5 +58,3 @@ cp ../../COPYING.md .
 ln -fs $(realpath $BIN_DIR/quarto) /usr/local/bin/quarto
 
 popd
-
-

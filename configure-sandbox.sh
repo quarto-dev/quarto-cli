@@ -5,7 +5,6 @@
 #   - Installation of R
 #   - Installation of Conda
 
-
 # install tinytext
 # curl -sL "https://yihui.org/tinytex/install-bin-unix.sh" | sh
 
