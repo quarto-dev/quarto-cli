@@ -73,46 +73,16 @@ function numberOption(type, num, default)
   end
 end
 
--- from: https://gist.github.com/efrederickson/4080372
-function toRoman(num, lower)
 
-  local map = { 
-      I = 1,
-      V = 5,
-      X = 10,
-      L = 50,
-      C = 100, 
-      D = 500, 
-      M = 1000,
-  }
-  local numbers = { 1, 5, 10, 50, 100, 500, 1000 }
-  local chars = { "I", "V", "X", "L", "C", "D", "M" }
-  if (lower) then
-    chars = { "i", "v", "x", "l", "c", "d", "m" }
-  end
-  
-  if num == math.huge then 
-    error"Number too large to convert" 
-  end
-  
-  num = math.floor(num)
-  if num <= 0 then return num end
-  
-  local ret = ""
-  for i = #numbers, 1, -1 do
-    local number = numbers[i]
-    while num - number >= 0 and num > 0 do
-      ret = ret .. chars[i]
-      num = num - number
+function toRoman(num, lower)
+  local roman = pandoc.utils.to_roman_numeral(num)
+  if lower then
+    lower = ''
+    for i = 1, #roman do
+      lower = lower .. string.char(utf8.codepoint(string.sub(roman,i,i)) + 32)
     end
-    for j = 1, i - 1 do
-      local number2 = numbers[j]
-      if num - (number - number2) >= 0 and num < num and num > 0 and number - number2 ~= number2 then
-          ret = ret .. chars[j] .. chars[i]
-          num = num - (number - number2)
-          break
-      end
-    end
+    return lower
+  else
+    return roman
   end
-return ret
 end
