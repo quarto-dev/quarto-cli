@@ -1,11 +1,43 @@
 
 
 
+
+
+
 - Consider purging sandbox history from repo and creating new
   quarto-sandbox repo
   https://github.com/newren/git-filter-repo/
 
+
+- Explicit support for hugo as a format. This currently works for Python:
+---
+title: "My Python Post"
+date: 2020-05-21T15:28:46-04:00
+format:
+  gfm: 
+    keep-yaml: true
+jupyter: true
+output-file: index.md
+---
+
+need this in config.toml:
+[markup.goldmark.renderer]
+unsafe=true
+
+keep-yaml is necessary to have unsafe=true actually work (need yaml at the top rather than a <div>)
+
+output-file: index.md allows it to work a page bundle and eliminates conflict with .md extension
+
+may want "goldmark" as a recognized format (or perhaps hugo)
+
+note that html/js currently gets trumped by text/markdown outputs
+from widgets. need a way to force html
+
+
 - Filter:
+
+    - Dont't use stringify
+
 
     - get colon out of file path and investigate title in Image token
         src: figure_files/figure-html/fig:cars-1.png
