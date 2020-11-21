@@ -3,11 +3,10 @@ title: "MPL slides"
 format:
   html: 
     keep-md: true
-jupyter: true
 ---
 
-::: {.cell .code}
-```{.python}
+::: {#fig:scores .cell .code}
+``` {.python}
 import matplotlib.pyplot as plt
 
 labels = ['G1', 'G2', 'G3', 'G4', 'G5']
@@ -43,18 +42,18 @@ plt.show()
 
 ```
 
-:::{.output .display_data}
-![My figure](matplotlib-plot_files/figure-html/cell-2-output-1.png){width=585 height=424}
+::: {.output .display_data}
+![My figure](matplotlib-plot_files/figure-html/fig-scores-output-1.png){#fig:scores-1 width=585 height=424}
 :::
 
-:::{.output .stream .stdout}
+::: {.output .stream .stdout}
 ```
 Some console output
 ```
 :::
 
-:::{.output .display_data}
-![My other figure](matplotlib-plot_files/figure-html/cell-2-output-3.png){width=585 height=424}
+::: {.output .display_data}
+![My other figure](matplotlib-plot_files/figure-html/fig-scores-output-3.png){#fig:scores-2 width=585 height=424}
 :::
 :::
 

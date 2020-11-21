@@ -7,7 +7,8 @@ format:
     # filters:
     #   - pandoc-crossref
 crossref:
-  fig-labels: roman
+  title-delim: ":"
+  subfig-captions: false
 knit: quarto render
 ---
 
@@ -40,14 +41,14 @@ plot(pressure)
 ```
 
 ::: {.output .display_data}
-![_Cars_](figure_files/figure-html/fig:parent-1.png){#fig:parent-1 width=672}
+![Cars](figure_files/figure-html/fig:parent-1.png){#fig:parent-1 .nocaption width=672}
 :::
 
 ::: {.output .display_data}
 ![Pressure](figure_files/figure-html/fig:parent-2.png){#fig:parent-2 width=672}
 :::
 
-**Everything**
+Everything
 :::
 
 

@@ -1,13 +1,11 @@
 ---
 title: "Woozy Foobar"
-# knit: quarto render
-quarto:
+format:
   html:
     toc: true
     number-sections: true
     keep-md: true
 bibliography: references.bib
-fontsize: 30px
 ---
 
 [@guo2020]
@@ -16,13 +14,13 @@ fontsize: 30px
 str(getwd())
 ```
 
-# Plot 1: Target
+::: {#foobar}
+-   Here we go
 
--   bullet 1
+-   Again
 
--   bullet 2
-
--   bullet 3
+-   Again
+:::
 
 # Plot 2
 

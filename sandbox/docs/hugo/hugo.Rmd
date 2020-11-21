@@ -1,0 +1,11 @@
+---
+title: "Woozy"
+format: 
+  pdf: default
+---
+
+```{r}
+cat("1")
+```
+
+

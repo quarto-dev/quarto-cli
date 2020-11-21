@@ -6,13 +6,15 @@ format:
     # crossref: false
     # filters:
     #   - pandoc-crossref
+crossref:
+  fig-labels: roman
 knit: quarto render
 ---
 
 ::: {.foobar}
 
 ::: {#fig:markdown}
-
+Here is my figure
 
 My Caption, My Caption
 :::
@@ -30,7 +32,7 @@ My Caption, My Caption
 
 
 
-```{r fig:parent, fig.cap="Everything", fig.subcap=c("Cars", "Pressure")}
+```{r fig:parent, fig.cap="**Everything**", fig.subcap=c("_Cars_", "Pressure")}
 plot(cars)
 plot(pressure)
 ```
