@@ -4,7 +4,7 @@
 function titlePrefix(type, default, num)
   local prefix = option(type .. "-title", stringToInlines(default))
   table.insert(prefix, pandoc.Space())
-  table.insert(prefix, pandoc.Str(numberOption(type, num)))
+  tappend(prefix, numberOption(type, num))
   tappend(prefix, titleDelim())
   table.insert(prefix, pandoc.Space())
   return prefix
@@ -46,11 +46,12 @@ function numberOption(type, num, default)
   end
 
   -- determine the style
-  local numberStyle = pandoc.utils.stringify(option(opt, default))
+  local styleRaw = option(opt, default)
+  local numberStyle = pandoc.utils.stringify(styleRaw)
   
   -- process the style
   if (numberStyle == "arabic") then 
-    return tostring(num)    
+    return {pandoc.Str(tostring(num))}
   elseif (string.match(numberStyle, "^alpha ")) then
     -- permits the user to include the character that they'd like
     -- to start the numbering with (e.g. alpha a vs. alpha A)
@@ -59,7 +60,7 @@ function numberOption(type, num, default)
       startIndexChar = "a"
     end
     local startIndex = utf8.codepoint(startIndexChar)
-    return string.char(startIndex + num - 1)
+    return {pandoc.Str(string.char(startIndex + num - 1))}
   elseif (string.match(numberStyle, "^roman")) then
     -- permits the user to express `roman` or `roman lower` to
     -- use lower case roman numerals
@@ -67,9 +68,15 @@ function numberOption(type, num, default)
     if (string.sub(numberStyle, -#"lower") == "lower") then
       lower = true
     end
-    return toRoman(num, lower)    
+    return {pandoc.Str(toRoman(num, lower))}
   else
-    return tostring(num)    
+    -- otherwise treat the value as a list of values to use 
+    -- to display the numbers
+    local entryCount = #styleRaw
+    
+    -- select an index based upon the num, wrapping it around
+    local entryIndex = (num - 1) % entryCount + 1 
+    return styleRaw[entryIndex]
   end
 end
 
