@@ -46,7 +46,8 @@ function numberOption(type, num, default)
   end
 
   -- determine the style
-  local numberStyle = pandoc.utils.stringify(option(opt, default))
+  local styleRaw = option(opt, default)
+  local numberStyle = pandoc.utils.stringify(styleRaw)
   
   -- process the style
   if (numberStyle == "arabic") then 
@@ -69,7 +70,12 @@ function numberOption(type, num, default)
     end
     return toRoman(num, lower)    
   else
-    return tostring(num)    
+    -- otherwise treat the value as a list of values to use 
+    -- to display the numbers
+    local entryCount = #styleRaw
+    -- select an index based upon the num, wrapping it around
+    local entryIndex = (num - 1) % entryCount + 1 
+    return pandoc.utils.stringify(styleRaw[entryIndex])
   end
 end
 
