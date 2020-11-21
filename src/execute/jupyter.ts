@@ -45,6 +45,7 @@ import {
   kFigFormat,
   kIncludeAfterBody,
   kIncludeInHeader,
+  kPreferHtml,
 } from "../config/constants.ts";
 import {
   isHtmlFormat,
@@ -202,7 +203,9 @@ export const jupyterEngine: ExecutionEngine = {
           language: nb.metadata.kernelspec.language,
           assets,
           execution: options.format.execution,
-          toHtml: isHtmlFormat(options.format.pandoc),
+          toHtml: isHtmlFormat(options.format.pandoc) ||
+            options.format.render[kPreferHtml] &&
+              isMarkdownFormat(options.format.pandoc),
           toLatex: isLatexFormat(options.format.pandoc),
           toMarkdown: isMarkdownFormat(options.format.pandoc),
           figFormat: options.format.execution[kFigFormat],

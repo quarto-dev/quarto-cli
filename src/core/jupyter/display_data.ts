@@ -56,7 +56,22 @@ export function displayDataMimeType(
     kImageJpeg,
   ];
   if (options.toHtml) {
-    displayPriority.push(
+    const htmlFormats = [
+      kApplicationJupyterWidgetState,
+      kApplicationJupyterWidgetView,
+      kApplicationJavascript,
+      kTextHtml,
+    ];
+    // if we are targeting markdown w/ html then prioritize the html formats
+    // (this is b/c jupyter widgets also provide a text/markdown representation
+    // that we don't want to have "win" over the widget)
+    if (options.toMarkdown) {
+      displayPriority.unshift(...htmlFormats);
+      // otherwise put them after markdown
+    } else {
+      displayPriority.push(...htmlFormats);
+    }
+    displayPriority.unshift(
       kApplicationJupyterWidgetState,
       kApplicationJupyterWidgetView,
       kApplicationJavascript,
