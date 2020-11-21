@@ -56,9 +56,7 @@ import { restorePreservedHtml } from "../core/jupyter/preserve.ts";
 const kNotebookExtensions = [
   ".ipynb",
 ];
-const kJmdExtension = ".jmd";
 const kJupytextMdExtensions = [
-  kJmdExtension,
   ".md",
   ".markdown",
 ];
@@ -78,24 +76,13 @@ export const jupyterEngine: ExecutionEngine = {
 
   handle: async (file: string, quiet: boolean) => {
     const notebookTarget = async () => {
+      // if it's an .Rmd or .md file, then read the YAML to see if has jupytext,
+      // if it does, check for a paired notebook and return it
       const ext = extname(file);
-      // check for markdown input file
-      if (kJupytextMdExtensions.includes(ext.toLowerCase())) {
-        let target: string | undefined = undefined;
-        let transient: string | undefined = undefined;
-        if (kJmdExtension === ext.toLowerCase()) {
-          // copy to .md (so jupytext doesn't complain), then note that this
-          // file is transient so it's removed after the sync
-          const [jmdDir, jmdStem] = dirAndStem(file);
-          target = join(jmdDir, jmdStem + ".md");
-          transient = target;
-          await Deno.copyFile(file, target);
-        } else if (isJupytextMd(file)) {
-          target = file;
-        }
-        if (target) {
-          const paired = await pairedPaths(target);
-          return { sync: true, paired: [target, ...paired], transient };
+      if (kJupytextMdExtensions.includes(ext)) {
+        if (isJupytextMd(file)) {
+          const paired = await pairedPaths(file);
+          return { sync: true, paired: [file, ...paired] };
         }
       } // if it's a code file, then check for a paired notebook and return it
       else if (kCodeExtensions.includes(ext)) {
@@ -113,7 +100,7 @@ export const jupyterEngine: ExecutionEngine = {
     if (target) {
       let notebook = pairedPath(target.paired, isNotebook);
       // track whether the notebook is transient or a permanent artifact
-      let nbTransient = false;
+      let transient = false;
       // sync if there are paired represenations in play (wouldn't sync if e.g.
       // this was just a plain .ipynb file w/ no jupytext peers)
       if (target.sync) {
@@ -131,12 +118,12 @@ export const jupyterEngine: ExecutionEngine = {
 
         // perform the sync if there are other targets
         if (target.paired.length > 1) {
-          await jupytextSync(target.paired[0], target.paired, true);
+          await jupytextSync(file, target.paired, true);
         }
 
         // if there is no paired notebook then create a transient one
         if (!notebook) {
-          nbTransient = true;
+          transient = true;
           // if there is no kernelspec in the source, then set to the
           // curret default python kernel
           const filtered = filteredMetadata(target.paired);
@@ -144,17 +131,12 @@ export const jupyterEngine: ExecutionEngine = {
           const [fileDir, fileStem] = dirAndStem(file);
           notebook = join(fileDir, fileStem + ".ipynb");
           await jupytextTo(
-            target.paired[0],
+            file,
             "ipynb",
             setKernel ? "-" : undefined,
             notebook,
             true,
           );
-        }
-
-        // remove the transient source file if there is one
-        if (target.transient) {
-          await Deno.remove(target.transient);
         }
       }
 
@@ -163,7 +145,7 @@ export const jupyterEngine: ExecutionEngine = {
       }
 
       if (notebook) {
-        return { input: notebook, data: nbTransient };
+        return { input: notebook, data: transient };
       } else {
         return undefined;
       }
