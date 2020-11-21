@@ -33,6 +33,7 @@ import {
   kPdfEngine,
   kPdfEngineOpt,
   kPdfEngineOpts,
+  kPreferHtml,
   kSelfContained,
   kShowCode,
   kShowOutput,
@@ -68,6 +69,7 @@ export interface FormatRender {
   [kKeepTex]?: boolean;
   [kKeepYaml]?: boolean;
   [kKeepSource]?: boolean;
+  [kPreferHtml]?: boolean;
   [kVariant]?: string;
   [kOutputExt]?: string;
 }
@@ -240,6 +242,12 @@ export function defaultWriterFormat(to: string): Format {
       writerFormat = ipynbFormat();
       break;
 
+    // syntesized formats (TODO: move these to quarto.land)
+
+    case "hugo":
+      writerFormat = hugoFormat();
+      break;
+
     default:
       // textile
       // texinfo
@@ -263,7 +271,9 @@ export function defaultWriterFormat(to: string): Format {
 
   // set the writer
   writerFormat.pandoc = writerFormat.pandoc || {};
-  writerFormat.pandoc.to = to;
+  if (!writerFormat.pandoc.to) {
+    writerFormat.pandoc.to = to;
+  }
 
   // return the format
   return writerFormat;
@@ -333,6 +343,20 @@ function htmlFormat(figwidth = 7, figheight = 5): Format {
     },
     pandoc: {
       [kStandalone]: true,
+    },
+  });
+}
+
+function hugoFormat(): Format {
+  return format("md", markdownFormat(), {
+    render: {
+      [kKeepYaml]: true,
+      [kPreferHtml]: true,
+      [kVariant]: "+definition_lists+footnotes+smart",
+    },
+    pandoc: {
+      to: "gfm",
+      [kOutputFile]: "index.md",
     },
   });
 }
@@ -426,6 +450,7 @@ function defaultFormat(): Format {
       [kKeepMd]: false,
       [kKeepTex]: false,
       [kKeepYaml]: false,
+      [kPreferHtml]: false,
       [kOutputExt]: "html",
     },
     pandoc: {

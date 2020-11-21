@@ -355,7 +355,7 @@ function mdFromCodeCell(
   const { cellCaption, outputCaptions } = resolveCaptions(cell);
 
   // cell_type classes
-  divMd.push(`.cell .code `);
+  divMd.push(`.cell .cell-code `);
 
   // add hidden if requested
   if (hideCell(cell)) {

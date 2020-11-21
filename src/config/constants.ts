@@ -69,6 +69,7 @@ export const kKeepYaml = "keep-yaml";
 export const kKeepSource = "keep-source";
 export const kVariant = "variant";
 export const kOutputExt = "output-ext";
+export const kPreferHtml = "prefer-html";
 
 export const kRenderDefaultsKeys = [
   kKeepMd,
@@ -77,6 +78,7 @@ export const kRenderDefaultsKeys = [
   kKeepSource,
   kVariant,
   kOutputExt,
+  kPreferHtml,
 ];
 
 // 'defaults' fields

@@ -132,7 +132,7 @@ knitr_hooks <- function(format) {
     }
 
     # return cell
-    paste0("::: {", label ,".cell .code}\n", x, "\n", fig.cap ,":::")
+    paste0("::: {", label ,".cell .cell-code}\n", x, "\n", fig.cap ,":::")
   })
   knit_hooks$source <- delegating_hook("source", function(x, options) {
     if (isTRUE(options[["source.hidden"]])) {
