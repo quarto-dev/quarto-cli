@@ -1,28 +1,12 @@
 
 
 
-
-- .code class causes hugo to render everything as fixed width. 
-  need more specific classes I think
-
 - Consider purging sandbox history from repo and creating new
   quarto-sandbox repo
   https://github.com/newren/git-filter-repo/
 
-
-
-
-- Explicit support for hugo as a format. This currently works for Python:
----
-title: "My Python Post"
-date: 2020-05-21T15:28:46-04:00
-format:
-  hugo: default
-jupyter: true
----
-need this in config.toml:
-[markup.goldmark.renderer]
-unsafe=true
+- foo.quarto.md gets recognized/rendered by hugo, 
+  see if we can prevent this?
 
 - Find a way to enable citations when in hugo land
 
