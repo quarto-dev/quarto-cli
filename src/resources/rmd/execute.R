@@ -28,10 +28,23 @@ execute <- function(input, format, output, tempDir, cwd, params) {
   # fixup options for cache
   knitr <- knitr_options_with_cache(input, format, knitr)
 
+  # This truly awful hack ensures that rmarkdown doesn't tell us we're
+  # producing HTML widgets when targeting a non-html format (doing this
+  # is triggered by the "prefer-html" options)
+  post_knit <- NULL
+  if (format$render$`prefer-html`) {
+    post_knit <- function(...) {
+      render_env <- parent.env(parent.frame())
+      render_env$front_matter$always_allow_html <- TRUE
+      NULL
+    }
+  }
+
   # synthesize rmarkdown output format
   output_format <- rmarkdown::output_format(
     knitr = knitr,
     pandoc = pandoc_options(format),
+    post_knit = post_knit,
     keep_md = FALSE,
     clean_supporting = TRUE
   )
@@ -146,15 +159,17 @@ knitr_options <- function(format) {
     fig.height = format$execution$`fig-height`,
     dev = format$execution$`fig-format`,
     dpi = format$execution$`fig-dpi`,
-    eval = format$execution$`execute`,
+    eval = format$execution[["execute"]],
     error = format$execution$`allow-errors`,
     echo = isTRUE(format$execution$`show-code`),
     warning = isTRUE(format$execution$`show-warnings`),
     message = isTRUE(format$execution$`show-warnings`),
     include = isTRUE(format$execution$`show-output`),
+    screenshot.force = !isTRUE(format$render$`prefer-html`),
     # hard coded (overideable in setup chunk but not format)
     comment = NA
   )
+
 
   # add fig.retina if requested
   if (opts_chunk$dev == "retina"){
