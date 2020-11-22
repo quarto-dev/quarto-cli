@@ -48,6 +48,8 @@ import {
   kPreferHtml,
 } from "../config/constants.ts";
 import {
+  Format,
+  FormatPandoc,
   isHtmlFormat,
   isLatexFormat,
   isMarkdownFormat,
@@ -203,9 +205,7 @@ export const jupyterEngine: ExecutionEngine = {
           language: nb.metadata.kernelspec.language,
           assets,
           execution: options.format.execution,
-          toHtml: isHtmlFormat(options.format.pandoc) ||
-            options.format.render[kPreferHtml] &&
-              isMarkdownFormat(options.format.pandoc),
+          toHtml: isHtmlCompatible(options.format),
           toLatex: isLatexFormat(options.format.pandoc),
           toMarkdown: isMarkdownFormat(options.format.pandoc),
           figFormat: options.format.execution[kFigFormat],
@@ -331,6 +331,11 @@ function isNotebook(file: string) {
 
 function isMarkdown(file: string) {
   return kJupytextMdExtensions.includes(extname(file).toLowerCase());
+}
+
+function isHtmlCompatible(format: Format) {
+  return isHtmlFormat(format.pandoc) ||
+    (isMarkdownFormat(format.pandoc) && format.render[kPreferHtml]);
 }
 
 function pythonBinary(binary = "python") {
