@@ -6,14 +6,6 @@
   https://github.com/newren/git-filter-repo/
 
 
-- Hugo:
-
-  - math in hugo?
-
-  - foo.quarto.md gets recognized/rendered by hugo,
-    see if we can prevent this?
-
-
 - Filter:
 
     - Dont't use stringify
