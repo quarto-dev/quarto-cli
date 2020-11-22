@@ -100,23 +100,26 @@ knitr_plot_hook <- function(default_plot_hook) {
 
     # id
     placeholder <- output_label_placeholder(options)
-    id <- ifelse(
+    attr <- ifelse(
       is_figure_label(placeholder),
       paste0("#", placeholder),
       ""
     )
 
-    # add attributes
-    attr = paste(id, paste(
+    # add keyvalue
+    keyvalue <- paste(
       c(
         sprintf('width=%s', options[['out.width']]),
         sprintf('height=%s', options[['out.height']]),
         options[['out.extra']]
       ),
       collapse = ' '
-    ))
+    )
+    if (nzchar(keyvalue)) {
+      attr <- paste(attr, keyvalue)
+    }
 
-
+    # create attributes if we have them
     if (nzchar(attr)) {
       attr <- paste0("{", attr, "}")
     }
