@@ -83,7 +83,7 @@ end
 function processFigure(el, captionEl, parentEl)
   -- get label and base caption
   local label = el.attr.identifier
-  local caption = pandoc.utils.stringify(captionEl)
+  local caption = captionEl:clone()
 
   -- determine parent, order, and displayed caption
   local parent = nil
@@ -132,7 +132,7 @@ function appendSubfigureCaptions(div)
 
     tappend(captionEl, subfigNumber(figure.order))
     tappend(captionEl, ccsLabelSep())
-    table.insert(captionEl, pandoc.Str(figure.caption))
+    tappend(captionEl, figure.caption)
   end
 end
 
