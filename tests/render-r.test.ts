@@ -27,6 +27,6 @@ Deno.test("render: Rmd (with params)", async () => {
     "docs/test.R",
     false,
     "html",
-    ["--params", "docs/params.yml"],
+    ["--execute-params", "docs/params.yml"],
   );
 });
