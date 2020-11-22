@@ -8,16 +8,9 @@
 
 - Filter:
 
-    - Dont't use stringify
-
     - kable, kableExtra, hutable, flextable
     - paged_table
     - gt
-
-    - figures filter should run after the crossref filter, and
-      should be responsible for converting e.g. htmlwidgets
-      marked as figures to <figure>
-
 
     - Lua filter
 
@@ -37,11 +30,16 @@
       \caption{\label{tab:mytable} This title describes the content of this table.}
 
 
-
-    - Forwarding of fig chunk options to data attributes (and HTML/LaTeX generation)
-
     - Listings for Jupyter and Rmd:
        lst.label="foo" lst.cap = "foo"
+
+    - Forwarding of fig chunk options to data attributes (and HTML/LaTeX generation)
+    - figures filter should run after the crossref filter, and
+      should be responsible for converting e.g. htmlwidgets
+      marked as figures to <figure>
+
+
+
 
 
 Port tinytex to JS; OR we need to implmeent various auto-install behaviors for latexmk, eg.
