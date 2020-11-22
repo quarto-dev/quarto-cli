@@ -9,11 +9,14 @@ format:
     template: revealjs.template
 knit: quarto render
 jupyter: true
+bibliography: references.bib
 ---
 
 ## Slide 1
 
-```python
+[@pirzada2020]
+
+``` {.python}
 import matplotlib.pyplot as plt
 
 labels = ['G1', 'G2', 'G3', 'G4', 'G5']
@@ -34,20 +37,3 @@ ax.set_title('Scores broken out by group and gender')
 ax.legend()
 plt.show()
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
