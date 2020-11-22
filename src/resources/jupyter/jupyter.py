@@ -258,7 +258,7 @@ def nb_parameterize(nb, params):
 
    # verify papermill import
    if not papermill_translate:
-      raise ImportError('The papermill package is required for processing --params')
+      raise ImportError('The papermill package is required for processing --execute-params')
 
    # Generate parameter content based on the kernel_name
    kernel_name = nb.metadata.kernelspec.name

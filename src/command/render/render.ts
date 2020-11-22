@@ -31,7 +31,7 @@ import {
 import { runPandoc } from "./pandoc.ts";
 import { kStdOut, RenderFlags, resolveParams } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
-import { outputRecipe, renderDirAndStem } from "./output.ts";
+import { outputRecipe } from "./output.ts";
 import { kCache, kExecute, kMetadataFormat } from "../../config/constants.ts";
 import {
   ExecutionEngine,
@@ -62,8 +62,8 @@ export async function render(
   const format = await resolveFormat(target, engine, options.flags);
 
   // derive the pandoc input file path (computations will create this)
-  const [inputDir, inputStem] = renderDirAndStem(target.input);
-  const mdOutput = join(inputDir, inputStem + ".quarto.md");
+  const [inputDir, inputStem] = dirAndStem(target.input);
+  const mdOutput = join(inputDir, `${inputStem}.${engine.name}-md`);
 
   // execute computations
   const executeResult = await engine.execute({

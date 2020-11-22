@@ -145,6 +145,8 @@ async function detectDefaults(
     const cmd = [
       "pandoc",
       file,
+      "--from",
+      format.from || "markdown",
       "--to",
       resourcePath("lua/html-defaults.lua"),
     ];

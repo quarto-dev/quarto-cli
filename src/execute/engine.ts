@@ -13,16 +13,13 @@
 *
 */
 
-import { existsSync } from "fs/exists.ts";
-
-import { readYamlFromMarkdownFile } from "../core/yaml.ts";
-
 import { Format, FormatPandoc } from "../config/format.ts";
 import { PdfEngine } from "../config/pdf.ts";
 import { Metadata } from "../config/metadata.ts";
 
 import { rmdEngine } from "./rmd.ts";
 import { jupyterEngine } from "./jupyter.ts";
+import { markdownEngine } from "./markdown.ts";
 
 export interface ExecutionEngine {
   name: string;
@@ -107,30 +104,4 @@ export async function executionEngine(file: string, quiet?: boolean) {
 
   // if there is no engine, this is plain markdown
   return { target: { input: file }, engine: markdownEngine() };
-}
-
-function markdownEngine(): ExecutionEngine {
-  return {
-    name: "markdown",
-    handle: (file: string) => Promise.resolve({ input: file }),
-    metadata: (context: ExecutionTarget) =>
-      Promise.resolve(readYamlFromMarkdownFile(context.input) as Metadata),
-    execute: async (options: ExecuteOptions) => {
-      // copy input to output (unless they are the same path)
-      if (
-        !existsSync(options.output) ||
-        (Deno.realPathSync(options.target.input) !==
-          Deno.realPathSync(options.output))
-      ) {
-        await Deno.copyFile(options.target.input, options.output);
-      }
-
-      return Promise.resolve({
-        supporting: [],
-        pandoc: {} as FormatPandoc,
-      });
-    },
-    postprocess: (_options: PostProcessOptions) => Promise.resolve(),
-    keepMd: (_input: string) => undefined,
-  };
 }

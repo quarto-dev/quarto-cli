@@ -40,7 +40,7 @@ const kRScriptExtensions = [".r", ".s", ".q"];
 const kEngineExtensions = [...kRmdExtensions, ...kRScriptExtensions];
 
 export const rmdEngine: ExecutionEngine = {
-  name: "rmd",
+  name: "rmarkdown",
 
   handle: async (file: string, _quiet: boolean) => {
     if (kEngineExtensions.includes(extname(file).toLowerCase())) {

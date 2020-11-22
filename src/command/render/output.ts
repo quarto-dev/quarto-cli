@@ -47,15 +47,6 @@ import { execProcess } from "../../core/process.ts";
 
 export const kPatchedTemplateExt = ".patched";
 
-// calculate stem w/ addtional removal of special render suffixes
-export function renderDirAndStem(file: string) {
-  const [dir, stem] = dirAndStem(file);
-  return [
-    dir,
-    stem.replace(/\.(quarto|pandoc)$/, ""),
-  ];
-}
-
 export interface OutputRecipe {
   // --output file that pandoc will produce
   output: string;
@@ -122,7 +113,7 @@ export async function outputRecipe(
     }
 
     // compute dir and stem
-    const [inputDir, inputStem] = renderDirAndStem(input);
+    const [inputDir, inputStem] = dirAndStem(input);
 
     // tweak pandoc writer if we have extensions declared
     if (format.render[kVariant]) {
