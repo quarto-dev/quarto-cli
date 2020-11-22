@@ -10,6 +10,7 @@ tests/run-tests.sh
 *.html
 *.pdf
 *.docx
+*.ipynb
 *_files
 .jupyter_cache
 .julia-cache
