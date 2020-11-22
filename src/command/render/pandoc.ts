@@ -201,7 +201,7 @@ function resolveFilters(filters: string[] | undefined, options: PandocOptions) {
 
   // add crossref filter if necessary (unshift will put it before citeproc)
   if (options.format.metadata["crossref"] !== false) {
-    filters.unshift(resourcePath("lua/crossref/crossref.lua"));
+    filters.unshift(crossrefFilter());
   }
 
   if (filters.length > 0) {
@@ -258,10 +258,25 @@ function pandocDefaultsMessage(pandoc: FormatPandoc, debug?: boolean) {
     }
   });
 
+  // simplify crossref filter
+  if (defaults.filters?.length) {
+    defaults.filters = defaults.filters.map((filter) => {
+      if (filter === crossrefFilter()) {
+        return "crossref";
+      } else {
+        return filter;
+      }
+    });
+  }
+
   // remove template if it's patched
   if (defaults.template && extname(defaults.template) === kPatchedTemplateExt) {
     delete defaults.template;
   }
 
   return stringify(defaults as Record<string, unknown>);
+}
+
+function crossrefFilter() {
+  return resourcePath("lua/crossref/crossref.lua");
 }
