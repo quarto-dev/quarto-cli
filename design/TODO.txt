@@ -8,17 +8,20 @@
 - foo.quarto.md gets recognized/rendered by hugo, 
   see if we can prevent this?
 
-- Find a way to enable citations when in hugo land
+- mark up fig:foo with <figure> tag when target html or prefer-html
+  (helper function for prefer-html check)
+
+
+
+- get colon out of file path and investigate title in Image token
+    src: figure_files/figure-html/fig:cars-1.png
+    title: fig:
+
+
 
 - Filter:
 
     - Dont't use stringify
-
-
-    - get colon out of file path and investigate title in Image token
-        src: figure_files/figure-html/fig:cars-1.png
-        title: fig:
-
 
     - kable, kableExtra, hutable, flextable
     - paged_table
