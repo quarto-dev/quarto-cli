@@ -5,18 +5,13 @@
   quarto-sandbox repo
   https://github.com/newren/git-filter-repo/
 
-- foo.quarto.md gets recognized/rendered by hugo, 
-  see if we can prevent this?
 
-- mark up fig:foo with <figure> tag when target html or prefer-html
-  (helper function for prefer-html check)
+- Hugo:
 
+  - foo.quarto.md gets recognized/rendered by hugo,
+    see if we can prevent this?
 
-
-- get colon out of file path and investigate title in Image token
-    src: figure_files/figure-html/fig:cars-1.png
-    title: fig:
-
+  - helper function for prefer-html check
 
 
 - Filter:
@@ -26,6 +21,10 @@
     - kable, kableExtra, hutable, flextable
     - paged_table
     - gt
+
+    - figures filter should run after the crossref filter, and
+      should be responsible for converting e.g. htmlwidgets
+      marked as figures to <figure>
 
 
     - Lua filter
