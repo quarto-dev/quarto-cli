@@ -64,6 +64,14 @@ wrap_asis_output <- function(options, x) {
 assignInNamespace("wrap", wrap, ns = "knitr")
 assignInNamespace("add_html_caption", add_html_caption, ns = "knitr")
 
+# override valid_path to remove colons from file names
+knitr_valid_path <- knitr:::valid_path
+valid_path = function(prefix, label) {
+  path <- knitr_valid_path(prefix, label)
+  gsub(":", "-", path, fixed = TRUE)
+}
+assignInNamespace("valid_path", valid_path, ns = "knitr")
+
 knitr_hooks <- function(format) {
 
   knit_hooks <- list()
