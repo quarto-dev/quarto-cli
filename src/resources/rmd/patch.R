@@ -1,0 +1,71 @@
+
+
+# use pandoc raw attribute rather than <!-- html_preserve -->
+htmlPreserve <- function(x) {
+  x <- paste(x, collapse = "\n")
+  if (nzchar(x)) {
+    # use fenced code block if there are embedded newlines
+    if (grepl("\n", x, fixed = TRUE))
+      sprintf("\n```{=html}\n%s\n```\n", x)
+    # otherwise use inline span
+    else
+      sprintf("`%s`{=html}", x)
+  } else {
+    x
+  }
+}
+assignInNamespace("htmlPreserve", htmlPreserve, ns = "htmltools")
+
+
+# override wrapping behavior for knitr_asis output (including htmlwidgets)
+# to provide for enclosing output div and support for figure captions
+knitr_wrap <- knitr:::wrap
+wrap <- function(x, options = list(), ...) {
+  if (inherits(x, "knit_asis")) {
+
+    # delegate
+    is_html_widget <- inherits(x, "knit_asis_htmlwidget")
+    x <- knitr:::wrap.knit_asis(x, options, ...)
+
+    # if it's an html widget then it was already wrapped
+    # by add_html_caption
+    if (is_html_widget) {
+      x
+    } else {
+      wrap_asis_output(options, x)
+    }
+  } else {
+    knitr_wrap(x, options, ...)
+  }
+}
+add_html_caption <- function(options, x) {
+  if (inherits(x, 'knit_asis_htmlwidget')) {
+    wrap_asis_output(options, x)
+  } else {
+    x
+  }
+}
+wrap_asis_output <- function(options, x) {
+
+  # generate output div
+  caption <- figure_cap(options)
+  if (nzchar(caption)) {
+    x <- paste0(x, "\n\n", caption)
+  }
+  classes <- "display_data"
+  if (isTRUE(options[["output.hidden"]]))
+    classes <- paste0(classes, " .hidden")
+  output_div(x, output_label_placeholder(options), classes)
+}
+assignInNamespace("wrap", wrap, ns = "knitr")
+assignInNamespace("add_html_caption", add_html_caption, ns = "knitr")
+
+
+# patch knitr:::valid_path to remove colons from file names
+knitr_valid_path <- knitr:::valid_path
+valid_path = function(prefix, label) {
+  path <- knitr_valid_path(prefix, label)
+  gsub(":", "-", path, fixed = TRUE)
+}
+assignInNamespace("valid_path", valid_path, ns = "knitr")
+

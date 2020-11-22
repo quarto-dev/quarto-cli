@@ -129,6 +129,7 @@
   # source in helper functions if we have a resourceDir
   if (!is.null(params$resourceDir)) {
     res_dir <- file.path(params$resourceDir, "rmd")
+    source(file.path(res_dir, "patch.R"), local = TRUE)
     source(file.path(res_dir, "execute.R"), local = TRUE)
     source(file.path(res_dir, "hooks.R"), local = TRUE)
   }
