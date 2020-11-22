@@ -354,6 +354,11 @@ function hugoFormat(): Format {
       [kPreferHtml]: true,
       [kVariant]: "+definition_lists+footnotes+smart",
     },
+    execution: {
+      [kFigFormat]: "retina",
+      [kFigWidth]: 8,
+      [kFigHeight]: 5,
+    },
     pandoc: {
       to: "gfm",
       [kOutputFile]: "index.md",
