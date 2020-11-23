@@ -11,6 +11,9 @@ function resolveRefs(citeEl)
       local upper = not not string.match(cite.id, "^[A-Z]")
       type = text.lower(type)
 
+      -- get the label
+      local label = text.lower(cite.id)
+
       -- preface with delimiter unless this is citation 1
       if (i > 1) then
         refs:extend(refDelim())
@@ -27,21 +30,24 @@ function resolveRefs(citeEl)
         ref:extend({nbspString()})
       end
 
-      -- add number (check for parent)
-      if entry.parent ~= nil then
-        local parentType = refType(entry.parent)
-        local parent = crossref.index.entries[entry.parent]
-        ref:extend(numberOption(parentType,parent.order))
-        ref:extend({pandoc.Space(), pandoc.Str("(")})
-        ref:extend(subfigNumber(entry.order))
-        ref:extend({pandoc.Str(")")})
+      -- for latex inject a \ref, otherwise format manually
+      if FORMAT == "latex" then
+        ref:extend({pandoc.RawInline('latex', '\\ref{' .. label .. '}')})
       else
-        ref:extend(numberOption(type, entry.order))
-      end
-
-      -- link if requested
-      if (refHyperlink()) then
-        ref = {pandoc.Link:new(ref, "#" .. text.lower(cite.id))}
+        if entry.parent ~= nil then
+          local parentType = refType(entry.parent)
+          local parent = crossref.index.entries[entry.parent]
+          ref:extend(numberOption(parentType,parent.order))
+          ref:extend({pandoc.Space(), pandoc.Str("(")})
+          ref:extend(subfigNumber(entry.order))
+          ref:extend({pandoc.Str(")")})
+        else
+          ref:extend(numberOption(type, entry.order))
+        end
+          -- link if requested
+        if (refHyperlink()) then
+          ref = {pandoc.Link:new(ref, "#" .. label)}
+        end
       end
 
       -- add the ref
