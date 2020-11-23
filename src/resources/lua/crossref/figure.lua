@@ -94,7 +94,7 @@ function processFigure(el, captionEl, parentEl)
     crossref.index.nextSuborder = crossref.index.nextSuborder + 1
     -- we have a parent, so clear the table then insert a letter (e.g. 'a')
     tclear(captionEl)
-    if subfigCaptions() and not tcontains(el.attr.classes, "nocaption") then
+    if captionSubfig() and not tcontains(el.attr.classes, "nocaption") then
       tappend(captionEl, subfigNumber(order))
     end
   else
@@ -127,11 +127,11 @@ function appendSubfigureCaptions(div)
     if figure.order == 1 then
       table.insert(captionEl, pandoc.Str(". "))
     else
-      tappend(captionEl, ccsDelim())
+      tappend(captionEl, captionCollectedDelim())
     end
 
     tappend(captionEl, subfigNumber(figure.order))
-    tappend(captionEl, ccsLabelSep())
+    tappend(captionEl, captionCollectedLabelSep())
     tappend(captionEl, figure.caption)
   end
 end

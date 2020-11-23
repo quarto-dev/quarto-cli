@@ -7,15 +7,15 @@ function resolveRefs(citeEl)
   for _, cite in ipairs (citeEl.citations) do
     local entry = crossref.index.entries[cite.id]
     if entry ~= nil then
-       local type = text.sub(cite.id, 1, 3)
+       local type = string.match(cite.id, "^(%a+)%:")
 
+       -- captial letter
+       -- explicit prefix
+       -- minues for no prefix
        -- if parent, need to resolve that and treat as sub
 
-       refs:extend({
-         pandoc.Str(type),
-         pandoc.Space(),
-         pandoc.Str(tostring(entry.order))
-       })
+       refs:extend({ pandoc.Str(type .. ".\u{a0}")})
+       refs:extend(numberOption(type, entry.order))
     end
   end
 
