@@ -6,9 +6,17 @@ function processTables(doc)
   filterDoc(doc, {
 
     Div = function(el)
+      if isTableDiv(el) then
+        local raw = processRawTable(el)
+        if raw then
+          return raw
+        end
 
-      -- todo: don't allow div based tables in LATEX (messes w/ numbering)
-
+        local div = processTableDiv(el)
+        if div then
+          return div
+        end
+      end
       return el
     end,
 
@@ -48,6 +56,58 @@ function processTables(doc)
   })
 
 
+end
+
+
+function processRawTable(divEl)
+
+  -- look for a raw html or latex table
+  for i,el in pairs(divEl.content) do
+    if el.t == "RawBlock" then
+      if string.find(el.format, "^html") then
+        local tag = "[Cc][Aa][Pp][Tt][Ii][Oo][Nn]"
+        local captionPattern = "(<" .. tag .. "[^>]*>)(.*)(</" .. tag .. ">)"
+        if string.find(el.text, captionPattern) then
+          local order = indexNextOrder("tbl")
+          indexAddEntry(divEl.attr.identifier, nil, order)
+          local prefix = pandoc.utils.stringify(tableTitlePrefix(order))
+          el.text = el.text:gsub(captionPattern, "%1" .. prefix .. "%2%3", 1)
+          divEl.content[i] = el
+          return divEl
+        end
+      elseif el.format == "tex" or  el.format == "latex" then
+        dump("found raw tex!")
+      end
+      break
+    end
+  end
+
+  return nil
+
+end
+
+function processTableDiv(divEl)
+  -- ensure that there is a trailing paragraph to serve as caption
+  local last = divEl.content[#divEl.content]
+  if last and last.t == "Para" and #divEl.content > 1 then
+    local order = indexNextOrder("tbl")
+    indexAddEntry(divEl.attr.identifier, nil, order)
+    tprepend(last.content, tableTitlePrefix(order))
+    return divEl
+  else
+    return nil
+  end
+end
+
+
+-- is this a Div containing a table?
+function isTableDiv(el)
+  return el.t == "Div" and hasTableLabel(el)
+end
+
+-- does this element have a table label?
+function hasTableLabel(el)
+  return string.match(el.attr.identifier, "^tbl:")
 end
 
 
