@@ -14,16 +14,17 @@ function titleDelim()
   return option("title-delim", stringToInlines(":"))
 end
 
-function ccsDelim()
-  return option("ccs-delim", stringToInlines(",\u{a0}"))
+
+function captionSubfig()
+  return option("caption-subfig", false)
 end
 
-function ccsLabelSep()
-  return option("ccs-label-sep", stringToInlines("\u{a0}—\u{a0}"))
+function captionCollectedDelim()
+  return option("caption-collected-delim", stringToInlines(",\u{a0}"))
 end
 
-function subfigCaptions()
-  return option("subfig-captions", true)
+function captionCollectedLabelSep()
+  return option("caption-collected-label-sep", stringToInlines("\u{a0}—\u{a0}"))
 end
 
 function stringToInlines(str)
@@ -34,23 +35,37 @@ function nbspString()
   return pandoc.Str '\u{a0}'
 end
 
-function subfigNumber(num) 
+function subfigNumber(num)
   return numberOption("subfig", num,  {pandoc.Str("alpha"),pandoc.Space(),pandoc.Str("a")})
 end
+
+function refPrefix(type, default)
+  local opt = type .. "-prefix"
+  return option(opt, type .. ".")
+end
+
+function refDelim()
+  return option("refDelm", ",")
+end
+
+function refHyperlink()
+  return option("ref-hyperlink", true)
+end
+
 
 function numberOption(type, num, default)
   -- Compute option name and default value
   local opt = type .. "-labels"
   if default == nil then
-    default = stringToInlines("arabic")  
+    default = stringToInlines("arabic")
   end
 
   -- determine the style
   local styleRaw = option(opt, default)
   local numberStyle = pandoc.utils.stringify(styleRaw)
-  
+
   -- process the style
-  if (numberStyle == "arabic") then 
+  if (numberStyle == "arabic") then
     return {pandoc.Str(tostring(num))}
   elseif (string.match(numberStyle, "^alpha ")) then
     -- permits the user to include the character that they'd like
@@ -70,12 +85,12 @@ function numberOption(type, num, default)
     end
     return {pandoc.Str(toRoman(num, lower))}
   else
-    -- otherwise treat the value as a list of values to use 
+    -- otherwise treat the value as a list of values to use
     -- to display the numbers
     local entryCount = #styleRaw
-    
+
     -- select an index based upon the num, wrapping it around
-    local entryIndex = (num - 1) % entryCount + 1 
+    local entryIndex = (num - 1) % entryCount + 1
     return styleRaw[entryIndex]
   end
 end
