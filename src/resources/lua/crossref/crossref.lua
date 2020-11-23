@@ -15,6 +15,7 @@ text = require 'text'
 -- imports
 import("index.lua")
 import("figure.lua")
+import("table.lua")
 import("refs.lua")
 import("format.lua")
 import("options.lua")
@@ -37,6 +38,7 @@ return {
 
       -- process various types of crossrefs
       processFigures(doc)
+      processTables(doc)
 
       -- return processed doc
       return doc
