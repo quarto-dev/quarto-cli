@@ -1,7 +1,4 @@
 
-
--- latex links
-
 function resolveRefs(citeEl)
 
   -- scan citations for refs
