@@ -62,13 +62,12 @@ function numberOption(type, num, default)
     local startIndex = utf8.codepoint(startIndexChar)
     return {pandoc.Str(string.char(startIndex + num - 1))}
   elseif (string.match(numberStyle, "^roman")) then
+    -- permits the user to express `roman` for roman numerals
+    return {pandoc.Str(toRoman(num, false))}
+  elseif (string.match(numberStyle, "^lowercase roman")) then
     -- permits the user to express `roman` or `roman lower` to
     -- use lower case roman numerals
-    local lower = false
-    if (string.sub(numberStyle, -#"lower") == "lower") then
-      lower = true
-    end
-    return {pandoc.Str(toRoman(num, lower))}
+    return {pandoc.Str(toRoman(num, true))}
   else
     -- otherwise treat the value as a list of values to use 
     -- to display the numbers
