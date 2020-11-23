@@ -39,13 +39,29 @@ function subfigNumber(num)
   return numberOption("subfig", num,  {pandoc.Str("alpha"),pandoc.Space(),pandoc.Str("a")})
 end
 
-function refPrefix(type, default)
+function refPrefix(type, upper)
   local opt = type .. "-prefix"
-  return option(opt, type .. ".")
+  local prefix = option(opt, {pandoc.Str(type), pandoc.Str(".")})
+  if upper then
+    local el = pandoc.Plain:new(prefix)
+    local firstStr = true
+    el = pandoc.walk_block(el, {
+      Str = function(str)
+        if firstStr then
+          local strText = text.upper(text.sub(str.text, 1, 1)) .. text.sub(str.text, 2, -1)
+          str = pandoc.Str:new(strText)
+          firstStr = false
+        end
+        return str
+      end
+    })
+    prefix = el.content
+  end
+  return prefix
 end
 
 function refDelim()
-  return option("refDelm", ",")
+  return option("ref-delim", stringToInlines(","))
 end
 
 function refHyperlink()
