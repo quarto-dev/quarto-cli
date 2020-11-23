@@ -11,10 +11,11 @@ function processTables(doc)
         if raw then
           return raw
         end
-
-        local div = processTableDiv(el)
-        if div then
-          return div
+        if FORMAT ~= "latex" then
+          local div = processTableDiv(el)
+          if div then
+            return div
+          end
         end
       end
       return el
@@ -22,7 +23,7 @@ function processTables(doc)
 
 
     Table = function(el)
-
+      -- if there is a caption then check it for a lable suffix
       if el.caption.long ~= nil then
         local last = el.caption.long[#el.caption.long]
         if #last.content > 2 then
