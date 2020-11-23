@@ -90,17 +90,15 @@ function processFigure(el, captionEl, parentEl)
   local order
   if (parentEl) then
     parent = parentEl.attr.identifier
-    order = crossref.index.nextSuborder
-    crossref.index.nextSuborder = crossref.index.nextSuborder + 1
+    order = crossref.index.nextSubfigureOrder
+    crossref.index.nextSubfigureOrder = crossref.index.nextSubfigureOrder + 1
     -- we have a parent, so clear the table then insert a letter (e.g. 'a')
     tclear(captionEl)
     if captionSubfig() and not tcontains(el.attr.classes, "nocaption") then
       tappend(captionEl, subfigNumber(order))
     end
   else
-    order = crossref.index.nextOrder
-    crossref.index.nextOrder = crossref.index.nextOrder + 1
-    crossref.index.nextSuborder = 1
+    order = indexNextOrder("fig")
     tprepend(captionEl, figureTitlePrefix(order))
   end
 
