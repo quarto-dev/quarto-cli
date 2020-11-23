@@ -1,21 +1,52 @@
 
-
 function resolveRefs(citeEl)
 
   -- scan citations for refs
   local refs = pandoc.List:new()
-  for _, cite in ipairs (citeEl.citations) do
-    local entry = crossref.index.entries[cite.id]
+  for i, cite in ipairs (citeEl.citations) do
+    local entry = crossref.index.entries[text.lower(cite.id)]
     if entry ~= nil then
-       local type = string.match(cite.id, "^(%a+)%:")
+      -- get the type (note if it's uppercase)
+      local type = refType(cite.id)
+      local upper = not not string.match(cite.id, "^[A-Z]")
+      type = text.lower(type)
 
-       -- captial letter
-       -- explicit prefix
-       -- minues for no prefix
-       -- if parent, need to resolve that and treat as sub
+      -- preface with delimiter unless this is citation 1
+      if (i > 1) then
+        refs:extend(refDelim())
+        refs:extend(stringToInlines(" "))
+      end
 
-       refs:extend({ pandoc.Str(type .. ".\u{a0}")})
-       refs:extend(numberOption(type, entry.order))
+      -- create ref text
+      local ref = pandoc.List:new()
+      if #cite.prefix > 0 then
+        ref:extend(cite.prefix)
+        ref:extend({nbspString()})
+      elseif cite.mode ~= pandoc.SuppressAuthor then
+        ref:extend(refPrefix(type, upper))
+        ref:extend({nbspString()})
+      end
+
+      -- add number (check for parent)
+      if entry.parent ~= nil then
+        local parentType = refType(entry.parent)
+        local parent = crossref.index.entries[entry.parent]
+        ref:extend(numberOption(parentType,parent.order))
+        ref:extend({pandoc.Space(), pandoc.Str("(")})
+        ref:extend(subfigNumber(entry.order))
+        ref:extend({pandoc.Str(")")})
+      else
+        ref:extend(numberOption(type, entry.order))
+      end
+
+      -- link if requested
+      if (refHyperlink()) then
+        ref = {pandoc.Link:new(ref, "#" .. text.lower(cite.id))}
+      end
+
+      -- add the ref
+      refs:extend(ref)
+
     end
   end
 
@@ -26,3 +57,9 @@ function resolveRefs(citeEl)
     return citeEl
   end
 end
+
+
+function refType(id)
+  return string.match(id, "^(%a+)%:")
+end
+

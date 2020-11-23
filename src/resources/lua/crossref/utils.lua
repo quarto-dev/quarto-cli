@@ -1,5 +1,16 @@
 
 
+-- process an entire doc
+function filterDoc(doc, filter)
+  for i,el in pairs(doc.blocks) do
+    if (filter[el.t]) then
+      doc.blocks[i] = filter[el.t](doc.blocks[i])
+    end
+    doc.blocks[i] = pandoc.walk_block(doc.blocks[i], filter)
+  end
+end
+
+
 -- append values to table
 function tappend(t, values)
   for i,value in pairs(values) do
@@ -12,6 +23,15 @@ function tprepend(t, values)
   for i=1, #values do
    table.insert(t, 1, values[#values + 1 - i])
   end
+end
+
+-- slice elements out of a table
+function tslice(t, first, last, step)
+  local sliced = {}
+  for i = first or 1, last or #t, step or 1 do
+    sliced[#sliced+1] = t[i]
+  end
+  return sliced
 end
 
 -- does the table contain a value
