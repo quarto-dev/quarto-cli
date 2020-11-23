@@ -24,14 +24,17 @@ function processTables(doc)
             -- remove the id from the end
             last.content = tslice(last.content, 1, #last.content-2)
 
+            -- add the table to the index
+            local order = indexNextOrder("tbl")
+            indexAddEntry(label, nil, order, last.content)
+
             -- insert table caption (use \label for latex)
-            local caption
             if FORMAT == "latex" then
                tprepend(last.content, {
                  pandoc.RawInline('latex', '\\label{' .. label .. '}')
                })
             else
-               tprepend(last.content, tableTitlePrefix(indexNextOrder("tbl")))
+               tprepend(last.content, tableTitlePrefix(order))
             end
 
             -- wrap in a div with the label (so that we have a target
