@@ -62,36 +62,21 @@ assignInNamespace("add_html_caption", add_html_caption, ns = "knitr")
 
 
 # patch knitr_print.knitr_kable to enclose raw output in pandoc RawBlock
-knitr_knit_print <- knitr:::knit_print
 knitr_raw_block <- function(x, format) {
   knitr::asis_output(paste0("\n\n```{=", format, "}\n", x, "\n```\n\n"))
 }
-knit_print <- function(x, ...) {
-  # determine if this is a kable (and record the format)
-  kable <- inherits(x, "knitr_kable")
-  if (kable) {
-    format <- attr(x, "format")
-  }
-
-  # delegate
-  x <- knitr_knit_print(x, ...)
-
-  # if it's a kable then wrap it in {=html}
-  if (kable) {
-    if (identical(format, "html")) {
-      x <- knitr_raw_block(x, format)
-    } else if (identical(format, "latex")) {
-      x <- knitr_raw_block(x, "tex")
-    }
-  }
-
-  # return
-  x
+knitr_kable_html <- knitr:::kable_html
+kable_html <- function(...) {
+  x <- knitr_kable_html(...)
+  knitr_raw_block(x, "html")
 }
-assignInNamespace("knit_print", knit_print, ns = "knitr")
-
-registerS3method("print", "paged_df", rmarkdown:::print.paged_df)
-
+knitr_kable_latex <- knitr:::kable_latex
+kable_latex <- function(...) {
+  x <- knitr_kable_latex(...)
+  knitr_raw_block(x, "tex")
+}
+assignInNamespace("kable_html", kable_html, ns = "knitr")
+assignInNamespace("kable_latex", kable_latex, ns = "knitr")
 
 
 # patch knitr:::valid_path to remove colons from file names
