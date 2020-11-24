@@ -90,6 +90,8 @@ knit_print <- function(x, ...) {
 }
 assignInNamespace("knit_print", knit_print, ns = "knitr")
 
+registerS3method("print", "paged_df", rmarkdown:::print.paged_df)
+
 
 
 # patch knitr:::valid_path to remove colons from file names
