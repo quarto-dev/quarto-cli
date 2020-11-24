@@ -432,6 +432,7 @@ async function jupytext(...args: string[]) {
         pythonBinary("jupytext"),
         ...args,
       ],
+      stderr: "piped",
     },
     undefined,
     (data: Uint8Array) => {
