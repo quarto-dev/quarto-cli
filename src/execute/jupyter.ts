@@ -381,7 +381,7 @@ async function jupytextTo(
   output?: string,
   quiet?: boolean,
 ) {
-  const args = [file, "--to", format];
+  const args = [file, "--from", "md:markdown", "--to", format];
   if (kernel) {
     args.push("--set-kernel");
     args.push("-");
