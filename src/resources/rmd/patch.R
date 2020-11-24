@@ -1,6 +1,10 @@
 
 
 # use pandoc raw attribute rather than <!-- html_preserve -->
+
+# only works w/ htmltools >= 0.5.0.9003 so overwrite in the meantime
+options(htmltools.preserve.raw = TRUE)
+
 htmlPreserve <- function(x) {
   x <- paste(x, collapse = "\n")
   if (nzchar(x)) {
