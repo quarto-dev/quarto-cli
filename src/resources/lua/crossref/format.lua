@@ -1,8 +1,18 @@
 
 
 
+
+function title(type, default)
+  return option(type .. "-title", stringToInlines(default))
+end
+
+function titleString(type, default)
+  return pandoc.utils.stringify(title(type, default))
+end
+
+
 function titlePrefix(type, default, num)
-  local prefix = option(type .. "-title", stringToInlines(default))
+  local prefix = title(type, default)
   table.insert(prefix, pandoc.Space())
   tappend(prefix, numberOption(type, num))
   tappend(prefix, titleDelim())

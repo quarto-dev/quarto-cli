@@ -17,6 +17,7 @@ import("index.lua")
 import("figure.lua")
 import("table.lua")
 import("refs.lua")
+import("meta.lua")
 import("format.lua")
 import("options.lua")
 import("utils.lua")
@@ -39,6 +40,9 @@ return {
       -- process various types of crossrefs
       processFigures(doc)
       processTables(doc)
+
+      -- meta inject
+      metaInject(doc)
 
       -- return processed doc
       return doc
