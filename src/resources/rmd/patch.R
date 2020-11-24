@@ -63,6 +63,9 @@ assignInNamespace("add_html_caption", add_html_caption, ns = "knitr")
 
 # patch knitr_print.knitr_kable to enclose raw output in pandoc RawBlock
 knitr_knit_print <- knitr:::knit_print
+knitr_raw_block <- function(x, format) {
+  knitr::asis_output(paste0("\n\n```{=", format, "}\n", x, "\n```\n\n"))
+}
 knit_print <- function(x, ...) {
   # determine if this is a kable (and record the format)
   kable <- inherits(x, "knitr_kable")
@@ -76,7 +79,9 @@ knit_print <- function(x, ...) {
   # if it's a kable then wrap it in {=html}
   if (kable) {
     if (identical(format, "html")) {
-      x <- knitr::asis_output(paste0("\n\n```{=html}\n", x, "\n```\n\n"))
+      x <- knitr_raw_block(x, format)
+    } else if (identical(format, "latex")) {
+      x <- knitr_raw_block(x, "tex")
     }
   }
 
