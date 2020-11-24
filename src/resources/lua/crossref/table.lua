@@ -74,20 +74,36 @@ function processRawTable(divEl)
   -- look for a raw html or latex table
   for i,el in pairs(divEl.content) do
     if el.t == "RawBlock" then
+      local label = divEl.attr.identifier
       if string.find(el.format, "^html") then
         local tag = "[Cc][Aa][Pp][Tt][Ii][Oo][Nn]"
         local captionPattern = "(<" .. tag .. "[^>]*>)(.*)(</" .. tag .. ">)"
         local _, caption, _ = string.match(el.text, captionPattern)
         if caption then
           local order = indexNextOrder("tbl")
-          indexAddEntry(divEl.attr.identifier, nil, order, stringToInlines(caption))
+          indexAddEntry(label, nil, order, stringToInlines(caption))
           local prefix = pandoc.utils.stringify(tableTitlePrefix(order))
           el.text = el.text:gsub(captionPattern, "%1" .. prefix .. "%2%3", 1)
           divEl.content[i] = el
           return divEl
         end
       elseif el.format == "tex" or  el.format == "latex" then
-        dump("found raw tex!")
+        -- knitr kable latex output will already have a label w/ tab:
+        -- prefix. in that case simply replace it
+        local captionPattern = "\\caption{\\label{tab:" .. label .. "}([^}]+)}"
+        local caption = string.match(el.text, captionPattern)
+        if caption then
+          processLatexTable(el, captionPattern, label, caption)
+          return divEl
+        end
+
+        -- look for raw latex with a caption
+        captionPattern = "\\caption{([^}]+)}"
+        caption = string.match(el.text, captionPattern)
+        if caption then
+           processLatexTable(el, captionPattern, label, caption)
+           return divEl
+        end
       end
       break
     end
@@ -133,6 +149,12 @@ function tableTitlePrefix(num)
   return titlePrefix("tbl", "Table", num)
 end
 
+
+function processLatexTable(el, captionPattern, label, caption)
+  el.text = el.text:gsub(captionPattern, "\\caption{\\label{" .. label .. "}" .. caption .. "}", 1)
+  local order = indexNextOrder("tbl")
+  indexAddEntry(label, nil, order, stringToInlines(caption))
+end
 
 function prependTitlePrefix(caption, label, order)
   if FORMAT == "latex" then
