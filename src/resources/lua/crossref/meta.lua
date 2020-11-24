@@ -3,8 +3,6 @@
 function metaInject(doc)
   if isLatexOutput() then
     metaInjectLatex(doc)
-  elseif isHtmlOutput() then
-    metaInjectHtml(doc)
   end
 end
 
@@ -26,18 +24,6 @@ function metaInjectLatex(doc)
   addHeaderInclude(doc, "tex", listNames)
 end
 
-function metaInjectHtml(doc)
-  ensureHeaderIncludes(doc)
-
-  local tblCaptionStyle =
-    '<style type="text/css">\n' ..
-    'div.table-caption {\n' ..
-    '  text-align: center;\n' ..
-    '}\n' ..
-    '</style>'
-  addHeaderInclude(doc, "html", tblCaptionStyle)
-
-end
 
 -- ensure that header-includes is a MetaList
 function ensureHeaderIncludes(doc)
