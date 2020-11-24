@@ -127,7 +127,7 @@ end
 function processTableDiv(divEl)
 
   -- don't process for latex (is out of band for latex table labels/numbering)
-  if FORMAT == "latex" then
+  if isLatexOutput() then
     return nil
   end
 
@@ -169,7 +169,7 @@ function processLatexTable(el, captionPattern, label, caption)
 end
 
 function prependTitlePrefix(caption, label, order)
-  if FORMAT == "latex" then
+  if isLatexOutput() then
      tprepend(caption.content, {
        pandoc.RawInline('latex', '\\label{' .. label .. '}')
      })
