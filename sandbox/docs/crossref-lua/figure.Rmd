@@ -2,35 +2,32 @@
 title: "Figure"
 format:
   html: 
-    keep-md: true
-    # crossref: false
-    # filters:
-    #   - pandoc-crossref
+    keep-tex: true
+#     crossref: false
+#     filters:
+#       - pandoc-crossref
+# linkReferences: true
+# nameInLink: true
 crossref:
-  fig-labels: roman
+  fig-labels: arabic
 knit: quarto render
 ---
 
-::: {.foobar}
+See @Fig:pressure.
 
-::: {#fig:markdown}
-Here is my figure
+See @fig:parent-2
 
-My Caption, My Caption
-:::
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec luctus quam volutpat, pharetra arcu in, vestibulum lectus. Curabitur neque metus, gravida sed imperdiet sed, porta vel metus. Nullam sed mauris ut ligula dapibus pretium. Fusce placerat sollicitudin turpis at iaculis. Donec ultrices vestibulum orci at vulputate. Mauris at auctor metus. Nam venenatis urna quis ex sollicitudin, ut tristique justo tincidunt.
 
-:::
+Donec malesuada risus eu urna vestibulum imperdiet. Maecenas maximus at est sed ullamcorper. Aliquam pulvinar eleifend nulla quis volutpat. Mauris vel pharetra lacus. Nam ultrices libero vel ex posuere, vitae elementum sem elementum. Maecenas dapibus, nulla eu laoreet euismod, nunc nunc sagittis erat, at tristique arcu augue at enim. Donec bibendum luctus vestibulum. Duis in semper sem, a dignissim ex. Curabitur non nisl convallis, facilisis odio consectetur, volutpat libero. Mauris vel pretium turpis. Duis sed lectus hendrerit, venenatis arcu vitae, congue nunc.
 
+Nam nec cursus lorem, egestas ullamcorper urna. Fusce laoreet felis vel dui vulputate ultrices. Pellentesque nunc leo, consectetur sed nisi et, mollis vestibulum dolor. Nam mollis mi in nisl scelerisque maximus. Integer id ipsum eget lorem placerat tempor. Cras sagittis purus quis enim rhoncus, sed sollicitudin dui cursus. Ut iaculis hendrerit venenatis. Sed gravida dolor vitae magna placerat ullamcorper. Donec ac placerat nibh. Aenean euismod, justo eu elementum iaculis, massa erat viverra augue, vitae placerat dolor sem iaculis est. Proin ut odio a tortor egestas sollicitudin. Aliquam quam odio, euismod id magna in, finibus fringilla justo. Mauris commodo efficitur euismod. Phasellus lobortis nisl non velit porttitor auctor. Sed felis magna, placerat at scelerisque sit amet, sodales sed enim.
 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec luctus quam volutpat, pharetra arcu in, vestibulum lectus. Curabitur neque metus, gravida sed imperdiet sed, porta vel metus. Nullam sed mauris ut ligula dapibus pretium. Fusce placerat sollicitudin turpis at iaculis. Donec ultrices vestibulum orci at vulputate. Mauris at auctor metus. Nam venenatis urna quis ex sollicitudin, ut tristique justo tincidunt.
 
+Donec malesuada risus eu urna vestibulum imperdiet. Maecenas maximus at est sed ullamcorper. Aliquam pulvinar eleifend nulla quis volutpat. Mauris vel pharetra lacus. Nam ultrices libero vel ex posuere, vitae elementum sem elementum. Maecenas dapibus, nulla eu laoreet euismod, nunc nunc sagittis erat, at tristique arcu augue at enim. Donec bibendum luctus vestibulum. Duis in semper sem, a dignissim ex. Curabitur non nisl convallis, facilisis odio consectetur, volutpat libero. Mauris vel pretium turpis. Duis sed lectus hendrerit, venenatis arcu vitae, congue nunc.
 
-::: {.myparent}
-::: {.myclass}
-![Caption](https://www.lua.org/pil/capa.jpg){#fig:lua}
-:::
-:::
-
-
+Nam nec cursus lorem, egestas ullamcorper urna. Fusce laoreet felis vel dui vulputate ultrices. Pellentesque nunc leo, consectetur sed nisi et, mollis vestibulum dolor. Nam mollis mi in nisl scelerisque maximus. Integer id ipsum eget lorem placerat tempor. Cras sagittis purus quis enim rhoncus, sed sollicitudin dui cursus. Ut iaculis hendrerit venenatis. Sed gravida dolor vitae magna placerat ullamcorper. Donec ac placerat nibh. Aenean euismod, justo eu elementum iaculis, massa erat viverra augue, vitae placerat dolor sem iaculis est. Proin ut odio a tortor egestas sollicitudin. Aliquam quam odio, euismod id magna in, finibus fringilla justo. Mauris commodo efficitur euismod. Phasellus lobortis nisl non velit porttitor auctor. Sed felis magna, placerat at scelerisque sit amet, sodales sed enim.
 
 ```{r fig:parent, fig.cap="**Everything**", fig.subcap=c("_Cars_", "Pressure")}
 plot(cars)
@@ -38,13 +35,14 @@ plot(pressure)
 ```
 
 
+
 ```{r fig:pressure, fig.cap="Show the pressure"}
 plot(pressure)
 ```
 
 
-See @fig:cars again.
 
-See @fig:pressure.
+
+
 
 

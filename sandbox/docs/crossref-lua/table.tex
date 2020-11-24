@@ -1,0 +1,170 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+  \usepackage{amssymb}
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={Table},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage{longtable,booktabs}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\makeatletter
+\@ifpackageloaded{subfig}{}{\usepackage{subfig}}
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\captionsetup[subfloat]{margin=0.5em}
+\AtBeginDocument{%
+\renewcommand*\figurename{Figure}
+\renewcommand*\tablename{Table}
+}
+\AtBeginDocument{%
+\renewcommand*\listfigurename{List of Figures}
+\renewcommand*\listtablename{List of Tables}
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listing}
+\newcommand*\listoflistings{\listof{codelisting}{List of Listings}}
+\makeatother
+\ifluatex
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+
+\title{Table}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+See Tableeee~\ref{tbl:label}.
+
+\leavevmode\hypertarget{tbl:charles}{}%
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus
+sollicitudin nisl nec enim fringilla ultrices. Nunc a felis ornare,
+hendrerit turpis et, congue quam. Ut condimentum arcu maximus metus
+rhoncus facilisis in ac purus. Morbi mattis gravida elit vitae dapibus.
+Donec pellentesque diam et sagittis vestibulum. Pellentesque cursus vel
+lacus quis vehicula. In ac malesuada quam, in porttitor nunc. Phasellus
+eu egestas augue. Nunc nec tellus ornare, rutrum tortor a, tempus risus.
+Ut nec neque egestas, placerat ex dapibus, placerat turpis. Integer non
+ex ac odio feugiat pharetra. Curabitur pharetra quam vitae elit
+ultrices, et vehicula diam posuere. Suspendisse tempor, odio et feugiat
+vestibulum, lacus quam venenatis metus, sed ultricies quam libero nec
+sapien. Aliquam in justo vitae leo rutrum dignissim. Vivamus bibendum
+arcu nec purus efficitur facilisis.
+
+Phasellus convallis auctor quam, in rhoncus diam. Maecenas commodo id
+neque vel venenatis. Etiam vel tempus arcu, vitae faucibus sem.
+Vestibulum posuere urna at est scelerisque molestie. Nam eget tortor
+vulputate, consequat quam et, mattis est. Nullam tempus dolor nibh, quis
+sodales lorem tristique congue. Morbi enim metus, pulvinar eget ante
+non, tristique gravida ante. Pellentesque consequat vel tortor a
+vestibulum. In hac habitasse platea dictumst. Nullam quis condimentum
+dui. Nunc consequat nunc ut ligula dignissim, quis tempus mi tincidunt.
+Aliquam fringilla, diam ac mollis efficitur, mi sem tincidunt tellus,
+vel pharetra metus augue ac ex.
+
+Mauris ullamcorper finibus tempus. Quisque aliquam, dui eu fringilla
+pulvinar, velit purus gravida lacus, vel porttitor massa purus eu nunc.
+Nullam eu sem dictum, tincidunt quam eget, ultricies purus. Vivamus
+congue viverra fermentum. Nulla pretium neque a accumsan lacinia. In id
+mi nec urna luctus volutpat nec a risus. Donec arcu dui, dictum a
+sollicitudin vel, consequat vel libero. Nam tempor hendrerit neque, id
+imperdiet purus efficitur id. Duis ac nunc sit amet odio venenatis
+convallis sed non lacus.
+
+In porta finibus lorem vitae dignissim. Nulla interdum leo ut tincidunt
+aliquet. Morbi sollicitudin, est in fermentum efficitur, ipsum dolor
+imperdiet diam, vel vulputate arcu eros a neque. Ut posuere massa erat,
+sed porttitor tortor placerat in. Cras dignissim a tellus nec tincidunt.
+Integer posuere scelerisque volutpat. Donec ut efficitur mauris, ut
+facilisis lectus. Praesent felis metus, interdum eu mollis at, convallis
+ac dui. Donec sed mi vitae est commodo sodales. Vivamus facilisis
+rhoncus lectus, a ultricies libero ullamcorper non. Duis sollicitudin
+sapien a nisi porta venenatis. Vestibulum ultricies sem ac augue feugiat
+porta. Sed iaculis mauris fermentum, ultricies dolor vitae, gravida
+massa. Aliquam hendrerit volutpat hendrerit. Quisque quam libero,
+convallis nec ante ut, accumsan sagittis elit. Proin mauris diam,
+feugiat eu ipsum ac, viverra semper arcu.
+
+\hypertarget{tbl:label}{}
+\begin{longtable}[]{@{}lll@{}}
+\caption{\label{tbl:label}The Caption}\tabularnewline
+\toprule
+Col1 & Col2 & Col3\tabularnewline
+\midrule
+\endfirsthead
+\toprule
+Col1 & Col2 & Col3\tabularnewline
+\midrule
+\endhead
+A & B & C\tabularnewline
+E & E & F\tabularnewline
+G & H & I\tabularnewline
+\bottomrule
+\end{longtable}
+
+See tableeee~\ref{tbl:charles} for additional data.
+
+\end{document}

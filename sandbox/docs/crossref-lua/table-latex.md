@@ -1,0 +1,89 @@
+---
+title: "Table"
+format:
+  pdf: 
+    keep-md: true
+    keep-tex: true
+    # crossref: false
+    # filters:
+    #   - pandoc-crossref
+---
+
+
+::: {.cell .cell-code}
+
+```r
+knitr::kable(head(mtcars), format = "latex", caption = "A grand table")
+```
+
+::: {#tbl:jj .output .display_data}
+```{=tex}
+\begin{table}
+
+\caption{\label{tab:tbl:jj}A grand table}
+\centering
+\begin{tabular}[t]{l|r|r|r|r|r|r|r|r|r|r|r}
+\hline
+  & mpg & cyl & disp & hp & drat & wt & qsec & vs & am & gear & carb\\
+\hline
+Mazda RX4 & 21.0 & 6 & 160 & 110 & 3.90 & 2.620 & 16.46 & 0 & 1 & 4 & 4\\
+\hline
+Mazda RX4 Wag & 21.0 & 6 & 160 & 110 & 3.90 & 2.875 & 17.02 & 0 & 1 & 4 & 4\\
+\hline
+Datsun 710 & 22.8 & 4 & 108 & 93 & 3.85 & 2.320 & 18.61 & 1 & 1 & 4 & 1\\
+\hline
+Hornet 4 Drive & 21.4 & 6 & 258 & 110 & 3.08 & 3.215 & 19.44 & 1 & 0 & 3 & 1\\
+\hline
+Hornet Sportabout & 18.7 & 8 & 360 & 175 & 3.15 & 3.440 & 17.02 & 0 & 0 & 3 & 2\\
+\hline
+Valiant & 18.1 & 6 & 225 & 105 & 2.76 & 3.460 & 20.22 & 1 & 0 & 3 & 1\\
+\hline
+\end{tabular}
+\end{table}
+
+```
+:::
+:::
+
+
+See @tbl:another for more.
+
+Phasellus convallis auctor quam, in rhoncus diam. Maecenas commodo id neque vel venenatis. Etiam vel tempus arcu, vitae faucibus sem. Vestibulum posuere urna at est scelerisque molestie. Nam eget tortor vulputate, consequat quam et, mattis est. Nullam tempus dolor nibh, quis sodales lorem tristique congue. Morbi enim metus, pulvinar eget ante non, tristique gravida ante. Pellentesque consequat vel tortor a vestibulum. In hac habitasse platea dictumst. Nullam quis condimentum dui. Nunc consequat nunc ut ligula dignissim, quis tempus mi tincidunt. Aliquam fringilla, diam ac mollis efficitur, mi sem tincidunt tellus, vel pharetra metus augue ac ex.
+
+::: {#tbl:another}
+```{=tex}
+\begin{table}
+
+\caption{Another table}
+\centering
+\begin{tabular}[t]{l|r|r|r|r|r|r|r|r|r|r|r}
+\hline
+  & mpg & cyl & disp & hp & drat & wt & qsec & vs & am & gear & carb\\
+\hline
+Mazda RX4 & 21.0 & 6 & 160 & 110 & 3.90 & 2.620 & 16.46 & 0 & 1 & 4 & 4\\
+\hline
+Mazda RX4 Wag & 21.0 & 6 & 160 & 110 & 3.90 & 2.875 & 17.02 & 0 & 1 & 4 & 4\\
+\hline
+Datsun 710 & 22.8 & 4 & 108 & 93 & 3.85 & 2.320 & 18.61 & 1 & 1 & 4 & 1\\
+\hline
+Hornet 4 Drive & 21.4 & 6 & 258 & 110 & 3.08 & 3.215 & 19.44 & 1 & 0 & 3 & 1\\
+\hline
+Hornet Sportabout & 18.7 & 8 & 360 & 175 & 3.15 & 3.440 & 17.02 & 0 & 0 & 3 & 2\\
+\hline
+Valiant & 18.1 & 6 & 225 & 105 & 2.76 & 3.460 & 20.22 & 1 & 0 & 3 & 1\\
+\hline
+\end{tabular}
+\end{table}
+
+```
+:::
+
+Mauris ullamcorper finibus tempus. Quisque aliquam, dui eu fringilla pulvinar, velit purus gravida lacus, vel porttitor massa purus eu nunc. Nullam eu sem dictum, tincidunt quam eget, ultricies purus. Vivamus congue viverra fermentum. Nulla pretium neque a accumsan lacinia. In id mi nec urna luctus volutpat nec a risus. Donec arcu dui, dictum a sollicitudin vel, consequat vel libero. Nam tempor hendrerit neque, id imperdiet purus efficitur id. Duis ac nunc sit amet odio venenatis convallis sed non lacus.
+
+
+Phasellus convallis auctor quam, in rhoncus diam. Maecenas commodo id neque vel venenatis. Etiam vel tempus arcu, vitae faucibus sem. Vestibulum posuere urna at est scelerisque molestie. Nam eget tortor vulputate, consequat quam et, mattis est. Nullam tempus dolor nibh, quis sodales lorem tristique congue. Morbi enim metus, pulvinar eget ante non, tristique gravida ante. Pellentesque consequat vel tortor a vestibulum. In hac habitasse platea dictumst. Nullam quis condimentum dui. Nunc consequat nunc ut ligula dignissim, quis tempus mi tincidunt. Aliquam fringilla, diam ac mollis efficitur, mi sem tincidunt tellus, vel pharetra metus augue ac ex.
+
+Mauris ullamcorper finibus tempus. Quisque aliquam, dui eu fringilla pulvinar, velit purus gravida lacus, vel porttitor massa purus eu nunc. Nullam eu sem dictum, tincidunt quam eget, ultricies purus. Vivamus congue viverra fermentum. Nulla pretium neque a accumsan lacinia. In id mi nec urna luctus volutpat nec a risus. Donec arcu dui, dictum a sollicitudin vel, consequat vel libero. Nam tempor hendrerit neque, id imperdiet purus efficitur id. Duis ac nunc sit amet odio venenatis convallis sed non lacus.
+
+See @tbl:jj
+

@@ -1,0 +1,26 @@
+---
+title: "Table"
+format:
+  pdf: 
+    keep-md: true
+    keep-tex: true
+    # crossref: false
+    # filters:
+    #   - pandoc-crossref
+
+---
+
+
+
+
+
+
+See @tbl:label.
+
+| Col1 | Col2 | Col3 |
+|------|------|------|
+| A    | B    | C    |
+| E    | E    | F    |
+| G    | H    | I    |
+
+: The Caption {\#tbl:label}
