@@ -8,27 +8,17 @@
 
 - Filter:
 
+    - Do we actually need the wrapping div for LaTeX?
+
+    - Should table captions be at the top and get special markup (e.g. div)
+
+    - Inject Figure and Table caption prefix using \renewcommand as per
+      https://github.com/lierdakil/pandoc-crossref/blob/master/lib/Text/Pandoc/CrossRef/Util/ModifyMeta.hs
+
+
     - kable, kableExtra, hutable, flextable
-    - paged_table
-    - gt
-
-    - Lua filter
-
-
-    - Many ways to generate HTML tables, we need to reach into HTML tables
-      for the <caption> to look for cross-referenceable tables and from
-      that create a reference
-    - Tables from arbitrary divs (caption at bottom of div)
-
-    - Comparable table handling for LaTeX output
-      For LaTeX tables, it appears as if label goes inside \caption
-      \caption{\label{tab:test}This title describes the content of this table.}
-      So we could look for the #tbl:caption at the end and substitute the label
-      Some R packages e.g. modelsummary already do this automatically so would need to
-      substitute: \caption{\label{tab:mytable}This title describes the content of this table. {#tbl:content}}
-
-      \caption{\label{tab:mytable} This title describes the content of this table.}
-
+    - paged_table, gt, modelsummary
+    - check python packages as well
 
     - Listings for Jupyter and Rmd:
        lst.label="foo" lst.cap = "foo"
@@ -60,6 +50,10 @@ Port a dozen or rticles formats
 # standalone document formats
 bs4-notebook
 bs4-article
+
+Lua sandbox: https://stackoverflow.com/questions/1224708/how-can-i-create-a-secure-lua-sandbox
+
+
 
 Project system:
   - See MkDocs: https://docs.google.com/document/d/16Lp39BolpTR0NzbQQ6ebr9bawYth8EeivBo0q4qapVY/edit#heading=h.ibf8kici39py
