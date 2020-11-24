@@ -103,7 +103,7 @@ function processRawTable(divEl)
         captionPattern = "\\caption{([^}]+)}"
         caption = string.match(rawEl.text, captionPattern)
         if caption then
-           processLatexTable(rawEl.text)
+           processLatexTable(rawEl, captionPattern, label, caption)
            rawParentEl.content[rawIndex] = rawEl
            return divEl
         end
