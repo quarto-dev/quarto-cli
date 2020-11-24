@@ -7,23 +7,22 @@ function processTables(doc)
 
     Div = function(el)
       if isTableDiv(el) then
-        local raw = processRawTable(el)
-        if raw then
-          return raw
-        end
-        if FORMAT ~= "latex" then
-          local div = processTableDiv(el)
-          if div then
-            return div
+        -- look for various ways of expressing tables in a div
+        local processors = { processMarkdownTable, processRawTable, processTableDiv }
+        for _, process in ipairs(processors) do
+          local tblDiv = process(el)
+          if tblDiv then
+            return tblDiv
           end
         end
       end
+      -- default to just reflecting the div back
       return el
     end,
 
 
     Table = function(el)
-      -- if there is a caption then check it for a lable suffix
+      -- if there is a caption then check it for a table suffix
       if el.caption.long ~= nil then
         local last = el.caption.long[#el.caption.long]
         if #last.content > 2 then
@@ -38,13 +37,7 @@ function processTables(doc)
             indexAddEntry(label, nil, order, last.content)
 
             -- insert table caption (use \label for latex)
-            if FORMAT == "latex" then
-               tprepend(last.content, {
-                 pandoc.RawInline('latex', '\\label{' .. label .. '}')
-               })
-            else
-               tprepend(last.content, tableTitlePrefix(order))
-            end
+            prependTitlePrefix(last, label, order)
 
             -- wrap in a div with the label (so that we have a target
             -- for the tbl ref, in LaTeX that will be a hypertarget)
@@ -59,6 +52,22 @@ function processTables(doc)
 
 end
 
+function processMarkdownTable(divEl)
+  for i,el in pairs(divEl.content) do
+    if el.t == "Table" then
+      if el.caption.long ~= nil then
+        local caption = el.caption.long[#el.caption.long]
+        local label = divEl.attr.identifier
+        local order = indexNextOrder("tbl")
+        indexAddEntry(label, nil, order, caption.content)
+        prependTitlePrefix(caption, label, order)
+        return divEl
+      end
+    end
+  end
+  return nil
+end
+
 
 function processRawTable(divEl)
 
@@ -68,9 +77,10 @@ function processRawTable(divEl)
       if string.find(el.format, "^html") then
         local tag = "[Cc][Aa][Pp][Tt][Ii][Oo][Nn]"
         local captionPattern = "(<" .. tag .. "[^>]*>)(.*)(</" .. tag .. ">)"
-        if string.find(el.text, captionPattern) then
+        local _, caption, _ = string.match(el.text, captionPattern)
+        if caption then
           local order = indexNextOrder("tbl")
-          indexAddEntry(divEl.attr.identifier, nil, order)
+          indexAddEntry(divEl.attr.identifier, nil, order, stringToInlines(caption))
           local prefix = pandoc.utils.stringify(tableTitlePrefix(order))
           el.text = el.text:gsub(captionPattern, "%1" .. prefix .. "%2%3", 1)
           divEl.content[i] = el
@@ -88,12 +98,19 @@ function processRawTable(divEl)
 end
 
 function processTableDiv(divEl)
+
+  -- don't process for latex (is out of band for latex table labels/numbering)
+  if FORMAT == "latex" then
+    return nil
+  end
+
   -- ensure that there is a trailing paragraph to serve as caption
   local last = divEl.content[#divEl.content]
   if last and last.t == "Para" and #divEl.content > 1 then
     local order = indexNextOrder("tbl")
-    indexAddEntry(divEl.attr.identifier, nil, order)
-    tprepend(last.content, tableTitlePrefix(order))
+    local label = divEl.attr.identifier
+    indexAddEntry(label, nil, order, last.content)
+    prependTitlePrefix(last, label, order)
     return divEl
   else
     return nil
@@ -116,4 +133,14 @@ function tableTitlePrefix(num)
   return titlePrefix("tbl", "Table", num)
 end
 
+
+function prependTitlePrefix(caption, label, order)
+  if FORMAT == "latex" then
+     tprepend(caption.content, {
+       pandoc.RawInline('latex', '\\label{' .. label .. '}')
+     })
+  else
+     tprepend(caption.content, tableTitlePrefix(order))
+  end
+end
 
