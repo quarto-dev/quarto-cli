@@ -25,7 +25,7 @@ function processTables(doc)
       -- if there is a caption then check it for a table suffix
       if el.caption.long ~= nil then
         local last = el.caption.long[#el.caption.long]
-        if #last.content > 2 then
+        if last and #last.content > 2 then
           local lastInline = last.content[#last.content]
           local label = string.match(lastInline.text, "^{#(tbl:[^ }]+)}$")
           if label and last.content[#last.content-1].t == "Space" then
@@ -68,40 +68,43 @@ function processMarkdownTable(divEl)
   return nil
 end
 
-
 function processRawTable(divEl)
-
   -- look for a raw html or latex table
   for i,el in pairs(divEl.content) do
-    if el.t == "RawBlock" then
+    local rawParentEl, rawEl, rawIndex = rawElement(divEl, el, i)
+    if rawEl then
       local label = divEl.attr.identifier
-      if string.find(el.format, "^html") then
+      -- html table
+      if string.find(rawEl.format, "^html") then
         local tag = "[Cc][Aa][Pp][Tt][Ii][Oo][Nn]"
         local captionPattern = "(<" .. tag .. "[^>]*>)(.*)(</" .. tag .. ">)"
-        local _, caption, _ = string.match(el.text, captionPattern)
+        local _, caption, _ = string.match(rawEl.text, captionPattern)
         if caption then
           local order = indexNextOrder("tbl")
           indexAddEntry(label, nil, order, stringToInlines(caption))
           local prefix = pandoc.utils.stringify(tableTitlePrefix(order))
-          el.text = el.text:gsub(captionPattern, "%1" .. prefix .. "%2%3", 1)
-          divEl.content[i] = el
+          rawEl.text = rawEl.text:gsub(captionPattern, "%1" .. prefix .. "%2%3", 1)
+          rawParentEl.content[rawIndex] = rawEl
           return divEl
         end
-      elseif el.format == "tex" or  el.format == "latex" then
+      -- latex table
+      elseif rawEl.format == "tex" or  rawEl.format == "latex" then
         -- knitr kable latex output will already have a label w/ tab:
         -- prefix. in that case simply replace it
         local captionPattern = "\\caption{\\label{tab:" .. label .. "}([^}]+)}"
-        local caption = string.match(el.text, captionPattern)
+        local caption = string.match(rawEl.text, captionPattern)
         if caption then
-          processLatexTable(el, captionPattern, label, caption)
+          processLatexTable(rawEl, captionPattern, label, caption)
+          rawParentEl.content[rawIndex] = rawEl
           return divEl
         end
 
         -- look for raw latex with a caption
         captionPattern = "\\caption{([^}]+)}"
-        caption = string.match(el.text, captionPattern)
+        caption = string.match(rawEl.text, captionPattern)
         if caption then
-           processLatexTable(el, captionPattern, label, caption)
+           processLatexTable(rawEl.text)
+           rawParentEl.content[rawIndex] = rawEl
            return divEl
         end
       end
@@ -110,7 +113,15 @@ function processRawTable(divEl)
   end
 
   return nil
+end
 
+-- handle either a raw block or raw inline in first paragraph
+function rawElement(divEl, el, index)
+  if el.t == "RawBlock" then
+    return divEl, el, index
+  elseif el.t == "Para" and #el.content > 0 and el.content[1].t == "RawInline" then
+    return el, el.content[1], 1
+  end
 end
 
 function processTableDiv(divEl)
@@ -121,12 +132,13 @@ function processTableDiv(divEl)
   end
 
   -- ensure that there is a trailing paragraph to serve as caption
-  local last = divEl.content[#divEl.content]
-  if last and last.t == "Para" and #divEl.content > 1 then
+  local first = divEl.content[1]
+  if first and first.t == "Para" and #divEl.content > 1 then
     local order = indexNextOrder("tbl")
     local label = divEl.attr.identifier
-    indexAddEntry(label, nil, order, last.content)
-    prependTitlePrefix(last, label, order)
+    indexAddEntry(label, nil, order, first.content)
+    prependTitlePrefix(first, label, order)
+    divEl.content[1] = pandoc.Div(first, pandoc.Attr("", { "table-caption" }))
     return divEl
   else
     return nil
