@@ -61,6 +61,32 @@ assignInNamespace("wrap", wrap, ns = "knitr")
 assignInNamespace("add_html_caption", add_html_caption, ns = "knitr")
 
 
+# patch knitr_print.knitr_kable to enclose raw output in pandoc RawBlock
+knitr_knit_print <- knitr:::knit_print
+knit_print <- function(x, ...) {
+  # determine if this is a kable (and record the format)
+  kable <- inherits(x, "knitr_kable")
+  if (kable) {
+    format <- attr(x, "format")
+  }
+
+  # delegate
+  x <- knitr_knit_print(x, ...)
+
+  # if it's a kable then wrap it in {=html}
+  if (kable) {
+    if (identical(format, "html")) {
+      x <- knitr::asis_output(paste0("\n\n```{=html}\n", x, "\n```\n\n"))
+    }
+  }
+
+  # return
+  x
+}
+assignInNamespace("knit_print", knit_print, ns = "knitr")
+
+
+
 # patch knitr:::valid_path to remove colons from file names
 knitr_valid_path <- knitr:::valid_path
 valid_path = function(prefix, label) {
