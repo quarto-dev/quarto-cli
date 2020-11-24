@@ -1,11 +1,14 @@
 
 
 function metaInject(doc)
-
-  if FORMAT ~= "latex" then
-    return
+  if isLatexOutput() then
+    metaInjectLatex(doc)
+  elseif isHtmlOutput() then
+    metaInjectHtml(doc)
   end
+end
 
+function metaInjectLatex(doc)
   ensureHeaderIncludes(doc)
 
   local floatNames =
@@ -21,7 +24,18 @@ function metaInject(doc)
     "\\renewcommand*\\listtablename{" .. listOfTitle("lot", "List of Tables") .. "}\n" ..
     "}\n"
   addHeaderInclude(doc, "tex", listNames)
+end
 
+function metaInjectHtml(doc)
+  ensureHeaderIncludes(doc)
+
+  local tblCaptionStyle =
+    '<style type="text/css">\n' ..
+    'div.table-caption {\n' ..
+    '  text-align: center;\n' ..
+    '}\n' ..
+    '</style>'
+  addHeaderInclude(doc, "html", tblCaptionStyle)
 
 end
 

@@ -31,7 +31,7 @@ function resolveRefs(citeEl)
       end
 
       -- for latex inject a \ref, otherwise format manually
-      if FORMAT == "latex" then
+      if isLatexOutput() then
         ref:extend({pandoc.RawInline('latex', '\\ref{' .. label .. '}')})
       else
         if entry.parent ~= nil then

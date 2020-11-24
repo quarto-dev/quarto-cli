@@ -11,6 +11,30 @@ function filterDoc(doc, filter)
 end
 
 
+-- check for latex output
+function isLatexOutput()
+  return FORMAT == "latex"
+end
+
+-- check for html output
+function isHtmlOutput()
+  local formats = {
+    "html",
+    "html4",
+    "html5",
+    "s5",
+    "dzslides",
+    "slidy",
+    "slideous",
+    "revealjs",
+    "epub",
+    "epub2",
+    "epub3"
+  }
+  return tcontains(formats, FORMAT)
+
+end
+
 -- append values to table
 function tappend(t, values)
   for i,value in pairs(values) do
