@@ -8,20 +8,17 @@
 
 - Filter:
 
-    - Do we actually need the wrapping div for LaTeX?
-
-    - Should table captions be at the top and get special markup (e.g. div)
-
-    - Inject Figure and Table caption prefix using \renewcommand as per
-      https://github.com/lierdakil/pandoc-crossref/blob/master/lib/Text/Pandoc/CrossRef/Util/ModifyMeta.hs
-
-
-    - kable, kableExtra, hutable, flextable
-    - paged_table, gt, modelsummary
-    - check python packages as well
+    - inject css for table caption centering
 
     - Listings for Jupyter and Rmd:
        lst.label="foo" lst.cap = "foo"
+       or lst.cap = " " and use id (or substitute)
+       pure markdown version?
+
+    - equations
+    - sections
+    - lemma, proof, etc.
+
 
     - Forwarding of fig chunk options to data attributes (and HTML/LaTeX generation)
     - figures filter should run after the crossref filter, and
@@ -29,7 +26,8 @@
       marked as figures to <figure>
 
 
-
+- allow _quarto config directory that merges all contained files
+  (lock file will go there as well)
 
 
 Port tinytex to JS; OR we need to implmeent various auto-install behaviors for latexmk, eg.
@@ -41,6 +39,9 @@ Port tinytex to JS; OR we need to implmeent various auto-install behaviors for l
 Note need to implement tinytex: false and tinytex options (e.g. min-runs, clean, output-dir, etc.)
 
 Why did Beamer fail to render w/ missing caption package w/ our pipeline but work for pandoc pdflatex?
+
+Injected HTML in meta.lua gets overridden whenever we use include-in-header in the 
+defaults file (e.g. for  htmlwidgets). Use temp file?
 
 
 # Package/extension system
