@@ -70,6 +70,9 @@ function resolveRefs()
   }
 end
 
+function refLabel(type, inline)
+  return string.match(inline.text, "^{#(" .. type .. ":[^ }]+)}$")
+end
 
 function refType(id)
   return string.match(id, "^(%a+)%:")

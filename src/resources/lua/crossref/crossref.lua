@@ -20,6 +20,7 @@ end
 import("index.lua")
 import("figure.lua")
 import("table.lua")
+import("equation.lua")
 import("refs.lua")
 import("meta.lua")
 import("format.lua")
@@ -33,6 +34,7 @@ return {
   initOptions(),
   figures(),
   tables(),
+  equations(),
   metaInject(),
   resolveRefs(),
 }
