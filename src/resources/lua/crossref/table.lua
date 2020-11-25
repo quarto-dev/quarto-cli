@@ -8,7 +8,7 @@ function processTables(doc)
     Div = function(el)
       if isTableDiv(el) then
         -- look for various ways of expressing tables in a div
-        local processors = { processMarkdownTable, processRawTable, processTableDiv }
+        local processors = { processMarkdownTable, processRawTable }
         for _, process in ipairs(processors) do
           local tblDiv = process(el)
           if tblDiv then
@@ -123,28 +123,6 @@ function rawElement(divEl, el, index)
     return el, el.content[1], 1
   end
 end
-
-function processTableDiv(divEl)
-
-  -- don't process for latex (is out of band for latex table labels/numbering)
-  if isLatexOutput() then
-    return nil
-  end
-
-  -- ensure that there is a trailing paragraph to serve as caption
-  local first = divEl.content[1]
-  if first and first.t == "Para" and #divEl.content > 1 then
-    local order = indexNextOrder("tbl")
-    local label = divEl.attr.identifier
-    indexAddEntry(label, nil, order, first.content)
-    prependTitlePrefix(first, label, order)
-    divEl.content[1] = pandoc.Div(first, pandoc.Attr("", { "table-caption" }))
-    return divEl
-  else
-    return nil
-  end
-end
-
 
 -- is this a Div containing a table?
 function isTableDiv(el)
