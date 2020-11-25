@@ -5,6 +5,11 @@ function equations()
   return {
     Inlines = function(inlines)
 
+      -- do nothing if there is no math herein
+      if inlines:find_if(isDisplayMath) == nil then
+        return inlines
+      end
+
       local mathInlines = nil
       local targetInlines = pandoc.List:new()
 
@@ -50,7 +55,7 @@ function equations()
 
         -- process the inline unless it was already taken care of above
         if processInline then
-          if (el.t == "Math" and el.mathtype == "DisplayMath") then
+          if isDisplayMath(el) then
               mathInlines = pandoc.List:new()
               mathInlines:insert(el)
             else
@@ -72,3 +77,8 @@ function equations()
   }
 
 end
+
+function isDisplayMath(el)
+  return el.t == "Math" and el.mathtype == "DisplayMath"
+end
+
