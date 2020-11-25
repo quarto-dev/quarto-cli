@@ -197,8 +197,8 @@ knitr_options <- function(format) {
   rmarkdown::knitr_options(
     opts_knit = rmarkdown:::merge_lists(opts_knit, knitr$opts_knit),
     opts_chunk = rmarkdown:::merge_lists(opts_chunk, knitr$opts_chunk),
-    opts_hooks = rmarkdown:::merge_lists(knit_hooks, hooks$opts),
-    knit_hooks = hooks$knit
+    opts_hooks = hooks$opts,
+    knit_hooks = rmarkdown:::merge_lists(knit_hooks, hooks$knit)
   )
 }
 
