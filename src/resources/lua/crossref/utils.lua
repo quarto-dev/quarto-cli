@@ -1,17 +1,5 @@
 
 
--- process an entire doc
-function filterDoc(doc, filter)
-  for i,el in pairs(doc.blocks) do
-    if (filter[el.t]) then
-      doc.blocks[i] = filter[el.t](doc.blocks[i])
-    end
-    doc.blocks[i] = pandoc.walk_block(doc.blocks[i], filter)
-  end
-  return doc
-end
-
-
 -- check for latex output
 function isLatexOutput()
   return FORMAT == "latex"
