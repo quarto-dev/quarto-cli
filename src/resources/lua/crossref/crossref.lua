@@ -21,6 +21,7 @@ import("index.lua")
 import("figures.lua")
 import("tables.lua")
 import("equations.lua")
+import("listings.lua")
 import("refs.lua")
 import("meta.lua")
 import("format.lua")
@@ -35,6 +36,7 @@ return {
   figures(),
   tables(),
   equations(),
+  listings(),
   metaInject(),
   resolveRefs(),
 }
