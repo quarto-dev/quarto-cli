@@ -1,53 +1,47 @@
 
 
 function tables()
-
   return {
-    Pandoc = function(doc)
-      return filterDoc(doc, {
-        Div = function(el)
-          if isTableDiv(el) then
-            -- look for various ways of expressing tables in a div
-            local processors = { processMarkdownTable, processRawTable }
-            for _, process in ipairs(processors) do
-              local tblDiv = process(el)
-              if tblDiv then
-                return tblDiv
-              end
-            end
+    Div = function(el)
+      if isTableDiv(el) then
+        -- look for various ways of expressing tables in a div
+        local processors = { processMarkdownTable, processRawTable }
+        for _, process in ipairs(processors) do
+          local tblDiv = process(el)
+          if tblDiv then
+            return tblDiv
           end
-          -- default to just reflecting the div back
-          return el
-        end,
-
-
-        Table = function(el)
-          -- if there is a caption then check it for a table suffix
-          if el.caption.long ~= nil then
-            local last = el.caption.long[#el.caption.long]
-            if last and #last.content > 2 then
-              local lastInline = last.content[#last.content]
-              local label = refLabel("tbl", lastInline)
-              if label and last.content[#last.content-1].t == "Space" then
-                -- remove the id from the end
-                last.content = tslice(last.content, 1, #last.content-2)
-
-                -- add the table to the index
-                local order = indexNextOrder("tbl")
-                indexAddEntry(label, nil, order, last.content)
-
-                -- insert table caption (use \label for latex)
-                prependTitlePrefix(last, label, order)
-
-                -- wrap in a div with the label (so that we have a target
-                -- for the tbl ref, in LaTeX that will be a hypertarget)
-                return pandoc.Div(el, pandoc.Attr(label))
-              end
-            end
-          end
-          return el
         end
-      })
+      end
+      -- default to just reflecting the div back
+      return el
+    end,
+
+    Table = function(el)
+      -- if there is a caption then check it for a table suffix
+      if el.caption.long ~= nil then
+        local last = el.caption.long[#el.caption.long]
+        if last and #last.content > 2 then
+          local lastInline = last.content[#last.content]
+          local label = refLabel("tbl", lastInline)
+          if label and last.content[#last.content-1].t == "Space" then
+            -- remove the id from the end
+            last.content = tslice(last.content, 1, #last.content-2)
+
+            -- add the table to the index
+            local order = indexNextOrder("tbl")
+            indexAddEntry(label, nil, order, last.content)
+
+            -- insert table caption (use \label for latex)
+            prependTitlePrefix(last, label, order)
+
+            -- wrap in a div with the label (so that we have a target
+            -- for the tbl ref, in LaTeX that will be a hypertarget)
+            return pandoc.Div(el, pandoc.Attr(label))
+          end
+        end
+      end
+      return el
     end
   }
 end
