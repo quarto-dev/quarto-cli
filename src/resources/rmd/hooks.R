@@ -60,7 +60,7 @@ knitr_hooks <- function(format) {
     fig.cap = options[["fig.cap"]]
     fig.subcap = options[["fig.subcap"]]
     if (is_figure_label(label) && !is.null(fig.cap) && !is.null(fig.subcap)) {
-      label <- paste0("#", label, " ")
+      label <- paste0(labelId(label), " ")
       fig.cap <- paste0("\n", fig.cap, "\n")
     } else {
       label = NULL
@@ -68,7 +68,7 @@ knitr_hooks <- function(format) {
     }
 
     # return cell
-    paste0("::: {", label ,".cell .cell-code}\n", x, "\n", fig.cap ,":::")
+    paste0("::: {", labelId(label) ,".cell .cell-code}\n", x, "\n", fig.cap ,":::")
   })
   knit_hooks$source <- delegating_hook("source", function(x, options) {
     if (isTRUE(options[["source.hidden"]])) {
@@ -102,7 +102,7 @@ knitr_plot_hook <- function(default_plot_hook) {
     placeholder <- output_label_placeholder(options)
     attr <- ifelse(
       is_figure_label(placeholder),
-      paste0("#", placeholder),
+      labelId(placeholder),
       ""
     )
 
@@ -136,7 +136,7 @@ knitr_plot_hook <- function(default_plot_hook) {
 output_div <- function(x, label, classes) {
   div <- "::: {"
   if (!is.null(label)) {
-    div <- paste0(div, "#", label, " ")
+    div <- paste0(div, labelId(label), " ")
   }
   paste0(
     div, ".output ",
@@ -147,6 +147,12 @@ output_div <- function(x, label, classes) {
   )
 }
 
+labelId <- function(label) {
+  if (!is.null(label) && !startsWith(label, "#"))
+    paste0("#", label)
+  else
+    label
+}
 
 figure_cap <- function(options) {
   output_label <- output_label(options)
@@ -169,7 +175,7 @@ figure_cap <- function(options) {
 
 output_label <- function(options) {
   label <- options[["label"]]
-  if (!is.null(label) && (startsWith(label, "fig:") || startsWith(label, "tbl:"))) {
+  if (!is.null(label) && grepl("^#?(fig|tbl):", label)) {
     label
   } else {
     NULL
@@ -186,7 +192,7 @@ output_label_placeholder <- function(options) {
 }
 
 is_figure_label <- function(label) {
-  !is.null(label) && startsWith(label, "fig:")
+  !is.null(label) && grepl("^#?fig:", label)
 }
 
 
