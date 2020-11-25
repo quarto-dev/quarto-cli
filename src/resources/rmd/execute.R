@@ -165,10 +165,14 @@ knitr_options <- function(format) {
     warning = isTRUE(format$execution$`show-warnings`),
     message = isTRUE(format$execution$`show-warnings`),
     include = isTRUE(format$execution$`show-output`),
-    screenshot.force = isTRUE(format$render$`prefer-html`),
     # hard coded (overideable in setup chunk but not format)
     comment = NA
   )
+
+  # add screenshot force if prefer-html specified
+  if (isTRUE(format$render$`prefer-html`)) {
+    opts_chunk$screenshot.force = TRUE
+  }
 
 
   # add fig.retina if requested
