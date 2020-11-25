@@ -27,7 +27,7 @@ function tables()
             local last = el.caption.long[#el.caption.long]
             if last and #last.content > 2 then
               local lastInline = last.content[#last.content]
-              local label = string.match(lastInline.text, "^{#(tbl:[^ }]+)}$")
+              local label = refLabel("tbl", lastInline)
               if label and last.content[#last.content-1].t == "Space" then
                 -- remove the id from the end
                 last.content = tslice(last.content, 1, #last.content-2)
