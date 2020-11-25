@@ -1,14 +1,6 @@
 
 
 
--- create the crossref index
-function indexInit()
-  crossref.index = {
-    nextOrder = {},
-    nextSubfigureOrder = 1,
-    entries = {}
-  }
-end
 
 function indexNextOrder(type)
   if not crossref.index.nextOrder[type] then

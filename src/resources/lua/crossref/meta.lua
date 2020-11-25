@@ -1,9 +1,14 @@
 
 
-function metaInject(doc)
-  if isLatexOutput() then
-    metaInjectLatex(doc)
-  end
+function metaInject()
+  return {
+    Pandoc = function(doc)
+      if isLatexOutput() then
+        metaInjectLatex(doc)
+      end
+      return doc
+    end
+  }
 end
 
 function metaInjectLatex(doc)

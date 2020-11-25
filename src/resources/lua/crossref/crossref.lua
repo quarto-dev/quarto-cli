@@ -1,18 +1,22 @@
 
+-- required lua modules
+text = require 'text'
+
+-- global crossref state
+crossref = {
+  index = {
+    nextOrder = {},
+    nextSubfigureOrder = 1,
+    entries = {}
+  },
+  options = {}
+}
+
 -- [import]
 function import(script)
   local path = PANDOC_SCRIPT_FILE:match("(.*/)")
   dofile(path .. script)
 end
--- [/import]
-
--- global crossref state
-crossref = {}
-
--- lua modules
-text = require 'text'
-
--- imports
 import("index.lua")
 import("figure.lua")
 import("table.lua")
@@ -21,36 +25,16 @@ import("meta.lua")
 import("format.lua")
 import("options.lua")
 import("utils.lua")
+-- [/import]
 
--- Crossrefs are resolved in a two pass filter:
---
---  1) Process all blocks looking for crossref targets, provide each one
---     with the appropriate caption prefix, and record it in our index
---
---  2) Process all cite elements, resolving them as crossrefs if they
---     have matching keys in the index
---
+
+-- apply filters
 return {
-  {
-    Pandoc = function(doc)
-      -- initialize submodules
-      indexInit()
-      optionsInit(doc.meta)
-
-      -- process various types of crossrefs
-      processFigures(doc)
-      processTables(doc)
-
-      -- meta inject
-      metaInject(doc)
-
-      -- return processed doc
-      return doc
-    end
-  },
-  {
-    Cite = resolveRefs
-  }
+  initOptions(),
+  figures(),
+  tables(),
+  metaInject(),
+  resolveRefs(),
 }
 
 
