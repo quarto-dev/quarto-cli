@@ -83,9 +83,10 @@ assignInNamespace("kable_html", kable_html, ns = "knitr")
 assignInNamespace("kable_latex", kable_latex, ns = "knitr")
 
 
-# patch knitr:::valid_path to remove colons from file names
+# patch knitr:::valid_path to remove # prefix and colons from file names
 knitr_valid_path <- knitr:::valid_path
 valid_path = function(prefix, label) {
+  label <- sub("^#", "", label)
   path <- knitr_valid_path(prefix, label)
   gsub(":", "-", path, fixed = TRUE)
 }

@@ -348,7 +348,7 @@ function mdFromCodeCell(
   const label = cellLabel(cell);
   const labelCellContainer = shouldLabelCellContainer(cell, options);
   if (label && labelCellContainer) {
-    divMd.push(`#${label} `);
+    divMd.push(`${label} `);
   }
 
   // resolve caption (main vs. sub)
@@ -401,7 +401,7 @@ function mdFromCodeCell(
   if (includeOutput(cell, options.execution)) {
     // compute label prefix for output (in case we need it for files, etc.)
     const labelName = label
-      ? label.replaceAll(":", "-")
+      ? label.replace(/^#/, "").replaceAll(":", "-")
       : ("cell-" + (cellIndex + 1));
     const outputName = labelName + "-output";
 
@@ -632,7 +632,7 @@ function mdImageOutput(
   if (label || width || height) {
     image += "{";
     if (label) {
-      image += `#${label} `;
+      image += `${label} `;
     }
     if (width) {
       image += `width=${width} `;
