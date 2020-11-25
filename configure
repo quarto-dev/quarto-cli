@@ -1,4 +1,4 @@
-
+#!/bin/bash
 
 # Dependency versions
 export PANDOC=2.11.0.4
@@ -8,15 +8,10 @@ export TINYTEX=v2020.10
 # Version
 export VERSION=0.1
 
-# Global deno flags
+# Quarto Command Global deno flags
 export DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env"
 
-# Configuration
-export WORKING_DIR=dist
-export RESOURCES_DIR=share
+# Configuration Target Directories
+export WORKING_DIR=$dist
+export SHARE_DIR=share
 export BIN_DIR=bin
-
-# Packaging
-export IDENTIFIER=org.rstudio.quarto
-export PKGNAME=quarto-${VERSION}.pkg
-export OUT_DIR=out

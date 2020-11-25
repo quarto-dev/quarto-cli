@@ -1,9 +1,7 @@
 #!/bin/sh
 
-echo $2
-echo $PWD
-echo ln -fs $2/bin/quarto /usr/local/bin/quarto
 
+# Create quarto symlink
 ln -fs $2/bin/quarto /usr/local/bin/quarto
 
 exit 0

@@ -18,6 +18,7 @@ if [ -z ${QUARTO_ACTION+x} ]; then
   QUARTO_ACTION=run
 fi
 
+# Local import map
 QUARTO_IMPORT_ARGMAP=--importmap=$(realpath $SCRIPT_PATH/../../../src/import_map.json)
 
   # Allow calls to override the target

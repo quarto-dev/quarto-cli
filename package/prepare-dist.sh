@@ -1,7 +1,10 @@
+#!/bin/sh
+
+set -x
+
 source ../configure
 
 pushd $WORKING_DIR
-
 
 # TODO: What are we getting out of bundling, if anything
 	# maybe should just bundle ts files to get good stack traces
