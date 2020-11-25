@@ -27,6 +27,17 @@ function metaInjectLatex(doc)
     "\\renewcommand*\\listtablename{" .. listOfTitle("lot", "List of Tables") .. "}\n" ..
     "}\n"
   addHeaderInclude(doc, "tex", listNames)
+  
+  local codeListing = 
+    "\\makeatletter\n" ..
+    "\\@ifpackageloaded{float}{}{\\usepackage{float}}\n" ..
+    "\\floatstyle{ruled}\n" ..
+    "\\@ifundefined{c@chapter}{\\newfloat{codelisting}{h}{lop}}{\\newfloat{codelisting}{h}{lop}[chapter]}" ..
+    "\\floatname{codelisting}{Listing}\n" ..
+    "\\newcommand*\\listoflistings{\\listof{codelisting}{List of Listings}}\n"  ..
+    "\\makeatother\n"
+  addHeaderInclude(doc, "tex", codeListing)
+  
 end
 
 
