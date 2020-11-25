@@ -2,66 +2,72 @@
 
 -- process all figures, fixing up figure captions as required and
 -- and returning an index of all the figures
-function processFigures(doc)
+function figures()
 
-  -- look for figures in Div and Image elements. Note that both of the
-  -- Div and Image handlers verify that they aren't already in the
-  -- index before proceeding. This is because the pandoc.walk_block
-  -- function will traverse the entire tree, however in the case of
-  -- parent figure divs we may have already traversed the subtree
-  -- beneath the parent div (and there is no way to stop walk_block
-  -- from re-traversing)
-  local walkFigures
-  walkFigures = function(parent)
-    return {
+  return {
+    Pandoc = function(doc)
+      -- look for figures in Div and Image elements. Note that both of the
+      -- Div and Image handlers verify that they aren't already in the
+      -- index before proceeding. This is because the pandoc.walk_block
+      -- function will traverse the entire tree, however in the case of
+      -- parent figure divs we may have already traversed the subtree
+      -- beneath the parent div (and there is no way to stop walk_block
+      -- from re-traversing)
+      local walkFigures
+      walkFigures = function(parent)
+        return {
 
-      -- if it's a figure div we haven't seen before then process
-      -- it and walk it's children to find subfigures
-      Div = function(el)
-        if isFigureDiv(el) and not indexHasElement(el) then
+          -- if it's a figure div we haven't seen before then process
+          -- it and walk it's children to find subfigures
+          Div = function(el)
+            if isFigureDiv(el) and not indexHasElement(el) then
+              if processFigureDiv(el, parent) then
+                el = pandoc.walk_block(el, walkFigures(el))
+                -- update caption of parent if we had subfigures
+                appendSubfigureCaptions(el)
+              end
+            end
+            return el
+          end,
+
+          -- if it's a figure image we haven't seen before then process it
+          -- if it carries a caption
+          Image = function(el)
+            if hasFigureLabel(el) and not indexHasElement(el) then
+              if #el.caption > 0 then
+                processFigure(el, el.caption, parent)
+              end
+            end
+            return el
+          end
+        }
+      end
+
+      -- walk all blocks in the document
+      for i,el in pairs(doc.blocks) do
+
+        -- process any root level figure divs (note parent for
+        -- potential subfigure discovery)
+        local parent = nil
+        if isFigureDiv(el) then
           if processFigureDiv(el, parent) then
-            el = pandoc.walk_block(el, walkFigures(el))
-            -- update caption of parent if we had subfigures
-            appendSubfigureCaptions(el)
+            parent = el
           end
         end
-        return el
-      end,
 
-      -- if it's a figure image we haven't seen before then process it
-      -- if it carries a caption
-      Image = function(el)
-        if hasFigureLabel(el) and not indexHasElement(el) then
-          if #el.caption > 0 then
-            processFigure(el, el.caption, parent)
-          end
+        -- walk the black
+        doc.blocks[i] = pandoc.walk_block(el, walkFigures(parent))
+
+        -- update caption of parent if we had subfigures
+        if parent then
+           appendSubfigureCaptions(doc.blocks[i])
         end
-        return el
       end
-    }
-  end
 
-  -- walk all blocks in the document
-  for i,el in pairs(doc.blocks) do
+      return doc
 
-    -- process any root level figure divs (note parent for
-    -- potential subfigure discovery)
-    local parent = nil
-    if isFigureDiv(el) then
-      if processFigureDiv(el, parent) then
-        parent = el
-      end
     end
-
-    -- walk the black
-    doc.blocks[i] = pandoc.walk_block(el, walkFigures(parent))
-
-    -- update caption of parent if we had subfigures
-    if parent then
-       appendSubfigureCaptions(doc.blocks[i])
-    end
-  end
-
+  }
 end
 
 -- process a div labeled as a figure (ensures that it has a caption before

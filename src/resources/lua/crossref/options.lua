@@ -1,10 +1,14 @@
 
 
-function optionsInit(meta)
-  crossref.options = {}
-  if type(meta["crossref"]) == "table" then
-    crossref.options = meta["crossref"]
-  end
+function initOptions()
+  return {
+    Pandoc = function(doc)
+      if type(doc.meta["crossref"]) == "table" then
+        crossref.options = doc.meta["crossref"]
+      end
+      return doc
+    end
+  }
 end
 
 function option(name, default)

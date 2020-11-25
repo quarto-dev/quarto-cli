@@ -8,6 +8,7 @@ function filterDoc(doc, filter)
     end
     doc.blocks[i] = pandoc.walk_block(doc.blocks[i], filter)
   end
+  return doc
 end
 
 
