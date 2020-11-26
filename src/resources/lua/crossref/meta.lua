@@ -14,6 +14,15 @@ end
 function metaInjectLatex(doc)
   ensureHeaderIncludes(doc)
 
+  addHeaderInclude(doc, "tex", "\\makeatletter")
+
+  -- TODO: move this to figures filter?
+  local subFig =
+    usePackage("subfig") .. "\n" ..
+    usePackage("caption") .. "\n" ..
+    "\\captionsetup[subfloat]{margin=0.5em}"
+  addHeaderInclude(doc, "tex", subFig)
+
   local floatNames =
     "\\AtBeginDocument{%\n" ..
     "\\renewcommand*\\figurename{" .. titleString("fig", "Figure") .. "}\n" ..
@@ -27,17 +36,20 @@ function metaInjectLatex(doc)
     "\\renewcommand*\\listtablename{" .. listOfTitle("lot", "List of Tables") .. "}\n" ..
     "}\n"
   addHeaderInclude(doc, "tex", listNames)
-  
-  local codeListing = 
-    "\\makeatletter\n" ..
-    "\\@ifpackageloaded{float}{}{\\usepackage{float}}\n" ..
+
+  local codeListing =
+    usePackage("float") .. "\n" ..
     "\\floatstyle{ruled}\n" ..
-    "\\@ifundefined{c@chapter}{\\newfloat{codelisting}{h}{lop}}{\\newfloat{codelisting}{h}{lop}[chapter]}" ..
-    "\\floatname{codelisting}{Listing}\n" ..
-    "\\newcommand*\\listoflistings{\\listof{codelisting}{List of Listings}}\n"  ..
-    "\\makeatother\n"
+    "\\@ifundefined{c@chapter}{\\newfloat{codelisting}{h}{lop}}{\\newfloat{codelisting}{h}{lop}[chapter]}\n" ..
+    "\\floatname{codelisting}{" .. titleString("lst", "Listing") .. "}\n"
   addHeaderInclude(doc, "tex", codeListing)
-  
+
+  local lolCommand =
+    "\\newcommand*\\listoflistings{\\listof{codelisting}{" .. listOfTitle("lol", "List of Listings") .. "}}\n"
+  addHeaderInclude(doc, "tex", lolCommand)
+
+  addHeaderInclude(doc, "tex", "\\makeatother")
+
 end
 
 
@@ -54,6 +66,11 @@ end
 -- add a header include as a raw block
 function addHeaderInclude(doc, format, include)
   doc.meta["header-includes"]:insert(pandoc.MetaBlocks(pandoc.RawBlock(format, include)))
+end
+
+-- conditionally include a package
+function usePackage(pkg)
+  return "\\@ifpackageloaded{" .. pkg .. "}{}{\\usepackage{" .. pkg .. "}}"
 end
 
 function listOfTitle(type, default)
