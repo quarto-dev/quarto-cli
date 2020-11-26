@@ -5,17 +5,18 @@
   quarto-sandbox repo
   https://github.com/newren/git-filter-repo/
 
+- We don't seem to be able to render latex quite the same way that kntir does,
+e.g.:
+library(flextable)
+ft <- flextable(head(mtcars))
+ft <- autofit(ft)
+ft
+
 
 - Filter:
 
-    - inject css for table caption centering
+    - consider implementing ref aggregation (e.g. see figs. 1-2)
 
-    - Listings for Jupyter and Rmd:
-       lst.label="foo" lst.cap = "foo"
-       or lst.cap = " " and use id (or substitute)
-       pure markdown version?
-
-    - equations
     - sections
     - lemma, proof, etc.
 
@@ -40,7 +41,7 @@ Note need to implement tinytex: false and tinytex options (e.g. min-runs, clean,
 
 Why did Beamer fail to render w/ missing caption package w/ our pipeline but work for pandoc pdflatex?
 
-Injected HTML in meta.lua gets overridden whenever we use include-in-header in the 
+Injected HTML in meta.lua gets overridden whenever we use include-in-header in the
 defaults file (e.g. for  htmlwidgets). Use temp file?
 
 
