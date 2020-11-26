@@ -1,5 +1,4 @@
--- TODO
--- probably shouldn't be stringifying the caption. Latex escape?
+
 -- issue w/ code block suppressed if the caption is the last block
 -- consider more flexible listing captions (before/after, Listing: prefix)
 -- computational
@@ -39,9 +38,6 @@ function listings()
                 el.content = tslice(el.content, 2, #el.content)
               end
 
-              -- determine the caption
-              local caption = pandoc.utils.stringify(el)
-
               -- add attributes to code block
               codeBlock.attr.identifier = label
               codeBlock.attr.classes:insert("listing")
@@ -49,15 +45,14 @@ function listings()
               -- if we are use the listings package just add the caption
               -- attribute and return the block, otherwise generate latex
               if latexListings() then
-                codeBlock.attributes["caption"] = caption
+                codeBlock.attributes["caption"] = pandoc.utils.stringify(el)
                 targetBlocks:insert(codeBlock)
               else
                 targetBlocks:insert(pandoc.RawBlock("latex", "\\begin{codelisting}"))
-                targetBlocks:insert(pandoc.Plain({
-                  pandoc.RawInline("latex", "\\caption{"),
-                  pandoc.Str(caption),
-                  pandoc.RawInline("latex", "}")
-                }))
+                local captionEl = pandoc.Plain({pandoc.RawInline("latex", "\\caption{")})
+                captionEl.content:extend(el.content)
+                captionEl.content:insert(pandoc.RawInline("latex", "}"))
+                targetBlocks:insert(captionEl)
                 targetBlocks:insert(codeBlock)
                 targetBlocks:insert(pandoc.RawBlock("latex", "\\end{codelisting}"))
               end
