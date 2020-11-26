@@ -143,6 +143,18 @@ function runPandocMessage(
     message("metadata", { bold: true });
     const printMetadata = { ...metadata };
     delete printMetadata.format;
+
+    // cleanup synthesized crossref metadata
+    if (printMetadata.crossref) {
+      const crossref = printMetadata.crossref as Record<string, unknown>;
+      if (crossref.listings !== undefined) {
+        delete crossref.listings;
+      }
+      if (Object.keys(crossref).length === 0) {
+        delete printMetadata.crossref;
+      }
+    }
+
     message(stringify(printMetadata), { indent: 2 });
   }
 }
