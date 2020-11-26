@@ -76,11 +76,16 @@ knitr_hooks <- function(format) {
     if (isTRUE(options["source.hidden"])) {
       class <- paste(class, "hidden")
     }
-    if (!is.null(options[["lst.cap"]])) {
-      attr <- paste(attr, paste0('caption="', options[["lst.cap"]], '"'))
+    if (!identical(format$metadata[["crossref"]], FALSE)) {
+      id <- options[["lst.label"]]
+      if (!is.null(options[["lst.cap"]])) {
+        attr <- paste(attr, paste0('caption="', options[["lst.cap"]], '"'))
+      }
+    } else {
+      id = NULL
     }
     attrs <- block_attr(
-      id = options[["lst.label"]],
+      id = id,
       lang = tolower(options$engine),
       class = class,
       attr = attr
