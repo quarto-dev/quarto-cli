@@ -8,7 +8,7 @@ jupyter: true
 
 
 
-```python label="tbl:html" tags=["hide-code"]
+```python label="tbl:html" lst.label="lst:html" lst.cap="My Listing"
 from IPython.core.display import display, HTML
 display(HTML("""
 <table style='margin: 0 auto'>
@@ -20,8 +20,6 @@ display(HTML("""
 ```
 
 ::: {#tbl:htmltabulate}
-This is my table
-
 ```python tags=["hide-code"]
 import pandas as pd
 from tabulate import tabulate

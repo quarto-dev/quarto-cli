@@ -7,7 +7,17 @@ format:
 
 
 
-::: {.cell .cell-code data-tags="hide-code"}
+::: {.cell .cell-code lst.cap="My Listing" lst.label="lst:html"}
+``` {#lst:html .python caption="My Listing"}
+from IPython.core.display import display, HTML
+display(HTML("""
+<table style='margin: 0 auto'>
+<caption>Here is the caption</caption>
+<tr><th>Hi!</th><th>There!</th></tr>
+<tr><td>1</td><td>2</td></tr>
+</table>
+"""))
+```
 
 ::: {#tbl:html .output .display_data}
 ```{=html}
@@ -22,7 +32,6 @@ format:
 :::
 
 ::: {#tbl:htmltabulate}
-This is my table
 
 ::: {.cell .cell-code data-tags="hide-code"}
 

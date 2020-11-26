@@ -1,12 +1,12 @@
 ---
 title: "MPL slides"
 format:
-  html: 
+  pdf: 
     keep-md: true
 jupyter: true
 ---
 
-```python fig.cap=["My figure", "My other figure"] label="#fig:scores"
+```python fig.cap=["My figure", "My other figure"] label="fig:scores" lst.label="lst:scores" lst.cap="Checkout the scores"
 import matplotlib.pyplot as plt
 
 labels = ['G1', 'G2', 'G3', 'G4', 'G5']
@@ -42,7 +42,6 @@ plt.show()
 
 ```
 
-See @fig:scores for more details.
 
 See @fig:scores-1 for more details.
 

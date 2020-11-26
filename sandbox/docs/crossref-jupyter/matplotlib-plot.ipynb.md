@@ -1,12 +1,12 @@
 ---
 title: "MPL slides"
 format:
-  html: 
+  pdf: 
     keep-md: true
 ---
 
-::: {#fig:scores .cell .cell-code}
-``` {.python}
+::: {#fig:scores .cell .cell-code lst.cap="Checkout the scores" lst.label="lst:scores"}
+``` {#lst:scores .python caption="Checkout the scores"}
 import matplotlib.pyplot as plt
 
 labels = ['G1', 'G2', 'G3', 'G4', 'G5']
@@ -43,7 +43,7 @@ plt.show()
 ```
 
 ::: {.output .display_data}
-![My figure](matplotlib-plot_files/figure-html/fig-scores-output-1.png){#fig:scores-1 width=585 height=424}
+![My figure](matplotlib-plot_files/figure-pdf/fig-scores-output-1.pdf){#fig:scores-1}
 :::
 
 ::: {.output .stream .stdout}
@@ -53,11 +53,10 @@ Some console output
 :::
 
 ::: {.output .display_data}
-![My other figure](matplotlib-plot_files/figure-html/fig-scores-output-3.png){#fig:scores-2 width=585 height=424}
+![My other figure](matplotlib-plot_files/figure-pdf/fig-scores-output-3.pdf){#fig:scores-2}
 :::
 :::
 
-See @fig:scores for more details.
 
 See @fig:scores-1 for more details.
 
