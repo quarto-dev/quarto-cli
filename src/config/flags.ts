@@ -23,4 +23,5 @@ export interface PandocFlags {
   pdfEngineOpts?: string[];
   natbib?: boolean;
   biblatex?: boolean;
+  listings?: boolean;
 }

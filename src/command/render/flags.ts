@@ -84,6 +84,11 @@ export function parseRenderFlags(args: string[]) {
         flags.biblatex = true;
         break;
 
+      case "--listings":
+        arg = argsStack.shift();
+        flags.listings = true;
+        break;
+
       case "--execute":
         flags.execute = true;
         arg = argsStack.shift();
