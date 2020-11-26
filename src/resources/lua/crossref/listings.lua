@@ -3,18 +3,17 @@
 -- computational
 -- auto listings? (pandoc e.g. every code block make a listing)
 
-
 function listings()
 
   return {
-    Blocks = function(blocks) 
+    Blocks = function(blocks)
 
       local codeBlock = nil
       local targetBlocks = pandoc.List:new()
-      
+
       for i, el in ipairs(blocks) do
 
-        -- process pending code block   
+        -- process pending code block
         local processBlock = true
         if codeBlock then
           if isListingCaption(el) then
@@ -28,32 +27,30 @@ function listings()
 
             -- Slice off the colon
             el.content = tslice(el.content, 2, #el.content)
-            
+
             -- the listing number
-            local order = indexNextOrder("lst")  
+            local order = indexNextOrder("lst")
 
             if isLatexOutput() then
-              
+
               -- slice off leading space, if any
               if el.content[1].t == "Space" then
                 el.content = tslice(el.content, 2, #el.content)
               end
 
-              -- TODO: confirm stringify is right appoach?                
               local caption = pandoc.utils.stringify(el)
-                
               targetBlocks:insert(pandoc.RawBlock("latex", "\\begin{codelisting}"))
               targetBlocks:insert(pandoc.RawBlock("latex", "\\caption{" .. caption  .. "}"))
               targetBlocks:insert(pandoc.Div({pandoc.RawBlock("latex", "\\label{" .. label .. "}")}, pandoc.Attr(label, {"listing"})))
               targetBlocks:insert(codeBlock)
               targetBlocks:insert(pandoc.RawBlock("latex", "\\end{codelisting}"))
-              
+
               -- add the listing to the index
               indexAddEntry(label, nil, order, el.content)
-            else 
+            else
               -- Prepend the title
               tprepend(el.content, listingTitlePrefix(order))
-              
+
               -- add the listing to the index
               indexAddEntry(label, nil, order, el.content)
 
@@ -63,7 +60,7 @@ function listings()
 
             processBlock = false
           end
-          codeBlock = nil        
+          codeBlock = nil
         end
 
         -- either capture the code block or just emit the el
@@ -75,7 +72,7 @@ function listings()
           end
         end
       end
-    
+
       if codeBlock then
         targetBlocks:insert(codeBlock)
       end
@@ -100,9 +97,9 @@ function prependTitlePrefix(caption, label, order)
 end
 
 
-function isListingCaption(el) 
+function isListingCaption(el)
   if el.t == "Para" then
-    local contentStr = pandoc.utils.stringify(el) 
+    local contentStr = pandoc.utils.stringify(el)
     return string.find(contentStr, "^:%s+[^%s].*%s{#lst:[^ }]+}$")
   else
     return false
