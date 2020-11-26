@@ -12,6 +12,8 @@ ft <- flextable(head(mtcars))
 ft <- autofit(ft)
 ft
 
+- Generally, validity of labels (don't want under the hood transformations to 
+  affect addressabilty)
 
 - Filter:
 
