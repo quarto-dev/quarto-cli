@@ -28,6 +28,7 @@ import {
   kIncludeInHeader,
   kKeepHidden,
   kKeepYaml,
+  kListings,
   kMarkdownHeadings,
   kOutputFile,
   kPdfEngine,
@@ -108,6 +109,7 @@ export interface FormatPandoc {
   [kPdfEngine]?: string;
   [kPdfEngineOpts]?: string[];
   [kPdfEngineOpt]?: string;
+  [kListings]?: boolean;
 }
 
 export function isLatexFormat(format: FormatPandoc) {

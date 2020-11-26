@@ -21,6 +21,7 @@ import { message } from "../../core/console.ts";
 
 import { Format, FormatPandoc } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
+import { kListings } from "../../config/constants.ts";
 
 import { RenderFlags } from "./flags.ts";
 import {
@@ -62,10 +63,17 @@ export async function runPandoc(
     cmd.push("--defaults", defaultsFile);
   }
 
+  // forward --listings to crossref if necessary
+  if (crossrefFilterActive(options.format)) {
+    if (options.flags?.listings || options.format.pandoc[kListings]) {
+      setCrossrefMetadata(options.format, "listings", true);
+    }
+  }
+
   // build command line args
   const args = [...options.args];
 
-  // provide default title based on filename if necessdary
+  // provide default title based on filename if necessary
   if (!options.format.metadata["title"]) {
     args.push(
       "--metadata",
@@ -102,6 +110,22 @@ export async function runPandoc(
     },
     input,
   );
+}
+
+export function crossrefFilterActive(format: Format) {
+  return format.metadata.crossref !== false;
+}
+
+function setCrossrefMetadata(
+  format: Format,
+  key: string,
+  value: unknown,
+) {
+  if (typeof format.metadata.crossref !== "object") {
+    format.metadata.crossref = {} as Record<string, unknown>;
+  }
+  // deno-lint-ignore no-explicit-any
+  (format.metadata.crossref as any)[key] = value;
 }
 
 function runPandocMessage(
