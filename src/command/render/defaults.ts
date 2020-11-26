@@ -39,7 +39,7 @@ import { kPatchedTemplateExt } from "./output.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { readYamlFromString } from "../../core/yaml.ts";
-import { PandocOptions } from "./pandoc.ts";
+import { crossrefFilterActive, PandocOptions } from "./pandoc.ts";
 
 export async function generateDefaults(
   options: PandocOptions,
@@ -188,7 +188,7 @@ function resolveFilters(filters: string[] | undefined, options: PandocOptions) {
   }
 
   // add crossref filter if necessary (unshift will put it before citeproc)
-  if (options.format.metadata["crossref"] !== false) {
+  if (crossrefFilterActive(options.format)) {
     filters.unshift(crossrefFilter());
   }
 

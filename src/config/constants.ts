@@ -101,6 +101,7 @@ export const kFilters = "filters";
 export const kPdfEngine = "pdf-engine";
 export const kPdfEngineOpts = "pdf-engine-opts";
 export const kPdfEngineOpt = "pdf-engine-opt";
+export const kListings = "listings";
 
 // metadata fields
 export const kBibliography = "bibliography";
@@ -163,7 +164,7 @@ export const kPandocDefaultsKeys = [
   "highlight-style",
   "syntax-definitions",
   "syntax-definition",
-  "listings",
+  kListings,
   "reference-doc",
   "html-math-method",
   "email-obfuscation",
