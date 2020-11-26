@@ -3,6 +3,7 @@ title: "Equation"
 format: 
   pdf:
     keep-tex: true
+    listings: true
     # crossref: false
     # filters:
     #   - pandoc-crossref
@@ -14,3 +15,10 @@ $$ {#eq:next}
 
 
 See @eq:next 
+
+
+```python
+def myFunc():
+  return 1 + 1
+```
+

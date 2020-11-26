@@ -41,6 +41,10 @@
   hidelinks,
   pdfcreator={LaTeX via pandoc}}
 \urlstyle{same} % disable monospaced font for URLs
+\usepackage{listings}
+\newcommand{\passthrough}[1]{#1}
+\lstset{defaultdialect=[5.3]Lua}
+\lstset{defaultdialect=[x86masm]Assembler}
 \usepackage{longtable,booktabs}
 \usepackage{calc} % for calculating minipage widths
 % Correct order of tables after \paragraph or \subparagraph
@@ -98,5 +102,10 @@ x^n + y^n = z^n
 }\label{eq:next}\end{equation}
 
 See eq.~\ref{eq:next}
+
+\begin{lstlisting}[language=Python]
+def myFunc():
+  return 1 + 1
+\end{lstlisting}
 
 \end{document}
