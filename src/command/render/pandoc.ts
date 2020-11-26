@@ -70,6 +70,7 @@ export async function runPandoc(
   // values, overrides the metadata contained within the file). we'll feed the
   // input to pandoc on stdin
   const input = Deno.readTextFileSync(options.input) +
+    "\n\n<!-- -->\n" +
     `\n---\n${stringify(options.format.metadata || {})}\n---\n`;
 
   // build command line args
