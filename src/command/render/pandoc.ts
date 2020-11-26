@@ -13,35 +13,21 @@
 *
 */
 
-import { basename, dirname, extname } from "path/mod.ts";
+import { dirname } from "path/mod.ts";
 import { stringify } from "encoding/yaml.ts";
 
 import { execProcess, ProcessResult } from "../../core/process.ts";
 import { message } from "../../core/console.ts";
 
-import { Format, FormatPandoc, isHtmlFormat } from "../../config/format.ts";
-import { pdfEngine } from "../../config/pdf.ts";
+import { Format, FormatPandoc } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
 
-import {
-  kBibliography,
-  kFilters,
-  kFrom,
-  kIncludeAfterBody,
-  kIncludeBeforeBody,
-  kIncludeInHeader,
-  kOutputFile,
-  kSelfContained,
-  kStandalone,
-  kTemplate,
-  kTo,
-} from "../../config/constants.ts";
-
-import { kPatchedTemplateExt } from "./output.ts";
 import { RenderFlags } from "./flags.ts";
-import { mergeConfigs } from "../../core/config.ts";
-import { resourcePath } from "../../core/resources.ts";
-import { readYamlFromString } from "../../core/yaml.ts";
+import {
+  generateDefaults,
+  pandocDefaultsMessage,
+  writeDefaultsFile,
+} from "./defaults.ts";
 
 // options required to run pandoc
 export interface PandocOptions {
@@ -69,29 +55,10 @@ export async function runPandoc(
   // build the pandoc command (we'll feed it the input on stdin)
   const cmd = ["pandoc"];
 
-  // write a temporary defaults file
-  let allDefaults: FormatPandoc | undefined;
-  const detectedDefaults = await detectDefaults(
-    options.input,
-    options.format.pandoc,
-  );
-  if (detectedDefaults || options.format.pandoc) {
-    allDefaults = mergeConfigs(
-      detectedDefaults || {},
-      options.format.pandoc || {},
-    );
-    // resolve filters
-    const filters = resolveFilters(allDefaults[kFilters], options);
-    if (filters) {
-      allDefaults[kFilters] = filters;
-    }
-
-    const defaults = "---\n" +
-      stringify(allDefaults as Record<string, unknown>);
-    const defaultsFile = await Deno.makeTempFile(
-      { prefix: "quarto-defaults", suffix: ".yml" },
-    );
-    await Deno.writeTextFile(defaultsFile, defaults);
+  // generate defaults and write a defaults file if need be
+  const allDefaults = await generateDefaults(options);
+  if (allDefaults) {
+    const defaultsFile = await writeDefaultsFile(allDefaults);
     cmd.push("--defaults", defaultsFile);
   }
 
@@ -137,82 +104,6 @@ export async function runPandoc(
   );
 }
 
-async function detectDefaults(
-  file: string,
-  format: FormatPandoc,
-): Promise<FormatPandoc | undefined> {
-  if (isHtmlFormat(format)) {
-    const cmd = [
-      "pandoc",
-      file,
-      "--from",
-      format.from || "markdown",
-      "--to",
-      resourcePath("lua/html-defaults.lua"),
-    ];
-    const result = await execProcess({ cmd, stdout: "piped" });
-    if (result.success) {
-      const defaults = (result.stdout || "").trim();
-      if (defaults) {
-        return readYamlFromString(`---\n${defaults}\n`) as FormatPandoc;
-      } else {
-        return undefined;
-      }
-    } else {
-      throw new Error();
-    }
-  } else {
-    return undefined;
-  }
-}
-
-type CiteMethod = "citeproc" | "natbib" | "biblatex";
-
-function citeMethod(options: PandocOptions): CiteMethod | null {
-  // no handler if no references
-  const pandoc = options.format.pandoc;
-  const metadata = options.format.metadata;
-  if (!metadata[kBibliography] && !metadata.references) {
-    return null;
-  }
-
-  // collect config
-  const pdf = pdfEngine(options.format.pandoc, options.flags);
-
-  // if it's pdf-based output check for natbib or biblatex
-  if (pdf?.bibEngine) {
-    return pdf.bibEngine;
-  }
-
-  // otherwise it's citeproc unless expressly disabled
-  if (pandoc.citeproc !== false) {
-    return "citeproc";
-  } else {
-    return null;
-  }
-}
-
-function resolveFilters(filters: string[] | undefined, options: PandocOptions) {
-  filters = filters || [];
-
-  // add citeproc filter if necessary
-  const citeproc = citeMethod(options) === "citeproc";
-  if (citeproc && !filters.includes("citeproc")) {
-    filters.unshift("citeproc");
-  }
-
-  // add crossref filter if necessary (unshift will put it before citeproc)
-  if (options.format.metadata["crossref"] !== false) {
-    filters.unshift(crossrefFilter());
-  }
-
-  if (filters.length > 0) {
-    return filters;
-  } else {
-    return undefined;
-  }
-}
-
 function runPandocMessage(
   args: string[],
   pandoc: FormatPandoc | undefined,
@@ -230,55 +121,4 @@ function runPandocMessage(
     delete printMetadata.format;
     message(stringify(printMetadata), { indent: 2 });
   }
-}
-
-function pandocDefaultsMessage(pandoc: FormatPandoc, debug?: boolean) {
-  const kDebugOnly = [
-    kIncludeInHeader,
-    kIncludeBeforeBody,
-    kIncludeAfterBody,
-  ];
-  const kOrder = [
-    kTo,
-    kFrom,
-    kOutputFile,
-    kTemplate,
-    kStandalone,
-    kSelfContained,
-  ];
-  const defaults: FormatPandoc = {};
-  kOrder.forEach((key) => {
-    if (Object.keys(pandoc).includes(key)) {
-      // deno-lint-ignore no-explicit-any
-      (defaults as any)[key] = (pandoc as any)[key];
-    }
-  });
-  Object.keys(pandoc).forEach((key) => {
-    if (!kOrder.includes(key) && (debug || !kDebugOnly.includes(key))) {
-      // deno-lint-ignore no-explicit-any
-      (defaults as any)[key] = (pandoc as any)[key];
-    }
-  });
-
-  // simplify crossref filter
-  if (defaults.filters?.length) {
-    defaults.filters = defaults.filters.map((filter) => {
-      if (filter === crossrefFilter()) {
-        return "crossref";
-      } else {
-        return filter;
-      }
-    });
-  }
-
-  // remove template if it's patched
-  if (defaults.template && extname(defaults.template) === kPatchedTemplateExt) {
-    delete defaults.template;
-  }
-
-  return stringify(defaults as Record<string, unknown>);
-}
-
-function crossrefFilter() {
-  return resourcePath("lua/crossref/crossref.lua");
 }
