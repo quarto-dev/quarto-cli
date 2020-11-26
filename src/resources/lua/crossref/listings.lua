@@ -1,7 +1,9 @@
 -- TODO
+-- probably shouldn't be stringifying the caption
+-- issue w/ code block suppressed if the caption is the last block
+-- consider more flexible listing captions (before/after, Listing: prefix)
 -- latex listing missing padding at top of code chunk (compare with pandoc-crossref)
 -- computational
--- auto listings? (pandoc e.g. every code block make a listing)
 
 function listings()
 
@@ -38,10 +40,17 @@ function listings()
                 el.content = tslice(el.content, 2, #el.content)
               end
 
+              -- add attributes to code block
+              codeBlock.attr.identifier = label
+              codeBlock.attr.classes:insert("listing")
+
               local caption = pandoc.utils.stringify(el)
               targetBlocks:insert(pandoc.RawBlock("latex", "\\begin{codelisting}"))
-              targetBlocks:insert(pandoc.RawBlock("latex", "\\caption{" .. caption  .. "}"))
-              targetBlocks:insert(pandoc.Div({pandoc.RawBlock("latex", "\\label{" .. label .. "}")}, pandoc.Attr(label, {"listing"})))
+              targetBlocks:insert(pandoc.Plain({
+                pandoc.RawInline("latex", "\\caption{"),
+                pandoc.Str(caption),
+                pandoc.RawInline("latex", "}")
+              }))
               targetBlocks:insert(codeBlock)
               targetBlocks:insert(pandoc.RawBlock("latex", "\\end{codelisting}"))
 
@@ -105,3 +114,9 @@ function isListingCaption(el)
     return false
   end
 end
+
+function latexListings()
+  return option("listings", false)
+end
+
+
