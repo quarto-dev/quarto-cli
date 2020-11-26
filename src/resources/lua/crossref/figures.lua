@@ -105,11 +105,13 @@ function processFigure(el, captionEl, parentEl)
     end
   else
     order = indexNextOrder("fig")
-    tprepend(captionEl, figureTitlePrefix(order))
+    if not isLatexOutput() then
+      tprepend(captionEl, figureTitlePrefix(order))
+    end
   end
 
   -- update the index
-  indexAddEntry(label, parent, order, caption)
+  indexAddEntry(label, parent, order, caption.content)
 end
 
 -- append any avavilable subfigure captions to the div
