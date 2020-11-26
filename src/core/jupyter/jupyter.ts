@@ -77,6 +77,8 @@ export const kRawMimeType = "raw_mimetype";
 export const kCellLabel = "label";
 export const kCellFigCap = "fig.cap";
 export const kCellFigSubCap = "fig.subcap";
+export const kCellLstLabel = "lst.label";
+export const kCellLstCap = "lst.cap";
 export const kCellClasses = "classes";
 export const kCellWidth = "width";
 export const kCellHeight = "height";
@@ -109,6 +111,8 @@ export interface JupyterCell {
     [kCellLabel]?: string;
     [kCellFigCap]?: string | string[];
     [kCellFigSubCap]?: string[];
+    [kCellLstLabel]?: string;
+    [kCellLstCap]?: string;
     [kCellClasses]?: string;
 
     // used by jupytext to preserve line spacing
@@ -388,9 +392,20 @@ function mdFromCodeCell(
 
   // write code if appropriate
   if (includeCode(cell, options.execution)) {
-    md.push("``` {." + options.language);
+    md.push("``` {");
+    if (typeof cell.metadata[kCellLstLabel] === "string") {
+      let label = cell.metadata[kCellLstLabel]!;
+      if (!label.startsWith("#")) {
+        label = "#" + label;
+      }
+      md.push(label + " ");
+    }
+    md.push("." + options.language);
     if (hideCode(cell, options.execution)) {
       md.push(" .hidden");
+    }
+    if (typeof cell.metadata[kCellLstCap] === "string") {
+      md.push(` caption=\"${cell.metadata[kCellLstCap]}\"`);
     }
     md.push("}\n");
     md.push(...cell.source, "\n");
@@ -429,7 +444,7 @@ function mdFromCodeCell(
         ? (label + "-" + nextOutputSuffix++)
         : label;
       if (outputLabel && shouldLabelOutputContainer(output, options)) {
-        md.push("#" + outputLabel + " ");
+        md.push(outputLabel + " ");
       }
 
       // div preamble
