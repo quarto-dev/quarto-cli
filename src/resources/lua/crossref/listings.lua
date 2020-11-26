@@ -1,6 +1,4 @@
 
--- issue w/ code block suppressed if the caption is the last block
--- consider more flexible listing captions (before/after, Listing: prefix)
 -- computational
 
 function listings()
@@ -8,14 +6,83 @@ function listings()
   return {
     Blocks = function(blocks)
 
-      local codeBlock = nil
+      local pendingCodeBlock = nil
       local targetBlocks = pandoc.List:new()
+
+      -- process a listing
+      function processListing(label, codeBlock, captionContent)
+
+        -- the listing number
+        local order = indexNextOrder("lst")
+
+        if isLatexOutput() then
+
+          -- add attributes to code block
+          codeBlock.attr.identifier = label
+          codeBlock.attr.classes:insert("listing")
+
+          -- if we are use the listings package just add the caption
+          -- attribute and return the block, otherwise generate latex
+          if latexListings() then
+            codeBlock.attributes["caption"] = pandoc.utils.stringify(el)
+            targetBlocks:insert(codeBlock)
+          else
+            targetBlocks:insert(pandoc.RawBlock("latex", "\\begin{codelisting}"))
+            local caption = pandoc.Plain({pandoc.RawInline("latex", "\\caption{")})
+            caption.content:extend(captionContent)
+            caption.content:insert(pandoc.RawInline("latex", "}"))
+            targetBlocks:insert(caption)
+            targetBlocks:insert(codeBlock)
+            targetBlocks:insert(pandoc.RawBlock("latex", "\\end{codelisting}"))
+          end
+
+          -- add the listing to the index
+          indexAddEntry(label, nil, order, captionContent)
+
+        else
+          -- add the listing to the index
+          indexAddEntry(label, nil, order, captionContent)
+
+           -- Prepend the title
+          tprepend(captionContent, listingTitlePrefix(order))
+
+          -- add the list to the output blocks
+          targetBlocks:insert(pandoc.Div(
+            {
+              pandoc.Para(captionContent),
+              codeBlock
+            },
+            pandoc.Attr(label, {"listing"})
+          ))
+        end
+
+      end
 
       for i, el in ipairs(blocks) do
 
+        -- should we proceed with inserting this block?
+        local insertBlock = true
+
+        -- see if this is a code block with a listing label/caption
+        if el.t == "CodeBlock" then
+
+          if pendingCodeBlock then
+            targetBlocks:insert(pendingCodeBlock)
+            pendingCodeBlock = nil
+          end
+
+          local label = string.match(el.attr.identifier, "^lst:[^ ]+$")
+          local caption = el.attr.attributes["lst.cap"]
+          if label and caption then
+            processListing(label, el, markdownToInlines(caption))
+          else
+            pendingCodeBlock = el
+          end
+
+          insertBlock = false
+
         -- process pending code block
-        local processBlock = true
-        if codeBlock then
+        elseif pendingCodeBlock then
           if isListingCaption(el) then
 
             -- find the label
@@ -25,71 +92,27 @@ function listings()
             -- remove the id from the end
             el.content = tslice(el.content, 1, #el.content-2)
 
-            -- Slice off the colon
-            el.content = tslice(el.content, 2, #el.content)
+            -- Slice off the colon and space
+            el.content = tslice(el.content, 3, #el.content)
 
-            -- the listing number
-            local order = indexNextOrder("lst")
+            -- process the listing
+            processListing(label, pendingCodeBlock, el.content)
 
-            if isLatexOutput() then
-
-              -- slice off leading space, if any
-              if el.content[1].t == "Space" then
-                el.content = tslice(el.content, 2, #el.content)
-              end
-
-              -- add attributes to code block
-              codeBlock.attr.identifier = label
-              codeBlock.attr.classes:insert("listing")
-
-              -- if we are use the listings package just add the caption
-              -- attribute and return the block, otherwise generate latex
-              if latexListings() then
-                codeBlock.attributes["caption"] = pandoc.utils.stringify(el)
-                targetBlocks:insert(codeBlock)
-              else
-                targetBlocks:insert(pandoc.RawBlock("latex", "\\begin{codelisting}"))
-                local captionEl = pandoc.Plain({pandoc.RawInline("latex", "\\caption{")})
-                captionEl.content:extend(el.content)
-                captionEl.content:insert(pandoc.RawInline("latex", "}"))
-                targetBlocks:insert(captionEl)
-                targetBlocks:insert(codeBlock)
-                targetBlocks:insert(pandoc.RawBlock("latex", "\\end{codelisting}"))
-              end
-
-              -- add the listing to the index
-              indexAddEntry(label, nil, order, el.content)
-
-            else
-              -- Prepend the title
-              tprepend(el.content, listingTitlePrefix(order))
-
-              -- add the listing to the index
-              indexAddEntry(label, nil, order, el.content)
-
-              -- add the list to the output blocks
-              targetBlocks:insert(pandoc.Div({el, codeBlock}, pandoc.Attr(label, {"listing"})))
-            end
-
-            processBlock = false
+            insertBlock = false
           else
-            targetBlocks:insert(codeBlock)
+            targetBlocks:insert(pendingCodeBlock)
           end
-          codeBlock = nil
+          pendingCodeBlock = nil
         end
 
         -- either capture the code block or just emit the el
-        if processBlock then
-          if (el.t == "CodeBlock") then
-            codeBlock = el
-          else
-            targetBlocks:insert(el)
-          end
+        if insertBlock then
+          targetBlocks:insert(el)
         end
       end
 
-      if codeBlock then
-        targetBlocks:insert(codeBlock)
+      if pendingCodeBlock then
+        targetBlocks:insert(pendingCodeBlock)
       end
 
       return targetBlocks

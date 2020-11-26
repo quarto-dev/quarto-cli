@@ -14,6 +14,9 @@ end
 
 -- add an entry to the index
 function indexAddEntry(label, parent, order, caption)
+  if caption ~= nil then
+    caption = pandoc.List:new(caption)
+  end
   crossref.index.entries[label] = {
     parent = parent,
     order = order,

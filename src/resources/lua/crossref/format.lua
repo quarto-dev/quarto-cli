@@ -37,14 +37,6 @@ function captionCollectedLabelSep()
   return option("caption-collected-label-sep", stringToInlines("\u{a0}—\u{a0}"))
 end
 
-function stringToInlines(str)
-  return {pandoc.Str(str)}
-end
-
-function nbspString()
-  return pandoc.Str '\u{a0}'
-end
-
 function subfigNumber(num)
   return numberOption("subfig", num,  {pandoc.Str("alpha"),pandoc.Space(),pandoc.Str("a")})
 end
