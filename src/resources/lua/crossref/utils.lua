@@ -91,6 +91,22 @@ function spairs(t, order)
   end
 end
 
+-- lua string to pandoc inlines
+function stringToInlines(str)
+  return {pandoc.Str(str)}
+end
+
+-- lua string with markdown to pandoc inlines
+function markdownToInlines(str)
+  local doc = pandoc.read(str)
+  return doc.blocks[1].content
+end
+
+-- non-breaking space
+function nbspString()
+  return pandoc.Str '\u{a0}'
+end
+
 -- dump an object to stdout
 function dump(o)
   if type(o) == 'table' then
