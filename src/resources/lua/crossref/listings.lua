@@ -1,8 +1,4 @@
 
--- computational:
---  test hidden and knitr class and attr attributes
---  make inclusion of lst attributes conditional on crossref enabled
---  python crossref
 
 function listings()
 
