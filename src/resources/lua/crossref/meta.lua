@@ -37,16 +37,25 @@ function metaInjectLatex(doc)
     "}\n"
   addHeaderInclude(doc, "tex", listNames)
 
-  local codeListing =
-    usePackage("float") .. "\n" ..
-    "\\floatstyle{ruled}\n" ..
-    "\\@ifundefined{c@chapter}{\\newfloat{codelisting}{h}{lop}}{\\newfloat{codelisting}{h}{lop}[chapter]}\n" ..
-    "\\floatname{codelisting}{" .. titleString("lst", "Listing") .. "}\n"
-  addHeaderInclude(doc, "tex", codeListing)
+  if latexListings() then
+    local lolCommand =
+      "\\newcommand*\\listoflistings\\lstlistoflistings\n" ..
+      "\\AtBeginDocument{%\n" ..
+      "\\renewcommand*\\lstlistlistingname{" .. listOfTitle("lol", "List of Listigs") .. "}\n" ..
+      "}\n"
+    addHeaderInclude(doc, "tex", lolCommand)
+  else
+    local codeListing =
+      usePackage("float") .. "\n" ..
+      "\\floatstyle{ruled}\n" ..
+      "\\@ifundefined{c@chapter}{\\newfloat{codelisting}{h}{lop}}{\\newfloat{codelisting}{h}{lop}[chapter]}\n" ..
+      "\\floatname{codelisting}{" .. titleString("lst", "Listing") .. "}\n"
+    addHeaderInclude(doc, "tex", codeListing)
 
-  local lolCommand =
-    "\\newcommand*\\listoflistings{\\listof{codelisting}{" .. listOfTitle("lol", "List of Listings") .. "}}\n"
-  addHeaderInclude(doc, "tex", lolCommand)
+    local lolCommand =
+      "\\newcommand*\\listoflistings{\\listof{codelisting}{" .. listOfTitle("lol", "List of Listings") .. "}}\n"
+    addHeaderInclude(doc, "tex", lolCommand)
+  end
 
   addHeaderInclude(doc, "tex", "\\makeatother")
 

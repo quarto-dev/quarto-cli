@@ -1,8 +1,7 @@
 -- TODO
--- probably shouldn't be stringifying the caption
+-- probably shouldn't be stringifying the caption. Latex escape?
 -- issue w/ code block suppressed if the caption is the last block
 -- consider more flexible listing captions (before/after, Listing: prefix)
--- latex listing missing padding at top of code chunk (compare with pandoc-crossref)
 -- computational
 
 function listings()
@@ -40,22 +39,32 @@ function listings()
                 el.content = tslice(el.content, 2, #el.content)
               end
 
+              -- determine the caption
+              local caption = pandoc.utils.stringify(el)
+
               -- add attributes to code block
               codeBlock.attr.identifier = label
               codeBlock.attr.classes:insert("listing")
 
-              local caption = pandoc.utils.stringify(el)
-              targetBlocks:insert(pandoc.RawBlock("latex", "\\begin{codelisting}"))
-              targetBlocks:insert(pandoc.Plain({
-                pandoc.RawInline("latex", "\\caption{"),
-                pandoc.Str(caption),
-                pandoc.RawInline("latex", "}")
-              }))
-              targetBlocks:insert(codeBlock)
-              targetBlocks:insert(pandoc.RawBlock("latex", "\\end{codelisting}"))
+              -- if we are use the listings package just add the caption
+              -- attribute and return the block, otherwise generate latex
+              if latexListings() then
+                codeBlock.attributes["caption"] = caption
+                targetBlocks:insert(codeBlock)
+              else
+                targetBlocks:insert(pandoc.RawBlock("latex", "\\begin{codelisting}"))
+                targetBlocks:insert(pandoc.Plain({
+                  pandoc.RawInline("latex", "\\caption{"),
+                  pandoc.Str(caption),
+                  pandoc.RawInline("latex", "}")
+                }))
+                targetBlocks:insert(codeBlock)
+                targetBlocks:insert(pandoc.RawBlock("latex", "\\end{codelisting}"))
+              end
 
               -- add the listing to the index
               indexAddEntry(label, nil, order, el.content)
+
             else
               -- Prepend the title
               tprepend(el.content, listingTitlePrefix(order))
@@ -68,6 +77,8 @@ function listings()
             end
 
             processBlock = false
+          else
+            targetBlocks:insert(codeBlock)
           end
           codeBlock = nil
         end

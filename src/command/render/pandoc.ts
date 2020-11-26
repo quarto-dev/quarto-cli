@@ -13,6 +13,8 @@
 *
 */
 
+import { ld } from "lodash/mod.ts";
+
 import { dirname } from "path/mod.ts";
 import { stringify } from "encoding/yaml.ts";
 
@@ -46,13 +48,6 @@ export interface PandocOptions {
 export async function runPandoc(
   options: PandocOptions,
 ): Promise<ProcessResult> {
-  // read the input file then append the metadata to the file (this is to that)
-  // our fully resolved metadata, which incorporates project and format-specific
-  // values, overrides the metadata contained within the file). we'll feed the
-  // input to pandoc on stdin
-  const input = Deno.readTextFileSync(options.input) +
-    `\n---\n${stringify(options.format.metadata || {})}\n---\n`;
-
   // build the pandoc command (we'll feed it the input on stdin)
   const cmd = ["pandoc"];
 
@@ -69,6 +64,13 @@ export async function runPandoc(
       setCrossrefMetadata(options.format, "listings", true);
     }
   }
+
+  // read the input file then append the metadata to the file (this is to that)
+  // our fully resolved metadata, which incorporates project and format-specific
+  // values, overrides the metadata contained within the file). we'll feed the
+  // input to pandoc on stdin
+  const input = Deno.readTextFileSync(options.input) +
+    `\n---\n${stringify(options.format.metadata || {})}\n---\n`;
 
   // build command line args
   const args = [...options.args];
@@ -141,7 +143,7 @@ function runPandocMessage(
 
   if (Object.keys(metadata).length > 0) {
     message("metadata", { bold: true });
-    const printMetadata = { ...metadata };
+    const printMetadata = ld.cloneDeep(metadata);
     delete printMetadata.format;
 
     // cleanup synthesized crossref metadata
