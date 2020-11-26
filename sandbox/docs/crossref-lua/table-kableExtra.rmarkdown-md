@@ -1,0 +1,343 @@
+---
+title: "Table"
+# output:
+#   pdf_document: default
+format:
+  pdf: 
+    keep-md: true
+    keep-tex: true
+    # crossref: false
+    # filters:
+    #   - pandoc-crossref
+tblPrefix: "tableeee"
+---
+
+
+
+
+See @tbl:jj for more.
+
+::: {.cell .cell-code}
+
+```r
+kable(iris, caption = "My cross referenced table") %>%
+  kable_styling(latex_options = "striped")
+```
+
+::: {#tbl:jj .output .display_data}
+```{=tex}
+\begin{table}
+
+\caption{\label{tab:tbl:jj}My cross referenced table}
+\centering
+\begin{tabular}[t]{r|r|r|r|l}
+\hline
+Sepal.Length & Sepal.Width & Petal.Length & Petal.Width & Species\\
+\hline
+\cellcolor{gray!6}{5.1} & \cellcolor{gray!6}{3.5} & \cellcolor{gray!6}{1.4} & \cellcolor{gray!6}{0.2} & \cellcolor{gray!6}{setosa}\\
+\hline
+4.9 & 3.0 & 1.4 & 0.2 & setosa\\
+\hline
+\cellcolor{gray!6}{4.7} & \cellcolor{gray!6}{3.2} & \cellcolor{gray!6}{1.3} & \cellcolor{gray!6}{0.2} & \cellcolor{gray!6}{setosa}\\
+\hline
+4.6 & 3.1 & 1.5 & 0.2 & setosa\\
+\hline
+\cellcolor{gray!6}{5.0} & \cellcolor{gray!6}{3.6} & \cellcolor{gray!6}{1.4} & \cellcolor{gray!6}{0.2} & \cellcolor{gray!6}{setosa}\\
+\hline
+5.4 & 3.9 & 1.7 & 0.4 & setosa\\
+\hline
+\cellcolor{gray!6}{4.6} & \cellcolor{gray!6}{3.4} & \cellcolor{gray!6}{1.4} & \cellcolor{gray!6}{0.3} & \cellcolor{gray!6}{setosa}\\
+\hline
+5.0 & 3.4 & 1.5 & 0.2 & setosa\\
+\hline
+\cellcolor{gray!6}{4.4} & \cellcolor{gray!6}{2.9} & \cellcolor{gray!6}{1.4} & \cellcolor{gray!6}{0.2} & \cellcolor{gray!6}{setosa}\\
+\hline
+4.9 & 3.1 & 1.5 & 0.1 & setosa\\
+\hline
+\cellcolor{gray!6}{5.4} & \cellcolor{gray!6}{3.7} & \cellcolor{gray!6}{1.5} & \cellcolor{gray!6}{0.2} & \cellcolor{gray!6}{setosa}\\
+\hline
+4.8 & 3.4 & 1.6 & 0.2 & setosa\\
+\hline
+\cellcolor{gray!6}{4.8} & \cellcolor{gray!6}{3.0} & \cellcolor{gray!6}{1.4} & \cellcolor{gray!6}{0.1} & \cellcolor{gray!6}{setosa}\\
+\hline
+4.3 & 3.0 & 1.1 & 0.1 & setosa\\
+\hline
+\cellcolor{gray!6}{5.8} & \cellcolor{gray!6}{4.0} & \cellcolor{gray!6}{1.2} & \cellcolor{gray!6}{0.2} & \cellcolor{gray!6}{setosa}\\
+\hline
+5.7 & 4.4 & 1.5 & 0.4 & setosa\\
+\hline
+\cellcolor{gray!6}{5.4} & \cellcolor{gray!6}{3.9} & \cellcolor{gray!6}{1.3} & \cellcolor{gray!6}{0.4} & \cellcolor{gray!6}{setosa}\\
+\hline
+5.1 & 3.5 & 1.4 & 0.3 & setosa\\
+\hline
+\cellcolor{gray!6}{5.7} & \cellcolor{gray!6}{3.8} & \cellcolor{gray!6}{1.7} & \cellcolor{gray!6}{0.3} & \cellcolor{gray!6}{setosa}\\
+\hline
+5.1 & 3.8 & 1.5 & 0.3 & setosa\\
+\hline
+\cellcolor{gray!6}{5.4} & \cellcolor{gray!6}{3.4} & \cellcolor{gray!6}{1.7} & \cellcolor{gray!6}{0.2} & \cellcolor{gray!6}{setosa}\\
+\hline
+5.1 & 3.7 & 1.5 & 0.4 & setosa\\
+\hline
+\cellcolor{gray!6}{4.6} & \cellcolor{gray!6}{3.6} & \cellcolor{gray!6}{1.0} & \cellcolor{gray!6}{0.2} & \cellcolor{gray!6}{setosa}\\
+\hline
+5.1 & 3.3 & 1.7 & 0.5 & setosa\\
+\hline
+\cellcolor{gray!6}{4.8} & \cellcolor{gray!6}{3.4} & \cellcolor{gray!6}{1.9} & \cellcolor{gray!6}{0.2} & \cellcolor{gray!6}{setosa}\\
+\hline
+5.0 & 3.0 & 1.6 & 0.2 & setosa\\
+\hline
+\cellcolor{gray!6}{5.0} & \cellcolor{gray!6}{3.4} & \cellcolor{gray!6}{1.6} & \cellcolor{gray!6}{0.4} & \cellcolor{gray!6}{setosa}\\
+\hline
+5.2 & 3.5 & 1.5 & 0.2 & setosa\\
+\hline
+\cellcolor{gray!6}{5.2} & \cellcolor{gray!6}{3.4} & \cellcolor{gray!6}{1.4} & \cellcolor{gray!6}{0.2} & \cellcolor{gray!6}{setosa}\\
+\hline
+4.7 & 3.2 & 1.6 & 0.2 & setosa\\
+\hline
+\cellcolor{gray!6}{4.8} & \cellcolor{gray!6}{3.1} & \cellcolor{gray!6}{1.6} & \cellcolor{gray!6}{0.2} & \cellcolor{gray!6}{setosa}\\
+\hline
+5.4 & 3.4 & 1.5 & 0.4 & setosa\\
+\hline
+\cellcolor{gray!6}{5.2} & \cellcolor{gray!6}{4.1} & \cellcolor{gray!6}{1.5} & \cellcolor{gray!6}{0.1} & \cellcolor{gray!6}{setosa}\\
+\hline
+5.5 & 4.2 & 1.4 & 0.2 & setosa\\
+\hline
+\cellcolor{gray!6}{4.9} & \cellcolor{gray!6}{3.1} & \cellcolor{gray!6}{1.5} & \cellcolor{gray!6}{0.2} & \cellcolor{gray!6}{setosa}\\
+\hline
+5.0 & 3.2 & 1.2 & 0.2 & setosa\\
+\hline
+\cellcolor{gray!6}{5.5} & \cellcolor{gray!6}{3.5} & \cellcolor{gray!6}{1.3} & \cellcolor{gray!6}{0.2} & \cellcolor{gray!6}{setosa}\\
+\hline
+4.9 & 3.6 & 1.4 & 0.1 & setosa\\
+\hline
+\cellcolor{gray!6}{4.4} & \cellcolor{gray!6}{3.0} & \cellcolor{gray!6}{1.3} & \cellcolor{gray!6}{0.2} & \cellcolor{gray!6}{setosa}\\
+\hline
+5.1 & 3.4 & 1.5 & 0.2 & setosa\\
+\hline
+\cellcolor{gray!6}{5.0} & \cellcolor{gray!6}{3.5} & \cellcolor{gray!6}{1.3} & \cellcolor{gray!6}{0.3} & \cellcolor{gray!6}{setosa}\\
+\hline
+4.5 & 2.3 & 1.3 & 0.3 & setosa\\
+\hline
+\cellcolor{gray!6}{4.4} & \cellcolor{gray!6}{3.2} & \cellcolor{gray!6}{1.3} & \cellcolor{gray!6}{0.2} & \cellcolor{gray!6}{setosa}\\
+\hline
+5.0 & 3.5 & 1.6 & 0.6 & setosa\\
+\hline
+\cellcolor{gray!6}{5.1} & \cellcolor{gray!6}{3.8} & \cellcolor{gray!6}{1.9} & \cellcolor{gray!6}{0.4} & \cellcolor{gray!6}{setosa}\\
+\hline
+4.8 & 3.0 & 1.4 & 0.3 & setosa\\
+\hline
+\cellcolor{gray!6}{5.1} & \cellcolor{gray!6}{3.8} & \cellcolor{gray!6}{1.6} & \cellcolor{gray!6}{0.2} & \cellcolor{gray!6}{setosa}\\
+\hline
+4.6 & 3.2 & 1.4 & 0.2 & setosa\\
+\hline
+\cellcolor{gray!6}{5.3} & \cellcolor{gray!6}{3.7} & \cellcolor{gray!6}{1.5} & \cellcolor{gray!6}{0.2} & \cellcolor{gray!6}{setosa}\\
+\hline
+5.0 & 3.3 & 1.4 & 0.2 & setosa\\
+\hline
+\cellcolor{gray!6}{7.0} & \cellcolor{gray!6}{3.2} & \cellcolor{gray!6}{4.7} & \cellcolor{gray!6}{1.4} & \cellcolor{gray!6}{versicolor}\\
+\hline
+6.4 & 3.2 & 4.5 & 1.5 & versicolor\\
+\hline
+\cellcolor{gray!6}{6.9} & \cellcolor{gray!6}{3.1} & \cellcolor{gray!6}{4.9} & \cellcolor{gray!6}{1.5} & \cellcolor{gray!6}{versicolor}\\
+\hline
+5.5 & 2.3 & 4.0 & 1.3 & versicolor\\
+\hline
+\cellcolor{gray!6}{6.5} & \cellcolor{gray!6}{2.8} & \cellcolor{gray!6}{4.6} & \cellcolor{gray!6}{1.5} & \cellcolor{gray!6}{versicolor}\\
+\hline
+5.7 & 2.8 & 4.5 & 1.3 & versicolor\\
+\hline
+\cellcolor{gray!6}{6.3} & \cellcolor{gray!6}{3.3} & \cellcolor{gray!6}{4.7} & \cellcolor{gray!6}{1.6} & \cellcolor{gray!6}{versicolor}\\
+\hline
+4.9 & 2.4 & 3.3 & 1.0 & versicolor\\
+\hline
+\cellcolor{gray!6}{6.6} & \cellcolor{gray!6}{2.9} & \cellcolor{gray!6}{4.6} & \cellcolor{gray!6}{1.3} & \cellcolor{gray!6}{versicolor}\\
+\hline
+5.2 & 2.7 & 3.9 & 1.4 & versicolor\\
+\hline
+\cellcolor{gray!6}{5.0} & \cellcolor{gray!6}{2.0} & \cellcolor{gray!6}{3.5} & \cellcolor{gray!6}{1.0} & \cellcolor{gray!6}{versicolor}\\
+\hline
+5.9 & 3.0 & 4.2 & 1.5 & versicolor\\
+\hline
+\cellcolor{gray!6}{6.0} & \cellcolor{gray!6}{2.2} & \cellcolor{gray!6}{4.0} & \cellcolor{gray!6}{1.0} & \cellcolor{gray!6}{versicolor}\\
+\hline
+6.1 & 2.9 & 4.7 & 1.4 & versicolor\\
+\hline
+\cellcolor{gray!6}{5.6} & \cellcolor{gray!6}{2.9} & \cellcolor{gray!6}{3.6} & \cellcolor{gray!6}{1.3} & \cellcolor{gray!6}{versicolor}\\
+\hline
+6.7 & 3.1 & 4.4 & 1.4 & versicolor\\
+\hline
+\cellcolor{gray!6}{5.6} & \cellcolor{gray!6}{3.0} & \cellcolor{gray!6}{4.5} & \cellcolor{gray!6}{1.5} & \cellcolor{gray!6}{versicolor}\\
+\hline
+5.8 & 2.7 & 4.1 & 1.0 & versicolor\\
+\hline
+\cellcolor{gray!6}{6.2} & \cellcolor{gray!6}{2.2} & \cellcolor{gray!6}{4.5} & \cellcolor{gray!6}{1.5} & \cellcolor{gray!6}{versicolor}\\
+\hline
+5.6 & 2.5 & 3.9 & 1.1 & versicolor\\
+\hline
+\cellcolor{gray!6}{5.9} & \cellcolor{gray!6}{3.2} & \cellcolor{gray!6}{4.8} & \cellcolor{gray!6}{1.8} & \cellcolor{gray!6}{versicolor}\\
+\hline
+6.1 & 2.8 & 4.0 & 1.3 & versicolor\\
+\hline
+\cellcolor{gray!6}{6.3} & \cellcolor{gray!6}{2.5} & \cellcolor{gray!6}{4.9} & \cellcolor{gray!6}{1.5} & \cellcolor{gray!6}{versicolor}\\
+\hline
+6.1 & 2.8 & 4.7 & 1.2 & versicolor\\
+\hline
+\cellcolor{gray!6}{6.4} & \cellcolor{gray!6}{2.9} & \cellcolor{gray!6}{4.3} & \cellcolor{gray!6}{1.3} & \cellcolor{gray!6}{versicolor}\\
+\hline
+6.6 & 3.0 & 4.4 & 1.4 & versicolor\\
+\hline
+\cellcolor{gray!6}{6.8} & \cellcolor{gray!6}{2.8} & \cellcolor{gray!6}{4.8} & \cellcolor{gray!6}{1.4} & \cellcolor{gray!6}{versicolor}\\
+\hline
+6.7 & 3.0 & 5.0 & 1.7 & versicolor\\
+\hline
+\cellcolor{gray!6}{6.0} & \cellcolor{gray!6}{2.9} & \cellcolor{gray!6}{4.5} & \cellcolor{gray!6}{1.5} & \cellcolor{gray!6}{versicolor}\\
+\hline
+5.7 & 2.6 & 3.5 & 1.0 & versicolor\\
+\hline
+\cellcolor{gray!6}{5.5} & \cellcolor{gray!6}{2.4} & \cellcolor{gray!6}{3.8} & \cellcolor{gray!6}{1.1} & \cellcolor{gray!6}{versicolor}\\
+\hline
+5.5 & 2.4 & 3.7 & 1.0 & versicolor\\
+\hline
+\cellcolor{gray!6}{5.8} & \cellcolor{gray!6}{2.7} & \cellcolor{gray!6}{3.9} & \cellcolor{gray!6}{1.2} & \cellcolor{gray!6}{versicolor}\\
+\hline
+6.0 & 2.7 & 5.1 & 1.6 & versicolor\\
+\hline
+\cellcolor{gray!6}{5.4} & \cellcolor{gray!6}{3.0} & \cellcolor{gray!6}{4.5} & \cellcolor{gray!6}{1.5} & \cellcolor{gray!6}{versicolor}\\
+\hline
+6.0 & 3.4 & 4.5 & 1.6 & versicolor\\
+\hline
+\cellcolor{gray!6}{6.7} & \cellcolor{gray!6}{3.1} & \cellcolor{gray!6}{4.7} & \cellcolor{gray!6}{1.5} & \cellcolor{gray!6}{versicolor}\\
+\hline
+6.3 & 2.3 & 4.4 & 1.3 & versicolor\\
+\hline
+\cellcolor{gray!6}{5.6} & \cellcolor{gray!6}{3.0} & \cellcolor{gray!6}{4.1} & \cellcolor{gray!6}{1.3} & \cellcolor{gray!6}{versicolor}\\
+\hline
+5.5 & 2.5 & 4.0 & 1.3 & versicolor\\
+\hline
+\cellcolor{gray!6}{5.5} & \cellcolor{gray!6}{2.6} & \cellcolor{gray!6}{4.4} & \cellcolor{gray!6}{1.2} & \cellcolor{gray!6}{versicolor}\\
+\hline
+6.1 & 3.0 & 4.6 & 1.4 & versicolor\\
+\hline
+\cellcolor{gray!6}{5.8} & \cellcolor{gray!6}{2.6} & \cellcolor{gray!6}{4.0} & \cellcolor{gray!6}{1.2} & \cellcolor{gray!6}{versicolor}\\
+\hline
+5.0 & 2.3 & 3.3 & 1.0 & versicolor\\
+\hline
+\cellcolor{gray!6}{5.6} & \cellcolor{gray!6}{2.7} & \cellcolor{gray!6}{4.2} & \cellcolor{gray!6}{1.3} & \cellcolor{gray!6}{versicolor}\\
+\hline
+5.7 & 3.0 & 4.2 & 1.2 & versicolor\\
+\hline
+\cellcolor{gray!6}{5.7} & \cellcolor{gray!6}{2.9} & \cellcolor{gray!6}{4.2} & \cellcolor{gray!6}{1.3} & \cellcolor{gray!6}{versicolor}\\
+\hline
+6.2 & 2.9 & 4.3 & 1.3 & versicolor\\
+\hline
+\cellcolor{gray!6}{5.1} & \cellcolor{gray!6}{2.5} & \cellcolor{gray!6}{3.0} & \cellcolor{gray!6}{1.1} & \cellcolor{gray!6}{versicolor}\\
+\hline
+5.7 & 2.8 & 4.1 & 1.3 & versicolor\\
+\hline
+\cellcolor{gray!6}{6.3} & \cellcolor{gray!6}{3.3} & \cellcolor{gray!6}{6.0} & \cellcolor{gray!6}{2.5} & \cellcolor{gray!6}{virginica}\\
+\hline
+5.8 & 2.7 & 5.1 & 1.9 & \vphantom{1} virginica\\
+\hline
+\cellcolor{gray!6}{7.1} & \cellcolor{gray!6}{3.0} & \cellcolor{gray!6}{5.9} & \cellcolor{gray!6}{2.1} & \cellcolor{gray!6}{virginica}\\
+\hline
+6.3 & 2.9 & 5.6 & 1.8 & virginica\\
+\hline
+\cellcolor{gray!6}{6.5} & \cellcolor{gray!6}{3.0} & \cellcolor{gray!6}{5.8} & \cellcolor{gray!6}{2.2} & \cellcolor{gray!6}{virginica}\\
+\hline
+7.6 & 3.0 & 6.6 & 2.1 & virginica\\
+\hline
+\cellcolor{gray!6}{4.9} & \cellcolor{gray!6}{2.5} & \cellcolor{gray!6}{4.5} & \cellcolor{gray!6}{1.7} & \cellcolor{gray!6}{virginica}\\
+\hline
+7.3 & 2.9 & 6.3 & 1.8 & virginica\\
+\hline
+\cellcolor{gray!6}{6.7} & \cellcolor{gray!6}{2.5} & \cellcolor{gray!6}{5.8} & \cellcolor{gray!6}{1.8} & \cellcolor{gray!6}{virginica}\\
+\hline
+7.2 & 3.6 & 6.1 & 2.5 & virginica\\
+\hline
+\cellcolor{gray!6}{6.5} & \cellcolor{gray!6}{3.2} & \cellcolor{gray!6}{5.1} & \cellcolor{gray!6}{2.0} & \cellcolor{gray!6}{virginica}\\
+\hline
+6.4 & 2.7 & 5.3 & 1.9 & virginica\\
+\hline
+\cellcolor{gray!6}{6.8} & \cellcolor{gray!6}{3.0} & \cellcolor{gray!6}{5.5} & \cellcolor{gray!6}{2.1} & \cellcolor{gray!6}{virginica}\\
+\hline
+5.7 & 2.5 & 5.0 & 2.0 & virginica\\
+\hline
+\cellcolor{gray!6}{5.8} & \cellcolor{gray!6}{2.8} & \cellcolor{gray!6}{5.1} & \cellcolor{gray!6}{2.4} & \cellcolor{gray!6}{virginica}\\
+\hline
+6.4 & 3.2 & 5.3 & 2.3 & virginica\\
+\hline
+\cellcolor{gray!6}{6.5} & \cellcolor{gray!6}{3.0} & \cellcolor{gray!6}{5.5} & \cellcolor{gray!6}{1.8} & \cellcolor{gray!6}{virginica}\\
+\hline
+7.7 & 3.8 & 6.7 & 2.2 & virginica\\
+\hline
+\cellcolor{gray!6}{7.7} & \cellcolor{gray!6}{2.6} & \cellcolor{gray!6}{6.9} & \cellcolor{gray!6}{2.3} & \cellcolor{gray!6}{virginica}\\
+\hline
+6.0 & 2.2 & 5.0 & 1.5 & virginica\\
+\hline
+\cellcolor{gray!6}{6.9} & \cellcolor{gray!6}{3.2} & \cellcolor{gray!6}{5.7} & \cellcolor{gray!6}{2.3} & \cellcolor{gray!6}{virginica}\\
+\hline
+5.6 & 2.8 & 4.9 & 2.0 & virginica\\
+\hline
+\cellcolor{gray!6}{7.7} & \cellcolor{gray!6}{2.8} & \cellcolor{gray!6}{6.7} & \cellcolor{gray!6}{2.0} & \cellcolor{gray!6}{virginica}\\
+\hline
+6.3 & 2.7 & 4.9 & 1.8 & virginica\\
+\hline
+\cellcolor{gray!6}{6.7} & \cellcolor{gray!6}{3.3} & \cellcolor{gray!6}{5.7} & \cellcolor{gray!6}{2.1} & \cellcolor{gray!6}{virginica}\\
+\hline
+7.2 & 3.2 & 6.0 & 1.8 & virginica\\
+\hline
+\cellcolor{gray!6}{6.2} & \cellcolor{gray!6}{2.8} & \cellcolor{gray!6}{4.8} & \cellcolor{gray!6}{1.8} & \cellcolor{gray!6}{virginica}\\
+\hline
+6.1 & 3.0 & 4.9 & 1.8 & virginica\\
+\hline
+\cellcolor{gray!6}{6.4} & \cellcolor{gray!6}{2.8} & \cellcolor{gray!6}{5.6} & \cellcolor{gray!6}{2.1} & \cellcolor{gray!6}{virginica}\\
+\hline
+7.2 & 3.0 & 5.8 & 1.6 & virginica\\
+\hline
+\cellcolor{gray!6}{7.4} & \cellcolor{gray!6}{2.8} & \cellcolor{gray!6}{6.1} & \cellcolor{gray!6}{1.9} & \cellcolor{gray!6}{virginica}\\
+\hline
+7.9 & 3.8 & 6.4 & 2.0 & virginica\\
+\hline
+\cellcolor{gray!6}{6.4} & \cellcolor{gray!6}{2.8} & \cellcolor{gray!6}{5.6} & \cellcolor{gray!6}{2.2} & \cellcolor{gray!6}{virginica}\\
+\hline
+6.3 & 2.8 & 5.1 & 1.5 & virginica\\
+\hline
+\cellcolor{gray!6}{6.1} & \cellcolor{gray!6}{2.6} & \cellcolor{gray!6}{5.6} & \cellcolor{gray!6}{1.4} & \cellcolor{gray!6}{virginica}\\
+\hline
+7.7 & 3.0 & 6.1 & 2.3 & virginica\\
+\hline
+\cellcolor{gray!6}{6.3} & \cellcolor{gray!6}{3.4} & \cellcolor{gray!6}{5.6} & \cellcolor{gray!6}{2.4} & \cellcolor{gray!6}{virginica}\\
+\hline
+6.4 & 3.1 & 5.5 & 1.8 & virginica\\
+\hline
+\cellcolor{gray!6}{6.0} & \cellcolor{gray!6}{3.0} & \cellcolor{gray!6}{4.8} & \cellcolor{gray!6}{1.8} & \cellcolor{gray!6}{virginica}\\
+\hline
+6.9 & 3.1 & 5.4 & 2.1 & virginica\\
+\hline
+\cellcolor{gray!6}{6.7} & \cellcolor{gray!6}{3.1} & \cellcolor{gray!6}{5.6} & \cellcolor{gray!6}{2.4} & \cellcolor{gray!6}{virginica}\\
+\hline
+6.9 & 3.1 & 5.1 & 2.3 & virginica\\
+\hline
+\cellcolor{gray!6}{5.8} & \cellcolor{gray!6}{2.7} & \cellcolor{gray!6}{5.1} & \cellcolor{gray!6}{1.9} & \cellcolor{gray!6}{virginica}\\
+\hline
+6.8 & 3.2 & 5.9 & 2.3 & virginica\\
+\hline
+\cellcolor{gray!6}{6.7} & \cellcolor{gray!6}{3.3} & \cellcolor{gray!6}{5.7} & \cellcolor{gray!6}{2.5} & \cellcolor{gray!6}{virginica}\\
+\hline
+6.7 & 3.0 & 5.2 & 2.3 & virginica\\
+\hline
+\cellcolor{gray!6}{6.3} & \cellcolor{gray!6}{2.5} & \cellcolor{gray!6}{5.0} & \cellcolor{gray!6}{1.9} & \cellcolor{gray!6}{virginica}\\
+\hline
+6.5 & 3.0 & 5.2 & 2.0 & virginica\\
+\hline
+\cellcolor{gray!6}{6.2} & \cellcolor{gray!6}{3.4} & \cellcolor{gray!6}{5.4} & \cellcolor{gray!6}{2.3} & \cellcolor{gray!6}{virginica}\\
+\hline
+5.9 & 3.0 & 5.1 & 1.8 & virginica\\
+\hline
+\end{tabular}
+\end{table}
+
+```
+:::
+:::
+

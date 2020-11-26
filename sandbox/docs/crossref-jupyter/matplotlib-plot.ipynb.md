@@ -5,7 +5,7 @@ format:
     keep-md: true
 ---
 
-::: {#fig:scores .cell .code}
+::: {#fig:scores .cell .cell-code}
 ``` {.python}
 import matplotlib.pyplot as plt
 

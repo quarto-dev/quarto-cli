@@ -1,0 +1,16 @@
+---
+title: "Equation"
+format: 
+  pdf:
+    keep-tex: true
+    # crossref: false
+    # filters:
+    #   - pandoc-crossref
+---
+
+$$
+x^n + y^n = z^n
+$$ {#eq:next}
+
+
+See @eq:next 

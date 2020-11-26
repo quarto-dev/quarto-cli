@@ -1,7 +1,7 @@
 ---
 title: "Table"
 format:
-  html: 
+  pdf: 
     keep-md: true
     keep-tex: true
     # crossref: false
@@ -11,6 +11,11 @@ tblPrefix: "tableeee"
 ---
 
 
+
+
+::: {.cell .cell-code}
+
+:::
 
 
 See @Tbl:label.
@@ -128,7 +133,6 @@ knitr::kable(head(mtcars), format = "html",caption = "A grand table")
   </tr>
 </tbody>
 </table>
-
 ```
 :::
 :::

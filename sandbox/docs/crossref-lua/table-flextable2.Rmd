@@ -1,0 +1,17 @@
+---
+title: "Flextable"
+output: 
+  pdf_document:
+    keep_tex: true
+format:
+  pdf: 
+    keep-md: true
+    keep-tex: true
+---
+
+```{r}
+library(flextable)
+ft <- flextable(head(mtcars))
+ft <- autofit(ft)
+ft
+```

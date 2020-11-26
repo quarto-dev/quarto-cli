@@ -1,0 +1,26 @@
+---
+title: "Table"
+# output:
+#   pdf_document: default
+format:
+  pdf: 
+    keep-md: true
+    keep-tex: true
+    # crossref: false
+    # filters:
+    #   - pandoc-crossref
+tblPrefix: "tableeee"
+---
+
+```{r setup, include=FALSE}
+library(kableExtra)
+```
+
+
+See @tbl:jj for more.
+
+```{r tbl:jj, echo = TRUE}
+kable(iris, caption = "My cross referenced table") %>%
+  kable_styling(latex_options = "striped")
+```
+

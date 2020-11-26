@@ -6,7 +6,7 @@ format:
 jupyter: true
 ---
 
-```python fig.cap=["My figure", "My other figure"] label="fig:scores"
+```python fig.cap=["My figure", "My other figure"] label="#fig:scores"
 import matplotlib.pyplot as plt
 
 labels = ['G1', 'G2', 'G3', 'G4', 'G5']

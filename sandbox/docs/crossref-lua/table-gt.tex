@@ -37,7 +37,7 @@
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
 \hypersetup{
-  pdftitle={Figure},
+  pdftitle={Table},
   hidelinks,
   pdfcreator={LaTeX via pandoc}}
 \urlstyle{same} % disable monospaced font for URLs
@@ -106,149 +106,107 @@
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 \setcounter{secnumdepth}{-\maxdimen} % remove section numbering
-\AtBeginDocument{%
-\renewcommand*\figurename{Figure}
-\renewcommand*\tablename{Table}
-}
-\AtBeginDocument{%
-\renewcommand*\listfigurename{List of Figures}
-\renewcommand*\listtablename{List of Tables}
-}
 \ifluatex
   \usepackage{selnolig}  % disable illegal ligatures
 \fi
 
-\title{Figure}
+\title{Table}
 \author{}
 \date{}
 
 \begin{document}
 \maketitle
 
-\begin{Shaded}
-\begin{Highlighting}[]
-\FunctionTok{plot}\NormalTok{(cars)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{figure}
-\hypertarget{fig:cars}{%
-\centering
-\includegraphics{figure_files/figure-pdf/fig-cars-1.pdf}
-\caption{Figure 1: Cars}\label{fig:cars}
-}
-\end{figure}
+See @tbl:jj for more.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{plot}\NormalTok{(pressure)}
+\FunctionTok{library}\NormalTok{(gt)}
+\FunctionTok{library}\NormalTok{(tidyverse)}
 \end{Highlighting}
 \end{Shaded}
 
-\begin{figure}
-\hypertarget{fig:pressure}{%
-\centering
-\includegraphics{figure_files/figure-pdf/fig-pressure-1.pdf}
-\caption{Figure 2: Pressure}\label{fig:pressure}
-}
-\end{figure}
+\begin{verbatim}
+-- Attaching packages --------------------------------------- tidyverse 1.3.0 --
+\end{verbatim}
 
-see fig.~\ref{fig:cars}, fig.~\ref{fig:pressure}
+\begin{verbatim}
+v ggplot2 3.3.2     v purrr   0.3.4
+v tibble  3.0.4     v dplyr   1.0.2
+v tidyr   1.1.2     v stringr 1.4.0
+v readr   1.4.0     v forcats 0.5.0
+\end{verbatim}
 
-See fig.~\ref{fig:parent-2}
+\begin{verbatim}
+-- Conflicts ------------------------------------------ tidyverse_conflicts() --
+x dplyr::filter() masks stats::filter()
+x dplyr::lag()    masks stats::lag()
+\end{verbatim}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\CommentTok{\# library(dygraphs)}
-\CommentTok{\# lungDeaths \textless{}{-} cbind(mdeaths, fdeaths)}
-\CommentTok{\# dygraph(lungDeaths)}
+\FunctionTok{library}\NormalTok{(glue)}
 \end{Highlighting}
 \end{Shaded}
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec luctus
-quam volutpat, pharetra arcu in, vestibulum lectus. Curabitur neque
-metus, gravida sed imperdiet sed, porta vel metus. Nullam sed mauris ut
-ligula dapibus pretium. Fusce placerat sollicitudin turpis at iaculis.
-Donec ultrices vestibulum orci at vulputate. Mauris at auctor metus. Nam
-venenatis urna quis ex sollicitudin, ut tristique justo tincidunt.
+\begin{verbatim}
+Attaching package: 'glue'
+\end{verbatim}
 
-Donec malesuada risus eu urna vestibulum imperdiet. Maecenas maximus at
-est sed ullamcorper. Aliquam pulvinar eleifend nulla quis volutpat.
-Mauris vel pharetra lacus. Nam ultrices libero vel ex posuere, vitae
-elementum sem elementum. Maecenas dapibus, nulla eu laoreet euismod,
-nunc nunc sagittis erat, at tristique arcu augue at enim. Donec bibendum
-luctus vestibulum. Duis in semper sem, a dignissim ex. Curabitur non
-nisl convallis, facilisis odio consectetur, volutpat libero. Mauris vel
-pretium turpis. Duis sed lectus hendrerit, venenatis arcu vitae, congue
-nunc.
+\begin{verbatim}
+The following object is masked from 'package:dplyr':
 
-Nam nec cursus lorem, egestas ullamcorper urna. Fusce laoreet felis vel
-dui vulputate ultrices. Pellentesque nunc leo, consectetur sed nisi et,
-mollis vestibulum dolor. Nam mollis mi in nisl scelerisque maximus.
-Integer id ipsum eget lorem placerat tempor. Cras sagittis purus quis
-enim rhoncus, sed sollicitudin dui cursus. Ut iaculis hendrerit
-venenatis. Sed gravida dolor vitae magna placerat ullamcorper. Donec ac
-placerat nibh. Aenean euismod, justo eu elementum iaculis, massa erat
-viverra augue, vitae placerat dolor sem iaculis est. Proin ut odio a
-tortor egestas sollicitudin. Aliquam quam odio, euismod id magna in,
-finibus fringilla justo. Mauris commodo efficitur euismod. Phasellus
-lobortis nisl non velit porttitor auctor. Sed felis magna, placerat at
-scelerisque sit amet, sodales sed enim.
+    collapse
+\end{verbatim}
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec luctus
-quam volutpat, pharetra arcu in, vestibulum lectus. Curabitur neque
-metus, gravida sed imperdiet sed, porta vel metus. Nullam sed mauris ut
-ligula dapibus pretium. Fusce placerat sollicitudin turpis at iaculis.
-Donec ultrices vestibulum orci at vulputate. Mauris at auctor metus. Nam
-venenatis urna quis ex sollicitudin, ut tristique justo tincidunt.
-
-Donec malesuada risus eu urna vestibulum imperdiet. Maecenas maximus at
-est sed ullamcorper. Aliquam pulvinar eleifend nulla quis volutpat.
-Mauris vel pharetra lacus. Nam ultrices libero vel ex posuere, vitae
-elementum sem elementum. Maecenas dapibus, nulla eu laoreet euismod,
-nunc nunc sagittis erat, at tristique arcu augue at enim. Donec bibendum
-luctus vestibulum. Duis in semper sem, a dignissim ex. Curabitur non
-nisl convallis, facilisis odio consectetur, volutpat libero. Mauris vel
-pretium turpis. Duis sed lectus hendrerit, venenatis arcu vitae, congue
-nunc.
-
-Nam nec cursus lorem, egestas ullamcorper urna. Fusce laoreet felis vel
-dui vulputate ultrices. Pellentesque nunc leo, consectetur sed nisi et,
-mollis vestibulum dolor. Nam mollis mi in nisl scelerisque maximus.
-Integer id ipsum eget lorem placerat tempor. Cras sagittis purus quis
-enim rhoncus, sed sollicitudin dui cursus. Ut iaculis hendrerit
-venenatis. Sed gravida dolor vitae magna placerat ullamcorper. Donec ac
-placerat nibh. Aenean euismod, justo eu elementum iaculis, massa erat
-viverra augue, vitae placerat dolor sem iaculis est. Proin ut odio a
-tortor egestas sollicitudin. Aliquam quam odio, euismod id magna in,
-finibus fringilla justo. Mauris commodo efficitur euismod. Phasellus
-lobortis nisl non velit porttitor auctor. Sed felis magna, placerat at
-scelerisque sit amet, sodales sed enim.
-
-\hypertarget{fig:parent}{}
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{plot}\NormalTok{(cars)}
-\FunctionTok{plot}\NormalTok{(pressure)}
+\CommentTok{\# Define the start and end dates for the data range}
+\NormalTok{start\_date }\OtherTok{\textless{}{-}} \StringTok{"2010{-}06{-}07"}
+\NormalTok{end\_date }\OtherTok{\textless{}{-}} \StringTok{"2010{-}06{-}14"}
+
+\CommentTok{\# Create a gt table based on preprocessed}
+\CommentTok{\# \textasciigrave{}sp500\textasciigrave{} table data}
+\NormalTok{sp500 }\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  dplyr}\SpecialCharTok{::}\FunctionTok{filter}\NormalTok{(date }\SpecialCharTok{\textgreater{}=}\NormalTok{ start\_date }\SpecialCharTok{\&}\NormalTok{ date }\SpecialCharTok{\textless{}=}\NormalTok{ end\_date) }\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{  dplyr}\SpecialCharTok{::}\FunctionTok{select}\NormalTok{(}\SpecialCharTok{{-}}\NormalTok{adj\_close) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{gt}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{tab\_header}\NormalTok{(}
+    \AttributeTok{title =} \StringTok{"S\&P 500"}\NormalTok{,}
+    \AttributeTok{subtitle =}\NormalTok{ glue}\SpecialCharTok{::}\FunctionTok{glue}\NormalTok{(}\StringTok{"\{start\_date\} to \{end\_date\}"}\NormalTok{)}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{fmt\_date}\NormalTok{(}
+    \AttributeTok{columns =} \FunctionTok{vars}\NormalTok{(date),}
+    \AttributeTok{date\_style =} \DecValTok{3}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{fmt\_currency}\NormalTok{(}
+    \AttributeTok{columns =} \FunctionTok{vars}\NormalTok{(open, high, low, close),}
+    \AttributeTok{currency =} \StringTok{"USD"}
+\NormalTok{  ) }\SpecialCharTok{\%\textgreater{}\%}
+  \FunctionTok{fmt\_number}\NormalTok{(}
+    \AttributeTok{columns =} \FunctionTok{vars}\NormalTok{(volume),}
+    \AttributeTok{suffixing =} \ConstantTok{TRUE}
+\NormalTok{  )}
 \end{Highlighting}
 \end{Shaded}
 
-\begin{figure}
-\hypertarget{fig:parent-1}{%
-\centering
-\includegraphics{figure_files/figure-pdf/fig-parent-1.pdf}
-\caption{}\label{fig:parent-1}
-}
-\end{figure}
-
-\begin{figure}
-\hypertarget{fig:parent-2}{%
-\centering
-\includegraphics{figure_files/figure-pdf/fig-parent-2.pdf}
-\caption{}\label{fig:parent-2}
-}
-\end{figure}
-
-Figure 3: \textbf{Everything}. a~---~\emph{Cars},~b~---~Pressure
+\hypertarget{tbl:jj}{}
+\captionsetup[table]{labelformat=empty,skip=1pt}
+\begin{longtable}{lrrrrr}
+\caption*{
+\large S\&P 500\\ 
+\small 2010-06-07 to 2010-06-14\\ 
+} \\ 
+\toprule
+date & open & high & low & close & volume \\ 
+\midrule
+Mon, Jun 14, 2010 & $\text{\$}1,095.00$ & $\text{\$}1,105.91$ & $\text{\$}1,089.03$ & $\text{\$}1,089.63$ & $4.43B$ \\ 
+Fri, Jun 11, 2010 & $\text{\$}1,082.65$ & $\text{\$}1,092.25$ & $\text{\$}1,077.12$ & $\text{\$}1,091.60$ & $4.06B$ \\ 
+Thu, Jun 10, 2010 & $\text{\$}1,058.77$ & $\text{\$}1,087.85$ & $\text{\$}1,058.77$ & $\text{\$}1,086.84$ & $5.14B$ \\ 
+Wed, Jun 9, 2010 & $\text{\$}1,062.75$ & $\text{\$}1,077.74$ & $\text{\$}1,052.25$ & $\text{\$}1,055.69$ & $5.98B$ \\ 
+Tue, Jun 8, 2010 & $\text{\$}1,050.81$ & $\text{\$}1,063.15$ & $\text{\$}1,042.17$ & $\text{\$}1,062.00$ & $6.19B$ \\ 
+Mon, Jun 7, 2010 & $\text{\$}1,065.84$ & $\text{\$}1,071.36$ & $\text{\$}1,049.86$ & $\text{\$}1,050.47$ & $5.47B$ \\ 
+\bottomrule
+\end{longtable}
 
 \end{document}

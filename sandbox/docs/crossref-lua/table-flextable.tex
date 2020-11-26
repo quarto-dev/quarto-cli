@@ -106,14 +106,6 @@
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 \setcounter{secnumdepth}{-\maxdimen} % remove section numbering
-\AtBeginDocument{%
-\renewcommand*\figurename{Figure}
-\renewcommand*\tablename{Table}
-}
-\AtBeginDocument{%
-\renewcommand*\listfigurename{List of Figures}
-\renewcommand*\listtablename{List of Tables}
-}
 \ifluatex
   \usepackage{selnolig}  % disable illegal ligatures
 \fi
@@ -125,72 +117,18 @@
 \begin{document}
 \maketitle
 
-See Tbl.~\ref{tbl:label}.
+See @tbl:jj for more.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{knitr}\SpecialCharTok{::}\FunctionTok{kable}\NormalTok{(}\FunctionTok{head}\NormalTok{(mtcars), }\AttributeTok{format =} \StringTok{"html"}\NormalTok{,}\AttributeTok{caption =} \StringTok{"A grand table"}\NormalTok{)}
+\NormalTok{ft }\OtherTok{\textless{}{-}} \FunctionTok{flextable}\NormalTok{(}\FunctionTok{head}\NormalTok{(mtcars)) }\SpecialCharTok{\%\textgreater{}\%} 
+  \FunctionTok{set\_caption}\NormalTok{(}\StringTok{"My Flex Caption"}\NormalTok{)}
+\NormalTok{ft }\OtherTok{\textless{}{-}} \FunctionTok{autofit}\NormalTok{(ft)}
+\NormalTok{ft}
 \end{Highlighting}
 \end{Shaded}
 
-\hypertarget{tbl:jj}{}
-
-\hypertarget{tbl:charles}{}
-
-Phasellus convallis auctor quam, in rhoncus diam. Maecenas commodo id
-neque vel venenatis. Etiam vel tempus arcu, vitae faucibus sem.
-Vestibulum posuere urna at est scelerisque molestie. Nam eget tortor
-vulputate, consequat quam et, mattis est. Nullam tempus dolor nibh, quis
-sodales lorem tristique congue. Morbi enim metus, pulvinar eget ante
-non, tristique gravida ante. Pellentesque consequat vel tortor a
-vestibulum. In hac habitasse platea dictumst. Nullam quis condimentum
-dui. Nunc consequat nunc ut ligula dignissim, quis tempus mi tincidunt.
-Aliquam fringilla, diam ac mollis efficitur, mi sem tincidunt tellus,
-vel pharetra metus augue ac ex.
-
-Mauris ullamcorper finibus tempus. Quisque aliquam, dui eu fringilla
-pulvinar, velit purus gravida lacus, vel porttitor massa purus eu nunc.
-Nullam eu sem dictum, tincidunt quam eget, ultricies purus. Vivamus
-congue viverra fermentum. Nulla pretium neque a accumsan lacinia. In id
-mi nec urna luctus volutpat nec a risus. Donec arcu dui, dictum a
-sollicitudin vel, consequat vel libero. Nam tempor hendrerit neque, id
-imperdiet purus efficitur id. Duis ac nunc sit amet odio venenatis
-convallis sed non lacus.
-
-\leavevmode\hypertarget{tbl:another}{}%
-In porta finibus lorem vitae dignissim. Nulla interdum leo ut tincidunt
-aliquet. Morbi sollicitudin, est in fermentum efficitur, ipsum dolor
-imperdiet diam, vel vulputate arcu eros a neque. Ut posuere massa erat,
-sed porttitor tortor placerat in. Cras dignissim a tellus nec tincidunt.
-Integer posuere scelerisque volutpat. Donec ut efficitur mauris, ut
-facilisis lectus. Praesent felis metus, interdum eu mollis at, convallis
-ac dui. Donec sed mi vitae est commodo sodales. Vivamus facilisis
-rhoncus lectus, a ultricies libero ullamcorper non. Duis sollicitudin
-sapien a nisi porta venenatis. Vestibulum ultricies sem ac augue feugiat
-porta. Sed iaculis mauris fermentum, ultricies dolor vitae, gravida
-massa. Aliquam hendrerit volutpat hendrerit. Quisque quam libero,
-convallis nec ante ut, accumsan sagittis elit. Proin mauris diam,
-feugiat eu ipsum ac, viverra semper arcu.
-
-Table caption for another
-
-\hypertarget{tbl:label}{}
-\begin{longtable}[]{@{}lll@{}}
-\caption{\label{tbl:label}The Caption}\tabularnewline
-\toprule
-Col1 & Col2 & Col3\tabularnewline
-\midrule
-\endfirsthead
-\toprule
-Col1 & Col2 & Col3\tabularnewline
-\midrule
-\endhead
-A & B & C\tabularnewline
-E & E & F\tabularnewline
-G & H & I\tabularnewline
-\bottomrule
-\end{longtable}
-
-See tbl.~\ref{tbl:charles} for additional data.
+\leavevmode\hypertarget{tbl:jj}{}%
+\includegraphics[width=6.19in,height=2.03in,keepaspectratio]{table-flextable_files/figure-pdf/tbl-jj-1.png}
 
 \end{document}

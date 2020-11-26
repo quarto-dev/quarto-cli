@@ -1,9 +1,9 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.11.13)  23 NOV 2020 12:15
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.11.13)  24 NOV 2020 10:48
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**figure.tex
-(./figure.tex
+**table-gt.tex
+(./table-gt.tex
 LaTeX2e <2020-10-01> patch level 2
 L3 programming layer <2020-10-27> xparse <2020-03-03> (/Users/jjallaire/Library
 /TinyTeX/texmf-dist/tex/latex/base/article.cls
@@ -362,93 +362,48 @@ Package graphics Info: Driver file: pdftex.def on input line 105.
 )
 \Gin@req@height=\dimen169
 \Gin@req@width=\dimen170
-) (/Users/jjallaire/Library/TinyTeX/texmf-dist/tex/latex/subfig/subfig.sty
-Package: subfig 2005/06/28 ver: 1.3 subfig package
-(/Users/jjallaire/Library/TinyTeX/texmf-dist/tex/latex/caption/caption.sty
-Package: caption 2020/10/26 v3.5g Customizing captions (AR)
-(/Users/jjallaire/Library/TinyTeX/texmf-dist/tex/latex/caption/caption3.sty
-Package: caption3 2020/10/21 v2.2e caption3 kernel (AR)
-\captionmargin=\dimen171
-\captionmargin@=\dimen172
-\captionwidth=\dimen173
-\caption@tempdima=\dimen174
-\caption@indent=\dimen175
-\caption@parindent=\dimen176
-\caption@hangindent=\dimen177
-Package caption Info: Standard document class detected.
 )
-\c@caption@flags=\count287
-\c@continuedfloat=\count288
-Package caption Info: hyperref package is loaded.
-Package caption Info: longtable package is loaded.
-(/Users/jjallaire/Library/TinyTeX/texmf-dist/tex/latex/caption/ltcaption.sty
-Package: ltcaption 2020/05/30 v1.4b longtable captions (AR)
-))
-\c@KVtest=\count289
-\sf@farskip=\skip60
-\sf@captopadj=\dimen178
-\sf@capskip=\skip61
-\sf@nearskip=\skip62
-\c@subfigure=\count290
-\c@subfigure@save=\count291
-\c@lofdepth=\count292
-\c@subtable=\count293
-\c@subtable@save=\count294
-\c@lotdepth=\count295
-\sf@top=\skip63
-\sf@bottom=\skip64
-) (/Users/jjallaire/Library/TinyTeX/texmf-dist/tex/latex/float/float.sty
-Package: float 2001/11/08 v1.3d Float enhancements (AL)
-\c@float@type=\count296
-\float@exts=\toks24
-\float@box=\box55
-\@float@everytoks=\toks25
-\@floatcapt=\box56
-)
-\@float@every@codelisting=\toks26
-\c@codelisting=\count297
-
 (/Users/jjallaire/Library/TinyTeX/texmf-dist/tex/latex/l3backend/l3backend-pdft
 ex.def
 File: l3backend-pdftex.def 2020-09-24 L3 backend support: PDF output (pdfTeX)
-\l__kernel_color_stack_int=\count298
-\l__pdf_internal_box=\box57
-) (./figure.aux)
-\openout1 = `figure.aux'.
+\l__kernel_color_stack_int=\count287
+\l__pdf_internal_box=\box55
+) (./table-gt.aux)
+\openout1 = `table-gt.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 135.
-LaTeX Font Info:    ... okay on input line 135.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 135.
-LaTeX Font Info:    ... okay on input line 135.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 135.
-LaTeX Font Info:    ... okay on input line 135.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 135.
-LaTeX Font Info:    ... okay on input line 135.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 135.
-LaTeX Font Info:    ... okay on input line 135.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 135.
-LaTeX Font Info:    ... okay on input line 135.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 135.
-LaTeX Font Info:    ... okay on input line 135.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 135.
-LaTeX Font Info:    ... okay on input line 135.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 135.
-LaTeX Font Info:    ... okay on input line 135.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 117.
+LaTeX Font Info:    ... okay on input line 117.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 117.
+LaTeX Font Info:    ... okay on input line 117.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 117.
+LaTeX Font Info:    ... okay on input line 117.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 117.
+LaTeX Font Info:    ... okay on input line 117.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 117.
+LaTeX Font Info:    ... okay on input line 117.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 117.
+LaTeX Font Info:    ... okay on input line 117.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 117.
+LaTeX Font Info:    ... okay on input line 117.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 117.
+LaTeX Font Info:    ... okay on input line 117.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 117.
+LaTeX Font Info:    ... okay on input line 117.
 
 (/Users/jjallaire/Library/TinyTeX/texmf-dist/tex/context/base/mkii/supp-pdf.mki
 i
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count299
-\scratchdimen=\dimen179
-\scratchbox=\box58
-\nofMPsegments=\count300
-\nofMParguments=\count301
-\everyMPshowfont=\toks27
-\MPscratchCnt=\count302
-\MPscratchDim=\dimen180
-\MPnumerator=\count303
-\makeMPintoPDFobject=\count304
-\everyMPtoPDFconversion=\toks28
+\scratchcounter=\count288
+\scratchdimen=\dimen171
+\scratchbox=\box56
+\nofMPsegments=\count289
+\nofMParguments=\count290
+\everyMPshowfont=\toks24
+\MPscratchCnt=\count291
+\MPscratchDim=\dimen172
+\MPnumerator=\count292
+\makeMPintoPDFobject=\count293
+\everyMPtoPDFconversion=\toks25
 )
 (/Users/jjallaire/Library/TinyTeX/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-ba
 se.sty
@@ -461,7 +416,7 @@ Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
-Package hyperref Info: Link coloring OFF on input line 135.
+Package hyperref Info: Link coloring OFF on input line 117.
 (/Users/jjallaire/Library/TinyTeX/texmf-dist/tex/latex/hyperref/nameref.sty
 Package: nameref 2019/09/16 v2.46 Cross-referencing by name of section
 (/Users/jjallaire/Library/TinyTeX/texmf-dist/tex/latex/refcount/refcount.sty
@@ -471,109 +426,85 @@ Package: refcount 2019/12/15 v3.6 Data extraction from label references (HO)
 estring.sty
 Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 )
-\c@section@level=\count305
+\c@section@level=\count294
 )
-LaTeX Info: Redefining \ref on input line 135.
-LaTeX Info: Redefining \pageref on input line 135.
-LaTeX Info: Redefining \nameref on input line 135.
-(./figure.out) (./figure.out)
+LaTeX Info: Redefining \ref on input line 117.
+LaTeX Info: Redefining \pageref on input line 117.
+LaTeX Info: Redefining \nameref on input line 117.
+(./table-gt.out) (./table-gt.out)
 \@outlinefile=\write4
-\openout4 = `figure.out'.
+\openout4 = `table-gt.out'.
 
-Package caption Info: Begin \AtBeginDocument code.
-Package caption Info: subfig package v1.3 is loaded.
-Package caption Info: float package is loaded.
-Package caption Info: End \AtBeginDocument code.
 LaTeX Font Info:    Trying to load font information for OT1+lmr on input line 1
-37.
+19.
 (/Users/jjallaire/Library/TinyTeX/texmf-dist/tex/latex/lm/ot1lmr.fd
 File: ot1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OML+lmm on input line 1
-37.
+19.
 (/Users/jjallaire/Library/TinyTeX/texmf-dist/tex/latex/lm/omllmm.fd
 File: omllmm.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMS+lmsy on input line 
-137.
+119.
 (/Users/jjallaire/Library/TinyTeX/texmf-dist/tex/latex/lm/omslmsy.fd
 File: omslmsy.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
 LaTeX Font Info:    Trying to load font information for OMX+lmex on input line 
-137.
+119.
 (/Users/jjallaire/Library/TinyTeX/texmf-dist/tex/latex/lm/omxlmex.fd
 File: omxlmex.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <12> on input line 137.
+(Font)              <12> on input line 119.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <8> on input line 137.
+(Font)              <8> on input line 119.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 137.
-LaTeX Font Info:    Trying to load font information for U+msa on input line 137
+(Font)              <6> on input line 119.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 119
 .
 (/Users/jjallaire/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 137
+LaTeX Font Info:    Trying to load font information for U+msb on input line 119
 .
 (/Users/jjallaire/Library/TinyTeX/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
+)
+LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 1
+23.
+(/Users/jjallaire/Library/TinyTeX/texmf-dist/tex/latex/lm/t1lmtt.fd
+File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
+)
+Overfull \hbox (74.99878pt too wide) in paragraph at lines 131--131
+[]\T1/lmtt/m/n/10 -- Attaching packages ---------------------------------------
+ tidyverse 1.3.0 --[] 
+ []
+
+
+Overfull \hbox (74.99878pt too wide) in paragraph at lines 144--144
+[]\T1/lmtt/m/n/10 -- Conflicts ------------------------------------------ tidyv
+erse_conflicts() --[] 
+ []
+
+LaTeX Font Info:    Trying to load font information for TS1+lmtt on input line 
+169.
+(/Users/jjallaire/Library/TinyTeX/texmf-dist/tex/latex/lm/ts1lmtt.fd
+File: ts1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
 ) [1
 
 {/Users/jjallaire/Library/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
 ]
-LaTeX Font Info:    Trying to load font information for T1+lmtt on input line 2
-06.
-(/Users/jjallaire/Library/TinyTeX/texmf-dist/tex/latex/lm/t1lmtt.fd
-File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
-)
-<figure_files/figure-pdf/fig-parent-1.pdf, id=15, 469.755pt x 325.215pt>
-File: figure_files/figure-pdf/fig-parent-1.pdf Graphic file (type pdf)
-<use figure_files/figure-pdf/fig-parent-1.pdf>
-Package pdftex.def Info: figure_files/figure-pdf/fig-parent-1.pdf  used on inpu
-t line 212.
-(pdftex.def)             Requested size: 344.997pt x 238.84406pt.
-<figure_files/figure-pdf/fig-parent-2.pdf, id=16, 469.755pt x 325.215pt>
-File: figure_files/figure-pdf/fig-parent-2.pdf Graphic file (type pdf)
-<use figure_files/figure-pdf/fig-parent-2.pdf>
-Package pdftex.def Info: figure_files/figure-pdf/fig-parent-2.pdf  used on inpu
-t line 214.
-(pdftex.def)             Requested size: 344.997pt x 238.84406pt.
-
-LaTeX Warning: Float too large for page by 19.85481pt on input line 220.
-
-<figure_files/figure-pdf/fig-pressure-1.pdf, id=17, 469.755pt x 325.215pt>
-File: figure_files/figure-pdf/fig-pressure-1.pdf Graphic file (type pdf)
-<use figure_files/figure-pdf/fig-pressure-1.pdf>
-Package pdftex.def Info: figure_files/figure-pdf/fig-pressure-1.pdf  used on in
-put line 233.
-(pdftex.def)             Requested size: 344.997pt x 238.84406pt.
-[2] [3 <./figure_files/figure-pdf/fig-parent-1.pdf> <./figure_files/figure-pdf/
-fig-parent-2.pdf>] [4 <./figure_files/figure-pdf/fig-pressure-1.pdf>] (./figure
-.aux)
-Package rerunfilecheck Info: File `figure.out' has not changed.
-(rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
- ) 
+! Undefined control sequence.
+l.194 \captionsetup
+                   [table]{labelformat=empty,skip=1pt} 
 Here is how much of TeX's memory you used:
- 12669 strings out of 481433
- 187993 string characters out of 5919342
- 472712 words of memory out of 5000000
- 29220 multiletter control sequences out of 15000+600000
- 566922 words of font info for 52 fonts, out of 8000000 for 9000
+ 11196 strings out of 481433
+ 159683 string characters out of 5919342
+ 442981 words of memory out of 5000000
+ 27776 multiletter control sequences out of 15000+600000
+ 557297 words of font info for 51 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 68i,10n,76p,325b,496s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/Users/jjallaire/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}</U
-sers/jjallaire/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></Us
-ers/jjallaire/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb></User
-s/jjallaire/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr17.pfb></Users/
-jjallaire/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr8.pfb></Users/jja
-llaire/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmri8.pfb></Users/jjall
-aire/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmtt10.pfb>
-Output written on figure.pdf (4 pages, 145171 bytes).
-PDF statistics:
- 77 PDF objects out of 1000 (max. 8388607)
- 58 compressed objects within 1 object stream
- 10 named destinations out of 1000 (max. 500000)
- 16 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 66i,5n,72p,327b,503s stack positions out of 5000i,500n,10000p,200000b,80000s
 
+!  ==> Fatal error occurred, no output PDF file produced!

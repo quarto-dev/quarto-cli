@@ -1,7 +1,7 @@
 ---
 title: "Table"
 format:
-  html: 
+  pdf: 
     keep-md: true
     keep-tex: true
     # crossref: false
@@ -15,9 +15,14 @@ tblPrefix: "tableeee"
 ```
 
 
+```{r}
+
+```
+
+
 See @Tbl:label.
 
-```{r tbl:jj, echo = TRUE}
+```{r #tbl:jj}
 knitr::kable(head(mtcars), format = "html",caption = "A grand table")
 ```
 
