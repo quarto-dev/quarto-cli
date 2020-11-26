@@ -70,14 +70,23 @@ knitr_hooks <- function(format) {
     # return cell
     paste0("::: {", labelId(label) ,".cell .cell-code}\n", x, "\n", fig.cap ,":::")
   })
-  knit_hooks$source <- delegating_hook("source", function(x, options) {
-    if (isTRUE(options[["source.hidden"]])) {
-      engine <- tolower(options$engine)
-      pattern <- paste0("```( ?\\{\\.r|r)([^\\}\n]*)\\}?")
-      x <- gsub(pattern, paste0("``` {.", engine, " .hidden\\2}"), x)
+  knit_hooks$source <- function(x, options) {
+    class <- options$class.source
+    attr <- options$attr.source
+    if (isTRUE(options["source.hidden"])) {
+      class <- paste(class, "hidden")
     }
-    x
-  })
+    if (!is.null(options[["lst.cap"]])) {
+      attr <- paste(attr, paste0('lst.cap="', options[["lst.cap"]], '"'))
+    }
+    attrs <- block_attr(
+      id = options[["lst.label"]],
+      lang = tolower(options$engine),
+      class = class,
+      attr = attr
+    )
+    paste0('\n\n```', attrs, '\n', x, '\n```\n\n')
+  }
   knit_hooks$output <- delegating_output_hook("output", c("stream", "stdout"))
   knit_hooks$warning <- delegating_output_hook("warning", c("stream", "stderr"))
   knit_hooks$message <- delegating_output_hook("message", c("stream", "stderr"))
@@ -194,5 +203,26 @@ output_label_placeholder <- function(options) {
 is_figure_label <- function(label) {
   !is.null(label) && grepl("^#?fig:", label)
 }
+
+block_attr <- function(id = NULL, lang = NULL, class = NULL, attr = NULL) {
+  id <- labelId(id)
+  if (!is.null(lang)) {
+    lang <- paste0(".", lang)
+  }
+  if (!is.null(class)) {
+    class <- paste(block_class(class))
+  }
+  attributes <- c(id, lang, class, attr)
+  attributes <- paste(attributes[!is.null(attributes)], collapse = " ")
+  if (nzchar(attributes))
+    paste0("{", attributes, "}")
+  else
+    ""
+}
+
+block_class <- function(x) {
+  if (length(x) > 0) gsub('^[.]*', '.', unlist(strsplit(x, '\\s+')))
+}
+
 
 
