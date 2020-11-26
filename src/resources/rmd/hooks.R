@@ -77,7 +77,7 @@ knitr_hooks <- function(format) {
       class <- paste(class, "hidden")
     }
     if (!is.null(options[["lst.cap"]])) {
-      attr <- paste(attr, paste0('lst.cap="', options[["lst.cap"]], '"'))
+      attr <- paste(attr, paste0('caption="', options[["lst.cap"]], '"'))
     }
     attrs <- block_attr(
       id = options[["lst.label"]],

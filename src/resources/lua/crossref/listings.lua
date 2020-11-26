@@ -75,7 +75,7 @@ function listings()
           end
 
           local label = string.match(el.attr.identifier, "^lst:[^ ]+$")
-          local caption = el.attr.attributes["lst.cap"]
+          local caption = el.attr.attributes["caption"]
           if label and caption then
             processListing(label, el, markdownToInlines(caption))
           else
