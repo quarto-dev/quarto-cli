@@ -134,7 +134,7 @@ async function detectDefaults(
       "--from",
       format.from || "markdown",
       "--to",
-      resourcePath("lua/html-defaults.lua"),
+      resourcePath("html-defaults.lua"),
     ];
     const result = await execProcess({ cmd, stdout: "piped" });
     if (result.success) {
@@ -200,5 +200,5 @@ function resolveFilters(filters: string[] | undefined, options: PandocOptions) {
 }
 
 function crossrefFilter() {
-  return resourcePath("lua/crossref/crossref.lua");
+  return resourcePath("filters/src/crossref/crossref.lua");
 }

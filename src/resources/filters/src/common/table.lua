@@ -1,29 +1,4 @@
 
-
--- check for latex output
-function isLatexOutput()
-  return FORMAT == "latex"
-end
-
--- check for html output
-function isHtmlOutput()
-  local formats = {
-    "html",
-    "html4",
-    "html5",
-    "s5",
-    "dzslides",
-    "slidy",
-    "slideous",
-    "revealjs",
-    "epub",
-    "epub2",
-    "epub3"
-  }
-  return tcontains(formats, FORMAT)
-
-end
-
 -- append values to table
 function tappend(t, values)
   for i,value in pairs(values) do
@@ -90,46 +65,3 @@ function spairs(t, order)
       end
   end
 end
-
--- lua string to pandoc inlines
-function stringToInlines(str)
-  return {pandoc.Str(str)}
-end
-
--- lua string with markdown to pandoc inlines
-function markdownToInlines(str)
-  local doc = pandoc.read(str)
-  return doc.blocks[1].content
-end
-
--- non-breaking space
-function nbspString()
-  return pandoc.Str '\u{a0}'
-end
-
--- dump an object to stdout
-function dump(o)
-  if type(o) == 'table' then
-    tdump(o)
-  else
-    print(tostring(o) .. "\n")
-  end
-end
-
--- improved formatting for dumping tables
-function tdump (tbl, indent)
-  if not indent then indent = 0 end
-  for k, v in pairs(tbl) do
-    formatting = string.rep("  ", indent) .. k .. ": "
-    if type(v) == "table" then
-      print(formatting)
-      tdump(v, indent+1)
-    elseif type(v) == 'boolean' then
-      print(formatting .. tostring(v))
-    else
-      print(formatting .. v)
-    end
-  end
-end
-
-
