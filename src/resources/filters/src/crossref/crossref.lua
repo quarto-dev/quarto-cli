@@ -1,5 +1,5 @@
 
--- required lua modules
+-- required modules
 text = require 'text'
 
 -- [import]
@@ -17,10 +17,12 @@ import("refs.lua")
 import("meta.lua")
 import("format.lua")
 import("options.lua")
-import("utils.lua")
+import("../common/pandoc.lua")
+import("../common/table.lua")
+import("../common/debug.lua")
 -- [/import]
 
--- apply filters
+-- chain of filters
 return {
   initOptions(),
   figures(),
