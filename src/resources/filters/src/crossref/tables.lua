@@ -1,5 +1,4 @@
-
-
+-- process all tables
 function tables()
   return {
     Div = function(el)
@@ -149,4 +148,3 @@ function prependTitlePrefix(caption, label, order)
      tprepend(caption.content, tableTitlePrefix(order))
   end
 end
-

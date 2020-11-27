@@ -1,7 +1,3 @@
-
-
-
-
 function title(type, default)
   return option(type .. "-title", stringToInlines(default))
 end
@@ -9,7 +5,6 @@ end
 function titleString(type, default)
   return pandoc.utils.stringify(title(type, default))
 end
-
 
 function titlePrefix(type, default, num)
   local prefix = title(type, default)
@@ -23,7 +18,6 @@ end
 function titleDelim()
   return option("title-delim", stringToInlines(":"))
 end
-
 
 function captionSubfig()
   return option("caption-subfig", false)
@@ -70,7 +64,6 @@ function refHyperlink()
   return option("ref-hyperlink", true)
 end
 
-
 function numberOption(type, num, default)
   -- Compute option name and default value
   local opt = type .. "-labels"
@@ -112,7 +105,6 @@ function numberOption(type, num, default)
     return styleRaw[entryIndex]
   end
 end
-
 
 function toRoman(num, lower)
   local roman = pandoc.utils.to_roman_numeral(num)
