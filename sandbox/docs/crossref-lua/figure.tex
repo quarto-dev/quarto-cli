@@ -106,6 +106,10 @@
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 \setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\makeatletter
+\@ifpackageloaded{subfig}{}{\usepackage{subfig}}
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\captionsetup[subfloat]{margin=0.5em}
 \AtBeginDocument{%
 \renewcommand*\figurename{Figure}
 \renewcommand*\tablename{Table}
@@ -114,6 +118,12 @@
 \renewcommand*\listfigurename{List of Figures}
 \renewcommand*\listtablename{List of Tables}
 }
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listing}
+\newcommand*\listoflistings{\listof{codelisting}{List of Listings}}
+\makeatother
 \ifluatex
   \usepackage{selnolig}  % disable illegal ligatures
 \fi
@@ -135,7 +145,7 @@
 \hypertarget{fig:cars}{%
 \centering
 \includegraphics{figure_files/figure-pdf/fig-cars-1.pdf}
-\caption{Figure 1: Cars}\label{fig:cars}
+\caption{Cars}\label{fig:cars}
 }
 \end{figure}
 
@@ -149,7 +159,7 @@
 \hypertarget{fig:pressure}{%
 \centering
 \includegraphics{figure_files/figure-pdf/fig-pressure-1.pdf}
-\caption{Figure 2: Pressure}\label{fig:pressure}
+\caption{Pressure}\label{fig:pressure}
 }
 \end{figure}
 
@@ -160,7 +170,17 @@ See fig.~\ref{fig:parent-2}
 \begin{Shaded}
 \begin{Highlighting}[]
 \CommentTok{\# library(dygraphs)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
 \CommentTok{\# lungDeaths \textless{}{-} cbind(mdeaths, fdeaths)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
 \CommentTok{\# dygraph(lungDeaths)}
 \end{Highlighting}
 \end{Shaded}
@@ -229,6 +249,11 @@ scelerisque sit amet, sodales sed enim.
 \begin{Shaded}
 \begin{Highlighting}[]
 \FunctionTok{plot}\NormalTok{(cars)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
 \FunctionTok{plot}\NormalTok{(pressure)}
 \end{Highlighting}
 \end{Shaded}
@@ -249,6 +274,6 @@ scelerisque sit amet, sodales sed enim.
 }
 \end{figure}
 
-Figure 3: \textbf{Everything}. a~---~\emph{Cars},~b~---~Pressure
+\textbf{Everything}. a~---~\emph{Cars},~b~---~Pressure
 
 \end{document}
