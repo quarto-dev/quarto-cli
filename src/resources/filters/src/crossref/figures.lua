@@ -84,10 +84,10 @@ end
 
 -- process a figure, re-writing it's caption as necessary and
 -- adding it to the global index of figures
-function processFigure(el, captionEl, parentEl)
+function processFigure(el, captionContent, parentEl)
   -- get label and base caption
   local label = el.attr.identifier
-  local caption = captionEl:clone()
+  local caption = captionContent:clone()
 
   -- determine parent, order, and displayed caption
   local parent = nil
@@ -97,19 +97,19 @@ function processFigure(el, captionEl, parentEl)
     order = crossref.index.nextSubfigureOrder
     crossref.index.nextSubfigureOrder = crossref.index.nextSubfigureOrder + 1
     -- we have a parent, so clear the table then insert a letter (e.g. 'a')
-    tclear(captionEl)
+    tclear(captionContent)
     if captionSubfig() and not tcontains(el.attr.classes, "nocaption") then
-      tappend(captionEl, subfigNumber(order))
+      tappend(captionContent, subfigNumber(order))
     end
   else
     order = indexNextOrder("fig")
     if not isLatexOutput() then
-      tprepend(captionEl, figureTitlePrefix(order))
+      tprepend(captionContent, figureTitlePrefix(order))
     end
   end
 
   -- update the index
-  indexAddEntry(label, parent, order, caption.content)
+  indexAddEntry(label, parent, order, caption)
 end
 
 -- append any avavilable subfigure captions to the div
@@ -124,19 +124,19 @@ function appendSubfigureCaptions(div)
   end
 
   -- get caption element
-  local captionEl = div.content[#div.content].content
+  local captionContent = div.content[#div.content].content
 
   -- append to caption in order of insertion
   for label,figure in spairs(subfigures, function(t, a, b) return t[a].order < t[b].order end) do
     if figure.order == 1 then
-      table.insert(captionEl, pandoc.Str(". "))
+      table.insert(captionContent, pandoc.Str(". "))
     else
-      tappend(captionEl, captionCollectedDelim())
+      tappend(captionContent, captionCollectedDelim())
     end
 
-    tappend(captionEl, subfigNumber(figure.order))
-    tappend(captionEl, captionCollectedLabelSep())
-    tappend(captionEl, figure.caption)
+    tappend(captionContent, subfigNumber(figure.order))
+    tappend(captionContent, captionCollectedLabelSep())
+    tappend(captionContent, figure.caption)
   end
 end
 
