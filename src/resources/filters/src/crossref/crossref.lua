@@ -1,7 +1,3 @@
-
--- required modules
-text = require 'text'
-
 -- [import]
 function import(script)
   local path = PANDOC_SCRIPT_FILE:match("(.*/)")
@@ -22,6 +18,9 @@ import("../common/table.lua")
 import("../common/debug.lua")
 -- [/import]
 
+-- required modules
+text = require 'text'
+
 -- chain of filters
 return {
   initOptions(),
@@ -32,8 +31,3 @@ return {
   metaInject(),
   resolveRefs(),
 }
-
-
-
-
-

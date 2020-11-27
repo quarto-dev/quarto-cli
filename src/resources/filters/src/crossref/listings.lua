@@ -1,5 +1,4 @@
-
-
+-- process all listings
 function listings()
 
   return {
@@ -133,7 +132,6 @@ function prependTitlePrefix(caption, label, order)
   end
 end
 
-
 function isListingCaption(el)
   if el.t == "Para" then
     local contentStr = pandoc.utils.stringify(el)
@@ -146,5 +144,3 @@ end
 function latexListings()
   return option("listings", false)
 end
-
-

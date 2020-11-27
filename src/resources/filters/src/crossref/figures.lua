@@ -1,5 +1,3 @@
-
-
 -- process all figures, fixing up figure captions as required and
 -- and returning an index of all the figures
 function figures()
@@ -156,4 +154,3 @@ end
 function figureTitlePrefix(num)
   return titlePrefix("fig", "Figure", num)
 end
-

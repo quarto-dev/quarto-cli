@@ -1,4 +1,3 @@
-
 -- global crossref state
 crossref = {
   index = {

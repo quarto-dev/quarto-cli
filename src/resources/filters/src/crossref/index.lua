@@ -1,7 +1,4 @@
-
-
-
-
+-- next sequence in index for type
 function indexNextOrder(type)
   if not crossref.index.nextOrder[type] then
     crossref.index.nextOrder[type] = 1
@@ -28,5 +25,3 @@ end
 function indexHasElement(el)
   return crossref.index.entries[el.attr.identifier] ~= nil
 end
-
-

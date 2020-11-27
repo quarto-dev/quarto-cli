@@ -1,5 +1,4 @@
-
-
+-- process all equations
 function equations()
 
   return {
@@ -81,4 +80,3 @@ end
 function isDisplayMath(el)
   return el.t == "Math" and el.mathtype == "DisplayMath"
 end
-

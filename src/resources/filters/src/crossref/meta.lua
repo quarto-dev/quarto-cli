@@ -1,5 +1,4 @@
-
-
+-- inject metadata
 function metaInject()
   return {
     Pandoc = function(doc)
@@ -11,7 +10,9 @@ function metaInject()
   }
 end
 
+-- inject required latex
 function metaInjectLatex(doc)
+
   ensureHeaderIncludes(doc)
 
   addHeaderInclude(doc, "tex", "\\makeatletter")
@@ -82,6 +83,7 @@ function usePackage(pkg)
   return "\\@ifpackageloaded{" .. pkg .. "}{}{\\usepackage{" .. pkg .. "}}"
 end
 
+-- latex 'listof' title for type
 function listOfTitle(type, default)
   local title = option(type .. "-title")
   if title then
@@ -90,6 +92,3 @@ function listOfTitle(type, default)
     return default
   end
 end
-
-
-
