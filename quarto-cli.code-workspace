@@ -9,6 +9,9 @@
       "deno.lint": true,
       "debug.javascript.unmapMissingSources": true,
       "julia.format.indent": 2,
-      "julia.format.indents": false
+      "julia.format.indents": false,
+      "deno.import_intellisense_origins": {
+         "https://deno.land": true
+      }
    }
 }
