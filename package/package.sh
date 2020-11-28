@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# Packages Quarto into an installer
 
 # TODO: Signing
 # TODO: Notarize

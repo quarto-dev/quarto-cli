@@ -1,5 +1,12 @@
 #!/bin/bash
 
+
+# This file contains the global configuration for the quarto configuration
+#
+# The configuration is used both as a local runtime version of Quarto for developers
+# but it also used when packaging (e.g. run configure.sh, then prepare-dist.sh, then package.sh)
+
+
 # Dependency versions
 export PANDOC=2.11.0.4
 export DENO=v1.4.6

@@ -1,5 +1,8 @@
 #!/bin/zsh
 
+
+# Configures Quarto on the local machine.
+
 #  common data
 source configure
 
