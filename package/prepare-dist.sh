@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -x
+# Prepares Quarto source files for packaging
 
 source ../configure
 
