@@ -9,6 +9,7 @@ import("figures.lua")
 import("tables.lua")
 import("equations.lua")
 import("listings.lua")
+import("theorems.lua")
 import("refs.lua")
 import("meta.lua")
 import("format.lua")
@@ -28,6 +29,7 @@ return {
   tables(),
   equations(),
   listings(),
+  theorems(),
   metaInject(),
   resolveRefs(),
 }
