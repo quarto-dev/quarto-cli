@@ -1,0 +1,8 @@
+#!/bin/sh
+
+
+# Create quarto symlink
+ln -fs $2/bin/quarto /usr/local/bin/quarto
+
+exit 0
+

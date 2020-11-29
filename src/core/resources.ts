@@ -17,10 +17,20 @@ import { join } from "path/mod.ts";
 import { getenv } from "./env.ts";
 
 export function resourcePath(resource?: string): string {
-  const resourcePath = getenv("QUARTO_RESOURCES");
+  const sharePath = getenv("QUARTO_SHARE_PATH");
   if (resource) {
-    return join(resourcePath, resource);
+    return join(sharePath, resource);
   } else {
-    return resourcePath;
+    return sharePath;
   }
+}
+
+export function binaryPath(binary: string): string {
+  const quartoPath = getenv("QUARTO_BIN_PATH");
+  return join(quartoPath, binary);
+}
+
+export function rPath(file: string): string {
+  const rPath = getenv("QUARTO_R_PATH");
+  return join(rPath, file);
 }

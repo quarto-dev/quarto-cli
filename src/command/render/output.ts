@@ -18,6 +18,8 @@ import { extname, isAbsolute, join, relative } from "path/mod.ts";
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
 import { readYamlFrontMatterFromMarkdown } from "../../core/yaml.ts";
+import { execProcess } from "../../core/process.ts";
+import { binaryPath } from "../../core/resources.ts";
 
 import {
   kIncludeAfterBody,
@@ -36,7 +38,6 @@ import { havePandocArg, kStdOut, replacePandocArg } from "./flags.ts";
 import { PandocOptions } from "./pandoc.ts";
 import { RenderOptions } from "./render.ts";
 import { latexmkOutputRecipe, useLatexmk } from "./latexmk.ts";
-import { execProcess } from "../../core/process.ts";
 
 // render commands imply the --output argument for pandoc and the final
 // output file to create for the user, but we need a 'recipe' to go from
@@ -205,13 +206,17 @@ async function patchTemplate(
 ) {
   // get the default pandoc template for the format
   const result = await execProcess({
-    cmd: ["pandoc", "-D", format],
+    cmd: [binaryPath("pandoc"), "-D", format],
     stdout: "piped",
   });
 
   // get the shared styles template
   const stylesResult = await execProcess({
-    cmd: ["pandoc", "--print-default-data-file", "templates/styles.html"],
+    cmd: [
+      binaryPath("pandoc"),
+      "--print-default-data-file",
+      "templates/styles.html",
+    ],
     stdout: "piped",
   });
 
