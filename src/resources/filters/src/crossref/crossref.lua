@@ -25,6 +25,7 @@ text = require 'text'
 -- chain of filters
 return {
   initOptions(),
+  subfigures(),
   figures(),
   tables(),
   equations(),
