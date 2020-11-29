@@ -26,11 +26,14 @@ text = require 'text'
 return {
   initOptions(),
   subfigures(),
-  figures(),
-  tables(),
-  equations(),
-  listings(),
-  theorems(),
-  metaInject(),
+  combineFilters({
+    figures(),
+    tables(),
+    equations(),
+    listings(),
+    theorems()
+  }),
   resolveRefs(),
+  metaInject(),
 }
+

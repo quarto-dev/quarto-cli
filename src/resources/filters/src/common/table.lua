@@ -42,6 +42,17 @@ function tclear(t)
   end
 end
 
+-- get keys from table
+function tkeys(t)
+  local keyset={}
+  local n=0
+  for k,v in pairs(t) do
+    n=n+1
+    keyset[n]=k
+  end
+  return keyset
+end
+
 -- sorted pairs. order function takes (t, a,)
 function spairs(t, order)
   -- collect the keys

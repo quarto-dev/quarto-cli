@@ -14,6 +14,7 @@ function theorems()
         dump(label)
         dump(name)
       end
+      return el
     end
   }
 

@@ -24,6 +24,24 @@ function isHtmlOutput()
 
 end
 
+-- combine a set of filters together (so they can be processed in parallel)
+function combineFilters(filters)
+  local combined = {}
+  for _, filter in ipairs(filters) do
+    for key,func in pairs(filter) do
+      local combinedFunc = combined[key]
+      if combinedFunc then
+         combined[key] = function(x)
+           return func(combinedFunc(x))
+         end
+      else
+        combined[key] = func
+      end
+    end
+  end
+  return combined
+end
+
 -- lua string to pandoc inlines
 function stringToInlines(str)
   return {pandoc.Str(str)}
