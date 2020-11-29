@@ -26,11 +26,19 @@ export function resourcePath(resource?: string): string {
 }
 
 export function binaryPath(binary: string): string {
-  const quartoPath = getenv("QUARTO_BIN_PATH");
-  return join(quartoPath, binary);
+  const quartoPath = getenv("QUARTO_BIN_PATH", "");
+  if (quartoPath) {
+     return join(quartoPath, binary);
+  } else {
+    return binary;
+  }
 }
 
 export function rPath(file: string): string {
-  const rPath = getenv("QUARTO_R_PATH");
-  return join(rPath, file);
+  const rPath = getenv("QUARTO_R_PATH", "");
+  if (rPath) {
+    return join(rPath, file);
+  } else {
+    return file;
+  }
 }
