@@ -77,6 +77,7 @@ function processFigure(el, captionContent)
   local order
   local parent = el.attr.attributes["figure-parent"]
   if (parent) then
+    el.attr.attributes["figure-parent"] = nil
     order = crossref.index.nextSubfigureOrder
     crossref.index.nextSubfigureOrder = crossref.index.nextSubfigureOrder + 1
     -- we have a parent, so clear the table then insert a letter (e.g. 'a')
