@@ -71,6 +71,7 @@ knitr_hooks <- function(format) {
     paste0("::: {", labelId(label) ,".cell .cell-code}\n", x, "\n", fig.cap ,":::")
   })
   knit_hooks$source <- function(x, options) {
+    x <- knitr:::one_string(c('', x))
     class <- options$class.source
     attr <- options$attr.source
     if (isTRUE(options["source.hidden"])) {
@@ -90,7 +91,7 @@ knitr_hooks <- function(format) {
       class = class,
       attr = attr
     )
-    paste0('\n\n```', attrs, '\n', x, '\n```\n\n')
+    paste0('\n\n```', attrs, x, '\n```\n\n')
   }
   knit_hooks$output <- delegating_output_hook("output", c("stream", "stdout"))
   knit_hooks$warning <- delegating_output_hook("warning", c("stream", "stderr"))
