@@ -44,13 +44,21 @@ end
 
 -- lua string to pandoc inlines
 function stringToInlines(str)
-  return {pandoc.Str(str)}
+  if str then
+    return {pandoc.Str(str)}
+  else
+    return nil
+  end
 end
 
 -- lua string with markdown to pandoc inlines
 function markdownToInlines(str)
-  local doc = pandoc.read(str)
-  return doc.blocks[1].content
+  if str then
+    local doc = pandoc.read(str)
+    return doc.blocks[1].content
+  else
+    return nil
+  end
 end
 
 -- non-breaking space
