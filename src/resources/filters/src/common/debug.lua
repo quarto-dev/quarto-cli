@@ -1,3 +1,5 @@
+-- debug.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 -- dump an object to stdout
 function dump(o)

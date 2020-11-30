@@ -1,3 +1,5 @@
+-- table.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 -- append values to table
 function tappend(t, values)

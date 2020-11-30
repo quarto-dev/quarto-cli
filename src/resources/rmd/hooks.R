@@ -1,4 +1,5 @@
-
+# hooks.R
+# Copyright (C) 2020 by RStudio, PBC
 
 knitr_hooks <- function(format) {
 

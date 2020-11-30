@@ -1,3 +1,6 @@
+-- refs.lua
+-- Copyright (C) 2020 by RStudio, PBC
+
 -- resolve references
 function resolveRefs()
   
