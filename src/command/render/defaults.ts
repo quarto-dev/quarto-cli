@@ -192,5 +192,5 @@ function resolveFilters(filters: string[] | undefined, options: PandocOptions) {
 }
 
 function crossrefFilter() {
-  return resourcePath("filters/src/crossref/crossref.lua");
+  return resourcePath("filters/crossref/crossref.lua");
 }

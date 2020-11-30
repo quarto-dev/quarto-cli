@@ -4,7 +4,7 @@ buildFilter("crossref");
 
 function buildFilter(filter: string) {
   // read main filter file
-  const filterPath = join("src", filter, `${filter}.lua`);
+  const filterPath = join(`${filter}.lua`);
   const filterDir = dirname(filterPath);
   let src = Deno.readTextFileSync(filterPath);
 
@@ -28,5 +28,5 @@ function buildFilter(filter: string) {
   }
 
   // write src to dist
-  Deno.writeTextFileSync(join("dist", basename(filterPath)), src);
+  Deno.writeTextFileSync(basename(filterPath), src);
 }
