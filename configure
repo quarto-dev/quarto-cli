@@ -8,7 +8,7 @@
 
 
 # Dependency versions
-export PANDOC=2.11.0.4
+export PANDOC=2.11.2
 export DENO=v1.4.6
 export TINYTEX=v2020.10
 
