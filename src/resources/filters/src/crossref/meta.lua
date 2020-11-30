@@ -57,7 +57,27 @@ function metaInjectLatex(doc)
       "\\newcommand*\\listoflistings{\\listof{codelisting}{" .. listOfTitle("lol", "List of Listings") .. "}}\n"
     addHeaderInclude(doc, "tex", lolCommand)
   end
-
+  
+  if usingTheorems() then
+    local theoremEnvs = 
+      "\\usepackage{amsthm}\n" ..
+      "\\newtheorem{theorem}{Theorem}[section]\n" ..
+      "\\newtheorem{lemma}{Lemma}[section]\n" ..
+      "\\newtheorem{corollary}{Corollary}[section]\n" ..
+      "\\newtheorem{proposition}{Proposition}[section]\n" ..
+      "\\newtheorem{conjecture}{Conjecture}[section]\n" ..
+      "\\theoremstyle{definition}\n" ..
+      "\\newtheorem{definition}{Definition}[section]\n" ..
+      "\\theoremstyle{definition}\n" ..
+      "\\newtheorem{example}{Example}[section]\n" ..
+      "\\theoremstyle{definition}\n" ..
+      "\\newtheorem{exercise}{Exercise}[section]\n" ..
+      "\\theoremstyle{remark}\n" ..
+      "\\newtheorem*{remark}{Remark}\n" ..
+      "\\newtheorem*{solution}{Solution} \n"  
+    addHeaderInclude(doc, "tex", theoremEnvs)
+  end
+  
   addHeaderInclude(doc, "tex", "\\makeatother")
 
 end
