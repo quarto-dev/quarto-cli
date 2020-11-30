@@ -1,5 +1,7 @@
 
 
+- Implement latex environment divs: https://bookdown.org/yihui/rmarkdown-cookbook/custom-blocks.html
+
 
 - Consider purging sandbox history from repo and creating new
   quarto-sandbox repo
@@ -16,6 +18,8 @@ ft
   affect addressabilty)
 
 - Filter:
+
+    - ?? for refs we don't find
 
     - consider implementing ref aggregation (e.g. see figs. 1-2)
 
