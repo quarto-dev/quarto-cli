@@ -1,3 +1,5 @@
+-- figures.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 -- filter which tags subfigures with their parent identifier. we do this
 -- in a separate pass b/c normal filters go depth first so we can't actually

@@ -1,3 +1,6 @@
+-- listings.lua
+-- Copyright (C) 2020 by RStudio, PBC
+
 -- process all listings
 function listings()
 

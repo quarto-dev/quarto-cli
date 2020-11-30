@@ -1,3 +1,6 @@
+-- index.lua
+-- Copyright (C) 2020 by RStudio, PBC
+
 -- next sequence in index for type
 function indexNextOrder(type)
   if not crossref.index.nextOrder[type] then

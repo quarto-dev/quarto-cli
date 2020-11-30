@@ -1,4 +1,5 @@
-
+# execute.R
+# Copyright (C) 2020 by RStudio, PBC
 
 # execute rmarkdown::render
 execute <- function(input, format, output, tempDir, cwd, params) {

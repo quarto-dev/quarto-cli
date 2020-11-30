@@ -1,4 +1,5 @@
-
+-- pandoc.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 -- check for latex output
 function isLatexOutput()

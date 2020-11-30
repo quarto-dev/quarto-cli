@@ -1,4 +1,5 @@
-
+# patch.R
+# Copyright (C) 2020 by RStudio, PBC
 
 # use pandoc raw attribute rather than <!-- html_preserve -->
 

@@ -1,3 +1,6 @@
+-- meta.lua
+-- Copyright (C) 2020 by RStudio, PBC
+
 -- inject metadata
 function metaInject()
   return {

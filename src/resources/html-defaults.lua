@@ -1,3 +1,5 @@
+-- html-defaults.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 -- detect math
 local math_detected = false

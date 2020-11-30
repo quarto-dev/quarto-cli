@@ -2,21 +2,12 @@
 * png.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
-*
-* Unless you have received this program directly from RStudio pursuant
-* to the terms of a commercial license agreement with RStudio, then
-* this program is licensed to you under the terms of version 3 of the
-* GNU General Public License. This program is distributed WITHOUT
-* ANY EXPRESS OR IMPLIED WARRANTY, INCLUDING THOSE OF NON-INFRINGEMENT,
-* MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. Please refer to the
-* GPL (http://www.gnu.org/licenses/gpl-3.0.txt) for more details.
+* Copyright (C) 2020 by mel-mouk@achiev (ISC license):
+*   https://github.com/achiev-open/png-decoder-intro
+* Copyright (C) 2017 by Michael Wang (ISC license):
+*   https://github.com/MWGitHub/basic-loaders/blob/master/src/png/byte-converter.js
 *
 */
-
-// based on https://github.com/achiev-open/png-decoder-intro
-// (as described at https://medium.com/javascript-in-plain-english/understanding-and-decoding-png-format-example-in-ts-b31fdde1151b)
-
-// byte conversion from: https://github.com/MWGitHub/basic-loaders/blob/master/src/png/byte-converter.js
 
 export default class PngImage {
   public content: Array<Uint8Array> = [];

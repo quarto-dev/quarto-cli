@@ -1,3 +1,6 @@
+-- format.lua
+-- Copyright (C) 2020 by RStudio, PBC
+
 function title(type, default)
   return option(type .. "-title", stringToInlines(default))
 end

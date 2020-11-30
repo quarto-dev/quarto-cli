@@ -1,3 +1,6 @@
+-- crossref.lua
+-- Copyright (C) 2020 by RStudio, PBC
+
 -- [import]
 function import(script)
   local path = PANDOC_SCRIPT_FILE:match("(.*/)")
