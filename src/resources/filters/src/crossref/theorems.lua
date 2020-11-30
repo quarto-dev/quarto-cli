@@ -74,7 +74,7 @@ end
 
 -- available theorem types
 function theoremTypes()
-  return {
+  return pandoc.List({
     thm = {
       env = "theorem",
       style = "plain",
@@ -115,19 +115,38 @@ function theoremTypes()
       style = "definition",
       title = "Exercise"
     }
-  }
+  })
 end
 
--- are we using theorems in this document?
-function usingTheorems()
-  local types = tkeys(theoremTypes())
+-- theorem latex includes
+function theoremLatexIncludes()
+  
+  -- determine which theorem types we are using
+  local types = theoremTypes()
   local refs = tkeys(crossref.index.entries)
+  local usingTheorems = false
   for k,v in pairs(crossref.index.entries) do
     local type = refType(k)
-    if tcontains(types, type) then
-      return true
+    if types[type] then
+      usingTheorems = true
+      types[type].active = true
     end
   end
-  return false
+  
+  -- return requisite latex if we are using theorems
+  if usingTheorems then
+    local theoremIncludes = "\\usepackage{amsthm}\n"
+    for _, type in ipairs(tkeys(types)) do
+      if types[type].active then
+        theoremIncludes = theoremIncludes .. 
+          "\\theoremstyle{" .. types[type].style .. "}\n" ..
+          "\\newtheorem{" .. types[type].env .. "}{" .. 
+          titleString(type, types[type].title) .. "}[section]\n"
+      end
+    end
+    return theoremIncludes
+  else
+    return nil
+  end
 end
 

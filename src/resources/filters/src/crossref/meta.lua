@@ -58,21 +58,9 @@ function metaInjectLatex(doc)
     addHeaderInclude(doc, "tex", lolCommand)
   end
   
-  if usingTheorems() then
-    local theoremEnvs = 
-      "\\usepackage{amsthm}\n" ..
-      "\\newtheorem{theorem}{Theorem}[section]\n" ..
-      "\\newtheorem{lemma}{Lemma}[section]\n" ..
-      "\\newtheorem{corollary}{Corollary}[section]\n" ..
-      "\\newtheorem{proposition}{Proposition}[section]\n" ..
-      "\\newtheorem{conjecture}{Conjecture}[section]\n" ..
-      "\\theoremstyle{definition}\n" ..
-      "\\newtheorem{definition}{Definition}[section]\n" ..
-      "\\theoremstyle{definition}\n" ..
-      "\\newtheorem{example}{Example}[section]\n" ..
-      "\\theoremstyle{definition}\n" ..
-      "\\newtheorem{exercise}{Exercise}[section]"
-    addHeaderInclude(doc, "tex", theoremEnvs)
+  local theoremIncludes = theoremLatexIncludes()
+  if theoremIncludes then
+    addHeaderInclude(doc, "tex", theoremIncludes)
   end
   
   addHeaderInclude(doc, "tex", "\\makeatother")
