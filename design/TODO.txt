@@ -14,8 +14,31 @@ ft
 
 - Filter:
 
-    - sections
 
+    - generic mechanism for crossref option forwarding
+
+    <!--
+    For LaTeX, we need to:
+
+      - Index {#sec:foo} and resolve @sec:foo to \ref
+      
+    For number-sections on any other format:
+
+      - We track the current level, when we index a {#sec:foo}, we note
+        it's current level e.g. 1, 1.2, 1.2.4
+      - When we resolve the ref, we find the level and print it with the ref
+      - number-offset to deduce the actual section number
+      - We do the numbering for you so that every format can have numbering
+
+    Introduce 'chapters' option which:
+    
+      - For LaTeX adds top-level-division: chapter (unless the user has 
+        actually speicfied it)
+      - For non-LaTeX we will count the h1's as we go and number the
+        refs appropriately e.g. fig. 1.4
+        
+    -->
+  
 
 
     - Forwarding of fig chunk options to data attributes (and HTML/LaTeX generation)
