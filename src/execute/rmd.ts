@@ -17,7 +17,7 @@ import { extname, join } from "path/mod.ts";
 
 import { dirAndStem } from "../core/path.ts";
 import { execProcess } from "../core/process.ts";
-import { resourcePath, rPath } from "../core/resources.ts";
+import { resourcePath } from "../core/resources.ts";
 import {
   readYamlFromMarkdown,
   readYamlFromMarkdownFile,
@@ -120,7 +120,7 @@ async function callR<T>(
   const result = await execProcess(
     {
       cmd: [
-        rPath("Rscript"),
+        "Rscript",
         resourcePath("rmd/rmd.R"),
       ],
       stdout: "piped",
