@@ -23,7 +23,7 @@ function buildFilter(filter: string) {
     if (!importSrc.endsWith("\n")) {
       importSrc += "\n";
     }
-    src += `\n${importSrc}`;
+    src = `${importSrc}\n` + src;
     match = importRe.exec(imports);
   }
 
