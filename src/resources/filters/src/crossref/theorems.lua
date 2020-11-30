@@ -27,11 +27,12 @@ function theorems()
         indexAddEntry(label, nil, order, name)
       
         if isLatexOutput() then
-          el.content:insert(1, pandoc.Para(pandoc.RawInline("latex", 
-            "\\begin{" .. theoremType.env .. "}[" .. 
-            pandoc.utils.stringify(pandoc.Plain(name)) .. "]" ..
-            "\\label{" .. label .. "}"
-          )))
+          local preamble = pandoc.Para(pandoc.RawInline("latex", 
+            "\\begin{" .. theoremType.env .. "}["))
+          tappend(preamble.content, name) 
+          preamble.content:insert(pandoc.RawInline("latex", "]" ..
+            "\\label{" .. label .. "}"))
+          el.content:insert(1, preamble)
           el.content:insert(pandoc.Para(pandoc.RawInline("latex", 
             "\\end{" .. theoremType.env .. "}"
           )))
