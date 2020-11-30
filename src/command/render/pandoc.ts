@@ -15,7 +15,7 @@ import { message } from "../../core/console.ts";
 
 import { Format, FormatPandoc } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
-import { kListings } from "../../config/constants.ts";
+import { kListings, kNumberSections } from "../../config/constants.ts";
 import { binaryPath } from "../../core/resources.ts";
 
 import { RenderFlags } from "./flags.ts";
@@ -51,10 +51,15 @@ export async function runPandoc(
     cmd.push("--defaults", defaultsFile);
   }
 
-  // forward --listings to crossref if necessary
+  // forward --listings  and --number-sections to crossref if necessary
   if (crossrefFilterActive(options.format)) {
     if (options.flags?.listings || options.format.pandoc[kListings]) {
-      setCrossrefMetadata(options.format, "listings", true);
+      setCrossrefMetadata(options.format, kListings, true);
+    }
+    if (
+      options.flags?.numberSections || options.format.pandoc[kNumberSections]
+    ) {
+      setCrossrefMetadata(options.format, kNumberSections, true);
     }
   }
 
@@ -145,6 +150,9 @@ function runPandocMessage(
       const crossref = printMetadata.crossref as Record<string, unknown>;
       if (crossref.listings !== undefined) {
         delete crossref.listings;
+      }
+      if (crossref[kNumberSections] !== undefined) {
+        delete crossref[kNumberSections];
       }
       if (Object.keys(crossref).length === 0) {
         delete printMetadata.crossref;

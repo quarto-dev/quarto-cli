@@ -22,6 +22,7 @@ import {
   kKeepYaml,
   kListings,
   kMarkdownHeadings,
+  kNumberSections,
   kOutputFile,
   kPdfEngine,
   kPdfEngineOpt,
@@ -102,6 +103,7 @@ export interface FormatPandoc {
   [kPdfEngineOpts]?: string[];
   [kPdfEngineOpt]?: string;
   [kListings]?: boolean;
+  [kNumberSections]?: boolean;
 }
 
 export function isLatexFormat(format: FormatPandoc) {

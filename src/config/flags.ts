@@ -16,4 +16,5 @@ export interface PandocFlags {
   natbib?: boolean;
   biblatex?: boolean;
   listings?: boolean;
+  numberSections?: boolean;
 }
