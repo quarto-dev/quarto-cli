@@ -1,21 +1,24 @@
 -- resolve references
 function resolveRefs()
-
+  
   return {
     Cite = function(citeEl)
+      
+      -- all valid ref types (so we can provide feedback when one doesn't match)
+      local refTypes = validRefTypes()
+      
       -- scan citations for refs
       local refs = pandoc.List:new()
       for i, cite in ipairs (citeEl.citations) do
-        local entry = crossref.index.entries[text.lower(cite.id)]
+        -- get the label and type, and note if the label is uppercase
+        local label = text.lower(cite.id)
+        local type = refType(label)
+        local upper = not not string.match(cite.id, "^[A-Z]")
+        
+        -- lookup the label
+        local entry = crossref.index.entries[label]
         if entry ~= nil then
-          -- get the type (note if it's uppercase)
-          local type = refType(cite.id)
-          local upper = not not string.match(cite.id, "^[A-Z]")
-          type = text.lower(type)
-
-          -- get the label
-          local label = text.lower(cite.id)
-
+      
           -- preface with delimiter unless this is citation 1
           if (i > 1) then
             refs:extend(refDelim())
@@ -55,6 +58,11 @@ function resolveRefs()
           -- add the ref
           refs:extend(ref)
 
+        -- no entry for this reference, if it has a valid ref prefix
+        -- then yield error text
+        elseif tcontains(refTypes, type) then
+          local err = pandoc.Strong({ pandoc.Str("?@" .. label) })
+          refs:extend({err})
         end
       end
 
@@ -77,3 +85,13 @@ end
 function refType(id)
   return string.match(id, "^(%a+)%:")
 end
+
+function validRefTypes()
+  local types = tkeys(theoremTypes())
+  table.insert(types, "fig")
+  table.insert(types, "tbl")
+  table.insert(types, "eq")
+  table.insert(types, "lst")
+  return types
+end
+

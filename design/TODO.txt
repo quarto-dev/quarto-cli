@@ -1,11 +1,8 @@
 
 
+- Implement latex environment divs: https://bookdown.org/yihui/rmarkdown-cookbook/custom-blocks.html
 
-- Consider purging sandbox history from repo and creating new
-  quarto-sandbox repo
-  https://github.com/newren/git-filter-repo/
-
-- We don't seem to be able to render latex quite the same way that kntir does,
+- We don't seem to be able to render latex quite the same way that knitr does,
 e.g.:
 library(flextable)
 ft <- flextable(head(mtcars))
@@ -17,10 +14,8 @@ ft
 
 - Filter:
 
-    - consider implementing ref aggregation (e.g. see figs. 1-2)
-
     - sections
-    - lemma, proof, etc.
+
 
 
     - Forwarding of fig chunk options to data attributes (and HTML/LaTeX generation)

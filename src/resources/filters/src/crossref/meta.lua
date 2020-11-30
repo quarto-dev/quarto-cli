@@ -57,7 +57,12 @@ function metaInjectLatex(doc)
       "\\newcommand*\\listoflistings{\\listof{codelisting}{" .. listOfTitle("lol", "List of Listings") .. "}}\n"
     addHeaderInclude(doc, "tex", lolCommand)
   end
-
+  
+  local theoremIncludes = theoremLatexIncludes()
+  if theoremIncludes then
+    addHeaderInclude(doc, "tex", theoremIncludes)
+  end
+  
   addHeaderInclude(doc, "tex", "\\makeatother")
 
 end
