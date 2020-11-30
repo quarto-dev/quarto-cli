@@ -12,12 +12,19 @@ function theorems()
       if theoremType then
         
         -- add class for type
-        el.attr.classes:insert(theoremType.title:lower())
+        el.attr.classes:insert("theorem")
+        local class = theoremType.title:lower()
+        if class ~= "theorem" then
+          el.attr.classes:insert(class)
+        end
+        
+        -- capture then remove name
+        local name = el.attr.attributes["name"]
+        el.attr.attributes["name"] = nil 
         
         -- add to index
         local label = el.attr.identifier
         local order = indexNextOrder(type)
-        local name = el.attr.attributes["name"]
         indexAddEntry(label, nil, order, markdownToInlines(name))
       
         -- create caption prefix
@@ -41,7 +48,12 @@ function theorems()
         
         -- prepend the prefix
         local caption = el.content[1]
-        tprepend(caption.content, { pandoc.Strong(prefix) })
+        tprepend(caption.content, { 
+          pandoc.Span(
+            pandoc.Strong(prefix), 
+            pandoc.Attr("", { "theorem-title" })
+          )
+        })
        
       end
       return el
