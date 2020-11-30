@@ -19,12 +19,14 @@ ft
 
 - Filter:
 
+    - Build meta latex includes for theoroms off of theoromTypes
+
     - ?? for refs we don't find
 
     - consider implementing ref aggregation (e.g. see figs. 1-2)
 
     - sections
-    - lemma, proof, etc.
+
 
 
     - Forwarding of fig chunk options to data attributes (and HTML/LaTeX generation)
