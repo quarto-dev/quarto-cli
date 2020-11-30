@@ -37,7 +37,7 @@ import {
 
 import { kPatchedTemplateExt } from "./output.ts";
 import { mergeConfigs } from "../../core/config.ts";
-import { resourcePath } from "../../core/resources.ts";
+import { binaryPath, resourcePath } from "../../core/resources.ts";
 import { readYamlFromString } from "../../core/yaml.ts";
 import { crossrefFilterActive, PandocOptions } from "./pandoc.ts";
 
@@ -129,7 +129,7 @@ async function detectDefaults(
 ): Promise<FormatPandoc | undefined> {
   if (isHtmlFormat(format)) {
     const cmd = [
-      "pandoc",
+      binaryPath("pandoc"),
       file,
       "--from",
       format.from || "markdown",
