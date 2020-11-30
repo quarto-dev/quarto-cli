@@ -84,6 +84,36 @@ function theoremTypes()
       env = "lemma",
       style = "plain",
       title = "Lemma"
+    },
+    cor = {
+      env = "corollary",
+      style = "plain",
+      title = "Corollary",
+    },
+    prp = {
+      env = "proposition",
+      style = "plain",
+      title = "Proposition",
+    },
+    cnj = {
+      env = "conjecture",
+      style = "plain",
+      title = "Conjecture"
+    },
+    def = {
+      env = "definition",
+      style = "definition",
+      title = "Definition",
+    },
+    exm = {
+      env = "example",
+      style = "definition",
+      title = "Example",
+    },
+    exr  = {
+      env = "exercise",
+      style = "definition",
+      title = "Exercise"
     }
   }
 end

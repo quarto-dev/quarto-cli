@@ -71,10 +71,7 @@ function metaInjectLatex(doc)
       "\\theoremstyle{definition}\n" ..
       "\\newtheorem{example}{Example}[section]\n" ..
       "\\theoremstyle{definition}\n" ..
-      "\\newtheorem{exercise}{Exercise}[section]\n" ..
-      "\\theoremstyle{remark}\n" ..
-      "\\newtheorem*{remark}{Remark}\n" ..
-      "\\newtheorem*{solution}{Solution} \n"  
+      "\\newtheorem{exercise}{Exercise}[section]"
     addHeaderInclude(doc, "tex", theoremEnvs)
   end
   
