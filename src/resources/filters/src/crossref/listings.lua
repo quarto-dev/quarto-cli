@@ -25,7 +25,9 @@ function listings()
           -- if we are use the listings package just add the caption
           -- attribute and return the block, otherwise generate latex
           if latexListings() then
-            codeBlock.attributes["caption"] = pandoc.utils.stringify(el)
+            codeBlock.attributes["caption"] = pandoc.utils.stringify(
+              pandoc.Span(captionContent)
+            )
             targetBlocks:insert(codeBlock)
           else
             targetBlocks:insert(pandoc.RawBlock("latex", "\\begin{codelisting}"))
