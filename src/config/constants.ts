@@ -94,6 +94,7 @@ export const kPdfEngine = "pdf-engine";
 export const kPdfEngineOpts = "pdf-engine-opts";
 export const kPdfEngineOpt = "pdf-engine-opt";
 export const kListings = "listings";
+export const kNumberSections = "number-sections";
 
 // metadata fields
 export const kBibliography = "bibliography";
@@ -141,7 +142,7 @@ export const kPandocDefaultsKeys = [
   "toc",
   "table-of-contents",
   "toc-depth",
-  "number-sections",
+  kNumberSections,
   "number-offset",
   "shift-heading-level-by",
   "section-divs",

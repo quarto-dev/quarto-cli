@@ -81,6 +81,11 @@ export function parseRenderFlags(args: string[]) {
         flags.listings = true;
         break;
 
+      case "--number-sections":
+        arg = argsStack.shift();
+        flags.numberSections = true;
+        break;
+
       case "--execute":
         flags.execute = true;
         arg = argsStack.shift();
