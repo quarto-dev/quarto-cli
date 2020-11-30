@@ -2,12 +2,7 @@
 
 - Implement latex environment divs: https://bookdown.org/yihui/rmarkdown-cookbook/custom-blocks.html
 
-
-- Consider purging sandbox history from repo and creating new
-  quarto-sandbox repo
-  https://github.com/newren/git-filter-repo/
-
-- We don't seem to be able to render latex quite the same way that kntir does,
+- We don't seem to be able to render latex quite the same way that knitr does,
 e.g.:
 library(flextable)
 ft <- flextable(head(mtcars))
@@ -18,12 +13,6 @@ ft
   affect addressabilty)
 
 - Filter:
-
-    - Build meta latex includes for theoroms off of theoromTypes
-
-    - ?? for refs we don't find
-
-    - consider implementing ref aggregation (e.g. see figs. 1-2)
 
     - sections
 
