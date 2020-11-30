@@ -45,7 +45,7 @@ function theorems()
           table.insert(prefix, pandoc.Space())
           if name then
             table.insert(prefix, pandoc.Str("("))
-            tappend(prefix, markdownToInlines(name))
+            tappend(prefix, name)
             table.insert(prefix, pandoc.Str(")"))
             table.insert(prefix, pandoc.Space())
           end
