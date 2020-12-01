@@ -8,6 +8,7 @@ function import(script)
 end
 import("global.lua")
 import("index.lua")
+import("sections.lua")
 import("figures.lua")
 import("tables.lua")
 import("equations.lua")
@@ -30,6 +31,7 @@ return {
   initOptions(),
   subfigures(),
   combineFilters({
+    sections(),
     figures(),
     tables(),
     equations(),

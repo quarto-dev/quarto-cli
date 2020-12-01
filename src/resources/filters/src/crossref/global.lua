@@ -6,6 +6,7 @@ crossref = {
   index = {
     nextOrder = {},
     nextSubfigureOrder = 1,
+    currentChapter = 0,
     entries = {}
   },
   options = {}
