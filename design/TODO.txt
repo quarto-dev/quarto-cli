@@ -1,4 +1,3 @@
-- Test fixing the lua github action for inlining
 
 - Implement latex environment divs: https://bookdown.org/yihui/rmarkdown-cookbook/custom-blocks.html
 
