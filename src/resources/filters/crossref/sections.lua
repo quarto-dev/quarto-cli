@@ -18,10 +18,10 @@ function sections()
       local currentLevel = currentSectionLevel()
       
       -- if this level is less than the current level
-      -- then zero out subseqeunt levels
+      -- then set subsequent levels to their offset
       if level < currentLevel then
         for i=level+1,#crossref.index.section do
-          crossref.index.section[i] = 0
+          crossref.index.section[i] = crossref.index.sectionOffsets[i]
         end
       end
       

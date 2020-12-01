@@ -5,10 +5,27 @@
 function initIndex()
   return {
     Pandoc = function(doc)
+      
+      -- compute section offsets
+      local sectionOffsets = pandoc.List:new({0,0,0,0,0,0,0})
+      local numberOffset = pandoc.List:new(option("number-offset", {})):map(
+        function(offset)
+          return tonumber(offset[1].text)
+        end
+      )
+      for i=1,#sectionOffsets do
+        if i > #numberOffset then
+          break
+        end
+        sectionOffsets[i] = numberOffset[i]
+      end
+      
+      -- initialize index
       crossref.index = {
         nextOrder = {},
         nextSubfigureOrder = 1,
-        section = pandoc.List:new({0,0,0,0,0,0,0}),
+        section = sectionOffsets,
+        sectionOffsets = sectionOffsets,
         entries = {}
       }
       return doc

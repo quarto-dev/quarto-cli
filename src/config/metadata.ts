@@ -64,7 +64,7 @@ export function formatFromMetadata(
     render: {},
     execution: {},
     pandoc: {},
-    metadata: {},
+    metadata: { crossref: {} },
   };
   // deno-lint-ignore no-explicit-any
   let format = typedFormat as any;
@@ -102,7 +102,7 @@ export function metadataAsFormat(metadata: Metadata): Format {
     render: {},
     execution: {},
     pandoc: {},
-    metadata: {},
+    metadata: { crossref: {} },
   };
   // deno-lint-ignore no-explicit-any
   const format = typedFormat as { [key: string]: any };
