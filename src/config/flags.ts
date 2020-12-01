@@ -5,7 +5,13 @@
 *
 */
 
-import { kSelfContained } from "./constants.ts";
+import {
+  kListings,
+  kNumberOffset,
+  kNumberSections,
+  kSelfContained,
+  kTopLevelDivision,
+} from "./constants.ts";
 
 export interface PandocFlags {
   to?: string;
@@ -15,6 +21,8 @@ export interface PandocFlags {
   pdfEngineOpts?: string[];
   natbib?: boolean;
   biblatex?: boolean;
-  listings?: boolean;
-  numberSections?: boolean;
+  [kListings]?: boolean;
+  [kNumberSections]?: boolean;
+  [kNumberOffset]?: number[];
+  [kTopLevelDivision]?: string;
 }

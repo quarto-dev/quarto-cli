@@ -9,6 +9,9 @@ import { extname } from "path/mod.ts";
 import { stringify } from "encoding/yaml.ts";
 
 import { execProcess } from "../../core/process.ts";
+import { mergeConfigs } from "../../core/config.ts";
+import { binaryPath, resourcePath } from "../../core/resources.ts";
+import { readYamlFromString } from "../../core/yaml.ts";
 
 import { FormatPandoc, isHtmlFormat } from "../../config/format.ts";
 import { pdfEngine } from "../../config/pdf.ts";
@@ -28,23 +31,25 @@ import {
 } from "../../config/constants.ts";
 
 import { kPatchedTemplateExt } from "./output.ts";
-import { mergeConfigs } from "../../core/config.ts";
-import { binaryPath, resourcePath } from "../../core/resources.ts";
-import { readYamlFromString } from "../../core/yaml.ts";
-import { crossrefFilterActive, PandocOptions } from "./pandoc.ts";
+import { PandocOptions } from "./pandoc.ts";
+import { crossrefFilterActive, crossrefGeneratedDefaults } from "./crossref.ts";
 
 export async function generateDefaults(
   options: PandocOptions,
 ): Promise<FormatPandoc | undefined> {
-  // write a temporary defaults file
   let allDefaults: FormatPandoc | undefined;
+
   const detectedDefaults = await detectDefaults(
     options.input,
     options.format.pandoc,
   );
-  if (detectedDefaults || options.format.pandoc) {
+
+  const crossrefDefaults = crossrefGeneratedDefaults(options);
+
+  if (detectedDefaults || crossrefDefaults || options.format.pandoc) {
     allDefaults = mergeConfigs(
       detectedDefaults || {},
+      crossrefDefaults || {},
       options.format.pandoc || {},
     );
     // resolve filters

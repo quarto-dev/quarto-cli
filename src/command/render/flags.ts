@@ -7,7 +7,13 @@
 
 import { readYaml } from "../../core/yaml.ts";
 
-import { kSelfContained } from "../../config/constants.ts";
+import {
+  kListings,
+  kNumberOffset,
+  kNumberSections,
+  kSelfContained,
+  kTopLevelDivision,
+} from "../../config/constants.ts";
 import { PandocFlags } from "../../config/flags.ts";
 
 export const kStdOut = "-";
@@ -78,12 +84,23 @@ export function parseRenderFlags(args: string[]) {
 
       case "--listings":
         arg = argsStack.shift();
-        flags.listings = true;
+        flags[kListings] = true;
         break;
 
       case "--number-sections":
         arg = argsStack.shift();
-        flags.numberSections = true;
+        flags[kNumberSections] = true;
+        break;
+
+      case "--number-offset":
+        arg = argsStack.shift();
+        flags[kNumberSections] = true;
+        flags[kNumberOffset] = parseNumbers("--number-offset", arg);
+        break;
+
+      case "--top-level-division":
+        arg = argsStack.shift();
+        flags[kTopLevelDivision] = arg;
         break;
 
       case "--execute":
@@ -213,4 +230,20 @@ export function resolveParams(params?: string) {
   } else {
     return undefined;
   }
+}
+
+function parseNumbers(flag: string, value?: string): number[] {
+  if (value) {
+    const numbers = value.split(/,/)
+      .map((number) => parseInt(number.trim(), 10))
+      .filter((number) => !isNaN(number));
+    if (numbers.length > 0) {
+      return numbers;
+    }
+  }
+
+  // didn't parse the numbers
+  throw new Error(
+    `Invalid value for ${flag} (should be a comma separated list of numbers)`,
+  );
 }

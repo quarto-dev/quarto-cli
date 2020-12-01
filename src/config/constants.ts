@@ -95,6 +95,8 @@ export const kPdfEngineOpts = "pdf-engine-opts";
 export const kPdfEngineOpt = "pdf-engine-opt";
 export const kListings = "listings";
 export const kNumberSections = "number-sections";
+export const kNumberOffset = "number-offset";
+export const kTopLevelDivision = "top-level-division";
 
 // metadata fields
 export const kBibliography = "bibliography";
@@ -130,7 +132,7 @@ export const kPandocDefaultsKeys = [
   "data-dir",
   "verbosity",
   "log-file",
-  "top-level-division",
+  kTopLevelDivision,
   "abbreviations",
   kPdfEngine,
   kPdfEngineOpts,
@@ -143,7 +145,7 @@ export const kPandocDefaultsKeys = [
   "table-of-contents",
   "toc-depth",
   kNumberSections,
-  "number-offset",
+  kNumberOffset,
   "shift-heading-level-by",
   "section-divs",
   "identifier-prefix",

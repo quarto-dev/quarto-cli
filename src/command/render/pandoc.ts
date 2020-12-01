@@ -15,7 +15,7 @@ import { message } from "../../core/console.ts";
 
 import { Format, FormatPandoc } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
-import { kListings, kNumberSections } from "../../config/constants.ts";
+import { kNumberSections } from "../../config/constants.ts";
 import { binaryPath } from "../../core/resources.ts";
 
 import { RenderFlags } from "./flags.ts";
@@ -24,6 +24,11 @@ import {
   pandocDefaultsMessage,
   writeDefaultsFile,
 } from "./defaults.ts";
+import {
+  cleanForwardedCrossrefMetadata,
+  crossrefFilterActive,
+  forwardCrossrefOptions,
+} from "./crossref.ts";
 
 // options required to run pandoc
 export interface PandocOptions {
@@ -51,16 +56,9 @@ export async function runPandoc(
     cmd.push("--defaults", defaultsFile);
   }
 
-  // forward --listings  and --number-sections to crossref if necessary
+  // forward --listings, --number-sections, and --number-offset to crossref if necessary
   if (crossrefFilterActive(options.format)) {
-    if (options.flags?.listings || options.format.pandoc[kListings]) {
-      setCrossrefMetadata(options.format, kListings, true);
-    }
-    if (
-      options.flags?.numberSections || options.format.pandoc[kNumberSections]
-    ) {
-      setCrossrefMetadata(options.format, kNumberSections, true);
-    }
+    forwardCrossrefOptions(options);
   }
 
   // read the input file then append the metadata to the file (this is to that)
@@ -113,22 +111,6 @@ export async function runPandoc(
   );
 }
 
-export function crossrefFilterActive(format: Format) {
-  return format.metadata.crossref !== false;
-}
-
-function setCrossrefMetadata(
-  format: Format,
-  key: string,
-  value: unknown,
-) {
-  if (typeof format.metadata.crossref !== "object") {
-    format.metadata.crossref = {} as Record<string, unknown>;
-  }
-  // deno-lint-ignore no-explicit-any
-  (format.metadata.crossref as any)[key] = value;
-}
-
 function runPandocMessage(
   args: string[],
   pandoc: FormatPandoc | undefined,
@@ -142,23 +124,13 @@ function runPandocMessage(
 
   if (Object.keys(metadata).length > 0) {
     message("metadata", { bold: true });
-    const printMetadata = ld.cloneDeep(metadata);
+    const printMetadata = ld.cloneDeep(metadata) as Metadata;
     delete printMetadata.format;
 
     // cleanup synthesized crossref metadata
-    if (printMetadata.crossref) {
-      const crossref = printMetadata.crossref as Record<string, unknown>;
-      if (crossref.listings !== undefined) {
-        delete crossref.listings;
-      }
-      if (crossref[kNumberSections] !== undefined) {
-        delete crossref[kNumberSections];
-      }
-      if (Object.keys(crossref).length === 0) {
-        delete printMetadata.crossref;
-      }
-    }
+    cleanForwardedCrossrefMetadata(printMetadata);
 
+    // print message
     message(stringify(printMetadata), { indent: 2 });
   }
 }
