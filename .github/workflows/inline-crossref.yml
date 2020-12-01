@@ -18,9 +18,9 @@ jobs:
 
      - name: Configure
        run: |
-            pushd package
+            cd package
             ./configure.sh
-            popd
+            cd ..
      
      - name: Prepare Dist
        run: |
