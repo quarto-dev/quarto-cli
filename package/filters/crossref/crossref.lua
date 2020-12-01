@@ -188,6 +188,8 @@ function initOptions()
     Pandoc = function(doc)
       if type(doc.meta["crossref"]) == "table" then
         crossref.options = doc.meta["crossref"]:clone()
+      else
+        crossref.options = {}
       end
       return doc
     end
@@ -217,10 +219,10 @@ function titleString(type, default)
   return pandoc.utils.stringify(title(type, default))
 end
 
-function titlePrefix(type, default, num)
+function titlePrefix(type, default, order)
   local prefix = title(type, default)
   table.insert(prefix, pandoc.Space())
-  tappend(prefix, numberOption(type, num))
+  tappend(prefix, numberOption(type, order))
   tappend(prefix, titleDelim())
   table.insert(prefix, pandoc.Space())
   return prefix
@@ -242,8 +244,8 @@ function captionCollectedLabelSep()
   return option("caption-collected-label-sep", stringToInlines("\u{a0}—\u{a0}"))
 end
 
-function subfigNumber(num)
-  return numberOption("subfig", num,  {pandoc.Str("alpha"),pandoc.Space(),pandoc.Str("a")})
+function subfigNumber(order)
+  return numberOption("subfig", order,  {pandoc.Str("alpha"),pandoc.Space(),pandoc.Str("a")})
 end
 
 function refPrefix(type, upper)
@@ -275,7 +277,19 @@ function refHyperlink()
   return option("ref-hyperlink", true)
 end
 
-function numberOption(type, num, default)
+function numberOption(type, order, default)
+  
+  -- alias num
+  local num = order.order
+  
+  -- return a pandoc.Str w/ chapter prefix (if any)
+  function resolve(option)
+    if order.chapter ~= nil then
+      option = tostring(order.chapter) .. "." .. option
+    end
+    return { pandoc.Str(option) }
+  end
+  
   -- Compute option name and default value
   local opt = type .. "-labels"
   if default == nil then
@@ -288,7 +302,7 @@ function numberOption(type, num, default)
 
   -- process the style
   if (numberStyle == "arabic") then
-    return {pandoc.Str(tostring(num))}
+    return resolve(tostring(num))
   elseif (string.match(numberStyle, "^alpha ")) then
     -- permits the user to include the character that they'd like
     -- to start the numbering with (e.g. alpha a vs. alpha A)
@@ -297,15 +311,15 @@ function numberOption(type, num, default)
       startIndexChar = "a"
     end
     local startIndex = utf8.codepoint(startIndexChar)
-    return {pandoc.Str(string.char(startIndex + num - 1))}
+    return resolve(string.char(startIndex + num - 1))
   elseif (string.match(numberStyle, "^roman")) then
-    -- permits the user to express `roman` or `roman lower` to
-    -- use lower case roman numerals
+    -- permits the user to express `roman` or `roman i` or `roman I` to
+    -- use lower / uppper case roman numerals
     local lower = false
     if (string.sub(numberStyle, -#"i") == "i") then
       lower = true
     end
-    return {pandoc.Str(toRoman(num, lower))}
+    return resolve(toRoman(num, lower))
   else
     -- otherwise treat the value as a list of values to use
     -- to display the numbers
@@ -313,7 +327,11 @@ function numberOption(type, num, default)
 
     -- select an index based upon the num, wrapping it around
     local entryIndex = (num - 1) % entryCount + 1
-    return styleRaw[entryIndex]
+    local option = styleRaw[entryIndex]
+    if order.chapter ~= nil then
+      tprepend(option, { pandoc.Str(tostring(order.chapter) .. ".") })
+    end
+    return option
   end
 end
 
@@ -814,8 +832,8 @@ function listings()
   }
 end
 
-function listingTitlePrefix(num)
-  return titlePrefix("lst", "Listing", num)
+function listingTitlePrefix(order)
+  return titlePrefix("lst", "Listing", order)
 end
 
 function prependTitlePrefix(caption, label, order)
@@ -1060,8 +1078,8 @@ function hasTableLabel(el)
 end
 
 
-function tableTitlePrefix(num)
-  return titlePrefix("tbl", "Table", num)
+function tableTitlePrefix(order)
+  return titlePrefix("tbl", "Table", order)
 end
 
 
@@ -1163,7 +1181,10 @@ function processFigure(el, captionContent)
   local parent = el.attr.attributes["figure-parent"]
   if (parent) then
     el.attr.attributes["figure-parent"] = nil
-    order = crossref.index.nextSubfigureOrder
+    order = {
+      chapter = nil,
+      order = crossref.index.nextSubfigureOrder
+    }
     crossref.index.nextSubfigureOrder = crossref.index.nextSubfigureOrder + 1
     -- we have a parent, so clear the table then insert a letter (e.g. 'a')
     tclear(captionContent)
@@ -1196,8 +1217,8 @@ function appendSubfigureCaptions(div)
   local captionContent = div.content[#div.content].content
 
   -- append to caption in order of insertion
-  for label,figure in spairs(subfigures, function(t, a, b) return t[a].order < t[b].order end) do
-    if figure.order == 1 then
+  for label,figure in spairs(subfigures, function(t, a, b) return t[a].order.order < t[b].order.order end) do
+    if figure.order.order == 1 then
       table.insert(captionContent, pandoc.Str(". "))
     else
       tappend(captionContent, captionCollectedDelim())
@@ -1235,8 +1256,8 @@ end
 
 
 
-function figureTitlePrefix(num)
-  return titlePrefix("fig", "Figure", num)
+function figureTitlePrefix(order)
+  return titlePrefix("fig", "Figure", order)
 end
 
 -- sections.lua
@@ -1247,7 +1268,7 @@ function sections()
     Header = function(el)
       -- track current chapter
       if el.level == 1 then
-        crossref.index.currentChapter = crossref.index.currentChapter + 1
+        indexNextChapter()
       end
     end
   }
@@ -1255,6 +1276,38 @@ end
 
 -- index.lua
 -- Copyright (C) 2020 by RStudio, PBC
+
+-- initialize the index
+function initIndex()
+  return {
+    Pandoc = function(doc)
+      crossref.index = {
+        nextOrder = {},
+        nextSubfigureOrder = 1,
+        currentChapter = nil,
+        entries = {}
+      }
+      if option("chapters", false) then
+        crossref.index.currentChapter = 0
+      end
+      return doc
+    end
+  }
+end
+
+-- advance a chapter
+function indexNextChapter()
+  if option("chapters", false) then
+    -- bump current chapter
+    crossref.index.currentChapter = crossref.index.currentChapter + 1
+    
+    -- reset nextOrder to 1 for all types
+    for k,v in pairs(crossref.index.nextOrder) do
+      crossref.index.nextOrder[k] = 1
+    end
+  end
+  return crossref.index.currentChapter
+end
 
 -- next sequence in index for type
 function indexNextOrder(type)
@@ -1264,7 +1317,10 @@ function indexNextOrder(type)
   local nextOrder = crossref.index.nextOrder[type]
   crossref.index.nextOrder[type] = crossref.index.nextOrder[type] + 1
   crossref.index.nextSubfigureOrder = 1
-  return nextOrder
+  return {
+    chapter = crossref.index.currentChapter,
+    order = nextOrder
+  }
 end
 
 -- add an entry to the index
@@ -1275,7 +1331,7 @@ function indexAddEntry(label, parent, order, caption)
   crossref.index.entries[label] = {
     parent = parent,
     order = order,
-    caption = caption
+    caption = caption,
   }
 end
 
@@ -1284,31 +1340,21 @@ function indexHasElement(el)
   return crossref.index.entries[el.attr.identifier] ~= nil
 end
 
--- global.lua
--- Copyright (C) 2020 by RStudio, PBC
-
--- global crossref state
-crossref = {
-  index = {
-    nextOrder = {},
-    nextSubfigureOrder = 1,
-    currentChapter = 0,
-    entries = {}
-  },
-  options = {}
-}
-
 -- crossref.lua
 -- Copyright (C) 2020 by RStudio, PBC
-
-
 
 -- required modules
 text = require 'text'
 
+-- global crossref state
+crossref = {}
+
+
+
 -- chain of filters
 return {
   initOptions(),
+  initIndex(),
   subfigures(),
   combineFilters({
     sections(),

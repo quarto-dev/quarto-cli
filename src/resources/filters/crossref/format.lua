@@ -103,8 +103,8 @@ function numberOption(type, order, default)
     local startIndex = utf8.codepoint(startIndexChar)
     return resolve(string.char(startIndex + num - 1))
   elseif (string.match(numberStyle, "^roman")) then
-    -- permits the user to express `roman` or `roman lower` to
-    -- use lower case roman numerals
+    -- permits the user to express `roman` or `roman i` or `roman I` to
+    -- use lower / uppper case roman numerals
     local lower = false
     if (string.sub(numberStyle, -#"i") == "i") then
       lower = true
