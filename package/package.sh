@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Packages Quarto into an installer
 
@@ -6,7 +6,7 @@
 # TODO: Notarize
 # TODO: Platforms
 
-source ../configure
+source ../configuration
 
 # Packaging Configuration
 export IDENTIFIER=org.rstudio.quarto

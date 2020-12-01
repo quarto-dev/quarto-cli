@@ -1,10 +1,11 @@
-#!/bin/zsh
+#!/bin/bash
 
 
 # Configures Quarto on the local machine.
+# Windows? Bash on windows v powershell
 
 #  common data
-source configure
+source configuration
 
 pushd package
 

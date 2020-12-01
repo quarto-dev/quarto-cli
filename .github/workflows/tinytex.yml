@@ -27,7 +27,7 @@
 
      - name: Setup Environment
        run: |
-            source package/configure
+            source package/configuration
             echo "VERSION=$TINYTEX" >> $GITHUB_ENV
             echo "BASEURL=https://github.com/yihui/tinytex-releases/releases/download/" >> $GITHUB_ENV
             echo "FILENAMES=TinyTeX-1-$TINYTEX.tar.gz TinyTeX-1-$TINYTEX.tgz TinyTeX-1-$TINYTEX.zip" >> $GITHUB_ENV

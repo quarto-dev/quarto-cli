@@ -1,3 +1,5 @@
+-- debug.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 -- dump an object to stdout
 function dump(o)
@@ -26,6 +28,8 @@ end
 
 
 
+-- table.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 -- append values to table
 function tappend(t, values)
@@ -105,7 +109,8 @@ function spairs(t, order)
   end
 end
 
-
+-- pandoc.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 -- check for latex output
 function isLatexOutput()
@@ -151,13 +156,21 @@ end
 
 -- lua string to pandoc inlines
 function stringToInlines(str)
-  return {pandoc.Str(str)}
+  if str then
+    return {pandoc.Str(str)}
+  else
+    return nil
+  end
 end
 
 -- lua string with markdown to pandoc inlines
 function markdownToInlines(str)
-  local doc = pandoc.read(str)
-  return doc.blocks[1].content
+  if str then
+    local doc = pandoc.read(str)
+    return doc.blocks[1].content
+  else
+    return nil
+  end
 end
 
 -- non-breaking space
@@ -165,6 +178,9 @@ function nbspString()
   return pandoc.Str '\u{a0}'
 end
 
+
+-- options.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 -- initialize options from 'crossref' metadata value
 function initOptions()
@@ -187,7 +203,11 @@ function option(name, default)
   return value
 end
 
--- helpers associated with processing labels, numbers, and so on
+
+
+
+-- format.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 function title(type, default)
   return option(type .. "-title", stringToInlines(default))
@@ -310,6 +330,9 @@ function toRoman(num, lower)
   end
 end
 
+-- meta.lua
+-- Copyright (C) 2020 by RStudio, PBC
+
 -- inject metadata
 function metaInject()
   return {
@@ -369,7 +392,12 @@ function metaInjectLatex(doc)
       "\\newcommand*\\listoflistings{\\listof{codelisting}{" .. listOfTitle("lol", "List of Listings") .. "}}\n"
     addHeaderInclude(doc, "tex", lolCommand)
   end
-
+  
+  local theoremIncludes = theoremLatexIncludes()
+  if theoremIncludes then
+    addHeaderInclude(doc, "tex", theoremIncludes)
+  end
+  
   addHeaderInclude(doc, "tex", "\\makeatother")
 
 end
@@ -405,24 +433,30 @@ function listOfTitle(type, default)
   end
 end
 
+-- refs.lua
+-- Copyright (C) 2020 by RStudio, PBC
+
 -- resolve references
 function resolveRefs()
-
+  
   return {
     Cite = function(citeEl)
+      
+      -- all valid ref types (so we can provide feedback when one doesn't match)
+      local refTypes = validRefTypes()
+      
       -- scan citations for refs
       local refs = pandoc.List:new()
       for i, cite in ipairs (citeEl.citations) do
-        local entry = crossref.index.entries[text.lower(cite.id)]
+        -- get the label and type, and note if the label is uppercase
+        local label = text.lower(cite.id)
+        local type = refType(label)
+        local upper = not not string.match(cite.id, "^[A-Z]")
+        
+        -- lookup the label
+        local entry = crossref.index.entries[label]
         if entry ~= nil then
-          -- get the type (note if it's uppercase)
-          local type = refType(cite.id)
-          local upper = not not string.match(cite.id, "^[A-Z]")
-          type = text.lower(type)
-
-          -- get the label
-          local label = text.lower(cite.id)
-
+      
           -- preface with delimiter unless this is citation 1
           if (i > 1) then
             refs:extend(refDelim())
@@ -462,6 +496,11 @@ function resolveRefs()
           -- add the ref
           refs:extend(ref)
 
+        -- no entry for this reference, if it has a valid ref prefix
+        -- then yield error text
+        elseif tcontains(refTypes, type) then
+          local err = pandoc.Strong({ pandoc.Str("?@" .. label) })
+          refs:extend({err})
         end
       end
 
@@ -485,7 +524,18 @@ function refType(id)
   return string.match(id, "^(%a+)%:")
 end
 
+function validRefTypes()
+  local types = tkeys(theoremTypes())
+  table.insert(types, "fig")
+  table.insert(types, "tbl")
+  table.insert(types, "eq")
+  table.insert(types, "lst")
+  return types
+end
 
+
+-- theorems.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 function theorems()
 
@@ -495,20 +545,74 @@ function theorems()
     Div = function(el)
 
       local type = refType(el.attr.identifier)
-      if types[type] then
+      local theoremType = types[type]
+      if theoremType then
+        
+        -- add class for type
+        el.attr.classes:insert("theorem")
+        if theoremType.env ~= "theorem" then
+          el.attr.classes:insert(theoremType.env)
+        end
+        
+        -- capture then remove name
+        local name = markdownToInlines(el.attr.attributes["name"])
+        el.attr.attributes["name"] = nil 
+        
+        -- add to index
         local label = el.attr.identifier
-        local name = el.attr.attributes["name"]
-        dump(label)
-        dump(name)
+        local order = indexNextOrder(type)
+        indexAddEntry(label, nil, order, name)
+      
+        if isLatexOutput() then
+          local preamble = pandoc.Para(pandoc.RawInline("latex", 
+            "\\begin{" .. theoremType.env .. "}["))
+          tappend(preamble.content, name) 
+          preamble.content:insert(pandoc.RawInline("latex", "]" ..
+            "\\label{" .. label .. "}"))
+          el.content:insert(1, preamble)
+          el.content:insert(pandoc.Para(pandoc.RawInline("latex", 
+            "\\end{" .. theoremType.env .. "}"
+          )))
+        else
+          -- create caption prefix
+          local prefix = title(type, theoremType.title)
+          table.insert(prefix, pandoc.Space())
+          tappend(prefix, numberOption(type, order))
+          table.insert(prefix, pandoc.Space())
+          if name then
+            table.insert(prefix, pandoc.Str("("))
+            tappend(prefix, name)
+            table.insert(prefix, pandoc.Str(")"))
+            table.insert(prefix, pandoc.Space())
+          end
+        
+          -- add caption paragraph if necessary
+          if #el.content < 2 then
+            tprepend(el.content,  pandoc.Para({}))
+          end
+          
+          -- prepend the prefix
+          local caption = el.content[1]
+          tprepend(caption.content, { 
+            pandoc.Span(
+              pandoc.Strong(prefix), 
+              pandoc.Attr("", { "theorem-title" })
+            )
+          })
+        end
+      
       end
+     
       return el
+    
     end
   }
 
 end
 
+-- available theorem types
 function theoremTypes()
-  return {
+  return pandoc.List({
     thm = {
       env = "theorem",
       style = "plain",
@@ -518,9 +622,75 @@ function theoremTypes()
       env = "lemma",
       style = "plain",
       title = "Lemma"
+    },
+    cor = {
+      env = "corollary",
+      style = "plain",
+      title = "Corollary",
+    },
+    prp = {
+      env = "proposition",
+      style = "plain",
+      title = "Proposition",
+    },
+    cnj = {
+      env = "conjecture",
+      style = "plain",
+      title = "Conjecture"
+    },
+    def = {
+      env = "definition",
+      style = "definition",
+      title = "Definition",
+    },
+    exm = {
+      env = "example",
+      style = "definition",
+      title = "Example",
+    },
+    exr  = {
+      env = "exercise",
+      style = "definition",
+      title = "Exercise"
     }
-  }
+  })
 end
+
+-- theorem latex includes
+function theoremLatexIncludes()
+  
+  -- determine which theorem types we are using
+  local types = theoremTypes()
+  local refs = tkeys(crossref.index.entries)
+  local usingTheorems = false
+  for k,v in pairs(crossref.index.entries) do
+    local type = refType(k)
+    if types[type] then
+      usingTheorems = true
+      types[type].active = true
+    end
+  end
+  
+  -- return requisite latex if we are using theorems
+  if usingTheorems then
+    local theoremIncludes = "\\usepackage{amsthm}\n"
+    for _, type in ipairs(tkeys(types)) do
+      if types[type].active then
+        theoremIncludes = theoremIncludes .. 
+          "\\theoremstyle{" .. types[type].style .. "}\n" ..
+          "\\newtheorem{" .. types[type].env .. "}{" .. 
+          titleString(type, types[type].title) .. "}[section]\n"
+      end
+    end
+    return theoremIncludes
+  else
+    return nil
+  end
+end
+
+
+-- listings.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 -- process all listings
 function listings()
@@ -546,7 +716,9 @@ function listings()
           -- if we are use the listings package just add the caption
           -- attribute and return the block, otherwise generate latex
           if latexListings() then
-            codeBlock.attributes["caption"] = pandoc.utils.stringify(el)
+            codeBlock.attributes["caption"] = pandoc.utils.stringify(
+              pandoc.Span(captionContent)
+            )
             targetBlocks:insert(codeBlock)
           else
             targetBlocks:insert(pandoc.RawBlock("latex", "\\begin{codelisting}"))
@@ -669,6 +841,9 @@ function latexListings()
   return option("listings", false)
 end
 
+-- equations.lua
+-- Copyright (C) 2020 by RStudio, PBC
+
 -- process all equations
 function equations()
 
@@ -751,6 +926,9 @@ end
 function isDisplayMath(el)
   return el.t == "Math" and el.mathtype == "DisplayMath"
 end
+
+-- tables.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 -- process all tables
 function tables()
@@ -902,6 +1080,9 @@ function prependTitlePrefix(caption, label, order)
      tprepend(caption.content, tableTitlePrefix(order))
   end
 end
+
+-- figures.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 -- filter which tags subfigures with their parent identifier. we do this
 -- in a separate pass b/c normal filters go depth first so we can't actually
@@ -1058,6 +1239,9 @@ function figureTitlePrefix(num)
   return titlePrefix("fig", "Figure", num)
 end
 
+-- index.lua
+-- Copyright (C) 2020 by RStudio, PBC
+
 -- next sequence in index for type
 function indexNextOrder(type)
   if not crossref.index.nextOrder[type] then
@@ -1086,6 +1270,9 @@ function indexHasElement(el)
   return crossref.index.entries[el.attr.identifier] ~= nil
 end
 
+-- global.lua
+-- Copyright (C) 2020 by RStudio, PBC
+
 -- global crossref state
 crossref = {
   index = {
@@ -1095,6 +1282,11 @@ crossref = {
   },
   options = {}
 }
+
+-- crossref.lua
+-- Copyright (C) 2020 by RStudio, PBC
+
+
 
 -- required modules
 text = require 'text'
@@ -1113,3 +1305,4 @@ return {
   resolveRefs(),
   metaInject(),
 }
+

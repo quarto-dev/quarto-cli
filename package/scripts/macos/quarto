@@ -27,14 +27,12 @@ QUARTO_IMPORT_ARGMAP=--importmap=$(realpath $SCRIPT_PATH/../../../src/import_map
   fi
   export QUARTO_BIN_PATH=$(realpath $SCRIPT_PATH)
   export QUARTO_SHARE_PATH=$(realpath $SCRIPT_PATH/../../../src/resources/)
-  export QUARTO_R_PATH="/Library/Frameworks/R.framework/Resources/bin/"
 else 
   
   QUARTO_ACTION=run
   QUARTO_TARGET=${SCRIPT_PATH}/quarto.js
   export QUARTO_BIN_PATH=$(realpath $SCRIPT_PATH)
   export QUARTO_SHARE_PATH=$(realpath $SCRIPT_PATH/../share)
-  export QUARTO_R_PATH="/Library/Frameworks/R.framework/Resources/bin/"
 fi
 
 
