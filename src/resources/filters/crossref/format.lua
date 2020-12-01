@@ -9,10 +9,10 @@ function titleString(type, default)
   return pandoc.utils.stringify(title(type, default))
 end
 
-function titlePrefix(type, default, num)
+function titlePrefix(type, default, order)
   local prefix = title(type, default)
   table.insert(prefix, pandoc.Space())
-  tappend(prefix, numberOption(type, num))
+  tappend(prefix, numberOption(type, order))
   tappend(prefix, titleDelim())
   table.insert(prefix, pandoc.Space())
   return prefix
@@ -34,8 +34,8 @@ function captionCollectedLabelSep()
   return option("caption-collected-label-sep", stringToInlines("\u{a0}—\u{a0}"))
 end
 
-function subfigNumber(num)
-  return numberOption("subfig", num,  {pandoc.Str("alpha"),pandoc.Space(),pandoc.Str("a")})
+function subfigNumber(order)
+  return numberOption("subfig", order,  {pandoc.Str("alpha"),pandoc.Space(),pandoc.Str("a")})
 end
 
 function refPrefix(type, upper)
@@ -67,7 +67,19 @@ function refHyperlink()
   return option("ref-hyperlink", true)
 end
 
-function numberOption(type, num, default)
+function numberOption(type, order, default)
+  
+  -- alias num
+  local num = order.order
+  
+  -- return a pandoc.Str w/ chapter prefix (if any)
+  function resolve(option)
+    if order.chapter ~= nil then
+      option = tostring(order.chapter) .. "." .. option
+    end
+    return { pandoc.Str(option) }
+  end
+  
   -- Compute option name and default value
   local opt = type .. "-labels"
   if default == nil then
@@ -80,7 +92,7 @@ function numberOption(type, num, default)
 
   -- process the style
   if (numberStyle == "arabic") then
-    return {pandoc.Str(tostring(num))}
+    return resolve(tostring(num))
   elseif (string.match(numberStyle, "^alpha ")) then
     -- permits the user to include the character that they'd like
     -- to start the numbering with (e.g. alpha a vs. alpha A)
@@ -89,7 +101,7 @@ function numberOption(type, num, default)
       startIndexChar = "a"
     end
     local startIndex = utf8.codepoint(startIndexChar)
-    return {pandoc.Str(string.char(startIndex + num - 1))}
+    return resolve(string.char(startIndex + num - 1))
   elseif (string.match(numberStyle, "^roman")) then
     -- permits the user to express `roman` or `roman lower` to
     -- use lower case roman numerals
@@ -97,7 +109,7 @@ function numberOption(type, num, default)
     if (string.sub(numberStyle, -#"i") == "i") then
       lower = true
     end
-    return {pandoc.Str(toRoman(num, lower))}
+    return resolve(toRoman(num, lower))
   else
     -- otherwise treat the value as a list of values to use
     -- to display the numbers
@@ -105,7 +117,11 @@ function numberOption(type, num, default)
 
     -- select an index based upon the num, wrapping it around
     local entryIndex = (num - 1) % entryCount + 1
-    return styleRaw[entryIndex]
+    local option = styleRaw[entryIndex]
+    if order.chapter ~= nil then
+      tprepend(option, { pandoc.Str(tostring(order.chapter) .. ".") })
+    end
+    return option
   end
 end
 

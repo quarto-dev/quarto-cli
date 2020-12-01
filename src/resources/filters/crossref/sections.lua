@@ -6,7 +6,7 @@ function sections()
     Header = function(el)
       -- track current chapter
       if el.level == 1 then
-        crossref.index.currentChapter = crossref.index.currentChapter + 1
+        indexNextChapter()
       end
     end
   }

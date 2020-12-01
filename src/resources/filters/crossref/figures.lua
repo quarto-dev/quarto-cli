@@ -80,7 +80,10 @@ function processFigure(el, captionContent)
   local parent = el.attr.attributes["figure-parent"]
   if (parent) then
     el.attr.attributes["figure-parent"] = nil
-    order = crossref.index.nextSubfigureOrder
+    order = {
+      chapter = nil,
+      order = crossref.index.nextSubfigureOrder
+    }
     crossref.index.nextSubfigureOrder = crossref.index.nextSubfigureOrder + 1
     -- we have a parent, so clear the table then insert a letter (e.g. 'a')
     tclear(captionContent)
@@ -113,8 +116,8 @@ function appendSubfigureCaptions(div)
   local captionContent = div.content[#div.content].content
 
   -- append to caption in order of insertion
-  for label,figure in spairs(subfigures, function(t, a, b) return t[a].order < t[b].order end) do
-    if figure.order == 1 then
+  for label,figure in spairs(subfigures, function(t, a, b) return t[a].order.order < t[b].order.order end) do
+    if figure.order.order == 1 then
       table.insert(captionContent, pandoc.Str(". "))
     else
       tappend(captionContent, captionCollectedDelim())
@@ -152,6 +155,6 @@ end
 
 
 
-function figureTitlePrefix(num)
-  return titlePrefix("fig", "Figure", num)
+function figureTitlePrefix(order)
+  return titlePrefix("fig", "Figure", order)
 end

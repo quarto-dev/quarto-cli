@@ -7,6 +7,8 @@ function initOptions()
     Pandoc = function(doc)
       if type(doc.meta["crossref"]) == "table" then
         crossref.options = doc.meta["crossref"]:clone()
+      else
+        crossref.options = {}
       end
       return doc
     end

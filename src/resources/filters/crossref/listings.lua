@@ -123,8 +123,8 @@ function listings()
   }
 end
 
-function listingTitlePrefix(num)
-  return titlePrefix("lst", "Listing", num)
+function listingTitlePrefix(order)
+  return titlePrefix("lst", "Listing", order)
 end
 
 function prependTitlePrefix(caption, label, order)

@@ -131,8 +131,8 @@ function hasTableLabel(el)
 end
 
 
-function tableTitlePrefix(num)
-  return titlePrefix("tbl", "Table", num)
+function tableTitlePrefix(order)
+  return titlePrefix("tbl", "Table", order)
 end
 
 
