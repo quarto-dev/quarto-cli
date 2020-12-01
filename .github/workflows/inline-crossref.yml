@@ -1,13 +1,12 @@
 name: Inline Crossref.lua
 
- on:
-  workflow_dispatch:
-  push:
-    branches:
-    - main
-    paths:
-    - src/resources/filters/**
-
+on:
+ workflow_dispatch:
+ push:
+   branches:
+   - main
+   paths:
+   - src/resources/filters/**
 
 jobs:
    inline-crossref:
