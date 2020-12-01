@@ -57,9 +57,12 @@ function figures()
       return el
     end,
 
-    Image = function(el)
-      if isFigureImage(el) then
-        processFigure(el, el.caption)
+    Para = function(el)
+      if #el.content == 1 and el.content[1].t == "Image" then
+        local image = el.content[1]
+        if isFigureImage(image) then
+          processFigure(image, image.caption)
+        end
       end
       return el
     end
