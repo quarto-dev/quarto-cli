@@ -43,6 +43,10 @@ function combineFilters(filters)
   return combined
 end
 
+function inlinesToString(inlines)
+  return pandoc.utils.stringify(pandoc.Span(inlines))
+end
+
 -- lua string to pandoc inlines
 function stringToInlines(str)
   if str then

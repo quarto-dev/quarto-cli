@@ -39,6 +39,9 @@ function sections()
         local order = indexNextOrder("sec")
         indexAddEntry(el.attr.identifier, nil, order, el.content)
       end
+      
+      -- return 
+      return el
     end
   }
 end

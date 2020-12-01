@@ -5,6 +5,7 @@
 function equations()
 
   return {
+    
     Inlines = function(inlines)
 
       -- do nothing if there is no math herein
@@ -41,7 +42,7 @@ function equations()
               targetInlines:insert(pandoc.Span(pandoc.RawInline("latex", eq.text), pandoc.Attr(label)))
               targetInlines:insert(pandoc.RawInline("latex", "\\label{" .. label .. "}\\end{equation}"))
             else
-              eq.text = eq.text .. " \\qquad(" .. tostring(order) .. ")"
+              eq.text = eq.text .. " \\qquad(" .. inlinesToString(numberOption("eq", order)) .. ")"
               local span = pandoc.Span(eq, pandoc.Attr(label))
               targetInlines:insert(span)
             end

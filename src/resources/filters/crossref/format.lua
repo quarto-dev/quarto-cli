@@ -79,7 +79,7 @@ function numberOption(type, order, default)
         if i>1 then
           num:insert(pandoc.Str("."))
         end
-        num:insert(tostring(order.section[i]))
+        num:insert(pandoc.Str(tostring(order.section[i])))
       else
         break
       end
