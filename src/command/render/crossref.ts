@@ -29,10 +29,15 @@ export function crossrefGeneratedDefaults(options: PandocOptions) {
       string,
       unknown
     >;
-    if (crossref.chapters && !crossrefOption(kTopLevelDivision, options)) {
-      return {
-        [kTopLevelDivision]: "chapter",
-      };
+    if (crossref.chapters) {
+      const defaults: Record<string, unknown> = {};
+      if (crossrefOption(kTopLevelDivision, options) === undefined) {
+        defaults[kTopLevelDivision] = "chapter";
+      }
+      if (crossrefOption(kNumberSections, options) === undefined) {
+        defaults[kNumberSections] = true;
+      }
+      return defaults;
     }
   }
 
