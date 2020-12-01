@@ -1,4 +1,6 @@
 
+- Verify TODO Change fix
+
 - Implement latex environment divs: https://bookdown.org/yihui/rmarkdown-cookbook/custom-blocks.html
 
 - We don't seem to be able to render latex quite the same way that knitr does,
