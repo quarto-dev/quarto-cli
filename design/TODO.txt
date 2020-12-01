@@ -14,8 +14,7 @@ ft
 
 - Filter:
 
-
-    - generic mechanism for crossref option forwarding
+   - implement sec-labels sec-level-labels (array)
 
     <!--
     For LaTeX, we need to:
@@ -29,13 +28,6 @@ ft
       - When we resolve the ref, we find the level and print it with the ref
       - number-offset to deduce the actual section number
       - We do the numbering for you so that every format can have numbering
-
-    Introduce 'chapters' option which:
-    
-      - For LaTeX adds top-level-division: chapter (unless the user has 
-        actually speicfied it)
-      - For non-LaTeX we will count the h1's as we go and number the
-        refs appropriately e.g. fig. 1.4
         
     -->
   
