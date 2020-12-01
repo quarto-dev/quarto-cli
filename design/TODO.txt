@@ -1,5 +1,4 @@
 
-- Verify TODO Change fix
 
 - Implement latex environment divs: https://bookdown.org/yihui/rmarkdown-cookbook/custom-blocks.html
 
