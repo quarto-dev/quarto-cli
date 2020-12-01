@@ -1,32 +1,28 @@
 #!/bin/bash
 
-
-# Configures Quarto on the local machine.
-# Windows? Bash on windows v powershell
-
 #  common data
 source configuration
 
-pushd package
+pushd $QUARTO_PACKAGE_DIR
 
-rm -rf $WORKING_DIR
+rm -rf $QUARTO_DIST_DIR
 
-if [ ! -d "$WORKING_DIR" ]; then
-	mkdir -p $WORKING_DIR
+if [ ! -d "$QUARTO_DIST_DIR" ]; then
+	mkdir -p $QUARTO_DIST_DIR
 fi
-pushd $WORKING_DIR
+pushd $QUARTO_DIST_DIR
 
 ## Share Directory
-if [ ! -d "$SHARE_DIR" ]; then
-	mkdir -p "$SHARE_DIR"
+if [ ! -d "$QUARTO_SHARE_DIR" ]; then
+	mkdir -p "$QUARTO_SHARE_DIR"
 fi
-cp -a ../../src/resources/* $SHARE_DIR/
+cp -a ../../src/resources/* $QUARTO_SHARE_DIR/
 
 ## Binary Directory
-if [ ! -d "$BIN_DIR" ]; then
-	mkdir -p "$BIN_DIR"
+if [ ! -d "$QUARTO_BIN_DIR" ]; then
+	mkdir -p "$QUARTO_BIN_DIR"
 fi
-pushd $BIN_DIR
+pushd $QUARTO_BIN_DIR
 
 # Download Dependencies
 ## TODO: Convert to S3 / repo location
@@ -47,15 +43,10 @@ rm $PANDOCFILE
 
 popd
 
-
 # Move the quarto shell script into place
-cp ../scripts/macos/quarto $BIN_DIR/quarto
-
-## Gather license and other information
-cp ../../COPYRIGHT .
-cp ../../COPYING.md .
+cp ../scripts/macos/quarto $QUARTO_BIN_DIR/quarto
 
 # setup local symlink
-ln -fs $(realpath $BIN_DIR/quarto) /usr/local/bin/quarto
+ln -fs $(realpath $QUARTO_BIN_DIR/quarto) /usr/local/bin/quarto
 
 popd
