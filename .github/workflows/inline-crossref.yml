@@ -18,9 +18,7 @@ jobs:
 
      - name: Configure
        run: |
-            cd package
             ./configure.sh
-            cd ..
      
      - name: Prepare Dist
        run: |
