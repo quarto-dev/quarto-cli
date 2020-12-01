@@ -1239,6 +1239,20 @@ function figureTitlePrefix(num)
   return titlePrefix("fig", "Figure", num)
 end
 
+-- sections.lua
+-- Copyright (C) 2020 by RStudio, PBC
+
+function sections()
+  return {
+    Header = function(el)
+      -- track current chapter
+      if el.level == 1 then
+        crossref.index.currentChapter = crossref.index.currentChapter + 1
+      end
+    end
+  }
+end
+
 -- index.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
@@ -1278,6 +1292,7 @@ crossref = {
   index = {
     nextOrder = {},
     nextSubfigureOrder = 1,
+    currentChapter = 0,
     entries = {}
   },
   options = {}
@@ -1296,6 +1311,7 @@ return {
   initOptions(),
   subfigures(),
   combineFilters({
+    sections(),
     figures(),
     tables(),
     equations(),
