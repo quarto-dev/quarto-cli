@@ -73,11 +73,11 @@ function numberOption(type, order, default)
   local num = order.order
   
   -- return a pandoc.Str w/ chapter prefix (if any)
-  function resolve(option)
-    if order.chapter ~= nil then
-      option = tostring(order.chapter) .. "." .. option
+  function resolve(num)
+    if option("chapters", false) then
+      num = tostring(order.chapter) .. "." .. num
     end
-    return { pandoc.Str(option) }
+    return { pandoc.Str(num) }
   end
   
   -- Compute option name and default value
@@ -118,7 +118,7 @@ function numberOption(type, order, default)
     -- select an index based upon the num, wrapping it around
     local entryIndex = (num - 1) % entryCount + 1
     local option = styleRaw[entryIndex]
-    if order.chapter ~= nil then
+    if option("chapters", false) then
       tprepend(option, { pandoc.Str(tostring(order.chapter) .. ".") })
     end
     return option
