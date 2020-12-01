@@ -58,6 +58,7 @@ jobs:
             then 
               git_setup
               git checkout main
+              git pull --ff
               git add .
               git commit -m "Refresh inlined LUA"
               git push --set-upstream origin main
