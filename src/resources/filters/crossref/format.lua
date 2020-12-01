@@ -73,18 +73,7 @@ function numberOption(type, order, default)
   -- support custom numbering for sections since pandoc is often the
   -- one doing the numbering)
   if type == "sec" then
-    local num = pandoc.List:new()
-    for i=1,#order.section do
-      if order.section[i] > 0 then
-        if i>1 then
-          num:insert(pandoc.Str("."))
-        end
-        num:insert(pandoc.Str(tostring(order.section[i])))
-      else
-        break
-      end
-    end
-    return num
+    return stringToInlines(sectionNumber(order.section))
   end
 
   -- alias num and section (set section to nil if we aren't using chapters)
@@ -146,6 +135,25 @@ function numberOption(type, order, default)
     return option
   end
 end
+
+function sectionNumber(section, maxLevel)
+  local num = ""
+  for i=1,#section do
+    if maxLevel and i>maxLevel then
+      break
+    end
+    if section[i] > 0 then
+      if i>1 then
+        num = num .. "."
+      end
+      num = num .. tostring(section[i])
+    else
+      break
+    end
+  end
+  return num
+end
+
 
 function toRoman(num, lower)
   local roman = pandoc.utils.to_roman_numeral(num)

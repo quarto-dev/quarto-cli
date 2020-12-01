@@ -40,6 +40,17 @@ function sections()
         indexAddEntry(el.attr.identifier, nil, order, el.content)
       end
       
+      -- number the section if required
+      if (numberSections()) then
+        local section = sectionNumber(crossref.index.section, level)
+        el.attr.attributes["number"] = section
+        el.content:insert(1, pandoc.Space())
+        el.content:insert(1, pandoc.Span(
+          stringToInlines(section),
+          pandoc.Attr("", { "header-section-number"})
+        ))
+      end
+      
       -- return 
       return el
     end
@@ -57,5 +68,13 @@ function currentSectionLevel()
   
   -- if we didn't find one then we are at zero (no sections yet)
   return 0
+end
+
+function numberSections()
+  return formatRequiresSectionNumber() and option("number-sections", false)
+end
+
+function formatRequiresSectionNumber()
+  return not isLatexOutput() and not isHtmlOutput() and not isDocxOutput()
 end
 
