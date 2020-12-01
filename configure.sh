@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 
 
 # Configures Quarto on the local machine.

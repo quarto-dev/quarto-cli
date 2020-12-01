@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Packages Quarto into an installer
 

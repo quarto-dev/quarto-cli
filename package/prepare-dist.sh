@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Prepares Quarto source files for packaging
 source ../configuration
