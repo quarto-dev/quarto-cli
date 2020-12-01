@@ -18,15 +18,19 @@ jobs:
 
      - name: Configure
        run: |
-            ./package/configure.sh
+            pushd package
+            ./configure.sh
+            popd
      
      - name: Prepare Dist
        run: |
-            ./package/prepare-dist.sh
+            pushd package
+            ./prepare-dist.sh
+            popd
 
      - name: Move file into place
        run: |
-            cp package/dist/share/filters/crossref/crossref.lua package/dist/crossref/crossref.lua
+            cp package/dist/share/filters/crossref/crossref.lua package/filters/crossref/crossref.lua
      
      - name: Commit changes
        run: |
