@@ -322,7 +322,7 @@ function mdFromCodeCell(
   // write div enclosure
   const divMd: string[] = [`::: {`];
 
-  // metadata to exlucde from cell div attributes
+  // metadata to exclude from cell div attributes
   const kCellMetadataFilter = [
     kCellCollapsed,
     kCellAutoscroll,
@@ -372,8 +372,7 @@ function mdFromCodeCell(
       // deno-lint-ignore no-explicit-any
       const value = (cell.metadata as any)[key];
       if (value) {
-        const tagName = key === kCellTags ? "data-tags" : key;
-        divMd.push(`${tagName}="${value}" `);
+        divMd.push(`${key}="${value}" `);
       }
     }
   }
