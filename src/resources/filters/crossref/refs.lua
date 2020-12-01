@@ -95,6 +95,7 @@ function validRefTypes()
   table.insert(types, "tbl")
   table.insert(types, "eq")
   table.insert(types, "lst")
+  table.insert(types, "sec")
   return types
 end
 

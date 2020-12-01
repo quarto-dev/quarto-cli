@@ -69,13 +69,35 @@ end
 
 function numberOption(type, order, default)
   
-  -- alias num
+  -- for sections, just return the section levels (we don't currently
+  -- support custom numbering for sections since pandoc is often the
+  -- one doing the numbering)
+  if type == "sec" then
+    local num = pandoc.List:new()
+    for i=1,#order.section do
+      if order.section[i] > 0 then
+        if i>1 then
+          num:insert(pandoc.Str("."))
+        end
+        num:insert(tostring(order.section[i]))
+      else
+        break
+      end
+    end
+    return num
+  end
+
+  -- alias num and section (set section to nil if we aren't using chapters)
   local num = order.order
+  local section = order.section
+  if not option("chapters", false) then
+    section = nil
+  end
   
   -- return a pandoc.Str w/ chapter prefix (if any)
   function resolve(num)
-    if option("chapters", false) then
-      num = tostring(order.chapter) .. "." .. num
+    if section then
+      num = tostring(section[1]) .. "." .. num
     end
     return { pandoc.Str(num) }
   end
@@ -85,7 +107,7 @@ function numberOption(type, order, default)
   if default == nil then
     default = stringToInlines("arabic")
   end
-
+  
   -- determine the style
   local styleRaw = option(opt, default)
   local numberStyle = pandoc.utils.stringify(styleRaw)
@@ -118,8 +140,8 @@ function numberOption(type, order, default)
     -- select an index based upon the num, wrapping it around
     local entryIndex = (num - 1) % entryCount + 1
     local option = styleRaw[entryIndex]
-    if option("chapters", false) then
-      tprepend(option, { pandoc.Str(tostring(order.chapter) .. ".") })
+    if section then
+      tprepend(option, { pandoc.Str(tostring(section[1]) .. ".") })
     end
     return option
   end

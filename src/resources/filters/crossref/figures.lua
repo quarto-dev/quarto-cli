@@ -81,7 +81,7 @@ function processFigure(el, captionContent)
   if (parent) then
     el.attr.attributes["figure-parent"] = nil
     order = {
-      chapter = nil,
+      section = nil,
       order = crossref.index.nextSubfigureOrder
     }
     crossref.index.nextSubfigureOrder = crossref.index.nextSubfigureOrder + 1

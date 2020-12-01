@@ -8,7 +8,7 @@ function initIndex()
       crossref.index = {
         nextOrder = {},
         nextSubfigureOrder = 1,
-        section = {0,0,0,0,0,0,0},
+        section = pandoc.List:new({0,0,0,0,0,0,0}),
         entries = {}
       }
       return doc
@@ -35,7 +35,7 @@ function indexNextOrder(type)
   crossref.index.nextOrder[type] = crossref.index.nextOrder[type] + 1
   crossref.index.nextSubfigureOrder = 1
   return {
-    chapter = crossref.index.section[1],
+    section = crossref.index.section:clone(),
     order = nextOrder
   }
 end
@@ -51,6 +51,7 @@ function indexAddEntry(label, parent, order, caption)
     caption = caption,
   }
 end
+
 
 -- does our index already contain this element?
 function indexHasElement(el)

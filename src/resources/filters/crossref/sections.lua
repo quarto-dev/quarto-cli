@@ -28,11 +28,17 @@ function sections()
       -- increment the level counter
       crossref.index.section[level] = crossref.index.section[level] + 1
       
-      -- if this is a chapter then notify the index
+      -- if this is a chapter then notify the index (will be used to 
+      -- reset type-counters if we are in "chapters" mode)
       if level == 1 then
         indexNextChapter()
       end
-
+      
+      -- if this has a section identifier then index it
+      if refType(el.attr.identifier) == "sec" then
+        local order = indexNextOrder("sec")
+        indexAddEntry(el.attr.identifier, nil, order, el.content)
+      end
     end
   }
 end
