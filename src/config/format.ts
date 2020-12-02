@@ -51,20 +51,12 @@ import {
   kOutputExt,
 } from "./constants.ts";
 
-export interface FormatMetadata extends Metadata {
-  crossref: {
-    [kListings]?: boolean;
-    [kNumberSections]?: boolean;
-    [kNumberOffset]?: number[];
-  };
-}
-
 // pandoc output format
 export interface Format {
   render: FormatRender;
   execution: FormatExecution;
   pandoc: FormatPandoc;
-  metadata: FormatMetadata;
+  metadata: Metadata;
 }
 
 export interface FormatRender {
@@ -466,8 +458,6 @@ function defaultFormat(): Format {
     pandoc: {
       from: "markdown",
     },
-    metadata: {
-      crossref: {},
-    },
+    metadata: {},
   };
 }
