@@ -20,6 +20,29 @@ import("../common/debug.lua")
 function figures() 
   return {
     
+    Div = function(el)
+      if isFigureDiv(el) then
+        local subfigures = collectSubfigures(el)
+        if subfigures then
+          -- deal with subfigure containers
+          
+          
+          
+        else if not isSubfigure(el) then
+          -- deal with a div-based figures (subfigures will be dealt with above)
+        end
+      end
+      
+
+    end,
+    
+    Para = function(el)
+      local image = figureFromPara(el)
+      if image and not isSubfigure(image) then
+        -- deal with image based figures
+      end
+    end
+    
   }
 end
 
