@@ -24,6 +24,7 @@ import("meta.lua")
 import("format.lua")
 import("options.lua")
 import("../common/pandoc.lua")
+import("../common/figures.lua")
 import("../common/table.lua")
 import("../common/debug.lua")
 -- [/import]
@@ -32,7 +33,7 @@ import("../common/debug.lua")
 return {
   initOptions(),
   initIndex(),
-  subfigures(),
+  labelSubfigures(),
   combineFilters({
     sections(),
     figures(),

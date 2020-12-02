@@ -54,9 +54,24 @@ export function forwardCrossrefOptions(options: PandocOptions) {
     }
   });
 
+  // if number-offset is defined then make sure it's an array of numbers
+  // and set --number-sections (as it's presence implies number-sections)
   // additionally, --number-offset implies --number-sections
-  if (crossrefOption(kNumberOffset, options)) {
-    setCrossrefMetadata(options.format, kNumberSections, true);
+  if (typeof options.format.metadata.crossref === "object") {
+    const numberOffset =
+      // deno-lint-ignore no-explicit-any
+      (options.format.metadata.crossref as any)[kNumberOffset];
+    if (numberOffset) {
+      if (
+        !Array.isArray(numberOffset) ||
+        numberOffset.some((num) => !Number.isInteger(num))
+      ) {
+        throw new Error(
+          "Invalid value for number-offset (should be an array of numbers)",
+        );
+      }
+      setCrossrefMetadata(options.format, kNumberSections, true);
+    }
   }
 }
 

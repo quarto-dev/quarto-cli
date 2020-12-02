@@ -6,6 +6,11 @@ function isLatexOutput()
   return FORMAT == "latex"
 end
 
+-- check for docx output
+function isDocxOutput()
+  return FORMAT == "docx"
+end
+
 -- check for html output
 function isHtmlOutput()
   local formats = {
@@ -41,6 +46,10 @@ function combineFilters(filters)
     end
   end
   return combined
+end
+
+function inlinesToString(inlines)
+  return pandoc.utils.stringify(pandoc.Span(inlines))
 end
 
 -- lua string to pandoc inlines

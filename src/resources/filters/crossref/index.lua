@@ -5,15 +5,29 @@
 function initIndex()
   return {
     Pandoc = function(doc)
+      
+      -- compute section offsets
+      local sectionOffsets = pandoc.List:new({0,0,0,0,0,0,0})
+      local numberOffset = pandoc.List:new(option("number-offset", {})):map(
+        function(offset)
+          return tonumber(offset[1].text)
+        end
+      )
+      for i=1,#sectionOffsets do
+        if i > #numberOffset then
+          break
+        end
+        sectionOffsets[i] = numberOffset[i]
+      end
+      
+      -- initialize index
       crossref.index = {
         nextOrder = {},
         nextSubfigureOrder = 1,
-        currentChapter = nil,
+        section = sectionOffsets,
+        sectionOffsets = sectionOffsets,
         entries = {}
       }
-      if option("chapters", false) then
-        crossref.index.currentChapter = 0
-      end
       return doc
     end
   }
@@ -21,16 +35,12 @@ end
 
 -- advance a chapter
 function indexNextChapter()
+   -- reset nextOrder to 1 for all types if we are in chapters mode
   if option("chapters", false) then
-    -- bump current chapter
-    crossref.index.currentChapter = crossref.index.currentChapter + 1
-    
-    -- reset nextOrder to 1 for all types
     for k,v in pairs(crossref.index.nextOrder) do
       crossref.index.nextOrder[k] = 1
     end
   end
-  return crossref.index.currentChapter
 end
 
 -- next sequence in index for type
@@ -42,7 +52,7 @@ function indexNextOrder(type)
   crossref.index.nextOrder[type] = crossref.index.nextOrder[type] + 1
   crossref.index.nextSubfigureOrder = 1
   return {
-    chapter = crossref.index.currentChapter,
+    section = crossref.index.section:clone(),
     order = nextOrder
   }
 end
@@ -58,6 +68,7 @@ function indexAddEntry(label, parent, order, caption)
     caption = caption,
   }
 end
+
 
 -- does our index already contain this element?
 function indexHasElement(el)

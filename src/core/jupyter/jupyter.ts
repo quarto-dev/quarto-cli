@@ -67,10 +67,10 @@ export const kCellLinesToNext = "lines_to_next_cell";
 export const kRawMimeType = "raw_mimetype";
 
 export const kCellLabel = "label";
-export const kCellFigCap = "fig.cap";
-export const kCellFigSubCap = "fig.subcap";
-export const kCellLstLabel = "lst.label";
-export const kCellLstCap = "lst.cap";
+export const kCellFigCap = "fig-cap";
+export const kCellFigSubCap = "fig-subcap";
+export const kCellLstLabel = "lst-label";
+export const kCellLstCap = "lst-cap";
 export const kCellClasses = "classes";
 export const kCellWidth = "width";
 export const kCellHeight = "height";
@@ -322,7 +322,7 @@ function mdFromCodeCell(
   // write div enclosure
   const divMd: string[] = [`::: {`];
 
-  // metadata to exlucde from cell div attributes
+  // metadata to exclude from cell div attributes
   const kCellMetadataFilter = [
     kCellCollapsed,
     kCellAutoscroll,
@@ -372,8 +372,7 @@ function mdFromCodeCell(
       // deno-lint-ignore no-explicit-any
       const value = (cell.metadata as any)[key];
       if (value) {
-        const tagName = key === kCellTags ? "data-tags" : key;
-        divMd.push(`${tagName}="${value}" `);
+        divMd.push(`${key}="${value}" `);
       }
     }
   }

@@ -22,6 +22,7 @@ import {
   kKeepYaml,
   kListings,
   kMarkdownHeadings,
+  kNumberOffset,
   kNumberSections,
   kOutputFile,
   kPdfEngine,

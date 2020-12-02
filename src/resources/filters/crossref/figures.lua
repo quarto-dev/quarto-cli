@@ -1,49 +1,6 @@
 -- figures.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
--- filter which tags subfigures with their parent identifier. we do this
--- in a separate pass b/c normal filters go depth first so we can't actually
--- "see" our parent figure during filtering
-function subfigures()
-
-  return {
-    Pandoc = function(doc)
-      local walkFigures
-      walkFigures = function(parentId)
-        return {
-          Div = function(el)
-            if isFigureDiv(el) then
-              if parentId ~= nil then
-                el.attr.attributes["figure-parent"] = parentId
-              else
-                el = pandoc.walk_block(el, walkFigures(el.attr.identifier))
-              end
-            end
-            return el
-          end,
-
-          Image = function(el)
-            if (parentId ~= nil) and hasFigureLabel(el) and (#el.caption > 0)  then
-              el.attr.attributes["figure-parent"] = parentId
-            end
-            return el
-          end
-        }
-      end
-
-      -- walk all blocks in the document
-      for i,el in pairs(doc.blocks) do
-        local parentId = nil
-        if isFigureDiv(el) then
-          parentId = el.attr.identifier
-        end
-        doc.blocks[i] = pandoc.walk_block(el, walkFigures(parentId))
-      end
-      return doc
-
-    end
-  }
-end
 
 -- process all figures
 function figures()
@@ -52,14 +9,14 @@ function figures()
       if isFigureDiv(el) then
         local caption = figureDivCaption(el)
         processFigure(el, caption.content)
-        appendSubfigureCaptions(el)
       end
       return el
     end,
 
-    Image = function(el)
-      if isFigureImage(el) then
-        processFigure(el, el.caption)
+    Para = function(el)
+      local image = figureFromPara(el)
+      if image and isFigureImage(image) then
+        processFigure(image, image.caption)
       end
       return el
     end
@@ -81,15 +38,18 @@ function processFigure(el, captionContent)
   if (parent) then
     el.attr.attributes["figure-parent"] = nil
     order = {
-      chapter = nil,
+      section = nil,
       order = crossref.index.nextSubfigureOrder
     }
     crossref.index.nextSubfigureOrder = crossref.index.nextSubfigureOrder + 1
-    -- we have a parent, so clear the table then insert a letter (e.g. 'a')
-    tclear(captionContent)
-    if captionSubfig() and not tcontains(el.attr.classes, "nocaption") then
-      tappend(captionContent, subfigNumber(order))
+   
+    -- if this isn't latex output, then prepend the subfigure number
+    if not isLatexOutput() then
+      tprepend(captionContent, { pandoc.Str(")"), pandoc.Space() })
+      tprepend(captionContent, subfigNumber(order))
+      captionContent:insert(1, pandoc.Str("("))
     end
+   
   else
     order = indexNextOrder("fig")
     if not isLatexOutput() then
@@ -99,34 +59,6 @@ function processFigure(el, captionContent)
 
   -- update the index
   indexAddEntry(label, parent, order, caption)
-end
-
--- append any avavilable subfigure captions to the div
-function appendSubfigureCaptions(div)
-
-  -- look for subfigures
-  local subfigures = {}
-  for label,figure in pairs(crossref.index.entries) do
-    if (div.attr.identifier == figure.parent) then
-      subfigures[label] = figure
-    end
-  end
-
-  -- get caption element
-  local captionContent = div.content[#div.content].content
-
-  -- append to caption in order of insertion
-  for label,figure in spairs(subfigures, function(t, a, b) return t[a].order.order < t[b].order.order end) do
-    if figure.order.order == 1 then
-      table.insert(captionContent, pandoc.Str(". "))
-    else
-      tappend(captionContent, captionCollectedDelim())
-    end
-
-    tappend(captionContent, subfigNumber(figure.order))
-    tappend(captionContent, captionCollectedLabelSep())
-    tappend(captionContent, figure.caption)
-  end
 end
 
 -- is this a Div containing a figure
@@ -152,8 +84,6 @@ function figureDivCaption(el)
     return nil
   end
 end
-
-
 
 function figureTitlePrefix(order)
   return titlePrefix("fig", "Figure", order)
