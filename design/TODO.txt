@@ -16,6 +16,7 @@ ft
 
 - Should we convert include-in-header to header-includes (or vice versa) to eliminate the conflict
   (command line options overwrite metadata options)
+- see http://lierdakil.github.io/pandoc-crossref/#latex-output-and---include-in-header
 - Injected HTML in meta.lua gets overridden whenever we use include-in-header in the
 defaults file (e.g. for  htmlwidgets). Use temp file?
 
