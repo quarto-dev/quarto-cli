@@ -5,15 +5,15 @@
 function metaInject()
   return {
     Pandoc = function(doc)
-      if isLatexOutput() then
-        metaInjectLatex(doc)
-      end
+      metaInjectLatex(doc, function()
+        local subFig =
+           usePackage("subfig") .. "\n" ..
+           usePackage("caption") .. "\n" ..
+           "\\captionsetup[subfloat]{margin=0.5em}"
+        addHeaderInclude(doc, "tex", subFig)
+      end)
       return doc
     end
   }
 end
 
-function metaInjectLatex(doc)
-  
-  
-end

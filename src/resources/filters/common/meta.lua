@@ -19,3 +19,13 @@ end
 function usePackage(pkg)
   return "\\@ifpackageloaded{" .. pkg .. "}{}{\\usepackage{" .. pkg .. "}}"
 end
+
+
+function metaInjectLatex(doc, func)
+  if isLatexOutput() then
+    ensureHeaderIncludes(doc)
+    addHeaderInclude(doc, "tex", "\\makeatletter")
+    func()
+    addHeaderInclude(doc, "tex", "\\makeatother")
+  end
+end
