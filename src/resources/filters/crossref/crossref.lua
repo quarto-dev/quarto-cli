@@ -25,6 +25,7 @@ import("format.lua")
 import("options.lua")
 import("../common/pandoc.lua")
 import("../common/figures.lua")
+import("../common/meta.lua")
 import("../common/table.lua")
 import("../common/debug.lua")
 -- [/import]
