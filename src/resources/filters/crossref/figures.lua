@@ -9,7 +9,6 @@ function figures()
       if isFigureDiv(el) then
         local caption = figureDivCaption(el)
         processFigure(el, caption.content)
-        appendSubfigureCaptions(el)
       end
       return el
     end,
@@ -43,11 +42,14 @@ function processFigure(el, captionContent)
       order = crossref.index.nextSubfigureOrder
     }
     crossref.index.nextSubfigureOrder = crossref.index.nextSubfigureOrder + 1
-    -- we have a parent, so clear the table then insert a letter (e.g. 'a')
-    tclear(captionContent)
-    if captionSubfig() and not tcontains(el.attr.classes, "nocaption") then
-      tappend(captionContent, subfigNumber(order))
+   
+    -- if this isn't latex output, then prepend the subfigure number
+    if not isLatexOutput() then
+      tprepend(captionContent, { pandoc.Str(")"), pandoc.Space() })
+      tprepend(captionContent, subfigNumber(order))
+      captionContent:insert(1, pandoc.Str("("))
     end
+   
   else
     order = indexNextOrder("fig")
     if not isLatexOutput() then
@@ -57,34 +59,6 @@ function processFigure(el, captionContent)
 
   -- update the index
   indexAddEntry(label, parent, order, caption)
-end
-
--- append any avavilable subfigure captions to the div
-function appendSubfigureCaptions(div)
-
-  -- look for subfigures
-  local subfigures = {}
-  for label,figure in pairs(crossref.index.entries) do
-    if (div.attr.identifier == figure.parent) then
-      subfigures[label] = figure
-    end
-  end
-
-  -- get caption element
-  local captionContent = div.content[#div.content].content
-
-  -- append to caption in order of insertion
-  for label,figure in spairs(subfigures, function(t, a, b) return t[a].order.order < t[b].order.order end) do
-    if figure.order.order == 1 then
-      table.insert(captionContent, pandoc.Str(". "))
-    else
-      tappend(captionContent, captionCollectedDelim())
-    end
-
-    tappend(captionContent, subfigNumber(figure.order))
-    tappend(captionContent, captionCollectedLabelSep())
-    tappend(captionContent, figure.caption)
-  end
 end
 
 -- is this a Div containing a figure
