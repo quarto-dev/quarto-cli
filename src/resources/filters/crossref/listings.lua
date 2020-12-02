@@ -7,7 +7,7 @@ function listings()
   return {
     CodeBlock = function(el)
       local label = string.match(el.attr.identifier, "^lst:[^ ]+$")
-      local caption = el.attr.attributes["caption"]
+      local caption = el.attr.attributes["lst-cap"]
       if label and caption then
     
         -- the listing number
