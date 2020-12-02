@@ -1,49 +1,6 @@
 -- figures.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
--- filter which tags subfigures with their parent identifier. we do this
--- in a separate pass b/c normal filters go depth first so we can't actually
--- "see" our parent figure during filtering
-function subfigures()
-
-  return {
-    Pandoc = function(doc)
-      local walkFigures
-      walkFigures = function(parentId)
-        return {
-          Div = function(el)
-            if isFigureDiv(el) then
-              if parentId ~= nil then
-                el.attr.attributes["figure-parent"] = parentId
-              else
-                el = pandoc.walk_block(el, walkFigures(el.attr.identifier))
-              end
-            end
-            return el
-          end,
-
-          Image = function(el)
-            if (parentId ~= nil) and hasFigureLabel(el) and (#el.caption > 0)  then
-              el.attr.attributes["figure-parent"] = parentId
-            end
-            return el
-          end
-        }
-      end
-
-      -- walk all blocks in the document
-      for i,el in pairs(doc.blocks) do
-        local parentId = nil
-        if isFigureDiv(el) then
-          parentId = el.attr.identifier
-        end
-        doc.blocks[i] = pandoc.walk_block(el, walkFigures(parentId))
-      end
-      return doc
-
-    end
-  }
-end
 
 -- process all figures
 function figures()
@@ -58,11 +15,9 @@ function figures()
     end,
 
     Para = function(el)
-      if #el.content == 1 and el.content[1].t == "Image" then
-        local image = el.content[1]
-        if isFigureImage(image) then
-          processFigure(image, image.caption)
-        end
+      local image = figureFromPara(el)
+      if image and isFigureImage(image) then
+        processFigure(image, image.caption)
       end
       return el
     end
@@ -155,8 +110,6 @@ function figureDivCaption(el)
     return nil
   end
 end
-
-
 
 function figureTitlePrefix(order)
   return titlePrefix("fig", "Figure", order)
