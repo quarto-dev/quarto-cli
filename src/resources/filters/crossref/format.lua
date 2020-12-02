@@ -23,7 +23,7 @@ function titleDelim()
 end
 
 function captionSubfig()
-  return option("caption-subfig", false)
+  return option("caption-subfig", true)
 end
 
 function captionCollectedDelim()
