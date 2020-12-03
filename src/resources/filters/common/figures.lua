@@ -46,6 +46,41 @@ function labelSubfigures()
   }
 end
 
+function collectSubfigures(divEl)
+  if isFigureDiv(divEl) then
+    local subfigures = pandoc.List:new()
+    pandoc.walk_block(divEl, {
+      Div = function(el)
+        if isSubfigure(el) then
+          subfigures:insert(el)
+        end
+      end,
+      Para = function(el)
+        local image = figureFromPara(el)
+        if image and isSubfigure(image) then
+          subfigures:insert(el)
+        end
+      end
+    })
+    if #subfigures > 0 then
+      return subfigures
+    else
+      return nil
+    end
+  else
+    return nil
+  end
+end
+
+
+function isSubfigure(el)
+  if el.attr.attributes["figure-parent"] then
+    return true
+  else
+    return false
+  end
+end
+
 
 -- is this a Div containing a figure
 function isFigureDiv(el)

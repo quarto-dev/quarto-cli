@@ -178,6 +178,9 @@ function citeMethod(options: PandocOptions): CiteMethod | null {
 function resolveFilters(filters: string[] | undefined, options: PandocOptions) {
   filters = filters || [];
 
+  // add figures filter
+  filters.unshift(figuresFilter());
+
   // add citeproc filter if necessary
   const citeproc = citeMethod(options) === "citeproc";
   if (citeproc && !filters.includes("citeproc")) {
@@ -198,4 +201,8 @@ function resolveFilters(filters: string[] | undefined, options: PandocOptions) {
 
 function crossrefFilter() {
   return resourcePath("filters/crossref/crossref.lua");
+}
+
+function figuresFilter() {
+  return resourcePath("filters/figures/figures.lua");
 }
