@@ -30,6 +30,16 @@ function isHtmlOutput()
 
 end
 
+-- read attribute w/ default
+function attribute(el, name, default)
+  local value = el.attr.attributes[name]
+  if value ~= nil then
+    return value
+  else
+    return default
+  end
+end
+
 -- combine a set of filters together (so they can be processed in parallel)
 function combineFilters(filters)
   local combined = {}
