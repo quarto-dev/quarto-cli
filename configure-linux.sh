@@ -9,16 +9,17 @@ pushd $QUARTO_PACKAGE_DIR/$QUARTO_DIST_DIR/$QUARTO_BIN_DIR
 # Download Dependencies
 ## TODO: Convert to S3 / repo location
 DENOURL=https://github.com/denoland/deno/releases/download/
-DENOFILE=deno-x86_64-apple-darwin.zip
+DENOFILE=deno-x86_64-unknown-linux-gnu.zip
 wget -q --show-progress -O $DENOFILE $DENOURL/$DENO/$DENOFILE
 unzip -o $DENOFILE
 rm $DENOFILE
 
 PANDOCURL=https://github.com/jgm/pandoc/releases/download/
-PANDOCFILE=pandoc-$PANDOC-macOS.zip
+PANDOCFILE=pandoc-$PANDOC-linux-amd64.tar.gz
+
 PANDOCDIR=pandoc-$PANDOC
 wget -q --show-progress -O $PANDOCFILE $PANDOCURL/$PANDOC/$PANDOCFILE
-unzip -o $PANDOCFILE
+tar -xzf $PANDOCFILE
 cp $PANDOCDIR/bin/pandoc .
 rm -rf $PANDOCDIR
 rm $PANDOCFILE
