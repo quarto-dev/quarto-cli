@@ -18,7 +18,7 @@ jobs:
 
      - name: Configure
        run: |
-            ./configure.sh
+            ./configure-macos.sh
      
      - name: Prepare Dist
        run: |
