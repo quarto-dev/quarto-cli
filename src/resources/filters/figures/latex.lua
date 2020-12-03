@@ -15,6 +15,19 @@ function latexPanel(divEl, subfigures)
     panel.content:insert(latexBeginAlign(align))
   end
   
+  -- determine the fig-layout:
+  --  fig-cols: 2 
+  --  fig-layout: [[0.2, 0.8, 0.2], [0.5, 0.5]]
+  --  horizontal rules in the parent
+  
+  -- now determine the widths, if there are explicit widths then use them
+  -- (filling the remainer). otherwise distribute the widths according to
+  -- the number of figures in the row
+  
+  -- use \subcaptionbox width (e.g. [.4\linewidth]) and then set
+  -- width=1\linewidth on the inner images
+  
+  
   -- subfigures
   local subfiguresEl = pandoc.Para({})
   for _, el in ipairs(subfigures) do
