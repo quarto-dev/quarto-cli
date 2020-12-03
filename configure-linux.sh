@@ -10,14 +10,14 @@ pushd $QUARTO_PACKAGE_DIR/$QUARTO_DIST_DIR/$QUARTO_BIN_DIR
 ## TODO: Convert to S3 / repo location
 DENOURL=https://github.com/denoland/deno/releases/download/
 DENOFILE=deno-x86_64-apple-darwin.zip
-wget -O $DENOFILE $DENOURL/$DENO/$DENOFILE
+wget -q --show-progress -O $DENOFILE $DENOURL/$DENO/$DENOFILE
 unzip -o $DENOFILE
 rm $DENOFILE
 
 PANDOCURL=https://github.com/jgm/pandoc/releases/download/
 PANDOCFILE=pandoc-$PANDOC-macOS.zip
 PANDOCDIR=pandoc-$PANDOC
-wget -O $PANDOCFILE $PANDOCURL/$PANDOC/$PANDOCFILE
+wget -q --show-progress -O $PANDOCFILE $PANDOCURL/$PANDOC/$PANDOCFILE
 unzip -o $PANDOCFILE
 cp $PANDOCDIR/bin/pandoc .
 rm -rf $PANDOCDIR
