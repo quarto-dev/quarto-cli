@@ -16,28 +16,33 @@ function latexPanel(divEl, subfigures)
   end
   
   -- subfigures
+  local subfiguresEl = pandoc.Para({})
   for _, el in ipairs(subfigures) do
     
     local image = figureFromPara(el)
     if image then
       -- begin subfloat
-      local subfloat = pandoc.Para({pandoc.RawInline("latex", "\\subfloat[")})
-      tappend(subfloat.content, image.caption)
-      subfloat.content:insert(pandoc.RawInline("latex", "\\label{" .. image.attr.identifier .. "}]{"))
+      subfiguresEl.content:insert(pandoc.RawInline("latex", "\\subfloat["))
+      tappend(subfiguresEl.content, image.caption)
+      subfiguresEl.content:insert(pandoc.RawInline("latex", "\\label{" .. image.attr.identifier .. "}]{"))
       
       -- insert the image (strip the id and caption b/c they are already on the subfloat)
       image.attr.identifier = ""
       tclear(image.attr.classes)
       tclear(image.caption)
-      subfloat.content:insert(image)
+      -- surround w/ link if we have fig-link
+      local figLink = attribute(image, "fig-link", nil)
+      if figLink then
+        image.attr.attributes["fig-link"] = nil
+        image = pandoc.Link({ image }, figLink)
+      end
+      subfiguresEl.content:insert(image)
       
       -- end subfloat
-      subfloat.content:insert(pandoc.RawInline("latex", "}"))
-      
-      -- insert the subfig
-      panel.content:insert(subfloat)
+      subfiguresEl.content:insert(pandoc.RawInline("latex", "} "))
     end
   end
+  panel.content:insert(subfiguresEl)
   
   -- end alignment
   if align then
