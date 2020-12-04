@@ -1,7 +1,7 @@
 import { basename, dirname, join } from "https://deno.land/std/path/mod.ts";
-import { walk } from "https://deno.land/std@0.76.0/fs/walk.ts";
 
 buildFilter("crossref");
+buildFilter("figures");
 
 function buildFilter(filter: string) {
   // read main filter file
