@@ -51,6 +51,7 @@ SET PANDOC_FILE="pandoc-%PANDOC%-windows-x86_64.zip"
 SET PANDOC_URL="https://github.com/jgm/pandoc/releases/download/%PANDOC%/%PANDOC_FILE%"
 CURL --fail -L %PANDOC_URL% -o %PANDOC_FILE%
 TAR -xvf %PANDOC_FILE%
+MOVE /Y pandoc-%PANDOC%\pandoc.exe pandoc.exe
 DEL %PANDOC_FILE%
 RMDIR/S /Q pandoc-%PANDOC%
 
