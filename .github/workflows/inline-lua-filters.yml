@@ -20,7 +20,7 @@ jobs:
        run: |
             ./configure-macos.sh
      
-     - name: Prepare Dist
+     - name: Inline Filters
        run: |
             pushd package
             pushd src
