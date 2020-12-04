@@ -29,7 +29,7 @@ function latexPanel(divEl, subfigures)
         tappend(subfiguresEl.content, image.caption)
         tclear(image.caption)
       else 
-        tappend(subfiguresEl.content, figureDivCaption(image))
+        tappend(subfiguresEl.content, figureDivCaption(image).content)
       end
       
       -- handle label
@@ -65,7 +65,11 @@ function latexPanel(divEl, subfigures)
       -- insert the figure
       subfiguresEl.content:insert(pandoc.RawInline("latex", "{"))
       if image.t == "Div" then
-        tappend(subfiguresEl.content, tslice(image.content, 1, #image.content -1))
+        -- append the div, slicing off the caption block
+        tappend(subfiguresEl.content, pandoc.utils.blocks_to_inlines(
+          tslice(image.content, 1, #image.content-1),
+          { pandoc.LineBreak() }
+        ))
       else
         subfiguresEl.content:insert(image)
       end
@@ -94,7 +98,6 @@ function latexPanel(divEl, subfigures)
     pandoc.RawInline("latex", "\\end{" .. figEnv .. "}")
   })
   panel.content:insert(caption)
-  
   
   -- return the panel
   return panel
