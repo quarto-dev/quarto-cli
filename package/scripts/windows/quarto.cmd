@@ -1,0 +1,29 @@
+@ECHO OFF
+
+SETLOCAL
+SET SCRIPT_DIR=%~dp0
+SET DEV_PATH=..\..\..\src\quarto.ts
+
+IF EXIST %SCRIPT_DIR%%DEV_PATH% (
+	
+	IF "%QUARTO_ACTION%"=="" (
+		SET QUARTO_ACTION=run
+	)
+	SET QUARTO_IMPORT_ARGMAP=--importmap=%SCRIPT_DIR%\..\..\..\src\import_map.json
+
+	IF "%QUARTO_TARGET%"=="" (
+		SET QUARTO_TARGET=%SCRIPT_DIR%\%DEV_PATH%
+	)
+	
+	SET QUARTO_BIN_PATH=%SCRIPT_DIR%
+	SET QUARTO_SHARE_PATH=%SCRIPT_DIR%\..\..\..\src\resources\
+) ELSE (
+	SET QUARTO_ACTION=run
+	SET QUARTO_TARGET=%SCRIPT_DIR%quarto.js
+	SET QUARTO_BIN_PATH=%SCRIPT_DIR%
+	SET QUARTO_SHARE_PATH=%SCRIPT_DIR%..\share
+)
+
+SET QUARTO_DENO_OPTIONS=--unstable --allow-read --allow-write --allow-run --allow-env
+deno %QUARTO_ACTION% %QUARTO_DENO_OPTIONS% %QUARTO_IMPORT_ARGMAP% %QUARTO_TARGET% %*
+
