@@ -5,7 +5,22 @@ buildFilter("figures");
 
 function buildFilter(filter: string) {
   // read main filter file
-  const filterPath = join(filter, `${filter}.lua`);
+  const filterPath = join(
+    "..",
+    "..",
+    "src",
+    "resources",
+    "filter",
+    filter,
+    `${filter}.lua`,
+  );
+  const outFilterPath = join(
+    "..",
+    "filter",
+    filter,
+    `${filter}.lua`,
+  );
+
   const filterDir = dirname(filterPath);
   let src = Deno.readTextFileSync(filterPath);
 
