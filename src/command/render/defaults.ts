@@ -106,6 +106,8 @@ export function pandocDefaultsMessage(pandoc: FormatPandoc, debug?: boolean) {
     defaults.filters = defaults.filters.map((filter) => {
       if (filter === crossrefFilter()) {
         return "crossref";
+      } else if (filter === figuresFilter()) {
+        return "figures";
       } else {
         return filter;
       }

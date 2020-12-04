@@ -6,12 +6,20 @@ text = require 'text'
 
 -- [import]
 function import(script)
-  local path = PANDOC_SCRIPT_FILE:match("(.*/)")
-  dofile(path .. script)
+  -- The system separator
+  local pathseparator = package.config:sub(1,1)
+  
+  -- convert our import to use the current system sep
+  local safeScript = string.gsub(script, "/", pathseparator)
+  
+  local path = PANDOC_SCRIPT_FILE:match("(.*" .. pathseparator .. ")")
+  dofile(path .. safeScript)
 end
 import("meta.lua")
+import("layout.lua")
 import("latex.lua")
 import("table.lua")
+import("../common/json.lua")
 import("../common/pandoc.lua")
 import("../common/figures.lua")
 import("../common/meta.lua")
@@ -20,33 +28,39 @@ import("../common/debug.lua")
 -- [/import]
 
 function figures() 
+  
   return {
     
     Div = function(el)
+      
       if isFigureDiv(el) then
-        local subfigures = collectSubfigures(el)
+        
+        -- handle subfigure layout
+        local subfigures = layoutSubfigures(el)
         if subfigures then
           if isLatexOutput() then
             return latexPanel(el, subfigures)
           else
             return tablePanel(el, subfigures)
           end
-        elseif not isSubfigure(el) then
-          -- deal with a div-based figures (subfigures will be dealt with above)
-          -- e.g. place in <figure> tags for html
+          
+        -- turn figures into <figure> tag for html
+        elseif isHtmlOutput() then
+          local figureDiv = pandoc.Div({}, el.attr)
+          figureDiv.content:insert(pandoc.RawBlock("html", "<figure>"))
+          tappend(figureDiv.content, tslice(el.content, 1, #el.content-1))
+          local figureCaption = pandoc.Para({})
+          figureCaption.content:insert(pandoc.RawInline(
+            "html", "<figcaption aria-hidden=\"true\">"
+          ))
+          tappend(figureCaption.content, figureDivCaption(el).content) 
+          figureCaption.content:insert(pandoc.RawInline("html", "</figcaption>"))
+          figureDiv.content:insert(figureCaption)
+          figureDiv.content:insert(pandoc.RawBlock("html", "</figure>"))
+          return figureDiv
         end
       end
-      
-
-    end,
-    
-    Para = function(el)
-      local image = figureFromPara(el)
-      if image and not isSubfigure(image) then
-        -- deal with image based figures
-      end
     end
-    
   }
 end
 

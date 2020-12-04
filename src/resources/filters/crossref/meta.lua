@@ -6,6 +6,10 @@ function metaInject()
   return {
     Pandoc = function(doc)
       metaInjectLatex(doc, function()
+        
+        local caption = usePackage("caption")
+        addHeaderInclude(doc, "tex", caption)
+        
         local floatNames =
           "\\AtBeginDocument{%\n" ..
           "\\renewcommand*\\figurename{" .. titleString("fig", "Figure") .. "}\n" ..

@@ -58,8 +58,11 @@ function collectSubfigures(divEl)
       Para = function(el)
         local image = figureFromPara(el)
         if image and isSubfigure(image) then
-          subfigures:insert(el)
+          subfigures:insert(image)
         end
+      end,
+      HorizontalRule = function(el)
+        subfigures:insert(el)
       end
     })
     if #subfigures > 0 then

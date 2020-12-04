@@ -26,7 +26,8 @@ defaults file (e.g. for  htmlwidgets). Use temp file?
       should be responsible for converting e.g. htmlwidgets
       marked as figures to <figure>
 
-- Consider multiple tables in single environment?
+- Consider multiple tables in single environment? 
+  https://www.overleaf.com/learn/latex/How_to_Write_a_Thesis_in_LaTeX_(Part_3):_Figures,_Subfigures_and_Tables#Subtables
 
 - allow _quarto config directory that merges all contained files
   (lock file will go there as well)
