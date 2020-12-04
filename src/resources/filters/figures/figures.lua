@@ -6,8 +6,14 @@ text = require 'text'
 
 -- [import]
 function import(script)
-  local path = PANDOC_SCRIPT_FILE:match("(.*/)")
-  dofile(path .. script)
+  -- The system separator
+  local pathseparator = package.config:sub(1,1)
+  
+  -- convert our import to use the current system sep
+  local safeScript = string.gsub(script, "/", "\\")
+  
+  local path = PANDOC_SCRIPT_FILE:match("(.*" .. pathseparator .. ")")
+  dofile(path .. safeScript)
 end
 import("meta.lua")
 import("layout.lua")
