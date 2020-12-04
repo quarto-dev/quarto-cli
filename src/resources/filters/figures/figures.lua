@@ -32,7 +32,10 @@ function figures()
   return {
     
     Div = function(el)
+      
       if isFigureDiv(el) then
+        
+        -- handle subfigure layout
         local subfigures = layoutSubfigures(el)
         if subfigures then
           if isLatexOutput() then
@@ -40,22 +43,24 @@ function figures()
           else
             return tablePanel(el, subfigures)
           end
-        elseif not isSubfigure(el) then
-          -- deal with a div-based figures (subfigures will be dealt with above)
-          -- e.g. place in <figure> tags for html
+          
+        -- turn figures into <figure> tag for html
+        elseif isHtmlOutput() then
+          local figureDiv = pandoc.Div({}, el.attr)
+          figureDiv.content:insert(pandoc.RawBlock("html", "<figure>"))
+          tappend(figureDiv.content, tslice(el.content, 1, #el.content-1))
+          local figureCaption = pandoc.Para({})
+          figureCaption.content:insert(pandoc.RawInline(
+            "html", "<figcaption aria-hidden=\"true\">"
+          ))
+          tappend(figureCaption.content, figureDivCaption(el).content) 
+          figureCaption.content:insert(pandoc.RawInline("html", "</figcaption>"))
+          figureDiv.content:insert(figureCaption)
+          figureDiv.content:insert(pandoc.RawBlock("html", "</figure>"))
+          return figureDiv
         end
       end
-      
-
-    end,
-    
-    Para = function(el)
-      local image = figureFromPara(el)
-      if image and not isSubfigure(image) then
-        -- deal with image based figures
-      end
     end
-    
   }
 end
 
