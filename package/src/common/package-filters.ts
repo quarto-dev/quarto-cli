@@ -10,18 +10,19 @@ function buildFilter(filter: string) {
     "..",
     "src",
     "resources",
-    "filter",
+    "filters",
     filter,
     `${filter}.lua`,
   );
   const outFilterPath = join(
     "..",
-    "filter",
+    "filters",
     filter,
     `${filter}.lua`,
   );
 
   const filterDir = dirname(filterPath);
+  console.log(filterPath);
   let src = Deno.readTextFileSync(filterPath);
 
   // read main filter file and extract imports
@@ -42,13 +43,6 @@ function buildFilter(filter: string) {
     }
     src = `${importSrc}\n` + src;
     match = importRe.exec(imports);
-    Deno.removeSync(importFilePath);
-
-    // If this is the last source file in a directory, clean the directory
-    const directory = dirname(importFilePath);
-    if (isEmpty(directory)) {
-      Deno.removeSync(directory);
-    }
   }
 
   // write src to dist
