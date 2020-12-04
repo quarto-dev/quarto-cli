@@ -13,7 +13,7 @@ function import(script)
   local pathseparator = package.config:sub(1,1)
   
   -- convert our import to use the current system sep
-  local safeScript = string.gsub(script, "/", "\\")
+  local safeScript = string.gsub(script, "/", pathseparator)
   
   local path = PANDOC_SCRIPT_FILE:match("(.*" .. pathseparator .. ")")
   dofile(path .. safeScript)
