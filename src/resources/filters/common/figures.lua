@@ -75,7 +75,7 @@ function collectSubfigures(divEl)
   end
 end
 
-
+-- is this element a subfigure
 function isSubfigure(el)
   if el.attr.attributes["figure-parent"] then
     return true
@@ -83,7 +83,6 @@ function isSubfigure(el)
     return false
   end
 end
-
 
 -- is this a Div containing a figure
 function isFigureDiv(el)
