@@ -15,14 +15,12 @@ function buildFilter(filter: string) {
     `${filter}.lua`,
   );
   const outFilterPath = join(
-    "..",
     "filters",
     filter,
     `${filter}.lua`,
   );
 
   const filterDir = dirname(filterPath);
-  console.log(filterPath);
   let src = Deno.readTextFileSync(filterPath);
 
   // read main filter file and extract imports
@@ -46,14 +44,5 @@ function buildFilter(filter: string) {
   }
 
   // write src to dist
-  Deno.writeTextFileSync(filterPath, src);
-}
-
-function isEmpty(path: string): boolean {
-  const realDir = Deno.realPathSync(path);
-  const directoryContents = Deno.readDirSync(path);
-  for (const foo of directoryContents) {
-    return false;
-  }
-  return true;
+  Deno.writeTextFileSync(outFilterPath, src);
 }
