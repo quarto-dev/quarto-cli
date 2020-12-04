@@ -13,10 +13,16 @@ function layoutSubfigures(divEl)
   --     rows and figure widths)
   --
   
-  local layout = pandoc.List:new()
-  
-  -- collect all the subfigures and note any figure layout attributes
+  -- collect all the subfigures (bail if there are none)
   local subfigures = collectSubfigures(divEl)
+  if not subfigures then
+    return nil
+  end
+  
+   -- init layout
+  local layout = pandoc.List:new()
+
+  -- note any figure layout attributes
   local figCols = tonumber(attribute(divEl, "fig-cols", nil))
   local figLayout = attribute(divEl, "fig-layout", nil)
   
@@ -24,7 +30,7 @@ function layoutSubfigures(divEl)
   if haveHorizontalRules(subfigures) then
     layout:insert(pandoc.List:new())
     for _,fig in ipairs(subfigures) do
-      if fig.t === "HorizontalRule" then
+      if fig.t == "HorizontalRule" then
         layout:insert(pandoc.List:new())
       else
         layout[#layout]:insert(fig)
@@ -36,7 +42,7 @@ function layoutSubfigures(divEl)
   -- check for fig-cols
   elseif figCols ~= nil then
     for i,fig in ipairs(subfigures) do
-      if i == 0 or math.fmod(figCols) == 0 then
+      if math.fmod(i-1, figCols) == 0 then
         layout:insert(pandoc.List:new())
       end
       layout[#layout]:insert(fig)
@@ -64,7 +70,7 @@ function layoutSubfigures(divEl)
       layout:insert(pandoc.List:new())
       
     -- otherwise must be all rows
-    elseif figLayout:find_if(function(item) return type(item) != "table" end) then
+    elseif figLayout:find_if(function(item) return type(item) ~= "table" end) then
       error("Invalid figure layout specification")
     end
     
@@ -83,6 +89,17 @@ function layoutSubfigures(divEl)
       end
     end
     
+    -- if there are leftover figures just put them in their own row
+    if subfigIndex <= #subfigures then
+      layout:insert(pandoc.List:new(tslice(subfigures, subfigIndex)))
+    end
+    
+  -- no layout, single column
+  else
+    for _,fig in ipairs(subfigures) do
+      layout:insert(pandoc.List:new({fig}))
+    end
+    layoutWidths(layout)
   end
 
   -- return the layout
@@ -103,7 +120,7 @@ end
 -- find allocated row percentages
 function allocateRowWidths(row)
   
-  -- determine which figs need allocation and how much is left over to allcoate
+  -- determine which figs need allocation and how much is left over to allocate
   local available = 99
   local unallocatedFigs = pandoc.List:new()
   for _,fig in ipairs(row) do
@@ -118,37 +135,37 @@ function allocateRowWidths(row)
   
   -- do the allocation
   if #unallocatedFigs > 0 then
-    -- minimum of 5% allocation
-    available = math.max(available, #unallocatedFigs * 5)
+    -- minimum of 10% allocation
+    available = math.max(available, #unallocatedFigs * 10)
     allocation = math.floor(available / #unallocatedFigs)
     for _,fig in ipairs(unallocatedFigs) do
       fig.attr.attributes["width"] = tostring(allocation) .. "%"
     end
   end
-  
+
 end
 
 -- a non-% width or a height disqualifies the row
 function canLayoutFigureRow(row)
   for _,fig in ipairs(row) do
     local width = attribute(fig, "width", nil)
-    if not widthToPercent(width) then
+    if width and not widthToPercent(width) then
       return false
-    end
-    if attribute(fig, "height", nil) ~= nil then
+    elseif attribute(fig, "height", nil) ~= nil then
       return false
     end
   end
+  return true
 end
 
 function widthToPercent(width)
   if width then
-    local percent = string.match(width, "^(%d+)%$")
+    local percent = string.match(width, "^(%d+)%%$")
     if percent then
       return tonumber(percent)
     end
   end
-  reutrn nil
+  return nil
 end
 
 function haveHorizontalRules(subfigures)

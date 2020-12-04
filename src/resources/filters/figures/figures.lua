@@ -10,6 +10,7 @@ function import(script)
   dofile(path .. script)
 end
 import("meta.lua")
+import("layout.lua")
 import("latex.lua")
 import("table.lua")
 import("../common/json.lua")
@@ -26,7 +27,7 @@ function figures()
     
     Div = function(el)
       if isFigureDiv(el) then
-        local subfigures = collectSubfigures(el)
+        local subfigures = layoutSubfigures(el)
         if subfigures then
           if isLatexOutput() then
             return latexPanel(el, subfigures)

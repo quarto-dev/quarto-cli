@@ -15,45 +15,69 @@ function latexPanel(divEl, subfigures)
     panel.content:insert(latexBeginAlign(align))
   end
   
-  -- determine the fig-layout:
-  --  fig-cols: 2 
-  --  fig-layout: [[0.2, 0.8, 0.2], [0.5, 0.5]]
-  --  horizontal rules in the parent
-  
-  -- now determine the widths, if there are explicit widths then use them
-  -- (filling the remainer). otherwise distribute the widths according to
-  -- the number of figures in the row
-  
-  -- use \subcaptionbox width (e.g. [.4\linewidth]) and then set
-  -- width=1\linewidth on the inner images
-  
-  
   -- subfigures
   local subfiguresEl = pandoc.Para({})
-  for _, el in ipairs(subfigures) do
+  for i, row in ipairs(subfigures) do
     
-    local image = figureFromPara(el)
-    if image then
-      -- begin subfloat
-      subfiguresEl.content:insert(pandoc.RawInline("latex", "\\subfloat["))
-      tappend(subfiguresEl.content, image.caption)
-      subfiguresEl.content:insert(pandoc.RawInline("latex", "\\label{" .. image.attr.identifier .. "}]{"))
+    for _, image in ipairs(row) do
+    
+      -- begin subcaptionbox
+      subfiguresEl.content:insert(pandoc.RawInline("latex", "\\subcaptionbox{"))
       
-      -- insert the image (strip the id and caption b/c they are already on the subfloat)
+      -- handle caption (different depending on whether it's an Image or Div)
+      if image.t == "Image" then
+        tappend(subfiguresEl.content, image.caption)
+        tclear(image.caption)
+      else 
+        tappend(subfiguresEl.content, figureDivCaption(image))
+      end
+      
+      -- handle label
+      subfiguresEl.content:insert(pandoc.RawInline("latex", "\\label{" .. image.attr.identifier .. "}}\n  "))
+      
+      -- strip the id and caption b/c they are already on the subfloat
       image.attr.identifier = ""
       tclear(image.attr.classes)
-      tclear(image.caption)
-      -- surround w/ link if we have fig-link
-      local figLink = attribute(image, "fig-link", nil)
-      if figLink then
-        image.attr.attributes["fig-link"] = nil
-        image = pandoc.Link({ image }, figLink)
+    
+      -- check to see if it has a width to apply (if so then reset the
+      -- underlying width to 100% as sizing will come from \subcaptionbox)
+      local percentWidth = widthToPercent(image.attr.attributes["width"])
+      if percentWidth and not image.attr.attributes["height"] then
+        image.attr.attributes["width"] = nil
       end
-      subfiguresEl.content:insert(image)
       
-      -- end subfloat
-      subfiguresEl.content:insert(pandoc.RawInline("latex", "} "))
+      -- surround w/ link if we have fig-link
+      if image.t == "Image" then
+        local figLink = attribute(image, "fig-link", nil)
+        if figLink then
+          image.attr.attributes["fig-link"] = nil
+          image = pandoc.Link({ image }, figLink)
+        end
+      end
+      
+      -- output width constraint if it's a pure percentage
+      if percentWidth then
+        subfiguresEl.content:insert(pandoc.RawInline("latex", 
+          "[" .. string.format("%2.2f", percentWidth/100) .. "\\linewidth]"
+        ))
+      end
+      
+      -- insert the figure
+      subfiguresEl.content:insert(pandoc.RawInline("latex", "{"))
+      if image.t == "Div" then
+        tappend(subfiguresEl.content, tslice(image.content, 1, #image.content -1))
+      else
+        subfiguresEl.content:insert(image)
+      end
+      subfiguresEl.content:insert(pandoc.RawInline("latex", "}\n"))
+      
     end
+    
+    -- insert separator unless this is the last row
+    if i < #subfigures then
+      subfiguresEl.content:insert(pandoc.RawInline("latex", "\\newline\n"))
+    end
+    
   end
   panel.content:insert(subfiguresEl)
   
