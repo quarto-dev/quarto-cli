@@ -48,7 +48,7 @@ function layoutSubfigures(divEl)
       layout[#layout]:insert(fig)
     end
     -- allocate remaining space
-    layoutWidths(layout)
+    layoutWidths(layout, figCols)
     
   -- check for fig-layout
   elseif figLayout ~= nil then
@@ -108,20 +108,20 @@ function layoutSubfigures(divEl)
 end
 
 -- interpolate any missing widths
-function layoutWidths(figLayout)
+function layoutWidths(figLayout, cols)
   for _,row in ipairs(figLayout) do
     if canLayoutFigureRow(row) then
-      allocateRowWidths(row)
+      allocateRowWidths(row, cols)
     end
   end
 end
 
 
 -- find allocated row percentages
-function allocateRowWidths(row)
+function allocateRowWidths(row, cols)
   
   -- determine which figs need allocation and how much is left over to allocate
-  local available = 99
+  local available = 96
   local unallocatedFigs = pandoc.List:new()
   for _,fig in ipairs(row) do
     local width = attribute(fig, "width", nil)
@@ -133,13 +133,23 @@ function allocateRowWidths(row)
     end
   end
   
+  -- pad to cols
+  if cols and #row < cols then
+    for i=#row+1,cols do
+      unallocatedFigs:insert("nil")
+    end
+  end
+  
+
   -- do the allocation
   if #unallocatedFigs > 0 then
     -- minimum of 10% allocation
     available = math.max(available, #unallocatedFigs * 10)
     allocation = math.floor(available / #unallocatedFigs)
     for _,fig in ipairs(unallocatedFigs) do
-      fig.attr.attributes["width"] = tostring(allocation) .. "%"
+      if fig ~= "nil" then
+        fig.attr.attributes["width"] = tostring(allocation) .. "%"
+      end
     end
   end
 
