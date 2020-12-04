@@ -1,4 +1,4 @@
-name: Inline Crossref.lua
+name: Inline LUA Filters
 
 on:
  workflow_dispatch:
@@ -28,10 +28,6 @@ jobs:
             popd
             popd
 
-     - name: Move file into place
-       run: |
-            cp package/dist/share/filters/crossref/crossref.lua package/filters/crossref/crossref.lua
-     
      - name: Commit changes
        run: |
             # Set up .netrc file with GitHub credentials
