@@ -2,11 +2,11 @@ name: Inline Crossref.lua
 
 on:
  workflow_dispatch:
- push:
-   branches:
-   - main
-   paths:
-   - src/resources/filters/**
+# push:
+#   branches:
+#   - main
+#   paths:
+#   - src/resources/filters/**
 
 jobs:
    inline-crossref:
@@ -18,7 +18,7 @@ jobs:
 
      - name: Configure
        run: |
-            ./configure.sh
+            ./configure-macos.sh
      
      - name: Prepare Dist
        run: |
