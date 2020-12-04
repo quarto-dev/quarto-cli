@@ -18,7 +18,6 @@ pushd $QUARTO_DIST_DIR
 if [ ! -d "$QUARTO_SHARE_DIR" ]; then
 	mkdir -p "$QUARTO_SHARE_DIR"
 fi
-cp -a ../../src/resources/* $QUARTO_SHARE_DIR/
 
 ## Binary Directory
 if [ ! -d "$QUARTO_BIN_DIR" ]; then
