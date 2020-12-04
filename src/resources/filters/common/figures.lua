@@ -60,6 +60,9 @@ function collectSubfigures(divEl)
         if image and isSubfigure(image) then
           subfigures:insert(el)
         end
+      end,
+      HorizontalRule = function(el)
+        subfigures:insert(el)
       end
     })
     if #subfigures > 0 then

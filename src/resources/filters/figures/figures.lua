@@ -12,6 +12,7 @@ end
 import("meta.lua")
 import("latex.lua")
 import("table.lua")
+import("../common/json.lua")
 import("../common/pandoc.lua")
 import("../common/figures.lua")
 import("../common/meta.lua")
@@ -20,6 +21,7 @@ import("../common/debug.lua")
 -- [/import]
 
 function figures() 
+  
   return {
     
     Div = function(el)
