@@ -23,7 +23,7 @@ jobs:
      - name: Prepare Dist
        run: |
             pushd package
-            ./prepare-dist.sh
+            ./package/src/prepare-dist.sh
             popd
 
      - name: Move file into place
