@@ -33,7 +33,7 @@ REM Create quarto cmd
 COPY ..\..\scripts\windows\quarto.cmd quarto.cmd
 
 REM Add Quarto Bin to Path
-SET currentDir=%cd%
+SET currentDir=%~dp0
 SET "binPath=%currentDir%"  
 IF "!path:%binPath%=!" EQU "%path%" (
 	SETX PATH "%PATH%;%binPath%"
