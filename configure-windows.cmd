@@ -1,65 +1,62 @@
-ECHO OFF
+@ECHO OFF
 SETLOCAL
 
-rem TODO: Remove dependency on these variables
+REM TODO: Remove dependency on these variables
 
-set DIST_DIR="dist"
-set PACKAGE_DIR="package"
-set BIN_DIR="bin"
-set VERSION="0.1"
+SET DIST_DIR="dist"
+SET PACKAGE_DIR="package"
+SET BIN_DIR="bin"
+SET VERSION="0.1"
 
-set DENO="v1.4.6"
-set PANDOC="2.11.2"
+SET DENO="v1.4.6"
+SET PANDOC="2.11.2"
 
-if not exist %PACKAGE_DIR% (
-	mkdir %PACKAGE_DIR%
+IF NOT EXIST %PACKAGE_DIR% (
+	MKDIR %PACKAGE_DIR%
 ) 
 
-pushd %PACKAGE_DIR%
+PUSHD %PACKAGE_DIR%
 
-if not exist %DIST_DIR% (
-	mkdir %DIST_DIR%
+IF NOT EXIST %DIST_DIR% (
+	MKDIR %DIST_DIR%
 )
 
-pushd %DIST_DIR%
+PUSHD %DIST_DIR%
 
-if not exist %BIN_DIR% (
-	mkdir %BIN_DIR% 
+IF NOT EXIST %BIN_DIR% (
+	MKDIR %BIN_DIR% 
 )
 
-pushd %BIN_DIR%
+PUSHD %BIN_DIR%
 
-rem Create quarto cmd
-copy ..\..\scripts\windows\quarto.cmd quarto.cmd
+REM Create quarto cmd
+COPY ..\..\scripts\windows\quarto.cmd quarto.cmd
 
-rem Add Quarto Bin to Path
-set currentDir=%cd%
-set "binPath=%currentDir%"  
-if "!path:%binPath%=!" equ "%path%" (
-	setx path "%PATH%;%binPath%"
+REM Add Quarto Bin to Path
+SET currentDir=%cd%
+SET "binPath=%currentDir%"  
+IF "!path:%binPath%=!" EQU "%path%" (
+	SETX PATH "%PATH%;%binPath%"
 )
 
-rem Download Deno
-set DENO_FILE="deno-x86_64-pc-windows-msvc.zip"
-set DENO_URL="https://github.com/denoland/deno/releases/download/%DENO%/%DENO_FILE%"
-curl --fail -L %DENO_URL% -o %DENO_FILE%
-tar -xvf %DENO_FILE%
-del %DENO_FILE%
+REM Download Deno
+SET DENO_FILE="deno-x86_64-pc-windows-msvc.zip"
+SET DENO_URL="https://github.com/denoland/deno/releases/download/%DENO%/%DENO_FILE%"
+CURL --fail -L %DENO_URL% -o %DENO_FILE%
+TAR -xvf %DENO_FILE%
+DEL %DENO_FILE%
 
-rem download Pandoc
-set PANDOC_FILE="pandoc-%PANDOC%-windows-x86_64.zip"
-set PANDOC_URL="https://github.com/jgm/pandoc/releases/download/%PANDOC%/%PANDOC_FILE%"
-curl --fail -L %PANDOC_URL% -o %PANDOC_FILE%
-target -xvf %PANDOC_FILE%
-del %PANDOC_FILE%
+REM download Pandoc
+SET PANDOC_FILE="pandoc-%PANDOC%-windows-x86_64.zip"
+SET PANDOC_URL="https://github.com/jgm/pandoc/releases/download/%PANDOC%/%PANDOC_FILE%"
+CURL --fail -L %PANDOC_URL% -o %PANDOC_FILE%
+TAR -xvf %PANDOC_FILE%
+DEL %PANDOC_FILE%
+RMDIR/S /Q pandoc-%PANDOC%
 
-
-
-popd
-popd
-popd
+POPD
+POPD
+POPD
 
 ECHO PLEASE ADD THE FOLLOWING TO YOUR SYSTEM PATH TO COMPLETE CONFIGURATION:
 ECHO %binPath%
-
-
