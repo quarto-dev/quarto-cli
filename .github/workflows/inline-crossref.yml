@@ -24,7 +24,7 @@ jobs:
        run: |
             pushd package
             pushd src
-            ./prepare-dist.sh
+            ../dist/bin/deno run --allow-read --allow-write common/package-filters.ts           
             popd
             popd
 
