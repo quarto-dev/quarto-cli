@@ -15,6 +15,7 @@ function buildFilter(filter: string) {
     `${filter}.lua`,
   );
   const outFilterPath = join(
+    "..",
     "filters",
     filter,
     `${filter}.lua`,

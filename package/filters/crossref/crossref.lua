@@ -109,12 +109,174 @@ function spairs(t, order)
   end
 end
 
+
+
+-- constants
+local kHeaderIncludes = "header-includes"
+
+-- ensure that header-includes is a MetaList
+function ensureHeaderIncludes(doc)
+  if not doc.meta[kHeaderIncludes] then
+    doc.meta[kHeaderIncludes] = pandoc.MetaList({})
+  elseif doc.meta[kHeaderIncludes].t == "MetaInlines" then
+    doc.meta[kHeaderIncludes] = pandoc.MetaList({doc.meta[kHeaderIncludes]})
+  end
+end
+
+-- add a header include as a raw block
+function addHeaderInclude(doc, format, include)
+  doc.meta[kHeaderIncludes]:insert(pandoc.MetaBlocks(pandoc.RawBlock(format, include)))
+end
+
+-- conditionally include a package
+function usePackage(pkg)
+  return "\\@ifpackageloaded{" .. pkg .. "}{}{\\usepackage{" .. pkg .. "}}"
+end
+
+
+function metaInjectLatex(doc, func)
+  if isLatexOutput() then
+    ensureHeaderIncludes(doc)
+    addHeaderInclude(doc, "tex", "\\makeatletter")
+    func()
+    addHeaderInclude(doc, "tex", "\\makeatother")
+  end
+end
+
+
+-- filter which tags subfigures with their parent identifier. we do this
+-- in a separate pass b/c normal filters go depth first so we can't actually
+-- "see" our parent figure during filtering
+function labelSubfigures()
+
+  return {
+    Pandoc = function(doc)
+      local walkFigures
+      walkFigures = function(parentId)
+        return {
+          Div = function(el)
+            if isFigureDiv(el) then
+              if parentId ~= nil then
+                el.attr.attributes["figure-parent"] = parentId
+              else
+                el = pandoc.walk_block(el, walkFigures(el.attr.identifier))
+              end
+            end
+            return el
+          end,
+
+          Para = function(el)
+            if (parentId ~= nil) then
+              local image = figureFromPara(el)
+              if image and isFigureImage(image) then
+                image.attr.attributes["figure-parent"] = parentId
+              end
+            end
+            return el
+          end
+        }
+      end
+
+      -- walk all blocks in the document
+      for i,el in pairs(doc.blocks) do
+        local parentId = nil
+        if isFigureDiv(el) then
+          parentId = el.attr.identifier
+        end
+        doc.blocks[i] = pandoc.walk_block(el, walkFigures(parentId))
+      end
+      return doc
+
+    end
+  }
+end
+
+function collectSubfigures(divEl)
+  if isFigureDiv(divEl) then
+    local subfigures = pandoc.List:new()
+    pandoc.walk_block(divEl, {
+      Div = function(el)
+        if isSubfigure(el) then
+          subfigures:insert(el)
+        end
+      end,
+      Para = function(el)
+        local image = figureFromPara(el)
+        if image and isSubfigure(image) then
+          subfigures:insert(image)
+        end
+      end,
+      HorizontalRule = function(el)
+        subfigures:insert(el)
+      end
+    })
+    if #subfigures > 0 then
+      return subfigures
+    else
+      return nil
+    end
+  else
+    return nil
+  end
+end
+
+-- is this element a subfigure
+function isSubfigure(el)
+  if el.attr.attributes["figure-parent"] then
+    return true
+  else
+    return false
+  end
+end
+
+-- is this a Div containing a figure
+function isFigureDiv(el)
+  return el.t == "Div" and hasFigureLabel(el) and (figureDivCaption(el) ~= nil)
+end
+
+-- is this an image containing a figure
+function isFigureImage(el)
+  return hasFigureLabel(el) and #el.caption > 0
+end
+
+-- does this element have a figure label?
+function hasFigureLabel(el)
+  return string.match(el.attr.identifier, "^fig:")
+end
+
+function figureDivCaption(el)
+  local last = el.content[#el.content]
+  if last and last.t == "Para" and #el.content > 1 then
+    return last
+  else
+    return nil
+  end
+end
+
+function figureFromPara(el)
+  if #el.content == 1 and el.content[1].t == "Image" then
+    local image = el.content[1]
+    if #image.caption > 0 then
+      return image
+    else
+      return nil
+    end
+  else
+    return nil
+  end
+end
+
 -- pandoc.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- check for latex output
 function isLatexOutput()
   return FORMAT == "latex"
+end
+
+-- check for docx output
+function isDocxOutput()
+  return FORMAT == "docx"
 end
 
 -- check for html output
@@ -136,6 +298,16 @@ function isHtmlOutput()
 
 end
 
+-- read attribute w/ default
+function attribute(el, name, default)
+  local value = el.attr.attributes[name]
+  if value ~= nil then
+    return value
+  else
+    return default
+  end
+end
+
 -- combine a set of filters together (so they can be processed in parallel)
 function combineFilters(filters)
   local combined = {}
@@ -152,6 +324,10 @@ function combineFilters(filters)
     end
   end
   return combined
+end
+
+function inlinesToString(inlines)
+  return pandoc.utils.stringify(pandoc.Span(inlines))
 end
 
 -- lua string to pandoc inlines
@@ -233,7 +409,7 @@ function titleDelim()
 end
 
 function captionSubfig()
-  return option("caption-subfig", false)
+  return option("caption-subfig", true)
 end
 
 function captionCollectedDelim()
@@ -279,15 +455,26 @@ end
 
 function numberOption(type, order, default)
   
-  -- alias num
+  -- for sections, just return the section levels (we don't currently
+  -- support custom numbering for sections since pandoc is often the
+  -- one doing the numbering)
+  if type == "sec" then
+    return stringToInlines(sectionNumber(order.section))
+  end
+
+  -- alias num and section (set section to nil if we aren't using chapters)
   local num = order.order
+  local section = order.section
+  if not option("chapters", false) then
+    section = nil
+  end
   
   -- return a pandoc.Str w/ chapter prefix (if any)
-  function resolve(option)
-    if order.chapter ~= nil then
-      option = tostring(order.chapter) .. "." .. option
+  function resolve(num)
+    if section then
+      num = tostring(section[1]) .. "." .. num
     end
-    return { pandoc.Str(option) }
+    return { pandoc.Str(num) }
   end
   
   -- Compute option name and default value
@@ -295,7 +482,7 @@ function numberOption(type, order, default)
   if default == nil then
     default = stringToInlines("arabic")
   end
-
+  
   -- determine the style
   local styleRaw = option(opt, default)
   local numberStyle = pandoc.utils.stringify(styleRaw)
@@ -328,12 +515,31 @@ function numberOption(type, order, default)
     -- select an index based upon the num, wrapping it around
     local entryIndex = (num - 1) % entryCount + 1
     local option = styleRaw[entryIndex]
-    if order.chapter ~= nil then
-      tprepend(option, { pandoc.Str(tostring(order.chapter) .. ".") })
+    if section then
+      tprepend(option, { pandoc.Str(tostring(section[1]) .. ".") })
     end
     return option
   end
 end
+
+function sectionNumber(section, maxLevel)
+  local num = ""
+  for i=1,#section do
+    if maxLevel and i>maxLevel then
+      break
+    end
+    if section[i] > 0 then
+      if i>1 then
+        num = num .. "."
+      end
+      num = num .. tostring(section[i])
+    else
+      break
+    end
+  end
+  return num
+end
+
 
 function toRoman(num, lower)
   local roman = pandoc.utils.to_roman_numeral(num)
@@ -355,91 +561,56 @@ end
 function metaInject()
   return {
     Pandoc = function(doc)
-      if isLatexOutput() then
-        metaInjectLatex(doc)
-      end
+      metaInjectLatex(doc, function()
+        
+        local caption = usePackage("caption")
+        addHeaderInclude(doc, "tex", caption)
+        
+        local floatNames =
+          "\\AtBeginDocument{%\n" ..
+          "\\renewcommand*\\figurename{" .. titleString("fig", "Figure") .. "}\n" ..
+          "\\renewcommand*\\tablename{" .. titleString("tbl", "Table") .. "}\n" ..
+          "}\n"
+        addHeaderInclude(doc, "tex", floatNames)
+      
+        local listNames =
+          "\\AtBeginDocument{%\n" ..
+          "\\renewcommand*\\listfigurename{" .. listOfTitle("lof", "List of Figures") .. "}\n" ..
+          "\\renewcommand*\\listtablename{" .. listOfTitle("lot", "List of Tables") .. "}\n" ..
+          "}\n"
+        addHeaderInclude(doc, "tex", listNames)
+      
+        if latexListings() then
+          local lolCommand =
+            "\\newcommand*\\listoflistings\\lstlistoflistings\n" ..
+            "\\AtBeginDocument{%\n" ..
+            "\\renewcommand*\\lstlistlistingname{" .. listOfTitle("lol", "List of Listigs") .. "}\n" ..
+            "}\n"
+          addHeaderInclude(doc, "tex", lolCommand)
+        else
+          local codeListing =
+            usePackage("float") .. "\n" ..
+            "\\floatstyle{ruled}\n" ..
+            "\\@ifundefined{c@chapter}{\\newfloat{codelisting}{h}{lop}}{\\newfloat{codelisting}{h}{lop}[chapter]}\n" ..
+            "\\floatname{codelisting}{" .. titleString("lst", "Listing") .. "}\n"
+          addHeaderInclude(doc, "tex", codeListing)
+      
+          local lolCommand =
+            "\\newcommand*\\listoflistings{\\listof{codelisting}{" .. listOfTitle("lol", "List of Listings") .. "}}\n"
+          addHeaderInclude(doc, "tex", lolCommand)
+        end
+        
+        local theoremIncludes = theoremLatexIncludes()
+        if theoremIncludes then
+          addHeaderInclude(doc, "tex", theoremIncludes)
+        end
+      end)
+      
       return doc
     end
   }
 end
 
--- inject required latex
-function metaInjectLatex(doc)
-
-  ensureHeaderIncludes(doc)
-
-  addHeaderInclude(doc, "tex", "\\makeatletter")
-
-  -- TODO: move this to figures filter?
-  local subFig =
-    usePackage("subfig") .. "\n" ..
-    usePackage("caption") .. "\n" ..
-    "\\captionsetup[subfloat]{margin=0.5em}"
-  addHeaderInclude(doc, "tex", subFig)
-
-  local floatNames =
-    "\\AtBeginDocument{%\n" ..
-    "\\renewcommand*\\figurename{" .. titleString("fig", "Figure") .. "}\n" ..
-    "\\renewcommand*\\tablename{" .. titleString("tbl", "Table") .. "}\n" ..
-    "}\n"
-  addHeaderInclude(doc, "tex", floatNames)
-
-  local listNames =
-    "\\AtBeginDocument{%\n" ..
-    "\\renewcommand*\\listfigurename{" .. listOfTitle("lof", "List of Figures") .. "}\n" ..
-    "\\renewcommand*\\listtablename{" .. listOfTitle("lot", "List of Tables") .. "}\n" ..
-    "}\n"
-  addHeaderInclude(doc, "tex", listNames)
-
-  if latexListings() then
-    local lolCommand =
-      "\\newcommand*\\listoflistings\\lstlistoflistings\n" ..
-      "\\AtBeginDocument{%\n" ..
-      "\\renewcommand*\\lstlistlistingname{" .. listOfTitle("lol", "List of Listigs") .. "}\n" ..
-      "}\n"
-    addHeaderInclude(doc, "tex", lolCommand)
-  else
-    local codeListing =
-      usePackage("float") .. "\n" ..
-      "\\floatstyle{ruled}\n" ..
-      "\\@ifundefined{c@chapter}{\\newfloat{codelisting}{h}{lop}}{\\newfloat{codelisting}{h}{lop}[chapter]}\n" ..
-      "\\floatname{codelisting}{" .. titleString("lst", "Listing") .. "}\n"
-    addHeaderInclude(doc, "tex", codeListing)
-
-    local lolCommand =
-      "\\newcommand*\\listoflistings{\\listof{codelisting}{" .. listOfTitle("lol", "List of Listings") .. "}}\n"
-    addHeaderInclude(doc, "tex", lolCommand)
-  end
-  
-  local theoremIncludes = theoremLatexIncludes()
-  if theoremIncludes then
-    addHeaderInclude(doc, "tex", theoremIncludes)
-  end
-  
-  addHeaderInclude(doc, "tex", "\\makeatother")
-
-end
-
-
--- ensure that header-includes is a MetaList
-function ensureHeaderIncludes(doc)
-  local kHeaderIncludes = "header-includes"
-  if not doc.meta[kHeaderIncludes] then
-    doc.meta[kHeaderIncludes] = pandoc.MetaList({})
-  elseif doc.meta[kHeaderIncludes].t == "MetaInlines" then
-    doc.meta[kHeaderIncludes] = pandoc.MetaList({doc.meta[kHeaderIncludes]})
-  end
-end
-
--- add a header include as a raw block
-function addHeaderInclude(doc, format, include)
-  doc.meta["header-includes"]:insert(pandoc.MetaBlocks(pandoc.RawBlock(format, include)))
-end
-
--- conditionally include a package
-function usePackage(pkg)
-  return "\\@ifpackageloaded{" .. pkg .. "}{}{\\usepackage{" .. pkg .. "}}"
-end
 
 -- latex 'listof' title for type
 function listOfTitle(type, default)
@@ -548,6 +719,7 @@ function validRefTypes()
   table.insert(types, "tbl")
   table.insert(types, "eq")
   table.insert(types, "lst")
+  table.insert(types, "sec")
   return types
 end
 
@@ -712,124 +884,63 @@ end
 
 -- process all listings
 function listings()
-
+  
   return {
-    Blocks = function(blocks)
-
-      local pendingCodeBlock = nil
-      local targetBlocks = pandoc.List:new()
-
-      -- process a listing
-      function processListing(label, codeBlock, captionContent)
-
+    CodeBlock = function(el)
+      local label = string.match(el.attr.identifier, "^lst:[^ ]+$")
+      local caption = el.attr.attributes["lst-cap"]
+      if label and caption then
+    
         -- the listing number
         local order = indexNextOrder("lst")
-
+        
+        -- generate content from markdown caption
+        local captionContent = markdownToInlines(caption)
+        
+        -- add the listing to the index
+        indexAddEntry(label, nil, order, captionContent)
+       
         if isLatexOutput() then
 
-          -- add attributes to code block
-          codeBlock.attr.identifier = label
-          codeBlock.attr.classes:insert("listing")
+          -- add listing class to the code block
+          el.attr.classes:insert("listing")
 
-          -- if we are use the listings package just add the caption
-          -- attribute and return the block, otherwise generate latex
-          if latexListings() then
-            codeBlock.attributes["caption"] = pandoc.utils.stringify(
-              pandoc.Span(captionContent)
-            )
-            targetBlocks:insert(codeBlock)
-          else
-            targetBlocks:insert(pandoc.RawBlock("latex", "\\begin{codelisting}"))
-            local caption = pandoc.Plain({pandoc.RawInline("latex", "\\caption{")})
-            caption.content:extend(captionContent)
-            caption.content:insert(pandoc.RawInline("latex", "}"))
-            targetBlocks:insert(caption)
-            targetBlocks:insert(codeBlock)
-            targetBlocks:insert(pandoc.RawBlock("latex", "\\end{codelisting}"))
+          -- if we are use the listings package we don't need to do anything
+          -- further, otherwise generate the listing div and return it
+          if not latexListings() then
+            local listingDiv = pandoc.Div({})
+            listingDiv.content:insert(pandoc.RawBlock("latex", "\\begin{codelisting}"))
+            local listingCaption = pandoc.Plain({pandoc.RawInline("latex", "\\caption{")})
+            listingCaption.content:extend(captionContent)
+            listingCaption.content:insert(pandoc.RawInline("latex", "}"))
+            listingDiv.content:insert(listingCaption)
+            listingDiv.content:insert(el)
+            listingDiv.content:insert(pandoc.RawBlock("latex", "\\end{codelisting}"))
+            return listingDiv
           end
 
-          -- add the listing to the index
-          indexAddEntry(label, nil, order, captionContent)
-
         else
-          -- add the listing to the index
-          indexAddEntry(label, nil, order, captionContent)
-
+         
            -- Prepend the title
           tprepend(captionContent, listingTitlePrefix(order))
 
-          -- add the list to the output blocks
-          targetBlocks:insert(pandoc.Div(
+          -- return a div with the listing
+          return pandoc.Div(
             {
               pandoc.Para(captionContent),
-              codeBlock
+              el
             },
             pandoc.Attr(label, {"listing"})
-          ))
+          )
         end
 
       end
-
-      for i, el in ipairs(blocks) do
-
-        -- should we proceed with inserting this block?
-        local insertBlock = true
-
-        -- see if this is a code block with a listing label/caption
-        if el.t == "CodeBlock" then
-
-          if pendingCodeBlock then
-            targetBlocks:insert(pendingCodeBlock)
-            pendingCodeBlock = nil
-          end
-
-          local label = string.match(el.attr.identifier, "^lst:[^ ]+$")
-          local caption = el.attr.attributes["caption"]
-          if label and caption then
-            processListing(label, el, markdownToInlines(caption))
-          else
-            pendingCodeBlock = el
-          end
-
-          insertBlock = false
-
-        -- process pending code block
-        elseif pendingCodeBlock then
-          if isListingCaption(el) then
-
-            -- find the label
-            local lastInline = el.content[#el.content]
-            local label = refLabel("lst", lastInline)
-
-            -- remove the id from the end
-            el.content = tslice(el.content, 1, #el.content-2)
-
-            -- Slice off the colon and space
-            el.content = tslice(el.content, 3, #el.content)
-
-            -- process the listing
-            processListing(label, pendingCodeBlock, el.content)
-
-            insertBlock = false
-          else
-            targetBlocks:insert(pendingCodeBlock)
-          end
-          pendingCodeBlock = nil
-        end
-
-        -- either capture the code block or just emit the el
-        if insertBlock then
-          targetBlocks:insert(el)
-        end
-      end
-
-      if pendingCodeBlock then
-        targetBlocks:insert(pendingCodeBlock)
-      end
-
-      return targetBlocks
+      
+      --  if we get this far then just reflect back the el
+      return el
     end
   }
+
 end
 
 function listingTitlePrefix(order)
@@ -846,14 +957,6 @@ function prependTitlePrefix(caption, label, order)
   end
 end
 
-function isListingCaption(el)
-  if el.t == "Para" then
-    local contentStr = pandoc.utils.stringify(el)
-    return string.find(contentStr, "^:%s+[^%s].*%s{#lst:[^ }]+}$")
-  else
-    return false
-  end
-end
 
 function latexListings()
   return option("listings", false)
@@ -864,82 +967,88 @@ end
 
 -- process all equations
 function equations()
-
   return {
-    Inlines = function(inlines)
-
-      -- do nothing if there is no math herein
-      if inlines:find_if(isDisplayMath) == nil then
-        return inlines
-      end
-
-      local mathInlines = nil
-      local targetInlines = pandoc.List:new()
-
-      for i, el in ipairs(inlines) do
-
-        -- see if we need special handling for pending math, if
-        -- we do then track whether we should still process the
-        -- inline at the end of the loop
-        local processInline = true
-        if mathInlines then
-          if el.t == "Space" then
-            mathInlines:insert(el.t)
-            processInline = false
-          elseif el.t == "Str" and refLabel("eq", el) then
-
-            -- add to the index
-            local label = refLabel("eq", el)
-            local order = indexNextOrder("eq")
-            indexAddEntry(label, nil, order)
-
-            -- get the equation
-            local eq = mathInlines[1]
-
-            -- write equation
-            if isLatexOutput() then
-              targetInlines:insert(pandoc.RawInline("latex", "\\begin{equation}"))
-              targetInlines:insert(pandoc.Span(pandoc.RawInline("latex", eq.text), pandoc.Attr(label)))
-              targetInlines:insert(pandoc.RawInline("latex", "\\label{" .. label .. "}\\end{equation}"))
-            else
-              eq.text = eq.text .. " \\qquad(" .. tostring(order) .. ")"
-              local span = pandoc.Span(eq, pandoc.Attr(label))
-              targetInlines:insert(span)
-            end
-
-            -- reset state
-            mathInlines = nil
-            processInline = false
-          else
-            targetInlines:extend(mathInlines)
-            mathInlines = nil
-          end
-        end
-
-        -- process the inline unless it was already taken care of above
-        if processInline then
-          if isDisplayMath(el) then
-              mathInlines = pandoc.List:new()
-              mathInlines:insert(el)
-            else
-              targetInlines:insert(el)
-          end
-        end
-
-      end
-
-      -- flush any pending math inlines
-      if mathInlines then
-        targetInlines:extend(mathInlines)
-      end
-
-      -- return the processed list
-      return targetInlines
-
-    end
+    Para = processEquations,
+    Plain = processEquations
   }
-
 end
+
+function processEquations(blockEl)
+
+  -- alias inlines
+  local inlines = blockEl.content
+
+  -- do nothing if there is no math herein
+  if inlines:find_if(isDisplayMath) == nil then
+    return blockEl
+  end
+
+  local mathInlines = nil
+  local targetInlines = pandoc.List:new()
+
+  for i, el in ipairs(inlines) do
+
+    -- see if we need special handling for pending math, if
+    -- we do then track whether we should still process the
+    -- inline at the end of the loop
+    local processInline = true
+    if mathInlines then
+      if el.t == "Space" then
+        mathInlines:insert(el.t)
+        processInline = false
+      elseif el.t == "Str" and refLabel("eq", el) then
+
+        -- add to the index
+        local label = refLabel("eq", el)
+        local order = indexNextOrder("eq")
+        indexAddEntry(label, nil, order)
+
+        -- get the equation
+        local eq = mathInlines[1]
+
+        -- write equation
+        if isLatexOutput() then
+          targetInlines:insert(pandoc.RawInline("latex", "\\begin{equation}"))
+          targetInlines:insert(pandoc.Span(pandoc.RawInline("latex", eq.text), pandoc.Attr(label)))
+          targetInlines:insert(pandoc.RawInline("latex", "\\label{" .. label .. "}\\end{equation}"))
+        else
+          eq.text = eq.text .. " \\qquad(" .. inlinesToString(numberOption("eq", order)) .. ")"
+          local span = pandoc.Span(eq, pandoc.Attr(label))
+          targetInlines:insert(span)
+        end
+
+        -- reset state
+        mathInlines = nil
+        processInline = false
+      else
+        targetInlines:extend(mathInlines)
+        mathInlines = nil
+      end
+    end
+
+    -- process the inline unless it was already taken care of above
+    if processInline then
+      if isDisplayMath(el) then
+          mathInlines = pandoc.List:new()
+          mathInlines:insert(el)
+        else
+          targetInlines:insert(el)
+      end
+    end
+
+  end
+
+  -- flush any pending math inlines
+  if mathInlines then
+    targetInlines:extend(mathInlines)
+  end
+
+  -- return the processed list
+  blockEl.content = targetInlines
+  return blockEl
+ 
+end
+
 
 function isDisplayMath(el)
   return el.t == "Math" and el.mathtype == "DisplayMath"
@@ -1102,49 +1211,6 @@ end
 -- figures.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
--- filter which tags subfigures with their parent identifier. we do this
--- in a separate pass b/c normal filters go depth first so we can't actually
--- "see" our parent figure during filtering
-function subfigures()
-
-  return {
-    Pandoc = function(doc)
-      local walkFigures
-      walkFigures = function(parentId)
-        return {
-          Div = function(el)
-            if isFigureDiv(el) then
-              if parentId ~= nil then
-                el.attr.attributes["figure-parent"] = parentId
-              else
-                el = pandoc.walk_block(el, walkFigures(el.attr.identifier))
-              end
-            end
-            return el
-          end,
-
-          Image = function(el)
-            if (parentId ~= nil) and hasFigureLabel(el) and (#el.caption > 0)  then
-              el.attr.attributes["figure-parent"] = parentId
-            end
-            return el
-          end
-        }
-      end
-
-      -- walk all blocks in the document
-      for i,el in pairs(doc.blocks) do
-        local parentId = nil
-        if isFigureDiv(el) then
-          parentId = el.attr.identifier
-        end
-        doc.blocks[i] = pandoc.walk_block(el, walkFigures(parentId))
-      end
-      return doc
-
-    end
-  }
-end
 
 -- process all figures
 function figures()
@@ -1153,14 +1219,14 @@ function figures()
       if isFigureDiv(el) then
         local caption = figureDivCaption(el)
         processFigure(el, caption.content)
-        appendSubfigureCaptions(el)
       end
       return el
     end,
 
-    Image = function(el)
-      if isFigureImage(el) then
-        processFigure(el, el.caption)
+    Para = function(el)
+      local image = figureFromPara(el)
+      if image and isFigureImage(image) then
+        processFigure(image, image.caption)
       end
       return el
     end
@@ -1182,15 +1248,18 @@ function processFigure(el, captionContent)
   if (parent) then
     el.attr.attributes["figure-parent"] = nil
     order = {
-      chapter = nil,
+      section = nil,
       order = crossref.index.nextSubfigureOrder
     }
     crossref.index.nextSubfigureOrder = crossref.index.nextSubfigureOrder + 1
-    -- we have a parent, so clear the table then insert a letter (e.g. 'a')
-    tclear(captionContent)
-    if captionSubfig() and not tcontains(el.attr.classes, "nocaption") then
-      tappend(captionContent, subfigNumber(order))
+   
+    -- if this isn't latex output, then prepend the subfigure number
+    if not isLatexOutput() then
+      tprepend(captionContent, { pandoc.Str(")"), pandoc.Space() })
+      tprepend(captionContent, subfigNumber(order))
+      captionContent:insert(1, pandoc.Str("("))
     end
+   
   else
     order = indexNextOrder("fig")
     if not isLatexOutput() then
@@ -1200,34 +1269,6 @@ function processFigure(el, captionContent)
 
   -- update the index
   indexAddEntry(label, parent, order, caption)
-end
-
--- append any avavilable subfigure captions to the div
-function appendSubfigureCaptions(div)
-
-  -- look for subfigures
-  local subfigures = {}
-  for label,figure in pairs(crossref.index.entries) do
-    if (div.attr.identifier == figure.parent) then
-      subfigures[label] = figure
-    end
-  end
-
-  -- get caption element
-  local captionContent = div.content[#div.content].content
-
-  -- append to caption in order of insertion
-  for label,figure in spairs(subfigures, function(t, a, b) return t[a].order.order < t[b].order.order end) do
-    if figure.order.order == 1 then
-      table.insert(captionContent, pandoc.Str(". "))
-    else
-      tappend(captionContent, captionCollectedDelim())
-    end
-
-    tappend(captionContent, subfigNumber(figure.order))
-    tappend(captionContent, captionCollectedLabelSep())
-    tappend(captionContent, figure.caption)
-  end
 end
 
 -- is this a Div containing a figure
@@ -1254,8 +1295,6 @@ function figureDivCaption(el)
   end
 end
 
-
-
 function figureTitlePrefix(order)
   return titlePrefix("fig", "Figure", order)
 end
@@ -1264,15 +1303,82 @@ end
 -- Copyright (C) 2020 by RStudio, PBC
 
 function sections()
+  
   return {
     Header = function(el)
-      -- track current chapter
-      if el.level == 1 then
+      
+      -- skip unnumbered
+      if (el.classes:find("unnumbered")) then
+        return el
+      end
+      
+      -- cap levels at 7
+      local level = math.min(el.level, 7)
+      
+      -- get the current level
+      local currentLevel = currentSectionLevel()
+      
+      -- if this level is less than the current level
+      -- then set subsequent levels to their offset
+      if level < currentLevel then
+        for i=level+1,#crossref.index.section do
+          crossref.index.section[i] = crossref.index.sectionOffsets[i]
+        end
+      end
+      
+      -- increment the level counter
+      crossref.index.section[level] = crossref.index.section[level] + 1
+      
+      -- if this is a chapter then notify the index (will be used to 
+      -- reset type-counters if we are in "chapters" mode)
+      if level == 1 then
         indexNextChapter()
       end
+      
+      -- if this has a section identifier then index it
+      if refType(el.attr.identifier) == "sec" then
+        local order = indexNextOrder("sec")
+        indexAddEntry(el.attr.identifier, nil, order, el.content)
+      end
+      
+      -- number the section if required
+      if (numberSections()) then
+        local section = sectionNumber(crossref.index.section, level)
+        el.attr.attributes["number"] = section
+        el.content:insert(1, pandoc.Space())
+        el.content:insert(1, pandoc.Span(
+          stringToInlines(section),
+          pandoc.Attr("", { "header-section-number"})
+        ))
+      end
+      
+      -- return 
+      return el
     end
   }
 end
+
+function currentSectionLevel()
+  -- scan backwards for the first non-zero section level
+  for i=#crossref.index.section,1,-1 do
+    local section = crossref.index.section[i]
+    if section ~= 0 then
+      return i
+    end
+  end
+  
+  -- if we didn't find one then we are at zero (no sections yet)
+  return 0
+end
+
+function numberSections()
+  return formatRequiresSectionNumber() and option("number-sections", false)
+end
+
+function formatRequiresSectionNumber()
+  return not isLatexOutput() and not isHtmlOutput() and not isDocxOutput()
+end
+
 
 -- index.lua
 -- Copyright (C) 2020 by RStudio, PBC
@@ -1281,15 +1387,29 @@ end
 function initIndex()
   return {
     Pandoc = function(doc)
+      
+      -- compute section offsets
+      local sectionOffsets = pandoc.List:new({0,0,0,0,0,0,0})
+      local numberOffset = pandoc.List:new(option("number-offset", {})):map(
+        function(offset)
+          return tonumber(offset[1].text)
+        end
+      )
+      for i=1,#sectionOffsets do
+        if i > #numberOffset then
+          break
+        end
+        sectionOffsets[i] = numberOffset[i]
+      end
+      
+      -- initialize index
       crossref.index = {
         nextOrder = {},
         nextSubfigureOrder = 1,
-        currentChapter = nil,
+        section = sectionOffsets,
+        sectionOffsets = sectionOffsets,
         entries = {}
       }
-      if option("chapters", false) then
-        crossref.index.currentChapter = 0
-      end
       return doc
     end
   }
@@ -1297,16 +1417,12 @@ end
 
 -- advance a chapter
 function indexNextChapter()
+   -- reset nextOrder to 1 for all types if we are in chapters mode
   if option("chapters", false) then
-    -- bump current chapter
-    crossref.index.currentChapter = crossref.index.currentChapter + 1
-    
-    -- reset nextOrder to 1 for all types
     for k,v in pairs(crossref.index.nextOrder) do
       crossref.index.nextOrder[k] = 1
     end
   end
-  return crossref.index.currentChapter
 end
 
 -- next sequence in index for type
@@ -1318,7 +1434,7 @@ function indexNextOrder(type)
   crossref.index.nextOrder[type] = crossref.index.nextOrder[type] + 1
   crossref.index.nextSubfigureOrder = 1
   return {
-    chapter = crossref.index.currentChapter,
+    section = crossref.index.section:clone(),
     order = nextOrder
   }
 end
@@ -1334,6 +1450,7 @@ function indexAddEntry(label, parent, order, caption)
     caption = caption,
   }
 end
+
 
 -- does our index already contain this element?
 function indexHasElement(el)
@@ -1355,7 +1472,7 @@ crossref = {}
 return {
   initOptions(),
   initIndex(),
-  subfigures(),
+  labelSubfigures(),
   combineFilters({
     sections(),
     figures(),
