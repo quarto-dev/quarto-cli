@@ -25,6 +25,7 @@ export async function quarto(args: string[]) {
     quartoCommand.command(command.getName(), command);
   });
 
+  console.log(args);
   await quartoCommand
     .command("help", new HelpCommand().global())
     .command("completions", new CompletionsCommand()).hidden()
