@@ -15,9 +15,6 @@ export TINYTEX=v2020.10
 # Quarto Version
 export QUARTO_VERSION=0.1
 
-# Quarto Command Global deno flags
-export DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env"
-
 # Configuration Target Directories
 export QUARTO_PACKAGE_DIR=package
 export QUARTO_DIST_DIR=dist

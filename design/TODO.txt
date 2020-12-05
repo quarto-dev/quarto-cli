@@ -2,6 +2,7 @@
 
 - Implement latex environment divs: https://bookdown.org/yihui/rmarkdown-cookbook/custom-blocks.html
 
+
 - We don't seem to be able to render latex quite the same way that knitr does,
 e.g.:
 library(flextable)
@@ -10,7 +11,7 @@ ft <- autofit(ft)
 ft
 - Why did Beamer fail to render w/ missing caption package w/ our pipeline but work for pandoc pdflatex?
 
-
+- Why does 'title' end up being 'fig:'?
 - Generally, validity of labels (don't want under the hood transformations to 
   affect addressabilty)
 

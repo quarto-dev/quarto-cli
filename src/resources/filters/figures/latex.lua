@@ -41,9 +41,12 @@ function latexPanel(divEl, subfigures)
     
       -- check to see if it has a width to apply (if so then reset the
       -- underlying width to 100% as sizing will come from \subcaptionbox)
-      local percentWidth = widthToPercent(image.attr.attributes["width"])
-      if percentWidth and not image.attr.attributes["height"] then
+      local layoutPercent = horizontalLayoutPercent(image)
+      if layoutPercent then
         image.attr.attributes["width"] = nil
+        subfiguresEl.content:insert(pandoc.RawInline("latex", 
+          "[" .. string.format("%2.2f", layoutPercent/100) .. "\\linewidth]"
+        ))
       end
       
       -- surround w/ link if we have fig-link
@@ -53,13 +56,6 @@ function latexPanel(divEl, subfigures)
           image.attr.attributes["fig-link"] = nil
           image = pandoc.Link({ image }, figLink)
         end
-      end
-      
-      -- output width constraint if it's a pure percentage
-      if percentWidth then
-        subfiguresEl.content:insert(pandoc.RawInline("latex", 
-          "[" .. string.format("%2.2f", percentWidth/100) .. "\\linewidth]"
-        ))
       end
       
       -- insert the figure
