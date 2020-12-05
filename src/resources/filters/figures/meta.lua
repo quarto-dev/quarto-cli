@@ -6,11 +6,11 @@ function metaInject()
   return {
     Pandoc = function(doc)
       
-      metaInjectLatex(doc, function()
-        local subFig =
-           usePackage("caption") .. "\n" ..
-           usePackage("subcaption")
-        addHeaderInclude(doc, "tex", subFig)
+      metaInjectLatex(doc, function(inject)
+        inject(
+          usePackage("caption") .. "\n" ..
+          usePackage("subcaption")
+        )
       end)
       
       metaInjectHtml(doc, function(inject)

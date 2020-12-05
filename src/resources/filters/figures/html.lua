@@ -1,10 +1,9 @@
 -- html.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
+-- todo: inject callback for latex
 -- todo: consider native docx tables for office output
 -- todo: fig-link for html and table (watch for caption invalidation)
--- todo: may need to inject the css via header-includes 
---       (so it can be overriddeen by users)
 
 function htmlPanel(divEl, subfigures)
   

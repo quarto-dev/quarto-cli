@@ -27,9 +27,12 @@ end
 function metaInjectLatex(doc, func)
   if isLatexOutput() then
     ensureHeaderIncludes(doc)
-    addHeaderInclude(doc, "tex", "\\makeatletter")
-    func()
-    addHeaderInclude(doc, "tex", "\\makeatother")
+    function inject(tex)
+      addHeaderInclude(doc, "tex", tex)
+    end
+    inject("\\makeatletter")
+    func(inject)
+    inject("\\makeatother")
   end
 end
 
