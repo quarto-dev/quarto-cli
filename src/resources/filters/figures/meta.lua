@@ -37,8 +37,12 @@ function metaInject()
     font-size: 0.8em;
     font-style: italic;
   }
-  .quarto-subfigure figure > p:last-child:empty {
+  figure > p:empty {
     display: none;
+  }
+  figure > p:first-child {
+    margin-top: 0;
+    margin-bottom: 0;
   }
 </style>
 ]]

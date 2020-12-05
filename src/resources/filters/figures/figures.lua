@@ -50,7 +50,7 @@ function layoutFigures()
             return tablePanel(el, subfigures)
           end
           
-        -- turn figures into <figure> tag for html
+        -- turn figure divs into <figure> tag for html
         elseif isHtmlOutput() then
           local figureDiv = pandoc.Div({}, el.attr)
           figureDiv.content:insert(pandoc.RawBlock("html", "<figure>"))
@@ -72,7 +72,7 @@ end
 
 -- chain of filters
 return {
-  labelSubfigures(),
+  preprocessFigures(),
   layoutFigures(),
   metaInject()
 }

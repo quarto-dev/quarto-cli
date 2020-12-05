@@ -1,10 +1,11 @@
 -- figures.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
--- filter which tags subfigures with their parent identifier. we do this
--- in a separate pass b/c normal filters go depth first so we can't actually
+-- filter which tags subfigures with their parent identifier and also 
+-- converts linked image figures into figure divs. we do this in a separate 
+-- pass b/c normal filters go depth first so we can't actually
 -- "see" our parent figure during filtering
-function labelSubfigures()
+function preprocessFigures()
 
   return {
     Pandoc = function(doc)
@@ -23,33 +24,7 @@ function labelSubfigures()
           end,
 
           Para = function(el)
-            if (parentId ~= nil) then
-              
-              -- if this is a figure paragraph, tag the image inside
-              local image = figureFromPara(el)
-              if image and isFigureImage(image) then
-                image.attr.attributes["figure-parent"] = parentId
-                return el
-              end
-              
-              -- if this is a linked figure paragraph, transform to figure-div
-              -- and then tag the figure-div
-              local linkedFig = linkedFigureFromPara(el)
-              if linkedFig and isFigureImage(linkedFig) then
-                -- create figure-div
-                local figureDiv = pandoc.Div(pandoc.Para(el.content), linkedFig.attr:clone())
-                figureDiv.content:insert(pandoc.Para(linkedFig.caption:clone()))
-                figureDiv.attr.attributes["figure-parent"] = parentId
-               
-                -- clear attributes on image
-                linkedFig.attr = pandoc.Attr()
-                linkedFig.caption = {}
-                
-                -- return the div
-                return figureDiv
-              end
-            end
-            
+            return preprocessParaFigure(el, parentId)
           end
         }
       end
@@ -60,12 +35,55 @@ function labelSubfigures()
         if isFigureDiv(el) then
           parentId = el.attr.identifier
         end
-        doc.blocks[i] = pandoc.walk_block(el, walkFigures(parentId))
+        if el.t == "Para" then
+          doc.blocks[i] = preprocessParaFigure(el, nil)
+        else
+          doc.blocks[i] = pandoc.walk_block(el, walkFigures(parentId))
+        end
       end
       return doc
 
     end
   }
+end
+
+function preprocessParaFigure(el, parentId)
+  
+  -- if this is a figure paragraph, tag the image inside with any
+  -- parent id we have
+  local image = figureFromPara(el)
+  if image and isFigureImage(image) then
+    image.attr.attributes["figure-parent"] = parentId
+    return el
+  end
+  
+  -- if this is a linked figure paragraph, transform to figure-div
+  -- and then tag the figure-div with any parent id we have
+  local linkedFig = linkedFigureFromPara(el)
+  if linkedFig and isFigureImage(linkedFig) then
+    -- create figure-div and transfer caption
+    local figureDiv = pandoc.Div(pandoc.Para(el.content))
+    figureDiv.content:insert(pandoc.Para(linkedFig.caption:clone()))
+    linkedFig.caption = {}
+    
+    -- if we have a parent, then transfer all attributes (as it's a subfigure)
+    if parentId ~= nil then
+      figureDiv.attr = linkedFig.attr:clone()
+      linkedFig.attr = pandoc.Attr()
+      figureDiv.attr.attributes["figure-parent"] = parentId
+    -- otherwise just transfer id
+    else
+      figureDiv.attr.identifier = linkedFig.attr.identifier
+      linkedFig.attr.identifier = ""
+    end
+    
+    -- return the div
+    return figureDiv
+  end
+  
+  -- always reflect back input if we didn't hit one of our cases
+  return el
+  
 end
 
 function collectSubfigures(divEl)

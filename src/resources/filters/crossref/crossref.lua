@@ -40,7 +40,7 @@ import("../common/debug.lua")
 return {
   initOptions(),
   initIndex(),
-  labelSubfigures(),
+  preprocessFigures(),
   combineFilters({
     sections(),
     figures(),
