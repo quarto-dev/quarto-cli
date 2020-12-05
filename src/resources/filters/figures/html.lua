@@ -2,41 +2,17 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- todo: consider native docx tables for office output
--- todo: headers for all lua files
 -- todo: fig-link for html and table (watch for caption invalidation)
 -- todo: may need to inject the css via header-includes 
 --       (so it can be overriddeen by users)
 
 function htmlPanel(divEl, subfigures)
   
-  -- set global flag indicating we need html
-  -- outer panel to contain css and figure panel (todo: move css)
-  local panel = pandoc.Div({
-    pandoc.RawBlock("html", [[
-      <style type="text/css">
-        .quarto-figure-panel figcaption {
-          text-align: center;
-        }
-        .quarto-subfigure-row {
-          display: flex;
-          align-items: flex-end;
-        }
-        .quarto-subfigure {
-          position: relative;
-        }
-        .quarto-subfigure figure {
-          margin: 0.2em;
-        }
-        .quarto-subfigure figcaption {
-          font-size: 0.8em;
-          font-style: italic;
-        }
-        .quarto-subfigure figure > p:last-child:empty {
-          display: none;
-        }
-      </style>
-    ]])
-  }, pandoc.Attr("", { "quarto-figure-panel" }))
+  -- set flag indicating we need panel css
+  figures.htmlPanels = true
+  
+  -- outer panel to contain css and figure panel
+  local panel = pandoc.Div({}, pandoc.Attr("", { "quarto-figure-panel" }))
 
   -- enclose in figure
   panel.content:insert(pandoc.RawBlock("html", "<figure>"))

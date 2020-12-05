@@ -32,3 +32,13 @@ function metaInjectLatex(doc, func)
     addHeaderInclude(doc, "tex", "\\makeatother")
   end
 end
+
+function metaInjectHtml(doc, func)
+  if isHtmlOutput() then
+    ensureHeaderIncludes(doc)
+    function inject(html)
+      addHeaderInclude(doc, "html", html)
+    end
+    func(inject)
+  end
+end

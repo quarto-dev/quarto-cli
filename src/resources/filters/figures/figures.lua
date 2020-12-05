@@ -31,7 +31,7 @@ import("../common/table.lua")
 import("../common/debug.lua")
 -- [/import]
 
-function figures() 
+function layoutFigures() 
   
   return {
     
@@ -70,14 +70,10 @@ function figures()
   }
 end
 
-
-
-
-
 -- chain of filters
 return {
   labelSubfigures(),
-  figures(),
+  layoutFigures(),
   metaInject()
 }
 
