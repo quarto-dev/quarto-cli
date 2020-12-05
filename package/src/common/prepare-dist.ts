@@ -1,4 +1,5 @@
 import { dirname, join } from "https://deno.land/std/path/mod.ts";
+import { copySync } from "https://deno.land/std/fs/mod.ts";
 import { existsSync } from "https://deno.land/std/fs/exists.ts";
 
 async function prepareDist(targetDir: string) {
@@ -7,16 +8,28 @@ async function prepareDist(targetDir: string) {
 
   const filesToCopy = [
     {
-      from: join("..", "..", "..", "COPYING.md"),
+      from: join("..", "..", "COPYING.md"),
       to: join(targetDir, "COPYING.md"),
     },
     {
-      from: join("..", "..", "..", "COPYRIGHT"),
+      from: join("..", "..", "COPYRIGHT"),
       to: join(targetDir, "COPYRIGHT"),
     },
     {
-      from: join("..", "..", "filters", "crossref", "crossref.lua"),
-      to: join(targetDir, sharedir, "filters", "crossref", "crossref.lua"),
+      from: join("..", "filters"),
+      to: join(targetDir, sharedir, "filters"),
+    },
+    {
+      from: join("..", "..", "src", "resources", "html-defaults.lua"),
+      to: join(targetDir, sharedir, "html-defaults.lua"),
+    },
+    {
+      from: join("..", "..", "src", "resources", "rmd"),
+      to: join(targetDir, sharedir, "rmd"),
+    },
+    {
+      from: join("..", "..", "src", "resources", "jupyter"),
+      to: join(targetDir, sharedir, "jupyter"),
     },
   ];
 
@@ -26,7 +39,7 @@ async function prepareDist(targetDir: string) {
     if (!existsSync(directory)) {
       Deno.mkdirSync(directory);
     }
-    Deno.copyFileSync(fileToCopy.from, fileToCopy.to);
+    copySync(fileToCopy.from, fileToCopy.to, { overwrite: true });
   });
 
   // Bundle source code
@@ -35,9 +48,9 @@ async function prepareDist(targetDir: string) {
   denoBundleCmd.push("bundle");
   denoBundleCmd.push("--unstable");
   denoBundleCmd.push(
-    "--importmap=" + join("..", "..", "..", "src", "import_map.json"),
+    "--importmap=" + join("..", "..", "src", "import_map.json"),
   );
-  denoBundleCmd.push(join("..", "..", "..", "src", "quarto.ts"));
+  denoBundleCmd.push(join("..", "..", "src", "quarto.ts"));
   denoBundleCmd.push(join(targetDir, binDir, "quarto.js"));
   const p = Deno.run({
     cmd: denoBundleCmd,
@@ -59,4 +72,4 @@ function getEnv(name: string) {
 const packageDir = getEnv("QUARTO_PACKAGE_DIR");
 const distDir = getEnv("QUARTO_DIST_DIR");
 
-await prepareDist(distDir);
+await prepareDist(join("..", distDir));

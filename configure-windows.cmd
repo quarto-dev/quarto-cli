@@ -1,33 +1,25 @@
 @ECHO OFF
-SETLOCAL
+SETLOCAL ENABLEDELAYEDEXPANSION
 
-REM TODO: Remove dependency on these variables
+REM Reads the configuration file line by line
+REM and convert any export statements into set statements
+REM (allows reuse of variables)
+FOR /F "tokens=*" %%A IN (configuration) DO CALL :convertExportToSet %%A 
 
-SET DIST_DIR="dist"
-SET PACKAGE_DIR="package"
-SET BIN_DIR="bin"
-SET VERSION="0.1"
-
-SET DENO="v1.4.6"
-SET PANDOC="2.11.2"
-
-IF NOT EXIST %PACKAGE_DIR% (
-	MKDIR %PACKAGE_DIR%
+IF NOT EXIST %QUARTO_PACKAGE_DIR% (
+	MKDIR %QUARTO_PACKAGE_DIR%
 ) 
+PUSHD %QUARTO_PACKAGE_DIR%
 
-PUSHD %PACKAGE_DIR%
-
-IF NOT EXIST %DIST_DIR% (
-	MKDIR %DIST_DIR%
+IF NOT EXIST %QUARTO_DIST_DIR% (
+	MKDIR %QUARTO_DIST_DIR%
 )
+PUSHD %QUARTO_DIST_DIR%
 
-PUSHD %DIST_DIR%
-
-IF NOT EXIST %BIN_DIR% (
-	MKDIR %BIN_DIR% 
+IF NOT EXIST %QUARTO_BIN_DIR% (
+	MKDIR %QUARTO_BIN_DIR% 
 )
-
-PUSHD %BIN_DIR%
+PUSHD %QUARTO_BIN_DIR%
 
 ECHO Copying Quarto command...
 REM Create quarto cmd
@@ -62,3 +54,20 @@ POPD
 
 ECHO NOTE: To use quarto please use quarto-cmd (located in this folder) or add the following path to your PATH
 ECHO %binPath%
+
+GOTO :eof
+
+REM Reads each line of a file and converts any exports into SETs
+:convertExportToSet
+SET LINE=%*
+SET FIND=export 
+SET REPLACE=
+
+IF "%LINE:~0,7%"=="%FIND%" (
+	CALL SET LINE=%%LINE:!FIND!=!REPLACE!%%
+	CALL SET %%LINE%%
+)
+
+
+
+:eof

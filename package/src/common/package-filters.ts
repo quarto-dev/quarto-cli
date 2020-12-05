@@ -1,11 +1,26 @@
 import { basename, dirname, join } from "https://deno.land/std/path/mod.ts";
-import { walk } from "https://deno.land/std@0.76.0/fs/walk.ts";
 
 buildFilter("crossref");
+buildFilter("figures");
 
 function buildFilter(filter: string) {
   // read main filter file
-  const filterPath = join(filter, `${filter}.lua`);
+  const filterPath = join(
+    "..",
+    "..",
+    "src",
+    "resources",
+    "filters",
+    filter,
+    `${filter}.lua`,
+  );
+  const outFilterPath = join(
+    "..",
+    "filters",
+    filter,
+    `${filter}.lua`,
+  );
+
   const filterDir = dirname(filterPath);
   let src = Deno.readTextFileSync(filterPath);
 
@@ -27,24 +42,8 @@ function buildFilter(filter: string) {
     }
     src = `${importSrc}\n` + src;
     match = importRe.exec(imports);
-    Deno.removeSync(importFilePath);
-
-    // If this is the last source file in a directory, clean the directory
-    const directory = dirname(importFilePath);
-    if (isEmpty(directory)) {
-      Deno.removeSync(directory);
-    }
   }
 
   // write src to dist
-  Deno.writeTextFileSync(filterPath, src);
-}
-
-function isEmpty(path: string): boolean {
-  const realDir = Deno.realPathSync(path);
-  const directoryContents = Deno.readDirSync(path);
-  for (const foo of directoryContents) {
-    return false;
-  }
-  return true;
+  Deno.writeTextFileSync(outFilterPath, src);
 }

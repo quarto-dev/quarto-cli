@@ -1,12 +1,12 @@
-name: Inline Crossref.lua
+name: Inline LUA Filters
 
 on:
  workflow_dispatch:
-# push:
-#   branches:
-#   - main
-#   paths:
-#   - src/resources/filters/**
+ push:
+   branches:
+   - main
+   paths:
+   - src/resources/filters/**
 
 jobs:
    inline-crossref:
@@ -20,16 +20,14 @@ jobs:
        run: |
             ./configure-macos.sh
      
-     - name: Prepare Dist
+     - name: Inline Filters
        run: |
             pushd package
-            ./prepare-dist.sh
+            pushd src
+            ../dist/bin/deno run --allow-read --allow-write common/package-filters.ts           
+            popd
             popd
 
-     - name: Move file into place
-       run: |
-            cp package/dist/share/filters/crossref/crossref.lua package/filters/crossref/crossref.lua
-     
      - name: Commit changes
        run: |
             # Set up .netrc file with GitHub credentials
