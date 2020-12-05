@@ -1,4 +1,6 @@
 
+-- todo: consider native docx tables for office output
+-- todo: headers for all lua files
 -- todo: fig-link for html and table (watch for caption invalidation)
 -- todo: may need to inject the css via header-includes 
 --       (so it can be overriddeen by users)
@@ -44,9 +46,10 @@ function htmlPanel(divEl, subfigures)
   local subfiguresEl = pandoc.Para({})
   for i, row in ipairs(subfigures) do
     
-    local figuresRow = pandoc.Div({}, pandoc.Attr("", {"quarto-subfigure-row"}, {
-      style = "justify-content: " .. align .. ";"
-    }))
+    local figuresRow = pandoc.Div({}, pandoc.Attr("", {"quarto-subfigure-row"}))
+    if align then
+      figuresRow.attr.attributes["style"] = "justify-content: " .. align .. ";"
+    end
     
     for i, image in ipairs(row) do
       
@@ -103,9 +106,8 @@ function flexAlign(align)
     return "center"
   elseif align == "right" then
     return "flex-end"
-  -- default
   else
-    return "flex-start"
+    return nil
   end
 end
 
