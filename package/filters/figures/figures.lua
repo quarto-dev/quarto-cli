@@ -138,9 +138,12 @@ end
 function metaInjectLatex(doc, func)
   if isLatexOutput() then
     ensureHeaderIncludes(doc)
-    addHeaderInclude(doc, "tex", "\\makeatletter")
-    func()
-    addHeaderInclude(doc, "tex", "\\makeatother")
+    function inject(tex)
+      addHeaderInclude(doc, "tex", tex)
+    end
+    inject("\\makeatletter")
+    func(inject)
+    inject("\\makeatother")
   end
 end
 
@@ -823,10 +826,9 @@ end
 -- html.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
+-- todo: inject callback for latex
 -- todo: consider native docx tables for office output
 -- todo: fig-link for html and table (watch for caption invalidation)
--- todo: may need to inject the css via header-includes 
---       (so it can be overriddeen by users)
 
 function htmlPanel(divEl, subfigures)
   
@@ -1278,11 +1280,11 @@ function metaInject()
   return {
     Pandoc = function(doc)
       
-      metaInjectLatex(doc, function()
-        local subFig =
-           usePackage("caption") .. "\n" ..
-           usePackage("subcaption")
-        addHeaderInclude(doc, "tex", subFig)
+      metaInjectLatex(doc, function(inject)
+        inject(
+          usePackage("caption") .. "\n" ..
+          usePackage("subcaption")
+        )
       end)
       
       metaInjectHtml(doc, function(inject)
