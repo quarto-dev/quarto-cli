@@ -957,7 +957,6 @@ function prependTitlePrefix(caption, label, order)
   end
 end
 
-
 function latexListings()
   return option("listings", false)
 end
