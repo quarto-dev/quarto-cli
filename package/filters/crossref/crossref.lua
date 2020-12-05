@@ -109,7 +109,8 @@ function spairs(t, order)
   end
 end
 
-
+-- meta.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 -- constants
 local kHeaderIncludes = "header-includes"
@@ -143,6 +144,8 @@ function metaInjectLatex(doc, func)
   end
 end
 
+-- figures.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 -- filter which tags subfigures with their parent identifier. we do this
 -- in a separate pass b/c normal filters go depth first so we can't actually
@@ -1212,7 +1215,6 @@ end
 -- figures.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
-
 -- process all figures
 function figures()
   return {
@@ -1233,7 +1235,6 @@ function figures()
     end
   }
 end
-
 
 
 -- process a figure, re-writing it's caption as necessary and

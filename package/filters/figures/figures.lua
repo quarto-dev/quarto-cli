@@ -109,7 +109,8 @@ function spairs(t, order)
   end
 end
 
-
+-- meta.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 -- constants
 local kHeaderIncludes = "header-includes"
@@ -143,6 +144,8 @@ function metaInjectLatex(doc, func)
   end
 end
 
+-- figures.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 -- filter which tags subfigures with their parent identifier. we do this
 -- in a separate pass b/c normal filters go depth first so we can't actually
@@ -746,6 +749,8 @@ end
 
 
 
+-- table.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 function tablePanel(divEl, subfigures)
   
@@ -805,6 +810,8 @@ function tableAlign(align)
   end
 end
 
+-- html.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 -- todo: consider native docx tables for office output
 -- todo: headers for all lua files
@@ -920,7 +927,8 @@ end
 
 
 
-
+-- latex.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 function latexPanel(divEl, subfigures)
   
@@ -1053,7 +1061,8 @@ end
 
 
 
- 
+-- layout.lua
+-- Copyright (C) 2020 by RStudio, PBC 
  
 function layoutSubfigures(divEl)
    
