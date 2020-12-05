@@ -2,7 +2,6 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- todo: consider native docx tables for office output
--- todo: fig-link for html and table (watch for caption invalidation)
 
 function htmlPanel(divEl, subfigures)
   
