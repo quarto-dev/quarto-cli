@@ -2,11 +2,11 @@ name: Inline LUA Filters
 
 on:
  workflow_dispatch:
-# push:
-#   branches:
-#   - main
-#   paths:
-#   - src/resources/filters/**
+ push:
+   branches:
+   - main
+   paths:
+   - src/resources/filters/**
 
 jobs:
    inline-crossref:
