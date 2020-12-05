@@ -144,6 +144,16 @@ function metaInjectLatex(doc, func)
   end
 end
 
+function metaInjectHtml(doc, func)
+  if isHtmlOutput() then
+    ensureHeaderIncludes(doc)
+    function inject(html)
+      addHeaderInclude(doc, "html", html)
+    end
+    func(inject)
+  end
+end
+
 -- figures.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
