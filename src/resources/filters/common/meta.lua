@@ -1,4 +1,5 @@
-
+-- meta.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 -- constants
 local kHeaderIncludes = "header-includes"

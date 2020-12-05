@@ -1,4 +1,5 @@
-
+-- latex.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 function latexPanel(divEl, subfigures)
   

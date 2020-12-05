@@ -1,7 +1,6 @@
 -- figures.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
-
 -- process all figures
 function figures()
   return {
@@ -22,7 +21,6 @@ function figures()
     end
   }
 end
-
 
 
 -- process a figure, re-writing it's caption as necessary and

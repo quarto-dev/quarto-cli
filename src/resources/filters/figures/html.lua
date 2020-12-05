@@ -1,3 +1,5 @@
+-- html.lua
+-- Copyright (C) 2020 by RStudio, PBC
 
 -- todo: consider native docx tables for office output
 -- todo: headers for all lua files
