@@ -183,12 +183,32 @@ function labelSubfigures()
 
           Para = function(el)
             if (parentId ~= nil) then
+              
+              -- if this is a figure paragraph, tag the image inside
               local image = figureFromPara(el)
               if image and isFigureImage(image) then
                 image.attr.attributes["figure-parent"] = parentId
+                return el
+              end
+              
+              -- if this is a linked figure paragraph, transform to figure-div
+              -- and then tag the figure-div
+              local linkedFig = linkedFigureFromPara(el)
+              if linkedFig and isFigureImage(linkedFig) then
+                -- create figure-div
+                local figureDiv = pandoc.Div(pandoc.Para(el.content), linkedFig.attr:clone())
+                figureDiv.content:insert(pandoc.Para(linkedFig.caption:clone()))
+                figureDiv.attr.attributes["figure-parent"] = parentId
+               
+                -- clear attributes on image
+                linkedFig.attr = pandoc.Attr()
+                linkedFig.caption = {}
+                
+                -- return the div
+                return figureDiv
               end
             end
-            return el
+            
           end
         }
       end
@@ -283,6 +303,20 @@ function figureFromPara(el)
     return nil
   end
 end
+
+function linkedFigureFromPara(el)
+  if #el.content == 1 and el.content[1].t == "Link" then
+    local link = el.content[1]
+    if #link.content == 1 and link.content[1].t == "Image" then
+      local image = link.content[1]
+      if #image.caption > 0 then
+        return image
+      end
+    end
+  end
+  return nil
+end
+
 
 -- pandoc.lua
 -- Copyright (C) 2020 by RStudio, PBC
@@ -1302,6 +1336,9 @@ function metaInject()
   }
   .quarto-subfigure figure {
     margin: 0.2em;
+  }
+  .quarto-subfigure div figure p {
+    margin: 0;
   }
   .quarto-subfigure figcaption {
     font-size: 0.8em;
