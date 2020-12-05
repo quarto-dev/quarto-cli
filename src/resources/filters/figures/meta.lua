@@ -30,6 +30,9 @@ function metaInject()
   .quarto-subfigure figure {
     margin: 0.2em;
   }
+  .quarto-subfigure div figure p {
+    margin: 0;
+  }
   .quarto-subfigure figcaption {
     font-size: 0.8em;
     font-style: italic;
