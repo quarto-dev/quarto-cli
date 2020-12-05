@@ -198,12 +198,14 @@ function collectSubfigures(divEl)
       Div = function(el)
         if isSubfigure(el) then
           subfigures:insert(el)
+          el.attr.attributes["figure-parent"] = nil
         end
       end,
       Para = function(el)
         local image = figureFromPara(el)
         if image and isSubfigure(image) then
           subfigures:insert(image)
+          image.attr.attributes["figure-parent"] = nil
         end
       end,
       HorizontalRule = function(el)
@@ -745,15 +747,6 @@ end
 
 
 
--- todo: caption
--- todo: test alignments and widths
--- todo: custom div baseline
--- todo: smaller font for subfig figcaption
--- todo: ice the borders that come in by default (layout table)
--- todo: may need to inject the css via header-includes 
---       (so it can be overriddeen by users)
--- todo: test with smaller fig sizes in word
-
 function tablePanel(divEl, subfigures)
   
     -- create panel
@@ -767,16 +760,8 @@ function tablePanel(divEl, subfigures)
   for i, row in ipairs(subfigures) do
     
     local aligns = row:map(function() return align end)
-    local widths = row:map(function(figEl)
-      local layoutPercent = horizontalLayoutPercent(figEl)
-      if layoutPercent then
-        figEl.attr.attributes["width"] = nil
-        return layoutPercent / 100
-      else
-        return 0
-      end
-    end)
-    
+    local widths = row:map(function() return 0 end)
+     
     local figuresRow = pandoc.List:new()
     for _, image in ipairs(row) do
       local cell = pandoc.List:new()
@@ -819,6 +804,119 @@ function tableAlign(align)
     return pandoc.AlignDefault
   end
 end
+
+
+-- todo: fig-link for html and table (watch for caption invalidation)
+-- todo: may need to inject the css via header-includes 
+--       (so it can be overriddeen by users)
+
+function htmlPanel(divEl, subfigures)
+  
+  -- set global flag indicating we need html
+  -- outer panel to contain css and figure panel (todo: move css)
+  local panel = pandoc.Div({
+    pandoc.RawBlock("html", [[
+      <style type="text/css">
+        .quarto-figure-panel figcaption {
+          text-align: center;
+        }
+        .quarto-subfigure-row {
+          display: flex;
+          align-items: flex-end;
+        }
+        .quarto-subfigure {
+          position: relative;
+        }
+        .quarto-subfigure figure {
+          margin: 0.2em;
+        }
+        .quarto-subfigure figcaption {
+          font-size: 0.8em;
+          font-style: italic;
+        }
+        .quarto-subfigure figure > p:last-child:empty {
+          display: none;
+        }
+      </style>
+    ]])
+  }, pandoc.Attr("", { "quarto-figure-panel" }))
+
+  -- enclose in figure
+  panel.content:insert(pandoc.RawBlock("html", "<figure>"))
+  
+  -- alignment
+  local align = flexAlign(attribute(divEl, "fig-align", "default"))
+  
+  -- subfigures
+  local subfiguresEl = pandoc.Para({})
+  for i, row in ipairs(subfigures) do
+    
+    local figuresRow = pandoc.Div({}, pandoc.Attr("", {"quarto-subfigure-row"}, {
+      style = "justify-content: " .. align .. ";"
+    }))
+    
+    for i, image in ipairs(row) do
+      
+      -- create div to contain figure
+      local figureDiv = pandoc.Div({}, pandoc.Attr("", {"quarto-subfigure"}))
+      
+      -- transfer any width and height to the container
+      local figureDivStyle = ""
+      local width = image.attr.attributes["width"]
+      if width then
+        figureDivStyle = figureDivStyle .. "width: " .. width .. ";"
+        image.attr.attributes["width"] = nil
+      end
+      local height = image.attr.attributes["height"]
+      if height then
+        figureDivStyle = figureDivStyle .. "height: " .. height .. ";"
+        image.attr.attributes["height"] = nil
+      end
+      if string.len(figureDivStyle) > 0 then
+        figureDiv.attr.attributes["style"] = figureDivStyle
+      end
+      
+      -- add figure to div
+      if image.t == "Image" then
+        figureDiv.content:insert(pandoc.Para(image))
+      else
+        figureDiv.content:insert(image)
+      end
+      
+      -- add div to row
+      figuresRow.content:insert(figureDiv)
+    end
+    
+    -- add row to the panel
+    panel.content:insert(figuresRow)
+  end
+  
+  -- insert caption and </figure>
+  local caption = pandoc.Para({})
+  caption.content:insert(pandoc.RawInline("html", "<figcaption>"))
+  tappend(caption.content, divEl.content[#divEl.content].content)
+  caption.content:insert(pandoc.RawInline("html", "</figcaption>"))
+  panel.content:insert(caption)
+  panel.content:insert(pandoc.RawBlock("html", "</figure>"))
+  
+  -- return panel
+  return panel
+end
+
+function flexAlign(align)
+  if align == "left" then
+    return "flex-start"
+  elseif align == "center" then
+    return "center"
+  elseif align == "right" then
+    return "flex-end"
+  -- default
+  else
+    return "flex-start"
+  end
+end
+
+
 
 
 
@@ -1008,7 +1106,7 @@ function layoutSubfigures(divEl)
   -- check for fig-layout
   elseif figLayout ~= nil then
     -- parse the layout
-    figLayout = pandoc.List:new(jsonDecode(figLayout))
+    figLayout = parseFigLayout(figLayout)
     
     -- manage/perform next insertion into the layout
     local subfigIndex = 1
@@ -1019,28 +1117,15 @@ function layoutSubfigures(divEl)
       subfig.attr.attributes["height"] = nil
       layout[#layout]:insert(subfig)
     end
-    
-    -- if the layout has no rows then insert a row
-    if not figLayout:find_if(function(item) return type(item) == "table" end) then
-      layout:insert(pandoc.List:new())
-      
-    -- otherwise must be all rows
-    elseif figLayout:find_if(function(item) return type(item) ~= "table" end) then
-      error("Invalid figure layout specification")
-    end
-    
+  
     -- process the layout
     for _,item in ipairs(figLayout) do
       if subfigIndex > #subfigures then
         break
       end
-      if type(item) == "table" then
-        layout:insert(pandoc.List:new())
-        for _,width in ipairs(item) do
-          layoutNextSubfig(width)
-        end
-      else
-        layoutNextSubfig(item)
+      layout:insert(pandoc.List:new())
+      for _,width in ipairs(item) do
+        layoutNextSubfig(width)
       end
     end
     
@@ -1060,6 +1145,41 @@ function layoutSubfigures(divEl)
   -- return the layout
   return layout
 
+end
+
+-- parse a fig-layout specification
+function parseFigLayout(figLayout)
+  
+  -- parse json
+  figLayout = pandoc.List:new(jsonDecode(figLayout))
+  
+  -- if there are no tables then make a table and stick the items in it
+  if not figLayout:find_if(function(item) return type(item) == "table" end) then
+     figLayout = pandoc.List:new({figLayout})
+  end
+      
+  -- validate that layout is now all rows
+  if figLayout:find_if(function(item) return type(item) ~= "table" end) then
+    error("Invalid figure layout specification " .. 
+          "(cannot mix rows and items at the top level")
+  end
+  
+  -- convert numbers to strings as appropriate
+  figLayout = figLayout:map(function(row)
+    return pandoc.List:new(row):map(function(width)
+      if type(width) == "number" then
+        if width <= 1 then
+          width = math.floor(width * 100)
+        end
+        width = tostring(width) .. "%"
+      end
+      return width
+    end)
+  end)
+   
+  -- return the layout
+  return figLayout
+  
 end
 
 -- interpolate any missing widths
@@ -1178,6 +1298,9 @@ end
 -- required modules
 text = require 'text'
 
+-- global figures state
+figures = {}
+
 
 
 function figures() 
@@ -1193,6 +1316,8 @@ function figures()
         if subfigures then
           if isLatexOutput() then
             return latexPanel(el, subfigures)
+          elseif isHtmlOutput() then
+            return htmlPanel(el, subfigures)
           else
             return tablePanel(el, subfigures)
           end
