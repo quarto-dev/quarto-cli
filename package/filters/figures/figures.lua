@@ -826,7 +826,6 @@ end
 -- html.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
--- todo: inject callback for latex
 -- todo: consider native docx tables for office output
 -- todo: fig-link for html and table (watch for caption invalidation)
 
