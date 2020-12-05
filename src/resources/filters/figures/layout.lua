@@ -53,7 +53,7 @@ function layoutSubfigures(divEl)
   -- check for fig-layout
   elseif figLayout ~= nil then
     -- parse the layout
-    figLayout = pandoc.List:new(jsonDecode(figLayout))
+    figLayout = parseFigLayout(figLayout)
     
     -- manage/perform next insertion into the layout
     local subfigIndex = 1
@@ -64,28 +64,15 @@ function layoutSubfigures(divEl)
       subfig.attr.attributes["height"] = nil
       layout[#layout]:insert(subfig)
     end
-    
-    -- if the layout has no rows then insert a row
-    if not figLayout:find_if(function(item) return type(item) == "table" end) then
-      layout:insert(pandoc.List:new())
-      
-    -- otherwise must be all rows
-    elseif figLayout:find_if(function(item) return type(item) ~= "table" end) then
-      error("Invalid figure layout specification")
-    end
-    
+  
     -- process the layout
     for _,item in ipairs(figLayout) do
       if subfigIndex > #subfigures then
         break
       end
-      if type(item) == "table" then
-        layout:insert(pandoc.List:new())
-        for _,width in ipairs(item) do
-          layoutNextSubfig(width)
-        end
-      else
-        layoutNextSubfig(item)
+      layout:insert(pandoc.List:new())
+      for _,width in ipairs(item) do
+        layoutNextSubfig(width)
       end
     end
     
@@ -105,6 +92,41 @@ function layoutSubfigures(divEl)
   -- return the layout
   return layout
 
+end
+
+-- parse a fig-layout specification
+function parseFigLayout(figLayout)
+  
+  -- parse json
+  figLayout = pandoc.List:new(jsonDecode(figLayout))
+  
+  -- if there are no tables then make a table and stick the items in it
+  if not figLayout:find_if(function(item) return type(item) == "table" end) then
+     figLayout = pandoc.List:new({figLayout})
+  end
+      
+  -- validate that layout is now all rows
+  if figLayout:find_if(function(item) return type(item) ~= "table" end) then
+    error("Invalid figure layout specification " .. 
+          "(cannot mix rows and items at the top level")
+  end
+  
+  -- convert numbers to strings as appropriate
+  figLayout = figLayout:map(function(row)
+    return pandoc.List:new(row):map(function(width)
+      if type(width) == "number" then
+        if width <= 1 then
+          width = math.floor(width * 100)
+        end
+        width = tostring(width) .. "%"
+      end
+      return width
+    end)
+  end)
+   
+  -- return the layout
+  return figLayout
+  
 end
 
 -- interpolate any missing widths

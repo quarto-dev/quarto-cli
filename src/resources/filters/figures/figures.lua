@@ -4,6 +4,9 @@
 -- required modules
 text = require 'text'
 
+-- global figures state
+figures = {}
+
 -- [import]
 function import(script)
   -- The system separator
@@ -18,6 +21,7 @@ end
 import("meta.lua")
 import("layout.lua")
 import("latex.lua")
+import("html.lua")
 import("table.lua")
 import("../common/json.lua")
 import("../common/pandoc.lua")
@@ -40,6 +44,8 @@ function figures()
         if subfigures then
           if isLatexOutput() then
             return latexPanel(el, subfigures)
+          elseif isHtmlOutput() then
+            return htmlPanel(el, subfigures)
           else
             return tablePanel(el, subfigures)
           end

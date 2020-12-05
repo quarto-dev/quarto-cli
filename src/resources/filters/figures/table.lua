@@ -1,13 +1,4 @@
 
--- todo: caption
--- todo: test alignments and widths
--- todo: custom div baseline
--- todo: smaller font for subfig figcaption
--- todo: ice the borders that come in by default (layout table)
--- todo: may need to inject the css via header-includes 
---       (so it can be overriddeen by users)
--- todo: test with smaller fig sizes in word
-
 function tablePanel(divEl, subfigures)
   
     -- create panel
@@ -21,16 +12,8 @@ function tablePanel(divEl, subfigures)
   for i, row in ipairs(subfigures) do
     
     local aligns = row:map(function() return align end)
-    local widths = row:map(function(figEl)
-      local layoutPercent = horizontalLayoutPercent(figEl)
-      if layoutPercent then
-        figEl.attr.attributes["width"] = nil
-        return layoutPercent / 100
-      else
-        return 0
-      end
-    end)
-    
+    local widths = row:map(function() return 0 end)
+     
     local figuresRow = pandoc.List:new()
     for _, image in ipairs(row) do
       local cell = pandoc.List:new()
