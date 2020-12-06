@@ -212,11 +212,11 @@ end
 -- elements with a percentage width and no height have a 'layout percent'
 -- which means then should be laid out at a higher level in the tree than
 -- the individual figure element
-function horizontalLayoutPercent(el)
+function horizontalLayoutPercent(el, default)
   local percentWidth = widthToPercent(el.attr.attributes["width"])
   if percentWidth and not el.attr.attributes["height"] then
     return percentWidth 
   else
-    return nil
+    return default
   end
 end

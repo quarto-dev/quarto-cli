@@ -22,37 +22,39 @@ function latexFigureDiv(divEl, subfigures)
     for i, row in ipairs(subfigures) do
       
       for _, image in ipairs(row) do
-      
-        -- begin subcaptionbox
-        subfiguresEl.content:insert(pandoc.RawInline("latex", "\\subcaptionbox{"))
         
-        -- handle caption (different depending on whether it's an Image or Div)
+        -- begin subfigure
+        subfiguresEl.content:insert(pandoc.RawInline("latex", "\\begin{subfigure}[b]"))
+         
+        -- check to see if it has a width to apply (if so then reset the
+        -- underlying width to 100% as sizing will come from subfigure box)
+        local layoutPercent = horizontalLayoutPercent(image, 100)
+        image.attr.attributes["width"] = nil
+        subfiguresEl.content:insert(pandoc.RawInline("latex", 
+          "{" .. string.format("%2.2f", layoutPercent/100) .. "\\linewidth}"
+        ))
+        
+        -- see if have a caption (different depending on whether it's an Image or Div)
+        local caption = nil
         if image.t == "Image" then
-          tappend(subfiguresEl.content, image.caption)
+          caption = image.caption:clone()
           tclear(image.caption)
         else 
-          tappend(subfiguresEl.content, figureDivCaption(image).content)
+          caption = figureDivCaption(image).content
         end
         
-        -- handle label
-        subfiguresEl.content:insert(pandoc.RawInline("latex", "\\label{" .. image.attr.identifier .. "}}\n  "))
-        
-        -- strip the id and caption b/c they are already on the subfloat
+        -- build caption (if there is no caption then use a \phantomcaption)
+        if #caption == 0 then
+          caption:insert(pandoc.RawInline("latex", "\\phantomcaption\\label{" ..
+                                          image.attr.identifier .. "}\n"))
+        else
+          caption:insert(1, pandoc.RawInline("latex", "  \\caption{"))
+          caption:insert(pandoc.RawInline("latex", "\\label{" .. image.attr.identifier .. "}}\n"))
+        end
         image.attr.identifier = ""
-        tclear(image.attr.classes)
-      
-        -- check to see if it has a width to apply (if so then reset the
-        -- underlying width to 100% as sizing will come from \subcaptionbox)
-        local layoutPercent = horizontalLayoutPercent(image)
-        if layoutPercent then
-          image.attr.attributes["width"] = nil
-          subfiguresEl.content:insert(pandoc.RawInline("latex", 
-            "[" .. string.format("%2.2f", layoutPercent/100) .. "\\linewidth]"
-          ))
-        end
         
-        -- insert the figure
-        subfiguresEl.content:insert(pandoc.RawInline("latex", "{"))
+        -- insert content
+        subfiguresEl.content:insert(pandoc.RawInline("latex", "\n  "))
         if image.t == "Div" then
           -- append the div, slicing off the caption block
           tappend(subfiguresEl.content, pandoc.utils.blocks_to_inlines(
@@ -62,7 +64,15 @@ function latexFigureDiv(divEl, subfigures)
         else
           subfiguresEl.content:insert(image)
         end
-        subfiguresEl.content:insert(pandoc.RawInline("latex", "}\n"))
+        subfiguresEl.content:insert(pandoc.RawInline("latex", "\n"))
+        
+        -- insert caption
+        if #caption > 0 then
+          tappend(subfiguresEl.content, caption)
+        end
+      
+        -- end subfigure
+        subfiguresEl.content:insert(pandoc.RawInline("latex", "\\end{subfigure}\n"))
         
       end
       
