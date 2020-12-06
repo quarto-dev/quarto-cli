@@ -3,6 +3,8 @@
 
 
 -- todo: caption-less subfigures
+--   - test for latex (use special fake caption?)
+--   - test for table
 
 -- todo: consider native docx tables for office output
 
@@ -80,6 +82,7 @@ function htmlPanel(divEl, subfigures)
   tappend(caption.content, divEl.content[#divEl.content].content)
   caption.content:insert(pandoc.RawInline("html", "</figcaption>"))
   panel.content:insert(caption)
+  
   panel.content:insert(pandoc.RawBlock("html", "</figure>"))
   
   -- return panel

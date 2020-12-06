@@ -45,6 +45,17 @@ Basic docs (could even be private)
  
 Installer
 
+Pandoc-powered scientific and technical publishing.
+
+Quarto is pandoc plus:
+
+1) Integreated computations via Rmd or Jupyter
+2) Ciations via pandoc citeproc
+3) Cross references for figures, tables, equations, sections, listings, proofs, and more.
+4) Sophisticated figure layout
+5) Long form publishing (websites, books, manuscripts, etc.)
+
+
 
 
 
