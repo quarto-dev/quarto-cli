@@ -43,7 +43,7 @@ function layoutFigures()
         local subfigures = layoutSubfigures(el)
         if subfigures then
           if isLatexOutput() then
-            return latexPanel(el, subfigures)
+            return latexFigureDiv(el, subfigures)
           elseif isHtmlOutput() then
             return htmlPanel(el, subfigures)
           else
@@ -64,6 +64,11 @@ function layoutFigures()
           figureDiv.content:insert(figureCaption)
           figureDiv.content:insert(pandoc.RawBlock("html", "</figure>"))
           return figureDiv
+    
+        -- turn figure divs into \begin{figure} for latex (but not if they
+        -- have a parent as that will be done during subfigure layout)
+        elseif isLatexOutput() and not isSubfigure(el)  then
+          return latexFigureDiv(el)
         end
       end
     end

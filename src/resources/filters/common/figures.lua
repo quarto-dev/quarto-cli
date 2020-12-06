@@ -58,7 +58,7 @@ function preprocessParaFigure(el, parentId)
   end
   
   -- if this is a linked figure paragraph, transform to figure-div
-  -- and then tag the figure-div with any parent id we have
+  -- and then transfer attributes to the figure-div as appropriate
   local linkedFig = linkedFigureFromPara(el)
   if linkedFig and isFigureImage(linkedFig) then
     -- create figure-div and transfer caption
@@ -71,10 +71,16 @@ function preprocessParaFigure(el, parentId)
       figureDiv.attr = linkedFig.attr:clone()
       linkedFig.attr = pandoc.Attr()
       figureDiv.attr.attributes["figure-parent"] = parentId
-    -- otherwise just transfer id
+    -- otherwise just transfer id and any fig- prefixed attribs
     else
       figureDiv.attr.identifier = linkedFig.attr.identifier
       linkedFig.attr.identifier = ""
+      for k,v in pairs(linkedFig.attr.attributes) do
+        if string.find(k, "^fig%-") then
+          figureDiv.attr.attributes[k] = v
+          linkedFig.attr.attributes[k] = nil
+        end
+      end
     end
     
     -- return the div
