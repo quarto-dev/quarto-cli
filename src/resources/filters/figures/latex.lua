@@ -51,15 +51,6 @@ function latexFigureDiv(divEl, subfigures)
           ))
         end
         
-        -- surround w/ link if we have fig-link
-        if image.t == "Image" then
-          local figLink = attribute(image, "fig-link", nil)
-          if figLink then
-            image.attr.attributes["fig-link"] = nil
-            image = pandoc.Link({ image }, figLink)
-          end
-        end
-        
         -- insert the figure
         subfiguresEl.content:insert(pandoc.RawInline("latex", "{"))
         if image.t == "Div" then
