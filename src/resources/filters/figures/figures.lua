@@ -53,6 +53,17 @@ function layoutFigures()
         -- turn figure divs into <figure> tag for html
         elseif isHtmlOutput() then
           local figureDiv = pandoc.Div({}, el.attr)
+          
+          -- apply standalone figure css if we are not a subfigure
+          if not isSubfigure(figureDiv) then
+            figureDiv.attr.classes:insert("quarto-figure")
+            local align = attribute(figureDiv, "fig-align", nil)
+            figureDiv.attr.attributes["fig-align"] = nil
+            if align then
+              appendStyle(figureDiv, "text-align: " .. align .. ";")
+            end
+          end
+          
           figureDiv.content:insert(pandoc.RawBlock("html", "<figure>"))
           tappend(figureDiv.content, tslice(el.content, 1, #el.content-1))
           local figureCaption = pandoc.Para({})

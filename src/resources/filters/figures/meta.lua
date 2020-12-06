@@ -17,8 +17,8 @@ function metaInject()
         if figures.htmlPanels then
           inject([[
 <style type="text/css">
-  .quarto-figure-panel figcaption {
-    text-align: center;
+  .quarto-figure figure {
+    display: inline-block;
   }
   .quarto-subfigure-row {
     display: flex;
@@ -29,6 +29,9 @@ function metaInject()
   }
   .quarto-subfigure figure {
     margin: 0.2em;
+  }
+  .quarto-subfigure figcaption {
+    text-align: center;
   }
   .quarto-subfigure div figure p {
     margin: 0;

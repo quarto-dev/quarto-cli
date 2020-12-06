@@ -1,6 +1,9 @@
 -- html.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
+
+-- todo: caption-less subfigures
+
 -- todo: consider native docx tables for office output
 
 function htmlPanel(divEl, subfigures)
@@ -14,16 +17,17 @@ function htmlPanel(divEl, subfigures)
   -- enclose in figure
   panel.content:insert(pandoc.RawBlock("html", "<figure>"))
   
-  -- alignment
-  local align = flexAlign(attribute(divEl, "fig-align", "default"))
-  
+  -- collect alignment
+  local align = attribute(divEl, "fig-align", nil)
+  divEl.attr.attributes["fig-align"] = nil
+
   -- subfigures
   local subfiguresEl = pandoc.Para({})
   for i, row in ipairs(subfigures) do
     
     local figuresRow = pandoc.Div({}, pandoc.Attr("", {"quarto-subfigure-row"}))
     if align then
-      figuresRow.attr.attributes["style"] = "justify-content: " .. align .. ";"
+      appendStyle(figuresRow, "justify-content: " .. flexAlign(align) .. ";")
     end
     
     for i, image in ipairs(row) do
@@ -64,7 +68,15 @@ function htmlPanel(divEl, subfigures)
   
   -- insert caption and </figure>
   local caption = pandoc.Para({})
-  caption.content:insert(pandoc.RawInline("html", "<figcaption>"))
+  
+  -- apply alignment if we have it
+  local figcaption = "<figcaption aria-hidden=\"true\""
+  if align then
+    figcaption = figcaption .. " style=\"text-align: " .. align .. ";\""
+  end
+  figcaption = figcaption .. ">"
+  
+  caption.content:insert(pandoc.RawInline("html", figcaption))
   tappend(caption.content, divEl.content[#divEl.content].content)
   caption.content:insert(pandoc.RawInline("html", "</figcaption>"))
   panel.content:insert(caption)
@@ -72,6 +84,14 @@ function htmlPanel(divEl, subfigures)
   
   -- return panel
   return panel
+end
+
+function appendStyle(el, style)
+  local baseStyle = attribute(el, "style", "")
+  if baseStyle ~= "" and not string.find(baseStyle, ";$") then
+    baseStyle = baseStyle .. ";"
+  end
+  el.attr.attributes["style"] = baseStyle .. style
 end
 
 function flexAlign(align)
