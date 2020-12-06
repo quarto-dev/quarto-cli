@@ -190,7 +190,11 @@ end
 function figureDivCaption(el)
   local last = el.content[#el.content]
   if last and last.t == "Para" and #el.content > 1 then
-    return last
+    if not (#last.content == 1 and last.content[1].t == "Image") then
+      return last
+    else
+      return nil
+    end
   else
     return nil
   end

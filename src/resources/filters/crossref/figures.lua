@@ -59,29 +59,6 @@ function processFigure(el, captionContent)
   indexAddEntry(label, parent, order, caption)
 end
 
--- is this a Div containing a figure
-function isFigureDiv(el)
-  return el.t == "Div" and hasFigureLabel(el) and (figureDivCaption(el) ~= nil)
-end
-
--- is this an image containing a figure
-function isFigureImage(el)
-  return hasFigureLabel(el) and #el.caption > 0
-end
-
--- does this element have a figure label?
-function hasFigureLabel(el)
-  return string.match(el.attr.identifier, "^fig:")
-end
-
-function figureDivCaption(el)
-  local last = el.content[#el.content]
-  if last and last.t == "Para" and #el.content > 1 then
-    return last
-  else
-    return nil
-  end
-end
 
 function figureTitlePrefix(order)
   return titlePrefix("fig", "Figure", order)
