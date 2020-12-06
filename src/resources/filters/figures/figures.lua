@@ -66,13 +66,16 @@ function layoutFigures()
           
           figureDiv.content:insert(pandoc.RawBlock("html", "<figure>"))
           tappend(figureDiv.content, tslice(el.content, 1, #el.content-1))
-          local figureCaption = pandoc.Para({})
-          figureCaption.content:insert(pandoc.RawInline(
-            "html", "<figcaption aria-hidden=\"true\">"
-          ))
-          tappend(figureCaption.content, figureDivCaption(el).content) 
-          figureCaption.content:insert(pandoc.RawInline("html", "</figcaption>"))
-          figureDiv.content:insert(figureCaption)
+          local captionInlines = figureDivCaption(el).content
+          if #captionInlines > 0 then
+            local figureCaption = pandoc.Para({})
+            figureCaption.content:insert(pandoc.RawInline(
+              "html", "<figcaption aria-hidden=\"true\">"
+            ))
+            tappend(figureCaption.content, captionInlines) 
+            figureCaption.content:insert(pandoc.RawInline("html", "</figcaption>"))
+            figureDiv.content:insert(figureCaption)
+          end
           figureDiv.content:insert(pandoc.RawBlock("html", "</figure>"))
           return figureDiv
     
@@ -86,9 +89,10 @@ function layoutFigures()
   }
 end
 
+
 -- chain of filters
 return {
-  preprocessFigures(),
+  preprocessFigures(false),
   layoutFigures(),
   metaInject()
 }

@@ -65,7 +65,7 @@ end
 -- lua string to pandoc inlines
 function stringToInlines(str)
   if str then
-    return {pandoc.Str(str)}
+    return pandoc.List:new({pandoc.Str(str)})
   else
     return nil
   end

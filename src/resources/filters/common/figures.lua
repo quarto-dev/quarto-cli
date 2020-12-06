@@ -4,17 +4,26 @@
 -- filter which tags subfigures with their parent identifier and also 
 -- converts linked image figures into figure divs. we do this in a separate 
 -- pass b/c normal filters go depth first so we can't actually
--- "see" our parent figure during filtering
-function preprocessFigures()
+-- "see" our parent figure during filtering.
+function preprocessFigures(subfigureCaptionRequired)
 
   return {
     Pandoc = function(doc)
       local walkFigures
       walkFigures = function(parentId)
+        
+        -- caption is required for figures w/o parents and figures w/ parents
+        -- if there is no default subfigure caption
+        local captionRequired = (parentId == nil) or subfigureCaptionRequired
+        
         return {
           Div = function(el)
-            if isFigureDiv(el) then
+            if isFigureDiv(el, captionRequired) then
               if parentId ~= nil then
+                -- provide default caption if need be
+                if figureDivCaption(el) == nil then
+                  el.content:insert(pandoc.Para({}))
+                end
                 el.attr.attributes["figure-parent"] = parentId
               else
                 el = pandoc.walk_block(el, walkFigures(el.attr.identifier))
@@ -24,7 +33,7 @@ function preprocessFigures()
           end,
 
           Para = function(el)
-            return preprocessParaFigure(el, parentId)
+            return preprocessParaFigure(el, parentId, subfigureCaptionRequired)
           end
         }
       end
@@ -47,48 +56,65 @@ function preprocessFigures()
   }
 end
 
-function preprocessParaFigure(el, parentId)
+function preprocessParaFigure(el, parentId, subfigureCaptionRequired)
+  
+  -- caption is required for figures w/o parents and figures w/ parents
+  -- if there is no default subfigure caption
+  local captionRequired = (parentId == nil) or subfigureCaptionRequired
   
   -- if this is a figure paragraph, tag the image inside with any
   -- parent id we have
-  local image = figureFromPara(el)
-  if image and isFigureImage(image) then
+  local image = figureFromPara(el, captionRequired)
+  if image and isFigureImage(image, captionRequired) then
     image.attr.attributes["figure-parent"] = parentId
-    return el
+    if #image.caption == 0 and not captionRequired then
+      return createFigureDiv(el, image, parentId)
+    else
+      return el
+    end
   end
   
   -- if this is a linked figure paragraph, transform to figure-div
   -- and then transfer attributes to the figure-div as appropriate
-  local linkedFig = linkedFigureFromPara(el)
-  if linkedFig and isFigureImage(linkedFig) then
-    -- create figure-div and transfer caption
-    local figureDiv = pandoc.Div(pandoc.Para(el.content))
-    figureDiv.content:insert(pandoc.Para(linkedFig.caption:clone()))
-    linkedFig.caption = {}
+  local linkedFig = linkedFigureFromPara(el, captionRequired)
+  if linkedFig and isFigureImage(linkedFig, captionRequired) then
     
-    -- if we have a parent, then transfer all attributes (as it's a subfigure)
-    if parentId ~= nil then
-      figureDiv.attr = linkedFig.attr:clone()
-      linkedFig.attr = pandoc.Attr()
-      figureDiv.attr.attributes["figure-parent"] = parentId
-    -- otherwise just transfer id and any fig- prefixed attribs
-    else
-      figureDiv.attr.identifier = linkedFig.attr.identifier
-      linkedFig.attr.identifier = ""
-      for k,v in pairs(linkedFig.attr.attributes) do
-        if string.find(k, "^fig%-") then
-          figureDiv.attr.attributes[k] = v
-          linkedFig.attr.attributes[k] = nil
-        end
-      end
-    end
+    -- create figure div
+    return createFigureDiv(el, linkedFig, parentId)
     
-    -- return the div
-    return figureDiv
   end
   
   -- always reflect back input if we didn't hit one of our cases
   return el
+  
+end
+
+function createFigureDiv(el, linkedFig, parentId)
+  -- create figure-div and transfer caption
+  local figureDiv = pandoc.Div(pandoc.Para(el.content))
+  local caption = linkedFig.caption:clone()
+  figureDiv.content:insert(pandoc.Para(caption))
+  linkedFig.caption = {}
+  
+  -- if we have a parent, then transfer all attributes (as it's a subfigure)
+  if parentId ~= nil then
+    figureDiv.attr = linkedFig.attr:clone()
+    linkedFig.attr = pandoc.Attr()
+    figureDiv.attr.attributes["figure-parent"] = parentId
+  -- otherwise just transfer id and any fig- prefixed attribs
+  else
+    figureDiv.attr.identifier = linkedFig.attr.identifier
+    linkedFig.attr.identifier = ""
+    for k,v in pairs(linkedFig.attr.attributes) do
+      if string.find(k, "^fig%-") then
+        figureDiv.attr.attributes[k] = v
+        linkedFig.attr.attributes[k] = nil
+      end
+    end
+  end
+  
+  -- return the div
+  return figureDiv
   
 end
 
@@ -133,13 +159,27 @@ function isSubfigure(el)
 end
 
 -- is this a Div containing a figure
-function isFigureDiv(el)
-  return el.t == "Div" and hasFigureLabel(el) and (figureDivCaption(el) ~= nil)
+function isFigureDiv(el, captionRequired)
+  if captionRequired == nil then
+    captionRequired = true
+  end
+  if el.t == "Div" and hasFigureLabel(el) then
+    return not captionRequired or figureDivCaption(el) ~= nil
+  else
+    return false
+  end
 end
 
 -- is this an image containing a figure
-function isFigureImage(el)
-  return hasFigureLabel(el) and #el.caption > 0
+function isFigureImage(el, captionRequired)
+  if captionRequired == nil then
+    captionRequired = true
+  end
+  if hasFigureLabel(el) then
+    return not captionRequired or #el.caption > 0
+  else
+    return false
+  end
 end
 
 -- does this element have a figure label?
@@ -156,10 +196,13 @@ function figureDivCaption(el)
   end
 end
 
-function figureFromPara(el)
+function figureFromPara(el, captionRequired)
+  if captionRequired == nil then
+    captionRequired = true
+  end
   if #el.content == 1 and el.content[1].t == "Image" then
     local image = el.content[1]
-    if #image.caption > 0 then
+    if not captionRequired or #image.caption > 0 then
       return image
     else
       return nil
@@ -169,12 +212,15 @@ function figureFromPara(el)
   end
 end
 
-function linkedFigureFromPara(el)
+function linkedFigureFromPara(el, captionRequired)
+  if captionRequired == nil then
+    captionRequired = true
+  end
   if #el.content == 1 and el.content[1].t == "Link" then
     local link = el.content[1]
     if #link.content == 1 and link.content[1].t == "Image" then
       local image = link.content[1]
-      if #image.caption > 0 then
+      if not captionRequired or #image.caption > 0 then
         return image
       end
     end
