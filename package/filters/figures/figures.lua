@@ -349,7 +349,11 @@ end
 function figureDivCaption(el)
   local last = el.content[#el.content]
   if last and last.t == "Para" and #el.content > 1 then
-    return last
+    if not (#last.content == 1 and last.content[1].t == "Image") then
+      return last
+    else
+      return nil
+    end
   else
     return nil
   end
@@ -930,10 +934,10 @@ end
 -- html.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
+-- todo: out-width doesn't seem to drive the grid (for latex at least)
 
--- todo: caption-less subfigures
---   - test for latex (use special fake caption?)
---   - test for table
+-- todo: figure div with subfigureand no caption? 
+---      what happens to subcaption labels in this case in different formats?
 
 -- todo: consider native docx tables for office output
 
