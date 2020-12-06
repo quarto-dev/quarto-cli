@@ -44,10 +44,7 @@ function latexFigureDiv(divEl, subfigures)
         end
         
         -- build caption (if there is no caption then use a \phantomcaption)
-        if #caption == 0 then
-          caption:insert(pandoc.RawInline("latex", "\\phantomcaption\\label{" ..
-                                          image.attr.identifier .. "}\n"))
-        else
+        if #caption > 0 then
           caption:insert(1, pandoc.RawInline("latex", "  \\caption{"))
           caption:insert(pandoc.RawInline("latex", "\\label{" .. image.attr.identifier .. "}}\n"))
         end
