@@ -28,8 +28,12 @@ function latexFigureDiv(divEl, subfigures)
          
         -- check to see if it has a width to apply (if so then reset the
         -- underlying width to 100% as sizing will come from subfigure box)
-        local layoutPercent = horizontalLayoutPercent(image, 100)
-        image.attr.attributes["width"] = nil
+        local layoutPercent = horizontalLayoutPercent(image)
+        if layoutPercent then
+          image.attr.attributes["width"] = nil
+        else
+          layoutPercent = 100
+        end
         subfiguresEl.content:insert(pandoc.RawInline("latex", 
           "{" .. string.format("%2.2f", layoutPercent/100) .. "\\linewidth}"
         ))
