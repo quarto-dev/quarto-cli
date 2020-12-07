@@ -22,6 +22,7 @@ import("meta.lua")
 import("layout.lua")
 import("latex.lua")
 import("html.lua")
+import("docx.lua")
 import("table.lua")
 import("../common/json.lua")
 import("../common/pandoc.lua")
@@ -46,6 +47,8 @@ function layoutFigures()
             return latexFigureDiv(el, subfigures)
           elseif isHtmlOutput() then
             return htmlPanel(el, subfigures)
+          elseif isDocxOutput() then
+            return docxPanel(el, subfigures)
           else
             return tablePanel(el, subfigures)
           end
