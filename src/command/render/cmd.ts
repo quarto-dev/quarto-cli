@@ -79,6 +79,8 @@ export const renderCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, inputFiles: string, args: string[]) => {
+    args = args || [];
+
     // pull inputs out of the beginning of flags
     const inputs = [inputFiles];
     const firstPandocArg = args.findIndex((arg) => arg.startsWith("-"));
