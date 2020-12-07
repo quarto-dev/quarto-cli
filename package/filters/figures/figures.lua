@@ -905,8 +905,6 @@ end
 -- html.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
--- todo: out-width doesn't seem to drive the grid (for latex at least)
-
 -- todo: consider native docx tables for office output
 
 function htmlPanel(divEl, subfigures)
