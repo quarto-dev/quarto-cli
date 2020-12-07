@@ -164,35 +164,33 @@ end
 -- converts linked image figures into figure divs. we do this in a separate 
 -- pass b/c normal filters go depth first so we can't actually
 -- "see" our parent figure during filtering.
-function preprocessFigures(subfigureCaptionRequired)
+function preprocessFigures(captionRequired)
 
   return {
     Pandoc = function(doc)
       local walkFigures
       walkFigures = function(parentId)
         
-        -- caption is required for figures w/o parents and figures w/ parents
-        -- if there is no default subfigure caption
-        local captionRequired = (parentId == nil) or subfigureCaptionRequired
-        
         return {
           Div = function(el)
             if isFigureDiv(el, captionRequired) then
+            
               if parentId ~= nil then
-                -- provide default caption if need be
-                if figureDivCaption(el) == nil then
-                  el.content:insert(pandoc.Para({}))
-                end
                 el.attr.attributes["figure-parent"] = parentId
               else
                 el = pandoc.walk_block(el, walkFigures(el.attr.identifier))
+              end
+              
+              -- provide default caption if need be
+              if figureDivCaption(el) == nil then
+                el.content:insert(pandoc.Para({}))
               end
             end
             return el
           end,
 
           Para = function(el)
-            return preprocessParaFigure(el, parentId, subfigureCaptionRequired)
+            return preprocessParaFigure(el, parentId, captionRequired)
           end
         }
       end
@@ -200,26 +198,27 @@ function preprocessFigures(subfigureCaptionRequired)
       -- walk all blocks in the document
       for i,el in pairs(doc.blocks) do
         local parentId = nil
-        if isFigureDiv(el) then
+        if isFigureDiv(el, captionRequired) then
           parentId = el.attr.identifier
+          -- provide default caption if need be
+          if figureDivCaption(el) == nil then
+            el.content:insert(pandoc.Para({}))
+          end
         end
         if el.t == "Para" then
-          doc.blocks[i] = preprocessParaFigure(el, nil)
+          doc.blocks[i] = preprocessParaFigure(el, nil, captionRequired)
         else
           doc.blocks[i] = pandoc.walk_block(el, walkFigures(parentId))
         end
       end
+      
       return doc
 
     end
   }
 end
 
-function preprocessParaFigure(el, parentId, subfigureCaptionRequired)
-  
-  -- caption is required for figures w/o parents and figures w/ parents
-  -- if there is no default subfigure caption
-  local captionRequired = (parentId == nil) or subfigureCaptionRequired
+function preprocessParaFigure(el, parentId, captionRequired)
   
   -- if this is a figure paragraph, tag the image inside with any
   -- parent id we have
@@ -275,37 +274,6 @@ function createFigureDiv(el, linkedFig, parentId)
   -- return the div
   return figureDiv
   
-end
-
-function collectSubfigures(divEl)
-  if isFigureDiv(divEl) then
-    local subfigures = pandoc.List:new()
-    pandoc.walk_block(divEl, {
-      Div = function(el)
-        if isSubfigure(el) then
-          subfigures:insert(el)
-          el.attr.attributes["figure-parent"] = nil
-        end
-      end,
-      Para = function(el)
-        local image = figureFromPara(el)
-        if image and isSubfigure(image) then
-          subfigures:insert(image)
-          image.attr.attributes["figure-parent"] = nil
-        end
-      end,
-      HorizontalRule = function(el)
-        subfigures:insert(el)
-      end
-    })
-    if #subfigures > 0 then
-      return subfigures
-    else
-      return nil
-    end
-  else
-    return nil
-  end
 end
 
 -- is this element a subfigure
@@ -913,7 +881,10 @@ function tablePanel(divEl, subfigures)
   end
   
   -- insert caption
-  panel.content:insert(divEl.content[#divEl.content])
+  local divCaption = figureDivCaption(divEl)
+  if divCaption and #divCaption.content > 0 then
+    panel.content:insert(divCaption)
+  end
   
   -- return panel
   return panel
@@ -935,9 +906,6 @@ end
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- todo: out-width doesn't seem to drive the grid (for latex at least)
-
--- todo: figure div with subfigureand no caption? 
----      what happens to subcaption labels in this case in different formats?
 
 -- todo: consider native docx tables for office output
 
@@ -1002,19 +970,21 @@ function htmlPanel(divEl, subfigures)
   end
   
   -- insert caption and </figure>
-  local caption = pandoc.Para({})
-  
-  -- apply alignment if we have it
-  local figcaption = "<figcaption aria-hidden=\"true\""
-  if align then
-    figcaption = figcaption .. " style=\"text-align: " .. align .. ";\""
+  local divCaption = figureDivCaption(divEl)
+  if divCaption and #divCaption.content > 0 then
+    local caption = pandoc.Para({})
+    -- apply alignment if we have it
+    local figcaption = "<figcaption aria-hidden=\"true\""
+    if align then
+      figcaption = figcaption .. " style=\"text-align: " .. align .. ";\""
+    end
+    figcaption = figcaption .. ">"
+    
+    caption.content:insert(pandoc.RawInline("html", figcaption))
+    tappend(caption.content, divCaption.content)
+    caption.content:insert(pandoc.RawInline("html", "</figcaption>"))
+    panel.content:insert(caption)
   end
-  figcaption = figcaption .. ">"
-  
-  caption.content:insert(pandoc.RawInline("html", figcaption))
-  tappend(caption.content, divEl.content[#divEl.content].content)
-  caption.content:insert(pandoc.RawInline("html", "</figcaption>"))
-  panel.content:insert(caption)
   
   panel.content:insert(pandoc.RawBlock("html", "</figure>"))
   
@@ -1138,12 +1108,16 @@ function latexFigureDiv(divEl, subfigures)
   
   -- surround caption w/ appropriate latex (and end the figure)
   local caption = figureDivCaption(divEl)
-  caption.content:insert(1, pandoc.RawInline("latex", "\\caption{"))
-  tappend(caption.content, {
-    pandoc.RawInline("latex", "}\\label{" .. divEl.attr.identifier .. "}\n"),
-    pandoc.RawInline("latex", "\\end{" .. figEnv .. "}")
-  })
-  figure.content:insert(caption)
+  if caption and #caption.content > 0 then
+    caption.content:insert(1, pandoc.RawInline("latex", "\\caption{"))
+    tappend(caption.content, {
+      pandoc.RawInline("latex", "}\\label{" .. divEl.attr.identifier .. "}\n"),
+    })
+    figure.content:insert(caption)
+  end
+  
+  -- end figure
+  figure.content:insert(pandoc.RawBlock("latex", "\\end{" .. figEnv .. "}"))
   
   -- return the figure
   return figure
@@ -1278,6 +1252,38 @@ function layoutSubfigures(divEl)
   return layout
 
 end
+
+function collectSubfigures(divEl)
+  if isFigureDiv(divEl, false) then
+    local subfigures = pandoc.List:new()
+    pandoc.walk_block(divEl, {
+      Div = function(el)
+        if isSubfigure(el) then
+          subfigures:insert(el)
+          el.attr.attributes["figure-parent"] = nil
+        end
+      end,
+      Para = function(el)
+        local image = figureFromPara(el, false)
+        if image and isSubfigure(image) then
+          subfigures:insert(image)
+          image.attr.attributes["figure-parent"] = nil
+        end
+      end,
+      HorizontalRule = function(el)
+        subfigures:insert(el)
+      end
+    })
+    if #subfigures > 0 then
+      return subfigures
+    else
+      return nil
+    end
+  else
+    return nil
+  end
+end
+
 
 -- parse a fig-layout specification
 function parseFigLayout(figLayout)
@@ -1483,7 +1489,7 @@ function layoutFigures()
     
     Div = function(el)
       
-      if isFigureDiv(el) then
+      if isFigureDiv(el, false) then
         
         -- handle subfigure layout
         local subfigures = layoutSubfigures(el)
