@@ -121,6 +121,11 @@ knitr_plot_hook <- function(default_plot_hook) {
       labelId(placeholder),
       ""
     )
+    
+    # knitr::fix_options will convert out.width and out.height to their
+    # latex equivalents, reverse this transformation so our figure layout
+    # code can deal directly with percentages
+    options <- latex_sizes_to_percent(options)
 
     # add keyvalue
     keyvalue <- paste(
@@ -229,6 +234,28 @@ block_attr <- function(id = NULL, lang = NULL, class = NULL, attr = NULL) {
 
 block_class <- function(x) {
   if (length(x) > 0) gsub('^[.]*', '.', unlist(strsplit(x, '\\s+')))
+}
+
+latex_sizes_to_percent <- function(options) {
+  #  \linewidth
+  width <- options[["out.width"]]
+  if (!is.null(width)) {
+    latex_width <- regmatches(width, regexec("^([0-9\\.]+)\\\\linewidth$", width))
+    if (length(latex_width[[1]]) > 1) {
+      width <- paste0(as.numeric(latex_width[[1]][[2]]) * 100, "%")
+      options[["out.width"]] <- width
+    }
+  }
+  # \textheight
+  height <- options[["out.height"]]
+  if (!is.null(height)) {
+    latex_height <- regmatches(height, regexec("^([0-9\\.]+)\\\\textheight$", height))
+    if (length(latex_height[[1]]) > 1) {
+      height <- paste0(as.numeric(latex_height[[1]][[2]]) * 100, "%")
+      options[["out.height"]] <- height
+    }
+  }
+  options
 }
 
 
