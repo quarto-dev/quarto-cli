@@ -1044,8 +1044,12 @@ function latexFigureDiv(divEl, subfigures)
          
         -- check to see if it has a width to apply (if so then reset the
         -- underlying width to 100% as sizing will come from subfigure box)
-        local layoutPercent = horizontalLayoutPercent(image, 100)
-        image.attr.attributes["width"] = nil
+        local layoutPercent = horizontalLayoutPercent(image)
+        if layoutPercent then
+          image.attr.attributes["width"] = nil
+        else
+          layoutPercent = 100
+        end
         subfiguresEl.content:insert(pandoc.RawInline("latex", 
           "{" .. string.format("%2.2f", layoutPercent/100) .. "\\linewidth}"
         ))
@@ -1402,12 +1406,12 @@ end
 -- elements with a percentage width and no height have a 'layout percent'
 -- which means then should be laid out at a higher level in the tree than
 -- the individual figure element
-function horizontalLayoutPercent(el, default)
+function horizontalLayoutPercent(el)
   local percentWidth = widthToPercent(el.attr.attributes["width"])
   if percentWidth and not el.attr.attributes["height"] then
     return percentWidth 
   else
-    return default
+    return nil
   end
 end
 
