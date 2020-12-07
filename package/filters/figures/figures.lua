@@ -907,8 +907,50 @@ end
 
 function docxPanel(divEl, subfigures)
   
-    -- create panel
+  -- magic numbers
+  local layoutCols = 20
+  local pageWidth = 12240 - 1440 - 1440
+  
+  -- table and functions to append to it
+  local docxTable = pandoc.Div({})
+  function addBlock(openxml) 
+    docxTable.content:insert(pandoc.RawBlock("openxml", openxml))
+  end
+  function addInline(para, openxml)
+    para.content:insert(pandoc.RawInline("openxml", openxml))
+  end
+  
+  -- begin table  
+  addBlock("<w:tbl>\n")
+  
+  -- table props
+  local tblProps = pandoc.Para({})
+  addInline(tblProps, "<w:tblPr>\n<w:tblStyle w:val=\"TableGrid\"/>\n")
+  addInline(tblProps, "<w:tblW w:w=\"" .. tostring(pageWidth) .. "\"" w:type=\"dcx\"/>\n")
+  addInline(tblProps, "<w:tblLayout w:type=\"fixed\"/>\n</w:tblPr>\n")
+  docxTable.content:insert(tblProps)
+  
+  -- table grid
+  local layoutColWidth = math.floor(pageWidth / layoutCols)
+  local tblGrid = pandoc.Para({})
+  addInline(tblGrid, "<w:tblGrid>\n")
+  for i=1,layoutCols do
+    addInline(tblGrid, "</w:gridCol w:w=\"" .. tostring(layoutColWidth) .. "\"/>\n")
+  end
+  addInline(tblGrid, "</w:tblGrid>\n")
+  
+  -- end table
+  addBlock("</w:tbl>\n")
+  
+  -- return table
+  return docxTable
+  
+  -- create panel
   local panel = pandoc.Div({})
+  
+  
+  
+  
   
   -- alignment
   local align = tableAlign(attribute(divEl, "fig-align", "default"))
