@@ -26,6 +26,12 @@ rm $PANDOCFILE
 
 popd
 
+# Run the quarto command with 'reload', which will force the import_map dependencies
+# to be reloaded
+export QUARTO_DENO_EXTRA_OPTIONS="--reload"
+quarto --version
+
+
 
 
 

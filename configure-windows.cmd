@@ -48,12 +48,20 @@ RMDIR/S /Q pandoc-%PANDOC%
 ECHO.
 ECHO.
 
+SET binPath=%cd%
+
 POPD
 POPD
 POPD
 
+REM TODO:  Run quarto --version with QUARTO_DENO_EXTRA_OPTIONS env set to refresh dependencies
+SET QUARTO_DENO_EXTRA_OPTIONS="--reload"
+%binPath%\quarto --version
+
 ECHO NOTE: To use quarto please use quarto-cmd (located in this folder) or add the following path to your PATH
 ECHO %binPath%
+
+
 
 GOTO :eof
 
