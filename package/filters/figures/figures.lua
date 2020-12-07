@@ -902,8 +902,65 @@ function tableAlign(align)
   end
 end
 
+-- docx.lua
+-- Copyright (C) 2020 by RStudio, PBC
+
+function docxPanel(divEl, subfigures)
+  
+    -- create panel
+  local panel = pandoc.Div({})
+  
+  -- alignment
+  local align = tableAlign(attribute(divEl, "fig-align", "default"))
+  
+  -- subfigures
+  local subfiguresEl = pandoc.Para({})
+  for i, row in ipairs(subfigures) do
+    
+    local aligns = row:map(function() return align end)
+    local widths = row:map(function() return 0 end)
+     
+    local figuresRow = pandoc.List:new()
+    for _, image in ipairs(row) do
+      local cell = pandoc.List:new()
+      if image.t == "Image" then
+        cell:insert(pandoc.Para(image))
+      else
+        cell:insert(image)
+      end
+      figuresRow:insert(cell)
+    end
+    
+    -- make the table
+    local figuresTable = pandoc.SimpleTable(
+      pandoc.List:new(), -- caption
+      aligns,
+      widths,
+      pandoc.List:new(), -- headers
+      { figuresRow }
+    )
+    
+    -- add it to the panel
+    panel.content:insert(pandoc.utils.from_simple_table(figuresTable))
+  end
+  
+  -- insert caption
+  local divCaption = figureDivCaption(divEl)
+  if divCaption and #divCaption.content > 0 then
+    panel.content:insert(divCaption)
+  end
+  
+  -- return panel
+  return panel
+end
+
 -- html.lua
 -- Copyright (C) 2020 by RStudio, PBC
+
+-- todo: be more clear about how no percentage based layout works
+-- for figure panels
+
+-- todo: consider whether we should apply alignment to the entire panel
 
 -- todo: consider native docx tables for office output
 
@@ -1500,6 +1557,8 @@ function layoutFigures()
             return latexFigureDiv(el, subfigures)
           elseif isHtmlOutput() then
             return htmlPanel(el, subfigures)
+          elseif isDocxOutput() then
+            return docxPanel(el, subfigures)
           else
             return tablePanel(el, subfigures)
           end
