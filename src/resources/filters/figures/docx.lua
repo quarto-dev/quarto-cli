@@ -22,7 +22,7 @@ function docxPanel(divEl, subfigures)
   -- table props
   local tblProps = pandoc.Para({})
   addInline(tblProps, "<w:tblPr>\n<w:tblStyle w:val=\"TableGrid\"/>\n")
-  addInline(tblProps, "<w:tblW w:w=\"" .. tostring(pageWidth) .. "\"" w:type=\"dcx\"/>\n")
+  addInline(tblProps, "<w:tblW w:w=\"" .. tostring(pageWidth) .. "\" w:type=\"dcx\"/>\n")
   addInline(tblProps, "<w:tblLayout w:type=\"fixed\"/>\n</w:tblPr>\n")
   docxTable.content:insert(tblProps)
   
@@ -34,13 +34,20 @@ function docxPanel(divEl, subfigures)
     addInline(tblGrid, "</w:gridCol w:w=\"" .. tostring(layoutColWidth) .. "\"/>\n")
   end
   addInline(tblGrid, "</w:tblGrid>\n")
-  
+  docxTable.content:insert(tblGrid)
+
   -- end table
   addBlock("</w:tbl>\n")
   
   -- return table
   return docxTable
-  
+
+end
+
+
+
+--[[
+
   -- create panel
   local panel = pandoc.Div({})
   
@@ -90,4 +97,9 @@ function docxPanel(divEl, subfigures)
   
   -- return panel
   return panel
-end
+
+
+--]]
+
+
+
