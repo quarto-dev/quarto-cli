@@ -41,7 +41,10 @@ function tablePanel(divEl, subfigures)
   end
   
   -- insert caption
-  panel.content:insert(divEl.content[#divEl.content])
+  local divCaption = figureDivCaption(divEl)
+  if divCaption and #divCaption.content > 0 then
+    panel.content:insert(divCaption)
+  end
   
   -- return panel
   return panel

@@ -5,35 +5,33 @@
 -- converts linked image figures into figure divs. we do this in a separate 
 -- pass b/c normal filters go depth first so we can't actually
 -- "see" our parent figure during filtering.
-function preprocessFigures(subfigureCaptionRequired)
+function preprocessFigures(captionRequired)
 
   return {
     Pandoc = function(doc)
       local walkFigures
       walkFigures = function(parentId)
         
-        -- caption is required for figures w/o parents and figures w/ parents
-        -- if there is no default subfigure caption
-        local captionRequired = (parentId == nil) or subfigureCaptionRequired
-        
         return {
           Div = function(el)
             if isFigureDiv(el, captionRequired) then
+            
               if parentId ~= nil then
-                -- provide default caption if need be
-                if figureDivCaption(el) == nil then
-                  el.content:insert(pandoc.Para({}))
-                end
                 el.attr.attributes["figure-parent"] = parentId
               else
                 el = pandoc.walk_block(el, walkFigures(el.attr.identifier))
+              end
+              
+              -- provide default caption if need be
+              if figureDivCaption(el) == nil then
+                el.content:insert(pandoc.Para({}))
               end
             end
             return el
           end,
 
           Para = function(el)
-            return preprocessParaFigure(el, parentId, subfigureCaptionRequired)
+            return preprocessParaFigure(el, parentId, captionRequired)
           end
         }
       end
@@ -41,26 +39,27 @@ function preprocessFigures(subfigureCaptionRequired)
       -- walk all blocks in the document
       for i,el in pairs(doc.blocks) do
         local parentId = nil
-        if isFigureDiv(el) then
+        if isFigureDiv(el, captionRequired) then
           parentId = el.attr.identifier
+          -- provide default caption if need be
+          if figureDivCaption(el) == nil then
+            el.content:insert(pandoc.Para({}))
+          end
         end
         if el.t == "Para" then
-          doc.blocks[i] = preprocessParaFigure(el, nil)
+          doc.blocks[i] = preprocessParaFigure(el, nil, captionRequired)
         else
           doc.blocks[i] = pandoc.walk_block(el, walkFigures(parentId))
         end
       end
+      
       return doc
 
     end
   }
 end
 
-function preprocessParaFigure(el, parentId, subfigureCaptionRequired)
-  
-  -- caption is required for figures w/o parents and figures w/ parents
-  -- if there is no default subfigure caption
-  local captionRequired = (parentId == nil) or subfigureCaptionRequired
+function preprocessParaFigure(el, parentId, captionRequired)
   
   -- if this is a figure paragraph, tag the image inside with any
   -- parent id we have
@@ -116,37 +115,6 @@ function createFigureDiv(el, linkedFig, parentId)
   -- return the div
   return figureDiv
   
-end
-
-function collectSubfigures(divEl)
-  if isFigureDiv(divEl) then
-    local subfigures = pandoc.List:new()
-    pandoc.walk_block(divEl, {
-      Div = function(el)
-        if isSubfigure(el) then
-          subfigures:insert(el)
-          el.attr.attributes["figure-parent"] = nil
-        end
-      end,
-      Para = function(el)
-        local image = figureFromPara(el)
-        if image and isSubfigure(image) then
-          subfigures:insert(image)
-          image.attr.attributes["figure-parent"] = nil
-        end
-      end,
-      HorizontalRule = function(el)
-        subfigures:insert(el)
-      end
-    })
-    if #subfigures > 0 then
-      return subfigures
-    else
-      return nil
-    end
-  else
-    return nil
-  end
 end
 
 -- is this element a subfigure

@@ -92,12 +92,16 @@ function latexFigureDiv(divEl, subfigures)
   
   -- surround caption w/ appropriate latex (and end the figure)
   local caption = figureDivCaption(divEl)
-  caption.content:insert(1, pandoc.RawInline("latex", "\\caption{"))
-  tappend(caption.content, {
-    pandoc.RawInline("latex", "}\\label{" .. divEl.attr.identifier .. "}\n"),
-    pandoc.RawInline("latex", "\\end{" .. figEnv .. "}")
-  })
-  figure.content:insert(caption)
+  if caption and #caption.content > 0 then
+    caption.content:insert(1, pandoc.RawInline("latex", "\\caption{"))
+    tappend(caption.content, {
+      pandoc.RawInline("latex", "}\\label{" .. divEl.attr.identifier .. "}\n"),
+    })
+    figure.content:insert(caption)
+  end
+  
+  -- end figure
+  figure.content:insert(pandoc.RawBlock("latex", "\\end{" .. figEnv .. "}"))
   
   -- return the figure
   return figure

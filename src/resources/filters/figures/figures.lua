@@ -37,7 +37,7 @@ function layoutFigures()
     
     Div = function(el)
       
-      if isFigureDiv(el) then
+      if isFigureDiv(el, false) then
         
         -- handle subfigure layout
         local subfigures = layoutSubfigures(el)

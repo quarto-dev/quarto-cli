@@ -3,9 +3,6 @@
 
 -- todo: out-width doesn't seem to drive the grid (for latex at least)
 
--- todo: figure div with subfigureand no caption? 
----      what happens to subcaption labels in this case in different formats?
-
 -- todo: consider native docx tables for office output
 
 function htmlPanel(divEl, subfigures)
@@ -69,19 +66,21 @@ function htmlPanel(divEl, subfigures)
   end
   
   -- insert caption and </figure>
-  local caption = pandoc.Para({})
-  
-  -- apply alignment if we have it
-  local figcaption = "<figcaption aria-hidden=\"true\""
-  if align then
-    figcaption = figcaption .. " style=\"text-align: " .. align .. ";\""
+  local divCaption = figureDivCaption(divEl)
+  if divCaption and #divCaption.content > 0 then
+    local caption = pandoc.Para({})
+    -- apply alignment if we have it
+    local figcaption = "<figcaption aria-hidden=\"true\""
+    if align then
+      figcaption = figcaption .. " style=\"text-align: " .. align .. ";\""
+    end
+    figcaption = figcaption .. ">"
+    
+    caption.content:insert(pandoc.RawInline("html", figcaption))
+    tappend(caption.content, divCaption.content)
+    caption.content:insert(pandoc.RawInline("html", "</figcaption>"))
+    panel.content:insert(caption)
   end
-  figcaption = figcaption .. ">"
-  
-  caption.content:insert(pandoc.RawInline("html", figcaption))
-  tappend(caption.content, divEl.content[#divEl.content].content)
-  caption.content:insert(pandoc.RawInline("html", "</figcaption>"))
-  panel.content:insert(caption)
   
   panel.content:insert(pandoc.RawBlock("html", "</figure>"))
   
