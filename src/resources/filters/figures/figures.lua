@@ -95,7 +95,7 @@ end
 
 -- chain of filters
 return {
-  preprocessFigures(false),
+  preprocessFigures(false, false),
   layoutFigures(),
   metaInject()
 }

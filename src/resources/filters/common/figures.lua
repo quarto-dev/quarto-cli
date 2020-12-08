@@ -5,7 +5,7 @@
 -- converts linked image figures into figure divs. we do this in a separate 
 -- pass b/c normal filters go depth first so we can't actually
 -- "see" our parent figure during filtering.
-function preprocessFigures(captionRequired)
+function preprocessFigures(captionRequired, labelRequired)
 
   return {
     Pandoc = function(doc)
@@ -14,8 +14,12 @@ function preprocessFigures(captionRequired)
         
         return {
           Div = function(el)
-            if isFigureDiv(el, captionRequired) then
-            
+            -- label is always required for divs when there is no parent
+            local divLabelRequired = labelRequired
+            if not parentId then
+              divLabelRequired = true
+            end
+            if isFigureDiv(el, captionRequired, divLabelRequired) then
               if parentId ~= nil then
                 el.attr.attributes["figure-parent"] = parentId
               else
@@ -31,7 +35,7 @@ function preprocessFigures(captionRequired)
           end,
 
           Para = function(el)
-            return preprocessParaFigure(el, parentId, captionRequired)
+            return preprocessParaFigure(el, parentId, captionRequired, labelRequired)
           end
         }
       end
@@ -39,7 +43,7 @@ function preprocessFigures(captionRequired)
       -- walk all blocks in the document
       for i,el in pairs(doc.blocks) do
         local parentId = nil
-        if isFigureDiv(el, captionRequired) then
+        if isFigureDiv(el, captionRequired, true) then
           parentId = el.attr.identifier
           -- provide default caption if need be
           if figureDivCaption(el) == nil then
@@ -59,12 +63,12 @@ function preprocessFigures(captionRequired)
   }
 end
 
-function preprocessParaFigure(el, parentId, captionRequired)
+function preprocessParaFigure(el, parentId, captionRequired, labelRequired)
   
   -- if this is a figure paragraph, tag the image inside with any
   -- parent id we have and insert a "fake" caption
   local image = figureFromPara(el, captionRequired)
-  if image and isFigureImage(image, captionRequired) then
+  if image and isFigureImage(image, captionRequired, labelRequired) then
     image.attr.attributes["figure-parent"] = parentId
     if #image.caption == 0 then
       image.caption:insert(pandoc.Str(""))
@@ -75,7 +79,7 @@ function preprocessParaFigure(el, parentId, captionRequired)
   -- if this is a linked figure paragraph, transform to figure-div
   -- and then transfer attributes to the figure-div as appropriate
   local linkedFig = linkedFigureFromPara(el, captionRequired)
-  if linkedFig and isFigureImage(linkedFig, captionRequired) then
+  if linkedFig and isFigureImage(linkedFig, captionRequired, labelRequired) then
     
     -- create figure div
     return createFigureDiv(el, linkedFig, parentId)
@@ -138,24 +142,30 @@ function isSubfigure(el)
 end
 
 -- is this a Div containing a figure
-function isFigureDiv(el, captionRequired)
+function isFigureDiv(el, captionRequired, labelRequired)
   if captionRequired == nil then
     captionRequired = true
   end
-  if el.t == "Div" and hasFigureLabel(el) then
-    return not captionRequired or figureDivCaption(el) ~= nil
+  if labelRequired == nil then
+    labelRequired = true
+  end
+  if el.t == "Div" and ((not labelRequired) or hasFigureLabel(el)) then
+    return (not captionRequired) or figureDivCaption(el) ~= nil
   else
     return false
   end
 end
 
 -- is this an image containing a figure
-function isFigureImage(el, captionRequired)
+function isFigureImage(el, captionRequired, labelRequired)
   if captionRequired == nil then
     captionRequired = true
   end
-  if hasFigureLabel(el) then
-    return not captionRequired or #el.caption > 0
+  if labelRequired == nil then
+    labelRequired = true
+  end
+  if (not labelRequired) or hasFigureLabel(el) then
+    return (not captionRequired) or #el.caption > 0
   else
     return false
   end
