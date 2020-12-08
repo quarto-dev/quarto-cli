@@ -5,7 +5,7 @@
 -- converts linked image figures into figure divs. we do this in a separate 
 -- pass b/c normal filters go depth first so we can't actually
 -- "see" our parent figure during filtering.
-function preprocessFigures(captionRequired, labelRequired)
+function preprocessFigures(strict)
 
   return {
     Pandoc = function(doc)
@@ -15,11 +15,11 @@ function preprocessFigures(captionRequired, labelRequired)
         return {
           Div = function(el)
             -- label is always required for divs when there is no parent
-            local divLabelRequired = labelRequired
+            local divLabelRequired = strict
             if not parentId then
               divLabelRequired = true
             end
-            if isFigureDiv(el, captionRequired, divLabelRequired) then
+            if isFigureDiv(el, strict, divLabelRequired) then
               if parentId ~= nil then
                 el.attr.attributes["figure-parent"] = parentId
               else
@@ -35,7 +35,7 @@ function preprocessFigures(captionRequired, labelRequired)
           end,
 
           Para = function(el)
-            return preprocessParaFigure(el, parentId, captionRequired, labelRequired)
+            return preprocessParaFigure(el, parentId, strict, strict)
           end
         }
       end
@@ -43,7 +43,7 @@ function preprocessFigures(captionRequired, labelRequired)
       -- walk all blocks in the document
       for i,el in pairs(doc.blocks) do
         local parentId = nil
-        if isFigureDiv(el, captionRequired, true) then
+        if isFigureDiv(el, strict, true) then
           parentId = el.attr.identifier
           -- provide default caption if need be
           if figureDivCaption(el) == nil then
@@ -51,7 +51,7 @@ function preprocessFigures(captionRequired, labelRequired)
           end
         end
         if el.t == "Para" then
-          doc.blocks[i] = preprocessParaFigure(el, nil, captionRequired)
+          doc.blocks[i] = preprocessParaFigure(el, nil, strict, strict)
         else
           doc.blocks[i] = pandoc.walk_block(el, walkFigures(parentId))
         end
