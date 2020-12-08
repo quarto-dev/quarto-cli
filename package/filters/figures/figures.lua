@@ -256,11 +256,15 @@ function createFigureDiv(el, linkedFig, parentId)
   -- if we have a parent, then transfer all attributes (as it's a subfigure)
   if parentId ~= nil then
     figureDiv.attr = linkedFig.attr:clone()
-    -- keep width and height on image for correct layout
-    linkedFig.attr = pandoc.Attr("", {}, {
-      width = figureDiv.attr.attributes["width"],
-      height = figureDiv.attr.attributes["height"],
-    })
+    -- keep width and height on image for correct layout in docx
+    if isDocxOutput() then
+      linkedFig.attr = pandoc.Attr("", {}, {
+        width = figureDiv.attr.attributes["width"],
+        height = figureDiv.attr.attributes["height"],
+      })
+    else
+      linkedFig.attr = pandoc.Attr()
+    end
     figureDiv.attr.attributes["figure-parent"] = parentId
     
   -- otherwise just transfer id and any fig- prefixed attribs
@@ -1208,10 +1212,11 @@ function latexFigureDiv(divEl, subfigures)
           caption = figureDivCaption(image).content
         end
         
-        -- build caption (if there is no caption then use a \phantomcaption)
-        if #caption > 0 then
+        -- build caption
+        if inlinesToString(caption) ~= "" then
           caption:insert(1, pandoc.RawInline("latex", "  \\caption{"))
-          caption:insert(pandoc.RawInline("latex", "\\label{" .. image.attr.identifier .. "}}\n"))
+          caption:insert(pandoc.RawInline("latex", "\\label{" .. image.attr.identifier .. "}"))
+          caption:insert(pandoc.RawInline("latex", "}\n"))
         end
         image.attr.identifier = ""
         
