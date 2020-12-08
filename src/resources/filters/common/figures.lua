@@ -62,15 +62,14 @@ end
 function preprocessParaFigure(el, parentId, captionRequired)
   
   -- if this is a figure paragraph, tag the image inside with any
-  -- parent id we have
+  -- parent id we have and insert a "fake" caption
   local image = figureFromPara(el, captionRequired)
   if image and isFigureImage(image, captionRequired) then
     image.attr.attributes["figure-parent"] = parentId
-    if #image.caption == 0 and not captionRequired then
-      return createFigureDiv(el, image, parentId)
-    else
-      return el
+    if #image.caption == 0 then
+      image.caption:insert(pandoc.Str(""))
     end
+    return el
   end
   
   -- if this is a linked figure paragraph, transform to figure-div
@@ -199,4 +198,5 @@ function linkedFigureFromPara(el, captionRequired)
   end
   return nil
 end
+
 
