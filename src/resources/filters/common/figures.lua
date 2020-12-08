@@ -97,11 +97,15 @@ function createFigureDiv(el, linkedFig, parentId)
   -- if we have a parent, then transfer all attributes (as it's a subfigure)
   if parentId ~= nil then
     figureDiv.attr = linkedFig.attr:clone()
-    -- keep width and height on image for correct layout
-    linkedFig.attr = pandoc.Attr("", {}, {
-      width = figureDiv.attr.attributes["width"],
-      height = figureDiv.attr.attributes["height"],
-    })
+    -- keep width and height on image for correct layout in docx
+    if isDocxOutput() then
+      linkedFig.attr = pandoc.Attr("", {}, {
+        width = figureDiv.attr.attributes["width"],
+        height = figureDiv.attr.attributes["height"],
+      })
+    else
+      linkedFig.attr = pandoc.Attr()
+    end
     figureDiv.attr.attributes["figure-parent"] = parentId
     
   -- otherwise just transfer id and any fig- prefixed attribs
