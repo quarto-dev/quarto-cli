@@ -64,10 +64,15 @@ function tableDocxPanel(divEl, subfigures)
     -- add it to the panel
     panel.content:insert(pandoc.utils.from_simple_table(figuresTable))
     
-    -- add empty block if this isn't the last row (to prevent a paragraph
-    -- from being inserted between the tables)
+    -- add empty text frame (to prevent a para from being inserted btw the rows)
     if i ~= #subfigures then
-      panel.content:insert(pandoc.RawBlock("openxml", ""))
+      panel.content:insert(pandoc.RawBlock("openxml", [[
+<w:p>
+  <w:pPr>
+    <w:framePr w:w="0" w:h="0" w:vAnchor="margin" w:hAnchor="margin" w:xAlign="right" w:yAlign="top"/>
+  </w:pPr>
+</w:p>
+]]))
     end
   end
   
