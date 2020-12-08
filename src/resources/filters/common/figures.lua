@@ -14,12 +14,7 @@ function preprocessFigures(strict)
         
         return {
           Div = function(el)
-            -- label is always required for divs when there is no parent
-            local divLabelRequired = strict
-            if not parentId then
-              divLabelRequired = true
-            end
-            if isFigureDiv(el, strict, divLabelRequired) then
+            if isFigureDiv(el, strict) then
               if parentId ~= nil then
                 el.attr.attributes["figure-parent"] = parentId
               else
@@ -43,7 +38,7 @@ function preprocessFigures(strict)
       -- walk all blocks in the document
       for i,el in pairs(doc.blocks) do
         local parentId = nil
-        if isFigureDiv(el, strict, true) then
+        if isFigureDiv(el, strict) then
           parentId = el.attr.identifier
           -- provide default caption if need be
           if figureDivCaption(el) == nil then
@@ -142,14 +137,12 @@ function isSubfigure(el)
 end
 
 -- is this a Div containing a figure
-function isFigureDiv(el, captionRequired, labelRequired)
+function isFigureDiv(el, captionRequired)
   if captionRequired == nil then
     captionRequired = true
   end
-  if labelRequired == nil then
-    labelRequired = true
-  end
-  if el.t == "Div" and ((not labelRequired) or hasFigureLabel(el)) then
+
+  if el.t == "Div" and hasFigureLabel(el) then
     return (not captionRequired) or figureDivCaption(el) ~= nil
   else
     return false
