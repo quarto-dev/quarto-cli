@@ -164,7 +164,7 @@ end
 -- converts linked image figures into figure divs. we do this in a separate 
 -- pass b/c normal filters go depth first so we can't actually
 -- "see" our parent figure during filtering.
-function preprocessFigures(captionRequired)
+function preprocessFigures(strict)
 
   return {
     Pandoc = function(doc)
@@ -173,8 +173,7 @@ function preprocessFigures(captionRequired)
         
         return {
           Div = function(el)
-            if isFigureDiv(el, captionRequired) then
-            
+            if isFigureDiv(el, strict) then
               if parentId ~= nil then
                 el.attr.attributes["figure-parent"] = parentId
               else
@@ -190,7 +189,7 @@ function preprocessFigures(captionRequired)
           end,
 
           Para = function(el)
-            return preprocessParaFigure(el, parentId, captionRequired)
+            return preprocessParaFigure(el, parentId, strict, strict)
           end
         }
       end
@@ -198,7 +197,7 @@ function preprocessFigures(captionRequired)
       -- walk all blocks in the document
       for i,el in pairs(doc.blocks) do
         local parentId = nil
-        if isFigureDiv(el, captionRequired) then
+        if isFigureDiv(el, strict) then
           parentId = el.attr.identifier
           -- provide default caption if need be
           if figureDivCaption(el) == nil then
@@ -206,7 +205,7 @@ function preprocessFigures(captionRequired)
           end
         end
         if el.t == "Para" then
-          doc.blocks[i] = preprocessParaFigure(el, nil, captionRequired)
+          doc.blocks[i] = preprocessParaFigure(el, nil, strict, strict)
         else
           doc.blocks[i] = pandoc.walk_block(el, walkFigures(parentId))
         end
@@ -218,12 +217,12 @@ function preprocessFigures(captionRequired)
   }
 end
 
-function preprocessParaFigure(el, parentId, captionRequired)
+function preprocessParaFigure(el, parentId, captionRequired, labelRequired)
   
   -- if this is a figure paragraph, tag the image inside with any
   -- parent id we have and insert a "fake" caption
   local image = figureFromPara(el, captionRequired)
-  if image and isFigureImage(image, captionRequired) then
+  if image and isFigureImage(image, captionRequired, labelRequired) then
     image.attr.attributes["figure-parent"] = parentId
     if #image.caption == 0 then
       image.caption:insert(pandoc.Str(""))
@@ -234,7 +233,7 @@ function preprocessParaFigure(el, parentId, captionRequired)
   -- if this is a linked figure paragraph, transform to figure-div
   -- and then transfer attributes to the figure-div as appropriate
   local linkedFig = linkedFigureFromPara(el, captionRequired)
-  if linkedFig and isFigureImage(linkedFig, captionRequired) then
+  if linkedFig and isFigureImage(linkedFig, captionRequired, labelRequired) then
     
     -- create figure div
     return createFigureDiv(el, linkedFig, parentId)
@@ -252,6 +251,11 @@ function createFigureDiv(el, linkedFig, parentId)
   local caption = linkedFig.caption:clone()
   figureDiv.content:insert(pandoc.Para(caption))
   linkedFig.caption = {}
+  
+  -- make sure we have an identifier
+  if linkedFig.attr.identifier == "" then
+    linkedFig.attr.identifier = "fig:id-" .. tostring(math.random(10000000))
+  end
   
   -- if we have a parent, then transfer all attributes (as it's a subfigure)
   if parentId ~= nil then
@@ -301,20 +305,24 @@ function isFigureDiv(el, captionRequired)
   if captionRequired == nil then
     captionRequired = true
   end
+
   if el.t == "Div" and hasFigureLabel(el) then
-    return not captionRequired or figureDivCaption(el) ~= nil
+    return (not captionRequired) or figureDivCaption(el) ~= nil
   else
     return false
   end
 end
 
 -- is this an image containing a figure
-function isFigureImage(el, captionRequired)
+function isFigureImage(el, captionRequired, labelRequired)
   if captionRequired == nil then
     captionRequired = true
   end
-  if hasFigureLabel(el) then
-    return not captionRequired or #el.caption > 0
+  if labelRequired == nil then
+    labelRequired = true
+  end
+  if (not labelRequired) or hasFigureLabel(el) then
+    return (not captionRequired) or #el.caption > 0
   else
     return false
   end
@@ -1213,9 +1221,11 @@ function latexFigureDiv(divEl, subfigures)
         end
         
         -- build caption
-        if inlinesToString(caption) ~= "" then
+        if image.attr.identifier ~= "" or inlinesToString(caption) ~= "" then
           caption:insert(1, pandoc.RawInline("latex", "  \\caption{"))
-          caption:insert(pandoc.RawInline("latex", "\\label{" .. image.attr.identifier .. "}"))
+          if image.attr.identifier ~= "" then
+            caption:insert(pandoc.RawInline("latex", "\\label{" .. image.attr.identifier .. "}"))
+          end
           caption:insert(pandoc.RawInline("latex", "}\n"))
         end
         image.attr.identifier = ""
@@ -1408,31 +1418,27 @@ function layoutSubfigures(divEl)
 end
 
 function collectSubfigures(divEl)
-  if isFigureDiv(divEl, false) then
-    local subfigures = pandoc.List:new()
-    pandoc.walk_block(divEl, {
-      Div = function(el)
-        if isSubfigure(el) then
-          subfigures:insert(el)
-          el.attr.attributes["figure-parent"] = nil
-        end
-      end,
-      Para = function(el)
-        local image = figureFromPara(el, false)
-        if image and isSubfigure(image) then
-          subfigures:insert(image)
-          image.attr.attributes["figure-parent"] = nil
-        end
-      end,
-      HorizontalRule = function(el)
+  local subfigures = pandoc.List:new()
+  pandoc.walk_block(divEl, {
+    Div = function(el)
+      if isSubfigure(el) then
         subfigures:insert(el)
+        el.attr.attributes["figure-parent"] = nil
       end
-    })
-    if #subfigures > 0 then
-      return subfigures
-    else
-      return nil
+    end,
+    Para = function(el)
+      local image = figureFromPara(el, false)
+      if image and isSubfigure(image) then
+        subfigures:insert(image)
+        image.attr.attributes["figure-parent"] = nil
+      end
+    end,
+    HorizontalRule = function(el)
+      subfigures:insert(el)
     end
+  })
+  if #subfigures > 0 then
+    return subfigures
   else
     return nil
   end
