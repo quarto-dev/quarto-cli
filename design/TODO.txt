@@ -1,5 +1,33 @@
 
 
+TODO:
+
+- allow fig-rows (computes fig-cols), pad with nil for both
+
+- spacer concept for layouts (NULL, nil or for markdown <!-- spacer --> )
+- consider using relative integers instead of percents (flexbox style)
+- fig.layout automatically repeats if you just specify a single row
+
+- do we need to change the styles when alternate alignment is provided in html
+
+- consider whether we should be using phantomcaption
+
+- role of fig:foo in whether to generate sub-caption
+
+- Compute actual page width for custom reference.docx
+- Spacing between word elements
+- figuresOnly vs caption required
+- Linked figures and figure divs in word
+
+
+
+Figure layout:
+
+   - https://patchwork.data-imaginist.com/articles/patchwork.html#controlling-layout-1
+   - https://wilkelab.org/cowplot/articles/plot_grid.html
+   - https://www.littlemissdata.com/blog/patchwork
+
+
 - Implement latex environment divs: https://bookdown.org/yihui/rmarkdown-cookbook/custom-blocks.html
 
 
