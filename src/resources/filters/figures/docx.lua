@@ -58,17 +58,6 @@ function docxPanel(divEl, subfigures)
 end
 
 
-function docxAlign(align)
-  if align == "left" then
-    return "start"
-  elseif align == "center" then
-    return "center"
-  elseif align == "right" then
-    return "end"
-  else
-    return nil
-  end
-end
 
 function docxSubfigureCell(subfigure, align, pageWidth, layoutCols)
    
