@@ -30,19 +30,29 @@ function tableDocxPanel(divEl, subfigures)
       if layoutPercent then
         local inches = (layoutPercent/100) * pageWidthInches
         image.attr.attributes["width"] = string.format("%2.2f", inches) .. "in"
+        -- if this is a linked figure then set width on the image as well
+        if image.t == "Div" then
+          local linkedFig = linkedFigureFromPara(image.content[1], false)
+          if linkedFig then
+            linkedFig.attr.attributes["width"] = image.attr.attributes["width"]
+          end
+        end
       end
       
       local cell = pandoc.List:new()
       if image.t == "Image" then
         cell:insert(pandoc.Para(image))
       else
+        -- style the caption
+        image.content[#image.content] = docxPanelCaption(
+          image.content[#image.content], align
+        )
         cell:insert(image)
       end
       figuresRow:insert(cell)
     end
     
     -- make the table
-    dump(widths)
     local figuresTable = pandoc.SimpleTable(
       pandoc.List:new(), -- caption
       aligns,
