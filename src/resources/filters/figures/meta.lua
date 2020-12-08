@@ -18,6 +18,7 @@ function metaInject()
           inject([[
 <style type="text/css">
   .quarto-figure-panel > figure > figcaption {
+    margin-top: 10pt;
     text-align: center;
   }
   .quarto-figure figure {
@@ -30,7 +31,8 @@ function metaInject()
   .quarto-subfigure {
     position: relative;
   }
-  .quarto-subfigure figure {
+  .quarto-subfigure figure,
+  .quarto-subfigure > p {
     margin: 0.2em;
   }
   .quarto-subfigure figcaption {
