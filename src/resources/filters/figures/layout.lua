@@ -96,31 +96,27 @@ function layoutSubfigures(divEl)
 end
 
 function collectSubfigures(divEl)
-  if isFigureDiv(divEl, false) then
-    local subfigures = pandoc.List:new()
-    pandoc.walk_block(divEl, {
-      Div = function(el)
-        if isSubfigure(el) then
-          subfigures:insert(el)
-          el.attr.attributes["figure-parent"] = nil
-        end
-      end,
-      Para = function(el)
-        local image = figureFromPara(el, false)
-        if image and isSubfigure(image) then
-          subfigures:insert(image)
-          image.attr.attributes["figure-parent"] = nil
-        end
-      end,
-      HorizontalRule = function(el)
+  local subfigures = pandoc.List:new()
+  pandoc.walk_block(divEl, {
+    Div = function(el)
+      if isSubfigure(el) then
         subfigures:insert(el)
+        el.attr.attributes["figure-parent"] = nil
       end
-    })
-    if #subfigures > 0 then
-      return subfigures
-    else
-      return nil
+    end,
+    Para = function(el)
+      local image = figureFromPara(el, false)
+      if image and isSubfigure(image) then
+        subfigures:insert(image)
+        image.attr.attributes["figure-parent"] = nil
+      end
+    end,
+    HorizontalRule = function(el)
+      subfigures:insert(el)
     end
+  })
+  if #subfigures > 0 then
+    return subfigures
   else
     return nil
   end
