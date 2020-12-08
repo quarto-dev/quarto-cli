@@ -93,6 +93,11 @@ function createFigureDiv(el, linkedFig, parentId)
   figureDiv.content:insert(pandoc.Para(caption))
   linkedFig.caption = {}
   
+  -- make sure we have an identifier
+  if linkedFig.attr.identifier == "" then
+    linkedFig.attr.identifier = "fig:id-" .. tostring(math.random(10000000))
+  end
+  
   -- if we have a parent, then transfer all attributes (as it's a subfigure)
   if parentId ~= nil then
     figureDiv.attr = linkedFig.attr:clone()
