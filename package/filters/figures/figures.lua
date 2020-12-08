@@ -256,12 +256,20 @@ function createFigureDiv(el, linkedFig, parentId)
   -- if we have a parent, then transfer all attributes (as it's a subfigure)
   if parentId ~= nil then
     figureDiv.attr = linkedFig.attr:clone()
-    linkedFig.attr = pandoc.Attr()
+    -- keep width and height on image for correct layout
+    linkedFig.attr = pandoc.Attr("", {}, {
+      width = figureDiv.attr.attributes["width"],
+      height = figureDiv.attr.attributes["height"],
+    })
     figureDiv.attr.attributes["figure-parent"] = parentId
+    
   -- otherwise just transfer id and any fig- prefixed attribs
   else
+    -- transfer identifier
     figureDiv.attr.identifier = linkedFig.attr.identifier
     linkedFig.attr.identifier = ""
+    
+    -- transfer fig- attributes
     for k,v in pairs(linkedFig.attr.attributes) do
       if string.find(k, "^fig%-") then
         figureDiv.attr.attributes[k] = v
@@ -843,25 +851,50 @@ end
 
 function tableDocxPanel(divEl, subfigures)
   
-    -- create panel
+  -- metrics
+  local pageWidth = 12240 - 1440 - 1440
+  local pageWidthInches = pageWidth / 72 / 20
+  
+  -- create panel
   local panel = pandoc.Div({})
   
   -- alignment
-  local align = tableAlign(attribute(divEl, "fig-align", "default"))
+  local align = attribute(divEl, "fig-align", "center")
   
   -- subfigures
   local subfiguresEl = pandoc.Para({})
   for i, row in ipairs(subfigures) do
     
-    local aligns = row:map(function() return align end)
-    local widths = row:map(function() return 0 end)
-     
+    local aligns = row:map(function() return tableAlign(align) end)
+    local widths = row:map(function(image) 
+      return (1/#row)
+    end)
+
     local figuresRow = pandoc.List:new()
     for _, image in ipairs(row) do
+      
+      -- convert layout percent to physical units
+      local layoutPercent = horizontalLayoutPercent(image)
+      if layoutPercent then
+        local inches = (layoutPercent/100) * pageWidthInches
+        image.attr.attributes["width"] = string.format("%2.2f", inches) .. "in"
+        -- if this is a linked figure then set width on the image as well
+        if image.t == "Div" then
+          local linkedFig = linkedFigureFromPara(image.content[1], false)
+          if linkedFig then
+            linkedFig.attr.attributes["width"] = image.attr.attributes["width"]
+          end
+        end
+      end
+      
       local cell = pandoc.List:new()
       if image.t == "Image" then
         cell:insert(pandoc.Para(image))
       else
+        -- style the caption
+        image.content[#image.content] = docxPanelCaption(
+          image.content[#image.content], align
+        )
         cell:insert(image)
       end
       figuresRow:insert(cell)
@@ -878,17 +911,74 @@ function tableDocxPanel(divEl, subfigures)
     
     -- add it to the panel
     panel.content:insert(pandoc.utils.from_simple_table(figuresTable))
+    
+    -- add empty text frame (to prevent a para from being inserted btw the rows)
+    if i ~= #subfigures then
+      panel.content:insert(pandoc.RawBlock("openxml", [[
+<w:p>
+  <w:pPr>
+    <w:framePr w:w="0" w:h="0" w:vAnchor="margin" w:hAnchor="margin" w:xAlign="right" w:yAlign="top"/>
+  </w:pPr>
+</w:p>
+]]))
+    end
   end
   
   -- insert caption
   local divCaption = figureDivCaption(divEl)
   if divCaption and #divCaption.content > 0 then
-    panel.content:insert(divCaption)
+    panel.content:insert(docxPanelCaption(divCaption, align))
   end
   
   -- return panel
   return panel
 end
+
+-- create a native docx caption (note that because "openxml" raw blocks
+-- are parsed we need to provide a complete xml node, this implies that
+-- we need to stringify the captionEl, losing any markdown therein)
+function docxPanelCaption(captionEl, align)
+  local caption = 
+    "<w:p>\n" ..
+      "<w:pPr>\n"
+  local captionAlign = docxAlign(align)
+  if captionAlign then
+    caption = caption .. 
+        "<w:jc w:val=\"" .. captionAlign .. "\"/>\n"
+  end  
+  caption = caption ..
+        "<w:spacing w:before=\"200\" />\n" ..
+        "<w:pStyle w:val=\"ImageCaption\" />\n" ..
+      "</w:pPr>\n"
+  caption = caption ..
+      "<w:r>\n" ..
+        "<w:t xml:space=\"preserve\">" ..
+         pandoc.utils.stringify(captionEl) .. 
+        "</w:t>\n" ..
+      "</w:r>"
+  caption = caption ..
+    "</w:p>\n"
+    
+  return pandoc.RawBlock("openxml", caption)
+end
+
+function docxAlign(align)
+  if align == "left" then
+    return "start"
+  elseif align == "center" then
+    return "center"
+  elseif align == "right" then
+    return "end"
+  else
+    return nil
+  end
+end
+
+
+
+
+
+
 
 -- table.lua
 -- Copyright (C) 2020 by RStudio, PBC
@@ -1489,6 +1579,10 @@ function metaInject()
         if figures.htmlPanels then
           inject([[
 <style type="text/css">
+  .quarto-figure-panel > figure > figcaption {
+    margin-top: 10pt;
+    text-align: center;
+  }
   .quarto-figure figure {
     display: inline-block;
   }
@@ -1499,18 +1593,17 @@ function metaInject()
   .quarto-subfigure {
     position: relative;
   }
-  .quarto-subfigure figure {
+  .quarto-subfigure figure,
+  .quarto-subfigure > p {
     margin: 0.2em;
   }
   .quarto-subfigure figcaption {
     text-align: center;
+    font-size: 0.8em;
+    font-style: italic;
   }
   .quarto-subfigure div figure p {
     margin: 0;
-  }
-  .quarto-subfigure figcaption {
-    font-size: 0.8em;
-    font-style: italic;
   }
   figure > p:empty {
     display: none;
