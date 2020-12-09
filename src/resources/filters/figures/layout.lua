@@ -26,8 +26,14 @@ function layoutSubfigures(divEl)
   local layout = pandoc.List:new()
 
   -- note any figure layout attributes
+  local figRows = tonumber(attribute(divEl, "fig-rows", nil))
   local figCols = tonumber(attribute(divEl, "fig-cols", nil))
   local figLayout = attribute(divEl, "fig-layout", nil)
+  
+  -- if there is figRows but no figCols then compute figCols
+  if not figCols and figRows then
+    figCols = math.ceil(#subfigures / figRows)
+  end
   
   -- if there are horizontal rules then use that for layout
   if haveHorizontalRules(subfigures) then
