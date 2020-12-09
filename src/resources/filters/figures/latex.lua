@@ -49,11 +49,11 @@ function latexFigureDiv(divEl, subfigures)
         
         -- build caption
         if image.attr.identifier ~= "" and inlinesToString(caption) ~= "" then
-          caption:insert(1, pandoc.RawInline("latex", "  \\caption{"))
+          caption:insert(1, pandoc.RawInline("latex", "\\caption{"))
           if image.attr.identifier ~= "" then
             caption:insert(pandoc.RawInline("latex", "\\label{" .. image.attr.identifier .. "}"))
           end
-          caption:insert(pandoc.RawInline("latex", "}\n"))
+          caption:insert(pandoc.RawInline("latex", "}"))
         end
         image.attr.identifier = ""
         
@@ -72,7 +72,9 @@ function latexFigureDiv(divEl, subfigures)
         
         -- insert caption
         if #caption > 0 then
+          subfiguresEl.content:insert(pandoc.RawInline("latex", "  "))
           tappend(subfiguresEl.content, caption)
+          subfiguresEl.content:insert(pandoc.RawInline("latex", "\n"))
         end
       
         -- end subfigure
