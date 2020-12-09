@@ -1,7 +1,6 @@
 -- layout.lua
 -- Copyright (C) 2020 by RStudio, PBC 
  
-local kAvailablePercent = 96
  
 function layoutSubfigures(divEl)
    
@@ -108,6 +107,20 @@ function layoutSubfigures(divEl)
     end
     layoutWidths(layout)
   end
+  
+  -- percentage based layouts need to be scaled down so they don't overflow the page 
+  layout = layout:map(function(row)
+    if canLayoutFigureRow(row) then
+      return row:map(function(fig)
+        local percentWidth = widthToPercent(attribute(fig, "width", nil))
+        if percentWidth then
+          fig.attr.attributes["width"] = tostring(math.floor(percentWidth * 0.96)) .. "%"
+        end
+        return fig
+      end)
+      
+    end
+  end)  
 
   -- return the layout
   return layout
@@ -182,9 +195,9 @@ function parseFigLayout(figLayout, figureCount)
       figureLayoutCount = figureLayoutCount + 1
       if type(width) == "number" then
         if numericTotal ~= nil then
-          width = math.floor((width / numericTotal) * kAvailablePercent)
+          width = math.floor((width / numericTotal) * 100)
         elseif width <= 1 then
-          width = math.floor(width * kAvailablePercent)
+          width = math.floor(width * 100)
         end
         width = tostring(width) .. "%"
       end
@@ -230,7 +243,7 @@ end
 function allocateRowWidths(row, cols)
   
   -- determine which figs need allocation and how much is left over to allocate
-  local available = kAvailablePercent
+  local available = 100
   local unallocatedFigs = pandoc.List:new()
   for _,fig in ipairs(row) do
     local width = attribute(fig, "width", nil)
