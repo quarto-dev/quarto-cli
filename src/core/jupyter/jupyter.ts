@@ -465,8 +465,7 @@ function mdFromCodeCell(
         md.push(mdOutputError(output as JupyterOutputError));
       } else if (isDisplayData(output)) {
         const caption = isCaptionableData(output)
-          ? outputCaptions.shift() ||
-            (isFigureLabel(outputLabel) ? "(Untitled)" : null)
+          ? (outputCaptions.shift() || null)
           : null;
         md.push(mdOutputDisplayData(
           outputLabel,

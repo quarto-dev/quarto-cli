@@ -184,8 +184,6 @@ figure_cap <- function(options) {
       fig.subcap
     else if (!is.null(fig.cap))
       fig.cap
-    else if (!is.null(output_label))
-      "(Untitled)"
     else
       ""
   } else {
