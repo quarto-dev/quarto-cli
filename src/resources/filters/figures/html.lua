@@ -43,6 +43,9 @@ function htmlPanel(divEl, subfigures)
         figureDivStyle = figureDivStyle .. "height: " .. height .. ";"
         image.attr.attributes["height"] = nil
       end
+      if align then
+        figureDivStyle = figureDivStyle .. "text-align: " .. align .. ";"
+      end
       if string.len(figureDivStyle) > 0 then
         figureDiv.attr.attributes["style"] = figureDivStyle
       end
