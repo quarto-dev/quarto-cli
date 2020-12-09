@@ -3,7 +3,7 @@
 
 -- check for latex output
 function isLatexOutput()
-  return FORMAT == "latex"
+  return FORMAT == "latex" or FORMAT == "beamer" or FORMAT == "pdf"
 end
 
 -- check for docx output
