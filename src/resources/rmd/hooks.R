@@ -55,21 +55,31 @@ knitr_hooks <- function(format) {
       }
     }
 
-
-    # apply parent caption if we have subcaptions
+    # determine label and caption output
     label <- output_label(options)
     fig.cap = options[["fig.cap"]]
-    fig.subcap = options[["fig.subcap"]]
-    if (is_figure_label(label) && !is.null(fig.cap) && !is.null(fig.subcap)) {
-      label <- paste0(labelId(label), " ")
-      fig.cap <- paste0("\n", fig.cap, "\n")
-    } else {
-      label = NULL
-      fig.cap = NULL
+    labelOutput = ifelse(!is.null(label), paste0(labelId(label), " "), "")
+    
+    # forward selected attributes
+    forward <- c("fig.ncol", "fig.nrow", "fig.layout")
+    forwardAttr <- character()
+    for (attr in forward) {
+      value = options[[attr]]
+      if (!is.null(value)) {
+        if (identical(attr, "fig.layout")) {
+          value = jsonlite::toJSON(value)
+        }
+        forwardAttr <- c(forwardAttr, sprintf("%s='%s'", attr, value))
+      }
     }
-
+    forwardAttr <- paste(forwardAttr, collapse = " ")
+    if (nzchar(forwardAttr)) {
+      forwardAttr <- paste0(" ", forwardAttr)
+    }
+    
     # return cell
-    paste0("::: {", labelId(label) ,".cell .cell-code}\n", x, "\n", fig.cap ,":::")
+    capOutput = ifelse(!is.null(fig.cap), paste0("\n", fig.cap, "\n"), "")
+    paste0("::: {", labelOutput ,".cell .cell-code", forwardAttr, "}\n", x, "\n", capOutput ,":::")
   })
   knit_hooks$source <- function(x, options) {
     x <- knitr:::one_string(c('', x))
