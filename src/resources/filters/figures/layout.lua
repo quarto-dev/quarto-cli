@@ -118,7 +118,8 @@ function layoutSubfigures(divEl)
       return row:map(function(fig)
         local percentWidth = widthToPercent(attribute(fig, "width", nil))
         if percentWidth then
-          fig.attr.attributes["width"] = tostring(math.floor(percentWidth * 0.96)) .. "%"
+          percentWidth = round(percentWidth * 0.96,1)
+          fig.attr.attributes["width"] = tostring(percentWidth) .. "%"
         end
         return fig
       end)
@@ -200,9 +201,9 @@ function parseFigLayout(figLayout, figureCount)
       figureLayoutCount = figureLayoutCount + 1
       if type(width) == "number" then
         if numericTotal ~= nil then
-          width = math.floor((width / numericTotal) * 100)
+          width = round((width / numericTotal) * 100, 2)
         elseif width <= 1 then
-          width = math.floor(width * 100)
+          width = round(width * 100, 2)
         end
         width = tostring(width) .. "%"
       end
@@ -268,7 +269,7 @@ function widthsToPercent(layout, cols)
     end
     -- allocate widths
     for i,fig in ipairs(row) do
-      local width = math.floor((widths[i]/totalWidth) * 100)
+      local width = round((widths[i]/totalWidth) * 100, 1)
       fig.attr.attributes["width"] = 
          tostring(width) .. "%"
       fig.attr.attributes["height"] = nil
@@ -341,7 +342,7 @@ end
 
 function widthToPercent(width)
   if width then
-    local percent = string.match(width, "^(%d+)%%$")
+    local percent = string.match(width, "^([%d%.]+)%%$")
     if percent then
       return tonumber(percent)
     end
