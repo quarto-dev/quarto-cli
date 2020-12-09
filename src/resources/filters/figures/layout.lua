@@ -56,7 +56,7 @@ function layoutSubfigures(divEl)
   -- check for fig-layout
   elseif figLayout ~= nil then
     -- parse the layout
-    figLayout = parseFigLayout(figLayout)
+    figLayout = parseFigLayout(figLayout, #subfigures)
     
     -- manage/perform next insertion into the layout
     local subfigIndex = 1
@@ -77,11 +77,6 @@ function layoutSubfigures(divEl)
       for _,width in ipairs(item) do
         layoutNextSubfig(width)
       end
-    end
-    
-    -- if there are leftover figures just put them in their own row
-    if subfigIndex <= #subfigures then
-      layout:insert(pandoc.List:new(tslice(subfigures, subfigIndex)))
     end
     
   -- no layout, single column
@@ -126,7 +121,7 @@ end
 
 
 -- parse a fig-layout specification
-function parseFigLayout(figLayout)
+function parseFigLayout(figLayout, figureCount)
   
   -- parse json
   figLayout = pandoc.List:new(jsonDecode(figLayout))
@@ -143,17 +138,31 @@ function parseFigLayout(figLayout)
   end
   
   -- convert numbers to strings as appropriate
+  figureLayoutCount = 0
   figLayout = figLayout:map(function(row)
     return pandoc.List:new(row):map(function(width)
-      if type(width) == "number" then
-        if width <= 1 then
-          width = math.floor(width * 100)
+      figureLayoutCount = figureLayoutCount + 1
+      if width ~= nil then
+        if type(width) == "number" then
+          if width <= 1 then
+            width = math.floor(width * 100)
+          end
+          width = tostring(width) .. "%"
         end
-        width = tostring(width) .. "%"
       end
       return width
     end)
   end)
+  
+  -- if there aren't enough rows then extend using the last row as a template
+  local figureGap = figureCount - figureLayoutCount
+  if figureGap > 0 then
+    local lastRow = figLayout[#figLayout]
+    local rowsToAdd = math.ceil(figureGap/#lastRow)
+    for i=1,rowsToAdd do
+      figLayout:insert(lastRow:clone())
+    end
+  end
    
   -- return the layout
   return figLayout
