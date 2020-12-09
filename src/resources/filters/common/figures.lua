@@ -95,7 +95,7 @@ function createFigureDiv(el, linkedFig, parentId)
   
   -- make sure we have an identifier
   if linkedFig.attr.identifier == "" then
-    linkedFig.attr.identifier = "fig:id-" .. tostring(math.random(10000000))
+    linkedFig.attr.identifier = randomFigId()
   end
   
   -- if we have a parent, then transfer all attributes (as it's a subfigure)
@@ -130,6 +130,10 @@ function createFigureDiv(el, linkedFig, parentId)
   -- return the div
   return figureDiv
   
+end
+
+function randomFigId()
+  return "fig:id-" .. tostring(math.random(10000000))
 end
 
 -- is this element a subfigure

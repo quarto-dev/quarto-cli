@@ -1,6 +1,8 @@
 -- layout.lua
 -- Copyright (C) 2020 by RStudio, PBC 
  
+local kAvailablePercent = 96
+ 
 function layoutSubfigures(divEl)
    
   -- There are various ways to specify figure layout:
@@ -61,11 +63,25 @@ function layoutSubfigures(divEl)
     -- manage/perform next insertion into the layout
     local subfigIndex = 1
     function layoutNextSubfig(width)
-      local subfig = subfigures[subfigIndex]
-      subfigIndex = subfigIndex + 1
-      subfig.attr.attributes["width"] = width
-      subfig.attr.attributes["height"] = nil
-      layout[#layout]:insert(subfig)
+      -- check for a spacer width (negative percent)
+      if isSpacerWidth(width) then
+        local subfig = pandoc.Div({
+          pandoc.Para({pandoc.Str(" ")}),
+          pandoc.Para({})
+        }, pandoc.Attr(
+          randomFigId(), 
+          { "quarto-figure-spacer" }, 
+          { width = text.sub(width, 2, #width) }
+        ))
+        layout[#layout]:insert(subfig)
+      -- normal figure layout
+      else
+        local subfig = subfigures[subfigIndex]
+        subfigIndex = subfigIndex + 1
+        subfig.attr.attributes["width"] = width
+        subfig.attr.attributes["height"] = nil
+        layout[#layout]:insert(subfig)
+      end
     end
   
     -- process the layout
@@ -148,23 +164,29 @@ function parseFigLayout(figLayout, figureCount)
     for i=1,#cols do 
       local width = cols[i]
       if type(width) == "number" then
-        numericTotal = numericTotal + width
+        numericTotal = numericTotal + math.abs(width)
       else
         numericTotal = nil
         break
       end
     end
+    
       
     return cols:map(function(width)
       figureLayoutCount = figureLayoutCount + 1
       if type(width) == "number" then
         if numericTotal ~= nil then
-          width = math.floor((width / numericTotal) * 100)
+          width = math.floor((width / numericTotal) * kAvailablePercent)
         elseif width <= 1 then
-          width = math.floor(width * 100)
+          width = math.floor(width * kAvailablePercent)
         end
         width = tostring(width) .. "%"
       end
+      -- negative widths are "spacers" so we need to bump our total fig count
+      if isSpacerWidth(width) then
+        figureCount = figureCount + 1
+      end
+      -- return the width
       return width
     end)
   end)
@@ -184,6 +206,10 @@ function parseFigLayout(figLayout, figureCount)
   
 end
 
+function isSpacerWidth(width)
+  return text.sub(width, 1, 1) == "-"
+end
+
 -- interpolate any missing widths
 function layoutWidths(figLayout, cols)
   for _,row in ipairs(figLayout) do
@@ -198,7 +224,7 @@ end
 function allocateRowWidths(row, cols)
   
   -- determine which figs need allocation and how much is left over to allocate
-  local available = 96
+  local available = kAvailablePercent
   local unallocatedFigs = pandoc.List:new()
   for _,fig in ipairs(row) do
     local width = attribute(fig, "width", nil)
