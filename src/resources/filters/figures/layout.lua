@@ -37,6 +37,8 @@ function layoutSubfigures(divEl)
         layout[#layout]:insert(fig)
       end
     end
+    -- remove empty rows
+    layout = layout:filter(function(row) return #row > 0 end)
     -- allocate remaining space
     layoutWidths(layout)
     
