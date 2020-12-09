@@ -21,7 +21,8 @@ function preprocessFigures(strict)
         
         return {
           Div = function(el)
-            if isFigureDiv(el, strict) then
+            if qualifyFigureDiv(el, strict) then
+              
               if parentId ~= nil then
                 el.attr.attributes["figure-parent"] = parentId
               else
@@ -45,7 +46,7 @@ function preprocessFigures(strict)
       -- walk all blocks in the document
       for i,el in pairs(doc.blocks) do
         local parentId = nil
-        if isFigureDiv(el, strict) then
+        if qualifyFigureDiv(el, strict) then
           parentId = el.attr.identifier
           -- provide default caption if need be
           if figureDivCaption(el) == nil then
@@ -167,6 +168,38 @@ function isFigureDiv(el, captionRequired)
   else
     return false
   end
+end
+
+function qualifyFigureDiv(el, captionRequired)
+
+  -- must be a div
+  if el.t ~= "Div" then
+    return false
+  end
+  
+  -- check for caption if we need to
+  if captionRequired and figureDivCaption(el) == nil then
+    return false
+  end
+  
+  -- check for label
+  if hasFigureLabel(el) then
+    
+    return true
+    
+  -- check for figure layout attributes (synthesize an id in that case)
+  else 
+    local attribs = { kFigNrow, kFigNcol, kFigLayout }
+    for _,name in ipairs(attribs) do
+      if el.attr.attributes[name] then
+        el.attr.identifier = randomFigId()
+        return true
+      end
+    end
+  end
+  
+  return false
+  
 end
 
 -- is this an image containing a figure
