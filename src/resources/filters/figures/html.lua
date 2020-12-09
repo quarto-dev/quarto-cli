@@ -14,7 +14,7 @@ function htmlPanel(divEl, subfigures)
   panel.content:insert(pandoc.RawBlock("html", "<figure>"))
   
   -- collect alignment
-  local align = attribute(divEl, kFigAlign, nil)
+  local align = alignAttribute(divEl)
   divEl.attr.attributes[kFigAlign] = nil
 
   -- subfigures

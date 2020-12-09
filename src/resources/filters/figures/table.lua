@@ -12,7 +12,7 @@ function tablePanel(divEl, subfigures, options)
   local panel = pandoc.Div({})
   
   -- alignment
-  local align = attribute(divEl, kFigAlign, "center")
+  local align = alignAttribute(divEl, "center")
   
   -- subfigures
   local subfiguresEl = pandoc.Para({})

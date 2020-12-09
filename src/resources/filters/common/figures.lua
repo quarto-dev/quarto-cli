@@ -148,6 +148,14 @@ function randomFigId()
   return "fig:id-" .. tostring(math.random(10000000))
 end
 
+function alignAttribute(el, default)
+  local align = attribute(el, kFigAlign, nil)
+  if align == "default" then
+    align = default
+  end
+  return align
+end
+
 -- is this element a subfigure
 function isSubfigure(el)
   if el.attr.attributes["figure-parent"] then

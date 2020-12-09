@@ -92,7 +92,7 @@ knitr_hooks <- function(format) {
     }
    
     # forward selected attributes
-    forward <- c("fig.ncol", "fig.nrow", "fig.layout")
+    forward <- c("fig.ncol", "fig.nrow", "fig.align", "fig.layout")
     forwardAttr <- character()
     for (attr in forward) {
       value = options[[attr]]
