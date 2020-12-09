@@ -140,10 +140,27 @@ function parseFigLayout(figLayout, figureCount)
   -- convert numbers to strings as appropriate
   figureLayoutCount = 0
   figLayout = figLayout:map(function(row)
-    return pandoc.List:new(row):map(function(width)
+    --- get the cols
+    local cols = pandoc.List:new(row)
+    
+    -- see if we have a total numeric value (no strings)
+    local numericTotal = 0
+    for i=1,#cols do 
+      local width = cols[i]
+      if type(width) == "number" then
+        numericTotal = numericTotal + width
+      else
+        numericTotal = nil
+        break
+      end
+    end
+      
+    return cols:map(function(width)
       figureLayoutCount = figureLayoutCount + 1
       if type(width) == "number" then
-        if width <= 1 then
+        if numericTotal ~= nil then
+          width = math.floor((width / numericTotal) * 100)
+        elseif width <= 1 then
           width = math.floor(width * 100)
         end
         width = tostring(width) .. "%"
