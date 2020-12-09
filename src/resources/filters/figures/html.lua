@@ -1,12 +1,6 @@
 -- html.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
--- todo: be more clear about how no percentage based layout works
--- for figure panels
-
--- todo: consider whether we should apply alignment to the entire panel
-
--- todo: consider native docx tables for office output
 
 function htmlPanel(divEl, subfigures)
   
