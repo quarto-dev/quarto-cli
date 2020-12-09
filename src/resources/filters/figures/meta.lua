@@ -35,6 +35,9 @@ function metaInject()
   .quarto-subfigure > p {
     margin: 0.2em;
   }
+  .quarto-subfigure img {
+    max-width: 100%;
+  }
   .quarto-subfigure figcaption {
     text-align: center;
     font-size: 0.8em;
