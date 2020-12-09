@@ -1,27 +1,70 @@
 -- table.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
-function tablePanel(divEl, subfigures)
+function tablePanel(divEl, subfigures, options)
   
-    -- create panel
+  -- empty options by default
+  if not options then
+    options = {}
+  end
+  
+  -- create panel
   local panel = pandoc.Div({})
   
   -- alignment
-  local align = tableAlign(attribute(divEl, "fig-align", "default"))
+  local align = attribute(divEl, "fig-align", "center")
   
   -- subfigures
   local subfiguresEl = pandoc.Para({})
   for i, row in ipairs(subfigures) do
     
-    local aligns = row:map(function() return align end)
-    local widths = row:map(function() return 0 end)
-     
+    local aligns = row:map(function() return tableAlign(align) end)
+    local widths = row:map(function(image) 
+      -- if we have a page width in inches then we'll be doing 
+      -- explicit layout of the contained figures, in that case
+      -- return an even width for each column. otherwise, propagage
+      -- percents if they are provided
+      if options.pageWidth then
+        return (1/#row)
+      else
+        local layoutPercent = horizontalLayoutPercent(image)
+        if layoutPercent then
+          return layoutPercent / 100
+        else
+          return 0
+        end
+      end
+    end)
+
     local figuresRow = pandoc.List:new()
     for _, image in ipairs(row) do
+      
+      -- convert layout percent to physical units (if we have a pageWidth)
+      if options.pageWidth then
+        local layoutPercent = horizontalLayoutPercent(image)
+        if layoutPercent then
+          local inches = (layoutPercent/100) * options.pageWidth
+          image.attr.attributes["width"] = string.format("%2.2f", inches) .. "in"
+          -- if this is a linked figure then set width on the image as well
+          if image.t == "Div" then
+            local linkedFig = linkedFigureFromPara(image.content[1], false)
+            if linkedFig then
+              linkedFig.attr.attributes["width"] = image.attr.attributes["width"]
+            end
+          end
+        end
+      end
+      
       local cell = pandoc.List:new()
       if image.t == "Image" then
         cell:insert(pandoc.Para(image))
       else
+        -- style the caption
+        local divCaption = image.content[#image.content]
+        if options.divCaption then
+          divCaption = options.divCaption(divCaption, align)
+        end
+        image.content[#image.content] = divCaption
         cell:insert(image)
       end
       figuresRow:insert(cell)
@@ -38,12 +81,20 @@ function tablePanel(divEl, subfigures)
     
     -- add it to the panel
     panel.content:insert(pandoc.utils.from_simple_table(figuresTable))
+    
+    -- add empty text frame (to prevent a para from being inserted btw the rows)
+    if i ~= #subfigures and options.rowBreak then
+      panel.content:insert(options.rowBreak())
+    end
   end
   
   -- insert caption
   local divCaption = figureDivCaption(divEl)
   if divCaption and #divCaption.content > 0 then
-    panel.content:insert(divCaption)
+    if options.divCaption then
+      divCaption = options.divCaption(divCaption, align)
+    end
+     panel.content:insert(divCaption)
   end
   
   -- return panel
