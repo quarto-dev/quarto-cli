@@ -59,7 +59,38 @@ knitr_hooks <- function(format) {
     label <- output_label(options)
     fig.cap = options[["fig.cap"]]
     labelOutput = ifelse(!is.null(label), paste0(labelId(label), " "), "")
-    
+  
+    # synthesize fig.layout if we have fig.sep
+    fig.sep <- options[["fig.sep"]]
+    if (!is.null(fig.sep)) {
+      
+      # recycle fig.sep
+      fig.num <- options[["fig.num"]]
+      fig.sep <- rep_len(fig.sep, fig.num)
+      
+      # recyle out.width
+      out.width <- options[["out.width"]] 
+      if (is.null(out.width)) {
+        out.width <- 1
+      } 
+      out.width <- rep_len(out.width, fig.num)
+      
+      # build fig.layout
+      fig.layout <- list()
+      fig.row <- c()
+      for (i in 1:fig.num) {
+        fig.row <- c(fig.row, out.width[[i]])
+        if (nzchar(fig.sep[[i]])) {
+          fig.layout[[length(fig.layout) + 1]] <- fig.row
+          fig.row <- c()
+        }
+      }
+      if (length(fig.row) > 0) {
+        fig.layout[[length(fig.layout) + 1]] <- fig.row
+      }
+      options[["fig.layout"]] <- fig.layout
+    }
+   
     # forward selected attributes
     forward <- c("fig.ncol", "fig.nrow", "fig.layout")
     forwardAttr <- character()
