@@ -1,6 +1,13 @@
 -- figures.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
+-- constants for figure attributes
+local kFigAlign = "fig.align"
+local kFigEnv = "fig.env"
+local kFigNcol = "fig.ncol"
+local kFigNrow = "fig.nrow"
+local kFigLayout = "fig.layout"
+
 -- filter which tags subfigures with their parent identifier and also 
 -- converts linked image figures into figure divs. we do this in a separate 
 -- pass b/c normal filters go depth first so we can't actually
@@ -112,15 +119,15 @@ function createFigureDiv(el, linkedFig, parentId)
     end
     figureDiv.attr.attributes["figure-parent"] = parentId
     
-  -- otherwise just transfer id and any fig- prefixed attribs
+  -- otherwise just transfer id and any fig. prefixed attribs
   else
     -- transfer identifier
     figureDiv.attr.identifier = linkedFig.attr.identifier
     linkedFig.attr.identifier = ""
     
-    -- transfer fig- attributes
+    -- transfer fig. attributes
     for k,v in pairs(linkedFig.attr.attributes) do
-      if string.find(k, "^fig%-") then
+      if isFigAttribute(k) then
         figureDiv.attr.attributes[k] = v
         linkedFig.attr.attributes[k] = nil
       end
@@ -130,6 +137,10 @@ function createFigureDiv(el, linkedFig, parentId)
   -- return the div
   return figureDiv
   
+end
+
+function isFigAttribute(name)
+  return string.find(name, "^fig%.")
 end
 
 function randomFigId()

@@ -20,8 +20,8 @@ function htmlPanel(divEl, subfigures)
   panel.content:insert(pandoc.RawBlock("html", "<figure>"))
   
   -- collect alignment
-  local align = attribute(divEl, "fig-align", nil)
-  divEl.attr.attributes["fig-align"] = nil
+  local align = attribute(divEl, kFigAlign, nil)
+  divEl.attr.attributes[kFigAlign] = nil
 
   -- subfigures
   local subfiguresEl = pandoc.Para({})

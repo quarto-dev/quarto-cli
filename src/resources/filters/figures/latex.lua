@@ -7,11 +7,11 @@ function latexFigureDiv(divEl, subfigures)
   local figure = pandoc.Div({})
   
   -- begin the figure
-  local figEnv = attribute(divEl, "fig-env", "figure")
+  local figEnv = attribute(divEl, kFigEnv, "figure")
   figure.content:insert(pandoc.RawBlock("latex", "\\begin{" .. figEnv .. "}"))
   
   -- alignment
-  local align = attribute(divEl, "fig-align", nil)
+  local align = attribute(divEl, kFigAlign, nil)
   if align then
     figure.content:insert(latexBeginAlign(align))
   end

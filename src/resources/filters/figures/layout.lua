@@ -8,10 +8,10 @@ function layoutSubfigures(divEl)
   --
   --  1) Directly in markup using explicit widths and <hr> to 
   --     delimit rows
-  --  2) By specifying fig-cols. In this case widths can be explicit 
+  --  2) By specifying fig.ncol or fig.nrow. In this case widths can be explicit 
   --     and/or automatically distributed (% widths required for 
   --     mixing explicit and automatic widths)
-  --  3) By specifying fig-layout (nested arrays defining explicit
+  --  3) By specifying fig.layout (nested arrays defining explicit
   --     rows and figure widths)
   --
   
@@ -25,9 +25,9 @@ function layoutSubfigures(divEl)
   local layout = pandoc.List:new()
 
   -- note any figure layout attributes
-  local figRows = tonumber(attribute(divEl, "fig-rows", nil))
-  local figCols = tonumber(attribute(divEl, "fig-cols", nil))
-  local figLayout = attribute(divEl, "fig-layout", nil)
+  local figRows = tonumber(attribute(divEl, kFigNrow, nil))
+  local figCols = tonumber(attribute(divEl, kFigNcol, nil))
+  local figLayout = attribute(divEl, kFigLayout, nil)
   
   -- if there is figRows but no figCols then compute figCols
   if not figCols and figRows then
@@ -49,7 +49,7 @@ function layoutSubfigures(divEl)
     -- allocate remaining space
     layoutWidths(layout)
     
-  -- check for fig-cols
+  -- check for fig.ncol
   elseif figCols ~= nil then
     for i,fig in ipairs(subfigures) do
       if math.fmod(i-1, figCols) == 0 then
@@ -60,7 +60,7 @@ function layoutSubfigures(divEl)
     -- allocate remaining space
     layoutWidths(layout, figCols)
     
-  -- check for fig-layout
+  -- check for fig.layout
   elseif figLayout ~= nil then
     -- parse the layout
     figLayout = parseFigLayout(figLayout, #subfigures)
@@ -155,7 +155,7 @@ function collectSubfigures(divEl)
 end
 
 
--- parse a fig-layout specification
+-- parse a fig.layout specification
 function parseFigLayout(figLayout, figureCount)
   
   -- parse json

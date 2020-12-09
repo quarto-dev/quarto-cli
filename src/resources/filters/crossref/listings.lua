@@ -1,13 +1,16 @@
 -- listings.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
+-- constants for list attributes
+local kLstCap = "lst.cap"
+
 -- process all listings
 function listings()
   
   return {
     CodeBlock = function(el)
       local label = string.match(el.attr.identifier, "^lst:[^ ]+$")
-      local caption = el.attr.attributes["lst-cap"]
+      local caption = el.attr.attributes[kLstCap]
       if label and caption then
     
         -- the listing number
