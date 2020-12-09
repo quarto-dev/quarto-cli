@@ -1456,13 +1456,11 @@ function parseFigLayout(figLayout, figureCount)
   figLayout = figLayout:map(function(row)
     return pandoc.List:new(row):map(function(width)
       figureLayoutCount = figureLayoutCount + 1
-      if width ~= nil then
-        if type(width) == "number" then
-          if width <= 1 then
-            width = math.floor(width * 100)
-          end
-          width = tostring(width) .. "%"
+      if type(width) == "number" then
+        if width <= 1 then
+          width = math.floor(width * 100)
         end
+        width = tostring(width) .. "%"
       end
       return width
     end)
