@@ -32,12 +32,12 @@ end
 
 -- read attribute w/ default
 function attribute(el, name, default)
-  local value = el.attr.attributes[name]
-  if value ~= nil then
-    return value
-  else
-    return default
+  for k,v in pairs(el.attr.attributes) do
+    if k == name then
+      return v
+    end
   end
+  return default
 end
 
 -- combine a set of filters together (so they can be processed in parallel)

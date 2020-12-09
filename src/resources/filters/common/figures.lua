@@ -2,11 +2,11 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- constants for figure attributes
-local kFigAlign = "fig.align"
-local kFigEnv = "fig.env"
-local kFigNcol = "fig.ncol"
-local kFigNrow = "fig.nrow"
-local kFigLayout = "fig.layout"
+kFigAlign = "fig.align"
+kFigEnv = "fig.env"
+kFigNcol = "fig.ncol"
+kFigNrow = "fig.nrow"
+kFigLayout = "fig.layout"
 
 -- filter which tags subfigures with their parent identifier and also 
 -- converts linked image figures into figure divs. we do this in a separate 

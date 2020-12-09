@@ -331,6 +331,7 @@ function mdFromCodeCell(
     kCellName,
     kCellLabel,
     kCellFigCap,
+    kCellFigSubCap,
     kCellClasses,
     kCellWidth,
     kCellHeight,

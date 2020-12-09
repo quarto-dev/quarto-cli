@@ -69,14 +69,18 @@ export function widgetIncludeFiles(nb: JupyterNotebook) {
     Deno.writeTextFileSync(tempFile, lines.join("\n") + "\n");
     return tempFile;
   };
-  const inHeaderFile = widgetTempFile(head);
-  const afterBodyFile = widgetTempFile(afterBody);
 
-  // return result
-  return {
-    inHeader: [inHeaderFile],
-    afterBody: [afterBodyFile],
+  const result = {
+    inHeader: new Array<string>(),
+    afterBody: new Array<string>(),
   };
+  if (head.length > 0) {
+    result.inHeader.push(widgetTempFile(head));
+  }
+  if (afterBody.length > 0) {
+    result.afterBody.push(widgetTempFile(afterBody));
+  }
+  return result;
 }
 
 function haveOutputType(nb: JupyterNotebook, mimeTypes: string[]) {
