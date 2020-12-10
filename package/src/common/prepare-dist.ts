@@ -1,75 +1,94 @@
 import { dirname, join } from "https://deno.land/std/path/mod.ts";
 import { copySync } from "https://deno.land/std/fs/mod.ts";
-import { existsSync } from "https://deno.land/std/fs/exists.ts";
+import { Configuration, configuration } from "../common/config.ts";
+import { Logger, logger } from "./logger.ts";
+import { buildFilter } from "./package-filters.ts";
+import { bundle } from "./deno.ts";
+import { ensureDirExists } from "./utils.ts";
 
-async function prepareDist(targetDir: string) {
-  const sharedir = getEnv("QUARTO_SHARE_DIR");
-  const binDir = getEnv("QUARTO_BIN_DIR");
+async function prepareDist(
+  config: Configuration,
+  log: Logger,
+) {
+  log.info("Preparing Dist using this config");
+  log.info(config);
 
+  // Move the supporting files into place
+  supportingFiles(config, log);
+
+  // Create the deno bundle
+  const input = join(config.dirs.src.abs, "quarto.ts");
+  const output = join(config.dirs.bin.abs, "quarto.js");
+  await bundle(
+    input,
+    output,
+    config,
+  );
+
+  // Inline the LUA Filters and move them into place
+  inlineFilters(config, log);
+}
+
+function supportingFiles(config: Configuration, log: Logger) {
+  // Move information and share resources into place
   const filesToCopy = [
     {
-      from: join("..", "..", "COPYING.md"),
-      to: join(targetDir, "COPYING.md"),
+      from: join(config.dirs.root.abs, "COPYING.md"),
+      to: join(config.dirs.dist.abs, "COPYING.md"),
     },
     {
-      from: join("..", "..", "COPYRIGHT"),
-      to: join(targetDir, "COPYRIGHT"),
+      from: join(config.dirs.root.abs, "COPYRIGHT"),
+      to: join(config.dirs.dist.abs, "COPYRIGHT"),
     },
     {
-      from: join("..", "filters"),
-      to: join(targetDir, sharedir, "filters"),
+      from: join(config.dirs.src.abs, "resources", "html-defaults.lua"),
+      to: join(config.dirs.share.abs, "html-defaults.lua"),
     },
     {
-      from: join("..", "..", "src", "resources", "html-defaults.lua"),
-      to: join(targetDir, sharedir, "html-defaults.lua"),
+      from: join(config.dirs.src.abs, "resources", "rmd"),
+      to: join(config.dirs.share.abs, "rmd"),
     },
     {
-      from: join("..", "..", "src", "resources", "rmd"),
-      to: join(targetDir, sharedir, "rmd"),
-    },
-    {
-      from: join("..", "..", "src", "resources", "jupyter"),
-      to: join(targetDir, sharedir, "jupyter"),
+      from: join(config.dirs.src.abs, "resources", "jupyter"),
+      to: join(config.dirs.share.abs, "jupyter"),
     },
   ];
 
   // Gather supporting files
   filesToCopy.forEach((fileToCopy) => {
-    const directory = dirname(fileToCopy.to);
-    if (!existsSync(directory)) {
-      Deno.mkdirSync(directory);
+    log.info(`Copying ${fileToCopy.from} to ${fileToCopy.to}`);
+
+    const dir = dirname(fileToCopy.to);
+    log.info(`Ensuring dir ${dir} exists`);
+    if (ensureDirExists(dir)) {
+      log.info(`Created dir ${dir}`);
     }
     copySync(fileToCopy.from, fileToCopy.to, { overwrite: true });
   });
+}
 
-  // Bundle source code
-  const denoBundleCmd: string[] = [];
-  denoBundleCmd.push(join(targetDir, binDir, "deno"));
-  denoBundleCmd.push("bundle");
-  denoBundleCmd.push("--unstable");
-  denoBundleCmd.push(
-    "--importmap=" + join("..", "..", "src", "import_map.json"),
-  );
-  denoBundleCmd.push(join("..", "..", "src", "quarto.ts"));
-  denoBundleCmd.push(join(targetDir, binDir, "quarto.js"));
-  const p = Deno.run({
-    cmd: denoBundleCmd,
+function inlineFilters(config: Configuration, log: Logger) {
+  log.info("Building inlined filters");
+  const outDir = join(config.dirs.share.abs, "filters");
+  const filtersToInline = ["crossref", "figures"];
+
+  filtersToInline.forEach((filter) => {
+    log.info(filter);
+    buildFilter(
+      join(
+        config.dirs.src.abs,
+        "resources",
+        "filters",
+        filter,
+        `${filter}.lua`,
+      ),
+      join(outDir, filter, `${filter}.lua`),
+      log,
+    );
   });
-  const status = await p.status();
-  if (status.code !== 0) {
-    throw Error("Failure to bundle quarto.ts");
-  }
 }
 
-function getEnv(name: string) {
-  const value = Deno.env.get(name);
-  if (!value) {
-    throw new Error("Missing environment variable: " + name);
-  }
-  return value;
-}
+const config = configuration();
+const log = logger(config);
 
-const packageDir = getEnv("QUARTO_PACKAGE_DIR");
-const distDir = getEnv("QUARTO_DIST_DIR");
-
-await prepareDist(join("..", distDir));
+await prepareDist(config, log);

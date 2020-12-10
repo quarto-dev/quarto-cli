@@ -1,28 +1,18 @@
-import { basename, dirname, join } from "https://deno.land/std/path/mod.ts";
+import { dirname, join } from "https://deno.land/std/path/mod.ts";
+import { Configuration, configuration } from "./config.ts";
+import { Logger } from "./logger.ts";
+import { ensureDirExists } from "./utils.ts";
 
-buildFilter("crossref");
-buildFilter("figures");
+export function buildFilter(
+  input: string,
+  output: string,
+  log: Logger,
+) {
+  log.info(`From: ${input}`);
+  log.info(`To: ${output}`);
 
-function buildFilter(filter: string) {
-  // read main filter file
-  const filterPath = join(
-    "..",
-    "..",
-    "src",
-    "resources",
-    "filters",
-    filter,
-    `${filter}.lua`,
-  );
-  const outFilterPath = join(
-    "..",
-    "filters",
-    filter,
-    `${filter}.lua`,
-  );
-
-  const filterDir = dirname(filterPath);
-  let src = Deno.readTextFileSync(filterPath);
+  const filterDir = dirname(input);
+  let src = Deno.readTextFileSync(input);
 
   // read main filter file and extract imports
   let imports = "";
@@ -45,5 +35,12 @@ function buildFilter(filter: string) {
   }
 
   // write src to dist
-  Deno.writeTextFileSync(outFilterPath, src);
+  log.info(`Writing inlined file ${output}`);
+
+  const dir = dirname(output);
+  log.info(`Ensure directory ${dir} exists`);
+  if (ensureDirExists(dir)) {
+    log.info(`Created directory ${dir}`);
+  }
+  Deno.writeTextFileSync(output, src);
 }
