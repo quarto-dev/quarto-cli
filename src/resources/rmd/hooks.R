@@ -188,6 +188,12 @@ knitr_plot_hook <- function(default_plot_hook) {
 
     # generate markdown for image
     md <- sprintf("![%s](%s)%s", figure_cap(options), x, attr)
+    
+    # enclose in link if requested
+    link <- options[["fig.link"]]
+    if (!is.null(link)) {
+      md <- sprintf("[%s](%s)", md, link)
+    }
 
     # enclose in output div
     output_div(md, NULL, classes)

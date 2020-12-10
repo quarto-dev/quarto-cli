@@ -56,6 +56,7 @@ import {
 import { widgetIncludeFiles } from "./widgets.ts";
 import { removeAndPreserveHtml } from "./preserve.ts";
 import { FormatExecution } from "../../config/format.ts";
+import { Metadata } from "../../config/metadata.ts";
 
 export const kCellCollapsed = "collapsed";
 export const kCellAutoscroll = "autoscroll";
@@ -69,6 +70,8 @@ export const kRawMimeType = "raw_mimetype";
 export const kCellLabel = "label";
 export const kCellFigCap = "fig.cap";
 export const kCellFigSubCap = "fig.subcap";
+export const kCellFigLink = "fig.link";
+export const kCellFigAlign = "fig.align";
 export const kCellLstLabel = "lst.label";
 export const kCellLstCap = "lst.cap";
 export const kCellClasses = "classes";
@@ -103,6 +106,8 @@ export interface JupyterCell {
     [kCellLabel]?: string;
     [kCellFigCap]?: string | string[];
     [kCellFigSubCap]?: string[];
+    [kCellFigLink]?: string;
+    [kCellFigAlign]?: string;
     [kCellLstLabel]?: string;
     [kCellLstCap]?: string;
     [kCellClasses]?: string;
@@ -128,6 +133,11 @@ export interface JupyterOutputDisplayData extends JupyterOutput {
   data: { [mimeType: string]: unknown };
   metadata: { [mimeType: string]: Record<string, unknown> };
   noCaption?: boolean;
+}
+
+export interface JupyterOutputFigureOptions {
+  [kCellFigLink]?: string;
+  [kCellFigAlign]?: string;
 }
 
 export interface JupyterOutputExecuteResult extends JupyterOutputDisplayData {
@@ -332,6 +342,8 @@ function mdFromCodeCell(
     kCellLabel,
     kCellFigCap,
     kCellFigSubCap,
+    kCellFigLink,
+    kCellFigAlign,
     kCellClasses,
     kCellWidth,
     kCellHeight,
@@ -473,6 +485,7 @@ function mdFromCodeCell(
           outputName + "-" + (index + 1),
           output as JupyterOutputDisplayData,
           options,
+          cell.metadata,
         ));
         // if this isn't an image and we have a caption, place it at the bottom of the div
         if (caption && !isImage(output, options)) {
@@ -549,6 +562,7 @@ function mdOutputDisplayData(
   filename: string,
   output: JupyterOutputDisplayData,
   options: JupyterToMarkdownOptions,
+  figureOptions: JupyterOutputFigureOptions,
 ) {
   const mimeType = displayDataMimeType(output, options);
   if (mimeType) {
@@ -558,11 +572,9 @@ function mdOutputDisplayData(
         caption,
         filename,
         mimeType,
-        options.assets,
-        output.data[mimeType] as string[],
-        output.metadata[mimeType],
-        options.figFormat,
-        options.figDpi,
+        output,
+        options,
+        figureOptions,
       );
     } else if (displayDataIsMarkdown(mimeType)) {
       return mdMarkdownOutput(output.data[mimeType] as string[]);
@@ -592,12 +604,14 @@ function mdImageOutput(
   caption: string | null,
   filename: string,
   mimeType: string,
-  assets: JupyterAssets,
-  data: unknown,
-  metadata?: Record<string, unknown>,
-  figFormat?: string,
-  figDpi?: number,
+  output: JupyterOutputDisplayData,
+  options: JupyterToMarkdownOptions,
+  figureOptions: JupyterOutputFigureOptions,
 ) {
+  // alias output properties
+  const data = output.data[mimeType] as string[];
+  const metadata = output.metadata[mimeType];
+
   // attributes (e.g. width/height/alt)
   function metadataValue<T>(key: string, defaultValue: T) {
     return metadata && metadata[key] ? metadata["key"] as T : defaultValue;
@@ -608,7 +622,7 @@ function mdImageOutput(
 
   // calculate output file name
   const ext = extensionForMimeImageType(mimeType);
-  const imageFile = join(assets.figures_dir, filename + "." + ext);
+  const imageFile = join(options.assets.figures_dir, filename + "." + ext);
 
   // get the data
   const imageText = Array.isArray(data)
@@ -616,14 +630,18 @@ function mdImageOutput(
     : data as string;
 
   // base64 decode if it's not svg
-  const outputFile = join(assets.base_dir, imageFile);
+  const outputFile = join(options.assets.base_dir, imageFile);
   if (mimeType !== kImageSvg) {
     const imageData = base64decode(imageText);
 
     // if we are in retina mode, then derive width and height from the image
-    if (mimeType === kImagePng && figFormat === "retina" && figDpi) {
+    if (
+      mimeType === kImagePng && options.figFormat === "retina" && options.figDpi
+    ) {
       const png = new PngImage(imageData);
-      if (png.dpiX === (figDpi * 2) && png.dpiY === (figDpi * 2)) {
+      if (
+        png.dpiX === (options.figDpi * 2) && png.dpiY === (options.figDpi * 2)
+      ) {
         width = Math.round(png.width / 2);
         height = Math.round(png.height / 2);
       }
@@ -648,6 +666,12 @@ function mdImageOutput(
     }
     image = image.trimRight() + "}";
   }
+
+  // surround with link if we have one
+  if (figureOptions[kCellFigLink]) {
+    image = `[${image}](${figureOptions[kCellFigLink]})`;
+  }
+
   return mdMarkdownOutput([image]);
 }
 
