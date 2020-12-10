@@ -70,13 +70,13 @@ function layoutFigures()
           
           figureDiv.content:insert(pandoc.RawBlock("html", "<figure>"))
           tappend(figureDiv.content, tslice(el.content, 1, #el.content-1))
-          local captionInlines = figureDivCaption(el).content
-          if #captionInlines > 0 then
+          local caption = figureDivCaption(el)
+          if caption and #caption.content > 0 then
             local figureCaption = pandoc.Para({})
             figureCaption.content:insert(pandoc.RawInline(
               "html", "<figcaption aria-hidden=\"true\">"
             ))
-            tappend(figureCaption.content, captionInlines) 
+            tappend(figureCaption.content, caption.content) 
             figureCaption.content:insert(pandoc.RawInline("html", "</figcaption>"))
             figureDiv.content:insert(figureCaption)
           end
