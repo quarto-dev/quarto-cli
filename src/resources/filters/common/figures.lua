@@ -85,7 +85,7 @@ function preprocessParaFigure(el, parentId, captionRequired, labelRequired)
   if linkedFig and isFigureImage(linkedFig, captionRequired, labelRequired) then
     
     -- create figure div
-    return createFigureDiv(el, linkedFig, parentId)
+    return createLinkedFigureDiv(el, linkedFig, parentId)
     
   end
   
@@ -94,16 +94,20 @@ function preprocessParaFigure(el, parentId, captionRequired, labelRequired)
   
 end
 
-function createFigureDiv(el, linkedFig, parentId)
-  -- create figure-div and transfer caption
-  local figureDiv = pandoc.Div(pandoc.Para(el.content))
+function createLinkedFigureDiv(el, linkedFig, parentId)
+  
+  -- create figure-div and transfer caption. add the <!-- --> to prevent  
+  -- this from ever being recognized in the AST as a linked figure
+  local figureContent = el.content:clone()
+  figureContent:insert(pandoc.RawInline("markdown", "<!-- -->"))
+  local figureDiv = pandoc.Div(pandoc.Para(figureContent))
   local caption = linkedFig.caption:clone()
   figureDiv.content:insert(pandoc.Para(caption))
   linkedFig.caption = {}
   
   -- make sure we have an identifier
   if linkedFig.attr.identifier == "" then
-    linkedFig.attr.identifier = randomFigId()
+    linkedFig.attr.identifier = anonymousFigId()
   end
   
   -- if we have a parent, then transfer all attributes (as it's a subfigure)
@@ -144,8 +148,8 @@ function isFigAttribute(name)
   return string.find(name, "^fig%.")
 end
 
-function randomFigId()
-  return "fig:id-" .. tostring(math.random(10000000))
+function anonymousFigId()
+  return "fig:anonymous-" .. tostring(math.random(10000000))
 end
 
 function alignAttribute(el, default)
@@ -200,7 +204,7 @@ function qualifyFigureDiv(el, captionRequired)
     local attribs = { kFigNrow, kFigNcol, kFigLayout }
     for _,name in ipairs(attribs) do
       if el.attr.attributes[name] then
-        el.attr.identifier = randomFigId()
+        el.attr.identifier = anonymousFigId()
         return true
       end
     end

@@ -664,6 +664,9 @@ function mdImageOutput(
     if (height) {
       image += `height=${height} `;
     }
+    if (figureOptions[kCellFigAlign]) {
+      image += `fig.align='${figureOptions[kCellFigAlign]}' `;
+    }
     image = image.trimRight() + "}";
   }
 

@@ -58,8 +58,15 @@ knitr_hooks <- function(format) {
     # determine label and caption output
     label <- output_label(options)
     fig.cap = options[["fig.cap"]]
-    labelOutput = ifelse(!is.null(label), paste0(labelId(label), " "), "")
-  
+    fig.subcap = options[["fig.subcap"]]
+    if (is_figure_label(label) && !is.null(fig.cap) && !is.null(fig.subcap)) {
+      label <- paste0(labelId(label), " ")
+      fig.cap <- paste0("\n", fig.cap, "\n")
+    } else {
+      label = NULL
+      fig.cap = NULL
+    }
+
     # synthesize fig.layout if we have fig.sep
     fig.sep <- options[["fig.sep"]]
     if (!is.null(fig.sep)) {
@@ -109,8 +116,7 @@ knitr_hooks <- function(format) {
     }
     
     # return cell
-    capOutput = ifelse(!is.null(fig.cap), paste0("\n", fig.cap, "\n"), "")
-    paste0("::: {", labelOutput ,".cell .cell-code", forwardAttr, "}\n", x, "\n", capOutput ,":::")
+    paste0("::: {", labelId(label) ,".cell .cell-code", forwardAttr, "}\n", x, "\n", fig.cap ,":::")
   })
   knit_hooks$source <- function(x, options) {
     x <- knitr:::one_string(c('', x))
@@ -173,6 +179,7 @@ knitr_plot_hook <- function(default_plot_hook) {
       c(
         sprintf('width=%s', options[['out.width']]),
         sprintf('height=%s', options[['out.height']]),
+        sprintf("fig.align='%s'", options[['fig.align']]),
         options[['out.extra']]
       ),
       collapse = ' '
@@ -183,7 +190,7 @@ knitr_plot_hook <- function(default_plot_hook) {
 
     # create attributes if we have them
     if (nzchar(attr)) {
-      attr <- paste0("{", attr, "}")
+      attr <- paste0("{", trimws(attr), "}")
     }
 
     # generate markdown for image

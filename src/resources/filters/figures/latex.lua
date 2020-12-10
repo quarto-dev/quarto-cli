@@ -50,7 +50,7 @@ function latexFigureDiv(divEl, subfigures)
         -- build caption
         if inlinesToString(caption) ~= "" then
           caption:insert(1, pandoc.RawInline("latex", "\\caption{"))
-          if image.attr.identifier ~= "" then
+          if isReferenceable(image) then
             caption:insert(pandoc.RawInline("latex", "\\label{" .. image.attr.identifier .. "}"))
           end
           caption:insert(pandoc.RawInline("latex", "}"))
@@ -99,22 +99,24 @@ function latexFigureDiv(divEl, subfigures)
   else
     tappend(figure.content, tslice(divEl.content, 1, #divEl.content - 1))
   end
+
+  -- surround caption w/ appropriate latex (and end the figure)
+  local caption = figureDivCaption(divEl)
+  if caption and #caption.content > 0 then
+    if isReferenceable(divEl) then
+      caption.content:insert(1, pandoc.RawInline("latex", "\\caption{"))
+      tappend(caption.content, {
+        pandoc.RawInline("latex", "}\\label{" .. divEl.attr.identifier .. "}\n"),
+      })
+    end
+    figure.content:insert(caption)
+  end
   
   -- end alignment
   if align then
     figure.content:insert(pandoc.RawBlock("latex", latexEndAlign(align)))
   end
-  
-  -- surround caption w/ appropriate latex (and end the figure)
-  local caption = figureDivCaption(divEl)
-  if caption and #caption.content > 0 then
-    caption.content:insert(1, pandoc.RawInline("latex", "\\caption{"))
-    tappend(caption.content, {
-      pandoc.RawInline("latex", "}\\label{" .. divEl.attr.identifier .. "}\n"),
-    })
-    figure.content:insert(caption)
-  end
-  
+ 
   -- end figure
   figure.content:insert(pandoc.RawBlock("latex", "\\end{" .. figEnv .. "}"))
   
@@ -123,6 +125,11 @@ function latexFigureDiv(divEl, subfigures)
   
 end
 
+
+function isReferenceable(figEl)
+  return figEl.attr.identifier ~= "" and 
+         not string.find(figEl.attr.identifier, "^fig:anonymous-")
+end
 
 function latexBeginAlign(align, spacing)
   if not spacing then
@@ -149,14 +156,5 @@ function latexEndAlign(align, spacing)
   end
   return endAlign .. "\n"
 end
-
-
--- align1 = if (plot1)
---    switch(a, left = '\n\n', center = '\n\n{\\centering ', right = '\n\n\\hfill{}', '\n')
---  # close align code if this picture is standalone/last in set
---  align2 = if (plot2)
---    switch(a, left = '\\hfill{}\n\n', center = '\n\n}\n\n', right = '\n\n', '')
-
-
 
 

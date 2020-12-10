@@ -78,7 +78,7 @@ function layoutSubfigures(divEl)
           pandoc.Para({pandoc.Str(" ")}),
           pandoc.Para({})
         }, pandoc.Attr(
-          randomFigId(), 
+          anonymousFigId(), 
           { "quarto-figure-spacer" }, 
           { width = text.sub(width, 2, #width) }
         ))
