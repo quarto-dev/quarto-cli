@@ -1,12 +1,6 @@
 -- html.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
--- todo: be more clear about how no percentage based layout works
--- for figure panels
-
--- todo: consider whether we should apply alignment to the entire panel
-
--- todo: consider native docx tables for office output
 
 function htmlPanel(divEl, subfigures)
   
@@ -20,8 +14,8 @@ function htmlPanel(divEl, subfigures)
   panel.content:insert(pandoc.RawBlock("html", "<figure>"))
   
   -- collect alignment
-  local align = attribute(divEl, "fig-align", nil)
-  divEl.attr.attributes["fig-align"] = nil
+  local align = alignAttribute(divEl)
+  divEl.attr.attributes[kFigAlign] = nil
 
   -- subfigures
   local subfiguresEl = pandoc.Para({})
@@ -48,6 +42,9 @@ function htmlPanel(divEl, subfigures)
       if height then
         figureDivStyle = figureDivStyle .. "height: " .. height .. ";"
         image.attr.attributes["height"] = nil
+      end
+      if align then
+        figureDivStyle = figureDivStyle .. "text-align: " .. align .. ";"
       end
       if string.len(figureDivStyle) > 0 then
         figureDiv.attr.attributes["style"] = figureDivStyle

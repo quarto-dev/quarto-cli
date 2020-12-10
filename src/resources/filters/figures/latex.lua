@@ -7,13 +7,13 @@ function latexFigureDiv(divEl, subfigures)
   local figure = pandoc.Div({})
   
   -- begin the figure
-  local figEnv = attribute(divEl, "fig-env", "figure")
+  local figEnv = attribute(divEl, kFigEnv, "figure")
   figure.content:insert(pandoc.RawBlock("latex", "\\begin{" .. figEnv .. "}"))
   
   -- alignment
-  local align = attribute(divEl, "fig-align", nil)
+  local align = attribute(divEl, kFigAlign, nil)
   if align then
-    figure.content:insert(latexBeginAlign(align))
+    figure.content:insert(pandoc.RawBlock("latex", latexBeginAlign(align)))
   end
   
   -- subfigures
@@ -57,6 +57,9 @@ function latexFigureDiv(divEl, subfigures)
         end
         image.attr.identifier = ""
         
+        -- begin align
+        subfiguresEl.content:insert(pandoc.RawInline("latex", latexBeginAlign(align, "  ")))
+        
         -- insert content
         subfiguresEl.content:insert(pandoc.RawInline("latex", "\n  "))
         if image.t == "Div" then
@@ -76,6 +79,9 @@ function latexFigureDiv(divEl, subfigures)
           tappend(subfiguresEl.content, caption)
           subfiguresEl.content:insert(pandoc.RawInline("latex", "\n"))
         end
+        
+        -- end align
+        subfiguresEl.content:insert(pandoc.RawInline("latex", latexEndAlign(align, "  ")))
       
         -- end subfigure
         subfiguresEl.content:insert(pandoc.RawInline("latex", "\\end{subfigure}\n"))
@@ -96,7 +102,7 @@ function latexFigureDiv(divEl, subfigures)
   
   -- end alignment
   if align then
-    figure.content:insert(latexEndAlign(align))
+    figure.content:insert(pandoc.RawBlock("latex", latexEndAlign(align)))
   end
   
   -- surround caption w/ appropriate latex (and end the figure)
@@ -118,24 +124,30 @@ function latexFigureDiv(divEl, subfigures)
 end
 
 
-function latexBeginAlign(align)
-  local beginAlign = pandoc.RawBlock("latex", "\n")
+function latexBeginAlign(align, spacing)
+  if not spacing then
+    spacing = ""
+  end
+  local beginAlign = "\n" .. spacing
   if align == "center" then
-    beginAlign.text = "{\\centering"
+    beginAlign = beginAlign .. "{\\centering"
   elseif align == "right" then
-    beginAlign.text = "\\hfill{}"      
+    beginAlign = beginAlign .. "\\hfill{}"      
   end
   return beginAlign
 end
 
-function latexEndAlign(align)
-  local endAlign = pandoc.RawBlock("latex", "\n")
-  if align == "center" then
-    endAlign.text = "}"
-  elseif align == "left" then
-    endAlign.text = "\\hfill{}"
+function latexEndAlign(align, spacing)
+  if not spacing then
+    spacing = ""
   end
-  return endAlign
+  local endAlign = spacing
+  if align == "center" then
+    endAlign = endAlign .. "}"
+  elseif align == "left" then
+    endAlign = endAlign .. "\\hfill{}"
+  end
+  return endAlign .. "\n"
 end
 
 

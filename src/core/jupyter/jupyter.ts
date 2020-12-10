@@ -67,10 +67,10 @@ export const kCellLinesToNext = "lines_to_next_cell";
 export const kRawMimeType = "raw_mimetype";
 
 export const kCellLabel = "label";
-export const kCellFigCap = "fig-cap";
-export const kCellFigSubCap = "fig-subcap";
-export const kCellLstLabel = "lst-label";
-export const kCellLstCap = "lst-cap";
+export const kCellFigCap = "fig.cap";
+export const kCellFigSubCap = "fig.subcap";
+export const kCellLstLabel = "lst.label";
+export const kCellLstCap = "lst.cap";
 export const kCellClasses = "classes";
 export const kCellWidth = "width";
 export const kCellHeight = "height";
@@ -331,6 +331,7 @@ function mdFromCodeCell(
     kCellName,
     kCellLabel,
     kCellFigCap,
+    kCellFigSubCap,
     kCellClasses,
     kCellWidth,
     kCellHeight,
@@ -464,8 +465,7 @@ function mdFromCodeCell(
         md.push(mdOutputError(output as JupyterOutputError));
       } else if (isDisplayData(output)) {
         const caption = isCaptionableData(output)
-          ? outputCaptions.shift() ||
-            (isFigureLabel(outputLabel) ? "(Untitled)" : null)
+          ? (outputCaptions.shift() || null)
           : null;
         md.push(mdOutputDisplayData(
           outputLabel,

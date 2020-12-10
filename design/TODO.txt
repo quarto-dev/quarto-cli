@@ -2,28 +2,16 @@
 
 TODO:
 
-
-- role of fig:foo in whether to generate sub-caption
-- consider whether we should be using phantomcaption
-
-- empty figure rows (e.g. nothing valid before hr) need to get purged
-- consider supporting multiple images in a paragraph as "figures"
-
-- allow fig-rows (computes fig-cols), pad with nil for both
-
-- spacer concept for layouts (NULL, nil or for markdown <!-- spacer --> )
-- consider using relative integers instead of percents (flexbox style)
-- fig.layout automatically repeats if you just specify a single row
+- Rmd:
+   - Create a fig.layout from a combination of fig.sep and out.width
 
 - Compute actual page width for custom reference.docx
+- ODT tables?
+
+- fig-link, fig-align
+- Audit the knitr options again and see how we are doing
 
 
-
-Figure layout:
-
-   - https://patchwork.data-imaginist.com/articles/patchwork.html#controlling-layout-1
-   - https://wilkelab.org/cowplot/articles/plot_grid.html
-   - https://www.littlemissdata.com/blog/patchwork
 
 
 - Implement latex environment divs: https://bookdown.org/yihui/rmarkdown-cookbook/custom-blocks.html

@@ -1,6 +1,13 @@
 -- figures.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
+-- constants for figure attributes
+kFigAlign = "fig.align"
+kFigEnv = "fig.env"
+kFigNcol = "fig.ncol"
+kFigNrow = "fig.nrow"
+kFigLayout = "fig.layout"
+
 -- filter which tags subfigures with their parent identifier and also 
 -- converts linked image figures into figure divs. we do this in a separate 
 -- pass b/c normal filters go depth first so we can't actually
@@ -14,7 +21,8 @@ function preprocessFigures(strict)
         
         return {
           Div = function(el)
-            if isFigureDiv(el, strict) then
+            if qualifyFigureDiv(el, strict) then
+              
               if parentId ~= nil then
                 el.attr.attributes["figure-parent"] = parentId
               else
@@ -38,7 +46,7 @@ function preprocessFigures(strict)
       -- walk all blocks in the document
       for i,el in pairs(doc.blocks) do
         local parentId = nil
-        if isFigureDiv(el, strict) then
+        if qualifyFigureDiv(el, strict) then
           parentId = el.attr.identifier
           -- provide default caption if need be
           if figureDivCaption(el) == nil then
@@ -112,15 +120,15 @@ function createFigureDiv(el, linkedFig, parentId)
     end
     figureDiv.attr.attributes["figure-parent"] = parentId
     
-  -- otherwise just transfer id and any fig- prefixed attribs
+  -- otherwise just transfer id and any fig. prefixed attribs
   else
     -- transfer identifier
     figureDiv.attr.identifier = linkedFig.attr.identifier
     linkedFig.attr.identifier = ""
     
-    -- transfer fig- attributes
+    -- transfer fig. attributes
     for k,v in pairs(linkedFig.attr.attributes) do
-      if string.find(k, "^fig%-") then
+      if isFigAttribute(k) then
         figureDiv.attr.attributes[k] = v
         linkedFig.attr.attributes[k] = nil
       end
@@ -132,8 +140,20 @@ function createFigureDiv(el, linkedFig, parentId)
   
 end
 
+function isFigAttribute(name)
+  return string.find(name, "^fig%.")
+end
+
 function randomFigId()
   return "fig:id-" .. tostring(math.random(10000000))
+end
+
+function alignAttribute(el, default)
+  local align = attribute(el, kFigAlign, nil)
+  if align == "default" then
+    align = default
+  end
+  return align
 end
 
 -- is this element a subfigure
@@ -156,6 +176,38 @@ function isFigureDiv(el, captionRequired)
   else
     return false
   end
+end
+
+function qualifyFigureDiv(el, captionRequired)
+
+  -- must be a div
+  if el.t ~= "Div" then
+    return false
+  end
+  
+  -- check for caption if we need to
+  if captionRequired and figureDivCaption(el) == nil then
+    return false
+  end
+  
+  -- check for label
+  if hasFigureLabel(el) then
+    
+    return true
+    
+  -- check for figure layout attributes (synthesize an id in that case)
+  else 
+    local attribs = { kFigNrow, kFigNcol, kFigLayout }
+    for _,name in ipairs(attribs) do
+      if el.attr.attributes[name] then
+        el.attr.identifier = randomFigId()
+        return true
+      end
+    end
+  end
+  
+  return false
+  
 end
 
 -- is this an image containing a figure

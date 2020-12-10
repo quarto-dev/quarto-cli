@@ -26,6 +26,7 @@ import("table.lua")
 import("table-docx.lua")
 import("../common/json.lua")
 import("../common/pandoc.lua")
+import("../common/format.lua")
 import("../common/figures.lua")
 import("../common/meta.lua")
 import("../common/table.lua")
@@ -60,8 +61,8 @@ function layoutFigures()
           -- apply standalone figure css if we are not a subfigure
           if not isSubfigure(figureDiv) then
             figureDiv.attr.classes:insert("quarto-figure")
-            local align = attribute(figureDiv, "fig-align", nil)
-            figureDiv.attr.attributes["fig-align"] = nil
+            local align = alignAttribute(figureDiv)
+            figureDiv.attr.attributes[kFigAlign] = nil
             if align then
               appendStyle(figureDiv, "text-align: " .. align .. ";")
             end

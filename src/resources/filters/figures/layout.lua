@@ -4,14 +4,15 @@
  
 function layoutSubfigures(divEl)
    
+
   -- There are various ways to specify figure layout:
   --
   --  1) Directly in markup using explicit widths and <hr> to 
   --     delimit rows
-  --  2) By specifying fig-cols. In this case widths can be explicit 
+  --  2) By specifying fig.ncol or fig.nrow. In this case widths can be explicit 
   --     and/or automatically distributed (% widths required for 
   --     mixing explicit and automatic widths)
-  --  3) By specifying fig-layout (nested arrays defining explicit
+  --  3) By specifying fig.layout (nested arrays defining explicit
   --     rows and figure widths)
   --
   
@@ -25,12 +26,12 @@ function layoutSubfigures(divEl)
   local layout = pandoc.List:new()
 
   -- note any figure layout attributes
-  local figRows = tonumber(attribute(divEl, "fig-rows", nil))
-  local figCols = tonumber(attribute(divEl, "fig-cols", nil))
-  local figLayout = attribute(divEl, "fig-layout", nil)
+  local figRows = tonumber(attribute(divEl, kFigNrow, nil))
+  local figCols = tonumber(attribute(divEl, kFigNcol, nil))
+  local figLayout = attribute(divEl, kFigLayout, nil)
   
   -- if there is figRows but no figCols then compute figCols
-  if not figCols and figRows then
+  if not figCols and figRows ~= nil then
     figCols = math.ceil(#subfigures / figRows)
   end
   
@@ -49,7 +50,7 @@ function layoutSubfigures(divEl)
     -- allocate remaining space
     layoutWidths(layout)
     
-  -- check for fig-cols
+  -- check for fig.ncol
   elseif figCols ~= nil then
     for i,fig in ipairs(subfigures) do
       if math.fmod(i-1, figCols) == 0 then
@@ -57,10 +58,13 @@ function layoutSubfigures(divEl)
       end
       layout[#layout]:insert(fig)
     end
+    -- convert width units to percentages
+    widthsToPercent(layout, figCols)
+    
     -- allocate remaining space
     layoutWidths(layout, figCols)
     
-  -- check for fig-layout
+  -- check for fig.layout
   elseif figLayout ~= nil then
     -- parse the layout
     figLayout = parseFigLayout(figLayout, #subfigures)
@@ -114,11 +118,13 @@ function layoutSubfigures(divEl)
       return row:map(function(fig)
         local percentWidth = widthToPercent(attribute(fig, "width", nil))
         if percentWidth then
-          fig.attr.attributes["width"] = tostring(math.floor(percentWidth * 0.96)) .. "%"
+          percentWidth = round(percentWidth * 0.96,1)
+          fig.attr.attributes["width"] = tostring(percentWidth) .. "%"
         end
         return fig
       end)
-      
+    else
+      return row
     end
   end)  
 
@@ -155,7 +161,7 @@ function collectSubfigures(divEl)
 end
 
 
--- parse a fig-layout specification
+-- parse a fig.layout specification
 function parseFigLayout(figLayout, figureCount)
   
   -- parse json
@@ -195,9 +201,9 @@ function parseFigLayout(figLayout, figureCount)
       figureLayoutCount = figureLayoutCount + 1
       if type(width) == "number" then
         if numericTotal ~= nil then
-          width = math.floor((width / numericTotal) * 100)
+          width = round((width / numericTotal) * 100, 2)
         elseif width <= 1 then
-          width = math.floor(width * 100)
+          width = round(width * 100, 2)
         end
         width = tostring(width) .. "%"
       end
@@ -228,6 +234,50 @@ end
 function isSpacerWidth(width)
   return text.sub(width, 1, 1) == "-"
 end
+
+
+-- convert widths to percentages
+function widthsToPercent(layout, cols)
+  
+  -- for each row
+  for _,row in ipairs(layout) do
+    
+    -- determine numeric widths (and their total) for the row
+    local widths = pandoc.List:new()
+    for _,fig in ipairs(row) do
+      widths[#widths+1] = 0
+      local width = attribute(fig, "width", nil)
+      if width then
+        width = tonumber(string.match(width, "^(-?[%d%.]+)"))
+        if width then
+          widths[#widths] = width
+        end
+      end
+    end
+    
+    -- create virtual fig widths as needed and note the total width
+    local defaultWidth = widths:find_if(function(width) return width > 0 end)
+    if defaultWidth == nil then
+      defaultWidth = 100 -- this value is arbitrary
+    end
+    local totalWidth = 0
+    for i=1,cols do
+      if (i > #widths) or widths[i] == 0 then
+        widths[i] = defaultWidth
+      end
+      totalWidth = totalWidth + widths[i]
+    end
+    -- allocate widths
+    for i,fig in ipairs(row) do
+      local width = round((widths[i]/totalWidth) * 100, 1)
+      fig.attr.attributes["width"] = 
+         tostring(width) .. "%"
+      fig.attr.attributes["height"] = nil
+    end
+    
+  end
+end
+
 
 -- interpolate any missing widths
 function layoutWidths(figLayout, cols)
@@ -292,7 +342,7 @@ end
 
 function widthToPercent(width)
   if width then
-    local percent = string.match(width, "^(%d+)%%$")
+    local percent = string.match(width, "^([%d%.]+)%%$")
     if percent then
       return tonumber(percent)
     end
