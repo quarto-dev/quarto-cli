@@ -4,6 +4,7 @@
 -- constants for figure attributes
 kFigAlign = "fig.align"
 kFigEnv = "fig.env"
+kFigPos = "fig.pos"
 kFigNcol = "fig.ncol"
 kFigNrow = "fig.nrow"
 kFigLayout = "fig.layout"

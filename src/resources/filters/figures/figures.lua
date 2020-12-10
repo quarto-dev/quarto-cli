@@ -89,6 +89,15 @@ function layoutFigures()
           return latexFigureDiv(el)
         end
       end
+    end,
+    
+    Para = function(el)
+      local image = figureFromPara(el, false)
+      if image and not isSubfigure(image) then
+        if isLatexOutput() then
+          return latexFigurePara(image)
+        end
+      end
     end
   }
 end

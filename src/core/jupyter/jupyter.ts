@@ -72,6 +72,8 @@ export const kCellFigCap = "fig.cap";
 export const kCellFigSubCap = "fig.subcap";
 export const kCellFigLink = "fig.link";
 export const kCellFigAlign = "fig.align";
+export const kCellFigEnv = "fig.env";
+export const kCellFigPos = "fig.pos";
 export const kCellLstLabel = "lst.label";
 export const kCellLstCap = "lst.cap";
 export const kCellClasses = "classes";
@@ -108,6 +110,8 @@ export interface JupyterCell {
     [kCellFigSubCap]?: string[];
     [kCellFigLink]?: string;
     [kCellFigAlign]?: string;
+    [kCellFigEnv]?: string;
+    [kCellFigPos]?: string;
     [kCellLstLabel]?: string;
     [kCellLstCap]?: string;
     [kCellClasses]?: string;
@@ -138,6 +142,8 @@ export interface JupyterOutputDisplayData extends JupyterOutput {
 export interface JupyterOutputFigureOptions {
   [kCellFigLink]?: string;
   [kCellFigAlign]?: string;
+  [kCellFigEnv]?: string;
+  [kCellFigPos]?: string;
 }
 
 export interface JupyterOutputExecuteResult extends JupyterOutputDisplayData {
@@ -344,6 +350,8 @@ function mdFromCodeCell(
     kCellFigSubCap,
     kCellFigLink,
     kCellFigAlign,
+    kCellFigEnv,
+    kCellFigPos,
     kCellClasses,
     kCellWidth,
     kCellHeight,
@@ -470,6 +478,26 @@ function mdFromCodeCell(
 
       md.push("}\n");
 
+      // broadcast figure options
+      const figureOptions: JupyterOutputFigureOptions = {};
+      const broadcastFigureOption = (
+        name: "fig.link" | "fig.env" | "fig.pos",
+      ) => {
+        const value = cell.metadata[name];
+        if (value) {
+          if (Array.isArray(value)) {
+            return value[index];
+          } else {
+            return value;
+          }
+        } else {
+          return null;
+        }
+      };
+      figureOptions[kCellFigLink] = broadcastFigureOption(kCellFigLink);
+      figureOptions[kCellFigEnv] = broadcastFigureOption(kCellFigEnv);
+      figureOptions[kCellFigPos] = broadcastFigureOption(kCellFigPos);
+
       // produce output
       if (output.output_type === "stream") {
         md.push(mdOutputStream(output as JupyterOutputStream));
@@ -485,7 +513,7 @@ function mdFromCodeCell(
           outputName + "-" + (index + 1),
           output as JupyterOutputDisplayData,
           options,
-          cell.metadata,
+          figureOptions,
         ));
         // if this isn't an image and we have a caption, place it at the bottom of the div
         if (caption && !isImage(output, options)) {
@@ -664,9 +692,14 @@ function mdImageOutput(
     if (height) {
       image += `height=${height} `;
     }
-    if (figureOptions[kCellFigAlign]) {
-      image += `fig.align='${figureOptions[kCellFigAlign]}' `;
-    }
+    [kCellFigAlign, kCellFigEnv, kCellFigPos].forEach((attrib) => {
+      // deno-lint-ignore no-explicit-any
+      const value = (figureOptions as any)[attrib];
+      if (value) {
+        image += `${attrib}='${value}' `;
+      }
+    });
+
     image = image.trimRight() + "}";
   }
 

@@ -104,10 +104,17 @@ knitr_hooks <- function(format) {
     for (attr in forward) {
       value = options[[attr]]
       if (!is.null(value)) {
+        if (identical(attr, "fig.align")) {
+          if (identical(value, "default")) {
+            value <- NULL
+          }
+        }
         if (identical(attr, "fig.layout")) {
           value = jsonlite::toJSON(value)
         }
-        forwardAttr <- c(forwardAttr, sprintf("%s='%s'", attr, value))
+        if (!is.null(value)) {
+          forwardAttr <- c(forwardAttr, sprintf("%s='%s'", attr, value))
+        }
       }
     }
     forwardAttr <- paste(forwardAttr, collapse = " ")
@@ -174,12 +181,27 @@ knitr_plot_hook <- function(default_plot_hook) {
     # code can deal directly with percentages
     options <- latex_sizes_to_percent(options)
 
+    # check for optional figure attributes
+    keyvalue <- c()
+    fig.align <- options[['fig.align']]
+    if (!identical(fig.align, "default")) {
+      keyvalue <- c(keyvalue, sprintf("fig.align='%s'", fig.align))
+    }
+    fig.env <- options[['fig.env']]
+    if (!identical(fig.env, "figure")) {
+      keyvalue <- c(keyvalue, sprintf("fig.env='%s'", fig.env))
+    }
+    fig.pos <- options[['fig.pos']]
+    if (nzchar(fig.pos)) {
+      keyvalue <- c(keyvalue, sprintf("fig.pos='%s'", fig.pos))
+    }
+    
     # add keyvalue
     keyvalue <- paste(
       c(
+        keyvalue,
         sprintf('width=%s', options[['out.width']]),
         sprintf('height=%s', options[['out.height']]),
-        sprintf("fig.align='%s'", options[['fig.align']]),
         options[['out.extra']]
       ),
       collapse = ' '
