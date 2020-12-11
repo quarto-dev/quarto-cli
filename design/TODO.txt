@@ -2,17 +2,36 @@
 
 TODO:
 
-- Rmd:
-   - Create a fig.layout from a combination of fig.sep and out.width
+- Is there a per subcaption option for including in listings?
 
-- Compute actual page width for custom reference.docx
-- ODT tables?
+- Consider default alignment for figures of "center"
+    
+    fig-width: 8
+    fig-align: "center"
+    
+    figures:
+      fig-align: "default"
+      subcaption-list: true
 
-- fig-link, fig-align
+
+- animations
+
+- tikz
+
+
 - Audit the knitr options again and see how we are doing
 
+- investigate agggregate figures (embedded tables, etc.)
 
+- What to do about the code chunk(s) that are dropped in a figure panel
+  (perhaps just hoist the up before the div and force fig.hold for panels?)
 
+- Compute actual page width for custom reference.docx
+- Consider page-width for panels to force a width
+
+- ODT tables? RTF tables? (table "row" separator and custom caption centering)
+
+- Ability to turn figures filter off? figures: false, crossref: false, tinytex: false, citeproc: false
 
 - Implement latex environment divs: https://bookdown.org/yihui/rmarkdown-cookbook/custom-blocks.html
 
@@ -35,11 +54,6 @@ ft
 - Injected HTML in meta.lua gets overridden whenever we use include-in-header in the
 defaults file (e.g. for  htmlwidgets). Use temp file?
 
-- Figures filter:
-    - Forwarding of fig chunk options to data attributes (and HTML/LaTeX generation)
-    - figures filter should run after the crossref filter, and
-      should be responsible for converting e.g. htmlwidgets
-      marked as figures to <figure>
 
 - Consider multiple tables in single environment? 
   https://www.overleaf.com/learn/latex/How_to_Write_a_Thesis_in_LaTeX_(Part_3):_Figures,_Subfigures_and_Tables#Subtables
