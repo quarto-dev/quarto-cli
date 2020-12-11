@@ -196,7 +196,7 @@ knitr_plot_hook <- function(default_plot_hook) {
       keyvalue <- c(keyvalue, sprintf("fig.pos='%s'", fig.pos))
     }
     fig.scap <- options[['fig.scap']]
-    if (nzchar(fig.scap)) {
+    if (!is.null(fig.scap)) {
       keyvalue <- c(keyvalue, sprintf("fig.scap='%s'", fig.scap))
     }
     

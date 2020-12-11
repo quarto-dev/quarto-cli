@@ -13,7 +13,7 @@ function officeFigure(image)
   end
 
   -- get alignment
-  local align = alignAttribute(image, nil)
+  local align = alignAttribute(image)
   
   -- create the row/cell for the figure
   local row = pandoc.List:new()

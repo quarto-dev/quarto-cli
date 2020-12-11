@@ -18,6 +18,7 @@ function import(script)
   local path = PANDOC_SCRIPT_FILE:match("(.*" .. pathseparator .. ")")
   dofile(path .. safeScript)
 end
+import("options.lua")
 import("meta.lua")
 import("layout.lua")
 import("latex.lua")
@@ -29,6 +30,7 @@ import("../common/json.lua")
 import("../common/pandoc.lua")
 import("../common/format.lua")
 import("../common/figures.lua")
+import("../common/options.lua")
 import("../common/meta.lua")
 import("../common/table.lua")
 import("../common/debug.lua")
@@ -92,6 +94,7 @@ end
 
 -- chain of filters
 return {
+  initOptions(),
   preprocessFigures(false),
   layoutFigures(),
   metaInject()

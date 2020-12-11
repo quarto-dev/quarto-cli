@@ -164,8 +164,11 @@ function anonymousFigId()
   return "fig:anonymous-" .. tostring(math.random(10000000))
 end
 
-function alignAttribute(el, default)
-  local align = attribute(el, kFigAlign, nil)
+function alignAttribute(el)
+  local default = pandoc.utils.stringify(
+    option("align", pandoc.Str("center"))
+  )
+  local align = attribute(el, kFigAlign, default)
   if align == "default" then
     align = default
   end

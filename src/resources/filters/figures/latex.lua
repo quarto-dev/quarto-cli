@@ -12,9 +12,18 @@ function latexImageFigure(image)
     -- make a copy of the caption and clear it
     local caption = image.caption:clone()
     tclear(image.caption)
+    
+    -- get align
+    local align = alignAttribute(image)
    
     -- insert the figure without the caption
-    figure.content:insert(pandoc.Para({image, pandoc.RawInline("markdown", "<!-- -->")}))
+    local figurePara = pandoc.Para({
+      pandoc.RawInline("latex", latexBeginAlign(align)),
+      image,
+      pandoc.RawInline("latex", latexEndAlign(align)),
+      pandoc.RawInline("latex", "\n")
+    })
+    figure.content:insert(figurePara)
     
     -- return the caption inlines
     return caption
@@ -26,15 +35,16 @@ function latexDivFigure(divEl, subfigures)
   
   return renderLatexFigure(divEl, function(figure)
     
-    -- get alignment
-    local align = alignAttribute(divEl)
-    
     -- subfigures
     if subfigures then
       local subfiguresEl = pandoc.Para({})
       for i, row in ipairs(subfigures) do
         
         for _, image in ipairs(row) do
+          
+          -- get alignment
+          local align = alignAttribute(image)
+   
           
           -- begin subfigure
           subfiguresEl.content:insert(pandoc.RawInline("latex", "\\begin{subfigure}[b]"))
@@ -66,11 +76,9 @@ function latexDivFigure(divEl, subfigures)
           end
           image.attr.identifier = ""
           
-          -- begin align
-          subfiguresEl.content:insert(pandoc.RawInline("latex", latexBeginAlign(align, "  ")))
-          
           -- insert content
           subfiguresEl.content:insert(pandoc.RawInline("latex", "\n  "))
+          subfiguresEl.content:insert(pandoc.RawInline("latex", latexBeginAlign(align)))
           if image.t == "Div" then
             -- append the div, slicing off the caption block
             tappend(subfiguresEl.content, pandoc.utils.blocks_to_inlines(
@@ -80,6 +88,7 @@ function latexDivFigure(divEl, subfigures)
           else
             subfiguresEl.content:insert(image)
           end
+          subfiguresEl.content:insert(pandoc.RawInline("latex", latexEndAlign(align)))
           subfiguresEl.content:insert(pandoc.RawInline("latex", "\n"))
           
           -- insert caption
@@ -89,9 +98,6 @@ function latexDivFigure(divEl, subfigures)
             subfiguresEl.content:insert(pandoc.RawInline("latex", "\n"))
           end
           
-          -- end align
-          subfiguresEl.content:insert(pandoc.RawInline("latex", latexEndAlign(align, "  ")))
-        
           -- end subfigure
           subfiguresEl.content:insert(pandoc.RawInline("latex", "\\end{subfigure}\n"))
           
@@ -138,12 +144,6 @@ function renderLatexFigure(el, render)
   end
   figure.content:insert(pandoc.RawBlock("latex", beginEnv))
   
-  -- alignment
-  local align = attribute(el, kFigAlign, nil)
-  if align then
-    figure.content:insert(pandoc.RawBlock("latex", latexBeginAlign(align)))
-  end
-  
   -- fill in the body (returns the caption inlines)
   local captionInlines = render(figure)  
 
@@ -153,11 +153,6 @@ function renderLatexFigure(el, render)
     figure.content:insert(pandoc.Para(captionInlines))
   end
   
-  -- end alignment
-  if align then
-    figure.content:insert(pandoc.RawBlock("latex", latexEndAlign(align)))
-  end
- 
   -- end figure
   figure.content:insert(pandoc.RawBlock("latex", "\\end{" .. figEnv .. "}"))
   
@@ -197,30 +192,24 @@ function markupLatexCaption(el, caption)
 end
 
 
-function latexBeginAlign(align, spacing)
-  if not spacing then
-    spacing = ""
-  end
-  local beginAlign = "\n" .. spacing
+function latexBeginAlign(align)
   if align == "center" then
-    beginAlign = beginAlign .. "{\\centering"
+    return "{\\centering "
   elseif align == "right" then
-    beginAlign = beginAlign .. "\\hfill{}"      
+    return "\\hfill{} "      
+  else
+    return ""
   end
-  return beginAlign
 end
 
-function latexEndAlign(align, spacing)
-  if not spacing then
-    spacing = ""
-  end
-  local endAlign = spacing
+function latexEndAlign(align)
   if align == "center" then
-    endAlign = endAlign .. "}"
+    return "\n\n}"
   elseif align == "left" then
-    endAlign = endAlign .. "\\hfill{}"
+    return " \\hfill{}"
+  else
+    return ""
   end
-  return endAlign .. "\n"
 end
 
 
