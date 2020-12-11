@@ -70,6 +70,7 @@ export const kRawMimeType = "raw_mimetype";
 export const kCellLabel = "label";
 export const kCellFigCap = "fig.cap";
 export const kCellFigSubCap = "fig.subcap";
+export const kCellFigScap = "fig.scap";
 export const kCellFigLink = "fig.link";
 export const kCellFigAlign = "fig.align";
 export const kCellFigEnv = "fig.env";
@@ -108,10 +109,11 @@ export interface JupyterCell {
     [kCellLabel]?: string;
     [kCellFigCap]?: string | string[];
     [kCellFigSubCap]?: string[];
+    [kCellFigScap]?: string;
     [kCellFigLink]?: string;
-    [kCellFigAlign]?: string;
     [kCellFigEnv]?: string;
     [kCellFigPos]?: string;
+    [kCellFigAlign]?: string;
     [kCellLstLabel]?: string;
     [kCellLstCap]?: string;
     [kCellClasses]?: string;
@@ -140,6 +142,7 @@ export interface JupyterOutputDisplayData extends JupyterOutput {
 }
 
 export interface JupyterOutputFigureOptions {
+  [kCellFigScap]?: string;
   [kCellFigLink]?: string;
   [kCellFigAlign]?: string;
   [kCellFigEnv]?: string;
@@ -348,6 +351,7 @@ function mdFromCodeCell(
     kCellLabel,
     kCellFigCap,
     kCellFigSubCap,
+    kCellFigScap,
     kCellFigLink,
     kCellFigAlign,
     kCellFigEnv,
@@ -481,7 +485,7 @@ function mdFromCodeCell(
       // broadcast figure options
       const figureOptions: JupyterOutputFigureOptions = {};
       const broadcastFigureOption = (
-        name: "fig.link" | "fig.env" | "fig.pos",
+        name: "fig.link" | "fig.env" | "fig.pos" | "fig.scap",
       ) => {
         const value = cell.metadata[name];
         if (value) {
@@ -494,6 +498,7 @@ function mdFromCodeCell(
           return null;
         }
       };
+      figureOptions[kCellFigScap] = broadcastFigureOption(kCellFigScap);
       figureOptions[kCellFigLink] = broadcastFigureOption(kCellFigLink);
       figureOptions[kCellFigEnv] = broadcastFigureOption(kCellFigEnv);
       figureOptions[kCellFigPos] = broadcastFigureOption(kCellFigPos);
@@ -692,13 +697,15 @@ function mdImageOutput(
     if (height) {
       image += `height=${height} `;
     }
-    [kCellFigAlign, kCellFigEnv, kCellFigPos].forEach((attrib) => {
-      // deno-lint-ignore no-explicit-any
-      const value = (figureOptions as any)[attrib];
-      if (value) {
-        image += `${attrib}='${value}' `;
-      }
-    });
+    [kCellFigAlign, kCellFigEnv, kCellFigPos, kCellFigScap].forEach(
+      (attrib) => {
+        // deno-lint-ignore no-explicit-any
+        const value = (figureOptions as any)[attrib];
+        if (value) {
+          image += `${attrib}='${value}' `;
+        }
+      },
+    );
 
     image = image.trimRight() + "}";
   }

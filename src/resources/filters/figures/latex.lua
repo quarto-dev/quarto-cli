@@ -26,6 +26,9 @@ function latexDivFigure(divEl, subfigures)
   
   return renderLatexFigure(divEl, function(figure)
     
+    -- get alignment
+    local align = alignAttribute(divEl)
+    
     -- subfigures
     if subfigures then
       local subfiguresEl = pandoc.Para({})
@@ -59,11 +62,7 @@ function latexDivFigure(divEl, subfigures)
           
           -- build caption
           if inlinesToString(caption) ~= "" then
-            caption:insert(1, pandoc.RawInline("latex", "\\caption{"))
-            if isReferenceable(image) then
-              caption:insert(pandoc.RawInline("latex", "\\label{" .. image.attr.identifier .. "}"))
-            end
-            caption:insert(pandoc.RawInline("latex", "}"))
+            markupLatexCaption(image, caption)
           end
           image.attr.identifier = ""
           
@@ -150,12 +149,7 @@ function renderLatexFigure(el, render)
 
   -- surround caption w/ appropriate latex (and end the figure)
   if captionInlines and #captionInlines > 0 then
-    if isReferenceable(el) then
-      captionInlines:insert(1, pandoc.RawInline("latex", "\\caption{"))
-      tappend(captionInlines, {
-        pandoc.RawInline("latex", "}\\label{" .. el.attr.identifier .. "}\n"),
-      })
-    end
+    markupLatexCaption(el, captionInlines)
     figure.content:insert(pandoc.Para(captionInlines))
   end
   
@@ -177,6 +171,31 @@ function isReferenceable(figEl)
   return figEl.attr.identifier ~= "" and 
          not string.find(figEl.attr.identifier, "^fig:anonymous-")
 end
+
+function markupLatexCaption(el, caption)
+  
+  -- caption prefix (includes \\caption macro + optional [subcap] + {)
+  local captionPrefix = pandoc.List:new({
+    pandoc.RawInline("latex", "\\caption")
+  })
+  local figScap = attribute(el, kFigScap, nil)
+  if figScap then
+    captionPrefix:insert(pandoc.RawInline("latex", "["))
+    tappend(captionPrefix, markdownToInlines(figScap))
+    captionPrefix:insert(pandoc.RawInline("latex", "]"))
+  end
+  captionPrefix:insert(pandoc.RawInline("latex", "{"))
+  tprepend(caption, captionPrefix)
+  
+  -- end the caption
+  caption:insert(pandoc.RawInline("latex", "}"))
+  
+  -- include a label if this is referenceable
+  if isReferenceable(el) then
+    caption:insert(pandoc.RawInline("latex", "\\label{" .. el.attr.identifier .. "}"))
+  end
+end
+
 
 function latexBeginAlign(align, spacing)
   if not spacing then

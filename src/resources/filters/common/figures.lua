@@ -5,6 +5,7 @@
 kFigAlign = "fig.align"
 kFigEnv = "fig.env"
 kFigPos = "fig.pos"
+kFigScap = "fig.scap"
 kFigNcol = "fig.ncol"
 kFigNrow = "fig.nrow"
 kFigLayout = "fig.layout"
