@@ -6,6 +6,7 @@ import { buildFilter } from "./package-filters.ts";
 import { bundle } from "./deno.ts";
 import { ensureDirExists } from "./utils.ts";
 import { makePackage } from "../macos/package.ts";
+import { makePackageLinux } from "../linux/package.ts";
 
 async function prepareDist(
   config: Configuration,
@@ -30,7 +31,10 @@ async function prepareDist(
   inlineFilters(config, log);
 
   // Build macos installer
-  makePackage(config, log);
+  await makePackage(config, log);
+
+  // Build deb
+  await makePackageLinux(config, log);
 }
 
 function supportingFiles(config: Configuration, log: Logger) {

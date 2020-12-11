@@ -47,10 +47,12 @@ export function configuration(): Configuration {
     identifier: "org.rstudio.quarto",
     name: `quarto-${version}-macos.pkg`,
     packageArgs: () => {
-      const scriptDir = join(pkg, "scripts", "macod", "pkg");
+      const scriptDir = join(pkg, "scripts", "macos", "pkg");
       return [
-        `--scripts ${scriptDir}`,
-        `--install-location \"/Library/Quarto\"`,
+        "--scripts",
+        scriptDir,
+        "--install-location",
+        '"/Library/Quarto"',
       ];
     },
   };
