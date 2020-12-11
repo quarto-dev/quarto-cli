@@ -36,7 +36,7 @@ export function configuration(): Configuration {
   const dist = join(pkg, getEnv("QUARTO_DIST_DIR"));
   const share = join(dist, getEnv("QUARTO_SHARE_DIR"));
   const src = join(root, "src");
-  const out = join(dist, "out");
+  const out = join(pkg, "out");
   const bin = join(dist, "bin");
 
   const version = "0.1";
@@ -45,7 +45,7 @@ export function configuration(): Configuration {
 
   const pkgConfig = {
     identifier: "org.rstudio.quarto",
-    name: `quarto-${version}.pkg`,
+    name: `quarto-${version}-macos.pkg`,
     packageArgs: () => {
       const scriptDir = join(pkg, "scripts", "macod", "pkg");
       return [
