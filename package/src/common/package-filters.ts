@@ -1,5 +1,4 @@
 import { dirname, join } from "https://deno.land/std/path/mod.ts";
-import { Configuration, configuration } from "./config.ts";
 import { Logger } from "./logger.ts";
 import { ensureDirExists } from "./utils.ts";
 
@@ -42,5 +41,7 @@ export function buildFilter(
   if (ensureDirExists(dir)) {
     log.info(`Created directory ${dir}`);
   }
+
+  log.info(`Writing inlined ${output}`);
   Deno.writeTextFileSync(output, src);
 }

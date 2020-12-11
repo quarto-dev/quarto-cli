@@ -1,5 +1,5 @@
 import { getEnv } from "./utils.ts";
-import { join } from "https://deno.land/std@0.79.0/path/mod.ts";
+import { join } from "https://deno.land/std/path/mod.ts";
 import { kInfo } from "./logger.ts";
 
 export interface Configuration {
@@ -13,7 +13,15 @@ export interface Configuration {
     bin: Directory;
     out: Directory;
   };
+  version: string;
   logLevel: 0 | 1 | 2;
+  pkgInfo: PkgInfo;
+}
+
+export interface PkgInfo {
+  name: string;
+  identifier: string;
+  packageArgs: () => string[];
 }
 
 export interface Directory {
@@ -40,7 +48,21 @@ export function configuration(): Configuration {
   const out = directory(dist.rel, "out");
   const bin = directory(dist.rel, "bin");
 
+  const version = "0.1";
+
   const importmap = join(src.abs, "import_map.json");
+
+  const pkgInfo = {
+    identifier: "org.rstudio.quarto",
+    name: `quarto-${version}.pkg`,
+    packageArgs: () => {
+      const scriptDir = join(pkg.abs, "scripts", "macod", "pkg");
+      return [
+        `--scripts ${scriptDir}`,
+        `--install-location \"/Library/Quarto\"`,
+      ];
+    },
+  };
 
   return {
     importmap,
@@ -53,6 +75,8 @@ export function configuration(): Configuration {
       bin,
       out,
     },
+    version,
     logLevel: kInfo,
+    pkgInfo,
   };
 }

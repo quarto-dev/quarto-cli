@@ -5,6 +5,7 @@ import { Logger, logger } from "./logger.ts";
 import { buildFilter } from "./package-filters.ts";
 import { bundle } from "./deno.ts";
 import { ensureDirExists } from "./utils.ts";
+import { makePackage } from "../macos/package.ts";
 
 async function prepareDist(
   config: Configuration,
@@ -27,6 +28,9 @@ async function prepareDist(
 
   // Inline the LUA Filters and move them into place
   inlineFilters(config, log);
+
+  // Build macos installer
+  makePackage(config, log);
 }
 
 function supportingFiles(config: Configuration, log: Logger) {
