@@ -1,66 +1,18 @@
 -- latex.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
-function latexFigure(el, process)
-  
-  -- create container
-  local figure = pandoc.Div({})
-  
-  -- begin the figure
-  local figEnv = attribute(el, kFigEnv, "figure")
-  local figPos = attribute(el, kFigPos, nil)
-  
-  local beginEnv = "\\begin{" .. figEnv .. "}"
-  if figPos then
-    if not string.find(figPos, "^%[{") then
-      figPos = "[" .. figPos .. "]"
-    end
-    beginEnv = beginEnv .. figPos
-  end
-  figure.content:insert(pandoc.RawBlock("latex", beginEnv))
-  
-  -- alignment
-  local align = attribute(el, kFigAlign, nil)
-  if align then
-    figure.content:insert(pandoc.RawBlock("latex", latexBeginAlign(align)))
-  end
-  
-  -- fill in the body (returns the caption inlines)
-  local captionInlines = process(figure)  
 
-  -- surround caption w/ appropriate latex (and end the figure)
-  if captionInlines and #captionInlines > 0 then
-    if isReferenceable(el) then
-      captionInlines:insert(1, pandoc.RawInline("latex", "\\caption{"))
-      tappend(captionInlines, {
-        pandoc.RawInline("latex", "}\\label{" .. el.attr.identifier .. "}\n"),
-      })
-    end
-    figure.content:insert(pandoc.Para(captionInlines))
-  end
-  
-  -- end alignment
-  if align then
-    figure.content:insert(pandoc.RawBlock("latex", latexEndAlign(align)))
-  end
- 
-  -- end figure
-  figure.content:insert(pandoc.RawBlock("latex", "\\end{" .. figEnv .. "}"))
-  
-  -- return the figure
-  return figure
-  
+function latexPanel(divEl, subfigures)
+  return latexDivFigure(divEl, subfigures)
 end
 
-function latexFigurePara(image)
-  
-  return latexFigure(image, function(figure)
+function latexImageFigure(image)
+  return renderLatexFigure(image, function(figure)
     
     -- make a copy of the caption and clear it
     local caption = image.caption:clone()
     tclear(image.caption)
    
-    
     -- insert the figure without the caption
     figure.content:insert(pandoc.Para({image, pandoc.RawInline("markdown", "<!-- -->")}))
     
@@ -68,13 +20,11 @@ function latexFigurePara(image)
     return caption
     
   end)
-
 end
 
-
-function latexFigureDiv(divEl, subfigures)
+function latexDivFigure(divEl, subfigures)
   
-  return latexFigure(divEl, function(figure)
+  return renderLatexFigure(divEl, function(figure)
     
     -- subfigures
     if subfigures then
@@ -168,6 +118,57 @@ function latexFigureDiv(divEl, subfigures)
       return nil
     end
   end)
+  
+end
+
+function renderLatexFigure(el, render)
+  
+  -- create container
+  local figure = pandoc.Div({})
+  
+  -- begin the figure
+  local figEnv = attribute(el, kFigEnv, "figure")
+  local figPos = attribute(el, kFigPos, nil)
+  
+  local beginEnv = "\\begin{" .. figEnv .. "}"
+  if figPos then
+    if not string.find(figPos, "^%[{") then
+      figPos = "[" .. figPos .. "]"
+    end
+    beginEnv = beginEnv .. figPos
+  end
+  figure.content:insert(pandoc.RawBlock("latex", beginEnv))
+  
+  -- alignment
+  local align = attribute(el, kFigAlign, nil)
+  if align then
+    figure.content:insert(pandoc.RawBlock("latex", latexBeginAlign(align)))
+  end
+  
+  -- fill in the body (returns the caption inlines)
+  local captionInlines = render(figure)  
+
+  -- surround caption w/ appropriate latex (and end the figure)
+  if captionInlines and #captionInlines > 0 then
+    if isReferenceable(el) then
+      captionInlines:insert(1, pandoc.RawInline("latex", "\\caption{"))
+      tappend(captionInlines, {
+        pandoc.RawInline("latex", "}\\label{" .. el.attr.identifier .. "}\n"),
+      })
+    end
+    figure.content:insert(pandoc.Para(captionInlines))
+  end
+  
+  -- end alignment
+  if align then
+    figure.content:insert(pandoc.RawBlock("latex", latexEndAlign(align)))
+  end
+ 
+  -- end figure
+  figure.content:insert(pandoc.RawBlock("latex", "\\end{" .. figEnv .. "}"))
+  
+  -- return the figure
+  return figure
   
 end
 

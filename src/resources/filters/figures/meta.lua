@@ -14,7 +14,7 @@ function metaInject()
       end)
       
       metaInjectHtml(doc, function(inject)
-        if figures.htmlPanels then
+        if figures.htmlFigures then
           inject([[
 <style type="text/css">
   .quarto-figure-panel > figure > figcaption {
@@ -23,6 +23,8 @@ function metaInject()
   }
   .quarto-figure figure {
     display: inline-block;
+    margin-inline-start: 0;
+    margin-inline-end: 0;
   }
   .quarto-subfigure-row {
     display: flex;

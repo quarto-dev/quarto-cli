@@ -127,17 +127,27 @@ function createLinkedFigureDiv(el, linkedFig, parentId)
     
   -- otherwise just transfer id and any fig. prefixed attribs
   else
-    -- transfer identifier
+    -- transfer identifier and classes
     figureDiv.attr.identifier = linkedFig.attr.identifier
+    figureDiv.attr.classes = linkedFig.attr.classes:clone()
     linkedFig.attr.identifier = ""
+    tclear(linkedFig.attr.classes)
     
     -- transfer fig. attributes
     for k,v in pairs(linkedFig.attr.attributes) do
       if isFigAttribute(k) then
         figureDiv.attr.attributes[k] = v
-        linkedFig.attr.attributes[k] = nil
       end
     end
+    
+    -- clear them from source
+    local attribs = tkeys(linkedFig.attr.attributes)
+    for _,k in ipairs(attribs) do
+      if isFigAttribute(k) then
+        linkedFig.attr.attributes[k] = v
+      end
+    end
+    
   end
   
   -- return the div

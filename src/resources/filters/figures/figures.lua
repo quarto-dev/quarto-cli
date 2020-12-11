@@ -45,7 +45,7 @@ function layoutFigures()
         local subfigures = layoutSubfigures(el)
         if subfigures then
           if isLatexOutput() then
-            return latexFigureDiv(el, subfigures)
+            return latexPanel(el, subfigures)
           elseif isHtmlOutput() then
             return htmlPanel(el, subfigures)
           elseif isDocxOutput() then
@@ -56,37 +56,12 @@ function layoutFigures()
           
         -- turn figure divs into <figure> tag for html
         elseif isHtmlOutput() then
-          local figureDiv = pandoc.Div({}, el.attr)
+          return htmlDivFigure(el)
           
-          -- apply standalone figure css if we are not a subfigure
-          if not isSubfigure(figureDiv) then
-            figureDiv.attr.classes:insert("quarto-figure")
-            local align = alignAttribute(figureDiv)
-            figureDiv.attr.attributes[kFigAlign] = nil
-            if align then
-              appendStyle(figureDiv, "text-align: " .. align .. ";")
-            end
-          end
-          
-          figureDiv.content:insert(pandoc.RawBlock("html", "<figure>"))
-          tappend(figureDiv.content, tslice(el.content, 1, #el.content-1))
-          local caption = figureDivCaption(el)
-          if caption and #caption.content > 0 then
-            local figureCaption = pandoc.Para({})
-            figureCaption.content:insert(pandoc.RawInline(
-              "html", "<figcaption aria-hidden=\"true\">"
-            ))
-            tappend(figureCaption.content, caption.content) 
-            figureCaption.content:insert(pandoc.RawInline("html", "</figcaption>"))
-            figureDiv.content:insert(figureCaption)
-          end
-          figureDiv.content:insert(pandoc.RawBlock("html", "</figure>"))
-          return figureDiv
-    
         -- turn figure divs into \begin{figure} for latex (but not if they
         -- have a parent as that will be done during subfigure layout)
         elseif isLatexOutput() and not isSubfigure(el)  then
-          return latexFigureDiv(el)
+          return latexDivFigure(el)
         end
       end
     end,
@@ -94,8 +69,10 @@ function layoutFigures()
     Para = function(el)
       local image = figureFromPara(el, false)
       if image and not isSubfigure(image) then
-        if isLatexOutput() then
-          return latexFigurePara(image)
+        if isHtmlOutput() then
+          return htmlImageFigure(image)
+        elseif isLatexOutput() then
+          return latexImageFigure(image)
         end
       end
     end

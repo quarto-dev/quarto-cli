@@ -1,11 +1,10 @@
 -- html.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
-
 function htmlPanel(divEl, subfigures)
   
-  -- set flag indicating we need panel css
-  figures.htmlPanels = true
+  -- set flag indicating we need figure css
+  figures.htmlFigures = true
   
   -- outer panel to contain css and figure panel
   local panel = pandoc.Div({}, pandoc.Attr("", { "quarto-figure-panel" }))
@@ -87,6 +86,102 @@ function htmlPanel(divEl, subfigures)
   -- return panel
   return panel
 end
+
+function htmlDivFigure(el)
+  
+  return renderHtmlFigure(el, function(figure)
+    -- render content
+    tappend(figure.content, tslice(el.content, 1, #el.content-1))
+    
+    -- extract and return caption inlines
+    local caption = figureDivCaption(el)
+    if caption then
+      return caption.content
+    else
+      return nil
+    end
+    
+  end)
+  
+end
+
+
+function htmlImageFigure(image)
+  
+  return renderHtmlFigure(image, function(figure)
+    
+    -- make a copy of the caption and clear it
+    local caption = image.caption:clone()
+    tclear(image.caption)
+   
+    -- pandoc sometimes ends up with a title of "fig:"
+    if image.title == "fig:" then
+      image.title = ""
+    end
+   
+    -- insert the figure without the caption
+    figure.content:insert(pandoc.Para({image, pandoc.RawInline("markdown", "<!-- -->")}))
+    
+    -- return the caption inlines
+    return caption
+    
+  end)
+  
+end
+
+
+function renderHtmlFigure(el, render)
+  
+   -- set flag indicating we need figure css
+  figures.htmlFigures = true
+  
+  -- capture relevant figure attributes then strip them
+  local align = alignAttribute(el)
+  local keys = tkeys(el.attr.attributes)
+  for _,k in pairs(keys) do
+    if isFigAttribute(k) then
+      el.attr.attributes[k] = nil
+    end
+  end
+  
+  -- create figure div
+  local figureDiv = pandoc.Div({}, el.attr:clone())
+  
+  -- remove identifier and classes from target (they are now on the div)
+  el.attr.identifier = ""
+  tclear(el.attr.classes)
+          
+  -- apply standalone figure css if we are not a subfigure
+  if not isSubfigure(figureDiv) then
+    figureDiv.attr.classes:insert("quarto-figure")
+    if align then
+      appendStyle(figureDiv, "text-align: " .. align .. ";")
+    end
+  end
+  
+  -- begin figure
+  figureDiv.content:insert(pandoc.RawBlock("html", "<figure>"))
+  
+  -- render (and collect caption)
+  local captionInlines = render(figureDiv)
+  
+  -- render caption
+  if captionInlines and #captionInlines > 0 then
+    local figureCaption = pandoc.Para({})
+    figureCaption.content:insert(pandoc.RawInline(
+      "html", "<figcaption aria-hidden=\"true\">"
+    ))
+    tappend(figureCaption.content, captionInlines) 
+    figureCaption.content:insert(pandoc.RawInline("html", "</figcaption>"))
+    figureDiv.content:insert(figureCaption)
+  end
+  
+  -- end figure and return
+  figureDiv.content:insert(pandoc.RawBlock("html", "</figure>"))
+  return figureDiv
+  
+end
+
 
 function appendStyle(el, style)
   local baseStyle = attribute(el, "style", "")
