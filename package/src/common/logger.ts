@@ -1,5 +1,6 @@
 import { Configuration } from "./config.ts";
 
+// Log levels and prefixes
 export const kError = 0;
 export const kWarning = 1;
 export const kInfo = 2;
@@ -8,12 +9,14 @@ const kErrorPrefix = "❌: ";
 const kWarningPrefix = "⚠️: ";
 const kInfoPrefix = "";
 
+// Logger allows logging of error messages
 export interface Logger {
   error: (message: unknown) => void;
   warning: (message: unknown) => void;
   info: (message: unknown) => void;
 }
 
+// Gets a logger for the current configuration
 export function logger(
   config: Configuration,
 ): Logger {
