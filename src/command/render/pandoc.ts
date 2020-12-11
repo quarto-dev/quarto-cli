@@ -15,18 +15,17 @@ import { message } from "../../core/console.ts";
 
 import { Format, FormatPandoc } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
-import { kNumberSections } from "../../config/constants.ts";
 import { binaryPath } from "../../core/resources.ts";
 
 import { RenderFlags } from "./flags.ts";
 import {
+  crossrefFilterActive,
   generateDefaults,
   pandocDefaultsMessage,
   writeDefaultsFile,
 } from "./defaults.ts";
 import {
   cleanForwardedCrossrefMetadata,
-  crossrefFilterActive,
   forwardCrossrefOptions,
 } from "./crossref.ts";
 

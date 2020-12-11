@@ -17,10 +17,6 @@ import { PandocOptions } from "./pandoc.ts";
 
 const kForwardedCrossrefOptions = [kListings, kNumberSections, kNumberOffset];
 
-export function crossrefFilterActive(format: Format) {
-  return format.metadata.crossref !== false;
-}
-
 export function crossrefGeneratedDefaults(options: PandocOptions) {
   // if the chapters options is set and there is no explicit top-level-division
   // then set the top-level-division to chapters
