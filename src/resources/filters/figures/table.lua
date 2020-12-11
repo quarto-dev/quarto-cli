@@ -83,7 +83,7 @@ function figureTableCell(image, align, options)
       image.attr.attributes["width"] = string.format("%2.2f", inches) .. "in"
       -- if this is a linked figure then set width on the image as well
       if image.t == "Div" then
-        local linkedFig = linkedFigureFromPara(image.content[1], false)
+        local linkedFig = linkedFigureFromPara(image.content[1], false, true)
         if linkedFig then
           linkedFig.attr.attributes["width"] = image.attr.attributes["width"]
         end

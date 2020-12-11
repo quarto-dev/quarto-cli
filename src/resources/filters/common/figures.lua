@@ -10,6 +10,8 @@ kFigNcol = "fig.ncol"
 kFigNrow = "fig.nrow"
 kFigLayout = "fig.layout"
 
+kLinkedFigSentinel = "<!-- linked-figure -->"
+
 -- filter which tags subfigures with their parent identifier and also 
 -- converts linked image figures into figure divs. we do this in a separate 
 -- pass b/c normal filters go depth first so we can't actually
@@ -101,7 +103,7 @@ function createLinkedFigureDiv(el, linkedFig, parentId)
   -- create figure-div and transfer caption. add the <!-- --> to prevent  
   -- this from ever being recognized in the AST as a linked figure
   local figureContent = el.content:clone()
-  figureContent:insert(pandoc.RawInline("markdown", "<!-- -->"))
+  figureContent:insert(pandoc.RawInline("markdown", kLinkedFigSentinel))
   local figureDiv = pandoc.Div(pandoc.Para(figureContent))
   local caption = linkedFig.caption:clone()
   figureDiv.content:insert(pandoc.Para(caption))
@@ -112,45 +114,36 @@ function createLinkedFigureDiv(el, linkedFig, parentId)
     linkedFig.attr.identifier = anonymousFigId()
   end
   
-  -- if we have a parent, then transfer all attributes (as it's a subfigure)
+  -- if we have a parent, then set it and copy width and height to the div
   if parentId ~= nil then
-    figureDiv.attr = linkedFig.attr:clone()
-    -- keep width and height on image for correct layout in docx
-    if isDocxOutput() then
-      linkedFig.attr = pandoc.Attr("", {}, {
-        width = figureDiv.attr.attributes["width"],
-        height = figureDiv.attr.attributes["height"],
-      })
-    else
-      linkedFig.attr = pandoc.Attr()
-    end
     figureDiv.attr.attributes["figure-parent"] = parentId
+    figureDiv.attr.attributes["width"] = linkedFig.attr.attributes["width"]
+    figureDiv.attr.attributes["height"] = linkedFig.attr.attributes["height"]
+  end
     
-  -- otherwise just transfer id and any fig. prefixed attribs
-  else
-    -- transfer identifier and classes
-    figureDiv.attr.identifier = linkedFig.attr.identifier
-    figureDiv.attr.classes = linkedFig.attr.classes:clone()
-    linkedFig.attr.identifier = ""
-    tclear(linkedFig.attr.classes)
-    
-    -- transfer fig. attributes
-    for k,v in pairs(linkedFig.attr.attributes) do
-      if isFigAttribute(k) then
-        figureDiv.attr.attributes[k] = v
-      end
+  -- transfer id, classes, and any fig. prefixed attribs
+
+  -- transfer identifier and classes
+  figureDiv.attr.identifier = linkedFig.attr.identifier
+  figureDiv.attr.classes = linkedFig.attr.classes:clone()
+  linkedFig.attr.identifier = ""
+  tclear(linkedFig.attr.classes)
+  
+  -- transfer fig. attributes
+  for k,v in pairs(linkedFig.attr.attributes) do
+    if isFigAttribute(k) then
+      figureDiv.attr.attributes[k] = v
     end
-    
-    -- clear them from source
-    local attribs = tkeys(linkedFig.attr.attributes)
-    for _,k in ipairs(attribs) do
-      if isFigAttribute(k) then
-        linkedFig.attr.attributes[k] = v
-      end
-    end
-    
   end
   
+  -- clear them from source
+  local attribs = tkeys(linkedFig.attr.attributes)
+  for _,k in ipairs(attribs) do
+    if isFigAttribute(k) then
+      linkedFig.attr.attributes[k] = v
+    end
+  end
+    
   -- return the div
   return figureDiv
   
@@ -278,20 +271,28 @@ function figureFromPara(el, captionRequired)
   end
 end
 
-function linkedFigureFromPara(el, captionRequired)
+function linkedFigureFromPara(el, captionRequired, allowSentinel)
   if captionRequired == nil then
     captionRequired = true
   end
-  if #el.content == 1 and el.content[1].t == "Link" then
-    local link = el.content[1]
-    if #link.content == 1 and link.content[1].t == "Image" then
-      local image = link.content[1]
-      if not captionRequired or #image.caption > 0 then
-        return image
+  if (#el.content == 1) or (allowSentinel and hasLinkedFigureSentinel(el)) then 
+    if el.content[1].t == "Link" then
+      local link = el.content[1]
+      if #link.content == 1 and link.content[1].t == "Image" then
+        local image = link.content[1]
+        if not captionRequired or #image.caption > 0 then
+          return image
+        end
       end
     end
   end
   return nil
 end
 
+function hasLinkedFigureSentinel(el)
+  local hasSentinel = #el.content == 2 and 
+                      el.content[2].t == "RawInline" and 
+                      el.content[2].text == kLinkedFigSentinel
+  return hasSentinel
+end
 
