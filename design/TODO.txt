@@ -2,35 +2,27 @@
 
 TODO:
 
-- Is there a per subcaption option for including in listings?
+- width on subfigures in latex doesn't work (check other formats as well)
+- (double widths occur for linked image figure)
+- really, widths don't work when there is a layout. investigate and analyze
 
-- Consider default alignment for figures of "center"
-    
-    fig-width: 8
-    fig-align: "center"
-    
-    figures:
-      fig-align: "default"
-      subcaption-list: true
-
-
+      
 - animations
 
 - tikz
 
 
-- Audit the knitr options again and see how we are doing
+- Compute actual page width for custom reference.docx
+- Consider page-width for panels to force a width
+- ODT tables? RTF tables? (table "row" separator and custom caption centering)
+
 
 - investigate agggregate figures (embedded tables, etc.)
 
 - What to do about the code chunk(s) that are dropped in a figure panel
   (perhaps just hoist the up before the div and force fig.hold for panels?)
 
-- Compute actual page width for custom reference.docx
-- Consider page-width for panels to force a width
-
-- ODT tables? RTF tables? (table "row" separator and custom caption centering)
-
+-
 - Ability to turn figures filter off? figures: false, crossref: false, tinytex: false, citeproc: false
 
 - Implement latex environment divs: https://bookdown.org/yihui/rmarkdown-cookbook/custom-blocks.html
