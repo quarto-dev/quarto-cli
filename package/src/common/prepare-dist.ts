@@ -18,8 +18,8 @@ async function prepareDist(
   supportingFiles(config, log);
 
   // Create the deno bundle
-  const input = join(config.dirs.src.abs, "quarto.ts");
-  const output = join(config.dirs.bin.abs, "quarto.js");
+  const input = join(config.dirs.src, "quarto.ts");
+  const output = join(config.dirs.bin, "quarto.js");
   await bundle(
     input,
     output,
@@ -37,24 +37,24 @@ function supportingFiles(config: Configuration, log: Logger) {
   // Move information and share resources into place
   const filesToCopy = [
     {
-      from: join(config.dirs.root.abs, "COPYING.md"),
-      to: join(config.dirs.dist.abs, "COPYING.md"),
+      from: join(config.dirs.root, "COPYING.md"),
+      to: join(config.dirs.dist, "COPYING.md"),
     },
     {
-      from: join(config.dirs.root.abs, "COPYRIGHT"),
-      to: join(config.dirs.dist.abs, "COPYRIGHT"),
+      from: join(config.dirs.root, "COPYRIGHT"),
+      to: join(config.dirs.dist, "COPYRIGHT"),
     },
     {
-      from: join(config.dirs.src.abs, "resources", "html-defaults.lua"),
-      to: join(config.dirs.share.abs, "html-defaults.lua"),
+      from: join(config.dirs.src, "resources", "html-defaults.lua"),
+      to: join(config.dirs.share, "html-defaults.lua"),
     },
     {
-      from: join(config.dirs.src.abs, "resources", "rmd"),
-      to: join(config.dirs.share.abs, "rmd"),
+      from: join(config.dirs.src, "resources", "rmd"),
+      to: join(config.dirs.share, "rmd"),
     },
     {
-      from: join(config.dirs.src.abs, "resources", "jupyter"),
-      to: join(config.dirs.share.abs, "jupyter"),
+      from: join(config.dirs.src, "resources", "jupyter"),
+      to: join(config.dirs.share, "jupyter"),
     },
   ];
 
@@ -73,14 +73,14 @@ function supportingFiles(config: Configuration, log: Logger) {
 
 function inlineFilters(config: Configuration, log: Logger) {
   log.info("Building inlined filters");
-  const outDir = join(config.dirs.share.abs, "filters");
+  const outDir = join(config.dirs.share, "filters");
   const filtersToInline = ["crossref", "figures"];
 
   filtersToInline.forEach((filter) => {
     log.info(filter);
     buildFilter(
       join(
-        config.dirs.src.abs,
+        config.dirs.src,
         "resources",
         "filters",
         filter,

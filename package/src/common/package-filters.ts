@@ -2,6 +2,7 @@ import { dirname, join } from "https://deno.land/std/path/mod.ts";
 import { Logger } from "./logger.ts";
 import { ensureDirExists } from "./utils.ts";
 
+// Creates inlined version of the filters that can be distributed with our installer
 export function buildFilter(
   input: string,
   output: string,

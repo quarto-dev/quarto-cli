@@ -1,5 +1,6 @@
 import { existsSync } from "https://deno.land/std/fs/exists.ts";
 
+// Read an environment variable
 export function getEnv(name: string) {
   const value = Deno.env.get(name);
   if (!value) {
@@ -8,6 +9,7 @@ export function getEnv(name: string) {
   return value;
 }
 
+// Ensure a directory exists (creating it if necessary)
 export function ensureDirExists(directory: string): boolean {
   if (!existsSync(directory)) {
     Deno.mkdirSync(directory, { recursive: true });

@@ -7,8 +7,8 @@ import { ensureDirExists } from "../common/utils.ts";
 export async function makePackage(configuration: Configuration, log: Logger) {
   // Target package
   const outPackage = join(
-    configuration.dirs.out.abs,
-    configuration.pkgInfo.name,
+    configuration.dirs.out,
+    configuration.pkgConfig.name,
   );
 
   log.info(`Packaging into ${outPackage}`);
@@ -25,12 +25,12 @@ export async function makePackage(configuration: Configuration, log: Logger) {
   const pkgCmd: string[] = [];
   pkgCmd.push("pkgbuild");
   pkgCmd.push("--root");
-  pkgCmd.push(configuration.dirs.dist.abs);
+  pkgCmd.push(configuration.dirs.dist);
   pkgCmd.push("--identifier");
-  pkgCmd.push(configuration.pkgInfo.identifier);
+  pkgCmd.push(configuration.pkgConfig.identifier);
   pkgCmd.push("--version");
   pkgCmd.push(configuration.version);
-  pkgCmd.push(...configuration.pkgInfo.packageArgs());
+  pkgCmd.push(...configuration.pkgConfig.packageArgs());
   pkgCmd.push("--ownership");
   pkgCmd.push("recommended");
   pkgCmd.push(outPackage);
