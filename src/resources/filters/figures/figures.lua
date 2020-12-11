@@ -22,8 +22,9 @@ import("meta.lua")
 import("layout.lua")
 import("latex.lua")
 import("html.lua")
+import("office.lua")
+import("docx.lua")
 import("table.lua")
-import("table-docx.lua")
 import("../common/json.lua")
 import("../common/pandoc.lua")
 import("../common/format.lua")
@@ -58,11 +59,18 @@ function layoutFigures()
         elseif isHtmlOutput() then
           return htmlDivFigure(el)
           
-        -- turn figure divs into \begin{figure} for latex (but not if they
-        -- have a parent as that will be done during subfigure layout)
-        elseif isLatexOutput() and not isSubfigure(el)  then
-          return latexDivFigure(el)
+        -- other non-subfigure figure div implementations
+        elseif not isSubfigure(el) then
+          -- turn figure divs into \begin{figure} for latex 
+          if isLatexOutput() then
+            return latexDivFigure(el)
+          -- use tables to align office figures
+          elseif isOfficeOutput() and alignAttribute(el) ~= nil then
+            return officeFigure(el)
+          end
         end
+          
+        
       end
     end,
     
@@ -73,6 +81,8 @@ function layoutFigures()
           return htmlImageFigure(image)
         elseif isLatexOutput() then
           return latexImageFigure(image)
+        elseif isOfficeOutput() and alignAttribute(image) ~= nil then
+          return officeFigure(image)
         end
       end
     end

@@ -38,36 +38,7 @@ function tablePanel(divEl, subfigures, options)
 
     local figuresRow = pandoc.List:new()
     for _, image in ipairs(row) do
-      
-      -- convert layout percent to physical units (if we have a pageWidth)
-      if options.pageWidth then
-        local layoutPercent = horizontalLayoutPercent(image)
-        if layoutPercent then
-          local inches = (layoutPercent/100) * options.pageWidth
-          image.attr.attributes["width"] = string.format("%2.2f", inches) .. "in"
-          -- if this is a linked figure then set width on the image as well
-          if image.t == "Div" then
-            local linkedFig = linkedFigureFromPara(image.content[1], false)
-            if linkedFig then
-              linkedFig.attr.attributes["width"] = image.attr.attributes["width"]
-            end
-          end
-        end
-      end
-      
-      local cell = pandoc.List:new()
-      if image.t == "Image" then
-        cell:insert(pandoc.Para(image))
-      else
-        -- style the caption
-        local divCaption = image.content[#image.content]
-        if options.divCaption then
-          divCaption = options.divCaption(divCaption, align)
-        end
-        image.content[#image.content] = divCaption
-        cell:insert(image)
-      end
-      figuresRow:insert(cell)
+      figuresRow:insert(figureTableCell(image, align, options))
     end
     
     -- make the table
@@ -100,6 +71,43 @@ function tablePanel(divEl, subfigures, options)
   -- return panel
   return panel
 end
+
+
+function figureTableCell(image, align, options)
+  
+  -- convert layout percent to physical units (if we have a pageWidth)
+  if options.pageWidth then
+    local layoutPercent = horizontalLayoutPercent(image)
+    if layoutPercent then
+      local inches = (layoutPercent/100) * options.pageWidth
+      image.attr.attributes["width"] = string.format("%2.2f", inches) .. "in"
+      -- if this is a linked figure then set width on the image as well
+      if image.t == "Div" then
+        local linkedFig = linkedFigureFromPara(image.content[1], false)
+        if linkedFig then
+          linkedFig.attr.attributes["width"] = image.attr.attributes["width"]
+        end
+      end
+    end
+  end
+  
+  local cell = pandoc.List:new()
+  if image.t == "Image" then
+    cell:insert(pandoc.Para(image))
+  else
+    -- style the caption
+    local divCaption = image.content[#image.content]
+    if options.divCaption then
+      divCaption = options.divCaption(divCaption, align)
+    end
+    image.content[#image.content] = divCaption
+    cell:insert(image)
+  end
+  
+  return cell
+  
+end
+
 
 function tableAlign(align)
   if align == "left" then

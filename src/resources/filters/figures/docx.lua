@@ -1,21 +1,15 @@
--- table-docx.lua
+-- docx.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
 
 function tableDocxPanel(divEl, sufigures)
   return tablePanel(divEl, sufigures, {
-    pageWidth = docxPageWidth(),
+    pageWidth = officePageWidth(),
     rowBreak = docxRowBreak,
     divCaption = docxDivCaption
   })
 end
 
-
-function docxPageWidth()
-  local pageWidth = 12240 - 1440 - 1440
-  local pageWidthInches = pageWidth / 72 / 20
-  return pageWidthInches
-end
 
 function docxRowBreak()
   return pandoc.RawBlock("openxml", [[
@@ -26,6 +20,7 @@ function docxRowBreak()
 </w:p>
 ]])
 end
+
 
 -- create a native docx caption (note that because "openxml" raw blocks
 -- are parsed we need to provide a complete xml node, this implies that
@@ -66,9 +61,6 @@ function docxAlign(align)
     return nil
   end
 end
-
-
-
 
 
 
