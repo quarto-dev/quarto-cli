@@ -11,6 +11,11 @@ function isDocxOutput()
   return FORMAT == "docx"
 end
 
+-- check for rtf output
+function isRtfOutput()
+  return FORMAT == "rtf"
+end
+
 -- check for office output
 function isOfficeOutput()
   return FORMAT == "docx" or FORMAT == "pptx" or FORMAT == "rtf" or FORMAT == "odt"

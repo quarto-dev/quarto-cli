@@ -53,6 +53,8 @@ function layoutFigures()
             return htmlPanel(el, subfigures)
           elseif isDocxOutput() then
             return tableDocxPanel(el, subfigures)
+          elseif isOfficeOutput() then
+            return tableOfficePanel(el, subfigures)
           else
             return tablePanel(el, subfigures)
           end

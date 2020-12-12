@@ -2,6 +2,13 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 
+function tableOfficePanel(divEl, sufigures)
+  return tablePanel(divEl, sufigures, {
+    pageWidth = officePageWidth()
+  })
+end
+
+
 function officeFigure(image)
   
   -- options
