@@ -45,21 +45,35 @@ function latexDivFigure(divEl, subfigures)
           -- get alignment
           local align = alignAttribute(image)
    
-          
           -- begin subfigure
           subfiguresEl.content:insert(pandoc.RawInline("latex", "\\begin{subfigure}[b]"))
            
-          -- check to see if it has a width to apply (if so then reset the
-          -- underlying width to 100% as sizing will come from subfigure box)
-          local layoutPercent = horizontalLayoutPercent(image)
-          if layoutPercent then
-            image.attr.attributes["width"] = nil
-          else
-            layoutPercent = 100
+          -- get width for subfigure box (default to even spacing in row if none)
+          local width = image.attr.attributes["width"]
+          if not width then
+            width = string.format("%2.2f", (1/#row)*96) .. '%'
           end
+          
+          -- generate subfigure box width
+          local subfigureWidth = width
+          local percentWidth = widthToPercent(width)
+          if percentWidth then
+            subfigureWidth = string.format("%2.2f", percentWidth/100) .. "\\linewidth"
+          end
+          
+          -- apply it
           subfiguresEl.content:insert(pandoc.RawInline("latex", 
-            "{" .. string.format("%2.2f", layoutPercent/100) .. "\\linewidth}"
+            "{" .. subfigureWidth .. "}"
           ))
+        
+          -- clear the width on the image (look for linked figure to clear as well)
+          image.attr.attributes["width"] = nil
+          if image.t == "Div" then
+            local linkedFig = linkedFigureFromPara(image.content[1], false, true)
+            if linkedFig then
+              linkedFig.attr.attributes["width"] = nil
+            end
+          end
           
           -- see if have a caption (different depending on whether it's an Image or Div)
           local caption = nil
