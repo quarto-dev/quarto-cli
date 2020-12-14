@@ -86,10 +86,12 @@ function layoutSubfigures(divEl)
       -- normal figure layout
       else
         local subfig = subfigures[subfigIndex]
-        subfigIndex = subfigIndex + 1
-        subfig.attr.attributes["width"] = width
-        subfig.attr.attributes["height"] = nil
-        layout[#layout]:insert(subfig)
+        if subfig then
+          subfigIndex = subfigIndex + 1
+          subfig.attr.attributes["width"] = width
+          subfig.attr.attributes["height"] = nil
+          layout[#layout]:insert(subfig)
+        end
       end
     end
   
