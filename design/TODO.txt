@@ -5,11 +5,7 @@ TODO:
 Figures
 -------------------------
 
-- animations
-
-- tikz
-
-- test w/ htmlwidgets
+- same header hoist technique would work for fully embedded plotly library
 
 - What to do about the code chunk(s) that are dropped in a figure panel
   (perhaps just hoist them up before the div and force fig.hold for panels?)
@@ -29,14 +25,29 @@ Figures
 Quarto
 ---------------------------
 
+- Support fig.cap on figure divs (auto-inject the caption based on fig.cap)
+
+- If we use pandoc div syntax in a file with jupytext: formats: md,ipynb then we get auto-detected as pandoc markdown
+  md:markdown is what we need, however it seems like we might also need the kernelspec stuff or other stuff 
+  when we do this.
+
 - Generally, validity of labels (don't want under the hood transformations to 
   affect addressabilty)
 
 - Should we convert include-in-header to header-includes (or vice versa) to eliminate the conflict
   (command line options overwrite metadata options)
+- knit_meta for latex packages? Could use this immedidately for animate
+
 - see http://lierdakil.github.io/pandoc-crossref/#latex-output-and---include-in-header
 - Injected HTML in meta.lua gets overridden whenever we use include-in-header in the
 defaults file (e.g. for  htmlwidgets). Use temp file?
+
+- Jupyter performance / kernel startup time
+  Tornado has no dependencies and supports autoreload:
+      https://www.tornadoweb.org/en/stable/autoreload.html 
+      may be able to do this (where the script auto kills the server): python -m tornado.autoreload tornado/test/runtests.py
+  https://github.com/mgedmin/findimports
+
 
 Project system:
   - allow _quarto config directory that merges all contained files
