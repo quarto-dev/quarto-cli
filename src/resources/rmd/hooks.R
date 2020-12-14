@@ -201,6 +201,14 @@ knitr_plot_hook <- function(default_plot_hook) {
     if (!is.null(fig.scap)) {
       keyvalue <- c(keyvalue, sprintf("fig.scap='%s'", fig.scap))
     }
+    resize.width <- options[['resize.width']]
+    if (!is.null(resize.width)) {
+      keyvalue <- c(keyvalue, sprintf("resize.width='%s'", resize.width))
+    }
+    resize.height <- options[['resize.height']]
+    if (!is.null(resize.height)) {
+      keyvalue <- c(keyvalue, sprintf("resize.height='%s'", resize.height))
+    }
     
     # add keyvalue
     keyvalue <- paste(

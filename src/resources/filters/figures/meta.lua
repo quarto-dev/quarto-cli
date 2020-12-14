@@ -11,6 +11,9 @@ function metaInject()
           usePackage("caption") .. "\n" ..
           usePackage("subcaption")
         )
+        if figures.usingTikz then
+          inject(usePackage("tikz"))
+        end
       end)
       
       metaInjectHtml(doc, function(inject)

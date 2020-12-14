@@ -9,6 +9,8 @@ kFigScap = "fig.scap"
 kFigNcol = "fig.ncol"
 kFigNrow = "fig.nrow"
 kFigLayout = "fig.layout"
+kResizeWidth = "resize.width"
+kResizeHeight = "resize.height"
 
 kLinkedFigSentinel = "<!-- linked-figure -->"
 

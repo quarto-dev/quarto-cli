@@ -19,7 +19,7 @@ function latexImageFigure(image)
     -- insert the figure without the caption
     local figurePara = pandoc.Para({
       pandoc.RawInline("latex", latexBeginAlign(align)),
-      image,
+      latexFigureInline(image),
       pandoc.RawInline("latex", latexEndAlign(align)),
       pandoc.RawInline("latex", "\n")
     })
@@ -100,7 +100,7 @@ function latexDivFigure(divEl, subfigures)
               { pandoc.LineBreak() }
             ))
           else
-            subfiguresEl.content:insert(image)
+            subfiguresEl.content:insert(latexFigureInline(image))
           end
           subfiguresEl.content:insert(pandoc.RawInline("latex", latexEndAlign(align)))
           subfiguresEl.content:insert(pandoc.RawInline("latex", "\n"))
@@ -162,7 +162,7 @@ function renderLatexFigure(el, render)
   local captionInlines = render(figure)  
 
   -- surround caption w/ appropriate latex (and end the figure)
-  if captionInlines and #captionInlines > 0 then
+  if captionInlines and inlinesToString(captionInlines) ~= "" then
     markupLatexCaption(el, captionInlines)
     figure.content:insert(pandoc.Para(captionInlines))
   end
@@ -223,6 +223,30 @@ function latexEndAlign(align)
     return " \\hfill{}"
   else
     return ""
+  end
+end
+
+function latexFigureInline(image)
+  -- if this is a tex file (e.g. created w/ tikz) then use \\input
+  if string.find(image.src, "%.tex$" ) then
+    
+    -- be sure to inject \usepackage{tikz}
+    figures.usingTikz = true
+    
+    -- base input
+    local input = "\\input{" .. image.src .. "}"
+    
+    -- apply resize.width and/or resize.height if specified
+    local rw = attribute(image, kResizeWidth, "!")
+    local rh = attribute(image, kResizeHeight, "!")
+    if rw ~= "!" or rh ~= "!" then
+      input = "\\resizebox{" .. rw .. "}{" .. rh .. "}{" .. input .. "}"
+    end
+    
+    -- return inline
+    return pandoc.RawInline("latex", input)
+  else
+    return image
   end
 end
 
