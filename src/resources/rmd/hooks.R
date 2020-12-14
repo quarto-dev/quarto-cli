@@ -5,6 +5,17 @@ knitr_hooks <- function(format) {
 
   knit_hooks <- list()
   opts_hooks <- list()
+  
+  # automatically set gifski hook for fig.animate
+  opts_hooks[["fig.show"]] <- function(options) {
+    if (identical(options[["fig.show"]], "animate")) {
+      # use gifski as default animation hook for non-latex output
+      if (!knitr:::is_latex_output() && is.null(options[["animation.hook"]])) {
+        options[["animation.hook"]] <- "gifski"
+      }
+    }
+    options
+  }
 
   # opts hooks for implementing keep-hidden
   register_hidden_hook <- function(option, hidden = option) {
@@ -165,11 +176,12 @@ knitr_hooks <- function(format) {
 knitr_plot_hook <- function(htmlOutput) {
   function(x, options) {
     
-    # are we using html animation? (if we are then ignore all but the last fig)
+    # are we using animation (if we are then ignore all but the last fig)
     fig.num <- options[["fig.num"]] %||% 1L
     fig.cur = options$fig.cur %||% 1L
-    htmlAnimation = htmlOutput && options$fig.show == 'animate'
-    if (htmlAnimation) {
+    tikz <- knitr:::is_tikz_dev(options)
+    animate =  options$fig.show == 'animate' && !tikz
+    if (animate) {
       if (fig.cur < fig.num) {
         return ('')
       } else  {
@@ -247,27 +259,48 @@ knitr_plot_hook <- function(htmlOutput) {
       attr <- paste0("{", trimws(attr), "}")
     }
 
-    # if this is an htmlAnimation emit as raw html
-    if (htmlAnimation) {
+    # special handling for animations
+    if (animate) {
       
       # get the caption (then remove it so the hook doesn't include it)
       caption <- figure_cap(options)
       options[["fig.cap"]] <- NULL
       options[["fig.subcap"]] <- NULL
       
-      # render the animation
-      hook <- knitr:::hook_animation(options)
-      htmlOutput <- hook(x, options)
-      htmlOutput <- htmlPreserve(htmlOutput)
-      
-      # add the caption if we have one
-      if (nzchar(caption)) {
-        htmlOutput <- paste0(htmlOutput, "\n\n", caption, "\n")
+      # check for latex
+      if (knitr:::is_latex_output()) {
+        
+        latexOutput <- paste(
+          "```{=latex}",
+          latex_animation(x, options),
+          "```",
+          sep = "\n"
+        )
+        
+        # add the caption if we have one
+        if (nzchar(caption)) {
+          latexOutput <- paste0(latexOutput, "\n\n", caption, "\n")
+        }
+        
+        # enclose in output div
+        output_div(latexOutput, label, classes, "animation=1")
+        
+      # otherwise assume html
+      } else {
+        # render the animation
+        hook <- knitr:::hook_animation(options)
+        htmlOutput <- hook(x, options)
+        htmlOutput <- htmlPreserve(htmlOutput)
+        
+        # add the caption if we have one
+        if (nzchar(caption)) {
+          htmlOutput <- paste0(htmlOutput, "\n\n", caption, "\n")
+        }
+        
+        # enclose in output div
+        output_div(htmlOutput, label, classes)
       }
-      
-      # enclose in output div
-      output_div(htmlOutput, label, classes)
-      
+     
     } else {
       
       # generate markdown for image
@@ -287,7 +320,7 @@ knitr_plot_hook <- function(htmlOutput) {
 }
 
 # helper to create an output div
-output_div <- function(x, label, classes) {
+output_div <- function(x, label, classes, attr = NULL) {
   div <- "::: {"
   if (!is.null(label) && nzchar(label)) {
     div <- paste0(div, labelId(label), " ")
@@ -295,6 +328,7 @@ output_div <- function(x, label, classes) {
   paste0(
     div, ".output ",
     paste(paste0(".", classes), collapse = " ") ,
+    ifelse(!is.null(attr), paste0(" ", attr), ""),
     "}\n",
     trimws(x),
     "\n:::\n\n"
@@ -387,6 +421,28 @@ latex_sizes_to_percent <- function(options) {
     }
   }
   options
+}
+
+# ported from:
+# https://github.com/yihui/knitr/blob/f8f90baad99d873202b8dc8042eab7a88fac232f/R/hooks-latex.R#L151-L171
+latex_animation <- function(x, options) {
+  
+  fig.num = options$fig.num %||% 1L
+  
+  ow = options$out.width
+  # maxwidth does not work with animations
+  if (identical(ow, '\\maxwidth')) ow = NULL
+  if (is.numeric(ow)) ow = paste0(ow, 'px')
+  size = paste(c(sprintf('width=%s', ow),
+                 sprintf('height=%s', options$out.height),
+                 options$out.extra), collapse = ',')
+  
+  aniopts = options$aniopts
+  aniopts = if (is.na(aniopts)) NULL else gsub(';', ',', aniopts)
+  size = paste(c(size, sprintf('%s', aniopts)), collapse = ',')
+  if (nzchar(size)) size = sprintf('[%s]', size)
+  sprintf('\\animategraphics%s{%s}{%s}{%s}{%s}', size, 1 / options$interval,
+          sub(sprintf('%d$', fig.num), '', xfun::sans_ext(x)), 1L, fig.num)
 }
 
 
