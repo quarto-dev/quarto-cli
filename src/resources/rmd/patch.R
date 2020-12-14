@@ -26,8 +26,13 @@ assignInNamespace("htmlPreserve", htmlPreserve, ns = "htmltools")
 # to provide for enclosing output div and support for figure captions
 knitr_wrap <- knitr:::wrap
 wrap <- function(x, options = list(), ...) {
-  if (inherits(x, "knit_asis")) {
-
+  
+  if (inherits(x, "knit_image_paths")) {
+    
+    knitr_wrap(x, options, ...)
+    
+  } else if (inherits(x, "knit_asis")) {
+    
     # delegate
     is_html_widget <- inherits(x, "knit_asis_htmlwidget")
     x <- knitr:::wrap.knit_asis(x, options, ...)
@@ -40,6 +45,7 @@ wrap <- function(x, options = list(), ...) {
       wrap_asis_output(options, x)
     }
   } else {
+
     knitr_wrap(x, options, ...)
   }
 }
