@@ -45,6 +45,25 @@ export function widgetIncludeFiles(nb: JupyterNotebook) {
       "<script type=\"application/javascript\">define('jquery', [],function() {return window.jQuery;})</script>",
     );
   }
+
+  // see if there are outputs that need to be hoisted up into the head
+  nb.cells.forEach((cell) => {
+    if (cell.cell_type === "code") {
+      cell.outputs = cell.outputs?.filter((output) => {
+        if (isDisplayData(output)) {
+          const displayOutput = output as JupyterOutputDisplayData;
+          const html = displayOutput.data[kTextHtml];
+          const htmlText = Array.isArray(html) ? html.join("") : html as string;
+          if (html && isWidgetIncludeHtml(htmlText)) {
+            head.push(htmlText);
+            return false;
+          }
+        }
+        return true;
+      });
+    }
+  });
+
   if (haveJupyterWidgets) {
     head.push(
       '<script src="https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js" crossorigin="anonymous"></script>',
@@ -100,4 +119,13 @@ function haveOutputType(nb: JupyterNotebook, mimeTypes: string[]) {
       return false;
     }
   });
+}
+
+function isWidgetIncludeHtml(html: string) {
+  return isPlotlyLibrary(html);
+}
+
+function isPlotlyLibrary(html: string) {
+  return /^\s*<script type="text\/javascript">/.test(html) &&
+    /require\.undef\(["']plotly["']\)/.test(html);
 }
