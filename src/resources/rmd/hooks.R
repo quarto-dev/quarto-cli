@@ -110,7 +110,9 @@ knitr_hooks <- function(format) {
           }
         }
         if (identical(attr, "fig.layout")) {
-          value = jsonlite::toJSON(value)
+          if (!is.character(value)) {
+            value = jsonlite::toJSON(value)
+          }
         }
         if (!is.null(value)) {
           forwardAttr <- c(forwardAttr, sprintf("%s='%s'", attr, value))
@@ -194,6 +196,10 @@ knitr_plot_hook <- function(default_plot_hook) {
     fig.pos <- options[['fig.pos']]
     if (nzchar(fig.pos)) {
       keyvalue <- c(keyvalue, sprintf("fig.pos='%s'", fig.pos))
+    }
+    fig.scap <- options[['fig.scap']]
+    if (!is.null(fig.scap)) {
+      keyvalue <- c(keyvalue, sprintf("fig.scap='%s'", fig.scap))
     }
     
     # add keyvalue

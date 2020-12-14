@@ -1,6 +1,9 @@
 -- crossref.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
+-- required version
+PANDOC_VERSION:must_be_at_least '2.11.2'
+
 -- required modules
 text = require 'text'
 
@@ -31,6 +34,7 @@ import("format.lua")
 import("options.lua")
 import("../common/pandoc.lua")
 import("../common/format.lua")
+import("../common/options.lua")
 import("../common/figures.lua")
 import("../common/meta.lua")
 import("../common/table.lua")

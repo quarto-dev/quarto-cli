@@ -1,6 +1,9 @@
 -- figures.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
+-- required version
+PANDOC_VERSION:must_be_at_least '2.11.2'
+
 -- required modules
 text = require 'text'
 
@@ -18,6 +21,7 @@ function import(script)
   local path = PANDOC_SCRIPT_FILE:match("(.*" .. pathseparator .. ")")
   dofile(path .. safeScript)
 end
+import("options.lua")
 import("meta.lua")
 import("layout.lua")
 import("latex.lua")
@@ -29,6 +33,7 @@ import("../common/json.lua")
 import("../common/pandoc.lua")
 import("../common/format.lua")
 import("../common/figures.lua")
+import("../common/options.lua")
 import("../common/meta.lua")
 import("../common/table.lua")
 import("../common/debug.lua")
@@ -51,6 +56,8 @@ function layoutFigures()
             return htmlPanel(el, subfigures)
           elseif isDocxOutput() then
             return tableDocxPanel(el, subfigures)
+          elseif isOfficeOutput() then
+            return tableOfficePanel(el, subfigures)
           else
             return tablePanel(el, subfigures)
           end
@@ -92,6 +99,7 @@ end
 
 -- chain of filters
 return {
+  initOptions(),
   preprocessFigures(false),
   layoutFigures(),
   metaInject()

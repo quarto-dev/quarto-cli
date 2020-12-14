@@ -12,9 +12,18 @@ function latexImageFigure(image)
     -- make a copy of the caption and clear it
     local caption = image.caption:clone()
     tclear(image.caption)
+    
+    -- get align
+    local align = alignAttribute(image)
    
     -- insert the figure without the caption
-    figure.content:insert(pandoc.Para({image, pandoc.RawInline("markdown", "<!-- -->")}))
+    local figurePara = pandoc.Para({
+      pandoc.RawInline("latex", latexBeginAlign(align)),
+      image,
+      pandoc.RawInline("latex", latexEndAlign(align)),
+      pandoc.RawInline("latex", "\n")
+    })
+    figure.content:insert(figurePara)
     
     -- return the caption inlines
     return caption
@@ -33,20 +42,38 @@ function latexDivFigure(divEl, subfigures)
         
         for _, image in ipairs(row) do
           
+          -- get alignment
+          local align = alignAttribute(image)
+   
           -- begin subfigure
           subfiguresEl.content:insert(pandoc.RawInline("latex", "\\begin{subfigure}[b]"))
            
-          -- check to see if it has a width to apply (if so then reset the
-          -- underlying width to 100% as sizing will come from subfigure box)
-          local layoutPercent = horizontalLayoutPercent(image)
-          if layoutPercent then
-            image.attr.attributes["width"] = nil
-          else
-            layoutPercent = 100
+          -- get width for subfigure box (default to even spacing in row if none)
+          local width = image.attr.attributes["width"]
+          if not width then
+            width = string.format("%2.2f", (1/#row)*96) .. '%'
           end
+          
+          -- generate subfigure box width
+          local subfigureWidth = width
+          local percentWidth = widthToPercent(width)
+          if percentWidth then
+            subfigureWidth = string.format("%2.2f", percentWidth/100) .. "\\linewidth"
+          end
+          
+          -- apply it
           subfiguresEl.content:insert(pandoc.RawInline("latex", 
-            "{" .. string.format("%2.2f", layoutPercent/100) .. "\\linewidth}"
+            "{" .. subfigureWidth .. "}"
           ))
+        
+          -- clear the width on the image (look for linked figure to clear as well)
+          image.attr.attributes["width"] = nil
+          if image.t == "Div" then
+            local linkedFig = linkedFigureFromPara(image.content[1], false, true)
+            if linkedFig then
+              linkedFig.attr.attributes["width"] = nil
+            end
+          end
           
           -- see if have a caption (different depending on whether it's an Image or Div)
           local caption = nil
@@ -59,19 +86,13 @@ function latexDivFigure(divEl, subfigures)
           
           -- build caption
           if inlinesToString(caption) ~= "" then
-            caption:insert(1, pandoc.RawInline("latex", "\\caption{"))
-            if isReferenceable(image) then
-              caption:insert(pandoc.RawInline("latex", "\\label{" .. image.attr.identifier .. "}"))
-            end
-            caption:insert(pandoc.RawInline("latex", "}"))
+            markupLatexCaption(image, caption)
           end
           image.attr.identifier = ""
           
-          -- begin align
-          subfiguresEl.content:insert(pandoc.RawInline("latex", latexBeginAlign(align, "  ")))
-          
           -- insert content
           subfiguresEl.content:insert(pandoc.RawInline("latex", "\n  "))
+          subfiguresEl.content:insert(pandoc.RawInline("latex", latexBeginAlign(align)))
           if image.t == "Div" then
             -- append the div, slicing off the caption block
             tappend(subfiguresEl.content, pandoc.utils.blocks_to_inlines(
@@ -81,6 +102,7 @@ function latexDivFigure(divEl, subfigures)
           else
             subfiguresEl.content:insert(image)
           end
+          subfiguresEl.content:insert(pandoc.RawInline("latex", latexEndAlign(align)))
           subfiguresEl.content:insert(pandoc.RawInline("latex", "\n"))
           
           -- insert caption
@@ -90,9 +112,6 @@ function latexDivFigure(divEl, subfigures)
             subfiguresEl.content:insert(pandoc.RawInline("latex", "\n"))
           end
           
-          -- end align
-          subfiguresEl.content:insert(pandoc.RawInline("latex", latexEndAlign(align, "  ")))
-        
           -- end subfigure
           subfiguresEl.content:insert(pandoc.RawInline("latex", "\\end{subfigure}\n"))
           
@@ -139,31 +158,15 @@ function renderLatexFigure(el, render)
   end
   figure.content:insert(pandoc.RawBlock("latex", beginEnv))
   
-  -- alignment
-  local align = attribute(el, kFigAlign, nil)
-  if align then
-    figure.content:insert(pandoc.RawBlock("latex", latexBeginAlign(align)))
-  end
-  
   -- fill in the body (returns the caption inlines)
   local captionInlines = render(figure)  
 
   -- surround caption w/ appropriate latex (and end the figure)
   if captionInlines and #captionInlines > 0 then
-    if isReferenceable(el) then
-      captionInlines:insert(1, pandoc.RawInline("latex", "\\caption{"))
-      tappend(captionInlines, {
-        pandoc.RawInline("latex", "}\\label{" .. el.attr.identifier .. "}\n"),
-      })
-    end
+    markupLatexCaption(el, captionInlines)
     figure.content:insert(pandoc.Para(captionInlines))
   end
   
-  -- end alignment
-  if align then
-    figure.content:insert(pandoc.RawBlock("latex", latexEndAlign(align)))
-  end
- 
   -- end figure
   figure.content:insert(pandoc.RawBlock("latex", "\\end{" .. figEnv .. "}"))
   
@@ -178,30 +181,49 @@ function isReferenceable(figEl)
          not string.find(figEl.attr.identifier, "^fig:anonymous-")
 end
 
-function latexBeginAlign(align, spacing)
-  if not spacing then
-    spacing = ""
+function markupLatexCaption(el, caption)
+  
+  -- caption prefix (includes \\caption macro + optional [subcap] + {)
+  local captionPrefix = pandoc.List:new({
+    pandoc.RawInline("latex", "\\caption")
+  })
+  local figScap = attribute(el, kFigScap, nil)
+  if figScap then
+    captionPrefix:insert(pandoc.RawInline("latex", "["))
+    tappend(captionPrefix, markdownToInlines(figScap))
+    captionPrefix:insert(pandoc.RawInline("latex", "]"))
   end
-  local beginAlign = "\n" .. spacing
-  if align == "center" then
-    beginAlign = beginAlign .. "{\\centering"
-  elseif align == "right" then
-    beginAlign = beginAlign .. "\\hfill{}"      
+  captionPrefix:insert(pandoc.RawInline("latex", "{"))
+  tprepend(caption, captionPrefix)
+  
+  -- end the caption
+  caption:insert(pandoc.RawInline("latex", "}"))
+  
+  -- include a label if this is referenceable
+  if isReferenceable(el) then
+    caption:insert(pandoc.RawInline("latex", "\\label{" .. el.attr.identifier .. "}"))
   end
-  return beginAlign
 end
 
-function latexEndAlign(align, spacing)
-  if not spacing then
-    spacing = ""
-  end
-  local endAlign = spacing
+
+function latexBeginAlign(align)
   if align == "center" then
-    endAlign = endAlign .. "}"
-  elseif align == "left" then
-    endAlign = endAlign .. "\\hfill{}"
+    return "{\\centering "
+  elseif align == "right" then
+    return "\\hfill{} "      
+  else
+    return ""
   end
-  return endAlign .. "\n"
+end
+
+function latexEndAlign(align)
+  if align == "center" then
+    return "\n\n}"
+  elseif align == "left" then
+    return " \\hfill{}"
+  else
+    return ""
+  end
 end
 
 

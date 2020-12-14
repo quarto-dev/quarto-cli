@@ -12,7 +12,7 @@ function tablePanel(divEl, subfigures, options)
   local panel = pandoc.Div({})
   
   -- alignment
-  local align = alignAttribute(divEl, "center")
+  local align = alignAttribute(divEl)
   
   -- subfigures
   local subfiguresEl = pandoc.Para({})
@@ -83,7 +83,7 @@ function figureTableCell(image, align, options)
       image.attr.attributes["width"] = string.format("%2.2f", inches) .. "in"
       -- if this is a linked figure then set width on the image as well
       if image.t == "Div" then
-        local linkedFig = linkedFigureFromPara(image.content[1], false)
+        local linkedFig = linkedFigureFromPara(image.content[1], false, true)
         if linkedFig then
           linkedFig.attr.attributes["width"] = image.attr.attributes["width"]
         end
@@ -93,7 +93,15 @@ function figureTableCell(image, align, options)
   
   local cell = pandoc.List:new()
   if image.t == "Image" then
-    cell:insert(pandoc.Para(image))
+    -- rtf doesn't write captions so make this explicit
+    if isRtfOutput() then
+      local caption = image.caption:clone()
+      tclear(image.caption)
+      cell:insert(pandoc.Para(image))
+      cell:insert(pandoc.Para(caption))
+    else
+      cell:insert(pandoc.Para(image))
+    end
   else
     -- style the caption
     local divCaption = image.content[#image.content]

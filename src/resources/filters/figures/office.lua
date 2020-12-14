@@ -2,6 +2,13 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 
+function tableOfficePanel(divEl, sufigures)
+  return tablePanel(divEl, sufigures, {
+    pageWidth = officePageWidth()
+  })
+end
+
+
 function officeFigure(image)
   
   -- options
@@ -13,7 +20,7 @@ function officeFigure(image)
   end
 
   -- get alignment
-  local align = alignAttribute(image, nil)
+  local align = alignAttribute(image)
   
   -- create the row/cell for the figure
   local row = pandoc.List:new()

@@ -13,7 +13,7 @@ import { mergeConfigs } from "../../core/config.ts";
 import { binaryPath, resourcePath } from "../../core/resources.ts";
 import { readYamlFromString } from "../../core/yaml.ts";
 
-import { FormatPandoc, isHtmlFormat } from "../../config/format.ts";
+import { Format, FormatPandoc, isHtmlFormat } from "../../config/format.ts";
 import { pdfEngine } from "../../config/pdf.ts";
 
 import {
@@ -32,7 +32,7 @@ import {
 
 import { kPatchedTemplateExt } from "./output.ts";
 import { PandocOptions } from "./pandoc.ts";
-import { crossrefFilterActive, crossrefGeneratedDefaults } from "./crossref.ts";
+import { crossrefGeneratedDefaults } from "./crossref.ts";
 
 export async function generateDefaults(
   options: PandocOptions,
@@ -181,7 +181,9 @@ function resolveFilters(filters: string[] | undefined, options: PandocOptions) {
   filters = filters || [];
 
   // add figures filter
-  filters.unshift(figuresFilter());
+  if (figuresFilterActive(options.format)) {
+    filters.unshift(figuresFilter());
+  }
 
   // add citeproc filter if necessary
   const citeproc = citeMethod(options) === "citeproc";
@@ -205,6 +207,14 @@ function crossrefFilter() {
   return resourcePath("filters/crossref/crossref.lua");
 }
 
+export function crossrefFilterActive(format: Format) {
+  return format.metadata.crossref !== false;
+}
+
 function figuresFilter() {
   return resourcePath("filters/figures/figures.lua");
+}
+
+export function figuresFilterActive(format: Format) {
+  return format.metadata.figures !== false;
 }

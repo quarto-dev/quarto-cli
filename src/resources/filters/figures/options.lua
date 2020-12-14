@@ -5,14 +5,14 @@
 function initOptions()
   return {
     Pandoc = function(doc)
-      crossref.options = readFilterOptions(doc, "crossref")
+       figures.options = readFilterOptions(doc, "figures")
     end
   }
 end
 
 -- get option value
 function option(name, default)
-  return readOption(crossref.options, name, default)
+  return readOption(figures.options, name, default)
 end
 
 

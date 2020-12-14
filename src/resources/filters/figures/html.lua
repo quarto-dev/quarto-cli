@@ -90,6 +90,20 @@ end
 function htmlDivFigure(el)
   
   return renderHtmlFigure(el, function(figure)
+    
+    -- if we are a percentage-sized subfigure, then make sure contained
+    -- images don't have width based percents
+    if isSubfigure(el) and widthToPercent(attribute(el, "width", nil)) then
+      -- remove any percent width of embedded linked image
+      if #el.content > 0 then
+        local linkedFig = linkedFigureFromPara(el.content[1], false, true)
+        if linkedFig and widthToPercent(attribute(linkedFig, "width", nil)) then
+          linkedFig.attributes["width"] = nil
+          linkedFig.attributes["height"] = nil
+        end
+      end
+    end
+    
     -- render content
     tappend(figure.content, tslice(el.content, 1, #el.content-1))
     

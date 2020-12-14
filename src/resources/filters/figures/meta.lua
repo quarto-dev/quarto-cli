@@ -40,6 +40,9 @@ function metaInject()
   .quarto-subfigure img {
     max-width: 100%;
   }
+  .quarto-subfigure .html-widget {
+    width: 100% !important;
+  }
   .quarto-subfigure figcaption {
     text-align: center;
     font-size: 0.8em;
