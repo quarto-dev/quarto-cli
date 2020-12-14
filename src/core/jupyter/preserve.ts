@@ -23,9 +23,7 @@ export function removeAndPreserveHtml(
           const displayOutput = output as JupyterOutputDisplayData;
           const html = displayOutput.data[kTextHtml];
           const htmlText = Array.isArray(html) ? html.join("") : html as string;
-          // we've seen pandoc choke on plotly's script as HTML, so preserve it
-          // and prevent it from receiving a caption
-          if (html && isPlotlyLibrary(htmlText)) {
+          if (html && isPreservedHtml(htmlText)) {
             const key = "preserve" + generateUuid().replaceAll("-", "");
             htmlPreserve[key] = htmlText;
             displayOutput.data[kTextMarkdown] = [key];
@@ -58,7 +56,6 @@ export function restorePreservedHtml(
   return html;
 }
 
-function isPlotlyLibrary(html: string) {
-  return /^\s*<script type="text\/javascript">/.test(html) &&
-    /define\('plotly'/.test(html);
+export function isPreservedHtml(html: string) {
+  return false;
 }

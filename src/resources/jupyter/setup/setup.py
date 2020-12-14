@@ -17,6 +17,8 @@ except Exception:
 
 # plotly express width/height defaults
 try:
+  import plotly.io as pio
+  pio.renderers.default = "notebook_connected"
   import plotly.express as px
   px.defaults.width = fig_width * fig_dpi
   px.defaults.height = fig_height * fig_dpi
