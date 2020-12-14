@@ -72,7 +72,7 @@ knitr_hooks <- function(format) {
     if (!is.null(fig.sep)) {
       
       # recycle fig.sep
-      fig.num <- options[["fig.num"]]
+      fig.num <- options[["fig.num"]] %||% 1L
       fig.sep <- rep_len(fig.sep, fig.num)
       
       # recyle out.width
@@ -153,7 +153,7 @@ knitr_hooks <- function(format) {
   knit_hooks$output <- delegating_output_hook("output", c("stream", "stdout"))
   knit_hooks$warning <- delegating_output_hook("warning", c("stream", "stderr"))
   knit_hooks$message <- delegating_output_hook("message", c("stream", "stderr"))
-  knit_hooks$plot <- knitr_plot_hook(default_hooks[["plot"]])
+  knit_hooks$plot <- knitr_plot_hook(knitr:::is_html_output(format$pandoc$to))
   knit_hooks$error <- delegating_output_hook("error", c("error"))
 
   list(
@@ -162,21 +162,39 @@ knitr_hooks <- function(format) {
   )
 }
 
-knitr_plot_hook <- function(default_plot_hook) {
+knitr_plot_hook <- function(htmlOutput) {
   function(x, options) {
-
+    
+    # are we using html animation? (if we are then ignore all but the last fig)
+    fig.num <- options[["fig.num"]] %||% 1L
+    fig.cur = options$fig.cur %||% 1L
+    htmlAnimation = htmlOutput && options$fig.show == 'animate'
+    if (htmlAnimation) {
+      if (fig.cur < fig.num) {
+        return ('')
+      } else  {
+        # if it's the gifski hook then call it directly (it will call 
+        # this function back with the composed animated gif)
+        hook <- knitr:::hook_animation(options)
+        if (identical(hook, knitr:::hook_gifski)) {
+          return (hook(x, options))
+        }
+      }
+    }
+  
     # classes
     classes <- c("display_data")
     if (isTRUE(options[["plot.hidden"]]))
       classes <- c(classes, "hidden")
 
-    # id
+    # label
     placeholder <- output_label_placeholder(options)
-    attr <- ifelse(
+    label <- ifelse(
       is_figure_label(placeholder),
       labelId(placeholder),
       ""
     )
+    attr <- label
     
     # knitr::fix_options will convert out.width and out.height to their
     # latex equivalents, reverse this transformation so our figure layout
@@ -229,24 +247,49 @@ knitr_plot_hook <- function(default_plot_hook) {
       attr <- paste0("{", trimws(attr), "}")
     }
 
-    # generate markdown for image
-    md <- sprintf("![%s](%s)%s", figure_cap(options), x, attr)
-    
-    # enclose in link if requested
-    link <- options[["fig.link"]]
-    if (!is.null(link)) {
-      md <- sprintf("[%s](%s)", md, link)
+    # if this is an htmlAnimation emit as raw html
+    if (htmlAnimation) {
+      
+      # get the caption (then remove it so the hook doesn't include it)
+      caption <- figure_cap(options)
+      options[["fig.cap"]] <- NULL
+      options[["fig.subcap"]] <- NULL
+      
+      # render the animation
+      hook <- knitr:::hook_animation(options)
+      htmlOutput <- hook(x, options)
+      htmlOutput <- htmlPreserve(htmlOutput)
+      
+      # add the caption if we have one
+      if (nzchar(caption)) {
+        htmlOutput <- paste0(htmlOutput, "\n\n", caption, "\n")
+      }
+      
+      # enclose in output div
+      output_div(htmlOutput, label, classes)
+      
+    } else {
+      
+      # generate markdown for image
+      md <- sprintf("![%s](%s)%s", figure_cap(options), x, attr)
+      
+      # enclose in link if requested
+      link <- options[["fig.link"]]
+      if (!is.null(link)) {
+        md <- sprintf("[%s](%s)", md, link)
+      }
+      
+      # enclose in output div
+      output_div(md, NULL, classes)
     }
 
-    # enclose in output div
-    output_div(md, NULL, classes)
   }
 }
 
 # helper to create an output div
 output_div <- function(x, label, classes) {
   div <- "::: {"
-  if (!is.null(label)) {
+  if (!is.null(label) && nzchar(label)) {
     div <- paste0(div, labelId(label), " ")
   }
   paste0(
