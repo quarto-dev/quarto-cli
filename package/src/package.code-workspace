@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"deno.lint": true,
+		"deno.enable": true,
+		"deno.unstable": true
+	},
+	"extensions": {
+		"recommendations": [
+			"denoland.vscode-deno"
+		]
+	}
+}
