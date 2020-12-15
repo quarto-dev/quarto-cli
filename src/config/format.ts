@@ -48,6 +48,7 @@ import {
   kKeepMd,
   kKeepSource,
   kKeepTex,
+  kOutputDivs,
   kOutputExt,
   kPageWidth,
 } from "./constants.ts";
@@ -66,6 +67,7 @@ export interface FormatRender {
   [kKeepYaml]?: boolean;
   [kKeepSource]?: boolean;
   [kPreferHtml]?: boolean;
+  [kOutputDivs]?: boolean;
   [kVariant]?: string;
   [kOutputExt]?: string;
   [kPageWidth]?: number;
@@ -373,6 +375,7 @@ function powerpointFormat(): Format {
   return format("pptx", {
     render: {
       [kPageWidth]: 9,
+      [kOutputDivs]: false,
     },
     execution: {
       [kFigWidth]: 7.5,
@@ -461,6 +464,7 @@ function defaultFormat(): Format {
       [kKeepTex]: false,
       [kKeepYaml]: false,
       [kPreferHtml]: false,
+      [kOutputDivs]: true,
       [kOutputExt]: "html",
     },
     pandoc: {

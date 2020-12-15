@@ -13,11 +13,9 @@ import { mergeConfigs } from "../../core/config.ts";
 import { binaryPath, resourcePath } from "../../core/resources.ts";
 import { readYamlFromString } from "../../core/yaml.ts";
 
-import { Format, FormatPandoc, isHtmlFormat } from "../../config/format.ts";
-import { pdfEngine } from "../../config/pdf.ts";
+import { FormatPandoc, isHtmlFormat } from "../../config/format.ts";
 
 import {
-  kBibliography,
   kFilters,
   kFrom,
   kIncludeAfterBody,
@@ -32,12 +30,9 @@ import {
 
 import { kPatchedTemplateExt } from "./output.ts";
 import { PandocOptions } from "./pandoc.ts";
-import {
-  crossrefFilter,
-  crossrefFilterActive,
-  crossrefGeneratedDefaults,
-} from "./crossref.ts";
-import { figuresFilter, figuresFilterActive } from "./figures.ts";
+import { crossrefFilter, crossrefGeneratedDefaults } from "./crossref.ts";
+import { figuresFilter } from "./figures.ts";
+import { quartoFilter, resolveFilters } from "./filters.ts";
 
 export async function generateDefaults(
   options: PandocOptions,
@@ -108,15 +103,19 @@ export function pandocDefaultsMessage(pandoc: FormatPandoc, debug?: boolean) {
 
   // simplify crossref filter
   if (defaults.filters?.length) {
-    defaults.filters = defaults.filters.map((filter) => {
-      if (filter === crossrefFilter()) {
-        return "crossref";
-      } else if (filter === figuresFilter()) {
-        return "figures";
-      } else {
-        return filter;
-      }
-    });
+    defaults.filters = defaults.filters
+      .map((filter) => {
+        if (filter === crossrefFilter()) {
+          return "crossref";
+        } else if (filter === figuresFilter()) {
+          return "figures";
+        } else {
+          return filter;
+        }
+      })
+      .filter((filter) => {
+        return filter !== quartoFilter();
+      });
   }
 
   // remove template if it's patched
@@ -151,58 +150,6 @@ async function detectDefaults(
     } else {
       throw new Error();
     }
-  } else {
-    return undefined;
-  }
-}
-
-type CiteMethod = "citeproc" | "natbib" | "biblatex";
-
-function citeMethod(options: PandocOptions): CiteMethod | null {
-  // no handler if no references
-  const pandoc = options.format.pandoc;
-  const metadata = options.format.metadata;
-  if (!metadata[kBibliography] && !metadata.references) {
-    return null;
-  }
-
-  // collect config
-  const pdf = pdfEngine(options.format.pandoc, options.flags);
-
-  // if it's pdf-based output check for natbib or biblatex
-  if (pdf?.bibEngine) {
-    return pdf.bibEngine;
-  }
-
-  // otherwise it's citeproc unless expressly disabled
-  if (pandoc.citeproc !== false) {
-    return "citeproc";
-  } else {
-    return null;
-  }
-}
-
-function resolveFilters(filters: string[] | undefined, options: PandocOptions) {
-  filters = filters || [];
-
-  // add figures filter
-  if (figuresFilterActive(options.format)) {
-    filters.unshift(figuresFilter());
-  }
-
-  // add citeproc filter if necessary
-  const citeproc = citeMethod(options) === "citeproc";
-  if (citeproc && !filters.includes("citeproc")) {
-    filters.unshift("citeproc");
-  }
-
-  // add crossref filter if necessary (unshift will put it before citeproc)
-  if (crossrefFilterActive(options.format)) {
-    filters.unshift(crossrefFilter());
-  }
-
-  if (filters.length > 0) {
-    return filters;
   } else {
     return undefined;
   }
