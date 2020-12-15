@@ -22,8 +22,16 @@ function layoutSubfigures(divEl)
     return nil
   end
   
-   -- init layout
+   -- init code and layout lists
+  local code = pandoc.List:new()
   local layout = pandoc.List:new()
+  
+  -- collect all the code blocks
+  pandoc.walk_block(divEl, {
+    CodeBlock = function(el)
+      code:insert(el)
+    end
+  })
 
   -- note any figure layout attributes
   local figRows = tonumber(attribute(divEl, kFigNrow, nil))
@@ -131,7 +139,7 @@ function layoutSubfigures(divEl)
   end)  
 
   -- return the layout
-  return layout
+  return code, layout
 
 end
 

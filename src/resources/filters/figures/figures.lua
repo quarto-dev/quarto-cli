@@ -48,18 +48,28 @@ function layoutFigures()
       if isFigureDiv(el, false) then
         
         -- handle subfigure layout
-        local subfigures = layoutSubfigures(el)
+        local code, subfigures = layoutSubfigures(el)
         if subfigures then
           if isLatexOutput() then
-            return latexPanel(el, subfigures)
+            subfigures = latexPanel(el, subfigures)
           elseif isHtmlOutput() then
-            return htmlPanel(el, subfigures)
+            subfigures = htmlPanel(el, subfigures)
           elseif isDocxOutput() then
-            return tableDocxPanel(el, subfigures)
+            subfigures = tableDocxPanel(el, subfigures)
           elseif isOfficeOutput() then
-            return tableOfficePanel(el, subfigures)
+            subfigures= tableOfficePanel(el, subfigures)
           else
-            return tablePanel(el, subfigures)
+            subfigures = tablePanel(el, subfigures)
+          end
+          
+          -- we have code then wrap the code and subfigues in a div
+          if code then
+            local div = pandoc.Div(code)
+            div.content:insert(subfigures)
+            return div
+          -- otherwise just return the subfigures
+          else
+            return subfigures
           end
           
         -- turn figure divs into <figure> tag for html
