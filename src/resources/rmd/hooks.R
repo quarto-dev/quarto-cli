@@ -298,7 +298,7 @@ knitr_plot_hook <- function(htmlOutput) {
         }
         
         # enclose in output div
-        output_div(latexOutput, label, classes, "animation=1")
+        output_div(latexOutput, label, classes)
         
       # otherwise assume html
       } else {
