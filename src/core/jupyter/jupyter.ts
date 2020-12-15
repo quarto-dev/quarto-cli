@@ -56,7 +56,6 @@ import {
 import { widgetIncludeFiles } from "./widgets.ts";
 import { removeAndPreserveHtml } from "./preserve.ts";
 import { FormatExecution } from "../../config/format.ts";
-import { Metadata } from "../../config/metadata.ts";
 
 export const kCellCollapsed = "collapsed";
 export const kCellAutoscroll = "autoscroll";
@@ -376,7 +375,7 @@ function mdFromCodeCell(
   const { cellCaption, outputCaptions } = resolveCaptions(cell);
 
   // cell_type classes
-  divMd.push(`.cell .cell-code `);
+  divMd.push(`.cell `);
 
   // add hidden if requested
   if (hideCell(cell)) {
@@ -417,6 +416,7 @@ function mdFromCodeCell(
       md.push(label + " ");
     }
     md.push("." + options.language);
+    md.push(" .cell-code");
     if (hideCode(cell, options.execution)) {
       md.push(" .hidden");
     }
@@ -463,13 +463,12 @@ function mdFromCodeCell(
         md.push(outputLabel + " ");
       }
 
-      // div preamble
-      md.push(`.output .${output.output_type}`);
-
-      // add stream name class if necessary
+      // add output class name
       if (output.output_type === "stream") {
         const stream = output as JupyterOutputStream;
-        md.push(` .${stream.name}`);
+        md.push(`.cell-output-${stream.name}`);
+      } else {
+        md.push(`.${outputTypeCssClass(output.output_type)}`);
       }
 
       // add hidden if necessary
@@ -776,4 +775,11 @@ function isWarningOutput(output: JupyterOutput) {
   } else {
     return false;
   }
+}
+
+function outputTypeCssClass(output_type: string) {
+  if (["display_data", "execute_result"].includes(output_type)) {
+    output_type = "display";
+  }
+  return `cell-output-${output_type}`;
 }

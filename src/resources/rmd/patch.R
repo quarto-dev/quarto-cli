@@ -1,8 +1,6 @@
 # patch.R
 # Copyright (C) 2020 by RStudio, PBC
 
-# use pandoc raw attribute rather than <!-- html_preserve -->
-
 # only works w/ htmltools >= 0.5.0.9003 so overwrite in the meantime
 options(htmltools.preserve.raw = TRUE)
 
@@ -26,8 +24,13 @@ assignInNamespace("htmlPreserve", htmlPreserve, ns = "htmltools")
 # to provide for enclosing output div and support for figure captions
 knitr_wrap <- knitr:::wrap
 wrap <- function(x, options = list(), ...) {
-  if (inherits(x, "knit_asis")) {
-
+  
+  if (inherits(x, "knit_image_paths")) {
+    
+    knitr_wrap(x, options, ...)
+    
+  } else if (inherits(x, "knit_asis")) {
+    
     # delegate
     is_html_widget <- inherits(x, "knit_asis_htmlwidget")
     x <- knitr:::wrap.knit_asis(x, options, ...)
@@ -40,6 +43,7 @@ wrap <- function(x, options = list(), ...) {
       wrap_asis_output(options, x)
     }
   } else {
+
     knitr_wrap(x, options, ...)
   }
 }
@@ -57,7 +61,7 @@ wrap_asis_output <- function(options, x) {
   if (nzchar(caption)) {
     x <- paste0(x, "\n\n", caption)
   }
-  classes <- "display_data"
+  classes <- paste0("cell-output-display")
   if (isTRUE(options[["output.hidden"]]))
     classes <- paste0(classes, " .hidden")
   output_div(x, output_label_placeholder(options), classes)
