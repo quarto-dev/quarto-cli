@@ -4,10 +4,11 @@ import { Logger } from "../common/logger.ts";
 import { ensureDirExists } from "../common/utils.ts";
 import { makeTarball } from "../common/tar.ts";
 
-export async function makePackageLinux(
-  configuration: Configuration,
-  log: Logger,
+export async function makeInstallerLinux(
+  configuration: Configuration
 ) {
+
+  const log = configuration.log;
   log.info("Building deb package...");
   const workingDir = join(configuration.dirs.out, "working");
   ensureDirExists(workingDir);

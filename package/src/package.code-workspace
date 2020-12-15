@@ -7,7 +7,8 @@
 	"settings": {
 		"deno.lint": true,
 		"deno.enable": true,
-		"deno.unstable": true
+		"deno.unstable": true,
+		"deno.import_map": "import_map.json"
 	},
 	"extensions": {
 		"recommendations": [

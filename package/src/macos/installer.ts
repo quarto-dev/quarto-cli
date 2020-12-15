@@ -4,7 +4,9 @@ import { Configuration } from "../common/config.ts";
 import { Logger } from "../common/logger.ts";
 import { ensureDirExists } from "../common/utils.ts";
 
-export async function makePackage(configuration: Configuration, log: Logger) {
+export async function makeInstallerMac(configuration: Configuration) {
+
+  const log = configuration.log;
   // Target package
   const outPackage = join(
     configuration.dirs.out,

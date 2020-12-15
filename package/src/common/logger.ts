@@ -16,10 +16,25 @@ export interface Logger {
   info: (message: unknown) => void;
 }
 
-// Gets a logger for the current configuration
-export function logger(
-  config: Configuration,
-): Logger {
+export function parseLogLevel(logLevelStr: string): number {
+  logLevelStr = logLevelStr || "error";
+  switch (logLevelStr.toLowerCase()) {
+    case "info":
+      return kInfo;
+    case "warning":
+      return kWarning;
+    case "error":
+      return kError;
+    default:
+      return kError;
+  }
+}
+
+export function defaultLogger() {
+  return logger(kError);
+}
+
+export function logger(configLogLevel: number) {
   const log = (message: unknown, loglevel?: number) => {
     let prefix = "";
     switch (loglevel) {
@@ -35,7 +50,7 @@ export function logger(
     }
 
     loglevel = loglevel || 0;
-    if (loglevel <= config.logLevel) {
+    if (loglevel <= configLogLevel) {
       if (prefix.length > 0) {
         console.log(prefix, message);
       } else {
