@@ -1,19 +1,19 @@
--- office.lua
+-- wp.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
 
-function tableOfficePanel(divEl, sufigures)
+function tableWpPanel(divEl, sufigures)
   return tablePanel(divEl, sufigures, {
-    pageWidth = officePageWidth()
+    pageWidth = wpPageWidth()
   })
 end
 
 
-function officeFigure(image)
+function wpFigure(image)
   
   -- options
   options = {
-    pageWidth = officePageWidth(),
+    pageWidth = wpPageWidth(),
   }
   if isDocxOutput() then
     options.divCaption = docxDivCaption
@@ -40,7 +40,7 @@ function officeFigure(image)
   
 end
 
-function officePageWidth()
+function wpPageWidth()
   local width = param("page-width", nil)
   if width then 
     width = tonumber(pandoc.utils.stringify(width))

@@ -16,9 +16,9 @@ function isRtfOutput()
   return FORMAT == "rtf"
 end
 
--- check for office output
-function isOfficeOutput()
-  return FORMAT == "docx" or FORMAT == "pptx" or FORMAT == "rtf" or FORMAT == "odt"
+-- check for word processor output
+function isWordProcessorOutput()
+  return FORMAT == "docx" or FORMAT == "rtf" or FORMAT == "odt"
 end
 
 -- check for html output

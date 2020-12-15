@@ -4,7 +4,7 @@
 
 function tableDocxPanel(divEl, sufigures)
   return tablePanel(divEl, sufigures, {
-    pageWidth = officePageWidth(),
+    pageWidth = wpPageWidth(),
     rowBreak = docxRowBreak,
     divCaption = docxDivCaption
   })
