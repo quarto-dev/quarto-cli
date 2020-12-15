@@ -45,6 +45,8 @@ knitr_hooks <- function(format) {
   }
   delegating_output_hook = function(type, classes) {
     delegating_hook(type, function(x, options) {
+      # prefix for classes
+      classes <- paste0("cell-output-", classes)
       # add .hidden class if keep-hidden hook injected an option
       if (isTRUE(options[[paste0(type,".hidden")]]))
         classes <- c(classes, "hidden")
@@ -136,12 +138,13 @@ knitr_hooks <- function(format) {
     }
     
     # return cell
-    paste0("::: {", labelId(label) ,".cell .cell-code", forwardAttr, "}\n", x, "\n", fig.cap ,":::")
+    paste0("::: {", labelId(label) ,".cell", forwardAttr, "}\n", x, "\n", fig.cap ,":::")
   })
   knit_hooks$source <- function(x, options) {
     x <- knitr:::one_string(c('', x))
     class <- options$class.source
     attr <- options$attr.source
+    class <- paste(class, "cell-code")
     if (isTRUE(options["source.hidden"])) {
       class <- paste(class, "hidden")
     }
@@ -156,14 +159,14 @@ knitr_hooks <- function(format) {
     attrs <- block_attr(
       id = id,
       lang = tolower(options$engine),
-      class = class,
+      class = trimws(class),
       attr = attr
     )
     paste0('\n\n```', attrs, x, '\n```\n\n')
   }
-  knit_hooks$output <- delegating_output_hook("output", c("stream", "stdout"))
-  knit_hooks$warning <- delegating_output_hook("warning", c("stream", "stderr"))
-  knit_hooks$message <- delegating_output_hook("message", c("stream", "stderr"))
+  knit_hooks$output <- delegating_output_hook("output", c("stdout"))
+  knit_hooks$warning <- delegating_output_hook("warning", c("stderr"))
+  knit_hooks$message <- delegating_output_hook("message", c("stderr"))
   knit_hooks$plot <- knitr_plot_hook(knitr:::is_html_output(format$pandoc$to))
   knit_hooks$error <- delegating_output_hook("error", c("error"))
 
@@ -195,7 +198,7 @@ knitr_plot_hook <- function(htmlOutput) {
     }
   
     # classes
-    classes <- c("display_data")
+    classes <- paste0("cell-output-display")
     if (isTRUE(options[["plot.hidden"]]))
       classes <- c(classes, "hidden")
 
@@ -326,7 +329,7 @@ output_div <- function(x, label, classes, attr = NULL) {
     div <- paste0(div, labelId(label), " ")
   }
   paste0(
-    div, ".output ",
+    div,
     paste(paste0(".", classes), collapse = " ") ,
     ifelse(!is.null(attr), paste0(" ", attr), ""),
     "}\n",

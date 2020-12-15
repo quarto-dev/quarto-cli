@@ -1,8 +1,6 @@
 # patch.R
 # Copyright (C) 2020 by RStudio, PBC
 
-# use pandoc raw attribute rather than <!-- html_preserve -->
-
 # only works w/ htmltools >= 0.5.0.9003 so overwrite in the meantime
 options(htmltools.preserve.raw = TRUE)
 
@@ -63,7 +61,7 @@ wrap_asis_output <- function(options, x) {
   if (nzchar(caption)) {
     x <- paste0(x, "\n\n", caption)
   }
-  classes <- "display_data"
+  classes <- paste0("cell-output-display")
   if (isTRUE(options[["output.hidden"]]))
     classes <- paste0(classes, " .hidden")
   output_div(x, output_label_placeholder(options), classes)
