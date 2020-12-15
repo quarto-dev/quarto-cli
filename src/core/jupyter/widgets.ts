@@ -127,5 +127,6 @@ function isWidgetIncludeHtml(html: string) {
 
 function isPlotlyLibrary(html: string) {
   return /^\s*<script type="text\/javascript">/.test(html) &&
-    /require\.undef\(["']plotly["']\)/.test(html);
+    (/require\.undef\(["']plotly["']\)/.test(html) ||
+      /define\('plotly'/.test(html));
 }
