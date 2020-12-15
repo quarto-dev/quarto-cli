@@ -8,7 +8,7 @@ function initIndex()
       
       -- compute section offsets
       local sectionOffsets = pandoc.List:new({0,0,0,0,0,0,0})
-      local numberOffset = pandoc.List:new(option("number-offset", {})):map(
+      local numberOffset = pandoc.List:new(param("number-offset", {})):map(
         function(offset)
           return tonumber(offset[1].text)
         end

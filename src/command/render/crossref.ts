@@ -12,11 +12,9 @@ import {
   kTopLevelDivision,
 } from "../../config/constants.ts";
 import { Format } from "../../config/format.ts";
-import { Metadata, setFormatMetadata } from "../../config/metadata.ts";
+import { Metadata } from "../../config/metadata.ts";
 
 import { PandocOptions } from "./pandoc.ts";
-
-const kForwardedCrossrefOptions = [kListings, kNumberSections, kNumberOffset];
 
 export function crossrefFilter() {
   return resourcePath("filters/crossref/crossref.lua");
@@ -50,55 +48,27 @@ export function crossrefGeneratedDefaults(options: PandocOptions) {
   return undefined;
 }
 
-export function forwardCrossrefOptions(options: PandocOptions) {
-  // forward all values
-  kForwardedCrossrefOptions.forEach((name) => {
-    const value = crossrefOption(name, options);
+export function crossrefFilterParams(options: PandocOptions) {
+  const kCrossrefFilterParams = [kListings, kNumberSections, kNumberOffset];
+  const params: Metadata = {};
+  kCrossrefFilterParams.forEach((option) => {
+    const value = crossrefOption(option, options);
     if (value) {
-      setCrossrefMetadata(options.format, name, value);
+      // validation
+      if (option === kNumberOffset) {
+        if (
+          !Array.isArray(value) || value.some((num) => !Number.isInteger(num))
+        ) {
+          throw new Error(
+            "Invalid value for number-offset (should be an array of numbers)",
+          );
+        }
+      }
+
+      params[option] = value;
     }
   });
-
-  // if number-offset is defined then make sure it's an array of numbers
-  // and set --number-sections (as it's presence implies number-sections)
-  // additionally, --number-offset implies --number-sections
-  if (typeof options.format.metadata.crossref === "object") {
-    const numberOffset =
-      // deno-lint-ignore no-explicit-any
-      (options.format.metadata.crossref as any)[kNumberOffset];
-    if (numberOffset) {
-      if (
-        !Array.isArray(numberOffset) ||
-        numberOffset.some((num) => !Number.isInteger(num))
-      ) {
-        throw new Error(
-          "Invalid value for number-offset (should be an array of numbers)",
-        );
-      }
-      setCrossrefMetadata(options.format, kNumberSections, true);
-    }
-  }
-}
-
-export function cleanForwardedCrossrefMetadata(metadata: Metadata) {
-  // cleanup synthesized crossref metadata
-  if (metadata.crossref) {
-    const crossref = metadata.crossref as Record<string, unknown>;
-    kForwardedCrossrefOptions.forEach((name) => {
-      if (crossref[name] !== undefined) {
-        delete crossref[name];
-      }
-    });
-    if (crossref.listings !== undefined) {
-      delete crossref.listings;
-    }
-    if (crossref[kNumberSections] !== undefined) {
-      delete crossref[kNumberSections];
-    }
-    if (Object.keys(crossref).length === 0) {
-      delete metadata.crossref;
-    }
-  }
+  return params;
 }
 
 function crossrefOption(name: string, options: PandocOptions) {
@@ -111,12 +81,4 @@ function crossrefOption(name: string, options: PandocOptions) {
   } else {
     return undefined;
   }
-}
-
-function setCrossrefMetadata(
-  format: Format,
-  key: string,
-  value: unknown,
-) {
-  setFormatMetadata(format, "crossref", key, value);
 }

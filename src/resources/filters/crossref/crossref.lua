@@ -34,6 +34,7 @@ import("format.lua")
 import("options.lua")
 import("../common/pandoc.lua")
 import("../common/format.lua")
+import("../common/params.lua")
 import("../common/options.lua")
 import("../common/figures.lua")
 import("../common/meta.lua")
@@ -43,6 +44,7 @@ import("../common/debug.lua")
 
 -- chain of filters
 return {
+  initParams(),
   initOptions(),
   initIndex(),
   preprocessFigures(true),

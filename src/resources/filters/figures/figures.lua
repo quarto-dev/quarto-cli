@@ -33,6 +33,7 @@ import("../common/json.lua")
 import("../common/pandoc.lua")
 import("../common/format.lua")
 import("../common/figures.lua")
+import("../common/params.lua")
 import("../common/options.lua")
 import("../common/meta.lua")
 import("../common/table.lua")
@@ -109,6 +110,7 @@ end
 
 -- chain of filters
 return {
+  initParams(),
   initOptions(),
   preprocessFigures(false),
   layoutFigures(),

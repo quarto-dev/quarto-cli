@@ -23,16 +23,7 @@ import {
   pandocDefaultsMessage,
   writeDefaultsFile,
 } from "./defaults.ts";
-import {
-  cleanForwardedCrossrefMetadata,
-  crossrefFilterActive,
-  forwardCrossrefOptions,
-} from "./crossref.ts";
-import {
-  cleanForwardedFiguresMetadata,
-  figuresFilterActive,
-  forwardFiguresOptions,
-} from "./figures.ts";
+import { removeFilterParmas, setFilterParams } from "./filters.ts";
 
 // options required to run pandoc
 export interface PandocOptions {
@@ -60,15 +51,8 @@ export async function runPandoc(
     cmd.push("--defaults", defaultsFile);
   }
 
-  // forward options to figures filter
-  if (figuresFilterActive(options.format)) {
-    forwardFiguresOptions(options.format);
-  }
-
-  // forward --listings, --number-sections, and --number-offset to crossref if necessary
-  if (crossrefFilterActive(options.format)) {
-    forwardCrossrefOptions(options);
-  }
+  // set parameters required for filters
+  setFilterParams(options);
 
   // read the input file then append the metadata to the file (this is to that)
   // our fully resolved metadata, which incorporates project and format-specific
@@ -136,9 +120,8 @@ function runPandocMessage(
     const printMetadata = ld.cloneDeep(metadata) as Metadata;
     delete printMetadata.format;
 
-    // cleanup synthesized  metadata
-    cleanForwardedFiguresMetadata(printMetadata);
-    cleanForwardedCrossrefMetadata(printMetadata);
+    // remove filter params
+    removeFilterParmas(printMetadata);
 
     // print message
     message(stringify(printMetadata), { indent: 2 });

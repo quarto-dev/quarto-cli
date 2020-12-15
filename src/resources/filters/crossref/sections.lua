@@ -71,7 +71,7 @@ function currentSectionLevel()
 end
 
 function numberSections()
-  return formatRequiresSectionNumber() and option("number-sections", false)
+  return formatRequiresSectionNumber() and param("number-sections", false)
 end
 
 function formatRequiresSectionNumber()

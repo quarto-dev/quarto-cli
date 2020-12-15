@@ -80,5 +80,5 @@ function prependTitlePrefix(caption, label, order)
 end
 
 function latexListings()
-  return option("listings", false)
+  return param("listings", false)
 end

@@ -41,7 +41,7 @@ function officeFigure(image)
 end
 
 function officePageWidth()
-  local width = option("page-width", nil)
+  local width = param("page-width", nil)
   if width then 
     width = tonumber(pandoc.utils.stringify(width))
     if not width then
