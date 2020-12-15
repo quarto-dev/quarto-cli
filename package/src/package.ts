@@ -10,8 +10,8 @@ import { packageCommand } from "./cmd/pkg-cmd.ts";
 
 import { defaultLogger } from "./common/logger.ts";
 import { prepareDist } from "./common/prepare-dist.ts";
-import { makePackageLinux } from "./linux/package.ts";
-import { makePackage } from "./macos/package.ts";
+import { makeInstallerLinux } from "./linux/installer.ts";
+import { makeInstallerMac } from "./macos/installer.ts";
 
 
 export async function quartoPack(args: string[]) {
@@ -47,10 +47,10 @@ function getCommands() {
     commands.push(packageCommand(prepareDist)
         .name("prepare-dist")
         .description("Prepares the distribution directory for packaging."));
-    commands.push(packageCommand(makePackage)
+    commands.push(packageCommand(makeInstallerMac)
         .name("package-mac")
         .description("Builds Mac OS installer"));
-    commands.push(packageCommand(makePackageLinux)
+    commands.push(packageCommand(makeInstallerLinux)
         .name("package-linux")
         .description("Builds Linux deb installer"));
     return commands;
