@@ -1,4 +1,10 @@
-import { join } from "https://deno.land/std/path/mod.ts";
+/*
+* deno.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
+import { join } from "path/mod.ts";
 
 import { Configuration } from "./config.ts";
 

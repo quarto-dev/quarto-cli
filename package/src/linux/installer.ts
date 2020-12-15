@@ -1,13 +1,20 @@
-import { join } from "https://deno.land/std/path/mod.ts";
+/*
+* installer.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
+import { join } from "path/mod.ts";
+
 import { Configuration } from "../common/config.ts";
-import { Logger } from "../common/logger.ts";
 import { ensureDirExists } from "../common/utils.ts";
 import { makeTarball } from "../common/tar.ts";
 
-export async function makePackageLinux(
-  configuration: Configuration,
-  log: Logger,
+export async function makeInstallerDeb(
+  configuration: Configuration
 ) {
+
+  const log = configuration.log;
   log.info("Building deb package...");
   const workingDir = join(configuration.dirs.out, "working");
   ensureDirExists(workingDir);

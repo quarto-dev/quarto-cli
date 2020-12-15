@@ -1,6 +1,13 @@
+/*
+* config.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
+import { join } from "path/mod.ts";
+
 import { getEnv } from "./utils.ts";
-import { join } from "https://deno.land/std/path/mod.ts";
-import { kInfo } from "./logger.ts";
+import { Logger, logger } from "./logger.ts";
 
 // The core configuration for the packaging process
 export interface Configuration {
@@ -15,7 +22,7 @@ export interface Configuration {
     out: string;
   };
   version: string;
-  logLevel: 0 | 1 | 2;
+  log: Logger;
   pkgConfig: PkgConfig;
 }
 
@@ -28,7 +35,7 @@ export interface PkgConfig {
 }
 
 // Get the current configuration
-export function configuration(): Configuration {
+export function configuration(logLevel: number): Configuration {
   const execPath = Deno.execPath();
   const root = join(execPath, "..", "..", "..", "..");
 
@@ -69,7 +76,7 @@ export function configuration(): Configuration {
       out,
     },
     version,
-    logLevel: kInfo,
+    log: logger(logLevel),
     pkgConfig,
   };
 }

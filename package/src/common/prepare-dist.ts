@@ -1,23 +1,31 @@
-import { dirname, join } from "https://deno.land/std/path/mod.ts";
-import { copySync } from "https://deno.land/std/fs/mod.ts";
-import { Configuration, configuration } from "../common/config.ts";
-import { Logger, logger } from "./logger.ts";
+/*
+* prepare-dist.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
+
+import { dirname, join } from "path/mod.ts";
+import { copySync } from "fs/mod.ts";
+
+import { Configuration } from "../common/config.ts";
+import { Logger } from "./logger.ts";
 import { buildFilter } from "./package-filters.ts";
 import { bundle } from "./deno.ts";
 import { ensureDirExists } from "./utils.ts";
-import { makePackage } from "../macos/package.ts";
-import { makePackageLinux } from "../linux/package.ts";
 
-async function prepareDist(
-  config: Configuration,
-  log: Logger,
-) {
-  log.info("Preparing Dist using this config");
-  log.info(config);
+
+export async function prepareDist(
+  config: Configuration) {
+  const log = config.log;
 
   // Move the supporting files into place
+  log.info("\nMoving supporting files")
   supportingFiles(config, log);
+  log.info("")
 
+
+  log.info("\nCreating Deno Bundle")
   // Create the deno bundle
   const input = join(config.dirs.src, "quarto.ts");
   const output = join(config.dirs.bin, "quarto.js");
@@ -26,15 +34,12 @@ async function prepareDist(
     output,
     config,
   );
+  log.info("")
 
   // Inline the LUA Filters and move them into place
-  inlineFilters(config, log);
-
-  // Build macos installer
-  await makePackage(config, log);
-
-  // Build deb
-  await makePackageLinux(config, log);
+  log.info("\nCreating Inlined LUA Filters")
+  inlineFilters(config);
+  log.info("")
 }
 
 function supportingFiles(config: Configuration, log: Logger) {
@@ -75,13 +80,13 @@ function supportingFiles(config: Configuration, log: Logger) {
   });
 }
 
-function inlineFilters(config: Configuration, log: Logger) {
-  log.info("Building inlined filters");
+function inlineFilters(config: Configuration) {
+  config.log.info("Building inlined filters");
   const outDir = join(config.dirs.share, "filters");
   const filtersToInline = ["crossref", "figures"];
 
   filtersToInline.forEach((filter) => {
-    log.info(filter);
+    config.log.info(filter);
     buildFilter(
       join(
         config.dirs.src,
@@ -91,12 +96,7 @@ function inlineFilters(config: Configuration, log: Logger) {
         `${filter}.lua`,
       ),
       join(outDir, filter, `${filter}.lua`),
-      log,
+      config.log,
     );
   });
 }
-
-const config = configuration();
-const log = logger(config);
-
-await prepareDist(config, log);

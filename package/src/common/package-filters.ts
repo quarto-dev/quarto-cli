@@ -1,4 +1,11 @@
-import { dirname, join } from "https://deno.land/std/path/mod.ts";
+/*
+* package-filters.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
+import { dirname, join } from "path/mod.ts";
+
 import { Logger } from "./logger.ts";
 import { ensureDirExists } from "./utils.ts";
 

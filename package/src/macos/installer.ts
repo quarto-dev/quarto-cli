@@ -1,19 +1,24 @@
-import { dirname, join } from "https://deno.land/std/path/mod.ts";
+/*
+* installer.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
+import { dirname, join } from "path/mod.ts";
 import { existsSync } from "fs/exists.ts";
 
 import { Configuration } from "../common/config.ts";
 import { Logger } from "../common/logger.ts";
 import { ensureDirExists } from "../common/utils.ts";
 
-export async function makePackage(configuration: Configuration) {
-  const log = configuration.log;
+export async function makeInstallerMac(config: Configuration) {
   // Target package
   const outPackage = join(
-    configuration.dirs.out,
-    configuration.pkgConfig.name,
+    config.dirs.out,
+    config.pkgConfig.name,
   );
 
-  log.info(`Packaging into ${outPackage}`);
+  config.log.info(`Packaging into ${outPackage}`);
 
   // Clean any existing package
   if (existsSync(outPackage)) {
@@ -27,23 +32,30 @@ export async function makePackage(configuration: Configuration) {
   const pkgCmd: string[] = [];
   pkgCmd.push("pkgbuild");
   pkgCmd.push("--root");
-  pkgCmd.push(configuration.dirs.dist);
+  pkgCmd.push(config.dirs.dist);
   pkgCmd.push("--identifier");
-  pkgCmd.push(configuration.pkgConfig.identifier);
+  pkgCmd.push(config.pkgConfig.identifier);
   pkgCmd.push("--version");
-  pkgCmd.push(configuration.version);
-  pkgCmd.push(...configuration.pkgConfig.packageArgs());
+  pkgCmd.push(config.version);
+  pkgCmd.push(...config.pkgConfig.packageArgs());
   pkgCmd.push("--ownership");
   pkgCmd.push("recommended");
   pkgCmd.push(outPackage);
 
-  log.info(pkgCmd);
+  config.log.info(pkgCmd);
   const p = Deno.run({
     cmd: pkgCmd,
+    stdout: "piped",
+    stderr: "piped",
   });
   const status = await p.status();
+  const output = new TextDecoder().decode(await p.output());
+  const stderr = new TextDecoder().decode(await p.stderrOutput());
   if (status.code !== 0) {
-    throw Error("Failure to build macos package");
+    config.log.error(stderr);
+    throw Error(`Failure to build macos installer`);
+  } else {
+    config.log.info(output);
   }
 }
 

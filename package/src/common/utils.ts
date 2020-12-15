@@ -1,4 +1,4 @@
-import { existsSync } from "https://deno.land/std/fs/exists.ts";
+import { existsSync } from "fs/exists.ts";
 
 // Read an environment variable
 export function getEnv(name: string) {

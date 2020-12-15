@@ -1,3 +1,10 @@
+/*
+* tar.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
+
 import { Logger } from "./logger.ts";
 
 export async function makeTarball(
