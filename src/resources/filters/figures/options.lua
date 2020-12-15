@@ -12,7 +12,13 @@ end
 
 -- get option value
 function option(name, default)
-  return readOption(figures.options, name, default)
+  local value = readOption(figures.options, name, nil)
+  if value then
+    return value
+  else
+    local prefixed = "quarto-" .. name
+    return readOption(figures.options, prefixed, default)
+  end
 end
 
 

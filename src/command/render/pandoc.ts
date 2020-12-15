@@ -19,15 +19,20 @@ import { binaryPath } from "../../core/resources.ts";
 
 import { RenderFlags } from "./flags.ts";
 import {
-  crossrefFilterActive,
   generateDefaults,
   pandocDefaultsMessage,
   writeDefaultsFile,
 } from "./defaults.ts";
 import {
   cleanForwardedCrossrefMetadata,
+  crossrefFilterActive,
   forwardCrossrefOptions,
 } from "./crossref.ts";
+import {
+  cleanForwardedFiguresMetadata,
+  figuresFilterActive,
+  forwardFiguresOptions,
+} from "./figures.ts";
 
 // options required to run pandoc
 export interface PandocOptions {
@@ -53,6 +58,11 @@ export async function runPandoc(
   if (allDefaults) {
     const defaultsFile = await writeDefaultsFile(allDefaults);
     cmd.push("--defaults", defaultsFile);
+  }
+
+  // forward options to figures filter
+  if (figuresFilterActive(options.format)) {
+    forwardFiguresOptions(options.format);
   }
 
   // forward --listings, --number-sections, and --number-offset to crossref if necessary
@@ -126,7 +136,8 @@ function runPandocMessage(
     const printMetadata = ld.cloneDeep(metadata) as Metadata;
     delete printMetadata.format;
 
-    // cleanup synthesized crossref metadata
+    // cleanup synthesized  metadata
+    cleanForwardedFiguresMetadata(printMetadata);
     cleanForwardedCrossrefMetadata(printMetadata);
 
     // print message

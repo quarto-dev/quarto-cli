@@ -41,7 +41,15 @@ function officeFigure(image)
 end
 
 function officePageWidth()
-  local pageWidth = 12240 - 1440 - 1440
-  local pageWidthInches = pageWidth / 72 / 20
-  return pageWidthInches
+  local width = option("page-width", nil)
+  if width then 
+    width = tonumber(pandoc.utils.stringify(width))
+    if not width then
+      error("You must use a number for page-width")
+    else
+      return width
+    end
+  else
+    return 6.5
+  end
 end

@@ -4,6 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+import { resourcePath } from "../../core/resources.ts";
 import {
   kListings,
   kNumberOffset,
@@ -11,11 +12,19 @@ import {
   kTopLevelDivision,
 } from "../../config/constants.ts";
 import { Format } from "../../config/format.ts";
-import { Metadata } from "../../config/metadata.ts";
+import { Metadata, setFormatMetadata } from "../../config/metadata.ts";
 
 import { PandocOptions } from "./pandoc.ts";
 
 const kForwardedCrossrefOptions = [kListings, kNumberSections, kNumberOffset];
+
+export function crossrefFilter() {
+  return resourcePath("filters/crossref/crossref.lua");
+}
+
+export function crossrefFilterActive(format: Format) {
+  return format.metadata.crossref !== false;
+}
 
 export function crossrefGeneratedDefaults(options: PandocOptions) {
   // if the chapters options is set and there is no explicit top-level-division
@@ -109,9 +118,5 @@ function setCrossrefMetadata(
   key: string,
   value: unknown,
 ) {
-  if (typeof format.metadata.crossref !== "object") {
-    format.metadata.crossref = {} as Record<string, unknown>;
-  }
-  // deno-lint-ignore no-explicit-any
-  (format.metadata.crossref as any)[key] = value;
+  setFormatMetadata(format, "crossref", key, value);
 }

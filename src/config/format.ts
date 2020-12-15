@@ -49,6 +49,7 @@ import {
   kKeepSource,
   kKeepTex,
   kOutputExt,
+  kPageWidth,
 } from "./constants.ts";
 
 // pandoc output format
@@ -67,6 +68,7 @@ export interface FormatRender {
   [kPreferHtml]?: boolean;
   [kVariant]?: string;
   [kOutputExt]?: string;
+  [kPageWidth]?: number;
 }
 
 export interface FormatExecution {
@@ -369,6 +371,9 @@ function markdownFormat(): Format {
 
 function powerpointFormat(): Format {
   return format("pptx", {
+    render: {
+      [kPageWidth]: 9,
+    },
     execution: {
       [kFigWidth]: 7.5,
       [kFigHeight]: 5.5,
@@ -380,6 +385,9 @@ function powerpointFormat(): Format {
 
 function wordprocessorFormat(ext: string): Format {
   return format(ext, {
+    render: {
+      [kPageWidth]: 6.5,
+    },
     execution: {
       [kFigWidth]: 5,
       [kFigHeight]: 4,

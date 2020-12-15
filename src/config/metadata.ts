@@ -143,3 +143,16 @@ function readQuartoYaml(file: string) {
     throw e;
   }
 }
+
+export function setFormatMetadata(
+  format: Format,
+  metadata: string,
+  key: string,
+  value: unknown,
+) {
+  if (typeof format.metadata[metadata] !== "object") {
+    format.metadata[metadata] = {} as Record<string, unknown>;
+  }
+  // deno-lint-ignore no-explicit-any
+  (format.metadata[metadata] as any)[key] = value;
+}
