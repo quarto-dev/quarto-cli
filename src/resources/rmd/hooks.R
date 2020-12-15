@@ -195,7 +195,7 @@ knitr_plot_hook <- function(htmlOutput) {
     fig.num <- options[["fig.num"]] %||% 1L
     fig.cur = options$fig.cur %||% 1L
     tikz <- knitr:::is_tikz_dev(options)
-    animate =  options$fig.show == 'animate' && !tikz
+    animate = fig.num > 1 && options$fig.show == 'animate' && !tikz
     if (animate) {
       if (fig.cur < fig.num) {
         return ('')
