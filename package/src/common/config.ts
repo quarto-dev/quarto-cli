@@ -1,6 +1,13 @@
+/*
+* config.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
+import { join } from "path/mod.ts";
+
 import { getEnv } from "./utils.ts";
-import { join } from "https://deno.land/std/path/mod.ts";
-import { kInfo, Logger, logger } from "./logger.ts";
+import { Logger, logger } from "./logger.ts";
 
 // The core configuration for the packaging process
 export interface Configuration {

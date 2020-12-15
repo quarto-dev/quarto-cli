@@ -1,5 +1,13 @@
-import { dirname, join } from "https://deno.land/std/path/mod.ts";
-import { copySync } from "https://deno.land/std/fs/mod.ts";
+/*
+* prepare-dist.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
+
+import { dirname, join } from "path/mod.ts";
+import { copySync } from "fs/mod.ts";
+
 import { Configuration } from "../common/config.ts";
 import { Logger } from "./logger.ts";
 import { buildFilter } from "./package-filters.ts";

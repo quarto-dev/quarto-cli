@@ -1,4 +1,9 @@
-import { Configuration } from "./config.ts";
+/*
+* logger.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
 
 // Log levels and prefixes
 export const kError = 0;

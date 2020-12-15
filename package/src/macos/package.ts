@@ -1,24 +1,19 @@
-/*
-* installer.ts
-*
-* Copyright (C) 2020 by RStudio, PBC
-*
-*/
-import { dirname, join } from "path/mod.ts";
+import { dirname, join } from "https://deno.land/std/path/mod.ts";
 import { existsSync } from "fs/exists.ts";
 
 import { Configuration } from "../common/config.ts";
 import { Logger } from "../common/logger.ts";
 import { ensureDirExists } from "../common/utils.ts";
 
-export async function makeInstallerMac(config: Configuration) {
+export async function makePackage(configuration: Configuration) {
+  const log = configuration.log;
   // Target package
   const outPackage = join(
-    config.dirs.out,
-    config.pkgConfig.name,
+    configuration.dirs.out,
+    configuration.pkgConfig.name,
   );
 
-  config.log.info(`Packaging into ${outPackage}`);
+  log.info(`Packaging into ${outPackage}`);
 
   // Clean any existing package
   if (existsSync(outPackage)) {
@@ -32,30 +27,23 @@ export async function makeInstallerMac(config: Configuration) {
   const pkgCmd: string[] = [];
   pkgCmd.push("pkgbuild");
   pkgCmd.push("--root");
-  pkgCmd.push(config.dirs.dist);
+  pkgCmd.push(configuration.dirs.dist);
   pkgCmd.push("--identifier");
-  pkgCmd.push(config.pkgConfig.identifier);
+  pkgCmd.push(configuration.pkgConfig.identifier);
   pkgCmd.push("--version");
-  pkgCmd.push(config.version);
-  pkgCmd.push(...config.pkgConfig.packageArgs());
+  pkgCmd.push(configuration.version);
+  pkgCmd.push(...configuration.pkgConfig.packageArgs());
   pkgCmd.push("--ownership");
   pkgCmd.push("recommended");
   pkgCmd.push(outPackage);
 
-  config.log.info(pkgCmd);
+  log.info(pkgCmd);
   const p = Deno.run({
     cmd: pkgCmd,
-    stdout: "piped",
-    stderr: "piped",
   });
   const status = await p.status();
-  const output = new TextDecoder().decode(await p.output());
-  const stderr = new TextDecoder().decode(await p.stderrOutput());
   if (status.code !== 0) {
-    config.log.error(stderr);
-    throw Error(`Failure to build macos installer`);
-  } else {
-    config.log.info(output);
+    throw Error("Failure to build macos package");
   }
 }
 

@@ -1,5 +1,5 @@
 /*
-* quarto.ts
+* package.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
@@ -10,10 +10,10 @@ import { packageCommand } from "./cmd/pkg-cmd.ts";
 
 import { defaultLogger } from "./common/logger.ts";
 import { prepareDist } from "./common/prepare-dist.ts";
-import { makeInstallerLinux } from "./linux/installer.ts";
+import { makeInstallerDeb } from "./linux/installer.ts";
 import { makeInstallerMac } from "./macos/installer.ts";
 
-
+// Core command dispatch
 export async function quartoPack(args: string[]) {
 
     const rootCommand = new Command()
@@ -42,16 +42,17 @@ if (import.meta.main) {
     }
 }
 
+// Supported package commands
 function getCommands() {
     const commands: Command[] = [];
     commands.push(packageCommand(prepareDist)
         .name("prepare-dist")
         .description("Prepares the distribution directory for packaging."));
     commands.push(packageCommand(makeInstallerMac)
-        .name("package-mac")
+        .name("make-installer-mac")
         .description("Builds Mac OS installer"));
-    commands.push(packageCommand(makeInstallerLinux)
-        .name("package-linux")
+    commands.push(packageCommand(makeInstallerDeb)
+        .name("make-installer-deb")
         .description("Builds Linux deb installer"));
     return commands;
 }

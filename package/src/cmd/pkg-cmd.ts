@@ -1,4 +1,11 @@
+/*
+* pkg-cmd.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
 import { Command } from "cliffy/command/mod.ts";
+
 import { Configuration, configuration } from "../common/config.ts";
 import { parseLogLevel } from "../common/logger.ts";
 
