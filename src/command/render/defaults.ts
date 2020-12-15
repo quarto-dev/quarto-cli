@@ -32,7 +32,12 @@ import {
 
 import { kPatchedTemplateExt } from "./output.ts";
 import { PandocOptions } from "./pandoc.ts";
-import { crossrefGeneratedDefaults } from "./crossref.ts";
+import {
+  crossrefFilter,
+  crossrefFilterActive,
+  crossrefGeneratedDefaults,
+} from "./crossref.ts";
+import { figuresFilter, figuresFilterActive } from "./figures.ts";
 
 export async function generateDefaults(
   options: PandocOptions,
@@ -201,20 +206,4 @@ function resolveFilters(filters: string[] | undefined, options: PandocOptions) {
   } else {
     return undefined;
   }
-}
-
-function crossrefFilter() {
-  return resourcePath("filters/crossref/crossref.lua");
-}
-
-export function crossrefFilterActive(format: Format) {
-  return format.metadata.crossref !== false;
-}
-
-function figuresFilter() {
-  return resourcePath("filters/figures/figures.lua");
-}
-
-export function figuresFilterActive(format: Format) {
-  return format.metadata.figures !== false;
 }
