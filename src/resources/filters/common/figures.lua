@@ -258,6 +258,9 @@ function figureDivCaption(el)
 end
 
 function figureFromPara(el, captionRequired)
+  if el.t ~= "Para" then
+    return nil
+  end
   if captionRequired == nil then
     captionRequired = true
   end
@@ -274,6 +277,9 @@ function figureFromPara(el, captionRequired)
 end
 
 function linkedFigureFromPara(el, captionRequired, allowSentinel)
+  if el.t ~= "Para" then
+    return nil
+  end
   if captionRequired == nil then
     captionRequired = true
   end
