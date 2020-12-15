@@ -8,12 +8,24 @@ knitr_hooks <- function(format) {
   
   # automatically set gifski hook for fig.animate
   opts_hooks[["fig.show"]] <- function(options) {
-    if (identical(options[["fig.show"]], "animate")) {
-      # use gifski as default animation hook for non-latex output
+    
+    # get current value of fig.show
+    fig.show <- options[["fig.show"]]
+    
+    # use gifski as default animation hook for non-latex output
+    if (identical(fig.show, "animate")) {
       if (!knitr:::is_latex_output() && is.null(options[["animation.hook"]])) {
         options[["animation.hook"]] <- "gifski"
       }
+      
+    # fig.show "asis" -> "hold" for fig: labeled chunks
+    } else if (identical(fig.show, "asis")) {
+      if (is_figure_label(output_label(options))) {
+        options[["fig.show"]] <- "hold"
+      }
     }
+    
+    # return options
     options
   }
 
