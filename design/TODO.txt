@@ -8,9 +8,6 @@ Figures
 - Consider multiple tables in single environment? 
   https://www.overleaf.com/learn/latex/How_to_Write_a_Thesis_in_LaTeX_(Part_3):_Figures,_Subfigures_and_Tables#Subtables
 
-- Implement latex environment divs: https://bookdown.org/yihui/rmarkdown-cookbook/custom-blocks.html
-
-- investigate agggregate figures (embedded tables, etc.)
 
 Quarto
 ---------------------------
