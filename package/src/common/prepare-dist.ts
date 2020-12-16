@@ -9,10 +9,10 @@ import { dirname, join } from "path/mod.ts";
 import { copySync } from "fs/mod.ts";
 
 import { Configuration } from "../common/config.ts";
-import { Logger } from "./logger.ts";
 import { buildFilter } from "./package-filters.ts";
-import { bundle } from "./deno.ts";
-import { ensureDirExists } from "./utils.ts";
+import { bundle } from "../util/deno.ts";
+import { Logger } from "../util/logger.ts";
+import { ensureDirExists } from "../util/utils.ts";
 
 
 export async function prepareDist(

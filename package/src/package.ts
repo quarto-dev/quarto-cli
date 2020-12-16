@@ -8,10 +8,10 @@
 import { Command } from "cliffy/command/mod.ts";
 import { packageCommand } from "./cmd/pkg-cmd.ts";
 
-import { defaultLogger } from "./common/logger.ts";
 import { prepareDist } from "./common/prepare-dist.ts";
 import { makeInstallerDeb } from "./linux/installer.ts";
 import { makeInstallerMac } from "./macos/installer.ts";
+import { defaultLogger } from "./util/logger.ts";
 
 // Core command dispatch
 export async function quartoPack(args: string[]) {

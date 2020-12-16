@@ -6,8 +6,8 @@
 */
 import { dirname, join } from "path/mod.ts";
 
-import { Logger } from "./logger.ts";
-import { ensureDirExists } from "./utils.ts";
+import { Logger } from "../util/logger.ts";
+import { ensureDirExists } from "../util/utils.ts";
 
 // Creates inlined version of the filters that can be distributed with our installer
 export function buildFilter(

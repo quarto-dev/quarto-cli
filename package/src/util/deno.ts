@@ -5,8 +5,7 @@
 *
 */
 import { join } from "path/mod.ts";
-
-import { Configuration } from "./config.ts";
+import { Configuration } from "../common/config.ts";
 
 export async function bundle(
   input: string,
