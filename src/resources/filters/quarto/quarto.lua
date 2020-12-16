@@ -19,6 +19,7 @@ function import(script)
   dofile(path .. safeScript)
 end
 import("outputs.lua")
+import("latexdiv.lua")
 import("../common/params.lua")
 import("../common/meta.lua")
 import("../common/table.lua")
@@ -31,7 +32,10 @@ import("../common/debug.lua")
 -- chain of filters
 return {
   initParams(),
-  outputs()
+  combineFilters({
+    latexDiv(),
+    outputs()
+  })
 }
 
 
