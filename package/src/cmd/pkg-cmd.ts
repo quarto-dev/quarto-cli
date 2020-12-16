@@ -7,7 +7,7 @@
 import { Command } from "cliffy/command/mod.ts";
 
 import { Configuration, configuration } from "../common/config.ts";
-import { parseLogLevel } from "../common/logger.ts";
+import { parseLogLevel } from "../util/logger.ts";
 
 const kLogLevel = "logLevel";
 

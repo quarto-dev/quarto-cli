@@ -8,8 +8,8 @@ import { dirname, join } from "path/mod.ts";
 import { existsSync } from "fs/exists.ts";
 
 import { Configuration } from "../common/config.ts";
-import { Logger } from "../common/logger.ts";
-import { ensureDirExists } from "../common/utils.ts";
+import { Logger } from "../util/logger.ts";
+import { ensureDirExists } from "../util/utils.ts";
 
 export async function makeInstallerMac(config: Configuration) {
   // Target package

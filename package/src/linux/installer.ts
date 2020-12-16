@@ -7,8 +7,8 @@
 import { join } from "path/mod.ts";
 
 import { Configuration } from "../common/config.ts";
-import { ensureDirExists } from "../common/utils.ts";
-import { makeTarball } from "../common/tar.ts";
+import { makeTarball } from "../util/tar.ts";
+import { ensureDirExists } from "../util/utils.ts";
 
 export async function makeInstallerDeb(
   configuration: Configuration
