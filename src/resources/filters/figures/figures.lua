@@ -28,6 +28,7 @@ import("latex.lua")
 import("html.lua")
 import("wp.lua")
 import("docx.lua")
+import("odt.lua")
 import("pptx.lua")
 import("table.lua")
 import("../common/json.lua")
@@ -58,6 +59,8 @@ function layoutFigures()
             subfigures = htmlPanel(el, subfigures)
           elseif isDocxOutput() then
             subfigures = tableDocxPanel(el, subfigures)
+          elseif isOdtOutput() then
+            subfigures = tableOdtPanel(el, subfigures)
           elseif isWordProcessorOutput() then
             subfigures = tableWpPanel(el, subfigures)
           elseif isPowerPointOutput() then
@@ -86,7 +89,7 @@ function layoutFigures()
           if isLatexOutput() then
             return latexDivFigure(el)
           -- use tables to align wp figures
-          elseif isWordProcessorOutput() and alignAttribute(el) ~= nil then
+          elseif isDocxOutput() and alignAttribute(el) ~= nil then
             return wpFigure(el)
           end
         end
@@ -102,7 +105,7 @@ function layoutFigures()
           return htmlImageFigure(image)
         elseif isLatexOutput() then
           return latexImageFigure(image)
-        elseif isWordProcessorOutput() and alignAttribute(image) ~= nil then
+        elseif isDocxOutput() and alignAttribute(image) ~= nil then
           return wpFigure(image)
         end
       end

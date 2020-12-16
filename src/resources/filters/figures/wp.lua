@@ -17,6 +17,8 @@ function wpFigure(image)
   }
   if isDocxOutput() then
     options.divCaption = docxDivCaption
+  elseif isOdtOutput() then
+    options.divCaption = odtDivCaption
   end
 
   -- get alignment

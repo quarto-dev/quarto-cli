@@ -86,12 +86,16 @@ function figureTableCell(image, align, options)
   
   local cell = pandoc.List:new()
   if image.t == "Image" then
-    -- rtf doesn't write captions so make this explicit
-    if isRtfOutput() then
+    -- rtf and odt don't write captions in tables so make this explicit
+    if isRtfOutput() or isOdtOutput() then
       local caption = image.caption:clone()
       tclear(image.caption)
       cell:insert(pandoc.Para(image))
-      cell:insert(pandoc.Para(caption))
+      local captionPara = pandoc.Para(caption)
+      if options.divCaption then
+        captionPara = options.divCaption(captionPara, align)
+      end
+      cell:insert(captionPara)
     else
       cell:insert(pandoc.Para(image))
     end

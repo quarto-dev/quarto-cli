@@ -16,9 +16,14 @@ function isRtfOutput()
   return FORMAT == "rtf"
 end
 
+-- check for odt output
+function isOdtOutput()
+  return FORMAT == "odt" or FORMAT == "opendocument"
+end
+
 -- check for word processor output
 function isWordProcessorOutput()
-  return FORMAT == "docx" or FORMAT == "rtf" or FORMAT == "odt"
+  return FORMAT == "docx" or FORMAT == "rtf" or isOdtOutput()
 end
 
 -- check for powerpoint output
