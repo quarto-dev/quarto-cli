@@ -21,6 +21,11 @@ function isWordProcessorOutput()
   return FORMAT == "docx" or FORMAT == "rtf" or FORMAT == "odt"
 end
 
+-- check for powerpoint output
+function isPowerPointOutput()
+  return FORMAT == "pptx"
+end
+
 -- check for html output
 function isHtmlOutput()
   local formats = {
@@ -94,5 +99,13 @@ end
 -- non-breaking space
 function nbspString()
   return pandoc.Str '\u{a0}'
+end
+
+function haveHorizontalRules(blocks)
+  if blocks:find_if(function(el) return el.t == "HorizontalRule" end) then
+    return true
+  else
+    return false
+  end
 end
 

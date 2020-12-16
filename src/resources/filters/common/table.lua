@@ -46,7 +46,7 @@ end
 
 -- get keys from table
 function tkeys(t)
-  local keyset={}
+  local keyset=pandoc.List:new({})
   local n=0
   for k,v in pairs(t) do
     n=n+1

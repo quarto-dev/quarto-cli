@@ -22,6 +22,8 @@ import("outputs.lua")
 import("../common/params.lua")
 import("../common/meta.lua")
 import("../common/table.lua")
+import("../common/pandoc.lua")
+import("../common/figures.lua")
 import("../common/debug.lua")
 -- [/import]
 

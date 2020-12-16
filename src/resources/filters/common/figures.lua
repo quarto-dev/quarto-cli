@@ -210,18 +210,20 @@ function qualifyFigureDiv(el, captionRequired)
     return true
     
   -- check for figure layout attributes (synthesize an id in that case)
-  else 
-    local attribs = { kFigNrow, kFigNcol, kFigLayout }
-    for _,name in ipairs(attribs) do
-      if el.attr.attributes[name] then
-        el.attr.identifier = anonymousFigId()
-        return true
-      end
-    end
+  elseif hasFigureLayout(el) then
+    el.attr.identifier = anonymousFigId()
+    return true
   end
   
   return false
   
+end
+
+function hasFigureLayout(el)
+  local attribs = tkeys(el.attr.attributes)
+  return attribs:includes(kFigNrow) or
+         attribs:includes(kFigNcol) or
+         attribs.includes(kFigLayout)
 end
 
 -- is this an image containing a figure

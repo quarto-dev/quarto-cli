@@ -138,6 +138,11 @@ function layoutSubfigures(divEl)
     end
   end)  
 
+  -- if code is empty then make it nil
+  if #code == 0 then
+    code = nil
+  end
+
   -- return the layout
   return code, layout
 
@@ -360,13 +365,6 @@ function widthToPercent(width)
   return nil
 end
 
-function haveHorizontalRules(subfigures)
-  if subfigures:find_if(function(fig) return fig.t == "HorizontalRule" end) then
-    return true
-  else
-    return false
-  end
-end
 
 -- elements with a percentage width and no height have a 'layout percent'
 -- which means then should be laid out at a higher level in the tree than

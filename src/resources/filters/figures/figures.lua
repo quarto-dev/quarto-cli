@@ -28,6 +28,7 @@ import("latex.lua")
 import("html.lua")
 import("wp.lua")
 import("docx.lua")
+import("pptx.lua")
 import("table.lua")
 import("../common/json.lua")
 import("../common/pandoc.lua")
@@ -58,7 +59,9 @@ function layoutFigures()
           elseif isDocxOutput() then
             subfigures = tableDocxPanel(el, subfigures)
           elseif isWordProcessorOutput() then
-            subfigures= tableWpPanel(el, subfigures)
+            subfigures = tableWpPanel(el, subfigures)
+          elseif isPowerPointOutput() then
+            subfigures = pptxPanel(el, subfigures)
           else
             subfigures = tablePanel(el, subfigures)
           end

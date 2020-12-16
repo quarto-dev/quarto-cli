@@ -18,12 +18,21 @@ end
 function filterOutputDivs(blocks)
   local filtered = pandoc.List:new()
   for _,block in ipairs(blocks) do
+    -- find cells
     if block.t == "Div" and tcontains(block.attr.classes, "cell") then
-      for _, childBlock in ipairs(block.content) do
-        if childBlock.t == "Div" then
-          tappend(filtered, childBlock.content)
-        else
-          filtered:insert(childBlock)
+      
+      -- if this is PowerPoint and it's a figure panel then let it through (as
+      -- we'll use PowerPoint columns to layout at least 2 figures side-by-side)
+      if isPowerPointOutput() and hasFigureLayout(block) then
+        filtered:insert(block)
+      else
+        -- unroll blocks contained in divs
+        for _, childBlock in ipairs(block.content) do
+          if childBlock.t == "Div" then
+            tappend(filtered, childBlock.content)
+          else
+            filtered:insert(childBlock)
+          end
         end
       end
     else 
