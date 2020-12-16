@@ -30,12 +30,15 @@ import("../common/debug.lua")
 
 
 -- chain of filters
+local filters = pandoc.List:new({ outputs() })
+if isLatexOutput() or isHtmlOutput() then
+  filters:insert(latexDiv())
+end
+  
 return {
   initParams(),
-  combineFilters({
-    latexDiv(),
-    outputs()
-  })
+  combineFilters(filters)
 }
+
 
 
