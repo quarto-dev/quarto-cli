@@ -20,19 +20,12 @@ function tablePanel(divEl, subfigures, options)
     
     local aligns = row:map(function() return tableAlign(align) end)
     local widths = row:map(function(image) 
-      -- if we have a page width in inches then we'll be doing 
-      -- explicit layout of the contained figures, in that case
-      -- return an even width for each column. otherwise, propagage
-      -- percents if they are provided
-      if options.pageWidth then
-        return (1/#row)
+      -- propagage percents if they are provided
+      local layoutPercent = horizontalLayoutPercent(image)
+      if layoutPercent then
+        return layoutPercent / 100
       else
-        local layoutPercent = horizontalLayoutPercent(image)
-        if layoutPercent then
-          return layoutPercent / 100
-        else
-          return 0
-        end
+        return 0
       end
     end)
 
