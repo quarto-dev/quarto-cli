@@ -113,6 +113,7 @@ execute <- function(input, format, output, tempDir, cwd, params) {
   # results
   list(
     supporting = I(supporting),
+    filters = I(rmarkdown:::pkg_file_lua("pagebreak.lua")),
     pandoc = pandoc,
     preserve = preserve,
     postprocess = postprocess
@@ -294,6 +295,7 @@ format_pandoc <- function(includes, tempDir) {
   write_includes("in_header", "include-in-header")
   write_includes("before_body", "include-before-body")
   write_includes("after_body", "include-after-body")
+  
   pandoc
 }
 

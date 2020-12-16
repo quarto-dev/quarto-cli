@@ -40,12 +40,13 @@ export interface PandocOptions {
 
 export async function runPandoc(
   options: PandocOptions,
+  sysFilters: string[],
 ): Promise<ProcessResult> {
   // build the pandoc command (we'll feed it the input on stdin)
   const cmd = [binaryPath("pandoc")];
 
   // generate defaults and write a defaults file if need be
-  const allDefaults = await generateDefaults(options);
+  const allDefaults = await generateDefaults(options, sysFilters);
   if (allDefaults) {
     const defaultsFile = await writeDefaultsFile(allDefaults);
     cmd.push("--defaults", defaultsFile);
@@ -86,6 +87,7 @@ export async function runPandoc(
     runPandocMessage(
       args,
       allDefaults,
+      sysFilters,
       options.format.metadata,
     );
   }
@@ -107,12 +109,13 @@ export async function runPandoc(
 function runPandocMessage(
   args: string[],
   pandoc: FormatPandoc | undefined,
+  sysFilters: string[],
   metadata: Metadata,
   debug?: boolean,
 ) {
   message(`pandoc ${args.join(" ")}`, { bold: true });
   if (pandoc) {
-    message(pandocDefaultsMessage(pandoc, debug), { indent: 2 });
+    message(pandocDefaultsMessage(pandoc, sysFilters, debug), { indent: 2 });
   }
 
   if (Object.keys(metadata).length > 0) {

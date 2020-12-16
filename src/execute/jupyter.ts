@@ -217,6 +217,7 @@ export const jupyterEngine: ExecutionEngine = {
       // return results
       return {
         supporting: [assets.supporting_dir],
+        filters: [],
         pandoc: result.includeFiles
           ? {
             [kIncludeInHeader]: result.includeFiles.inHeader,

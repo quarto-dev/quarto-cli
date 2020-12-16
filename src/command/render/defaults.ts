@@ -36,6 +36,7 @@ import { quartoFilter, resolveFilters } from "./filters.ts";
 
 export async function generateDefaults(
   options: PandocOptions,
+  sysFilters: string[],
 ): Promise<FormatPandoc | undefined> {
   let allDefaults: FormatPandoc | undefined;
 
@@ -53,9 +54,12 @@ export async function generateDefaults(
       options.format.pandoc || {},
     );
     // resolve filters
-    const filters = resolveFilters(allDefaults[kFilters], options);
-    if (filters) {
-      allDefaults[kFilters] = filters;
+    const resolvedFilters = resolveFilters([
+      ...sysFilters,
+      ...(allDefaults[kFilters] || []),
+    ], options);
+    if (resolvedFilters) {
+      allDefaults[kFilters] = resolvedFilters;
     }
 
     return allDefaults;
@@ -73,7 +77,11 @@ export async function writeDefaultsFile(defaults: FormatPandoc) {
   return defaultsFile;
 }
 
-export function pandocDefaultsMessage(pandoc: FormatPandoc, debug?: boolean) {
+export function pandocDefaultsMessage(
+  pandoc: FormatPandoc,
+  sysFilters: string[],
+  debug?: boolean,
+) {
   const kDebugOnly = [
     kIncludeInHeader,
     kIncludeBeforeBody,
@@ -114,7 +122,7 @@ export function pandocDefaultsMessage(pandoc: FormatPandoc, debug?: boolean) {
         }
       })
       .filter((filter) => {
-        return filter !== quartoFilter();
+        return filter !== quartoFilter() && !sysFilters.includes(filter);
       });
   }
 

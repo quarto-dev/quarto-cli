@@ -84,7 +84,7 @@ export async function render(
   };
 
   // run pandoc conversion (exit on failure)
-  const pandocResult = await runPandoc(pandocOptions);
+  const pandocResult = await runPandoc(pandocOptions, executeResult.filters);
   if (!pandocResult.success) {
     return pandocResult;
   }

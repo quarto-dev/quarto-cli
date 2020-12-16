@@ -30,6 +30,7 @@ export function markdownEngine(): ExecutionEngine {
 
       return Promise.resolve({
         supporting: [],
+        filters: [],
         pandoc: {} as FormatPandoc,
       });
     },

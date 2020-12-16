@@ -48,6 +48,7 @@ export interface ExecuteOptions {
 // result of execution
 export interface ExecuteResult {
   supporting: string[];
+  filters: string[];
   pandoc: FormatPandoc;
   preserve?: Record<string, string>;
   postprocess?: unknown;
