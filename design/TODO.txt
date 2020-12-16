@@ -5,12 +5,8 @@ TODO:
 Figures
 -------------------------
 
-- What to do about the code chunk(s) that are dropped in a figure panel
-  (perhaps just hoist them up before the div and force fig.hold for panels?)
-- Compute actual page width for custom reference.docx
-- Consider page-width for panels to force a width
-- ODT tables? RTF tables? (table "row" separator and custom caption centering)
 
+- ODT tables? RTF tables? (table "row" separator and custom caption centering)
 
 - investigate agggregate figures (embedded tables, etc.)
 
@@ -22,7 +18,11 @@ Figures
 Quarto
 ---------------------------
 
-- Consider lst.hidden to indicate you want the code in <details>
+- Consider yaml for chunk options
+
+- Consider lst.display="details" to indicate you want the code in <details>. Wrap source in details w/ summary from fig.cap
+  (may need some JavaScript to expand <details> on clicking cross reference). Could also make available a show all / hide all
+  function that templates could call.
 
 - Support fig.cap on figure divs (auto-inject the caption based on fig.cap)
 
