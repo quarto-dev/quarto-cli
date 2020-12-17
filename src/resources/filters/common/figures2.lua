@@ -1,0 +1,38 @@
+-- figures2.lua
+-- Copyright (C) 2020 by RStudio, PBC
+
+
+
+
+
+function discoverLinkedFigure(el, withCaption)
+  if el.t ~= "Para" then
+    return nil
+  end
+  if withCaption == nil then
+    withCaption = true
+  end
+  if #el.content == 1 then 
+    if el.content[1].t == "Link" then
+      local link = el.content[1]
+      if #link.content == 1 and link.content[1].t == "Image" then
+        local image = link.content[1]
+        if (withCaption and #image.caption > 0) or 
+           (not withCaption and (#image.caption == 0)) then
+          return image
+        end
+      end
+    end
+  end
+  return nil
+end
+
+function discoverLinkedFigureDiv(el)
+  if el.t === "Div" and 
+     #el.content == 2 and 
+     el.content[1].t == "Para" and 
+     el.content[2].t == "Para" then
+    return discoverLinkedFigure(el.content[1], false)  
+  end
+  return nil
+end

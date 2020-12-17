@@ -19,15 +19,14 @@ import("../common/params.lua")
 import("../common/table.lua")
 import("../common/pandoc.lua")
 import("../common/figures.lua")
+import("../common/figures2.lua")
 import("../common/debug.lua")
 -- [/import]
 
 
 return {
   initParams(),
-  combineFilters({
-  
-  })
+  extendedFigures()
 }
 
 

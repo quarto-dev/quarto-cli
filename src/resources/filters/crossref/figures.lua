@@ -32,22 +32,11 @@ function processFigure(el, captionContent)
 
   -- determine order, parent, and displayed caption
   local order
-  local parent = el.attr.attributes[kLayoutParent]
+  local parent = el.attr.attributes[kRefParent]
   if (parent) then
-    el.attr.attributes[kLayoutParent] = nil
-    order = {
-      section = nil,
-      order = crossref.index.nextSubfigureOrder
-    }
-    crossref.index.nextSubfigureOrder = crossref.index.nextSubfigureOrder + 1
-   
-    -- if this isn't latex output, then prepend the subfigure number
-    if not isLatexOutput() then
-      tprepend(captionContent, { pandoc.Str(")"), pandoc.Space() })
-      tprepend(captionContent, subfigNumber(order))
-      captionContent:insert(1, pandoc.Str("("))
-    end
-   
+    el.attr.attributes[kRefParent] = nil
+    order = nextSubrefOrder()
+    prependSubrefNumber(captionContent, order)
   else
     order = indexNextOrder("fig")
     if not isLatexOutput() then

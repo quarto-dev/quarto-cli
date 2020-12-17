@@ -47,7 +47,7 @@ function resolveRefs()
               local parent = crossref.index.entries[entry.parent]
               ref:extend(numberOption(parentType,parent.order))
               ref:extend({pandoc.Space(), pandoc.Str("(")})
-              ref:extend(subfigNumber(entry.order))
+              ref:extend(subrefNumber(entry.order))
               ref:extend({pandoc.Str(")")})
             else
               ref:extend(numberOption(type, entry.order))
@@ -85,9 +85,6 @@ function refLabel(type, inline)
   return string.match(inline.text, "^{#(" .. type .. ":[^ }]+)}$")
 end
 
-function refType(id)
-  return string.match(id, "^(%a+)%:")
-end
 
 function validRefTypes()
   local types = tkeys(theoremTypes())

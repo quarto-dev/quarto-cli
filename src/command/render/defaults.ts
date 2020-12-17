@@ -31,7 +31,7 @@ import {
 import { kPatchedTemplateExt } from "./output.ts";
 import { PandocOptions } from "./pandoc.ts";
 import { crossrefFilter, crossrefGeneratedDefaults } from "./crossref.ts";
-import { figuresFilter } from "./figures.ts";
+import { layoutFilter } from "./layout.ts";
 import {
   quartoPostFilter,
   quartoPreFilter,
@@ -119,8 +119,6 @@ export function pandocDefaultsMessage(
       .map((filter) => {
         if (filter === crossrefFilter()) {
           return "crossref";
-        } else if (filter === figuresFilter()) {
-          return "figures";
         } else {
           return filter;
         }
@@ -128,6 +126,7 @@ export function pandocDefaultsMessage(
       .filter((filter) => {
         return filter !== quartoPreFilter() &&
           filter !== quartoPostFilter() &&
+          filter !== layoutFilter() &&
           !sysFilters.includes(filter);
       });
   }

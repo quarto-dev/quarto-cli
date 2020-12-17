@@ -92,8 +92,9 @@ knitr_hooks <- function(format) {
       fig.cap = NULL
     }
 
-    # synthesize fig.layout if we have fig.sep
+    # synthesize layout if we have fig.sep
     fig.sep <- options[["fig.sep"]]
+    fig.ncol <- options[["fig.ncol"]]
     if (!is.null(fig.sep)) {
       
       # recycle fig.sep
@@ -120,11 +121,15 @@ knitr_hooks <- function(format) {
       if (length(fig.row) > 0) {
         fig.layout[[length(fig.layout) + 1]] <- fig.row
       }
-      options[["fig.layout"]] <- fig.layout
+      options[["layout"]] <- fig.layout
+      
+    # populate layout.ncol from fig.ncol
+    } else if (!is.null(fig.ncol)) {
+      options[["layout.ncol"]] = fig.ncol
     }
    
     # forward selected attributes
-    forward <- c("fig.ncol", "fig.nrow", "fig.align", "fig.layout")
+    forward <- c("layout", "layout.nrow", "layout.ncol", "fig.align")
     forwardAttr <- character()
     for (attr in forward) {
       value = options[[attr]]
@@ -134,7 +139,7 @@ knitr_hooks <- function(format) {
             value <- NULL
           }
         }
-        if (identical(attr, "fig.layout")) {
+        if (identical(attr, "layout")) {
           if (!is.character(value)) {
             value = jsonlite::toJSON(value)
           }

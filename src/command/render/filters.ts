@@ -4,7 +4,11 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { kBibliography, kOutputDivs } from "../../config/constants.ts";
+import {
+  kBibliography,
+  kFigAlign,
+  kOutputDivs,
+} from "../../config/constants.ts";
 import { Format } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
 import { pdfEngine } from "../../config/pdf.ts";
@@ -14,7 +18,7 @@ import {
   crossrefFilterActive,
   crossrefFilterParams,
 } from "./crossref.ts";
-import { figuresFilter, figuresFilterParams } from "./figures.ts";
+import { layoutFilter, layoutFilterParams } from "./layout.ts";
 import { PandocOptions } from "./pandoc.ts";
 
 const kQuartoParams = "quarto-params";
@@ -23,7 +27,7 @@ export function setFilterParams(options: PandocOptions) {
   const params: Metadata = {
     ...quartoFilterParams(options.format),
     ...crossrefFilterParams(options),
-    ...figuresFilterParams(options.format),
+    ...layoutFilterParams(options.format),
   };
   options.format.metadata[kQuartoParams] = params;
 }
@@ -44,6 +48,10 @@ function quartoFilterParams(format: Format) {
   const params: Metadata = {
     [kOutputDivs]: format.render[kOutputDivs],
   };
+  const figAlign = format.render[kFigAlign];
+  if (figAlign) {
+    params[kFigAlign] = figAlign;
+  }
   return params;
 }
 
@@ -60,7 +68,7 @@ export function resolveFilters(userFilters: string[], options: PandocOptions) {
   }
 
   // add layout filter
-  filters.push(figuresFilter());
+  filters.push(layoutFilter());
 
   // add quarto post filter
   filters.push(quartoPostFilter());

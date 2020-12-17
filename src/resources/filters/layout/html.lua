@@ -53,7 +53,7 @@ function htmlPanel(divEl, subfigures)
       if image.t == "Image" then
         figureDiv.content:insert(pandoc.Para(image))
       else
-        figureDiv.content:insert(image)
+        figureDiv.content:insert(htmlDivFigure(image))
       end
       
       -- add div to row
@@ -93,7 +93,7 @@ function htmlDivFigure(el)
     
     -- if we are a percentage-sized subfigure, then make sure contained
     -- images don't have width based percents
-    if isSubfigure(el) and widthToPercent(attribute(el, "width", nil)) then
+    if hasRefParent(el) and widthToPercent(attribute(el, "width", nil)) then
       -- remove any percent width of embedded linked image
       if #el.content > 0 then
         local linkedFig = linkedFigureFromPara(el.content[1], false, true)
@@ -166,7 +166,7 @@ function renderHtmlFigure(el, render)
   tclear(el.attr.classes)
           
   -- apply standalone figure css if we are not a subfigure
-  if not isSubfigure(figureDiv) then
+  if not hasRefParent(figureDiv) then
     figureDiv.attr.classes:insert("quarto-figure")
     if align then
       appendStyle(figureDiv, "text-align: " .. align .. ";")

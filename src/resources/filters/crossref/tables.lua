@@ -1,7 +1,9 @@
 -- tables.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
--- process all tables
+-- process all tables (note that cross referenced tables are *always*
+-- wrapped in a div so they can carry parent information and so that
+-- we can create a hyperef target for latex)
 function tables()
   return {
     Div = function(el)
@@ -18,33 +20,6 @@ function tables()
       -- default to just reflecting the div back
       return el
     end,
-
-    Table = function(el)
-      -- if there is a caption then check it for a table suffix
-      if el.caption.long ~= nil then
-        local last = el.caption.long[#el.caption.long]
-        if last and #last.content > 2 then
-          local lastInline = last.content[#last.content]
-          local label = refLabel("tbl", lastInline)
-          if label and last.content[#last.content-1].t == "Space" then
-            -- remove the id from the end
-            last.content = tslice(last.content, 1, #last.content-2)
-
-            -- add the table to the index
-            local order = indexNextOrder("tbl")
-            indexAddEntry(label, nil, order, last.content)
-
-            -- insert table caption (use \label for latex)
-            prependTitlePrefix(last, label, order)
-
-            -- wrap in a div with the label (so that we have a target
-            -- for the tbl ref, in LaTeX that will be a hypertarget)
-            return pandoc.Div(el, pandoc.Attr(label))
-          end
-        end
-      end
-      return el
-    end
   }
 end
 
@@ -52,17 +27,39 @@ function processMarkdownTable(divEl)
   for i,el in pairs(divEl.content) do
     if el.t == "Table" then
       if el.caption.long ~= nil then
-        local caption = el.caption.long[#el.caption.long]
         local label = divEl.attr.identifier
-        local order = indexNextOrder("tbl")
-        indexAddEntry(label, nil, order, caption.content)
-        prependTitlePrefix(caption, label, order)
+        local caption = el.caption.long[#el.caption.long]
+        processMarkdownTableEntry(divEl, el, label, caption)
         return divEl
       end
     end
   end
   return nil
 end
+
+function processMarkdownTableEntry(divEl, el, label, caption)
+  
+  -- clone the caption so we can add a clean copy to our index
+  local captionClone = caption:clone()
+
+  -- determine order / insert prefix
+  local order
+  local parent = divEl.attr.attributes[kRefParent]
+  if (parent) then
+    divEl.attr.attributes[kRefParent] = nil
+    order = nextSubrefOrder()
+    prependSubrefNumber(caption.content, order)
+  else
+    order = indexNextOrder("tbl")
+    prependTitlePrefix(caption, label, order)
+  end
+
+  -- add the table to the index
+  indexAddEntry(label, nil, order, caption)
+  
+end
+
+
 
 function processRawTable(divEl)
   -- look for a raw html or latex table
@@ -76,9 +73,23 @@ function processRawTable(divEl)
         local captionPattern = "(<" .. tag .. "[^>]*>)(.*)(</" .. tag .. ">)"
         local _, caption, _ = string.match(rawEl.text, captionPattern)
         if caption then
-          local order = indexNextOrder("tbl")
+          
+          local order
+          local prefix
+          local parent = divEl.attr.attributes[kRefParent]
+          if (parent) then
+            divEl.attr.attributes[kRefParent] = nil
+            order = nextSubrefOrder()
+            local subref = pandoc.List:new()
+            prependSubrefNumber(subref, order)
+            prefix = inlinesToString(subref)
+          else
+            order = indexNextOrder("tbl")
+            prefix = pandoc.utils.stringify(tableTitlePrefix(order))
+          end
+          
           indexAddEntry(label, nil, order, stringToInlines(caption))
-          local prefix = pandoc.utils.stringify(tableTitlePrefix(order))
+        
           rawEl.text = rawEl.text:gsub(captionPattern, "%1" .. prefix .. "%2%3", 1)
           rawParentEl.content[rawIndex] = rawEl
           return divEl
@@ -90,7 +101,7 @@ function processRawTable(divEl)
         local captionPattern = "\\caption{\\label{tab:" .. label .. "}([^}]+)}"
         local caption = string.match(rawEl.text, captionPattern)
         if caption then
-          processLatexTable(rawEl, captionPattern, label, caption)
+          processLatexTable(divEl, rawEl, captionPattern, label, caption)
           rawParentEl.content[rawIndex] = rawEl
           return divEl
         end
@@ -99,7 +110,7 @@ function processRawTable(divEl)
         captionPattern = "\\caption{([^}]+)}"
         caption = string.match(rawEl.text, captionPattern)
         if caption then
-           processLatexTable(rawEl, captionPattern, label, caption)
+           processLatexTable(divEl, rawEl, captionPattern, label, caption)
            rawParentEl.content[rawIndex] = rawEl
            return divEl
         end
@@ -122,12 +133,7 @@ end
 
 -- is this a Div containing a table?
 function isTableDiv(el)
-  return el.t == "Div" and hasTableLabel(el)
-end
-
--- does this element have a table label?
-function hasTableLabel(el)
-  return string.match(el.attr.identifier, "^tbl:")
+  return el.t == "Div" and hasTableRef(el)
 end
 
 
@@ -136,9 +142,18 @@ function tableTitlePrefix(order)
 end
 
 
-function processLatexTable(el, captionPattern, label, caption)
+function processLatexTable(divEl, el, captionPattern, label, caption)
   el.text = el.text:gsub(captionPattern, "\\caption{\\label{" .. label .. "}" .. caption .. "}", 1)
-  local order = indexNextOrder("tbl")
+  
+  local order
+  local parent = divEl.attr.attributes[kRefParent]
+  if (parent) then
+    divEl.attr.attributes[kRefParent] = nil
+    order = nextSubrefOrder()
+  else
+    order = indexNextOrder("tbl")
+  end
+  
   indexAddEntry(label, nil, order, stringToInlines(caption))
 end
 

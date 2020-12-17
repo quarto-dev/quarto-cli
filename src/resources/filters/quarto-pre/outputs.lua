@@ -25,7 +25,7 @@ function filterOutputDivs(blocks)
       
       -- if this is PowerPoint and it's a figure panel then let it through (as
       -- we'll use PowerPoint columns to layout at least 2 figures side-by-side)
-      if isPowerPointOutput() and hasFigureLayout(block) then
+      if isPowerPointOutput() and hasLayoutAttributes(block) then
         filtered:insert(block)
       else
         -- unroll blocks contained in divs

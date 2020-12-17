@@ -1,7 +1,86 @@
--- layout.lua
--- Copyright (C) 2020 by RStudio, PBC 
- 
- 
+-- figures.lua
+-- Copyright (C) 2020 by RStudio, PBC
+
+-- required version
+PANDOC_VERSION:must_be_at_least '2.11.2'
+
+-- required modules
+text = require 'text'
+
+-- global figures state
+figures = {}
+
+-- [import]
+function import(script)
+  local sep = package.config:sub(1,1)
+  script = string.gsub(script, "/", sep)
+  local path = PANDOC_SCRIPT_FILE:match("(.*" .. sep .. ")")
+  dofile(path .. script)
+end
+import("meta.lua")
+import("latex.lua")
+import("html.lua")
+import("wp.lua")
+import("docx.lua")
+import("odt.lua")
+import("pptx.lua")
+import("table.lua")
+import("../common/json.lua")
+import("../common/pandoc.lua")
+import("../common/format.lua")
+import("../common/refs.lua")
+import("../common/layout.lua")
+import("../common/figures.lua")
+import("../common/figures2.lua")
+import("../common/params.lua")
+import("../common/meta.lua")
+import("../common/table.lua")
+import("../common/debug.lua")
+-- [/import]
+
+function layoutFigures() 
+  
+  return {
+    
+    Div = function(el)
+      
+      if hasLayoutAttributes(el) then
+        
+        -- handle subfigure layout
+        local code, subfigures = layoutSubfigures(el)
+        if subfigures then
+          if isLatexOutput() then
+            subfigures = latexPanel(el, subfigures)
+          elseif isHtmlOutput() then
+            subfigures = htmlPanel(el, subfigures)
+          elseif isDocxOutput() then
+            subfigures = tableDocxPanel(el, subfigures)
+          elseif isOdtOutput() then
+            subfigures = tableOdtPanel(el, subfigures)
+          elseif isWordProcessorOutput() then
+            subfigures = tableWpPanel(el, subfigures)
+          elseif isPowerPointOutput() then
+            subfigures = pptxPanel(el, subfigures)
+          else
+            subfigures = tablePanel(el, subfigures)
+          end
+          
+          -- we have code then wrap the code and subfigues in a div
+          if code then
+            local div = pandoc.Div(code)
+            div.content:insert(subfigures)
+            return div
+          -- otherwise just return the subfigures
+          else
+            return subfigures
+          end
+        
+      end
+    end,
+    
+  }
+end
+
 function layoutSubfigures(divEl)
    
 
@@ -34,9 +113,9 @@ function layoutSubfigures(divEl)
   })
 
   -- note any figure layout attributes
-  local figRows = tonumber(attribute(divEl, kFigNrow, nil))
-  local figCols = tonumber(attribute(divEl, kFigNcol, nil))
-  local figLayout = attribute(divEl, kFigLayout, nil)
+  local figRows = tonumber(attribute(divEl, kLayoutNrow, nil))
+  local figCols = tonumber(attribute(divEl, kLayoutNcol, nil))
+  local figLayout = attribute(divEl, kLayout, nil)
   
   -- if there is figRows but no figCols then compute figCols
   if not figCols and figRows ~= nil then
@@ -137,16 +216,16 @@ function collectSubfigures(divEl)
   local subfigures = pandoc.List:new()
   pandoc.walk_block(divEl, {
     Div = function(el)
-      if isSubfigure(el) then
+      if hasLayoutParent(el) then
         subfigures:insert(el)
-        el.attr.attributes[kLayoutParent] = nil
+        el.attr.attributes[kRefParent] = nil
       end
     end,
     Para = function(el)
       local image = figureFromPara(el, false)
-      if image and isSubfigure(image) then
+      if image and hasRefParent(image) then
         subfigures:insert(image)
-        image.attr.attributes[kLayoutParent] = nil
+        image.attr.attributes[kRefParent] = nil
       end
     end
   })
@@ -359,3 +438,15 @@ function horizontalLayoutPercent(el)
     return nil
   end
 end
+
+
+
+-- chain of filters
+return {
+  initParams(),
+  preprocessFigures(false),
+  layoutFigures(),
+  metaInject()
+}
+
+
