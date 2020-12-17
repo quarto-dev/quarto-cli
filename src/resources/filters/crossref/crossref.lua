@@ -12,14 +12,10 @@ crossref = {}
 
 -- [import]
 function import(script)
-  -- The system separator
-  local pathseparator = package.config:sub(1,1)
-  
-  -- convert our import to use the current system sep
-  local safeScript = string.gsub(script, "/", pathseparator)
-  
-  local path = PANDOC_SCRIPT_FILE:match("(.*" .. pathseparator .. ")")
-  dofile(path .. safeScript)
+  local sep = package.config:sub(1,1)
+  script = string.gsub(script, "/", sep)
+  local path = PANDOC_SCRIPT_FILE:match("(.*" .. sep .. ")")
+  dofile(path .. script)
 end
 import("index.lua")
 import("sections.lua")

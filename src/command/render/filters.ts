@@ -14,11 +14,7 @@ import {
   crossrefFilterActive,
   crossrefFilterParams,
 } from "./crossref.ts";
-import {
-  figuresFilter,
-  figuresFilterActive,
-  figuresFilterParams,
-} from "./figures.ts";
+import { figuresFilter, figuresFilterParams } from "./figures.ts";
 import { PandocOptions } from "./pandoc.ts";
 
 const kQuartoParams = "quarto-params";
@@ -36,8 +32,12 @@ export function removeFilterParmas(metadata: Metadata) {
   delete metadata[kQuartoParams];
 }
 
-export function quartoFilter() {
-  return resourcePath("filters/quarto/quarto.lua");
+export function quartoPreFilter() {
+  return resourcePath("filters/quarto-pre/quarto-pre.lua");
+}
+
+export function quartoPostFilter() {
+  return resourcePath("filters/quarto-post/quarto-post.lua");
 }
 
 function quartoFilterParams(format: Format) {
@@ -47,31 +47,34 @@ function quartoFilterParams(format: Format) {
   return params;
 }
 
-export function resolveFilters(
-  filters: string[] | undefined,
-  options: PandocOptions,
-) {
-  filters = filters || [];
+export function resolveFilters(userFilters: string[], options: PandocOptions) {
+  // filter chain
+  const filters: string[] = [];
 
-  // add figures filter
-  if (figuresFilterActive(options.format)) {
-    filters.unshift(figuresFilter());
-  }
+  // always run quarto pre filter
+  filters.push(quartoPreFilter());
 
-  // add citeproc filter if necessary
-  const citeproc = citeMethod(options) === "citeproc";
-  if (citeproc && !filters.includes("citeproc")) {
-    filters.unshift("citeproc");
-  }
-
-  // add crossref filter if necessary (unshift will put it before citeproc)
+  // add crossref filter if necessary
   if (crossrefFilterActive(options.format)) {
-    filters.unshift(crossrefFilter());
+    filters.push(crossrefFilter());
   }
 
-  // add quarto filter
-  filters.unshift(quartoFilter());
+  // add layout filter
+  filters.push(figuresFilter());
 
+  // add quarto post filter
+  filters.push(quartoPostFilter());
+
+  // add user filters (remove citeproc if it's there)
+  filters.push(...userFilters.filter((filter) => filter !== "citeproc"));
+
+  // citeproc at the very end so all other filters can interact with citations
+  const citeproc = citeMethod(options) === "citeproc";
+  if (citeproc) {
+    filters.push("citeproc");
+  }
+
+  // return filters
   if (filters.length > 0) {
     return filters;
   } else {

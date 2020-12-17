@@ -14,10 +14,6 @@ export function figuresFilter() {
   return resourcePath("filters/figures/figures.lua");
 }
 
-export function figuresFilterActive(format: Format) {
-  return format.metadata.figures !== false;
-}
-
 export function figuresFilterParams(format: Format) {
   const params: Metadata = {};
   const pageWidth = format.render[kPageWidth];
