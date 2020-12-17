@@ -79,8 +79,8 @@ v0.1
  
 - Installer
 
-Pandoc-powered scientific and technical publishing. Quarto is pandoc plus:
-1) Integreated computations via Rmd or Jupyter
+Pandoc-powered academic, scientific, and technical publishing. Quarto is pandoc plus:
+1) Integrated output from R, Python, and Julia via seamless integration with knitr and Jupyter
 2) Ciations via pandoc citeproc
 3) Cross references for figures, tables, equations, sections, listings, proofs, and more.
 4) Sophisticated figure layout
