@@ -27,33 +27,19 @@ function latexDiv()
         options = ""
       end
     
-      -- get the environment
+      -- environment begin/end
       local env = divEl.classes[1]
+      local beginEnv = '\\begin' .. '{' .. env .. '}' .. options
+      local endEnv = '\n\\end{' .. env .. '}'
       
       -- if the first and last div blocks are paragraphs then we can
       -- bring the environment begin/end closer to the content
       if divEl.content[1].t == "Para" and divEl.content[#divEl.content].t == "Para" then
-         -- insert raw latex before content
-        table.insert(
-          divEl.content[1].content, 1,
-          pandoc.RawInline('latex', '\\begin' .. '{' .. env .. '}' .. options .. "\n")
-        )
-        -- insert raw latex after content
-        table.insert(
-          divEl.content[#divEl.content].content,
-          pandoc.RawInline('latex', '\n\\end{' .. env .. '}')
-        )
+        table.insert(divEl.content[1].content, 1, pandoc.RawInline('tex', beginEnv .. "\n"))
+        table.insert(divEl.content[#divEl.content].content, pandoc.RawInline('tex', "\n" .. endEnv))
       else
-        -- insert raw latex before content
-        table.insert(
-          divEl.content, 1,
-          pandoc.RawBlock('tex', '\\begin' .. '{' .. env .. '}' .. options)
-        )
-        -- insert raw latex after content
-        table.insert(
-          divEl.content,
-          pandoc.RawBlock('tex', '\\end{' .. env .. '}')
-        )
+        table.insert(divEl.content, 1, pandoc.RawBlock('tex', beginEnv))
+        table.insert(divEl.content, pandoc.RawBlock('tex', endEnv))
       end
       return divEl
     end
