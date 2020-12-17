@@ -30,7 +30,7 @@ function preprocessFigures(strict)
             if qualifyFigureDiv(el, strict) then
               
               if parentId ~= nil then
-                el.attr.attributes["layout-parent"] = parentId
+                el.attr.attributes[kLayoutParent] = parentId
               else
                 el = pandoc.walk_block(el, walkFigures(el.attr.identifier))
               end
@@ -78,7 +78,7 @@ function preprocessParaFigure(el, parentId, captionRequired, labelRequired)
   -- parent id we have and insert a "fake" caption
   local image = figureFromPara(el, captionRequired)
   if image and isFigureImage(image, captionRequired, labelRequired) then
-    image.attr.attributes["layout-parent"] = parentId
+    image.attr.attributes[kLayoutParent] = parentId
     if #image.caption == 0 then
       image.caption:insert(pandoc.Str(""))
     end
@@ -118,7 +118,7 @@ function createLinkedFigureDiv(el, linkedFig, parentId)
   
   -- if we have a parent, then set it and copy width and height to the div
   if parentId ~= nil then
-    figureDiv.attr.attributes["layout-parent"] = parentId
+    figureDiv.attr.attributes[kLayoutParent] = parentId
     figureDiv.attr.attributes["width"] = linkedFig.attr.attributes["width"]
     figureDiv.attr.attributes["height"] = linkedFig.attr.attributes["height"]
   end
@@ -172,7 +172,7 @@ end
 
 -- is this element a subfigure
 function isSubfigure(el)
-  if el.attr.attributes["layout-parent"] then
+  if el.attr.attributes[kLayoutParent] then
     return true
   else
     return false

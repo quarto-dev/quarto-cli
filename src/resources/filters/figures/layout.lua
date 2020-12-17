@@ -139,14 +139,14 @@ function collectSubfigures(divEl)
     Div = function(el)
       if isSubfigure(el) then
         subfigures:insert(el)
-        el.attr.attributes["layout-parent"] = nil
+        el.attr.attributes[kLayoutParent] = nil
       end
     end,
     Para = function(el)
       local image = figureFromPara(el, false)
       if image and isSubfigure(image) then
         subfigures:insert(image)
-        image.attr.attributes["layout-parent"] = nil
+        image.attr.attributes[kLayoutParent] = nil
       end
     end
   })

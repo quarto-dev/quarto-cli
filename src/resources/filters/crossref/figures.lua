@@ -32,9 +32,9 @@ function processFigure(el, captionContent)
 
   -- determine order, parent, and displayed caption
   local order
-  local parent = el.attr.attributes["layout-parent"]
+  local parent = el.attr.attributes[kLayoutParent]
   if (parent) then
-    el.attr.attributes["layout-parent"] = nil
+    el.attr.attributes[kLayoutParent] = nil
     order = {
       section = nil,
       order = crossref.index.nextSubfigureOrder
