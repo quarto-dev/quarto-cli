@@ -161,7 +161,7 @@ end
 
 function alignAttribute(el)
   local default = pandoc.utils.stringify(
-    option("align", pandoc.Str("center"))
+    param("fig-align", pandoc.Str("center"))
   )
   local align = attribute(el, kFigAlign, default)
   if align == "default" then

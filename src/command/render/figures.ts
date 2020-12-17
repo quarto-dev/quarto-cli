@@ -5,7 +5,7 @@
 *
 */
 
-import { kPageWidth } from "../../config/constants.ts";
+import { kFigAlign, kPageWidth } from "../../config/constants.ts";
 import { Format } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
 import { resourcePath } from "../../core/resources.ts";
@@ -23,6 +23,10 @@ export function figuresFilterParams(format: Format) {
   const pageWidth = format.render[kPageWidth];
   if (pageWidth) {
     params[kPageWidth] = pageWidth;
+  }
+  const figAlign = format.render[kFigAlign];
+  if (figAlign) {
+    params[kFigAlign] = figAlign;
   }
   return params;
 }
