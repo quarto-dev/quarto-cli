@@ -43,23 +43,8 @@ function layoutSubfigures(divEl)
     figCols = math.ceil(#subfigures / figRows)
   end
   
-  -- if there are horizontal rules then use that for layout
-  if haveHorizontalRules(subfigures) then
-    layout:insert(pandoc.List:new())
-    for _,fig in ipairs(subfigures) do
-      if fig.t == "HorizontalRule" then
-        layout:insert(pandoc.List:new())
-      else
-        layout[#layout]:insert(fig)
-      end
-    end
-    -- remove empty rows
-    layout = layout:filter(function(row) return #row > 0 end)
-    -- allocate remaining space
-    layoutWidths(layout)
-    
   -- check for fig.ncol
-  elseif figCols ~= nil then
+  if figCols ~= nil then
     for i,fig in ipairs(subfigures) do
       if math.fmod(i-1, figCols) == 0 then
         layout:insert(pandoc.List:new())
@@ -163,9 +148,6 @@ function collectSubfigures(divEl)
         subfigures:insert(image)
         image.attr.attributes["figure-parent"] = nil
       end
-    end,
-    HorizontalRule = function(el)
-      subfigures:insert(el)
     end
   })
   if #subfigures > 0 then

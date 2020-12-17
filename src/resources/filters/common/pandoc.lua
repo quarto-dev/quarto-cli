@@ -106,11 +106,4 @@ function nbspString()
   return pandoc.Str '\u{a0}'
 end
 
-function haveHorizontalRules(blocks)
-  if blocks:find_if(function(el) return el.t == "HorizontalRule" end) then
-    return true
-  else
-    return false
-  end
-end
 
