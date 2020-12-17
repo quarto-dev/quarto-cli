@@ -8,9 +8,6 @@ Figures
 - Consider multiple tables in single environment? 
   https://www.overleaf.com/learn/latex/How_to_Write_a_Thesis_in_LaTeX_(Part_3):_Figures,_Subfigures_and_Tables#Subtables
 
-- Implement latex environment divs: https://bookdown.org/yihui/rmarkdown-cookbook/custom-blocks.html
-
-- investigate agggregate figures (embedded tables, etc.)
 
 Quarto
 ---------------------------
@@ -82,8 +79,8 @@ v0.1
  
 - Installer
 
-Pandoc-powered scientific and technical publishing. Quarto is pandoc plus:
-1) Integreated computations via Rmd or Jupyter
+Pandoc-powered academic, scientific, and technical publishing. Quarto is pandoc plus:
+1) Integrated output from R, Python, and Julia via seamless integration with knitr and Jupyter
 2) Ciations via pandoc citeproc
 3) Cross references for figures, tables, equations, sections, listings, proofs, and more.
 4) Sophisticated figure layout

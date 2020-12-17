@@ -63,6 +63,7 @@ export const kVariant = "variant";
 export const kOutputExt = "output-ext";
 export const kOutputDivs = "output-divs";
 export const kPageWidth = "page-width";
+export const kFigAlign = "fig-align";
 export const kPreferHtml = "prefer-html";
 
 export const kRenderDefaultsKeys = [
@@ -75,6 +76,7 @@ export const kRenderDefaultsKeys = [
   kOutputDivs,
   kPreferHtml,
   kPageWidth,
+  kFigAlign,
 ];
 
 // 'defaults' fields

@@ -13,6 +13,7 @@ import {
   kCiteMethod,
   kCiteproc,
   kExecute,
+  kFigAlign,
   kFigDpi,
   kFilters,
   kIncludeAfterBody,
@@ -71,6 +72,7 @@ export interface FormatRender {
   [kVariant]?: string;
   [kOutputExt]?: string;
   [kPageWidth]?: number;
+  [kFigAlign]?: "left" | "right" | "center" | "default";
 }
 
 export interface FormatExecution {
@@ -466,6 +468,7 @@ function defaultFormat(): Format {
       [kPreferHtml]: false,
       [kOutputDivs]: true,
       [kOutputExt]: "html",
+      [kFigAlign]: "center",
     },
     pandoc: {
       from: "markdown",

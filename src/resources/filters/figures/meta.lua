@@ -23,7 +23,6 @@ function metaInject()
 <style type="text/css">
   .quarto-figure-panel > figure > figcaption {
     margin-top: 10pt;
-    text-align: center;
   }
   .quarto-figure figure {
     display: inline-block;
@@ -48,7 +47,6 @@ function metaInject()
     width: 100% !important;
   }
   .quarto-subfigure figcaption {
-    text-align: center;
     font-size: 0.8em;
     font-style: italic;
   }

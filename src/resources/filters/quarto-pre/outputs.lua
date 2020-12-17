@@ -1,7 +1,9 @@
 
--- process all equations
+
 function outputs()
   return {
+    
+    -- unroll output divs for formats (like pptx) that don't support them
     Blocks = function(blocks)
       
       -- if we don't support output divs then we need to unroll them
