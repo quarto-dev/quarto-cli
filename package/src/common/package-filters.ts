@@ -5,9 +5,9 @@
 *
 */
 import { dirname, join } from "path/mod.ts";
+import { ensureDirSync } from "fs/mod.ts";
 
 import { Logger } from "../util/logger.ts";
-import { ensureDirExists } from "../util/utils.ts";
 
 // Creates inlined version of the filters that can be distributed with our installer
 export function buildFilter(
@@ -46,9 +46,7 @@ export function buildFilter(
 
   const dir = dirname(output);
   log.info(`Ensure directory ${dir} exists`);
-  if (ensureDirExists(dir)) {
-    log.info(`Created directory ${dir}`);
-  }
+  ensureDirSync(dir);
 
   log.info(`Writing inlined ${output}`);
   Deno.writeTextFileSync(output, src);

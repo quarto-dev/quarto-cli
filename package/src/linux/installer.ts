@@ -4,24 +4,49 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { join } from "path/mod.ts";
-import { dirname } from "https://deno.land/std@0.80.0/path/win32.ts";
+import { dirname, join } from "path/mod.ts";
+import { copySync, emptyDirSync, ensureDirSync } from "fs/mod.ts";
 
 import { Configuration } from "../common/config.ts";
 import { runCmd } from "../util/cmd.ts";
 import { makeTarball } from "../util/tar.ts";
-import { ensureDirExists } from "../util/utils.ts";
 
 export async function makeInstallerDeb(
   configuration: Configuration
 ) {
-
-  configuration.pkgConfig.name = `quarto-${configuration.version}.deb`;
   const log = configuration.log;
   log.info("Building deb package...");
-  const workingDir = join(configuration.dirs.out, "working");
-  ensureDirExists(workingDir);
 
+  // Move bin directory to 
+  // working/opt/quarto/bin/*
+  // share to
+  // working/opt/quarto/share/*
+
+  // detect packaging machine architecture
+  const result = await runCmd("dpkg-architecture", ["-qDEB_BUILD_ARCH"], log);
+  const architecture = (result.status.code === 0 ? result.stdout.trim() : undefined);
+  if (!architecture) {
+    log.error("Can't detect package architecture.")
+    throw new Error("Undetectable architecture. Packaging failed.")
+  }
+  configuration.pkgConfig.name = `quarto_${configuration.version}_${architecture}.deb`;
+
+  // Prepare working directory
+  const workingDir = join(configuration.dirs.out, "working");
+  log.info(`Preparing working directory ${workingDir}`);
+  ensureDirSync(workingDir);
+  emptyDirSync(workingDir);
+
+  // Copy bin into the proper path in working dir
+  const workingBinPath = join(workingDir, "opt", configuration.productname, "bin");
+  log.info(`Preparing bin directory ${workingBinPath}`);
+  copySync(configuration.dirs.bin, workingBinPath, { overwrite: true });
+
+  const workingSharePath = join(workingDir, "opt", configuration.productname, "share");
+  log.info(`Preparing share directory ${workingSharePath}`);
+  copySync(configuration.dirs.share, workingSharePath, { overwrite: true });
+
+ 
   // Debian File
   log.info("writing debian-binary")
   const debianFile = join(workingDir, "debian-binary");
@@ -46,9 +71,9 @@ export async function makeInstallerDeb(
   // Make the control file
   log.info("Creating control file");
   let control = "";
-  control = control + val("Package", configuration.pkgConfig.identifier);
+  control = control + val("Package", configuration.productname);
   control = control + val("Version", configuration.version);
-  control = control + val("Architecture", "any");
+  control = control + val("Architecture", architecture);
   control = control + val("Section", "user/text");
   control = control + val("Priority", "optional");
   control = control + val("Maintainer", "RStudio, PBC <quarto@rstudio.org>");
@@ -59,7 +84,7 @@ export async function makeInstallerDeb(
     );
   log.info(control);
   const controlFile = join(workingDir, "DEBIAN", "control");
-  ensureDirExists(dirname(controlFile));
+  ensureDirSync(dirname(controlFile));
   Deno.writeTextFileSync(controlFile, control);
 
   await runCmd("dpkg-deb", 
@@ -72,23 +97,6 @@ export async function makeInstallerDeb(
                 ], 
                 log);
 
-  // Tar the control file
-  // Todo install scripts: preinst postinst prerm postrm
-  // await makeTarball(controlFile, join(workingDir, "control.tar.gz"), log);
-
-  // Remove the control file
-  // Deno.removeSync(controlFile);
-
-  // Directory should now be:
-  // working
-  //      debian-binary
-  //      control
-  //      data.tar.gz
-
-  // ar the file
-  // ar -r xxx.deb debian-binary control.tar.gz data.tar.gz
-
-
-  // Remove the control file
-//  Deno.removeSync(workingDir, { recursive: true });
+  // Remove the working directory
+  Deno.removeSync(workingDir, { recursive: true });
 }

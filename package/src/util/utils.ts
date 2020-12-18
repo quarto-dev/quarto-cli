@@ -9,11 +9,3 @@ export function getEnv(name: string) {
   return value;
 }
 
-// Ensure a directory exists (creating it if necessary)
-export function ensureDirExists(directory: string): boolean {
-  if (!existsSync(directory)) {
-    Deno.mkdirSync(directory, { recursive: true });
-    return true;
-  }
-  return false;
-}
