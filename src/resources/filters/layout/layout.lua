@@ -196,18 +196,15 @@ function layoutCells(divEl, cells)
   
   -- percentage based layouts need to be scaled down so they don't overflow the page 
   rows = rows:map(function(row)
-    if canAllocateRowWidths(row) then
-      return row:map(function(fig)
-        local percentWidth = widthToPercent(attribute(fig, "width", nil))
-        if percentWidth then
-          percentWidth = round(percentWidth * 0.96,1)
-          fig.attr.attributes["width"] = tostring(percentWidth) .. "%"
-        end
-        return fig
-      end)
-    else
-      return row
-    end
+    return row:map(function(fig)
+      local percentWidth = widthToPercent(attribute(fig, "width", nil))
+      if percentWidth then
+        percentWidth = round(percentWidth * 0.96,1)
+        fig.attr.attributes["width"] = tostring(percentWidth) .. "%"
+      end
+      return fig
+    end)
+   
   end)  
 
   -- return layout
