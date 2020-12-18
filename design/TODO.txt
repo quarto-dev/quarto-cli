@@ -14,6 +14,8 @@ Quarto
 
 - Consider yaml for chunk options
 
+- Investigate pandoc 2.11.3 support for ODT cross references
+
 - Consider lst.display="details" to indicate you want the code in <details>. Wrap source in details w/ summary from fig.cap
   (may need some JavaScript to expand <details> on clicking cross reference). Could also make available a show all / hide all
   function that templates could call.
@@ -26,6 +28,8 @@ Quarto
 
 - Generally, validity of labels (don't want under the hood transformations to 
   affect addressabilty)
+
+- Authors metadata standard 
 
 - Should we convert include-in-header to header-includes (or vice versa) to eliminate the conflict
   (command line options overwrite metadata options)
