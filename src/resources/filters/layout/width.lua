@@ -119,67 +119,6 @@ function widthsToPercent(layout, cols)
 end
 
 
--- interpolate any missing widths
-function layoutWidths(rows, cols)
-  for _,row in ipairs(rows) do
-    if canAllocateRowWidths(row) then
-      allocateRowWidths(row, cols)
-    end
-  end
-end
-
-
--- find allocated row percentages
-function allocateRowWidths(row, cols)
-  
-  -- determine which figs need allocation and how much is left over to allocate
-  local available = 100
-  local unallocatedFigs = pandoc.List:new()
-  for _,fig in ipairs(row) do
-    local width = attribute(fig, "width", nil)
-    local percent = widthToPercent(width)
-    if percent then
-       available = available - percent
-    else
-      unallocatedFigs:insert(fig)
-    end
-  end
-  
-  -- pad to cols
-  if cols and #row < cols then
-    for i=#row+1,cols do
-      unallocatedFigs:insert("nil")
-    end
-  end
-  
-
-  -- do the allocation
-  if #unallocatedFigs > 0 then
-    -- minimum of 10% allocation
-    available = math.max(available, #unallocatedFigs * 10)
-    allocation = math.floor(available / #unallocatedFigs)
-    for _,fig in ipairs(unallocatedFigs) do
-      if fig ~= "nil" then
-        fig.attr.attributes["width"] = tostring(allocation) .. "%"
-      end
-    end
-  end
-
-end
-
--- a non-% width or a height disqualifies the row
-function canAllocateRowWidths(row)
-  for _,fig in ipairs(row) do
-    local width = attribute(fig, "width", nil)
-    if width and not widthToPercent(width) then
-      return false
-    elseif attribute(fig, "height", nil) ~= nil then
-      return false
-    end
-  end
-  return true
-end
-
 function widthToPercent(width)
   if width then
     local percent = string.match(width, "^([%d%.]+)%%$")
