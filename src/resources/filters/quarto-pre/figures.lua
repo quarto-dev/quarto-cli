@@ -52,7 +52,7 @@ function createLinkedFigureDiv(paraEl, linkedFig)
   figureDiv.attr.classes = linkedFig.attr.classes:clone()
   tclear(linkedFig.attr.classes)
   
-   -- transfer fig. attributes
+  -- transfer fig. attributes
   for k,v in pairs(linkedFig.attr.attributes) do
     if isFigAttribute(k) then
       figureDiv.attr.attributes[k] = v
