@@ -32,11 +32,7 @@ import { kPatchedTemplateExt } from "./output.ts";
 import { PandocOptions } from "./pandoc.ts";
 import { crossrefFilter, crossrefGeneratedDefaults } from "./crossref.ts";
 import { layoutFilter } from "./layout.ts";
-import {
-  quartoPostFilter,
-  quartoPreFilter,
-  resolveFilters,
-} from "./filters.ts";
+import { quartoPreFilter, resolveFilters } from "./filters.ts";
 
 export async function generateDefaults(
   options: PandocOptions,
@@ -125,7 +121,6 @@ export function pandocDefaultsMessage(
       })
       .filter((filter) => {
         return filter !== quartoPreFilter() &&
-          filter !== quartoPostFilter() &&
           filter !== layoutFilter() &&
           !sysFilters.includes(filter);
       });

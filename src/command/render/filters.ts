@@ -40,10 +40,6 @@ export function quartoPreFilter() {
   return resourcePath("filters/quarto-pre/quarto-pre.lua");
 }
 
-export function quartoPostFilter() {
-  return resourcePath("filters/quarto-post/quarto-post.lua");
-}
-
 function quartoFilterParams(format: Format) {
   const params: Metadata = {
     [kOutputDivs]: format.render[kOutputDivs],
@@ -69,9 +65,6 @@ export function resolveFilters(userFilters: string[], options: PandocOptions) {
 
   // add layout filter
   filters.push(layoutFilter());
-
-  // add quarto post filter
-  filters.push(quartoPostFilter());
 
   // add user filters (remove citeproc if it's there)
   filters.push(...userFilters.filter((filter) => filter !== "citeproc"));
