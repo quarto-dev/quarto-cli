@@ -17,11 +17,8 @@ export async function makeInstallerDeb(
   const log = configuration.log;
   log.info("Building deb package...");
 
-  // Move bin directory to 
-  // working/opt/quarto/bin/*
-  // share to
-  // working/opt/quarto/share/*
-
+  // TODO: Compute file size and include in control file
+  
   // detect packaging machine architecture
   const result = await runCmd("dpkg-architecture", ["-qDEB_BUILD_ARCH"], log);
   const architecture = (result.status.code === 0 ? result.stdout.trim() : undefined);
@@ -83,9 +80,17 @@ export async function makeInstallerDeb(
       "Command line tool for executing computable markdown documents.",
     );
   log.info(control);
-  const controlFile = join(workingDir, "DEBIAN", "control");
-  ensureDirSync(dirname(controlFile));
-  Deno.writeTextFileSync(controlFile, control);
+
+  // Place 
+  const debianDir = join(workingDir, "DEBIAN");
+  ensureDirSync(debianDir);
+  
+  // Write the control file to the DEBIAN directory
+  Deno.writeTextFileSync(join(debianDir, "control"), control);
+
+  // copy the install scripts
+  log.info("Copying install scripts...")
+  copySync(join(configuration.dirs.pkg, "scripts", "linux", "deb"), debianDir, { overwrite: true });
 
   await runCmd("dpkg-deb", 
                 [

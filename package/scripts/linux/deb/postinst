@@ -1,0 +1,5 @@
+#!/bin/sh
+set -x
+
+sudo ln -fs /opt/quarto/bin/quarto /usr/local/bin/quarto
+exit 0
