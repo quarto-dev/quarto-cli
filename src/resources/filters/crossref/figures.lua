@@ -6,14 +6,14 @@ function figures()
   return {
     Div = function(el)
       if isFigureDiv(el) then
-        local caption = figureDivCaption(el)
+        local caption = refCaptionFromDiv(el)
         processFigure(el, caption.content)
       end
       return el
     end,
 
     Para = function(el)
-      local image = figureFromPara(el)
+      local image = discoverFigure(el)
       if image and isFigureImage(image) then
         processFigure(image, image.caption)
       end

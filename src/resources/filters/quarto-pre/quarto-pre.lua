@@ -24,7 +24,6 @@ import("../common/pandoc.lua")
 import("../common/layout.lua")
 import("../common/refs.lua")
 import("../common/figures.lua")
-import("../common/figures2.lua")
 import("../common/debug.lua")
 -- [/import]
 

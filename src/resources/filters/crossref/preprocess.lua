@@ -37,14 +37,14 @@ function preprocess()
           Para = function(el)
             
             -- provide error caption if there is none
-            local fig = figureFromPara(el, false)
+            local fig = discoverFigure(el, false)
             if fig and #fig.caption == 0 then
               fig.caption:insert(noCaption())
             end
             
             -- if we have a parent fig: then mark it's sub-refs
             if parentId and isFigureRef(parentId) then
-              local image = figureFromPara(el)
+              local image = discoverFigure(el)
               if image and isFigureImage(image) then
                 image.attr.attributes[kRefParent] = parentId
               end

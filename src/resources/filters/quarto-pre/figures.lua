@@ -43,6 +43,11 @@ function createLinkedFigureDiv(paraEl, linkedFig)
   figureDiv.attr.identifier = linkedFig.attr.identifier
   linkedFig.attr.identifier = ""
   
+  -- provide anonymous identifier if necessary
+  if figureDiv.attr.identifier == "" then
+    figureDiv.attr.identifier = anonymousFigId()
+  end
+  
   -- transfer classes
   figureDiv.attr.classes = linkedFig.attr.classes:clone()
   tclear(linkedFig.attr.classes)

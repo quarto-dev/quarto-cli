@@ -15,11 +15,7 @@ function isFigAttribute(name)
   return string.find(name, "^fig%.")
 end
 
-function anonymousFigId()
-  return "fig:anonymous-" .. tostring(math.random(10000000))
-end
-
-function alignAttribute(el)
+function figAlignAttribute(el)
   local default = pandoc.utils.stringify(
     param("fig-align", pandoc.Str("center"))
   )
@@ -38,27 +34,13 @@ end
 -- is this a Div containing a figure
 function isFigureDiv(el)
   if el.t == "Div" and hasFigureRef(el) then
-    return figureDivCaption(el) ~= nil
+    return refCaptionFromDiv(el) ~= nil
   else
     return discoverLinkedFigureDiv(el) ~= nil
   end
 end
 
--- caption for a a figure div
-function figureDivCaption(el)
-  local last = el.content[#el.content]
-  if last and last.t == "Para" and #el.content > 1 then
-    if not (#last.content == 1 and last.content[1].t == "Image") then
-      return last
-    else
-      return nil
-    end
-  else
-    return nil
-  end
-end
-
-function figureFromPara(el, captionRequired)
+function discoverFigure(el, withCaption)
   if el.t ~= "Para" then
     return nil
   end
@@ -67,7 +49,8 @@ function figureFromPara(el, captionRequired)
   end
   if #el.content == 1 and el.content[1].t == "Image" then
     local image = el.content[1]
-    if not captionRequired or #image.caption > 0 then
+    if (withCaption and #image.caption > 0) or 
+       (not withCaption and (#image.caption == 0)) then
       return image
     else
       return nil
@@ -77,19 +60,20 @@ function figureFromPara(el, captionRequired)
   end
 end
 
-function linkedFigureFromPara(el, captionRequired, allowSentinel)
+function discoverLinkedFigure(el, withCaption)
   if el.t ~= "Para" then
     return nil
   end
-  if captionRequired == nil then
-    captionRequired = true
+  if withCaption == nil then
+    withCaption = true
   end
-  if (#el.content == 1) or (allowSentinel and hasLinkedFigureSentinel(el)) then 
+  if #el.content == 1 then 
     if el.content[1].t == "Link" then
       local link = el.content[1]
       if #link.content == 1 and link.content[1].t == "Image" then
         local image = link.content[1]
-        if not captionRequired or #image.caption > 0 then
+        if (withCaption and #image.caption > 0) or 
+           (not withCaption and (#image.caption == 0)) then
           return image
         end
       end
@@ -98,10 +82,23 @@ function linkedFigureFromPara(el, captionRequired, allowSentinel)
   return nil
 end
 
-function hasLinkedFigureSentinel(el)
-  local hasSentinel = #el.content == 2 and 
-                      el.content[2].t == "RawInline" and 
-                      el.content[2].text == kLinkedFigSentinel
-  return hasSentinel
+function discoverLinkedFigureDiv(el)
+  if el.t === "Div" and 
+     hasFigureRef(el) and
+     #el.content == 2 and 
+     el.content[1].t == "Para" and 
+     el.content[2].t == "Para" then
+    return discoverLinkedFigure(el.content[1], false)  
+  end
+  return nil
 end
+
+function anonymousFigId()
+  return "fig:anonymous-" .. tostring(math.random(10000000))
+end
+
+function isAnonymousFigId(identifier)
+  return string.find(identifier, "^fig:anonymous-")
+end
+
 

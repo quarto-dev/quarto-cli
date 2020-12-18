@@ -22,7 +22,7 @@ function wpFigure(image)
   end
 
   -- get alignment
-  local align = alignAttribute(image)
+  local align = figAlignAttribute(image)
   
   -- create the row/cell for the figure
   local row = pandoc.List:new()

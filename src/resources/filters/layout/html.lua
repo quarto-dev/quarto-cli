@@ -4,7 +4,7 @@
 function htmlPanel(divEl, subfigures)
   
   -- set flag indicating we need figure css
-  figures.htmlFigures = true
+  layout.htmlFigures = true
   
   -- outer panel to contain css and figure panel
   local panel = pandoc.Div({}, pandoc.Attr("", { "quarto-figure-panel" }))
@@ -13,7 +13,7 @@ function htmlPanel(divEl, subfigures)
   panel.content:insert(pandoc.RawBlock("html", "<figure>"))
   
   -- collect alignment
-  local align = alignAttribute(divEl)
+  local align = figAlignAttribute(divEl)
   divEl.attr.attributes[kFigAlign] = nil
 
   -- subfigures
@@ -65,7 +65,7 @@ function htmlPanel(divEl, subfigures)
   end
   
   -- insert caption and </figure>
-  local divCaption = figureDivCaption(divEl)
+  local divCaption = refCaptionFromDiv(divEl)
   if divCaption and #divCaption.content > 0 then
     local caption = pandoc.Para({})
     -- apply alignment if we have it
@@ -96,7 +96,7 @@ function htmlDivFigure(el)
     if hasRefParent(el) and widthToPercent(attribute(el, "width", nil)) then
       -- remove any percent width of embedded linked image
       if #el.content > 0 then
-        local linkedFig = linkedFigureFromPara(el.content[1], false, true)
+        local linkedFig = discoverLinkedFigure(el.content[1], false)
         if linkedFig and widthToPercent(attribute(linkedFig, "width", nil)) then
           linkedFig.attributes["width"] = nil
           linkedFig.attributes["height"] = nil
@@ -108,7 +108,7 @@ function htmlDivFigure(el)
     tappend(figure.content, tslice(el.content, 1, #el.content-1))
     
     -- extract and return caption inlines
-    local caption = figureDivCaption(el)
+    local caption = refCaptionFromDiv(el)
     if caption then
       return caption.content
     else
@@ -147,10 +147,10 @@ end
 function renderHtmlFigure(el, render)
   
    -- set flag indicating we need figure css
-  figures.htmlFigures = true
+  layout.htmlFigures = true
   
   -- capture relevant figure attributes then strip them
-  local align = alignAttribute(el)
+  local align = figAlignAttribute(el)
   local keys = tkeys(el.attr.attributes)
   for _,k in pairs(keys) do
     if isFigAttribute(k) then

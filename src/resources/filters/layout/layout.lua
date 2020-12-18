@@ -7,8 +7,8 @@ PANDOC_VERSION:must_be_at_least '2.11.2'
 -- required modules
 text = require 'text'
 
--- global figures state
-figures = {}
+-- global layout state
+layout = {}
 
 -- [import]
 function import(script)
@@ -25,20 +25,20 @@ import("docx.lua")
 import("odt.lua")
 import("pptx.lua")
 import("table.lua")
+import("figures.lua")
 import("../common/json.lua")
 import("../common/pandoc.lua")
 import("../common/format.lua")
 import("../common/refs.lua")
 import("../common/layout.lua")
 import("../common/figures.lua")
-import("../common/figures2.lua")
 import("../common/params.lua")
 import("../common/meta.lua")
 import("../common/table.lua")
 import("../common/debug.lua")
 -- [/import]
 
-function layoutFigures() 
+function layout() 
   
   return {
     
@@ -222,7 +222,7 @@ function collectSubfigures(divEl)
       end
     end,
     Para = function(el)
-      local image = figureFromPara(el, false)
+      local image = discoverFigure(el, false)
       if image and hasRefParent(image) then
         subfigures:insert(image)
         image.attr.attributes[kRefParent] = nil
@@ -444,8 +444,8 @@ end
 -- chain of filters
 return {
   initParams(),
-  preprocessFigures(false),
-  layoutFigures(),
+  layout(),
+  extendedFigures(),
   metaInject()
 }
 

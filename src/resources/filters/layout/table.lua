@@ -12,7 +12,7 @@ function tablePanel(divEl, subfigures, options)
   local panel = pandoc.Div({})
   
   -- alignment
-  local align = alignAttribute(divEl)
+  local align = figAlignAttribute(divEl)
   
   -- subfigures
   local subfiguresEl = pandoc.Para({})
@@ -53,7 +53,7 @@ function tablePanel(divEl, subfigures, options)
   end
   
   -- insert caption
-  local divCaption = figureDivCaption(divEl)
+  local divCaption = refCaptionFromDiv(divEl)
   if divCaption and #divCaption.content > 0 then
     if options.divCaption then
       divCaption = options.divCaption(divCaption, align)
@@ -76,7 +76,7 @@ function figureTableCell(image, align, options)
       image.attr.attributes["width"] = string.format("%2.2f", inches) .. "in"
       -- if this is a linked figure then set width on the image as well
       if image.t == "Div" then
-        local linkedFig = linkedFigureFromPara(image.content[1], false, true)
+        local linkedFig = discoverLinkedFigure(el.content[1], false)
         if linkedFig then
           linkedFig.attr.attributes["width"] = image.attr.attributes["width"]
         end

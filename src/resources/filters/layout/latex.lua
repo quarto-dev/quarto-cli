@@ -14,7 +14,7 @@ function latexImageFigure(image)
     tclear(image.caption)
     
     -- get align
-    local align = alignAttribute(image)
+    local align = figAlignAttribute(image)
    
     -- insert the figure without the caption
     local figurePara = pandoc.Para({
@@ -43,7 +43,7 @@ function latexDivFigure(divEl, subfigures)
         for _, image in ipairs(row) do
           
           -- get alignment
-          local align = alignAttribute(image)
+          local align = figAlignAttribute(image)
    
           -- begin subfigure
           subfiguresEl.content:insert(pandoc.RawInline("latex", "\\begin{subfigure}[b]"))
@@ -69,7 +69,7 @@ function latexDivFigure(divEl, subfigures)
           -- clear the width on the image (look for linked figure to clear as well)
           image.attr.attributes["width"] = nil
           if image.t == "Div" then
-            local linkedFig = linkedFigureFromPara(image.content[1], false, true)
+            local linkedFig = discoverLinkedFigure(el.content[1], false)
             if linkedFig then
               linkedFig.attr.attributes["width"] = nil
             end
@@ -81,7 +81,7 @@ function latexDivFigure(divEl, subfigures)
             caption = image.caption:clone()
             tclear(image.caption)
           else 
-            caption = figureDivCaption(image).content
+            caption = refCaptionFromDiv(image).content
           end
           
           -- build caption
@@ -130,7 +130,7 @@ function latexDivFigure(divEl, subfigures)
     end
   
     -- surround caption w/ appropriate latex (and end the figure)
-    local caption = figureDivCaption(divEl)
+    local caption = refCaptionFromDiv(divEl)
     if caption then
       return caption.content
     else
@@ -178,7 +178,7 @@ end
 
 function isReferenceable(figEl)
   return figEl.attr.identifier ~= "" and 
-         not string.find(figEl.attr.identifier, "^fig:anonymous-")
+         not isAnonymousFigId(figEl.attr.identifier)
 end
 
 function markupLatexCaption(el, caption)
@@ -231,7 +231,7 @@ function latexFigureInline(image)
   if string.find(image.src, "%.tex$" ) then
     
     -- be sure to inject \usepackage{tikz}
-    figures.usingTikz = true
+    layout.usingTikz = true
     
     -- base input
     local input = "\\input{" .. image.src .. "}"

@@ -14,19 +14,16 @@ function import(script)
   local path = PANDOC_SCRIPT_FILE:match("(.*" .. sep .. ")")
   dofile(path .. script)
 end
-import("figures.lua")
 import("../common/params.lua")
 import("../common/table.lua")
 import("../common/pandoc.lua")
 import("../common/figures.lua")
-import("../common/figures2.lua")
 import("../common/debug.lua")
 -- [/import]
 
 
 return {
-  initParams(),
-  extendedFigures()
+  initParams()
 }
 
 
