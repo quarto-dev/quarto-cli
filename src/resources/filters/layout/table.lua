@@ -1,7 +1,7 @@
 -- table.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
-function tablePanel(divEl, subfigures, options)
+function tablePanel(divEl, layout, caption, options)
   
   -- empty options by default
   if not options then
@@ -12,16 +12,15 @@ function tablePanel(divEl, subfigures, options)
   local panel = pandoc.Div({})
   
   -- alignment
-  local align = figAlignAttribute(divEl)
+  local align = layoutAlignAttribute(divEl)
   
-  -- subfigures
-  local subfiguresEl = pandoc.Para({})
-  for i, row in ipairs(subfigures) do
+  -- layout
+  for i, row in ipairs(layout) do
     
     local aligns = row:map(function() return tableAlign(align) end)
-    local widths = row:map(function(image) 
+    local widths = row:map(function(cell) 
       -- propagage percents if they are provided
-      local layoutPercent = horizontalLayoutPercent(image)
+      local layoutPercent = horizontalLayoutPercent(cell)
       if layoutPercent then
         return layoutPercent / 100
       else
@@ -29,32 +28,31 @@ function tablePanel(divEl, subfigures, options)
       end
     end)
 
-    local figuresRow = pandoc.List:new()
-    for _, image in ipairs(row) do
-      figuresRow:insert(figureTableCell(image, align, options))
+    local cells = pandoc.List:new()
+    for _, cell in ipairs(row) do
+      cells:insert(tableCellContent(cell, align, options))
     end
     
     -- make the table
-    local figuresTable = pandoc.SimpleTable(
+    local panelTable = pandoc.SimpleTable(
       pandoc.List:new(), -- caption
       aligns,
       widths,
       pandoc.List:new(), -- headers
-      { figuresRow }
+      { cells }
     )
     
     -- add it to the panel
-    panel.content:insert(pandoc.utils.from_simple_table(figuresTable))
+    panel.content:insert(pandoc.utils.from_simple_table(panelTable))
     
     -- add empty text frame (to prevent a para from being inserted btw the rows)
-    if i ~= #subfigures and options.rowBreak then
+    if i ~= #layout and options.rowBreak then
       panel.content:insert(options.rowBreak())
     end
   end
   
   -- insert caption
-  local divCaption = refCaptionFromDiv(divEl)
-  if divCaption and #divCaption.content > 0 then
+  if caption then
     if options.divCaption then
       divCaption = options.divCaption(divCaption, align)
     end
@@ -66,50 +64,40 @@ function tablePanel(divEl, subfigures, options)
 end
 
 
-function figureTableCell(image, align, options)
+function tableCellContent(cell, align, options)
   
-  -- convert layout percent to physical units (if we have a pageWidth)
-  if options.pageWidth then
-    local layoutPercent = horizontalLayoutPercent(image)
+  -- there will be special code if this an image
+  local image = figureImageFromCell(cell)
+  
+  -- for images, convert layout percent to physical units (if we have a 
+  -- pageWidth). this ensure that images don't overflow the column as they
+  -- have been observed to do in docx
+  if image and options.pageWidth then
+    local layoutPercent = horizontalLayoutPercent(cell)
     if layoutPercent then
       local inches = (layoutPercent/100) * options.pageWidth
       image.attr.attributes["width"] = string.format("%2.2f", inches) .. "in"
-      -- if this is a linked figure then set width on the image as well
-      if image.t == "Div" then
-        local linkedFig = discoverLinkedFigure(el.content[1], false)
-        if linkedFig then
-          linkedFig.attr.attributes["width"] = image.attr.attributes["width"]
-        end
-      end
     end
   end
   
-  local cell = pandoc.List:new()
-  if image.t == "Image" then
+  if image then
     -- rtf and odt don't write captions in tables so make this explicit
     if isRtfOutput() or isOdtOutput() then
       local caption = image.caption:clone()
       tclear(image.caption)
-      cell:insert(pandoc.Para(image))
       local captionPara = pandoc.Para(caption)
       if options.divCaption then
         captionPara = options.divCaption(captionPara, align)
       end
       cell:insert(captionPara)
-    else
-      cell:insert(pandoc.Para(image))
     end
-  else
-    -- style the caption
-    local divCaption = image.content[#image.content]
-    if options.divCaption then
-      divCaption = options.divCaption(divCaption, align)
-    end
-    image.content[#image.content] = divCaption
-    cell:insert(image)
+  -- style div caption if there is a custom caption function
+  else if hasFigureOrTableRef(cell) and options.divCaption then
+    local divCaption = options.divCaption(refCaptionFromDiv(cell), align)
+    cell.content[#cell.content] = divCaption 
   end
-  
-  return cell
+ 
+  return { cell }
   
 end
 

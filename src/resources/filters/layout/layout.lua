@@ -40,28 +40,49 @@ import("../common/debug.lua")
 -- [/import]
 
 
-function layout2()
+function layout()
 
   return {
     Div = function(el)
       if hasLayoutAttributes(el) then
         
         -- partition
-        local preamble, cells = partitionCells(el)
+        local preamble, cells, caption = partitionCells(el)
         
         -- derive layout
         local layout = layoutCells(el, cells)
         
         -- call the panel layout functions
-        -- TODO
-        local panel = layout
+        local panel
+        if isLatexOutput() then
+          panel = latexPanel(el, layout)
+        elseif isHtmlOutput() then
+          panel = htmlPanel(el, layout)
+        elseif isDocxOutput() then
+          panel = tableDocxPanel(el, layout)
+        elseif isOdtOutput() then
+          panel = tableOdtPanel(el, layout)
+        elseif isWordProcessorOutput() then
+          panel = tableWpPanel(el, layout)
+        elseif isPowerPointOutput() then
+          panel = pptxPanel(el, layout)
+        else
+          panel = tablePanel(el, layout)
+        end
         
-        -- if we have a preamble then wrap everything in a div
-        -- with the preamble blocks and the panel
-        if #preamble then
-          local div = pandoc.Div(preamble)
+        -- if we have a preamble or caption then wrap everything in a div
+        -- with the preamble and/or caption included
+        if #preamble > 0 or caption then
+          local div = pandoc.Div({})
+          if #preamble > 0 then
+            tappend(div.content, preamble)
+          end
           div.content:insert(panel)
+          if caption then
+            div.content:insert(caption)
+          end
           return div
+          
         -- otherwise just return the panel
         else
           return panel
@@ -70,17 +91,22 @@ function layout2()
       end
     end
   }  
-
-  
 end
+
 
 function partitionCells(divEl)
   
   local preamble = pandoc.List:new()
   local cells = pandoc.List:new()
+  local caption = nil
+  
+  -- extract caption if it's a table or figure div
+  if hasFigureOrTableRef(divEl) then
+    caption = refCaptionFromDiv(divEl)
+    divEl.content = tslice(divEl.content, 1, #divEl.content-1)
+  end
   
   local heading = nil
-  
   for _,block in ipairs(divEl.content) do
     
     if isPreambleBlock(divEl) then
@@ -106,8 +132,14 @@ function partitionCells(divEl)
       -- image and copy the height and width attributes
       -- to the outer div
       local fig = figureImageFromCell(cellDiv)
-      cellDiv.attr.attributes["width"] = fig.attributes["width"]
-      cellDiv.attr.attributes["height"] = fig.attributes["height"]
+      if fig then
+        cellDiv.attr.attributes["width"] = fig.attributes["width"]
+        cellDiv.attr.attributes["height"] = fig.attributes["height"]
+        if widthToPercent(attribute(fig, "width", nil)) then
+          fig.attributes["width"] = nil
+          fig.attributes["height"] = nil
+        end
+      end
       
       -- add the div
       cells:insert(cellDiv)
@@ -212,56 +244,10 @@ function layoutCells(divEl, cells)
   
 end
 
-
-
 function isPreambleBlock(el)
   return el.t == "Div" and 
          (el.attr.classes:includes("cell-code") or 
          el.attr.classes:includes("cell-output-stderr"))
-end
-
-
-function layout() 
-  
-  return {
-    
-    Div = function(el)
-      
-      if hasLayoutAttributes(el) then
-        
-        -- handle subfigure layout
-        local code, subfigures = layoutSubfigures(el)
-        if subfigures then
-          if isLatexOutput() then
-            subfigures = latexPanel(el, subfigures)
-          elseif isHtmlOutput() then
-            subfigures = htmlPanel(el, subfigures)
-          elseif isDocxOutput() then
-            subfigures = tableDocxPanel(el, subfigures)
-          elseif isOdtOutput() then
-            subfigures = tableOdtPanel(el, subfigures)
-          elseif isWordProcessorOutput() then
-            subfigures = tableWpPanel(el, subfigures)
-          elseif isPowerPointOutput() then
-            subfigures = pptxPanel(el, subfigures)
-          else
-            subfigures = tablePanel(el, subfigures)
-          end
-          
-          -- we have code then wrap the code and subfigues in a div
-          if code then
-            local div = pandoc.Div(code)
-            div.content:insert(subfigures)
-            return div
-          -- otherwise just return the subfigures
-          else
-            return subfigures
-          end
-        
-      end
-    end,
-    
-  }
 end
 
 

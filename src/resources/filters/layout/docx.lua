@@ -2,8 +2,8 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 
-function tableDocxPanel(divEl, subfigures)
-  return tablePanel(divEl, subfigures, {
+function tableDocxPanel(divEl, layout, caption)
+  return tablePanel(divEl, layout, caption, {
     pageWidth = wpPageWidth(),
     rowBreak = docxRowBreak,
     divCaption = docxDivCaption

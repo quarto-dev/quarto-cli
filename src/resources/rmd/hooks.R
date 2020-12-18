@@ -127,9 +127,15 @@ knitr_hooks <- function(format) {
     } else if (!is.null(fig.ncol)) {
       options[["layout.ncol"]] = fig.ncol
     }
+    
+    # alias fig.align to layout.align
+    fig.align = options[["fig.align"]]
+    if (!is.null(fig.align)) {
+      options["layout.align"] = fig.align
+    }
    
     # forward selected attributes
-    forward <- c("layout", "layout.nrow", "layout.ncol", "fig.align")
+    forward <- c("layout", "layout.nrow", "layout.ncol", "layout.align")
     forwardAttr <- character()
     for (attr in forward) {
       value = options[[attr]]

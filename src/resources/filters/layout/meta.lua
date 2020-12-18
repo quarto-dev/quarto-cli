@@ -18,16 +18,12 @@ function metaInject()
       end)
       
       metaInjectHtml(doc, function(inject)
-        if layout.htmlFigures then
+        if layout.layoutCss then
           inject([[
 <style type="text/css">
-  .quarto-layout-panel > figure > figcaption {
+  .quarto-layout-panel > figure > figcaption,
+  .quarto-layout-panel > .panel-caption {
     margin-top: 10pt;
-  }
-  .quarto-figure figure {
-    display: inline-block;
-    margin-inline-start: 0;
-    margin-inline-end: 0;
   }
   .quarto-layout-row {
     display: flex;
@@ -52,6 +48,11 @@ function metaInject()
   }
   .quarto-layout-cell div figure p {
     margin: 0;
+  }
+  .quarto-figure figure {
+    display: inline-block;
+    margin-inline-start: 0;
+    margin-inline-end: 0;
   }
   figure > p:empty {
     display: none;

@@ -1,108 +1,93 @@
 -- html.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
-function htmlPanel(divEl, subfigures)
+function htmlPanel(divEl, layout, caption)
   
   -- set flag indicating we need figure css
-  layout.htmlFigures = true
+  layout.layoutCss = true
   
   -- outer panel to contain css and figure panel
   local panel = pandoc.Div({}, pandoc.Attr("", { "quarto-layout-panel" }))
 
-  -- enclose in figure
-  panel.content:insert(pandoc.RawBlock("html", "<figure>"))
+  -- enclose in figure if it's a figureRef
+  if hasFigureRef(divEl) then
+    panel.content:insert(pandoc.RawBlock("html", "<figure>"))
+  end
   
   -- collect alignment
-  local align = figAlignAttribute(divEl)
-  divEl.attr.attributes[kFigAlign] = nil
-
-  -- subfigures
-  local subfiguresEl = pandoc.Para({})
-  for i, row in ipairs(subfigures) do
+  local align = layoutAlignAttribute(divEl)
+  divEl.attr.attributes[kLayoutAlign] = nil
+  
+  -- layout
+  for i, row in ipairs(layout) do
     
-    local figuresRow = pandoc.Div({}, pandoc.Attr("", {"quarto-layout-row"}))
+    local rowDiv = pandoc.Div({}, pandoc.Attr("", {"quarto-layout-row"}))
     if align then
-      appendStyle(figuresRow, "justify-content: " .. flexAlign(align) .. ";")
+      appendStyle(rowDiv, "justify-content: " .. flexAlign(align) .. ";")
     end
     
-    for i, image in ipairs(row) do
+    for i, cellDiv in ipairs(row) do
       
-      -- create div to contain figure
-      local figureDiv = pandoc.Div({}, pandoc.Attr("", {"quarto-layout-cell"}))
+      -- add cell class
+      cellDiv.attr.classes:insert("quarto-layout-cell")
       
-      -- transfer any width and height to the container
-      local figureDivStyle = ""
-      local width = image.attr.attributes["width"]
+      -- create css style for width and height
+      local cellDivStyle = ""
+      local width = cellDiv.attr.attributes["width"]
       if width then
-        figureDivStyle = figureDivStyle .. "width: " .. width .. ";"
-        image.attr.attributes["width"] = nil
+        cellDivStyle = cellDivStyle .. "width: " .. width .. ";"
+        cellDiv.attr.attributes["width"] = nil
       end
-      local height = image.attr.attributes["height"]
+      local height = cellDiv.attr.attributes["height"]
       if height then
-        figureDivStyle = figureDivStyle .. "height: " .. height .. ";"
-        image.attr.attributes["height"] = nil
+        cellDivStyle = cellDivStyle .. "height: " .. height .. ";"
+        cellDiv.attr.attributes["height"] = nil
       end
-      if align then
-        figureDivStyle = figureDivStyle .. "text-align: " .. align .. ";"
+      if align and hasFigureRef(divEl) then
+        cellDivStyle = cellDivStyle .. "text-align: " .. align .. ";"
       end
-      if string.len(figureDivStyle) > 0 then
-        figureDiv.attr.attributes["style"] = figureDivStyle
-      end
-      
-      -- add figure to div
-      if image.t == "Image" then
-        figureDiv.content:insert(pandoc.Para(image))
-      else
-        figureDiv.content:insert(htmlDivFigure(image, true))
+      if string.len(cellDivStyle) > 0 then
+        cellDiv.attr.attributes["style"] = cellDivStyle
       end
       
       -- add div to row
-      figuresRow.content:insert(figureDiv)
+      rowDiv.content:insert(cellDiv)
     end
     
     -- add row to the panel
-    panel.content:insert(figuresRow)
+    panel.content:insert(rowDiv)
   end
   
   -- insert caption and </figure>
-  local divCaption = refCaptionFromDiv(divEl)
-  if divCaption and #divCaption.content > 0 then
-    local caption = pandoc.Para({})
-    -- apply alignment if we have it
-    local figcaption = "<figcaption aria-hidden=\"true\""
-    if align then
-      figcaption = figcaption .. " style=\"text-align: " .. align .. ";\""
+  if caption then
+    if hasFigureRef(divEl) then
+      local captionPara = pandoc.Para({})
+      -- apply alignment if we have it
+      local figcaption = "<figcaption aria-hidden=\"true\""
+      if align then
+        figcaption = figcaption .. " style=\"text-align: " .. align .. ";\""
+      end
+      figcaption = figcaption .. ">"
+      captionPara.content:insert(pandoc.RawInline("html", figcaption))
+      tappend(captionPara.content, caption.content)
+      captionPara.content:insert(pandoc.RawInline("html", "</figcaption>"))
+      panel.content:insert(captionPara)
+    else
+      panel.content:insert(pandoc.Div(caption, pandoc.Attr("", { "panel-caption" }))
     end
-    figcaption = figcaption .. ">"
-    
-    caption.content:insert(pandoc.RawInline("html", figcaption))
-    tappend(caption.content, divCaption.content)
-    caption.content:insert(pandoc.RawInline("html", "</figcaption>"))
-    panel.content:insert(caption)
   end
   
-  panel.content:insert(pandoc.RawBlock("html", "</figure>"))
+  if hasFigureRef(divEl) then
+    panel.content:insert(pandoc.RawBlock("html", "</figure>"))
+  end
   
   -- return panel
   return panel
 end
 
-function htmlDivFigure(el, subfigure)
+function htmlDivFigure(el)
   
-  return renderHtmlFigure(el, subfigure, function(figure)
-    
-    -- if we are a percentage-sized subfigure, then make sure contained
-    -- images don't have width based percents
-    if subfigure and widthToPercent(attribute(el, "width", nil)) then
-      -- remove any percent width of embedded linked image
-      if #el.content > 0 then
-        local linkedFig = discoverLinkedFigure(el.content[1], false)
-        if linkedFig and widthToPercent(attribute(linkedFig, "width", nil)) then
-          linkedFig.attributes["width"] = nil
-          linkedFig.attributes["height"] = nil
-        end
-      end
-    end
+  return renderHtmlFigure(el, function(figure)
     
     -- render content
     tappend(figure.content, tslice(el.content, 1, #el.content-1))
@@ -122,7 +107,7 @@ end
 
 function htmlImageFigure(image)
   
-  return renderHtmlFigure(image, false, function(figure)
+  return renderHtmlFigure(image, function(figure)
     
     -- make a copy of the caption and clear it
     local caption = image.caption:clone()
@@ -144,10 +129,10 @@ function htmlImageFigure(image)
 end
 
 
-function renderHtmlFigure(el, subfigure, render)
+function renderHtmlFigure(el, render)
   
    -- set flag indicating we need figure css
-  layout.htmlFigures = true
+  layout.layoutCss = true
   
   -- capture relevant figure attributes then strip them
   local align = figAlignAttribute(el)
@@ -165,14 +150,12 @@ function renderHtmlFigure(el, subfigure, render)
   el.attr.identifier = ""
   tclear(el.attr.classes)
           
-  -- apply standalone figure css if we are not a subfigure
-  if not subfigure then
-    figureDiv.attr.classes:insert("quarto-figure")
-    if align then
-      appendStyle(figureDiv, "text-align: " .. align .. ";")
-    end
+  -- apply standalone figure css
+  figureDiv.attr.classes:insert("quarto-figure")
+  if align then
+    appendStyle(figureDiv, "text-align: " .. align .. ";")
   end
-  
+
   -- begin figure
   figureDiv.content:insert(pandoc.RawBlock("html", "<figure>"))
   
