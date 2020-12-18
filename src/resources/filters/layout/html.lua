@@ -7,7 +7,7 @@ function htmlPanel(divEl, subfigures)
   layout.htmlFigures = true
   
   -- outer panel to contain css and figure panel
-  local panel = pandoc.Div({}, pandoc.Attr("", { "quarto-figure-panel" }))
+  local panel = pandoc.Div({}, pandoc.Attr("", { "quarto-layout-panel" }))
 
   -- enclose in figure
   panel.content:insert(pandoc.RawBlock("html", "<figure>"))
@@ -20,7 +20,7 @@ function htmlPanel(divEl, subfigures)
   local subfiguresEl = pandoc.Para({})
   for i, row in ipairs(subfigures) do
     
-    local figuresRow = pandoc.Div({}, pandoc.Attr("", {"quarto-subfigure-row"}))
+    local figuresRow = pandoc.Div({}, pandoc.Attr("", {"quarto-layout-row"}))
     if align then
       appendStyle(figuresRow, "justify-content: " .. flexAlign(align) .. ";")
     end
@@ -28,7 +28,7 @@ function htmlPanel(divEl, subfigures)
     for i, image in ipairs(row) do
       
       -- create div to contain figure
-      local figureDiv = pandoc.Div({}, pandoc.Attr("", {"quarto-subfigure"}))
+      local figureDiv = pandoc.Div({}, pandoc.Attr("", {"quarto-layout-cell"}))
       
       -- transfer any width and height to the container
       local figureDivStyle = ""
@@ -53,7 +53,7 @@ function htmlPanel(divEl, subfigures)
       if image.t == "Image" then
         figureDiv.content:insert(pandoc.Para(image))
       else
-        figureDiv.content:insert(htmlDivFigure(image))
+        figureDiv.content:insert(htmlDivFigure(image, true))
       end
       
       -- add div to row
@@ -87,13 +87,13 @@ function htmlPanel(divEl, subfigures)
   return panel
 end
 
-function htmlDivFigure(el)
+function htmlDivFigure(el, subfigure)
   
-  return renderHtmlFigure(el, function(figure)
+  return renderHtmlFigure(el, subfigure, function(figure)
     
     -- if we are a percentage-sized subfigure, then make sure contained
     -- images don't have width based percents
-    if hasRefParent(el) and widthToPercent(attribute(el, "width", nil)) then
+    if subfigure and widthToPercent(attribute(el, "width", nil)) then
       -- remove any percent width of embedded linked image
       if #el.content > 0 then
         local linkedFig = discoverLinkedFigure(el.content[1], false)
@@ -122,7 +122,7 @@ end
 
 function htmlImageFigure(image)
   
-  return renderHtmlFigure(image, function(figure)
+  return renderHtmlFigure(image, false, function(figure)
     
     -- make a copy of the caption and clear it
     local caption = image.caption:clone()
@@ -144,7 +144,7 @@ function htmlImageFigure(image)
 end
 
 
-function renderHtmlFigure(el, render)
+function renderHtmlFigure(el, subfigure, render)
   
    -- set flag indicating we need figure css
   layout.htmlFigures = true
@@ -166,7 +166,7 @@ function renderHtmlFigure(el, render)
   tclear(el.attr.classes)
           
   -- apply standalone figure css if we are not a subfigure
-  if not hasRefParent(figureDiv) then
+  if not subfigure then
     figureDiv.attr.classes:insert("quarto-figure")
     if align then
       appendStyle(figureDiv, "text-align: " .. align .. ";")

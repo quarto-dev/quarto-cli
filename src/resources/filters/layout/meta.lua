@@ -21,7 +21,7 @@ function metaInject()
         if layout.htmlFigures then
           inject([[
 <style type="text/css">
-  .quarto-figure-panel > figure > figcaption {
+  .quarto-layout-panel > figure > figcaption {
     margin-top: 10pt;
   }
   .quarto-figure figure {
@@ -29,28 +29,28 @@ function metaInject()
     margin-inline-start: 0;
     margin-inline-end: 0;
   }
-  .quarto-subfigure-row {
+  .quarto-layout-row {
     display: flex;
     align-items: flex-end;
   }
-  .quarto-subfigure {
+  .quarto-layout-cell {
     position: relative;
   }
-  .quarto-subfigure figure,
-  .quarto-subfigure > p {
+  .quarto-layout-cell figure,
+  .quarto-layout-cell > p {
     margin: 0.2em;
   }
-  .quarto-subfigure img {
+  .quarto-layout-cell img {
     max-width: 100%;
   }
-  .quarto-subfigure .html-widget {
+  .quarto-layout-cell .html-widget {
     width: 100% !important;
   }
-  .quarto-subfigure figcaption {
+  .quarto-layout-cell figcaption {
     font-size: 0.8em;
     font-style: italic;
   }
-  .quarto-subfigure div figure p {
+  .quarto-layout-cell div figure p {
     margin: 0;
   }
   figure > p:empty {
