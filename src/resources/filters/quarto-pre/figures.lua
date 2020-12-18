@@ -2,8 +2,22 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 
-function linkedFigures() 
+function figures() 
   return {
+    -- propagate fig.cap on figure div to figure caption 
+    Div = function(el)
+      if hasFigureRef(el) then
+        local figCap = attribute(el, kFigCap, nil)
+        if figCap ~= nil then
+          local caption = pandoc.Para(markdownToInlines(figCap))
+          el.content:insert(caption)
+          el.attr.attributes[kFigCap] = nil
+          return el
+        end
+      end
+    end,
+    
+    -- create figure divs from linked figures
     Para = function(el)
       local linkedFig = discoverLinkedFigure(el, true)
       if linkedFig then

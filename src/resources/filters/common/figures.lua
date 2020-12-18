@@ -5,6 +5,7 @@
 kFigAlign = "fig.align"
 kFigEnv = "fig.env"
 kFigPos = "fig.pos"
+kFigCap = "fig.cap"
 kFigScap = "fig.scap"
 kResizeWidth = "resize.width"
 kResizeHeight = "resize.height"

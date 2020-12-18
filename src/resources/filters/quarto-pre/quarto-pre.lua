@@ -33,7 +33,7 @@ return {
   combineFilters({
     outputs(),
     latexDiv(),
-    linkedFigures()
+    figures()
   })
 }
 
