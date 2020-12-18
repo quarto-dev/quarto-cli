@@ -4,23 +4,30 @@
 
 function figures() 
   return {
-    -- propagate fig.cap on figure div to figure caption 
+   
     Div = function(el)
+      
+      -- propagate fig.cap on figure div to figure caption 
       if hasFigureRef(el) then
         local figCap = attribute(el, kFigCap, nil)
         if figCap ~= nil then
           local caption = pandoc.Para(markdownToInlines(figCap))
           el.content:insert(caption)
           el.attr.attributes[kFigCap] = nil
-          return el
         end
       end
+      return el
+      
     end,
     
     -- create figure divs from linked figures
     Para = function(el)
-      local linkedFig = discoverLinkedFigure(el, true)
+      local linkedFig = discoverLinkedFigure(el, false)
       if linkedFig then
+        -- include caption error if there is no caption for fig:foo
+        if #linkedFig.caption == 0 then
+          linkedFig.caption:insert(noCaption())
+        end
         return createLinkedFigureDiv(el, linkedFig)
       end
     end
@@ -65,3 +72,4 @@ function createLinkedFigureDiv(paraEl, linkedFig)
   return figureDiv
   
 end
+

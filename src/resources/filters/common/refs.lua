@@ -51,5 +51,10 @@ function refCaptionFromDiv(el)
   end
 end
 
+function noCaption()
+  return pandoc.Strong( { pandoc.Str("?Caption") })
+end
+
+   
 
 

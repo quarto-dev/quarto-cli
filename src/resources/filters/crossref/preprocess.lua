@@ -12,6 +12,13 @@ function preprocess()
         return {
           Div = function(el)
             if hasFigureOrTableRef(el) then
+              
+              -- provide error caption if there is none
+              if not refCaptionFromDiv(el) then
+                local err = pandoc.Para(noCaption())
+                el.content:insert(err)
+              end
+              
               if parentId ~= nil then
                 if refType(el.attr.identifier) == refType(parentId)
                   el.attr.attributes[kRefParent] = parentId
@@ -28,14 +35,22 @@ function preprocess()
           end,
 
           Para = function(el)
+            
+            -- provide error caption if there is none
+            local fig = figureFromPara(el, false)
+            if fig and #fig.caption == 0 then
+              fig.caption:insert(noCaption())
+            end
+            
             -- if we have a parent fig: then mark it's sub-refs
             if parentId and isFigureRef(parentId) then
               local image = figureFromPara(el)
               if image and isFigureImage(image) then
                 image.attr.attributes[kRefParent] = parentId
-                return el
               end
             end
+            
+            return el
           end
         }
       end
@@ -68,9 +83,14 @@ function preprocessTable(el, parentId)
     if last and #last.content > 2 then
       local lastInline = last.content[#last.content]
       local label = refLabel("tbl", lastInline)
-      if label and last.content[#last.content-1].t == "Space" then
+      if label then
         -- remove the id from the end
-        last.content = tslice(last.content, 1, #last.content-2)
+        last.content = tslice(last.content, 1, #last.content-1)
+        
+        -- provide error caption if there is none
+        if #last.content == 0 then
+          last.content:insert(noCaption())
+        end
         
         -- wrap in a div with the label (so that we have a target
         -- for the tbl ref, in LaTeX that will be a hypertarget)
@@ -89,8 +109,6 @@ function preprocessTable(el, parentId)
   return el
 end
 
-
-     
 
 
 
