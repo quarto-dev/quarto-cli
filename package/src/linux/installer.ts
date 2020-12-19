@@ -18,7 +18,7 @@ export async function makeInstallerDeb(
   log.info("Building deb package...");
 
   // TODO: Compute file size and include in control file
-  
+
   // detect packaging machine architecture
   const result = await runCmd("dpkg-architecture", ["-qDEB_BUILD_ARCH"], log);
   const architecture = (result.status.code === 0 ? result.stdout.trim() : undefined);
@@ -77,7 +77,7 @@ export async function makeInstallerDeb(
   control = control +
     val(
       "Description",
-      "Command line tool for executing computable markdown documents.",
+      "Command line tool for rendering computational markdown documents.",
     );
   log.info(control);
 
