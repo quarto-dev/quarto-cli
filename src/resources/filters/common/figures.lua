@@ -44,8 +44,8 @@ function discoverFigure(el, withCaption)
   if el.t ~= "Para" then
     return nil
   end
-  if captionRequired == nil then
-    captionRequired = true
+  if withCaption == nil then
+    withCaption = true
   end
   if #el.content == 1 and el.content[1].t == "Image" then
     local image = el.content[1]
