@@ -134,11 +134,10 @@ function partitionCells(divEl)
       local fig = figureImageFromLayoutCell(cellDiv)
       if fig then
         cellDiv.attr.attributes["width"] = fig.attributes["width"]
-        cellDiv.attr.attributes["height"] = fig.attributes["height"]
         if widthToPercent(attribute(fig, "width", nil)) then
           fig.attributes["width"] = nil
-          fig.attributes["height"] = nil
         end
+        fig.attributes["height"] = nil
       end
       
       -- add the div

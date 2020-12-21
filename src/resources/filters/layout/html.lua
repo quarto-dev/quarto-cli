@@ -31,18 +31,11 @@ function htmlPanel(divEl, layout, caption)
       -- add cell class
       cellDiv.attr.classes:insert("quarto-layout-cell")
       
-      -- create css style for width and height
+      -- create css style for width
       local cellDivStyle = ""
       local width = cellDiv.attr.attributes["width"]
-      if width then
-        cellDivStyle = cellDivStyle .. "width: " .. width .. ";"
-        cellDiv.attr.attributes["width"] = nil
-      end
-      local height = cellDiv.attr.attributes["height"]
-      if height then
-        cellDivStyle = cellDivStyle .. "height: " .. height .. ";"
-        cellDiv.attr.attributes["height"] = nil
-      end
+      cellDivStyle = cellDivStyle .. "width: " .. width .. ";"
+      cellDiv.attr.attributes["width"] = nil
       if align and hasFigureRef(divEl) then
         cellDivStyle = cellDivStyle .. "text-align: " .. align .. ";"
       end
@@ -119,7 +112,7 @@ function htmlImageFigure(image)
     end
    
     -- insert the figure without the caption
-    figure.content:insert(pandoc.Para({image, pandoc.RawInline("markdown", "<!-- -->")}))
+    figure.content:insert(pandoc.Para({image}))
     
     -- return the caption inlines
     return caption

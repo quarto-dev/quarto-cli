@@ -134,12 +134,7 @@ end
 -- which means then should be laid out at a higher level in the tree than
 -- the individual figure element
 function horizontalLayoutPercent(el)
-  local percentWidth = widthToPercent(el.attr.attributes["width"])
-  if percentWidth and not el.attr.attributes["height"] then
-    return percentWidth 
-  else
-    return nil
-  end
+  return widthToPercent(el.attr.attributes["width"])
 end
 
 
