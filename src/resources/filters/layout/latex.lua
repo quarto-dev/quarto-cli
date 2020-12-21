@@ -248,10 +248,10 @@ function latexCell(cell)
 
   -- figure out what we are dealing with
   local label = cell.attr.identifier
+  local image = figureImageFromLayoutCell(cell)
   local isFigure = isFigureRef(label)
   local isTable = isTableRef(label)
-  local isSubRef = hasRefParent(cell)
-  local image = figureImageFromLayoutCell(cell)
+  local isSubRef = hasRefParent(cell) or (image and hasRefParent(image))
   local tbl = tableFromLayoutCell(cell)
   
   -- determine width (convert % to latex as necessary)

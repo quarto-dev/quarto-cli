@@ -99,9 +99,28 @@ function shouldLayoutDiv(divEl)
   if hasLayoutAttributes(divEl) then
     return true
   -- latex requires special layout markup for subcaptions
-  elseif isLatexOutput() and hasFigureOrTableRef(divEl) and not hasRefParent(divEl) then
+  elseif isLatexOutput() and hasSubRefs(divEl) then
     return true
   else 
+    return false
+  end
+  
+end
+
+function hasSubRefs(divEl)
+  if hasFigureOrTableRef(divEl) and not hasRefParent(divEl) then
+    local found = false
+    function checkForParent(el)
+      if not found and hasRefParent(el) then
+        found = true
+      end
+    end
+    pandoc.walk_block(divEl, {
+      Div = checkForParent,
+      Image = checkForParent
+    })
+    return found
+  else
     return false
   end
   
@@ -156,7 +175,7 @@ function partitionCells(divEl)
     
   end
 
-  return preamble, cells
+  return preamble, cells, caption
   
 end
 
