@@ -40,7 +40,7 @@ import("../common/debug.lua")
 -- [/import]
 
 
-function layout()
+function layoutPanels()
 
   return {
     Div = function(el)
@@ -111,7 +111,7 @@ function partitionCells(divEl)
     
     if isPreambleBlock(divEl) then
       preamble:insert(divEl)
-    else if block.t == "Heading" then
+    elseif block.t == "Heading" then
       heading = block
     else 
       -- ensure we are dealing with a div
@@ -250,7 +250,7 @@ end
 -- chain of filters
 return {
   initParams(),
-  layout(),
+  layoutPanels(),
   extendedFigures(),
   metaInject()
 }

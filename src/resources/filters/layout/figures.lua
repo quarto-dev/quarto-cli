@@ -17,7 +17,7 @@ function extendedFigures()
           return wpFigure(image)
         end
       end
-    end
+    end,
     
     Div = function(el)
       if isFigureDiv(el) then

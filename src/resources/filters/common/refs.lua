@@ -24,7 +24,7 @@ end
 
 -- does this element support sub-references
 function hasFigureOrTableRef(el)
-  return hasFigureRef(el) or hasTableRef(el)
+  return el.attr and (hasFigureRef(el) or hasTableRef(el))
 end
 
 

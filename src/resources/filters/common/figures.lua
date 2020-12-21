@@ -83,7 +83,7 @@ function discoverLinkedFigure(el, withCaption)
 end
 
 function discoverLinkedFigureDiv(el)
-  if el.t === "Div" and 
+  if el.t == "Div" and 
      hasFigureRef(el) and
      #el.content == 2 and 
      el.content[1].t == "Para" and 

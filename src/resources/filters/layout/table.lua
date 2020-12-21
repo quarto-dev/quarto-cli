@@ -92,7 +92,7 @@ function tableCellContent(cell, align, options)
       cell:insert(captionPara)
     end
   -- style div caption if there is a custom caption function
-  else if hasFigureOrTableRef(cell) and options.divCaption then
+  elseif hasFigureOrTableRef(cell) and options.divCaption then
     local divCaption = options.divCaption(refCaptionFromDiv(cell), align)
     cell.content[#cell.content] = divCaption 
   end

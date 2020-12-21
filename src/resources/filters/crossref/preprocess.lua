@@ -20,7 +20,7 @@ function preprocess()
               end
               
               if parentId ~= nil then
-                if refType(el.attr.identifier) == refType(parentId)
+                if refType(el.attr.identifier) == refType(parentId) then
                   el.attr.attributes[kRefParent] = parentId
                 end
               else
