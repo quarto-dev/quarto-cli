@@ -26,7 +26,9 @@ function wpFigure(image)
   
   -- create the row/cell for the figure
   local row = pandoc.List:new()
-  row:insert(tableCellContent(image, align, options))
+  local cell = pandoc.Div(pandoc.Para(image))
+  syncLayoutImgWidth(image, cell)
+  row:insert(tableCellContent(cell, align, options))
   
   -- make the table
   local figureTable = pandoc.SimpleTable(

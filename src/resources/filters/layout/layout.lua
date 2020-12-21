@@ -44,7 +44,7 @@ function layoutPanels()
 
   return {
     Div = function(el)
-      if hasLayoutAttributes(el) then
+      if shouldLayoutDiv(el) then
         
         -- partition
         local preamble, cells, caption = partitionCells(el)
@@ -94,6 +94,19 @@ function layoutPanels()
 end
 
 
+function shouldLayoutDiv(divEl)
+  
+  if hasLayoutAttributes(divEl) then
+    return true
+  -- latex requires special layout markup for subcaptions
+  elseif isLatexOutput() and hasFigureOrTableRef(divEl) and not hasRefParent(divEl) then
+    return true
+  else 
+    return false
+  end
+  
+end
+
 function partitionCells(divEl)
   
   local preamble = pandoc.List:new()
@@ -121,23 +134,19 @@ function partitionCells(divEl)
       else
         cellDiv = pandoc.Div(block)
       end
-  
-      -- if we have a heading then insert it
-      if heading then 
-        cellDiv.content:insert(1, heading)
-        heading = nil
-      end
       
       -- if this is an image div then get a reference to the
       -- image and copy the height and width attributes
       -- to the outer div
       local fig = figureImageFromLayoutCell(cellDiv)
       if fig then
-        cellDiv.attr.attributes["width"] = fig.attributes["width"]
-        if widthToPercent(attribute(fig, "width", nil)) then
-          fig.attributes["width"] = nil
-        end
-        fig.attributes["height"] = nil
+        syncLayoutImgWidth(fig, cellDiv)
+      end
+      
+      -- if we have a heading then insert it
+      if heading then 
+        cellDiv.content:insert(1, heading)
+        heading = nil
       end
       
       -- add the div
@@ -157,10 +166,15 @@ function layoutCells(divEl, cells)
   -- layout to return (list of rows)
   local rows = pandoc.List:new()
   
-   -- note any figure layout attributes
+  -- note any figure layout attributes
   local layoutRows = tonumber(attribute(divEl, kLayoutNrow, nil))
   local layoutCols = tonumber(attribute(divEl, kLayoutNcol, nil))
   local layout = attribute(divEl, kLayout, nil)
+  
+  -- default to 1 column if nothing is specified
+  if not layoutCols and not layoutRows and not layout then
+    layoutCols = 1
+  end
   
   -- if there is layoutRows but no layoutCols then compute layoutCols
   if not layoutCols and layoutRows ~= nil then

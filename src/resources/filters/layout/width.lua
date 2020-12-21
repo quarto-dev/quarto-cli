@@ -137,5 +137,12 @@ function horizontalLayoutPercent(el)
   return widthToPercent(el.attr.attributes["width"])
 end
 
+function syncLayoutImgWidth(img, divEl)
+  divEl.attr.attributes["width"] = img.attributes["width"]
+  if widthToPercent(attribute(img, "width", nil)) then
+    img.attributes["width"] = nil
+  end
+  img.attributes["height"] = nil
+end
 
 
