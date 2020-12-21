@@ -60,7 +60,7 @@ function preprocess()
       
         -- always wrap referenced tables in a div
         if el.t == "Table" then
-          doc.blocks[i] = processTable(el, nil)
+          doc.blocks[i] = preprocessTable(el, nil)
         else
           local parentId = nil
           if hasFigureOrTableRef(el) then
@@ -77,12 +77,14 @@ function preprocess()
 end
 
 function preprocessTable(el, parentId)
+  
  -- if there is a caption then check it for a table suffix
   if el.caption.long ~= nil then
     local last = el.caption.long[#el.caption.long]
-    if last and #last.content > 2 then
+    if last and #last.content > 0 then
       local lastInline = last.content[#last.content]
       local label = refLabel("tbl", lastInline)
+     
       if label then
         -- remove the id from the end
         last.content = tslice(last.content, 1, #last.content-1)

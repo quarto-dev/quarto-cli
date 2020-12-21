@@ -19,7 +19,7 @@ function tables()
       end
       -- default to just reflecting the div back
       return el
-    end,
+    end
   }
 end
 
@@ -54,7 +54,7 @@ function processMarkdownTableEntry(divEl, el, label, caption)
   end
 
   -- add the table to the index
-  indexAddEntry(label, nil, order, caption)
+  indexAddEntry(label, nil, order, captionClone)
   
 end
 

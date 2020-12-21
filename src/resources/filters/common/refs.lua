@@ -19,7 +19,7 @@ function hasTableRef(el)
 end
 
 function isTableRef(identifier)
-  string.find(identifier, "^tbl:")
+  return string.find(identifier, "^tbl:")
 end
 
 -- does this element support sub-references
