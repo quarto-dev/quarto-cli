@@ -22,12 +22,8 @@ function figures()
     
     -- create figure divs from linked figures
     Para = function(el)
-      local linkedFig = discoverLinkedFigure(el, false)
+      local linkedFig = discoverLinkedFigure(el, true)
       if linkedFig then
-        -- include caption error if there is no caption for fig:foo
-        if #linkedFig.caption == 0 then
-          linkedFig.caption:insert(noCaption())
-        end
         return createLinkedFigureDiv(el, linkedFig)
       end
     end
