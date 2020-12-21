@@ -131,7 +131,7 @@ function partitionCells(divEl)
       -- if this is an image div then get a reference to the
       -- image and copy the height and width attributes
       -- to the outer div
-      local fig = figureImageFromCell(cellDiv)
+      local fig = figureImageFromLayoutCell(cellDiv)
       if fig then
         cellDiv.attr.attributes["width"] = fig.attributes["width"]
         cellDiv.attr.attributes["height"] = fig.attributes["height"]
@@ -178,9 +178,6 @@ function layoutCells(divEl, cells)
     end
     -- convert width units to percentages
     widthsToPercent(rows, layoutCols)
-    
-    -- allocate remaining space
-    layoutWidths(rows, layoutCols)
     
   -- check for layout
   elseif layout ~= nil then

@@ -34,7 +34,6 @@ function processFigure(el, captionContent)
   local order
   local parent = el.attr.attributes[kRefParent]
   if (parent) then
-    el.attr.attributes[kRefParent] = nil
     order = nextSubrefOrder()
     prependSubrefNumber(captionContent, order)
   else

@@ -46,7 +46,6 @@ function processMarkdownTableEntry(divEl, el, label, caption)
   local order
   local parent = divEl.attr.attributes[kRefParent]
   if (parent) then
-    divEl.attr.attributes[kRefParent] = nil
     order = nextSubrefOrder()
     prependSubrefNumber(caption.content, order)
   else
@@ -78,7 +77,6 @@ function processRawTable(divEl)
           local prefix
           local parent = divEl.attr.attributes[kRefParent]
           if (parent) then
-            divEl.attr.attributes[kRefParent] = nil
             order = nextSubrefOrder()
             local subref = pandoc.List:new()
             prependSubrefNumber(subref, order)
@@ -148,7 +146,6 @@ function processLatexTable(divEl, el, captionPattern, label, caption)
   local order
   local parent = divEl.attr.attributes[kRefParent]
   if (parent) then
-    divEl.attr.attributes[kRefParent] = nil
     order = nextSubrefOrder()
   else
     order = indexNextOrder("tbl")

@@ -2,8 +2,79 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 
-function latexPanel(divEl, subfigures)
-  return latexDivFigure(divEl, subfigures)
+function latexPanel(divEl, layout, caption)
+  
+  -- get alignment
+  local align = layoutAlignAttribute(divEl)
+  
+   -- create container
+  local panel = pandoc.Div({})
+ 
+  -- begin container
+  local env = nil
+  local pos = nil
+  if hasFigureRef(divEl) then
+    env = attribute(divEl, kFigEnv, "figure")
+    pos = attribute(divEll, kFigPos, nil)
+  elseif hasTableRef(divEl) then
+    env = "table"
+  else
+    env = "figure"
+  end
+  panel.content:insert(latexBeginEnv(env, pos));
+  
+  -- begin layout
+  local layoutEl = pandoc.Para({})
+  
+  for i, row in ipairs(layout) do
+    
+    for i, cell in ipairs(row) do
+      
+      -- start cell on new line and indent content
+      layoutEl.content:insert(pandoc.RawInline("latex", "\n  "))
+      
+      -- process cell (enclose content w/ alignment)
+      local prefix, content, suffix = latexCell(cell)
+      tappend(layoutEl.content, prefix)
+      latexAppend(layoutEl.content, "\n")
+      layoutEl.content:insert(pandoc.RawInline("latex", latexBeginAlign(align)))
+      tappend(layoutEl.content, content)
+      layoutEl.content:insert(pandoc.RawInline("latex", latexEndAlign(align)))
+      latexAppend(layoutEl.content, "\n")
+      tappend(layoutEl.content, suffix) 
+     
+      -- insert % unless this is the last cell in the row
+      if i < #row then
+        layoutEl.content:insert(pandoc.RawInline("latex", "%"))
+      end
+      
+      -- newline after every cell
+      layoutEl.content:insert(pandoc.RawInline("latex", "\n"))
+    
+    end
+  
+    -- insert separator unless this is the last row
+    if i < #layout then
+      layoutEl.content:insert(pandoc.RawInline("latex", "\\newline\n"))
+    end
+  
+  end
+  
+  -- insert layout
+  panel.content:insert(layoutEl)
+
+  -- surround caption w/ appropriate latex (and end the figure)
+  if caption then
+    markupLatexCaption(caption.content)
+    panel.content:insert(caption)
+  end
+  
+  -- end latex env
+  panel.content:insert(latexEndEnv(env));
+  
+  -- return panel
+  return panel
+  
 end
 
 function latexImageFigure(image)
@@ -31,105 +102,14 @@ function latexImageFigure(image)
   end)
 end
 
-function latexDivFigure(divEl, subfigures)
+function latexDivFigure(divEl)
   
   return renderLatexFigure(divEl, function(figure)
     
-    -- subfigures
-    if subfigures then
-      local subfiguresEl = pandoc.Para({})
-      for i, row in ipairs(subfigures) do
-        
-        for _, image in ipairs(row) do
-          
-          -- get alignment
-          local align = figAlignAttribute(image)
-   
-          -- begin subfigure
-          subfiguresEl.content:insert(pandoc.RawInline("latex", "\\begin{subfigure}[b]"))
-           
-          -- get width for subfigure box (default to even spacing in row if none)
-          local width = image.attr.attributes["width"]
-          if not width then
-            width = string.format("%2.2f", (1/#row)*96) .. '%'
-          end
-          
-          -- generate subfigure box width
-          local subfigureWidth = width
-          local percentWidth = widthToPercent(width)
-          if percentWidth then
-            subfigureWidth = string.format("%2.2f", percentWidth/100) .. "\\linewidth"
-          end
-          
-          -- apply it
-          subfiguresEl.content:insert(pandoc.RawInline("latex", 
-            "{" .. subfigureWidth .. "}"
-          ))
-        
-          -- clear the width on the image (look for linked figure to clear as well)
-          image.attr.attributes["width"] = nil
-          if image.t == "Div" then
-            local linkedFig = discoverLinkedFigure(el.content[1], false)
-            if linkedFig then
-              linkedFig.attr.attributes["width"] = nil
-            end
-          end
-          
-          -- see if have a caption (different depending on whether it's an Image or Div)
-          local caption = nil
-          if image.t == "Image" then
-            caption = image.caption:clone()
-            tclear(image.caption)
-          else 
-            caption = refCaptionFromDiv(image).content
-          end
-          
-          -- build caption
-          if inlinesToString(caption) ~= "" then
-            markupLatexCaption(image, caption)
-          end
-          image.attr.identifier = ""
-          
-          -- insert content
-          subfiguresEl.content:insert(pandoc.RawInline("latex", "\n  "))
-          subfiguresEl.content:insert(pandoc.RawInline("latex", latexBeginAlign(align)))
-          if image.t == "Div" then
-            -- append the div, slicing off the caption block
-            tappend(subfiguresEl.content, pandoc.utils.blocks_to_inlines(
-              tslice(image.content, 1, #image.content-1),
-              { pandoc.LineBreak() }
-            ))
-          else
-            subfiguresEl.content:insert(latexFigureInline(image))
-          end
-          subfiguresEl.content:insert(pandoc.RawInline("latex", latexEndAlign(align)))
-          subfiguresEl.content:insert(pandoc.RawInline("latex", "\n"))
-          
-          -- insert caption
-          if #caption > 0 then
-            subfiguresEl.content:insert(pandoc.RawInline("latex", "  "))
-            tappend(subfiguresEl.content, caption)
-            subfiguresEl.content:insert(pandoc.RawInline("latex", "\n"))
-          end
-          
-          -- end subfigure
-          subfiguresEl.content:insert(pandoc.RawInline("latex", "\\end{subfigure}\n"))
-          
-        end
-        
-        -- insert separator unless this is the last row
-        if i < #subfigures then
-          subfiguresEl.content:insert(pandoc.RawInline("latex", "\\newline\n"))
-        end
-        
-      end
-      figure.content:insert(subfiguresEl)
-    --  no subfigures, just forward content
-    else
-      tappend(figure.content, tslice(divEl.content, 1, #divEl.content - 1))
-    end
-  
-    -- surround caption w/ appropriate latex (and end the figure)
+    -- append everything before the caption
+    tappend(figure.content, tslice(divEl.content, 1, #divEl.content - 1))
+    
+    -- return any cpation we have
     local caption = refCaptionFromDiv(divEl)
     if caption then
       return caption.content
@@ -148,15 +128,7 @@ function renderLatexFigure(el, render)
   -- begin the figure
   local figEnv = attribute(el, kFigEnv, "figure")
   local figPos = attribute(el, kFigPos, nil)
-  
-  local beginEnv = "\\begin{" .. figEnv .. "}"
-  if figPos then
-    if not string.find(figPos, "^%[{") then
-      figPos = "[" .. figPos .. "]"
-    end
-    beginEnv = beginEnv .. figPos
-  end
-  figure.content:insert(pandoc.RawBlock("latex", beginEnv))
+  figure.content:insert(latexBeginEnv(figEnv, figPos))
   
   -- fill in the body (returns the caption inlines)
   local captionInlines = render(figure)  
@@ -168,7 +140,7 @@ function renderLatexFigure(el, render)
   end
   
   -- end figure
-  figure.content:insert(pandoc.RawBlock("latex", "\\end{" .. figEnv .. "}"))
+  figure.content:insert(latexEndEnv(figEnv))
   
   -- return the figure
   return figure
@@ -180,6 +152,7 @@ function isReferenceable(figEl)
   return figEl.attr.identifier ~= "" and 
          not isAnonymousFigId(figEl.attr.identifier)
 end
+
 
 function markupLatexCaption(el, caption)
   
@@ -226,9 +199,28 @@ function latexEndAlign(align)
   end
 end
 
+function latexBeginEnv(env, pos)
+  local beginEnv = "\\begin{" .. env .. "}"
+  if pos then
+    if not string.find(pos, "^%[{") then
+      pos = "[" .. pos .. "]"
+    end
+    beginEnv = beginEnv .. pos
+  end
+  return pandoc.RawBlock("latex", beginEnv)
+end
+
+function latexEndEnv(env)
+  return pandoc.RawBlock("latex", "\\end{" .. env .. "}")
+end
+
+function latexIsTikzImage(image)
+  return string.find(image.src, "%.tex$")
+end
+
 function latexFigureInline(image)
   -- if this is a tex file (e.g. created w/ tikz) then use \\input
-  if string.find(image.src, "%.tex$" ) then
+  if latexIsTikzImage(image) then
     
     -- be sure to inject \usepackage{tikz}
     layout.usingTikz = true
@@ -250,4 +242,78 @@ function latexFigureInline(image)
   end
 end
 
+
+
+function latexCell(cell)
+
+  -- figure out what we are dealing with
+  local label = cell.attr.identifier
+  local isFigure = isFigureRef(label)
+  local isTable = isTableRef(label)
+  local isSubRef = hasRefParent(cell)
+  local image = figureImageFromLayoutCell(cell)
+  local tbl = tableFromLayoutCell(cell)
+  
+  -- determine width (convert % to latex as necessary)
+  local width = cell.attr.attributes["width"]
+  local percentWidth = widthToPercent(width)
+  if percentWidth then
+    width = string.format("%2.2f", percentWidth/100) .. "\\linewidth"
+  end
+  
+  -- derive prefix, content, and suffix
+  local prefix = pandoc.List:new()
+  local content = pandoc.List:new()
+  local suffix = pandoc.List:new()
+
+  -- sub-captioned always uses \subfloat
+  if isSubRef then
+    
+    -- pull out the caption inlines if we can
+    local caption = pandoc.List:new()
+    if image then
+      caption = image.caption:clone()
+      tclear(image.caption)
+    elseif tbl then
+      caption = pandoc.utils.blocks_to_inlines(tbl.caption.long)
+      tclear(tbl.caption.long)
+      tclear(tbl.caption.short)
+    else
+      caption = refCaptionFromDiv(cell)
+      cell.content = tslice(cell.content, 1, #cell.content-1)
+    end
+    
+    -- prefix
+    latexAppend(prefix, "\\subfloat[")
+    tappend(prefix, caption)
+    latexAppend(prefix, "]{\\label{" .. label .. "}%")
+    
+  end
+  
+  -- images are just plain \includegraphics 
+  if image then
+    image.attr.attributes["width"] = width
+    if latexIsTikzImage(image) then
+      content:insert(latexFigureInline(image))
+    else
+      tappend(content, pandoc.utils.blocks_to_inlines(cell.content))
+    end
+  -- otherwise use a minipage of the appropriate width
+  else
+    latexAppend(prefix, "\n\\begin{minipage}{" .. width .. "}\n")
+    tappend(content, pandoc.utils.blocks_to_inlines(cell.content))
+    latexAppend(suffix, "\n\\end{minipage}\n")
+  end
+  
+  if isSubRef then
+    latexAppend(suffix, "}")
+  end
+  
+  return prefix, content, suffix
+  
+end
+
+function latexAppend(inlines, latex)
+  inlines:insert(pandoc.RawInline("latex", latex))
+end
 

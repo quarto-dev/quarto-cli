@@ -67,7 +67,7 @@ end
 function tableCellContent(cell, align, options)
   
   -- there will be special code if this an image
-  local image = figureImageFromCell(cell)
+  local image = figureImageFromLayoutCell(cell)
   
   -- for images, convert layout percent to physical units (if we have a 
   -- pageWidth). this ensure that images don't overflow the column as they

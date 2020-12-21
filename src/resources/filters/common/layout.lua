@@ -16,3 +16,32 @@ function hasLayoutAttributes(el)
          attribs:includes(kLayoutNcol) or
          attribs.includes(kLayout)
 end
+
+
+
+-- locate an image in a layout cell
+function figureImageFromLayoutCell(cellDivEl)
+  for _,block in ipairs(cellDivEl) do
+    local fig = discoverFigure(block, false)
+    if not fig then
+      fig = discoverLinkedFigure(block, false)
+    end
+    if not fig then
+      fig = discoverLinkedFigureDiv(block)
+    end
+    if fig then
+      return fig
+    end
+  end
+  return nil
+end
+
+
+-- we often wrap a table in a div, unwrap it
+function tableFromLayoutCell(cell)
+  if #cell.content == 1 and cell.content[1].t == "Table" then
+    return cell.content[1]
+  else
+    return nil
+  end
+end

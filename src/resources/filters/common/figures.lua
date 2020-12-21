@@ -93,25 +93,6 @@ function discoverLinkedFigureDiv(el)
   return nil
 end
 
-
-function figureImageFromCell(cellDivEl)
-  for _,block in ipairs(cellDivEl) do
-    local fig = discoverFigure(block, false)
-    if not fig then
-      fig = discoverLinkedFigure(block, false)
-    end
-    if not fig then
-      fig = discoverLinkedFigureDiv(block)
-    end
-    if fig then
-      return fig
-    end
-  end
-  return nil
-end
-
-
-
 function anonymousFigId()
   return "fig:anonymous-" .. tostring(math.random(10000000))
 end
