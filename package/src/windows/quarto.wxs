@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" 
+           Name="Quarto"
+           Language="1033"
+           Manufacturer="Rstudio, PBC"
+           Version="$version" 
+           UpgradeCode="A4D527BD-3233-4591-AD22-D8FA09D7FD9">
+    
+    <Package InstallerVersion="200" 
+               Compressed="yes" 
+               InstallScope="perMachine" />
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Feature Id="ProductFeature" 
+               Title="Quarto Command Line Tools" 
+               Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+    </Feature>
+  </Product>
+
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" 
+                       Name="Quarto" />
+      </Directory>
+    </Directory>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="ProductComponents" 
+                      Directory="INSTALLFOLDER">
+      <Component Id="cmpMyTextFileTXT" 
+                    Guid="{A4540658-09B6-46DA-8880-0B1962E06642}">
+        <File Source="MyTextFile.txt" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>
