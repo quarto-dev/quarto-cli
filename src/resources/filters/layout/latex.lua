@@ -236,11 +236,13 @@ function latexCell(cell)
   -- sub-captioned always uses \subfloat
   if isSubRef then
     
-    -- pull out the caption inlines if we can
+    -- lift the caption out it it's current location and onto the \subfloat
     local caption = pandoc.List:new()
-    if image then
-      caption = image.caption:clone()
-      tclear(image.caption)
+    
+    -- see if it's a captioned figure
+    if image and #image.caption > 0 then
+      caption = captionedImage.caption:clone()
+      tclear(captionedImage.caption)
     elseif tbl then
       caption = pandoc.utils.blocks_to_inlines(tbl.caption.long)
       tclear(tbl.caption.long)
@@ -263,7 +265,35 @@ function latexCell(cell)
     width = string.format("%2.2f", percentWidth/100) .. "\\linewidth"
   end
   latexAppend(prefix, "\\begin{minipage}{" .. width .. "}\n")
-  tappend(content, pandoc.utils.blocks_to_inlines(cell.content))
+  
+  -- if we aren't in a sub-ref we may need to do some special work to
+  -- ensure that captions are correctly emitted
+  local cellInlines = nil;
+  if not isSubRef then
+    if image and #image.caption > 0 then
+      local caption = image.caption:clone()
+      markupLatexCaption(cell, caption)
+      tclear(image.caption)
+      cellInlines = pandoc.List:new({ image })
+      tappend(cellInlines, caption)
+    elseif isFigure then
+      local caption = refCaptionFromDiv(cell).content
+      markupLatexCaption(cell, caption)
+      cellInlines = pandoc.List:new(pandoc.utils.blocks_to_inlines(
+        tslice(cell.content, 1, #cell.content-1)
+      ))
+      tappend(cellInlines, caption) 
+    end
+  end
+  
+  -- if we didn't find a special case then just emit everything
+  if not cellInlines then
+    cellInlines = pandoc.utils.blocks_to_inlines(cell.content)
+  end
+  
+  -- append the content
+  tappend(content, cellInlines)
+  
   latexAppend(suffix, "\n\\end{minipage}")
   
   if isSubRef then
