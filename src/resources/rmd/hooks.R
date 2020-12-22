@@ -140,11 +140,6 @@ knitr_hooks <- function(format) {
     for (attr in forward) {
       value = options[[attr]]
       if (!is.null(value)) {
-        if (identical(attr, "fig.align")) {
-          if (identical(value, "default")) {
-            value <- NULL
-          }
-        }
         if (identical(attr, "layout")) {
           if (!is.character(value)) {
             value = jsonlite::toJSON(value)
