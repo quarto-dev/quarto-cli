@@ -82,7 +82,7 @@ function latexImageFigure(image)
     -- insert the figure without the caption
     local figurePara = pandoc.Para({
       pandoc.RawInline("latex", latexBeginAlign(align)),
-      latexFigureInline(image),
+      image,
       pandoc.RawInline("latex", latexEndAlign(align)),
       pandoc.RawInline("latex", "\n")
     })
@@ -98,16 +98,25 @@ function latexDivFigure(divEl)
   
   return renderLatexFigure(divEl, function(figure)
     
+     -- get align
+    local align = figAlignAttribute(divEl)
+
     -- append everything before the caption
-    tappend(figure.content, tslice(divEl.content, 1, #divEl.content - 1))
+    local blocks = tslice(divEl.content, 1, #divEl.content - 1)
+    local figurePara = pandoc.Para({
+      pandoc.RawInline("latex", latexBeginAlign(align))
+    })
+    tappend(figurePara.content, pandoc.utils.blocks_to_inlines(blocks))
+    tappend(figurePara.content, {
+      pandoc.RawInline("latex", latexEndAlign(align)),
+      pandoc.RawInline("latex", "\n")
+    })
+    figure.content:insert(figurePara)
     
-    -- return any cpation we have
+    -- return the caption
     local caption = refCaptionFromDiv(divEl)
-    if caption then
-      return caption.content
-    else
-      return nil
-    end
+    return caption.content
+   
   end)
   
 end
@@ -206,36 +215,6 @@ function latexEndEnv(env)
   return pandoc.RawBlock("latex", "\\end{" .. env .. "}")
 end
 
-function latexIsTikzImage(image)
-  return string.find(image.src, "%.tex$")
-end
-
-function latexFigureInline(image)
-  -- if this is a tex file (e.g. created w/ tikz) then use \\input
-  if latexIsTikzImage(image) then
-    
-    -- be sure to inject \usepackage{tikz}
-    layout.usingTikz = true
-    
-    -- base input
-    local input = "\\input{" .. image.src .. "}"
-    
-    -- apply resize.width and/or resize.height if specified
-    local rw = attribute(image, kResizeWidth, "!")
-    local rh = attribute(image, kResizeHeight, "!")
-    if rw ~= "!" or rh ~= "!" then
-      input = "\\resizebox{" .. rw .. "}{" .. rh .. "}{" .. input .. "}"
-    end
-    
-    -- return inline
-    return pandoc.RawInline("latex", input)
-  else
-    return image
-  end
-end
-
-
-
 function latexCell(cell)
 
   -- figure out what we are dealing with
@@ -275,31 +254,17 @@ function latexCell(cell)
     latexAppend(prefix, "\\subfloat[")
     tappend(prefix, caption)
     latexAppend(prefix, "]{\\label{" .. label .. "}%")
-    
+    latexAppend(prefix, "\n")
   end
   
-  -- images are just plain \includegraphics 
-  if image then
-    image.attr.attributes["width"] = width
-    if latexIsTikzImage(image) then
-      content:insert(latexFigureInline(image))
-    else
-      tappend(content, pandoc.utils.blocks_to_inlines(cell.content))
-    end
-  -- otherwise use a minipage of the appropriate width
-  else
-    if isSubRef then
-      latexAppend(prefix, "\n")
-    end
-    -- convert to latex percent as necessary
-    local percentWidth = widthToPercent(width)
-    if percentWidth then
-      width = string.format("%2.2f", percentWidth/100) .. "\\linewidth"
-    end
-    latexAppend(prefix, "\\begin{minipage}{" .. width .. "}\n")
-    tappend(content, pandoc.utils.blocks_to_inlines(cell.content))
-    latexAppend(suffix, "\n\\end{minipage}")
+  -- convert to latex percent as necessary
+  local percentWidth = widthToPercent(width)
+  if percentWidth then
+    width = string.format("%2.2f", percentWidth/100) .. "\\linewidth"
   end
+  latexAppend(prefix, "\\begin{minipage}{" .. width .. "}\n")
+  tappend(content, pandoc.utils.blocks_to_inlines(cell.content))
+  latexAppend(suffix, "\n\\end{minipage}")
   
   if isSubRef then
     latexAppend(suffix, "}")

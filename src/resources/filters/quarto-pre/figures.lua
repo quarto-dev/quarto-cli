@@ -22,22 +22,32 @@ function figures()
     
     -- create figure divs from linked figures
     Para = function(el)
+      
+      -- create figure div if there is a tikz image
+      local fig = discoverFigure(el)
+      if fig and latexIsTikzImage(fig) then
+        return createFigureDiv(el, fig)
+      end
+      
+      -- create figure divs from linked figures
       local linkedFig = discoverLinkedFigure(el)
       if linkedFig then
-        return createLinkedFigureDiv(el, linkedFig)
+        return createFigureDiv(el, linkedFig)
       end
+      
     end
   }
 end
 
-function createLinkedFigureDiv(paraEl, linkedFig)
+
+function createFigureDiv(paraEl, fig)
   
   -- create figure div
   local figureDiv = pandoc.Div({})
  
   -- transfer identifier
-  figureDiv.attr.identifier = linkedFig.attr.identifier
-  linkedFig.attr.identifier = ""
+  figureDiv.attr.identifier = fig.attr.identifier
+  fig.attr.identifier = ""
   
   -- provide anonymous identifier if necessary
   if figureDiv.attr.identifier == "" then
@@ -45,25 +55,32 @@ function createLinkedFigureDiv(paraEl, linkedFig)
   end
   
   -- transfer classes
-  figureDiv.attr.classes = linkedFig.attr.classes:clone()
-  tclear(linkedFig.attr.classes)
+  figureDiv.attr.classes = fig.attr.classes:clone()
+  tclear(fig.attr.classes)
   
   -- transfer fig. attributes
-  for k,v in pairs(linkedFig.attr.attributes) do
+  for k,v in pairs(fig.attr.attributes) do
     if isFigAttribute(k) then
       figureDiv.attr.attributes[k] = v
     end
   end
-  local attribs = tkeys(linkedFig.attr.attributes)
+  local attribs = tkeys(fig.attr.attributes)
   for _,k in ipairs(attribs) do
     if isFigAttribute(k) then
-      linkedFig.attr.attributes[k] = v
+      fig.attr.attributes[k] = v
     end
   end
     
   --  collect caption
-  local caption = linkedFig.caption:clone()
-  linkedFig.caption = {}
+  local caption = fig.caption:clone()
+  fig.caption = {}
+  
+  -- if the image is a .tex file we need to tex \input 
+  if latexIsTikzImage(fig) then
+    paraEl = pandoc.walk_block(paraEl, {
+      Image = latexFigureInline
+    })
+  end
   
   -- insert the paragraph and a caption paragraph
   figureDiv.content:insert(paraEl)
@@ -73,4 +90,34 @@ function createLinkedFigureDiv(paraEl, linkedFig)
   return figureDiv
   
 end
+
+function latexIsTikzImage(image)
+  return isLatexOutput() and string.find(image.src, "%.tex$")
+end
+
+function latexFigureInline(image)
+  -- if this is a tex file (e.g. created w/ tikz) then use \\input
+  if latexIsTikzImage(image) then
+    
+    -- be sure to inject \usepackage{tikz}
+    layout.usingTikz = true
+    
+    -- base input
+    local input = "\\input{" .. image.src .. "}"
+    
+    -- apply resize.width and/or resize.height if specified
+    local rw = attribute(image, kResizeWidth, "!")
+    local rh = attribute(image, kResizeHeight, "!")
+    if rw ~= "!" or rh ~= "!" then
+      input = "\\resizebox{" .. rw .. "}{" .. rh .. "}{" .. input .. "}"
+    end
+    
+    -- return inline
+    return pandoc.RawInline("latex", input)
+  else
+    return image
+  end
+end
+
+
 
