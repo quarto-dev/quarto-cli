@@ -21,7 +21,7 @@ end
 
 -- locate an image in a layout cell
 function figureImageFromLayoutCell(cellDivEl)
-  for _,block in ipairs(cellDivEl) do
+  for _,block in ipairs(cellDivEl.content) do
     local fig = discoverFigure(block, false)
     if not fig then
       fig = discoverLinkedFigure(block, false)
