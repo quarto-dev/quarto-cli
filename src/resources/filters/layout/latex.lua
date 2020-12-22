@@ -57,7 +57,7 @@ function latexPanel(divEl, layout, caption)
 
   -- surround caption w/ appropriate latex (and end the figure)
   if caption then
-    markupLatexCaption(caption.content)
+    markupLatexCaption(divEl, caption.content)
     panel.content:insert(caption)
   end
   
