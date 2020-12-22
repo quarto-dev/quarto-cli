@@ -12,7 +12,7 @@ function latexDiv()
       -- look for 'latex' or 'data-latex' and at least 1 class
       local options = attribute(divEl, 'latex', attribute(divEl, 'data-latex'))
       if not options or #divEl.attr.classes == 0 then
-        return divEl
+        return nil
       end
       
       -- if the output format is not latex, remove the attr and return
