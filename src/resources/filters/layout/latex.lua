@@ -30,32 +30,24 @@ function latexPanel(divEl, layout, caption)
     
     for i, cell in ipairs(row) do
       
-      -- start cell on new line and indent content
-      layoutEl.content:insert(pandoc.RawInline("latex", "\n  "))
-      
       -- process cell (enclose content w/ alignment)
       local prefix, content, suffix = latexCell(cell)
       tappend(layoutEl.content, prefix)
-      latexAppend(layoutEl.content, "\n")
       layoutEl.content:insert(pandoc.RawInline("latex", latexBeginAlign(align)))
       tappend(layoutEl.content, content)
       layoutEl.content:insert(pandoc.RawInline("latex", latexEndAlign(align)))
-      latexAppend(layoutEl.content, "\n")
       tappend(layoutEl.content, suffix) 
      
       -- insert % unless this is the last cell in the row
       if i < #row then
-        layoutEl.content:insert(pandoc.RawInline("latex", "%"))
+        layoutEl.content:insert(pandoc.RawInline("latex", "\n%\n"))
       end
       
-      -- newline after every cell
-      layoutEl.content:insert(pandoc.RawInline("latex", "\n"))
-    
     end
   
     -- insert separator unless this is the last row
     if i < #layout then
-      layoutEl.content:insert(pandoc.RawInline("latex", "\\newline\n"))
+      layoutEl.content:insert(pandoc.RawInline("latex", "\n\\newline\n"))
     end
   
   end
@@ -254,12 +246,8 @@ function latexCell(cell)
   local isSubRef = hasRefParent(cell) or (image and hasRefParent(image))
   local tbl = tableFromLayoutCell(cell)
   
-  -- determine width (convert % to latex as necessary)
+  -- determine width 
   local width = cell.attr.attributes["width"]
-  local percentWidth = widthToPercent(width)
-  if percentWidth then
-    width = string.format("%2.2f", percentWidth/100) .. "\\linewidth"
-  end
   
   -- derive prefix, content, and suffix
   local prefix = pandoc.List:new()
@@ -300,9 +288,17 @@ function latexCell(cell)
     end
   -- otherwise use a minipage of the appropriate width
   else
-    latexAppend(prefix, "\n\\begin{minipage}{" .. width .. "}\n")
+    if isSubRef then
+      latexAppend(prefix, "\n")
+    end
+    -- convert to latex percent as necessary
+    local percentWidth = widthToPercent(width)
+    if percentWidth then
+      width = string.format("%2.2f", percentWidth/100) .. "\\linewidth"
+    end
+    latexAppend(prefix, "\\begin{minipage}{" .. width .. "}\n")
     tappend(content, pandoc.utils.blocks_to_inlines(cell.content))
-    latexAppend(suffix, "\n\\end{minipage}\n")
+    latexAppend(suffix, "\n\\end{minipage}")
   end
   
   if isSubRef then
