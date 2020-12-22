@@ -52,7 +52,7 @@ function refCaptionFromDiv(el)
 end
 
 function noCaption()
-  return pandoc.Strong( { pandoc.Str("?Caption") })
+  return pandoc.Strong( { pandoc.Str("?(caption)") })
 end
 
    
