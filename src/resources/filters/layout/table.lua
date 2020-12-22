@@ -82,7 +82,7 @@ function tableCellContent(cell, align, options)
   
   if image then
     -- rtf and odt don't write captions in tables so make this explicit
-    if isRtfOutput() or isOdtOutput() then
+    if #image.caption > 0 and (isRtfOutput() or isOdtOutput()) then
       local caption = image.caption:clone()
       tclear(image.caption)
       local captionPara = pandoc.Para(caption)
