@@ -130,7 +130,7 @@ knitr_hooks <- function(format) {
     
     # alias fig.align to layout.align
     fig.align = options[["fig.align"]]
-    if (!is.null(fig.align)) {
+    if (!is.null(fig.align) && !identical(fig.align, "default")) {
       options["layout.align"] = fig.align
     }
    
