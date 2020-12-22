@@ -246,7 +246,7 @@ function latexCell(cell)
       tclear(tbl.caption.long)
       tclear(tbl.caption.short)
     else
-      caption = refCaptionFromDiv(cell)
+      caption = refCaptionFromDiv(cell).content
       cell.content = tslice(cell.content, 1, #cell.content-1)
     end
     
