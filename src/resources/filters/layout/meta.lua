@@ -42,12 +42,12 @@ function metaInject()
   .quarto-layout-cell .html-widget {
     width: 100% !important;
   }
-  .quarto-layout-cell figcaption {
-    font-size: 0.8em;
-    font-style: italic;
-  }
   .quarto-layout-cell div figure p {
     margin: 0;
+  }
+  .quarto-layout-cell-subref figcaption {
+    font-size: 0.8em;
+    font-style: italic;
   }
   .quarto-figure figure {
     display: inline-block;

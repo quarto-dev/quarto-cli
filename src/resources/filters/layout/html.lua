@@ -34,6 +34,12 @@ function htmlPanel(divEl, layout, caption)
       -- add cell class
       cellDiv.attr.classes:insert("quarto-layout-cell")
       
+      -- if it has a ref parent then give it another class
+      -- (used to provide subcaption styling)
+      if layoutCellHasRefParent(cellDiv) then
+        cellDiv.attr.classes:insert("quarto-layout-cell-subref")
+      end
+      
       -- create css style for width
       local cellDivStyle = ""
       local width = cellDiv.attr.attributes["width"]

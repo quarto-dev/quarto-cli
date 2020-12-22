@@ -45,3 +45,17 @@ function tableFromLayoutCell(cell)
     return nil
   end
 end
+
+-- does the layout cell have a ref parent
+function layoutCellHasRefParent(cell)
+  if hasRefParent(cell) then
+    return true
+  else
+    local image = figureImageFromLayoutCell(cell)
+    if image then
+      return hasRefParent(image)
+    end
+  end
+  return false
+end
+
