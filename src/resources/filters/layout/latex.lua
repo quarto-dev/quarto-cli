@@ -183,7 +183,7 @@ end
 
 function latexEndAlign(align)
   if align == "center" then
-    return "\n\n}"
+    return "\n}"
   elseif align == "left" then
     return " \\hfill{}"
   else
