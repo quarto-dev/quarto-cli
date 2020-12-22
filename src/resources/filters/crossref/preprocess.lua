@@ -38,7 +38,7 @@ function preprocess()
             
             -- provide error caption if there is none
             local fig = discoverFigure(el, false)
-            if fig and #fig.caption == 0 then
+            if fig and hasFigureRef(fig) and #fig.caption == 0 then
               fig.caption:insert(noCaption())
             end
             
