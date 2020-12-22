@@ -45,9 +45,6 @@ function htmlPanel(divEl, layout, caption)
       local width = cellDiv.attr.attributes["width"]
       cellDivStyle = cellDivStyle .. "width: " .. width .. ";"
       cellDiv.attr.attributes["width"] = nil
-      if align and hasFigureRef(divEl) then
-        cellDivStyle = cellDivStyle .. "text-align: " .. align .. ";"
-      end
       if string.len(cellDivStyle) > 0 then
         cellDiv.attr.attributes["style"] = cellDivStyle
       end
