@@ -67,8 +67,13 @@ function combineFilters(filters)
     for key,func in pairs(filter) do
       local combinedFunc = combined[key]
       if combinedFunc then
-         combined[key] = function(x)
-           return func(combinedFunc(x))
+        combined[key] = function(x)
+          local result = combinedFunc(x)
+          if result then
+            return func(result)
+          else
+            return func(x)
+          end
          end
       else
         combined[key] = func
