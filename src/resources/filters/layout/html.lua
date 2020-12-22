@@ -23,7 +23,10 @@ function htmlPanel(divEl, layout, caption)
     
     local rowDiv = pandoc.Div({}, pandoc.Attr("", {"quarto-layout-row"}))
     if align then
-      appendStyle(rowDiv, "justify-content: " .. flexAlign(align) .. ";")
+      local justify = flexAlign(align)
+      if justify then
+        appendStyle(rowDiv, "justify-content: " .. justify .. ";")
+      end
     end
     
     for i, cellDiv in ipairs(row) do
