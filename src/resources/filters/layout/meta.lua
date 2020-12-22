@@ -9,7 +9,7 @@ function metaInject()
       metaInjectLatex(doc, function(inject)
         inject(
           usePackage("caption") .. "\n" ..
-          usePackage("subcaption")
+          usePackage("subfig")
         )
         if layout.usingTikz then
           inject(usePackage("tikz"))
