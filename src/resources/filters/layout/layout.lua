@@ -149,7 +149,15 @@ function partitionCells(divEl)
       -- ensure we are dealing with a div
       local cellDiv = nil
       if block.t == "Div" then
-        cellDiv = block
+        -- if this has a single figure div then unwrap it
+        if #block.content == 1 and 
+           block.content[#block.content].t == "Div" and
+           hasFigureOrTableRef(block.content[#block.content]) then
+          cellDiv = block.content[#block.content]
+        else
+          cellDiv = block
+        end
+      
       else
         cellDiv = pandoc.Div(block)
       end
