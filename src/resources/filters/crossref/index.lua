@@ -73,7 +73,7 @@ end
 function nextSubrefOrder()
   local order = { section = nil, order = crossref.index.nextSubrefOrder }
   crossref.index.nextSubrefOrder = crossref.index.nextSubrefOrder + 1
-  return
+  return order
 end
 
 -- does our index already contain this element?
