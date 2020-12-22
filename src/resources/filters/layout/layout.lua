@@ -55,32 +55,29 @@ function layoutPanels()
         -- call the panel layout functions
         local panel
         if isLatexOutput() then
-          panel = latexPanel(el, layout)
+          panel = latexPanel(el, layout, caption)
         elseif isHtmlOutput() then
-          panel = htmlPanel(el, layout)
+          panel = htmlPanel(el, layout, caption)
         elseif isDocxOutput() then
-          panel = tableDocxPanel(el, layout)
+          panel = tableDocxPanel(el, layout, caption)
         elseif isOdtOutput() then
-          panel = tableOdtPanel(el, layout)
+          panel = tableOdtPanel(el, layout, caption)
         elseif isWordProcessorOutput() then
-          panel = tableWpPanel(el, layout)
+          panel = tableWpPanel(el, layout, caption)
         elseif isPowerPointOutput() then
-          panel = pptxPanel(el, layout)
+          panel = pptxPanel(el, layout, caption)
         else
-          panel = tablePanel(el, layout)
+          panel = tablePanel(el, layout, caption)
         end
         
         -- if we have a preamble or caption then wrap everything in a div
         -- with the preamble and/or caption included
-        if #preamble > 0 or caption then
+        if #preamble > 0 then
           local div = pandoc.Div({})
           if #preamble > 0 then
             tappend(div.content, preamble)
           end
           div.content:insert(panel)
-          if caption then
-            div.content:insert(caption)
-          end
           return div
           
         -- otherwise just return the panel
