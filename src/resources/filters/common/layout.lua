@@ -27,7 +27,7 @@ function figureImageFromLayoutCell(cellDivEl)
       fig = discoverLinkedFigure(block, false)
     end
     if not fig then
-      fig = discoverLinkedFigureDiv(block)
+      fig = discoverLinkedFigureDiv(block, false)
     end
     if fig then
       return fig

@@ -22,7 +22,7 @@ function figures()
     
     -- create figure divs from linked figures
     Para = function(el)
-      local linkedFig = discoverLinkedFigure(el, true)
+      local linkedFig = discoverLinkedFigure(el)
       if linkedFig then
         return createLinkedFigureDiv(el, linkedFig)
       end

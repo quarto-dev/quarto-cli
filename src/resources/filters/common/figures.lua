@@ -40,17 +40,16 @@ function isFigureDiv(el)
   end
 end
 
-function discoverFigure(el, withCaption)
+function discoverFigure(el, captionRequired)
   if el.t ~= "Para" then
     return nil
   end
-  if withCaption == nil then
-    withCaption = true
+  if captionRequired == nil then
+    captionRequired = true
   end
   if #el.content == 1 and el.content[1].t == "Image" then
     local image = el.content[1]
-    if (withCaption and #image.caption > 0) or 
-       (not withCaption and (#image.caption == 0)) then
+    if not captionRequired or #image.caption > 0 then
       return image
     else
       return nil
@@ -60,7 +59,7 @@ function discoverFigure(el, withCaption)
   end
 end
 
-function discoverLinkedFigure(el, withCaption)
+function discoverLinkedFigure(el, captionRequired)
   if el.t ~= "Para" then
     return nil
   end
@@ -72,8 +71,7 @@ function discoverLinkedFigure(el, withCaption)
       local link = el.content[1]
       if #link.content == 1 and link.content[1].t == "Image" then
         local image = link.content[1]
-        if (withCaption and #image.caption > 0) or 
-           (not withCaption and (#image.caption == 0)) then
+        if not captionRequired or #image.caption > 0 then
           return image
         end
       end
@@ -82,13 +80,13 @@ function discoverLinkedFigure(el, withCaption)
   return nil
 end
 
-function discoverLinkedFigureDiv(el)
+function discoverLinkedFigureDiv(el, captionRequired)
   if el.t == "Div" and 
      hasFigureRef(el) and
      #el.content == 2 and 
      el.content[1].t == "Para" and 
      el.content[2].t == "Para" then
-    return discoverLinkedFigure(el.content[1], false)  
+    return discoverLinkedFigure(el.content[1], captionRequired)  
   end
   return nil
 end
