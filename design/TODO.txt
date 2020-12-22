@@ -5,10 +5,8 @@ TODO:
 Figures
 -------------------------
 
-- separator for blocks_to_inlines
-
-- images losing captions when running through blocks_to_inlines
-
+docx subfigures hosage
+try out latex subfigures (linked and otherwise)
 
 What is  more idiomatic/default for tables (tab or tbl)
 
