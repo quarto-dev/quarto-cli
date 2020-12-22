@@ -89,7 +89,7 @@ function tableCellContent(cell, align, options)
       if options.divCaption then
         captionPara = options.divCaption(captionPara, align)
       end
-      cell:insert(captionPara)
+      cell.content:insert(captionPara)
     end
   -- style div caption if there is a custom caption function
   elseif hasFigureOrTableRef(cell) and options.divCaption then
