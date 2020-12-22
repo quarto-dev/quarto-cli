@@ -5,6 +5,10 @@ TODO:
 Figures
 -------------------------
 
+- separator for blocks_to_inlines
+
+- images losing captions when running through blocks_to_inlines
+
 
 What is  more idiomatic/default for tables (tab or tbl)
 
