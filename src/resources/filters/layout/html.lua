@@ -71,7 +71,11 @@ function htmlPanel(divEl, layout, caption)
       captionPara.content:insert(pandoc.RawInline("html", "</figcaption>"))
       panel.content:insert(captionPara)
     else
-      panel.content:insert(pandoc.Div(caption, pandoc.Attr("", { "panel-caption" })))
+      local panelCaption = pandoc.Div(caption, pandoc.Attr("", { "panel-caption" }))
+      if align then
+         panelCaption.attr.attributes["style"] = "text-align: " .. align .. ";"
+      end
+      panel.content:insert(panelCaption)
     end
   end
   

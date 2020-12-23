@@ -45,14 +45,15 @@ function metaInject()
   .quarto-layout-cell div figure p {
     margin: 0;
   }
+  .quarto-layout-cell figure,
+  .quarto-layout-cell table {
+     display: inline-block;
+     margin-inline-start: 0;
+     margin-inline-end: 0;
+  }
   .quarto-layout-cell-subref figcaption {
     font-size: 0.8em;
     font-style: italic;
-  }
-  .quarto-figure figure {
-    display: inline-block;
-    margin-inline-start: 0;
-    margin-inline-end: 0;
   }
   figure > p:empty {
     display: none;
