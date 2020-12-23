@@ -1,14 +1,67 @@
 
+Tables
+------------------------------------
+
+This is kind of borked:
+\end{minipage}
+}\caption{\label{tbl:panel}Caption}\label{tbl:panel}
+
+
+- latex subtables getting mauled by blocks_to_inlines (conjoin % getting foiled)
+
+- missing labels entirely from latex layout panels
+
+- missing letter in subtables
+
+- subcaps with single subcap messes up placeholders in knitr (so figure ends up parenting itself)
+
+- double table caption label:
+LaTeX Warning: Label `tbl:panel' multiply defined.
+LaTeX Warning: There were multiply-defined labels. 
+
+- docx subtables yielding invalid openxml
+
+- Move tbl.cap in computation layer to the bottom of the table div
+
+- What is  more idiomatic/default for tables (tab or tbl)
+
+
 
 TODO:
+
+This does not work in quarto:
+```{r}
+knitr::kable(
+  list(
+    head(iris[, 1:2], 3),
+    head(mtcars[, 1:3], 5)
+  ),
+  caption = 'A Tale of Two Tables.', booktabs = TRUE
+)
+```
+
+
+
+```{r #fig:foo, eval=TRUE, fig.width=2.7, fig.height=2.7, fig.link="https://www.google.com", fig.cap=c("main", "next"), fig.subcap=c("iris", "pressure"), layout.ncol=2, fig.align="center",  echo=FALSE}
+plot(iris)
+plot(pressure)
+```
+
+yields this warning:
+
+Warning message:
+In res[i] <- withCallingHandlers(if (tangle) process_tangle(group) else process_group(group),  :
+  number of items to replace is not a multiple of replacement length
+
+
+
+We don't get the .md file when there is tex error (b/c copying happens at the end)
 
 Figures
 -------------------------
 
-docx subfigures hosage
-try out latex subfigures (linked and otherwise)
 
-What is  more idiomatic/default for tables (tab or tbl)
+
 
 
 Quarto
