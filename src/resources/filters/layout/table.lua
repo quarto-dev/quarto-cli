@@ -99,7 +99,7 @@ function tableCellContent(cell, align, options)
     
   end
   
-  if hasFigureOrTableRef(cell) then
+  if hasFigureRef(cell) then
     
     -- style div caption if there is a custom caption function
     if options.divCaption then
