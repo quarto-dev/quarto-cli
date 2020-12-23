@@ -15,7 +15,7 @@ function latexPanel(divEl, layout, caption)
   local pos = nil
   if hasFigureRef(divEl) then
     env = attribute(divEl, kFigEnv, "figure")
-    pos = attribute(divEll, kFigPos, nil)
+    pos = attribute(divEl, kFigPos, nil)
   elseif hasTableRef(divEl) then
     env = "table"
   else
@@ -241,8 +241,8 @@ function latexCell(cell)
     
     -- see if it's a captioned figure
     if image and #image.caption > 0 then
-      caption = captionedImage.caption:clone()
-      tclear(captionedImage.caption)
+      caption = image.caption:clone()
+      tclear(image.caption)
     elseif tbl then
       caption = pandoc.utils.blocks_to_inlines(tbl.caption.long)
       tclear(tbl.caption.long)

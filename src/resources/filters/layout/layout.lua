@@ -71,7 +71,6 @@ function layoutPanels()
           panel = tablePanel(el, layout, caption)
         end
         
-        -- if we have a preamble then wrap everything in a div w/ the preamble
         if #preamble > 0 then
           local div = pandoc.Div({})
           if #preamble > 0 then
@@ -138,8 +137,8 @@ function partitionCells(divEl)
   local heading = nil
   for _,block in ipairs(divEl.content) do
     
-    if isPreambleBlock(divEl) then
-      preamble:insert(divEl)
+    if isPreambleBlock(block) then
+      preamble:insert(block)
     elseif block.t == "Heading" then
       heading = block
     else 
@@ -278,9 +277,8 @@ function layoutCells(divEl, cells)
 end
 
 function isPreambleBlock(el)
-  return el.t == "Div" and 
-         (el.attr.classes:includes("cell-code") or 
-         el.attr.classes:includes("cell-output-stderr"))
+  return (el.t == "CodeBlock" and el.attr.classes:includes("cell-code")) or
+         (el.t == "Div" and el.attr.classes:includes("cell-output-stderr"))
 end
 
 
