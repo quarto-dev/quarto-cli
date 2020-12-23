@@ -103,15 +103,13 @@ function latexDivFigure(divEl)
 
     -- append everything before the caption
     local blocks = tslice(divEl.content, 1, #divEl.content - 1)
-    local figurePara = pandoc.Para({
-      pandoc.RawInline("latex", latexBeginAlign(align))
-    })
-    tappend(figurePara.content, pandoc.utils.blocks_to_inlines(blocks))
-    tappend(figurePara.content, {
-      pandoc.RawInline("latex", latexEndAlign(align)),
-      pandoc.RawInline("latex", "\n")
-    })
-    figure.content:insert(figurePara)
+    if align == "center" then
+      figure.content:insert(pandoc.RawBlock("latex", latexBeginAlign(align)))
+    end
+    tappend(figure.content, blocks)
+    if align == "center" then
+      figure.content:insert(pandoc.RawBlock("latex", latexEndAlign(align)))
+    end
     
     -- return the caption
     local caption = refCaptionFromDiv(divEl)
