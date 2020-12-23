@@ -17,7 +17,7 @@ function tablePanel(divEl, layout, caption, options)
   -- layout
   for i, row in ipairs(layout) do
     
-    local aligns = row:map(function() return tableAlign(align) end)
+    local aligns = row:map(function() return layoutTableAlign(align) end)
     local widths = row:map(function(cell) 
       -- propagage percents if they are provided
       local layoutPercent = horizontalLayoutPercent(cell)
@@ -102,14 +102,12 @@ function tableCellContent(cell, align, options)
 end
 
 
-function tableAlign(align)
+function layoutTableAlign(align)
   if align == "left" then
     return pandoc.AlignLeft
   elseif align == "center" then
     return pandoc.AlignCenter
   elseif align == "right" then
     return pandoc.AlignRight
-  else
-    return pandoc.AlignDefault
   end
 end

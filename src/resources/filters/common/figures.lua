@@ -23,7 +23,7 @@ function figAlignAttribute(el)
   if align == "default" then
     align = default
   end
-  return align
+  return validatedAlign(align)
 end
 
 -- is this an image containing a figure

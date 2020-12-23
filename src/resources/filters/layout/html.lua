@@ -22,12 +22,8 @@ function htmlPanel(divEl, layout, caption)
   for i, row in ipairs(layout) do
     
     local rowDiv = pandoc.Div({}, pandoc.Attr("", {"quarto-layout-row"}))
-    if align then
-      local justify = flexAlign(align)
-      if justify then
-        appendStyle(rowDiv, "justify-content: " .. justify .. ";")
-      end
-    end
+    local justify = flexAlign(align)
+    appendStyle(rowDiv, "justify-content: " .. justify .. ";")
     
     for i, cellDiv in ipairs(row) do
       
@@ -151,9 +147,7 @@ function renderHtmlFigure(el, render)
           
   -- apply standalone figure css
   figureDiv.attr.classes:insert("quarto-figure")
-  if align then
-    appendStyle(figureDiv, "text-align: " .. align .. ";")
-  end
+  appendStyle(figureDiv, "text-align: " .. align .. ";")
 
   -- begin figure
   figureDiv.content:insert(pandoc.RawBlock("html", "<figure>"))
@@ -194,8 +188,6 @@ function flexAlign(align)
     return "center"
   elseif align == "right" then
     return "flex-end"
-  else
-    return nil
   end
 end
 

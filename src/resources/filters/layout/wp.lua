@@ -33,7 +33,7 @@ function wpFigure(image)
   -- make the table
   local figureTable = pandoc.SimpleTable(
     pandoc.List:new(), -- caption
-    { tableAlign(align) },         -- alignment
+    { layoutTableAlign(align) },  
     {   1   },         -- full width
     pandoc.List:new(), -- no headers
     { row }            -- figure

@@ -6,8 +6,9 @@ kLayoutNcol = "layout.ncol"
 kLayoutNrow = "layout.nrow"
 kLayout = "layout"
 
+
 function layoutAlignAttribute(el)
-  return attribute(el, "layout.align", "center")
+  return validatedAlign(attribute(el, "layout.align", "center"))
 end
 
 function hasLayoutAttributes(el)
