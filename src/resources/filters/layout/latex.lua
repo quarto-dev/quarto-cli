@@ -297,7 +297,7 @@ function latexCell(cell)
   latexAppend(suffix, "\n\\end{minipage}")
   
   if isSubRef then
-    latexAppend(suffix, "}")
+    latexAppend(suffix, "\n}")
   end
   
   return prefix, content, suffix
