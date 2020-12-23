@@ -246,7 +246,9 @@ function latexCell(cell)
     elseif tbl then
       caption = pandoc.utils.blocks_to_inlines(tbl.caption.long)
       tclear(tbl.caption.long)
-      tclear(tbl.caption.short)
+      if tbl.caption.short then
+        tclear(tbl.caption.short)
+      end
     else
       caption = refCaptionFromDiv(cell).content
       cell.content = tslice(cell.content, 1, #cell.content-1)
