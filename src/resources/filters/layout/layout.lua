@@ -159,12 +159,11 @@ function partitionCells(divEl)
         cellDiv = pandoc.Div(block)
       end
       
-      -- if this is an image div then get a reference to the
-      -- image and copy the height and width attributes
-      -- to the outer div
+      -- special behavior for cells with figures (including ones w/o captions)
       local fig = figureImageFromLayoutCell(cellDiv)
       if fig then
-        syncLayoutImgWidth(fig, cellDiv)
+        -- transfer width to cell
+        transferImageWidthToCell(fig, cellDiv)
       end
       
       -- if we have a heading then insert it
