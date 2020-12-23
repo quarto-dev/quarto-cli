@@ -71,8 +71,7 @@ function layoutPanels()
           panel = tablePanel(el, layout, caption)
         end
         
-        -- if we have a preamble or caption then wrap everything in a div
-        -- with the preamble and/or caption included
+        -- if we have a preamble then wrap everything in a div w/ the preamble
         if #preamble > 0 then
           local div = pandoc.Div({})
           if #preamble > 0 then
