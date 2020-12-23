@@ -31,6 +31,10 @@ function metaInject()
   }
   .quarto-layout-cell {
     position: relative;
+    padding-right: 15px;
+  }
+  .quarto-layout-cell:last-child {
+    padding-right: 0;
   }
   .quarto-layout-cell figure,
   .quarto-layout-cell > p {
@@ -45,11 +49,13 @@ function metaInject()
   .quarto-layout-cell div figure p {
     margin: 0;
   }
-  .quarto-layout-cell figure,
+  .quarto-layout-cell figure {
+    display: inline-block;
+    margin-inline-start: 0;
+    margin-inline-end: 0;
+  }
   .quarto-layout-cell table {
-     display: inline-block;
-     margin-inline-start: 0;
-     margin-inline-end: 0;
+     display: inline-table;
   }
   .quarto-layout-cell-subref figcaption {
     font-size: 0.8em;
