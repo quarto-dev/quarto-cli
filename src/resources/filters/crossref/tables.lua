@@ -8,12 +8,30 @@ function tables()
   return {
     Div = function(el)
       if isTableDiv(el) then
-        -- look for various ways of expressing tables in a div
-        local processors = { processMarkdownTable, processRawTable }
-        for _, process in ipairs(processors) do
-          local tblDiv = process(el)
-          if tblDiv then
-            return tblDiv
+        
+        -- are we a parent of subrefs? If so then process the caption
+        -- at the bottom of the div
+        if hasSubRefs(el, "tbl") then
+          
+          local caption = refCaptionFromDiv(el)
+          if not caption then
+            caption = pandoc.Para(noCaption())
+            el.content:insert(caption)
+          end
+          local captionClone = caption:clone()
+          local label = el.attr.identifier
+          local order = indexNextOrder("tbl")
+          prependTitlePrefix(caption, label, order)
+          indexAddEntry(label, nil, order, captionClone)
+          
+        else
+          -- look for various ways of expressing tables in a div
+          local processors = { processMarkdownTable, processRawTable }
+          for _, process in ipairs(processors) do
+            local tblDiv = process(el)
+            if tblDiv then
+              return tblDiv
+            end
           end
         end
       end
@@ -54,7 +72,7 @@ function processMarkdownTableEntry(divEl, el, label, caption)
   end
 
   -- add the table to the index
-  indexAddEntry(label, nil, order, captionClone)
+  indexAddEntry(label, parent, order, captionClone)
   
 end
 
@@ -86,7 +104,7 @@ function processRawTable(divEl)
             prefix = pandoc.utils.stringify(tableTitlePrefix(order))
           end
           
-          indexAddEntry(label, nil, order, stringToInlines(caption))
+          indexAddEntry(label, parent, order, stringToInlines(caption))
         
           rawEl.text = rawEl.text:gsub(captionPattern, "%1" .. prefix .. "%2%3", 1)
           rawParentEl.content[rawIndex] = rawEl
@@ -151,7 +169,7 @@ function processLatexTable(divEl, el, captionPattern, label, caption)
     order = indexNextOrder("tbl")
   end
   
-  indexAddEntry(label, nil, order, stringToInlines(caption))
+  indexAddEntry(label, parent, order, stringToInlines(caption))
 end
 
 function prependTitlePrefix(caption, label, order)

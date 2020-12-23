@@ -103,24 +103,6 @@ function shouldLayoutDiv(divEl)
   
 end
 
-function hasSubRefs(divEl)
-  if hasFigureOrTableRef(divEl) and not hasRefParent(divEl) then
-    local found = false
-    function checkForParent(el)
-      if not found and hasRefParent(el) then
-        found = true
-      end
-    end
-    pandoc.walk_block(divEl, {
-      Div = checkForParent,
-      Image = checkForParent
-    })
-    return found
-  else
-    return false
-  end
-  
-end
 
 function partitionCells(divEl)
   
