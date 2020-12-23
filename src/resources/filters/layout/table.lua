@@ -58,7 +58,7 @@ function tablePanel(divEl, layout, caption, options)
     end
      panel.content:insert(caption)
   end
-  
+
   -- return panel
   return panel
 end
@@ -69,18 +69,19 @@ function tableCellContent(cell, align, options)
   -- there will be special code if this an image
   local image = figureImageFromLayoutCell(cell)
   
-  -- for images, convert layout percent to physical units (if we have a 
-  -- pageWidth). this ensure that images don't overflow the column as they
-  -- have been observed to do in docx
-  if image and options.pageWidth then
-    local layoutPercent = horizontalLayoutPercent(cell)
-    if layoutPercent then
-      local inches = (layoutPercent/100) * options.pageWidth
-      image.attr.attributes["width"] = string.format("%2.2f", inches) .. "in"
-    end
-  end
-  
   if image then
+    
+    -- convert layout percent to physical units (if we have a pageWidth)
+    -- this ensures that images don't overflow the column as they have
+    -- been observed to do in docx
+    if options.pageWidth then
+      local layoutPercent = horizontalLayoutPercent(cell)
+      if layoutPercent then
+        local inches = (layoutPercent/100) * options.pageWidth
+        image.attr.attributes["width"] = string.format("%2.2f", inches) .. "in"
+      end
+    end
+    
     -- rtf and odt don't write captions in tables so make this explicit
     if #image.caption > 0 and (isRtfOutput() or isOdtOutput()) then
       local caption = image.caption:clone()
@@ -91,10 +92,27 @@ function tableCellContent(cell, align, options)
       end
       cell.content:insert(captionPara)
     end
-  -- style div caption if there is a custom caption function
-  elseif hasFigureOrTableRef(cell) and options.divCaption then
-    local divCaption = options.divCaption(refCaptionFromDiv(cell), align)
-    cell.content[#cell.content] = divCaption 
+    
+    -- we've already aligned the image in a table cell so prevent 
+    -- extended handling as it would create a nested table cell
+    preventExtendedFigure(image)
+    
+  end
+  
+  if hasFigureOrTableRef(cell) then
+    
+    -- style div caption if there is a custom caption function
+    if options.divCaption then
+      local divCaption = options.divCaption(refCaptionFromDiv(cell), align)
+      cell.content[#cell.content] = divCaption 
+    end
+    
+    -- we've already aligned the figure in a table cell so prevent 
+    -- extended handling as it would create a nested table cell
+    if hasFigureRef(cell) then
+      preventExtendedFigure(cell)
+    end
+    
   end
  
   return { cell }
