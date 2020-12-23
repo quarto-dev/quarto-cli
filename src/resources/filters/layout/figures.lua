@@ -13,7 +13,7 @@ function extendedFigures()
           return htmlImageFigure(image)
         elseif isLatexOutput() then
           return latexImageFigure(image)
-        elseif isDocxOutput() and figAlignAttribute(image) ~= nil then
+        elseif isDocxOutput() then
           return wpFigure(image)
         end
       end
@@ -25,7 +25,7 @@ function extendedFigures()
           return latexDivFigure(el)
         elseif isHtmlOutput() then
           return htmlDivFigure(el)
-        elseif isDocxOutput() and figAlignAttribute(el) ~= nil then
+        elseif isDocxOutput() then
           return wpFigure(el)
         end
       end
