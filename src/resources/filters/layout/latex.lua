@@ -23,46 +23,46 @@ function latexPanel(divEl, layout, caption)
   end
   panel.content:insert(latexBeginEnv(env, pos));
   
-  -- begin layout
-  local layoutEl = pandoc.Para({})
-  
   for i, row in ipairs(layout) do
     
-    for i, cell in ipairs(row) do
+    for j, cell in ipairs(row) do
       
       -- process cell (enclose content w/ alignment)
-      local prefix, content, suffix = latexCell(cell)
-      tappend(layoutEl.content, prefix)
-      layoutEl.content:insert(pandoc.RawInline("latex", latexBeginAlign(align)))
-      tappend(layoutEl.content, content)
-      layoutEl.content:insert(pandoc.RawInline("latex", latexEndAlign(align)))
-      tappend(layoutEl.content, suffix) 
-     
-      -- insert % unless this is the last cell in the row
-      if i < #row then
-        layoutEl.content:insert(pandoc.RawInline("latex", "\n%\n"))
+      local endOfTable = i == #layout
+      local endOfRow = j == #row
+      local prefix, content, suffix = latexCell(cell, endOfRow, endOfTable)
+      panel.content:insert(prefix)
+      if align == "center" then
+        panel.content:insert(pandoc.RawBlock("latex", latexBeginAlign(align)))
       end
-      
+      tappend(panel.content, content)
+      if align == "center" then
+        panel.content:insert(pandoc.RawBlock("latex", latexEndAlign(align)))
+      end
+      panel.content:insert(suffix)
     end
-  
-    -- insert separator unless this is the last row
-    if i < #layout then
-      layoutEl.content:insert(pandoc.RawInline("latex", "\n\\newline\n"))
-    end
-  
+    
   end
   
-  -- insert layout
-  panel.content:insert(layoutEl)
-
   -- surround caption w/ appropriate latex (and end the figure)
   if caption then
-    markupLatexCaption(divEl, caption.content)
+    markupLatexCaption(divEl, divEl.attr.identifier, caption.content)
     panel.content:insert(caption)
   end
   
   -- end latex env
   panel.content:insert(latexEndEnv(env));
+  
+  -- conjoin paragarphs (allows % to work correctly between minipages or subfloats)
+  local blocks = pandoc.List:new()
+  for i,block in ipairs(panel.content) do
+    if block.t == "Para" and #blocks > 0 and blocks[#blocks].t == "Para" then
+      tappend(blocks[#blocks].content, block.content)
+    else
+      blocks:insert(block)
+    end
+  end
+  panel.content = blocks
   
   -- return panel
   return panel
@@ -134,7 +134,7 @@ function renderLatexFigure(el, render)
 
   -- surround caption w/ appropriate latex (and end the figure)
   if captionInlines and inlinesToString(captionInlines) ~= "" then
-    markupLatexCaption(el, captionInlines)
+    markupLatexCaption(el, el.attr.identifier, captionInlines)
     figure.content:insert(pandoc.Para(captionInlines))
   end
   
@@ -153,7 +153,7 @@ function isReferenceable(figEl)
 end
 
 
-function markupLatexCaption(el, caption)
+function markupLatexCaption(el, label, caption)
   
   -- caption prefix (includes \\caption macro + optional [subcap] + {)
   local captionPrefix = pandoc.List:new({
@@ -172,8 +172,8 @@ function markupLatexCaption(el, caption)
   caption:insert(pandoc.RawInline("latex", "}"))
   
   -- include a label if this is referenceable
-  if isReferenceable(el) then
-    caption:insert(pandoc.RawInline("latex", "\\label{" .. el.attr.identifier .. "}"))
+  if label and label ~= "" then
+    caption:insert(pandoc.RawInline("latex", "\\label{" .. label .. "}"))
   end
 end
 
@@ -213,7 +213,7 @@ function latexEndEnv(env)
   return pandoc.RawBlock("latex", "\\end{" .. env .. "}")
 end
 
-function latexCell(cell)
+function latexCell(cell, endOfRow, endOfTable)
 
   -- figure out what we are dealing with
   local label = cell.attr.identifier
@@ -268,31 +268,28 @@ function latexCell(cell)
   
   -- if we aren't in a sub-ref we may need to do some special work to
   -- ensure that captions are correctly emitted
-  local cellInlines = nil;
+  local cellOutput = false;
   if not isSubRef then
     if image and #image.caption > 0 then
       local caption = image.caption:clone()
-      markupLatexCaption(cell, caption)
+      markupLatexCaption(cell, label, caption)
       tclear(image.caption)
-      cellInlines = pandoc.List:new({ image })
-      tappend(cellInlines, caption)
+      content:insert(pandoc.Para(image))
+      content:insert(pandoc.Para(caption))
+      cellOutput = true
     elseif isFigure then
       local caption = refCaptionFromDiv(cell).content
-      markupLatexCaption(cell, caption)
-      cellInlines = pandoc.List:new(pandoc.utils.blocks_to_inlines(
-        tslice(cell.content, 1, #cell.content-1)
-      ))
-      tappend(cellInlines, caption) 
+      markupLatexCaption(cell, label, caption)
+      tappend(content, tslice(cell.content, 1, #cell.content-1))
+      content:insert(caption) 
+      cellOutput = true
     end
   end
   
   -- if we didn't find a special case then just emit everything
-  if not cellInlines then
-    cellInlines = pandoc.utils.blocks_to_inlines(cell.content)
+  if not cellOutput then
+    tappend(content, cell.content)
   end
-  
-  -- append the content
-  tappend(content, cellInlines)
   
   latexAppend(suffix, "\n\\end{minipage}")
   
@@ -300,11 +297,31 @@ function latexCell(cell)
     latexAppend(suffix, "\n}")
   end
   
-  return prefix, content, suffix
+  if not endOfRow then
+    latexAppend(suffix, "\n%\n")
+  elseif not endOfTable then
+    latexAppend(suffix, "\n\\newline\n")
+  end
+  
+  -- ensure that pandoc doesn't write any nested figures
+  for i,block in ipairs(content) do
+    latexHandsoffFigure(block)
+    content[i] = pandoc.walk_block(block, {
+      Para = latexHandsoffFigure
+    })
+  end
+  
+  return pandoc.Para(prefix), content, pandoc.Para(suffix)
   
 end
 
 function latexAppend(inlines, latex)
   inlines:insert(pandoc.RawInline("latex", latex))
+end
+
+function latexHandsoffFigure(el)
+  if discoverFigure(el, false) ~= nil then
+    el.content:insert(pandoc.RawInline("markdown", "<!-- -->"))
+  end
 end
 
