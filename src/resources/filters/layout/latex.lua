@@ -46,7 +46,7 @@ function latexPanel(divEl, layout, caption)
   
   -- surround caption w/ appropriate latex (and end the panel)
   if caption then
-    markupLatexCaption(divEl, nil, caption.content)
+    markupLatexCaption(divEl, caption.content)
     panel.content:insert(caption)
   end
   
@@ -134,7 +134,7 @@ function renderLatexFigure(el, render)
 
   -- surround caption w/ appropriate latex (and end the figure)
   if captionInlines and inlinesToString(captionInlines) ~= "" then
-    markupLatexCaption(el, nil, captionInlines)
+    markupLatexCaption(el, captionInlines)
     figure.content:insert(pandoc.Para(captionInlines))
   end
   
@@ -153,7 +153,7 @@ function isReferenceable(figEl)
 end
 
 
-function markupLatexCaption(el, label, caption)
+function markupLatexCaption(el, caption)
   
   -- caption prefix (includes \\caption macro + optional [subcap] + {)
   local captionPrefix = pandoc.List:new({
@@ -170,11 +170,6 @@ function markupLatexCaption(el, label, caption)
   
   -- end the caption
   caption:insert(pandoc.RawInline("latex", "}"))
-  
-  -- include a label if this is referenceable
-  if label and label ~= "" then
-    caption:insert(pandoc.RawInline("latex", "\\label{" .. label .. "}"))
-  end
 end
 
 
@@ -274,14 +269,14 @@ function latexCell(cell, endOfRow, endOfTable)
   if not isSubRef then
     if image and #image.caption > 0 then
       local caption = image.caption:clone()
-      markupLatexCaption(cell, label, caption)
+      markupLatexCaption(cell, caption)
       tclear(image.caption)
       content:insert(pandoc.Para(image))
       content:insert(pandoc.Para(caption))
       cellOutput = true
     elseif isFigure then
       local caption = refCaptionFromDiv(cell).content
-      markupLatexCaption(cell, label, caption)
+      markupLatexCaption(cell, caption)
       tappend(content, tslice(cell.content, 1, #cell.content-1))
       content:insert(caption) 
       cellOutput = true
