@@ -297,11 +297,13 @@ function latexCell(cell, endOfRow, endOfTable)
     latexAppend(suffix, "\n}")
   end
   
+  latexAppend(suffix, "\n")
   if not endOfRow then
-    latexAppend(suffix, "\n%\n")
+    latexAppend(suffix, "%")
   elseif not endOfTable then
-    latexAppend(suffix, "\n\\newline\n")
+    latexAppend(suffix, "\\newline")
   end
+  latexAppend(suffix, "\n")
   
   -- ensure that pandoc doesn't write any nested figures
   for i,block in ipairs(content) do
