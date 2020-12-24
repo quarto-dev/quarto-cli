@@ -218,8 +218,10 @@ function latexCell(cell, endOfRow, endOfTable)
   -- figure out what we are dealing with
   local label = cell.attr.identifier
   local image = figureImageFromLayoutCell(cell)
+  if (label == "") and image then
+    label = image.attr.identifier
+  end
   local isFigure = isFigureRef(label)
-  local isTable = isTableRef(label)
   local isSubRef = hasRefParent(cell) or (image and hasRefParent(image))
   local tbl = tableFromLayoutCell(cell)
   
