@@ -69,15 +69,6 @@ function listingTitlePrefix(order)
   return titlePrefix("lst", "Listing", order)
 end
 
-function prependTitlePrefix(caption, label, order)
-  if isLatexOutput() then
-     tprepend(caption.content, {
-       pandoc.RawInline('latex', '\\label{' .. label .. '}')
-     })
-  else
-     tprepend(caption.content, tableTitlePrefix(order))
-  end
-end
 
 function latexListings()
   return param("listings", false)
