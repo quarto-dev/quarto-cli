@@ -278,7 +278,7 @@ function latexCell(cell, endOfRow, endOfTable)
       local caption = refCaptionFromDiv(cell).content
       markupLatexCaption(cell, caption)
       tappend(content, tslice(cell.content, 1, #cell.content-1))
-      content:insert(caption) 
+      content:insert(pandoc.Para(caption)) 
       cellOutput = true
     end
   end
