@@ -69,21 +69,22 @@ knitr_hooks <- function(format) {
   # entire chunk
   knit_hooks$chunk <- delegating_hook("chunk", function(x, options) {
 
+    # read some options
+    label <- output_label(options)
+    fig.cap = options[["fig.cap"]]
+    fig.subcap = options[["fig.subcap"]]
+    
     # fixup duplicate figure labels
     placeholder <- output_label_placeholder(options)
     if (!is.null(placeholder)) {
       figs <- length(regmatches(x, gregexpr(placeholder, x, fixed = TRUE))[[1]])
-      label <- output_label(options)
       for (i in 1:figs) {
-        suffix <- ifelse(figs > 1, paste0("-", i), "")
+        suffix <- ifelse(!is.null(fig.subcap), paste0("-", i), "")
         x <- sub(placeholder, paste0(label, suffix), fixed = TRUE, x)
       }
     }
 
     # determine label and caption output
-    label <- output_label(options)
-    fig.cap = options[["fig.cap"]]
-    fig.subcap = options[["fig.subcap"]]
     if (is_figure_label(label) && !is.null(fig.cap) && !is.null(fig.subcap)) {
       label <- paste0(labelId(label), " ")
       fig.cap <- paste0("\n", fig.cap, "\n")
