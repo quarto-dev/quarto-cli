@@ -44,9 +44,9 @@ function latexPanel(divEl, layout, caption)
     
   end
   
-  -- surround caption w/ appropriate latex (and end the figure)
+  -- surround caption w/ appropriate latex (and end the panel)
   if caption then
-    markupLatexCaption(divEl, divEl.attr.identifier, caption.content)
+    markupLatexCaption(divEl, nil, caption.content)
     panel.content:insert(caption)
   end
   
@@ -134,7 +134,7 @@ function renderLatexFigure(el, render)
 
   -- surround caption w/ appropriate latex (and end the figure)
   if captionInlines and inlinesToString(captionInlines) ~= "" then
-    markupLatexCaption(el, el.attr.identifier, captionInlines)
+    markupLatexCaption(el, nil, captionInlines)
     figure.content:insert(pandoc.Para(captionInlines))
   end
   
