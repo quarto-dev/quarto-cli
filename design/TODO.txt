@@ -2,24 +2,11 @@
 Tables
 ------------------------------------
 
-This is kind of borked:
-\end{minipage}
-}\caption{\label{tbl:panel}Caption}\label{tbl:panel}
-
-
-- latex subtables getting mauled by blocks_to_inlines (conjoin % getting foiled)
-
-- missing labels entirely from latex layout panels
-
-- missing letter in subtables
-
-- subcaps with single subcap messes up placeholders in knitr (so figure ends up parenting itself)
-
-- double table caption label:
-LaTeX Warning: Label `tbl:panel' multiply defined.
-LaTeX Warning: There were multiply-defined labels. 
 
 - docx subtables yielding invalid openxml
+
+- Non tbl and fig sub-panels may want to get "default" alignment 
+(e.g. heading w/ bullet list left aligned)
 
 - Move tbl.cap in computation layer to the bottom of the table div
 
