@@ -53,20 +53,25 @@ function latexPanel(divEl, layout, caption)
   -- end latex env
   panel.content:insert(latexEndEnv(env));
   
-  -- conjoin paragarphs (allows % to work correctly between minipages or subfloats)
+  -- conjoin paragarphs 
+  panel.content = latexJoinParas(panel.content)
+ 
+  -- return panel
+  return panel
+  
+end
+
+-- conjoin paragraphs (allows % to work correctly between minipages or subfloats)
+function latexJoinParas(content)
   local blocks = pandoc.List:new()
-  for i,block in ipairs(panel.content) do
+  for i,block in ipairs(content) do
     if block.t == "Para" and #blocks > 0 and blocks[#blocks].t == "Para" then
       tappend(blocks[#blocks].content, block.content)
     else
       blocks:insert(block)
     end
   end
-  panel.content = blocks
-  
-  -- return panel
-  return panel
-  
+  return blocks
 end
 
 function latexImageFigure(image)
