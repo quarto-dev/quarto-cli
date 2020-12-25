@@ -4,8 +4,8 @@
            Name="Quarto"
            Language="1033"
            Manufacturer="Rstudio, PBC"
-           Version="$version" 
-           UpgradeCode="A4D527BD-3233-4591-AD22-D8FA09D7FD9">
+           Version="0.1" 
+           UpgradeCode="98fb2e98-96b0-46e1-a6fd-94171233d11b">
     
     <Package InstallerVersion="200" 
                Compressed="yes" 
@@ -14,7 +14,7 @@
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
     <MediaTemplate EmbedCab="yes" />
 
-    <Feature Id="ProductFeature" 
+    <Feature Id="MainApplication" 
                Title="Quarto Command Line Tools" 
                Level="1">
       <ComponentGroupRef Id="ProductComponents" />
@@ -28,15 +28,5 @@
                        Name="Quarto" />
       </Directory>
     </Directory>
-  </Fragment>
-
-  <Fragment>
-    <ComponentGroup Id="ProductComponents" 
-                      Directory="INSTALLFOLDER">
-      <Component Id="cmpMyTextFileTXT" 
-                    Guid="{A4540658-09B6-46DA-8880-0B1962E06642}">
-        <File Source="MyTextFile.txt" />
-      </Component>
-    </ComponentGroup>
   </Fragment>
 </Wix>

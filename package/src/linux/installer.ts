@@ -4,7 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { dirname, join } from "path/mod.ts";
+import { join } from "path/mod.ts";
 import { copySync, emptyDirSync, ensureDirSync } from "fs/mod.ts";
 
 import { Configuration } from "../common/config.ts";

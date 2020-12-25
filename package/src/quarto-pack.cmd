@@ -4,9 +4,9 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 REM Reads the configuration file line by line
 REM and convert any export statements into set statements
 REM (allows reuse of variables)
-FOR /F "tokens=*" %%A IN (configuration) DO CALL :convertExportToSet %%A 
+FOR /F "tokens=*" %%A IN (..\..\configuration) DO CALL :convertExportToSet %%A 
 
-../$QUARTO_DIST_DIR/$QUARTO_BIN_DIR/deno run -unstable --allow-read --allow-write --allow-run --allow-env --allow-net --importmap=import_map.json package.ts $@
+..\%QUARTO_DIST_DIR%\%QUARTO_BIN_DIR%\deno run --unstable --allow-read --allow-write --allow-run --allow-env --allow-net --importmap=import_map.json package.ts %*
 
 GOTO :eof
 
