@@ -244,6 +244,7 @@ function latexCell(cell, endOfRow, endOfTable)
       if tbl.caption.short then
         tclear(tbl.caption.short)
       end
+      cell.content = { latexTabular(tbl) }
     else
       caption = refCaptionFromDiv(cell).content
       cell.content = tslice(cell.content, 1, #cell.content-1)
@@ -312,6 +313,86 @@ function latexCell(cell, endOfRow, endOfTable)
   
   return pandoc.Para(prefix), content, pandoc.Para(suffix)
   
+end
+
+function latexTabular(tbl)
+  
+  -- convert to simple table
+  tbl = pandoc.utils.to_simple_table(tbl)
+  
+  -- list of inlines
+  local tabular = pandoc.List:new()
+  
+  -- caption
+  if #tbl.caption > 0 then
+    latexAppend(tabular, "\\caption{")
+    tappend(tabular, tbl.caption)
+    latexAppend(tabular, "}\n")
+  end
+  
+  -- header
+  local aligns = table.concat(tbl.aligns:map(latexTabularAlign), "")
+  latexAppend(tabular, "\\begin{tabular}{" .. aligns .. "}\n")
+  latexAppend(tabular, "\\toprule\n")
+  
+  -- headers (optional)
+  local headers = latexTabularRow(tbl.headers)
+  if latexTabularRowHasContent(headers) then
+    latexTabularRowAppend(tabular, headers)
+    latexAppend(tabular, "\\midrule\n")
+  end
+  
+  -- rows
+  for _,row in ipairs(tbl.rows) do
+    latexTabularRowAppend(tabular, latexTabularRow(row))
+  end
+  
+  -- footer
+  latexAppend(tabular, "\\bottomrule\n")
+  latexAppend(tabular, "\\end{tabular}")
+  
+  -- return tabular
+  return pandoc.Para(tabular)
+  
+end
+
+function latexTabularRow(row)
+  local cells = pandoc.List:new()
+  for _,cell in ipairs(row) do
+    cells:insert(pandoc.utils.blocks_to_inlines(cell))
+  end
+  return cells
+end
+
+function latexTabularRowHasContent(row)
+  for _,cell in ipairs(row) do
+    if #cell > 0 then
+      return true
+    end
+  end
+  return false
+end
+
+function latexTabularRowAppend(inlines, row)
+  for i,cell in ipairs(row) do
+    tappend(inlines, cell)
+    if i < #row then
+      latexAppend(inlines, " & ")
+    end
+  end
+  latexAppend(inlines, "\\\\\n")
+end
+
+function latexTabularAlign(align)
+  if align == pandoc.AlignLeft then
+    return "l"
+  elseif align == pandoc.AlignRight then
+    return "r"
+  elseif align == pandoc.AlignCenter then
+    return "c"
+  else
+    return "l"
+  end
 end
 
 function latexAppend(inlines, latex)
