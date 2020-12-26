@@ -109,10 +109,8 @@ function tableCellContent(cell, align, options)
     
     -- we've already aligned the figure in a table cell so prevent 
     -- extended handling as it would create a nested table cell
-    if hasFigureRef(cell) then
-      preventExtendedFigure(cell)
-    end
-    
+    preventExtendedFigure(cell)
+
   end
  
   return { cell }
