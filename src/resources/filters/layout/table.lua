@@ -17,7 +17,17 @@ function tablePanel(divEl, layout, caption, options)
   -- layout
   for i, row in ipairs(layout) do
     
-    local aligns = row:map(function() return layoutTableAlign(align) end)
+    local aligns = row:map(function(cell) 
+      -- in docx tables inherit their parent cell alignment (likely a bug) so 
+      -- this alignment will force all columns in embedded tables to follow it.
+      -- if the alignment is center this won't make for very nice tables, so
+      -- we force it to pandoc.AlignDefault
+      if isDocxOutput() and align == "center" then
+        return pandoc.AlignDefault
+      else
+        return layoutTableAlign(align) 
+      end
+    end)
     local widths = row:map(function(cell) 
       -- propagage percents if they are provided
       local layoutPercent = horizontalLayoutPercent(cell)
@@ -113,9 +123,24 @@ function tableCellContent(cell, align, options)
   
   if tbl then
     
-    -- force widths to occupy 100% (for centering)
+   
     if align == "center" then
+      
+      -- force widths to occupy 100%
       layoutEnsureFullTableWidth(tbl)
+      
+      -- for docx output we've forced the alignment of this cell to AlignDefault
+      -- above (see the comment in tablePanel for rationale). Forcing the 
+      -- table to 100$% width (done right above) makes it appear "centered" so
+      -- do the same for the caption
+      if isDocxOutput() then
+        local caption = pandoc.utils.blocks_to_inlines(tbl.caption.long)
+        tclear(tbl.caption.long)
+        if tbl.caption.short then
+          tclear(tbl.caption.short)
+        end
+        cell.content:insert(1, options.divCaption(pandoc.Para(caption), align))
+      end
     end
     
     -- workaround issue w/ docx nested tables: https://github.com/jgm/pandoc/issues/6983
