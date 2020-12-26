@@ -22,9 +22,7 @@ function htmlPanel(divEl, layout, caption)
   for i, row in ipairs(layout) do
     
     local rowDiv = pandoc.Div({}, pandoc.Attr("", {"quarto-layout-row"}))
-    local justify = flexAlign(align)
-    appendStyle(rowDiv, "justify-content: " .. justify .. ";")
-    
+  
     for i, cellDiv in ipairs(row) do
       
       -- add cell class
@@ -41,12 +39,9 @@ function htmlPanel(divEl, layout, caption)
       local width = cellDiv.attr.attributes["width"]
       cellDivStyle = cellDivStyle .. "width: " .. width .. ";"
       cellDiv.attr.attributes["width"] = nil
-      if hasFigureRef(divEl) then
-        cellDivStyle = cellDivStyle .. "text-align: " .. align .. ";"
-      end
-      if string.len(cellDivStyle) > 0 then
-        cellDiv.attr.attributes["style"] = cellDivStyle
-      end
+      local justify = flexAlign(align)
+      cellDivStyle = cellDivStyle .. "justify-content: " .. justify .. ";"
+      cellDiv.attr.attributes["style"] = cellDivStyle
       
       -- add div to row
       rowDiv.content:insert(cellDiv)
