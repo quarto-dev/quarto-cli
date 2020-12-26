@@ -112,6 +112,12 @@ function tableCellContent(cell, align, options)
   end
   
   if tbl then
+    
+    -- force widths to occupy 100% (for centering)
+    if align == "center" then
+      layoutEnsureFullTableWidth(tbl)
+    end
+    
     -- workaround issue w/ docx nested tables: https://github.com/jgm/pandoc/issues/6983
     if isDocxOutput() then
       cell.content:insert(options.rowBreak())
@@ -133,3 +139,13 @@ function layoutTableAlign(align)
     return pandoc.AlignRight
   end
 end
+
+function layoutEnsureFullTableWidth(tbl)
+  if not tbl.colspecs:find_if(function(spec) return spec.width ~= nil end) then
+    tbl.colspecs = tbl.colspecs:map(function(spec)
+      return { spec[1], (1 / #tbl.colspecs) * 0.98 }
+    end)
+  end
+end
+
+
