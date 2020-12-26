@@ -66,11 +66,12 @@ end
 
 function tableCellContent(cell, align, options)
   
-  -- there will be special code if this an image
+  -- there will be special code if this an image or table
   local image = figureImageFromLayoutCell(cell)
-  
+  local tbl = tableFromLayoutCell(cell)
+  local isSubRef = hasRefParent(cell) or (image and hasRefParent(image))
+ 
   if image then
-    
     -- convert layout percent to physical units (if we have a pageWidth)
     -- this ensures that images don't overflow the column as they have
     -- been observed to do in docx
@@ -96,11 +97,9 @@ function tableCellContent(cell, align, options)
     -- we've already aligned the image in a table cell so prevent 
     -- extended handling as it would create a nested table cell
     preventExtendedFigure(image)
-    
   end
   
   if hasFigureRef(cell) then
-    
     -- style div caption if there is a custom caption function
     if options.divCaption then
       local divCaption = options.divCaption(refCaptionFromDiv(cell), align)
@@ -110,7 +109,14 @@ function tableCellContent(cell, align, options)
     -- we've already aligned the figure in a table cell so prevent 
     -- extended handling as it would create a nested table cell
     preventExtendedFigure(cell)
-
+  end
+  
+  if tbl then
+    -- workaround issue w/ docx nested tables: https://github.com/jgm/pandoc/issues/6983
+    if isDocxOutput() then
+      cell.content:insert(options.rowBreak())
+    end
+    
   end
  
   return { cell }
