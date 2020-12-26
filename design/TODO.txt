@@ -3,15 +3,12 @@ Tables
 ------------------------------------
 
 
-- docx subtables yielding invalid openxml
+- consider not using tables for docx layouts (perhaps text frames)
 
 - Non tbl and fig sub-panels may want to get "default" alignment 
 (e.g. heading w/ bullet list left aligned)
 
 - Move tbl.cap in computation layer to the bottom of the table div
-
-- What is  more idiomatic/default for tables (tab or tbl)
-
 
 
 TODO:
@@ -28,26 +25,7 @@ knitr::kable(
 ```
 
 
-
-```{r #fig:foo, eval=TRUE, fig.width=2.7, fig.height=2.7, fig.link="https://www.google.com", fig.cap=c("main", "next"), fig.subcap=c("iris", "pressure"), layout.ncol=2, fig.align="center",  echo=FALSE}
-plot(iris)
-plot(pressure)
-```
-
-yields this warning:
-
-Warning message:
-In res[i] <- withCallingHandlers(if (tangle) process_tangle(group) else process_group(group),  :
-  number of items to replace is not a multiple of replacement length
-
-
-
 We don't get the .md file when there is tex error (b/c copying happens at the end)
-
-Figures
--------------------------
-
-
 
 
 
@@ -138,6 +116,11 @@ Future
 -----------------------------------------
 
 # Package/extension system
+
+A 'format' is a director or zip file which is:
+  - Located in the _quarto directory
+  - Format YAML (must declare base)
+  - Arbitrary other files that can be referenced (relatively) by the format YAML
 
 Port a dozen or rticles formats
 # markdown for bootstrap concepts/constructs
