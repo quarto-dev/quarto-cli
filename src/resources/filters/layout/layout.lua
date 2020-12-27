@@ -121,7 +121,7 @@ function partitionCells(divEl)
     
     if isPreambleBlock(block) then
       preamble:insert(block)
-    elseif block.t == "Heading" then
+    elseif block.t == "Header" then
       heading = block
     else 
       -- ensure we are dealing with a div
