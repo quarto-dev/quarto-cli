@@ -4,9 +4,6 @@
 
 function latexPanel(divEl, layout, caption)
   
-  -- get alignment
-  local align = layoutAlignAttribute(divEl)
-  
    -- create container
   local panel = pandoc.Div({})
  
@@ -32,6 +29,7 @@ function latexPanel(divEl, layout, caption)
       local endOfRow = j == #row
       local prefix, content, suffix = latexCell(cell, endOfRow, endOfTable)
       panel.content:insert(prefix)
+      local align = cell.attr.attributes[kLayoutAlign]
       if align == "center" then
         panel.content:insert(pandoc.RawBlock("latex", latexBeginAlign(align)))
       end

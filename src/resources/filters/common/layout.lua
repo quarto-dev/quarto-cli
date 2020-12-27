@@ -7,8 +7,8 @@ kLayoutNrow = "layout.nrow"
 kLayout = "layout"
 
 
-function layoutAlignAttribute(el)
-  return validatedAlign(attribute(el, "layout.align", "center"))
+function layoutAlignAttribute(el, default)
+  return validatedAlign(attribute(el, kLayoutAlign, default))
 end
 
 function hasLayoutAttributes(el)

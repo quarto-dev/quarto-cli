@@ -4,7 +4,7 @@
 kAlignments = pandoc.List:new({ "center", "left", "right" })
 
 function validatedAlign(align)
-  if not kAlignments:includes(align) then
+  if align and not kAlignments:includes(align) then
     log("Invalid alignment attribute: " .. align)
     return "center"
   else

@@ -11,18 +11,19 @@ function tablePanel(divEl, layout, caption, options)
   -- create panel
   local panel = pandoc.Div({})
   
-  -- alignment
-  local align = layoutAlignAttribute(divEl)
-  
   -- layout
   for i, row in ipairs(layout) do
     
     local aligns = row:map(function(cell) 
+      
+      -- get the align
+      local align = cell.attr.attributes[kLayoutAlign]
+      
       -- in docx tables inherit their parent cell alignment (likely a bug) so 
       -- this alignment will force all columns in embedded tables to follow it.
       -- if the alignment is center this won't make for very nice tables, so
       -- we force it to pandoc.AlignDefault
-      if isDocxOutput() and align == "center" then
+      if tableFromLayoutCell(cell) and isDocxOutput() and align == "center" then
         return pandoc.AlignDefault
       else
         return layoutTableAlign(align) 
@@ -63,6 +64,7 @@ function tablePanel(divEl, layout, caption, options)
   
   -- insert caption
   if caption then
+    local align = layoutAlignAttribute(divEl, "center")
     if options.divCaption then
       caption = options.divCaption(caption, align)
     end

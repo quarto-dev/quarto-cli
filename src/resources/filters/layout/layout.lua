@@ -240,15 +240,34 @@ function layoutCells(divEl, cells)
     
   end
   
-  -- percentage based layouts need to be scaled down so they don't overflow the page 
+  -- determine alignment
+  local align = layoutAlignAttribute(divEl)
+  
+  -- some width and alignment handling
   rows = rows:map(function(row)
-    return row:map(function(fig)
-      local percentWidth = widthToPercent(attribute(fig, "width", nil))
+    return row:map(function(cell)
+      
+      -- percentage based layouts need to be scaled down so they don't overflow the page 
+      local percentWidth = widthToPercent(attribute(cell, "width", nil))
       if percentWidth then
         percentWidth = round(percentWidth * 0.96,1)
-        fig.attr.attributes["width"] = tostring(percentWidth) .. "%"
+        cell.attr.attributes["width"] = tostring(percentWidth) .. "%"
       end
-      return fig
+      
+      -- provide default alignment if necessary
+      if not align then
+        local image = figureImageFromLayoutCell(cell) 
+        local tbl = tableFromLayoutCell(cell)
+        if image or tbl then
+          cell.attr.attributes[kLayoutAlign] = "center"
+        else
+          cell.attr.attributes[kLayoutAlign] = "left"
+        end
+      else
+         cell.attr.attributes[kLayoutAlign] = align
+      end
+      
+      return cell
     end)
    
   end)  

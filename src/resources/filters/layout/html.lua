@@ -14,10 +14,6 @@ function htmlPanel(divEl, layout, caption)
     panel.content:insert(pandoc.RawBlock("html", "<figure>"))
   end
   
-  -- collect alignment
-  local align = layoutAlignAttribute(divEl)
-  divEl.attr.attributes[kLayoutAlign] = nil
-  
   -- layout
   for i, row in ipairs(layout) do
     
@@ -37,6 +33,8 @@ function htmlPanel(divEl, layout, caption)
       -- create css style for width
       local cellDivStyle = ""
       local width = cellDiv.attr.attributes["width"]
+      local align = cellDiv.attr.attributes[kLayoutAlign]
+      cellDiv.attr.attributes[kLayoutAlign] = nil
       cellDivStyle = cellDivStyle .. "width: " .. width .. ";"
       cellDiv.attr.attributes["width"] = nil
       local justify = flexAlign(align)
@@ -62,6 +60,10 @@ function htmlPanel(divEl, layout, caption)
     -- add row to the panel
     panel.content:insert(rowDiv)
   end
+  
+  -- determine alignment
+  local align = layoutAlignAttribute(divEl, "center")
+  divEl.attr.attributes[kLayoutAlign] = nil
   
   -- insert caption and </figure>
   if caption then
