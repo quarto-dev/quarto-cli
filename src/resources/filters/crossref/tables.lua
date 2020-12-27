@@ -41,6 +41,79 @@ function tables()
   }
 end
 
+function preprocessRawTableBlock(rawEl, parentId)
+  
+  if isRawHtml(rawEl) and isHtmlOutput() then
+    local captionPattern = htmlCaptionPattern()
+    local _, caption, _ = string.match(rawEl.text, captionPattern) 
+    if caption then
+      -- extract id if there is one
+      local caption, label = extractRefLabel("tbl", caption)
+      if label then
+        -- remove label from caption
+        rawEl.text = rawEl.text:gsub(captionPattern, "%1" .. caption .. "%3", 1)
+        -- enclose in div with label as id
+        local div = pandoc.Div(rawEl, pandoc.Attr(label))
+        return div
+      end
+    end
+  elseif isRawLatex(rawEl) and isLatexOutput() then
+    -- remove knitr label
+    local knitrLabelPattern = "\\label{tab:[^}]+} ?"
+    rawEl.text = rawEl.text:gsub(knitrLabelPattern, "", 1)
+    
+    -- try to find a caption with an id
+    local captionPattern = "(\\caption{.*)" .. refLabelPattern("tbl")
+    local caption, label = rawEl.text:match(captionPattern)
+    if label then
+      -- remove label from caption
+      rawEl.text = rawEl.text:gsub(captionPattern, "%1")
+      -- enclose in div with label as id
+      local div = pandoc.Div(rawEl, pandoc.Attr(label))
+      return div
+    end
+  end
+  
+  return rawEl
+  
+end
+
+function preprocessTable(el, parentId)
+  
+ -- if there is a caption then check it for a table suffix
+  if el.caption.long ~= nil then
+    local last = el.caption.long[#el.caption.long]
+    if last and #last.content > 0 then
+      local lastInline = last.content[#last.content]
+      local label = refLabel("tbl", lastInline)
+     
+      if label then
+        -- remove the id from the end
+        last.content = tslice(last.content, 1, #last.content-1)
+        
+        -- provide error caption if there is none
+        if #last.content == 0 then
+          last.content:insert(noCaption())
+        end
+        
+        -- wrap in a div with the label (so that we have a target
+        -- for the tbl ref, in LaTeX that will be a hypertarget)
+        local div = pandoc.Div(el, pandoc.Attr(label))
+        
+        -- propagate parent id if the parent is a table
+        if parentId and isTableRef(parentId) then
+          div.attr.attributes[kRefParent] = parentId
+        end
+        
+        -- return the div
+        return div
+      end
+    end
+  end
+  return el
+end
+
+
 function processMarkdownTable(divEl)
   for i,el in pairs(divEl.content) do
     if el.t == "Table" then
@@ -85,9 +158,8 @@ function processRawTable(divEl)
     if rawEl then
       local label = divEl.attr.identifier
       -- html table
-      if string.find(rawEl.format, "^html") then
-        local tag = "[Cc][Aa][Pp][Tt][Ii][Oo][Nn]"
-        local captionPattern = "(<" .. tag .. "[^>]*>)(.*)(</" .. tag .. ">)"
+      if isRawHtml(rawEl) then
+        local captionPattern = htmlCaptionPattern()
         local _, caption, _ = string.match(rawEl.text, captionPattern)
         if caption then
           
@@ -111,7 +183,7 @@ function processRawTable(divEl)
           return divEl
         end
       -- latex table
-      elseif rawEl.format == "tex" or  rawEl.format == "latex" then
+      elseif isRawLatex(rawEl) then
         -- knitr kable latex output will already have a label w/ tab:
         -- prefix. in that case simply replace it
         local captionPattern = "\\caption{\\label{tab:" .. label .. "}([^}]+)}"
@@ -181,3 +253,11 @@ function prependTitlePrefix(caption, label, order)
      tprepend(caption.content, tableTitlePrefix(order))
   end
 end
+
+function htmlCaptionPattern()
+  local tag = "[Cc][Aa][Pp][Tt][Ii][Oo][Nn]"
+  local captionPattern = "(<" .. tag .. "[^>]*>)(.*)(</" .. tag .. ">)"
+  return captionPattern
+end
+
+

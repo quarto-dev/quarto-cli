@@ -50,6 +50,14 @@ function isHtmlOutput()
 
 end
 
+function isRawHtml(rawEl)
+  return string.find(rawEl.format, "^html") 
+end
+
+function isRawLatex(rawEl)
+  return rawEl.format == "tex" or  rawEl.format == "latex"
+end
+
 -- read attribute w/ default
 function attribute(el, name, default)
   for k,v in pairs(el.attr.attributes) do

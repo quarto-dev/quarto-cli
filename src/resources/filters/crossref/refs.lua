@@ -82,7 +82,15 @@ function resolveRefs()
 end
 
 function refLabel(type, inline)
-  return string.match(inline.text, "^{#(" .. type .. ":[^ }]+)}$")
+  return string.match(inline.text, "^" .. refLabelPattern(type) .. "$")
+end
+
+function extractRefLabel(type, text)
+  return string.match(text, "^(.*)" .. refLabelPattern(type) .. "$")
+end
+
+function refLabelPattern(type)
+  return "{#(" .. type .. ":[^ }]+)}"
 end
 
 

@@ -33,6 +33,10 @@ function preprocess()
           Table = function(el)
             return preprocessTable(el, parentId)
           end,
+          
+          RawBlock = function(el)
+            return preprocessRawTableBlock(el, parentId)
+          end,
 
           Para = function(el)
             
@@ -61,6 +65,8 @@ function preprocess()
         -- always wrap referenced tables in a div
         if el.t == "Table" then
           doc.blocks[i] = preprocessTable(el, nil)
+        elseif el.t == "RawBlock" then
+          doc.blocks[i] = preprocessRawTableBlock(el, nil)
         else
           local parentId = nil
           if hasFigureOrTableRef(el) then
@@ -75,42 +81,6 @@ function preprocess()
     end
   }
 end
-
-function preprocessTable(el, parentId)
-  
- -- if there is a caption then check it for a table suffix
-  if el.caption.long ~= nil then
-    local last = el.caption.long[#el.caption.long]
-    if last and #last.content > 0 then
-      local lastInline = last.content[#last.content]
-      local label = refLabel("tbl", lastInline)
-     
-      if label then
-        -- remove the id from the end
-        last.content = tslice(last.content, 1, #last.content-1)
-        
-        -- provide error caption if there is none
-        if #last.content == 0 then
-          last.content:insert(noCaption())
-        end
-        
-        -- wrap in a div with the label (so that we have a target
-        -- for the tbl ref, in LaTeX that will be a hypertarget)
-        local div = pandoc.Div(el, pandoc.Attr(label))
-        
-        -- propagate parent id if the parent is a table
-        if parentId and isTableRef(parentId) then
-          div.attr.attributes[kRefParent] = parentId
-        end
-        
-        -- return the div
-        return div
-      end
-    end
-  end
-  return el
-end
-
 
 
 

@@ -8,21 +8,17 @@ function latexPanel(divEl, layout, caption)
   local panel = pandoc.Div({})
  
   -- begin container
-  local env = nil
-  local pos = nil
-  if hasFigureRef(divEl) then
-    env = attribute(divEl, kFigEnv, "figure")
-    pos = attribute(divEl, kFigPos, nil)
-  elseif hasTableRef(divEl) then
-    env = "table"
-  else
-    env = "figure"
-  end
+  local env, pos = latexPanelEnv(divEl, layout)
   panel.content:insert(latexBeginEnv(env, pos));
   
   for i, row in ipairs(layout) do
     
     for j, cell in ipairs(row) do
+      
+      -- there should never be \begin{table} inside a panel (as that would 
+      -- create a nested float). this can happen if knitr injected it as a 
+      -- result of a captioned latex figure. in that case remove it
+      cell = latexRemoveTableDelims(cell)
       
       -- process cell (enclose content w/ alignment)
       local endOfTable = i == #layout
@@ -56,6 +52,34 @@ function latexPanel(divEl, layout, caption)
  
   -- return panel
   return panel
+  
+end
+
+-- determine the environment (and pos) to use for a latex panel
+function latexPanelEnv(divEl, layout)
+  
+  -- defaults
+  local env = "figure"
+  local pos = nil
+  
+  -- explicit figure panel
+  if hasFigureRef(divEl) then
+    env = attribute(divEl, kFigEnv, env)
+    pos = attribute(divEl, kFigPos, pos)
+  -- explicit table panel
+  elseif hasTableRef(divEl) then
+    env = "table"
+  -- if there are embedded tables then we need to use table
+  else 
+    local haveTables = layout:find_if(function(row)
+      return row:find_if(hasTableRef)
+    end)
+    if haveTables then
+      env = "table"
+    end
+  end
+  
+  return env, pos
   
 end
 
@@ -407,4 +431,17 @@ function latexHandsoffFigure(el)
     el.content:insert(pandoc.RawInline("markdown", "<!-- -->"))
   end
 end
+
+function latexRemoveTableDelims(el)
+  return pandoc.walk_block(el, {
+    RawBlock = function(el)
+      if isRawLatex(el) then
+        el.text = el.text:gsub("\\begin{table}[^\n]*\n", "")
+        el.text = el.text:gsub("\\end{table}[^\n]*\n?", "")
+        return el
+      end
+    end
+  })
+end
+
 
