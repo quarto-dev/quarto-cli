@@ -43,6 +43,18 @@ function htmlPanel(divEl, layout, caption)
       cellDivStyle = cellDivStyle .. "justify-content: " .. justify .. ";"
       cellDiv.attr.attributes["style"] = cellDivStyle
       
+      -- if it's a table then our table-inline style will cause table headers
+      -- (th) to be centered. set them to left is they are default
+      local tbl = tableFromLayoutCell(cellDiv)
+      if tbl then
+        tbl.colspecs = tbl.colspecs:map(function(spec)
+          if spec[1] == pandoc.AlignDefault then
+            spec[1] = pandoc.AlignLeft
+          end
+          return spec
+        end)
+      end
+      
       -- add div to row
       rowDiv.content:insert(cellDiv)
     end
