@@ -98,6 +98,7 @@ function preprocessTable(el, parentId)
       local lastInline = last.content[#last.content]
       local label = refLabel("tbl", lastInline)
      
+      -- check for label
       if label then
         -- remove the id from the end
         last.content = tslice(last.content, 1, #last.content-1)
@@ -107,6 +108,12 @@ function preprocessTable(el, parentId)
           last.content:insert(noCaption())
         end
         
+      -- if there is a parent then auto-assign a label if there is none 
+      elseif parentId then
+        label = autoRefLabel(parentId)
+      end
+     
+      if label then
         -- wrap in a div with the label (so that we have a target
         -- for the tbl ref, in LaTeX that will be a hypertarget)
         local div = pandoc.Div(el, pandoc.Attr(label))

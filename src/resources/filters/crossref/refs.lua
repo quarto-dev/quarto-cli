@@ -81,6 +81,19 @@ function resolveRefs()
   }
 end
 
+function autoRefLabel(parentId)
+  local index = 1
+  while true do
+    local label = parentId .. "-" .. tostring(index)
+    if not crossref.autolabels:includes(label) then
+      crossref.autolabels:insert(label)
+      return label
+    else
+      index = index + 1
+    end
+  end
+end
+
 function refLabel(type, inline)
   if inline.text then
     return string.match(inline.text, "^" .. refLabelPattern(type) .. "$")

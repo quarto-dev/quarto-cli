@@ -7,6 +7,10 @@ function preprocess()
   
   return {
     Pandoc = function(doc)
+      
+      -- initialize autolabels table
+      crossref.autolabels = pandoc.List:new()
+      
       local walkRefs
       walkRefs = function(parentId)
         return {
