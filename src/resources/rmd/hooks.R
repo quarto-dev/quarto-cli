@@ -98,6 +98,8 @@ knitr_hooks <- function(format) {
       if (!is.null(tbl.cap)) {
         cell.cap <- paste0("\n", tbl.cap, "\n")
       }
+    } else {
+      label <- NULL
     }
 
     # synthesize layout if we have fig.sep
