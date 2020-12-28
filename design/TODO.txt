@@ -1,21 +1,4 @@
 
-Tables
-------------------------------------
-
-This does not work in quarto:
-```{r}
-knitr::kable(
-  list(
-    head(iris[, 1:2], 3),
-    head(mtcars[, 1:3], 5)
-  ),
-  caption = 'A Tale of Two Tables.', booktabs = TRUE
-)
-```
-
-Currently we write them as two separate ```tex blocks so there is space in between them
-
-
 
 Quarto
 ---------------------------
