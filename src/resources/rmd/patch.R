@@ -84,8 +84,16 @@ kable_latex <- function(...) {
   x <- knitr_kable_latex(...)
   knitr_raw_block(x, "tex")
 }
+kable_latex_caption = function(x, caption) {
+  paste(c(
+    '```{=tex}\n\\begin{table}\n', sprintf('\\caption{%s}\n```\n', caption), 
+    x, 
+    '\n```{=tex}\n\\end{table}\n```'
+  ), collapse = '')
+}
 assignInNamespace("kable_html", kable_html, ns = "knitr")
 assignInNamespace("kable_latex", kable_latex, ns = "knitr")
+assignInNamespace("kable_latex_caption", kable_latex_caption, ns = "knitr")
 
 
 # patch knitr:::valid_path to remove # prefix and colons from file names
