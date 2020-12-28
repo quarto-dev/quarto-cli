@@ -6,13 +6,12 @@
 */
 
 import { dirname, join } from "path/mod.ts";
-import { copySync } from "fs/mod.ts";
+import { copySync, ensureDirSync } from "fs/mod.ts";
 
 import { Configuration } from "../common/config.ts";
 import { buildFilter } from "./package-filters.ts";
 import { bundle } from "../util/deno.ts";
 import { Logger } from "../util/logger.ts";
-import { ensureDirExists } from "../util/utils.ts";
 
 
 export async function prepareDist(
@@ -73,9 +72,7 @@ function supportingFiles(config: Configuration, log: Logger) {
 
     const dir = dirname(fileToCopy.to);
     log.info(`Ensuring dir ${dir} exists`);
-    if (ensureDirExists(dir)) {
-      log.info(`Created dir ${dir}`);
-    }
+    ensureDirSync(dir)
     copySync(fileToCopy.from, fileToCopy.to, { overwrite: true });
   });
 }
@@ -83,7 +80,7 @@ function supportingFiles(config: Configuration, log: Logger) {
 function inlineFilters(config: Configuration) {
   config.log.info("Building inlined filters");
   const outDir = join(config.dirs.share, "filters");
-  const filtersToInline = ["crossref", "figures"];
+  const filtersToInline = ["quarto-pre", "crossref", "figures", "quarto-post"];
 
   filtersToInline.forEach((filter) => {
     config.log.info(filter);

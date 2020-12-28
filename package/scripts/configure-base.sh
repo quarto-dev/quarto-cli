@@ -27,7 +27,7 @@ fi
 echo "Creating Quarto Scipt..."
 
 # Move the quarto shell script into place
-cp ../scripts/macos/quarto $QUARTO_BIN_DIR/quarto
+cp ../scripts/common/quarto $QUARTO_BIN_DIR/quarto
 
 echo "Creating Quarto Symlink..."
 

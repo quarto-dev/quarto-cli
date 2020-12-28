@@ -11,6 +11,7 @@ import { getEnv } from "../util/utils.ts";
 
 // The core configuration for the packaging process
 export interface Configuration {
+  productname: string;
   importmap: string;
   dirs: {
     root: string;
@@ -36,6 +37,9 @@ export interface PkgConfig {
 
 // Get the current configuration
 export function configuration(logLevel: number): Configuration {
+
+  const productname = "quarto";
+
   const execPath = Deno.execPath();
   const root = join(execPath, "..", "..", "..", "..");
 
@@ -65,6 +69,7 @@ export function configuration(logLevel: number): Configuration {
   };
 
   return {
+    productname,
     importmap,
     dirs: {
       root,

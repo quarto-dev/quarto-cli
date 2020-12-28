@@ -5,11 +5,10 @@
 *
 */
 import { dirname, join } from "path/mod.ts";
-import { existsSync } from "fs/exists.ts";
+import { existsSync, ensureDirSync } from "fs/mod.ts";
 
 import { Configuration } from "../common/config.ts";
 import { Logger } from "../util/logger.ts";
-import { ensureDirExists } from "../util/utils.ts";
 import { runCmd } from "../util/cmd.ts";
 
 export async function makeInstallerMac(config: Configuration) {
@@ -27,7 +26,7 @@ export async function makeInstallerMac(config: Configuration) {
   }
 
   // Make the out dir
-  ensureDirExists(dirname(outPackage));
+  ensureDirSync(dirname(outPackage));
 
   // Run pkg build
   await runCmd(

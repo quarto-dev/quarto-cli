@@ -12,6 +12,7 @@ import { prepareDist } from "./common/prepare-dist.ts";
 import { makeInstallerDeb } from "./linux/installer.ts";
 import { makeInstallerMac } from "./macos/installer.ts";
 import { defaultLogger } from "./util/logger.ts";
+import { makeInstallerWindows } from "./windows/installer.ts";
 
 // Core command dispatch
 export async function quartoPack(args: string[]) {
@@ -20,7 +21,8 @@ export async function quartoPack(args: string[]) {
         .name("quarto-pack [command]")
         .version("0.1")
         .description("Utility that implements packaging and distribution of quarto cli")
-        .option("-l, --log-level=[level:string]", "Log Level (Info, Warning, or Error)", { global: true })
+        .option("-l, --log-level=[level:string]", "Log Level (info, warning, or error)", { global: true })
+        .option("-s, --signing-identity=[id:string]", "Signing identity to use when signing any files.", { global: true })
         .throwErrors();
 
     getCommands().forEach((command) => {
@@ -54,5 +56,8 @@ function getCommands() {
     commands.push(packageCommand(makeInstallerDeb)
         .name("make-installer-deb")
         .description("Builds Linux deb installer"));
+    commands.push(packageCommand(makeInstallerWindows)
+        .name("make-installer-win")
+        .description("Builds Windows installer"));
     return commands;
 }
