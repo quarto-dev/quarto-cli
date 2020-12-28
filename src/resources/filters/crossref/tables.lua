@@ -61,17 +61,10 @@ function preprocessRawTableBlock(rawEl, parentId)
       -- extract id if there is one
       local caption, label = extractRefLabel("tbl", caption)
       if label then
-        if parentId then
-          -- remove caption entirely
-          rawEl.text = rawEl.text:gsub(captionPattern, "", 1)
-          -- enclose in div
-          return divWrap(rawEl, label, caption)
-        else
-          -- remove label from caption
-          rawEl.text = rawEl.text:gsub(captionPattern, "%1" .. caption .. "%3", 1)
-          -- enclose in div 
-          return divWrap(rawEl, label)
-        end
+        -- remove label from caption
+        rawEl.text = rawEl.text:gsub(captionPattern, "%1" .. caption .. "%3", 1)
+        -- enclose in div 
+        return divWrap(rawEl, label)
       end
     end
   elseif isRawLatex(rawEl) and isLatexOutput() then
