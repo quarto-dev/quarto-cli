@@ -43,6 +43,17 @@ end
 
 function preprocessRawTableBlock(rawEl, parentId)
   
+  function divWrap(el, label, caption)
+    local div = pandoc.Div(el, pandoc.Attr(label))
+    if parentId then
+      div.attr.attributes[kRefParent] = parentId
+      if caption then
+        div.content:insert(pandoc.Para(stringToInlines(caption)))
+      end
+    end
+    return div
+  end
+  
   if isRawHtml(rawEl) and isHtmlOutput() then
     local captionPattern = htmlCaptionPattern()
     local _, caption, _ = string.match(rawEl.text, captionPattern) 
@@ -50,27 +61,41 @@ function preprocessRawTableBlock(rawEl, parentId)
       -- extract id if there is one
       local caption, label = extractRefLabel("tbl", caption)
       if label then
-        -- remove label from caption
-        rawEl.text = rawEl.text:gsub(captionPattern, "%1" .. caption .. "%3", 1)
-        -- enclose in div with label as id
-        local div = pandoc.Div(rawEl, pandoc.Attr(label))
-        return div
+        if parentId then
+          -- remove caption entirely
+          rawEl.text = rawEl.text:gsub(captionPattern, "", 1)
+          -- enclose in div
+          return divWrap(rawEl, label, caption)
+        else
+          -- remove label from caption
+          rawEl.text = rawEl.text:gsub(captionPattern, "%1" .. caption .. "%3", 1)
+          -- enclose in div 
+          return divWrap(rawEl, label)
+        end
       end
     end
   elseif isRawLatex(rawEl) and isLatexOutput() then
+    
     -- remove knitr label
     local knitrLabelPattern = "\\label{tab:[^}]+} ?"
     rawEl.text = rawEl.text:gsub(knitrLabelPattern, "", 1)
     
     -- try to find a caption with an id
-    local captionPattern = "(\\caption{.*)" .. refLabelPattern("tbl")
-    local caption, label = rawEl.text:match(captionPattern)
+    local captionPattern = "(\\caption{)(.*)" .. refLabelPattern("tbl") .. "([^}]*})"
+    local _, caption, label, _ = rawEl.text:match(captionPattern)
     if label then
-      -- remove label from caption
-      rawEl.text = rawEl.text:gsub(captionPattern, "%1")
-      -- enclose in div with label as id
-      local div = pandoc.Div(rawEl, pandoc.Attr(label))
-      return div
+      if parentId then
+        -- remove caption entirely
+        rawEl.text = rawEl.text:gsub(captionPattern, "", 1)
+        
+        -- enclose in div
+        return divWrap(rawEl, label, caption)
+      else
+        -- remove label from caption
+        rawEl.text = rawEl.text:gsub(captionPattern, "%1%3", 1)
+        -- enclose in div 
+        return divWrap(rawEl, label)
+      end
     end
   end
   
