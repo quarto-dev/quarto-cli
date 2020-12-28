@@ -55,7 +55,7 @@ function preprocessRawTableBlock(rawEl, parentId)
   end
   
   if isRawHtml(rawEl) and isHtmlOutput() then
-    local captionPattern = htmlCaptionPattern()
+    local captionPattern = htmlTableCaptionPattern()
     local _, caption, _ = string.match(rawEl.text, captionPattern) 
     if caption then
       -- extract id if there is one
@@ -177,7 +177,7 @@ function processRawTable(divEl)
       local label = divEl.attr.identifier
       -- html table
       if isRawHtml(rawEl) then
-        local captionPattern = htmlCaptionPattern()
+        local captionPattern = htmlTableCaptionPattern()
         local _, caption, _ = string.match(rawEl.text, captionPattern)
         if caption then
           
@@ -272,7 +272,7 @@ function prependTitlePrefix(caption, label, order)
   end
 end
 
-function htmlCaptionPattern()
+function htmlTableCaptionPattern()
   local tag = "[Cc][Aa][Pp][Tt][Ii][Oo][Nn]"
   local captionPattern = "(<" .. tag .. "[^>]*>)(.*)(</" .. tag .. ">)"
   return captionPattern
