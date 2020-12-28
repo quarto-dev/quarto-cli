@@ -2,8 +2,6 @@
 Tables
 ------------------------------------
 
-- raw html and latex tables don't seem to get subcap references assigned
-
 This does not work in quarto:
 ```{r}
 knitr::kable(
@@ -15,7 +13,7 @@ knitr::kable(
 )
 ```
 
-
+Currently we write them as two separate ```tex blocks so there is space in between them
 
 
 
@@ -32,7 +30,7 @@ Quarto
   (may need some JavaScript to expand <details> on clicking cross reference). Could also make available a show all / hide all
   function that templates could call.
 
-- Support fig.cap on figure divs (auto-inject the caption based on fig.cap)
+- Support fig.cap on figure divs (auto-inject the caption based on fig.cap). We currently do this for tbl.cap
 
 - If we use pandoc div syntax in a file with jupytext: formats: md,ipynb then we get auto-detected as pandoc markdown
   md:markdown is what we need, however it seems like we might also need the kernelspec stuff or other stuff 
