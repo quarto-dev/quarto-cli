@@ -63,7 +63,11 @@ function preprocessRawTableBlock(rawEl, parentId)
       if label then
         -- remove label from caption
         rawEl.text = rawEl.text:gsub(captionPattern, "%1" .. caption .. "%3", 1)
-        -- enclose in div 
+      elseif parentId then
+        label = autoRefLabel(parentId)
+      end
+        
+      if label then
         return divWrap(rawEl, label)
       end
     end
@@ -79,10 +83,14 @@ function preprocessRawTableBlock(rawEl, parentId)
     if label then
       -- remove label from caption
       rawEl.text = rawEl.text:gsub(captionPattern, "%1%2%4", 1)
-      -- enclose in div 
-      return divWrap(rawEl, label)
-      
+    elseif parentId then
+      label = autoRefLabel(parentId)
     end
+      
+    if label then
+      return divWrap(rawEl, label)
+    end
+      
   end
   
   return rawEl
