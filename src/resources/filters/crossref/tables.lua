@@ -77,18 +77,11 @@ function preprocessRawTableBlock(rawEl, parentId)
     local captionPattern = "(\\caption{)(.*)" .. refLabelPattern("tbl") .. "([^}]*})"
     local _, caption, label, _ = rawEl.text:match(captionPattern)
     if label then
-      if parentId then
-        -- remove caption entirely
-        rawEl.text = rawEl.text:gsub(captionPattern, "", 1)
-        
-        -- enclose in div
-        return divWrap(rawEl, label, caption)
-      else
-        -- remove label from caption
-        rawEl.text = rawEl.text:gsub(captionPattern, "%1%3", 1)
-        -- enclose in div 
-        return divWrap(rawEl, label)
-      end
+      -- remove label from caption
+      rawEl.text = rawEl.text:gsub(captionPattern, "%1%2%4", 1)
+      -- enclose in div 
+      return divWrap(rawEl, label)
+      
     end
   end
   
@@ -202,16 +195,7 @@ function processRawTable(divEl)
         end
       -- latex table
       elseif isRawLatex(rawEl) then
-        -- knitr kable latex output will already have a label w/ tab:
-        -- prefix. in that case simply replace it
-        local captionPattern = "\\caption{\\label{tab:" .. label .. "}([^}]+)}"
-        local caption = string.match(rawEl.text, captionPattern)
-        if caption then
-          processLatexTable(divEl, rawEl, captionPattern, label, caption)
-          rawParentEl.content[rawIndex] = rawEl
-          return divEl
-        end
-
+        
         -- look for raw latex with a caption
         captionPattern = "\\caption{([^}]+)}"
         caption = string.match(rawEl.text, captionPattern)
@@ -249,13 +233,15 @@ end
 
 
 function processLatexTable(divEl, el, captionPattern, label, caption)
-  el.text = el.text:gsub(captionPattern, "\\caption{\\label{" .. label .. "}" .. caption .. "}", 1)
   
   local order
   local parent = divEl.attr.attributes[kRefParent]
   if (parent) then
+    el.text = el.text:gsub(captionPattern, "", 1)
+    divEl.content:insert(pandoc.Para(stringToInlines(caption)))
     order = nextSubrefOrder()
   else
+    el.text = el.text:gsub(captionPattern, "\\caption{\\label{" .. label .. "}" .. caption .. "}", 1)
     order = indexNextOrder("tbl")
   end
   
