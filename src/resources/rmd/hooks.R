@@ -71,7 +71,9 @@ knitr_hooks <- function(format) {
 
     # read some options
     label <- output_label(options)
-    fig.cap = options[["fig.cap"]]
+    fig.cap <- options[["fig.cap"]]
+    tbl.cap <- options[["tbl.cap"]]
+    cell.cap <- NULL
     fig.subcap = options[["fig.subcap"]]
     
     # fixup duplicate figure labels
@@ -85,12 +87,17 @@ knitr_hooks <- function(format) {
     }
 
     # determine label and caption output
-    if (is_figure_label(label) && !is.null(fig.cap) && !is.null(fig.subcap)) {
-      label <- paste0(labelId(label), " ")
-      fig.cap <- paste0("\n", fig.cap, "\n")
-    } else {
-      label = NULL
-      fig.cap = NULL
+    label <- paste0(labelId(label), " ")
+    if (is_figure_label(label)) {
+      if (!is.null(fig.cap) && !is.null(fig.subcap)) {
+        cell.cap <- paste0("\n", fig.cap, "\n")
+      } else {
+        label = NULL
+      }
+    } else if (is_table_label(label)) {
+      if (!is.null(tbl.cap)) {
+        cell.cap <- paste0("\n", tbl.cap, "\n")
+      }
     }
 
     # synthesize layout if we have fig.sep
@@ -157,7 +164,7 @@ knitr_hooks <- function(format) {
     }
     
     # return cell
-    paste0("::: {", labelId(label) ,".cell", forwardAttr, "}\n", x, "\n", fig.cap ,":::")
+    paste0("::: {", labelId(label) ,".cell", forwardAttr, "}\n", x, "\n", cell.cap ,":::")
   })
   knit_hooks$source <- function(x, options) {
     x <- knitr:::one_string(c('', x))
@@ -393,15 +400,24 @@ output_label <- function(options) {
 output_label_placeholder <- function(options) {
   kPlaceholder <- "D08295A6-16DC-499D-85A8-8BA656E013A2"
   label <- output_label(options)
-  if (!is.null(label))
+  if (is_figure_label(label))
     paste0(label, kPlaceholder)
   else
     NULL
 }
 
 is_figure_label <- function(label) {
-  !is.null(label) && grepl("^#?fig:", label)
+  is_label_type("fig", label)
 }
+
+is_table_label <- function(label) {
+  is_label_type("tbl", label)
+}
+
+is_label_type <- function(type, label) {
+  !is.null(label) && grepl(paste0("^#?", type, ":"), label)
+}
+
 
 block_attr <- function(id = NULL, lang = NULL, class = NULL, attr = NULL) {
   id <- labelId(id)

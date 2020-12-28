@@ -82,7 +82,11 @@ function resolveRefs()
 end
 
 function refLabel(type, inline)
-  return string.match(inline.text, "^" .. refLabelPattern(type) .. "$")
+  if inline.text then
+    return string.match(inline.text, "^" .. refLabelPattern(type) .. "$")
+  else
+    return nil
+  end
 end
 
 function extractRefLabel(type, text)
