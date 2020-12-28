@@ -2,16 +2,7 @@
 Tables
 ------------------------------------
 
-
-- consider not using tables for docx layouts (perhaps text frames)
-
-- Non tbl and fig sub-panels may want to get "default" alignment 
-(e.g. heading w/ bullet list left aligned)
-
-- Move tbl.cap in computation layer to the bottom of the table div
-
-
-TODO:
+- raw html and latex tables don't seem to get subcap references assigned
 
 This does not work in quarto:
 ```{r}
@@ -25,12 +16,13 @@ knitr::kable(
 ```
 
 
-We don't get the .md file when there is tex error (b/c copying happens at the end)
 
 
 
 Quarto
 ---------------------------
+
+- We don't get the .md file when there is tex error (b/c copying happens at the end)
 
 - Consider yaml for chunk options
 
@@ -75,6 +67,8 @@ Project system:
      if there is, then use this behavior, if not, use the first match)
   - External interactions with projects (output_dir, clean, etc.)
   - website / book format variations
+
+Ghost support a la Hugo support
 
   
 LaTeX
