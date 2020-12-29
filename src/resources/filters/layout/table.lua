@@ -41,6 +41,7 @@ function tablePanel(divEl, layout, caption, options)
 
     local cells = pandoc.List:new()
     for _, cell in ipairs(row) do
+      local align = cell.attr.attributes[kLayoutAlign]
       cells:insert(tableCellContent(cell, align, options))
     end
     
