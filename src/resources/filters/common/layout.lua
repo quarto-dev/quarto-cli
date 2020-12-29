@@ -47,6 +47,22 @@ function tableFromLayoutCell(cell)
   end
 end
 
+-- resolve alignment for layout cell (default to center or left depending
+-- on the content in the cell)
+function layoutCellAlignment(cell, align)
+  if not align then
+    local image = figureImageFromLayoutCell(cell) 
+    local tbl = tableFromLayoutCell(cell)
+    if image or tbl then
+      return "center"
+    else
+      return "left"
+    end
+  else
+    return align
+  end
+end
+
 -- does the layout cell have a ref parent
 function layoutCellHasRefParent(cell)
   if hasRefParent(cell) then

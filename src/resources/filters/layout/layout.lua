@@ -255,18 +255,9 @@ function layoutCells(divEl, cells)
       end
       
       -- provide default alignment if necessary
-      if not align then
-        local image = figureImageFromLayoutCell(cell) 
-        local tbl = tableFromLayoutCell(cell)
-        if image or tbl then
-          cell.attr.attributes[kLayoutAlign] = "center"
-        else
-          cell.attr.attributes[kLayoutAlign] = "left"
-        end
-      else
-         cell.attr.attributes[kLayoutAlign] = align
-      end
-      
+      cell.attr.attributes[kLayoutAlign] = layoutCellAlignment(cell, align)
+     
+      -- return cell
       return cell
     end)
    
