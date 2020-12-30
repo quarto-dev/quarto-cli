@@ -46,7 +46,7 @@ export async function makeInstallerWindows(configuration: Configuration) {
 
     // heat the directory to generate a wix file for it 
     const heatOutput = join(workingDir, "quarto-frag.wxs");
-    await runCmd(heatCmd, ["dir", configuration.dirs.dist, "-var",  "var.SourceDir", "-gg", "-sfrag", "-cg", "ProductComponents", "-out", heatOutput], configuration.log);
+    await runCmd(heatCmd, ["dir", configuration.dirs.dist, "-var",  "var.SourceDir", "-gg", "-sfrag", "-srd", "-cg", "ProductComponents", "-dr", "INSTALLFOLDER", "-out", heatOutput], configuration.log);
 
     // TODO: Process the version and other metadata into the WXS file
      // use candle to build the wixobj file
