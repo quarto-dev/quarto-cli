@@ -148,7 +148,7 @@ function tableCellContent(cell, align, options)
     
     -- workaround issue w/ docx nested tables: https://github.com/jgm/pandoc/issues/6983
     if isDocxOutput() then
-      if PANDOC_VERSION <= pandoc.types.Version("2.11.3.1") then
+      if PANDOC_VERSION < pandoc.types.Version("2.11.3.2") then
         cell.content:insert(options.rowBreak())
       end
     end
