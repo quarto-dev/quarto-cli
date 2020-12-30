@@ -70,7 +70,7 @@ assignInNamespace("wrap", wrap, ns = "knitr")
 assignInNamespace("add_html_caption", add_html_caption, ns = "knitr")
 
 
-# patch knitr_print.knitr_kable to enclose raw output in pandoc RawBlock
+# patch knitr_print.knitr_kable to enclose html output in pandoc RawBlock
 knitr_raw_block <- function(x, format) {
   knitr::asis_output(paste0("\n\n```{=", format, "}\n", x, "\n```\n\n"))
 }
@@ -79,13 +79,8 @@ kable_html <- function(...) {
   x <- knitr_kable_html(...)
   knitr_raw_block(x, "html")
 }
-knitr_kable_latex <- knitr:::kable_latex
-kable_latex <- function(...) {
-  x <- knitr_kable_latex(...)
-  knitr_raw_block(x, "tex")
-}
 assignInNamespace("kable_html", kable_html, ns = "knitr")
-assignInNamespace("kable_latex", kable_latex, ns = "knitr")
+
 
 
 # patch knitr:::valid_path to remove # prefix and colons from file names

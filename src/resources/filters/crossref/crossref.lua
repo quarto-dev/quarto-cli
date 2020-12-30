@@ -18,6 +18,7 @@ function import(script)
   dofile(path .. script)
 end
 import("index.lua")
+import("preprocess.lua")
 import("sections.lua")
 import("figures.lua")
 import("tables.lua")
@@ -32,7 +33,7 @@ import("../common/pandoc.lua")
 import("../common/format.lua")
 import("../common/params.lua")
 import("../common/options.lua")
-import("../common/layout.lua")
+import("../common/refs.lua")
 import("../common/figures.lua")
 import("../common/meta.lua")
 import("../common/table.lua")
@@ -44,7 +45,7 @@ return {
   initParams(),
   initOptions(),
   initIndex(),
-  preprocessFigures(true),
+  preprocess(),
   combineFilters({
     sections(),
     figures(),

@@ -23,7 +23,7 @@ function initIndex()
       -- initialize index
       crossref.index = {
         nextOrder = {},
-        nextSubfigureOrder = 1,
+        nextSubrefOrder = 1,
         section = sectionOffsets,
         sectionOffsets = sectionOffsets,
         entries = {}
@@ -50,7 +50,7 @@ function indexNextOrder(type)
   end
   local nextOrder = crossref.index.nextOrder[type]
   crossref.index.nextOrder[type] = crossref.index.nextOrder[type] + 1
-  crossref.index.nextSubfigureOrder = 1
+  crossref.index.nextSubrefOrder = 1
   return {
     section = crossref.index.section:clone(),
     order = nextOrder
@@ -69,6 +69,12 @@ function indexAddEntry(label, parent, order, caption)
   }
 end
 
+-- advance a subref
+function nextSubrefOrder()
+  local order = { section = nil, order = crossref.index.nextSubrefOrder }
+  crossref.index.nextSubrefOrder = crossref.index.nextSubrefOrder + 1
+  return order
+end
 
 -- does our index already contain this element?
 function indexHasElement(el)

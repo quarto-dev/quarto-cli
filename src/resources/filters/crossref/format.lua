@@ -34,8 +34,16 @@ function captionCollectedLabelSep()
   return option("caption-collected-label-sep", stringToInlines("\u{a0}—\u{a0}"))
 end
 
-function subfigNumber(order)
-  return numberOption("subfig", order,  {pandoc.Str("alpha"),pandoc.Space(),pandoc.Str("a")})
+function subrefNumber(order)
+  return numberOption("subref", order,  {pandoc.Str("alpha"),pandoc.Space(),pandoc.Str("a")})
+end
+
+function prependSubrefNumber(captionContent, order)
+  if not isLatexOutput() then
+    tprepend(captionContent, { pandoc.Str(")"), pandoc.Space() })
+    tprepend(captionContent, subrefNumber(order))
+    captionContent:insert(1, pandoc.Str("("))
+  end
 end
 
 function refPrefix(type, upper)

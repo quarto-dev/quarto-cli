@@ -50,6 +50,14 @@ function isHtmlOutput()
 
 end
 
+function isRawHtml(rawEl)
+  return string.find(rawEl.format, "^html") 
+end
+
+function isRawLatex(rawEl)
+  return rawEl.format == "tex" or  rawEl.format == "latex"
+end
+
 -- read attribute w/ default
 function attribute(el, name, default)
   for k,v in pairs(el.attr.attributes) do
@@ -67,8 +75,13 @@ function combineFilters(filters)
     for key,func in pairs(filter) do
       local combinedFunc = combined[key]
       if combinedFunc then
-         combined[key] = function(x)
-           return func(combinedFunc(x))
+        combined[key] = function(x)
+          local result = combinedFunc(x)
+          if result then
+            return func(result)
+          else
+            return func(x)
+          end
          end
       else
         combined[key] = func

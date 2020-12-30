@@ -2,8 +2,8 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 
-function tableOdtPanel(divEl, subfigures)
-  return tablePanel(divEl, subfigures, {
+function tableOdtPanel(divEl, layout, caption)
+  return tablePanel(divEl, layout, caption, {
     pageWidth = wpPageWidth(),
     divCaption = odtDivCaption
   })

@@ -13,6 +13,9 @@ end
 -- improved formatting for dumping tables
 function tdump (tbl, indent)
   if not indent then indent = 0 end
+  if tbl.t then
+    print(string.rep("  ", indent) .. tbl.t)
+  end
   for k, v in pairs(tbl) do
     formatting = string.rep("  ", indent) .. k .. ": "
     if type(v) == "table" then

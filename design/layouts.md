@@ -3,7 +3,17 @@ title: "Woozy Foobar"
 ---
 
 
-Get rid of HR based layout
+3 separate and entirely unrelated sets of functionality:
+
+1) Quarto-pre: Convert linked figures to figure divs
+
+2) Cross references
+
+3) Layout panels
+
+4) Quarto-post: Figure alignment
+
+
 
 ::: {layout=[5,4,5] layout.rows=1  layout.cols=1, layout.align="center"}
 

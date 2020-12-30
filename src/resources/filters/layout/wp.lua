@@ -2,8 +2,8 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 
-function tableWpPanel(divEl, sufigures)
-  return tablePanel(divEl, sufigures, {
+function tableWpPanel(divEl, layout, caption)
+  return tablePanel(divEl, layout, caption, {
     pageWidth = wpPageWidth()
   })
 end
@@ -22,16 +22,18 @@ function wpFigure(image)
   end
 
   -- get alignment
-  local align = alignAttribute(image)
+  local align = figAlignAttribute(image)
   
   -- create the row/cell for the figure
   local row = pandoc.List:new()
-  row:insert(figureTableCell(image, align, options))
+  local cell = pandoc.Div(pandoc.Para(image))
+  transferImageWidthToCell(image, cell)
+  row:insert(tableCellContent(cell, align, options))
   
   -- make the table
   local figureTable = pandoc.SimpleTable(
     pandoc.List:new(), -- caption
-    { tableAlign(align) },         -- alignment
+    { layoutTableAlign(align) },  
     {   1   },         -- full width
     pandoc.List:new(), -- no headers
     { row }            -- figure

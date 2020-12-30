@@ -6,14 +6,14 @@ function figures()
   return {
     Div = function(el)
       if isFigureDiv(el) then
-        local caption = figureDivCaption(el)
+        local caption = refCaptionFromDiv(el)
         processFigure(el, caption.content)
       end
       return el
     end,
 
     Para = function(el)
-      local image = figureFromPara(el)
+      local image = discoverFigure(el)
       if image and isFigureImage(image) then
         processFigure(image, image.caption)
       end
@@ -32,25 +32,17 @@ function processFigure(el, captionContent)
 
   -- determine order, parent, and displayed caption
   local order
-  local parent = el.attr.attributes[kLayoutParent]
+  local parent = el.attr.attributes[kRefParent]
   if (parent) then
-    el.attr.attributes[kLayoutParent] = nil
-    order = {
-      section = nil,
-      order = crossref.index.nextSubfigureOrder
-    }
-    crossref.index.nextSubfigureOrder = crossref.index.nextSubfigureOrder + 1
-   
-    -- if this isn't latex output, then prepend the subfigure number
-    if not isLatexOutput() then
-      tprepend(captionContent, { pandoc.Str(")"), pandoc.Space() })
-      tprepend(captionContent, subfigNumber(order))
-      captionContent:insert(1, pandoc.Str("("))
-    end
-   
+    order = nextSubrefOrder()
+    prependSubrefNumber(captionContent, order)
   else
     order = indexNextOrder("fig")
-    if not isLatexOutput() then
+    if isLatexOutput() then
+      tprepend(captionContent, {
+        pandoc.RawInline('latex', '\\label{' .. label .. '}')
+      })
+    else
       tprepend(captionContent, figureTitlePrefix(order))
     end
   end
