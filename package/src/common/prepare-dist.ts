@@ -80,7 +80,7 @@ function supportingFiles(config: Configuration, log: Logger) {
 function inlineFilters(config: Configuration) {
   config.log.info("Building inlined filters");
   const outDir = join(config.dirs.share, "filters");
-  const filtersToInline = ["quarto-pre", "crossref", "figures", "quarto-post"];
+  const filtersToInline = ["quarto-pre", "crossref", "layout"];
 
   filtersToInline.forEach((filter) => {
     config.log.info(filter);
