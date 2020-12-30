@@ -66,4 +66,6 @@ export async function makeInstallerWindows(configuration: Configuration) {
     configuration.log.info(`Moving ${lightOutput} to ${configuration.dirs.out}`);
     moveSync(lightOutput, join(configuration.dirs.out, basename(lightOutput)), {overwrite: true});
 
+    // Clean up the working directory
+    Deno.remove(workingDir);
 }
