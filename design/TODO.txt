@@ -3,17 +3,11 @@
 Quarto
 ---------------------------
 
-- We don't get the .md file when there is tex error (b/c copying happens at the end)
-
 - Consider yaml for chunk options
 
-- Investigate pandoc 2.11.3 support for ODT cross references
-
-- Consider lst.display="details" to indicate you want the code in <details>. Wrap source in details w/ summary from fig.cap
+- Consider lst.display="details" to indicate you want the code in <details>. Wrap source in details w/ summary from lst.cap
   (may need some JavaScript to expand <details> on clicking cross reference). Could also make available a show all / hide all
   function that templates could call.
-
-- Support fig.cap on figure divs (auto-inject the caption based on fig.cap). We currently do this for tbl.cap
 
 - If we use pandoc div syntax in a file with jupytext: formats: md,ipynb then we get auto-detected as pandoc markdown
   md:markdown is what we need, however it seems like we might also need the kernelspec stuff or other stuff 
@@ -49,7 +43,10 @@ Project system:
   - External interactions with projects (output_dir, clean, etc.)
   - website / book format variations
 
-Ghost support a la Hugo support
+Blogging:
+  - WordPress (https://developer.wordpress.com/docs/api/)
+  - Ghost?
+
 
   
 LaTeX
@@ -158,119 +155,4 @@ rmarkdown::run b/c we need to figure out which Rmd to render
 
 Meta-concepts on top of AST: e.g. tabs
 
-
-
-
-Latex Stuff
----------------------------------------------------
-
-
-https://jdhao.github.io/2020/03/07/latex_figure_table_side_by_side_en/
-
-Use minipage (with \begin{figure} or a custom float) for pure layout
-Use subfig (subfloat) for widely compatible figure layout (controlling width via includegraphics)
-Use subcaption for nicer but less compatible figure layout (controlling width via includegraphics)
-
-Side by side tables appear to have no width capability (layout needs to "work").
-We *can* do sized tables via minipage/subcaption:
-https://tex.stackexchange.com/questions/2832/how-can-i-have-two-tables-side-by-side (note use of %)
-
-Note use % in between subfigures or mini pages to indicate "no space" so stay on same line
-
-Could % work with plain tabular?
-
-Consider width=0.9\linewidth for included graphics to provide some spacing?
-
-
-
-latex subfloat control width
-
-latex minipage control width
-
-\usepackage{subfig}
-
-
-## subfig package (compatible)
-   - Section 4.2 (create custom subfloats)
-   - 
-
-subfig package
-\subfloat[<caption><label>] {
-
-
-}
-
-## subcaption package
-
-\begin{figure}
-\minipage 
-  \subcaption
-
-
-## Pure layout:
-
-\begin{figure}
-\minipage
-
-
-Perhaps we could get tables with subcaptions working with just minipage, caption:
-
-\documentclass{article}
-\usepackage{graphicx}
-\usepackage{subfig}
-\usepackage[capitalize]{cleveref}
-
-\begin{document}
-
-We show two images \cref{fig:sub1} and \cref{fig:sub2} below.
-
-\begin{figure}[h]
-    \centering
-    \begin{minipage}[t]{.5\textwidth}
-        \centering
-        \includegraphics[width=0.9\linewidth]{cat1.jpeg}
-        \caption{caption 1}
-        \label{fig:sub1}
-    \end{minipage}%
-    \begin{minipage}[t]{.5\textwidth}
-        \centering
-        \includegraphics[width=0.9\linewidth]{cat2.jpeg}
-        \caption{caption 2}
-        \label{fig:sub2}
-    \end{minipage}
-\end{figure}
-
-\end{document}
-
-https://en.wikibooks.org/wiki/LaTeX/Floats,_Figures_and_Captions#Custom_floats
-
-
-
-
-
-- Consider multiple tables in single environment? 
-  https://www.overleaf.com/learn/latex/How_to_Write_a_Thesis_in_LaTeX_(Part_3):_Figures,_Subfigures_and_Tables#Subtables
-
-- knitr uses subfloat (would want this via the subfig package)
-
-http://ctan.math.utah.edu/ctan/tex-archive/macros/latex/contrib/subfig/subfig.pdf (compat w/ journals referenced below)
-
-See minipage as alternative! (subcaption can work w/ that)
-for pure layout, we may just want an uncaptioned figure w/ embedded minipage
-
-From: 
-https://en.wikibooks.org/wiki/LaTeX/Floats,_Figures_and_Captions#Subfloats
-A useful extension is the subcaption[6] package, which uses subfloats within a single float. The subfig package 
-(subfigure package is deprecated[5]) is a useful alternative when used in-conjunction with LaTeX templates (i.e. 
-templates for journals from Springer and IOP, IEEETran and ACM SIG) that are not compatible with subcaption. 
-These packages give the author the ability to have subfigures within figures, or subtables within table floats. 
-Subfloats have their own caption, and an optional global caption. An example will best illustrate the usage of 
-the subcaption package:
-
-Also see (figure spacing):
-Horizontal spaces between figures are controlled by one of several commands, which are placed in between \begin{subfigure} and \end{subfigure}:
-A non-breaking space (specified by ~ as in the example above) can be used to insert a space in between the subfigs.
-Math spaces: \qquad, \quad, \;, and \,
-Generic space: \hspace{''length''}
-Automatically expanding/contracting space: \hfill
 
