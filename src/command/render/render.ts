@@ -24,7 +24,12 @@ import { runPandoc } from "./pandoc.ts";
 import { kStdOut, RenderFlags, resolveParams } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
-import { kCache, kExecute, kMetadataFormat } from "../../config/constants.ts";
+import {
+  kCache,
+  kExecute,
+  kKeepMd,
+  kMetadataFormat,
+} from "../../config/constants.ts";
 import {
   ExecutionEngine,
   executionEngine,
@@ -68,6 +73,12 @@ export async function render(
     params: resolveParams(flags.executeParams),
     quiet: flags.quiet,
   });
+
+  // keep md if requested
+  const keepMd = engine.keepMd(target.input);
+  if (keepMd && format.render[kKeepMd]) {
+    Deno.copyFileSync(mdOutput, keepMd);
+  }
 
   // merge any pandoc options provided the computation
   format.pandoc = mergeConfigs(format.pandoc || {}, executeResult.pandoc);

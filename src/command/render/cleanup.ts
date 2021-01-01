@@ -37,13 +37,9 @@ export function cleanup(
   tempDir: string,
   keepMd?: string,
 ) {
-  // if we have a keep md then copy to it (otherwise remove any existing version)
-  if (keepMd) {
-    if (format.render[kKeepMd]) {
-      Deno.copyFileSync(mdOutput, keepMd);
-    } else if (keepMd !== finalOutput) {
-      removeIfExists(keepMd);
-    }
+  // cleanup md if necessary
+  if (keepMd && !format.render[kKeepMd] && keepMd !== finalOutput) {
+    removeIfExists(keepMd);
   }
 
   // always get rid of computations output unless we are in debug mode (it's an intermediate file)
