@@ -6,6 +6,9 @@
 */
 
 import {
+  kIncludeAfterBody,
+  kIncludeBeforeBody,
+  kIncludeInHeader,
   kListings,
   kNumberOffset,
   kNumberSections,
@@ -25,4 +28,7 @@ export interface PandocFlags {
   [kNumberSections]?: boolean;
   [kNumberOffset]?: number[];
   [kTopLevelDivision]?: string;
+  [kIncludeInHeader]?: string;
+  [kIncludeBeforeBody]?: string;
+  [kIncludeAfterBody]?: string;
 }

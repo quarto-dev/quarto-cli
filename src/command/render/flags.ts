@@ -103,6 +103,17 @@ export function parseRenderFlags(args: string[]) {
         flags[kTopLevelDivision] = arg;
         break;
 
+      case "--include-in-header":
+      case "--include-before-body":
+      case "--include-after-body": {
+        const include = arg.replace("^--", "");
+        const includeFlags = flags as { [key: string]: string[] };
+        includeFlags[include] = includeFlags[include] || [];
+        arg = argsStack.shift() as string;
+        includeFlags[include].push(arg);
+        break;
+      }
+
       case "--execute":
         flags.execute = true;
         arg = argsStack.shift();
