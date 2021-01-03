@@ -8,7 +8,8 @@ local kHeaderIncludes = "header-includes"
 function ensureHeaderIncludes(doc)
   if not doc.meta[kHeaderIncludes] then
     doc.meta[kHeaderIncludes] = pandoc.MetaList({})
-  elseif doc.meta[kHeaderIncludes].t == "MetaInlines" then
+  elseif doc.meta[kHeaderIncludes].t == "MetaInlines" or 
+         doc.meta[kHeaderIncludes].t == "MetaBlocks" then
     doc.meta[kHeaderIncludes] = pandoc.MetaList({doc.meta[kHeaderIncludes]})
   end
 end
