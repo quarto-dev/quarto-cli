@@ -36,6 +36,7 @@ import {
   kShowWarnings,
   kStandalone,
   kTemplate,
+  kVariables,
   kVariant,
 } from "../config/constants.ts";
 
@@ -97,7 +98,7 @@ export interface FormatPandoc {
   [kOutputFile]?: string;
   standalone?: boolean;
   [kSelfContained]?: boolean;
-  variables?: { [key: string]: unknown };
+  [kVariables]?: { [key: string]: unknown };
   [kAtxHeaders]?: boolean;
   [kMarkdownHeadings]?: boolean;
   [kIncludeBeforeBody]?: string[];

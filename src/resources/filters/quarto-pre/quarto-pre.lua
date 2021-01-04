@@ -14,6 +14,7 @@ function import(script)
   local path = PANDOC_SCRIPT_FILE:match("(.*" .. sep .. ")")
   dofile(path .. script)
 end
+import("includes.lua")
 import("outputs.lua")
 import("latexdiv.lua")
 import("figures.lua")
@@ -30,6 +31,7 @@ import("../common/debug.lua")
 
 return {
   initParams(),
+  readIncludes(),
   combineFilters({
     outputs(),
     latexDiv(),

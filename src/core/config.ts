@@ -16,7 +16,22 @@ export function mergeConfigs<T>(config: T, ...configs: Array<unknown>): T {
     config,
     ...configs,
     (objValue: unknown, srcValue: unknown) => {
-      if (ld.isArray(objValue) && ld.isArray(srcValue)) {
+      if (ld.isArray(objValue) || ld.isArray(srcValue)) {
+        // handle nulls
+        if (!objValue) {
+          return srcValue;
+        } else if (!srcValue) {
+          return objValue;
+          // coerce scalers to array
+        } else {
+          if (!ld.isArray(objValue)) {
+            objValue = [objValue];
+          }
+          if (!ld.isArray(srcValue)) {
+            srcValue = [srcValue];
+          }
+        }
+
         const combined = (objValue as Array<unknown>).concat(
           srcValue as Array<unknown>,
         );

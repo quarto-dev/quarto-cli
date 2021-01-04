@@ -2,21 +2,22 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- constants
-local kHeaderIncludes = "header-includes"
+kHeaderIncludes = "header-includes"
+kIncludeBefore = "include-before"
+kIncludeAfter = "include-after"
 
--- ensure that header-includes is a MetaList
-function ensureHeaderIncludes(doc)
-  if not doc.meta[kHeaderIncludes] then
-    doc.meta[kHeaderIncludes] = pandoc.MetaList({})
-  elseif doc.meta[kHeaderIncludes].t == "MetaInlines" or 
-         doc.meta[kHeaderIncludes].t == "MetaBlocks" then
-    doc.meta[kHeaderIncludes] = pandoc.MetaList({doc.meta[kHeaderIncludes]})
+function ensureIncludes(doc, includes)
+  if not doc.meta[includes] then
+    doc.meta[includes] = pandoc.MetaList({})
+  elseif doc.meta[includes].t == "MetaInlines" or 
+         doc.meta[includes].t == "MetaBlocks" then
+    doc.meta[includes] = pandoc.MetaList({doc.meta[includes]})
   end
 end
 
 -- add a header include as a raw block
-function addHeaderInclude(doc, format, include)
-  doc.meta[kHeaderIncludes]:insert(pandoc.MetaBlocks(pandoc.RawBlock(format, include)))
+function addInclude(doc, format, includes, include)
+  doc.meta[includes]:insert(pandoc.MetaBlocks(pandoc.RawBlock(format, include)))
 end
 
 -- conditionally include a package
@@ -27,9 +28,8 @@ end
 
 function metaInjectLatex(doc, func)
   if isLatexOutput() then
-    ensureHeaderIncludes(doc)
     function inject(tex)
-      addHeaderInclude(doc, "tex", tex)
+      addInclude(doc, "tex", kHeaderIncludes, tex)
     end
     inject("\\makeatletter")
     func(inject)
@@ -39,9 +39,8 @@ end
 
 function metaInjectHtml(doc, func)
   if isHtmlOutput() then
-    ensureHeaderIncludes(doc)
     function inject(html)
-      addHeaderInclude(doc, "html", html)
+      addInclude(doc, "html", kHeaderIncludes, html)
     end
     func(inject)
   end

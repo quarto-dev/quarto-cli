@@ -103,9 +103,13 @@ export const kListings = "listings";
 export const kNumberSections = "number-sections";
 export const kNumberOffset = "number-offset";
 export const kTopLevelDivision = "top-level-division";
+export const kVariables = "variables";
 
 // metadata fields
 export const kBibliography = "bibliography";
+export const kHeaderIncludes = "header-includes";
+export const kIncludeBefore = "include-before";
+export const kIncludeAfter = "include-after";
 
 // https://pandoc.org/MANUAL.html#default-files
 // note: we are keeping some things out of 'defaults' b/ca
@@ -123,7 +127,7 @@ export const kPandocDefaultsKeys = [
   kTemplate,
   kStandalone,
   kSelfContained,
-  "variables",
+  kVariables,
   "metadata",
   "metadata-files",
   "metadata-file",

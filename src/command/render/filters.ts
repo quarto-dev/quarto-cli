@@ -7,9 +7,16 @@
 import {
   kBibliography,
   kFigAlign,
+  kHeaderIncludes,
+  kIncludeAfter,
+  kIncludeAfterBody,
+  kIncludeBefore,
+  kIncludeBeforeBody,
+  kIncludeInHeader,
   kOutputDivs,
+  kVariables,
 } from "../../config/constants.ts";
-import { Format } from "../../config/format.ts";
+import { Format, FormatPandoc } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
 import { pdfEngine } from "../../config/pdf.ts";
 import { resourcePath } from "../../core/resources.ts";
@@ -20,15 +27,31 @@ import {
 } from "./crossref.ts";
 import { layoutFilter, layoutFilterParams } from "./layout.ts";
 import { PandocOptions } from "./pandoc.ts";
+import { removePandocArgs } from "./flags.ts";
+import { ld } from "lodash/mod.ts";
+import { mergeConfigs } from "../../core/config.ts";
 
 const kQuartoParams = "quarto-params";
 
-export function setFilterParams(options: PandocOptions) {
+export function setFilterParams(
+  args: string[],
+  options: PandocOptions,
+  defaults: FormatPandoc | undefined,
+) {
+  // extract include params (possibly mutating it's arguments)
+  const includes = extractIncludeParams(
+    args,
+    options.format.metadata,
+    defaults || {},
+  );
+
   const params: Metadata = {
+    ...includes,
     ...quartoFilterParams(options.format),
     ...crossrefFilterParams(options),
     ...layoutFilterParams(options.format),
   };
+
   options.format.metadata[kQuartoParams] = params;
 }
 
@@ -38,6 +61,82 @@ export function removeFilterParmas(metadata: Metadata) {
 
 export function quartoPreFilter() {
   return resourcePath("filters/quarto-pre/quarto-pre.lua");
+}
+
+function extractIncludeParams(
+  args: string[],
+  metadata: Metadata,
+  defaults: FormatPandoc,
+) {
+  // pull out string based includes
+  const includes = mergeConfigs(
+    extractIncludeVariables(metadata),
+    extractIncludeVariables(defaults.variables || {}),
+  );
+  if (defaults.variables && Object.keys(defaults.variables).length === 0) {
+    delete defaults.variables;
+  }
+
+  // pull out file based includes
+  const inHeaderFiles: string[] = defaults[kIncludeInHeader] || [];
+  const beforeBodyFiles: string[] = defaults[kIncludeAfterBody] ||
+    [];
+  const afterBodyFiles: string[] = defaults[kIncludeBeforeBody] ||
+    [];
+
+  // erase from format/options
+  delete defaults[kIncludeInHeader];
+  delete defaults[kIncludeAfterBody];
+  delete defaults[kIncludeBeforeBody];
+
+  // pull includes out of args
+  for (const arg in args) {
+    switch (arg) {
+      case kIncludeInHeader:
+        inHeaderFiles.push(arg);
+        break;
+      case kIncludeBeforeBody:
+        beforeBodyFiles.push(arg);
+        break;
+      case kIncludeAfterBody:
+        afterBodyFiles.push(arg);
+        break;
+    }
+  }
+
+  // remove includs from args
+  const removeArgs = new Map<string, boolean>();
+  removeArgs.set(kIncludeInHeader, true);
+  removeArgs.set(kIncludeBeforeBody, true);
+  removeArgs.set(kIncludeAfterBody, true);
+  removePandocArgs(args, removeArgs);
+
+  return {
+    ...includes,
+    [kIncludeInHeader]: inHeaderFiles,
+    [kIncludeBeforeBody]: beforeBodyFiles,
+    [kIncludeAfterBody]: afterBodyFiles,
+  };
+}
+
+function extractIncludeVariables(obj: { [key: string]: unknown }) {
+  const extractVariable = (name: string): unknown[] => {
+    const value = obj[name];
+    delete obj[name];
+    if (!value) {
+      return [];
+    } else if (ld.isArray(value)) {
+      return value as unknown[];
+    } else {
+      return [value];
+    }
+  };
+
+  return {
+    [kHeaderIncludes]: extractVariable(kHeaderIncludes),
+    [kIncludeBefore]: extractVariable(kIncludeBefore),
+    [kIncludeAfter]: extractVariable(kIncludeAfter),
+  };
 }
 
 function quartoFilterParams(format: Format) {

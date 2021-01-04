@@ -45,24 +45,6 @@ export async function runPandoc(
   // build the pandoc command (we'll feed it the input on stdin)
   const cmd = [binaryPath("pandoc")];
 
-  // generate defaults and write a defaults file if need be
-  const allDefaults = await generateDefaults(options, sysFilters);
-  if (allDefaults) {
-    const defaultsFile = await writeDefaultsFile(allDefaults);
-    cmd.push("--defaults", defaultsFile);
-  }
-
-  // set parameters required for filters
-  setFilterParams(options);
-
-  // read the input file then append the metadata to the file (this is to that)
-  // our fully resolved metadata, which incorporates project and format-specific
-  // values, overrides the metadata contained within the file). we'll feed the
-  // input to pandoc on stdin
-  const input = Deno.readTextFileSync(options.input) +
-    "\n\n<!-- -->\n" +
-    `\n---\n${stringify(options.format.metadata || {})}\n---\n`;
-
   // build command line args
   const args = [...options.args];
 
@@ -79,16 +61,42 @@ export async function runPandoc(
     args.push("--quiet");
   }
 
+  // save args and metadata so we can print them (we may subsequently edit them)
+  const printArgs = [...args];
+  const printMetadata = ld.cloneDeep(options.format.metadata);
+
+  // generate defaults and write a defaults file if need be
+  const allDefaults = await generateDefaults(options, sysFilters);
+  const printAllDefaults = allDefaults ? ld.cloneDeep(allDefaults) : undefined;
+
+  // set parameters required for filters (possibily mutating all of it's arguments
+  // to pull includes out into quarto parameters so they can be merged)
+  setFilterParams(args, options, allDefaults);
+
+  // write the defaults file
+  if (allDefaults) {
+    const defaultsFile = await writeDefaultsFile(allDefaults);
+    cmd.push("--defaults", defaultsFile);
+  }
+
+  // read the input file then append the metadata to the file (this is to that)
+  // our fully resolved metadata, which incorporates project and format-specific
+  // values, overrides the metadata contained within the file). we'll feed the
+  // input to pandoc on stdin
+  const input = Deno.readTextFileSync(options.input) +
+    "\n\n<!-- -->\n" +
+    `\n---\n${stringify(options.format.metadata || {})}\n---\n`;
+
   // add user command line args
   cmd.push(...args);
 
   // print full resolved input to pandoc
   if (!options.flags?.quiet && options.format.metadata) {
     runPandocMessage(
-      args,
-      allDefaults,
+      printArgs,
+      printAllDefaults,
       sysFilters,
-      options.format.metadata,
+      printMetadata,
     );
   }
 
