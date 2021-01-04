@@ -228,8 +228,8 @@ def cell_execute(client, cell, index, execution_count, store_history):
       if allow_errors_tag in tags:
         cell["metadata"]["tags"].remove('raises-exception')
 
-   else:
-      cell.execution_count = execution_count
+   # update execution count
+   cell.execution_count = execution_count
 
    # return cell
    return cell
