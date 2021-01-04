@@ -18,13 +18,7 @@ Quarto
 
 - Authors metadata standard 
 
-- Should we convert include-in-header to header-includes (or vice versa) to eliminate the conflict
-- also convert top level header-includes, etc.
-  (command line options overwrite metadata options)
 - knit_meta for latex packages? Could use this immedidately for animate
-- see http://lierdakil.github.io/pandoc-crossref/#latex-output-and---include-in-header
-- Injected HTML in meta.lua gets overridden whenever we use include-in-header in the
-defaults file (e.g. for  htmlwidgets). Use temp file?
 
 - Jupyter performance / kernel startup time
   Tornado has no dependencies and supports autoreload:
