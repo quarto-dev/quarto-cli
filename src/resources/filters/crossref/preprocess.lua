@@ -75,6 +75,12 @@ function preprocess()
           local parentId = nil
           if hasFigureOrTableRef(el) then
             parentId = el.attr.identifier
+            
+            -- provide error caption if there is none
+            if not refCaptionFromDiv(el) then
+              local err = pandoc.Para(noCaption())
+              el.content:insert(err)
+            end
           end
           doc.blocks[i] = pandoc.walk_block(el, walkRefs(parentId))
         end
