@@ -19,16 +19,12 @@ import {
 import { includeOutput } from "./tags.ts";
 
 export function cellLabel(cell: JupyterCell) {
-  const label = (cell.metadata[kCellLabel] || cell.metadata[kCellName] || "")
-    .toLowerCase();
-  // apply pandoc auto-identifier treatment (but allow prefix)
-  return label.replace(/(^#?\w+\:)?(.*)$/, (str, p1, p2) => {
-    // ensure that we start with #
-    if (p1 && !p1.startsWith("#")) {
-      p1 = "#" + p1;
-    }
-    return (p1 || "") + pandocAutoIdentifier(p2, true);
-  });
+  const label = (cell.metadata[kCellLabel] || cell.metadata[kCellName] || "");
+  if (label && !label.startsWith("#")) {
+    return "#" + label;
+  } else {
+    return label;
+  }
 }
 
 // validate unique labels

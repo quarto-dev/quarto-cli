@@ -56,6 +56,7 @@ import {
 import { widgetIncludeFiles } from "./widgets.ts";
 import { removeAndPreserveHtml } from "./preserve.ts";
 import { FormatExecution } from "../../config/format.ts";
+import { pandocAutoIdentifier } from "../pandoc/pandoc_id.ts";
 
 export const kCellCollapsed = "collapsed";
 export const kCellAutoscroll = "autoscroll";
@@ -434,7 +435,9 @@ function mdFromCodeCell(
     const labelName = label
       ? label.replace(/^#/, "").replaceAll(":", "-")
       : ("cell-" + (cellIndex + 1));
-    const outputName = labelName + "-output";
+
+    // strip spaces, special characters, etc. for latex friendly paths
+    const outputName = pandocAutoIdentifier(labelName, true) + "-output";
 
     let nextOutputSuffix = 1;
     for (
