@@ -68,6 +68,9 @@ function metaInject()
     margin-top: 0;
     margin-bottom: 0;
   }
+  figure > figcaption {
+    margin-top: 0.5em;
+  }
 </style>
 ]]
           )
