@@ -100,17 +100,16 @@ export const jupyterEngine: ExecutionEngine = {
     const target = await notebookTarget();
     if (target) {
       let notebook = pairedPath(target.paired, isNotebook);
+
       // track whether the notebook is transient or a permanent artifact
-      let transient = false;
+      const transient = !notebook;
+
       // sync if there are paired represenations in play (wouldn't sync if e.g.
       // this was just a plain .ipynb file w/ no jupytext peers)
       if (target.sync) {
         // progress
-        if (!quiet) {
+        if (!quiet && !transient) {
           const pairedExts = target.paired.map((p) => extname(p).slice(1));
-          if (!notebook) {
-            pairedExts.push("ipynb");
-          }
           message(
             "[jupytext] " + "Syncing " + pairedExts.join(",") + "...",
             { newline: false },
@@ -124,7 +123,6 @@ export const jupyterEngine: ExecutionEngine = {
 
         // if there is no paired notebook then create a transient one
         if (!notebook) {
-          transient = true;
           // if there is no kernelspec in the source, then set to the
           // curret default python kernel
           const setKernel = !(yaml.jupyter as Record<string, unknown>)
@@ -141,7 +139,7 @@ export const jupyterEngine: ExecutionEngine = {
         }
       }
 
-      if (!quiet) {
+      if (!quiet && !transient) {
         message("Done");
       }
 
@@ -176,6 +174,11 @@ export const jupyterEngine: ExecutionEngine = {
 
     // execute if we need to
     if (options.format.execution[kExecute] === true) {
+      // progress
+      if (!options.quiet) {
+        message("Starting Jupyter kernel...");
+      }
+
       // execute the notebook (save back in place)
       result = await execProcess(
         {
