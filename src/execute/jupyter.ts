@@ -70,14 +70,20 @@ export const jupyterEngine: ExecutionEngine = {
   name: "jupyter",
 
   handle: async (file: string, quiet: boolean) => {
+    const yaml = readYamlFromMarkdownFile(file);
+
     const notebookTarget = async () => {
       // if it's an .Rmd or .md file, then read the YAML to see if has jupytext,
       // if it does, check for a paired notebook and return it
       const ext = extname(file);
       if (kJupytextMdExtensions.includes(ext)) {
-        if (isJupytextMd(file)) {
-          const paired = await pairedPaths(file);
-          return { sync: true, paired: [file, ...paired] };
+        if (yaml.jupyter) {
+          if (!(yaml.jupyter as Record<string, unknown>).jupytext) {
+            return { sync: true, paired: [file] };
+          } else {
+            const paired = await pairedPaths(file);
+            return { sync: true, paired: [file, ...paired] };
+          }
         }
       } // if it's a code file, then check for a paired notebook and return it
       else if (kCodeExtensions.includes(ext)) {
@@ -121,8 +127,8 @@ export const jupyterEngine: ExecutionEngine = {
           transient = true;
           // if there is no kernelspec in the source, then set to the
           // curret default python kernel
-          const filtered = filteredMetadata(target.paired);
-          const setKernel = filtered.includes("kernelspec");
+          const setKernel = !(yaml.jupyter as Record<string, unknown>)
+            ?.kernelspec;
           const [fileDir, fileStem] = dirAndStem(file);
           notebook = join(fileDir, fileStem + ".ipynb");
           await jupytextTo(
@@ -251,11 +257,6 @@ export const jupyterEngine: ExecutionEngine = {
   },
 };
 
-function isJupytextMd(file: string) {
-  const yaml = readYamlFromMarkdownFile(file);
-  return Object.keys(yaml).includes("jupyter");
-}
-
 function filteredMetadata(paired: string[]) {
   // if there is a markdown file in the paried representations that doesn't have
   // the jupytext text_representation & notebook_metadata_filter fields then
@@ -268,24 +269,18 @@ function filteredMetadata(paired: string[]) {
       any
     >;
     const filter: string[] = [];
-    if (!yaml.jupyter?.kernelspec) {
-      filter.push("kernelspec");
+
+    if (!yaml.jupyter?.jupytext?.text_representation.format_version) {
+      filter.push("jupytext.text_representation.format_version");
     }
-    if (!yaml.jupyter?.jupytext) {
-      filter.push("jupytext");
-    } else {
-      if (!yaml.jupyter?.jupytext?.formats) {
-        filter.push("jupytext.formats");
-      }
-      if (!yaml.jupyter?.jupytext?.text_representation) {
-        filter.push("jupytext.text_representation");
-      }
-      if (!yaml.jupyter?.jupytext?.notebook_metadata_filter) {
-        filter.push("jupytext.notebook_metadata_filter");
-      }
-      if (!yaml.jupyter?.jupytext?.main_language) {
-        filter.push("jupytext.main_language");
-      }
+    if (!yaml.jupyter?.jupytext?.text_representation.jupytext_version) {
+      filter.push("jupytext.text_representation.jupytext_version");
+    }
+    if (!yaml.jupyter?.jupytext?.notebook_metadata_filter) {
+      filter.push("jupytext.notebook_metadata_filter");
+    }
+    if (!yaml.jupyter?.jupytext?.main_language) {
+      filter.push("jupytext.main_language");
     }
 
     return filter;
