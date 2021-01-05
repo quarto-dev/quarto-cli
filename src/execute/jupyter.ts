@@ -179,6 +179,21 @@ export const jupyterEngine: ExecutionEngine = {
         message("Starting Jupyter kernel...");
       }
 
+      // execute the notebook
+      const start = performance.now();
+
+      const response = await fetch("http://localhost:7777/execute", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(options),
+      });
+
+      const end = performance.now();
+      console.log(end - start);
+
+      /*
       // execute the notebook (save back in place)
       result = await execProcess(
         {
@@ -190,6 +205,7 @@ export const jupyterEngine: ExecutionEngine = {
         },
         JSON.stringify(options),
       );
+      */
     }
 
     // convert to markdown

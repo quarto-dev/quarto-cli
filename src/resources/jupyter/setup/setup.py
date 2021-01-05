@@ -1,3 +1,7 @@
+
+# reset state
+%reset
+
 # figure size/format
 fig_width = {0}
 fig_height = {1}
