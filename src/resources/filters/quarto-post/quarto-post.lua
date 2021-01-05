@@ -14,6 +14,8 @@ function import(script)
   local path = PANDOC_SCRIPT_FILE:match("(.*" .. sep .. ")")
   dofile(path .. script)
 end
+import("latexdiv.lua")
+import("foldcode.lua")
 import("../common/params.lua")
 import("../common/table.lua")
 import("../common/pandoc.lua")
@@ -23,7 +25,11 @@ import("../common/debug.lua")
 
 
 return {
-  initParams()
+  initParams(),
+  combineFilters({
+    latexDiv(),
+    foldCode()
+  })
 }
 
 

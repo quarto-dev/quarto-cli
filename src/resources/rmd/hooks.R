@@ -184,6 +184,10 @@ knitr_hooks <- function(format) {
     } else {
       id = NULL
     }
+    fold <- options[["fold"]]
+    if (!is.null(fold)) {
+      attr <- paste(attr, paste0('fold="', as.character(fold), '"'))
+    }
     attrs <- block_attr(
       id = id,
       lang = tolower(options$engine),

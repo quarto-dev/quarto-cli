@@ -16,7 +16,6 @@ function import(script)
 end
 import("includes.lua")
 import("outputs.lua")
-import("latexdiv.lua")
 import("figures.lua")
 import("../common/params.lua")
 import("../common/meta.lua")
@@ -34,7 +33,6 @@ return {
   readIncludes(),
   combineFilters({
     outputs(),
-    latexDiv(),
     figures()
   })
 }

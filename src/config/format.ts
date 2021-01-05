@@ -16,6 +16,7 @@ import {
   kFigAlign,
   kFigDpi,
   kFilters,
+  kFoldCode,
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
@@ -74,6 +75,7 @@ export interface FormatRender {
   [kOutputExt]?: string;
   [kPageWidth]?: number;
   [kFigAlign]?: "left" | "right" | "center" | "default";
+  [kFoldCode]?: boolean | string;
 }
 
 export interface FormatExecution {
@@ -470,6 +472,7 @@ function defaultFormat(): Format {
       [kOutputDivs]: true,
       [kOutputExt]: "html",
       [kFigAlign]: "center",
+      [kFoldCode]: false,
     },
     pandoc: {
       from: "markdown",

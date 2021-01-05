@@ -7,6 +7,7 @@
 import {
   kBibliography,
   kFigAlign,
+  kFoldCode,
   kHeaderIncludes,
   kIncludeAfter,
   kIncludeAfterBody,
@@ -14,7 +15,6 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
   kOutputDivs,
-  kVariables,
 } from "../../config/constants.ts";
 import { Format, FormatPandoc } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
@@ -150,6 +150,10 @@ function quartoFilterParams(format: Format) {
   const figAlign = format.render[kFigAlign];
   if (figAlign) {
     params[kFigAlign] = figAlign;
+  }
+  const foldCode = format.render[kFoldCode];
+  if (foldCode) {
+    params[kFoldCode] = foldCode;
   }
   return params;
 }
