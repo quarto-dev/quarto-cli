@@ -24,6 +24,7 @@ from pathlib import Path
 import nbformat
 from nbclient import NotebookClient
 
+import tornado
 from tornado.ioloop import IOLoop
 from tornado.web import Application, RequestHandler
 
@@ -62,11 +63,10 @@ def notebook_init(nb, resources, allow_errors):
    return notebook_init.client
 
 
-def notebook_execute(input, format, params, run_path, resource_dir, quiet):
+async def notebook_execute(input, format, params, run_path, resource_dir, status):
 
-    # progress
-   if not quiet:
-      sys.stderr.write("\nExecuting '{0}'\n".format(input))
+   # progress
+   await status("\nExecuting '{0}'\n".format(input))
 
    # read variables out of format
    execute = format["execution"]
@@ -107,8 +107,7 @@ def notebook_execute(input, format, params, run_path, resource_dir, quiet):
          if cached_nb:
             cached_nb.cells.pop(0)
             nb_write(cached_nb, input)
-            if not quiet:
-                sys.stderr.write("(Notebook read from cache)\n\n")
+            await status("(Notebook read from cache)\n\n")
             return
    else:
       nb_cache = None
@@ -128,12 +127,12 @@ def notebook_execute(input, format, params, run_path, resource_dir, quiet):
    # execute the cells
    for index, cell in enumerate(client.nb.cells):
       # progress
-      progress = not quiet and cell.cell_type == 'code' and index > 0
+      progress = cell.cell_type == 'code' and index > 0
       if progress:
-         sys.stderr.write("  Cell {0}/{1}...".format(
-            current_code_cell- 1, total_code_cells - 1)
-         )
-
+         await status("  Cell {0}/{1}...".format(
+            current_code_cell- 1, total_code_cells - 1
+         ))
+         
       # clear cell output
       cell = cell_clear_output(cell)
 
@@ -152,7 +151,7 @@ def notebook_execute(input, format, params, run_path, resource_dir, quiet):
 
       # end progress
       if progress:
-         sys.stderr.write("Done\n")  
+         await status("Done\n")
 
    # set widgets metadata   
    client.set_widgets_metadata()
@@ -169,8 +168,7 @@ def notebook_execute(input, format, params, run_path, resource_dir, quiet):
    nb_write(client.nb, input)
 
    # progress
-   if not quiet:
-      sys.stderr.write("\n")
+   await status("\n")
 
 
 
@@ -338,36 +336,42 @@ def find_first_tagged_cell_index(nb, tag):
 
 
 class JupyterHandler(RequestHandler):
-  def prepare(self):
-    if self.request.headers.get("Content-Type", "").startswith("application/json"):
-      self.json_args = json.loads(self.request.body)
-    else:
-      self.json_args = None
+   def prepare(self):
+      if self.request.headers.get("Content-Type", "").startswith("application/json"):
+         self.json_args = json.loads(self.request.body)
+      else:
+         self.json_args = None
 
 class ExecuteHandler(JupyterHandler):
-  def post(self):
+  
+   async def post(self):
 
-    input = self.json_args["target"]["input"]
-    format = self.json_args["format"]
-    resource_dir = self.json_args["resourceDir"]
-    params = self.json_args.get("params", None)
-    run_path = self.json_args.get("cwd", "")
-    quiet = self.json_args.get('quiet', False)
+      input = self.json_args["target"]["input"]
+      format = self.json_args["format"]
+      resource_dir = self.json_args["resourceDir"]
+      params = self.json_args.get("params", None)
+      run_path = self.json_args.get("cwd", "")
+      quiet = self.json_args.get('quiet', False)
 
-    # change working directory and strip dir off of paths
-    oldwd = os.getcwd()
-    os.chdir(Path(input).parent)
-    input = Path(input).name
+      # change working directory and strip dir off of paths
+      oldwd = os.getcwd()
+      os.chdir(Path(input).parent)
+      input = Path(input).name
 
-    try:
-      notebook_execute(input, format, params, run_path, resource_dir, quiet)
-    finally:
-      os.chdir(oldwd)
+      try:
+         async def status(msg):
+            self.write(msg)
+            await self.flush()
+
+         await notebook_execute(input, format, params, run_path, resource_dir, status)
+         
+      finally:
+         os.chdir(oldwd)
 
 if __name__ == "__main__":
-  app = Application([
-    (r"/execute", ExecuteHandler)
-  ])
-  app.listen(7777)
+   app = Application([
+      (r"/execute", ExecuteHandler)
+   ])
+   app.listen(7777)
 
-  IOLoop.current().start()
+   IOLoop.current().start()
