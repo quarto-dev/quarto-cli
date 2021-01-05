@@ -5,7 +5,7 @@
 *
 */
 import { join } from "path/mod.ts";
-import { copySync, emptyDirSync, ensureDirSync } from "fs/mod.ts";
+import { copySync, emptyDirSync, ensureDirSync, walk } from "fs/mod.ts";
 
 import { Configuration } from "../common/config.ts";
 import { runCmd } from "../util/cmd.ts";
@@ -43,7 +43,7 @@ export async function makeInstallerDeb(
   log.info(`Preparing share directory ${workingSharePath}`);
   copySync(configuration.dirs.share, workingSharePath, { overwrite: true });
 
- 
+
   // Debian File
   log.info("writing debian-binary")
   const debianFile = join(workingDir, "debian-binary");
@@ -61,9 +61,20 @@ export async function makeInstallerDeb(
     log,
   );
 
+
+
   const val = (name: string, value: string): string => {
     return `${name}: ${value}\n`;
   };
+
+  // Calculate the install size
+  const fileSizes = [];
+  for await (const entry of walk(configuration.dirs.dist)) {
+    if (entry.isFile) {
+      fileSizes.push((await Deno.stat(entry.path)).size);
+    }
+  }
+  const size = fileSizes.reduce((accum, target) => { return accum + target; });
 
   // Make the control file
   log.info("Creating control file");
@@ -71,9 +82,11 @@ export async function makeInstallerDeb(
   control = control + val("Package", configuration.productname);
   control = control + val("Version", configuration.version);
   control = control + val("Architecture", architecture);
+  control = control + val("Installed-Size", `${Math.round(size / 1024)}`);
   control = control + val("Section", "user/text");
   control = control + val("Priority", "optional");
   control = control + val("Maintainer", "RStudio, PBC <quarto@rstudio.org>");
+  control = control + val("Homepage", "https://rstudio.com");
   control = control +
     val(
       "Description",
@@ -81,10 +94,11 @@ export async function makeInstallerDeb(
     );
   log.info(control);
 
+
   // Place 
   const debianDir = join(workingDir, "DEBIAN");
   ensureDirSync(debianDir);
-  
+
   // Write the control file to the DEBIAN directory
   Deno.writeTextFileSync(join(debianDir, "control"), control);
 
@@ -92,15 +106,15 @@ export async function makeInstallerDeb(
   log.info("Copying install scripts...")
   copySync(join(configuration.dirs.pkg, "scripts", "linux", "deb"), debianDir, { overwrite: true });
 
-  await runCmd("dpkg-deb", 
-                [
-                  "-Z", "gzip", 
-                  "-z", "9", 
-                  "--build", 
-                  workingDir, 
-                  join(configuration.dirs.out, configuration.pkgConfig.name)
-                ], 
-                log);
+  await runCmd("dpkg-deb",
+    [
+      "-Z", "gzip",
+      "-z", "9",
+      "--build",
+      workingDir,
+      join(configuration.dirs.out, configuration.pkgConfig.name)
+    ],
+    log);
 
   // Remove the working directory
   Deno.removeSync(workingDir, { recursive: true });
