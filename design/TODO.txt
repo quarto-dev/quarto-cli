@@ -1,11 +1,7 @@
 
 
-Quarto
+Paired
 ---------------------------
-
-  code-fold: true | false | caption
-  code.fold = "Show code"
-  get rid of hide-code entirely
 
 - Jupyter performance / kernel startup time
   Tornado has no dependencies and supports autoreload:
@@ -24,15 +20,6 @@ Project system:
   - External interactions with projects (output_dir, clean, etc.)
   - website / book format variations
 
-Blogging:
-  - WordPress (https://developer.wordpress.com/docs/api/)
-  - Ghost?
-
-
-  
-LaTeX
----------------------------
-
 - We don't seem to be able to render latex quite the same way that knitr does,
 e.g.:
 library(flextable)
@@ -40,35 +27,6 @@ ft <- flextable(head(mtcars))
 ft <- autofit(ft)
 ft
 - Why did Beamer fail to render w/ missing caption package w/ our pipeline but work for pandoc pdflatex?
-
-Port tinytex to JS; OR we need to implmeent various auto-install behaviors for latexmk, eg.
-  had to do this to get biblatex working w/ latexmk
-  (may want to automate installation if no biber + auto-map TinyTeX to path)
-    tlmgr install biblatex
-    tlmgr install biber
-    ln -sf /Users/jjallaire/Library/TinyTeX/bin/x86_64-darwin/biber /usr/local/bin/biber
-Note need to implement tinytex: false and tinytex options (e.g. min-runs, clean, output-dir, etc.)
-
-
-v0.1
------------------------------------------
-
-- Basic docs (could even be private)
- 
-- Installer
-
-Pandoc-powered academic, scientific, and technical publishing. Quarto is pandoc plus:
-1) Integrated output from R, Python, and Julia via seamless integration with knitr and Jupyter
-2) Ciations via pandoc citeproc
-3) Cross references for figures, tables, equations, sections, listings, proofs, and more.
-4) Sophisticated figure layout
-5) Long form publishing (websites, books, manuscripts, etc.)
-
-
-Future
------------------------------------------
-
-# Package/extension system
 
 A 'format' is a director or zip file which is:
   - Located in the _quarto directory
@@ -85,26 +43,49 @@ bs4-article
 bs4-website
 bs4-book
 
+{{ pagebreak }}
+{{= print("x") }}
+{{< figure projections.xlsx#chunk-label caption="asfdasdf" label="myplot" >}}
+{{< table projections.xlsx#fy-2019 label="projections" label="">}}
+{{< text notebook.Rmd##chunk-label >}}
+{{< tweet https://twitter.com/foo/status/34453323455 >}}
+{{< video https://youtube.com/foo/status/34453323455 >}}
 
-Lua sandbox: https://stackoverflow.com/questions/1224708/how-can-i-create-a-secure-lua-sandbox
+
+Charles
+-----------------------------
+
+- Installer
+
+- WordPress (https://developer.wordpress.com/docs/api/)
+
+- Port tinytex to JS; OR we need to implmeent various auto-install behaviors for latexmk, eg.
+  had to do this to get biblatex working w/ latexmk
+  (may want to automate installation if no biber + auto-map TinyTeX to path)
+    tlmgr install biblatex
+    tlmgr install biber
+    ln -sf /Users/jjallaire/Library/TinyTeX/bin/x86_64-darwin/biber /usr/local/bin/biber
+Note need to implement tinytex: false and tinytex options (e.g. min-runs, clean, output-dir, etc.)
 
 
+v0.1
+-----------------------------------------
 
-- Macros
-  
-  {{ pagebreak }}
+- Basic docs (could even be private)
+ 
 
-  {{= print("x") }}
+Pandoc-powered academic, scientific, and technical publishing. Quarto is pandoc plus:
+1) Integrated output from R, Python, and Julia via seamless integration with knitr and Jupyter
+2) Ciations via pandoc citeproc
+3) Cross references for figures, tables, equations, sections, listings, proofs, and more.
+4) Sophisticated figure layout
+5) Long form publishing (websites, books, manuscripts, etc.)
 
-  {{< figure projections.xlsx#chunk-label caption="asfdasdf" label="myplot" >}}
 
-  {{< table projections.xlsx#fy-2019 label="projections" label="">}}
+Future
+-----------------------------------------
 
-  {{< text notebook.Rmd##chunk-label >}}
 
-  {{< tweet https://twitter.com/foo/status/34453323455 >}}
-
-  {{< video https://youtube.com/foo/status/34453323455 >}}
 
 
 - RStudio IDE Visual Editor for quarto
