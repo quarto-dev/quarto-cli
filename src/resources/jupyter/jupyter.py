@@ -1,6 +1,22 @@
 # jupyter.py
 # Copyright (C) 2020 by RStudio, PBC
 
+# TODO: turn this into a server:
+#   - tornado domain sockets (unix) and signed socket (windows)
+#   - provision per document based on shared file (either socket file or key/port file)
+#   - autoreload on packages changed
+#   - stream back progress to client
+#   - persistent kernel that we clear the contents of. 
+#     (if the kernel changes reload)
+#   - configureable timeout (~10 minutes)
+#   - need to execute code within the kernel to 
+#     check whether it needs to shutdown
+#   - clear outputs and workspace before executing: 
+#     https://ipython.readthedocs.io/en/stable/interactive/magics.html?highlight=magic#magic-reset
+#     https://stackoverflow.com/questions/26545051/is-there-a-way-to-delete-created-variables-functions-etc-from-the-memory-of-th
+#   - render command line parameter to force new kernel 
+#      (or could detect long running time and/or errors)
+
 import os
 import copy
 import sys
