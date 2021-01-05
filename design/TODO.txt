@@ -3,22 +3,9 @@
 Quarto
 ---------------------------
 
-- Consider yaml for chunk options
-
-- Consider lst.display="details" to indicate you want the code in <details>. Wrap source in details w/ summary from lst.cap
-  (may need some JavaScript to expand <details> on clicking cross reference). Could also make available a show all / hide all
-  function that templates could call.
-
-- If we use pandoc div syntax in a file with jupytext: formats: md,ipynb then we get auto-detected as pandoc markdown
-  md:markdown is what we need, however it seems like we might also need the kernelspec stuff or other stuff 
-  when we do this.
-
-- Generally, validity of labels (don't want under the hood transformations to 
-  affect addressabilty)
-
-- Authors metadata standard 
-
-- knit_meta for latex packages? Could use this immedidately for animate
+  code-fold: true | false | caption
+  code.fold = "Show code"
+  get rid of hide-code entirely
 
 - Jupyter performance / kernel startup time
   Tornado has no dependencies and supports autoreload:
@@ -89,6 +76,8 @@ A 'format' is a director or zip file which is:
   - Arbitrary other files that can be referenced (relatively) by the format YAML
 
 Port a dozen or rticles formats
+  - Authors metadata standard 
+
 # markdown for bootstrap concepts/constructs
 # standalone document formats
 bs4-notebook
@@ -150,3 +139,10 @@ rmarkdown::run b/c we need to figure out which Rmd to render
 Meta-concepts on top of AST: e.g. tabs
 
 
+
+Future
+---------------------------------------------
+
+- Consider yaml for chunk options
+    * knitr
+    * jupytext pr
