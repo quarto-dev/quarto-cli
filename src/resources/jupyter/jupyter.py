@@ -1,23 +1,21 @@
-# jupyter.py
-# Copyright (C) 2020 by RStudio, PBC
 
 # TODO: turn this into a server:
 #   - tornado domain sockets (unix) and signed socket (windows)
 #   - provision per document based on shared file (either socket file or key/port file)
 #   - autoreload on packages changed
 #   - stream back progress to client
-#   - persistent kernel that we clear the contents of. 
 #     (if the kernel changes reload)
 #   - configureable timeout (~10 minutes)
 #   - need to execute code within the kernel to 
 #     check whether it needs to shutdown
 #   - clear outputs and workspace before executing: 
-#     https://ipython.readthedocs.io/en/stable/interactive/magics.html?highlight=magic#magic-reset
-#     https://stackoverflow.com/questions/26545051/is-there-a-way-to-delete-created-variables-functions-etc-from-the-memory-of-th
 #   - render command line parameter to force new kernel 
 #      (or could detect long running time and/or errors)
+#   - working dir issues (pass full path)
+
 
 import os
+import atexit
 import copy
 import sys
 import json
@@ -26,6 +24,8 @@ from pathlib import Path
 
 import nbformat
 from nbclient import NotebookClient
+
+import socketserver
 
 # optional import of papermill for params support
 try:
@@ -41,11 +41,43 @@ except ImportError:
 
 NB_FORMAT_VERSION = 4
 
-def notebook_execute(input, format, params, run_path, resource_dir, quiet):
+def notebook_init(nb, resources, allow_errors):
 
-    # progress
-   if not quiet:
-      sys.stderr.write("\nExecuting '{0}'\n".format(input))
+   if not hasattr(notebook_init, "client"):
+      client = NotebookClient(nb, resources = resources)
+      client.allow_errors = allow_errors
+      client.record_timing = False
+      client.create_kernel_manager()
+      client.start_new_kernel()
+      client.start_new_kernel_client()
+      info_msg = client.wait_for_reply(client.kc.kernel_info())
+      client.nb.metadata['language_info'] = info_msg['content']['language_info']
+      atexit.register(client._cleanup_kernel)
+      notebook_init.client = client
+   else:
+      notebook_init.client.nb = nb
+      notebook_init.client.resources = resources
+      notebook_init.client.allow_errors = allow_errors
+
+   return notebook_init.client
+
+
+def notebook_execute(options, status):
+
+   # unpack options
+   input = options["target"]["input"]
+   format = options["format"]
+   resource_dir = options["resourceDir"]
+   params = options.get("params", None)
+   run_path = options.get("cwd", "")
+   quiet = options.get('quiet', False)
+
+   # change working directory and strip dir off of paths
+   os.chdir(Path(input).parent)
+   input = Path(input).name
+
+   # progress
+   status("\nExecuting '{0}'\n".format(input))
 
    # read variables out of format
    execute = format["execution"]
@@ -86,8 +118,7 @@ def notebook_execute(input, format, params, run_path, resource_dir, quiet):
          if cached_nb:
             cached_nb.cells.pop(0)
             nb_write(cached_nb, input)
-            if not quiet:
-                sys.stderr.write("(Notebook read from cache)\n\n")
+            status("(Notebook read from cache)\n\n")
             return
    else:
       nb_cache = None
@@ -98,48 +129,40 @@ def notebook_execute(input, format, params, run_path, resource_dir, quiet):
       resources["metadata"] = { "path": run_path }
 
    # create NotebookClient
-   client = NotebookClient(nb, resources = resources)
-   client.allow_errors = allow_errors
-   client.record_timing = False
+   client = notebook_init(nb, resources, allow_errors)
+      
+   # compute total code cells (for progress)
+   current_code_cell = 1
+   total_code_cells = sum(cell.cell_type == 'code' for cell in client.nb.cells)
 
-   # run 
-   with client.setup_kernel():
-      # set language_info
-      info_msg = client.wait_for_reply(client.kc.kernel_info())
-      client.nb.metadata['language_info'] = info_msg['content']['language_info']
+   # execute the cells
+   for index, cell in enumerate(client.nb.cells):
+      # progress
+      progress = cell.cell_type == 'code' and index > 0
+      if progress:
+         status("  Cell {0}/{1}...".format(
+            current_code_cell- 1, total_code_cells - 1
+         ))
+         
+      # clear cell output
+      cell = cell_clear_output(cell)
 
-      # compute total code cells (for progress)
-      current_code_cell = 1
-      total_code_cells = sum(cell.cell_type == 'code' for cell in client.nb.cells)
+      # execute cell
+      client.nb.cells[index] = cell_execute(
+         client, 
+         cell, 
+         index, 
+         current_code_cell,
+         index > 0 # add_to_history
+      )
 
-      # execute the cells
-      for index, cell in enumerate(client.nb.cells):
-         # progress
-         progress = not quiet and cell.cell_type == 'code' and index > 0
-         if progress:
-            sys.stderr.write("  Cell {0}/{1}...".format(
-               current_code_cell- 1, total_code_cells - 1)
-            )
+      # increment current code cell
+      if cell.cell_type == 'code':
+         current_code_cell += 1
 
-         # clear cell output
-         cell = cell_clear_output(cell)
-
-         # execute cell
-         client.nb.cells[index] = cell_execute(
-            client, 
-            cell, 
-            index, 
-            current_code_cell,
-            index > 0 # add_to_history
-         )
-
-         # increment current code cell
-         if cell.cell_type == 'code':
-            current_code_cell += 1
-
-         # end progress
-         if progress:
-            sys.stderr.write("Done\n")  
+      # end progress
+      if progress:
+         status("Done\n")
 
    # set widgets metadata   
    client.set_widgets_metadata()
@@ -156,8 +179,8 @@ def notebook_execute(input, format, params, run_path, resource_dir, quiet):
    nb_write(client.nb, input)
 
    # progress
-   if not quiet:
-      sys.stderr.write("\n")
+   status("\n")
+
 
 
 def nb_write(nb, input):
@@ -245,7 +268,8 @@ def cell_execute(client, cell, index, execution_count, store_history):
         cell["metadata"]["tags"].remove('raises-exception')
 
    # update execution count
-   cell.execution_count = execution_count
+   if cell.cell_type == 'code':
+      cell.execution_count = execution_count
 
    # return cell
    return cell
@@ -321,23 +345,46 @@ def find_first_tagged_cell_index(nb, tag):
       return -1
    return parameters_indices[0]
 
-# main
-if __name__ == "__main__":
+
+
+class ExecuteHandler(socketserver.StreamRequestHandler):
   
-   # read args from stdin
-   input_json = json.load(sys.stdin)
-   input = input_json["target"]["input"]
-   format = input_json["format"]
-   resource_dir = input_json["resourceDir"]
-   params = input_json.get("params", None)
-   run_path = input_json.get("cwd", "")
-   quiet = input_json.get('quiet', False)
+   def handle(self):
 
-   # change working directory and strip dir off of paths
-   oldwd = os.getcwd()
-   os.chdir(Path(input).parent)
-   input = Path(input).name
+      # read options
+      input = str(self.rfile.readline().strip(), 'utf-8')
+      options = json.loads(input)
+      
+      # stream status back to client
+      def status(msg):
+         self.wfile.write(bytearray(msg, 'utf-8'))
+         self.wfile.flush()
 
-   # execute in place
-   notebook_execute(input, format, params, run_path, resource_dir, quiet)
+      # execute notebook
+      notebook_execute(options, status)
+
+
+if __name__ == "__main__":
+
+   # see if we are in server mode
+   if "--serve" in sys.argv:
+      HOST, PORT = "localhost", 6672
+      with socketserver.TCPServer((HOST, PORT), ExecuteHandler) as server:  
+         server.serve_forever()
+      
+   else:
+
+      # read options 
+      options = json.load(sys.stdin)
+
+      # stream status to stderr
+      def status(msg):
+         sys.stderr.write(msg)
+
+      # execute notebook
+      notebook_execute(options, status)
+
+     
+
+   
 

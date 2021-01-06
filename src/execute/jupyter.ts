@@ -179,6 +179,7 @@ export const jupyterEngine: ExecutionEngine = {
         message("Starting Jupyter kernel...");
       }
 
+      /*
       const conn = await Deno.connect({ hostname: "127.0.0.1", port: 6672 });
       await conn.write(
         new TextEncoder().encode(JSON.stringify(options) + "\n"),
@@ -190,15 +191,14 @@ export const jupyterEngine: ExecutionEngine = {
         if (bytesRead === null) {
           break;
         }
-
         if (bytesRead > 0) {
           await Deno.stderr.write(buffer.slice(0, bytesRead));
         }
       }
 
       conn.close();
+      */
 
-      /*
       // execute the notebook (save back in place)
       result = await execProcess(
         {
@@ -210,7 +210,6 @@ export const jupyterEngine: ExecutionEngine = {
         },
         JSON.stringify(options),
       );
-      */
     }
 
     // convert to markdown
