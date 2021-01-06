@@ -3,7 +3,6 @@
 #   - tornado domain sockets (unix) and signed socket (windows)
 #   - provision per document based on shared file (either socket file or key/port file)
 #   - autoreload on packages changed
-#   - stream back progress to client
 #     (if the kernel changes reload)
 #   - configureable timeout (~10 minutes)
 #   - need to execute code within the kernel to 
@@ -348,7 +347,7 @@ def find_first_tagged_cell_index(nb, tag):
 
 
 class ExecuteHandler(socketserver.StreamRequestHandler):
-  
+
    def handle(self):
 
       # read options
@@ -363,14 +362,31 @@ class ExecuteHandler(socketserver.StreamRequestHandler):
       # execute notebook
       notebook_execute(options, status)
 
+  
+
+
+  
+
+class ExecuteServer(socketserver.TCPServer):
+
+   def exit(self):
+      self.server_close()
+      sys.exit(0)
+
+   def handle_timeout(self):
+      self.exit()
 
 if __name__ == "__main__":
 
    # see if we are in server mode
    if "--serve" in sys.argv:
       HOST, PORT = "localhost", 6672
-      with socketserver.TCPServer((HOST, PORT), ExecuteHandler) as server:  
-         server.serve_forever()
+      with ExecuteServer((HOST, PORT), ExecuteHandler) as server:  
+
+         server.timeout = 5
+
+         while True:
+            server.handle_request()
       
    else:
 

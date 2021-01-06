@@ -179,37 +179,36 @@ export const jupyterEngine: ExecutionEngine = {
         message("Starting Jupyter kernel...");
       }
 
-      /*
       const conn = await Deno.connect({ hostname: "127.0.0.1", port: 6672 });
-      await conn.write(
-        new TextEncoder().encode(JSON.stringify(options) + "\n"),
-      );
-
-      while (true) {
-        const buffer = new Uint8Array(512);
-        const bytesRead = await conn.read(buffer);
-        if (bytesRead === null) {
-          break;
+      try {
+        await conn.write(
+          new TextEncoder().encode(JSON.stringify(options) + "\n"),
+        );
+        while (true) {
+          const buffer = new Uint8Array(512);
+          const bytesRead = await conn.read(buffer);
+          if (bytesRead === null) {
+            break;
+          }
+          if (bytesRead > 0) {
+            await Deno.stderr.write(buffer.slice(0, bytesRead));
+          }
         }
-        if (bytesRead > 0) {
-          await Deno.stderr.write(buffer.slice(0, bytesRead));
-        }
+      } finally {
+        conn.close();
       }
 
-      conn.close();
-      */
-
       // execute the notebook (save back in place)
-      result = await execProcess(
-        {
-          cmd: [
-            pythonBinary(),
-            resourcePath("jupyter/jupyter.py"),
-          ],
-          stdout: "piped",
-        },
-        JSON.stringify(options),
-      );
+      // result = await execProcess(
+      //   {
+      //     cmd: [
+      //       pythonBinary(),
+      //       resourcePath("jupyter/jupyter.py"),
+      //     ],
+      //     stdout: "piped",
+      //   },
+      //   JSON.stringify(options),
+      // );
     }
 
     // convert to markdown
