@@ -24,9 +24,7 @@ from pathlib import Path
 import nbformat
 from nbclient import NotebookClient
 
-import tornado
-from tornado.ioloop import IOLoop
-from tornado.web import Application, RequestHandler
+import socketserver
 
 # optional import of papermill for params support
 try:
@@ -63,10 +61,10 @@ def notebook_init(nb, resources, allow_errors):
    return notebook_init.client
 
 
-async def notebook_execute(input, format, params, run_path, resource_dir, status):
+def notebook_execute(input, format, params, run_path, resource_dir, status):
 
    # progress
-   await status("\nExecuting '{0}'\n".format(input))
+   status("\nExecuting '{0}'\n".format(input))
 
    # read variables out of format
    execute = format["execution"]
@@ -107,7 +105,7 @@ async def notebook_execute(input, format, params, run_path, resource_dir, status
          if cached_nb:
             cached_nb.cells.pop(0)
             nb_write(cached_nb, input)
-            await status("(Notebook read from cache)\n\n")
+            status("(Notebook read from cache)\n\n")
             return
    else:
       nb_cache = None
@@ -129,7 +127,7 @@ async def notebook_execute(input, format, params, run_path, resource_dir, status
       # progress
       progress = cell.cell_type == 'code' and index > 0
       if progress:
-         await status("  Cell {0}/{1}...".format(
+         status("  Cell {0}/{1}...".format(
             current_code_cell- 1, total_code_cells - 1
          ))
          
@@ -151,7 +149,7 @@ async def notebook_execute(input, format, params, run_path, resource_dir, status
 
       # end progress
       if progress:
-         await status("Done\n")
+         status("Done\n")
 
    # set widgets metadata   
    client.set_widgets_metadata()
@@ -168,7 +166,7 @@ async def notebook_execute(input, format, params, run_path, resource_dir, status
    nb_write(client.nb, input)
 
    # progress
-   await status("\n")
+   status("\n")
 
 
 
@@ -335,23 +333,18 @@ def find_first_tagged_cell_index(nb, tag):
    return parameters_indices[0]
 
 
-class JupyterHandler(RequestHandler):
-   def prepare(self):
-      if self.request.headers.get("Content-Type", "").startswith("application/json"):
-         self.json_args = json.loads(self.request.body)
-      else:
-         self.json_args = None
-
-class ExecuteHandler(JupyterHandler):
+class ExecuteHandler(socketserver.StreamRequestHandler):
   
-   async def post(self):
+   def handle(self):
 
-      input = self.json_args["target"]["input"]
-      format = self.json_args["format"]
-      resource_dir = self.json_args["resourceDir"]
-      params = self.json_args.get("params", None)
-      run_path = self.json_args.get("cwd", "")
-      quiet = self.json_args.get('quiet', False)
+      input = str(self.rfile.readline().strip(), 'utf-8')
+      input_json = json.loads(input)
+      input = input_json["target"]["input"]
+      format = input_json["format"]
+      resource_dir = input_json["resourceDir"]
+      params = input_json.get("params", None)
+      run_path = input_json.get("cwd", "")
+      quiet = input_json.get('quiet', False)
 
       # change working directory and strip dir off of paths
       oldwd = os.getcwd()
@@ -359,19 +352,20 @@ class ExecuteHandler(JupyterHandler):
       input = Path(input).name
 
       try:
-         async def status(msg):
-            self.write(msg)
-            await self.flush()
-
-         await notebook_execute(input, format, params, run_path, resource_dir, status)
+         def status(msg):
+           self.wfile.write(bytearray(msg, 'utf-8'))
+           self.wfile.flush()
+        
+         notebook_execute(input, format, params, run_path, resource_dir, status)
          
       finally:
          os.chdir(oldwd)
 
 if __name__ == "__main__":
-   app = Application([
-      (r"/execute", ExecuteHandler)
-   ])
-   app.listen(7777)
 
-   IOLoop.current().start()
+   # server doesn't give up port if handling request during Ctrl+C
+
+   HOST, PORT = "localhost", 6672
+  
+   with socketserver.TCPServer((HOST, PORT), ExecuteHandler) as server:  
+      server.serve_forever()

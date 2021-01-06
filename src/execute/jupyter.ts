@@ -179,19 +179,24 @@ export const jupyterEngine: ExecutionEngine = {
         message("Starting Jupyter kernel...");
       }
 
-      // execute the notebook
-      const start = performance.now();
+      const conn = await Deno.connect({ hostname: "127.0.0.1", port: 6672 });
+      await conn.write(
+        new TextEncoder().encode(JSON.stringify(options) + "\n"),
+      );
 
-      const response = await fetch("http://localhost:7777/execute", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(options),
-      });
+      while (true) {
+        const buffer = new Uint8Array(512);
+        const bytesRead = await conn.read(buffer);
+        if (bytesRead === null) {
+          break;
+        }
 
-      const end = performance.now();
-      console.log(end - start);
+        if (bytesRead > 0) {
+          await Deno.stderr.write(buffer.slice(0, bytesRead));
+        }
+      }
+
+      conn.close();
 
       /*
       // execute the notebook (save back in place)
