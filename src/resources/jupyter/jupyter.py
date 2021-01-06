@@ -2,12 +2,7 @@
 # TODO: turn this into a server:
 #   - tornado domain sockets (unix) and signed socket (windows)
 #   - provision per document based on shared file (either socket file or key/port file)
-#   - autoreload on packages changed
 #     (if the kernel changes reload)
-#   - configureable timeout (~10 minutes)
-#   - need to execute code within the kernel to 
-#     check whether it needs to shutdown
-#   - clear outputs and workspace before executing: 
 #   - render command line parameter to force new kernel 
 #      (or could detect long running time and/or errors)
 #   - working dir issues (pass full path)
@@ -408,11 +403,13 @@ class ExecuteHandler(StreamRequestHandler):
 
 class ExecuteServer(TCPServer):
 
-   timeout = 500
-
    allow_reuse_address = True
-
    exit_pending = False
+
+   def __init__(self, port, timeout):
+      self.timeout = timeout
+      super().__init__(("localhost",port), ExecuteHandler)
+
 
    def handle_request(self):
       if server.exit_pending:
@@ -435,8 +432,8 @@ if __name__ == "__main__":
 
    # see if we are in server mode
    if "--serve" in sys.argv:
-      HOST, PORT = "localhost", 6673
-      with ExecuteServer((HOST, PORT), ExecuteHandler) as server:  
+      PORT = 6673
+      with ExecuteServer(PORT, 100) as server:  
          while True:
             server.handle_request()
       
