@@ -179,19 +179,47 @@ export const jupyterEngine: ExecutionEngine = {
         message("Starting Jupyter kernel...");
       }
 
-      const conn = await Deno.connect({ hostname: "127.0.0.1", port: 6672 });
+      const conn = await Deno.connect({ hostname: "127.0.0.1", port: 6673 });
       try {
         await conn.write(
           new TextEncoder().encode(JSON.stringify(options) + "\n"),
         );
+        let leftover = "";
         while (true) {
           const buffer = new Uint8Array(512);
+
           const bytesRead = await conn.read(buffer);
           if (bytesRead === null) {
             break;
           }
+
           if (bytesRead > 0) {
-            await Deno.stderr.write(buffer.slice(0, bytesRead));
+            const payload = new TextDecoder().decode(
+              buffer.slice(0, bytesRead),
+            );
+
+            const jsonMessages = payload.split("\n");
+
+            for (let jsonMessage of jsonMessages) {
+              if (!jsonMessage) {
+                continue;
+              }
+              if (leftover) {
+                jsonMessage = leftover + jsonMessage;
+                leftover = "";
+              }
+              try {
+                const msg: { type: string; data: string } = JSON.parse(
+                  jsonMessage,
+                );
+                message(msg.data, { newline: false });
+                if (msg.type === "error" || msg.type == "restart") {
+                  return Promise.reject();
+                }
+              } catch {
+                leftover = jsonMessage;
+              }
+            }
           }
         }
       } finally {

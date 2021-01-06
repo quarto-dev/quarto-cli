@@ -11,6 +11,7 @@
 #   - render command line parameter to force new kernel 
 #      (or could detect long running time and/or errors)
 #   - working dir issues (pass full path)
+#   - ensure setup chunk output is actually deps json
 
 
 import os
@@ -24,7 +25,7 @@ from pathlib import Path
 import nbformat
 from nbclient import NotebookClient
 
-import socketserver
+from socketserver import TCPServer, StreamRequestHandler
 
 # optional import of papermill for params support
 try:
@@ -147,13 +148,29 @@ def notebook_execute(options, status):
       cell = cell_clear_output(cell)
 
       # execute cell
-      client.nb.cells[index] = cell_execute(
+      cell = cell_execute(
          client, 
          cell, 
          index, 
          current_code_cell,
          index > 0 # add_to_history
       )
+
+      # if this was the setup cell, see if we need to exit b/c dependencies are out of date
+      if index == 0:
+         kernel_deps = nb_kernel_depenencies(cell)
+         if hasattr(notebook_execute, "kernel_deps"):
+            for path in kernel_deps.keys():
+               if path in notebook_execute.kernel_deps.keys():
+                  if notebook_execute.kernel_deps[path] != kernel_deps[path]:
+                     raise RestartKernel
+               else:
+                  notebook_execute.kernel_deps[path] = kernel_deps[path]
+         else:
+            notebook_execute.kernel_deps = kernel_deps
+
+      # assign cell
+      client.nb.cells[index] = cell
 
       # increment current code cell
       if cell.cell_type == 'code':
@@ -231,6 +248,12 @@ def nb_from_cache(nb, nb_cache, nb_meta = ("kernelspec", "language_info", "widge
       return nb
    except KeyError:
       return None
+
+def nb_kernel_depenencies(cell):
+   for index, output in enumerate(cell.outputs):
+      if output.name == 'stdout' and output.output_type == 'stream':
+         return json.loads(output.text)
+   return None
 
 def cell_execute(client, cell, index, execution_count, store_history):
 
@@ -346,7 +369,12 @@ def find_first_tagged_cell_index(nb, tag):
 
 
 
-class ExecuteHandler(socketserver.StreamRequestHandler):
+# exception to indicate the kernel needs restarting
+class RestartKernel(Exception):
+   pass
+
+
+class ExecuteHandler(StreamRequestHandler):
 
    def handle(self):
 
@@ -356,35 +384,59 @@ class ExecuteHandler(socketserver.StreamRequestHandler):
       
       # stream status back to client
       def status(msg):
-         self.wfile.write(bytearray(msg, 'utf-8'))
-         self.wfile.flush()
+         self.message("status", msg)
 
       # execute notebook
-      notebook_execute(options, status)
+      try:
+         notebook_execute(options, status)
+      except RestartKernel:
+         self.message("restart")
+         self.server.request_exit()
+      except Exception as e:
+         self.message("error", str(e))
+         self.server.request_exit()
 
+   # write a message back to the client      
+   def message(self, type, data = ""):
+      message = {
+         "type": type,
+         "data": data 
+      }
+      self.wfile.write(bytearray(json.dumps(message) + "\n", 'utf-8'))
+      self.wfile.flush()
   
 
+class ExecuteServer(TCPServer):
 
-  
+   timeout = 500
 
-class ExecuteServer(socketserver.TCPServer):
+   allow_reuse_address = True
+
+   exit_pending = False
+
+   def handle_request(self):
+      if server.exit_pending:
+         self.exit()
+      super().handle_request()
+
+   def handle_timeout(self):
+      self.exit()
+
+   def request_exit(self):
+      self.exit_pending = True
 
    def exit(self):
       self.server_close()
       sys.exit(0)
 
-   def handle_timeout(self):
-      self.exit()
+  
 
 if __name__ == "__main__":
 
    # see if we are in server mode
    if "--serve" in sys.argv:
-      HOST, PORT = "localhost", 6672
+      HOST, PORT = "localhost", 6673
       with ExecuteServer((HOST, PORT), ExecuteHandler) as server:  
-
-         server.timeout = 5
-
          while True:
             server.handle_request()
       

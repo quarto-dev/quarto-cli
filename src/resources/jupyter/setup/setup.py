@@ -2,6 +2,12 @@
 # reset state
 %reset
 
+# imports
+import os
+import sys
+import types
+import json
+
 # figure size/format
 fig_width = {0}
 fig_height = {1}
@@ -38,3 +44,19 @@ except Exception:
   pass
 
 
+# output kernel dependencies
+kernel_dependencies = dict()
+for module in list(sys.modules.values()):
+  # Some modules play games with sys.modules (e.g. email/__init__.py
+  # in the standard library), and occasionally this can cause strange
+  # failures in getattr.  Just ignore anything that's not an ordinary
+  # module.
+  if not isinstance(module, types.ModuleType):
+    continue
+  path = getattr(module, "__file__", None)
+  if not path:
+    continue
+  if path.endswith(".pyc") or path.endswith(".pyo"):
+    path = path[:-1]
+  kernel_dependencies[path] = os.stat(path).st_mtime
+print(json.dumps(kernel_dependencies))
