@@ -3,6 +3,13 @@
 Paired
 ---------------------------
 
+
+- (Ubuntu) Quitting from lines 9-10 (test.Rmd) 
+Error in UseMethod("wrap", x) : 
+  no applicable method for 'wrap' applied to an object of class "list"
+Calls: .main ... call_block -> block_exec -> unlist -> wrap -> knitr_wrap
+
+
 - Jupyter performance / kernel startup time
   Tornado has no dependencies and supports autoreload:
       https://www.tornadoweb.org/en/stable/autoreload.html 
