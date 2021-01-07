@@ -3,6 +3,8 @@
 
 # - client determines the 'handshake' file in the temp dir based on the path to the document
 
+# - kernel needs to restart if the input path changes (could happen on cross-directory hash collision)
+
 # - client looks in the file (if it exists) and finds a port and secret, it then attempts the
 #   connection using the port and secret
 #      a) Connection works and we perform the request
@@ -16,10 +18,6 @@
 #      c) client waits for the file to exist, then attempts connection
 #      d) server will attempt to delete the file when it exits
 
-
-# domain sockets per unique render target path
-   # temp file
-   # set user only permissions on the domain socket
 
 # provide a setup chunk for julia
 
