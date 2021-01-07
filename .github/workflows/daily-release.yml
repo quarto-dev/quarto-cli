@@ -36,18 +36,18 @@ jobs:
 
     - name: Configure
       run: |
-        configure-windows
+        configure-windows.cmd
 
     - name: Prepare Distribution
       run: |
         pushd package\src\
-        quarto-pack prepare-dist --log-level info
+        quarto-pack.cmd prepare-dist --log-level info
         popd
 
     - name: Make Installer
       run: |
         pushd package\src\
-        quarto-pack make-installer-win --log-level info
+        quarto-pack.cmd make-installer-win --log-level info
         popd        
 
   make-installer-mac:
@@ -69,5 +69,5 @@ jobs:
     - name: Make Installer
       run: |
         pushd package/src/
-        ./quarto-pack make-installer-macos --log-level info
+        ./quarto-pack make-installer-mac --log-level info
         popd
