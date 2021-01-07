@@ -47,6 +47,7 @@ import {
   isMarkdownFormat,
 } from "../config/format.ts";
 import { restorePreservedHtml } from "../core/jupyter/preserve.ts";
+import { sleep } from "../core/async.ts";
 
 const kNotebookExtensions = [
   ".ipynb",
@@ -239,11 +240,9 @@ export const jupyterEngine: ExecutionEngine = {
   },
 };
 
-async function executeKernelKeepalive(options: ExecuteOptions) {
-  if (!options.quiet) {
-    messageStartingKernel();
-  }
-  const conn = await Deno.connect({ hostname: "127.0.0.1", port: 6673 });
+async function executeKernelKeepalive(options: ExecuteOptions): Promise<void> {
+  const conn = await connectToKernel(options);
+
   try {
     await conn.write(
       new TextEncoder().encode(JSON.stringify(options) + "\n"),
@@ -277,8 +276,10 @@ async function executeKernelKeepalive(options: ExecuteOptions) {
               jsonMessage,
             );
             message(msg.data, { newline: false });
-            if (msg.type === "error" || msg.type == "restart") {
+            if (msg.type === "error") {
               return Promise.reject();
+            } else if (msg.type == "restart") {
+              return executeKernelKeepalive(options);
             }
           } catch {
             leftover = jsonMessage;
@@ -291,21 +292,44 @@ async function executeKernelKeepalive(options: ExecuteOptions) {
   }
 }
 
-async function executeKernelOneshot(options: ExecuteOptions) {
+async function connectToKernel(options: ExecuteOptions): Promise<Deno.Conn> {
+  const port = 5555;
+  const timeout = 10;
+  try {
+    return await Deno.connect({ hostname: "127.0.0.1", port });
+  } catch (e) {
+    if (!options.quiet) {
+      messageStartingKernel();
+    }
+
+    // if there is an error then try to start the server
+    const result = await execJupyter("start", { port, timeout });
+    if (!result.success) {
+      return Promise.reject();
+    }
+
+    for (let i = 0; i < 10; i++) {
+      await sleep(i * 200);
+      try {
+        return await Deno.connect({ hostname: "127.0.0.1", port });
+      } catch {
+        //
+      }
+    }
+
+    message("Unable to start Jupyter kernel for " + options.target.input);
+    return Promise.reject();
+  }
+}
+
+async function executeKernelOneshot(options: ExecuteOptions): Promise<void> {
   // execute the notebook (save back in place)
   if (!options.quiet) {
     messageStartingKernel();
   }
-  const result = await execProcess(
-    {
-      cmd: [
-        pythonBinary(),
-        resourcePath("jupyter/jupyter.py"),
-      ],
-      stdout: "piped",
-    },
-    JSON.stringify(options),
-  );
+
+  const result = await execJupyter("execute", options);
+
   if (!result.success) {
     return Promise.reject();
   }
@@ -313,6 +337,22 @@ async function executeKernelOneshot(options: ExecuteOptions) {
 
 function messageStartingKernel() {
   message("Starting Jupyter kernel...");
+}
+
+function execJupyter(
+  command: string,
+  options: unknown,
+): Promise<ProcessResult> {
+  return execProcess(
+    {
+      cmd: [
+        pythonBinary(),
+        resourcePath("jupyter/jupyter.py"),
+      ],
+      stdout: "piped",
+    },
+    JSON.stringify({ command, options }),
+  );
 }
 
 function filteredMetadata(paired: string[]) {

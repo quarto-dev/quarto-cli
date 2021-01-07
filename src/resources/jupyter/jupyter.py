@@ -1,26 +1,27 @@
 
-# ensure setup chunk output is actually deps json
 
-# use getopts or argparse for command line
 # determine the default timeout (300). --kernel-keepalive=300 --no-kernel-keepalive
+
+# don't print entire python stack for cell execution error
+
+# provide a setup chunk for julia
+
+# logging/error handling
 
 # domain sockets per unique render target path
    # set user only permissions on the domain socket
    # allow queuing
    # invalidate the whole queue on a change (kernel or dependencies)
 
-# client logic:
-   # can I connect? if not, run the server (server should emit a "Ready" message to stdout)
-   #    (we can timeout on the "Ready")
-   # do I get a "restart" message back, if so, re-run the server
-   # connect and run
 
 import os
 import atexit
+import random
 import copy
 import sys
 import json
 import pprint
+import daemon
 from pathlib import Path
 
 import nbformat
@@ -45,6 +46,8 @@ NB_FORMAT_VERSION = 4
 def notebook_init(nb, resources, allow_errors):
 
    if not hasattr(notebook_init, "client"):
+      
+      # create notebook client
       client = NotebookClient(nb, resources = resources)
       client.allow_errors = allow_errors
       client.record_timing = False
@@ -53,9 +56,17 @@ def notebook_init(nb, resources, allow_errors):
       client.start_new_kernel_client()
       info_msg = client.wait_for_reply(client.kc.kernel_info())
       client.nb.metadata['language_info'] = info_msg['content']['language_info']
-      atexit.register(client._cleanup_kernel)
       notebook_init.client = client
+
+      # cleanup kernel at process exit
+      atexit.register(client._cleanup_kernel)
+      
    else:
+      # if the kernel has changed we need to force a restart
+      if nb.metadata.kernelspec.name != notebook_init.client.nb.kernelspec.name:
+         raise RestartKernel
+
+      # set the new notebook, resources, etc.
       notebook_init.client.nb = nb
       notebook_init.client.resources = resources
       notebook_init.client.allow_errors = allow_errors
@@ -438,29 +449,39 @@ class ExecuteServer(TCPServer):
       sys.exit(0)
 
   
+def run_server(options):
+   with ExecuteServer(options["port"], options["timeout"]) as server:  
+      while True:
+         server.handle_request()  
+
+def run_server_daemon(options):
+   with daemon.DaemonContext(working_directory = os.getcwd()):
+      run_server(options)
 
 if __name__ == "__main__":
 
-   # see if we are in server mode
+   # debug mode server
    if "--serve" in sys.argv:
-      PORT = 6673
-      with ExecuteServer(PORT, 300) as server:  
-         while True:
-            server.handle_request()
+
+      run_server({
+         "port": 5555,
+         "timeout": 3000
+      })
       
    else:
 
-      # read options 
-      options = json.load(sys.stdin)
+      input = json.load(sys.stdin)
 
-      # stream status to stderr
-      def status(msg):
-         sys.stderr.write(msg)
+      if input["command"] == "start":
+         
+         run_server_daemon(input["options"])
 
-      # execute notebook
-      notebook_execute(options, status)
+      elif input["command"] == "execute":
 
-     
+         def status(msg):
+            sys.stderr.write(msg)
+            sys.stderr.flush()
+          
+         notebook_execute(input["options"], status)
 
-   
 
