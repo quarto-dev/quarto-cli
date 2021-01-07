@@ -19,6 +19,7 @@ import random
 import copy
 import sys
 import json
+import logging
 import pprint
 import daemon
 from pathlib import Path
@@ -407,16 +408,16 @@ class ExecuteHandler(StreamRequestHandler):
 
    def handle(self):
 
-      # read options
-      input = str(self.rfile.readline().strip(), 'utf-8')
-      options = json.loads(input)
-      
-      # stream status back to client
-      def status(msg):
-         self.message("status", msg)
-
-      # execute notebook
       try:
+         # read options
+         input = str(self.rfile.readline().strip(), 'utf-8')
+         options = json.loads(input)
+
+         # stream status back to client
+         def status(msg):
+            self.message("status", msg)
+      
+         # execute the notebook
          persist = notebook_execute(options, status)
          if not persist:
             self.server.request_exit()
@@ -463,15 +464,30 @@ class ExecuteServer(TCPServer):
 
   
 def run_server(options):
-   with ExecuteServer(options["port"], options["timeout"]) as server:  
-      while True:
-         server.handle_request()  
+   try:
+      with ExecuteServer(options["port"], options["timeout"]) as server:  
+         while True:
+            server.handle_request() 
+   except Exception as e:
+      logger.exception(e)
 
 def run_server_daemon(options):
-   with daemon.DaemonContext(working_directory = os.getcwd()):
-      run_server(options)
+   try:
+      with daemon.DaemonContext(working_directory = os.getcwd()):
+         run_server(options)
+   except Exception as e:
+      logger.exception(e)
+
 
 if __name__ == "__main__":
+
+   # setup logging
+   logger = logging.getLogger(__name__)  
+   logger.setLevel(logging.WARNING)
+   stderr_handler = logging.StreamHandler(sys.stderr)
+   logger.addHandler(stderr_handler)
+   file_handler = logging.FileHandler('quarto-jupyter.log')
+   logger.addHandler(file_handler)
 
    # debug mode server
    if "--serve" in sys.argv:
