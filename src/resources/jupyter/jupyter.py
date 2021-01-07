@@ -63,7 +63,7 @@ def notebook_init(nb, resources, allow_errors):
       
    else:
       # if the kernel has changed we need to force a restart
-      if nb.metadata.kernelspec.name != notebook_init.client.nb.kernelspec.name:
+      if nb.metadata.kernelspec.name != notebook_init.client.nb.metadata.kernelspec.name:
          raise RestartKernel
 
       # set the new notebook, resources, etc.
@@ -87,9 +87,6 @@ def notebook_execute(options, status):
    # change working directory and strip dir off of paths
    os.chdir(Path(input).parent)
    input = Path(input).name
-
-   # progress
-   status("\nExecuting '{0}'\n".format(input))
 
    # read variables out of format
    execute = format["execution"]
@@ -180,6 +177,9 @@ def notebook_execute(options, status):
                   notebook_execute.kernel_deps[path] = kernel_deps[path]
          else:
             notebook_execute.kernel_deps = kernel_deps
+
+         # we are done w/ setup (with no restarts) so it's safe to print 'Executing...'
+         status("\nExecuting '{0}'\n".format(input))
 
       # assign cell
       client.nb.cells[index] = cell
