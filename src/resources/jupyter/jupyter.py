@@ -203,6 +203,10 @@ def notebook_execute(options, status):
    # progress
    status("\n")
 
+   # return flag indicating whether we should persist 
+   persist = notebook_execute.kernel_deps != None
+   return persist
+
 
 
 def nb_write(nb, input):
@@ -394,7 +398,9 @@ class ExecuteHandler(StreamRequestHandler):
 
       # execute notebook
       try:
-         notebook_execute(options, status)
+         persist = notebook_execute(options, status)
+         if not persist:
+            self.server.request_exit()
       except RestartKernel:
          self.message("restart")
          self.server.request_exit()
