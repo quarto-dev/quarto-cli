@@ -1,7 +1,4 @@
 
-# reset state
-%reset
-
 # imports
 import os
 import sys
@@ -45,7 +42,7 @@ except Exception:
 
 
 # output kernel dependencies
-kernel_dependencies = dict()
+kernel_deps = dict()
 for module in list(sys.modules.values()):
   # Some modules play games with sys.modules (e.g. email/__init__.py
   # in the standard library), and occasionally this can cause strange
@@ -58,5 +55,9 @@ for module in list(sys.modules.values()):
     continue
   if path.endswith(".pyc") or path.endswith(".pyo"):
     path = path[:-1]
-  kernel_dependencies[path] = os.stat(path).st_mtime
-print(json.dumps(kernel_dependencies))
+  kernel_deps[path] = os.stat(path).st_mtime
+print(json.dumps(kernel_deps))
+
+
+# reset state
+%reset
