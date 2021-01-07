@@ -1,0 +1,112 @@
+name: Daily Release
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 1 * * *'  # every day at one am
+
+jobs:
+
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url:  ${{steps.create_release.outputs.upload_url}} 
+      release_id: ${{steps.create_release.outputs.id}}  
+
+    steps:
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          Daily Release
+        draft: true
+        prerelease: true
+
+  make-installer-deb:
+    runs-on: ubuntu-latest
+    needs: create-release
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure
+      run: |
+        ./configure-linux.sh
+
+    - name: Prepare Distribution
+      run: |
+        pushd package/src/
+        ./quarto-pack prepare-dist --log-level info
+        popd
+
+    - name: Make Installer
+      run: |
+        pushd package/src/
+        ./quarto-pack make-installer-deb --log-level info
+        popd
+        
+    - name: Test Output
+      run: |
+        echo "UPLOAD URL"
+        echo ${{needs.create-release.outputs.upload_url}}
+
+  make-installer-win:
+    runs-on: windows-latest
+    needs: create-release
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure
+      run: |
+        .\configure-windows.cmd
+
+    - name: Prepare Distribution
+      run: |
+        pushd package\src\
+        .\quarto-pack.cmd prepare-dist --log-level info
+        popd
+
+    - name: Make Installer
+      run: |
+        pushd package\src\
+        .\quarto-pack.cmd make-installer-win --log-level info
+        popd        
+
+  make-installer-mac:
+    runs-on: macos-latest
+    needs: create-release
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure
+      run: |
+        ./configure-macos.sh
+
+    - name: Prepare Distribution
+      run: |
+        pushd package/src/
+        ./quarto-pack prepare-dist --log-level info
+        popd
+
+    - name: Make Installer
+      run: |
+        pushd package/src/
+        ./quarto-pack make-installer-mac --log-level info
+        popd
+
+  publish-release:
+    runs-on: ubuntu-latest
+    needs: [create-release, make-installer-deb, make-installer-win, make-installer-mac]
+    
+    steps:
+    - name: Publish
+      run: |
+        echo "Publishing" ${{needs.create-release.outputs.release_id}}
+

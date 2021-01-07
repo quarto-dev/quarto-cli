@@ -25,7 +25,7 @@
 
      - name: Setup Environment
        run: |
-            source package/configure
+            source ./configuration
             echo "VERSION=$DENO" >> $GITHUB_ENV
             echo "BASEURL=https://github.com/denoland/deno/releases/download/" >> $GITHUB_ENV
             echo "FILENAMES=deno-x86_64-unknown-linux-gnu.zip deno-x86_64-apple-darwin.zip deno-x86_64-pc-windows-msvc.zip" >> $GITHUB_ENV
