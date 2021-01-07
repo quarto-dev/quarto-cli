@@ -4,10 +4,7 @@
 
 # provide a setup chunk for julia
 
-# logging/error handling
-
 # use oneshot on windows (or consider port/secret implementation)
-
 # domain sockets per unique render target path
    # temp file
    # set user only permissions on the domain socket
@@ -425,7 +422,7 @@ class ExecuteHandler(StreamRequestHandler):
          self.message("restart")
          self.server.request_exit()
       except Exception as e:
-         self.message("error", str(e))
+         self.message("error", "\n\n" + str(e))
          self.server.request_exit()
 
    # write a message back to the client      
@@ -511,6 +508,16 @@ if __name__ == "__main__":
             sys.stderr.write(msg)
             sys.stderr.flush()
           
-         notebook_execute(input["options"], status)
+         try:
+            notebook_execute(input["options"], status)
+         except Exception as e:
+            msg = str(e)
+            kCellExecutionError = "nbclient.exceptions.CellExecutionError: "
+            loc = msg.find(kCellExecutionError)
+            if loc != -1:
+               msg = msg[loc + len(kCellExecutionError)]
+            status("\n\n" + msg + "\n")  
+            sys.exit(1) 
+         
 
 
