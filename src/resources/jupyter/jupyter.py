@@ -1,14 +1,27 @@
 
 
-# don't print entire python stack for cell execution error (in oneshot mode)
 
-# provide a setup chunk for julia
+# - client determines the 'handshake' file in the temp dir based on the path to the document
 
-# use oneshot on windows (or consider port/secret implementation)
+# - client looks in the file (if it exists) and finds a port and secret, it then attempts the
+#   connection using the port and secret
+#      a) Connection works and we perform the request
+#      b) Port cannot be connected to. Delete the file and restart the server.
+#      c) Port can be connected to but it's not our server. Delete the file and restart the server.
+#         (proxy for this is that an exception occurs in our socket read/write loop)
+
+# - client starting server:
+#      a) client provides filepath
+#      b) server writes port and secret into the file. server sets permissions on file to user-only.
+#      c) client waits for the file to exist, then attempts connection
+#      d) server will attempt to delete the file when it exits
+
+
 # domain sockets per unique render target path
    # temp file
    # set user only permissions on the domain socket
 
+# provide a setup chunk for julia
 
 import os
 import atexit
@@ -409,6 +422,8 @@ class ExecuteHandler(StreamRequestHandler):
          # read options
          input = str(self.rfile.readline().strip(), 'utf-8')
          options = json.loads(input)
+
+         # TODO: validate the client
 
          # stream status back to client
          def status(msg):
