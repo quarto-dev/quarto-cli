@@ -1,13 +1,20 @@
+ 
+#  ensure setup chunk output is actually deps json
 
-# TODO: turn this into a server:
-#   - tornado domain sockets (unix) and signed socket (windows)
-#   - provision per document based on shared file (either socket file or key/port file)
-#     (if the kernel changes reload)
-#   - render command line parameter to force new kernel 
-#      (or could detect long running time and/or errors)
-#   - working dir issues (pass full path)
-#   - ensure setup chunk output is actually deps json
+# still run in the same directory
 
+# determine the default timeout (300)
+
+# domain sockets per unique render target path
+   # set user only permissions on the domain socket
+   # allow queuing
+   # invalidate the whole queue on a change (kernel or dependencies)
+
+# client logic:
+   # can I connect? if not, run the server (server should emit a "Ready" message to stdout)
+   #    (we can timeout on the "Ready")
+   # do I get a "restart" message back, if so, re-run the server
+   # connect and run
 
 import os
 import atexit
