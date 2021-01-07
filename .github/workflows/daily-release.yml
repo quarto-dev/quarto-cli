@@ -27,3 +27,47 @@ jobs:
         pushd package/src/
         ./quarto-pack make-installer-deb --log-level info
         popd
+
+  make-installer-win:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure
+      run: |
+        configure-windows
+
+    - name: Prepare Distribution
+      run: |
+        pushd package\src\
+        quarto-pack prepare-dist --log-level info
+        popd
+
+    - name: Make Installer
+      run: |
+        pushd package\src\
+        quarto-pack make-installer-win --log-level info
+        popd        
+
+  make-installer-mac:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure
+      run: |
+        ./configure-macos.sh
+
+    - name: Prepare Distribution
+      run: |
+        pushd package/src/
+        ./quarto-pack prepare-dist --log-level info
+        popd
+
+    - name: Make Installer
+      run: |
+        pushd package/src/
+        ./quarto-pack make-installer-macos --log-level info
+        popd
