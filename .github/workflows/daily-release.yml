@@ -1,13 +1,12 @@
- name: Daily Release
+name: Daily Release
 
- on:
+on:
   workflow_dispatch:
   schedule:
     - cron: '0 1 * * *'  # every day at one am
 
- jobs:
+  jobs:
   make-installer-deb:
-
     env:
 
     runs-on: ubuntu-latest
