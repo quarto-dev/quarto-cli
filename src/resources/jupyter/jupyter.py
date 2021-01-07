@@ -1,17 +1,16 @@
 
 
-# determine the default timeout (300). --kernel-keepalive=300 --no-kernel-keepalive
-
-# don't print entire python stack for cell execution error
+# don't print entire python stack for cell execution error (in oneshot mode)
 
 # provide a setup chunk for julia
 
 # logging/error handling
 
+# use oneshot on windows (or consider port/secret implementation)
+
 # domain sockets per unique render target path
+   # temp file
    # set user only permissions on the domain socket
-   # allow queuing
-   # invalidate the whole queue on a change (kernel or dependencies)
 
 
 import os
@@ -206,6 +205,16 @@ def notebook_execute(options, status):
    # re-write without setup cell
    nb_write(client.nb, input)
 
+   # execute cleanup cell
+   cleanup_cell = nb_cleanup_cell(nb.metadata.kernelspec, resource_dir)
+   nb.cells.append(cleanup_cell)
+   client.execute_cell(
+      cell = cleanup_cell, 
+      cell_index = len(client.nb.cells) - 1, 
+      store_history = False
+   )
+   nb.cells.pop()
+
    # progress
    status("\n")
 
@@ -226,21 +235,25 @@ def nb_write(nb, input):
 
 
 def nb_setup_cell(kernelspec, resource_dir, fig_width, fig_height, fig_format, fig_dpi):
+   return nb_language_cell('setup', kernelspec, resource_dir, fig_width, fig_height, fig_format, fig_dpi)
 
-   # determine setup code based on current kernel language
-   setup_code = ''
-   kSetupScript = { 
-      'python' : 'setup.py'
+def nb_cleanup_cell(kernelspec, resource_dir):
+   return nb_language_cell('cleanup', kernelspec, resource_dir)
+
+def nb_language_cell(name, kernelspec, resource_dir, *args):
+   source = ''
+   kLanguages = { 
+      'python' : '.py'
    }
    kernelLanguage = kernelspec.language
-   if kernelLanguage in kSetupScript:
-      setup = os.path.join(resource_dir, 'jupyter', 'setup', kSetupScript[kernelLanguage])
-      with open(setup, 'r') as file:
-         setup_code = file.read().format(fig_width, fig_height, fig_format, fig_dpi)  
+   if kernelLanguage in kLanguages:
+      path = os.path.join(resource_dir, 'jupyter', 'lang', name + kLanguages[kernelLanguage])
+      with open(path, 'r') as file:
+         source = file.read().format(*args)  
 
    # create cell
    return nbformat.versions[NB_FORMAT_VERSION].new_code_cell(
-      source = setup_code
+      source = source
    )
 
 def nb_from_cache(nb, nb_cache, nb_meta = ("kernelspec", "language_info", "widgets")):
