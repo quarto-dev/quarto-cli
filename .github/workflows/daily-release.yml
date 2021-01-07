@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       upload_url:  ${{steps.create_release.outputs.upload_url}} 
+      release_id: ${{steps.create_release.outputs.id}}  
 
     steps:
     - name: Create Release
@@ -99,3 +100,13 @@ jobs:
         pushd package/src/
         ./quarto-pack make-installer-mac --log-level info
         popd
+
+  publish-release:
+    runs-on: ubuntu-latest
+    needs: [create-release, make-installer-deb, make-installer-win, make-installer-mac]
+    
+    steps:
+    - name: Publish
+      run: |
+        echo "Publishing" ${{needs.create-release.outputs.release_id}}
+
