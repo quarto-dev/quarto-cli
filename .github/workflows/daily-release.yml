@@ -1,0 +1,28 @@
+ name: Daily Release
+
+ on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 1 * * *'  # every day at one am
+
+ jobs:
+  make-installer-deb:
+
+    env:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Configure
+      run: |
+        ./configure-linux.sh
+
+    - name: Prepare Distribution
+    - run: |
+        package/src/quarto-pack prepare-dist --log-level info
+
+    - name: Make Installer
+    - run: |
+        package/src/quarto-pack make-installer-deb --log-level info
