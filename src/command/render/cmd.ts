@@ -42,6 +42,10 @@ export const renderCommand = new Command()
     "Working directory for code execution.",
   )
   .option(
+    "--kernel-keepalive",
+    "Keep Jupyter kernel alive across renders (seconds).",
+  )
+  .option(
     "--cache",
     "Cache execution output (--no-cache to prevent cache).",
   )

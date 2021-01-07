@@ -172,9 +172,11 @@ export const jupyterEngine: ExecutionEngine = {
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
     // execute if we need to
     if (options.format.execution[kExecute] === true) {
-      await executeKernelKeepalive(options);
-
-      // await executeKernelOneshot(options);
+      if (options.keepalive === 0) {
+        await executeKernelOneshot(options);
+      } else {
+        await executeKernelKeepalive(options);
+      }
     }
 
     // convert to markdown and write to target
@@ -294,7 +296,7 @@ async function executeKernelKeepalive(options: ExecuteOptions): Promise<void> {
 
 async function connectToKernel(options: ExecuteOptions): Promise<Deno.Conn> {
   const port = 5555;
-  const timeout = 10;
+  const timeout = options.keepalive === undefined ? 300 : options.keepalive;
   try {
     return await Deno.connect({ hostname: "127.0.0.1", port });
   } catch (e) {

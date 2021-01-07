@@ -41,6 +41,7 @@ export interface ExecuteOptions {
   tempDir: string;
   resourceDir: string;
   cwd?: string;
+  keepalive?: number;
   params?: { [key: string]: unknown };
   quiet?: boolean;
 }

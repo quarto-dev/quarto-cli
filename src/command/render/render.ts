@@ -70,6 +70,7 @@ export async function render(
     resourceDir: resourcePath(),
     format,
     cwd: flags.executeDir,
+    keepalive: flags.executeKeepalive,
     params: resolveParams(flags.executeParams),
     quiet: flags.quiet,
   });
