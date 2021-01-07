@@ -1,9 +1,13 @@
- 
-#  ensure setup chunk output is actually deps json
+# only use server for whitelist of kernel languages? 
+# (those that can reset the kernel and check deps?)
+
+# ensure setup chunk output is actually deps json
 
 # still run in the same directory
 
+# use getopts or argparse for command line
 # determine the default timeout (300)
+# does timeout work across suspend of laptop?
 
 # domain sockets per unique render target path
    # set user only permissions on the domain socket
