@@ -24,7 +24,7 @@
 
      - name: Setup Environment
        run: |
-            source package/configuration
+            source ./configuration
             echo "VERSION=$PANDOC" >> $GITHUB_ENV           
             echo "BASEURL=https://github.com/jgm/pandoc/releases/download/" >> $GITHUB_ENV
             echo "FILENAMES=pandoc-$PANDOC-linux-amd64.tar.gz pandoc-$PANDOC-macOS.zip pandoc-$PANDOC-windows-x86_64.zip" >> $GITHUB_ENV
