@@ -1,13 +1,8 @@
-# only use server for whitelist of kernel languages? 
-# (those that can reset the kernel and check deps?)
 
 # ensure setup chunk output is actually deps json
 
-# still run in the same directory
-
 # use getopts or argparse for command line
-# determine the default timeout (300)
-# does timeout work across suspend of laptop?
+# determine the default timeout (300). --kernel-keepalive=300 --no-kernel-keepalive
 
 # domain sockets per unique render target path
    # set user only permissions on the domain socket
@@ -427,9 +422,8 @@ class ExecuteServer(TCPServer):
       self.timeout = timeout
       super().__init__(("localhost",port), ExecuteHandler)
 
-
    def handle_request(self):
-      if server.exit_pending:
+      if self.exit_pending:
          self.exit()
       super().handle_request()
 
@@ -450,7 +444,7 @@ if __name__ == "__main__":
    # see if we are in server mode
    if "--serve" in sys.argv:
       PORT = 6673
-      with ExecuteServer(PORT, 100) as server:  
+      with ExecuteServer(PORT, 300) as server:  
          while True:
             server.handle_request()
       
