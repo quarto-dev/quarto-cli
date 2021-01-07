@@ -18,12 +18,12 @@ jobs:
 
     - name: Prepare Distribution
       run: |
-        pushd pacakage/src/
+        pushd package/src/
         ./quarto-pack prepare-dist --log-level info
         popd
 
     - name: Make Installer
       run: |
-        pushd pacakage/src/
+        pushd package/src/
         ./quarto-pack make-installer-deb --log-level info
         popd
