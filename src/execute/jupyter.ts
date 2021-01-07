@@ -169,123 +169,55 @@ export const jupyterEngine: ExecutionEngine = {
   },
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
-    // optional process result from execution
-    let result: ProcessResult | undefined;
-
     // execute if we need to
     if (options.format.execution[kExecute] === true) {
-      // progress
-      if (!options.quiet) {
-        message("Starting Jupyter kernel...");
-      }
+      await executeKernelKeepalive(options);
 
-      const conn = await Deno.connect({ hostname: "127.0.0.1", port: 6673 });
-      try {
-        await conn.write(
-          new TextEncoder().encode(JSON.stringify(options) + "\n"),
-        );
-        let leftover = "";
-        while (true) {
-          const buffer = new Uint8Array(512);
-
-          const bytesRead = await conn.read(buffer);
-          if (bytesRead === null) {
-            break;
-          }
-
-          if (bytesRead > 0) {
-            const payload = new TextDecoder().decode(
-              buffer.slice(0, bytesRead),
-            );
-
-            const jsonMessages = payload.split("\n");
-
-            for (let jsonMessage of jsonMessages) {
-              if (!jsonMessage) {
-                continue;
-              }
-              if (leftover) {
-                jsonMessage = leftover + jsonMessage;
-                leftover = "";
-              }
-              try {
-                const msg: { type: string; data: string } = JSON.parse(
-                  jsonMessage,
-                );
-                message(msg.data, { newline: false });
-                if (msg.type === "error" || msg.type == "restart") {
-                  return Promise.reject();
-                }
-              } catch {
-                leftover = jsonMessage;
-              }
-            }
-          }
-        }
-      } finally {
-        conn.close();
-      }
-
-      // execute the notebook (save back in place)
-      // result = await execProcess(
-      //   {
-      //     cmd: [
-      //       pythonBinary(),
-      //       resourcePath("jupyter/jupyter.py"),
-      //     ],
-      //     stdout: "piped",
-      //   },
-      //   JSON.stringify(options),
-      // );
+      // await executeKernelOneshot(options);
     }
 
-    // convert to markdown
-    if (!result || result.success) {
-      // convert to markdown and write to target
-      const nb = jupyterFromFile(options.target.input);
-      const assets = jupyterAssets(
-        options.target.input,
-        options.format.pandoc.to,
-      );
-      const result = jupyterToMarkdown(
-        nb,
-        {
-          language: nb.metadata.kernelspec.language,
-          assets,
-          execution: options.format.execution,
-          toHtml: isHtmlCompatible(options.format),
-          toLatex: isLatexFormat(options.format.pandoc),
-          toMarkdown: isMarkdownFormat(options.format.pandoc),
-          figFormat: options.format.execution[kFigFormat],
-          figDpi: options.format.execution[kFigDpi],
-        },
-      );
-      await Deno.writeTextFile(options.output, result.markdown);
+    // convert to markdown and write to target
+    const nb = jupyterFromFile(options.target.input);
+    const assets = jupyterAssets(
+      options.target.input,
+      options.format.pandoc.to,
+    );
+    const result = jupyterToMarkdown(
+      nb,
+      {
+        language: nb.metadata.kernelspec.language,
+        assets,
+        execution: options.format.execution,
+        toHtml: isHtmlCompatible(options.format),
+        toLatex: isLatexFormat(options.format.pandoc),
+        toMarkdown: isMarkdownFormat(options.format.pandoc),
+        figFormat: options.format.execution[kFigFormat],
+        figDpi: options.format.execution[kFigDpi],
+      },
+    );
+    await Deno.writeTextFile(options.output, result.markdown);
 
-      // if it's a transient notebook then remove it, otherwise
-      // sync so that jupyter[lab] can open the .ipynb w/o errors
-      if (options.target.data) {
-        Deno.removeSync(options.target.input);
-      } else {
-        await jupytextSync(options.target.input, [], true);
-      }
-
-      // return results
-      return {
-        supporting: [assets.supporting_dir],
-        filters: [],
-        pandoc: result.includeFiles
-          ? {
-            [kIncludeInHeader]: result.includeFiles.inHeader,
-            [kIncludeAfterBody]: result.includeFiles.afterBody,
-          }
-          : {},
-        preserve: result.htmlPreserve,
-        postprocess: !!result.htmlPreserve,
-      };
+    // if it's a transient notebook then remove it, otherwise
+    // sync so that jupyter[lab] can open the .ipynb w/o errors
+    if (options.target.data) {
+      Deno.removeSync(options.target.input);
     } else {
-      return Promise.reject();
+      await jupytextSync(options.target.input, [], true);
     }
+
+    // return results
+    return {
+      supporting: [assets.supporting_dir],
+      filters: [],
+      pandoc: result.includeFiles
+        ? {
+          [kIncludeInHeader]: result.includeFiles.inHeader,
+          [kIncludeAfterBody]: result.includeFiles.afterBody,
+        }
+        : {},
+      preserve: result.htmlPreserve,
+      postprocess: !!result.htmlPreserve,
+    };
   },
 
   postprocess: async (options: PostProcessOptions) => {
@@ -306,6 +238,82 @@ export const jupyterEngine: ExecutionEngine = {
     return join(dirname(input), basename(input) + ".md");
   },
 };
+
+async function executeKernelKeepalive(options: ExecuteOptions) {
+  if (!options.quiet) {
+    messageStartingKernel();
+  }
+  const conn = await Deno.connect({ hostname: "127.0.0.1", port: 6673 });
+  try {
+    await conn.write(
+      new TextEncoder().encode(JSON.stringify(options) + "\n"),
+    );
+    let leftover = "";
+    while (true) {
+      const buffer = new Uint8Array(512);
+
+      const bytesRead = await conn.read(buffer);
+      if (bytesRead === null) {
+        break;
+      }
+
+      if (bytesRead > 0) {
+        const payload = new TextDecoder().decode(
+          buffer.slice(0, bytesRead),
+        );
+
+        const jsonMessages = payload.split("\n");
+
+        for (let jsonMessage of jsonMessages) {
+          if (!jsonMessage) {
+            continue;
+          }
+          if (leftover) {
+            jsonMessage = leftover + jsonMessage;
+            leftover = "";
+          }
+          try {
+            const msg: { type: string; data: string } = JSON.parse(
+              jsonMessage,
+            );
+            message(msg.data, { newline: false });
+            if (msg.type === "error" || msg.type == "restart") {
+              return Promise.reject();
+            }
+          } catch {
+            leftover = jsonMessage;
+          }
+        }
+      }
+    }
+  } finally {
+    conn.close();
+  }
+}
+
+async function executeKernelOneshot(options: ExecuteOptions) {
+  // execute the notebook (save back in place)
+  if (!options.quiet) {
+    messageStartingKernel();
+  }
+  const result = await execProcess(
+    {
+      cmd: [
+        pythonBinary(),
+        resourcePath("jupyter/jupyter.py"),
+      ],
+      stdout: "piped",
+    },
+    JSON.stringify(options),
+  );
+  if (!result.success) {
+    return Promise.reject();
+  }
+}
+
+function messageStartingKernel() {
+  message("Starting Jupyter kernel...");
+}
 
 function filteredMetadata(paired: string[]) {
   // if there is a markdown file in the paried representations that doesn't have
