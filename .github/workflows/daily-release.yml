@@ -157,7 +157,7 @@ jobs:
   discard-release:
     runs-on: ubuntu-latest
     needs: [create-release, make-installer-deb, make-installer-win, make-installer-mac]
-    if: ${{ failure() }}
+    if: ${{ success() }}
     
     steps:
     - name: Cleanup
