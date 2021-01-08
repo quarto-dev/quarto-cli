@@ -197,12 +197,7 @@ async function connectToKernel(
   // if there is a transport then try to connect to it
   if (transport) {
     try {
-      return [
-        await Deno.connect(
-          { hostname: "127.0.0.1", port: transport.port },
-        ),
-        transport,
-      ];
+      return denoConnectToKernel(transport);
     } catch (e) {
       // remove the transport file
       Deno.removeSync(transportFile);
@@ -239,13 +234,10 @@ async function connectToKernel(
     const kernelTransport = readKernelTransportFile(transportFile);
     if (kernelTransport) {
       try {
-        return [
-          await Deno.connect(
-            { hostname: "127.0.0.1", port: kernelTransport.port },
-          ),
-          kernelTransport,
-        ];
+        return denoConnectToKernel(kernelTransport);
       } catch (e) {
+        // remove the transport file
+        Deno.removeSync(transportFile);
         message("Error connecting to Jupyter kernel: " + e.toString());
         return Promise.reject();
       }
@@ -254,6 +246,18 @@ async function connectToKernel(
 
   message("Unable to start Jupyter kernel for " + options.target.input);
   return Promise.reject();
+}
+
+async function denoConnectToKernel(
+  transport: KernelTransport,
+): Promise<[Deno.Conn, KernelTransport]> {
+  // console.log(transport);
+  return [
+    await Deno.connect(
+      { hostname: "127.0.0.1", port: transport.port },
+    ),
+    transport,
+  ];
 }
 
 function messageStartingKernel() {
