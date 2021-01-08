@@ -43,7 +43,11 @@ export const renderCommand = new Command()
   )
   .option(
     "--kernel-keepalive",
-    "Keep Jupyter kernel alive across renders (seconds).",
+    "Keep Jupyter kernel alive (default is 300 seconds).",
+  )
+  .option(
+    "--kernel-restart",
+    "Restart keepalive Jupyter kernel before render.",
   )
   .option(
     "--cache",

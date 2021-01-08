@@ -175,7 +175,7 @@ export const jupyterEngine: ExecutionEngine = {
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
     // execute if we need to
     if (options.format.execution[kExecute] === true) {
-      if (options.keepalive === 0) {
+      if (options.kernel.keepalive === 0) {
         await executeKernelOneshot(options);
       } else {
         await executeKernelKeepalive(options);
@@ -245,20 +245,9 @@ export const jupyterEngine: ExecutionEngine = {
   },
 };
 
-export function execJupyter(
-  command: string,
-  options: unknown,
-): Promise<ProcessResult> {
-  return execProcess(
-    {
-      cmd: [
-        pythonBinary(),
-        resourcePath("jupyter/jupyter.py"),
-      ],
-      stdout: "piped",
-    },
-    JSON.stringify({ command, options }),
-  );
+export function pythonBinary(binary = "python") {
+  const condaPrefix = getenv("CONDA_PREFIX");
+  return condaPrefix + "/bin/" + binary;
 }
 
 function filteredMetadata(paired: string[]) {
@@ -328,11 +317,6 @@ function isMarkdown(file: string) {
 function isHtmlCompatible(format: Format) {
   return isHtmlFormat(format.pandoc) ||
     (isMarkdownFormat(format.pandoc) && format.render[kPreferHtml]);
-}
-
-function pythonBinary(binary = "python") {
-  const condaPrefix = getenv("CONDA_PREFIX");
-  return condaPrefix + "/bin/" + binary;
 }
 
 async function jupytextSync(

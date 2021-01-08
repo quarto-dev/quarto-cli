@@ -1,5 +1,5 @@
 
-
+# ensure that daemonize works on windows
 
 # - client determines the 'handshake' file in the temp dir based on the path to the document
 
@@ -417,11 +417,20 @@ class ExecuteHandler(StreamRequestHandler):
    def handle(self):
 
       try:
-         # read options
+         # read input
          input = str(self.rfile.readline().strip(), 'utf-8')
-         options = json.loads(input)
+         input = json.loads(input)
 
          # TODO: validate the client
+
+         # if this is an abort command then request exit
+         command = input["command"]
+         if command == "abort":
+            self.server.request_exit()
+            return
+
+         # options
+         options = input["options"]
 
          # stream status back to client
          def status(msg):

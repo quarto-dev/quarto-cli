@@ -24,8 +24,10 @@ export interface RenderFlags extends PandocFlags {
   executeParams?: string;
   executeDir?: string;
   execute?: boolean;
-  executeKeepalive?: number;
   executeCache?: true | false | "refresh";
+  kernelKeepalive?: number;
+  kernelRestart?: boolean;
+  kernelAbort?: boolean;
   debug?: boolean;
   quiet?: boolean;
 }
@@ -137,15 +139,20 @@ export function parseRenderFlags(args: string[]) {
 
       case "--kernel-keepalive":
         arg = argsStack.shift();
-        flags.executeKeepalive = parseInt(arg!, 10);
-        if (isNaN(flags.executeKeepalive)) {
-          delete flags.executeKeepalive;
+        flags.kernelKeepalive = parseInt(arg!, 10);
+        if (isNaN(flags.kernelKeepalive)) {
+          delete flags.kernelKeepalive;
         }
         break;
 
       case "--no-kernel-keepalive":
         arg = argsStack.shift();
-        flags.executeKeepalive = 0;
+        flags.kernelKeepalive = 0;
+        break;
+
+      case "--kernel-restart":
+        arg = argsStack.shift();
+        flags.kernelRestart = true;
         break;
 
       case "--cache":
@@ -225,6 +232,7 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   removeArgs.set("--execute-root-dir", true);
   removeArgs.set("--kernel-keepalive", true);
   removeArgs.set("--no-kernel-keepalive", false);
+  removeArgs.set("--kernel-restart", false);
   removeArgs.set("--cache", false);
   removeArgs.set("--no-cache", false);
   removeArgs.set("--cache-refresh", false);

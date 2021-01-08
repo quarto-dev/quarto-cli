@@ -33,6 +33,11 @@ export interface ExecutionTarget {
   data?: unknown;
 }
 
+export interface ExecutionKernel {
+  keepalive?: number;
+  restart?: boolean;
+}
+
 // execute options
 export interface ExecuteOptions {
   target: ExecutionTarget;
@@ -40,8 +45,8 @@ export interface ExecuteOptions {
   format: Format;
   tempDir: string;
   resourceDir: string;
+  kernel: ExecutionKernel;
   cwd?: string;
-  keepalive?: number;
   params?: { [key: string]: unknown };
   quiet?: boolean;
 }

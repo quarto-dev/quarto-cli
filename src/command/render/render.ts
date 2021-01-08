@@ -70,7 +70,10 @@ export async function render(
     resourceDir: resourcePath(),
     format,
     cwd: flags.executeDir,
-    keepalive: flags.executeKeepalive,
+    kernel: {
+      keepalive: flags.kernelKeepalive,
+      restart: flags.kernelRestart,
+    },
     params: resolveParams(flags.executeParams),
     quiet: flags.quiet,
   });
