@@ -175,10 +175,21 @@ export const jupyterEngine: ExecutionEngine = {
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
     // execute if we need to
     if (options.format.execution[kExecute] === true) {
+      // jupyter back end requires full path to input (to ensure that
+      // keepalive kernels are never re-used across multiple inputs
+      // that happen to share a hash)
+      const execOptions = {
+        ...options,
+        target: {
+          ...options.target,
+          input: Deno.realPathSync(options.target.input),
+        },
+      };
+
       if (options.kernel.keepalive === 0) {
-        await executeKernelOneshot(options);
+        await executeKernelOneshot(execOptions);
       } else {
-        await executeKernelKeepalive(options);
+        await executeKernelKeepalive(execOptions);
       }
     }
 
