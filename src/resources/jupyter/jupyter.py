@@ -74,9 +74,12 @@ def notebook_init(nb, resources, allow_errors):
       if nb.metadata.kernelspec.name != notebook_init.client.nb.metadata.kernelspec.name:
          raise RestartKernel
 
+      # if the input file has changed we need to force a restart
+      if resources["metadata"]["input"] != notebook_init.client.resources["metadata"]["input"]:
+         raise RestartKernel
+
       # set the new notebook, resources, etc.
       notebook_init.client.nb = nb
-      notebook_init.client.resources = resources
       notebook_init.client.allow_errors = allow_errors
 
    return notebook_init.client
@@ -93,6 +96,7 @@ def notebook_execute(options, status):
    quiet = options.get('quiet', False)
 
    # change working directory and strip dir off of paths
+   original_input = input
    os.chdir(Path(input).parent)
    input = Path(input).name
 
@@ -141,9 +145,13 @@ def notebook_execute(options, status):
       nb_cache = None
       
    # create resources for execution
-   resources = dict()
+   resources = dict({
+      "metadata": {
+         "input": original_input
+      }
+   })
    if run_path:
-      resources["metadata"] = { "path": run_path }
+      resources["metadata"]["path"] = run_path
 
    # create NotebookClient
    client = notebook_init(nb, resources, allow_errors)
