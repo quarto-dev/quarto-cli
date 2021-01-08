@@ -19,7 +19,7 @@ jobs:
       id: config
       run: |
         source ./configuration
-        echo "::set-output version=${{ env.VERSION }}"
+        echo "::set-output version=${{ env.QUARTO_VERSION }}"
 
   create-release:
     runs-on: ubuntu-latest
