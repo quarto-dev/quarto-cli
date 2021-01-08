@@ -21,6 +21,7 @@ import stat
 import logging
 import pprint
 import uuid
+import subprocess
 import daemon
 from pathlib import Path
 
@@ -510,8 +511,6 @@ def run_server(options):
    # initialize logger
    logger = logging.getLogger(__name__)  
    logger.setLevel(logging.WARNING)
-   stderr_handler = logging.StreamHandler(sys.stderr)
-   logger.addHandler(stderr_handler)
    file_handler = logging.FileHandler('quarto-jupyter.log')
    logger.addHandler(file_handler)   
    
@@ -522,35 +521,58 @@ def run_server(options):
    except Exception as e:
       logger.exception(e)
 
+def posix_run_server_daemon(options):
+   with daemon.DaemonContext(working_directory = os.getcwd()):
+      run_server(options)   
+
+def windows_run_server_daemon(options):
+   
+   # TODO: why is it hanging when we do --no-kernel-keepalive cold?
+   # TODO: pass --start + the transport file either w/ env vars or command line
+   # TODO: consolidate exception handling
+   # TODO: handle errors which occur creating the process, etc.
+
+   flags = 0
+   flags |= 0x00000008  # DETACHED_PROCESS
+   flags |= 0x00000200  # CREATE_NEW_PROCESS_GROUP
+   flags |= 0x08000000  # CREATE_NO_WINDOW
+
+   p = subprocess.Popen([sys.executable] + sys.argv,
+      creationflags = flags
+   )
+
+def message(msg):
+   sys.stderr.write(msg)
+   sys.stderr.flush()
 
 if __name__ == "__main__":
 
-
    # read input from stdin
    input = json.load(sys.stdin)
+   command = input["command"]
+   options = input["options"]
 
-   if input["command"] == "start":
+   if command == "start":
       try:
-         with daemon.DaemonContext(working_directory = os.getcwd()):
-            run_server(input["options"])
+         if os.name == 'nt':
+            windows_run_server_daemon(options)
+         else:
+            posix_run_server_daemon(options)
       except Exception as e:
-         sys.stderr.write(str(e))
+         message(str(e))
+         sys.exit(1) 
 
-   elif input["command"] == "execute":
-
-      def status(msg):
-         sys.stderr.write(msg)
-         sys.stderr.flush()
+   elif command == "execute":
          
       try:
-         notebook_execute(input["options"], status)
+         notebook_execute(options, message)
       except Exception as e:
          msg = str(e)
          kCellExecutionError = "nbclient.exceptions.CellExecutionError: "
          loc = msg.find(kCellExecutionError)
          if loc != -1:
             msg = msg[loc + len(kCellExecutionError)]
-         status("\n\n" + msg + "\n")  
+         message("\n\n" + msg + "\n")  
          sys.exit(1) 
          
 
