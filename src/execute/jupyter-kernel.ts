@@ -197,7 +197,7 @@ async function connectToKernel(
   // if there is a transport then try to connect to it
   if (transport) {
     try {
-      return denoConnectToKernel(transport);
+      return await denoConnectToKernel(transport);
     } catch (e) {
       // remove the transport file
       Deno.removeSync(transportFile);
@@ -234,7 +234,7 @@ async function connectToKernel(
     const kernelTransport = readKernelTransportFile(transportFile);
     if (kernelTransport) {
       try {
-        return denoConnectToKernel(kernelTransport);
+        return await denoConnectToKernel(kernelTransport);
       } catch (e) {
         // remove the transport file
         Deno.removeSync(transportFile);
@@ -251,7 +251,6 @@ async function connectToKernel(
 async function denoConnectToKernel(
   transport: KernelTransport,
 ): Promise<[Deno.Conn, KernelTransport]> {
-  // console.log(transport);
   return [
     await Deno.connect(
       { hostname: "127.0.0.1", port: transport.port },

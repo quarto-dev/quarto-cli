@@ -4,8 +4,6 @@
 
 # set permissions on server file
 # verify that our dynamic port strategy is okay
-# delete server file on exit
-# implement secret
 # implement domain sockets for unix?
 
 
@@ -469,11 +467,12 @@ class ExecuteServer(TCPServer):
    def __init__(self, transport, timeout):
 
       # initialize server
+      self.transport = transport
       self.timeout = timeout
       super().__init__(("localhost",0), ExecuteHandler)
 
       # get the port number and write it to the transport file
-      with open(transport,"w") as file:
+      with open(self.transport,"w") as file:
          port = self.socket.getsockname()[1]
          file.write(json.dumps(dict({
             "port": port,
@@ -492,8 +491,12 @@ class ExecuteServer(TCPServer):
       self.exit_pending = True
 
    def exit(self):
-      self.server_close()
-      sys.exit(0)
+      try:
+         self.server_close()
+         if os.path.exists(self.transport):
+            os.remove(self.transport)
+      finally:
+         sys.exit(0)
 
   
 def run_server(options):
