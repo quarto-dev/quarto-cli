@@ -2,20 +2,12 @@
 # run detached subprocess on windows
 # and/or find a python process library that makes detached subprocess easy
 
-# - client determines the 'handshake' file in the temp dir based on the path to the document
+# set permissions on server file
+# verify that our dynamic port strategy is okay
+# delete server file on exit
+# implement secret
+# implement domain sockets for unix?
 
-# - client looks in the file (if it exists) and finds a port and secret, it then attempts the
-#   connection using the port and secret
-#      a) Connection works and we perform the request
-#      b) Port cannot be connected to. Delete the file and restart the server.
-#      c) Port can be connected to but it's not our server. Delete the file and restart the server.
-#         (proxy for this is that an exception occurs in our socket read/write loop)
-
-# - client starting server:
-#      a) client provides filepath
-#      b) server writes port and secret into the file. server sets permissions on file to user-only.
-#      c) client waits for the file to exist, then attempts connection
-#      d) server will attempt to delete the file when it exits
 
 
 # provide a setup chunk for julia
@@ -28,6 +20,7 @@ import sys
 import json
 import logging
 import pprint
+import uuid
 import daemon
 from pathlib import Path
 
@@ -468,10 +461,21 @@ class ExecuteServer(TCPServer):
 
    allow_reuse_address = True
    exit_pending = False
+   secret = str(uuid.uuid4())
 
-   def __init__(self, port, timeout):
+   def __init__(self, transport, timeout):
+
+      # initialize server
       self.timeout = timeout
-      super().__init__(("localhost",port), ExecuteHandler)
+      super().__init__(("localhost",0), ExecuteHandler)
+
+      # get the port number and write it to the transport file
+      with open(transport,"w") as file:
+         port = self.socket.getsockname()[1]
+         file.write(json.dumps(dict({
+            "port": port,
+            "secret": self.secret
+         })))
 
    def handle_request(self):
       if self.exit_pending:
@@ -490,8 +494,17 @@ class ExecuteServer(TCPServer):
 
   
 def run_server(options):
+
+   # initialize logger
+   logger = logging.getLogger(__name__)  
+   logger.setLevel(logging.WARNING)
+   stderr_handler = logging.StreamHandler(sys.stderr)
+   logger.addHandler(stderr_handler)
+   file_handler = logging.FileHandler('quarto-jupyter.log')
+   logger.addHandler(file_handler)   
+   
    try:
-      with ExecuteServer(options["port"], options["timeout"]) as server:  
+      with ExecuteServer(options["transport"], options["timeout"]) as server:  
          while True:
             server.handle_request() 
    except Exception as e:
@@ -500,50 +513,33 @@ def run_server(options):
 
 if __name__ == "__main__":
 
-   # setup logging
-   logger = logging.getLogger(__name__)  
-   logger.setLevel(logging.WARNING)
-   stderr_handler = logging.StreamHandler(sys.stderr)
-   logger.addHandler(stderr_handler)
-   file_handler = logging.FileHandler('quarto-jupyter.log')
-   logger.addHandler(file_handler)
 
-   # debug mode server
-   if "--serve" in sys.argv:
+   # read input from stdin
+   input = json.load(sys.stdin)
 
-      run_server({
-         "port": 5555,
-         "timeout": 3000
-      })
-      
-   else:
+   if input["command"] == "start":
+      try:
+         with daemon.DaemonContext(working_directory = os.getcwd()):
+            run_server(input["options"])
+      except Exception as e:
+         sys.stderr.write(str(e))
 
-      input = json.load(sys.stdin)
+   elif input["command"] == "execute":
 
-      if input["command"] == "start":
+      def status(msg):
+         sys.stderr.write(msg)
+         sys.stderr.flush()
          
-         try:
-            with daemon.DaemonContext(working_directory = os.getcwd()):
-               run_server(options)
-         except Exception as e:
-            logger.exception(e)
-
-      elif input["command"] == "execute":
-
-         def status(msg):
-            sys.stderr.write(msg)
-            sys.stderr.flush()
-          
-         try:
-            notebook_execute(input["options"], status)
-         except Exception as e:
-            msg = str(e)
-            kCellExecutionError = "nbclient.exceptions.CellExecutionError: "
-            loc = msg.find(kCellExecutionError)
-            if loc != -1:
-               msg = msg[loc + len(kCellExecutionError)]
-            status("\n\n" + msg + "\n")  
-            sys.exit(1) 
+      try:
+         notebook_execute(input["options"], status)
+      except Exception as e:
+         msg = str(e)
+         kCellExecutionError = "nbclient.exceptions.CellExecutionError: "
+         loc = msg.find(kCellExecutionError)
+         if loc != -1:
+            msg = msg[loc + len(kCellExecutionError)]
+         status("\n\n" + msg + "\n")  
+         sys.exit(1) 
          
 
 

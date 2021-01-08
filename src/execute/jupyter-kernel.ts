@@ -5,6 +5,7 @@
 *
 */
 
+import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 import { createHash } from "hash/mod.ts";
 
@@ -86,6 +87,14 @@ export async function executeKernelKeepalive(
         }
       }
     }
+  } catch (e) {
+    // likely this is not our server! (as it's not producing/consuming the expected json)
+    // in that case remove the connection file and re-throw the exception
+    const transportFile = kernelTransportFile(options.target.input);
+    if (existsSync(transportFile)) {
+      Deno.removeSync(transportFile);
+    }
+    throw e;
   } finally {
     conn.close();
   }
@@ -138,52 +147,104 @@ function kernelCommand(command: string, options: unknown) {
   return JSON.stringify({ command, options });
 }
 
-function kernelTransportFile(options: ExecuteOptions) {
+interface KernelTransport {
+  port: number;
+  secret: string;
+}
+
+function kernelTransportFile(target: string) {
   const transportsDir = systemTempDir("quarto-3B64122B");
-  const targetFile = Deno.realPathSync(options.target.input);
+  const targetFile = Deno.realPathSync(target);
   const hasher = createHash("md5");
   hasher.update(targetFile);
   const hash = hasher.toString("hex");
   return join(transportsDir, hash);
 }
 
+function readKernelTransportFile(transportFile: string) {
+  if (existsSync(transportFile)) {
+    try {
+      const transport = JSON.parse(Deno.readTextFileSync(transportFile));
+      if (transport.port && transport.secret) {
+        return transport as KernelTransport;
+      } else {
+        throw new Error("Invalid file format");
+      }
+    } catch (e) {
+      message(
+        "Error reading kernel transport file: " + e.toString() +
+          "(removing file)",
+      );
+      Deno.removeSync(transportFile);
+      return null;
+    }
+  } else {
+    return null;
+  }
+}
+
 async function connectToKernel(
   options: ExecuteOptions,
   startIfRequired = true,
 ): Promise<Deno.Conn> {
-  const port = 5555;
+  // derive the file path for this connection
+  const transportFile = kernelTransportFile(options.target.input);
+  const transport = readKernelTransportFile(transportFile);
+
+  // if there is a transport then try to connect to it
+  if (transport) {
+    try {
+      return await Deno.connect(
+        { hostname: "127.0.0.1", port: transport.port },
+      );
+    } catch (e) {
+      // remove the transport file
+      Deno.removeSync(transportFile);
+
+      // we are done if there is no startIfRequired request
+      if (!startIfRequired) {
+        return Promise.reject();
+      }
+    }
+  }
+
+  // start the kernel
+  if (!options.quiet) {
+    messageStartingKernel();
+  }
+
+  // determine timeout
   const timeout = options.kernel.keepalive === undefined
     ? 300
     : options.kernel.keepalive;
-  try {
-    return await Deno.connect({ hostname: "127.0.0.1", port });
-  } catch (e) {
-    if (!startIfRequired) {
-      return Promise.reject();
-    }
 
-    if (!options.quiet) {
-      messageStartingKernel();
-    }
-
-    // if there is an error then try to start the server
-    const result = await execJupyter("start", { port, timeout });
-    if (!result.success) {
-      return Promise.reject();
-    }
-
-    for (let i = 0; i < 10; i++) {
-      await sleep(i * 200);
-      try {
-        return await Deno.connect({ hostname: "127.0.0.1", port });
-      } catch {
-        //
-      }
-    }
-
-    message("Unable to start Jupyter kernel for " + options.target.input);
+  // try to start the server
+  const result = await execJupyter("start", {
+    transport: transportFile,
+    timeout,
+  });
+  if (!result.success) {
     return Promise.reject();
   }
+
+  // poll for the transport file and connect once we have it
+  for (let i = 1; i < 20; i++) {
+    await sleep(i * 100);
+    const kernelTransport = readKernelTransportFile(transportFile);
+    if (kernelTransport) {
+      try {
+        return await Deno.connect(
+          { hostname: "127.0.0.1", port: kernelTransport.port },
+        );
+      } catch (e) {
+        message("Error connecting to Jupyter kernel: " + e.toString());
+        return Promise.reject();
+      }
+    }
+  }
+
+  message("Unable to start Jupyter kernel for " + options.target.input);
+  return Promise.reject();
 }
 
 function messageStartingKernel() {
