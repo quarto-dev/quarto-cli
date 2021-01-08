@@ -137,7 +137,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: ./${{needs.configure.outputs.version}}_amd64.deb
+        asset_path: ./Deb Installer/quarto_${{needs.configure.outputs.version}}_amd64.deb
         asset_name: quarto_${{needs.configure.outputs.version}}_amd64.deb
         asset_content_type: application/deb
 
@@ -148,7 +148,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: ./quarto-${{needs.configure.outputs.version}}.msi
+        asset_path: ./Windows Installer/quarto-${{needs.configure.outputs.version}}.msi
         asset_name: quarto-${{needs.configure.outputs.version}}.msi
         asset_content_type: application/msi
 
@@ -159,7 +159,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: ./quarto-${{needs.configure.outputs.version}}-macos.pkg
+        asset_path: ./Mac Installer/quarto-${{needs.configure.outputs.version}}-macos.pkg
         asset_name: quarto-${{needs.configure.outputs.version}}-macos.pkg
         asset_content_type: application/pkg
         
