@@ -421,7 +421,10 @@ class ExecuteHandler(StreamRequestHandler):
          input = str(self.rfile.readline().strip(), 'utf-8')
          input = json.loads(input)
 
-         # TODO: validate the client
+         # validate secret
+         if input["secret"] != self.server.secret:
+            self.server.request_exit()
+            return
 
          # if this is an abort command then request exit
          command = input["command"]

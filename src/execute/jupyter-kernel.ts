@@ -44,9 +44,14 @@ export async function executeKernelKeepalive(
     await abortKernel(options);
   }
 
-  const conn = await connectToKernel(options);
+  const [conn, transport] = await connectToKernel(options);
   try {
-    await writeKernelCommand(conn, "execute", options);
+    await writeKernelCommand(
+      conn,
+      "execute",
+      transport.secret,
+      options,
+    );
     let leftover = "";
     while (true) {
       const buffer = new Uint8Array(512);
@@ -102,18 +107,15 @@ export async function executeKernelKeepalive(
 
 async function abortKernel(options: ExecuteOptions) {
   // connect to kernel if it exists and send abort command
-  let conn: Deno.Conn | undefined;
   try {
-    conn = await connectToKernel(options, false);
-  } catch {
-    //
-  }
-  if (conn) {
+    const [conn, transport] = await connectToKernel(options, false);
     try {
-      await writeKernelCommand(conn, "abort", null);
+      await writeKernelCommand(conn, "abort", transport.secret, null);
     } finally {
       conn.close();
     }
+  } catch {
+    //
   }
 }
 
@@ -129,22 +131,23 @@ function execJupyter(
       ],
       stdout: "piped",
     },
-    kernelCommand(command, options),
+    kernelCommand(command, "", options),
   );
 }
 
 async function writeKernelCommand(
   conn: Deno.Conn,
   command: string,
+  secret: string,
   options: unknown,
 ) {
   await conn.write(
-    new TextEncoder().encode(kernelCommand(command, options) + "\n"),
+    new TextEncoder().encode(kernelCommand(command, secret, options) + "\n"),
   );
 }
 
-function kernelCommand(command: string, options: unknown) {
-  return JSON.stringify({ command, options });
+function kernelCommand(command: string, secret: string, options: unknown) {
+  return JSON.stringify({ command, secret, options });
 }
 
 interface KernelTransport {
@@ -186,7 +189,7 @@ function readKernelTransportFile(transportFile: string) {
 async function connectToKernel(
   options: ExecuteOptions,
   startIfRequired = true,
-): Promise<Deno.Conn> {
+): Promise<[Deno.Conn, KernelTransport]> {
   // derive the file path for this connection
   const transportFile = kernelTransportFile(options.target.input);
   const transport = readKernelTransportFile(transportFile);
@@ -194,9 +197,12 @@ async function connectToKernel(
   // if there is a transport then try to connect to it
   if (transport) {
     try {
-      return await Deno.connect(
-        { hostname: "127.0.0.1", port: transport.port },
-      );
+      return [
+        await Deno.connect(
+          { hostname: "127.0.0.1", port: transport.port },
+        ),
+        transport,
+      ];
     } catch (e) {
       // remove the transport file
       Deno.removeSync(transportFile);
@@ -233,9 +239,12 @@ async function connectToKernel(
     const kernelTransport = readKernelTransportFile(transportFile);
     if (kernelTransport) {
       try {
-        return await Deno.connect(
-          { hostname: "127.0.0.1", port: kernelTransport.port },
-        );
+        return [
+          await Deno.connect(
+            { hostname: "127.0.0.1", port: kernelTransport.port },
+          ),
+          kernelTransport,
+        ];
       } catch (e) {
         message("Error connecting to Jupyter kernel: " + e.toString());
         return Promise.reject();
