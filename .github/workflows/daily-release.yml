@@ -48,7 +48,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: Deb Installer
-        path: ./package/out/quarto_${{needs.configure.outputs.version}}_amd64.deb
+        path: ./package/out/quarto-${{needs.configure.outputs.version}}-amd64.deb
         
   make-installer-win:
     runs-on: windows-latest
@@ -77,7 +77,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: Windows Installer
-        path: ./package/out/quarto-${{needs.configure.outputs.version}}.msi
+        path: ./package/out/quarto-${{needs.configure.outputs.version}}-win.msi
         
 
   make-installer-mac:
@@ -137,8 +137,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: ./Deb Installer/quarto_${{needs.configure.outputs.version}}_amd64.deb
-        asset_name: quarto_${{needs.configure.outputs.version}}_amd64.deb
+        asset_path: ./Deb Installer/quarto-${{needs.configure.outputs.version}}-amd64.deb
+        asset_name: quarto-${{needs.configure.outputs.version}}-amd64.deb
         asset_content_type: application/deb
 
     - name: Attach Windows Installer
@@ -148,8 +148,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: ./Windows Installer/quarto-${{needs.configure.outputs.version}}.msi
-        asset_name: quarto-${{needs.configure.outputs.version}}.msi
+        asset_path: ./Windows Installer/quarto-${{needs.configure.outputs.version}}-win.msi
+        asset_name: quarto-${{needs.configure.outputs.version}}-win.msi
         asset_content_type: application/msi
 
     - name: Attach Mac Installer
