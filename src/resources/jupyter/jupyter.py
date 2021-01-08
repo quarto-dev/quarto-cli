@@ -1,12 +1,13 @@
 
 # run detached subprocess on windows
+# https://docs.python.org/3/library/subprocess.html#module-subprocess
+# https://stackoverflow.com/questions/52449997/how-to-detach-python-child-process-on-windows-without-setsid/52450172#
 # and/or find a python process library that makes detached subprocess easy
 
-# set permissions on server file
-# verify that our dynamic port strategy is okay
+# store transport files in correct user data directory:
+# https://github.com/building5/appdirsjs/blob/master/index.js
+
 # implement domain sockets for unix?
-
-
 
 # provide a setup chunk for julia
 
@@ -16,6 +17,7 @@ import random
 import copy
 import sys
 import json
+import stat
 import logging
 import pprint
 import uuid
@@ -472,12 +474,16 @@ class ExecuteServer(TCPServer):
       super().__init__(("localhost",0), ExecuteHandler)
 
       # get the port number and write it to the transport file
+      port = self.socket.getsockname()[1]
       with open(self.transport,"w") as file:
-         port = self.socket.getsockname()[1]
+         file.write("")
+      os.chmod(self.transport, stat.S_IRUSR | stat.S_IWUSR)
+      with open(self.transport,"w") as file:
          file.write(json.dumps(dict({
             "port": port,
             "secret": self.secret
          })))
+
 
    def handle_request(self):
       if self.exit_pending:
