@@ -148,9 +148,24 @@ jobs:
   publish-release:
     runs-on: ubuntu-latest
     needs: [create-release, make-installer-deb, make-installer-win, make-installer-mac]
-    
+    if: ${{ success() }}
     steps:
     - name: Publish
       run: |
         echo "Publishing" ${{needs.create-release.outputs.release_id}}
+        
+  discard-release:
+    runs-on: ubuntu-latest
+    needs: [create-release, make-installer-deb, make-installer-win, make-installer-mac]
+    if: ${{ failure() }}
+    
+    steps:
+    - name: Cleanup
+      uses: author/action-rollback@stable
+      with:
+        # Using a known release ID
+        id: ${{needs.create-release.outputs.release_id}}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
 
