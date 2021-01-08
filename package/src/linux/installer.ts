@@ -24,7 +24,7 @@ export async function makeInstallerDeb(
     log.error("Can't detect package architecture.")
     throw new Error("Undetectable architecture. Packaging failed.")
   }
-  configuration.pkgConfig.name = `quarto_${configuration.version}_${architecture}.deb`;
+  configuration.pkgConfig.name = `quarto-${configuration.version}-${architecture}.deb`;
   log.info("Building package " + configuration.pkgConfig.name);
 
   // Prepare working directory

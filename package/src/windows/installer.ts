@@ -41,7 +41,6 @@ export async function makeInstallerWindows(configuration: Configuration) {
 
         // Delete the downloaded zip file
         Deno.remove(destZip);
-
     }
 
     // heat the directory to generate a wix file for it 
@@ -60,7 +59,7 @@ export async function makeInstallerWindows(configuration: Configuration) {
     }));
 
 
-    const lightOutput = join(workingDir, `quarto-${configuration.version}.msi`);
+    const lightOutput = join(workingDir, `quarto-${configuration.version}-win.msi`);
     await runCmd(lightCmd, ["-out", lightOutput, ...candleOutput], configuration.log);
 
     configuration.log.info(`Moving ${lightOutput} to ${configuration.dirs.out}`);
