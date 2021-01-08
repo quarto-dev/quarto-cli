@@ -1,9 +1,8 @@
 
-# ensure that daemonize works on windows
+# run detached subprocess on windows
+# and/or find a python process library that makes detached subprocess easy
 
 # - client determines the 'handshake' file in the temp dir based on the path to the document
-
-# - kernel needs to restart if the input path changes (could happen on cross-directory hash collision)
 
 # - client looks in the file (if it exists) and finds a port and secret, it then attempts the
 #   connection using the port and secret
@@ -498,13 +497,6 @@ def run_server(options):
    except Exception as e:
       logger.exception(e)
 
-def run_server_daemon(options):
-   try:
-      with daemon.DaemonContext(working_directory = os.getcwd()):
-         run_server(options)
-   except Exception as e:
-      logger.exception(e)
-
 
 if __name__ == "__main__":
 
@@ -530,7 +522,11 @@ if __name__ == "__main__":
 
       if input["command"] == "start":
          
-         run_server_daemon(input["options"])
+         try:
+            with daemon.DaemonContext(working_directory = os.getcwd()):
+               run_server(options)
+         except Exception as e:
+            logger.exception(e)
 
       elif input["command"] == "execute":
 
