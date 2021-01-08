@@ -164,7 +164,7 @@ jobs:
       uses: author/action-rollback@stable
       with:
         # Using a known release ID
-        id: ${{needs.create-release.outputs.release_id}}
+        release_id: ${{needs.create-release.outputs.release_id}}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
