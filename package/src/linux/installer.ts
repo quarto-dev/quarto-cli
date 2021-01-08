@@ -17,8 +17,6 @@ export async function makeInstallerDeb(
   const log = configuration.log;
   log.info("Building deb package...");
 
-  // TODO: Compute file size and include in control file
-
   // detect packaging machine architecture
   const result = await runCmd("dpkg-architecture", ["-qDEB_BUILD_ARCH"], log);
   const architecture = (result.status.code === 0 ? result.stdout.trim() : undefined);
@@ -27,6 +25,7 @@ export async function makeInstallerDeb(
     throw new Error("Undetectable architecture. Packaging failed.")
   }
   configuration.pkgConfig.name = `quarto_${configuration.version}_${architecture}.deb`;
+  log.info("Building package " + configuration.pkgConfig.name);
 
   // Prepare working directory
   const workingDir = join(configuration.dirs.out, "working");
