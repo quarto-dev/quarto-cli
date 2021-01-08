@@ -130,5 +130,40 @@ jobs:
         draft: true
         prerelease: true  
         
+    - name: Attach Debian Installer
+      id: attach-deb-installer
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} 
+        asset_path: ./${{needs.configure.outputs.version}}_amd64.deb
+        asset_name: quarto_${{needs.configure.outputs.version}}_amd64.deb
+        asset_content_type: application/deb
+
+    - name: Attach Windows Installer
+      id: attach-win-installer
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} 
+        asset_path: ./quarto-${{needs.configure.outputs.version}}.msi
+        asset_name: quarto-${{needs.configure.outputs.version}}.msi
+        asset_content_type: application/msi
+
+    - name: Attach Mac Installer
+      id: attach-mac-installer
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} 
+        asset_path: ./quarto-${{needs.configure.outputs.version}}-macos.pkg
+        asset_name: quarto-${{needs.configure.outputs.version}}-macos.pkg
+        asset_content_type: application/pkg
+        
+        
+              
         
 
