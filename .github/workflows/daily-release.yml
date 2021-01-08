@@ -13,11 +13,13 @@ jobs:
       version: ${{steps.config.outputs.version}}
       
     steps:
-      -  name: config
-         id: config
-         run: |
-           source ./configuration
-           echo "::set-output version=$VERSION"
+    - uses: actions/checkout@v2
+      
+    - name: config
+      id: config
+      run: |
+        source ./configuration
+        echo "::set-output version=$VERSION"
 
   create-release:
     runs-on: ubuntu-latest
