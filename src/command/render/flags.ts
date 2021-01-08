@@ -27,7 +27,6 @@ export interface RenderFlags extends PandocFlags {
   executeCache?: true | false | "refresh";
   kernelKeepalive?: number;
   kernelRestart?: boolean;
-  kernelAbort?: boolean;
   debug?: boolean;
   quiet?: boolean;
 }
