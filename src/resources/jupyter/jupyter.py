@@ -527,9 +527,7 @@ def posix_run_server_daemon(options):
 
 def windows_run_server_daemon(options):
    
-   # TODO: why is it hanging when we do --no-kernel-keepalive cold?
    # TODO: pass --start + the transport file either w/ env vars or command line
-   # TODO: consolidate exception handling
    # TODO: handle errors which occur creating the process, etc.
 
    flags = 0
@@ -545,35 +543,34 @@ def message(msg):
    sys.stderr.write(msg)
    sys.stderr.flush()
 
+def exception_message(e):
+   msg = str(e)
+   # CellExecutionError for execution at the terminal includes a bunch
+   # of extra stack frames internal to this script. remove them
+   kCellExecutionError = "nbclient.exceptions.CellExecutionError: "
+   loc = msg.find(kCellExecutionError)
+   if loc != -1:
+      msg = msg[loc + len(kCellExecutionError)]
+   message("\n\n" + msg + "\n")  
+
+
 if __name__ == "__main__":
 
-   # read input from stdin
-   input = json.load(sys.stdin)
-   command = input["command"]
-   options = input["options"]
+   try:
+      input = json.load(sys.stdin)
+      command = input["command"]
+      options = input["options"]
 
-   if command == "start":
-      try:
+      if command == "start":
          if os.name == 'nt':
             windows_run_server_daemon(options)
          else:
             posix_run_server_daemon(options)
-      except Exception as e:
-         message(str(e))
-         sys.exit(1) 
 
-   elif command == "execute":
-         
-      try:
+      elif command == "execute":
          notebook_execute(options, message)
-      except Exception as e:
-         msg = str(e)
-         kCellExecutionError = "nbclient.exceptions.CellExecutionError: "
-         loc = msg.find(kCellExecutionError)
-         if loc != -1:
-            msg = msg[loc + len(kCellExecutionError)]
-         message("\n\n" + msg + "\n")  
-         sys.exit(1) 
-         
 
+   except Exception as e:
+      exception_message(e)
+      sys.exit(1) 
 
