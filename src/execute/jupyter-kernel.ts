@@ -151,8 +151,9 @@ function kernelCommand(command: string, secret: string, options: unknown) {
 }
 
 interface KernelTransport {
-  port: number;
+  port: number | string;
   secret: string;
+  type: "tcp" | "unix";
 }
 
 function kernelTransportFile(target: string) {
@@ -160,26 +161,40 @@ function kernelTransportFile(target: string) {
   const targetFile = Deno.realPathSync(target);
   const hasher = createHash("md5");
   hasher.update(targetFile);
-  const hash = hasher.toString("hex");
+  const hash = hasher.toString("hex").slice(0, 10);
   return join(transportsDir, hash);
 }
 
-function readKernelTransportFile(transportFile: string) {
+function readKernelTransportFile(
+  transportFile: string,
+  type: "tcp" | "unix",
+): KernelTransport | null {
   if (existsSync(transportFile)) {
-    try {
-      const transport = JSON.parse(Deno.readTextFileSync(transportFile));
-      if (transport.port && transport.secret) {
-        return transport as KernelTransport;
-      } else {
-        throw new Error("Invalid file format");
+    if (type === "tcp") {
+      try {
+        const transport = JSON.parse(Deno.readTextFileSync(transportFile));
+        if (transport.port && transport.secret) {
+          return {
+            ...transport,
+            type,
+          };
+        } else {
+          throw new Error("Invalid file format");
+        }
+      } catch (e) {
+        message(
+          "Error reading kernel transport file: " + e.toString() +
+            "(removing file)",
+        );
+        Deno.removeSync(transportFile);
+        return null;
       }
-    } catch (e) {
-      message(
-        "Error reading kernel transport file: " + e.toString() +
-          "(removing file)",
-      );
-      Deno.removeSync(transportFile);
-      return null;
+    } else {
+      return {
+        port: transportFile,
+        secret: "",
+        type,
+      };
     }
   } else {
     return null;
@@ -192,7 +207,16 @@ async function connectToKernel(
 ): Promise<[Deno.Conn, KernelTransport]> {
   // derive the file path for this connection
   const transportFile = kernelTransportFile(options.target.input);
-  const transport = readKernelTransportFile(transportFile);
+
+  // determine connection type -- try to use unix domain sockets but use tcp for
+  // windows or if the transportFile path is > 100, see here for details on why:
+  // https://unix.stackexchange.com/questions/367008/why-is-socket-path-length-limited-to-a-hundred-chars
+  const type = Deno.build.os === "windows" || transportFile.length >= 100
+    ? "tcp"
+    : "unix";
+
+  // get the transport
+  const transport = readKernelTransportFile(transportFile, type);
 
   // if there is a transport then try to connect to it
   if (transport) {
@@ -223,6 +247,7 @@ async function connectToKernel(
   const result = await execJupyter("start", {
     transport: transportFile,
     timeout,
+    type,
   });
   if (!result.success) {
     return Promise.reject();
@@ -231,7 +256,7 @@ async function connectToKernel(
   // poll for the transport file and connect once we have it
   for (let i = 1; i < 20; i++) {
     await sleep(i * 100);
-    const kernelTransport = readKernelTransportFile(transportFile);
+    const kernelTransport = readKernelTransportFile(transportFile, type);
     if (kernelTransport) {
       try {
         return await denoConnectToKernel(kernelTransport);
@@ -253,7 +278,16 @@ async function denoConnectToKernel(
 ): Promise<[Deno.Conn, KernelTransport]> {
   return [
     await Deno.connect(
-      { hostname: "127.0.0.1", port: transport.port },
+      transport.type == "tcp"
+        ? {
+          transport: transport.type,
+          hostname: "127.0.0.1",
+          port: transport.port as number,
+        }
+        : {
+          transport: transport.type,
+          path: transport.port as string,
+        },
     ),
     transport,
   ];

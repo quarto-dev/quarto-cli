@@ -38,7 +38,7 @@ class ExecuteHandler(StreamRequestHandler):
          input = json.loads(input)
 
          # validate secret
-         if input["secret"] != self.server.secret:
+         if not self.server.validate_secret(input["secret"]):
             self.server.request_exit()
             return
 
@@ -77,31 +77,52 @@ class ExecuteHandler(StreamRequestHandler):
   
 def execute_server(options):
 
-   base = TCPServer
+   # determine server type
+   is_tcp = options["type"] == "tcp"
+   if is_tcp:
+      base = TCPServer
+   else:
+      base = UnixStreamServer
 
    class ExecuteServer(base):
 
       allow_reuse_address = True
       exit_pending = False
-      secret = str(uuid.uuid4())
-
+      
       def __init__(self, options):
 
-         # initialize server
+         # set secret for tcp
+         if is_tcp:
+            self.secret = str(uuid.uuid4())
+         else:
+            self.secret = ""
+
+         # server params
          self.transport = options["transport"]
          self.timeout = options["timeout"]
-         super().__init__(("localhost",0), ExecuteHandler)
 
-         # get the port number and write it to the transport file
-         port = self.socket.getsockname()[1]
-         with open(self.transport,"w") as file:
-            file.write("")
-         os.chmod(self.transport, stat.S_IRUSR | stat.S_IWUSR)
-         with open(self.transport,"w") as file:
-            file.write(json.dumps(dict({
-               "port": port,
-               "secret": self.secret
-            })))
+         # initialize with address (based on server type) and handler
+         if is_tcp:
+            server_address = ("localhost",0)
+         else:
+            server_address = self.transport
+         super().__init__(server_address, ExecuteHandler)
+
+         # if we are a tcp server then get the port number and write it 
+         # to the transport file. change file permissions to user r/w
+         # for both tcp and unix domain sockets
+         if is_tcp:
+            port = self.socket.getsockname()[1]
+            with open(self.transport,"w") as file:
+               file.write("")
+            os.chmod(self.transport, stat.S_IRUSR | stat.S_IWUSR)
+            with open(self.transport,"w") as file:
+               file.write(json.dumps(dict({
+                  "port": port,
+                  "secret": self.secret
+               })))
+         else:
+            os.chmod(self.transport, stat.S_IRUSR | stat.S_IWUSR)
 
 
       def handle_request(self):
@@ -111,6 +132,9 @@ def execute_server(options):
 
       def handle_timeout(self):
          self.exit()
+
+      def validate_secret(self, secret):
+         return self.secret == secret
 
       def request_exit(self):
          self.exit_pending = True
