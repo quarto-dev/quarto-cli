@@ -201,12 +201,12 @@ async function connectToKernel(
     } catch (e) {
       // remove the transport file
       Deno.removeSync(transportFile);
-
-      // we are done if there is no startIfRequired request
-      if (!startIfRequired) {
-        return Promise.reject();
-      }
     }
+  }
+
+  // we are done if there is no startIfRequired request
+  if (!startIfRequired) {
+    return Promise.reject();
   }
 
   // start the kernel
