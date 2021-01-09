@@ -17,6 +17,7 @@ import { resourcePath } from "../core/resources.ts";
 
 import { ExecuteOptions } from "./engine.ts";
 import { pythonBinary } from "./jupyter.ts";
+import { quartoRuntimeDir } from "../core/appdirs.ts";
 
 export async function executeKernelOneshot(
   options: ExecuteOptions,
@@ -157,11 +158,11 @@ interface KernelTransport {
 }
 
 function kernelTransportFile(target: string) {
-  const transportsDir = systemTempDir("quarto-3B64122B");
+  const transportsDir = quartoRuntimeDir("jt");
   const targetFile = Deno.realPathSync(target);
   const hasher = createHash("md5");
   hasher.update(targetFile);
-  const hash = hasher.toString("hex").slice(0, 10);
+  const hash = hasher.toString("hex").slice(0, 20);
   return join(transportsDir, hash);
 }
 
