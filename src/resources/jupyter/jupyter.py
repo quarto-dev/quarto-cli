@@ -7,6 +7,8 @@
 # store transport files in correct user data directory:
 # https://github.com/building5/appdirsjs/blob/master/index.js
 
+# break jupyter into multiple files?
+
 # implement domain sockets for unix?
 
 # single init of logs now that we are doing it right. log/info/warning
@@ -553,20 +555,31 @@ def run_server_subprocess(options):
       start_new_session = True
    )
 
-def message(msg):
-   sys.stderr.write(msg)
+
+# run a notebook directly (not a server)
+def run_notebook(options):
+   # stream status to stderr
+   def status(msg):
+      sys.stderr.write(msg)
+      sys.stderr.flush()
+
+   # run notebook w/ some special exception handling
+   try:   
+      notebook_execute(options, status)
+   except Exception as e:
+      # CellExecutionError for execution at the terminal includes a bunch
+      # of extra stack frames internal to this script. remove them
+      msg = str(e)
+      kCellExecutionError = "nbclient.exceptions.CellExecutionError: "
+      loc = msg.find(kCellExecutionError)
+      if loc != -1:
+         msg = msg[loc + len(kCellExecutionError)]
+      error_exit(msg)
+
+def error_exit(msg, code = 1):
+   sys.stderr.write("\n\n" + msg + "\n")
    sys.stderr.flush()
-
-def exception_message(e):
-   msg = str(e)
-   # CellExecutionError for execution at the terminal includes a bunch
-   # of extra stack frames internal to this script. remove them
-   kCellExecutionError = "nbclient.exceptions.CellExecutionError: "
-   loc = msg.find(kCellExecutionError)
-   if loc != -1:
-      msg = msg[loc + len(kCellExecutionError)]
-   message("\n\n" + msg + "\n")  
-
+   sys.exit(code)
 
 if __name__ == "__main__":
 
@@ -597,9 +610,8 @@ if __name__ == "__main__":
       
       # execute a notebook and then quit
       elif command == "execute":
-         notebook_execute(options, message)
-
+         run_notebook(options)
+        
    except Exception as e:
-      exception_message(e)
-      sys.exit(1) 
+      error_exit(str(e))
 
