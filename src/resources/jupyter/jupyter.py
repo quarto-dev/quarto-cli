@@ -511,24 +511,18 @@ class ExecuteServer(TCPServer):
          sys.exit(0)
 
   
-def run_server(options):
-
-   # initialize logger
-   logger = logging.getLogger(__name__)  
-   logger.setLevel(logging.WARNING)
-   file_handler = logging.FileHandler('quarto-jupyter.log')
-   logger.addHandler(file_handler)   
-   
+def run_server(options): 
    try:
       with ExecuteServer(options["transport"], options["timeout"]) as server:  
          while True:
             server.handle_request() 
    except Exception as e:
-      logger.exception(e)
+      log_error("Unable to run server", exc_info = e)
 
 # run a server as a posix daemon
 def run_server_daemon(options):
    with daemon.DaemonContext(working_directory = os.getcwd()):
+      log_init()
       run_server(options)   
 
 # run a server as a detached subprocess
@@ -563,7 +557,9 @@ def run_notebook(options):
       sys.stderr.write(msg)
       sys.stderr.flush()
 
-   # run notebook w/ some special exception handling
+   # run notebook w/ some special exception handling. note that we don't 
+   # log exceptions here b/c they are considered normal course of execution
+   # for errors that occur in notebook cells
    try:   
       notebook_execute(options, status)
    except Exception as e:
@@ -574,14 +570,41 @@ def run_notebook(options):
       loc = msg.find(kCellExecutionError)
       if loc != -1:
          msg = msg[loc + len(kCellExecutionError)]
-      error_exit(msg)
+      sys.stderr.write("\n\n" + msg + "\n")
+      sys.stderr.flush()
+      sys.exit(1)
 
-def error_exit(msg, code = 1):
-   sys.stderr.write("\n\n" + msg + "\n")
-   sys.stderr.flush()
-   sys.exit(code)
+
+def log_init():
+   # create logger (default to WARNING)
+   logger = logging.getLogger()  
+   logger.setLevel(logging.WARNING)
+   # create handlers
+   stderr_handler = logging.StreamHandler(sys.stderr)
+   file_handler = logging.FileHandler('quarto-jupyter.log')
+   # create formatter and attach to handlers
+   formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+   stderr_handler.setFormatter(formatter)
+   file_handler.setFormatter(formatter)
+   # add handlers
+   logger.addHandler(stderr_handler)  
+   logger.addHandler(file_handler)   
+
+def log_set_level(level):
+   logger = logging.getLogger()  
+   logger.setLevel(level)  
+
+def log(level, msg):
+   logging.getLogger().log(level, msg)
+
+def log_error(msg, exc_info = False):
+   logging.getLogger().log(logging.ERROR, msg, exc_info = exc_info, stack_info = not exc_info)
+ 
 
 if __name__ == "__main__":
+
+   # initialize log
+   log_init()
 
    try:
       # read command from cmd line if it's there (in that case 
@@ -613,5 +636,6 @@ if __name__ == "__main__":
          run_notebook(options)
         
    except Exception as e:
-      error_exit(str(e))
+      log_error("Unable to run notebook", exc_info = e)
+      sys.exit(1)
 
