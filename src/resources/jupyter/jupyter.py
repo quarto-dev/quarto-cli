@@ -4,8 +4,8 @@
 # https://stackoverflow.com/questions/52449997/how-to-detach-python-child-process-on-windows-without-setsid/52450172#
 # and/or find a python process library that makes detached subprocess easy
 
-# store transport files in correct user data directory:
-# https://github.com/building5/appdirsjs/blob/master/index.js
+
+# default to keepalive only for isatty
 
 # --kernel-debug (undocumented) mode with additional diagnostics on client and server
 
