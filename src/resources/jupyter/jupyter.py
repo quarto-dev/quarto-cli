@@ -23,7 +23,7 @@ import signal
 import subprocess
 import daemon
 
-from socketserver import TCPServer, StreamRequestHandler
+from socketserver import TCPServer, UnixStreamServer, StreamRequestHandler
 
 from log import log_init, log, log_error
 from notebook import notebook_execute, RestartKernel
@@ -75,55 +75,60 @@ class ExecuteHandler(StreamRequestHandler):
       self.wfile.write(bytearray(json.dumps(message) + "\n", 'utf-8'))
       self.wfile.flush()
   
+def execute_server(options):
 
-class ExecuteServer(TCPServer):
+   base = TCPServer
 
-   allow_reuse_address = True
-   exit_pending = False
-   secret = str(uuid.uuid4())
+   class ExecuteServer(base):
 
-   def __init__(self, options):
+      allow_reuse_address = True
+      exit_pending = False
+      secret = str(uuid.uuid4())
 
-      # initialize server
-      self.transport = options["transport"]
-      self.timeout = options["timeout"]
-      super().__init__(("localhost",0), ExecuteHandler)
+      def __init__(self, options):
 
-      # get the port number and write it to the transport file
-      port = self.socket.getsockname()[1]
-      with open(self.transport,"w") as file:
-         file.write("")
-      os.chmod(self.transport, stat.S_IRUSR | stat.S_IWUSR)
-      with open(self.transport,"w") as file:
-         file.write(json.dumps(dict({
-            "port": port,
-            "secret": self.secret
-         })))
+         # initialize server
+         self.transport = options["transport"]
+         self.timeout = options["timeout"]
+         super().__init__(("localhost",0), ExecuteHandler)
+
+         # get the port number and write it to the transport file
+         port = self.socket.getsockname()[1]
+         with open(self.transport,"w") as file:
+            file.write("")
+         os.chmod(self.transport, stat.S_IRUSR | stat.S_IWUSR)
+         with open(self.transport,"w") as file:
+            file.write(json.dumps(dict({
+               "port": port,
+               "secret": self.secret
+            })))
 
 
-   def handle_request(self):
-      if self.exit_pending:
+      def handle_request(self):
+         if self.exit_pending:
+            self.exit()
+         super().handle_request()
+
+      def handle_timeout(self):
          self.exit()
-      super().handle_request()
 
-   def handle_timeout(self):
-      self.exit()
+      def request_exit(self):
+         self.exit_pending = True
 
-   def request_exit(self):
-      self.exit_pending = True
+      def exit(self):
+         try:
+            self.server_close()
+            if os.path.exists(self.transport):
+               os.remove(self.transport)
+         finally:
+            sys.exit(0)
 
-   def exit(self):
-      try:
-         self.server_close()
-         if os.path.exists(self.transport):
-            os.remove(self.transport)
-      finally:
-         sys.exit(0)
+   return ExecuteServer(options)
 
   
 def run_server(options): 
    try:
-      with ExecuteServer(options) as server:  
+      with execute_server(options) as server:  
          while True:
             server.handle_request() 
    except Exception as e:
