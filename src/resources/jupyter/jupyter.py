@@ -9,6 +9,8 @@
 
 # implement domain sockets for unix?
 
+# single init of logs now that we are doing it right. log/info/warning
+
 # provide a setup chunk for julia
 
 import os
@@ -21,6 +23,7 @@ import stat
 import logging
 import pprint
 import uuid
+import signal
 import subprocess
 import daemon
 from pathlib import Path
@@ -521,22 +524,33 @@ def run_server(options):
    except Exception as e:
       logger.exception(e)
 
-def posix_run_server_daemon(options):
+# run a server as a posix daemon
+def run_server_daemon(options):
    with daemon.DaemonContext(working_directory = os.getcwd()):
       run_server(options)   
 
-def windows_run_server_daemon(options):
-   
-   # TODO: pass --start + the transport file either w/ env vars or command line
-   # TODO: handle errors which occur creating the process, etc.
-
+# run a server as a detached subprocess
+def run_server_subprocess(options):
+   # detached process flags for windows
    flags = 0
-   flags |= 0x00000008  # DETACHED_PROCESS
-   flags |= 0x00000200  # CREATE_NEW_PROCESS_GROUP
-   flags |= 0x08000000  # CREATE_NO_WINDOW
+   if os.name == 'nt':
+      flags |= 0x00000008  # DETACHED_PROCESS
+      flags |= 0x00000200  # CREATE_NEW_PROCESS_GROUP
+      flags |= 0x08000000  # CREATE_NO_WINDOW
+   else:
+      signal.signal(signal.SIGCHLD, signal.SIG_IGN)
 
-   p = subprocess.Popen([sys.executable] + sys.argv,
-      creationflags = flags
+   # forward options via env vars
+   os.environ["QUARTO_JUPYTER_OPTIONS"] = json.dumps(options)
+
+   # create subprocess
+   p = subprocess.Popen([sys.executable] + sys.argv + ["serve"],
+      stdin = subprocess.DEVNULL,
+      stdout = subprocess.DEVNULL,
+      stderr = subprocess.DEVNULL,
+      creationflags = flags,
+      close_fds = True,
+      start_new_session = True
    )
 
 def message(msg):
@@ -557,16 +571,31 @@ def exception_message(e):
 if __name__ == "__main__":
 
    try:
-      input = json.load(sys.stdin)
-      command = input["command"]
-      options = input["options"]
+      # read command from cmd line if it's there (in that case 
+      # options are passed via environment variable)
+      if len(sys.argv) > 1:
+         command = sys.argv[1]
+         options = json.loads(os.getenv("QUARTO_JUPYTER_OPTIONS"))
+         del os.environ["QUARTO_JUPYTER_OPTIONS"]
+      # otherwise read from stdin
+      else:
+         input = json.load(sys.stdin)
+         command = input["command"]
+         options = input["options"]
 
+      # start the server (creates a new detached process, we implement this here 
+      # only b/c Deno doesn't currently support detaching spawned processes)
       if command == "start":
          if os.name == 'nt':
-            windows_run_server_daemon(options)
+            run_server_subprocess(options)
          else:
-            posix_run_server_daemon(options)
+            run_server_daemon(options)
 
+      # serve a notebook (invoked by run_server_subprocess)
+      elif command == "serve":
+         run_server(options)
+      
+      # execute a notebook and then quit
       elif command == "execute":
          notebook_execute(options, message)
 
