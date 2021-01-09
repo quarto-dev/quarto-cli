@@ -11,13 +11,6 @@ Error in UseMethod("wrap", x) :
 Calls: .main ... call_block -> block_exec -> unlist -> wrap -> knitr_wrap
 
 
-- Jupyter performance / kernel startup time
-  Tornado has no dependencies and supports autoreload:
-      https://www.tornadoweb.org/en/stable/autoreload.html 
-      may be able to do this (where the script auto kills the server): python -m tornado.autoreload tornado/test/runtests.py
-  https://github.com/mgedmin/findimports
-
-
 Project system:
   - allow _quarto config directory that merges all contained files
     (lock file will go there as well)

@@ -9,7 +9,7 @@
 
 # --kernel-debug (undocumented) mode with additional diagnostics on client and server
 
-# implement domain sockets for unix?
+# what is causing the ~ 1 sec delay at render startup
 
 # provide a setup chunk for julia
 
