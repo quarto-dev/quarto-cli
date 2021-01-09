@@ -82,11 +82,11 @@ class ExecuteServer(TCPServer):
    exit_pending = False
    secret = str(uuid.uuid4())
 
-   def __init__(self, transport, timeout):
+   def __init__(self, options):
 
       # initialize server
-      self.transport = transport
-      self.timeout = timeout
+      self.transport = options["transport"]
+      self.timeout = options["timeout"]
       super().__init__(("localhost",0), ExecuteHandler)
 
       # get the port number and write it to the transport file
@@ -123,7 +123,7 @@ class ExecuteServer(TCPServer):
   
 def run_server(options): 
    try:
-      with ExecuteServer(options["transport"], options["timeout"]) as server:  
+      with ExecuteServer(options) as server:  
          while True:
             server.handle_request() 
    except Exception as e:
