@@ -240,9 +240,7 @@ async function connectToKernel(
   }
 
   // determine timeout
-  const timeout = options.kernel.keepalive === undefined
-    ? 300
-    : options.kernel.keepalive;
+  const timeout = options.kernel.keepalive || 300;
 
   // try to start the server
   const result = await execJupyter("start", {
