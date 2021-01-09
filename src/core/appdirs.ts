@@ -8,55 +8,75 @@
 import { join } from "path/mod.ts";
 import { ensureDirSync } from "fs/mod.ts";
 
+export function quartoDataDir(subdir?: string, roaming = false) {
+  return quartoDir(userDataDir, subdir, roaming);
+}
+
+export function quartoConfigDir(subdir?: string, roaming = false) {
+  return quartoDir(userConfigDir, subdir, roaming);
+}
+
+export function quartoCacheDir(subdir?: string) {
+  return quartoDir(userCacheDir, subdir);
+}
+
+export function quartoRuntimeDir(subdir?: string) {
+  return quartoDir(userRuntimeDir, subdir);
+}
+
+function quartoDir(
+  sourceFn: (appName: string, roaming?: boolean) => string,
+  subdir?: string,
+  roaming?: boolean,
+) {
+  const dir = sourceFn("quarto", roaming);
+  const fullDir = subdir ? join(dir, subdir) : dir;
+  ensureDirSync(fullDir);
+  return fullDir;
+}
+
 export function userDataDir(appName: string, roaming = false) {
-  let dataDir: string | undefined;
   switch (Deno.build.os) {
     case "darwin":
-      dataDir = darwinUserDataDir(appName);
-      break;
+      return darwinUserDataDir(appName);
     case "linux":
-      dataDir = xdgUserDataDir(appName);
-      break;
+      return xdgUserDataDir(appName);
     case "windows":
-      dataDir = windowsUserDataDir(appName, roaming);
-      break;
+      return windowsUserDataDir(appName, roaming);
   }
-  ensureDirSync(dataDir);
-  return dataDir;
 }
 
 export function userConfigDir(appName: string, roaming = false) {
-  let configDir: string | undefined;
   switch (Deno.build.os) {
     case "darwin":
-      configDir = darwinUserDataDir(appName);
-      break;
+      return darwinUserDataDir(appName);
     case "linux":
-      configDir = xdgUserConfigDir(appName);
-      break;
+      return xdgUserConfigDir(appName);
     case "windows":
-      configDir = windowsUserDataDir(appName, roaming);
-      break;
+      return windowsUserDataDir(appName, roaming);
   }
-  ensureDirSync(configDir);
-  return configDir;
 }
 
 export function userCacheDir(appName: string) {
-  let cacheDir: string | undefined;
   switch (Deno.build.os) {
     case "darwin":
-      cacheDir = darwinUserCacheDir(appName);
-      break;
+      return darwinUserCacheDir(appName);
     case "linux":
-      cacheDir = xdgUserCacheDir(appName);
-      break;
+      return xdgUserCacheDir(appName);
     case "windows":
-      cacheDir = windowsUserDataDir(appName);
-      break;
+      return windowsUserDataDir(appName);
   }
-  ensureDirSync(cacheDir);
-  return cacheDir;
+}
+
+export function userRuntimeDir(appName: string) {
+  switch (Deno.build.os) {
+    case "darwin":
+      return darwinUserCacheDir(appName);
+    case "linux":
+      return xdgUserRuntimeDir(appName);
+    case "windows":
+      return windowsUserDataDir(appName);
+  }
 }
 
 function darwinUserDataDir(appName: string) {
@@ -93,6 +113,15 @@ function xdgUserCacheDir(appName: string) {
   const cacheHome = Deno.env.get("XDG_CACHE_HOME") ||
     join(Deno.env.get("HOME") || "", ".cache");
   return join(cacheHome, appName);
+}
+
+function xdgUserRuntimeDir(appName: string) {
+  const runtimeDir = Deno.env.get("XDG_RUNTIME_DIR");
+  if (runtimeDir) {
+    return runtimeDir;
+  } else {
+    return xdgUserDataDir(appName);
+  }
 }
 
 function windowsUserDataDir(appName: string, roaming = false) {
