@@ -147,8 +147,9 @@ def execute_server(options):
       def exit(self):
          try:
             trace('cleaning up server resources')
-            self.remove_transport()
             self.server_close()
+            self.remove_transport()
+          
          finally:
             trace('exiting server')
             sys.exit(0)
