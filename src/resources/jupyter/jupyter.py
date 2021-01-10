@@ -1,14 +1,4 @@
 
-# run detached subprocess on windows
-# https://docs.python.org/3/library/subprocess.html#module-subprocess
-# https://stackoverflow.com/questions/52449997/how-to-detach-python-child-process-on-windows-without-setsid/52450172#
-# and/or find a python process library that makes detached subprocess easy
-
-
-# what is causing the ~ 1 sec delay at render startup
-
-# provide a setup chunk for julia
-
 import os
 import sys
 import json

@@ -11,6 +11,11 @@ Error in UseMethod("wrap", x) :
 Calls: .main ... call_block -> block_exec -> unlist -> wrap -> knitr_wrap
 
 
+# what is causing the ~ 1 sec delay at render startup
+
+# provide a setup chunk for julia
+
+
 Project system:
   - allow _quarto config directory that merges all contained files
     (lock file will go there as well)
