@@ -27,6 +27,7 @@ export interface RenderFlags extends PandocFlags {
   executeCache?: true | false | "refresh";
   kernelKeepalive?: number;
   kernelRestart?: boolean;
+  kernelDebug?: boolean;
   debug?: boolean;
   quiet?: boolean;
 }
@@ -154,6 +155,11 @@ export function parseRenderFlags(args: string[]) {
         flags.kernelRestart = true;
         break;
 
+      case "--kernel-debug":
+        arg = argsStack.shift();
+        flags.kernelDebug = true;
+        break;
+
       case "--cache":
         arg = argsStack.shift();
         flags.executeCache = true;
@@ -245,6 +251,7 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   removeArgs.set("--kernel-keepalive", true);
   removeArgs.set("--no-kernel-keepalive", false);
   removeArgs.set("--kernel-restart", false);
+  removeArgs.set("--kernel-debug", false);
   removeArgs.set("--cache", false);
   removeArgs.set("--no-cache", false);
   removeArgs.set("--cache-refresh", false);

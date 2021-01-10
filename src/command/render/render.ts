@@ -73,6 +73,7 @@ export async function render(
     kernel: {
       keepalive: flags.kernelKeepalive,
       restart: flags.kernelRestart,
+      debug: flags.kernelDebug,
     },
     params: resolveParams(flags.executeParams),
     quiet: flags.quiet,

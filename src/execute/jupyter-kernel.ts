@@ -11,7 +11,6 @@ import { createHash } from "hash/mod.ts";
 
 import { sleep } from "../core/async.ts";
 import { message } from "../core/console.ts";
-import { systemTempDir } from "../core/temp.ts";
 import { execProcess, ProcessResult } from "../core/process.ts";
 import { resourcePath } from "../core/resources.ts";
 
@@ -30,7 +29,11 @@ export async function executeKernelOneshot(
     messageStartingKernel();
   }
 
-  const result = await execJupyter("execute", options);
+  trace(options, "Executing notebook with oneshot kernel");
+  const result = await execJupyter("execute", {
+    ...options,
+    debug: !!options.kernel.debug,
+  });
 
   if (!result.success) {
     return Promise.reject();
@@ -40,19 +43,33 @@ export async function executeKernelOneshot(
 export async function executeKernelKeepalive(
   options: ExecuteOptions,
 ): Promise<void> {
+  // if we are in debug mode then tail follow the log file
+  let serverLogProcess: Deno.Process | undefined;
+  if (options.kernel.debug) {
+    if (Deno.build.os !== "windows") {
+      serverLogProcess = Deno.run({
+        cmd: ["tail", "-F", "-n", "0", "quarto-jupyter.log"],
+      });
+    }
+  }
+
   // if we have a restart request then abort before proceeding
   if (options.kernel.restart) {
     await abortKernel(options);
   }
 
+  trace(options, "Connecting to kernel");
   const [conn, transport] = await connectToKernel(options);
+  trace(options, "Kernel connection successful");
   try {
+    trace(options, "Sending execute command to kernel");
     await writeKernelCommand(
       conn,
       "execute",
       transport.secret,
       options,
     );
+    trace(options, "Execute command sent, reading response");
     let leftover = "";
     while (true) {
       const buffer = new Uint8Array(512);
@@ -83,8 +100,10 @@ export async function executeKernelKeepalive(
             );
             message(msg.data, { newline: false });
             if (msg.type === "error") {
+              trace(options, "Error response received");
               return Promise.reject();
             } else if (msg.type == "restart") {
+              trace(options, "Restart request received");
               return executeKernelKeepalive(options);
             }
           } catch {
@@ -93,7 +112,9 @@ export async function executeKernelKeepalive(
         }
       }
     }
+    trace(options, "Server request complete\n\n");
   } catch (e) {
+    trace(options, "Error occurred receiving response from server");
     // likely this is not our server! (as it's not producing/consuming the expected json)
     // in that case remove the connection file and re-throw the exception
     const transportFile = kernelTransportFile(options.target.input);
@@ -103,20 +124,32 @@ export async function executeKernelKeepalive(
     throw e;
   } finally {
     conn.close();
+
+    if (serverLogProcess) {
+      serverLogProcess.kill(9);
+    }
   }
 }
 
 async function abortKernel(options: ExecuteOptions) {
   // connect to kernel if it exists and send abort command
   try {
+    trace(options, "Checking for existing kernel");
     const [conn, transport] = await connectToKernel(options, false);
+    trace(options, "Existing kernel found");
     try {
+      trace(options, "Sending kernel abort request");
       await writeKernelCommand(conn, "abort", transport.secret, null);
+      trace(options, "Abort request successful");
     } finally {
+      const transportFile = kernelTransportFile(options.target.input);
+      if (existsSync(transportFile)) {
+        Deno.removeSync(transportFile);
+      }
       conn.close();
     }
   } catch {
-    //
+    trace(options, "No existing kernel found");
   }
 }
 
@@ -206,6 +239,9 @@ async function connectToKernel(
   options: ExecuteOptions,
   startIfRequired = true,
 ): Promise<[Deno.Conn, KernelTransport]> {
+  // see if we are in debug mode
+  const debug = !!options.kernel.debug;
+
   // derive the file path for this connection
   const transportFile = kernelTransportFile(options.target.input);
 
@@ -247,6 +283,7 @@ async function connectToKernel(
     transport: transportFile,
     timeout,
     type,
+    debug,
   });
   if (!result.success) {
     return Promise.reject();
@@ -294,4 +331,10 @@ async function denoConnectToKernel(
 
 function messageStartingKernel() {
   message("Starting Jupyter kernel...");
+}
+
+function trace(options: ExecuteOptions, msg: string) {
+  if (options.kernel.debug) {
+    message("- " + msg, { bold: true });
+  }
 }

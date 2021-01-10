@@ -5,10 +5,6 @@
 # and/or find a python process library that makes detached subprocess easy
 
 
-# default to keepalive only for isatty
-
-# --kernel-debug (undocumented) mode with additional diagnostics on client and server
-
 # what is causing the ~ 1 sec delay at render startup
 
 # provide a setup chunk for julia
@@ -25,7 +21,7 @@ import daemon
 
 from socketserver import TCPServer, UnixStreamServer, StreamRequestHandler
 
-from log import log_init, log, log_error
+from log import log_init, log_set_trace, log, log_error, trace
 from notebook import notebook_execute, RestartKernel
 
 class ExecuteHandler(StreamRequestHandler):
@@ -33,18 +29,22 @@ class ExecuteHandler(StreamRequestHandler):
    def handle(self):
 
       try:
+         trace('handling server request')
+
          # read input
          input = str(self.rfile.readline().strip(), 'utf-8')
          input = json.loads(input)
 
          # validate secret
          if not self.server.validate_secret(input["secret"]):
+            trace('invalid secret (exiting server)')
             self.server.request_exit()
             return
 
          # if this is an abort command then request exit
          command = input["command"]
          if command == "abort":
+            trace('abort command received (exiting server)')
             self.server.request_exit()
             return
 
@@ -56,10 +56,13 @@ class ExecuteHandler(StreamRequestHandler):
             self.message("status", msg)
       
          # execute the notebook
+         trace('executing notebook')
          persist = notebook_execute(options, status)
          if not persist:
+            trace('notebook not persistable (exiting server)')
             self.server.request_exit()
       except RestartKernel:
+         trace('notebook restart request recived (exiting server)')
          self.message("restart")
          self.server.request_exit()
       except Exception as e:
@@ -91,6 +94,8 @@ def execute_server(options):
       
       def __init__(self, options):
 
+         trace('creating notebook server (' + options["type"] + ')')
+
          # set secret for tcp
          if is_tcp:
             self.secret = str(uuid.uuid4())
@@ -113,6 +118,7 @@ def execute_server(options):
          # for both tcp and unix domain sockets
          if is_tcp:
             port = self.socket.getsockname()[1]
+            trace('notebook server bound to port ' + str(port))
             with open(self.transport,"w") as file:
                file.write("")
             os.chmod(self.transport, stat.S_IRUSR | stat.S_IWUSR)
@@ -131,6 +137,7 @@ def execute_server(options):
          super().handle_request()
 
       def handle_timeout(self):
+         trace('request timeout (exiting server)')
          self.exit()
 
       def validate_secret(self, secret):
@@ -141,11 +148,19 @@ def execute_server(options):
 
       def exit(self):
          try:
+            trace('cleaning up server resources')
+            self.remove_transport()
             self.server_close()
+         finally:
+            trace('exiting server')
+            sys.exit(0)
+
+      def remove_transport(self):
+         try:
             if os.path.exists(self.transport):
                os.remove(self.transport)
-         finally:
-            sys.exit(0)
+         except:
+            pass
 
    return ExecuteServer(options)
 
@@ -161,11 +176,15 @@ def run_server(options):
 # run a server as a posix daemon
 def run_server_daemon(options):
    with daemon.DaemonContext(working_directory = os.getcwd()):
-      log_init()
+      log_init(options["debug"])
+      trace('starting notebook server daemon')
       run_server(options)   
 
 # run a server as a detached subprocess
 def run_server_subprocess(options):
+
+   trace('starting notebook server subprocess')
+
    # detached process flags for windows
    flags = 0
    if os.name == 'nt':
@@ -232,6 +251,10 @@ if __name__ == "__main__":
          command = input["command"]
          options = input["options"]
 
+      # set log level to debug if requested
+      if options["debug"]:
+         log_set_trace()
+
       # start the server (creates a new detached process, we implement this here 
       # only b/c Deno doesn't currently support detaching spawned processes)
       if command == "start":
@@ -242,10 +265,12 @@ if __name__ == "__main__":
 
       # serve a notebook (invoked by run_server_subprocess)
       elif command == "serve":
+         trace('running notebook server subprocess')
          run_server(options)
       
       # execute a notebook and then quit
       elif command == "execute":
+         trace('running notebook without keepalive')
          run_notebook(options)
         
    except Exception as e:

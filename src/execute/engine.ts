@@ -36,6 +36,7 @@ export interface ExecutionTarget {
 export interface ExecutionKernel {
   keepalive?: number;
   restart?: boolean;
+  debug?: boolean;
 }
 
 // execute options
