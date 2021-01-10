@@ -1,7 +1,8 @@
 
+- embed daemon so we only have jupyter/jupytext as dependencies 
+- provide a setup chunk for julia
 
-Paired
----------------------------
+- confirm that we work on windows (including R and Python)
 
 - We are spewing temp files that never get cleaned up
 
@@ -10,11 +11,7 @@ Error in UseMethod("wrap", x) :
   no applicable method for 'wrap' applied to an object of class "list"
 Calls: .main ... call_block -> block_exec -> unlist -> wrap -> knitr_wrap
 
-# confirm that we work on windows (including R and Python)
 
-# what is causing the ~ 1 sec delay at render startup
-
-# provide a setup chunk for julia
 
 
 Project system:
