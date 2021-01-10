@@ -133,6 +133,10 @@ export const jupyterEngine: ExecutionEngine = {
             ?.kernelspec;
           const [fileDir, fileStem] = dirAndStem(file);
           notebook = join(fileDir, fileStem + ".ipynb");
+          message(
+            "[jupytext] " + "Writing ipynb...",
+            { newline: false },
+          );
           await jupytextTo(
             file,
             "ipynb",
@@ -143,7 +147,7 @@ export const jupyterEngine: ExecutionEngine = {
         }
       }
 
-      if (!quiet && !transient) {
+      if (!quiet) {
         message("Done");
       }
 

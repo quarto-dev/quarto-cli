@@ -97,7 +97,11 @@ def notebook_execute(options, status):
       resources["metadata"]["path"] = run_path
 
    # create NotebookClient
-   client = notebook_init(nb, resources, allow_errors)
+   client, created = notebook_init(nb, resources, allow_errors)
+
+   # complete progress if necessary
+   if (not quiet) and created:
+      status("Done\n")
       
    # compute total code cells (for progress)
    current_code_cell = 1
@@ -106,7 +110,7 @@ def notebook_execute(options, status):
    # execute the cells
    for index, cell in enumerate(client.nb.cells):
       # progress
-      progress = cell.cell_type == 'code' and index > 0
+      progress = (not quiet) and cell.cell_type == 'code' and index > 0
       if progress:
          status("  Cell {0}/{1}...".format(
             current_code_cell- 1, total_code_cells - 1
@@ -138,7 +142,8 @@ def notebook_execute(options, status):
             notebook_execute.kernel_deps = kernel_deps
 
          # we are done w/ setup (with no restarts) so it's safe to print 'Executing...'
-         status("\nExecuting '{0}'\n".format(input))
+         if not quiet:
+            status("\nExecuting '{0}'\n".format(input))
 
       # assign cell
       client.nb.cells[index] = cell
@@ -176,7 +181,8 @@ def notebook_execute(options, status):
    nb.cells.pop()
 
    # progress
-   status("\n")
+   if not quiet:
+      status("\n")
 
    # return flag indicating whether we should persist 
    persist = notebook_execute.kernel_deps != None
@@ -184,6 +190,7 @@ def notebook_execute(options, status):
 
 def notebook_init(nb, resources, allow_errors):
 
+   created = False
    if not hasattr(notebook_init, "client"):
       
       # create notebook client
@@ -196,6 +203,7 @@ def notebook_init(nb, resources, allow_errors):
       info_msg = client.wait_for_reply(client.kc.kernel_info())
       client.nb.metadata['language_info'] = info_msg['content']['language_info']
       notebook_init.client = client
+      created = True
 
       # cleanup kernel at process exit
       atexit.register(client._cleanup_kernel)
@@ -213,7 +221,7 @@ def notebook_init(nb, resources, allow_errors):
       notebook_init.client.nb = nb
       notebook_init.client.allow_errors = allow_errors
 
-   return notebook_init.client
+   return (notebook_init.client, created)
 
 
 def nb_write(nb, input):

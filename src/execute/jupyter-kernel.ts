@@ -330,7 +330,7 @@ async function denoConnectToKernel(
 }
 
 function messageStartingKernel() {
-  message("Starting Jupyter kernel...");
+  message("\nStarting Jupyter kernel...", { newline: false });
 }
 
 function trace(options: ExecuteOptions, msg: string) {
