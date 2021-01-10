@@ -10,6 +10,7 @@ Error in UseMethod("wrap", x) :
   no applicable method for 'wrap' applied to an object of class "list"
 Calls: .main ... call_block -> block_exec -> unlist -> wrap -> knitr_wrap
 
+# confirm that we work on windows (including R and Python)
 
 # what is causing the ~ 1 sec delay at render startup
 
