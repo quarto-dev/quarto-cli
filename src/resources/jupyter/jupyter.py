@@ -94,7 +94,9 @@ def execute_server(options):
       
       def __init__(self, options):
 
-         trace('creating notebook server (' + options["type"] + ')')
+         trace('creating notebook server (' + 
+               options["type"] + ': ' + options["transport"] 
+               + ')')
 
          # set secret for tcp
          if is_tcp:
