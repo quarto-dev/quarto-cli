@@ -262,9 +262,9 @@ export const jupyterEngine: ExecutionEngine = {
 
 export function pythonBinary(binary = "python") {
   const condaPrefix = getenv("CONDA_PREFIX");
-  return condaPrefix + 
-         (Deno.build.os !== "windows" ? "/bin/" : "\\" ) + 
-         binary;
+  return condaPrefix +
+    (Deno.build.os !== "windows" ? "/bin/" : "\\") +
+    binary;
 }
 
 function filteredMetadata(paired: string[]) {
