@@ -17,7 +17,13 @@ import pprint
 import uuid
 import signal
 import subprocess
-import daemon
+
+# optional import of daemon (not avail on windows)
+try:
+   import daemon
+except ImportError:
+   daemon = None
+
 
 from socketserver import TCPServer, UnixStreamServer, StreamRequestHandler
 
@@ -260,7 +266,7 @@ if __name__ == "__main__":
       # start the server (creates a new detached process, we implement this here 
       # only b/c Deno doesn't currently support detaching spawned processes)
       if command == "start":
-         if os.name == 'nt':
+         if os.name == 'nt' or daemon == None:
             run_server_subprocess(options)
          else:
             run_server_daemon(options)
