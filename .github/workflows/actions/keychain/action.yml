@@ -25,7 +25,6 @@ inputs:
 runs:
   steps: 
      - name: Add Installer Cert
-       if: matrix.os == 'macos-latest' 
        run: |
 
           # Recreate the certificate from the secure environment variable
