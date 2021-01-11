@@ -30,7 +30,8 @@ export async function executeKernelOneshot(
   }
 
   trace(options, "Executing notebook with oneshot kernel");
-  const result = await execJupyter("execute", { ...options });
+  const debug = !!options.kernel.debug;
+  const result = await execJupyter("execute", { ...options, debug });
 
   if (!result.success) {
     return Promise.reject();
