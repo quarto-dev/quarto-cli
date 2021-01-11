@@ -12,11 +12,14 @@ export DENO=v1.4.6
 export PANDOC=2.11.3.2
 export TINYTEX=v2020.10
 
-# Quarto Version
+# Quarto Info Version
 export QUARTO_VERSION=0.1
+export QUARTO_NAME=Quarto
 
 # Configuration Target Directories
 export QUARTO_PACKAGE_DIR=package
 export QUARTO_DIST_DIR=dist
 export QUARTO_SHARE_DIR=share
 export QUARTO_BIN_DIR=bin
+export QUARTO_SRC_DIR=src
+export QUARTO_OUT_DIR=out

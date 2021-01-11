@@ -15,7 +15,7 @@ export async function bundle(
   // TODO: Use Deno.bundle instead?
   // Bundle source code
   const denoBundleCmd: string[] = [];
-  denoBundleCmd.push(join(configuration.dirs.bin, "deno"));
+  denoBundleCmd.push(join(configuration.directoryInfo.bin, "deno"));
   denoBundleCmd.push("bundle");
   denoBundleCmd.push("--unstable");
   denoBundleCmd.push(

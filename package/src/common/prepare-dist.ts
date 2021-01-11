@@ -23,11 +23,11 @@ export async function prepareDist(
   supportingFiles(config, log);
   log.info("")
 
-
-  log.info("\nCreating Deno Bundle")
   // Create the deno bundle
-  const input = join(config.dirs.src, "quarto.ts");
-  const output = join(config.dirs.bin, "quarto.js");
+  const input = join(config.directoryInfo.src, "quarto.ts");
+  const output = join(config.directoryInfo.bin, "quarto.js");
+  log.info("\nCreating Deno Bundle");
+  log.info(output);
   await bundle(
     input,
     output,
@@ -45,24 +45,24 @@ function supportingFiles(config: Configuration, log: Logger) {
   // Move information and share resources into place
   const filesToCopy = [
     {
-      from: join(config.dirs.root, "COPYING.md"),
-      to: join(config.dirs.dist, "COPYING.md"),
+      from: join(config.directoryInfo.root, "COPYING.md"),
+      to: join(config.directoryInfo.dist, "COPYING.md"),
     },
     {
-      from: join(config.dirs.root, "COPYRIGHT"),
-      to: join(config.dirs.dist, "COPYRIGHT"),
+      from: join(config.directoryInfo.root, "COPYRIGHT"),
+      to: join(config.directoryInfo.dist, "COPYRIGHT"),
     },
     {
-      from: join(config.dirs.src, "resources", "html-defaults.lua"),
-      to: join(config.dirs.share, "html-defaults.lua"),
+      from: join(config.directoryInfo.src, "resources", "html-defaults.lua"),
+      to: join(config.directoryInfo.share, "html-defaults.lua"),
     },
     {
-      from: join(config.dirs.src, "resources", "rmd"),
-      to: join(config.dirs.share, "rmd"),
+      from: join(config.directoryInfo.src, "resources", "rmd"),
+      to: join(config.directoryInfo.share, "rmd"),
     },
     {
-      from: join(config.dirs.src, "resources", "jupyter"),
-      to: join(config.dirs.share, "jupyter"),
+      from: join(config.directoryInfo.src, "resources", "jupyter"),
+      to: join(config.directoryInfo.share, "jupyter"),
     },
   ];
 
@@ -79,14 +79,14 @@ function supportingFiles(config: Configuration, log: Logger) {
 
 function inlineFilters(config: Configuration) {
   config.log.info("Building inlined filters");
-  const outDir = join(config.dirs.share, "filters");
+  const outDir = join(config.directoryInfo.share, "filters");
   const filtersToInline = ["quarto-pre", "crossref", "layout", "quarto-post"];
 
   filtersToInline.forEach((filter) => {
     config.log.info(filter);
     buildFilter(
       join(
-        config.dirs.src,
+        config.directoryInfo.src,
         "resources",
         "filters",
         filter,
