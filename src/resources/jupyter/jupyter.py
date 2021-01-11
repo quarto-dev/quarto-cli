@@ -8,13 +8,6 @@ import uuid
 import signal
 import subprocess
 
-# optional import of daemon (not avail on windows)
-try:
-   import daemon
-except ImportError:
-   daemon = None
-
-
 from socketserver import TCPServer, UnixStreamServer, StreamRequestHandler
 
 from log import log_init, log_set_trace, log, log_error, trace
@@ -172,13 +165,6 @@ def run_server(options):
    except Exception as e:
       log_error("Unable to run server", exc_info = e)
 
-# run a server as a posix daemon
-def run_server_daemon(options):
-   with daemon.DaemonContext(working_directory = os.getcwd()):
-      log_init(options["debug"])
-      trace('starting notebook server daemon')
-      run_server(options)   
-
 # run a server as a detached subprocess
 def run_server_subprocess(options):
 
@@ -257,10 +243,7 @@ if __name__ == "__main__":
       # start the server (creates a new detached process, we implement this here 
       # only b/c Deno doesn't currently support detaching spawned processes)
       if command == "start":
-         if os.name == 'nt' or daemon == None:
-            run_server_subprocess(options)
-         else:
-            run_server_daemon(options)
+         run_server_subprocess(options)
 
       # serve a notebook (invoked by run_server_subprocess)
       elif command == "serve":
