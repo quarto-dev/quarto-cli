@@ -181,7 +181,7 @@ def run_server_subprocess(options):
    os.environ["QUARTO_JUPYTER_OPTIONS"] = json.dumps(options)
 
    # create subprocess
-   p = subprocess.Popen([sys.executable] + sys.argv + ["serve"],
+   subprocess.Popen([sys.executable] + sys.argv + ["serve"],
       stdin = subprocess.DEVNULL,
       stdout = subprocess.DEVNULL,
       stderr = subprocess.DEVNULL,
