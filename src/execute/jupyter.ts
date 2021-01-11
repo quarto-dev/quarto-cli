@@ -127,10 +127,15 @@ export const jupyterEngine: ExecutionEngine = {
 
         // if there is no paired notebook then create a transient one
         if (!notebook) {
-          // if there is no kernelspec in the source, then set to the
-          // curret default python kernel
-          const setKernel = !(yaml.jupyter as Record<string, unknown>)
-            ?.kernelspec;
+          // determine whether we need to set a kernel
+          let setKernel: string | undefined;
+          if (yaml.jupyter === true) {
+            setKernel = "-";
+          } else if (typeof (yaml.jupyter) === "string") {
+            setKernel = yaml.jupyter;
+          } else if (!(yaml.jupyter as Record<string, unknown>)?.kernelspec) {
+            setKernel = "-";
+          }
           const [fileDir, fileStem] = dirAndStem(file);
           notebook = join(fileDir, fileStem + ".ipynb");
           message(
@@ -140,7 +145,7 @@ export const jupyterEngine: ExecutionEngine = {
           await jupytextTo(
             file,
             "ipynb",
-            setKernel ? "-" : undefined,
+            setKernel,
             notebook,
             true,
           );
