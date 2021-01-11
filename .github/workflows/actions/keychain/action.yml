@@ -23,9 +23,9 @@ inputs:
 
 
 runs:
+  if: ${{ matrix.os == 'macos-latest' }}
   steps: 
      - name: Add Installer Cert
-       if: ${{ matrix.os == 'macos-latest' }}
        run: |
          echo "HELLO WORLD"
         
