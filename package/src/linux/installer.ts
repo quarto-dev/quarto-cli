@@ -24,23 +24,23 @@ export async function makeInstallerDeb(
     log.error("Can't detect package architecture.")
     throw new Error("Undetectable architecture. Packaging failed.")
   }
-  configuration.pkgConfig.name = `quarto-${configuration.version}-${architecture}.deb`;
-  log.info("Building package " + configuration.pkgConfig.name);
+  const packageName = `quarto-${configuration.version}-${architecture}.deb`;
+  log.info("Building package " + packageName);
 
   // Prepare working directory
-  const workingDir = join(configuration.dirs.out, "working");
+  const workingDir = join(configuration.directoryInfo.out, "working");
   log.info(`Preparing working directory ${workingDir}`);
   ensureDirSync(workingDir);
   emptyDirSync(workingDir);
 
   // Copy bin into the proper path in working dir
-  const workingBinPath = join(workingDir, "opt", configuration.productname, "bin");
+  const workingBinPath = join(workingDir, "opt", configuration.productName.toLowerCase(), "bin");
   log.info(`Preparing bin directory ${workingBinPath}`);
-  copySync(configuration.dirs.bin, workingBinPath, { overwrite: true });
+  copySync(configuration.directoryInfo.bin, workingBinPath, { overwrite: true });
 
-  const workingSharePath = join(workingDir, "opt", configuration.productname, "share");
+  const workingSharePath = join(workingDir, "opt", configuration.productName.toLowerCase(), "share");
   log.info(`Preparing share directory ${workingSharePath}`);
-  copySync(configuration.dirs.share, workingSharePath, { overwrite: true });
+  copySync(configuration.directoryInfo.share, workingSharePath, { overwrite: true });
 
 
   // Debian File
@@ -55,12 +55,10 @@ export async function makeInstallerDeb(
   // Make the src tar
   log.info("creating data tar");
   await makeTarball(
-    configuration.dirs.dist,
+    configuration.directoryInfo.dist,
     join(workingDir, "data.tar.gz"),
     log,
   );
-
-
 
   const val = (name: string, value: string): string => {
     return `${name}: ${value}\n`;
@@ -68,7 +66,7 @@ export async function makeInstallerDeb(
 
   // Calculate the install size
   const fileSizes = [];
-  for await (const entry of walk(configuration.dirs.dist)) {
+  for await (const entry of walk(configuration.directoryInfo.dist)) {
     if (entry.isFile) {
       fileSizes.push((await Deno.stat(entry.path)).size);
     }
@@ -78,7 +76,7 @@ export async function makeInstallerDeb(
   // Make the control file
   log.info("Creating control file");
   let control = "";
-  control = control + val("Package", configuration.productname);
+  control = control + val("Package", configuration.productName);
   control = control + val("Version", configuration.version);
   control = control + val("Architecture", architecture);
   control = control + val("Installed-Size", `${Math.round(size / 1024)}`);
@@ -103,7 +101,7 @@ export async function makeInstallerDeb(
 
   // copy the install scripts
   log.info("Copying install scripts...")
-  copySync(join(configuration.dirs.pkg, "scripts", "linux", "deb"), debianDir, { overwrite: true });
+  copySync(join(configuration.directoryInfo.pkg, "scripts", "linux", "deb"), debianDir, { overwrite: true });
 
   await runCmd("dpkg-deb",
     [
@@ -111,7 +109,7 @@ export async function makeInstallerDeb(
       "-z", "9",
       "--build",
       workingDir,
-      join(configuration.dirs.out, configuration.pkgConfig.name)
+      join(configuration.directoryInfo.out, packageName)
     ],
     log);
 

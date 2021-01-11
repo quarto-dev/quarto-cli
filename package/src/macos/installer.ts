@@ -11,11 +11,32 @@ import { Configuration } from "../common/config.ts";
 import { Logger } from "../util/logger.ts";
 import { runCmd } from "../util/cmd.ts";
 
+
+// Packaging specific configuration
+// (Some things are global others may be platform specific)
+export interface PackageInfo {
+  name: string;
+  identifier: string;
+  packageArgs: () => string[];
+}
+
 export async function makeInstallerMac(config: Configuration) {
+
+  const packageName = `quarto-${config.version}-macos.pkg`;
+  const packageIdentifier = "org.rstudio.quarto";
+
+  const scriptDir = join(config.directoryInfo.pkg, "scripts", "macos", "pkg");
+  const packageArgs = [
+    "--scripts",
+    scriptDir,
+    "--install-location",
+    '"/Library/Quarto"',
+  ];
+
   // Target package
   const outPackage = join(
-    config.dirs.out,
-    config.pkgConfig.name,
+    config.directoryInfo.out,
+    packageName,
   );
 
   config.log.info(`Packaging into ${outPackage}`);
@@ -32,10 +53,10 @@ export async function makeInstallerMac(config: Configuration) {
   await runCmd(
     "pkgbuild",
     [
-      "--root", config.dirs.dist,
-      "--identifier", config.pkgConfig.identifier,
+      "--root", config.directoryInfo.dist,
+      "--identifier", packageIdentifier,
       "--version", config.version,
-      ...config.pkgConfig.packageArgs(),
+      ...packageArgs,
       "--ownership", "recommended",
       outPackage
     ],
