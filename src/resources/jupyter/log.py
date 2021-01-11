@@ -4,7 +4,7 @@ import logging
 
 TRACE = 25
 
-def log_init(trace = False):
+def log_init(log_file, trace = False):
    # set level
    logger = logging.getLogger()  
    if trace:
@@ -14,7 +14,7 @@ def log_init(trace = False):
 
    # create handlers
    stderr_handler = logging.StreamHandler(sys.stderr)
-   file_handler = logging.FileHandler('quarto-jupyter.log')
+   file_handler = logging.FileHandler(log_file)
 
    # create formatter and attach to handlers
    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -24,10 +24,6 @@ def log_init(trace = False):
    # add handlers
    logger.addHandler(stderr_handler)  
    logger.addHandler(file_handler)   
-
-def log_set_trace():
-   logger = logging.getLogger()  
-   logger.setLevel(TRACE)
 
 def log(level, msg):
    logging.getLogger().log(level, msg)
