@@ -25,6 +25,7 @@ inputs:
 runs:
   steps: 
      - name: Add Installer Cert
+       if: ${{ matrix.os }} == 'macos-latest'
        run: |
         # Recreate the certificate from the secure environment variable
         echo ${{ inputs.certificate-value }} | base64 --decode > ${{ inputs.certificate-file }}
