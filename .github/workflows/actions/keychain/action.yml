@@ -1,0 +1,60 @@
+name: 'Configure Apple Certificate'
+description: 'Configures a P12 certificate into the keychain for signing'
+inputs:
+  certificate-value:
+    description: 'A base64 encoded string representing the p12 value of the certificate.'
+    required: true
+    default: ''
+
+  certificate-password:  
+    description: 'The password for the certificate'
+    required: true
+    default: ''
+
+  keychain:
+    description: 'The name of the keychain to install the certificate into'
+    required: true
+    default: ''
+
+  certificate-file:
+    description: 'Intermediary name for p12 file'
+    required: false
+    default: 'certificate.p12'
+
+
+runs:
+  using: "composite"
+  steps: 
+     - name: Add Installer Cert
+       run: |
+       
+          # Recreate the certificate from the secure environment variable
+          echo ${{ inputs.certificate-value }} | base64 --decode > ${{ inputs.certificate-file }}
+             
+          # See if keychain already exists  
+          security show-keychain $keychain
+
+          if [[ $? != 0 ]]; then
+                    
+            #create a keychain
+            security create-keychain -p actions ${{ inputs.keychain }} 
+          
+            # Make the keychain the default so identities are found
+            security default-keychain -s ${{ inputs.keychain }}
+
+          fi
+       
+          # Unlock the keychain
+          security unlock-keychain -p actions ${{ inputs.keychain }}
+
+          security import ${{ inputs.certificate-file }} -k ${{ inputs.keychain }} -P ${{ inputs.certificate-password }} -T /usr/bin/codesign;
+
+          security set-key-partition-list -S apple-tool:,apple: -s -k actions ${{ inputs.keychain }}
+
+          # remove certs
+          rm -fr *.p12
+
+        
+       shell: bash
+
+
