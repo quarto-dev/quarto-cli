@@ -44,5 +44,7 @@ runs:
 
         # remove certs
         rm -fr *.p12
+        
+       shell: bash
 
 
