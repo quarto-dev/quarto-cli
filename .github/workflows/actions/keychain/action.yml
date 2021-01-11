@@ -25,8 +25,8 @@ inputs:
 runs:
   steps: 
      - name: Add Installer Cert
-       run: |
-
+       if: startsWith(matrix.os, 'macOS')
+         run: |
           # Recreate the certificate from the secure environment variable
           echo ${{ inputs.certificate-value }} | base64 --decode > ${{ inputs.certificate-file }}
 
@@ -45,6 +45,5 @@ runs:
 
           # remove certs
           rm -fr *.p12
-
-       shell: bash
+         
 
