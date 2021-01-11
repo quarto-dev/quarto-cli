@@ -23,7 +23,7 @@ inputs:
 
 
 runs:
-  if: ${{ matrix.os == 'macos-latest' }}
+  using: "composite"
   steps: 
      - name: Add Installer Cert
        run: |
