@@ -91,6 +91,18 @@ jobs:
       run: |
         ./configure-macos.sh
 
+    - uses: ./.github/workflows/actions/keychain
+      with:
+        certificate-value: ${{ secrets.APPLE_APPLICATION_CERT }}
+        certificate-password: ${{ secrets.APPLE_APPLICATION_CERT_PW }}
+        keychain: 'build.keychain'
+
+    - uses: ./.github/workflows/actions/keychain
+      with:
+        certificate-value: ${{ secrets.APPLE_INSTALLER_CERT }}
+        certificate-password: ${{ secrets.APPLE_INSTALLER_CERT_PW }}
+        keychain: 'build.keychain'
+        
     - name: Prepare Distribution
       run: |
         pushd package/src/
