@@ -6,18 +6,18 @@
 */
 
 import { basename, dirname, extname, join } from "path/mod.ts";
-import { getenv } from "../core/env.ts";
-import { execProcess, ProcessResult } from "../core/process.ts";
-import { resourcePath } from "../core/resources.ts";
+import { getenv } from "../../core/env.ts";
+import { execProcess, ProcessResult } from "../../core/process.ts";
+import { resourcePath } from "../../core/resources.ts";
 import {
   readYamlFromMarkdown,
   readYamlFromMarkdownFile,
-} from "../core/yaml.ts";
+} from "../../core/yaml.ts";
 
-import { dirAndStem } from "../core/path.ts";
-import { message } from "../core/console.ts";
+import { dirAndStem } from "../../core/path.ts";
+import { message } from "../../core/console.ts";
 
-import { Metadata } from "../config/metadata.ts";
+import { Metadata } from "../../config/metadata.ts";
 
 import type {
   ExecuteOptions,
@@ -25,12 +25,12 @@ import type {
   ExecutionEngine,
   ExecutionTarget,
   PostProcessOptions,
-} from "./engine.ts";
+} from "../engine.ts";
 import {
   jupyterAssets,
   jupyterFromFile,
   jupyterToMarkdown,
-} from "../core/jupyter/jupyter.ts";
+} from "../../core/jupyter/jupyter.ts";
 import {
   kExecute,
   kFigDpi,
@@ -38,14 +38,14 @@ import {
   kIncludeAfterBody,
   kIncludeInHeader,
   kPreferHtml,
-} from "../config/constants.ts";
+} from "../../config/constants.ts";
 import {
   Format,
   isHtmlFormat,
   isLatexFormat,
   isMarkdownFormat,
-} from "../config/format.ts";
-import { restorePreservedHtml } from "../core/jupyter/preserve.ts";
+} from "../../config/format.ts";
+import { restorePreservedHtml } from "../../core/jupyter/preserve.ts";
 
 import {
   executeKernelKeepalive,

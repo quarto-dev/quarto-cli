@@ -9,14 +9,14 @@ import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 import { createHash } from "hash/mod.ts";
 
-import { sleep } from "../core/async.ts";
-import { message } from "../core/console.ts";
-import { execProcess, ProcessResult } from "../core/process.ts";
-import { resourcePath } from "../core/resources.ts";
+import { sleep } from "../../core/async.ts";
+import { message } from "../../core/console.ts";
+import { quartoDataDir, quartoRuntimeDir } from "../../core/appdirs.ts";
+import { execProcess, ProcessResult } from "../../core/process.ts";
+import { resourcePath } from "../../core/resources.ts";
 
-import { ExecuteOptions } from "./engine.ts";
+import { ExecuteOptions } from "../engine.ts";
 import { pythonBinary } from "./jupyter.ts";
-import { quartoDataDir, quartoRuntimeDir } from "../core/appdirs.ts";
 
 export async function executeKernelOneshot(
   options: ExecuteOptions,

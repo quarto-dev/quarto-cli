@@ -10,7 +10,7 @@ import { PdfEngine } from "../config/pdf.ts";
 import { Metadata } from "../config/metadata.ts";
 
 import { rmdEngine } from "./rmd.ts";
-import { jupyterEngine } from "./jupyter.ts";
+import { jupyterEngine } from "./jupyter/jupyter.ts";
 import { markdownEngine } from "./markdown.ts";
 
 export interface ExecutionEngine {
