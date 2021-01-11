@@ -25,26 +25,9 @@ inputs:
 runs:
   steps: 
      - name: Add Installer Cert
-       if: ${{ matrix.os }} == 'macos-latest'
+       if: ${{ matrix.os == 'macos-latest' }}
        run: |
-        # Recreate the certificate from the secure environment variable
-        echo ${{ inputs.certificate-value }} | base64 --decode > ${{ inputs.certificate-file }}
-
-        #create a keychain
-        security create-keychain -p actions ${{ inputs.keychain }} 
-
-        # Make the keychain the default so identities are found
-        security default-keychain -s ${{ inputs.keychain }}
-
-        # Unlock the keychain
-        security unlock-keychain -p actions ${{ inputs.keychain }}
-
-        security import ${{ inputs.certificate-file }} -k ${{ inputs.keychain }} -P ${{ inputs.certificate-password }} -T /usr/bin/codesign;
-
-        security set-key-partition-list -S apple-tool:,apple: -s -k actions ${{ inputs.keychain }}
-
-        # remove certs
-        rm -fr *.p12
+         echo "HELLO WORLD"
         
        shell: bash
 
