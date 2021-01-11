@@ -10,7 +10,7 @@ import subprocess
 
 from socketserver import TCPServer, UnixStreamServer, StreamRequestHandler
 
-from log import log_init, log_set_trace, log, log_error, trace
+from log import log_init, log, log_error, trace
 from notebook import notebook_execute, RestartKernel
 
 class ExecuteHandler(StreamRequestHandler):
@@ -181,7 +181,7 @@ def run_server_subprocess(options):
    os.environ["QUARTO_JUPYTER_OPTIONS"] = json.dumps(options)
 
    # create subprocess
-   p = subprocess.Popen([sys.executable] + sys.argv + ["serve"],
+   subprocess.Popen([sys.executable] + sys.argv + ["serve"],
       stdin = subprocess.DEVNULL,
       stdout = subprocess.DEVNULL,
       stderr = subprocess.DEVNULL,
@@ -218,9 +218,6 @@ def run_notebook(options):
 
 if __name__ == "__main__":
 
-   # initialize log
-   log_init()
-
    try:
       # read command from cmd line if it's there (in that case 
       # options are passed via environment variable)
@@ -234,9 +231,8 @@ if __name__ == "__main__":
          command = input["command"]
          options = input["options"]
 
-      # set log level to debug if requested
-      if options["debug"]:
-         log_set_trace()
+      # initialize log
+      log_init(options["log"], options["debug"])
 
       # start the server (creates a new detached process, we implement this here 
       # only b/c Deno doesn't currently support detaching spawned processes)

@@ -9,14 +9,14 @@ import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 import { createHash } from "hash/mod.ts";
 
-import { sleep } from "../core/async.ts";
-import { message } from "../core/console.ts";
-import { execProcess, ProcessResult } from "../core/process.ts";
-import { resourcePath } from "../core/resources.ts";
+import { sleep } from "../../core/async.ts";
+import { message } from "../../core/console.ts";
+import { quartoDataDir, quartoRuntimeDir } from "../../core/appdirs.ts";
+import { execProcess, ProcessResult } from "../../core/process.ts";
+import { resourcePath } from "../../core/resources.ts";
 
-import { ExecuteOptions } from "./engine.ts";
+import { ExecuteOptions } from "../engine.ts";
 import { pythonBinary } from "./jupyter.ts";
-import { quartoRuntimeDir } from "../core/appdirs.ts";
 
 export async function executeKernelOneshot(
   options: ExecuteOptions,
@@ -30,10 +30,8 @@ export async function executeKernelOneshot(
   }
 
   trace(options, "Executing notebook with oneshot kernel");
-  const result = await execJupyter("execute", {
-    ...options,
-    debug: !!options.kernel.debug,
-  });
+  const debug = !!options.kernel.debug;
+  const result = await execJupyter("execute", { ...options, debug });
 
   if (!result.success) {
     return Promise.reject();
@@ -48,7 +46,7 @@ export async function executeKernelKeepalive(
   if (options.kernel.debug) {
     if (Deno.build.os !== "windows") {
       serverLogProcess = Deno.run({
-        cmd: ["tail", "-F", "-n", "0", "quarto-jupyter.log"],
+        cmd: ["tail", "-F", "-n", "0", kernelLogFile()],
       });
     }
   }
@@ -67,7 +65,7 @@ export async function executeKernelKeepalive(
       conn,
       "execute",
       transport.secret,
-      options,
+      { ...options },
     );
     trace(options, "Execute command sent, reading response");
     let leftover = "";
@@ -139,7 +137,7 @@ async function abortKernel(options: ExecuteOptions) {
     trace(options, "Existing kernel found");
     try {
       trace(options, "Sending kernel abort request");
-      await writeKernelCommand(conn, "abort", transport.secret, null);
+      await writeKernelCommand(conn, "abort", transport.secret, {});
       trace(options, "Abort request successful");
     } finally {
       const transportFile = kernelTransportFile(options.target.input);
@@ -155,7 +153,7 @@ async function abortKernel(options: ExecuteOptions) {
 
 function execJupyter(
   command: string,
-  options: unknown,
+  options: Record<string, unknown>,
 ): Promise<ProcessResult> {
   return execProcess(
     {
@@ -173,15 +171,23 @@ async function writeKernelCommand(
   conn: Deno.Conn,
   command: string,
   secret: string,
-  options: unknown,
+  options: Record<string, unknown>,
 ) {
   await conn.write(
-    new TextEncoder().encode(kernelCommand(command, secret, options) + "\n"),
+    new TextEncoder().encode(
+      kernelCommand(command, secret, options) + "\n",
+    ),
   );
 }
 
-function kernelCommand(command: string, secret: string, options: unknown) {
-  return JSON.stringify({ command, secret, options });
+function kernelCommand(
+  command: string,
+  secret: string,
+  options: Record<string, unknown>,
+) {
+  return JSON.stringify(
+    { command, secret, options: { ...options, log: kernelLogFile() } },
+  );
 }
 
 interface KernelTransport {
@@ -197,6 +203,15 @@ function kernelTransportFile(target: string) {
   hasher.update(targetFile);
   const hash = hasher.toString("hex").slice(0, 20);
   return join(transportsDir, hash);
+}
+
+function kernelLogFile() {
+  const logsDir = quartoDataDir("logs");
+  const kernelLog = join(logsDir, "jupyter-kernel.log");
+  if (!existsSync(kernelLog)) {
+    Deno.writeTextFileSync(kernelLog, "");
+  }
+  return kernelLog;
 }
 
 function readKernelTransportFile(
