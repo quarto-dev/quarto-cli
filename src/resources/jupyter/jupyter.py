@@ -168,8 +168,6 @@ def run_server(options):
 # run a server as a detached subprocess
 def run_server_subprocess(options):
 
-   trace('starting notebook server subprocess')
-
    # detached process flags for windows
    flags = 0
    if os.name == 'nt':
@@ -243,6 +241,7 @@ if __name__ == "__main__":
       # start the server (creates a new detached process, we implement this here 
       # only b/c Deno doesn't currently support detaching spawned processes)
       if command == "start":
+         trace('starting notebook server subprocess')
          run_server_subprocess(options)
 
       # serve a notebook (invoked by run_server_subprocess)
