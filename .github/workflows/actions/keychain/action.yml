@@ -31,9 +31,11 @@ runs:
           # Recreate the certificate from the secure environment variable
           echo ${{ inputs.certificate-value }} | base64 --decode > ${{ inputs.certificate-file }}
              
-          # See if keychain already exists
-          if [security list-keychains | grep ${{ inputs.keychain }} == ""]; the
-          
+          # See if keychain already exists  
+          security show-keychain $keychain
+
+          if [[ $? != 0 ]]; then
+                    
             #create a keychain
             security create-keychain -p actions ${{ inputs.keychain }} 
           
