@@ -1,5 +1,5 @@
 /*
-* jupyter-convet.ts
+* jupyter-convert.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
@@ -16,5 +16,6 @@ export async function jupyterMdToIpynb(
   output: string,
   kernelspec: JupyterKernelspec,
 ) {
-  // read
+  // read the file into lines
+  const lines = (await Deno.readTextFile(input)).split(/\r?\n/);
 }
