@@ -12,6 +12,9 @@ import { Logger } from "../util/logger.ts";
 import { runCmd } from "../util/cmd.ts";
 
 
+const installerCertificate = "Developer ID Installer";
+const applicationCertificate = "Developer ID Application";
+
 // Packaging specific configuration
 // (Some things are global others may be platform specific)
 export interface PackageInfo {
@@ -23,6 +26,7 @@ export interface PackageInfo {
 export async function makeInstallerMac(config: Configuration) {
 
   const packageName = `quarto-${config.version}-macos.pkg`;
+  const unsignedPackageName = `quarto-${config.version}-unsigned-macos.pkg`;
   const packageIdentifier = "org.rstudio.quarto";
 
   const scriptDir = join(config.directoryInfo.pkg, "scripts", "macos", "pkg");
@@ -34,20 +38,20 @@ export async function makeInstallerMac(config: Configuration) {
   ];
 
   // Target package
-  const outPackage = join(
+  const unsignedPackagePath = join(
     config.directoryInfo.out,
-    packageName,
+    unsignedPackageName,
   );
 
-  config.log.info(`Packaging into ${outPackage}`);
+  config.log.info(`Packaging into ${unsignedPackagePath}`);
 
   // Clean any existing package
-  if (existsSync(outPackage)) {
-    Deno.removeSync(outPackage);
+  if (existsSync(unsignedPackagePath)) {
+    Deno.removeSync(unsignedPackagePath);
   }
 
   // Make the out dir
-  ensureDirSync(dirname(outPackage));
+  ensureDirSync(dirname(unsignedPackagePath));
 
   // Run pkg build
   await runCmd(
@@ -58,13 +62,30 @@ export async function makeInstallerMac(config: Configuration) {
       "--version", config.version,
       ...packageArgs,
       "--ownership", "recommended",
-      outPackage
+      unsignedPackagePath
     ],
     config.log);
+
+  config.log.info("Signing file");
+  config.log.info(unsignedPackagePath);
+  await signPackage(unsignedPackagePath, join(config.directoryInfo.out, packageName), config.log);
+
+  config.log.info("Cleaning unsigned file");
+  Deno.removeSync(unsignedPackagePath);
 }
 
-function signPackage(configuration: Configuration, log: Logger) {
+async function signPackage(inputFile: string, outputFile: string, log: Logger) {
+  // could specify --keychain build.keychain to search build keychain?
+  await runCmd(
+    "productsign",
+    ["--sign",
+      installerCertificate,
+      inputFile,
+      outputFile],
+    log
+  );
 }
 
 function signBinaries(configuration: Configuration, log: Logger) {
+  // Developer ID Application
 }
