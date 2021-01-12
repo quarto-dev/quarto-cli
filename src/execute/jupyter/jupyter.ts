@@ -94,6 +94,8 @@ export const jupyterEngine: ExecutionEngine = {
             const paired = await pairedPaths(file);
             return { sync: true, paired: [file, ...paired] };
           } else if (
+            typeof ((yaml.jupyter as Record<string, unknown>).kernel) ===
+              "string" ||
             isJupyterKernelspec(
               (yaml.jupyter as Record<string, unknown>).kernelspec,
             )
@@ -291,6 +293,16 @@ async function jupyterKernelspecFromFile(
         const kernelspec = jupyter.kernelspec;
         delete jupyter.kernelspec;
         return [kernelspec, jupyter];
+      } else if (typeof (jupyter.kernel) === "string") {
+        const kernelspec = await jupyterKernelspec(jupyter.kernel);
+        if (kernelspec) {
+          delete jupyter.kernel;
+          return [kernelspec, jupyter];
+        } else {
+          return Promise.reject(
+            new Error("Jupyter kernel '" + jupyter.kernel + "' not found."),
+          );
+        }
       } else {
         return Promise.reject(
           new Error(
