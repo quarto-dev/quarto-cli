@@ -39,6 +39,7 @@ import {
   kFigFormat,
   kIncludeAfterBody,
   kIncludeInHeader,
+  kKeepIpynb,
   kPreferHtml,
 } from "../../config/constants.ts";
 import {
@@ -218,7 +219,7 @@ export const jupyterEngine: ExecutionEngine = {
 
     // if it's a transient notebook then remove it, otherwise
     // sync so that jupyter[lab] can open the .ipynb w/o errors
-    if (options.target.data) {
+    if (options.target.data && !options.format.render[kKeepIpynb]) {
       Deno.removeSync(options.target.input);
     } else {
       await jupytextSync(options.target.input, [], true);

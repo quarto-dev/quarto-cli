@@ -21,6 +21,7 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
   kKeepHidden,
+  kKeepIpynb,
   kKeepYaml,
   kListings,
   kMarkdownHeadings,
@@ -68,6 +69,7 @@ export interface FormatRender {
   [kKeepMd]?: boolean;
   [kKeepTex]?: boolean;
   [kKeepYaml]?: boolean;
+  [kKeepIpynb]?: boolean;
   [kKeepSource]?: boolean;
   [kPreferHtml]?: boolean;
   [kOutputDivs]?: boolean;
@@ -468,6 +470,7 @@ function defaultFormat(): Format {
       [kKeepMd]: false,
       [kKeepTex]: false,
       [kKeepYaml]: false,
+      [kKeepIpynb]: false,
       [kPreferHtml]: false,
       [kOutputDivs]: true,
       [kOutputExt]: "html",
