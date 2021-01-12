@@ -1,5 +1,6 @@
 import os
 import atexit
+import glob
 import sys
 import json
 import pprint
@@ -59,6 +60,8 @@ def notebook_execute(options, status):
    # set environment variables
    os.environ["JUPYTER_FIG_WIDTH"] = str(fig_width)
    os.environ["JUPYTER_FIG_HEIGHT"] = str(fig_height)
+   os.environ["JUPYTER_FIG_DPI"] = str(fig_dpi)
+   os.environ["JUPYTER_FIG_FORMAT"] = fig_format
 
    # read the notebook
    nb = nbformat.read(input, as_version = NB_FORMAT_VERSION)
@@ -242,14 +245,12 @@ def nb_cleanup_cell(kernelspec, resource_dir):
 
 def nb_language_cell(name, kernelspec, resource_dir, *args):
    source = ''
-   kLanguages = { 
-      'python' : '.py'
-   }
-   kernelLanguage = kernelspec.language
-   if kernelLanguage in kLanguages:
-      path = os.path.join(resource_dir, 'jupyter', 'lang', name + kLanguages[kernelLanguage])
-      with open(path, 'r') as file:
-         source = file.read().format(*args)  
+   lang_dir = os.path.join(resource_dir, 'jupyter', 'lang',  kernelspec.language)
+   if os.path.isdir(lang_dir):
+      cell_file = glob.glob(os.path.join(lang_dir, name + '.*'))
+      if len(cell_file) > 0:
+         with open(cell_file[0], 'r') as file:
+            source = file.read().format(*args)  
 
    # create cell
    return nbformat.versions[NB_FORMAT_VERSION].new_code_cell(

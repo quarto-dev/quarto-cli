@@ -25,12 +25,7 @@ assignInNamespace("htmlPreserve", htmlPreserve, ns = "htmltools")
 knitr_wrap <- knitr:::wrap
 wrap <- function(x, options = list(), ...) {
   
-  if (inherits(x, "knit_image_paths")) {
-    
-    knitr_wrap(x, options, ...)
-    
-  } else if (inherits(x, "knit_asis")) {
-    
+  if (inherits(x, "knit_asis")) {
     # delegate
     is_html_widget <- inherits(x, "knit_asis_htmlwidget")
     x <- knitr:::wrap.knit_asis(x, options, ...)
@@ -42,8 +37,32 @@ wrap <- function(x, options = list(), ...) {
     } else {
       wrap_asis_output(options, x)
     }
+   
+  # this used to be completely generic, however R 3.4 wasn't able to
+  # dispatch correctly via UseMethod so we do manual binding
+  } else if (inherits(x, "character")) {
+    knitr:::wrap.character(x, options, ...)
+  } else if (inherits(x, "knit_image_paths")) {
+    knitr:::wrap.knit_image_paths(x, options, ...)
+  } else if (inherits(x, "html_screenshot")) {
+    knitr:::wrap.html_screenshot(x, options, ...)
+  } else if (inherits(x, "knit_embed_url")) {
+    knitr:::wrap.knit_embed_url(x, options, ...)
+  } else if (inherits(x, "source")) {
+    knitr:::wrap.source(x, options, ...)
+  } else if (inherits(x, "warning")) {
+    knitr:::wrap.warning(x, options, ...)
+  } else if (inherits(x, "message")) {
+    knitr:::wrap.message(x, options, ...)
+  } else if (inherits(x, "error")) {
+    knitr:::wrap.error(x, options, ...)
+  } else if (inherits(x, "list")) {
+    knitr:::wrap.list(x, options, ...)
+  } else if (inherits(x, "recordedplot")) {
+    knitr:::wrap.recordedplot(x, options, ...)
   } else {
-
+    # this works generically for recent versions of R however
+    # not for R < 3.6
     knitr_wrap(x, options, ...)
   }
 }

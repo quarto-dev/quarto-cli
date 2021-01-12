@@ -34,7 +34,6 @@ export function cleanup(
   mdOutput: string,
   finalOutput: string,
   supporting: string[],
-  tempDir: string,
   keepMd?: string,
 ) {
   // cleanup md if necessary
@@ -63,7 +62,4 @@ export function cleanup(
       });
     }
   }
-
-  // remove the temp dir
-  removeIfExists(tempDir);
 }

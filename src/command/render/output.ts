@@ -12,6 +12,7 @@ import { dirAndStem, expandPath } from "../../core/path.ts";
 import { readYamlFrontMatterFromMarkdown } from "../../core/yaml.ts";
 import { execProcess } from "../../core/process.ts";
 import { binaryPath } from "../../core/resources.ts";
+import { sessionTempDir, sessionTempFile } from "../../core/temp.ts";
 
 import {
   kIncludeAfterBody,
@@ -149,7 +150,7 @@ export async function outputRecipe(
       // output to stdout: direct pandoc to write to a temp file then we'll
       // forward to stdout (necessary b/c a postprocesor may need to act on
       // the output before its complete)
-      recipe.output = Deno.makeTempFileSync({ suffix: "." + ext });
+      recipe.output = sessionTempFile({ suffix: "." + ext });
       completeActions.push(() => {
         writeFileToStdout(recipe.output);
         Deno.removeSync(recipe.output);
@@ -172,7 +173,7 @@ function embeddedSourceCode(file: string) {
   const code = Deno.readTextFileSync(file);
   const scriptTag =
     `<script id="quarto-embedded-source-code" type="text/plain">\n${code}</script>`;
-  const tempFile = Deno.makeTempFileSync({ suffix: ".html" });
+  const tempFile = sessionTempFile({ suffix: ".html" });
   Deno.writeTextFileSync(tempFile, scriptTag);
   return tempFile;
 }
@@ -217,7 +218,7 @@ async function patchTemplate(
     const patched = patch(result.stdout!);
 
     // write a temp file w/ the patched template
-    const templateDir = await Deno.makeTempDir();
+    const templateDir = sessionTempDir();
     const template = await Deno.makeTempFile(
       { suffix: kPatchedTemplateExt, dir: templateDir },
     );

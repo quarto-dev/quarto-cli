@@ -1,20 +1,17 @@
 
-- embed daemon so we only have jupyter/jupytext as dependencies 
-- provide a setup chunk for julia
 
-- confirm that we work on windows (including R and Python)
-
-- We are spewing temp files that never get cleaned up
 
 - (Ubuntu) Quitting from lines 9-10 (test.Rmd) 
 Error in UseMethod("wrap", x) : 
   no applicable method for 'wrap' applied to an object of class "list"
 Calls: .main ... call_block -> block_exec -> unlist -> wrap -> knitr_wrap
 
-
+- confirm that we work on windows (including R and Python)
 
 
 Project system:
+  - quarto create foo
+  - quarto create pdf foo.Rmd 
   - allow _quarto config directory that merges all contained files
     (lock file will go there as well)
   - See MkDocs: https://docs.google.com/document/d/16Lp39BolpTR0NzbQQ6ebr9bawYth8EeivBo0q4qapVY/edit#heading=h.ibf8kici39py
@@ -58,6 +55,8 @@ bs4-book
 
 Charles
 -----------------------------
+
+- more generic dev setup tools
 
 - Installer
 

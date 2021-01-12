@@ -38,6 +38,10 @@ export const kShowCode = "show-code";
 export const kShowOutput = "show-output";
 export const kShowWarnings = "show-warnings";
 
+export const kKernelKeepalive = "kernel-keepalive";
+export const kKernelRestart = "kernel-restart";
+export const kKernelDebug = "kernel-debug";
+
 export const kExecutionDefaultsKeys = [
   kFigWidth,
   kFigHeight,
@@ -53,11 +57,15 @@ export const kExecutionDefaultsKeys = [
   kShowCode,
   kShowOutput,
   kShowWarnings,
+  kKernelKeepalive,
+  kKernelRestart,
+  kKernelDebug,
 ];
 
 export const kKeepMd = "keep-md";
 export const kKeepTex = "keep-tex";
 export const kKeepYaml = "keep-yaml";
+export const kKeepIpynb = "keep-ipynb";
 export const kKeepSource = "keep-source";
 export const kVariant = "variant";
 export const kOutputExt = "output-ext";
@@ -71,6 +79,7 @@ export const kRenderDefaultsKeys = [
   kKeepMd,
   kKeepTex,
   kKeepYaml,
+  kKeepIpynb,
   kKeepSource,
   kVariant,
   kOutputExt,

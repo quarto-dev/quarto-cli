@@ -11,6 +11,7 @@ import {
   kApplicationJupyterWidgetView,
   kTextHtml,
 } from "../mime.ts";
+import { sessionTempFile } from "../temp.ts";
 import { isDisplayData } from "./display_data.ts";
 import { JupyterNotebook, JupyterOutputDisplayData } from "./jupyter.ts";
 
@@ -72,7 +73,7 @@ export function widgetIncludeFiles(nb: JupyterNotebook) {
 
   // write jupyter widget state after body if it exists
   const afterBody: string[] = [];
-  if (haveJupyterWidgets) {
+  if (haveJupyterWidgets && nb.metadata.widgets) {
     afterBody.push(`<script type=${kApplicationJupyterWidgetState}>`);
     afterBody.push(
       JSON.stringify(nb.metadata.widgets[kApplicationJupyterWidgetState]),
@@ -82,7 +83,7 @@ export function widgetIncludeFiles(nb: JupyterNotebook) {
 
   // create pandoc includes for our head and afterBody
   const widgetTempFile = (lines: string[]) => {
-    const tempFile = Deno.makeTempFileSync(
+    const tempFile = sessionTempFile(
       { prefix: "jupyter-widgets-", suffix: ".html" },
     );
     Deno.writeTextFileSync(tempFile, lines.join("\n") + "\n");

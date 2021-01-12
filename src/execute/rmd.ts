@@ -26,6 +26,7 @@ import type {
   PostProcessOptions,
   RunOptions,
 } from "./engine.ts";
+import { sessionTempFile } from "../core/temp.ts";
 
 const kRmdExtensions = [".rmd", ".rmarkdown"];
 const kRScriptExtensions = [".r", ".s", ".q"];
@@ -99,7 +100,7 @@ async function callR<T>(
   quiet?: boolean,
 ): Promise<T> {
   // create a temp file for writing the results
-  const resultsFile = await Deno.makeTempFile(
+  const resultsFile = sessionTempFile(
     { prefix: "r-results", suffix: ".json" },
   );
 

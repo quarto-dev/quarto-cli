@@ -12,6 +12,7 @@ import { ProcessResult } from "../../core/process.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
+import { sessionTempDir } from "../../core/temp.ts";
 
 import {
   formatFromMetadata,
@@ -28,6 +29,9 @@ import {
   kCache,
   kExecute,
   kKeepMd,
+  kKernelDebug,
+  kKernelKeepalive,
+  kKernelRestart,
   kMetadataFormat,
 } from "../../config/constants.ts";
 import {
@@ -49,9 +53,6 @@ export async function render(
   // alias flags
   const flags = options.flags || {};
 
-  // create a tempDir to be used during computations
-  const tempDir = await Deno.makeTempDir({ prefix: "quarto" });
-
   // determine the computation engine and any alternate input file
   const { target, engine } = await executionEngine(file, flags.quiet);
 
@@ -66,15 +67,10 @@ export async function render(
   const executeResult = await engine.execute({
     target,
     output: mdOutput,
-    tempDir,
     resourceDir: resourcePath(),
+    tempDir: sessionTempDir(),
     format,
     cwd: flags.executeDir,
-    kernel: {
-      keepalive: flags.kernelKeepalive,
-      restart: flags.kernelRestart,
-      debug: flags.kernelDebug,
-    },
     params: resolveParams(flags.executeParams),
     quiet: flags.quiet,
   });
@@ -128,7 +124,6 @@ export async function render(
     mdOutput,
     finalOutput,
     executeResult.supporting,
-    tempDir,
     engine.keepMd(target.input),
   );
 
@@ -197,6 +192,21 @@ async function resolveFormat(
   // --cache
   if (flags?.executeCache !== undefined) {
     config.execution[kCache] = flags?.executeCache;
+  }
+
+  // --kernel-keepalive
+  if (flags?.kernelKeepalive !== undefined) {
+    config.execution[kKernelKeepalive] = flags.kernelKeepalive;
+  }
+
+  // --kernel-restart
+  if (flags?.kernelRestart !== undefined) {
+    config.execution[kKernelRestart] = flags.kernelRestart;
+  }
+
+  // --kernel-debug
+  if (flags?.kernelDebug !== undefined) {
+    config.execution[kKernelDebug] = flags.kernelDebug;
   }
 
   // return

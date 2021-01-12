@@ -21,7 +21,11 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
   kKeepHidden,
+  kKeepIpynb,
   kKeepYaml,
+  kKernelDebug,
+  kKernelKeepalive,
+  kKernelRestart,
   kListings,
   kMarkdownHeadings,
   kNumberOffset,
@@ -68,6 +72,7 @@ export interface FormatRender {
   [kKeepMd]?: boolean;
   [kKeepTex]?: boolean;
   [kKeepYaml]?: boolean;
+  [kKeepIpynb]?: boolean;
   [kKeepSource]?: boolean;
   [kPreferHtml]?: boolean;
   [kOutputDivs]?: boolean;
@@ -90,6 +95,9 @@ export interface FormatExecution {
   [kShowOutput]?: boolean;
   [kShowWarnings]?: boolean;
   [kKeepHidden]?: boolean;
+  [kKernelKeepalive]?: number;
+  [kKernelRestart]?: boolean;
+  [kKernelDebug]?: boolean;
 }
 
 export interface FormatPandoc {
@@ -449,6 +457,9 @@ function format(ext: string, ...formats: Array<unknown>): Format {
   );
 }
 
+// TODO: command line should update format
+// TODO: read kernel from format not options.kernel
+
 function defaultFormat(): Format {
   return {
     execution: {
@@ -463,11 +474,15 @@ function defaultFormat(): Format {
       [kShowCode]: true,
       [kShowOutput]: true,
       [kShowWarnings]: true,
+      [kKernelKeepalive]: 300,
+      [kKernelRestart]: false,
+      [kKernelDebug]: false,
     },
     render: {
       [kKeepMd]: false,
       [kKeepTex]: false,
       [kKeepYaml]: false,
+      [kKeepIpynb]: false,
       [kPreferHtml]: false,
       [kOutputDivs]: true,
       [kOutputExt]: "html",

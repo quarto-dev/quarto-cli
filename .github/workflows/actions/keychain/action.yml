@@ -23,29 +23,36 @@ inputs:
 
 
 runs:
+  using: "composite"
   steps: 
      - name: Add Installer Cert
-       if: matrix.os == 'macos-latest' 
        run: |
+       
+            # Recreate the certificate from the secure environment variable
+            echo ${{ inputs.certificate-value }} | base64 --decode > ${{ inputs.certificate-file }}
 
-          # Recreate the certificate from the secure environment variable
-          echo ${{ inputs.certificate-value }} | base64 --decode > ${{ inputs.certificate-file }}
+            if [[ $( security list-keychain | grep -c ${{ inputs.keychain }} ) -eq 0 ]]; then
 
-          #create a keychain
-          security create-keychain -p actions ${{ inputs.keychain }} 
+               #create a keychain
+               security create-keychain -p actions ${{ inputs.keychain }}
 
-          # Make the keychain the default so identities are found
-          security default-keychain -s ${{ inputs.keychain }}
+               # add the keychain to the search list so others may see it
+               security list-keychains -s `security list-keychains | xargs` ${{ inputs.keychain }}
 
-          # Unlock the keychain
-          security unlock-keychain -p actions ${{ inputs.keychain }}
+               # Make the keychain the default so identities are found
+               security default-keychain -s ${{ inputs.keychain }}
+            fi
 
-          security import ${{ inputs.certificate-file }} -k ${{ inputs.keychain }} -P ${{ inputs.certificate-password }} -T /usr/bin/codesign;
+            # Unlock the keychain
+            security unlock-keychain -p actions ${{ inputs.keychain }}
 
-          security set-key-partition-list -S apple-tool:,apple: -s -k actions ${{ inputs.keychain }}
+            security import ${{ inputs.certificate-file }} -k ${{ inputs.keychain }} -P ${{ inputs.certificate-password }} -T /usr/bin/codesign;
 
-          # remove certs
-          rm -fr *.p12
+            security set-key-partition-list -S apple-tool:,apple: -s -k actions ${{ inputs.keychain }}
 
+            # remove certs
+            rm -fr *.p12
+       
        shell: bash
+
 

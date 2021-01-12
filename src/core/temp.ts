@@ -7,6 +7,28 @@
 
 import { join } from "path/mod.ts";
 import { ensureDirSync } from "fs/mod.ts";
+import { removeIfExists } from "./path.ts";
+
+let tempDir: string | undefined;
+
+export function initSessionTempDir() {
+  tempDir = Deno.makeTempDirSync({ prefix: "quarto-session" });
+}
+
+export function sessionTempFile(options?: Deno.MakeTempOptions) {
+  return Deno.makeTempFileSync({ ...options, dir: tempDir });
+}
+
+export function sessionTempDir(options?: Deno.MakeTempOptions) {
+  return Deno.makeTempDirSync({ ...options, dir: tempDir });
+}
+
+export function cleanupSessionTempDir() {
+  if (tempDir) {
+    removeIfExists(tempDir);
+    tempDir = undefined;
+  }
+}
 
 export function systemTempDir(name: string) {
   const dir = join(rootTempDir(), name);
