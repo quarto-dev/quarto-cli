@@ -40,6 +40,7 @@ import {
   kIncludeAfterBody,
   kIncludeInHeader,
   kKeepIpynb,
+  kKernelKeepalive,
   kPreferHtml,
 } from "../../config/constants.ts";
 import {
@@ -189,7 +190,7 @@ export const jupyterEngine: ExecutionEngine = {
         },
       };
 
-      if (options.kernel.keepalive === 0) {
+      if (options.format.execution[kKernelKeepalive] === 0) {
         await executeKernelOneshot(execOptions);
       } else {
         await executeKernelKeepalive(execOptions);

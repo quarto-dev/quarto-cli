@@ -28,6 +28,9 @@ import {
   kCache,
   kExecute,
   kKeepMd,
+  kKernelDebug,
+  kKernelKeepalive,
+  kKernelRestart,
   kMetadataFormat,
 } from "../../config/constants.ts";
 import {
@@ -70,11 +73,6 @@ export async function render(
     resourceDir: resourcePath(),
     format,
     cwd: flags.executeDir,
-    kernel: {
-      keepalive: flags.kernelKeepalive,
-      restart: flags.kernelRestart,
-      debug: flags.kernelDebug,
-    },
     params: resolveParams(flags.executeParams),
     quiet: flags.quiet,
   });
@@ -197,6 +195,21 @@ async function resolveFormat(
   // --cache
   if (flags?.executeCache !== undefined) {
     config.execution[kCache] = flags?.executeCache;
+  }
+
+  // --kernel-keepalive
+  if (flags?.kernelKeepalive !== undefined) {
+    config.execution[kKernelKeepalive] = flags.kernelKeepalive;
+  }
+
+  // --kernel-restart
+  if (flags?.kernelRestart !== undefined) {
+    config.execution[kKernelRestart] = flags.kernelRestart;
+  }
+
+  // --kernel-debug
+  if (flags?.kernelDebug !== undefined) {
+    config.execution[kKernelDebug] = flags.kernelDebug;
   }
 
   // return

@@ -15,6 +15,12 @@ import { quartoDataDir, quartoRuntimeDir } from "../../core/appdirs.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 import { resourcePath } from "../../core/resources.ts";
 
+import {
+  kKernelDebug,
+  kKernelKeepalive,
+  kKernelRestart,
+} from "../../config/constants.ts";
+
 import { ExecuteOptions } from "../engine.ts";
 import { pythonBinary } from "./jupyter.ts";
 
@@ -30,7 +36,7 @@ export async function executeKernelOneshot(
   }
 
   trace(options, "Executing notebook with oneshot kernel");
-  const debug = !!options.kernel.debug;
+  const debug = !!options.format.execution[kKernelDebug];
   const result = await execJupyter("execute", { ...options, debug });
 
   if (!result.success) {
@@ -43,7 +49,7 @@ export async function executeKernelKeepalive(
 ): Promise<void> {
   // if we are in debug mode then tail follow the log file
   let serverLogProcess: Deno.Process | undefined;
-  if (options.kernel.debug) {
+  if (options.format.execution[kKernelDebug]) {
     if (Deno.build.os !== "windows") {
       serverLogProcess = Deno.run({
         cmd: ["tail", "-F", "-n", "0", kernelLogFile()],
@@ -52,7 +58,7 @@ export async function executeKernelKeepalive(
   }
 
   // if we have a restart request then abort before proceeding
-  if (options.kernel.restart) {
+  if (options.format.execution[kKernelRestart]) {
     await abortKernel(options);
   }
 
@@ -255,7 +261,7 @@ async function connectToKernel(
   startIfRequired = true,
 ): Promise<[Deno.Conn, KernelTransport]> {
   // see if we are in debug mode
-  const debug = !!options.kernel.debug;
+  const debug = !!options.format.execution[kKernelDebug];
 
   // derive the file path for this connection
   const transportFile = kernelTransportFile(options.target.input);
@@ -291,7 +297,7 @@ async function connectToKernel(
   }
 
   // determine timeout
-  const timeout = options.kernel.keepalive || 300;
+  const timeout = options.format.execution[kKernelKeepalive] || 300;
 
   // try to start the server
   const result = await execJupyter("start", {
@@ -349,7 +355,7 @@ function messageStartingKernel() {
 }
 
 function trace(options: ExecuteOptions, msg: string) {
-  if (options.kernel.debug) {
+  if (options.format.execution[kKernelDebug]) {
     message("- " + msg, { bold: true });
   }
 }
