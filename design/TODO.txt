@@ -1,8 +1,8 @@
 
 
-- implement jupyter markdown => ipynb using pandoc. make jupytext optional
 
-- provide a setup chunk for julia
+- consider display_name, etc. and whether we should allow shorter expression w/ caching
+
 - confirm that we work on windows (including R and Python)
 
 - We are spewing temp files that never get cleaned up
