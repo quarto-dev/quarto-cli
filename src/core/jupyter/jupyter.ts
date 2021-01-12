@@ -233,6 +233,7 @@ export function jupyterMdToJupyter(
   };
 
   // loop through lines and create cells based on state transitions
+  let cellMetadata: Record<string, unknown> | undefined;
   let inYaml = false, inCodeCell = false, inCode = false;
   for (const line of lines) {
     // yaml front matter
@@ -248,13 +249,17 @@ export function jupyterMdToJupyter(
     else if (startCodeCellRegEx.test(line)) {
       flushLineBuffer("markdown");
       inCodeCell = true;
+      const match = line.match(startCodeCellRegEx);
+      if (match && match[1]) {
+        cellMetadata = parseCellMetadata(match[1]);
+      }
 
       // end code block: ^``` (tolerate trailing ws)
     } else if (endCodeRegEx.test(line)) {
       // in a code cell, flush it
       if (inCodeCell) {
         inCodeCell = false;
-        flushLineBuffer("code");
+        flushLineBuffer("code", cellMetadata);
 
         // otherwise this flips the state of in-code
       } else {
@@ -275,6 +280,34 @@ export function jupyterMdToJupyter(
   flushLineBuffer("markdown");
 
   return nb;
+}
+
+function parseCellMetadata(metadata: string): Record<string, unknown> {
+  const cellMetadata: Record<string, unknown> = {};
+
+  const kKeyRegEx = /\s*([^\s=]+)\s*=\s*/;
+  let nextLoc = 0;
+  while (nextLoc < metadata.length) {
+    const match = metadata.slice(nextLoc).match(kKeyRegEx);
+    if (!match) {
+      break;
+    }
+    const key = match[1];
+    let value = "";
+    const remaining = metadata.slice(nextLoc + match[0].length);
+    const nextMatch = remaining.match(kKeyRegEx);
+    if (nextMatch) {
+      value = remaining.slice(0, nextMatch.index);
+      nextLoc = nextLoc + match[0].length + (nextMatch.index || 0);
+    } else {
+      value = remaining;
+      nextLoc = metadata.length;
+    }
+
+    cellMetadata[key] = JSON.parse(value);
+  }
+
+  return cellMetadata;
 }
 
 export function jupyterFromFile(input: string): JupyterNotebook {
