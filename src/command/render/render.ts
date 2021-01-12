@@ -12,6 +12,7 @@ import { ProcessResult } from "../../core/process.ts";
 import { dirAndStem } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
+import { sessionTempDir } from "../../core/temp.ts";
 
 import {
   formatFromMetadata,
@@ -67,6 +68,7 @@ export async function render(
     target,
     output: mdOutput,
     resourceDir: resourcePath(),
+    tempDir: sessionTempDir(),
     format,
     cwd: flags.executeDir,
     params: resolveParams(flags.executeParams),
