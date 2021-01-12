@@ -31,23 +31,28 @@ runs:
           # Recreate the certificate from the secure environment variable
           echo ${{ inputs.certificate-value }} | base64 --decode > ${{ inputs.certificate-file }}
              
-          # See if keychain already exists
-          set +e
-          security show-keychain $keychain
-
-          if [[ $? != 0 ]]; then
-            set -e
+          if [[ $( security list-keychain | grep  -c ${{ inputs.keychain }} ) -eq 0 ]]; then
                     
             #create a keychain
-            security create-keychain -p actions ${{ inputs.keychain }} 
+            security create-keychain -p actions ${{ inputs.keychain }}
           
-            # Make the keychain the default so identities are found
-            security default-keychain -s ${{ inputs.keychain }}
-          else
-            set -e
+            # get existing keychains
+            existing_keychains=$(security list-keychains -d user)
+          	keychainNames=();
+			      for existing_keychain in $existing_keychains
+			      do
+  				    basename=$(basename "$existing_keychain")
+  				    keychainName=${basename::${#basename}-4}
+  				    keychainNames+=("$keychainName")
+			      done
 
-          fi
-       
+		        # add the keychain to the search list so others may see it
+            security -v list-keychains -s "${keychainNames[@]}" ${{ inputs.keychain }}
+
+          # Make the keychain the default so identities are found
+          security default-keychain -s ${{ inputs.keychain }}
+         fi
+
           # Unlock the keychain
           security unlock-keychain -p actions ${{ inputs.keychain }}
 
