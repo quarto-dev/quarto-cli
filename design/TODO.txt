@@ -1,16 +1,12 @@
 
 
 
-
-- confirm that we work on windows (including R and Python)
-
-- We are spewing temp files that never get cleaned up
-
 - (Ubuntu) Quitting from lines 9-10 (test.Rmd) 
 Error in UseMethod("wrap", x) : 
   no applicable method for 'wrap' applied to an object of class "list"
 Calls: .main ... call_block -> block_exec -> unlist -> wrap -> knitr_wrap
 
+- confirm that we work on windows (including R and Python)
 
 
 Project system:
