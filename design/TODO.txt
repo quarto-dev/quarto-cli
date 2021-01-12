@@ -1,7 +1,6 @@
 
 
 
-- consider display_name, etc. and whether we should allow shorter expression w/ caching
 
 - confirm that we work on windows (including R and Python)
 
