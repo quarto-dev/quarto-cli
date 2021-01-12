@@ -26,8 +26,11 @@ import type {
   PostProcessOptions,
 } from "../engine.ts";
 import {
+  isJupyterKernelspec,
   jupyterAssets,
   jupyterFromFile,
+  JupyterKernelspec,
+  jupyterMdToJupyter,
   jupyterToMarkdown,
 } from "../../core/jupyter/jupyter.ts";
 import {
@@ -50,8 +53,6 @@ import {
   executeKernelKeepalive,
   executeKernelOneshot,
 } from "./jupyter-kernel.ts";
-
-import { JupyterKernelspec, jupyterMdToIpynb } from "./jupyter-convert.ts";
 
 const kNotebookExtensions = [
   ".ipynb",
@@ -87,6 +88,12 @@ export const jupyterEngine: ExecutionEngine = {
           } else if ((yaml.jupyter as Record<string, unknown>).jupytext) {
             const paired = await pairedPaths(file);
             return { sync: true, paired: [file, ...paired] };
+          } else if (
+            isJupyterKernelspec(
+              (yaml.jupyter as Record<string, unknown>).kernelspec,
+            )
+          ) {
+            return { sync: true, paired: [file] };
           }
         }
       } // if it's a code file, then check for a paired notebook and return it
@@ -127,25 +134,17 @@ export const jupyterEngine: ExecutionEngine = {
         // if this is a markdown file with no paired notebook then create a transient one
         const ext = extname(file);
         if (kJupytextMdExtensions.includes(ext) && !notebook) {
-          if (!quiet) {
-            message("Writing ipynb...", { newline: false });
-          }
-          // get the kernelspec
-          const yaml = readYamlFromMarkdownFile(file);
-          const kernel = (yaml.jupyter as string) || "python3";
-          const kernelspec = await jupyterKernelspec(kernel);
-          if (kernelspec) {
-            const [fileDir, fileStem] = dirAndStem(file);
-            notebook = join(fileDir, fileStem + ".ipynb");
-            await jupyterMdToIpynb(file, notebook, kernelspec);
-          } else {
-            return Promise.reject(
-              new Error("Jupyter kernel '" + kernel + "' not found."),
-            );
-          }
+          // get the kernelspec and jupyter metadata
+          const [kernelspec, metadata] = await jupyterKernelspecFromFile(file);
+
+          // write the notebook
+          const [fileDir, fileStem] = dirAndStem(file);
+          const nb = jupyterMdToJupyter(file, kernelspec, metadata);
+          notebook = join(fileDir, fileStem + ".ipynb");
+          Deno.writeTextFileSync(notebook, JSON.stringify(nb, null, 2));
         }
 
-        if (!quiet) {
+        if (!quiet && !transient) {
           message("Done");
         }
       }
@@ -264,6 +263,48 @@ export function pythonBinary(binary = "python") {
   return condaPrefix +
     (Deno.build.os !== "windows" ? "/bin/" : "\\") +
     binary;
+}
+
+async function jupyterKernelspecFromFile(
+  file: string,
+): Promise<[JupyterKernelspec, Metadata]> {
+  const yaml = readYamlFromMarkdownFile(file);
+  if (yaml.jupyter) {
+    if (typeof (yaml.jupyter) === "string") {
+      const kernel = yaml.jupyter;
+      const kernelspec = await jupyterKernelspec(kernel);
+      if (kernelspec) {
+        return [kernelspec, {}];
+      } else {
+        return Promise.reject(
+          new Error("Jupyter kernel '" + kernel + "' not found."),
+        );
+      }
+    } else if (typeof (yaml.jupyter) === "object") {
+      const jupyter = { ...yaml.jupyter } as Record<string, unknown>;
+      if (isJupyterKernelspec(jupyter.kernelspec)) {
+        const kernelspec = jupyter.kernelspec;
+        delete jupyter.kernelspec;
+        return [kernelspec, jupyter];
+      } else {
+        return Promise.reject(
+          new Error(
+            "Invalid Jupyter kernelspec (must include name, language, & display_name)",
+          ),
+        );
+      }
+    } else {
+      return Promise.reject(
+        new Error(
+          "Invalid jupyter YAML metadata found in file (must be string or object)",
+        ),
+      );
+    }
+  } else {
+    return Promise.reject(
+      new Error("No jupyter YAML metadata found in file"),
+    );
+  }
 }
 
 function filteredMetadata(paired: string[]) {
@@ -458,7 +499,7 @@ async function jupyterKernelspecs(): Promise<Map<string, JupyterKernelspec>> {
       kernelmap.set(kernel, {
         name: kernel,
         language: spec.language,
-        display_name: spec.language,
+        display_name: spec.display_name,
       });
     });
     return kernelmap;

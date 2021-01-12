@@ -57,6 +57,7 @@ import { widgetIncludeFiles } from "./widgets.ts";
 import { removeAndPreserveHtml } from "./preserve.ts";
 import { FormatExecution } from "../../config/format.ts";
 import { pandocAutoIdentifier } from "../pandoc/pandoc_id.ts";
+import { Metadata } from "../../config/metadata.ts";
 
 export const kCellCollapsed = "collapsed";
 export const kCellAutoscroll = "autoscroll";
@@ -82,18 +83,37 @@ export const kCellWidth = "width";
 export const kCellHeight = "height";
 export const kCellAlt = "alt";
 
+export interface JupyterKernelspec {
+  name: string;
+  language: string;
+  display_name: string;
+}
+
+// deno-lint-ignore no-explicit-any
+export function isJupyterKernelspec(x: any): x is JupyterKernelspec {
+  if (x && typeof (x) === "object") {
+    return typeof (x.name) === "string" &&
+      typeof (x.language) === "string" &&
+      typeof (x.display_name) === "string";
+  } else {
+    return false;
+  }
+}
+
 export interface JupyterNotebook {
   metadata: {
-    kernelspec: {
-      language: string;
-    };
-    widgets: Record<string, unknown>;
+    kernelspec: JupyterKernelspec;
+    widgets?: Record<string, unknown>;
+    [key: string]: unknown;
   };
   cells: JupyterCell[];
+  nbformat: number;
+  nbformat_minor: number;
 }
 
 export interface JupyterCell {
   cell_type: "markdown" | "code" | "raw";
+  execution_count?: null | number;
   metadata: {
     // nbformat v4 spec
     [kCellCollapsed]?: boolean;
@@ -120,6 +140,9 @@ export interface JupyterCell {
 
     // used by jupytext to preserve line spacing
     [kCellLinesToNext]?: number;
+
+    // other metadata
+    [key: string]: unknown;
   };
   source: string[];
   outputs?: JupyterOutput[];
@@ -159,7 +182,102 @@ export interface JupyterOutputError extends JupyterOutput {
   traceback: string[];
 }
 
-export function jupyterFromFile(input: string) {
+export function jupyterMdToJupyter(
+  input: string,
+  kernelspec: JupyterKernelspec,
+  metadata: Metadata,
+): JupyterNotebook {
+  // notebook to return
+  const nb: JupyterNotebook = {
+    metadata: {
+      kernelspec,
+      ...metadata,
+    },
+    cells: [],
+    nbformat: 4,
+    nbformat_minor: 4,
+  };
+
+  // regexes
+  const yamlRegEx = /^---\s*$/;
+  const startCodeCellRegEx = new RegExp(
+    "^```" + kernelspec.language + "\s*(.*)$",
+  );
+  const startCodeRegEx = /^```/;
+  const endCodeRegEx = /^```\s*$/;
+
+  // read the file into lines
+  const lines = Deno.readTextFileSync(input).split(/\r?\n/);
+
+  // line buffer
+  const lineBuffer: string[] = [];
+  const flushLineBuffer = (
+    cell_type: "markdown" | "code" | "raw",
+    metadata?: Record<string, unknown>,
+  ) => {
+    if (lineBuffer.length) {
+      const cell: JupyterCell = {
+        cell_type,
+        metadata: metadata || {},
+        source: lineBuffer.map((line, index) => {
+          return line + (index < (lineBuffer.length - 1) ? "\n" : "");
+        }),
+      };
+      if (cell_type === "code") {
+        cell.execution_count = null;
+        cell.outputs = [];
+      }
+      nb.cells.push(cell);
+      lineBuffer.splice(0, lineBuffer.length);
+    }
+  };
+
+  // loop through lines and create cells based on state transitions
+  let inYaml = false, inCodeCell = false, inCode = false;
+  for (const line of lines) {
+    // yaml front matter
+    if (yamlRegEx.test(line)) {
+      lineBuffer.push(line);
+      if (inYaml) {
+        flushLineBuffer("raw");
+        inYaml = false;
+      } else if (nb.cells.length === 0) {
+        inYaml = true;
+      }
+    } // begin code cell: ^```python
+    else if (startCodeCellRegEx.test(line)) {
+      flushLineBuffer("markdown");
+      inCodeCell = true;
+
+      // end code block: ^``` (tolerate trailing ws)
+    } else if (endCodeRegEx.test(line)) {
+      // in a code cell, flush it
+      if (inCodeCell) {
+        inCodeCell = false;
+        flushLineBuffer("code");
+
+        // otherwise this flips the state of in-code
+      } else {
+        inCode = !inCode;
+        lineBuffer.push(line);
+      }
+
+      // begin code block: ^```
+    } else if (startCodeRegEx.test(line)) {
+      inCode = true;
+      lineBuffer.push(line);
+    } else {
+      lineBuffer.push(line);
+    }
+  }
+
+  // if there is still a line buffer then make it a markdown cell
+  flushLineBuffer("markdown");
+
+  return nb;
+}
+
+export function jupyterFromFile(input: string): JupyterNotebook {
   // parse the notebook
   const nbContents = Deno.readTextFileSync(input);
   const nb = JSON.parse(nbContents) as JupyterNotebook;

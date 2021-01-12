@@ -72,7 +72,7 @@ export function widgetIncludeFiles(nb: JupyterNotebook) {
 
   // write jupyter widget state after body if it exists
   const afterBody: string[] = [];
-  if (haveJupyterWidgets) {
+  if (haveJupyterWidgets && nb.metadata.widgets) {
     afterBody.push(`<script type=${kApplicationJupyterWidgetState}>`);
     afterBody.push(
       JSON.stringify(nb.metadata.widgets[kApplicationJupyterWidgetState]),
