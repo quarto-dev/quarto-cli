@@ -38,7 +38,7 @@ runs:
           
             # get existing keychains
             existing_keychains=$(security list-keychains -d user)
-            keychainNames=()
+            keychainNames=();
             for existing_keychain in $existing_keychains
             do
                basename=$(basename "$existing_keychain")
