@@ -476,21 +476,27 @@ async function jupytextUpdateMetadata(
 }
 
 async function jupytext(...args: string[]) {
-  const result = await execProcess(
-    {
-      cmd: [
-        pythonBinary("jupytext"),
-        ...args,
-      ],
-      stderr: "piped",
-    },
-    undefined,
-    (data: Uint8Array) => {
-      Deno.stderr.writeSync(data);
-    },
-  );
-  if (!result.success) {
-    throw new Error(result.stderr || "Error syncing jupytext");
+  try {
+    const result = await execProcess(
+      {
+        cmd: [
+          pythonBinary("jupytext"),
+          ...args,
+        ],
+        stderr: "piped",
+      },
+      undefined,
+      (data: Uint8Array) => {
+        Deno.stderr.writeSync(data);
+      },
+    );
+    if (!result.success) {
+      throw new Error(result.stderr || "Error syncing jupytext");
+    }
+  } catch (e) {
+    throw new Error(
+      "Unable to execute jupytext. Have you installed the jupytext package?",
+    );
   }
 }
 
