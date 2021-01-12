@@ -37,6 +37,7 @@ import {
   quartoPreFilter,
   resolveFilters,
 } from "./filters.ts";
+import { sessionTempFile } from "../../core/temp.ts";
 
 export async function generateDefaults(
   options: PandocOptions,
@@ -74,7 +75,7 @@ export async function generateDefaults(
 
 export async function writeDefaultsFile(defaults: FormatPandoc) {
   const defaultsStr = "---\n" + stringify(defaults as Record<string, unknown>);
-  const defaultsFile = await Deno.makeTempFile(
+  const defaultsFile = sessionTempFile(
     { prefix: "quarto-defaults", suffix: ".yml" },
   );
   await Deno.writeTextFile(defaultsFile, defaultsStr);

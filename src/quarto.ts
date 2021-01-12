@@ -13,6 +13,7 @@ import {
 
 import { commands } from "./command/command.ts";
 import { logError } from "./core/log.ts";
+import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
 
 export async function quarto(args: string[]) {
   const quartoCommand = new Command()
@@ -33,11 +34,14 @@ export async function quarto(args: string[]) {
 
 if (import.meta.main) {
   try {
+    initSessionTempDir();
     await quarto(Deno.args);
+    cleanupSessionTempDir();
   } catch (error) {
     if (error) {
       logError(`${error.stack}\n`);
     }
+    cleanupSessionTempDir();
     Deno.exit(1);
   }
 }

@@ -52,9 +52,6 @@ export async function render(
   // alias flags
   const flags = options.flags || {};
 
-  // create a tempDir to be used during computations
-  const tempDir = await Deno.makeTempDir({ prefix: "quarto" });
-
   // determine the computation engine and any alternate input file
   const { target, engine } = await executionEngine(file, flags.quiet);
 
@@ -69,7 +66,6 @@ export async function render(
   const executeResult = await engine.execute({
     target,
     output: mdOutput,
-    tempDir,
     resourceDir: resourcePath(),
     format,
     cwd: flags.executeDir,
@@ -126,7 +122,6 @@ export async function render(
     mdOutput,
     finalOutput,
     executeResult.supporting,
-    tempDir,
     engine.keepMd(target.input),
   );
 
