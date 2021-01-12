@@ -6,6 +6,9 @@
 */
 
 import { basename, dirname, extname, join } from "path/mod.ts";
+import { existsSync } from "fs/mod.ts";
+import { walkSync } from "fs/walk.ts";
+
 import { getenv } from "../../core/env.ts";
 import { execProcess } from "../../core/process.ts";
 import {
@@ -489,21 +492,37 @@ async function jupyterKernelspec(
 async function jupyterKernelspecs(): Promise<Map<string, JupyterKernelspec>> {
   const result = await execProcess(
     {
-      cmd: [pythonBinary("jupyter"), "kernelspec", "list", "--json"],
+      cmd: [pythonBinary("jupyter"), "--paths", "--json"],
       stdout: "piped",
     },
   );
   if (result.success) {
-    const kernelspecs = JSON.parse(result.stdout!).kernelspecs;
     const kernelmap = new Map<string, JupyterKernelspec>();
-    Object.keys(kernelspecs).forEach((kernel) => {
-      const spec = kernelspecs[kernel].spec;
-      kernelmap.set(kernel, {
-        name: kernel,
-        language: spec.language,
-        display_name: spec.display_name,
-      });
-    });
+    const dataPaths = JSON.parse(result.stdout!).data;
+    for (const path of dataPaths) {
+      if (!existsSync(path)) {
+        continue;
+      }
+      const kernels = join(path, "kernels");
+      if (!existsSync(kernels)) {
+        continue;
+      }
+      for (const walk of walkSync(kernels, { maxDepth: 1 })) {
+        if (walk.path === kernels || !walk.isDirectory) {
+          continue;
+        }
+        const kernelConfig = join(walk.path, "kernel.json");
+        if (existsSync(kernelConfig)) {
+          const config = JSON.parse(Deno.readTextFileSync(kernelConfig));
+          const name = basename(walk.path);
+          kernelmap.set(name, {
+            name,
+            language: config.language,
+            display_name: config.display_name,
+          });
+        }
+      }
+    }
     return kernelmap;
   } else {
     return Promise.reject();
