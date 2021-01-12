@@ -237,12 +237,14 @@ export function jupyterMdToJupyter(
   let inYaml = false, inCodeCell = false, inCode = false;
   for (const line of lines) {
     // yaml front matter
-    if (yamlRegEx.test(line)) {
-      lineBuffer.push(line);
+    if (yamlRegEx.test(line) && !inCodeCell && !inCode) {
       if (inYaml) {
+        lineBuffer.push(line);
         flushLineBuffer("raw");
         inYaml = false;
-      } else if (nb.cells.length === 0) {
+      } else {
+        flushLineBuffer("markdown");
+        lineBuffer.push(line);
         inYaml = true;
       }
     } // begin code cell: ^```python
