@@ -38,19 +38,19 @@ runs:
           
             # get existing keychains
             existing_keychains=$(security list-keychains -d user)
-          	keychainNames=();
-			      for existing_keychain in $existing_keychains
-			      do
-  				    basename=$(basename "$existing_keychain")
-  				    keychainName=${basename::${#basename}-4}
-  				    keychainNames+=("$keychainName")
-			      done
+            keychainNames=()
+            for existing_keychain in $existing_keychains
+            do
+               basename=$(basename "$existing_keychain")
+               keychainName=${basename::${#basename}-4}
+               keychainNames+=("$keychainName")
+            done
 
-		        # add the keychain to the search list so others may see it
+            # add the keychain to the search list so others may see it
             security -v list-keychains -s "${keychainNames[@]}" ${{ inputs.keychain }}
 
-          # Make the keychain the default so identities are found
-          security default-keychain -s ${{ inputs.keychain }}
+            # Make the keychain the default so identities are found
+            security default-keychain -s ${{ inputs.keychain }}
          fi
 
           # Unlock the keychain
