@@ -28,32 +28,31 @@ runs:
      - name: Add Installer Cert
        run: |
        
-          # Recreate the certificate from the secure environment variable
-          echo ${{ inputs.certificate-value }} | base64 --decode > ${{ inputs.certificate-file }}
+       # Recreate the certificate from the secure environment variable
+       echo ${{ inputs.certificate-value }} | base64 --decode > ${{ inputs.certificate-file }}
              
-          if [[ $( security list-keychain | grep  -c ${{ inputs.keychain }} ) -eq 0 ]]; then
+       if [[ $( security list-keychain | grep -c ${{ inputs.keychain }} ) -eq 0 ]]; then
                     
-            #create a keychain
-            security create-keychain -p actions ${{ inputs.keychain }}
+          #create a keychain
+          security create-keychain -p actions ${{ inputs.keychain }}
                     
-            # add the keychain to the search list so others may see it
-            security list-keychains -s `security list-keychains | xargs` ${{ inputs.keychain }}
+          # add the keychain to the search list so others may see it
+          security list-keychains -s `security list-keychains | xargs` ${{ inputs.keychain }}
 
-            # Make the keychain the default so identities are found
-            security default-keychain -s ${{ inputs.keychain }}
-         fi
+          # Make the keychain the default so identities are found
+          security default-keychain -s ${{ inputs.keychain }}
+       fi
 
-          # Unlock the keychain
-          security unlock-keychain -p actions ${{ inputs.keychain }}
+       # Unlock the keychain
+       security unlock-keychain -p actions ${{ inputs.keychain }}
+       
+       security import ${{ inputs.certificate-file }} -k ${{ inputs.keychain }} -P ${{ inputs.certificate-password }} -T /usr/bin/codesign;
+       
+       security set-key-partition-list -S apple-tool:,apple: -s -k actions ${{ inputs.keychain }}
 
-          security import ${{ inputs.certificate-file }} -k ${{ inputs.keychain }} -P ${{ inputs.certificate-password }} -T /usr/bin/codesign;
-
-          security set-key-partition-list -S apple-tool:,apple: -s -k actions ${{ inputs.keychain }}
-
-          # remove certs
-          rm -fr *.p12
-
-        
+       # remove certs
+       rm -fr *.p12
+       
        shell: bash
 
 
