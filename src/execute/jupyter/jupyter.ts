@@ -7,8 +7,7 @@
 
 import { basename, dirname, extname, join } from "path/mod.ts";
 import { getenv } from "../../core/env.ts";
-import { execProcess, ProcessResult } from "../../core/process.ts";
-import { resourcePath } from "../../core/resources.ts";
+import { execProcess } from "../../core/process.ts";
 import {
   readYamlFromMarkdown,
   readYamlFromMarkdownFile,
@@ -27,8 +26,11 @@ import type {
   PostProcessOptions,
 } from "../engine.ts";
 import {
+  isJupyterKernelspec,
   jupyterAssets,
   jupyterFromFile,
+  JupyterKernelspec,
+  jupyterMdToJupyter,
   jupyterToMarkdown,
 } from "../../core/jupyter/jupyter.ts";
 import {
@@ -74,19 +76,24 @@ export const jupyterEngine: ExecutionEngine = {
   name: "jupyter",
 
   handle: async (file: string, quiet: boolean) => {
-    const yaml = readYamlFromMarkdownFile(file);
-
     const notebookTarget = async () => {
       // if it's an .Rmd or .md file, then read the YAML to see if has jupytext,
       // if it does, check for a paired notebook and return it
       const ext = extname(file);
       if (kJupytextMdExtensions.includes(ext)) {
+        const yaml = readYamlFromMarkdownFile(file);
         if (yaml.jupyter) {
-          if (!(yaml.jupyter as Record<string, unknown>).jupytext) {
+          if (typeof (yaml.jupyter) === "string") {
             return { sync: true, paired: [file] };
-          } else {
+          } else if ((yaml.jupyter as Record<string, unknown>).jupytext) {
             const paired = await pairedPaths(file);
             return { sync: true, paired: [file, ...paired] };
+          } else if (
+            isJupyterKernelspec(
+              (yaml.jupyter as Record<string, unknown>).kernelspec,
+            )
+          ) {
+            return { sync: true, paired: [file] };
           }
         }
       } // if it's a code file, then check for a paired notebook and return it
@@ -95,8 +102,7 @@ export const jupyterEngine: ExecutionEngine = {
         return { sync: true, paired: [file, ...paired] };
         // if it's a notebook file then return it
       } else if (isNotebook(file)) {
-        const paired = await pairedPaths(file);
-        return { sync: paired.length > 0, paired: [file, ...paired] };
+        return { sync: false, paired: [file] };
       }
     };
 
@@ -125,35 +131,22 @@ export const jupyterEngine: ExecutionEngine = {
           await jupytextSync(file, target.paired, true);
         }
 
-        // if there is no paired notebook then create a transient one
-        if (!notebook) {
-          // determine whether we need to set a kernel
-          let setKernel: string | undefined;
-          if (yaml.jupyter === true) {
-            setKernel = "-";
-          } else if (typeof (yaml.jupyter) === "string") {
-            setKernel = yaml.jupyter;
-          } else if (!(yaml.jupyter as Record<string, unknown>)?.kernelspec) {
-            setKernel = "-";
-          }
-          const [fileDir, fileStem] = dirAndStem(file);
-          notebook = join(fileDir, fileStem + ".ipynb");
-          message(
-            "[jupytext] " + "Writing ipynb...",
-            { newline: false },
-          );
-          await jupytextTo(
-            file,
-            "ipynb",
-            setKernel,
-            notebook,
-            true,
-          );
-        }
-      }
+        // if this is a markdown file with no paired notebook then create a transient one
+        const ext = extname(file);
+        if (kJupytextMdExtensions.includes(ext) && !notebook) {
+          // get the kernelspec and jupyter metadata
+          const [kernelspec, metadata] = await jupyterKernelspecFromFile(file);
 
-      if (!quiet) {
-        message("Done");
+          // write the notebook
+          const [fileDir, fileStem] = dirAndStem(file);
+          const nb = jupyterMdToJupyter(file, kernelspec, metadata);
+          notebook = join(fileDir, fileStem + ".ipynb");
+          Deno.writeTextFileSync(notebook, JSON.stringify(nb, null, 2));
+        }
+
+        if (!quiet && !transient) {
+          message("Done");
+        }
       }
 
       if (notebook) {
@@ -270,6 +263,48 @@ export function pythonBinary(binary = "python") {
   return condaPrefix +
     (Deno.build.os !== "windows" ? "/bin/" : "\\") +
     binary;
+}
+
+async function jupyterKernelspecFromFile(
+  file: string,
+): Promise<[JupyterKernelspec, Metadata]> {
+  const yaml = readYamlFromMarkdownFile(file);
+  if (yaml.jupyter) {
+    if (typeof (yaml.jupyter) === "string") {
+      const kernel = yaml.jupyter;
+      const kernelspec = await jupyterKernelspec(kernel);
+      if (kernelspec) {
+        return [kernelspec, {}];
+      } else {
+        return Promise.reject(
+          new Error("Jupyter kernel '" + kernel + "' not found."),
+        );
+      }
+    } else if (typeof (yaml.jupyter) === "object") {
+      const jupyter = { ...yaml.jupyter } as Record<string, unknown>;
+      if (isJupyterKernelspec(jupyter.kernelspec)) {
+        const kernelspec = jupyter.kernelspec;
+        delete jupyter.kernelspec;
+        return [kernelspec, jupyter];
+      } else {
+        return Promise.reject(
+          new Error(
+            "Invalid Jupyter kernelspec (must include name, language, & display_name)",
+          ),
+        );
+      }
+    } else {
+      return Promise.reject(
+        new Error(
+          "Invalid jupyter YAML metadata found in file (must be string or object)",
+        ),
+      );
+    }
+  } else {
+    return Promise.reject(
+      new Error("No jupyter YAML metadata found in file"),
+    );
+  }
 }
 
 function filteredMetadata(paired: string[]) {
@@ -439,5 +474,36 @@ async function jupytext(...args: string[]) {
   );
   if (!result.success) {
     throw new Error(result.stderr || "Error syncing jupytext");
+  }
+}
+
+async function jupyterKernelspec(
+  name: string,
+): Promise<JupyterKernelspec | undefined> {
+  const kernelspecs = await jupyterKernelspecs();
+  return kernelspecs.get(name);
+}
+
+async function jupyterKernelspecs(): Promise<Map<string, JupyterKernelspec>> {
+  const result = await execProcess(
+    {
+      cmd: [pythonBinary("jupyter"), "kernelspec", "list", "--json"],
+      stdout: "piped",
+    },
+  );
+  if (result.success) {
+    const kernelspecs = JSON.parse(result.stdout!).kernelspecs;
+    const kernelmap = new Map<string, JupyterKernelspec>();
+    Object.keys(kernelspecs).forEach((kernel) => {
+      const spec = kernelspecs[kernel].spec;
+      kernelmap.set(kernel, {
+        name: kernel,
+        language: spec.language,
+        display_name: spec.display_name,
+      });
+    });
+    return kernelmap;
+  } else {
+    return Promise.reject();
   }
 }
