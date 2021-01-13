@@ -146,7 +146,7 @@ jobs:
         release_name: v${{needs.configure.outputs.version}} Daily
         body: |
           Daily release (v${{needs.configure.outputs.version}})
-        draft: true
+        draft: false
         prerelease: true  
         
     - name: Attach Debian Installer
