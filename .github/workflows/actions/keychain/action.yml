@@ -15,6 +15,11 @@ inputs:
     description: 'The name of the keychain to install the certificate into'
     required: true
     default: ''
+  
+  keychain-pw:
+    description: 'The password to use for the keychain'
+    required: true
+    default: '' 
 
   certificate-file:
     description: 'Intermediary name for p12 file'
@@ -27,14 +32,14 @@ runs:
   steps: 
      - name: Add Installer Cert
        run: |
-       
+      
             # Recreate the certificate from the secure environment variable
             echo ${{ inputs.certificate-value }} | base64 --decode > ${{ inputs.certificate-file }}
 
             if [[ $( security list-keychain | grep -c ${{ inputs.keychain }} ) -eq 0 ]]; then
 
                #create a keychain
-               security create-keychain -p actions ${{ inputs.keychain }}
+               security create-keychain -p ${{ inputs.keychain-pw }} ${{ inputs.keychain }}
 
                # add the keychain to the search list so others may see it
                security list-keychains -s `security list-keychains | xargs` ${{ inputs.keychain }}
@@ -44,12 +49,17 @@ runs:
             fi
 
             # Unlock the keychain
-            security unlock-keychain -p actions ${{ inputs.keychain }}
+            security unlock-keychain -p ${{ inputs.keychain-pw }} ${{ inputs.keychain }}
+            
+            # Extend the relock timeout
+            security set-keychain-settings -lut 7200 ${{ inputs.keychain }}
 
-            security import ${{ inputs.certificate-file }} -k ${{ inputs.keychain }} -P ${{ inputs.certificate-password }} -T /usr/bin/codesign;
+            # Add certificate to keychain
+            security import ${{ inputs.certificate-file }} -k ${{ inputs.keychain }} -P ${{ inputs.certificate-password }} -T /usr/bin/productsign -T /usr/bin/codesign
 
-            security set-key-partition-list -S apple-tool:,apple: -s -k actions ${{ inputs.keychain }}
-
+            # Enable codesigning from non-user interactive shell
+            security set-key-partition-list -S apple-tool:,apple: -s -k ${{ inputs.keychain-pw }} -t private ${{ inputs.keychain }}
+            
             # remove certs
             rm -fr *.p12
        

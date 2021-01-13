@@ -12,7 +12,6 @@ export async function bundle(
   output: string,
   configuration: Configuration,
 ) {
-  // TODO: Use Deno.bundle instead?
   // Bundle source code
   const denoBundleCmd: string[] = [];
   denoBundleCmd.push(join(configuration.directoryInfo.bin, "deno"));
@@ -31,4 +30,27 @@ export async function bundle(
   if (status.code !== 0) {
     throw Error("Failure to bundle quarto.ts");
   }
+}
+
+export async function compile(
+  input: string,
+  configuration: Configuration) {
+
+  const denoBundleCmd: string[] = [];
+  denoBundleCmd.push(join(configuration.directoryInfo.bin, "deno"));
+  denoBundleCmd.push("compile");
+  denoBundleCmd.push("--unstable");
+  denoBundleCmd.push(
+    "--importmap=" + configuration.importmap,
+  );
+
+  denoBundleCmd.push(input);
+  const p = Deno.run({
+    cmd: denoBundleCmd,
+  });
+  const status = await p.status();
+  if (status.code !== 0) {
+    throw Error("Failure to compile quarto.ts");
+  }
+
 }

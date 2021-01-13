@@ -5,7 +5,7 @@ on:
       publish-release:
         description: 'Publish Release'
         required: false
-        default: 'true'
+        default: 'false'
   schedule:
     - cron: '0 1 * * *'  # every day at one am
 
@@ -100,12 +100,14 @@ jobs:
         certificate-value: ${{ secrets.APPLE_APPLICATION_CERT }}
         certificate-password: ${{ secrets.APPLE_APPLICATION_CERT_PW }}
         keychain: 'build.keychain'
+        keychain-pw: ${{ secrets.APPLE_KEYCHAIN_PW }}
 
     - uses: ./.github/workflows/actions/keychain
       with:
         certificate-value: ${{ secrets.APPLE_INSTALLER_CERT }}
         certificate-password: ${{ secrets.APPLE_INSTALLER_CERT_PW }}
         keychain: 'build.keychain'
+        keychain-pw: ${{ secrets.APPLE_KEYCHAIN_PW }}
         
     - name: Prepare Distribution
       run: |
@@ -118,6 +120,9 @@ jobs:
         pushd package/src/
         ./quarto-pack make-installer-mac --log-level info
         popd
+      env:
+        QUARTO_APPLE_CONNECT_UN: ${{ secrets.APPLE_CONNECT_UN }}
+        QUARTO_APPLE_CONNECT_PW: ${{ secrets.APPLE_CONNECT_PW }}
         
     - name: Upload Artifact 
       uses: actions/upload-artifact@v2
@@ -144,7 +149,7 @@ jobs:
         release_name: v${{needs.configure.outputs.version}} Daily
         body: |
           Daily release (v${{needs.configure.outputs.version}})
-        draft: true
+        draft: false
         prerelease: true  
         
     - name: Attach Debian Installer
