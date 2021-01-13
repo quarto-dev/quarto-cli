@@ -52,9 +52,9 @@ runs:
             # Unlock the keychain
             security unlock-keychain -p ${{ inputs.keychain-pw }} ${{ inputs.keychain }}
 
-            security import ${{ inputs.certificate-file }} -k ${{ inputs.keychain-pw }} ${{ inputs.keychain }} -P ${{ inputs.certificate-password }} -T /usr/bin/codesign;
+            security import ${{ inputs.certificate-file }} -k ${{ inputs.keychain }} -P ${{ inputs.certificate-password }} -T /usr/bin/codesign;
 
-            security set-key-partition-list -S apple-tool:,apple: -s -k actions ${{ inputs.keychain }}
+            security set-key-partition-list -S apple-tool:,apple: -s -k ${{ inputs.keychain-pw }} ${{ inputs.keychain }}
 
             # remove certs
             rm -fr *.p12
