@@ -5,7 +5,7 @@ on:
       publish-release:
         description: 'Publish Release'
         required: false
-        default: 'true'
+        default: 'false'
   schedule:
     - cron: '0 1 * * *'  # every day at one am
 
