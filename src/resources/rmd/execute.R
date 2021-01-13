@@ -276,6 +276,12 @@ dependencies_from_render <-function(input, files_dir, knit_meta) {
     deps <- rmarkdown:::html_dependencies_as_string(extras$dependencies, files_dir, dirname(input))
     dependencies$includes$in_header <- deps
   }
+  
+  # handle latex dependencies
+  if (rmarkdown:::has_latex_dependencies(knit_meta)) {
+    latex_dependencies <- rmarkdown:::flatten_latex_dependencies(knit_meta)
+    dependencies$includes$in_header <- rmarkdown:::latex_dependencies_as_string(latex_dependencies)
+  }
 
   # return dependencies
   dependencies
