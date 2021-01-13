@@ -120,6 +120,9 @@ jobs:
         pushd package/src/
         ./quarto-pack make-installer-mac --log-level info
         popd
+      env:
+        QUARTO_APPLE_CONNECT_UN: ${{ secrets.APPLE_CONNECT_UN }}
+        QUARTO_APPLE_CONNECT_PW: ${{ secrets.APPLE_CONNECT_PW }}
         
     - name: Upload Artifact 
       uses: actions/upload-artifact@v2
