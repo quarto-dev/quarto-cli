@@ -83,7 +83,9 @@ async function signApplicationFile(input: string, output: string, log: Logger) {
 async function signFile(input: string, output: string, certificate: string, log: Logger) {
   await runCmd(
     "productsign",
-    ["--sign",
+    ["--keychain",
+      "build.keychain",
+      "--sign",
       certificate,
       input,
       output],
