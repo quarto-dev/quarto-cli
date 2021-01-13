@@ -50,6 +50,10 @@ export async function makeInstallerMac(config: Configuration) {
   // Make the out dir
   ensureDirSync(dirname(unsignedPackagePath));
 
+  // Sign the deno executable
+  const deno = join(config.directoryInfo.bin, "deno");
+  signCode(deno, config.log);
+
   // Run pkg build
   await runCmd(
     "pkgbuild",
@@ -66,7 +70,7 @@ export async function makeInstallerMac(config: Configuration) {
   config.log.info("Signing file");
   config.log.info(unsignedPackagePath);
   const signedPackage = join(config.directoryInfo.out, packageName);
-  await signInstaller(unsignedPackagePath, signedPackage, config.log);
+  await signPackage(unsignedPackagePath, signedPackage, config.log);
 
   config.log.info("Cleaning unsigned file");
   Deno.removeSync(unsignedPackagePath);
@@ -78,29 +82,35 @@ export async function makeInstallerMac(config: Configuration) {
 
   // This will succeed or throw
   await waitForNotaryStatus(requestId, username, password, config.log);
+
+  // Staple the notary to the package
+  await stapleNotary(signedPackage, config.log);
 }
 
 const installerCertificate = "Developer ID Installer";
-async function signInstaller(input: string, output: string, log: Logger) {
-  await signFile(input, output, installerCertificate, log);
-}
-
-const applicationCertificate = "Developer ID Application";
-async function signApplicationFile(input: string, output: string, log: Logger) {
-  await signFile(input, output, applicationCertificate, log);
-}
-
-async function signFile(input: string, output: string, certificate: string, log: Logger) {
+async function signPackage(input: string, output: string, log: Logger) {
   await runCmd(
     "productsign",
     ["--sign",
-      certificate,
+      installerCertificate,
       "--timestamp",
       input,
       output],
     log
   );
 }
+
+const applicationCertificate = "Developer ID Application";
+async function signCode(input: string, log: Logger) {
+  await runCmd(
+    "codesign",
+    ["-s", applicationCertificate,
+      "--timestamp",
+      input],
+    log
+  );
+}
+
 
 async function submitNotary(input: string, bundleId: string, username: string, password: string, log: Logger) {
   const result = await runCmd(
@@ -151,4 +161,14 @@ async function waitForNotaryStatus(requestId: string, username: string, password
     }
   }
   return notaryResult;
+}
+
+async function stapleNotary(input: string, log: Logger) {
+  await runCmd(
+    "xcrun",
+    ["stapler",
+      "staple", input],
+    log
+  );
+
 }
