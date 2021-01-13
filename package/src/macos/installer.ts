@@ -30,7 +30,7 @@ export async function makeInstallerMac(config: Configuration) {
     "--scripts",
     scriptDir,
     "--install-location",
-    '"/Library/Quarto"',
+    '/Library/Quarto',
   ];
 
   // Target package
@@ -83,9 +83,7 @@ async function signApplicationFile(input: string, output: string, log: Logger) {
 async function signFile(input: string, output: string, certificate: string, log: Logger) {
   await runCmd(
     "productsign",
-    ["--keychain",
-      "build.keychain",
-      "--sign",
+    ["--sign",
       certificate,
       input,
       output],
