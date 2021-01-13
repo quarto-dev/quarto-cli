@@ -51,8 +51,17 @@ export async function makeInstallerMac(config: Configuration) {
   ensureDirSync(dirname(unsignedPackagePath));
 
   // Sign the deno executable
+  const entitlements = join(config.directoryInfo.pkg, "scripts", "macos", "entitlements.plist");
   const deno = join(config.directoryInfo.bin, "deno");
-  signCode(deno, config.log);
+  await signCode(deno, config.log, entitlements);
+
+  // Sign the quarto js file
+  const quartojs = join(config.directoryInfo.bin, "quarto.js");
+  await signCode(quartojs, config.log);
+
+  // Sign the quarto shell script
+  const quartosh = join(config.directoryInfo.bin, "quarto");
+  await signCode(quartosh, config.log);
 
   // Run pkg build
   await runCmd(
@@ -101,11 +110,20 @@ async function signPackage(input: string, output: string, log: Logger) {
 }
 
 const applicationCertificate = "Developer ID Application";
-async function signCode(input: string, log: Logger) {
+async function signCode(input: string, log: Logger, entitlements?: string) {
+  const args = ["-s", applicationCertificate,
+    "--timestamp",
+    "--options=runtime",
+    "--force",
+    "--deep"];
+  if (entitlements) {
+    args.push("--entitlements");
+    args.push(entitlements);
+  }
+
   await runCmd(
     "codesign",
-    ["-s", applicationCertificate,
-      "--timestamp",
+    [...args,
       input],
     log
   );
