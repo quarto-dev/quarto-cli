@@ -11,10 +11,6 @@ import { Configuration } from "../common/config.ts";
 import { Logger } from "../util/logger.ts";
 import { runCmd } from "../util/cmd.ts";
 
-
-const installerCertificate = "Developer ID Installer";
-const applicationCertificate = "Developer ID Application";
-
 // Packaging specific configuration
 // (Some things are global others may be platform specific)
 export interface PackageInfo {
@@ -68,24 +64,29 @@ export async function makeInstallerMac(config: Configuration) {
 
   config.log.info("Signing file");
   config.log.info(unsignedPackagePath);
-  await signPackage(unsignedPackagePath, join(config.directoryInfo.out, packageName), config.log);
+  await signInstaller(unsignedPackagePath, join(config.directoryInfo.out, packageName), config.log);
 
   config.log.info("Cleaning unsigned file");
   Deno.removeSync(unsignedPackagePath);
 }
 
-async function signPackage(inputFile: string, outputFile: string, log: Logger) {
-  // could specify --keychain build.keychain to search build keychain?
+const installerCertificate = "Developer ID Installer";
+async function signInstaller(input: string, output: string, log: Logger) {
+  await signFile(input, output, installerCertificate, log);
+}
+
+const applicationCertificate = "Developer ID Application";
+async function signApplicationFile(input: string, output: string, log: Logger) {
+  await signFile(input, output, applicationCertificate, log);
+}
+
+async function signFile(input: string, output: string, certificate: string, log: Logger) {
   await runCmd(
     "productsign",
     ["--sign",
-      installerCertificate,
-      inputFile,
-      outputFile],
+      certificate,
+      input,
+      output],
     log
   );
-}
-
-function signBinaries(configuration: Configuration, log: Logger) {
-  // Developer ID Application
 }
