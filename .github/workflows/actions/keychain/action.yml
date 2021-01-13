@@ -32,6 +32,7 @@ runs:
   steps: 
      - name: Add Installer Cert
        run: |
+            set -x
        
             # Recreate the certificate from the secure environment variable
             echo ${{ inputs.certificate-value }} | base64 --decode > ${{ inputs.certificate-file }}
