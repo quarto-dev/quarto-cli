@@ -56,7 +56,7 @@ runs:
             security set-keychain-settings -lut 7200 ${{ inputs.keychain }}
 
             # Add certificate to keychain
-            security import ${{ inputs.certificate-file }} -k ${{ inputs.keychain }} -P ${{ inputs.certificate-password }} -T /usr/bin/productsign;
+            security import ${{ inputs.certificate-file }} -k ${{ inputs.keychain }} -P ${{ inputs.certificate-password }} -T /usr/bin/productsign -T /usr/bin/codesign
 
             # Enable codesigning from non-user interactive shell
             security set-key-partition-list -S apple-tool:,apple: -s -k ${{ inputs.keychain-pw }} -t private ${{ inputs.keychain }}
