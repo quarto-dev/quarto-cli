@@ -32,8 +32,7 @@ runs:
   steps: 
      - name: Add Installer Cert
        run: |
-            set -x
-       
+      
             # Recreate the certificate from the secure environment variable
             echo ${{ inputs.certificate-value }} | base64 --decode > ${{ inputs.certificate-file }}
 
@@ -61,10 +60,6 @@ runs:
             # Enable codesigning from non-user interactive shell
             security set-key-partition-list -S apple-tool:,apple: -s -k ${{ inputs.keychain-pw }} -t private ${{ inputs.keychain }}
             
-            security show-keychain-info ${{ inputs.keychain }}
-            
-            security dump-keychain ${{ inputs.keychain }}
-
             # remove certs
             rm -fr *.p12
        
