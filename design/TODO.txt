@@ -1,14 +1,5 @@
 
 
-
-- (Ubuntu) Quitting from lines 9-10 (test.Rmd) 
-Error in UseMethod("wrap", x) : 
-  no applicable method for 'wrap' applied to an object of class "list"
-Calls: .main ... call_block -> block_exec -> unlist -> wrap -> knitr_wrap
-
-- confirm that we work on windows (including R and Python)
-
-
 Project system:
   - quarto create foo
   - quarto create pdf foo.Rmd 
@@ -20,14 +11,6 @@ Project system:
      if there is, then use this behavior, if not, use the first match)
   - External interactions with projects (output_dir, clean, etc.)
   - website / book format variations
-
-- We don't seem to be able to render latex quite the same way that knitr does,
-e.g.:
-library(flextable)
-ft <- flextable(head(mtcars))
-ft <- autofit(ft)
-ft
-- Why did Beamer fail to render w/ missing caption package w/ our pipeline but work for pandoc pdflatex?
 
 A 'format' is a director or zip file which is:
   - Located in the _quarto directory
@@ -57,10 +40,9 @@ Charles
 -----------------------------
 
 - more generic dev setup tools
-
 - Installer
 
-- WordPress (https://developer.wordpress.com/docs/api/)
+
 
 - Port tinytex to JS; OR we need to implmeent various auto-install behaviors for latexmk, eg.
   had to do this to get biblatex working w/ latexmk
@@ -89,7 +71,7 @@ Future
 -----------------------------------------
 
 
-
+- WordPress (https://developer.wordpress.com/docs/api/)
 
 - RStudio IDE Visual Editor for quarto
     - crossref system
@@ -126,6 +108,8 @@ Meta-concepts on top of AST: e.g. tabs
 
 Future
 ---------------------------------------------
+
+- Evaluate esbuild
 
 - Consider yaml for chunk options
     * knitr
