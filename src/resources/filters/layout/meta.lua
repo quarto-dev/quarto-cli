@@ -14,7 +14,6 @@ function metaInject()
         if layout.usingTikz then
           inject(usePackage("tikz"))
         end
-        inject(usePackage("animate"))
       end)
       
       metaInjectHtml(doc, function(inject)

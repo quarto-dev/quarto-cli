@@ -305,6 +305,11 @@ knitr_plot_hook <- function(htmlOutput) {
       # check for latex
       if (knitr:::is_latex_output()) {
         
+        # include dependency on animate package
+        knitr::knit_meta_add(list(
+          rmarkdown::latex_dependency("animate")
+        ))
+        
         latexOutput <- paste(
           "```{=latex}",
           latex_animation(x, options),
