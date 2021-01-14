@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, join } from "path/mod.ts";
+import { dirname, extname, join } from "path/mod.ts";
 import { existsSync } from "fs/exists.ts";
 
 import { readYaml } from "../core/yaml.ts";
@@ -46,10 +46,10 @@ export function projectMetadata(file: string): Metadata {
       }
     }
 
-    // see if there is a quarto yml file there
-    const quartoYml = join(dir, "_quarto.yml");
-    if (existsSync(quartoYml)) {
-      return readQuartoYaml(quartoYml);
+    // Read metadata from the quarto directory
+    const quartoDir = join(dir, "_quarto");
+    if (existsSync(quartoDir)) {
+      return readQuartoYaml(quartoDir);
     }
   }
 }
@@ -134,12 +134,31 @@ export function metadataAsFormat(metadata: Metadata): Format {
   return typedFormat;
 }
 
-function readQuartoYaml(file: string) {
+function readQuartoYaml(directory: string) {
+  // Reads all the metadata files from the directory
+  // and merges them in the order in which they are read
+
+  let lastFile: string | undefined = undefined;
   try {
-    const yaml = readYaml(file) as Metadata;
-    return yaml;
+    // Read the metadata files from the directory
+    const yamls = [];
+    for (const entry of Deno.readDirSync(directory)) {
+      if (entry.isFile && extname(entry.name) === ".yml") {
+        const yamlFilePath = join(directory, entry.name);
+
+        // Hang onto the last file we read in the event we need it for error message
+        lastFile = yamlFilePath;
+        console.log(yamlFilePath);
+
+        // Read the metadata for this file
+        yamls.push(readYaml(yamlFilePath) as Metadata);
+      }
+    }
+
+    // Return the merged metadata
+    return mergeConfigs({}, ...yamls);
   } catch (e) {
-    message("\nError reading quarto config file at " + file + "\n");
+    message("\nError reading quarto configuration at " + lastFile + "\n");
     throw e;
   }
 }
