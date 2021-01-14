@@ -4,6 +4,16 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+
+
+// TODO: Considering making signing optional based upon the presence of env vars with cert/pw
+// TODO: Could also consider moving the keychain work out of the github actions and into typescript
+// TODO: Considering making notarization optional based upon the presence of credentials
+// TODO: Confirm whether we should truly be signing the other, non deno, files
+// TODO: Configuration could be initialized with working dir and scripts dir so sub tasks can just use that directory (and have it cleaned up automatically)
+// TODO: Bundle and package Identifier - same or different?
+
+
 import { dirname, join } from "path/mod.ts";
 import { existsSync, ensureDirSync } from "fs/mod.ts";
 
@@ -47,7 +57,7 @@ export async function makeInstallerMac(config: Configuration) {
     Deno.removeSync(unsignedPackagePath);
   }
 
-  // Make the out dir
+  // Make the output dir
   ensureDirSync(dirname(unsignedPackagePath));
 
   // Sign the deno executable
