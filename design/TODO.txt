@@ -1,23 +1,90 @@
 
 
-- project is always a _quarto folder
+
+Projects:
+1) metadata shared across subdirectories
+   - remove _quarto.yml
+   - support _quarto folder (w/any yml files)
+   - support metadata-file: / metadata-files
+   - support -M for setting Metadata
+
+2) Project types (built in and extensions)
+  - project global metadata
+    - type: <- later
+    - name: 
+    - output-dir: (optional)
+  - delegate rendering to the type implementation
+  - Default type built in
+    - default render all to markdown, then stitch together and pandoc that
+    - supports files (files to render), include/exclude (files to copy  / exclude from output dir)
+  - Need to support incredmental renders
+    - maybe keep cache of MDs around (in quarto cache dir)
+
+3) Quarto project commands
+  - create a new project
+  - rendering a project
+  - read project data for a directory (for example as JSON)
+  - cleaning a project directory
+
+FUTURE
+4) Lock file / Extensions
+
+
+- Project is always a _quarto folder
   - for a document we crawl up tree to find project folder
   - slurp up every yaml file in folder and merge
   - default suggestion: metadata.yml
+  ---
+  project:
+    name:
+    type:
+    output-dir:
+    files: [foo.ipynb]
+    include: 
+      - supporting.py
+    exlude:
+      - ignore.png
+
+  format:
+    html:
+      main-font: Arial
+
+  bibliography: foo.bibtex
+
+  metadata-file: crossref.yml
+  ---
+
 
 - Should support pandoc style metadata includes:
-  - Likely support this now, but doesn't correctly merge w/formats (need to expand the metadata into our yaml)
+  - Likely support this now, but doesn't correctly merge w/formats (need to expand the metadata into our yaml and remove key when done)
     (Merge -M and --metadata-file with _quarto.yml and in-file YAML with same semantics as Pandoc)
     metadata-file: <path>
     metadata-files: [<path>]
+  - merged (as defaults basically), local metadata overrides it
+  Command line can set any metadata 
+  - Ideally -M would match pandoc:
+    -M key=value or --metadata=key:value
+    - Leave pandoc alone, slurp up ours
+
+    Metadata order:
+      files
+      document
+      command line
+
+    - might be writing command line first (probably should be last)
+  
+  
+
+
+
 
 
 Project system:
+  - See MkDocs: https://docs.google.com/document/d/16Lp39BolpTR0NzbQQ6ebr9bawYth8EeivBo0q4qapVY/edit#heading=h.ibf8kici39py
   - quarto create foo
   - quarto create pdf foo.Rmd 
   - allow _quarto config directory that merges all contained files
     (lock file will go there as well)
-  - See MkDocs: https://docs.google.com/document/d/16Lp39BolpTR0NzbQQ6ebr9bawYth8EeivBo0q4qapVY/edit#heading=h.ibf8kici39py
   - Terminate at _quarto.yml w/ project: true
     (need to first determine if there is a project somewhere in the parent tree,
      if there is, then use this behavior, if not, use the first match)
@@ -34,12 +101,29 @@ Port a dozen or rticles formats
 
 # markdown for bootstrap concepts/constructs
 # standalone document formats
-bs4-notebook
-bs4-article
-bs4-website
-bs4-book
+
+html:
+  template: bootstrap | coolsterthing
+
+defined set of markdown constructs and css classes
+
+html-article:
+  css-framework: bootstrap
+html-notebook:
+  css-framework: bootstrap
+
+html-slides:
+
+library(shiny)
+library(bs4)
+
+
+
 
 {{ pagebreak }}
+{{ include <path> }}
+{{ <reference metadata>  }}
+{{ rstudio.version }}
 {{= print("x") }}
 {{< figure projections.xlsx#chunk-label caption="asfdasdf" label="myplot" >}}
 {{< table projections.xlsx#fy-2019 label="projections" label="">}}
@@ -114,7 +198,18 @@ semantics as Pandoc
 discover index.Rmd or ui.Rmd for quarto run. can't rely on
 rmarkdown::run b/c we need to figure out which Rmd to render
 
-Meta-concepts on top of AST: e.g. tabs
+Meta-concepts on top of AST: e.g. 
+  - card
+    ::: .card
+    <image>
+    # heading
+    
+    :::
+
+  - tabs
+  - admonitions
+  - zoom image
+  - incremental images 
 
 
 
