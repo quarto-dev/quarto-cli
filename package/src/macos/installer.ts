@@ -35,14 +35,8 @@ export async function makeInstallerMac(config: Configuration) {
   const packageName = `quarto-${config.version}-macos.pkg`;
   const unsignedPackageName = `quarto-${config.version}-unsigned-macos.pkg`;
   const packageIdentifier = "org.rstudio.quarto";
+  const bundleIdentifier = "org.rstudio.quarto.cli";
 
-  const scriptDir = join(config.directoryInfo.pkg, "scripts", "macos", "pkg");
-  const packageArgs = [
-    "--scripts",
-    scriptDir,
-    "--install-location",
-    '/Library/Quarto',
-  ];
 
   // Target package
   const unsignedPackagePath = join(
@@ -74,6 +68,13 @@ export async function makeInstallerMac(config: Configuration) {
   await signCode(quartosh, config.log);
 
   // Run pkg build
+  const scriptDir = join(config.directoryInfo.pkg, "scripts", "macos", "pkg");
+  const packageArgs = [
+    "--scripts",
+    scriptDir,
+    "--install-location",
+    '/Library/Quarto',
+  ];
   await runCmd(
     "pkgbuild",
     [
@@ -97,7 +98,7 @@ export async function makeInstallerMac(config: Configuration) {
   // Submit package for notary
   const username = getEnv("QUARTO_APPLE_CONNECT_UN");
   const password = getEnv("QUARTO_APPLE_CONNECT_PW");
-  const requestId = await submitNotary(signedPackage, "org.quarto.cli", username, password, config.log);
+  const requestId = await submitNotary(signedPackage, bundleIdentifier, username, password, config.log);
 
   // This will succeed or throw
   await waitForNotaryStatus(requestId, username, password, config.log);
@@ -138,7 +139,6 @@ async function signCode(input: string, log: Logger, entitlements?: string) {
     log
   );
 }
-
 
 async function submitNotary(input: string, bundleId: string, username: string, password: string, log: Logger) {
   const result = await runCmd(
@@ -198,5 +198,4 @@ async function stapleNotary(input: string, log: Logger) {
       "staple", input],
     log
   );
-
 }
