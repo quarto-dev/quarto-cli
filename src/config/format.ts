@@ -457,9 +457,6 @@ function format(ext: string, ...formats: Array<unknown>): Format {
   );
 }
 
-// TODO: command line should update format
-// TODO: read kernel from format not options.kernel
-
 function defaultFormat(): Format {
   return {
     execution: {
