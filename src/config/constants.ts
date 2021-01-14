@@ -115,6 +115,8 @@ export const kNumberSections = "number-sections";
 export const kNumberOffset = "number-offset";
 export const kTopLevelDivision = "top-level-division";
 export const kVariables = "variables";
+export const kMetadataFile = "metadata-file";
+export const kMetadataFiles = "metadat-files";
 
 // metadata fields
 export const kBibliography = "bibliography";
@@ -140,8 +142,8 @@ export const kPandocDefaultsKeys = [
   kSelfContained,
   kVariables,
   "metadata",
-  "metadata-files",
-  "metadata-file",
+  kMetadataFiles,
+  kMetadataFile,
   kIncludeBeforeBody,
   kIncludeAfterBody,
   kIncludeInHeader,
