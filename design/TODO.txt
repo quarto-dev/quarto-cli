@@ -3,8 +3,6 @@
 
 Projects:
 1) metadata shared across subdirectories
-   - remove _quarto.yml
-   - support _quarto folder (w/any yml files)
    - support metadata-file: / metadata-files
    - support -M for setting Metadata
 
