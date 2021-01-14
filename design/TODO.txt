@@ -1,5 +1,17 @@
 
 
+- project is always a _quarto folder
+  - for a document we crawl up tree to find project folder
+  - slurp up every yaml file in folder and merge
+  - default suggestion: metadata.yml
+
+- Should support pandoc style metadata includes:
+  - Likely support this now, but doesn't correctly merge w/formats (need to expand the metadata into our yaml)
+    (Merge -M and --metadata-file with _quarto.yml and in-file YAML with same semantics as Pandoc)
+    metadata-file: <path>
+    metadata-files: [<path>]
+
+
 Project system:
   - quarto create foo
   - quarto create pdf foo.Rmd 
