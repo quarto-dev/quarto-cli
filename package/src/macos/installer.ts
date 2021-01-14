@@ -4,6 +4,16 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+
+
+// TODO: Considering making signing optional based upon the presence of env vars with cert/pw
+// TODO: Could also consider moving the keychain work out of the github actions and into typescript
+// TODO: Considering making notarization optional based upon the presence of credentials
+// TODO: Confirm whether we should truly be signing the other, non deno, files
+// TODO: Configuration could be initialized with working dir and scripts dir so sub tasks can just use that directory (and have it cleaned up automatically)
+// TODO: Bundle and package Identifier - same or different?
+
+
 import { dirname, join } from "path/mod.ts";
 import { existsSync, ensureDirSync } from "fs/mod.ts";
 
@@ -25,14 +35,8 @@ export async function makeInstallerMac(config: Configuration) {
   const packageName = `quarto-${config.version}-macos.pkg`;
   const unsignedPackageName = `quarto-${config.version}-unsigned-macos.pkg`;
   const packageIdentifier = "org.rstudio.quarto";
+  const bundleIdentifier = "org.rstudio.quarto.cli";
 
-  const scriptDir = join(config.directoryInfo.pkg, "scripts", "macos", "pkg");
-  const packageArgs = [
-    "--scripts",
-    scriptDir,
-    "--install-location",
-    '/Library/Quarto',
-  ];
 
   // Target package
   const unsignedPackagePath = join(
@@ -47,7 +51,7 @@ export async function makeInstallerMac(config: Configuration) {
     Deno.removeSync(unsignedPackagePath);
   }
 
-  // Make the out dir
+  // Make the output dir
   ensureDirSync(dirname(unsignedPackagePath));
 
   // Sign the deno executable
@@ -64,6 +68,13 @@ export async function makeInstallerMac(config: Configuration) {
   await signCode(quartosh, config.log);
 
   // Run pkg build
+  const scriptDir = join(config.directoryInfo.pkg, "scripts", "macos", "pkg");
+  const packageArgs = [
+    "--scripts",
+    scriptDir,
+    "--install-location",
+    '/Library/Quarto',
+  ];
   await runCmd(
     "pkgbuild",
     [
@@ -87,7 +98,7 @@ export async function makeInstallerMac(config: Configuration) {
   // Submit package for notary
   const username = getEnv("QUARTO_APPLE_CONNECT_UN");
   const password = getEnv("QUARTO_APPLE_CONNECT_PW");
-  const requestId = await submitNotary(signedPackage, "org.quarto.cli", username, password, config.log);
+  const requestId = await submitNotary(signedPackage, bundleIdentifier, username, password, config.log);
 
   // This will succeed or throw
   await waitForNotaryStatus(requestId, username, password, config.log);
@@ -128,7 +139,6 @@ async function signCode(input: string, log: Logger, entitlements?: string) {
     log
   );
 }
-
 
 async function submitNotary(input: string, bundleId: string, username: string, password: string, log: Logger) {
   const result = await runCmd(
@@ -188,5 +198,4 @@ async function stapleNotary(input: string, log: Logger) {
       "staple", input],
     log
   );
-
 }
