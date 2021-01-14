@@ -78,7 +78,6 @@ FUTURE
 
 
 
-
 Project system:
   - See MkDocs: https://docs.google.com/document/d/16Lp39BolpTR0NzbQQ6ebr9bawYth8EeivBo0q4qapVY/edit#heading=h.ibf8kici39py
   - quarto create foo
@@ -95,6 +94,9 @@ A 'format' is a director or zip file which is:
   - Located in the _quarto directory
   - Format YAML (must declare base)
   - Arbitrary other files that can be referenced (relatively) by the format YAML
+
+
+All format options should be settable on the command line (via -M or just passthrough)
 
 Port a dozen or rticles formats
   - Authors metadata standard 
@@ -131,6 +133,8 @@ library(bs4)
 {{< tweet https://twitter.com/foo/status/34453323455 >}}
 {{< video https://youtube.com/foo/status/34453323455 >}}
 
+Can't render a file in Google Drive
+
 
 Charles
 -----------------------------
@@ -166,6 +170,7 @@ Pandoc-powered academic, scientific, and technical publishing. Quarto is pandoc 
 Future
 -----------------------------------------
 
+Take a look at Pluto (Julia)
 
 - WordPress (https://developer.wordpress.com/docs/api/)
 
