@@ -307,6 +307,8 @@ function removeQuartoMetadataFlags(pandocArgs: string[]) {
     // we can determine whether to remove it
     if (arg === "--metadata" || arg === "-M") {
       metadataFlag = arg;
+    } else if (metadataFlag === undefined) {
+      args.push(arg);
     }
 
     // We're reading the value of the metadata flag
@@ -335,7 +337,7 @@ function parseMetadataFlagValue(
 ): { name: string; value: unknown } | undefined {
   const match = arg.match(/^([^=:]+)[=:](.*)$/);
   if (match) {
-    return { name: match[1], value: parse(match[2]) };
+    return { name: match[1], value: readYamlFromString(match[2]) };
   }
   return undefined;
 }
