@@ -4,14 +4,17 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+import { existsSync } from "fs/mod.ts";
 
-import { parse } from "encoding/yaml.ts";
-import { readYaml } from "../../core/yaml.ts";
+import {
+  readYaml,
+  readYamlFromMarkdownFile,
+  readYamlFromString,
+} from "../../core/yaml.ts";
 
 import {
   kExecutionDefaultsKeys,
   kListings,
-  kMetadataFormat,
   kNumberOffset,
   kNumberSections,
   kPandocDefaultsKeys,
@@ -205,6 +208,16 @@ export function parseRenderFlags(args: string[]) {
         }
         break;
 
+      case "--metadata-file":
+        arg = argsStack.shift();
+        if (arg) {
+          if (existsSync(arg)) {
+            const metadata = readYamlFromMarkdownFile(arg);
+            flags.metadata = { ...flags.metadata, ...metadata };
+          }
+        }
+        break;
+
       default:
         arg = argsStack.shift();
         break;
@@ -276,6 +289,7 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   removeArgs.set("--no-cache", false);
   removeArgs.set("--cache-refresh", false);
   removeArgs.set("--debug", false);
+  removeArgs.set("--metadata-file", true);
 
   // Remove un-needed pandoc args (including -M/--metadata as appropriate)
   pandocArgs = removePandocArgs(pandocArgs, removeArgs);
