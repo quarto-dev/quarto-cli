@@ -144,7 +144,11 @@ async function resolveFormat(
   // merge input metadata into project metadata
   const inputMetadata = await engine.metadata(target);
   const projMetadata = projectMetadata(target.input);
-  const baseMetadata = mergeConfigs(projMetadata, inputMetadata);
+  const baseMetadata = mergeConfigs(
+    projMetadata,
+    inputMetadata,
+    flags?.metadata,
+  );
 
   // divide metadata into format buckets
   const baseFormat = metadataAsFormat(baseMetadata);

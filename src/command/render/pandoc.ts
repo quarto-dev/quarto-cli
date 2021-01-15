@@ -63,7 +63,10 @@ export async function runPandoc(
 
   // save args and metadata so we can print them (we may subsequently edit them)
   const printArgs = [...args];
-  const printMetadata = ld.cloneDeep(options.format.metadata);
+  const printMetadata = {
+    ...ld.cloneDeep(options.format.metadata),
+    ...options.flags?.metadata,
+  };
 
   // generate defaults and write a defaults file if need be
   const allDefaults = await generateDefaults(options, sysFilters);

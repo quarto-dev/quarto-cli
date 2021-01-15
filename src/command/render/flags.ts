@@ -5,12 +5,17 @@
 *
 */
 
+import { parse } from "encoding/yaml.ts";
 import { readYaml } from "../../core/yaml.ts";
 
 import {
+  kExecutionDefaultsKeys,
   kListings,
+  kMetadataFormat,
   kNumberOffset,
   kNumberSections,
+  kPandocDefaultsKeys,
+  kRenderDefaultsKeys,
   kSelfContained,
   kTopLevelDivision,
 } from "../../config/constants.ts";
@@ -28,6 +33,7 @@ export interface RenderFlags extends PandocFlags {
   kernelKeepalive?: number;
   kernelRestart?: boolean;
   kernelDebug?: boolean;
+  metadata?: { [key: string]: unknown };
   debug?: boolean;
   quiet?: boolean;
 }
@@ -185,6 +191,20 @@ export function parseRenderFlags(args: string[]) {
         arg = argsStack.shift();
         break;
 
+      case "-M":
+      case "--metadata":
+        arg = argsStack.shift();
+        if (arg) {
+          const metadata = parseMetadataFlagValue(arg);
+          if (metadata) {
+            if (isQuartoArg(metadata.name) && metadata.value !== undefined) {
+              flags.metadata = flags.metadata || {};
+              flags.metadata[metadata.name] = metadata.value;
+            }
+          }
+        }
+        break;
+
       default:
         arg = argsStack.shift();
         break;
@@ -256,7 +276,10 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   removeArgs.set("--no-cache", false);
   removeArgs.set("--cache-refresh", false);
   removeArgs.set("--debug", false);
-  return removePandocArgs(pandocArgs, removeArgs);
+
+  // Remove un-needed pandoc args (including -M/--metadata as appropriate)
+  pandocArgs = removePandocArgs(pandocArgs, removeArgs);
+  return removeQuartoMetadataFlags(pandocArgs);
 }
 
 export function removePandocArgs(
@@ -275,6 +298,46 @@ export function removePandocArgs(
     }
     return args;
   }, new Array<string>());
+}
+
+function removeQuartoMetadataFlags(pandocArgs: string[]) {
+  let metadataFlag: string | undefined = undefined;
+  return pandocArgs.reduce((args, arg) => {
+    // If this is a metadata flag, capture it and continue to read its value
+    // we can determine whether to remove it
+    if (arg === "--metadata" || arg === "-M") {
+      metadataFlag = arg;
+    }
+
+    // We're reading the value of the metadata flag
+    if (metadataFlag) {
+      const flagValue = parseMetadataFlagValue(arg);
+      if (flagValue !== undefined) {
+        if (!isQuartoArg(flagValue.name)) {
+          // Allow this value through since it isn't Quarto specific
+          args.push(metadataFlag);
+          args.push(arg);
+        }
+      }
+    }
+    return args;
+  }, new Array<string>());
+}
+
+function isQuartoArg(arg: string) {
+  return kRenderDefaultsKeys.includes(arg) ||
+    kExecutionDefaultsKeys.includes(arg) ||
+    kPandocDefaultsKeys.includes(arg);
+}
+
+function parseMetadataFlagValue(
+  arg: string,
+): { name: string; value: unknown } | undefined {
+  const match = arg.match(/^([^=:]+)[=:](.*)$/);
+  if (match) {
+    return { name: match[1], value: parse(match[2]) };
+  }
+  return undefined;
 }
 
 // resolve parameters (if any)
