@@ -16,6 +16,7 @@ import { sessionTempDir } from "../../core/temp.ts";
 
 import {
   formatFromMetadata,
+  includedMetadata,
   Metadata,
   metadataAsFormat,
   projectMetadata,
@@ -32,6 +33,8 @@ import {
   kKernelDebug,
   kKernelKeepalive,
   kKernelRestart,
+  kMetadataFile,
+  kMetadataFiles,
   kMetadataFormat,
 } from "../../config/constants.ts";
 import {
@@ -147,11 +150,23 @@ async function resolveFormat(
   const baseMetadata = mergeConfigs(
     projMetadata,
     inputMetadata,
+  );
+
+  // Read any included metadata files and merge in and metadata from the command
+  const includeMetadata = includedMetadata(baseMetadata);
+  const allMetadata = mergeConfigs(
+    baseMetadata,
+    includeMetadata,
     flags?.metadata,
   );
 
+  // Remove the metadata file / files since we've read them and merged them
+  // into the metadata
+  delete allMetadata[kMetadataFile];
+  delete allMetadata[kMetadataFiles];
+
   // divide metadata into format buckets
-  const baseFormat = metadataAsFormat(baseMetadata);
+  const baseFormat = metadataAsFormat(allMetadata);
 
   // determine which writer to use (use original input and
   // project metadata to preserve order of keys and to

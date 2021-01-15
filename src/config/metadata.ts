@@ -6,10 +6,10 @@
 */
 
 import { dirname, join } from "path/mod.ts";
-import { existsSync } from "fs/exists.ts";
+import { exists, existsSync } from "fs/exists.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
 
-import { readYaml } from "../core/yaml.ts";
+import { readYaml, readYamlFromMarkdownFile } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { message } from "../core/console.ts";
 
@@ -18,6 +18,8 @@ import {
   kExecutionDefaultsKeys,
   kKeepMd,
   kKeepTex,
+  kMetadataFile,
+  kMetadataFiles,
   kMetadataFormat,
   kPandocDefaults,
   kPandocDefaultsKeys,
@@ -53,6 +55,37 @@ export function projectMetadata(file: string): Metadata {
       return readQuartoYaml(quartoDir);
     }
   }
+}
+
+export function includedMetadata(baseMetadata: Metadata): Metadata {
+  // Read any metadata files that are defined in the metadata itself
+  const yamlFiles: string[] = [];
+  const metadataFile = baseMetadata[kMetadataFile];
+  if (metadataFile) {
+    yamlFiles.push(metadataFile as string);
+  }
+
+  const metadataFiles = baseMetadata[kMetadataFiles];
+  if (metadataFiles && Array.isArray(metadataFiles)) {
+    metadataFiles.forEach((file) => yamlFiles.push(file));
+  }
+
+  // Read the yaml
+  const metadata = yamlFiles.map((yamlFile) => {
+    if (exists(yamlFile)) {
+      try {
+        return readYamlFromMarkdownFile(yamlFile);
+      } catch (e) {
+        message("\nError reading metadata file from " + yamlFile + "\n");
+        throw e;
+      }
+    } else {
+      return undefined;
+    }
+  });
+
+  // merge the result
+  return mergeConfigs({}, ...metadata);
 }
 
 export function formatFromMetadata(

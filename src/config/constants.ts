@@ -116,7 +116,7 @@ export const kNumberOffset = "number-offset";
 export const kTopLevelDivision = "top-level-division";
 export const kVariables = "variables";
 export const kMetadataFile = "metadata-file";
-export const kMetadataFiles = "metadat-files";
+export const kMetadataFiles = "metadata-files";
 
 // metadata fields
 export const kBibliography = "bibliography";
