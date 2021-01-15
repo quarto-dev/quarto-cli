@@ -5,8 +5,9 @@
 *
 */
 
-import { dirname, extname, join } from "path/mod.ts";
+import { dirname, join } from "path/mod.ts";
 import { existsSync } from "fs/exists.ts";
+import { expandGlobSync } from "fs/expand_glob.ts";
 
 import { readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
@@ -138,27 +139,19 @@ function readQuartoYaml(directory: string) {
   // Reads all the metadata files from the directory
   // and merges them in the order in which they are read
 
-  let lastFile: string | undefined = undefined;
+  let yamlPath: string | undefined = undefined;
   try {
     // Read the metadata files from the directory
     const yamls = [];
-    for (const entry of Deno.readDirSync(directory)) {
-      if (entry.isFile && extname(entry.name) === ".yml") {
-        const yamlFilePath = join(directory, entry.name);
-
-        // Hang onto the last file we read in the event we need it for error message
-        lastFile = yamlFilePath;
-        console.log(yamlFilePath);
-
-        // Read the metadata for this file
-        yamls.push(readYaml(yamlFilePath) as Metadata);
-      }
+    for (const walk of expandGlobSync("*.{yml,yaml}", { root: directory })) {
+      // Read the metadata for this file
+      yamlPath = walk.path;
+      yamls.push(readYaml(yamlPath) as Metadata);
     }
-
     // Return the merged metadata
     return mergeConfigs({}, ...yamls);
   } catch (e) {
-    message("\nError reading quarto configuration at " + lastFile + "\n");
+    message("\nError reading quarto configuration at " + yamlPath + "\n");
     throw e;
   }
 }
