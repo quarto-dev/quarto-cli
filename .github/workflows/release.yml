@@ -34,7 +34,7 @@ jobs:
         source ./configuration
         echo ::set-output name=version::$QUARTO_VERSION
         
-        CHANGES=git log $(git describe --tags --abbrev=0)..HEAD --oneline
+        CHANGES=$(git log $(git describe --tags --abbrev=0)..HEAD --oneline)
         echo ::set-output name=changes::$CHANGES
   
   make-installer-deb:
