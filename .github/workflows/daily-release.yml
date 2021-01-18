@@ -145,9 +145,10 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
       with:
-        release_name: v${{needs.configure.outputs.version}} Daily
+        tag_name: v${{needs.configure.outputs.version}}.${{env.GITHUB_RUN_NUMBER}}
+        release_name: v${{needs.configure.outputs.version}}.${{env.GITHUB_RUN_NUMBER}} Daily
         body: |
-          Daily release (v${{needs.configure.outputs.version}})
+          Daily release (v${{needs.configure.outputs.version}}.${{env.GITHUB_RUN_NUMBER}})
         draft: false
         prerelease: true  
         
