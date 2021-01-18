@@ -1,4 +1,4 @@
-name: Daily Release
+name: Create Release
 on:
   workflow_dispatch:
     inputs:
@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{steps.config.outputs.version}}
-      tag_name:  ${{steps.config.outputs.version}}.${{env.GITHUB_RUN_NUMBER}}
+      tag_name:  v{{steps.config.outputs.version}}.${{ github.run_number }}
       
     steps:
     - uses: actions/checkout@v2
@@ -21,7 +21,7 @@ jobs:
       id: config
       run: |
         source ./configuration
-        echo ::set-output name=version::v$QUARTO_VERSION
+        echo ::set-output name=version::$QUARTO_VERSION
 
   make-installer-deb:
     runs-on: ubuntu-latest
@@ -144,9 +144,9 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
       with:
         tag_name: ${{needs.configure.outputs.tag_name}}
-        release_name: ${{needs.configure.output.version}}
+        release_name: ${{needs.configure.output.tag_name}}
         body: |
-          Release ${{needs.configure.output.version}}
+          Release ${{needs.configure.output.tag_name}}
         draft: true
         prerelease: true  
         
