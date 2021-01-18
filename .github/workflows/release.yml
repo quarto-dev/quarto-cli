@@ -5,11 +5,11 @@ on:
       publish-release:
         description: 'Publish Release'
         required: false
-        default: false
+        default: 'true'
       pre-release:
         description: 'Pre-release'
         required: false
-        default: true
+        default: 'true'
 
 jobs:
   configure:
