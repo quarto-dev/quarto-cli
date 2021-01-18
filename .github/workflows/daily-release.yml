@@ -6,15 +6,13 @@ on:
         description: 'Publish Release'
         required: false
         default: 'false'
-  schedule:
-    - cron: '0 1 * * *'  # every day at one am
 
 jobs:
-
   configure:
     runs-on: ubuntu-latest
     outputs:
       version: ${{steps.config.outputs.version}}
+      tag_name:  ${{steps.config.outputs.version}}.${{env.GITHUB_RUN_NUMBER}}
       
     steps:
     - uses: actions/checkout@v2
@@ -23,7 +21,7 @@ jobs:
       id: config
       run: |
         source ./configuration
-        echo ::set-output name=version::$QUARTO_VERSION
+        echo ::set-output name=version::v$QUARTO_VERSION
 
   make-installer-deb:
     runs-on: ubuntu-latest
@@ -145,11 +143,11 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
       with:
-        tag_name: v${{needs.configure.outputs.version}}.${{env.GITHUB_RUN_NUMBER}}
-        release_name: v${{needs.configure.outputs.version}}.${{env.GITHUB_RUN_NUMBER}} Daily
+        tag_name: ${{needs.configure.outputs.tag_name}}
+        release_name: ${{needs.configure.output.version}}
         body: |
-          Daily release (v${{needs.configure.outputs.version}}.${{env.GITHUB_RUN_NUMBER}})
-        draft: false
+          Release ${{needs.configure.output.version}}
+        draft: true
         prerelease: true  
         
     - name: Attach Debian Installer
