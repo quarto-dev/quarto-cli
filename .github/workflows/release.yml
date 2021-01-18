@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{steps.config.outputs.version}}
-      tag_name:  v{{steps.config.outputs.version}}.${{ github.run_number }}
+      tag_name:  v${{steps.config.outputs.version}}.${{ github.run_number }}
       
     steps:
     - uses: actions/checkout@v2
