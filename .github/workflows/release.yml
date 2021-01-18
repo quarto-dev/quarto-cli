@@ -10,6 +10,11 @@ on:
         description: 'Pre-release'
         required: false
         default: 'true'
+      draft:
+        description: 'Draft'
+        required: false
+        default: 'true'
+        
 
 jobs:
   configure:
@@ -17,6 +22,7 @@ jobs:
     outputs:
       version: ${{steps.config.outputs.version}}
       tag_name:  v${{steps.config.outputs.version}} (Build ${{ github.run_number }})
+      release: v${{steps.config.outputs.version}} (Build ${{ github.run_number }})
       
     steps:
     - uses: actions/checkout@v2
@@ -148,10 +154,10 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
       with:
         tag_name: ${{needs.configure.outputs.tag_name}}
-        release_name: ${{needs.configure.output.tag_name}}
+        release_name: ${{needs.configure.output.release}}
         body: |
-          Release ${{needs.configure.output.tag_name}}
-        draft: true
+          TBD
+        draft: ${{ github.event.inputs.draft }}
         prerelease: ${{ github.event.inputs.pre-release }}
         
     - name: Attach Debian Installer
