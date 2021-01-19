@@ -2,10 +2,6 @@
 
 
 Projects:
-1) metadata shared across subdirectories
-   - support metadata-file: / metadata-files
-   - support -M for setting Metadata
-
 2) Project types (built in and extensions)
   - project global metadata
     - type: <- later
