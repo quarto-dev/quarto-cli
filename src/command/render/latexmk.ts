@@ -6,6 +6,7 @@
  */
 
 import { basename, dirname, join, normalize } from "path/mod.ts";
+import { existsSync } from "fs/mod.ts";
 
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
@@ -98,7 +99,7 @@ export function latexmkOutputRecipe(
     };
 
     // run latexmk
-    await runLatexmk(mkOptions);
+    await runPdfEngine(mkOptions);
 
     // keep tex if requested
     const compileTex = join(inputDir, output);
@@ -143,46 +144,31 @@ export function latexmkOutputRecipe(
   };
 }
 
-async function runLatexmk(options: LatexmkOptions): Promise<ProcessResult> {
+async function runPdfEngine(
+  options: LatexmkOptions,
+): Promise<ProcessResult> {
   // provide argument defaults
+
   const {
     input,
     engine: pdfEngine = { pdfEngine: "pdflatex" },
   } = options;
 
-  // build latexmk command line
-  const cmd = ["latexmk"];
-
-  // pdf engine
-  switch (pdfEngine.pdfEngine) {
-    case "xelatex":
-      cmd.push("-xelatex");
-      break;
-    case "lualatex":
-      cmd.push("-lualatex");
-      break;
-    case "pdflatex":
-      cmd.push("-pdf");
-      break;
-    default:
-      cmd.push("-pdf");
-      break;
-  }
+  // build pdf engine command line
+  const cmd = [options.engine.pdfEngine];
 
   // pdf engine opts
-  const engineOpts = [
-    "-halt-on-error",
-    "-interaction=batchmode",
-  ];
+  const engineOpts = [];
   if (pdfEngine.pdfEngineOpts) {
     engineOpts.push(...pdfEngine.pdfEngineOpts);
   }
-  cmd.push(...engineOpts.map((opt) => `-latexoption=${opt}`));
 
-  // quiet flag
-  if (options.quiet) {
-    cmd.push("-quiet");
-  }
+  // Command to manage execution prevent requests for input
+  cmd.push("-interaction=batchmode");
+  cmd.push("-halt-on-error");
+
+  // Forward engine options
+  cmd.push(...pdfEngine.pdfEngineOpts || []);
 
   // input file
   cmd.push(basename(input));
@@ -193,22 +179,21 @@ async function runLatexmk(options: LatexmkOptions): Promise<ProcessResult> {
     cwd: dirname(input),
     stdout: "piped",
   });
+
   if (!result.success) {
-    return Promise.reject();
+    // TODO: Cleanup error formatting for throw (thing error message?)
+    throw new Error(
+      `Error generating PDF using ${options.engine.pdfEngine}\n${result.stdout}`,
+    );
   }
 
   // cleanup if requested
+  // TODO: Should this be reading render latex option instead?
   if (options.clean) {
-    const cleanupResult = await execProcess({
-      cmd: ["latexmk", "-c", basename(input)],
-      cwd: dirname(input),
-      stdout: "piped",
-    });
-    if (!cleanupResult.success) {
-      return Promise.reject();
-    }
+    cleanup(input, pdfEngine.pdfEngineOpts || []);
   }
 
+  // Success, return result
   return result;
 }
 
@@ -239,4 +224,10 @@ function cleanup(input: string, pdfEngineOpts: string[]) {
     "brf",
     "run.xml",
   ].map((aux) => join(inputDir, auxFile(inputStem, aux)));
+
+  auxFiles.forEach((auxFile) => {
+    if (existsSync(auxFile)) {
+      Deno.removeSync(auxFile);
+    }
+  });
 }
