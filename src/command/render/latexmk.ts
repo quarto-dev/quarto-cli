@@ -40,6 +40,11 @@ export function useLatexmk(
   const to = format.pandoc.to;
   const ext = format.render[kOutputExt] || "html";
 
+  // Check whether explicitly disabled
+  if (format.render[kLatexAuto] === false) {
+    return false;
+  }
+
   // if we are creating pdf output
   if (["beamer", "pdf"].includes(to || "") && ext === "pdf") {
     const engine = pdfEngine(format.pandoc, flags);
