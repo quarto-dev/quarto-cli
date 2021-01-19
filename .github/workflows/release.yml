@@ -24,7 +24,7 @@ jobs:
     outputs:
       version: ${{steps.config.outputs.version}}
       tag_name:  v${{steps.config.outputs.version}}.${{ github.run_number }}
-      release: v${{steps.config.outputs.version}} (Build ${{ github.run_number }})
+      release: Daily (v${{steps.config.outputs.version}} Build ${{ github.run_number }})
       changes: ${{ steps.config.outputs.changes }}  
       
     steps:
