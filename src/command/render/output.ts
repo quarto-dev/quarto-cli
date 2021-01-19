@@ -58,10 +58,9 @@ export async function outputRecipe(
   input: string,
   options: RenderOptions,
   format: Format,
-  engine: ExecutionEngine,
 ): Promise<OutputRecipe> {
   if (useLatexmk(format, options.flags)) {
-    return latexmkOutputRecipe(input, options, format, engine.latexmk);
+    return latexmkOutputRecipe(input, options, format);
   } else {
     // default recipe spec based on user input
     const completeActions: VoidFunction[] = [];

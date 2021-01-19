@@ -79,13 +79,6 @@ export const rmdEngine: ExecutionEngine = {
     return join(inputDir, inputStem + ".md");
   },
 
-  latexmk: (options: LatexmkOptions) => {
-    return callR<void>(
-      "latexmk",
-      options,
-    );
-  },
-
   run: (options: RunOptions) => {
     return callR<void>(
       "run",

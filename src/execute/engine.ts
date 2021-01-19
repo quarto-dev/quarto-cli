@@ -23,7 +23,6 @@ export interface ExecutionEngine {
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;
   keepMd: (input: string) => string | undefined;
-  latexmk?: (options: LatexmkOptions) => Promise<void>;
   run?: (options: RunOptions) => Promise<void>;
 }
 

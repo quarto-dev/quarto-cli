@@ -11,7 +11,12 @@ import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 
-import { kKeepTex, kOutputExt, kOutputFile } from "../../config/constants.ts";
+import {
+  kKeepTex,
+  kLatexAuto,
+  kOutputExt,
+  kOutputFile,
+} from "../../config/constants.ts";
 import { Format } from "../../config/format.ts";
 import { pdfEngine } from "../../config/pdf.ts";
 
@@ -51,11 +56,7 @@ export function latexmkOutputRecipe(
   input: string,
   options: RenderOptions,
   format: Format,
-  latexmk?: (options: LatexmkOptions) => Promise<void>,
 ): OutputRecipe {
-  // provide default latexmk if necessary
-  const latexmkHandler = latexmk ? latexmk : runLatexmk;
-
   // break apart input file
   const [inputDir, inputStem] = dirAndStem(input);
 
@@ -92,7 +93,7 @@ export function latexmkOutputRecipe(
     };
 
     // run latexmk
-    await latexmkHandler(mkOptions);
+    await runLatexmk(mkOptions);
 
     // keep tex if requested
     const compileTex = join(inputDir, output);
