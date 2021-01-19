@@ -162,7 +162,7 @@ jobs:
         tag_name: ${{needs.configure.outputs.tag_name}}
         release_name: ${{needs.configure.outputs.release}}
         body: |
-          TBD
+          ${{ needs.configure.outputs.changes }}
         draft: ${{ github.event.inputs.draft }}
         prerelease: ${{ github.event.inputs.pre-release }}
         
