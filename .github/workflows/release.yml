@@ -15,7 +15,7 @@ on:
       draft:
         description: 'Draft'
         required: false
-        default: 'true'
+        default: 'false'
         
 
 jobs:
