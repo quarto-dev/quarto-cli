@@ -1,5 +1,7 @@
 name: Create Release
 on:
+  schedule:
+    - cron: "0 4 * * *"
   workflow_dispatch:
     inputs:
       publish-release:
