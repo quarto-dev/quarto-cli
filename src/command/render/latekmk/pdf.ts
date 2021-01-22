@@ -270,7 +270,7 @@ async function findAndInstallPackages(
           return true;
         } else {
           throw new Error(
-            "No packages installed",
+            "Package installation already attempted, giving up",
           );
         }
       } else {
