@@ -106,7 +106,6 @@ export async function updatePackages(
   }
 
   // TODO: fmtutil??
-
   return tlmgrCommand(args, quiet);
 }
 

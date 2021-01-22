@@ -13,7 +13,7 @@ import { dirAndStem } from "../../../core/path.ts";
 import { execProcess, ProcessResult } from "../../../core/process.ts";
 
 import { installPackages } from "./texlive.ts";
-import { LatexmkOptions } from "./latexmk.ts";
+import { PdfEngine } from "../../../config/pdf.ts";
 
 interface PdfEngineResult {
   code: number;
@@ -28,10 +28,16 @@ interface BibEngineResult {
 
 // Runs the Pdf engine
 export async function runPdfEngine(
-  options: LatexmkOptions,
+  input: string,
+  engine: PdfEngine,
+  autoinstall?: boolean,
+  quiet?: boolean,
 ): Promise<PdfEngineResult> {
+  // By default, automatically attempt to install a missing command
+  autoinstall = autoinstall || true;
+
   // Input and log paths
-  const [dir, stem] = dirAndStem(options.input);
+  const [dir, stem] = dirAndStem(input);
   const output = join(dir, `${stem}.pdf`);
   const log = join(dir, `${stem}.log`);
 
@@ -44,18 +50,19 @@ export async function runPdfEngine(
   const args = ["-interaction=batchmode", "-halt-on-error"];
 
   // pdf engine opts
-  if (options.engine.pdfEngineOpts) {
-    args.push(...options.engine.pdfEngineOpts);
+  if (engine.pdfEngineOpts) {
+    args.push(...engine.pdfEngineOpts);
   }
 
   // input file
-  args.push(basename(options.input));
+  args.push(basename(input));
 
   // Run the command
   const result = await runLatexCommand(
-    options.engine.pdfEngine,
+    engine.pdfEngine,
     args,
-    options.autoInstall,
+    autoinstall,
+    quiet,
   );
 
   // Success, return result
@@ -67,12 +74,16 @@ export async function runPdfEngine(
 }
 
 // Run the index generation engine (currently hard coded to makeindex)
-export async function runIndexEngine(input: string, options: LatexmkOptions) {
+export async function runIndexEngine(
+  input: string,
+  autoinstall?: boolean,
+  quiet?: boolean,
+) {
   return await runLatexCommand(
     "makeindex",
     [input],
-    options.autoInstall,
-    options.quiet,
+    autoinstall,
+    quiet,
   );
 }
 
@@ -80,13 +91,14 @@ export async function runIndexEngine(input: string, options: LatexmkOptions) {
 export async function runBibEngine(
   engine: string,
   input: string,
-  options: LatexmkOptions,
+  autoinstall?: boolean,
+  quiet?: boolean,
 ): Promise<BibEngineResult> {
   const result = await runLatexCommand(
     engine,
     [input],
-    options.autoInstall,
-    options.quiet,
+    autoinstall,
+    quiet,
   );
   const [dir, stem] = dirAndStem(input);
   const log = join(dir, `${stem}.blg`);
