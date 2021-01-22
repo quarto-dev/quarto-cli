@@ -27,10 +27,11 @@ export async function hasTexLive(): Promise<boolean> {
 // searchTerms are interpreted as a (Perl) regular expression
 export async function findPackages(
   searchTerms: string[],
+  opts?: string[],
   quiet?: boolean,
 ): Promise<string[]> {
   const results: string[] = [];
-  const args = ["search", "--file", "--global"];
+  const args = ["--file", "--global"];
 
   for (const searchTerm of searchTerms) {
     if (!quiet) {
@@ -42,7 +43,8 @@ export async function findPackages(
       results.push("fandol");
     } else {
       const result = await tlmgrCommand(
-        [...args, searchTerm],
+        "search",
+        [...args, ...(opts || []), searchTerm],
         true,
       );
 
@@ -94,9 +96,15 @@ export async function findPackages(
 export async function updatePackages(
   all: boolean,
   self: boolean,
+  opts?: string[],
   quiet?: boolean,
 ) {
   const args = ["update"];
+  // Add any tlmg args
+  if (opts) {
+    args.push(...opts);
+  }
+
   if (all) {
     args.push("--all");
   }
@@ -106,11 +114,15 @@ export async function updatePackages(
   }
 
   // TODO: fmtutil??
-  return tlmgrCommand(args, quiet);
+  return tlmgrCommand("update", (opts || []), quiet);
 }
 
 // Install packages using TexLive
-export async function installPackages(pkgs: string[], quiet?: boolean) {
+export async function installPackages(
+  pkgs: string[],
+  opts?: string[],
+  quiet?: boolean,
+) {
   if (!quiet) {
     message(
       `Installing ${pkgs.length} ${pkgs.length === 1 ? "package" : "packages"}`,
@@ -123,27 +135,29 @@ export async function installPackages(pkgs: string[], quiet?: boolean) {
       message(`Installing ${pkg} (${count} of ${pkgs.length})`, { bold: true });
     }
 
-    await installPackage(pkg, quiet);
+    await installPackage(pkg, opts, quiet);
     count = count + 1;
   }
   addPath();
 }
 
 // Add Symlinks for TexLive executables
-async function addPath() {
+async function addPath(opts?: string[]) {
   // Add symlinks for executables, man pages,
   // and info pages in the system directories
   //
   // This is only required for binary files installed with tlmgr
   // but will not hurt each time a package is installed
-  return tlmgrCommand(["path", "add"], true);
+  return tlmgrCommand("path", ["add", ...(opts || [])], true);
 }
 
-async function installPackage(pkg: string, quiet?: boolean) {
-  const args = ["install", pkg];
-
+async function installPackage(pkg: string, opts?: string[], quiet?: boolean) {
   // Run the install command
-  let installResult = await tlmgrCommand(args, quiet);
+  let installResult = await tlmgrCommand(
+    "install",
+    [...(opts || []), pkg],
+    quiet,
+  );
 
   // Failed to even run tlmgr
   if (installResult.code !== 0) {
@@ -154,34 +168,50 @@ async function installPackage(pkg: string, quiet?: boolean) {
   const isInstalled = await verifyPackageInstalled(pkg);
   if (!isInstalled) {
     // update tlmgr itself
-    const updateResult = await updatePackages(false, true, quiet);
+    const updateResult = await updatePackages(false, true, opts, quiet);
     if (updateResult.code !== 0) {
       return Promise.reject();
     }
 
     // Rerun the install command
-    installResult = await tlmgrCommand(args, quiet);
+    installResult = await tlmgrCommand(
+      "install",
+      [...(opts || []), pkg],
+      quiet,
+    );
   }
 
   return installResult;
 }
 
 // Verifies whether the package has been installed
-async function verifyPackageInstalled(pkg: string): Promise<boolean> {
+async function verifyPackageInstalled(
+  pkg: string,
+  opts?: string[],
+): Promise<boolean> {
   const result = await tlmgrCommand(
-    ["info", "--list", "--only-installed", "--data", "name", pkg],
+    "info",
+    [
+      "--list",
+      "--only-installed",
+      "--data",
+      "name",
+      ...(opts || []),
+      pkg,
+    ],
   );
   return result.stdout?.trim() === pkg;
 }
 
 function tlmgrCommand(
+  cmd: string,
   args: string[],
   quiet?: boolean,
   stdout?: (stdout: Uint8Array) => void,
 ) {
   return execProcess(
     {
-      cmd: ["tlmgr", ...args],
+      cmd: ["tlmgr", cmd, ...args],
       stdout: "piped",
       stderr: quiet ? "piped" : undefined,
     },

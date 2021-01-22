@@ -5,6 +5,7 @@ import {
   kCiteMethod,
   kLatexMakeIndex,
   kLatexMakeIndexArgs,
+  kLatexTlmgrArgs,
   kPdfEngine,
   kPdfEngineOpt,
   kPdfEngineOpts,
@@ -17,6 +18,7 @@ export interface PdfEngine {
   bibEngine?: "natbib" | "biblatex";
   indexEngine?: string;
   indexEngineOpts?: string[];
+  tlmgrOpts?: string[];
 }
 
 export function bibEngine(defaults: FormatPandoc, flags?: PandocFlags) {
@@ -40,9 +42,12 @@ export function pdfEngine(
   const pdfEngine =
     (flags?.pdfEngine || defaults[kPdfEngine] as string || "pdflatex");
 
-  //
+  // index options
   const indexEngine = render[kLatexMakeIndex];
   const indexEngineOpts = render[kLatexMakeIndexArgs];
+
+  // tlmgr options
+  const tlmgrOpts = render[kLatexTlmgrArgs];
 
   // collect all engine opts
   const pdfEngineOpts = defaults[kPdfEngineOpts] || [];
@@ -59,5 +64,6 @@ export function pdfEngine(
     bibEngine: bibEngine(defaults, flags),
     indexEngine,
     indexEngineOpts,
+    tlmgrOpts,
   };
 }

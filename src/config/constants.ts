@@ -85,6 +85,8 @@ export const kLatexClean = "latex-clean";
 export const kLatexMakeIndex = "latex-makeindex";
 export const kLatexMakeIndexArgs = "latex-makeindex-args";
 
+export const kLatexTlmgrArgs = "latex-tlmgr-args";
+
 export const kRenderDefaultsKeys = [
   kKeepMd,
   kKeepTex,
@@ -106,6 +108,7 @@ export const kRenderDefaultsKeys = [
   kLatexClean,
   kLatexMakeIndex,
   kLatexMakeIndexArgs,
+  kLatexTlmgrArgs,
 ];
 
 // 'defaults' fields

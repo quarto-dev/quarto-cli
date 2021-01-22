@@ -34,6 +34,7 @@ import {
   kLatexMaxRuns,
   kLatexMinRuns,
   kLatexOutputDir,
+  kLatexTlmgrArgs,
   kListings,
   kMarkdownHeadings,
   kNumberOffset,
@@ -98,6 +99,7 @@ export interface FormatRender {
   [kLatexClean]?: boolean;
   [kLatexMakeIndex]?: string;
   [kLatexMakeIndexArgs]?: string[];
+  [kLatexTlmgrArgs]?: string[];
 }
 
 export interface FormatExecution {
@@ -510,6 +512,7 @@ function defaultFormat(): Format {
       [kLatexOutputDir]: undefined,
       [kLatexMakeIndex]: undefined,
       [kLatexMakeIndexArgs]: undefined,
+      [kLatexTlmgrArgs]: undefined,
     },
     pandoc: {
       from: "markdown",

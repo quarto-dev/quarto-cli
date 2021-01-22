@@ -15,6 +15,7 @@ import { execProcess, ProcessResult } from "../../../core/process.ts";
 import { installPackages } from "./texlive.ts";
 import { PdfEngine } from "../../../config/pdf.ts";
 import { kLatexMkMessageOptions } from "./latexmk.ts";
+import { PackageManager } from "./pkgmgr.ts";
 
 interface PdfEngineResult {
   code: number;
@@ -32,12 +33,9 @@ export async function runPdfEngine(
   input: string,
   engine: PdfEngine,
   outputDir?: string,
-  autoinstall?: boolean,
+  pkgMgr?: PackageManager,
   quiet?: boolean,
 ): Promise<PdfEngineResult> {
-  // By default, automatically attempt to install a missing command
-  autoinstall = autoinstall || true;
-
   // Input and log paths
   const [dir, stem] = dirAndStem(input);
   const output = join(outputDir || dir, `${stem}.pdf`);
@@ -68,7 +66,7 @@ export async function runPdfEngine(
   const result = await runLatexCommand(
     engine.pdfEngine,
     args,
-    autoinstall,
+    pkgMgr,
     quiet,
   );
 
@@ -85,13 +83,13 @@ export async function runIndexEngine(
   input: string,
   engine?: string,
   args?: string[],
-  autoinstall?: boolean,
+  pkgMgr?: PackageManager,
   quiet?: boolean,
 ) {
   return await runLatexCommand(
     engine || "makeindex",
     [...(args || []), input],
-    autoinstall,
+    pkgMgr,
     quiet,
   );
 }
@@ -100,13 +98,13 @@ export async function runIndexEngine(
 export async function runBibEngine(
   engine: string,
   input: string,
-  autoinstall?: boolean,
+  pkgMgr?: PackageManager,
   quiet?: boolean,
 ): Promise<BibEngineResult> {
   const result = await runLatexCommand(
     engine,
     [input],
-    autoinstall,
+    pkgMgr,
     quiet,
   );
   const [dir, stem] = dirAndStem(input);
@@ -120,7 +118,7 @@ export async function runBibEngine(
 async function runLatexCommand(
   latexCmd: string,
   args: string[],
-  autoInstall?: boolean,
+  pkMgr?: PackageManager,
   quiet?: boolean,
 ): Promise<ProcessResult> {
   const runOptions: Deno.RunOptions = {
@@ -138,7 +136,7 @@ async function runLatexCommand(
   try {
     return await execProcess(runOptions, undefined, stdoutHandler);
   } catch (e) {
-    if (e.name === "NotFound" && autoInstall) {
+    if (e.name === "NotFound" && pkMgr) {
       if (!quiet) {
         message(
           `Command ${latexCmd} not found. Attempting to install`,
@@ -147,7 +145,7 @@ async function runLatexCommand(
       }
 
       // if not, install it
-      await installPackages([latexCmd], quiet);
+      await pkMgr.installPackages([latexCmd]);
 
       // Try running the command again
       return await execProcess(runOptions, undefined, stdoutHandler);

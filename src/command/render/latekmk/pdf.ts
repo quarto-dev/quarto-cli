@@ -11,16 +11,12 @@ import { ld } from "lodash/mod.ts";
 
 import { message } from "../../../core/console.ts";
 import { dirAndStem } from "../../../core/path.ts";
+import { PdfEngine } from "../../../config/pdf.ts";
 
-import {
-  findPackages,
-  hasTexLive,
-  installPackages,
-  updatePackages,
-} from "./texlive.ts";
+import { hasTexLive } from "./texlive.ts";
 import { runBibEngine, runIndexEngine, runPdfEngine } from "./latex.ts";
 import { kLatexMkMessageOptions, LatexmkOptions } from "./latexmk.ts";
-import { PdfEngine } from "../../../config/pdf.ts";
+import { PackageManager, packageManager } from "./pkgmgr.ts";
 
 const kMissingFontLog = "missfont.log";
 
@@ -49,12 +45,15 @@ export async function generatePdf(mkOptions: LatexmkOptions) {
   const allowUpdate = hasTexLive();
   mkOptions.autoInstall == mkOptions.autoInstall && allowUpdate;
 
+  // The package manager used to find and install packages
+  const pkgMgr = packageManager(mkOptions);
+
   // Render the PDF, detecting whether any packages need to be installed
   await initialCompileLatex(
     mkOptions.input,
     mkOptions.engine,
+    pkgMgr,
     mkOptions.outputDir,
-    mkOptions.autoInstall,
     mkOptions.quiet,
   );
 
@@ -62,9 +61,9 @@ export async function generatePdf(mkOptions: LatexmkOptions) {
   const indexCreated = await makeIndexIntermediates(
     workingDir,
     inputStem,
+    pkgMgr,
     mkOptions.engine.indexEngine,
     mkOptions.engine.indexEngineOpts,
-    mkOptions.autoInstall,
     mkOptions.quiet,
   );
 
@@ -73,7 +72,7 @@ export async function generatePdf(mkOptions: LatexmkOptions) {
     workingDir,
     inputStem,
     mkOptions.engine.bibEngine || "citeproc",
-    mkOptions.autoInstall,
+    pkgMgr,
     mkOptions.quiet,
   );
 
@@ -83,6 +82,7 @@ export async function generatePdf(mkOptions: LatexmkOptions) {
     await recompileLatexUntilComplete(
       mkOptions.input,
       mkOptions.engine,
+      pkgMgr,
       mkOptions.minRuns || 1,
       mkOptions.maxRuns || 10,
       mkOptions.outputDir,
@@ -101,53 +101,22 @@ export async function generatePdf(mkOptions: LatexmkOptions) {
   }
 }
 
-function installPackageHandler(): (
-  log: string,
-  quiet?: boolean,
-) => Promise<boolean> {
-  let lastPkgs: string[] = [];
-  return async (log: string, quiet?: boolean) => {
-    const pkgs = await findMissingPackages(log, quiet);
-
-    // See whether we just tried to install the same packages or
-    // if there are no packages detected to install
-    // (if so, just give up as we can't suceed)
-    const difference = ld.difference(pkgs, lastPkgs);
-    if (difference.length > 0) {
-      // Attempt to install the packages
-      await installPackages(pkgs, quiet);
-
-      // Note that we tried to install these packages
-      lastPkgs = pkgs;
-
-      // Try running the engine again now that we've installed packages
-      return true;
-    } else {
-      // We have already tried installing these packages, don't install the packages
-      return false;
-    }
-  };
-}
-
 // The first pass compilation of the latex with the ability to discover
 // missing packages (and subsequently retrying the compilation)
 async function initialCompileLatex(
   input: string,
   engine: PdfEngine,
+  pkgMgr: PackageManager,
   outputDir?: string,
-  autoinstall?: boolean,
   quiet?: boolean,
 ) {
-  // The package Installer
-  const packageInstaller = installPackageHandler();
-
   let packagesUpdated = false;
   while (true) {
     const result = await runPdfEngine(
       input,
       engine,
       outputDir,
-      autoinstall,
+      pkgMgr,
       quiet,
     );
 
@@ -159,37 +128,23 @@ async function initialCompileLatex(
       result.code === 0 && !existsSync(result.output)
     ) {
       // Try auto-installing the packages
-      if (existsSync(result.log) && autoinstall !== false) {
-        if (!quiet) {
-          message("Checking for missing packages", kLatexMkMessageOptions);
-        }
-
+      if (existsSync(result.log) && pkgMgr.autoInstall) {
         // First be sure all packages are up to date
         if (!packagesUpdated) {
-          await updatePackages(true, false, quiet);
+          if (!quiet) {
+            message("Updating existing packages", kLatexMkMessageOptions);
+          }
+          await pkgMgr.updatePackages(true, false);
           packagesUpdated = true;
         }
 
-        // Install packages and retry
-        const packagesInstalled = await packageInstaller(
-          result.log,
-          quiet,
-        );
-
-        // If packages were installed, we should retry PDF generation, otherwise we should fail
-        if (packagesInstalled) {
+        if (await findAndInstallPackages(result.log, pkgMgr, quiet)) {
           continue;
         } else {
-          // TODO: Print a nice Latex Error (the PDF generators do not write anything to stderr and stdout just contains progress)
           throw new Error(
-            "Latex compilation failed (No packages were installed)",
+            "Latex compilation failed (Missing log or no auto-install)",
           );
         }
-      } else {
-        // TODO: Print a nice Latex Error (the PDF generators do not write anything to stderr and stdout just contains progress)
-        throw new Error(
-          "Latex compilation failed (Missing log or no auto-install)",
-        );
       }
     }
     // If we get here, we aren't installing packages (or we've already installed them)
@@ -200,9 +155,9 @@ async function initialCompileLatex(
 async function makeIndexIntermediates(
   dir: string,
   stem: string,
+  pkgMgr: PackageManager,
   engine?: string,
   args?: string[],
-  autoinstall?: boolean,
   quiet?: boolean,
 ) {
   // If there is an idx file, we need to run makeindex to create the index data
@@ -217,7 +172,7 @@ async function makeIndexIntermediates(
       indexFile,
       engine,
       args,
-      autoinstall,
+      pkgMgr,
       quiet,
     );
 
@@ -236,7 +191,7 @@ async function makeBibliographyIntermediates(
   dir: string,
   stem: string,
   engine: string,
-  autoinstall?: boolean,
+  pkgMgr: PackageManager,
   quiet?: boolean,
 ) {
   // Generate bibliography (including potentially installing missing packages)
@@ -244,8 +199,6 @@ async function makeBibliographyIntermediates(
   // but if the user would like to use natbib or biblatex, we do need additional
   // processing (including explicitly calling the processing tool)
   const bibCommand = engine == "natbib" ? "bibtex" : "biber";
-
-  const packageInstaller = installPackageHandler();
 
   while (true) {
     // If biber, look for a bcf file, otherwise look for aux file
@@ -265,11 +218,11 @@ async function makeBibliographyIntermediates(
       const result = await runBibEngine(
         bibCommand,
         auxBibFile,
-        autoinstall,
+        pkgMgr,
         quiet,
       );
 
-      if (result.code !== 0 && autoinstall !== false) {
+      if (result.code !== 0 && pkgMgr.autoInstall) {
         // Biblio generation failed, see whether we should install anything to try to resolve
         // Find the missing packages
         const log = join(dir, `${stem}.blg`);
@@ -280,11 +233,7 @@ async function makeBibliographyIntermediates(
 
           if (match) {
             const file = match[1];
-            const packagesInstalled = await packageInstaller(
-              file,
-              quiet,
-            );
-            if (packagesInstalled) {
+            if (await findAndInstallPackages(file, pkgMgr, quiet)) {
               continue;
             } else {
               // TODO: Print a nice Latex Error (the PDF generators do not write anything to stderr and stdout just contains progress)
@@ -299,9 +248,49 @@ async function makeBibliographyIntermediates(
   }
 }
 
+async function findAndInstallPackages(
+  file: string,
+  pkgMgr: PackageManager,
+  quiet?: boolean,
+) {
+  if (!quiet) {
+    message("Checking for missing packages", kLatexMkMessageOptions);
+  }
+
+  if (existsSync(file)) {
+    const searchTerms = findSearchTermsInLog(file);
+    if (searchTerms.length > 0) {
+      const packages = await pkgMgr.searchPackages(searchTerms);
+      if (packages.length > 0) {
+        const packagesInstalled = await pkgMgr.installPackages(
+          packages,
+        );
+        if (packagesInstalled) {
+          // Try again
+          return true;
+        } else {
+          throw new Error(
+            "No packages installed",
+          );
+        }
+      } else {
+        throw new Error(
+          "No matching packages found",
+        );
+      }
+    } else {
+      throw new Error(
+        "No package errors",
+      );
+    }
+  }
+  return false;
+}
+
 async function recompileLatexUntilComplete(
   input: string,
   engine: PdfEngine,
+  pkgMgr: PackageManager,
   minRuns: number,
   maxRuns: number,
   outputDir?: string,
@@ -333,7 +322,7 @@ async function recompileLatexUntilComplete(
       input,
       engine,
       outputDir,
-      autoinstall,
+      pkgMgr,
       quiet,
     );
     runCount = runCount + 1;
@@ -349,10 +338,9 @@ async function recompileLatexUntilComplete(
   }
 }
 
-async function findMissingPackages(
+function findSearchTermsInLog(
   logFile: string,
-  quiet?: boolean,
-): Promise<string[]> {
+): string[] {
   const searchTerms: string[] = [];
 
   // Look in the log file for any missing packages or fonts
@@ -371,22 +359,7 @@ async function findMissingPackages(
   }
 
   // Search TexLive for missing packages and fonts
-  const uniqueTerms = ld.uniq(searchTerms);
-  if (uniqueTerms.length > 0) {
-    if (!quiet) {
-      message(
-        `Finding ${
-          uniqueTerms.length == 1 ? "package" : "packages"
-        } for ${uniqueTerms.length} ${
-          uniqueTerms.length == 1 ? "item" : "items"
-        }`,
-        kLatexMkMessageOptions,
-      );
-    }
-    return await findPackages(uniqueTerms, quiet);
-  } else {
-    return [];
-  }
+  return ld.uniq(searchTerms);
 }
 
 const formatFontFilter = (match: string, text: string) => {
