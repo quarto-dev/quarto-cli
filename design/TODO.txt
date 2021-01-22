@@ -1,7 +1,44 @@
 
+TinyTex:
+- Install TinyTex
+  - Detect missing tex (via which/error etc...)
+    (probably go looking after an error, not before running)
+  - Output message to install TinyTex
+    Please install TeX (command to install TinyTex or point at TexLive or another TeX distribution - link to Texlive)
+      quarto install tinytex
 
+- Need to print error messages from latex compilation (read log file and print error)
+  Provide erorr hinting for Latex errors (Tinytex does some nice hinting)
+
+- Estopdf requires ghost script. Should we detect and install on MacOs / warn on other unixes?
+  https://github.com/yihui/tinytex/blob/6c0078f2c3c1319a48b71b61753f09c3ec079c0a/R/tlmgr.R#L114
+
+- MakeIndex:
+    export const kLatexMakeIndex = "latex-makeindex"/"latex-makeindex-args"  
+
+- Implement support for outputdir
+
+- When new versions of TexLive are released, how do we manage updating (research)
+
+- Support latex-tlmgr-args
+
+- Why is this in tiny-tex
+  tweak_aux (https://github.com/yihui/tinytex/blob/33cbe601ff671fae47c594250de1d22bbf293b27/R/latex.R#L286)
+
+- TLMgr fmtutil when updating packages
+
+
+Bugs:
+- are header-includes: being duplicated in latex preamble?
+
+
+Future Quarto:
+  Quarto command for installing dependencies
+  quarto install tinytex
+  see https://github.com/yihui/tinytex/blob/master/R/install.R
 
 Projects:
+
 2) Project types (built in and extensions)
   - project global metadata
     - type: <- later
@@ -24,10 +61,6 @@ FUTURE
 4) Lock file / Extensions
 
 
-- Project is always a _quarto folder
-  - for a document we crawl up tree to find project folder
-  - slurp up every yaml file in folder and merge
-  - default suggestion: metadata.yml
   ---
   project:
     name:
@@ -47,30 +80,6 @@ FUTURE
 
   metadata-file: crossref.yml
   ---
-
-
-- Should support pandoc style metadata includes:
-  - Likely support this now, but doesn't correctly merge w/formats (need to expand the metadata into our yaml and remove key when done)
-    (Merge -M and --metadata-file with _quarto.yml and in-file YAML with same semantics as Pandoc)
-    metadata-file: <path>
-    metadata-files: [<path>]
-  - merged (as defaults basically), local metadata overrides it
-  Command line can set any metadata 
-  - Ideally -M would match pandoc:
-    -M key=value or --metadata=key:value
-    - Leave pandoc alone, slurp up ours
-
-    Metadata order:
-      files
-      document
-      command line
-
-    - might be writing command line first (probably should be last)
-  
-  
-
-
-
 
 Project system:
   - See MkDocs: https://docs.google.com/document/d/16Lp39BolpTR0NzbQQ6ebr9bawYth8EeivBo0q4qapVY/edit#heading=h.ibf8kici39py
@@ -108,12 +117,16 @@ html-article:
 html-notebook:
   css-framework: bootstrap
 
+
+quarto publish:
+  - RSC
+  - Netlify
+  - WordPress
+
 html-slides:
 
 library(shiny)
 library(bs4)
-
-
 
 
 {{ pagebreak }}
@@ -133,18 +146,15 @@ Can't render a file in Google Drive
 Charles
 -----------------------------
 
+- sandbox script is a mess
 - more generic dev setup tools
+  - need 'configure-dev' script that will configure the current directory as a sandbox...
 - Installer
+  - Windows
+    - UI
+    - Global shortcut / add quarto to path?
+    - Signing
 
-
-
-- Port tinytex to JS; OR we need to implmeent various auto-install behaviors for latexmk, eg.
-  had to do this to get biblatex working w/ latexmk
-  (may want to automate installation if no biber + auto-map TinyTeX to path)
-    tlmgr install biblatex
-    tlmgr install biber
-    ln -sf /Users/jjallaire/Library/TinyTeX/bin/x86_64-darwin/biber /usr/local/bin/biber
-Note need to implement tinytex: false and tinytex options (e.g. min-runs, clean, output-dir, etc.)
 
 
 v0.1
