@@ -16,8 +16,6 @@ TinyTex:
 - MakeIndex:
     export const kLatexMakeIndex = "latex-makeindex"/"latex-makeindex-args"  
 
-- Implement support for outputdir
-
 - When new versions of TexLive are released, how do we manage updating (research)
 
 - Support latex-tlmgr-args
