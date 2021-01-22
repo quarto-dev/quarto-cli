@@ -5,35 +5,50 @@
  *
  */
 
-import { basename, dirname, join, normalize } from "path/mod.ts";
-import { existsSync } from "fs/mod.ts";
+import { join, normalize } from "path/mod.ts";
 
-import { writeFileToStdout } from "../../core/console.ts";
-import { dirAndStem, expandPath } from "../../core/path.ts";
-import { execProcess, ProcessResult } from "../../core/process.ts";
+import { writeFileToStdout } from "../../../core/console.ts";
+import { dirAndStem, expandPath } from "../../../core/path.ts";
 
 import {
   kKeepTex,
-  kLatexAuto,
+  kLatexAutoInstall,
+  kLatexAutoMk,
+  kLatexClean,
+  kLatexMaxRuns,
+  kLatexMinRuns,
+  kLatexOutputDir,
   kOutputExt,
   kOutputFile,
-} from "../../config/constants.ts";
-import { Format } from "../../config/format.ts";
-import { pdfEngine } from "../../config/pdf.ts";
+} from "../../../config/constants.ts";
+import { Format } from "../../../config/format.ts";
+import { PdfEngine, pdfEngine } from "../../../config/pdf.ts";
 
-import { LatexmkOptions } from "../../execute/engine.ts";
-
-import { PandocOptions } from "./pandoc.ts";
-import { RenderOptions } from "./render.ts";
+import { PandocOptions } from "../pandoc.ts";
+import { RenderOptions } from "../render.ts";
 import {
   kStdOut,
   removePandocArgs,
   RenderFlags,
   replacePandocArg,
-} from "./flags.ts";
-import { OutputRecipe } from "./output.ts";
+} from "../flags.ts";
+import { OutputRecipe } from "../output.ts";
+import { generatePdf } from "./pdf.ts";
 
-export function useLatexmk(
+// latexmk options
+export interface LatexmkOptions {
+  input: string;
+  engine: PdfEngine;
+  autoInstall?: boolean;
+  autoMk?: boolean;
+  minRuns?: number;
+  maxRuns?: number;
+  outputDir?: string;
+  clean?: boolean;
+  quiet?: boolean;
+}
+
+export function useQuartoLatexmk(
   format: Format,
   flags?: RenderFlags,
 ) {
@@ -42,7 +57,7 @@ export function useLatexmk(
   const ext = format.render[kOutputExt] || "html";
 
   // Check whether explicitly disabled
-  if (format.render[kLatexAuto] === false) {
+  if (format.render[kLatexAutoMk] === false) {
     return false;
   }
 
@@ -58,7 +73,7 @@ export function useLatexmk(
   return false;
 }
 
-export function latexmkOutputRecipe(
+export function quartoLatexmkOutputRecipe(
   input: string,
   options: RenderOptions,
   format: Format,
@@ -94,12 +109,17 @@ export function latexmkOutputRecipe(
     const mkOptions: LatexmkOptions = {
       input: join(inputDir, output),
       engine: pdfEngine(format.pandoc, pandocOptions.flags),
-      clean: !options.flags?.debug,
+      autoInstall: format.render[kLatexAutoInstall],
+      autoMk: format.render[kLatexAutoMk],
+      minRuns: format.render[kLatexMinRuns],
+      maxRuns: format.render[kLatexMaxRuns],
+      outputDir: format.render[kLatexOutputDir],
+      clean: !options.flags?.debug && format.render[kLatexClean] !== false,
       quiet: pandocOptions.flags?.quiet,
     };
 
     // run latexmk
-    await runPdfEngine(mkOptions);
+    await generatePdf(mkOptions);
 
     // keep tex if requested
     const compileTex = join(inputDir, output);
@@ -142,92 +162,4 @@ export function latexmkOutputRecipe(
     },
     complete,
   };
-}
-
-async function runPdfEngine(
-  options: LatexmkOptions,
-): Promise<ProcessResult> {
-  // provide argument defaults
-
-  const {
-    input,
-    engine: pdfEngine = { pdfEngine: "pdflatex" },
-  } = options;
-
-  // build pdf engine command line
-  const cmd = [options.engine.pdfEngine];
-
-  // pdf engine opts
-  const engineOpts = [];
-  if (pdfEngine.pdfEngineOpts) {
-    engineOpts.push(...pdfEngine.pdfEngineOpts);
-  }
-
-  // Command to manage execution prevent requests for input
-  cmd.push("-interaction=batchmode");
-  cmd.push("-halt-on-error");
-
-  // Forward engine options
-  cmd.push(...pdfEngine.pdfEngineOpts || []);
-
-  // input file
-  cmd.push(basename(input));
-
-  // run
-  const result = await execProcess({
-    cmd,
-    cwd: dirname(input),
-    stdout: "piped",
-  });
-
-  if (!result.success) {
-    // TODO: Cleanup error formatting for throw (thing error message?)
-    throw new Error(
-      `Error generating PDF using ${options.engine.pdfEngine}\n${result.stdout}`,
-    );
-  }
-
-  // cleanup if requested
-  // TODO: Should this be reading render latex option instead?
-  if (options.clean) {
-    cleanup(input, pdfEngine.pdfEngineOpts || []);
-  }
-
-  // Success, return result
-  return result;
-}
-
-function auxFile(stem: string, ext: string) {
-  return `${stem}.${ext}`;
-}
-
-function cleanup(input: string, pdfEngineOpts: string[]) {
-  const [inputDir, inputStem] = dirAndStem(input);
-  const auxFiles = [
-    "log",
-    "idx",
-    "aux",
-    "bcf",
-    "blg",
-    "bbl",
-    "fls",
-    "out",
-    "lof",
-    "lot",
-    "toc",
-    "nav",
-    "snm",
-    "vrb",
-    "ilg",
-    "ind",
-    "xwm",
-    "brf",
-    "run.xml",
-  ].map((aux) => join(inputDir, auxFile(inputStem, aux)));
-
-  auxFiles.forEach((auxFile) => {
-    if (existsSync(auxFile)) {
-      Deno.removeSync(auxFile);
-    }
-  });
 }

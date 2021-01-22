@@ -22,7 +22,6 @@ import type {
   ExecuteResult,
   ExecutionEngine,
   ExecutionTarget,
-  LatexmkOptions,
   PostProcessOptions,
   RunOptions,
 } from "./engine.ts";

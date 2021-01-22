@@ -26,7 +26,6 @@ import {
   kKernelDebug,
   kKernelKeepalive,
   kKernelRestart,
-  kLatexAuto,
   kLatexAutoInstall,
   kLatexAutoMk,
   kLatexClean,
@@ -90,7 +89,6 @@ export interface FormatRender {
   [kFigAlign]?: "left" | "right" | "center" | "default";
   [kFoldCode]?: boolean | string;
 
-  [kLatexAuto]?: boolean;
   [kLatexAutoMk]?: boolean;
   [kLatexAutoInstall]?: boolean;
   [kLatexOutputDir]?: string;
@@ -501,10 +499,9 @@ function defaultFormat(): Format {
       [kOutputExt]: "html",
       [kFigAlign]: "center",
       [kFoldCode]: false,
-      [kLatexAuto]: true,
       [kLatexAutoMk]: true,
       [kLatexAutoInstall]: true,
-      [kLatexClean]: false,
+      [kLatexClean]: true,
       [kLatexMaxRuns]: 1,
       [kLatexMaxRuns]: 10,
       [kLatexOutputDir]: undefined,

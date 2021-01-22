@@ -30,7 +30,10 @@ import { ExecutionEngine } from "../../execute/engine.ts";
 import { havePandocArg, kStdOut, replacePandocArg } from "./flags.ts";
 import { PandocOptions } from "./pandoc.ts";
 import { RenderOptions } from "./render.ts";
-import { latexmkOutputRecipe, useLatexmk } from "./latexmk.ts";
+import {
+  quartoLatexmkOutputRecipe,
+  useQuartoLatexmk,
+} from "./latekmk/latexmk.ts";
 
 // render commands imply the --output argument for pandoc and the final
 // output file to create for the user, but we need a 'recipe' to go from
@@ -59,8 +62,8 @@ export async function outputRecipe(
   options: RenderOptions,
   format: Format,
 ): Promise<OutputRecipe> {
-  if (useLatexmk(format, options.flags)) {
-    return latexmkOutputRecipe(input, options, format);
+  if (useQuartoLatexmk(format, options.flags)) {
+    return quartoLatexmkOutputRecipe(input, options, format);
   } else {
     // default recipe spec based on user input
     const completeActions: VoidFunction[] = [];

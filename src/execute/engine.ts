@@ -64,14 +64,6 @@ export interface PostProcessOptions {
   quiet?: boolean;
 }
 
-// latexmk options
-export interface LatexmkOptions {
-  input: string;
-  engine: PdfEngine;
-  clean?: boolean;
-  quiet?: boolean;
-}
-
 // run options
 export interface RunOptions {
   input: string;
