@@ -100,11 +100,11 @@ execute <- function(input, format, output, tempDir, cwd, params) {
 
   # include postprocessing if required
   if (!is.null(preserved)) {
-    preserve <- split(unname(preserved),names(preserved))
-    postprocess <- TRUE
+    postprocess <- list(
+      preserve = split(unname(preserved),names(preserved))
+    )
   } else {
-    preserve <- list()
-    postprocess <- FALSE
+    postprocess <- NULL
   }
 
   # write the includes to temp files
@@ -115,7 +115,6 @@ execute <- function(input, format, output, tempDir, cwd, params) {
     supporting = I(supporting),
     filters = I(rmarkdown:::pkg_file_lua("pagebreak.lua")),
     pandoc = pandoc,
-    preserve = preserve,
     postprocess = postprocess
   )
 }

@@ -241,8 +241,9 @@ export const jupyterEngine: ExecutionEngine = {
           [kIncludeAfterBody]: result.includeFiles.afterBody,
         }
         : {},
-      preserve: result.htmlPreserve,
-      postprocess: !!result.htmlPreserve,
+      postprocess: result.htmlPreserve
+        ? { preserve: result.htmlPreserve }
+        : undefined,
     };
   },
 
