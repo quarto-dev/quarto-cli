@@ -82,6 +82,9 @@ export const kLatexMinRuns = "latex-min-runs";
 export const kLatexMaxRuns = "latex-max-runs";
 export const kLatexClean = "latex-clean";
 
+export const kLatexMakeIndex = "latex-makeindex";
+export const kLatexMakeIndexArgs = "latex-makeindex-args";
+
 export const kRenderDefaultsKeys = [
   kKeepMd,
   kKeepTex,
@@ -101,6 +104,8 @@ export const kRenderDefaultsKeys = [
   kLatexMinRuns,
   kLatexMaxRuns,
   kLatexClean,
+  kLatexMakeIndex,
+  kLatexMakeIndexArgs,
 ];
 
 // 'defaults' fields

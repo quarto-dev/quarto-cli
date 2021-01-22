@@ -1,8 +1,10 @@
 // union of metadata and command line flags which determine
-import { FormatPandoc } from "./format.ts";
+import { FormatPandoc, FormatRender } from "./format.ts";
 import { PandocFlags } from "./flags.ts";
 import {
   kCiteMethod,
+  kLatexMakeIndex,
+  kLatexMakeIndexArgs,
   kPdfEngine,
   kPdfEngineOpt,
   kPdfEngineOpts,
@@ -13,15 +15,34 @@ export interface PdfEngine {
   pdfEngine: string;
   pdfEngineOpts?: string[];
   bibEngine?: "natbib" | "biblatex";
+  indexEngine?: string;
+  indexEngineOpts?: string[];
+}
+
+export function bibEngine(defaults: FormatPandoc, flags?: PandocFlags) {
+  return flags?.natbib
+    ? "natbib"
+    : flags?.biblatex
+    ? "biblatex"
+    : defaults[kCiteMethod] === "natbib"
+    ? "natbib"
+    : defaults[kCiteMethod] == "biblatex"
+    ? "biblatex"
+    : undefined;
 }
 
 export function pdfEngine(
   defaults: FormatPandoc,
+  render: FormatRender,
   flags?: PandocFlags,
 ): PdfEngine {
   // determine pdfengine
   const pdfEngine =
     (flags?.pdfEngine || defaults[kPdfEngine] as string || "pdflatex");
+
+  //
+  const indexEngine = render[kLatexMakeIndex];
+  const indexEngineOpts = render[kLatexMakeIndexArgs];
 
   // collect all engine opts
   const pdfEngineOpts = defaults[kPdfEngineOpts] || [];
@@ -35,14 +56,8 @@ export function pdfEngine(
   return {
     pdfEngine,
     pdfEngineOpts,
-    bibEngine: flags?.natbib
-      ? "natbib"
-      : flags?.biblatex
-      ? "biblatex"
-      : defaults[kCiteMethod] === "natbib"
-      ? "natbib"
-      : defaults[kCiteMethod] == "biblatex"
-      ? "biblatex"
-      : undefined,
+    bibEngine: bibEngine(defaults, flags),
+    indexEngine,
+    indexEngineOpts,
   };
 }

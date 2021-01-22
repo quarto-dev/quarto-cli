@@ -65,7 +65,7 @@ export function useQuartoLatexmk(
 
   // if we are creating pdf output
   if (["beamer", "pdf"].includes(to || "") && ext === "pdf") {
-    const engine = pdfEngine(format.pandoc, flags);
+    const engine = pdfEngine(format.pandoc, format.render, flags);
     return ["pdflatex", "xelatex", "lualatex"].includes(
       engine.pdfEngine,
     );
@@ -110,7 +110,7 @@ export function quartoLatexmkOutputRecipe(
     // determine latexmk options
     const mkOptions: LatexmkOptions = {
       input: join(inputDir, output),
-      engine: pdfEngine(format.pandoc, pandocOptions.flags),
+      engine: pdfEngine(format.pandoc, format.render, pandocOptions.flags),
       autoInstall: format.render[kLatexAutoInstall],
       autoMk: format.render[kLatexAutoMk],
       minRuns: format.render[kLatexMinRuns],

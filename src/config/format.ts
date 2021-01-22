@@ -29,6 +29,8 @@ import {
   kLatexAutoInstall,
   kLatexAutoMk,
   kLatexClean,
+  kLatexMakeIndex,
+  kLatexMakeIndexArgs,
   kLatexMaxRuns,
   kLatexMinRuns,
   kLatexOutputDir,
@@ -65,7 +67,6 @@ import {
   kOutputExt,
   kPageWidth,
 } from "./constants.ts";
-import { boolean } from "https://deno.land/x/cliffy@v0.16.0/flags/types/boolean.ts";
 
 // pandoc output format
 export interface Format {
@@ -95,6 +96,8 @@ export interface FormatRender {
   [kLatexMinRuns]?: number;
   [kLatexMaxRuns]?: number;
   [kLatexClean]?: boolean;
+  [kLatexMakeIndex]?: string;
+  [kLatexMakeIndexArgs]?: string[];
 }
 
 export interface FormatExecution {
@@ -505,6 +508,8 @@ function defaultFormat(): Format {
       [kLatexMaxRuns]: 1,
       [kLatexMaxRuns]: 10,
       [kLatexOutputDir]: undefined,
+      [kLatexMakeIndex]: undefined,
+      [kLatexMakeIndexArgs]: undefined,
     },
     pandoc: {
       from: "markdown",

@@ -62,6 +62,8 @@ export async function generatePdf(mkOptions: LatexmkOptions) {
   const indexCreated = await makeIndexIntermediates(
     workingDir,
     inputStem,
+    mkOptions.engine.indexEngine,
+    mkOptions.engine.indexEngineOpts,
     mkOptions.autoInstall,
     mkOptions.quiet,
   );
@@ -198,6 +200,8 @@ async function initialCompileLatex(
 async function makeIndexIntermediates(
   dir: string,
   stem: string,
+  engine?: string,
+  args?: string[],
   autoinstall?: boolean,
   quiet?: boolean,
 ) {
@@ -211,6 +215,8 @@ async function makeIndexIntermediates(
     // Make the index
     const result = await runIndexEngine(
       indexFile,
+      engine,
+      args,
       autoinstall,
       quiet,
     );

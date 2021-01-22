@@ -83,12 +83,14 @@ export async function runPdfEngine(
 // Run the index generation engine (currently hard coded to makeindex)
 export async function runIndexEngine(
   input: string,
+  engine?: string,
+  args?: string[],
   autoinstall?: boolean,
   quiet?: boolean,
 ) {
   return await runLatexCommand(
-    "makeindex",
-    [input],
+    engine || "makeindex",
+    [...(args || []), input],
     autoinstall,
     quiet,
   );
