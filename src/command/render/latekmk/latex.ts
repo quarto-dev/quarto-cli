@@ -14,6 +14,7 @@ import { execProcess, ProcessResult } from "../../../core/process.ts";
 
 import { installPackages } from "./texlive.ts";
 import { PdfEngine } from "../../../config/pdf.ts";
+import { kLatexMkMessageOptions } from "./latexmk.ts";
 
 interface PdfEngineResult {
   code: number;
@@ -30,6 +31,7 @@ interface BibEngineResult {
 export async function runPdfEngine(
   input: string,
   engine: PdfEngine,
+  outputDir?: string,
   autoinstall?: boolean,
   quiet?: boolean,
 ): Promise<PdfEngineResult> {
@@ -38,8 +40,8 @@ export async function runPdfEngine(
 
   // Input and log paths
   const [dir, stem] = dirAndStem(input);
-  const output = join(dir, `${stem}.pdf`);
-  const log = join(dir, `${stem}.log`);
+  const output = join(outputDir || dir, `${stem}.pdf`);
+  const log = join(outputDir || dir, `${stem}.log`);
 
   // Clean any log file from previous runs
   if (existsSync(log)) {
@@ -48,6 +50,11 @@ export async function runPdfEngine(
 
   // build pdf engine command line
   const args = ["-interaction=batchmode", "-halt-on-error"];
+
+  // output directory
+  if (outputDir !== undefined) {
+    args.push(`-output-directory=${outputDir}`);
+  }
 
   // pdf engine opts
   if (engine.pdfEngineOpts) {
@@ -131,7 +138,10 @@ async function runLatexCommand(
   } catch (e) {
     if (e.name === "NotFound" && autoInstall) {
       if (!quiet) {
-        message(`Command ${latexCmd} not found. Attempting to install`);
+        message(
+          `Command ${latexCmd} not found. Attempting to install`,
+          kLatexMkMessageOptions,
+        );
       }
 
       // if not, install it

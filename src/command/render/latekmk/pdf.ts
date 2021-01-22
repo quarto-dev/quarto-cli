@@ -5,7 +5,7 @@
  *
  */
 
-import { basename, dirname, join } from "path/mod.ts";
+import { basename, dirname, extname, join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { ld } from "lodash/mod.ts";
 
@@ -19,20 +19,30 @@ import {
   updatePackages,
 } from "./texlive.ts";
 import { runBibEngine, runIndexEngine, runPdfEngine } from "./latex.ts";
-import { LatexmkOptions } from "./latexmk.ts";
+import { kLatexMkMessageOptions, LatexmkOptions } from "./latexmk.ts";
 import { PdfEngine } from "../../../config/pdf.ts";
 
 const kMissingFontLog = "missfont.log";
 
 export async function generatePdf(mkOptions: LatexmkOptions) {
-  const {
-    input,
-    engine: pdfEngine = { pdfEngine: "pdflatex" },
-  } = mkOptions;
-  const [dir, stem] = dirAndStem(mkOptions.input);
-
   if (!mkOptions.quiet) {
-    message(`Creating PDF (${mkOptions.engine.pdfEngine})`, { bold: true });
+    message(
+      `Creating PDF (${mkOptions.engine.pdfEngine})`,
+      kLatexMkMessageOptions,
+    );
+  }
+
+  // Get the working directory and file name stem
+  const [workingDir, inputStem] = mkOptions.outputDir
+    ? [
+      mkOptions.outputDir,
+      basename(mkOptions.input, extname(mkOptions.input)),
+    ]
+    : dirAndStem(mkOptions.input);
+
+  // Ensure that working directory exists
+  if (!existsSync(workingDir)) {
+    Deno.mkdirSync(workingDir);
   }
 
   // Determine whether we support automatic updated (TexLive is available)
@@ -43,22 +53,23 @@ export async function generatePdf(mkOptions: LatexmkOptions) {
   await initialCompileLatex(
     mkOptions.input,
     mkOptions.engine,
+    mkOptions.outputDir,
     mkOptions.autoInstall,
     mkOptions.quiet,
   );
 
   // Generate the index information, if needed
   const indexCreated = await makeIndexIntermediates(
-    dir,
-    stem,
+    workingDir,
+    inputStem,
     mkOptions.autoInstall,
     mkOptions.quiet,
   );
 
   // Generate the bibliography intermediaries
   const bibliographyCreated = await makeBibliographyIntermediates(
-    dir,
-    stem,
+    workingDir,
+    inputStem,
     mkOptions.engine.bibEngine || "citeproc",
     mkOptions.autoInstall,
     mkOptions.quiet,
@@ -72,6 +83,7 @@ export async function generatePdf(mkOptions: LatexmkOptions) {
       mkOptions.engine,
       mkOptions.minRuns || 1,
       mkOptions.maxRuns || 10,
+      mkOptions.outputDir,
       mkOptions.autoInstall,
       mkOptions.quiet,
     );
@@ -79,7 +91,7 @@ export async function generatePdf(mkOptions: LatexmkOptions) {
 
   // cleanup if requested
   if (mkOptions.clean) {
-    cleanup(input, pdfEngine.pdfEngineOpts || []);
+    cleanup(workingDir, inputStem);
   }
 
   if (!mkOptions.quiet) {
@@ -120,6 +132,7 @@ function installPackageHandler(): (
 async function initialCompileLatex(
   input: string,
   engine: PdfEngine,
+  outputDir?: string,
   autoinstall?: boolean,
   quiet?: boolean,
 ) {
@@ -131,6 +144,7 @@ async function initialCompileLatex(
     const result = await runPdfEngine(
       input,
       engine,
+      outputDir,
       autoinstall,
       quiet,
     );
@@ -145,7 +159,7 @@ async function initialCompileLatex(
       // Try auto-installing the packages
       if (existsSync(result.log) && autoinstall !== false) {
         if (!quiet) {
-          message("Checking for missing packages", { bold: true });
+          message("Checking for missing packages", kLatexMkMessageOptions);
         }
 
         // First be sure all packages are up to date
@@ -191,7 +205,7 @@ async function makeIndexIntermediates(
   const indexFile = join(dir, `${stem}.idx`);
   if (existsSync(indexFile)) {
     if (!quiet) {
-      message("Making Index", { bold: true });
+      message("Making Index", kLatexMkMessageOptions);
     }
 
     // Make the index
@@ -238,7 +252,7 @@ async function makeBibliographyIntermediates(
 
     if (existsSync(auxBibFile) && requiresProcessing) {
       if (!quiet) {
-        message("Generating bibliography", { bold: true });
+        message("Generating bibliography", kLatexMkMessageOptions);
       }
 
       // If natbib, only use bibtex, otherwise, could use biber or bibtex
@@ -284,6 +298,7 @@ async function recompileLatexUntilComplete(
   engine: PdfEngine,
   minRuns: number,
   maxRuns: number,
+  outputDir?: string,
   autoinstall?: boolean,
   quiet?: boolean,
 ) {
@@ -295,7 +310,7 @@ async function recompileLatexUntilComplete(
       if (!quiet) {
         message(
           `Maximum number of runs (${maxRuns}) reached`,
-          { bold: true },
+          kLatexMkMessageOptions,
         );
       }
       break;
@@ -304,13 +319,14 @@ async function recompileLatexUntilComplete(
     if (!quiet) {
       message(
         `Resolving citations and index (run ${runCount + 1})`,
-        { bold: true },
+        kLatexMkMessageOptions,
       );
     }
 
     const result = await runPdfEngine(
       input,
       engine,
+      outputDir,
       autoinstall,
       quiet,
     );
@@ -358,7 +374,7 @@ async function findMissingPackages(
         } for ${uniqueTerms.length} ${
           uniqueTerms.length == 1 ? "item" : "items"
         }`,
-        { bold: true },
+        kLatexMkMessageOptions,
       );
     }
     return await findPackages(uniqueTerms, quiet);
@@ -504,8 +520,7 @@ function auxFile(stem: string, ext: string) {
   return `${stem}.${ext}`;
 }
 
-function cleanup(input: string, pdfEngineOpts: string[]) {
-  const [inputDir, inputStem] = dirAndStem(input);
+function cleanup(workingDir: string, stem: string) {
   const auxFiles = [
     "log",
     "idx",
@@ -526,10 +541,10 @@ function cleanup(input: string, pdfEngineOpts: string[]) {
     "xwm",
     "brf",
     "run.xml",
-  ].map((aux) => join(inputDir, auxFile(inputStem, aux)));
+  ].map((aux) => join(workingDir, auxFile(stem, aux)));
 
   // Also cleanup any missfont.log file
-  auxFiles.push(join(inputDir, kMissingFontLog));
+  auxFiles.push(join(workingDir, kMissingFontLog));
 
   auxFiles.forEach((auxFile) => {
     if (existsSync(auxFile)) {
