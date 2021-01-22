@@ -111,8 +111,8 @@ export async function render(
       target,
       format,
       output: recipe.output,
-      preserve: executeResult.preserve,
-      data: executeResult.postprocess,
+      preserve: executeResult.postprocess?.preserve,
+      data: executeResult.postprocess?.data,
       quiet: flags.quiet,
     });
   }

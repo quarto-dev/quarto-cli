@@ -49,8 +49,10 @@ export interface ExecuteResult {
   supporting: string[];
   filters: string[];
   pandoc: FormatPandoc;
-  preserve?: Record<string, string>;
-  postprocess?: unknown;
+  postprocess?: {
+    preserve?: Record<string, string>;
+    data?: unknown;
+  };
 }
 
 // post processing options
