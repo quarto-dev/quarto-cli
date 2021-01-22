@@ -66,12 +66,17 @@ export async function render(
   const [inputDir, inputStem] = dirAndStem(target.input);
   const mdOutput = join(inputDir, `${inputStem}.${engine.name}-md`);
 
+  // should we resolve dependencies immediatley
+  const dependencies = true;
+
   // execute computations
+  const tempDir = sessionTempDir();
   const executeResult = await engine.execute({
     target,
     output: mdOutput,
     resourceDir: resourcePath(),
-    tempDir: sessionTempDir(),
+    tempDir,
+    dependencies,
     format,
     cwd: flags.executeDir,
     params: resolveParams(flags.executeParams),
@@ -89,6 +94,24 @@ export async function render(
 
   // pandoc output recipe (target file, args, complete handler)
   const recipe = await outputRecipe(file, options, format, engine);
+
+  // run the dependencies step if we didn't do it during execution
+  if (!dependencies) {
+    const dependenciesResult = await engine.dependencies({
+      target,
+      format,
+      output: recipe.output,
+      resourceDir: resourcePath(),
+      tempDir,
+      libDir: undefined, // TODO
+      dependencies: executeResult.dependencies,
+      quiet: flags.quiet,
+    });
+    recipe.format.pandoc = mergeConfigs(
+      recipe.format.pandoc,
+      dependenciesResult.pandoc,
+    );
+  }
 
   // pandoc options
   const pandocOptions = {

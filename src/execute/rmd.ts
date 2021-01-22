@@ -18,6 +18,8 @@ import {
 import { Metadata } from "../config/metadata.ts";
 
 import type {
+  DependenciesOptions,
+  DependenciesResult,
   ExecuteOptions,
   ExecuteResult,
   ExecutionEngine,
@@ -61,6 +63,14 @@ export const rmdEngine: ExecutionEngine = {
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
     return callR<ExecuteResult>(
       "execute",
+      options,
+      options.quiet,
+    );
+  },
+
+  dependencies: async (options: DependenciesOptions) => {
+    return callR<DependenciesResult>(
+      "dependencies",
       options,
       options.quiet,
     );

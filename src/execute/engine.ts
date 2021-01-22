@@ -21,6 +21,7 @@ export interface ExecutionEngine {
   ) => Promise<ExecutionTarget | undefined>;
   metadata: (target: ExecutionTarget) => Promise<Metadata>;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
+  dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;
   keepMd: (input: string) => string | undefined;
   latexmk?: (options: LatexmkOptions) => Promise<void>;
@@ -40,6 +41,7 @@ export interface ExecuteOptions {
   format: Format;
   resourceDir: string;
   tempDir: string;
+  dependencies: boolean;
   cwd?: string;
   params?: { [key: string]: unknown };
   quiet?: boolean;
@@ -50,10 +52,28 @@ export interface ExecuteResult {
   supporting: string[];
   filters: string[];
   pandoc: FormatPandoc;
+  dependencies?: unknown;
   postprocess?: {
     preserve?: Record<string, string>;
     data?: unknown;
   };
+}
+
+// dependencies options
+export interface DependenciesOptions {
+  target: ExecutionTarget;
+  format: Format;
+  output: string;
+  resourceDir: string;
+  tempDir: string;
+  libDir?: string;
+  dependencies?: unknown;
+  quiet?: boolean;
+}
+
+// dependencies result
+export interface DependenciesResult {
+  pandoc: FormatPandoc;
 }
 
 // post processing options

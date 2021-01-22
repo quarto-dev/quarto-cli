@@ -6,6 +6,7 @@ import { FormatPandoc } from "../config/format.ts";
 import { Metadata } from "../config/metadata.ts";
 
 import {
+  DependenciesOptions,
   ExecuteOptions,
   ExecutionEngine,
   ExecutionTarget,
@@ -33,6 +34,11 @@ export function markdownEngine(): ExecutionEngine {
         filters: [],
         pandoc: {} as FormatPandoc,
       });
+    },
+    dependencies: async (_options: DependenciesOptions) => {
+      return {
+        pandoc: {},
+      };
     },
     postprocess: (_options: PostProcessOptions) => Promise.resolve(),
     keepMd: (_input: string) => undefined,

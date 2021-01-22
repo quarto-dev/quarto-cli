@@ -22,6 +22,7 @@ import { message } from "../../core/console.ts";
 import { Metadata } from "../../config/metadata.ts";
 
 import type {
+  DependenciesOptions,
   ExecuteOptions,
   ExecuteResult,
   ExecutionEngine,
@@ -244,6 +245,12 @@ export const jupyterEngine: ExecutionEngine = {
       postprocess: result.htmlPreserve
         ? { preserve: result.htmlPreserve }
         : undefined,
+    };
+  },
+
+  dependencies: async (options: DependenciesOptions) => {
+    return {
+      pandoc: {},
     };
   },
 

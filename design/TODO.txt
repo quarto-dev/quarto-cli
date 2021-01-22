@@ -1,6 +1,9 @@
 
 
 
+
+
+
 Projects:
 2) Project types (built in and extensions)
   - project global metadata
@@ -22,6 +25,23 @@ Projects:
 
 FUTURE
 4) Lock file / Extensions
+
+
+- there is always an output_dir for projects (we could put caches/intermedite md there)
+- alternatively, we could stick this stuff in _quarto (which could have a default .gitignore)
+
+Renders have side effects (knit_meta) that need to be preserved for books.
+The side effects might require an id of some kind (for managing duplicates):
+   R: 
+     - html dependencies
+     - preserves
+     - patches (e.g. slides for htmlwidgets)
+     - intermediates/intermediates-dir
+
+Engine returns a data structure that includes:
+    - markdown for pandoc
+    - arbitrary data that will be passed back to it to create pandoc includes
+    - arbitrary data that will be passed back to it for postprocessing
 
 
 - Project is always a _quarto folder
