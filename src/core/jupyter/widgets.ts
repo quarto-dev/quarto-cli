@@ -5,6 +5,7 @@
 *
 */
 
+import { mergeConfigs } from "../config.ts";
 import {
   kApplicationJavascript,
   kApplicationJupyterWidgetState,
@@ -15,23 +16,92 @@ import { sessionTempFile } from "../temp.ts";
 import { isDisplayData } from "./display_data.ts";
 import { JupyterNotebook, JupyterOutputDisplayData } from "./jupyter.ts";
 
-export function widgetIncludeFiles(nb: JupyterNotebook) {
+export interface JupyterWidgetsState {
+  state: Record<string, unknown>;
+  version_major: number;
+  version_minor: number;
+}
+
+export interface JupyterWidgetDependencies {
+  jsWidgets: boolean;
+  jupyterWidgets: boolean;
+  htmlLibraries: string[];
+  widgetsState?: JupyterWidgetsState;
+}
+
+export function extractJupyterWidgetDependencies(
+  nb: JupyterNotebook,
+): JupyterWidgetDependencies {
   // a 'javascript' widget doesn't use the jupyter widgets protocol, but rather just injects
   // text/html or application/javascript directly. futhermore these 'widgets' often assume
   // that require.js and jquery are available. for example, see:
   //   - https://github.com/mwouts/itables
   //   - https://plotly.com/python/
-  const haveJavascriptWidgets = haveOutputType(
+  const jsWidgets = haveOutputType(
     nb,
     [kApplicationJavascript, kTextHtml],
   );
 
   // jupyter widgets confirm to the jupyter widget embedding protocol:
   // https://ipywidgets.readthedocs.io/en/latest/embedding.html#embeddable-html-snippet
-  const haveJupyterWidgets = haveOutputType(
+  const jupyterWidgets = haveOutputType(
     nb,
     [kApplicationJupyterWidgetView],
   );
+
+  // see if there are html libraries that need to be hoisted up into the head
+  const htmlLibraries: string[] = [];
+  nb.cells.forEach((cell) => {
+    if (cell.cell_type === "code") {
+      cell.outputs = cell.outputs?.filter((output) => {
+        if (isDisplayData(output)) {
+          const displayOutput = output as JupyterOutputDisplayData;
+          const html = displayOutput.data[kTextHtml];
+          const htmlText = Array.isArray(html) ? html.join("") : html as string;
+          if (html && isWidgetIncludeHtml(htmlText)) {
+            htmlLibraries.push(htmlText);
+            return false;
+          }
+        }
+        return true;
+      });
+    }
+  });
+
+  return {
+    jsWidgets,
+    jupyterWidgets,
+    htmlLibraries,
+    widgetsState: nb.metadata.widgets
+      ?.[kApplicationJupyterWidgetState] as JupyterWidgetsState,
+  };
+}
+
+export function includesForJupyterWidgetDependencies(
+  dependencies: JupyterWidgetDependencies[],
+) {
+  // combine all of the dependencies
+  let haveJavascriptWidgets = false;
+  let haveJupyterWidgets = false;
+  const htmlLibraries: string[] = [];
+  let widgetsState: JupyterWidgetsState | undefined;
+
+  for (const dependency of dependencies) {
+    haveJavascriptWidgets = haveJavascriptWidgets || dependency.jsWidgets;
+    haveJupyterWidgets = haveJupyterWidgets || dependency.jupyterWidgets;
+    for (const htmlLib of dependency.htmlLibraries) {
+      if (!htmlLibraries.includes(htmlLib)) {
+        htmlLibraries.push(htmlLib);
+      }
+    }
+    if (dependency.widgetsState) {
+      if (!widgetsState) {
+        widgetsState = dependency.widgetsState;
+      } else {
+        widgetsState = mergeConfigs(widgetsState, dependency.widgetsState);
+      }
+    }
+  }
 
   // write required dependencies into head
   const head: string[] = [];
@@ -47,24 +117,10 @@ export function widgetIncludeFiles(nb: JupyterNotebook) {
     );
   }
 
-  // see if there are outputs that need to be hoisted up into the head
-  nb.cells.forEach((cell) => {
-    if (cell.cell_type === "code") {
-      cell.outputs = cell.outputs?.filter((output) => {
-        if (isDisplayData(output)) {
-          const displayOutput = output as JupyterOutputDisplayData;
-          const html = displayOutput.data[kTextHtml];
-          const htmlText = Array.isArray(html) ? html.join("") : html as string;
-          if (html && isWidgetIncludeHtml(htmlText)) {
-            head.push(htmlText);
-            return false;
-          }
-        }
-        return true;
-      });
-    }
-  });
+  // html libraries (e.g. plotly)
+  head.push(...htmlLibraries);
 
+  // jupyter widget runtime
   if (haveJupyterWidgets) {
     head.push(
       '<script src="https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js" crossorigin="anonymous"></script>',
@@ -73,10 +129,10 @@ export function widgetIncludeFiles(nb: JupyterNotebook) {
 
   // write jupyter widget state after body if it exists
   const afterBody: string[] = [];
-  if (haveJupyterWidgets && nb.metadata.widgets) {
+  if (haveJupyterWidgets && widgetsState) {
     afterBody.push(`<script type=${kApplicationJupyterWidgetState}>`);
     afterBody.push(
-      JSON.stringify(nb.metadata.widgets[kApplicationJupyterWidgetState]),
+      JSON.stringify(widgetsState),
     );
     afterBody.push("</script>");
   }

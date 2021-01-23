@@ -49,6 +49,7 @@ import {
 } from "../../config/constants.ts";
 import {
   Format,
+  FormatPandoc,
   isHtmlFormat,
   isLatexFormat,
   isMarkdownFormat,
@@ -59,6 +60,10 @@ import {
   executeKernelKeepalive,
   executeKernelOneshot,
 } from "./jupyter-kernel.ts";
+import {
+  includesForJupyterWidgetDependencies,
+  JupyterWidgetDependencies,
+} from "../../core/jupyter/widgets.ts";
 
 const kNotebookExtensions = [
   ".ipynb",
@@ -224,6 +229,21 @@ export const jupyterEngine: ExecutionEngine = {
     );
     await Deno.writeTextFile(options.output, result.markdown);
 
+    // convert dependencies to include files
+    const pandoc: FormatPandoc = {};
+    let dependencies: JupyterWidgetDependencies | undefined;
+    if (options.dependencies) {
+      if (result.dependencies) {
+        const includeFiles = includesForJupyterWidgetDependencies(
+          [result.dependencies],
+        );
+        pandoc[kIncludeInHeader] = includeFiles.inHeader;
+        pandoc[kIncludeAfterBody] = includeFiles.afterBody;
+      }
+    } else {
+      dependencies = result.dependencies;
+    }
+
     // if it's a transient notebook then remove it, otherwise
     // sync so that jupyter[lab] can open the .ipynb w/o errors
     if (options.target.data && !options.format.render[kKeepIpynb]) {
@@ -236,12 +256,8 @@ export const jupyterEngine: ExecutionEngine = {
     return {
       supporting: [assets.supporting_dir],
       filters: [],
-      pandoc: result.includeFiles
-        ? {
-          [kIncludeInHeader]: result.includeFiles.inHeader,
-          [kIncludeAfterBody]: result.includeFiles.afterBody,
-        }
-        : {},
+      pandoc,
+      dependencies,
       postprocess: result.htmlPreserve
         ? { preserve: result.htmlPreserve }
         : undefined,
@@ -249,8 +265,16 @@ export const jupyterEngine: ExecutionEngine = {
   },
 
   dependencies: async (options: DependenciesOptions) => {
+    const pandoc: FormatPandoc = {};
+    if (options.dependencies) {
+      const includeFiles = includesForJupyterWidgetDependencies(
+        [options.dependencies as JupyterWidgetDependencies],
+      );
+      pandoc[kIncludeInHeader] = includeFiles.inHeader;
+      pandoc[kIncludeAfterBody] = includeFiles.afterBody;
+    }
     return {
-      pandoc: {},
+      pandoc,
     };
   },
 
