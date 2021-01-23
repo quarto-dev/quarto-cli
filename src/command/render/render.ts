@@ -128,14 +128,13 @@ export async function render(
   }
 
   // run optional post-processor (e.g. to restore html-preserve regions)
-  if (executeResult.postprocess && engine.postprocess) {
+  if (executeResult.preserve && engine.postprocess) {
     await engine.postprocess({
       engine,
       target,
       format,
       output: recipe.output,
-      preserve: executeResult.postprocess?.preserve,
-      data: executeResult.postprocess?.data,
+      preserve: executeResult.preserve,
       quiet: flags.quiet,
     });
   }

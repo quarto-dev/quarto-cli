@@ -258,9 +258,7 @@ export const jupyterEngine: ExecutionEngine = {
       filters: [],
       pandoc,
       dependencies,
-      postprocess: result.htmlPreserve
-        ? { preserve: result.htmlPreserve }
-        : undefined,
+      preserve: result.htmlPreserve,
     };
   },
 
