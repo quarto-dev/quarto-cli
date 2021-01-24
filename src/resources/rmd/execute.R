@@ -79,7 +79,7 @@ execute <- function(input, format, tempDir, dependencies, cwd, params) {
   # see if we are going to resolve knit_meta now or later
   if (dependencies) {
     pandoc <- pandoc_format(input, format, output_file, files_dir, knit_meta, tempDir)
-    dependencies_data <- NULL
+    dependencies_data <- NA
   } else {
     pandoc <- list()
     dependencies_data <- jsonlite::serializeJSON(knit_meta)
@@ -88,11 +88,9 @@ execute <- function(input, format, tempDir, dependencies, cwd, params) {
 
   # include postprocessing if required
   if (!is.null(preserved)) {
-    postprocess <- list(
-      preserve = split(unname(preserved),names(preserved))
-    )
+    preserve <- split(unname(preserved),names(preserved))
   } else {
-    postprocess <- NULL
+    preserve <- NA
   }
 
   # read and then delete the rendered output file
@@ -106,7 +104,7 @@ execute <- function(input, format, tempDir, dependencies, cwd, params) {
     filters = I(rmarkdown:::pkg_file_lua("pagebreak.lua")),
     pandoc = pandoc,
     dependencies = dependencies_data,
-    postprocess = postprocess
+    preserve = preserve
   )
 }
 

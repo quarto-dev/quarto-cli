@@ -5,8 +5,6 @@
 *
 */
 
-// TODO: why can't resolveDependencies be automagic on renderPandoc
-
 import { dirname } from "path/mod.ts";
 
 import { message } from "../../core/console.ts";
@@ -71,7 +69,7 @@ export async function render(
   const executeResult = await renderExecute(context, true);
 
   // run pandoc
-  return renderPandoc(context, false, executeResult);
+  return renderPandoc(context, executeResult);
 }
 
 export async function renderContext(file: string, options: RenderOptions) {
@@ -121,7 +119,6 @@ export async function renderExecute(
 
 export async function renderPandoc(
   context: RenderContext,
-  resolveDependencies: boolean,
   executeResult: ExecuteResult,
 ): Promise<ProcessResult> {
   // merge any pandoc options provided the computation
@@ -138,7 +135,7 @@ export async function renderPandoc(
   );
 
   // run the dependencies step if we didn't do it during execution
-  if (resolveDependencies && executeResult.dependencies) {
+  if (executeResult.dependencies) {
     const dependenciesResult = await context.engine.dependencies({
       target: context.target,
       format: context.format,
