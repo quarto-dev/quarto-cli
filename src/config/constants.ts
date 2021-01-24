@@ -75,6 +75,18 @@ export const kFigAlign = "fig-align";
 export const kFoldCode = "fold-code";
 export const kPreferHtml = "prefer-html";
 
+export const kLatexAutoMk = "latex-auto-mk";
+export const kLatexAutoInstall = "latex-auto-install";
+export const kLatexOutputDir = "latex-output-dir";
+export const kLatexMinRuns = "latex-min-runs";
+export const kLatexMaxRuns = "latex-max-runs";
+export const kLatexClean = "latex-clean";
+
+export const kLatexMakeIndex = "latex-makeindex";
+export const kLatexMakeIndexArgs = "latex-makeindex-args";
+
+export const kLatexTlmgrArgs = "latex-tlmgr-args";
+
 export const kRenderDefaultsKeys = [
   kKeepMd,
   kKeepTex,
@@ -88,6 +100,15 @@ export const kRenderDefaultsKeys = [
   kPageWidth,
   kFigAlign,
   kFoldCode,
+  kLatexAutoMk,
+  kLatexAutoInstall,
+  kLatexOutputDir,
+  kLatexMinRuns,
+  kLatexMaxRuns,
+  kLatexClean,
+  kLatexMakeIndex,
+  kLatexMakeIndexArgs,
+  kLatexTlmgrArgs,
 ];
 
 // 'defaults' fields

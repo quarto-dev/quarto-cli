@@ -1,0 +1,65 @@
+/*
+ * pkgmgr.ts
+ *
+ * Copyright (C) 2020 by RStudio, PBC
+ *
+ */
+
+import { ld } from "lodash/mod.ts";
+
+import { ProcessResult } from "../../../core/process.ts";
+import { LatexmkOptions } from "./latexmk.ts";
+
+import { findPackages, installPackages, updatePackages } from "./texlive.ts";
+
+export interface PackageManager {
+  autoInstall: boolean;
+  searchPackages(searchTerms: string[]): Promise<string[]>;
+  installPackages(pkgs: string[]): Promise<boolean>;
+  updatePackages(all: boolean, self: boolean): Promise<ProcessResult>;
+}
+
+export function packageManager(mkOptions: LatexmkOptions): PackageManager {
+  let lastPkgs: string[] = [];
+  return {
+    autoInstall: mkOptions.autoInstall || true,
+    installPackages: async (pkgs: string[]) => {
+      // See whether we just tried to install the same packages or
+      // if there are no packages detected to install
+      // (if so, just give up as we can't suceed)
+      const difference = ld.difference(pkgs, lastPkgs);
+      if (difference.length > 0) {
+        // Attempt to install the packages
+        await installPackages(
+          pkgs,
+          mkOptions.engine.tlmgrOpts,
+          mkOptions.quiet,
+        );
+
+        // Note that we tried to install these packages
+        lastPkgs = pkgs;
+
+        // Try running the engine again now that we've installed packages
+        return true;
+      } else {
+        // We have already tried installing these packages, don't install the packages
+        return false;
+      }
+    },
+    updatePackages: (all: boolean, self: boolean) => {
+      return updatePackages(
+        all,
+        self,
+        mkOptions.engine.tlmgrOpts,
+        mkOptions.quiet,
+      );
+    },
+    searchPackages: (searchTerms: string[]) => {
+      return findPackages(
+        searchTerms,
+        mkOptions.engine.tlmgrOpts,
+        mkOptions.quiet,
+      );
+    },
+  };
+}

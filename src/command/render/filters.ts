@@ -18,7 +18,7 @@ import {
 } from "../../config/constants.ts";
 import { Format, FormatPandoc } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
-import { pdfEngine } from "../../config/pdf.ts";
+import { bibEngine } from "../../config/pdf.ts";
 import { resourcePath } from "../../core/resources.ts";
 import {
   crossrefFilter,
@@ -204,11 +204,11 @@ function citeMethod(options: PandocOptions): CiteMethod | null {
   }
 
   // collect config
-  const pdf = pdfEngine(options.format.pandoc, options.flags);
+  const engine = bibEngine(options.format.pandoc, options.flags);
 
   // if it's pdf-based output check for natbib or biblatex
-  if (pdf?.bibEngine) {
-    return pdf.bibEngine;
+  if (engine) {
+    return engine;
   }
 
   // otherwise it's citeproc unless expressly disabled

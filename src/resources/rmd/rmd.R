@@ -80,36 +80,6 @@
       xfun::write_utf8(output_res, output)
   }
 
-  latexmk <- function(input, engine, clean, quiet) {
-
-    # use verbose mode (will show package installation messages)
-    if (!isTRUE(quiet))
-      options(tinytex.verbose = TRUE)
-
-    # change to input dir and make input relative
-    oldwd <- setwd(dirname(rmarkdown:::abs_path(input)))
-    on.exit(setwd(oldwd), add = TRUE)
-    input <- basename(input)
-
-    # build args
-    pdf_engine <- engine$pdfEngine
-    bib_engine <- ifelse(identical(engine$bibEngine,"biblatex"), "biber", "bibtex")
-    engine_args <- if (!is.null(engine$pdfEngineOpts)) engine$pdfEngineOpts
-
-    # call tinytex
-    tinytex::latexmk(input, pdf_engine, bib_engine, engine_args, clean = clean)
-
-    # cleanup some files that might be left over by tinytex
-    if (clean) {
-      for (aux in c("aux", "out", "toc")) {
-        file <- rmarkdown:::file_with_ext(input, aux)
-        if (file.exists(file))
-          unlink(file)
-      }
-
-    }
-  }
-
   run <- function(input, port) {
     shiny_args <- list()
     if (!is.null(port))
@@ -148,8 +118,6 @@
     result <- dependencies(params$target$input, params$format, params$output, params$tempDir, params$libDir, params$dependencies, params$quiet)
   } else if (request$action == "postprocess") {
     result <- postprocess(params$target$input, params$format, params$output, params$preserve)
-  } else if (request$action == "latexmk") {
-    result <- latexmk(params$input, params$engine, params$clean, params$quiet)
   } else if (request$action == "run") {
     result <- run(params$input, params$port)
   }

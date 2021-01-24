@@ -24,7 +24,6 @@ export interface ExecutionEngine {
   dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;
   keepMd: (input: string) => string | undefined;
-  latexmk?: (options: LatexmkOptions) => Promise<void>;
   run?: (options: RunOptions) => Promise<void>;
 }
 
@@ -80,14 +79,6 @@ export interface PostProcessOptions {
   format: Format;
   output: string;
   preserve?: Record<string, string>;
-  quiet?: boolean;
-}
-
-// latexmk options
-export interface LatexmkOptions {
-  input: string;
-  engine: PdfEngine;
-  clean?: boolean;
   quiet?: boolean;
 }
 

@@ -26,6 +26,15 @@ import {
   kKernelDebug,
   kKernelKeepalive,
   kKernelRestart,
+  kLatexAutoInstall,
+  kLatexAutoMk,
+  kLatexClean,
+  kLatexMakeIndex,
+  kLatexMakeIndexArgs,
+  kLatexMaxRuns,
+  kLatexMinRuns,
+  kLatexOutputDir,
+  kLatexTlmgrArgs,
   kListings,
   kMarkdownHeadings,
   kNumberOffset,
@@ -81,6 +90,16 @@ export interface FormatRender {
   [kPageWidth]?: number;
   [kFigAlign]?: "left" | "right" | "center" | "default";
   [kFoldCode]?: boolean | string;
+
+  [kLatexAutoMk]?: boolean;
+  [kLatexAutoInstall]?: boolean;
+  [kLatexOutputDir]?: string;
+  [kLatexMinRuns]?: number;
+  [kLatexMaxRuns]?: number;
+  [kLatexClean]?: boolean;
+  [kLatexMakeIndex]?: string;
+  [kLatexMakeIndexArgs]?: string[];
+  [kLatexTlmgrArgs]?: string[];
 }
 
 export interface FormatExecution {
@@ -485,6 +504,15 @@ function defaultFormat(): Format {
       [kOutputExt]: "html",
       [kFigAlign]: "center",
       [kFoldCode]: false,
+      [kLatexAutoMk]: true,
+      [kLatexAutoInstall]: true,
+      [kLatexClean]: true,
+      [kLatexMaxRuns]: 1,
+      [kLatexMaxRuns]: 10,
+      [kLatexOutputDir]: undefined,
+      [kLatexMakeIndex]: undefined,
+      [kLatexMakeIndexArgs]: undefined,
+      [kLatexTlmgrArgs]: undefined,
     },
     pandoc: {
       from: "markdown",

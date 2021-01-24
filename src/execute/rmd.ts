@@ -24,7 +24,6 @@ import type {
   ExecuteResult,
   ExecutionEngine,
   ExecutionTarget,
-  LatexmkOptions,
   PostProcessOptions,
   RunOptions,
 } from "./engine.ts";
@@ -87,13 +86,6 @@ export const rmdEngine: ExecutionEngine = {
   keepMd: (input: string) => {
     const [inputDir, inputStem] = dirAndStem(input);
     return join(inputDir, inputStem + ".md");
-  },
-
-  latexmk: (options: LatexmkOptions) => {
-    return callR<void>(
-      "latexmk",
-      options,
-    );
   },
 
   run: (options: RunOptions) => {

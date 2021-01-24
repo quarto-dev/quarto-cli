@@ -5,29 +5,52 @@
  *
  */
 
-import { basename, dirname, join, normalize } from "path/mod.ts";
+import { join, normalize } from "path/mod.ts";
 
-import { writeFileToStdout } from "../../core/console.ts";
-import { dirAndStem, expandPath } from "../../core/path.ts";
-import { execProcess, ProcessResult } from "../../core/process.ts";
+import { writeFileToStdout } from "../../../core/console.ts";
+import { dirAndStem, expandPath } from "../../../core/path.ts";
 
-import { kKeepTex, kOutputExt, kOutputFile } from "../../config/constants.ts";
-import { Format } from "../../config/format.ts";
-import { pdfEngine } from "../../config/pdf.ts";
+import {
+  kKeepTex,
+  kLatexAutoInstall,
+  kLatexAutoMk,
+  kLatexClean,
+  kLatexMaxRuns,
+  kLatexMinRuns,
+  kLatexOutputDir,
+  kOutputExt,
+  kOutputFile,
+} from "../../../config/constants.ts";
+import { Format } from "../../../config/format.ts";
+import { PdfEngine, pdfEngine } from "../../../config/pdf.ts";
 
-import { LatexmkOptions } from "../../execute/engine.ts";
-
-import { PandocOptions } from "./pandoc.ts";
-import { RenderOptions } from "./render.ts";
+import { PandocOptions } from "../pandoc.ts";
+import { RenderOptions } from "../render.ts";
 import {
   kStdOut,
   removePandocArgs,
   RenderFlags,
   replacePandocArg,
-} from "./flags.ts";
-import { OutputRecipe } from "./output.ts";
+} from "../flags.ts";
+import { OutputRecipe } from "../output.ts";
+import { generatePdf } from "./pdf.ts";
 
-export function useLatexmk(
+// latexmk options
+export interface LatexmkOptions {
+  input: string;
+  engine: PdfEngine;
+  autoInstall?: boolean;
+  autoMk?: boolean;
+  minRuns?: number;
+  maxRuns?: number;
+  outputDir?: string;
+  clean?: boolean;
+  quiet?: boolean;
+}
+
+export const kLatexMkMessageOptions = { bold: true };
+
+export function useQuartoLatexmk(
   format: Format,
   flags?: RenderFlags,
 ) {
@@ -35,9 +58,14 @@ export function useLatexmk(
   const to = format.pandoc.to;
   const ext = format.render[kOutputExt] || "html";
 
+  // Check whether explicitly disabled
+  if (format.render[kLatexAutoMk] === false) {
+    return false;
+  }
+
   // if we are creating pdf output
   if (["beamer", "pdf"].includes(to || "") && ext === "pdf") {
-    const engine = pdfEngine(format.pandoc, flags);
+    const engine = pdfEngine(format.pandoc, format.render, flags);
     return ["pdflatex", "xelatex", "lualatex"].includes(
       engine.pdfEngine,
     );
@@ -47,15 +75,11 @@ export function useLatexmk(
   return false;
 }
 
-export function latexmkOutputRecipe(
+export function quartoLatexmkOutputRecipe(
   input: string,
   options: RenderOptions,
   format: Format,
-  latexmk?: (options: LatexmkOptions) => Promise<void>,
 ): OutputRecipe {
-  // provide default latexmk if necessary
-  const latexmkHandler = latexmk ? latexmk : runLatexmk;
-
   // break apart input file
   const [inputDir, inputStem] = dirAndStem(input);
 
@@ -86,13 +110,18 @@ export function latexmkOutputRecipe(
     // determine latexmk options
     const mkOptions: LatexmkOptions = {
       input: join(inputDir, output),
-      engine: pdfEngine(format.pandoc, pandocOptions.flags),
-      clean: !options.flags?.debug,
+      engine: pdfEngine(format.pandoc, format.render, pandocOptions.flags),
+      autoInstall: format.render[kLatexAutoInstall],
+      autoMk: format.render[kLatexAutoMk],
+      minRuns: format.render[kLatexMinRuns],
+      maxRuns: format.render[kLatexMaxRuns],
+      outputDir: format.render[kLatexOutputDir],
+      clean: !options.flags?.debug && format.render[kLatexClean] !== false,
       quiet: pandocOptions.flags?.quiet,
     };
 
     // run latexmk
-    await latexmkHandler(mkOptions);
+    await generatePdf(mkOptions);
 
     // keep tex if requested
     const compileTex = join(inputDir, output);
@@ -135,102 +164,4 @@ export function latexmkOutputRecipe(
     },
     complete,
   };
-}
-
-async function runLatexmk(options: LatexmkOptions): Promise<ProcessResult> {
-  // provide argument defaults
-  const {
-    input,
-    engine: pdfEngine = { pdfEngine: "pdflatex" },
-  } = options;
-
-  // build latexmk command line
-  const cmd = ["latexmk"];
-
-  // pdf engine
-  switch (pdfEngine.pdfEngine) {
-    case "xelatex":
-      cmd.push("-xelatex");
-      break;
-    case "lualatex":
-      cmd.push("-lualatex");
-      break;
-    case "pdflatex":
-      cmd.push("-pdf");
-      break;
-    default:
-      cmd.push("-pdf");
-      break;
-  }
-
-  // pdf engine opts
-  const engineOpts = [
-    "-halt-on-error",
-    "-interaction=batchmode",
-  ];
-  if (pdfEngine.pdfEngineOpts) {
-    engineOpts.push(...pdfEngine.pdfEngineOpts);
-  }
-  cmd.push(...engineOpts.map((opt) => `-latexoption=${opt}`));
-
-  // quiet flag
-  if (options.quiet) {
-    cmd.push("-quiet");
-  }
-
-  // input file
-  cmd.push(basename(input));
-
-  // run
-  const result = await execProcess({
-    cmd,
-    cwd: dirname(input),
-    stdout: "piped",
-  });
-  if (!result.success) {
-    return Promise.reject();
-  }
-
-  // cleanup if requested
-  if (options.clean) {
-    const cleanupResult = await execProcess({
-      cmd: ["latexmk", "-c", basename(input)],
-      cwd: dirname(input),
-      stdout: "piped",
-    });
-    if (!cleanupResult.success) {
-      return Promise.reject();
-    }
-  }
-
-  return result;
-}
-
-function auxFile(stem: string, ext: string) {
-  return `${stem}.${ext}`;
-}
-
-function cleanup(input: string, pdfEngineOpts: string[]) {
-  const [inputDir, inputStem] = dirAndStem(input);
-  const auxFiles = [
-    "log",
-    "idx",
-    "aux",
-    "bcf",
-    "blg",
-    "bbl",
-    "fls",
-    "out",
-    "lof",
-    "lot",
-    "toc",
-    "nav",
-    "snm",
-    "vrb",
-    "ilg",
-    "ind",
-    "xwm",
-    "brf",
-    "run.xml",
-  ].map((aux) => join(inputDir, auxFile(inputStem, aux)));
 }
