@@ -6,7 +6,6 @@
 */
 
 // TODO: why can't resolveDependencies be automagic on renderPandoc
-// TODO: see if additional parameter grouping can happen
 
 import { dirname } from "path/mod.ts";
 
@@ -53,57 +52,66 @@ export interface RenderOptions {
   pandocArgs?: string[];
 }
 
+// context for render
+export interface RenderContext {
+  target: ExecutionTarget;
+  options: RenderOptions;
+  engine: ExecutionEngine;
+  format: Format;
+}
+
 export async function render(
   file: string,
   options: RenderOptions,
 ): Promise<ProcessResult> {
-  // alias flags
-  const flags = options.flags || {};
+  // get ontext
+  const context = await renderContext(file, options);
 
+  // execute
+  const executeResult = await renderExecute(context, true);
+
+  // run pandoc
+  return renderPandoc(context, false, executeResult);
+}
+
+export async function renderContext(file: string, options: RenderOptions) {
   // determine the computation engine and any alternate input file
-  const { target, engine } = await executionEngine(file, flags.quiet);
+  const { target, engine } = await executionEngine(file, options.flags?.quiet);
 
   // resolve render target
   const format = await resolveFormat(target, engine, options.flags);
 
-  // execute
-  const executeResult = await renderExecute(
+  // context
+  return {
     target,
+    options,
     engine,
     format,
-    true,
-    options,
-  );
-
-  // render pandoc
-  return renderPandoc(target, engine, format, false, options, executeResult);
+  };
 }
 
 export async function renderExecute(
-  target: ExecutionTarget,
-  engine: ExecutionEngine,
-  format: Format,
+  context: RenderContext,
   resolveDependencies: boolean,
-  options: RenderOptions,
 ): Promise<ExecuteResult> {
   // alias flags
-  const flags = options.flags || {};
+  const flags = context.options.flags || {};
 
   // execute computations
-  const executeResult = await engine.execute({
-    target,
+  const executeResult = await context.engine.execute({
+    target: context.target,
     resourceDir: resourcePath(),
     tempDir: sessionTempDir(),
     dependencies: resolveDependencies,
-    format,
+    format: context.format,
     cwd: flags.executeDir,
     params: resolveParams(flags.executeParams),
     quiet: flags.quiet,
   });
 
   // keep md if requested
-  const keepMd = engine.keepMd(target.input);
-  if (keepMd && format.render[kKeepMd]) {
+  const keepMd = context.engine.keepMd(context.target.input);
+  if (keepMd && context.format.render[kKeepMd]) {
     Deno.writeTextFileSync(keepMd, executeResult.markdown);
   }
 
@@ -112,33 +120,34 @@ export async function renderExecute(
 }
 
 export async function renderPandoc(
-  target: ExecutionTarget,
-  engine: ExecutionEngine,
-  format: Format,
+  context: RenderContext,
   resolveDependencies: boolean,
-  options: RenderOptions,
   executeResult: ExecuteResult,
 ): Promise<ProcessResult> {
-  // alias flags
-  const flags = options.flags || {};
-
   // merge any pandoc options provided the computation
-  format.pandoc = mergeConfigs(format.pandoc || {}, executeResult.pandoc);
+  context.format.pandoc = mergeConfigs(
+    context.format.pandoc || {},
+    executeResult.pandoc,
+  );
 
   // pandoc output recipe (target file, args, complete handler)
-  const recipe = await outputRecipe(target.source, options, format);
+  const recipe = await outputRecipe(
+    context.target.source,
+    context.options,
+    context.format,
+  );
 
   // run the dependencies step if we didn't do it during execution
   if (resolveDependencies && executeResult.dependencies) {
-    const dependenciesResult = await engine.dependencies({
-      target,
-      format,
+    const dependenciesResult = await context.engine.dependencies({
+      target: context.target,
+      format: context.format,
       output: recipe.output,
       resourceDir: resourcePath(),
       tempDir: sessionTempDir(),
       libDir: undefined, // TODO
       dependencies: [executeResult.dependencies],
-      quiet: flags.quiet,
+      quiet: context.options.flags?.quiet,
     });
     recipe.format.pandoc = mergeConfigs(
       recipe.format.pandoc,
@@ -149,10 +158,10 @@ export async function renderPandoc(
   // pandoc options
   const pandocOptions = {
     markdown: executeResult.markdown,
-    cwd: dirname(target.input),
+    cwd: dirname(context.target.input),
     format: recipe.format,
     args: recipe.args,
-    flags: options.flags,
+    flags: context.options.flags,
   };
 
   // run pandoc conversion (exit on failure)
@@ -163,13 +172,13 @@ export async function renderPandoc(
 
   // run optional post-processor (e.g. to restore html-preserve regions)
   if (executeResult.preserve) {
-    await engine.postprocess({
-      engine,
-      target,
-      format,
+    await context.engine.postprocess({
+      engine: context.engine,
+      target: context.target,
+      format: context.format,
       output: recipe.output,
       preserve: executeResult.preserve,
-      quiet: flags.quiet,
+      quiet: context.options.flags?.quiet,
     });
   }
 
@@ -177,12 +186,13 @@ export async function renderPandoc(
   const finalOutput = await recipe.complete(pandocOptions) || recipe.output;
 
   // cleanup as required
+  const flags = context.options.flags || {};
   cleanup(
     flags,
-    format,
+    context.format,
     finalOutput,
     executeResult.supporting,
-    engine.keepMd(target.input),
+    context.engine.keepMd(context.target.input),
   );
 
   // report output created
