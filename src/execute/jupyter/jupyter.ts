@@ -163,7 +163,7 @@ export const jupyterEngine: ExecutionEngine = {
       }
 
       if (notebook) {
-        return { input: notebook, data: transient };
+        return { source: file, input: notebook, data: transient };
       } else {
         return undefined;
       }

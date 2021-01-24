@@ -5,9 +5,13 @@
 *
 */
 
+// TODO: why can't resolveDependencies be automagic on renderPandoc
+// TODO: see if additional parameter grouping can happen
+
+import { dirname } from "path/mod.ts";
+
 import { message } from "../../core/console.ts";
 import { ProcessResult } from "../../core/process.ts";
-import { dirAndStem } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { sessionTempDir } from "../../core/temp.ts";
@@ -19,11 +23,6 @@ import {
   metadataAsFormat,
   projectMetadata,
 } from "../../config/metadata.ts";
-
-import { runPandoc } from "./pandoc.ts";
-import { kStdOut, RenderFlags, resolveParams } from "./flags.ts";
-import { cleanup } from "./cleanup.ts";
-import { outputRecipe } from "./output.ts";
 import {
   kCache,
   kExecute,
@@ -35,11 +34,18 @@ import {
   kMetadataFiles,
   kMetadataFormat,
 } from "../../config/constants.ts";
+import { Format } from "../../config/format.ts";
 import {
+  ExecuteResult,
   ExecutionEngine,
   executionEngine,
   ExecutionTarget,
 } from "../../execute/engine.ts";
+
+import { runPandoc } from "./pandoc.ts";
+import { kStdOut, RenderFlags, resolveParams } from "./flags.ts";
+import { cleanup } from "./cleanup.ts";
+import { outputRecipe } from "./output.ts";
 
 // command line options for render
 export interface RenderOptions {
@@ -60,19 +66,35 @@ export async function render(
   // resolve render target
   const format = await resolveFormat(target, engine, options.flags);
 
-  // derive the pandoc input file path (computations will create this)
-  const [inputDir, inputStem] = dirAndStem(target.input);
+  // execute
+  const executeResult = await renderExecute(
+    target,
+    engine,
+    format,
+    true,
+    options,
+  );
 
-  // should we resolve dependencies immediatley
-  const dependencies = true;
+  // render pandoc
+  return renderPandoc(target, engine, format, false, options, executeResult);
+}
+
+export async function renderExecute(
+  target: ExecutionTarget,
+  engine: ExecutionEngine,
+  format: Format,
+  resolveDependencies: boolean,
+  options: RenderOptions,
+): Promise<ExecuteResult> {
+  // alias flags
+  const flags = options.flags || {};
 
   // execute computations
-  const tempDir = sessionTempDir();
   const executeResult = await engine.execute({
     target,
     resourceDir: resourcePath(),
-    tempDir,
-    dependencies,
+    tempDir: sessionTempDir(),
+    dependencies: resolveDependencies,
     format,
     cwd: flags.executeDir,
     params: resolveParams(flags.executeParams),
@@ -85,20 +107,35 @@ export async function render(
     Deno.writeTextFileSync(keepMd, executeResult.markdown);
   }
 
+  // return result
+  return executeResult;
+}
+
+export async function renderPandoc(
+  target: ExecutionTarget,
+  engine: ExecutionEngine,
+  format: Format,
+  resolveDependencies: boolean,
+  options: RenderOptions,
+  executeResult: ExecuteResult,
+): Promise<ProcessResult> {
+  // alias flags
+  const flags = options.flags || {};
+
   // merge any pandoc options provided the computation
   format.pandoc = mergeConfigs(format.pandoc || {}, executeResult.pandoc);
 
   // pandoc output recipe (target file, args, complete handler)
-  const recipe = await outputRecipe(file, options, format);
+  const recipe = await outputRecipe(target.source, options, format);
 
   // run the dependencies step if we didn't do it during execution
-  if (!dependencies) {
+  if (resolveDependencies && executeResult.dependencies) {
     const dependenciesResult = await engine.dependencies({
       target,
       format,
       output: recipe.output,
       resourceDir: resourcePath(),
-      tempDir,
+      tempDir: sessionTempDir(),
       libDir: undefined, // TODO
       dependencies: [executeResult.dependencies],
       quiet: flags.quiet,
@@ -112,7 +149,7 @@ export async function render(
   // pandoc options
   const pandocOptions = {
     markdown: executeResult.markdown,
-    cwd: inputDir,
+    cwd: dirname(target.input),
     format: recipe.format,
     args: recipe.args,
     flags: options.flags,
@@ -125,7 +162,7 @@ export async function render(
   }
 
   // run optional post-processor (e.g. to restore html-preserve regions)
-  if (executeResult.preserve && engine.postprocess) {
+  if (executeResult.preserve) {
     await engine.postprocess({
       engine,
       target,

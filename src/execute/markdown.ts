@@ -16,7 +16,7 @@ import {
 export function markdownEngine(): ExecutionEngine {
   return {
     name: "markdown",
-    handle: (file: string) => Promise.resolve({ input: file }),
+    handle: (file: string) => Promise.resolve({ source: file, input: file }),
     metadata: (context: ExecutionTarget) =>
       Promise.resolve(readYamlFromMarkdownFile(context.input) as Metadata),
     execute: async (options: ExecuteOptions) => {

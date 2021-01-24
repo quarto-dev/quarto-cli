@@ -29,6 +29,7 @@ export interface ExecutionEngine {
 
 // execution target (filename and context 'cookie')
 export interface ExecutionTarget {
+  source: string;
   input: string;
   data?: unknown;
 }
@@ -105,5 +106,5 @@ export async function executionEngine(file: string, quiet?: boolean) {
   }
 
   // if there is no engine, this is plain markdown
-  return { target: { input: file }, engine: markdownEngine() };
+  return { target: { source: file, input: file }, engine: markdownEngine() };
 }

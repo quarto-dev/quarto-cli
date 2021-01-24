@@ -38,7 +38,7 @@ export const rmdEngine: ExecutionEngine = {
 
   handle: async (file: string, _quiet: boolean) => {
     if (kEngineExtensions.includes(extname(file).toLowerCase())) {
-      return { input: file };
+      return { source: file, input: file };
     }
   },
 
