@@ -19,7 +19,7 @@
   dependencies <- function(input, format, output, tempDir, libDir, data, quiet) {
     
     # unserialize knit_meta
-    knit_meta <- jsonlite::unserializeJSON(data)
+    knit_meta <- lapply(data, jsonlite::unserializeJSON)
 
     # determine files_dir
     files_dir <- if (!is.null(libDir)) libDir else rmarkdown:::knitr_files_dir(output)

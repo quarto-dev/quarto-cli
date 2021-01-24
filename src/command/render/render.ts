@@ -104,7 +104,7 @@ export async function render(
       resourceDir: resourcePath(),
       tempDir,
       libDir: undefined, // TODO
-      dependencies: executeResult.dependencies,
+      dependencies: [executeResult.dependencies],
       quiet: flags.quiet,
     });
     recipe.format.pandoc = mergeConfigs(
