@@ -46,7 +46,7 @@ export async function generateDefaults(
   let allDefaults: FormatPandoc | undefined;
 
   const detectedDefaults = await detectDefaults(
-    options.input,
+    options.markdown,
     options.format.pandoc,
   );
 
@@ -141,19 +141,18 @@ export function pandocDefaultsMessage(
 }
 
 async function detectDefaults(
-  file: string,
+  markdown: string,
   format: FormatPandoc,
 ): Promise<FormatPandoc | undefined> {
   if (isHtmlFormat(format)) {
     const cmd = [
       binaryPath("pandoc"),
-      file,
       "--from",
       format.from || "markdown",
       "--to",
       resourcePath("html-defaults.lua"),
     ];
-    const result = await execProcess({ cmd, stdout: "piped" });
+    const result = await execProcess({ cmd, stdout: "piped" }, markdown);
     if (result.success) {
       const defaults = (result.stdout || "").trim();
       if (defaults) {

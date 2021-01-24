@@ -5,8 +5,6 @@
 *
 */
 
-import { join } from "path/mod.ts";
-
 import { message } from "../../core/console.ts";
 import { ProcessResult } from "../../core/process.ts";
 import { dirAndStem } from "../../core/path.ts";
@@ -64,7 +62,6 @@ export async function render(
 
   // derive the pandoc input file path (computations will create this)
   const [inputDir, inputStem] = dirAndStem(target.input);
-  const mdOutput = join(inputDir, `${inputStem}.${engine.name}-md`);
 
   // should we resolve dependencies immediatley
   const dependencies = true;
@@ -73,7 +70,6 @@ export async function render(
   const tempDir = sessionTempDir();
   const executeResult = await engine.execute({
     target,
-    output: mdOutput,
     resourceDir: resourcePath(),
     tempDir,
     dependencies,
@@ -86,7 +82,7 @@ export async function render(
   // keep md if requested
   const keepMd = engine.keepMd(target.input);
   if (keepMd && format.render[kKeepMd]) {
-    Deno.copyFileSync(mdOutput, keepMd);
+    Deno.writeTextFileSync(keepMd, executeResult.markdown);
   }
 
   // merge any pandoc options provided the computation
@@ -115,7 +111,8 @@ export async function render(
 
   // pandoc options
   const pandocOptions = {
-    input: mdOutput,
+    markdown: executeResult.markdown,
+    cwd: inputDir,
     format: recipe.format,
     args: recipe.args,
     flags: options.flags,
@@ -146,7 +143,6 @@ export async function render(
   cleanup(
     flags,
     format,
-    mdOutput,
     finalOutput,
     executeResult.supporting,
     engine.keepMd(target.input),

@@ -227,7 +227,6 @@ export const jupyterEngine: ExecutionEngine = {
         figDpi: options.format.execution[kFigDpi],
       },
     );
-    await Deno.writeTextFile(options.output, result.markdown);
 
     // convert dependencies to include files
     const pandoc: FormatPandoc = {};
@@ -254,6 +253,7 @@ export const jupyterEngine: ExecutionEngine = {
 
     // return results
     return {
+      markdown: result.markdown,
       supporting: [assets.supporting_dir],
       filters: [],
       pandoc,

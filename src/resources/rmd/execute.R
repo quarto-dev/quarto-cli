@@ -2,14 +2,10 @@
 # Copyright (C) 2020 by RStudio, PBC
 
 # execute rmarkdown::render
-execute <- function(input, format, output, tempDir, dependencies, cwd, params) {
+execute <- function(input, format, tempDir, dependencies, cwd, params) {
 
   # calculate knit_root_dir (before we setwd below)
   knit_root_dir <- if (!is.null(cwd)) tools::file_path_as_absolute(cwd) else NULL
-
-  # calcluate absolute path to output (before we setwd below)
-  output_dir <- tools::file_path_as_absolute(dirname(output))
-  output <- file.path(output_dir, basename(output))
 
   # change to input dir and make input relative (matches
   # behavior/expectations of rmarkdown::render code)
@@ -74,9 +70,6 @@ execute <- function(input, format, output, tempDir, dependencies, cwd, params) {
   output_file <- file.path(dirname(input), render_output)
   preserved <- extract_preserve_chunks(output_file, format)
 
-  # rename the markdown file to the requested output file
-  file.rename(output_file, output)
-
   # include supporting files
   supporting <- if (!is.null(intermediates_dir) && file_test("-d", intermediates_dir))
     rmarkdown:::abs_path(intermediates_dir)
@@ -84,8 +77,8 @@ execute <- function(input, format, output, tempDir, dependencies, cwd, params) {
     character()
 
   # see if we are going to resolve knit_meta now or later
-  if (dependencies) { 
-    pandoc <- pandoc_format(input, format, output, files_dir, knit_meta, tempDir)
+  if (dependencies) {
+    pandoc <- pandoc_format(input, format, output_file, files_dir, knit_meta, tempDir)
     dependencies_data <- NULL
   } else {
     pandoc <- list()
@@ -102,9 +95,13 @@ execute <- function(input, format, output, tempDir, dependencies, cwd, params) {
     postprocess <- NULL
   }
 
+  # read and then delete the rendered output file
+  markdown <- xfun::read_utf8(output_file)
+  unlink(output_file)
 
   # results
   list(
+    markdown = paste(markdown, collapse="\n"),
     supporting = I(supporting),
     filters = I(rmarkdown:::pkg_file_lua("pagebreak.lua")),
     pandoc = pandoc,

@@ -31,7 +31,6 @@ const kStandaloneExtensions = [
 export function cleanup(
   flags: RenderFlags,
   format: Format,
-  mdOutput: string,
   finalOutput: string,
   supporting: string[],
   keepMd?: string,
@@ -39,11 +38,6 @@ export function cleanup(
   // cleanup md if necessary
   if (keepMd && !format.render[kKeepMd] && keepMd !== finalOutput) {
     removeIfExists(keepMd);
-  }
-
-  // always get rid of computations output unless we are in debug mode (it's an intermediate file)
-  if (!flags.debug) {
-    removeIfExists(mdOutput);
   }
 
   // determine if we will be self contained

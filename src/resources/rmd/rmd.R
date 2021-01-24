@@ -143,7 +143,7 @@
   if (request$action == "spin") {
     result <- spin(params$input)
   } else if (request$action == "execute") {
-    result <- execute(params$target$input, params$format, params$output, params$tempDir, params$dependencies, params$cwd, params$params)
+    result <- execute(params$target$input, params$format, params$tempDir, params$dependencies, params$cwd, params$params)
   } else if (request$action == "dependencies") {
     result <- dependencies(params$target$input, params$format, params$output, params$tempDir, params$libDir, params$dependencies, params$quiet)
   } else if (request$action == "postprocess") {

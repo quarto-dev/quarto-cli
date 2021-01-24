@@ -5,16 +5,6 @@
 *
 */
 
-// TODO: enable R resolver to take a list of knit_meta
-// TODO: result should include:
-//   - markdown
-//   - dependencies
-//   - preserve
-//   (note that filters should also be saved and combined later)
-
-// TODO: version of render that returns all of these results
-// TODO: function that runs pandoc on sets of these results
-
 import { Format, FormatPandoc } from "../config/format.ts";
 import { PdfEngine } from "../config/pdf.ts";
 import { Metadata } from "../config/metadata.ts";
@@ -47,7 +37,6 @@ export interface ExecutionTarget {
 // execute options
 export interface ExecuteOptions {
   target: ExecutionTarget;
-  output: string;
   format: Format;
   resourceDir: string;
   tempDir: string;
@@ -59,6 +48,7 @@ export interface ExecuteOptions {
 
 // result of execution
 export interface ExecuteResult {
+  markdown: string;
   supporting: string[];
   filters: string[];
   pandoc: FormatPandoc;

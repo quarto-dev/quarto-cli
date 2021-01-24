@@ -20,16 +20,11 @@ export function markdownEngine(): ExecutionEngine {
     metadata: (context: ExecutionTarget) =>
       Promise.resolve(readYamlFromMarkdownFile(context.input) as Metadata),
     execute: async (options: ExecuteOptions) => {
-      // copy input to output (unless they are the same path)
-      if (
-        !existsSync(options.output) ||
-        (Deno.realPathSync(options.target.input) !==
-          Deno.realPathSync(options.output))
-      ) {
-        await Deno.copyFile(options.target.input, options.output);
-      }
+      // read markdown
+      const markdown = Deno.readTextFileSync(options.target.input);
 
       return Promise.resolve({
+        markdown,
         supporting: [],
         filters: [],
         pandoc: {} as FormatPandoc,
