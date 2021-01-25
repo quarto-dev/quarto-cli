@@ -62,7 +62,7 @@ export async function render(
   file: string,
   options: RenderOptions,
 ): Promise<ProcessResult> {
-  // get ontext
+  // get context
   const context = await renderContext(file, options);
 
   // execute

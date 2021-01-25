@@ -8,11 +8,13 @@ import { basename } from "path/mod.ts";
 
 import { ProcessResult } from "../../core/process.ts";
 
+export const kOutputDir = "output-dir";
+
 export interface CreateProjectOptions {
   dir: string;
-  type: "collection" | "website" | "book";
+  type: "default" | "website" | "book";
   name?: string;
-  outputDir?: string;
+  [kOutputDir]?: string;
 }
 
 export async function createProject(
@@ -20,16 +22,16 @@ export async function createProject(
 ): Promise<ProcessResult> {
   // provide defaults
   options.name = options.name || basename(options.dir);
-  if (!options.outputDir) {
+  if (!options[kOutputDir]) {
     switch (options.type) {
-      case "collection":
-        options.outputDir = ".";
+      case "default":
+        options[kOutputDir] = ".";
         break;
       case "website":
-        options.outputDir = "_site";
+        options[kOutputDir] = "_site";
         break;
       case "book":
-        options.outputDir = "_book";
+        options[kOutputDir] = "_book";
         break;
     }
   }

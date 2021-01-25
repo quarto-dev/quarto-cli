@@ -20,6 +20,7 @@ TinyTex:
 
 Bugs:
 - are header-includes: being duplicated in latex preamble?
+- #fig:widgets not being apread across 4 dygraphs
 
 
 Future Quarto:
@@ -27,7 +28,50 @@ Future Quarto:
   quarto install tinytex
   see https://github.com/yihui/tinytex/blob/master/R/install.R
 
-- #fig:widgets not being apread across 4 dygraphs
+
+
+quarto create doc foo.Rmd --template=
+
+quarto create project .
+quarto create website .  --output-dir="_site"
+quarto create book . --output_dir="_book"
+
+
+quarto render foo --target=abc.Rmd
+
+quarto create doc:html foo.Rmd
+
+quarto create project . (--ouptut-dir defaults to .)
+quarto create project:site foo  (--output-dir defaults to "_site")
+quarto create project:book --type book (--output-dir defaults to "_book")
+
+
+
+quarto project <create | render | clean | config> [dir="."]
+
+quarto project create 
+
+quarto create project 
+quarto create extension
+quarto create document
+
+
+_quarto
+  .gitignore
+     .quarto
+     extensions/
+
+  .quarto/ 
+
+  metadata.yml
+
+  extensions.yml
+  extensions/
+  
+
+  
+
+   
 
 
 Projects:

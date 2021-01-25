@@ -7,20 +7,20 @@
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { createProject } from "./create-project.ts";
+import { createProject, kOutputDir } from "./create-project.ts";
 
 export const createProjectCommand = new Command()
   .name("create-project")
   .arguments("[dir:string]")
   .option(
     "-T, --type <type:string>",
-    "Project type (collection, website, or book)",
+    "Project type (default, website, or book)",
     {
-      default: "collection",
+      default: "default",
       value: (value: string): string => {
-        if (["collection", "website", "book"].indexOf(value) === -1) {
+        if (["default", "website", "book"].indexOf(value) === -1) {
           throw new Error(
-            `Project type must be one of "collection, wbsite or book", but got "${value}".`,
+            `Project type must be one of "default, website or book", but got "${value}".`,
           );
         }
         return value;
@@ -28,19 +28,23 @@ export const createProjectCommand = new Command()
     },
   )
   .option(
+    "--template [template:string]",
+    "Project template (default, none, or url)",
+  )
+  .option(
     "--name [name:string]",
     "Project name (defaults to dir name)",
   )
   .option(
     "--output-dir [dir:string]",
-    "Output directory",
+    "Output directory (default varies with project type)",
   )
   .example(
     "Create a new project",
     "quarto create-project",
   )
   .example(
-    "Create a new bookproject",
+    "Create a new book project",
     "quarto create-project --type book",
   )
   // deno-lint-ignore no-explicit-any
@@ -49,7 +53,7 @@ export const createProjectCommand = new Command()
       dir: dir || Deno.cwd(),
       type: options.type,
       name: options.name,
-      outputDir: options["output-dir"],
+      [kOutputDir]: options[kOutputDir],
     });
 
     if (!result.success) {
