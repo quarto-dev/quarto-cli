@@ -47,8 +47,11 @@ export async function generatePdf(mkOptions: LatexmkOptions) {
   }
 
   // Determine whether we support automatic updated (TexLive is available)
-  const allowUpdate = hasTexLive();
-  mkOptions.autoInstall == mkOptions.autoInstall && allowUpdate;
+  const allowUpdate = await hasTexLive();
+  if (!allowUpdate) {
+    message("Automatic package updating disabled, no tlmgr detected.");
+  }
+  mkOptions.autoInstall = mkOptions.autoInstall && allowUpdate;
 
   // The package manager used to find and install packages
   const pkgMgr = packageManager(mkOptions);

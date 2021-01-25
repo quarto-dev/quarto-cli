@@ -8,6 +8,8 @@
 import { basename, join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { ld } from "lodash/mod.ts";
+import { hasLatexDistribution } from "./latex.ts";
+import { hasTexLive } from "./texlive.ts";
 
 // The missing font log file name
 export const kMissingFontLog = "missfont.log";
@@ -82,23 +84,6 @@ export function findIndexError(logText: string): string | undefined {
   } else {
     return undefined;
   }
-}
-
-function findLatexHint(logText: string): string | undefined {
-  // unicode
-  const unicodeErrorRegex = /\! Package inputenc Error: Unicode character/;
-  const unicodeMatch = logText.match(unicodeErrorRegex);
-  if (unicodeMatch) {
-    return "Possible unsupported unicode character in this configuration. Perhaps try another LaTeX engine.";
-  }
-
-  const inlineExpressionRegex = /Missing \$ inserted\./;
-  const inlineExpressionMatch = logText.match(inlineExpressionRegex);
-  if (inlineExpressionMatch) {
-    return "You may need to $ $ around an expression in this file.";
-  }
-
-  return undefined;
 }
 
 // Search the missing font log for fonts
@@ -248,10 +233,11 @@ const kGhostPattern = {
 const kLogOutputPatterns = [kUnicodePattern, kInlinePattern];
 const kStdErrPatterns = [kGhostPattern];
 
-function suggestHint(
+async function suggestHint(
   logText: string,
   stderr?: string,
-): string | undefined {
+): Promise<string | undefined> {
+  // Check stderr for hints
   const stderrHint = kStdErrPatterns.find((errPattern) =>
     stderr?.match(errPattern.regex)
   );
@@ -259,6 +245,7 @@ function suggestHint(
   if (stderrHint) {
     return stderrHint.hint;
   } else {
+    // Check the log file for hints
     const logHint = kLogOutputPatterns.find((logPattern) =>
       logText.match(logPattern.regex)
     );

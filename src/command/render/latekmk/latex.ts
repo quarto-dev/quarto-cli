@@ -22,6 +22,19 @@ interface LatexCommandReponse {
   output?: string;
 }
 
+export async function hasLatexDistribution() {
+  try {
+    const result = await execProcess({
+      cmd: ["pdftex", "--version"],
+      stdout: "piped",
+      stderr: "piped",
+    });
+    return result.code === 0;
+  } catch (e) {
+    return false;
+  }
+}
+
 // Runs the Pdf engine
 export async function runPdfEngine(
   input: string,
@@ -155,9 +168,9 @@ async function runLatexCommand(
   };
 
   try {
-    return runCmd();
+    return await runCmd();
   } catch (e) {
-    if (e.name === "NotFound" && pkMgr) {
+    if (e.name === "NotFound" && pkMgr && pkMgr.autoInstall) {
       if (!quiet) {
         message(
           `Command ${latexCmd} not found. Attempting to install`,
@@ -169,9 +182,21 @@ async function runLatexCommand(
       await pkMgr.installPackages([latexCmd]);
 
       // Try running the command again
-      return runCmd();
+      return await runCmd();
     } else {
-      throw e;
+      const tex = await hasLatexDistribution();
+      if (!tex) {
+        message(
+          "No TeX installation was detected. Please install a TeX distribution and try again. We recommend TinyTex - learn more at https://yihui.name/tinytex/",
+        );
+        return Promise.reject();
+      } else {
+        message(
+          `Command ${latexCmd} not found.`,
+        );
+      }
+
+      return Promise.reject();
     }
   }
 }
