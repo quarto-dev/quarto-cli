@@ -19,7 +19,7 @@ import { PackageManager, packageManager } from "./pkgmgr.ts";
 import {
   findIndexError,
   findLatexError,
-  findMissingFontsAndPackages as parseLogsForSearchTerms,
+  findMissingFontsAndPackages,
   kMissingFontLog,
   needsRecompilation,
 } from "./log.ts";
@@ -271,7 +271,7 @@ async function findAndInstallPackages(
     // Read the log file itself
     const logText = Deno.readTextFileSync(logFile);
 
-    const searchTerms = parseLogsForSearchTerms(logText, dirname(logFile));
+    const searchTerms = findMissingFontsAndPackages(logText, dirname(logFile));
     if (searchTerms.length > 0) {
       const packages = await pkgMgr.searchPackages(searchTerms);
       if (packages.length > 0) {

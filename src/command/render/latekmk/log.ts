@@ -45,7 +45,12 @@ const kErrorRegex = /^\!\s([\s\S]+)?Here is how much/m;
 export function findLatexError(logText: string): string | undefined {
   const match = logText.match(kErrorRegex);
   if (match) {
-    return match[1];
+    const hint = findLatexHint(logText);
+    if (hint) {
+      return `${match[1]}\n${hint}`;
+    } else {
+      return match[1];
+    }
   } else {
     return undefined;
   }
@@ -60,6 +65,23 @@ export function findIndexError(logText: string): string | undefined {
   } else {
     return undefined;
   }
+}
+
+function findLatexHint(logText: string): string | undefined {
+  // unicode
+  const unicodeErrorRegex = /\! Package inputenc Error: Unicode character/;
+  const unicodeMatch = logText.match(unicodeErrorRegex);
+  if (unicodeMatch) {
+    return "Possible unsupported unicode character in this configuration. Perhaps try another LaTeX engine.";
+  }
+
+  const inlineExpressionRegex = /Missing \$ inserted\./;
+  const inlineExpressionMatch = logText.match(inlineExpressionRegex);
+  if (inlineExpressionMatch) {
+    return "You may need to $ $ around an expression in this file.";
+  }
+
+  return undefined;
 }
 
 // Search the missing font log for fonts
