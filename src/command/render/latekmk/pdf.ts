@@ -7,7 +7,6 @@
 
 import { basename, dirname, extname, join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
-import { ld } from "lodash/mod.ts";
 
 import { message } from "../../../core/console.ts";
 import { dirAndStem } from "../../../core/path.ts";
@@ -17,8 +16,13 @@ import { hasTexLive } from "./texlive.ts";
 import { runBibEngine, runIndexEngine, runPdfEngine } from "./latex.ts";
 import { kLatexMkMessageOptions, LatexmkOptions } from "./latexmk.ts";
 import { PackageManager, packageManager } from "./pkgmgr.ts";
-
-const kMissingFontLog = "missfont.log";
+import {
+  findIndexError,
+  findLatexError,
+  findMissingFontsAndPackages as parseLogsForSearchTerms,
+  kMissingFontLog,
+  needsRecompilation,
+} from "./log.ts";
 
 export async function generatePdf(mkOptions: LatexmkOptions) {
   if (!mkOptions.quiet) {
@@ -86,7 +90,6 @@ export async function generatePdf(mkOptions: LatexmkOptions) {
       mkOptions.minRuns || 1,
       mkOptions.maxRuns || 10,
       mkOptions.outputDir,
-      mkOptions.autoInstall,
       mkOptions.quiet,
     );
   }
@@ -141,9 +144,9 @@ async function initialCompileLatex(
         if (await findAndInstallPackages(result.log, pkgMgr, quiet)) {
           continue;
         } else {
-          throw new Error(
-            "Latex compilation failed (Missing log or no auto-install)",
-          );
+          const logText = Deno.readTextFileSync(result.log);
+          writeError("missing Packages", findLatexError(logText), result.log);
+          return Promise.reject();
         }
       }
     }
@@ -177,9 +180,14 @@ async function makeIndexIntermediates(
     );
 
     // Indexing Failed
-    if (result.code !== 0) {
-      // TODO: Print a nice error (or confirm that makeindex prints something helpful)
-      throw new Error(`Failed to generate index ${indexFile}`);
+    if (result.code !== 0 || (result.code === 0 && existsSync(result.log))) {
+      const logText = Deno.readTextFileSync(result.log);
+      writeError(
+        `Error generating index`,
+        findIndexError(logText),
+        result.log,
+      );
+      return Promise.reject();
     }
     return true;
   } else {
@@ -207,7 +215,7 @@ async function makeBibliographyIntermediates(
       : join(dir, `${stem}.aux`);
     const requiresProcessing = bibCommand === "biber"
       ? true
-      : requiresBiblioGeneration(auxBibFile);
+      : containsBiblioData(auxBibFile);
 
     if (existsSync(auxBibFile) && requiresProcessing) {
       if (!quiet) {
@@ -236,8 +244,10 @@ async function makeBibliographyIntermediates(
             if (await findAndInstallPackages(file, pkgMgr, quiet)) {
               continue;
             } else {
-              // TODO: Print a nice Latex Error (the PDF generators do not write anything to stderr and stdout just contains progress)
-              throw new Error("Bibliography compilation failed");
+              // TODO: read error out of blg file
+              // TODO: writeError that doesn't require logText?
+              writeError(`error generating bibliography`, "", log);
+              return Promise.reject();
             }
           }
         }
@@ -249,7 +259,7 @@ async function makeBibliographyIntermediates(
 }
 
 async function findAndInstallPackages(
-  file: string,
+  logFile: string,
   pkgMgr: PackageManager,
   quiet?: boolean,
 ) {
@@ -257,8 +267,11 @@ async function findAndInstallPackages(
     message("Checking for missing packages", kLatexMkMessageOptions);
   }
 
-  if (existsSync(file)) {
-    const searchTerms = findSearchTermsInLog(file);
+  if (existsSync(logFile)) {
+    // Read the log file itself
+    const logText = Deno.readTextFileSync(logFile);
+
+    const searchTerms = parseLogsForSearchTerms(logText, dirname(logFile));
     if (searchTerms.length > 0) {
       const packages = await pkgMgr.searchPackages(searchTerms);
       if (packages.length > 0) {
@@ -269,22 +282,40 @@ async function findAndInstallPackages(
           // Try again
           return true;
         } else {
-          throw new Error(
-            "Package installation already attempted, giving up",
+          writeError(
+            "package installation error",
+            findLatexError(logText),
+            logFile,
           );
+          return Promise.reject();
         }
       } else {
-        throw new Error(
-          "No matching packages found",
-        );
+        writeError("no matching packages", findLatexError(logText), logFile);
+        return Promise.reject();
       }
     } else {
-      throw new Error(
-        "No package errors",
-      );
+      writeError("error", findLatexError(logText), logFile);
+      return Promise.reject();
     }
   }
   return false;
+}
+
+function writeError(primary: string, secondary?: string, logFile?: string) {
+  message(
+    `\nCompilation failed- ${primary}`,
+    kLatexMkMessageOptions,
+  );
+
+  if (secondary) {
+    message(secondary);
+  }
+
+  if (logFile) {
+    message(`See ${logFile} for more information.`);
+  }
+
+  return Promise.reject();
 }
 
 async function recompileLatexUntilComplete(
@@ -294,7 +325,6 @@ async function recompileLatexUntilComplete(
   minRuns: number,
   maxRuns: number,
   outputDir?: string,
-  autoinstall?: boolean,
   quiet?: boolean,
 ) {
   // Run the engine until the bibliography is fully resolved
@@ -338,155 +368,7 @@ async function recompileLatexUntilComplete(
   }
 }
 
-function findSearchTermsInLog(
-  logFile: string,
-): string[] {
-  const searchTerms: string[] = [];
-
-  // Look in the log file for any missing packages or fonts
-  if (existsSync(logFile)) {
-    const logFileText = Deno.readTextFileSync(logFile);
-    const packageSearchTerms = findFiles(logFileText);
-    searchTerms.push(...packageSearchTerms);
-  }
-
-  // Look in the missing font file for any missing fonts
-  const missFontLog = join(dirname(logFile), kMissingFontLog);
-  if (existsSync(missFontLog)) {
-    const missFontLogText = Deno.readTextFileSync(missFontLog);
-    const fontSearchTerms = findFonts(missFontLogText);
-    searchTerms.push(...fontSearchTerms);
-  }
-
-  // Search TexLive for missing packages and fonts
-  return ld.uniq(searchTerms);
-}
-
-const formatFontFilter = (match: string, text: string) => {
-  const base = basename(match);
-  return fontExt(base);
-};
-
-const estoPdfFilter = (_match: string, _text: string) => {
-  return "epstopdf";
-};
-
-const packageMatchers = [
-  // Fonts
-  {
-    regex: /.*! Font [^=]+=([^ ]+).+ not loadable.*/g,
-    filter: formatFontFilter,
-  },
-  {
-    regex: /.*! .*The font "([^"]+)" cannot be found.*/g,
-    filter: formatFontFilter,
-  },
-  {
-    regex: /.*!.+ error:.+\(file ([^)]+)\): .*/g,
-    filter: formatFontFilter,
-  },
-  {
-    regex: /.*Package widetext error: Install the ([^ ]+) package.*/g,
-    filter: (match: string, text: string) => {
-      return `${match}.sty`;
-    },
-  },
-  {
-    regex: /.*Unable to find TFM file "([^"]+)".*/g,
-    filter: formatFontFilter,
-  },
-
-  { regex: /.* File `(.+eps-converted-to.pdf)'.*/g, filter: estoPdfFilter },
-  { regex: /.*xdvipdfmx:fatal: pdf_ref_obj.*/g, filter: estoPdfFilter },
-
-  {
-    regex: /.* (tikzlibrary[^ ]+?[.]code[.]tex).*/g,
-    filter: (match: string, text: string) => {
-      if (text.match(/! Package tikz Error:/)) {
-        return match;
-      } else {
-        return undefined;
-      }
-    },
-  },
-
-  { regex: /.*! LaTeX Error: File `([^']+)' not found.*/g },
-  { regex: /.* file ['`]?([^' ]+)'? not found.*/g },
-  { regex: /.*the language definition file ([^ ]+) .*/g },
-  { regex: /.* \\(file ([^)]+)\\): cannot open .*/g },
-  { regex: /.*file `([^']+)' .*is missing.*/g },
-  { regex: /.*! CTeX fontset `([^']+)' is unavailable.*/g },
-  { regex: /.*: ([^:]+): command not found.*/g },
-  { regex: /.*! I can't find file `([^']+)'.*/g },
-];
-
-function fontExt(font: string): string {
-  return `${font}(-(Bold|Italic|Regular).*)?[.](tfm|afm|mf|otf|ttf)`;
-}
-
-function findFiles(logFileText: string): string[] {
-  const toInstall: string[] = [];
-
-  packageMatchers.forEach((packageMatcher) => {
-    packageMatcher.regex.lastIndex = 0;
-    let match = packageMatcher.regex.exec(logFileText);
-    while (match != null) {
-      const file = match[1];
-      // Apply the filter, if there is one
-      const filteredFile = packageMatcher.filter
-        ? packageMatcher.filter(file, logFileText)
-        : file;
-
-      // Capture any matches
-      if (filteredFile) {
-        toInstall.push(filteredFile);
-      }
-
-      match = packageMatcher.regex.exec(logFileText);
-    }
-    packageMatcher.regex.lastIndex = 0;
-  });
-
-  // dedpulicated list of packages to attempt to install
-  return ld.uniq(toInstall);
-}
-
-function findFonts(missFontLogText: string): string[] {
-  const toInstall: string[] = [];
-  const lines = missFontLogText.split(/\r?\n/);
-  lines.forEach((line) => {
-    // Trim the line
-    line = line.trim();
-
-    // Extract the font from the end of the line
-    const fontMatch = line.match(/([^\s]*)$/);
-    if (fontMatch && fontMatch[1].trim() !== "") {
-      toInstall.push(fontMatch[1]);
-    }
-
-    // Extract the font install command from the front of the line
-    // Also request that this be installed
-    const commandMatch = line.match(/^([^\s]*)/);
-    if (commandMatch && commandMatch[1].trim() !== "") {
-      toInstall.push(commandMatch[1]);
-    }
-  });
-
-  // deduplicated list of fonts and font install commands
-  return ld.uniq(toInstall);
-}
-
-function needsRecompilation(log: string, quiet?: boolean) {
-  if (existsSync(log)) {
-    const logContents = Deno.readTextFileSync(log);
-    return logContents.match(
-      /(Rerun to get |Please \(re\)run | Rerun LaTeX\.)/,
-    );
-  }
-  return false;
-}
-
-function requiresBiblioGeneration(auxFile: string) {
+function containsBiblioData(auxFile: string) {
   const auxData = Deno.readTextFileSync(auxFile);
   if (auxData) {
     return auxData.match(/^\\(bibdata|citation|bibstyle)\{/m);

@@ -12,7 +12,6 @@ import { message } from "../../../core/console.ts";
 import { dirAndStem } from "../../../core/path.ts";
 import { execProcess, ProcessResult } from "../../../core/process.ts";
 
-import { installPackages } from "./texlive.ts";
 import { PdfEngine } from "../../../config/pdf.ts";
 import { kLatexMkMessageOptions } from "./latexmk.ts";
 import { PackageManager } from "./pkgmgr.ts";
@@ -23,7 +22,7 @@ interface PdfEngineResult {
   log: string;
 }
 
-interface BibEngineResult {
+interface LatexCommandResult {
   code: number;
   log: string;
 }
@@ -86,12 +85,25 @@ export async function runIndexEngine(
   pkgMgr?: PackageManager,
   quiet?: boolean,
 ) {
-  return await runLatexCommand(
+  const [dir, stem] = dirAndStem(input);
+  const log = join(dir, `${stem}.ilg`);
+
+  // Clean any log file from previous runs
+  if (existsSync(log)) {
+    Deno.removeSync(log);
+  }
+
+  const result = await runLatexCommand(
     engine || "makeindex",
     [...(args || []), input],
     pkgMgr,
     quiet,
   );
+
+  return {
+    code: result.code,
+    log,
+  };
 }
 
 // Runs the bibengine to process citations
@@ -100,15 +112,21 @@ export async function runBibEngine(
   input: string,
   pkgMgr?: PackageManager,
   quiet?: boolean,
-): Promise<BibEngineResult> {
+): Promise<LatexCommandResult> {
+  const [dir, stem] = dirAndStem(input);
+  const log = join(dir, `${stem}.blg`);
+
+  // Clean any log file from previous runs
+  if (existsSync(log)) {
+    Deno.removeSync(log);
+  }
+
   const result = await runLatexCommand(
     engine,
     [input],
     pkgMgr,
     quiet,
   );
-  const [dir, stem] = dirAndStem(input);
-  const log = join(dir, `${stem}.blg`);
   return {
     code: result.code,
     log,
