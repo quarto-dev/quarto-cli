@@ -113,7 +113,7 @@ export async function updatePackages(
     args.push("--self");
   }
 
-  return tlmgrCommand("update", (opts || []), quiet);
+  return tlmgrCommand("update", (args || []), quiet);
 }
 
 // Install packages using TexLive
