@@ -1,35 +1,22 @@
-Update appears to be running into an error
-MakeIndex - currently purposely fail for malformed entry (but could suceed)
+Do we need to do latexmk version checking?
 
 Index stderr output from latex / texlive
 
-Add support for installing missing babel packages
-
-Do we need to do latexmk version checking?
-
 TinyTex:
 - Install TinyTex
+    quarto install-tool tinytex | pandoc | ...etc <version>
   - Detect missing tex (via which/error etc...)
     (probably go looking after an error, not before running)
   - Output message to install TinyTex
     Please install TeX (command to install TinyTex or point at TexLive or another TeX distribution - link to Texlive)
-      quarto install tinytex
+      quarto install-tool tinytex
+- When new versions of TexLive are released, how do we manage updating (research)
 
 - Estopdf requires ghost script. Should we detect and install on MacOs / warn on other unixes?
   https://github.com/yihui/tinytex/blob/6c0078f2c3c1319a48b71b61753f09c3ec079c0a/R/tlmgr.R#L114
 
-- When new versions of TexLive are released, how do we manage updating (research)
-
 - Why is this in tiny-tex
   tweak_aux (https://github.com/yihui/tinytex/blob/33cbe601ff671fae47c594250de1d22bbf293b27/R/latex.R#L286)
-
-
-
-
-- TLMgr fmtutil when updating packages
-  Appears to be run only by refresh_all
-  Also runs tex_hash and a number of other things. Not called, appears to be accessible externally?
-
 
 Bugs:
 - are header-includes: being duplicated in latex preamble?
