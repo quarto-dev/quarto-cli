@@ -195,14 +195,25 @@ async function makeIndexIntermediates(
     );
 
     // Indexing Failed
-    if (result.code !== 0 || (result.code === 0 && existsSync(result.log))) {
-      const logText = Deno.readTextFileSync(result.log);
+    const indexLogExists = existsSync(result.log);
+    if (result.code !== 0) {
       writeError(
         `Error generating index`,
-        findIndexError(logText),
+        "",
         result.log,
       );
       return Promise.reject();
+    } else if (indexLogExists) {
+      const logText = Deno.readTextFileSync(result.log);
+      const error = findIndexError(logText);
+      if (error) {
+        writeError(
+          `Error generating index`,
+          error,
+          result.log,
+        );
+        return Promise.reject();
+      }
     }
     return true;
   } else {
@@ -384,9 +395,13 @@ async function recompileLatexUntilComplete(
 }
 
 function containsBiblioData(auxFile: string) {
-  const auxData = Deno.readTextFileSync(auxFile);
-  if (auxData) {
-    return auxData.match(/^\\(bibdata|citation|bibstyle)\{/m);
+  if (existsSync(auxFile)) {
+    const auxData = Deno.readTextFileSync(auxFile);
+    if (auxData) {
+      return auxData.match(/^\\(bibdata|citation|bibstyle)\{/m);
+    } else {
+      return false;
+    }
   } else {
     return false;
   }

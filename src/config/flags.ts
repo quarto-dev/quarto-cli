@@ -22,6 +22,8 @@ export interface PandocFlags {
   [kSelfContained]?: boolean;
   pdfEngine?: string;
   pdfEngineOpts?: string[];
+  makeIndexOpts?: string[];
+  tlmgrOpts?: string[];
   natbib?: boolean;
   biblatex?: boolean;
   [kListings]?: boolean;
