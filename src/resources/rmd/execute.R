@@ -2,14 +2,10 @@
 # Copyright (C) 2020 by RStudio, PBC
 
 # execute rmarkdown::render
-execute <- function(input, format, output, tempDir, cwd, params) {
+execute <- function(input, format, tempDir, dependencies, cwd, params) {
 
   # calculate knit_root_dir (before we setwd below)
   knit_root_dir <- if (!is.null(cwd)) tools::file_path_as_absolute(cwd) else NULL
-
-  # calcluate absolute path to output (before we setwd below)
-  output_dir <- tools::file_path_as_absolute(dirname(output))
-  output <- file.path(output_dir, basename(output))
 
   # change to input dir and make input relative (matches
   # behavior/expectations of rmarkdown::render code)
@@ -74,48 +70,41 @@ execute <- function(input, format, output, tempDir, cwd, params) {
   output_file <- file.path(dirname(input), render_output)
   preserved <- extract_preserve_chunks(output_file, format)
 
-  # rename the markdown file to the requested output file
-  file.rename(output_file, output)
-
-  # get dependencies from render
-  dependencies <- dependencies_from_render(input, files_dir, knit_meta)
-
-  # embed shiny_prerendered dependencies
-  if (!is.null(dependencies$shiny)) {
-    rmarkdown:::shiny_prerendered_append_dependencies(
-      output,
-      dependencies$shiny,
-      files_dir,
-      dirname(input))
-  }
-
-  # apply any required patches
-  includes <- apply_patches(format, dependencies$includes)
-
   # include supporting files
   supporting <- if (!is.null(intermediates_dir) && file_test("-d", intermediates_dir))
     rmarkdown:::abs_path(intermediates_dir)
   else
     character()
 
+  # see if we are going to resolve knit_meta now or later
+  if (dependencies) {
+    pandoc <- pandoc_format(input, format, output_file, files_dir, knit_meta, tempDir)
+    dependencies_data <- NA
+  } else {
+    pandoc <- list()
+    dependencies_data <- jsonlite::serializeJSON(knit_meta)
+  }
+  
+
   # include postprocessing if required
   if (!is.null(preserved)) {
-    postprocess <- list(
-      preserve = split(unname(preserved),names(preserved))
-    )
+    preserve <- split(unname(preserved),names(preserved))
   } else {
-    postprocess <- NULL
+    preserve <- NA
   }
 
-  # write the includes to temp files
-  pandoc <- format_pandoc(includes, tempDir)
+  # read and then delete the rendered output file
+  markdown <- xfun::read_utf8(output_file)
+  unlink(output_file)
 
   # results
   list(
+    markdown = paste(markdown, collapse="\n"),
     supporting = I(supporting),
     filters = I(rmarkdown:::pkg_file_lua("pagebreak.lua")),
     pandoc = pandoc,
-    postprocess = postprocess
+    dependencies = dependencies_data,
+    preserve = preserve
   )
 }
 
@@ -238,6 +227,31 @@ knitr_cache_dir <- function(input, format) {
   cache_dir
 }
 
+# produce pandoc format (e.g. includes from knit_meta)
+pandoc_format <- function(input, format, output, files_dir, knit_meta, tempDir) {
+
+  # get dependencies from render 
+  dependencies <- dependencies_from_render(input, files_dir, knit_meta)
+
+  # embed shiny_prerendered dependencies
+  if (!is.null(dependencies$shiny)) {
+    rmarkdown:::shiny_prerendered_append_dependencies(
+      output,
+      dependencies$shiny,
+      files_dir,
+      dirname(input))
+  }
+
+  # apply any required patches
+  includes <- apply_patches(format, dependencies$includes)
+
+    # write the includes to temp files
+  pandoc <- pandoc_includes(includes, tempDir)
+
+  # return format object
+  pandoc
+}
+
 # get dependencies implied by the result of render (e.g. html dependencies)
 dependencies_from_render <-function(input, files_dir, knit_meta) {
 
@@ -287,7 +301,7 @@ dependencies_from_render <-function(input, files_dir, knit_meta) {
 
 }
 
-format_pandoc <- function(includes, tempDir) {
+pandoc_includes <- function(includes, tempDir) {
   pandoc <- list()
   write_includes <- function(from, to) {
     content <- includes[[from]]

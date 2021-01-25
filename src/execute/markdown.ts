@@ -6,6 +6,7 @@ import { FormatPandoc } from "../config/format.ts";
 import { Metadata } from "../config/metadata.ts";
 
 import {
+  DependenciesOptions,
   ExecuteOptions,
   ExecutionEngine,
   ExecutionTarget,
@@ -15,24 +16,24 @@ import {
 export function markdownEngine(): ExecutionEngine {
   return {
     name: "markdown",
-    handle: (file: string) => Promise.resolve({ input: file }),
+    handle: (file: string) => Promise.resolve({ source: file, input: file }),
     metadata: (context: ExecutionTarget) =>
       Promise.resolve(readYamlFromMarkdownFile(context.input) as Metadata),
     execute: async (options: ExecuteOptions) => {
-      // copy input to output (unless they are the same path)
-      if (
-        !existsSync(options.output) ||
-        (Deno.realPathSync(options.target.input) !==
-          Deno.realPathSync(options.output))
-      ) {
-        await Deno.copyFile(options.target.input, options.output);
-      }
+      // read markdown
+      const markdown = Deno.readTextFileSync(options.target.input);
 
       return Promise.resolve({
+        markdown,
         supporting: [],
         filters: [],
         pandoc: {} as FormatPandoc,
       });
+    },
+    dependencies: async (_options: DependenciesOptions) => {
+      return {
+        pandoc: {},
+      };
     },
     postprocess: (_options: PostProcessOptions) => Promise.resolve(),
     keepMd: (_input: string) => undefined,

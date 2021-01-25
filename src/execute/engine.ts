@@ -21,6 +21,7 @@ export interface ExecutionEngine {
   ) => Promise<ExecutionTarget | undefined>;
   metadata: (target: ExecutionTarget) => Promise<Metadata>;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
+  dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;
   keepMd: (input: string) => string | undefined;
   run?: (options: RunOptions) => Promise<void>;
@@ -28,6 +29,7 @@ export interface ExecutionEngine {
 
 // execution target (filename and context 'cookie')
 export interface ExecutionTarget {
+  source: string;
   input: string;
   data?: unknown;
 }
@@ -35,10 +37,10 @@ export interface ExecutionTarget {
 // execute options
 export interface ExecuteOptions {
   target: ExecutionTarget;
-  output: string;
   format: Format;
   resourceDir: string;
   tempDir: string;
+  dependencies: boolean;
   cwd?: string;
   params?: { [key: string]: unknown };
   quiet?: boolean;
@@ -46,13 +48,29 @@ export interface ExecuteOptions {
 
 // result of execution
 export interface ExecuteResult {
+  markdown: string;
   supporting: string[];
   filters: string[];
   pandoc: FormatPandoc;
-  postprocess?: {
-    preserve?: Record<string, string>;
-    data?: unknown;
-  };
+  dependencies?: unknown;
+  preserve?: Record<string, string>;
+}
+
+// dependencies options
+export interface DependenciesOptions {
+  target: ExecutionTarget;
+  format: Format;
+  output: string;
+  resourceDir: string;
+  tempDir: string;
+  libDir?: string;
+  dependencies?: unknown;
+  quiet?: boolean;
+}
+
+// dependencies result
+export interface DependenciesResult {
+  pandoc: FormatPandoc;
 }
 
 // post processing options
@@ -62,7 +80,6 @@ export interface PostProcessOptions {
   format: Format;
   output: string;
   preserve?: Record<string, string>;
-  data?: unknown;
   quiet?: boolean;
 }
 
@@ -89,5 +106,5 @@ export async function executionEngine(file: string, quiet?: boolean) {
   }
 
   // if there is no engine, this is plain markdown
-  return { target: { input: file }, engine: markdownEngine() };
+  return { target: { source: file, input: file }, engine: markdownEngine() };
 }

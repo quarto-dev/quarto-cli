@@ -22,6 +22,7 @@ import { message } from "../../core/console.ts";
 import { Metadata } from "../../config/metadata.ts";
 
 import type {
+  DependenciesOptions,
   ExecuteOptions,
   ExecuteResult,
   ExecutionEngine,
@@ -48,6 +49,7 @@ import {
 } from "../../config/constants.ts";
 import {
   Format,
+  FormatPandoc,
   isHtmlFormat,
   isLatexFormat,
   isMarkdownFormat,
@@ -58,6 +60,10 @@ import {
   executeKernelKeepalive,
   executeKernelOneshot,
 } from "./jupyter-kernel.ts";
+import {
+  includesForJupyterWidgetDependencies,
+  JupyterWidgetDependencies,
+} from "../../core/jupyter/widgets.ts";
 
 const kNotebookExtensions = [
   ".ipynb",
@@ -157,7 +163,7 @@ export const jupyterEngine: ExecutionEngine = {
       }
 
       if (notebook) {
-        return { input: notebook, data: transient };
+        return { source: file, input: notebook, data: transient };
       } else {
         return undefined;
       }
@@ -221,7 +227,21 @@ export const jupyterEngine: ExecutionEngine = {
         figDpi: options.format.execution[kFigDpi],
       },
     );
-    await Deno.writeTextFile(options.output, result.markdown);
+
+    // convert dependencies to include files
+    const pandoc: FormatPandoc = {};
+    let dependencies: JupyterWidgetDependencies | undefined;
+    if (options.dependencies) {
+      if (result.dependencies) {
+        const includeFiles = includesForJupyterWidgetDependencies(
+          [result.dependencies],
+        );
+        pandoc[kIncludeInHeader] = includeFiles.inHeader;
+        pandoc[kIncludeAfterBody] = includeFiles.afterBody;
+      }
+    } else {
+      dependencies = result.dependencies;
+    }
 
     // if it's a transient notebook then remove it, otherwise
     // sync so that jupyter[lab] can open the .ipynb w/o errors
@@ -233,17 +253,26 @@ export const jupyterEngine: ExecutionEngine = {
 
     // return results
     return {
+      markdown: result.markdown,
       supporting: [assets.supporting_dir],
       filters: [],
-      pandoc: result.includeFiles
-        ? {
-          [kIncludeInHeader]: result.includeFiles.inHeader,
-          [kIncludeAfterBody]: result.includeFiles.afterBody,
-        }
-        : {},
-      postprocess: result.htmlPreserve
-        ? { preserve: result.htmlPreserve }
-        : undefined,
+      pandoc,
+      dependencies,
+      preserve: result.htmlPreserve,
+    };
+  },
+
+  dependencies: async (options: DependenciesOptions) => {
+    const pandoc: FormatPandoc = {};
+    if (options.dependencies) {
+      const includeFiles = includesForJupyterWidgetDependencies(
+        [options.dependencies as JupyterWidgetDependencies],
+      );
+      pandoc[kIncludeInHeader] = includeFiles.inHeader;
+      pandoc[kIncludeAfterBody] = includeFiles.afterBody;
+    }
+    return {
+      pandoc,
     };
   },
 

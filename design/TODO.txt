@@ -40,6 +40,9 @@ Future Quarto:
   quarto install tinytex
   see https://github.com/yihui/tinytex/blob/master/R/install.R
 
+- #fig:widgets not being apread across 4 dygraphs
+
+
 Projects:
 
 2) Project types (built in and extensions)
@@ -64,6 +67,27 @@ FUTURE
 4) Lock file / Extensions
 
 
+- there is always an output_dir for projects (we could put caches/intermedite md there)
+- alternatively, we could stick this stuff in _quarto (which could have a default .gitignore)
+
+Renders have side effects (knit_meta) that need to be preserved for books.
+The side effects might require an id of some kind (for managing duplicates):
+   R: 
+     - html dependencies
+     - preserves
+     - patches (e.g. slides for htmlwidgets)
+     - intermediates/intermediates-dir
+
+Engine returns a data structure that includes:
+    - markdown for pandoc
+    - arbitrary data that will be passed back to it to create pandoc includes
+    - arbitrary data that will be passed back to it for postprocessing
+
+
+- Project is always a _quarto folder
+  - for a document we crawl up tree to find project folder
+  - slurp up every yaml file in folder and merge
+  - default suggestion: metadata.yml
   ---
   project:
     name:

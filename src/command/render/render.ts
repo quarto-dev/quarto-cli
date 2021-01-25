@@ -5,11 +5,10 @@
 *
 */
 
-import { join } from "path/mod.ts";
+import { dirname } from "path/mod.ts";
 
 import { message } from "../../core/console.ts";
 import { ProcessResult } from "../../core/process.ts";
-import { dirAndStem } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { sessionTempDir } from "../../core/temp.ts";
@@ -21,11 +20,6 @@ import {
   metadataAsFormat,
   projectMetadata,
 } from "../../config/metadata.ts";
-
-import { runPandoc } from "./pandoc.ts";
-import { kStdOut, RenderFlags, resolveParams } from "./flags.ts";
-import { cleanup } from "./cleanup.ts";
-import { outputRecipe } from "./output.ts";
 import {
   kCache,
   kExecute,
@@ -37,11 +31,18 @@ import {
   kMetadataFiles,
   kMetadataFormat,
 } from "../../config/constants.ts";
+import { Format } from "../../config/format.ts";
 import {
+  ExecuteResult,
   ExecutionEngine,
   executionEngine,
   ExecutionTarget,
 } from "../../execute/engine.ts";
+
+import { runPandoc } from "./pandoc.ts";
+import { kStdOut, RenderFlags, resolveParams } from "./flags.ts";
+import { cleanup } from "./cleanup.ts";
+import { outputRecipe } from "./output.ts";
 
 // command line options for render
 export interface RenderOptions {
@@ -49,53 +50,115 @@ export interface RenderOptions {
   pandocArgs?: string[];
 }
 
+// context for render
+export interface RenderContext {
+  target: ExecutionTarget;
+  options: RenderOptions;
+  engine: ExecutionEngine;
+  format: Format;
+}
+
 export async function render(
   file: string,
   options: RenderOptions,
 ): Promise<ProcessResult> {
-  // alias flags
-  const flags = options.flags || {};
+  // get ontext
+  const context = await renderContext(file, options);
 
+  // execute
+  const executeResult = await renderExecute(context, true);
+
+  // run pandoc
+  return renderPandoc(context, executeResult);
+}
+
+export async function renderContext(file: string, options: RenderOptions) {
   // determine the computation engine and any alternate input file
-  const { target, engine } = await executionEngine(file, flags.quiet);
+  const { target, engine } = await executionEngine(file, options.flags?.quiet);
 
   // resolve render target
   const format = await resolveFormat(target, engine, options.flags);
 
-  // derive the pandoc input file path (computations will create this)
-  const [inputDir, inputStem] = dirAndStem(target.input);
-  const mdOutput = join(inputDir, `${inputStem}.${engine.name}-md`);
+  // context
+  return {
+    target,
+    options,
+    engine,
+    format,
+  };
+}
+
+export async function renderExecute(
+  context: RenderContext,
+  resolveDependencies: boolean,
+): Promise<ExecuteResult> {
+  // alias flags
+  const flags = context.options.flags || {};
 
   // execute computations
-  const executeResult = await engine.execute({
-    target,
-    output: mdOutput,
+  const executeResult = await context.engine.execute({
+    target: context.target,
     resourceDir: resourcePath(),
     tempDir: sessionTempDir(),
-    format,
+    dependencies: resolveDependencies,
+    format: context.format,
     cwd: flags.executeDir,
     params: resolveParams(flags.executeParams),
     quiet: flags.quiet,
   });
 
   // keep md if requested
-  const keepMd = engine.keepMd(target.input);
-  if (keepMd && format.render[kKeepMd]) {
-    Deno.copyFileSync(mdOutput, keepMd);
+  const keepMd = context.engine.keepMd(context.target.input);
+  if (keepMd && context.format.render[kKeepMd]) {
+    Deno.writeTextFileSync(keepMd, executeResult.markdown);
   }
 
+  // return result
+  return executeResult;
+}
+
+export async function renderPandoc(
+  context: RenderContext,
+  executeResult: ExecuteResult,
+): Promise<ProcessResult> {
   // merge any pandoc options provided the computation
-  format.pandoc = mergeConfigs(format.pandoc || {}, executeResult.pandoc);
+  context.format.pandoc = mergeConfigs(
+    context.format.pandoc || {},
+    executeResult.pandoc,
+  );
 
   // pandoc output recipe (target file, args, complete handler)
-  const recipe = await outputRecipe(file, options, format);
+  const recipe = await outputRecipe(
+    context.target.source,
+    context.options,
+    context.format,
+  );
+
+  // run the dependencies step if we didn't do it during execution
+  if (executeResult.dependencies) {
+    const dependenciesResult = await context.engine.dependencies({
+      target: context.target,
+      format: context.format,
+      output: recipe.output,
+      resourceDir: resourcePath(),
+      tempDir: sessionTempDir(),
+      libDir: undefined, // TODO
+      dependencies: [executeResult.dependencies],
+      quiet: context.options.flags?.quiet,
+    });
+    recipe.format.pandoc = mergeConfigs(
+      recipe.format.pandoc,
+      dependenciesResult.pandoc,
+    );
+  }
 
   // pandoc options
   const pandocOptions = {
-    input: mdOutput,
+    markdown: executeResult.markdown,
+    cwd: dirname(context.target.input),
     format: recipe.format,
     args: recipe.args,
-    flags: options.flags,
+    flags: context.options.flags,
   };
 
   // run pandoc conversion (exit on failure)
@@ -105,15 +168,14 @@ export async function render(
   }
 
   // run optional post-processor (e.g. to restore html-preserve regions)
-  if (executeResult.postprocess && engine.postprocess) {
-    await engine.postprocess({
-      engine,
-      target,
-      format,
+  if (executeResult.preserve) {
+    await context.engine.postprocess({
+      engine: context.engine,
+      target: context.target,
+      format: context.format,
       output: recipe.output,
-      preserve: executeResult.postprocess?.preserve,
-      data: executeResult.postprocess?.data,
-      quiet: flags.quiet,
+      preserve: executeResult.preserve,
+      quiet: context.options.flags?.quiet,
     });
   }
 
@@ -121,13 +183,13 @@ export async function render(
   const finalOutput = await recipe.complete(pandocOptions) || recipe.output;
 
   // cleanup as required
+  const flags = context.options.flags || {};
   cleanup(
     flags,
-    format,
-    mdOutput,
+    context.format,
     finalOutput,
     executeResult.supporting,
-    engine.keepMd(target.input),
+    context.engine.keepMd(context.target.input),
   );
 
   // report output created

@@ -27,8 +27,10 @@ import { removeFilterParmas, setFilterParams } from "./filters.ts";
 
 // options required to run pandoc
 export interface PandocOptions {
-  // input file
-  input: string;
+  // markdown input
+  markdown: string;
+  // working dir for conversion
+  cwd: string;
   // target format
   format: Format;
   // command line args for pandoc
@@ -48,11 +50,11 @@ export async function runPandoc(
   // build command line args
   const args = [...options.args];
 
-  // provide default title based on filename if necessary
+  // provide default title if necessary
   if (!options.format.metadata["title"]) {
     args.push(
       "--metadata",
-      "title:" + options.input.slice(0, options.input.indexOf(".")),
+      "title:untitled",
     );
   }
 
@@ -86,7 +88,7 @@ export async function runPandoc(
   // our fully resolved metadata, which incorporates project and format-specific
   // values, overrides the metadata contained within the file). we'll feed the
   // input to pandoc on stdin
-  const input = Deno.readTextFileSync(options.input) +
+  const input = options.markdown +
     "\n\n<!-- -->\n" +
     `\n---\n${stringify(options.format.metadata || {})}\n---\n`;
 
@@ -112,7 +114,7 @@ export async function runPandoc(
   return await execProcess(
     {
       cmd,
-      cwd: dirname(options.input),
+      cwd: options.cwd,
     },
     input,
   );

@@ -15,6 +15,21 @@
 
   }
 
+  # dependencies (convert knit_meta to includes)
+  dependencies <- function(input, format, output, tempDir, libDir, data, quiet) {
+    
+    # unserialize knit_meta
+    knit_meta <- lapply(data, jsonlite::unserializeJSON)
+
+    # determine files_dir
+    files_dir <- if (!is.null(libDir)) libDir else rmarkdown:::knitr_files_dir(output)
+
+    # yield pandoc format
+    list(
+      pandoc = pandoc_format(input, format, output, files_dir, knit_meta, tempDir)
+    )
+  }
+
   # postprocess (restore preserved)
   postprocess <- function(input, format, output, preserved_chunks) {
 
@@ -98,7 +113,9 @@
   if (request$action == "spin") {
     result <- spin(params$input)
   } else if (request$action == "execute") {
-    result <- execute(params$target$input, params$format, params$output, params$tempDir, params$cwd, params$params)
+    result <- execute(params$target$input, params$format, params$tempDir, params$dependencies, params$cwd, params$params)
+  } else if (request$action == "dependencies") {
+    result <- dependencies(params$target$input, params$format, params$output, params$tempDir, params$libDir, params$dependencies, params$quiet)
   } else if (request$action == "postprocess") {
     result <- postprocess(params$target$input, params$format, params$output, params$preserve)
   } else if (request$action == "run") {

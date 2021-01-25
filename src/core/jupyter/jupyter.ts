@@ -53,7 +53,10 @@ import {
   isCaptionableData,
   isDisplayData,
 } from "./display_data.ts";
-import { widgetIncludeFiles } from "./widgets.ts";
+import {
+  extractJupyterWidgetDependencies,
+  JupyterWidgetDependencies,
+} from "./widgets.ts";
 import { removeAndPreserveHtml } from "./preserve.ts";
 import { FormatExecution } from "../../config/format.ts";
 import { pandocAutoIdentifier } from "../pandoc/pandoc_id.ts";
@@ -378,11 +381,7 @@ export interface JupyterToMarkdownOptions {
 
 export interface JupyterToMarkdownResult {
   markdown: string;
-  includeFiles?: {
-    inHeader?: string[];
-    beforeBody?: string[];
-    afterBody?: string[];
-  };
+  dependencies?: JupyterWidgetDependencies;
   htmlPreserve?: Record<string, string>;
 }
 
@@ -391,7 +390,9 @@ export function jupyterToMarkdown(
   options: JupyterToMarkdownOptions,
 ): JupyterToMarkdownResult {
   // optional content injection / html preservation for html output
-  const includeFiles = options.toHtml ? widgetIncludeFiles(nb) : undefined;
+  const dependencies = options.toHtml
+    ? extractJupyterWidgetDependencies(nb)
+    : undefined;
   const htmlPreserve = options.toHtml ? removeAndPreserveHtml(nb) : undefined;
 
   // generate markdown
@@ -429,7 +430,7 @@ export function jupyterToMarkdown(
   // return markdown and any widget requirements
   return {
     markdown: md.join(""),
-    includeFiles,
+    dependencies,
     htmlPreserve,
   };
 }
