@@ -20,6 +20,7 @@ import {
   findIndexError,
   findLatexError,
   findMissingFontsAndPackages,
+  findMissingHyphenationFiles,
   kMissingFontLog,
   needsRecompilation,
 } from "./log.ts";
@@ -146,6 +147,20 @@ async function initialCompileLatex(
         } else {
           const logText = Deno.readTextFileSync(result.log);
           writeError("missing Packages", findLatexError(logText), result.log);
+          return Promise.reject();
+        }
+      }
+    } else if (result.code === 0 && existsSync(result.log)) {
+      // Success, but there is a log we can inspect.
+      // See whether there are warnings about hyphenation
+      // See (https://github.com/yihui/tinytex/commit/0f2007426f730a6ed9d45369233c1349a69ddd29)
+      const logText = Deno.readTextFileSync(result.log);
+      const missingHyphenationFile = findMissingHyphenationFiles(logText);
+      if (missingHyphenationFile) {
+        if (await pkgMgr.installPackages([missingHyphenationFile])) {
+          continue;
+        } else {
+          writeError("Failed to install hyphenation file", "", result.log);
           return Promise.reject();
         }
       }

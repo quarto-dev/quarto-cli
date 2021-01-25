@@ -113,7 +113,6 @@ export async function updatePackages(
     args.push("--self");
   }
 
-  // TODO: fmtutil??
   return tlmgrCommand("update", (opts || []), quiet);
 }
 

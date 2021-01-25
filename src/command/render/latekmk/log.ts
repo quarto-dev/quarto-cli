@@ -38,6 +38,20 @@ export function needsRecompilation(log: string) {
   return false;
 }
 
+// Finds missing hyphenation files (these appear as warnings in the log file)
+export function findMissingHyphenationFiles(logText: string) {
+  const babelWarningRegex = /^Package babel Warning:/m;
+  const hasWarning = logText.match(babelWarningRegex);
+  if (hasWarning) {
+    const languageRegex = /^\(babel\).* language `(\S+)'.*$/m;
+    const languageMatch = logText.match(languageRegex);
+    if (languageMatch) {
+      const language = languageMatch[1];
+      return `hyphen-${language.toLowerCase()}`;
+    }
+  }
+}
+
 // Reads lines that start with ! up to the ending output
 const kErrorRegex = /^\!\s([\s\S]+)?Here is how much/m;
 
