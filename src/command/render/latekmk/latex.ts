@@ -16,15 +16,10 @@ import { PdfEngine } from "../../../config/pdf.ts";
 import { kLatexMkMessageOptions } from "./latexmk.ts";
 import { PackageManager } from "./pkgmgr.ts";
 
-interface PdfEngineResult {
-  code: number;
-  output: string;
+interface LatexCommandReponse {
   log: string;
-}
-
-interface LatexCommandResult {
-  code: number;
-  log: string;
+  result: ProcessResult;
+  output?: string;
 }
 
 // Runs the Pdf engine
@@ -34,7 +29,7 @@ export async function runPdfEngine(
   outputDir?: string,
   pkgMgr?: PackageManager,
   quiet?: boolean,
-): Promise<PdfEngineResult> {
+): Promise<LatexCommandReponse> {
   // Input and log paths
   const [dir, stem] = dirAndStem(input);
   const output = join(outputDir || dir, `${stem}.pdf`);
@@ -71,7 +66,7 @@ export async function runPdfEngine(
 
   // Success, return result
   return {
-    code: result.code,
+    result,
     output,
     log,
   };
@@ -101,7 +96,7 @@ export async function runIndexEngine(
   );
 
   return {
-    code: result.code,
+    result,
     log,
   };
 }
@@ -112,7 +107,7 @@ export async function runBibEngine(
   input: string,
   pkgMgr?: PackageManager,
   quiet?: boolean,
-): Promise<LatexCommandResult> {
+): Promise<LatexCommandReponse> {
   const [dir, stem] = dirAndStem(input);
   const log = join(dir, `${stem}.blg`);
 
@@ -128,7 +123,7 @@ export async function runBibEngine(
     quiet,
   );
   return {
-    code: result.code,
+    result,
     log,
   };
 }
@@ -142,7 +137,7 @@ async function runLatexCommand(
   const runOptions: Deno.RunOptions = {
     cmd: [latexCmd, ...args],
     stdout: "piped",
-    stderr: quiet ? "piped" : undefined,
+    stderr: "piped",
   };
 
   const stdoutHandler = (data: Uint8Array) => {
@@ -151,8 +146,16 @@ async function runLatexCommand(
     }
   };
 
+  const runCmd = async () => {
+    const result = await execProcess(runOptions, undefined, stdoutHandler);
+    if (!quiet && result.stderr) {
+      message(result.stderr);
+    }
+    return result;
+  };
+
   try {
-    return await execProcess(runOptions, undefined, stdoutHandler);
+    return runCmd();
   } catch (e) {
     if (e.name === "NotFound" && pkMgr) {
       if (!quiet) {
@@ -166,7 +169,7 @@ async function runLatexCommand(
       await pkMgr.installPackages([latexCmd]);
 
       // Try running the command again
-      return await execProcess(runOptions, undefined, stdoutHandler);
+      return runCmd();
     } else {
       throw e;
     }

@@ -56,10 +56,13 @@ export function findMissingHyphenationFiles(logText: string) {
 const kErrorRegex = /^\!\s([\s\S]+)?Here is how much/m;
 
 // Parse a log file to find latex errors
-export function findLatexError(logText: string): string | undefined {
+export function findLatexError(
+  logText: string,
+  stderr?: string,
+): string | undefined {
   const match = logText.match(kErrorRegex);
   if (match) {
-    const hint = findLatexHint(logText);
+    const hint = suggestHint(logText, stderr);
     if (hint) {
       return `${match[1]}\n${hint}`;
     } else {
@@ -223,4 +226,46 @@ function findInMissingFontLog(missFontLogText: string): string[] {
 
   // deduplicated list of fonts and font install commands
   return ld.uniq(toInstall);
+}
+
+const kUnicodePattern = {
+  regex: /\! Package inputenc Error: Unicode character/,
+  hint:
+    "Possible unsupported unicode character in this configuration. Perhaps try another LaTeX engine (e.g. XeLaTeX).",
+};
+
+const kInlinePattern = {
+  regex: /Missing \$ inserted\./,
+  hint: "You may need to $ $ around an expression in this file.",
+};
+
+const kGhostPattern = {
+  regex: /^\!\!\! Error: Cannot open Ghostscript for piped input/m,
+  hint:
+    "GhostScript is likely required to compile this document. Please be sure GhostScript (https://ghostscript.com) is installed and try again.",
+};
+
+const kLogOutputPatterns = [kUnicodePattern, kInlinePattern];
+const kStdErrPatterns = [kGhostPattern];
+
+function suggestHint(
+  logText: string,
+  stderr?: string,
+): string | undefined {
+  const stderrHint = kStdErrPatterns.find((errPattern) =>
+    stderr?.match(errPattern.regex)
+  );
+
+  if (stderrHint) {
+    return stderrHint.hint;
+  } else {
+    const logHint = kLogOutputPatterns.find((logPattern) =>
+      logText.match(logPattern.regex)
+    );
+    if (logHint) {
+      return logHint.hint;
+    } else {
+      return undefined;
+    }
+  }
 }
