@@ -187,7 +187,7 @@ async function runLatexCommand(
       const tex = await hasLatexDistribution();
       if (!tex) {
         message(
-          "No TeX installation was detected. Please install a TeX distribution and try again. We recommend TinyTex - learn more at https://yihui.name/tinytex/",
+          "No TeX installation was detected. Please install TinyTex (https://yihui.name/tinytex/) or another TeX distribution and try again",
         );
         return Promise.reject();
       } else {
