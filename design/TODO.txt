@@ -40,8 +40,8 @@ quarto create project . (--ouptut-dir defaults to .)
 quarto create project:site foo  (--output-dir defaults to "_site")
 quarto create project:book --type book (--output-dir defaults to "_book")
 
---engine rmd 
---engine jupyter
+--computation rmd 
+--computation jupyter:python3
 
 
 quarto project <create | render | clean | config> [dir="."]
@@ -56,6 +56,10 @@ format:
   html-bootstrap5
 
 
+Could say that while there is *always* a lockfile, package installations
+are always global (b/c they popuplate the global cache). the only local
+thing you need is the deps.ts / import_map.json, etc.
+
 extensions:
   fancytweet: https://quarto.land/fancytweet@3.4.2
   
@@ -63,7 +67,21 @@ extensions:
 {{ fancytweet qwerqwer }}
 
 
-Package sources:
+quarto install fancytweet
+
+quarto update fancytweet
+
+for standalone document render, we will promot for installation of extensions
+as necessary, and add the extensions: key in YAML at the bottom of the document
+
+- install/update commands put the latest version in the global cache
+- new documents use the latest version in the cache
+- if you run install/update within a project then it updates the lockfile
+
+
+
+
+Extensions sources:
   - global cache
   - project lockfile
   - 'extensions' inside a yaml key
@@ -80,13 +98,16 @@ _quarto/
 
    extensions.yml
    extensions/
+      corporate-special-sauce/
 
 
 quarto bundle foo.Rmd
 
-   
+repositories:
+   sauce: https://corporate-sauce.net
 
-quarto install fancytweet
+
+quarto install sauce/foo
 
 
 
@@ -115,6 +136,8 @@ Projects:
     - type: <- later
     - name: 
     - output-dir: (optional)
+    - lock-extensions: true
+
   - delegate rendering to the type implementation
   - Default type built in
     - default render all to markdown, then stitch together and pandoc that
