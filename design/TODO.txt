@@ -3,9 +3,6 @@ Do we need to do latexmk version checking?
 TinyTex:
 - Install TinyTex
     quarto install-tool tinytex | pandoc | ...etc <version>
-  - Detect missing tex (via which/error etc...)
-    (probably go looking after an error, not before running)
-  - Output message to install TinyTex
     Please install TeX (command to install TinyTex or point at TexLive or another TeX distribution - link to Texlive)
       quarto install-tool tinytex
 - When new versions of TexLive are released, how do we manage updating (research)
