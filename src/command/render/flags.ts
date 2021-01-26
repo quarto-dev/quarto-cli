@@ -84,6 +84,22 @@ export function parseRenderFlags(args: string[]) {
         }
         break;
 
+      case "--makeindex-opt":
+        arg = argsStack.shift();
+        if (arg) {
+          flags.makeIndexOpts = flags.makeIndexOpts || [];
+          flags.makeIndexOpts.push(arg);
+        }
+        break;
+
+      case "--tlmgr-opt":
+        arg = argsStack.shift();
+        if (arg) {
+          flags.tlmgrOpts = flags.tlmgrOpts || [];
+          flags.tlmgrOpts.push(arg);
+        }
+        break;
+
       case "--natbib":
         arg = argsStack.shift();
         flags.natbib = true;
@@ -290,6 +306,8 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   removeArgs.set("--cache-refresh", false);
   removeArgs.set("--debug", false);
   removeArgs.set("--metadata-file", true);
+  removeArgs.set("--makeindex-opt", true);
+  removeArgs.set("--tlmgr-opt", true);
 
   // Remove un-needed pandoc args (including -M/--metadata as appropriate)
   pandocArgs = removePandocArgs(pandocArgs, removeArgs);

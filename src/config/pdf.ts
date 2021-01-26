@@ -4,8 +4,8 @@ import { PandocFlags } from "./flags.ts";
 import {
   kCiteMethod,
   kLatexMakeIndex,
-  kLatexMakeIndexArgs,
-  kLatexTlmgrArgs,
+  kLatexMakeIndexOpts,
+  kLatexTlmgrOpts,
   kPdfEngine,
   kPdfEngineOpt,
   kPdfEngineOpts,
@@ -42,13 +42,6 @@ export function pdfEngine(
   const pdfEngine =
     (flags?.pdfEngine || defaults[kPdfEngine] as string || "pdflatex");
 
-  // index options
-  const indexEngine = render[kLatexMakeIndex];
-  const indexEngineOpts = render[kLatexMakeIndexArgs];
-
-  // tlmgr options
-  const tlmgrOpts = render[kLatexTlmgrArgs];
-
   // collect all engine opts
   const pdfEngineOpts = defaults[kPdfEngineOpts] || [];
   if (defaults[kPdfEngineOpt]) {
@@ -56,6 +49,19 @@ export function pdfEngine(
   }
   if (flags?.pdfEngineOpts) {
     pdfEngineOpts.push(...flags?.pdfEngineOpts);
+  }
+
+  // index options
+  const indexEngine = render[kLatexMakeIndex];
+  const indexEngineOpts = render[kLatexMakeIndexOpts] || [];
+  if (flags?.makeIndexOpts) {
+    indexEngineOpts?.push(...flags?.makeIndexOpts);
+  }
+
+  // tlmgr options
+  const tlmgrOpts = render[kLatexTlmgrOpts] || [];
+  if (flags?.tlmgrOpts) {
+    tlmgrOpts?.push(...flags?.tlmgrOpts);
   }
 
   return {

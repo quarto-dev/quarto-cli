@@ -22,7 +22,9 @@ export interface PackageManager {
 export function packageManager(mkOptions: LatexmkOptions): PackageManager {
   let lastPkgs: string[] = [];
   return {
-    autoInstall: mkOptions.autoInstall || true,
+    autoInstall: mkOptions.autoInstall === undefined
+      ? true
+      : mkOptions.autoInstall,
     installPackages: async (pkgs: string[]) => {
       // See whether we just tried to install the same packages or
       // if there are no packages detected to install

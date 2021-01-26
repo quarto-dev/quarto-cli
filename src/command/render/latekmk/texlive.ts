@@ -12,12 +12,12 @@ import { execProcess } from "../../../core/process.ts";
 // Determines whether TexLive is installed and callable on this system
 export async function hasTexLive(): Promise<boolean> {
   try {
-    execProcess({
+    const result = await execProcess({
       cmd: ["tlmgr", "--version"],
       stdout: "piped",
       stderr: "piped",
     });
-    return true;
+    return result.code === 0;
   } catch (e) {
     return false;
   }
@@ -113,8 +113,7 @@ export async function updatePackages(
     args.push("--self");
   }
 
-  // TODO: fmtutil??
-  return tlmgrCommand("update", (opts || []), quiet);
+  return tlmgrCommand("update", (args || []), quiet);
 }
 
 // Install packages using TexLive
@@ -209,21 +208,26 @@ function tlmgrCommand(
   quiet?: boolean,
   stdout?: (stdout: Uint8Array) => void,
 ) {
-  return execProcess(
-    {
-      cmd: ["tlmgr", cmd, ...args],
-      stdout: "piped",
-      stderr: quiet ? "piped" : undefined,
-    },
-    undefined,
-    (data: Uint8Array) => {
-      if (!quiet) {
-        Deno.stderr.writeSync(data);
-      }
+  try {
+    const result = execProcess(
+      {
+        cmd: ["tlmgr", cmd, ...args],
+        stdout: "piped",
+        stderr: quiet ? "piped" : undefined,
+      },
+      undefined,
+      (data: Uint8Array) => {
+        if (!quiet) {
+          Deno.stderr.writeSync(data);
+        }
 
-      if (stdout) {
-        stdout(data);
-      }
-    },
-  );
+        if (stdout) {
+          stdout(data);
+        }
+      },
+    );
+    return result;
+  } catch (e) {
+    return Promise.reject();
+  }
 }

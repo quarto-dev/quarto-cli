@@ -20,9 +20,10 @@ import {
   findIndexError,
   findLatexError,
   findMissingFontsAndPackages,
+  findMissingHyphenationFiles,
   kMissingFontLog,
   needsRecompilation,
-} from "./log.ts";
+} from "./parse-error.ts";
 
 export async function generatePdf(mkOptions: LatexmkOptions) {
   if (!mkOptions.quiet) {
@@ -46,8 +47,11 @@ export async function generatePdf(mkOptions: LatexmkOptions) {
   }
 
   // Determine whether we support automatic updated (TexLive is available)
-  const allowUpdate = hasTexLive();
-  mkOptions.autoInstall == mkOptions.autoInstall && allowUpdate;
+  const allowUpdate = await hasTexLive();
+  if (!allowUpdate) {
+    message("Automatic package updating disabled, no tlmgr detected.");
+  }
+  mkOptions.autoInstall = mkOptions.autoInstall && allowUpdate;
 
   // The package manager used to find and install packages
   const pkgMgr = packageManager(mkOptions);
@@ -115,7 +119,7 @@ async function initialCompileLatex(
 ) {
   let packagesUpdated = false;
   while (true) {
-    const result = await runPdfEngine(
+    const response = await runPdfEngine(
       input,
       engine,
       outputDir,
@@ -127,11 +131,12 @@ async function initialCompileLatex(
     // (PNAS Template may eat errors when missing packages exists)
     // See: https://github.com/yihui/tinytex/blob/6c0078f2c3c1319a48b71b61753f09c3ec079c0a/R/latex.R#L216
     if (
-      result.code !== 0 ||
-      result.code === 0 && !existsSync(result.output)
+      response.result.code !== 0 ||
+      (response.result.code === 0 && response.output &&
+        !existsSync(response.output))
     ) {
       // Try auto-installing the packages
-      if (existsSync(result.log) && pkgMgr.autoInstall) {
+      if (existsSync(response.log) && pkgMgr.autoInstall) {
         // First be sure all packages are up to date
         if (!packagesUpdated) {
           if (!quiet) {
@@ -141,11 +146,36 @@ async function initialCompileLatex(
           packagesUpdated = true;
         }
 
-        if (await findAndInstallPackages(result.log, pkgMgr, quiet)) {
+        if (
+          await findAndInstallPackages(
+            pkgMgr,
+            response.log,
+            response.result.stderr,
+            quiet,
+          )
+        ) {
           continue;
         } else {
-          const logText = Deno.readTextFileSync(result.log);
-          writeError("missing Packages", findLatexError(logText), result.log);
+          const logText = Deno.readTextFileSync(response.log);
+          writeError(
+            "missing Packages",
+            findLatexError(logText, response.result.stderr),
+            response.log,
+          );
+          return Promise.reject();
+        }
+      }
+    } else if (response.result.code === 0 && existsSync(response.log)) {
+      // Success, but there is a log we can inspect.
+      // See whether there are warnings about hyphenation
+      // See (https://github.com/yihui/tinytex/commit/0f2007426f730a6ed9d45369233c1349a69ddd29)
+      const logText = Deno.readTextFileSync(response.log);
+      const missingHyphenationFile = findMissingHyphenationFiles(logText);
+      if (missingHyphenationFile) {
+        if (await pkgMgr.installPackages([missingHyphenationFile])) {
+          continue;
+        } else {
+          writeError("Failed to install hyphenation file", "", response.log);
           return Promise.reject();
         }
       }
@@ -171,7 +201,7 @@ async function makeIndexIntermediates(
     }
 
     // Make the index
-    const result = await runIndexEngine(
+    const response = await runIndexEngine(
       indexFile,
       engine,
       args,
@@ -180,14 +210,25 @@ async function makeIndexIntermediates(
     );
 
     // Indexing Failed
-    if (result.code !== 0 || (result.code === 0 && existsSync(result.log))) {
-      const logText = Deno.readTextFileSync(result.log);
+    const indexLogExists = existsSync(response.log);
+    if (response.result.code !== 0) {
       writeError(
         `Error generating index`,
-        findIndexError(logText),
-        result.log,
+        "",
+        response.log,
       );
       return Promise.reject();
+    } else if (indexLogExists) {
+      const logText = Deno.readTextFileSync(response.log);
+      const error = findIndexError(logText);
+      if (error) {
+        writeError(
+          `Error generating index`,
+          error,
+          response.log,
+        );
+        return Promise.reject();
+      }
     }
     return true;
   } else {
@@ -223,14 +264,14 @@ async function makeBibliographyIntermediates(
       }
 
       // If natbib, only use bibtex, otherwise, could use biber or bibtex
-      const result = await runBibEngine(
+      const response = await runBibEngine(
         bibCommand,
         auxBibFile,
         pkgMgr,
         quiet,
       );
 
-      if (result.code !== 0 && pkgMgr.autoInstall) {
+      if (response.result.code !== 0 && pkgMgr.autoInstall) {
         // Biblio generation failed, see whether we should install anything to try to resolve
         // Find the missing packages
         const log = join(dir, `${stem}.blg`);
@@ -241,7 +282,14 @@ async function makeBibliographyIntermediates(
 
           if (match) {
             const file = match[1];
-            if (await findAndInstallPackages(file, pkgMgr, quiet)) {
+            if (
+              await findAndInstallPackages(
+                pkgMgr,
+                file,
+                response.result.stderr,
+                quiet,
+              )
+            ) {
               continue;
             } else {
               // TODO: read error out of blg file
@@ -259,8 +307,9 @@ async function makeBibliographyIntermediates(
 }
 
 async function findAndInstallPackages(
-  logFile: string,
   pkgMgr: PackageManager,
+  logFile: string,
+  stderr?: string,
   quiet?: boolean,
 ) {
   if (!quiet) {
@@ -284,17 +333,21 @@ async function findAndInstallPackages(
         } else {
           writeError(
             "package installation error",
-            findLatexError(logText),
+            findLatexError(logText, stderr),
             logFile,
           );
           return Promise.reject();
         }
       } else {
-        writeError("no matching packages", findLatexError(logText), logFile);
+        writeError(
+          "no matching packages",
+          findLatexError(logText, stderr),
+          logFile,
+        );
         return Promise.reject();
       }
     } else {
-      writeError("error", findLatexError(logText), logFile);
+      writeError("error", findLatexError(logText, stderr), logFile);
       return Promise.reject();
     }
   }
@@ -369,9 +422,13 @@ async function recompileLatexUntilComplete(
 }
 
 function containsBiblioData(auxFile: string) {
-  const auxData = Deno.readTextFileSync(auxFile);
-  if (auxData) {
-    return auxData.match(/^\\(bibdata|citation|bibstyle)\{/m);
+  if (existsSync(auxFile)) {
+    const auxData = Deno.readTextFileSync(auxFile);
+    if (auxData) {
+      return auxData.match(/^\\(bibdata|citation|bibstyle)\{/m);
+    } else {
+      return false;
+    }
   } else {
     return false;
   }

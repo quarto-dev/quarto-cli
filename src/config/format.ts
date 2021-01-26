@@ -30,11 +30,11 @@ import {
   kLatexAutoMk,
   kLatexClean,
   kLatexMakeIndex,
-  kLatexMakeIndexArgs,
+  kLatexMakeIndexOpts,
   kLatexMaxRuns,
   kLatexMinRuns,
   kLatexOutputDir,
-  kLatexTlmgrArgs,
+  kLatexTlmgrOpts,
   kListings,
   kMarkdownHeadings,
   kNumberOffset,
@@ -98,8 +98,8 @@ export interface FormatRender {
   [kLatexMaxRuns]?: number;
   [kLatexClean]?: boolean;
   [kLatexMakeIndex]?: string;
-  [kLatexMakeIndexArgs]?: string[];
-  [kLatexTlmgrArgs]?: string[];
+  [kLatexMakeIndexOpts]?: string[];
+  [kLatexTlmgrOpts]?: string[];
 }
 
 export interface FormatExecution {
@@ -511,8 +511,8 @@ function defaultFormat(): Format {
       [kLatexMaxRuns]: 10,
       [kLatexOutputDir]: undefined,
       [kLatexMakeIndex]: undefined,
-      [kLatexMakeIndexArgs]: undefined,
-      [kLatexTlmgrArgs]: undefined,
+      [kLatexMakeIndexOpts]: undefined,
+      [kLatexTlmgrOpts]: undefined,
     },
     pandoc: {
       from: "markdown",
