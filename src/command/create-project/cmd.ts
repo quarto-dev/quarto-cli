@@ -62,7 +62,7 @@ export const createProjectCommand = new Command()
     "--formats <formats:string>",
     "Comma separated list of formats to use in the project",
     {
-      default: "html",
+      default: ["html"],
       value: (value: string): string[] => {
         return value.split(/,/);
       },
@@ -75,6 +75,10 @@ export const createProjectCommand = new Command()
   .option(
     "--output-dir [dir:string]",
     "Output directory (default varies with project type)",
+  )
+  .option(
+    "--quiet",
+    "Suppress warning and other messages.",
   )
   .example(
     "Create a project in the current directory",
@@ -105,5 +109,6 @@ export const createProjectCommand = new Command()
       scaffold: options.scaffold,
       name: options.name,
       [kOutputDir]: options[kOutputDir],
+      quiet: options.quiet,
     });
   });
