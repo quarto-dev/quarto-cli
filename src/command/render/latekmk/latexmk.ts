@@ -48,8 +48,6 @@ export interface LatexmkOptions {
   quiet?: boolean;
 }
 
-export const kLatexMkMessageOptions = { bold: true };
-
 export function useQuartoLatexmk(
   format: Format,
   flags?: RenderFlags,

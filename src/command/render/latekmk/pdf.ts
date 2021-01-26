@@ -13,8 +13,13 @@ import { dirAndStem } from "../../../core/path.ts";
 import { PdfEngine } from "../../../config/pdf.ts";
 
 import { hasTexLive } from "./texlive.ts";
-import { runBibEngine, runIndexEngine, runPdfEngine } from "./latex.ts";
-import { kLatexMkMessageOptions, LatexmkOptions } from "./latexmk.ts";
+import {
+  LatexCommandReponse,
+  runBibEngine,
+  runIndexEngine,
+  runPdfEngine,
+} from "./latex.ts";
+import { LatexmkOptions } from "./latexmk.ts";
 import { PackageManager, packageManager } from "./pkgmgr.ts";
 import {
   findIndexError,
@@ -24,12 +29,15 @@ import {
   kMissingFontLog,
   needsRecompilation,
 } from "./parse-error.ts";
+import { ProcessResult } from "../../../core/process.ts";
+
+export const kPdfGenerateMessageOptions = { bold: true };
 
 export async function generatePdf(mkOptions: LatexmkOptions) {
   if (!mkOptions.quiet) {
     message(
       `Creating PDF (${mkOptions.engine.pdfEngine})`,
-      kLatexMkMessageOptions,
+      kPdfGenerateMessageOptions,
     );
   }
 
@@ -48,8 +56,8 @@ export async function generatePdf(mkOptions: LatexmkOptions) {
 
   // Determine whether we support automatic updating (TexLive is available)
   const allowUpdate = await hasTexLive();
-  if (!allowUpdate) {
-    message("Automatic package updating disabled  (no tlmgr detected)");
+  if (mkOptions.autoInstall && !allowUpdate) {
+    message("(TeX Live not found- automatic package updating disabled)");
   }
   mkOptions.autoInstall = mkOptions.autoInstall && allowUpdate;
 
@@ -119,6 +127,7 @@ async function initialCompileLatex(
 ) {
   let packagesUpdated = false;
   while (true) {
+    // Run the pdf engine
     const response = await runPdfEngine(
       input,
       engine,
@@ -127,61 +136,76 @@ async function initialCompileLatex(
       quiet,
     );
 
-    // We'll consider it a failure if there is an error status or output is missing despite a success status
+    // Check whether it suceeded. We'll consider it a failure if there is an error status or output is missing despite a success status
     // (PNAS Template may eat errors when missing packages exists)
     // See: https://github.com/yihui/tinytex/blob/6c0078f2c3c1319a48b71b61753f09c3ec079c0a/R/latex.R#L216
-    if (
-      response.result.code !== 0 ||
-      (response.result.code === 0 && response.output &&
-        !existsSync(response.output))
-    ) {
-      // Try auto-installing the packages
-      if (existsSync(response.log) && pkgMgr.autoInstall) {
-        // First be sure all packages are up to date
-        if (!packagesUpdated) {
-          if (!quiet) {
-            message("Updating existing packages", kLatexMkMessageOptions);
-          }
-          await pkgMgr.updatePackages(true, false);
-          packagesUpdated = true;
-        }
+    const success = response.result.code === 0 &&
+      (!response.output || existsSync(response.output));
 
-        if (
-          await findAndInstallPackages(
-            pkgMgr,
-            response.log,
-            response.result.stderr,
-            quiet,
-          )
-        ) {
-          continue;
-        } else {
-          const logText = Deno.readTextFileSync(response.log);
-          writeError(
-            "missing Packages",
-            findLatexError(logText, response.result.stderr),
-            response.log,
-          );
-          return Promise.reject();
-        }
-      }
-    } else if (response.result.code === 0 && existsSync(response.log)) {
-      // Success, but there is a log we can inspect.
+    if (success) {
       // See whether there are warnings about hyphenation
       // See (https://github.com/yihui/tinytex/commit/0f2007426f730a6ed9d45369233c1349a69ddd29)
       const logText = Deno.readTextFileSync(response.log);
       const missingHyphenationFile = findMissingHyphenationFiles(logText);
       if (missingHyphenationFile) {
         if (await pkgMgr.installPackages([missingHyphenationFile])) {
+          // We installed hyphenation files, retry
           continue;
         } else {
-          writeError("Failed to install hyphenation file", "", response.log);
+          writeError("missing hyphenation file", "", response.log);
           return Promise.reject();
         }
       }
+    } else if (pkgMgr.autoInstall) {
+      // try autoinstalling
+      // First be sure all packages are up to date
+      if (!packagesUpdated) {
+        if (!quiet) {
+          message("Updating existing packages", kPdfGenerateMessageOptions);
+        }
+        await pkgMgr.updatePackages(true, false);
+        packagesUpdated = true;
+      }
+
+      // Try to find and install packages
+      const packagesInstalled = await findAndInstallPackages(
+        pkgMgr,
+        response.log,
+        response.result.stderr,
+        quiet,
+      );
+
+      if (packagesInstalled) {
+        // try the intial compile again
+        continue;
+      } else {
+        // We failed to install packages (but there are missing packages), give up
+        displayError(response.log, response.result);
+        return Promise.reject();
+      }
+    } else {
+      // Failed, but no auto-installation, just display the error
+      displayError(response.log, response.result);
+      return Promise.reject();
     }
+
     // If we get here, we aren't installing packages (or we've already installed them)
     break;
+  }
+}
+
+function displayError(log: string, result: ProcessResult) {
+  if (existsSync(log)) {
+    // There is a log file, so read that and try to find the error
+    const logText = Deno.readTextFileSync(log);
+    writeError(
+      "missing packages",
+      findLatexError(logText, result.stderr),
+      log,
+    );
+  } else {
+    // There is no log file, just display an unknown error
+    writeError("unknown error");
   }
 }
 
@@ -197,40 +221,48 @@ async function makeIndexIntermediates(
   const indexFile = join(dir, `${stem}.idx`);
   if (existsSync(indexFile)) {
     if (!quiet) {
-      message("Making Index", kLatexMkMessageOptions);
+      message("Making Index", kPdfGenerateMessageOptions);
     }
 
     // Make the index
-    const response = await runIndexEngine(
-      indexFile,
-      engine,
-      args,
-      pkgMgr,
-      quiet,
-    );
-
-    // Indexing Failed
-    const indexLogExists = existsSync(response.log);
-    if (response.result.code !== 0) {
-      writeError(
-        `Error generating index`,
-        "",
-        response.log,
+    try {
+      const response = await runIndexEngine(
+        indexFile,
+        engine,
+        args,
+        pkgMgr,
+        quiet,
       );
-      return Promise.reject();
-    } else if (indexLogExists) {
-      const logText = Deno.readTextFileSync(response.log);
-      const error = findIndexError(logText);
-      if (error) {
+
+      // Indexing Failed
+      const indexLogExists = existsSync(response.log);
+      if (response.result.code !== 0) {
         writeError(
-          `Error generating index`,
-          error,
+          `result code ${response.result.code}`,
+          "",
           response.log,
         );
         return Promise.reject();
+      } else if (indexLogExists) {
+        // The command succeeded, but there is an indexing error in the lgo
+        const logText = Deno.readTextFileSync(response.log);
+        const error = findIndexError(logText);
+        if (error) {
+          writeError(
+            `error generating index`,
+            error,
+            response.log,
+          );
+          return Promise.reject();
+        }
       }
+      return true;
+    } catch (e) {
+      writeError(
+        `error generating index`,
+      );
+      return Promise.reject();
     }
-    return true;
   } else {
     return false;
   }
@@ -260,7 +292,7 @@ async function makeBibliographyIntermediates(
 
     if (existsSync(auxBibFile) && requiresProcessing) {
       if (!quiet) {
-        message("Generating bibliography", kLatexMkMessageOptions);
+        message("Generating bibliography", kPdfGenerateMessageOptions);
       }
 
       // If natbib, only use bibtex, otherwise, could use biber or bibtex
@@ -313,7 +345,7 @@ async function findAndInstallPackages(
   quiet?: boolean,
 ) {
   if (!quiet) {
-    message("Checking for missing packages", kLatexMkMessageOptions);
+    message("Checking for missing packages", kPdfGenerateMessageOptions);
   }
 
   if (existsSync(logFile)) {
@@ -357,7 +389,7 @@ async function findAndInstallPackages(
 function writeError(primary: string, secondary?: string, logFile?: string) {
   message(
     `\nCompilation failed- ${primary}`,
-    kLatexMkMessageOptions,
+    kPdfGenerateMessageOptions,
   );
 
   if (secondary) {
@@ -388,7 +420,7 @@ async function recompileLatexUntilComplete(
       if (!quiet) {
         message(
           `Maximum number of runs (${maxRuns}) reached`,
-          kLatexMkMessageOptions,
+          kPdfGenerateMessageOptions,
         );
       }
       break;
@@ -397,7 +429,7 @@ async function recompileLatexUntilComplete(
     if (!quiet) {
       message(
         `Resolving citations and index (run ${runCount + 1})`,
-        kLatexMkMessageOptions,
+        kPdfGenerateMessageOptions,
       );
     }
 

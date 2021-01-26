@@ -8,6 +8,7 @@ import { ld } from "lodash/mod.ts";
 
 import { message } from "../../../core/console.ts";
 import { execProcess } from "../../../core/process.ts";
+import { kPdfGenerateMessageOptions } from "./pdf.ts";
 
 // Determines whether TexLive is installed and callable on this system
 export async function hasTexLive(): Promise<boolean> {
@@ -35,7 +36,7 @@ export async function findPackages(
 
   for (const searchTerm of searchTerms) {
     if (!quiet) {
-      message(`Finding package for ${searchTerm}`, { bold: true });
+      message(`Finding package for ${searchTerm}`, kPdfGenerateMessageOptions);
     }
     // Special case for a known package
     // https://github.com/yihui/tinytex/blob/33cbe601ff671fae47c594250de1d22bbf293b27/R/latex.R#L470
@@ -124,14 +125,17 @@ export async function installPackages(
 ) {
   if (!quiet) {
     message(
-      `Installing ${pkgs.length} ${pkgs.length === 1 ? "package" : "packages"}`,
-      { bold: true },
+      `${pkgs.length} ${pkgs.length === 1 ? "package" : "packages"} to install`,
+      kPdfGenerateMessageOptions,
     );
   }
   let count = 1;
   for (const pkg of pkgs) {
     if (!quiet) {
-      message(`Installing ${pkg} (${count} of ${pkgs.length})`, { bold: true });
+      message(
+        `Installing ${pkg} (${count} of ${pkgs.length})`,
+        kPdfGenerateMessageOptions,
+      );
     }
 
     await installPackage(pkg, opts, quiet);

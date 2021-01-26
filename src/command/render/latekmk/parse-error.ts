@@ -54,10 +54,8 @@ export function findMissingHyphenationFiles(logText: string) {
   }
 }
 
-// Reads lines that start with ! up to the ending output
-const kErrorRegex = /^\!\s([\s\S]+)?Here is how much/m;
-
 // Parse a log file to find latex errors
+const kErrorRegex = /^\!\s([\s\S]+)?Here is how much/m;
 export function findLatexError(
   logText: string,
   stderr?: string,
@@ -233,10 +231,10 @@ const kGhostPattern = {
 const kLogOutputPatterns = [kUnicodePattern, kInlinePattern];
 const kStdErrPatterns = [kGhostPattern];
 
-async function suggestHint(
+function suggestHint(
   logText: string,
   stderr?: string,
-): Promise<string | undefined> {
+): string | undefined {
   // Check stderr for hints
   const stderrHint = kStdErrPatterns.find((errPattern) =>
     stderr?.match(errPattern.regex)
