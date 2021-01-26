@@ -59,7 +59,7 @@ import {
 } from "./widgets.ts";
 import { removeAndPreserveHtml } from "./preserve.ts";
 import { FormatExecution } from "../../config/format.ts";
-import { pandocAutoIdentifier } from "../pandoc/pandoc_id.ts";
+import { pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
 import { Metadata } from "../../config/metadata.ts";
 
 export const kCellCollapsed = "collapsed";

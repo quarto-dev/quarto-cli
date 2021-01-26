@@ -1,4 +1,4 @@
-import { pandocAutoIdentifier } from "../pandoc/pandoc_id.ts";
+import { pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
 import {
   displayDataIsImage,
   displayDataMimeType,

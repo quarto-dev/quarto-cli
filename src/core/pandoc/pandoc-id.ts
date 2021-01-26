@@ -1,5 +1,5 @@
 /*
- * pandoc_id.ts
+ * pandoc-id.ts
  *
  * Copyright (C) 2020 by RStudio, PBC
  *
