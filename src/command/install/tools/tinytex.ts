@@ -59,9 +59,50 @@ async function installed() {
   }
 }
 
-function install(msgHandler: InstallMsgHandler) {
+async function install(msgHandler: InstallMsgHandler) {
+  // We don't currently need to implement source install as Deno is only supported
+  // on the x86 architecture that we have packages for
+  if (needsSourceInstall()) {
+    msgHandler.error(
+      "Unable to install TinyTex from source at this time. Please install it manually.",
+    );
+    return Promise.reject();
+  }
+
+  // Working directory for downloads, etc...
+  const workingDir = Deno.makeTempDirSync();
+  const pkgName = tinyTexPkgName("TinyTeX-1");
+  const pkgFilePath = join(workingDir, pkgName);
+
   // Perform the install either from source or from package
+
+  // Clean up the working Directory
+  // Deno.removeSync(workingDir, { recursive: true });
+
   return Promise.resolve();
+}
+
+function tinyTexPkgName(base?: string, ver?: string) {
+  const ext = Deno.build.os === "windows"
+    ? "zip"
+    : Deno.build.os === "linux"
+    ? "tar.gz"
+    : "tgz";
+
+  base = base || "TinyTeX";
+  if (ver) {
+    return `${base}-v${ver}.${ext}`;
+  } else {
+    return `${base}.${ext}`;
+  }
+}
+
+function tinyTexUrl(pkg: string, ver?: string) {
+  if (ver) {
+    return `https://github.com/yihui/tinytex-releases/releases/download/v${ver}/${pkg}`;
+  } else {
+    return `https://yihui.org/tinytex/${pkg}`;
+  }
 }
 
 function postinstall(msgHandler: InstallMsgHandler) {
@@ -73,6 +114,14 @@ async function isWritable(path: string) {
   const desc = { name: "write", path } as const;
   const status = await Deno.permissions.query(desc);
   return status.state === "granted";
+}
+
+function needsSourceInstall() {
+  if (Deno.build.os === "linux" && Deno.build.arch !== "x86_64") {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 async function isTinyTex() {
