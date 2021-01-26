@@ -40,13 +40,24 @@ quarto create project . (--ouptut-dir defaults to .)
 quarto create project:site foo  (--output-dir defaults to "_site")
 quarto create project:book --type book (--output-dir defaults to "_book")
 
---computation rmd 
---computation jupyter:python3
+--scaffold rmd 
+--scaffold jupyter:python3
+--no-scaffold
 
 
 quarto project <create | render | clean | config> [dir="."]
 
 quarto project create 
+
+quarto install (we take pandoc,tinytex, etc.)
+quarto update 
+
+quarto create-project
+
+quarto render
+quarto clean
+quarto config
+
 
 quarto create project 
 quarto create extension
