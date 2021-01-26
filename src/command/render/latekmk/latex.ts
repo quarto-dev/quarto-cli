@@ -13,8 +13,9 @@ import { dirAndStem } from "../../../core/path.ts";
 import { execProcess, ProcessResult } from "../../../core/process.ts";
 
 import { PdfEngine } from "../../../config/pdf.ts";
-import { PackageManager } from "./pkgmgr.ts";
+import { PackageManager, packageManager } from "./pkgmgr.ts";
 import { kPdfGenerateMessageOptions } from "./pdf.ts";
+import { findPackages } from "./texlive.ts";
 
 export interface LatexCommandReponse {
   log: string;
@@ -187,14 +188,17 @@ async function runLatexCommand(
       // if auto installation is enabled
       if (!quiet) {
         message(
-          `Command ${latexCmd} not found. Attempting to install`,
+          `Command ${latexCmd} not found, attempting install`,
           kPdfGenerateMessageOptions,
         );
       }
 
-      // if not, install it
-      await pkMgr.installPackages([latexCmd]);
-
+      // Search for a package for this command
+      const packageForCommand = await pkMgr.searchPackages([latexCmd]);
+      if (packageForCommand) {
+        // try to install it
+        await pkMgr.installPackages(packagesForCommand(latexCmd));
+      }
       // Try running the command again
       return await runCmd();
     } else {
@@ -206,5 +210,14 @@ async function runLatexCommand(
 
       return Promise.reject();
     }
+  }
+}
+
+// Convert any commands to their
+function packagesForCommand(cmd: string): string[] {
+  if (cmd === "texindy") {
+    return ["xindy"];
+  } else {
+    return [cmd];
   }
 }
