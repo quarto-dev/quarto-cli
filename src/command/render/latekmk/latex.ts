@@ -13,8 +13,8 @@ import { dirAndStem } from "../../../core/path.ts";
 import { execProcess, ProcessResult } from "../../../core/process.ts";
 
 import { PdfEngine } from "../../../config/pdf.ts";
-import { kLatexMkMessageOptions } from "./latexmk.ts";
 import { PackageManager } from "./pkgmgr.ts";
+import { kPdfGenerateMessageOptions } from "./pdf.ts";
 
 interface LatexCommandReponse {
   log: string;
@@ -174,7 +174,7 @@ async function runLatexCommand(
       if (!quiet) {
         message(
           `Command ${latexCmd} not found. Attempting to install`,
-          kLatexMkMessageOptions,
+          kPdfGenerateMessageOptions,
         );
       }
 

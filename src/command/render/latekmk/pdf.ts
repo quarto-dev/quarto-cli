@@ -14,7 +14,7 @@ import { PdfEngine } from "../../../config/pdf.ts";
 
 import { hasTexLive } from "./texlive.ts";
 import { runBibEngine, runIndexEngine, runPdfEngine } from "./latex.ts";
-import { kLatexMkMessageOptions, LatexmkOptions } from "./latexmk.ts";
+import { LatexmkOptions } from "./latexmk.ts";
 import { PackageManager, packageManager } from "./pkgmgr.ts";
 import {
   findIndexError,
@@ -25,11 +25,13 @@ import {
   needsRecompilation,
 } from "./parse-error.ts";
 
+export const kPdfGenerateMessageOptions = { bold: true };
+
 export async function generatePdf(mkOptions: LatexmkOptions) {
   if (!mkOptions.quiet) {
     message(
       `Creating PDF (${mkOptions.engine.pdfEngine})`,
-      kLatexMkMessageOptions,
+      kPdfGenerateMessageOptions,
     );
   }
 
@@ -140,7 +142,7 @@ async function initialCompileLatex(
         // First be sure all packages are up to date
         if (!packagesUpdated) {
           if (!quiet) {
-            message("Updating existing packages", kLatexMkMessageOptions);
+            message("Updating existing packages", kPdfGenerateMessageOptions);
           }
           await pkgMgr.updatePackages(true, false);
           packagesUpdated = true;
@@ -197,7 +199,7 @@ async function makeIndexIntermediates(
   const indexFile = join(dir, `${stem}.idx`);
   if (existsSync(indexFile)) {
     if (!quiet) {
-      message("Making Index", kLatexMkMessageOptions);
+      message("Making Index", kPdfGenerateMessageOptions);
     }
 
     // Make the index
@@ -260,7 +262,7 @@ async function makeBibliographyIntermediates(
 
     if (existsSync(auxBibFile) && requiresProcessing) {
       if (!quiet) {
-        message("Generating bibliography", kLatexMkMessageOptions);
+        message("Generating bibliography", kPdfGenerateMessageOptions);
       }
 
       // If natbib, only use bibtex, otherwise, could use biber or bibtex
@@ -313,7 +315,7 @@ async function findAndInstallPackages(
   quiet?: boolean,
 ) {
   if (!quiet) {
-    message("Checking for missing packages", kLatexMkMessageOptions);
+    message("Checking for missing packages", kPdfGenerateMessageOptions);
   }
 
   if (existsSync(logFile)) {
@@ -357,7 +359,7 @@ async function findAndInstallPackages(
 function writeError(primary: string, secondary?: string, logFile?: string) {
   message(
     `\nCompilation failed- ${primary}`,
-    kLatexMkMessageOptions,
+    kPdfGenerateMessageOptions,
   );
 
   if (secondary) {
@@ -388,7 +390,7 @@ async function recompileLatexUntilComplete(
       if (!quiet) {
         message(
           `Maximum number of runs (${maxRuns}) reached`,
-          kLatexMkMessageOptions,
+          kPdfGenerateMessageOptions,
         );
       }
       break;
@@ -397,7 +399,7 @@ async function recompileLatexUntilComplete(
     if (!quiet) {
       message(
         `Resolving citations and index (run ${runCount + 1})`,
-        kLatexMkMessageOptions,
+        kPdfGenerateMessageOptions,
       );
     }
 
