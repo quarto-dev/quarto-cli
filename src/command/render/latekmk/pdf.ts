@@ -46,10 +46,10 @@ export async function generatePdf(mkOptions: LatexmkOptions) {
     Deno.mkdirSync(workingDir);
   }
 
-  // Determine whether we support automatic updated (TexLive is available)
+  // Determine whether we support automatic updating (TexLive is available)
   const allowUpdate = await hasTexLive();
   if (!allowUpdate) {
-    message("Automatic package updating disabled, no tlmgr detected.");
+    message("Automatic package updating disabled  (no tlmgr detected)");
   }
   mkOptions.autoInstall = mkOptions.autoInstall && allowUpdate;
 

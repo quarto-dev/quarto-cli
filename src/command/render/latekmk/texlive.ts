@@ -137,7 +137,7 @@ export async function installPackages(
     await installPackage(pkg, opts, quiet);
     count = count + 1;
   }
-  addPath();
+  await addPath();
 }
 
 // Add Symlinks for TexLive executables
@@ -226,6 +226,8 @@ function tlmgrCommand(
         }
       },
     );
+
+    console.log(result);
     return result;
   } catch (e) {
     return Promise.reject();
