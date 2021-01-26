@@ -48,10 +48,12 @@ export async function runPdfEngine(
   const output = join(outputDir || dir, `${stem}.pdf`);
   const log = join(outputDir || dir, `${stem}.log`);
 
-  // Clean any log file from previous runs
-  if (existsSync(log)) {
-    Deno.removeSync(log);
-  }
+  // Clean any log file or output from previous runs
+  [log, output].forEach((file) => {
+    if (existsSync(file)) {
+      Deno.removeSync(file);
+    }
+  });
 
   // build pdf engine command line
   const args = ["-interaction=batchmode", "-halt-on-error"];
