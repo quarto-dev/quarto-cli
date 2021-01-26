@@ -155,12 +155,14 @@ async function runLatexCommand(
     stderr: "piped",
   };
 
+  // Redirect stdoutput to stderr
   const stdoutHandler = (data: Uint8Array) => {
     if (!quiet) {
       Deno.stderr.writeSync(data);
     }
   };
 
+  // Run the command
   const runCmd = async () => {
     const result = await execProcess(runOptions, undefined, stdoutHandler);
     if (!quiet && result.stderr) {
@@ -170,9 +172,19 @@ async function runLatexCommand(
   };
 
   try {
+    // Try running the command
     return await runCmd();
   } catch (e) {
-    if (e.name === "NotFound" && pkMgr && pkMgr.autoInstall) {
+    // First confirm that there is a TeX installation available
+    const tex = await hasLatexDistribution();
+    if (!tex) {
+      message(
+        "\nNo TeX installation was detected. Please install TinyTex (https://yihui.name/tinytex/) or another TeX distribution and try again",
+      );
+      return Promise.reject();
+    } else if (e.name === "NotFound" && pkMgr && pkMgr.autoInstall) {
+      // If the command itself can't be found, try installing the command
+      // if auto installation is enabled
       if (!quiet) {
         message(
           `Command ${latexCmd} not found. Attempting to install`,
@@ -186,17 +198,10 @@ async function runLatexCommand(
       // Try running the command again
       return await runCmd();
     } else {
-      const tex = await hasLatexDistribution();
-      if (!tex) {
-        message(
-          "No TeX installation was detected. Please install TinyTex (https://yihui.name/tinytex/) or another TeX distribution and try again",
-        );
-        return Promise.reject();
-      } else {
-        message(
-          `Command ${latexCmd} not found.`,
-        );
-      }
+      // Some other error has occurred
+      message(
+        `An error occurred while executing ${latexCmd}`,
+      );
 
       return Promise.reject();
     }

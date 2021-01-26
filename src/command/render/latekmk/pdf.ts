@@ -50,8 +50,8 @@ export async function generatePdf(mkOptions: LatexmkOptions) {
 
   // Determine whether we support automatic updating (TexLive is available)
   const allowUpdate = await hasTexLive();
-  if (!allowUpdate) {
-    message("Automatic package updating disabled  (no tlmgr detected)");
+  if (mkOptions.autoInstall && !allowUpdate) {
+    message("(TeX Live not found- automatic package updating disabled)");
   }
   mkOptions.autoInstall = mkOptions.autoInstall && allowUpdate;
 
