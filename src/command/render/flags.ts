@@ -84,7 +84,7 @@ export function parseRenderFlags(args: string[]) {
         }
         break;
 
-      case "--makeindex-opt":
+      case "--latex-makeindex-opt":
         arg = argsStack.shift();
         if (arg) {
           flags.makeIndexOpts = flags.makeIndexOpts || [];
@@ -92,7 +92,7 @@ export function parseRenderFlags(args: string[]) {
         }
         break;
 
-      case "--tlmgr-opt":
+      case "--latex-tlmgr-opt":
         arg = argsStack.shift();
         if (arg) {
           flags.tlmgrOpts = flags.tlmgrOpts || [];
@@ -306,8 +306,8 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   removeArgs.set("--cache-refresh", false);
   removeArgs.set("--debug", false);
   removeArgs.set("--metadata-file", true);
-  removeArgs.set("--makeindex-opt", true);
-  removeArgs.set("--tlmgr-opt", true);
+  removeArgs.set("--latex-makeindex-opt", true);
+  removeArgs.set("--latex-tlmgr-opt", true);
 
   // Remove un-needed pandoc args (including -M/--metadata as appropriate)
   pandocArgs = removePandocArgs(pandocArgs, removeArgs);
