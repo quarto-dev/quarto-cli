@@ -8,23 +8,23 @@
 import { ld } from "lodash/mod.ts";
 
 import { basename } from "path/mod.ts";
+import { jupyterKernelspec } from "../../core/jupyter/kernels.ts";
 import { pandocListFormats } from "../../core/pandoc/pandoc-formats.ts";
-
-import { ProcessResult } from "../../core/process.ts";
 
 export const kOutputDir = "output-dir";
 
 export interface CreateProjectOptions {
   dir: string;
   type: "default" | "website" | "book";
+  formats?: string[];
+  scaffold: string[] | false;
   name?: string;
   [kOutputDir]?: string;
-  formats?: string[];
 }
 
 export async function createProject(
   options: CreateProjectOptions,
-): Promise<ProcessResult> {
+) {
   // validate formats
   if (options.formats) {
     const validFormats = await pandocListFormats();
@@ -32,6 +32,17 @@ export async function createProject(
     if (invalid.length > 0) {
       throw new Error(
         `The following formats are invalid: ${invalid.join(", ")}`,
+      );
+    }
+  }
+
+  // validate/complete scaffold if it's jupyter
+  if (Array.isArray(options.scaffold) && options.scaffold[0] === "jupyter") {
+    const kernel = options.scaffold[1];
+    const kernelspec = await jupyterKernelspec(kernel);
+    if (!kernelspec) {
+      throw new Error(
+        `Specified jupyter kernel ('${kernel}') not found.`,
       );
     }
   }
@@ -55,9 +66,4 @@ export async function createProject(
   }
 
   console.log(options);
-
-  return {
-    success: true,
-    code: 0,
-  };
 }

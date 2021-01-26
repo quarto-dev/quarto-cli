@@ -6,8 +6,6 @@
 */
 
 import { basename, dirname, extname, join } from "path/mod.ts";
-import { existsSync } from "fs/mod.ts";
-import { walkSync } from "fs/walk.ts";
 
 import { getenv } from "../../core/env.ts";
 import { execProcess } from "../../core/process.ts";
@@ -30,10 +28,8 @@ import type {
   PostProcessOptions,
 } from "../engine.ts";
 import {
-  isJupyterKernelspec,
   jupyterAssets,
   jupyterFromFile,
-  JupyterKernelspec,
   jupyterMdToJupyter,
   jupyterToMarkdown,
 } from "../../core/jupyter/jupyter.ts";
@@ -64,6 +60,11 @@ import {
   includesForJupyterWidgetDependencies,
   JupyterWidgetDependencies,
 } from "../../core/jupyter/widgets.ts";
+import {
+  isJupyterKernelspec,
+  JupyterKernelspec,
+  jupyterKernelspec,
+} from "../../core/jupyter/kernels.ts";
 
 const kNotebookExtensions = [
   ".ipynb",
@@ -527,52 +528,5 @@ async function jupytext(...args: string[]) {
     throw new Error(
       "Unable to execute jupytext. Have you installed the jupytext package?",
     );
-  }
-}
-
-async function jupyterKernelspec(
-  name: string,
-): Promise<JupyterKernelspec | undefined> {
-  const kernelspecs = await jupyterKernelspecs();
-  return kernelspecs.get(name);
-}
-
-async function jupyterKernelspecs(): Promise<Map<string, JupyterKernelspec>> {
-  const result = await execProcess(
-    {
-      cmd: [pythonBinary("jupyter"), "--paths", "--json"],
-      stdout: "piped",
-    },
-  );
-  if (result.success) {
-    const kernelmap = new Map<string, JupyterKernelspec>();
-    const dataPaths = JSON.parse(result.stdout!).data;
-    for (const path of dataPaths) {
-      if (!existsSync(path)) {
-        continue;
-      }
-      const kernels = join(path, "kernels");
-      if (!existsSync(kernels)) {
-        continue;
-      }
-      for (const walk of walkSync(kernels, { maxDepth: 1 })) {
-        if (walk.path === kernels || !walk.isDirectory) {
-          continue;
-        }
-        const kernelConfig = join(walk.path, "kernel.json");
-        if (existsSync(kernelConfig)) {
-          const config = JSON.parse(Deno.readTextFileSync(kernelConfig));
-          const name = basename(walk.path);
-          kernelmap.set(name, {
-            name,
-            language: config.language,
-            display_name: config.display_name,
-          });
-        }
-      }
-    }
-    return kernelmap;
-  } else {
-    return Promise.reject();
   }
 }
