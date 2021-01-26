@@ -227,7 +227,6 @@ function tlmgrCommand(
       },
     );
 
-    console.log(result);
     return result;
   } catch (e) {
     return Promise.reject();
