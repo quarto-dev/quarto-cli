@@ -34,7 +34,7 @@ export async function createProject(
   ensureDirSync(options.dir);
   options.dir = Deno.realPathSync(options.dir);
   if (!options.quiet) {
-    message(`Creating quarto project at `, { newline: false });
+    message(`Creating project at `, { newline: false });
     message(`${options.dir}`, { bold: true, newline: false });
     message(":");
   }
@@ -51,7 +51,7 @@ export async function createProject(
   await Deno.writeTextFile(join(projDir, "metadata.yml"), metadata);
   if (!options.quiet) {
     message(
-      "- Created project metadata (_quarto/metadata.yml)",
+      "- Created shared metadata  (_quarto/metadata.yml)",
       { indent: 2 },
     );
   }
@@ -68,7 +68,29 @@ export async function createProject(
 
   // create scaffold if requested
   if (options.scaffold) {
-    //
+    const scaffolds: Record<string, string[]> = {};
+    if (options.type === "default") {
+      scaffolds[options.name!] = [options.name!, ""];
+    } else if (options.type === "website") {
+      scaffolds["index"] = [options.name!, "Hello, Website!"];
+      scaffolds["about"] = ["About This Site", "More about this website."];
+    } else if (options.type === "book") {
+      scaffolds["01-intro"] = ["", "# Introduction {#sec:introduction}"];
+      scaffolds["02-summary"] = ["", "# Summary {#sec:summary}"];
+    }
+    for (const scaffold of Object.keys(scaffolds)) {
+      const [title, contents] = scaffolds[scaffold];
+      const md = projectMarkdownFile(
+        options.dir,
+        scaffold,
+        contents,
+        options.scaffold,
+        title,
+      );
+      if (!options.quiet) {
+        message("- Created " + md, { indent: 2 });
+      }
+    }
   }
 }
 
@@ -101,12 +123,14 @@ async function readOptions(options: CreateProjectOptions) {
   // provide default name
   options.name = options.name || basename(options.dir);
 
+  // validate output-dir
+  if (options.type === "default" && options[kOutputDir]) {
+    throw new Error("Default project type cannot specify an output-dir");
+  }
+
   // provide default output-dir
   if (!options[kOutputDir]) {
     switch (options.type) {
-      case "default":
-        options[kOutputDir] = ".";
-        break;
       case "website":
         options[kOutputDir] = "_site";
         break;
@@ -150,6 +174,42 @@ function projectMetadataFile(options: CreateProjectOptions) {
   }
 
   return lines.join("\n") + "\n";
+}
+
+function projectMarkdownFile(
+  dir: string,
+  name: string,
+  content: string,
+  type: string[],
+  title?: string,
+) {
+  // yaml/title
+  const lines: string[] = ["---"];
+  if (title) {
+    lines.push(`title: "${title}"`);
+  }
+
+  // write jupyter kernel if necessary
+  if (type[0] === "jupyter") {
+    lines.push(`jupyter: ${type[1]}`);
+  }
+
+  // end yaml
+  lines.push("---", "");
+
+  // if there are only 3 lines then there was no title or jupyter entry, clear them
+  if (lines.length === 3) {
+    lines.splice(0, lines.length);
+  }
+
+  // content
+  lines.push(content);
+
+  // write file and return it's name
+  name = name + (type[0] === "rmd" ? ".Rmd" : ".md");
+  const path = join(dir, name);
+  Deno.writeTextFileSync(path, lines.join("\n") + "\n");
+  return name;
 }
 
 function quartoDir(dir: string) {
