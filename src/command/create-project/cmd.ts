@@ -28,24 +28,41 @@ export const createProjectCommand = new Command()
     },
   )
   .option(
-    "--template [template:string]",
-    "Project template (default, none, or url)",
+    "--formats [formats:string]",
+    "Comma separated list of formats to use in the project",
+    {
+      value: (value: string): string[] => {
+        return value.split(/,/);
+      },
+    },
   )
   .option(
     "--name [name:string]",
-    "Project name (defaults to dir name)",
+    "Project name (defaults to directory name)",
   )
   .option(
     "--output-dir [dir:string]",
     "Output directory (default varies with project type)",
   )
   .example(
-    "Create a new project",
+    "Create a project in the current directory",
     "quarto create-project",
   )
   .example(
-    "Create a new book project",
+    "Create a project in the 'myproject' directory",
+    "quarto create-project myproject",
+  )
+  .example(
+    "Create a website project with '_public' as the output dir",
+    "quarto create-project --type website --output-dir _public",
+  )
+  .example(
+    "Create a book project in the current directory",
     "quarto create-project --type book",
+  )
+  .example(
+    "Create a book project with formats html, pdf, and epub",
+    "quarto create-project --type book --formats html,pdf,epub",
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, dir?: string) => {
@@ -54,6 +71,7 @@ export const createProjectCommand = new Command()
       type: options.type,
       name: options.name,
       [kOutputDir]: options[kOutputDir],
+      formats: options.formats,
     });
 
     if (!result.success) {
