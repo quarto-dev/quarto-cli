@@ -58,6 +58,8 @@ quarto create project . (--ouptut-dir defaults to .)
 quarto create project:site foo  (--output-dir defaults to "_site")
 quarto create project:book --type book (--output-dir defaults to "_book")
 
+--engine rmd 
+--engine jupyter
 
 
 quarto project <create | render | clean | config> [dir="."]
@@ -67,6 +69,43 @@ quarto project create
 quarto create project 
 quarto create extension
 quarto create document
+
+format:
+  html-bootstrap5
+
+
+extensions:
+  fancytweet: https://quarto.land/fancytweet@3.4.2
+  
+
+{{ fancytweet qwerqwer }}
+
+
+Package sources:
+  - global cache
+  - project lockfile
+  - 'extensions' inside a yaml key
+
+_quarto/
+  .quarto
+  .gitignore
+     .quarto/
+     extensions/
+   metadata.yml
+   
+   package-lock.json
+   node_modules/
+
+   extensions.yml
+   extensions/
+
+
+quarto bundle foo.Rmd
+
+   
+
+quarto install fancytweet
+
 
 
 _quarto
