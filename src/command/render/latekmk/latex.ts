@@ -16,7 +16,7 @@ import { PdfEngine } from "../../../config/pdf.ts";
 import { PackageManager } from "./pkgmgr.ts";
 import { kPdfGenerateMessageOptions } from "./pdf.ts";
 
-interface LatexCommandReponse {
+export interface LatexCommandReponse {
   log: string;
   result: ProcessResult;
   output?: string;
@@ -200,7 +200,8 @@ async function runLatexCommand(
     } else {
       // Some other error has occurred
       message(
-        `An error occurred while executing ${latexCmd}`,
+        `Error executing ${latexCmd}`,
+        kPdfGenerateMessageOptions,
       );
 
       return Promise.reject();
