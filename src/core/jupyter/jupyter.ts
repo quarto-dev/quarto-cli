@@ -61,6 +61,7 @@ import { removeAndPreserveHtml } from "./preserve.ts";
 import { FormatExecution } from "../../config/format.ts";
 import { pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
 import { Metadata } from "../../config/metadata.ts";
+import { JupyterKernelspec } from "./kernels.ts";
 
 export const kCellCollapsed = "collapsed";
 export const kCellAutoscroll = "autoscroll";
@@ -85,23 +86,6 @@ export const kCellClasses = "classes";
 export const kCellWidth = "width";
 export const kCellHeight = "height";
 export const kCellAlt = "alt";
-
-export interface JupyterKernelspec {
-  name: string;
-  language: string;
-  display_name: string;
-}
-
-// deno-lint-ignore no-explicit-any
-export function isJupyterKernelspec(x: any): x is JupyterKernelspec {
-  if (x && typeof (x) === "object") {
-    return typeof (x.name) === "string" &&
-      typeof (x.language) === "string" &&
-      typeof (x.display_name) === "string";
-  } else {
-    return false;
-  }
-}
 
 export interface JupyterNotebook {
   metadata: {

@@ -28,9 +28,41 @@ export const createProjectCommand = new Command()
     },
   )
   .option(
-    "--formats [formats:string]",
+    "--scaffold [format:string]",
+    "Create initial project file(s) with specified format",
+    {
+      default: "markdown",
+      value: (value: string): string[] => {
+        if (
+          value !== "markdown" && value !== "rmd" &&
+          !value.startsWith("jupyter")
+        ) {
+          throw new Error("Unknown format for --scaffold");
+        }
+        if (value.startsWith("jupyter")) {
+          const match = value.match(/jupyter:(.+)$/);
+          if (!match) {
+            throw new Error(
+              "Invalid jupyter format specification for --scaffold (did you specify a kernel?)",
+            );
+          } else {
+            return ["jupyter", match[1]];
+          }
+        } else {
+          return [value];
+        }
+      },
+    },
+  )
+  .option(
+    "--no-scaffold",
+    "Don't create initial project file(s)",
+  )
+  .option(
+    "--formats <formats:string>",
     "Comma separated list of formats to use in the project",
     {
+      default: "html",
       value: (value: string): string[] => {
         return value.split(/,/);
       },
@@ -66,16 +98,12 @@ export const createProjectCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, dir?: string) => {
-    const result = await createProject({
+    await createProject({
       dir: dir || Deno.cwd(),
       type: options.type,
+      formats: options.formats,
+      scaffold: options.scaffold,
       name: options.name,
       [kOutputDir]: options[kOutputDir],
-      formats: options.formats,
     });
-
-    if (!result.success) {
-      // error diagnostics already written to stderr
-      Deno.exit(result.code);
-    }
   });
