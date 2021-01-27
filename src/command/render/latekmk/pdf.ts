@@ -31,7 +31,7 @@ export const kPdfGenerateMessageOptions = { bold: true };
 export async function generatePdf(mkOptions: LatexmkOptions) {
   if (!mkOptions.quiet) {
     message(
-      `creating PDF (${mkOptions.engine.pdfEngine})`,
+      `creating pdf (${mkOptions.engine.pdfEngine})`,
       kPdfGenerateMessageOptions,
     );
   }
@@ -51,9 +51,6 @@ export async function generatePdf(mkOptions: LatexmkOptions) {
 
   // Determine whether we support automatic updating (TexLive is available)
   const allowUpdate = await hasTexLive();
-  if (mkOptions.autoInstall && !allowUpdate) {
-    message("(TeX Live not found- automatic package updating disabled)");
-  }
   mkOptions.autoInstall = mkOptions.autoInstall && allowUpdate;
 
   // The package manager used to find and install packages
@@ -423,7 +420,7 @@ async function recompileLatexUntilComplete(
 
     if (!quiet) {
       message(
-        `\nregenerating PDF (${engine.pdfEngine} - ${runCount + 1})`,
+        `\nregenerating pdf (${engine.pdfEngine} - ${runCount + 1})`,
         kPdfGenerateMessageOptions,
       );
     }
