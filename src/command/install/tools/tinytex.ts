@@ -6,80 +6,182 @@
  */
 
 import { existsSync } from "fs/exists.ts";
-import { join } from "path/mod.ts";
-import { which } from "../../../core/path.ts";
+import { basename, join } from "path/mod.ts";
+import { moveSync } from "fs/move.ts";
+
+import { getenv } from "../../../core/env.ts";
+import { expandPath, which } from "../../../core/path.ts";
+import { unzip } from "../../../core/zip.ts";
 import { hasLatexDistribution } from "../../render/latekmk/latex.ts";
 import { hasTexLive } from "../../render/latekmk/texlive.ts";
+import { execProcess } from "../../../core/process.ts";
 
-import {
-  InstallableTool,
-  InstallMsgHandler,
-  InstallPreReq,
-} from "../install.ts";
+import { InstallableTool, InstallContext } from "../install.ts";
 
-const binWritable: InstallPreReq = {
-  check: () => {
-    return isWritable("/usr/local/bin");
-  },
-  os: ["darwin"],
-  notMetMessage: "The directory /usr/local/bin is not writable.",
-};
-
-const noTexLive: InstallPreReq = {
-  check: async () => {
-    const hasTl = await hasTexLive();
-    return !hasTl;
-  },
-  os: ["darwin", "linux", "windows"],
-  notMetMessage: "An existing TexLive installation has been detected.",
-};
-
-const noTex: InstallPreReq = {
-  check: async () => {
-    const hasTl = await hasLatexDistribution();
-    return !hasTl;
-  },
-  os: ["darwin", "linux", "windows"],
-  notMetMessage: "An existing LaTeX installation has been detected.",
-};
+const kDefaultRepo = "https://mirrors.rit.edu/CTAN/systems/texlive/tlnet/";
 
 export const tinyTexInstallable: InstallableTool = {
-  prereqs: [binWritable, noTexLive, noTex],
-  installed,
+  name: "TinyTex",
+  prereqs: [{
+    check: () => {
+      // bin must be writable on MacOS
+      return isWritable("/usr/local/bin");
+    },
+    os: ["darwin"],
+    notMetMessage: "The directory /usr/local/bin is not writable.",
+  }, {
+    check: async () => {
+      // Can't already have TeXLive
+      const hasTl = await hasTexLive();
+      return !hasTl;
+    },
+    os: ["darwin", "linux", "windows"],
+    notMetMessage: "An existing TexLive installation has been detected.",
+  }, {
+    check: async () => {
+      // Can't already have TeX
+      const hasTl = await hasLatexDistribution();
+      return !hasTl;
+    },
+    os: ["darwin", "linux", "windows"],
+    notMetMessage: "An existing LaTeX installation has been detected.",
+  }, {
+    check: async () => {
+      // Can't be a linux non-x86 platform
+      return needsSourceInstall();
+    },
+    os: ["linux"],
+    notMetMessage:
+      "This platform doesn't support installation at this time. Please install manually instead.",
+  }],
+  installed: async () => {
+    const hasTl = await hasTexLive();
+    if (hasTl) {
+      return isTinyTex();
+    } else {
+      return Promise.resolve(false);
+    }
+  },
   install,
   postinstall,
 };
 
-async function installed() {
-  const hasTl = await hasTexLive();
-  if (hasTl) {
-    return isTinyTex();
+async function install(context: InstallContext) {
+  // target package information
+  const pkgName = tinyTexPkgName("TinyTeX-1");
+  const pkgFilePath = join(context.workingDir, pkgName);
+
+  // Download the package
+  const url = tinyTexUrl(pkgName);
+  await context.download("TinyTex", url, pkgFilePath);
+
+  // the target installation
+  const installDir = tinyTexInstallDir();
+  if (installDir) {
+    const parentDir = join(installDir, "..");
+    const realParentDir = expandPath(parentDir);
+
+    if (existsSync(realParentDir)) {
+      // Extract the package
+      context.info(`Unzipping ${basename(pkgFilePath)}`);
+      await unzip(pkgFilePath);
+
+      // Move it to the install dir
+      context.info(`Moving files`);
+      const from = join(context.workingDir, "TinyTex");
+      const to = expandPath(installDir);
+      moveSync(from, to, { overwrite: true });
+
+      // Find the tlmgr and note its location
+      const binFolder = join(
+        to,
+        "bin",
+        `${Deno.build.arch}-${Deno.build.os}`,
+      );
+      context.props[kTlMgrKey] = Deno.build.os === "windows"
+        ? join(binFolder, "tlmgr.bat")
+        : join(binFolder, "tlmgr");
+
+      return Promise.resolve();
+    } else {
+      context.error("Installation target directory doesn't exist");
+      return Promise.reject();
+    }
   } else {
-    return Promise.resolve(false);
+    context.error("Unable to determine installation directory");
+    return Promise.reject();
   }
 }
 
-async function install(msgHandler: InstallMsgHandler) {
-  // We don't currently need to implement source install as Deno is only supported
-  // on the x86 architecture that we have packages for
-  if (needsSourceInstall()) {
-    msgHandler.error(
-      "Unable to install TinyTex from source at this time. Please install it manually.",
+async function postinstall(context: InstallContext) {
+  const tlmgrPath = context.props[kTlMgrKey] as string;
+  if (tlmgrPath) {
+    // Install tlgpg to permit safe utilization of https
+    context.info("Verifying tlgpg support");
+    if (["darwin", "windows"].includes(Deno.build.os)) {
+      await exec(
+        tlmgrPath,
+        ["--repository", "http://www.preining.info/tlgpg/", "install", "tlgpg"],
+      );
+    }
+
+    // Set the default repo to an https repo
+    context.info("Configuring default repository");
+    await exec(
+      tlmgrPath,
+      ["option", "repository", kDefaultRepo],
     );
+
+    // Ensure symlinks are all set
+    context.info("Updating paths");
+    await exec(
+      tlmgrPath,
+      ["path", "add"],
+    );
+
+    if (Deno.build.os === "linux") {
+      if (!existsSync(expandPath("~/bin"))) {
+        // Make the directory
+        Deno.mkdirSync("~/bin");
+
+        // Notify tlmgr of it
+        await exec(
+          tlmgrPath,
+          ["option", "sys_bin", "~/bin"],
+        );
+
+        // Ask the user to restart
+        context.info(
+          "To complete this installation, please restart your system.",
+        );
+      }
+    }
+
+    // Perform add path and other post install work
+    return Promise.resolve();
+  } else {
+    context.error("Couldn't locate tlmgr after installation");
     return Promise.reject();
   }
+}
 
-  // Working directory for downloads, etc...
-  const workingDir = Deno.makeTempDirSync();
-  const pkgName = tinyTexPkgName("TinyTeX-1");
-  const pkgFilePath = join(workingDir, pkgName);
+async function exec(path: string, cmd: string[]) {
+  return execProcess({ cmd: [path, ...cmd], stdout: "piped" });
+}
 
-  // Perform the install either from source or from package
+const kTlMgrKey = "tlmgr";
 
-  // Clean up the working Directory
-  // Deno.removeSync(workingDir, { recursive: true });
-
-  return Promise.resolve();
+function tinyTexInstallDir(): string | undefined {
+  switch (Deno.build.os) {
+    case "windows":
+      return getenv("APPDATA", undefined);
+    case "linux":
+      return "~./TinyTex";
+    case "darwin":
+      return "~/Library/TinyTex";
+    default:
+      return undefined;
+  }
 }
 
 function tinyTexPkgName(base?: string, ver?: string) {
@@ -103,11 +205,6 @@ function tinyTexUrl(pkg: string, ver?: string) {
   } else {
     return `https://yihui.org/tinytex/${pkg}`;
   }
-}
-
-function postinstall(msgHandler: InstallMsgHandler) {
-  // Perform add path and other post install work
-  return Promise.resolve();
 }
 
 async function isWritable(path: string) {
