@@ -6,8 +6,7 @@
 */
 
 import { Command } from "cliffy/command/mod.ts";
-
-import { createProject, kOutputDir } from "./create-project.ts";
+import { kOutputDir, projectCreate } from "../../project/project-create.ts";
 
 export const createProjectCommand = new Command()
   .name("create-project")
@@ -40,13 +39,13 @@ export const createProjectCommand = new Command()
           throw new Error("Unknown format for --scaffold");
         }
         if (value.startsWith("jupyter")) {
-          const match = value.match(/jupyter:(.+)$/);
+          const match = value.match(/jupyter(:(.+))?$/);
           if (!match) {
             throw new Error(
-              "Invalid jupyter format specification for --scaffold (did you specify a kernel?)",
+              "Invalid jupyter format specification for --scaffold",
             );
           } else {
-            return ["jupyter", match[1]];
+            return ["jupyter", match[2] || "python3"];
           }
         } else {
           return [value];
@@ -57,16 +56,6 @@ export const createProjectCommand = new Command()
   .option(
     "--no-scaffold",
     "Don't create initial project file(s)",
-  )
-  .option(
-    "--formats <formats:string>",
-    "Comma separated list of formats to use in the project",
-    {
-      default: ["html"],
-      value: (value: string): string[] => {
-        return value.split(/,/);
-      },
-    },
   )
   .option(
     "--name [name:string]",
@@ -89,10 +78,6 @@ export const createProjectCommand = new Command()
     "quarto create-project myproject",
   )
   .example(
-    "Create a website project with '_public' as the output dir",
-    "quarto create-project --type website --output-dir _public",
-  )
-  .example(
     "Create a book project in the current directory",
     "quarto create-project --type book",
   )
@@ -102,11 +87,11 @@ export const createProjectCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, dir?: string) => {
-    await createProject({
+    await projectCreate({
       dir: dir || Deno.cwd(),
       type: options.type,
-      formats: options.formats,
-      scaffold: options.scaffold,
+      engine: options.scaffold[0],
+      kernel: options.scaffold[1],
       name: options.name,
       [kOutputDir]: options[kOutputDir],
       quiet: options.quiet,
