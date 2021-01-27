@@ -36,7 +36,10 @@ export async function findPackages(
 
   for (const searchTerm of searchTerms) {
     if (!quiet) {
-      message(`Finding package for ${searchTerm}`, kPdfGenerateMessageOptions);
+      message(
+        `\nfinding package for ${searchTerm}`,
+        kPdfGenerateMessageOptions,
+      );
     }
     // Special case for a known package
     // https://github.com/yihui/tinytex/blob/33cbe601ff671fae47c594250de1d22bbf293b27/R/latex.R#L470
@@ -133,7 +136,7 @@ export async function installPackages(
   for (const pkg of pkgs) {
     if (!quiet) {
       message(
-        `Installing ${pkg} (${count} of ${pkgs.length})`,
+        `installing ${pkg} (${count} of ${pkgs.length})`,
         kPdfGenerateMessageOptions,
       );
     }

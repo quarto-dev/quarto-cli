@@ -31,7 +31,7 @@ export const kPdfGenerateMessageOptions = { bold: true };
 export async function generatePdf(mkOptions: LatexmkOptions) {
   if (!mkOptions.quiet) {
     message(
-      `Creating PDF (${mkOptions.engine.pdfEngine})`,
+      `creating PDF (${mkOptions.engine.pdfEngine})`,
       kPdfGenerateMessageOptions,
     );
   }
@@ -160,7 +160,7 @@ async function initialCompileLatex(
       // First be sure all packages are up to date
       if (!packagesUpdated) {
         if (!quiet) {
-          message("Updating existing packages", kPdfGenerateMessageOptions);
+          message("updating existing packages", kPdfGenerateMessageOptions);
         }
         await pkgMgr.updatePackages(true, false);
         packagesUpdated = true;
@@ -220,7 +220,7 @@ async function makeIndexIntermediates(
   const indexFile = join(dir, `${stem}.idx`);
   if (existsSync(indexFile)) {
     if (!quiet) {
-      message("Making Index", kPdfGenerateMessageOptions);
+      message("\nmaking index", kPdfGenerateMessageOptions);
     }
 
     // Make the index
@@ -291,7 +291,7 @@ async function makeBibliographyIntermediates(
 
     if (existsSync(auxBibFile) && requiresProcessing) {
       if (!quiet) {
-        message("Generating bibliography", kPdfGenerateMessageOptions);
+        message("\ngenerating bibliography", kPdfGenerateMessageOptions);
       }
 
       // If natbib, only use bibtex, otherwise, could use biber or bibtex
@@ -383,7 +383,7 @@ async function findAndInstallPackages(
 
 function writeError(primary: string, secondary?: string, logFile?: string) {
   message(
-    `\nCompilation failed- ${primary}`,
+    `\ncompilation failed- ${primary}`,
     kPdfGenerateMessageOptions,
   );
 
@@ -392,7 +392,7 @@ function writeError(primary: string, secondary?: string, logFile?: string) {
   }
 
   if (logFile) {
-    message(`See ${logFile} for more information.`);
+    message(`see ${logFile} for more information.`);
   }
 
   return Promise.reject();
@@ -414,7 +414,7 @@ async function recompileLatexUntilComplete(
     if (runCount >= maxRuns) {
       if (!quiet) {
         message(
-          `Maximum number of runs (${maxRuns}) reached`,
+          `maximum number of runs (${maxRuns}) reached`,
           kPdfGenerateMessageOptions,
         );
       }
@@ -423,7 +423,7 @@ async function recompileLatexUntilComplete(
 
     if (!quiet) {
       message(
-        `Regenerating PDF (${engine.pdfEngine} - ${runCount + 1})`,
+        `\nregenerating PDF (${engine.pdfEngine} - ${runCount + 1})`,
         kPdfGenerateMessageOptions,
       );
     }

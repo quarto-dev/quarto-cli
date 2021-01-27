@@ -56,6 +56,7 @@ export function toolNames(): string[] {
 }
 
 export async function installTool(name: string) {
+  name = name || "";
   // Run the install
   const installableTool = kInstallableTools[name.toLowerCase()];
   if (installableTool) {
@@ -101,8 +102,12 @@ export async function installTool(name: string) {
     }
   } else {
     // No tool found
-    message(`Could not install '${name}'. Allowed commands include:`);
-    toolNames().forEach((name) => message(name, { indent: 2 }));
+    message(
+      `Could not install '${name}'- try again with one of the following:`,
+    );
+    toolNames().forEach((name) =>
+      message("quarto install " + name, { indent: 2 })
+    );
   }
 }
 
