@@ -180,7 +180,7 @@ async function runLatexCommand(
     const tex = await hasLatexDistribution();
     if (!tex) {
       message(
-        "\nNo TeX installation was detected. Please run 'quarto install tinytex' to install TinyTex. If you'd rather, you may install a Tex distribution manually.",
+        "\nNo TeX installation was detected. Please run 'quarto install tinytex' to install TinyTex.\nIf you'd rather, you may install a Tex distribution manually.",
       );
       return Promise.reject();
     } else if (e.name === "NotFound" && pkMgr && pkMgr.autoInstall) {
