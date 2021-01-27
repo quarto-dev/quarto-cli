@@ -13,12 +13,7 @@ import { dirAndStem } from "../../../core/path.ts";
 import { PdfEngine } from "../../../config/pdf.ts";
 
 import { hasTexLive } from "./texlive.ts";
-import {
-  LatexCommandReponse,
-  runBibEngine,
-  runIndexEngine,
-  runPdfEngine,
-} from "./latex.ts";
+import { runBibEngine, runIndexEngine, runPdfEngine } from "./latex.ts";
 import { LatexmkOptions } from "./latexmk.ts";
 import { PackageManager, packageManager } from "./pkgmgr.ts";
 import {
@@ -65,13 +60,14 @@ export async function generatePdf(mkOptions: LatexmkOptions) {
   const pkgMgr = packageManager(mkOptions);
 
   // Render the PDF, detecting whether any packages need to be installed
-  await initialCompileLatex(
+  const response = await initialCompileLatex(
     mkOptions.input,
     mkOptions.engine,
     pkgMgr,
     mkOptions.outputDir,
     mkOptions.quiet,
   );
+  const initialCompileNeedsRerun = needsRecompilation(response.log);
 
   // Generate the index information, if needed
   const indexCreated = await makeIndexIntermediates(
@@ -94,7 +90,10 @@ export async function generatePdf(mkOptions: LatexmkOptions) {
 
   // Recompile the Latex if required
   const hasMinimumRuns = mkOptions.minRuns && mkOptions.minRuns > 1;
-  if (indexCreated || bibliographyCreated || hasMinimumRuns) {
+  if (
+    indexCreated || bibliographyCreated || hasMinimumRuns ||
+    initialCompileNeedsRerun
+  ) {
     await recompileLatexUntilComplete(
       mkOptions.input,
       mkOptions.engine,
@@ -190,7 +189,7 @@ async function initialCompileLatex(
     }
 
     // If we get here, we aren't installing packages (or we've already installed them)
-    break;
+    return Promise.resolve(response);
   }
 }
 
@@ -428,7 +427,7 @@ async function recompileLatexUntilComplete(
 
     if (!quiet) {
       message(
-        `Resolving citations and index (run ${runCount + 1})`,
+        `Regenerating PDF (${engine.pdfEngine} - ${runCount + 1})`,
         kPdfGenerateMessageOptions,
       );
     }

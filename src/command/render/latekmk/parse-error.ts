@@ -35,7 +35,7 @@ export function needsRecompilation(log: string) {
     const logContents = Deno.readTextFileSync(log);
     return logContents.match(
       /(Rerun to get |Please \(re\)run | Rerun LaTeX\.)/,
-    );
+    ) !== null;
   }
   return false;
 }
