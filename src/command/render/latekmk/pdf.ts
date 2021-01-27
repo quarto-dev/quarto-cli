@@ -343,10 +343,6 @@ async function findAndInstallPackages(
   stderr?: string,
   quiet?: boolean,
 ) {
-  if (!quiet) {
-    message("Checking for missing packages", kPdfGenerateMessageOptions);
-  }
-
   if (existsSync(logFile)) {
     // Read the log file itself
     const logText = Deno.readTextFileSync(logFile);
