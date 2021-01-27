@@ -1,4 +1,9 @@
-import { existsSync } from "fs/exists.ts";
+/*
+* markdown.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
 
 import { readYamlFromMarkdownFile } from "../core/yaml.ts";
 
