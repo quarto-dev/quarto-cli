@@ -76,10 +76,14 @@ export const renderCommand = new Command()
       "quarto render notebook.Rmd --to pdf --toc",
   )
   .example(
+    "Render Jupyter Markdown",
+    "quarto render notebook.md\n" +
+      "quarto render notebook.md --to docx --highlight-style=espresso",
+  )
+  .example(
     "Render Jupyter Notebook",
-    "quarto render notebook.ipynb\n" +
-      "quarto render notebook.ipynb --to docx\n" +
-      "quarto render notebook.ipynb --to docx --highlight-style=espresso\n",
+    "quarto render notebook.ipynb --to docx\n" +
+      "quarto render notebook.ipynb --to pdf --toc",
   )
   .example(
     "Render to Standard Output",

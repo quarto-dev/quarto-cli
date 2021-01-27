@@ -15,7 +15,7 @@ function hasLayoutAttributes(el)
   local attribs = tkeys(el.attr.attributes)
   return attribs:includes(kLayoutNrow) or
          attribs:includes(kLayoutNcol) or
-         attribs.includes(kLayout)
+         attribs:includes(kLayout)
 end
 
 
