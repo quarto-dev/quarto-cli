@@ -42,13 +42,22 @@ export interface InstallPreReq {
 }
 
 // The tools that are available to install
-export const kInstallableTools: { [key: string]: InstallableTool } = {
+const kInstallableTools: { [key: string]: InstallableTool } = {
   tinytex: tinyTexInstallable,
 };
 
+export function toolNames(): string[] {
+  const tools: string[] = [];
+  Object.keys(kInstallableTools).forEach((key) => {
+    const tool = kInstallableTools[key];
+    tools.push(tool.name.toLowerCase());
+  });
+  return tools;
+}
+
 export async function installTool(name: string) {
   // Run the install
-  const installableTool = kInstallableTools[name];
+  const installableTool = kInstallableTools[name.toLowerCase()];
   if (installableTool) {
     // Create a working directory for the installer to use
     const workingDir = Deno.makeTempDirSync();
@@ -90,6 +99,10 @@ export async function installTool(name: string) {
       // Cleanup the working directory
       Deno.removeSync(workingDir, { recursive: true });
     }
+  } else {
+    // No tool found
+    message(`Could not install '${name}'. Allowed commands include:`);
+    toolNames().forEach((name) => message(name, { indent: 2 }));
   }
 }
 

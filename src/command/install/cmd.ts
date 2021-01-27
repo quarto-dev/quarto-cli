@@ -7,12 +7,16 @@
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { installTool } from "./install.ts";
+import { installTool, toolNames } from "./install.ts";
 
 export const installCommand = new Command()
   .name("install")
   .arguments("[name:string]")
-  .description("Installs tools, extensions, and templates")
+  .description(
+    `Installs tools, extensions, and templates.\n\nTools that can be installed include:\n${
+      toolNames().map((name) => "  " + name).join("\n")
+    }`,
+  )
   .example(
     "Install TinyTex",
     "quarto install tinytex",
