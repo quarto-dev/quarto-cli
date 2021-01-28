@@ -143,8 +143,6 @@ async function postinstall(context: InstallContext) {
     let restartRequired = false;
     if (Deno.build.os === "linux") {
       const binPath = expandPath("~/bin");
-      console.log(binPath);
-
       if (!existsSync(binPath)) {
         // Make the directory
         Deno.mkdirSync(binPath);
