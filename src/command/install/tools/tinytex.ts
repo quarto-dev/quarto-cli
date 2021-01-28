@@ -21,7 +21,7 @@ import { InstallableTool, InstallContext } from "../install.ts";
 const kDefaultRepo = "https://mirrors.rit.edu/CTAN/systems/texlive/tlnet/";
 
 export const tinyTexInstallable: InstallableTool = {
-  name: "TinyTex",
+  name: "TinyTeX",
   prereqs: [{
     check: () => {
       // bin must be writable on MacOS
@@ -46,9 +46,10 @@ export const tinyTexInstallable: InstallableTool = {
     os: ["darwin", "linux", "windows"],
     notMetMessage: "An existing LaTeX installation has been detected.",
   }, {
-    check: async () => {
+    check: () => {
       // Can't be a linux non-x86 platform
-      return needsSourceInstall();
+      const needsSource = needsSourceInstall();
+      return Promise.resolve(!needsSource);
     },
     os: ["linux"],
     notMetMessage:
@@ -80,6 +81,7 @@ async function install(context: InstallContext) {
   if (installDir) {
     const parentDir = join(installDir, "..");
     const realParentDir = expandPath(parentDir);
+    const tinyTexDirName = Deno.build.os === "linux" ? ".TinyTeX" : "TinyTeX";
 
     if (existsSync(realParentDir)) {
       // Extract the package
@@ -88,7 +90,7 @@ async function install(context: InstallContext) {
 
       // Move it to the install dir
       context.info(`Moving files`);
-      const from = join(context.workingDir, "TinyTex");
+      const from = join(context.workingDir, tinyTexDirName);
       const to = expandPath(installDir);
       moveSync(from, to, { overwrite: true });
 
@@ -132,6 +134,25 @@ async function postinstall(context: InstallContext) {
       ["option", "repository", kDefaultRepo],
     );
 
+    let restartRequired = false;
+    if (Deno.build.os === "linux") {
+      const binPath = expandPath("~/bin");
+      console.log(binPath);
+
+      if (!existsSync(binPath)) {
+        // Make the directory
+        Deno.mkdirSync(binPath);
+
+        // Notify tlmgr of it
+        await exec(
+          tlmgrPath,
+          ["option", "sys_bin", binPath],
+        );
+
+        restartRequired = true;
+      }
+    }
+
     // Ensure symlinks are all set
     context.info("Updating paths");
     await exec(
@@ -139,26 +160,8 @@ async function postinstall(context: InstallContext) {
       ["path", "add"],
     );
 
-    if (Deno.build.os === "linux") {
-      if (!existsSync(expandPath("~/bin"))) {
-        // Make the directory
-        Deno.mkdirSync("~/bin");
-
-        // Notify tlmgr of it
-        await exec(
-          tlmgrPath,
-          ["option", "sys_bin", "~/bin"],
-        );
-
-        // Ask the user to restart
-        context.info(
-          "To complete this installation, please restart your system.",
-        );
-      }
-    }
-
     // Perform add path and other post install work
-    return Promise.resolve();
+    return Promise.resolve(restartRequired);
   } else {
     context.error("Couldn't locate tlmgr after installation");
     return Promise.reject();
@@ -174,9 +177,9 @@ const kTlMgrKey = "tlmgr";
 function tinyTexInstallDir(): string | undefined {
   switch (Deno.build.os) {
     case "windows":
-      return getenv("APPDATA", undefined);
+      return join(getenv("APPDATA", undefined), "TinyTex");
     case "linux":
-      return "~./TinyTex";
+      return "~/.TinyTex";
     case "darwin":
       return "~/Library/TinyTex";
     default:

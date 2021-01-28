@@ -13,7 +13,8 @@ export interface InstallableTool {
   installed: () => Promise<boolean>;
   prereqs: InstallPreReq[];
   install: (msg: InstallContext) => Promise<void>;
-  postinstall: (msg: InstallContext) => Promise<void>;
+  // return true if restart is required, false if not
+  postinstall: (msg: InstallContext) => Promise<boolean>;
 }
 
 // InstallContext provides the API for installable tools
@@ -92,9 +93,14 @@ export async function installTool(name: string) {
         await installableTool.install(context);
 
         // post install
-        await installableTool.postinstall(context);
+        const restartRequired = await installableTool.postinstall(context);
 
-        context.info("Installation Successful");
+        context.info("\nInstallation successful");
+        if (restartRequired) {
+          context.info(
+            "To complete this installation, please restart your system.",
+          );
+        }
       }
     } finally {
       // Cleanup the working directory
@@ -182,7 +188,7 @@ const installContext = (workingDir: string): InstallContext => {
         pkgFile.close();
       } else {
         installMessaging.error(
-          `Download failed (HTTP status ${response.status} - ${response.statusText})`,
+          `download failed (HTTP status ${response.status} - ${response.statusText})`,
         );
         return Promise.reject();
       }
