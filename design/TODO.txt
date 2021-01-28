@@ -1,10 +1,10 @@
-Do we need to do latexmk version checking?
+
 
 TinyTex:
-- Install TinyTex
-    quarto install-tool tinytex | pandoc | ...etc <version>
-    Please install TeX (command to install TinyTex or point at TexLive or another TeX distribution - link to Texlive)
-      quarto install-tool tinytex
+- Test on Windows
+- Test on Ubuntu
+- Should we indent sub output?
+- Do we need to do latexmk version checking? 
 - When new versions of TexLive are released, how do we manage updating (research)
 
 - Why is this in tiny-tex
@@ -268,7 +268,6 @@ Can't render a file in Google Drive
 
 Charles
 -----------------------------
-
 - sandbox script is a mess
 - more generic dev setup tools
   - need 'configure-dev' script that will configure the current directory as a sandbox...
@@ -276,7 +275,9 @@ Charles
   - Windows
     - UI
     - Global shortcut / add quarto to path?
+      (See Pandoc wxs)
     - Signing
+
 
 
 
