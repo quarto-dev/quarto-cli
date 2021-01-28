@@ -7,7 +7,7 @@
 import { dirname } from "path/mod.ts";
 import { execProcess } from "./process.ts";
 
-export async function unzip(file: string) {
+export function unzip(file: string) {
   const dir = dirname(file);
 
   if (file.endsWith("zip")) {
@@ -29,7 +29,7 @@ export async function unzip(file: string) {
   } else {
     // use the tar command to untar this
     return execProcess(
-      { cmd: ["tar", "-x", "-f", file], cwd: dir, stdout: "piped" },
+      { cmd: ["tar", "xfz", file], cwd: dir, stdout: "piped" },
     );
   }
 }

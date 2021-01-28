@@ -14,7 +14,8 @@ import { jupyterKernelspec } from "../core/jupyter/kernels.ts";
 import { message } from "../core/console.ts";
 import { ProjectCreate, projectType } from "./types/project-types.ts";
 import { mergeConfigs } from "../core/config.ts";
-import { projectConfigDir } from "./project-config.ts";
+
+import { projectConfigDir } from "../config/metadata.ts";
 
 export const kOutputDir = "output-dir";
 
@@ -148,12 +149,6 @@ function projectMetadataFile(
   options: ProjectCreateOptions,
   projCreate: ProjectCreate,
 ) {
-  // build lines
-  const lines: string[] = [];
-  const addLine = (line: string, indent = 0) => {
-    lines.push(" ".repeat(indent * 2) + line);
-  };
-
   // deno-lint-ignore no-explicit-any
   let metadata: any = {
     project: {
@@ -167,6 +162,11 @@ function projectMetadataFile(
 
   // merge project metadata
   metadata = mergeConfigs(metadata, projCreate.metadata);
+
+  // move project level metadata to the bottom
+  const project = ld.cloneDeep(metadata.project);
+  delete metadata.project;
+  metadata.project = project;
 
   // convert to yaml
   return stringify(metadata, { indent: 2, sortKeys: false });

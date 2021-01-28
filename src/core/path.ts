@@ -25,7 +25,11 @@ export function dirAndStem(file: string) {
 }
 
 export function expandPath(path: string) {
-  return path.replace(/^~\//, getenv("HOME", "~") + "/");
+  if (path === "~") {
+    return getenv("HOME", "~");
+  } else {
+    return path.replace(/^~\//, getenv("HOME", "~") + "/");
+  }
 }
 
 export async function which(cmd: string) {
