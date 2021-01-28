@@ -20,6 +20,9 @@ function theorems()
         
         -- capture then remove name
         local name = markdownToInlines(el.attr.attributes["name"])
+        if not name then
+          name = stringToInlines("Unnamed")
+        end
         el.attr.attributes["name"] = nil 
         
         -- add to index

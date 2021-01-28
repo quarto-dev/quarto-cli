@@ -18,7 +18,7 @@ export interface ProjectType {
 export interface ProjectCreate {
   metadata?: Metadata;
   scaffold?: ProjectScaffoldFile[];
-  supporting?: string;
+  supporting?: string[];
 }
 
 export interface ProjectScaffoldFile {
