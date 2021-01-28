@@ -93,11 +93,17 @@ async function install(context: InstallContext) {
       moveSync(from, to, { overwrite: true });
 
       // Find the tlmgr and note its location
-      const binFolder = join(
-        to,
-        "bin",
-        `${Deno.build.arch}-${Deno.build.os}`,
-      );
+      const binFolder = Deno.build.os === "windows"
+        ? join(
+          to,
+          "bin",
+          "win32",
+        )
+        : join(
+          to,
+          "bin",
+          `${Deno.build.arch}-${Deno.build.os}`,
+        );
       context.props[kTlMgrKey] = Deno.build.os === "windows"
         ? join(binFolder, "tlmgr.bat")
         : join(binFolder, "tlmgr");
@@ -174,11 +180,11 @@ const kTlMgrKey = "tlmgr";
 function tinyTexInstallDir(): string | undefined {
   switch (Deno.build.os) {
     case "windows":
-      return getenv("APPDATA", undefined);
+      return join(getenv("APPDATA", undefined), "TinyTeX");
     case "linux":
-      return "~./TinyTex";
+      return "~./TinyTeX";
     case "darwin":
-      return "~/Library/TinyTex";
+      return "~/Library/TinyTeX";
     default:
       return undefined;
   }
