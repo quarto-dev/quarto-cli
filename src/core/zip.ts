@@ -15,7 +15,7 @@ export async function unzip(file: string) {
     if (Deno.build.os === "windows") {
       return execProcess(
         {
-          cmd: ["powershell", "Expand-Archive", file],
+          cmd: ["powershell", "Expand-Archive", file, "-DestinationPath", dir],
           cwd: dir,
           stdout: "piped",
         },
