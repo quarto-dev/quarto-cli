@@ -4,4 +4,4 @@ The script will download any dependencies and configure the 'Quarto' command for
 
 Please follow any other instructions provided by the configure `configure-<platform>` to complete configuration.
 
-Once you have completed configuration, run the command `Quarto --help` to confirm that all is well.
+Once you have completed configuration, run the command `quarto --help` to confirm that all is well.
