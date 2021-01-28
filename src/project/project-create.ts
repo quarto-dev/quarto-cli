@@ -148,12 +148,6 @@ function projectMetadataFile(
   options: ProjectCreateOptions,
   projCreate: ProjectCreate,
 ) {
-  // build lines
-  const lines: string[] = [];
-  const addLine = (line: string, indent = 0) => {
-    lines.push(" ".repeat(indent * 2) + line);
-  };
-
   // deno-lint-ignore no-explicit-any
   let metadata: any = {
     project: {
@@ -167,6 +161,11 @@ function projectMetadataFile(
 
   // merge project metadata
   metadata = mergeConfigs(metadata, projCreate.metadata);
+
+  // move project level metadata to the bottom
+  const project = ld.cloneDeep(metadata.project);
+  delete metadata.project;
+  metadata.project = project;
 
   // convert to yaml
   return stringify(metadata, { indent: 2, sortKeys: false });
