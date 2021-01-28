@@ -33,6 +33,30 @@ export type Metadata = {
   [key: string]: unknown;
 };
 
+export function projectConfigDir(dir: string) {
+  return join(dir, "_quarto");
+}
+
+export function projectConfig(dir: string): Metadata | undefined {
+  let projectConfig: Metadata | undefined;
+  const configDir = projectConfigDir(dir);
+  if (existsSync(configDir)) {
+    projectConfig = readQuartoYaml(configDir);
+  } else {
+    const metadata = projectMetadata(dir);
+    if (Object.keys(metadata).length > 0) {
+      projectConfig = metadata;
+    }
+  }
+  if (projectConfig) {
+    const includeMetadata = includedMetadata(projectConfig);
+    projectConfig = mergeConfigs(projectConfig, includeMetadata);
+    delete projectConfig[kMetadataFile];
+    delete projectConfig[kMetadataFiles];
+    return projectConfig;
+  }
+}
+
 export function projectMetadata(file: string): Metadata {
   file = Deno.realPathSync(file);
   let dir: string | undefined;
@@ -50,9 +74,9 @@ export function projectMetadata(file: string): Metadata {
     }
 
     // Read metadata from the quarto directory
-    const quartoDir = join(dir, "_quarto");
-    if (existsSync(quartoDir)) {
-      return readQuartoYaml(quartoDir);
+    const configDir = projectConfigDir(dir);
+    if (existsSync(configDir)) {
+      return readQuartoYaml(configDir);
     }
   }
 }
@@ -168,7 +192,7 @@ export function metadataAsFormat(metadata: Metadata): Format {
   return typedFormat;
 }
 
-function readQuartoYaml(directory: string) {
+export function readQuartoYaml(directory: string) {
   // Reads all the metadata files from the directory
   // and merges them in the order in which they are read
 

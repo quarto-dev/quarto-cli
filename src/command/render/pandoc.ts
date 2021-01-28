@@ -7,7 +7,6 @@
 
 import { ld } from "lodash/mod.ts";
 
-import { dirname } from "path/mod.ts";
 import { stringify } from "encoding/yaml.ts";
 
 import { execProcess, ProcessResult } from "../../core/process.ts";

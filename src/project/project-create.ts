@@ -14,7 +14,8 @@ import { jupyterKernelspec } from "../core/jupyter/kernels.ts";
 import { message } from "../core/console.ts";
 import { ProjectCreate, projectType } from "./types/project-types.ts";
 import { mergeConfigs } from "../core/config.ts";
-import { projectConfigDir } from "./project-config.ts";
+
+import { projectConfigDir } from "../config/metadata.ts";
 
 export const kOutputDir = "output-dir";
 
