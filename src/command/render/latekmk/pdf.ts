@@ -11,6 +11,7 @@ import { existsSync } from "fs/mod.ts";
 import { message } from "../../../core/console.ts";
 import { dirAndStem } from "../../../core/path.ts";
 import { PdfEngine } from "../../../config/pdf.ts";
+import { ProcessResult } from "../../../core/process.ts";
 
 import { hasTexLive } from "./texlive.ts";
 import { runBibEngine, runIndexEngine, runPdfEngine } from "./latex.ts";
@@ -24,14 +25,13 @@ import {
   kMissingFontLog,
   needsRecompilation,
 } from "./parse-error.ts";
-import { ProcessResult } from "../../../core/process.ts";
 
 export const kPdfGenerateMessageOptions = { bold: true };
 
 export async function generatePdf(mkOptions: LatexmkOptions) {
   if (!mkOptions.quiet) {
     message(
-      `creating pdf (${mkOptions.engine.pdfEngine})`,
+      `runnning ${mkOptions.engine.pdfEngine} - 1`,
       kPdfGenerateMessageOptions,
     );
   }
@@ -420,7 +420,7 @@ async function recompileLatexUntilComplete(
 
     if (!quiet) {
       message(
-        `\nregenerating pdf (${engine.pdfEngine} - ${runCount + 1})`,
+        `\nrunning ${engine.pdfEngine} - ${runCount + 2}`,
         kPdfGenerateMessageOptions,
       );
     }
