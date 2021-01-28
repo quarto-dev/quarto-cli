@@ -297,6 +297,8 @@ Pandoc-powered academic, scientific, and technical publishing. Quarto is pandoc 
 Future
 -----------------------------------------
 
+Take a look at prosemirror-typerighter: https://github.com/guardian/prosemirror-typerighter
+
 Take a look at Pluto (Julia)
 
 - WordPress (https://developer.wordpress.com/docs/api/)
