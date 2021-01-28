@@ -24,7 +24,6 @@ export async function hasTexLive(): Promise<boolean> {
     });
     return result.code === 0;
   } catch (e) {
-    console.log(e);
     return false;
   }
 }
