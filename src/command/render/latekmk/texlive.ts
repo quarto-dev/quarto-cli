@@ -194,6 +194,25 @@ async function installPackage(pkg: string, opts?: string[], quiet?: boolean) {
   return installResult;
 }
 
+export async function removePackage(
+  pkg: string,
+  opts?: string[],
+  quiet?: boolean,
+) {
+  // Run the install command
+  const uninstallResult = await tlmgrCommand(
+    "remove",
+    [...(opts || []), pkg],
+    quiet,
+  );
+
+  // Failed to even run tlmgr
+  if (uninstallResult.code !== 0) {
+    return Promise.reject();
+  }
+  return uninstallResult;
+}
+
 // Verifies whether the package has been installed
 async function verifyPackageInstalled(
   pkg: string,

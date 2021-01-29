@@ -44,9 +44,9 @@ export async function runPdfEngine(
   quiet?: boolean,
 ): Promise<LatexCommandReponse> {
   // Input and log paths
-  const [dir, stem] = dirAndStem(input);
-  const output = join(outputDir || dir, `${stem}.pdf`);
-  const log = join(outputDir || dir, `${stem}.log`);
+  const [cwd, stem] = dirAndStem(input);
+  const output = join(outputDir || cwd, `${stem}.pdf`);
+  const log = join(outputDir || cwd, `${stem}.log`);
 
   // Clean any log file or output from previous runs
   [log, output].forEach((file) => {
@@ -75,6 +75,7 @@ export async function runPdfEngine(
   const result = await runLatexCommand(
     engine.pdfEngine,
     args,
+    cwd,
     pkgMgr,
     quiet,
   );
@@ -95,8 +96,8 @@ export async function runIndexEngine(
   pkgMgr?: PackageManager,
   quiet?: boolean,
 ) {
-  const [dir, stem] = dirAndStem(input);
-  const log = join(dir, `${stem}.ilg`);
+  const [cwd, stem] = dirAndStem(input);
+  const log = join(cwd, `${stem}.ilg`);
 
   // Clean any log file from previous runs
   if (existsSync(log)) {
@@ -105,7 +106,8 @@ export async function runIndexEngine(
 
   const result = await runLatexCommand(
     engine || "makeindex",
-    [...(args || []), input],
+    [...(args || []), basename(input)],
+    cwd,
     pkgMgr,
     quiet,
   );
@@ -123,8 +125,8 @@ export async function runBibEngine(
   pkgMgr?: PackageManager,
   quiet?: boolean,
 ): Promise<LatexCommandReponse> {
-  const [dir, stem] = dirAndStem(input);
-  const log = join(dir, `${stem}.blg`);
+  const [cwd, stem] = dirAndStem(input);
+  const log = join(cwd, `${stem}.blg`);
 
   // Clean any log file from previous runs
   if (existsSync(log)) {
@@ -133,7 +135,8 @@ export async function runBibEngine(
 
   const result = await runLatexCommand(
     engine,
-    [input],
+    [basename(input)],
+    cwd,
     pkgMgr,
     quiet,
   );
@@ -146,11 +149,13 @@ export async function runBibEngine(
 async function runLatexCommand(
   latexCmd: string,
   args: string[],
+  cwd: string,
   pkMgr?: PackageManager,
   quiet?: boolean,
 ): Promise<ProcessResult> {
   const runOptions: Deno.RunOptions = {
     cmd: [latexCmd, ...args],
+    cwd,
     stdout: "piped",
     stderr: "piped",
   };
