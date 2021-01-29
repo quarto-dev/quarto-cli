@@ -10,7 +10,7 @@ import { existsSync } from "fs/exists.ts";
 import { parse } from "encoding/yaml.ts";
 
 const kRegExYAML =
-  /(^)(---[ \t]*\n(?![ \t]*\n)[\W\w]*?\n(?:---|\.\.\.))([ \t]*)$/gm;
+  /(^)(---[ \t]*[\r\n]+(?![ \t]*[\r\n]+)[\W\w]*?[\r\n]+(?:---|\.\.\.))([ \t]*)$/gm;
 
 export function readYaml(file: string) {
   if (existsSync(file)) {

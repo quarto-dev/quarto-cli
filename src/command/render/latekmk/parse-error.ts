@@ -8,8 +8,6 @@
 import { basename, join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { ld } from "lodash/mod.ts";
-import { hasLatexDistribution } from "./latex.ts";
-import { hasTexLive } from "./texlive.ts";
 
 // The missing font log file name
 export const kMissingFontLog = "missfont.log";
