@@ -48,6 +48,12 @@ Deno.test("render:make index (custom)", async () => {
   await testRender("docs/latexmk/make-index-custom.Rmd", false, "pdf");
 });
 
+Deno.test("render:missing font", async () => {
+  await removePackage("fontawesome");
+  Deno.copyFileSync("docs/latexmk/missfont.txt", "docs/latexmk/missfont.log");
+  await testRender("docs/latexmk/missing-font.Rmd", false, "pdf");
+});
+
 async function ensurePackageRemoved(pkg: string) {
   try {
     await removePackage("fontawesome");
