@@ -5,11 +5,9 @@
 *
 */
 
-import { dirname, join } from "path/mod.ts";
-import { exists, existsSync } from "fs/exists.ts";
-import { expandGlobSync } from "fs/expand_glob.ts";
+import { exists } from "fs/exists.ts";
 
-import { readYaml, readYamlFromMarkdownFile } from "../core/yaml.ts";
+import { readYamlFromMarkdownFile } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { message } from "../core/console.ts";
 
@@ -32,54 +30,6 @@ import { defaultWriterFormat, Format } from "./format.ts";
 export type Metadata = {
   [key: string]: unknown;
 };
-
-export function projectConfigDir(dir: string) {
-  return join(dir, "_quarto");
-}
-
-export function projectConfig(dir: string): Metadata | undefined {
-  let projectConfig: Metadata | undefined;
-  const configDir = projectConfigDir(dir);
-  if (existsSync(configDir)) {
-    projectConfig = readQuartoYaml(configDir);
-  } else {
-    const metadata = projectMetadata(dir);
-    if (Object.keys(metadata).length > 0) {
-      projectConfig = metadata;
-    }
-  }
-  if (projectConfig) {
-    const includeMetadata = includedMetadata(projectConfig);
-    projectConfig = mergeConfigs(projectConfig, includeMetadata);
-    delete projectConfig[kMetadataFile];
-    delete projectConfig[kMetadataFiles];
-    return projectConfig;
-  }
-}
-
-export function projectMetadata(file: string): Metadata {
-  file = Deno.realPathSync(file);
-  let dir: string | undefined;
-  while (true) {
-    // determine next directory to inspect (terminate if we can't go any higher)
-    if (!dir) {
-      dir = dirname(file);
-    } else {
-      const nextDir = dirname(dir);
-      if (nextDir === dir) {
-        return {};
-      } else {
-        dir = nextDir;
-      }
-    }
-
-    // Read metadata from the quarto directory
-    const configDir = projectConfigDir(dir);
-    if (existsSync(configDir)) {
-      return readQuartoYaml(configDir);
-    }
-  }
-}
 
 export function includedMetadata(baseMetadata: Metadata): Metadata {
   // Read any metadata files that are defined in the metadata itself
@@ -190,27 +140,6 @@ export function metadataAsFormat(metadata: Metadata): Format {
     }
   });
   return typedFormat;
-}
-
-export function readQuartoYaml(directory: string) {
-  // Reads all the metadata files from the directory
-  // and merges them in the order in which they are read
-
-  let yamlPath: string | undefined = undefined;
-  try {
-    // Read the metadata files from the directory
-    const yamls = [];
-    for (const walk of expandGlobSync("*.{yml,yaml}", { root: directory })) {
-      // Read the metadata for this file
-      yamlPath = walk.path;
-      yamls.push(readYaml(yamlPath) as Metadata);
-    }
-    // Return the merged metadata
-    return mergeConfigs({}, ...yamls);
-  } catch (e) {
-    message("\nError reading quarto configuration at " + yamlPath + "\n");
-    throw e;
-  }
 }
 
 export function setFormatMetadata(

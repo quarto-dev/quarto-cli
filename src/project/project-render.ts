@@ -5,35 +5,30 @@
 *
 */
 
-// what directory to execute computations in
-// what directory to run pandoc in
-
-// whichi files to render:
+// (1) which files to render:
 // explicit list
 // render: [
 //   foo.Rmd
 // ]
 // automatically determined list:
 //  engine targetable files *minus* keep-md output *minus* _ prefaced
+// executes targets in subdirectories
 
-// which files to copy to the output_dir
-//   auto-exclude: _* .* .Rmd, .R, .py, .csv, .ipynb
-//   auto-include: *
-//   exclude:
-//   include:
+// (2) Working directory for execution/pandoc
+// Could have a 'render-dir' which sets both? file, cwd, project
+// (note that books would not support render-dir)
 
-// OR
+// (3) how to handle output
+//  project implements the following automatically
+//   output-dir:
+//   output-include:
+//   output-exclude:
+//   output.html / output_files
+//
 
 //  separately, there is a website project that implements
 //  common features/idioms:  images/css/header/footer/sitemap,etc.
-
-//  if threre is an output-dir, then the project defines:
-//   output.html / output_files
-//   include:
-//     - images
-//     - css
-//   exclude:
-//
+//  perhaps yaml nav that yields html nav?
 
 export function projectRender(dir: string) {
 }
