@@ -16,11 +16,16 @@ import { includedMetadata, Metadata } from "./metadata.ts";
 import { kMetadataFile, kMetadataFiles } from "./constants.ts";
 
 export const kOutputDir = "output-dir";
+export const kOutputInclude = "output-include";
+export const kOutputExclude = "output-exclude";
 
 export interface ProjectMetadata extends Metadata {
   name?: string;
   type?: string;
+  files?: string[];
   [kOutputDir]?: string;
+  [kOutputInclude]?: string;
+  [kOutputExclude]?: string;
 }
 
 export function projectConfigDir(dir: string) {
