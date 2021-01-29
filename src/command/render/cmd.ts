@@ -38,7 +38,7 @@ export const renderCommand = new Command()
     "YAML file with execution parameters.",
   )
   .option(
-    "--execute-root-dir",
+    "--execute-dir",
     "Working directory for code execution.",
   )
   .option(

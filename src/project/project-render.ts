@@ -42,6 +42,8 @@
 //     for books, still render chapter by chapter (but just do however many passes for crossrefs)
 //     for books, it's a single pandoc render of the book (so xrefs can be resolved book-wide),
 //     so in that case we need to prepend the directory offset
+//     for final pass on single-file outputs, we need to prepend dir heirarchy to images
+//       - first pass (during the main render)
 
 // (2) Working directory for execution/pandoc
 // Could have a 'render-dir' which sets both? document, project, cwd
