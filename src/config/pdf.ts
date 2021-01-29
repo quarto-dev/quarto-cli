@@ -1,3 +1,10 @@
+/*
+* pdf.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
+
 // union of metadata and command line flags which determine
 import { FormatPandoc, FormatRender } from "./format.ts";
 import { PandocFlags } from "./flags.ts";

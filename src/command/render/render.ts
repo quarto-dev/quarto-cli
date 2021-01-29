@@ -18,7 +18,6 @@ import {
   includedMetadata,
   Metadata,
   metadataAsFormat,
-  projectMetadata,
 } from "../../config/metadata.ts";
 import {
   kCache,
@@ -43,6 +42,7 @@ import { runPandoc } from "./pandoc.ts";
 import { kStdOut, RenderFlags, resolveParams } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
+import { projectMetadata } from "../../config/project.ts";
 
 // command line options for render
 export interface RenderOptions {

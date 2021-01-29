@@ -6,7 +6,6 @@
 */
 
 import { Format, FormatPandoc } from "../config/format.ts";
-import { PdfEngine } from "../config/pdf.ts";
 import { Metadata } from "../config/metadata.ts";
 
 import { rmdEngine } from "./rmd.ts";

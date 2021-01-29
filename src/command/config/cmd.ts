@@ -9,9 +9,8 @@ import { stringify } from "encoding/yaml.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { Metadata, projectConfig } from "../../config/metadata.ts";
 import { renderContext } from "../render/render.ts";
-import { Format } from "../../config/format.ts";
+import { projectConfig } from "../../config/project.ts";
 
 export const configCommand = new Command()
   .name("config")
