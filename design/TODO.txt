@@ -1,4 +1,7 @@
 
+Bugs:
+   - No output from jupyter demo?
+
 Layout:
 
    - "natural width" (0?)
