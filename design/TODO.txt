@@ -1,4 +1,17 @@
 
+Layout:
+
+   - "natural width" (0?)
+   - LaTeX widths. Anywhere you have a space in a column use % 
+   - HTML widths (eliminate space between images)
+   - top align all content in layout cells
+   - word side by side tables
+
+metadata:
+   - Inline YAML in code chunks
+   - fig.alt (alt text for image in html)
+
+
 
 TinyTex:
 - Should we indent sub output?

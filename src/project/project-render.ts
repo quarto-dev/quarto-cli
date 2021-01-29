@@ -25,6 +25,11 @@
 
 // project directory:
 
+// foo/
+//   bar.md
+
+// render-dir: document | project | cwd
+
 // - Issue is that for web content relative references are understood to work
 //     Even if we run the code in the project root there are now two sets of rules for code assets vs. web assets
 //     If we solve this by making everything root relative, you get a lot of fragility around paths
@@ -32,8 +37,9 @@
 //     We really want to be relative by default, but provide ways to reference the root
 
 //     QUARTO_PROJECT_DIR (for code that wants to not care about how deep, i.e. not use "../R/utils.R")
-//     @/ (for links, where @ expands to .., etc.)
+//     / (for links, where @ expands to .., etc.)
 
+//     for books, still render chapter by chapter (but just do however many passes for crossrefs)
 //     for books, it's a single pandoc render of the book (so xrefs can be resolved book-wide),
 //     so in that case we need to prepend the directory offset
 
@@ -44,6 +50,11 @@
 
 // "../R/helpers.R";
 
+// section1
+//   chapter4
+//     foo.Rmd
+//     data.csv
+
 // QUARTO_PROJECT_DIR
 
 // @/
@@ -53,9 +64,11 @@
 
 /*
 R /
-  data /
-  reports /
+data /
+reports /
   forward.Rmd;
+  images/foo.pn
+
 */
 
 // ../../data/records.csv
