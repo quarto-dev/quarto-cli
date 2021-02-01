@@ -11,6 +11,7 @@ import { Command } from "cliffy/command/mod.ts";
 
 import { renderContexts } from "../render/render.ts";
 import { projectMetadata } from "../../config/project.ts";
+import { Format } from "../../config/format.ts";
 
 export const metadataCommand = new Command()
   .name("metadata")
@@ -62,10 +63,11 @@ export const metadataCommand = new Command()
 
 async function fileMetadata(path: string, to = "all") {
   const contexts = await renderContexts(path, { flags: { to } });
-  const formats: Record<string, unknown> = {};
-  contexts.forEach((context) => {
-    delete context.format.metadata.format;
-    formats[context.format.pandoc.to!] = context.format;
+  const formats: Record<string, Format> = {};
+  Object.keys(contexts).forEach((context) => {
+    const format = contexts[context].format;
+    delete format.metadata.format;
+    formats[context] = format;
   });
   return formats;
 }

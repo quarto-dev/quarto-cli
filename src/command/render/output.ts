@@ -5,7 +5,7 @@
 *
 */
 
-import { extname, isAbsolute, join, relative } from "path/mod.ts";
+import { dirname, extname, isAbsolute, join, relative } from "path/mod.ts";
 
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
@@ -60,13 +60,30 @@ export async function outputRecipe(
   options: RenderOptions,
   format: Format,
 ): Promise<OutputRecipe> {
+  // determine if an output file was specified (could be on the command line or
+  // could be within metadata)
+  let output = options.flags?.output;
+  if (!output) {
+    const outputFile = format.pandoc[kOutputFile];
+    if (outputFile) {
+      if (isAbsolute(outputFile)) {
+        output = outputFile;
+      } else {
+        output = join(dirname(input), outputFile);
+      }
+    } else {
+      output = "";
+    }
+  }
+
   if (useQuartoLatexmk(format, options.flags)) {
-    return quartoLatexmkOutputRecipe(input, options, format);
+    return quartoLatexmkOutputRecipe(input, output, options, format);
   } else {
     // default recipe spec based on user input
     const completeActions: VoidFunction[] = [];
+
     const recipe = {
-      output: options.flags?.output || format.pandoc[kOutputFile] || "",
+      output,
       args: options.pandocArgs || [],
       format: { ...format },
       complete: async (): Promise<string | void> => {

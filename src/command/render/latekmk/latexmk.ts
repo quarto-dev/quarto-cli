@@ -75,6 +75,7 @@ export function useQuartoLatexmk(
 
 export function quartoLatexmkOutputRecipe(
   input: string,
+  finalOutput: string,
   options: RenderOptions,
   format: Format,
 ): OutputRecipe {
@@ -95,10 +96,6 @@ export function quartoLatexmkOutputRecipe(
   } else {
     pandoc[kOutputFile] = output;
   }
-
-  // remove --to argument if it's there, since we've already folded it
-  // into the yaml, and it will be "beamer" or "pdf" so actually incorrect
-  args = removePandocToArg(args);
 
   // when pandoc is done, we need to run latexmk and then copy the
   // ouptut to the user's requested destination
@@ -126,7 +123,6 @@ export function quartoLatexmkOutputRecipe(
 
     // copy (or write for stdout) compiled pdf to final output location
     const compilePdf = join(inputDir, texStem + ".pdf");
-    const finalOutput = options.flags?.output || format.pandoc[kOutputFile];
     if (finalOutput) {
       if (finalOutput === kStdOut) {
         writeFileToStdout(compilePdf);

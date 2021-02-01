@@ -71,7 +71,13 @@ export async function render(
   // get contexts
   const contexts = await renderContexts(file, options);
 
-  for (const context of contexts) {
+  // remove --to (it's been resolved into contexts)
+  delete options.flags?.to;
+  if (options.pandocArgs) {
+    options.pandocArgs = removePandocToArg(options.pandocArgs);
+  }
+
+  for (const context of Object.values(contexts)) {
     // execute
     const executeResult = await renderExecute(context, true);
 
@@ -85,31 +91,27 @@ export async function render(
   return { success: true, code: 0 };
 }
 
-export async function renderContexts(file: string, options: RenderOptions) {
+export async function renderContexts(
+  file: string,
+  options: RenderOptions,
+): Promise<Record<string, RenderContext>> {
   // determine the computation engine and any alternate input file
   const { target, engine } = await executionEngine(file, options.flags?.quiet);
 
   // resolve render target
   const formats = await resolveFormat(target, engine, options.flags);
 
-  // clean "all" from options (as it would have been resolved within resolveFormat)
-  if (options.flags?.to === "all") {
-    delete options.flags?.to;
-    if (options.pandocArgs) {
-      options.pandocArgs = removePandocToArg(options.pandocArgs);
-    }
-  }
-
   // return contexts
-  return formats.map((format) => {
-    // context
-    return {
+  const contexts: Record<string, RenderContext> = {};
+  Object.keys(formats).forEach((format) => {
+    contexts[format] = {
       target,
       options,
       engine,
-      format,
+      format: formats[format],
     };
   });
+  return contexts;
 }
 
 export async function renderExecute(
@@ -229,7 +231,7 @@ async function resolveFormat(
   target: ExecutionTarget,
   engine: ExecutionEngine,
   flags?: RenderFlags,
-) {
+): Promise<Record<string, Format>> {
   // merge input metadata into project metadata
   const inputMetadata = await engine.metadata(target);
   const projMetadata = projectMetadata(target.input);
@@ -286,11 +288,13 @@ async function resolveFormat(
     );
   }
 
-  return renderFormats.map((to) => {
+  const resolved: Record<string, Format> = {};
+
+  renderFormats.forEach((to) => {
     // determine the target format
     const format = formatFromMetadata(
       baseFormat,
-      to.split("+")[0],
+      to,
       flags?.debug,
     );
 
@@ -324,7 +328,8 @@ async function resolveFormat(
       config.execution[kKernelDebug] = flags.kernelDebug;
     }
 
-    // return
-    return config;
+    resolved[to] = config;
   });
+
+  return resolved;
 }
