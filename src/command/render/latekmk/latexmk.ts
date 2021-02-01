@@ -122,8 +122,8 @@ export function quartoLatexmkOutputRecipe(
     }
 
     // copy (or write for stdout) compiled pdf to final output location
-    const compilePdf = join(inputDir, texStem + ".pdf");
     if (finalOutput) {
+      const compilePdf = join(inputDir, texStem + ".pdf");
       if (finalOutput === kStdOut) {
         writeFileToStdout(compilePdf);
         Deno.removeSync(compilePdf);
@@ -135,7 +135,7 @@ export function quartoLatexmkOutputRecipe(
       }
       return finalOutput;
     } else {
-      return compilePdf;
+      return texStem + ".pdf";
     }
   };
 

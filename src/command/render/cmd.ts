@@ -113,11 +113,7 @@ export const renderCommand = new Command()
         const input = relative(Deno.cwd(), walk.path);
 
         rendered = true;
-        const result = await render(input, { flags, pandocArgs: args });
-        if (!result.success) {
-          // error diagnostics already written to stderr
-          Deno.exit(result.code);
-        }
+        await render(input, { flags, pandocArgs: args });
       }
     }
     if (!rendered) {

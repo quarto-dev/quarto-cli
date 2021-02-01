@@ -16,10 +16,7 @@ export async function run(options: RunOptions): Promise<ProcessResult> {
   if (engine?.run) {
     // render if requested
     if (options.render) {
-      const result = await render(target.input, {});
-      if (!result.success) {
-        return result;
-      }
+      await render(target.input, {});
     }
     // run (never returns)
     await engine.run({ ...options, input: target.input });

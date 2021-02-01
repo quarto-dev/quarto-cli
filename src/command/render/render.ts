@@ -36,12 +36,12 @@ import {
   ExecutionEngine,
   executionEngine,
   ExecutionTarget,
+  PandocResult,
 } from "../../execute/engine.ts";
 
 import { runPandoc } from "./pandoc.ts";
 import {
   kStdOut,
-  removePandocArgs,
   removePandocToArg,
   RenderFlags,
   resolveParams,
@@ -64,12 +64,19 @@ export interface RenderContext {
   format: Format;
 }
 
+export interface RenderResult {
+  finalOutput: string;
+}
+
 export async function render(
-  file: string,
+  path: string,
   options: RenderOptions,
-): Promise<ProcessResult> {
+): Promise<RenderResult[]> {
+  // 'file' could be a project directory
+  // we could allow for project to have no config
+
   // get contexts
-  const contexts = await renderContexts(file, options);
+  const contexts = await renderContexts(path, options);
 
   // remove --to (it's been resolved into contexts)
   delete options.flags?.to;
@@ -77,18 +84,24 @@ export async function render(
     options.pandocArgs = removePandocToArg(options.pandocArgs);
   }
 
+  const results: RenderResult[] = [];
+
   for (const context of Object.values(contexts)) {
     // execute
     const executeResult = await renderExecute(context, true);
 
     // run pandoc
-    const result = await renderPandoc(context, executeResult);
-    if (!result.success) {
-      return result;
+    const pandocResult = await renderPandoc(context, executeResult);
+
+    // report output created
+    if (!options.flags?.quiet && options.flags?.output !== kStdOut) {
+      message("Output created: " + pandocResult.finalOutput + "\n");
     }
+
+    results.push(pandocResult);
   }
 
-  return { success: true, code: 0 };
+  return results;
 }
 
 export async function renderContexts(
@@ -146,7 +159,7 @@ export async function renderExecute(
 export async function renderPandoc(
   context: RenderContext,
   executeResult: ExecuteResult,
-): Promise<ProcessResult> {
+): Promise<PandocResult> {
   // merge any pandoc options provided the computation
   context.format.pandoc = mergeConfigs(
     context.format.pandoc || {},
@@ -190,7 +203,7 @@ export async function renderPandoc(
   // run pandoc conversion (exit on failure)
   const pandocResult = await runPandoc(pandocOptions, executeResult.filters);
   if (!pandocResult.success) {
-    return pandocResult;
+    return Promise.reject();
   }
 
   // run optional post-processor (e.g. to restore html-preserve regions)
@@ -218,13 +231,10 @@ export async function renderPandoc(
     context.engine.keepMd(context.target.input),
   );
 
-  // report output created
-  if (!flags.quiet && flags.output !== kStdOut) {
-    message("Output created: " + finalOutput + "\n");
-  }
-
   // return result
-  return pandocResult;
+  return {
+    finalOutput,
+  };
 }
 
 async function resolveFormats(

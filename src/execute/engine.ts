@@ -55,6 +55,11 @@ export interface ExecuteResult {
   preserve?: Record<string, string>;
 }
 
+// result of pandoc render
+export interface PandocResult {
+  finalOutput: string;
+}
+
 // dependencies options
 export interface DependenciesOptions {
   target: ExecutionTarget;
