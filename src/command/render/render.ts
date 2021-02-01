@@ -47,7 +47,11 @@ import {
 } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
-import { projectMetadata } from "../../config/project.ts";
+import {
+  projectConfigDir,
+  projectInputFiles,
+  projectMetadata,
+} from "../../config/project.ts";
 import { existsSync } from "https://deno.land/std@0.74.0/fs/exists.ts";
 
 // command line options for render
@@ -72,43 +76,54 @@ export interface RenderResult {
 export async function render(
   path: string,
   options: RenderOptions,
-): Promise<RenderResult[]> {
-  // 'file' could be a project directory
-  // we could allow for project to have no config
+): Promise<Record<string, RenderResult[]>> {
+  const files: string[] = [];
 
-  // get contexts
-  const contexts = await renderContexts(path, options);
-
-  // remove --to (it's been resolved into contexts)
-  delete options.flags?.to;
-  if (options.pandocArgs) {
-    options.pandocArgs = removePandocToArg(options.pandocArgs);
+  if (Deno.statSync(path).isDirectory) {
+    files.push(...projectInputFiles(path));
+  } else {
+    files.push(path);
   }
 
-  const results: RenderResult[] = [];
+  const results: Record<string, RenderResult[]> = {};
 
-  for (const context of Object.values(contexts)) {
-    // execute
-    const executeResult = await renderExecute(context, true);
+  for (const file of files) {
+    // get contexts
+    const contexts = await renderContexts(path, options);
 
-    // run pandoc
-    const pandocResult = await renderPandoc(context, executeResult);
-
-    // determine if we have a files dir
-    const files_dir = executeResult.files_dir &&
-        existsSync(join(dirname(path), executeResult.files_dir))
-      ? executeResult.files_dir
-      : undefined;
-
-    results.push({
-      file: pandocResult.finalOutput,
-      files_dir,
-    });
-
-    // report output created
-    if (!options.flags?.quiet && options.flags?.output !== kStdOut) {
-      message("Output created: " + pandocResult.finalOutput + "\n");
+    // remove --to (it's been resolved into contexts)
+    delete options.flags?.to;
+    if (options.pandocArgs) {
+      options.pandocArgs = removePandocToArg(options.pandocArgs);
     }
+
+    const fileResults: RenderResult[] = [];
+
+    for (const context of Object.values(contexts)) {
+      // execute
+      const executeResult = await renderExecute(context, true);
+
+      // run pandoc
+      const pandocResult = await renderPandoc(context, executeResult);
+
+      // determine if we have a files dir
+      const files_dir = executeResult.files_dir &&
+          existsSync(join(dirname(path), executeResult.files_dir))
+        ? executeResult.files_dir
+        : undefined;
+
+      fileResults.push({
+        file: pandocResult.finalOutput,
+        files_dir,
+      });
+
+      // report output created
+      if (!options.flags?.quiet && options.flags?.output !== kStdOut) {
+        message("Output created: " + pandocResult.finalOutput + "\n");
+      }
+    }
+
+    results[file] = fileResults;
   }
 
   return results;
@@ -119,7 +134,14 @@ export async function renderContexts(
   options: RenderOptions,
 ): Promise<Record<string, RenderContext>> {
   // determine the computation engine and any alternate input file
-  const { target, engine } = await executionEngine(file, options.flags?.quiet);
+  const engine = await executionEngine(file);
+  if (!engine) {
+    throw new Error("Unable to render " + file);
+  }
+  const target = await engine.target(file, options.flags?.quiet);
+  if (!target) {
+    throw new Error("Unable to render " + file);
+  }
 
   // resolve render target
   const formats = await resolveFormats(target, engine, options.flags);

@@ -6,14 +6,16 @@
 */
 
 import { dirname, join } from "path/mod.ts";
-import { existsSync } from "fs/exists.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
+import { existsSync, walkSync } from "fs/mod.ts";
 
 import { readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { message } from "../core/console.ts";
 import { includedMetadata, Metadata } from "./metadata.ts";
 import { kMetadataFile, kMetadataFiles } from "./constants.ts";
+import { executionEngine } from "../execute/engine.ts";
+import { ld } from "https://deno.land/x/deno_lodash@v0.1.0/lodash.ts";
 
 export const kOutputDir = "output-dir";
 export const kOutputInclude = "output-include";
@@ -72,5 +74,34 @@ export function readQuartoYaml(directory: string) {
   } catch (e) {
     message("\nError reading quarto configuration at " + yamlPath + "\n");
     throw e;
+  }
+}
+
+export function projectInputFiles(dir: string) {
+  const project = projectMetadata(dir);
+  if (project.files) {
+    return project.files;
+  } else {
+    const files: string[] = [];
+    const keepMdFiles: string[] = [];
+    for (
+      const walk of walkSync(
+        dir,
+        { includeDirs: false, followSymlinks: true, skip: [/^_/] },
+      )
+    ) {
+      const engine = executionEngine(walk.path);
+      if (engine) {
+        files.push(walk.path);
+        const keepMd = engine.keepMd(walk.path);
+        if (keepMd) {
+          keepMdFiles.push(keepMd);
+        }
+      }
+    }
+
+    console.log(files);
+
+    return ld.difference(files, keepMdFiles);
   }
 }
