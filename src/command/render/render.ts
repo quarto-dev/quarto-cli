@@ -99,7 +99,7 @@ export async function renderContexts(
   const { target, engine } = await executionEngine(file, options.flags?.quiet);
 
   // resolve render target
-  const formats = await resolveFormat(target, engine, options.flags);
+  const formats = await resolveFormats(target, engine, options.flags);
 
   // return contexts
   const contexts: Record<string, RenderContext> = {};
@@ -227,7 +227,7 @@ export async function renderPandoc(
   return pandocResult;
 }
 
-async function resolveFormat(
+async function resolveFormats(
   target: ExecutionTarget,
   engine: ExecutionEngine,
   flags?: RenderFlags,
@@ -277,10 +277,10 @@ async function resolveFormat(
   // determine render formats
   const renderFormats: string[] = [];
   if (flags?.to) {
-    if (flags?.to === "all") {
+    if (flags.to === "all") {
       renderFormats.push(...formats);
     } else {
-      renderFormats.push(flags?.to);
+      renderFormats.push(...flags.to.split(","));
     }
   } else {
     renderFormats.push(
