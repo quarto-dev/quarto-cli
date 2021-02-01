@@ -13,7 +13,6 @@ import { Format } from "../../config/format.ts";
 import { kKeepMd, kKeepTex, kSelfContained } from "../../config/constants.ts";
 
 import type { RenderFlags } from "./flags.ts";
-import { ExecuteResult } from "../../execute/engine.ts";
 
 // some extensions are 'known' to be standalone/self-contained
 // see https://pandoc.org/MANUAL.html#option--standalone

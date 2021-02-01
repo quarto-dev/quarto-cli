@@ -5,10 +5,9 @@
 *
 */
 
-import { dirname } from "path/mod.ts";
+import { dirname, join } from "path/mod.ts";
 
 import { message } from "../../core/console.ts";
-import { ProcessResult } from "../../core/process.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { sessionTempDir } from "../../core/temp.ts";
@@ -49,6 +48,7 @@ import {
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
 import { projectMetadata } from "../../config/project.ts";
+import { existsSync } from "https://deno.land/std@0.74.0/fs/exists.ts";
 
 // command line options for render
 export interface RenderOptions {
@@ -65,7 +65,8 @@ export interface RenderContext {
 }
 
 export interface RenderResult {
-  finalOutput: string;
+  file: string;
+  files_dir?: string;
 }
 
 export async function render(
@@ -93,12 +94,21 @@ export async function render(
     // run pandoc
     const pandocResult = await renderPandoc(context, executeResult);
 
+    // determine if we have a files dir
+    const files_dir = executeResult.files_dir &&
+        existsSync(join(dirname(path), executeResult.files_dir))
+      ? executeResult.files_dir
+      : undefined;
+
+    results.push({
+      file: pandocResult.finalOutput,
+      files_dir,
+    });
+
     // report output created
     if (!options.flags?.quiet && options.flags?.output !== kStdOut) {
       message("Output created: " + pandocResult.finalOutput + "\n");
     }
-
-    results.push(pandocResult);
   }
 
   return results;
@@ -279,6 +289,7 @@ async function resolveFormats(
     }
   };
   const formats = formatKeys(inputMetadata).concat(formatKeys(projMetadata));
+
   // provide html if there was no format info
   if (formats.length === 0) {
     formats.push("html");
@@ -292,6 +303,8 @@ async function resolveFormats(
     } else {
       renderFormats.push(...flags.to.split(","));
     }
+  } else if (formats.length > 0) {
+    renderFormats.push(formats[0]);
   } else {
     renderFormats.push(
       baseFormat.pandoc.to || baseFormat.pandoc.writer || "html",

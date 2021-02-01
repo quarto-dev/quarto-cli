@@ -48,6 +48,7 @@ export interface ExecuteOptions {
 // result of execution
 export interface ExecuteResult {
   markdown: string;
+  files_dir?: string;
   supporting: string[];
   filters: string[];
   pandoc: FormatPandoc;

@@ -255,6 +255,7 @@ export const jupyterEngine: ExecutionEngine = {
     // return results
     return {
       markdown: result.markdown,
+      files_dir: assets.files_dir,
       supporting: [assets.supporting_dir],
       filters: [],
       pandoc,
