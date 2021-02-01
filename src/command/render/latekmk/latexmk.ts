@@ -28,6 +28,7 @@ import { RenderOptions } from "../render.ts";
 import {
   kStdOut,
   removePandocArgs,
+  removePandocToArg,
   RenderFlags,
   replacePandocArg,
 } from "../flags.ts";
@@ -97,9 +98,7 @@ export function quartoLatexmkOutputRecipe(
 
   // remove --to argument if it's there, since we've already folded it
   // into the yaml, and it will be "beamer" or "pdf" so actually incorrect
-  const removeArgs = new Map<string, boolean>();
-  removeArgs.set("--to", true);
-  args = removePandocArgs(args, removeArgs);
+  args = removePandocToArg(args);
 
   // when pandoc is done, we need to run latexmk and then copy the
   // ouptut to the user's requested destination

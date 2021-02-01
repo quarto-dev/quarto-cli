@@ -332,6 +332,12 @@ export function removePandocArgs(
   }, new Array<string>());
 }
 
+export function removePandocToArg(args: string[]) {
+  const removeArgs = new Map<string, boolean>();
+  removeArgs.set("--to", true);
+  return removePandocArgs(args, removeArgs);
+}
+
 function removeQuartoMetadataFlags(pandocArgs: string[]) {
   let metadataFlag: string | undefined = undefined;
   return pandocArgs.reduce((args, arg) => {

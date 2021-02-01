@@ -9,7 +9,7 @@ import { stringify } from "encoding/yaml.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { renderContext } from "../render/render.ts";
+import { renderContexts } from "../render/render.ts";
 import { projectMetadata } from "../../config/project.ts";
 
 export const metadataCommand = new Command()
@@ -60,8 +60,12 @@ export const metadataCommand = new Command()
     }
   });
 
-async function fileMetadata(path: string, to?: string) {
-  const context = await renderContext(path, { flags: { to } });
-  delete context.format.metadata.format;
-  return context.format;
+async function fileMetadata(path: string, to = "all") {
+  const contexts = await renderContexts(path, { flags: { to } });
+  const formats: Record<string, unknown> = {};
+  contexts.forEach((context) => {
+    delete context.format.metadata.format;
+    formats[context.format.pandoc.to!] = context.format;
+  });
+  return formats;
 }

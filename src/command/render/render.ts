@@ -39,7 +39,13 @@ import {
 } from "../../execute/engine.ts";
 
 import { runPandoc } from "./pandoc.ts";
-import { kStdOut, RenderFlags, resolveParams } from "./flags.ts";
+import {
+  kStdOut,
+  removePandocArgs,
+  removePandocToArg,
+  RenderFlags,
+  resolveParams,
+} from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
 import { projectMetadata } from "../../config/project.ts";
@@ -62,30 +68,48 @@ export async function render(
   file: string,
   options: RenderOptions,
 ): Promise<ProcessResult> {
-  // get context
-  const context = await renderContext(file, options);
+  // get contexts
+  const contexts = await renderContexts(file, options);
 
-  // execute
-  const executeResult = await renderExecute(context, true);
+  for (const context of contexts) {
+    // execute
+    const executeResult = await renderExecute(context, true);
 
-  // run pandoc
-  return renderPandoc(context, executeResult);
+    // run pandoc
+    const result = await renderPandoc(context, executeResult);
+    if (!result.success) {
+      return result;
+    }
+  }
+
+  return { success: true, code: 0 };
 }
 
-export async function renderContext(file: string, options: RenderOptions) {
+export async function renderContexts(file: string, options: RenderOptions) {
   // determine the computation engine and any alternate input file
   const { target, engine } = await executionEngine(file, options.flags?.quiet);
 
   // resolve render target
-  const format = await resolveFormat(target, engine, options.flags);
+  const formats = await resolveFormat(target, engine, options.flags);
 
-  // context
-  return {
-    target,
-    options,
-    engine,
-    format,
-  };
+  // clean "all" from options (as it would have been resolved within resolveFormat)
+  if (options.flags?.to === "all") {
+    delete options.flags?.to;
+    if (options.pandocArgs) {
+      options.pandocArgs = removePandocToArg(options.pandocArgs);
+    }
+  }
+
+  // return contexts
+  return formats.map((format) => {
+    // context
+    return {
+      target,
+      options,
+      engine,
+      format,
+    };
+  });
 }
 
 export async function renderExecute(
@@ -230,66 +254,77 @@ async function resolveFormat(
   // divide metadata into format buckets
   const baseFormat = metadataAsFormat(allMetadata);
 
-  // determine which writer to use (use original input and
+  // determine all target formats (use original input and
   // project metadata to preserve order of keys and to
   // prefer input-level format keys to project-level)
-  let to = flags?.to;
-  if (!to) {
-    // see if there is a 'to' or 'writer' specified in defaults
-    to = baseFormat.pandoc.to || baseFormat.pandoc.writer || "html";
-    to = to.split("+")[0];
-    const formatKeys = (metadata: Metadata): string[] => {
-      if (typeof metadata[kMetadataFormat] === "string") {
-        return [metadata[kMetadataFormat] as string];
-      } else if (metadata[kMetadataFormat] instanceof Object) {
-        return Object.keys(metadata[kMetadataFormat] as Metadata);
-      } else {
-        return [];
-      }
-    };
-    const formats = formatKeys(inputMetadata).concat(formatKeys(projMetadata));
-    if (formats.length > 0) {
-      to = formats[0];
+  const formatKeys = (metadata: Metadata): string[] => {
+    if (typeof metadata[kMetadataFormat] === "string") {
+      return [metadata[kMetadataFormat] as string];
+    } else if (metadata[kMetadataFormat] instanceof Object) {
+      return Object.keys(metadata[kMetadataFormat] as Metadata);
+    } else {
+      return [];
     }
+  };
+  const formats = formatKeys(inputMetadata).concat(formatKeys(projMetadata));
+  // provide html if there was no format info
+  if (formats.length === 0) {
+    formats.push("html");
   }
 
-  // determine the target format
-  const format = formatFromMetadata(
-    baseFormat,
-    to,
-    flags?.debug,
-  );
-
-  // merge configs
-  const config = mergeConfigs(baseFormat, format);
-
-  // apply command line arguments
-
-  // --no-execute-code
-  if (flags?.execute === false) {
-    config.execution[kExecute] = false;
+  // determine render formats
+  const renderFormats: string[] = [];
+  if (flags?.to) {
+    if (flags?.to === "all") {
+      renderFormats.push(...formats);
+    } else {
+      renderFormats.push(flags?.to);
+    }
+  } else {
+    renderFormats.push(
+      baseFormat.pandoc.to || baseFormat.pandoc.writer || "html",
+    );
   }
 
-  // --cache
-  if (flags?.executeCache !== undefined) {
-    config.execution[kCache] = flags?.executeCache;
-  }
+  return renderFormats.map((to) => {
+    // determine the target format
+    const format = formatFromMetadata(
+      baseFormat,
+      to.split("+")[0],
+      flags?.debug,
+    );
 
-  // --kernel-keepalive
-  if (flags?.kernelKeepalive !== undefined) {
-    config.execution[kKernelKeepalive] = flags.kernelKeepalive;
-  }
+    // merge configs
+    const config = mergeConfigs(baseFormat, format);
 
-  // --kernel-restart
-  if (flags?.kernelRestart !== undefined) {
-    config.execution[kKernelRestart] = flags.kernelRestart;
-  }
+    // apply command line arguments
 
-  // --kernel-debug
-  if (flags?.kernelDebug !== undefined) {
-    config.execution[kKernelDebug] = flags.kernelDebug;
-  }
+    // --no-execute-code
+    if (flags?.execute === false) {
+      config.execution[kExecute] = false;
+    }
 
-  // return
-  return config;
+    // --cache
+    if (flags?.executeCache !== undefined) {
+      config.execution[kCache] = flags?.executeCache;
+    }
+
+    // --kernel-keepalive
+    if (flags?.kernelKeepalive !== undefined) {
+      config.execution[kKernelKeepalive] = flags.kernelKeepalive;
+    }
+
+    // --kernel-restart
+    if (flags?.kernelRestart !== undefined) {
+      config.execution[kKernelRestart] = flags.kernelRestart;
+    }
+
+    // --kernel-debug
+    if (flags?.kernelDebug !== undefined) {
+      config.execution[kKernelDebug] = flags.kernelDebug;
+    }
+
+    // return
+    return config;
+  });
 }

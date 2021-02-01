@@ -25,8 +25,6 @@ import {
 } from "../../config/constants.ts";
 import { Format, isHtmlFormat } from "../../config/format.ts";
 
-import { ExecutionEngine } from "../../execute/engine.ts";
-
 import { havePandocArg, kStdOut, replacePandocArg } from "./flags.ts";
 import { PandocOptions } from "./pandoc.ts";
 import { RenderOptions } from "./render.ts";

@@ -111,6 +111,7 @@ export const renderCommand = new Command()
     for (const input of inputs) {
       for (const walk of expandGlobSync(input)) {
         const input = relative(Deno.cwd(), walk.path);
+
         rendered = true;
         const result = await render(input, { flags, pandocArgs: args });
         if (!result.success) {
