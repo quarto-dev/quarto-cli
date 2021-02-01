@@ -10,13 +10,13 @@ import { stringify } from "encoding/yaml.ts";
 import { Command } from "cliffy/command/mod.ts";
 
 import { renderContext } from "../render/render.ts";
-import { projectConfig } from "../../config/project.ts";
+import { projectMetadata } from "../../config/project.ts";
 
-export const configCommand = new Command()
-  .name("config")
+export const metadataCommand = new Command()
+  .name("metadata")
   .arguments("[path:string]")
   .description(
-    "Print the configuration metadata for an input file or project",
+    "Print the metadata for an input file or project",
   )
   .option(
     "-t, --to <format:string>",
@@ -28,15 +28,15 @@ export const configCommand = new Command()
   )
   .example(
     "Print project metadata",
-    "quarto config myproject",
+    "quarto metadata myproject",
   )
   .example(
     "Print project metadata as JSON",
-    "quarto config myproject --format json",
+    "quarto metadata myproject --format json",
   )
   .example(
     "Print metadata for input file",
-    "quarto config markdown.md",
+    "quarto metadata markdown.md",
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, path: string) => {
@@ -47,8 +47,8 @@ export const configCommand = new Command()
     const stat = Deno.statSync(path);
     // deno-lint-ignore no-explicit-any
     const config: any = stat.isDirectory
-      ? projectConfig(path)
-      : await fileConfig(path, options.to);
+      ? projectMetadata(path)
+      : await fileMetadata(path, options.to);
     if (config) {
       // write using the requisite format
       const output = options.json
@@ -60,9 +60,8 @@ export const configCommand = new Command()
     }
   });
 
-async function fileConfig(path: string, to?: string) {
+async function fileMetadata(path: string, to?: string) {
   const context = await renderContext(path, { flags: { to } });
-  const metadata = context.format.metadata;
-  delete metadata.format;
-  return metadata;
+  delete context.format.metadata.format;
+  return context.format;
 }

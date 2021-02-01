@@ -32,33 +32,17 @@ export function projectConfigDir(dir: string) {
   return join(dir, "_quarto");
 }
 
-export function projectConfig(dir: string): ProjectMetadata | undefined {
-  let projectConfig: Metadata | undefined;
-  const configDir = projectConfigDir(dir);
-  if (existsSync(configDir)) {
-    projectConfig = readQuartoYaml(configDir);
-  } else {
-    const metadata = projectMetadata(dir);
-    if (Object.keys(metadata).length > 0) {
-      projectConfig = metadata;
-    }
-  }
-  if (projectConfig) {
-    const includeMetadata = includedMetadata(projectConfig);
-    projectConfig = mergeConfigs(projectConfig, includeMetadata);
-    delete projectConfig[kMetadataFile];
-    delete projectConfig[kMetadataFiles];
-    return projectConfig;
-  }
-}
-
-export function projectMetadata(file: string): ProjectMetadata {
-  file = Deno.realPathSync(file);
-  let dir: string | undefined;
+export function projectMetadata(path: string): ProjectMetadata {
+  let dir = Deno.statSync(path).isDirectory ? path : dirname(path);
   while (true) {
-    // determine next directory to inspect (terminate if we can't go any higher)
-    if (!dir) {
-      dir = dirname(file);
+    const configDir = projectConfigDir(dir);
+    if (existsSync(configDir)) {
+      let projectConfig: Metadata = readQuartoYaml(configDir);
+      const includeMetadata = includedMetadata(projectConfig);
+      projectConfig = mergeConfigs(projectConfig, includeMetadata);
+      delete projectConfig[kMetadataFile];
+      delete projectConfig[kMetadataFiles];
+      return projectConfig;
     } else {
       const nextDir = dirname(dir);
       if (nextDir === dir) {
@@ -66,12 +50,6 @@ export function projectMetadata(file: string): ProjectMetadata {
       } else {
         dir = nextDir;
       }
-    }
-
-    // Read metadata from the quarto directory
-    const configDir = projectConfigDir(dir);
-    if (existsSync(configDir)) {
-      return readQuartoYaml(configDir);
     }
   }
 }
