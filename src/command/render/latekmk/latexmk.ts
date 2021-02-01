@@ -17,7 +17,6 @@ import {
   kLatexClean,
   kLatexMaxRuns,
   kLatexMinRuns,
-  kLatexOutputDir,
   kOutputExt,
   kOutputFile,
 } from "../../../config/constants.ts";
@@ -113,7 +112,6 @@ export function quartoLatexmkOutputRecipe(
       autoMk: format.render[kLatexAutoMk],
       minRuns: format.render[kLatexMinRuns],
       maxRuns: format.render[kLatexMaxRuns],
-      outputDir: format.render[kLatexOutputDir],
       clean: !options.flags?.debug && format.render[kLatexClean] !== false,
       quiet: pandocOptions.flags?.quiet,
     };

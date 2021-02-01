@@ -1,0 +1,15 @@
+---
+title: "Pandoc Latex"
+author: "Charles Teague"
+date: "1/21/2021"
+format: pdf
+header-includes: |
+  \usepackage{fontawesome}
+---
+
+\faApple
+
+
+Hello World
+
+

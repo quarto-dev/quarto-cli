@@ -22,7 +22,7 @@ fi
 QUARTO_IMPORT_ARGMAP=--importmap=$(realpath $SCRIPT_PATH/../../../src/import_map.json)
 
   # Allow calls to override the target
-  if [ -z ${QUARTO_TARGET+x}]; then
+  if [ -z ${QUARTO_TARGET+x} ]; then
     QUARTO_TARGET=$(realpath $DEV_PATH)
   fi
   export QUARTO_BIN_PATH=$(realpath $SCRIPT_PATH)

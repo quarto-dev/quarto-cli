@@ -33,7 +33,6 @@ import {
   kLatexMakeIndexOpts,
   kLatexMaxRuns,
   kLatexMinRuns,
-  kLatexOutputDir,
   kLatexTlmgrOpts,
   kListings,
   kMarkdownHeadings,
@@ -93,7 +92,6 @@ export interface FormatRender {
 
   [kLatexAutoMk]?: boolean;
   [kLatexAutoInstall]?: boolean;
-  [kLatexOutputDir]?: string;
   [kLatexMinRuns]?: number;
   [kLatexMaxRuns]?: number;
   [kLatexClean]?: boolean;
@@ -509,7 +507,6 @@ function defaultFormat(): Format {
       [kLatexClean]: true,
       [kLatexMaxRuns]: 1,
       [kLatexMaxRuns]: 10,
-      [kLatexOutputDir]: undefined,
       [kLatexMakeIndex]: undefined,
       [kLatexMakeIndexOpts]: undefined,
       [kLatexTlmgrOpts]: undefined,

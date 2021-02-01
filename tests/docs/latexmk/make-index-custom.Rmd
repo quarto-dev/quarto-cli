@@ -1,0 +1,49 @@
+---
+title: "Untitled"
+author: "Charles Teague"
+date: "1/21/2021"
+format: pdf
+bibliography: references.bib
+cite-method: natbib
+header-includes: |
+  \usepackage{makeidx}
+  \usepackage{sansmath}
+  \makeindex
+pdf-engine: lualatex
+latex-makeindex: texindy 
+latex-makeindex-opts: ["--debug", "markup"]
+---
+
+The index for this document should have a lot of debug markup present in it.
+
+Can also set debug option using:
+
+`quarto render makeindex-custom.Rmd --makeindex-opt="--debug" --makeindex-opt="markup"`
+
+# Bibliography Testing
+
+This should test bibliography \index{Bibliography} generation [@adami2020]. I also think that @allaire has a good point here, but he can also be a clown \index{Clowns} from time to time.
+
+```{=tex}
+\begin{sansmath}
+
+$$
+A^2 + B^2 = C^2
+$$
+
+\end{sansmath}
+\newpage
+```
+# Section 2
+
+Vestibulum \index{Latin}velit nisi, dapibus id cursus sit amet, tempor id ex. Duis gravida, dui a semper commodo, ligula mauris efficitur leo, mattis porttitor dui dolor vitae leo. Maecenas ullamcorper, nisi viverra consequat elementum, augue risus porttitor lectus, in accumsan nulla nibh id sapien. Cras augue odio, venenatis in euismod id, ultricies id lectus. Duis commodo velit elit. Sed sed finibus massa. Sed volutpat varius magna ac viverra. Aliquam a aliquam arcu, non consequat nunc. Curabitur egestas, urna vel pellentesque efficitur, elit justo viverra urna, et posuere urna nibh id purus. Praesent accumsan molestie sem, at feugiat\index{feugiat} velit aliquet ut. Integer libero felis, volutpat non eros vitae, lacinia venenatis risus.
+
+\newpage
+
+# Section 3
+
+@alajlouni2020 makes a great point about things\index{things}. Vestibulum velit nisi, dapibus id cursus sit amet, tempor id ex. Duis gravida, dui a semper commodo, ligula mauris efficitur leo, mattis porttitor dui dolor vitae leo. Maecenas\index{Maecenas} ullamcorper, nisi viverra consequat elementum, augue risus porttitor lectus, in accumsan nulla nibh id sapien. Cras augue odio, venenatis in euismod id, ultricies id lectus. Duis commodo velit elit. Sed sed finibus massa. Sed volutpat varius magna ac viverra. Aliquam a aliquam arcu, non consequat nunc. Curabitur egestas, urna vel pellentesque efficitur, elit justo viverra urna, et posuere urna nibh id purus. Praesent accumsan molestie sem, at feugiat velit aliquet ut. Integer libero felis, volutpat non eros vitae, lacinia venenatis risus.
+
+\newpage
+
+\printindex

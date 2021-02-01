@@ -275,7 +275,7 @@ async function makeBibliographyIntermediates(
   // By default, we'll use citeproc which requires no additional processing,
   // but if the user would like to use natbib or biblatex, we do need additional
   // processing (including explicitly calling the processing tool)
-  const bibCommand = engine == "natbib" ? "bibtex" : "biber";
+  const bibCommand = engine === "natbib" ? "bibtex" : "biber";
 
   while (true) {
     // If biber, look for a bcf file, otherwise look for aux file
