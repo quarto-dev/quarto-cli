@@ -42,20 +42,20 @@ export const renderCommand = new Command()
     "Working directory for code execution.",
   )
   .option(
-    "--kernel-keepalive",
-    "Keep Jupyter kernel alive (defaults to 300 seconds).",
-  )
-  .option(
-    "--kernel-restart",
-    "Restart keepalive Jupyter kernel before render.",
-  )
-  .option(
     "--cache",
     "Cache execution output (--no-cache to prevent cache).",
   )
   .option(
     "--cache-refresh",
     "Force refresh of execution cache.",
+  )
+  .option(
+    "--kernel-keepalive",
+    "Keep Jupyter kernel alive (defaults to 300 seconds).",
+  )
+  .option(
+    "--kernel-restart",
+    "Restart keepalive Jupyter kernel before render.",
   )
   .option(
     "--debug",
