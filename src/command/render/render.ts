@@ -5,7 +5,10 @@
 *
 */
 
+import { walkSync } from "fs/mod.ts";
 import { dirname, join } from "path/mod.ts";
+
+import { ld } from "lodash/mod.ts";
 
 import { message } from "../../core/console.ts";
 import { mergeConfigs } from "../../core/config.ts";
@@ -47,11 +50,7 @@ import {
 } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
-import {
-  projectConfigDir,
-  projectInputFiles,
-  projectMetadata,
-} from "../../config/project.ts";
+import { projectContext } from "../../config/project.ts";
 import { existsSync } from "https://deno.land/std@0.74.0/fs/exists.ts";
 
 // command line options for render
@@ -80,7 +79,7 @@ export async function render(
   const files: string[] = [];
 
   if (Deno.statSync(path).isDirectory) {
-    files.push(...projectInputFiles(path));
+    files.push(...directoryInputFiles(path));
   } else {
     files.push(path);
   }
@@ -276,7 +275,7 @@ async function resolveFormats(
 ): Promise<Record<string, Format>> {
   // merge input metadata into project metadata
   const inputMetadata = await engine.metadata(target);
-  const projMetadata = projectMetadata(target.input);
+  const projMetadata = projectContext(target.input).metadata || {};
   const baseMetadata = mergeConfigs(
     projMetadata,
     inputMetadata,
@@ -377,4 +376,39 @@ async function resolveFormats(
   });
 
   return resolved;
+}
+
+function directoryInputFiles(dir: string) {
+  const targetDir = Deno.realPathSync(dir);
+  const context = projectContext(dir);
+  if (context.metadata?.files) {
+    return context.metadata?.files
+      .map((file) => {
+        return join(context.dir, file);
+      })
+      .filter((file) => {
+        const targetFile = Deno.realPathSync(file);
+        return targetFile.startsWith(targetDir);
+      });
+  } else {
+    const files: string[] = [];
+    const keepMdFiles: string[] = [];
+    for (
+      const walk of walkSync(
+        dir,
+        { includeDirs: false, followSymlinks: true, skip: [/^_/] },
+      )
+    ) {
+      const engine = executionEngine(walk.path);
+      if (engine) {
+        files.push(walk.path);
+        const keepMd = engine.keepMd(walk.path);
+        if (keepMd) {
+          keepMdFiles.push(keepMd);
+        }
+      }
+    }
+
+    return ld.difference(files, keepMdFiles);
+  }
 }

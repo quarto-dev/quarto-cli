@@ -10,7 +10,7 @@ import { stringify } from "encoding/yaml.ts";
 import { Command } from "cliffy/command/mod.ts";
 
 import { renderContexts } from "../render/render.ts";
-import { projectMetadata } from "../../config/project.ts";
+import { projectContext } from "../../config/project.ts";
 import { Format } from "../../config/format.ts";
 
 export const metadataCommand = new Command()
@@ -48,7 +48,7 @@ export const metadataCommand = new Command()
     const stat = Deno.statSync(path);
     // deno-lint-ignore no-explicit-any
     const config: any = stat.isDirectory
-      ? projectMetadata(path)
+      ? projectContext(path).metadata
       : await fileMetadata(path, options.to);
     if (config) {
       // write using the requisite format
