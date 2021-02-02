@@ -6,6 +6,7 @@
 */
 
 import { walkSync } from "fs/mod.ts";
+import { expandGlobSync } from "fs/expand_glob.ts";
 import { dirname, join } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
@@ -379,36 +380,54 @@ async function resolveFormats(
 }
 
 function directoryInputFiles(dir: string) {
+  const files: string[] = [];
+  const keepMdFiles: string[] = [];
+
+  const addFile = (file: string) => {
+    const engine = executionEngine(file);
+    if (engine) {
+      files.push(file);
+      const keepMd = engine.keepMd(file);
+      if (keepMd) {
+        keepMdFiles.push(keepMd);
+      }
+    }
+  };
+
   const targetDir = Deno.realPathSync(dir);
   const context = projectContext(dir);
-  if (context.metadata?.files) {
-    return context.metadata?.files
+  const projFiles = context.metadata?.project?.files;
+  if (projFiles) {
+    // make project relative
+
+    const projGlobs = projFiles
       .map((file) => {
         return join(context.dir, file);
-      })
-      .filter((file) => {
-        const targetFile = Deno.realPathSync(file);
-        return targetFile.startsWith(targetDir);
       });
-  } else {
+
+    // expand globs
     const files: string[] = [];
-    const keepMdFiles: string[] = [];
+    for (const glob of projGlobs) {
+      for (const file of expandGlobSync(glob)) {
+        if (file.isFile) { // exclude dirs
+          const targetFile = Deno.realPathSync(file.path);
+          // filter by dir
+          if (targetFile.startsWith(targetDir)) {
+            addFile(file.path);
+          }
+        }
+      }
+    }
+  } else {
     for (
       const walk of walkSync(
         dir,
         { includeDirs: false, followSymlinks: true, skip: [/^_/] },
       )
     ) {
-      const engine = executionEngine(walk.path);
-      if (engine) {
-        files.push(walk.path);
-        const keepMd = engine.keepMd(walk.path);
-        if (keepMd) {
-          keepMdFiles.push(keepMd);
-        }
-      }
+      addFile(walk.path);
     }
-
-    return ld.difference(files, keepMdFiles);
   }
+
+  return ld.difference(ld.uniq(files), keepMdFiles);
 }

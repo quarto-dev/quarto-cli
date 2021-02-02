@@ -23,7 +23,10 @@ export const kOutputExclude = "output-exclude";
 
 export interface ProjectContext {
   dir: string;
-  metadata?: ProjectMetadata;
+  metadata?: {
+    project?: ProjectMetadata;
+    [key: string]: unknown;
+  };
 }
 
 export interface ProjectMetadata extends Metadata {
@@ -53,7 +56,7 @@ export function projectContext(path: string): ProjectContext {
       if (projectConfig.project) {
         return {
           dir,
-          metadata: projectConfig.project as ProjectMetadata,
+          metadata: projectConfig,
         };
       } else {
         return {
