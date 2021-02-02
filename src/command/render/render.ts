@@ -89,7 +89,7 @@ export async function render(
 
   for (const file of files) {
     // get contexts
-    const contexts = await renderContexts(path, options);
+    const contexts = await renderContexts(file, options);
 
     // remove --to (it's been resolved into contexts)
     delete options.flags?.to;
