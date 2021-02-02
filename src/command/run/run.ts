@@ -12,18 +12,19 @@ import { executionEngine, RunOptions } from "../../execute/engine.ts";
 import { render } from "../render/render.ts";
 
 export async function run(options: RunOptions): Promise<ProcessResult> {
-  const { target, engine } = await executionEngine(options.input, false);
+  const engine = await executionEngine(options.input);
   if (engine?.run) {
-    // render if requested
-    if (options.render) {
-      await render(target.input, {});
+    const target = await engine.target(options.input, options.quiet);
+    if (target) {
+      if (options.render) {
+        await render(target.input, {});
+      }
+      await engine.run({ ...options, input: target.input });
+      return processSuccessResult();
     }
-    // run (never returns)
-    await engine.run({ ...options, input: target.input });
-    return processSuccessResult();
-  } else {
-    return Promise.reject(
-      new Error("Unable to run computations for input file"),
-    );
   }
+
+  return Promise.reject(
+    new Error("Unable to run computations for input file"),
+  );
 }

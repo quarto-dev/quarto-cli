@@ -9,7 +9,7 @@ function foldCode()
       end
       local filterBlocks = pandoc.List:new()
       for _,block in ipairs(blocks) do
-        if block.t == "CodeBlock" then
+        if block.t == "CodeBlock" and block.attr.classes:includes("cell-code") then
           local fold = foldAttribute(block)
           if fold then 
             local beginPara = pandoc.Para({

@@ -69,6 +69,9 @@ export async function runPandoc(
     ...options.flags?.metadata,
   };
 
+  // don't print project metadata
+  delete printMetadata.project;
+
   // generate defaults and write a defaults file if need be
   const allDefaults = await generateDefaults(options, sysFilters);
   const printAllDefaults = allDefaults ? ld.cloneDeep(allDefaults) : undefined;
