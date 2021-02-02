@@ -100,8 +100,6 @@ export function projectInputFiles(dir: string) {
       }
     }
 
-    console.log(files);
-
     return ld.difference(files, keepMdFiles);
   }
 }
