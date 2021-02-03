@@ -1,19 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <!-- select the correct program files folder -->
 <?if $(sys.BUILDARCH)=x64?>
 <?define ProgFilesFolder="ProgramFiles64Folder"?>
 <?else?>
 <?define ProgFilesFolder="ProgramFilesFolder"?>
 <?endif?>
-<?define UpgradeCode = '98fb2e98-96b0-46e1-a6fd-94171233d11b'/>
 
-<?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Product Id="*" 
            Name="Quarto"
            Language="1033"
            Manufacturer="Rstudio, PBC"
-           Version="0.1" 
-           UpgradeCode="$(var.UpgradeCode)">
+           Version="$(env.QUARTO_VERSION)" 
+           UpgradeCode="$(env.QUARTO_MSI_UPGRADE_CODE)">
     
     <Package InstallerVersion="200" 
                Compressed="yes" 
@@ -22,9 +22,24 @@
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
     <MediaTemplate EmbedCab="yes" />
 
+    <Property Id="ApplicationFolderName" Value="Quarto" />
+    <Property Id="WixAppFolder" Value="WixPerMachineFolder" />
+  
+    <SetProperty  
+      Id="WIXUI_EXITDIALOGOPTIONALTEXT" 
+      Value="Please restart any existing Command windows prior to using Quarto."
+      Sequence="ui"
+      After="ExecuteAction">
+       <![CDATA[ALLUSERS="" OR ALLUSERS=2]]>
+    </SetProperty>
+
+
+
+    <UIRef Id="WixUI_Advanced" />   
+ 
     <!-- The main application -->
     <Feature Id="MainApplication" 
-               Title="Quarto Command Line Tools" 
+               Title="Quarto Command Line Tools"               
                Level="1">
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentRef Id="UpdateUserPath" />
@@ -33,21 +48,16 @@
 
     <!-- Detect previous versons and upgrade any with the same upgrade code -->
     <Property Id="PREVIOUSVERSIONSINSTALLED" Secure="yes" />
-    <Upgrade Id="$(var.UpgradeCode)">
+    <Upgrade Id="$(env.QUARTO_MSI_UPGRADE_CODE)">
       <UpgradeVersion Property='PREVIOUSVERSIONSINSTALLED'
         Minimum='0.0.0.0'  IncludeMinimum='yes'
         Maximum="99.0.0.0" IncludeMaximum="no" />
     </Upgrade>
 
-    <!-- Remove any old version after this install is completed -->
-    <InstallExecuteSequence>
-      <RemoveExistingProducts After="InstallFinalize"/>
-    </InstallExecuteSequence>
-
    <!-- install directory -->
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="$(var.ProgFilesFolder)">
-        <Directory Id="INSTALLFOLDER" 
+        <Directory Id="APPLICATIONFOLDER" 
                        Name="Quarto" >
           <Component Id="UpdateUserPath"
                      Guid="FC7C02EF-7434-40D5-A7AA-B974B368A969"
@@ -55,7 +65,7 @@
             <Condition>ALLUSERS = "" OR ALLUSERS = 2</Condition>
             <Environment Id='SetUserPath' Name='PATH' Action='set'
                        Permanent='no' System='no' Part='last'
-                       Value='[INSTALLFOLDER]bin' />
+                       Value='[APPLICATIONFOLDER]bin' />
           </Component>
 
           <Component Id="UpdateSystemPath"
@@ -64,7 +74,7 @@
             <Condition>ALLUSERS = 1</Condition>
             <Environment Id='SetSystemPath' Name='PATH' Action='set'
                        Permanent='no' System='yes' Part='last'
-                       Value='[INSTALLFOLDER]bin' />
+                       Value='[APPLICATIONFOLDER]bin' />
           </Component>
         </Directory>
       </Directory>
@@ -79,7 +89,7 @@
 
 
 
-    <!--Make changes to PATH visible immeidiately-->
+    <!--Make changes to PATH visible immediately-->
     <CustomActionRef Id="WixBroadcastSettingChange" />
     <CustomActionRef Id="WixBroadcastEnvironmentChange" />
   </Product>

@@ -9,7 +9,6 @@ import { copySync, emptyDirSync, ensureDirSync, walk } from "fs/mod.ts";
 
 import { Configuration } from "../common/config.ts";
 import { runCmd } from "../util/cmd.ts";
-import { makeTarball } from "../util/tar.ts";
 
 export async function makeInstallerDeb(
   configuration: Configuration
@@ -42,23 +41,12 @@ export async function makeInstallerDeb(
   log.info(`Preparing share directory ${workingSharePath}`);
   copySync(configuration.directoryInfo.share, workingSharePath, { overwrite: true });
 
-
   // Debian File
   log.info("writing debian-binary")
   const debianFile = join(workingDir, "debian-binary");
   const debianSrc = "2.0";
   Deno.writeTextFileSync(debianFile, debianSrc);
 
-  // Target the dist folder into data.tar.gz
-  // tar czvf data.tar.gz files
-
-  // Make the src tar
-  log.info("creating data tar");
-  await makeTarball(
-    configuration.directoryInfo.dist,
-    join(workingDir, "data.tar.gz"),
-    log,
-  );
 
   const val = (name: string, value: string): string => {
     return `${name}: ${value}\n`;
@@ -72,7 +60,7 @@ export async function makeInstallerDeb(
     }
   }
   const size = fileSizes.reduce((accum, target) => { return accum + target; });
-
+  const url = "https://github.com/quarto-dev/quarto-cli";
   // Make the control file
   log.info("Creating control file");
   let control = "";
@@ -83,11 +71,11 @@ export async function makeInstallerDeb(
   control = control + val("Section", "user/text");
   control = control + val("Priority", "optional");
   control = control + val("Maintainer", "RStudio, PBC <quarto@rstudio.org>");
-  control = control + val("Homepage", "https://rstudio.com");
+  control = control + val("Homepage", url);
   control = control +
     val(
       "Description",
-      "Command line tool for rendering computational markdown documents.",
+      "Quarto is an academic, scientific, and technical publishing system built on Pandoc.",
     );
   log.info(control);
 
@@ -98,6 +86,19 @@ export async function makeInstallerDeb(
 
   // Write the control file to the DEBIAN directory
   Deno.writeTextFileSync(join(debianDir, "control"), control);
+
+  // Generate and write a copyright file
+  log.info("Creating copyright file");
+  const copyrightLines = [];
+  copyrightLines.push("Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/");
+  copyrightLines.push("Upstream-Name: Quarto");
+  copyrightLines.push(`Source: ${url}`)
+  copyrightLines.push("");
+  copyrightLines.push("Files: *");
+  copyrightLines.push("Copyright: RStudio, PBC.");
+  copyrightLines.push("License: GPL-2+");  
+  const copyrightText = copyrightLines.join("\n");
+  Deno.writeTextFileSync(join(debianDir, "copyright"), copyrightText);
 
   // copy the install scripts
   log.info("Copying install scripts...")
@@ -114,5 +115,5 @@ export async function makeInstallerDeb(
     log);
 
   // Remove the working directory
-  Deno.removeSync(workingDir, { recursive: true });
+  // Deno.removeSync(workingDir, { recursive: true });
 }
