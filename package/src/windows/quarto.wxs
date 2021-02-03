@@ -1,19 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <!-- select the correct program files folder -->
 <?if $(sys.BUILDARCH)=x64?>
 <?define ProgFilesFolder="ProgramFiles64Folder"?>
 <?else?>
 <?define ProgFilesFolder="ProgramFilesFolder"?>
 <?endif?>
-<?define UpgradeCode = '98fb2e98-96b0-46e1-a6fd-94171233d11b'/>
 
-<?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Product Id="*" 
            Name="Quarto"
            Language="1033"
            Manufacturer="Rstudio, PBC"
-           Version="0.1" 
-           UpgradeCode="$(var.UpgradeCode)">
+           Version="$(env.QUARTO_VERSION)" 
+           UpgradeCode="$(env.QUARTO_MSI_UPGRADE_CODE)">
     
     <Package InstallerVersion="200" 
                Compressed="yes" 
@@ -33,16 +33,11 @@
 
     <!-- Detect previous versons and upgrade any with the same upgrade code -->
     <Property Id="PREVIOUSVERSIONSINSTALLED" Secure="yes" />
-    <Upgrade Id="$(var.UpgradeCode)">
+    <Upgrade Id="$(env.QUARTO_MSI_UPGRADE_CODE)">
       <UpgradeVersion Property='PREVIOUSVERSIONSINSTALLED'
         Minimum='0.0.0.0'  IncludeMinimum='yes'
         Maximum="99.0.0.0" IncludeMaximum="no" />
     </Upgrade>
-
-    <!-- Remove any old version after this install is completed -->
-    <InstallExecuteSequence>
-      <RemoveExistingProducts After="InstallFinalize"/>
-    </InstallExecuteSequence>
 
    <!-- install directory -->
     <Directory Id="TARGETDIR" Name="SourceDir">

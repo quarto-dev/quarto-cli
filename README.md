@@ -15,7 +15,7 @@ Quarto is currently in alpha development, so not generally recommended for every
 
 You can install an alpha-build of the Quarto command-line tools from here:
 
-<https://github.com/quarto-dev/quarto-cli/releases/tag/v0.1.29>
+<https://github.com/quarto-dev/quarto-cli/releases/tag/v0.1.31>
 
 You can verify that Quarto has been installed correctly with:
 
