@@ -70,3 +70,4 @@ format:
 ```
 
 All pandoc formats (see `pandoc --list-output-formats`) are supported. The YAML metadata provided for each format may include any pandoc [metadata variables](https://pandoc.org/MANUAL.html#variables) or [command-line defaults](https://pandoc.org/MANUAL.html#default-files). All YAML metadata can be provided globally for all formats (as illustrated with `toc` and `toc-depth` above) or on a per-format basis.
+

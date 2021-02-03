@@ -10,7 +10,8 @@ done
 export SCRIPT_PATH="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
 # Check if we are running 'Dev Mode' and if so, override values for devs
-DEV_PATH=$SCRIPT_PATH/../../../src/quarto.ts
+QUARTO_SRC_DIR="`cd "$SCRIPT_PATH/../../../src";pwd`"
+DEV_PATH=$QUARTO_SRC_DIR/quarto.ts
 if [ -f "$DEV_PATH" ]; then
 
   # Caller can point deno at another entry point (e.g. the typescript file)
@@ -19,20 +20,20 @@ if [ -z ${QUARTO_ACTION+x} ]; then
 fi
 
 # Local import map
-QUARTO_IMPORT_ARGMAP=--importmap=$(realpath $SCRIPT_PATH/../../../src/import_map.json)
+QUARTO_IMPORT_ARGMAP=--importmap=$QUARTO_SRC_DIR/import_map.json
 
   # Allow calls to override the target
   if [ -z ${QUARTO_TARGET+x} ]; then
-    QUARTO_TARGET=$(realpath $DEV_PATH)
+    QUARTO_TARGET=$DEV_PATH
   fi
-  export QUARTO_BIN_PATH=$(realpath $SCRIPT_PATH)
-  export QUARTO_SHARE_PATH=$(realpath $SCRIPT_PATH/../../../src/resources/)
+  export QUARTO_BIN_PATH=$SCRIPT_PATH
+  export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../../../src/resources/";pwd`"
 else 
   
   QUARTO_ACTION=run
   QUARTO_TARGET=${SCRIPT_PATH}/quarto.js
-  export QUARTO_BIN_PATH=$(realpath $SCRIPT_PATH)
-  export QUARTO_SHARE_PATH=$(realpath $SCRIPT_PATH/../share)
+  export QUARTO_BIN_PATH=$SCRIPT_PATH
+  export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../share";pwd`"
 fi
 
 

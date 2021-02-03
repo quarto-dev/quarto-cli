@@ -1,3 +1,11 @@
+<!-- select the correct program files folder -->
+<?if $(sys.BUILDARCH)=x64?>
+<?define ProgFilesFolder="ProgramFiles64Folder"?>
+<?else?>
+<?define ProgFilesFolder="ProgramFilesFolder"?>
+<?endif?>
+<?define UpgradeCode = '98fb2e98-96b0-46e1-a6fd-94171233d11b'/>
+
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Product Id="*" 
@@ -5,7 +13,7 @@
            Language="1033"
            Manufacturer="Rstudio, PBC"
            Version="0.1" 
-           UpgradeCode="98fb2e98-96b0-46e1-a6fd-94171233d11b">
+           UpgradeCode="$(var.UpgradeCode)">
     
     <Package InstallerVersion="200" 
                Compressed="yes" 
@@ -14,19 +22,66 @@
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
     <MediaTemplate EmbedCab="yes" />
 
+    <!-- The main application -->
     <Feature Id="MainApplication" 
                Title="Quarto Command Line Tools" 
                Level="1">
       <ComponentGroupRef Id="ProductComponents" />
+      <ComponentRef Id="UpdateUserPath" />
+      <ComponentRef Id="UpdateSystemPath" />
     </Feature>
-  </Product>
 
-  <Fragment>
+    <!-- Detect previous versons and upgrade any with the same upgrade code -->
+    <Property Id="PREVIOUSVERSIONSINSTALLED" Secure="yes" />
+    <Upgrade Id="$(var.UpgradeCode)">
+      <UpgradeVersion Property='PREVIOUSVERSIONSINSTALLED'
+        Minimum='0.0.0.0'  IncludeMinimum='yes'
+        Maximum="99.0.0.0" IncludeMaximum="no" />
+    </Upgrade>
+
+    <!-- Remove any old version after this install is completed -->
+    <InstallExecuteSequence>
+      <RemoveExistingProducts After="InstallFinalize"/>
+    </InstallExecuteSequence>
+
+   <!-- install directory -->
     <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="ProgramFilesFolder">
+      <Directory Id="$(var.ProgFilesFolder)">
         <Directory Id="INSTALLFOLDER" 
-                       Name="Quarto" />
+                       Name="Quarto" >
+          <Component Id="UpdateUserPath"
+                     Guid="FC7C02EF-7434-40D5-A7AA-B974B368A969"
+                     KeyPath="yes">
+            <Condition>ALLUSERS = "" OR ALLUSERS = 2</Condition>
+            <Environment Id='SetUserPath' Name='PATH' Action='set'
+                       Permanent='no' System='no' Part='last'
+                       Value='[INSTALLFOLDER]bin' />
+          </Component>
+
+          <Component Id="UpdateSystemPath"
+                     Guid="375C272A-C227-4184-98C4-6EFBE6F72719"
+                     KeyPath="yes">
+            <Condition>ALLUSERS = 1</Condition>
+            <Environment Id='SetSystemPath' Name='PATH' Action='set'
+                       Permanent='no' System='yes' Part='last'
+                       Value='[INSTALLFOLDER]bin' />
+          </Component>
+        </Directory>
       </Directory>
     </Directory>
-  </Fragment>
+
+
+    <!-- Set properties for add/remove programs -->
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/quarto-dev/quarto-cli" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/quarto-dev/quarto-cli" />
+    <Property Id="ARPNOREPAIR" Value="yes" Secure="yes" />    <!-- Remove repair -->
+    <Property Id="ARPNOMODIFY" Value="yes" Secure="yes" />    <!-- Remove modify -->
+
+
+
+    <!--Make changes to PATH visible immeidiately-->
+    <CustomActionRef Id="WixBroadcastSettingChange" />
+    <CustomActionRef Id="WixBroadcastEnvironmentChange" />
+  </Product>
+
 </Wix>

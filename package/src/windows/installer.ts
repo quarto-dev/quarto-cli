@@ -68,5 +68,5 @@ export async function makeInstallerWindows(configuration: Configuration) {
     moveSync(lightOutput, join(configuration.directoryInfo.out, basename(lightOutput)), { overwrite: true });
 
     // Clean up the working directory
-    Deno.remove(workingDir);
+    Deno.remove(workingDir, {recursive: true});
 }
