@@ -62,7 +62,7 @@ export async function makeInstallerWindows(configuration: Configuration) {
 
 
     const lightOutput = join(workingDir, packageName);
-    await runCmd(lightCmd, ["-out", lightOutput, ...candleOutput], configuration.log);
+    await runCmd(lightCmd, ["-out", lightOutput, ...candleOutput, "-ext", "WixUtilExtension"], configuration.log);
 
     configuration.log.info(`Moving ${lightOutput} to ${configuration.directoryInfo.out}`);
     moveSync(lightOutput, join(configuration.directoryInfo.out, basename(lightOutput)), { overwrite: true });

@@ -1,3 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
 <!-- select the correct program files folder -->
 <?if $(sys.BUILDARCH)=x64?>
 <?define ProgFilesFolder="ProgramFiles64Folder"?>
@@ -5,7 +7,6 @@
 <?define ProgFilesFolder="ProgramFilesFolder"?>
 <?endif?>
 
-<?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Product Id="*" 
            Name="Quarto"
@@ -37,11 +38,6 @@
         Minimum='0.0.0.0'  IncludeMinimum='yes'
         Maximum="99.0.0.0" IncludeMaximum="no" />
     </Upgrade>
-
-    <!-- Remove any old version after this install is completed -->
-    <InstallExecuteSequence>
-      <RemoveExistingProducts After="InstallFinalize"/>
-    </InstallExecuteSequence>
 
    <!-- install directory -->
     <Directory Id="TARGETDIR" Name="SourceDir">
