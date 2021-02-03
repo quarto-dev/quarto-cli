@@ -9,7 +9,7 @@ In addition to the core capabilities of Pandoc, Quarto includes:
 3.  Cross references for figures, tables, equations, sections, listings, proofs, and more.
 4.  Sophisticated layout for panels of figures, tables, and other content.
 
-Quarto is currently in pre-alpha development, so not generally recommended for everyday use! Documentation on using Quarto will be available soon.
+Quarto is currently in alpha development, so not generally recommended for everyday use! Documentation on using Quarto will be available soon.
 
 ## Installation
 
@@ -70,4 +70,3 @@ format:
 ```
 
 All pandoc formats (see `pandoc --list-output-formats`) are supported. The YAML metadata provided for each format may include any pandoc [metadata variables](https://pandoc.org/MANUAL.html#variables) or [command-line defaults](https://pandoc.org/MANUAL.html#default-files). All YAML metadata can be provided globally for all formats (as illustrated with `toc` and `toc-depth` above) or on a per-format basis.
-
