@@ -19,27 +19,27 @@ You can install an alpha-build of the Quarto command-line tools from here:
 
 You can verify that Quarto has been installed correctly with:
 
-``` bash
+```bash
 $ quarto help
 ```
 
 To install the development version of the Quarto CLI, git clone this repo then run the configure script for your platform (`linux`, `macos`, or `windows`).
 
-``` bash
+```bash
 $ git clone https://github.com/quarto-dev/quarto-cli
 $ cd quarto-cli
-$ ./configure-macos.sh 
+$ ./configure-macos.sh
 ```
 
 ## Usage
 
 You can use the `quarto render` command to render plain markdown, R Markdown, or a Jupyter notebook:
 
-``` bash
+```bash
 $ quarto render plain.md
 $ quarto render rmarkdown.Rmd
 $ quarto render jupyter.ipynb
-$ quarto render jupyter.md 
+$ quarto render jupyter.md
 ```
 
 Note that the last variation renders a [Jupyter Markdown](https://jupytext.readthedocs.io/en/latest/formats.html#jupytext-markdown) document, which is pure markdown representation of a Jupyter notebook. A markdown file is denoted as Jupyter markdown via the inclusion of a `jupyter` entry in YAML front matter indicating the Jupyter kernel or Jupytext configuration for the document (e.g. `jupyter: python3`).
@@ -50,7 +50,7 @@ See `quarto render help` for additional documentation on using the `render` comm
 
 Quarto uses Pandoc front-matter to define which format to render and what options to use for that format. For example, this document defines HTML and PDF output (where HTML is the default because it is listed first):
 
-``` yaml
+```yaml
 ---
 title: "My Document"
 author: "Jane Doe"
@@ -67,6 +67,7 @@ format:
     margin-left: 30mm
     margin-right: 30mm
 ---
+
 ```
 
 All pandoc formats (see `pandoc --list-output-formats`) are supported. The YAML metadata provided for each format may include any pandoc [metadata variables](https://pandoc.org/MANUAL.html#variables) or [command-line defaults](https://pandoc.org/MANUAL.html#default-files). All YAML metadata can be provided globally for all formats (as illustrated with `toc` and `toc-depth` above) or on a per-format basis.
