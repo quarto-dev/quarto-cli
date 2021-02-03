@@ -1,31 +1,33 @@
-# Quarto CLI
+# Quarto
 
 Quarto is an academic, scientific, and technical publishing system built on [Pandoc](https://pandoc.org).
 
 In addition to the core capabilities of Pandoc, Quarto includes:
 
-1.  Support for integrated output from R and Python via integration with knitr and Jupyter
-2.  A project system for rendering groups of documents at once and sharing metadata between them.
-3.  Cross references for figures, tables, equations, sections, listings, proofs, and more.
-4.  Sophisticated layout for panels of figures, tables, and other content.
+1.  Support for embedding output from R and Python via integration with knitr and Jupyter.
+2.  A project system for rendering groups of documents at once.
+3.  Flexible ways to specify rendering options, including project-wides options and per-format options.
+4.  Cross references for figures, tables, equations, sections, listings, proofs, and more.
+5.  Sophisticated layout for panels of figures, tables, and other content.
+6.  Automatic installation of required LaTeX packages when rendering PDF output.
 
 Quarto is currently in alpha development, so not generally recommended for everyday use! Documentation on using Quarto will be available soon.
 
 ## Installation
 
-You can install an alpha-build of the Quarto command-line tools from here:
+You can install an alpha-build of the Quarto CLI (command-line interface) from here:
 
 <https://github.com/quarto-dev/quarto-cli/releases/tag/v0.1.32>
 
 You can verify that Quarto has been installed correctly with:
 
-```bash
+``` bash
 $ quarto help
 ```
 
 To install the development version of the Quarto CLI, git clone this repo then run the configure script for your platform (`linux`, `macos`, or `windows`).
 
-```bash
+``` bash
 $ git clone https://github.com/quarto-dev/quarto-cli
 $ cd quarto-cli
 $ ./configure-macos.sh
@@ -35,7 +37,7 @@ $ ./configure-macos.sh
 
 You can use the `quarto render` command to render plain markdown, R Markdown, or a Jupyter notebook:
 
-```bash
+``` bash
 $ quarto render plain.md
 $ quarto render rmarkdown.Rmd
 $ quarto render jupyter.ipynb
@@ -50,7 +52,7 @@ See `quarto render help` for additional documentation on using the `render` comm
 
 Quarto uses Pandoc front-matter to define which format to render and what options to use for that format. For example, this document defines HTML and PDF output (where HTML is the default because it is listed first):
 
-```yaml
+``` yaml
 ---
 title: "My Document"
 author: "Jane Doe"
@@ -67,7 +69,8 @@ format:
     margin-left: 30mm
     margin-right: 30mm
 ---
-
 ```
 
-All pandoc formats (see `pandoc --list-output-formats`) are supported. The YAML metadata provided for each format may include any pandoc [metadata variables](https://pandoc.org/MANUAL.html#variables) or [command-line defaults](https://pandoc.org/MANUAL.html#default-files). All YAML metadata can be provided globally for all formats (as illustrated with `toc` and `toc-depth` above) or on a per-format basis.
+All pandoc formats (see `pandoc --list-output-formats`) are supported.
+
+The YAML metadata provided for each format may include any pandoc [metadata variables](https://pandoc.org/MANUAL.html#variables) or [command-line defaults](https://pandoc.org/MANUAL.html#default-files). All YAML metadata can be provided globally for all formats (as illustrated with `toc` and `toc-depth` above) or on a per-format basis.
