@@ -9,7 +9,6 @@ import { copySync, emptyDirSync, ensureDirSync, walk } from "fs/mod.ts";
 
 import { Configuration } from "../common/config.ts";
 import { runCmd } from "../util/cmd.ts";
-import { makeTarball } from "../util/tar.ts";
 
 export async function makeInstallerDeb(
   configuration: Configuration
@@ -49,16 +48,6 @@ export async function makeInstallerDeb(
   const debianSrc = "2.0";
   Deno.writeTextFileSync(debianFile, debianSrc);
 
-  // Target the dist folder into data.tar.gz
-  // tar czvf data.tar.gz files
-
-  // Make the src tar
-  log.info("creating data tar");
-  await makeTarball(
-    configuration.directoryInfo.dist,
-    join(workingDir, "data.tar.gz"),
-    log,
-  );
 
   const val = (name: string, value: string): string => {
     return `${name}: ${value}\n`;
@@ -83,11 +72,11 @@ export async function makeInstallerDeb(
   control = control + val("Section", "user/text");
   control = control + val("Priority", "optional");
   control = control + val("Maintainer", "RStudio, PBC <quarto@rstudio.org>");
-  control = control + val("Homepage", "https://rstudio.com");
+  control = control + val("Homepage", "https://github.com/quarto-dev/quarto-cli");
   control = control +
     val(
       "Description",
-      "Command line tool for rendering computational markdown documents.",
+      "Quarto is an academic, scientific, and technical publishing system built on Pandoc.",
     );
   log.info(control);
 
