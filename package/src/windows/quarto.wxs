@@ -25,11 +25,21 @@
     <Property Id="ApplicationFolderName" Value="Quarto" />
     <Property Id="WixAppFolder" Value="WixPerMachineFolder" />
   
+    <SetProperty  
+      Id="WIXUI_EXITDIALOGOPTIONALTEXT" 
+      Value="Please restart any existing Command windows prior to using Quarto."
+      Sequence="ui"
+      After="ExecuteAction">
+       <![CDATA[ALLUSERS="" OR ALLUSERS=2]]>
+    </SetProperty>
+
+
+
     <UIRef Id="WixUI_Advanced" />   
  
     <!-- The main application -->
     <Feature Id="MainApplication" 
-               Title="Quarto Command Line Tools" 
+               Title="Quarto Command Line Tools"               
                Level="1">
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentRef Id="UpdateUserPath" />
@@ -79,7 +89,7 @@
 
 
 
-    <!--Make changes to PATH visible immeidiately-->
+    <!--Make changes to PATH visible immediately-->
     <CustomActionRef Id="WixBroadcastSettingChange" />
     <CustomActionRef Id="WixBroadcastEnvironmentChange" />
   </Product>
