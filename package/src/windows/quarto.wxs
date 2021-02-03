@@ -14,19 +14,48 @@
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
     <MediaTemplate EmbedCab="yes" />
 
+    <!-- The main application -->
     <Feature Id="MainApplication" 
                Title="Quarto Command Line Tools" 
                Level="1">
       <ComponentGroupRef Id="ProductComponents" />
+      <ComponentRef Id="UpdateUserPath" />
+      <ComponentRef Id="UpdateSystemPath" />
     </Feature>
-  </Product>
 
-  <Fragment>
+
+   <!-- install directory -->
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="ProgramFilesFolder">
         <Directory Id="INSTALLFOLDER" 
-                       Name="Quarto" />
+                       Name="Quarto" >
+          <Component Id="UpdateUserPath"
+                     Guid="FC7C02EF-7434-40D5-A7AA-B974B368A969"
+                     KeyPath="yes">
+            <Condition>ALLUSERS = "" OR ALLUSERS = 2</Condition>
+            <Environment Id='SetUserPath' Name='PATH' Action='set'
+                       Permanent='no' System='no' Part='last'
+                       Value='[INSTALLFOLDER]bin' />
+          </Component>
+
+          <Component Id="UpdateSystemPath"
+                     Guid="375C272A-C227-4184-98C4-6EFBE6F72719"
+                     KeyPath="yes">
+            <Condition>ALLUSERS = 1</Condition>
+            <Environment Id='SetSystemPath' Name='PATH' Action='set'
+                       Permanent='no' System='yes' Part='last'
+                       Value='[INSTALLFOLDER]bin' />
+          </Component>
+        </Directory>
       </Directory>
     </Directory>
-  </Fragment>
+
+
+    <!-- Set properties for add/remove programs -->
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/quarto-dev/quarto-cli" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/quarto-dev/quarto-cli" />
+    <Property Id="ARPNOREPAIR" Value="yes" Secure="yes" />    <!-- Remove repair -->
+    <Property Id="ARPNOMODIFY" Value="yes" Secure="yes" />    <!-- Remove modify -->
+  </Product>
+
 </Wix>
