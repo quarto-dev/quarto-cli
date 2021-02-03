@@ -6,7 +6,7 @@ In addition to the core capabilities of Pandoc, Quarto includes:
 
 1.  Support for embedding output from R and Python via integration with knitr and Jupyter.
 2.  A project system for rendering groups of documents at once.
-3.  Flexible ways to specify rendering options, including project-wides options and per-format options.
+3.  Flexible ways to specify rendering options, including project-wide options and per-format options.
 4.  Cross references for figures, tables, equations, sections, listings, proofs, and more.
 5.  Sophisticated layout for panels of figures, tables, and other content.
 6.  Automatic installation of required LaTeX packages when rendering PDF output.
