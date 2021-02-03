@@ -36,8 +36,8 @@ jobs:
         source ./configuration
         echo ::set-output name=version::$QUARTO_VERSION
         
-        CHANGES=$(git log $(git descr# Eibe --tags --abbrev=0)..HEAD --oneline)
-        
+        CHANGES=$(git log $(git describe --tags --abbrev=0)..HEAD --oneline)
+
         # Escape \n, \r to preserve multiline variable
         # See https://github.community/t/set-output-truncates-multiline-strings/16852/2
         CHANGES="${CHANGES//'%'/'%25'}"
