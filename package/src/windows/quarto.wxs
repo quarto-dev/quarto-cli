@@ -23,6 +23,10 @@
       <ComponentRef Id="UpdateSystemPath" />
     </Feature>
 
+    <!-- Remove any old version after this install is completed -->
+    <InstallExecuteSequence>
+      <RemoveExistingProducts After="InstallFinalize"/>
+    </InstallExecuteSequence>
 
    <!-- install directory -->
     <Directory Id="TARGETDIR" Name="SourceDir">
@@ -56,6 +60,12 @@
     <Property Id="ARPHELPLINK" Value="https://github.com/quarto-dev/quarto-cli" />
     <Property Id="ARPNOREPAIR" Value="yes" Secure="yes" />    <!-- Remove repair -->
     <Property Id="ARPNOMODIFY" Value="yes" Secure="yes" />    <!-- Remove modify -->
+
+
+
+    <!--Make changes to PATH visible immeidiately-->
+    <CustomActionRef Id="WixBroadcastSettingChange" />
+    <CustomActionRef Id="WixBroadcastEnvironmentChange" />
   </Product>
 
 </Wix>
