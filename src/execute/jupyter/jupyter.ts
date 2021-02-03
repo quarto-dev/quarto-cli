@@ -249,8 +249,10 @@ export const jupyterEngine: ExecutionEngine = {
 
     // if it's a transient notebook then remove it, otherwise
     // sync so that jupyter[lab] can open the .ipynb w/o errors
-    if (options.target.data && !options.format.render[kKeepIpynb]) {
-      Deno.removeSync(options.target.input);
+    if (options.target.data) {
+      if (!options.format.render[kKeepIpynb]) {
+        Deno.removeSync(options.target.input);
+      }
     } else {
       await jupytextSync(options.target.input, [], true);
     }
@@ -300,11 +302,8 @@ export const jupyterEngine: ExecutionEngine = {
   },
 };
 
-export function pythonBinary(binary = "python") {
-  const condaPrefix = getenv("CONDA_PREFIX");
-  return condaPrefix +
-    (Deno.build.os !== "windows" ? "/bin/" : "\\") +
-    binary;
+export function pythonBinary(binary = "python3") {
+  return binary;
 }
 
 async function jupyterKernelspecFromFile(
