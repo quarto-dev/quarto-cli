@@ -45,9 +45,11 @@ export async function makeInstallerWindows(configuration: Configuration) {
         Deno.remove(destZip);
     }
 
+    // TODO: Consider signing deno
+
     // heat the directory to generate a wix file for it 
     const heatOutput = join(workingDir, "quarto-frag.wxs");
-    await runCmd(heatCmd, ["dir", configuration.directoryInfo.dist, "-var", "var.SourceDir", "-gg", "-sfrag", "-srd", "-cg", "ProductComponents", "-dr", "INSTALLFOLDER", "-out", heatOutput], configuration.log);
+    await runCmd(heatCmd, ["dir", configuration.directoryInfo.dist, "-var", "var.SourceDir", "-gg", "-sfrag", "-srd", "-cg", "ProductComponents", "-dr", "APPLICATIONFOLDER", "-out", heatOutput], configuration.log);
 
     // TODO: Process the version and other metadata into the WXS file
     // use candle to build the wixobj file
@@ -59,10 +61,21 @@ export async function makeInstallerWindows(configuration: Configuration) {
         candleOutput.push(outputPath);
         return runCmd(candleCmd, [`-dSourceDir=${configuration.directoryInfo.dist}`, "-out", outputPath, candleInput], configuration.log);
     }));
-
-
+    
+    const licenseRtf = join(configuration.directoryInfo.pkg, "src", "windows", "license.rtf");
     const lightOutput = join(workingDir, packageName);
-    await runCmd(lightCmd, ["-out", lightOutput, ...candleOutput, "-ext", "WixUtilExtension"], configuration.log);
+    const lightArgs = ["-out", lightOutput, ...candleOutput];
+    lightArgs.push("-ext");
+    lightArgs.push("WixUtilExtension");
+    lightArgs.push("-ext");
+    lightArgs.push("WixUIExtension");
+    lightArgs.push(`-dWixUILicenseRtf=${licenseRtf}`);
+    
+
+    
+    await runCmd(lightCmd, lightArgs, configuration.log);
+
+    // Use signtool to sign the MSI
 
     configuration.log.info(`Moving ${lightOutput} to ${configuration.directoryInfo.out}`);
     moveSync(lightOutput, join(configuration.directoryInfo.out, basename(lightOutput)), { overwrite: true });

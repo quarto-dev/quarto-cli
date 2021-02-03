@@ -22,6 +22,11 @@
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
     <MediaTemplate EmbedCab="yes" />
 
+    <Property Id="ApplicationFolderName" Value="Quarto" />
+    <Property Id="WixAppFolder" Value="WixPerMachineFolder" />
+  
+    <UIRef Id="WixUI_Advanced" />   
+ 
     <!-- The main application -->
     <Feature Id="MainApplication" 
                Title="Quarto Command Line Tools" 
@@ -42,7 +47,7 @@
    <!-- install directory -->
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="$(var.ProgFilesFolder)">
-        <Directory Id="INSTALLFOLDER" 
+        <Directory Id="APPLICATIONFOLDER" 
                        Name="Quarto" >
           <Component Id="UpdateUserPath"
                      Guid="FC7C02EF-7434-40D5-A7AA-B974B368A969"
@@ -50,7 +55,7 @@
             <Condition>ALLUSERS = "" OR ALLUSERS = 2</Condition>
             <Environment Id='SetUserPath' Name='PATH' Action='set'
                        Permanent='no' System='no' Part='last'
-                       Value='[INSTALLFOLDER]bin' />
+                       Value='[APPLICATIONFOLDER]bin' />
           </Component>
 
           <Component Id="UpdateSystemPath"
@@ -59,7 +64,7 @@
             <Condition>ALLUSERS = 1</Condition>
             <Environment Id='SetSystemPath' Name='PATH' Action='set'
                        Permanent='no' System='yes' Part='last'
-                       Value='[INSTALLFOLDER]bin' />
+                       Value='[APPLICATIONFOLDER]bin' />
           </Component>
         </Directory>
       </Directory>
