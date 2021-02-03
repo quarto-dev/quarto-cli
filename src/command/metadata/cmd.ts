@@ -9,15 +9,15 @@ import { stringify } from "encoding/yaml.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { Metadata, projectConfig } from "../../config/metadata.ts";
-import { renderContext } from "../render/render.ts";
+import { renderContexts } from "../render/render.ts";
+import { projectContext } from "../../config/project.ts";
 import { Format } from "../../config/format.ts";
 
-export const configCommand = new Command()
-  .name("config")
+export const metadataCommand = new Command()
+  .name("metadata")
   .arguments("[path:string]")
   .description(
-    "Print the configuration metadata for an input file or project",
+    "Print the metadata for an input file or project",
   )
   .option(
     "-t, --to <format:string>",
@@ -29,15 +29,15 @@ export const configCommand = new Command()
   )
   .example(
     "Print project metadata",
-    "quarto config myproject",
+    "quarto metadata myproject",
   )
   .example(
     "Print project metadata as JSON",
-    "quarto config myproject --format json",
+    "quarto metadata myproject --format json",
   )
   .example(
     "Print metadata for input file",
-    "quarto config markdown.md",
+    "quarto metadata markdown.md",
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, path: string) => {
@@ -48,8 +48,8 @@ export const configCommand = new Command()
     const stat = Deno.statSync(path);
     // deno-lint-ignore no-explicit-any
     const config: any = stat.isDirectory
-      ? projectConfig(path)
-      : await fileConfig(path, options.to);
+      ? projectContext(path).metadata
+      : await fileMetadata(path, options.to);
     if (config) {
       // write using the requisite format
       const output = options.json
@@ -61,9 +61,13 @@ export const configCommand = new Command()
     }
   });
 
-async function fileConfig(path: string, to?: string) {
-  const context = await renderContext(path, { flags: { to } });
-  const metadata = context.format.metadata;
-  delete metadata.format;
-  return metadata;
+async function fileMetadata(path: string, to = "all") {
+  const contexts = await renderContexts(path, { flags: { to } });
+  const formats: Record<string, Format> = {};
+  Object.keys(contexts).forEach((context) => {
+    const format = contexts[context].format;
+    delete format.metadata.format;
+    formats[context] = format;
+  });
+  return formats;
 }

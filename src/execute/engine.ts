@@ -6,7 +6,6 @@
 */
 
 import { Format, FormatPandoc } from "../config/format.ts";
-import { PdfEngine } from "../config/pdf.ts";
 import { Metadata } from "../config/metadata.ts";
 
 import { rmdEngine } from "./rmd.ts";
@@ -15,9 +14,10 @@ import { markdownEngine } from "./markdown.ts";
 
 export interface ExecutionEngine {
   name: string;
-  handle: (
+  canHandle: (file: string) => boolean;
+  target: (
     file: string,
-    quiet: boolean,
+    quiet?: boolean,
   ) => Promise<ExecutionTarget | undefined>;
   metadata: (target: ExecutionTarget) => Promise<Metadata>;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
@@ -49,11 +49,17 @@ export interface ExecuteOptions {
 // result of execution
 export interface ExecuteResult {
   markdown: string;
+  files_dir?: string;
   supporting: string[];
   filters: string[];
   pandoc: FormatPandoc;
   dependencies?: unknown;
   preserve?: Record<string, string>;
+}
+
+// result of pandoc render
+export interface PandocResult {
+  finalOutput: string;
 }
 
 // dependencies options
@@ -91,20 +97,19 @@ export interface RunOptions {
   quiet?: boolean;
 }
 
-export async function executionEngine(file: string, quiet?: boolean) {
-  const engines = [
-    rmdEngine,
-    jupyterEngine,
-  ];
+const kEngines = [
+  rmdEngine,
+  jupyterEngine,
+  markdownEngine,
+];
 
+export function executionEngine(file: string) {
   // try to find an engine
-  for await (const engine of engines) {
-    const target = await engine.handle(file, !!quiet);
-    if (target) {
-      return { target, engine };
+  for (const engine of kEngines) {
+    if (engine.canHandle) {
+      if (engine.canHandle(file)) {
+        return engine;
+      }
     }
   }
-
-  // if there is no engine, this is plain markdown
-  return { target: { source: file, input: file }, engine: markdownEngine() };
 }

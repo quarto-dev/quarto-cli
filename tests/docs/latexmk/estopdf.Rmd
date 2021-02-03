@@ -1,0 +1,15 @@
+---
+title: "Pandoc Latex"
+author: "Charles Teague"
+date: "1/21/2021"
+format: pdf
+header-includes: |
+  \usepackage{epstopdf}
+pdf-engine: pdflatex
+---
+
+\epstopdfsetup{outdir=./esto}
+
+The below should be an image of a soccer ball
+
+\includegraphics[width=0.5\textwidth]{soccer.eps}

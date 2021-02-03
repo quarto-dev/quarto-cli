@@ -17,7 +17,6 @@ import {
   kLatexClean,
   kLatexMaxRuns,
   kLatexMinRuns,
-  kLatexOutputDir,
   kOutputExt,
   kOutputFile,
 } from "../../../config/constants.ts";
@@ -29,6 +28,7 @@ import { RenderOptions } from "../render.ts";
 import {
   kStdOut,
   removePandocArgs,
+  removePandocToArg,
   RenderFlags,
   replacePandocArg,
 } from "../flags.ts";
@@ -75,6 +75,7 @@ export function useQuartoLatexmk(
 
 export function quartoLatexmkOutputRecipe(
   input: string,
+  finalOutput: string,
   options: RenderOptions,
   format: Format,
 ): OutputRecipe {
@@ -96,12 +97,6 @@ export function quartoLatexmkOutputRecipe(
     pandoc[kOutputFile] = output;
   }
 
-  // remove --to argument if it's there, since we've already folded it
-  // into the yaml, and it will be "beamer" or "pdf" so actually incorrect
-  const removeArgs = new Map<string, boolean>();
-  removeArgs.set("--to", true);
-  args = removePandocArgs(args, removeArgs);
-
   // when pandoc is done, we need to run latexmk and then copy the
   // ouptut to the user's requested destination
   const complete = async (pandocOptions: PandocOptions) => {
@@ -113,7 +108,6 @@ export function quartoLatexmkOutputRecipe(
       autoMk: format.render[kLatexAutoMk],
       minRuns: format.render[kLatexMinRuns],
       maxRuns: format.render[kLatexMaxRuns],
-      outputDir: format.render[kLatexOutputDir],
       clean: !options.flags?.debug && format.render[kLatexClean] !== false,
       quiet: pandocOptions.flags?.quiet,
     };
@@ -128,9 +122,8 @@ export function quartoLatexmkOutputRecipe(
     }
 
     // copy (or write for stdout) compiled pdf to final output location
-    const compilePdf = join(inputDir, texStem + ".pdf");
-    const finalOutput = options.flags?.output || format.pandoc[kOutputFile];
     if (finalOutput) {
+      const compilePdf = join(inputDir, texStem + ".pdf");
       if (finalOutput === kStdOut) {
         writeFileToStdout(compilePdf);
         Deno.removeSync(compilePdf);
@@ -142,7 +135,7 @@ export function quartoLatexmkOutputRecipe(
       }
       return finalOutput;
     } else {
-      return compilePdf;
+      return texStem + ".pdf";
     }
   };
 

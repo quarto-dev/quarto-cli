@@ -73,21 +73,24 @@ const kJupytextMdExtensions = [
   ".md",
   ".markdown",
 ];
-const kCodeExtensions = [
-  ".py",
-  ".clj",
-  ".jl",
-  ".js",
-  ".ts",
-  ".cs",
-  ".java",
-  ".groovy",
-];
 
 export const jupyterEngine: ExecutionEngine = {
   name: "jupyter",
 
-  handle: async (file: string, quiet: boolean) => {
+  canHandle: (file: string) => {
+    const ext = extname(file);
+    if (kJupytextMdExtensions.includes(ext)) {
+      const yaml = readYamlFromMarkdownFile(file);
+      return !!yaml.jupyter;
+    } else {
+      return isNotebook(file);
+    }
+  },
+
+  target: async (
+    file: string,
+    quiet?: boolean,
+  ): Promise<ExecutionTarget | undefined> => {
     const notebookTarget = async () => {
       // if it's an .Rmd or .md file, then read the YAML to see if has jupytext,
       // if it does, check for a paired notebook and return it
@@ -110,13 +113,13 @@ export const jupyterEngine: ExecutionEngine = {
             return { sync: true, paired: [file] };
           }
         }
-      } // if it's a code file, then check for a paired notebook and return it
-      else if (kCodeExtensions.includes(ext)) {
-        const paired = await pairedPaths(file);
-        return { sync: true, paired: [file, ...paired] };
-        // if it's a notebook file then return it
       } else if (isNotebook(file)) {
-        return { sync: false, paired: [file] };
+        const nb = jupyterFromFile(file);
+        const isJupytext = !!nb.metadata.jupytext;
+        return {
+          sync: isJupytext,
+          paired: isJupytext ? [file, ...await pairedPaths(file)] : [file],
+        };
       }
     };
 
@@ -255,6 +258,7 @@ export const jupyterEngine: ExecutionEngine = {
     // return results
     return {
       markdown: result.markdown,
+      files_dir: assets.files_dir,
       supporting: [assets.supporting_dir],
       filters: [],
       pandoc,

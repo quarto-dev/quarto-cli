@@ -38,16 +38,8 @@ export const renderCommand = new Command()
     "YAML file with execution parameters.",
   )
   .option(
-    "--execute-root-dir",
+    "--execute-dir",
     "Working directory for code execution.",
-  )
-  .option(
-    "--kernel-keepalive",
-    "Keep Jupyter kernel alive (defaults to 300 seconds).",
-  )
-  .option(
-    "--kernel-restart",
-    "Restart keepalive Jupyter kernel before render.",
   )
   .option(
     "--cache",
@@ -56,6 +48,14 @@ export const renderCommand = new Command()
   .option(
     "--cache-refresh",
     "Force refresh of execution cache.",
+  )
+  .option(
+    "--kernel-keepalive",
+    "Keep Jupyter kernel alive (defaults to 300 seconds).",
+  )
+  .option(
+    "--kernel-restart",
+    "Restart keepalive Jupyter kernel before render.",
   )
   .option(
     "--debug",
@@ -111,12 +111,9 @@ export const renderCommand = new Command()
     for (const input of inputs) {
       for (const walk of expandGlobSync(input)) {
         const input = relative(Deno.cwd(), walk.path);
+
         rendered = true;
-        const result = await render(input, { flags, pandocArgs: args });
-        if (!result.success) {
-          // error diagnostics already written to stderr
-          Deno.exit(result.code);
-        }
+        await render(input, { flags, pandocArgs: args });
       }
     }
     if (!rendered) {

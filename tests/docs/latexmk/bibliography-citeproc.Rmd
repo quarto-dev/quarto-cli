@@ -1,0 +1,14 @@
+---
+title: "Untitled"
+author: "Charles Teague"
+date: "1/21/2021"
+format: pdf
+bibliography: references.bib
+cite-method: citeproc
+---
+
+# Bibliography Testing
+
+This should test bibliography generation [@adami2020]. I also think that @allaire has a good point here, but he can also be a clown from time to time.
+
+# Bibliography

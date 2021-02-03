@@ -157,7 +157,7 @@ export function parseRenderFlags(args: string[]) {
         flags.executeParams = arg;
         break;
 
-      case "--execute-root-dir":
+      case "--execute-dir":
         arg = argsStack.shift();
         flags.executeDir = arg;
         break;
@@ -296,7 +296,7 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   removeArgs.set("--execute", false);
   removeArgs.set("--no-execute", false);
   removeArgs.set("--execute-params", true);
-  removeArgs.set("--execute-root-dir", true);
+  removeArgs.set("--execute-dir", true);
   removeArgs.set("--kernel-keepalive", true);
   removeArgs.set("--no-kernel-keepalive", false);
   removeArgs.set("--kernel-restart", false);
@@ -330,6 +330,12 @@ export function removePandocArgs(
     }
     return args;
   }, new Array<string>());
+}
+
+export function removePandocToArg(args: string[]) {
+  const removeArgs = new Map<string, boolean>();
+  removeArgs.set("--to", true);
+  return removePandocArgs(args, removeArgs);
 }
 
 function removeQuartoMetadataFlags(pandocArgs: string[]) {

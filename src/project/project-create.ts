@@ -15,9 +15,7 @@ import { message } from "../core/console.ts";
 import { ProjectCreate, projectType } from "./types/project-types.ts";
 import { mergeConfigs } from "../core/config.ts";
 
-import { projectConfigDir } from "../config/metadata.ts";
-
-export const kOutputDir = "output-dir";
+import { kOutputDir, projectConfigDir } from "../config/project.ts";
 
 export interface ProjectCreateOptions {
   dir: string;

@@ -5,10 +5,13 @@
 *
 */
 
-import { dirname } from "path/mod.ts";
+import { walkSync } from "fs/mod.ts";
+import { expandGlobSync } from "fs/expand_glob.ts";
+import { dirname, join } from "path/mod.ts";
+
+import { ld } from "lodash/mod.ts";
 
 import { message } from "../../core/console.ts";
-import { ProcessResult } from "../../core/process.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { sessionTempDir } from "../../core/temp.ts";
@@ -18,7 +21,6 @@ import {
   includedMetadata,
   Metadata,
   metadataAsFormat,
-  projectMetadata,
 } from "../../config/metadata.ts";
 import {
   kCache,
@@ -37,12 +39,20 @@ import {
   ExecutionEngine,
   executionEngine,
   ExecutionTarget,
+  PandocResult,
 } from "../../execute/engine.ts";
 
 import { runPandoc } from "./pandoc.ts";
-import { kStdOut, RenderFlags, resolveParams } from "./flags.ts";
+import {
+  kStdOut,
+  removePandocToArg,
+  RenderFlags,
+  resolveParams,
+} from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
+import { projectContext } from "../../config/project.ts";
+import { existsSync } from "https://deno.land/std@0.74.0/fs/exists.ts";
 
 // command line options for render
 export interface RenderOptions {
@@ -58,34 +68,95 @@ export interface RenderContext {
   format: Format;
 }
 
-export async function render(
-  file: string,
-  options: RenderOptions,
-): Promise<ProcessResult> {
-  // get context
-  const context = await renderContext(file, options);
-
-  // execute
-  const executeResult = await renderExecute(context, true);
-
-  // run pandoc
-  return renderPandoc(context, executeResult);
+export interface RenderResult {
+  file: string;
+  files_dir?: string;
 }
 
-export async function renderContext(file: string, options: RenderOptions) {
+export async function render(
+  path: string,
+  options: RenderOptions,
+): Promise<Record<string, RenderResult[]>> {
+  const files: string[] = [];
+
+  if (Deno.statSync(path).isDirectory) {
+    files.push(...directoryInputFiles(path));
+  } else {
+    files.push(path);
+  }
+
+  const results: Record<string, RenderResult[]> = {};
+
+  for (const file of files) {
+    // get contexts
+    const contexts = await renderContexts(file, options);
+
+    // remove --to (it's been resolved into contexts)
+    delete options.flags?.to;
+    if (options.pandocArgs) {
+      options.pandocArgs = removePandocToArg(options.pandocArgs);
+    }
+
+    const fileResults: RenderResult[] = [];
+
+    for (const context of Object.values(contexts)) {
+      // execute
+      const executeResult = await renderExecute(context, true);
+
+      // run pandoc
+      const pandocResult = await renderPandoc(context, executeResult);
+
+      // determine if we have a files dir
+      const files_dir = executeResult.files_dir &&
+          existsSync(join(dirname(path), executeResult.files_dir))
+        ? executeResult.files_dir
+        : undefined;
+
+      fileResults.push({
+        file: pandocResult.finalOutput,
+        files_dir,
+      });
+
+      // report output created
+      if (!options.flags?.quiet && options.flags?.output !== kStdOut) {
+        message("Output created: " + pandocResult.finalOutput + "\n");
+      }
+    }
+
+    results[file] = fileResults;
+  }
+
+  return results;
+}
+
+export async function renderContexts(
+  file: string,
+  options: RenderOptions,
+): Promise<Record<string, RenderContext>> {
   // determine the computation engine and any alternate input file
-  const { target, engine } = await executionEngine(file, options.flags?.quiet);
+  const engine = await executionEngine(file);
+  if (!engine) {
+    throw new Error("Unable to render " + file);
+  }
+  const target = await engine.target(file, options.flags?.quiet);
+  if (!target) {
+    throw new Error("Unable to render " + file);
+  }
 
   // resolve render target
-  const format = await resolveFormat(target, engine, options.flags);
+  const formats = await resolveFormats(target, engine, options.flags);
 
-  // context
-  return {
-    target,
-    options,
-    engine,
-    format,
-  };
+  // return contexts
+  const contexts: Record<string, RenderContext> = {};
+  Object.keys(formats).forEach((format) => {
+    contexts[format] = {
+      target,
+      options,
+      engine,
+      format: formats[format],
+    };
+  });
+  return contexts;
 }
 
 export async function renderExecute(
@@ -120,7 +191,7 @@ export async function renderExecute(
 export async function renderPandoc(
   context: RenderContext,
   executeResult: ExecuteResult,
-): Promise<ProcessResult> {
+): Promise<PandocResult> {
   // merge any pandoc options provided the computation
   context.format.pandoc = mergeConfigs(
     context.format.pandoc || {},
@@ -164,7 +235,7 @@ export async function renderPandoc(
   // run pandoc conversion (exit on failure)
   const pandocResult = await runPandoc(pandocOptions, executeResult.filters);
   if (!pandocResult.success) {
-    return pandocResult;
+    return Promise.reject();
   }
 
   // run optional post-processor (e.g. to restore html-preserve regions)
@@ -192,23 +263,20 @@ export async function renderPandoc(
     context.engine.keepMd(context.target.input),
   );
 
-  // report output created
-  if (!flags.quiet && flags.output !== kStdOut) {
-    message("Output created: " + finalOutput + "\n");
-  }
-
   // return result
-  return pandocResult;
+  return {
+    finalOutput,
+  };
 }
 
-async function resolveFormat(
+async function resolveFormats(
   target: ExecutionTarget,
   engine: ExecutionEngine,
   flags?: RenderFlags,
-) {
+): Promise<Record<string, Format>> {
   // merge input metadata into project metadata
   const inputMetadata = await engine.metadata(target);
-  const projMetadata = projectMetadata(target.input);
+  const projMetadata = projectContext(target.input).metadata || {};
   const baseMetadata = mergeConfigs(
     projMetadata,
     inputMetadata,
@@ -230,66 +298,136 @@ async function resolveFormat(
   // divide metadata into format buckets
   const baseFormat = metadataAsFormat(allMetadata);
 
-  // determine which writer to use (use original input and
+  // determine all target formats (use original input and
   // project metadata to preserve order of keys and to
   // prefer input-level format keys to project-level)
-  let to = flags?.to;
-  if (!to) {
-    // see if there is a 'to' or 'writer' specified in defaults
-    to = baseFormat.pandoc.to || baseFormat.pandoc.writer || "html";
-    to = to.split("+")[0];
-    const formatKeys = (metadata: Metadata): string[] => {
-      if (typeof metadata[kMetadataFormat] === "string") {
-        return [metadata[kMetadataFormat] as string];
-      } else if (metadata[kMetadataFormat] instanceof Object) {
-        return Object.keys(metadata[kMetadataFormat] as Metadata);
-      } else {
-        return [];
+  const formatKeys = (metadata: Metadata): string[] => {
+    if (typeof metadata[kMetadataFormat] === "string") {
+      return [metadata[kMetadataFormat] as string];
+    } else if (metadata[kMetadataFormat] instanceof Object) {
+      return Object.keys(metadata[kMetadataFormat] as Metadata);
+    } else {
+      return [];
+    }
+  };
+  const formats = formatKeys(inputMetadata).concat(formatKeys(projMetadata));
+
+  // provide html if there was no format info
+  if (formats.length === 0) {
+    formats.push("html");
+  }
+
+  // determine render formats
+  const renderFormats: string[] = [];
+  if (flags?.to) {
+    if (flags.to === "all") {
+      renderFormats.push(...formats);
+    } else {
+      renderFormats.push(...flags.to.split(","));
+    }
+  } else if (formats.length > 0) {
+    renderFormats.push(formats[0]);
+  } else {
+    renderFormats.push(
+      baseFormat.pandoc.to || baseFormat.pandoc.writer || "html",
+    );
+  }
+
+  const resolved: Record<string, Format> = {};
+
+  renderFormats.forEach((to) => {
+    // determine the target format
+    const format = formatFromMetadata(
+      baseFormat,
+      to,
+      flags?.debug,
+    );
+
+    // merge configs
+    const config = mergeConfigs(baseFormat, format);
+
+    // apply command line arguments
+
+    // --no-execute-code
+    if (flags?.execute === false) {
+      config.execution[kExecute] = false;
+    }
+
+    // --cache
+    if (flags?.executeCache !== undefined) {
+      config.execution[kCache] = flags?.executeCache;
+    }
+
+    // --kernel-keepalive
+    if (flags?.kernelKeepalive !== undefined) {
+      config.execution[kKernelKeepalive] = flags.kernelKeepalive;
+    }
+
+    // --kernel-restart
+    if (flags?.kernelRestart !== undefined) {
+      config.execution[kKernelRestart] = flags.kernelRestart;
+    }
+
+    // --kernel-debug
+    if (flags?.kernelDebug !== undefined) {
+      config.execution[kKernelDebug] = flags.kernelDebug;
+    }
+
+    resolved[to] = config;
+  });
+
+  return resolved;
+}
+
+function directoryInputFiles(dir: string) {
+  const files: string[] = [];
+  const keepMdFiles: string[] = [];
+
+  const addFile = (file: string) => {
+    const engine = executionEngine(file);
+    if (engine) {
+      files.push(file);
+      const keepMd = engine.keepMd(file);
+      if (keepMd) {
+        keepMdFiles.push(keepMd);
       }
-    };
-    const formats = formatKeys(inputMetadata).concat(formatKeys(projMetadata));
-    if (formats.length > 0) {
-      to = formats[0];
+    }
+  };
+
+  const targetDir = Deno.realPathSync(dir);
+  const context = projectContext(dir);
+  const projFiles = context.metadata?.project?.files;
+  if (projFiles) {
+    // make project relative
+
+    const projGlobs = projFiles
+      .map((file) => {
+        return join(context.dir, file);
+      });
+
+    // expand globs
+    const files: string[] = [];
+    for (const glob of projGlobs) {
+      for (const file of expandGlobSync(glob)) {
+        if (file.isFile) { // exclude dirs
+          const targetFile = Deno.realPathSync(file.path);
+          // filter by dir
+          if (targetFile.startsWith(targetDir)) {
+            addFile(file.path);
+          }
+        }
+      }
+    }
+  } else {
+    for (
+      const walk of walkSync(
+        dir,
+        { includeDirs: false, followSymlinks: true, skip: [/^_/] },
+      )
+    ) {
+      addFile(walk.path);
     }
   }
 
-  // determine the target format
-  const format = formatFromMetadata(
-    baseFormat,
-    to,
-    flags?.debug,
-  );
-
-  // merge configs
-  const config = mergeConfigs(baseFormat, format);
-
-  // apply command line arguments
-
-  // --no-execute-code
-  if (flags?.execute === false) {
-    config.execution[kExecute] = false;
-  }
-
-  // --cache
-  if (flags?.executeCache !== undefined) {
-    config.execution[kCache] = flags?.executeCache;
-  }
-
-  // --kernel-keepalive
-  if (flags?.kernelKeepalive !== undefined) {
-    config.execution[kKernelKeepalive] = flags.kernelKeepalive;
-  }
-
-  // --kernel-restart
-  if (flags?.kernelRestart !== undefined) {
-    config.execution[kKernelRestart] = flags.kernelRestart;
-  }
-
-  // --kernel-debug
-  if (flags?.kernelDebug !== undefined) {
-    config.execution[kKernelDebug] = flags.kernelDebug;
-  }
-
-  // return
-  return config;
+  return ld.difference(ld.uniq(files), keepMdFiles);
 }

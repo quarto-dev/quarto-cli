@@ -1,5 +1,5 @@
 /*
-* formats.ts
+* format.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
@@ -33,11 +33,9 @@ import {
   kLatexMakeIndexOpts,
   kLatexMaxRuns,
   kLatexMinRuns,
-  kLatexOutputDir,
   kLatexTlmgrOpts,
   kListings,
   kMarkdownHeadings,
-  kNumberOffset,
   kNumberSections,
   kOutputFile,
   kPdfEngine,
@@ -93,7 +91,6 @@ export interface FormatRender {
 
   [kLatexAutoMk]?: boolean;
   [kLatexAutoInstall]?: boolean;
-  [kLatexOutputDir]?: string;
   [kLatexMinRuns]?: number;
   [kLatexMaxRuns]?: number;
   [kLatexClean]?: boolean;
@@ -109,7 +106,7 @@ export interface FormatExecution {
   [kFigDpi]?: number;
   [kAllowErrors]?: boolean;
   [kExecute]?: boolean;
-  [kCache]?: true | false | "refresh";
+  [kCache]?: true | false | "refresh" | null;
   [kShowCode]?: boolean;
   [kShowOutput]?: boolean;
   [kShowWarnings]?: boolean;
@@ -169,9 +166,13 @@ export function isMarkdownFormat(format: FormatPandoc) {
 }
 
 export function defaultWriterFormat(to: string): Format {
+  // to can sometimes have a variant, don't include that in the lookup here
+  const lookupTo = to.split("+")[0];
+  let pandocTo = lookupTo;
+
   // get defaults for writer
   let writerFormat: Format;
-  switch (to) {
+  switch (lookupTo) {
     case "html":
     case "html4":
     case "html5":
@@ -210,6 +211,7 @@ export function defaultWriterFormat(to: string): Format {
     case "commonmark":
     case "commonmark_x":
       writerFormat = markdownFormat();
+      pandocTo = to;
       break;
 
     case "asciidoc":
@@ -305,7 +307,7 @@ export function defaultWriterFormat(to: string): Format {
   // set the writer
   writerFormat.pandoc = writerFormat.pandoc || {};
   if (!writerFormat.pandoc.to) {
-    writerFormat.pandoc.to = to;
+    writerFormat.pandoc.to = pandocTo;
   }
 
   // return the format
@@ -485,7 +487,7 @@ function defaultFormat(): Format {
       [kFigDpi]: 96,
       [kAllowErrors]: false,
       [kExecute]: true,
-      [kCache]: undefined,
+      [kCache]: null,
       [kKeepHidden]: false,
       [kShowCode]: true,
       [kShowOutput]: true,
@@ -509,10 +511,9 @@ function defaultFormat(): Format {
       [kLatexClean]: true,
       [kLatexMaxRuns]: 1,
       [kLatexMaxRuns]: 10,
-      [kLatexOutputDir]: undefined,
-      [kLatexMakeIndex]: undefined,
-      [kLatexMakeIndexOpts]: undefined,
-      [kLatexTlmgrOpts]: undefined,
+      [kLatexMakeIndex]: "makeindex",
+      [kLatexMakeIndexOpts]: [],
+      [kLatexTlmgrOpts]: [],
     },
     pandoc: {
       from: "markdown",

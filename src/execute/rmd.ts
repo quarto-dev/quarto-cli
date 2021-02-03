@@ -36,10 +36,12 @@ const kEngineExtensions = [...kRmdExtensions, ...kRScriptExtensions];
 export const rmdEngine: ExecutionEngine = {
   name: "rmarkdown",
 
-  handle: async (file: string, _quiet: boolean) => {
-    if (kEngineExtensions.includes(extname(file).toLowerCase())) {
-      return { source: file, input: file };
-    }
+  canHandle: (file: string) => {
+    return kEngineExtensions.includes(extname(file).toLowerCase());
+  },
+
+  target: async (file: string, quiet?: boolean) => {
+    return { source: file, input: file };
   },
 
   metadata: async (target: ExecutionTarget): Promise<Metadata> => {

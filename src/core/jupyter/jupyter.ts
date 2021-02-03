@@ -319,6 +319,7 @@ export function jupyterFromFile(input: string): JupyterNotebook {
 
 export interface JupyterAssets {
   base_dir: string;
+  files_dir: string;
   figures_dir: string;
   supporting_dir: string;
 }
@@ -347,6 +348,7 @@ export function jupyterAssets(input: string, to?: string) {
 
   return {
     base_dir,
+    files_dir,
     figures_dir,
     supporting_dir,
   };
