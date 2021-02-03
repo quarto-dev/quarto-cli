@@ -1,3 +1,10 @@
+<!-- select the correct program files folder -->
+<?if $(sys.BUILDARCH)=x64?>
+<?define ProgFilesFolder="ProgramFiles64Folder"?>
+<?else?>
+<?define ProgFilesFolder="ProgramFilesFolder"?>
+<?endif?>
+
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Product Id="*" 
@@ -30,7 +37,7 @@
 
    <!-- install directory -->
     <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="ProgramFilesFolder">
+      <Directory Id="$(var.ProgFilesFolder)">
         <Directory Id="INSTALLFOLDER" 
                        Name="Quarto" >
           <Component Id="UpdateUserPath"
