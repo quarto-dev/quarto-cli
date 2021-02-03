@@ -4,6 +4,7 @@
 <?else?>
 <?define ProgFilesFolder="ProgramFilesFolder"?>
 <?endif?>
+<?define UpgradeCode = '98fb2e98-96b0-46e1-a6fd-94171233d11b'/>
 
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
@@ -12,7 +13,7 @@
            Language="1033"
            Manufacturer="Rstudio, PBC"
            Version="0.1" 
-           UpgradeCode="98fb2e98-96b0-46e1-a6fd-94171233d11b">
+           UpgradeCode="$(var.UpgradeCode)">
     
     <Package InstallerVersion="200" 
                Compressed="yes" 
@@ -29,6 +30,14 @@
       <ComponentRef Id="UpdateUserPath" />
       <ComponentRef Id="UpdateSystemPath" />
     </Feature>
+
+    <!-- Detect previous versons and upgrade any with the same upgrade code -->
+    <Property Id="PREVIOUSVERSIONSINSTALLED" Secure="yes" />
+    <Upgrade Id="$(var.UpgradeCode)">
+      <UpgradeVersion Property='PREVIOUSVERSIONSINSTALLED'
+        Minimum='0.0.0.0'  IncludeMinimum='yes'
+        Maximum="99.0.0.0" IncludeMaximum="no" />
+    </Upgrade>
 
     <!-- Remove any old version after this install is completed -->
     <InstallExecuteSequence>
