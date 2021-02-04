@@ -29,7 +29,7 @@ import {
 export const kLatexHeaderMessageOptions = { bold: true };
 export const kLatexBodyMessageOptions = { indent: 2 };
 
-export async function generatePdf(mkOptions: LatexmkOptions) {
+export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {
   if (!mkOptions.quiet) {
     message(
       `runnning ${mkOptions.engine.pdfEngine} - 1`,
@@ -107,6 +107,10 @@ export async function generatePdf(mkOptions: LatexmkOptions) {
   if (!mkOptions.quiet) {
     message("");
   }
+
+  return mkOptions.outputDir
+    ? join(cwd, mkOptions.outputDir, stem + ".pdf")
+    : join(cwd, stem + ".pdf");
 }
 
 // The first pass compilation of the latex with the ability to discover

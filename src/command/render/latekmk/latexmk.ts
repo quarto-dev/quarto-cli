@@ -112,7 +112,7 @@ export function quartoLatexmkOutputRecipe(
     };
 
     // run latexmk
-    await generatePdf(mkOptions);
+    const pdfOutput = await generatePdf(mkOptions);
 
     // keep tex if requested
     const compileTex = join(inputDir, output);
@@ -122,17 +122,14 @@ export function quartoLatexmkOutputRecipe(
 
     // copy (or write for stdout) compiled pdf to final output location
     if (finalOutput) {
-      const compilePdf = outputDir
-        ? join(inputDir, outputDir, texStem + ".pdf")
-        : join(inputDir, texStem + ".pdf");
       if (finalOutput === kStdOut) {
-        writeFileToStdout(compilePdf);
-        Deno.removeSync(compilePdf);
+        writeFileToStdout(pdfOutput);
+        Deno.removeSync(pdfOutput);
       } else {
         const outputPdf = expandPath(finalOutput);
 
-        if (normalize(compilePdf) !== normalize(outputPdf)) {
-          Deno.renameSync(compilePdf, outputPdf);
+        if (normalize(pdfOutput) !== normalize(outputPdf)) {
+          Deno.renameSync(pdfOutput, outputPdf);
         }
       }
 
@@ -148,7 +145,7 @@ export function quartoLatexmkOutputRecipe(
 
       return finalOutput;
     } else {
-      return texStem + ".pdf";
+      return pdfOutput;
     }
   };
 
