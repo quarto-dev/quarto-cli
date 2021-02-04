@@ -33,6 +33,7 @@ import {
   kLatexMakeIndexOpts,
   kLatexMaxRuns,
   kLatexMinRuns,
+  kLatexOutputDir,
   kLatexTlmgrOpts,
   kListings,
   kMarkdownHeadings,
@@ -97,6 +98,7 @@ export interface FormatRender {
   [kLatexMakeIndex]?: string;
   [kLatexMakeIndexOpts]?: string[];
   [kLatexTlmgrOpts]?: string[];
+  [kLatexOutputDir]?: string;
 }
 
 export interface FormatExecution {
@@ -514,6 +516,7 @@ function defaultFormat(): Format {
       [kLatexMakeIndex]: "makeindex",
       [kLatexMakeIndexOpts]: [],
       [kLatexTlmgrOpts]: [],
+      [kLatexOutputDir]: undefined,
     },
     pandoc: {
       from: "markdown",

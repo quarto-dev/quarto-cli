@@ -5,7 +5,7 @@
  *
  */
 
-import { basename, dirname, extname, join } from "path/mod.ts";
+import { dirname, join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { message } from "../../../core/console.ts";
@@ -37,12 +37,8 @@ export async function generatePdf(mkOptions: LatexmkOptions) {
   }
 
   // Get the working directory and file name stem
-  const [workingDir, inputStem] = mkOptions.outputDir
-    ? [
-      mkOptions.outputDir,
-      basename(mkOptions.input, extname(mkOptions.input)),
-    ]
-    : dirAndStem(mkOptions.input);
+  const [cwd, stem] = dirAndStem(mkOptions.input);
+  const workingDir = mkOptions.outputDir ? join(cwd, mkOptions.outputDir) : cwd;
 
   // Ensure that working directory exists
   if (!existsSync(workingDir)) {
@@ -69,7 +65,7 @@ export async function generatePdf(mkOptions: LatexmkOptions) {
   // Generate the index information, if needed
   const indexCreated = await makeIndexIntermediates(
     workingDir,
-    inputStem,
+    stem,
     pkgMgr,
     mkOptions.engine.indexEngine,
     mkOptions.engine.indexEngineOpts,
@@ -78,10 +74,10 @@ export async function generatePdf(mkOptions: LatexmkOptions) {
 
   // Generate the bibliography intermediaries
   const bibliographyCreated = await makeBibliographyIntermediates(
-    workingDir,
-    inputStem,
+    mkOptions.input,
     mkOptions.engine.bibEngine || "citeproc",
     pkgMgr,
+    mkOptions.outputDir,
     mkOptions.quiet,
   );
 
@@ -104,7 +100,7 @@ export async function generatePdf(mkOptions: LatexmkOptions) {
 
   // cleanup if requested
   if (mkOptions.clean) {
-    cleanup(workingDir, inputStem);
+    cleanup(workingDir, stem);
   }
 
   if (!mkOptions.quiet) {
@@ -265,10 +261,10 @@ async function makeIndexIntermediates(
 }
 
 async function makeBibliographyIntermediates(
-  dir: string,
-  stem: string,
+  input: string,
   engine: string,
   pkgMgr: PackageManager,
+  outputDir?: string,
   quiet?: boolean,
 ) {
   // Generate bibliography (including potentially installing missing packages)
@@ -277,16 +273,18 @@ async function makeBibliographyIntermediates(
   // processing (including explicitly calling the processing tool)
   const bibCommand = engine === "natbib" ? "bibtex" : "biber";
 
+  const [cwd, stem] = dirAndStem(input);
+
   while (true) {
     // If biber, look for a bcf file, otherwise look for aux file
-    const auxBibFile = bibCommand === "biber"
-      ? join(dir, `${stem}.bcf`)
-      : join(dir, `${stem}.aux`);
+    const auxBibFile = bibCommand === "biber" ? `${stem}.bcf` : `${stem}.aux`;
+    const auxBibPath = outputDir ? join(outputDir, auxBibFile) : auxBibFile;
+    const auxBibFullPath = join(cwd, auxBibPath);
     const requiresProcessing = bibCommand === "biber"
       ? true
-      : containsBiblioData(auxBibFile);
+      : containsBiblioData(auxBibFullPath);
 
-    if (existsSync(auxBibFile) && requiresProcessing) {
+    if (existsSync(auxBibFullPath) && requiresProcessing) {
       if (!quiet) {
         message("\ngenerating bibliography", kPdfGenerateMessageOptions);
       }
@@ -294,7 +292,8 @@ async function makeBibliographyIntermediates(
       // If natbib, only use bibtex, otherwise, could use biber or bibtex
       const response = await runBibEngine(
         bibCommand,
-        auxBibFile,
+        auxBibPath,
+        cwd,
         pkgMgr,
         quiet,
       );
@@ -302,7 +301,7 @@ async function makeBibliographyIntermediates(
       if (response.result.code !== 0 && pkgMgr.autoInstall) {
         // Biblio generation failed, see whether we should install anything to try to resolve
         // Find the missing packages
-        const log = join(dir, `${stem}.blg`);
+        const log = join(dirname(auxBibFullPath), `${stem}.blg`);
 
         if (existsSync(log)) {
           const logOutput = Deno.readTextFileSync(log);

@@ -85,6 +85,7 @@ export const kLatexMakeIndex = "latex-makeindex";
 export const kLatexMakeIndexOpts = "latex-makeindex-opts";
 
 export const kLatexTlmgrOpts = "latex-tlmgr-opts";
+export const kLatexOutputDir = "latex-output-dir";
 
 export const kRenderDefaultsKeys = [
   kKeepMd,
@@ -107,6 +108,7 @@ export const kRenderDefaultsKeys = [
   kLatexMakeIndex,
   kLatexMakeIndexOpts,
   kLatexTlmgrOpts,
+  kLatexOutputDir,
 ];
 
 // 'defaults' fields

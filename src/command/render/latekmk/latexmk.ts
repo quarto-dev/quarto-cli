@@ -17,6 +17,7 @@ import {
   kLatexClean,
   kLatexMaxRuns,
   kLatexMinRuns,
+  kLatexOutputDir,
   kOutputExt,
   kOutputFile,
 } from "../../../config/constants.ts";
@@ -25,13 +26,7 @@ import { PdfEngine, pdfEngine } from "../../../config/pdf.ts";
 
 import { PandocOptions } from "../pandoc.ts";
 import { RenderOptions } from "../render.ts";
-import {
-  kStdOut,
-  removePandocArgs,
-  removePandocToArg,
-  RenderFlags,
-  replacePandocArg,
-} from "../flags.ts";
+import { kStdOut, RenderFlags, replacePandocArg } from "../flags.ts";
 import { OutputRecipe } from "../output.ts";
 import { generatePdf } from "./pdf.ts";
 
@@ -97,6 +92,9 @@ export function quartoLatexmkOutputRecipe(
     pandoc[kOutputFile] = output;
   }
 
+  // The directory for PDF output
+  const outputDir = format.render[kLatexOutputDir];
+
   // when pandoc is done, we need to run latexmk and then copy the
   // ouptut to the user's requested destination
   const complete = async (pandocOptions: PandocOptions) => {
@@ -108,6 +106,7 @@ export function quartoLatexmkOutputRecipe(
       autoMk: format.render[kLatexAutoMk],
       minRuns: format.render[kLatexMinRuns],
       maxRuns: format.render[kLatexMaxRuns],
+      outputDir: outputDir,
       clean: !options.flags?.debug && format.render[kLatexClean] !== false,
       quiet: pandocOptions.flags?.quiet,
     };
@@ -123,16 +122,30 @@ export function quartoLatexmkOutputRecipe(
 
     // copy (or write for stdout) compiled pdf to final output location
     if (finalOutput) {
-      const compilePdf = join(inputDir, texStem + ".pdf");
+      const compilePdf = outputDir
+        ? join(inputDir, outputDir, texStem + ".pdf")
+        : join(inputDir, texStem + ".pdf");
       if (finalOutput === kStdOut) {
         writeFileToStdout(compilePdf);
         Deno.removeSync(compilePdf);
       } else {
         const outputPdf = expandPath(finalOutput);
+
         if (normalize(compilePdf) !== normalize(outputPdf)) {
           Deno.renameSync(compilePdf, outputPdf);
         }
       }
+
+      // Clean the output directory if it is empty
+      if (outputDir) {
+        try {
+          // Remove the outputDir if it is empty
+          Deno.removeSync(outputDir, { recursive: false });
+        } catch {
+          // This is ok, just means the directory wasn't empty
+        }
+      }
+
       return finalOutput;
     } else {
       return texStem + ".pdf";

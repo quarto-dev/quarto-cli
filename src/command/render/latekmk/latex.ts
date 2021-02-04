@@ -45,8 +45,9 @@ export async function runPdfEngine(
 ): Promise<LatexCommandReponse> {
   // Input and log paths
   const [cwd, stem] = dirAndStem(input);
-  const output = join(outputDir || cwd, `${stem}.pdf`);
-  const log = join(outputDir || cwd, `${stem}.log`);
+  const targetDir = outputDir ? join(cwd, outputDir) : cwd;
+  const output = join(targetDir, `${stem}.pdf`);
+  const log = join(targetDir, `${stem}.log`);
 
   // Clean any log file or output from previous runs
   [log, output].forEach((file) => {
@@ -75,9 +76,9 @@ export async function runPdfEngine(
   const result = await runLatexCommand(
     engine.pdfEngine,
     args,
-    cwd,
     pkgMgr,
     quiet,
+    cwd,
   );
 
   // Success, return result
@@ -107,9 +108,9 @@ export async function runIndexEngine(
   const result = await runLatexCommand(
     engine || "makeindex",
     [...(args || []), basename(input)],
-    cwd,
     pkgMgr,
     quiet,
+    cwd,
   );
 
   return {
@@ -122,11 +123,12 @@ export async function runIndexEngine(
 export async function runBibEngine(
   engine: string,
   input: string,
+  cwd: string,
   pkgMgr?: PackageManager,
   quiet?: boolean,
 ): Promise<LatexCommandReponse> {
-  const [cwd, stem] = dirAndStem(input);
-  const log = join(cwd, `${stem}.blg`);
+  const [dir, stem] = dirAndStem(input);
+  const log = join(dir, `${stem}.blg`);
 
   // Clean any log file from previous runs
   if (existsSync(log)) {
@@ -135,10 +137,10 @@ export async function runBibEngine(
 
   const result = await runLatexCommand(
     engine,
-    [basename(input)],
-    cwd,
+    [input],
     pkgMgr,
     quiet,
+    cwd,
   );
   return {
     result,
@@ -149,9 +151,9 @@ export async function runBibEngine(
 async function runLatexCommand(
   latexCmd: string,
   args: string[],
-  cwd: string,
   pkMgr?: PackageManager,
   quiet?: boolean,
+  cwd?: string,
 ): Promise<ProcessResult> {
   const runOptions: Deno.RunOptions = {
     cmd: [latexCmd, ...args],
