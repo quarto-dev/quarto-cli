@@ -22,9 +22,6 @@ install tools:
 
 
 TinyTex:
-- layout-output-dir:
-  - copy pdf from output dir to input dir when complete, clean output dir as specified
-- Should we indent sub output?
 - Do we need to do latexmk version checking? 
 - When new versions of TexLive are released, how do we manage updating (research)
 - Consider converting to a sandalone exe that we call (making it accessible to anyone)
