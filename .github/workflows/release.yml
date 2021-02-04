@@ -1,7 +1,5 @@
 name: Create Release
 on:
-  schedule:
-    - cron: "0 4 * * *"
   workflow_dispatch:
     inputs:
       publish-release:
@@ -29,7 +27,9 @@ jobs:
       
     steps:
     - uses: actions/checkout@v2
-      
+      with:
+        fetch-depth: 0  
+     
     - name: config
       id: config
       run: |

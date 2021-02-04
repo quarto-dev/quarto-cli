@@ -12,6 +12,7 @@ import { projectCreate } from "../../project/project-create.ts";
 
 export const createProjectCommand = new Command()
   .name("create-project")
+  .description("Create a project for rendering multiple documents")
   .arguments("[dir:string]")
   .option(
     "-T, --type <type:string>",
