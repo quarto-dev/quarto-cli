@@ -8,13 +8,13 @@
 import { basename, join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
-import { message } from "../../../core/console.ts";
+import { message, messageFormatData } from "../../../core/console.ts";
 import { dirAndStem } from "../../../core/path.ts";
 import { execProcess, ProcessResult } from "../../../core/process.ts";
 
 import { PdfEngine } from "../../../config/pdf.ts";
 import { PackageManager } from "./pkgmgr.ts";
-import { kPdfGenerateMessageOptions } from "./pdf.ts";
+import { kLatexBodyMessageOptions, kLatexHeaderMessageOptions } from "./pdf.ts";
 
 export interface LatexCommandReponse {
   log: string;
@@ -165,7 +165,7 @@ async function runLatexCommand(
   // Redirect stdoutput to stderr
   const stdoutHandler = (data: Uint8Array) => {
     if (!quiet) {
-      Deno.stderr.writeSync(data);
+      messageFormatData(data, kLatexBodyMessageOptions);
     }
   };
 
@@ -173,7 +173,7 @@ async function runLatexCommand(
   const runCmd = async () => {
     const result = await execProcess(runOptions, undefined, stdoutHandler);
     if (!quiet && result.stderr) {
-      message(result.stderr);
+      message(result.stderr, kLatexBodyMessageOptions);
     }
     return result;
   };
@@ -195,7 +195,7 @@ async function runLatexCommand(
       if (!quiet) {
         message(
           `command ${latexCmd} not found, attempting install`,
-          kPdfGenerateMessageOptions,
+          kLatexHeaderMessageOptions,
         );
       }
 
@@ -211,7 +211,7 @@ async function runLatexCommand(
       // Some other error has occurred
       message(
         `Error executing ${latexCmd}`,
-        kPdfGenerateMessageOptions,
+        kLatexHeaderMessageOptions,
       );
 
       return Promise.reject();

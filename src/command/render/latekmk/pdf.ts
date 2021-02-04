@@ -26,13 +26,14 @@ import {
   needsRecompilation,
 } from "./parse-error.ts";
 
-export const kPdfGenerateMessageOptions = { bold: true };
+export const kLatexHeaderMessageOptions = { bold: true };
+export const kLatexBodyMessageOptions = { indent: 2 };
 
 export async function generatePdf(mkOptions: LatexmkOptions) {
   if (!mkOptions.quiet) {
     message(
       `runnning ${mkOptions.engine.pdfEngine} - 1`,
-      kPdfGenerateMessageOptions,
+      kLatexHeaderMessageOptions,
     );
   }
 
@@ -153,7 +154,7 @@ async function initialCompileLatex(
       // First be sure all packages are up to date
       if (!packagesUpdated) {
         if (!quiet) {
-          message("updating existing packages", kPdfGenerateMessageOptions);
+          message("updating existing packages", kLatexHeaderMessageOptions);
         }
         await pkgMgr.updatePackages(true, false);
         packagesUpdated = true;
@@ -213,7 +214,7 @@ async function makeIndexIntermediates(
   const indexFile = join(dir, `${stem}.idx`);
   if (existsSync(indexFile)) {
     if (!quiet) {
-      message("\nmaking index", kPdfGenerateMessageOptions);
+      message("making index", kLatexHeaderMessageOptions);
     }
 
     // Make the index
@@ -286,7 +287,7 @@ async function makeBibliographyIntermediates(
 
     if (existsSync(auxBibFullPath) && requiresProcessing) {
       if (!quiet) {
-        message("\ngenerating bibliography", kPdfGenerateMessageOptions);
+        message("generating bibliography", kLatexHeaderMessageOptions);
       }
 
       // If natbib, only use bibtex, otherwise, could use biber or bibtex
@@ -380,7 +381,7 @@ async function findAndInstallPackages(
 function writeError(primary: string, secondary?: string, logFile?: string) {
   message(
     `\ncompilation failed- ${primary}`,
-    kPdfGenerateMessageOptions,
+    kLatexHeaderMessageOptions,
   );
 
   if (secondary) {
@@ -411,7 +412,7 @@ async function recompileLatexUntilComplete(
       if (!quiet) {
         message(
           `maximum number of runs (${maxRuns}) reached`,
-          kPdfGenerateMessageOptions,
+          kLatexHeaderMessageOptions,
         );
       }
       break;
@@ -419,8 +420,8 @@ async function recompileLatexUntilComplete(
 
     if (!quiet) {
       message(
-        `\nrunning ${engine.pdfEngine} - ${runCount + 2}`,
-        kPdfGenerateMessageOptions,
+        `running ${engine.pdfEngine} - ${runCount + 2}`,
+        kLatexHeaderMessageOptions,
       );
     }
 

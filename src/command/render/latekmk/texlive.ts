@@ -6,9 +6,9 @@
  */
 import { ld } from "lodash/mod.ts";
 
-import { message } from "../../../core/console.ts";
+import { message, messageFormatData } from "../../../core/console.ts";
 import { execProcess } from "../../../core/process.ts";
-import { kPdfGenerateMessageOptions } from "./pdf.ts";
+import { kLatexBodyMessageOptions, kLatexHeaderMessageOptions } from "./pdf.ts";
 
 const tlmgr = Deno.build.os === "windows"
   ? ["cmd.exe", "/c", "tlmgr"]
@@ -41,8 +41,8 @@ export async function findPackages(
   for (const searchTerm of searchTerms) {
     if (!quiet) {
       message(
-        `\nfinding package for ${searchTerm}`,
-        kPdfGenerateMessageOptions,
+        `finding package for ${searchTerm}`,
+        kLatexHeaderMessageOptions,
       );
     }
     // Special case for a known package
@@ -132,16 +132,18 @@ export async function installPackages(
 ) {
   if (!quiet) {
     message(
-      `${pkgs.length} ${pkgs.length === 1 ? "package" : "packages"} to install`,
-      kPdfGenerateMessageOptions,
+      `> ${pkgs.length} ${
+        pkgs.length === 1 ? "package" : "packages"
+      } to install`,
+      kLatexHeaderMessageOptions,
     );
   }
   let count = 1;
   for (const pkg of pkgs) {
     if (!quiet) {
       message(
-        `installing ${pkg} (${count} of ${pkgs.length})`,
-        kPdfGenerateMessageOptions,
+        `> installing ${pkg} (${count} of ${pkgs.length})`,
+        kLatexHeaderMessageOptions,
       );
     }
 
@@ -248,7 +250,7 @@ function tlmgrCommand(
       undefined,
       (data: Uint8Array) => {
         if (!quiet) {
-          Deno.stderr.writeSync(data);
+          messageFormatData(data, kLatexBodyMessageOptions);
         }
 
         if (stdout) {
