@@ -5,7 +5,7 @@
 *
 */
 
-import { walkSync } from "fs/mod.ts";
+import { existsSync, walkSync } from "fs/mod.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
 import { dirname, join } from "path/mod.ts";
 
@@ -52,7 +52,6 @@ import {
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
 import { projectContext } from "../../config/project.ts";
-import { existsSync } from "https://deno.land/std@0.74.0/fs/exists.ts";
 
 // command line options for render
 export interface RenderOptions {
