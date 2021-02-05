@@ -396,17 +396,16 @@ function directoryInputFiles(dir: string) {
 
   const targetDir = Deno.realPathSync(dir);
   const context = projectContext(dir);
-  const projFiles = context.metadata?.project?.files;
-  if (projFiles) {
+  const renderFiles = context.metadata?.project?.render;
+  if (renderFiles) {
     // make project relative
 
-    const projGlobs = projFiles
+    const projGlobs = renderFiles
       .map((file) => {
         return join(context.dir, file);
       });
 
     // expand globs
-    const files: string[] = [];
     for (const glob of projGlobs) {
       for (const file of expandGlobSync(glob)) {
         if (file.isFile) { // exclude dirs
