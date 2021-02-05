@@ -31,7 +31,13 @@ export async function projectCreate(options: ProjectCreateOptions) {
   // read and validate options
   options = await readOptions(options);
 
-  ensureDirSync(options.dir);
+  // track whether the directory already exists
+  // (if so then don't scaffold)
+  const dirAlreadyExists = existsSync(options.dir);
+  if (!dirAlreadyExists) {
+    ensureDirSync(options.dir);
+  }
+
   options.dir = Deno.realPathSync(options.dir);
   if (!options.quiet) {
     message(`Creating project at `, { newline: false });
@@ -70,8 +76,9 @@ export async function projectCreate(options: ProjectCreateOptions) {
     );
   }
 
-  // create scaffold files
-  if (projCreate.scaffold) {
+  // create scaffold files if we aren't creating a project within the
+  // current working directory (which presumably already has files)
+  if (projCreate.scaffold && !dirAlreadyExists) {
     for (const scaffold of projCreate.scaffold) {
       const md = projectMarkdownFile(
         options.dir,

@@ -17,7 +17,7 @@ import { render } from "./render.ts";
 export const renderCommand = new Command()
   .name("render")
   .stopEarly()
-  .arguments("<input:string> [...args]")
+  .arguments("[input:string] [...args]")
   .description(
     "Render input file(s) to various document types.",
   )
@@ -90,10 +90,11 @@ export const renderCommand = new Command()
     "quarto render notebook.Rmd --output -",
   )
   // deno-lint-ignore no-explicit-any
-  .action(async (options: any, input: string, args: string[]) => {
+  .action(async (options: any, input?: string, args?: string[]) => {
     args = args || [];
 
     // pull inputs out of the beginning of flags
+    input = input || ".";
     const inputs = [input];
     const firstPandocArg = args.findIndex((arg) => arg.startsWith("-"));
     if (firstPandocArg !== -1) {
@@ -110,8 +111,7 @@ export const renderCommand = new Command()
     let rendered = false;
     for (const input of inputs) {
       for (const walk of expandGlobSync(input)) {
-        const input = relative(Deno.cwd(), walk.path);
-
+        const input = relative(Deno.cwd(), walk.path) || ".";
         rendered = true;
         await render(input, { flags, pandocArgs: args });
       }

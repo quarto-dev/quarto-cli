@@ -32,7 +32,7 @@ export interface ProjectContext {
 export interface ProjectMetadata extends Metadata {
   name?: string;
   type?: string;
-  files?: string[];
+  render?: string[];
   [kOutputDir]?: string;
   [kOutputInclude]?: string;
   [kOutputExclude]?: string;

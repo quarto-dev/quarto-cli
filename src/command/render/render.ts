@@ -5,7 +5,7 @@
 *
 */
 
-import { walkSync } from "fs/mod.ts";
+import { existsSync, walkSync } from "fs/mod.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
 import { dirname, join } from "path/mod.ts";
 
@@ -52,7 +52,6 @@ import {
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
 import { projectContext } from "../../config/project.ts";
-import { existsSync } from "https://deno.land/std@0.74.0/fs/exists.ts";
 
 // command line options for render
 export interface RenderOptions {
@@ -396,17 +395,16 @@ function directoryInputFiles(dir: string) {
 
   const targetDir = Deno.realPathSync(dir);
   const context = projectContext(dir);
-  const projFiles = context.metadata?.project?.files;
-  if (projFiles) {
+  const renderFiles = context.metadata?.project?.render;
+  if (renderFiles) {
     // make project relative
 
-    const projGlobs = projFiles
+    const projGlobs = renderFiles
       .map((file) => {
         return join(context.dir, file);
       });
 
     // expand globs
-    const files: string[] = [];
     for (const glob of projGlobs) {
       for (const file of expandGlobSync(glob)) {
         if (file.isFile) { // exclude dirs
