@@ -202,17 +202,32 @@ export async function removePackage(
   quiet?: boolean,
 ) {
   // Run the install command
-  const uninstallResult = await tlmgrCommand(
+  const result = await tlmgrCommand(
     "remove",
     [...(opts || []), pkg],
     quiet,
   );
 
   // Failed to even run tlmgr
-  if (uninstallResult.code !== 0) {
+  if (!result.success) {
     return Promise.reject();
   }
-  return uninstallResult;
+  return result;
+}
+
+// Removes texlive itself
+export async function removeAll(opts?: string[], quiet?: boolean) {
+  // remove symlinks
+  const result = await tlmgrCommand(
+    "remove",
+    [...(opts || []), "--all", "--force"],
+    quiet,
+  );
+  // Failed to even run tlmgr
+  if (!result.success) {
+    return Promise.reject();
+  }
+  return result;
 }
 
 // Verifies whether the package has been installed
@@ -258,7 +273,6 @@ function tlmgrCommand(
         }
       },
     );
-
     return result;
   } catch (e) {
     return Promise.reject();

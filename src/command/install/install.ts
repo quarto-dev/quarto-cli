@@ -12,9 +12,10 @@ export interface InstallableTool {
   name: string;
   installed: () => Promise<boolean>;
   prereqs: InstallPreReq[];
-  install: (msg: InstallContext) => Promise<void>;
+  install: (ctx: InstallContext) => Promise<void>;
   // return true if restart is required, false if not
-  postinstall: (msg: InstallContext) => Promise<boolean>;
+  postinstall: (ctx: InstallContext) => Promise<boolean>;
+  uninstall: (ctx: InstallContext) => Promise<void>;
 }
 
 // InstallContext provides the API for installable tools
@@ -47,7 +48,7 @@ const kInstallableTools: { [key: string]: InstallableTool } = {
   tinytex: tinyTexInstallable,
 };
 
-export function toolNames(): string[] {
+export function installableTools(): string[] {
   const tools: string[] = [];
   Object.keys(kInstallableTools).forEach((key) => {
     const tool = kInstallableTools[key];
@@ -111,9 +112,31 @@ export async function installTool(name: string) {
     message(
       `Could not install '${name}'- try again with one of the following:`,
     );
-    toolNames().forEach((name) =>
+    installableTools().forEach((name) =>
       message("quarto install " + name, { indent: 2 })
     );
+  }
+}
+
+export async function uninstallTool(name: string) {
+  const installableTool = kInstallableTools[name.toLowerCase()];
+  if (installableTool) {
+    const installed = await installableTool.installed();
+    if (installed) {
+      const workingDir = Deno.makeTempDirSync();
+      const context = installContext(workingDir);
+      try {
+        // The context for the installers
+        await installableTool.uninstall(context);
+        message(`${name} successfully uninstalled`);
+      } catch (e) {
+        message(e);
+      } finally {
+        Deno.removeSync(workingDir, { recursive: true });
+      }
+    } else {
+      message(`${name} is not installed.`);
+    }
   }
 }
 

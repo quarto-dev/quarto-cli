@@ -11,7 +11,7 @@ import { renderCommand } from "./render/cmd.ts";
 import { runCommand } from "./run/cmd.ts";
 import { metadataCommand } from "./metadata/cmd.ts";
 import { createProjectCommand } from "./create-project/cmd.ts";
-import { installCommand } from "./install/cmd.ts";
+import { installCommand, uninstallCommand } from "./install/cmd.ts";
 
 export function commands(): Command[] {
   return [
@@ -20,5 +20,6 @@ export function commands(): Command[] {
     metadataCommand,
     createProjectCommand,
     installCommand,
+    uninstallCommand,
   ];
 }

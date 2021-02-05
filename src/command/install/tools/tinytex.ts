@@ -13,7 +13,7 @@ import { getenv } from "../../../core/env.ts";
 import { expandPath, which } from "../../../core/path.ts";
 import { unzip } from "../../../core/zip.ts";
 import { hasLatexDistribution } from "../../render/latekmk/latex.ts";
-import { hasTexLive } from "../../render/latekmk/texlive.ts";
+import { hasTexLive, removeAll } from "../../render/latekmk/texlive.ts";
 import { execProcess } from "../../../core/process.ts";
 
 import { InstallableTool, InstallContext } from "../install.ts";
@@ -65,6 +65,7 @@ export const tinyTexInstallable: InstallableTool = {
   },
   install,
   postinstall,
+  uninstall,
 };
 
 async function install(context: InstallContext) {
@@ -168,6 +169,19 @@ async function postinstall(context: InstallContext) {
     return Promise.resolve(restartRequired);
   } else {
     context.error("Couldn't locate tlmgr after installation");
+    return Promise.reject();
+  }
+}
+
+async function uninstall(context: InstallContext) {
+  if (!isTinyTex()) {
+    context.error("Current LateX installation does not appear to be TinyTex");
+    return Promise.reject();
+  }
+
+  const result = await removeAll();
+  if (!result.success) {
+    context.error("Failed to uninstall");
     return Promise.reject();
   }
 }
