@@ -107,7 +107,7 @@ export async function updatePackages(
   opts?: string[],
   quiet?: boolean,
 ) {
-  const args = ["update"];
+  const args = [];
   // Add any tlmg args
   if (opts) {
     args.push(...opts);
