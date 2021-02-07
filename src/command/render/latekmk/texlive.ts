@@ -163,6 +163,11 @@ async function addPath(opts?: string[]) {
   return tlmgrCommand("path", ["add", ...(opts || [])], true);
 }
 
+// Remove Symlinks for TexLive executables and commands
+export async function removePath(opts?: string[], quiet?: boolean) {
+  return tlmgrCommand("path", ["remove", ...(opts || [])], quiet);
+}
+
 async function installPackage(pkg: string, opts?: string[], quiet?: boolean) {
   // Run the install command
   let installResult = await tlmgrCommand(

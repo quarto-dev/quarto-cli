@@ -16,6 +16,7 @@ import { hasLatexDistribution } from "../../render/latekmk/latex.ts";
 import {
   hasTexLive,
   removeAll,
+  removePath,
   tlVersion,
 } from "../../render/latekmk/texlive.ts";
 import { execProcess } from "../../../core/process.ts";
@@ -179,7 +180,7 @@ async function postinstall(context: InstallContext) {
     // Set the default repo to an https repo
     const defaultRepo = textLiveRepo();
     context.info("Configuring default repository");
-    context.info(`using ${defaultRepo}`);
+    context.info(`Using ${defaultRepo}`);
     await exec(
       tlmgrPath,
       ["option", "repository", defaultRepo],
@@ -222,12 +223,23 @@ async function uninstall(context: InstallContext) {
     context.error("Current LateX installation does not appear to be TinyTex");
     return Promise.reject();
   }
+    // remove symlinks
+    context.info("Removing commands");
+    const result = await removePath();
+    if (!result.success) {
+      context.error("Failed to uninstall");
+      return Promise.reject();
+    }
 
-  const result = await removeAll();
-  if (!result.success) {
-    context.error("Failed to uninstall");
-    return Promise.reject();
-  }
+    // Remove the directory
+    context.info("Removing directory");
+    const installDir = tinyTexInstallDir();
+    if (installDir){
+      Deno.removeSync(installDir, {recursive: true});
+    } else {
+      context.error("Couldn't find install directory");
+      return Promise.reject();
+    }
 }
 
 async function exec(path: string, cmd: string[]) {
@@ -296,7 +308,6 @@ function needsSourceInstall() {
 
 async function isTinyTex() {
   const root = await texLiveRoot();
-  console.log(root);
   if (root) {
     // directory name (lower) is tinytex
     if (root.toLowerCase().endsWith("tinytex")) {
