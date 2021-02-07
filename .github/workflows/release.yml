@@ -37,7 +37,7 @@ jobs:
       run: |
         source ./configuration
 
-        CHANGES=
+        CHANGES= 
         # CHANGES=$(git log $(git describe --tags --abbrev=0)..HEAD --oneline)
         # Escape \n, \r to preserve multiline variable
         # See https://github.community/t/set-output-truncates-multiline-strings/16852/2
