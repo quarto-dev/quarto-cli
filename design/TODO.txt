@@ -17,8 +17,7 @@ metadata:
    - fig.alt (alt text for image in html)
 
 install tools:
-   - update command
-   - uninstall command
+  - install command offer to uninstall if already installed (report which version currently installed, will be installed)
 
 
 TinyTex:
