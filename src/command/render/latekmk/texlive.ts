@@ -230,6 +230,29 @@ export async function removeAll(opts?: string[], quiet?: boolean) {
   return result;
 }
 
+export async function tlVersion() {
+  const result = await tlmgrCommand(
+    "--version",
+    ["--machine-readable"],
+    true,
+  );
+
+  // Failed to even run tlmgr
+  if (!result.success) {
+    return Promise.reject();
+  }
+  const versionStr = result.stdout;
+  if (!versionStr) {
+    return Promise.reject();
+  }
+  const match = versionStr.match(/tlversion (\d*)/);
+  if (match) {
+    return match[1];
+  } else {
+    return Promise.reject();
+  }
+}
+
 // Verifies whether the package has been installed
 async function verifyPackageInstalled(
   pkg: string,
