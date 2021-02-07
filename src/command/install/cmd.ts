@@ -7,8 +7,15 @@
 
 import { Command } from "cliffy/command/mod.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
+import { formatLine, message } from "../../core/console.ts";
 
-import { installableTools, installTool, uninstallTool } from "./install.ts";
+import {
+  installableTools,
+  installTool,
+  toolInfo,
+  toolInstalled,
+  uninstallTool,
+} from "./install.ts";
 
 export const installCommand = new Command()
   .name("install")
@@ -18,13 +25,52 @@ export const installCommand = new Command()
       installableTools().map((name) => "  " + name).join("\n")
     }`,
   )
+  .option(
+    "-l, --list",
+    "List installable tools",
+  )
   .example(
     "Install TinyTex",
     "quarto install tinytex",
   )
   // deno-lint-ignore no-explicit-any
-  .action(async (_options: any, name: string) => {
-    await installTool(name);
+  .action(async (options: any, name: string) => {
+    if (options.list) {
+      const cols = [20, 20, 20];
+      // Find the installed versions
+      const installedVersions: string[] = [];
+      for (const tool of installableTools()) {
+        const isInstalled = await toolInstalled(tool);
+        const info = await toolInfo(tool);
+        if (info) {
+          installedVersions.push(
+            formatLine(
+              [
+                tool,
+                info.latest.tag_name,
+                isInstalled ? `installed ${info.version}` : "not installed",
+              ],
+              cols,
+            ),
+          );
+        }
+      }
+
+      // Write the output
+      message(
+        formatLine(["Tool", "Version", "Installed"], cols),
+        { bold: true },
+      );
+      if (installedVersions.length === 0) {
+        message("nothing installed", { indent: 2 });
+      } else {
+        installedVersions.forEach((installedVersion) =>
+          message(installedVersion)
+        );
+      }
+    } else if (name) {
+      await installTool(name);
+    }
   });
 
 export const uninstallCommand = new Command()

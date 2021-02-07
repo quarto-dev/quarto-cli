@@ -48,6 +48,21 @@ export function messageFormatData(data: Uint8Array, options?: MessageOptions) {
   Deno.stderr.writeSync(encoder.encode(output + (newline ? "\n" : "")));
 }
 
+export function formatLine(values: string[], lengths: number[]) {
+  const line: string[] = [];
+  values.forEach((value, i) => {
+    const len = lengths[i];
+    if (value.length === len) {
+      line.push(value);
+    } else if (value.length > len) {
+      line.push(value.substr(0, len));
+    } else {
+      line.push(value.padEnd(len, " "));
+    }
+  });
+  return line.join("");
+}
+
 export function writeFileToStdout(file: string) {
   const df = Deno.openSync(file, { read: true });
   const contents = Deno.readAllSync(df);

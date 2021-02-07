@@ -5,17 +5,25 @@
 *
 */
 import { message } from "../../core/console.ts";
+import { GitHubRelease } from "./github.ts";
 import { tinyTexInstallable } from "./tools/tinytex.ts";
 
 // Installable Tool interface
 export interface InstallableTool {
   name: string;
   installed: () => Promise<boolean>;
+  installInfo: () => Promise<ToolInfo | undefined>;
+  currentVersion: () => Promise<string>;
   prereqs: InstallPreReq[];
   install: (ctx: InstallContext) => Promise<void>;
   // return true if restart is required, false if not
   postinstall: (ctx: InstallContext) => Promise<boolean>;
   uninstall: (ctx: InstallContext) => Promise<void>;
+}
+
+export interface ToolInfo {
+  version: string;
+  latest: GitHubRelease;
 }
 
 // InstallContext provides the API for installable tools
@@ -137,6 +145,20 @@ export async function uninstallTool(name: string) {
     } else {
       message(`${name} is not installed.`);
     }
+  }
+}
+
+export async function toolInstalled(name: string) {
+  const installableTool = kInstallableTools[name.toLowerCase()];
+  if (installableTool) {
+    return installableTool.installed();
+  }
+}
+
+export async function toolInfo(name: string) {
+  const installableTool = kInstallableTools[name.toLowerCase()];
+  if (installableTool) {
+    return installableTool.installInfo();
   }
 }
 
