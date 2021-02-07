@@ -296,6 +296,7 @@ function needsSourceInstall() {
 
 async function isTinyTex() {
   const root = await texLiveRoot();
+  console.log(root);
   if (root) {
     // directory name (lower) is tinytex
     if (root.toLowerCase().endsWith("tinytex")) {
@@ -322,7 +323,7 @@ async function texLiveRoot() {
     // The real (non-symlink) path
     const realPath = await Deno.realPath(texLivePath);
     if (Deno.build.os === "windows") {
-      return join(realPath, "..", "..");
+      return join(realPath, "..", "..", "..");
     } else {
       // Check that the directory coontains a bin folder
       const root = join(realPath, "..", "..", "..", "..");
