@@ -163,6 +163,11 @@ async function addPath(opts?: string[]) {
   return tlmgrCommand("path", ["add", ...(opts || [])], true);
 }
 
+// Remove Symlinks for TexLive executables and commands
+export async function removePath(opts?: string[], quiet?: boolean) {
+  return tlmgrCommand("path", ["remove", ...(opts || [])], quiet);
+}
+
 async function installPackage(pkg: string, opts?: string[], quiet?: boolean) {
   // Run the install command
   let installResult = await tlmgrCommand(
@@ -202,17 +207,55 @@ export async function removePackage(
   quiet?: boolean,
 ) {
   // Run the install command
-  const uninstallResult = await tlmgrCommand(
+  const result = await tlmgrCommand(
     "remove",
     [...(opts || []), pkg],
     quiet,
   );
 
   // Failed to even run tlmgr
-  if (uninstallResult.code !== 0) {
+  if (!result.success) {
     return Promise.reject();
   }
-  return uninstallResult;
+  return result;
+}
+
+// Removes texlive itself
+export async function removeAll(opts?: string[], quiet?: boolean) {
+  // remove symlinks
+  const result = await tlmgrCommand(
+    "remove",
+    [...(opts || []), "--all", "--force"],
+    quiet,
+  );
+  // Failed to even run tlmgr
+  if (!result.success) {
+    return Promise.reject();
+  }
+  return result;
+}
+
+export async function tlVersion() {
+  const result = await tlmgrCommand(
+    "--version",
+    ["--machine-readable"],
+    true,
+  );
+
+  // Failed to even run tlmgr
+  if (!result.success) {
+    return Promise.reject();
+  }
+  const versionStr = result.stdout;
+  if (!versionStr) {
+    return Promise.reject();
+  }
+  const match = versionStr.match(/tlversion (\d*)/);
+  if (match) {
+    return match[1];
+  } else {
+    return Promise.reject();
+  }
 }
 
 // Verifies whether the package has been installed
@@ -258,7 +301,6 @@ function tlmgrCommand(
         }
       },
     );
-
     return result;
   } catch (e) {
     return Promise.reject();
