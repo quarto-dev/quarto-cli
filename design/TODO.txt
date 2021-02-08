@@ -1,3 +1,27 @@
+
+
+
+Provide a better default HTML theme (see pandoc document-css option)
+document-css: "quarto" | "pandoc" | "none" 
+css: "user.css
+Write an article about this
+
+
+code-fold: "none" | "show" | "hide"
+code-summary: "Show code"
+fold and summary attributes
+
+rmd engine needs to forward all unknown chunk attributes (for filters/formats)
+
+metadata:
+   - Inline YAML in code chunks
+       - https://gist.github.com/jjallaire/a315f08ba5007678f3f8cbcb093cafb4
+       - PR for jupytext to support the same for md:markdown
+       - PR for knitr so that knitr::purl ignores the front matter
+       - RStudio also needs to ignore the front matter
+  
+- fig.alt (alt text for image in html)
+
 Project:
   - Do files not listed in project: files: but in the directory still inherit the project metadata when rendered directly
 
@@ -9,12 +33,6 @@ Layout:
    - "natural width" (0?)
    - top align all content in layout cells
 
-metadata:
-   - Inline YAML in code chunks
-       - https://gist.github.com/jjallaire/a315f08ba5007678f3f8cbcb093cafb4
-       - PR for jupytext to support the same for md:markdown
-       - PR for knitr so that knitr::purl ignores the front matter
-   - fig.alt (alt text for image in html)
 
 install tools:
    - update command
