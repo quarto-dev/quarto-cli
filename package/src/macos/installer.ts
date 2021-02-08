@@ -56,7 +56,6 @@ export async function makeInstallerMac(config: Configuration) {
 
   // The application cert developer Id
   const applicationDevId = getEnv("QUARTO_APPLE_APP_DEV_ID");
-  console.log("Got Dev Id: " + applicationDevId);
 
   // Sign the deno executable
   const entitlements = join(config.directoryInfo.pkg, "scripts", "macos", "entitlements.plist");
