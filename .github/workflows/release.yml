@@ -145,6 +145,8 @@ jobs:
         ./quarto-pack make-installer-mac --log-level info
         popd
       env:
+        QUARTO_APPLE_APP_DEV_ID: ${{ secrets.APPLE_APPLICATON_DEV_ID }}
+        QUARTO_APPLE_INST_DEV_ID: ${{ secrets.APPLE_INSTALLER_DEV_ID }}
         QUARTO_APPLE_CONNECT_UN: ${{ secrets.APPLE_CONNECT_UN }}
         QUARTO_APPLE_CONNECT_PW: ${{ secrets.APPLE_CONNECT_PW }}
         
