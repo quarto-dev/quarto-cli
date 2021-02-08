@@ -125,7 +125,7 @@ async function signPackage(developerId: string, input: string, output: string, l
   );
 }
 
-async function signCode(developerId: string, nput: string, log: Logger, entitlements?: string) {
+async function signCode(developerId: string, input: string, log: Logger, entitlements?: string) {
   const args = ["-s", developerId,
     "--timestamp",
     "--options=runtime",
