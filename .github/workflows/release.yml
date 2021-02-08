@@ -118,6 +118,13 @@ jobs:
     - name: Configure
       run: |
         ./configure-macos.sh
+        
+    - uses: ./.github/workflows/actions/keychain
+      with:
+        certificate-value: ${{ secrets.APPLE_CERT }}
+        certificate-password: ${{ secrets.APPLE_CERT_PW }}
+        keychain: 'build.keychain'
+        keychain-pw: ${{ secrets.APPLE_KEYCHAIN_PW }}
 
     - uses: ./.github/workflows/actions/keychain
       with:
