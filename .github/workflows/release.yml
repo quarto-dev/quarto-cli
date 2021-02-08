@@ -125,6 +125,7 @@ jobs:
         certificate-password: ${{ secrets.APPLE_APPLICATION_CERT_PW }}
         keychain: 'build.keychain'
         keychain-pw: ${{ secrets.APPLE_KEYCHAIN_PW }}
+        certificate-file: certificate.cer
 
     - uses: ./.github/workflows/actions/keychain
       with:
@@ -132,6 +133,7 @@ jobs:
         certificate-password: ${{ secrets.APPLE_INSTALLER_CERT_PW }}
         keychain: 'build.keychain'
         keychain-pw: ${{ secrets.APPLE_KEYCHAIN_PW }}
+        certificate-file: certificate.cer
         
     - name: Prepare Distribution
       run: |
