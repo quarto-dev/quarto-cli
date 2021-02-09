@@ -55,20 +55,26 @@ export async function makeInstallerMac(config: Configuration) {
   ensureDirSync(dirname(unsignedPackagePath));
 
   // The application cert developer Id
-  const applicationDevId = getEnv("QUARTO_APPLE_APP_DEV_ID");
+  const applicationDevId = getEnv("QUARTO_APPLE_APP_DEV_ID", "");
+  const signBinaries = applicationDevId.length > 0;
 
   // Sign the deno executable
-  const entitlements = join(config.directoryInfo.pkg, "scripts", "macos", "entitlements.plist");
-  const deno = join(config.directoryInfo.bin, "deno");
-  await signCode(applicationDevId, deno, config.log, entitlements);
+  if (signBinaries) {
+    config.log.info("Signing binaries");
+    const entitlements = join(config.directoryInfo.pkg, "scripts", "macos", "entitlements.plist");
+    const deno = join(config.directoryInfo.bin, "deno");
+    await signCode(applicationDevId, deno, config.log, entitlements);
 
-  // Sign the quarto js file
-  const quartojs = join(config.directoryInfo.bin, "quarto.js");
-  await signCode(applicationDevId, quartojs, config.log);
+    // Sign the quarto js file
+    const quartojs = join(config.directoryInfo.bin, "quarto.js");
+    await signCode(applicationDevId, quartojs, config.log);
 
-  // Sign the quarto shell script
-  const quartosh = join(config.directoryInfo.bin, "quarto");
-  await signCode(applicationDevId, quartosh, config.log);
+    // Sign the quarto shell script
+    const quartosh = join(config.directoryInfo.bin, "quarto");
+    await signCode(applicationDevId, quartosh, config.log);
+  } else {
+    config.log.warning("Missing Application Developer Id, not signing");
+  }
 
   // Run pkg build
   const scriptDir = join(config.directoryInfo.pkg, "scripts", "macos", "pkg");
@@ -91,26 +97,35 @@ export async function makeInstallerMac(config: Configuration) {
     config.log);
 
   // The application cert developer Id
-  const installerDevId = getEnv("QUARTO_APPLE_INST_DEV_ID");
-
-  config.log.info("Signing file");
-  config.log.info(unsignedPackagePath);
+  const installerDevId = getEnv("QUARTO_APPLE_INST_DEV_ID", "");
+  const signInstaller = installerDevId.length > 0;
   const signedPackage = join(config.directoryInfo.out, packageName);
-  await signPackage(installerDevId, unsignedPackagePath, signedPackage, config.log);
+  if (signInstaller) {
+    config.log.info("Signing file");
+    config.log.info(unsignedPackagePath);
 
-  config.log.info("Cleaning unsigned file");
-  Deno.removeSync(unsignedPackagePath);
+    await signPackage(installerDevId, unsignedPackagePath, signedPackage, config.log);
+    config.log.info("Cleaning unsigned file");
+    Deno.removeSync(unsignedPackagePath);
 
-  // Submit package for notary
-  const username = getEnv("QUARTO_APPLE_CONNECT_UN");
-  const password = getEnv("QUARTO_APPLE_CONNECT_PW");
-  const requestId = await submitNotary(signedPackage, bundleIdentifier, username, password, config.log);
+    // Submit package for notary
+    const username = getEnv("QUARTO_APPLE_CONNECT_UN", "");
+    const password = getEnv("QUARTO_APPLE_CONNECT_PW", "");
+    if (username.length > 0 && password.length > 0) {
+      const requestId = await submitNotary(signedPackage, bundleIdentifier, username, password, config.log);
 
-  // This will succeed or throw
-  await waitForNotaryStatus(requestId, username, password, config.log);
+      // This will succeed or throw
+      await waitForNotaryStatus(requestId, username, password, config.log);
 
-  // Staple the notary to the package
-  await stapleNotary(signedPackage, config.log);
+      // Staple the notary to the package
+      await stapleNotary(signedPackage, config.log);
+    } else {
+      config.log.warning("Missing Connect credentials, not notarizing");
+    }
+  } else {
+    config.log.warning("Missing Installer Developer Id, not signing");
+    Deno.copyFileSync(unsignedPackagePath, signedPackage);
+  }
 }
 
 async function signPackage(developerId: string, input: string, output: string, log: Logger) {
