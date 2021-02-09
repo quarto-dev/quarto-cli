@@ -167,7 +167,11 @@ export const jupyterEngine: ExecutionEngine = {
       }
 
       if (notebook) {
-        return { source: file, input: notebook, data: transient };
+        const data: JupyterTargetData = {
+          transient,
+          jupytext: target.sync && target.paired.length > 1,
+        };
+        return { source: file, input: notebook, data };
       } else {
         return undefined;
       }
@@ -249,11 +253,12 @@ export const jupyterEngine: ExecutionEngine = {
 
     // if it's a transient notebook then remove it, otherwise
     // sync so that jupyter[lab] can open the .ipynb w/o errors
-    if (options.target.data) {
+    const data = options.target.data as JupyterTargetData;
+    if (data.transient) {
       if (!options.format.render[kKeepIpynb]) {
         Deno.removeSync(options.target.input);
       }
-    } else {
+    } else if (data.jupytext) {
       await jupytextSync(options.target.input, [], true);
     }
 
@@ -304,6 +309,11 @@ export const jupyterEngine: ExecutionEngine = {
 
 export function pythonBinary(binary = "python3") {
   return binary;
+}
+
+interface JupyterTargetData {
+  transient: boolean;
+  jupytext: boolean;
 }
 
 async function jupyterKernelspecFromFile(
