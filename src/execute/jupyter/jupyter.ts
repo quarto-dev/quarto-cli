@@ -196,8 +196,13 @@ export const jupyterEngine: ExecutionEngine = {
   },
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
+    // determine default execution behavior if none is specified
+    let execute = options.format.execution[kExecute];
+    if (execute === null) {
+      execute = !isNotebook(options.target.source);
+    }
     // execute if we need to
-    if (options.format.execution[kExecute] === true) {
+    if (execute) {
       // jupyter back end requires full path to input (to ensure that
       // keepalive kernels are never re-used across multiple inputs
       // that happen to share a hash)

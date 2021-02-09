@@ -107,7 +107,7 @@ export interface FormatExecution {
   [kFigFormat]?: "retina" | "png" | "jpeg" | "svg" | "pdf";
   [kFigDpi]?: number;
   [kAllowErrors]?: boolean;
-  [kExecute]?: boolean;
+  [kExecute]?: true | false | null;
   [kCache]?: true | false | "refresh" | null;
   [kShowCode]?: boolean;
   [kShowOutput]?: boolean;
@@ -488,7 +488,7 @@ function defaultFormat(): Format {
       [kFigFormat]: "png",
       [kFigDpi]: 96,
       [kAllowErrors]: false,
-      [kExecute]: true,
+      [kExecute]: null,
       [kCache]: null,
       [kKeepHidden]: false,
       [kShowCode]: true,
