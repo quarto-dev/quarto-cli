@@ -1,14 +1,18 @@
-import { existsSync } from "fs/exists.ts";
 import { CmdResult, runCmd } from "./cmd.ts";
 import { Logger } from "./logger.ts";
 
 // Read an environment variable
-export function getEnv(name: string) {
+export function getEnv(name: string, defaultValue?: string) {
   const value = Deno.env.get(name);
   if (!value) {
+    if (defaultValue === undefined) {
     throw new Error("Missing environment variable: " + name);
+    } else {
+      return defaultValue;
+    }
+  } else {
+    return value;
   }
-  return value;
 }
 
 export async function download(src: string, dest: string): Promise<void> {

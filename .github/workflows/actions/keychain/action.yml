@@ -62,6 +62,7 @@ runs:
             
             # remove certs
             rm -fr *.p12
+            rm -rf *.cer
        
        shell: bash
 

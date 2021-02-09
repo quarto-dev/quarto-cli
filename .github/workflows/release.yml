@@ -100,7 +100,10 @@ jobs:
         pushd package\src\
         .\quarto-pack.cmd make-installer-win --log-level info
         popd     
-        
+      env:
+        QUARTO_WIN_PFX: ${{ secrets.WIN_PFX }}
+        QUARTO_WIN_PFX_PW: ${{ secrets.WIN_PFX_PW }}   
+   
     - name: Upload Artifact 
       uses: actions/upload-artifact@v2
       with:
@@ -118,20 +121,22 @@ jobs:
     - name: Configure
       run: |
         ./configure-macos.sh
+        
+    - uses: ./.github/workflows/actions/keychain
+      with:
+        certificate-value: ${{ secrets.APPLE_SIGN_P12 }}
+        certificate-password: ${{ secrets.APPLE_SIGN_PW }}
+        keychain: 'build.keychain'
+        keychain-pw: ${{ secrets.APPLE_KEYCHAIN_PW }}
+        certificate-file: certificate.p12
 
     - uses: ./.github/workflows/actions/keychain
       with:
-        certificate-value: ${{ secrets.APPLE_APPLICATION_CERT }}
-        certificate-password: ${{ secrets.APPLE_APPLICATION_CERT_PW }}
+        certificate-value: ${{ secrets.APPLE_SIGN_CERT }}
+        certificate-password: ${{ secrets.APPLE_SIGN_PW }}
         keychain: 'build.keychain'
         keychain-pw: ${{ secrets.APPLE_KEYCHAIN_PW }}
-
-    - uses: ./.github/workflows/actions/keychain
-      with:
-        certificate-value: ${{ secrets.APPLE_INSTALLER_CERT }}
-        certificate-password: ${{ secrets.APPLE_INSTALLER_CERT_PW }}
-        keychain: 'build.keychain'
-        keychain-pw: ${{ secrets.APPLE_KEYCHAIN_PW }}
+        certificate-file: certificate.cer
         
     - name: Prepare Distribution
       run: |
@@ -145,6 +150,8 @@ jobs:
         ./quarto-pack make-installer-mac --log-level info
         popd
       env:
+        QUARTO_APPLE_APP_DEV_ID: ${{ secrets.APPLE_SIGN_ID }}
+        QUARTO_APPLE_INST_DEV_ID: ${{ secrets.APPLE_SIGN_ID }}
         QUARTO_APPLE_CONNECT_UN: ${{ secrets.APPLE_CONNECT_UN }}
         QUARTO_APPLE_CONNECT_PW: ${{ secrets.APPLE_CONNECT_PW }}
         
