@@ -6,9 +6,7 @@
 */
 
 
-// TODO: Considering making signing optional based upon the presence of env vars with cert/pw
 // TODO: Could also consider moving the keychain work out of the github actions and into typescript
-// TODO: Considering making notarization optional based upon the presence of credentials
 // TODO: Confirm whether we should truly be signing the other, non deno, files
 // TODO: Configuration could be initialized with working dir and scripts dir so sub tasks can just use that directory (and have it cleaned up automatically)
 // TODO: Bundle and package Identifier - same or different?
@@ -124,7 +122,6 @@ export async function makeInstallerMac(config: Configuration) {
     }
   } else {
     config.log.warning("Missing Installer Developer Id, not signing");
-    Deno.copyFileSync(unsignedPackagePath, signedPackage);
   }
 }
 
