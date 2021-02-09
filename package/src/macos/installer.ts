@@ -54,18 +54,21 @@ export async function makeInstallerMac(config: Configuration) {
   // Make the output dir
   ensureDirSync(dirname(unsignedPackagePath));
 
+  // The application cert developer Id
+  const applicationDevId = getEnv("QUARTO_APPLE_APP_DEV_ID");
+
   // Sign the deno executable
   const entitlements = join(config.directoryInfo.pkg, "scripts", "macos", "entitlements.plist");
   const deno = join(config.directoryInfo.bin, "deno");
-  await signCode(deno, config.log, entitlements);
+  await signCode(applicationDevId, deno, config.log, entitlements);
 
   // Sign the quarto js file
   const quartojs = join(config.directoryInfo.bin, "quarto.js");
-  await signCode(quartojs, config.log);
+  await signCode(applicationDevId, quartojs, config.log);
 
   // Sign the quarto shell script
   const quartosh = join(config.directoryInfo.bin, "quarto");
-  await signCode(quartosh, config.log);
+  await signCode(applicationDevId, quartosh, config.log);
 
   // Run pkg build
   const scriptDir = join(config.directoryInfo.pkg, "scripts", "macos", "pkg");
@@ -87,10 +90,13 @@ export async function makeInstallerMac(config: Configuration) {
     ],
     config.log);
 
+  // The application cert developer Id
+  const installerDevId = getEnv("QUARTO_APPLE_INST_DEV_ID");
+
   config.log.info("Signing file");
   config.log.info(unsignedPackagePath);
   const signedPackage = join(config.directoryInfo.out, packageName);
-  await signPackage(unsignedPackagePath, signedPackage, config.log);
+  await signPackage(installerDevId, unsignedPackagePath, signedPackage, config.log);
 
   config.log.info("Cleaning unsigned file");
   Deno.removeSync(unsignedPackagePath);
@@ -107,12 +113,11 @@ export async function makeInstallerMac(config: Configuration) {
   await stapleNotary(signedPackage, config.log);
 }
 
-const installerCertificate = "Developer ID Installer";
-async function signPackage(input: string, output: string, log: Logger) {
+async function signPackage(developerId: string, input: string, output: string, log: Logger) {
   await runCmd(
     "productsign",
     ["--sign",
-      installerCertificate,
+      developerId,
       "--timestamp",
       input,
       output],
@@ -120,9 +125,8 @@ async function signPackage(input: string, output: string, log: Logger) {
   );
 }
 
-const applicationCertificate = "Developer ID Application";
-async function signCode(input: string, log: Logger, entitlements?: string) {
-  const args = ["-s", applicationCertificate,
+async function signCode(developerId: string, input: string, log: Logger, entitlements?: string) {
+  const args = ["-s", developerId,
     "--timestamp",
     "--options=runtime",
     "--force",
