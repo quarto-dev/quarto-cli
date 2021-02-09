@@ -86,6 +86,8 @@ export const kCellClasses = "classes";
 export const kCellWidth = "width";
 export const kCellHeight = "height";
 export const kCellAlt = "alt";
+export const kCellFold = "fold";
+export const kCellSummary = "summary";
 
 export interface JupyterNotebook {
   metadata: {
@@ -501,6 +503,8 @@ function mdFromCodeCell(
     kCellHeight,
     kCellAlt,
     kCellLinesToNext,
+    kCellFold,
+    kCellSummary,
   ];
 
   // determine label -- this will be forwarded to the output (e.g. a figure)
@@ -563,6 +567,9 @@ function mdFromCodeCell(
     }
     if (typeof cell.metadata[kCellLstCap] === "string") {
       md.push(` caption=\"${cell.metadata[kCellLstCap]}\"`);
+    }
+    if (typeof cell.metadata[kCellFold] !== "undefined") {
+      md.push(` fold=\"${cell.metadata[kCellFold]}\"`);
     }
     md.push("}\n");
     md.push(...cell.source, "\n");
