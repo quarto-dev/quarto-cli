@@ -100,7 +100,10 @@ jobs:
         pushd package\src\
         .\quarto-pack.cmd make-installer-win --log-level info
         popd     
-        
+      env:
+        QUARTO_WIN_PFX: ${{ secrets.WIN_PFX }}
+        QUARTO_WIN_PFX_PW: ${{ secrets.WIN_PFX_PW }}   
+   
     - name: Upload Artifact 
       uses: actions/upload-artifact@v2
       with:
