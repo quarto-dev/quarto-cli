@@ -37,7 +37,6 @@ import {
 import {
   cellLabel,
   cellLabelValidator,
-  isFigureLabel,
   resolveCaptions,
   shouldLabelCellContainer,
   shouldLabelOutputContainer,
@@ -634,7 +633,7 @@ function mdFromCodeCell(
       // broadcast figure options
       const figureOptions: JupyterOutputFigureOptions = {};
       const broadcastFigureOption = (
-        name: "fig.link" | "fig.env" | "fig.pos" | "fig.scap",
+        name: "fig.align" | "fig.link" | "fig.env" | "fig.pos" | "fig.scap",
       ) => {
         const value = cell.metadata[name];
         if (value) {
@@ -647,6 +646,7 @@ function mdFromCodeCell(
           return null;
         }
       };
+      figureOptions[kCellFigAlign] = broadcastFigureOption(kCellFigAlign);
       figureOptions[kCellFigScap] = broadcastFigureOption(kCellFigScap);
       figureOptions[kCellFigLink] = broadcastFigureOption(kCellFigLink);
       figureOptions[kCellFigEnv] = broadcastFigureOption(kCellFigEnv);
