@@ -144,7 +144,7 @@ jobs:
         certificate-password: ${{ secrets.APPLE_INSTALLER_PW }}
         keychain: 'build.keychain'
         keychain-pw: ${{ secrets.APPLE_INSTALLER_PW }}
-        certificate-file: certificate.p12
+        certificate-file: installer.p12
 
     - name: Prepare Distribution
       run: |
