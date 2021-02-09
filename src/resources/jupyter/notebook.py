@@ -58,10 +58,10 @@ def notebook_execute(options, status):
       cache = "user"
 
    # set environment variables
-   os.environ["JUPYTER_FIG_WIDTH"] = str(fig_width)
-   os.environ["JUPYTER_FIG_HEIGHT"] = str(fig_height)
-   os.environ["JUPYTER_FIG_DPI"] = str(fig_dpi)
-   os.environ["JUPYTER_FIG_FORMAT"] = fig_format
+   os.environ["QUARTO_FIG_WIDTH"] = str(fig_width)
+   os.environ["QUARTO_FIG_HEIGHT"] = str(fig_height)
+   os.environ["QUARTO_FIG_DPI"] = str(fig_dpi)
+   os.environ["QUARTO_FIG_FORMAT"] = fig_format
 
    # read the notebook
    nb = nbformat.read(input, as_version = NB_FORMAT_VERSION)
