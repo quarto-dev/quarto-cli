@@ -59,7 +59,7 @@ export async function makeInstallerWindows(configuration: Configuration) {
 
     if (sign) {
         configuration.log.info("Signing application files");
-        await signtool([join(configuration.directoryInfo.bin, "deno.exe"), join(configuration.directoryInfo.bin, "quarto.cmd"), join(configuration.directoryInfo.bin, "quarto.js")], encodedPfx, pfxPw, workingDir, configuration.log);
+        await signtool([join(configuration.directoryInfo.bin, "quarto.js")], encodedPfx, pfxPw, workingDir, configuration.log);
     }
 
     // heat the directory to generate a wix file for it 
@@ -100,13 +100,12 @@ export async function makeInstallerWindows(configuration: Configuration) {
     moveSync(lightOutput, join(configuration.directoryInfo.out, basename(lightOutput)), { overwrite: true });
 
     // Clean up the working directory
-    Deno.remove(workingDir, {recursive: true});
+     Deno.remove(workingDir, {recursive: true});
 }
 
 
 const kSignToolPath = "C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe";
 async function signtool(files: string[], pfx: string, pw: string, workingDir: string, log: Logger) {
-
     // Create the pfx file
     const pfxFile = join(workingDir, "sign.pfx");
     const pfxContents = base64decode(pfx);
@@ -128,3 +127,5 @@ async function signtool(files: string[], pfx: string, pw: string, workingDir: st
         Deno.removeSync(pfxFile)
     }
 }
+
+
