@@ -143,7 +143,7 @@ jobs:
         certificate-value: ${{ secrets.APPLE_INSTALLER_P12 }}
         certificate-password: ${{ secrets.APPLE_INSTALLER_PW }}
         keychain: 'build.keychain'
-        keychain-pw: ${{ secrets.APPLE_INSTALLER_PW }}
+        keychain-pw: ${{ secrets.APPLE_KEYCHAIN_PW }}
         certificate-file: installer.p12
 
     - name: Prepare Distribution
@@ -159,7 +159,7 @@ jobs:
         popd
       env:
         QUARTO_APPLE_APP_DEV_ID: ${{ secrets.APPLE_SIGN_ID }}
-        QUARTO_APPLE_INST_DEV_ID: ${{ secrets.APPLE_SIGN_ID }}
+        QUARTO_APPLE_INST_DEV_ID: ${{ secrets.APPLE_INSTALLER_ID }}
         QUARTO_APPLE_CONNECT_UN: ${{ secrets.APPLE_CONNECT_UN }}
         QUARTO_APPLE_CONNECT_PW: ${{ secrets.APPLE_CONNECT_PW }}
         
