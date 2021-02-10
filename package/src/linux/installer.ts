@@ -41,13 +41,6 @@ export async function makeInstallerDeb(
   log.info(`Preparing share directory ${workingSharePath}`);
   copySync(configuration.directoryInfo.share, workingSharePath, { overwrite: true });
 
-  // Debian File
-  log.info("writing debian-binary")
-  const debianFile = join(workingDir, "debian-binary");
-  const debianSrc = "2.0";
-  Deno.writeTextFileSync(debianFile, debianSrc);
-
-
   const val = (name: string, value: string): string => {
     return `${name}: ${value}\n`;
   };

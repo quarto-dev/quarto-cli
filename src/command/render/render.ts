@@ -348,8 +348,8 @@ async function resolveFormats(
     // apply command line arguments
 
     // --no-execute-code
-    if (flags?.execute === false) {
-      config.execution[kExecute] = false;
+    if (flags?.execute !== undefined) {
+      config.execution[kExecute] = flags?.execute;
     }
 
     // --cache

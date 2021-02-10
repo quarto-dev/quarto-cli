@@ -167,7 +167,11 @@ export const jupyterEngine: ExecutionEngine = {
       }
 
       if (notebook) {
-        return { source: file, input: notebook, data: transient };
+        const data: JupyterTargetData = {
+          transient,
+          jupytext: target.sync && target.paired.length > 1,
+        };
+        return { source: file, input: notebook, data };
       } else {
         return undefined;
       }
@@ -192,8 +196,13 @@ export const jupyterEngine: ExecutionEngine = {
   },
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
+    // determine default execution behavior if none is specified
+    let execute = options.format.execution[kExecute];
+    if (execute === null) {
+      execute = !isNotebook(options.target.source);
+    }
     // execute if we need to
-    if (options.format.execution[kExecute] === true) {
+    if (execute) {
       // jupyter back end requires full path to input (to ensure that
       // keepalive kernels are never re-used across multiple inputs
       // that happen to share a hash)
@@ -249,11 +258,12 @@ export const jupyterEngine: ExecutionEngine = {
 
     // if it's a transient notebook then remove it, otherwise
     // sync so that jupyter[lab] can open the .ipynb w/o errors
-    if (options.target.data) {
+    const data = options.target.data as JupyterTargetData;
+    if (data.transient) {
       if (!options.format.render[kKeepIpynb]) {
         Deno.removeSync(options.target.input);
       }
-    } else {
+    } else if (data.jupytext) {
       await jupytextSync(options.target.input, [], true);
     }
 
@@ -304,6 +314,11 @@ export const jupyterEngine: ExecutionEngine = {
 
 export function pythonBinary(binary = "python3") {
   return binary;
+}
+
+interface JupyterTargetData {
+  transient: boolean;
+  jupytext: boolean;
 }
 
 async function jupyterKernelspecFromFile(

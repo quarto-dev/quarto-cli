@@ -37,7 +37,6 @@ import {
 import {
   cellLabel,
   cellLabelValidator,
-  isFigureLabel,
   resolveCaptions,
   shouldLabelCellContainer,
   shouldLabelOutputContainer,
@@ -86,6 +85,8 @@ export const kCellClasses = "classes";
 export const kCellWidth = "width";
 export const kCellHeight = "height";
 export const kCellAlt = "alt";
+export const kCellFold = "fold";
+export const kCellSummary = "summary";
 
 export interface JupyterNotebook {
   metadata: {
@@ -501,6 +502,8 @@ function mdFromCodeCell(
     kCellHeight,
     kCellAlt,
     kCellLinesToNext,
+    kCellFold,
+    kCellSummary,
   ];
 
   // determine label -- this will be forwarded to the output (e.g. a figure)
@@ -563,6 +566,9 @@ function mdFromCodeCell(
     }
     if (typeof cell.metadata[kCellLstCap] === "string") {
       md.push(` caption=\"${cell.metadata[kCellLstCap]}\"`);
+    }
+    if (typeof cell.metadata[kCellFold] !== "undefined") {
+      md.push(` fold=\"${cell.metadata[kCellFold]}\"`);
     }
     md.push("}\n");
     md.push(...cell.source, "\n");
@@ -627,7 +633,7 @@ function mdFromCodeCell(
       // broadcast figure options
       const figureOptions: JupyterOutputFigureOptions = {};
       const broadcastFigureOption = (
-        name: "fig.link" | "fig.env" | "fig.pos" | "fig.scap",
+        name: "fig.align" | "fig.link" | "fig.env" | "fig.pos" | "fig.scap",
       ) => {
         const value = cell.metadata[name];
         if (value) {
@@ -640,6 +646,7 @@ function mdFromCodeCell(
           return null;
         }
       };
+      figureOptions[kCellFigAlign] = broadcastFigureOption(kCellFigAlign);
       figureOptions[kCellFigScap] = broadcastFigureOption(kCellFigScap);
       figureOptions[kCellFigLink] = broadcastFigureOption(kCellFigLink);
       figureOptions[kCellFigEnv] = broadcastFigureOption(kCellFigEnv);
