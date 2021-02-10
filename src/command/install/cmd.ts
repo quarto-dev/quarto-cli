@@ -36,19 +36,26 @@ export const installCommand = new Command()
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, name: string) => {
     if (options.list) {
-      const cols = [20, 20, 20];
+      const cols = [20, 20, 20, 20];
       // Find the installed versions
       const installedVersions: string[] = [];
       for (const tool of installableTools()) {
         const isInstalled = await toolInstalled(tool);
         const info = await toolInfo(tool);
         if (info) {
+          const status = isInstalled
+            ? info.version === info.latest.tag_name
+              ? "up to date"
+              : "out of date"
+            : "not installed";
+
           installedVersions.push(
             formatLine(
               [
                 tool,
+                status,
                 info.latest.tag_name,
-                isInstalled ? `installed ${info.version}` : "not installed",
+                info.version || "---",
               ],
               cols,
             ),
@@ -58,7 +65,7 @@ export const installCommand = new Command()
 
       // Write the output
       message(
-        formatLine(["Tool", "Version", "Installed"], cols),
+        formatLine(["Tool", "Status", "Latest", "Installed"], cols),
         { bold: true },
       );
       if (installedVersions.length === 0) {
@@ -88,7 +95,7 @@ export const uninstallCommand = new Command()
   // deno-lint-ignore no-explicit-any
   .action(async (_options: any, name: string) => {
     const confirmed: boolean = await Confirm.prompt(
-      `This will permanently remove ${name} and its files. Are you sure you want to uninstall ${name}?`,
+      `This will permanently remove ${name} and all of its files. Are you sure?`,
     );
     if (confirmed) {
       await uninstallTool(name);
