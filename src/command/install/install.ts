@@ -22,7 +22,7 @@ export interface InstallableTool {
 }
 
 export interface ToolInfo {
-  version: string;
+  version?: string;
   latest: GitHubRelease;
 }
 

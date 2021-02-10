@@ -13,12 +13,7 @@ import { getenv } from "../../../core/env.ts";
 import { expandPath, which } from "../../../core/path.ts";
 import { unzip } from "../../../core/zip.ts";
 import { hasLatexDistribution } from "../../render/latekmk/latex.ts";
-import {
-  hasTexLive,
-  removeAll,
-  removePath,
-  tlVersion,
-} from "../../render/latekmk/texlive.ts";
+import { hasTexLive, removePath } from "../../render/latekmk/texlive.ts";
 import { execProcess } from "../../../core/process.ts";
 
 import { InstallableTool, InstallContext } from "../install.ts";
@@ -36,6 +31,9 @@ const kTinyTexRepo = "yihui/tinytex-releases";
 const kPackageMinimal = "TinyTeX-0"; // smallest
 const kPackageDefault = "TinyTeX-1"; // Compiles most RMarkdown
 const kPackageMaximal = "TinyTeX"; // Compiles 80% of documents
+
+// The name of the file that we use to store the installed version
+const kVersionFileName = "version";
 
 export const tinyTexInstallable: InstallableTool = {
   name: "TinyTeX",
@@ -75,7 +73,7 @@ export const tinyTexInstallable: InstallableTool = {
   installed,
   installInfo: async () => {
     const inst = await installed();
-    const version = inst ? await tlVersion() : "";
+    const version = inst ? await installedVersion() : "";
     const latest = await latestRelease();
     return { version, latest };
   },
@@ -94,6 +92,25 @@ async function currentVersion() {
   }
 }
 
+async function installedVersion() {
+  const installDir = tinyTexInstallDir();
+  if (installDir) {
+    const versionFile = join(expandPath(installDir), kVersionFileName);
+    return Deno.readTextFile(versionFile);
+  }
+}
+
+function noteInstalledVersion(version: string) {
+  const installDir = tinyTexInstallDir();
+  if (installDir) {
+    const versionFile = join(expandPath(installDir), kVersionFileName);
+    Deno.writeTextFileSync(
+      versionFile,
+      version,
+    );
+  }
+}
+
 async function installed() {
   const hasTl = await hasTexLive();
   if (hasTl) {
@@ -106,15 +123,16 @@ async function installed() {
 async function install(context: InstallContext) {
   // Find the latest version
   const latest = await latestRelease();
+  const version = latest.tag_name;
 
   // target package information
-  const pkgName = tinyTexPkgName(kPackageMaximal, latest.tag_name);
+  const pkgName = tinyTexPkgName(kPackageMaximal, version);
   const pkgFilePath = join(context.workingDir, pkgName);
 
   // Download the package
   const url = tinyTexUrl(pkgName, latest);
   if (url) {
-    await context.download(`TinyTex ${latest.tag_name}`, url, pkgFilePath);
+    await context.download(`TinyTex ${version}`, url, pkgFilePath);
 
     // the target installation
     const installDir = tinyTexInstallDir();
@@ -133,6 +151,9 @@ async function install(context: InstallContext) {
         const from = join(context.workingDir, tinyTexDirName);
         const to = expandPath(installDir);
         moveSync(from, to, { overwrite: true });
+
+        // Note the version that we have installed
+        noteInstalledVersion(version);
 
         // Find the tlmgr and note its location
         const binFolder = Deno.build.os === "windows"
@@ -210,7 +231,11 @@ async function postinstall(context: InstallContext) {
       ["path", "add"],
     );
 
-    // Perform add path and other post install work
+    // After installing on windows, the path may not be updated which means a restart is required
+    if (Deno.build.os === "windows") {
+      restartRequired = restartRequired || !hasTexLive();
+    }
+
     return Promise.resolve(restartRequired);
   } else {
     context.error("Couldn't locate tlmgr after installation");
@@ -223,23 +248,23 @@ async function uninstall(context: InstallContext) {
     context.error("Current LateX installation does not appear to be TinyTex");
     return Promise.reject();
   }
-    // remove symlinks
-    context.info("Removing commands");
-    const result = await removePath();
-    if (!result.success) {
-      context.error("Failed to uninstall");
-      return Promise.reject();
-    }
+  // remove symlinks
+  context.info("Removing commands");
+  const result = await removePath();
+  if (!result.success) {
+    context.error("Failed to uninstall");
+    return Promise.reject();
+  }
 
-    // Remove the directory
-    context.info("Removing directory");
-    const installDir = tinyTexInstallDir();
-    if (installDir){
-      Deno.removeSync(installDir, {recursive: true});
-    } else {
-      context.error("Couldn't find install directory");
-      return Promise.reject();
-    }
+  // Remove the directory
+  context.info("Removing directory");
+  const installDir = tinyTexInstallDir();
+  if (installDir) {
+    Deno.removeSync(installDir, { recursive: true });
+  } else {
+    context.error("Couldn't find install directory");
+    return Promise.reject();
+  }
 }
 
 async function exec(path: string, cmd: string[]) {
