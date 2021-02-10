@@ -210,7 +210,11 @@ async function postinstall(context: InstallContext) {
       ["path", "add"],
     );
 
-    // Perform add path and other post install work
+    // After installing on windows, the path may not be updated which means a restart is required
+    if (Deno.build.os === "windows") {
+      restartRequired = restartRequired || !hasTexLive();
+    }
+
     return Promise.resolve(restartRequired);
   } else {
     context.error("Couldn't locate tlmgr after installation");
@@ -223,23 +227,23 @@ async function uninstall(context: InstallContext) {
     context.error("Current LateX installation does not appear to be TinyTex");
     return Promise.reject();
   }
-    // remove symlinks
-    context.info("Removing commands");
-    const result = await removePath();
-    if (!result.success) {
-      context.error("Failed to uninstall");
-      return Promise.reject();
-    }
+  // remove symlinks
+  context.info("Removing commands");
+  const result = await removePath();
+  if (!result.success) {
+    context.error("Failed to uninstall");
+    return Promise.reject();
+  }
 
-    // Remove the directory
-    context.info("Removing directory");
-    const installDir = tinyTexInstallDir();
-    if (installDir){
-      Deno.removeSync(installDir, {recursive: true});
-    } else {
-      context.error("Couldn't find install directory");
-      return Promise.reject();
-    }
+  // Remove the directory
+  context.info("Removing directory");
+  const installDir = tinyTexInstallDir();
+  if (installDir) {
+    Deno.removeSync(installDir, { recursive: true });
+  } else {
+    context.error("Couldn't find install directory");
+    return Promise.reject();
+  }
 }
 
 async function exec(path: string, cmd: string[]) {
