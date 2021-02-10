@@ -233,7 +233,8 @@ async function postinstall(context: InstallContext) {
 
     // After installing on windows, the path may not be updated which means a restart is required
     if (Deno.build.os === "windows") {
-      restartRequired = restartRequired || !hasTexLive();
+      const tlmgrIsInPath = await hasTexLive();
+      restartRequired = restartRequired || !tlmgrIsInPath;
     }
 
     return Promise.resolve(restartRequired);

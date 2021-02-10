@@ -42,7 +42,6 @@ install tools:
 
 
 TinyTex:
-- latex outputdir should not be undefined, should be null
 - Do we need to do latexmk version checking? 
 - When new versions of TexLive are released, how do we manage updating (research)
 - Why is this in tiny-tex
