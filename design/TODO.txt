@@ -1,4 +1,6 @@
 
+You should be able to set the *-labels options in one shot (so you don't have to repeat fig-labels, tbl-labels, etc.) 
+
 Allow passing params as command line flags e.g. with -P
 
 Provide a better default HTML theme (see pandoc document-css option)
