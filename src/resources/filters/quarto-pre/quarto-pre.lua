@@ -7,6 +7,9 @@ PANDOC_VERSION:must_be_at_least '2.11.2'
 -- required modules
 text = require 'text'
 
+-- global state
+preState = {}
+
 -- [import]
 function import(script)
   local sep = package.config:sub(1,1)
@@ -17,6 +20,7 @@ end
 import("includes.lua")
 import("outputs.lua")
 import("figures.lua")
+import("meta.lua")
 import("../common/params.lua")
 import("../common/meta.lua")
 import("../common/table.lua")
@@ -34,7 +38,8 @@ return {
   combineFilters({
     outputs(),
     figures()
-  })
+  }),
+  metaInject()
 }
 
 

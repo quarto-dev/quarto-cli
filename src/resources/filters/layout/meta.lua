@@ -11,13 +11,13 @@ function metaInject()
           usePackage("caption") .. "\n" ..
           usePackage("subfig")
         )
-        if layout.usingTikz then
+        if layoutState.usingTikz then
           inject(usePackage("tikz"))
         end
       end)
       
       metaInjectHtml(doc, function(inject)
-        if layout.layoutCss then
+        if layoutState.layoutCss then
           inject([[
 <style type="text/css">
   .quarto-layout-panel > figure > figcaption,

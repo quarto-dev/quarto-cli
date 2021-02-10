@@ -8,7 +8,7 @@ PANDOC_VERSION:must_be_at_least '2.11.2'
 text = require 'text'
 
 -- global layout state
-layout = {}
+layoutState = {}
 
 -- [import]
 function import(script)
