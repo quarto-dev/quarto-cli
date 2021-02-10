@@ -3,6 +3,7 @@
 
 
 function figures() 
+  
   return {
    
     Div = function(el)
@@ -100,7 +101,7 @@ function latexFigureInline(image)
   if latexIsTikzImage(image) then
     
     -- be sure to inject \usepackage{tikz}
-    layout.usingTikz = true
+    preState.usingTikz = true
     
     -- base input
     local input = "\\input{" .. image.src .. "}"
