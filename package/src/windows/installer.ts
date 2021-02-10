@@ -6,6 +6,7 @@ import { Configuration } from "../common/config.ts";
 import { runCmd } from "../util/cmd.ts";
 import { download, getEnv, unzip } from "../util/utils.ts";
 import { logger, Logger } from "../util/logger.ts";
+import { signtool } from "./signtool.ts";
 
 
 
@@ -59,7 +60,9 @@ export async function makeInstallerWindows(configuration: Configuration) {
 
     if (sign) {
         configuration.log.info("Signing application files");
-        await signtool([join(configuration.directoryInfo.bin, "deno.exe"), join(configuration.directoryInfo.bin, "quarto.cmd"), join(configuration.directoryInfo.bin, "quarto.js")], encodedPfx, pfxPw, workingDir, configuration.log);
+
+        const filesToSign = [{ file: join(configuration.directoryInfo.bin, "quarto.cmd") }, { file: join(configuration.directoryInfo.bin, "quarto.js") }];
+        await signtool(filesToSign, encodedPfx, pfxPw, workingDir, configuration.log);
     }
 
     // heat the directory to generate a wix file for it 
@@ -78,7 +81,7 @@ export async function makeInstallerWindows(configuration: Configuration) {
         candleOutput.push(outputPath);
         return runCmd(candleCmd, [`-dSourceDir=${configuration.directoryInfo.dist}`, "-out", outputPath, candleInput], configuration.log);
     }));
-    
+
     configuration.log.info("Lighting the candle");
     const licenseRtf = join(configuration.directoryInfo.pkg, "src", "windows", "license.rtf");
     const lightOutput = join(workingDir, packageName);
@@ -93,38 +96,14 @@ export async function makeInstallerWindows(configuration: Configuration) {
     // Use signtool to sign the MSI
     if (sign) {
         configuration.log.info("Signing installer");
-        await signtool([lightOutput], encodedPfx, pfxPw, workingDir, configuration.log);
+        await signtool([{ file: lightOutput, desc: "Quarto CLI" }], encodedPfx, pfxPw, workingDir, configuration.log);
     }
 
     configuration.log.info(`Moving ${lightOutput} to ${configuration.directoryInfo.out}`);
     moveSync(lightOutput, join(configuration.directoryInfo.out, basename(lightOutput)), { overwrite: true });
 
     // Clean up the working directory
-    Deno.remove(workingDir, {recursive: true});
+    Deno.remove(workingDir, { recursive: true });
 }
 
 
-const kSignToolPath = "C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe";
-async function signtool(files: string[], pfx: string, pw: string, workingDir: string, log: Logger) {
-
-    // Create the pfx file
-    const pfxFile = join(workingDir, "sign.pfx");
-    const pfxContents = base64decode(pfx);
-    Deno.writeFileSync(pfxFile, pfxContents, { create: true});
-    
-    // 
-    try {
-        const args = ["Sign", "/f", pfxFile, "/p", pw];
-        for (const file of files) {
-            log.info(`> Signing ${file}`);
-            const result = await runCmd(kSignToolPath, [...args, file], log);
-            if (!result.status.success) {
-                console.error(`Failed to sign ${file}`);
-                return Promise.reject();
-            }
-        }
-    } finally {
-        // Clean up the pfx file as soon as we're complete
-        Deno.removeSync(pfxFile)
-    }
-}
