@@ -97,7 +97,9 @@ async function installedVersion() {
   const installDir = tinyTexInstallDir();
   if (installDir) {
     const versionFile = join(installDir, kVersionFileName);
-    return Deno.readTextFile(versionFile);
+    if (existsSync(versionFile)) {
+      return Deno.readTextFile(versionFile);
+    }
   }
 }
 
