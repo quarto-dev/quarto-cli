@@ -15,6 +15,7 @@ import {
   toolInfo,
   toolInstalled,
   uninstallTool,
+  updateTool,
 } from "./install.ts";
 
 export const installCommand = new Command()
@@ -26,8 +27,8 @@ export const installCommand = new Command()
     }`,
   )
   .option(
-    "-l, --list",
-    "List installable tools",
+    "-lt, --list-tools",
+    "List installable tools and their status",
   )
   .example(
     "Install TinyTex",
@@ -35,46 +36,8 @@ export const installCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, name: string) => {
-    if (options.list) {
-      const cols = [20, 20, 20, 20];
-      // Find the installed versions
-      const installedVersions: string[] = [];
-      for (const tool of installableTools()) {
-        const isInstalled = await toolInstalled(tool);
-        const info = await toolInfo(tool);
-        if (info) {
-          const status = isInstalled
-            ? info.version === info.latest.tag_name
-              ? "up to date"
-              : "out of date"
-            : "not installed";
-
-          installedVersions.push(
-            formatLine(
-              [
-                tool,
-                status,
-                info.latest.tag_name,
-                info.version || "---",
-              ],
-              cols,
-            ),
-          );
-        }
-      }
-
-      // Write the output
-      message(
-        formatLine(["Tool", "Status", "Latest", "Installed"], cols),
-        { bold: true },
-      );
-      if (installedVersions.length === 0) {
-        message("nothing installed", { indent: 2 });
-      } else {
-        installedVersions.forEach((installedVersion) =>
-          message(installedVersion)
-        );
-      }
+    if (options.listTools) {
+      outputTools();
     } else if (name) {
       await installTool(name);
     }
@@ -101,3 +64,75 @@ export const uninstallCommand = new Command()
       await uninstallTool(name);
     }
   });
+
+export const updateCommand = new Command()
+  .name("update")
+  .arguments("[name: string]")
+  .description(
+    `Updates tools, extensions, and templates.\n\nTools that can be updated include:\n${
+      installableTools().map((name) => "  " + name).join("\n")
+    }`,
+  )
+  .example(
+    "Update TinyTex",
+    "quarto update tinytex",
+  )
+  // deno-lint-ignore no-explicit-any
+  .action(async (_options: any, name: string) => {
+    const installed = await toolInstalled(name);
+    const info = await toolInfo(name);
+    if (installed && info) {
+      // Get the current version info and confirm update
+      const confirmed: boolean = await Confirm.prompt(
+        `This will update ${name} from ${info?.version} to ${
+          info
+            ?.latest.tag_name
+        }. Are you sure?`,
+      );
+      if (confirmed) {
+        updateTool(name);
+      }
+    } else {
+      message(`${name} isn't installed and so can't be updated.`);
+    }
+  });
+
+async function outputTools() {
+  const cols = [20, 20, 20, 20];
+  // Find the installed versions
+  const installedVersions: string[] = [];
+  for (const tool of installableTools()) {
+    const isInstalled = await toolInstalled(tool);
+    const info = await toolInfo(tool);
+    if (info) {
+      const status = isInstalled
+        ? info.version === info.latest.tag_name
+          ? "up to date"
+          : "update available"
+        : "not installed";
+
+      installedVersions.push(
+        formatLine(
+          [
+            tool,
+            status,
+            info.latest.tag_name,
+            info.version || "---",
+          ],
+          cols,
+        ),
+      );
+    }
+  }
+
+  // Write the output
+  message(
+    formatLine(["Tool", "Status", "Latest", "Installed"], cols),
+    { bold: true },
+  );
+  if (installedVersions.length === 0) {
+    message("nothing installed", { indent: 2 });
+  } else {
+    installedVersions.forEach((installedVersion) => message(installedVersion));
+  }
+}

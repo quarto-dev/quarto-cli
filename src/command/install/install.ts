@@ -15,10 +15,15 @@ export interface InstallableTool {
   installInfo: () => Promise<ToolInfo | undefined>;
   currentVersion: () => Promise<string>;
   prereqs: InstallPreReq[];
-  install: (ctx: InstallContext) => Promise<void>;
-  // return true if restart is required, false if not
-  postinstall: (ctx: InstallContext) => Promise<boolean>;
+  preparePackage: (ctx: InstallContext) => Promise<PackageInfo>;
+  install: (pkgInfo: PackageInfo, ctx: InstallContext) => Promise<void>;
+  afterInstall: (ctx: InstallContext) => Promise<boolean>; // return true if restart is required, false if not
   uninstall: (ctx: InstallContext) => Promise<void>;
+}
+
+export interface PackageInfo {
+  filePath: string;
+  version: string;
 }
 
 export interface ToolInfo {
@@ -98,11 +103,14 @@ export async function installTool(name: string) {
           }
         }
 
+        // Fetch the package information
+        const pkgInfo = await installableTool.preparePackage(context);
+
         // Do the install
-        await installableTool.install(context);
+        await installableTool.install(pkgInfo, context);
 
         // post install
-        const restartRequired = await installableTool.postinstall(context);
+        const restartRequired = await installableTool.afterInstall(context);
 
         context.info("\nInstallation successful");
         if (restartRequired) {
@@ -143,7 +151,48 @@ export async function uninstallTool(name: string) {
         Deno.removeSync(workingDir, { recursive: true });
       }
     } else {
-      message(`${name} is not installed.`);
+      message(
+        `${name} is not installed Use 'quarto install ${name} to install it.`,
+      );
+    }
+  }
+}
+
+export async function updateTool(name: string) {
+  const installableTool = kInstallableTools[name.toLowerCase()];
+  if (installableTool) {
+    const installed = await installableTool.installed();
+    if (installed) {
+      const workingDir = Deno.makeTempDirSync();
+      const context = installContext(workingDir);
+      try {
+        // Fetch the package
+        const pkgInfo = await installableTool.preparePackage(context);
+
+        // Uninstall the existing version of the tool
+        await installableTool.uninstall(context);
+
+        // Install the new package
+        await installableTool.install(pkgInfo, context);
+
+        // post install
+        const restartRequired = await installableTool.afterInstall(context);
+
+        context.info("\nUpdate successful");
+        if (restartRequired) {
+          context.info(
+            "To complete this update, please restart your system.",
+          );
+        }
+      } catch (e) {
+        message(e);
+      } finally {
+        Deno.removeSync(workingDir, { recursive: true });
+      }
+    } else {
+      message(
+        `${name} is not installed Use 'quarto install ${name} to install it.`,
+      );
     }
   }
 }
