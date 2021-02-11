@@ -86,16 +86,16 @@ export async function installTool(name: string) {
   if (installableTool) {
     // Create a working directory for the installer to use
     const workingDir = Deno.makeTempDirSync();
-
     try {
       // The context for the installers
       const context = installContext(workingDir);
+      context.info(`Installing ${name}`);
 
       // See if it is already installed
       const alreadyInstalled = await installableTool.installed();
       if (alreadyInstalled) {
         // Already installed, do nothing
-        context.info(`${name} is already installed.`);
+        context.error(`Install canceled - ${name} is already installed.`);
         return Promise.reject();
       } else {
         // Prereqs for this platform
@@ -121,7 +121,7 @@ export async function installTool(name: string) {
         // post install
         const restartRequired = await installableTool.afterInstall(context);
 
-        context.info("\nInstallation successful");
+        context.info("Installation successful\n");
         if (restartRequired) {
           context.info(
             "To complete this installation, please restart your system.",
@@ -150,10 +150,14 @@ export async function uninstallTool(name: string) {
     if (installed) {
       const workingDir = Deno.makeTempDirSync();
       const context = installContext(workingDir);
+
+      // Emit initial message
+      context.info(`Uninstalling ${name}`);
+
       try {
         // The context for the installers
         await installableTool.uninstall(context);
-        message(`${name} successfully uninstalled`);
+        message(`Uninstallation successful\n`);
       } catch (e) {
         message(e);
       } finally {
@@ -168,41 +172,49 @@ export async function uninstallTool(name: string) {
 }
 
 export async function updateTool(name: string) {
-  const installableTool = kInstallableTools[name.toLowerCase()];
-  if (installableTool) {
-    const installed = await installableTool.installed();
-    if (installed) {
-      const workingDir = Deno.makeTempDirSync();
-      const context = installContext(workingDir);
-      try {
-        // Fetch the package
-        const pkgInfo = await installableTool.preparePackage(context);
+  const summary = await toolSummary(name);
+  const installableTool = kInstallableTools[name];
 
-        // Uninstall the existing version of the tool
-        await installableTool.uninstall(context);
-
-        // Install the new package
-        await installableTool.install(pkgInfo, context);
-
-        // post install
-        const restartRequired = await installableTool.afterInstall(context);
-
-        context.info("\nUpdate successful");
-        if (restartRequired) {
-          context.info(
-            "To complete this update, please restart your system.",
-          );
-        }
-      } catch (e) {
-        message(e);
-      } finally {
-        Deno.removeSync(workingDir, { recursive: true });
-      }
-    } else {
-      message(
-        `${name} is not installed Use 'quarto install ${name} to install it.`,
+  if (installableTool && summary && summary.installed) {
+    const workingDir = Deno.makeTempDirSync();
+    const context = installContext(workingDir);
+    try {
+      context.info(
+        `Updating ${installableTool.name} from ${summary.installedVersion} to ${summary.latestRelease.version}`,
       );
+
+      // Fetch the package
+      const pkgInfo = await installableTool.preparePackage(context);
+
+      context.info(`Removing ${summary.installedVersion}`);
+
+      // Uninstall the existing version of the tool
+      await installableTool.uninstall(context);
+
+      context.info(`Installing ${summary.latestRelease.version}`);
+
+      // Install the new package
+      await installableTool.install(pkgInfo, context);
+
+      context.info("Finishing update");
+      // post install
+      const restartRequired = await installableTool.afterInstall(context);
+
+      context.info("Update successful\n");
+      if (restartRequired) {
+        context.info(
+          "To complete this update, please restart your system.",
+        );
+      }
+    } catch (e) {
+      message(e);
+    } finally {
+      Deno.removeSync(workingDir, { recursive: true });
     }
+  } else {
+    message(
+      `${name} is not installed Use 'quarto install ${name} to install it.`,
+    );
   }
 }
 

@@ -201,8 +201,7 @@ async function afterInstall(context: InstallContext) {
 
     // Set the default repo to an https repo
     const defaultRepo = textLiveRepo();
-    context.info("Configuring default repository");
-    context.info(`Using ${defaultRepo}`);
+    context.info(`Default repository set to\n${defaultRepo}`);
     await exec(
       tlmgrPath,
       ["option", "repository", defaultRepo],
