@@ -89,7 +89,7 @@ export const updateCommand = new Command()
     ) {
       // Get the current version info and confirm update
       const confirmed: boolean = await Confirm.prompt(
-        `This will update ${name} from ${summary.installed} to ${summary.latestRelease.version}. Are you sure?`,
+        `This will update ${name} from ${summary.installedVersion} to ${summary.latestRelease.version}. Are you sure?`,
       );
       if (confirmed) {
         updateTool(name);
