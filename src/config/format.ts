@@ -406,9 +406,15 @@ function htmlFormat(
           ...pandoc[kVariables],
           ["document-css"]: false,
         };
-        addToHeader(kIncludeInHeader, "includes/bootstrap/in-header.html");
-        addToHeader(kIncludeBeforeBody, "includes/bootstrap/before-body.html");
-        addToHeader(kIncludeAfterBody, "includes/bootstrap/after-body.html");
+        addToHeader(kIncludeInHeader, "formats/html/bootstrap/in-header.html");
+        addToHeader(
+          kIncludeBeforeBody,
+          "formats/html/bootstrap/before-body.html",
+        );
+        addToHeader(
+          kIncludeAfterBody,
+          "formats/html/bootstrap/after-body.html",
+        );
       }
       return pandoc;
     },
