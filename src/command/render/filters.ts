@@ -83,9 +83,9 @@ function extractIncludeParams(
 
   // pull out file based includes
   const inHeaderFiles: string[] = defaults[kIncludeInHeader] || [];
-  const beforeBodyFiles: string[] = defaults[kIncludeAfterBody] ||
+  const beforeBodyFiles: string[] = defaults[kIncludeBeforeBody] ||
     [];
-  const afterBodyFiles: string[] = defaults[kIncludeBeforeBody] ||
+  const afterBodyFiles: string[] = defaults[kIncludeAfterBody] ||
     [];
 
   // erase from format/options
