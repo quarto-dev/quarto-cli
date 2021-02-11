@@ -10,14 +10,15 @@ import { Confirm } from "cliffy/prompt/mod.ts";
 import { formatLine, message } from "../../core/console.ts";
 
 import {
+  installableTool,
   installableTools,
   installTool,
-  toolInfo,
-  toolInstalled,
+  toolSummary,
   uninstallTool,
   updateTool,
 } from "./install.ts";
 
+// The quarto install command
 export const installCommand = new Command()
   .name("install")
   .arguments("[name:string]")
@@ -43,6 +44,7 @@ export const installCommand = new Command()
     }
   });
 
+// The quarto uninstall command
 export const uninstallCommand = new Command()
   .name("uninstall")
   .arguments("[name:string]")
@@ -65,6 +67,7 @@ export const uninstallCommand = new Command()
     }
   });
 
+// The quarto update command
 export const updateCommand = new Command()
   .name("update")
   .arguments("[name: string]")
@@ -79,15 +82,14 @@ export const updateCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (_options: any, name: string) => {
-    const installed = await toolInstalled(name);
-    const info = await toolInfo(name);
-    if (installed && info) {
+    const summary = await toolSummary(name);
+    if (
+      summary && summary.installed &&
+      summary.installedVersion !== summary.latestRelease.version
+    ) {
       // Get the current version info and confirm update
       const confirmed: boolean = await Confirm.prompt(
-        `This will update ${name} from ${info?.version} to ${
-          info
-            ?.latest.tag_name
-        }. Are you sure?`,
+        `This will update ${name} from ${summary.installed} to ${summary.latestRelease.version}. Are you sure?`,
       );
       if (confirmed) {
         updateTool(name);
@@ -100,24 +102,23 @@ export const updateCommand = new Command()
 async function outputTools() {
   const cols = [20, 20, 20, 20];
   // Find the installed versions
-  const installedVersions: string[] = [];
+  const toolRows: string[] = [];
   for (const tool of installableTools()) {
-    const isInstalled = await toolInstalled(tool);
-    const info = await toolInfo(tool);
-    if (info) {
-      const status = isInstalled
-        ? info.version === info.latest.tag_name
+    const summary = await toolSummary(tool);
+    if (summary) {
+      const status = summary.installed
+        ? summary.installedVersion === summary.latestRelease.version
           ? "up to date"
           : "update available"
         : "not installed";
 
-      installedVersions.push(
+      toolRows.push(
         formatLine(
           [
             tool,
             status,
-            info.latest.tag_name,
-            info.version || "---",
+            summary.installedVersion || "---",
+            summary.latestRelease.version,
           ],
           cols,
         ),
@@ -127,12 +128,12 @@ async function outputTools() {
 
   // Write the output
   message(
-    formatLine(["Tool", "Status", "Latest", "Installed"], cols),
+    formatLine(["Tool", "Status", "Installed", "Latest"], cols),
     { bold: true },
   );
-  if (installedVersions.length === 0) {
+  if (toolRows.length === 0) {
     message("nothing installed", { indent: 2 });
   } else {
-    installedVersions.forEach((installedVersion) => message(installedVersion));
+    toolRows.forEach((row) => message(row));
   }
 }

@@ -16,7 +16,12 @@ import { hasLatexDistribution } from "../../render/latekmk/latex.ts";
 import { hasTexLive, removePath } from "../../render/latekmk/texlive.ts";
 import { execProcess } from "../../../core/process.ts";
 
-import { InstallableTool, InstallContext, PackageInfo } from "../install.ts";
+import {
+  InstallableTool,
+  InstallContext,
+  PackageInfo,
+  RemotePackageInfo,
+} from "../install.ts";
 import { getLatestRelease, GitHubRelease } from "../github.ts";
 
 // This the https texlive repo that we use by default
@@ -43,7 +48,7 @@ export const tinyTexInstallable: InstallableTool = {
       return isWritable("/usr/local/bin");
     },
     os: ["darwin"],
-    notMetMessage: "The directory /usr/local/bin is not writable.",
+    message: "The directory /usr/local/bin is not writable.",
   }, {
     check: async () => {
       // Can't already have TeXLive
@@ -51,7 +56,7 @@ export const tinyTexInstallable: InstallableTool = {
       return !hasTl;
     },
     os: ["darwin", "linux", "windows"],
-    notMetMessage: "An existing TexLive installation has been detected.",
+    message: "An existing TexLive installation has been detected.",
   }, {
     check: async () => {
       // Can't already have TeX
@@ -59,7 +64,7 @@ export const tinyTexInstallable: InstallableTool = {
       return !hasTl;
     },
     os: ["darwin", "linux", "windows"],
-    notMetMessage: "An existing LaTeX installation has been detected.",
+    message: "An existing LaTeX installation has been detected.",
   }, {
     check: () => {
       // Can't be a linux non-x86 platform
@@ -67,17 +72,12 @@ export const tinyTexInstallable: InstallableTool = {
       return Promise.resolve(!needsSource);
     },
     os: ["linux"],
-    notMetMessage:
+    message:
       "This platform doesn't support installation at this time. Please install manually instead.",
   }],
   installed,
-  installInfo: async () => {
-    const inst = await installed();
-    const version = inst ? await installedVersion() : "";
-    const latest = await latestRelease();
-    return { version, latest };
-  },
-  currentVersion,
+  installedVersion,
+  latestRelease: remotePackageInfo,
   preparePackage,
   install,
   afterInstall,
@@ -90,15 +90,6 @@ async function installed() {
     return await isTinyTex();
   } else {
     return Promise.resolve(false);
-  }
-}
-
-async function currentVersion() {
-  const latest = await latestRelease();
-  if (latest) {
-    return latest.tag_name;
-  } else {
-    return "unknown";
   }
 }
 
@@ -125,15 +116,15 @@ async function preparePackage(
   context: InstallContext,
 ): Promise<PackageInfo> {
   // Find the latest version
-  const latest = await latestRelease();
-  const version = latest.tag_name;
+  const pkgInfo = await remotePackageInfo();
+  const version = pkgInfo.version;
 
   // target package information
   const pkgName = tinyTexPkgName(kPackageMaximal, version);
   const filePath = join(context.workingDir, pkgName);
 
   // Download the package
-  const url = tinyTexUrl(pkgName, latest);
+  const url = tinyTexUrl(pkgName, pkgInfo);
   if (url) {
     // Download the package
     await context.download(`TinyTex ${version}`, url, filePath);
@@ -317,15 +308,22 @@ function tinyTexPkgName(base?: string, ver?: string) {
   }
 }
 
-function tinyTexUrl(pkg: string, release: GitHubRelease) {
-  const asset = release.assets.find((asset) => {
+function tinyTexUrl(pkg: string, remotePkgInfo: RemotePackageInfo) {
+  const asset = remotePkgInfo.assets.find((asset) => {
     return asset.name === pkg;
   });
-  return asset?.browser_download_url;
+  return asset?.url;
 }
 
-async function latestRelease(): Promise<GitHubRelease> {
-  return await getLatestRelease(kTinyTexRepo);
+async function remotePackageInfo(): Promise<RemotePackageInfo> {
+  const githubRelease = await getLatestRelease(kTinyTexRepo);
+  return {
+    url: githubRelease.html_url,
+    version: githubRelease.tag_name,
+    assets: githubRelease.assets.map((asset) => {
+      return { name: asset.name, url: asset.browser_download_url };
+    }),
+  };
 }
 
 async function isWritable(path: string) {
