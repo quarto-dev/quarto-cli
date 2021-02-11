@@ -67,6 +67,7 @@ import {
   kOutputExt,
   kPageWidth,
 } from "./constants.ts";
+import { resourcePath } from "../core/resources.ts";
 
 // pandoc output format
 export interface Format {
@@ -74,6 +75,7 @@ export interface Format {
   execution: FormatExecution;
   pandoc: FormatPandoc;
   metadata: Metadata;
+  preprocess?: (format: Format) => FormatPandoc;
 }
 
 export interface FormatRender {
@@ -178,7 +180,7 @@ export function defaultWriterFormat(to: string): Format {
     case "html":
     case "html4":
     case "html5":
-      writerFormat = htmlFormat();
+      writerFormat = htmlFormat(7, 5, true);
       break;
 
     case "pdf":
@@ -371,7 +373,11 @@ function htmlPresentationFormat(figwidth: number, figheight: number): Format {
   );
 }
 
-function htmlFormat(figwidth = 7, figheight = 5): Format {
+function htmlFormat(
+  figwidth: number,
+  figheight: number,
+  themeable = false,
+): Format {
   return format("html", {
     execution: {
       [kFigFormat]: "retina",
@@ -380,6 +386,31 @@ function htmlFormat(figwidth = 7, figheight = 5): Format {
     },
     pandoc: {
       [kStandalone]: true,
+    },
+    preprocess: (format: Format) => {
+      // return pandoc format additions
+      const pandoc: FormatPandoc = {};
+      // provide theme if requested
+      if (themeable && format.metadata["theme"] !== null) {
+        const addToHeader = (
+          header:
+            | "include-in-header"
+            | "include-after-body"
+            | "include-before-body",
+          file: string,
+        ) => {
+          pandoc[header] = pandoc[header] || [];
+          pandoc[header]?.push(resourcePath(file));
+        };
+        pandoc[kVariables] = {
+          ...pandoc[kVariables],
+          ["document-css"]: false,
+        };
+        addToHeader(kIncludeInHeader, "includes/bootstrap/in-header.html");
+        addToHeader(kIncludeBeforeBody, "includes/bootstrap/before-body.html");
+        addToHeader(kIncludeAfterBody, "includes/bootstrap/after-body.html");
+      }
+      return pandoc;
     },
   });
 }
