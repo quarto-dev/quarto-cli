@@ -16,7 +16,12 @@ import { hasLatexDistribution } from "../../render/latekmk/latex.ts";
 import { hasTexLive, removePath } from "../../render/latekmk/texlive.ts";
 import { execProcess } from "../../../core/process.ts";
 
-import { InstallableTool, InstallContext } from "../install.ts";
+import {
+  InstallableTool,
+  InstallContext,
+  PackageInfo,
+  RemotePackageInfo,
+} from "../install.ts";
 import { getLatestRelease, GitHubRelease } from "../github.ts";
 
 // This the https texlive repo that we use by default
@@ -43,7 +48,7 @@ export const tinyTexInstallable: InstallableTool = {
       return isWritable("/usr/local/bin");
     },
     os: ["darwin"],
-    notMetMessage: "The directory /usr/local/bin is not writable.",
+    message: "The directory /usr/local/bin is not writable.",
   }, {
     check: async () => {
       // Can't already have TeXLive
@@ -51,7 +56,7 @@ export const tinyTexInstallable: InstallableTool = {
       return !hasTl;
     },
     os: ["darwin", "linux", "windows"],
-    notMetMessage: "An existing TexLive installation has been detected.",
+    message: "An existing TexLive installation has been detected.",
   }, {
     check: async () => {
       // Can't already have TeX
@@ -59,7 +64,7 @@ export const tinyTexInstallable: InstallableTool = {
       return !hasTl;
     },
     os: ["darwin", "linux", "windows"],
-    notMetMessage: "An existing LaTeX installation has been detected.",
+    message: "An existing LaTeX installation has been detected.",
   }, {
     check: () => {
       // Can't be a linux non-x86 platform
@@ -67,49 +72,17 @@ export const tinyTexInstallable: InstallableTool = {
       return Promise.resolve(!needsSource);
     },
     os: ["linux"],
-    notMetMessage:
+    message:
       "This platform doesn't support installation at this time. Please install manually instead.",
   }],
   installed,
-  installInfo: async () => {
-    const inst = await installed();
-    const version = inst ? await installedVersion() : "";
-    const latest = await latestRelease();
-    return { version, latest };
-  },
-  currentVersion,
+  installedVersion,
+  latestRelease: remotePackageInfo,
+  preparePackage,
   install,
-  postinstall,
+  afterInstall,
   uninstall,
 };
-
-async function currentVersion() {
-  const latest = await latestRelease();
-  if (latest) {
-    return latest.tag_name;
-  } else {
-    return "unknown";
-  }
-}
-
-async function installedVersion() {
-  const installDir = tinyTexInstallDir();
-  if (installDir) {
-    const versionFile = join(expandPath(installDir), kVersionFileName);
-    return Deno.readTextFile(versionFile);
-  }
-}
-
-function noteInstalledVersion(version: string) {
-  const installDir = tinyTexInstallDir();
-  if (installDir) {
-    const versionFile = join(expandPath(installDir), kVersionFileName);
-    Deno.writeTextFileSync(
-      versionFile,
-      version,
-    );
-  }
-}
 
 async function installed() {
   const hasTl = await hasTexLive();
@@ -120,73 +93,101 @@ async function installed() {
   }
 }
 
-async function install(context: InstallContext) {
+async function installedVersion() {
+  const installDir = tinyTexInstallDir();
+  if (installDir) {
+    const versionFile = join(installDir, kVersionFileName);
+    return Deno.readTextFile(versionFile);
+  }
+}
+
+function noteInstalledVersion(version: string) {
+  const installDir = tinyTexInstallDir();
+  if (installDir) {
+    const versionFile = join(installDir, kVersionFileName);
+    Deno.writeTextFileSync(
+      versionFile,
+      version,
+    );
+  }
+}
+
+async function preparePackage(
+  context: InstallContext,
+): Promise<PackageInfo> {
   // Find the latest version
-  const latest = await latestRelease();
-  const version = latest.tag_name;
+  const pkgInfo = await remotePackageInfo();
+  const version = pkgInfo.version;
 
   // target package information
   const pkgName = tinyTexPkgName(kPackageMaximal, version);
-  const pkgFilePath = join(context.workingDir, pkgName);
+  const filePath = join(context.workingDir, pkgName);
 
   // Download the package
-  const url = tinyTexUrl(pkgName, latest);
+  const url = tinyTexUrl(pkgName, pkgInfo);
   if (url) {
-    await context.download(`TinyTex ${version}`, url, pkgFilePath);
+    // Download the package
+    await context.download(`TinyTex ${version}`, url, filePath);
 
-    // the target installation
-    const installDir = tinyTexInstallDir();
-    if (installDir) {
-      const parentDir = join(installDir, "..");
-      const realParentDir = expandPath(parentDir);
-      const tinyTexDirName = Deno.build.os === "linux" ? ".TinyTeX" : "TinyTeX";
-
-      if (existsSync(realParentDir)) {
-        // Extract the package
-        context.info(`Unzipping ${basename(pkgFilePath)}`);
-        await unzip(pkgFilePath);
-
-        // Move it to the install dir
-        context.info(`Moving files`);
-        const from = join(context.workingDir, tinyTexDirName);
-        const to = expandPath(installDir);
-        moveSync(from, to, { overwrite: true });
-
-        // Note the version that we have installed
-        noteInstalledVersion(version);
-
-        // Find the tlmgr and note its location
-        const binFolder = Deno.build.os === "windows"
-          ? join(
-            to,
-            "bin",
-            "win32",
-          )
-          : join(
-            to,
-            "bin",
-            `${Deno.build.arch}-${Deno.build.os}`,
-          );
-        context.props[kTlMgrKey] = Deno.build.os === "windows"
-          ? join(binFolder, "tlmgr.bat")
-          : join(binFolder, "tlmgr");
-
-        return Promise.resolve();
-      } else {
-        context.error("Installation target directory doesn't exist");
-        return Promise.reject();
-      }
-    } else {
-      context.error("Unable to determine installation directory");
-      return Promise.reject();
-    }
+    return { filePath, version };
   } else {
     context.error("Couldn't determine what URL to use to download");
     return Promise.reject();
   }
 }
 
-async function postinstall(context: InstallContext) {
+async function install(
+  pkgInfo: PackageInfo,
+  context: InstallContext,
+) {
+  // the target installation
+  const installDir = tinyTexInstallDir();
+  if (installDir) {
+    const parentDir = join(installDir, "..");
+    const realParentDir = expandPath(parentDir);
+    const tinyTexDirName = Deno.build.os === "linux" ? ".TinyTeX" : "TinyTeX";
+
+    if (existsSync(realParentDir)) {
+      // Extract the package
+      context.info(`Unzipping ${basename(pkgInfo.filePath)}`);
+      await unzip(pkgInfo.filePath);
+
+      // Move it to the install dir
+      context.info(`Moving files`);
+      const from = join(context.workingDir, tinyTexDirName);
+      moveSync(from, installDir, { overwrite: true });
+
+      // Note the version that we have installed
+      noteInstalledVersion(pkgInfo.version);
+
+      // Find the tlmgr and note its location
+      const binFolder = Deno.build.os === "windows"
+        ? join(
+          installDir,
+          "bin",
+          "win32",
+        )
+        : join(
+          installDir,
+          "bin",
+          `${Deno.build.arch}-${Deno.build.os}`,
+        );
+      context.props[kTlMgrKey] = Deno.build.os === "windows"
+        ? join(binFolder, "tlmgr.bat")
+        : join(binFolder, "tlmgr");
+
+      return Promise.resolve();
+    } else {
+      context.error("Installation target directory doesn't exist");
+      return Promise.reject();
+    }
+  } else {
+    context.error("Unable to determine installation directory");
+    return Promise.reject();
+  }
+}
+
+async function afterInstall(context: InstallContext) {
   const tlmgrPath = context.props[kTlMgrKey] as string;
   if (tlmgrPath) {
     // Install tlgpg to permit safe utilization of https
@@ -282,11 +283,11 @@ function textLiveRepo(): string {
 function tinyTexInstallDir(): string | undefined {
   switch (Deno.build.os) {
     case "windows":
-      return join(getenv("APPDATA", undefined), "TinyTeX");
+      return expandPath(join(getenv("APPDATA", undefined), "TinyTeX"));
     case "linux":
-      return "~./TinyTeX";
+      return expandPath("~./TinyTeX");
     case "darwin":
-      return "~/Library/TinyTeX";
+      return expandPath("~/Library/TinyTeX");
     default:
       return undefined;
   }
@@ -307,15 +308,22 @@ function tinyTexPkgName(base?: string, ver?: string) {
   }
 }
 
-function tinyTexUrl(pkg: string, release: GitHubRelease) {
-  const asset = release.assets.find((asset) => {
+function tinyTexUrl(pkg: string, remotePkgInfo: RemotePackageInfo) {
+  const asset = remotePkgInfo.assets.find((asset) => {
     return asset.name === pkg;
   });
-  return asset?.browser_download_url;
+  return asset?.url;
 }
 
-async function latestRelease(): Promise<GitHubRelease> {
-  return await getLatestRelease(kTinyTexRepo);
+async function remotePackageInfo(): Promise<RemotePackageInfo> {
+  const githubRelease = await getLatestRelease(kTinyTexRepo);
+  return {
+    url: githubRelease.html_url,
+    version: githubRelease.tag_name,
+    assets: githubRelease.assets.map((asset) => {
+      return { name: asset.name, url: asset.browser_download_url };
+    }),
+  };
 }
 
 async function isWritable(path: string) {

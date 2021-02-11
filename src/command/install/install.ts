@@ -11,16 +11,39 @@ import { tinyTexInstallable } from "./tools/tinytex.ts";
 // Installable Tool interface
 export interface InstallableTool {
   name: string;
-  installed: () => Promise<boolean>;
-  installInfo: () => Promise<ToolInfo | undefined>;
-  currentVersion: () => Promise<string>;
   prereqs: InstallPreReq[];
-  install: (ctx: InstallContext) => Promise<void>;
-  // return true if restart is required, false if not
-  postinstall: (ctx: InstallContext) => Promise<boolean>;
+  installed: () => Promise<boolean>;
+  installedVersion: () => Promise<string | undefined>;
+  latestRelease: () => Promise<RemotePackageInfo>;
+  preparePackage: (ctx: InstallContext) => Promise<PackageInfo>;
+  install: (pkgInfo: PackageInfo, ctx: InstallContext) => Promise<void>;
+  afterInstall: (ctx: InstallContext) => Promise<boolean>; // return true if restart is required, false if not
   uninstall: (ctx: InstallContext) => Promise<void>;
 }
 
+// Prerequisites to installation. These will be checked before installation
+// and if any return false, the message will be displaed and installation will be
+// halted
+export interface InstallPreReq {
+  check: () => Promise<boolean>;
+  os: string[];
+  message: string;
+}
+
+// Locally accessible Package information
+export interface PackageInfo {
+  filePath: string;
+  version: string;
+}
+
+// Remove package information
+export interface RemotePackageInfo {
+  url: string;
+  version: string;
+  assets: Array<{ name: string; url: string }>;
+}
+
+// Tool Remote information
 export interface ToolInfo {
   version?: string;
   latest: GitHubRelease;
@@ -40,15 +63,6 @@ export interface InstallContext {
   ) => void;
   download: (name: string, url: string, target: string) => Promise<void>;
   props: { [key: string]: unknown };
-}
-
-// Prerequisites to installation. These will be checked before installation
-// and if any return false, the message will be displaed and installation will be
-// halted
-export interface InstallPreReq {
-  check: () => Promise<boolean>;
-  os: string[];
-  notMetMessage: string;
 }
 
 // The tools that are available to install
@@ -93,16 +107,19 @@ export async function installTool(name: string) {
         for (const prereq of platformPrereqs) {
           const met = await prereq.check();
           if (!met) {
-            context.error(prereq.notMetMessage);
+            context.error(prereq.message);
             return Promise.reject();
           }
         }
 
+        // Fetch the package information
+        const pkgInfo = await installableTool.preparePackage(context);
+
         // Do the install
-        await installableTool.install(context);
+        await installableTool.install(pkgInfo, context);
 
         // post install
-        const restartRequired = await installableTool.postinstall(context);
+        const restartRequired = await installableTool.afterInstall(context);
 
         context.info("\nInstallation successful");
         if (restartRequired) {
@@ -143,23 +160,67 @@ export async function uninstallTool(name: string) {
         Deno.removeSync(workingDir, { recursive: true });
       }
     } else {
-      message(`${name} is not installed.`);
+      message(
+        `${name} is not installed Use 'quarto install ${name} to install it.`,
+      );
     }
   }
 }
 
-export async function toolInstalled(name: string) {
+export async function updateTool(name: string) {
   const installableTool = kInstallableTools[name.toLowerCase()];
   if (installableTool) {
-    return installableTool.installed();
+    const installed = await installableTool.installed();
+    if (installed) {
+      const workingDir = Deno.makeTempDirSync();
+      const context = installContext(workingDir);
+      try {
+        // Fetch the package
+        const pkgInfo = await installableTool.preparePackage(context);
+
+        // Uninstall the existing version of the tool
+        await installableTool.uninstall(context);
+
+        // Install the new package
+        await installableTool.install(pkgInfo, context);
+
+        // post install
+        const restartRequired = await installableTool.afterInstall(context);
+
+        context.info("\nUpdate successful");
+        if (restartRequired) {
+          context.info(
+            "To complete this update, please restart your system.",
+          );
+        }
+      } catch (e) {
+        message(e);
+      } finally {
+        Deno.removeSync(workingDir, { recursive: true });
+      }
+    } else {
+      message(
+        `${name} is not installed Use 'quarto install ${name} to install it.`,
+      );
+    }
   }
 }
 
-export async function toolInfo(name: string) {
-  const installableTool = kInstallableTools[name.toLowerCase()];
-  if (installableTool) {
-    return installableTool.installInfo();
+export async function toolSummary(name: string) {
+  // Find the tool
+  const tool = installableTool(name);
+
+  // Information about the potential update
+  if (tool) {
+    const installed = await tool.installed();
+    const latestRelease = await tool.latestRelease();
+    const installedVersion = await tool.installedVersion();
+    return { installed, installedVersion, latestRelease };
   }
+}
+
+export function installableTool(name: string) {
+  return kInstallableTools[name.toLowerCase()];
 }
 
 const installContext = (workingDir: string): InstallContext => {

@@ -10,13 +10,15 @@ import { Confirm } from "cliffy/prompt/mod.ts";
 import { formatLine, message } from "../../core/console.ts";
 
 import {
+  installableTool,
   installableTools,
   installTool,
-  toolInfo,
-  toolInstalled,
+  toolSummary,
   uninstallTool,
+  updateTool,
 } from "./install.ts";
 
+// The quarto install command
 export const installCommand = new Command()
   .name("install")
   .arguments("[name:string]")
@@ -26,8 +28,8 @@ export const installCommand = new Command()
     }`,
   )
   .option(
-    "-l, --list",
-    "List installable tools",
+    "-lt, --list-tools",
+    "List installable tools and their status",
   )
   .example(
     "Install TinyTex",
@@ -35,44 +37,14 @@ export const installCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, name: string) => {
-    if (options.list) {
-      const cols = [20, 20, 20];
-      // Find the installed versions
-      const installedVersions: string[] = [];
-      for (const tool of installableTools()) {
-        const isInstalled = await toolInstalled(tool);
-        const info = await toolInfo(tool);
-        if (info) {
-          installedVersions.push(
-            formatLine(
-              [
-                tool,
-                info.latest.tag_name,
-                isInstalled ? `installed ${info.version}` : "not installed",
-              ],
-              cols,
-            ),
-          );
-        }
-      }
-
-      // Write the output
-      message(
-        formatLine(["Tool", "Version", "Installed"], cols),
-        { bold: true },
-      );
-      if (installedVersions.length === 0) {
-        message("nothing installed", { indent: 2 });
-      } else {
-        installedVersions.forEach((installedVersion) =>
-          message(installedVersion)
-        );
-      }
+    if (options.listTools) {
+      outputTools();
     } else if (name) {
       await installTool(name);
     }
   });
 
+// The quarto uninstall command
 export const uninstallCommand = new Command()
   .name("uninstall")
   .arguments("[name:string]")
@@ -88,9 +60,80 @@ export const uninstallCommand = new Command()
   // deno-lint-ignore no-explicit-any
   .action(async (_options: any, name: string) => {
     const confirmed: boolean = await Confirm.prompt(
-      `This will permanently remove ${name} and its files. Are you sure you want to uninstall ${name}?`,
+      `This will permanently remove ${name} and all of its files. Are you sure?`,
     );
     if (confirmed) {
       await uninstallTool(name);
     }
   });
+
+// The quarto update command
+export const updateCommand = new Command()
+  .name("update")
+  .arguments("[name: string]")
+  .description(
+    `Updates tools, extensions, and templates.\n\nTools that can be updated include:\n${
+      installableTools().map((name) => "  " + name).join("\n")
+    }`,
+  )
+  .example(
+    "Update TinyTex",
+    "quarto update tinytex",
+  )
+  // deno-lint-ignore no-explicit-any
+  .action(async (_options: any, name: string) => {
+    const summary = await toolSummary(name);
+    if (
+      summary && summary.installed &&
+      summary.installedVersion !== summary.latestRelease.version
+    ) {
+      // Get the current version info and confirm update
+      const confirmed: boolean = await Confirm.prompt(
+        `This will update ${name} from ${summary.installed} to ${summary.latestRelease.version}. Are you sure?`,
+      );
+      if (confirmed) {
+        updateTool(name);
+      }
+    } else {
+      message(`${name} isn't installed and so can't be updated.`);
+    }
+  });
+
+async function outputTools() {
+  const cols = [20, 20, 20, 20];
+  // Find the installed versions
+  const toolRows: string[] = [];
+  for (const tool of installableTools()) {
+    const summary = await toolSummary(tool);
+    if (summary) {
+      const status = summary.installed
+        ? summary.installedVersion === summary.latestRelease.version
+          ? "up to date"
+          : "update available"
+        : "not installed";
+
+      toolRows.push(
+        formatLine(
+          [
+            tool,
+            status,
+            summary.installedVersion || "---",
+            summary.latestRelease.version,
+          ],
+          cols,
+        ),
+      );
+    }
+  }
+
+  // Write the output
+  message(
+    formatLine(["Tool", "Status", "Installed", "Latest"], cols),
+    { bold: true },
+  );
+  if (toolRows.length === 0) {
+    message("nothing installed", { indent: 2 });
+  } else {
+    toolRows.forEach((row) => message(row));
+  }
+}

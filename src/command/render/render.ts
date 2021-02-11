@@ -109,6 +109,7 @@ export async function render(
       const pandocResult = await renderPandoc(context, executeResult);
 
       // determine if we have a files dir
+      // deno-lint-ignore camelcase
       const files_dir = executeResult.files_dir &&
           existsSync(join(dirname(path), executeResult.files_dir))
         ? executeResult.files_dir

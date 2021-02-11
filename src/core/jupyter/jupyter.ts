@@ -183,6 +183,7 @@ export function jupyterMdToJupyter(
     },
     cells: [],
     nbformat: 4,
+    // deno-lint-ignore camelcase
     nbformat_minor: 4,
   };
 
@@ -205,6 +206,7 @@ export function jupyterMdToJupyter(
   ) => {
     if (lineBuffer.length) {
       const cell: JupyterCell = {
+        // deno-lint-ignore camelcase
         cell_type,
         metadata: metadata || {},
         source: lineBuffer.map((line, index) => {
@@ -327,9 +329,12 @@ export interface JupyterAssets {
 
 export function jupyterAssets(input: string, to?: string) {
   // calculate and create directories
+  // deno-lint-ignore camelcase
   const [base_dir, stem] = dirAndStem(input);
+  // deno-lint-ignore camelcase
   const files_dir = join(base_dir, stem + "_files");
   to = (to || "html").replace(/[\+\-].*$/, "");
+  // deno-lint-ignore camelcase
   const figures_dir = join(files_dir, "figure-" + to);
   ensureDirSync(figures_dir);
 
@@ -337,6 +342,7 @@ export function jupyterAssets(input: string, to?: string) {
   // the files dir, otherwise it's just the figures dir). note that
   // supporting_dir is the directory that gets removed after a self-contained
   // or non-keeping render is complete
+  // deno-lint-ignore camelcase
   let supporting_dir = files_dir;
   for (
     const walk of walkSync(join(files_dir), { maxDepth: 1 })
@@ -927,6 +933,7 @@ function isWarningOutput(output: JupyterOutput) {
   }
 }
 
+// deno-lint-ignore camelcase
 function outputTypeCssClass(output_type: string) {
   if (["display_data", "execute_result"].includes(output_type)) {
     output_type = "display";
