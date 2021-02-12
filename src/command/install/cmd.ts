@@ -60,7 +60,7 @@ export const uninstallCommand = new Command()
   // deno-lint-ignore no-explicit-any
   .action(async (_options: any, name: string) => {
     const confirmed: boolean = await Confirm.prompt(
-      `This will permanently remove ${name} and all of its files. Are you sure?`,
+      `This will remove ${name} and all of its files. Are you sure?`,
     );
     if (confirmed) {
       await uninstallTool(name);
