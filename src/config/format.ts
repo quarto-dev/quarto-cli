@@ -17,7 +17,10 @@ import {
   kFigDpi,
   kFilters,
   kFoldCode,
+  kHeaderIncludes,
+  kIncludeAfter,
   kIncludeAfterBody,
+  kIncludeBefore,
   kIncludeBeforeBody,
   kIncludeInHeader,
   kKeepHidden,
@@ -67,13 +70,24 @@ import {
   kPageWidth,
 } from "./constants.ts";
 
+export interface FormatExtras {
+  [kVariables]?: Record<string, unknown>;
+  [kIncludeInHeader]?: string[];
+  [kIncludeBeforeBody]?: string[];
+  [kIncludeAfterBody]?: string[];
+  [kFilters]?: {
+    pre?: string[];
+    post?: string[];
+  };
+}
+
 // pandoc output format
 export interface Format {
   render: FormatRender;
   execution: FormatExecution;
   pandoc: FormatPandoc;
   metadata: Metadata;
-  preprocess?: (format: Format) => FormatPandoc;
+  preprocess?: (format: Format) => FormatExtras;
 }
 
 export interface FormatRender {

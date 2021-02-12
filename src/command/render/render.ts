@@ -198,7 +198,6 @@ export async function renderPandoc(
   // merge any pandoc options provided the computation
   context.format.pandoc = mergeConfigs(
     context.format.pandoc || {},
-    context.format.preprocess ? context.format.preprocess(context.format) : {},
     executeResult.pandoc,
   );
 

@@ -12,7 +12,7 @@ import { stringify } from "encoding/yaml.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 import { message } from "../../core/console.ts";
 
-import { Format, FormatPandoc } from "../../config/format.ts";
+import { Format, FormatExtras, FormatPandoc } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
 import { binaryPath } from "../../core/resources.ts";
 
@@ -23,6 +23,13 @@ import {
   writeDefaultsFile,
 } from "./defaults.ts";
 import { removeFilterParmas, setFilterParams } from "./filters.ts";
+import {
+  kFilters,
+  kIncludeAfterBody,
+  kIncludeBeforeBody,
+  kIncludeInHeader,
+  kVariables,
+} from "../../config/constants.ts";
 
 // options required to run pandoc
 export interface PandocOptions {
@@ -72,9 +79,46 @@ export async function runPandoc(
   // don't print project metadata
   delete printMetadata.project;
 
-  // generate defaults and write a defaults file if need be
-  const allDefaults = await generateDefaults(options, sysFilters);
+  // generate defaults and capture defaults to be printed
+  let allDefaults = await generateDefaults(options) || {};
   const printAllDefaults = allDefaults ? ld.cloneDeep(allDefaults) : undefined;
+
+  // see if there are extras
+  if (sysFilters.length > 0 || options.format.preprocess) {
+    const extras = options.format.preprocess
+      ? (options.format.preprocess(options.format))
+      : {};
+
+    if (sysFilters.length > 0) {
+      extras.filters = extras.filters || {};
+      extras.filters.post = extras.filters.post || [];
+      extras.filters.post.unshift(...sysFilters);
+    }
+
+    // merge the extras into the defaults
+    if (extras[kVariables]) {
+      allDefaults = {...allDefaults, [kVariables]: extras[kVariables] };
+    }   
+    if (extras[kIncludeInHeader]) {
+      allDefaults = {...allDefaults, [kIncludeInHeader]: extras[kIncludeInHeader]};
+    }
+    if (extras[kIncludeBeforeBody]) {
+      allDefaults = {...allDefaults, [kIncludeBeforeBody]: extras[kIncludeBeforeBody]};
+    }
+    if (extras[kIncludeAfterBody]) {
+      allDefaults = {...allDefaults, [kIncludeAfterBody]: extras[kIncludeAfterBody]};
+    }
+
+    // add any filters
+    allDefaults.filters = [
+      ...extras.filters?.pre || [],
+      ...allDefaults.filters || [],
+      ...extras.filters?.post || [],
+    ];
+
+    // make the filter paths windows safe
+    allDefaults.filters = allDefaults.filters.map(pandocMetadataPath);
+  }
 
   // set parameters required for filters (possibily mutating all of it's arguments
   // to pull includes out into quarto parameters so they can be merged)
@@ -120,6 +164,10 @@ export async function runPandoc(
     },
     input,
   );
+}
+
+export function pandocMetadataPath(path: string) {
+  return path.replace(/\\/g, "/");
 }
 
 function runPandocMessage(
