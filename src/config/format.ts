@@ -7,6 +7,8 @@
 
 import { mergeConfigs } from "../core/config.ts";
 
+import { existsSync } from "fs/mod.ts";
+
 import {
   kAtxHeaders,
   kCache,
@@ -68,6 +70,7 @@ import {
   kPageWidth,
 } from "./constants.ts";
 import { resourcePath } from "../core/resources.ts";
+import { sessionTempFile } from "../core/temp.ts";
 
 // pandoc output format
 export interface Format {
@@ -391,7 +394,7 @@ function htmlFormat(
       // return pandoc format additions
       const pandoc: FormatPandoc = {};
       // provide theme if requested
-      if (themeable && format.metadata["theme"] !== null) {
+      if (themeable) {
         const addToHeader = (
           header:
             | "include-in-header"
@@ -400,21 +403,57 @@ function htmlFormat(
           file: string,
         ) => {
           pandoc[header] = pandoc[header] || [];
-          pandoc[header]?.push(resourcePath(file));
+          pandoc[header]?.push(file);
         };
-        pandoc[kVariables] = {
-          ...pandoc[kVariables],
-          ["document-css"]: false,
-        };
-        addToHeader(kIncludeInHeader, "formats/html/bootstrap/in-header.html");
-        addToHeader(
-          kIncludeBeforeBody,
-          "formats/html/bootstrap/before-body.html",
-        );
-        addToHeader(
-          kIncludeAfterBody,
-          "formats/html/bootstrap/after-body.html",
-        );
+
+        if (format.metadata["theme"] !== null) {
+          const theme = format.metadata["theme"] || "default";
+
+          if (theme === "pandoc") {
+            pandoc[kVariables] = {
+              ...pandoc[kVariables],
+              ["document-css"]: true,
+            };
+          } else {
+            pandoc[kVariables] = {
+              ...pandoc[kVariables],
+              ["document-css"]: false,
+            };
+
+            const themePath = resourcePath(
+              `formats/html/bootstrap/themes/${theme}/bootstrap.min.css`,
+            );
+            if (!existsSync(themePath)) {
+              throw new Error(`Specified theme ${theme} does not exist`);
+            }
+
+            const themeCss = Deno.readTextFileSync(themePath);
+            const themeFile = sessionTempFile();
+            Deno.writeTextFileSync(
+              themeFile,
+              `<style type="text/css">\n${themeCss}\n</style>\n`,
+            );
+            addToHeader(kIncludeInHeader, themeFile);
+
+            addToHeader(
+              kIncludeInHeader,
+              resourcePath("formats/html/bootstrap/in-header.html"),
+            );
+            addToHeader(
+              kIncludeBeforeBody,
+              resourcePath("formats/html/bootstrap/before-body.html"),
+            );
+            addToHeader(
+              kIncludeAfterBody,
+              resourcePath("formats/html/bootstrap/after-body.html"),
+            );
+          }
+        } else {
+          pandoc[kVariables] = {
+            ...pandoc[kVariables],
+            ["document-css"]: false,
+          };
+        }
       }
       return pandoc;
     },
