@@ -286,7 +286,7 @@ function tinyTexInstallDir(): string | undefined {
     case "windows":
       return expandPath(join(getenv("APPDATA", undefined), "TinyTeX"));
     case "linux":
-      return expandPath("~./TinyTeX");
+      return expandPath("~/.TinyTeX");
     case "darwin":
       return expandPath("~/Library/TinyTeX");
     default:
