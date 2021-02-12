@@ -10,7 +10,7 @@ done
 export SCRIPT_PATH="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
 # Check if we are running 'Dev Mode' and if so, override values for devs
-QUARTO_SRC_DIR="`cd "$SCRIPT_PATH/../../../src";pwd`"
+QUARTO_SRC_DIR="`cd "$SCRIPT_PATH/../../../src" > /dev/null 2>&1 && pwd`"
 DEV_PATH=$QUARTO_SRC_DIR/quarto.ts
 if [ -f "$DEV_PATH" ]; then
 
