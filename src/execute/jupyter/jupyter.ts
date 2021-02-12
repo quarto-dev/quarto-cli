@@ -46,9 +46,9 @@ import {
 import {
   Format,
   FormatPandoc,
-  isHtmlFormat,
-  isLatexFormat,
-  isMarkdownFormat,
+  isHtmlOutput,
+  isLatexOutput,
+  isMarkdownOutput,
 } from "../../config/format.ts";
 import { restorePreservedHtml } from "../../core/jupyter/preserve.ts";
 
@@ -234,8 +234,8 @@ export const jupyterEngine: ExecutionEngine = {
         assets,
         execution: options.format.execution,
         toHtml: isHtmlCompatible(options.format),
-        toLatex: isLatexFormat(options.format.pandoc),
-        toMarkdown: isMarkdownFormat(options.format.pandoc),
+        toLatex: isLatexOutput(options.format.pandoc),
+        toMarkdown: isMarkdownOutput(options.format.pandoc),
         figFormat: options.format.execution[kFigFormat],
         figDpi: options.format.execution[kFigDpi],
       },
@@ -438,8 +438,8 @@ function isMarkdown(file: string) {
 }
 
 function isHtmlCompatible(format: Format) {
-  return isHtmlFormat(format.pandoc) ||
-    (isMarkdownFormat(format.pandoc) && format.render[kPreferHtml]);
+  return isHtmlOutput(format.pandoc) ||
+    (isMarkdownOutput(format.pandoc) && format.render[kPreferHtml]);
 }
 
 async function jupytextSync(

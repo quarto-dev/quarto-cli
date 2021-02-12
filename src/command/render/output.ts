@@ -23,7 +23,7 @@ import {
   kTemplate,
   kVariant,
 } from "../../config/constants.ts";
-import { Format, isHtmlFormat } from "../../config/format.ts";
+import { Format, isHtmlOutput } from "../../config/format.ts";
 
 import { havePandocArg, kStdOut, replacePandocArg } from "./flags.ts";
 import { PandocOptions } from "./pandoc.ts";
@@ -92,7 +92,7 @@ export async function outputRecipe(
     };
 
     // keep source if requested (and we are targeting html)
-    if (format.render[kKeepSource] && isHtmlFormat(format.pandoc)) {
+    if (format.render[kKeepSource] && isHtmlOutput(format.pandoc)) {
       format.pandoc[kIncludeAfterBody] = format.pandoc[kIncludeAfterBody] || [];
       format.pandoc[kIncludeAfterBody]?.push(embeddedSourceCode(input));
     }

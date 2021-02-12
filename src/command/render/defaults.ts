@@ -13,7 +13,7 @@ import { mergeConfigs } from "../../core/config.ts";
 import { binaryPath, resourcePath } from "../../core/resources.ts";
 import { readYamlFromString } from "../../core/yaml.ts";
 
-import { FormatPandoc, isHtmlFormat } from "../../config/format.ts";
+import { FormatPandoc, isHtmlOutput } from "../../config/format.ts";
 
 import {
   kFilters,
@@ -144,7 +144,7 @@ async function detectDefaults(
   markdown: string,
   format: FormatPandoc,
 ): Promise<FormatPandoc | undefined> {
-  if (isHtmlFormat(format)) {
+  if (isHtmlOutput(format)) {
     const cmd = [
       binaryPath("pandoc"),
       "--from",
