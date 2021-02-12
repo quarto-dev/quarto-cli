@@ -26,7 +26,7 @@ import {
   crossrefFilterParams,
 } from "./crossref.ts";
 import { layoutFilter, layoutFilterParams } from "./layout.ts";
-import { PandocOptions } from "./pandoc.ts";
+import { pandocMetadataPath, PandocOptions } from "./pandoc.ts";
 import { removePandocArgs } from "./flags.ts";
 import { ld } from "lodash/mod.ts";
 import { mergeConfigs } from "../../core/config.ts";
@@ -117,9 +117,9 @@ function extractIncludeParams(
 
   return {
     ...includes,
-    [kIncludeInHeader]: inHeaderFiles,
-    [kIncludeBeforeBody]: beforeBodyFiles,
-    [kIncludeAfterBody]: afterBodyFiles,
+    [kIncludeInHeader]: inHeaderFiles.map(pandocMetadataPath),
+    [kIncludeBeforeBody]: beforeBodyFiles.map(pandocMetadataPath),
+    [kIncludeAfterBody]: afterBodyFiles.map(pandocMetadataPath),
   };
 }
 

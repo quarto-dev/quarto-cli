@@ -159,6 +159,10 @@ export async function runPandoc(
   );
 }
 
+export function pandocMetadataPath(path: string) {
+  return path.replace(/\\/g, "/");
+}
+
 function runPandocMessage(
   args: string[],
   pandoc: FormatPandoc | undefined,
