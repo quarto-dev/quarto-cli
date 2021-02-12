@@ -8,12 +8,13 @@
 import { existsSync } from "fs/mod.ts";
 
 import {
+  kFilters,
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
   kVariables,
 } from "../config/constants.ts";
-import { Format, FormatPandoc } from "../config/format.ts";
+import { Format, FormatExtras, FormatPandoc } from "../config/format.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { resourcePath } from "../core/resources.ts";
 import { sessionTempFile } from "../core/temp.ts";
@@ -60,7 +61,18 @@ export function htmlFormat(
 }
 
 function bootstrapPandocConfig(theme: string) {
-  const pandoc: FormatPandoc = {};
+  const extras: FormatExtras = {
+    [kVariables]: {
+      ["document-css"]: false,
+      ["include-before"]: `<div class="container">`,
+      ["include-after"]: `</div>`,
+    },
+    [kFilters]: {
+      pre: [
+        resourcePath("filters/formats/html.lua"),
+      ],
+    },
+  };
 
   const addToHeader = (
     header:
@@ -69,13 +81,8 @@ function bootstrapPandocConfig(theme: string) {
       | "include-before-body",
     file: string,
   ) => {
-    pandoc[header] = pandoc[header] || [];
-    pandoc[header]?.push(file);
-  };
-
-  pandoc[kVariables] = {
-    ...pandoc[kVariables],
-    ["document-css"]: false,
+    extras[header] = extras[header] || [];
+    extras[header]?.push(file);
   };
 
   // see if this is a named bootswatch theme
@@ -99,14 +106,5 @@ function bootstrapPandocConfig(theme: string) {
   );
   addToHeader(kIncludeInHeader, themeFile);
 
-  addToHeader(
-    kIncludeBeforeBody,
-    resourcePath("formats/html/bootstrap/before-body.html"),
-  );
-  addToHeader(
-    kIncludeAfterBody,
-    resourcePath("formats/html/bootstrap/after-body.html"),
-  );
-
-  return pandoc;
+  return extras;
 }

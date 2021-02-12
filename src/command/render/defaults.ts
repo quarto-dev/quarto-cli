@@ -41,7 +41,6 @@ import { sessionTempFile } from "../../core/temp.ts";
 
 export async function generateDefaults(
   options: PandocOptions,
-  sysFilters: string[],
 ): Promise<FormatPandoc | undefined> {
   let allDefaults: FormatPandoc | undefined;
 
@@ -60,7 +59,6 @@ export async function generateDefaults(
     );
     // resolve filters
     const resolvedFilters = resolveFilters([
-      ...sysFilters,
       ...(allDefaults[kFilters] || []),
     ], options);
     if (resolvedFilters) {
