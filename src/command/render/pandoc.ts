@@ -80,7 +80,7 @@ export async function runPandoc(
   delete printMetadata.project;
 
   // generate defaults and capture defaults to be printed
-  let allDefaults = await generateDefaults(options);
+  let allDefaults = await generateDefaults(options) || {};
   const printAllDefaults = allDefaults ? ld.cloneDeep(allDefaults) : undefined;
 
   // see if there are extras
@@ -96,15 +96,19 @@ export async function runPandoc(
     }
 
     // merge the extras into the defaults
-    allDefaults = {
-      ...allDefaults,
-      ...{
-        [kVariables]: extras[kVariables],
-        [kIncludeInHeader]: extras[kIncludeInHeader],
-        [kIncludeBeforeBody]: extras[kIncludeBeforeBody],
-        [kIncludeAfterBody]: extras[kIncludeAfterBody],
-      },
-    };
+    if (extras[kVariables]) {
+      allDefaults = {...allDefaults, [kVariables]: extras[kVariables] };
+    }   
+    if (extras[kIncludeInHeader]) {
+      allDefaults = {...allDefaults, [kIncludeInHeader]: extras[kIncludeInHeader]};
+    }
+    if (extras[kIncludeBeforeBody]) {
+      allDefaults = {...allDefaults, [kIncludeBeforeBody]: extras[kIncludeBeforeBody]};
+    }
+    if (extras[kIncludeAfterBody]) {
+      allDefaults = {...allDefaults, [kIncludeAfterBody]: extras[kIncludeAfterBody]};
+    }
+
     // add any filters
     allDefaults.filters = [
       ...extras.filters?.pre || [],
