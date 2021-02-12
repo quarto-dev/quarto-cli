@@ -12,9 +12,7 @@ preState = {}
 
 -- [import]
 function import(script)
-  local sep = package.config:sub(1,1)
-  script = string.gsub(script, "/", sep)
-  local path = PANDOC_SCRIPT_FILE:match("(.*" .. sep .. ")")
+  local path = PANDOC_SCRIPT_FILE:match("(.*/)")
   dofile(path .. script)
 end
 import("includes.lua")
