@@ -183,7 +183,7 @@ export function defaultWriterFormat(to: string): Format {
     case "html":
     case "html4":
     case "html5":
-      writerFormat = htmlFormat(7, 5, true);
+      writerFormat = htmlFormat(7, 5);
       break;
 
     case "pdf":
@@ -366,7 +366,7 @@ function latexFormat(): Format {
 
 function htmlPresentationFormat(figwidth: number, figheight: number): Format {
   return mergeConfigs(
-    htmlFormat(figwidth, figheight),
+    baseHtmlFormat(figwidth, figheight),
     {
       execution: {
         [kShowCode]: false,
@@ -376,11 +376,10 @@ function htmlPresentationFormat(figwidth: number, figheight: number): Format {
   );
 }
 
-function htmlFormat(
+function baseHtmlFormat(
   figwidth: number,
   figheight: number,
-  themeable = false,
-): Format {
+) {
   return format("html", {
     execution: {
       [kFigFormat]: "retina",
@@ -390,11 +389,21 @@ function htmlFormat(
     pandoc: {
       [kStandalone]: true,
     },
-    preprocess: (format: Format) => {
-      // return pandoc format additions
-      const pandoc: FormatPandoc = {};
-      // provide theme if requested
-      if (themeable) {
+  });
+}
+
+function htmlFormat(
+  figwidth: number,
+  figheight: number,
+): Format {
+  return mergeConfigs(
+    baseHtmlFormat(figwidth, figheight),
+    {
+      preprocess: (format: Format) => {
+        // return pandoc format additions
+        const pandoc: FormatPandoc = {};
+        // provide theme if requested
+
         const addToHeader = (
           header:
             | "include-in-header"
@@ -454,10 +463,11 @@ function htmlFormat(
             ["document-css"]: false,
           };
         }
-      }
-      return pandoc;
+
+        return pandoc;
+      },
     },
-  });
+  );
 }
 
 function hugoFormat(): Format {
