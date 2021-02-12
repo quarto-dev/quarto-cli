@@ -111,6 +111,9 @@ export async function runPandoc(
       ...allDefaults.filters || [],
       ...extras.filters?.post || [],
     ];
+
+    // make the filter paths windows safe
+    allDefaults.filters = allDefaults.filters.map(pandocMetadataPath);
   }
 
   // set parameters required for filters (possibily mutating all of it's arguments
