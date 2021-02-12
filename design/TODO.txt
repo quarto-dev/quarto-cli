@@ -1,5 +1,10 @@
 
 
+HTML:
+  - anchor links
+  - tabs
+  - admonitions
+
 Julia package
 
 You should be able to set the *-labels options in one shot (so you don't have to repeat fig-labels, tbl-labels, etc.) 
