@@ -100,10 +100,6 @@ function bootstrapPandocConfig(theme: string) {
   addToHeader(kIncludeInHeader, themeFile);
 
   addToHeader(
-    kIncludeInHeader,
-    resourcePath("formats/html/bootstrap/in-header.html"),
-  );
-  addToHeader(
     kIncludeBeforeBody,
     resourcePath("formats/html/bootstrap/before-body.html"),
   );
