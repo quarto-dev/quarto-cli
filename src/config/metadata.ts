@@ -25,7 +25,8 @@ import {
   kRenderDefaults,
   kRenderDefaultsKeys,
 } from "./constants.ts";
-import { defaultWriterFormat, Format } from "./format.ts";
+import { Format } from "./format.ts";
+import { defaultWriterFormat } from "../format/formats.ts";
 
 export type Metadata = {
   [key: string]: unknown;
