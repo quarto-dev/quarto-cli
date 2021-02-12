@@ -324,8 +324,6 @@ async function makeBibliographyIntermediates(
             ) {
               continue;
             } else {
-              // TODO: read error out of blg file
-              // TODO: writeError that doesn't require logText?
               writeError(`error generating bibliography`, "", log);
               return Promise.reject();
             }

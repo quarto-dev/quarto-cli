@@ -103,7 +103,6 @@ export async function makeInstallerWindows(configuration: Configuration) {
     configuration.log,
   );
 
-  // TODO: Process the version and other metadata into the WXS file
   // use candle to build the wixobj file
   configuration.log.info("Making the candle");
   const candleFiles = [
