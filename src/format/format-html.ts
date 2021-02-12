@@ -27,72 +27,90 @@ export function htmlFormat(
     baseHtmlFormat(figwidth, figheight),
     {
       preprocess: (format: Format) => {
-        // return pandoc format additions
-        const pandoc: FormatPandoc = {};
         // provide theme if requested
+        const kTheme = "theme";
+        if (format.metadata[kTheme] !== null) {
+          // 'default' if theme is undefined
+          const theme = String(format.metadata[kTheme] || "default");
 
-        const addToHeader = (
-          header:
-            | "include-in-header"
-            | "include-after-body"
-            | "include-before-body",
-          file: string,
-        ) => {
-          pandoc[header] = pandoc[header] || [];
-          pandoc[header]?.push(file);
-        };
-
-        if (format.metadata["theme"] !== null) {
-          const theme = format.metadata["theme"] || "default";
-
+          // 'pandoc' theme means include default pandoc document css
           if (theme === "pandoc") {
-            pandoc[kVariables] = {
-              ...pandoc[kVariables],
-              ["document-css"]: true,
+            return {
+              [kVariables]: {
+                ["document-css"]: true,
+              },
             };
+
+            // other themes are bootswatch themes or bootstrap css files
           } else {
-            pandoc[kVariables] = {
-              ...pandoc[kVariables],
-              ["document-css"]: false,
-            };
-
-            const themePath = resourcePath(
-              `formats/html/bootstrap/themes/${theme}/bootstrap.min.css`,
-            );
-            if (!existsSync(themePath)) {
-              throw new Error(`Specified theme ${theme} does not exist`);
-            }
-
-            const themeCss = Deno.readTextFileSync(themePath);
-            const themeFile = sessionTempFile();
-            Deno.writeTextFileSync(
-              themeFile,
-              `<style type="text/css">\n${themeCss}\n</style>\n`,
-            );
-            addToHeader(kIncludeInHeader, themeFile);
-
-            addToHeader(
-              kIncludeInHeader,
-              resourcePath("formats/html/bootstrap/in-header.html"),
-            );
-            addToHeader(
-              kIncludeBeforeBody,
-              resourcePath("formats/html/bootstrap/before-body.html"),
-            );
-            addToHeader(
-              kIncludeAfterBody,
-              resourcePath("formats/html/bootstrap/after-body.html"),
-            );
+            return bootstrapPandocConfig(theme);
           }
+
+          // theme: null means no default document css at all
         } else {
-          pandoc[kVariables] = {
-            ...pandoc[kVariables],
-            ["document-css"]: false,
+          return {
+            [kVariables]: {
+              ["document-css"]: false,
+            },
           };
         }
-
-        return pandoc;
       },
     },
   );
+}
+
+function bootstrapPandocConfig(theme: string) {
+  const pandoc: FormatPandoc = {};
+
+  const addToHeader = (
+    header:
+      | "include-in-header"
+      | "include-after-body"
+      | "include-before-body",
+    file: string,
+  ) => {
+    pandoc[header] = pandoc[header] || [];
+    pandoc[header]?.push(file);
+  };
+
+  pandoc[kVariables] = {
+    ...pandoc[kVariables],
+    ["document-css"]: false,
+  };
+
+  // see if this is a named bootswatch theme
+  let themePath = resourcePath(
+    `formats/html/bootstrap/themes/${theme}/bootstrap.min.css`,
+  );
+  if (!existsSync(themePath)) {
+    // see if this is a css file
+    if (existsSync(theme)) {
+      themePath = theme;
+    } else {
+      throw new Error(`Specified theme ${theme} does not exist`);
+    }
+  }
+
+  const themeCss = Deno.readTextFileSync(themePath);
+  const themeFile = sessionTempFile();
+  Deno.writeTextFileSync(
+    themeFile,
+    `<style type="text/css">\n${themeCss}\n</style>\n`,
+  );
+  addToHeader(kIncludeInHeader, themeFile);
+
+  addToHeader(
+    kIncludeInHeader,
+    resourcePath("formats/html/bootstrap/in-header.html"),
+  );
+  addToHeader(
+    kIncludeBeforeBody,
+    resourcePath("formats/html/bootstrap/before-body.html"),
+  );
+  addToHeader(
+    kIncludeAfterBody,
+    resourcePath("formats/html/bootstrap/after-body.html"),
+  );
+
+  return pandoc;
 }
