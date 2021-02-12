@@ -1,5 +1,5 @@
 /*
-* html.ts
+* format-html.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
