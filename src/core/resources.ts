@@ -17,6 +17,10 @@ export function resourcePath(resource?: string): string {
   }
 }
 
+export function formatResourcePath(format: string, resource: string) {
+  return join(resourcePath("formats"), format, resource);
+}
+
 export function binaryPath(binary: string): string {
   const quartoPath = getenv("QUARTO_BIN_PATH");
   return join(quartoPath, binary);

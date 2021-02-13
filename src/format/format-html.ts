@@ -16,7 +16,7 @@ import {
 } from "../config/constants.ts";
 import { Format, FormatExtras, FormatPandoc } from "../config/format.ts";
 import { mergeConfigs } from "../core/config.ts";
-import { resourcePath } from "../core/resources.ts";
+import { formatResourcePath, resourcePath } from "../core/resources.ts";
 import { sessionTempFile } from "../core/temp.ts";
 import { baseHtmlFormat } from "./formats.ts";
 
@@ -69,7 +69,7 @@ function bootstrapPandocConfig(theme: string) {
     },
     [kFilters]: {
       pre: [
-        resourcePath("filters/formats/html.lua"),
+        formatResourcePath("html", "html.lua"),
       ],
     },
   };
@@ -86,8 +86,9 @@ function bootstrapPandocConfig(theme: string) {
   };
 
   // see if this is a named bootswatch theme
-  let themePath = resourcePath(
-    `formats/html/bootstrap/themes/${theme}/bootstrap.min.css`,
+  let themePath = formatResourcePath(
+    "html",
+    `bootstrap/themes/${theme}/bootstrap.min.css`,
   );
   if (!existsSync(themePath)) {
     // see if this is a css file
