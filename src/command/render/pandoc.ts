@@ -97,16 +97,34 @@ export async function runPandoc(
 
     // merge the extras into the defaults
     if (extras[kVariables]) {
-      allDefaults = {...allDefaults, [kVariables]: extras[kVariables] };
-    }   
+      allDefaults = { ...allDefaults, [kVariables]: extras[kVariables] };
+    }
     if (extras[kIncludeInHeader]) {
-      allDefaults = {...allDefaults, [kIncludeInHeader]: extras[kIncludeInHeader]};
+      allDefaults = {
+        ...allDefaults,
+        [kIncludeInHeader]: [
+          ...allDefaults[kIncludeInHeader] || [],
+          ...extras[kIncludeInHeader] || [],
+        ],
+      };
     }
     if (extras[kIncludeBeforeBody]) {
-      allDefaults = {...allDefaults, [kIncludeBeforeBody]: extras[kIncludeBeforeBody]};
+      allDefaults = {
+        ...allDefaults,
+        [kIncludeBeforeBody]: [
+          ...allDefaults[kIncludeBeforeBody] || [],
+          ...extras[kIncludeBeforeBody] || [],
+        ],
+      };
     }
     if (extras[kIncludeAfterBody]) {
-      allDefaults = {...allDefaults, [kIncludeAfterBody]: extras[kIncludeAfterBody]};
+      allDefaults = {
+        ...allDefaults,
+        [kIncludeAfterBody]: [
+          ...allDefaults[kIncludeAfterBody] || [],
+          ...extras[kIncludeAfterBody] || [],
+        ],
+      };
     }
 
     // add any filters
