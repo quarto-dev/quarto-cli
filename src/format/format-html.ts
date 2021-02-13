@@ -9,16 +9,10 @@ import { existsSync } from "fs/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
-import {
-  kFilters,
-  kIncludeAfterBody,
-  kIncludeBeforeBody,
-  kIncludeInHeader,
-  kVariables,
-} from "../config/constants.ts";
-import { Format, FormatExtras, FormatPandoc } from "../config/format.ts";
+import { kFilters, kIncludeInHeader, kVariables } from "../config/constants.ts";
+import { Format, FormatExtras } from "../config/format.ts";
 import { mergeConfigs } from "../core/config.ts";
-import { formatResourcePath, resourcePath } from "../core/resources.ts";
+import { formatResourcePath } from "../core/resources.ts";
 import { sessionTempFile } from "../core/temp.ts";
 import { baseHtmlFormat } from "./formats.ts";
 
@@ -46,7 +40,10 @@ export function htmlFormat(
 
             // other themes are bootswatch themes or bootstrap css files
           } else {
-            return bootstrapPandocConfig(theme);
+            return bootstrapPandocConfig({
+              theme,
+              maxWidth: maxWidthCss(format.metadata["max-width"]),
+            });
           }
 
           // theme: null means no default document css at all
@@ -62,7 +59,12 @@ export function htmlFormat(
   );
 }
 
-function bootstrapPandocConfig(theme: string) {
+interface HtmlOptions {
+  theme: string;
+  maxWidth: string;
+}
+
+function bootstrapPandocConfig(options: HtmlOptions) {
   const extras: FormatExtras = {
     [kVariables]: {
       ["document-css"]: false,
@@ -90,14 +92,14 @@ function bootstrapPandocConfig(theme: string) {
   // see if this is a named bootswatch theme
   let themePath = formatResourcePath(
     "html",
-    `bootstrap/themes/${theme}/bootstrap.min.css`,
+    `bootstrap/themes/${options.theme}/bootstrap.min.css`,
   );
   if (!existsSync(themePath)) {
     // see if this is a css file
-    if (existsSync(theme)) {
-      themePath = theme;
+    if (existsSync(options.theme)) {
+      themePath = options.theme;
     } else {
-      throw new Error(`Specified theme ${theme} does not exist`);
+      throw new Error(`Specified theme ${options.theme} does not exist`);
     }
   }
 
@@ -110,9 +112,50 @@ function bootstrapPandocConfig(theme: string) {
   const themeFile = sessionTempFile();
   Deno.writeTextFileSync(
     themeFile,
-    template({ themeCss }),
+    template({
+      themeCss,
+      maxWidth: options.maxWidth,
+    }),
   );
   addToHeader(kIncludeInHeader, themeFile);
 
   return extras;
+}
+
+function maxWidthCss(value: unknown) {
+  const maxWidth = value
+    ? typeof (value) === "number" ? value : parseInt(String(value))
+    : 900;
+  const breaks = [
+    576,
+    768,
+    992,
+    1200,
+  ];
+  const css: string[] = [];
+  for (const bk of breaks) {
+    if (maxWidth < bk || bk === breaks[breaks.length - 1]) {
+      css.push(`@media (min-width: ${bk}px) {
+  .container {
+    max-width: ${maxWidth}px;
+  }  
+}`);
+    }
+  }
+  return css.join("\n");
+}
+
+function asCssSize(value: unknown): string | undefined {
+  if (!value) {
+    return undefined;
+  } else if (typeof (value) === "number") {
+    return value + "px";
+  } else {
+    const str = String(value);
+    if (!str.match(/\w$/)) {
+      return str + "px";
+    } else {
+      return str;
+    }
+  }
 }
