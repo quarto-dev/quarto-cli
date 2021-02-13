@@ -7,23 +7,31 @@
 <%= maxWidth %>
 
 :root {
-  font-size: <%= fontSize %>;
+  font-size: <%= fontsize %>;
 }
 
 body {
-  margin-top: 1.5rem;
-  <%= fontFaceSerif %>
+  margin-top: <%= margintop %>;
+  margin-bottom: <%= marginbottom %>;
+  margin-left: <%= marginleft %>;
+  margin-right: <%= marginright %>;
+  <%= mainfont %>
+  <%= fontcolor %>
+  <%= backgroundcolor %>
+  <%= linestretch %>
+}
+
+a {
+ <%= linkcolor %> 
 }
 
 code, kbd, pre, samp {
-  <%= fontFaceMono %>
+  <%= monofont %>
+  <%= monoBackground %>
 }
 
 pre.sourceCode {
-  padding-left: 0.5rem;
-  border-left: 3px solid;
+  <%= codeblockBorder %>
 }
-
-
 
 </style>

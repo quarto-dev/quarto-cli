@@ -43,9 +43,27 @@ export function htmlFormat(
             return bootstrapPandocConfig({
               theme,
               maxWidth: maxWidthCss(format.metadata["max-width"]),
-              fontSize: asCssSize(format.metadata["fontsize"]),
-              fontFaceSerif: asFontFamily(format.metadata["mainfont"]),
-              fontFaceMono: asFontFamily(format.metadata["monofont"]),
+              margintop: asCssSize(format.metadata["margin-top"]),
+              marginbottom: asCssSize(format.metadata["margin-bottom"]),
+              marginleft: asCssSize(format.metadata["margin-left"]),
+              marginright: asCssSize(format.metadata["margin-right"]),
+              mainfont: asFontFamily(format.metadata["mainfont"]),
+              fontsize: asCssSize(format.metadata["fontsize"]),
+              fontcolor: asCssAttrib("color", format.metadata["fontcolor"]),
+              linkcolor: asCssAttrib("color", format.metadata["linkcolor"]),
+              monofont: asFontFamily(format.metadata["monofont"]),
+              monobackgroundcolor: asCssAttrib(
+                "background-color",
+                format.metadata["monobackgroundcolor"],
+              ),
+              linestretch: asCssAttrib(
+                "line-height",
+                format.metadata["linestretch"],
+              ),
+              backgroundcolor: asCssAttrib(
+                "background-color",
+                format.metadata["backgroundcolor"],
+              ),
             });
           }
 
@@ -65,9 +83,18 @@ export function htmlFormat(
 interface HtmlOptions {
   theme: string;
   maxWidth: string;
-  fontSize?: string;
-  fontFaceSerif?: string;
-  fontFaceMono?: string;
+  margintop?: string;
+  marginbottom?: string;
+  marginleft?: string;
+  marginright?: string;
+  mainfont?: string;
+  fontsize?: string;
+  fontcolor?: string;
+  linkcolor?: string;
+  monofont?: string;
+  monobackgroundcolor?: string;
+  linestretch?: string;
+  backgroundcolor?: string;
 }
 
 function bootstrapPandocConfig(options: HtmlOptions) {
@@ -115,15 +142,34 @@ function bootstrapPandocConfig(options: HtmlOptions) {
   );
   const template = ld.template(templateSrc, {}, undefined);
 
+  // if we have a monobackground color then add padding, otherise
+  // provide a default code block border treatment
+  const monoBackground = options.monobackgroundcolor
+    ? options.monobackgroundcolor + ";\npadding: 0.2em;"
+    : "";
+  const codeblockBorder = monoBackground
+    ? ""
+    : "padding-left: 0.5rem;\nborder-left: 3px solid;";
+
   const themeFile = sessionTempFile();
   Deno.writeTextFileSync(
     themeFile,
     template({
       themeCss,
       maxWidth: options.maxWidth,
-      fontSize: options.fontSize || "16px",
-      fontFaceSerif: options.fontFaceSerif || "",
-      fontFaceMono: options.fontFaceMono || "",
+      margintop: options.margintop || "1.5rem",
+      marginbottom: options.marginbottom || "1.5rem",
+      marginleft: options.marginleft || "0",
+      marginright: options.marginright || "0",
+      mainfont: options.mainfont || "",
+      fontsize: options.fontsize || "16px",
+      fontcolor: options.fontcolor || "",
+      linkcolor: options.linkcolor || "",
+      monofont: options.monofont || "",
+      linestretch: options.linestretch || "",
+      backgroundcolor: options.backgroundcolor || "",
+      monoBackground,
+      codeblockBorder,
     }),
   );
   addToHeader(kIncludeInHeader, themeFile);
@@ -173,14 +219,26 @@ function asFontFamily(value: unknown) {
   }
 }
 
-function asCssSize(value: unknown): string | undefined {
+function asCssAttrib(attrib: string, value: unknown): string | undefined {
   if (!value) {
     return undefined;
-  } else if (typeof (value) === "number") {
-    return value + "px";
+  } else {
+    return `${attrib}: ${String(value)};`;
+  }
+}
+
+function asCssSize(value: unknown): string | undefined {
+  if (typeof (value) === "number") {
+    if (value === 0) {
+      return "0";
+    } else {
+      return value + "px";
+    }
+  } else if (!value) {
+    return undefined;
   } else {
     const str = String(value);
-    if (!str.match(/\w$/)) {
+    if (str !== "0" && !str.match(/\w$/)) {
       return str + "px";
     } else {
       return str;
