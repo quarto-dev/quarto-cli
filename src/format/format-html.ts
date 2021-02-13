@@ -43,6 +43,9 @@ export function htmlFormat(
             return bootstrapPandocConfig({
               theme,
               maxWidth: maxWidthCss(format.metadata["max-width"]),
+              fontSize: asCssSize(format.metadata["fontsize"]),
+              fontFaceSerif: asFontFamily(format.metadata["mainfont"]),
+              fontFaceMono: asFontFamily(format.metadata["monofont"]),
             });
           }
 
@@ -62,6 +65,9 @@ export function htmlFormat(
 interface HtmlOptions {
   theme: string;
   maxWidth: string;
+  fontSize?: string;
+  fontFaceSerif?: string;
+  fontFaceMono?: string;
 }
 
 function bootstrapPandocConfig(options: HtmlOptions) {
@@ -115,6 +121,9 @@ function bootstrapPandocConfig(options: HtmlOptions) {
     template({
       themeCss,
       maxWidth: options.maxWidth,
+      fontSize: options.fontSize || "16px",
+      fontFaceSerif: options.fontFaceSerif || "",
+      fontFaceMono: options.fontFaceMono || "",
     }),
   );
   addToHeader(kIncludeInHeader, themeFile);
@@ -143,6 +152,25 @@ function maxWidthCss(value: unknown) {
     }
   }
   return css.join("\n");
+}
+
+function asFontFamily(value: unknown) {
+  if (!value) {
+    return "";
+  } else {
+    const fontFamily = String(value)
+      .split(",")
+      .map((font) => {
+        font = font.trim();
+        if (font.includes(" ")) {
+          font = `"${font}"`;
+        }
+        return font;
+      })
+      .filter((font) => font.length > 0)
+      .join(", ");
+    return `font-family: ${fontFamily};`;
+  }
 }
 
 function asCssSize(value: unknown): string | undefined {

@@ -6,9 +6,17 @@
 
 <%= maxWidth %>
 
+:root {
+  font-size: <%= fontSize %>;
+}
+
 body {
   margin-top: 1.5rem;
-  font-size: 1.1rem;
+  <%= fontFaceSerif %>
+}
+
+code, kbd, pre, samp {
+  <%= fontFaceMono %>
 }
 
 pre.sourceCode {
