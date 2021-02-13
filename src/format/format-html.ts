@@ -7,6 +7,8 @@
 
 import { existsSync } from "fs/mod.ts";
 
+import { ld } from "lodash/mod.ts";
+
 import {
   kFilters,
   kIncludeAfterBody,
@@ -100,10 +102,15 @@ function bootstrapPandocConfig(theme: string) {
   }
 
   const themeCss = Deno.readTextFileSync(themePath);
+  const templateSrc = Deno.readTextFileSync(
+    formatResourcePath("html", "in-header.html"),
+  );
+  const template = ld.template(templateSrc, {}, undefined);
+
   const themeFile = sessionTempFile();
   Deno.writeTextFileSync(
     themeFile,
-    `<style type="text/css">\n${themeCss}\n</style>\n`,
+    template({ themeCss }),
   );
   addToHeader(kIncludeInHeader, themeFile);
 
