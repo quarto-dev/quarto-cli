@@ -44,6 +44,9 @@ export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {
   // Ensure that working directory exists
   if (!existsSync(workingDir)) {
     Deno.mkdirSync(workingDir);
+  } else {
+    // Clean the working directory of any leftover artifacts
+    cleanup(workingDir, stem);
   }
 
   // Determine whether we support automatic updating (TexLive is available)
@@ -83,17 +86,19 @@ export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {
   );
 
   // Recompile the Latex if required
-  const hasMinimumRuns = mkOptions.minRuns && mkOptions.minRuns > 1;
-  if (
-    indexCreated || bibliographyCreated || hasMinimumRuns ||
-    initialCompileNeedsRerun
+  // we have already run the engine one time (hence subtracting one run from min and max)
+  const minRuns = (mkOptions.minRuns || 1) - 1;
+  const maxRuns = (mkOptions.maxRuns || 10) - 1; 
+    if (
+    (indexCreated || bibliographyCreated || minRuns ||
+    initialCompileNeedsRerun) && maxRuns > 0
   ) {
     await recompileLatexUntilComplete(
       mkOptions.input,
       mkOptions.engine,
       pkgMgr,
       mkOptions.minRuns || 1,
-      mkOptions.maxRuns || 10,
+      maxRuns,
       mkOptions.outputDir,
       mkOptions.quiet,
     );
@@ -285,53 +290,82 @@ async function makeBibliographyIntermediates(
     const auxBibFile = bibCommand === "biber" ? `${stem}.bcf` : `${stem}.aux`;
     const auxBibPath = outputDir ? join(outputDir, auxBibFile) : auxBibFile;
     const auxBibFullPath = join(cwd, auxBibPath);
-    const requiresProcessing = bibCommand === "biber"
-      ? true
-      : containsBiblioData(auxBibFullPath);
 
-    if (existsSync(auxBibFullPath) && requiresProcessing) {
-      if (!quiet) {
-        message("generating bibliography", kLatexHeaderMessageOptions);
-      }
+    if (existsSync(auxBibFullPath)) {
+      const auxFileData = Deno.readTextFileSync(auxBibFullPath);
 
-      // If natbib, only use bibtex, otherwise, could use biber or bibtex
-      const response = await runBibEngine(
-        bibCommand,
-        auxBibPath,
-        cwd,
-        pkgMgr,
-        quiet,
-      );
+      const requiresProcessing = bibCommand === "biber"
+        ? true
+        : containsBiblioData(auxFileData);
 
-      if (response.result.code !== 0 && pkgMgr.autoInstall) {
-        // Biblio generation failed, see whether we should install anything to try to resolve
-        // Find the missing packages
-        const log = join(dirname(auxBibFullPath), `${stem}.blg`);
+      if (requiresProcessing) {
+        if (!quiet) {
+          message("generating bibliography", kLatexHeaderMessageOptions);
+        }
 
-        if (existsSync(log)) {
-          const logOutput = Deno.readTextFileSync(log);
-          const match = logOutput.match(/.* open style file ([^ ]+).*/);
+        // If we're on windows and auto-install isn't enabled,
+        // fix up the aux file
+        //
+        if (Deno.build.os === "windows") {
+          if (bibCommand !== "biber" && !hasTexLive()) { 
+            // See https://github.com/yihui/tinytex/blob/b2d1bae772f3f979e77fca9fb5efda05855b39d2/R/latex.R#L284
+            // Strips the '.bib' from any match and returns the string without the bib extension
+            // Replace any '.bib' in bibdata in windows auxData
+            const fixedAuxFileData = auxFileData.replaceAll(/(^\\bibdata{.+)\.bib(.*})$/gm, (
+              _substr: string,
+              prefix: string,
+              postfix: string,
+            ) => {
+              return prefix + postfix;
+            });
 
-          if (match) {
-            const file = match[1];
-            if (
-              await findAndInstallPackages(
-                pkgMgr,
-                file,
-                response.result.stderr,
-                quiet,
-              )
-            ) {
-              continue;
-            } else {
-              writeError(`error generating bibliography`, "", log);
-              return Promise.reject();
+            // Rewrite the corrected file
+            Deno.writeTextFileSync(auxBibFullPath, fixedAuxFileData);
+          }
+        }
+
+        // If natbib, only use bibtex, otherwise, could use biber or bibtex
+        const response = await runBibEngine(
+          bibCommand,
+          auxBibPath,
+          cwd,
+          pkgMgr,
+          quiet,
+        );
+
+        if (response.result.code !== 0 && pkgMgr.autoInstall) {
+          // Biblio generation failed, see whether we should install anything to try to resolve
+          // Find the missing packages
+          const log = join(dirname(auxBibFullPath), `${stem}.blg`);
+
+          if (existsSync(log)) {
+            const logOutput = Deno.readTextFileSync(log);
+            const match = logOutput.match(/.* open style file ([^ ]+).*/);
+
+            if (match) {
+              const file = match[1];
+              if (
+                await findAndInstallPackages(
+                  pkgMgr,
+                  file,
+                  response.result.stderr,
+                  quiet,
+                )
+              ) {
+                continue;
+              } else {
+                // TODO: read error out of blg file
+                // TODO: writeError that doesn't require logText?
+                writeError(`error generating bibliography`, "", log);
+                return Promise.reject();
+              }
             }
           }
         }
+        return true;
       }
-      return true;
     }
+
     return false;
   }
 }
@@ -447,17 +481,8 @@ async function recompileLatexUntilComplete(
   }
 }
 
-function containsBiblioData(auxFile: string) {
-  if (existsSync(auxFile)) {
-    const auxData = Deno.readTextFileSync(auxFile);
-    if (auxData) {
-      return auxData.match(/^\\(bibdata|citation|bibstyle)\{/m);
-    } else {
-      return false;
-    }
-  } else {
-    return false;
-  }
+function containsBiblioData(auxData: string) {
+  return auxData.match(/^\\(bibdata|citation|bibstyle)\{/m);
 }
 
 function auxFile(stem: string, ext: string) {
