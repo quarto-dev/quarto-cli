@@ -13,7 +13,12 @@ import { mergeConfigs } from "../core/config.ts";
 import { formatResourcePath } from "../core/resources.ts";
 import { sessionTempFile } from "../core/temp.ts";
 
-import { kFilters, kIncludeInHeader, kVariables } from "../config/constants.ts";
+import {
+  kFilters,
+  kHeaderIncludes,
+  kIncludeInHeader,
+  kVariables,
+} from "../config/constants.ts";
 import { Format, FormatExtras } from "../config/format.ts";
 import { Metadata } from "../config/metadata.ts";
 import { baseHtmlFormat } from "./formats.ts";
@@ -32,11 +37,7 @@ export function htmlFormat(
 
           // 'pandoc' theme means include default pandoc document css
           if (theme === "pandoc") {
-            return {
-              [kVariables]: {
-                ["document-css"]: true,
-              },
-            };
+            return pandocExtras(format.metadata);
 
             // other themes are bootswatch themes or bootstrap css files
           } else {
@@ -54,6 +55,23 @@ export function htmlFormat(
       },
     },
   );
+}
+
+function pandocExtras(metadata: Metadata) {
+  // see if there is a max-width
+  const maxWidth = metadata["max-width"];
+  const headerIncludes = maxWidth
+    ? `<style type="text/css">body { max-width: ${
+      asCssSize(maxWidth)
+    };}</style>`
+    : undefined;
+
+  return {
+    [kVariables]: {
+      ["document-css"]: true,
+      [kHeaderIncludes]: headerIncludes,
+    },
+  };
 }
 
 function boostrapExtras(theme: string, metadata: Metadata): FormatExtras {
