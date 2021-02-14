@@ -1,37 +1,29 @@
 <style type="text/css">
-<%= themeCss %>
+<%= theme %>
 </style>
 
 <style type="text/css">
 
-<%= maxWidth %>
+body {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+
+<%= maxwidth %>
 
 :root {
-  font-size: <%= fontsize %>;
-}
+<%= fontsize %>}
 
 body {
-  margin-top: <%= margintop %>;
-  margin-bottom: <%= marginbottom %>;
-  margin-left: <%= marginleft %>;
-  margin-right: <%= marginright %>;
-  <%= mainfont %>
-  <%= fontcolor %>
-  <%= backgroundcolor %>
-  <%= linestretch %>
-}
+<%= margintop %><%= marginbottom %><%= marginleft %><%= marginright %><%= mainfont %><%= fontcolor %><%= backgroundcolor %><%= linestretch %>}
 
 a {
- <%= linkcolor %> 
-}
+<%= linkcolor %>}
 
 code, kbd, pre, samp {
-  <%= monofont %>
-  <%= monoBackground %>
-}
+<%= monofont %><%= monoBackground %>}
 
 pre.sourceCode {
-  <%= codeblockBorder %>
-}
+<%= codeblockBorder %>}
 
 </style>

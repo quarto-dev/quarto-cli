@@ -9,11 +9,13 @@ import { existsSync } from "fs/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
-import { kFilters, kIncludeInHeader, kVariables } from "../config/constants.ts";
-import { Format, FormatExtras } from "../config/format.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { formatResourcePath } from "../core/resources.ts";
 import { sessionTempFile } from "../core/temp.ts";
+
+import { kFilters, kIncludeInHeader, kVariables } from "../config/constants.ts";
+import { Format, FormatExtras } from "../config/format.ts";
+import { Metadata } from "../config/metadata.ts";
 import { baseHtmlFormat } from "./formats.ts";
 
 export function htmlFormat(
@@ -24,11 +26,9 @@ export function htmlFormat(
     baseHtmlFormat(figwidth, figheight),
     {
       preprocess: (format: Format) => {
-        // provide theme if requested
-        const kTheme = "theme";
-        if (format.metadata[kTheme] !== null) {
+        if (format.metadata["theme"] !== null) {
           // 'default' if theme is undefined
-          const theme = String(format.metadata[kTheme] || "default");
+          const theme = String(format.metadata["theme"] || "default");
 
           // 'pandoc' theme means include default pandoc document css
           if (theme === "pandoc") {
@@ -40,31 +40,7 @@ export function htmlFormat(
 
             // other themes are bootswatch themes or bootstrap css files
           } else {
-            return bootstrapPandocConfig({
-              theme,
-              maxWidth: maxWidthCss(format.metadata["max-width"]),
-              margintop: asCssSize(format.metadata["margin-top"]),
-              marginbottom: asCssSize(format.metadata["margin-bottom"]),
-              marginleft: asCssSize(format.metadata["margin-left"]),
-              marginright: asCssSize(format.metadata["margin-right"]),
-              mainfont: asFontFamily(format.metadata["mainfont"]),
-              fontsize: asCssSize(format.metadata["fontsize"]),
-              fontcolor: asCssAttrib("color", format.metadata["fontcolor"]),
-              linkcolor: asCssAttrib("color", format.metadata["linkcolor"]),
-              monofont: asFontFamily(format.metadata["monofont"]),
-              monobackgroundcolor: asCssAttrib(
-                "background-color",
-                format.metadata["monobackgroundcolor"],
-              ),
-              linestretch: asCssAttrib(
-                "line-height",
-                format.metadata["linestretch"],
-              ),
-              backgroundcolor: asCssAttrib(
-                "background-color",
-                format.metadata["backgroundcolor"],
-              ),
-            });
+            return boostrapExtras(theme, format.metadata);
           }
 
           // theme: null means no default document css at all
@@ -80,101 +56,93 @@ export function htmlFormat(
   );
 }
 
-interface HtmlOptions {
-  theme: string;
-  maxWidth: string;
-  margintop?: string;
-  marginbottom?: string;
-  marginleft?: string;
-  marginright?: string;
-  mainfont?: string;
-  fontsize?: string;
-  fontcolor?: string;
-  linkcolor?: string;
-  monofont?: string;
-  monobackgroundcolor?: string;
-  linestretch?: string;
-  backgroundcolor?: string;
-}
+function boostrapExtras(theme: string, metadata: Metadata): FormatExtras {
+  // read options from yaml
+  const options: Record<string, string | undefined> = {
+    maxwidth: maxWidthCss(metadata["max-width"]),
+    margintop: asCssSizeAttrib("margin-top", metadata["margin-top"]),
+    marginbottom: asCssSizeAttrib("margin-bottom", metadata["margin-bottom"]),
+    marginleft: asCssSizeAttrib("margin-left", metadata["margin-left"]),
+    marginright: asCssSizeAttrib("margin-right", metadata["margin-right"]),
+    mainfont: asFontFamily(metadata["mainfont"]),
+    fontsize: asCssSizeAttrib("font-size", metadata["fontsize"]),
+    fontcolor: asCssAttrib("color", metadata["fontcolor"]),
+    linkcolor: asCssAttrib("color", metadata["linkcolor"]),
+    monofont: asFontFamily(metadata["monofont"]),
+    monobackgroundcolor: asCssAttrib(
+      "background-color",
+      metadata["monobackgroundcolor"],
+    ),
+    linestretch: asCssAttrib("line-height", metadata["linestretch"]),
+    backgroundcolor: asCssAttrib(
+      "background-color",
+      metadata["backgroundcolor"],
+    ),
+  };
 
-function bootstrapPandocConfig(options: HtmlOptions) {
-  const extras: FormatExtras = {
+  // see if this is a named bootswatch theme
+  let themePath = formatResourcePath(
+    "html",
+    `bootstrap/themes/${theme}/bootstrap.min.css`,
+  );
+  // otherwise could be a css file
+  if (!existsSync(themePath)) {
+    if (existsSync(theme)) {
+      themePath = theme;
+    } else {
+      throw new Error(`Specified theme ${theme} does not exist`);
+    }
+  }
+
+  // process the theme template
+  options.theme = Deno.readTextFileSync(themePath);
+  const templateSrc = Deno.readTextFileSync(
+    formatResourcePath("html", "in-header.html"),
+  );
+  const template = ld.template(templateSrc, {}, undefined);
+  const themeFile = sessionTempFile();
+  Deno.writeTextFileSync(
+    themeFile,
+    template(templateOptions(options)),
+  );
+
+  return {
     [kVariables]: {
       ["document-css"]: false,
       ["include-before"]: `<div class="container">`,
       ["include-after"]: `</div>`,
     },
+    [kIncludeInHeader]: [
+      themeFile,
+    ],
     [kFilters]: {
       pre: [
         formatResourcePath("html", "html.lua"),
       ],
     },
   };
+}
 
-  const addToHeader = (
-    header:
-      | "include-in-header"
-      | "include-after-body"
-      | "include-before-body",
-    file: string,
-  ) => {
-    extras[header] = extras[header] || [];
-    extras[header]?.push(file);
-  };
-
-  // see if this is a named bootswatch theme
-  let themePath = formatResourcePath(
-    "html",
-    `bootstrap/themes/${options.theme}/bootstrap.min.css`,
-  );
-  if (!existsSync(themePath)) {
-    // see if this is a css file
-    if (existsSync(options.theme)) {
-      themePath = options.theme;
-    } else {
-      throw new Error(`Specified theme ${options.theme} does not exist`);
-    }
+function templateOptions(
+  options: Record<string, string | undefined>,
+) {
+  // provide empty string for undefined keys
+  const opts = ld.cloneDeep(options);
+  for (const key of Object.keys(opts)) {
+    opts[key] = opts[key] || "";
   }
-
-  const themeCss = Deno.readTextFileSync(themePath);
-  const templateSrc = Deno.readTextFileSync(
-    formatResourcePath("html", "in-header.html"),
-  );
-  const template = ld.template(templateSrc, {}, undefined);
 
   // if we have a monobackground color then add padding, otherise
   // provide a default code block border treatment
-  const monoBackground = options.monobackgroundcolor
-    ? options.monobackgroundcolor + ";\npadding: 0.2em;"
-    : "";
-  const codeblockBorder = monoBackground
-    ? ""
-    : "padding-left: 0.5rem;\nborder-left: 3px solid;";
+  opts.monoBackground = opts.monobackgroundcolor
+    ? opts.monobackgroundcolor + "  padding: 0.2em;\n"
+    : undefined;
+  opts.codeblockBorder = opts.monoBackground
+    ? undefined
+    : "  padding-left: 0.5rem;\n  border-left: 3px solid;\n";
 
-  const themeFile = sessionTempFile();
-  Deno.writeTextFileSync(
-    themeFile,
-    template({
-      themeCss,
-      maxWidth: options.maxWidth,
-      margintop: options.margintop || "1.5rem",
-      marginbottom: options.marginbottom || "1.5rem",
-      marginleft: options.marginleft || "0",
-      marginright: options.marginright || "0",
-      mainfont: options.mainfont || "",
-      fontsize: options.fontsize || "16px",
-      fontcolor: options.fontcolor || "",
-      linkcolor: options.linkcolor || "",
-      monofont: options.monofont || "",
-      linestretch: options.linestretch || "",
-      backgroundcolor: options.backgroundcolor || "",
-      monoBackground,
-      codeblockBorder,
-    }),
-  );
-  addToHeader(kIncludeInHeader, themeFile);
-
-  return extras;
+  // return options
+  return opts;
 }
 
 function maxWidthCss(value: unknown) {
@@ -200,9 +168,9 @@ function maxWidthCss(value: unknown) {
   return css.join("\n");
 }
 
-function asFontFamily(value: unknown) {
+function asFontFamily(value: unknown): string | undefined {
   if (!value) {
-    return "";
+    return undefined;
   } else {
     const fontFamily = String(value)
       .split(",")
@@ -215,7 +183,7 @@ function asFontFamily(value: unknown) {
       })
       .filter((font) => font.length > 0)
       .join(", ");
-    return `font-family: ${fontFamily};`;
+    return `  font-family: ${fontFamily};\n`;
   }
 }
 
@@ -223,8 +191,13 @@ function asCssAttrib(attrib: string, value: unknown): string | undefined {
   if (!value) {
     return undefined;
   } else {
-    return `${attrib}: ${String(value)};`;
+    return `  ${attrib}: ${String(value)};\n`;
   }
+}
+
+function asCssSizeAttrib(attrib: string, value: unknown): string | undefined {
+  const size = asCssSize(value);
+  return asCssAttrib(attrib, size);
 }
 
 function asCssSize(value: unknown): string | undefined {
