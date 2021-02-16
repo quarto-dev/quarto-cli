@@ -186,7 +186,11 @@ knitr_hooks <- function(format) {
     }
     fold <- options[["fold"]]
     if (!is.null(fold)) {
-      attr <- paste(attr, paste0('fold="', as.character(fold), '"'))
+      attr <- paste(attr, paste0('fold="', tolower(as.character(fold)), '"'))
+    }
+    fold <- options[["summary"]]
+    if (!is.null(fold)) {
+      attr <- paste(attr, paste0('summary="', as.character(fold), '"'))
     }
     attrs <- block_attr(
       id = id,

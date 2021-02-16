@@ -6,8 +6,9 @@
 */
 import {
   kBibliography,
+  kCodeFold,
+  kCodeSummary,
   kFigAlign,
-  kFoldCode,
   kHeaderIncludes,
   kIncludeAfter,
   kIncludeAfterBody,
@@ -151,9 +152,13 @@ function quartoFilterParams(format: Format) {
   if (figAlign) {
     params[kFigAlign] = figAlign;
   }
-  const foldCode = format.render[kFoldCode];
+  const foldCode = format.render[kCodeFold];
   if (foldCode) {
-    params[kFoldCode] = foldCode;
+    params[kCodeFold] = foldCode;
+  }
+  const foldSummary = format.render[kCodeSummary];
+  if (foldSummary) {
+    params[kCodeSummary] = foldSummary;
   }
   return params;
 }
