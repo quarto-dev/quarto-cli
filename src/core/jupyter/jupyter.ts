@@ -576,6 +576,9 @@ function mdFromCodeCell(
     if (typeof cell.metadata[kCellFold] !== "undefined") {
       md.push(` fold=\"${cell.metadata[kCellFold]}\"`);
     }
+    if (typeof cell.metadata[kCellSummary] !== "undefined") {
+      md.push(` summary=\"${cell.metadata[kCellSummary]}\"`);
+    }
     md.push("}\n");
     md.push(...cell.source, "\n");
     md.push("```\n");

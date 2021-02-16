@@ -12,11 +12,12 @@ import {
   kCache,
   kCiteMethod,
   kCiteproc,
+  kCodeFold,
+  kCodeSummary,
   kExecute,
   kFigAlign,
   kFigDpi,
   kFilters,
-  kFoldCode,
   kHeaderIncludes,
   kIncludeAfter,
   kIncludeAfterBody,
@@ -102,8 +103,8 @@ export interface FormatRender {
   [kOutputExt]?: string;
   [kPageWidth]?: number;
   [kFigAlign]?: "left" | "right" | "center" | "default";
-  [kFoldCode]?: boolean | string;
-
+  [kCodeFold]?: "none" | "show" | "hide" | boolean;
+  [kCodeSummary]?: string;
   [kLatexAutoMk]?: boolean;
   [kLatexAutoInstall]?: boolean;
   [kLatexMinRuns]?: number;

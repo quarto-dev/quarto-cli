@@ -72,7 +72,8 @@ export const kOutputExt = "output-ext";
 export const kOutputDivs = "output-divs";
 export const kPageWidth = "page-width";
 export const kFigAlign = "fig-align";
-export const kFoldCode = "fold-code";
+export const kCodeFold = "code-fold";
+export const kCodeSummary = "code-summary";
 export const kPreferHtml = "prefer-html";
 
 export const kLatexAutoMk = "latex-auto-mk";
@@ -99,7 +100,8 @@ export const kRenderDefaultsKeys = [
   kPreferHtml,
   kPageWidth,
   kFigAlign,
-  kFoldCode,
+  kCodeFold,
+  kCodeSummary,
   kLatexAutoMk,
   kLatexAutoInstall,
   kLatexMinRuns,
