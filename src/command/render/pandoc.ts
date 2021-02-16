@@ -76,6 +76,9 @@ export async function runPandoc(
     ...options.flags?.metadata,
   };
 
+  // don't print params metadata (that's for the computation engine not pandoc)
+  delete printMetadata.params;
+
   // don't print project metadata
   delete printMetadata.project;
 
