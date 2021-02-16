@@ -9,8 +9,6 @@ Julia package
 
 You should be able to set the *-labels options in one shot (so you don't have to repeat fig-labels, tbl-labels, etc.) 
 
-Allow passing params as command line flags e.g. with -P
-
 Provide a better default HTML theme (see pandoc document-css option)
 base-css: "quarto" | "pandoc" | "none" 
 
@@ -338,3 +336,18 @@ Future
 - Consider yaml for chunk options
     * knitr
     * jupytext pr
+
+
+Julia Dev workflow
+
+- Make sure that Revise.jl is loaded at startup https://timholy.github.io/Revise.jl/stable/
+
+- Run Julia in Quarto dir
+
+- Switch to pkg mode "]" and execute "dev ."
+
+- Exit pkg mode (backspace)
+
+- using Quarto
+
+- changes should show up automatically now
