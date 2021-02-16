@@ -64,15 +64,20 @@ function supportingFiles(config: Configuration, log: Logger) {
       from: join(config.directoryInfo.src, "resources", "jupyter"),
       to: join(config.directoryInfo.share, "jupyter"),
     },
+    {
+      from: join(config.directoryInfo.src, "resources", "formats"),
+      to: join(config.directoryInfo.share, "formats")
+    }
   ];
 
   // Gather supporting files
   filesToCopy.forEach((fileToCopy) => {
-    log.info(`Copying ${fileToCopy.from} to ${fileToCopy.to}`);
 
     const dir = dirname(fileToCopy.to);
     log.info(`Ensuring dir ${dir} exists`);
     ensureDirSync(dir)
+
+    log.info(`Copying ${fileToCopy.from} to ${fileToCopy.to}`);
     copySync(fileToCopy.from, fileToCopy.to, { overwrite: true });
   });
 }
