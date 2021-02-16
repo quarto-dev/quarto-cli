@@ -34,6 +34,10 @@ export const renderCommand = new Command()
     "Execute code (--no-execute to skip execution).",
   )
   .option(
+    "-P, --execute-param",
+    "Execution parameter (KEY:VALUE).",
+  )
+  .option(
     "--execute-params",
     "YAML file with execution parameters.",
   )

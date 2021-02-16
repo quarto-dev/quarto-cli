@@ -12,6 +12,8 @@ import {
   readYamlFromString,
 } from "../../core/yaml.ts";
 
+import { mergeConfigs } from "../../core/config.ts";
+
 import {
   kExecutionDefaultsKeys,
   kListings,
@@ -29,7 +31,6 @@ export const kStdOut = "-";
 // command line flags that we need to inspect
 export interface RenderFlags extends PandocFlags {
   // quarto flags
-  executeParams?: string;
   executeDir?: string;
   execute?: boolean;
   executeCache?: true | false | "refresh";
@@ -37,6 +38,8 @@ export interface RenderFlags extends PandocFlags {
   kernelRestart?: boolean;
   kernelDebug?: boolean;
   metadata?: { [key: string]: unknown };
+  params?: { [key: string]: unknown };
+  paramsFile?: string;
   debug?: boolean;
   quiet?: boolean;
 }
@@ -154,7 +157,7 @@ export function parseRenderFlags(args: string[]) {
 
       case "--execute-params":
         arg = argsStack.shift();
-        flags.executeParams = arg;
+        flags.paramsFile = arg;
         break;
 
       case "--execute-dir":
@@ -208,6 +211,20 @@ export function parseRenderFlags(args: string[]) {
       case "--quiet":
         flags.quiet = true;
         arg = argsStack.shift();
+        break;
+
+      case "-P":
+      case "--execute-param":
+        arg = argsStack.shift();
+        if (arg) {
+          const param = parseMetadataFlagValue(arg);
+          if (param) {
+            if (param.value !== undefined) {
+              flags.params = flags.params || {};
+              flags.params[param.name] = param.value;
+            }
+          }
+        }
         break;
 
       case "-M":
@@ -295,6 +312,8 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   const removeArgs = new Map<string, boolean>();
   removeArgs.set("--execute", false);
   removeArgs.set("--no-execute", false);
+  removeArgs.set("-P", true);
+  removeArgs.set("--execute-param", true);
   removeArgs.set("--execute-params", true);
   removeArgs.set("--execute-dir", true);
   removeArgs.set("--kernel-keepalive", true);
@@ -381,9 +400,19 @@ function parseMetadataFlagValue(
 }
 
 // resolve parameters (if any)
-export function resolveParams(params?: string) {
-  if (params) {
-    return readYaml(params) as { [key: string]: unknown };
+export function resolveParams(
+  params?: { [key: string]: unknown },
+  paramsFile?: string,
+) {
+  if (params || paramsFile) {
+    params = params || {};
+    if (paramsFile) {
+      params = mergeConfigs(
+        readYaml(paramsFile) as { [key: string]: unknown },
+        params,
+      );
+    }
+    return params;
   } else {
     return undefined;
   }

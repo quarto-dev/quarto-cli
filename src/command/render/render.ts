@@ -177,7 +177,7 @@ export async function renderExecute(
     dependencies: resolveDependencies,
     format: context.format,
     cwd: flags.executeDir,
-    params: resolveParams(flags.executeParams),
+    params: resolveParams(flags.params, flags.paramsFile),
     quiet: flags.quiet,
   });
 
