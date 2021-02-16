@@ -5,23 +5,11 @@ HTML:
   - tabs
   - admonitions
 
-Julia package
+Julia package (pending)
 
 You should be able to set the *-labels options in one shot (so you don't have to repeat fig-labels, tbl-labels, etc.) 
 
-Provide a better default HTML theme (see pandoc document-css option)
-base-css: "quarto" | "pandoc" | "none" 
 
-base-css: "none"
-
-
-css: "user.css
-Write an article about this
-
-code-fold: "none" | "show" | "hide"
-code-summary: "Show code"
-fold and summary attributes
-https://github.com/quarto-dev/quarto-cli/issues/19
 
 
 rmd engine needs to forward all unknown chunk attributes (for filters/formats)
