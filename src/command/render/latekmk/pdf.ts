@@ -88,10 +88,10 @@ export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {
   // Recompile the Latex if required
   // we have already run the engine one time (hence subtracting one run from min and max)
   const minRuns = (mkOptions.minRuns || 1) - 1;
-  const maxRuns = (mkOptions.maxRuns || 10) - 1; 
-    if (
+  const maxRuns = (mkOptions.maxRuns || 10) - 1;
+  if (
     (indexCreated || bibliographyCreated || minRuns ||
-    initialCompileNeedsRerun) && maxRuns > 0
+      initialCompileNeedsRerun) && maxRuns > 0
   ) {
     await recompileLatexUntilComplete(
       mkOptions.input,
@@ -162,6 +162,11 @@ async function initialCompileLatex(
       // try autoinstalling
       // First be sure all packages are up to date
       if (!packagesUpdated) {
+        if (!quiet) {
+          message("updating tlmgr", kLatexHeaderMessageOptions);
+        }
+        await pkgMgr.updatePackages(false, true);
+
         if (!quiet) {
           message("updating existing packages", kLatexHeaderMessageOptions);
         }
@@ -307,17 +312,20 @@ async function makeBibliographyIntermediates(
         // fix up the aux file
         //
         if (Deno.build.os === "windows") {
-          if (bibCommand !== "biber" && !hasTexLive()) { 
+          if (bibCommand !== "biber" && !hasTexLive()) {
             // See https://github.com/yihui/tinytex/blob/b2d1bae772f3f979e77fca9fb5efda05855b39d2/R/latex.R#L284
             // Strips the '.bib' from any match and returns the string without the bib extension
             // Replace any '.bib' in bibdata in windows auxData
-            const fixedAuxFileData = auxFileData.replaceAll(/(^\\bibdata{.+)\.bib(.*})$/gm, (
-              _substr: string,
-              prefix: string,
-              postfix: string,
-            ) => {
-              return prefix + postfix;
-            });
+            const fixedAuxFileData = auxFileData.replaceAll(
+              /(^\\bibdata{.+)\.bib(.*})$/gm,
+              (
+                _substr: string,
+                prefix: string,
+                postfix: string,
+              ) => {
+                return prefix + postfix;
+              },
+            );
 
             // Rewrite the corrected file
             Deno.writeTextFileSync(auxBibFullPath, fixedAuxFileData);
