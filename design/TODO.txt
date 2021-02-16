@@ -234,24 +234,6 @@ library(bs4)
 Can't render a file in Google Drive
 
 
-Charles
------------------------------
-- sandbox script is a mess
-- more generic dev setup tools
-  - need 'configure-dev' script that will configure the current directory as a sandbox...
-
-v0.1
------------------------------------------
-
-- Basic docs (could even be private)
- 
-
-Pandoc-powered academic, scientific, and technical publishing. Quarto is pandoc plus:
-1) Integrated output from R, Python, and Julia via seamless integration with knitr and Jupyter
-2) Ciations via pandoc citeproc
-3) Cross references for figures, tables, equations, sections, listings, proofs, and more.
-4) Sophisticated figure layout
-5) Long form publishing (websites, books, manuscripts, etc.)
 
 
 Future
@@ -286,8 +268,6 @@ Cleanup
 
 Extracate the cache dir logic from rmarkdown::render and call that
 
-Merge -M and --metadata-file with _quarto.yml and in-file YAML with same
-semantics as Pandoc
 
 discover index.Rmd or ui.Rmd for quarto run. can't rely on
 rmarkdown::run b/c we need to figure out which Rmd to render
