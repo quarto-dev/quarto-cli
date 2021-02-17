@@ -1,31 +1,33 @@
 
+Charles:
+
+ - Crossref: You should be able to set the *-labels options in one shot (so you don't have to repeat fig-labels: alpha, tbl-labels: alpha, etc.) 
+
+ - fig.alt (alt text for image in html, also do what's natural in pdf, docx)
+
+ - rmd engine needs to forward all unknown chunk attributes (for filters/formats)
+
+-  Layout:
+    - LaTeX widths. Anywhere you have a space in a column use % 
+    - HTML widths (eliminate space between images)
+    - "natural width" (0?)
+    - top align all content in layout cells
+
+-  Can't render a file in Google Drive
+
+
+
+Julia package (pending)
 
 HTML:
   - anchor links
   - tabs
   - admonitions
 
-Julia package (pending)
-
-You should be able to set the *-labels options in one shot (so you don't have to repeat fig-labels, tbl-labels, etc.) 
-
-
-
-
-rmd engine needs to forward all unknown chunk attributes (for filters/formats)
-
-- fig.alt (alt text for image in html)
-
 Project:
   - Do files not listed in project: files: but in the directory still inherit the project metadata when rendered directly
 
 
-
-Layout:
-   - LaTeX widths. Anywhere you have a space in a column use % 
-   - HTML widths (eliminate space between images)
-   - "natural width" (0?)
-   - top align all content in layout cells
 
 
 Could say that while there is *always* a lockfile, package installations
@@ -182,8 +184,6 @@ A 'format' is a director or zip file which is:
   - Arbitrary other files that can be referenced (relatively) by the format YAML
 
 
-All format options should be settable on the command line (via -M or just passthrough)
-
 Port a dozen or rticles formats
   - Authors metadata standard 
 
@@ -230,9 +230,6 @@ library(bs4)
 {{< text notebook.Rmd##chunk-label >}}
 {{< tweet https://twitter.com/foo/status/34453323455 >}}
 {{< video https://youtube.com/foo/status/34453323455 >}}
-
-Can't render a file in Google Drive
-
 
 
 
