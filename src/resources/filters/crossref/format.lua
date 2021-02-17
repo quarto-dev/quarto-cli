@@ -104,9 +104,13 @@ function numberOption(type, order, default)
   if default == nil then
     default = stringToInlines("arabic")
   end
+
+  -- See if there a global label option, if so, use that
+  -- if the type specific label isn't specified
+  local labelOpt = option("labels", default);
   
   -- determine the style
-  local styleRaw = option(opt, default)
+  local styleRaw = option(opt, labelOpt)
   local numberStyle = pandoc.utils.stringify(styleRaw)
 
   -- process the style
