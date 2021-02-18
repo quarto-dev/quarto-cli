@@ -14,12 +14,10 @@ import { mergeConfigs } from "../core/config.ts";
 import { message } from "../core/console.ts";
 import { includedMetadata, Metadata } from "./metadata.ts";
 import { kMetadataFile, kMetadataFiles } from "./constants.ts";
-import { executionEngine } from "../execute/engine.ts";
-import { ld } from "https://deno.land/x/deno_lodash@v0.1.0/lodash.ts";
 
+export const kExecuteDir = "execute-dir";
 export const kOutputDir = "output-dir";
-export const kOutputInclude = "output-include";
-export const kOutputExclude = "output-exclude";
+export const kResourceFiles = "resource-files";
 
 export interface ProjectContext {
   dir: string;
@@ -33,9 +31,9 @@ export interface ProjectMetadata extends Metadata {
   name?: string;
   type?: string;
   render?: string[];
+  [kExecuteDir]?: "file" | "project";
   [kOutputDir]?: string;
-  [kOutputInclude]?: string;
-  [kOutputExclude]?: string;
+  [kResourceFiles]?: [];
 }
 
 export function projectConfigDir(dir: string) {
