@@ -24,16 +24,25 @@ function offset()
       end
     end
 
+
+
   }
  
 end
 
 function offsetRef(ref, projectOffset)
-  if string.find(ref, "^/") then
-    local projectOffset = param("project-offset")
-    if projectOffset ~= nil then
-      return pandoc.utils.stringify(projectOffset) .. ref
-    end
+  local projOffset = projectOffset()
+  if projOffset ~= nil and string.find(ref, "^/") then
+    return projOffset .. ref
+  end
+end
+
+function projectOffset()
+  local projOffset = param("project-offset")
+  if projOffset ~= nil then
+    return pandoc.utils.stringify(projOffset)
+  else
+    return nil
   end
 end
 
