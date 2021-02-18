@@ -59,7 +59,7 @@ export async function renderProject(
   // set QUARTO_PROJECT_DIR
   Deno.env.set("QUARTO_PROJECT_DIR", Deno.realPathSync(context.dir));
   try {
-    const results = await renderFiles(files, options);
+    const results = await renderFiles(files, options, context);
   } finally {
     Deno.env.delete("QUARTO_PROJECT_DIR");
   }

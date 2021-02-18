@@ -19,6 +19,7 @@ import("includes.lua")
 import("outputs.lua")
 import("figures.lua")
 import("meta.lua")
+import("offset.lua")
 import("../common/params.lua")
 import("../common/meta.lua")
 import("../common/table.lua")
@@ -34,6 +35,7 @@ return {
   initParams(),
   readIncludes(),
   combineFilters({
+    offset(),
     outputs(),
     figures()
   }),

@@ -6,7 +6,7 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { dirname, join } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 
 import { message } from "../../core/console.ts";
 import { mergeConfigs } from "../../core/config.ts";
@@ -39,7 +39,7 @@ import {
   PandocResult,
 } from "../../execute/engine.ts";
 
-import { runPandoc } from "./pandoc.ts";
+import { pandocMetadataPath, PandocOptions, runPandoc } from "./pandoc.ts";
 import {
   kStdOut,
   removePandocToArg,
@@ -48,7 +48,7 @@ import {
 } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
-import { projectContext } from "../../config/project.ts";
+import { ProjectContext, projectContext } from "../../config/project.ts";
 import { projectInputFiles, renderProject } from "./project.ts";
 
 // command line options for render
@@ -63,6 +63,7 @@ export interface RenderContext {
   options: RenderOptions;
   engine: ExecutionEngine;
   format: Format;
+  project?: ProjectContext;
 }
 
 export interface RenderResult {
@@ -100,12 +101,13 @@ export async function render(
 export async function renderFiles(
   files: string[],
   options: RenderOptions,
+  project?: ProjectContext,
 ): Promise<Record<string, RenderResult[]>> {
   const results: Record<string, RenderResult[]> = {};
 
   for (const file of files) {
     // get contexts
-    const contexts = await renderContexts(file, options);
+    const contexts = await renderContexts(file, options, project);
 
     // remove --to (it's been resolved into contexts)
     delete options.flags?.to;
@@ -148,6 +150,7 @@ export async function renderFiles(
 export async function renderContexts(
   file: string,
   options: RenderOptions,
+  project?: ProjectContext,
 ): Promise<Record<string, RenderContext>> {
   // determine the computation engine and any alternate input file
   const engine = await executionEngine(file);
@@ -170,6 +173,7 @@ export async function renderContexts(
       options,
       engine,
       format: formats[format],
+      project,
     };
   });
   return contexts;
@@ -240,13 +244,23 @@ export async function renderPandoc(
   }
 
   // pandoc options
-  const pandocOptions = {
+  const pandocOptions: PandocOptions = {
     markdown: executeResult.markdown,
     cwd: dirname(context.target.input),
     format: recipe.format,
     args: recipe.args,
     flags: context.options.flags,
   };
+
+  // add offset if we are in a project
+  if (context.project) {
+    const projDir = Deno.realPathSync(context.project.dir);
+    const inputDir = Deno.realPathSync(dirname(context.target.input));
+    const offset = relative(inputDir, projDir);
+    if (offset) {
+      pandocOptions.offset = pandocMetadataPath(offset);
+    }
+  }
 
   // run pandoc conversion (exit on failure)
   const pandocResult = await runPandoc(pandocOptions, executeResult.filters);

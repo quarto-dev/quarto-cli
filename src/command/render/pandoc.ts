@@ -37,13 +37,18 @@ export interface PandocOptions {
   markdown: string;
   // working dir for conversion
   cwd: string;
+
   // target format
   format: Format;
   // command line args for pandoc
   args: string[];
+
   // command line flags (e.g. could be used
   // to specify e.g. quiet or pdf engine)
   flags?: RenderFlags;
+
+  // optional offset from file to project dir
+  offset?: string;
 }
 
 export async function runPandoc(
