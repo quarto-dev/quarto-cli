@@ -53,21 +53,9 @@ function supportingFiles(config: Configuration, log: Logger) {
       to: join(config.directoryInfo.dist, "COPYRIGHT"),
     },
     {
-      from: join(config.directoryInfo.src, "resources", "html-defaults.lua"),
-      to: join(config.directoryInfo.share, "html-defaults.lua"),
+      from: join(config.directoryInfo.src, "resources"),
+      to: config.directoryInfo.share,
     },
-    {
-      from: join(config.directoryInfo.src, "resources", "rmd"),
-      to: join(config.directoryInfo.share, "rmd"),
-    },
-    {
-      from: join(config.directoryInfo.src, "resources", "jupyter"),
-      to: join(config.directoryInfo.share, "jupyter"),
-    },
-    {
-      from: join(config.directoryInfo.src, "resources", "formats"),
-      to: join(config.directoryInfo.share, "formats")
-    }
   ];
 
   // Gather supporting files
@@ -80,6 +68,10 @@ function supportingFiles(config: Configuration, log: Logger) {
     log.info(`Copying ${fileToCopy.from} to ${fileToCopy.to}`);
     copySync(fileToCopy.from, fileToCopy.to, { overwrite: true });
   });
+
+  // Cleanup the filters directory, which contains filter source that will be
+  // compiled later
+  Deno.removeSync(join(config.directoryInfo.share, "filters"), { recursive: true });
 }
 
 function inlineFilters(config: Configuration) {
