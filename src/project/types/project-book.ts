@@ -6,18 +6,18 @@
 */
 import { join } from "path/mod.ts";
 import { kIncludeInHeader } from "../../config/constants.ts";
+import { kOutputDir } from "../../config/project.ts";
 import { resourcePath } from "../../core/resources.ts";
 
 import { ProjectCreate, ProjectType } from "./project-types.ts";
 
 export const bookProjectType: ProjectType = {
   type: "book",
-  create: (name: string): ProjectCreate => {
+  create: (name: string, outputDir = "_book"): ProjectCreate => {
     const supportingDir = resourcePath(join("projects", "book"));
 
     return {
       metadata: {
-        title: name,
         format: {
           html: {
             css: "styles.css",
@@ -29,6 +29,9 @@ export const bookProjectType: ProjectType = {
             documentclass: "book",
             [kIncludeInHeader]: "preamble.tex",
           },
+        },
+        project: {
+          [kOutputDir]: outputDir,
         },
         bibliography: "references.bib",
       },

@@ -61,8 +61,8 @@ export const createProjectCommand = new Command()
     "Don't create initial project file(s)",
   )
   .option(
-    "--name [name:string]",
-    "Project name (defaults to directory name)",
+    "--title [title:string]",
+    "Project title (defaults to directory name)",
   )
   .option(
     "--output-dir [dir:string]",
@@ -81,6 +81,10 @@ export const createProjectCommand = new Command()
     "quarto create-project myproject",
   )
   .example(
+    "Create a website project in the current directory",
+    "quarto create-project --type website",
+  )
+  .example(
     "Create a book project in the current directory",
     "quarto create-project --type book",
   )
@@ -95,7 +99,7 @@ export const createProjectCommand = new Command()
       type: options.type,
       engine: options.scaffold[0],
       kernel: options.scaffold[1],
-      name: options.name,
+      title: options.title,
       [kOutputDir]: options[kOutputDir],
       quiet: options.quiet,
     });

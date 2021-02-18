@@ -20,7 +20,7 @@ import { kOutputDir, projectConfigDir } from "../config/project.ts";
 export interface ProjectCreateOptions {
   dir: string;
   type?: string;
-  name?: string;
+  title?: string;
   [kOutputDir]?: string;
   engine?: string;
   kernel?: string;
@@ -54,14 +54,14 @@ export async function projectCreate(options: ProjectCreateOptions) {
 
   // call create on the project type
   const projType = projectType(options.type);
-  const projCreate = projType.create(options.name!);
+  const projCreate = projType.create(options.title!, options[kOutputDir]);
 
   // create the initial metadata file
   const metadata = projectMetadataFile(options, projCreate);
   await Deno.writeTextFile(join(projDir, "metadata.yml"), metadata);
   if (!options.quiet) {
     message(
-      "- Created shared metadata  (_quarto/metadata.yml)",
+      "- Created project metadata (_quarto/metadata.yml)",
       { indent: 2 },
     );
   }
@@ -71,7 +71,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
   await Deno.writeTextFile(join(projDir, ".gitignore"), gitignore);
   if (!options.quiet) {
     message(
-      "- Created config gitignore (_quarto/.gitignore)",
+      "- Created gitignore (_quarto/.gitignore)",
       { indent: 2 },
     );
   }
@@ -121,8 +121,8 @@ async function readOptions(options: ProjectCreateOptions) {
     }
   }
 
-  // provide default name
-  options.name = options.name || basename(options.dir);
+  // provide default title
+  options.title = options.title || basename(options.dir);
 
   // no output-dir for default type
   if (options[kOutputDir] && options.type === "default") {
@@ -157,21 +157,18 @@ function projectMetadataFile(
   // deno-lint-ignore no-explicit-any
   let metadata: any = {
     project: {
-      name: options.name,
+      title: options.title,
     },
   };
   if (options.type !== "default") {
     metadata.project.type = options.type;
-    metadata.project[kOutputDir] = options[kOutputDir];
+    if (options[kOutputDir]) {
+      metadata.project[kOutputDir] = options[kOutputDir];
+    }
   }
 
   // merge project metadata
   metadata = mergeConfigs(metadata, projCreate.metadata);
-
-  // move project level metadata to the bottom
-  const project = ld.cloneDeep(metadata.project);
-  delete metadata.project;
-  metadata.project = project;
 
   // convert to yaml
   return stringify(metadata, { indent: 2, sortKeys: false });

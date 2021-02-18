@@ -203,8 +203,8 @@ function runPandocMessage(
     message(pandocDefaultsMessage(pandoc, sysFilters, debug), { indent: 2 });
   }
 
-  if (Object.keys(metadata).length > 0) {
-    message("metadata", { bold: true });
+  const keys = Object.keys(metadata);
+  if (keys.length > 0) {
     const printMetadata = ld.cloneDeep(metadata) as Metadata;
     delete printMetadata.format;
 
@@ -212,6 +212,9 @@ function runPandocMessage(
     removeFilterParmas(printMetadata);
 
     // print message
-    message(stringify(printMetadata), { indent: 2 });
+    if (Object.keys(printMetadata).length > 0) {
+      message("metadata", { bold: true });
+      message(stringify(printMetadata), { indent: 2 });
+    }
   }
 }
