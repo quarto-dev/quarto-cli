@@ -48,7 +48,7 @@ import {
 } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
-import { ProjectContext, projectContext } from "../../config/project.ts";
+import { projectContext } from "../../config/project.ts";
 import { projectInputFiles, renderProject } from "./project.ts";
 
 // command line options for render
