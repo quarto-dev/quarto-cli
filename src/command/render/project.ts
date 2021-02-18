@@ -5,6 +5,28 @@
 *
 */
 
+// Execution/Paths:
+
+// - Pandoc filter to convert all '/' links and image refs to project relative
+//   (may need to process raw HTML for resource references).
+
+//  Output:
+//  - Copy everything (doc, doc_files) to output_dir (if specified, could be .)
+//  - Auto-detect references to static resources (links, img[src], raw HTML refs including CSS)
+//  - Project type can include resource-files patterns (e.g. *.css)
+//  - Explicit resource files
+//  resource-files: (also at project level)
+//    *.css
+//    - !secret.css
+//    - resume.pdf
+//    include:
+//    exclude:
+
+//  Websites:
+//    - Navigation
+//    - sitemap.xml
+//    - search
+
 import { walkSync } from "fs/mod.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
 import { join } from "path/mod.ts";
@@ -13,21 +35,15 @@ import { ld } from "lodash/mod.ts";
 
 import { executionEngine } from "../../execute/engine.ts";
 
-import {
-  kExecuteDir,
-  ProjectContext,
-  projectContext,
-} from "../../config/project.ts";
+import { kExecuteDir, ProjectContext } from "../../config/project.ts";
 
 import { renderFiles, RenderOptions } from "./render.ts";
 
 export async function renderProject(
-  dir: string,
+  context: ProjectContext,
+  files: string[],
   options: RenderOptions,
 ) {
-  // get project context
-  const context = projectContext(dir);
-
   // set execute dir if requested
   const executeDir = context.metadata?.project?.[kExecuteDir];
   if (options.flags?.executeDir === undefined && executeDir === "project") {
@@ -35,22 +51,21 @@ export async function renderProject(
       ...options,
       flags: {
         ...options.flags,
-        executeDir: Deno.realPathSync(dir),
+        executeDir: Deno.realPathSync(context.dir),
       },
     };
   }
 
   // set QUARTO_PROJECT_DIR
-  Deno.env.set("QUARTO_PROJECT_DIR", Deno.realPathSync(dir));
+  Deno.env.set("QUARTO_PROJECT_DIR", Deno.realPathSync(context.dir));
   try {
-    const files = projectInputFiles(context);
-    await renderFiles(files, options);
+    const results = await renderFiles(files, options);
   } finally {
     Deno.env.delete("QUARTO_PROJECT_DIR");
   }
 }
 
-function projectInputFiles(context: ProjectContext) {
+export function projectInputFiles(context: ProjectContext) {
   const files: string[] = [];
   const keepMdFiles: string[] = [];
 
@@ -98,5 +113,5 @@ function projectInputFiles(context: ProjectContext) {
     }
   }
 
-  return ld.difference(ld.uniq(files), keepMdFiles);
+  return ld.difference(ld.uniq(files), keepMdFiles) as string[];
 }

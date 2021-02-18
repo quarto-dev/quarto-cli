@@ -48,8 +48,8 @@ import {
 } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
-import { projectContext } from "../../config/project.ts";
-import { renderProject } from "./project.ts";
+import { ProjectContext, projectContext } from "../../config/project.ts";
+import { projectInputFiles, renderProject } from "./project.ts";
 
 // command line options for render
 export interface RenderOptions {
@@ -74,9 +74,25 @@ export async function render(
   path: string,
   options: RenderOptions,
 ) {
+  // determine target context/files
+  const context = projectContext(path);
+
   if (Deno.statSync(path).isDirectory) {
-    await renderProject(path, options);
+    // all directories are considered projects
+    await renderProject(context, projectInputFiles(context), options);
+  } else if (context.metadata) {
+    // if there is a project file then treat this as a project render
+    // if the passed file is in the render list
+    const projFiles = projectInputFiles(context);
+    const renderPath = Deno.realPathSync(path);
+    if (projFiles.map((file) => Deno.realPathSync(file)).includes(renderPath)) {
+      await renderProject(context, [path], options);
+    } else {
+      // otherwise it's just a file render
+      await renderFiles([path], options);
+    }
   } else {
+    // not a directory and not a file with a _quarto project parent
     await renderFiles([path], options);
   }
 }
