@@ -30,11 +30,11 @@ export const websiteProjectType: ProjectType = {
       scaffold: [
         {
           name: "index",
-          content: "# Home",
+          content: "---\ntitle: Home\n---\n",
         },
         {
           name: "about",
-          content: "# About",
+          content: "---\ntitle: About\n---\n",
         },
       ],
 
