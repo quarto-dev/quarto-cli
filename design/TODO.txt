@@ -1,11 +1,10 @@
 
 Charles:
 
- - Crossref: You should be able to set the *-labels options in one shot (so you don't have to repeat fig-labels: alpha, tbl-labels: alpha, etc.) 
-
  - fig.alt (alt text for image in html, also do what's natural in pdf, docx)
 
  - rmd engine needs to forward all unknown chunk attributes (for filters/formats)
+  (all non knitr default chunk options, non quarto options, forwarded on the outer cell (jupyter already does this))
 
 -  Layout:
     - LaTeX widths. Anywhere you have a space in a column use % 
@@ -15,12 +14,10 @@ Charles:
 
 -  Can't render a file in Google Drive
 
-
-
-Julia package (pending)
-
 HTML:
   - anchor links
+  - copy code block to clipboard
+  - code menu (show all, hide all, download code)
   - tabs
   - admonitions
 
