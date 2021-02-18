@@ -266,6 +266,10 @@ knitr_plot_hook <- function(htmlOutput) {
     if (nzchar(fig.pos)) {
       keyvalue <- c(keyvalue, sprintf("fig.pos='%s'", fig.pos))
     }
+    fig.alt <- options[["fig.alt"]]
+    if (!is.null(fig.alt) && nzchar(fig.alt)) {
+       keyvalue <- c(keyvalue, sprintf("fig.alt='%s'", fig.alt))
+    }
     fig.scap <- options[['fig.scap']]
     if (!is.null(fig.scap)) {
       keyvalue <- c(keyvalue, sprintf("fig.scap='%s'", fig.scap))
