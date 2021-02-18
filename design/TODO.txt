@@ -1,8 +1,6 @@
 
 Charles:
 
- - fig.alt (alt text for image in html, also do what's natural in pdf, docx)
-
  - rmd engine needs to forward all unknown chunk attributes (for filters/formats)
   (all non knitr default chunk options, non quarto options, forwarded on the outer cell (jupyter already does this))
 
