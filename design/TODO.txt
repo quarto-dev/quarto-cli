@@ -13,6 +13,7 @@ Charles:
 -  Can't render a file in Google Drive
 
 HTML:
+  - floating toc
   - anchor links
   - copy code block to clipboard
   - code menu (show all, hide all, download code)
