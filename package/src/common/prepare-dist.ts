@@ -61,6 +61,7 @@ function supportingFiles(config: Configuration, log: Logger) {
   // Gather supporting files
   filesToCopy.forEach((fileToCopy) => {
     const stat = Deno.statSync(fileToCopy.from);
+    log.info(stat);
     if (stat.isFile) {
       const dir = dirname(fileToCopy.to);
       log.info(`Ensuring dir ${dir} for file exists`);
