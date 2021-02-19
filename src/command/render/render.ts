@@ -5,11 +5,8 @@
 *
 */
 
-import { existsSync, walkSync } from "fs/mod.ts";
-import { expandGlobSync } from "fs/expand_glob.ts";
-import { dirname, join } from "path/mod.ts";
-
-import { ld } from "lodash/mod.ts";
+import { existsSync } from "fs/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 
 import { message } from "../../core/console.ts";
 import { mergeConfigs } from "../../core/config.ts";
@@ -25,9 +22,6 @@ import {
 import {
   kCache,
   kExecute,
-  kIncludeAfterBody,
-  kIncludeBeforeBody,
-  kIncludeInHeader,
   kKeepMd,
   kKernelDebug,
   kKernelKeepalive,
@@ -45,7 +39,7 @@ import {
   PandocResult,
 } from "../../execute/engine.ts";
 
-import { runPandoc } from "./pandoc.ts";
+import { pandocMetadataPath, PandocOptions, runPandoc } from "./pandoc.ts";
 import {
   kStdOut,
   removePandocToArg,
@@ -54,7 +48,8 @@ import {
 } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
-import { projectContext } from "../../config/project.ts";
+import { ProjectContext, projectContext } from "../../config/project.ts";
+import { projectInputFiles, renderProject } from "./project.ts";
 
 // command line options for render
 export interface RenderOptions {
@@ -68,30 +63,51 @@ export interface RenderContext {
   options: RenderOptions;
   engine: ExecutionEngine;
   format: Format;
+  project?: ProjectContext;
 }
 
 export interface RenderResult {
   file: string;
-  files_dir?: string;
+  filesDir?: string;
 }
 
 export async function render(
   path: string,
   options: RenderOptions,
-): Promise<Record<string, RenderResult[]>> {
-  const files: string[] = [];
+) {
+  // determine target context/files
+  const context = projectContext(path);
 
   if (Deno.statSync(path).isDirectory) {
-    files.push(...directoryInputFiles(path));
+    // all directories are considered projects
+    await renderProject(context, projectInputFiles(context), options);
+  } else if (context.metadata) {
+    // if there is a project file then treat this as a project render
+    // if the passed file is in the render list
+    const projFiles = projectInputFiles(context);
+    const renderPath = Deno.realPathSync(path);
+    if (projFiles.map((file) => Deno.realPathSync(file)).includes(renderPath)) {
+      await renderProject(context, [path], options);
+    } else {
+      // otherwise it's just a file render
+      await renderFiles([path], options);
+    }
   } else {
-    files.push(path);
+    // not a directory and not a file with a _quarto project parent
+    await renderFiles([path], options);
   }
+}
 
+export async function renderFiles(
+  files: string[],
+  options: RenderOptions,
+  project?: ProjectContext,
+): Promise<Record<string, RenderResult[]>> {
   const results: Record<string, RenderResult[]> = {};
 
   for (const file of files) {
     // get contexts
-    const contexts = await renderContexts(file, options);
+    const contexts = await renderContexts(file, options, project);
 
     // remove --to (it's been resolved into contexts)
     delete options.flags?.to;
@@ -109,15 +125,14 @@ export async function render(
       const pandocResult = await renderPandoc(context, executeResult);
 
       // determine if we have a files dir
-      // deno-lint-ignore camelcase
-      const files_dir = executeResult.files_dir &&
-          existsSync(join(dirname(path), executeResult.files_dir))
+      const filesDir = executeResult.files_dir &&
+          existsSync(join(dirname(file), executeResult.files_dir))
         ? executeResult.files_dir
         : undefined;
 
       fileResults.push({
         file: pandocResult.finalOutput,
-        files_dir,
+        filesDir,
       });
 
       // report output created
@@ -135,6 +150,7 @@ export async function render(
 export async function renderContexts(
   file: string,
   options: RenderOptions,
+  project?: ProjectContext,
 ): Promise<Record<string, RenderContext>> {
   // determine the computation engine and any alternate input file
   const engine = await executionEngine(file);
@@ -157,6 +173,7 @@ export async function renderContexts(
       options,
       engine,
       format: formats[format],
+      project,
     };
   });
   return contexts;
@@ -227,13 +244,23 @@ export async function renderPandoc(
   }
 
   // pandoc options
-  const pandocOptions = {
+  const pandocOptions: PandocOptions = {
     markdown: executeResult.markdown,
     cwd: dirname(context.target.input),
     format: recipe.format,
     args: recipe.args,
     flags: context.options.flags,
   };
+
+  // add offset if we are in a project
+  if (context.project) {
+    const projDir = Deno.realPathSync(context.project.dir);
+    const inputDir = Deno.realPathSync(dirname(context.target.input));
+    const offset = relative(inputDir, projDir);
+    if (offset) {
+      pandocOptions.offset = pandocMetadataPath(offset);
+    }
+  }
 
   // run pandoc conversion (exit on failure)
   const pandocResult = await runPandoc(pandocOptions, executeResult.filters);
@@ -380,56 +407,4 @@ async function resolveFormats(
   });
 
   return resolved;
-}
-
-function directoryInputFiles(dir: string) {
-  const files: string[] = [];
-  const keepMdFiles: string[] = [];
-
-  const addFile = (file: string) => {
-    const engine = executionEngine(file);
-    if (engine) {
-      files.push(file);
-      const keepMd = engine.keepMd(file);
-      if (keepMd) {
-        keepMdFiles.push(keepMd);
-      }
-    }
-  };
-
-  const targetDir = Deno.realPathSync(dir);
-  const context = projectContext(dir);
-  const renderFiles = context.metadata?.project?.render;
-  if (renderFiles) {
-    // make project relative
-
-    const projGlobs = renderFiles
-      .map((file) => {
-        return join(context.dir, file);
-      });
-
-    // expand globs
-    for (const glob of projGlobs) {
-      for (const file of expandGlobSync(glob)) {
-        if (file.isFile) { // exclude dirs
-          const targetFile = Deno.realPathSync(file.path);
-          // filter by dir
-          if (targetFile.startsWith(targetDir)) {
-            addFile(file.path);
-          }
-        }
-      }
-    }
-  } else {
-    for (
-      const walk of walkSync(
-        dir,
-        { includeDirs: false, followSymlinks: true, skip: [/^_/] },
-      )
-    ) {
-      addFile(walk.path);
-    }
-  }
-
-  return ld.difference(ld.uniq(files), keepMdFiles);
 }
