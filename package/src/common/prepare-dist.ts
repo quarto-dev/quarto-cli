@@ -71,7 +71,15 @@ function supportingFiles(config: Configuration, log: Logger) {
 
   // Cleanup the filters directory, which contains filter source that will be
   // compiled later
-  Deno.removeSync(join(config.directoryInfo.share, "filters"), { recursive: true });
+  const pathsToClean = [
+    join(config.directoryInfo.share, "filters"),
+    join(config.directoryInfo.share, "jupyter", "__pycache__")
+  ];
+  pathsToClean.forEach(path => Deno.removeSync(path, { recursive: true }));
+
+
+
+  // exclude __pycache__
 }
 
 function inlineFilters(config: Configuration) {
