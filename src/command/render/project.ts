@@ -141,10 +141,5 @@ export function projectInputFiles(context: ProjectContext) {
     addDir(context.dir);
   }
 
-  const inputFiles = ld.difference(ld.uniq(files), keepMdFiles) as string[];
-
-  console.log(inputFiles);
-  Deno.exit(0);
-
-  return inputFiles;
+  return ld.difference(ld.uniq(files), keepMdFiles) as string[];
 }
