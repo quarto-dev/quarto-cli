@@ -26,7 +26,6 @@
 //    - search
 
 import { ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
-import { expandGlobSync } from "fs/expand_glob.ts";
 import { dirname, join } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";

@@ -69,6 +69,7 @@ export interface RenderContext {
 export interface RenderResult {
   file: string;
   filesDir?: string;
+  resourceFiles: string[];
 }
 
 export async function render(
@@ -145,6 +146,7 @@ export async function renderFiles(
       fileResults.push({
         file: projectPath(pandocResult.finalOutput),
         filesDir: filesDir ? projectPath(filesDir) : undefined,
+        resourceFiles: pandocResult.resourceFiles,
       });
 
       // report output created
@@ -276,7 +278,7 @@ export async function renderPandoc(
 
   // run pandoc conversion (exit on failure)
   const pandocResult = await runPandoc(pandocOptions, executeResult.filters);
-  if (!pandocResult.success) {
+  if (!pandocResult) {
     return Promise.reject();
   }
 
@@ -308,6 +310,7 @@ export async function renderPandoc(
   // return result
   return {
     finalOutput,
+    resourceFiles: pandocResult.resourceFiles,
   };
 }
 

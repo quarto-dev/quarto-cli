@@ -14,7 +14,7 @@ import { message } from "../../core/console.ts";
 
 import { Format, FormatExtras, FormatPandoc } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
-import { binaryPath } from "../../core/resources.ts";
+import { binaryPath, resourcePath } from "../../core/resources.ts";
 
 import { RenderFlags } from "./flags.ts";
 import {
@@ -30,6 +30,9 @@ import {
   kIncludeInHeader,
   kVariables,
 } from "../../config/constants.ts";
+import { sessionTempFile } from "../../core/temp.ts";
+import { existsSync } from "https://deno.land/std@0.80.0/fs/exists.ts";
+import { kResourceFiles } from "../../config/project.ts";
 
 // options required to run pandoc
 export interface PandocOptions {
@@ -51,10 +54,14 @@ export interface PandocOptions {
   offset?: string;
 }
 
+export interface RunPandocResult {
+  resourceFiles: string[];
+}
+
 export async function runPandoc(
   options: PandocOptions,
   sysFilters: string[],
-): Promise<ProcessResult> {
+): Promise<RunPandocResult | null> {
   // build the pandoc command (we'll feed it the input on stdin)
   const cmd = [binaryPath("pandoc")];
 
@@ -146,9 +153,12 @@ export async function runPandoc(
     allDefaults.filters = allDefaults.filters.map(pandocMetadataPath);
   }
 
+  // create a temp file for any filter results
+  const filterResultsFile = sessionTempFile();
+
   // set parameters required for filters (possibily mutating all of it's arguments
   // to pull includes out into quarto parameters so they can be merged)
-  setFilterParams(args, options, allDefaults);
+  setFilterParams(args, options, allDefaults, filterResultsFile);
 
   // write the defaults file
   if (allDefaults) {
@@ -183,13 +193,39 @@ export async function runPandoc(
   cmd.push("--ipynb-output=all");
 
   // run pandoc
-  return await execProcess(
+  const result = await execProcess(
     {
       cmd,
       cwd: options.cwd,
     },
     input,
   );
+
+  // resolve resource files from metadata
+  const resourceFiles: string[] = [];
+  if (options.format.metadata[kResourceFiles]) {
+    const files = options.format.metadata[kResourceFiles];
+    if (Array.isArray(files)) {
+      for (const file of files) {
+        resourceFiles.push(String(file));
+      }
+    } else {
+      resourceFiles.push(String(files));
+    }
+  }
+
+  // read the results
+  if (existsSync(filterResultsFile)) {
+    const filterResultsJSON = Deno.readTextFileSync(filterResultsFile);
+    const filterResults = JSON.parse(filterResultsJSON);
+    resourceFiles.push(...(filterResults.resourceFiles || []));
+  }
+
+  if (result.success) {
+    return { resourceFiles };
+  } else {
+    return null;
+  }
 }
 
 export function pandocMetadataPath(path: string) {
