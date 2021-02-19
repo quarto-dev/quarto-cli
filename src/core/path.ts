@@ -80,8 +80,6 @@ export function resolvePathGlobs(
   const expandGlobs = (targetGlobs: string[]) => {
     const expanded: string[] = [];
     for (const glob of targetGlobs) {
-      console.log(glob);
-      console.log(root);
       for (
         const file of expandGlobSync(
           glob,
