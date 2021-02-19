@@ -6,7 +6,7 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "path/mod.ts";
 
 import { message } from "../../core/console.ts";
 import { mergeConfigs } from "../../core/config.ts";
@@ -130,9 +130,21 @@ export async function renderFiles(
         ? executeResult.files_dir
         : undefined;
 
+      // if there is a project context then return paths relative to the project
+      const projectPath = (path: string) => {
+        if (project) {
+          return relative(
+            Deno.realPathSync(project.dir),
+            Deno.realPathSync(join(dirname(file), basename(path))),
+          );
+        } else {
+          return path;
+        }
+      };
+
       fileResults.push({
-        file: pandocResult.finalOutput,
-        filesDir,
+        file: projectPath(pandocResult.finalOutput),
+        filesDir: filesDir ? projectPath(filesDir) : undefined,
       });
 
       // report output created
