@@ -53,7 +53,7 @@ function supportingFiles(config: Configuration, log: Logger) {
       to: join(config.directoryInfo.dist, "COPYRIGHT"),
     },
     {
-      from: join(config.directoryInfo.src, "resources"),
+      from: join(config.directoryInfo.src, "resources/"),
       to: config.directoryInfo.share,
     },
   ];
