@@ -63,8 +63,11 @@ function supportingFiles(config: Configuration, log: Logger) {
     const stat = Deno.statSync(fileToCopy.from);
     if (stat.isFile) {
       const dir = dirname(fileToCopy.to);
-      log.info(`Ensuring dir ${dir} exists`);
+      log.info(`Ensuring dir ${dir} for file exists`);
       ensureDirSync(dir)
+    } else {
+      log.info(`Ensuring dir ${fileToCopy.to} exists`);
+      ensureDirSync(fileToCopy.to)
     }
 
     log.info(`Copying ${fileToCopy.from} to ${fileToCopy.to}`);
