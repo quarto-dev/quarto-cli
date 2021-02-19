@@ -160,6 +160,20 @@ knitr_hooks <- function(format) {
         }
       }
     }
+
+    # forward any other unknown attributes
+    knitr_default_opts <- names(knitr::opts_chunk$get())
+    quarto_opts <- c("label","fig.cap","fig.subcap","fig.scap","fig.link","fig.align","fig.env","fig.pos","fig.num", "lst.cap", "lst.label")
+    other_opts <- c("eval", "out.width", "code", "params.src", "out.width.px", "out.height.px")
+    for (name in names(options)) {
+      if (!(name %in% c(knitr_default_opts, quarto_opts, other_opts))) {
+        val <- options[[name]]
+        if (!is.null(val)) {
+          forwardAttr <- c(forwardAttr, sprintf("%s='%s'", name, val))
+        }
+      } 
+    }
+
     forwardAttr <- paste(forwardAttr, collapse = " ")
     if (nzchar(forwardAttr)) {
       forwardAttr <- paste0(" ", forwardAttr)
