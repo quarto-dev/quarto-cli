@@ -41,8 +41,11 @@ export function projectConfigDir(dir: string) {
 }
 
 export function projectContext(path: string): ProjectContext {
-  let dir = Deno.statSync(path).isDirectory ? path : dirname(path);
+  let dir = Deno.realPathSync(
+    Deno.statSync(path).isDirectory ? path : dirname(path),
+  );
   const originalDir = dir;
+
   while (true) {
     const configDir = projectConfigDir(dir);
     if (existsSync(configDir)) {

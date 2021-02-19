@@ -8,7 +8,6 @@
 // Execution/Paths:
 
 //  Output:
-//  - Move everything (doc, doc_files) to output_dir (if specified, could be .)
 //  - Auto-detect references to static resources (links, img[src], raw HTML refs including CSS) and copy them
 //  - Project type can include resource-files patterns (e.g. *.css)
 //  - Explicit resource files
@@ -68,6 +67,7 @@ export async function renderProject(
 
     // move to the output directory if we have one
     let outputDir = context.metadata?.project?.[kOutputDir];
+
     if (outputDir) {
       // resolve output dir and ensure that it exists
       outputDir = join(projDir, outputDir);
