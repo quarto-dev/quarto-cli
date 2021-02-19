@@ -60,6 +60,7 @@ export interface ExecuteResult {
 // result of pandoc render
 export interface PandocResult {
   finalOutput: string;
+  resourceFiles: string[];
 }
 
 // dependencies options

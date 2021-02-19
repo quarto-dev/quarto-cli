@@ -8,16 +8,17 @@
 // Execution/Paths:
 
 //  Output:
-//  - Move everything (doc, doc_files) to output_dir (if specified, could be .)
 //  - Auto-detect references to static resources (links, img[src], raw HTML refs including CSS) and copy them
 //  - Project type can include resource-files patterns (e.g. *.css)
 //  - Explicit resource files
 //  resource-files: (also at project level)
-//    *.css
+//    **/*.xls (implicit ** unless '/')
+//
+//    /*.xls
+//
+//    - negation: we expand the negation and then remove those files from the existing list
 //    - !secret.css
 //    - resume.pdf
-//    include:
-//    exclude:
 
 //  Websites:
 //    - Navigation
@@ -25,7 +26,6 @@
 //    - search
 
 import { ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
-import { expandGlobSync } from "fs/expand_glob.ts";
 import { dirname, join } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
@@ -39,6 +39,7 @@ import {
 } from "../../config/project.ts";
 
 import { renderFiles, RenderOptions } from "./render.ts";
+import { resolvePathGlobs } from "../../core/path.ts";
 
 export async function renderProject(
   context: ProjectContext,
@@ -68,6 +69,7 @@ export async function renderProject(
 
     // move to the output directory if we have one
     let outputDir = context.metadata?.project?.[kOutputDir];
+
     if (outputDir) {
       // resolve output dir and ensure that it exists
       outputDir = join(projDir, outputDir);
@@ -110,37 +112,32 @@ export function projectInputFiles(context: ProjectContext) {
     }
   };
 
-  const targetDir = Deno.realPathSync(context.dir);
-  const renderFiles = context.metadata?.project?.render;
-  if (renderFiles) {
-    // make project relative
-
-    const projGlobs = renderFiles
-      .map((file) => {
-        return join(context.dir, file);
-      });
-
-    // expand globs
-    for (const glob of projGlobs) {
-      for (const file of expandGlobSync(glob)) {
-        if (file.isFile) { // exclude dirs
-          const targetFile = Deno.realPathSync(file.path);
-          // filter by dir
-          if (targetFile.startsWith(targetDir)) {
-            addFile(file.path);
-          }
-        }
-      }
-    }
-  } else {
+  const addDir = (dir: string) => {
     for (
       const walk of walkSync(
-        context.dir,
+        dir,
         { includeDirs: false, followSymlinks: true, skip: [/^_/] },
       )
     ) {
       addFile(walk.path);
     }
+  };
+
+  const renderFiles = context.metadata?.project?.render;
+  if (renderFiles) {
+    const outputDir = context.metadata?.project?.[kOutputDir];
+    const exclude = outputDir ? [outputDir] : [];
+    const resolved = resolvePathGlobs(context.dir, renderFiles, exclude);
+    (ld.difference(resolved.include, resolved.exclude) as string[])
+      .forEach((file) => {
+        if (Deno.statSync(file).isDirectory) {
+          addDir(file);
+        } else {
+          addFile(file);
+        }
+      });
+  } else {
+    addDir(context.dir);
   }
 
   return ld.difference(ld.uniq(files), keepMdFiles) as string[];

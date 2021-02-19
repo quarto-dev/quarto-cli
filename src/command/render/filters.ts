@@ -36,11 +36,13 @@ import { projectConfigDir } from "../../config/project.ts";
 const kQuartoParams = "quarto-params";
 
 const kProjectOffset = "project-offset";
+const kResultsFile = "results-file";
 
 export function setFilterParams(
   args: string[],
   options: PandocOptions,
   defaults: FormatPandoc | undefined,
+  resultsFile: string,
 ) {
   // extract include params (possibly mutating it's arguments)
   const includes = extractIncludeParams(
@@ -55,6 +57,7 @@ export function setFilterParams(
     ...quartoFilterParams(options.format),
     ...crossrefFilterParams(options),
     ...layoutFilterParams(options.format),
+    [kResultsFile]: pandocMetadataPath(resultsFile),
   };
 
   options.format.metadata[kQuartoParams] = params;

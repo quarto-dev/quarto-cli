@@ -1,27 +1,29 @@
 
 
--- offset.lua
+-- resourceRefs.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
 
-function offset() 
+function resourceRefs() 
   
   return {
   
     Link = function(el)
-      local ref = offsetRef(el.target, projectOffset)
+      local ref = offsetRef(el.target)
       if ref then
         el.target = ref
-        return el
       end
+      recordFileResource(el.target)
+      return el
     end,
 
     Image = function(el)
-      local ref = offsetRef(el.src, projectOffset)
+      local ref = offsetRef(el.src)
       if ref then
         el.src = ref
-        return el
       end
+      recordFileResource(el.src)
+      return el
     end,
 
     RawInline = handleHtmlRefs,
@@ -43,7 +45,7 @@ function handleHtmlRefs(el)
   end
 end
 
-function offsetRef(ref, projectOffset)
+function offsetRef(ref)
   local projOffset = projectOffset()
   if projOffset ~= nil and string.find(ref, "^/") then
     return projOffset .. ref
@@ -61,4 +63,10 @@ end
 
 function fixHtmlRefs(text, projOffset, tag, attrib)
   return text:gsub("(<" .. tag .. " [^>]*)(" .. attrib .. "%s*=%s*\"/)", "%1" .. attrib .. "=\"" .. projOffset .. "/")
+end
+
+function recordFileResource(res)
+  if res:find("^%a+://") == nil then
+    preState.results.resourceFiles:insert(res)
+  end
 end

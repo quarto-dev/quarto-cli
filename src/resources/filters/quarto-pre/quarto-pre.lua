@@ -8,7 +8,12 @@ PANDOC_VERSION:must_be_at_least '2.11.2'
 text = require 'text'
 
 -- global state
-preState = {}
+preState = {
+  usingTikz = false,
+  results = {
+    resourceFiles = pandoc.List:new({})
+  }
+}
 
 -- [import]
 function import(script)
@@ -19,8 +24,10 @@ import("includes.lua")
 import("outputs.lua")
 import("figures.lua")
 import("meta.lua")
-import("offset.lua")
+import("resourcerefs.lua")
+import("results.lua")
 import("../common/params.lua")
+import("../common/json.lua")
 import("../common/meta.lua")
 import("../common/table.lua")
 import("../common/pandoc.lua")
@@ -35,11 +42,12 @@ return {
   initParams(),
   readIncludes(),
   combineFilters({
-    offset(),
     outputs(),
-    figures()
+    figures(),
+    resourceRefs(),
   }),
-  metaInject()
+  metaInject(),
+  writeResults()
 }
 
 
