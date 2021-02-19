@@ -7,12 +7,9 @@
 
 // Execution/Paths:
 
-// - Pandoc filter to convert all '/' links and image refs to project relative
-//   (may need to process raw HTML for resource references).
-
 //  Output:
-//  - Copy everything (doc, doc_files) to output_dir (if specified, could be .)
-//  - Auto-detect references to static resources (links, img[src], raw HTML refs including CSS)
+//  - Move everything (doc, doc_files) to output_dir (if specified, could be .)
+//  - Auto-detect references to static resources (links, img[src], raw HTML refs including CSS) and copy them
 //  - Project type can include resource-files patterns (e.g. *.css)
 //  - Explicit resource files
 //  resource-files: (also at project level)
