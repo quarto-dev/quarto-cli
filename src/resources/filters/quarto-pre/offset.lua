@@ -22,12 +22,25 @@ function offset()
         el.src = ref
         return el
       end
-    end
+    end,
 
-
-
+    RawInline = handleHtmlRefs,
+    RawBlock = handleHtmlRefs,
+  
   }
  
+end
+
+function handleHtmlRefs(el)
+  if isRawHtml(el) then
+    local projOffset = projectOffset()
+    if projOffset ~= nil then
+      el.text = fixHtmlRefs(el.text, projOffset, "a", "href")
+      el.text = fixHtmlRefs(el.text, projOffset, "img", "src")
+      el.text = fixHtmlRefs(el.text, projOffset, "link", "href")
+      return el
+    end
+  end
 end
 
 function offsetRef(ref, projectOffset)
@@ -46,4 +59,6 @@ function projectOffset()
   end
 end
 
- 
+function fixHtmlRefs(text, projOffset, tag, attrib)
+  return text:gsub("(<" .. tag .. " [^>]*)(" .. attrib .. "%s*=%s*\"/)", "%1" .. attrib .. "=\"" .. projOffset .. "/")
+end
