@@ -12,6 +12,7 @@ import { Configuration } from "../common/config.ts";
 import { buildFilter } from "./package-filters.ts";
 import { bundle } from "../util/deno.ts";
 import { Logger } from "../util/logger.ts";
+import { existsSync } from "https://deno.land/std@0.85.0/fs/exists.ts";
 
 
 export async function prepareDist(
@@ -60,7 +61,11 @@ function supportingFiles(config: Configuration, log: Logger) {
 
   // Gather supporting files
   filesToCopy.forEach((fileToCopy) => {
+
     const stat = Deno.statSync(fileToCopy.from);
+    log.info(fileToCopy);
+    log.info('from exists: ' + existsSync(fileToCopy.from));
+    log.info('to exists: ' + existsSync(fileToCopy.to));
     log.info(stat);
     if (stat.isFile) {
       const dir = dirname(fileToCopy.to);
