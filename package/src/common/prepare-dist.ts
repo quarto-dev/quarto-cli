@@ -12,7 +12,6 @@ import { Configuration } from "../common/config.ts";
 import { buildFilter } from "./package-filters.ts";
 import { bundle } from "../util/deno.ts";
 import { Logger } from "../util/logger.ts";
-import { existsSync } from "https://deno.land/std@0.85.0/fs/exists.ts";
 
 
 export async function prepareDist(
@@ -54,7 +53,7 @@ function supportingFiles(config: Configuration, log: Logger) {
       to: join(config.directoryInfo.dist, "COPYRIGHT"),
     },
     {
-      from: join(config.directoryInfo.src, "resources/"),
+      from: join(config.directoryInfo.src, "resources"),
       to: config.directoryInfo.share,
     },
   ];
@@ -62,19 +61,9 @@ function supportingFiles(config: Configuration, log: Logger) {
   // Gather supporting files
   filesToCopy.forEach((fileToCopy) => {
 
-    const stat = Deno.statSync(fileToCopy.from);
-    log.info(fileToCopy);
-    log.info('from exists: ' + existsSync(fileToCopy.from));
-    log.info('to exists: ' + existsSync(fileToCopy.to));
-    log.info(stat);
-    if (stat.isFile) {
-      const dir = dirname(fileToCopy.to);
-      log.info(`Ensuring dir ${dir} for file exists`);
-      ensureDirSync(dir)
-    } else {
-      log.info(`Ensuring dir ${fileToCopy.to} exists`);
-      ensureDirSync(fileToCopy.to)
-    }
+    const dir = dirname(fileToCopy.to);
+    log.info(`Ensuring dir ${dir} exists`);
+    ensureDirSync(dir)
 
     log.info(`Copying ${fileToCopy.from} to ${fileToCopy.to}`);
     copySync(fileToCopy.from, fileToCopy.to, { overwrite: true });
@@ -83,14 +72,9 @@ function supportingFiles(config: Configuration, log: Logger) {
   // Cleanup the filters directory, which contains filter source that will be
   // compiled later
   const pathsToClean = [
-    join(config.directoryInfo.share, "filters"),
-    join(config.directoryInfo.share, "jupyter", "__pycache__")
+    join(config.directoryInfo.share, "filters")
   ];
   pathsToClean.forEach(path => Deno.removeSync(path, { recursive: true }));
-
-
-
-  // exclude __pycache__
 }
 
 function inlineFilters(config: Configuration) {
