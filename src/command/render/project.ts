@@ -12,11 +12,13 @@
 //  - Project type can include resource-files patterns (e.g. *.css)
 //  - Explicit resource files
 //  resource-files: (also at project level)
-//    *.css
+//    **/*.xls (implicit ** unless '/')
+//
+//    /*.xls
+//
+//    - negation: we expand the negation and then remove those files from the existing list
 //    - !secret.css
 //    - resume.pdf
-//    include:
-//    exclude:
 
 //  Websites:
 //    - Navigation
@@ -38,6 +40,7 @@ import {
 } from "../../config/project.ts";
 
 import { renderFiles, RenderOptions } from "./render.ts";
+import { resolvePathGlobs } from "../../core/path.ts";
 
 export async function renderProject(
   context: ProjectContext,
@@ -110,38 +113,38 @@ export function projectInputFiles(context: ProjectContext) {
     }
   };
 
-  const targetDir = Deno.realPathSync(context.dir);
-  const renderFiles = context.metadata?.project?.render;
-  if (renderFiles) {
-    // make project relative
-
-    const projGlobs = renderFiles
-      .map((file) => {
-        return join(context.dir, file);
-      });
-
-    // expand globs
-    for (const glob of projGlobs) {
-      for (const file of expandGlobSync(glob)) {
-        if (file.isFile) { // exclude dirs
-          const targetFile = Deno.realPathSync(file.path);
-          // filter by dir
-          if (targetFile.startsWith(targetDir)) {
-            addFile(file.path);
-          }
-        }
-      }
-    }
-  } else {
+  const addDir = (dir: string) => {
     for (
       const walk of walkSync(
-        context.dir,
+        dir,
         { includeDirs: false, followSymlinks: true, skip: [/^_/] },
       )
     ) {
       addFile(walk.path);
     }
+  };
+
+  const renderFiles = context.metadata?.project?.render;
+  if (renderFiles) {
+    const outputDir = context.metadata?.project?.[kOutputDir];
+    const exclude = outputDir ? [outputDir] : [];
+    const resolved = resolvePathGlobs(context.dir, renderFiles, exclude);
+    (ld.difference(resolved.include, resolved.exclude) as string[])
+      .forEach((file) => {
+        if (Deno.statSync(file).isDirectory) {
+          addDir(file);
+        } else {
+          addFile(file);
+        }
+      });
+  } else {
+    addDir(context.dir);
   }
 
-  return ld.difference(ld.uniq(files), keepMdFiles) as string[];
+  const inputFiles = ld.difference(ld.uniq(files), keepMdFiles) as string[];
+
+  console.log(inputFiles);
+  Deno.exit(0);
+
+  return inputFiles;
 }
