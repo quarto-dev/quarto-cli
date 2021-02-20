@@ -163,17 +163,27 @@ knitr_hooks <- function(format) {
 
     # forward any other unknown attributes
     knitr_default_opts <- names(knitr::opts_chunk$get())
-    quarto_opts <- c("label","fig.cap","fig.subcap","fig.scap","fig.link","fig.align","fig.env","fig.pos","fig.num", "lst.cap", "lst.label")
-    other_opts <- c("eval", "out.width", "code", "params.src", "out.width.px", "out.height.px")
-    for (name in names(options)) {
-      if (!(name %in% c(knitr_default_opts, quarto_opts, other_opts))) {
-        val <- options[[name]]
-        if (!is.null(val)) {
-          forwardAttr <- c(forwardAttr, sprintf("%s='%s'", name, val))
-        }
-      } 
-    }
-
+    quarto_opts <- c("label","fig.cap","fig.subcap","fig.scap","fig.link",
+                     "fig.align","fig.env","fig.pos","fig.num", "lst.cap", 
+                     "lst.label")
+    other_opts <- c("eval", "out.width", "code", "params.src", 
+                    "out.width.px", "out.height.px")
+    known_opts <- c(knitr_default_opts, quarto_opts, other_opts)
+    unknown_opts <- setdiff(names(options), known_opts)
+    unknown_opts <- Filter(Negate(is.null), unknown_opts)
+    # json encode if necessary
+    unknown_values <- lapply(options[unknown_opts], 
+                             function(value) {
+                               if (!is.character(value) || length(value) > 1)
+                                 jsonlite::toJSON(value, auto_unbox = TRUE)
+                               else
+                                 value
+                            })
+    # append to forward list
+    forwardAttr <- c(forwardAttr, 
+                     sprintf("%s='%s'", unknown_opts, unknown_values))
+  
+    
     forwardAttr <- paste(forwardAttr, collapse = " ")
     if (nzchar(forwardAttr)) {
       forwardAttr <- paste0(" ", forwardAttr)
