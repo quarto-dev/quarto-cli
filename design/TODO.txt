@@ -23,7 +23,10 @@ HTML:
 Project:
   - Do files not listed in project: files: but in the directory still inherit the project metadata when rendered directly
 
+resource file discovery needs to look in raw html, referended css, etc.
+(we could do the css references in typescript)
 
+filter params need some "escaping" so they aren't interpreted as markdown (e.g. use an html comment)
 
 
 Could say that while there is *always* a lockfile, package installations
