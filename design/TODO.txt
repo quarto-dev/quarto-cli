@@ -1,4 +1,21 @@
 
+/*
+// parse any css resource files for additional resources
+  // https://deno.land/x/css@0.2.0
+  // see https://github.com/jgm/pandoc/blob/4f3434586743afb69f00ca91fe6ec9b68b39ae7e/src/Text/Pandoc/SelfContained.hs#L144
+  // @import:
+  //  - @import url("bluish.css") speech;
+  //  - @import "common.css" screen;
+  // @url - The url() CSS function is used to include a file. The parameter is an absolute URL, a relative URL, or a data URI.
+  const addCssResources = (file: string) => {
+    console.log(file);
+  };
+  resourceFiles
+    .filter((file) => extname(file).toLowerCase() === ".css")
+    .map(addCssResources);
+  */
+
+
 Charles:
 
  - rmd engine needs to forward all unknown chunk attributes (for filters/formats)
