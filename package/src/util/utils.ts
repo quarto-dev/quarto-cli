@@ -6,7 +6,7 @@ export function getEnv(name: string, defaultValue?: string) {
   const value = Deno.env.get(name);
   if (!value) {
     if (defaultValue === undefined) {
-    throw new Error("Missing environment variable: " + name);
+      throw new Error("Missing environment variable: " + name);
     } else {
       return defaultValue;
     }
@@ -27,11 +27,20 @@ export async function download(src: string, dest: string): Promise<void> {
   Deno.close(file.rid);
 }
 
-export async function unzip(zipFile: string, dest: string, log: Logger): Promise<CmdResult> {
+export async function unzip(
+  zipFile: string,
+  dest: string,
+  log: Logger,
+): Promise<CmdResult> {
   if (Deno.build.os === "windows") {
-    return runCmd("PowerShell", ["Expand-Archive", "-Path", zipFile, "-DestinationPath", dest], log);
+    return runCmd("PowerShell", [
+      "Expand-Archive",
+      "-Path",
+      zipFile,
+      "-DestinationPath",
+      dest,
+    ], log);
   } else {
     return runCmd("unzip", [zipFile, "-d", dest], log);
   }
 }
-

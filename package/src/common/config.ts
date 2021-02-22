@@ -50,8 +50,8 @@ export function readConfiguration(logLevel: number) {
     share,
     src,
     out,
-    bin
-  }
+    bin,
+  };
 
   const importmap = join(src, "import_map.json");
 

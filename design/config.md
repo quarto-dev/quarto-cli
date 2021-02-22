@@ -61,8 +61,8 @@ When we process the above, we need to divide into:
 2. --defaults Default file fields (known subset)
 3. --metadata-file (all the rest)
 
-Anything and everything can be format specific (we will merge unknown
-keys into the main metadata)
+Anything and everything can be format specific (we will merge unknown keys into
+the main metadata)
 
 Computation engine and/or the formats, receive a list with:
 
@@ -73,7 +73,7 @@ Multiple "instances" of a format are supported via "+"
 
 `_quarto.yml`
 
-- Look in current dir and parent dirs (until project: true)
-  and merge `_quarto.yml` into current document.
+- Look in current dir and parent dirs (until project: true) and merge
+  `_quarto.yml` into current document.
 
 quarto render --config myconfig.yml (merges _after_ user options)

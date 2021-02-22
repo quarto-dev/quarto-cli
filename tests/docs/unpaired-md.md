@@ -18,5 +18,4 @@ print("Hello World")
 ```
 
 ```python
-
 ```

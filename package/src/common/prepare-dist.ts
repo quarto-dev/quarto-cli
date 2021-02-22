@@ -13,15 +13,15 @@ import { buildFilter } from "./package-filters.ts";
 import { bundle } from "../util/deno.ts";
 import { Logger } from "../util/logger.ts";
 
-
 export async function prepareDist(
-  config: Configuration) {
+  config: Configuration,
+) {
   const log = config.log;
 
   // Move the supporting files into place
-  log.info("\nMoving supporting files")
+  log.info("\nMoving supporting files");
   supportingFiles(config, log);
-  log.info("")
+  log.info("");
 
   // Create the deno bundle
   const input = join(config.directoryInfo.src, "quarto.ts");
@@ -33,12 +33,12 @@ export async function prepareDist(
     output,
     config,
   );
-  log.info("")
+  log.info("");
 
   // Inline the LUA Filters and move them into place
-  log.info("\nCreating Inlined LUA Filters")
+  log.info("\nCreating Inlined LUA Filters");
   inlineFilters(config);
-  log.info("")
+  log.info("");
 }
 
 function supportingFiles(config: Configuration, log: Logger) {
@@ -60,10 +60,9 @@ function supportingFiles(config: Configuration, log: Logger) {
 
   // Gather supporting files
   filesToCopy.forEach((fileToCopy) => {
-
     const dir = dirname(fileToCopy.to);
     log.info(`Ensuring dir ${dir} exists`);
-    ensureDirSync(dir)
+    ensureDirSync(dir);
 
     log.info(`Copying ${fileToCopy.from} to ${fileToCopy.to}`);
     copySync(fileToCopy.from, fileToCopy.to, { overwrite: true });
@@ -72,9 +71,9 @@ function supportingFiles(config: Configuration, log: Logger) {
   // Cleanup the filters directory, which contains filter source that will be
   // compiled later
   const pathsToClean = [
-    join(config.directoryInfo.share, "filters")
+    join(config.directoryInfo.share, "filters"),
   ];
-  pathsToClean.forEach(path => Deno.removeSync(path, { recursive: true }));
+  pathsToClean.forEach((path) => Deno.removeSync(path, { recursive: true }));
 }
 
 function inlineFilters(config: Configuration) {

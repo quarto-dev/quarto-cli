@@ -12,14 +12,13 @@ import { parseLogLevel } from "../util/logger.ts";
 const kLogLevel = "logLevel";
 
 export function packageCommand(run: (config: Configuration) => void) {
+  return new Command().action((args) => {
+    const logLevel = args[kLogLevel];
+    const config = readConfiguration(parseLogLevel(logLevel));
+    config.log.info("Using configuration:");
+    config.log.info(config);
+    config.log.info("");
 
-    return new Command().action((args) => {
-        const logLevel = args[kLogLevel];
-        const config = readConfiguration(parseLogLevel(logLevel));
-        config.log.info("Using configuration:");
-        config.log.info(config);
-        config.log.info("");
-
-        run(config)
-    });
+    run(config);
+  });
 }

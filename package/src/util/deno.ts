@@ -34,8 +34,8 @@ export async function bundle(
 
 export async function compile(
   input: string,
-  configuration: Configuration) {
-
+  configuration: Configuration,
+) {
   const denoBundleCmd: string[] = [];
   denoBundleCmd.push(join(configuration.directoryInfo.bin, "deno"));
   denoBundleCmd.push("compile");
@@ -52,5 +52,4 @@ export async function compile(
   if (status.code !== 0) {
     throw Error("Failure to compile quarto.ts");
   }
-
 }

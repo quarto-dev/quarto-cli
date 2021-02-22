@@ -5,15 +5,13 @@
 *
 */
 
-
 // TODO: Could also consider moving the keychain work out of the github actions and into typescript
 // TODO: Confirm whether we should truly be signing the other, non deno, files
 // TODO: Configuration could be initialized with working dir and scripts dir so sub tasks can just use that directory (and have it cleaned up automatically)
 // TODO: Bundle and package Identifier - same or different?
 
-
 import { dirname, join } from "path/mod.ts";
-import { existsSync, ensureDirSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "fs/mod.ts";
 
 import { Configuration } from "../common/config.ts";
 import { Logger } from "../util/logger.ts";
@@ -29,12 +27,10 @@ export interface PackageInfo {
 }
 
 export async function makeInstallerMac(config: Configuration) {
-
   const packageName = `quarto-${config.version}-macos.pkg`;
   const unsignedPackageName = `quarto-${config.version}-unsigned-macos.pkg`;
   const packageIdentifier = "org.rstudio.quarto";
   const bundleIdentifier = "org.rstudio.quarto.cli";
-
 
   // Target package
   const unsignedPackagePath = join(
@@ -59,7 +55,12 @@ export async function makeInstallerMac(config: Configuration) {
   // Sign the deno executable
   if (signBinaries) {
     config.log.info("Signing binaries");
-    const entitlements = join(config.directoryInfo.pkg, "scripts", "macos", "entitlements.plist");
+    const entitlements = join(
+      config.directoryInfo.pkg,
+      "scripts",
+      "macos",
+      "entitlements.plist",
+    );
     const deno = join(config.directoryInfo.bin, "deno");
     await signCode(applicationDevId, deno, config.log, entitlements);
 
@@ -80,19 +81,24 @@ export async function makeInstallerMac(config: Configuration) {
     "--scripts",
     scriptDir,
     "--install-location",
-    '/Library/Quarto',
+    "/Library/Quarto",
   ];
   await runCmd(
     "pkgbuild",
     [
-      "--root", config.directoryInfo.dist,
-      "--identifier", packageIdentifier,
-      "--version", config.version,
+      "--root",
+      config.directoryInfo.dist,
+      "--identifier",
+      packageIdentifier,
+      "--version",
+      config.version,
       ...packageArgs,
-      "--ownership", "recommended",
-      unsignedPackagePath
+      "--ownership",
+      "recommended",
+      unsignedPackagePath,
     ],
-    config.log);
+    config.log,
+  );
 
   // The application cert developer Id
   const installerDevId = getEnv("QUARTO_APPLE_INST_DEV_ID", "");
@@ -102,7 +108,12 @@ export async function makeInstallerMac(config: Configuration) {
     config.log.info("Signing file");
     config.log.info(unsignedPackagePath);
 
-    await signPackage(installerDevId, unsignedPackagePath, signedPackage, config.log);
+    await signPackage(
+      installerDevId,
+      unsignedPackagePath,
+      signedPackage,
+      config.log,
+    );
     config.log.info("Cleaning unsigned file");
     Deno.removeSync(unsignedPackagePath);
 
@@ -110,7 +121,13 @@ export async function makeInstallerMac(config: Configuration) {
     const username = getEnv("QUARTO_APPLE_CONNECT_UN", "");
     const password = getEnv("QUARTO_APPLE_CONNECT_PW", "");
     if (username.length > 0 && password.length > 0) {
-      const requestId = await submitNotary(signedPackage, bundleIdentifier, username, password, config.log);
+      const requestId = await submitNotary(
+        signedPackage,
+        bundleIdentifier,
+        username,
+        password,
+        config.log,
+      );
 
       // This will succeed or throw
       await waitForNotaryStatus(requestId, username, password, config.log);
@@ -125,24 +142,33 @@ export async function makeInstallerMac(config: Configuration) {
   }
 }
 
-async function signPackage(developerId: string, input: string, output: string, log: Logger) {
+async function signPackage(
+  developerId: string,
+  input: string,
+  output: string,
+  log: Logger,
+) {
   await runCmd(
     "productsign",
-    ["--sign",
-      developerId,
-      "--timestamp",
-      input,
-      output],
-    log
+    ["--sign", developerId, "--timestamp", input, output],
+    log,
   );
 }
 
-async function signCode(developerId: string, input: string, log: Logger, entitlements?: string) {
-  const args = ["-s", developerId,
+async function signCode(
+  developerId: string,
+  input: string,
+  log: Logger,
+  entitlements?: string,
+) {
+  const args = [
+    "-s",
+    developerId,
     "--timestamp",
     "--options=runtime",
     "--force",
-    "--deep"];
+    "--deep",
+  ];
   if (entitlements) {
     args.push("--entitlements");
     args.push(entitlements);
@@ -150,24 +176,34 @@ async function signCode(developerId: string, input: string, log: Logger, entitle
 
   await runCmd(
     "codesign",
-    [...args,
-      input],
-    log
+    [...args, input],
+    log,
   );
 }
 
-async function submitNotary(input: string, bundleId: string, username: string, password: string, log: Logger) {
+async function submitNotary(
+  input: string,
+  bundleId: string,
+  username: string,
+  password: string,
+  log: Logger,
+) {
   const result = await runCmd(
     "xcrun",
-    ["altool",
+    [
+      "altool",
       "--notarize-app",
-      "--primary-bundle-id", bundleId,
-      "--username", username,
-      "--password", password,
-      "--file", input
+      "--primary-bundle-id",
+      bundleId,
+      "--username",
+      username,
+      "--password",
+      password,
+      "--file",
+      input,
     ],
-    log
-  )
+    log,
+  );
   const match = result.stdout.match(/RequestUUID = (.*)/);
   if (match) {
     const requestId = match[1];
@@ -177,17 +213,26 @@ async function submitNotary(input: string, bundleId: string, username: string, p
   }
 }
 
-async function waitForNotaryStatus(requestId: string, username: string, password: string, log: Logger) {
+async function waitForNotaryStatus(
+  requestId: string,
+  username: string,
+  password: string,
+  log: Logger,
+) {
   let notaryResult = undefined;
   while (notaryResult == undefined) {
     const result = await runCmd(
       "xcrun",
-      ["altool",
-        "--notarization-info", requestId,
-        "--username", username,
-        "--password", password,
+      [
+        "altool",
+        "--notarization-info",
+        requestId,
+        "--username",
+        username,
+        "--password",
+        password,
       ],
-      log
+      log,
     );
 
     const match = result.stdout.match(/Status: (.*)\n/);
@@ -210,8 +255,7 @@ async function waitForNotaryStatus(requestId: string, username: string, password
 async function stapleNotary(input: string, log: Logger) {
   await runCmd(
     "xcrun",
-    ["stapler",
-      "staple", input],
-    log
+    ["stapler", "staple", input],
+    log,
   );
 }

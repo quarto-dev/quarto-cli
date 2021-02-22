@@ -11,17 +11,18 @@ import { Configuration } from "../common/config.ts";
 import { runCmd } from "../util/cmd.ts";
 
 export async function makeInstallerDeb(
-  configuration: Configuration
+  configuration: Configuration,
 ) {
   const log = configuration.log;
   log.info("Building deb package...");
 
   // detect packaging machine architecture
   const result = await runCmd("dpkg-architecture", ["-qDEB_BUILD_ARCH"], log);
-  const architecture = (result.status.code === 0 ? result.stdout.trim() : undefined);
+  const architecture =
+    (result.status.code === 0 ? result.stdout.trim() : undefined);
   if (!architecture) {
-    log.error("Can't detect package architecture.")
-    throw new Error("Undetectable architecture. Packaging failed.")
+    log.error("Can't detect package architecture.");
+    throw new Error("Undetectable architecture. Packaging failed.");
   }
   const packageName = `quarto-${configuration.version}-${architecture}.deb`;
   log.info("Building package " + packageName);
@@ -33,13 +34,27 @@ export async function makeInstallerDeb(
   emptyDirSync(workingDir);
 
   // Copy bin into the proper path in working dir
-  const workingBinPath = join(workingDir, "opt", configuration.productName.toLowerCase(), "bin");
+  const workingBinPath = join(
+    workingDir,
+    "opt",
+    configuration.productName.toLowerCase(),
+    "bin",
+  );
   log.info(`Preparing bin directory ${workingBinPath}`);
-  copySync(configuration.directoryInfo.bin, workingBinPath, { overwrite: true });
+  copySync(configuration.directoryInfo.bin, workingBinPath, {
+    overwrite: true,
+  });
 
-  const workingSharePath = join(workingDir, "opt", configuration.productName.toLowerCase(), "share");
+  const workingSharePath = join(
+    workingDir,
+    "opt",
+    configuration.productName.toLowerCase(),
+    "share",
+  );
   log.info(`Preparing share directory ${workingSharePath}`);
-  copySync(configuration.directoryInfo.share, workingSharePath, { overwrite: true });
+  copySync(configuration.directoryInfo.share, workingSharePath, {
+    overwrite: true,
+  });
 
   const val = (name: string, value: string): string => {
     return `${name}: ${value}\n`;
@@ -52,7 +67,9 @@ export async function makeInstallerDeb(
       fileSizes.push((await Deno.stat(entry.path)).size);
     }
   }
-  const size = fileSizes.reduce((accum, target) => { return accum + target; });
+  const size = fileSizes.reduce((accum, target) => {
+    return accum + target;
+  });
   const url = "https://github.com/quarto-dev/quarto-cli";
   // Make the control file
   log.info("Creating control file");
@@ -72,8 +89,7 @@ export async function makeInstallerDeb(
     );
   log.info(control);
 
-
-  // Place 
+  // Place
   const debianDir = join(workingDir, "DEBIAN");
   ensureDirSync(debianDir);
 
@@ -83,29 +99,35 @@ export async function makeInstallerDeb(
   // Generate and write a copyright file
   log.info("Creating copyright file");
   const copyrightLines = [];
-  copyrightLines.push("Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/");
+  copyrightLines.push(
+    "Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/",
+  );
   copyrightLines.push("Upstream-Name: Quarto");
-  copyrightLines.push(`Source: ${url}`)
+  copyrightLines.push(`Source: ${url}`);
   copyrightLines.push("");
   copyrightLines.push("Files: *");
   copyrightLines.push("Copyright: RStudio, PBC.");
-  copyrightLines.push("License: GPL-2+");  
+  copyrightLines.push("License: GPL-2+");
   const copyrightText = copyrightLines.join("\n");
   Deno.writeTextFileSync(join(debianDir, "copyright"), copyrightText);
 
   // copy the install scripts
-  log.info("Copying install scripts...")
-  copySync(join(configuration.directoryInfo.pkg, "scripts", "linux", "deb"), debianDir, { overwrite: true });
+  log.info("Copying install scripts...");
+  copySync(
+    join(configuration.directoryInfo.pkg, "scripts", "linux", "deb"),
+    debianDir,
+    { overwrite: true },
+  );
 
-  await runCmd("dpkg-deb",
-    [
-      "-Z", "gzip",
-      "-z", "9",
-      "--build",
-      workingDir,
-      join(configuration.directoryInfo.out, packageName)
-    ],
-    log);
+  await runCmd("dpkg-deb", [
+    "-Z",
+    "gzip",
+    "-z",
+    "9",
+    "--build",
+    workingDir,
+    join(configuration.directoryInfo.out, packageName),
+  ], log);
 
   // Remove the working directory
   // Deno.removeSync(workingDir, { recursive: true });
