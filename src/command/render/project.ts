@@ -38,14 +38,14 @@ import {
   ProjectContext,
 } from "../../config/project.ts";
 
-import { renderFiles, RenderOptions } from "./render.ts";
+import { renderFiles, RenderOptions, RenderResults } from "./render.ts";
 import { resolvePathGlobs } from "../../core/path.ts";
 
 export async function renderProject(
   context: ProjectContext,
   files: string[],
   options: RenderOptions,
-) {
+): Promise<RenderResults> {
   // get real path to the project
   const projDir = Deno.realPathSync(context.dir);
 
@@ -68,29 +68,47 @@ export async function renderProject(
     const fileResults = await renderFiles(files, options, context);
 
     // move to the output directory if we have one
-    let outputDir = context.metadata?.project?.[kOutputDir];
+    const outputDir = context.metadata?.project?.[kOutputDir];
 
     if (outputDir) {
       // resolve output dir and ensure that it exists
-      outputDir = join(projDir, outputDir);
-      ensureDirSync(outputDir);
-      outputDir = Deno.realPathSync(outputDir);
+      let realOutputDir = join(projDir, outputDir);
+      ensureDirSync(realOutputDir);
+      realOutputDir = Deno.realPathSync(realOutputDir);
 
       // move results to output_dir
-      Object.values(fileResults).forEach((results) => {
+      Object.keys(fileResults).forEach((format) => {
+        const results = fileResults[format];
+
         for (const result of results) {
-          const outputFile = join(outputDir!, result.file);
+          const outputFile = join(realOutputDir, result.file);
           ensureDirSync(dirname(outputFile));
           Deno.renameSync(join(projDir, result.file), outputFile);
+
           if (result.filesDir) {
-            const targetDir = join(outputDir!, result.filesDir);
-            if (existsSync(targetDir)) {
-              Deno.removeSync(targetDir, { recursive: true });
+            const filesDir = join(realOutputDir, result.filesDir);
+            if (existsSync(filesDir)) {
+              Deno.removeSync(filesDir, { recursive: true });
             }
-            Deno.renameSync(join(projDir, result.filesDir), targetDir);
+            Deno.renameSync(
+              join(projDir, result.filesDir),
+              filesDir,
+            );
           }
         }
       });
+
+      return {
+        baseDir: context.dir,
+        outputDir: outputDir,
+        results: fileResults,
+      };
+    } else {
+      return {
+        baseDir: context.dir,
+        outputDir,
+        results: fileResults,
+      };
     }
   } finally {
     Deno.env.delete("QUARTO_PROJECT_DIR");

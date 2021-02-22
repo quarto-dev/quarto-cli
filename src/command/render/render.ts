@@ -8,7 +8,6 @@
 import { existsSync } from "fs/mod.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 
-import { message } from "../../core/console.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { sessionTempDir } from "../../core/temp.ts";
@@ -40,12 +39,7 @@ import {
 } from "../../execute/engine.ts";
 
 import { pandocMetadataPath, PandocOptions, runPandoc } from "./pandoc.ts";
-import {
-  kStdOut,
-  removePandocToArg,
-  RenderFlags,
-  resolveParams,
-} from "./flags.ts";
+import { removePandocToArg, RenderFlags, resolveParams } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
 import { ProjectContext, projectContext } from "../../config/project.ts";
@@ -67,35 +61,46 @@ export interface RenderContext {
 }
 
 export interface RenderResult {
+  input: string;
   file: string;
   filesDir?: string;
   resourceFiles: string[];
 }
 
+export interface RenderResults {
+  baseDir?: string;
+  outputDir?: string;
+  results: Record<string, RenderResult[]>;
+}
+
 export async function render(
   path: string,
   options: RenderOptions,
-) {
+): Promise<RenderResults> {
   // determine target context/files
   const context = projectContext(path);
 
   if (Deno.statSync(path).isDirectory) {
     // all directories are considered projects
-    await renderProject(context, projectInputFiles(context), options);
+    return await renderProject(context, projectInputFiles(context), options);
   } else if (context.metadata) {
     // if there is a project file then treat this as a project render
     // if the passed file is in the render list
     const projFiles = projectInputFiles(context);
     const renderPath = Deno.realPathSync(path);
     if (projFiles.map((file) => Deno.realPathSync(file)).includes(renderPath)) {
-      await renderProject(context, [path], options);
+      return await renderProject(context, [path], options);
     } else {
       // otherwise it's just a file render
-      await renderFiles([path], options);
+      return {
+        results: await renderFiles([path], options),
+      };
     }
   } else {
     // not a directory and not a file with a _quarto project parent
-    await renderFiles([path], options);
+    return {
+      results: await renderFiles([path], options),
+    };
   }
 }
 
@@ -144,15 +149,11 @@ export async function renderFiles(
       };
 
       fileResults.push({
+        input: projectPath(file),
         file: projectPath(pandocResult.finalOutput),
         filesDir: filesDir ? projectPath(filesDir) : undefined,
         resourceFiles: pandocResult.resourceFiles,
       });
-
-      // report output created
-      if (!options.flags?.quiet && options.flags?.output !== kStdOut) {
-        message("Output created: " + pandocResult.finalOutput + "\n");
-      }
     }
 
     results[file] = fileResults;

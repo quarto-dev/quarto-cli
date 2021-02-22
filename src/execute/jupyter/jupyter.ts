@@ -279,7 +279,7 @@ export const jupyterEngine: ExecutionEngine = {
     };
   },
 
-  dependencies: async (options: DependenciesOptions) => {
+  dependencies: (options: DependenciesOptions) => {
     const pandoc: FormatPandoc = {};
     if (options.dependencies) {
       const includeFiles = includesForJupyterWidgetDependencies(
@@ -288,12 +288,12 @@ export const jupyterEngine: ExecutionEngine = {
       pandoc[kIncludeInHeader] = includeFiles.inHeader;
       pandoc[kIncludeAfterBody] = includeFiles.afterBody;
     }
-    return {
+    return Promise.resolve({
       pandoc,
-    };
+    });
   },
 
-  postprocess: async (options: PostProcessOptions) => {
+  postprocess: (options: PostProcessOptions) => {
     // read the output file
     let output = Deno.readTextFileSync(options.output);
 
@@ -305,6 +305,8 @@ export const jupyterEngine: ExecutionEngine = {
 
     // re-write the output
     Deno.writeTextFileSync(options.output, output);
+
+    return Promise.resolve();
   },
 
   keepMd: (input: string) => {

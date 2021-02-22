@@ -5,14 +5,18 @@
 *
 */
 
-import { relative } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { fixupPandocArgs, parseRenderFlags } from "./flags.ts";
+import { message } from "../../core/console.ts";
 
-import { render } from "./render.ts";
+import { isHtmlOutput } from "../../config/format.ts";
+
+import { fixupPandocArgs, kStdOut, parseRenderFlags } from "./flags.ts";
+
+import { render, RenderResults } from "./render.ts";
 
 export const renderCommand = new Command()
   .name("render")
@@ -112,15 +116,50 @@ export const renderCommand = new Command()
     args = fixupPandocArgs(args, flags);
 
     // run render on input files
-    let rendered = false;
+
+    let renderResults: RenderResults | undefined;
     for (const input of inputs) {
       for (const walk of expandGlobSync(input)) {
         const input = relative(Deno.cwd(), walk.path) || ".";
-        rendered = true;
-        await render(input, { flags, pandocArgs: args });
+        renderResults = await render(input, { flags, pandocArgs: args });
       }
     }
-    if (!rendered) {
+    if (renderResults) {
+      // report output created
+      if (!options.flags?.quiet && options.flags?.output !== kStdOut) {
+        message("Output created: " + finalOutput(renderResults) + "\n");
+      }
+    } else {
       throw new Error(`No valid input files passed to render`);
     }
   });
+
+function finalOutput(renderResults: RenderResults) {
+  // determine final output
+  const formats = Object.keys(renderResults.results);
+  const format = formats.find((fmt) => isHtmlOutput(fmt)) || formats[0];
+  const results = renderResults.results[format];
+  const result =
+    (results.find((result) => result.file === "index.html") || results[0]);
+
+  let finalInput = result.input;
+  let finalOutput = result.file;
+
+  if (renderResults.baseDir) {
+    finalInput = join(renderResults.baseDir, finalInput);
+    if (renderResults.outputDir) {
+      finalOutput = join(
+        renderResults.baseDir,
+        renderResults.outputDir,
+        finalOutput,
+      );
+    } else {
+      finalOutput = join(renderResults.baseDir, finalOutput);
+    }
+  }
+
+  // return a path relative to the input file
+  const inputRealPath = Deno.realPathSync(finalInput);
+  const outputRealPath = Deno.realPathSync(finalOutput);
+  return relative(dirname(inputRealPath), outputRealPath);
+}
