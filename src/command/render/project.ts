@@ -174,23 +174,19 @@ export async function renderProject(
 
 function copyResourceFile(srcFile: string, destFile: string) {
   ensureDirSync(dirname(destFile));
-
-  if (extname(srcFile).toLowerCase() === ".css") {
-    copyCssResourceFile(srcFile, destFile);
-  } else {
-    copyFilePreserved(srcFile, destFile);
-  }
-}
-
-function copyCssResourceFile(srcFile: string, destFile: string) {
-  copyFilePreserved(srcFile, destFile);
-}
-
-function copyFilePreserved(srcFile: string, destFile: string) {
   copySync(srcFile, destFile, {
     overwrite: true,
     preserveTimestamps: true,
   });
+
+  if (extname(srcFile).toLowerCase() === ".css") {
+    handleCssReferences(srcFile, destFile);
+  }
+}
+
+// fixup root ('/') css references and also copy references to other
+// stylesheet or resources (e.g. images) to alongside the destFile
+function handleCssReferences(srcFile: string, destFile: string) {
 }
 
 export function projectInputFiles(context: ProjectContext) {
