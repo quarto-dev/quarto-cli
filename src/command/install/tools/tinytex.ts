@@ -98,7 +98,7 @@ async function installedVersion() {
   if (installDir) {
     const versionFile = join(installDir, kVersionFileName);
     if (existsSync(versionFile)) {
-      return Deno.readTextFile(versionFile);
+      return await Deno.readTextFile(versionFile);
     }
   }
 }

@@ -86,8 +86,9 @@ export async function outputRecipe(
       output,
       args: options.pandocArgs || [],
       format: { ...format },
-      complete: async (): Promise<string | void> => {
+      complete: (): Promise<string | void> => {
         completeActions.forEach((action) => action());
+        return Promise.resolve();
       },
     };
 

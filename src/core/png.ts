@@ -100,13 +100,13 @@ class PngChunk {
   }
 
   private getLength(bytes: Uint8Array): number {
-    const length_bytes: Uint8Array = bytes.slice(0, 4);
-    return bytesToUint32(length_bytes);
+    const lengthBytes: Uint8Array = bytes.slice(0, 4);
+    return bytesToUint32(lengthBytes);
   }
 
   private getType(bytes: Uint8Array): string {
-    const type_byte: Uint8Array = bytes.slice(4, 8);
-    return (new TextDecoder("ascii")).decode(type_byte);
+    const typeByte: Uint8Array = bytes.slice(4, 8);
+    return (new TextDecoder("ascii")).decode(typeByte);
   }
 
   private getData(bytes: Uint8Array): Uint8Array {

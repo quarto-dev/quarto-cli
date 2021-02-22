@@ -161,7 +161,12 @@ export function isLatexOutput(format: FormatPandoc) {
   return ["pdf", "latex", "beamer"].includes(format.to || "");
 }
 
-export function isHtmlOutput(format: FormatPandoc) {
+export function isHtmlOutput(format: string): boolean;
+export function isHtmlOutput(format: FormatPandoc): boolean;
+export function isHtmlOutput(format?: string | FormatPandoc): boolean {
+  if (typeof (format) !== "string") {
+    format = format?.to;
+  }
   return [
     "html",
     "html4",
@@ -174,7 +179,7 @@ export function isHtmlOutput(format: FormatPandoc) {
     "epub",
     "epub2",
     "epub3",
-  ].includes(format.to || "html");
+  ].includes(format || "html");
 }
 
 export function isMarkdownOutput(format: FormatPandoc) {

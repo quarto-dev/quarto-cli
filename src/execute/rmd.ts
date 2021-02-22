@@ -40,8 +40,8 @@ export const rmdEngine: ExecutionEngine = {
     return kEngineExtensions.includes(extname(file).toLowerCase());
   },
 
-  target: async (file: string, quiet?: boolean) => {
-    return { source: file, input: file };
+  target: (file: string, quiet?: boolean) => {
+    return Promise.resolve({ source: file, input: file });
   },
 
   metadata: async (target: ExecutionTarget): Promise<Metadata> => {
@@ -61,7 +61,7 @@ export const rmdEngine: ExecutionEngine = {
     }
   },
 
-  execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
+  execute: (options: ExecuteOptions): Promise<ExecuteResult> => {
     return callR<ExecuteResult>(
       "execute",
       options,
@@ -69,7 +69,7 @@ export const rmdEngine: ExecutionEngine = {
     );
   },
 
-  dependencies: async (options: DependenciesOptions) => {
+  dependencies: (options: DependenciesOptions) => {
     return callR<DependenciesResult>(
       "dependencies",
       options,
@@ -77,7 +77,7 @@ export const rmdEngine: ExecutionEngine = {
     );
   },
 
-  postprocess: async (options: PostProcessOptions) => {
+  postprocess: (options: PostProcessOptions) => {
     return callR<void>(
       "postprocess",
       options,

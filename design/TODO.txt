@@ -1,4 +1,5 @@
 
+
 /*
 // parse any css resource files for additional resources
   // https://deno.land/x/css@0.2.0
@@ -6,6 +7,14 @@
   // @import:
   //  - @import url("bluish.css") speech;
   //  - @import "common.css" screen;
+  
+  @import 'custom.css';
+  @import url("chrome://communicator/skin/");
+
+  <css_property>: url("https://example.com/image.png")
+  <css_property>: url('https://example.com/image.png')
+  <css_property>: url(https://example.com/image.png)
+
   // @url - The url() CSS function is used to include a file. The parameter is an absolute URL, a relative URL, or a data URI.
   const addCssResources = (file: string) => {
     console.log(file);
@@ -14,6 +23,16 @@
     .filter((file) => extname(file).toLowerCase() === ".css")
     .map(addCssResources);
   */
+
+
+//  Websites:
+//    - Navigation
+//    - sitemap.xml
+//    - search
+
+
+TODO: generalized warning system (look for 'WARNING:')
+
 
 
 Charles:

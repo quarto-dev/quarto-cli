@@ -5,6 +5,8 @@
 *
 */
 
+// deno-lint-ignore-file camelcase
+
 import { Format, FormatPandoc } from "../config/format.ts";
 import { Metadata } from "../config/metadata.ts";
 
