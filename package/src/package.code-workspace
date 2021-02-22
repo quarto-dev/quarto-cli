@@ -5,10 +5,14 @@
 		}
 	],
 	"settings": {
+		"editor.tabSize": 2,
+		"debug.javascript.unmapMissingSources": true,
+		"julia.format.indent": 2,
+		"julia.format.indents": false,
+		"deno.importMap": "./src/import_map.json",
 		"deno.lint": true,
 		"deno.enable": true,
-		"deno.unstable": true,
-		"deno.import_map": "import_map.json"
+		"deno.unstable": true
 	},
 	"extensions": {
 		"recommendations": [
