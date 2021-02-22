@@ -270,7 +270,7 @@ async function uninstall(context: InstallContext) {
   }
 }
 
-async function exec(path: string, cmd: string[]) {
+function exec(path: string, cmd: string[]) {
   return execProcess({ cmd: [path, ...cmd], stdout: "piped" });
 }
 
@@ -281,7 +281,7 @@ function textLiveRepo(): string {
   return kDefaultRepos[randomInt];
 }
 
-function tinyTexInstallDir(): string | undefined {
+export function tinyTexInstallDir(): string | undefined {
   switch (Deno.build.os) {
     case "windows":
       return expandPath(join(getenv("APPDATA", undefined), "TinyTeX"));

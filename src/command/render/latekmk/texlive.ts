@@ -101,7 +101,7 @@ export async function findPackages(
 // Update TexLive.
 // all = update installed packages
 // self = update TexLive (tlmgr) itself
-export async function updatePackages(
+export function updatePackages(
   all: boolean,
   self: boolean,
   opts?: string[],
@@ -154,7 +154,7 @@ export async function installPackages(
 }
 
 // Add Symlinks for TexLive executables
-async function addPath(opts?: string[]) {
+function addPath(opts?: string[]) {
   // Add symlinks for executables, man pages,
   // and info pages in the system directories
   //
@@ -164,7 +164,7 @@ async function addPath(opts?: string[]) {
 }
 
 // Remove Symlinks for TexLive executables and commands
-export async function removePath(opts?: string[], quiet?: boolean) {
+export function removePath(opts?: string[], quiet?: boolean) {
   return tlmgrCommand("path", ["remove", ...(opts || [])], quiet);
 }
 
