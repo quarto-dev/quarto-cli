@@ -37,8 +37,11 @@ TODO: generalized warning system (look for 'WARNING:')
 
 Charles:
 
- - rmd engine needs to forward all unknown chunk attributes (for filters/formats)
-  (all non knitr default chunk options, non quarto options, forwarded on the outer cell (jupyter already does this))
+- Path issue when trying to use tinytex with Quarto sandbox (Christophe email)
+
+- Need to output more granular information with quarto --version 
+   - automate version generation similar to releases (w.incrementing section)
+
 
 -  Layout:
     - LaTeX widths. Anywhere you have a space in a column use % 
