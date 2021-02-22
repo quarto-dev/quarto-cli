@@ -26,7 +26,7 @@
 //    - search
 
 import { copySync, ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, extname, join, relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
@@ -155,11 +155,7 @@ export async function renderProject(
         const sourcePath = relative(projDir, file);
         if (existsSync(file)) {
           const destPath = join(realOutputDir, sourcePath);
-          ensureDirSync(dirname(destPath));
-          copySync(file, destPath, {
-            overwrite: true,
-            preserveTimestamps: true,
-          });
+          copyResourceFile(file, destPath);
         } else {
           message(`WARNING: File '${sourcePath}' was not found.`);
         }
@@ -174,6 +170,27 @@ export async function renderProject(
   } finally {
     Deno.env.delete("QUARTO_PROJECT_DIR");
   }
+}
+
+function copyResourceFile(srcFile: string, destFile: string) {
+  ensureDirSync(dirname(destFile));
+
+  if (extname(srcFile).toLowerCase() === ".css") {
+    copyCssResourceFile(srcFile, destFile);
+  } else {
+    copyFilePreserved(srcFile, destFile);
+  }
+}
+
+function copyCssResourceFile(srcFile: string, destFile: string) {
+  copyFilePreserved(srcFile, destFile);
+}
+
+function copyFilePreserved(srcFile: string, destFile: string) {
+  copySync(srcFile, destFile, {
+    overwrite: true,
+    preserveTimestamps: true,
+  });
 }
 
 export function projectInputFiles(context: ProjectContext) {
