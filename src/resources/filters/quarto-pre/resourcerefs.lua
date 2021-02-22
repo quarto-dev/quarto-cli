@@ -26,22 +26,18 @@ function resourceRefs()
       return el
     end,
 
-    RawInline = handleHtmlRefs,
-    RawBlock = handleHtmlRefs,
-  
+    RawInline = handleRawElement,
+    RawBlock = handleRawElement,
   }
- 
 end
 
-function handleHtmlRefs(el)
+function handleRawElement(el)
   if isRawHtml(el) then
     local projOffset = projectOffset()
-    if projOffset ~= nil then
-      el.text = fixHtmlRefs(el.text, projOffset, "a", "href")
-      el.text = fixHtmlRefs(el.text, projOffset, "img", "src")
-      el.text = fixHtmlRefs(el.text, projOffset, "link", "href")
-      return el
-    end
+    el.text = handleHtmlRefs(el.text, projOffset, "a", "href")
+    el.text = handleHtmlRefs(el.text, projOffset, "img", "src")
+    el.text = handleHtmlRefs(el.text, projOffset, "link", "href")
+    return el
   end
 end
 
@@ -61,8 +57,19 @@ function projectOffset()
   end
 end
 
-function fixHtmlRefs(text, projOffset, tag, attrib)
-  return text:gsub("(<" .. tag .. " [^>]*)(" .. attrib .. "%s*=%s*\"/)", "%1" .. attrib .. "=\"" .. projOffset .. "/")
+function handleHtmlRefs(text, projOffset, tag, attrib)
+  -- relative offset to project root if necessary
+  if projOffset ~= nil then
+    text = text:gsub("(<" .. tag .. " [^>]*)(" .. attrib .. "%s*=%s*\"/)", "%1" .. attrib .. "=\"" .. projOffset .. "/")
+  end
+  
+  -- discover and record resource refs
+  for ref in string.gmatch(text, "<" .. tag .. " [^>]*" .. attrib .. "%s*=%s*\"([^\"]+)\"") do
+    recordFileResource(ref)
+  end
+  
+  -- return potentially modified text
+  return text
 end
 
 function recordFileResource(res)
@@ -70,3 +77,5 @@ function recordFileResource(res)
     preState.results.resourceFiles:insert(res)
   end
 end
+
+
