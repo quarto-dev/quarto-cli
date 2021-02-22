@@ -7,14 +7,16 @@
 
 import { ld } from "lodash/mod.ts";
 
+import { existsSync } from "fs/mod.ts";
+
 import { stringify } from "encoding/yaml.ts";
 
-import { execProcess, ProcessResult } from "../../core/process.ts";
+import { execProcess } from "../../core/process.ts";
 import { message } from "../../core/console.ts";
 
-import { Format, FormatExtras, FormatPandoc } from "../../config/format.ts";
+import { Format, FormatPandoc } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
-import { binaryPath, resourcePath } from "../../core/resources.ts";
+import { binaryPath } from "../../core/resources.ts";
 
 import { RenderFlags } from "./flags.ts";
 import {
@@ -24,14 +26,12 @@ import {
 } from "./defaults.ts";
 import { removeFilterParmas, setFilterParams } from "./filters.ts";
 import {
-  kFilters,
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
   kVariables,
 } from "../../config/constants.ts";
 import { sessionTempFile } from "../../core/temp.ts";
-import { existsSync } from "https://deno.land/std@0.80.0/fs/exists.ts";
 import { kResourceFiles } from "../../config/project.ts";
 
 // options required to run pandoc
