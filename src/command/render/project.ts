@@ -5,26 +5,6 @@
 *
 */
 
-// Execution/Paths:
-
-//  Output:
-//  - Auto-detect references to static resources (links, img[src], raw HTML refs including CSS) and copy them
-//  - Project type can include resource-files patterns (e.g. *.css)
-//  - Explicit resource files
-//  resource-files: (also at project level)
-//    **/*.xls (implicit ** unless '/')
-//
-//    /*.xls
-//
-//    - negation: we expand the negation and then remove those files from the existing list
-//    - !secret.css
-//    - resume.pdf
-
-//  Websites:
-//    - Navigation
-//    - sitemap.xml
-//    - search
-
 import { copySync, ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
 import { dirname, extname, join, relative } from "path/mod.ts";
 

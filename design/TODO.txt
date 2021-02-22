@@ -1,5 +1,4 @@
 
-TODO: generalized warning system (look for 'WARNING:')
 
 /*
 // parse any css resource files for additional resources
@@ -24,6 +23,16 @@ TODO: generalized warning system (look for 'WARNING:')
     .filter((file) => extname(file).toLowerCase() === ".css")
     .map(addCssResources);
   */
+
+
+//  Websites:
+//    - Navigation
+//    - sitemap.xml
+//    - search
+
+
+TODO: generalized warning system (look for 'WARNING:')
+
 
 
 Charles:
