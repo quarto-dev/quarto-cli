@@ -98,7 +98,7 @@ async function installedVersion() {
   if (installDir) {
     const versionFile = join(installDir, kVersionFileName);
     if (existsSync(versionFile)) {
-      return Deno.readTextFile(versionFile);
+      return await Deno.readTextFile(versionFile);
     }
   }
 }
@@ -270,7 +270,7 @@ async function uninstall(context: InstallContext) {
   }
 }
 
-async function exec(path: string, cmd: string[]) {
+function exec(path: string, cmd: string[]) {
   return execProcess({ cmd: [path, ...cmd], stdout: "piped" });
 }
 

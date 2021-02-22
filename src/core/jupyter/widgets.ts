@@ -5,6 +5,8 @@
 *
 */
 
+// deno-lint-ignore-file camelcase
+
 import { mergeConfigs } from "../config.ts";
 import {
   kApplicationJavascript,

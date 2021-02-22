@@ -29,13 +29,13 @@ export const markdownEngine: ExecutionEngine = {
     return kMarkdownExtensions.includes(extname(file).toLowerCase());
   },
 
-  target: async (file: string) => {
-    return { source: file, input: file };
+  target: (file: string) => {
+    return Promise.resolve({ source: file, input: file });
   },
 
   metadata: (context: ExecutionTarget) =>
     Promise.resolve(readYamlFromMarkdownFile(context.input) as Metadata),
-  execute: async (options: ExecuteOptions) => {
+  execute: (options: ExecuteOptions) => {
     // read markdown
     const markdown = Deno.readTextFileSync(options.target.input);
 
@@ -46,10 +46,10 @@ export const markdownEngine: ExecutionEngine = {
       pandoc: {} as FormatPandoc,
     });
   },
-  dependencies: async (_options: DependenciesOptions) => {
-    return {
+  dependencies: (_options: DependenciesOptions) => {
+    return Promise.resolve({
       pandoc: {},
-    };
+    });
   },
   postprocess: (_options: PostProcessOptions) => Promise.resolve(),
   keepMd: (_input: string) => undefined,

@@ -5,6 +5,8 @@
 *
 */
 
+// deno-lint-ignore-file camelcase
+
 import { basename, join } from "path/mod.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
 

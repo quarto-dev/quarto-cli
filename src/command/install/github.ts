@@ -5,6 +5,8 @@
 *
 */
 
+// deno-lint-ignore-file camelcase
+
 // A Github Release for a Github Repo
 export interface GitHubRelease {
   html_url: string;
