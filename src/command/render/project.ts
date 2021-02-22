@@ -25,21 +25,24 @@
 //    - sitemap.xml
 //    - search
 
-import { ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
-import { dirname, join } from "path/mod.ts";
+import { copySync, ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
+
+import { resolvePathGlobs } from "../../core/path.ts";
+import { message } from "../../core/console.ts";
 
 import { executionEngine } from "../../execute/engine.ts";
 
 import {
   kExecuteDir,
   kOutputDir,
+  kResourceFiles,
   ProjectContext,
 } from "../../config/project.ts";
 
 import { renderFiles, RenderOptions, RenderResults } from "./render.ts";
-import { resolvePathGlobs } from "../../core/path.ts";
 
 export async function renderProject(
   context: ProjectContext,
@@ -71,45 +74,103 @@ export async function renderProject(
     const outputDir = context.metadata?.project?.[kOutputDir];
 
     if (outputDir) {
+      // determine global list of included resource files
+      let resourceFiles: string[] = [];
+      const resourceFileGlobs = context.metadata?.project?.[kResourceFiles];
+      if (resourceFileGlobs) {
+        const exclude = outputDir ? [outputDir] : [];
+        const projectResourceFiles = resolvePathGlobs(
+          context.dir,
+          resourceFileGlobs,
+          exclude,
+        );
+        resourceFiles.push(
+          ...ld.difference(
+            projectResourceFiles.include,
+            projectResourceFiles.exclude,
+          ),
+        );
+      }
+
       // resolve output dir and ensure that it exists
       let realOutputDir = join(projDir, outputDir);
       ensureDirSync(realOutputDir);
       realOutputDir = Deno.realPathSync(realOutputDir);
 
-      // move results to output_dir
+      // move/copy results to output_dir
       Object.keys(fileResults).forEach((format) => {
         const results = fileResults[format];
 
         for (const result of results) {
+          // output file
           const outputFile = join(realOutputDir, result.file);
           ensureDirSync(dirname(outputFile));
           Deno.renameSync(join(projDir, result.file), outputFile);
 
-          if (result.filesDir) {
-            const filesDir = join(realOutputDir, result.filesDir);
+          // files dir
+          const filesDir = result.filesDir
+            ? join(realOutputDir, result.filesDir)
+            : undefined;
+          if (filesDir) {
             if (existsSync(filesDir)) {
               Deno.removeSync(filesDir, { recursive: true });
             }
             Deno.renameSync(
-              join(projDir, result.filesDir),
+              join(projDir, result.filesDir!),
               filesDir,
             );
           }
+
+          // resource files
+          const fileResourceFiles = resolvePathGlobs(
+            join(projDir, dirname(result.file)),
+            result.resourceFiles,
+            [],
+          );
+
+          // merge the resource files into the global list
+          resourceFiles.push(...fileResourceFiles.include);
+
+          // apply removes and filter files dir
+          resourceFiles = resourceFiles.filter((file) => {
+            if (fileResourceFiles.exclude.includes(file)) {
+              return false;
+            } else if (
+              result.filesDir &&
+              file.startsWith(join(projDir, result.filesDir!))
+            ) {
+              return false;
+            } else {
+              return true;
+            }
+          });
         }
       });
 
-      return {
-        baseDir: context.dir,
-        outputDir: outputDir,
-        results: fileResults,
-      };
-    } else {
-      return {
-        baseDir: context.dir,
-        outputDir,
-        results: fileResults,
-      };
+      // make resource files unique
+      resourceFiles = ld.uniq(resourceFiles);
+
+      // copy the resource files to the output dir
+      resourceFiles.forEach((file) => {
+        const sourcePath = relative(projDir, file);
+        if (existsSync(file)) {
+          const destPath = join(realOutputDir, sourcePath);
+          ensureDirSync(dirname(destPath));
+          copySync(file, destPath, {
+            overwrite: true,
+            preserveTimestamps: true,
+          });
+        } else {
+          message(`WARNING: File '${sourcePath}' was not found.`);
+        }
+      });
     }
+
+    return {
+      baseDir: context.dir,
+      outputDir: outputDir,
+      results: fileResults,
+    };
   } finally {
     Deno.env.delete("QUARTO_PROJECT_DIR");
   }
