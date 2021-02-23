@@ -1,29 +1,7 @@
 
 
-/*
-// parse any css resource files for additional resources
-  // https://deno.land/x/css@0.2.0
-  // see https://github.com/jgm/pandoc/blob/4f3434586743afb69f00ca91fe6ec9b68b39ae7e/src/Text/Pandoc/SelfContained.hs#L144
-  // @import:
-  //  - @import url("bluish.css") speech;
-  //  - @import "common.css" screen;
-  
-  @import 'custom.css';
-  @import url("chrome://communicator/skin/");
-
-  <css_property>: url("https://example.com/image.png")
-  <css_property>: url('https://example.com/image.png')
-  <css_property>: url(https://example.com/image.png)
-
-  // @url - The url() CSS function is used to include a file. The parameter is an absolute URL, a relative URL, or a data URI.
-  const addCssResources = (file: string) => {
-    console.log(file);
-  };
-  resourceFiles
-    .filter((file) => extname(file).toLowerCase() === ".css")
-    .map(addCssResources);
-  */
-
+TODO: Raw Lua filters looking at HTML for resources also need to look at CSS embedded in the HTML for resources
+TODO: Correct handling for `include-in-header` and `css` references at global level (including resource discovery/copying)
 
 //  Websites:
 //    - Navigation
@@ -62,8 +40,6 @@ HTML:
 Project:
   - Do files not listed in project: files: but in the directory still inherit the project metadata when rendered directly
 
-resource file discovery needs to look in raw html, referended css, etc.
-(we could do the css references in typescript)
 
 filter params need some "escaping" so they aren't interpreted as markdown (e.g. use an html comment)
 
