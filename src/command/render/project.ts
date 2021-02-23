@@ -199,10 +199,8 @@ function handleCssReferences(
     }
   };
 
-  // regexes
-  const kUrlRegex = /url\((?!['"]?(?:data|http):)(['"])?([^'"\)]*)\1\)/g;
-
   // fixup / copy refs from url()
+  const kUrlRegex = /url\((?!['"]?(?:data|https?):)(['"])?([^'"\)]*)\1\)/g;
   let destCss = css.replaceAll(
     kUrlRegex,
     (_match, p1: string, p2: string) => {
@@ -213,7 +211,7 @@ function handleCssReferences(
   );
 
   // fixup / copy refs from @import
-  const kImportRegEx = /@import\s(['"])([^'"\)]*)\1/g;
+  const kImportRegEx = /@import\s(?!['"](?:data|https?):)(['"])([^'"\)]*)\1/g;
   destCss = destCss.replaceAll(
     kImportRegEx,
     (_match, p1: string, p2: string) => {
