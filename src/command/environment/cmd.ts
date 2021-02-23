@@ -38,7 +38,7 @@ export const environmentCommand = new Command()
         }
       } else if (envData.warnIfMissing) {
         message(`${envData.name}:`);
-        message("(Warning - not found)\n", { indent: 1 });
+        message("(Not found)\n", { indent: 1 });
       } else {
         // This is optional, so will just allow it through silently.
       }
