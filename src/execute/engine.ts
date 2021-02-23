@@ -59,12 +59,6 @@ export interface ExecuteResult {
   preserve?: Record<string, string>;
 }
 
-// result of pandoc render
-export interface PandocResult {
-  finalOutput: string;
-  resourceFiles: string[];
-}
-
 // dependencies options
 export interface DependenciesOptions {
   target: ExecutionTarget;

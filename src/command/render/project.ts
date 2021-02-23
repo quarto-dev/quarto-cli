@@ -102,14 +102,22 @@ export async function renderProject(
           }
 
           // resource files
+          const resourceDir = join(projDir, dirname(result.file));
           const fileResourceFiles = resolvePathGlobs(
-            join(projDir, dirname(result.file)),
-            result.resourceFiles,
+            resourceDir,
+            result.resourceFiles.globs,
             [],
           );
 
-          // merge the resource files into the global list
+          // merge the resolved globs into the global list
           resourceFiles.push(...fileResourceFiles.include);
+
+          // add the explicitly discovered files (if they exist)
+          resourceFiles.push(
+            ...result.resourceFiles.files
+              .filter((file) => existsSync(join(resourceDir, file)))
+              .map((file) => Deno.realPathSync(join(resourceDir, file))),
+          );
 
           // apply removes and filter files dir
           resourceFiles = resourceFiles.filter((file) => {

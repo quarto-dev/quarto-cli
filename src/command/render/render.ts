@@ -35,7 +35,6 @@ import {
   ExecutionEngine,
   executionEngine,
   ExecutionTarget,
-  PandocResult,
 } from "../../execute/engine.ts";
 
 import { pandocMetadataPath, PandocOptions, runPandoc } from "./pandoc.ts";
@@ -60,11 +59,16 @@ export interface RenderContext {
   project?: ProjectContext;
 }
 
+export interface RenderResourceFiles {
+  globs: string[];
+  files: string[];
+}
+
 export interface RenderResult {
   input: string;
   file: string;
   filesDir?: string;
-  resourceFiles: string[];
+  resourceFiles: RenderResourceFiles;
 }
 
 export interface RenderResults {
@@ -223,6 +227,12 @@ export async function renderExecute(
   return executeResult;
 }
 
+// result of pandoc render
+export interface PandocResult {
+  finalOutput: string;
+  resourceFiles: RenderResourceFiles;
+}
+
 export async function renderPandoc(
   context: RenderContext,
   executeResult: ExecuteResult,
@@ -278,8 +288,8 @@ export async function renderPandoc(
   }
 
   // run pandoc conversion (exit on failure)
-  const pandocResult = await runPandoc(pandocOptions, executeResult.filters);
-  if (!pandocResult) {
+  const resourceFiles = await runPandoc(pandocOptions, executeResult.filters);
+  if (!resourceFiles) {
     return Promise.reject();
   }
 
@@ -311,7 +321,7 @@ export async function renderPandoc(
   // return result
   return {
     finalOutput,
-    resourceFiles: pandocResult.resourceFiles,
+    resourceFiles,
   };
 }
 

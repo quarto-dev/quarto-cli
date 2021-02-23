@@ -33,6 +33,7 @@ import {
 } from "../../config/constants.ts";
 import { sessionTempFile } from "../../core/temp.ts";
 import { kResourceFiles } from "../../config/project.ts";
+import { RenderResourceFiles } from "./render.ts";
 
 // options required to run pandoc
 export interface PandocOptions {
@@ -54,14 +55,10 @@ export interface PandocOptions {
   offset?: string;
 }
 
-export interface RunPandocResult {
-  resourceFiles: string[];
-}
-
 export async function runPandoc(
   options: PandocOptions,
   sysFilters: string[],
-): Promise<RunPandocResult | null> {
+): Promise<RenderResourceFiles | null> {
   // build the pandoc command (we'll feed it the input on stdin)
   const cmd = [binaryPath("pandoc")];
 
@@ -202,27 +199,31 @@ export async function runPandoc(
   );
 
   // resolve resource files from metadata
-  const resourceFiles: string[] = [];
+  const globs: string[] = [];
   if (options.format.metadata[kResourceFiles]) {
     const files = options.format.metadata[kResourceFiles];
     if (Array.isArray(files)) {
       for (const file of files) {
-        resourceFiles.push(String(file));
+        globs.push(String(file));
       }
     } else {
-      resourceFiles.push(String(files));
+      globs.push(String(files));
     }
   }
 
   // read the results
+  const files: string[] = [];
   if (existsSync(filterResultsFile)) {
     const filterResultsJSON = Deno.readTextFileSync(filterResultsFile);
     const filterResults = JSON.parse(filterResultsJSON);
-    resourceFiles.push(...(filterResults.resourceFiles || []));
+    files.push(...(filterResults.resourceFiles || []));
   }
 
   if (result.success) {
-    return { resourceFiles };
+    return {
+      globs,
+      files,
+    };
   } else {
     return null;
   }
