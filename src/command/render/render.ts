@@ -339,7 +339,7 @@ async function resolveFormats(
   );
 
   // Read any included metadata files and merge in and metadata from the command
-  const includeMetadata = includedMetadata(baseMetadata);
+  const includeMetadata = includedMetadata(dirname(target.input), baseMetadata);
   const allMetadata = mergeConfigs(
     baseMetadata,
     includeMetadata,

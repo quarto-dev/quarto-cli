@@ -15,7 +15,7 @@ import { message } from "../core/console.ts";
 import { ProjectCreate, projectType } from "./types/project-types.ts";
 import { mergeConfigs } from "../core/config.ts";
 
-import { kOutputDir, projectConfigDir } from "../config/project.ts";
+import { kOutputDir, projectConfigFile } from "../config/project.ts";
 
 export interface ProjectCreateOptions {
   dir: string;
@@ -45,33 +45,16 @@ export async function projectCreate(options: ProjectCreateOptions) {
     message(":");
   }
 
-  // create the quarto dir
-  const projDir = projectConfigDir(options.dir);
-  ensureDirSync(projDir);
-  if (!options.quiet) {
-    message("- Created project config directory (_quarto)", { indent: 2 });
-  }
-
   // call create on the project type
   const projType = projectType(options.type);
   const projCreate = projType.create(options.title!, options[kOutputDir]);
 
-  // create the initial metadata file
+  // create the initial project config
   const metadata = projectMetadataFile(options, projCreate);
-  await Deno.writeTextFile(join(projDir, "metadata.yml"), metadata);
+  await Deno.writeTextFile(join(options.dir, "_quarto.yml"), metadata);
   if (!options.quiet) {
     message(
-      "- Created project metadata (_quarto/metadata.yml)",
-      { indent: 2 },
-    );
-  }
-
-  // create the .gitignore file
-  const gitignore = ".quarto\n.DS_Store\n";
-  await Deno.writeTextFile(join(projDir, ".gitignore"), gitignore);
-  if (!options.quiet) {
-    message(
-      "- Created gitignore (_quarto/.gitignore)",
+      "- Created project config (_quarto.yml)",
       { indent: 2 },
     );
   }
@@ -140,8 +123,8 @@ async function readOptions(options: ProjectCreateOptions) {
     }
   }
 
-  // error if the quartoDir already exists
-  if (existsSync(projectConfigDir(options.dir))) {
+  // error if the quarto config file already exists
+  if (projectConfigFile(options.dir)) {
     throw new Error(
       `The directory '${options.dir}' already contains a quarto project`,
     );
