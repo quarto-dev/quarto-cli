@@ -59,9 +59,9 @@ const envDatas: EnvironmentData[] = [
     },
     options: { newLine: true },
   },
-  plainEnv("RScript", "RScript", true),
-  pythonEnv("python", true),
-  pythonEnv("jupyter", true),
+  plainEnv("RScript", "RScript", false),
+  pythonEnv("python", false),
+  pythonEnv("jupyter", false),
   pythonEnv("jupytext", false, { newLine: true }),
 ];
 
@@ -143,6 +143,7 @@ function pythonEnv(
             "--version",
           ],
           stdout: "piped",
+          stderr: "piped"
         });
         return r.stdout;
       } catch (e) {
