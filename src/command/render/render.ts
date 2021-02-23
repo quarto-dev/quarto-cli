@@ -8,6 +8,8 @@
 import { existsSync } from "fs/mod.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 
+import { ld } from "lodash/mod.ts";
+
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { sessionTempDir } from "../../core/temp.ts";
@@ -325,6 +327,35 @@ export async function renderPandoc(
   };
 }
 
+function mergeQuartoConfigs(
+  config: Metadata,
+  ...configs: Array<Metadata>
+): Metadata {
+  // copy all configs so we don't mutate them
+  config = ld.cloneDeep(config);
+  configs = ld.cloneDeep(configs);
+
+  // formats need to always be objects
+  const fixupFormat = (config: Record<string, unknown>) => {
+    const format = config[kMetadataFormat];
+    if (typeof (format) === "string") {
+      config.format = { [format]: {} };
+    } else if (format instanceof Object) {
+      Object.keys(format).forEach((key) => {
+        if (Reflect.get(format, key) === "default") {
+          Reflect.set(format, key, {});
+        }
+      });
+    }
+    return config;
+  };
+
+  return mergeConfigs(
+    fixupFormat(config),
+    ...configs.map((c) => fixupFormat(c)),
+  );
+}
+
 async function resolveFormats(
   target: ExecutionTarget,
   engine: ExecutionEngine,
@@ -333,17 +364,17 @@ async function resolveFormats(
   // merge input metadata into project metadata
   const inputMetadata = await engine.metadata(target);
   const projMetadata = projectContext(target.input).metadata || {};
-  const baseMetadata = mergeConfigs(
+  const baseMetadata = mergeQuartoConfigs(
     projMetadata,
     inputMetadata,
   );
 
   // Read any included metadata files and merge in and metadata from the command
   const includeMetadata = includedMetadata(dirname(target.input), baseMetadata);
-  const allMetadata = mergeConfigs(
+  const allMetadata = mergeQuartoConfigs(
     baseMetadata,
     includeMetadata,
-    flags?.metadata,
+    flags?.metadata || {},
   );
 
   // Remove the metadata file / files since we've read them and merged them
