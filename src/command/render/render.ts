@@ -6,7 +6,7 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
@@ -327,43 +327,14 @@ export async function renderPandoc(
   };
 }
 
-function mergeQuartoConfigs(
-  config: Metadata,
-  ...configs: Array<Metadata>
-): Metadata {
-  // copy all configs so we don't mutate them
-  config = ld.cloneDeep(config);
-  configs = ld.cloneDeep(configs);
-
-  // formats need to always be objects
-  const fixupFormat = (config: Record<string, unknown>) => {
-    const format = config[kMetadataFormat];
-    if (typeof (format) === "string") {
-      config.format = { [format]: {} };
-    } else if (format instanceof Object) {
-      Object.keys(format).forEach((key) => {
-        if (Reflect.get(format, key) === "default") {
-          Reflect.set(format, key, {});
-        }
-      });
-    }
-    return config;
-  };
-
-  return mergeConfigs(
-    fixupFormat(config),
-    ...configs.map((c) => fixupFormat(c)),
-  );
-}
-
 async function resolveFormats(
   target: ExecutionTarget,
   engine: ExecutionEngine,
   flags?: RenderFlags,
 ): Promise<Record<string, Format>> {
   // merge input metadata into project metadata
+  const projMetadata = projectMetadataForInputFile(target.input);
   const inputMetadata = await engine.metadata(target);
-  const projMetadata = projectContext(target.input).metadata || {};
   const baseMetadata = mergeQuartoConfigs(
     projMetadata,
     inputMetadata,
@@ -464,4 +435,75 @@ async function resolveFormats(
   });
 
   return resolved;
+}
+
+function projectMetadataForInputFile(input: string): Metadata {
+  const context = projectContext(input);
+  const projMetadata = context.metadata || {};
+
+  const fixupPaths = (collection: Array<unknown> | Record<string, unknown>) => {
+    ld.forEach(
+      collection,
+      (
+        value: unknown,
+        index: unknown,
+        collection: Array<unknown> | Record<string, unknown>,
+      ) => {
+        const assign = (value: unknown) => {
+          if (typeof (index) === "number") {
+            (collection as Array<unknown>)[index] = value;
+          } else if (typeof (index) === "string") {
+            (collection as Record<string, unknown>)[index] = value;
+          }
+        };
+
+        if (Array.isArray(value)) {
+          assign(fixupPaths(value));
+        } else if (typeof (value) === "object") {
+          assign(fixupPaths(value as Record<string, unknown>));
+        } else if (typeof (value) === "string") {
+          if (!isAbsolute(value)) {
+            // if this is a valid file, then transform it to be relative to the input path
+            const projectPath = join(context.dir, value);
+            if (existsSync(projectPath)) {
+              const offset = relative(dirname(input), context.dir);
+              assign(join(offset, value));
+            }
+          }
+        }
+      },
+    );
+    return collection;
+  };
+
+  return fixupPaths(projMetadata) as Metadata;
+}
+
+function mergeQuartoConfigs(
+  config: Metadata,
+  ...configs: Array<Metadata>
+): Metadata {
+  // copy all configs so we don't mutate them
+  config = ld.cloneDeep(config);
+  configs = ld.cloneDeep(configs);
+
+  // formats need to always be objects
+  const fixupFormat = (config: Record<string, unknown>) => {
+    const format = config[kMetadataFormat];
+    if (typeof (format) === "string") {
+      config.format = { [format]: {} };
+    } else if (format instanceof Object) {
+      Object.keys(format).forEach((key) => {
+        if (Reflect.get(format, key) === "default") {
+          Reflect.set(format, key, {});
+        }
+      });
+    }
+    return config;
+  };
+
+  return mergeConfigs(
+    fixupFormat(config),
+    ...configs.map((c) => fixupFormat(c)),
+  );
 }
