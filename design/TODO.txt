@@ -1,7 +1,7 @@
 
 
 TODO: Raw Lua filters looking at HTML for resources also need to look at CSS embedded in the HTML for resources
-TODO: Correct handling for `include-in-header` and `css` references at global level (including resource discovery/copying)
+TODO: `css` references at global level don't work -- the css itself never shows + we need to do resource discovery/copying
 
 //  Websites:
 //    - Navigation
