@@ -27,26 +27,30 @@ export const environmentCommand = new Command()
     message("");
 
     for (const envData of envDatas) {
-      message(`${envData.name}:`);
       const path = await envData.path();
       const version = await envData.readValue();
       if (path && version) {
+        message(`${envData.name}:`);
         printEnv("Path", path);
         printEnv("Version", version);
         if (envData.options?.newLine) {
           message("");
         }
-      } else {
+      } else if (envData.warnIfMissing) {
+        message(`${envData.name}:`);
         message("(Not found)\n", { indent: 1 });
+      } else {
+        // This is optional, so will just allow it through silently.
       }
     }
   });
 
 const envDatas: EnvironmentData[] = [
-  binaryEnv("Deno", "deno"),
-  binaryEnv("Pandoc", "pandoc"),
+  binaryEnv("Deno", "deno", true),
+  binaryEnv("Pandoc", "pandoc", true),
   {
     name: "TeXLive",
+    warnIfMissing: true,
     path: () => {
       return Promise.resolve(tinyTexInstallDir());
     },
@@ -55,10 +59,10 @@ const envDatas: EnvironmentData[] = [
     },
     options: { newLine: true },
   },
-  plainEnv("RScript", "RScript"),
-  pythonEnv(),
-  pythonEnv("Jupyter"),
-  pythonEnv("JupyText", { newLine: true }),
+  plainEnv("RScript", "RScript", true),
+  pythonEnv("python", true),
+  pythonEnv("jupyter", true),
+  pythonEnv("jupytext", false, { newLine: true }),
 ];
 
 function printEnv(name: string, value: string) {
@@ -68,6 +72,7 @@ function printEnv(name: string, value: string) {
 
 interface EnvironmentData {
   name: string;
+  warnIfMissing: boolean;
   path: () => Promise<string | undefined>;
   readValue: () => Promise<string | undefined>;
   options?: EnvironmentDataOutputOptions;
@@ -77,9 +82,10 @@ interface EnvironmentDataOutputOptions {
   newLine: boolean;
 }
 
-function plainEnv(name: string, cmd: string) {
+function plainEnv(name: string, cmd: string, warnIfMissing: boolean) {
   return {
     name,
+    warnIfMissing,
     path: async () => {
       return await which(cmd);
     },
@@ -97,10 +103,12 @@ function plainEnv(name: string, cmd: string) {
 function binaryEnv(
   name: string,
   cmd: string,
+  warnIfMissing: boolean,
   options?: EnvironmentDataOutputOptions,
 ): EnvironmentData {
   return {
     name,
+    warnIfMissing,
     path: () => {
       return Promise.resolve(binaryPath(cmd));
     },
@@ -117,11 +125,13 @@ function binaryEnv(
 }
 
 function pythonEnv(
-  name?: string,
+  name: string,
+  warnIfMissing: boolean,
   options?: EnvironmentDataOutputOptions,
 ): EnvironmentData {
   return {
-    name: name || "Python",
+    name: name,
+    warnIfMissing,
     path: () => {
       return Promise.resolve(pythonBinary(name));
     },
