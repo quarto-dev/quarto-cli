@@ -7,14 +7,17 @@
 
 import { Command } from "cliffy/command/mod.ts";
 
+import { version } from "../../quarto.ts";
+
 import { message } from "../../core/console.ts";
 import { getenv } from "../../core/env.ts";
 import { which } from "../../core/path.ts";
 import { execProcess } from "../../core/process.ts";
 import { binaryPath } from "../../core/resources.ts";
-import { pythonBinary } from "../../execute/jupyter/jupyter.ts";
+
 import { tinyTexInstallDir } from "../install/tools/tinytex.ts";
 import { tlVersion } from "../render/latekmk/texlive.ts";
+import { pythonBinary } from "../../execute/jupyter/jupyter.ts";
 
 export const environmentCommand = new Command()
   .name("env")
@@ -24,6 +27,7 @@ export const environmentCommand = new Command()
     message(`Quarto:`);
     printEnv("Bin Path", getenv("QUARTO_BIN_PATH"));
     printEnv("Share Path", getenv("QUARTO_SHARE_PATH"));
+    printEnv("Version", version());
     message("");
 
     for (const envData of envDatas) {
@@ -143,7 +147,7 @@ function pythonEnv(
             "--version",
           ],
           stdout: "piped",
-          stderr: "piped"
+          stderr: "piped",
         });
         return r.stdout;
       } catch (e) {

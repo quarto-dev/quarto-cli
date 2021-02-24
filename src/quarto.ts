@@ -49,7 +49,7 @@ if (import.meta.main) {
   }
 }
 
-function version() {
+export function version() {
   const versionPath = join(resourcePath(), "version");
   if (existsSync(versionPath)) {
     return Deno.readTextFileSync(versionPath);
