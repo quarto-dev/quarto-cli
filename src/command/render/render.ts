@@ -239,7 +239,7 @@ export async function renderPandoc(
   context: RenderContext,
   executeResult: ExecuteResult,
 ): Promise<PandocResult> {
-  // merge any pandoc options provided the computation
+  // merge any pandoc options provided by the computation
   context.format.pandoc = mergeConfigs(
     context.format.pandoc || {},
     executeResult.pandoc,

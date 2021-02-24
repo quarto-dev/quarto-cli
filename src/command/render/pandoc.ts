@@ -7,6 +7,8 @@
 
 import { ld } from "lodash/mod.ts";
 
+import { isAbsolute, join } from "path/mod.ts";
+
 import { existsSync } from "fs/mod.ts";
 
 import { stringify } from "encoding/yaml.ts";
@@ -26,9 +28,19 @@ import {
 } from "./defaults.ts";
 import { removeFilterParmas, setFilterParams } from "./filters.ts";
 import {
+  kBibliography,
+  kCsl,
+  kFilters,
+  kHighlightStyle,
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
+  kInputFiles,
+  kLogFile,
+  kMetadataFile,
+  kMetadataFiles,
+  kOutputFile,
+  kTemplate,
   kVariables,
 } from "../../config/constants.ts";
 import { sessionTempFile } from "../../core/temp.ts";
@@ -211,8 +223,11 @@ export async function runPandoc(
     }
   }
 
-  // read the results
-  const files: string[] = [];
+  // resource files referenced from metadata (e.g. 'css')
+  const files = formatResourceFiles(options.cwd, options.format);
+
+  // resource files explicitly discovered by the filter
+  // (e.g. referenced from links)
   if (existsSync(filterResultsFile)) {
     const filterResultsJSON = Deno.readTextFileSync(filterResultsFile);
     const filterResults = JSON.parse(filterResultsJSON);
@@ -259,4 +274,58 @@ function runPandocMessage(
       message(stringify(printMetadata), { indent: 2 });
     }
   }
+}
+
+function formatResourceFiles(dir: string, format: Format) {
+  const resourceFiles: string[] = [];
+  const findResources = (
+    collection: Array<unknown> | Record<string, unknown>,
+  ) => {
+    ld.forEach(
+      collection,
+      (value: unknown, index: unknown) => {
+        // there are certain keys that we expressly don't want to capture
+        // resource files from (e.g. includes, output-file, etc.)
+        if (typeof (index) === "string") {
+          if (
+            [
+              kResourceFiles,
+              kOutputFile,
+              kInputFiles,
+              kIncludeInHeader,
+              kIncludeBeforeBody,
+              kIncludeAfterBody,
+              kBibliography,
+              kCsl,
+              kTemplate,
+              kFilters,
+              kMetadataFile,
+              kMetadataFiles,
+              kLogFile,
+              kHighlightStyle,
+            ].includes(index)
+          ) {
+            return;
+          }
+        }
+
+        if (Array.isArray(value)) {
+          findResources(value);
+        } else if (typeof (value) === "object") {
+          findResources(value as Record<string, unknown>);
+        } else if (typeof (value) === "string") {
+          if (!isAbsolute(value)) {
+            const resourceFile = join(dir, value);
+            if (
+              existsSync(resourceFile) && Deno.statSync(resourceFile).isFile
+            ) {
+              resourceFiles.push(value);
+            }
+          }
+        }
+      },
+    );
+  };
+  findResources(format as unknown as Record<string, unknown>);
+  return ld.uniq(resourceFiles);
 }
