@@ -6,7 +6,8 @@ TODO: Raw Lua filters looking at HTML for resources also need to look at CSS emb
 
 TODO: Intelligence about merging yaml that can take a list OR a scalar (e.g. bibliography or csl)
 
-TODO: libs (lib_dir equivalent) for shared dependencies in a directotry
+TODO: libs (lib_dir equivalent) for shared dependencies in a directory
+      (consider use of '/')
 
 //  Websites:
 //    - Navigation
