@@ -13,7 +13,7 @@ import { message } from "../../core/console.ts";
 import { getenv } from "../../core/env.ts";
 import { which } from "../../core/path.ts";
 import { execProcess } from "../../core/process.ts";
-import { binaryPath } from "../../core/resources.ts";
+import { binaryPath, rBinaryPath } from "../../core/resources.ts";
 
 import { tinyTexInstallDir } from "../install/tools/tinytex.ts";
 import { tlVersion } from "../render/latekmk/texlive.ts";
@@ -22,8 +22,11 @@ import { pythonBinary } from "../../execute/jupyter/jupyter.ts";
 export const environmentCommand = new Command()
   .name("env")
   .description("Prints Quarto environment information")
+  .option("--optional", "Print optional environment information")
   // deno-lint-ignore no-explicit-any
-  .action(async (_options: any, _dir?: string) => {
+  .action(async (options: any, _dir?: string) => {
+    const optional = options["optional"];
+
     message(`Quarto:`);
     printEnv("Bin Path", getenv("QUARTO_BIN_PATH"));
     printEnv("Share Path", getenv("QUARTO_SHARE_PATH"));
@@ -40,7 +43,7 @@ export const environmentCommand = new Command()
         if (envData.options?.newLine) {
           message("");
         }
-      } else if (envData.warnIfMissing) {
+      } else if (envData.warnIfMissing || optional) {
         message(`${envData.name}:`);
         message("(Not found)\n", { indent: 1 });
       } else {
@@ -63,7 +66,7 @@ const envDatas: EnvironmentData[] = [
     },
     options: { newLine: true },
   },
-  plainEnv("RScript", "RScript", false),
+  rBinaryEnv("R", "R", false),
   pythonEnv("python", false),
   pythonEnv("jupyter", false),
   pythonEnv("jupytext", false, { newLine: true }),
@@ -86,24 +89,6 @@ interface EnvironmentDataOutputOptions {
   newLine: boolean;
 }
 
-function plainEnv(name: string, cmd: string, warnIfMissing: boolean) {
-  return {
-    name,
-    warnIfMissing,
-    path: async () => {
-      return await which(cmd);
-    },
-    readValue: async () => {
-      const res = await execProcess({
-        cmd: [cmd, "--version"],
-        stdout: "piped",
-        stderr: "piped",
-      });
-      return res.stderr;
-    },
-  };
-}
-
 function binaryEnv(
   name: string,
   cmd: string,
@@ -123,6 +108,35 @@ function binaryEnv(
         stderr: "piped",
       });
       return res.stdout;
+    },
+    options,
+  };
+}
+
+function rBinaryEnv(
+  name: string,
+  cmd: string,
+  warnIfMissing: boolean,
+  options?: EnvironmentDataOutputOptions,
+): EnvironmentData {
+  return {
+    name,
+    warnIfMissing,
+    path: async () => {
+      let path = rBinaryPath(cmd);
+      if (path === cmd) {
+        path = await which(cmd) ||
+          cmd;
+      }
+      return Promise.resolve(path);
+    },
+    readValue: async () => {
+      const res = await execProcess({
+        cmd: [rBinaryPath(cmd), "--version"],
+        stdout: "piped",
+        stderr: "piped",
+      });
+      return res.stdout || res.stderr;
     },
     options,
   };
