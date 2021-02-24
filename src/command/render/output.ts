@@ -102,9 +102,10 @@ export async function outputRecipe(
     if (
       !format.pandoc[kTemplate] && !havePandocArg(recipe.args, "--template")
     ) {
-      if (format.pandoc.to === "revealjs") {
-        const template = await patchRevealsJsTemplate();
-        recipe.format.pandoc[kTemplate] = template;
+      if (format.pandoc.to && isHtmlOutput(format.pandoc.to)) {
+        recipe.format.pandoc[kTemplate] = await patchHtmlTemplate(
+          format.pandoc.to,
+        );
       }
     }
 
@@ -196,19 +197,47 @@ function embeddedSourceCode(file: string) {
   return tempFile;
 }
 
-async function patchRevealsJsTemplate() {
-  return await patchTemplate("revealjs", (template) => {
-    template = template.replace(
-      /(<script src="\$revealjs-url\$\/dist\/reveal.js"><\/script>)/m,
-      "<script>window.backupDefine = window.define; window.define = undefined;</script>\n  $1",
+async function patchHtmlTemplate(format: string) {
+  return await patchTemplate(format, (template) => {
+    // extract/capture css
+    let css = "";
+    let patchedTemplate = template.replace(
+      /\$for\(css\)\$[\W\w]+?\$endfor\$/,
+      (match) => {
+        css = match;
+        return "";
+      },
     );
-    template = template.replace(
-      /(<script src="\$revealjs-url\$\/plugin\/math\/math.js"><\/script>\n\$endif\$)/,
-      "$1\n  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>\n",
-    );
+    if (css) {
+      let patched = false;
+      patchedTemplate = patchedTemplate.replace(/^<\/head>$/m, (match) => {
+        patched = true;
+        return css + "\n" + match;
+      });
+      // if we didn't patch it then revert to the original template
+      if (!patched) {
+        patchedTemplate = template;
+      }
+    }
 
-    return template;
+    // extra stuff so reveal works with jupyter widgets
+    if (format === "revealjs") {
+      patchedTemplate = patchRevealsJsTemplate(template);
+    }
+    return patchedTemplate;
   });
+}
+
+function patchRevealsJsTemplate(template: string) {
+  template = template.replace(
+    /(<script src="\$revealjs-url\$\/dist\/reveal.js"><\/script>)/m,
+    "<script>window.backupDefine = window.define; window.define = undefined;</script>\n  $1",
+  );
+  template = template.replace(
+    /(<script src="\$revealjs-url\$\/plugin\/math\/math.js"><\/script>\n\$endif\$)/,
+    "$1\n  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script>\n",
+  );
+  return template;
 }
 
 async function patchTemplate(
