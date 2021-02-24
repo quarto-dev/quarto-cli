@@ -59,7 +59,11 @@ function getCommands() {
   commands.push(
     packageCommand(prepareDist)
       .name("prepare-dist")
-      .description("Prepares the distribution directory for packaging."),
+      .description("Prepares the distribution directory for packaging.")
+      .option(
+        "-sv, --set-version=[version:string]",
+        "Version to set when preparing this distribution",
+      ),
   );
   commands.push(
     packageCommand(makeInstallerMac)

@@ -10,11 +10,14 @@ import { Configuration, readConfiguration } from "../common/config.ts";
 import { parseLogLevel } from "../util/logger.ts";
 
 const kLogLevel = "logLevel";
+const kVersion = "setVersion";
 
 export function packageCommand(run: (config: Configuration) => void) {
   return new Command().action((args) => {
     const logLevel = args[kLogLevel];
-    const config = readConfiguration(parseLogLevel(logLevel));
+    const version = args[kVersion];
+
+    const config = readConfiguration(parseLogLevel(logLevel), version);
     config.log.info("Using configuration:");
     config.log.info(config);
     config.log.info("");

@@ -39,6 +39,14 @@ export async function prepareDist(
   log.info("\nCreating Inlined LUA Filters");
   inlineFilters(config);
   log.info("");
+
+  // Write a version file to share
+  log.info(`Writing version: ${config.version}`);
+  Deno.writeTextFileSync(
+    join(config.directoryInfo.share, "version"),
+    config.version,
+  );
+  log.info("");
 }
 
 function supportingFiles(config: Configuration, log: Logger) {

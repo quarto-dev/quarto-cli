@@ -31,9 +31,9 @@ export interface DirectoryInfo {
 }
 
 // Read the configuration fromt the environment
-export function readConfiguration(logLevel: number) {
+export function readConfiguration(logLevel: number, version?: string) {
   const productName = getEnv("QUARTO_NAME");
-  const version = getEnv("QUARTO_VERSION");
+  version = version || getEnv("QUARTO_VERSION");
 
   const execPath = Deno.execPath();
   const root = join(execPath, "..", "..", "..", "..");
