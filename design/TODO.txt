@@ -1,10 +1,5 @@
 
 
-TODO: user CSS is currently going before bootstrap CSS
-
-TODO: Raw Lua filters looking at HTML for resources also need to look at CSS embedded in the HTML for resources
-
-TODO: Intelligence about merging yaml that can take a list OR a scalar (e.g. bibliography or csl)
 
 TODO: libs (lib_dir equivalent) for shared dependencies in a directory
       (consider use of '/')
@@ -16,8 +11,6 @@ TODO: libs (lib_dir equivalent) for shared dependencies in a directory
 
 
 TODO: generalized warning system (look for 'WARNING:')
-
-
 
 Charles:
 
