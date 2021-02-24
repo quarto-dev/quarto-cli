@@ -203,22 +203,22 @@ function handleCssReferences(
   };
 
   // fixup / copy refs from url()
-  const kUrlRegex = /url\((?!['"]?(?:data|https?):)(['"])?([^'"\)]*)\1\)/g;
+  const kUrlRegex = /url\((?!['"]?(?:data|https?):)(['"])?([^'"]*)\1\)/g;
   let destCss = css.replaceAll(
     kUrlRegex,
     (_match, p1: string, p2: string) => {
-      const ref = p2.startsWith("/") ? `${offset}${p2}` : p2;
+      const ref = p2.startsWith("/") ? `${offset}${p2.slice(1)}` : p2;
       copyRef(ref);
       return `url(${p1}${ref}${p1})`;
     },
   );
 
   // fixup / copy refs from @import
-  const kImportRegEx = /@import\s(?!['"](?:data|https?):)(['"])([^'"\)]*)\1/g;
+  const kImportRegEx = /@import\s(?!['"](?:data|https?):)(['"])([^'"]*)\1/g;
   destCss = destCss.replaceAll(
     kImportRegEx,
     (_match, p1: string, p2: string) => {
-      const ref = p2.startsWith("/") ? `${offset}${p2}` : p2;
+      const ref = p2.startsWith("/") ? `${offset}${p2.slice(1)}` : p2;
       copyRef(ref);
       return `@import ${p1}${ref}${p1}`;
     },
