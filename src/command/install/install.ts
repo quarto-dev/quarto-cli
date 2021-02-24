@@ -218,16 +218,23 @@ export async function updateTool(name: string) {
   }
 }
 
-export async function toolSummary(name: string) {
+export interface ToolSummaryData {
+  installed: boolean, 
+  installedVersion?: string, 
+  latestRelease: RemotePackageInfo}
+
+export async function toolSummary(name: string) : Promise<ToolSummaryData | undefined>  {
   // Find the tool
   const tool = installableTool(name);
 
   // Information about the potential update
   if (tool) {
     const installed = await tool.installed();
-    const latestRelease = await tool.latestRelease();
     const installedVersion = await tool.installedVersion();
+    const latestRelease = await tool.latestRelease()
     return { installed, installedVersion, latestRelease };
+  } else {
+    return undefined;
   }
 }
 

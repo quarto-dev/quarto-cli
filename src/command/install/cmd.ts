@@ -8,9 +8,9 @@
 import { Command } from "cliffy/command/mod.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
 import { formatLine, message } from "../../core/console.ts";
+import { ToolSummaryData } from "./install.ts";
 
 import {
-  installableTool,
   installableTools,
   installTool,
   toolSummary,
@@ -59,12 +59,16 @@ export const uninstallCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (_options: any, name: string) => {
-    const confirmed: boolean = await Confirm.prompt(
+
+    confirmDestructiveAction(
+      name,
       `This will remove ${name} and all of its files. Are you sure?`,
+      async () => {
+        await uninstallTool(name);
+      },
+      false,
+      await toolSummary(name)
     );
-    if (confirmed) {
-      await uninstallTool(name);
-    }
   });
 
 // The quarto update command
@@ -83,41 +87,70 @@ export const updateCommand = new Command()
   // deno-lint-ignore no-explicit-any
   .action(async (_options: any, name: string) => {
     const summary = await toolSummary(name);
-    if (
-      summary && summary.installed &&
-      summary.installedVersion !== summary.latestRelease.version
-    ) {
-      // Get the current version info and confirm update
-      const confirmed: boolean = await Confirm.prompt(
-        `This will update ${name} from ${summary.installedVersion} to ${summary.latestRelease.version}. Are you sure?`,
-      );
-      if (confirmed) {
-        updateTool(name);
-      }
-    } else {
-      message(`${name} isn't installed and so can't be updated.`);
-    }
+    confirmDestructiveAction(
+      name,
+      `This will update ${name} from ${summary?.installedVersion} to ${summary?.latestRelease.version}. Are you sure?`,
+      async () => {
+        await updateTool(name);
+      },
+      true,
+      summary
+    );
   });
 
+async function confirmDestructiveAction(name: string, prompt: string, action: () => void, update: boolean, summary?: ToolSummaryData) {
+  if (summary) {
+    if (summary.installed) {
+      if (summary.installedVersion === summary.latestRelease.version && update) {
+        message(`${name} is already up to date.`);
+      } else if (summary.installedVersion !== undefined) {
+        const confirmed: boolean = await Confirm.prompt(prompt);
+        if (confirmed) {
+          action();
+        }
+      } else {
+        message(`${name} was not install using Quarto. Please use the tool that you used to install ${name} instead.`);
+      }
+    } else {
+      message(`${name} isn't installed. Please use 'quarto install ${name} to install it.`);
+    }
+  } else {
+    message(`${name} isn't a supported tool. Use 'quarto install help' for more information.`);
+  }
+}
+
+
 async function outputTools() {
-  const cols = [20, 20, 20, 20];
-  // Find the installed versions
+  // Reads the status
+  const installStatus = (summary: ToolSummaryData) : string => {
+    if (summary.installed) {
+      if (summary.installedVersion) {
+        if (summary.installedVersion === summary.latestRelease.version) {
+          return "Up to date";
+        } else {
+          return "Update available";
+        }
+      } else {
+        return "Present - ext. managed";
+      }
+    } else {
+      return "Not installed";
+    }
+
+  }
+  
+  // The column widths for output (in chars)
+  const cols = [20, 32, 14, 14];
   const toolRows: string[] = [];
   for (const tool of installableTools()) {
     const summary = await toolSummary(tool);
     if (summary) {
-      const status = summary.installed
-        ? summary.installedVersion === summary.latestRelease.version
-          ? "up to date"
-          : "update available"
-        : "not installed";
-
       toolRows.push(
         formatLine(
           [
             tool,
-            status,
-            summary.installedVersion || "---",
+            installStatus(summary),
+            summary.installedVersion || "----",
             summary.latestRelease.version,
           ],
           cols,

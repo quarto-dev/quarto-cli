@@ -166,6 +166,7 @@ async function initialCompileLatex(
           message("updating tlmgr", kLatexHeaderMessageOptions);
         }
         await pkgMgr.updatePackages(false, true);
+        message("");
 
         if (!quiet) {
           message("updating existing packages", kLatexHeaderMessageOptions);
