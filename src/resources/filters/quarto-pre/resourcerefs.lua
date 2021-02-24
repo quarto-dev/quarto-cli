@@ -39,6 +39,8 @@ function handleRawElement(el)
       el.text = handleHtmlRefs(el.text, projOffset, "img", "src")
       el.text = handleHtmlRefs(el.text, projOffset, "link", "href")
       el.text = handleHtmlRefs(el.text, projOffset, "script", "src")
+      el.text = handleCssRefs(el.text, projOffset, "@import%s+\"")
+      el.text = handleCssRefs(el.text, projOffset, "url%(\"")
       return el
     end
   end
@@ -67,19 +69,29 @@ function projectOffset()
 end
 
 function handleHtmlRefs(text, projOffset, tag, attrib)
-
   -- relative offset to project root if necessary
   text = text:gsub("(<" .. tag .. " [^>]*)(" .. attrib .. "%s*=%s*\"/)", "%1" .. attrib .. "=\"" .. projOffset)
 
-    -- discover and record resource refs
+  -- discover and record resource refs
   for ref in string.gmatch(text, "<" .. tag .. " [^>]*" .. attrib .. "%s*=%s*\"([^\"]+)\"") do
     recordFileResource(ref)
   end
   
   -- return potentially modified text
   return text
-  
+end
 
+function handleCssRefs(text, projOffset, prefix, suffix)
+  -- relative offset to project root if necessary
+  text = text:gsub("(" .. prefix .. ")" .. "/", "%1" .. projOffset) 
+  
+  -- discover and record resource refs
+  for ref in string.gmatch(text, prefix .. "([^\"]+)\"") do
+    recordFileResource(ref)
+  end
+
+  -- return potentially modified text
+  return text
 end
 
 
