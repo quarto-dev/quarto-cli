@@ -29,6 +29,7 @@ import {
   metadataAsFormat,
 } from "../../config/metadata.ts";
 import {
+  kBibliography,
   kCache,
   kExecute,
   kKeepMd,
@@ -534,6 +535,13 @@ function mergeQuartoConfigs(
   config = ld.cloneDeep(config);
   configs = ld.cloneDeep(configs);
 
+  // bibliography needs to always be an array so it can be merged
+  const fixupBibliopgrapy = (metadata: Metadata) => {
+    if (typeof (metadata[kBibliography]) === "string") {
+      metadata[kBibliography] = [metadata[kBibliography]];
+    }
+  };
+
   // formats need to always be objects
   const fixupFormat = (config: Record<string, unknown>) => {
     const format = config[kMetadataFormat];
@@ -541,11 +549,13 @@ function mergeQuartoConfigs(
       config.format = { [format]: {} };
     } else if (format instanceof Object) {
       Object.keys(format).forEach((key) => {
-        if (Reflect.get(format, key) === "default") {
+        if (typeof (Reflect.get(format, key)) !== "object") {
           Reflect.set(format, key, {});
         }
+        fixupBibliopgrapy(Reflect.get(format, key) as Metadata);
       });
     }
+    fixupBibliopgrapy(config);
     return config;
   };
 
