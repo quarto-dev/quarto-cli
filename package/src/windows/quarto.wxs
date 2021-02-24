@@ -12,7 +12,7 @@
            Name="Quarto"
            Language="1033"
            Manufacturer="Rstudio, PBC"
-           Version="$(env.QUARTO_VERSION)" 
+           Version="$(env.QUARTO_INSTALLER_VERSION)" 
            UpgradeCode="$(env.QUARTO_MSI_UPGRADE_CODE)">
     
     <Package InstallerVersion="200" 
