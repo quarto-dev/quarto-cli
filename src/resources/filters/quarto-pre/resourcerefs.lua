@@ -34,25 +34,33 @@ end
 function handleRawElement(el)
   if isRawHtml(el) then
     local projOffset = projectOffset()
-    el.text = handleHtmlRefs(el.text, projOffset, "a", "href")
-    el.text = handleHtmlRefs(el.text, projOffset, "img", "src")
-    el.text = handleHtmlRefs(el.text, projOffset, "link", "href")
-    el.text = handleHtmlRefs(el.text, projOffset, "script", "src")
-    return el
+    if projOffset ~= nil then
+      el.text = handleHtmlRefs(el.text, projOffset, "a", "href")
+      el.text = handleHtmlRefs(el.text, projOffset, "img", "src")
+      el.text = handleHtmlRefs(el.text, projOffset, "link", "href")
+      el.text = handleHtmlRefs(el.text, projOffset, "script", "src")
+      return el
+    end
   end
 end
 
 function offsetRef(ref)
   local projOffset = projectOffset()
   if projOffset ~= nil and string.find(ref, "^/") then
-    return projOffset .. ref
+    return projOffset .. text.sub(ref, 2, #ref)
   end
 end
 
 function projectOffset()
   local projOffset = param("project-offset")
   if projOffset ~= nil then
-    return pandoc.utils.stringify(projOffset)
+    offset = pandoc.utils.stringify(projOffset)
+    if offset == "." then
+      offset = ""
+    else
+      offset = offset .. "/"
+    end
+    return offset
   else
     return nil
   end
@@ -60,22 +68,17 @@ end
 
 function handleHtmlRefs(text, projOffset, tag, attrib)
 
-  if projOffset ~= nil then
-    if projOffset == "." then
-      projOffset = ""
-    end
-    
-     -- relative offset to project root if necessary
-    text = text:gsub("(<" .. tag .. " [^>]*)(" .. attrib .. "%s*=%s*\"/)", "%1" .. attrib .. "=\"" .. projOffset .. "/")
+  -- relative offset to project root if necessary
+  text = text:gsub("(<" .. tag .. " [^>]*)(" .. attrib .. "%s*=%s*\"/)", "%1" .. attrib .. "=\"" .. projOffset)
 
-     -- discover and record resource refs
-    for ref in string.gmatch(text, "<" .. tag .. " [^>]*" .. attrib .. "%s*=%s*\"([^\"]+)\"") do
-      recordFileResource(ref)
-    end
-    
-    -- return potentially modified text
-    return text
+    -- discover and record resource refs
+  for ref in string.gmatch(text, "<" .. tag .. " [^>]*" .. attrib .. "%s*=%s*\"([^\"]+)\"") do
+    recordFileResource(ref)
   end
+  
+  -- return potentially modified text
+  return text
+  
 
 end
 
