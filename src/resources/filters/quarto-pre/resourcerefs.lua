@@ -37,6 +37,7 @@ function handleRawElement(el)
     el.text = handleHtmlRefs(el.text, projOffset, "a", "href")
     el.text = handleHtmlRefs(el.text, projOffset, "img", "src")
     el.text = handleHtmlRefs(el.text, projOffset, "link", "href")
+    el.text = handleHtmlRefs(el.text, projOffset, "script", "src")
     return el
   end
 end
