@@ -36,8 +36,10 @@ export interface ProjectMetadata extends Metadata {
   [kResourceFiles]?: [];
 }
 
-export function projectConfigDir(dir: string) {
-  return join(dir, "_quarto");
+export function projectConfigFile(dir: string): string | undefined {
+  return ["_quarto.yml", "_quarto.yaml"]
+    .map((file) => join(dir, file))
+    .find(existsSync);
 }
 
 export function projectContext(path: string): ProjectContext {
@@ -47,10 +49,10 @@ export function projectContext(path: string): ProjectContext {
   const originalDir = dir;
 
   while (true) {
-    const configDir = projectConfigDir(dir);
-    if (existsSync(configDir)) {
-      let projectConfig: Metadata = readQuartoYaml(configDir);
-      const includeMetadata = includedMetadata(projectConfig);
+    const configFile = projectConfigFile(dir);
+    if (configFile) {
+      let projectConfig: Metadata = readYaml(configFile) as Metadata;
+      const includeMetadata = includedMetadata(dir, projectConfig);
       projectConfig = mergeConfigs(projectConfig, includeMetadata);
       delete projectConfig[kMetadataFile];
       delete projectConfig[kMetadataFiles];

@@ -31,7 +31,6 @@ import { pandocMetadataPath, PandocOptions } from "./pandoc.ts";
 import { removePandocArgs } from "./flags.ts";
 import { ld } from "lodash/mod.ts";
 import { mergeConfigs } from "../../core/config.ts";
-import { projectConfigDir } from "../../config/project.ts";
 
 const kQuartoParams = "quarto-params";
 

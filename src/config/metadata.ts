@@ -6,6 +6,7 @@
 */
 
 import { exists } from "fs/exists.ts";
+import { join } from "path/mod.ts";
 
 import { readYamlFromMarkdownFile } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
@@ -32,7 +33,10 @@ export type Metadata = {
   [key: string]: unknown;
 };
 
-export function includedMetadata(baseMetadata: Metadata): Metadata {
+export function includedMetadata(
+  dir: string,
+  baseMetadata: Metadata,
+): Metadata {
   // Read any metadata files that are defined in the metadata itself
   const yamlFiles: string[] = [];
   const metadataFile = baseMetadata[kMetadataFile];
@@ -42,7 +46,7 @@ export function includedMetadata(baseMetadata: Metadata): Metadata {
 
   const metadataFiles = baseMetadata[kMetadataFiles];
   if (metadataFiles && Array.isArray(metadataFiles)) {
-    metadataFiles.forEach((file) => yamlFiles.push(file));
+    metadataFiles.forEach((file) => yamlFiles.push(join(dir, file)));
   }
 
   // Read the yaml

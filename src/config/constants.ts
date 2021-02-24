@@ -119,6 +119,7 @@ export const kFrom = "from";
 export const kReader = "reader";
 export const kWriter = "writer";
 export const kOutputFile = "output-file";
+export const kInputFiles = "input-files";
 export const kAtxHeaders = "atx-headers";
 export const kMarkdownHeadings = "markdown-headings";
 export const kTemplate = "template";
@@ -137,11 +138,14 @@ export const kListings = "listings";
 export const kNumberSections = "number-sections";
 export const kNumberOffset = "number-offset";
 export const kTopLevelDivision = "top-level-division";
+export const kLogFile = "log-file";
+export const kHighlightStyle = "highlight-style";
 export const kVariables = "variables";
 export const kMetadataFile = "metadata-file";
 export const kMetadataFiles = "metadata-files";
 
 // metadata fields
+export const kCsl = "csl";
 export const kBibliography = "bibliography";
 export const kHeaderIncludes = "header-includes";
 export const kIncludeBefore = "include-before";
@@ -159,7 +163,7 @@ export const kPandocDefaultsKeys = [
   kReader,
   kWriter,
   kOutputFile,
-  "input-files",
+  kInputFiles,
   kTemplate,
   kStandalone,
   kSelfContained,
@@ -177,7 +181,7 @@ export const kPandocDefaultsKeys = [
   "file-scope",
   "data-dir",
   "verbosity",
-  "log-file",
+  kLogFile,
   kTopLevelDivision,
   "abbreviations",
   kPdfEngine,
@@ -202,7 +206,7 @@ export const kPandocDefaultsKeys = [
   "indented-code-classes",
   "ascii",
   "default-image-extension",
-  "highlight-style",
+  kHighlightStyle,
   "syntax-definitions",
   "syntax-definition",
   kListings,

@@ -143,7 +143,7 @@ export async function renderProject(
         const sourcePath = relative(projDir, file);
         if (existsSync(file)) {
           const destPath = join(realOutputDir, sourcePath);
-          copyResourceFile(file, destPath);
+          copyResourceFile(context.dir, file, destPath);
         } else {
           message(`WARNING: File '${sourcePath}' was not found.`);
         }
@@ -160,7 +160,12 @@ export async function renderProject(
   }
 }
 
-function copyResourceFile(srcFile: string, destFile: string) {
+function copyResourceFile(rootDir: string, srcFile: string, destFile: string) {
+  // ensure that the resource reference doesn't escape the root dir
+  if (!Deno.realPathSync(srcFile).startsWith(Deno.realPathSync(rootDir))) {
+    return;
+  }
+
   ensureDirSync(dirname(destFile));
   copySync(srcFile, destFile, {
     overwrite: true,
@@ -168,13 +173,58 @@ function copyResourceFile(srcFile: string, destFile: string) {
   });
 
   if (extname(srcFile).toLowerCase() === ".css") {
-    handleCssReferences(srcFile, destFile);
+    handleCssReferences(rootDir, srcFile, destFile);
   }
 }
 
 // fixup root ('/') css references and also copy references to other
 // stylesheet or resources (e.g. images) to alongside the destFile
-function handleCssReferences(srcFile: string, destFile: string) {
+function handleCssReferences(
+  rootDir: string,
+  srcFile: string,
+  destFile: string,
+) {
+  // read the css
+  const css = Deno.readTextFileSync(destFile);
+
+  // offset for root references
+  const offset = relative(dirname(srcFile), rootDir);
+
+  // function that can be used to copy a ref
+  const copyRef = (ref: string) => {
+    const refPath = join(dirname(srcFile), ref);
+    if (existsSync(refPath)) {
+      const refDestPath = join(dirname(destFile), ref);
+      copyResourceFile(rootDir, refPath, refDestPath);
+    }
+  };
+
+  // fixup / copy refs from url()
+  const kUrlRegex = /url\((?!['"]?(?:data|https?):)(['"])?([^'"\)]*)\1\)/g;
+  let destCss = css.replaceAll(
+    kUrlRegex,
+    (_match, p1: string, p2: string) => {
+      const ref = p2.startsWith("/") ? `${offset}${p2}` : p2;
+      copyRef(ref);
+      return `url(${p1}${ref}${p1})`;
+    },
+  );
+
+  // fixup / copy refs from @import
+  const kImportRegEx = /@import\s(?!['"](?:data|https?):)(['"])([^'"\)]*)\1/g;
+  destCss = destCss.replaceAll(
+    kImportRegEx,
+    (_match, p1: string, p2: string) => {
+      const ref = p2.startsWith("/") ? `${offset}${p2}` : p2;
+      copyRef(ref);
+      return `@import ${p1}${ref}${p1}`;
+    },
+  );
+
+  // write the css if necessary
+  if (destCss !== css) {
+    Deno.writeTextFileSync(destFile, destCss);
+  }
 }
 
 export function projectInputFiles(context: ProjectContext) {
