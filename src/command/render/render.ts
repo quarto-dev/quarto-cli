@@ -296,10 +296,8 @@ export async function renderPandoc(
   if (context.project) {
     const projDir = Deno.realPathSync(context.project.dir);
     const inputDir = Deno.realPathSync(dirname(context.target.input));
-    const offset = relative(inputDir, projDir);
-    if (offset) {
-      pandocOptions.offset = pandocMetadataPath(offset);
-    }
+    const offset = relative(inputDir, projDir) || ".";
+    pandocOptions.offset = pandocMetadataPath(offset);
   }
 
   // run pandoc conversion (exit on failure)

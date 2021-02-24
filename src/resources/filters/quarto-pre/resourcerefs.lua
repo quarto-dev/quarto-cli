@@ -59,22 +59,30 @@ function projectOffset()
 end
 
 function handleHtmlRefs(text, projOffset, tag, attrib)
-  -- relative offset to project root if necessary
+
   if projOffset ~= nil then
+    if projOffset == "." then
+      projOffset = ""
+    end
+    
+     -- relative offset to project root if necessary
     text = text:gsub("(<" .. tag .. " [^>]*)(" .. attrib .. "%s*=%s*\"/)", "%1" .. attrib .. "=\"" .. projOffset .. "/")
+
+     -- discover and record resource refs
+    for ref in string.gmatch(text, "<" .. tag .. " [^>]*" .. attrib .. "%s*=%s*\"([^\"]+)\"") do
+      recordFileResource(ref)
+    end
+    
+    -- return potentially modified text
+    return text
   end
-  
-  -- discover and record resource refs
-  for ref in string.gmatch(text, "<" .. tag .. " [^>]*" .. attrib .. "%s*=%s*\"([^\"]+)\"") do
-    recordFileResource(ref)
-  end
-  
-  -- return potentially modified text
-  return text
+
 end
 
+
+
 function recordFileResource(res)
-  if res:find("^%a+://") == nil then
+  if res:find("^%a+://") == nil and res:find("^data:") == nil then
     preState.results.resourceFiles:insert(res)
   end
 end
