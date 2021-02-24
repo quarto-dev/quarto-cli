@@ -63,7 +63,7 @@ jobs:
     - name: Prepare Distribution
       run: |
         pushd package/src/
-        ./quarto-pack prepare-dist --log-level info
+        ./quarto-pack prepare-dist --set-version ${{needs.configure.outputs.tag_name}} --log-level info
         popd
 
     - name: Make Installer
@@ -92,7 +92,7 @@ jobs:
     - name: Prepare Distribution
       run: |
         pushd package\src\
-        .\quarto-pack.cmd prepare-dist --log-level info
+        .\quarto-pack.cmd prepare-dist --set-version ${{needs.configure.outputs.tag_name}} --log-level info
         popd
 
     - name: Make Installer
@@ -149,7 +149,7 @@ jobs:
     - name: Prepare Distribution
       run: |
         pushd package/src/
-        ./quarto-pack prepare-dist --log-level info
+        ./quarto-pack prepare-dist --set-version ${{needs.configure.outputs.tag_name}} --log-level info
         popd
 
     - name: Make Installer
