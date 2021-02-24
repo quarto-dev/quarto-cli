@@ -99,7 +99,11 @@ async function installedVersion() {
     const versionFile = join(installDir, kVersionFileName);
     if (existsSync(versionFile)) {
       return await Deno.readTextFile(versionFile);
+    } else {
+      return undefined;
     }
+  } else {
+    return undefined;
   }
 }
 
@@ -345,7 +349,7 @@ async function isTinyTex() {
   const root = await texLiveRoot();
   if (root) {
     // directory name (lower) is tinytex
-    if (root.toLowerCase().endsWith("tinytex")) {
+    if (root.match(/[/\\][Tt]iny[Tt]e[Xx][/\\]/)) {
       return true;
     }
 
