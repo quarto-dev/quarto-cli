@@ -112,12 +112,15 @@ export async function renderProject(
           // merge the resolved globs into the global list
           resourceFiles.push(...fileResourceFiles.include);
 
-          // add the explicitly discovered files (if they exist)
-          resourceFiles.push(
-            ...result.resourceFiles.files
-              .filter((file) => existsSync(join(resourceDir, file)))
-              .map((file) => Deno.realPathSync(join(resourceDir, file))),
-          );
+          // add the explicitly discovered files (if they exist and
+          // the output isn't self-contained)
+          if (!result.selfContained) {
+            resourceFiles.push(
+              ...result.resourceFiles.files
+                .filter((file) => existsSync(join(resourceDir, file)))
+                .map((file) => Deno.realPathSync(join(resourceDir, file))),
+            );
+          }
 
           // apply removes and filter files dir
           resourceFiles = resourceFiles.filter((file) => {

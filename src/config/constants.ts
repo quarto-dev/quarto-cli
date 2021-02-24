@@ -143,6 +143,9 @@ export const kHighlightStyle = "highlight-style";
 export const kVariables = "variables";
 export const kMetadataFile = "metadata-file";
 export const kMetadataFiles = "metadata-files";
+export const kSyntaxDefinitions = "syntax-definitions";
+export const kSyntaxDefinition = "syntax-definition";
+export const kReferenceDoc = "reference-doc";
 
 // metadata fields
 export const kCsl = "csl";
@@ -207,10 +210,10 @@ export const kPandocDefaultsKeys = [
   "ascii",
   "default-image-extension",
   kHighlightStyle,
-  "syntax-definitions",
-  "syntax-definition",
+  kSyntaxDefinitions,
+  kSyntaxDefinition,
   kListings,
-  "reference-doc",
+  kReferenceDoc,
   "html-math-method",
   "email-obfuscation",
   "tab-stop",

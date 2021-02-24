@@ -40,6 +40,9 @@ import {
   kMetadataFile,
   kMetadataFiles,
   kOutputFile,
+  kReferenceDoc,
+  kSyntaxDefinition,
+  kSyntaxDefinitions,
   kTemplate,
   kVariables,
 } from "../../config/constants.ts";
@@ -303,6 +306,9 @@ function formatResourceFiles(dir: string, format: Format) {
               kMetadataFiles,
               kLogFile,
               kHighlightStyle,
+              kSyntaxDefinition,
+              kSyntaxDefinitions,
+              kReferenceDoc,
             ].includes(index)
           ) {
             return;

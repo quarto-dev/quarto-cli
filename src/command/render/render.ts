@@ -6,7 +6,15 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { basename, dirname, isAbsolute, join, relative } from "path/mod.ts";
+
+import {
+  basename,
+  dirname,
+  extname,
+  isAbsolute,
+  join,
+  relative,
+} from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
@@ -30,6 +38,7 @@ import {
   kMetadataFile,
   kMetadataFiles,
   kMetadataFormat,
+  kSelfContained,
 } from "../../config/constants.ts";
 import { Format } from "../../config/format.ts";
 import {
@@ -71,6 +80,7 @@ export interface RenderResult {
   file: string;
   filesDir?: string;
   resourceFiles: RenderResourceFiles;
+  selfContained: boolean;
 }
 
 export interface RenderResults {
@@ -159,6 +169,7 @@ export async function renderFiles(
         file: projectPath(pandocResult.finalOutput),
         filesDir: filesDir ? projectPath(filesDir) : undefined,
         resourceFiles: pandocResult.resourceFiles,
+        selfContained: pandocResult.selfContained,
       });
     }
 
@@ -233,6 +244,7 @@ export async function renderExecute(
 export interface PandocResult {
   finalOutput: string;
   resourceFiles: RenderResourceFiles;
+  selfContained: boolean;
 }
 
 export async function renderPandoc(
@@ -307,13 +319,21 @@ export async function renderPandoc(
     });
   }
 
+  // ensure flags
+  const flags = context.options.flags || {};
+
   // call complete handler (might e.g. run latexmk to complete the render)
   const finalOutput = await recipe.complete(pandocOptions) || recipe.output;
 
-  // cleanup as required
-  const flags = context.options.flags || {};
-  cleanup(
+  // determine whether this is self-contained output
+  const selfContained = isSelfContainedOutput(
     flags,
+    context.format,
+    finalOutput,
+  );
+
+  cleanup(
+    selfContained,
     context.format,
     finalOutput,
     executeResult.supporting,
@@ -324,7 +344,34 @@ export async function renderPandoc(
   return {
     finalOutput,
     resourceFiles,
+    selfContained,
   };
+}
+
+function isSelfContainedOutput(
+  flags: RenderFlags,
+  format: Format,
+  finalOutput: string,
+) {
+  // some extensions are 'known' to be standalone/self-contained
+  // see https://pandoc.org/MANUAL.html#option--standalone
+  const kStandaloneExtensions = [
+    ".pdf",
+    ".epub",
+    ".fb2",
+    ".docx",
+    ".rtf",
+    ".pptx",
+    ".odt",
+    ".ipynb",
+  ];
+
+  // determine if we will be self contained
+  const selfContained = flags[kSelfContained] ||
+    (format.pandoc && format.pandoc[kSelfContained]) ||
+    kStandaloneExtensions.includes(extname(finalOutput));
+
+  return selfContained;
 }
 
 async function resolveFormats(
