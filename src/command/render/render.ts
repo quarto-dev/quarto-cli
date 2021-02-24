@@ -536,7 +536,7 @@ function mergeQuartoConfigs(
   configs = ld.cloneDeep(configs);
 
   // bibliography needs to always be an array so it can be merged
-  const fixupBibliopgrapy = (metadata: Metadata) => {
+  const fixupBibliography = (metadata: Metadata) => {
     if (typeof (metadata[kBibliography]) === "string") {
       metadata[kBibliography] = [metadata[kBibliography]];
     }
@@ -552,10 +552,10 @@ function mergeQuartoConfigs(
         if (typeof (Reflect.get(format, key)) !== "object") {
           Reflect.set(format, key, {});
         }
-        fixupBibliopgrapy(Reflect.get(format, key) as Metadata);
+        fixupBibliography(Reflect.get(format, key) as Metadata);
       });
     }
-    fixupBibliopgrapy(config);
+    fixupBibliography(config);
     return config;
   };
 
