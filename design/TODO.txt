@@ -31,9 +31,7 @@ HTML:
   - tabs
   - admonitions
 
-Project:
-  - Do files not listed in project: files: but in the directory still inherit the project metadata when rendered directly
-
+Bundle SASS compiler so we can prime thematic correctly
 
 filter params need some "escaping" so they aren't interpreted as markdown (e.g. use an html comment)
 
