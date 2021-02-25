@@ -38,6 +38,8 @@ export async function renderProject(
   const projDir = Deno.realPathSync(context.dir);
 
   // lookup the project type and call preRender
+  // TODO: merge formatPandoc
+  // TODO: call post-render
   let formatPandoc: FormatPandoc | undefined;
   if (context.metadata) {
     const projType = projectType(context.metadata.project?.type);
