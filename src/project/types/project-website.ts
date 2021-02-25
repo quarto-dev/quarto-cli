@@ -5,14 +5,19 @@
 *
 */
 import { join } from "path/mod.ts";
-import { kOutputDir } from "../../config/project.ts";
+import {
+  kLibDir,
+  kOutputDir,
+  kResources,
+  ProjectContext,
+} from "../../config/project.ts";
 import { resourcePath } from "../../core/resources.ts";
 
 import { ProjectCreate, ProjectType } from "./project-types.ts";
 
 export const websiteProjectType: ProjectType = {
   type: "website",
-  create: (name: string, outputDir = "_site"): ProjectCreate => {
+  create: (_title: string, outputDir = "_site"): ProjectCreate => {
     const supportingDir = resourcePath(join("projects", "website"));
 
     return {
@@ -41,6 +46,25 @@ export const websiteProjectType: ProjectType = {
       supporting: [
         "styles.css",
       ].map((path) => join(supportingDir, path)),
+    };
+  },
+
+  preRender: (context: ProjectContext) => {
+    return {
+      project: {
+        [kLibDir]: "libs",
+        [kOutputDir]: "_site",
+        [kResources]: [
+          "*.png",
+          "*.jpeg",
+          "*.jpg",
+          "*.css",
+          "*.js",
+          ...(context.metadata?.project?.[kResources] || []),
+        ],
+        ...context.metadata?.project,
+      },
+      pandoc: {},
     };
   },
 };

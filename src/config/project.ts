@@ -29,13 +29,13 @@ export interface ProjectContext {
 }
 
 export interface ProjectMetadata extends Metadata {
-  name?: string;
   type?: string;
+  title?: string;
   render?: string[];
   [kExecuteDir]?: "file" | "project";
   [kOutputDir]?: string;
   [kLibDir]?: string;
-  [kResources]?: [];
+  [kResources]?: string[];
 }
 
 export function projectConfigFile(dir: string): string | undefined {

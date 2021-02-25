@@ -13,7 +13,7 @@ import { ProjectCreate, ProjectType } from "./project-types.ts";
 
 export const bookProjectType: ProjectType = {
   type: "book",
-  create: (name: string, outputDir = "_book"): ProjectCreate => {
+  create: (_title: string, outputDir = "_book"): ProjectCreate => {
     const supportingDir = resourcePath(join("projects", "book"));
 
     return {

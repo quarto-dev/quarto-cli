@@ -9,12 +9,12 @@ import { ProjectCreate, ProjectType } from "./project-types.ts";
 export const defaultProjectType: ProjectType = {
   type: "default",
 
-  create: (name: string): ProjectCreate => {
+  create: (title: string): ProjectCreate => {
     return {
       scaffold: [{
-        name,
+        name: title,
         content: "",
-        title: name,
+        title,
       }],
     };
   },

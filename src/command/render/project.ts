@@ -13,6 +13,8 @@ import { ld } from "lodash/mod.ts";
 import { resolvePathGlobs } from "../../core/path.ts";
 import { message } from "../../core/console.ts";
 
+import { FormatPandoc } from "../../config/format.ts";
+
 import { executionEngine } from "../../execute/engine.ts";
 
 import {
@@ -23,6 +25,8 @@ import {
   ProjectContext,
 } from "../../config/project.ts";
 
+import { projectType } from "../../project/types/project-types.ts";
+
 import { renderFiles, RenderOptions, RenderResults } from "./render.ts";
 
 export async function renderProject(
@@ -32,6 +36,23 @@ export async function renderProject(
 ): Promise<RenderResults> {
   // get real path to the project
   const projDir = Deno.realPathSync(context.dir);
+
+  // lookup the project type and call preRender
+  let formatPandoc: FormatPandoc | undefined;
+  if (context.metadata) {
+    const projType = projectType(context.metadata.project?.type);
+    const { project = undefined, pandoc = undefined } = projType.preRender
+      ? projType.preRender(context)
+      : {};
+
+    // if we got a project back then replace ours
+    if (project) {
+      context.metadata.project = project;
+    }
+    if (pandoc) {
+      formatPandoc = pandoc;
+    }
+  }
 
   // set execute dir if requested
   const executeDir = context.metadata?.project?.[kExecuteDir];
