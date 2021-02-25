@@ -10,13 +10,11 @@ import {
   CompletionsCommand,
   HelpCommand,
 } from "cliffy/command/mod.ts";
-import { existsSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
 
 import { commands } from "./command/command.ts";
 import { logError } from "./core/log.ts";
-import { resourcePath } from "./core/resources.ts";
 import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
+import { version } from "./core/version.ts";
 
 export async function quarto(args: string[]) {
   const quartoCommand = new Command()
@@ -46,14 +44,5 @@ if (import.meta.main) {
     }
     cleanupSessionTempDir();
     Deno.exit(1);
-  }
-}
-
-function version() {
-  const versionPath = join(resourcePath(), "version");
-  if (existsSync(versionPath)) {
-    return Deno.readTextFileSync(versionPath);
-  } else {
-    return "No version";
   }
 }

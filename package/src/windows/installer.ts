@@ -80,6 +80,10 @@ export async function makeInstallerWindows(configuration: Configuration) {
     );
   }
 
+   // Set the installer version
+   Deno.env.set("QUARTO_INSTALLER_VERSION", configuration.version);
+   console.log(Deno.env);
+
   // heat the directory to generate a wix file for it
   configuration.log.info("Heating directory");
   const heatOutput = join(workingDir, "quarto-frag.wxs");
@@ -114,7 +118,7 @@ export async function makeInstallerWindows(configuration: Configuration) {
     const outputFileName = basename(candleInput, ".wxs");
     const outputPath = join(workingDir, outputFileName + ".wixobj");
     candleOutput.push(outputPath);
-    return runCmd(
+    return await runCmd(
       candleCmd,
       [
         `-dSourceDir=${configuration.directoryInfo.dist}`,
@@ -133,6 +137,7 @@ export async function makeInstallerWindows(configuration: Configuration) {
     "windows",
     "license.rtf",
   );
+
   const lightOutput = join(workingDir, packageName);
   const lightArgs = ["-out", lightOutput, ...candleOutput];
   lightArgs.push("-ext");
@@ -141,6 +146,9 @@ export async function makeInstallerWindows(configuration: Configuration) {
   lightArgs.push("WixUIExtension");
   lightArgs.push(`-dWixUILicenseRtf=${licenseRtf}`);
   await runCmd(lightCmd, lightArgs, configuration.log);
+
+  Deno.env.delete("QUARTO_INSTALLER_VERSION");
+
 
   // Use signtool to sign the MSI
   if (sign) {

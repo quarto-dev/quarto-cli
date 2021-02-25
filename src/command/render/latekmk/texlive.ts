@@ -242,19 +242,15 @@ export async function tlVersion() {
     true,
   );
 
-  // Failed to even run tlmgr
-  if (!result.success) {
-    return Promise.reject();
-  }
-  const versionStr = result.stdout;
-  if (!versionStr) {
-    return Promise.reject();
-  }
-  const match = versionStr.match(/tlversion (\d*)/);
-  if (match) {
-    return match[1];
-  } else {
-    return Promise.reject();
+  if (result.success) {
+    const versionStr = result.stdout;
+    if (!versionStr) {
+      return Promise.reject();
+    }
+    const match = versionStr.match(/tlversion (\d*)/);
+    if (match) {
+      return match[1];
+    }
   }
 }
 
