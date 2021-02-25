@@ -53,7 +53,11 @@ import { pandocMetadataPath, PandocOptions, runPandoc } from "./pandoc.ts";
 import { removePandocToArg, RenderFlags, resolveParams } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
-import { ProjectContext, projectContext } from "../../config/project.ts";
+import {
+  kLibDir,
+  ProjectContext,
+  projectContext,
+} from "../../config/project.ts";
 import { projectInputFiles, renderProject } from "./project.ts";
 
 // command line options for render
@@ -69,6 +73,7 @@ export interface RenderContext {
   engine: ExecutionEngine;
   format: Format;
   project?: ProjectContext;
+  libDir?: string;
 }
 
 export interface RenderResourceFiles {
@@ -198,6 +203,12 @@ export async function renderContexts(
   // resolve render target
   const formats = await resolveFormats(target, engine, options.flags);
 
+  // see if there is a libDir
+  let libDir = project?.metadata?.project?.[kLibDir];
+  if (project && libDir) {
+    libDir = relative(".", join(project.dir, libDir));
+  }
+
   // return contexts
   const contexts: Record<string, RenderContext> = {};
   Object.keys(formats).forEach((format) => {
@@ -207,6 +218,7 @@ export async function renderContexts(
       engine,
       format: formats[format],
       project,
+      libDir,
     };
   });
   return contexts;
@@ -225,6 +237,7 @@ export async function renderExecute(
     resourceDir: resourcePath(),
     tempDir: sessionTempDir(),
     dependencies: resolveDependencies,
+    libDir: context.libDir,
     format: context.format,
     cwd: flags.executeDir,
     params: resolveParams(flags.params, flags.paramsFile),
@@ -273,7 +286,7 @@ export async function renderPandoc(
       output: recipe.output,
       resourceDir: resourcePath(),
       tempDir: sessionTempDir(),
-      libDir: undefined, // TODO
+      libDir: context.libDir,
       dependencies: [executeResult.dependencies],
       quiet: context.options.flags?.quiet,
     });

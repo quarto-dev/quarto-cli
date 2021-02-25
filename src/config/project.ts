@@ -17,6 +17,7 @@ import { kMetadataFile, kMetadataFiles } from "./constants.ts";
 
 export const kExecuteDir = "execute-dir";
 export const kOutputDir = "output-dir";
+export const kLibDir = "lib-dir";
 export const kResourceFiles = "resource-files";
 
 export interface ProjectContext {
@@ -33,6 +34,7 @@ export interface ProjectMetadata extends Metadata {
   render?: string[];
   [kExecuteDir]?: "file" | "project";
   [kOutputDir]?: string;
+  [kLibDir]?: string;
   [kResourceFiles]?: [];
 }
 

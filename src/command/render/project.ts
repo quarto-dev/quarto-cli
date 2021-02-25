@@ -6,7 +6,7 @@
 */
 
 import { copySync, ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
-import { dirname, extname, join, relative } from "path/mod.ts";
+import { basename, dirname, extname, join, relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
@@ -17,6 +17,7 @@ import { executionEngine } from "../../execute/engine.ts";
 
 import {
   kExecuteDir,
+  kLibDir,
   kOutputDir,
   kResourceFiles,
   ProjectContext,
@@ -77,6 +78,29 @@ export async function renderProject(
       ensureDirSync(realOutputDir);
       realOutputDir = Deno.realPathSync(realOutputDir);
 
+      // function to move a directory into the output dir
+      const moveDir = (dir: string) => {
+        const targetDir = join(realOutputDir, dir);
+        if (existsSync(targetDir)) {
+          Deno.removeSync(targetDir, { recursive: true });
+        }
+        const srcDir = join(projDir, dir);
+        ensureDirSync(dirname(targetDir));
+        Deno.renameSync(srcDir, targetDir);
+      };
+
+      // move the lib dir if we have one (move one subdirectory at a time so that we can
+      // merge with what's already there)
+      const libDir = context.metadata?.project?.[kLibDir];
+      if (libDir) {
+        for (const lib of Deno.readDirSync(join(context.dir, libDir))) {
+          if (lib.isDirectory) {
+            moveDir(join(libDir, basename(lib.name)));
+          }
+        }
+        Deno.removeSync(join(context.dir, libDir), { recursive: true });
+      }
+
       // move/copy results to output_dir
       Object.keys(fileResults).forEach((format) => {
         const results = fileResults[format];
@@ -88,17 +112,8 @@ export async function renderProject(
           Deno.renameSync(join(projDir, result.file), outputFile);
 
           // files dir
-          const filesDir = result.filesDir
-            ? join(realOutputDir, result.filesDir)
-            : undefined;
-          if (filesDir) {
-            if (existsSync(filesDir)) {
-              Deno.removeSync(filesDir, { recursive: true });
-            }
-            Deno.renameSync(
-              join(projDir, result.filesDir!),
-              filesDir,
-            );
+          if (result.filesDir) {
+            moveDir(result.filesDir);
           }
 
           // resource files

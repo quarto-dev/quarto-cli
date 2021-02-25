@@ -43,6 +43,7 @@ export interface ExecuteOptions {
   resourceDir: string;
   tempDir: string;
   dependencies: boolean;
+  libDir?: string;
   cwd?: string;
   params?: { [key: string]: unknown };
   quiet?: boolean;

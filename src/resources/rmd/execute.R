@@ -2,7 +2,7 @@
 # Copyright (C) 2020 by RStudio, PBC
 
 # execute rmarkdown::render
-execute <- function(input, format, tempDir, dependencies, cwd, params) {
+execute <- function(input, format, tempDir, libDir, dependencies, cwd, params) {
 
   # calculate knit_root_dir (before we setwd below)
   knit_root_dir <- if (!is.null(cwd)) tools::file_path_as_absolute(cwd) else NULL
@@ -78,7 +78,15 @@ execute <- function(input, format, tempDir, dependencies, cwd, params) {
 
   # see if we are going to resolve knit_meta now or later
   if (dependencies) {
-    pandoc <- pandoc_format(input, format, output_file, files_dir, knit_meta, tempDir)
+
+    pandoc <- pandoc_format(
+      input, 
+      format,
+       output_file, 
+       ifelse(!is.null(libDir), libDir, files_dir), 
+       knit_meta, 
+       tempDir
+    )
     dependencies_data <- NA
   } else {
     pandoc <- list()
@@ -287,7 +295,7 @@ dependencies_from_render <-function(input, files_dir, knit_meta) {
   # convert dependencies to in_header includes
   dependencies$includes <- list()
   if (length(extras$dependencies) > 0) {
-    deps <- rmarkdown:::html_dependencies_as_string(extras$dependencies, files_dir, dirname(input))
+    deps <- html_dependencies_as_string(extras$dependencies, files_dir)
     dependencies$includes$in_header <- deps
   }
   
@@ -301,6 +309,21 @@ dependencies_from_render <-function(input, files_dir, knit_meta) {
   dependencies
 
 }
+
+# return the html dependencies as an HTML string suitable for inclusion
+# in the head of a document
+html_dependencies_as_string <- function(dependencies, files_dir) {
+  dependencies <- lapply(dependencies, htmltools::copyDependencyToDir, files_dir)
+  dependencies <- lapply(dependencies, function(dependency) {
+    dir <- dependency$src$file
+    if (!is.null(dir)) {
+      dependency$src$file <- paste(files_dir, basename(dir), sep = "/")
+    }
+    dependency
+  })
+  return(htmltools::renderDependencies(dependencies, "file", encodeFunc = identity))
+}
+
 
 pandoc_includes <- function(includes, tempDir) {
   pandoc <- list()
