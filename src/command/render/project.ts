@@ -19,7 +19,7 @@ import {
   kExecuteDir,
   kLibDir,
   kOutputDir,
-  kResourceFiles,
+  kResources,
   ProjectContext,
 } from "../../config/project.ts";
 
@@ -57,12 +57,12 @@ export async function renderProject(
     if (outputDir) {
       // determine global list of included resource files
       let resourceFiles: string[] = [];
-      const resourceFileGlobs = context.metadata?.project?.[kResourceFiles];
-      if (resourceFileGlobs) {
+      const resourceGlobs = context.metadata?.project?.[kResources];
+      if (resourceGlobs) {
         const exclude = outputDir ? [outputDir] : [];
         const projectResourceFiles = resolvePathGlobs(
           context.dir,
-          resourceFileGlobs,
+          resourceGlobs,
           exclude,
         );
         resourceFiles.push(

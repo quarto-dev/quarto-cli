@@ -47,7 +47,7 @@ import {
   kVariables,
 } from "../../config/constants.ts";
 import { sessionTempFile } from "../../core/temp.ts";
-import { kResourceFiles } from "../../config/project.ts";
+import { kResources } from "../../config/project.ts";
 import { RenderResourceFiles } from "./render.ts";
 
 // options required to run pandoc
@@ -215,8 +215,8 @@ export async function runPandoc(
 
   // resolve resource files from metadata
   const globs: string[] = [];
-  if (options.format.metadata[kResourceFiles]) {
-    const files = options.format.metadata[kResourceFiles];
+  if (options.format.metadata[kResources]) {
+    const files = options.format.metadata[kResources];
     if (Array.isArray(files)) {
       for (const file of files) {
         globs.push(String(file));
@@ -292,7 +292,7 @@ function formatResourceFiles(dir: string, format: Format) {
         if (typeof (index) === "string") {
           if (
             [
-              kResourceFiles,
+              kResources,
               kOutputFile,
               kInputFiles,
               kIncludeInHeader,
