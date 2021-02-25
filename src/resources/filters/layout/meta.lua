@@ -30,7 +30,6 @@ function metaInject()
   }
   .quarto-layout-cell {
     position: relative;
-    padding-right: 15px;
   }
   .quarto-layout-cell:last-child {
     padding-right: 0;
