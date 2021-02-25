@@ -39,6 +39,8 @@ function handleRawElement(el)
       el.text = handleHtmlRefs(el.text, projOffset, "img", "src")
       el.text = handleHtmlRefs(el.text, projOffset, "link", "href")
       el.text = handleHtmlRefs(el.text, projOffset, "script", "src")
+      el.text = handleHtmlRefs(el.text, projOffset, "source", "src")
+      el.text = handleHtmlRefs(el.text, projOffset, "embed", "src")
       el.text = handleCssRefs(el.text, projOffset, "@import%s+\"")
       el.text = handleCssRefs(el.text, projOffset, "url%(\"")
       return el
