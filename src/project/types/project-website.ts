@@ -12,6 +12,7 @@ import {
   ProjectContext,
 } from "../../config/project.ts";
 import { resourcePath } from "../../core/resources.ts";
+import { projectWebResources } from "../project-utils.ts";
 
 import { ProjectCreate, ProjectType } from "./project-types.ts";
 
@@ -55,11 +56,7 @@ export const websiteProjectType: ProjectType = {
         [kLibDir]: "libs",
         [kOutputDir]: "_site",
         [kResources]: [
-          "*.png",
-          "*.jpeg",
-          "*.jpg",
-          "*.css",
-          "*.js",
+          ...projectWebResources(),
           ...(context.metadata?.project?.[kResources] || []),
         ],
         ...context.metadata?.project,
