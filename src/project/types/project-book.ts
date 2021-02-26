@@ -11,7 +11,8 @@ import {
   kOutputDir,
   kResources,
   ProjectContext,
-} from "../../config/project.ts";
+  ProjectMetadata,
+} from "../project-context.ts";
 import { resourcePath } from "../../core/resources.ts";
 
 import { projectWebResources } from "../project-utils.ts";
@@ -66,17 +67,21 @@ export const bookProjectType: ProjectType = {
     };
   },
 
-  preRender: (context: ProjectContext) => {
+  config: (config?: ProjectMetadata) => {
+    config = config || {};
     return {
-      project: {
-        [kLibDir]: "libs",
-        [kOutputDir]: "_book",
-        [kResources]: [
-          ...projectWebResources(),
-          ...(context.metadata?.project?.[kResources] || []),
-        ],
-        ...context.metadata?.project,
-      },
+      [kLibDir]: "libs",
+      [kOutputDir]: "_book",
+      [kResources]: [
+        ...projectWebResources(),
+        ...(config?.[kResources] || []),
+      ],
+      ...config,
+    };
+  },
+
+  preRender: (_context: ProjectContext) => {
+    return {
       pandoc: {},
     };
   },

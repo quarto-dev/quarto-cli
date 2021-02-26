@@ -1,5 +1,5 @@
 /*
-* project.ts
+* project-context.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
@@ -12,8 +12,9 @@ import { existsSync } from "fs/mod.ts";
 import { readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { message } from "../core/console.ts";
-import { includedMetadata, Metadata } from "./metadata.ts";
-import { kMetadataFile, kMetadataFiles } from "./constants.ts";
+import { includedMetadata, Metadata } from "../config/metadata.ts";
+import { kMetadataFile, kMetadataFiles } from "../config/constants.ts";
+import { projectType } from "./types/project-types.ts";
 
 export const kExecuteDir = "execute-dir";
 export const kOutputDir = "output-dir";
@@ -59,9 +60,14 @@ export function projectContext(path: string): ProjectContext {
       delete projectConfig[kMetadataFile];
       delete projectConfig[kMetadataFiles];
       if (projectConfig.project) {
+        const config = projectConfig.project as ProjectMetadata;
+        const type = projectType(config.type);
         return {
           dir,
-          metadata: projectConfig,
+          metadata: {
+            ...projectConfig,
+            project: type.config(config),
+          },
         };
       } else {
         return {

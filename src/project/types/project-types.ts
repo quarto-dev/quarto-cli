@@ -7,7 +7,7 @@
 
 import { FormatPandoc } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
-import { ProjectContext, ProjectMetadata } from "../../config/project.ts";
+import { ProjectContext, ProjectMetadata } from "../project-context.ts";
 
 import { bookProjectType } from "./project-book.ts";
 import { defaultProjectType } from "./project-default.ts";
@@ -16,9 +16,8 @@ import { websiteProjectType } from "./project-website.ts";
 export interface ProjectType {
   type: string;
   create: (title: string, outputDir?: string) => ProjectCreate;
-  preRender?: (
-    context: ProjectContext,
-  ) => { project: ProjectMetadata; pandoc: FormatPandoc };
+  config: (config?: ProjectMetadata) => ProjectMetadata | undefined;
+  preRender?: (context: ProjectContext) => { pandoc: FormatPandoc };
   postRender?: (context: ProjectContext) => void;
 }
 
