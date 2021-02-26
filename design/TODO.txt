@@ -16,12 +16,6 @@ TODO: generalized warning system (look for 'WARNING:')
 
 Charles:
 
-- Path issue when trying to use tinytex with Quarto sandbox (Christophe email)
-
-- Need to output more granular information with quarto --version 
-   - automate version generation similar to releases (w.incrementing section)
-
-
 -  Layout:
     - LaTeX widths. Anywhere you have a space in a column use % 
     - HTML widths (eliminate space between images)

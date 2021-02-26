@@ -316,7 +316,7 @@ function latexCell(cell, endOfRow, endOfTable)
     tappend(content, cell.content)
   end
   
-  latexAppend(suffix, "\n\\end{minipage}")
+  latexAppend(suffix, "\\end{minipage}%")
   
   if isSubRef then
     latexAppend(suffix, "\n}")

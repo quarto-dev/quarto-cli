@@ -322,10 +322,16 @@ function formatResourceFiles(dir: string, format: Format) {
         } else if (typeof (value) === "string") {
           if (!isAbsolute(value)) {
             const resourceFile = join(dir, value);
-            if (
-              existsSync(resourceFile) && Deno.statSync(resourceFile).isFile
-            ) {
-              resourceFiles.push(value);
+            try {
+              if (
+                existsSync(resourceFile) && Deno.statSync(resourceFile).isFile
+              ) {
+                resourceFiles.push(value);
+              }
+            } catch (e) {
+              // existsSync / statSync could throw for things like path too long
+              // or invalid characters. Since we're using this to identify paths
+              // we can safely ignore these errors.
             }
           }
         }
