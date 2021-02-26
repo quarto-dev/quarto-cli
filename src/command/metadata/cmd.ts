@@ -10,7 +10,7 @@ import { stringify } from "encoding/yaml.ts";
 import { Command } from "cliffy/command/mod.ts";
 
 import { renderContexts } from "../render/render.ts";
-import { projectContext } from "../../config/project.ts";
+import { projectContext } from "../../project/project-context.ts";
 import { Format } from "../../config/format.ts";
 
 export const metadataCommand = new Command()

@@ -7,8 +7,9 @@
     "hash/": "https://deno.land/std/hash/",
     "encoding/": "https://deno.land/std/encoding/",
     "uuid/": "https://deno.land/std/uuid/",
+    "testing/": "https://deno.land/std/testing/",
     "cliffy/": "https://deno.land/x/cliffy@v0.16.0/",
     "lodash/": "https://deno.land/x/deno_lodash/",
-    "testing/": "https://deno.land/std/testing/"
+    "denoliver/": "https://deno.land/x/denoliver/"
   }
 }

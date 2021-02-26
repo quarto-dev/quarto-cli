@@ -47,7 +47,7 @@ import {
   kVariables,
 } from "../../config/constants.ts";
 import { sessionTempFile } from "../../core/temp.ts";
-import { kResources } from "../../config/project.ts";
+import { kResources } from "../../project/project-context.ts";
 import { RenderResourceFiles } from "./render.ts";
 
 // options required to run pandoc

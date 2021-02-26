@@ -23,7 +23,7 @@ import {
   kOutputDir,
   kResources,
   ProjectContext,
-} from "../../config/project.ts";
+} from "../../project/project-context.ts";
 
 import { projectType } from "../../project/types/project-types.ts";
 
@@ -43,14 +43,10 @@ export async function renderProject(
   let formatPandoc: FormatPandoc | undefined;
   if (context.metadata) {
     const projType = projectType(context.metadata.project?.type);
-    const { project = undefined, pandoc = undefined } = projType.preRender
+    const { pandoc = undefined } = projType.preRender
       ? projType.preRender(context)
       : {};
 
-    // if we got a project back then replace ours
-    if (project) {
-      context.metadata.project = project;
-    }
     if (pandoc) {
       formatPandoc = pandoc;
     }

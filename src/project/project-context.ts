@@ -1,5 +1,5 @@
 /*
-* project.ts
+* project-context.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
@@ -12,8 +12,9 @@ import { existsSync } from "fs/mod.ts";
 import { readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { message } from "../core/console.ts";
-import { includedMetadata, Metadata } from "./metadata.ts";
-import { kMetadataFile, kMetadataFiles } from "./constants.ts";
+import { includedMetadata, Metadata } from "../config/metadata.ts";
+import { kMetadataFile, kMetadataFiles } from "../config/constants.ts";
+import { projectType } from "./types/project-types.ts";
 
 export const kExecuteDir = "execute-dir";
 export const kOutputDir = "output-dir";
@@ -59,9 +60,14 @@ export function projectContext(path: string): ProjectContext {
       delete projectConfig[kMetadataFile];
       delete projectConfig[kMetadataFiles];
       if (projectConfig.project) {
+        const config = projectConfig.project as ProjectMetadata;
+        const type = projectType(config.type);
         return {
           dir,
-          metadata: projectConfig,
+          metadata: {
+            ...projectConfig,
+            project: type.config(config),
+          },
         };
       } else {
         return {
@@ -78,26 +84,5 @@ export function projectContext(path: string): ProjectContext {
         dir = nextDir;
       }
     }
-  }
-}
-
-export function readQuartoYaml(directory: string) {
-  // Reads all the metadata files from the directory
-  // and merges them in the order in which they are read
-
-  let yamlPath: string | undefined = undefined;
-  try {
-    // Read the metadata files from the directory
-    const yamls = [];
-    for (const walk of expandGlobSync("*.{yml,yaml}", { root: directory })) {
-      // Read the metadata for this file
-      yamlPath = walk.path;
-      yamls.push(readYaml(yamlPath) as Metadata);
-    }
-    // Return the merged metadata
-    return mergeConfigs({}, ...yamls);
-  } catch (e) {
-    message("\nError reading quarto configuration at " + yamlPath + "\n");
-    throw e;
   }
 }

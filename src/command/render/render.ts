@@ -57,7 +57,7 @@ import {
   kLibDir,
   ProjectContext,
   projectContext,
-} from "../../config/project.ts";
+} from "../../project/project-context.ts";
 import { projectInputFiles, renderProject } from "./project.ts";
 
 // command line options for render

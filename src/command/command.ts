@@ -17,6 +17,7 @@ import {
   updateCommand,
 } from "./install/cmd.ts";
 import { environmentCommand } from "./environment/cmd.ts";
+import { serveCommand } from "./serve/cmd.ts";
 
 export function commands(): Command[] {
   return [
@@ -28,5 +29,6 @@ export function commands(): Command[] {
     updateCommand,
     uninstallCommand,
     environmentCommand,
+    serveCommand,
   ];
 }

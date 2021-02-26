@@ -7,7 +7,7 @@
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { kOutputDir } from "../../config/project.ts";
+import { kOutputDir } from "../../project/project-context.ts";
 import { projectCreate } from "../../project/project-create.ts";
 
 export const createProjectCommand = new Command()
