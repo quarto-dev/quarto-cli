@@ -86,24 +86,3 @@ export function projectContext(path: string): ProjectContext {
     }
   }
 }
-
-export function readQuartoYaml(directory: string) {
-  // Reads all the metadata files from the directory
-  // and merges them in the order in which they are read
-
-  let yamlPath: string | undefined = undefined;
-  try {
-    // Read the metadata files from the directory
-    const yamls = [];
-    for (const walk of expandGlobSync("*.{yml,yaml}", { root: directory })) {
-      // Read the metadata for this file
-      yamlPath = walk.path;
-      yamls.push(readYaml(yamlPath) as Metadata);
-    }
-    // Return the merged metadata
-    return mergeConfigs({}, ...yamls);
-  } catch (e) {
-    message("\nError reading quarto configuration at " + yamlPath + "\n");
-    throw e;
-  }
-}
