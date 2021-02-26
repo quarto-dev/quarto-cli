@@ -156,6 +156,8 @@ function finalOutput(renderResults: RenderResults) {
     } else {
       finalOutput = join(renderResults.baseDir, finalOutput);
     }
+  } else {
+    finalOutput = join(dirname(finalInput), finalOutput);
   }
 
   // return a path relative to the input file
