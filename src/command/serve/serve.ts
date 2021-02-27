@@ -7,7 +7,7 @@
 
 import { basename, extname, join, posix, relative } from "path/mod.ts";
 
-import { listenAndServe, Response, ServerRequest } from "http/server.ts";
+import { listenAndServe, Response, serve, ServerRequest } from "http/server.ts";
 import { serveFile } from "http/file_server.ts";
 
 import { message } from "../../core/console.ts";
@@ -21,7 +21,10 @@ export type ServeOptions = {
   debug?: boolean;
 };
 
-export function serveProject(project: ProjectContext, options: ServeOptions) {
+export async function serveProject(
+  project: ProjectContext,
+  options: ServeOptions,
+) {
   const {
     port,
     watch = true,
@@ -33,34 +36,37 @@ export function serveProject(project: ProjectContext, options: ServeOptions) {
   const outputDir = project.metadata?.project?.[kOutputDir];
   const siteDir = outputDir ? join(project.dir, outputDir) : project.dir;
 
-  // serve project
-  listenAndServe(
-    { port, hostname: "127.0.0.1" },
-    async (req: ServerRequest): Promise<void> => {
-      let response: Response | undefined;
-      let fsPath: string | undefined;
-      try {
-        const normalizedUrl = normalizeURL(req.url);
-        fsPath = posix.join(siteDir, normalizedUrl);
-        if (fsPath.indexOf(siteDir) !== 0) {
-          fsPath = siteDir;
-        }
-        const fileInfo = await Deno.stat(fsPath);
-        if (fileInfo.isDirectory) {
-          fsPath = join(fsPath, "index.html");
-        }
-        response = await serveFile(req, fsPath);
-      } catch (e) {
-        response = await serveFallback(req, e);
-      } finally {
-        try {
-          await req.respond(response!);
-        } catch (e) {
-          console.error(e.message);
-        }
+  // main request handler
+  const handler = async (req: ServerRequest): Promise<void> => {
+    let response: Response | undefined;
+    let fsPath: string | undefined;
+    try {
+      const normalizedUrl = normalizeURL(req.url);
+      fsPath = posix.join(siteDir, normalizedUrl);
+      if (fsPath.indexOf(siteDir) !== 0) {
+        fsPath = siteDir;
       }
-    },
-  );
+      const fileInfo = await Deno.stat(fsPath);
+      if (fileInfo.isDirectory) {
+        fsPath = join(fsPath, "index.html");
+      }
+      response = await serveFile(req, fsPath);
+    } catch (e) {
+      response = await serveFallback(req, e);
+    } finally {
+      try {
+        await req.respond(response!);
+      } catch (e) {
+        console.error(e.message);
+      }
+    }
+  };
+
+  // serve project
+  const server = serve({ port, hostname: "127.0.0.1" });
+  for await (const req of server) {
+    handler(req);
+  }
 }
 
 function serveFallback(req: ServerRequest, e: Error): Promise<Response> {

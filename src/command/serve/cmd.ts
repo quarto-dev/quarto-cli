@@ -34,7 +34,7 @@ export const serveCommand = new Command()
     "Print debug output.",
   )
   // deno-lint-ignore no-explicit-any
-  .action((options: any, path: string) => {
+  .action(async (options: any, path: string) => {
     // defaults
     const projDir = path || Deno.cwd();
 
@@ -48,7 +48,7 @@ export const serveCommand = new Command()
       throw new Error(`${projDir} is not a project`);
     }
 
-    serveProject(context, {
+    await serveProject(context, {
       port: parseInt(options.port) || 8080,
       watch: !!options.watch,
       quiet: !!options.quiet,
