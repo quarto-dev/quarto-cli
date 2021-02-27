@@ -1,0 +1,76 @@
+
+project:
+  type: website
+  title: "The Title"
+
+
+navbar:
+  title: "Foo"
+  logo: "fancy.png"
+  search: true
+  contents[-left]:
+    - icon: fa-home
+      href: "https:///"
+    - text: "Home"
+      icon: fa-home
+      href: index.html
+    - text: "About"
+      icon: fa-info
+      href: about.html
+    - title: "More"
+      contents:
+        - text: "Heading 1"
+        - text: "Page A"
+          file: page-a.html
+        - text: "Page B"
+          file: page-b.html
+        - text: "---------"
+        - text: "Heading 2"
+        - text: "Page C"
+          href: page-c.html
+        - text: "Page D"
+          href: page-d.html  
+
+contents-right:
+  
+sidebar: 
+  title: "Foo"
+  search: true
+  logo: "fancy.png"
+  contents:
+    - title: "Get Started"
+      contents: 
+        - file: "bar.md"
+        - url: "https://asdfasdfdsa"
+          text: "Stuff"
+    - title: "Learn more"
+      contents:
+        - href: "learn.md"
+
+
+format:
+  html:
+    include-before-body:
+      - header.html
+
+bibliography: references.bib
+
+
+
+==> learning-more.yml
+
+navigation:
+  - section: "Get Started"
+    contents: 
+      - file: "bar.md"
+      - url: "https://asdfasdfdsa"
+        title: "Stuff"
+
+  - section: "Learn more"
+    contents:
+      - file: "learn.md"
+  
+  
+
+
+
