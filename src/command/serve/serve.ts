@@ -7,7 +7,7 @@
 
 import * as colors from "fmt/colors.ts";
 
-import { basename, extname, join, posix } from "path/mod.ts";
+import { basename, extname, join, posix, relative } from "path/mod.ts";
 
 import { Response, serve, ServerRequest } from "http/server.ts";
 
@@ -86,9 +86,31 @@ export async function serveProject(
   // serve project
   const server = serve({ port: options.port, hostname: kLocalhost });
 
+  // compute site url
+  const siteUrl = `http://localhost:${options.port}/`;
+
+  // print status
+  if (!options.quiet) {
+    const siteDirRelative = relative(Deno.cwd(), siteDir);
+    message(`\nServing site from ${siteDirRelative}`, {
+      bold: true,
+      format: colors.green,
+    });
+    if (options.watch) {
+      message("Watching project for reload on changes", {
+        indent: 1,
+      });
+    }
+    message(`Browse the site at `, {
+      indent: 1,
+      newline: false,
+    });
+    message(`${siteUrl}`, { format: colors.underline });
+  }
+
   // open browser if requested
   if (options.open) {
-    openUrl(`http://localhost:${options.port}/`);
+    openUrl(siteUrl);
   }
 
   // wait for requests
@@ -168,7 +190,7 @@ function printUrl(url: string, found = true) {
   if (
     contentType(url) === "text/html" || url.endsWith("/") || extname(url) === ""
   ) {
-    message(`GET: ${url}`, { bold: true, format: format || colors.green });
+    message(`\nGET: ${url}`, { bold: true, format: format || colors.green });
   } else {
     message(url, { dim: found, format, indent: 1 });
   }
