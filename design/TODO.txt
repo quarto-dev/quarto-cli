@@ -5,13 +5,6 @@
 //    - Navigation
 //    - sitemap.xml
 //    - search
-//    - dev server:
-    - (https://github.com/joakimunge/denoliver)
-
-    - (https://github.com/jaschaephraim/lrserver)
-
-// https://github.com/facelessuser/pymdown-extensions/blob/main/mkdocs.yml
-// https://facelessuser.github.io/pymdown-extensions/extensions/arithmatex/
 
 TODO: cache directories:
   - .gitignore
