@@ -80,9 +80,8 @@ export async function makeInstallerWindows(configuration: Configuration) {
     );
   }
 
-   // Set the installer version
-   Deno.env.set("QUARTO_INSTALLER_VERSION", configuration.version);
-   console.log(Deno.env);
+  // Set the installer version
+  Deno.env.set("QUARTO_INSTALLER_VERSION", configuration.version);
 
   // heat the directory to generate a wix file for it
   configuration.log.info("Heating directory");
@@ -148,7 +147,6 @@ export async function makeInstallerWindows(configuration: Configuration) {
   await runCmd(lightCmd, lightArgs, configuration.log);
 
   Deno.env.delete("QUARTO_INSTALLER_VERSION");
-
 
   // Use signtool to sign the MSI
   if (sign) {

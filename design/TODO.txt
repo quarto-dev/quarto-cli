@@ -19,8 +19,6 @@ TODO: generalized warning system (look for 'WARNING:')
 Charles:
 
 -  Layout:
-    - LaTeX widths. Anywhere you have a space in a column use % 
-    - HTML widths (eliminate space between images)
     - "natural width" (0?)
     - top align all content in layout cells
 
