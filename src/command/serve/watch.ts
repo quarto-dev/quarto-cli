@@ -5,11 +5,11 @@
 *
 */
 
-// TODO: see if we can just copy and clear the connections right at the start
-// TODO: set no-cache headers on all files returned
-// TODO: throttle events so we don't reload too many times?
 // TODO: prettier console display (also show URL, etc.)
-// TODO: option to launch browser
+// TODO: consider 'navigate to changed' (from hugo). but what about site renders?
+// TODO: consider whether to trigger re-renders for "structural" changes
+//       (would every navigate then require a re-render)
+//       is there a way to merge seleted structural changes into existing html files?
 
 import { ServerRequest } from "http/server.ts";
 
@@ -96,8 +96,27 @@ export function watchProject(
     }
   };
 
-  // track client connections
-  const connections: WebSocket[] = [];
+  // track client clients
+  const clients: WebSocket[] = [];
+
+  // debounced function for notifying all clients of a change
+  // (ensures that we wait for bulk file copying to complete
+  // before triggering the reload)
+  const reloadClients = ld.debounce(async () => {
+    for (let i = clients.length - 1; i >= 0; i--) {
+      const socket = clients[i];
+      try {
+        await socket.send("reload");
+      } catch (e) {
+        displaySocketError(e);
+      } finally {
+        if (!socket.isClosed) {
+          socket.close().catch(displaySocketError);
+        }
+        clients.splice(i, 1);
+      }
+    }
+  }, 50);
 
   // watch project dir recursively
   const watcher = Deno.watchFs(project.dir, { recursive: true });
@@ -105,23 +124,8 @@ export function watchProject(
     watcher.next().then(async (iter) => {
       // see if we need to handle this
       if (handleWatchEvent(iter.value)) {
-        // get pending sockets
-
-        for (let i = connections.length - 1; i >= 0; i--) {
-          const socket = connections[i];
-          try {
-            await socket.send("reload");
-          } catch (e) {
-            displaySocketError(e);
-          } finally {
-            if (!socket.isClosed) {
-              socket.close().catch(displaySocketError);
-            }
-            connections.splice(i, 1);
-          }
-        }
+        await reloadClients();
       }
-
       // keep watching
       watchForChanges();
     });
@@ -142,7 +146,7 @@ export function watchProject(
           bufWriter,
           headers,
         });
-        connections.push(socket);
+        clients.push(socket);
       } catch (e) {
         displaySocketError(e);
       }

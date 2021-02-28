@@ -26,6 +26,10 @@ export const serveCommand = new Command()
     "Don't watch for changes and automatically reload browser.",
   )
   .option(
+    "--no-open",
+    "Don't open the default browser to preview the site.",
+  )
+  .option(
     "--quiet",
     "Suppress warning and other messages.",
   )
@@ -50,7 +54,8 @@ export const serveCommand = new Command()
 
     await serveProject(context, {
       port: parseInt(options.port) || 8080,
-      watch: !!options.watch,
+      watch: options.watch,
+      open: options.open,
       quiet: !!options.quiet,
       debug: !!options.debug,
     });

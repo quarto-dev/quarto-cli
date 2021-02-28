@@ -10,6 +10,7 @@ import { basename, extname, join, posix } from "path/mod.ts";
 import { Response, serve, ServerRequest } from "http/server.ts";
 
 import { message } from "../../core/console.ts";
+import { openUrl } from "../../core/shell.ts";
 
 import { kOutputDir, ProjectContext } from "../../project/project-context.ts";
 
@@ -20,6 +21,7 @@ export const kLocalhost = "127.0.0.1";
 export type ServeOptions = {
   port: number;
   watch?: boolean;
+  open?: boolean;
   quiet?: boolean;
   debug?: boolean;
 };
@@ -31,6 +33,7 @@ export async function serveProject(
   // provide defaults
   options = {
     watch: true,
+    open: true,
     quiet: true,
     debug: false,
     ...options,
@@ -80,6 +83,13 @@ export async function serveProject(
 
   // serve project
   const server = serve({ port: options.port, hostname: kLocalhost });
+
+  // open browser if requested
+  if (options.open) {
+    openUrl(`http://localhost:${options.port}/`);
+  }
+
+  // wait for requests
   for await (const req of server) {
     handler(req);
   }
