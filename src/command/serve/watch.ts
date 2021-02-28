@@ -7,9 +7,6 @@
 
 // TODO: prettier console display (also show URL, etc.)
 // TODO: consider 'navigate to changed' (from hugo). but what about site renders?
-// TODO: consider whether to trigger re-renders for "structural" changes
-//       (would every navigate then require a re-render)
-//       is there a way to merge seleted structural changes into existing html files?
 
 import { ServerRequest } from "http/server.ts";
 

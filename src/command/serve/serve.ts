@@ -5,6 +5,8 @@
 *
 */
 
+import * as colors from "fmt/colors.ts";
+
 import { basename, extname, join, posix } from "path/mod.ts";
 
 import { Response, serve, ServerRequest } from "http/server.ts";
@@ -58,17 +60,17 @@ export async function serveProject(
     let fsPath: string | undefined;
     try {
       const normalizedUrl = normalizeURL(req.url);
-      fsPath = posix.join(siteDir, normalizedUrl);
-      if (fsPath.indexOf(siteDir) !== 0) {
+      fsPath = posix.join(siteDir, normalizedUrl)!;
+      if (fsPath!.indexOf(siteDir) !== 0) {
         fsPath = siteDir;
       }
-      const fileInfo = await Deno.stat(fsPath);
+      const fileInfo = await Deno.stat(fsPath!);
       if (fileInfo.isDirectory) {
         fsPath = join(fsPath, "index.html");
       }
-      response = serveFile(fsPath, watcher);
+      response = serveFile(fsPath!, watcher);
       if (!options.quiet) {
-        message(normalizedUrl);
+        printUrl(normalizedUrl);
       }
     } catch (e) {
       response = await serveFallback(req, e, fsPath!, options);
@@ -111,7 +113,7 @@ function serveFallback(
     const url = normalizeURL(req.url);
     if (basename(fsPath) !== "favicon.ico" && extname(fsPath) !== ".map") {
       if (!options.quiet) {
-        message(`404 (Not Found): ${url}`, { bold: true });
+        printUrl(url, false);
       }
     }
     return Promise.resolve({
@@ -132,12 +134,15 @@ function serveFallback(
   }
 }
 
-function serveFile(filePath: string, watcher: ProjectWatcher): Response {
+function serveFile(
+  filePath: string,
+  watcher: ProjectWatcher,
+): Response {
   // read file
   let fileContents = Deno.readFileSync(filePath);
 
   // if this is an html file then append watch script
-  if ([".htm", ".html"].includes(extname(filePath).toLowerCase())) {
+  if (contentType(filePath) === "text/html") {
     fileContents = watcher.injectClient(fileContents);
   }
 
@@ -155,6 +160,18 @@ function serveFile(filePath: string, watcher: ProjectWatcher): Response {
     body: fileContents,
     headers,
   };
+}
+
+function printUrl(url: string, found = true) {
+  const format = !found ? colors.red : undefined;
+  url = url + (found ? "" : " (404: Not Found)");
+  if (
+    contentType(url) === "text/html" || url.endsWith("/") || extname(url) === ""
+  ) {
+    message(`GET: ${url}`, { bold: true, format: format || colors.green });
+  } else {
+    message(url, { dim: found, format, indent: 1 });
+  }
 }
 
 const MEDIA_TYPES: Record<string, string> = {
@@ -186,7 +203,7 @@ const MEDIA_TYPES: Record<string, string> = {
 };
 /** Returns the content-type based on the extension of a path. */
 function contentType(path: string): string | undefined {
-  return MEDIA_TYPES[extname(path)];
+  return MEDIA_TYPES[extname(path.toLowerCase())];
 }
 
 function normalizeURL(url: string): string {
