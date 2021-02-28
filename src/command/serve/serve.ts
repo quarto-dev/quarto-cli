@@ -5,8 +5,6 @@
 *
 */
 
-import { acceptWebSocket, WebSocket } from "ws/mod.ts";
-
 import { basename, extname, join, posix } from "path/mod.ts";
 
 import { Response, serve, ServerRequest } from "http/server.ts";
@@ -135,11 +133,12 @@ function serveFile(filePath: string, watcher: ProjectWatcher): Response {
 
   // content headers
   const headers = new Headers();
-  headers.set("content-length", fileContents.byteLength.toString());
+  headers.set("Content-Length", fileContents.byteLength.toString());
   const contentTypeValue = contentType(filePath);
   if (contentTypeValue) {
-    headers.set("content-type", contentTypeValue);
+    headers.set("Content-Type", contentTypeValue);
   }
+  headers.set("Cache-Control", "no-store, max-age=0");
 
   return {
     status: 200,
