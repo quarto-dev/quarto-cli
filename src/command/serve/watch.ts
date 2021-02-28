@@ -109,7 +109,7 @@ export function watchProject(
       return extname(file) === ".html";
     });
     let reloadTarget = "";
-    if (lastHtmlFile) {
+    if (lastHtmlFile && options.navigate) {
       if (lastHtmlFile.startsWith(outputDir)) {
         reloadTarget = "/" + relative(outputDir, lastHtmlFile);
       } else {

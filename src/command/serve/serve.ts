@@ -24,6 +24,7 @@ export const kLocalhost = "127.0.0.1";
 export type ServeOptions = {
   port: number;
   watch?: boolean;
+  navigate?: boolean;
   open?: boolean;
   quiet?: boolean;
   debug?: boolean;
@@ -36,6 +37,7 @@ export async function serveProject(
   // provide defaults
   options = {
     watch: true,
+    navigate: true,
     open: true,
     quiet: true,
     debug: false,

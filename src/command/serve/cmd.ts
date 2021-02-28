@@ -26,6 +26,10 @@ export const serveCommand = new Command()
     "Don't watch for changes and automatically reload browser.",
   )
   .option(
+    "--no-navigate",
+    "Don't automatically navigate the browser to the last renderered document.",
+  )
+  .option(
     "--no-open",
     "Don't open the default browser to preview the site.",
   )
@@ -55,6 +59,7 @@ export const serveCommand = new Command()
     await serveProject(context, {
       port: parseInt(options.port) || 8080,
       watch: options.watch,
+      navigate: options.navigate,
       open: options.open,
       quiet: !!options.quiet,
       debug: !!options.debug,
