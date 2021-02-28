@@ -15,6 +15,7 @@ import { stringify } from "encoding/yaml.ts";
 
 import { execProcess } from "../../core/process.ts";
 import { message } from "../../core/console.ts";
+import { pathWithForwardSlashes } from "../../core/path.ts";
 
 import { Format, FormatPandoc } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
@@ -248,7 +249,7 @@ export async function runPandoc(
 }
 
 export function pandocMetadataPath(path: string) {
-  return path.replace(/\\/g, "/");
+  return pathWithForwardSlashes(path);
 }
 
 function runPandocMessage(

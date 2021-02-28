@@ -5,12 +5,9 @@
 *
 */
 
-// TODO: prettier console display (also show URL, etc.)
-// TODO: consider 'navigate to changed' (from hugo). but what about site renders?
-
 import { ServerRequest } from "http/server.ts";
 
-import { join, relative } from "path/mod.ts";
+import { extname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { acceptWebSocket, WebSocket } from "ws/mod.ts";
@@ -18,6 +15,7 @@ import { acceptWebSocket, WebSocket } from "ws/mod.ts";
 import { ld } from "lodash/mod.ts";
 
 import { message } from "../../core/console.ts";
+import { pathWithForwardSlashes } from "../../core/path.ts";
 
 import { kOutputDir, ProjectContext } from "../../project/project-context.ts";
 import {
@@ -59,10 +57,16 @@ export function watchProject(
     : projDir;
   const resourceFiles = projectResourceFiles(project);
 
+  // track every path that has been modified since the last reload
+  const modified: string[] = [];
+
   // handle a watch event (return true if a reload should occur)
   const handleWatchEvent = (event: Deno.FsEvent) => {
     try {
-      if (event.kind === "modify") {
+      if (["modify", "create"].includes(event.kind)) {
+        // track modified
+        modified.push(...event.paths);
+
         // filter out paths that no longer exist and create real paths
         const paths = event.paths.filter(existsSync).map(Deno.realPathSync);
 
@@ -100,10 +104,25 @@ export function watchProject(
   // (ensures that we wait for bulk file copying to complete
   // before triggering the reload)
   const reloadClients = ld.debounce(async () => {
+    // see if there is a reload target (last html file modified)
+    const lastHtmlFile = ld.uniq(modified).reverse().find((file) => {
+      return extname(file) === ".html";
+    });
+    let reloadTarget = "";
+    if (lastHtmlFile) {
+      if (lastHtmlFile.startsWith(outputDir)) {
+        reloadTarget = "/" + relative(outputDir, lastHtmlFile);
+      } else {
+        reloadTarget = "/" + relative(projDir, lastHtmlFile);
+      }
+      reloadTarget = pathWithForwardSlashes(reloadTarget);
+    }
+    modified.splice(0, modified.length);
+
     for (let i = clients.length - 1; i >= 0; i--) {
       const socket = clients[i];
       try {
-        await socket.send("reload");
+        await socket.send(`reload${reloadTarget}`);
       } catch (e) {
         displaySocketError(e);
       } finally {
@@ -174,9 +193,14 @@ function watchClientScript(port: number): string {
     console.log('Socket connection open. Listening for events.');
   };
   socket.onmessage = (msg) => {
-    if (msg.data === 'reload') {
+    if (msg.data.startsWith('reload')) {
       socket.close();
-      location.reload(true);
+      const target = msg.data.replace(/^reload/, "");
+      if (target) {
+        window.location.replace(target.replace(/index\.html$/, ""))
+      } else {
+        window.location.reload(true);
+      }
     } 
   };
 </script>`;

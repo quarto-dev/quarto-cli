@@ -13,6 +13,7 @@ import { Response, serve, ServerRequest } from "http/server.ts";
 
 import { message } from "../../core/console.ts";
 import { openUrl } from "../../core/shell.ts";
+import { contentType, isHtmlContent } from "../../core/mime.ts";
 
 import { kOutputDir, ProjectContext } from "../../project/project-context.ts";
 
@@ -164,7 +165,7 @@ function serveFile(
   let fileContents = Deno.readFileSync(filePath);
 
   // if this is an html file then append watch script
-  if (contentType(filePath) === "text/html") {
+  if (isHtmlContent(filePath)) {
     fileContents = watcher.injectClient(fileContents);
   }
 
@@ -188,44 +189,12 @@ function printUrl(url: string, found = true) {
   const format = !found ? colors.red : undefined;
   url = url + (found ? "" : " (404: Not Found)");
   if (
-    contentType(url) === "text/html" || url.endsWith("/") || extname(url) === ""
+    isHtmlContent(url) || url.endsWith("/") || extname(url) === ""
   ) {
     message(`\nGET: ${url}`, { bold: true, format: format || colors.green });
   } else {
     message(url, { dim: found, format, indent: 1 });
   }
-}
-
-const MEDIA_TYPES: Record<string, string> = {
-  ".md": "text/markdown",
-  ".html": "text/html",
-  ".htm": "text/html",
-  ".json": "application/json",
-  ".map": "application/json",
-  ".txt": "text/plain",
-  ".ts": "text/typescript",
-  ".tsx": "text/tsx",
-  ".js": "application/javascript",
-  ".jsx": "text/jsx",
-  ".gz": "application/gzip",
-  ".css": "text/css",
-  ".wasm": "application/wasm",
-  ".mjs": "application/javascript",
-  ".svg": "image/svg+xml",
-  ".png": "image/png",
-  ".jpg": "image/jpeg",
-  ".jpeg": "image/jpeg",
-  ".gif": "image/gif",
-  ".wav": "audio/wav",
-  ".mp4": "video/mp4",
-  ".woff": "application/font-woff",
-  ".ttf": "application/font-ttf",
-  ".eot": "application/vnd.ms-fontobject",
-  ".otf": "application/font-otf",
-};
-/** Returns the content-type based on the extension of a path. */
-function contentType(path: string): string | undefined {
-  return MEDIA_TYPES[extname(path.toLowerCase())];
 }
 
 function normalizeURL(url: string): string {

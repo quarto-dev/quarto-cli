@@ -5,6 +5,8 @@
 *
 */
 
+import { extname } from "path/mod.ts";
+
 export const kTextHtml = "text/html";
 export const kTextMarkdown = "text/markdown";
 export const kTextLatex = "text/latex";
@@ -36,3 +38,40 @@ export function extensionForMimeImageType(mimeType: string) {
       return "bin";
   }
 }
+
+export function contentType(path: string): string | undefined {
+  return MEDIA_TYPES[extname(path.toLowerCase())];
+}
+
+export function isHtmlContent(path: string) {
+  return contentType(path) === kTextHtml;
+}
+
+const MEDIA_TYPES: Record<string, string> = {
+  ".md": kTextMarkdown,
+  ".html": kTextHtml,
+  ".htm": kTextHtml,
+  ".json": "application/json",
+  ".map": "application/json",
+  ".txt": kTextPlain,
+  ".ts": "text/typescript",
+  ".tsx": "text/tsx",
+  ".js": "application/javascript",
+  ".jsx": "text/jsx",
+  ".gz": "application/gzip",
+  ".css": "text/css",
+  ".wasm": "application/wasm",
+  ".mjs": "application/javascript",
+  ".svg": kImageSvg,
+  ".png": kImagePng,
+  ".jpg": kImageJpeg,
+  ".jpeg": kImageJpeg,
+  ".pdf": kApplicationPdf,
+  ".gif": "image/gif",
+  ".wav": "audio/wav",
+  ".mp4": "video/mp4",
+  ".woff": "application/font-woff",
+  ".ttf": "application/font-ttf",
+  ".eot": "application/vnd.ms-fontobject",
+  ".otf": "application/font-otf",
+};
