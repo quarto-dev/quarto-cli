@@ -5,13 +5,28 @@
 *
 */
 
+// TODO: see if we can just copy and clear the connections right at the start
+// TODO: set no-cache headers on all files returned
+// TODO: throttle events so we don't reload too many times?
+// TODO: prettier console display (also show URL, etc.)
+// TODO: option to launch browser
+
 import { ServerRequest } from "http/server.ts";
+
+import { join, relative } from "path/mod.ts";
+import { existsSync } from "fs/mod.ts";
 
 import { acceptWebSocket, WebSocket } from "ws/mod.ts";
 
+import { ld } from "lodash/mod.ts";
+
 import { message } from "../../core/console.ts";
 
-import { ProjectContext } from "../../project/project-context.ts";
+import { kOutputDir, ProjectContext } from "../../project/project-context.ts";
+import {
+  copyResourceFile,
+  projectResourceFiles,
+} from "../../project/project-resources.ts";
 
 import { kLocalhost, ServeOptions } from "./serve.ts";
 
@@ -21,18 +36,63 @@ export interface ProjectWatcher {
   injectClient: (file: Uint8Array) => Uint8Array;
 }
 
-// file watcher
 export function watchProject(
   project: ProjectContext,
   options: ServeOptions,
 ): ProjectWatcher {
-  // function to handle websocket errors
-  const handleError = (e: Error) => {
+  // error display
+  const displayError = (e: Error) => {
+    if (options.debug) {
+      console.error(e);
+    }
+    message((e as Error).message);
+  };
+  const displaySocketError = (e: Error) => {
     if (!(e instanceof Deno.errors.BrokenPipe)) {
-      if (options.debug) {
-        console.error(e);
+      displayError(e);
+    }
+  };
+
+  // calculate output dir and resource files (those will be the
+  // triggers for reloading)
+  const projDir = Deno.realPathSync(project.dir);
+  const outputDirConfig = project.metadata?.project?.[kOutputDir];
+  const outputDir = outputDirConfig
+    ? Deno.realPathSync(join(projDir, outputDirConfig))
+    : projDir;
+  const resourceFiles = projectResourceFiles(project);
+
+  // handle a watch event (return true if a reload should occur)
+  const handleWatchEvent = (event: Deno.FsEvent) => {
+    try {
+      if (event.kind === "modify") {
+        // filter out paths that no longer exist and create real paths
+        const paths = event.paths.filter(existsSync).map(Deno.realPathSync);
+
+        // if any of the paths are in the output dir then return true
+        if (paths.some((path) => path.startsWith(outputDir))) {
+          return true;
+        }
+
+        // if it's a resource file, then copy it and return false
+        // (the copy will come in as another change)
+        const modifiedResources = ld.intersection(
+          resourceFiles,
+          paths,
+        ) as string[];
+        for (const file of modifiedResources) {
+          const sourcePath = relative(projDir, file);
+          const destPath = join(outputDir, sourcePath);
+          copyResourceFile(projDir, file, destPath);
+        }
+
+        return false;
+      } else {
+        return false;
       }
-      message((e as Error).message);
+    } catch (e) {
+      displayError(e);
+      return false;
     }
   };
 
@@ -43,19 +103,19 @@ export function watchProject(
   const watcher = Deno.watchFs(project.dir, { recursive: true });
   const watchForChanges = () => {
     watcher.next().then(async (iter) => {
-      // notify all pending connections
-      if (iter.value.kind === "modify") {
-        console.log(iter.value);
+      // see if we need to handle this
+      if (handleWatchEvent(iter.value)) {
         // get pending sockets
+
         for (let i = connections.length - 1; i >= 0; i--) {
           const socket = connections[i];
           try {
             await socket.send("reload");
           } catch (e) {
-            handleError(e);
+            displaySocketError(e);
           } finally {
             if (!socket.isClosed) {
-              socket.close().catch(handleError);
+              socket.close().catch(displaySocketError);
             }
             connections.splice(i, 1);
           }
@@ -84,7 +144,7 @@ export function watchProject(
         });
         connections.push(socket);
       } catch (e) {
-        handleError(e);
+        displaySocketError(e);
       }
     },
     injectClient: (file: Uint8Array) => {
