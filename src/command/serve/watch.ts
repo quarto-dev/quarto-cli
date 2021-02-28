@@ -13,10 +13,12 @@ import { message } from "../../core/console.ts";
 
 import { ProjectContext } from "../../project/project-context.ts";
 
-import { ServeOptions } from "./serve.ts";
+import { kLocalhost, ServeOptions } from "./serve.ts";
 
 export interface ProjectWatcher {
+  handle: (req: ServerRequest) => boolean;
   connect: (req: ServerRequest) => Promise<void>;
+  injectClient: (file: Uint8Array) => Uint8Array;
 }
 
 // file watcher
@@ -43,7 +45,8 @@ export function watchProject(
     watcher.next().then(async (iter) => {
       // notify all pending connections
       if (iter.value.kind === "modify") {
-        // get connection sockets
+        console.log(iter.value);
+        // get pending sockets
         for (let i = connections.length - 1; i >= 0; i--) {
           const socket = connections[i];
           try {
@@ -67,6 +70,9 @@ export function watchProject(
 
   // return watcher interface
   return {
+    handle: (req: ServerRequest) => {
+      return !!options.watch && (req.headers.get("upgrade") === "websocket");
+    },
     connect: async (req: ServerRequest) => {
       const { conn, r: bufReader, w: bufWriter, headers } = req;
       try {
@@ -81,5 +87,36 @@ export function watchProject(
         handleError(e);
       }
     },
+    injectClient: (file: Uint8Array) => {
+      if (options.watch) {
+        const scriptContents = new TextEncoder().encode(
+          watchClientScript(options.port),
+        );
+        const fileWithScript = new Uint8Array(
+          file.length + scriptContents.length,
+        );
+        fileWithScript.set(file);
+        fileWithScript.set(scriptContents, file.length);
+        return fileWithScript;
+      } else {
+        return file;
+      }
+    },
   };
+}
+
+function watchClientScript(port: number): string {
+  return `
+<script>
+  const socket = new WebSocket('ws://${kLocalhost}:${port}');
+  socket.onopen = () => {
+    console.log('Socket connection open. Listening for events.');
+  };
+  socket.onmessage = (msg) => {
+    if (msg.data === 'reload') {
+      socket.close();
+      location.reload(true);
+    } 
+  };
+</script>`;
 }

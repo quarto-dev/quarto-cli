@@ -15,9 +15,9 @@ import { message } from "../../core/console.ts";
 
 import { kOutputDir, ProjectContext } from "../../project/project-context.ts";
 
-import { watchProject } from "./watch.ts";
+import { ProjectWatcher, watchProject } from "./watch.ts";
 
-const kLocalhost = "127.0.0.1";
+export const kLocalhost = "127.0.0.1";
 
 export type ServeOptions = {
   port: number;
@@ -48,7 +48,7 @@ export async function serveProject(
   // main request handler
   const handler = async (req: ServerRequest): Promise<void> => {
     // handle watcher request
-    if (options.watch && isWebSocket(req)) {
+    if (watcher.handle(req)) {
       return await watcher.connect(req);
     }
 
@@ -65,7 +65,7 @@ export async function serveProject(
       if (fileInfo.isDirectory) {
         fsPath = join(fsPath, "index.html");
       }
-      response = serveFile(options.port, fsPath);
+      response = serveFile(fsPath, watcher);
       if (!options.quiet) {
         message(normalizedUrl);
       }
@@ -85,43 +85,6 @@ export async function serveProject(
   for await (const req of server) {
     handler(req);
   }
-}
-
-const reloadWatcherWs = async (
-  req: ServerRequest,
-  options: ServeOptions,
-  project: ProjectContext,
-): Promise<void> => {
-  const handleError = (e: Error) => {
-    if (!(e instanceof Deno.errors.BrokenPipe)) {
-      if (options.debug) {
-        console.error(e);
-      }
-      message((e as Error).message);
-    }
-  };
-
-  let socket: WebSocket | undefined;
-
-  try {
-    const { conn, r: bufReader, w: bufWriter, headers } = req;
-    socket = await acceptWebSocket({
-      conn,
-      bufReader,
-      bufWriter,
-      headers,
-    });
-  } catch (e) {
-    handleError(e);
-  } finally {
-    if (socket && !socket.isClosed) {
-      await socket.close(1000).catch(handleError);
-    }
-  }
-};
-
-function isWebSocket(req: ServerRequest): boolean {
-  return req.headers.get("upgrade") === "websocket";
 }
 
 function serveFallback(
@@ -161,22 +124,13 @@ function serveFallback(
   }
 }
 
-function serveFile(
-  port: number,
-  filePath: string,
-): Response {
+function serveFile(filePath: string, watcher: ProjectWatcher): Response {
   // read file
   let fileContents = Deno.readFileSync(filePath);
 
-  // if this is an html file then append websocket connection
+  // if this is an html file then append watch script
   if ([".htm", ".html"].includes(extname(filePath).toLowerCase())) {
-    const scriptContents = new TextEncoder().encode(reloadScript(port));
-    const fileWithScript = new Uint8Array(
-      fileContents.length + scriptContents.length,
-    );
-    fileWithScript.set(fileContents);
-    fileWithScript.set(scriptContents, fileContents.length);
-    fileContents = fileWithScript;
+    fileContents = watcher.injectClient(fileContents);
   }
 
   // content headers
@@ -192,22 +146,6 @@ function serveFile(
     body: fileContents,
     headers,
   };
-}
-
-function reloadScript(port: number): string {
-  return `
-<script>
-  const socket = new WebSocket('ws://${kLocalhost}:${port}');
-  socket.onopen = () => {
-    console.log('Socket connection open. Listening for events.');
-  };
-  socket.onmessage = (msg) => {
-    if (msg.data === 'reload') {
-      socket.close();
-      location.reload(true);
-    } 
-  };
-</script>`;
 }
 
 const MEDIA_TYPES: Record<string, string> = {
