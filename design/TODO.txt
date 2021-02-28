@@ -12,6 +12,8 @@
 // https://facelessuser.github.io/pymdown-extensions/extensions/arithmatex/
 
 
+TODO: kernel persistence for project renders? (should we disable entirely, use a single kernel for the whole site, etc.)
+
 TODO: generalized warning system (look for 'WARNING:')
 
 Charles:
