@@ -349,7 +349,7 @@ async function isTinyTex() {
   const root = await texLiveRoot();
   if (root) {
     // directory name (lower) is tinytex
-    if (root.match(/[/\\][Tt]iny[Tt]e[Xx][/\\]/)) {
+    if (root.match(/[/\\][Tt]iny[Tt]e[Xx][/\\]?/)) {
       return true;
     }
 
