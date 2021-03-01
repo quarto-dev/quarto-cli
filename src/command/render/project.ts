@@ -151,15 +151,17 @@ export async function renderProject(
         }
       });
 
-      // make resource files unique
+      // make resource files unique then remove directories
       resourceFiles = ld.uniq(resourceFiles);
 
       // copy the resource files to the output dir
       resourceFiles.forEach((file: string) => {
         const sourcePath = relative(projDir, file);
         if (existsSync(file)) {
-          const destPath = join(realOutputDir, sourcePath);
-          copyResourceFile(context.dir, file, destPath);
+          if (Deno.statSync(file).isFile) {
+            const destPath = join(realOutputDir, sourcePath);
+            copyResourceFile(context.dir, file, destPath);
+          }
         } else if (!libDir || !sourcePath.startsWith(libDir)) {
           message(`WARNING: File '${sourcePath}' was not found.`);
         }
