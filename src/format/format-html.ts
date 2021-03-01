@@ -16,12 +16,16 @@ import { sessionTempFile } from "../core/temp.ts";
 import {
   kFilters,
   kHeaderIncludes,
+  kIncludeAfter,
+  kIncludeBefore,
   kIncludeInHeader,
   kVariables,
 } from "../config/constants.ts";
 import { Format, FormatExtras } from "../config/format.ts";
 import { Metadata } from "../config/metadata.ts";
 import { baseHtmlFormat } from "./formats.ts";
+
+export const kDocumentCss = "document-css";
 
 export function htmlFormat(
   figwidth: number,
@@ -30,7 +34,7 @@ export function htmlFormat(
   return mergeConfigs(
     baseHtmlFormat(figwidth, figheight),
     {
-      preprocess: (format: Format) => {
+      formatExtras: (format: Format) => {
         if (format.metadata["theme"] !== null) {
           // 'default' if theme is undefined
           const theme = String(format.metadata["theme"] || "default");
@@ -48,13 +52,18 @@ export function htmlFormat(
         } else {
           return {
             [kVariables]: {
-              ["document-css"]: false,
+              [kDocumentCss]: false,
             },
           };
         }
       },
     },
   );
+}
+
+export function formatHasBootstrap(format: Format) {
+  const theme = format.metadata["theme"];
+  return theme !== null && theme !== "pandoc";
 }
 
 function pandocExtras(metadata: Metadata) {
@@ -68,7 +77,7 @@ function pandocExtras(metadata: Metadata) {
 
   return {
     [kVariables]: {
-      ["document-css"]: true,
+      [kDocumentCss]: true,
       [kHeaderIncludes]: headerIncludes,
     },
   };
@@ -126,9 +135,9 @@ function boostrapExtras(theme: string, metadata: Metadata): FormatExtras {
 
   return {
     [kVariables]: {
-      ["document-css"]: false,
-      ["include-before"]: `<div class="container">`,
-      ["include-after"]: `</div>`,
+      [kDocumentCss]: false,
+      [kIncludeBefore]: [`<div class="container">`],
+      [kIncludeAfter]: [`</div>`],
     },
     [kIncludeInHeader]: [
       themeFile,

@@ -9,13 +9,15 @@ import {
   kLibDir,
   kOutputDir,
   kResources,
-  ProjectContext,
   ProjectMetadata,
 } from "../project-context.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { projectWebResources } from "../project-utils.ts";
 
 import { ProjectCreate, ProjectType } from "./project-types.ts";
+import { Format, FormatExtras } from "../../config/format.ts";
+import { formatHasBootstrap } from "../../format/format-html.ts";
+import { kIncludeBefore, kVariables } from "../../config/constants.ts";
 
 export const websiteProjectType: ProjectType = {
   type: "website",
@@ -64,9 +66,17 @@ export const websiteProjectType: ProjectType = {
     };
   },
 
-  preRender: (_context: ProjectContext) => {
-    return {
-      pandoc: {},
-    };
+  formatExtras: (format: Format): FormatExtras => {
+    if (formatHasBootstrap(format)) {
+      return {
+        /*
+        [kVariables]: {
+          [kIncludeBefore]: ["<h3>Include Before</h3>"],
+        },
+        */
+      };
+    } else {
+      return {};
+    }
   },
 };

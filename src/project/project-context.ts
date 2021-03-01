@@ -6,14 +6,14 @@
 */
 
 import { dirname, join } from "path/mod.ts";
-import { expandGlobSync } from "fs/expand_glob.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
-import { message } from "../core/console.ts";
 import { includedMetadata, Metadata } from "../config/metadata.ts";
 import { kMetadataFile, kMetadataFiles } from "../config/constants.ts";
+import { Format, FormatExtras } from "../config/format.ts";
+
 import { projectType } from "./types/project-types.ts";
 
 export const kExecuteDir = "execute-dir";
@@ -27,6 +27,7 @@ export interface ProjectContext {
     project?: ProjectMetadata;
     [key: string]: unknown;
   };
+  formatExtras?: (format: Format) => FormatExtras;
 }
 
 export interface ProjectMetadata extends Metadata {
@@ -68,6 +69,7 @@ export function projectContext(path: string): ProjectContext {
             ...projectConfig,
             project: type.config(config),
           },
+          formatExtras: type.formatExtras,
         };
       } else {
         return {
