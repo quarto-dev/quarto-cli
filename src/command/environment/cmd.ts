@@ -130,12 +130,16 @@ function rBinaryEnv(
       return Promise.resolve(path);
     },
     readValue: async () => {
-      const res = await execProcess({
-        cmd: [rBinaryPath(cmd), "--version"],
-        stdout: "piped",
-        stderr: "piped",
-      });
-      return res.stdout || res.stderr;
+      try {
+        const res = await execProcess({
+          cmd: [rBinaryPath(cmd), "--version"],
+          stdout: "piped",
+          stderr: "piped",
+        });
+        return res.stdout || res.stderr;
+      } catch (e) {
+        return undefined;
+      }
     },
     options,
   };
