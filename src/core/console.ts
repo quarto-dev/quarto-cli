@@ -10,11 +10,20 @@ import * as colors from "fmt/colors.ts";
 export interface MessageOptions {
   newline?: boolean;
   bold?: boolean;
+  dim?: boolean;
+  format?: (line: string) => string;
   indent?: number;
 }
 
 export function message(line: string, options?: MessageOptions) {
-  const { newline = true, bold = false, indent = 0 } = options || {};
+  const {
+    newline = true,
+    bold = false,
+    dim = false,
+    format = undefined,
+    indent = 0,
+  } = options ||
+    {} as MessageOptions;
   if (indent) {
     const pad = " ".repeat(indent);
     line = line
@@ -24,6 +33,12 @@ export function message(line: string, options?: MessageOptions) {
   }
   if (bold) {
     line = colors.bold(line);
+  }
+  if (dim) {
+    line = colors.dim(line);
+  }
+  if (format) {
+    line = format(line);
   }
   Deno.stderr.writeSync(new TextEncoder().encode(line + (newline ? "\n" : "")));
 }

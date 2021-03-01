@@ -19,11 +19,19 @@ export const serveCommand = new Command()
   )
   .option(
     "-p, --port [port:number]",
-    "The TCP port that the web server should listen on (defaults to 8080).",
+    "Port to listen on (defaults to 4848).",
+  )
+  .option(
+    "--no-browse",
+    "Don't open a browser to preview the site.",
   )
   .option(
     "--no-watch",
-    "Don't watch for changes and automatically reload browser.",
+    "Don't watch for changes and automatically reload.",
+  )
+  .option(
+    "--no-navigate",
+    "Don't navigate the browser automatically.",
   )
   .option(
     "--quiet",
@@ -49,8 +57,10 @@ export const serveCommand = new Command()
     }
 
     await serveProject(context, {
-      port: parseInt(options.port) || 8080,
-      watch: !!options.watch,
+      port: parseInt(options.port) || 4848,
+      browse: options.browse,
+      watch: options.watch,
+      navigate: options.navigate,
       quiet: !!options.quiet,
       debug: !!options.debug,
     });

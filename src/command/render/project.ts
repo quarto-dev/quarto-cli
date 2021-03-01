@@ -5,8 +5,8 @@
 *
 */
 
-import { copySync, ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
-import { basename, dirname, extname, join, relative } from "path/mod.ts";
+import { ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
+import { basename, dirname, join, relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
@@ -21,11 +21,14 @@ import {
   kExecuteDir,
   kLibDir,
   kOutputDir,
-  kResources,
   ProjectContext,
 } from "../../project/project-context.ts";
 
 import { projectType } from "../../project/types/project-types.ts";
+import {
+  copyResourceFile,
+  projectResourceFiles,
+} from "../../project/project-resources.ts";
 
 import { renderFiles, RenderOptions, RenderResults } from "./render.ts";
 
@@ -75,22 +78,7 @@ export async function renderProject(
 
     if (outputDir) {
       // determine global list of included resource files
-      let resourceFiles: string[] = [];
-      const resourceGlobs = context.metadata?.project?.[kResources];
-      if (resourceGlobs) {
-        const exclude = outputDir ? [outputDir] : [];
-        const projectResourceFiles = resolvePathGlobs(
-          context.dir,
-          resourceGlobs,
-          exclude,
-        );
-        resourceFiles.push(
-          ...ld.difference(
-            projectResourceFiles.include,
-            projectResourceFiles.exclude,
-          ),
-        );
-      }
+      let resourceFiles = projectResourceFiles(context);
 
       // resolve output dir and ensure that it exists
       let realOutputDir = join(projDir, outputDir);
@@ -194,73 +182,6 @@ export async function renderProject(
     };
   } finally {
     Deno.env.delete("QUARTO_PROJECT_DIR");
-  }
-}
-
-function copyResourceFile(rootDir: string, srcFile: string, destFile: string) {
-  // ensure that the resource reference doesn't escape the root dir
-  if (!Deno.realPathSync(srcFile).startsWith(Deno.realPathSync(rootDir))) {
-    return;
-  }
-
-  ensureDirSync(dirname(destFile));
-  copySync(srcFile, destFile, {
-    overwrite: true,
-    preserveTimestamps: true,
-  });
-
-  if (extname(srcFile).toLowerCase() === ".css") {
-    handleCssReferences(rootDir, srcFile, destFile);
-  }
-}
-
-// fixup root ('/') css references and also copy references to other
-// stylesheet or resources (e.g. images) to alongside the destFile
-function handleCssReferences(
-  rootDir: string,
-  srcFile: string,
-  destFile: string,
-) {
-  // read the css
-  const css = Deno.readTextFileSync(destFile);
-
-  // offset for root references
-  const offset = relative(dirname(srcFile), rootDir);
-
-  // function that can be used to copy a ref
-  const copyRef = (ref: string) => {
-    const refPath = join(dirname(srcFile), ref);
-    if (existsSync(refPath)) {
-      const refDestPath = join(dirname(destFile), ref);
-      copyResourceFile(rootDir, refPath, refDestPath);
-    }
-  };
-
-  // fixup / copy refs from url()
-  const kUrlRegex = /url\((?!['"]?(?:data|https?):)(['"])?([^'"]*)\1\)/g;
-  let destCss = css.replaceAll(
-    kUrlRegex,
-    (_match, p1: string, p2: string) => {
-      const ref = p2.startsWith("/") ? `${offset}${p2.slice(1)}` : p2;
-      copyRef(ref);
-      return `url(${p1}${ref}${p1})`;
-    },
-  );
-
-  // fixup / copy refs from @import
-  const kImportRegEx = /@import\s(?!['"](?:data|https?):)(['"])([^'"]*)\1/g;
-  destCss = destCss.replaceAll(
-    kImportRegEx,
-    (_match, p1: string, p2: string) => {
-      const ref = p2.startsWith("/") ? `${offset}${p2.slice(1)}` : p2;
-      copyRef(ref);
-      return `@import ${p1}${ref}${p1}`;
-    },
-  );
-
-  // write the css if necessary
-  if (destCss !== css) {
-    Deno.writeTextFileSync(destFile, destCss);
   }
 }
 

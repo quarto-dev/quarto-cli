@@ -5,18 +5,27 @@
 *
 */
 
+import * as colors from "fmt/colors.ts";
+
 import { basename, extname, join, posix, relative } from "path/mod.ts";
 
-import { listenAndServe, Response, serve, ServerRequest } from "http/server.ts";
-import { serveFile } from "http/file_server.ts";
+import { Response, serve, ServerRequest } from "http/server.ts";
 
 import { message } from "../../core/console.ts";
+import { openUrl } from "../../core/shell.ts";
+import { contentType, isHtmlContent } from "../../core/mime.ts";
 
 import { kOutputDir, ProjectContext } from "../../project/project-context.ts";
 
+import { ProjectWatcher, watchProject } from "./watch.ts";
+
+export const kLocalhost = "127.0.0.1";
+
 export type ServeOptions = {
   port: number;
+  browse?: boolean;
   watch?: boolean;
+  navigate?: boolean;
   quiet?: boolean;
   debug?: boolean;
 };
@@ -25,51 +34,100 @@ export async function serveProject(
   project: ProjectContext,
   options: ServeOptions,
 ) {
-  const {
-    port,
-    watch = true,
-    quiet = false,
-    debug = false,
-  } = options;
+  // provide defaults
+  options = {
+    browse: true,
+    watch: true,
+    navigate: true,
+    quiet: true,
+    debug: false,
+    ...options,
+  };
 
   // determine site dir
   const outputDir = project.metadata?.project?.[kOutputDir];
   const siteDir = outputDir ? join(project.dir, outputDir) : project.dir;
 
+  // create project watcher
+  const watcher = watchProject(project, options);
+
   // main request handler
   const handler = async (req: ServerRequest): Promise<void> => {
+    // handle watcher request
+    if (watcher.handle(req)) {
+      return await watcher.connect(req);
+    }
+
+    // handle file requests
     let response: Response | undefined;
     let fsPath: string | undefined;
     try {
       const normalizedUrl = normalizeURL(req.url);
-      fsPath = posix.join(siteDir, normalizedUrl);
-      if (fsPath.indexOf(siteDir) !== 0) {
+      fsPath = posix.join(siteDir, normalizedUrl)!;
+      if (fsPath!.indexOf(siteDir) !== 0) {
         fsPath = siteDir;
       }
-      const fileInfo = await Deno.stat(fsPath);
+      const fileInfo = await Deno.stat(fsPath!);
       if (fileInfo.isDirectory) {
         fsPath = join(fsPath, "index.html");
       }
-      response = await serveFile(req, fsPath);
+      response = serveFile(fsPath!, watcher);
+      if (!options.quiet) {
+        printUrl(normalizedUrl);
+      }
     } catch (e) {
-      response = await serveFallback(req, e);
+      response = await serveFallback(req, e, fsPath!, options);
     } finally {
       try {
         await req.respond(response!);
       } catch (e) {
-        console.error(e.message);
+        console.error(e);
       }
     }
   };
 
   // serve project
-  const server = serve({ port, hostname: "127.0.0.1" });
+  const server = serve({ port: options.port, hostname: kLocalhost });
+
+  // compute site url
+  const siteUrl = `http://localhost:${options.port}/`;
+
+  // print status
+  if (!options.quiet) {
+    const siteDirRelative = relative(Deno.cwd(), siteDir);
+    message(`\nServing site from ${siteDirRelative}`, {
+      bold: true,
+      format: colors.green,
+    });
+    if (options.watch) {
+      message("Watching project for reload on changes", {
+        indent: 1,
+      });
+    }
+    message(`Browse the site at `, {
+      indent: 1,
+      newline: false,
+    });
+    message(`${siteUrl}`, { format: colors.underline });
+  }
+
+  // open browser if requested
+  if (options.browse) {
+    openUrl(siteUrl);
+  }
+
+  // wait for requests
   for await (const req of server) {
     handler(req);
   }
 }
 
-function serveFallback(req: ServerRequest, e: Error): Promise<Response> {
+function serveFallback(
+  req: ServerRequest,
+  e: Error,
+  fsPath: string,
+  options: ServeOptions,
+): Promise<Response> {
   const encoder = new TextEncoder();
   if (e instanceof URIError) {
     return Promise.resolve({
@@ -78,19 +136,66 @@ function serveFallback(req: ServerRequest, e: Error): Promise<Response> {
     });
   } else if (e instanceof Deno.errors.NotFound) {
     const url = normalizeURL(req.url);
-    if (basename(url) !== "favicon.ico" || extname(url) !== ".map") {
-      message(`404 (Not Found): ${url}`, { bold: true });
+    if (basename(fsPath) !== "favicon.ico" && extname(fsPath) !== ".map") {
+      if (!options.quiet) {
+        printUrl(url, false);
+      }
     }
     return Promise.resolve({
       status: 404,
       body: encoder.encode("Not Found"),
     });
   } else {
-    console.log(e);
+    if (!options.quiet) {
+      message(`500 (Internal Error): ${(e as Error).message}`, { bold: true });
+    }
+    if (options.debug) {
+      console.error(e);
+    }
     return Promise.resolve({
       status: 500,
       body: encoder.encode("Internal server error"),
     });
+  }
+}
+
+function serveFile(
+  filePath: string,
+  watcher: ProjectWatcher,
+): Response {
+  // read file
+  let fileContents = Deno.readFileSync(filePath);
+
+  // if this is an html file then append watch script
+  if (isHtmlContent(filePath)) {
+    fileContents = watcher.injectClient(fileContents);
+  }
+
+  // content headers
+  const headers = new Headers();
+  headers.set("Content-Length", fileContents.byteLength.toString());
+  const contentTypeValue = contentType(filePath);
+  if (contentTypeValue) {
+    headers.set("Content-Type", contentTypeValue);
+  }
+  headers.set("Cache-Control", "no-store, max-age=0");
+
+  return {
+    status: 200,
+    body: fileContents,
+    headers,
+  };
+}
+
+function printUrl(url: string, found = true) {
+  const format = !found ? colors.red : undefined;
+  url = url + (found ? "" : " (404: Not Found)");
+  if (
+    isHtmlContent(url) || url.endsWith("/") || extname(url) === ""
+  ) {
+    message(`\nGET: ${url}`, { bold: true, format: format || colors.green });
+  } else {
+    message(url, { dim: found, format, indent: 1 });
   }
 }
 

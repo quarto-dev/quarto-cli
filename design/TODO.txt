@@ -1,16 +1,17 @@
 
+
+
 //  Websites:
 //    - Navigation
 //    - sitemap.xml
 //    - search
-//    - dev server:
-    - (https://github.com/joakimunge/denoliver)
 
-    - (https://github.com/jaschaephraim/lrserver)
+TODO: cache directories:
+  - .gitignore
+  - don't copy
+  - global purge?
 
-// https://github.com/facelessuser/pymdown-extensions/blob/main/mkdocs.yml
-// https://facelessuser.github.io/pymdown-extensions/extensions/arithmatex/
-
+TODO: kernel persistence for project renders? (should we disable entirely, use a single kernel for the whole site, etc.)
 
 TODO: generalized warning system (look for 'WARNING:')
 

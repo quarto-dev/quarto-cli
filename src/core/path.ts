@@ -111,3 +111,7 @@ export function resolvePathGlobs(
     exclude: excludeFiles,
   };
 }
+
+export function pathWithForwardSlashes(path: string) {
+  return path.replace(/\\/g, "/");
+}
