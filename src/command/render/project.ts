@@ -13,8 +13,6 @@ import { ld } from "lodash/mod.ts";
 import { resolvePathGlobs } from "../../core/path.ts";
 import { message } from "../../core/console.ts";
 
-import { FormatPandoc } from "../../config/format.ts";
-
 import { executionEngine } from "../../execute/engine.ts";
 
 import {
@@ -29,6 +27,7 @@ import {
   copyResourceFile,
   projectResourceFiles,
 } from "../../project/project-resources.ts";
+import { ensureGitignore } from "../../project/project-gitignore.ts";
 
 import { renderFiles, RenderOptions, RenderResults } from "./render.ts";
 
@@ -40,19 +39,13 @@ export async function renderProject(
   // get real path to the project
   const projDir = Deno.realPathSync(context.dir);
 
-  // lookup the project type and call preRender
-  // TODO: merge formatPandoc
-  // TODO: call post-render
-  let formatPandoc: FormatPandoc | undefined;
-  if (context.metadata) {
-    const projType = projectType(context.metadata.project?.type);
-    const { pandoc = undefined } = projType.preRender
-      ? projType.preRender(context)
-      : {};
+  // ensure we have the requisite entries in .gitignore
+  await ensureGitignore(context);
 
-    if (pandoc) {
-      formatPandoc = pandoc;
-    }
+  // lookup the project type and call preRender
+  const projType = projectType(context.metadata?.project?.type);
+  if (projType.preRender) {
+    projType.preRender(context);
   }
 
   // set execute dir if requested
@@ -100,12 +93,15 @@ export async function renderProject(
       // merge with what's already there)
       const libDir = context.metadata?.project?.[kLibDir];
       if (libDir) {
-        for (const lib of Deno.readDirSync(join(context.dir, libDir))) {
-          if (lib.isDirectory) {
-            moveDir(join(libDir, basename(lib.name)));
+        const libDirFull = join(context.dir, libDir);
+        if (existsSync(libDirFull)) {
+          for (const lib of Deno.readDirSync(libDirFull)) {
+            if (lib.isDirectory) {
+              moveDir(join(libDir, basename(lib.name)));
+            }
           }
+          Deno.removeSync(libDirFull, { recursive: true });
         }
-        Deno.removeSync(join(context.dir, libDir), { recursive: true });
       }
 
       // move/copy results to output_dir
@@ -145,7 +141,7 @@ export async function renderProject(
           }
 
           // apply removes and filter files dir
-          resourceFiles = resourceFiles.filter((file) => {
+          resourceFiles = resourceFiles.filter((file: string) => {
             if (fileResourceFiles.exclude.includes(file)) {
               return false;
             } else if (
@@ -160,19 +156,26 @@ export async function renderProject(
         }
       });
 
-      // make resource files unique
+      // make resource files unique then remove directories
       resourceFiles = ld.uniq(resourceFiles);
 
       // copy the resource files to the output dir
-      resourceFiles.forEach((file) => {
+      resourceFiles.forEach((file: string) => {
         const sourcePath = relative(projDir, file);
         if (existsSync(file)) {
-          const destPath = join(realOutputDir, sourcePath);
-          copyResourceFile(context.dir, file, destPath);
-        } else {
+          if (Deno.statSync(file).isFile) {
+            const destPath = join(realOutputDir, sourcePath);
+            copyResourceFile(context.dir, file, destPath);
+          }
+        } else if (!libDir || !sourcePath.startsWith(libDir)) {
           message(`WARNING: File '${sourcePath}' was not found.`);
         }
       });
+    }
+
+    // call post-render
+    if (projType.postRender) {
+      projType.postRender(context);
     }
 
     return {

@@ -88,7 +88,7 @@ export interface Format {
   execution: FormatExecution;
   pandoc: FormatPandoc;
   metadata: Metadata;
-  preprocess?: (format: Format) => FormatExtras;
+  formatExtras?: (format: Format) => FormatExtras;
 }
 
 export interface FormatRender {

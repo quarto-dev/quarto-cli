@@ -1,21 +1,26 @@
 /*
-* proejct-website.ts
+* website.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+
 import { join } from "path/mod.ts";
 import {
   kLibDir,
   kOutputDir,
   kResources,
-  ProjectContext,
   ProjectMetadata,
-} from "../project-context.ts";
-import { resourcePath } from "../../core/resources.ts";
-import { projectWebResources } from "../project-utils.ts";
+} from "../../project-context.ts";
+import { resourcePath } from "../../../core/resources.ts";
 
-import { ProjectCreate, ProjectType } from "./project-types.ts";
+import { projectWebResources } from "../../project-resources.ts";
+
+import { ProjectCreate, ProjectType } from "../project-types.ts";
+import { Format, FormatExtras } from "../../../config/format.ts";
+import { formatHasBootstrap } from "../../../format/format-html.ts";
+
+import { websiteNavigation } from "./navigation.ts";
 
 export const websiteProjectType: ProjectType = {
   type: "website",
@@ -64,9 +69,12 @@ export const websiteProjectType: ProjectType = {
     };
   },
 
-  preRender: (_context: ProjectContext) => {
-    return {
-      pandoc: {},
-    };
+  formatExtras: (format: Format): FormatExtras => {
+    if (formatHasBootstrap(format)) {
+      if (format.metadata["navbar"]) {
+        return websiteNavigation(format.metadata["navbar"]);
+      }
+    }
+    return {};
   },
 };

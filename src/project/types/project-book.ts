@@ -15,7 +15,7 @@ import {
 } from "../project-context.ts";
 import { resourcePath } from "../../core/resources.ts";
 
-import { projectWebResources } from "../project-utils.ts";
+import { projectWebResources } from "../project-resources.ts";
 
 import { ProjectCreate, ProjectType } from "./project-types.ts";
 

@@ -211,7 +211,7 @@ export async function renderContexts(
 
   // return contexts
   const contexts: Record<string, RenderContext> = {};
-  Object.keys(formats).forEach((format) => {
+  Object.keys(formats).forEach((format: string) => {
     contexts[format] = {
       target,
       options,
@@ -301,6 +301,7 @@ export async function renderPandoc(
     markdown: executeResult.markdown,
     cwd: dirname(context.target.input),
     format: recipe.format,
+    project: context.project,
     args: recipe.args,
     flags: context.options.flags,
   };

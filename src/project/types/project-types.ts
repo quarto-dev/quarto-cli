@@ -5,19 +5,20 @@
 *
 */
 
-import { FormatPandoc } from "../../config/format.ts";
+import { Format, FormatExtras } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
 import { ProjectContext, ProjectMetadata } from "../project-context.ts";
 
 import { bookProjectType } from "./project-book.ts";
 import { defaultProjectType } from "./project-default.ts";
-import { websiteProjectType } from "./project-website.ts";
+import { websiteProjectType } from "./website/website.ts";
 
 export interface ProjectType {
   type: string;
   create: (title: string, outputDir?: string) => ProjectCreate;
   config: (config?: ProjectMetadata) => ProjectMetadata | undefined;
-  preRender?: (context: ProjectContext) => { pandoc: FormatPandoc };
+  formatExtras?: (format: Format) => FormatExtras;
+  preRender?: (context: ProjectContext) => void;
   postRender?: (context: ProjectContext) => void;
 }
 

@@ -16,6 +16,7 @@ import { stringify } from "encoding/yaml.ts";
 import { execProcess } from "../../core/process.ts";
 import { message } from "../../core/console.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
+import { mergeConfigs } from "../../core/config.ts";
 
 import { Format, FormatPandoc } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
@@ -48,7 +49,7 @@ import {
   kVariables,
 } from "../../config/constants.ts";
 import { sessionTempFile } from "../../core/temp.ts";
-import { kResources } from "../../project/project-context.ts";
+import { kResources, ProjectContext } from "../../project/project-context.ts";
 import { RenderResourceFiles } from "./render.ts";
 
 // options required to run pandoc
@@ -62,6 +63,9 @@ export interface PandocOptions {
   format: Format;
   // command line args for pandoc
   args: string[];
+
+  // optoinal project context
+  project?: ProjectContext;
 
   // command line flags (e.g. could be used
   // to specify e.g. quiet or pdf engine)
@@ -111,11 +115,24 @@ export async function runPandoc(
   let allDefaults = await generateDefaults(options) || {};
   const printAllDefaults = allDefaults ? ld.cloneDeep(allDefaults) : undefined;
 
+  // TODO: the project formatExtras has access to the format (options.format) which
+  // is good in general, however the way we are determining if bootstrap is active
+  // is a variable that is calculated within the format preprocessor
+
   // see if there are extras
-  if (sysFilters.length > 0 || options.format.preprocess) {
-    const extras = options.format.preprocess
-      ? (options.format.preprocess(options.format))
+  if (
+    sysFilters.length > 0 || options.format.formatExtras ||
+    options.project?.formatExtras
+  ) {
+    const projectExtras = options.project?.formatExtras
+      ? (options.project.formatExtras(options.format))
       : {};
+
+    const formatExtras = options.format.formatExtras
+      ? (options.format.formatExtras(options.format))
+      : {};
+
+    const extras = mergeConfigs(projectExtras, formatExtras);
 
     if (sysFilters.length > 0) {
       extras.filters = extras.filters || {};
@@ -125,14 +142,20 @@ export async function runPandoc(
 
     // merge the extras into the defaults
     if (extras[kVariables]) {
-      allDefaults = { ...allDefaults, [kVariables]: extras[kVariables] };
+      allDefaults = {
+        ...allDefaults,
+        [kVariables]: mergeConfigs(
+          extras[kVariables] || {},
+          allDefaults[kVariables],
+        ),
+      };
     }
     if (extras[kIncludeInHeader]) {
       allDefaults = {
         ...allDefaults,
         [kIncludeInHeader]: [
-          ...allDefaults[kIncludeInHeader] || [],
           ...extras[kIncludeInHeader] || [],
+          ...allDefaults[kIncludeInHeader] || [],
         ],
       };
     }
@@ -140,8 +163,8 @@ export async function runPandoc(
       allDefaults = {
         ...allDefaults,
         [kIncludeBeforeBody]: [
-          ...allDefaults[kIncludeBeforeBody] || [],
           ...extras[kIncludeBeforeBody] || [],
+          ...allDefaults[kIncludeBeforeBody] || [],
         ],
       };
     }
@@ -149,8 +172,8 @@ export async function runPandoc(
       allDefaults = {
         ...allDefaults,
         [kIncludeAfterBody]: [
-          ...allDefaults[kIncludeAfterBody] || [],
           ...extras[kIncludeAfterBody] || [],
+          ...allDefaults[kIncludeAfterBody] || [],
         ],
       };
     }
