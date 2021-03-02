@@ -5,9 +5,12 @@
 *
 */
 
+import { join } from "path/mod.ts";
+import { ensureDirSync, existsSync } from "fs/mod.ts";
+
 import { ld } from "lodash/mod.ts";
 
-import { sessionTempFile } from "../../../core/temp.ts";
+import { sessionTempDir } from "../../../core/temp.ts";
 
 import {
   kIncludeBeforeBody,
@@ -48,10 +51,13 @@ const logoTemplate = ld.template(
 );
 
 export function websiteNavigation(navbarConfig: unknown): FormatExtras {
-  const navHeaderFile = sessionTempFile({ suffix: ".html" });
-  Deno.writeTextFileSync(
-    navHeaderFile,
-    `
+  // get navbar paths (return if they already exist for this session)
+  const navigationPaths = sessionNavigationPaths();
+
+  if (!existsSync(navigationPaths.header)) {
+    Deno.writeTextFileSync(
+      navigationPaths.header,
+      `
 <style type="text/css">
 .navbar-brand > img {
   max-height: 30px;
@@ -65,35 +71,48 @@ h1,h2,h3,h4,h5,h6 {
   padding-top: 60px; 
   margin-top: -60px 
 }
-</style>`,
-  );
-
-  const navBodyFile = sessionTempFile({ suffix: ".html" });
-  const lines: string[] = [];
-  if (typeof (navbarConfig) === "object") {
-    const navbar = navbarConfig as NavMain;
-
-    lines.push(
-      navTemplate({
-        type: navbar.type || "dark",
-        background: navbar.background || "primary",
-      }),
+</style>
+`,
     );
-    if (navbar.title || navbar.logo) {
-      lines.push(`<a class="navbar-brand" href="/">`);
-      if (navbar.logo) {
-        lines.push(logoTemplate({ logo: navbar.logo }));
-      }
-      if (navbar.title) {
-        lines.push(ld.escape(navbar.title));
-      }
-      lines.push(`</a>`);
-    }
-    lines.push(`</nav>`);
   }
-  Deno.writeTextFileSync(navBodyFile, lines.join("\n"));
+
+  if (!existsSync(navigationPaths.body)) {
+    const lines: string[] = [];
+    if (typeof (navbarConfig) === "object") {
+      const navbar = navbarConfig as NavMain;
+
+      lines.push(
+        navTemplate({
+          type: navbar.type || "dark",
+          background: navbar.background || "primary",
+        }),
+      );
+      if (navbar.title || navbar.logo) {
+        lines.push(`<a class="navbar-brand" href="/">`);
+        if (navbar.logo) {
+          lines.push(logoTemplate({ logo: navbar.logo }));
+        }
+        if (navbar.title) {
+          lines.push(ld.escape(navbar.title));
+        }
+        lines.push(`</a>`);
+      }
+      lines.push(`</nav>`);
+    }
+    Deno.writeTextFileSync(navigationPaths.body, lines.join("\n"));
+  }
+
   return {
-    [kIncludeInHeader]: [navHeaderFile],
-    [kIncludeBeforeBody]: [navBodyFile],
+    [kIncludeInHeader]: [navigationPaths.header],
+    [kIncludeBeforeBody]: [navigationPaths.body],
+  };
+}
+
+function sessionNavigationPaths() {
+  const dir = join(sessionTempDir(), "website-navigation");
+  ensureDirSync(dir);
+  return {
+    header: join(dir, "include-in-header.html"),
+    body: join(dir, "include-before-body.html"),
   };
 }

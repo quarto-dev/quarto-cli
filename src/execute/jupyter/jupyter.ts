@@ -178,21 +178,24 @@ export const jupyterEngine: ExecutionEngine = {
     }
   },
 
-  metadata: async (target: ExecutionTarget): Promise<Metadata> => {
+  metadata: async (file: string): Promise<Metadata> => {
     // read metadata
-    const decoder = new TextDecoder("utf-8");
-    const nbContents = await Deno.readFile(target.input);
-    const nb = JSON.parse(decoder.decode(nbContents));
-    const cells = nb.cells as Array<{ cell_type: string; source: string[] }>;
-    const markdown = cells.reduce((md, cell) => {
-      if (["markdown", "raw"].includes(cell.cell_type)) {
-        return md + "\n" + cell.source.join("");
-      } else {
-        return md;
-      }
-    }, "");
-
-    return readYamlFromMarkdown(markdown);
+    if (isNotebook(file)) {
+      const decoder = new TextDecoder("utf-8");
+      const nbContents = await Deno.readFile(file);
+      const nb = JSON.parse(decoder.decode(nbContents));
+      const cells = nb.cells as Array<{ cell_type: string; source: string[] }>;
+      const markdown = cells.reduce((md, cell) => {
+        if (["markdown", "raw"].includes(cell.cell_type)) {
+          return md + "\n" + cell.source.join("");
+        } else {
+          return md;
+        }
+      }, "");
+      return readYamlFromMarkdown(markdown);
+    } else {
+      return readYamlFromMarkdown(Deno.readTextFileSync(file));
+    }
   },
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {

@@ -25,6 +25,7 @@ import { Format, FormatExtras } from "../config/format.ts";
 import { Metadata } from "../config/metadata.ts";
 import { baseHtmlFormat } from "./formats.ts";
 
+export const kTheme = "theme";
 export const kDocumentCss = "document-css";
 
 export function htmlFormat(
@@ -34,10 +35,14 @@ export function htmlFormat(
   return mergeConfigs(
     baseHtmlFormat(figwidth, figheight),
     {
+      metadata: {
+        [kTheme]: "default",
+      },
+    },
+    {
       formatExtras: (format: Format) => {
-        if (format.metadata["theme"] !== null) {
-          // 'default' if theme is undefined
-          const theme = String(format.metadata["theme"] || "default");
+        if (format.metadata[kTheme]) {
+          const theme = String(format.metadata[kTheme]);
 
           // 'pandoc' theme means include default pandoc document css
           if (theme === "pandoc") {
@@ -63,7 +68,7 @@ export function htmlFormat(
 
 export function formatHasBootstrap(format: Format) {
   const theme = format.metadata["theme"];
-  return theme !== undefined && theme !== null && theme !== "pandoc";
+  return theme && theme !== "pandoc";
 }
 
 function pandocExtras(metadata: Metadata) {

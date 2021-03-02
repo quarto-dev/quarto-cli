@@ -20,7 +20,7 @@ import { ld } from "lodash/mod.ts";
 
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
-import { sessionTempDir } from "../../core/temp.ts";
+import { createSessionTempDir } from "../../core/temp.ts";
 
 import {
   formatFromMetadata,
@@ -242,7 +242,7 @@ export async function renderExecute(
   const executeResult = await context.engine.execute({
     target: context.target,
     resourceDir: resourcePath(),
-    tempDir: sessionTempDir(),
+    tempDir: createSessionTempDir(),
     dependencies: resolveDependencies,
     libDir: context.libDir,
     format: context.format,
@@ -292,7 +292,7 @@ export async function renderPandoc(
       format: context.format,
       output: recipe.output,
       resourceDir: resourcePath(),
-      tempDir: sessionTempDir(),
+      tempDir: createSessionTempDir(),
       libDir: context.libDir,
       dependencies: [executeResult.dependencies],
       quiet: context.options.flags?.quiet,
@@ -401,7 +401,7 @@ async function resolveFormats(
 ): Promise<Record<string, Format>> {
   // merge input metadata into project metadata
   const projMetadata = projectMetadataForInputFile(target.input);
-  const inputMetadata = await engine.metadata(target);
+  const inputMetadata = await engine.metadata(target.input);
   const baseMetadata = mergeQuartoConfigs(
     projMetadata,
     inputMetadata,

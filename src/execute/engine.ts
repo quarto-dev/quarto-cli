@@ -21,7 +21,7 @@ export interface ExecutionEngine {
     file: string,
     quiet?: boolean,
   ) => Promise<ExecutionTarget | undefined>;
-  metadata: (target: ExecutionTarget) => Promise<Metadata>;
+  metadata: (file: string) => Promise<Metadata>;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
   dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;

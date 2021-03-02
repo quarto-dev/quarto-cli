@@ -19,7 +19,11 @@ export function sessionTempFile(options?: Deno.MakeTempOptions) {
   return Deno.makeTempFileSync({ ...options, dir: tempDir });
 }
 
-export function sessionTempDir(options?: Deno.MakeTempOptions) {
+export function sessionTempDir() {
+  return tempDir!;
+}
+
+export function createSessionTempDir(options?: Deno.MakeTempOptions) {
   return Deno.makeTempDirSync({ ...options, dir: tempDir });
 }
 
