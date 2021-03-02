@@ -1,5 +1,5 @@
 /*
-* navbar.ts
+* navigation.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
@@ -48,7 +48,7 @@ const logoTemplate = ld.template(
   `<img src="<%- logo %>" class="d-inline-block align-top" />`,
 );
 
-export function websiteNavbar(navbarConfig: unknown): FormatExtras {
+export function websiteNavigation(navbarConfig: unknown): FormatExtras {
   const headerFile = sessionTempFile({ suffix: ".html" });
   Deno.writeTextFileSync(
     headerFile,

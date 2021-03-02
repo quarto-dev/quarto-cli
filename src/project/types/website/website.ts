@@ -20,7 +20,7 @@ import { ProjectCreate, ProjectType } from "../project-types.ts";
 import { Format, FormatExtras } from "../../../config/format.ts";
 import { formatHasBootstrap } from "../../../format/format-html.ts";
 
-import { websiteNavbar } from "./navbar.ts";
+import { websiteNavigation } from "./navigation.ts";
 
 export const websiteProjectType: ProjectType = {
   type: "website",
@@ -72,7 +72,7 @@ export const websiteProjectType: ProjectType = {
   formatExtras: (format: Format): FormatExtras => {
     if (formatHasBootstrap(format)) {
       if (format.metadata["navbar"]) {
-        return websiteNavbar(format.metadata["navbar"]);
+        return websiteNavigation(format.metadata["navbar"]);
       }
     }
     return {};
