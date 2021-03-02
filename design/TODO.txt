@@ -6,9 +6,13 @@
 //    - sitemap.xml
 //    - search
 
+
+
+TODO: require website and book to have output dir?
+
 TODO: cache directories:
   - .gitignore
-  - don't copy
+  - don't copy from _cache (resource exlude)
   - global purge?
 
 TODO: kernel persistence for project renders? (should we disable entirely, use a single kernel for the whole site, etc.)
@@ -18,8 +22,7 @@ TODO: generalized warning system (look for 'WARNING:')
 Charles:
 
 -  Layout:
-    - "natural width" (0?)
-    - top align all content in layout cells
+  - top align all content in layout cells
 
 -  Can't render a file in Google Drive
 
@@ -35,7 +38,11 @@ Bundle SASS compiler so we can prime thematic correctly:
   https://github.com/connorskees/grass
   https://github.com/sass/dart-sass
 
-filter params need some "escaping" so they aren't interpreted as markdown (e.g. use an html comment)
+Look into Teal: https://news.ycombinator.com/item?id=26247813
+
+filter params need some "escaping" so they aren't interpreted as markdown (e.g. inline code)
+
+Consider this documentation system: https://documentation.divio.com/
 
 
 Could say that while there is *always* a lockfile, package installations
