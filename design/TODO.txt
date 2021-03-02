@@ -6,7 +6,8 @@
 //    - sitemap.xml
 //    - search
 
-
+TODO: Navbar done once per project render
+TODO: Project caching infastructure
 
 TODO: require website and book to have output dir?
 
