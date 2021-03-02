@@ -8,7 +8,7 @@
     "encoding/": "https://deno.land/std/encoding/",
     "uuid/": "https://deno.land/std/uuid/",
     "testing/": "https://deno.land/std/testing/",
-    "http/": "https://deno.land/std@0.88.0/http/",
+    "http/": "https://deno.land/std/http/",
     "ws/": "https://deno.land/std/ws/",
     "cliffy/": "https://deno.land/x/cliffy@v0.16.0/",
     "lodash/": "https://deno.land/x/deno_lodash/"
