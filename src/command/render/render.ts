@@ -20,7 +20,7 @@ import { ld } from "lodash/mod.ts";
 
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
-import { sessionTempDir } from "../../core/temp.ts";
+import { createSessionTempDir } from "../../core/temp.ts";
 
 import {
   formatFromMetadata,
@@ -31,7 +31,14 @@ import {
 import {
   kBibliography,
   kCache,
+  kCss,
   kExecute,
+  kHeaderIncludes,
+  kIncludeAfter,
+  kIncludeAfterBody,
+  kIncludeBefore,
+  kIncludeBeforeBody,
+  kIncludeInHeader,
   kKeepMd,
   kKernelDebug,
   kKernelKeepalive,
@@ -235,7 +242,7 @@ export async function renderExecute(
   const executeResult = await context.engine.execute({
     target: context.target,
     resourceDir: resourcePath(),
-    tempDir: sessionTempDir(),
+    tempDir: createSessionTempDir(),
     dependencies: resolveDependencies,
     libDir: context.libDir,
     format: context.format,
@@ -285,7 +292,7 @@ export async function renderPandoc(
       format: context.format,
       output: recipe.output,
       resourceDir: resourcePath(),
-      tempDir: sessionTempDir(),
+      tempDir: createSessionTempDir(),
       libDir: context.libDir,
       dependencies: [executeResult.dependencies],
       quiet: context.options.flags?.quiet,
@@ -394,7 +401,7 @@ async function resolveFormats(
 ): Promise<Record<string, Format>> {
   // merge input metadata into project metadata
   const projMetadata = projectMetadataForInputFile(target.input);
-  const inputMetadata = await engine.metadata(target);
+  const inputMetadata = await engine.metadata(target.input);
   const baseMetadata = mergeQuartoConfigs(
     projMetadata,
     inputMetadata,
@@ -548,10 +555,22 @@ function mergeQuartoConfigs(
   configs = ld.cloneDeep(configs);
 
   // bibliography needs to always be an array so it can be merged
-  const fixupBibliography = (metadata: Metadata) => {
-    if (typeof (metadata[kBibliography]) === "string") {
-      metadata[kBibliography] = [metadata[kBibliography]];
-    }
+  const fixupMergeableScalars = (metadata: Metadata) => {
+    [
+      kBibliography,
+      kCss,
+      kHeaderIncludes,
+      kIncludeBefore,
+      kIncludeAfter,
+      kIncludeInHeader,
+      kIncludeBeforeBody,
+      kIncludeAfterBody,
+    ]
+      .forEach((key) => {
+        if (typeof (metadata[key]) === "string") {
+          metadata[key] = [metadata[key]];
+        }
+      });
   };
 
   // formats need to always be objects
@@ -564,10 +583,10 @@ function mergeQuartoConfigs(
         if (typeof (Reflect.get(format, key)) !== "object") {
           Reflect.set(format, key, {});
         }
-        fixupBibliography(Reflect.get(format, key) as Metadata);
+        fixupMergeableScalars(Reflect.get(format, key) as Metadata);
       });
     }
-    fixupBibliography(config);
+    fixupMergeableScalars(config);
     return config;
   };
 

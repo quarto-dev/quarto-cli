@@ -12,7 +12,7 @@ import { dirAndStem, expandPath } from "../../core/path.ts";
 import { readYamlFrontMatterFromMarkdown } from "../../core/yaml.ts";
 import { execProcess } from "../../core/process.ts";
 import { binaryPath } from "../../core/resources.ts";
-import { sessionTempDir, sessionTempFile } from "../../core/temp.ts";
+import { createSessionTempDir, sessionTempFile } from "../../core/temp.ts";
 
 import {
   kIncludeAfterBody,
@@ -265,7 +265,7 @@ async function patchTemplate(
     const patched = patch(result.stdout!);
 
     // write a temp file w/ the patched template
-    const templateDir = sessionTempDir();
+    const templateDir = createSessionTempDir();
     const template = await Deno.makeTempFile(
       { suffix: kPatchedTemplateExt, dir: templateDir },
     );

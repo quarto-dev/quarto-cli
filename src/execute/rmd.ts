@@ -44,20 +44,20 @@ export const rmdEngine: ExecutionEngine = {
     return Promise.resolve({ source: file, input: file });
   },
 
-  metadata: async (target: ExecutionTarget): Promise<Metadata> => {
-    if (kRScriptExtensions.includes(extname(target.input.toLowerCase()))) {
+  metadata: async (file: string): Promise<Metadata> => {
+    if (kRScriptExtensions.includes(extname(file.toLowerCase()))) {
       // if it's an R script, spin it into markdown
       const result = await callR<string>(
         "spin",
         {
-          input: target.input,
+          input: file,
         },
         true,
       );
       return readYamlFromMarkdown(result);
     } else {
       // otherwise just read the metadata from the file
-      return readYamlFromMarkdownFile(target.input);
+      return readYamlFromMarkdownFile(file);
     }
   },
 

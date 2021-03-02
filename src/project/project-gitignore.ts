@@ -13,8 +13,10 @@ import { execProcess } from "../core/process.ts";
 
 import { ProjectContext } from "./project-context.ts";
 
+import { kQuartoScratch } from "./project-scratch.ts";
+
 export const kGitignoreEntries = [
-  ".quarto/",
+  `${kQuartoScratch}/`,
   "*_cache/",
 ];
 

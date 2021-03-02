@@ -6,14 +6,26 @@
 //    - sitemap.xml
 //    - search
 
-TODO: Navbar done once per project render
-TODO: Project caching infastructure
 
-TODO: require website and book to have output dir?
+TODO: Compute navbar once per project render (sessionNavbar())
+        - Allow source level href references that we resolve
+        - Allow output dir references that we read the <title> from
+        - Allow custom title/text as a fallback
+      
+TODO: Benchmark the Lua HTML/CSS filters
+
+
 
 TODO: cache directories:
-  - .gitignore
-  - don't copy from _cache (resource exlude)
+ quarto clean output 
+ quarto clean cache 
+ quarto clean state
+
+ quarto clean output cache state
+ 
+ quarto clean all (output,cache,state)
+
+
   - global purge?
 
 TODO: kernel persistence for project renders? (should we disable entirely, use a single kernel for the whole site, etc.)

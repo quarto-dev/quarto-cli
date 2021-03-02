@@ -149,6 +149,7 @@ export const kReferenceDoc = "reference-doc";
 
 // metadata fields
 export const kCsl = "csl";
+export const kCss = "css";
 export const kBibliography = "bibliography";
 export const kHeaderIncludes = "header-includes";
 export const kIncludeBefore = "include-before";

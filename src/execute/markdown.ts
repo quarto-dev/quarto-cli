@@ -33,8 +33,8 @@ export const markdownEngine: ExecutionEngine = {
     return Promise.resolve({ source: file, input: file });
   },
 
-  metadata: (context: ExecutionTarget) =>
-    Promise.resolve(readYamlFromMarkdownFile(context.input) as Metadata),
+  metadata: (file: string) =>
+    Promise.resolve(readYamlFromMarkdownFile(file) as Metadata),
   execute: (options: ExecuteOptions) => {
     // read markdown
     const markdown = Deno.readTextFileSync(options.target.input);
