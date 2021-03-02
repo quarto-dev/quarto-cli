@@ -298,10 +298,6 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
   local miniPageVAlign = latexMinipageValign(vAlign)
   latexAppend(prefix, "\\begin{minipage}" .. miniPageVAlign .. "{" .. width .. "}\n")
 
-  -- vertically align the minipage
-  if miniPageVAlign == "[t]" then
-    latexAppend(prefix, "\\raisebox{-\\height}{") 
-  end 
 
   -- if we aren't in a sub-ref we may need to do some special work to
   -- ensure that captions are correctly emitted
@@ -311,13 +307,17 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
       local caption = image.caption:clone()
       markupLatexCaption(cell, caption)
       tclear(image.caption)
+      content:insert(pandoc.RawBlock("latex", "\\raisebox{-\\height}{"))
       content:insert(pandoc.Para(image))
+      content:insert(pandoc.RawBlock("latex", "}"))
       content:insert(pandoc.Para(caption))
       cellOutput = true
     elseif isFigure then
       local caption = refCaptionFromDiv(cell).content
       markupLatexCaption(cell, caption)
+      content:insert(pandoc.RawBlock("latex", "\\raisebox{-\\height}{"))
       tappend(content, tslice(cell.content, 1, #cell.content-1))
+      content:insert(pandoc.RawBlock("latex", "}"))
       content:insert(pandoc.Para(caption)) 
       cellOutput = true
     end
@@ -326,11 +326,12 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
   -- if we didn't find a special case then just emit everything
   if not cellOutput then
     tappend(content, cell.content)
-  end
-  
-  -- close any vertical aligmnent
-  if miniPageVAlign == "[t]" then
-    latexAppend(suffix, "}")
+
+    -- vertically align the minipage
+    if miniPageVAlign == "[t]" then
+      latexAppend(prefix, "\\raisebox{-\\height}{") 
+      latexAppend(suffix, "}")
+    end  
   end
 
   -- close the minipage
