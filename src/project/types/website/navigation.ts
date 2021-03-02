@@ -47,7 +47,7 @@ const navTemplate = ld.template(
   `<nav class="navbar fixed-top navbar-expand-lg navbar-<%- type %> bg-<%- background %>">`,
 );
 const logoTemplate = ld.template(
-  `<img src="<%- logo %>" class="d-inline-block align-top" />`,
+  `<img src="/<%- logo %>" class="d-inline-block align-top" />`,
 );
 
 export function websiteNavigation(navbarConfig: unknown): FormatExtras {
@@ -97,6 +97,38 @@ h1,h2,h3,h4,h5,h6 {
         }
         lines.push(`</a>`);
       }
+
+      // if there are items, then create a toggler
+      if (Array.isArray(navbar.left) || Array.isArray(navbar.right)) {
+        lines.push(`
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+  </button>  
+  <div class="collapse navbar-collapse" id="navbarCollapse">    
+  `);
+        if (Array.isArray(navbar.left)) {
+          lines.push(`<ul class="navbar-nav mr-auto mt-2 mt-lg-0">`);
+          lines.push(`
+<li class="nav-item">
+  <a class="nav-link" href="#">Home</a>
+</li>
+`);
+          lines.push(`</ul>`);
+        }
+        if (Array.isArray(navbar.right)) {
+          lines.push(`<ul class="navbar-nav mt-2 mt-lg-0">`);
+          lines.push(`
+<li class="nav-item">
+  <a class="nav-link" href="#">About</a>
+</li>
+`);
+
+          lines.push(`</ul>`);
+        }
+
+        lines.push("</div>");
+      }
+
       lines.push(`</nav>`);
     }
     Deno.writeTextFileSync(navigationPaths.body, lines.join("\n"));
