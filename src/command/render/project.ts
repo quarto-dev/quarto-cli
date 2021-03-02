@@ -27,6 +27,7 @@ import {
   copyResourceFile,
   projectResourceFiles,
 } from "../../project/project-resources.ts";
+import { ensureGitignore } from "../../project/project-gitignore.ts";
 
 import { renderFiles, RenderOptions, RenderResults } from "./render.ts";
 
@@ -37,6 +38,9 @@ export async function renderProject(
 ): Promise<RenderResults> {
   // get real path to the project
   const projDir = Deno.realPathSync(context.dir);
+
+  // ensure we have the requisite entries in .gitignore
+  await ensureGitignore(context);
 
   // lookup the project type and call preRender
   const projType = projectType(context.metadata?.project?.type);

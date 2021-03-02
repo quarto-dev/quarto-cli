@@ -16,6 +16,7 @@ import { ProjectCreate, projectType } from "./types/project-types.ts";
 import { mergeConfigs } from "../core/config.ts";
 
 import { kOutputDir, projectConfigFile } from "./project-context.ts";
+import { createGitignore } from "./project-gitignore.ts";
 
 export interface ProjectCreateOptions {
   dir: string;
@@ -54,7 +55,14 @@ export async function projectCreate(options: ProjectCreateOptions) {
   await Deno.writeTextFile(join(options.dir, "_quarto.yml"), metadata);
   if (!options.quiet) {
     message(
-      "- Created project config (_quarto.yml)",
+      "- Created _quarto.yml",
+      { indent: 2 },
+    );
+  }
+  await createGitignore(options.dir);
+  if (!options.quiet) {
+    message(
+      "- Created .gitignore",
       { indent: 2 },
     );
   }
