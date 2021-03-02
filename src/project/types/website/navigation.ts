@@ -15,7 +15,7 @@ import {
 } from "../../../config/constants.ts";
 import { FormatExtras } from "../../../config/format.ts";
 
-interface Navbar {
+interface NavMain {
   title?: string;
   logo?: string;
   type?: "dark" | "light";
@@ -29,16 +29,15 @@ interface Navbar {
     | "light"
     | "dark";
   search?: boolean;
-  contents?: NavbarEntry[];
-  ["contents-left"]?: NavbarEntry[];
-  ["contents-right"]?: NavbarEntry[];
+  left?: NavItem[];
+  right?: NavItem[];
 }
 
-interface NavbarEntry {
+interface NavItem {
   text?: string;
   href?: string;
   icon?: string;
-  children?: NavbarEntry[];
+  items?: NavItem[];
 }
 
 const navTemplate = ld.template(
@@ -49,9 +48,9 @@ const logoTemplate = ld.template(
 );
 
 export function websiteNavigation(navbarConfig: unknown): FormatExtras {
-  const headerFile = sessionTempFile({ suffix: ".html" });
+  const navHeaderFile = sessionTempFile({ suffix: ".html" });
   Deno.writeTextFileSync(
-    headerFile,
+    navHeaderFile,
     `
 <style type="text/css">
 .navbar-brand > img {
@@ -69,10 +68,10 @@ h1,h2,h3,h4,h5,h6 {
 </style>`,
   );
 
-  const navbarFile = sessionTempFile({ suffix: ".html" });
+  const navBodyFile = sessionTempFile({ suffix: ".html" });
   const lines: string[] = [];
   if (typeof (navbarConfig) === "object") {
-    const navbar = navbarConfig as Navbar;
+    const navbar = navbarConfig as NavMain;
 
     lines.push(
       navTemplate({
@@ -92,9 +91,9 @@ h1,h2,h3,h4,h5,h6 {
     }
     lines.push(`</nav>`);
   }
-  Deno.writeTextFileSync(navbarFile, lines.join("\n"));
+  Deno.writeTextFileSync(navBodyFile, lines.join("\n"));
   return {
-    [kIncludeInHeader]: [headerFile],
-    [kIncludeBeforeBody]: [navbarFile],
+    [kIncludeInHeader]: [navHeaderFile],
+    [kIncludeBeforeBody]: [navBodyFile],
   };
 }
