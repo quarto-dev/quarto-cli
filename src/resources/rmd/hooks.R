@@ -143,7 +143,13 @@ knitr_hooks <- function(format) {
     if (!is.null(fig.align) && !identical(fig.align, "default")) {
       options["layout.align"] = fig.align
     }
-   
+
+    # alias fig.valign to layout.valign
+    fig.valign = options[["fig.valign"]]
+    if (!is.null(fig.valign) && !identical(fig.valign, "default")) {
+      options["layout.valign"] = fig.valign
+    }
+
     # forward selected attributes
     forward <- c("layout", "layout.nrow", "layout.ncol", "layout.align")
     forwardAttr <- character()
