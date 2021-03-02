@@ -60,16 +60,6 @@ export function copyResourceFile(
   }
 }
 
-export function projectWebResources() {
-  return [
-    "*.png",
-    "*.jpeg",
-    "*.jpg",
-    "*.css",
-    "*.js",
-  ];
-}
-
 // fixup root ('/') css references and also copy references to other
 // stylesheet or resources (e.g. images) to alongside the destFile
 function handleCssReferences(

@@ -57,6 +57,12 @@ export function watchProject(
     : projDir;
   const resourceFiles = projectResourceFiles(project);
 
+  // function to create an output dir path for a given project file
+  const outputPath = (file: string) => {
+    const sourcePath = relative(projDir, file);
+    return join(outputDir, sourcePath);
+  };
+
   // track every path that has been modified since the last reload
   const modified: string[] = [];
 
@@ -75,16 +81,24 @@ export function watchProject(
           return true;
         }
 
-        // if it's a resource file, then copy it and return false
+        // if it's a "hot reloading file" (e.g. css or js) and if it exists
+        // in the output dir, then it coundt as "resource file"
+        const hotreloadFiles = paths.filter((path) => {
+          const kHotreloadExts = [".css", ".js"];
+          if (kHotreloadExts.includes(extname(path).toLowerCase())) {
+            return existsSync(outputPath(path));
+          } else {
+            return false;
+          }
+        });
+
         // (the copy will come in as another change)
         const modifiedResources = ld.intersection(
-          resourceFiles,
+          resourceFiles.concat(hotreloadFiles),
           paths,
         ) as string[];
         for (const file of modifiedResources) {
-          const sourcePath = relative(projDir, file);
-          const destPath = join(outputDir, sourcePath);
-          copyResourceFile(projDir, file, destPath);
+          copyResourceFile(projDir, file, outputPath(file));
         }
 
         return false;

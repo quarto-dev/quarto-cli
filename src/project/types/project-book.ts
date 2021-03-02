@@ -9,13 +9,10 @@ import { kIncludeInHeader } from "../../config/constants.ts";
 import {
   kLibDir,
   kOutputDir,
-  kResources,
   ProjectContext,
   ProjectMetadata,
 } from "../project-context.ts";
 import { resourcePath } from "../../core/resources.ts";
-
-import { projectWebResources } from "../project-resources.ts";
 
 import { ProjectCreate, ProjectType } from "./project-types.ts";
 
@@ -72,10 +69,6 @@ export const bookProjectType: ProjectType = {
     return {
       [kLibDir]: "libs",
       [kOutputDir]: "_book",
-      [kResources]: [
-        ...projectWebResources(),
-        ...(config?.[kResources] || []),
-      ],
       ...config,
     };
   },

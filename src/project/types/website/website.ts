@@ -6,15 +6,8 @@
 */
 
 import { join } from "path/mod.ts";
-import {
-  kLibDir,
-  kOutputDir,
-  kResources,
-  ProjectMetadata,
-} from "../../project-context.ts";
+import { kLibDir, kOutputDir, ProjectMetadata } from "../../project-context.ts";
 import { resourcePath } from "../../../core/resources.ts";
-
-import { projectWebResources } from "../../project-resources.ts";
 
 import { ProjectCreate, ProjectType } from "../project-types.ts";
 import { Format, FormatExtras } from "../../../config/format.ts";
@@ -61,10 +54,6 @@ export const websiteProjectType: ProjectType = {
     return {
       [kLibDir]: "libs",
       [kOutputDir]: "_site",
-      [kResources]: [
-        ...projectWebResources(),
-        ...(config?.[kResources] || []),
-      ],
       ...config,
     };
   },

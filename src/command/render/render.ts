@@ -31,7 +31,10 @@ import {
 import {
   kBibliography,
   kCache,
+  kCss,
   kExecute,
+  kIncludeAfter,
+  kIncludeBefore,
   kKeepMd,
   kKernelDebug,
   kKernelKeepalive,
@@ -548,10 +551,12 @@ function mergeQuartoConfigs(
   configs = ld.cloneDeep(configs);
 
   // bibliography needs to always be an array so it can be merged
-  const fixupBibliography = (metadata: Metadata) => {
-    if (typeof (metadata[kBibliography]) === "string") {
-      metadata[kBibliography] = [metadata[kBibliography]];
-    }
+  const fixupMergeableScalars = (metadata: Metadata) => {
+    [kBibliography, kCss, kIncludeBefore, kIncludeAfter].forEach((key) => {
+      if (typeof (metadata[key]) === "string") {
+        metadata[key] = [metadata[key]];
+      }
+    });
   };
 
   // formats need to always be objects
@@ -564,10 +569,10 @@ function mergeQuartoConfigs(
         if (typeof (Reflect.get(format, key)) !== "object") {
           Reflect.set(format, key, {});
         }
-        fixupBibliography(Reflect.get(format, key) as Metadata);
+        fixupMergeableScalars(Reflect.get(format, key) as Metadata);
       });
     }
-    fixupBibliography(config);
+    fixupMergeableScalars(config);
     return config;
   };
 
