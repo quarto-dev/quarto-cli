@@ -13,8 +13,6 @@ import { ld } from "lodash/mod.ts";
 import { resolvePathGlobs } from "../../core/path.ts";
 import { message } from "../../core/console.ts";
 
-import { FormatPandoc } from "../../config/format.ts";
-
 import { executionEngine } from "../../execute/engine.ts";
 
 import {
@@ -91,12 +89,15 @@ export async function renderProject(
       // merge with what's already there)
       const libDir = context.metadata?.project?.[kLibDir];
       if (libDir) {
-        for (const lib of Deno.readDirSync(join(context.dir, libDir))) {
-          if (lib.isDirectory) {
-            moveDir(join(libDir, basename(lib.name)));
+        const libDirFull = join(context.dir, libDir);
+        if (existsSync(libDirFull)) {
+          for (const lib of Deno.readDirSync(libDirFull)) {
+            if (lib.isDirectory) {
+              moveDir(join(libDir, basename(lib.name)));
+            }
           }
+          Deno.removeSync(libDirFull, { recursive: true });
         }
-        Deno.removeSync(join(context.dir, libDir), { recursive: true });
       }
 
       // move/copy results to output_dir
