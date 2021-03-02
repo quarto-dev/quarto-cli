@@ -1,11 +1,7 @@
-
-
-
 //  Websites:
 //    - Navigation
 //    - sitemap.xml
 //    - search
-
 
 TODO: Compute navbar once per project render (sessionNavbar())
         - Allow source level href references that we resolve
@@ -14,26 +10,18 @@ TODO: Compute navbar once per project render (sessionNavbar())
       
 TODO: Benchmark the Lua HTML/CSS filters
 
-
-
 TODO: cache directories:
  quarto clean output 
  quarto clean cache 
  quarto clean state
 
  quarto clean output cache state
- 
  quarto clean all (output,cache,state)
-
-
   - global purge?
 
 TODO: kernel persistence for project renders? (should we disable entirely, use a single kernel for the whole site, etc.)
 
 TODO: generalized warning system (look for 'WARNING:')
-
-Charles:
--  Can't render a file in Google Drive
 
 HTML:
   - floating toc
@@ -75,9 +63,6 @@ as necessary, and add the extensions: key in YAML at the bottom of the document
 - install/update commands put the latest version in the global cache
 - new documents use the latest version in the cache
 - if you run install/update within a project then it updates the lockfile
-
-
-
 
 Extensions sources:
   - global cache
