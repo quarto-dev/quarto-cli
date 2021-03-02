@@ -4,6 +4,7 @@ import glob
 import sys
 import json
 import pprint
+import copy
 
 from pathlib import Path
 
