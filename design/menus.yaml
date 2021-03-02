@@ -11,39 +11,36 @@ nav-main:
   social:  
     github: https://github.com
     twitter: htpps://twitter.com
-  items:
+  left:
     - icon: fa-home
       href: "https://example.com"
     - text: "Home"
       icon: fa-home
-    - nav: foo
+    - href: "section.md"
       text: "Foo"
     - text: "More"
       menu:
         - text: "Heading 1"
-        - href: page-a.html
-        - href: page-b.html
+        - href: page-a.ipynb
+        - href: page-b.Rmd
         - text: "---------"
         - text: "Heading 2"
         - href: page-c.html
-        - text: "Page D"
-          href: page-d.html 
-   items-right:
+        - href: page-d.html 
+   right:
      - text: "About"
        icon: fa-info
        href: about.html
-      
-  
+       
+
 nav-side: 
-  id: foo
   search: true
   logo: "fancy.png"
   items:
     - text: "Get Started"
       items: 
-        - file: "bar.md"
-        - url: "https://asdfasdfdsa"
-          text: "Stuff"
+        - href: "bar.md"
+        - href: "https://asdfasdfdsa"
     - text: "Learn more"
       items:
         - href: "learn.md"
