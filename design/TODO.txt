@@ -21,10 +21,6 @@ TODO: kernel persistence for project renders? (should we disable entirely, use a
 TODO: generalized warning system (look for 'WARNING:')
 
 Charles:
-
--  Layout:
-  - top align all content in layout cells
-
 -  Can't render a file in Google Drive
 
 HTML:
