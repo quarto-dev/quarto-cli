@@ -11,7 +11,7 @@ import { ProjectContext, ProjectMetadata } from "../project-context.ts";
 
 import { bookProjectType } from "./project-book.ts";
 import { defaultProjectType } from "./project-default.ts";
-import { websiteProjectType } from "./project-website.ts";
+import { websiteProjectType } from "./website/website.ts";
 
 export interface ProjectType {
   type: string;

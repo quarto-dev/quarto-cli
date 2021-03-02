@@ -1,5 +1,5 @@
 /*
-* proejct-website.ts
+* website.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
@@ -12,19 +12,19 @@ import {
   kOutputDir,
   kResources,
   ProjectMetadata,
-} from "../project-context.ts";
-import { resourcePath } from "../../core/resources.ts";
-import { sessionTempFile } from "../../core/temp.ts";
+} from "../../project-context.ts";
+import { resourcePath } from "../../../core/resources.ts";
+import { sessionTempFile } from "../../../core/temp.ts";
 
-import { projectWebResources } from "../project-utils.ts";
+import { projectWebResources } from "../../project-utils.ts";
 
-import { ProjectCreate, ProjectType } from "./project-types.ts";
-import { Format, FormatExtras } from "../../config/format.ts";
-import { formatHasBootstrap } from "../../format/format-html.ts";
+import { ProjectCreate, ProjectType } from "../project-types.ts";
+import { Format, FormatExtras } from "../../../config/format.ts";
+import { formatHasBootstrap } from "../../../format/format-html.ts";
 import {
   kIncludeBeforeBody,
   kIncludeInHeader,
-} from "../../config/constants.ts";
+} from "../../../config/constants.ts";
 
 export const websiteProjectType: ProjectType = {
   type: "website",
