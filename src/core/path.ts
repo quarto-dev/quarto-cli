@@ -66,9 +66,15 @@ export function resolvePathGlobs(
 
   // deal with implicit ** syntax and ability to escape negation (!)
   const asFullGlob = (glob: string) => {
+    // handle negation
     if (glob.startsWith("\\!")) {
       glob = glob.slice(1);
     }
+    // ending w/ a slash means everything in the dir
+    if (glob.endsWith("/")) {
+      glob = glob + "**/*";
+    }
+
     if (!glob.startsWith("/")) {
       return "**/" + glob;
     } else {

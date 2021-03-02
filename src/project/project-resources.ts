@@ -21,14 +21,7 @@ export function projectResourceFiles(project: ProjectContext) {
   if (outputDir) {
     const resourceGlobs = (project.metadata?.project?.[kResources] || [])
       // ignore anything specified in our standard .gitignore
-      .concat(kGitignoreEntries.map((entry) => {
-        const negated = `!${entry}`;
-        if (negated.endsWith("/")) {
-          return negated + "**/*";
-        } else {
-          return negated;
-        }
-      }));
+      .concat(kGitignoreEntries.map((entry) => `!${entry}`));
 
     const exclude = outputDir ? [outputDir] : [];
     const projectResourceFiles = resolvePathGlobs(
