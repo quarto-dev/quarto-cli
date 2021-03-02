@@ -63,7 +63,7 @@ export function htmlFormat(
 
 export function formatHasBootstrap(format: Format) {
   const theme = format.metadata["theme"];
-  return theme !== null && theme !== "pandoc";
+  return theme !== undefined && theme !== null && theme !== "pandoc";
 }
 
 function pandocExtras(metadata: Metadata) {
