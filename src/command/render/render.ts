@@ -33,8 +33,12 @@ import {
   kCache,
   kCss,
   kExecute,
+  kHeaderIncludes,
   kIncludeAfter,
+  kIncludeAfterBody,
   kIncludeBefore,
+  kIncludeBeforeBody,
+  kIncludeInHeader,
   kKeepMd,
   kKernelDebug,
   kKernelKeepalive,
@@ -552,11 +556,21 @@ function mergeQuartoConfigs(
 
   // bibliography needs to always be an array so it can be merged
   const fixupMergeableScalars = (metadata: Metadata) => {
-    [kBibliography, kCss, kIncludeBefore, kIncludeAfter].forEach((key) => {
-      if (typeof (metadata[key]) === "string") {
-        metadata[key] = [metadata[key]];
-      }
-    });
+    [
+      kBibliography,
+      kCss,
+      kHeaderIncludes,
+      kIncludeBefore,
+      kIncludeAfter,
+      kIncludeInHeader,
+      kIncludeBeforeBody,
+      kIncludeAfterBody,
+    ]
+      .forEach((key) => {
+        if (typeof (metadata[key]) === "string") {
+          metadata[key] = [metadata[key]];
+        }
+      });
   };
 
   // formats need to always be objects
