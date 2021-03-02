@@ -236,21 +236,26 @@ export async function removeAll(opts?: string[], quiet?: boolean) {
 }
 
 export async function tlVersion() {
-  const result = await tlmgrCommand(
-    "--version",
-    ["--machine-readable"],
-    true,
-  );
+  try {
+    const result = await tlmgrCommand(
+      "--version",
+      ["--machine-readable"],
+      true,
+    );
 
-  if (result.success) {
-    const versionStr = result.stdout;
-    if (!versionStr) {
-      return Promise.reject();
+    if (result.success) {
+      const versionStr = result.stdout;
+      const match = versionStr && versionStr.match(/tlversion (\d*)/);
+      if (match) {
+        return match[1];
+      } else {
+        return undefined;
+      }
+    } else {
+      return undefined;
     }
-    const match = versionStr.match(/tlversion (\d*)/);
-    if (match) {
-      return match[1];
-    }
+  } catch (e) {
+    return undefined;
   }
 }
 

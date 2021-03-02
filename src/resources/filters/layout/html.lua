@@ -13,11 +13,21 @@ function htmlPanel(divEl, layout, caption)
   if hasFigureRef(divEl) then
     panel.content:insert(pandoc.RawBlock("html", "<figure>"))
   end
+
+  -- compute vertical alignment and remove attribute
+  local vAlign = validatedVAlign(divEl.attr.attributes[kLayoutVAlign])
+  local vAlignClass = vAlignClass(vAlign);
+  divEl.attr.attributes[kLayoutVAlign] = nil
   
   -- layout
   for i, row in ipairs(layout) do
     
     local rowDiv = pandoc.Div({}, pandoc.Attr("", {"quarto-layout-row"}))
+
+    -- add the vertical align element to this row
+    if vAlignClass then
+      rowDiv.attr.classes:insert(vAlignClass);
+    end
   
     for i, cellDiv in ipairs(row) do
       
@@ -215,4 +225,13 @@ function flexAlign(align)
   end
 end
 
+function vAlignClass(vAlign) 
+  if vAlign == "top" then 
+    return "quarto-layout-valign-top"
+  elseif vAlign == "bottom" then
+    return "quarto-layout-valign-bottom"
+  elseif vAlign == "center" then
+    return "quarto-layout-valign-center"
+  end
+end
 

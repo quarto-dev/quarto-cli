@@ -2,6 +2,7 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 kLayoutAlign = "layout.align"
+kLayoutVAlign = "layout.valign"
 kLayoutNcol = "layout.ncol"
 kLayoutNrow = "layout.nrow"
 kLayout = "layout"
@@ -9,6 +10,10 @@ kLayout = "layout"
 
 function layoutAlignAttribute(el, default)
   return validatedAlign(attribute(el, kLayoutAlign, default))
+end
+
+function layoutVAlignAttribute(el, default)
+  return validatedVAlign(attribute(el, kLayoutVAlign, default))
 end
 
 function hasLayoutAttributes(el)

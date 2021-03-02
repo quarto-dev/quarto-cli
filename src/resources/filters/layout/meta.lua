@@ -26,7 +26,16 @@ function metaInject()
   }
   .quarto-layout-row {
     display: flex;
+    align-items: flex-start;
+  }
+  .quarto-layout-valign-top {
+    align-items: flex-start;
+  }
+  .quarto-layout-valign-bottom {
     align-items: flex-end;
+  }
+  .quarto-layout-valign-center {
+    align-items: center;
   }
   .quarto-layout-cell {
     position: relative;

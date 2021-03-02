@@ -11,6 +11,10 @@ function latexPanel(divEl, layout, caption)
   local env, pos = latexPanelEnv(divEl, layout)
   panel.content:insert(latexBeginEnv(env, pos));
   
+   -- read vertical alignment and strip attribute
+  local vAlign = validatedVAlign(divEl.attr.attributes[kLayoutVAlign])
+  divEl.attr.attributes[kLayoutVAlign] = nil
+
   for i, row in ipairs(layout) do
     
     for j, cell in ipairs(row) do
@@ -23,7 +27,7 @@ function latexPanel(divEl, layout, caption)
       -- process cell (enclose content w/ alignment)
       local endOfTable = i == #layout
       local endOfRow = j == #row
-      local prefix, content, suffix = latexCell(cell, endOfRow, endOfTable)
+      local prefix, content, suffix = latexCell(cell, vAlign, endOfRow, endOfTable)
       panel.content:insert(prefix)
       local align = cell.attr.attributes[kLayoutAlign]
       if align == "center" then
@@ -235,7 +239,7 @@ function latexEndEnv(env)
   return pandoc.RawBlock("latex", "\\end{" .. env .. "}")
 end
 
-function latexCell(cell, endOfRow, endOfTable)
+function latexCell(cell, vAlign, endOfRow, endOfTable)
 
   -- figure out what we are dealing with
   local label = cell.attr.identifier
@@ -271,7 +275,7 @@ function latexCell(cell, endOfRow, endOfTable)
       if tbl.caption.short then
         tclear(tbl.caption.short)
       end
-      cell.content = { latexTabular(tbl) }
+      cell.content = { latexTabular(tbl, vAlign) }
     else
       caption = refCaptionFromDiv(cell).content
       cell.content = tslice(cell.content, 1, #cell.content-1)
@@ -289,8 +293,16 @@ function latexCell(cell, endOfRow, endOfTable)
   if percentWidth then
     width = string.format("%2.2f", percentWidth/100) .. "\\linewidth"
   end
-  latexAppend(prefix, "\\begin{minipage}{" .. width .. "}\n")
-  
+
+  -- start the minipage
+  local miniPageVAlign = latexMinipageValign(vAlign)
+  latexAppend(prefix, "\\begin{minipage}" .. miniPageVAlign .. "{" .. width .. "}\n")
+
+  -- vertically align the minipage
+  if miniPageVAlign == "[t]" then
+    latexAppend(prefix, "\\raisebox{-\\height}{") 
+  end 
+
   -- if we aren't in a sub-ref we may need to do some special work to
   -- ensure that captions are correctly emitted
   local cellOutput = false;
@@ -316,6 +328,12 @@ function latexCell(cell, endOfRow, endOfTable)
     tappend(content, cell.content)
   end
   
+  -- close any vertical aligmnent
+  if miniPageVAlign == "[t]" then
+    latexAppend(suffix, "}")
+  end
+
+  -- close the minipage
   latexAppend(suffix, "\\end{minipage}%")
   
   if isSubRef then
@@ -342,7 +360,7 @@ function latexCell(cell, endOfRow, endOfTable)
   
 end
 
-function latexTabular(tbl)
+function latexTabular(tbl, vAlign)
   
   -- convert to simple table
   tbl = pandoc.utils.to_simple_table(tbl)
@@ -350,6 +368,9 @@ function latexTabular(tbl)
   -- list of inlines
   local tabular = pandoc.List:new()
   
+  -- vertically align the minipage
+  local tabularVAlign = latexMinipageValign(vAlign)
+ 
   -- caption
   if #tbl.caption > 0 then
     latexAppend(tabular, "\\caption{")
@@ -359,7 +380,7 @@ function latexTabular(tbl)
   
   -- header
   local aligns = table.concat(tbl.aligns:map(latexTabularAlign), "")
-  latexAppend(tabular, "\\begin{tabular}{" .. aligns .. "}\n")
+  latexAppend(tabular, "\\begin{tabular}" .. tabularVAlign .. "{" .. aligns .. "}\n")
   latexAppend(tabular, "\\toprule\n")
   
   -- headers (optional)
@@ -444,4 +465,15 @@ function latexRemoveTableDelims(el)
   })
 end
 
+function latexMinipageValign(vAlign) 
+  if vAlign == "top" then
+   return "[t]"
+  elseif vAlign == "bottom" then 
+    return "[b]"
+  elseif vAlign == "center" then 
+    return "[c]"
+  else
+   return ""
+  end
+end
 
