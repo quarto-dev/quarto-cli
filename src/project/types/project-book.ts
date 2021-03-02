@@ -68,8 +68,8 @@ export const bookProjectType: ProjectType = {
     config = config || {};
     return {
       [kLibDir]: "libs",
-      [kOutputDir]: "_book",
       ...config,
+      [kOutputDir]: config[kOutputDir] || "_book",
     };
   },
 

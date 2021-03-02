@@ -53,8 +53,8 @@ export const websiteProjectType: ProjectType = {
     config = config || {};
     return {
       [kLibDir]: "libs",
-      [kOutputDir]: "_site",
       ...config,
+      [kOutputDir]: config[kOutputDir] || "_site",
     };
   },
 
