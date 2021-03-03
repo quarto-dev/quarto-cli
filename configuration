@@ -8,7 +8,7 @@
 
 
 # Dependency versions
-export DENO=v1.8.0
+export DENO=v1.7.5
 export PANDOC=2.11.4
 
 # Quarto Info Version

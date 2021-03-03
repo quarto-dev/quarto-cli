@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- select the correct program files folder -->
-<?define ProgFilesFolder="ProgramFiles64Folder"?>
+<?if $(sys.BUILDARCH)=x64?>
+  <?define ProgFilesFolder="ProgramFiles64Folder"?>
+<?else?>
+  <?define ProgFilesFolder="ProgramFilesFolder"?>
+<?endif?>
 
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Product Id="*" 
