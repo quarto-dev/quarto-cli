@@ -1,5 +1,7 @@
-// Spacelab 4.6.0
+// Spacelab 5.0.0-beta2
 // Bootswatch
+
+$theme: "spacelab" !default;
 
 //
 // Color system
@@ -37,7 +39,7 @@ $danger:        $red !default;
 $light:         $gray-200 !default;
 $dark:          $gray-800 !default;
 
-$yiq-contrasted-threshold: 200 !default;
+$min-contrast-ratio:   2.65 !default;
 
 // Body
 

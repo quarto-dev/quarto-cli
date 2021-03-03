@@ -1,5 +1,7 @@
-// Journal 4.6.0
+// Journal 5.0.0-beta2
 // Bootswatch
+
+$theme: "journal" !default;
 
 //
 // Color system
@@ -36,6 +38,8 @@ $warning:       $yellow !default;
 $danger:        $red !default;
 $light:         $gray-100 !default;
 $dark:          $gray-900 !default;
+
+$min-contrast-ratio:   1.28 !default;
 
 // Fonts
 

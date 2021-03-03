@@ -1,5 +1,7 @@
-// Materia 4.6.0
+// Materia 5.0.0-beta2
 // Bootswatch
+
+$theme: "materia" !default;
 
 //
 // Color system
@@ -37,7 +39,7 @@ $danger:        $red !default;
 $light:         $white !default;
 $dark:          $gray-800 !default;
 
-$yiq-contrasted-threshold:  170 !default;
+$min-contrast-ratio:   2.15 !default;
 
 $enable-gradients: true !default;
 
@@ -49,7 +51,7 @@ $body-color:    $gray-700 !default;
 
 // stylelint-disable-next-line value-keyword-case
 $font-family-sans-serif:    Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif !default;
-$font-size-base:            .8125rem !default;
+$font-size-base:            1rem !default;
 $font-weight-base:          400 !default;
 
 // Buttons
@@ -75,15 +77,6 @@ $input-border-radius-lg:         0 !default;
 $input-border-radius-sm:         0 !default;
 $input-placeholder-color:        rgba(0, 0, 0, .4) !default;
 $input-group-addon-bg:           transparent !default;
-$custom-control-gutter:          1.75rem !default;
-$custom-control-indicator-focus-box-shadow: 0 !default;
-$custom-control-indicator-size:  1.25rem !default;
-$custom-control-indicator-bg:    $white !default;
-$custom-checkbox-indicator-border-radius: 2px !default;
-$custom-control-indicator-disabled-bg: $gray-100 !default;
-$custom-radio-indicator-icon-checked: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'><circle r='4' fill='#2196f3'/></svg>") !default;
-$custom-select-border-radius:       0 !default;
-$custom-select-box-shadow:          none !default;
 
 // Navs
 
@@ -116,5 +109,6 @@ $progress-border-radius:        0 !default;
 
 // Close
 
-$close-font-size:             2.125rem !default;
-$close-font-weight:           300 !default;
+$btn-close-color:            $white !default;
+$btn-close-opacity:          .6 !default;
+$btn-close-hover-opacity:    1 !default;

@@ -1,5 +1,7 @@
-// Flatly 4.6.0
+// Flatly 5.0.0-beta2
 // Bootswatch
+
+$theme: "flatly" !default;
 
 //
 // Color system
@@ -37,7 +39,7 @@ $danger:        $red !default;
 $light:         $gray-200 !default;
 $dark:          $gray-700 !default;
 
-$yiq-contrasted-threshold:  175 !default;
+$min-contrast-ratio:   2.15 !default;
 
 // Links
 
@@ -47,8 +49,6 @@ $link-color:                $success !default;
 
 // stylelint-disable-next-line value-keyword-case
 $font-family-sans-serif:      Lato, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" !default;
-$font-size-base:              .9375rem !default;
-$font-size-sm:                $font-size-base * .88 !default;
 $h1-font-size:                3rem !default;
 $h2-font-size:                2.5rem !default;
 $h3-font-size:                2rem !default;
@@ -96,7 +96,14 @@ $pagination-disabled-border-color:  transparent !default;
 $list-group-hover-bg:               $gray-200 !default;
 $list-group-disabled-bg:            $gray-200 !default;
 
+// Breadcrumbs
+
+$breadcrumb-padding-y:              .375rem !default;
+$breadcrumb-padding-x:              .75rem !default;
+$breadcrumb-border-radius:          .25rem !default;
+
 // Close
 
-$close-color:                       $white !default;
-$close-text-shadow:                 none !default;
+$btn-close-color:            $white !default;
+$btn-close-opacity:          .4 !default;
+$btn-close-hover-opacity:    1 !default;

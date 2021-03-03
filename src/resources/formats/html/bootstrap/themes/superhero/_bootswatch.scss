@@ -1,19 +1,13 @@
-// Superhero 4.6.0
+// Superhero 5.0.0-beta2
 // Bootswatch
 
 
-// Variables ===================================================================
+// Variables
 
 $web-font-path: "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" !default;
 @import url($web-font-path);
 
-// Navbar ======================================================================
-
-.navbar {
-  font-size: $font-size-sm;
-}
-
-// Buttons =====================================================================
+// Buttons
 
 .btn {
   @each $color, $value in $theme-colors {
@@ -27,7 +21,7 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&
   }
 }
 
-// Typography ==================================================================
+// Typography
 
 .dropdown-menu {
   font-size: $font-size-sm;
@@ -41,7 +35,7 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&
   color: $body-color;
 }
 
-// Tables ======================================================================
+// Tables
 
 .table {
   font-size: $font-size-sm;
@@ -62,158 +56,9 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&
   .text-muted {
     color: $text-muted;
   }
-
-  &-primary {
-    &,
-    > th,
-    > td {
-      background-color: $primary;
-    }
-  }
-
-  &-secondary {
-    &,
-    > th,
-    > td {
-      background-color: $secondary;
-    }
-  }
-
-  &-light {
-    &,
-    > th,
-    > td {
-      background-color: $light;
-    }
-  }
-
-  &-dark {
-    color: $white;
-
-    &,
-    > th,
-    > td {
-      background-color: $dark;
-    }
-  }
-
-  &-success {
-    &,
-    > th,
-    > td {
-      background-color: $success;
-    }
-  }
-
-  &-info {
-    &,
-    > th,
-    > td {
-      background-color: $info;
-    }
-  }
-
-  &-danger {
-    &,
-    > th,
-    > td {
-      background-color: $danger;
-    }
-  }
-
-  &-warning {
-    &,
-    > th,
-    > td {
-      background-color: $warning;
-    }
-  }
-
-  &-active {
-    &,
-    > th,
-    > td {
-      background-color: $table-active-bg;
-    }
-  }
-
-  &-hover {
-    .table-primary:hover {
-      &,
-      > th,
-      > td {
-        background-color: darken($primary, 5%);
-      }
-    }
-
-    .table-secondary:hover {
-      &,
-      > th,
-      > td {
-        background-color: darken($secondary, 5%);
-      }
-    }
-
-    .table-light:hover {
-      &,
-      > th,
-      > td {
-        background-color: darken($light, 5%);
-      }
-    }
-
-    .table-dark:hover {
-      &,
-      > th,
-      > td {
-        background-color: darken($dark, 5%);
-      }
-    }
-
-    .table-success:hover {
-      &,
-      > th,
-      > td {
-        background-color: darken($success, 5%);
-      }
-    }
-
-    .table-info:hover {
-      &,
-      > th,
-      > td {
-        background-color: darken($info, 5%);
-      }
-    }
-
-    .table-danger:hover {
-      &,
-      > th,
-      > td {
-        background-color: darken($danger, 5%);
-      }
-    }
-
-    .table-warning:hover {
-      &,
-      > th,
-      > td {
-        background-color: darken($warning, 5%);
-      }
-    }
-
-    .table-active:hover {
-      &,
-      > th,
-      > td {
-        background-color: $table-active-bg;
-      }
-    }
-
-  }
 }
 
-// Forms =======================================================================
+// Forms
 
 label,
 .radio label,
@@ -222,7 +67,7 @@ label,
   font-size: $font-size-sm;
 }
 
-// Navs ========================================================================
+// Navs
 
 .nav-tabs,
 .nav-pills {
@@ -242,7 +87,7 @@ label,
   text-decoration: none;
 }
 
-// Indicators ==================================================================
+// Indicators
 
 .alert {
   border: none;
@@ -272,25 +117,14 @@ label,
   }
 }
 
-.close {
-  color: $white;
-  text-shadow: none;
-  opacity: .5;
-
-  &:hover,
-  &:focus {
-    opacity: 1;
-  }
-}
-
-// Popovers      ===============================================================
+// Popovers
 
 .popover-header {
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
 
-// Containers ==================================================================
+// Containers
 
 .modal {
   &-header,

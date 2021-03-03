@@ -1,5 +1,7 @@
-// Solar 4.6.0
+// Solar 5.0.0-beta2
 // Bootswatch
+
+$theme: "solar" !default;
 
 //
 // Color system
@@ -38,7 +40,7 @@ $danger:        $red !default;
 $light:         $gray-100 !default;
 $dark:          $gray-800 !default;
 
-$enable-gradients: true;
+$min-contrast-ratio:   2.5 !default;
 
 // Body
 
@@ -68,14 +70,30 @@ $table-dark-bg:               $gray-500 !default;
 $table-dark-border-color:     darken($gray-500, 3%) !default;
 $table-dark-color:            $body-bg !default;
 
+$table-bg-scale:              0 !default;
+
 // Forms
 
 $input-bg:                              #a9bdbd !default;
 $input-disabled-bg:                     #657b83 !default;
+
+$input-color:                           $gray-800 !default;
 $input-border-color:                    rgba($black, .15) !default;
 $input-placeholder-color:               #657b83 !default;
 $input-group-addon-color:               $gray-600 !default;
 $input-group-addon-bg:                  $gray-800 !default;
+
+$form-check-input-bg:                     rgba(255, 255, 255, .75) !default;
+$form-check-input-border:                 1px solid $white !default;
+$form-check-input-checked-bg-color:       $primary !default;
+
+$form-switch-color:               rgba(255, 255, 255, .75) !default;
+$form-switch-focus-color:         $form-switch-color !default;
+
+$form-range-track-bg:             $gray-800 !default;
+$form-range-thumb-bg:                      $primary !default;
+
+$form-file-button-color:          $gray-600 !default;
 
 // Dropdowns
 
@@ -110,10 +128,6 @@ $pagination-active-border-color:    $gray-800 !default;
 $pagination-disabled-color:         $gray-800 !default;
 $pagination-disabled-bg:            transparent !default;
 $pagination-disabled-border-color:  $gray-800 !default;
-
-// Jumbotron
-
-$jumbotron-bg:                      $gray-800 !default;
 
 // Cards
 
@@ -159,12 +173,15 @@ $list-group-action-hover-color:     $component-active-color !default;
 
 // Breadcrumbs
 
+$breadcrumb-padding-y:              .375rem !default;
+$breadcrumb-padding-x:              .75rem !default;
 $breadcrumb-bg:                     $component-active-bg !default;
+$breadcrumb-active-color:           $gray-500 !default;
+$breadcrumb-border-radius:          .25rem !default;
 
 // Close
 
-$close-color:                       $body-color !default;
-$close-text-shadow:                 none !default;
+$btn-close-color:                       $body-color !default;
 
 // Code
 

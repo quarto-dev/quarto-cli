@@ -1,5 +1,7 @@
-// Darkly 4.6.0
+// Darkly 5.0.0-beta2
 // Bootswatch
+
+$theme: "darkly" !default;
 
 //
 // Color system
@@ -37,7 +39,7 @@ $danger:        $red !default;
 $light:         $gray-500 !default;
 $dark:          $gray-800 !default;
 
-$yiq-contrasted-threshold:  175 !default;
+$min-contrast-ratio:   2.15 !default;
 
 // Body
 
@@ -52,8 +54,6 @@ $link-color:                $success !default;
 
 // stylelint-disable-next-line value-keyword-case
 $font-family-sans-serif:      Lato, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" !default;
-$font-size-base:              .9375rem !default;
-$font-size-sm:                $font-size-base * .88 !default;
 $h1-font-size:                3rem !default;
 $h2-font-size:                2.5rem !default;
 $h3-font-size:                2rem !default;
@@ -64,13 +64,19 @@ $text-muted:                  $gray-600 !default;
 $table-accent-bg:             $gray-800 !default;
 $table-border-color:          $gray-700 !default;
 
+$table-bg-scale:              0 !default;
+
 // Forms
 
+$input-color:                       $gray-800 !default;
 $input-border-color:                $body-bg !default;
 $input-group-addon-color:           $gray-500 !default;
 $input-group-addon-bg:              $gray-700 !default;
-$custom-file-color:                 $gray-500 !default;
-$custom-file-border-color:          $body-bg !default;
+
+$form-check-input-bg:                     $white !default;
+$form-check-input-border:                 none !default;
+
+$form-file-button-color:          $white !default;
 
 // Dropdowns
 
@@ -115,10 +121,6 @@ $pagination-disabled-color:         $white !default;
 $pagination-disabled-bg:            darken($success, 15%) !default;
 $pagination-disabled-border-color:  transparent !default;
 
-// Jumbotron
-
-$jumbotron-bg:                      $gray-800 !default;
-
 // Cards
 
 $card-cap-bg:                       $gray-700 !default;
@@ -152,12 +154,16 @@ $list-group-hover-bg:               $gray-700 !default;
 
 // Breadcrumbs
 
+$breadcrumb-padding-y:              .375rem !default;
+$breadcrumb-padding-x:              .75rem !default;
 $breadcrumb-bg:                     $gray-700 !default;
+$breadcrumb-border-radius:          .25rem !default;
 
 // Close
 
-$close-color:                       $white !default;
-$close-text-shadow:                 none !default;
+$btn-close-color:            $white !default;
+$btn-close-opacity:          .4 !default;
+$btn-close-hover-opacity:    1 !default;
 
 // Code
 
