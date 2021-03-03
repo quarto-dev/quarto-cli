@@ -15,6 +15,9 @@ import { formatHasBootstrap } from "../../../format/format-html.ts";
 
 import { websiteNavigation } from "./navigation.ts";
 
+const kNavbar = "navbar";
+const kSidebar = "sidebar";
+
 export const websiteProjectType: ProjectType = {
   type: "website",
   create: (_title: string, outputDir = "_site"): ProjectCreate => {
@@ -60,10 +63,12 @@ export const websiteProjectType: ProjectType = {
 
   formatExtras: (format: Format): FormatExtras => {
     if (formatHasBootstrap(format)) {
-      if (format.metadata["navbar"]) {
-        return websiteNavigation(format.metadata["navbar"]);
+      if (format.metadata[kNavbar]) {
+        return websiteNavigation(format.metadata[kNavbar]);
       }
     }
     return {};
   },
+
+  metadataFields: () => [kNavbar, kSidebar],
 };

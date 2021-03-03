@@ -29,6 +29,9 @@ import {
 import { Metadata } from "../../config/metadata.ts";
 import { binaryPath } from "../../core/resources.ts";
 
+import { kResources, ProjectContext } from "../../project/project-context.ts";
+import { projectType } from "../../project/types/project-types.ts";
+
 import { RenderFlags } from "./flags.ts";
 import {
   generateDefaults,
@@ -37,26 +40,14 @@ import {
 } from "./defaults.ts";
 import { removeFilterParmas, setFilterParams } from "./filters.ts";
 import {
-  kBibliography,
-  kCsl,
-  kFilters,
-  kHighlightStyle,
+  kCss,
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
-  kInputFiles,
-  kLogFile,
-  kMetadataFile,
-  kMetadataFiles,
-  kOutputFile,
-  kReferenceDoc,
-  kSyntaxDefinition,
-  kSyntaxDefinitions,
-  kTemplate,
   kVariables,
 } from "../../config/constants.ts";
 import { sessionTempFile } from "../../core/temp.ts";
-import { kResources, ProjectContext } from "../../project/project-context.ts";
+
 import { RenderResourceFiles } from "./render.ts";
 
 // options required to run pandoc
@@ -120,6 +111,14 @@ export async function runPandoc(
 
   // don't print project metadata
   delete printMetadata.project;
+
+  // see if the active project type wants to filter the metadata printed
+  const projType = projectType(options.project?.metadata?.project?.type);
+  if (projType.metadataFields) {
+    for (const field of projType.metadataFields()) {
+      delete printMetadata[field];
+    }
+  }
 
   // don't print navigation metadata
   delete printMetadata.navbar;
@@ -371,10 +370,27 @@ function runPandocMessage(
 }
 
 function formatResourceFiles(dir: string, format: Format) {
+  const cssValue = format.metadata[kCss];
+  const css = typeof (cssValue) === "string"
+    ? [cssValue]
+    : Array.isArray(cssValue)
+    ? cssValue.map((val) => String(val))
+    : [];
+
+  return css
+    .filter((file) => !isAbsolute(file))
+    .map((file) => join(dir, file))
+    .filter((file) => existsSync(file) && Deno.statSync(file).isFile);
+}
+
+/* more aggressive exclude-list version
+function formatResourceFiles(dir: string, format: Format) {
+
   const resourceFiles: string[] = [];
   const findResources = (
     collection: Array<unknown> | Record<string, unknown>,
   ) => {
+
     ld.forEach(
       collection,
       (value: unknown, index: unknown) => {
@@ -432,3 +448,4 @@ function formatResourceFiles(dir: string, format: Format) {
   findResources(format as unknown as Record<string, unknown>);
   return ld.uniq(resourceFiles);
 }
+*/
