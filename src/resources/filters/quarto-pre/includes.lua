@@ -12,16 +12,16 @@ function readIncludes()
       ensureIncludes(doc, kHeaderIncludes)
       ensureIncludes(doc, kIncludeBefore)
       ensureIncludes(doc, kIncludeAfter)
-      
-      -- read text based includes
-      readIncludeStrings(doc, kHeaderIncludes)
-      readIncludeStrings(doc, kIncludeBefore)
-      readIncludeStrings(doc, kIncludeAfter)
-      
+          
       -- read file includes
       readIncludeFiles(doc, kIncludeInHeader, kHeaderIncludes)
       readIncludeFiles(doc, kIncludeBeforeBody, kIncludeBefore)
       readIncludeFiles(doc, kIncludeAfterBody, kIncludeAfter)
+
+      -- read text based includes
+      readIncludeStrings(doc, kHeaderIncludes)
+      readIncludeStrings(doc, kIncludeBefore)
+      readIncludeStrings(doc, kIncludeAfter)
      
       return doc
     end
@@ -34,6 +34,7 @@ function readIncludeStrings(doc, includes)
     if str.t == "MetaBlocks" then
       doc.meta[includes]:insert(str)
     else
+      dump("adding other include type")
       if type(str) == "table" then
         str = inlinesToString(str)
       end
