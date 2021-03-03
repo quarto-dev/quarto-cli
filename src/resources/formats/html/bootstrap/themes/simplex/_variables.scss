@@ -1,5 +1,7 @@
-// Simplex 4.6.0
+// Simplex 5.0.0-beta2
 // Bootswatch
+
+$theme: "simplex" !default;
 
 //
 // Color system
@@ -37,6 +39,8 @@ $danger:        $purple !default;
 $light:         $white !default;
 $dark:          $gray-800 !default;
 
+$min-contrast-ratio:   2.8 !default;
+
 // Body
 
 $body-bg:                   #fcfcfc !default;
@@ -45,7 +49,6 @@ $body-bg:                   #fcfcfc !default;
 
 // stylelint-disable-next-line value-keyword-case
 $font-family-sans-serif:      "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" !default;
-$font-size-base:              .8125rem !default;
 
 // Dropdowns
 
@@ -72,10 +75,6 @@ $pagination-hover-border-color:     $primary !default;
 $pagination-disabled-color:         $gray-400 !default;
 $pagination-disabled-border-color:  $pagination-border-color !default;
 
-// Jumbotron
-
-$jumbotron-bg:                      $nav-tabs-border-color !default;
-
 // Cards
 
 $card-border-color:                 $nav-tabs-border-color !default;
@@ -100,4 +99,6 @@ $list-group-disabled-bg:            $nav-tabs-border-color !default;
 
 // Breadcrumbs
 
-$breadcrumb-bg:                     $white !default;
+$breadcrumb-padding-y:              .375rem !default;
+$breadcrumb-padding-x:              .75rem !default;
+$breadcrumb-border-radius:          .25rem !default;

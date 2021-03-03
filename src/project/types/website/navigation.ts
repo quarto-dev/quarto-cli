@@ -44,10 +44,11 @@ interface NavItem {
 }
 
 const navTemplate = ld.template(
-  `<nav class="navbar fixed-top navbar-expand-lg navbar-<%- type %> bg-<%- background %>">`,
+  `<nav class="navbar fixed-top navbar-expand-lg navbar-<%- type %> bg-<%- background %>">
+<div class="container-fluid">`,
 );
 const logoTemplate = ld.template(
-  `<img src="/<%- logo %>" class="d-inline-block align-top" />`,
+  `<img src="/<%- logo %>" alt="" />`,
 );
 
 export function websiteNavigation(navbarConfig: unknown): FormatExtras {
@@ -60,7 +61,7 @@ export function websiteNavigation(navbarConfig: unknown): FormatExtras {
       `
 <style type="text/css">
 .navbar-brand > img {
-  max-height: 30px;
+  max-height: 24px;
   width: auto;
   padding-right: 6px;
 }
@@ -101,13 +102,13 @@ h1,h2,h3,h4,h5,h6 {
       // if there are items, then create a toggler
       if (Array.isArray(navbar.left) || Array.isArray(navbar.right)) {
         lines.push(`
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+  <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
   </button>  
   <div class="collapse navbar-collapse" id="navbarCollapse">    
   `);
         if (Array.isArray(navbar.left)) {
-          lines.push(`<ul class="navbar-nav mr-auto mt-2 mt-lg-0">`);
+          lines.push(`<ul class="navbar-nav me-auto mb-2 mb-lg-0">`);
           lines.push(`
 <li class="nav-item">
   <a class="nav-link" href="#">Home</a>
@@ -116,7 +117,7 @@ h1,h2,h3,h4,h5,h6 {
           lines.push(`</ul>`);
         }
         if (Array.isArray(navbar.right)) {
-          lines.push(`<ul class="navbar-nav mt-2 mt-lg-0">`);
+          lines.push(`<ul class="navbar-nav mb-2 mb-lg-0">`);
           lines.push(`
 <li class="nav-item">
   <a class="nav-link" href="#">About</a>
@@ -129,6 +130,7 @@ h1,h2,h3,h4,h5,h6 {
         lines.push("</div>");
       }
 
+      lines.push(`</div>`);
       lines.push(`</nav>`);
     }
     Deno.writeTextFileSync(navigationPaths.body, lines.join("\n"));

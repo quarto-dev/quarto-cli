@@ -1,13 +1,13 @@
-// Journal 4.6.0
+// Journal 5.0.0-beta2
 // Bootswatch
 
 
-// Variables ===================================================================
+// Variables
 
 $web-font-path: "https://fonts.googleapis.com/css2?family=News+Cycle:wght@400;700&display=swap" !default;
 @import url($web-font-path);
 
-// Navbar ======================================================================
+// Navbar
 
 .bg-dark {
   background-color: $black !important;
@@ -40,7 +40,7 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=News+Cycle:wght@400;70
   text-transform: uppercase;
 }
 
-// Buttons =====================================================================
+// Buttons
 
 .btn {
   font-family: $headings-font-family;
@@ -52,7 +52,7 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=News+Cycle:wght@400;70
   }
 }
 
-// Navs ========================================================================
+// Navs
 
 .pagination {
   a:hover {

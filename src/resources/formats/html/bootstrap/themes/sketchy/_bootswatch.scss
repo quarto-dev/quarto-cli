@@ -1,8 +1,8 @@
-// Sketchy 4.6.0
+// Sketchy 5.0.0-beta2
 // Bootswatch
 
 
-// Variables ===================================================================
+// Variables
 
 $web-font-path: "https://fonts.googleapis.com/css?family=Neucha|Cabin+Sketch&display=swap" !default;
 @import url($web-font-path);
@@ -13,7 +13,7 @@ $border-radius-lg-sketchy: 555px 25px 15px 25px / 25px 5px 35px 555px;
 $border-radius-sm-sketchy: 255px 25px 225px 25px / 25px 225px 25px 255px;
 // style-enable scss/dollar-variable-default
 
-// Navbar ======================================================================
+// Navbar
 
 .navbar {
   border-width: 2px;
@@ -41,7 +41,7 @@ $border-radius-sm-sketchy: 255px 25px 225px 25px / 25px 225px 25px 255px;
   }
 }
 
-// Buttons =====================================================================
+// Buttons
 
 .btn {
   border-radius: $border-radius-sketchy;
@@ -56,7 +56,11 @@ $border-radius-sm-sketchy: 255px 25px 225px 25px / 25px 225px 25px 255px;
   }
 }
 
-// Typography ==================================================================
+.btn-check {
+  display: none;
+}
+
+// Typography
 
 button,
 input,
@@ -70,7 +74,7 @@ blockquote {
   border-radius: 15px 27px 25px 25px/25px 25px 305px 635px;
 }
 
-// Tables ======================================================================
+// Tables
 
 table {
   th,
@@ -138,12 +142,11 @@ table {
 }
 
 
-// Forms =======================================================================
+// Forms
 
 input,
 .form-control,
-.input-group-text,
-.custom-file-label {
+.input-group-text {
   border-radius: $border-radius-sketchy;
 }
 
@@ -165,8 +168,8 @@ select.form-control {
   &::before {
     content: "";
     position: absolute;
-    left: -1.2em;
-    top: -.9em;
+    left: 0;
+    top: -.1em;
     display: inline-block;
     width: 15px;
     height: 16px;
@@ -177,8 +180,8 @@ select.form-control {
   &:checked::after {
     content: "x";
     position: absolute;
-    left: -.64em;
-    top: -.48em;
+    left: .1em;
+    top: 0;
     font-size: 1.5rem;
     line-height: .5;
     color: $gray-800;
@@ -202,8 +205,8 @@ select.form-control {
   &::before {
     content: "";
     position: absolute;
-    left: -1.2em;
-    top: -.9em;
+    left: 0;
+    top: -.1em;
     display: inline-block;
     width: 16px;
     height: 16px;
@@ -222,37 +225,51 @@ select.form-control {
   }
 }
 
-.form-check-label {
-  padding-left: 2.5rem;
+.form-check-input {
+  &:focus {
+    box-shadow: none;
+  }
 }
 
-.form-check-inline {
-  [type="checkbox"] {
+.form-switch {
+  padding-left: 0;
+
+  .form-check-input {
+    position: relative;
+    margin-left: 0;
+
     &::before {
-      left: 0;
-      top: 0;
+      width: 32px;
+      border-radius: 30% 35% 30% 30% / 30% 50% 30% 45%;
     }
 
     &::after {
-      left: .14em;
-      top: .12em;
-    }
-  }
-
-  [type="radio"] {
-    &::before {
-      left: 0;
+      content: "";
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      position: absolute;
       top: 0;
+      left: 0;
+      background-color: $white;
+      border: 2px solid #333;
+      border-radius: 50% 45% 40% 50% / 40% 50% 50% 45%;
+      transition: left .15s ease-in-out;
+    }
+
+    &:checked::after {
+      top: 0;
+      left: 18px;
+      background-color: $gray-800;
     }
   }
 
   .form-check-label {
-    padding-left: 1rem;
-    padding-right: 1rem;
+    margin-left: .5em;
   }
 }
 
-// Navs ========================================================================
+// Navs
 
 .dropdown-menu {
   border-radius: 555px 25px 25px 25px/25px 25px 25px 555px;
@@ -313,7 +330,7 @@ select.form-control {
   }
 }
 
-// Indicators ==================================================================
+// Indicators
 
 .badge {
   border-radius: $border-radius-sm-sketchy;
@@ -330,66 +347,21 @@ select.form-control {
 .alert {
   border-radius: $border-radius-sketchy;
 
-  &-dismissible {
-    .close {
-      color: transparent;
-
-      &::before {
-        right: 1rem;
-        top: .8rem;
-      }
-    }
-
-    &.alert-success {
-      border-color: $success;
-
-      &,
-      .alert-link,
-      .close::before {
-        color: $success;
-      }
-    }
-
-    &.alert-info {
-      border-color: $info;
-
-      &,
-      .alert-link,
-      .close::before {
-        color: $info;
-      }
-    }
-
-    &.alert-warning {
-      border-color: $warning;
-
-      &,
-      .alert-link,
-      .close::before {
-        color: $warning;
-      }
-    }
-
-    &.alert-danger {
-      border-color: $danger;
-
-      &,
-      .alert-link,
-      .close::before {
-        color: $danger;
-      }
+  .btn-close {
+    &::before {
+      color: inherit;
     }
   }
 }
 
-// Progress bars ===============================================================
+// Progress bars
 
 .progress {
   border: 2px solid $gray-800;
   border-radius: $border-radius-sm-sketchy;
 }
 
-// Containers ==================================================================
+// Containers
 
 .card {
   border-radius: 5px 5px 5px 5px/25px 25px 25px 5px;
@@ -418,11 +390,6 @@ select.form-control {
   }
 }
 
-.jumbotron {
-  border: 2px solid $gray-800;
-  border-radius: $border-radius-lg-sketchy;
-}
-
 .toast {
   border-radius: 10px 10px 15px 5px/5px 15px 5px 15px;
 
@@ -445,22 +412,22 @@ select.form-control {
     border-bottom: 2px solid $gray-800;
   }
 
-  &.popover-left::before,
+  &.bs-popover-start::before,
   &.bs-tether-element-attached-right::before {
     right: -13px;
   }
 
-  &.popover-top::before,
+  &.bs-popover-top::before,
   &.bs-tether-element-attached-bottom::before {
     bottom: -13px;
   }
 
-  &.popover-bottom::before,
+  &.bs-popover-bottom::before,
   &.bs-tether-element-attached-top::before {
     top: -13px;
   }
 
-  &.popover-right::before,
+  &.bs-popover-end::before,
   &.bs-tether-element-attached-left::before {
     left: -13px;
   }
@@ -477,16 +444,14 @@ pre {
   border-radius: 15px 5px 5px 25px/5px 25px 25px 5px;
 }
 
-.close,
-.close:hover,
-.close:focus,
-.close:active {
-  opacity: 1;
+.btn-close {
+  background-image: none;
 
   &::before {
-    position: absolute;
     content: "X";
-    color: $gray-800;
+    position: absolute;
+    right: 1rem;
+    top: .8rem;
   }
 }
 

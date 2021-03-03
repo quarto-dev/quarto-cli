@@ -1,5 +1,7 @@
-// Sketchy 4.6.0
+// Sketchy 5.0.0-beta2
 // Bootswatch
+
+$theme: "sketchy" !default;
 
 //
 // Color system
@@ -37,7 +39,7 @@ $danger:        $red !default;
 $light:         $white !default;
 $dark:          $gray-700 !default;
 
-$yiq-contrasted-threshold: 200 !default;
+$min-contrast-ratio:   1.6 !default;
 
 // Links
 
@@ -104,10 +106,6 @@ $pagination-hover-border-color:     $gray-800 !default;
 $pagination-disabled-color:         $gray-400 !default;
 $pagination-disabled-border-color:  $gray-800 !default;
 
-// Jumbotron
-
-$jumbotron-bg:                      transparent !default;
-
 // Cards
 
 $card-border-width:                 2px !default;
@@ -149,11 +147,15 @@ $list-group-action-color:           $gray-800 !default;
 
 // Breadcrumbs
 
-$breadcrumb-bg:                     $white !default;
+$breadcrumb-padding-y:              .375rem !default;
+$breadcrumb-padding-x:              .75rem !default;
 $breadcrumb-divider-color:          $gray-800 !default;
 $breadcrumb-active-color:           $gray-800 !default;
+$breadcrumb-border-radius:          .25rem !default;
 
 // Close
 
-$close-color:                       $white !default;
-$close-text-shadow:                 none !default;
+$btn-close-color:            inherit !default;
+$btn-close-opacity:          1 !default;
+$btn-close-hover-opacity:    1 !default;
+$btn-close-focus-shadow:     none !default;

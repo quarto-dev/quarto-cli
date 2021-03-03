@@ -1,5 +1,7 @@
-// Lux 4.6.0
+// Lux 5.0.0-beta2
 // Bootswatch
+
+$theme: "lux" !default;
 
 //
 // Color system
@@ -37,7 +39,7 @@ $danger:        $red !default;
 $light:         $white !default;
 $dark:          $gray-800 !default;
 
-$yiq-contrasted-threshold:  185 !default;
+$min-contrast-ratio:   2.3 !default;
 
 // Options
 
@@ -51,7 +53,6 @@ $body-color:                $gray-700 !default;
 
 // stylelint-disable-next-line value-keyword-case
 $font-family-sans-serif:      "Nunito Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" !default;
-$font-size-base:              .875rem !default;
 $h1-font-size:                2rem !default;
 $h2-font-size:                1.75rem !default;
 $h3-font-size:                1.5rem !default;
@@ -100,7 +101,3 @@ $navbar-light-active-color:         $gray-900 !default;
 $pagination-border-color:           transparent !default;
 $pagination-hover-border-color:     $pagination-border-color !default;
 $pagination-disabled-border-color:  $pagination-border-color !default;
-
-// Breadcrumbs
-
-$breadcrumb-bg:                     transparent !default;

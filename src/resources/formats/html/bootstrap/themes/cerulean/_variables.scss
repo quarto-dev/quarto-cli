@@ -1,5 +1,7 @@
-// Cerulean 4.6.0
+// Cerulean 5.0.0-beta2
 // Bootswatch
+
+$theme: "cerulean" !default;
 
 //
 // Color system
@@ -36,6 +38,8 @@ $warning:       $yellow !default;
 $danger:        $red !default;
 $light:         $gray-100 !default;
 $dark:          $gray-800 !default;
+
+$min-contrast-ratio:   2.75 !default;
 
 // Body
 

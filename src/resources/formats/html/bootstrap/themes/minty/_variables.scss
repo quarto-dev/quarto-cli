@@ -1,5 +1,7 @@
-// Minty 4.6.0
+// Minty 5.0.0-beta2
 // Bootswatch
+
+$theme: "minty" !default;
 
 //
 // Color system
@@ -37,7 +39,7 @@ $danger:        $red !default;
 $light:         $gray-100 !default;
 $dark:          $gray-800 !default;
 
-$yiq-contrasted-threshold: 250 !default;
+$min-contrast-ratio:   1.45 !default;
 
 // Body
 
@@ -58,6 +60,8 @@ $headings-color:              $gray-700 !default;
 // Tables
 
 $table-border-color:          rgba(0, 0, 0, .05) !default;
+
+$table-bg-scale:              0 !default;
 
 // Dropdowns
 
@@ -87,8 +91,16 @@ $pagination-disabled-color:         $white !default;
 $pagination-disabled-bg:            #cce8e0 !default;
 $pagination-disabled-border-color:  $pagination-disabled-bg !default;
 
+// Alerts
+
+$alert-color-scale:                 0% !default;
+$alert-bg-scale:                    0 !default;
+
 // Breadcrumbs
 
+$breadcrumb-padding-y:              .375rem !default;
+$breadcrumb-padding-x:              .75rem !default;
 $breadcrumb-bg:                     $primary !default;
 $breadcrumb-divider-color:          $white !default;
 $breadcrumb-active-color:           $breadcrumb-divider-color !default;
+$breadcrumb-border-radius:          .25rem !default;

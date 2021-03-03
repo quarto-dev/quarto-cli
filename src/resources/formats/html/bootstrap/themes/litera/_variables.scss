@@ -1,5 +1,7 @@
-// Litera 4.6.0
+// Litera 5.0.0-beta2
 // Bootswatch
+
+$theme: "litera" !default;
 
 //
 // Color system
@@ -37,7 +39,7 @@ $danger:        $red !default;
 $light:         $gray-100 !default;
 $dark:          $gray-800 !default;
 
-$yiq-contrasted-threshold:  190 !default;
+$min-contrast-ratio:   1.85 !default;
 
 // Body
 
@@ -50,12 +52,14 @@ $font-family-sans-serif:      -apple-system, BlinkMacSystemFont, "Segoe UI", Rob
 $font-family-serif:           Georgia, Cambria, "Times New Roman", Times, serif !default;
 // stylelint-enable
 
-$font-size-base:              1.063rem !default;
+$font-size-base:              1.1rem !default;
 $headings-font-weight:        700 !default;
 
 // Tables
 
 $table-border-color:          rgba(0, 0, 0, .1) !default;
+
+$table-bg-scale:              0 !default;
 
 // Buttons
 

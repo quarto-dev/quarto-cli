@@ -1,5 +1,7 @@
-// Slate 4.6.0
+// Slate 5.0.0-beta2
 // Bootswatch
+
+$theme: "slate" !default;
 
 //
 // Color system
@@ -37,7 +39,7 @@ $danger:        $red !default;
 $light:         $gray-200 !default;
 $dark:          $gray-900 !default;
 
-$yiq-contrasted-threshold:  170 !default;
+$min-contrast-ratio:   2 !default;
 
 // Body
 
@@ -50,9 +52,6 @@ $link-color:                $white !default;
 
 // Fonts
 
-$font-size-base:              .9375rem !default;
-$font-size-sm:                $font-size-base * .88 !default;
-
 // Tables
 
 $table-color:                 $white !default;
@@ -62,6 +61,8 @@ $table-border-color:          rgba($black, .6) !default;
 $table-dark-border-color:     $table-border-color !default;
 $table-dark-color:            $white !default;
 
+$table-bg-scale:              0 !default;
+
 // Buttons
 
 $input-btn-padding-y:         .75rem !default;
@@ -70,6 +71,10 @@ $input-btn-padding-x:         1rem !default;
 // Forms
 
 $input-disabled-bg:                     #ccc !default;
+
+$input-color:                       $gray-900 !default;
+
+$form-check-input-bg:                     $white !default;
 
 // Dropdowns
 
@@ -109,11 +114,6 @@ $pagination-active-bg:              transparent !default;
 $pagination-active-border-color:    rgba($black, .6) !default;
 $pagination-disabled-bg:            transparent !default;
 $pagination-disabled-border-color:  rgba($black, .6) !default;
-
-
-// Jumbotron
-
-$jumbotron-bg:                      darken($gray-900, 5%) !default;
 
 // Cards
 
@@ -156,7 +156,10 @@ $list-group-action-color:           $white !default;
 
 // Breadcrumbs
 
+$breadcrumb-padding-y:              .375rem !default;
+$breadcrumb-padding-x:              .75rem !default;
 $breadcrumb-active-color:           $gray-500 !default;
+$breadcrumb-border-radius:          .25rem !default;
 
 // Code
 
