@@ -3,6 +3,10 @@
 //    - sitemap.xml
 //    - search
 
+Charles:
+  - check if we can unpin cliffy
+
+
 TODO: Compute navbar once per project render (sessionNavbar())
         - Allow source level href references that we resolve
         - Allow output dir references that we read the <title> from
