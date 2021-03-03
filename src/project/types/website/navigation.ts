@@ -69,8 +69,8 @@ body {
   padding-top: 60px;
 }
 h1,h2,h3,h4,h5,h6 {
-  padding-top: 60px; 
-  margin-top: -60px 
+  padding-top: 60px !important; 
+  margin-top: -60px !important; 
 }
 </style>
 `,
