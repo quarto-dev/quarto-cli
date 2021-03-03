@@ -162,12 +162,12 @@ export async function renderProject(
       // copy the resource files to the output dir
       resourceFiles.forEach((file: string) => {
         const sourcePath = relative(projDir, file);
+        const destPath = join(realOutputDir, sourcePath);
         if (existsSync(file)) {
           if (Deno.statSync(file).isFile) {
-            const destPath = join(realOutputDir, sourcePath);
             copyResourceFile(context.dir, file, destPath);
           }
-        } else if (!libDir || !sourcePath.startsWith(libDir)) {
+        } else if (!existsSync(destPath)) {
           message(`WARNING: File '${sourcePath}' was not found.`);
         }
       });
