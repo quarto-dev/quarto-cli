@@ -13,6 +13,10 @@
 
 // TODO: reseliancy of dev server for deleted output dir
 
+Charles:
+  - check if we can unpin cliffy
+
+
 TODO: Compute navbar once per project render (sessionNavbar())
         - Allow source level href references that we resolve
         - Allow output dir references that we read the <title> from
