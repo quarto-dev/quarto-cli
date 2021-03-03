@@ -29,6 +29,9 @@ import {
 import { Metadata } from "../../config/metadata.ts";
 import { binaryPath } from "../../core/resources.ts";
 
+import { kResources, ProjectContext } from "../../project/project-context.ts";
+import { projectType } from "../../project/types/project-types.ts";
+
 import { RenderFlags } from "./flags.ts";
 import {
   generateDefaults,
@@ -56,7 +59,7 @@ import {
   kVariables,
 } from "../../config/constants.ts";
 import { sessionTempFile } from "../../core/temp.ts";
-import { kResources, ProjectContext } from "../../project/project-context.ts";
+
 import { RenderResourceFiles } from "./render.ts";
 
 // options required to run pandoc
@@ -120,6 +123,14 @@ export async function runPandoc(
 
   // don't print project metadata
   delete printMetadata.project;
+
+  // see if the active project type wants to filter the metadata printed
+  const projType = projectType(options.project?.metadata?.project?.type);
+  if (projType.metadataFields) {
+    for (const field of projType.metadataFields()) {
+      delete printMetadata[field];
+    }
+  }
 
   // don't print navigation metadata
   delete printMetadata.navbar;

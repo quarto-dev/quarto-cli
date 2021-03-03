@@ -18,6 +18,7 @@ export interface ProjectType {
   create: (title: string, outputDir?: string) => ProjectCreate;
   config: (config?: ProjectMetadata) => ProjectMetadata | undefined;
   formatExtras?: (format: Format) => FormatExtras;
+  metadataFields?: () => string[];
   preRender?: (context: ProjectContext) => void;
   postRender?: (context: ProjectContext) => void;
 }
