@@ -6,7 +6,12 @@
 */
 
 import { join } from "path/mod.ts";
-import { kLibDir, kOutputDir, ProjectMetadata } from "../../project-context.ts";
+import {
+  kLibDir,
+  kOutputDir,
+  ProjectContext,
+  ProjectMetadata,
+} from "../../project-context.ts";
 import { resourcePath } from "../../../core/resources.ts";
 
 import { ProjectCreate, ProjectType } from "../project-types.ts";
@@ -61,13 +66,17 @@ export const websiteProjectType: ProjectType = {
     };
   },
 
-  formatExtras: (format: Format): FormatExtras => {
+  formatExtras: (
+    inputDir: string,
+    project: ProjectContext,
+    format: Format,
+  ): Promise<FormatExtras> => {
     if (formatHasBootstrap(format)) {
       if (format.metadata[kNavbar]) {
-        return websiteNavigation(format.metadata[kNavbar]);
+        return websiteNavigation(inputDir, project, format.metadata[kNavbar]);
       }
     }
-    return {};
+    return Promise.resolve({});
   },
 
   metadataFields: () => [kNavbar, kSidebar],

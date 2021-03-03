@@ -5,18 +5,23 @@
 *
 */
 
-import { join } from "path/mod.ts";
-import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { join, relative } from "path/mod.ts";
+import { ensureDirSync, exists, existsSync } from "fs/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
 import { sessionTempDir } from "../../../core/temp.ts";
+import { dirAndStem } from "../../../core/path.ts";
 
 import {
   kIncludeBeforeBody,
   kIncludeInHeader,
 } from "../../../config/constants.ts";
 import { FormatExtras } from "../../../config/format.ts";
+
+import { ProjectContext } from "../../project-context.ts";
+import { inputTargetIndex } from "../../project-index.ts";
+
 import {
   kBeginLeftNavItems,
   kBeginNavBrand,
@@ -28,6 +33,7 @@ import {
   kEndNavItems,
   logoTemplate,
   navbarCssTemplate,
+  navItemTemplate,
   navTemplate,
 } from "./navigation-html.ts";
 
@@ -56,7 +62,11 @@ interface NavItem {
   items?: NavItem[];
 }
 
-export function websiteNavigation(navbarConfig: unknown): FormatExtras {
+export async function websiteNavigation(
+  inputDir: string,
+  project: ProjectContext,
+  navbarConfig: unknown,
+): Promise<FormatExtras> {
   // get navbar paths (return if they already exist for this session)
   const navigationPaths = sessionNavigationPaths();
 
@@ -94,36 +104,74 @@ export function websiteNavigation(navbarConfig: unknown): FormatExtras {
         lines.push(kBeginNavCollapse);
         if (Array.isArray(navbar.left)) {
           lines.push(kBeginLeftNavItems);
-          lines.push(`
-<li class="nav-item">
-  <a class="nav-link" href="#">Home</a>
-</li>
-`);
+          for (const item of navbar.left) {
+            lines.push(await navigationItem(project, inputDir, item));
+          }
           lines.push(kEndNavItems);
         }
         if (Array.isArray(navbar.right)) {
           lines.push(kBeginRightNavItems);
-          lines.push(`
-<li class="nav-item">
-  <a class="nav-link" href="#">About</a>
-</li>
-`);
+          for (const item of navbar.right) {
+            lines.push(await navigationItem(project, inputDir, item));
+            lines.push(kEndNavItems);
+          }
 
-          lines.push(kEndNavItems);
+          lines.push(kEndNavCollapse);
         }
 
-        lines.push(kEndNavCollapse);
+        lines.push(kEndNav);
       }
-
-      lines.push(kEndNav);
+      Deno.writeTextFileSync(navigationPaths.body, lines.join("\n"));
     }
-    Deno.writeTextFileSync(navigationPaths.body, lines.join("\n"));
   }
 
   return {
     [kIncludeInHeader]: [navigationPaths.header],
     [kIncludeBeforeBody]: [navigationPaths.body],
   };
+}
+
+async function navigationItem(
+  project: ProjectContext,
+  inputDir: string,
+  navItem: NavItem,
+) {
+  if (navItem.href) {
+    navItem = await resolveNavItem(project, inputDir, navItem.href, navItem);
+    return navItemTemplate(navItem);
+  } else if (navItem.items) {
+    return "";
+  } else if (navItem.text) {
+    return "";
+  } else if (navItem.icon) {
+    return "";
+  } else {
+    return "";
+  }
+}
+
+async function resolveNavItem(
+  project: ProjectContext,
+  inputDir: string,
+  href: string,
+  navItem: NavItem,
+): Promise<NavItem> {
+  // compute the project relative path to the href
+  const hrefPath = join(inputDir, href);
+  if (await exists(hrefPath)) {
+    const projRelative = relative(project.dir, hrefPath);
+    const index = await inputTargetIndex(project, projRelative);
+    const title = index?.metadata?.["title"] as string;
+    const [hrefDir, hrefStem] = dirAndStem(projRelative);
+    const htmlHref = "/" + join(hrefDir, `${hrefStem}.html`);
+    return {
+      ...navItem,
+      href: htmlHref,
+      text: title || navItem.text,
+    };
+  } else {
+    return navItem;
+  }
 }
 
 function sessionNavigationPaths() {

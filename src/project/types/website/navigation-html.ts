@@ -33,6 +33,11 @@ export const kBeginLeftNavItems =
 export const kBeginRightNavItems = `<ul class="navbar-nav mb-2 mb-lg-0">`;
 export const kEndNavItems = `</ul>`;
 
+export const navItemTemplate = ld.template(`<li class="nav-item">
+<a class="nav-link" href="<%- href %>"><%- text %></a>
+</li>
+`);
+
 export const navbarCssTemplate = ld.template(`
 <style type="text/css">
 .navbar-brand > img {
