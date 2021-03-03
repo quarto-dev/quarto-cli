@@ -2,17 +2,8 @@
 *.RData
 *.Rproj
 *.Rhistory
-*.ipynb_checkpoints/
 __pycache__/
 .Rproj.user
-sandbox/quarto.sh
 tests/run-tests.sh
-*.html
-*.pdf
-*.docx
-*.ipynb
-*_files
-.jupyter_cache
-.julia-cache
 package/dist/**
 /package/out
