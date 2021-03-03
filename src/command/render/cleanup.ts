@@ -5,14 +5,12 @@
 *
 */
 
-import { extname } from "path/mod.ts";
+import { existsSync } from "fs/mod.ts";
 
 import { removeIfExists } from "../../core/path.ts";
 
 import { Format } from "../../config/format.ts";
-import { kKeepMd, kKeepTex, kSelfContained } from "../../config/constants.ts";
-
-import type { RenderFlags } from "./flags.ts";
+import { kKeepMd, kKeepTex } from "../../config/constants.ts";
 
 export function cleanup(
   selfContained: boolean,
@@ -33,7 +31,9 @@ export function cleanup(
   ) {
     if (supporting) {
       supporting.forEach((path) => {
-        Deno.removeSync(path, { recursive: true });
+        if (existsSync(path)) {
+          Deno.removeSync(path, { recursive: true });
+        }
       });
     }
   }
