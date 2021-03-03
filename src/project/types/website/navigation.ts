@@ -17,6 +17,19 @@ import {
   kIncludeInHeader,
 } from "../../../config/constants.ts";
 import { FormatExtras } from "../../../config/format.ts";
+import {
+  kBeginLeftNavItems,
+  kBeginNavBrand,
+  kBeginNavCollapse,
+  kBeginRightNavItems,
+  kEndNav,
+  kEndNavBrand,
+  kEndNavCollapse,
+  kEndNavItems,
+  logoTemplate,
+  navbarCssTemplate,
+  navTemplate,
+} from "./navigation-html.ts";
 
 interface NavMain {
   title?: string;
@@ -43,33 +56,6 @@ interface NavItem {
   items?: NavItem[];
 }
 
-const navTemplate = ld.template(
-  `<nav class="navbar fixed-top navbar-expand-lg navbar-<%- type %> bg-<%- background %>">
-<div class="container-fluid">`,
-);
-const logoTemplate = ld.template(
-  `<img src="/<%- logo %>" alt="" />`,
-);
-
-const navbarCssTemplate = ld.template(`
-<style type="text/css">
-.navbar-brand > img {
-  max-height: 24px;
-  width: auto;
-  padding-right: 6px;
-}
-:target::before {
-  content: "";
-  display: block;
-  height: <%= height %>px; 
-  margin: -<%= height %>px 0 0;
-}
-body {
-  padding-top: <%= height %>px;
-}
-</style>
-`);
-
 export function websiteNavigation(navbarConfig: unknown): FormatExtras {
   // get navbar paths (return if they already exist for this session)
   const navigationPaths = sessionNavigationPaths();
@@ -93,49 +79,43 @@ export function websiteNavigation(navbarConfig: unknown): FormatExtras {
         }),
       );
       if (navbar.title || navbar.logo) {
-        lines.push(`<a class="navbar-brand" href="/">`);
+        lines.push(kBeginNavBrand);
         if (navbar.logo) {
           lines.push(logoTemplate({ logo: navbar.logo }));
         }
         if (navbar.title) {
           lines.push(ld.escape(navbar.title));
         }
-        lines.push(`</a>`);
+        lines.push(kEndNavBrand);
       }
 
       // if there are items, then create a toggler
       if (Array.isArray(navbar.left) || Array.isArray(navbar.right)) {
-        lines.push(`
-  <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-  </button>  
-  <div class="collapse navbar-collapse" id="navbarCollapse">    
-  `);
+        lines.push(kBeginNavCollapse);
         if (Array.isArray(navbar.left)) {
-          lines.push(`<ul class="navbar-nav me-auto mb-2 mb-lg-0">`);
+          lines.push(kBeginLeftNavItems);
           lines.push(`
 <li class="nav-item">
   <a class="nav-link" href="#">Home</a>
 </li>
 `);
-          lines.push(`</ul>`);
+          lines.push(kEndNavItems);
         }
         if (Array.isArray(navbar.right)) {
-          lines.push(`<ul class="navbar-nav mb-2 mb-lg-0">`);
+          lines.push(kBeginRightNavItems);
           lines.push(`
 <li class="nav-item">
   <a class="nav-link" href="#">About</a>
 </li>
 `);
 
-          lines.push(`</ul>`);
+          lines.push(kEndNavItems);
         }
 
-        lines.push("</div>");
+        lines.push(kEndNavCollapse);
       }
 
-      lines.push(`</div>`);
-      lines.push(`</nav>`);
+      lines.push(kEndNav);
     }
     Deno.writeTextFileSync(navigationPaths.body, lines.join("\n"));
   }

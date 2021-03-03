@@ -40,22 +40,10 @@ import {
 } from "./defaults.ts";
 import { removeFilterParmas, setFilterParams } from "./filters.ts";
 import {
-  kBibliography,
-  kCsl,
-  kFilters,
-  kHighlightStyle,
+  kCss,
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
-  kInputFiles,
-  kLogFile,
-  kMetadataFile,
-  kMetadataFiles,
-  kOutputFile,
-  kReferenceDoc,
-  kSyntaxDefinition,
-  kSyntaxDefinitions,
-  kTemplate,
   kVariables,
 } from "../../config/constants.ts";
 import { sessionTempFile } from "../../core/temp.ts";
@@ -382,10 +370,27 @@ function runPandocMessage(
 }
 
 function formatResourceFiles(dir: string, format: Format) {
+  const cssValue = format.metadata[kCss];
+  const css = typeof (cssValue) === "string"
+    ? [cssValue]
+    : Array.isArray(cssValue)
+    ? cssValue.map((val) => String(val))
+    : [];
+
+  return css
+    .filter((file) => !isAbsolute(file))
+    .map((file) => join(dir, file))
+    .filter((file) => existsSync(file) && Deno.statSync(file).isFile);
+}
+
+/* more aggressive exclude-list version
+function formatResourceFiles(dir: string, format: Format) {
+
   const resourceFiles: string[] = [];
   const findResources = (
     collection: Array<unknown> | Record<string, unknown>,
   ) => {
+
     ld.forEach(
       collection,
       (value: unknown, index: unknown) => {
@@ -443,3 +448,4 @@ function formatResourceFiles(dir: string, format: Format) {
   findResources(format as unknown as Record<string, unknown>);
   return ld.uniq(resourceFiles);
 }
+*/
