@@ -216,7 +216,7 @@ export async function renderContexts(
   if (project && libDir) {
     libDir = relative(dirname(file), join(project.dir, libDir));
   } else {
-    libDir = inputFilesDir(file);
+    libDir = filesDirLibDir(file);
   }
 
   // return contexts
@@ -356,11 +356,21 @@ export async function renderPandoc(
     finalOutput,
   );
 
+  // determine supporting files
+  const supporting = executeResult.supporting;
+  const libDir = join(
+    dirname(context.target.input),
+    filesDirLibDir(context.target.input),
+  );
+  if (existsSync(libDir)) {
+    supporting.push(Deno.realPathSync(libDir));
+  }
+
   cleanup(
     selfContained,
     context.format,
     finalOutput,
-    executeResult.supporting,
+    supporting,
     context.engine.keepMd(context.target.input),
   );
 
@@ -598,4 +608,8 @@ function mergeQuartoConfigs(
     fixupFormat(config),
     ...configs.map((c) => fixupFormat(c)),
   );
+}
+
+function filesDirLibDir(input: string) {
+  return join(inputFilesDir(input), "libs");
 }
