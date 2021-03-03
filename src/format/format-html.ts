@@ -6,22 +6,22 @@
 */
 
 import { existsSync } from "fs/mod.ts";
+import { join } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
 import { mergeConfigs } from "../core/config.ts";
 import { formatResourcePath } from "../core/resources.ts";
-import { sessionTempFile } from "../core/temp.ts";
+import { createSessionTempDir, sessionTempFile } from "../core/temp.ts";
 
 import {
   kFilters,
   kHeaderIncludes,
   kIncludeAfterBody,
   kIncludeBeforeBody,
-  kIncludeInHeader,
   kVariables,
 } from "../config/constants.ts";
-import { Format, FormatExtras } from "../config/format.ts";
+import { Format, FormatExtras, kDependencies } from "../config/format.ts";
 import { Metadata } from "../config/metadata.ts";
 import { baseHtmlFormat } from "./formats.ts";
 
@@ -113,28 +113,34 @@ function boostrapExtras(theme: string, metadata: Metadata): FormatExtras {
   };
 
   // see if this is a named bootswatch theme
-  let themePath = formatResourcePath(
+  let boostrapCss = formatResourcePath(
     "html",
     `bootstrap/themes/${theme}/bootstrap.min.css`,
   );
   // otherwise could be a css file
-  if (!existsSync(themePath)) {
+  if (!existsSync(boostrapCss)) {
     if (existsSync(theme)) {
-      themePath = theme;
+      boostrapCss = theme;
     } else {
       throw new Error(`Specified theme ${theme} does not exist`);
     }
   }
 
-  // process the theme template
-  options.theme = Deno.readTextFileSync(themePath);
+  // get path to bootstrap js
+  const bootstrapJs = formatResourcePath(
+    "html",
+    "bootstrap/themes/default/bootstrap.min.js",
+  );
+
+  // process the quarto in header template
   const templateSrc = Deno.readTextFileSync(
-    formatResourcePath("html", "in-header.html"),
+    formatResourcePath("html", "bootstrap.quarto.css"),
   );
   const template = ld.template(templateSrc, {}, undefined);
-  const themeFile = sessionTempFile();
+
+  const quartoCss = sessionTempFile();
   Deno.writeTextFileSync(
-    themeFile,
+    quartoCss,
     template(templateOptions(options)),
   );
 
@@ -142,8 +148,18 @@ function boostrapExtras(theme: string, metadata: Metadata): FormatExtras {
     [kVariables]: {
       [kDocumentCss]: false,
     },
-    [kIncludeInHeader]: [
-      themeFile,
+    [kDependencies]: [
+      {
+        name: "bootstrap",
+        version: "v5.0.0-beta2",
+        stylesheets: [
+          { name: "bootstrap.min.css", path: boostrapCss },
+          { name: "bootstrap.quarto.css", path: quartoCss },
+        ],
+        scripts: [
+          { name: "bootstrap.min.js", path: bootstrapJs },
+        ],
+      },
     ],
     [kIncludeBeforeBody]: [
       formatResourcePath("html", "before-body.html"),

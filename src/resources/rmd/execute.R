@@ -108,7 +108,6 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params) {
   # results
   list(
     markdown = paste(markdown, collapse="\n"),
-    files_dir = files_dir,
     supporting = I(supporting),
     filters = I(rmarkdown:::pkg_file_lua("pagebreak.lua")),
     pandoc = pandoc,

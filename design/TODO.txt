@@ -2,6 +2,16 @@
 //    - Navigation
 //    - sitemap.xml
 //    - search
+//    - edit on github
+
+
+// TODO: why isn't _files being deleted for self-contained?
+
+// TODO: don't copy inputs referenced in project metadata (navbar)
+// TODO: change name of navbar to 'nav-main'
+
+
+// TODO: reseliancy of dev server for deleted output dir
 
 Charles:
   - check if we can unpin cliffy
@@ -34,6 +44,9 @@ HTML:
   - code menu (show all, hide all, download code)
   - tabs
   - admonitions
+  - google analytics (or coolster alternative). cookie consent
+  - lightbox
+  - progressive image loading data-src
 
 Bundle SASS compiler so we can prime thematic correctly:
   https://github.com/connorskees/grass

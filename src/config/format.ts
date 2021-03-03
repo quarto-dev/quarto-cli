@@ -71,8 +71,23 @@ import {
   kPageWidth,
 } from "./constants.ts";
 
+export const kDependencies = "dependencies";
+
+export interface FormatDependency {
+  name: string;
+  version: string;
+  scripts?: DependencyFile[];
+  stylesheets?: DependencyFile[];
+}
+
+export interface DependencyFile {
+  name: string;
+  path: string;
+}
+
 export interface FormatExtras {
   [kVariables]?: Record<string, unknown>;
+  [kDependencies]?: FormatDependency[];
   [kIncludeInHeader]?: string[];
   [kIncludeBeforeBody]?: string[];
   [kIncludeAfterBody]?: string[];

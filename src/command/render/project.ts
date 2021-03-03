@@ -192,13 +192,17 @@ export function projectInputFiles(context: ProjectContext) {
   const files: string[] = [];
   const keepMdFiles: string[] = [];
 
+  const outputDir = context.metadata?.project?.[kOutputDir];
+
   const addFile = (file: string) => {
-    const engine = executionEngine(file);
-    if (engine) {
-      files.push(file);
-      const keepMd = engine.keepMd(file);
-      if (keepMd) {
-        keepMdFiles.push(keepMd);
+    if (!outputDir || !file.startsWith(join(context.dir, outputDir))) {
+      const engine = executionEngine(file);
+      if (engine) {
+        files.push(file);
+        const keepMd = engine.keepMd(file);
+        if (keepMd) {
+          keepMdFiles.push(keepMd);
+        }
       }
     }
   };
@@ -207,7 +211,7 @@ export function projectInputFiles(context: ProjectContext) {
     for (
       const walk of walkSync(
         dir,
-        { includeDirs: false, followSymlinks: true, skip: [/^_/] },
+        { includeDirs: false, followSymlinks: true, skip: [/[/\\][_\.]/] },
       )
     ) {
       addFile(walk.path);
@@ -216,7 +220,6 @@ export function projectInputFiles(context: ProjectContext) {
 
   const renderFiles = context.metadata?.project?.render;
   if (renderFiles) {
-    const outputDir = context.metadata?.project?.[kOutputDir];
     const exclude = outputDir ? [outputDir] : [];
     const resolved = resolvePathGlobs(context.dir, renderFiles, exclude);
     (ld.difference(resolved.include, resolved.exclude) as string[])

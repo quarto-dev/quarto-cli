@@ -5,8 +5,6 @@
 *
 */
 
-// deno-lint-ignore-file camelcase
-
 import { Format, FormatPandoc } from "../config/format.ts";
 import { Metadata } from "../config/metadata.ts";
 
@@ -52,7 +50,6 @@ export interface ExecuteOptions {
 // result of execution
 export interface ExecuteResult {
   markdown: string;
-  files_dir?: string;
   supporting: string[];
   filters: string[];
   pandoc: FormatPandoc;
