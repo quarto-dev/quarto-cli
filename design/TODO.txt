@@ -4,12 +4,8 @@
 //    - search
 //    - edit on github
 
-
-// TODO: why isn't _files being deleted for self-contained?
-
-// TODO: don't copy inputs referenced in project metadata (navbar)
-// TODO: change name of navbar to 'nav-main'
-
+TODO: WARNING: File 'subdir/about.html' was not found.
+TODO: Can we improve on this as a self-link: <a class="nav-link" href="../subdir/about.html">About</a>
 
 // TODO: reseliancy of dev server for deleted output dir
 
@@ -66,6 +62,9 @@ thing you need is the deps.ts / import_map.json, etc.
 extensions:
   fancytweet: https://quarto.land/fancytweet@3.4.2
   
+
+TODO: revealjs images resources (global, per slide)
+      (metadata fields that point to files, ast elements / attributes that point to files)
 
 {{ fancytweet qwerqwer }}
 
