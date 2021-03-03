@@ -16,8 +16,8 @@ import { sessionTempFile } from "../core/temp.ts";
 import {
   kFilters,
   kHeaderIncludes,
-  kIncludeAfter,
-  kIncludeBefore,
+  kIncludeAfterBody,
+  kIncludeBeforeBody,
   kIncludeInHeader,
   kVariables,
 } from "../config/constants.ts";
@@ -141,11 +141,15 @@ function boostrapExtras(theme: string, metadata: Metadata): FormatExtras {
   return {
     [kVariables]: {
       [kDocumentCss]: false,
-      [kIncludeBefore]: [`<div class="container">`],
-      [kIncludeAfter]: [`</div>`],
     },
     [kIncludeInHeader]: [
       themeFile,
+    ],
+    [kIncludeBeforeBody]: [
+      formatResourcePath("html", "before-body.html"),
+    ],
+    [kIncludeAfterBody]: [
+      formatResourcePath("html", "after-body.html"),
     ],
     [kFilters]: {
       pre: [

@@ -115,10 +115,6 @@ export async function runPandoc(
   let allDefaults = await generateDefaults(options) || {};
   const printAllDefaults = allDefaults ? ld.cloneDeep(allDefaults) : undefined;
 
-  // TODO: the project formatExtras has access to the format (options.format) which
-  // is good in general, however the way we are determining if bootstrap is active
-  // is a variable that is calculated within the format preprocessor
-
   // see if there are extras
   if (
     sysFilters.length > 0 || options.format.formatExtras ||

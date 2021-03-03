@@ -51,6 +51,25 @@ const logoTemplate = ld.template(
   `<img src="/<%- logo %>" alt="" />`,
 );
 
+const navbarCssTemplate = ld.template(`
+<style type="text/css">
+.navbar-brand > img {
+  max-height: 24px;
+  width: auto;
+  padding-right: 6px;
+}
+:target::before {
+  content: "";
+  display: block;
+  height: <%= height %>px; 
+  margin: -<%= height %>px 0 0;
+}
+body {
+  padding-top: <%= height %>px;
+}
+</style>
+`);
+
 export function websiteNavigation(navbarConfig: unknown): FormatExtras {
   // get navbar paths (return if they already exist for this session)
   const navigationPaths = sessionNavigationPaths();
@@ -58,22 +77,7 @@ export function websiteNavigation(navbarConfig: unknown): FormatExtras {
   if (!existsSync(navigationPaths.header)) {
     Deno.writeTextFileSync(
       navigationPaths.header,
-      `
-<style type="text/css">
-.navbar-brand > img {
-  max-height: 24px;
-  width: auto;
-  padding-right: 6px;
-}
-body {
-  padding-top: 60px;
-}
-h1,h2,h3,h4,h5,h6 {
-  padding-top: 60px !important; 
-  margin-top: -60px !important; 
-}
-</style>
-`,
+      navbarCssTemplate({ height: 60 }),
     );
   }
 
