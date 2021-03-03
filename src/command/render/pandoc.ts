@@ -7,9 +7,9 @@
 
 import { ld } from "lodash/mod.ts";
 
-import { isAbsolute, join } from "path/mod.ts";
+import { dirname, isAbsolute, join } from "path/mod.ts";
 
-import { existsSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "fs/mod.ts";
 
 import { stringify } from "encoding/yaml.ts";
 
@@ -18,7 +18,14 @@ import { message } from "../../core/console.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
 
-import { Format, FormatPandoc } from "../../config/format.ts";
+import {
+  DependencyFile,
+  Format,
+  FormatDependency,
+  FormatExtras,
+  FormatPandoc,
+  kDependencies,
+} from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
 import { binaryPath } from "../../core/resources.ts";
 
@@ -58,6 +65,9 @@ export interface PandocOptions {
   markdown: string;
   // working dir for conversion
   cwd: string;
+
+  // lib dir for converstion
+  libDir: string;
 
   // target format
   format: Format;
@@ -111,6 +121,9 @@ export async function runPandoc(
   // don't print project metadata
   delete printMetadata.project;
 
+  // don't print navigation metadata
+  delete printMetadata.navbar;
+
   // generate defaults and capture defaults to be printed
   let allDefaults = await generateDefaults(options) || {};
   const printAllDefaults = allDefaults ? ld.cloneDeep(allDefaults) : undefined;
@@ -128,8 +141,14 @@ export async function runPandoc(
       ? (options.format.formatExtras(options.format))
       : {};
 
-    const extras = mergeConfigs(projectExtras, formatExtras);
+    const extras = resolveExtras(
+      projectExtras,
+      formatExtras,
+      options.cwd,
+      options.libDir,
+    );
 
+    // merge sysFilters if we have them
     if (sysFilters.length > 0) {
       extras.filters = extras.filters || {};
       extras.filters.post = extras.filters.post || [];
@@ -269,6 +288,58 @@ export async function runPandoc(
 
 export function pandocMetadataPath(path: string) {
   return pathWithForwardSlashes(path);
+}
+
+function resolveExtras(
+  projectExtras: FormatExtras,
+  formatExtras: FormatExtras,
+  inputDir: string,
+  libDir: string,
+) {
+  // start with the merge
+  const extras = mergeConfigs(projectExtras, formatExtras);
+
+  // resolve dependencies
+  const scriptTemplate = ld.template(`<script src="<%- href %>"></script>`);
+  const stylesheetTempate = ld.template(
+    `<link href="<%- href %>" rel="stylesheet" />`,
+  );
+  const lines: string[] = [];
+  if (extras[kDependencies]) {
+    for (const dependency of extras[kDependencies]!) {
+      const dir = `${dependency.name}-${dependency.version}`;
+      const targetDir = join(inputDir, libDir, dir);
+      // deno-lint-ignore no-explicit-any
+      const copyDep = (file: DependencyFile, template: any) => {
+        const targetPath = join(targetDir, file.name);
+        ensureDirSync(dirname(targetPath));
+        Deno.copyFileSync(file.path, targetPath);
+        const href = join(libDir, dir, file.name);
+        lines.push(template({ href }));
+      };
+      if (dependency.scripts) {
+        dependency.scripts.forEach((script) => copyDep(script, scriptTemplate));
+      }
+      if (dependency.stylesheets) {
+        dependency.stylesheets.forEach((stylesheet) =>
+          copyDep(stylesheet, stylesheetTempate)
+        );
+      }
+    }
+    delete extras[kDependencies];
+  }
+
+  // write to external file
+  const dependenciesHead = sessionTempFile({
+    prefix: "dependencies",
+    suffix: ".html",
+  });
+  Deno.writeTextFileSync(dependenciesHead, lines.join("\n"));
+  extras[kIncludeInHeader] = [dependenciesHead].concat(
+    extras[kIncludeInHeader] || [],
+  );
+
+  return extras;
 }
 
 function runPandocMessage(

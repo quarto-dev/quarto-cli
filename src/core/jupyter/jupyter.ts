@@ -8,7 +8,7 @@
 // deno-lint-ignore-file camelcase
 
 import { ensureDirSync } from "fs/ensure_dir.ts";
-import { join } from "path/mod.ts";
+import { dirname, join } from "path/mod.ts";
 import { walkSync } from "fs/walk.ts";
 import { decode as base64decode } from "encoding/base64.ts";
 
@@ -63,6 +63,7 @@ import { FormatExecution } from "../../config/format.ts";
 import { pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
 import { Metadata } from "../../config/metadata.ts";
 import { JupyterKernelspec } from "./kernels.ts";
+import { inputFilesDir } from "../render.ts";
 
 export const kCellCollapsed = "collapsed";
 export const kCellAutoscroll = "autoscroll";
@@ -331,8 +332,7 @@ export interface JupyterAssets {
 
 export function jupyterAssets(input: string, to?: string) {
   // calculate and create directories
-  const [base_dir, stem] = dirAndStem(input);
-  const files_dir = join(base_dir, stem + "_files");
+  const files_dir = join(dirname(input), inputFilesDir(input));
   to = (to || "html").replace(/[\+\-].*$/, "");
   const figures_dir = join(files_dir, "figure-" + to);
   ensureDirSync(figures_dir);
@@ -352,7 +352,7 @@ export function jupyterAssets(input: string, to?: string) {
   }
 
   return {
-    base_dir,
+    base_dir: dirname(input),
     files_dir,
     figures_dir,
     supporting_dir,

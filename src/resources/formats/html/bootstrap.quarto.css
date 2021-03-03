@@ -1,0 +1,24 @@
+
+<style type="text/css">
+
+body {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+
+<%= maxwidth %>
+
+:root {
+<%= fontsize %>}
+
+body {
+<%= margintop %><%= marginbottom %><%= marginleft %><%= marginright %><%= mainfont %><%= fontcolor %><%= backgroundcolor %><%= linestretch %>}
+
+a {
+<%= linkcolor %>}
+
+code, kbd, pre, samp {
+<%= monofont %><%= monoBackground %>}
+
+pre.sourceCode {
+<%= codeblockBorder %>}

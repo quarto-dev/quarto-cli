@@ -21,6 +21,7 @@ import { ld } from "lodash/mod.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { createSessionTempDir } from "../../core/temp.ts";
+import { inputFilesDir } from "../../core/render.ts";
 
 import {
   formatFromMetadata,
@@ -79,8 +80,8 @@ export interface RenderContext {
   options: RenderOptions;
   engine: ExecutionEngine;
   format: Format;
+  libDir: string;
   project?: ProjectContext;
-  libDir?: string;
 }
 
 export interface RenderResourceFiles {
@@ -160,9 +161,9 @@ export async function renderFiles(
       const pandocResult = await renderPandoc(context, executeResult);
 
       // determine if we have a files dir
-      const filesDir = executeResult.files_dir &&
-          existsSync(join(dirname(file), executeResult.files_dir))
-        ? executeResult.files_dir
+      const relativeFilesDir = inputFilesDir(file);
+      const filesDir = existsSync(join(dirname(file), relativeFilesDir))
+        ? relativeFilesDir
         : undefined;
 
       // if there is a project context then return paths relative to the project
@@ -213,7 +214,9 @@ export async function renderContexts(
   // see if there is a libDir
   let libDir = project?.metadata?.project?.[kLibDir];
   if (project && libDir) {
-    libDir = relative(".", join(project.dir, libDir));
+    libDir = relative(dirname(file), join(project.dir, libDir));
+  } else {
+    libDir = inputFilesDir(file);
   }
 
   // return contexts
@@ -225,7 +228,7 @@ export async function renderContexts(
       engine,
       format: formats[format],
       project,
-      libDir,
+      libDir: libDir!,
     };
   });
   return contexts;
@@ -307,6 +310,7 @@ export async function renderPandoc(
   const pandocOptions: PandocOptions = {
     markdown: executeResult.markdown,
     cwd: dirname(context.target.input),
+    libDir: context.libDir,
     format: recipe.format,
     project: context.project,
     args: recipe.args,
