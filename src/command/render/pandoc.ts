@@ -312,12 +312,14 @@ function resolveExtras(
       const dir = `${dependency.name}-${dependency.version}`;
       const targetDir = join(inputDir, libDir, dir);
       // deno-lint-ignore no-explicit-any
-      const copyDep = (file: DependencyFile, template: any) => {
+      const copyDep = (file: DependencyFile, template?: any) => {
         const targetPath = join(targetDir, file.name);
         ensureDirSync(dirname(targetPath));
         Deno.copyFileSync(file.path, targetPath);
-        const href = join(libDir, dir, file.name);
-        lines.push(template({ href }));
+        if (template) {
+          const href = join(libDir, dir, file.name);
+          lines.push(template({ href }));
+        }
       };
       if (dependency.scripts) {
         dependency.scripts.forEach((script) => copyDep(script, scriptTemplate));
@@ -326,6 +328,9 @@ function resolveExtras(
         dependency.stylesheets.forEach((stylesheet) =>
           copyDep(stylesheet, stylesheetTempate)
         );
+      }
+      if (dependency.resources) {
+        dependency.resources.forEach(copyDep);
       }
     }
     delete extras[kDependencies];

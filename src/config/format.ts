@@ -78,6 +78,7 @@ export interface FormatDependency {
   version: string;
   scripts?: DependencyFile[];
   stylesheets?: DependencyFile[];
+  resources?: DependencyFile[];
 }
 
 export interface DependencyFile {

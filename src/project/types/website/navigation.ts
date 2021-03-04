@@ -47,16 +47,16 @@ import {
 interface NavMain {
   title?: string;
   logo?: string;
-  type?: "dark" | "light";
+  type?: "light" | "dark";
   background:
+    | "light"
+    | "dark"
     | "primary"
     | "secondary"
     | "success"
     | "danger"
     | "warning"
-    | "info"
-    | "light"
-    | "dark";
+    | "info";
   search?: boolean;
   left?: NavItem[];
   right?: NavItem[];
@@ -104,8 +104,8 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   const lines: string[] = [];
   lines.push(
     navTemplate({
-      type: navbar.type || "dark",
-      background: navbar.background || "primary",
+      type: navbar.type || "light",
+      background: navbar.background || "light",
     }),
   );
   if (navbar.title || navbar.logo) {
@@ -173,7 +173,11 @@ async function navigationItem(
 
     const menu: string[] = [];
     menu.push(
-      navMenuTemplate({ id: uniqueMenuId(navItem), text: navItem.text || "" }),
+      navMenuTemplate({
+        id: uniqueMenuId(navItem),
+        text: navItem.text || "",
+        icon: navItem.icon,
+      }),
     );
     for (const item of navItem.menu) {
       menu.push(await navigationItem(project, item, level + 1));
@@ -186,8 +190,6 @@ async function navigationItem(
     } else {
       return navMenuHeaderTemplate(navItem);
     }
-  } else if (navItem.icon) {
-    return "";
   } else {
     return "";
   }

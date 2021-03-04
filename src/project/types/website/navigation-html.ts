@@ -33,15 +33,18 @@ export const kBeginLeftNavItems =
 export const kBeginRightNavItems = `<ul class="navbar-nav mb-2 mb-lg-0">`;
 export const kEndNavItems = `</ul>`;
 
-export const navItemTemplate = ld.template(`<li class="nav-item">
-<a class="nav-link" href="<%- href %>"><%- text %></a>
+export const navItemTemplate = ld.template(
+  `<li class="nav-item">
+<a class="nav-link" href="<%- item.href %>"><% if(item.icon){ %><i class="<%- item.icon %>"></i> <% } %><%- item.text %></a>
 </li>
-`);
+`,
+  { variable: "item" },
+);
 
 export const navMenuTemplate = ld.template(`
 <li class="nav-item dropdown">
 <a class="nav-link dropdown-toggle" href="#" id="<%- id %>" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-<%- text %>
+<% if(icon){ %><i class="<%- icon %>"></i> <% } %><%- text %>
 </a>
 <ul class="dropdown-menu" aria-labelledby="<%- id %>">
 `);
@@ -53,7 +56,8 @@ export const navMenuItemTemplate = ld.template(
 );
 
 export const navMenuHeaderTemplate = ld.template(
-  ` <li class="dropdown-header"><%- text %></li>`,
+  ` <li class="dropdown-header"><% if(item.icon){ %><i class="<%- item.icon %>"></i> <% } %><%- item.text %></li>`,
+  { variable: "item" },
 );
 
 export const kNavMenuDivider = `<li><hr class="dropdown-divider"></li>`;
