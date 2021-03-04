@@ -8,12 +8,12 @@
 import { join, relative } from "path/mod.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 
-import { generate as generateUuid } from "uuid/v4.ts";
-
 import { ld } from "lodash/mod.ts";
 
 import { sessionTempDir } from "../../../core/temp.ts";
 import { dirAndStem } from "../../../core/path.ts";
+
+import { pandocAutoIdentifier } from "../../../core/pandoc/pandoc-id.ts";
 
 import {
   kIncludeBeforeBody,
@@ -157,9 +157,17 @@ async function navigationItem(
         `"${navItem.text || ""}" menu: navbar menus do not support sub-menus`,
       );
     }
+    // text or icon is required
+    if (!navItem.text && !navItem.icon) {
+      throw Error(
+        `"${navItem.text ||
+          ""}" menu: you must specify a 'text' or 'icon' option for menus`,
+      );
+    }
+
     const menu: string[] = [];
     menu.push(
-      navMenuTemplate({ id: generateUuid(), text: navItem.text || "" }),
+      navMenuTemplate({ id: uniqueMenuId(navItem), text: navItem.text || "" }),
     );
     for (const item of navItem.menu) {
       menu.push(await navigationItem(project, inputDir, item, level + 1));
@@ -177,6 +185,14 @@ async function navigationItem(
   } else {
     return "";
   }
+}
+
+const menuIds = new Map<string, number>();
+function uniqueMenuId(navItem: NavItem) {
+  const id = pandocAutoIdentifier(navItem.text || navItem.icon || "", true);
+  const number = menuIds.get(id) || 0;
+  menuIds.set(id, number + 1);
+  return `nav-menu-${id}${number ? ("-" + number) : ""}`;
 }
 
 async function resolveNavItem(
