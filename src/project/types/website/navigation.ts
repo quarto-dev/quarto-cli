@@ -62,10 +62,13 @@ interface NavMain {
   right?: NavItem[];
 }
 
-interface NavItem {
+export const kAriaLabel = "aria-label";
+
+export interface NavItem {
   text?: string;
   href?: string;
   icon?: string;
+  [kAriaLabel]: string;
   menu?: NavItem[];
 }
 
@@ -149,6 +152,14 @@ async function navigationItem(
   navItem: NavItem,
   level = 0,
 ) {
+  // resolve the icon class
+  navItem = {
+    ...navItem,
+    icon: navItem.icon
+      ? !navItem.icon.startsWith("bi-") ? `bi-${navItem.icon}` : navItem.icon
+      : navItem.icon,
+  };
+
   if (navItem.href) {
     navItem = await resolveNavItem(project, navItem.href, navItem);
     if (level === 0) {
@@ -177,6 +188,7 @@ async function navigationItem(
         id: uniqueMenuId(navItem),
         text: navItem.text || "",
         icon: navItem.icon,
+        [kAriaLabel]: navItem[kAriaLabel],
       }),
     );
     for (const item of navItem.menu) {

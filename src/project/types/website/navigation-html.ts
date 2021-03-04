@@ -6,6 +6,7 @@
 */
 
 import { ld } from "lodash/mod.ts";
+import { NavItem } from "./navigation.ts";
 
 export const navTemplate = ld.template(
   `<nav class="navbar fixed-top navbar-expand-lg navbar-<%- type %> bg-<%- background %>">
@@ -35,19 +36,22 @@ export const kEndNavItems = `</ul>`;
 
 export const navItemTemplate = ld.template(
   `<li class="nav-item">
-<a class="nav-link" href="<%- item.href %>"><% if(item.icon){ %><i class="<%- item.icon %>"></i> <% } %><%- item.text %></a>
+<a class="nav-link" href="<%- item.href %>">${navIcon()}<%- item.text %></a>
 </li>
 `,
   { variable: "item" },
 );
 
-export const navMenuTemplate = ld.template(`
+export const navMenuTemplate = ld.template(
+  `
 <li class="nav-item dropdown">
-<a class="nav-link dropdown-toggle" href="#" id="<%- id %>" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-<% if(icon){ %><i class="<%- icon %>"></i> <% } %><%- text %>
+<a class="nav-link dropdown-toggle" href="#" id="<%- item.id %>" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+${navIcon()}<%- item.text %>
 </a>
-<ul class="dropdown-menu" aria-labelledby="<%- id %>">
-`);
+<ul class="dropdown-menu" aria-labelledby="<%- item.id %>">
+`,
+  { variable: "item" },
+);
 
 export const kEndNavMenu = `</ul>\n</li>`;
 
@@ -56,7 +60,7 @@ export const navMenuItemTemplate = ld.template(
 );
 
 export const navMenuHeaderTemplate = ld.template(
-  ` <li class="dropdown-header"><% if(item.icon){ %><i class="<%- item.icon %>"></i> <% } %><%- item.text %></li>`,
+  `<li class="dropdown-header">${navIcon()}<%- item.text %></li>`,
   { variable: "item" },
 );
 
@@ -80,3 +84,13 @@ body {
 }
 </style>
 `);
+
+function navIcon() {
+  return `<% if(item.icon){ %>` +
+    `<i class="<%- item.icon %>" role="img"` +
+    `<% if(item["aria-label"]){ %>` +
+    ` aria-label="<%- item["aria-label"] %>"` +
+    `<% } %>` +
+    `></i> ` +
+    `<% } %>`;
+}
