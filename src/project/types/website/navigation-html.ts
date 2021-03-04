@@ -6,7 +6,6 @@
 */
 
 import { ld } from "lodash/mod.ts";
-import { NavItem } from "./navigation.ts";
 
 export const navTemplate = ld.template(
   `<nav class="navbar fixed-top navbar-expand-lg navbar-<%- type %> bg-<%- background %>">
