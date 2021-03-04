@@ -4,6 +4,7 @@
 //    - search
 //    - edit on github
 
+TODO: placement of search box
 TODO: control collapsabillity: 
   collapse: left | right | none
 
