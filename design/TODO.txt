@@ -11,8 +11,8 @@ TODO: reseliancy of dev server for deleted output dir
 
 Charles:
   - check if we can unpin cliffy
-
-
+    (March 4) NOT YET: should be able to unpin in next few days
+    https://github.com/c4spar/deno-cliffy/issues/154
 
       
 TODO: Benchmark the Lua HTML/CSS filters
