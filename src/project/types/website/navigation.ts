@@ -156,7 +156,6 @@ async function resolveNavItem(
   href: string,
   navItem: NavItem,
 ): Promise<NavItem> {
-  // compute the project relative path to the href
   const hrefPath = join(inputDir, href);
   if (await exists(hrefPath)) {
     const projRelative = relative(project.dir, hrefPath);
@@ -167,7 +166,7 @@ async function resolveNavItem(
     return {
       ...navItem,
       href: htmlHref,
-      text: title || navItem.text,
+      text: navItem.text || title,
     };
   } else {
     return navItem;
