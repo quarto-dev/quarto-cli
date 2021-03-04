@@ -14,7 +14,7 @@ export const navTemplate = ld.template(
 export const kEndNav = `</div>\n</nav>`;
 
 export const logoTemplate = ld.template(
-  `<img src="/<%- logo %>" alt="" />`,
+  `<img src="<%- logo %>" alt="" />`,
 );
 
 export const kBeginNavCollapse = `

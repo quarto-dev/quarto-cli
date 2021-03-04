@@ -91,7 +91,9 @@ export async function websiteNavigation(
       if (navbar.title || navbar.logo) {
         lines.push(kBeginNavBrand);
         if (navbar.logo) {
-          lines.push(logoTemplate({ logo: navbar.logo }));
+          const logo = "/" +
+            projectRelativePath(project, inputDir, navbar.logo);
+          lines.push(logoTemplate({ logo }));
         }
         if (navbar.title) {
           lines.push(ld.escape(navbar.title));
@@ -156,9 +158,8 @@ async function resolveNavItem(
   href: string,
   navItem: NavItem,
 ): Promise<NavItem> {
-  const hrefPath = join(inputDir, href);
-  if (await exists(hrefPath)) {
-    const projRelative = relative(project.dir, hrefPath);
+  const projRelative = projectRelativePath(project, inputDir, href);
+  if (projRelative) {
     const index = await inputTargetIndex(project, projRelative);
     const title = index?.metadata?.["title"] as string;
     const [hrefDir, hrefStem] = dirAndStem(projRelative);
@@ -170,6 +171,19 @@ async function resolveNavItem(
     };
   } else {
     return navItem;
+  }
+}
+
+function projectRelativePath(
+  project: ProjectContext,
+  inputDir: string,
+  path: string,
+) {
+  path = join(inputDir, path);
+  if (existsSync(path)) {
+    return relative(project.dir, path);
+  } else {
+    return undefined;
   }
 }
 
