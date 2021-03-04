@@ -4,8 +4,8 @@
 //    - search
 //    - edit on github
 
+TODO: handle icons
 
-TODO: icons/submenus/etc.
 
 TODO: reseliancy of dev server for deleted output dir
 
@@ -31,7 +31,7 @@ TODO: kernel persistence for project renders? (should we disable entirely, use a
 TODO: generalized warning system (look for 'WARNING:')
 
 HTML:
-  - floating toc
+  - floating toc (https://coda.io/d/Figmas-approach-to-modern-PRDs_d1OS5N8pQpx/PRD-Name-of-Project_sut2b#_lu7lK)
   - anchor links
   - copy code block to clipboard
   - code menu (show all, hide all, download code)
