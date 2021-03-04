@@ -38,6 +38,26 @@ export const navItemTemplate = ld.template(`<li class="nav-item">
 </li>
 `);
 
+export const navMenuTemplate = ld.template(`
+<li class="nav-item dropdown">
+<a class="nav-link dropdown-toggle" href="#" id="<%- id %>" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+<%- text %>
+</a>
+<ul class="dropdown-menu" aria-labelledby="<%- id %>">
+`);
+
+export const kEndNavMenu = `</ul>\n</li>`;
+
+export const navMenuItemTemplate = ld.template(
+  `<li><a class="dropdown-item" href="<%- href %>"><%- text %></a></li>`,
+);
+
+export const navMenuHeaderTemplate = ld.template(
+  ` <li class="dropdown-header"><%- text %></li>`,
+);
+
+export const kNavMenuDivider = `<li><hr class="dropdown-divider"></li>`;
+
 export const navbarCssTemplate = ld.template(`
 <style type="text/css">
 .navbar-brand > img {

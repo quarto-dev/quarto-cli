@@ -6,7 +6,9 @@
 */
 
 import { join, relative } from "path/mod.ts";
-import { ensureDirSync, exists, existsSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "fs/mod.ts";
+
+import { generate as generateUuid } from "uuid/v4.ts";
 
 import { ld } from "lodash/mod.ts";
 
@@ -31,9 +33,14 @@ import {
   kEndNavBrand,
   kEndNavCollapse,
   kEndNavItems,
+  kEndNavMenu,
+  kNavMenuDivider,
   logoTemplate,
   navbarCssTemplate,
   navItemTemplate,
+  navMenuHeaderTemplate,
+  navMenuItemTemplate,
+  navMenuTemplate,
   navTemplate,
 } from "./navigation-html.ts";
 
@@ -134,14 +141,31 @@ async function navigationItem(
   project: ProjectContext,
   inputDir: string,
   navItem: NavItem,
+  level = 0,
 ) {
   if (navItem.href) {
     navItem = await resolveNavItem(project, inputDir, navItem.href, navItem);
-    return navItemTemplate(navItem);
+    if (level === 0) {
+      return navItemTemplate(navItem);
+    } else {
+      return navMenuItemTemplate(navItem);
+    }
   } else if (navItem.items) {
-    return "";
+    const menu: string[] = [];
+    menu.push(
+      navMenuTemplate({ id: generateUuid(), text: navItem.text || "" }),
+    );
+    for (const item of navItem.items) {
+      menu.push(await navigationItem(project, inputDir, item, level + 1));
+    }
+    menu.push(kEndNavMenu);
+    return menu.join("\n");
   } else if (navItem.text) {
-    return "";
+    if (navItem.text.match(/^\-+$/)) {
+      return kNavMenuDivider;
+    } else {
+      return navMenuHeaderTemplate(navItem);
+    }
   } else if (navItem.icon) {
     return "";
   } else {

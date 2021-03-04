@@ -129,7 +129,7 @@ function boostrapExtras(theme: string, metadata: Metadata): FormatExtras {
   // get path to bootstrap js
   const bootstrapJs = formatResourcePath(
     "html",
-    "bootstrap/themes/default/bootstrap.min.js",
+    "bootstrap/themes/default/bootstrap.bundle.min.js",
   );
   const quartoJs = formatResourcePath(
     "html",
@@ -161,7 +161,7 @@ function boostrapExtras(theme: string, metadata: Metadata): FormatExtras {
           { name: "bootstrap.quarto.css", path: quartoCss },
         ],
         scripts: [
-          { name: "bootstrap.min.js", path: bootstrapJs },
+          { name: "bootstrap.bundle.min.js", path: bootstrapJs },
           { name: "bootstrap.quarto.js", path: quartoJs },
         ],
       },
