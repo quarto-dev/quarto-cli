@@ -5,17 +5,6 @@
 //    - edit on github
 
 
-TODO: resolveNavItem doesn't quite get the case of
-non input targets rights
-
-TODO: why is this coming out of about:   "../../word-figure.png",
-rendering subdir/about.Rmd invividually yields:
-  - <img src="../../word-figure.png" alt="" />
-rendering the entire project yields:
-  - <img src="../word-figure.png" alt="" />
-
-TODO: Read the title from .html?
-
 TODO: icons/submenus/etc.
 
 TODO: reseliancy of dev server for deleted output dir
