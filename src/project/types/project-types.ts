@@ -18,13 +18,12 @@ export interface ProjectType {
   create: (title: string, outputDir?: string) => ProjectCreate;
   config: (config?: ProjectMetadata) => ProjectMetadata | undefined;
   formatExtras?: (
-    inputDir: string,
     context: ProjectContext,
     format: Format,
-  ) => Promise<FormatExtras>;
+  ) => FormatExtras;
   metadataFields?: () => string[];
-  preRender?: (context: ProjectContext) => void;
-  postRender?: (context: ProjectContext) => void;
+  preRender?: (context: ProjectContext) => Promise<void>;
+  postRender?: (context: ProjectContext) => Promise<void>;
 }
 
 export interface ProjectCreate {

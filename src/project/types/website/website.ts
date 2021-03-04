@@ -18,7 +18,7 @@ import { ProjectCreate, ProjectType } from "../project-types.ts";
 import { Format, FormatExtras } from "../../../config/format.ts";
 import { formatHasBootstrap } from "../../../format/format-html.ts";
 
-import { websiteNavigation } from "./navigation.ts";
+import { initWebsiteNavigation, websiteNavigation } from "./navigation.ts";
 
 const kNavbar = "navbar";
 const kSidebar = "sidebar";
@@ -66,17 +66,19 @@ export const websiteProjectType: ProjectType = {
     };
   },
 
+  preRender: async (context: ProjectContext) => {
+    await initWebsiteNavigation(context);
+  },
+
   formatExtras: (
-    inputDir: string,
-    project: ProjectContext,
+    _project: ProjectContext,
     format: Format,
-  ): Promise<FormatExtras> => {
+  ): FormatExtras => {
     if (formatHasBootstrap(format)) {
-      if (format.metadata[kNavbar]) {
-        return websiteNavigation(inputDir, project, format.metadata[kNavbar]);
-      }
+      return websiteNavigation();
+    } else {
+      return {};
     }
-    return Promise.resolve({});
   },
 
   metadataFields: () => [kNavbar, kSidebar],
