@@ -66,7 +66,7 @@ interface NavItem {
   text?: string;
   href?: string;
   icon?: string;
-  items?: NavItem[];
+  menu?: NavItem[];
 }
 
 export async function websiteNavigation(
@@ -107,7 +107,7 @@ export async function websiteNavigation(
         lines.push(kEndNavBrand);
       }
 
-      // if there are items, then create a toggler
+      // if there are menu, then create a toggler
       if (Array.isArray(navbar.left) || Array.isArray(navbar.right)) {
         lines.push(kBeginNavCollapse);
         if (Array.isArray(navbar.left)) {
@@ -150,12 +150,18 @@ async function navigationItem(
     } else {
       return navMenuItemTemplate(navItem);
     }
-  } else if (navItem.items) {
+  } else if (navItem.menu) {
+    // no sub-menus
+    if (level > 0) {
+      throw Error(
+        `"${navItem.text || ""}" menu: navbar menus do not support sub-menus`,
+      );
+    }
     const menu: string[] = [];
     menu.push(
       navMenuTemplate({ id: generateUuid(), text: navItem.text || "" }),
     );
-    for (const item of navItem.items) {
+    for (const item of navItem.menu) {
       menu.push(await navigationItem(project, inputDir, item, level + 1));
     }
     menu.push(kEndNavMenu);
