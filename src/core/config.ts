@@ -35,7 +35,7 @@ export function mergeConfigs<T>(config: T, ...configs: Array<unknown>): T {
         const combined = (objValue as Array<unknown>).concat(
           srcValue as Array<unknown>,
         );
-        return ld.uniqBy(combined, ld.toString);
+        return ld.uniqBy(combined, JSON.stringify);
       }
     },
   );
