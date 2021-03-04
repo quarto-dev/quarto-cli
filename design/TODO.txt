@@ -4,8 +4,10 @@
 //    - search
 //    - edit on github
 
-TODO: WARNING: File 'subdir/about.html' was not found.
-TODO: Can we improve on this as a self-link: <a class="nav-link" href="../subdir/about.html">About</a>
+
+TODO: why is this coming out of about:   "../../word-figure.png",
+
+TODO: Read the title from .html?
 
 // TODO: reseliancy of dev server for deleted output dir
 
@@ -17,6 +19,7 @@ TODO: Compute navbar once per project render (sessionNavbar())
         - Allow source level href references that we resolve
         - Allow output dir references that we read the <title> from
         - Allow custom title/text as a fallback
+
       
 TODO: Benchmark the Lua HTML/CSS filters
 
