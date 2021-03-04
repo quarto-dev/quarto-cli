@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- select the correct program files folder -->
-<?if $(sys.BUILDARCH)=x64?>
-  <?define ProgFilesFolder="ProgramFiles64Folder"?>
-<?else?>
-  <?define ProgFilesFolder="ProgramFilesFolder"?>
-<?endif?>
-
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Product Id="*" 
            Name="Quarto"
@@ -15,7 +8,7 @@
            Version="$(env.QUARTO_INSTALLER_VERSION)" 
            UpgradeCode="$(env.QUARTO_MSI_UPGRADE_CODE)">
     
-    <Package InstallerVersion="200" 
+    <Package InstallerVersion="300" 
                Compressed="yes" 
                InstallScope="perMachine" />
 
@@ -33,9 +26,7 @@
        <![CDATA[ALLUSERS="" OR ALLUSERS=2]]>
     </SetProperty>
 
-
-
-    <UIRef Id="WixUI_Advanced" />   
+    <UIRef Id="WixUI_Advanced_Custom" />   
  
     <!-- The main application -->
     <Feature Id="MainApplication" 
@@ -56,7 +47,7 @@
 
    <!-- install directory -->
     <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="$(var.ProgFilesFolder)">
+      <Directory Id="ProgramFiles64Folder">
         <Directory Id="APPLICATIONFOLDER" 
                        Name="Quarto" >
           <Component Id="UpdateUserPath"
@@ -87,11 +78,11 @@
     <Property Id="ARPNOREPAIR" Value="yes" Secure="yes" />    <!-- Remove repair -->
     <Property Id="ARPNOMODIFY" Value="yes" Secure="yes" />    <!-- Remove modify -->
 
-
-
     <!--Make changes to PATH visible immediately-->
     <CustomActionRef Id="WixBroadcastSettingChange" />
     <CustomActionRef Id="WixBroadcastEnvironmentChange" />
+
+    
   </Product>
 
 </Wix>
