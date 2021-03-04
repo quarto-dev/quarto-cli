@@ -4,7 +4,12 @@
 //    - search
 //    - edit on github
 
-TODO: handle icons
+TODO: control collapsabillity: 
+  collapse: left | right | none
+
+TODO: template engine? (move ejs templates to their own files)
+                       (https://github.com/deligenius/view-engine)
+                       (https://github.com/alosaur/handlebars)
 
 
 TODO: reseliancy of dev server for deleted output dir
