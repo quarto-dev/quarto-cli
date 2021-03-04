@@ -81,7 +81,6 @@ export async function websiteNavigation(
     const lines: string[] = [];
     if (typeof (navbarConfig) === "object") {
       const navbar = navbarConfig as NavMain;
-
       lines.push(
         navTemplate({
           type: navbar.type || "dark",
@@ -115,14 +114,12 @@ export async function websiteNavigation(
           lines.push(kBeginRightNavItems);
           for (const item of navbar.right) {
             lines.push(await navigationItem(project, inputDir, item));
-            lines.push(kEndNavItems);
           }
-
-          lines.push(kEndNavCollapse);
+          lines.push(kEndNavItems);
         }
-
-        lines.push(kEndNav);
+        lines.push(kEndNavCollapse);
       }
+      lines.push(kEndNav);
       Deno.writeTextFileSync(navigationPaths.body, lines.join("\n"));
     }
   }
@@ -161,14 +158,21 @@ async function resolveNavItem(
   const projRelative = projectRelativePath(project, inputDir, href);
   if (projRelative) {
     const index = await inputTargetIndex(project, projRelative);
-    const title = index?.metadata?.["title"] as string;
-    const [hrefDir, hrefStem] = dirAndStem(projRelative);
-    const htmlHref = "/" + join(hrefDir, `${hrefStem}.html`);
-    return {
-      ...navItem,
-      href: htmlHref,
-      text: navItem.text || title,
-    };
+    if (index) {
+      const title = index.metadata?.["title"] as string;
+      const [hrefDir, hrefStem] = dirAndStem(projRelative);
+      const htmlHref = "/" + join(hrefDir, `${hrefStem}.html`);
+      return {
+        ...navItem,
+        href: htmlHref,
+        text: navItem.text || title,
+      };
+    } else {
+      return {
+        ...navItem,
+        href: "/" + projRelative,
+      };
+    }
   } else {
     return navItem;
   }
