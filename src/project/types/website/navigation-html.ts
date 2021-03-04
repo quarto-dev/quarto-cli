@@ -14,7 +14,7 @@ export const navTemplate = ld.template(
 export const kEndNav = `</div>\n</nav>`;
 
 export const logoTemplate = ld.template(
-  `<img src="/<%- logo %>" alt="" />`,
+  `<img src="<%- logo %>" alt="" />`,
 );
 
 export const kBeginNavCollapse = `
@@ -32,6 +32,11 @@ export const kBeginLeftNavItems =
   `<ul class="navbar-nav me-auto mb-2 mb-lg-0">`;
 export const kBeginRightNavItems = `<ul class="navbar-nav mb-2 mb-lg-0">`;
 export const kEndNavItems = `</ul>`;
+
+export const navItemTemplate = ld.template(`<li class="nav-item">
+<a class="nav-link" href="<%- href %>"><%- text %></a>
+</li>
+`);
 
 export const navbarCssTemplate = ld.template(`
 <style type="text/css">

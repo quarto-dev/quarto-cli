@@ -5,22 +5,15 @@
 //    - edit on github
 
 
-// TODO: why isn't _files being deleted for self-contained?
+TODO: icons/submenus/etc.
 
-// TODO: don't copy inputs referenced in project metadata (navbar)
-// TODO: change name of navbar to 'nav-main'
-
-
-// TODO: reseliancy of dev server for deleted output dir
+TODO: reseliancy of dev server for deleted output dir
 
 Charles:
   - check if we can unpin cliffy
 
 
-TODO: Compute navbar once per project render (sessionNavbar())
-        - Allow source level href references that we resolve
-        - Allow output dir references that we read the <title> from
-        - Allow custom title/text as a fallback
+
       
 TODO: Benchmark the Lua HTML/CSS filters
 
@@ -66,6 +59,9 @@ thing you need is the deps.ts / import_map.json, etc.
 extensions:
   fancytweet: https://quarto.land/fancytweet@3.4.2
   
+
+TODO: revealjs images resources (global, per slide)
+      (metadata fields that point to files, ast elements / attributes that point to files)
 
 {{ fancytweet qwerqwer }}
 

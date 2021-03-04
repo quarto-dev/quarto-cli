@@ -12,11 +12,16 @@ import { executionEngine } from "../execute/engine.ts";
 import { ProjectContext } from "./project-context.ts";
 
 import { projectScratchPath } from "./project-scratch.ts";
+import { Metadata } from "../config/metadata.ts";
+
+export interface InputTargetIndex extends Metadata {
+  metadata: Metadata;
+}
 
 export async function inputTargetIndex(
   project: ProjectContext,
   input: string,
-): Promise<Record<string, unknown> | undefined> {
+): Promise<InputTargetIndex | undefined> {
   // see if we have an up to date index file
   const inputFile = join(project.dir, input);
   const indexFile = inputTargetIndexFile(project, input);

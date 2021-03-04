@@ -131,6 +131,10 @@ function boostrapExtras(theme: string, metadata: Metadata): FormatExtras {
     "html",
     "bootstrap/themes/default/bootstrap.min.js",
   );
+  const quartoJs = formatResourcePath(
+    "html",
+    "bootstrap.quarto.js",
+  );
 
   // process the quarto in header template
   const templateSrc = Deno.readTextFileSync(
@@ -158,6 +162,7 @@ function boostrapExtras(theme: string, metadata: Metadata): FormatExtras {
         ],
         scripts: [
           { name: "bootstrap.min.js", path: bootstrapJs },
+          { name: "bootstrap.quarto.js", path: quartoJs },
         ],
       },
     ],

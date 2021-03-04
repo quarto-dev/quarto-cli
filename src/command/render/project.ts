@@ -133,11 +133,11 @@ export async function renderProject(
           // add the explicitly discovered files (if they exist and
           // the output isn't self-contained)
           if (!result.selfContained) {
-            resourceFiles.push(
-              ...result.resourceFiles.files
-                .filter((file) => existsSync(join(resourceDir, file)))
-                .map((file) => Deno.realPathSync(join(resourceDir, file))),
-            );
+            const resultFiles = result.resourceFiles.files
+              .map((file) => join(resourceDir, file))
+              .filter(existsSync)
+              .map(Deno.realPathSync);
+            resourceFiles.push(...resultFiles);
           }
 
           // apply removes and filter files dir
@@ -162,12 +162,12 @@ export async function renderProject(
       // copy the resource files to the output dir
       resourceFiles.forEach((file: string) => {
         const sourcePath = relative(projDir, file);
+        const destPath = join(realOutputDir, sourcePath);
         if (existsSync(file)) {
           if (Deno.statSync(file).isFile) {
-            const destPath = join(realOutputDir, sourcePath);
             copyResourceFile(context.dir, file, destPath);
           }
-        } else if (!libDir || !sourcePath.startsWith(libDir)) {
+        } else if (!existsSync(destPath)) {
           message(`WARNING: File '${sourcePath}' was not found.`);
         }
       });

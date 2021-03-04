@@ -133,7 +133,11 @@ export async function runPandoc(
     options.project?.formatExtras
   ) {
     const projectExtras = options.project?.formatExtras
-      ? (options.project.formatExtras(options.format))
+      ? (await options.project.formatExtras(
+        options.cwd,
+        options.project,
+        options.format,
+      ))
       : {};
 
     const formatExtras = options.format.formatExtras
