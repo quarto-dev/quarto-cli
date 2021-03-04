@@ -106,9 +106,11 @@ export async function makeInstallerWindows(configuration: Configuration) {
     configuration.log,
   );
 
+
   // use candle to build the wixobj file
   configuration.log.info("Making the candle");
   const candleFiles = [
+    join(configuration.directoryInfo.pkg, "src", "windows", "WixUI_Advanced_Custom.wxs"),
     join(configuration.directoryInfo.pkg, "src", "windows", "quarto.wxs"),
     heatOutput,
   ];
@@ -121,6 +123,8 @@ export async function makeInstallerWindows(configuration: Configuration) {
       candleCmd,
       [
         `-dSourceDir=${configuration.directoryInfo.dist}`,
+        "-arch",
+        "x64", 
         "-out",
         outputPath,
         candleInput,
