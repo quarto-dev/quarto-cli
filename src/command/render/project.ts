@@ -133,11 +133,11 @@ export async function renderProject(
           // add the explicitly discovered files (if they exist and
           // the output isn't self-contained)
           if (!result.selfContained) {
-            resourceFiles.push(
-              ...result.resourceFiles.files
-                .filter((file) => existsSync(join(resourceDir, file)))
-                .map((file) => Deno.realPathSync(join(resourceDir, file))),
-            );
+            const resultFiles = result.resourceFiles.files
+              .map((file) => join(resourceDir, file))
+              .filter(existsSync)
+              .map(Deno.realPathSync);
+            resourceFiles.push(...resultFiles);
           }
 
           // apply removes and filter files dir
