@@ -5,6 +5,8 @@
 *
 */
 
+import * as colors from "fmt/colors.ts";
+
 import {
   Command,
   CompletionsCommand,
@@ -40,7 +42,7 @@ if (import.meta.main) {
     cleanupSessionTempDir();
   } catch (error) {
     if (error) {
-      logError(`${error.stack}\n`);
+      logError(`${colors.red(error.stack)}\n`);
     }
     cleanupSessionTempDir();
     Deno.exit(1);
