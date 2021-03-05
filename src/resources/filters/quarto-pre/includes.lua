@@ -34,7 +34,6 @@ function readIncludeStrings(doc, includes)
     if str.t == "MetaBlocks" then
       doc.meta[includes]:insert(str)
     else
-      dump("adding other include type")
       if type(str) == "table" then
         str = inlinesToString(str)
       end
@@ -50,7 +49,7 @@ function readIncludeFiles(doc, includes, target)
   local files = param(includes, {})
   for _,file in ipairs(files) do
     -- read file contents
-    local f = io.open(inlinesToString({file[1]}), "r")
+    local f = io.open(pandoc.utils.stringify(file), "r")
     local contents = f:read("*all")
     f:close()
     -- write as as raw include
