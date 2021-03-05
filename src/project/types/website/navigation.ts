@@ -48,7 +48,7 @@ interface NavMain {
   search?: boolean;
   left?: NavItem[];
   right?: NavItem[];
-  collapse?: "all" | "left" | "right" | "none";
+  collapse?: "all" | "left" | "none";
   [kCollapseBelow]?: LayoutBreak;
 }
 
