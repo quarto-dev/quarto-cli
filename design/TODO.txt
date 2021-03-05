@@ -4,15 +4,13 @@
 //    - search
 //    - edit on github
 
-TODO: placement of search box
-TODO: control collapsabillity: 
-  collapse: left | right | none
 
-TODO: template engine? (move ejs templates to their own files)
-                       (https://github.com/deligenius/view-engine)
-                       (https://github.com/alosaur/handlebars)
+TODO: bootstrap tables (html filter needs to add the .table class, support extended attributes)
 
 
+
+
+TODO: why does the dev server load twice?
 TODO: reseliancy of dev server for deleted output dir
 
 Charles:
