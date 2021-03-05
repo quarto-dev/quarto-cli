@@ -45,7 +45,7 @@ export async function renderProject(
   // lookup the project type and call preRender
   const projType = projectType(context.metadata?.project?.type);
   if (projType.preRender) {
-    projType.preRender(context);
+    await projType.preRender(context);
   }
 
   // set execute dir if requested
@@ -175,7 +175,7 @@ export async function renderProject(
 
     // call post-render
     if (projType.postRender) {
-      projType.postRender(context);
+      await projType.postRender(context);
     }
 
     return {

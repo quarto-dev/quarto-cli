@@ -126,15 +126,19 @@ function boostrapExtras(theme: string, metadata: Metadata): FormatExtras {
     }
   }
 
-  // get path to bootstrap js
-  const bootstrapJs = formatResourcePath(
-    "html",
-    "bootstrap/themes/default/bootstrap.bundle.min.js",
-  );
-  const quartoJs = formatResourcePath(
-    "html",
-    "bootstrap.quarto.js",
-  );
+  const boostrapResource = (resource: string) =>
+    formatResourcePath(
+      "html",
+      `bootstrap/themes/default/${resource}`,
+    );
+  const bootstrapDependency = (resource: string) => ({
+    name: resource,
+    path: boostrapResource(resource),
+  });
+  const quartoDependency = (resource: string) => ({
+    name: resource,
+    path: formatResourcePath("html", resource),
+  });
 
   // process the quarto in header template
   const templateSrc = Deno.readTextFileSync(
@@ -158,11 +162,15 @@ function boostrapExtras(theme: string, metadata: Metadata): FormatExtras {
         version: "v5.0.0-beta2",
         stylesheets: [
           { name: "bootstrap.min.css", path: boostrapCss },
+          bootstrapDependency("bootstrap-icons.css"),
           { name: "bootstrap.quarto.css", path: quartoCss },
         ],
         scripts: [
-          { name: "bootstrap.bundle.min.js", path: bootstrapJs },
-          { name: "bootstrap.quarto.js", path: quartoJs },
+          bootstrapDependency("bootstrap.bundle.min.js"),
+          quartoDependency("bootstrap.quarto.js"),
+        ],
+        resources: [
+          bootstrapDependency("bootstrap-icons.woff"),
         ],
       },
     ],

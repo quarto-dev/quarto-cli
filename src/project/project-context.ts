@@ -28,10 +28,9 @@ export interface ProjectContext {
     [key: string]: unknown;
   };
   formatExtras?: (
-    inputDir: string,
     project: ProjectContext,
     format: Format,
-  ) => Promise<FormatExtras>;
+  ) => FormatExtras;
 }
 
 export interface ProjectMetadata extends Metadata {

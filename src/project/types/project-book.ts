@@ -74,8 +74,6 @@ export const bookProjectType: ProjectType = {
   },
 
   preRender: (_context: ProjectContext) => {
-    return {
-      pandoc: {},
-    };
+    return Promise.resolve();
   },
 };
