@@ -1,0 +1,23 @@
+<nav class="navbar fixed-top navbar-expand-lg navbar-<%- type %> bg-<%- background %>">
+  <div class="container-fluid">
+  <% if (title || logo) { %>
+    <a class="navbar-brand" href="/">
+    <% if (logo) { %>
+      <img src="<%- logo %>" alt="" />
+    <% } %>
+    <% if (title) { %>
+      <%- title %>
+    <% } %>
+    </a>
+  <% } %>
+  <% if (left || right) { %>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>  
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+      <% partial('navitems.ejs', { align: 'me-auto', items: left}) %>
+      <% partial('navitems.ejs', { align: '', items: right }) %>
+    </div> <!-- /navbar-collapse -->
+  <% } %>
+  </div> <!-- /container-fluid -->
+</nav>

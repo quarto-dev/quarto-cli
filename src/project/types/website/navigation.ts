@@ -5,13 +5,15 @@
 *
 */
 
-import { join, relative } from "path/mod.ts";
-import { ensureDirSync, exists, existsSync } from "fs/mod.ts";
+import { join } from "path/mod.ts";
+import { ensureDirSync, exists } from "fs/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
 import { sessionTempDir } from "../../../core/temp.ts";
 import { dirAndStem } from "../../../core/path.ts";
+import { formatResourcePath } from "../../../core/resources.ts";
+import { renderEjs } from "../../../core/ejs.ts";
 
 import { pandocAutoIdentifier } from "../../../core/pandoc/pandoc-id.ts";
 
@@ -24,25 +26,8 @@ import { FormatExtras } from "../../../config/format.ts";
 import { ProjectContext } from "../../project-context.ts";
 import { inputTargetIndex } from "../../project-index.ts";
 
-import {
-  kBeginLeftNavItems,
-  kBeginNavBrand,
-  kBeginNavCollapse,
-  kBeginRightNavItems,
-  kEndNav,
-  kEndNavBrand,
-  kEndNavCollapse,
-  kEndNavItems,
-  kEndNavMenu,
-  kNavMenuDivider,
-  logoTemplate,
-  navbarCssTemplate,
-  navItemTemplate,
-  navMenuHeaderTemplate,
-  navMenuItemTemplate,
-  navMenuTemplate,
-  navTemplate,
-} from "./navigation-html.ts";
+const kNavbar = "navbar";
+const kAriaLabel = "aria-label";
 
 interface NavMain {
   title?: string;
@@ -62,17 +47,14 @@ interface NavMain {
   right?: NavItem[];
 }
 
-export const kAriaLabel = "aria-label";
-
-export interface NavItem {
+interface NavItem {
+  id?: string;
   text?: string;
   href?: string;
   icon?: string;
   [kAriaLabel]: string;
   menu?: NavItem[];
 }
-
-const kNavbar = "navbar";
 
 export function websiteNavigation(): FormatExtras {
   const navigationPaths = sessionNavigationPaths();
@@ -94,57 +76,59 @@ export async function initWebsiteNavigation(project: ProjectContext) {
     return;
   }
 
-  // get navbar paths (return if they already exist for this session)
+  // prepare navbar for ejs
+  const navbarData = await navbarEjsData(project, navbar);
+
+  // get navbar paths
   const navigationPaths = sessionNavigationPaths();
 
-  // write the header stuff
+  // write the header
+  const navstylesEjs = formatResourcePath("html", "templates/navstyles.ejs");
   Deno.writeTextFileSync(
     navigationPaths.header,
-    navbarCssTemplate({ height: 60 }),
+    renderEjs(navstylesEjs, { height: 60 }),
   );
 
-  // write before body
-  const lines: string[] = [];
-  lines.push(
-    navTemplate({
-      type: navbar.type || "light",
-      background: navbar.background || "light",
-    }),
+  // write the body
+  const navbarEjs = formatResourcePath("html", "templates/navbar.ejs");
+  Deno.writeTextFileSync(
+    navigationPaths.body,
+    renderEjs(navbarEjs, navbarData),
   );
-  if (navbar.title || navbar.logo) {
-    lines.push(kBeginNavBrand);
-    if (navbar.logo) {
-      const logo = "/" + navbar.logo;
-      lines.push(logoTemplate({ logo }));
+}
+
+async function navbarEjsData(
+  project: ProjectContext,
+  navbar: NavMain,
+): Promise<NavMain> {
+  const data: NavMain = {
+    ...navbar,
+    type: navbar.type || "light",
+    background: navbar.background || "light",
+    logo: navbar.logo ? `/${navbar.logo}` : undefined,
+  };
+
+  // normalize nav items
+  if (navbar.left) {
+    if (!Array.isArray(navbar.left)) {
+      throw new Error("navbar 'left' must be an array of menu items");
     }
-    if (navbar.title) {
-      lines.push(ld.escape(navbar.title));
+    data.left = new Array<NavItem>();
+    for (let i = 0; i < navbar.left.length; i++) {
+      data.left.push(await navigationItem(project, navbar.left[i]));
     }
-    lines.push(kEndNavBrand);
+  }
+  if (navbar.right) {
+    if (!Array.isArray(navbar.right)) {
+      throw new Error("navbar 'right' must be an array of menu items");
+    }
+    data.right = new Array<NavItem>();
+    for (let i = 0; i < navbar.right.length; i++) {
+      data.right.push(await navigationItem(project, navbar.right[i]));
+    }
   }
 
-  // if there are menu, then create a toggler
-  if (Array.isArray(navbar.left) || Array.isArray(navbar.right)) {
-    lines.push(kBeginNavCollapse);
-    if (Array.isArray(navbar.left)) {
-      lines.push(kBeginLeftNavItems);
-      for (const item of navbar.left) {
-        lines.push(await navigationItem(project, item));
-      }
-      lines.push(kEndNavItems);
-    }
-    if (Array.isArray(navbar.right)) {
-      lines.push(kBeginRightNavItems);
-      for (const item of navbar.right) {
-        lines.push(await navigationItem(project, item));
-      }
-      lines.push(kEndNavItems);
-    }
-    lines.push(kEndNavCollapse);
-  }
-  lines.push(kEndNav);
-
-  Deno.writeTextFileSync(navigationPaths.body, lines.join("\n"));
+  return data;
 }
 
 async function navigationItem(
@@ -152,21 +136,16 @@ async function navigationItem(
   navItem: NavItem,
   level = 0,
 ) {
-  // resolve the icon class
-  navItem = {
-    ...navItem,
-    icon: navItem.icon
-      ? !navItem.icon.startsWith("bi-") ? `bi-${navItem.icon}` : navItem.icon
-      : navItem.icon,
-  };
+  // make a copy we can mutate
+  navItem = ld.cloneDeep(navItem);
+
+  // resolve icon
+  navItem.icon = navItem.icon
+    ? !navItem.icon.startsWith("bi-") ? `bi-${navItem.icon}` : navItem.icon
+    : navItem.icon;
 
   if (navItem.href) {
-    navItem = await resolveNavItem(project, navItem.href, navItem);
-    if (level === 0) {
-      return navItemTemplate(navItem);
-    } else {
-      return navMenuItemTemplate(navItem);
-    }
+    return await resolveNavItem(project, navItem.href, navItem);
   } else if (navItem.menu) {
     // no sub-menus
     if (level > 0) {
@@ -174,6 +153,7 @@ async function navigationItem(
         `"${navItem.text || ""}" menu: navbar menus do not support sub-menus`,
       );
     }
+
     // text or icon is required
     if (!navItem.text && !navItem.icon) {
       throw Error(
@@ -182,28 +162,23 @@ async function navigationItem(
       );
     }
 
-    const menu: string[] = [];
-    menu.push(
-      navMenuTemplate({
-        id: uniqueMenuId(navItem),
-        text: navItem.text || "",
-        icon: navItem.icon,
-        [kAriaLabel]: navItem[kAriaLabel],
-      }),
-    );
-    for (const item of navItem.menu) {
-      menu.push(await navigationItem(project, item, level + 1));
+    // recursively normalize nav items
+    for (let i = 0; i < navItem.menu.length; i++) {
+      navItem.menu[i] = await navigationItem(
+        project,
+        navItem.menu[i],
+        level + 1,
+      );
     }
-    menu.push(kEndNavMenu);
-    return menu.join("\n");
-  } else if (navItem.text) {
-    if (navItem.text.match(/^\-+$/)) {
-      return kNavMenuDivider;
-    } else {
-      return navMenuHeaderTemplate(navItem);
-    }
+
+    // provide id and ensure we have some text
+    return {
+      ...navItem,
+      id: uniqueMenuId(navItem),
+      text: navItem.text || "",
+    };
   } else {
-    return "";
+    return navItem;
   }
 }
 

@@ -1,0 +1,17 @@
+<style type="text/css">
+  .navbar-brand > img {
+    max-height: 24px;
+    width: auto;
+    padding-right: 6px;
+  }
+  :target::before {
+    content: "";
+    display: block;
+    height: <%= height %>px; 
+    margin: -<%= height %>px 0 0;
+  }
+  body {
+    padding-top: <%= height %>px;
+  }
+  </style>
+  

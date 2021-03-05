@@ -1,0 +1,5 @@
+<ul class="navbar-nav <%- align %> mb-2 mb-lg-0">
+<% for(const item of items) { %>
+  <% partial('navitem.ejs', { item }) %> 
+<% } %>
+</ul>
