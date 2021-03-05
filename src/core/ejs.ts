@@ -13,16 +13,23 @@ export type EjsData = {
   [key: string]: unknown;
 };
 
-export function renderEjs(file: string, data: unknown): string {
+export function renderEjs(
+  file: string,
+  data: unknown,
+  removeEmptyLines = true,
+): string {
   // compile template
-  const template = compileTemplate(file);
+  const template = compileTemplate(file, removeEmptyLines);
 
   // render it, passing an include function for partials
-  return template(data);
+  return template(data)
+    .split(/\r?\n/)
+    .filter((line) => !removeEmptyLines || (line.trim().length > 0))
+    .join("\n");
 }
 
 const compiledTemplates = new Map<string, unknown>();
-function compileTemplate(file: string) {
+function compileTemplate(file: string, removeEmptyLines: boolean) {
   if (!compiledTemplates.has(file)) {
     const template =
       `<% const partial = (file, data) => print(include(file, data)); %>
@@ -33,7 +40,11 @@ function compileTemplate(file: string) {
       ld.template(template, {
         imports: {
           include: (includeFile: string, includeData: unknown) => {
-            return renderEjs(join(dirname(file), includeFile), includeData);
+            return renderEjs(
+              join(dirname(file), includeFile),
+              includeData,
+              removeEmptyLines,
+            );
           },
         },
       }),
