@@ -19,7 +19,10 @@ Charles:
   - check if we can unpin cliffy
     (March 4) NOT YET: should be able to unpin in next few days
     https://github.com/c4spar/deno-cliffy/issues/154
-
+  - Don't show stack for top level exceptions except in debug mode  (error.message instead of stack)
+    (mayeb write a simple config file that controls this)
+    (verify YAML errors)
+  - Windows installer may not want to show EULA esp GPL 2 
       
 TODO: Benchmark the Lua HTML/CSS filters
 
