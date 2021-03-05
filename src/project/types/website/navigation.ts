@@ -13,7 +13,7 @@ import { ld } from "lodash/mod.ts";
 import { sessionTempDir } from "../../../core/temp.ts";
 import { dirAndStem } from "../../../core/path.ts";
 import { formatResourcePath } from "../../../core/resources.ts";
-import { renderEjs } from "../../../core/ejs.ts";
+import { EjsData, renderEjs } from "../../../core/ejs.ts";
 
 import { pandocAutoIdentifier } from "../../../core/pandoc/pandoc-id.ts";
 
@@ -28,6 +28,9 @@ import { inputTargetIndex } from "../../project-index.ts";
 
 const kNavbar = "navbar";
 const kAriaLabel = "aria-label";
+const kCollapseBelow = "collapse-below";
+
+type LayoutBreak = "" | "sm" | "md" | "lg" | "xl" | "xxl";
 
 interface NavMain {
   title?: string;
@@ -45,6 +48,8 @@ interface NavMain {
   search?: boolean;
   left?: NavItem[];
   right?: NavItem[];
+  collapse?: "all" | "left" | "right" | "none";
+  [kCollapseBelow]?: LayoutBreak;
 }
 
 interface NavItem {
@@ -93,7 +98,7 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   const navbarEjs = formatResourcePath("html", "templates/navbar.ejs");
   Deno.writeTextFileSync(
     navigationPaths.body,
-    renderEjs(navbarEjs, navbarData),
+    renderEjs(navbarEjs, { nav: navbarData }),
   );
 }
 
@@ -106,6 +111,10 @@ async function navbarEjsData(
     type: navbar.type || "light",
     background: navbar.background || "light",
     logo: navbar.logo ? `/${navbar.logo}` : undefined,
+    collapse: navbar.collapse || "all",
+    [kCollapseBelow]: navbar.collapse === "none"
+      ? ""
+      : ("-" + (navbar[kCollapseBelow] || "lg")) as LayoutBreak,
   };
 
   // normalize nav items

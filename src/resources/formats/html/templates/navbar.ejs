@@ -1,23 +1,30 @@
-<nav class="navbar fixed-top navbar-expand-lg navbar-<%- type %> bg-<%- background %>">
+<nav class="navbar fixed-top navbar-expand<%- nav["collapse-below"] %> navbar-<%- nav.type %> bg-<%- nav.background %>">
   <div class="container-fluid">
-  <% if (title || logo) { %>
-    <a class="navbar-brand" href="/">
-    <% if (logo) { %>
-      <img src="<%- logo %>" alt="" />
+  <% if (nav.left || nav.right) { %>  
+    <% if (nav.collapse === "none") { %>
+      <% partial('navbrand.ejs', nav) %>
+      <% partial('navitems.ejs', { align: 'me-auto', items: nav.left}) %>
+      <% partial('navitems.ejs', { align: '', items: nav.right }) %>
+    <% } else if (nav.collapse === "left") { %>
+      <% partial('navcollapse.ejs') %>
+        <% partial('navitems.ejs', { align: 'me-auto', items: nav.left}) %>
+      </div> <!-- /navcollapse -->
+      <% partial('navitems.ejs', { align: '', items: nav.right }) %>
+    <% } else if (nav.collapse === "right") { %>
+      <% partial('navitems.ejs', { align: 'me-auto', items: nav.left}) %>
+      <% partial('navcollapse.ejs') %>
+        <% partial('navitems.ejs', { align: '', items: nav.right }) %>
+      </div> <!-- /navcollapse -->
+    <% } else { %>
+      <% partial('navbrand.ejs', nav) %>
+      <% partial('navtoggle.ejs') %>
+      <% partial('navcollapse.ejs') %>
+        <% partial('navitems.ejs', { align: 'me-auto', items: nav.left}) %>
+        <% partial('navitems.ejs', { align: '', items: nav.right }) %>
+      </div> <!-- /navcollapse -->
     <% } %>
-    <% if (title) { %>
-      <%- title %>
-    <% } %>
-    </a>
-  <% } %>
-  <% if (left || right) { %>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>  
-    <div class="collapse navbar-collapse" id="navbarCollapse">
-      <% partial('navitems.ejs', { align: 'me-auto', items: left}) %>
-      <% partial('navitems.ejs', { align: '', items: right }) %>
-    </div> <!-- /navbar-collapse -->
+  <% } else { %>
+    <% partial('navbrand.ejs', nav) %>  
   <% } %>
   </div> <!-- /container-fluid -->
 </nav>
