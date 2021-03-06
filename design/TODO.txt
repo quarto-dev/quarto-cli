@@ -7,8 +7,6 @@
 
 TODO: Benchmark the Lua HTML/CSS filters
 
-TODO: metadata not read from end of pandoc MANUAL
-
 TODO: metadata within code blocks is parsed by us 
       (need to go line by line?)
 
