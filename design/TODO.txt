@@ -5,6 +5,7 @@
 //    - google analytics (or coolster alternative). cookie consent
 //    - edit on github
 
+TODO: Benchmark the Lua HTML/CSS filters
 
 TODO: metadata not read from end of pandoc MANUAL
 
@@ -20,7 +21,6 @@ Charles:
     (verify YAML errors)
   - Windows installer may not want to show EULA esp GPL 2 
       
-TODO: Benchmark the Lua HTML/CSS filters
 
 TODO: cache directories:
  quarto clean output 
