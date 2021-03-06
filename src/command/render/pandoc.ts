@@ -227,6 +227,11 @@ export async function runPandoc(
     "\n\n<!-- -->\n" +
     `\n---\n${stringify(options.format.metadata || {})}\n---\n`;
 
+  // write input to temp file and pass it to pandoc
+  const inputTemp = sessionTempFile({ prefix: "quarto-input", suffix: ".md" });
+  Deno.writeTextFileSync(inputTemp, input);
+  cmd.push(inputTemp);
+
   // add user command line args
   cmd.push(...args);
 
@@ -251,7 +256,6 @@ export async function runPandoc(
       cmd,
       cwd: options.cwd,
     },
-    input,
   );
 
   // resolve resource files from metadata
