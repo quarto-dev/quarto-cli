@@ -8,7 +8,7 @@
 import { ServerRequest } from "http/server.ts";
 
 import { extname, join, relative } from "path/mod.ts";
-import { existsSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "fs/mod.ts";
 
 import { acceptWebSocket, WebSocket } from "ws/mod.ts";
 
@@ -17,7 +17,11 @@ import { ld } from "lodash/mod.ts";
 import { message } from "../../core/console.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 
-import { kOutputDir, ProjectContext } from "../../project/project-context.ts";
+import {
+  kLibDir,
+  kOutputDir,
+  ProjectContext,
+} from "../../project/project-context.ts";
 import {
   copyResourceFile,
   projectResourceFiles,
@@ -48,13 +52,20 @@ export function watchProject(
     }
   };
 
-  // calculate output dir and resource files (those will be the
-  // triggers for reloading)
+  // proj dir
   const projDir = Deno.realPathSync(project.dir);
+
+  // output dir
   const outputDirConfig = project.metadata?.project?.[kOutputDir];
-  const outputDir = outputDirConfig
-    ? Deno.realPathSync(join(projDir, outputDirConfig))
-    : projDir;
+  let outputDir = outputDirConfig ? join(projDir, outputDirConfig) : projDir;
+  ensureDirSync(outputDir);
+  outputDir = Deno.realPathSync(outputDir);
+
+  // lib dir
+  const libDirConfig = project.metadata?.project?.[kLibDir];
+  const libDir = libDirConfig ? join(outputDir, libDirConfig) : undefined;
+
+  // resource files
   const resourceFiles = projectResourceFiles(project);
 
   // function to create an output dir path for a given project file
@@ -76,8 +87,20 @@ export function watchProject(
         // filter out paths that no longer exist and create real paths
         const paths = event.paths.filter(existsSync).map(Deno.realPathSync);
 
-        // if any of the paths are in the output dir then return true
-        if (paths.some((path) => path.startsWith(outputDir))) {
+        // if any of the paths are in the output dir (but not the lib dir) then return true
+        const inOutputDir = paths.some((path) => {
+          if (path.startsWith(outputDir)) {
+            // exclude lib dir
+            if (libDir && path.startsWith(libDir)) {
+              return false;
+            } else {
+              return true;
+            }
+          } else {
+            return false;
+          }
+        });
+        if (inOutputDir) {
           return true;
         }
 
