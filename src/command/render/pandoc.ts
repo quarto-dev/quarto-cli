@@ -278,8 +278,10 @@ export async function runPandoc(
   // (e.g. referenced from links)
   if (existsSync(filterResultsFile)) {
     const filterResultsJSON = Deno.readTextFileSync(filterResultsFile);
-    const filterResults = JSON.parse(filterResultsJSON);
-    files.push(...(filterResults.resourceFiles || []));
+    if (filterResultsJSON.trim().length > 0) {
+      const filterResults = JSON.parse(filterResultsJSON);
+      files.push(...(filterResults.resourceFiles || []));
+    }
   }
 
   if (result.success) {
