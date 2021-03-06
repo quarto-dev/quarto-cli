@@ -7,11 +7,11 @@
 
 import { basename, dirname, extname, join } from "path/mod.ts";
 
-import { getenv } from "../../core/env.ts";
 import { execProcess } from "../../core/process.ts";
 import {
   readYamlFromMarkdown,
   readYamlFromMarkdownFile,
+  readYamlFrontMatterFromMarkdownFile,
 } from "../../core/yaml.ts";
 
 import { dirAndStem } from "../../core/path.ts";
@@ -80,8 +80,8 @@ export const jupyterEngine: ExecutionEngine = {
   canHandle: (file: string) => {
     const ext = extname(file);
     if (kJupytextMdExtensions.includes(ext)) {
-      const yaml = readYamlFromMarkdownFile(file);
-      return !!yaml.jupyter;
+      const yaml = readYamlFrontMatterFromMarkdownFile(file);
+      return !!yaml?.jupyter;
     } else {
       return isNotebook(file);
     }

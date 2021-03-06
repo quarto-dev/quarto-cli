@@ -57,7 +57,19 @@ export function readYamlFromMarkdownFile(
   return readYamlFromMarkdown(markdown);
 }
 
-export function readYamlFrontMatterFromMarkdown(
+export function readYamlFrontMatterFromMarkdownFile(
+  file: string,
+) {
+  const markdown = Deno.readTextFileSync(file);
+  const yaml = partitionYamlFrontMatter(markdown);
+  if (yaml) {
+    return readYamlFromMarkdown(yaml);
+  } else {
+    return null;
+  }
+}
+
+export function partitionYamlFrontMatter(
   markdown: string,
 ): string | null {
   kRegExYAML.lastIndex = 0;

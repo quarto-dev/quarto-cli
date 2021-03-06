@@ -9,7 +9,7 @@ import { dirname, extname, isAbsolute, join, relative } from "path/mod.ts";
 
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
-import { readYamlFrontMatterFromMarkdown } from "../../core/yaml.ts";
+import { partitionYamlFrontMatter } from "../../core/yaml.ts";
 import { execProcess } from "../../core/process.ts";
 import { binaryPath } from "../../core/resources.ts";
 import { createSessionTempDir, sessionTempFile } from "../../core/temp.ts";
@@ -146,7 +146,7 @@ export async function outputRecipe(
     ) {
       completeActions.push(() => {
         // read yaml and output markdown
-        const yamlMd = readYamlFrontMatterFromMarkdown(
+        const yamlMd = partitionYamlFrontMatter(
           Deno.readTextFileSync(input),
         );
         if (yamlMd) {
