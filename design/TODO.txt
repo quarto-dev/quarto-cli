@@ -2,16 +2,14 @@
 //    - Navigation
 //    - sitemap.xml
 //    - search
+//    - google analytics (or coolster alternative). cookie consent
 //    - edit on github
 
 
-TODO: bootstrap tables (html filter needs to add the .table class, support extended attributes)
+TODO: metadata not read from end of pandoc MANUAL
 
-
-
-
-TODO: why does the dev server load twice?
-TODO: reseliancy of dev server for deleted output dir
+TODO: metadata within code blocks is parsed by us 
+      (need to go line by line?)
 
 Charles:
   - check if we can unpin cliffy
@@ -44,7 +42,6 @@ HTML:
   - code menu (show all, hide all, download code)
   - tabs
   - admonitions
-  - google analytics (or coolster alternative). cookie consent
   - lightbox
   - progressive image loading data-src
 
