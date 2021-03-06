@@ -1,4 +1,5 @@
 window.document.addEventListener("DOMContentLoaded", function() {
+  // latch active nav link
   var navLinks = window.document.querySelectorAll("a.nav-link");
   for (let i=0; i<navLinks.length; i++) {
     const navLink = navLinks[i];
@@ -7,6 +8,13 @@ window.document.addEventListener("DOMContentLoaded", function() {
       navLink.classList.add("active");
       navLink.setAttribute("aria-current", "page");
     }
+  }
+
+  // add .table class to pandoc tables
+  var tableHeaders = window.document.querySelectorAll("tr.header"); 
+  for (let i=0; i<tableHeaders.length; i++) {
+    const th = tableHeaders[i];
+    th.parentNode.parentNode.classList.add("table");
   }
 });
 
