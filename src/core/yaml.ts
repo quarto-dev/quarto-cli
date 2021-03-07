@@ -12,6 +12,9 @@ import { parse } from "encoding/yaml.ts";
 const kRegExYAML =
   /(^)(---[ \t]*[\r\n]+(?![ \t]*[\r\n]+)[\W\w]*?[\r\n]+(?:---|\.\.\.))([ \t]*)$/gm;
 
+const kRegxHTMLComment = /<!--[\W\w]*?-->/gm;
+const kRegexFencedCode = /^([\t >]*`{3,})[^`\n]*\n[\W\w]*?\n\1\s*$/gm;
+
 export function readYaml(file: string) {
   if (existsSync(file)) {
     const decoder = new TextDecoder("utf-8");
@@ -30,6 +33,10 @@ export function readYamlFromMarkdown(
   markdown: string,
 ): { [key: string]: unknown } {
   if (markdown) {
+    // remove html comments and fenced code regions
+    markdown = markdown.replaceAll(kRegxHTMLComment, "");
+    markdown = markdown.replaceAll(kRegexFencedCode, "");
+
     // capture all yaml blocks as a single yaml doc
     let yaml = "";
     kRegExYAML.lastIndex = 0;
