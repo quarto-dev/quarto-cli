@@ -5,11 +5,6 @@
 //    - google analytics (or coolster alternative). cookie consent
 //    - edit on github
 
-TODO: Benchmark the Lua HTML/CSS filters
-
-TODO: metadata within code blocks is parsed by us 
-      (need to go line by line?)
-
 Charles:
   - check if we can unpin cliffy
     (March 4) NOT YET: should be able to unpin in next few days
