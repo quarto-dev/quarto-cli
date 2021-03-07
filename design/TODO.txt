@@ -4,6 +4,7 @@
 //    - sitemap.xml
 //    - search
 //    - google analytics (or coolster alternative). cookie consent
+//    - commenting
 //    - edit on github
 
 Charles:
