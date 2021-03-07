@@ -1,5 +1,6 @@
 //  Websites:
 //    - Navigation
+//    - Headroom
 //    - sitemap.xml
 //    - search
 //    - google analytics (or coolster alternative). cookie consent
@@ -36,6 +37,7 @@ HTML:
   - tabs
   - admonitions
   - lightbox
+  - auto-growing iframes
   - progressive image loading data-src
 
 Bundle SASS compiler so we can prime thematic correctly:
