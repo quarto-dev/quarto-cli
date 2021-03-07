@@ -46,7 +46,7 @@ return {
     figures(),
     resourceRefs(),
   }),
-  metaInject(),
+  quartoPreMetaInject(),
   writeResults()
 }
 

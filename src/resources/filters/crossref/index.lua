@@ -36,7 +36,7 @@ end
 -- advance a chapter
 function indexNextChapter()
    -- reset nextOrder to 1 for all types if we are in chapters mode
-  if option("chapters", false) then
+  if crossrefOption("chapters", false) then
     for k,v in pairs(crossref.index.nextOrder) do
       crossref.index.nextOrder[k] = 1
     end

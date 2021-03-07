@@ -41,7 +41,7 @@ import("../common/debug.lua")
 -- chain of filters
 return {
   initParams(),
-  initOptions(),
+  initCrossrefOptions(),
   initIndex(),
   preprocess(),
   combineFilters({
@@ -53,6 +53,6 @@ return {
     theorems()
   }),
   resolveRefs(),
-  metaInject(),
+  crossrefMetaInject(),
 }
 

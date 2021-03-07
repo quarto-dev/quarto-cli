@@ -2,7 +2,7 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 function title(type, default)
-  return option(type .. "-title", stringToInlines(default))
+  return crossrefOption(type .. "-title", stringToInlines(default))
 end
 
 function titleString(type, default)
@@ -19,19 +19,19 @@ function titlePrefix(type, default, order)
 end
 
 function titleDelim()
-  return option("title-delim", stringToInlines(":"))
+  return crossrefOption("title-delim", stringToInlines(":"))
 end
 
 function captionSubfig()
-  return option("caption-subfig", true)
+  return crossrefOption("caption-subfig", true)
 end
 
 function captionCollectedDelim()
-  return option("caption-collected-delim", stringToInlines(",\u{a0}"))
+  return crossrefOption("caption-collected-delim", stringToInlines(",\u{a0}"))
 end
 
 function captionCollectedLabelSep()
-  return option("caption-collected-label-sep", stringToInlines("\u{a0}—\u{a0}"))
+  return crossrefOption("caption-collected-label-sep", stringToInlines("\u{a0}—\u{a0}"))
 end
 
 function subrefNumber(order)
@@ -48,7 +48,7 @@ end
 
 function refPrefix(type, upper)
   local opt = type .. "-prefix"
-  local prefix = option(opt, {pandoc.Str(type), pandoc.Str(".")})
+  local prefix = crossrefOption(opt, {pandoc.Str(type), pandoc.Str(".")})
   if upper then
     local el = pandoc.Plain:new(prefix)
     local firstStr = true
@@ -68,11 +68,11 @@ function refPrefix(type, upper)
 end
 
 function refDelim()
-  return option("ref-delim", stringToInlines(","))
+  return crossrefOption("ref-delim", stringToInlines(","))
 end
 
 function refHyperlink()
-  return option("ref-hyperlink", true)
+  return crossrefOption("ref-hyperlink", true)
 end
 
 function numberOption(type, order, default)
@@ -87,7 +87,7 @@ function numberOption(type, order, default)
   -- alias num and section (set section to nil if we aren't using chapters)
   local num = order.order
   local section = order.section
-  if not option("chapters", false) then
+  if not crossrefOption("chapters", false) then
     section = nil
   end
   
@@ -107,10 +107,10 @@ function numberOption(type, order, default)
 
   -- See if there a global label option, if so, use that
   -- if the type specific label isn't specified
-  local labelOpt = option("labels", default);
+  local labelOpt = crossrefOption("labels", default);
   
   -- determine the style
-  local styleRaw = option(opt, labelOpt)
+  local styleRaw = crossrefOption(opt, labelOpt)
   local numberStyle = pandoc.utils.stringify(styleRaw)
 
   -- process the style

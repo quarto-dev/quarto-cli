@@ -2,7 +2,7 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- inject metadata
-function metaInject()
+function quartoPostMetaInject()
   return {
     Pandoc = function(doc)
       

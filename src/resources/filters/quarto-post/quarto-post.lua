@@ -33,7 +33,7 @@ return {
     latexDiv(),
     foldCode()
   }),
-  metaInject()
+  quartoPostMetaInject()
 }
 
 

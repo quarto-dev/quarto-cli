@@ -2,7 +2,7 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- inject metadata
-function metaInject()
+function crossrefMetaInject()
   return {
     Pandoc = function(doc)
       metaInjectLatex(doc, function(inject)
@@ -57,7 +57,7 @@ end
 
 -- latex 'listof' title for type
 function listOfTitle(type, default)
-  local title = option(type .. "-title")
+  local title = crossrefOption(type .. "-title")
   if title then
     return pandoc.utils.stringify(title)
   else

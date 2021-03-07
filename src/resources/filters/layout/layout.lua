@@ -277,7 +277,7 @@ return {
   initParams(),
   layoutPanels(),
   extendedFigures(),
-  metaInject()
+  layoutMetaInject()
 }
 
 
