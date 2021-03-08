@@ -200,7 +200,7 @@ export async function renderProject(
 
 export function projectInputFiles(context: ProjectContext) {
   const files: string[] = [];
-  const keepMdFiles: string[] = [];
+  const keepFiles: string[] = [];
 
   const outputDir = context.metadata?.project?.[kOutputDir];
 
@@ -209,9 +209,9 @@ export function projectInputFiles(context: ProjectContext) {
       const engine = executionEngine(file);
       if (engine) {
         files.push(file);
-        const keepMd = engine.keepMd(file);
-        if (keepMd) {
-          keepMdFiles.push(keepMd);
+        const keep = engine.keepFiles(file);
+        if (keep) {
+          keepFiles.push(...keep);
         }
       }
     }
@@ -244,5 +244,9 @@ export function projectInputFiles(context: ProjectContext) {
     addDir(context.dir);
   }
 
-  return ld.difference(ld.uniq(files), keepMdFiles) as string[];
+  const inputFiles = ld.difference(
+    ld.uniq(files),
+    ld.uniq(keepFiles),
+  ) as string[];
+  return inputFiles;
 }

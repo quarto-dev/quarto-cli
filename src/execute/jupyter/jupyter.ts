@@ -311,13 +311,24 @@ export const jupyterEngine: ExecutionEngine = {
     return Promise.resolve();
   },
 
-  keepMd: (input: string) => {
-    return join(dirname(input), basename(input) + ".md");
+  keepMd,
+
+  keepFiles: (input: string) => {
+    const keep = [keepMd(input)];
+    if (!isNotebook(input)) {
+      const [fileDir, fileStem] = dirAndStem(input);
+      keep.push(join(fileDir, fileStem + ".ipynb"));
+    }
+    return keep;
   },
 };
 
 export function pythonBinary(binary = "python3") {
   return binary;
+}
+
+function keepMd(input: string) {
+  return join(dirname(input), basename(input) + ".md");
 }
 
 interface JupyterTargetData {
