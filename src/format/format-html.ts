@@ -9,6 +9,7 @@ import { existsSync } from "fs/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
+import { renderEjs } from "../core/ejs.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { formatResourcePath } from "../core/resources.ts";
 import { sessionTempFile } from "../core/temp.ts";
@@ -18,13 +19,18 @@ import {
   kHeaderIncludes,
   kIncludeAfterBody,
   kIncludeBeforeBody,
+  kTableOfContents,
+  kToc,
   kVariables,
 } from "../config/constants.ts";
 import { Format, FormatExtras, kDependencies } from "../config/format.ts";
+import { PandocFlags } from "../config/flags.ts";
+
 import { Metadata } from "../config/metadata.ts";
 import { baseHtmlFormat } from "./formats.ts";
 
 export const kTheme = "theme";
+export const kTocFloat = "toc-float";
 export const kDocumentCss = "document-css";
 
 export function htmlFormat(
@@ -39,7 +45,7 @@ export function htmlFormat(
       },
     },
     {
-      formatExtras: (format: Format) => {
+      formatExtras: (flags: PandocFlags, format: Format) => {
         if (format.metadata[kTheme]) {
           const theme = String(format.metadata[kTheme]);
 
@@ -49,7 +55,7 @@ export function htmlFormat(
 
             // other themes are bootswatch themes or bootstrap css files
           } else {
-            return boostrapExtras(theme, format.metadata);
+            return boostrapExtras(theme, flags, format);
           }
 
           // theme: null means no default document css at all
@@ -87,8 +93,13 @@ function pandocExtras(metadata: Metadata) {
   };
 }
 
-function boostrapExtras(theme: string, metadata: Metadata): FormatExtras {
+function boostrapExtras(
+  theme: string,
+  flags: PandocFlags,
+  format: Format,
+): FormatExtras {
   // read options from yaml
+  const metadata = format.metadata;
   const options: Record<string, string | undefined> = {
     maxwidth: maxWidthCss(metadata["max-width"]),
     margintop: asCssSizeAttrib("margin-top", metadata["margin-top"]),
@@ -151,6 +162,19 @@ function boostrapExtras(theme: string, metadata: Metadata): FormatExtras {
     template(templateOptions(options)),
   );
 
+  const toc = (flags[kToc] || format.pandoc[kToc] ||
+    format.pandoc[kTableOfContents]) && (format.metadata[kTocFloat] !== false);
+
+  const renderTemplate = (template: string) => {
+    const rendered = renderEjs(
+      formatResourcePath("html", `templates/${template}`),
+      { toc },
+    );
+    const tempFile = sessionTempFile({ suffix: ".html" });
+    Deno.writeTextFileSync(tempFile, rendered);
+    return tempFile;
+  };
+
   return {
     [kVariables]: {
       [kDocumentCss]: false,
@@ -173,12 +197,8 @@ function boostrapExtras(theme: string, metadata: Metadata): FormatExtras {
         ],
       },
     ],
-    [kIncludeBeforeBody]: [
-      formatResourcePath("html", "before-body.html"),
-    ],
-    [kIncludeAfterBody]: [
-      formatResourcePath("html", "after-body.html"),
-    ],
+    [kIncludeBeforeBody]: [renderTemplate("before-body.ejs")],
+    [kIncludeAfterBody]: [renderTemplate("after-body.ejs")],
     [kFilters]: {
       pre: [
         formatResourcePath("html", "html.lua"),
