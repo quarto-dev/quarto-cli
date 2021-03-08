@@ -6,13 +6,12 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
 import { mergeConfigs } from "../core/config.ts";
 import { formatResourcePath } from "../core/resources.ts";
-import { createSessionTempDir, sessionTempFile } from "../core/temp.ts";
+import { sessionTempFile } from "../core/temp.ts";
 
 import {
   kFilters,
@@ -211,26 +210,10 @@ function templateOptions(
 }
 
 function maxWidthCss(value: unknown) {
-  const maxWidth = value
-    ? typeof (value) === "number" ? value : parseInt(String(value))
-    : 900;
-  const breaks = [
-    576,
-    768,
-    992,
-    1200,
-  ];
-  const css: string[] = [];
-  for (const bk of breaks) {
-    if (maxWidth < bk || bk === breaks[breaks.length - 1]) {
-      css.push(`@media (min-width: ${bk}px) {
-  .container {
-    max-width: ${maxWidth}px;
-  }  
-}`);
-    }
-  }
-  return css.join("\n");
+  const maxWidth = asCssSize(value) || "1400px";
+  return `#quarto-content {
+    max-width: ${maxWidth};
+  }`;
 }
 
 function asFontFamily(value: unknown): string | undefined {
