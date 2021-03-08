@@ -3,38 +3,36 @@
 
 function foldCode()
   return {
-    Blocks = function (blocks)
-      if not isHtmlOutput() then
-        return blocks
-      end
-      local filterBlocks = pandoc.List:new()
-      for _,block in ipairs(blocks) do
-        if block.t == "CodeBlock" and block.attr.classes:includes("cell-code") then
+    CodeBlock = function(block)
+      if isHtmlOutput() then
+        if block.attr.classes:includes("cell-code") then
           local fold = foldAttribute(block)
-          if fold ~= "none" then 
-            postState.codeFoldingCss = true
-            local open = ""
-            if fold == "show" then
-              open = " open"
+          local summary = summaryAttribute(block)
+          if fold ~= nil or summary ~= nil then
+            block.attr.attributes["fold"] = nil
+            block.attr.attributes["summary"] = nil
+            if fold ~= "none" then 
+              local blocks = pandoc.List:new()
+              postState.codeFoldingCss = true
+              local open = ""
+              if fold == "show" then
+                open = " open"
+              end
+              local beginPara = pandoc.Para({
+                pandoc.RawInline("html", "<details" .. open .. ">\n<summary>"),
+              })
+              tappend(beginPara.content, markdownToInlines(summary))
+              beginPara.content:insert(pandoc.RawInline("html", "</summary>"))
+              blocks:insert(beginPara)
+              blocks:insert(block)
+              blocks:insert(pandoc.RawBlock("html", "</details>"))
+              return blocks
+            else
+              return block
             end
-            local beginPara = pandoc.Para({
-              pandoc.RawInline("html", "<details" .. open .. ">\n<summary>"),
-            })
-            tappend(beginPara.content, markdownToInlines(summaryAttribute(block)))
-            beginPara.content:insert(pandoc.RawInline("html", "</summary>"))
-            filterBlocks:insert(beginPara)
-            filterBlocks:insert(block)
-            filterBlocks:insert(pandoc.RawBlock("html", "</details>"))
-          else
-            filterBlocks:insert(block)
           end
-          block.attr.attributes["fold"] = nil
-          block.attr.attributes["summary"] = nil
-        else
-          filterBlocks:insert(block)
         end
       end
-      return filterBlocks
     end
   }
 end
