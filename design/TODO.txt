@@ -7,13 +7,6 @@
 //    - commenting
 //    - edit on github
 
-TODO: can set an overall maxWidth on container-fluid (but don't 
-do this with navbar). 
-https://stackoverflow.com/questions/18964366/how-can-i-set-the-width-of-fluid-bootstrap-containers
-
-
-TODO: when adding TOC and/or sidebar nav we need to stop messing 
-with the max width (and/or change it to what we think is ideal)
 
 
 Charles:
