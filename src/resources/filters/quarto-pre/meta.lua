@@ -4,13 +4,13 @@
 -- inject metadata
 function quartoPreMetaInject()
   return {
-    Pandoc = function(doc)
-      metaInjectLatex(doc, function(inject)
+    Meta = function(meta)
+      metaInjectLatex(meta, function(inject)
         if preState.usingTikz then
           inject(usePackage("tikz"))
         end
       end)
-      return doc
+      return meta
     end
   }
 end

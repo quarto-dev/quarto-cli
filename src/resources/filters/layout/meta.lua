@@ -4,9 +4,9 @@
 -- inject metadata
 function layoutMetaInject()
   return {
-    Pandoc = function(doc)
+    Meta = function(meta)
       
-      metaInjectLatex(doc, function(inject)
+      metaInjectLatex(meta, function(inject)
         inject(
           usePackage("caption") .. "\n" ..
           usePackage("subfig")
@@ -16,7 +16,7 @@ function layoutMetaInject()
         end
       end)
       
-      metaInjectHtml(doc, function(inject)
+      metaInjectHtml(meta, function(inject)
         if layoutState.layoutCss then
           inject([[
 <style type="text/css">
@@ -84,7 +84,7 @@ function layoutMetaInject()
         end
       end)
       
-      return doc
+      return meta
     end
   }
 end

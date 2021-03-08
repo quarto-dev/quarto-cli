@@ -7,43 +7,43 @@ kIncludeInHeader = "include-in-header"
 
 function readIncludes()
   return {
-    Pandoc = function(doc)
+    Meta = function(meta)
       -- ensure all includes are meta lists
-      ensureIncludes(doc, kHeaderIncludes)
-      ensureIncludes(doc, kIncludeBefore)
-      ensureIncludes(doc, kIncludeAfter)
+      ensureIncludes(meta, kHeaderIncludes)
+      ensureIncludes(meta, kIncludeBefore)
+      ensureIncludes(meta, kIncludeAfter)
           
       -- read file includes
-      readIncludeFiles(doc, kIncludeInHeader, kHeaderIncludes)
-      readIncludeFiles(doc, kIncludeBeforeBody, kIncludeBefore)
-      readIncludeFiles(doc, kIncludeAfterBody, kIncludeAfter)
+      readIncludeFiles(meta, kIncludeInHeader, kHeaderIncludes)
+      readIncludeFiles(meta, kIncludeBeforeBody, kIncludeBefore)
+      readIncludeFiles(meta, kIncludeAfterBody, kIncludeAfter)
 
       -- read text based includes
-      readIncludeStrings(doc, kHeaderIncludes)
-      readIncludeStrings(doc, kIncludeBefore)
-      readIncludeStrings(doc, kIncludeAfter)
+      readIncludeStrings(meta, kHeaderIncludes)
+      readIncludeStrings(meta, kIncludeBefore)
+      readIncludeStrings(meta, kIncludeAfter)
      
-      return doc
+      return meta
     end
   }
 end
 
-function readIncludeStrings(doc, includes)
+function readIncludeStrings(meta, includes)
   local strs = param(includes, {})
   for _,str in ipairs(strs) do
     if str.t == "MetaBlocks" then
-      doc.meta[includes]:insert(str)
+      meta[includes]:insert(str)
     else
       if type(str) == "table" then
         str = inlinesToString(str)
       end
-      addInclude(doc, FORMAT, includes, str)
+      addInclude(meta, FORMAT, includes, str)
     end
    
   end
 end
 
-function readIncludeFiles(doc, includes, target)
+function readIncludeFiles(meta, includes, target)
 
   -- process include files
   local files = param(includes, {})
@@ -53,7 +53,7 @@ function readIncludeFiles(doc, includes, target)
     local contents = f:read("*all")
     f:close()
     -- write as as raw include
-    addInclude(doc, FORMAT, target, contents)
+    addInclude(meta, FORMAT, target, contents)
   end
 
   

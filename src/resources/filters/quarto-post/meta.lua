@@ -4,9 +4,9 @@
 -- inject metadata
 function quartoPostMetaInject()
   return {
-    Pandoc = function(doc)
+    Meta = function(meta)
       
-      metaInjectHtml(doc, function(inject)
+      metaInjectHtml(meta, function(inject)
         if postState.codeFoldingCss then
           inject([[
 <style type="text/css">
@@ -22,7 +22,7 @@ function quartoPostMetaInject()
         end
       end)
       
-      return doc
+      return meta
     end
   }
 end

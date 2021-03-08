@@ -4,8 +4,8 @@
 -- initialize options from 'crossref' metadata value
 function initCrossrefOptions()
   return {
-    Pandoc = function(doc)
-      crossref.options = readFilterOptions(doc, "crossref")
+    Meta = function(meta)
+      crossref.options = readFilterOptions(meta, "crossref")
     end
   }
 end

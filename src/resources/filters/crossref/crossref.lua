@@ -40,11 +40,11 @@ import("../common/json.lua")
 -- [/import]
 
 initParams()
+initIndex()
 
 -- chain of filters
 return {
   initCrossrefOptions(),
-  initIndex(),
   preprocess(),
   combineFilters({
     sections(),

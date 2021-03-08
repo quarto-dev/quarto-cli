@@ -4,8 +4,8 @@
 -- inject metadata
 function crossrefMetaInject()
   return {
-    Pandoc = function(doc)
-      metaInjectLatex(doc, function(inject)
+    Meta = function(meta)
+      metaInjectLatex(meta, function(inject)
         
         inject(usePackage("caption"))
 
@@ -49,7 +49,7 @@ function crossrefMetaInject()
         end
       end)
       
-      return doc
+      return meta
     end
   }
 end

@@ -6,18 +6,18 @@ kHeaderIncludes = "header-includes"
 kIncludeBefore = "include-before"
 kIncludeAfter = "include-after"
 
-function ensureIncludes(doc, includes)
-  if not doc.meta[includes] then
-    doc.meta[includes] = pandoc.MetaList({})
-  elseif doc.meta[includes].t == "MetaInlines" or 
-         doc.meta[includes].t == "MetaBlocks" then
-    doc.meta[includes] = pandoc.MetaList({doc.meta[includes]})
+function ensureIncludes(meta, includes)
+  if not meta[includes] then
+    meta[includes] = pandoc.MetaList({})
+  elseif meta[includes].t == "MetaInlines" or 
+         meta[includes].t == "MetaBlocks" then
+    meta[includes] = pandoc.MetaList({meta[includes]})
   end
 end
 
 -- add a header include as a raw block
-function addInclude(doc, format, includes, include)
-  doc.meta[includes]:insert(pandoc.MetaBlocks(pandoc.RawBlock(format, include)))
+function addInclude(meta, format, includes, include)
+  meta[includes]:insert(pandoc.MetaBlocks(pandoc.RawBlock(format, include)))
 end
 
 -- conditionally include a package
@@ -26,10 +26,10 @@ function usePackage(pkg)
 end
 
 
-function metaInjectLatex(doc, func)
+function metaInjectLatex(meta, func)
   if isLatexOutput() then
     function inject(tex)
-      addInclude(doc, "tex", kHeaderIncludes, tex)
+      addInclude(meta, "tex", kHeaderIncludes, tex)
     end
     inject("\\makeatletter")
     func(inject)
@@ -37,10 +37,10 @@ function metaInjectLatex(doc, func)
   end
 end
 
-function metaInjectHtml(doc, func)
+function metaInjectHtml(meta, func)
   if isHtmlOutput() then
     function inject(html)
-      addInclude(doc, "html", kHeaderIncludes, html)
+      addInclude(meta, "html", kHeaderIncludes, html)
     end
     func(inject)
   end
