@@ -24,16 +24,17 @@ import("../common/pandoc.lua")
 import("../common/figures.lua")
 import("../common/meta.lua")
 import("../common/debug.lua")
+import("../common/json.lua")
 -- [/import]
 
+initParams()
 
 return {
-  initParams(),
   combineFilters({
     latexDiv(),
     foldCode()
   }),
-  metaInject()
+  quartoPostMetaInject()
 }
 
 

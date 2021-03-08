@@ -1,19 +1,11 @@
 //  Websites:
 //    - Navigation
+//    - Headroom
 //    - sitemap.xml
 //    - search
+//    - google analytics (or coolster alternative). cookie consent
+//    - commenting
 //    - edit on github
-
-TODO: placement of search box
-TODO: control collapsabillity: 
-  collapse: left | right | none
-
-TODO: template engine? (move ejs templates to their own files)
-                       (https://github.com/deligenius/view-engine)
-                       (https://github.com/alosaur/handlebars)
-
-
-TODO: reseliancy of dev server for deleted output dir
 
 Charles:
   - check if we can unpin cliffy
@@ -25,7 +17,6 @@ Charles:
   - Windows installer may not want to show EULA esp GPL 2 
   - Dependencies should be manually installed for dev, then we can turn off the module checking in Deno (check file taking too long)
       
-TODO: Benchmark the Lua HTML/CSS filters
 
 TODO: cache directories:
  quarto clean output 
@@ -47,8 +38,8 @@ HTML:
   - code menu (show all, hide all, download code)
   - tabs
   - admonitions
-  - google analytics (or coolster alternative). cookie consent
   - lightbox
+  - auto-growing iframes
   - progressive image loading data-src
 
 Bundle SASS compiler so we can prime thematic correctly:

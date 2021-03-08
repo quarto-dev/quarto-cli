@@ -101,6 +101,23 @@ export const renderCommand = new Command()
   .action(async (options: any, input?: string, args?: string[]) => {
     args = args || [];
 
+    // if an option got defined then this was mis-parsed as an 'option'
+    // rather than an 'arg' because no input was passed. reshuffle
+    // things to make them work
+    if (Object.keys(options).length === 1) {
+      const option = Object.keys(options)[0];
+      const optionArg = option.replaceAll(
+        /([A-Z])/g,
+        (_match: string, p1: string) => `-${p1.toLowerCase()}`,
+      );
+      args.unshift("--" + optionArg);
+      delete options[option];
+      if (input) {
+        args.unshift(input);
+        input = undefined;
+      }
+    }
+
     // pull inputs out of the beginning of flags
     input = input || ".";
     const inputs = [input];

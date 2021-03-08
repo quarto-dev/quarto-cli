@@ -38,7 +38,7 @@ import {
   pandocDefaultsMessage,
   writeDefaultsFile,
 } from "./defaults.ts";
-import { removeFilterParmas, setFilterParams } from "./filters.ts";
+import { filterParamsJson, removeFilterParmas } from "./filters.ts";
 import {
   kCss,
   kIncludeAfterBody,
@@ -211,7 +211,12 @@ export async function runPandoc(
 
   // set parameters required for filters (possibily mutating all of it's arguments
   // to pull includes out into quarto parameters so they can be merged)
-  setFilterParams(args, options, allDefaults, filterResultsFile);
+  const paramsJson = filterParamsJson(
+    args,
+    options,
+    allDefaults,
+    filterResultsFile,
+  );
 
   // write the defaults file
   if (allDefaults) {
@@ -226,6 +231,11 @@ export async function runPandoc(
   const input = options.markdown +
     "\n\n<!-- -->\n" +
     `\n---\n${stringify(options.format.metadata || {})}\n---\n`;
+
+  // write input to temp file and pass it to pandoc
+  const inputTemp = sessionTempFile({ prefix: "quarto-input", suffix: ".md" });
+  Deno.writeTextFileSync(inputTemp, input);
+  cmd.push(inputTemp);
 
   // add user command line args
   cmd.push(...args);
@@ -250,8 +260,10 @@ export async function runPandoc(
     {
       cmd,
       cwd: options.cwd,
+      env: {
+        "QUARTO_FILTER_PARAMS": paramsJson,
+      },
     },
-    input,
   );
 
   // resolve resource files from metadata
@@ -274,8 +286,10 @@ export async function runPandoc(
   // (e.g. referenced from links)
   if (existsSync(filterResultsFile)) {
     const filterResultsJSON = Deno.readTextFileSync(filterResultsFile);
-    const filterResults = JSON.parse(filterResultsJSON);
-    files.push(...(filterResults.resourceFiles || []));
+    if (filterResultsJSON.trim().length > 0) {
+      const filterResults = JSON.parse(filterResultsJSON);
+      files.push(...(filterResults.resourceFiles || []));
+    }
   }
 
   if (result.success) {

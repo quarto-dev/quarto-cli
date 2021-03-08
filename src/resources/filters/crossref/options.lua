@@ -2,16 +2,16 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- initialize options from 'crossref' metadata value
-function initOptions()
+function initCrossrefOptions()
   return {
-    Pandoc = function(doc)
-      crossref.options = readFilterOptions(doc, "crossref")
+    Meta = function(meta)
+      crossref.options = readFilterOptions(meta, "crossref")
     end
   }
 end
 
 -- get option value
-function option(name, default)
+function crossrefOption(name, default)
   return readOption(crossref.options, name, default)
 end
 

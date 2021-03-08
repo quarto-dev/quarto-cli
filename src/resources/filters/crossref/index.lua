@@ -3,40 +3,36 @@
 
 -- initialize the index
 function initIndex()
-  return {
-    Pandoc = function(doc)
-      
-      -- compute section offsets
-      local sectionOffsets = pandoc.List:new({0,0,0,0,0,0,0})
-      local numberOffset = pandoc.List:new(param("number-offset", {})):map(
-        function(offset)
-          return tonumber(offset[1].text)
-        end
-      )
-      for i=1,#sectionOffsets do
-        if i > #numberOffset then
-          break
-        end
-        sectionOffsets[i] = numberOffset[i]
-      end
-      
-      -- initialize index
-      crossref.index = {
-        nextOrder = {},
-        nextSubrefOrder = 1,
-        section = sectionOffsets,
-        sectionOffsets = sectionOffsets,
-        entries = {}
-      }
-      return doc
+     
+  -- compute section offsets
+  local sectionOffsets = pandoc.List:new({0,0,0,0,0,0,0})
+  local numberOffset = pandoc.List:new(param("number-offset", {})):map(
+    function(offset)
+      return tonumber(offset[1].text)
     end
+  )
+  for i=1,#sectionOffsets do
+    if i > #numberOffset then
+      break
+    end
+    sectionOffsets[i] = numberOffset[i]
+  end
+  
+  -- initialize index
+  crossref.index = {
+    nextOrder = {},
+    nextSubrefOrder = 1,
+    section = sectionOffsets,
+    sectionOffsets = sectionOffsets,
+    entries = {}
   }
+  
 end
 
 -- advance a chapter
 function indexNextChapter()
    -- reset nextOrder to 1 for all types if we are in chapters mode
-  if option("chapters", false) then
+  if crossrefOption("chapters", false) then
     for k,v in pairs(crossref.index.nextOrder) do
       crossref.index.nextOrder[k] = 1
     end

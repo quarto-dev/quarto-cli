@@ -24,6 +24,7 @@ export interface ExecutionEngine {
   dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;
   keepMd: (input: string) => string | undefined;
+  keepFiles: (input: string) => string[] | undefined;
   run?: (options: RunOptions) => Promise<void>;
 }
 

@@ -85,10 +85,9 @@ export const rmdEngine: ExecutionEngine = {
     );
   },
 
-  keepMd: (input: string) => {
-    const [inputDir, inputStem] = dirAndStem(input);
-    return join(inputDir, inputStem + ".md");
-  },
+  keepMd,
+
+  keepFiles: (input: string) => [keepMd(input)],
 
   run: (options: RunOptions) => {
     return callR<void>(
@@ -97,6 +96,11 @@ export const rmdEngine: ExecutionEngine = {
     );
   },
 };
+
+function keepMd(input: string) {
+  const [inputDir, inputStem] = dirAndStem(input);
+  return join(inputDir, inputStem + ".md");
+}
 
 async function callR<T>(
   action: string,

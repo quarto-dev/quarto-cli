@@ -7,11 +7,11 @@
 
 import { basename, dirname, extname, join } from "path/mod.ts";
 
-import { getenv } from "../../core/env.ts";
 import { execProcess } from "../../core/process.ts";
 import {
   readYamlFromMarkdown,
   readYamlFromMarkdownFile,
+  readYamlFrontMatterFromMarkdownFile,
 } from "../../core/yaml.ts";
 
 import { dirAndStem } from "../../core/path.ts";
@@ -80,8 +80,8 @@ export const jupyterEngine: ExecutionEngine = {
   canHandle: (file: string) => {
     const ext = extname(file);
     if (kJupytextMdExtensions.includes(ext)) {
-      const yaml = readYamlFromMarkdownFile(file);
-      return !!yaml.jupyter;
+      const yaml = readYamlFrontMatterFromMarkdownFile(file);
+      return !!yaml?.jupyter;
     } else {
       return isNotebook(file);
     }
@@ -311,13 +311,24 @@ export const jupyterEngine: ExecutionEngine = {
     return Promise.resolve();
   },
 
-  keepMd: (input: string) => {
-    return join(dirname(input), basename(input) + ".md");
+  keepMd,
+
+  keepFiles: (input: string) => {
+    const keep = [keepMd(input)];
+    if (!isNotebook(input)) {
+      const [fileDir, fileStem] = dirAndStem(input);
+      keep.push(join(fileDir, fileStem + ".ipynb"));
+    }
+    return keep;
   },
 };
 
 export function pythonBinary(binary = "python3") {
   return binary;
+}
+
+function keepMd(input: string) {
+  return join(dirname(input), basename(input) + ".md");
 }
 
 interface JupyterTargetData {

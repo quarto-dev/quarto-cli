@@ -17,12 +17,15 @@ import { contentType, isHtmlContent } from "../../core/mime.ts";
 
 import { kOutputDir, ProjectContext } from "../../project/project-context.ts";
 
+import { render } from "../render/render.ts";
+
 import { ProjectWatcher, watchProject } from "./watch.ts";
 
 export const kLocalhost = "127.0.0.1";
 
 export type ServeOptions = {
   port: number;
+  render?: boolean;
   browse?: boolean;
   watch?: boolean;
   navigate?: boolean;
@@ -36,13 +39,24 @@ export async function serveProject(
 ) {
   // provide defaults
   options = {
+    render: true,
     browse: true,
     watch: true,
     navigate: true,
-    quiet: true,
+    quiet: false,
     debug: false,
     ...options,
   };
+
+  // render if requested
+  if (options.render) {
+    await render(project.dir, {
+      flags: {
+        quiet: options.quiet,
+        debug: options.debug,
+      },
+    });
+  }
 
   // determine site dir
   const outputDir = project.metadata?.project?.[kOutputDir];

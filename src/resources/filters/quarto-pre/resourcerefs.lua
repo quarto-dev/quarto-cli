@@ -99,7 +99,7 @@ end
 
 
 function recordFileResource(res)
-  if res:find("^%a+://") == nil and res:find("^data:") == nil then
+  if res:find("^%a+://") == nil and res:find("^data:") == nil and res:find("^#") == nil then
     preState.results.resourceFiles:insert(res)
   end
 end

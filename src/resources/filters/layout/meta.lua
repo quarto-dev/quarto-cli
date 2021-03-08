@@ -2,11 +2,11 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- inject metadata
-function metaInject()
+function layoutMetaInject()
   return {
-    Pandoc = function(doc)
+    Meta = function(meta)
       
-      metaInjectLatex(doc, function(inject)
+      metaInjectLatex(meta, function(inject)
         inject(
           usePackage("caption") .. "\n" ..
           usePackage("subfig")
@@ -16,7 +16,7 @@ function metaInject()
         end
       end)
       
-      metaInjectHtml(doc, function(inject)
+      metaInjectHtml(meta, function(inject)
         if layoutState.layoutCss then
           inject([[
 <style type="text/css">
@@ -84,7 +84,7 @@ function metaInject()
         end
       end)
       
-      return doc
+      return meta
     end
   }
 end

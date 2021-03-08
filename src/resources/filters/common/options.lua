@@ -2,10 +2,10 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- initialize options from 'crossref' metadata value
-function readFilterOptions(doc, filter)
+function readFilterOptions(meta, filter)
   local options = {}
-  if type(doc.meta[filter]) == "table" then
-    options = doc.meta[filter]:clone()
+  if type(meta[filter]) == "table" then
+    options = meta[filter]:clone()
   end
   return options
 end

@@ -257,19 +257,6 @@ export function parseRenderFlags(args: string[]) {
     }
   }
 
-  // provide some defaults if necessary (based on environment and/or config)
-
-  // kernel keepalive of 5 mintues for interactive sessions
-  if (flags.kernelKeepalive === undefined) {
-    const isInteractive = Deno.isatty(Deno.stderr.rid) ||
-      !!Deno.env.get("RSTUDIO_VERSION");
-    if (isInteractive) {
-      flags.kernelKeepalive = 300;
-    } else {
-      flags.kernelKeepalive = 0;
-    }
-  }
-
   return flags;
 }
 

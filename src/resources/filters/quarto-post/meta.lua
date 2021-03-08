@@ -2,11 +2,11 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- inject metadata
-function metaInject()
+function quartoPostMetaInject()
   return {
-    Pandoc = function(doc)
+    Meta = function(meta)
       
-      metaInjectHtml(doc, function(inject)
+      metaInjectHtml(meta, function(inject)
         if postState.codeFoldingCss then
           inject([[
 <style type="text/css">
@@ -22,7 +22,7 @@ function metaInject()
         end
       end)
       
-      return doc
+      return meta
     end
   }
 end
