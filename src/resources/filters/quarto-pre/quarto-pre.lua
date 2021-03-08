@@ -41,8 +41,8 @@ import("../common/debug.lua")
 return {
   initParams(),
   readIncludes(),
+  outputs(),
   combineFilters({
-    outputs(),
     figures(),
     resourceRefs(),
   }),
