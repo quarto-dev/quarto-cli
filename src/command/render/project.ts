@@ -60,6 +60,16 @@ export async function renderProject(
     };
   }
 
+  // set kernelKeepalive to 0 for renders of the entire project
+  // or a list of more than one file (don't want to leave dozens of
+  // kernels in memory)
+  if (
+    files.length > 1 && options.flags &&
+    options.flags.kernelKeepalive === undefined
+  ) {
+    options.flags.kernelKeepalive = 0;
+  }
+
   // set QUARTO_PROJECT_DIR
   Deno.env.set("QUARTO_PROJECT_DIR", projDir);
   try {
