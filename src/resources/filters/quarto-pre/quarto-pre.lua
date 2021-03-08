@@ -37,9 +37,9 @@ import("../common/figures.lua")
 import("../common/debug.lua")
 -- [/import]
 
+initParams()
 
 return {
-  initParams(),
   readIncludes(),
   outputs(),
   combineFilters({

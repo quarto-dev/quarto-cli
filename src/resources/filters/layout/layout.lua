@@ -271,10 +271,10 @@ function isPreambleBlock(el)
          (el.t == "Div" and el.attr.classes:includes("cell-output-stderr"))
 end
 
+initParams()
 
 -- chain of filters
 return {
-  initParams(),
   layoutPanels(),
   extendedFigures(),
   layoutMetaInject()

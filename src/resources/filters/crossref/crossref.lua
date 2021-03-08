@@ -36,11 +36,13 @@ import("../common/figures.lua")
 import("../common/meta.lua")
 import("../common/table.lua")
 import("../common/debug.lua")
+import("../common/json.lua")
 -- [/import]
+
+initParams()
 
 -- chain of filters
 return {
-  initParams(),
   initCrossrefOptions(),
   initIndex(),
   preprocess(),

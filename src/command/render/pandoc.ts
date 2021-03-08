@@ -38,7 +38,7 @@ import {
   pandocDefaultsMessage,
   writeDefaultsFile,
 } from "./defaults.ts";
-import { removeFilterParmas, setFilterParams } from "./filters.ts";
+import { filterParamsJson, removeFilterParmas } from "./filters.ts";
 import {
   kCss,
   kIncludeAfterBody,
@@ -211,7 +211,12 @@ export async function runPandoc(
 
   // set parameters required for filters (possibily mutating all of it's arguments
   // to pull includes out into quarto parameters so they can be merged)
-  setFilterParams(args, options, allDefaults, filterResultsFile);
+  const paramsJson = filterParamsJson(
+    args,
+    options,
+    allDefaults,
+    filterResultsFile,
+  );
 
   // write the defaults file
   if (allDefaults) {
@@ -255,6 +260,9 @@ export async function runPandoc(
     {
       cmd,
       cwd: options.cwd,
+      env: {
+        "QUARTO_FILTER_PARAMS": paramsJson,
+      },
     },
   );
 

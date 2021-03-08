@@ -5,13 +5,7 @@
 quartoParams = {}
 
 function initParams()
-   return {
-    Pandoc = function(doc)
-      if type(doc.meta["quarto-params"]) == "table" then
-        quartoParams = doc.meta["quarto-params"]:clone()
-      end
-    end
-  }
+   quartoParams = jsonDecode(os.getenv("QUARTO_FILTER_PARAMS"))
 end
 
 function param(name, default)

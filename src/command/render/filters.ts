@@ -37,7 +37,7 @@ const kQuartoParams = "quarto-params";
 const kProjectOffset = "project-offset";
 const kResultsFile = "results-file";
 
-export function setFilterParams(
+export function filterParamsJson(
   args: string[],
   options: PandocOptions,
   defaults: FormatPandoc | undefined,
@@ -59,7 +59,7 @@ export function setFilterParams(
     [kResultsFile]: pandocMetadataPath(resultsFile),
   };
 
-  options.format.metadata[kQuartoParams] = params;
+  return JSON.stringify(params);
 }
 
 export function removeFilterParmas(metadata: Metadata) {
