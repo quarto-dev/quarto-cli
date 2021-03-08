@@ -21,7 +21,7 @@ export function crossrefFilter() {
 }
 
 export function crossrefFilterActive(format: Format) {
-  return !!format.metadata.crossref;
+  return format.metadata.crossref !== false;
 }
 
 export function crossrefGeneratedDefaults(options: PandocOptions) {
