@@ -187,7 +187,7 @@ export function resolveFilters(userFilters: string[], options: PandocOptions) {
   filters.push(quartoPreFilter());
 
   // add crossref filter if necessary
-  if (crossrefFilterActive(options.format)) {
+  if (crossrefFilterActive(options)) {
     filters.push(crossrefFilter());
   }
 

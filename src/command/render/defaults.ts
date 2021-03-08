@@ -58,9 +58,12 @@ export async function generateDefaults(
       options.format.pandoc || {},
     );
     // resolve filters
-    const resolvedFilters = resolveFilters([
-      ...(allDefaults[kFilters] || []),
-    ], options);
+    const resolvedFilters = resolveFilters(
+      [
+        ...(allDefaults[kFilters] || []),
+      ],
+      options,
+    );
     if (resolvedFilters) {
       allDefaults[kFilters] = resolvedFilters;
     }

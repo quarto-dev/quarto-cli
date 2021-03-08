@@ -11,7 +11,6 @@ import {
   kNumberSections,
   kTopLevelDivision,
 } from "../../config/constants.ts";
-import { Format } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
 
 import { PandocOptions } from "./pandoc.ts";
@@ -20,8 +19,12 @@ export function crossrefFilter() {
   return resourcePath("filters/crossref/crossref.lua");
 }
 
-export function crossrefFilterActive(format: Format) {
-  return format.metadata.crossref !== false;
+export function crossrefFilterActive(options: PandocOptions) {
+  if (options.format.metadata.crossref === undefined) {
+    return !!options.markdown.match(/#\w+\:/);
+  } else {
+    return options.format.metadata.crossref !== false;
+  }
 }
 
 export function crossrefGeneratedDefaults(options: PandocOptions) {
