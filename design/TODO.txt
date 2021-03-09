@@ -7,6 +7,19 @@
 //    - commenting
 //    - edit on github
 
+TODO: prevent bootstrap in dependencies
+(https://rdrr.io/cran/govdown/man/unstrap.html)
+
+TODO: Use ally syntax highlighting scheme
+
+TODO: why is "filters: []" showing up in pandoc
+
+TODO: rendering website from outside dir is unable
+to find/resolve pages in the nav
+
+TODO: toc-title defaulting for website w/o putting in yaml?
+TODO: "title" for home page (often doesn't want to have a title)
+TODO: project vs per-file format
 
 
 Charles:

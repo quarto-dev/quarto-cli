@@ -156,6 +156,7 @@ export const kBibliography = "bibliography";
 export const kHeaderIncludes = "header-includes";
 export const kIncludeBefore = "include-before";
 export const kIncludeAfter = "include-after";
+export const kTocTitle = "toc-title";
 
 // https://pandoc.org/MANUAL.html#default-files
 // note: we are keeping some things out of 'defaults' b/ca

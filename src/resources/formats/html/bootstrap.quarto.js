@@ -1,10 +1,10 @@
 window.document.addEventListener("DOMContentLoaded", function() {
   
   // move the toc if there is a sidebar
-  var toc = window.document.getElementById("TOC");
+  var toc = window.document.querySelectorAll('nav[role="doc-toc"]');
   var tocSidebar = window.document.getElementById("quarto-toc-sidebar")
-  if (toc && tocSidebar) {
-    tocSidebar.appendChild(toc);
+  if (toc.length > 0 && tocSidebar) {
+    tocSidebar.appendChild(toc[0]);
   }
   
   // latch active nav link

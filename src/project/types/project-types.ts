@@ -6,7 +6,6 @@
 */
 
 import { Format, FormatExtras } from "../../config/format.ts";
-import { Metadata } from "../../config/metadata.ts";
 import { ProjectContext, ProjectMetadata } from "../project-context.ts";
 
 import { bookProjectType } from "./project-book.ts";
@@ -15,8 +14,9 @@ import { websiteProjectType } from "./website/website.ts";
 
 export interface ProjectType {
   type: string;
-  create: (title: string, outputDir?: string) => ProjectCreate;
-  config: (config?: ProjectMetadata) => ProjectMetadata | undefined;
+  create: (title: string) => ProjectCreate;
+  libDir?: string;
+  outputDir?: string;
   formatExtras?: (
     context: ProjectContext,
     format: Format,
@@ -27,7 +27,7 @@ export interface ProjectType {
 }
 
 export interface ProjectCreate {
-  metadata?: Metadata;
+  configTemplate: string;
   scaffold?: ProjectScaffoldFile[];
   supporting?: string[];
 }
@@ -38,13 +38,18 @@ export interface ProjectScaffoldFile {
   title?: string;
 }
 
+const kTypes = [
+  defaultProjectType,
+  websiteProjectType,
+  bookProjectType,
+];
+
+export function projectTypes(): string[] {
+  return kTypes.map((type) => type.type);
+}
+
 export function projectType(type = "default"): ProjectType {
-  const types = [
-    defaultProjectType,
-    websiteProjectType,
-    bookProjectType,
-  ];
-  const projectType = types.find((pt) => pt.type === type);
+  const projectType = kTypes.find((pt) => pt.type === type);
   if (projectType) {
     return projectType;
   } else {

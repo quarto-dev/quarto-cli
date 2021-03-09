@@ -5,54 +5,33 @@
 *
 */
 import { join } from "path/mod.ts";
-import { kIncludeInHeader } from "../../config/constants.ts";
-import {
-  kLibDir,
-  kOutputDir,
-  ProjectContext,
-  ProjectMetadata,
-} from "../project-context.ts";
 import { resourcePath } from "../../core/resources.ts";
 
 import { ProjectCreate, ProjectType } from "./project-types.ts";
 
 export const bookProjectType: ProjectType = {
   type: "book",
-  create: (_title: string, outputDir = "_book"): ProjectCreate => {
+
+  create: (): ProjectCreate => {
     const supportingDir = resourcePath(join("projects", "book"));
 
     return {
-      metadata: {
-        format: {
-          html: {
-            css: "styles.css",
-          },
-          epub: {
-            css: "styles.css",
-          },
-          pdf: {
-            documentclass: "book",
-            [kIncludeInHeader]: "preamble.tex",
-          },
-        },
-        project: {
-          [kOutputDir]: outputDir,
-        },
-        bibliography: "references.bib",
-      },
-
+      configTemplate: join(supportingDir, "templates", "_quarto.yml.ejs"),
       scaffold: [
         {
           name: "01-intro",
-          content: "# Introduction",
+          content: "The introduction",
+          title: "Introduction",
         },
         {
           name: "02-summary",
-          content: "# Summary",
+          content: "The summary",
+          title: "Summary",
         },
         {
           name: "03-references",
-          content: "# References {-}",
+          content: "",
+          title: "References",
         },
       ],
 
@@ -64,16 +43,6 @@ export const bookProjectType: ProjectType = {
     };
   },
 
-  config: (config?: ProjectMetadata) => {
-    config = config || {};
-    return {
-      [kLibDir]: "libs",
-      ...config,
-      [kOutputDir]: config[kOutputDir] || "_book",
-    };
-  },
-
-  preRender: (_context: ProjectContext) => {
-    return Promise.resolve();
-  },
+  libDir: "libs",
+  outputDir: "_book",
 };

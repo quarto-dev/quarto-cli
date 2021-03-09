@@ -7,7 +7,7 @@
 
 import { join } from "path/mod.ts";
 import { exists } from "fs/mod.ts";
-import { executionEngine } from "../execute/engine.ts";
+import { fileExecutionEngine } from "../execute/engine.ts";
 
 import { ProjectContext } from "./project-context.ts";
 
@@ -22,6 +22,11 @@ export async function inputTargetIndex(
   project: ProjectContext,
   input: string,
 ): Promise<InputTargetIndex | undefined> {
+  // return undefined if the file doesn't exist
+  if (!await exists(input)) {
+    return Promise.resolve(undefined);
+  }
+
   // see if we have an up to date index file
   const inputFile = join(project.dir, input);
   const indexFile = inputTargetIndexFile(project, input);
@@ -34,7 +39,7 @@ export async function inputTargetIndex(
   }
 
   // otherwise read the metadata and index it
-  const engine = executionEngine(inputFile);
+  const engine = fileExecutionEngine(inputFile);
   if (engine) {
     const metadata = await engine.metadata(inputFile);
     const index = { metadata };

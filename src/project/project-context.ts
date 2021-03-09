@@ -64,13 +64,19 @@ export function projectContext(path: string): ProjectContext {
       delete projectConfig[kMetadataFile];
       delete projectConfig[kMetadataFiles];
       if (projectConfig.project) {
-        const config = projectConfig.project as ProjectMetadata;
-        const type = projectType(config.type);
+        const project = projectConfig.project as ProjectMetadata;
+        const type = projectType(project.type);
+        if (project[kLibDir] === undefined && type.libDir) {
+          project[kLibDir] = type.libDir;
+        }
+        if (!project[kOutputDir] && type.outputDir) {
+          project[kOutputDir] = type.outputDir;
+        }
         return {
           dir,
           metadata: {
             ...projectConfig,
-            project: type.config(config),
+            project,
           },
           formatExtras: type.formatExtras,
         };

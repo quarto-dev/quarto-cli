@@ -53,8 +53,8 @@ import { Format } from "../../config/format.ts";
 import {
   ExecuteResult,
   ExecutionEngine,
-  executionEngine,
   ExecutionTarget,
+  fileExecutionEngine,
 } from "../../execute/engine.ts";
 
 import { pandocMetadataPath, PandocOptions, runPandoc } from "./pandoc.ts";
@@ -210,7 +210,7 @@ export async function renderContexts(
   project?: ProjectContext,
 ): Promise<Record<string, RenderContext>> {
   // determine the computation engine and any alternate input file
-  const engine = await executionEngine(file);
+  const engine = await fileExecutionEngine(file);
   if (!engine) {
     throw new Error("Unable to render " + file);
   }

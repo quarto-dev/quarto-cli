@@ -1,0 +1,17 @@
+project:
+  title: "<%= title %>"
+  type: book
+  output-dir: <%= outputDir %>
+
+format:
+  html:
+    css: styles.css
+  epub:
+    css: styles.css
+  pdf:
+    documentclass: "book"
+    include-in-header: "preamble.tex"
+
+bibliography: "references.bib"
+
+

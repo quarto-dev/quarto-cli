@@ -77,6 +77,12 @@ const kJupytextMdExtensions = [
 export const jupyterEngine: ExecutionEngine = {
   name: "jupyter",
 
+  defaultExt: ".md",
+
+  defaultYaml: (kernel?: string) => [
+    `jupyter: ${kernel || "python3"}`,
+  ],
+
   canHandle: (file: string) => {
     const ext = extname(file);
     if (kJupytextMdExtensions.includes(ext)) {

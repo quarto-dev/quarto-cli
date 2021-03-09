@@ -21,6 +21,7 @@ import {
   kIncludeBeforeBody,
   kTableOfContents,
   kToc,
+  kTocTitle,
   kVariables,
 } from "../config/constants.ts";
 import { Format, FormatExtras, kDependencies } from "../config/format.ts";
@@ -42,6 +43,7 @@ export function htmlFormat(
     {
       metadata: {
         [kTheme]: "default",
+        [kTocTitle]: "Table of contents",
       },
     },
     {
