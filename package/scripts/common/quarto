@@ -28,7 +28,7 @@ if [ -f "$DEV_PATH" ]; then
   fi
   export QUARTO_BIN_PATH=$SCRIPT_PATH
   export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../../../src/resources/";pwd`"
-  export QUARTO_DEBUG=1
+  export QUARTO_DEBUG=true
 else 
   
   QUARTO_ACTION=run
