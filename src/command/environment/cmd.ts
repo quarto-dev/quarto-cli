@@ -4,83 +4,23 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-
+import * as colors from "fmt/colors.ts";
 import { Command } from "cliffy/command/mod.ts";
 
 import { message } from "../../core/console.ts";
-import { getenv } from "../../core/env.ts";
 import { which } from "../../core/path.ts";
 import { execProcess } from "../../core/process.ts";
 import { binaryPath, rBinaryPath } from "../../core/resources.ts";
-import { version } from "../../core/version.ts";
 
 import { tinyTexInstallDir } from "../install/tools/tinytex.ts";
 import { tlVersion } from "../render/latekmk/texlive.ts";
 import { pythonBinary } from "../../execute/jupyter/jupyter.ts";
-
-export const environmentCommand = new Command()
-  .name("env")
-  .description("Prints Quarto environment information")
-  .option("--optional", "Print optional environment information")
-  // deno-lint-ignore no-explicit-any
-  .action(async (options: any, _dir?: string) => {
-    const optional = options["optional"];
-
-    message(`Quarto:`);
-    printEnv("Bin Path", getenv("QUARTO_BIN_PATH"));
-    printEnv("Share Path", getenv("QUARTO_SHARE_PATH"));
-    printEnv("Version", version());
-    message("");
-
-    for (const envData of envDatas) {
-      const path = await envData.path();
-      const version = await envData.readValue();
-      if (path && version) {
-        message(`${envData.name}:`);
-        printEnv("Path", path);
-        printEnv("Version", version);
-        if (envData.options?.newLine) {
-          message("");
-        }
-      } else if (envData.warnIfMissing || optional) {
-        message(`${envData.name}:`);
-        message("(Not found)\n", { indent: 1 });
-      } else {
-        // This is optional, so will just allow it through silently.
-      }
-    }
-  });
-
-const envDatas: EnvironmentData[] = [
-  binaryEnv("Deno", "deno", true),
-  binaryEnv("Pandoc", "pandoc", true),
-  {
-    name: "TeXLive",
-    warnIfMissing: true,
-    path: () => {
-      return Promise.resolve(tinyTexInstallDir());
-    },
-    readValue: () => {
-      return tlVersion();
-    },
-    options: { newLine: true },
-  },
-  rBinaryEnv("R", "R", false),
-  pythonEnv("python", false),
-  pythonEnv("jupyter", false),
-  pythonEnv("jupytext", false, { newLine: true }),
-];
-
-function printEnv(name: string, value: string) {
-  message(`${name}:`, { indent: 1 });
-  message(value, { indent: 2 });
-}
+import { QuartoConfig, quartoConfig } from "../../core/quarto.ts";
 
 interface EnvironmentData {
   name: string;
-  warnIfMissing: boolean;
   path: () => Promise<string | undefined>;
-  readValue: () => Promise<string | undefined>;
+  version: () => Promise<string | undefined>;
   options?: EnvironmentDataOutputOptions;
 }
 
@@ -88,19 +28,88 @@ interface EnvironmentDataOutputOptions {
   newLine: boolean;
 }
 
+export const environmentCommand = new Command()
+  .name("env")
+  .arguments("[type:string]")
+  .description("Prints Quarto environment information")
+  // deno-lint-ignore no-explicit-any
+  .action(async (options: any, type?: string) => {
+    const envDataRequired: EnvironmentData[] = [];
+    const envDataOptional: EnvironmentData[] = [];
+    switch (type) {
+      case "all":
+        envDataRequired.push(QuartoEnv(quartoConfig));
+        envDataRequired.push(...required);
+        envDataRequired.push(...optional);
+        envDataRequired.push(...r);
+        envDataRequired.push(...python);
+        break;
+      case "r":
+        envDataRequired.push(...r);
+        break;
+      case "python":
+        envDataRequired.push(...python);
+        break;
+      default:
+        envDataRequired.push(QuartoEnv(quartoConfig));
+        envDataRequired.push(...required);
+        envDataOptional.push(...optional);
+        envDataOptional.push(...r);
+        envDataOptional.push(...python);
+        break;
+    }
+
+    // Will always print, even if they are missing
+    for (const envData of envDataRequired) {
+      await printEnvironmentData(envData, false);
+    }
+
+    // Will only print if they are present, will be skipped
+    // if not installed
+    for (const envData of envDataOptional) {
+      await printEnvironmentData(envData, true);
+    }
+  });
+
+const required: EnvironmentData[] = [
+  binaryEnv("Deno", "deno"),
+  binaryEnv("Pandoc", "pandoc"),
+];
+
+const r: EnvironmentData[] = [
+  rBinaryEnv("R", "R"),
+];
+
+const python: EnvironmentData[] = [
+  pythonEnv("python"),
+  pythonEnv("jupyter"),
+  pythonEnv("jupytext", { newLine: true }),
+];
+
+const optional: EnvironmentData[] = [
+  {
+    name: "TeXLive",
+    path: () => {
+      return Promise.resolve(tinyTexInstallDir());
+    },
+    version: () => {
+      return tlVersion();
+    },
+    options: { newLine: true },
+  },
+];
+
 function binaryEnv(
   name: string,
   cmd: string,
-  warnIfMissing: boolean,
   options?: EnvironmentDataOutputOptions,
 ): EnvironmentData {
   return {
     name,
-    warnIfMissing,
     path: () => {
       return Promise.resolve(binaryPath(cmd));
     },
-    readValue: async () => {
+    version: async () => {
       const res = await execProcess({
         cmd: [binaryPath(cmd), "--version"],
         stdout: "piped",
@@ -115,12 +124,10 @@ function binaryEnv(
 function rBinaryEnv(
   name: string,
   cmd: string,
-  warnIfMissing: boolean,
   options?: EnvironmentDataOutputOptions,
 ): EnvironmentData {
   return {
     name,
-    warnIfMissing,
     path: async () => {
       let path = rBinaryPath(cmd);
       if (path === cmd) {
@@ -129,7 +136,7 @@ function rBinaryEnv(
       }
       return Promise.resolve(path);
     },
-    readValue: async () => {
+    version: async () => {
       try {
         const res = await execProcess({
           cmd: [rBinaryPath(cmd), "--version"],
@@ -147,16 +154,14 @@ function rBinaryEnv(
 
 function pythonEnv(
   name: string,
-  warnIfMissing: boolean,
   options?: EnvironmentDataOutputOptions,
 ): EnvironmentData {
   return {
     name: name,
-    warnIfMissing,
     path: () => {
       return Promise.resolve(pythonBinary(name));
     },
-    readValue: async () => {
+    version: async () => {
       try {
         const r = await execProcess({
           cmd: [
@@ -173,4 +178,47 @@ function pythonEnv(
     },
     options,
   };
+}
+
+function QuartoEnv(config: QuartoConfig): EnvironmentData {
+  return {
+    name: "Quarto",
+    path: () => {
+      return Promise.resolve(
+        `${quartoConfig.binPath()}\n${quartoConfig.sharePath()}`,
+      );
+    },
+    version: () => {
+      return Promise.resolve(
+        config.isDebug() ? "DEBUG" : quartoConfig.version(),
+      );
+    },
+    options: { newLine: true },
+  };
+}
+
+async function printEnvironmentData(
+  envData: EnvironmentData,
+  optional: boolean,
+) {
+  const path = await envData.path();
+  const version = await envData.version();
+  if (path && version) {
+    message(`${colors.bold(envData.name)}:`);
+    printEnv("Path", path);
+    printEnv("Version", version);
+    if (envData.options?.newLine) {
+      message("");
+    }
+  } else if (!optional) {
+    message(`${envData.name}:`);
+    message("(Not found)\n", { indent: 1 });
+  } else {
+    // This is optional, so will just allow it through silently.
+  }
+}
+
+function printEnv(name: string, value: string) {
+  message(`${name}:`, { indent: 1 });
+  message(value, { indent: 2 });
 }
