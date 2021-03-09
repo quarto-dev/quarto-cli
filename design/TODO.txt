@@ -12,6 +12,8 @@ TODO: prevent bootstrap in dependencies
 
 TODO: Use ally syntax highlighting scheme
 
+TODO: index.html for file system vs. web
+
 TODO: why is "filters: []" showing up in pandoc
 
 TODO: rendering website from outside dir is unable
