@@ -7,6 +7,13 @@
 //    - commenting
 //    - edit on github
 
+TODO: navbar title should be able to use project title
+TODO: project generation should use correct extension in nav menus
+TODO: can we generate a jupyter markdown site (don't we
+need jupyter: python3 ?)
+TODO: why is "filters: []"cat  showing up in pandoc
+TODO: should project _quarto.yml file use ejs?
+      (that way we can have comments, etc)
 
 
 Charles:
