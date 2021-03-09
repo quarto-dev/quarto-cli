@@ -7,19 +7,10 @@
 //    - commenting
 //    - edit on github
 
-
-
-TODO: common yaml option reading (all docs use yaml)
-use Rmd-style chunks for Jupyter (Jmd). YAML encoding.
-(need to add support for this to Jupytext)
-Use e.g. fig-width vs. fig.width?  figwidth
-Jmd
-```{python mylabel}
-echo: true
-tags: ["foo", "bar"]
-
-
-```
+TODO: home page for site should use site title if there
+is no page title
+TODO: home page for site should use "Home" as it's menu text
+if there is no title
 
 Charles:
   - Windows installer may not want to show EULA esp GPL 2 
@@ -36,6 +27,17 @@ TODO: cache directories:
   - global purge?
 
 TODO: generalized warning system (look for 'WARNING:')
+
+TODO: common yaml option reading (all docs use yaml)
+use Rmd-style chunks for Jupyter (Jmd). YAML encoding.
+(need to add support for this to Jupytext)
+Use e.g. fig-width vs. fig.width?  figwidth
+Jmd
+```{python mylabel}
+echo: true
+tags: ["foo", "bar"]
+
+```
 
 HTML:
   - floating toc (https://coda.io/d/Figmas-approach-to-modern-PRDs_d1OS5N8pQpx/PRD-Name-of-Project_sut2b#_lu7lK)
