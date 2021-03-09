@@ -13,6 +13,7 @@ import { executionEngine, executionEngines } from "../../execute/engine.ts";
 
 import { projectCreate } from "../../project/project-create.ts";
 import { projectTypes } from "../../project/types/project-types.ts";
+import { kOutputDir } from "../../project/project-context.ts";
 
 const kProjectTypes = projectTypes();
 const kExecutionEngines = executionEngines();
@@ -62,6 +63,10 @@ export const createProjectCommand = new Command()
     },
   )
   .option(
+    "--output-dir <dir:string>",
+    "Directory for project outputs",
+  )
+  .option(
     "--no-scaffold",
     "Don't create initial project file(s)",
   )
@@ -107,6 +112,7 @@ export const createProjectCommand = new Command()
       title: options.title || basename(dir),
       scaffold: !!options.scaffold,
       engine: engine[0] || "none",
+      [kOutputDir]: options.outputDir,
       kernel: engine[1],
       quiet: options.quiet,
     });
