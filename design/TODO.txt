@@ -7,11 +7,12 @@
 //    - commenting
 //    - edit on github
 
+
+
 Charles:
   - Windows installer may not want to show EULA esp GPL 2 
   - Dependencies should be manually installed for dev, then we can turn off the module checking in Deno (check file taking too long)
       
-
 TODO: cache directories:
  quarto clean output 
  quarto clean cache 
@@ -20,8 +21,6 @@ TODO: cache directories:
  quarto clean output cache state
  quarto clean all (output,cache,state)
   - global purge?
-
-TODO: kernel persistence for project renders? (should we disable entirely, use a single kernel for the whole site, etc.)
 
 TODO: generalized warning system (look for 'WARNING:')
 

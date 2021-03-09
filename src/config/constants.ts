@@ -146,6 +146,8 @@ export const kMetadataFiles = "metadata-files";
 export const kSyntaxDefinitions = "syntax-definitions";
 export const kSyntaxDefinition = "syntax-definition";
 export const kReferenceDoc = "reference-doc";
+export const kToc = "toc";
+export const kTableOfContents = "table-of-contents";
 
 // metadata fields
 export const kCsl = "csl";
@@ -195,8 +197,8 @@ export const kPandocDefaultsKeys = [
   "columns",
   "dpi",
   "extract-media",
-  "toc",
-  "table-of-contents",
+  kToc,
+  kTableOfContents,
   "toc-depth",
   kNumberSections,
   kNumberOffset,

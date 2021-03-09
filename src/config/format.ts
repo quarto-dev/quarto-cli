@@ -51,7 +51,9 @@ import {
   kShowCode,
   kShowOutput,
   kShowWarnings,
+  kTableOfContents,
   kTemplate,
+  kToc,
   kVariables,
   kVariant,
 } from "../config/constants.ts";
@@ -70,6 +72,8 @@ import {
   kOutputExt,
   kPageWidth,
 } from "./constants.ts";
+
+import { PandocFlags } from "./flags.ts";
 
 export const kDependencies = "dependencies";
 
@@ -104,7 +108,7 @@ export interface Format {
   execution: FormatExecution;
   pandoc: FormatPandoc;
   metadata: Metadata;
-  formatExtras?: (format: Format) => FormatExtras;
+  formatExtras?: (flags: PandocFlags, format: Format) => FormatExtras;
 }
 
 export interface FormatRender {
@@ -169,6 +173,8 @@ export interface FormatPandoc {
   [kPdfEngine]?: string;
   [kPdfEngineOpts]?: string[];
   [kPdfEngineOpt]?: string;
+  [kToc]?: boolean;
+  [kTableOfContents]?: boolean;
   [kListings]?: boolean;
   [kNumberSections]?: boolean;
 }

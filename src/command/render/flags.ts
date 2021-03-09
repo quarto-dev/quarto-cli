@@ -22,6 +22,8 @@ import {
   kPandocDefaultsKeys,
   kRenderDefaultsKeys,
   kSelfContained,
+  kTableOfContents,
+  kToc,
   kTopLevelDivision,
 } from "../../config/constants.ts";
 import { PandocFlags } from "../../config/flags.ts";
@@ -111,6 +113,12 @@ export function parseRenderFlags(args: string[]) {
       case "--biblatex":
         arg = argsStack.shift();
         flags.biblatex = true;
+        break;
+
+      case kToc:
+      case kTableOfContents:
+        arg = argsStack.shift();
+        flags.toc = true;
         break;
 
       case "--listings":

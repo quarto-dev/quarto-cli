@@ -13,6 +13,7 @@ import {
   kNumberOffset,
   kNumberSections,
   kSelfContained,
+  kToc,
   kTopLevelDivision,
 } from "./constants.ts";
 
@@ -26,6 +27,7 @@ export interface PandocFlags {
   tlmgrOpts?: string[];
   natbib?: boolean;
   biblatex?: boolean;
+  [kToc]?: boolean;
   [kListings]?: boolean;
   [kNumberSections]?: boolean;
   [kNumberOffset]?: number[];
