@@ -59,12 +59,7 @@ function projectOffset()
   local projOffset = param("project-offset")
   if projOffset ~= nil then
     offset = pandoc.utils.stringify(projOffset)
-    if offset == "." then
-      offset = ""
-    else
-      offset = offset .. "/"
-    end
-    return offset
+    return  offset .. "/"
   else
     return nil
   end
