@@ -23,9 +23,10 @@ export function renderEjs(
 
   // render it, passing an include function for partials
   return template(data)
+    .trimLeft()
     .split(/\r?\n/)
     .filter((line) => !removeEmptyLines || (line.trim().length > 0))
-    .join("\n");
+    .join("\n") + "\n";
 }
 
 const compiledTemplates = new Map<string, unknown>();

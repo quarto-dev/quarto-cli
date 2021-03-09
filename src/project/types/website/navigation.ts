@@ -83,6 +83,7 @@ export async function initWebsiteNavigation(project: ProjectContext) {
 
   // prepare navbar for ejs
   const navbarData = await navbarEjsData(project, navbar);
+  console.log(navbarData);
 
   // get navbar paths
   const navigationPaths = sessionNavigationPaths();

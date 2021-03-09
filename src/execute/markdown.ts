@@ -23,7 +23,11 @@ import {
 const kMarkdownExtensions = [".md", ".markdown"];
 
 export const markdownEngine: ExecutionEngine = {
-  name: "markdown",
+  name: "none",
+
+  defaultExt: ".md",
+
+  defaultYaml: () => [],
 
   canHandle: (file: string) => {
     return kMarkdownExtensions.includes(extname(file).toLowerCase());

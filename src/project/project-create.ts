@@ -8,22 +8,23 @@
 import { ld } from "lodash/mod.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { basename, join } from "path/mod.ts";
-import { stringify } from "encoding/yaml.ts";
 
 import { jupyterKernelspec } from "../core/jupyter/kernels.ts";
 import { message } from "../core/console.ts";
-import { ProjectCreate, projectType } from "./types/project-types.ts";
-import { mergeConfigs } from "../core/config.ts";
+import { projectType } from "./types/project-types.ts";
+import { renderEjs } from "../core/ejs.ts";
 
-import { kOutputDir, projectConfigFile } from "./project-context.ts";
+import { ExecutionEngine, executionEngine } from "../execute/engine.ts";
+
+import { projectConfigFile } from "./project-context.ts";
 import { createGitignore } from "./project-gitignore.ts";
 
 export interface ProjectCreateOptions {
   dir: string;
-  type?: string;
-  title?: string;
-  [kOutputDir]?: string;
-  engine?: string;
+  type: string;
+  title: string;
+  scaffold: boolean;
+  engine: string;
   kernel?: string;
   quiet?: boolean;
 }
@@ -31,6 +32,12 @@ export interface ProjectCreateOptions {
 export async function projectCreate(options: ProjectCreateOptions) {
   // read and validate options
   options = await readOptions(options);
+
+  // computed options
+  const engine = executionEngine(options.engine);
+  if (!engine) {
+    throw Error(`Invalid execution engine: ${options.engine}`);
+  }
 
   // track whether the directory already exists
   // (if so then don't scaffold)
@@ -48,11 +55,15 @@ export async function projectCreate(options: ProjectCreateOptions) {
 
   // call create on the project type
   const projType = projectType(options.type);
-  const projCreate = projType.create(options.title!, options[kOutputDir]);
+  const projCreate = projType.create(options.title);
 
   // create the initial project config
-  const metadata = projectMetadataFile(options, projCreate);
-  await Deno.writeTextFile(join(options.dir, "_quarto.yml"), metadata);
+  const quartoConfig = renderEjs(projCreate.configTemplate, {
+    title: options.title,
+    outputDir: projType.outputDir,
+    ext: engine.defaultExt,
+  }, false);
+  await Deno.writeTextFile(join(options.dir, "_quarto.yml"), quartoConfig);
   if (!options.quiet) {
     message(
       "- Created _quarto.yml",
@@ -69,13 +80,13 @@ export async function projectCreate(options: ProjectCreateOptions) {
 
   // create scaffold files if we aren't creating a project within the
   // current working directory (which presumably already has files)
-  if (projCreate.scaffold && !dirAlreadyExists) {
+  if (options.scaffold && projCreate.scaffold && !dirAlreadyExists) {
     for (const scaffold of projCreate.scaffold) {
       const md = projectMarkdownFile(
         options.dir,
         scaffold.name,
         scaffold.content,
-        options.engine || "markdown",
+        engine,
         options.kernel,
         scaffold.title,
       );
@@ -115,22 +126,6 @@ async function readOptions(options: ProjectCreateOptions) {
   // provide default title
   options.title = options.title || basename(options.dir);
 
-  // no output-dir for default type
-  if (options[kOutputDir] && options.type === "default") {
-    throw new Error(
-      "You canont specify ---output-dir for the default project type.",
-    );
-  }
-
-  // provide default output-dir
-  if (!options[kOutputDir]) {
-    switch (options.type) {
-      case "book":
-        options[kOutputDir] = "_book";
-        break;
-    }
-  }
-
   // error if the quarto config file already exists
   if (projectConfigFile(options.dir)) {
     throw new Error(
@@ -141,35 +136,11 @@ async function readOptions(options: ProjectCreateOptions) {
   return options;
 }
 
-function projectMetadataFile(
-  options: ProjectCreateOptions,
-  projCreate: ProjectCreate,
-) {
-  // deno-lint-ignore no-explicit-any
-  let metadata: any = {
-    project: {
-      title: options.title,
-    },
-  };
-  if (options.type !== "default") {
-    metadata.project.type = options.type;
-    if (options[kOutputDir]) {
-      metadata.project[kOutputDir] = options[kOutputDir];
-    }
-  }
-
-  // merge project metadata
-  metadata = mergeConfigs(metadata, projCreate.metadata);
-
-  // convert to yaml
-  return stringify(metadata, { indent: 2, sortKeys: false });
-}
-
 function projectMarkdownFile(
   dir: string,
   name: string,
   content: string,
-  engine: string,
+  engine: ExecutionEngine,
   kernel?: string,
   title?: string,
 ) {
@@ -180,9 +151,7 @@ function projectMarkdownFile(
   }
 
   // write jupyter kernel if necessary
-  if (engine === "jupyter") {
-    lines.push(`jupyter: ${kernel}`);
-  }
+  lines.push(...engine.defaultYaml(kernel));
 
   // end yaml
   lines.push("---", "");
@@ -196,7 +165,7 @@ function projectMarkdownFile(
   lines.push(content);
 
   // write file and return it's name
-  name = name + (engine === "rmd" ? ".Rmd" : ".md");
+  name = name + engine.defaultExt;
   const path = join(dir, name);
   Deno.writeTextFileSync(path, lines.join("\n") + "\n");
   return name;

@@ -5,24 +5,36 @@
 *
 */
 
+import { basename } from "path/mod.ts";
+
 import { Command } from "cliffy/command/mod.ts";
 
-import { kOutputDir } from "../../project/project-context.ts";
+import { executionEngine, executionEngines } from "../../execute/engine.ts";
+
 import { projectCreate } from "../../project/project-create.ts";
+import { projectTypes } from "../../project/types/project-types.ts";
+
+const kProjectTypes = projectTypes();
+const kExecutionEngines = executionEngines();
 
 export const createProjectCommand = new Command()
   .name("create-project")
   .description("Create a project for rendering multiple documents")
   .arguments("[dir:string]")
   .option(
-    "-T, --type <type:string>",
-    "Project type (default, website, or book)",
+    "--title <title:string>",
+    "Project title (defaults to directory name)",
+  )
+  .option(
+    "--type <type:string>",
+    `Project type (${kProjectTypes.join(", ")})`,
     {
-      default: "default",
       value: (value: string): string => {
-        if (["default", "website", "book"].indexOf(value) === -1) {
+        if (kProjectTypes.indexOf(value || "default") === -1) {
           throw new Error(
-            `Project type must be one of "default, website or book", but got "${value}".`,
+            `Project type must be one of ${
+              kProjectTypes.join(", ")
+            }, but got "${value}".`,
           );
         }
         return value;
@@ -30,26 +42,19 @@ export const createProjectCommand = new Command()
     },
   )
   .option(
-    "--scaffold [format:string]",
-    "Create initial project file(s) with specified format",
+    "--engine <engine:string>",
+    `Use execution engine (${kExecutionEngines.join(", ")})`,
     {
-      default: "markdown",
       value: (value: string): string[] => {
-        if (
-          value !== "markdown" && value !== "rmd" &&
-          !value.startsWith("jupyter")
-        ) {
-          throw new Error("Unknown format for --scaffold");
+        value = value || "none";
+        const engine = executionEngine(value);
+        if (!engine) {
+          throw new Error(`Unknown --engine: ${value}`);
         }
-        if (value.startsWith("jupyter")) {
-          const match = value.match(/jupyter(:(.+))?$/);
-          if (!match) {
-            throw new Error(
-              "Invalid jupyter format specification for --scaffold",
-            );
-          } else {
-            return ["jupyter", match[2] || "python3"];
-          }
+        // check for kernel
+        const match = value.match(/(\w+)(:(.+))?$/);
+        if (match) {
+          return [match[1], match[2]];
         } else {
           return [value];
         }
@@ -59,14 +64,6 @@ export const createProjectCommand = new Command()
   .option(
     "--no-scaffold",
     "Don't create initial project file(s)",
-  )
-  .option(
-    "--title [title:string]",
-    "Project title (defaults to directory name)",
-  )
-  .option(
-    "--output-dir [dir:string]",
-    "Output directory (default varies with project type)",
   )
   .option(
     "--quiet",
@@ -81,26 +78,36 @@ export const createProjectCommand = new Command()
     "quarto create-project myproject",
   )
   .example(
-    "Create a website project in the current directory",
+    "Create a website project",
     "quarto create-project --type website",
   )
   .example(
-    "Create a book project in the current directory",
+    "Create a book project",
     "quarto create-project --type book",
   )
   .example(
-    "Create a book project with formats html, pdf, and epub",
-    "quarto create-project --type book --formats html,pdf,epub",
+    "Create a website project with jupyter",
+    "quarto create-project --type website --engine jupyter",
+  )
+  .example(
+    "Create a website project with jupyter + kernel",
+    "quarto create-project --type website --engine jupyter:python3",
+  )
+  .example(
+    "Create a book project with knitr",
+    "quarto create-project --type book --engine knitr",
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, dir?: string) => {
+    dir = dir || Deno.cwd();
+    const engine = options.engine || [];
     await projectCreate({
-      dir: dir || Deno.cwd(),
+      dir,
       type: options.type,
-      engine: options.scaffold[0],
-      kernel: options.scaffold[1],
-      title: options.title,
-      [kOutputDir]: options[kOutputDir],
+      title: options.title || basename(dir),
+      scaffold: !!options.scaffold,
+      engine: engine[0] || "none",
+      kernel: engine[1],
       quiet: options.quiet,
     });
   });

@@ -6,12 +6,7 @@
 */
 
 import { join } from "path/mod.ts";
-import {
-  kLibDir,
-  kOutputDir,
-  ProjectContext,
-  ProjectMetadata,
-} from "../../project-context.ts";
+import { ProjectContext } from "../../project-context.ts";
 import { resourcePath } from "../../../core/resources.ts";
 
 import { ProjectCreate, ProjectType } from "../project-types.ts";
@@ -25,29 +20,21 @@ const kSidebar = "sidebar";
 
 export const websiteProjectType: ProjectType = {
   type: "website",
-  create: (_title: string, outputDir = "_site"): ProjectCreate => {
+  create: (): ProjectCreate => {
     const supportingDir = resourcePath(join("projects", "website"));
 
     return {
-      metadata: {
-        format: {
-          html: {
-            css: "styles.css",
-          },
-        },
-        project: {
-          [kOutputDir]: outputDir,
-        },
-      },
-
+      configTemplate: join(supportingDir, "templates", "_quarto.yml.ejs"),
       scaffold: [
         {
           name: "index",
-          content: "---\ntitle: Home\n---\n",
+          content: "Home page",
+          title: "Home",
         },
         {
           name: "about",
-          content: "---\ntitle: About\n---\n",
+          content: "## About this site",
+          title: "About",
         },
       ],
 
@@ -57,14 +44,8 @@ export const websiteProjectType: ProjectType = {
     };
   },
 
-  config: (config?: ProjectMetadata) => {
-    config = config || {};
-    return {
-      [kLibDir]: "libs",
-      ...config,
-      [kOutputDir]: config[kOutputDir] || "_site",
-    };
-  },
+  libDir: "libs",
+  outputDir: "_site",
 
   preRender: async (context: ProjectContext) => {
     await initWebsiteNavigation(context);

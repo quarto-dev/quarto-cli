@@ -23,7 +23,6 @@ import type {
   ExecuteOptions,
   ExecuteResult,
   ExecutionEngine,
-  ExecutionTarget,
   PostProcessOptions,
   RunOptions,
 } from "./engine.ts";
@@ -33,8 +32,12 @@ const kRmdExtensions = [".rmd", ".rmarkdown"];
 const kRScriptExtensions = [".r", ".s", ".q"];
 const kEngineExtensions = [...kRmdExtensions, ...kRScriptExtensions];
 
-export const rmdEngine: ExecutionEngine = {
-  name: "rmarkdown",
+export const knitrEngine: ExecutionEngine = {
+  name: "knitr",
+
+  defaultExt: ".Rmd",
+
+  defaultYaml: () => [],
 
   canHandle: (file: string) => {
     return kEngineExtensions.includes(extname(file).toLowerCase());

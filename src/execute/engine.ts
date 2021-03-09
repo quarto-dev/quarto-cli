@@ -8,12 +8,14 @@
 import { Format, FormatPandoc } from "../config/format.ts";
 import { Metadata } from "../config/metadata.ts";
 
-import { rmdEngine } from "./rmd.ts";
+import { knitrEngine } from "./rmd.ts";
 import { jupyterEngine } from "./jupyter/jupyter.ts";
 import { markdownEngine } from "./markdown.ts";
 
 export interface ExecutionEngine {
   name: string;
+  defaultExt: string;
+  defaultYaml: (kernel?: string) => string[];
   canHandle: (file: string) => boolean;
   target: (
     file: string,
@@ -94,12 +96,25 @@ export interface RunOptions {
 }
 
 const kEngines = [
-  rmdEngine,
+  knitrEngine,
   jupyterEngine,
   markdownEngine,
 ];
 
-export function executionEngine(file: string) {
+export function executionEngines() {
+  return kEngines.reverse().map((engine) => engine.name);
+}
+
+export function executionEngine(name: string) {
+  // try to find an engine
+  for (const engine of kEngines) {
+    if (engine.name === name) {
+      return engine;
+    }
+  }
+}
+
+export function fileExecutionEngine(file: string) {
   // try to find an engine
   for (const engine of kEngines) {
     if (engine.canHandle) {

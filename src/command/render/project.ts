@@ -13,7 +13,7 @@ import { ld } from "lodash/mod.ts";
 import { resolvePathGlobs } from "../../core/path.ts";
 import { message } from "../../core/console.ts";
 
-import { executionEngine } from "../../execute/engine.ts";
+import { fileExecutionEngine } from "../../execute/engine.ts";
 
 import {
   kExecuteDir,
@@ -206,7 +206,7 @@ export function projectInputFiles(context: ProjectContext) {
 
   const addFile = (file: string) => {
     if (!outputDir || !file.startsWith(join(context.dir, outputDir))) {
-      const engine = executionEngine(file);
+      const engine = fileExecutionEngine(file);
       if (engine) {
         files.push(file);
         const keep = engine.keepFiles(file);

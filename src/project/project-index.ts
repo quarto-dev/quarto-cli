@@ -7,7 +7,7 @@
 
 import { join } from "path/mod.ts";
 import { exists } from "fs/mod.ts";
-import { executionEngine } from "../execute/engine.ts";
+import { fileExecutionEngine } from "../execute/engine.ts";
 
 import { ProjectContext } from "./project-context.ts";
 
@@ -39,7 +39,7 @@ export async function inputTargetIndex(
   }
 
   // otherwise read the metadata and index it
-  const engine = executionEngine(inputFile);
+  const engine = fileExecutionEngine(inputFile);
   if (engine) {
     const metadata = await engine.metadata(inputFile);
     const index = { metadata };
