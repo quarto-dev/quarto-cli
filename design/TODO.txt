@@ -12,6 +12,8 @@ is no page title
 TODO: home page for site should use "Home" as it's menu text
 if there is no title
 
+TODO:  htmlwidgets need a fluid container (as perhaps do jupyter widgets)
+
 Charles:
   - Windows installer may not want to show EULA esp GPL 2 
   - Dependencies should be manually installed for dev, then we can turn off the module checking in Deno (check file taking too long)
