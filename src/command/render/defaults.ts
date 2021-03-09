@@ -131,6 +131,9 @@ export function pandocDefaultsMessage(
           filter !== layoutFilter() &&
           !sysFilters.includes(filter);
       });
+    if (defaults.filters?.length === 0) {
+      delete defaults.filters;
+    }
   }
 
   // remove template if it's patched
