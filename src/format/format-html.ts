@@ -170,7 +170,7 @@ function boostrapExtras(
   const renderTemplate = (template: string) => {
     const rendered = renderEjs(
       formatResourcePath("html", `templates/${template}`),
-      { toc },
+      { toc, sidebar: false },
     );
     const tempFile = sessionTempFile({ suffix: ".html" });
     Deno.writeTextFileSync(tempFile, rendered);

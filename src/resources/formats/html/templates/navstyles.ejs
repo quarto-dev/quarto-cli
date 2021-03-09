@@ -1,17 +1,26 @@
 <style type="text/css">
-  .navbar-brand > img {
-    max-height: 24px;
-    width: auto;
-    padding-right: 6px;
-  }
-  :target::before {
-    content: "";
-    display: block;
-    height: <%= height %>px; 
-    margin: -<%= height %>px 0 0;
-  }
-  body {
-    padding-top: <%= height %>px;
-  }
-  </style>
+.navbar-brand > img {
+  max-height: 24px;
+  width: auto;
+  padding-right: 6px;
+}
+:target::before {
+  content: "";
+  display: block;
+  height: <%= height %>px; 
+  margin: -<%= height %>px 0 0;
+}
+body {
+  padding-top: <%= height %>px;
+}
+
+.sidebar {
+  position: sticky;
+  max-height: calc(100vh - <%= height %>px);
+  top: <%= height %>px;
+  overflow-y: auto;
+  max-width: 15rem;
+}
+
+</style>
   

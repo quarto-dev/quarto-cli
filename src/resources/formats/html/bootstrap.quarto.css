@@ -1,8 +1,8 @@
 
 
-body {
-  margin-top: 1.5em;
-  margin-bottom: 1.5em;
+main {
+  margin-top: 1em;
+  margin-bottom: 1em;
 }
 
 <%= maxwidth %>
