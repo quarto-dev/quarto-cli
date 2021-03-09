@@ -27,7 +27,7 @@ import {
   kDependencies,
 } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
-import { binaryPath } from "../../core/resources.ts";
+import { binaryPath, resourcePath } from "../../core/resources.ts";
 
 import { kResources, ProjectContext } from "../../project/project-context.ts";
 import { projectType } from "../../project/types/project-types.ts";
@@ -41,6 +41,7 @@ import {
 import { filterParamsJson, removeFilterParmas } from "./filters.ts";
 import {
   kCss,
+  kHighlightStyle,
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
@@ -126,6 +127,13 @@ export async function runPandoc(
   // generate defaults and capture defaults to be printed
   let allDefaults = await generateDefaults(options) || {};
   const printAllDefaults = allDefaults ? ld.cloneDeep(allDefaults) : undefined;
+
+  // provide arrow highlight style
+  if (allDefaults[kHighlightStyle] === "arrow") {
+    allDefaults[kHighlightStyle] = Deno.realPathSync(
+      resourcePath(join("pandoc", "arrow.theme")),
+    );
+  }
 
   // see if there are extras
   if (

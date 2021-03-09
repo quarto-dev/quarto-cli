@@ -19,6 +19,7 @@ import {
   kFigDpi,
   kFilters,
   kHeaderIncludes,
+  kHighlightStyle,
   kIncludeAfter,
   kIncludeAfterBody,
   kIncludeBefore,
@@ -177,6 +178,7 @@ export interface FormatPandoc {
   [kTableOfContents]?: boolean;
   [kListings]?: boolean;
   [kNumberSections]?: boolean;
+  [kHighlightStyle]?: string;
 }
 
 export function isLatexOutput(format: FormatPandoc) {
