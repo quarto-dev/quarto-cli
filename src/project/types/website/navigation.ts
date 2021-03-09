@@ -108,13 +108,15 @@ async function navbarEjsData(
 ): Promise<NavMain> {
   const data: NavMain = {
     ...navbar,
+    title: navbar.title !== undefined
+      ? navbar.title
+      : project.metadata?.project?.title || "",
     type: navbar.type || "light",
     background: navbar.background || "light",
     logo: navbar.logo ? `/${navbar.logo}` : undefined,
     collapse: navbar.collapse || "all",
-    [kCollapseBelow]: navbar.collapse === "none"
-      ? ""
-      : ("-" + (navbar[kCollapseBelow] || "lg")) as LayoutBreak,
+    [kCollapseBelow]: navbar.collapse === "none" ? ""
+    : ("-" + (navbar[kCollapseBelow] || "lg")) as LayoutBreak,
   };
 
   // normalize nav items
