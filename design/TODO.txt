@@ -7,22 +7,23 @@
 //    - commenting
 //    - edit on github
 
-TODO: prevent bootstrap in dependencies
-(https://rdrr.io/cran/govdown/man/unstrap.html)
-
-TODO: Use ally syntax highlighting scheme
-
 TODO: index.html for file system vs. web
 
-TODO: why is "filters: []" showing up in pandoc
-
-TODO: rendering website from outside dir is unable
-to find/resolve pages in the nav
-
-TODO: toc-title defaulting for website w/o putting in yaml?
 TODO: "title" for home page (often doesn't want to have a title)
 TODO: project vs per-file format
 
+TODO: common yaml option reading (all docs use yaml)
+use Rmd-style chunks for Jupyter (Jmd). YAML encoding.
+(need to add support for this to Jupytext)
+Use e.g. fig-width vs. fig.width?  figwidth
+
+Jmd
+```{python mylabel}
+echo: true
+tags: ["foo", "bar"]
+
+
+```
 
 Charles:
   - Windows installer may not want to show EULA esp GPL 2 
