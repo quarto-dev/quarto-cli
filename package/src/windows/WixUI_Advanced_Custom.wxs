@@ -83,10 +83,7 @@ Todo:
         <![CDATA[WIXUI_INSTALLDIR_VALID<>"1"]]>
       </Publish>
 
-      <Publish Dialog="AdvancedWelcomeEulaDlg" Control="Advanced" Event="NewDialog" Value="InstallScopeDlg" Order="1">!(wix.WixUISupportPerMachine) AND !(wix.WixUISupportPerUser)</Publish>
-      <Publish Dialog="AdvancedWelcomeEulaDlg" Control="Advanced" Event="NewDialog" Value="InstallDirDlg" Order="3">!(wix.WixUISupportPerMachine) AND NOT !(wix.WixUISupportPerUser)</Publish>
-
-      <Publish Dialog="InstallScopeDlg" Control="Back" Event="NewDialog" Value="AdvancedWelcomeEulaDlg">1</Publish>
+      <Publish Dialog="InstallScopeDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
       <Publish Dialog="InstallScopeDlg" Control="Next" Property="WixAppFolder" Value="WixPerUserFolder" Order="1">!(wix.WixUISupportPerUser) AND NOT Privileged</Publish>
       <Publish Dialog="InstallScopeDlg" Control="Next" Property="ALLUSERS" Value="{}" Order="2">WixAppFolder = "WixPerUserFolder"</Publish>
       <Publish Dialog="InstallScopeDlg" Control="Next" Property="ALLUSERS" Value="1" Order="3">WixAppFolder = "WixPerMachineFolder"</Publish>
@@ -95,7 +92,7 @@ Todo:
       <Publish Dialog="InstallScopeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg" Order="7">1</Publish>
 
       <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="InstallScopeDlg">!(wix.WixUISupportPerUser)</Publish>
-      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="AdvancedWelcomeEulaDlg">NOT !(wix.WixUISupportPerUser)</Publish>
+      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">NOT !(wix.WixUISupportPerUser)</Publish>
       <Publish Dialog="InstallDirDlg" Control="Next" Event="SetTargetPath" Value="[WIXUI_INSTALLDIR]" Order="1">1</Publish>
       <Publish Dialog="InstallDirDlg" Control="Next" Event="DoAction" Value="WixUIValidatePath" Order="2">NOT WIXUI_DONTVALIDATEPATH</Publish>
       <Publish Dialog="InstallDirDlg" Control="Next" Event="SpawnDialog" Value="InvalidDirDlg" Order="3">
@@ -116,11 +113,9 @@ Todo:
       <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="3">Installed AND PATCH</Publish>
 
       <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">Installed AND PATCH</Publish>
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallScopeDlg">NOT Installed</Publish>
     </UI>
 
-    <InstallUISequence>
-      <Show Dialog="WelcomeDlg" Before="AdvancedWelcomeEulaDlg">Installed AND PATCH</Show>
-    </InstallUISequence>
 
     <Property Id="WIXUI_INSTALLDIR" Value="APPLICATIONFOLDER" />
     <UIRef Id="WixUI_Common" />
