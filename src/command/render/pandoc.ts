@@ -128,9 +128,6 @@ export async function runPandoc(
     }
   }
 
-  // don't print navigation metadata
-  delete printMetadata.navbar;
-
   // generate defaults and capture defaults to be printed
   let allDefaults = await generateDefaults(options) || {};
   const printAllDefaults = allDefaults ? ld.cloneDeep(allDefaults) : undefined;
