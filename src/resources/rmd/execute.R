@@ -291,6 +291,13 @@ dependencies_from_render <-function(input, files_dir, knit_meta) {
     resolver,
     list() # format deps
   )
+
+  # filter out bootstrap
+  extras$dependencies <- Filter(
+    function(dependency) {dependency$name != "bootstrap"},
+    extras$dependencies
+  )
+
   # convert dependencies to in_header includes
   dependencies$includes <- list()
   if (length(extras$dependencies) > 0) {
