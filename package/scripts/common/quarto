@@ -15,12 +15,12 @@ DEV_PATH=$QUARTO_SRC_DIR/quarto.ts
 if [ -f "$DEV_PATH" ]; then
 
   # Caller can point deno at another entry point (e.g. the typescript file)
-if [ -z ${QUARTO_ACTION+x} ]; then
-  QUARTO_ACTION=run
-fi
+  if [ -z ${QUARTO_ACTION+x} ]; then
+    QUARTO_ACTION=run
+  fi
 
-# Local import map
-QUARTO_IMPORT_ARGMAP=--importmap=$QUARTO_SRC_DIR/import_map.json
+  # Local import map
+  QUARTO_IMPORT_ARGMAP=--importmap=$QUARTO_SRC_DIR/import_map.json
 
   # Allow calls to override the target
   if [ -z ${QUARTO_TARGET+x} ]; then
@@ -28,6 +28,7 @@ QUARTO_IMPORT_ARGMAP=--importmap=$QUARTO_SRC_DIR/import_map.json
   fi
   export QUARTO_BIN_PATH=$SCRIPT_PATH
   export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../../../src/resources/";pwd`"
+  export QUARTO_DEBUG=1
 else 
   
   QUARTO_ACTION=run
