@@ -320,7 +320,7 @@ export async function renderPandoc(
   // pandoc options
   const pandocOptions: PandocOptions = {
     markdown: executeResult.markdown,
-    cwd: dirname(context.target.input),
+    input: context.target.input,
     libDir: context.libDir,
     format: recipe.format,
     project: context.project,

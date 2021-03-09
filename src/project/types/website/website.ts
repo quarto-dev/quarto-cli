@@ -29,7 +29,6 @@ export const websiteProjectType: ProjectType = {
         {
           name: "index",
           content: "Home page",
-          title: "Home",
         },
         {
           name: "about",

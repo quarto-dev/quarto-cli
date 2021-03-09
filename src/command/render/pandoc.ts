@@ -15,7 +15,7 @@ import { stringify } from "encoding/yaml.ts";
 
 import { execProcess } from "../../core/process.ts";
 import { message } from "../../core/console.ts";
-import { pathWithForwardSlashes } from "../../core/path.ts";
+import { dirAndStem, pathWithForwardSlashes } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
 
 import {
@@ -28,6 +28,7 @@ import {
 } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
 import { binaryPath, resourcePath } from "../../core/resources.ts";
+import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
 
 import { kResources, ProjectContext } from "../../project/project-context.ts";
 import { projectType } from "../../project/types/project-types.ts";
@@ -55,8 +56,8 @@ import { RenderResourceFiles } from "./render.ts";
 export interface PandocOptions {
   // markdown input
   markdown: string;
-  // working dir for conversion
-  cwd: string;
+  // input file being processed
+  input: string;
 
   // lib dir for converstion
   libDir: string;
@@ -81,6 +82,9 @@ export async function runPandoc(
   options: PandocOptions,
   sysFilters: string[],
 ): Promise<RenderResourceFiles | null> {
+  // compute cwd for render
+  const cwd = dirname(options.input);
+
   // build the pandoc command (we'll feed it the input on stdin)
   const cmd = [binaryPath("pandoc")];
 
@@ -88,10 +92,13 @@ export async function runPandoc(
   const args = [...options.args];
 
   // provide default title if necessary
-  if (!options.format.metadata["title"]) {
+  if (
+    !options.format.metadata["title"] && !options.format.metadata["pagetitle"]
+  ) {
+    const [_dir, stem] = dirAndStem(options.input);
     args.push(
       "--metadata",
-      "title:untitled",
+      `pagetitle:${pandocAutoIdentifier(stem, false)}`,
     );
   }
 
@@ -154,7 +161,7 @@ export async function runPandoc(
     const extras = resolveExtras(
       projectExtras,
       formatExtras,
-      options.cwd,
+      cwd,
       options.libDir,
     );
 
@@ -267,7 +274,7 @@ export async function runPandoc(
   const result = await execProcess(
     {
       cmd,
-      cwd: options.cwd,
+      cwd,
       env: {
         "QUARTO_FILTER_PARAMS": paramsJson,
       },
@@ -288,7 +295,7 @@ export async function runPandoc(
   }
 
   // resource files referenced from metadata (e.g. 'css')
-  const files = formatResourceFiles(options.cwd, options.format);
+  const files = formatResourceFiles(cwd, options.format);
 
   // resource files explicitly discovered by the filter
   // (e.g. referenced from links)
