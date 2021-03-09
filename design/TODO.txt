@@ -7,13 +7,19 @@
 //    - commenting
 //    - edit on github
 
-TODO: navbar title should be able to use project title
-TODO: project generation should use correct extension in nav menus
-TODO: can we generate a jupyter markdown site (don't we
-need jupyter: python3 ?)
-TODO: why is "filters: []"cat  showing up in pandoc
-TODO: should project _quarto.yml file use ejs?
-      (that way we can have comments, etc)
+TODO: prevent bootstrap in dependencies
+(https://rdrr.io/cran/govdown/man/unstrap.html)
+
+TODO: Use ally syntax highlighting scheme
+
+TODO: why is "filters: []" showing up in pandoc
+
+TODO: rendering website from outside dir is unable
+to find/resolve pages in the nav
+
+TODO: toc-title defaulting for website w/o putting in yaml?
+TODO: "title" for home page (often doesn't want to have a title)
+TODO: project vs per-file format
 
 
 Charles:
