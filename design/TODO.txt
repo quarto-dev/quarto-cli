@@ -7,16 +7,12 @@
 //    - commenting
 //    - edit on github
 
-TODO: index.html for file system vs. web
 
-TODO: "title" for home page (often doesn't want to have a title)
-TODO: project vs per-file format
 
 TODO: common yaml option reading (all docs use yaml)
 use Rmd-style chunks for Jupyter (Jmd). YAML encoding.
 (need to add support for this to Jupytext)
 Use e.g. fig-width vs. fig.width?  figwidth
-
 Jmd
 ```{python mylabel}
 echo: true
