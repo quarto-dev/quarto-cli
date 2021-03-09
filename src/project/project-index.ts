@@ -22,6 +22,11 @@ export async function inputTargetIndex(
   project: ProjectContext,
   input: string,
 ): Promise<InputTargetIndex | undefined> {
+  // return undefined if the file doesn't exist
+  if (!await exists(input)) {
+    return Promise.resolve(undefined);
+  }
+
   // see if we have an up to date index file
   const inputFile = join(project.dir, input);
   const indexFile = inputTargetIndexFile(project, input);
