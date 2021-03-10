@@ -23,7 +23,7 @@ import { hasTableOfContents } from "../../../format/format-html.ts";
 
 import { ProjectContext } from "../../project-context.ts";
 import { inputTargetIndex } from "../../project-index.ts";
-import { kNavbar, kSidebar } from "./website.ts";
+import { kNavbar, kSidebar, kSidebars } from "./website.ts";
 
 const kAriaLabel = "aria-label";
 const kCollapseBelow = "collapse-below";
@@ -91,7 +91,11 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   // alias navbar config
   const navbar = project.metadata?.[kNavbar] as Navbar;
   const sidebar = project.metadata?.[kSidebar] as Sidebar;
-  if (typeof (navbar) !== "object" && typeof (sidebar) !== "object") {
+  let sidebars = project.metadata?.[kSidebars] as Sidebar[];
+  if (sidebar && !sidebars) {
+    sidebars = [sidebar];
+  }
+  if (typeof (navbar) !== "object" && !Array.isArray(sidebars)) {
     return;
   }
 
@@ -99,8 +103,11 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   const navstylesEjs = formatResourcePath("html", "templates/navstyles.ejs");
   navigation.header = renderEjs(navstylesEjs, { height: 60 });
 
-  // create navbar
+  // navbar
   navigation.navbar = await navbarEjsData(project, navbar);
+
+  // sidebars
+  navigation.sidebars = await sidebarsEjsData(project, sidebars);
 }
 
 export function websiteNavigation(
@@ -130,6 +137,46 @@ export function websiteNavigation(
   extras[kBodyEnvelope] = envelope;
 
   return extras;
+}
+
+async function sidebarsEjsData(project: ProjectContext, sidebars: Sidebar[]) {
+  const ejsSidebars: Sidebar[] = [];
+  for (let i = 0; i < sidebars.length; i++) {
+    ejsSidebars.push(await sidebarEjsData(project, sidebars[i]));
+  }
+  return Promise.resolve(ejsSidebars);
+}
+
+async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
+  sidebar = ld.cloneDeep(sidebar);
+
+  for (let i = 0; i < sidebar.contents.length; i++) {
+    if (Object.keys(sidebar.contents[i]).includes("items")) {
+      const items = (sidebar.contents[i] as SidebarSection).items;
+      for (let i = 0; i < items.length; i++) {
+        items[i] = await resolveSidebarItem(project, items[i]);
+      }
+    } else {
+      sidebar.contents[i] = await resolveSidebarItem(
+        project,
+        sidebar.contents[i] as SidebarItem,
+      );
+    }
+  }
+
+  return sidebar;
+}
+
+async function resolveSidebarItem(project: ProjectContext, item: SidebarItem) {
+  if (item.href) {
+    return await resolveItem(
+      project,
+      item.href,
+      item,
+    ) as SidebarItem;
+  } else {
+    return item;
+  }
 }
 
 async function navbarEjsData(
@@ -186,7 +233,7 @@ async function navigationItem(
     : navItem.icon;
 
   if (navItem.href) {
-    return await resolveNavItem(project, navItem.href, navItem);
+    return await resolveItem(project, navItem.href, navItem);
   } else if (navItem.menu) {
     // no sub-menus
     if (level > 0) {
@@ -231,11 +278,11 @@ function uniqueMenuId(navItem: NavbarItem) {
   return `nav-menu-${id}${number ? ("-" + number) : ""}`;
 }
 
-async function resolveNavItem(
+async function resolveItem(
   project: ProjectContext,
   href: string,
-  navItem: NavbarItem,
-): Promise<NavbarItem> {
+  item: { href?: string; text?: string },
+): Promise<{ href?: string; text?: string }> {
   if (!isExternalPath(href)) {
     const index = await inputTargetIndex(project, href);
     if (index) {
@@ -245,18 +292,18 @@ async function resolveNavItem(
         ((hrefDir === "." && hrefStem === "index") ? "Home" : undefined);
 
       return {
-        ...navItem,
+        ...item,
         href: htmlHref,
-        text: navItem.text || title,
+        text: item.text || title,
       };
     } else {
       return {
-        ...navItem,
+        ...item,
         href: "/" + href,
       };
     }
   } else {
-    return navItem;
+    return item;
   }
 }
 
