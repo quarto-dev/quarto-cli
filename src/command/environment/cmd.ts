@@ -19,8 +19,9 @@ import { QuartoConfig, quartoConfig } from "../../core/quarto.ts";
 
 interface EnvironmentData {
   name: string;
-  path: () => Promise<string | undefined>;
+  path: () => Promise<string | Record<string, string> | undefined>;
   version: () => Promise<string | undefined>;
+  metadata?: () => Promise<Record<string, string>>;
   options?: EnvironmentDataOutputOptions;
 }
 
@@ -185,7 +186,10 @@ function QuartoEnv(config: QuartoConfig): EnvironmentData {
     name: "Quarto",
     path: () => {
       return Promise.resolve(
-        `${quartoConfig.binPath()}\n${quartoConfig.sharePath()}`,
+        {
+          bin: quartoConfig.binPath(),
+          share: quartoConfig.sharePath(),
+        },
       );
     },
     version: () => {
@@ -204,13 +208,36 @@ async function printEnvironmentData(
   const path = await envData.path();
   const version = await envData.version();
   if (path && version) {
+    // Print the title
     message(`${colors.bold(envData.name)}:`);
-    printEnv("Path", path);
+
+    // Print the path information (single path or record of paths)
+    if (typeof (path) === "string") {
+      printEnv("Path", path);
+    } else if (path != undefined) {
+      const records = path as Record<string, string>;
+      Object.keys(records).forEach((key) => {
+        printEnv(key, records[key]);
+      });
+    }
+
+    // Print any other metadata that is emitted
+    if (envData.metadata) {
+      const metadata = await envData.metadata();
+      Object.keys(metadata).forEach((key) => {
+        printEnv(key, metadata[key]);
+      });
+    }
+
+    // Print the version
     printEnv("Version", version);
+
+    // optional new line
     if (envData.options?.newLine) {
       message("");
     }
   } else if (!optional) {
+    // Print a not found message
     message(`${envData.name}:`);
     message("(Not found)\n", { indent: 1 });
   } else {
