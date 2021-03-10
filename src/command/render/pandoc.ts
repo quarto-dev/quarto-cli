@@ -46,6 +46,8 @@ import {
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
+  kPageTitle,
+  kTitle,
   kVariables,
 } from "../../config/constants.ts";
 import { sessionTempFile } from "../../core/temp.ts";
@@ -90,17 +92,6 @@ export async function runPandoc(
 
   // build command line args
   const args = [...options.args];
-
-  // provide default title if necessary
-  if (
-    !options.format.metadata["title"] && !options.format.metadata["pagetitle"]
-  ) {
-    const [_dir, stem] = dirAndStem(options.input);
-    args.push(
-      "--metadata",
-      `pagetitle:${pandocAutoIdentifier(stem, false)}`,
-    );
-  }
 
   // propagate quiet
   if (options.flags?.quiet) {
@@ -150,6 +141,7 @@ export async function runPandoc(
     const projectExtras = options.project?.formatExtras
       ? (options.project.formatExtras(
         options.project,
+        options.input,
         options.format,
       ))
       : {};
@@ -219,6 +211,20 @@ export async function runPandoc(
 
     // make the filter paths windows safe
     allDefaults.filters = allDefaults.filters.map(pandocMetadataPath);
+  }
+
+  // provide default page title if necessary
+  if (
+    !options.format.metadata[kTitle] &&
+    !options.format.metadata[kPageTitle] &&
+    !allDefaults?.[kVariables]?.[kTitle] &&
+    !allDefaults?.[kVariables]?.[kPageTitle]
+  ) {
+    const [_dir, stem] = dirAndStem(options.input);
+    args.push(
+      "--metadata",
+      `pagetitle:${pandocAutoIdentifier(stem, false)}`,
+    );
   }
 
   // create a temp file for any filter results

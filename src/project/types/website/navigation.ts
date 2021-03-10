@@ -20,6 +20,7 @@ import { pandocAutoIdentifier } from "../../../core/pandoc/pandoc-id.ts";
 import {
   kIncludeBeforeBody,
   kIncludeInHeader,
+  kTitle,
 } from "../../../config/constants.ts";
 import { FormatExtras } from "../../../config/format.ts";
 
@@ -211,7 +212,7 @@ async function resolveNavItem(
     if (index) {
       const [hrefDir, hrefStem] = dirAndStem(href);
       const htmlHref = "/" + join(hrefDir, `${hrefStem}.html`);
-      const title = index.metadata?.["title"] as string ||
+      const title = index.metadata?.[kTitle] as string ||
         ((hrefDir === "." && hrefStem === "index") ? "Home" : undefined);
 
       return {

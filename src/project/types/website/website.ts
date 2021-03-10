@@ -6,11 +6,18 @@
 */
 
 import { join } from "path/mod.ts";
-import { ProjectContext } from "../../project-context.ts";
+import { ProjectContext, projectOffset } from "../../project-context.ts";
 import { resourcePath } from "../../../core/resources.ts";
+import { dirAndStem } from "../../../core/path.ts";
 
 import { ProjectCreate, ProjectType } from "../project-types.ts";
 import { Format, FormatExtras } from "../../../config/format.ts";
+import {
+  kPageTitle,
+  kTitle,
+  kTitlePrefix,
+  kVariables,
+} from "../../../config/constants.ts";
 import { formatHasBootstrap } from "../../../format/format-html.ts";
 
 import { initWebsiteNavigation, websiteNavigation } from "./navigation.ts";
@@ -51,14 +58,34 @@ export const websiteProjectType: ProjectType = {
   },
 
   formatExtras: (
-    _project: ProjectContext,
+    project: ProjectContext,
+    input: string,
     format: Format,
   ): FormatExtras => {
-    if (formatHasBootstrap(format)) {
-      return websiteNavigation();
-    } else {
-      return {};
+    // navigation extras for bootstrap enabled formats
+    const extras = formatHasBootstrap(format) ? websiteNavigation() : {};
+
+    // add some title related variables
+    extras[kVariables] = {};
+
+    // title prefix if the project has a title
+    const title = project.metadata?.project?.title;
+    if (title) {
+      extras[kVariables] = {
+        [kTitlePrefix]: project.metadata?.project?.title,
+      };
     }
+
+    // pagetitle for home page if it has no title
+    if (!format.metadata[kTitle] && !format.metadata[kPageTitle]) {
+      const offset = projectOffset(project, input);
+      const [_dir, stem] = dirAndStem(input);
+      if (stem === "index" && offset === ".") {
+        extras[kVariables]![kPageTitle] = "Home";
+      }
+    }
+
+    return extras;
   },
 
   metadataFields: () => [kNavbar, kSidebar],

@@ -65,6 +65,7 @@ import {
   kLibDir,
   ProjectContext,
   projectContext,
+  projectOffset,
 } from "../../project/project-context.ts";
 import { projectInputFiles, renderProject } from "./project.ts";
 
@@ -330,10 +331,7 @@ export async function renderPandoc(
 
   // add offset if we are in a project
   if (context.project) {
-    const projDir = Deno.realPathSync(context.project.dir);
-    const inputDir = Deno.realPathSync(dirname(context.target.input));
-    const offset = relative(inputDir, projDir) || ".";
-    pandocOptions.offset = pandocMetadataPath(offset);
+    pandocOptions.offset = projectOffset(context.project, context.target.input);
   }
 
   // run pandoc conversion (exit on failure)
