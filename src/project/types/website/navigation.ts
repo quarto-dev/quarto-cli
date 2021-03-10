@@ -209,9 +209,11 @@ async function resolveNavItem(
   if (!isExternalPath(href)) {
     const index = await inputTargetIndex(project, href);
     if (index) {
-      const title = index.metadata?.["title"] as string;
       const [hrefDir, hrefStem] = dirAndStem(href);
       const htmlHref = "/" + join(hrefDir, `${hrefStem}.html`);
+      const title = index.metadata?.["title"] as string ||
+        ((hrefDir === "." && hrefStem === "index") ? "Home" : undefined);
+
       return {
         ...navItem,
         href: htmlHref,
