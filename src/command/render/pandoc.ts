@@ -133,7 +133,10 @@ export async function runPandoc(
   const printAllDefaults = allDefaults ? ld.cloneDeep(allDefaults) : undefined;
 
   // provide arrow highlight style
-  if (allDefaults[kHighlightStyle] === "arrow") {
+  if (
+    allDefaults[kHighlightStyle] === undefined ||
+    allDefaults[kHighlightStyle] === "arrow"
+  ) {
     allDefaults[kHighlightStyle] = Deno.realPathSync(
       resourcePath(join("pandoc", "arrow.theme")),
     );
