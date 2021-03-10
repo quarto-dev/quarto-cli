@@ -24,7 +24,7 @@ export const quartoConfig = {
     if (existsSync(versionPath)) {
       return Deno.readTextFileSync(versionPath);
     } else {
-      return "No version";
+      return "(Local Development)";
     }
   },
 };
