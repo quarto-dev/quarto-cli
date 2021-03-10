@@ -11,6 +11,7 @@ import { message } from "../../core/console.ts";
 import { which } from "../../core/path.ts";
 import { execProcess } from "../../core/process.ts";
 import { binaryPath, rBinaryPath } from "../../core/resources.ts";
+import { sessionTempFile } from "../../core/temp.ts";
 
 import { tinyTexInstallDir } from "../install/tools/tinytex.ts";
 import { tlVersion } from "../render/latekmk/texlive.ts";
@@ -79,6 +80,7 @@ const required: EnvironmentData[] = [
 
 const r: EnvironmentData[] = [
   rBinaryEnv("R", "R"),
+  rPackageEnv(),
 ];
 
 const python: EnvironmentData[] = [
@@ -201,36 +203,120 @@ function QuartoEnv(config: QuartoConfig): EnvironmentData {
   };
 }
 
+function rPackageEnv(): EnvironmentData {
+  return {
+    name: "R Packages",
+    path: () => {
+      return Promise.resolve(undefined);
+    },
+    version: () => {
+      return Promise.resolve(undefined);
+    },
+    metadata: async () => {
+      const runR = async (code: string): Promise<string> => {
+        const codePath = sessionTempFile({ suffix: ".R" });
+        Deno.writeTextFileSync(
+          codePath,
+          code,
+        );
+
+        const result = await execProcess(
+          {
+            cmd: [
+              rBinaryPath("Rscript"),
+              codePath,
+            ],
+            stdout: "piped",
+            stderr: "piped",
+          },
+        );
+
+        return Promise.resolve(result.stdout || result.stderr || "");
+      };
+
+      // Read the required packages
+      const requiredRaw = await runR(
+        `ap <- available.packages(repos = "http://cran.us.r-project.org")
+        packs <- tools::package_dependencies(packages = "quarto", db = ap, recursive = TRUE)
+        packs <- paste(packs, collapse=",")
+        packs`,
+      );
+
+      const pkgRegex = /\\\"([a-zA-Z0-9_.-]*)\\\"/g;
+      const matches = requiredRaw.matchAll(pkgRegex);
+      const requiredPackages: string[] = [];
+      for (const match of matches) {
+        requiredPackages.push(match[1]);
+      }
+
+      // Read installed packages
+      const packagesRaw = await runR(`
+        installedPackages <- as.data.frame(installed.packages()[,c(1,3:4)])
+        installedPackages <- installedPackages[is.na(installedPackages$Priority),2,drop=FALSE]
+        installedPackages`);
+
+      const packages = packagesRaw
+        .split("\n").filter((line) => {
+          for (
+            const pkg of requiredPackages
+          ) {
+            if (line.startsWith(`${pkg} `)) {
+              return true;
+            }
+          }
+          return false;
+        })
+        .join("\n");
+      return Promise.resolve({
+        packages: packages,
+      });
+    },
+    options: { newLine: true },
+  };
+}
+
 async function printEnvironmentData(
   envData: EnvironmentData,
   optional: boolean,
 ) {
+  const getMetadata = (envData: EnvironmentData) => {
+    if (envData.metadata) {
+      return envData.metadata();
+    }
+    return undefined;
+  };
+
   const path = await envData.path();
   const version = await envData.version();
-  if (path && version) {
+  const metadata = await getMetadata(envData);
+
+  if (path || version || metadata) {
     // Print the title
     message(`${colors.bold(envData.name)}:`);
 
     // Print the path information (single path or record of paths)
-    if (typeof (path) === "string") {
-      printEnv("Path", path);
-    } else if (path != undefined) {
-      const records = path as Record<string, string>;
-      Object.keys(records).forEach((key) => {
-        printEnv(key, records[key]);
-      });
+    if (path) {
+      if (typeof (path) === "string") {
+        printEnv("Path", path);
+      } else if (path != undefined) {
+        const records = path as Record<string, string>;
+        Object.keys(records).forEach((key) => {
+          printEnv(key, records[key]);
+        });
+      }
     }
 
     // Print any other metadata that is emitted
-    if (envData.metadata) {
-      const metadata = await envData.metadata();
+    if (metadata) {
       Object.keys(metadata).forEach((key) => {
         printEnv(key, metadata[key]);
       });
     }
 
     // Print the version
-    printEnv("Version", version);
+    if (version) {
+      printEnv("Version", version);
+    }
 
     // optional new line
     if (envData.options?.newLine) {
