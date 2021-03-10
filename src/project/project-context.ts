@@ -5,11 +5,13 @@
 *
 */
 
-import { dirname, join } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
+import { pathWithForwardSlashes } from "../core/path.ts";
+
 import { includedMetadata, Metadata } from "../config/metadata.ts";
 import { kMetadataFile, kMetadataFiles } from "../config/constants.ts";
 import { Format, FormatExtras } from "../config/format.ts";
@@ -29,6 +31,7 @@ export interface ProjectContext {
   };
   formatExtras?: (
     project: ProjectContext,
+    input: string,
     format: Format,
   ) => FormatExtras;
 }
@@ -96,4 +99,11 @@ export function projectContext(path: string): ProjectContext {
       }
     }
   }
+}
+
+export function projectOffset(context: ProjectContext, input: string) {
+  const projDir = Deno.realPathSync(context.dir);
+  const inputDir = Deno.realPathSync(dirname(input));
+  const offset = relative(inputDir, projDir) || ".";
+  return pathWithForwardSlashes(offset);
 }

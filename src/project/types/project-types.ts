@@ -19,6 +19,7 @@ export interface ProjectType {
   outputDir?: string;
   formatExtras?: (
     context: ProjectContext,
+    input: string,
     format: Format,
   ) => FormatExtras;
   metadataFields?: () => string[];

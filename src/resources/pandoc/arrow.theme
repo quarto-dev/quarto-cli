@@ -12,7 +12,7 @@
             "underline": false
         },
         "Attribute": {
-            "text-color": "#20794D",
+            "text-color": null,
             "background-color": null,
             "bold": false,
             "italic": false,

@@ -150,6 +150,9 @@ export const kToc = "toc";
 export const kTableOfContents = "table-of-contents";
 
 // metadata fields
+export const kTitle = "title";
+export const kPageTitle = "pagetitle";
+export const kTitlePrefix = "title-prefix";
 export const kCsl = "csl";
 export const kCss = "css";
 export const kBibliography = "bibliography";
@@ -206,7 +209,7 @@ export const kPandocDefaultsKeys = [
   "shift-heading-level-by",
   "section-divs",
   "identifier-prefix",
-  "title-prefix",
+  kTitlePrefix,
   "strip-empty-paragraphs",
   "eol",
   "strip-comments",
