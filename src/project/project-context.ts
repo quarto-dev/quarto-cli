@@ -15,6 +15,7 @@ import { pathWithForwardSlashes } from "../core/path.ts";
 import { includedMetadata, Metadata } from "../config/metadata.ts";
 import { kMetadataFile, kMetadataFiles } from "../config/constants.ts";
 import { Format, FormatExtras } from "../config/format.ts";
+import { PandocFlags } from "../config/flags.ts";
 
 import { projectType } from "./types/project-types.ts";
 
@@ -32,6 +33,7 @@ export interface ProjectContext {
   formatExtras?: (
     project: ProjectContext,
     input: string,
+    flags: PandocFlags,
     format: Format,
   ) => FormatExtras;
 }

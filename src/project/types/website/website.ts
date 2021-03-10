@@ -12,6 +12,8 @@ import { dirAndStem } from "../../../core/path.ts";
 
 import { ProjectCreate, ProjectType } from "../project-types.ts";
 import { Format, FormatExtras } from "../../../config/format.ts";
+import { PandocFlags } from "../../../config/flags.ts";
+
 import {
   kPageTitle,
   kTitle,
@@ -22,8 +24,9 @@ import { formatHasBootstrap } from "../../../format/format-html.ts";
 
 import { initWebsiteNavigation, websiteNavigation } from "./navigation.ts";
 
-const kNavbar = "navbar";
-const kSidebar = "sidebar";
+export const kNavbar = "navbar";
+export const kSidebar = "sidebar";
+export const kSidebars = "sidebars";
 
 export const websiteProjectType: ProjectType = {
   type: "website",
@@ -60,10 +63,13 @@ export const websiteProjectType: ProjectType = {
   formatExtras: (
     project: ProjectContext,
     input: string,
+    flags: PandocFlags,
     format: Format,
   ): FormatExtras => {
     // navigation extras for bootstrap enabled formats
-    const extras = formatHasBootstrap(format) ? websiteNavigation() : {};
+    const extras = formatHasBootstrap(format)
+      ? websiteNavigation(input, flags, format)
+      : {};
 
     // add some title related variables
     extras[kVariables] = {};
@@ -88,5 +94,5 @@ export const websiteProjectType: ProjectType = {
     return extras;
   },
 
-  metadataFields: () => [kNavbar, kSidebar],
+  metadataFields: () => [kNavbar, kSidebar, kSidebars],
 };

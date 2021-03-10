@@ -5,8 +5,9 @@
 *
 */
 
+import { PandocFlags } from "../../config/flags.ts";
 import { Format, FormatExtras } from "../../config/format.ts";
-import { ProjectContext, ProjectMetadata } from "../project-context.ts";
+import { ProjectContext } from "../project-context.ts";
 
 import { bookProjectType } from "./project-book.ts";
 import { defaultProjectType } from "./project-default.ts";
@@ -20,6 +21,7 @@ export interface ProjectType {
   formatExtras?: (
     context: ProjectContext,
     input: string,
+    flags: PandocFlags,
     format: Format,
   ) => FormatExtras;
   metadataFields?: () => string[];

@@ -77,6 +77,7 @@ import {
 import { PandocFlags } from "./flags.ts";
 
 export const kDependencies = "dependencies";
+export const kBodyEnvelope = "body-envelope";
 
 export interface FormatDependency {
   name: string;
@@ -91,9 +92,16 @@ export interface DependencyFile {
   path: string;
 }
 
+export interface BodyEnvelope {
+  header?: string;
+  before?: string;
+  after?: string;
+}
+
 export interface FormatExtras {
   [kVariables]?: Record<string, unknown>;
   [kDependencies]?: FormatDependency[];
+  [kBodyEnvelope]?: BodyEnvelope;
   [kIncludeInHeader]?: string[];
   [kIncludeBeforeBody]?: string[];
   [kIncludeAfterBody]?: string[];
