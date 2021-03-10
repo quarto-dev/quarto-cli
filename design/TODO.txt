@@ -7,10 +7,9 @@
 //    - commenting
 //    - edit on github
 
-TODO: home page for site should use site title if there
-is no page title
-TODO: home page for site should use "Home" as it's menu text
-if there is no title
+
+TODO: do we need a way for the format to ask the project for things? (is there a sidebar, etc.)
+actually, it may be able to discern this from the metadata it is passed
 
 TODO:  htmlwidgets need a fluid container (as perhaps do jupyter widgets)
 
