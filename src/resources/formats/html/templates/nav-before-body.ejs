@@ -42,7 +42,7 @@
 
 <% if (nav.sidebar) { %>
 <div id="quarto-sidebar" class="col mx-auto col-lg-3 d-none d-lg-block sidebar">
-   Sidebar  
+  <% partial('sidebar.ejs', nav.sidebar) %>
 </div>
 <% } %>
 

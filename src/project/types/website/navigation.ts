@@ -5,11 +5,11 @@
 *
 */
 
-import { join } from "path/mod.ts";
+import { join, relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
-import { dirAndStem } from "../../../core/path.ts";
+import { dirAndStem, pathWithForwardSlashes } from "../../../core/path.ts";
 import { formatResourcePath } from "../../../core/resources.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 
@@ -110,16 +110,22 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   navigation.sidebars = await sidebarsEjsData(project, sidebars);
 }
 
-export function websiteNavigation(
+export function websiteNavigationExtras(
+  project: ProjectContext,
   input: string,
   flags: PandocFlags,
   format: Format,
 ): FormatExtras {
   const extras: FormatExtras = {};
 
+  // find the href for this input
+  const inputRelative = relative(project.dir, input);
+  const htmlHref = inputFileHref(inputRelative);
+
   const nav = {
     toc: hasTableOfContents(flags, format),
     navbar: navigation.navbar,
+    sidebar: sidebarForHref(htmlHref),
   };
 
   const envelope = {
@@ -176,6 +182,25 @@ async function resolveSidebarItem(project: ProjectContext, item: SidebarItem) {
     ) as SidebarItem;
   } else {
     return item;
+  }
+}
+
+function sidebarForHref(href: string) {
+  for (const sidebar of navigation.sidebars) {
+    for (let i = 0; i < sidebar.contents.length; i++) {
+      if (Object.keys(sidebar.contents[i]).includes("items")) {
+        const items = (sidebar.contents[i] as SidebarSection).items;
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].href === href) {
+            return sidebar;
+          }
+        }
+      } else {
+        if ((sidebar.contents[i] as SidebarItem).href === href) {
+          return sidebar;
+        }
+      }
+    }
   }
 }
 
@@ -287,7 +312,9 @@ async function resolveItem(
     const index = await inputTargetIndex(project, href);
     if (index) {
       const [hrefDir, hrefStem] = dirAndStem(href);
-      const htmlHref = "/" + join(hrefDir, `${hrefStem}.html`);
+      const htmlHref = pathWithForwardSlashes(
+        "/" + join(hrefDir, `${hrefStem}.html`),
+      );
       const title = index.metadata?.[kTitle] as string ||
         ((hrefDir === "." && hrefStem === "index") ? "Home" : undefined);
 
@@ -309,4 +336,10 @@ async function resolveItem(
 
 function isExternalPath(path: string) {
   return /^\w+:/.test(path);
+}
+
+function inputFileHref(href: string) {
+  const [hrefDir, hrefStem] = dirAndStem(href);
+  const htmlHref = "/" + join(hrefDir, `${hrefStem}.html`);
+  return pathWithForwardSlashes(htmlHref);
 }

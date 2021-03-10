@@ -22,7 +22,10 @@ import {
 } from "../../../config/constants.ts";
 import { formatHasBootstrap } from "../../../format/format-html.ts";
 
-import { initWebsiteNavigation, websiteNavigation } from "./navigation.ts";
+import {
+  initWebsiteNavigation,
+  websiteNavigationExtras,
+} from "./navigation.ts";
 
 export const kNavbar = "navbar";
 export const kSidebar = "sidebar";
@@ -68,7 +71,7 @@ export const websiteProjectType: ProjectType = {
   ): FormatExtras => {
     // navigation extras for bootstrap enabled formats
     const extras = formatHasBootstrap(format)
-      ? websiteNavigation(input, flags, format)
+      ? websiteNavigationExtras(project, input, flags, format)
       : {};
 
     // add some title related variables
