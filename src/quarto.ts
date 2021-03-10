@@ -13,12 +13,12 @@ import {
 import { commands } from "./command/command.ts";
 import { logError } from "./core/log.ts";
 import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
-import { version } from "./core/version.ts";
+import { quartoConfig } from "./core/quarto.ts";
 
 export async function quarto(args: string[]) {
   const quartoCommand = new Command()
     .name("quarto")
-    .version(version())
+    .version(quartoConfig.version())
     .description("Quarto CLI")
     .throwErrors();
 

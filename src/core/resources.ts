@@ -7,10 +7,10 @@
 
 import { walkSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
-import { getenv } from "./env.ts";
+import { quartoConfig } from "./quarto.ts";
 
 export function resourcePath(resource?: string): string {
-  const sharePath = getenv("QUARTO_SHARE_PATH");
+  const sharePath = quartoConfig.sharePath();
   if (resource) {
     return join(sharePath, resource);
   } else {
@@ -23,8 +23,7 @@ export function formatResourcePath(format: string, resource: string) {
 }
 
 export function binaryPath(binary: string): string {
-  const quartoPath = getenv("QUARTO_BIN_PATH");
-  return join(quartoPath, binary);
+  return join(quartoConfig.binPath(), binary);
 }
 
 export function rBinaryPath(binary: string): string {
