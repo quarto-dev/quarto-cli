@@ -15,9 +15,9 @@ import { defaultLogger } from "./util/logger.ts";
 import { makeInstallerWindows } from "./windows/installer.ts";
 
 // Core command dispatch
-export async function quartoPack(args: string[]) {
+export async function quartoBld(args: string[]) {
   const rootCommand = new Command()
-    .name("quarto-pack [command]")
+    .name("quarto-bld [command]")
     .version("0.1")
     .description(
       "Utility that implements packaging and distribution of quarto cli",
@@ -44,7 +44,7 @@ export async function quartoPack(args: string[]) {
 
 if (import.meta.main) {
   try {
-    await quartoPack(Deno.args);
+    await quartoBld(Deno.args);
   } catch (error) {
     if (error) {
       defaultLogger().error(`${error.stack}\n`);
