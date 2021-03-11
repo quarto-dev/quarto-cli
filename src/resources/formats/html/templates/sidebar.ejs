@@ -1,4 +1,10 @@
 <nav>
+  <% if (title) { %>
+  <h4><%- title %></h4>
+  <% } %>
+  <% if (search) { %>
+    <% partial('navsearch.ejs') %>
+  <% } %>
   <ul class="list-unstyled">
   <% contents.forEach(item => { %>
   <% if (item.section && item.items) { %>
