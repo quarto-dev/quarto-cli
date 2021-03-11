@@ -12,6 +12,7 @@
         <% partial('navsearch.ejs') %>
       <% } %>
     <% } else if (nav.navbar.collapse === "left") { %>
+      <% partial('navtoggle.ejs') %>
       <% partial('navcollapse.ejs') %>
         <% partial('navitems.ejs', { align: 'me-auto', items: nav.navbar.left}) %>
       </div> <!-- /navcollapse -->
@@ -19,7 +20,6 @@
       <% if (nav.navbar.search) { %>
         <% partial('navsearch.ejs') %>
       <% } %>
-      <% partial('navtoggle.ejs') %>
     <% } else { %>
       <% partial('navtoggle.ejs') %>
       <% partial('navcollapse.ejs') %>
