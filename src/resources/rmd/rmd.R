@@ -112,6 +112,7 @@
   # dispatch request
   if (request$action == "spin") {
     result <- spin(params$input)
+    result <- paste(result, collapse = '\n')
   } else if (request$action == "execute") {
     result <- execute(params$target$input, params$format, params$tempDir,  params$libDir, params$dependencies, params$cwd, params$params)
   } else if (request$action == "dependencies") {
