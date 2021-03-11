@@ -1,7 +1,7 @@
 
 <% if (nav.navbar) { %>  
 
-<nav class="navbar fixed-top navbar-expand<%- nav["collapse-below"] %> navbar-<%- nav.navbar.type %> bg-<%- nav.navbar.background %>">
+<nav class="navbar fixed-top navbar-expand<%- nav.navbar["collapse-below"] %> navbar-<%- nav.navbar.type %> bg-<%- nav.navbar.background %>">
   <div class="container-fluid">
   <% partial('navbrand.ejs', nav.navbar) %>
   <% if (nav.navbar.left || nav.navbar.right) { %>  
