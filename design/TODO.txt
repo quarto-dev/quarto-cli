@@ -7,9 +7,13 @@
 //    - commenting
 //    - edit on github
 
+Sidebars:
+  - Sidebar generation
+    
 
-TODO: do we need a way for the format to ask the project for things? (is there a sidebar, etc.)
-actually, it may be able to discern this from the metadata it is passed
+  
+
+TODO: breaking out of the standard container for a given page (page-layout: none)
 
 TODO:  htmlwidgets need a fluid container (as perhaps do jupyter widgets)
 
@@ -31,9 +35,12 @@ use Rmd-style chunks for Jupyter (Jmd). YAML encoding.
 (need to add support for this to Jupytext)
 Use e.g. fig-width vs. fig.width?  figwidth
 Jmd
+
+
 ```{python mylabel}
 echo: true
 tags: ["foo", "bar"]
+
 
 ```
 

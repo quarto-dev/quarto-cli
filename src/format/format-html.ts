@@ -17,14 +17,17 @@ import { sessionTempFile } from "../core/temp.ts";
 import {
   kFilters,
   kHeaderIncludes,
-  kIncludeAfterBody,
-  kIncludeBeforeBody,
   kTableOfContents,
   kToc,
   kTocTitle,
   kVariables,
 } from "../config/constants.ts";
-import { Format, FormatExtras, kDependencies } from "../config/format.ts";
+import {
+  Format,
+  FormatExtras,
+  kBodyEnvelope,
+  kDependencies,
+} from "../config/format.ts";
 import { PandocFlags } from "../config/flags.ts";
 
 import { Metadata } from "../config/metadata.ts";
@@ -76,6 +79,11 @@ export function htmlFormat(
 export function formatHasBootstrap(format: Format) {
   const theme = format.metadata["theme"];
   return theme && theme !== "pandoc";
+}
+
+export function hasTableOfContents(flags: PandocFlags, format: Format) {
+  return (flags[kToc] || format.pandoc[kToc] ||
+    format.pandoc[kTableOfContents]) && (format.metadata[kTocFloat] !== false);
 }
 
 function pandocExtras(metadata: Metadata) {
@@ -164,17 +172,12 @@ function boostrapExtras(
     template(templateOptions(options)),
   );
 
-  const toc = (flags[kToc] || format.pandoc[kToc] ||
-    format.pandoc[kTableOfContents]) && (format.metadata[kTocFloat] !== false);
+  const toc = hasTableOfContents(flags, format);
 
   const renderTemplate = (template: string) => {
-    const rendered = renderEjs(
-      formatResourcePath("html", `templates/${template}`),
-      { toc, sidebar: false },
-    );
-    const tempFile = sessionTempFile({ suffix: ".html" });
-    Deno.writeTextFileSync(tempFile, rendered);
-    return tempFile;
+    return renderEjs(formatResourcePath("html", `templates/${template}`), {
+      toc,
+    });
   };
 
   return {
@@ -199,8 +202,10 @@ function boostrapExtras(
         ],
       },
     ],
-    [kIncludeBeforeBody]: [renderTemplate("before-body.ejs")],
-    [kIncludeAfterBody]: [renderTemplate("after-body.ejs")],
+    [kBodyEnvelope]: {
+      before: renderTemplate("before-body.ejs"),
+      after: renderTemplate("after-body.ejs"),
+    },
     [kFilters]: {
       pre: [
         formatResourcePath("html", "html.lua"),

@@ -24,6 +24,7 @@ import {
   FormatDependency,
   FormatExtras,
   FormatPandoc,
+  kBodyEnvelope,
   kDependencies,
 } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
@@ -142,6 +143,7 @@ export async function runPandoc(
       ? (options.project.formatExtras(
         options.project,
         options.input,
+        options.flags || {},
         options.format,
       ))
       : {};
@@ -334,7 +336,29 @@ function resolveExtras(
   libDir: string,
 ) {
   // start with the merge
-  const extras = mergeConfigs(projectExtras, formatExtras);
+  let extras = mergeConfigs(projectExtras, formatExtras);
+
+  // project body envelope always wins
+  if (projectExtras[kBodyEnvelope]) {
+    extras[kBodyEnvelope] = projectExtras[kBodyEnvelope];
+  }
+
+  // resolve dependencies
+  extras = resolveDependencies(extras, inputDir, libDir);
+
+  // resolve body envelope
+  extras = resolveBodyEnvelope(extras);
+
+  return extras;
+}
+
+function resolveDependencies(
+  extras: FormatExtras,
+  inputDir: string,
+  libDir: string,
+) {
+  // deep copy to not mutate caller's object
+  extras = ld.cloneDeep(extras);
 
   // resolve dependencies
   const scriptTemplate = ld.template(`<script src="<%- href %>"></script>`);
@@ -369,17 +393,49 @@ function resolveExtras(
       }
     }
     delete extras[kDependencies];
+
+    // write to external file
+    const dependenciesHead = sessionTempFile({
+      prefix: "dependencies",
+      suffix: ".html",
+    });
+    Deno.writeTextFileSync(dependenciesHead, lines.join("\n"));
+    extras[kIncludeInHeader] = [dependenciesHead].concat(
+      extras[kIncludeInHeader] || [],
+    );
   }
 
-  // write to external file
-  const dependenciesHead = sessionTempFile({
-    prefix: "dependencies",
-    suffix: ".html",
-  });
-  Deno.writeTextFileSync(dependenciesHead, lines.join("\n"));
-  extras[kIncludeInHeader] = [dependenciesHead].concat(
-    extras[kIncludeInHeader] || [],
-  );
+  return extras;
+}
+
+function resolveBodyEnvelope(extras: FormatExtras) {
+  // deep copy to not mutate caller's object
+  extras = ld.cloneDeep(extras);
+
+  const envelope = extras[kBodyEnvelope];
+  if (envelope) {
+    const writeBodyFile = (
+      type: "include-in-header" | "include-before-body" | "include-after-body",
+      contents?: string,
+    ) => {
+      if (contents) {
+        const tag = `quarto-placeholder-envelope-${type}`;
+        contents = `<!--${tag}-->\n${contents}\n<!--/${tag}-->`;
+        const file = sessionTempFile({ suffix: ".html" });
+        Deno.writeTextFileSync(file, contents);
+        if (type === kIncludeAfterBody) {
+          extras[type] = (extras[type] || []).concat(file);
+        } else {
+          extras[type] = [file].concat(extras[type] || []);
+        }
+      }
+    };
+    writeBodyFile(kIncludeInHeader, envelope.header);
+    writeBodyFile(kIncludeBeforeBody, envelope.before);
+    writeBodyFile(kIncludeAfterBody, envelope.after);
+
+    delete extras[kBodyEnvelope];
+  }
 
   return extras;
 }

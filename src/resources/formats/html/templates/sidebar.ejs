@@ -1,0 +1,14 @@
+<nav>
+  <ul class="list-unstyled">
+  <% contents.forEach(item => { %>
+  <% if (item.section && item.items) { %>
+    <li class="sidebar-section"><%- item.section %></li>
+    <% item.items.forEach(sectionItem => { %>
+    <% partial('sidebaritem.ejs', { item: sectionItem }) %>
+    <% }) %>
+  <% } else if (item.href && item.text) { %>
+    <% partial('sidebaritem.ejs', { item }) %>
+  <% } %>  
+  <% }) %>
+  </ul>
+</nav>

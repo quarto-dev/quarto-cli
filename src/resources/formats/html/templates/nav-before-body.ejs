@@ -1,0 +1,55 @@
+
+<% if (nav.navbar) { %>  
+
+<nav class="navbar fixed-top navbar-expand<%- nav["collapse-below"] %> navbar-<%- nav.navbar.type %> bg-<%- nav.navbar.background %>">
+  <div class="container-fluid">
+  <% partial('navbrand.ejs', nav.navbar) %>
+  <% if (nav.navbar.left || nav.navbar.right) { %>  
+    <% if (nav.navbar.collapse === "none") { %>
+      <% partial('navitems.ejs', { align: 'me-auto', items: nav.navbar.left}) %>
+      <% partial('navitems.ejs', { align: '', items: nav.navbar.right }) %>
+      <% if (nav.navbar.search) { %>
+        <% partial('navsearch.ejs') %>
+      <% } %>
+    <% } else if (nav.navbar.collapse === "left") { %>
+      <% partial('navcollapse.ejs') %>
+        <% partial('navitems.ejs', { align: 'me-auto', items: nav.navbar.left}) %>
+      </div> <!-- /navcollapse -->
+      <% partial('navitems.ejs', { align: 'ms-auto', items: nav.navbar.right }) %>
+      <% if (nav.navbar.search) { %>
+        <% partial('navsearch.ejs') %>
+      <% } %>
+      <% partial('navtoggle.ejs') %>
+    <% } else { %>
+      <% partial('navtoggle.ejs') %>
+      <% partial('navcollapse.ejs') %>
+        <% partial('navitems.ejs', { align: 'me-auto', items: nav.navbar.left}) %>
+        <% partial('navitems.ejs', { align: '', items: nav.navbar.right }) %>
+        <% if (nav.navbar.search) { %>
+          <% partial('navsearch.ejs') %>
+        <% } %>
+      </div> <!-- /navcollapse -->
+    <% } %> 
+  <% } %>
+
+  </div> <!-- /container-fluid -->
+</nav>
+
+<% } %>
+
+<div id="quarto-content" class="container-fluid">
+<div class="row">
+
+<% if (nav.sidebar) { %>
+<div id="quarto-sidebar" class="col mx-auto col-lg-3 d-none d-lg-block sidebar">
+  <% partial('sidebar.ejs', nav.sidebar) %>
+</div>
+<% } %>
+
+<div class="col mx-auto col-sm-12 col-md-9 col-lg-7">
+<main>
+
+
+
+
+
