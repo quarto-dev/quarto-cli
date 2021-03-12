@@ -40,4 +40,18 @@
     padding-top: 4px;
     margin-bottom: -4px;
   }
+
+  @media (max-width: 991.98px) :not(.show) {
+    #quarto-sidebar {
+      border: 1px solid red;
+      height: 0;
+    }
+  }
+
+  @media (min-width: 992px) {
+    #quarto-sidebar {
+      height: calc(100vh - 7rem);
+      display: block;
+    }
+  }
 </style>
