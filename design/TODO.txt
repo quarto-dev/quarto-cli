@@ -8,9 +8,10 @@
 //    - edit on github
 
 Sidebars:
-  - Sidebar generation
-    
-
+- Sidebars appearance (including active?)
+- Active latching (latch menu)
+- Collapsing treatment
+- Implement sidebar: tools
   
 
 TODO: breaking out of the standard container for a given page (page-layout: none)
