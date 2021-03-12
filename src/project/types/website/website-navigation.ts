@@ -1,5 +1,5 @@
 /*
-* navigation.ts
+* website-navigation.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
@@ -21,7 +21,7 @@ import { PandocFlags } from "../../../config/flags.ts";
 
 import { hasTableOfContents } from "../../../format/format-html.ts";
 
-import { ProjectContext } from "../../project-context.ts";
+import { ProjectContext, projectContext } from "../../project-context.ts";
 import { inputTargetIndex } from "../../project-index.ts";
 import { kNavbar, kSidebar, kSidebars } from "./website.ts";
 
@@ -88,6 +88,9 @@ const navigation: Navigation = {
 };
 
 export async function initWebsiteNavigation(project: ProjectContext) {
+  // read the config
+  project = projectContext(project.dir);
+
   // alias navbar config
   const navbar = project.metadata?.[kNavbar] as Navbar;
   const sidebar = project.metadata?.[kSidebar] as Sidebar;
@@ -116,19 +119,27 @@ export function websiteNavigationExtras(
   flags: PandocFlags,
   format: Format,
 ): FormatExtras {
-  const extras: FormatExtras = {};
-
   // find the href for this input
   const inputRelative = relative(project.dir, input);
-  const htmlHref = inputFileHref(inputRelative);
 
+  // return extras with bodyEnvelope
+  return {
+    [kBodyEnvelope]: navigationBodyEnvelope(
+      inputRelative,
+      hasTableOfContents(flags, format),
+    ),
+  };
+}
+
+export function navigationBodyEnvelope(file: string, toc: boolean) {
+  const href = inputFileHref(file);
   const nav = {
-    toc: hasTableOfContents(flags, format),
+    toc,
     navbar: navigation.navbar,
-    sidebar: sidebarForHref(htmlHref),
+    sidebar: sidebarForHref(href),
   };
 
-  const envelope = {
+  return {
     header: navigation.header,
     before: renderEjs(
       formatResourcePath("html", "templates/nav-before-body.ejs"),
@@ -139,10 +150,6 @@ export function websiteNavigationExtras(
       { nav },
     ),
   };
-
-  extras[kBodyEnvelope] = envelope;
-
-  return extras;
 }
 
 async function sidebarsEjsData(project: ProjectContext, sidebars: Sidebar[]) {

@@ -82,8 +82,8 @@ export function formatHasBootstrap(format: Format) {
 }
 
 export function hasTableOfContents(flags: PandocFlags, format: Format) {
-  return (flags[kToc] || format.pandoc[kToc] ||
-    format.pandoc[kTableOfContents]) && (format.metadata[kTocFloat] !== false);
+  return !!((flags[kToc] || format.pandoc[kToc] ||
+    format.pandoc[kTableOfContents]) && (format.metadata[kTocFloat] !== false));
 }
 
 function pandocExtras(metadata: Metadata) {

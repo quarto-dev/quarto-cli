@@ -25,7 +25,9 @@ import { formatHasBootstrap } from "../../../format/format-html.ts";
 import {
   initWebsiteNavigation,
   websiteNavigationExtras,
-} from "./navigation.ts";
+} from "./website-navigation.ts";
+
+import { websiteServe } from "./website-serve.ts";
 
 export const kNavbar = "navbar";
 export const kSidebar = "sidebar";
@@ -62,6 +64,8 @@ export const websiteProjectType: ProjectType = {
   preRender: async (context: ProjectContext) => {
     await initWebsiteNavigation(context);
   },
+
+  serve: websiteServe,
 
   formatExtras: (
     project: ProjectContext,

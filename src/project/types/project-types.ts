@@ -27,6 +27,17 @@ export interface ProjectType {
   metadataFields?: () => string[];
   preRender?: (context: ProjectContext) => Promise<void>;
   postRender?: (context: ProjectContext) => Promise<void>;
+  serve?: ProjectServe;
+}
+
+export interface ProjectServe {
+  init?: (project: ProjectContext) => Promise<void>;
+  filesChanged?: (project: ProjectContext, files: string[]) => Promise<boolean>;
+  htmlFilter?: (
+    project: ProjectContext,
+    href: string,
+    doc: Uint8Array,
+  ) => Uint8Array;
 }
 
 export interface ProjectCreate {

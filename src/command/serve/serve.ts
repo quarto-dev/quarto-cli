@@ -16,6 +16,10 @@ import { openUrl } from "../../core/shell.ts";
 import { contentType, isHtmlContent } from "../../core/mime.ts";
 
 import { kOutputDir, ProjectContext } from "../../project/project-context.ts";
+import {
+  ProjectServe,
+  projectType,
+} from "../../project/types/project-types.ts";
 
 import { render } from "../render/render.ts";
 
@@ -58,12 +62,19 @@ export async function serveProject(
     });
   }
 
+  // get project serve hooks and call init if we have it
+  const projType = projectType(project.metadata?.project?.type);
+  const projServe = projType.serve;
+  if (projServe?.init) {
+    projServe.init(project);
+  }
+
   // determine site dir
   const outputDir = project.metadata?.project?.[kOutputDir];
   const siteDir = outputDir ? join(project.dir, outputDir) : project.dir;
 
   // create project watcher
-  const watcher = watchProject(project, options);
+  const watcher = watchProject(project, options, projServe);
 
   // main request handler
   const handler = async (req: ServerRequest): Promise<void> => {
@@ -85,7 +96,7 @@ export async function serveProject(
       if (fileInfo.isDirectory) {
         fsPath = join(fsPath, "index.html");
       }
-      response = serveFile(fsPath!, watcher);
+      response = serveFile(project, fsPath!, watcher, projServe);
       if (!options.quiet) {
         printUrl(normalizedUrl);
       }
@@ -174,15 +185,20 @@ function serveFallback(
 }
 
 function serveFile(
+  project: ProjectContext,
   filePath: string,
   watcher: ProjectWatcher,
+  projServe?: ProjectServe,
 ): Response {
   // read file
   let fileContents = Deno.readFileSync(filePath);
 
-  // if this is an html file then append watch script
+  // if this is an html file then append watch script and allow any projServe filter to run
   if (isHtmlContent(filePath)) {
     fileContents = watcher.injectClient(fileContents);
+    if (projServe?.htmlFilter) {
+      fileContents = projServe.htmlFilter(project, filePath, fileContents);
+    }
   }
 
   // content headers
