@@ -10,8 +10,7 @@
 Sidebars:
   - Sidebar generation
     
-
-  
+TODO: refreshes occur while moving focus in any file
 
 TODO: breaking out of the standard container for a given page (page-layout: none)
 
@@ -29,6 +28,8 @@ TODO: cache directories:
   - global purge?
 
 TODO: generalized warning system (look for 'WARNING:')
+
+TODO: Render list still subject to type filter (so you could create a render list with e.g. ["**", "!exclude.Rmd"])
 
 TODO: common yaml option reading (all docs use yaml)
 use Rmd-style chunks for Jupyter (Jmd). YAML encoding.
