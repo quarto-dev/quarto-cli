@@ -12,11 +12,12 @@ TODO: styles.css not getting copied / refreshed
 TODO: refreshes occur while moving focus in any file
 
 Sidebars:
-- Sidebars appearance (including active?)
-- Active latching (latch menu)
+- Sidebars appearance (including)
 - Collapsing treatment
 - Implement sidebar: tools
-
+- add optional logo in sidebar
+- support collapsing items under headers 
+  (see https://rstudio.github.io/visual-markdown-editing/#/technical / bootstrap docs)
 
 TODO: breaking out of the standard container for a given page (page-layout: none)
 
