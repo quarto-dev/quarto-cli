@@ -26,6 +26,7 @@ import {
   copyResourceFile,
   projectResourceFiles,
 } from "../../project/project-resources.ts";
+import { ProjectServe } from "../../project/types/project-types.ts";
 
 import { kLocalhost, ServeOptions } from "./serve.ts";
 
@@ -38,6 +39,7 @@ export interface ProjectWatcher {
 export function watchProject(
   project: ProjectContext,
   options: ServeOptions,
+  projServe?: ProjectServe,
 ): ProjectWatcher {
   // error display
   const displayError = (e: Error) => {
@@ -86,6 +88,16 @@ export function watchProject(
 
         // filter out paths that no longer exist and create real paths
         const paths = event.paths.filter(existsSync).map(Deno.realPathSync);
+
+        // notify project of files changed (return true if it indicates that
+        // this change should cause a reload)
+        if (projServe?.filesChanged) {
+          // create paths relative to project dir
+          const files = paths.map((path) => relative(project.dir, path));
+          if (projServe.filesChanged(project, files)) {
+            return true;
+          }
+        }
 
         // if any of the paths are in the output dir (but not the lib dir) then return true
         const inOutputDir = paths.some((path) => {

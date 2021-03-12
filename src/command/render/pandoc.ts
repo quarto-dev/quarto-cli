@@ -17,11 +17,11 @@ import { execProcess } from "../../core/process.ts";
 import { message } from "../../core/console.ts";
 import { dirAndStem, pathWithForwardSlashes } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
+import { placeholderHtml } from "../../core/html.ts";
 
 import {
   DependencyFile,
   Format,
-  FormatDependency,
   FormatExtras,
   FormatPandoc,
   kBodyEnvelope,
@@ -419,8 +419,7 @@ function resolveBodyEnvelope(extras: FormatExtras) {
       contents?: string,
     ) => {
       if (contents) {
-        const tag = `quarto-placeholder-envelope-${type}`;
-        contents = `<!--${tag}-->\n${contents}\n<!--/${tag}-->`;
+        contents = placeholderHtml(`envelope-${type}`, contents);
         const file = sessionTempFile({ suffix: ".html" });
         Deno.writeTextFileSync(file, contents);
         if (type === kIncludeAfterBody) {
