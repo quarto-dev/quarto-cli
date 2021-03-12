@@ -18,14 +18,26 @@ window.document.addEventListener("DOMContentLoaded", function() {
 
     // Mark the toc links as nav-links
     const tocLink = tocLinks[i];
-    if (!tocLink.classList.contains('nav-link')) {
-      tocLink.classList.add("nav-link");
-    }
+    tocLink.classList.add("nav-link");
 
     // move the raw href to the target attribute (need the raw value, not the full path)
     if (!tocLink.hasAttribute("data-bs-target")) {
       tocLink.setAttribute("data-bs-target", tocLink.getAttribute("href"));
     }
+  }
+
+  // Hide the title when it will appear in the secondary
+  const title = window.document.querySelectorAll('header > .title');
+  const sidebar = window.document.getElementById('quarto-sidebar');
+  if (title.length && sidebar) {
+      title[0].classList.add("d-none");
+      title[0].classList.add("d-lg-block");
+
+      // Add the title to the secondary nav bar
+      const secondaryNavTitle = window.document.querySelectorAll('.quarto-secondary-nav .quarto-secondary-nav-title')
+      if (secondaryNavTitle.length) {
+        secondaryNavTitle[0].innerHTML = title[0].innerHTML;
+      }
   }
     
   // latch active nav link

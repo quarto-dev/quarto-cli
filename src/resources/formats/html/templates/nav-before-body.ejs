@@ -37,6 +37,21 @@
 
 <% } %>
 
+<% if (nav.sidebar) { %>
+
+<nav class="quarto-secondary-nav py-2 d-lg-none d-md-block bg-light" aria-label="Secondary navigation">
+  <div class="container-fluid d-flex justify-content-between">
+    <h1 class="quarto-secondary-nav-title mb-0 fs-5 d-inline"></h1>
+    <button class="quarto-btn-toggle btn d-lg-none py-0 px-1 btn-secondary btn-lg d-inline-block" type="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation">
+      <i class="bi bi-arrows-expand"></i>
+      <i class="bi bi-arrows-collapse"></i>
+    </button>
+
+  </div>
+</nav>
+
+<% } %>
+
 <div id="quarto-content" class="container-fluid">
 <div class="row">
 

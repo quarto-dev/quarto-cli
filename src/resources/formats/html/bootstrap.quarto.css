@@ -25,3 +25,46 @@ pre.sourceCode {
 nav .nav-link i, nav .dropdown-item i {
   padding-right: 1px;
 }
+.sidebar {
+  padding-top: 1em;
+}
+
+/* table of contents */
+.sidebar-chapter > nav > h2 {
+  font-size: 1rem;
+  font-weight: 400;
+  margin-bottom: 0.5rem;
+  font-family: inherit;
+ }
+ 
+ .sidebar-chapter > nav ul {
+   padding-left: 0;
+   list-style: none;
+   font-size: 0.9rem;
+ }
+ 
+ .sidebar-chapter > nav ul li a {
+   padding-left: 0;
+   padding-bottom: 0;
+   padding-top: 0;
+   color: inherit;
+ }
+ 
+ .sidebar-chapter > nav > ul > li {
+   font-weight: 400;
+ }
+ 
+ .sidebar-chapter > nav > ul > li > ul {
+   font-weight: 300;
+ }
+ 
+ .sidebar-chapter > nav ul > li > ul > li > a {
+   padding-left: 0.7rem;
+   border-left: 3px solid var(--bs-light);
+ }
+ 
+ .sidebar-chapter > nav ul > li > ul > li > a.active {
+   border-color: var(--bs-primary);
+   color: var(--bs-primary) !important;
+ }
+ 
