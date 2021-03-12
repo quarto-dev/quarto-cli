@@ -6,6 +6,27 @@ window.document.addEventListener("DOMContentLoaded", function() {
   if (toc.length > 0 && tocSidebar) {
     tocSidebar.appendChild(toc[0]);
   }
+
+  // add scroll spy to the body
+  const body = window.document.body;
+  body.setAttribute("data-bs-spy", "scroll");
+  body.setAttribute("data-bs-target", "#quarto-toc-sidebar");
+
+  // add nav-link class to the TOC links
+  var tocLinks = window.document.querySelectorAll('nav[role="doc-toc"] a');
+  for (let i=0; i<tocLinks.length; i++) {
+
+    // Mark the toc links as nav-links
+    const tocLink = tocLinks[i];
+    if (!tocLink.classList.contains('nav-link')) {
+      tocLink.classList.add("nav-link");
+    }
+
+    // move the raw href to the target attribute (need the raw value, not the full path)
+    if (!tocLink.hasAttribute("data-bs-target")) {
+      tocLink.setAttribute("data-bs-target", tocLink.getAttribute("href"));
+    }
+  }
     
   // latch active nav link
   var navLinks = window.document.querySelectorAll("a.nav-link, a.navbar-brand");

@@ -7,10 +7,16 @@
 //    - commenting
 //    - edit on github
 
-Sidebars:
-  - Sidebar generation
+
     
 TODO: refreshes occur while moving focus in any file
+
+Sidebars:
+- Sidebars appearance (including active?)
+- Active latching (latch menu)
+- Collapsing treatment
+- Implement sidebar: tools
+
 
 TODO: breaking out of the standard container for a given page (page-layout: none)
 

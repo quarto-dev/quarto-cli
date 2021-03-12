@@ -163,6 +163,10 @@ async function sidebarsEjsData(project: ProjectContext, sidebars: Sidebar[]) {
 async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
   sidebar = ld.cloneDeep(sidebar);
 
+  // ensure title and search are present
+  sidebar.title = sidebar.title || "";
+  sidebar.search = !!sidebar.search;
+
   for (let i = 0; i < sidebar.contents.length; i++) {
     if (Object.keys(sidebar.contents[i]).includes("items")) {
       const items = (sidebar.contents[i] as SidebarSection).items;
