@@ -8,7 +8,7 @@
 //    - edit on github
 
 
-    
+TODO: styles.css not getting copied / refreshed   
 TODO: refreshes occur while moving focus in any file
 
 Sidebars:
