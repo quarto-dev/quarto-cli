@@ -1,15 +1,11 @@
 //  Websites:
 //    - Navigation
-//    - Headroom
 //    - sitemap.xml
 //    - search
+//    - edit on github
+//    - Headroom
 //    - google analytics (or coolster alternative). cookie consent
 //    - commenting
-//    - edit on github
-
-
-TODO: styles.css not getting copied / refreshed   
-TODO: refreshes occur while moving focus in any file
 
 Sidebars:
 - Left sidebars appearance (including)
