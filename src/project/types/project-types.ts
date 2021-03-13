@@ -54,6 +54,7 @@ export interface ProjectScaffoldFile {
   name: string;
   content: string;
   title?: string;
+  format?: string;
 }
 
 const kTypes = [

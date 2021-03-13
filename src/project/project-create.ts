@@ -90,6 +90,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
         engine,
         options.kernel,
         scaffold.title,
+        scaffold.format,
       );
       if (!options.quiet) {
         message("- Created " + md, { indent: 2 });
@@ -144,11 +145,17 @@ function projectMarkdownFile(
   engine: ExecutionEngine,
   kernel?: string,
   title?: string,
+  format?: string,
 ) {
   // yaml/title
   const lines: string[] = ["---"];
   if (title) {
     lines.push(`title: "${title}"`);
+  }
+
+  // format
+  if (format) {
+    lines.push(`format: ${format}`);
   }
 
   // write jupyter kernel if necessary

@@ -44,11 +44,13 @@ export const websiteProjectType: ProjectType = {
         {
           name: "index",
           content: "Home page",
+          format: "html",
         },
         {
           name: "about",
           content: "## About this site",
           title: "About",
+          format: "html",
         },
       ],
 
