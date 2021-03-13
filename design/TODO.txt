@@ -23,7 +23,7 @@ Sidebars:
   (see https://rstudio.github.io/visual-markdown-editing/#/technical / bootstrap docs)
 
 
-TODO: verify that sitemaps work
+TODO: test hot reloading for css/jss
 TODO: idx file created at root (should be in .quarto)
 TODO: top-level latching behavior based on URL patterns
 
