@@ -12,6 +12,17 @@ window.document.addEventListener("DOMContentLoaded", function() {
   body.setAttribute("data-bs-spy", "scroll");
   body.setAttribute("data-bs-target", "#quarto-toc-sidebar");
 
+  // Set an offset if there is are fixed top navbar
+  const navBar = window.document.querySelectorAll('.navbar.fixed-top');
+  let offset = 0;
+  for (let i=0; i< navBar.length; i++) {
+    offset += navBar[i].clientHeight;
+  }
+  if (offset) {
+    body.setAttribute("data-bs-offset", offset);
+    console.log('offset ' + offset);
+  }
+  
   // add nav-link class to the TOC links
   var tocLinks = window.document.querySelectorAll('nav[role="doc-toc"] a');
   for (let i=0; i<tocLinks.length; i++) {
