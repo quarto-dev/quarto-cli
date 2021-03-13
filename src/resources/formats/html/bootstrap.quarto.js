@@ -19,8 +19,7 @@ window.document.addEventListener("DOMContentLoaded", function() {
     offset += navBar[i].clientHeight;
   }
   if (offset) {
-    body.setAttribute("data-bs-offset", offset);
-    console.log('offset ' + offset);
+    body.setAttribute("data-bs-offset", offset * 2);
   }
   
   // add nav-link class to the TOC links
