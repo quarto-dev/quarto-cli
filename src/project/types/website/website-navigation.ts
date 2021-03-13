@@ -92,9 +92,9 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   project = projectContext(project.dir);
 
   // alias navbar config
-  const navbar = project.metadata?.[kNavbar] as Navbar;
-  const sidebar = project.metadata?.[kSidebar] as Sidebar;
-  let sidebars = project.metadata?.[kSidebars] as Sidebar[];
+  const navbar = project.metadata?.[kNavbar] as Navbar | undefined;
+  const sidebar = project.metadata?.[kSidebar] as Sidebar | undefined;
+  let sidebars = project.metadata?.[kSidebars] as Sidebar[] | undefined;
   if (sidebar && !sidebars) {
     sidebars = [sidebar];
   }
@@ -107,10 +107,14 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   navigation.header = renderEjs(navstylesEjs, { height: 60 });
 
   // navbar
-  navigation.navbar = await navbarEjsData(project, navbar);
+  if (navbar) {
+    navigation.navbar = await navbarEjsData(project, navbar);
+  }
 
   // sidebars
-  navigation.sidebars = await sidebarsEjsData(project, sidebars);
+  if (sidebars) {
+    navigation.sidebars = await sidebarsEjsData(project, sidebars);
+  }
 }
 
 export function websiteNavigationExtras(

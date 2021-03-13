@@ -1,15 +1,11 @@
 //  Websites:
 //    - Navigation
-//    - Headroom
 //    - sitemap.xml
 //    - search
+//    - edit on github
+//    - Headroom
 //    - google analytics (or coolster alternative). cookie consent
 //    - commenting
-//    - edit on github
-
-
-TODO: styles.css not getting copied / refreshed   
-TODO: refreshes occur while moving focus in any file
 
 Sidebars:
 - Left sidebars appearance (including)
@@ -25,6 +21,11 @@ Sidebars:
   - Focus is being lost when clicks occur in TOC
   (see https://rstudio.github.io/visual-markdown-editing/#/technical / bootstrap docs)
 
+
+TODO: move html ref processing to fully post render (don't do it
+from within lua). This will allow us to pick up anything emitted
+by a format (e.g. css or reveal backgrounds) and would open the 
+door to a higher performance implementation
 
 TODO: breaking out of the standard container for a given page (page-layout: none)
 
