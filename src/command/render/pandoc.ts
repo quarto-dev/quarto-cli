@@ -468,17 +468,21 @@ function runPandocMessage(
 }
 
 function formatResourceFiles(dir: string, format: Format) {
-  const cssValue = format.metadata[kCss];
+  const cssValue = format.pandoc[kCss];
   const css = typeof (cssValue) === "string"
     ? [cssValue]
     : Array.isArray(cssValue)
     ? cssValue.map((val) => String(val))
     : [];
 
-  return css
+  const files = css
     .filter((file) => !isAbsolute(file))
-    .map((file) => join(dir, file))
-    .filter((file) => existsSync(file) && Deno.statSync(file).isFile);
+    .filter((file) => {
+      const path = join(dir, file);
+      return existsSync(path) && Deno.statSync(path).isFile;
+    });
+
+  return files;
 }
 
 /* more aggressive exclude-list version

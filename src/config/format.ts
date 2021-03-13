@@ -14,6 +14,7 @@ import {
   kCiteproc,
   kCodeFold,
   kCodeSummary,
+  kCss,
   kExecute,
   kFigAlign,
   kFigDpi,
@@ -182,6 +183,7 @@ export interface FormatPandoc {
   [kPdfEngine]?: string;
   [kPdfEngineOpts]?: string[];
   [kPdfEngineOpt]?: string;
+  [kCss]?: string | string[];
   [kToc]?: boolean;
   [kTableOfContents]?: boolean;
   [kListings]?: boolean;
