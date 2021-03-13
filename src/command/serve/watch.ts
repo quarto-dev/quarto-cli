@@ -80,7 +80,7 @@ export function watchProject(
   const modified: string[] = [];
 
   // handle a watch event (return true if a reload should occur)
-  const handleWatchEvent = (event: Deno.FsEvent) => {
+  const handleWatchEvent = async (event: Deno.FsEvent) => {
     try {
       if (["modify", "create"].includes(event.kind)) {
         // track modified
@@ -94,7 +94,7 @@ export function watchProject(
         if (projServe?.filesChanged) {
           // create paths relative to project dir
           const files = paths.map((path) => relative(project.dir, path));
-          if (projServe.filesChanged(project, files)) {
+          if (await projServe.filesChanged(project, files)) {
             return true;
           }
         }
@@ -188,7 +188,7 @@ export function watchProject(
   const watchForChanges = () => {
     watcher.next().then(async (iter) => {
       // see if we need to handle this
-      if (handleWatchEvent(iter.value)) {
+      if (await handleWatchEvent(iter.value)) {
         await reloadClients();
       }
       // keep watching
