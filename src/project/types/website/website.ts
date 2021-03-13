@@ -31,7 +31,9 @@ import {
 } from "./website-navigation.ts";
 
 import { websiteServe } from "./website-serve.ts";
-import { kBaseUrl, websiteUpdateIndex } from "./website-index.ts";
+
+import { kBaseUrl, updateSitemap } from "./website-sitemap.ts";
+import { updateSearchIndex } from "./website-search.ts";
 
 export const websiteProjectType: ProjectType = {
   type: "website",
@@ -105,5 +107,15 @@ export const websiteProjectType: ProjectType = {
 
   metadataFields: () => [kNavbar, kSidebar, kSidebars, kBaseUrl],
 
-  postRender: websiteUpdateIndex,
+  postRender: async (
+    context: ProjectContext,
+    incremental: boolean,
+    outputFiles: string[],
+  ) => {
+    // update sitemap
+    await updateSitemap(context, outputFiles, incremental);
+
+    // update search index
+    updateSearchIndex(context, outputFiles, incremental);
+  },
 };
