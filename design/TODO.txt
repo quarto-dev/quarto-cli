@@ -5,7 +5,7 @@
 //    - edit on github
 //    - Headroom
 //    - google analytics (or coolster alternative). cookie consent
-//    - commenting
+//    - commenting / hypotheses
 
 Sidebars:
 - Left sidebars appearance (including)
@@ -24,6 +24,10 @@ Sidebars:
 
 TODO: only do section-divs and toc-title for bootstrap varation (theme: null or theme: pandoc evades)
 TODO: do we need to not highjack the "theme" keyword? (perhaps "bootstrap-theme")
+
+TODO: localization of "Home" / in various places
+TODO: localization of "Table of contents"
+ (perhaps trigger these off of 'lang')
 
 TODO: top-level latching behavior based on URL patterns
 
