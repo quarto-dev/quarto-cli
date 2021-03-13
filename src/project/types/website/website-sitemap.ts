@@ -1,5 +1,5 @@
 /*
-* website-index.ts
+* website-sitemap.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
@@ -10,41 +10,22 @@ import { join, relative } from "path/mod.ts";
 
 import { ElementInfo, SAXParser } from "xmlp/mod.ts";
 
-import { kOutputDir, ProjectContext } from "../../project-context.ts";
+import { ProjectContext, projectOutputDir } from "../../project-context.ts";
 import { pathWithForwardSlashes, removeIfExists } from "../../../core/path.ts";
 
 import { renderEjs } from "../../../core/ejs.ts";
 import { resourcePath } from "../../../core/resources.ts";
 
-import { updateSearchIndex } from "./website-search.ts";
-
 export const kBaseUrl = "base-url";
 
-export async function websiteUpdateIndex(
+export async function updateSitemap(
   context: ProjectContext,
-  incremental: boolean,
-  outputFiles: string[],
-): Promise<void> {
-  // calculate output dir
-  let outputDir = context.metadata?.project?.[kOutputDir];
-  if (outputDir) {
-    outputDir = join(context.dir, outputDir);
-  } else {
-    outputDir = context.dir;
-  }
-  outputDir = Deno.realPathSync(outputDir);
-
-  // update index artifacts
-  await updateSitemap(context, outputDir, outputFiles, incremental);
-  updateSearchIndex(outputDir, outputFiles, incremental);
-}
-
-async function updateSitemap(
-  context: ProjectContext,
-  outputDir: string,
   outputFiles: string[],
   incremental: boolean,
 ) {
+  // get output dir
+  const outputDir = projectOutputDir(context);
+
   // see if we have a robots.txt to copy
   const robotsTxtPath = join(context.dir, "robots.txt");
   const srcRobotsTxt = existsSync(robotsTxtPath) ? robotsTxtPath : undefined;

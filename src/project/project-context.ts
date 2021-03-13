@@ -103,6 +103,16 @@ export function projectContext(path: string): ProjectContext {
   }
 }
 
+export function projectOutputDir(context: ProjectContext) {
+  let outputDir = context.metadata?.project?.[kOutputDir];
+  if (outputDir) {
+    outputDir = join(context.dir, outputDir);
+  } else {
+    outputDir = context.dir;
+  }
+  return Deno.realPathSync(outputDir);
+}
+
 export function projectOffset(context: ProjectContext, input: string) {
   const projDir = Deno.realPathSync(context.dir);
   const inputDir = Deno.realPathSync(dirname(input));
