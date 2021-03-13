@@ -13,7 +13,7 @@ import { ProjectContext } from "./project-context.ts";
 export const kQuartoScratch = ".quarto";
 
 export function projectScratchPath(project: ProjectContext, path = "") {
-  path = join(project.dir, path);
+  path = join(project.dir, kQuartoScratch, path);
   ensureDirSync(dirname(path));
   return path;
 }
