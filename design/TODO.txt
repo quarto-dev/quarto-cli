@@ -1,7 +1,7 @@
 //  Websites:
 //    - Navigation
-//    - sitemap.xml
 //    - search
+
 //    - edit on github
 //    - Headroom
 //    - google analytics (or coolster alternative). cookie consent
@@ -22,8 +22,9 @@ Sidebars:
   (see https://rstudio.github.io/visual-markdown-editing/#/technical / bootstrap docs)
 
 
-TODO: test hot reloading for css/jss
-TODO: idx file created at root (should be in .quarto)
+TODO: only do section-divs and toc-title for bootstrap varation (theme: null or theme: pandoc evades)
+TODO: do we need to not highjack the "theme" keyword? (perhaps "bootstrap-theme")
+
 TODO: top-level latching behavior based on URL patterns
 
 TODO: move html ref processing to fully post render (don't do it
@@ -32,6 +33,8 @@ by a format (e.g. css or reveal backgrounds) and would open the
 door to a higher performance implementation
 SEE: https://github.com/b-fuze/deno-dom
 SEE: https://github.com/nekobato/deno-xml-parser
+
+TODO: resolve whether margin-left and margin-right can be made to work w/ bootsrap
 
 TODO: breaking out of the standard container for a given page (page-layout: none)
 
@@ -67,7 +70,6 @@ tags: ["foo", "bar"]
 ```
 
 HTML:
-  - floating toc (https://coda.io/d/Figmas-approach-to-modern-PRDs_d1OS5N8pQpx/PRD-Name-of-Project_sut2b#_lu7lK)
   - anchor links
   - tabs
   - admonitions
@@ -85,9 +87,6 @@ Bundle SASS compiler so we can prime thematic correctly:
 
 Look into Teal: https://news.ycombinator.com/item?id=26247813
 
-filter params need some "escaping" so they aren't interpreted as markdown (e.g. inline code)
-
-Consider this documentation system: https://documentation.divio.com/
 
 
 Could say that while there is *always* a lockfile, package installations
