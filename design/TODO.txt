@@ -9,18 +9,12 @@
 
 Sidebars:
 - Left sidebars appearance (including)
+  - tree support
   - Collapsing treatment
   - Implement sidebar: tools
   - add optional logo in sidebar
   - support collapsing items under headers 
   - support dividers
-- TOC
-  - Document with only H2s (only top level TOC, currently not getting scroll spy treatment)
-  - Scrollspy can get confused when page is reloaded scrolled to bottom
-  - Mark links actives in TOC when they're clicked
-  - Focus is being lost when clicks occur in TOC
-  (see https://rstudio.github.io/visual-markdown-editing/#/technical / bootstrap docs)
-
 
 TODO: only do section-divs and toc-title for bootstrap varation (theme: null or theme: pandoc evades)
 TODO: do we need to not highjack the "theme" keyword? (perhaps "bootstrap-theme")
