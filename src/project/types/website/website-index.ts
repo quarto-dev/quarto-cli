@@ -11,6 +11,8 @@ import { join, relative } from "path/mod.ts";
 // @deno-types="fuse/dist/fuse.d.ts"
 import Fuse from "fuse/dist/fuse.esm.min.js";
 
+import { DOMParser } from "deno_dom/deno-dom-wasm.ts";
+
 import { ElementInfo, SAXParser } from "xmlp/mod.ts";
 
 import { kOutputDir, ProjectContext } from "../../project-context.ts";
@@ -169,6 +171,13 @@ function updateSearchIndex(
       "author.firstName",
     ],
   };
+
+  // create index data
+  const indexData = outputFiles.map((file) => {
+    const contents = Deno.readTextFileSync(file);
+    const doc = new DOMParser().parseFromString(contents, "text/html")!;
+    const main = doc.querySelector("main");
+  });
 
   const fuse = new Fuse(list, options);
 

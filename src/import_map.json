@@ -14,6 +14,7 @@
     "xmlp/": "https://deno.land/x/xmlp/",
     "cliffy/": "https://deno.land/x/cliffy/",
     "lodash/": "https://deno.land/x/deno_lodash/",
-    "fuse/": "https://deno.land/x/fuse/"
+    "fuse/": "https://deno.land/x/fuse/",
+    "deno_dom/": "https://deno.land/x/deno_dom/"
   }
 }
