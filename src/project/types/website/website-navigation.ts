@@ -23,7 +23,10 @@ import { hasTableOfContents } from "../../../format/format-html.ts";
 
 import { ProjectContext, projectContext } from "../../project-context.ts";
 import { inputTargetIndex } from "../../project-index.ts";
-import { kNavbar, kSidebar, kSidebars } from "./website.ts";
+
+export const kNavbar = "navbar";
+export const kSidebar = "sidebar";
+export const kSidebars = "sidebars";
 
 const kAriaLabel = "aria-label";
 const kCollapseBelow = "collapse-below";

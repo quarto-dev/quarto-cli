@@ -26,7 +26,11 @@ export interface ProjectType {
   ) => FormatExtras;
   metadataFields?: () => string[];
   preRender?: (context: ProjectContext) => Promise<void>;
-  postRender?: (context: ProjectContext) => Promise<void>;
+  postRender?: (
+    context: ProjectContext,
+    incremental: boolean,
+    outputFiles: string[],
+  ) => Promise<void>;
   serve?: ProjectServe;
 }
 

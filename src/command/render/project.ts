@@ -34,6 +34,7 @@ import { renderFiles, RenderOptions, RenderResults } from "./render.ts";
 export async function renderProject(
   context: ProjectContext,
   files: string[],
+  incremental: boolean,
   options: RenderOptions,
 ): Promise<RenderResults> {
   // get real path to the project
@@ -73,6 +74,9 @@ export async function renderProject(
   // set QUARTO_PROJECT_DIR
   Deno.env.set("QUARTO_PROJECT_DIR", projDir);
   try {
+    // track output files (for postRender hook)
+    const outputFiles: string[] = [];
+
     // render the files
     const fileResults = await renderFiles(files, options, context);
 
@@ -123,6 +127,9 @@ export async function renderProject(
           const outputFile = join(realOutputDir, result.file);
           ensureDirSync(dirname(outputFile));
           Deno.renameSync(join(projDir, result.file), outputFile);
+          outputFiles.push(outputFile);
+
+          // notify
 
           // files dir
           if (result.filesDir) {
@@ -181,11 +188,18 @@ export async function renderProject(
           message(`WARNING: File '${sourcePath}' was not found.`);
         }
       });
+    } else {
+      // track output files
+      Object.keys(fileResults).forEach((format) => {
+        outputFiles.push(
+          ...fileResults[format].map((result) => join(projDir, result.file)),
+        );
+      });
     }
 
     // call post-render
     if (projType.postRender) {
-      await projType.postRender(context);
+      await projType.postRender(context, incremental, outputFiles);
     }
 
     return {

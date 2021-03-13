@@ -24,14 +24,14 @@ import { formatHasBootstrap } from "../../../format/format-html.ts";
 
 import {
   initWebsiteNavigation,
+  kNavbar,
+  kSidebar,
+  kSidebars,
   websiteNavigationExtras,
 } from "./website-navigation.ts";
 
 import { websiteServe } from "./website-serve.ts";
-
-export const kNavbar = "navbar";
-export const kSidebar = "sidebar";
-export const kSidebars = "sidebars";
+import { kBaseUrl, websiteUpdateIndex } from "./website-index.ts";
 
 export const websiteProjectType: ProjectType = {
   type: "website",
@@ -101,5 +101,7 @@ export const websiteProjectType: ProjectType = {
     return extras;
   },
 
-  metadataFields: () => [kNavbar, kSidebar, kSidebars],
+  metadataFields: () => [kNavbar, kSidebar, kSidebars, kBaseUrl],
+
+  postRender: websiteUpdateIndex,
 };

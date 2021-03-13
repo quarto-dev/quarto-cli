@@ -10,6 +10,8 @@
     "testing/": "https://deno.land/std/testing/",
     "http/": "https://deno.land/std/http/",
     "ws/": "https://deno.land/std/ws/",
+    "datetime/": "https://deno.land/std/datetime/",
+    "xmlp/": "https://deno.land/x/xmlp/",
     "cliffy/": "https://deno.land/x/cliffy/",
     "lodash/": "https://deno.land/x/deno_lodash/"
   }
