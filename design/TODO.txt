@@ -10,7 +10,6 @@
 Sidebars:
 - Left sidebars appearance (including)
   - Collapsing treatment
-    - collapses ok, need to show menu
   - Implement sidebar: tools
   - add optional logo in sidebar
   - support collapsing items under headers 
