@@ -49,6 +49,7 @@ import {
   kPdfEngineOpt,
   kPdfEngineOpts,
   kPreferHtml,
+  kSectionDivs,
   kSelfContained,
   kShowCode,
   kShowOutput,
@@ -189,6 +190,7 @@ export interface FormatPandoc {
   [kListings]?: boolean;
   [kNumberSections]?: boolean;
   [kHighlightStyle]?: string;
+  [kSectionDivs]?: boolean;
 }
 
 export function isLatexOutput(format: FormatPandoc) {

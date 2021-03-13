@@ -17,6 +17,7 @@ import { sessionTempFile } from "../core/temp.ts";
 import {
   kFilters,
   kHeaderIncludes,
+  kSectionDivs,
   kTableOfContents,
   kToc,
   kTocTitle,
@@ -44,6 +45,9 @@ export function htmlFormat(
   return mergeConfigs(
     baseHtmlFormat(figwidth, figheight),
     {
+      pandoc: {
+        [kSectionDivs]: true,
+      },
       metadata: {
         [kTheme]: "default",
         [kTocTitle]: "Table of contents",

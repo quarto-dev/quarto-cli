@@ -148,6 +148,7 @@ export const kSyntaxDefinition = "syntax-definition";
 export const kReferenceDoc = "reference-doc";
 export const kToc = "toc";
 export const kTableOfContents = "table-of-contents";
+export const kSectionDivs = "section-divs";
 
 // metadata fields
 export const kTitle = "title";
@@ -207,7 +208,7 @@ export const kPandocDefaultsKeys = [
   kNumberSections,
   kNumberOffset,
   "shift-heading-level-by",
-  "section-divs",
+  kSectionDivs,
   "identifier-prefix",
   kTitlePrefix,
   "strip-empty-paragraphs",
