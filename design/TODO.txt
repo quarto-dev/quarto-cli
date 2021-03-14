@@ -16,6 +16,8 @@ Sidebars:
   - support collapsing items under headers 
   - support dividers
 
+TODO: sidebar should be defaulting to project title
+
 TODO: hot reload for theme
 
 TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
