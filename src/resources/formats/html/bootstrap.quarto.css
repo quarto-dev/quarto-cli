@@ -29,6 +29,15 @@ nav .nav-link i, nav .dropdown-item i {
   padding-top: 1em;
 }
 
+.sidebar-navigation {
+  padding-left:20px;  
+}
+
+.sidebar-navigation a {
+  font-size: 1.2em;
+  text-decoration: none;
+}
+
 /* table of contents */
 .sidebar-chapter > nav > h2 {
   font-size: 1rem;
