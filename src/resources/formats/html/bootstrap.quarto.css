@@ -68,3 +68,8 @@ nav .nav-link i, nav .dropdown-item i {
    color: var(--bs-primary) !important;
  }
  
+ .sidebar-chapter > nav ul > li > a.active {
+  border-color: var(--bs-primary);
+  color: var(--bs-primary) !important;
+}
+
