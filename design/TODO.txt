@@ -18,6 +18,8 @@ Sidebars:
 
 TODO: sidebar should be defaulting to project title
 
+TODO: Quarto - Quarto for title
+
 TODO: hot reload for theme
 
 TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
