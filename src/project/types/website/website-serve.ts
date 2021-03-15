@@ -5,11 +5,27 @@
 *
 */
 
-import { relative } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
+import { ensureDirSync } from "fs/mod.ts";
 
 import { fillPlaceholderHtml } from "../../../core/html.ts";
 
-import { kOutputDir, ProjectContext } from "../../project-context.ts";
+import { DependencyFile } from "../../../config/format.ts";
+
+import {
+  bootstrapFormatDependency,
+  formatHasBootstrap,
+} from "../../../format/format-html.ts";
+
+import { resolveFormatsFromMetadata } from "../../../command/render/render.ts";
+
+import {
+  kLibDir,
+  kOutputDir,
+  ProjectContext,
+  projectContext,
+  projectOutputDir,
+} from "../../project-context.ts";
 import { ProjectServe } from "../project-types.ts";
 import {
   initWebsiteNavigation,
@@ -26,7 +42,16 @@ export const websiteServe: ProjectServe = {
       const projRelative = relative(project.dir, files[i]);
       const configChanged = projRelative.startsWith("_quarto.y");
       if (configChanged) {
+        // re-read the config
+        project = projectContext(project.dir);
+
+        // rebuild nav structure
         await initWebsiteNavigation(project);
+
+        // copy bootstrap dependency (theme or vars could have changed)
+        copyBootstrapDepenency(project);
+
+        // request reload
         return true;
       }
     }
@@ -72,3 +97,40 @@ export const websiteServe: ProjectServe = {
     return new TextEncoder().encode(html);
   },
 };
+
+function copyBootstrapDepenency(project: ProjectContext) {
+  // only proceed if we have a lib dir
+  const libDir = project?.metadata?.project?.[kLibDir];
+  if (!libDir) {
+    return;
+  }
+
+  // get formats
+  const formats = resolveFormatsFromMetadata(
+    project.metadata || {},
+    project.dir,
+  );
+
+  // find a bootstrap format
+  const bsFormat = Object.keys(formats).find((format) => {
+    return formatHasBootstrap(formats[format]);
+  });
+
+  if (bsFormat) {
+    const dependency = bootstrapFormatDependency(formats[bsFormat]);
+    const dir = `${dependency.name}-${dependency.version}`;
+    const targetDir = join(projectOutputDir(project), libDir, dir);
+    const copyDeps = (files?: DependencyFile[]) => {
+      if (files) {
+        for (const file of files) {
+          const targetPath = join(targetDir, file.name);
+          ensureDirSync(dirname(targetPath));
+          Deno.copyFileSync(file.path, targetPath);
+        }
+      }
+    };
+    copyDeps(dependency.scripts);
+    copyDeps(dependency.stylesheets);
+    copyDeps(dependency.resources);
+  }
+}

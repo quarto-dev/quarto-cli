@@ -422,48 +422,26 @@ function isSelfContainedOutput(
   return selfContained;
 }
 
-async function resolveFormats(
-  target: ExecutionTarget,
-  engine: ExecutionEngine,
+export function resolveFormatsFromMetadata(
+  metadata: Metadata,
+  includeDir: string,
+  formats?: string[],
   flags?: RenderFlags,
-): Promise<Record<string, Format>> {
-  // merge input metadata into project metadata
-  const projMetadata = projectMetadataForInputFile(target.input);
-  const inputMetadata = await engine.metadata(target.input);
-  const baseMetadata = mergeQuartoConfigs(
-    projMetadata,
-    inputMetadata,
-  );
-
+): Record<string, Format> {
   // Read any included metadata files and merge in and metadata from the command
-  const includeMetadata = includedMetadata(dirname(target.input), baseMetadata);
+  const includeMetadata = includedMetadata(includeDir, metadata);
   const allMetadata = mergeQuartoConfigs(
-    baseMetadata,
+    metadata,
     includeMetadata,
     flags?.metadata || {},
   );
 
-  // Remove the metadata file / files since we've read them and merged them
-  // into the metadata
-  delete allMetadata[kMetadataFile];
-  delete allMetadata[kMetadataFiles];
-
-  // divide metadata into format buckets
+  // divide allMetadata into format buckets
   const baseFormat = metadataAsFormat(allMetadata);
 
-  // determine all target formats (use original input and
-  // project metadata to preserve order of keys and to
-  // prefer input-level format keys to project-level)
-  const formatKeys = (metadata: Metadata): string[] => {
-    if (typeof metadata[kMetadataFormat] === "string") {
-      return [metadata[kMetadataFormat] as string];
-    } else if (metadata[kMetadataFormat] instanceof Object) {
-      return Object.keys(metadata[kMetadataFormat] as Metadata);
-    } else {
-      return [];
-    }
-  };
-  const formats = formatKeys(inputMetadata).concat(formatKeys(projMetadata));
+  if (formats === undefined) {
+    formats = formatKeys(allMetadata);
+  }
 
   // provide html if there was no format info
   if (formats.length === 0) {
@@ -530,6 +508,44 @@ async function resolveFormats(
   });
 
   return resolved;
+}
+
+async function resolveFormats(
+  target: ExecutionTarget,
+  engine: ExecutionEngine,
+  flags?: RenderFlags,
+): Promise<Record<string, Format>> {
+  // merge input metadata into project metadata
+  const projMetadata = projectMetadataForInputFile(target.input);
+  const inputMetadata = await engine.metadata(target.input);
+  const baseMetadata = mergeQuartoConfigs(
+    projMetadata,
+    inputMetadata,
+  );
+
+  // determine order of formats
+  const formats = formatKeys(inputMetadata).concat(formatKeys(projMetadata));
+
+  // return resolved formats
+  return resolveFormatsFromMetadata(
+    baseMetadata,
+    dirname(target.input),
+    formats,
+    flags,
+  );
+}
+
+// determine all target formats (use original input and
+// project metadata to preserve order of keys and to
+// prefer input-level format keys to project-level)
+function formatKeys(metadata: Metadata): string[] {
+  if (typeof metadata[kMetadataFormat] === "string") {
+    return [metadata[kMetadataFormat] as string];
+  } else if (metadata[kMetadataFormat] instanceof Object) {
+    return Object.keys(metadata[kMetadataFormat] as Metadata);
+  } else {
+    return [];
+  }
 }
 
 function projectMetadataForInputFile(input: string): Metadata {

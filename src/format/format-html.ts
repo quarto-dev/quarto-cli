@@ -64,7 +64,7 @@ export function htmlFormat(
 
             // other themes are bootswatch themes or bootstrap css files
           } else {
-            return boostrapExtras(theme, flags, format);
+            return boostrapExtras(flags, format);
           }
 
           // theme: null means no default document css at all
@@ -90,28 +90,12 @@ export function hasTableOfContents(flags: PandocFlags, format: Format) {
     format.pandoc[kTableOfContents]) && (format.metadata[kTocFloat] !== false));
 }
 
-function pandocExtras(metadata: Metadata) {
-  // see if there is a max-width
-  const maxWidth = metadata["max-width"];
-  const headerIncludes = maxWidth
-    ? `<style type="text/css">body { max-width: ${
-      asCssSize(maxWidth)
-    };}</style>`
-    : undefined;
+export function bootstrapFormatDependency(format: Format) {
+  // determine theme
+  const theme = format.metadata[kTheme]
+    ? String(format.metadata[kTheme])
+    : "default";
 
-  return {
-    [kVariables]: {
-      [kDocumentCss]: true,
-      [kHeaderIncludes]: headerIncludes,
-    },
-  };
-}
-
-function boostrapExtras(
-  theme: string,
-  flags: PandocFlags,
-  format: Format,
-): FormatExtras {
   // read options from yaml
   const metadata = format.metadata;
   const options: Record<string, string | undefined> = {
@@ -176,6 +160,45 @@ function boostrapExtras(
     template(templateOptions(options)),
   );
 
+  return {
+    name: "bootstrap",
+    version: "v5.0.0-beta2",
+    stylesheets: [
+      { name: "bootstrap.min.css", path: boostrapCss },
+      bootstrapDependency("bootstrap-icons.css"),
+      { name: "bootstrap.quarto.css", path: quartoCss },
+    ],
+    scripts: [
+      bootstrapDependency("bootstrap.bundle.min.js"),
+      quartoDependency("bootstrap.quarto.js"),
+    ],
+    resources: [
+      bootstrapDependency("bootstrap-icons.woff"),
+    ],
+  };
+}
+
+function pandocExtras(metadata: Metadata) {
+  // see if there is a max-width
+  const maxWidth = metadata["max-width"];
+  const headerIncludes = maxWidth
+    ? `<style type="text/css">body { max-width: ${
+      asCssSize(maxWidth)
+    };}</style>`
+    : undefined;
+
+  return {
+    [kVariables]: {
+      [kDocumentCss]: true,
+      [kHeaderIncludes]: headerIncludes,
+    },
+  };
+}
+
+function boostrapExtras(
+  flags: PandocFlags,
+  format: Format,
+): FormatExtras {
   const toc = hasTableOfContents(flags, format);
 
   const renderTemplate = (template: string) => {
@@ -188,24 +211,7 @@ function boostrapExtras(
     [kVariables]: {
       [kDocumentCss]: false,
     },
-    [kDependencies]: [
-      {
-        name: "bootstrap",
-        version: "v5.0.0-beta2",
-        stylesheets: [
-          { name: "bootstrap.min.css", path: boostrapCss },
-          bootstrapDependency("bootstrap-icons.css"),
-          { name: "bootstrap.quarto.css", path: quartoCss },
-        ],
-        scripts: [
-          bootstrapDependency("bootstrap.bundle.min.js"),
-          quartoDependency("bootstrap.quarto.js"),
-        ],
-        resources: [
-          bootstrapDependency("bootstrap-icons.woff"),
-        ],
-      },
-    ],
+    [kDependencies]: [bootstrapFormatDependency(format)],
     [kBodyEnvelope]: {
       before: renderTemplate("before-body.ejs"),
       after: renderTemplate("after-body.ejs"),

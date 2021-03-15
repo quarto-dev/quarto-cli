@@ -91,9 +91,6 @@ const navigation: Navigation = {
 };
 
 export async function initWebsiteNavigation(project: ProjectContext) {
-  // read the config
-  project = projectContext(project.dir);
-
   // alias navbar config
   const navbar = project.metadata?.[kNavbar] as Navbar | undefined;
   const sidebar = project.metadata?.[kSidebar] as Sidebar | undefined;

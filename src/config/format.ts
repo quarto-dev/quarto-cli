@@ -218,6 +218,8 @@ export function isHtmlOutput(format?: string | FormatPandoc): boolean {
   ].includes(format || "html");
 }
 
+
+
 export function isMarkdownOutput(format: FormatPandoc) {
   const to = (format.to || "").replace(/[\+\-_].*$/, "");
   return ["markdown", "gfm", "commonmark"].includes(to);
