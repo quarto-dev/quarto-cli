@@ -85,21 +85,22 @@ export const websiteProjectType: ProjectType = {
     // add some title related variables
     extras[kVariables] = {};
 
-    // title prefix if the project has a title
+    // is this the home page? (gets some special handling)
+    const offset = projectOffset(project, input);
+    const [_dir, stem] = dirAndStem(input);
+    const home = (stem === "index" && offset === ".");
+
+    // title prefix if the project has a title and this isn't the home page
     const title = project.metadata?.project?.title;
-    if (title) {
+    if (title && !home) {
       extras[kVariables] = {
         [kTitlePrefix]: project.metadata?.project?.title,
       };
     }
 
     // pagetitle for home page if it has no title
-    if (!format.metadata[kTitle] && !format.metadata[kPageTitle]) {
-      const offset = projectOffset(project, input);
-      const [_dir, stem] = dirAndStem(input);
-      if (stem === "index" && offset === ".") {
-        extras[kVariables]![kPageTitle] = "Home";
-      }
+    if (home && !format.metadata[kTitle] && !format.metadata[kPageTitle]) {
+      extras[kVariables]![kPageTitle] = title || "Home";
     }
 
     return extras;
