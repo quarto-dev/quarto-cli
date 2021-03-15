@@ -19,6 +19,8 @@ Sidebars:
 
 TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
 
+TODO: better defaulting for toc-title
+
 TODO: only do section-divs and toc-title for bootstrap varation (theme: null or theme: pandoc evades)
 TODO: do we need to not highjack the "theme" keyword? (perhaps "bootstrap-theme")
 
