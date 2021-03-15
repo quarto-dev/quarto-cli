@@ -9,23 +9,23 @@
 
 Sidebars:
 - Left sidebars appearance (including)
-  - tree support
-  - Collapsing treatment
   - Implement sidebar: tools
-  - add optional logo in sidebar
-  - support collapsing items under headers 
-  - support dividers
   - read breakpoints out of CSS/SASS to respect them properly in media queries
   - option to 'float' sidebar (centered in col) and left aligned sidebar (background shaded)
     - centering / max width / sidebar
-- all open by default or all closed default (collapse)
-- auto open the current doc
+  - auto open the current doc
+  - should sidebar title include site title (e.g, Quarto - Figures and Layout)
+- hide logo on collapse
+- darken bottom border on collapse view (a littl more bottom padding too)
+- add border to sidebar (right side)
 
 top-nav:
 side-nav:
   type: sidebar
     type: sidebar
-    collapse: true [collapsed by default, opened to selected node] | false [default, always open]
+    collapse-level: 1 (all collapsed), 2 (second level), 3 (and so on)
+            default 2
+    
 
 
 
