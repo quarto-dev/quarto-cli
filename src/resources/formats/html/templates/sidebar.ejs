@@ -12,7 +12,7 @@
   <% } %>
 
   <% sidebar.items.forEach(item => { %>
-      <% partial('sidebaritem.ejs', { item, depth: 0 }) %>
+      <% partial('sidebaritem.ejs', { item, depth: 1, collapse: sidebar['collapse-level'] }) %>
   <% }) %>
 
 </nav>
