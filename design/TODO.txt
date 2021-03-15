@@ -16,11 +16,6 @@ Sidebars:
   - support collapsing items under headers 
   - support dividers
 
-TODO: sidebar should be defaulting to project title
-
-TODO: Quarto - Quarto for title
-
-TODO: hot reload for theme
 
 TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
 
@@ -32,6 +27,13 @@ TODO: localization of "Table of contents"
  (perhaps trigger these off of 'lang')
 
 TODO: top-level latching behavior based on URL patterns
+
+TODO: ability to freeze computational outputs
+TODO: listing pages? (or "collections")
+collections:
+   - path: lab-reports
+     freeze: true
+TODO: generators
 
 TODO: move html ref processing to fully post render (don't do it
 from within lua). This will allow us to pick up anything emitted
