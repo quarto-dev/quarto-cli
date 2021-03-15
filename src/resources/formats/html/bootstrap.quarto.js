@@ -37,17 +37,27 @@ window.document.addEventListener("DOMContentLoaded", function() {
   }
 
   // Hide the title when it will appear in the secondary
-  const title = window.document.querySelectorAll('header > .title');
+  const title = window.document.querySelector('header > .title');
   const sidebar = window.document.getElementById('quarto-sidebar');
-  if (title.length && sidebar) {
-      title[0].classList.add("d-none");
-      title[0].classList.add("d-lg-block");
+  if (title) {
+    title.classList.add("display-4");
+    if (sidebar) {
+      // hide below lg
+      title.classList.add("d-none");
+      title.classList.add("d-lg-block");
 
       // Add the title to the secondary nav bar
-      const secondaryNavTitle = window.document.querySelectorAll('.quarto-secondary-nav .quarto-secondary-nav-title')
-      if (secondaryNavTitle.length) {
-        secondaryNavTitle[0].innerHTML = title[0].innerHTML;
+      const secondaryNavTitle = window.document.querySelector('.quarto-secondary-nav .quarto-secondary-nav-title')
+      if (secondaryNavTitle) {
+        secondaryNavTitle.innerHTML = title.innerHTML;
       }
+    } 
+  }
+
+  // add 'lead' to subtitle
+  const subtitle = window.document.querySelector('header > .subtitle');
+  if (subtitle) {
+    subtitle.classList.add('lead');
   }
     
   // latch active nav link
