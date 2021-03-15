@@ -100,8 +100,10 @@ export const websiteProjectType: ProjectType = {
     }
 
     // pagetitle for home page if it has no title
-    if (home && !format.metadata[kTitle] && !format.metadata[kPageTitle]) {
-      extras.pandoc[kVariables]![kPageTitle] = title || "Home";
+    if (
+      home && !format.metadata[kTitle] && !format.metadata[kPageTitle] && title
+    ) {
+      extras.pandoc[kVariables]![kPageTitle] = title;
     }
 
     return extras;

@@ -339,7 +339,9 @@ async function resolveItem(
         "/" + join(hrefDir, `${hrefStem}.html`),
       );
       const title = index.metadata?.[kTitle] as string ||
-        ((hrefDir === "." && hrefStem === "index") ? "Home" : undefined);
+        ((hrefDir === "." && hrefStem === "index")
+          ? project.metadata?.project?.title
+          : undefined);
 
       return {
         ...item,
