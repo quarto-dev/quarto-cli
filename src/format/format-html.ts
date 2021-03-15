@@ -45,12 +45,8 @@ export function htmlFormat(
   return mergeConfigs(
     baseHtmlFormat(figwidth, figheight),
     {
-      pandoc: {
-        [kSectionDivs]: true,
-      },
       metadata: {
         [kTheme]: "default",
-        [kTocTitle]: "Table of contents",
       },
     },
     {
@@ -70,8 +66,10 @@ export function htmlFormat(
           // theme: null means no default document css at all
         } else {
           return {
-            [kVariables]: {
-              [kDocumentCss]: false,
+            pandoc: {
+              [kVariables]: {
+                [kDocumentCss]: false,
+              },
             },
           };
         }
@@ -88,6 +86,11 @@ export function formatHasBootstrap(format: Format) {
 export function hasTableOfContents(flags: PandocFlags, format: Format) {
   return !!((flags[kToc] || format.pandoc[kToc] ||
     format.pandoc[kTableOfContents]) && (format.metadata[kTocFloat] !== false));
+}
+
+export function hasTableOfContentsTitle(flags: PandocFlags, format: Format) {
+  return flags[kTocTitle] !== undefined ||
+    format.metadata[kTocTitle] !== undefined;
 }
 
 export function bootstrapFormatDependency(format: Format) {
@@ -188,9 +191,11 @@ function pandocExtras(metadata: Metadata) {
     : undefined;
 
   return {
-    [kVariables]: {
-      [kDocumentCss]: true,
-      [kHeaderIncludes]: headerIncludes,
+    pandoc: {
+      [kVariables]: {
+        [kDocumentCss]: true,
+        [kHeaderIncludes]: headerIncludes,
+      },
     },
   };
 }
@@ -208,9 +213,15 @@ function boostrapExtras(
   };
 
   return {
-    [kVariables]: {
-      [kDocumentCss]: false,
+    pandoc: {
+      [kSectionDivs]: true,
+      [kVariables]: {
+        [kDocumentCss]: false,
+      },
     },
+    [kTocTitle]: !hasTableOfContentsTitle(flags, format)
+      ? "Table of contents"
+      : undefined,
     [kDependencies]: [bootstrapFormatDependency(format)],
     [kBodyEnvelope]: {
       before: renderTemplate("before-body.ejs"),

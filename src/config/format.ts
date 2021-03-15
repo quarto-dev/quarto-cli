@@ -5,8 +5,6 @@
 *
 */
 
-import { mergeConfigs } from "../core/config.ts";
-
 import {
   kAtxHeaders,
   kCache,
@@ -19,11 +17,8 @@ import {
   kFigAlign,
   kFigDpi,
   kFilters,
-  kHeaderIncludes,
   kHighlightStyle,
-  kIncludeAfter,
   kIncludeAfterBody,
-  kIncludeBefore,
   kIncludeBeforeBody,
   kIncludeInHeader,
   kKeepHidden,
@@ -57,6 +52,7 @@ import {
   kTableOfContents,
   kTemplate,
   kToc,
+  kTocTitle,
   kVariables,
   kVariant,
 } from "../config/constants.ts";
@@ -101,7 +97,8 @@ export interface BodyEnvelope {
 }
 
 export interface FormatExtras {
-  [kVariables]?: Record<string, unknown>;
+  pandoc?: FormatPandoc;
+  [kTocTitle]?: string;
   [kDependencies]?: FormatDependency[];
   [kBodyEnvelope]?: BodyEnvelope;
   [kIncludeInHeader]?: string[];
@@ -217,8 +214,6 @@ export function isHtmlOutput(format?: string | FormatPandoc): boolean {
     "epub3",
   ].includes(format || "html");
 }
-
-
 
 export function isMarkdownOutput(format: FormatPandoc) {
   const to = (format.to || "").replace(/[\+\-_].*$/, "");

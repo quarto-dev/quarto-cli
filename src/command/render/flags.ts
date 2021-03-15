@@ -24,6 +24,7 @@ import {
   kSelfContained,
   kTableOfContents,
   kToc,
+  kTocTitle,
   kTopLevelDivision,
 } from "../../config/constants.ts";
 import { PandocFlags } from "../../config/flags.ts";
@@ -119,6 +120,13 @@ export function parseRenderFlags(args: string[]) {
       case kTableOfContents:
         arg = argsStack.shift();
         flags.toc = true;
+        break;
+
+      case kTocTitle:
+        arg = argsStack.shift();
+        if (arg) {
+          flags[kTocTitle] = arg;
+        }
         break;
 
       case "--listings":
