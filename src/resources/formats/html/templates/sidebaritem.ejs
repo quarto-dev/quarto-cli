@@ -1,5 +1,23 @@
 <% if (item.href && item.text) { %>
-<li>
+<li class="pb-1">
   <a href="<%- item.href %>"><%- item.text %></a>
 </li>
-<% } %>  
+<% } else if (item.items && item.text) { %>  
+  <% sectionId = (item.text + "-collapse").toLowerCase().replace(/\s/g,'') %>
+  <% paddingCss = "ps-2" %> 
+  <ul class="list-unstyled my-0">
+    <li class="sidebar-section">
+      <button class="btn d-inline-flex w-100 px-0 pt-0 pb-1 fw-lighter" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="true">
+        <div class="me-auto fw-normal"><%- item.text %></div>
+        <div><i class="bi bi-chevron-right"></i></div>
+      </button>   
+      <div class="collapse show" id="<%- sectionId %>">
+        <ul class="list-unstyled <%= paddingCss %>">
+        <% item.items.forEach(subItem => { %>
+          <% partial('sidebaritem.ejs', { item: subItem, depth: depth + 1 }) %>
+         <% }) %>
+        </ul>
+      </div>
+    </li>
+  </ul>
+<% }  %>

@@ -15,6 +15,18 @@ Sidebars:
   - add optional logo in sidebar
   - support collapsing items under headers 
   - support dividers
+  - read breakpoints out of CSS/SASS to respect them properly in media queries
+  - option to 'float' sidebar (centered in col) and left aligned sidebar (background shaded)
+    - centering / max width / sidebar
+- all open by default or all closed default (collapse)
+- auto open the current doc
+
+top-nav:
+side-nav:
+  type: sidebar
+    type: sidebar
+    collapse: true [collapsed by default, opened to selected node] | false [default, always open]
+
 
 
 TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)

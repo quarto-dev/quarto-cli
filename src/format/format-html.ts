@@ -258,10 +258,12 @@ function templateOptions(
 }
 
 function maxWidthCss(value: unknown) {
-  const maxWidth = asCssSize(value) || "1400px";
-  return `#quarto-content {
-    max-width: ${maxWidth};
-  }`;
+  if (value) {
+    const maxWidth = asCssSize(value) || "none";
+    return `#quarto-content {
+      max-width: ${maxWidth};
+    }`;
+  }
 }
 
 function asFontFamily(value: unknown): string | undefined {

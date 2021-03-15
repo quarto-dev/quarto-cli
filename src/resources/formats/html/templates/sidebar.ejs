@@ -2,6 +2,7 @@
   <% if (sidebar.logo) { %>
   <img src="<%- sidebar.logo %>" alt="" class="quarto-sidebar-logo"/>
   <% } %>
+  
   <% if (sidebar.title) { %>
   <h4><%- sidebar.title %></h4>
   <% } %>
@@ -9,16 +10,9 @@
   <% if (sidebar.search) { %>
     <% partial('navsearch.ejs') %>
   <% } %>
-  <ul class="list-unstyled">
-  <% sidebar.contents.forEach(item => { %>
-  <% if (item.section && item.items) { %>
-    <li class="sidebar-section"><%- item.section %></li>
-    <% item.items.forEach(sectionItem => { %>
-    <% partial('sidebaritem.ejs', { item: sectionItem }) %>
-    <% }) %>
-  <% } else if (item.href && item.text) { %>
-    <% partial('sidebaritem.ejs', { item }) %>
-  <% } %>  
+
+  <% sidebar.items.forEach(item => { %>
+      <% partial('sidebaritem.ejs', { item, depth: 0 }) %>
   <% }) %>
-  </ul>
+
 </nav>
