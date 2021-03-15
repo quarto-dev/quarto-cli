@@ -1,5 +1,5 @@
 <% if (item.href && item.text) { %>
-<li class="pb-1">
+<li class="pb-1 px-2">
   <a href="<%- item.href %>"><%- item.text %></a>
 </li>
 <% } else if (item.items && item.text) { %>  
@@ -8,7 +8,7 @@
   <% isCollapsed = collapse <= depth %>
 
   <ul class="list-unstyled my-0">
-    <li class="sidebar-section">
+    <li class="sidebar-section px-2">
       <button class="btn d-inline-flex w-100 px-0 pt-0 pb-1 fw-lighter <%= isCollapsed ? "collapsed" : "" %> " data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded=" <%= isCollapsed ? "false" : "true" %>">
         <div class="me-auto fw-normal"><%- item.text %></div>
         <div><i class="bi bi-chevron-right"></i></div>
@@ -23,5 +23,5 @@
     </li>
   </ul>
 <% } else if (item.text && item.text.match(/^\-+$/)) { %>
-<li><hr class="my-1 sidebar-divider"></li>
+<li class="px-0"><hr class="my-1 sidebar-divider"></li>
 <% } %>
