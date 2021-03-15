@@ -46,6 +46,7 @@ interface Sidebar {
   title?: string;
   logo?: string;
   search?: boolean;
+  "collapse-level"?: number;
   items: SidebarItem[];
 }
 
