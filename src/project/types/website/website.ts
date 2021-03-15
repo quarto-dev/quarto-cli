@@ -83,7 +83,8 @@ export const websiteProjectType: ProjectType = {
       : {};
 
     // add some title related variables
-    extras[kVariables] = {};
+    extras.pandoc = extras.pandoc || {};
+    extras.pandoc[kVariables] = extras.pandoc[kVariables] || {};
 
     // is this the home page? (gets some special handling)
     const offset = projectOffset(project, input);
@@ -93,14 +94,14 @@ export const websiteProjectType: ProjectType = {
     // title prefix if the project has a title and this isn't the home page
     const title = project.metadata?.project?.title;
     if (title && !home) {
-      extras[kVariables] = {
+      extras.pandoc[kVariables] = {
         [kTitlePrefix]: project.metadata?.project?.title,
       };
     }
 
     // pagetitle for home page if it has no title
     if (home && !format.metadata[kTitle] && !format.metadata[kPageTitle]) {
-      extras[kVariables]![kPageTitle] = title || "Home";
+      extras.pandoc[kVariables]![kPageTitle] = title || "Home";
     }
 
     return extras;

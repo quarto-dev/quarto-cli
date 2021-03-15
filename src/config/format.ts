@@ -97,7 +97,7 @@ export interface BodyEnvelope {
 }
 
 export interface FormatExtras {
-  [kVariables]?: Record<string, unknown>;
+  pandoc?: FormatPandoc;
   [kTocTitle]?: string;
   [kDependencies]?: FormatDependency[];
   [kBodyEnvelope]?: BodyEnvelope;

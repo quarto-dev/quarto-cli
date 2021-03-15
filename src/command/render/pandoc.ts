@@ -172,16 +172,11 @@ export async function runPandoc(
       extras.filters.post.unshift(...sysFilters);
     }
 
-    // merge the extras into the defaults
-    if (extras[kVariables]) {
-      allDefaults = {
-        ...allDefaults,
-        [kVariables]: mergeConfigs(
-          extras[kVariables] || {},
-          allDefaults[kVariables],
-        ),
-      };
+    // merge pandoc stuff
+    if (extras.pandoc) {
+      allDefaults = mergeConfigs(allDefaults, extras.pandoc);
     }
+
     if (extras[kIncludeInHeader]) {
       allDefaults = {
         ...allDefaults,
