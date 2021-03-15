@@ -16,12 +16,37 @@
     padding-top: <%=height %>px;
   }
 
+  nav .nav-link i,
+  nav .dropdown-item i {
+    padding-right: 1px;
+  }
+
   .sidebar {
     position: sticky;
     max-height: calc(100vh - <%=height %>px);
     top: <%=height %>px;
     overflow-y: auto;
     max-width: 15rem;
+  }
+
+  .sidebar-navigation {
+    padding-left: 20px;
+  }
+
+  .quarto-sidebar-logo {
+    max-width: 200px;
+  }
+
+  .sidebar-navigation .sidebar-section {
+    padding-top: 10px;
+    font-size: .8rem;
+    font-weight: 500;
+  }
+
+  .sidebar-navigation li a {
+    font-size: 1rem;
+    font-weight: 400;
+    text-decoration: none;
   }
 
   .quarto-btn-toggle[aria-expanded=false] .bi-arrows-collapse {
@@ -41,26 +66,16 @@
     margin-bottom: -4px;
   }
 
-  @include media-breakpoint-down(lg) :not(.show) {
-    #quarto-sidebar {
-      height: 0;
-    }
-  }
-
-  @include media-breakpoint-down(lg) {
+  @media (max-width: 991.98px) {
     #quarto-sidebar {
       border-bottom: 1px solid var(--bs-light);
     }
   }
 
-  @include media-breakpoint-up(lg) {
+  @media (min-width: 992px) {
     #quarto-sidebar {
       height: calc(100vh - 7rem);
       display: block;
     }
-  }
-
-  .quarto-sidebar-logo {
-    max-width: 200px;
   }
 </style>
