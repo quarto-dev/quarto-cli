@@ -171,7 +171,9 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
   sidebar = ld.cloneDeep(sidebar);
 
   // ensure title and search are present
-  sidebar.title = sidebar.title || "";
+  sidebar.title = sidebar.title !== undefined
+    ? sidebar.title
+    : project.metadata?.project?.title || "";
   sidebar.search = !!sidebar.search;
 
   for (let i = 0; i < sidebar.contents.length; i++) {
