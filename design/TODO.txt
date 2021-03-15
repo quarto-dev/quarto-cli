@@ -33,7 +33,7 @@ TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
 
 TODO: top-level latching behavior based on URL patterns
 
-TODO: ability to freeze computational outputs
+TODO: ability to freeze computational outputs (global unfreeze, via clean?)
 
 TODO: move html ref processing to fully post render (don't do it
 from within lua). This will allow us to pick up anything emitted
@@ -52,9 +52,10 @@ TODO: cache directories:
  quarto clean output 
  quarto clean cache 
  quarto clean state
+ quarto clean frozen
 
- quarto clean output cache state
- quarto clean all (output,cache,state)
+ quarto clean output cache state frozen
+ quarto clean all (output,cache,state, frozen)
   - global purge?
 
 TODO: generalized warning system (look for 'WARNING:')
