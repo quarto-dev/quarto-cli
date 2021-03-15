@@ -57,7 +57,7 @@
 
 <% if (nav.sidebar) { %>
 <div id="quarto-sidebar" class="col mx-auto col-12 col-lg-2 sidebar collapse sidebar-navigation">
-  <% partial('sidebar.ejs', nav.sidebar) %>
+  <% partial('sidebar.ejs', { sidebar: nav.sidebar }) %>
 </div>
 <% } %>
 

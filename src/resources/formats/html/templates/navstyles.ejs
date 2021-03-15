@@ -41,22 +41,26 @@
     margin-bottom: -4px;
   }
 
-  @media (max-width: 991.98px) :not(.show) {
+  @include media-breakpoint-down(lg) :not(.show) {
     #quarto-sidebar {
       height: 0;
     }
   }
 
-  @media (max-width: 991.98px) {
+  @include media-breakpoint-down(lg) {
     #quarto-sidebar {
       border-bottom: 1px solid var(--bs-light);
     }
   }
 
-  @media (min-width: 992px) {
+  @include media-breakpoint-up(lg) {
     #quarto-sidebar {
       height: calc(100vh - 7rem);
       display: block;
     }
+  }
+
+  .quarto-sidebar-logo {
+    max-width: 200px;
   }
 </style>

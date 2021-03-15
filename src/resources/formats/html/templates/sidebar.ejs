@@ -1,12 +1,16 @@
 <nav>
-  <% if (title) { %>
-  <h4><%- title %></h4>
+  <% if (sidebar.logo) { %>
+  <img src="<%- sidebar.logo %>" alt="" class="quarto-sidebar-logo"/>
   <% } %>
-  <% if (search) { %>
+  <% if (sidebar.title) { %>
+  <h4><%- sidebar.title %></h4>
+  <% } %>
+  
+  <% if (sidebar.search) { %>
     <% partial('navsearch.ejs') %>
   <% } %>
   <ul class="list-unstyled">
-  <% contents.forEach(item => { %>
+  <% sidebar.contents.forEach(item => { %>
   <% if (item.section && item.items) { %>
     <li class="sidebar-section"><%- item.section %></li>
     <% item.items.forEach(sectionItem => { %>
