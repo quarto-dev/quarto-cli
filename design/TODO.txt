@@ -16,6 +16,14 @@ Sidebars:
   - support collapsing items under headers 
   - support dividers
 
+TODO: sidebar should be defaulting to project title
+
+TODO: Quarto - Quarto for title
+
+TODO: hot reload for theme
+
+TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
+
 TODO: only do section-divs and toc-title for bootstrap varation (theme: null or theme: pandoc evades)
 TODO: do we need to not highjack the "theme" keyword? (perhaps "bootstrap-theme")
 
@@ -30,7 +38,6 @@ from within lua). This will allow us to pick up anything emitted
 by a format (e.g. css or reveal backgrounds) and would open the 
 door to a higher performance implementation
 SEE: https://github.com/b-fuze/deno-dom
-SEE: https://github.com/nekobato/deno-xml-parser
 
 TODO: resolve whether margin-left and margin-right can be made to work w/ bootsrap
 
