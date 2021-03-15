@@ -33,19 +33,18 @@
     padding-left: 20px;
   }
 
-  .quarto-sidebar-logo {
-    max-width: 200px;
+  .sidebar-navigation,
+  .sidebar-navigation button {
+    font-size: 1em;
   }
 
-  .sidebar-navigation .sidebar-section {
-    padding-top: 10px;
-    font-size: .8rem;
-    font-weight: 500;
+
+  .quarto-sidebar-logo {
+    max-width: 150px;
+    padding-bottom: 1rem;
   }
 
   .sidebar-navigation li a {
-    font-size: 1rem;
-    font-weight: 400;
     text-decoration: none;
   }
 
@@ -77,5 +76,17 @@
       height: calc(100vh - 7rem);
       display: block;
     }
+  }
+
+  .sidebar-section button .bi-chevron-right::before {
+    transform: rotate(90deg);
+  }
+
+  .sidebar-section button.collapsed .bi-chevron-right::before {
+    transform: none;
+  }
+
+  .sidebar-section .bi-chevron-right::before {
+    transition: transform 0.20s ease;
   }
 </style>

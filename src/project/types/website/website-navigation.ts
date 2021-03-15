@@ -41,17 +41,14 @@ interface Navigation {
 
 interface Sidebar {
   title?: string;
+  logo?: string;
   search?: boolean;
-  contents: Array<SidebarItem | SidebarSection>;
-}
-
-interface SidebarSection {
-  title: string;
   items: SidebarItem[];
 }
 
 interface SidebarItem {
-  href: string;
+  href?: string;
+  items?: SidebarItem[];
   text?: string;
   [kAriaLabel]?: string;
 }
@@ -170,24 +167,33 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
   // ensure title and search are present
   sidebar.title = sidebar.title !== undefined
     ? sidebar.title
-    : project.metadata?.project?.title || "";
+    : sidebar.logo === undefined
+    ? (project.metadata?.project?.title || "")
+    : undefined;
   sidebar.search = !!sidebar.search;
 
-  for (let i = 0; i < sidebar.contents.length; i++) {
-    if (Object.keys(sidebar.contents[i]).includes("items")) {
-      const items = (sidebar.contents[i] as SidebarSection).items;
-      for (let i = 0; i < items.length; i++) {
-        items[i] = await resolveSidebarItem(project, items[i]);
+  await resolveSidebarItems(project, sidebar.items);
+
+  return sidebar;
+}
+
+async function resolveSidebarItems(
+  project: ProjectContext,
+  items: SidebarItem[],
+) {
+  for (let i = 0; i < items.length; i++) {
+    if (Object.keys(items[i]).includes("items")) {
+      const subItems = items[i].items || [];
+      for (let i = 0; i < subItems.length; i++) {
+        subItems[i] = await resolveSidebarItem(project, subItems[i]);
       }
     } else {
-      sidebar.contents[i] = await resolveSidebarItem(
+      items[i] = await resolveSidebarItem(
         project,
-        sidebar.contents[i] as SidebarItem,
+        items[i] as SidebarItem,
       );
     }
   }
-
-  return sidebar;
 }
 
 async function resolveSidebarItem(project: ProjectContext, item: SidebarItem) {
@@ -197,6 +203,9 @@ async function resolveSidebarItem(project: ProjectContext, item: SidebarItem) {
       item.href,
       item,
     ) as SidebarItem;
+  } else if (item.items) {
+    await resolveSidebarItems(project, item.items);
+    return item;
   } else {
     return item;
   }
@@ -204,16 +213,16 @@ async function resolveSidebarItem(project: ProjectContext, item: SidebarItem) {
 
 function sidebarForHref(href: string) {
   for (const sidebar of navigation.sidebars) {
-    for (let i = 0; i < sidebar.contents.length; i++) {
-      if (Object.keys(sidebar.contents[i]).includes("items")) {
-        const items = (sidebar.contents[i] as SidebarSection).items;
+    for (let i = 0; i < sidebar.items.length; i++) {
+      if (Object.keys(sidebar.items[i]).includes("items")) {
+        const items = sidebar.items[i].items || [];
         for (let i = 0; i < items.length; i++) {
           if (items[i].href === href) {
             return sidebar;
           }
         }
       } else {
-        if ((sidebar.contents[i] as SidebarItem).href === href) {
+        if (sidebar.items[i].href === href) {
           return sidebar;
         }
       }
