@@ -11,8 +11,10 @@
     <% partial('navsearch.ejs') %>
   <% } %>
 
+  <ul class="list-unstyled my-0">
   <% sidebar.items.forEach(item => { %>
       <% partial('sidebaritem.ejs', { item, depth: 1, collapse: sidebar['collapse-level'] }) %>
   <% }) %>
+  </ul>
 
 </nav>

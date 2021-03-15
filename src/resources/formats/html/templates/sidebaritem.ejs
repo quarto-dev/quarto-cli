@@ -22,4 +22,6 @@
       </div>
     </li>
   </ul>
-<% }  %>
+<% } else if (item.text && item.text.match(/^\-+$/)) { %>
+<li><hr class="my-1 sidebar-divider"></li>
+<% } %>
