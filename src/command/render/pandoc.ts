@@ -49,6 +49,7 @@ import {
   kIncludeInHeader,
   kPageTitle,
   kTitle,
+  kTocTitle,
   kVariables,
 } from "../../config/constants.ts";
 import { sessionTempFile } from "../../core/temp.ts";
@@ -158,6 +159,11 @@ export async function runPandoc(
       cwd,
       options.libDir,
     );
+
+    // provide default toc-title if necessary
+    if (extras[kTocTitle]) {
+      options.format.metadata[kTocTitle] = extras[kTocTitle];
+    }
 
     // merge sysFilters if we have them
     if (sysFilters.length > 0) {
@@ -341,6 +347,11 @@ function resolveExtras(
   // project body envelope always wins
   if (projectExtras[kBodyEnvelope]) {
     extras[kBodyEnvelope] = projectExtras[kBodyEnvelope];
+  }
+
+  // project default toc title always wins
+  if (projectExtras[kTocTitle]) {
+    extras[kTocTitle] = projectExtras[kTocTitle];
   }
 
   // resolve dependencies

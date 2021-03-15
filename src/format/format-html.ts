@@ -50,7 +50,6 @@ export function htmlFormat(
       },
       metadata: {
         [kTheme]: "default",
-        [kTocTitle]: "Table of contents",
       },
     },
     {
@@ -88,6 +87,11 @@ export function formatHasBootstrap(format: Format) {
 export function hasTableOfContents(flags: PandocFlags, format: Format) {
   return !!((flags[kToc] || format.pandoc[kToc] ||
     format.pandoc[kTableOfContents]) && (format.metadata[kTocFloat] !== false));
+}
+
+export function hasTableOfContentsTitle(flags: PandocFlags, format: Format) {
+  return flags[kTocTitle] !== undefined ||
+    format.metadata[kTocTitle] !== undefined;
 }
 
 export function bootstrapFormatDependency(format: Format) {
@@ -211,6 +215,9 @@ function boostrapExtras(
     [kVariables]: {
       [kDocumentCss]: false,
     },
+    [kTocTitle]: !hasTableOfContentsTitle(flags, format)
+      ? "Table of contents"
+      : undefined,
     [kDependencies]: [bootstrapFormatDependency(format)],
     [kBodyEnvelope]: {
       before: renderTemplate("before-body.ejs"),

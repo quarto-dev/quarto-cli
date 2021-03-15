@@ -15,11 +15,14 @@ import { renderEjs } from "../../../core/ejs.ts";
 
 import { pandocAutoIdentifier } from "../../../core/pandoc/pandoc-id.ts";
 
-import { kTitle } from "../../../config/constants.ts";
+import { kTitle, kTocTitle } from "../../../config/constants.ts";
 import { Format, FormatExtras, kBodyEnvelope } from "../../../config/format.ts";
 import { PandocFlags } from "../../../config/flags.ts";
 
-import { hasTableOfContents } from "../../../format/format-html.ts";
+import {
+  hasTableOfContents,
+  hasTableOfContentsTitle,
+} from "../../../format/format-html.ts";
 
 import { ProjectContext, projectContext } from "../../project-context.ts";
 import { inputTargetIndex } from "../../project-index.ts";
@@ -128,6 +131,9 @@ export function websiteNavigationExtras(
 
   // return extras with bodyEnvelope
   return {
+    [kTocTitle]: !hasTableOfContentsTitle(flags, format)
+      ? "On this page"
+      : undefined,
     [kBodyEnvelope]: navigationBodyEnvelope(
       inputRelative,
       hasTableOfContents(flags, format),
