@@ -245,7 +245,7 @@ function watchClientScript(port: number): string {
     if (msg.data.startsWith('reload')) {
       socket.close();
       const target = msg.data.replace(/^reload/, "");
-      if (target) {
+      if (target && (target !== window.location.pathname)) {
         window.location.replace(target.replace(/index\.html$/, ""))
       } else {
         window.location.reload(true);
