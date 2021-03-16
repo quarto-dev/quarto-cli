@@ -33,8 +33,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         { name: 'text', weight: 10 },
       ],
       ignoreLocation: true,
-      includeMatches: true,
-      includeScore: true,
       threshold: 0.1
     };
     var fuse = new window.Fuse([], options);
@@ -82,12 +80,11 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
           };
           
           callback(fuse.search(query, searchOptions).map(result => {
-            return result;
+            return result.item;
           }));          
         },
         templates: {
-          suggestion: function(result) {
-            const item = result.item;
+          suggestion: function(item) {
             const escape = window.autocomplete.escapeHighlightedString;
             const lines = ['<div class="card">','<p class="search-result-title">'];
             if (!item.section) {
@@ -123,8 +120,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         var menu = results.querySelector(".aa-dropdown-menu");
         menu.classList.add("card");
       })
-      .on('autocomplete:selected', function(_event, suggestion) {
-        window.location.href = offsetURL(suggestion.item.href);
+      .on('autocomplete:selected', function(_event, item) {
+        window.location.href = offsetURL(item.href);
       });
       // remove inline display style on autocompleter (we want to manage responsive display via css)
       const algolia = window.document.querySelector('.algolia-autocomplete');
