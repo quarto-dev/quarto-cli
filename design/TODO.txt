@@ -22,6 +22,11 @@ side-nav:
   type: sidebar
     type: sidebar
 
+Search:
+  - https://www.algolia.com/doc/guides/building-search-ui/what-is-instantsearch/js/
+  - https://autocomplete.algolia.com/docs/introduction
+
+
 TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
 
 TODO: top-level latching behavior based on URL patterns
