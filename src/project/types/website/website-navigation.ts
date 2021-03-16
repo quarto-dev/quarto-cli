@@ -83,7 +83,7 @@ interface Navbar {
   search?: boolean;
   left?: NavbarItem[];
   right?: NavbarItem[];
-  collapse?: "all" | "left" | "none";
+  collapse?: boolean;
   [kCollapseBelow]?: LayoutBreak;
 }
 
@@ -309,6 +309,7 @@ async function navbarEjsData(
   project: ProjectContext,
   navbar: Navbar,
 ): Promise<Navbar> {
+  const collapse = navbar.collapse !== undefined ? !!navbar.collapse : true;
   const data: Navbar = {
     ...navbar,
     title: navbar.title !== undefined
@@ -318,8 +319,8 @@ async function navbarEjsData(
     type: navbar.type || "dark",
     background: navbar.background || "primary",
     logo: navbar.logo ? `/${navbar.logo}` : undefined,
-    collapse: navbar.collapse || "all",
-    [kCollapseBelow]: navbar.collapse === "none" ? ""
+    collapse,
+    [kCollapseBelow]: !collapse ? ""
     : ("-" + (navbar[kCollapseBelow] || "lg")) as LayoutBreak,
   };
 

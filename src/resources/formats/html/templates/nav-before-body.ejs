@@ -5,22 +5,7 @@
   <div class="container-fluid">
   <% partial('navbrand.ejs', nav.navbar) %>
   <% if (nav.navbar.left || nav.navbar.right) { %>  
-    <% if (nav.navbar.collapse === "none") { %>
-      <% partial('navitems.ejs', { align: 'me-auto', items: nav.navbar.left}) %>
-      <% partial('navitems.ejs', { align: '', items: nav.navbar.right }) %>
-      <% if (nav.navbar.search) { %>
-        <% partial('navsearch.ejs') %>
-      <% } %>
-    <% } else if (nav.navbar.collapse === "left") { %>
-      <% partial('navtoggle.ejs') %>
-      <% partial('navcollapse.ejs') %>
-        <% partial('navitems.ejs', { align: 'me-auto', items: nav.navbar.left}) %>
-      </div> <!-- /navcollapse -->
-      <% partial('navitems.ejs', { align: 'ms-auto', items: nav.navbar.right }) %>
-      <% if (nav.navbar.search) { %>
-        <% partial('navsearch.ejs') %>
-      <% } %>
-    <% } else { %>
+    <% if (nav.navbar.collapse) { %>
       <% partial('navtoggle.ejs') %>
       <% partial('navcollapse.ejs') %>
         <% partial('navitems.ejs', { align: 'me-auto', items: nav.navbar.left}) %>
@@ -29,6 +14,12 @@
           <% partial('navsearch.ejs') %>
         <% } %>
       </div> <!-- /navcollapse -->
+    <% } else { %>
+      <% partial('navitems.ejs', { align: 'me-auto', items: nav.navbar.left}) %>
+      <% partial('navitems.ejs', { align: '', items: nav.navbar.right }) %>
+      <% if (nav.navbar.search) { %>
+        <% partial('navsearch.ejs') %>
+      <% } %>
     <% } %> 
   <% } else { %>
     <% if (nav.navbar.search) { %>
