@@ -31,8 +31,7 @@
 }
 
 .algolia-autocomplete .aa-dropdown-menu .aa-suggestion.aa-cursor .card {
-  color: var(--bs-white);
-  background-color: var(--bs-primary);
+  background-color: var(--bs-light);
 }
 .algolia-autocomplete .aa-dropdown-menu .aa-suggestion em {
   font-weight: bold;

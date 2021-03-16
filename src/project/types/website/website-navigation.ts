@@ -70,16 +70,16 @@ interface SidebarItem {
 interface Navbar {
   title?: string;
   logo?: string;
-  type?: "light" | "dark";
+  type?: "dark" | "light";
   background:
-    | "light"
-    | "dark"
     | "primary"
     | "secondary"
     | "success"
     | "danger"
     | "warning"
-    | "info";
+    | "info"
+    | "light"
+    | "dark";
   search?: boolean;
   left?: NavbarItem[];
   right?: NavbarItem[];
@@ -315,8 +315,8 @@ async function navbarEjsData(
       ? navbar.title
       : project.metadata?.project?.title || "",
     search: websiteSearch(project) === "navbar",
-    type: navbar.type || "light",
-    background: navbar.background || "light",
+    type: navbar.type || "dark",
+    background: navbar.background || "primary",
     logo: navbar.logo ? `/${navbar.logo}` : undefined,
     collapse: navbar.collapse || "all",
     [kCollapseBelow]: navbar.collapse === "none" ? ""
