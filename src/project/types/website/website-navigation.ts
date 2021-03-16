@@ -32,7 +32,7 @@ import {
 import { ProjectContext } from "../../project-context.ts";
 import { inputTargetIndex } from "../../project-index.ts";
 
-import { websiteSearchDependency, websiteSearch } from "./website-search.ts";
+import { websiteSearch, websiteSearchDependency } from "./website-search.ts";
 
 export const kNavbar = "navbar";
 export const kSidebar = "sidebar";

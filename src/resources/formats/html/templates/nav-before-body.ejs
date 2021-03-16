@@ -30,6 +30,10 @@
         <% } %>
       </div> <!-- /navcollapse -->
     <% } %> 
+  <% } else { %>
+    <% if (nav.navbar.search) { %>
+      <% partial('navsearch.ejs') %>
+    <% } %>
   <% } %>
 
   </div> <!-- /container-fluid -->

@@ -68,7 +68,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         autoselect: true,
         autoWidth: false,
         hint: false,
-        debug: true,
+        // debug: true,
         minLength: 2,
         cssClasses: {
          
@@ -97,7 +97,18 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             return html;
           }
         }
-      }]).on('autocomplete:selected', function(_event, suggestion) {
+      }])
+      .on('autocomplete:redrawn', function(event) {
+        var input = this;
+        var inputRect = input.getBoundingClientRect();
+        var results = window.document.querySelector("#quarto-search-results .algolia-autocomplete");
+        var width = results.clientWidth;
+        if ((inputRect.left + width) > window.innerWidth) {  
+          results.style.right = inputRect.right + "px";
+          results.style.left = (inputRect.right - width) + "px";
+        }
+      })
+      .on('autocomplete:selected', function(_event, suggestion) {
         window.location.href = offsetURL(suggestion.item.href);
       });
       // remove inline display style on autocompleter (we want to manage responsive display via css)

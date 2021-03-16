@@ -8,8 +8,9 @@
 }
 
 #quarto-search-results {
-  width: 400px;
+  width: 300px;
   position: relative;
+  z-index: 2000;
 }
 
 #quarto-search-results .algolia-autocomplete {
