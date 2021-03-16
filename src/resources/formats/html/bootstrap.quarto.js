@@ -40,7 +40,7 @@ window.document.addEventListener("DOMContentLoaded", function() {
   const title = window.document.querySelector('header > .title');
   const sidebar = window.document.getElementById('quarto-sidebar');
   if (title) {
-    title.classList.add("display-4");
+    title.classList.add("display-6");
     if (sidebar) {
       // hide below lg
       title.classList.add("d-none");

@@ -26,45 +26,40 @@ pre.sourceCode {
   padding-top: 1.2em;
 }
 /* table of contents */
-.sidebar-chapter > nav > h2 {
+.sidebar-toc > nav > h2 {
   font-size: 1rem;
   font-weight: 400;
   margin-bottom: 0.5rem;
+  margin-top: 0.3rem;
   font-family: inherit;
+  opacity: 0.9;
  }
  
- .sidebar-chapter > nav ul {
+ .sidebar-toc > nav ul {
    padding-left: 0;
    list-style: none;
    font-size: 0.9rem;
+   opacity: 0.9;
  }
  
- .sidebar-chapter > nav ul li a {
+ .sidebar-toc > nav ul li a {
    padding-left: 0;
-   padding-bottom: 0;
+   padding-bottom: 0.15rem;
    padding-top: 0;
    color: inherit;
  }
  
- .sidebar-chapter > nav > ul > li {
-   font-weight: 400;
- }
- 
- .sidebar-chapter > nav > ul > li > ul {
-   font-weight: 300;
- }
- 
- .sidebar-chapter > nav ul > li > ul > li > a {
-   padding-left: 0.7rem;
+ .sidebar-toc > nav ul > li > ul > li > a {
+   padding-left: 0.6rem;
    border-left: 3px solid var(--bs-light);
  }
  
- .sidebar-chapter > nav ul > li > ul > li > a.active {
+ .sidebar-toc > nav ul > li > ul > li > a.active {
    border-color: var(--bs-primary);
    color: var(--bs-primary) !important;
  }
  
- .sidebar-chapter > nav ul > li > a.active {
+ .sidebar-toc > nav ul > li > a.active {
   border-color: var(--bs-primary);
   color: var(--bs-primary) !important;
 }
