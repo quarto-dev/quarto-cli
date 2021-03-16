@@ -367,6 +367,9 @@ function resolveDependencies(
   extras = ld.cloneDeep(extras);
 
   // resolve dependencies
+  const metaTemplate = ld.template(
+    `<meta name="<%- name %>" content="<%- value %>"/>`,
+  );
   const scriptTemplate = ld.template(`<script src="<%- href %>"></script>`);
   const stylesheetTempate = ld.template(
     `<link href="<%- href %>" rel="stylesheet" />`,
@@ -386,6 +389,11 @@ function resolveDependencies(
           lines.push(template({ href }));
         }
       };
+      if (dependency.meta) {
+        Object.keys(dependency.meta).forEach((name) => {
+          lines.push(metaTemplate({ name, value: dependency.meta![name] }));
+        });
+      }
       if (dependency.scripts) {
         dependency.scripts.forEach((script) => copyDep(script, scriptTemplate));
       }

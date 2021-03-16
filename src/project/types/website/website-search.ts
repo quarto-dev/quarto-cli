@@ -6,7 +6,7 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { join, relative } from "path/mod.ts";
+import { basename, join, relative } from "path/mod.ts";
 
 // currently not building the index here so not using fuse
 // @deno-types="fuse/dist/fuse.d.ts"
@@ -14,11 +14,22 @@ import { join, relative } from "path/mod.ts";
 
 import { DOMParser, Element } from "deno_dom/deno-dom-wasm.ts";
 
-import { ProjectContext, projectOutputDir } from "../../project-context.ts";
+import { resourcePath } from "../../../core/resources.ts";
+
+import { FormatDependency } from "../../../config/format.ts";
+
+import {
+  ProjectContext,
+  projectOffset,
+  projectOutputDir,
+} from "../../project-context.ts";
+
+import { websiteNavigationConfig } from "./website-navigation.ts";
 
 interface SearchDoc {
   href: string;
   title: string;
+  section: string;
   text: string;
 }
 
@@ -87,7 +98,8 @@ export function updateSearchIndex(
               h2.remove();
               updateDoc({
                 href: `${href}#${id}`,
-                title: `${title}: ${sectionTitle}`,
+                title,
+                section: sectionTitle,
                 text: section.textContent.trim(),
               });
             }
@@ -99,6 +111,7 @@ export function updateSearchIndex(
           updateDoc({
             href,
             title,
+            section: "",
             text: main.textContent.trim(),
           });
         }
@@ -113,5 +126,51 @@ export function updateSearchIndex(
   const updatedSearchJson = JSON.stringify(updatedSearchDocs);
   if (searchJson !== updatedSearchJson) {
     Deno.writeTextFileSync(searchJsonPath, updatedSearchJson);
+  }
+}
+
+export type WebsiteSearch = "none" | "navbar" | "sidebar";
+
+export function websiteSearch(project: ProjectContext) {
+  const { navbar, sidebars } = websiteNavigationConfig(project);
+  if (navbar?.search) {
+    return "navbar";
+  } else if (sidebars) {
+    return sidebars.some((sidebar) => !!sidebar.search) ? "sidebar" : "none";
+  } else {
+    return "none";
+  }
+}
+
+export function websiteSearchDependency(
+  project: ProjectContext,
+  input: string,
+): FormatDependency | undefined {
+  if (websiteSearch(project) !== "none") {
+    const searchDependency = (resource: string) => {
+      return {
+        name: basename(resource),
+        path: resourcePath(`projects/website/search/${resource}`),
+      };
+    };
+
+    const offset = projectOffset(project, input);
+    return {
+      name: "quarto-search",
+      version: "0.2",
+      meta: {
+        "quarto:offset": offset,
+      },
+      stylesheets: [
+        searchDependency("search.quarto.css"),
+      ],
+      scripts: [
+        searchDependency("autocomplete.min.js"),
+        searchDependency("fuse.min.js"),
+        searchDependency("search.quarto.js"),
+      ],
+    };
+  } else {
+    return undefined;
   }
 }
