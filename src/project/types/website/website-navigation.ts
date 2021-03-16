@@ -16,7 +16,12 @@ import { renderEjs } from "../../../core/ejs.ts";
 import { pandocAutoIdentifier } from "../../../core/pandoc/pandoc-id.ts";
 
 import { kTitle, kTocTitle } from "../../../config/constants.ts";
-import { Format, FormatExtras, kBodyEnvelope } from "../../../config/format.ts";
+import {
+  Format,
+  FormatExtras,
+  kBodyEnvelope,
+  kDependencies,
+} from "../../../config/format.ts";
 import { PandocFlags } from "../../../config/flags.ts";
 
 import {
@@ -24,8 +29,10 @@ import {
   hasTableOfContentsTitle,
 } from "../../../format/format-html.ts";
 
-import { ProjectContext, projectContext } from "../../project-context.ts";
+import { ProjectContext } from "../../project-context.ts";
 import { inputTargetIndex } from "../../project-index.ts";
+
+import { websiteSearchDependency, websiteSearch } from "./website-search.ts";
 
 export const kNavbar = "navbar";
 export const kSidebar = "sidebar";
@@ -112,14 +119,9 @@ const navigation: Navigation = {
 };
 
 export async function initWebsiteNavigation(project: ProjectContext) {
-  // alias navbar config
-  const navbar = project.metadata?.[kNavbar] as Navbar | undefined;
-  const sidebar = project.metadata?.[kSidebar] as Sidebar | undefined;
-  let sidebars = project.metadata?.[kSidebars] as Sidebar[] | undefined;
-  if (sidebar && !sidebars) {
-    sidebars = [sidebar];
-  }
-  if (typeof (navbar) !== "object" && !Array.isArray(sidebars)) {
+  // read config
+  const { navbar, sidebars } = websiteNavigationConfig(project);
+  if (!navbar && !sidebars) {
     return;
   }
 
@@ -138,20 +140,51 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   }
 }
 
+export function websiteNavigationConfig(project: ProjectContext) {
+  // read navbar and sidebar config
+  let navbar = project.metadata?.[kNavbar] as Navbar | undefined;
+  const sidebar = project.metadata?.[kSidebar] as Sidebar | undefined;
+  let sidebars = project.metadata?.[kSidebars] as Sidebar[] | undefined;
+  if (sidebar && !sidebars) {
+    sidebars = [sidebar];
+  }
+
+  // validate navbar
+  if (typeof (navbar) !== "object") {
+    navbar = undefined;
+  }
+
+  // filter sidebars
+  if (sidebars) {
+    if (Array.isArray(sidebars)) {
+      sidebars = sidebars.filter((sidebar) => typeof (sidebar) === "object");
+    } else {
+      sidebars = undefined;
+    }
+  }
+
+  // return
+  return { navbar, sidebars };
+}
+
 export function websiteNavigationExtras(
   project: ProjectContext,
   input: string,
   flags: PandocFlags,
   format: Format,
 ): FormatExtras {
-  // find the href for this input
+  // find the href and offset for this input
   const inputRelative = relative(project.dir, input);
+
+  // get search dependency if we have search
+  const searchDep = websiteSearchDependency(project, input);
 
   // return extras with bodyEnvelope
   return {
     [kTocTitle]: !hasTableOfContentsTitle(flags, format)
       ? "On this page"
       : undefined,
+    [kDependencies]: searchDep ? [searchDep] : undefined,
     [kBodyEnvelope]: navigationBodyEnvelope(
       inputRelative,
       hasTableOfContents(flags, format),
@@ -197,7 +230,7 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
     : sidebar.logo === undefined
     ? (project.metadata?.project?.title || "")
     : undefined;
-  sidebar.search = !!sidebar.search;
+  sidebar.search = websiteSearch(project) === "sidebar";
 
   await resolveSidebarItems(project, sidebar.items);
 
@@ -266,6 +299,7 @@ async function navbarEjsData(
     title: navbar.title !== undefined
       ? navbar.title
       : project.metadata?.project?.title || "",
+    search: websiteSearch(project) === "navbar",
     type: navbar.type || "light",
     background: navbar.background || "light",
     logo: navbar.logo ? `/${navbar.logo}` : undefined,
