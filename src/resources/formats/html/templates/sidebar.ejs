@@ -1,4 +1,17 @@
-<nav class="ms-lg-auto">
+<% borderStart = "" %>
+<% borderEnd = "" %>
+<% if (sidebar.borders) { %>
+  <% if (sidebar.borders.includes("start")) { %>
+    <% borderStart = "border-start" %>
+  <% } %>
+  <% if (sidebar.borders.includes("end")) { %>
+    <% borderEnd = "border-end" %>
+  <% } %>
+<% } %>
+<% borderColor = sidebar['border-color'] ? 'bg-' + sidebar['border-color'] : '' %>
+
+
+<nav class="ms-lg-auto pt-4 <%= borderStart %> <%= borderEnd %> <%= borderColor %>">
   <% if (sidebar.logo) { %>
   <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo px-3"/>
   <% } %>
@@ -12,7 +25,6 @@
   <% } %>
 
   <ul class="list-unstyled my-0">
-  <% borderColor = sidebar['border-color'] ? 'bg-' + sidebar['border-color'] : '' %>
   <% sidebar.items.forEach(item => { %>
       <% partial('sidebaritem.ejs', { item, depth: 1, collapse: sidebar['collapse-level'], borderColor: borderColor }) %>
   <% }) %>
