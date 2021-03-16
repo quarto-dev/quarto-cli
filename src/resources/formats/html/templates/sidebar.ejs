@@ -23,6 +23,10 @@ if (sidebar.style !== "floating") {
   <h4 class="px-3 pb-2"><%- sidebar.title %></h4>
   <% } %>
   
+  <% if (sidebar.tools) { %>
+    <% partial('sidebartools.ejs', { tools: sidebar.tools })%>
+  <% } %>
+
   <% if (sidebar.search) { %>
     <% partial('navsearch.ejs') %>
   <% } %>

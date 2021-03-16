@@ -39,7 +39,7 @@ pre.sourceCode {
    padding-left: 0;
    list-style: none;
    font-size: 0.9rem;
-   opacity: 0.9;
+   font-weight: 300;
  }
  
  .sidebar-toc > nav ul li a {

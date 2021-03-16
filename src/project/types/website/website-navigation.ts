@@ -56,6 +56,7 @@ interface Sidebar {
   search?: boolean;
   [kCollapseLevel]?: number;
   items: SidebarItem[];
+  tools: SidebarTool[];
   style: "anchored" | "floating";
 }
 
@@ -66,6 +67,19 @@ interface SidebarItem {
   [kAriaLabel]?: string;
   expanded?: boolean;
   active?: boolean;
+}
+
+interface SidebarTool {
+  icon: string;
+  text?: string;
+  href?: string;
+  items?: SidebarToolItem[];
+}
+
+interface SidebarToolItem {
+  icon: string;
+  text?: string;
+  href?: string;
 }
 
 interface Navbar {
@@ -222,6 +236,7 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
   }
 
   await resolveSidebarItems(project, sidebar.items);
+  await resolveSidebarTools(project, sidebar.tools);
 
   return sidebar;
 }
@@ -257,6 +272,47 @@ async function resolveSidebarItem(project: ProjectContext, item: SidebarItem) {
     return item;
   } else {
     return item;
+  }
+}
+
+async function resolveSidebarTools(
+  project: ProjectContext,
+  tools: SidebarTool[],
+) {
+  if (tools) {
+    for (let i = 0; i < tools.length; i++) {
+      if (Object.keys(tools[i]).includes("items")) {
+        const items = tools[i].items || [];
+        for (let i = 0; i < items.length; i++) {
+          const toolItem = items[i];
+          if (toolItem.href) {
+            items[i] = await resolveItem(
+              project,
+              toolItem.href,
+              toolItem,
+            ) as SidebarTool;
+
+            // provide a default icon (for dropdown tools)
+            if (!items[i].icon) {
+              items[i].icon = "dot";
+            }
+          }
+        }
+      } else {
+        const toolItem = tools[i];
+        if (toolItem.href) {
+          tools[i] = await resolveItem(
+            project,
+            toolItem.href,
+            toolItem,
+          ) as SidebarTool;
+        }
+        // provide a default icon (for top level tools)
+        if (!tools[i].icon) {
+          tools[i].icon = "gear";
+        }
+      }
+    }
   }
 }
 
