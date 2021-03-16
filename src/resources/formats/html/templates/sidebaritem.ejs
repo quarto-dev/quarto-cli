@@ -5,7 +5,7 @@
 <% } else if (item.items && item.text) { %>  
   <% sectionId = (item.text + "-collapse").toLowerCase().replace(/\s/g,'') %>
   <% paddingCss = "ps-2" %>
-  <% isCollapsed = collapse <= depth %>
+  <% isCollapsed = collapse <= depth && !item.expanded %>
 
   <ul class="list-unstyled my-0">
     <li class="sidebar-section px-3">
