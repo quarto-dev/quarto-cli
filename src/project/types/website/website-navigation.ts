@@ -39,7 +39,7 @@ export const kSidebar = "sidebar";
 export const kSidebars = "sidebars";
 
 const kAriaLabel = "aria-label";
-const kBorderColor = "border-color";
+const kCollapseLevel = "collapse-level";
 const kCollapseBelow = "collapse-below";
 
 type LayoutBreak = "" | "sm" | "md" | "lg" | "xl" | "xxl";
@@ -54,7 +54,7 @@ interface Sidebar {
   title?: string;
   logo?: string;
   search?: boolean;
-  "collapse-level"?: number;
+  [kCollapseLevel]?: number;
   items: SidebarItem[];
   style: "anchored" | "floating";
 }
@@ -215,6 +215,11 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
     ? (project.metadata?.project?.title || "")
     : undefined;
   sidebar.search = websiteSearch(project) === "sidebar";
+
+  // ensure collapse is defaulted
+  if (sidebar[kCollapseLevel] === undefined) {
+    sidebar[kCollapseLevel] = 2;
+  }
 
   await resolveSidebarItems(project, sidebar.items);
 
