@@ -110,7 +110,7 @@ export async function initWebsiteNavigation(project: ProjectContext) {
 
   // write the header
   const navstylesEjs = formatResourcePath("html", "templates/navstyles.ejs");
-  navigation.header = renderEjs(navstylesEjs, { height: navbar ? 60 : 0 });
+  navigation.header = renderEjs(navstylesEjs, { height: navbar ? 56 : 0 });
 
   // navbar
   if (navbar) {
