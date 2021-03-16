@@ -1,17 +1,20 @@
-<% borderStart = "" %>
-<% borderEnd = "" %>
-<% if (sidebar.borders) { %>
-  <% if (sidebar.borders.includes("start")) { %>
-    <% borderStart = "border-start" %>
-  <% } %>
-  <% if (sidebar.borders.includes("end")) { %>
-    <% borderEnd = "border-end" %>
-  <% } %>
-<% } %>
-<% borderColor = sidebar['border-color'] ? 'bg-' + sidebar['border-color'] : '' %>
+<% 
+borderStart = ""
+borderEnd = ""
+bgCss = ""
+mCss = "ms-lg-auto"
+sidebarStyle = sidebar.style
+if (sidebar.style !== "floating") { 
+  borderStart = "border-start"
+  borderEnd = "border-end" 
+  bgCss = "bg-light" 
+  mCss = "me-lg-auto"
+  sidebarStyle = "anchored"
+} 
+%>
 
 
-<nav class="ms-lg-auto pt-4 <%= borderStart %> <%= borderEnd %> <%= borderColor %>">
+<nav class="<%= mCss %> pt-4 px-4 <%= borderStart %> <%= borderEnd %> <%= borderColor %> <%= bgCss %> <%= sidebarStyle %>">
   <% if (sidebar.logo) { %>
   <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo px-3"/>
   <% } %>

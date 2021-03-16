@@ -8,9 +8,9 @@
 //    - commenting / hypotheses
 
 Sidebars:
-- Left sidebar expand to item
+- Left sidebar active item?
 - Left sidebar link and text color (required if we support background / border colors)
-- Left sidebars appearance (including)
+  - If really going to support colors should we just allow all bs color cars (e.g. named colors like red)
 - Implement sidebar: tools
   - read breakpoints out of CSS/SASS to respect them properly in media queries
   - option to 'float' sidebar (centered in col) and left aligned sidebar (background shaded)

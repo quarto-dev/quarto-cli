@@ -70,17 +70,27 @@
     }
 
     .sidebar.sidebar-navigation {
+      position: static;
       border-top: 1px solid rgba(120, 120, 120, 0.3);
       border-bottom: 1px solid rgba(120, 120, 120, 0.3);
-      padding-top: 1em !important;
-      padding-bottom: 1em;
     }
+
+    .sidebar.sidebar-navigation nav {
+      padding-top: .5em !important;
+      padding-bottom: .5em;
+    }
+
   }
 
   @media (min-width: 992px) {
     .sidebar.sidebar-navigation {
       height: calc(100vh);
       display: block;
+      position: sticky;
+    }
+
+    .sidebar.sidebar-navigation nav {
+      min-width: 220px;
     }
   }
 

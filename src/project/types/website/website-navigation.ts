@@ -56,6 +56,7 @@ interface Sidebar {
   search?: boolean;
   "collapse-level"?: number;
   items: SidebarItem[];
+  style: "anchored" | "floating";
 }
 
 interface SidebarItem {
@@ -63,25 +64,7 @@ interface SidebarItem {
   items?: SidebarItem[];
   text?: string;
   [kAriaLabel]?: string;
-  background?:
-    | "light"
-    | "dark"
-    | "primary"
-    | "secondary"
-    | "success"
-    | "danger"
-    | "warning"
-    | "info";
-  borders?: string[]; // start, end
-  [kBorderColor]?:
-    | "light"
-    | "dark"
-    | "primary"
-    | "secondary"
-    | "success"
-    | "danger"
-    | "warning"
-    | "info";
+  expanded?: boolean;
 }
 
 interface Navbar {
@@ -197,7 +180,7 @@ export function navigationBodyEnvelope(file: string, toc: boolean) {
   const nav = {
     toc,
     navbar: navigation.navbar,
-    sidebar: sidebarForHref(href),
+    sidebar: expandedSidebar(href, sidebarForHref(href)),
   };
 
   return {
@@ -294,6 +277,32 @@ function containsHref(href: string, items: SidebarItem[]) {
     }
   }
   return false;
+}
+
+function expandedSidebar(href: string, sidebar?: Sidebar): Sidebar | undefined {
+  if (sidebar) {
+    // Walk through items and mark any items as 'expanded' if they
+    // contain the item with this href
+    const resolveExpandedItems = (href: string, items: SidebarItem[]) => {
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (Object.keys(item).includes("items")) {
+          if (resolveExpandedItems(href, item.items || [])) {
+            item.expanded = true;
+            return true;
+          }
+        } else if (item.href === href) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    // Copy and return the sidebar with expanded marked
+    const expandedSidebar = ld.cloneDeep(sidebar);
+    resolveExpandedItems(href, expandedSidebar.items);
+    return expandedSidebar;
+  }
 }
 
 async function navbarEjsData(
