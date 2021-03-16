@@ -291,6 +291,11 @@ async function resolveSidebarTools(
               toolItem.href,
               toolItem,
             ) as SidebarTool;
+
+            // provide a default icon (for dropdown tools)
+            if (!items[i].icon) {
+              items[i].icon = "dot";
+            }
           }
         }
       } else {
@@ -301,6 +306,10 @@ async function resolveSidebarTools(
             toolItem.href,
             toolItem,
           ) as SidebarTool;
+        }
+        // provide a default icon (for top level tools)
+        if (!tools[i].icon) {
+          tools[i].icon = "gear";
         }
       }
     }

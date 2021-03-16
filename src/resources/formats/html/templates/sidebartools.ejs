@@ -6,11 +6,15 @@
   <% if (tool.items) { %>
     <% toolDropdownId = 'sidebar-tool-dropdown-' + toolCount %>
     <% toolCount = toolCount + 1 %>
-    
+
     <a href="<%- tool.href %>" id="<%- toolDropdownId %>" class="sidebar-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-<%- tool.icon %>"></i></a>
     <ul class="dropdown-menu" aria-labelledby="<%- toolDropdownId %>">
       <% tool.items.forEach(item => { %> 
-        <li><a class="dropdown-item" href="<%- item.href %> "><i class="bi bi-<%- item.icon %>"></i> <%- item.text %></a></li>
+        <li>
+          <a class="dropdown-item" href="<%- item.href %> ">
+          <i class="bi bi-<%- item.icon %>"></i> <%- item.text %>
+          </a>
+        </li>
       <% }) %>     
     </ul>
   <% } else { %>
