@@ -1,16 +1,16 @@
 <% if (item.href && item.text) { %>
-<li class="pb-1 px-0">
-  <a href="<%- item.href %>" class="<%- item.active ? "active" : "" %>"><%- item.text %></a>
+<li class="pb-2 px-0">
+  <a href="<%- item.href %>" class="<%- item.active ? "active" : "" %> <%- depth === 1 ? "fw-bolder" : "fw-normal" %>"><%- item.text %></a>
 </li>
 <% } else if (item.items && item.text) { %>  
   <% sectionId = (item.text + "-collapse").toLowerCase().replace(/\s/g,'') %>
-  <% paddingCss = "ps-2" %>
+  <% paddingCss = "ps-3" %>
   <% isCollapsed = collapse <= depth  && !item.expanded %>
 
   <ul class="list-unstyled my-0">
-    <li class="sidebar-section">
-      <button class="btn d-inline-flex text-start w-100 px-0 pt-0 pb-1 fw-lighter <%- isCollapsed ? "collapsed" : "" %> " data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded=" <%- isCollapsed ? "false" : "true" %>">
-        <div class="me-auto fw-normal"><%- item.text %></div>
+    <li class="sidebar-section <%- depth === 1 ? "pb-1" : "" %> ">
+      <button class="btn d-inline-flex text-start w-100 px-0 pt-0 pb-1 <%- isCollapsed ? "collapsed" : "" %> " data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded=" <%- isCollapsed ? "false" : "true" %>">
+        <div class="me-auto <%- depth === 1 ? "fw-bolder" : "fw-normal" %>"><%- item.text %></div>
         <div><i class="bi bi-chevron-right ms-2"></i></div>
       </button>   
       <div class="collapse  <%- isCollapsed ? "" : "show" %>" id="<%- sectionId %>">
