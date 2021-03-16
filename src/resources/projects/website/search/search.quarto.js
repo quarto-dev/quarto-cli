@@ -68,8 +68,12 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         autoselect: true,
         autoWidth: false,
         hint: false,
+        debug: true,
         minLength: 2,
-        keyboardShortcuts: ['/']
+        cssClasses: {
+         
+        },
+        appendTo: "#quarto-search-results"
       };
       window.autocomplete(searchEl, options, [{
         source: function(query, callback) {
@@ -79,7 +83,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             minMatchCharLength: 2,
             limit: 10,
           };
-          callback(fuse.search(query, searchOptions));
+          callback(fuse.search(query, searchOptions));          
         },
         templates: {
           suggestion: function(result) {
@@ -88,12 +92,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
               item.text.slice(0,100)
             );
             var html = `
-              <div class="search-item">
-                <h3>${item.section}</h3>
-                <div class="search-item-description">
-                  ${highlightResult}
-                </div>
-              </div>
+              <div class="card">${item.section}</div>
             `;
             return html;
           }
