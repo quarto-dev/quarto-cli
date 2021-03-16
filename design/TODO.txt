@@ -8,28 +8,19 @@
 //    - commenting / hypotheses
 
 Sidebars:
-- Left sidebar link and text color (required if we support background / border colors)
 - Left sidebar expand to item
+- Left sidebar link and text color (required if we support background / border colors)
 - Left sidebars appearance (including)
-  - Implement sidebar: tools
+- Implement sidebar: tools
   - read breakpoints out of CSS/SASS to respect them properly in media queries
   - option to 'float' sidebar (centered in col) and left aligned sidebar (background shaded)
     - centering / max width / sidebar
-  - auto open the current doc
   - should sidebar title include site title (e.g, Quarto - Figures and Layout)
-- hide logo on collapse
-- darken bottom border on collapse view (a littl more bottom padding too)
-- add border to sidebar (right side)
 
 top-nav:
 side-nav:
   type: sidebar
     type: sidebar
-    collapse-level: 1 (all collapsed), 2 (second level), 3 (and so on)
-            default 2
-    
-
-
 
 TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
 
