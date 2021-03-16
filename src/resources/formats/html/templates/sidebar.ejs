@@ -14,7 +14,7 @@ if (sidebar.style !== "floating") {
 %>
 
 
-<nav class="<%= mCss %> pt-4 px-4 <%= borderStart %> <%= borderEnd %> <%= borderColor %> <%= bgCss %> <%= sidebarStyle %>">
+<nav class="<%- mCss %> pt-4 px-4 <%- borderStart %> <%- borderEnd %> <%- borderColor %> <%- bgCss %> <%- sidebarStyle %>">
   <% if (sidebar.logo) { %>
   <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo px-3"/>
   <% } %>
