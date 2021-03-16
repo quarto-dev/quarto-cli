@@ -69,7 +69,7 @@
   <% } %>
   <% borderColor = nav.sidebar['border-color'] ? "border-" + nav.sidebar['border-color'] : "" %>
 
-  <div id="quarto-sidebar" class="col col-12 col-lg-3 px-0 mx-auto sidebar collapse sidebar-navigation <%= bgCss %> <%= borderStart %> <%= borderEnd %> <%= borderColor %>">
+  <div id="quarto-sidebar" class="col col-12 col-lg-3 d-lg-flex px-0 sidebar collapse sidebar-navigation <%= bgCss %> <%= borderStart %> <%= borderEnd %> <%= borderColor %>">
     <% partial('sidebar.ejs', { sidebar: nav.sidebar }) %>
   </div>
 <% } %>
