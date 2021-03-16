@@ -8,7 +8,7 @@
 }
 
 #quarto-search-results {
-  width: 300px;
+  width: 400px;
   position: relative;
   z-index: 2000;
 }
@@ -17,18 +17,43 @@
   width: 100%;
 }
 
+#quarto-search-results .algolia-autocomplete .aa-dropdown-menu {
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+#quarto-search-results .search-result-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* number of lines to show */
+  -webkit-box-orient: vertical;
+  line-height: 1.2rem;     /* fallback */
+  max-height: 2.4rem;      /* fallback */
+}
+
 
 #quarto-search-results .aa-suggestion {
   cursor: pointer;
 }
 
 #quarto-search-results .aa-suggestion .card {
-  padding: 8px;
-}
-
-#quarto-search-results .aa-suggestion:not(:first-of-type) .card {
+  padding: 4px 16px;
+  padding-bottom: 6px;
+  border-left: none;
+  border-right: none;
   border-top: none;
 }
+
+#quarto-search-results .aa-suggestion .card p {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+#quarto-search-results .aa-suggestion .card .search-result-title {
+  margin-bottom: 0.1rem;
+}
+
 
 .algolia-autocomplete .aa-dropdown-menu .aa-suggestion.aa-cursor .card {
   background-color: var(--bs-light);
