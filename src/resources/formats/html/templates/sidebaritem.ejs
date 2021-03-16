@@ -1,6 +1,6 @@
 <% if (item.href && item.text) { %>
 <li class="pb-1 px-0">
-  <a href="<%- item.href %>"><%- item.text %></a>
+  <a href="<%- item.href %>" class="<%- item.active ? "active" : "" %>"><%- item.text %></a>
 </li>
 <% } else if (item.items && item.text) { %>  
   <% sectionId = (item.text + "-collapse").toLowerCase().replace(/\s/g,'') %>

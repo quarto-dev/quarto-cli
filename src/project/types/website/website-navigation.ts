@@ -65,6 +65,7 @@ interface SidebarItem {
   text?: string;
   [kAriaLabel]?: string;
   expanded?: boolean;
+  active?: boolean;
 }
 
 interface Navbar {
@@ -292,6 +293,7 @@ function expandedSidebar(href: string, sidebar?: Sidebar): Sidebar | undefined {
             return true;
           }
         } else if (item.href === href) {
+          item.active = true;
           return true;
         }
       }
