@@ -56,6 +56,7 @@ interface Sidebar {
   search?: boolean;
   "collapse-level"?: number;
   items: SidebarItem[];
+  style: "anchored" | "floating";
 }
 
 interface SidebarItem {
@@ -64,25 +65,6 @@ interface SidebarItem {
   text?: string;
   [kAriaLabel]?: string;
   expanded?: boolean;
-  background?:
-    | "light"
-    | "dark"
-    | "primary"
-    | "secondary"
-    | "success"
-    | "danger"
-    | "warning"
-    | "info";
-  borders?: string[]; // start, end
-  [kBorderColor]?:
-    | "light"
-    | "dark"
-    | "primary"
-    | "secondary"
-    | "success"
-    | "danger"
-    | "warning"
-    | "info";
 }
 
 interface Navbar {
