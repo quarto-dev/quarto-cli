@@ -32,6 +32,7 @@ export const kSidebar = "sidebar";
 export const kSidebars = "sidebars";
 
 const kAriaLabel = "aria-label";
+const kBorderColor = "border-color";
 const kCollapseBelow = "collapse-below";
 
 type LayoutBreak = "" | "sm" | "md" | "lg" | "xl" | "xxl";
@@ -55,6 +56,25 @@ interface SidebarItem {
   items?: SidebarItem[];
   text?: string;
   [kAriaLabel]?: string;
+  background?:
+    | "light"
+    | "dark"
+    | "primary"
+    | "secondary"
+    | "success"
+    | "danger"
+    | "warning"
+    | "info";
+  borders?: string[]; // start, end
+  [kBorderColor]?:
+    | "light"
+    | "dark"
+    | "primary"
+    | "secondary"
+    | "success"
+    | "danger"
+    | "warning"
+    | "info";
 }
 
 interface Navbar {

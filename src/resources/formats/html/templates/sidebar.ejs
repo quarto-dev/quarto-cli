@@ -12,8 +12,9 @@
   <% } %>
 
   <ul class="list-unstyled my-0">
+  <% borderColor = sidebar['border-color'] ? 'bg-' + sidebar['border-color'] : '' %>
   <% sidebar.items.forEach(item => { %>
-      <% partial('sidebaritem.ejs', { item, depth: 1, collapse: sidebar['collapse-level'] }) %>
+      <% partial('sidebaritem.ejs', { item, depth: 1, collapse: sidebar['collapse-level'], borderColor: borderColor }) %>
   <% }) %>
   </ul>
 

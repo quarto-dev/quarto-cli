@@ -16,12 +16,12 @@
       <div class="collapse  <%= isCollapsed ? "" : "show" %>" id="<%- sectionId %>">
         <ul class="list-unstyled <%= paddingCss %>">
         <% item.items.forEach(subItem => { %>
-          <% partial('sidebaritem.ejs', { item: subItem, depth: depth + 1, collapse: collapse }) %>
+          <% partial('sidebaritem.ejs', { item: subItem, depth: depth + 1, collapse: collapse, borderColor: borderColor }) %>
          <% }) %>
         </ul>
       </div>
     </li>
   </ul>
 <% } else if (item.text && item.text.match(/^\-+$/)) { %>
-<li class="px-0"><hr class="my-1 sidebar-divider"></li>
+<li class="px-0"><hr class="my-1 sidebar-divider hi <%= borderColor %>"></li>
 <% } %>
