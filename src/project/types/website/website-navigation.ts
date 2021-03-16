@@ -240,21 +240,27 @@ async function resolveSidebarItem(project: ProjectContext, item: SidebarItem) {
 
 function sidebarForHref(href: string) {
   for (const sidebar of navigation.sidebars) {
-    for (let i = 0; i < sidebar.items.length; i++) {
-      if (Object.keys(sidebar.items[i]).includes("items")) {
-        const items = sidebar.items[i].items || [];
-        for (let i = 0; i < items.length; i++) {
-          if (items[i].href === href) {
-            return sidebar;
-          }
-        }
-      } else {
-        if (sidebar.items[i].href === href) {
-          return sidebar;
-        }
+    if (containsHref(href, sidebar.items)) {
+      return sidebar;
+    }
+  }
+}
+
+function containsHref(href: string, items: SidebarItem[]) {
+  for (let i = 0; i < items.length; i++) {
+    if (Object.keys(items[i]).includes("items")) {
+      const subItems = items[i].items || [];
+      const subItemsHasHref = containsHref(href, subItems);
+      if (subItemsHasHref) {
+        return true;
+      }
+    } else {
+      if (items[i].href === href) {
+        return true;
       }
     }
   }
+  return false;
 }
 
 async function navbarEjsData(
