@@ -23,9 +23,13 @@ side-nav:
     type: sidebar
 
 Search:
+  - https://github.com/algolia/autocomplete/tree/master
+  - https://autocomplete.algolia.com/docs/autocomplete-js/
   - https://www.algolia.com/doc/guides/building-search-ui/what-is-instantsearch/js/
   - https://autocomplete.algolia.com/docs/introduction
 
+
+TODO: navbar doesn't go away on hot reload
 
 TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
 
@@ -38,7 +42,6 @@ from within lua). This will allow us to pick up anything emitted
 by a format (e.g. css or reveal backgrounds) and would open the 
 door to a higher performance implementation
 SEE: https://github.com/b-fuze/deno-dom
-
 
 TODO: breaking out of the standard container for a given page (page-layout: none)
 
