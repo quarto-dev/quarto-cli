@@ -22,6 +22,7 @@ window.document.addEventListener("DOMContentLoaded", function() {
   }
 
   function updateDocumentOffset() {
+    // set body offset
     const offset = headerOffset()
     const bodyEl = window.document.body;
     bodyEl.setAttribute("data-bs-offset", offset);
@@ -38,8 +39,25 @@ window.document.addEventListener("DOMContentLoaded", function() {
         sidebar.style.maxHeight = '100vh';   
       }
     });
-  }
 
+    // link offset
+    let linkStyle = window.document.querySelector("#quarto-target-style");
+    if (!linkStyle) {
+      linkStyle = window.document.createElement('style');
+      window.document.head.appendChild(linkStyle);
+    }
+    while (linkStyle.firstChild) {
+      linkStyle.removeChild(linkStyle.firstChild);
+    }
+    linkStyle.appendChild(window.document.createTextNode(`
+      :target::before {
+        content: "";
+        display: block;
+        height: ${offset}px;
+        margin: -${offset}px 0 0;
+      }`)
+    );
+  }
 
   // move the toc if there is a sidebar
   var toc = window.document.querySelectorAll('nav[role="doc-toc"]');
