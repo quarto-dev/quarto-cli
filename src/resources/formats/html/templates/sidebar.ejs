@@ -32,7 +32,7 @@ if (sidebar.style !== "floating") {
   <% } %>
 
   <% if (sidebar.search) { %>
-    <% partial('navsearch.ejs') %>
+    <% partial('navsearch.ejs', { search: sidebar.search }) %>
   <% } %>
 
   <ul class="list-unstyled my-0">

@@ -17,19 +17,19 @@
         <% partial('navitems.ejs', { align: 'me-auto', items: nav.navbar.left}) %>
         <% partial('navitems.ejs', { align: '', items: nav.navbar.right }) %>
         <% if (nav.navbar.search) { %>
-          <% partial('navsearch.ejs') %>
+          <% partial('navsearch.ejs', { search: nav.navbar.search }) %>
         <% } %>
       </div> <!-- /navcollapse -->
     <% } else { %>
       <% partial('navitems.ejs', { align: 'me-auto', items: nav.navbar.left}) %>
       <% partial('navitems.ejs', { align: '', items: nav.navbar.right }) %>
       <% if (nav.navbar.search) { %>
-        <% partial('navsearch.ejs') %>
+        <% partial('navsearch.ejs', { search: nav.navbar.search }) %>
       <% } %>
     <% } %> 
   <% } else { %>
     <% if (nav.navbar.search) { %>
-      <% partial('navsearch.ejs') %>
+      <% partial('navsearch.ejs', { search: nav.navbar.search }) %>
     <% } %>
   <% } %>
 

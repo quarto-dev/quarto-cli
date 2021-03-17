@@ -55,7 +55,7 @@ interface Sidebar {
   title?: string;
   subtitle?: string;
   logo?: string;
-  search?: boolean;
+  search?: boolean | string;
   [kCollapseLevel]?: number;
   items: SidebarItem[];
   tools: SidebarTool[];
@@ -98,7 +98,7 @@ interface Navbar {
     | "info"
     | "light"
     | "dark";
-  search?: boolean;
+  search?: boolean | string;
   left?: NavbarItem[];
   right?: NavbarItem[];
   collapse?: boolean;
@@ -240,7 +240,9 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
 
   // ensure title and search are present
   sidebar.title = sidebarTitle(sidebar, project);
-  sidebar.search = websiteSearch(project) === "sidebar";
+  sidebar.search = websiteSearch(project) === "sidebar"
+    ? sidebar.search
+    : false;
 
   // ensure collapse is defaulted
   if (sidebar[kCollapseLevel] === undefined) {
@@ -383,7 +385,7 @@ async function navbarEjsData(
     title: navbar.title !== undefined
       ? navbar.title
       : project.metadata?.project?.title || "",
-    search: websiteSearch(project) === "navbar",
+    search: websiteSearch(project) === "navbar" ? navbar.search : false,
     type: navbar.type || "dark",
     background: navbar.background || "primary",
     logo: navbar.logo ? `/${navbar.logo}` : undefined,
