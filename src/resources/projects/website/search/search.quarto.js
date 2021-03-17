@@ -112,11 +112,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
           suggestion: function(item) {
             const escape = window.autocomplete.escapeHighlightedString;
             const lines = ['<div class="card">','<p class="search-result-title">'];
-            lines.push(escape(item.title));
-            if (item.section) {
+            if (!item.section) {
+              lines.push(escape(item.title));
+            } else {
+              lines.push(escape(item.section));
               lines.push(...[
                 '<span class="text-muted">',
-                ' — ' + escape(item.section),
+                ' — ' + escape(item.title),
                 '</span>'
               ]);
             }
