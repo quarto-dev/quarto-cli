@@ -20,6 +20,7 @@ window.document.addEventListener("DOMContentLoaded", function() {
   }
   if (offset) {
     body.setAttribute("data-bs-offset", offset);
+    body.style.paddingTop = offset + "px";
   }
   
   // add nav-link class to the TOC links
