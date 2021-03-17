@@ -131,11 +131,15 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   // navbar
   if (navbar) {
     navigation.navbar = await navbarEjsData(project, navbar);
+  } else {
+    navigation.navbar = undefined;
   }
 
   // sidebars
   if (sidebars) {
     navigation.sidebars = await sidebarsEjsData(project, sidebars);
+  } else {
+    navigation.sidebars = [];
   }
 }
 

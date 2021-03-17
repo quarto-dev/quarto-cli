@@ -21,19 +21,11 @@ search box padding
 sidebar scrolling totally messed up
 title inheritence
 
-top-nav:
-side-nav:
-  type: sidebar
-    type: sidebar
+
 
 Search:
   - https://github.com/algolia/autocomplete/tree/master
-  - https://autocomplete.algolia.com/docs/autocomplete-js/
-  - https://www.algolia.com/doc/guides/building-search-ui/what-is-instantsearch/js/
-  - https://autocomplete.algolia.com/docs/introduction
-
-
-TODO: navbar doesn't go away on hot reload
+ 
 
 TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
 

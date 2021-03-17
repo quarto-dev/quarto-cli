@@ -59,7 +59,7 @@
   background-color: var(--bs-light);
 }
 .algolia-autocomplete .aa-dropdown-menu .aa-suggestion em {
-  font-weight: bold;
+  font-weight: 500;
   font-style: normal;
 }
 
