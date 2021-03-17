@@ -22,7 +22,17 @@ window.document.addEventListener("DOMContentLoaded", function() {
     body.setAttribute("data-bs-offset", offset);
     body.style.paddingTop = offset + "px";
   }
-  
+
+  // initialize headroom
+  var header = window.document.querySelector("#quarto-header");
+  if (header && window.Headroom) {
+    const headroom  = new window.Headroom(header, { tolerance: 5});
+    headroom.init();
+
+    // set any scroll offset
+    window.document.body.style['scroll-padding-top'] = offset;
+  }
+    
   // add nav-link class to the TOC links
   var tocLinks = window.document.querySelectorAll('nav[role="doc-toc"] a');
   for (let i=0; i<tocLinks.length; i++) {
@@ -84,14 +94,5 @@ window.document.addEventListener("DOMContentLoaded", function() {
     const th = tableHeaders[i];
     th.parentNode.parentNode.classList.add("table");
   }
-
-  // initialize headroom
-  var header = window.document.querySelector("#quarto-header");
-  if (header && window.Headroom) {
-    const headroom  = new window.Headroom(header);
-    headroom.init();
-  }
-
-
 });
 
