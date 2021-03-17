@@ -9,6 +9,7 @@
 
 #quarto-search-results {
   width: 400px;
+  max-width: 85vw;
   position: relative;
   z-index: 2000;
 }
