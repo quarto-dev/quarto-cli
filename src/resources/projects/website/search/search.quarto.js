@@ -79,21 +79,21 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             limit: 20,
           };
           
-          callback(fuse.search(query, searchOptions).map(result => {
-            return result.item;
-          }));          
+          callback(fuse.search(query, searchOptions)
+            .map(result => {
+              return result.item;
+            })
+          );          
         },
         templates: {
           suggestion: function(item) {
             const escape = window.autocomplete.escapeHighlightedString;
             const lines = ['<div class="card">','<p class="search-result-title">'];
-            if (!item.section) {
-              lines.push(escape(item.title));
-            } else {
-              lines.push(escape(item.section));
+            lines.push(escape(item.title));
+            if (item.section) {
               lines.push(...[
-                '<span class="text-muted float-end">',
-                escape(item.title),
+                '<span class="text-muted">',
+                ' — ' + escape(item.section),
                 '</span>'
               ]);
             }
