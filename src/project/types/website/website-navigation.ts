@@ -530,8 +530,10 @@ function sidebarTitle(sidebar: Sidebar, project: ProjectContext) {
 function websiteHeadroom(project: ProjectContext) {
   const { navbar, sidebars } = websiteNavigationConfig(project);
   if (navbar || sidebars?.length) {
-    return navbar?.pinned !== false &&
-      (!sidebars || !sidebars.some((sidebar) => sidebar.pinned === false));
+    const navbarPinned = navbar?.pinned === true;
+    const anySidebarPinned = sidebars &&
+      sidebars.some((sidebar) => sidebar.pinned === true);
+    return !navbarPinned && !anySidebarPinned;
   } else {
     return false;
   }
