@@ -27,9 +27,6 @@ window.document.addEventListener("DOMContentLoaded", function() {
     bodyEl.setAttribute("data-bs-offset", offset);
     bodyEl.style.paddingTop = offset + "px";  
 
-    // set any scroll offset
-    bodyEl.style['scroll-padding-top'] = offset;
-
     // deal with sidebar offsets
     const sidebars = window.document.querySelectorAll(".sidebar");
     sidebars.forEach(sidebar => { 
@@ -56,10 +53,6 @@ window.document.addEventListener("DOMContentLoaded", function() {
   body.setAttribute("data-bs-spy", "scroll");
   body.setAttribute("data-bs-target", "#quarto-toc-sidebar");
 
-  // Set an offset if there is are fixed top navbar
-  updateDocumentOffset();
-  window.addEventListener('resize', debounce(updateDocumentOffset, 50));
-
   // initialize headroom
   var header = window.document.querySelector("#quarto-header");
   if (header && window.Headroom) {
@@ -81,6 +74,10 @@ window.document.addEventListener("DOMContentLoaded", function() {
         }});
     headroom.init();
   }
+
+  // Set an offset if there is are fixed top navbar
+  updateDocumentOffset();
+  window.addEventListener('resize', debounce(updateDocumentOffset, 50));  
     
   // add nav-link class to the TOC links
   var tocLinks = window.document.querySelectorAll('nav[role="doc-toc"] a');
