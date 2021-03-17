@@ -56,6 +56,23 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         }
       });
   }
+
+  function highlightMatch(query, text) {
+    const start = text.toLowerCase().indexOf(query.toLowerCase());
+    if (start !== -1) {
+      const end = start + query.length;
+      text = text.slice(0, start) + 
+             "<em>" + text.slice(start, end) + "</em>" +
+             text.slice(end);
+      const clipStart = Math.max(start - 50, 0);
+      const clipEnd = clipStart + 200;
+      text = text.slice(clipStart, clipEnd);
+      return text.slice(text.indexOf(' ') + 1);
+    } else {
+      return text;
+    }
+    
+  }
     
   // create index then initialize autocomplete
   createFuseIndex()
@@ -65,6 +82,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       var options = {
         autoselect: true,
         autoWidth: false,
+        cache: false,
         hint: false,
         minLength: 2,
         appendTo: "#quarto-search-results",
@@ -81,7 +99,12 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
           
           callback(fuse.search(query, searchOptions)
             .map(result => {
-              return result.item;
+              return {
+                title: result.item.title,
+                section: result.item.section,
+                href: result.item.href,
+                text: highlightMatch(query, result.item.text)
+              }
             })
           );          
         },
