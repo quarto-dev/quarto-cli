@@ -1,5 +1,49 @@
 window.document.addEventListener("DOMContentLoaded", function() {
   
+  function debounce(func, wait, immediate) {
+    var timeout;
+    return function() {
+      var context = this, args = arguments;
+      var later = function() {
+        timeout = null;
+        if (!immediate) func.apply(context, args);
+      };
+      var callNow = immediate && !timeout;
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+      if (callNow) func.apply(context, args);
+    };
+  };
+
+  function headerOffset() {
+    // Set an offset if there is are fixed top navbar
+    const headerEl = window.document.querySelector('header.fixed-top');
+    return headerEl.clientHeight;
+  }
+
+  function updateDocumentOffset() {
+    const offset = headerOffset()
+    const bodyEl = window.document.body;
+    bodyEl.setAttribute("data-bs-offset", offset);
+    bodyEl.style.paddingTop = offset + "px";  
+
+    // set any scroll offset
+    bodyEl.style['scroll-padding-top'] = offset;
+
+    // deal with sidebar offsets
+    const sidebars = window.document.querySelectorAll(".sidebar");
+    sidebars.forEach(sidebar => { 
+      if (sidebar.classList.contains("sidebar-pinned")) {
+        sidebar.style.top = offset + "px";
+        sidebar.style.maxHeight = 'calc(100vh - ' + offset + 'px)';   
+      } else {
+        sidebar.style.top = "0";
+        sidebar.style.maxHeight = '100vh';   
+      }
+    });
+  }
+
+
   // move the toc if there is a sidebar
   var toc = window.document.querySelectorAll('nav[role="doc-toc"]');
   var tocSidebar = window.document.getElementById("quarto-toc-sidebar")
@@ -13,24 +57,29 @@ window.document.addEventListener("DOMContentLoaded", function() {
   body.setAttribute("data-bs-target", "#quarto-toc-sidebar");
 
   // Set an offset if there is are fixed top navbar
-  const headers = window.document.querySelectorAll('header.fixed-top');
-  var offset = 0;
-  for (let i=0; i< headers.length; i++) {
-    offset += headers[i].clientHeight;
-  }
-  if (offset) {
-    body.setAttribute("data-bs-offset", offset);
-    body.style.paddingTop = offset + "px";
-  }
+  updateDocumentOffset();
+  window.addEventListener('resize', debounce(updateDocumentOffset, 50));
 
   // initialize headroom
   var header = window.document.querySelector("#quarto-header");
   if (header && window.Headroom) {
-    const headroom  = new window.Headroom(header, { tolerance: 5});
+    const headroom  = new window.Headroom(header, 
+      { tolerance: 5,
+        onPin: function() {
+          const sidebars = window.document.querySelectorAll(".sidebar");
+          sidebars.forEach(sidebar => {
+            sidebar.classList.add("sidebar-pinned");
+          });
+          updateDocumentOffset();
+        }, 
+        onUnpin: function() {
+          const sidebars = window.document.querySelectorAll(".sidebar");
+          sidebars.forEach(sidebar => {
+            sidebar.classList.remove("sidebar-pinned");
+          });
+          updateDocumentOffset();
+        }});
     headroom.init();
-
-    // set any scroll offset
-    window.document.body.style['scroll-padding-top'] = offset;
   }
     
   // add nav-link class to the TOC links

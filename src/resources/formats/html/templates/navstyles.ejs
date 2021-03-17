@@ -19,8 +19,6 @@
 
   .sidebar {
     position: sticky;
-    max-height: calc(100vh - <%=height %>px);
-    top: <%=height %>px;
     overflow-y: auto;
     max-width: 15rem;
   }
@@ -97,20 +95,24 @@
       padding-top: .5em !important;
       padding-bottom: .5em;
     }
+  }
 
-    .headroom {
-      will-change: transform;
-      transition: transform 200ms linear;
-    }
+  header.headroom {
+    will-change: transform;
+    transition: transform 200ms linear;
+  }
 
-    .headroom--pinned {
-      transform: translateY(0%);
-    }
+  .sidebar {
+    will-change: top;
+    transition: top 200ms linear;
+  }
 
-    .headroom--unpinned {
-      transform: translateY(-100%);
-    }
+  header.headroom--pinned {
+    transform: translateY(0%);
+  }
 
+  header.headroom--unpinned {
+    transform: translateY(-100%);
   }
 
   @media (min-width: 992px) {
