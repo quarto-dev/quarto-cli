@@ -13,7 +13,7 @@ window.document.addEventListener("DOMContentLoaded", function() {
       timeout = setTimeout(later, wait);
       if (callNow) func.apply(context, args);
     };
-  };
+  }
 
   function headerOffset() {
     // Set an offset if there is are fixed top navbar
@@ -91,6 +91,17 @@ window.document.addEventListener("DOMContentLoaded", function() {
           updateDocumentOffset();
         }});
     headroom.init();
+
+    let frozen = false;
+    window.quartoToggleHeadroom = function () {
+      if (frozen) {
+        headroom.unfreeze();
+        frozen = false;
+      } else {
+        headroom.freeze();
+        frozen = true;
+      }
+    }
   }
 
   // Set an offset if there is are fixed top navbar
