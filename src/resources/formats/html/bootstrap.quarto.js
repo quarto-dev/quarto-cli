@@ -83,5 +83,14 @@ window.document.addEventListener("DOMContentLoaded", function() {
     const th = tableHeaders[i];
     th.parentNode.parentNode.classList.add("table");
   }
+
+  // initialize headroom
+  var header = window.document.querySelector("#quarto-header");
+  if (header && window.Headroom) {
+    var headroom  = new window.Headroom(header);
+    headroom.init();
+  }
+
+
 });
 

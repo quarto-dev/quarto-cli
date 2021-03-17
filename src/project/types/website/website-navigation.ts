@@ -5,12 +5,12 @@
 *
 */
 
-import { join, relative } from "path/mod.ts";
+import { basename, join, relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
 import { dirAndStem, pathWithForwardSlashes } from "../../../core/path.ts";
-import { formatResourcePath } from "../../../core/resources.ts";
+import { formatResourcePath, resourcePath } from "../../../core/resources.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 
 import { pandocAutoIdentifier } from "../../../core/pandoc/pandoc-id.ts";
@@ -18,6 +18,7 @@ import { pandocAutoIdentifier } from "../../../core/pandoc/pandoc-id.ts";
 import { kTitle, kTocTitle } from "../../../config/constants.ts";
 import {
   Format,
+  FormatDependency,
   FormatExtras,
   kBodyEnvelope,
   kDependencies,
@@ -59,6 +60,7 @@ interface Sidebar {
   items: SidebarItem[];
   tools: SidebarTool[];
   style: "anchored" | "floating";
+  pinned?: boolean;
 }
 
 interface SidebarItem {
@@ -100,6 +102,7 @@ interface Navbar {
   left?: NavbarItem[];
   right?: NavbarItem[];
   collapse?: boolean;
+  pinned?: boolean;
   [kCollapseBelow]?: LayoutBreak;
 }
 
@@ -179,15 +182,23 @@ export function websiteNavigationExtras(
   // find the href and offset for this input
   const inputRelative = relative(project.dir, input);
 
-  // get search dependency if we have search
+  // determine dependencies
+  const dependencies: FormatDependency[] = [];
   const searchDep = websiteSearchDependency(project, input);
+  if (searchDep) {
+    dependencies.push(searchDep);
+  }
+  const headroomDep = websiteHeadroomDependency(project);
+  if (headroomDep) {
+    dependencies.push(headroomDep);
+  }
 
   // return extras with bodyEnvelope
   return {
     [kTocTitle]: !hasTableOfContentsTitle(flags, format)
       ? "On this page"
       : undefined,
-    [kDependencies]: searchDep ? [searchDep] : undefined,
+    [kDependencies]: dependencies,
     [kBodyEnvelope]: navigationBodyEnvelope(
       inputRelative,
       hasTableOfContents(flags, format),
@@ -239,6 +250,8 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
   if (sidebar[kCollapseLevel] === undefined) {
     sidebar[kCollapseLevel] = 2;
   }
+
+  sidebar.pinned = sidebar.pinned !== undefined ? !!sidebar.pinned : false;
 
   await resolveSidebarItems(project, sidebar.items);
   await resolveSidebarTools(project, sidebar.tools);
@@ -390,6 +403,7 @@ async function navbarEjsData(
     collapse,
     [kCollapseBelow]: !collapse ? ""
     : ("-" + (navbar[kCollapseBelow] || "lg")) as LayoutBreak,
+    pinned: navbar.pinned !== undefined ? !!navbar.pinned : false,
   };
 
   // normalize nav items
@@ -504,6 +518,36 @@ async function resolveItem(
     }
   } else {
     return item;
+  }
+}
+
+function websiteHeadroom(project: ProjectContext) {
+  const { navbar, sidebars } = websiteNavigationConfig(project);
+  if (navbar || sidebars?.length) {
+    return navbar?.pinned !== false &&
+      (!sidebars || !sidebars.some((sidebar) => sidebar.pinned === false));
+  } else {
+    return false;
+  }
+}
+
+function websiteHeadroomDependency(project: ProjectContext) {
+  if (websiteHeadroom(project)) {
+    const headroomJs = resourcePath(
+      "projects/website/headroom/headroom.min.js",
+    );
+    return {
+      name: "headroom",
+      version: "0.12.0",
+      scripts: [
+        {
+          name: basename(headroomJs),
+          path: headroomJs,
+        },
+      ],
+    };
+  } else {
+    return undefined;
   }
 }
 
