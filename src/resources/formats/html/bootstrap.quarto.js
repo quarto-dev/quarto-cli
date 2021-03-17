@@ -13,13 +13,13 @@ window.document.addEventListener("DOMContentLoaded", function() {
   body.setAttribute("data-bs-target", "#quarto-toc-sidebar");
 
   // Set an offset if there is are fixed top navbar
-  const navBar = window.document.querySelectorAll('.navbar.fixed-top');
-  let offset = 0;
-  for (let i=0; i< navBar.length; i++) {
-    offset += navBar[i].clientHeight;
+  const headers = window.document.querySelectorAll('header.fixed-top');
+  var offset = 0;
+  for (let i=0; i< headers.length; i++) {
+    offset += headers[i].clientHeight;
   }
   if (offset) {
-    body.setAttribute("data-bs-offset", offset * 2);
+    body.setAttribute("data-bs-offset", offset);
   }
   
   // add nav-link class to the TOC links
@@ -87,7 +87,7 @@ window.document.addEventListener("DOMContentLoaded", function() {
   // initialize headroom
   var header = window.document.querySelector("#quarto-header");
   if (header && window.Headroom) {
-    var headroom  = new window.Headroom(header);
+    const headroom  = new window.Headroom(header);
     headroom.init();
   }
 
