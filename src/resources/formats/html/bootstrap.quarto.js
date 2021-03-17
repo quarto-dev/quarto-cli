@@ -31,7 +31,7 @@ window.document.addEventListener("DOMContentLoaded", function() {
     // deal with sidebar offsets
     const sidebars = window.document.querySelectorAll(".sidebar");
     sidebars.forEach(sidebar => { 
-      if (sidebar.classList.contains("sidebar-pinned")) {
+      if (!window.Headroom || sidebar.classList.contains("sidebar-pinned")) {
         sidebar.style.top = offset + "px";
         sidebar.style.maxHeight = 'calc(100vh - ' + offset + 'px)';   
       } else {
