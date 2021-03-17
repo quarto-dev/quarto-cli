@@ -13,7 +13,7 @@ window.document.addEventListener("DOMContentLoaded", function() {
       timeout = setTimeout(later, wait);
       if (callNow) func.apply(context, args);
     };
-  };
+  }
 
   function headerOffset() {
     // Set an offset if there is are fixed top navbar
@@ -66,11 +66,6 @@ window.document.addEventListener("DOMContentLoaded", function() {
     tocSidebar.appendChild(toc[0]);
   }
 
-  // add scroll spy to the body
-  const body = window.document.body;
-  body.setAttribute("data-bs-spy", "scroll");
-  body.setAttribute("data-bs-target", "#quarto-toc-sidebar");
-
   // initialize headroom
   var header = window.document.querySelector("#quarto-header");
   if (header && window.Headroom) {
@@ -91,11 +86,27 @@ window.document.addEventListener("DOMContentLoaded", function() {
           updateDocumentOffset();
         }});
     headroom.init();
+
+    let frozen = false;
+    window.quartoToggleHeadroom = function () {
+      if (frozen) {
+        headroom.unfreeze();
+        frozen = false;
+      } else {
+        headroom.freeze();
+        frozen = true;
+      }
+    }
   }
 
   // Set an offset if there is are fixed top navbar
   updateDocumentOffset();
   window.addEventListener('resize', debounce(updateDocumentOffset, 50));  
+
+  // add scroll spy to the body
+  const body = window.document.body;
+  body.setAttribute("data-bs-spy", "scroll");
+  body.setAttribute("data-bs-target", "#quarto-toc-sidebar"); 
     
   // add nav-link class to the TOC links
   var tocLinks = window.document.querySelectorAll('nav[role="doc-toc"] a');
