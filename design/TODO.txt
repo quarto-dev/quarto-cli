@@ -15,7 +15,7 @@ Sidebars:
 - Should clicking anywhere on the toolbar version of sidebar make it drop down?
 - Is the icon at far right of toolbar version too much?
 
-
+- Scrollspy seems to easily get out of whack
 
 TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
 
