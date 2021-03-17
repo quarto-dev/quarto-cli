@@ -52,6 +52,7 @@ interface Navigation {
 
 interface Sidebar {
   title?: string;
+  subtitle?: string;
   logo?: string;
   search?: boolean;
   [kCollapseLevel]?: number;
