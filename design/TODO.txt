@@ -1,8 +1,5 @@
 
 
-Search:
-- Improved mobile experience for search (search button, etc.)
-
 Sidebars:
 - top section centered by default
   - add align attribute to sidebar
@@ -28,9 +25,31 @@ HTML:
   - copy code block to clipboard
 
 
+TODO: navstyles.ejs no longer dynamic
 
+TODO: top-level latching behavior:
 
-TODO: top-level latching behavior based on URL patterns
+nav-top
+nav-side
+
+nav-secondary:
+   - title: "Tutorials"
+     id: tutorials
+     items:
+        - href: 
+        - href: 
+
+   -  title: "How To"
+      id: how-to
+      items:
+         - href:
+         - href: 
+       
+navbar:
+  left:
+    - href: nav:tutorials
+    - href: nav:how-to
+
 
 TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
 TODO: ability to freeze computational outputs (global unfreeze, via clean?)
