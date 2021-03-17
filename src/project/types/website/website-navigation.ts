@@ -239,11 +239,7 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
   sidebar = ld.cloneDeep(sidebar);
 
   // ensure title and search are present
-  sidebar.title = sidebar.title !== undefined
-    ? sidebar.title
-    : sidebar.logo === undefined
-    ? (project.metadata?.project?.title || "")
-    : undefined;
+  sidebar.title = sidebarTitle(sidebar, project);
   sidebar.search = websiteSearch(project) === "sidebar";
 
   // ensure collapse is defaulted
@@ -509,6 +505,25 @@ async function resolveItem(
     }
   } else {
     return item;
+  }
+}
+
+function sidebarTitle(sidebar: Sidebar, project: ProjectContext) {
+  const { navbar } = websiteNavigationConfig(project);
+  if (sidebar.title) {
+    // Title was explicitly set
+    return sidebar.title;
+  } else if (!sidebar.logo) {
+    if (!navbar) {
+      // If there isn't a logo and there isn't a sidebar, use the project title
+      return project.metadata?.project?.title;
+    } else {
+      // The navbar will display the title
+      return undefined;
+    }
+  } else {
+    // There is a logo, just let the logo appear
+    return undefined;
   }
 }
 
