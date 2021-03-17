@@ -1,19 +1,21 @@
 //  Websites:
-//    - Navigation
-//    - search
-
 //    - edit on github
-//    - Headroom
 //    - google analytics (or coolster alternative). cookie consent
 //    - commenting / hypotheses
+
+Search:
+- Improved mobile experience for search (search button, etc.)
 
 Sidebars:
 - read breakpoints out of CSS/SASS to respect them properly in media queries
 - should sidebar title include site title (e.g, Quarto - Figures and Layout)
+- should sidebar include site title
 
-Search:
-  - https://github.com/algolia/autocomplete/tree/master
- 
+- Find another way to make search 100% width in sidebar (prev solution was also doing it for navbar)
+- Should clicking anywhere on the toolbar version of sidebar make it drop down?
+- Is the icon at far right of toolbar version too much?
+
+
 
 TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
 
