@@ -1,26 +1,38 @@
-//  Websites:
-//    - edit on github
-//    - google analytics (or coolster alternative). cookie consent
-//    - commenting / hypotheses
+
 
 Search:
 - Improved mobile experience for search (search button, etc.)
 
 Sidebars:
-- read breakpoints out of CSS/SASS to respect them properly in media queries
-- should sidebar title include site title (e.g, Quarto - Figures and Layout)
-- should sidebar include site title
-
+- top section centered by default
+  - add align attribute to sidebar
+  - tools align with the top section
+- search box on sidebar edge to edge
+- animate the down chevron (transform rotate 180?)
 - Find another way to make search 100% width in sidebar (prev solution was also doing it for navbar)
-- Should clicking anywhere on the toolbar version of sidebar make it drop down?
-- Is the icon at far right of toolbar version too much?
+- top spacing in tools sidebar (no title or logo should match spacing underneath)
+- if no icon for tool, just don't show it (basically)
+- consistent vertical spacing (be sure to check both anchored and floating)
+- floating collapsed needs background on secondary nav sidebar when expanded (bg-body)
 
-- Scrollspy seems to easily get out of whack
+nav bar
+- narrow search box in expanded nav bar
+- freeze when navbar is expanded (mobile)
+- 1 pixed gap when showing secondary menu and collapsed?
 
-TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
+
+HTML:
+  - anchor links
+  - tabs
+  - admonitions
+  - copy code block to clipboard
+
+
+
 
 TODO: top-level latching behavior based on URL patterns
 
+TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
 TODO: ability to freeze computational outputs (global unfreeze, via clean?)
 
 TODO: move html ref processing to fully post render (don't do it
@@ -29,11 +41,16 @@ by a format (e.g. css or reveal backgrounds) and would open the
 door to a higher performance implementation
 SEE: https://github.com/b-fuze/deno-dom
 
-TODO: breaking out of the standard container for a given page (page-layout: none)
 
+TODO: breaking out of the standard container for a given page (page-layout: none)
 TODO:  htmlwidgets need a fluid container (as perhaps do jupyter widgets)
 
-Charles:
+
+
+
+TODO: Dart sass
+- read breakpoints out of CSS/SASS to respect them properly in media queries
+
       
 TODO: cache directories:
  quarto clean output 
@@ -44,6 +61,12 @@ TODO: cache directories:
  quarto clean output cache state frozen
  quarto clean all (output,cache,state, frozen)
   - global purge?
+
+
+//  Websites:
+//    - edit on github
+//    - google analytics (or coolster alternative). cookie consent
+//    - commenting / hypotheses
 
 TODO: generalized warning system (look for 'WARNING:')
 
@@ -63,11 +86,7 @@ tags: ["foo", "bar"]
 
 ```
 
-HTML:
-  - anchor links
-  - tabs
-  - admonitions
-  - copy code block to clipboard
+
 
 
   - code menu (show all, hide all, download code)
