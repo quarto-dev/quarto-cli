@@ -20,9 +20,13 @@ if (sidebar.style !== "floating") {
   <% } %>
   
   <% if (sidebar.title) { %>
-  <h4 class="px-3 pb-2"><%- sidebar.title %></h4>
+  <h3><%- sidebar.title %></h3>
   <% } %>
-  
+
+  <% if (sidebar.subtitle) { %>
+  <div class="subtitle lead pb-2"><%- sidebar.subtitle %></div>
+  <% } %>
+
   <% if (sidebar.tools) { %>
     <% partial('sidebartools.ejs', { tools: sidebar.tools })%>
   <% } %>

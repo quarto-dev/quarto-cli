@@ -52,6 +52,7 @@ interface Navigation {
 
 interface Sidebar {
   title?: string;
+  subtitle?: string;
   logo?: string;
   search?: boolean;
   [kCollapseLevel]?: number;
@@ -294,7 +295,7 @@ async function resolveSidebarTools(
 
             // provide a default icon (for dropdown tools)
             if (!items[i].icon) {
-              items[i].icon = "dot";
+              items[i].icon = "dash";
             }
           }
         }
