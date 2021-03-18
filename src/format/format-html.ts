@@ -301,7 +301,7 @@ function templateOptions(
     : undefined;
   opts.codeblockBorder = opts.monoBackground
     ? undefined
-    : "  padding-left: 0.5rem;\n  border-left: 3px solid;\n";
+    : "  padding-left: 0.6rem;\n  border-left: 3px solid;\n";
 
   // return options
   return opts;
