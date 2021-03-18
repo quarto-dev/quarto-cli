@@ -88,8 +88,13 @@ nav .dropdown-item i {
 
   .sidebar.sidebar-navigation {
     position: static;
-    border-top: 1px solid rgba(120, 120, 120, 0.3);
-    border-bottom: 1px solid rgba(120, 120, 120, 0.3);
+    border-top: 1px solid #cdd4d9;
+    border-bottom: 1px solid #cdd4d9;
+  }
+
+  .sidebar.sidebar-navigation nav{ 
+    border-left: none !important;
+    border-right: none !important;   
   }
 
   .sidebar.sidebar-navigation nav {
@@ -147,6 +152,7 @@ header.headroom--unpinned {
   .sidebar-navigation nav.anchored .sidebar-search #quarto-search {
     border-left: none;
     border-right: none;
+    border-radius: 0;
   }
 }
 
