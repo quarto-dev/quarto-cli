@@ -178,14 +178,12 @@ export function websiteNavigationExtras(
   const inputRelative = relative(project.dir, input);
 
   // determine dependencies (always include baseline nav dependency)
-  const dependencies: FormatDependency[] = [websiteNavigationDependency()];
+  const dependencies: FormatDependency[] = [
+    websiteNavigationDependency(project),
+  ];
   const searchDep = websiteSearchDependency(project, input);
   if (searchDep) {
     dependencies.push(searchDep);
-  }
-  const headroomDep = websiteHeadroomDependency(project);
-  if (headroomDep) {
-    dependencies.push(headroomDep);
   }
 
   // return extras with bodyEnvelope
@@ -535,38 +533,21 @@ function websiteHeadroom(project: ProjectContext) {
   }
 }
 
-function websiteHeadroomDependency(project: ProjectContext) {
-  if (websiteHeadroom(project)) {
-    const headroomJs = resourcePath(
-      "projects/website/navigation/headroom.min.js",
-    );
-    return {
-      name: "headroom",
-      version: "0.12.0",
-      scripts: [
-        {
-          name: basename(headroomJs),
-          path: headroomJs,
-        },
-      ],
-    };
-  } else {
-    return undefined;
-  }
-}
-
-function websiteNavigationDependency() {
+function websiteNavigationDependency(project: ProjectContext) {
   const navigationDependency = (resource: string) => {
     return {
       name: basename(resource),
       path: resourcePath(`projects/website/navigation/${resource}`),
     };
   };
+  const scripts = [navigationDependency("quarto-nav.js")];
+  if (websiteHeadroom(project)) {
+    scripts.push(navigationDependency("headroom.min.js"));
+  }
   return {
-    name: "navigation",
-    version: "0.2",
-    scripts: [navigationDependency("navigation.quarto.js")],
-    stylesheets: [navigationDependency("navigation.quarto.css")],
+    name: "quarto-nav",
+    scripts,
+    stylesheets: [navigationDependency("quarto-nav.css")],
   };
 }
 

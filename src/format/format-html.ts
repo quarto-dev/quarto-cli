@@ -153,7 +153,7 @@ export function bootstrapFormatDependency(format: Format) {
 
   // process the quarto in header template
   const templateSrc = Deno.readTextFileSync(
-    formatResourcePath("html", "bootstrap.quarto.css"),
+    formatResourcePath("html", "quarto-bootstrap.css"),
   );
   const template = ld.template(templateSrc, {}, undefined);
 
@@ -169,11 +169,11 @@ export function bootstrapFormatDependency(format: Format) {
     stylesheets: [
       { name: "bootstrap.min.css", path: boostrapCss },
       bootstrapDependency("bootstrap-icons.css"),
-      { name: "bootstrap.quarto.css", path: quartoCss },
+      { name: "quarto-bootstrap.css", path: quartoCss },
     ],
     scripts: [
       bootstrapDependency("bootstrap.bundle.min.js"),
-      quartoDependency("bootstrap.quarto.js"),
+      quartoDependency("quarto-bootstrap.js"),
     ],
     resources: [
       bootstrapDependency("bootstrap-icons.woff"),

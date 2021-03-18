@@ -157,21 +157,19 @@ export function websiteSearchDependency(
     const offset = projectOffset(project, input);
     return {
       name: "quarto-search",
-      version: "0.2",
       meta: {
         "quarto:offset": offset,
       },
       stylesheets: [
-        searchDependency("search.quarto.css"),
+        searchDependency("quarto-search.css"),
       ],
       scripts: [
         searchDependency("autocomplete.min.js"),
         searchDependency("fuse.min.js"),
-        searchDependency("search.quarto.js"),
+        searchDependency("quarto-search.js"),
       ],
     };
   } else {
     return undefined;
   }
 }
-
