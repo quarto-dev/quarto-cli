@@ -1,5 +1,10 @@
 
 
+TODO:
+- when left flush anchored look, add left margin to search results
+- whe input blurs, dismiss search results
+- magnifying glass placeholder
+  (bootstrap has span way to put it in input)
 
 
 TODO: top-level latching behavior:
