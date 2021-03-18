@@ -59,13 +59,6 @@ window.document.addEventListener("DOMContentLoaded", function() {
     );
   }
 
-  // move the toc if there is a sidebar
-  var toc = window.document.querySelectorAll('nav[role="doc-toc"]');
-  var tocSidebar = window.document.getElementById("quarto-toc-sidebar")
-  if (toc.length > 0 && tocSidebar) {
-    tocSidebar.appendChild(toc[0]);
-  }
-
   // initialize headroom
   var header = window.document.querySelector("#quarto-header");
   if (header && window.Headroom) {
@@ -103,49 +96,22 @@ window.document.addEventListener("DOMContentLoaded", function() {
   updateDocumentOffset();
   window.addEventListener('resize', debounce(updateDocumentOffset, 50));  
 
-  // add scroll spy to the body
-  const body = window.document.body;
-  body.setAttribute("data-bs-spy", "scroll");
-  body.setAttribute("data-bs-target", "#quarto-toc-sidebar"); 
-    
-  // add nav-link class to the TOC links
-  var tocLinks = window.document.querySelectorAll('nav[role="doc-toc"] a');
-  for (let i=0; i<tocLinks.length; i++) {
+  // Hide the title when it will appear in the secondary nav
+  const title = window.document.querySelector('header > .title');
+  const sidebar = window.document.getElementById('quarto-sidebar');
+  if (title && sidebar) {
+   
+    // hide below lg
+    title.classList.add("d-none");
+    title.classList.add("d-lg-block");
 
-    // Mark the toc links as nav-links
-    const tocLink = tocLinks[i];
-    tocLink.classList.add("nav-link");
-
-    // move the raw href to the target attribute (need the raw value, not the full path)
-    if (!tocLink.hasAttribute("data-bs-target")) {
-      tocLink.setAttribute("data-bs-target", tocLink.getAttribute("href"));
+    // Add the title to the secondary nav bar
+    const secondaryNavTitle = window.document.querySelector('.quarto-secondary-nav .quarto-secondary-nav-title')
+    if (secondaryNavTitle) {
+      secondaryNavTitle.innerHTML = title.innerHTML;
     }
   }
 
-  // Hide the title when it will appear in the secondary
-  const title = window.document.querySelector('header > .title');
-  const sidebar = window.document.getElementById('quarto-sidebar');
-  if (title) {
-    title.classList.add("display-6");
-    if (sidebar) {
-      // hide below lg
-      title.classList.add("d-none");
-      title.classList.add("d-lg-block");
-
-      // Add the title to the secondary nav bar
-      const secondaryNavTitle = window.document.querySelector('.quarto-secondary-nav .quarto-secondary-nav-title')
-      if (secondaryNavTitle) {
-        secondaryNavTitle.innerHTML = title.innerHTML;
-      }
-    } 
-  }
-
-  // add 'lead' to subtitle
-  const subtitle = window.document.querySelector('header > .subtitle');
-  if (subtitle) {
-    subtitle.classList.add('lead');
-  }
-    
   // latch active nav link
   var navLinks = window.document.querySelectorAll("a.nav-link, a.navbar-brand");
   for (let i=0; i<navLinks.length; i++) {
@@ -161,13 +127,6 @@ window.document.addEventListener("DOMContentLoaded", function() {
     if (window.location.protocol !== "file:") {
       navLink.href = navLink.href.replace(/\/index\.html/, "/");
     }
-  }
-
-  // add .table class to pandoc tables
-  var tableHeaders = window.document.querySelectorAll("tr.header"); 
-  for (let i=0; i<tableHeaders.length; i++) {
-    const th = tableHeaders[i];
-    th.parentNode.parentNode.classList.add("table");
   }
 });
 

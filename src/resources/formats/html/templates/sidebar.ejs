@@ -13,9 +13,9 @@ if (sidebar.style !== "floating") {
 } 
 
 alignCss = ""
-if (sidebar.alignment === "left") {
+if (sidebar.align === "left") {
   alignCss = "align-items-start"
-} else if (sidebar.alignment === "right") {
+} else if (sidebar.align === "right") {
   alignCss = "align-items-end"
 } else {
   alignCss = "align-items-center"
@@ -29,7 +29,7 @@ if (sidebar.alignment === "left") {
     <% } %>
     
     <% if (sidebar.title) { %>
-    <h4 class="sidebar-title text-center mt-2"><%- sidebar.title %></h4>
+    <h4 class="sidebar-title text-center mt-2 mb-0 py-0"><%- sidebar.title %></h4>
     <% } %>
 
     <% if (sidebar.subtitle) { %>
@@ -46,7 +46,7 @@ if (sidebar.alignment === "left") {
     </div>
   <% } %>
 
-  <ul class="list-unstyled mt-5 px-4">
+  <ul class="list-unstyled mt-4 px-4">
   <% sidebar.items.forEach(item => { %>
       <% partial('sidebaritem.ejs', { item, depth: 1, collapse: sidebar['collapse-level'], borderColor: borderColor }) %>
   <% }) %>

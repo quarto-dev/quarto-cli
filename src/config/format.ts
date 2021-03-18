@@ -79,7 +79,7 @@ export const kBodyEnvelope = "body-envelope";
 
 export interface FormatDependency {
   name: string;
-  version: string;
+  version?: string;
   meta?: Record<string, string>;
   scripts?: DependencyFile[];
   stylesheets?: DependencyFile[];

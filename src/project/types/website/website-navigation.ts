@@ -46,7 +46,6 @@ const kCollapseBelow = "collapse-below";
 type LayoutBreak = "" | "sm" | "md" | "lg" | "xl" | "xxl";
 
 interface Navigation {
-  header?: string;
   navbar?: Navbar;
   sidebars: Sidebar[];
 }
@@ -128,10 +127,6 @@ export async function initWebsiteNavigation(project: ProjectContext) {
     return;
   }
 
-  // write the header
-  const navstylesEjs = formatResourcePath("html", "templates/navstyles.ejs");
-  navigation.header = renderEjs(navstylesEjs, { height: navbar ? 56 : 0 });
-
   // navbar
   if (navbar) {
     navigation.navbar = await navbarEjsData(project, navbar);
@@ -183,15 +178,13 @@ export function websiteNavigationExtras(
   // find the href and offset for this input
   const inputRelative = relative(project.dir, input);
 
-  // determine dependencies
-  const dependencies: FormatDependency[] = [];
+  // determine dependencies (always include baseline nav dependency)
+  const dependencies: FormatDependency[] = [
+    websiteNavigationDependency(project),
+  ];
   const searchDep = websiteSearchDependency(project, input);
   if (searchDep) {
     dependencies.push(searchDep);
-  }
-  const headroomDep = websiteHeadroomDependency(project);
-  if (headroomDep) {
-    dependencies.push(headroomDep);
   }
 
   // return extras with bodyEnvelope
@@ -216,7 +209,6 @@ export function navigationBodyEnvelope(file: string, toc: boolean) {
   };
 
   return {
-    header: navigation.header,
     before: renderEjs(
       formatResourcePath("html", "templates/nav-before-body.ejs"),
       { nav },
@@ -541,24 +533,22 @@ function websiteHeadroom(project: ProjectContext) {
   }
 }
 
-function websiteHeadroomDependency(project: ProjectContext) {
-  if (websiteHeadroom(project)) {
-    const headroomJs = resourcePath(
-      "projects/website/headroom/headroom.min.js",
-    );
+function websiteNavigationDependency(project: ProjectContext) {
+  const navigationDependency = (resource: string) => {
     return {
-      name: "headroom",
-      version: "0.12.0",
-      scripts: [
-        {
-          name: basename(headroomJs),
-          path: headroomJs,
-        },
-      ],
+      name: basename(resource),
+      path: resourcePath(`projects/website/navigation/${resource}`),
     };
-  } else {
-    return undefined;
+  };
+  const scripts = [navigationDependency("quarto-nav.js")];
+  if (websiteHeadroom(project)) {
+    scripts.push(navigationDependency("headroom.min.js"));
   }
+  return {
+    name: "quarto-nav",
+    scripts,
+    stylesheets: [navigationDependency("quarto-nav.css")],
+  };
 }
 
 function isExternalPath(path: string) {

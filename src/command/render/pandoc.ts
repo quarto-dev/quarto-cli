@@ -377,7 +377,9 @@ function resolveDependencies(
   const lines: string[] = [];
   if (extras[kDependencies]) {
     for (const dependency of extras[kDependencies]!) {
-      const dir = `${dependency.name}-${dependency.version}`;
+      const dir = dependency.version
+        ? `${dependency.name}-${dependency.version}`
+        : dependency.name;
       const targetDir = join(inputDir, libDir, dir);
       // deno-lint-ignore no-explicit-any
       const copyDep = (file: DependencyFile, template?: any) => {

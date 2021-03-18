@@ -1,8 +1,5 @@
 
 
-Search:
-- Improved mobile experience for search (search button, etc.)
-
 Sidebars:
 - top section centered by default
   - add align attribute to sidebar
@@ -14,11 +11,46 @@ Sidebars:
 - if no icon for tool, just don't show it (basically)
 - consistent vertical spacing (be sure to check both anchored and floating)
 - floating collapsed needs background on secondary nav sidebar when expanded (bg-body)
+- max-height / internal scrolling for secondary nav drop-down
+- need to be able to customize the sidebar background color (esp. bg-body)
+- less padding for "anchored" version (use more of scarce horizontal space for titles which can get long)
 
 nav bar
 - narrow search box in expanded nav bar
 - freeze when navbar is expanded (mobile)
 - 1 pixed gap when showing secondary menu and collapsed?
+
+
+
+
+
+TODO: top-level latching behavior:
+
+nav-top
+
+nav-side:
+   title: "Tutorials"
+   items:
+      - href: 
+      - href:
+
+nav-side:
+   - title: "Tutorials"
+     id: tutorials
+     items:
+        - href: 
+        - href: 
+
+   -  title: "How To"
+      id: how-to
+      items:
+         - href:
+         - href: 
+       
+nav-top:
+  left:
+    - href: nav:tutorials
+    - href: nav:how-to
 
 
 HTML:
@@ -27,10 +59,6 @@ HTML:
   - admonitions
   - copy code block to clipboard
 
-
-
-
-TODO: top-level latching behavior based on URL patterns
 
 TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
 TODO: ability to freeze computational outputs (global unfreeze, via clean?)
