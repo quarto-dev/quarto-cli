@@ -23,8 +23,8 @@ pre.sourceCode {
 <%= codeblockBorder %>}
 
 h2 {
-  font-size: 2.25rem;
   margin-top: 2rem;
+  margin-bottom: 1rem;
 }
 
 h3, h4 {
