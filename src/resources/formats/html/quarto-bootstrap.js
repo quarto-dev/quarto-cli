@@ -13,10 +13,15 @@ window.document.addEventListener("DOMContentLoaded", function() {
   }
 
   // move the toc if there is a sidebar
-  var toc = window.document.querySelectorAll('nav[role="doc-toc"]');
+  var toc = window.document.querySelector('nav[role="doc-toc"]');
   var tocSidebar = window.document.getElementById("quarto-toc-sidebar")
-  if (toc.length > 0 && tocSidebar) {
-    tocSidebar.appendChild(toc[0]);
+  if (toc && tocSidebar) {
+    tocSidebar.appendChild(toc);
+    // add scroll spy to the body
+    const body = window.document.body;
+    body.setAttribute("data-bs-spy", "scroll");
+    body.setAttribute("data-bs-target", "#" + tocSidebar.id); 
+  
   }
   
   // add nav-link class to the TOC links
@@ -33,11 +38,6 @@ window.document.addEventListener("DOMContentLoaded", function() {
     }
   }
 
-  // add scroll spy to the body
-  const body = window.document.body;
-  body.setAttribute("data-bs-spy", "scroll");
-  body.setAttribute("data-bs-target", "#quarto-toc-sidebar"); 
-    
   // add .table class to pandoc tables
   var tableHeaders = window.document.querySelectorAll("tr.header"); 
   for (let i=0; i<tableHeaders.length; i++) {
