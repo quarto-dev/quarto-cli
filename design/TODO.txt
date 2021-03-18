@@ -18,6 +18,9 @@ nav bar
 - 1 pixed gap when showing secondary menu and collapsed?
 
 
+TODO: when hoisting title into collapsed secondary nav, need
+a bit more padding above the first H2 header
+
 HTML:
   - anchor links
   - tabs
@@ -25,7 +28,6 @@ HTML:
   - copy code block to clipboard
 
 
-TODO: navstyles.ejs no longer dynamic
 
 TODO: top-level latching behavior:
 
