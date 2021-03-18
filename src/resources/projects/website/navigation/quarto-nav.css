@@ -9,6 +9,10 @@ nav .dropdown-item i {
   padding-right: 1px;
 }
 
+.navbar #quarto-search {
+  width: 13em;
+}
+
 .sidebar {
   position: sticky;
   overflow-y: auto;
