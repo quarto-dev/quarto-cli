@@ -5,6 +5,8 @@
 *
 */
 
+import { Document } from "deno_dom/deno-dom-wasm.ts";
+
 import {
   kAtxHeaders,
   kCache,
@@ -75,6 +77,7 @@ import {
 import { PandocFlags } from "./flags.ts";
 
 export const kDependencies = "dependencies";
+export const kHtmlPostprocessors = "html-postprocessors";
 export const kBodyEnvelope = "body-envelope";
 
 export interface FormatDependency {
@@ -109,6 +112,7 @@ export interface FormatExtras {
     pre?: string[];
     post?: string[];
   };
+  [kHtmlPostprocessors]?: Array<(doc: Document) => void>;
 }
 
 // pandoc output format

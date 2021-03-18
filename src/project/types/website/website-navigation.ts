@@ -9,6 +9,8 @@ import { basename, join, relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
+import { Document } from "deno_dom/deno-dom-wasm.ts";
+
 import { dirAndStem, pathWithForwardSlashes } from "../../../core/path.ts";
 import { formatResourcePath, resourcePath } from "../../../core/resources.ts";
 import { renderEjs } from "../../../core/ejs.ts";
@@ -22,6 +24,7 @@ import {
   FormatExtras,
   kBodyEnvelope,
   kDependencies,
+  kHtmlPostprocessors,
 } from "../../../config/format.ts";
 import { PandocFlags } from "../../../config/flags.ts";
 
@@ -209,6 +212,7 @@ export function websiteNavigationExtras(
       inputRelative,
       hasTableOfContents(flags, format),
     ),
+    [kHtmlPostprocessors]: [navigationHtmlPostprocessor],
   };
 }
 
@@ -561,6 +565,25 @@ function websiteNavigationDependency(project: ProjectContext) {
     scripts,
     stylesheets: [navigationDependency("quarto-nav.css")],
   };
+}
+
+function navigationHtmlPostprocessor(doc: Document) {
+  // Hide the title when it will appear in the secondary nav
+  const title = doc.querySelector("header > .title");
+  const sidebar = doc.getElementById("quarto-sidebar");
+  if (title && sidebar) {
+    // hide below lg
+    title.classList.add("d-none");
+    title.classList.add("d-lg-block");
+
+    // Add the title to the secondary nav bar
+    const secondaryNavTitle = doc.querySelector(
+      ".quarto-secondary-nav .quarto-secondary-nav-title",
+    );
+    if (secondaryNavTitle) {
+      secondaryNavTitle.innerHTML = title.innerHTML;
+    }
+  }
 }
 
 function isExternalPath(path: string) {

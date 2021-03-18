@@ -40,8 +40,15 @@ HTML:
   - anchor links
   - tabs
   - admonitions
+  - option to have shaded code blocks:
+     code-background: light | secondary | etc.
   - copy code block to clipboard
 
+
+TODO: SSR for active nav links
+TODO: resourcerefs done within render time DOM
+
+TOOD: improved console/progress treatment for full project render
 
 TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
 TODO: ability to freeze computational outputs (global unfreeze, via clean?)
@@ -62,7 +69,12 @@ TODO:  htmlwidgets need a fluid container (as perhaps do jupyter widgets)
 TODO: Dart sass
 - read breakpoints out of CSS/SASS to respect them properly in media queries
 
-      
+
+Search:
+  - https://stork-search.net/
+  - Algolia     
+
+
 TODO: cache directories:
  quarto clean output 
  quarto clean cache 

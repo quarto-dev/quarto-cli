@@ -5,27 +5,40 @@
 *
 */
 
-import { ld } from "lodash/mod.ts";
-
 import { dirname, isAbsolute, join } from "path/mod.ts";
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 
 import { stringify } from "encoding/yaml.ts";
 
+import { ld } from "lodash/mod.ts";
+
+import {
+  Document,
+  DOMParser,
+  Element,
+  HTMLDocument,
+} from "deno_dom/deno-dom-wasm.ts";
+
 import { execProcess } from "../../core/process.ts";
 import { message } from "../../core/console.ts";
 import { dirAndStem, pathWithForwardSlashes } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
-import { placeholderHtml } from "../../core/html.ts";
+import {
+  placeholderHtml,
+  preservePlaceholders,
+  restorePlaceholders,
+} from "../../core/html.ts";
 
 import {
   DependencyFile,
   Format,
   FormatExtras,
   FormatPandoc,
+  isHtmlOutput,
   kBodyEnvelope,
   kDependencies,
+  kHtmlPostprocessors,
 } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
 import { binaryPath, resourcePath } from "../../core/resources.ts";
@@ -62,6 +75,9 @@ export interface PandocOptions {
   markdown: string;
   // input file being processed
   input: string;
+
+  // output file that will be written
+  output: string;
 
   // lib dir for converstion
   libDir: string;
@@ -136,6 +152,7 @@ export async function runPandoc(
   }
 
   // see if there are extras
+  const htmlPostprocessors: Array<(doc: Document) => void> = [];
   if (
     sysFilters.length > 0 || options.format.formatExtras ||
     options.project?.formatExtras
@@ -159,6 +176,9 @@ export async function runPandoc(
       cwd,
       options.libDir,
     );
+
+    // save post-processors
+    htmlPostprocessors.push(...(extras[kHtmlPostprocessors] || []));
 
     // provide default toc-title if necessary
     if (extras[kTocTitle]) {
@@ -290,6 +310,22 @@ export async function runPandoc(
     },
   );
 
+  // TODO: create a 'resourceRefs' preprocessor that we install here (replacing lua handling)
+
+  // post-processing for html
+  if (isHtmlOutput(options.format.pandoc) && htmlPostprocessors.length > 0) {
+    const outputFile = join(cwd, options.output);
+    const htmlInput = Deno.readTextFileSync(outputFile);
+    const { html, placeholders } = preservePlaceholders(htmlInput);
+    const doc = new DOMParser().parseFromString(html, "text/html")!;
+    htmlPostprocessors.forEach((preprocessor) => preprocessor(doc));
+    const htmlOutput = restorePlaceholders(
+      doc.documentElement?.outerHTML!,
+      placeholders,
+    );
+    Deno.writeTextFileSync(outputFile, htmlOutput);
+  }
+
   // resolve resource files from metadata
   const globs: string[] = [];
   if (options.format.metadata[kResources]) {
@@ -303,9 +339,11 @@ export async function runPandoc(
     }
   }
 
+  // TODO: all of the below should be no longer necessary once we are
+  // post-processing the HTML for resource references
+
   // resource files referenced from metadata (e.g. 'css')
   const files = formatResourceFiles(cwd, options.format);
-
   // resource files explicitly discovered by the filter
   // (e.g. referenced from links)
   if (existsSync(filterResultsFile)) {
