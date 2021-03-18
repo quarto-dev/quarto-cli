@@ -88,7 +88,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         appendTo: "#quarto-search-results",
         debug: true,
       };
-      window.autocomplete(searchEl, options, [{
+      window.quartoSearch = window.autocomplete(searchEl, options, [{
         source: function(query, callback) {
           const searchOptions = {
             isCaseSensitive: false,

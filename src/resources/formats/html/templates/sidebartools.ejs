@@ -1,15 +1,14 @@
 
 
 <% toolCount = 0 %>
-<div class="d-block pb-3 pt-2">
+<div class="d-block mt-1">
 <% tools.forEach(tool => {  %>
 
-  <% toolIcon = tool.icon || 'question-square' %>
   <% if (tool.items) { %>
     <% toolDropdownId = 'sidebar-tool-dropdown-' + toolCount %>
     <% toolCount = toolCount + 1 %>
 
-    <a href="<%- tool.href %>" id="<%- toolDropdownId %>" class="sidebar-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-<%- toolIcon %>"></i></a>
+    <a href="<%- tool.href %>" id="<%- toolDropdownId %>" class="sidebar-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-<%- tool.icon %>"></i></a>
     <ul class="dropdown-menu" aria-labelledby="<%- toolDropdownId %>">
       <% tool.items.forEach(item => { %> 
         <li>
@@ -23,7 +22,7 @@
       <% }) %>     
     </ul>
   <% } else { %>
-    <a href="<%- tool.href %>" title="<%- tool.text %>" class="sidebar-tool px-1"><i class="bi bi-<%- toolIcon %>"></i></a>
+    <a href="<%- tool.href %>" title="<%- tool.text %>" class="sidebar-tool px-1"><i class="bi bi-<%- tool.icon %>"></i></a>
   <% } %>
 <% }) %>
 </div>

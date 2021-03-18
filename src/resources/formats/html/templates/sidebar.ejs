@@ -1,7 +1,7 @@
 <% 
 borderStart = ""
 borderEnd = ""
-bgCss = ""
+bgCss = "bg-body"
 mCss = "ms-lg-auto"
 sidebarStyle = sidebar.style
 if (sidebar.style !== "floating") { 
@@ -14,28 +14,31 @@ if (sidebar.style !== "floating") {
 %>
 
 
-<nav class="<%- mCss %> py-4 px-4 <%- borderStart %> <%- borderEnd %> <%- borderColor %> <%- bgCss %> <%- sidebarStyle %> overflow-scroll">
-  <% if (sidebar.logo) { %>
-  <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo px-3"/>
-  <% } %>
-  
-  <% if (sidebar.title) { %>
-  <h4 class="sidebar-title"><%- sidebar.title %></h4>
-  <% } %>
+<nav class="<%- mCss %> py-2 <%- borderStart %> <%- borderEnd %> <%- borderColor %> <%- bgCss %> <%- sidebarStyle %> overflow-scroll ">
+  <div class="px-4 d-flex flex-column align-items-center ">
+    <% if (sidebar.logo) { %>
+    <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo mt-3 py-0 mw-100"/>
+    <% } %>
+    
+    <% if (sidebar.title) { %>
+    <h4 class="sidebar-title text-center mt-2"><%- sidebar.title %></h4>
+    <% } %>
 
-  <% if (sidebar.subtitle) { %>
-  <div class="sidebbar-subtitle lead pb-2"><%- sidebar.subtitle %></div>
-  <% } %>
+    <% if (sidebar.subtitle) { %>
+    <div class="sidebbar-subtitle lead mt-1 pb-0 text-center"><%- sidebar.subtitle %></div>
+    <% } %>
 
-  <% if (sidebar.tools) { %>
-    <% partial('sidebartools.ejs', { tools: sidebar.tools })%>
-  <% } %>
-
+    <% if (sidebar.tools) { %>
+      <% partial('sidebartools.ejs', { tools: sidebar.tools })%>
+    <% } %>
+  </div>
   <% if (sidebar.search) { %>
+    <div class="sidebar-search px-4 mt-5">
     <% partial('navsearch.ejs', { search: sidebar.search }) %>
+    </div>
   <% } %>
 
-  <ul class="list-unstyled my-0">
+  <ul class="list-unstyled mt-5 px-4">
   <% sidebar.items.forEach(item => { %>
       <% partial('sidebaritem.ejs', { item, depth: 1, collapse: sidebar['collapse-level'], borderColor: borderColor }) %>
   <% }) %>
