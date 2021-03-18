@@ -212,7 +212,6 @@ export function websiteNavigationExtras(
       inputRelative,
       hasTableOfContents(flags, format),
     ),
-    [kHtmlPostprocessors]: [navigationHtmlPostprocessor],
   };
 }
 
@@ -571,25 +570,6 @@ function websiteNavigationDependency(project: ProjectContext) {
     scripts,
     stylesheets: [navigationDependency("quarto-nav.css")],
   };
-}
-
-function navigationHtmlPostprocessor(doc: Document) {
-  // Hide the title when it will appear in the secondary nav
-  const title = doc.querySelector("header > .title");
-  const sidebar = doc.getElementById("quarto-sidebar");
-  if (title && sidebar) {
-    // hide below lg
-    title.classList.add("d-none");
-    title.classList.add("d-lg-block");
-
-    // Add the title to the secondary nav bar
-    const secondaryNavTitle = doc.querySelector(
-      ".quarto-secondary-nav .quarto-secondary-nav-title",
-    );
-    if (secondaryNavTitle) {
-      secondaryNavTitle.innerHTML = title.innerHTML;
-    }
-  }
 }
 
 function isExternalPath(path: string) {

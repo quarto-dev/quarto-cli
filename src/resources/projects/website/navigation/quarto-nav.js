@@ -96,6 +96,23 @@ window.document.addEventListener("DOMContentLoaded", function() {
   updateDocumentOffset();
   window.addEventListener('resize', debounce(updateDocumentOffset, 50));  
 
+  // Hide the title when it will appear in the secondary nav
+  const title = window.document.querySelector("header > .title");
+  const sidebar = window.document.getElementById("quarto-sidebar");
+  if (title && sidebar) {
+    // hide below lg
+    title.classList.add("d-none");
+    title.classList.add("d-lg-block");
+
+    // Add the title to the secondary nav bar
+    const secondaryNavTitle = window.document.querySelector(
+      ".quarto-secondary-nav .quarto-secondary-nav-title",
+    );
+    if (secondaryNavTitle) {
+      secondaryNavTitle.innerHTML = title.innerHTML;
+    }
+  }
+
   // latch active nav link
   var navLinks = window.document.querySelectorAll("a.nav-link, a.navbar-brand");
   for (let i=0; i<navLinks.length; i++) {
@@ -112,5 +129,7 @@ window.document.addEventListener("DOMContentLoaded", function() {
       navLink.href = navLink.href.replace(/\/index\.html/, "/");
     }
   }
+
+
 });
 
