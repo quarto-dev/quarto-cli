@@ -31,6 +31,7 @@ import {
 } from "../../core/html.ts";
 
 import {
+  BodyEnvelopeContent,
   DependencyFile,
   Format,
   FormatExtras,
@@ -470,10 +471,12 @@ function resolveBodyEnvelope(extras: FormatExtras) {
   if (envelope) {
     const writeBodyFile = (
       type: "include-in-header" | "include-before-body" | "include-after-body",
-      contents?: string,
+      content?: BodyEnvelopeContent,
     ) => {
-      if (contents) {
-        contents = placeholderHtml(`envelope-${type}`, contents);
+      if (content) {
+        const contents = content.dynamic
+          ? placeholderHtml(`envelope-${type}`, content.content)
+          : content.content;
         const file = sessionTempFile({ suffix: ".html" });
         Deno.writeTextFileSync(file, contents);
         if (type === kIncludeAfterBody) {

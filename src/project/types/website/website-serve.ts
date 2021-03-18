@@ -72,18 +72,18 @@ export const websiteServe: ProjectServe = {
     // get body envelope and make substitutions
     const bodyEnvelope = navigationBodyEnvelope(href, toc);
 
-    if (bodyEnvelope.before) {
+    if (bodyEnvelope.before?.dynamic) {
       html = fillPlaceholderHtml(
         html,
         "envelope-include-before-body",
-        bodyEnvelope.before,
+        bodyEnvelope.before.content,
       );
     }
-    if (bodyEnvelope.after) {
+    if (bodyEnvelope.after?.dynamic) {
       html = fillPlaceholderHtml(
         html,
         "envelope-include-after-body",
-        bodyEnvelope.after,
+        bodyEnvelope.after.content,
       );
     }
 

@@ -225,14 +225,20 @@ export function navigationBodyEnvelope(file: string, toc: boolean) {
   };
 
   return {
-    before: renderEjs(
-      formatResourcePath("html", "templates/nav-before-body.ejs"),
-      { nav },
-    ),
-    after: renderEjs(
-      formatResourcePath("html", "templates/nav-after-body.ejs"),
-      { nav },
-    ),
+    before: {
+      dynamic: true,
+      content: renderEjs(
+        formatResourcePath("html", "templates/nav-before-body.ejs"),
+        { nav },
+      ),
+    },
+    after: {
+      dynamic: false,
+      content: renderEjs(
+        formatResourcePath("html", "templates/nav-after-body.ejs"),
+        { nav },
+      ),
+    },
   };
 }
 

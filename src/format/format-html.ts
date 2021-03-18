@@ -226,8 +226,8 @@ function boostrapExtras(
       : undefined,
     [kDependencies]: [bootstrapFormatDependency(format)],
     [kBodyEnvelope]: {
-      before: renderTemplate("before-body.ejs"),
-      after: renderTemplate("after-body.ejs"),
+      before: { dynamic: true, content: renderTemplate("before-body.ejs") },
+      after: { dynamic: false, content: renderTemplate("after-body.ejs") },
     },
     [kFilters]: {
       pre: [
