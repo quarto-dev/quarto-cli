@@ -22,6 +22,16 @@ code, kbd, pre, samp {
 pre.sourceCode {
 <%= codeblockBorder %>}
 
+h2 {
+  font-size: 2.25rem;
+  margin-top: 2rem;
+}
+
+h3, h4 {
+  margin-top: 1.5rem;
+}
+
+
 .sidebar {
   padding-top: 1.2em;
 }
