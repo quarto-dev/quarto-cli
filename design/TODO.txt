@@ -54,6 +54,8 @@ navbar:
 TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
 TODO: ability to freeze computational outputs (global unfreeze, via clean?)
 
+TODO: allow unversioned dependencies
+
 TODO: move html ref processing to fully post render (don't do it
 from within lua). This will allow us to pick up anything emitted
 by a format (e.g. css or reveal backgrounds) and would open the 
