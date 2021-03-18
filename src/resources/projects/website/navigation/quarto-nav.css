@@ -55,12 +55,16 @@ nav .dropdown-item i {
   display: none;
 }
 
-.quarto-secondary-nav[aria-expanded=false] .quarto-btn-toggle .bi-chevron-up {
-  display: none;
+.quarto-secondary-nav[aria-expanded=false] .quarto-btn-toggle .bi-chevron-down::before {
+  transform: none;
 }
 
-.quarto-secondary-nav[aria-expanded=true] .quarto-btn-toggle .bi-chevron-down {
-  display: none;
+.quarto-secondary-nav[aria-expanded=true] .quarto-btn-toggle .bi-chevron-down::before {
+  transform: rotate(-180deg);
+}
+
+.quarto-secondary-nav .quarto-btn-toggle .bi-chevron-down::before {
+  transition: transform 0.20s ease;
 }
 
 .quarto-secondary-nav {
