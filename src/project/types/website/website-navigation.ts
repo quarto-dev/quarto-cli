@@ -46,7 +46,6 @@ const kCollapseBelow = "collapse-below";
 type LayoutBreak = "" | "sm" | "md" | "lg" | "xl" | "xxl";
 
 interface Navigation {
-  header?: string;
   navbar?: Navbar;
   sidebars: Sidebar[];
 }
@@ -127,10 +126,6 @@ export async function initWebsiteNavigation(project: ProjectContext) {
     return;
   }
 
-  // write the header
-  const navstylesEjs = formatResourcePath("html", "templates/navstyles.ejs");
-  navigation.header = renderEjs(navstylesEjs, { height: navbar ? 56 : 0 });
-
   // navbar
   if (navbar) {
     navigation.navbar = await navbarEjsData(project, navbar);
@@ -182,8 +177,8 @@ export function websiteNavigationExtras(
   // find the href and offset for this input
   const inputRelative = relative(project.dir, input);
 
-  // determine dependencies
-  const dependencies: FormatDependency[] = [];
+  // determine dependencies (always include baseline nav dependency)
+  const dependencies: FormatDependency[] = [websiteNavigationDependency()];
   const searchDep = websiteSearchDependency(project, input);
   if (searchDep) {
     dependencies.push(searchDep);
@@ -215,7 +210,6 @@ export function navigationBodyEnvelope(file: string, toc: boolean) {
   };
 
   return {
-    header: navigation.header,
     before: renderEjs(
       formatResourcePath("html", "templates/nav-before-body.ejs"),
       { nav },
@@ -544,7 +538,7 @@ function websiteHeadroom(project: ProjectContext) {
 function websiteHeadroomDependency(project: ProjectContext) {
   if (websiteHeadroom(project)) {
     const headroomJs = resourcePath(
-      "projects/website/headroom/headroom.min.js",
+      "projects/website/navigation/headroom.min.js",
     );
     return {
       name: "headroom",
@@ -559,6 +553,21 @@ function websiteHeadroomDependency(project: ProjectContext) {
   } else {
     return undefined;
   }
+}
+
+function websiteNavigationDependency() {
+  const navigationDependency = (resource: string) => {
+    return {
+      name: basename(resource),
+      path: resourcePath(`projects/website/navigation/${resource}`),
+    };
+  };
+  return {
+    name: "navigation",
+    version: "0.2",
+    scripts: [navigationDependency("navigation.quarto.js")],
+    stylesheets: [navigationDependency("navigation.quarto.css")],
+  };
 }
 
 function isExternalPath(path: string) {

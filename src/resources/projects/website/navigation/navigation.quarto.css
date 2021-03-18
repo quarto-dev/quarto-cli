@@ -1,0 +1,153 @@
+.navbar-brand>img {
+  max-height: 24px;
+  width: auto;
+  padding-right: 6px;
+}
+
+nav .nav-link i,
+nav .dropdown-item i {
+  padding-right: 1px;
+}
+
+.sidebar {
+  position: sticky;
+  overflow-y: auto;
+  max-width: 15rem;
+}
+
+.sidebar-navigation {
+  padding-left: 20px;
+}
+
+.sidebar-navigation,
+.sidebar-navigation button {
+  font-size: 1em;
+}
+
+.sidebar-navigation a {
+  color: inherit;
+}
+
+.sidebar-title {
+  padding-bottom: 0.5rem;
+}
+
+.sidebar-navigation .active {
+  color: inherit;
+  color: var(--bs-primary) !important;
+}
+
+.sidebar-logo {
+  max-width: 150px;
+  padding-bottom: .5rem;
+}
+
+.sidebar-navigation li a {
+  text-decoration: none;
+}
+
+.sidebar-navigation .sidebar-tool {
+  opacity: 0.8;
+  font-size: 1.2em;
+}
+
+.sidebar-navigation .sidebar-tool.dropdown-toggle::after {
+  display: none;
+}
+
+.sidebar-navigation #quarto-search {
+  margin-bottom: 0.8em;
+}
+
+.quarto-secondary-nav[aria-expanded=false] .quarto-btn-toggle .bi-chevron-up {
+  display: none;
+}
+
+.quarto-secondary-nav[aria-expanded=true] .quarto-btn-toggle .bi-chevron-down {
+  display: none;
+}
+
+.quarto-secondary-nav {
+  cursor: pointer;
+  margin-top: -4px;
+}
+
+.quarto-secondary-nav-title {
+  padding-top: 4px;
+  margin-bottom: -4px;
+}
+
+@media (max-width: 991.98px) {
+  .sidebar-logo {
+    display: none;
+  }
+
+  .sidebar.sidebar-navigation {
+    position: static;
+    border-top: 1px solid rgba(120, 120, 120, 0.3);
+    border-bottom: 1px solid rgba(120, 120, 120, 0.3);
+  }
+
+  .sidebar.sidebar-navigation nav {
+    padding-top: .5em !important;
+    padding-bottom: .5em;
+  }
+
+  .sidebar.sidebar-navigation.collapsing {
+    position: fixed;
+    z-index: 1000;
+  }
+
+  .sidebar.sidebar-navigation.show {
+    position: fixed;
+    z-index: 1000;
+  }
+
+}
+
+header.headroom {
+  will-change: transform;
+  transition: transform 200ms linear;
+}
+
+.sidebar {
+  will-change: top;
+  transition: top 200ms linear;
+}
+
+header.headroom--pinned {
+  transform: translateY(0%);
+}
+
+header.headroom--unpinned {
+  transform: translateY(-100%);
+}
+
+@media (min-width: 992px) {
+  .sidebar.sidebar-navigation {
+    height: 100vh;
+    display: block;
+    position: sticky;
+  }
+
+  .sidebar.sidebar-navigation nav {
+    height: 100vh;
+    min-width: 15em;
+  }
+}
+
+.sidebar nav .dropdown-menu .dropdown-item .bi::before {
+  width: 1em;
+}
+
+.sidebar-section button .bi-chevron-right::before {
+  transform: rotate(90deg);
+}
+
+.sidebar-section button.collapsed .bi-chevron-right::before {
+  transform: none;
+}
+
+.sidebar-section .bi-chevron-right::before {
+  transition: transform 0.20s ease;
+}

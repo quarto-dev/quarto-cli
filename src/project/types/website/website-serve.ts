@@ -72,13 +72,6 @@ export const websiteServe: ProjectServe = {
     // get body envelope and make substitutions
     const bodyEnvelope = navigationBodyEnvelope(href, toc);
 
-    if (bodyEnvelope.header) {
-      html = fillPlaceholderHtml(
-        html,
-        "envelope-include-in-header",
-        bodyEnvelope.header,
-      );
-    }
     if (bodyEnvelope.before) {
       html = fillPlaceholderHtml(
         html,
