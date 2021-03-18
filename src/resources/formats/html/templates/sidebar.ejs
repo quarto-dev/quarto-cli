@@ -23,7 +23,7 @@ if (sidebar.align === "left") {
 %>
 
 <nav class="<%- mCss %> py-2 <%- borderStart %> <%- borderEnd %> <%- borderColor %> <%- bgCss %> <%- sidebarStyle %> overflow-scroll ">
-  <div class="px-4 d-flex flex-column <%= alignCss %>">
+  <div class="px-3 d-flex flex-column <%= alignCss %>">
     <% if (sidebar.logo) { %>
     <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo mt-3 py-0 mw-100"/>
     <% } %>
@@ -41,12 +41,12 @@ if (sidebar.align === "left") {
     <% } %>
   </div>
   <% if (sidebar.search) { %>
-    <div class="sidebar-search px-3 mt-5">
+    <div class="sidebar-search px-3 mt-4">
     <% partial('navsearch.ejs', { search: sidebar.search }) %>
     </div>
   <% } %>
 
-  <ul class="list-unstyled mt-4 px-3">
+  <ul class="list-unstyled mt-3 px-3">
   <% sidebar.items.forEach(item => { %>
       <% partial('sidebaritem.ejs', { item, depth: 1, collapse: sidebar['collapse-level'], borderColor: borderColor }) %>
   <% }) %>
