@@ -38,9 +38,8 @@ import { inputTargetIndex } from "../../project-index.ts";
 
 import { websiteSearch, websiteSearchDependency } from "./website-search.ts";
 
-export const kNavbar = "navbar";
-export const kSidebar = "sidebar";
-export const kSidebars = "sidebars";
+export const kNavbar = "nav-top";
+export const kSidebar = "nav-side";
 
 const kAriaLabel = "aria-label";
 const kCollapseLevel = "collapse-level";
@@ -158,27 +157,20 @@ export async function initWebsiteNavigation(project: ProjectContext) {
 }
 
 export function websiteNavigationConfig(project: ProjectContext) {
-  // read navbar and sidebar config
+  // read navbar
   let navbar = project.metadata?.[kNavbar] as Navbar | undefined;
-  const sidebar = project.metadata?.[kSidebar] as Sidebar | undefined;
-  let sidebars = project.metadata?.[kSidebars] as Sidebar[] | undefined;
-  if (sidebar && !sidebars) {
-    sidebars = [sidebar];
-  }
-
-  // validate navbar
   if (typeof (navbar) !== "object") {
     navbar = undefined;
   }
 
-  // filter sidebars
-  if (sidebars) {
-    if (Array.isArray(sidebars)) {
-      sidebars = sidebars.filter((sidebar) => typeof (sidebar) === "object");
-    } else {
-      sidebars = undefined;
-    }
-  }
+  // read sidebar
+  const sidebar = project.metadata?.[kSidebar];
+  const sidebars =
+    (Array.isArray(sidebar)
+      ? sidebar
+      : typeof (sidebar) == "object"
+      ? [sidebar]
+      : undefined) as Sidebar[] | undefined;
 
   // return
   return { navbar, sidebars };

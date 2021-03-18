@@ -26,7 +26,6 @@ import {
   initWebsiteNavigation,
   kNavbar,
   kSidebar,
-  kSidebars,
   websiteNavigationExtras,
 } from "./website-navigation.ts";
 
@@ -109,7 +108,7 @@ export const websiteProjectType: ProjectType = {
     return extras;
   },
 
-  metadataFields: () => [kNavbar, kSidebar, kSidebars, kBaseUrl],
+  metadataFields: () => [kNavbar, kSidebar, kBaseUrl],
 
   postRender: async (
     context: ProjectContext,
