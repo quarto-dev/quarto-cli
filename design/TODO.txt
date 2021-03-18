@@ -56,7 +56,9 @@ SEE: https://github.com/b-fuze/deno-dom
 TODO: breaking out of the standard container for a given page (page-layout: none)
 TODO:  htmlwidgets need a fluid container (as perhaps do jupyter widgets)
 
+TODO: logo in hot reload?
 
+TODO: monobackgroundcolor doesn't seem to work
 
 
 TODO: Dart sass
