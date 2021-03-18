@@ -148,14 +148,10 @@ header.headroom--unpinned {
     padding-left: 0px !important;
     padding-right: 0px !important;
   }
-  
-  .sidebar-navigation nav.anchored .sidebar-search #quarto-search {
-    border-right: none;
-    border-radius: 0;
-  }
 
-  .sidebar-navigation nav.anchored .sidebar-search .input-group-text.bi-search {
+  .sidebar-navigation nav.anchored .sidebar-search #quarto-search {
     border-left: none;
+    border-right: none;
     border-radius: 0;
   }
 }
