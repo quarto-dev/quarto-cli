@@ -9,6 +9,8 @@ import { existsSync } from "fs/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
+import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
+
 import { renderEjs } from "../core/ejs.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { formatResourcePath } from "../core/resources.ts";
@@ -28,6 +30,7 @@ import {
   FormatExtras,
   kBodyEnvelope,
   kDependencies,
+  kHtmlPostprocessors,
 } from "../config/format.ts";
 import { PandocFlags } from "../config/flags.ts";
 
@@ -173,7 +176,6 @@ export function bootstrapFormatDependency(format: Format) {
     ],
     scripts: [
       bootstrapDependency("bootstrap.bundle.min.js"),
-      quartoDependency("quarto-bootstrap.js"),
     ],
     resources: [
       bootstrapDependency("bootstrap-icons.woff"),
@@ -232,7 +234,55 @@ function boostrapExtras(
         formatResourcePath("html", "html.lua"),
       ],
     },
+    [kHtmlPostprocessors]: [bootstrapHtmlPostprocessor],
   };
+}
+
+function bootstrapHtmlPostprocessor(doc: Document) {
+  // use display-6 style for title
+  const title = doc.querySelector("header > .title");
+  if (title) {
+    title.classList.add("display-6");
+  }
+
+  // add 'lead' to subtitle
+  const subtitle = doc.querySelector("header > .subtitle");
+  if (subtitle) {
+    subtitle.classList.add("lead");
+  }
+
+  // move the toc if there is a sidebar
+  const toc = doc.querySelector('nav[role="doc-toc"]');
+  const tocSidebar = doc.getElementById("quarto-toc-sidebar");
+  if (toc && tocSidebar) {
+    tocSidebar.appendChild(toc);
+    // add scroll spy to the body
+    const body = doc.body;
+    body.setAttribute("data-bs-spy", "scroll");
+    body.setAttribute("data-bs-target", "#" + tocSidebar.id);
+  }
+
+  // add nav-link class to the TOC links
+  var tocLinks = doc.querySelectorAll('nav[role="doc-toc"] a');
+  for (let i = 0; i < tocLinks.length; i++) {
+    // Mark the toc links as nav-links
+    const tocLink = tocLinks[i] as Element;
+    tocLink.classList.add("nav-link");
+
+    // move the raw href to the target attribute (need the raw value, not the full path)
+    if (!tocLink.hasAttribute("data-bs-target")) {
+      tocLink.setAttribute("data-bs-target", tocLink.getAttribute("href"));
+    }
+  }
+
+  // add .table class to pandoc tables
+  var tableHeaders = doc.querySelectorAll("tr.header");
+  for (let i = 0; i < tableHeaders.length; i++) {
+    const th = tableHeaders[i];
+    if (th.parentNode?.parentNode) {
+      (th.parentNode.parentNode as Element).classList.add("table");
+    }
+  }
 }
 
 function templateOptions(

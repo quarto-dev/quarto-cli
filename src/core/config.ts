@@ -7,6 +7,8 @@
 
 import { ld } from "lodash/mod.ts";
 
+import { generate as generateUuid } from "uuid/v4.ts";
+
 export function mergeConfigs<T>(config: T, ...configs: Array<unknown>): T {
   // copy all configs so we don't mutate them
   config = ld.cloneDeep(config);
@@ -35,7 +37,13 @@ export function mergeConfigs<T>(config: T, ...configs: Array<unknown>): T {
         const combined = (objValue as Array<unknown>).concat(
           srcValue as Array<unknown>,
         );
-        return ld.uniqBy(combined, JSON.stringify);
+        return ld.uniqBy(combined, (value: unknown) => {
+          if (typeof (value) === "function") {
+            return generateUuid();
+          } else {
+            return JSON.stringify(value);
+          }
+        });
       }
     },
   );

@@ -5,6 +5,8 @@
 *
 */
 
+import { generate as generateUuid } from "uuid/v4.ts";
+
 export function placeholderHtml(context: string, html: string) {
   return `${beginPlaceholder(context)}\n${html}\n${endPlaceholder(context)}`;
 }
@@ -25,6 +27,28 @@ export function fillPlaceholderHtml(
   } else {
     return html;
   }
+}
+
+export function preservePlaceholders(
+  html: string,
+) {
+  const placeholders = new Map<string, string>();
+  html = html.replaceAll(/<!--\/?quarto-placeholder-.*?-->/g, (match) => {
+    const id = generateUuid();
+    placeholders.set(id, match);
+    return id;
+  });
+  return { html, placeholders };
+}
+
+export function restorePlaceholders(
+  html: string,
+  placeholders: Map<string, string>,
+) {
+  placeholders.forEach((value, key) => {
+    html = html.replace(key, value);
+  });
+  return html;
 }
 
 function beginPlaceholder(context: string) {
