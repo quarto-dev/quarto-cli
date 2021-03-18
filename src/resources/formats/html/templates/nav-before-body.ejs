@@ -50,7 +50,6 @@
     <button type="button" 
       class="quarto-btn-toggle btn bg-light d-lg-none py-0 px-1 btn-lg d-inline-block border-0">
       <i class="bi bi-chevron-down"></i>
-      <i class="bi bi-chevron-up"></i>
     </button>
   </div>
 </nav>
@@ -73,7 +72,7 @@ targetDiv = !nav.sidebar || nav.sidebar.style === "floating"
   <% borderColor = nav.sidebar['border-color'] ? "border-" + nav.sidebar['border-color'] : "" %>
   <% marginCss = nav.sidebar.style === "floating" ? "mx-auto" : "me-auto" %>
 
-  <div id="quarto-sidebar" class="col col-12 col-lg-3 d-lg-flex px-0 pt-0 sidebar collapse sidebar-navigation overflow-hidden">
+  <div id="quarto-sidebar" class="col col-12 col-lg-3 d-lg-flex px-0 pt-0 sidebar collapse sidebar-navigation overflow-auto">
     <% partial('sidebar.ejs', { sidebar: nav.sidebar }) %>
   </div>
 <% } %>

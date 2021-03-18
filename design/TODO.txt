@@ -1,27 +1,5 @@
 
 
-Sidebars:
-- top section centered by default
-  - add align attribute to sidebar
-  - tools align with the top section
-- search box on sidebar edge to edge
-- animate the down chevron (transform rotate 180?)
-- Find another way to make search 100% width in sidebar (prev solution was also doing it for navbar)
-- top spacing in tools sidebar (no title or logo should match spacing underneath)
-- if no icon for tool, just don't show it (basically)
-- consistent vertical spacing (be sure to check both anchored and floating)
-- floating collapsed needs background on secondary nav sidebar when expanded (bg-body)
-- max-height / internal scrolling for secondary nav drop-down
-- need to be able to customize the sidebar background color (esp. bg-body)
-- less padding for "anchored" version (use more of scarce horizontal space for titles which can get long)
-
-nav bar
-- narrow search box in expanded nav bar
-- freeze when navbar is expanded (mobile)
-- 1 pixed gap when showing secondary menu and collapsed?
-
-
-
 
 
 TODO: top-level latching behavior:

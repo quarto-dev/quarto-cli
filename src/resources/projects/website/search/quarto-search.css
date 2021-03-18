@@ -1,8 +1,4 @@
 
-#quarto-sidebar #quarto-search {
-  margin-bottom: 1em;
-}
-
 #quarto-search:focus {
   box-shadow: none;
 }

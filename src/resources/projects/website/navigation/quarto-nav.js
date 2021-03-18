@@ -31,12 +31,12 @@ window.document.addEventListener("DOMContentLoaded", function() {
     // deal with sidebar offsets
     const sidebars = window.document.querySelectorAll(".sidebar");
     sidebars.forEach(sidebar => { 
-      if (!window.Headroom || sidebar.classList.contains("sidebar-pinned")) {
-        sidebar.style.top = offset + "px";
-        sidebar.style.maxHeight = 'calc(100vh - ' + offset + 'px)';   
-      } else {
+      if (window.Headroom && sidebar.classList.contains("sidebar-unpinned")) {
         sidebar.style.top = "0";
         sidebar.style.maxHeight = '100vh';   
+      } else {
+        sidebar.style.top = offset + "px";
+        sidebar.style.maxHeight = 'calc(100vh - ' + offset + 'px)';   
       }
     });
 
@@ -67,14 +67,14 @@ window.document.addEventListener("DOMContentLoaded", function() {
         onPin: function() {
           const sidebars = window.document.querySelectorAll(".sidebar");
           sidebars.forEach(sidebar => {
-            sidebar.classList.add("sidebar-pinned");
+            sidebar.classList.remove("sidebar-unpinned");
           });
           updateDocumentOffset();
         }, 
         onUnpin: function() {
           const sidebars = window.document.querySelectorAll(".sidebar");
           sidebars.forEach(sidebar => {
-            sidebar.classList.remove("sidebar-pinned");
+            sidebar.classList.add("sidebar-unpinned");
           });
           updateDocumentOffset();
         }});

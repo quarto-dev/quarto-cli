@@ -57,6 +57,7 @@ interface Sidebar {
   title?: string;
   subtitle?: string;
   logo?: string;
+  aligment?: "left" | "right" | "center";
   search?: boolean | string;
   [kCollapseLevel]?: number;
   items: SidebarItem[];
@@ -240,10 +241,9 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
     ? sidebar.search
     : false;
 
-  // ensure collapse is defaulted
-  if (sidebar[kCollapseLevel] === undefined) {
-    sidebar[kCollapseLevel] = 2;
-  }
+  // ensure collapse & alignment are defaulted
+  sidebar[kCollapseLevel] = sidebar[kCollapseLevel] || 2;
+  sidebar.aligment = sidebar.aligment || "center";
 
   sidebar.pinned = sidebar.pinned !== undefined ? !!sidebar.pinned : false;
 
