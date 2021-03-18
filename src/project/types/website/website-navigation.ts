@@ -55,6 +55,18 @@ interface Sidebar {
   subtitle?: string;
   logo?: string;
   aligment?: "left" | "right" | "center";
+  background?:
+    | "none"
+    | "primary"
+    | "secondary"
+    | "success"
+    | "danger"
+    | "warning"
+    | "info"
+    | "light"
+    | "dark"
+    | "white";
+  type?: "light" | "dark";
   search?: boolean | string;
   [kCollapseLevel]?: number;
   items: SidebarItem[];

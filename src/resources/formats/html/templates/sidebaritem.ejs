@@ -10,13 +10,13 @@
   <ul class="list-unstyled my-0">
     <li class="sidebar-section <%- depth === 1 ? "pb-1" : "" %> ">
       <button class="btn d-inline-flex text-start w-100 px-0 pt-0 pb-1 <%- isCollapsed ? "collapsed" : "" %> " data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded=" <%- isCollapsed ? "false" : "true" %>">
-        <div class="me-auto <%- depth === 1 ? "fw-normal" : "fw-lighter" %>"><%- item.text %></div>
-        <div><i class="bi bi-chevron-right ms-2"></i></div>
+        <div class="me-auto <%- depth === 1 ? "fw-normal" : "fw-lighter" %> <%- textStyleCss %> >"><%- item.text %></div>
+        <div><i class="bi bi-chevron-right ms-2 <%- textStyleCss %>"></i></div>
       </button>   
       <div class="collapse  <%- isCollapsed ? "" : "show" %>" id="<%- sectionId %>">
         <ul class="list-unstyled <%- paddingCss %>">
         <% item.items.forEach(subItem => { %>
-          <% partial('sidebaritem.ejs', { item: subItem, depth: depth + 1, collapse: collapse, borderColor: borderColor }) %>
+          <% partial('sidebaritem.ejs', { item: subItem, depth: depth + 1, collapse: collapse, borderColor: borderColor, textStyleCss: textStyleCss }) %>
          <% }) %>
         </ul>
       </div>
