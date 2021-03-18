@@ -99,19 +99,17 @@ window.document.addEventListener("DOMContentLoaded", function() {
   // Hide the title when it will appear in the secondary nav
   const title = window.document.querySelector('header > .title');
   const sidebar = window.document.getElementById('quarto-sidebar');
-  if (title) {
-    title.classList.add("display-6");
-    if (sidebar) {
-      // hide below lg
-      title.classList.add("d-none");
-      title.classList.add("d-lg-block");
+  if (title && sidebar) {
+   
+    // hide below lg
+    title.classList.add("d-none");
+    title.classList.add("d-lg-block");
 
-      // Add the title to the secondary nav bar
-      const secondaryNavTitle = window.document.querySelector('.quarto-secondary-nav .quarto-secondary-nav-title')
-      if (secondaryNavTitle) {
-        secondaryNavTitle.innerHTML = title.innerHTML;
-      }
-    } 
+    // Add the title to the secondary nav bar
+    const secondaryNavTitle = window.document.querySelector('.quarto-secondary-nav .quarto-secondary-nav-title')
+    if (secondaryNavTitle) {
+      secondaryNavTitle.innerHTML = title.innerHTML;
+    }
   }
 
   // latch active nav link

@@ -1,6 +1,12 @@
 window.document.addEventListener("DOMContentLoaded", function() {
   
-   // add 'lead' to subtitle
+  // use display-6 style for title
+  const title = window.document.querySelector('header > .title');
+  if (title) {
+    title.classList.add("display-6");
+  }
+
+  // add 'lead' to subtitle
   const subtitle = window.document.querySelector('header > .subtitle');
   if (subtitle) {
     subtitle.classList.add('lead');
