@@ -21,13 +21,13 @@ if (sidebar.align === "left") {
 %>
 
 <nav class="<%- mCss %> py-2 <%- borderStart %> <%- borderEnd %> <%- borderColor %> <%- bgCss %> <%- styleCss %> <%- textStyleCss %> overflow-scroll ">
-  <div class="px-3 d-flex flex-column <%= alignCss %>">
+  <div class="px-3 pt-3 d-flex flex-column <%= alignCss %>">
     <% if (sidebar.logo) { %>
-    <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo mt-3 py-0 mw-100"/>
+    <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo my-1 py-0 mw-100"/>
     <% } %>
     
     <% if (sidebar.title) { %>
-    <h4 class="sidebar-title text-center mt-2 mb-0 py-0"><%- sidebar.title %></h4>
+    <h4 class="sidebar-title text-center mt-1 mb-0 py-0"><%- sidebar.title %></h4>
     <% } %>
 
     <% if (sidebar.subtitle) { %>
