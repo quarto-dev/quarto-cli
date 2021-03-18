@@ -1,4 +1,7 @@
 <% const placeholder = typeof(search) === "string" ? search : "Search" %>
-<form class="d-flex pb-1">
-  <input id="quarto-search" class="form-control" type="search" placeholder="<%- placeholder %>" aria-label="<%- placeholder %>">
+<form class="d-flex mb-0">
+  <div class="input-group">
+    <i class="input-group-text bi bi-search text-muted"></i>
+    <input id="quarto-search" class="form-control" type="search" placeholder="<%- placeholder %>" aria-label="<%- placeholder %>">
+  </div>
 </form>
