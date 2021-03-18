@@ -46,7 +46,7 @@ if (sidebar.align === "left") {
     </div>
   <% } %>
 
-  <ul class="list-unstyled mt-4 px-4">
+  <ul class="list-unstyled mt-4 px-3">
   <% sidebar.items.forEach(item => { %>
       <% partial('sidebaritem.ejs', { item, depth: 1, collapse: sidebar['collapse-level'], borderColor: borderColor }) %>
   <% }) %>
