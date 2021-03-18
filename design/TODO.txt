@@ -11,6 +11,7 @@ Sidebars:
 - if no icon for tool, just don't show it (basically)
 - consistent vertical spacing (be sure to check both anchored and floating)
 - floating collapsed needs background on secondary nav sidebar when expanded (bg-body)
+- max-height / internal scrolling for secondary nav drop-down
 
 nav bar
 - narrow search box in expanded nav bar
@@ -32,9 +33,14 @@ HTML:
 TODO: top-level latching behavior:
 
 nav-top
-nav-side
 
-nav-secondary:
+nav-side:
+   title: "Tutorials"
+   items:
+      - href: 
+      - href:
+
+nav-side:
    - title: "Tutorials"
      id: tutorials
      items:
@@ -47,7 +53,7 @@ nav-secondary:
          - href:
          - href: 
        
-navbar:
+nav-top:
   left:
     - href: nav:tutorials
     - href: nav:how-to
