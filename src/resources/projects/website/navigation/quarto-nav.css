@@ -131,7 +131,7 @@ header.headroom--unpinned {
   }
 
   .sidebar.sidebar-navigation nav {
-    height: 100vh;
+    height: 100%;
     min-width: 15em;
   }
 
