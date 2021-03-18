@@ -11,11 +11,19 @@ if (sidebar.style !== "floating") {
   mCss = "me-lg-auto"
   sidebarStyle = "anchored"
 } 
+
+alignCss = ""
+if (sidebar.alignment === "left") {
+  alignCss = "align-items-start"
+} else if (sidebar.alignment === "right") {
+  alignCss = "align-items-end"
+} else {
+  alignCss = "align-items-center"
+}
 %>
 
-
 <nav class="<%- mCss %> py-2 <%- borderStart %> <%- borderEnd %> <%- borderColor %> <%- bgCss %> <%- sidebarStyle %> overflow-scroll ">
-  <div class="px-4 d-flex flex-column align-items-center ">
+  <div class="px-4 d-flex flex-column <%= alignCss %>">
     <% if (sidebar.logo) { %>
     <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo mt-3 py-0 mw-100"/>
     <% } %>
