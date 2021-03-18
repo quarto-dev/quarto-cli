@@ -19,17 +19,6 @@ nav bar
 - 1 pixed gap when showing secondary menu and collapsed?
 
 
-TODO: when hoisting title into collapsed secondary nav, need
-a bit more padding above the first H2 header
-
-HTML:
-  - anchor links
-  - tabs
-  - admonitions
-  - copy code block to clipboard
-
-
-
 TODO: top-level latching behavior:
 
 nav-top
@@ -59,10 +48,15 @@ nav-top:
     - href: nav:how-to
 
 
+HTML:
+  - anchor links
+  - tabs
+  - admonitions
+  - copy code block to clipboard
+
+
 TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
 TODO: ability to freeze computational outputs (global unfreeze, via clean?)
-
-TODO: allow unversioned dependencies
 
 TODO: move html ref processing to fully post render (don't do it
 from within lua). This will allow us to pick up anything emitted
