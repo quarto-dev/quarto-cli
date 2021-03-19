@@ -41,7 +41,6 @@ window.document.addEventListener("DOMContentLoaded", function() {
         sidebar.style.maxHeight = 'calc(100vh - ' + offset + 'px)';   
       }
     });
-    console.log("Update Offset: " + offset);
 
     // link offset
     let linkStyle = window.document.querySelector("#quarto-target-style");
