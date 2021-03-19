@@ -6,7 +6,7 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
+import { join, toFileUrl } from "path/mod.ts";
 import { ld } from "lodash/mod.ts";
 
 import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
@@ -127,21 +127,7 @@ export async function bootstrapFormatDependency(format: Format) {
     ),
   };
 
-  // see if this is a named bootswatch theme
-  let boostrapCss = formatResourcePath(
-    "html",
-    `bootstrap/themes/${theme}/bootstrap.min.css`,
-  );
-  // otherwise could be a css file
-  if (!existsSync(boostrapCss)) {
-    if (existsSync(theme)) {
-      boostrapCss = theme;
-    } else {
-      throw new Error(`Specified theme ${theme} does not exist`);
-    }
-  }
-
-  boostrapCss = await compileBootstrapScss(theme);
+  const bootstrapCss = await compileBootstrapScss(theme);
 
   const boostrapResource = (resource: string) =>
     formatResourcePath(
@@ -173,7 +159,7 @@ export async function bootstrapFormatDependency(format: Format) {
     name: "bootstrap",
     version: "v5.0.0-beta2",
     stylesheets: [
-      { name: "bootstrap.min.css", path: boostrapCss },
+      { name: "bootstrap.min.css", path: bootstrapCss },
       bootstrapDependency("bootstrap-icons.css"),
       { name: "quarto-bootstrap.css", path: quartoCss },
     ],
@@ -186,7 +172,7 @@ export async function bootstrapFormatDependency(format: Format) {
   };
 }
 
-async function compileBootstrapScss(theme: string, compressed?: boolean) {
+async function compileBootstrapScss(theme: string) {
   // Look for themes
   const quartoThemesDir = formatResourcePath("html", `bootstrap/themes`);
   let resolvedThemeDir = join(quartoThemesDir, theme);
@@ -218,11 +204,13 @@ async function compileBootstrapScss(theme: string, compressed?: boolean) {
     join(resolvedThemeDir, bootstrapScss),
     formatResourcePath("html", "_quarto.scss"),
   ];
-  const scssInput = importPaths.map((importPath) => `@import "${importPath}";`)
+  const scssInput = importPaths.map((importPath) => `@import "${toFileUrl(importPath)}";`)
     .join("\n");
   const cssOutput = await compileScss(scssInput, true);
   const cssFile = sessionTempFile({ suffix: ".css" });
-  Deno.writeTextFileSync(cssFile, cssOutput || "");
+  if (cssOutput) {
+    Deno.writeTextFileSync(cssFile, cssOutput || "");
+  }
   return cssFile;
 }
 
