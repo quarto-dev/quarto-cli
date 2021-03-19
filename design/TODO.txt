@@ -1,3 +1,6 @@
+- weird top gap when loading 
+https://quarto-dev.github.io/quarto-docs/ 19px offset????
+
 
 HTML:
   - anchor links
