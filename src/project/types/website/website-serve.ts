@@ -69,8 +69,11 @@ export const websiteServe: ProjectServe = {
     // do we have a toc?
     const toc = html.indexOf(`id="quarto-toc-sidebar"`) !== -1;
 
+    // do we have a page layout?
+    const layout = html.indexOf(`id="quarto-content"`) !== -1;
+
     // get body envelope and make substitutions
-    const bodyEnvelope = navigationBodyEnvelope(href, toc);
+    const bodyEnvelope = navigationBodyEnvelope(href, toc, layout);
 
     if (bodyEnvelope.before?.dynamic) {
       html = fillPlaceholderHtml(

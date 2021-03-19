@@ -38,7 +38,7 @@
 
 <% } %>
 
-<% if (nav.sidebar) { %>
+<% if (nav.sidebar && nav.layout) { %>
 
 <nav class="quarto-secondary-nav py-2 d-lg-none d-md-block bg-light" 
       data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" 
@@ -60,6 +60,8 @@
 
 <% } %> <!-- /navbar/sidebar -->
 
+<% if (nav.layout) { %>
+
 <%
 targetDiv = !nav.sidebar || nav.sidebar.style === "floating"
 %>
@@ -80,6 +82,7 @@ targetDiv = !nav.sidebar || nav.sidebar.style === "floating"
 <div class="col mx-auto col-sm-12 col-md-9 col-lg-7 pe-lg-5">
 <main>
 
+<% } %>
 
 
 

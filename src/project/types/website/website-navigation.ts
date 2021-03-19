@@ -28,6 +28,7 @@ import { PandocFlags } from "../../../config/flags.ts";
 import {
   hasTableOfContents,
   hasTableOfContentsTitle,
+  kPageLayout,
   kTocFloat,
 } from "../../../format/format-html.ts";
 
@@ -199,23 +200,28 @@ export function websiteNavigationExtras(
 
   // return extras with bodyEnvelope
   return {
-    [kTocTitle]:
-      !hasTableOfContentsTitle(flags, format) &&
+    [kTocTitle]: !hasTableOfContentsTitle(flags, format) &&
         format.metadata[kTocFloat] !== false
-        ? "On this page"
-        : undefined,
+      ? "On this page"
+      : undefined,
     [kDependencies]: dependencies,
     [kBodyEnvelope]: navigationBodyEnvelope(
       inputRelative,
       hasTableOfContents(flags, format),
+      format.metadata[kPageLayout] !== "none",
     ),
   };
 }
 
-export function navigationBodyEnvelope(file: string, toc: boolean) {
+export function navigationBodyEnvelope(
+  file: string,
+  toc: boolean,
+  layout: boolean,
+) {
   const href = inputFileHref(file);
   const nav = {
     toc,
+    layout,
     navbar: navigation.navbar,
     sidebar: expandedSidebar(href, sidebarForHref(href)),
   };

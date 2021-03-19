@@ -39,6 +39,7 @@ import { baseHtmlFormat } from "./formats.ts";
 
 export const kTheme = "theme";
 export const kTocFloat = "toc-float";
+export const kPageLayout = "page-layout";
 export const kDocumentCss = "document-css";
 
 export function htmlFormat(
@@ -214,6 +215,13 @@ function boostrapExtras(
     });
   };
 
+  const bodyEnvelope = format.metadata[kPageLayout] !== "none"
+    ? {
+      before: { dynamic: true, content: renderTemplate("before-body.ejs") },
+      after: { dynamic: false, content: renderTemplate("after-body.ejs") },
+    }
+    : undefined;
+
   return {
     pandoc: {
       [kSectionDivs]: true,
@@ -225,10 +233,7 @@ function boostrapExtras(
       ? "Table of contents"
       : undefined,
     [kDependencies]: [bootstrapFormatDependency(format)],
-    [kBodyEnvelope]: {
-      before: { dynamic: true, content: renderTemplate("before-body.ejs") },
-      after: { dynamic: false, content: renderTemplate("after-body.ejs") },
-    },
+    [kBodyEnvelope]: bodyEnvelope,
     [kFilters]: {
       pre: [
         formatResourcePath("html", "html.lua"),
