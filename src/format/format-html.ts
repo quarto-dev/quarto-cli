@@ -260,18 +260,18 @@ function bootstrapHtmlPostprocessor(doc: Document) {
     const body = doc.body;
     body.setAttribute("data-bs-spy", "scroll");
     body.setAttribute("data-bs-target", "#" + tocSidebar.id);
-  }
 
-  // add nav-link class to the TOC links
-  var tocLinks = doc.querySelectorAll('nav[role="doc-toc"] a');
-  for (let i = 0; i < tocLinks.length; i++) {
-    // Mark the toc links as nav-links
-    const tocLink = tocLinks[i] as Element;
-    tocLink.classList.add("nav-link");
+    // add nav-link class to the TOC links
+    const tocLinks = doc.querySelectorAll('nav[role="doc-toc"] a');
+    for (let i = 0; i < tocLinks.length; i++) {
+      // Mark the toc links as nav-links
+      const tocLink = tocLinks[i] as Element;
+      tocLink.classList.add("nav-link");
 
-    // move the raw href to the target attribute (need the raw value, not the full path)
-    if (!tocLink.hasAttribute("data-bs-target")) {
-      tocLink.setAttribute("data-bs-target", tocLink.getAttribute("href"));
+      // move the raw href to the target attribute (need the raw value, not the full path)
+      if (!tocLink.hasAttribute("data-bs-target")) {
+        tocLink.setAttribute("data-bs-target", tocLink.getAttribute("href"));
+      }
     }
   }
 

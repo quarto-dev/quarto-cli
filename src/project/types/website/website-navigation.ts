@@ -28,6 +28,7 @@ import { PandocFlags } from "../../../config/flags.ts";
 import {
   hasTableOfContents,
   hasTableOfContentsTitle,
+  kTocFloat,
 } from "../../../format/format-html.ts";
 
 import { ProjectContext } from "../../project-context.ts";
@@ -198,9 +199,11 @@ export function websiteNavigationExtras(
 
   // return extras with bodyEnvelope
   return {
-    [kTocTitle]: !hasTableOfContentsTitle(flags, format)
-      ? "On this page"
-      : undefined,
+    [kTocTitle]:
+      !hasTableOfContentsTitle(flags, format) &&
+        format.metadata[kTocFloat] !== false
+        ? "On this page"
+        : undefined,
     [kDependencies]: dependencies,
     [kBodyEnvelope]: navigationBodyEnvelope(
       inputRelative,
