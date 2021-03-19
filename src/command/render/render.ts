@@ -594,9 +594,15 @@ function projectMetadataForInputFile(input: string): Metadata {
           if (!isAbsolute(value)) {
             // if this is a valid file, then transform it to be relative to the input path
             const projectPath = join(context.dir, value);
-            if (existsSync(projectPath)) {
-              const offset = relative(dirname(input), context.dir);
-              assign(join(offset, value));
+
+            // Paths could be invalid paths (e.g. with colons or other weird characters)
+            try {
+              if (existsSync(projectPath)) {
+                const offset = relative(dirname(input), context.dir);
+                assign(join(offset, value));
+              }
+            } catch (e) {
+              // Just ignore this error as the path must not be a local file path
             }
           }
         }
