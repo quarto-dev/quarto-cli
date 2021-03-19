@@ -1,17 +1,19 @@
 window.document.addEventListener("DOMContentLoaded", function() {
   
-  function debounce(func, wait, immediate) {
+  function throttle(func, wait) {
     var timeout;
     return function() {
-      var context = this, args = arguments;
-      var later = function() {
+      const context = this
+      const args = arguments;
+      const later = function() {
+        clearTimeout(timeout);
         timeout = null;
-        if (!immediate) func.apply(context, args);
+        func.apply(context, args);
       };
-      var callNow = immediate && !timeout;
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-      if (callNow) func.apply(context, args);
+
+      if (!timeout) {
+        timeout = setTimeout(later, wait);
+      }
     };
   }
 
@@ -94,7 +96,7 @@ window.document.addEventListener("DOMContentLoaded", function() {
 
   // Set an offset if there is are fixed top navbar
   updateDocumentOffset();
-  window.addEventListener('resize', debounce(updateDocumentOffset, 50));  
+  window.addEventListener('resize', throttle(updateDocumentOffset, 50));  
 
   // Hide the title when it will appear in the secondary nav
   const title = window.document.querySelector("header > .title");
