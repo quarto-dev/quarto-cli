@@ -24,6 +24,14 @@ cp $PANDOCDIR/bin/pandoc .
 rm -rf $PANDOCDIR
 rm $PANDOCFILE
 
+DARTSASSURL=https://github.com/sass/dart-sass/releases/
+DARTSASSFILE=dart-sass-$DARTSASS-linux-x64.tar.gz
+DARTSASSDIR=dart-sass
+wget -q --show-progress -O $DARTSASSFILE $DARTSASSURL/download/$DARTSASS/$DARTSASSFILE
+rm -rf $DARTSASSDIR 
+tar -xzf $DARTSASSFILE
+rm $DARTSASSFILE
+
 # Run the quarto command with 'reload', which will force the import_map dependencies
 # to be reloaded
 export QUARTO_DENO_EXTRA_OPTIONS="--reload"

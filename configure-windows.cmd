@@ -48,6 +48,18 @@ RMDIR/S /Q pandoc-%PANDOC%
 ECHO.
 ECHO.
 
+ECHO Dart-Sass
+REM download Dart-Sass
+SET DART_SASS_DIR="dart-sass"
+SET DART_SASS_FILE="dart-sass-%DARTSASS%-windows-x64.zip"
+SET DART_SASS_URL="https://github.com/sass/dart-sass/releases/download/%DARTSASS%/%DART_SASS_FILE%"
+CURL --fail -L %DART_SASS_URL% -o %DART_SASS_FILE%
+RMDIR/S /Q %DART_SASS_DIR%
+TAR -xvf %DART_SASS_FILE%
+DEL %DART_SASS_FILE%
+ECHO.
+ECHO.
+
 SET FINAL_BIN_PATH=%cd%
 
 POPD

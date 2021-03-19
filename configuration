@@ -10,6 +10,7 @@
 # Dependency versions
 export DENO=v1.7.5
 export PANDOC=2.12
+export DARTSASS=1.32.8
 
 # Quarto Info Version
 export QUARTO_VERSION=0.1
