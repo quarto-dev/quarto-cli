@@ -22,6 +22,7 @@ import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { createSessionTempDir } from "../../core/temp.ts";
 import { inputFilesDir } from "../../core/render.ts";
+import { message } from "../../core/console.ts";
 
 import {
   formatFromMetadata,
@@ -44,8 +45,6 @@ import {
   kKernelDebug,
   kKernelKeepalive,
   kKernelRestart,
-  kMetadataFile,
-  kMetadataFiles,
   kMetadataFormat,
   kSelfContained,
 } from "../../config/constants.ts";
@@ -57,7 +56,7 @@ import {
   fileExecutionEngine,
 } from "../../execute/engine.ts";
 
-import { pandocMetadataPath, PandocOptions, runPandoc } from "./pandoc.ts";
+import { PandocOptions, runPandoc } from "./pandoc.ts";
 import { removePandocToArg, RenderFlags, resolveParams } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
@@ -145,6 +144,9 @@ export async function renderFiles(
   options: RenderOptions,
   project?: ProjectContext,
 ): Promise<Record<string, RenderResult[]>> {
+  // make a copy of options so we don't mutate caller context
+  options = ld.cloneDeep(options);
+
   // kernel keepalive default of 5 mintues for interactive sessions
   if (options.flags && options.flags.kernelKeepalive === undefined) {
     const isInteractive = Deno.isatty(Deno.stderr.rid) ||
@@ -156,9 +158,20 @@ export async function renderFiles(
     }
   }
 
+  // see if we should be using file-by-file progress
+  const fileProgress = project && (files.length > 1) && !options.flags?.quiet;
+  if (fileProgress) {
+    options.flags = options.flags || {};
+    options.flags.quiet = true;
+  }
+
   const results: Record<string, RenderResult[]> = {};
 
   for (const file of files) {
+    if (fileProgress) {
+      message(`Rendering ${relative(project!.dir, file)}`);
+    }
+
     // get contexts
     const contexts = await renderContexts(file, options, project);
 
