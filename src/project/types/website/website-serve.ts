@@ -49,7 +49,7 @@ export const websiteServe: ProjectServe = {
         await initWebsiteNavigation(project);
 
         // copy bootstrap dependency (theme or vars could have changed)
-        copyBootstrapDepenency(project);
+        await copyBootstrapDepenency(project);
 
         // request reload
         return true;
@@ -94,7 +94,7 @@ export const websiteServe: ProjectServe = {
   },
 };
 
-function copyBootstrapDepenency(project: ProjectContext) {
+async function copyBootstrapDepenency(project: ProjectContext) {
   // only proceed if we have a lib dir
   const libDir = project?.metadata?.project?.[kLibDir];
   if (!libDir) {
@@ -113,7 +113,7 @@ function copyBootstrapDepenency(project: ProjectContext) {
   });
 
   if (bsFormat) {
-    const dependency = bootstrapFormatDependency(formats[bsFormat]);
+    const dependency = await bootstrapFormatDependency(formats[bsFormat]);
     const dir = `${dependency.name}-${dependency.version}`;
     const targetDir = join(projectOutputDir(project), libDir, dir);
     const copyDeps = (files?: DependencyFile[]) => {

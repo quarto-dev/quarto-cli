@@ -126,7 +126,7 @@ export interface Format {
   execution: FormatExecution;
   pandoc: FormatPandoc;
   metadata: Metadata;
-  formatExtras?: (flags: PandocFlags, format: Format) => FormatExtras;
+  formatExtras?: (flags: PandocFlags, format: Format) => Promise<FormatExtras>;
 }
 
 export interface FormatRender {

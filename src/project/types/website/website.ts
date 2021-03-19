@@ -75,7 +75,7 @@ export const websiteProjectType: ProjectType = {
     input: string,
     flags: PandocFlags,
     format: Format,
-  ): FormatExtras => {
+  ): Promise<FormatExtras> => {
     // navigation extras for bootstrap enabled formats
     const extras = formatHasBootstrap(format)
       ? websiteNavigationExtras(project, input, flags, format)
@@ -105,7 +105,7 @@ export const websiteProjectType: ProjectType = {
       extras.pandoc[kVariables]![kPageTitle] = title;
     }
 
-    return extras;
+    return Promise.resolve(extras);
   },
 
   metadataFields: () => [kNavbar, kSidebar, kBaseUrl],

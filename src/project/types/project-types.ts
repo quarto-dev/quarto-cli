@@ -23,7 +23,7 @@ export interface ProjectType {
     input: string,
     flags: PandocFlags,
     format: Format,
-  ) => FormatExtras;
+  ) => Promise<FormatExtras>;
   metadataFields?: () => string[];
   preRender?: (context: ProjectContext) => Promise<void>;
   postRender?: (

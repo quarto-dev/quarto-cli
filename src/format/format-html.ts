@@ -6,14 +6,14 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-
+import { join } from "path/mod.ts";
 import { ld } from "lodash/mod.ts";
 
 import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
 
 import { renderEjs } from "../core/ejs.ts";
 import { mergeConfigs } from "../core/config.ts";
-import { formatResourcePath } from "../core/resources.ts";
+import { binaryPath, formatResourcePath } from "../core/resources.ts";
 import { sessionTempFile } from "../core/temp.ts";
 
 import {
@@ -36,6 +36,7 @@ import { PandocFlags } from "../config/flags.ts";
 
 import { Metadata } from "../config/metadata.ts";
 import { baseHtmlFormat } from "./formats.ts";
+import { execProcess } from "../core/process.ts";
 
 export const kTheme = "theme";
 export const kTocFloat = "toc-float";
@@ -60,7 +61,7 @@ export function htmlFormat(
 
           // 'pandoc' theme means include default pandoc document css
           if (theme === "pandoc") {
-            return pandocExtras(format.metadata);
+            return Promise.resolve(pandocExtras(format.metadata));
 
             // other themes are bootswatch themes or bootstrap css files
           } else {
@@ -69,13 +70,13 @@ export function htmlFormat(
 
           // theme: null means no default document css at all
         } else {
-          return {
+          return Promise.resolve({
             pandoc: {
               [kVariables]: {
                 [kDocumentCss]: false,
               },
             },
-          };
+          });
         }
       },
     },
@@ -97,7 +98,7 @@ export function hasTableOfContentsTitle(flags: PandocFlags, format: Format) {
     format.metadata[kTocTitle] !== undefined;
 }
 
-export function bootstrapFormatDependency(format: Format) {
+export async function bootstrapFormatDependency(format: Format) {
   // determine theme
   const theme = format.metadata[kTheme]
     ? String(format.metadata[kTheme])
@@ -140,6 +141,8 @@ export function bootstrapFormatDependency(format: Format) {
       throw new Error(`Specified theme ${theme} does not exist`);
     }
   }
+
+  boostrapCss = await compileBootstrapScss(theme);
 
   const boostrapResource = (resource: string) =>
     formatResourcePath(
@@ -184,6 +187,67 @@ export function bootstrapFormatDependency(format: Format) {
   };
 }
 
+async function compileBootstrapScss(theme: string, compressed?: boolean) {
+  // Look for themes
+  const quartoThemesDir = formatResourcePath("html", `bootstrap/themes`);
+  let resolvedThemeDir = join(quartoThemesDir, theme);
+
+  // If the resolvedThemeDir doesn't exist, the 'theme' could be
+  // a path to a folder containing the files we need
+  let bootstrapScss = "bootswatch";
+  if (!existsSync(resolvedThemeDir)) {
+    // See whether this is a valid folder containing theme files
+    if (existsSync(theme) && Deno.statSync(theme).isDirectory) {
+      // Ensure the require files are present if this is a path
+      ["_variables.scssInput", "_bootstrap.scssInput"].forEach((file) => {
+        if (!existsSync(join(theme, file))) {
+          throw new Error(`No ${file} file found for theme: ${theme}`);
+        }
+      });
+      resolvedThemeDir = theme;
+      bootstrapScss = "bootstrap";
+    } else {
+      throw new Error(`Specified theme ${theme} does not exist`);
+    }
+  }
+
+  // Generate the scss input
+  const importPaths = [
+    join(resolvedThemeDir, "variables"),
+    formatResourcePath("html", "_quarto-variables.scss"),
+    join(quartoThemesDir, "default/scss/bootstrap"),
+    join(resolvedThemeDir, bootstrapScss),
+    formatResourcePath("html", "_quarto.scss"),
+  ];
+  const scssInput = importPaths.map((importPath) => `@import "${importPath}";`)
+    .join("\n");
+
+  // Run the sas compiler
+  const sass = binaryPath(join("dart-sass", "sass"));
+  const result = await execProcess(
+    {
+      cmd: [
+        sass,
+        "--stdin",
+        "--style",
+        compressed ? "compressed" : "expanded",
+      ],
+      stdout: "piped",
+    },
+    scssInput,
+  );
+
+  if (result.success) {
+    // Write the css file
+    const cssOuput = result.stdout;
+    const cssFile = sessionTempFile({ suffix: ".css" });
+    Deno.writeTextFileSync(cssFile, cssOuput || "");
+    return cssFile;
+  } else {
+    throw new Error("Sass compile failed");
+  }
+}
+
 function pandocExtras(metadata: Metadata) {
   // see if there is a max-width
   const maxWidth = metadata["max-width"];
@@ -203,10 +267,10 @@ function pandocExtras(metadata: Metadata) {
   };
 }
 
-function boostrapExtras(
+async function boostrapExtras(
   flags: PandocFlags,
   format: Format,
-): FormatExtras {
+): Promise<FormatExtras> {
   const toc = hasTableOfContents(flags, format);
 
   const renderTemplate = (template: string) => {
@@ -232,7 +296,7 @@ function boostrapExtras(
     [kTocTitle]: !hasTableOfContentsTitle(flags, format)
       ? "Table of contents"
       : undefined,
-    [kDependencies]: [bootstrapFormatDependency(format)],
+    [kDependencies]: [await bootstrapFormatDependency(format)],
     [kBodyEnvelope]: bodyEnvelope,
     [kFilters]: {
       pre: [

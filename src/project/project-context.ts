@@ -35,7 +35,7 @@ export interface ProjectContext {
     input: string,
     flags: PandocFlags,
     format: Format,
-  ) => FormatExtras;
+  ) => Promise<FormatExtras>;
 }
 
 export interface ProjectMetadata extends Metadata {
