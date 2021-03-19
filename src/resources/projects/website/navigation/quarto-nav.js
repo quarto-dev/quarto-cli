@@ -1,17 +1,19 @@
 window.document.addEventListener("DOMContentLoaded", function() {
   
-  function debounce(func, wait, immediate) {
+  function debounce(func, wait) {
     var timeout;
     return function() {
-      var context = this, args = arguments;
-      var later = function() {
+      const context = this
+      const args = arguments;
+      const later = function() {
+        clearTimeout(timeout);
         timeout = null;
-        if (!immediate) func.apply(context, args);
+        func.apply(context, args);
       };
-      var callNow = immediate && !timeout;
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-      if (callNow) func.apply(context, args);
+
+      if (!timeout) {
+        timeout = setTimeout(later, wait);
+      }
     };
   }
 
@@ -39,6 +41,7 @@ window.document.addEventListener("DOMContentLoaded", function() {
         sidebar.style.maxHeight = 'calc(100vh - ' + offset + 'px)';   
       }
     });
+    console.log("Update Offset: " + offset);
 
     // link offset
     let linkStyle = window.document.querySelector("#quarto-target-style");

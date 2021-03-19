@@ -68,7 +68,7 @@ nav .dropdown-item i {
 }
 
 .quarto-secondary-nav .quarto-btn-toggle .bi-chevron-down::before {
-  transition: transform 0.20s ease;
+  transition: transform 200ms ease;
 }
 
 .quarto-secondary-nav {
@@ -169,5 +169,5 @@ header.headroom--unpinned {
 }
 
 .sidebar-section .bi-chevron-right::before {
-  transition: transform 0.20s ease;
+  transition: transform 200ms ease;
 }
