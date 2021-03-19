@@ -113,20 +113,26 @@ window.document.addEventListener("DOMContentLoaded", function() {
     }
   }
 
+  // fixup index.html links if we aren't on the filesystem
+  if (window.location.protocol !== "file:") {
+    const links = window.document.querySelectorAll("a");
+    for (let i=0; i<links.length; i++) {
+      links[i].href = links[i].href.replace(/\/index\.html/, "/");
+    }
+  }
+  
+
   // latch active nav link
   var navLinks = window.document.querySelectorAll("a.nav-link, a.navbar-brand");
   for (let i=0; i<navLinks.length; i++) {
     const navLink = navLinks[i];
     if (navLink.href === window.location.href ||
         navLink.href === (window.location.href + "index.html")) {
+      
       if (navLink.classList.contains("nav-link")) {
         navLink.classList.add("active");
         navLink.setAttribute("aria-current", "page");
       }
-    }
-    // function to fixup index.html links if we aren't on the filesystem
-    if (window.location.protocol !== "file:") {
-      navLink.href = navLink.href.replace(/\/index\.html/, "/");
     }
   }
 
