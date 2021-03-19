@@ -9,8 +9,6 @@ import { basename, join, relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
-import { Document } from "deno_dom/deno-dom-wasm.ts";
-
 import { dirAndStem, pathWithForwardSlashes } from "../../../core/path.ts";
 import { formatResourcePath, resourcePath } from "../../../core/resources.ts";
 import { renderEjs } from "../../../core/ejs.ts";
@@ -24,7 +22,6 @@ import {
   FormatExtras,
   kBodyEnvelope,
   kDependencies,
-  kHtmlPostprocessors,
 } from "../../../config/format.ts";
 import { PandocFlags } from "../../../config/flags.ts";
 
@@ -53,6 +50,7 @@ interface Navigation {
 }
 
 interface Sidebar {
+  id?: string;
   title?: string;
   subtitle?: string;
   logo?: string;
@@ -154,6 +152,10 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   } else {
     navigation.sidebars = [];
   }
+
+  // resolve nav references
+  navigation.navbar = resolveNavReferences(navigation.navbar) as Navbar;
+  navigation.sidebars = resolveNavReferences(navigation.sidebars) as Sidebar[];
 }
 
 export function websiteNavigationConfig(project: ProjectContext) {
@@ -243,6 +245,11 @@ async function sidebarsEjsData(project: ProjectContext, sidebars: Sidebar[]) {
 
 async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
   sidebar = ld.cloneDeep(sidebar);
+
+  // if the sidebar has a title and no id generate the id
+  if (sidebar.title && !sidebar.id) {
+    sidebar.id = pandocAutoIdentifier(sidebar.title, false);
+  }
 
   // ensure title and search are present
   sidebar.title = sidebarTitle(sidebar, project);
@@ -476,7 +483,7 @@ async function navigationItem(
 
 const menuIds = new Map<string, number>();
 function uniqueMenuId(navItem: NavbarItem) {
-  const id = pandocAutoIdentifier(navItem.text || navItem.icon || "", true);
+  const id = pandocAutoIdentifier(navItem.text || navItem.icon || "", false);
   const number = menuIds.get(id) || 0;
   menuIds.set(id, number + 1);
   return `nav-menu-${id}${number ? ("-" + number) : ""}`;
@@ -572,4 +579,70 @@ function inputFileHref(href: string) {
   const [hrefDir, hrefStem] = dirAndStem(href);
   const htmlHref = "/" + join(hrefDir, `${hrefStem}.html`);
   return pathWithForwardSlashes(htmlHref);
+}
+
+function resolveNavReferences(
+  collection: unknown | Array<unknown> | Record<string, unknown>,
+) {
+  if (!collection) {
+    return collection;
+  }
+
+  ld.forEach(
+    collection,
+    (
+      value: unknown,
+      index: unknown,
+      collection: Array<unknown> | Record<string, unknown>,
+    ) => {
+      const assign = (value: unknown) => {
+        if (typeof (index) === "number") {
+          (collection as Array<unknown>)[index] = value;
+        } else if (typeof (index) === "string") {
+          (collection as Record<string, unknown>)[index] = value;
+        }
+      };
+      if (Array.isArray(value)) {
+        assign(resolveNavReferences(value));
+      } else if (typeof (value) === "object") {
+        assign(resolveNavReferences(value as Record<string, unknown>));
+      } else if (index === "href" && typeof (value) === "string") {
+        const navRef = resolveNavReference(value);
+        if (navRef) {
+          const navItem = collection as Record<string, unknown>;
+          navItem["href"] = navRef.href;
+          navItem["text"] = navRef.text;
+        }
+      }
+    },
+  );
+  return collection;
+}
+
+function resolveNavReference(href: string) {
+  const match = href.match(/^nav:([^\s]+).*$/);
+  if (match) {
+    const id = match[1];
+    const sidebar = navigation.sidebars.find((sidebar) => sidebar.id === id);
+    if (sidebar && sidebar.items?.length) {
+      const item = findFirstItem(sidebar.items[0]);
+      if (item) {
+        return {
+          href: item.href!,
+          text: sidebar.title || id,
+        };
+      }
+    }
+  }
+  return undefined;
+}
+
+function findFirstItem(item: SidebarItem): SidebarItem | undefined {
+  if (item.items?.length) {
+    return findFirstItem(item.items[0]);
+  } else if (item.href) {
+    return item;
+  } else {
+    return undefined;
+  }
 }
