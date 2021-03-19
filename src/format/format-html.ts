@@ -13,8 +13,9 @@ import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
 
 import { renderEjs } from "../core/ejs.ts";
 import { mergeConfigs } from "../core/config.ts";
-import { binaryPath, formatResourcePath } from "../core/resources.ts";
+import { formatResourcePath } from "../core/resources.ts";
 import { sessionTempFile } from "../core/temp.ts";
+import { compileScss } from "../core/dart-sass.ts";
 
 import {
   kFilters,
@@ -33,10 +34,8 @@ import {
   kHtmlPostprocessors,
 } from "../config/format.ts";
 import { PandocFlags } from "../config/flags.ts";
-
 import { Metadata } from "../config/metadata.ts";
 import { baseHtmlFormat } from "./formats.ts";
-import { execProcess } from "../core/process.ts";
 
 export const kTheme = "theme";
 export const kTocFloat = "toc-float";
@@ -221,31 +220,10 @@ async function compileBootstrapScss(theme: string, compressed?: boolean) {
   ];
   const scssInput = importPaths.map((importPath) => `@import "${importPath}";`)
     .join("\n");
-
-  // Run the sas compiler
-  const sass = binaryPath(join("dart-sass", "sass"));
-  const result = await execProcess(
-    {
-      cmd: [
-        sass,
-        "--stdin",
-        "--style",
-        compressed ? "compressed" : "expanded",
-      ],
-      stdout: "piped",
-    },
-    scssInput,
-  );
-
-  if (result.success) {
-    // Write the css file
-    const cssOuput = result.stdout;
-    const cssFile = sessionTempFile({ suffix: ".css" });
-    Deno.writeTextFileSync(cssFile, cssOuput || "");
-    return cssFile;
-  } else {
-    throw new Error("Sass compile failed");
-  }
+  const cssOutput = await compileScss(scssInput, true);
+  const cssFile = sessionTempFile({ suffix: ".css" });
+  Deno.writeTextFileSync(cssFile, cssOutput || "");
+  return cssFile;
 }
 
 function pandocExtras(metadata: Metadata) {
