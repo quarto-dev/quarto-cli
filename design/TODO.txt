@@ -1,12 +1,53 @@
 Dart-Sass:
-- confirm configuration on linux and windows
 - verify functional in installation
 - Yaml configuration
 - Cache
+- consider porting pandoc css customization -> scss variables
+- dart to quarto env
 
+theme: cosmo | "path/to/rstudio-theme"
+
+theme: 
+  base: cosmo | "path/to/rstudio-theme"
+  variables: vars.scss
+  styles: foo.scss
+
+scss:
+  - file1.scss
+  - file2.scss  
+
+
+- make bootstrap.scss file optional
 
 Quarto-theme:
 - Create explicit border color for navbars?
+
+
+Admonitions
+
+::: {.admonition-warning collapsed=true icon=bi-github}
+## Title text
+
+Admonition content
+:::
+
+
+::: {.tabset}
+
+## Tab 1
+
+content fof tab 1
+
+## Tab 2
+
+asdasdas
+
+## Tab 3
+
+asdasdas
+
+:::
+
 
 
 YAML
