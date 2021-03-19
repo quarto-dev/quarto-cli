@@ -120,22 +120,22 @@ window.document.addEventListener("DOMContentLoaded", function() {
       links[i].href = links[i].href.replace(/\/index\.html/, "/");
     }
   }
-  
 
   // latch active nav link
-  var navLinks = window.document.querySelectorAll("a.nav-link, a.navbar-brand");
+  var navLinks = window.document.querySelectorAll("a.nav-link");
   for (let i=0; i<navLinks.length; i++) {
     const navLink = navLinks[i];
-    if (navLink.href === window.location.href ||
-        navLink.href === (window.location.href + "index.html")) {
-      
-      if (navLink.classList.contains("nav-link")) {
-        navLink.classList.add("active");
-        navLink.setAttribute("aria-current", "page");
-      }
+    const sidebarLink = window.document.querySelector(
+      '.sidebar-navigation a[href="' + navLink.href + '"]'
+    );
+    // if the link is either for the current window href or appears on the 
+    // sidebar then set it to active
+    if (sidebarLink || (navLink.href === window.location.href)) {
+      navLink.classList.add("active");
+      navLink.setAttribute("aria-current", "page");
+      // terminate (only one nav link should be active)
+      break;
     }
   }
-
-
 });
 
