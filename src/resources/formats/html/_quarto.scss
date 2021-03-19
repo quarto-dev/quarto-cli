@@ -1,3 +1,14 @@
 
 
 
+
+pre.sourceCode,
+code.sourceCode {
+  border-color: $gray-200 !important;
+}
+
+.sidebar-toc > nav ul > li > ul > li > a {
+  padding-left: 0.6rem;
+  border-left: 1px solid $gray-200;
+}
+

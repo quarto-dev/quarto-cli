@@ -59,10 +59,6 @@ h3, h4 {
    color: inherit;
  }
  
- .sidebar-toc > nav ul > li > ul > li > a {
-   padding-left: 0.6rem;
-   border-left: 3px solid var(--bs-light);
- }
  
  .sidebar-toc > nav ul > li > ul > li > a.active {
    border-color: var(--bs-primary);

@@ -13,11 +13,5 @@ Image = function(image)
   end
 end
 
-CodeBlock = function(code)
-  if #code.attr.classes > 0 then
-    code.attr.classes:insert("border-light")
-    return code
-  end
-end
 
 
