@@ -1,11 +1,35 @@
+Dart-Sass:
+- confirm configuration on linux and windows
+- verify functional in installation
+- Yaml configuration
+- Cache
+
+
+Quarto-theme:
+- Create explicit border color for navbars?
+
+
+YAML
+theme: <name or path>
+theme-variables: <path>
+    <sass variables to add to theme>
+scss: <path to scss file>
+
+(240ms)
+scss cache key ->
+  hash of the file contents:
+  bootstrap version + contents of _quarto.scss + contents of _user.scss
+
+
+
 - weird top gap when loading 
 https://quarto-dev.github.io/quarto-docs/ 19px offset????
-
+debug on server (edit html and push with derbug messages, getComputedstyles)
 
 HTML:
   - anchor links
-  - tabs
-  - admonitions
+  - tabs (may require Sass)
+  - admonitions (requires Sass)
   - option to have shaded code blocks:
      code-background: light | secondary | etc.
   - copy code block to clipboard
