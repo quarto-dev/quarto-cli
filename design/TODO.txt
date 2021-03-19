@@ -1,32 +1,6 @@
 
 
-TODO: top-level latching behavior:
-
-nav-top
-
-nav-side:
-   title: "Tutorials"
-   items:
-      - href: 
-      - href:
-
-nav-side:
-   - title: "Tutorials"
-     id: tutorials
-     items:
-        - href: 
-        - href: 
-
-   -  title: "How To"
-      id: how-to
-      items:
-         - href:
-         - href: 
-       
-nav-top:
-  left:
-    - href: nav:tutorials
-    - href: nav:how-to
+TODO: top-level latching behavior (still need the latching)
 
 
 HTML:
