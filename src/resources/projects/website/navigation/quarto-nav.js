@@ -1,6 +1,6 @@
 window.document.addEventListener("DOMContentLoaded", function() {
   
-  function debounce(func, wait) {
+  function throttle(func, wait) {
     var timeout;
     return function() {
       const context = this
@@ -96,7 +96,7 @@ window.document.addEventListener("DOMContentLoaded", function() {
 
   // Set an offset if there is are fixed top navbar
   updateDocumentOffset();
-  window.addEventListener('resize', debounce(updateDocumentOffset, 50));  
+  window.addEventListener('resize', throttle(updateDocumentOffset, 50));  
 
   // Hide the title when it will appear in the secondary nav
   const title = window.document.querySelector("header > .title");
