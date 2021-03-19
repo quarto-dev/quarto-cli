@@ -220,6 +220,10 @@ export async function renderFiles(
     results[file] = fileResults;
   }
 
+  if (fileProgress) {
+    message("");
+  }
+
   return results;
 }
 

@@ -152,13 +152,23 @@ export const renderCommand = new Command()
   });
 
 function finalOutput(renderResults: RenderResults) {
-  // determine final output
-  const formats = Object.keys(renderResults.results);
-  const format = formats.find((fmt) => isHtmlOutput(fmt)) || formats[0];
-  const results = renderResults.results[format];
-  const result =
-    (results.find((result) => result.file === "index.html") || results[0]);
+  // final output defaults to the first output of the first result
+  const firstFile = Object.keys(renderResults.results)[0];
+  let result = renderResults.results[firstFile][0];
 
+  // see if we can find an index.html instead
+  const files = Object.keys(renderResults.results);
+  for (const file of files) {
+    const indexResult = renderResults.results[file].find((result) => {
+      return result.file === "index.html";
+    });
+    if (indexResult) {
+      result = indexResult;
+      break;
+    }
+  }
+
+  // determine final output
   let finalInput = result.input;
   let finalOutput = result.file;
 

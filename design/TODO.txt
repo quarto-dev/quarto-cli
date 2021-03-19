@@ -35,9 +35,12 @@ HTML:
   - copy code block to clipboard
 
 
-TOOD: improved console/progress treatment for full project render
-finalOutput is wrong (see cmd.ts)
-improved visual treatment (progress bar)
+TODO: progress bar for project render
+
+TODO: when rendering multiple output formats for a project, only the first file gets the second format
+
+TODO: search: false to suppress indexing for a file
+TODO: optional use of algolia search
 
 TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
 TODO: ability to freeze computational outputs (global unfreeze, via clean?)
