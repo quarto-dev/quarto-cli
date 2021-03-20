@@ -372,9 +372,14 @@ async function resolveSidebarTools(
 }
 
 function sidebarForHref(href: string) {
-  for (const sidebar of navigation.sidebars) {
-    if (containsHref(href, sidebar.items)) {
-      return sidebar;
+  // if there is a single sidebar then it applies to all hrefs
+  if (navigation.sidebars.length === 1) {
+    return navigation.sidebars[0];
+  } else {
+    for (const sidebar of navigation.sidebars) {
+      if (containsHref(href, sidebar.items)) {
+        return sidebar;
+      }
     }
   }
 }
