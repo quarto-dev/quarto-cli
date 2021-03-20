@@ -233,18 +233,22 @@ export function websiteNavigationExtras(
 }
 
 function navigationHtmlPostprocessor(href: string) {
+  // prepend . to href for comparisions
+  href = href.replace(/^\//, "./");
+
   return (doc: Document) => {
     // latch active nav link
     const navLinks = doc.querySelectorAll("a.nav-link");
     for (let i = 0; i < navLinks.length; i++) {
       const navLink = navLinks[i] as Element;
       const navLinkHref = navLink.getAttribute("href");
+
       const sidebarLink = doc.querySelector(
-        '.sidebar-navigation a[href="' + navLinkHref + '"]',
+        '.sidebar-navigation a[href="' + href + '"]',
       );
       // if the link is either for the current window href or appears on the
       // sidebar then set it to active
-      if (sidebarLink || (navLinkHref?.replace(/\.\//, "/") === href)) {
+      if (sidebarLink || (navLinkHref === href)) {
         navLink.classList.add("active");
         navLink.setAttribute("aria-current", "page");
         // terminate (only one nav link should be active)
