@@ -66,17 +66,25 @@ HTML:
   - copy code block to clipboard
 
 
-TODO: Render list still subject to type filter (so you could create a render list with e.g. ["**", "!exclude.Rmd"])
+TODO: inputFileIndex needs to merge project metadata (and invalidate cache on _quarto.yml)
+
+TODO: stop using navigationBodyEnvelope entirely:
+  - move more client side code into deno_dom filters (including active handling?)
+
+TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx)
 
 TODO: consider still copying outputs for failure (or copy them incrementally)
+
+TODO: individual page opt-out of navbar or sidebar
 
 TODO: search: false to suppress indexing for a file
 TODO: optional use of algolia search
 
-TODO: project level option to only render when source file changes?
 
 TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
 TODO: ability to freeze computational outputs (global unfreeze, via clean?)
+TODO: project level option to only render when source file changes? (freeze: auto | true | false)
+
 
 TODO: move html ref processing to fully post render (don't do it
 from within lua). This will allow us to pick up anything emitted
@@ -85,6 +93,10 @@ door to a higher performance implementation
 SEE: https://github.com/b-fuze/deno-dom
 
 
+TODO: embedding pdfs in website via pdf.js
+
+TODO: commenting via Hypothesis
+
 TODO:  htmlwidgets need a fluid container (as perhaps do jupyter widgets)
 
 Search:
@@ -92,7 +104,7 @@ Search:
   - Algolia     
 
 
-TODO: cache directories:
+TODO: clean:
  quarto clean output 
  quarto clean cache 
  quarto clean state
