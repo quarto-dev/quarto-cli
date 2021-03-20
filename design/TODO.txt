@@ -66,23 +66,24 @@ HTML:
   - copy code block to clipboard
 
 
-TODO: inputFileIndex needs to merge project metadata (and invalidate cache on _quarto.yml)
-
-TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx)
-
+TODO: nav-link targeting self doesn't get active treatment
+TODO: empty <i> in nav items
 TODO: consider still copying outputs for failure (or copy them incrementally)
-
-TODO: individual page opt-out of navbar or sidebar
 
 TODO: search: false to suppress indexing for a file
 TODO: optional use of algolia search
+
+
+TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx)
 
 
 TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
 TODO: ability to freeze computational outputs (global unfreeze, via clean?)
 TODO: project level option to only render when source file changes? (freeze: auto | true | false)
 
-TODO: if there is a single sidebar should all pages get it?
+TODO: consider local mathjax case
+TODO: automatically size logo (including 2x)
+TOOD: hoverable footnotes and citations
 
 TODO: move html ref processing to fully post render (don't do it
 from within lua). This will allow us to pick up anything emitted
