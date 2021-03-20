@@ -1,9 +1,13 @@
 Dart-Sass:
 - verify functional in installation
 - Yaml configuration
-- Cache
+- sync saas variables to media queries
+- scss cache key ->
+  bootstrap version + contents of _quarto.scss + contents of _user.scss
 - consider porting pandoc css customization -> scss variables
 - dart to quarto env
+- make bootstrap.scss file optional
+
 
 theme: cosmo | "path/to/rstudio-theme"
 
@@ -17,11 +21,9 @@ scss:
   - file2.scss  
 
 
-- make bootstrap.scss file optional
 
 Quarto-theme:
 - Create explicit border color for navbars?
-
 
 Admonitions
 
@@ -50,18 +52,6 @@ asdasdas
 
 
 
-YAML
-theme: <name or path>
-theme-variables: <path>
-    <sass variables to add to theme>
-scss: <path to scss file>
-
-(240ms)
-scss cache key ->
-  hash of the file contents:
-  bootstrap version + contents of _quarto.scss + contents of _user.scss
-
-
 
 - weird top gap when loading 
 https://quarto-dev.github.io/quarto-docs/ 19px offset????
@@ -76,9 +66,9 @@ HTML:
   - copy code block to clipboard
 
 
-TODO: progress bar for project render
-
 TODO: when rendering multiple output formats for a project, only the first file gets the second format
+
+TODO: Render list still subject to type filter (so you could create a render list with e.g. ["**", "!exclude.Rmd"])
 
 TODO: search: false to suppress indexing for a file
 TODO: optional use of algolia search
@@ -94,11 +84,6 @@ SEE: https://github.com/b-fuze/deno-dom
 
 
 TODO:  htmlwidgets need a fluid container (as perhaps do jupyter widgets)
-
-
-TODO: Dart sass
-- read breakpoints out of CSS/SASS to respect them properly in media queries
-
 
 Search:
   - https://stork-search.net/
@@ -123,7 +108,6 @@ TODO: cache directories:
 
 TODO: generalized warning system (look for 'WARNING:')
 
-TODO: Render list still subject to type filter (so you could create a render list with e.g. ["**", "!exclude.Rmd"])
 
 TODO: common yaml option reading (all docs use yaml)
 use Rmd-style chunks for Jupyter (Jmd). YAML encoding.
