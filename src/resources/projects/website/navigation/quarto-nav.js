@@ -98,45 +98,11 @@ window.document.addEventListener("DOMContentLoaded", function() {
   updateDocumentOffset();
   window.addEventListener('resize', throttle(updateDocumentOffset, 50));  
 
-  // Hide the title when it will appear in the secondary nav
-  const title = window.document.querySelector("header > .title");
-  const sidebar = window.document.getElementById("quarto-sidebar");
-  if (title && sidebar) {
-    // hide below lg
-    title.classList.add("d-none");
-    title.classList.add("d-lg-block");
-
-    // Add the title to the secondary nav bar
-    const secondaryNavTitle = window.document.querySelector(
-      ".quarto-secondary-nav .quarto-secondary-nav-title",
-    );
-    if (secondaryNavTitle) {
-      secondaryNavTitle.innerHTML = title.innerHTML;
-    }
-  }
-
-  // fixup index.html links if we aren't on the filesystem
-  if (window.location.protocol !== "file:") {
+   // fixup index.html links if we aren't on the filesystem
+   if (window.location.protocol !== "file:") {
     const links = window.document.querySelectorAll("a");
     for (let i=0; i<links.length; i++) {
       links[i].href = links[i].href.replace(/\/index\.html/, "/");
-    }
-  }
-
-  // latch active nav link
-  var navLinks = window.document.querySelectorAll("a.nav-link");
-  for (let i=0; i<navLinks.length; i++) {
-    const navLink = navLinks[i];
-    const sidebarLink = window.document.querySelector(
-      '.sidebar-navigation a[href="' + navLink.href + '"]'
-    );
-    // if the link is either for the current window href or appears on the 
-    // sidebar then set it to active
-    if (sidebarLink || (navLink.href === window.location.href)) {
-      navLink.classList.add("active");
-      navLink.setAttribute("aria-current", "page");
-      // terminate (only one nav link should be active)
-      break;
     }
   }
 });

@@ -68,9 +68,6 @@ HTML:
 
 TODO: inputFileIndex needs to merge project metadata (and invalidate cache on _quarto.yml)
 
-TODO: stop using navigationBodyEnvelope entirely:
-  - move more client side code into deno_dom filters (including active handling?)
-
 TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx)
 
 TODO: consider still copying outputs for failure (or copy them incrementally)
@@ -85,6 +82,7 @@ TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
 TODO: ability to freeze computational outputs (global unfreeze, via clean?)
 TODO: project level option to only render when source file changes? (freeze: auto | true | false)
 
+TODO: if there is a single sidebar should all pages get it?
 
 TODO: move html ref processing to fully post render (don't do it
 from within lua). This will allow us to pick up anything emitted
@@ -98,6 +96,9 @@ TODO: embedding pdfs in website via pdf.js
 TODO: commenting via Hypothesis
 
 TODO:  htmlwidgets need a fluid container (as perhaps do jupyter widgets)
+
+TODO: updating a package: 
+deno info --unstable  --import-map import_map.json --reload https://deno.land/x/deno_dom/deno-dom-wasm.ts
 
 Search:
   - https://stork-search.net/

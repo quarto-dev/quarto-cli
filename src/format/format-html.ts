@@ -282,8 +282,8 @@ async function boostrapExtras(
 
   const bodyEnvelope = format.metadata[kPageLayout] !== "none"
     ? {
-      before: { dynamic: true, content: renderTemplate("before-body.ejs") },
-      after: { dynamic: false, content: renderTemplate("after-body.ejs") },
+      before: renderTemplate("before-body.ejs"),
+      after: renderTemplate("after-body.ejs"),
     }
     : undefined;
 

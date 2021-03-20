@@ -13,25 +13,14 @@ import { stringify } from "encoding/yaml.ts";
 
 import { ld } from "lodash/mod.ts";
 
-import {
-  Document,
-  DOMParser,
-  Element,
-  HTMLDocument,
-} from "deno_dom/deno-dom-wasm.ts";
+import { Document, DOMParser } from "deno_dom/deno-dom-wasm.ts";
 
 import { execProcess } from "../../core/process.ts";
 import { message } from "../../core/console.ts";
 import { dirAndStem, pathWithForwardSlashes } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
-import {
-  placeholderHtml,
-  preservePlaceholders,
-  restorePlaceholders,
-} from "../../core/html.ts";
 
 import {
-  BodyEnvelopeContent,
   DependencyFile,
   Format,
   FormatExtras,
@@ -316,14 +305,11 @@ export async function runPandoc(
   // post-processing for html
   if (isHtmlOutput(options.format.pandoc) && htmlPostprocessors.length > 0) {
     const outputFile = join(cwd, options.output);
+
     const htmlInput = Deno.readTextFileSync(outputFile);
-    const { html, placeholders } = preservePlaceholders(htmlInput);
-    const doc = new DOMParser().parseFromString(html, "text/html")!;
+    const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
     htmlPostprocessors.forEach((preprocessor) => preprocessor(doc));
-    const htmlOutput = restorePlaceholders(
-      doc.documentElement?.outerHTML!,
-      placeholders,
-    );
+    const htmlOutput = doc.documentElement?.outerHTML!;
     Deno.writeTextFileSync(outputFile, htmlOutput);
   }
 
@@ -471,14 +457,11 @@ function resolveBodyEnvelope(extras: FormatExtras) {
   if (envelope) {
     const writeBodyFile = (
       type: "include-in-header" | "include-before-body" | "include-after-body",
-      content?: BodyEnvelopeContent,
+      content?: string,
     ) => {
       if (content) {
-        const contents = content.dynamic
-          ? placeholderHtml(`envelope-${type}`, content.content)
-          : content.content;
         const file = sessionTempFile({ suffix: ".html" });
-        Deno.writeTextFileSync(file, contents);
+        Deno.writeTextFileSync(file, content);
         if (type === kIncludeAfterBody) {
           extras[type] = (extras[type] || []).concat(file);
         } else {

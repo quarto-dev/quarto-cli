@@ -94,15 +94,10 @@ export interface DependencyFile {
   path: string;
 }
 
-export interface BodyEnvelopeContent {
-  dynamic: boolean;
-  content: string;
-}
-
 export interface BodyEnvelope {
-  header?: BodyEnvelopeContent;
-  before?: BodyEnvelopeContent;
-  after?: BodyEnvelopeContent;
+  header?: string;
+  before?: string;
+  after?: string;
 }
 
 export interface FormatExtras {
