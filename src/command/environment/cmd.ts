@@ -10,7 +10,7 @@ import { Command } from "cliffy/command/mod.ts";
 import { message } from "../../core/console.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { pythonEnv, rBinaryEnv, rPackageEnv } from "./execution.ts";
-import { binaryEnv, QuartoEnv, tinyTexEnv } from "./bin.ts";
+import { binaryEnv, dartSassEnv, QuartoEnv, tinyTexEnv } from "./bin.ts";
 
 export interface EnvironmentData {
   name: string;
@@ -72,6 +72,7 @@ export const environmentCommand = new Command()
 const required: EnvironmentData[] = [
   binaryEnv("Deno", "deno"),
   binaryEnv("Pandoc", "pandoc"),
+  dartSassEnv(),
 ];
 
 const r: EnvironmentData[] = [

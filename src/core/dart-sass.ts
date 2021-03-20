@@ -57,6 +57,14 @@ export async function compileScss(
   }
 }
 
+export async function dartSassInstallDir() {
+  return await binaryPath("dart-sass");
+}
+
+export async function dartSassVersion() {
+  return await dartCommand(["--version"]);
+}
+
 async function dartCompile(
   input: string,
   loadPaths?: string[],
@@ -64,8 +72,7 @@ async function dartCompile(
 ): Promise<string | undefined> {
   const command = Deno.build.os === "windows" ? "sass.bat" : "sass";
   const sass = binaryPath(join("dart-sass", command));
-  const cmd = [
-    sass,
+  const args = [
     "--stdin",
     "--style",
     compressed ? "compressed" : "expanded",
@@ -73,9 +80,20 @@ async function dartCompile(
 
   if (loadPaths) {
     loadPaths.forEach((loadPath) => {
-      cmd.push(`--load-path=${loadPath}`);
+      args.push(`--load-path=${loadPath}`);
     });
   }
+
+  return await dartCommand(args, input);
+}
+
+async function dartCommand(args: string[], stdin?: string) {
+  const command = Deno.build.os === "windows" ? "sass.bat" : "sass";
+  const sass = binaryPath(join("dart-sass", command));
+  const cmd = [
+    sass,
+    ...args,
+  ];
 
   // Run the sas compiler
   const result = await execProcess(
@@ -83,12 +101,12 @@ async function dartCompile(
       cmd,
       stdout: "piped",
     },
-    input,
+    stdin,
   );
 
   if (result.success) {
     return result.stdout;
   } else {
-    throw new Error("Sass compile failed");
+    throw new Error("Sass command failed");
   }
 }
