@@ -217,7 +217,7 @@ async function compileBootstrapScss(theme: string) {
   // Resolve the provided theme (either to a built in theme or a custom
   // theme directory)
   const resolvedTheme = resolveTheme(theme, quartoThemesDir);
-  if (!resolvedTheme.variables && resolvedTheme.styles) {
+  if (!resolvedTheme.variables && resolvedTheme.bootstrap) {
     throw new Error(`Theme ${theme} does not contain any valid scss files`);
   }
 
