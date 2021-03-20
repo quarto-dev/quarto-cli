@@ -21,20 +21,22 @@ export async function compileScss(
   cacheIdentifier?: string,
 ) {
   if (cacheIdentifier) {
+    // Calculate a hash for the input and identifier
+    const identifierHash = createHash("md5").update(cacheIdentifier).toString();
+    const inputHash = createHash("md5").update(input).toString();
+
     // check the cache
     const cacheDir = quartoCacheDir("input");
     const cacheIdxPath = join(cacheDir, "index.json");
-    const compiledCssPath = join(cacheDir, `${cacheIdentifier}.css`);
-
-    // Calculate a hash
-    const inputHash = createHash("md5").update(input).toString();
+    const compiledCssPath = join(cacheDir, `${identifierHash}.css`);
+    console.log(compiledCssPath);
 
     // Check whether we can use a cached file
     let cacheIndex: { [key: string]: string } = {};
     let writeCache = true;
     if (existsSync(compiledCssPath)) {
       cacheIndex = JSON.parse(Deno.readTextFileSync(cacheIdxPath));
-      const existingHash = cacheIndex[cacheIdentifier];
+      const existingHash = cacheIndex[identifierHash];
       writeCache = existingHash !== inputHash;
     }
 
@@ -44,7 +46,7 @@ export async function compileScss(
       if (cssOutput) {
         Deno.writeTextFileSync(compiledCssPath, cssOutput || "");
       }
-      cacheIndex[cacheIdentifier] = inputHash;
+      cacheIndex[identifierHash] = inputHash;
       Deno.writeTextFileSync(cacheIdxPath, JSON.stringify(cacheIndex));
     }
     return compiledCssPath;

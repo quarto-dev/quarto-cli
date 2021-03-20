@@ -3,11 +3,6 @@ Dart-Sass:
 - Yaml configuration
 - consider porting pandoc css customization -> scss variables
 - sync saas variables to media queries
-- scss cache key ->
-  bootstrap version + contents of _quarto.scss + contents of _user.scss
-- consider porting pandoc css customization -> scss variables
-- make bootstrap.scss file optional
-
 
 theme: cosmo | "path/to/rstudio-theme"
 

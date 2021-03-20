@@ -173,44 +173,72 @@ export async function bootstrapFormatDependency(format: Format) {
   };
 }
 
-async function compileBootstrapScss(theme: string) {
-  // Look for themes
-  const quartoThemesDir = formatResourcePath("html", `bootstrap/themes`);
-  let resolvedThemeDir = join(quartoThemesDir, theme);
+const kbootStrapScss = "_bootstrap.scss";
+const kVariablesScss = "_variables.scss";
 
-  // If the resolvedThemeDir doesn't exist, the 'theme' could be
-  // a path to a folder containing the files we need
-  let bootstrapScss = "_bootswatch.scss";
-  if (!existsSync(resolvedThemeDir)) {
-    // See whether this is a valid folder containing theme files
-    if (existsSync(theme) && Deno.statSync(theme).isDirectory) {
-      // Ensure the require files are present if this is a path
-      ["_variables.scssInput", "_bootstrap.scssInput"].forEach((file) => {
-        if (!existsSync(join(theme, file))) {
-          throw new Error(`No ${file} file found for theme: ${theme}`);
-        }
-      });
-      resolvedThemeDir = theme;
-      bootstrapScss = "_bootstrap.scss";
-    } else {
-      throw new Error(`Specified theme ${theme} does not exist`);
-    }
+function resolveTheme(
+  theme: string,
+  quartoThemesDir: string,
+): { variables?: string; bootstrap?: string } {
+  const resolvedThemeDir = join(quartoThemesDir, theme);
+  if (existsSync(resolvedThemeDir)) {
+    // It's a built in theme, just return the files r
+    return {
+      variables: join(resolvedThemeDir, kVariablesScss),
+      bootstrap: join(resolvedThemeDir, "_bootswatch.scss"),
+    };
+  } else if (existsSync(theme) && Deno.statSync(theme).isDirectory) {
+    // It is not a built in theme, assume its a path and use that
+    const variables = join(theme, kVariablesScss);
+    const styles = join(theme, kbootStrapScss);
+    return {
+      variables: existsSync(variables) ? variables : undefined,
+      bootstrap: existsSync(styles) ? styles : undefined,
+    };
+  } else {
+    // Who know what this is
+    return {};
+  }
+}
+
+async function compileBootstrapScss(theme: string) {
+  // Quarto built in css
+  const quartoThemesDir = formatResourcePath("html", `bootstrap/themes`);
+  const bootstrapCore = join(
+    quartoThemesDir,
+    "default/scss/bootstrap.scss",
+  );
+  const quartoVariables = formatResourcePath(
+    "html",
+    "_quarto-variables.scss",
+  );
+  const quartoBootstrap = formatResourcePath("html", "_quarto.scss");
+
+  // Resolve the provided theme (either to a built in theme or a custom
+  // theme directory)
+  const resolvedTheme = resolveTheme(theme, quartoThemesDir);
+  if (!resolvedTheme.variables && resolvedTheme.bootstrap) {
+    throw new Error(`Theme ${theme} does not contain any valid scss files`);
   }
 
-  // Generate the scss input
-  const importPaths = [
-    join(resolvedThemeDir, "_variables.scss"),
-    formatResourcePath("html", "_quarto-variables.scss"),
-    // user
-    join(quartoThemesDir, "default/scss/bootstrap.scss"),
-    join(resolvedThemeDir, bootstrapScss),
-    formatResourcePath("html", "_quarto.scss"),
-    // user
-  ];
-  const scssInput = importPaths.map((importPath) =>
+  // Generate the list of scss files
+  const scssPaths: string[] = [];
+  if (resolvedTheme.variables) {
+    scssPaths.push(resolvedTheme.variables);
+  }
+  scssPaths.push(quartoVariables);
+  scssPaths.push(bootstrapCore);
+  if (resolvedTheme.bootstrap) {
+    scssPaths.push(resolvedTheme.bootstrap);
+  }
+  scssPaths.push(quartoBootstrap);
+
+  // Read the scss files into a single input string
+  const scssInput = scssPaths.map((importPath) =>
     Deno.readTextFileSync(importPath)
   ).join("\n\n");
 
+  // Compile the scss
   return await compileScss(
     scssInput,
     [
