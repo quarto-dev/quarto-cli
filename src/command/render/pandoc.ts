@@ -19,7 +19,6 @@ import { execProcess } from "../../core/process.ts";
 import { message } from "../../core/console.ts";
 import { dirAndStem, pathWithForwardSlashes } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
-import { preservePlaceholders, restorePlaceholders } from "../../core/html.ts";
 
 import {
   DependencyFile,
@@ -306,6 +305,7 @@ export async function runPandoc(
   // post-processing for html
   if (isHtmlOutput(options.format.pandoc) && htmlPostprocessors.length > 0) {
     const outputFile = join(cwd, options.output);
+
     const htmlInput = Deno.readTextFileSync(outputFile);
     const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
     htmlPostprocessors.forEach((preprocessor) => preprocessor(doc));
