@@ -29,7 +29,6 @@ export async function compileScss(
     const cacheDir = quartoCacheDir("input");
     const cacheIdxPath = join(cacheDir, "index.json");
     const compiledCssPath = join(cacheDir, `${identifierHash}.css`);
-    console.log(compiledCssPath);
 
     // Check whether we can use a cached file
     let cacheIndex: { [key: string]: string } = {};
