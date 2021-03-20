@@ -66,11 +66,8 @@ HTML:
   - copy code block to clipboard
 
 
-TODO: when rendering multiple output formats for a project, only the first file gets the second format
-
 TODO: Render list still subject to type filter (so you could create a render list with e.g. ["**", "!exclude.Rmd"])
 
-TODO: cross-references.md fails to render to pdf
 TODO: consider still copying outputs for failure (or copy them incrementally)
 
 TODO: search: false to suppress indexing for a file
