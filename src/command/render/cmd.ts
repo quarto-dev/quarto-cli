@@ -12,8 +12,6 @@ import { Command } from "cliffy/command/mod.ts";
 
 import { message } from "../../core/console.ts";
 
-import { isHtmlOutput } from "../../config/format.ts";
-
 import { fixupPandocArgs, kStdOut, parseRenderFlags } from "./flags.ts";
 
 import { render, RenderResults } from "./render.ts";
@@ -26,11 +24,11 @@ export const renderCommand = new Command()
     "Render input file(s) to various document types.",
   )
   .option(
-    "-t, --to",
-    "Specify output format.",
+    "--to",
+    "Specify output format(s).",
   )
   .option(
-    "-o, --output",
+    "--output",
     "Write output to FILE (use '--output -' for stdout).",
   )
   .option(
@@ -110,12 +108,12 @@ export const renderCommand = new Command()
         /([A-Z])/g,
         (_match: string, p1: string) => `-${p1.toLowerCase()}`,
       );
-      args.unshift("--" + optionArg);
-      delete options[option];
       if (input) {
         args.unshift(input);
         input = undefined;
       }
+      args.unshift("--" + optionArg);
+      delete options[option];
     }
 
     // pull inputs out of the beginning of flags

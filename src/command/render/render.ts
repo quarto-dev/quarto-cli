@@ -181,13 +181,16 @@ export async function renderFiles(
       progress(relative(project!.dir, file), i + 1);
     }
 
+    // make a copy of options (since we mutate it)
+    const fileOptions = ld.cloneDeep(options);
+
     // get contexts
-    const contexts = await renderContexts(file, options, project);
+    const contexts = await renderContexts(file, fileOptions, project);
 
     // remove --to (it's been resolved into contexts)
-    delete options.flags?.to;
-    if (options.pandocArgs) {
-      options.pandocArgs = removePandocToArg(options.pandocArgs);
+    delete fileOptions.flags?.to;
+    if (fileOptions.pandocArgs) {
+      fileOptions.pandocArgs = removePandocToArg(fileOptions.pandocArgs);
     }
 
     const fileResults: RenderResult[] = [];
