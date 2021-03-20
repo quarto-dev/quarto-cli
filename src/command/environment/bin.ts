@@ -11,6 +11,7 @@ import { tinyTexInstallDir } from "../install/tools/tinytex.ts";
 import { tlVersion } from "../render/latekmk/texlive.ts";
 import { QuartoConfig, quartoConfig } from "../../core/quarto.ts";
 import { EnvironmentData, EnvironmentDataOutputOptions } from "./cmd.ts";
+import { dartSassInstallDir, dartSassVersion } from "../../core/dart-sass.ts";
 
 export function tinyTexEnv() {
   return {
@@ -20,6 +21,19 @@ export function tinyTexEnv() {
     },
     version: () => {
       return tlVersion();
+    },
+    options: { newLine: true },
+  };
+}
+
+export function dartSassEnv() {
+  return {
+    name: "Dart Sass",
+    path: () => {
+      return Promise.resolve(dartSassInstallDir());
+    },
+    version: () => {
+      return dartSassVersion();
     },
     options: { newLine: true },
   };

@@ -1,9 +1,5 @@
 
 
-main {
-  margin-top: 1em;
-  margin-bottom: 1em;
-}
 
 <%= maxwidth %>
 
@@ -22,50 +18,3 @@ code, kbd, pre, samp {
 pre.sourceCode {
 <%= codeblockBorder %>}
 
-h2 {
-  margin-top: 2rem;
-  margin-bottom: 1rem;
-}
-
-h3, h4 {
-  margin-top: 1.5rem;
-}
-
-
-.sidebar {
-  padding-top: 1.2em;
-}
-/* table of contents */
-.sidebar-toc > nav > h2 {
-  font-size: 1rem;
-  font-weight: 400;
-  margin-bottom: 0.5rem;
-  margin-top: 0.3rem;
-  font-family: inherit;
-  opacity: 0.9;
- }
- 
- .sidebar-toc > nav ul {
-   padding-left: 0;
-   list-style: none;
-   font-size: 0.9rem;
-   font-weight: 300;
- }
- 
- .sidebar-toc > nav ul li a {
-   padding-left: 0;
-   padding-bottom: 0.15rem;
-   padding-top: 0;
-   color: inherit;
- }
- 
- 
- .sidebar-toc > nav ul > li > ul > li > a.active {
-   border-color: var(--bs-primary);
-   color: var(--bs-primary) !important;
- }
- 
- .sidebar-toc > nav ul > li > a.active {
-  border-color: var(--bs-primary);
-  color: var(--bs-primary) !important;
-}

@@ -6,7 +6,7 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { join, toFileUrl } from "path/mod.ts";
+import { join } from "path/mod.ts";
 import { ld } from "lodash/mod.ts";
 
 import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
@@ -127,6 +127,7 @@ export async function bootstrapFormatDependency(format: Format) {
     ),
   };
 
+  // Compile the scss
   const bootstrapCss = await compileBootstrapScss(theme);
 
   const boostrapResource = (resource: string) =>
@@ -179,7 +180,7 @@ async function compileBootstrapScss(theme: string) {
 
   // If the resolvedThemeDir doesn't exist, the 'theme' could be
   // a path to a folder containing the files we need
-  let bootstrapScss = "bootswatch";
+  let bootstrapScss = "_bootswatch.scss";
   if (!existsSync(resolvedThemeDir)) {
     // See whether this is a valid folder containing theme files
     if (existsSync(theme) && Deno.statSync(theme).isDirectory) {
@@ -190,7 +191,7 @@ async function compileBootstrapScss(theme: string) {
         }
       });
       resolvedThemeDir = theme;
-      bootstrapScss = "bootstrap";
+      bootstrapScss = "_bootstrap.scss";
     } else {
       throw new Error(`Specified theme ${theme} does not exist`);
     }
@@ -198,22 +199,26 @@ async function compileBootstrapScss(theme: string) {
 
   // Generate the scss input
   const importPaths = [
-    join(resolvedThemeDir, "variables"),
+    join(resolvedThemeDir, "_variables.scss"),
     formatResourcePath("html", "_quarto-variables.scss"),
-    join(quartoThemesDir, "default/scss/bootstrap"),
+    // user
+    join(quartoThemesDir, "default/scss/bootstrap.scss"),
     join(resolvedThemeDir, bootstrapScss),
     formatResourcePath("html", "_quarto.scss"),
+    // user
   ];
   const scssInput = importPaths.map((importPath) =>
-    `@import "${toFileUrl(importPath)}";`
-  )
-    .join("\n");
-  const cssOutput = await compileScss(scssInput, true);
-  const cssFile = sessionTempFile({ suffix: ".css" });
-  if (cssOutput) {
-    Deno.writeTextFileSync(cssFile, cssOutput || "");
-  }
-  return cssFile;
+    Deno.readTextFileSync(importPath)
+  ).join("\n\n");
+
+  return await compileScss(
+    scssInput,
+    [
+      join(quartoThemesDir, "default/scss/"),
+    ],
+    true,
+    theme,
+  );
 }
 
 function pandocExtras(metadata: Metadata) {
