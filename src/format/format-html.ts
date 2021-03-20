@@ -204,7 +204,9 @@ async function compileBootstrapScss(theme: string) {
     join(resolvedThemeDir, bootstrapScss),
     formatResourcePath("html", "_quarto.scss"),
   ];
-  const scssInput = importPaths.map((importPath) => `@import "${toFileUrl(importPath)}";`)
+  const scssInput = importPaths.map((importPath) =>
+    `@import "${toFileUrl(importPath)}";`
+  )
     .join("\n");
   const cssOutput = await compileScss(scssInput, true);
   const cssFile = sessionTempFile({ suffix: ".css" });
@@ -247,8 +249,8 @@ async function boostrapExtras(
 
   const bodyEnvelope = format.metadata[kPageLayout] !== "none"
     ? {
-      before: { dynamic: true, content: renderTemplate("before-body.ejs") },
-      after: { dynamic: false, content: renderTemplate("after-body.ejs") },
+      before: renderTemplate("before-body.ejs"),
+      after: renderTemplate("after-body.ejs"),
     }
     : undefined;
 

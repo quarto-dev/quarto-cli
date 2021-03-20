@@ -198,6 +198,25 @@ export function websiteNavigationExtras(
     dependencies.push(searchDep);
   }
 
+  // determine body envelope
+  const href = inputFileHref(inputRelative);
+  const nav = {
+    toc: hasTableOfContents(flags, format),
+    layout: format.metadata[kPageLayout] !== "none",
+    navbar: navigation.navbar,
+    sidebar: expandedSidebar(href, sidebarForHref(href)),
+  };
+  const bodyEnvelope = {
+    before: renderEjs(
+      formatResourcePath("html", "templates/nav-before-body.ejs"),
+      { nav },
+    ),
+    after: renderEjs(
+      formatResourcePath("html", "templates/nav-after-body.ejs"),
+      { nav },
+    ),
+  };
+
   // return extras with bodyEnvelope
   return {
     [kTocTitle]: !hasTableOfContentsTitle(flags, format) &&
@@ -205,42 +224,7 @@ export function websiteNavigationExtras(
       ? "On this page"
       : undefined,
     [kDependencies]: dependencies,
-    [kBodyEnvelope]: navigationBodyEnvelope(
-      inputRelative,
-      hasTableOfContents(flags, format),
-      format.metadata[kPageLayout] !== "none",
-    ),
-  };
-}
-
-export function navigationBodyEnvelope(
-  file: string,
-  toc: boolean,
-  layout: boolean,
-) {
-  const href = inputFileHref(file);
-  const nav = {
-    toc,
-    layout,
-    navbar: navigation.navbar,
-    sidebar: expandedSidebar(href, sidebarForHref(href)),
-  };
-
-  return {
-    before: {
-      dynamic: true,
-      content: renderEjs(
-        formatResourcePath("html", "templates/nav-before-body.ejs"),
-        { nav },
-      ),
-    },
-    after: {
-      dynamic: false,
-      content: renderEjs(
-        formatResourcePath("html", "templates/nav-after-body.ejs"),
-        { nav },
-      ),
-    },
+    [kBodyEnvelope]: bodyEnvelope,
   };
 }
 
