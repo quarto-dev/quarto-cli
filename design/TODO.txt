@@ -61,8 +61,6 @@ HTML:
   - copy code block to clipboard
 
 
-TODO: nav-link targeting self doesn't get active treatment
-TODO: empty <i> in nav items
 TODO: consider still copying outputs for failure (or copy them incrementally)
 
 TODO: search: false to suppress indexing for a file
