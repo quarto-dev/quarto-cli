@@ -5,6 +5,8 @@
 *
 */
 import { message } from "../../core/console.ts";
+import { asciiProgressBar } from "../../core/progress.ts";
+
 import { GitHubRelease } from "./github.ts";
 import { tinyTexInstallable } from "./tools/tinytex.ts";
 
@@ -219,11 +221,14 @@ export async function updateTool(name: string) {
 }
 
 export interface ToolSummaryData {
-  installed: boolean, 
-  installedVersion?: string, 
-  latestRelease: RemotePackageInfo}
+  installed: boolean;
+  installedVersion?: string;
+  latestRelease: RemotePackageInfo;
+}
 
-export async function toolSummary(name: string) : Promise<ToolSummaryData | undefined>  {
+export async function toolSummary(
+  name: string,
+): Promise<ToolSummaryData | undefined> {
   // Find the tool
   const tool = installableTool(name);
 
@@ -231,7 +236,7 @@ export async function toolSummary(name: string) : Promise<ToolSummaryData | unde
   if (tool) {
     const installed = await tool.installed();
     const installedVersion = await tool.installedVersion();
-    const latestRelease = await tool.latestRelease()
+    const latestRelease = await tool.latestRelease();
     return { installed, installedVersion, latestRelease };
   } else {
     return undefined;
@@ -323,16 +328,3 @@ const installContext = (workingDir: string): InstallContext => {
     props: {},
   };
 };
-
-// Creates an ascii progress bar of a specified width, displaying a percentage complete
-function asciiProgressBar(percent: number, width?: number): string {
-  width = width || 25;
-  const segsComplete = Math.floor(percent / (100 / width));
-
-  let progressBar = "[";
-  for (let i = 0; i < width; i++) {
-    progressBar = progressBar + (i < segsComplete ? "#" : " ");
-  }
-  progressBar = progressBar + "]";
-  return progressBar;
-}

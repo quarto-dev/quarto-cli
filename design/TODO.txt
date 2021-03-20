@@ -2,6 +2,12 @@ Dart-Sass:
 - verify functional in installation
 - Yaml configuration
 - consider porting pandoc css customization -> scss variables
+- sync saas variables to media queries
+- scss cache key ->
+  bootstrap version + contents of _quarto.scss + contents of _user.scss
+- consider porting pandoc css customization -> scss variables
+- make bootstrap.scss file optional
+
 
 theme: cosmo | "path/to/rstudio-theme"
 
@@ -15,11 +21,9 @@ scss:
   - file2.scss  
 
 
-- make bootstrap.scss file optional
 
 Quarto-theme:
 - Create explicit border color for navbars?
-
 
 Admonitions
 
@@ -48,18 +52,6 @@ asdasdas
 
 
 
-YAML
-theme: <name or path>
-theme-variables: <path>
-    <sass variables to add to theme>
-scss: <path to scss file>
-
-(240ms)
-scss cache key ->
-  hash of the file contents:
-  bootstrap version + contents of _quarto.scss + contents of _user.scss
-
-
 
 - weird top gap when loading 
 https://quarto-dev.github.io/quarto-docs/ 19px offset????
@@ -74,15 +66,25 @@ HTML:
   - copy code block to clipboard
 
 
-TODO: progress bar for project render
+TODO: inputFileIndex needs to merge project metadata (and invalidate cache on _quarto.yml)
 
-TODO: when rendering multiple output formats for a project, only the first file gets the second format
+TODO: stop using navigationBodyEnvelope entirely:
+  - move more client side code into deno_dom filters (including active handling?)
+
+TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx)
+
+TODO: consider still copying outputs for failure (or copy them incrementally)
+
+TODO: individual page opt-out of navbar or sidebar
 
 TODO: search: false to suppress indexing for a file
 TODO: optional use of algolia search
 
+
 TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
 TODO: ability to freeze computational outputs (global unfreeze, via clean?)
+TODO: project level option to only render when source file changes? (freeze: auto | true | false)
+
 
 TODO: move html ref processing to fully post render (don't do it
 from within lua). This will allow us to pick up anything emitted
@@ -91,19 +93,18 @@ door to a higher performance implementation
 SEE: https://github.com/b-fuze/deno-dom
 
 
+TODO: embedding pdfs in website via pdf.js
+
+TODO: commenting via Hypothesis
+
 TODO:  htmlwidgets need a fluid container (as perhaps do jupyter widgets)
-
-
-TODO: Dart sass
-- read breakpoints out of CSS/SASS to respect them properly in media queries
-
 
 Search:
   - https://stork-search.net/
   - Algolia     
 
 
-TODO: cache directories:
+TODO: clean:
  quarto clean output 
  quarto clean cache 
  quarto clean state
@@ -121,7 +122,6 @@ TODO: cache directories:
 
 TODO: generalized warning system (look for 'WARNING:')
 
-TODO: Render list still subject to type filter (so you could create a render list with e.g. ["**", "!exclude.Rmd"])
 
 TODO: common yaml option reading (all docs use yaml)
 use Rmd-style chunks for Jupyter (Jmd). YAML encoding.
