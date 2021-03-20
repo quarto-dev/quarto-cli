@@ -22,6 +22,7 @@ import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { createSessionTempDir } from "../../core/temp.ts";
 import { inputFilesDir } from "../../core/render.ts";
+import { progressBar } from "../../core/progress.ts";
 import { message } from "../../core/console.ts";
 
 import {
@@ -159,17 +160,25 @@ export async function renderFiles(
   }
 
   // see if we should be using file-by-file progress
-  const fileProgress = project && (files.length > 1) && !options.flags?.quiet;
-  if (fileProgress) {
+  const progress = project && (files.length > 1) && !options.flags?.quiet
+    ? progressBar({
+      total: files.length,
+    })
+    : undefined;
+
+  if (progress) {
+    message(`Rendering ${project!.dir}:\n`);
     options.flags = options.flags || {};
     options.flags.quiet = true;
   }
 
   const results: Record<string, RenderResult[]> = {};
 
-  for (const file of files) {
-    if (fileProgress) {
-      message(`Rendering ${relative(project!.dir, file)}`);
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+
+    if (progress) {
+      progress(relative(project!.dir, file), i + 1);
     }
 
     // get contexts
@@ -220,8 +229,9 @@ export async function renderFiles(
     results[file] = fileResults;
   }
 
-  if (fileProgress) {
-    message("");
+  if (progress) {
+    progress("Done", files.length);
+    message("\n");
   }
 
   return results;
