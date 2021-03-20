@@ -1,9 +1,7 @@
 Dart-Sass:
 - verify functional in installation
 - Yaml configuration
-- Cache
 - consider porting pandoc css customization -> scss variables
-- dart to quarto env
 
 theme: cosmo | "path/to/rstudio-theme"
 
