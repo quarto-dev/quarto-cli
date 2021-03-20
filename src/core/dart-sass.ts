@@ -4,34 +4,91 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
-import { binaryPath } from "../core/resources.ts";
+import { createHash } from "hash/mod.ts";
 
-import { execProcess } from "../core/process.ts";
+import { binaryPath } from "./resources.ts";
+import { execProcess } from "./process.ts";
 
-export async function compileScss(input: string, compressed?: boolean) : Promise<string | undefined> {
+import { quartoCacheDir } from "../core/appdirs.ts";
+import { sessionTempFile } from "./temp.ts";
 
- const command = Deno.build.os === "windows" ? "sass.bat" : "sass";
- // Run the sas compiler
- const sass = binaryPath(join("dart-sass", command));
- const result = await execProcess(
-   {
-     cmd: [
-       sass,
-       "--stdin",
-       "--style",
-       compressed ? "compressed" : "expanded",
-     ],
-     stdout: "piped",
-   },
-   input,
- );
+export async function compileScss(
+  input: string,
+  loadPaths: string[],
+  compressed?: boolean,
+  cacheIdentifier?: string,
+) {
+  if (cacheIdentifier) {
+    // check the cache
+    const cacheDir = quartoCacheDir("input");
+    const cacheIdxPath = join(cacheDir, "index.json");
+    const compiledCssPath = join(cacheDir, `${cacheIdentifier}.css`);
 
- if (result.success) {
-   return result.stdout;
+    // Calculate a hash
+    const inputHash = createHash("md5").update(input).toString();
+
+    // Check whether we can use a cached file
+    let cacheIndex: { [key: string]: string } = {};
+    let writeCache = true;
+    if (existsSync(compiledCssPath)) {
+      cacheIndex = JSON.parse(Deno.readTextFileSync(cacheIdxPath));
+      const existingHash = cacheIndex[cacheIdentifier];
+      writeCache = existingHash !== inputHash;
+    }
+
+    // We need to refresh the cache
+    if (writeCache) {
+      const cssOutput = await dartCompile(input, loadPaths, compressed);
+      if (cssOutput) {
+        Deno.writeTextFileSync(compiledCssPath, cssOutput || "");
+      }
+      cacheIndex[cacheIdentifier] = inputHash;
+      Deno.writeTextFileSync(cacheIdxPath, JSON.stringify(cacheIndex));
+    }
+    return compiledCssPath;
+  } else {
+    // Skip the cache and just compile
+    const outputPath = sessionTempFile({ suffix: ".css" });
+    const cssOutput = await dartCompile(input, loadPaths, compressed);
+    Deno.writeTextFileSync(outputPath, cssOutput || "");
+    return outputPath;
+  }
+}
+
+async function dartCompile(
+  input: string,
+  loadPaths?: string[],
+  compressed?: boolean,
+): Promise<string | undefined> {
+  const command = Deno.build.os === "windows" ? "sass.bat" : "sass";
+  const sass = binaryPath(join("dart-sass", command));
+  const cmd = [
+    sass,
+    "--stdin",
+    "--style",
+    compressed ? "compressed" : "expanded",
+  ];
+
+  if (loadPaths) {
+    loadPaths.forEach((loadPath) => {
+      cmd.push(`--load-path=${loadPath}`);
+    });
+  }
+
+  // Run the sas compiler
+  const result = await execProcess(
+    {
+      cmd,
+      stdout: "piped",
+    },
+    input,
+  );
+
+  if (result.success) {
+    return result.stdout;
   } else {
     throw new Error("Sass compile failed");
   }
 }
-
- 
