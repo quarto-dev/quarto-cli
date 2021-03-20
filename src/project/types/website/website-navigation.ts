@@ -9,6 +9,8 @@ import { basename, join, relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
+import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
+
 import { dirAndStem, pathWithForwardSlashes } from "../../../core/path.ts";
 import { formatResourcePath, resourcePath } from "../../../core/resources.ts";
 import { renderEjs } from "../../../core/ejs.ts";
@@ -22,6 +24,7 @@ import {
   FormatExtras,
   kBodyEnvelope,
   kDependencies,
+  kHtmlPostprocessors,
 } from "../../../config/format.ts";
 import { PandocFlags } from "../../../config/flags.ts";
 
@@ -225,6 +228,46 @@ export function websiteNavigationExtras(
       : undefined,
     [kDependencies]: dependencies,
     [kBodyEnvelope]: bodyEnvelope,
+    [kHtmlPostprocessors]: [navigationHtmlPostprocessor(href)],
+  };
+}
+
+function navigationHtmlPostprocessor(href: string) {
+  return (doc: Document) => {
+    // latch active nav link
+    const navLinks = doc.querySelectorAll("a.nav-link");
+    for (let i = 0; i < navLinks.length; i++) {
+      const navLink = navLinks[i] as Element;
+      const navLinkHref = navLink.getAttribute("href");
+      const sidebarLink = doc.querySelector(
+        '.sidebar-navigation a[href="' + navLinkHref + '"]',
+      );
+      // if the link is either for the current window href or appears on the
+      // sidebar then set it to active
+      if (sidebarLink || (navLinkHref?.replace(/\.\//, "/") === href)) {
+        navLink.classList.add("active");
+        navLink.setAttribute("aria-current", "page");
+        // terminate (only one nav link should be active)
+        break;
+      }
+    }
+
+    // Hide the title when it will appear in the secondary nav
+    const title = doc.querySelector("header > .title");
+    const sidebar = doc.getElementById("quarto-sidebar");
+    if (title && sidebar) {
+      // hide below lg
+      title.classList.add("d-none");
+      title.classList.add("d-lg-block");
+
+      // Add the title to the secondary nav bar
+      const secondaryNavTitle = doc.querySelector(
+        ".quarto-secondary-nav .quarto-secondary-nav-title",
+      );
+      if (secondaryNavTitle) {
+        secondaryNavTitle.innerHTML = title.innerHTML;
+      }
+    }
   };
 }
 
