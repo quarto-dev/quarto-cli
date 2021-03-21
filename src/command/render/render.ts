@@ -92,6 +92,7 @@ export interface RenderResourceFiles {
 
 export interface RenderResult {
   input: string;
+  format: Format;
   file: string;
   filesDir?: string;
   resourceFiles: RenderResourceFiles;
@@ -222,6 +223,7 @@ export async function renderFiles(
 
       fileResults.push({
         input: projectPath(file),
+        format: context.format,
         file: projectPath(pandocResult.finalOutput),
         filesDir: filesDir ? projectPath(filesDir) : undefined,
         resourceFiles: pandocResult.resourceFiles,

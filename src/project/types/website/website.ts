@@ -10,7 +10,11 @@ import { ProjectContext, projectOffset } from "../../project-context.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { dirAndStem } from "../../../core/path.ts";
 
-import { ProjectCreate, ProjectType } from "../project-types.ts";
+import {
+  ProjectCreate,
+  ProjectOutputFile,
+  ProjectType,
+} from "../project-types.ts";
 import { Format, FormatExtras } from "../../../config/format.ts";
 import { PandocFlags } from "../../../config/flags.ts";
 
@@ -113,7 +117,7 @@ export const websiteProjectType: ProjectType = {
   postRender: async (
     context: ProjectContext,
     incremental: boolean,
-    outputFiles: string[],
+    outputFiles: ProjectOutputFile[],
   ) => {
     // update sitemap
     await updateSitemap(context, outputFiles, incremental);
