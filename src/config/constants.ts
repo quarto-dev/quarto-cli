@@ -146,6 +146,7 @@ export const kMetadataFiles = "metadata-files";
 export const kSyntaxDefinitions = "syntax-definitions";
 export const kSyntaxDefinition = "syntax-definition";
 export const kReferenceDoc = "reference-doc";
+export const kHtmlMathMethod = "html-math-method";
 export const kToc = "toc";
 export const kTableOfContents = "table-of-contents";
 export const kSectionDivs = "section-divs";
@@ -222,7 +223,7 @@ export const kPandocDefaultsKeys = [
   kSyntaxDefinition,
   kListings,
   kReferenceDoc,
-  "html-math-method",
+  kHtmlMathMethod,
   "email-obfuscation",
   "tab-stop",
   "preserve-tabs",

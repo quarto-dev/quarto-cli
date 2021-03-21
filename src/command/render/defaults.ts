@@ -8,12 +8,9 @@
 import { extname } from "path/mod.ts";
 import { stringify } from "encoding/yaml.ts";
 
-import { execProcess } from "../../core/process.ts";
 import { mergeConfigs } from "../../core/config.ts";
-import { binaryPath, resourcePath } from "../../core/resources.ts";
-import { readYamlFromString } from "../../core/yaml.ts";
 
-import { FormatPandoc, isHtmlOutput } from "../../config/format.ts";
+import { FormatPandoc } from "../../config/format.ts";
 
 import {
   kFilters,
@@ -39,21 +36,15 @@ import {
 } from "./filters.ts";
 import { sessionTempFile } from "../../core/temp.ts";
 
-export async function generateDefaults(
+export function generateDefaults(
   options: PandocOptions,
 ): Promise<FormatPandoc | undefined> {
   let allDefaults: FormatPandoc | undefined;
 
-  const detectedDefaults = await detectDefaults(
-    options.markdown,
-    options.format.pandoc,
-  );
-
   const crossrefDefaults = crossrefGeneratedDefaults(options);
 
-  if (detectedDefaults || crossrefDefaults || options.format.pandoc) {
+  if (crossrefDefaults || options.format.pandoc) {
     allDefaults = mergeConfigs(
-      detectedDefaults || {},
       crossrefDefaults || {},
       options.format.pandoc || {},
     );
@@ -68,9 +59,9 @@ export async function generateDefaults(
       allDefaults[kFilters] = resolvedFilters;
     }
 
-    return allDefaults;
+    return Promise.resolve(allDefaults);
   } else {
-    return undefined;
+    return Promise.resolve(undefined);
   }
 }
 
@@ -142,32 +133,4 @@ export function pandocDefaultsMessage(
   }
 
   return stringify(defaults as Record<string, unknown>);
-}
-
-async function detectDefaults(
-  markdown: string,
-  format: FormatPandoc,
-): Promise<FormatPandoc | undefined> {
-  if (isHtmlOutput(format)) {
-    const cmd = [
-      binaryPath("pandoc"),
-      "--from",
-      format.from || "markdown",
-      "--to",
-      resourcePath("html-defaults.lua"),
-    ];
-    const result = await execProcess({ cmd, stdout: "piped" }, markdown);
-    if (result.success) {
-      const defaults = (result.stdout || "").trim();
-      if (defaults) {
-        return readYamlFromString(`---\n${defaults}\n`) as FormatPandoc;
-      } else {
-        return undefined;
-      }
-    } else {
-      throw new Error();
-    }
-  } else {
-    return undefined;
-  }
 }
