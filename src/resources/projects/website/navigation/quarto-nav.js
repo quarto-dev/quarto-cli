@@ -94,8 +94,14 @@ window.document.addEventListener("DOMContentLoaded", function() {
     }
   }
 
-  // Set an offset if there is are fixed top navbar
-  updateDocumentOffset();
+  // Observe size changed for the header
+  const headerEl = window.document.querySelector('header.fixed-top');
+  var observer = new ResizeObserver(function(mutations) {
+    updateDocumentOffset();
+  });
+  var config = { attributes: true, childList: true, characterData: true };
+  observer.observe(headerEl, config);
+
   window.addEventListener('resize', throttle(updateDocumentOffset, 50));  
 
    // fixup index.html links if we aren't on the filesystem
