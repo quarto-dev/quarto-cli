@@ -15,6 +15,7 @@ import { basename, join, relative } from "path/mod.ts";
 import { DOMParser, Element } from "deno_dom/deno-dom-wasm.ts";
 
 import { resourcePath } from "../../../core/resources.ts";
+import { isHtmlContent } from "../../../core/mime.ts";
 
 import { FormatDependency } from "../../../config/format.ts";
 
@@ -68,6 +69,11 @@ export function updateSearchIndex(
           return doc.href !== href &&
             !doc.href.startsWith(href + "#");
         });
+        return searchDocs;
+      }
+
+      // if this isn't html then skip it
+      if (!isHtmlContent(file)) {
         return searchDocs;
       }
 
