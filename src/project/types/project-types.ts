@@ -29,9 +29,14 @@ export interface ProjectType {
   postRender?: (
     context: ProjectContext,
     incremental: boolean,
-    outputFiles: string[],
+    outputFiles: ProjectOutputFile[],
   ) => Promise<void>;
   serve?: ProjectServe;
+}
+
+export interface ProjectOutputFile {
+  file: string;
+  format: Format;
 }
 
 export interface ProjectServe {

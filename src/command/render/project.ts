@@ -22,7 +22,10 @@ import {
   ProjectContext,
 } from "../../project/project-context.ts";
 
-import { projectType } from "../../project/types/project-types.ts";
+import {
+  ProjectOutputFile,
+  projectType,
+} from "../../project/types/project-types.ts";
 import {
   copyResourceFile,
   projectResourceFiles,
@@ -75,7 +78,7 @@ export async function renderProject(
   Deno.env.set("QUARTO_PROJECT_DIR", projDir);
   try {
     // track output files (for postRender hook)
-    const outputFiles: string[] = [];
+    const outputFiles: ProjectOutputFile[] = [];
 
     // render the files
     const fileResults = await renderFiles(files, options, context);
@@ -127,9 +130,10 @@ export async function renderProject(
           const outputFile = join(realOutputDir, result.file);
           ensureDirSync(dirname(outputFile));
           Deno.renameSync(join(projDir, result.file), outputFile);
-          outputFiles.push(outputFile);
-
-          // notify
+          outputFiles.push({
+            file: outputFile,
+            format: result.format,
+          });
 
           // files dir
           if (result.filesDir) {
@@ -192,7 +196,12 @@ export async function renderProject(
       // track output files
       Object.keys(fileResults).forEach((format) => {
         outputFiles.push(
-          ...fileResults[format].map((result) => join(projDir, result.file)),
+          ...fileResults[format].map((result) => {
+            return {
+              file: join(projDir, result.file),
+              format: result.format,
+            };
+          }),
         );
       });
     }

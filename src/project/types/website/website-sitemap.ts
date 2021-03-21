@@ -16,11 +16,13 @@ import { pathWithForwardSlashes, removeIfExists } from "../../../core/path.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { resourcePath } from "../../../core/resources.ts";
 
+import { ProjectOutputFile } from "../project-types.ts";
+
 export const kBaseUrl = "base-url";
 
 export async function updateSitemap(
   context: ProjectContext,
-  outputFiles: string[],
+  outputFiles: ProjectOutputFile[],
   incremental: boolean,
 ) {
   // get output dir
@@ -54,7 +56,8 @@ export async function updateSitemap(
     const fileLastMod = (file: string) =>
       (Deno.statSync(file).mtime || new Date(0))
         .toISOString();
-    const urlsetEntry = (file: string) => {
+    const urlsetEntry = (outputFile: ProjectOutputFile) => {
+      const file = outputFile.file;
       return { loc: fileLoc(file), lastmod: fileLastMod(file) };
     };
 
@@ -63,16 +66,20 @@ export async function updateSitemap(
       // write sitemap
       writeSitemap(sitemapPath, outputFiles.map(urlsetEntry));
     } else { // otherwise parse the sitemap, update and write a new one
-      const urlset = outputFiles.reduce((urlset: Urlset, file: string) => {
-        const loc = fileLoc(file);
-        const url = urlset.find((url) => url.loc === loc);
-        if (url) {
-          url.lastmod = fileLastMod(file);
-        } else {
-          urlset.push(urlsetEntry(file));
-        }
-        return urlset;
-      }, await readSitemap(sitemapPath));
+      const urlset = outputFiles.reduce(
+        (urlset: Urlset, outputFile: ProjectOutputFile) => {
+          const file = outputFile.file;
+          const loc = fileLoc(file);
+          const url = urlset.find((url) => url.loc === loc);
+          if (url) {
+            url.lastmod = fileLastMod(file);
+          } else {
+            urlset.push(urlsetEntry(outputFile));
+          }
+          return urlset;
+        },
+        await readSitemap(sitemapPath),
+      );
       writeSitemap(sitemapPath, urlset);
     }
 

@@ -59,15 +59,14 @@ HTML:
   - option to have shaded code blocks:
      code-background: light | secondary | etc.
   - copy code block to clipboard
+  - hoverable footnotes and citations
 
 
 TODO: consider still copying outputs for failure (or copy them incrementally)
 
-TODO: search: false to suppress indexing for a file
-TODO: optional use of algolia search
-
-
 TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx)
+
+TODO: cache size limit for scss (300k/entry)
 
 
 TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
@@ -76,13 +75,20 @@ TODO: project level option to only render when source file changes? (freeze: aut
 
 TODO: consider local mathjax case
 TODO: automatically size logo (including 2x)
-TOOD: hoverable footnotes and citations
 
 TODO: move html ref processing to fully post render (don't do it
 from within lua). This will allow us to pick up anything emitted
 by a format (e.g. css or reveal backgrounds) and would open the 
 door to a higher performance implementation
 SEE: https://github.com/b-fuze/deno-dom
+
+TODO: should we have our own template for html (to avoid the patch)
+
+TODO: profile simple render to see if there is savings available to us
+
+TODO: this in pandoc 2.13 should mean we don't need to extract the partial:
+Fix fallback to default partials when custom templates are used. If the directory containing a 
+template does not contain the partial, it should be sought in the default templates, but this was not working properly (#7164).
 
 
 TODO: embedding pdfs in website via pdf.js

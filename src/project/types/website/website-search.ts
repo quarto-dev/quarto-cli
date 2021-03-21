@@ -24,7 +24,11 @@ import {
   projectOutputDir,
 } from "../../project-context.ts";
 
+import { ProjectOutputFile } from "../project-types.ts";
+
 import { websiteNavigationConfig } from "./website-navigation.ts";
+
+const kSearch = "search";
 
 interface SearchDoc {
   href: string;
@@ -35,7 +39,7 @@ interface SearchDoc {
 
 export function updateSearchIndex(
   context: ProjectContext,
-  outputFiles: string[],
+  outputFiles: ProjectOutputFile[],
   incremental: boolean,
 ) {
   // calculate output dir and search.json path
@@ -53,7 +57,20 @@ export function updateSearchIndex(
 
   // create search docs
   const updatedSearchDocs: SearchDoc[] = outputFiles.reduce(
-    (searchDocs: SearchDoc[], file) => {
+    (searchDocs: SearchDoc[], outputFile) => {
+      // find file/href
+      const file = outputFile.file;
+      const href = relative(outputDir, file);
+
+      // if this is excluded then remove and return
+      if (outputFile.format.metadata[kSearch] === false) {
+        searchDocs = searchDocs.filter((doc) => {
+          return doc.href !== href &&
+            !doc.href.startsWith(href + "#");
+        });
+        return searchDocs;
+      }
+
       // add or update search doc
       const updateDoc = (doc: SearchDoc) => {
         const idx = searchDocs.findIndex((d) => d.href === doc.href);
@@ -65,7 +82,6 @@ export function updateSearchIndex(
       };
 
       // parse doc
-      const href = relative(outputDir, file);
       const contents = Deno.readTextFileSync(file);
       const doc = new DOMParser().parseFromString(contents, "text/html")!;
 
@@ -123,7 +139,7 @@ export function updateSearchIndex(
   );
 
   // write search docs if they have changed
-  const updatedSearchJson = JSON.stringify(updatedSearchDocs);
+  const updatedSearchJson = JSON.stringify(updatedSearchDocs, undefined, 2);
   if (searchJson !== updatedSearchJson) {
     Deno.writeTextFileSync(searchJsonPath, updatedSearchJson);
   }
