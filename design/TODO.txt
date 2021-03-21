@@ -61,12 +61,9 @@ HTML:
   - copy code block to clipboard
   - hoverable footnotes and citations
 
-
-TODO: consider still copying outputs for failure (or copy them incrementally)
+TODO: cache size limit for scss (300k/entry)
 
 TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx)
-
-TODO: cache size limit for scss (300k/entry)
 
 
 TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
@@ -82,7 +79,7 @@ by a format (e.g. css or reveal backgrounds) and would open the
 door to a higher performance implementation
 SEE: https://github.com/b-fuze/deno-dom
 
-TODO: should we have our own template for html (to avoid the patch)
+TODO: should we have our own template for html (to avoid the patch). or, do patching at configure time?
 
 TODO: profile simple render to see if there is savings available to us
 

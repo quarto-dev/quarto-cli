@@ -20,6 +20,7 @@ import { compileScss } from "../core/dart-sass.ts";
 import {
   kFilters,
   kHeaderIncludes,
+  kHtmlMathMethod,
   kSectionDivs,
   kTableOfContents,
   kToc,
@@ -51,6 +52,9 @@ export function htmlFormat(
     {
       metadata: {
         [kTheme]: "default",
+      },
+      pandoc: {
+        [kHtmlMathMethod]: "mathjax",
       },
     },
     {
