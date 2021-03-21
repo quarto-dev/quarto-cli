@@ -24,6 +24,7 @@ import { createSessionTempDir } from "../../core/temp.ts";
 import { inputFilesDir } from "../../core/render.ts";
 import { progressBar } from "../../core/progress.ts";
 import { message } from "../../core/console.ts";
+import { removeIfExists } from "../../core/path.ts";
 
 import {
   formatFromMetadata,
@@ -63,6 +64,7 @@ import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
 import {
   kLibDir,
+  kOutputDir,
   ProjectContext,
   projectContext,
   projectOffset,
@@ -175,71 +177,98 @@ export async function renderFiles(
 
   const results: Record<string, RenderResult[]> = {};
 
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
+  try {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
+      if (progress) {
+        progress(relative(project!.dir, file), i + 1);
+      }
+
+      // make a copy of options (since we mutate it)
+      const fileOptions = ld.cloneDeep(options);
+
+      // get contexts
+      const contexts = await renderContexts(file, fileOptions, project);
+
+      // remove --to (it's been resolved into contexts)
+      delete fileOptions.flags?.to;
+      if (fileOptions.pandocArgs) {
+        fileOptions.pandocArgs = removePandocToArg(fileOptions.pandocArgs);
+      }
+
+      const fileResults: RenderResult[] = [];
+
+      for (const context of Object.values(contexts)) {
+        // execute
+        const executeResult = await renderExecute(context, true);
+
+        // run pandoc
+        const pandocResult = await renderPandoc(context, executeResult);
+
+        // determine if we have a files dir
+        const relativeFilesDir = inputFilesDir(file);
+        const filesDir = existsSync(join(dirname(file), relativeFilesDir))
+          ? relativeFilesDir
+          : undefined;
+
+        // if there is a project context then return paths relative to the project
+        const projectPath = (path: string) => {
+          if (project) {
+            return relative(
+              Deno.realPathSync(project.dir),
+              Deno.realPathSync(join(dirname(file), basename(path))),
+            );
+          } else {
+            return path;
+          }
+        };
+
+        fileResults.push({
+          input: projectPath(file),
+          format: context.format,
+          file: projectPath(pandocResult.finalOutput),
+          filesDir: filesDir ? projectPath(filesDir) : undefined,
+          resourceFiles: pandocResult.resourceFiles,
+          selfContained: pandocResult.selfContained,
+        });
+      }
+
+      results[file] = fileResults;
+    }
 
     if (progress) {
-      progress(relative(project!.dir, file), i + 1);
+      progress("Done", files.length);
+      message("\n");
     }
 
-    // make a copy of options (since we mutate it)
-    const fileOptions = ld.cloneDeep(options);
-
-    // get contexts
-    const contexts = await renderContexts(file, fileOptions, project);
-
-    // remove --to (it's been resolved into contexts)
-    delete fileOptions.flags?.to;
-    if (fileOptions.pandocArgs) {
-      fileOptions.pandocArgs = removePandocToArg(fileOptions.pandocArgs);
-    }
-
-    const fileResults: RenderResult[] = [];
-
-    for (const context of Object.values(contexts)) {
-      // execute
-      const executeResult = await renderExecute(context, true);
-
-      // run pandoc
-      const pandocResult = await renderPandoc(context, executeResult);
-
-      // determine if we have a files dir
-      const relativeFilesDir = inputFilesDir(file);
-      const filesDir = existsSync(join(dirname(file), relativeFilesDir))
-        ? relativeFilesDir
-        : undefined;
-
-      // if there is a project context then return paths relative to the project
-      const projectPath = (path: string) => {
-        if (project) {
-          return relative(
-            Deno.realPathSync(project.dir),
-            Deno.realPathSync(join(dirname(file), basename(path))),
-          );
-        } else {
-          return path;
-        }
-      };
-
-      fileResults.push({
-        input: projectPath(file),
-        format: context.format,
-        file: projectPath(pandocResult.finalOutput),
-        filesDir: filesDir ? projectPath(filesDir) : undefined,
-        resourceFiles: pandocResult.resourceFiles,
-        selfContained: pandocResult.selfContained,
+    return results;
+  } catch (error) {
+    // cleanup for project render (as their could be multiple results)
+    if (project && project.metadata?.project?.[kOutputDir]) {
+      // outputs
+      Object.values(results).forEach((fileResults) => {
+        fileResults.forEach((fileResult) => {
+          removeIfExists(join(project.dir, fileResult.file));
+          if (fileResult.filesDir) {
+            removeIfExists(join(project.dir, fileResult.filesDir));
+          }
+        });
       });
+      // lib dir
+      const libDir = project.metadata?.project?.[kLibDir];
+      if (libDir) {
+        removeIfExists(join(project.dir, libDir));
+      }
     }
 
-    results[file] = fileResults;
+    // propagate error
+    if (error) {
+      throw (error);
+    } else {
+      throw new Error();
+    }
   }
-
-  if (progress) {
-    progress("Done", files.length);
-    message("\n");
-  }
-
-  return results;
 }
 
 export async function renderContexts(
