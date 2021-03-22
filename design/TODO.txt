@@ -1,7 +1,7 @@
 
 Dart-Sass:
-- need bootstrap version in cache hash (so we can invalidate since it is a bunch of includes)
 - sync saas variables to media queries
+- Create explicit border color for navbars?
 
 layered themes:
 theme:
@@ -42,7 +42,7 @@ scss:
   - file2.scss  
 
 Quarto-theme:
-- Create explicit border color for navbars?
+
 
 Windows:
 - Need to figure out what the deal is with quarto bundled error (cliffy?) before next published release.
