@@ -112,7 +112,7 @@ export interface FormatExtras {
     pre?: string[];
     post?: string[];
   };
-  [kHtmlPostprocessors]?: Array<(doc: Document) => void>;
+  [kHtmlPostprocessors]?: Array<(doc: Document) => string[]>;
 }
 
 // pandoc output format
