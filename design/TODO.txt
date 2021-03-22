@@ -1,45 +1,12 @@
 
 Dart-Sass:
-- need bootstrap version in cache hash (so we can invalidate since it is a bunch of includes)
 - sync saas variables to media queries
 
-layered themes:
-theme:
-  - cosmo | path
-  - anotherfile.scss
-  - anotherfile.scss
+- use comment or perhaps could just detect first style 
+// theme:declarations
+// theme:variables
+// theme:rules
 
-custom theme:
-
-theme:
-  - /themes/loseit-corporate.scss
-
-Single file
-  look for first css style and split on that
-  or look for a special optional token ( // quarto-styles )
-
-
-could use comment or perhaps could just detect first style 
-// variables
-
-
-
-
-
-// styles
-
-
-
-
-
-theme: 
-  base: cosmo | "path/to/rstudio-theme"
-  variables: vars.scss
-  styles: foo.scss
-
-scss:
-  - file1.scss
-  - file2.scss  
 
 Quarto-theme:
 - Create explicit border color for navbars?
@@ -72,13 +39,6 @@ asdasdas
 
 :::
 
-
-
-
-- weird top gap when loading 
-https://quarto-dev.github.io/quarto-docs/ 19px offset????
-debug on server (edit html and push with derbug messages, getComputedstyles)
-
 HTML:
   - anchor links
   - tabs (may require Sass)
@@ -89,11 +49,9 @@ HTML:
   - hoverable footnotes and citations
 
 
-TODO: do template patching at configure time (25ms)
-
+TODO: do template patching at configure time or just use pandoc version keyed cache (25ms)
 
 TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx)
-
 
 TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
 TODO: ability to freeze computational outputs (global unfreeze, via clean?)
@@ -104,7 +62,8 @@ TODO: automatically size logo (including 2x)
 
 TODO: index file via 'quarto metadata'
 
-
+TODO: make sure that runtime: shinyrmd doesn't include bootstrap
+TODO: tell shiny what version of bootstrap we are using
 
 TODO: embedding pdfs in website via pdf.js
 
