@@ -24,7 +24,6 @@ import("includes.lua")
 import("outputs.lua")
 import("figures.lua")
 import("meta.lua")
-import("resourcerefs.lua")
 import("results.lua")
 import("../common/params.lua")
 import("../common/json.lua")
@@ -44,7 +43,6 @@ return {
   outputs(),
   combineFilters({
     figures(),
-    resourceRefs(),
   }),
   quartoPreMetaInject(),
   writeResults()

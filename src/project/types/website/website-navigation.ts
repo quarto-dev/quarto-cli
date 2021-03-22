@@ -12,7 +12,7 @@ import { ld } from "lodash/mod.ts";
 import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
 
 import { dirAndStem, pathWithForwardSlashes } from "../../../core/path.ts";
-import { formatResourcePath, resourcePath } from "../../../core/resources.ts";
+import { resourcePath } from "../../../core/resources.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 
 import { pandocAutoIdentifier } from "../../../core/pandoc/pandoc-id.ts";
@@ -35,10 +35,11 @@ import {
   kTocFloat,
 } from "../../../format/format-html.ts";
 
-import { ProjectContext } from "../../project-context.ts";
+import { ProjectContext, projectOffset } from "../../project-context.ts";
 import { inputTargetIndex } from "../../project-index.ts";
 
 import { websiteSearch, websiteSearchDependency } from "./website-search.ts";
+import { resolveResourceRefs } from "./website-resources.ts";
 
 export const kNavbar = "nav-top";
 export const kSidebar = "nav-side";
@@ -191,6 +192,7 @@ export function websiteNavigationExtras(
 ): FormatExtras {
   // find the href and offset for this input
   const inputRelative = relative(project.dir, input);
+  const offset = projectOffset(project, input);
 
   // determine dependencies (always include baseline nav dependency)
   const dependencies: FormatDependency[] = [
@@ -224,14 +226,11 @@ export function websiteNavigationExtras(
       : undefined,
     [kDependencies]: dependencies,
     [kBodyEnvelope]: bodyEnvelope,
-    [kHtmlPostprocessors]: [navigationHtmlPostprocessor(href)],
+    [kHtmlPostprocessors]: [navigationHtmlPostprocessor(href, offset)],
   };
 }
 
-function navigationHtmlPostprocessor(href: string) {
-  // prepend . to href for comparisions
-  href = href.replace(/^\//, "./");
-
+function navigationHtmlPostprocessor(href: string, offset: string) {
   return (doc: Document) => {
     // latch active nav link
     const navLinks = doc.querySelectorAll("a.nav-link");
@@ -268,6 +267,9 @@ function navigationHtmlPostprocessor(href: string) {
         secondaryNavTitle.innerHTML = title.innerHTML;
       }
     }
+
+    // resolve resource refs
+    return resolveResourceRefs(doc, offset);
   };
 }
 
