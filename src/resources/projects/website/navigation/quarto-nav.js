@@ -96,13 +96,13 @@ window.document.addEventListener("DOMContentLoaded", function() {
 
   // Observe size changed for the header
   const headerEl = window.document.querySelector('header.fixed-top');
-  var observer = new ResizeObserver(function(mutations) {
-    updateDocumentOffset();
-  });
-  var config = { attributes: true, childList: true, characterData: true };
-  observer.observe(headerEl, config);
-
-  window.addEventListener('resize', throttle(updateDocumentOffset, 50));  
+  if (window.ResizeObserver) {
+    const observer = new window.ResizeObserver(throttle(updateDocumentOffset, 50));
+    observer.observe(headerEl, { attributes: true, childList: true, characterData: true });
+  } else {
+    window.addEventListener('resize', throttle(updateDocumentOffset, 50));  
+    setTimeout(updateDocumentOffset, 500);
+  }
 
    // fixup index.html links if we aren't on the filesystem
    if (window.location.protocol !== "file:") {
