@@ -1,9 +1,7 @@
 Dart-Sass:
 - Yaml configuration
-- consider porting pandoc css customization -> scss variables
 - sync saas variables to media queries
 
-theme: cosmo | "path/to/rstudio-theme"
 
 theme: 
   base: cosmo | "path/to/rstudio-theme"
