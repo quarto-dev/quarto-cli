@@ -360,7 +360,7 @@ async function boostrapExtras(
   };
 }
 
-function bootstrapHtmlPostprocessor(doc: Document) {
+function bootstrapHtmlPostprocessor(doc: Document): string[] {
   // use display-6 style for title
   const title = doc.querySelector("header > .title");
   if (title) {
@@ -405,6 +405,9 @@ function bootstrapHtmlPostprocessor(doc: Document) {
       (th.parentNode.parentNode as Element).classList.add("table");
     }
   }
+
+  // no resource refs
+  return [];
 }
 
 function scssVarFromMetadata(

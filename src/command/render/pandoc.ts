@@ -142,7 +142,7 @@ export async function runPandoc(
   }
 
   // see if there are extras
-  const htmlPostprocessors: Array<(doc: Document) => void> = [];
+  const htmlPostprocessors: Array<(doc: Document) => string[]> = [];
   if (
     sysFilters.length > 0 || options.format.formatExtras ||
     options.project?.formatExtras
@@ -300,15 +300,17 @@ export async function runPandoc(
     },
   );
 
-  // TODO: create a 'resourceRefs' preprocessor that we install here (replacing lua handling)
+  // track discovered resource refs
+  const resourceRefs: string[] = [];
 
   // post-processing for html
   if (isHtmlOutput(options.format.pandoc) && htmlPostprocessors.length > 0) {
     const outputFile = join(cwd, options.output);
-
     const htmlInput = Deno.readTextFileSync(outputFile);
     const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
-    htmlPostprocessors.forEach((preprocessor) => preprocessor(doc));
+    htmlPostprocessors.forEach((preprocessor) => {
+      resourceRefs.push(...preprocessor(doc));
+    });
     const htmlOutput = doc.documentElement?.outerHTML!;
     Deno.writeTextFileSync(outputFile, htmlOutput);
   }
@@ -326,25 +328,20 @@ export async function runPandoc(
     }
   }
 
-  // TODO: all of the below should be no longer necessary once we are
-  // post-processing the HTML for resource references
-
-  // resource files referenced from metadata (e.g. 'css')
-  const files = formatResourceFiles(cwd, options.format);
-  // resource files explicitly discovered by the filter
-  // (e.g. referenced from links)
+  // process filter results (currently there are none)
+  /*
   if (existsSync(filterResultsFile)) {
     const filterResultsJSON = Deno.readTextFileSync(filterResultsFile);
     if (filterResultsJSON.trim().length > 0) {
       const filterResults = JSON.parse(filterResultsJSON);
-      files.push(...(filterResults.resourceFiles || []));
     }
   }
+  */
 
   if (result.success) {
     return {
       globs,
-      files,
+      files: resourceRefs,
     };
   } else {
     return null;
@@ -506,88 +503,3 @@ function runPandocMessage(
     }
   }
 }
-
-function formatResourceFiles(dir: string, format: Format) {
-  const cssValue = format.pandoc[kCss];
-  const css = typeof (cssValue) === "string"
-    ? [cssValue]
-    : Array.isArray(cssValue)
-    ? cssValue.map((val) => String(val))
-    : [];
-
-  const files = css
-    .filter((file) => !isAbsolute(file))
-    .filter((file) => {
-      const path = join(dir, file);
-      return existsSync(path) && Deno.statSync(path).isFile;
-    });
-
-  return files;
-}
-
-/* more aggressive exclude-list version
-function formatResourceFiles(dir: string, format: Format) {
-
-  const resourceFiles: string[] = [];
-  const findResources = (
-    collection: Array<unknown> | Record<string, unknown>,
-  ) => {
-
-    ld.forEach(
-      collection,
-      (value: unknown, index: unknown) => {
-        // there are certain keys that we expressly don't want to capture
-        // resource files from (e.g. includes, output-file, etc.)
-        if (typeof (index) === "string") {
-          if (
-            [
-              kResources,
-              kOutputFile,
-              kInputFiles,
-              kIncludeInHeader,
-              kIncludeBeforeBody,
-              kIncludeAfterBody,
-              kBibliography,
-              kCsl,
-              kTemplate,
-              kFilters,
-              kMetadataFile,
-              kMetadataFiles,
-              kLogFile,
-              kHighlightStyle,
-              kSyntaxDefinition,
-              kSyntaxDefinitions,
-              kReferenceDoc,
-            ].includes(index)
-          ) {
-            return;
-          }
-        }
-
-        if (Array.isArray(value)) {
-          findResources(value);
-        } else if (typeof (value) === "object") {
-          findResources(value as Record<string, unknown>);
-        } else if (typeof (value) === "string") {
-          if (!isAbsolute(value)) {
-            const resourceFile = join(dir, value);
-            try {
-              if (
-                existsSync(resourceFile) && Deno.statSync(resourceFile).isFile
-              ) {
-                resourceFiles.push(value);
-              }
-            } catch (e) {
-              // existsSync / statSync could throw for things like path too long
-              // or invalid characters. Since we're using this to identify paths
-              // we can safely ignore these errors.
-            }
-          }
-        }
-      },
-    );
-  };
-  findResources(format as unknown as Record<string, unknown>);
-  return ld.uniq(resourceFiles);
-}
-*/
