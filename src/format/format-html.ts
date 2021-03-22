@@ -109,30 +109,10 @@ export async function bootstrapFormatDependency(format: Format) {
 
   // read options from yaml
   const metadata = format.metadata;
-  const options: Record<string, string | undefined> = {
-    maxwidth: maxWidthCss(metadata["max-width"]),
-    margintop: asCssSizeAttrib("margin-top", metadata["margin-top"]),
-    marginbottom: asCssSizeAttrib("margin-bottom", metadata["margin-bottom"]),
-    marginleft: asCssSizeAttrib("margin-left", metadata["margin-left"]),
-    marginright: asCssSizeAttrib("margin-right", metadata["margin-right"]),
-    mainfont: asFontFamily(metadata["mainfont"]),
-    fontsize: asCssSizeAttrib("font-size", metadata["fontsize"]),
-    fontcolor: asCssAttrib("color", metadata["fontcolor"]),
-    linkcolor: asCssAttrib("color", metadata["linkcolor"]),
-    monofont: asFontFamily(metadata["monofont"]),
-    monobackgroundcolor: asCssAttrib(
-      "background-color",
-      metadata["monobackgroundcolor"],
-    ),
-    linestretch: asCssAttrib("line-height", metadata["linestretch"]),
-    backgroundcolor: asCssAttrib(
-      "background-color",
-      metadata["backgroundcolor"],
-    ),
-  };
 
   // Compile the scss
-  const bootstrapCss = await compileBootstrapScss(theme);
+  const pandocVariables = mapPandocVariables(format.metadata);
+  const bootstrapCss = await compileBootstrapScss(theme, pandocVariables);
 
   const boostrapResource = (resource: string) =>
     formatResourcePath(
@@ -143,22 +123,6 @@ export async function bootstrapFormatDependency(format: Format) {
     name: resource,
     path: boostrapResource(resource),
   });
-  const quartoDependency = (resource: string) => ({
-    name: resource,
-    path: formatResourcePath("html", resource),
-  });
-
-  // process the quarto in header template
-  const templateSrc = Deno.readTextFileSync(
-    formatResourcePath("html", "quarto-bootstrap.css"),
-  );
-  const template = ld.template(templateSrc, {}, undefined);
-
-  const quartoCss = sessionTempFile();
-  Deno.writeTextFileSync(
-    quartoCss,
-    template(templateOptions(options)),
-  );
 
   return {
     name: "bootstrap",
@@ -166,7 +130,6 @@ export async function bootstrapFormatDependency(format: Format) {
     stylesheets: [
       { name: "bootstrap.min.css", path: bootstrapCss },
       bootstrapDependency("bootstrap-icons.css"),
-      { name: "quarto-bootstrap.css", path: quartoCss },
     ],
     scripts: [
       bootstrapDependency("bootstrap.bundle.min.js"),
@@ -205,7 +168,78 @@ function resolveTheme(
   }
 }
 
-async function compileBootstrapScss(theme: string) {
+export interface ScssVariable {
+  name: string;
+  value: string;
+}
+
+function mapPandocVariables(metadata: Metadata) {
+  const explicitVars: ScssVariable[] = [];
+
+  // Sizes
+  const explicitSizes = [
+    "max-width",
+    "margin-top",
+    "margin-bottom",
+    "margin-left",
+    "margin-right",
+    "font-size",
+  ];
+  explicitSizes.forEach((attrib) => {
+    if (metadata[attrib]) {
+      const size = asCssSize(metadata[attrib]);
+      if (size) {
+        explicitVars.push({ name: attrib, value: size });
+      }
+    }
+  });
+
+  const pushIfDefined = (cssVar?: ScssVariable) => {
+    if (cssVar) {
+      explicitVars.push(cssVar);
+    }
+  };
+
+  pushIfDefined(scssVarFromMetadata(
+    metadata,
+    "backgroundcolor",
+    "background-color",
+  ));
+
+  pushIfDefined(scssVarFromMetadata(
+    metadata,
+    "linestretch",
+    "line-height",
+  ));
+
+  pushIfDefined(scssVarFromMetadata(metadata, "fontcolor", "font-color"));
+  pushIfDefined(scssVarFromMetadata(metadata, "linkcolor", "link-color"));
+  pushIfDefined(
+    scssVarFromMetadata(metadata, "mainfont", "main-font", asCssFont),
+  );
+  pushIfDefined(
+    scssVarFromMetadata(metadata, "monofont", "mono-font", asCssFont),
+  );
+
+  // Special case for mono background
+  const monoBackground = scssVarFromMetadata(
+    metadata,
+    "monobackgroundcolor",
+    "mono-background-color",
+  );
+  if (monoBackground) {
+    // if we have a monobackground color then add padding
+    explicitVars.push(monoBackground);
+    explicitVars.push({ name: "mono-padding", value: "0.2em" });
+  } else {
+    // otherwise provide a default code block border treatment
+    explicitVars.push({ name: "codeblock-padding-left", value: "0.6rem" });
+    explicitVars.push({ name: "codeblock-border-left", value: "3px solid" });
+  }
+  return explicitVars;
+}
+
+async function compileBootstrapScss(theme: string, variables?: ScssVariable[]) {
   // Quarto built in css
   const quartoThemesDir = formatResourcePath("html", `bootstrap/themes`);
   const bootstrapCore = join(
@@ -217,6 +251,17 @@ async function compileBootstrapScss(theme: string) {
     "_quarto-variables.scss",
   );
   const quartoBootstrap = formatResourcePath("html", "_quarto.scss");
+
+  // If any overide variables were provided, just pile them in here
+  let explicitVariables;
+  if (variables) {
+    explicitVariables = sessionTempFile({ suffix: ".scss" });
+    const variablesScss = variables.map((variable) =>
+      `$${variable.name}: ${variable.value};`
+    ).join("\n");
+
+    Deno.writeTextFileSync(explicitVariables, variablesScss);
+  }
 
   // Resolve the provided theme (either to a built in theme or a custom
   // theme directory)
@@ -231,6 +276,9 @@ async function compileBootstrapScss(theme: string) {
     scssPaths.push(resolvedTheme.variables);
   }
   scssPaths.push(quartoVariables);
+  if (explicitVariables) {
+    scssPaths.push(explicitVariables);
+  }
   scssPaths.push(bootstrapCore);
   if (resolvedTheme.bootstrap) {
     scssPaths.push(resolvedTheme.bootstrap);
@@ -238,9 +286,9 @@ async function compileBootstrapScss(theme: string) {
   scssPaths.push(quartoBootstrap);
 
   // Read the scss files into a single input string
-  const scssInput = scssPaths.map((importPath) =>
-    Deno.readTextFileSync(importPath)
-  ).join("\n\n");
+  const scssInput = scssPaths.map((importPath) => {
+    return Deno.readTextFileSync(importPath);
+  }).join("\n\n");
 
   // Compile the scss
   return await compileScss(
@@ -359,36 +407,38 @@ function bootstrapHtmlPostprocessor(doc: Document) {
   }
 }
 
-function templateOptions(
-  options: Record<string, string | undefined>,
-) {
-  // provide empty string for undefined keys
-  const opts = ld.cloneDeep(options);
-  for (const key of Object.keys(opts)) {
-    opts[key] = opts[key] || "";
+function scssVarFromMetadata(
+  metadata: Metadata,
+  name: string,
+  cssName: string,
+  formatter?: (val: string) => string | undefined,
+): ScssVariable | undefined {
+  if (metadata[name]) {
+    const value = typeof (metadata[name]) === "string"
+      ? metadata[name]
+      : undefined;
+    if (value) {
+      const formattedValue = formatter
+        ? formatter(value as string)
+        : value as string;
+
+      if (formattedValue) {
+        return {
+          name: cssName,
+          value: formattedValue,
+        };
+      } else {
+        return undefined;
+      }
+    } else {
+      return undefined;
+    }
+  } else {
+    return undefined;
   }
-
-  // if we have a monobackground color then add padding, otherise
-  // provide a default code block border treatment
-  opts.monoBackground = opts.monobackgroundcolor
-    ? opts.monobackgroundcolor + "  padding: 0.2em;\n"
-    : undefined;
-  opts.codeblockBorder = opts.monoBackground
-    ? undefined
-    : "  padding-left: 0.6rem;\n  border-left: 3px solid;\n";
-
-  // return options
-  return opts;
 }
 
-function maxWidthCss(value: unknown) {
-  const maxWidth = asCssSize(value) || "1400px";
-  return `#quarto-content {
-  max-width: ${maxWidth};
-}`;
-}
-
-function asFontFamily(value: unknown): string | undefined {
+function asCssFont(value: unknown): string | undefined {
   if (!value) {
     return undefined;
   } else {
@@ -403,7 +453,7 @@ function asFontFamily(value: unknown): string | undefined {
       })
       .filter((font) => font.length > 0)
       .join(", ");
-    return `  font-family: ${fontFamily};\n`;
+    return `${fontFamily}`;
   }
 }
 
@@ -413,11 +463,6 @@ function asCssAttrib(attrib: string, value: unknown): string | undefined {
   } else {
     return `  ${attrib}: ${String(value)};\n`;
   }
-}
-
-function asCssSizeAttrib(attrib: string, value: unknown): string | undefined {
-  const size = asCssSize(value);
-  return asCssAttrib(attrib, size);
 }
 
 function asCssSize(value: unknown): string | undefined {

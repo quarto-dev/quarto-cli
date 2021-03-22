@@ -1,3 +1,66 @@
+body {
+  max-width: $max-width;
+  @if variable-exists(margin-top) {
+    margin-top: $margin-top;
+  }
+  @if variable-exists(margin-bottom) {
+    margin-bottom: $margin-bottom;
+  }
+  @if variable-exists(margin-left) {
+    margin-left: $margin-left;
+  }
+  @if variable-exists(margin-right) {
+    margin-right: $margin-right;
+  }
+  @if variable-exists(background-color) {
+    background-color: $background-color;
+  }  
+  @if variable-exists(line-height) {
+    line-height: $line-height;
+  }  
+  @if variable-exists(font-color) {
+    color: $font-color;
+  }
+  @if variable-exists(main-font) {
+    font-family: $main-font;
+  }
+}
+
+@if variable-exists(link-color) {
+  a {
+    color: $link-color;
+  }
+}
+
+@if variable-exists(font-size) {
+  :root {
+    font-size: $font-size;
+  }
+}
+
+code, kbd, pre, samp {
+  @if variable-exists(mono-font) {
+    font-family: $mono-font;
+  }
+
+  @if variable-exists(mono-background-color) {
+    background-color: $mono-background-color;
+  }
+
+  @if variable-exists(mono-padding) {
+    padding: $mono-padding;
+  }
+}
+  
+pre.sourceCode {
+  @if variable-exists(codeblock-padding-left) {
+    padding-left: $codeblock-padding-left;
+  }
+  @if variable-exists(codeblock-border-left) {
+    border-left: $codeblock-border-left;
+  }
+} 
+
 main {
   margin-top: 1em;
   margin-bottom: 1em;
