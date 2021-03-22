@@ -89,7 +89,7 @@ HTML:
   - hoverable footnotes and citations
 
 
-TODO: do template patching at configure time (50ms)
+TODO: do template patching at configure time (25ms)
 
 
 TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx)
