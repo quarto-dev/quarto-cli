@@ -60,14 +60,12 @@ export function htmlFormat(
     {
       formatExtras: (flags: PandocFlags, format: Format) => {
         if (format.metadata[kTheme]) {
-          const theme = String(format.metadata[kTheme]);
-
-          // 'pandoc' theme means include default pandoc document css
-          if (theme === "pandoc") {
+          const themeRaw = format.metadata[kTheme];
+          if (typeof (themeRaw) === "string" && themeRaw === "pandoc") {
+            // 'pandoc' theme means include default pandoc document css
             return Promise.resolve(pandocExtras(format.metadata));
-
-            // other themes are bootswatch themes or bootstrap css files
           } else {
+            // other themes are bootswatch themes or bootstrap css files
             return boostrapExtras(flags, format);
           }
 
@@ -259,8 +257,11 @@ async function compileBootstrapScss(
   );
 
   // Resolve the provided themes to a set of variables and styles
-  const theme = metadata[kTheme] ? String(metadata[kTheme]) : kDefaultTheme;
-  const themeScss = resolveThemeScss([theme], quartoThemesDir);
+  const themeRaw = metadata[kTheme];
+  const themes = Array.isArray(themeRaw)
+    ? themeRaw
+    : [String(metadata[kTheme])];
+  const themeScss = resolveThemeScss(themes, quartoThemesDir);
 
   const themeVariables: string[] = [];
   const themeStyles: string[] = [];
@@ -311,7 +312,7 @@ async function compileBootstrapScss(
       join(quartoThemesDir, "default/scss/"),
     ],
     true,
-    theme,
+    themes.join("|"),
   );
 }
 
