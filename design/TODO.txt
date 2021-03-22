@@ -88,7 +88,10 @@ HTML:
   - copy code block to clipboard
   - hoverable footnotes and citations
 
-TODO: cache size limit for scss (300k/entry)
+
+TODO: do template patching at configure time (50ms)
+
+TODO: spidering perf for copy output
 
 TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx)
 
@@ -102,13 +105,6 @@ TODO: automatically size logo (including 2x)
 
 TODO: index file via 'quarto metadata'
 
-TODO: move html ref processing to fully post render (don't do it
-from within lua). This will allow us to pick up anything emitted
-by a format (e.g. css or reveal backgrounds) and would open the 
-door to a higher performance implementation
-SEE: https://github.com/b-fuze/deno-dom
-
-TODO: should we have our own template for html (to avoid the patch). or, do patching at configure time?
 
 TODO: profile simple render to see if there is savings available to us
 
