@@ -37,9 +37,13 @@ window.document.addEventListener("DOMContentLoaded", function() {
     // deal with sidebar offsets
     const sidebars = window.document.querySelectorAll(".sidebar");
     sidebars.forEach(sidebar => { 
-      sidebar.classList.remove("notransition")
+      
       if (!animated) {
         sidebar.classList.add("notransition");
+        // Remove the no transition class after the animation has time to complete
+        setTimeout(function() {
+          sidebar.classList.remove("notransition");
+        }, 201);
       }
 
       if (window.Headroom && sidebar.classList.contains("sidebar-unpinned")) {
