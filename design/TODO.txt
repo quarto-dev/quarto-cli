@@ -73,6 +73,8 @@ TODO: project level option to only render when source file changes? (freeze: aut
 TODO: consider local mathjax case
 TODO: automatically size logo (including 2x)
 
+TODO: index file via 'quarto metadata'
+
 TODO: move html ref processing to fully post render (don't do it
 from within lua). This will allow us to pick up anything emitted
 by a format (e.g. css or reveal backgrounds) and would open the 
