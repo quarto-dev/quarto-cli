@@ -2,7 +2,7 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- required version
-PANDOC_VERSION:must_be_at_least '2.11.2'
+PANDOC_VERSION:must_be_at_least '2.13'
 
 -- required modules
 text = require 'text'

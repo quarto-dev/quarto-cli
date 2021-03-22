@@ -22,34 +22,13 @@ function docxRowBreak()
 end
 
 
--- create a native docx caption (note that because "openxml" raw blocks
--- are parsed we need to provide a complete xml node, this implies that
--- we need to stringify the captionEl, losing any markdown therein)
+-- create a native docx caption 
 function docxDivCaption(captionEl, align)
-  
-  -- for pandoc >= 2.11.3 we can render the captionEl
-  local rawOpenxmlVersion = pandoc.types.Version("2.11.3")
-  if PANDOC_VERSION < rawOpenxmlVersion then
-    local caption = "<w:p>\n" 
-    caption = caption .. docxParaStyles(align)
-    caption = caption ..
-        "<w:r>\n" ..
-          "<w:t xml:space=\"preserve\">" ..
-           pandoc.utils.stringify(captionEl) .. 
-          "</w:t>\n" ..
-        "</w:r>"
-    caption = caption ..
-      "</w:p>\n"
-    return pandoc.RawBlock("openxml", caption)
-    
-  else
-    local caption = pandoc.Para({
-      pandoc.RawInline("openxml", docxParaStyles(align))
-    })
-    tappend(caption.content, captionEl.content)
-    return caption
-  end
-  
+  local caption = pandoc.Para({
+    pandoc.RawInline("openxml", docxParaStyles(align))
+  })
+  tappend(caption.content, captionEl.content)
+  return caption
 end
 
 function docxParaStyles(align)

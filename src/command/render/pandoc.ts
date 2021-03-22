@@ -284,11 +284,6 @@ export async function runPandoc(
     );
   }
 
-  // apply workaround for .output suppression
-  // https://github.com/jgm/pandoc/issues/6841#issuecomment-728281039
-  // NOTE: only required for pandoc < v2.11.2 so we can probably remove this
-  cmd.push("--ipynb-output=all");
-
   // run pandoc
   const result = await execProcess(
     {
