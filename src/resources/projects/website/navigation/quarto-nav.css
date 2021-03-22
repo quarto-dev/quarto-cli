@@ -171,3 +171,10 @@ header.headroom--unpinned {
 .sidebar-section .bi-chevron-right::before {
   transition: transform 200ms ease;
 }
+
+.notransition {
+  -webkit-transition: none !important;
+  -moz-transition: none !important;
+  -o-transition: none !important;
+  transition: none !important;
+}
