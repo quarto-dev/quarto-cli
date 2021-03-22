@@ -1,6 +1,35 @@
+
 Dart-Sass:
-- Yaml configuration
+- need bootstrap version in cache hash (so we can invalidate since it is a bunch of includes)
 - sync saas variables to media queries
+
+layered themes:
+theme:
+  - cosmo | path
+  - anotherfile.scss
+  - anotherfile.scss
+
+custom theme:
+
+theme:
+  - /themes/loseit-corporate.scss
+
+Single file
+  look for first css style and split on that
+  or look for a special optional token ( // quarto-styles )
+
+
+could use comment or perhaps could just detect first style 
+// variables
+
+
+
+
+
+// styles
+
+
+
 
 
 theme: 
