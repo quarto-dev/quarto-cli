@@ -7,14 +7,12 @@
 
 import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
-import { ld } from "lodash/mod.ts";
 
 import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
 
 import { renderEjs } from "../core/ejs.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { formatResourcePath } from "../core/resources.ts";
-import { sessionTempFile } from "../core/temp.ts";
 import { compileScss } from "../core/dart-sass.ts";
 
 import {
@@ -42,6 +40,8 @@ export const kTheme = "theme";
 export const kTocFloat = "toc-float";
 export const kPageLayout = "page-layout";
 export const kDocumentCss = "document-css";
+const kDefaultTheme = "default";
+const kThemeSeparatorToken = "// bootstrap-styles";
 
 export function htmlFormat(
   figwidth: number,
@@ -51,7 +51,7 @@ export function htmlFormat(
     baseHtmlFormat(figwidth, figheight),
     {
       metadata: {
-        [kTheme]: "default",
+        [kTheme]: kDefaultTheme,
       },
       pandoc: {
         [kHtmlMathMethod]: "mathjax",
@@ -133,47 +133,46 @@ export async function bootstrapFormatDependency(format: Format) {
   };
 }
 
-const kVariablesScss = "_variables.scss";
-const kQuartoStylesToken = "// bootstrap-styles";
-
 function resolveThemeScss(
-  theme: string,
+  themes: string[],
   quartoThemesDir: string,
 ): Array<{ variables?: string; styles?: string }> {
-  const resolvedThemeDir = join(quartoThemesDir, theme);
-  if (existsSync(resolvedThemeDir)) {
-    // It's a built in theme, just read and return the data
-    return [{
-      variables: Deno.readTextFileSync(join(resolvedThemeDir, kVariablesScss)),
-      styles: Deno.readTextFileSync(
-        join(resolvedThemeDir, "_bootswatch.scss"),
-      ),
-    }];
-  } else if (existsSync(theme)) {
-    if (Deno.statSync(theme).isFile) {
-      // It is not a built in theme, so read the theme file and parse it.
-      const rawContents = Deno.readTextFileSync(theme);
-      const splitContents = rawContents.split(kQuartoStylesToken);
-      if (splitContents.length === 2) {
-        return [{
-          variables: splitContents[0],
-          styles: splitContents[1],
-        }];
-      } else {
-        return [{
-          variables: rawContents,
-          styles: undefined,
-        }];
+  const themeScss: Array<{ variables?: string; styles?: string }> = [];
+  themes.forEach((theme) => {
+    const resolvedThemeDir = join(quartoThemesDir, theme);
+    if (theme === kDefaultTheme) {
+      // The default theme doesn't require any additional boostrap variables or styles
+      return [];
+    } else if (existsSync(resolvedThemeDir)) {
+      // It's a built in theme, just read and return the data
+      themeScss.push({
+        variables: Deno.readTextFileSync(
+          join(resolvedThemeDir, "_variables.scss"),
+        ),
+        styles: Deno.readTextFileSync(
+          join(resolvedThemeDir, "_bootswatch.scss"),
+        ),
+      });
+    } else if (existsSync(theme)) {
+      if (Deno.statSync(theme).isFile) {
+        // It is not a built in theme, so read the theme file and parse it.
+        const rawContents = Deno.readTextFileSync(theme);
+        const splitContents = rawContents.split(kThemeSeparatorToken);
+        if (splitContents.length === 2) {
+          themeScss.push({
+            variables: splitContents[0],
+            styles: splitContents[1],
+          });
+        } else {
+          themeScss.push({
+            variables: rawContents,
+            styles: undefined,
+          });
+        }
       }
-    } else {
-      throw new Error(
-        `Please provide the path to a theme file. ${theme} does not appear to be a valid theme file.`,
-      );
     }
-  } else {
-    // Who know what this is
-    return [];
-  }
+  });
+  return themeScss;
 }
 
 export interface ScssVariable {
@@ -260,11 +259,8 @@ async function compileBootstrapScss(
   );
 
   // Resolve the provided themes to a set of variables and styles
-  const theme = metadata[kTheme] ? String(metadata[kTheme]) : "default";
-  const themeScss = resolveThemeScss(theme, quartoThemesDir);
-  if (!themeScss.length) {
-    throw new Error(`Theme ${theme} does not contain any valid scss files`);
-  }
+  const theme = metadata[kTheme] ? String(metadata[kTheme]) : kDefaultTheme;
+  const themeScss = resolveThemeScss([theme], quartoThemesDir);
 
   const themeVariables: string[] = [];
   const themeStyles: string[] = [];
