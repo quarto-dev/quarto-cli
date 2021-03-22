@@ -7,9 +7,13 @@
 
 import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
 
+import { fixupCssReferences } from "../../project-resources.ts";
+
 export function resolveResourceRefs(doc: Document, offset: string) {
+  // refs that need to be copied
   const refs: string[] = [];
 
+  // resolve tags with resource refs
   const tags: Record<string, string> = {
     "a": "href",
     "img": "src",
@@ -17,11 +21,24 @@ export function resolveResourceRefs(doc: Document, offset: string) {
     "script": "src",
     "embed": "src",
   };
-
   Object.keys(tags).forEach((tag) => {
     refs.push(...resolveTag(doc, offset, tag, tags[tag]));
   });
 
+  // css references (import/url)
+  const styles = doc.querySelectorAll("style");
+  for (let i = 0; i < styles.length; i++) {
+    const style = styles[i] as Element;
+    if (style.innerHTML) {
+      style.innerHTML = fixupCssReferences(
+        style.innerHTML,
+        offset + "/",
+        (ref) => refs.push(ref),
+      );
+    }
+  }
+
+  // return refs
   return refs;
 }
 
