@@ -250,18 +250,8 @@ async function patchTemplate(
     stdout: "piped",
   });
 
-  // get the shared styles template
-  const stylesResult = await execProcess({
-    cmd: [
-      binaryPath("pandoc"),
-      "--print-default-data-file",
-      "templates/styles.html",
-    ],
-    stdout: "piped",
-  });
-
   // transform it
-  if (result.success && stylesResult.success) {
+  if (result.success) {
     const patched = patch(result.stdout!);
 
     // write a temp file w/ the patched template
@@ -270,9 +260,6 @@ async function patchTemplate(
       { suffix: kPatchedTemplateExt, dir: templateDir },
     );
     await Deno.writeTextFile(template, patched);
-    // write styles file
-    const styles = join(templateDir, "styles.html");
-    await Deno.writeTextFile(styles, stylesResult.stdout!);
 
     return template;
   } else {
