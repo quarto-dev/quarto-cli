@@ -1,5 +1,4 @@
 Dart-Sass:
-- verify functional in installation
 - Yaml configuration
 - consider porting pandoc css customization -> scss variables
 - sync saas variables to media queries
@@ -15,10 +14,11 @@ scss:
   - file1.scss
   - file2.scss  
 
-
-
 Quarto-theme:
 - Create explicit border color for navbars?
+
+Windows:
+- Need to figure out what the deal is with quarto bundled error (cliffy?) before next published release.
 
 Admonitions
 
