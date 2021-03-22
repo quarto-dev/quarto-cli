@@ -88,7 +88,9 @@ HTML:
   - copy code block to clipboard
   - hoverable footnotes and citations
 
-TODO: cache size limit for scss (300k/entry)
+
+TODO: do template patching at configure time (25ms)
+
 
 TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx)
 
@@ -97,24 +99,11 @@ TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
 TODO: ability to freeze computational outputs (global unfreeze, via clean?)
 TODO: project level option to only render when source file changes? (freeze: auto | true | false)
 
-TODO: consider local mathjax case
+TODO: consider local mathjax case (or katex by default w/ local?)
 TODO: automatically size logo (including 2x)
 
 TODO: index file via 'quarto metadata'
 
-TODO: move html ref processing to fully post render (don't do it
-from within lua). This will allow us to pick up anything emitted
-by a format (e.g. css or reveal backgrounds) and would open the 
-door to a higher performance implementation
-SEE: https://github.com/b-fuze/deno-dom
-
-TODO: should we have our own template for html (to avoid the patch). or, do patching at configure time?
-
-TODO: profile simple render to see if there is savings available to us
-
-TODO: this in pandoc 2.13 should mean we don't need to extract the partial:
-Fix fallback to default partials when custom templates are used. If the directory containing a 
-template does not contain the partial, it should be sought in the default templates, but this was not working properly (#7164).
 
 
 TODO: embedding pdfs in website via pdf.js

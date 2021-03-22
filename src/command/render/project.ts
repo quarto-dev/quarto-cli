@@ -142,11 +142,14 @@ export async function renderProject(
 
           // resource files
           const resourceDir = join(projDir, dirname(result.file));
-          const fileResourceFiles = resolvePathGlobs(
-            resourceDir,
-            result.resourceFiles.globs,
-            [],
-          );
+          const globs = result.resourceFiles.globs;
+          const fileResourceFiles = globs.length > 0
+            ? resolvePathGlobs(
+              resourceDir,
+              result.resourceFiles.globs,
+              [],
+            )
+            : { include: [], exclude: [] };
 
           // merge the resolved globs into the global list
           resourceFiles.push(...fileResourceFiles.include);
