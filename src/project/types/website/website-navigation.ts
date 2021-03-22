@@ -209,15 +209,11 @@ export function websiteNavigationExtras(
     navbar: navigation.navbar,
     sidebar: expandedSidebar(href, sidebarForHref(href)),
   };
+  const projTemplate = (template: string) =>
+    resourcePath(`projects/website/templates/${template}`);
   const bodyEnvelope = {
-    before: renderEjs(
-      formatResourcePath("html", "templates/nav-before-body.ejs"),
-      { nav },
-    ),
-    after: renderEjs(
-      formatResourcePath("html", "templates/nav-after-body.ejs"),
-      { nav },
-    ),
+    before: renderEjs(projTemplate("nav-before-body.ejs"), { nav }),
+    after: renderEjs(projTemplate("nav-after-body.ejs"), { nav }),
   };
 
   // return extras with bodyEnvelope
