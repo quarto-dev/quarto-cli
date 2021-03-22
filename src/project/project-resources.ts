@@ -16,27 +16,32 @@ import { kOutputDir, kResources, ProjectContext } from "./project-context.ts";
 import { kGitignoreEntries } from "./project-gitignore.ts";
 
 export function projectResourceFiles(project: ProjectContext) {
-  const resourceFiles: string[] = [];
-  const outputDir = project.metadata?.project?.[kOutputDir];
-  if (outputDir) {
-    const resourceGlobs = (project.metadata?.project?.[kResources] || [])
-      // ignore anything specified in our standard .gitignore
-      .concat(kGitignoreEntries.map((entry) => `!${entry}`));
+  let resourceGlobs = project.metadata?.project?.[kResources];
+  if (resourceGlobs) {
+    const resourceFiles: string[] = [];
+    const outputDir = project.metadata?.project?.[kOutputDir];
+    if (outputDir) {
+      resourceGlobs = resourceGlobs
+        // ignore anything specified in our standard .gitignore
+        .concat(kGitignoreEntries.map((entry) => `!${entry}`));
 
-    const exclude = outputDir ? [outputDir] : [];
-    const projectResourceFiles = resolvePathGlobs(
-      project.dir,
-      resourceGlobs,
-      exclude,
-    );
-    resourceFiles.push(
-      ...ld.difference(
-        projectResourceFiles.include,
-        projectResourceFiles.exclude,
-      ),
-    );
+      const exclude = outputDir ? [outputDir] : [];
+      const projectResourceFiles = resolvePathGlobs(
+        project.dir,
+        resourceGlobs,
+        exclude,
+      );
+      resourceFiles.push(
+        ...ld.difference(
+          projectResourceFiles.include,
+          projectResourceFiles.exclude,
+        ),
+      );
+    }
+    return ld.uniq(resourceFiles);
+  } else {
+    return [];
   }
-  return ld.uniq(resourceFiles);
 }
 
 export function copyResourceFile(
