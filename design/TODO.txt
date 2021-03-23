@@ -46,13 +46,8 @@ HTML:
 
 TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx)
 
+
 TODO: prime thematic with theme info
-
-TODO: consdier auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
-TODO: ability to freeze computational outputs (global unfreeze, via clean?)
-TODO: project level option to only render when source file changes? (freeze: auto | true | false)
-
-TODO: paths to navbar and sidebar logos (/ prefix, etc.)
 
 TODO:  htmlwidgets need a fluid container (as perhaps do jupyter widgets)
 

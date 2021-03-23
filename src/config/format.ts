@@ -19,6 +19,7 @@ import {
   kFigAlign,
   kFigDpi,
   kFilters,
+  kFreeze,
   kHighlightStyle,
   kIncludeAfterBody,
   kIncludeBeforeBody,
@@ -168,6 +169,7 @@ export interface FormatExecution {
   [kAllowErrors]?: boolean;
   [kExecute]?: true | false | null;
   [kCache]?: true | false | "refresh" | null;
+  [kFreeze]?: true | false | "auto";
   [kShowCode]?: boolean;
   [kShowOutput]?: boolean;
   [kShowWarnings]?: boolean;

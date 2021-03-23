@@ -81,7 +81,7 @@ export async function renderProject(
     const outputFiles: ProjectOutputFile[] = [];
 
     // render the files
-    const fileResults = await renderFiles(files, options, context);
+    const fileResults = await renderFiles(files, options, context, incremental);
 
     // move to the output directory if we have one
     const outputDir = context.metadata?.project?.[kOutputDir];
