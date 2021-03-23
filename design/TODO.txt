@@ -7,8 +7,6 @@ Dart-Sass:
 // theme:variables
 // theme:rules
 
-
-Quarto-theme:
 - Create explicit border color for navbars?
 
 Windows:

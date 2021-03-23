@@ -7,14 +7,12 @@
 
 import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
-import { ld } from "lodash/mod.ts";
 
 import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
 
 import { renderEjs } from "../core/ejs.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { formatResourcePath } from "../core/resources.ts";
-import { sessionTempFile } from "../core/temp.ts";
 import { compileScss } from "../core/dart-sass.ts";
 
 import {
@@ -42,6 +40,8 @@ export const kTheme = "theme";
 export const kTocFloat = "toc-float";
 export const kPageLayout = "page-layout";
 export const kDocumentCss = "document-css";
+const kDefaultTheme = "default";
+const kThemeSeparatorToken = "// bootstrap-styles";
 
 export function htmlFormat(
   figwidth: number,
@@ -51,7 +51,7 @@ export function htmlFormat(
     baseHtmlFormat(figwidth, figheight),
     {
       metadata: {
-        [kTheme]: "default",
+        [kTheme]: kDefaultTheme,
       },
       pandoc: {
         [kHtmlMathMethod]: "mathjax",
@@ -60,14 +60,12 @@ export function htmlFormat(
     {
       formatExtras: (flags: PandocFlags, format: Format) => {
         if (format.metadata[kTheme]) {
-          const theme = String(format.metadata[kTheme]);
-
-          // 'pandoc' theme means include default pandoc document css
-          if (theme === "pandoc") {
+          const themeRaw = format.metadata[kTheme];
+          if (typeof (themeRaw) === "string" && themeRaw === "pandoc") {
+            // 'pandoc' theme means include default pandoc document css
             return Promise.resolve(pandocExtras(format.metadata));
-
-            // other themes are bootswatch themes or bootstrap css files
           } else {
+            // other themes are bootswatch themes or bootstrap css files
             return boostrapExtras(flags, format);
           }
 
@@ -102,17 +100,10 @@ export function hasTableOfContentsTitle(flags: PandocFlags, format: Format) {
 }
 
 export async function bootstrapFormatDependency(format: Format) {
-  // determine theme
-  const theme = format.metadata[kTheme]
-    ? String(format.metadata[kTheme])
-    : "default";
-
-  // read options from yaml
-  const metadata = format.metadata;
-
   // Compile the scss
-  const pandocVariables = mapPandocVariables(format.metadata);
-  const bootstrapCss = await compileBootstrapScss(theme, pandocVariables);
+  const bootstrapCss = await compileBootstrapScss(
+    format.metadata,
+  );
 
   const boostrapResource = (resource: string) =>
     formatResourcePath(
@@ -140,32 +131,46 @@ export async function bootstrapFormatDependency(format: Format) {
   };
 }
 
-const kbootStrapScss = "_bootstrap.scss";
-const kVariablesScss = "_variables.scss";
-
-function resolveTheme(
-  theme: string,
+function resolveThemeScss(
+  themes: string[],
   quartoThemesDir: string,
-): { variables?: string; bootstrap?: string } {
-  const resolvedThemeDir = join(quartoThemesDir, theme);
-  if (existsSync(resolvedThemeDir)) {
-    // It's a built in theme, just return the files r
-    return {
-      variables: join(resolvedThemeDir, kVariablesScss),
-      bootstrap: join(resolvedThemeDir, "_bootswatch.scss"),
-    };
-  } else if (existsSync(theme) && Deno.statSync(theme).isDirectory) {
-    // It is not a built in theme, assume its a path and use that
-    const variables = join(theme, kVariablesScss);
-    const styles = join(theme, kbootStrapScss);
-    return {
-      variables: existsSync(variables) ? variables : undefined,
-      bootstrap: existsSync(styles) ? styles : undefined,
-    };
-  } else {
-    // Who know what this is
-    return {};
-  }
+): Array<{ variables?: string; styles?: string }> {
+  const themeScss: Array<{ variables?: string; styles?: string }> = [];
+  themes.forEach((theme) => {
+    const resolvedThemeDir = join(quartoThemesDir, theme);
+    if (theme === kDefaultTheme) {
+      // The default theme doesn't require any additional boostrap variables or styles
+      return [];
+    } else if (existsSync(resolvedThemeDir)) {
+      // It's a built in theme, just read and return the data
+      themeScss.push({
+        variables: Deno.readTextFileSync(
+          join(resolvedThemeDir, "_variables.scss"),
+        ),
+        styles: Deno.readTextFileSync(
+          join(resolvedThemeDir, "_bootswatch.scss"),
+        ),
+      });
+    } else if (existsSync(theme)) {
+      if (Deno.statSync(theme).isFile) {
+        // It is not a built in theme, so read the theme file and parse it.
+        const rawContents = Deno.readTextFileSync(theme);
+        const splitContents = rawContents.split(kThemeSeparatorToken);
+        if (splitContents.length === 2) {
+          themeScss.push({
+            variables: splitContents[0],
+            styles: splitContents[1],
+          });
+        } else {
+          themeScss.push({
+            variables: rawContents,
+            styles: undefined,
+          });
+        }
+      }
+    }
+  });
+  return themeScss;
 }
 
 export interface ScssVariable {
@@ -239,56 +244,66 @@ function mapPandocVariables(metadata: Metadata) {
   return explicitVars;
 }
 
-async function compileBootstrapScss(theme: string, variables?: ScssVariable[]) {
+async function compileBootstrapScss(
+  metadata: Metadata,
+) {
   // Quarto built in css
   const quartoThemesDir = formatResourcePath("html", `bootstrap/themes`);
+
+  // The core bootstrap styles
   const bootstrapCore = join(
     quartoThemesDir,
     "default/scss/bootstrap.scss",
   );
+
+  // Resolve the provided themes to a set of variables and styles
+  const themeRaw = metadata[kTheme];
+  const themes = Array.isArray(themeRaw)
+    ? themeRaw
+    : [String(metadata[kTheme])];
+  const themeScss = resolveThemeScss(themes, quartoThemesDir);
+
+  const themeVariables: string[] = [];
+  const themeStyles: string[] = [];
+  themeScss.forEach((theme) => {
+    if (theme.variables) {
+      themeVariables.push(theme.variables);
+    }
+
+    if (theme.styles) {
+      themeStyles.push(theme.styles);
+    }
+  });
+
+  // Quarto variables and styles
   const quartoVariables = formatResourcePath(
     "html",
     "_quarto-variables.scss",
   );
   const quartoBootstrap = formatResourcePath("html", "_quarto.scss");
 
-  // If any overide variables were provided, just pile them in here
-  let explicitVariables;
-  if (variables) {
-    explicitVariables = sessionTempFile({ suffix: ".scss" });
-    const variablesScss = variables.map((variable) =>
+  // If any pandoc specific variables were provided, just pile them in here
+  let documentVariables;
+  const pandocMappings = mapPandocVariables(metadata);
+  if (pandocMappings) {
+    documentVariables = pandocMappings.map((variable) =>
       `$${variable.name}: ${variable.value};`
     ).join("\n");
-
-    Deno.writeTextFileSync(explicitVariables, variablesScss);
-  }
-
-  // Resolve the provided theme (either to a built in theme or a custom
-  // theme directory)
-  const resolvedTheme = resolveTheme(theme, quartoThemesDir);
-  if (!resolvedTheme.variables && resolvedTheme.bootstrap) {
-    throw new Error(`Theme ${theme} does not contain any valid scss files`);
   }
 
   // Generate the list of scss files
-  const scssPaths: string[] = [];
-  if (resolvedTheme.variables) {
-    scssPaths.push(resolvedTheme.variables);
+  const scssInputs: string[] = [];
+  scssInputs.push(...themeVariables);
+  if (documentVariables) {
+    scssInputs.push(documentVariables);
   }
-  scssPaths.push(quartoVariables);
-  if (explicitVariables) {
-    scssPaths.push(explicitVariables);
-  }
-  scssPaths.push(bootstrapCore);
-  if (resolvedTheme.bootstrap) {
-    scssPaths.push(resolvedTheme.bootstrap);
-  }
-  scssPaths.push(quartoBootstrap);
+  scssInputs.push(Deno.readTextFileSync(quartoVariables));
+  scssInputs.push(Deno.readTextFileSync(bootstrapCore));
+  scssInputs.push(Deno.readTextFileSync(quartoBootstrap));
+  scssInputs.push(...themeStyles);
 
   // Read the scss files into a single input string
-  const scssInput = scssPaths.map((importPath) => {
-    return Deno.readTextFileSync(importPath);
-  }).join("\n\n");
+  const scssInput = scssInputs.join("\n\n");
 
   // Compile the scss
   return await compileScss(
@@ -297,7 +312,7 @@ async function compileBootstrapScss(theme: string, variables?: ScssVariable[]) {
       join(quartoThemesDir, "default/scss/"),
     ],
     true,
-    theme,
+    themes.join("|"),
   );
 }
 
