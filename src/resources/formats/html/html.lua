@@ -16,13 +16,11 @@ end
 
 Div = function(div)
   -- look for divs with a class admonition-*
-  if div.attr.classes:find("admonition") then
-
-    -- capture type information
-   local type = div.attr.attributes["type"] 
-    if type == nil then
-      type = "info"
-    end
+  if div.attr.classes:find_if(
+    function(class) 
+      return class:match("^notice-")
+    end 
+    ) then
 
     -- capture caption information
     local caption = div.attr.attributes["caption"]
