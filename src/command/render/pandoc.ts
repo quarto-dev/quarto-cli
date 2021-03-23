@@ -40,7 +40,11 @@ import {
 } from "../../core/resources.ts";
 import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
 
-import { kResources, ProjectContext } from "../../project/project-context.ts";
+import {
+  deleteProjectMetadata,
+  kResources,
+  ProjectContext,
+} from "../../project/project-context.ts";
 import { projectType } from "../../project/types/project-types.ts";
 
 import { RenderFlags } from "./flags.ts";
@@ -124,15 +128,7 @@ export async function runPandoc(
   delete printMetadata.params;
 
   // don't print project metadata
-  delete printMetadata.project;
-
-  // see if the active project type wants to filter the metadata printed
-  const projType = projectType(options.project?.metadata?.project?.type);
-  if (projType.metadataFields) {
-    for (const field of projType.metadataFields()) {
-      delete printMetadata[field];
-    }
-  }
+  deleteProjectMetadata(printMetadata);
 
   // generate defaults and capture defaults to be printed
   let allDefaults = await generateDefaults(options) || {};
