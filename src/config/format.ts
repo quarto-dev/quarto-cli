@@ -105,7 +105,6 @@ export interface SassBundle {
   key: string;
   dependency: string;
   declarations: string;
-  name: string;
   variables: string;
   rules: string;
   loadPath?: string;

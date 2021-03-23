@@ -126,9 +126,8 @@ export function bootstrapFormatDependency(format: Format) {
   };
 }
 
-const kThemeVariablesRegex = /^\/\/[ \t]*theme:variables[ \t]*$/;
-const kThemeRulesRegex = /^\/\/[ \t]*theme:rules[ \t]*$/;
-const kThemeDeclarationsRegex = /^\/\/[ \t]*theme:declarations[ \t]*$/;
+const kThemeScopeRegex =
+  /^\/\/[ \t]*theme:(variables|rules|declarations)[ \t]*$/;
 
 function resolveThemeScss(
   themes: string[],
@@ -168,17 +167,22 @@ function resolveThemeScss(
         const vars: string[] = [];
         const rules: string[] = [];
         const declarations: string[] = [];
-        let accum: string[];
+        let accum = vars;
         lines.forEach((line) => {
-          if (line.match(kThemeVariablesRegex)) {
-            accum = vars;
-          } else if (line.match(kThemeRulesRegex)) {
-            accum = rules;
-          } else if (line.match(kThemeDeclarationsRegex)) {
-            accum = declarations;
-          } else if (!accum) {
-            accum = vars;
-            accum.push(line);
+          const scopeMatch = line.match(kThemeScopeRegex);
+          if (scopeMatch) {
+            const scope = scopeMatch[1];
+            switch (scope) {
+              case "variables":
+                accum = vars;
+                break;
+              case "rules":
+                accum = vars;
+                break;
+              case "declarations":
+                accum = declarations;
+                break;
+            }
           } else {
             accum.push(line);
           }
@@ -210,14 +214,43 @@ export interface ScssVariable {
 function mapPandocVariables(metadata: Metadata) {
   const explicitVars: ScssVariable[] = [];
 
-  // Sizes
+  const addVariable = (cssVar?: ScssVariable) => {
+    if (cssVar) {
+      explicitVars.push(cssVar);
+    }
+  };
+
+  // Map some variables to bootstrap vars
+  addVariable(scssVarFromMetadata(
+    metadata,
+    "linestretch",
+    "line-height-base",
+    (val) => {
+      return asCssNumber(val);
+    },
+  ));
+  addVariable(scssVarFromMetadata(metadata, "font-size", "font-size-root"));
+  addVariable(scssVarFromMetadata(
+    metadata,
+    "backgroundcolor",
+    "body-bgr",
+  ));
+  addVariable(scssVarFromMetadata(metadata, "fontcolor", "body-color"));
+  addVariable(scssVarFromMetadata(metadata, "linkcolor", "link-color"));
+  addVariable(
+    scssVarFromMetadata(metadata, "mainfont", "font-family-base", asCssFont),
+  );
+  addVariable(
+    scssVarFromMetadata(metadata, "monofont", "font-family-code", asCssFont),
+  );
+
+  // Special case for Body width and margins
   const explicitSizes = [
     "max-width",
     "margin-top",
     "margin-bottom",
     "margin-left",
     "margin-right",
-    "font-size",
   ];
   explicitSizes.forEach((attrib) => {
     if (metadata[attrib]) {
@@ -227,33 +260,6 @@ function mapPandocVariables(metadata: Metadata) {
       }
     }
   });
-
-  const addVariable = (cssVar?: ScssVariable) => {
-    if (cssVar) {
-      explicitVars.push(cssVar);
-    }
-  };
-
-  addVariable(scssVarFromMetadata(
-    metadata,
-    "backgroundcolor",
-    "background-color",
-  ));
-
-  addVariable(scssVarFromMetadata(
-    metadata,
-    "linestretch",
-    "line-height",
-  ));
-
-  addVariable(scssVarFromMetadata(metadata, "fontcolor", "font-color"));
-  addVariable(scssVarFromMetadata(metadata, "linkcolor", "link-color"));
-  addVariable(
-    scssVarFromMetadata(metadata, "mainfont", "main-font", asCssFont),
-  );
-  addVariable(
-    scssVarFromMetadata(metadata, "monofont", "mono-font", asCssFont),
-  );
 
   // Special case for mono background
   const monoBackground = scssVarFromMetadata(
@@ -327,7 +333,6 @@ function resolveBootstrapSass(metadata: Metadata): SassBundle {
     dependency: kBootstrapDependencyName,
     key: themes.join("|"),
     loadPath: dirname(boostrapRules),
-    name: "bootstrap.min.css",
     variables: [
       documentVariables,
       Deno.readTextFileSync(quartoVariables),
@@ -504,11 +509,19 @@ function asCssFont(value: unknown): string | undefined {
   }
 }
 
-function asCssAttrib(attrib: string, value: unknown): string | undefined {
-  if (!value) {
+function asCssNumber(value: unknown): string | undefined {
+  if (typeof (value) === "number") {
+    return String(value);
+  } else if (!value) {
     return undefined;
   } else {
-    return `  ${attrib}: ${String(value)};\n`;
+    const str = String(value);
+    const match = str.match(/(^[0-9]*)/);
+    if (match) {
+      return match[1];
+    } else {
+      return undefined;
+    }
   }
 }
 
