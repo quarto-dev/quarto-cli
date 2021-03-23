@@ -54,6 +54,19 @@ export function projectConfigFile(dir: string): string | undefined {
     .find(existsSync);
 }
 
+export function deleteProjectMetadata(metadata: Metadata) {
+  // see if the active project type wants to filter the metadata printed
+  const projType = projectType((metadata.project as ProjectMetadata)?.type);
+  if (projType.metadataFields) {
+    for (const field of projType.metadataFields()) {
+      delete metadata[field];
+    }
+  }
+
+  // remove project metadata
+  delete metadata.project;
+}
+
 export function projectContext(path: string): ProjectContext {
   let dir = Deno.realPathSync(
     Deno.statSync(path).isDirectory ? path : dirname(path),
