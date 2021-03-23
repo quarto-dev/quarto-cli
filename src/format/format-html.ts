@@ -43,9 +43,6 @@ export const kPageLayout = "page-layout";
 export const kDocumentCss = "document-css";
 export const kBootstrapDependencyName = "bootstrap-quarto";
 const kDefaultTheme = "default";
-const kThemeVariablesToken = "// theme:variables";
-const kThemeRulesToken = "// theme:rules";
-const kThemeDeclarationsToken = "// theme:declarations";
 
 export function htmlFormat(
   figwidth: number,
@@ -129,42 +126,74 @@ export function bootstrapFormatDependency(format: Format) {
   };
 }
 
+const kThemeVariablesRegex = /^\/\/[ \t]*theme:variables[ \t]*$/;
+const kThemeRulesRegex = /^\/\/[ \t]*theme:rules[ \t]*$/;
+const kThemeDeclarationsRegex = /^\/\/[ \t]*theme:declarations[ \t]*$/;
+
 function resolveThemeScss(
   themes: string[],
   quartoThemesDir: string,
 ): Array<{ variables?: string; styles?: string }> {
-  const themeScss: Array<{ variables?: string; styles?: string }> = [];
+  const themeScss: Array<
+    { variables?: string; rules?: string; declarations?: string }
+  > = [];
+
   themes.forEach((theme) => {
     const resolvedThemeDir = join(quartoThemesDir, theme);
+    const read = (
+      path: string,
+    ) => {
+      if (existsSync(path)) {
+        return Deno.readTextFileSync(path);
+      } else {
+        return undefined;
+      }
+    };
+
     if (theme === kDefaultTheme) {
       // The default theme doesn't require any additional boostrap variables or styles
       return [];
     } else if (existsSync(resolvedThemeDir)) {
       // It's a built in theme, just read and return the data
       themeScss.push({
-        variables: Deno.readTextFileSync(
-          join(resolvedThemeDir, "_variables.scss"),
-        ),
-        styles: Deno.readTextFileSync(
-          join(resolvedThemeDir, "_bootswatch.scss"),
-        ),
+        variables: read(join(resolvedThemeDir, "_variables.scss")),
+        rules: read(join(resolvedThemeDir, "_bootswatch.scss")),
       });
     } else if (existsSync(theme)) {
       if (Deno.statSync(theme).isFile) {
         // It is not a built in theme, so read the theme file and parse it.
         const rawContents = Deno.readTextFileSync(theme);
-        const splitContents = rawContents.split(kThemeVariablesToken);
-        if (splitContents.length === 2) {
-          themeScss.push({
-            variables: splitContents[0],
-            styles: splitContents[1],
-          });
-        } else {
-          themeScss.push({
-            variables: rawContents,
-            styles: undefined,
-          });
-        }
+        const lines = rawContents.split("\n");
+
+        const vars: string[] = [];
+        const rules: string[] = [];
+        const declarations: string[] = [];
+        let accum: string[];
+        lines.forEach((line) => {
+          if (line.match(kThemeVariablesRegex)) {
+            accum = vars;
+          } else if (line.match(kThemeRulesRegex)) {
+            accum = rules;
+          } else if (line.match(kThemeDeclarationsRegex)) {
+            accum = declarations;
+          } else if (!accum) {
+            accum = vars;
+          }
+          accum.push(line);
+        });
+
+        themeScss.push({
+          variables: vars.join("\n"),
+          rules: rules.join("\n"),
+          declarations: declarations.join("\n"),
+        });
+      } else {
+        // It's a directory, look for names files instead
+        themeScss.push({
+          variables: read(join(theme, "_variables.scss")),
+          rules: read(join(theme, "_rules.scss")),
+          declarations: read(join(theme, "_declarations.scss")),
+        });
       }
     }
   });
