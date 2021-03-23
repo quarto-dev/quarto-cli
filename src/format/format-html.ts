@@ -41,7 +41,7 @@ export const kTheme = "theme";
 export const kTocFloat = "toc-float";
 export const kPageLayout = "page-layout";
 export const kDocumentCss = "document-css";
-export const kBootstrapDependencyName = "bootstrap-quarto";
+export const kBootstrapDependencyName = "bootstrap";
 const kDefaultTheme = "default";
 
 export function htmlFormat(
@@ -133,7 +133,7 @@ const kThemeDeclarationsRegex = /^\/\/[ \t]*theme:declarations[ \t]*$/;
 function resolveThemeScss(
   themes: string[],
   quartoThemesDir: string,
-): Array<{ variables?: string; styles?: string }> {
+): Array<{ variables?: string; rules?: string; declarations?: string }> {
   const themeScss: Array<
     { variables?: string; rules?: string; declarations?: string }
   > = [];
@@ -178,8 +178,10 @@ function resolveThemeScss(
             accum = declarations;
           } else if (!accum) {
             accum = vars;
+            accum.push(line);
+          } else {
+            accum.push(line);
           }
-          accum.push(line);
         });
 
         themeScss.push({
@@ -290,13 +292,18 @@ function resolveBootstrapSass(metadata: Metadata): SassBundle {
 
   const themeVariables: string[] = [];
   const themeRules: string[] = [];
+  const themeDeclarations: string[] = [];
   themeScss.forEach((theme) => {
     if (theme.variables) {
       themeVariables.push(theme.variables);
     }
 
-    if (theme.styles) {
-      themeRules.push(theme.styles);
+    if (theme.rules) {
+      themeRules.push(theme.rules);
+    }
+
+    if (theme.declarations) {
+      themeDeclarations.push(theme.declarations);
     }
   });
 

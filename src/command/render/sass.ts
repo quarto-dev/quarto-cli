@@ -15,19 +15,25 @@ import { SassBundle } from "../../config/format.ts";
 import { dartCompile } from "../../core/dart-sass.ts";
 
 export async function compileSass(bundles: SassBundle[], output: string) {
-  const variables = bundles.filter((bundle) => bundle.variables.length).map(
-    (bundle) => bundle.variables,
-  ).reverse();
-
+  // declarations are available to variables and rules
   const declarations = bundles.filter((bundle) => bundle.declarations.length)
     .map(
       (bundle) => bundle.declarations,
     );
+
+  // Variables are applied in reverse order (bottom to top as we are expecting)
+  // scss files to the !default notation to allow earlier files to set values
+  const variables = bundles.filter((bundle) => bundle.variables.length).map(
+    (bundle) => bundle.variables,
+  ).reverse();
+
+  // rules may use variables and declarations
   const rules = bundles.filter((bundle) => bundle.rules.length)
     .map(
       (bundle) => bundle.rules,
     );
 
+  // Set any load paths used to resolve imports
   const loadPaths: string[] = [];
   bundles.forEach((bundle) => {
     if (bundle.loadPath) {
