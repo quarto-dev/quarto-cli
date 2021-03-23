@@ -1,4 +1,10 @@
 
+Questions:
+- name of bootstrap css file (bootstrap-quarto.css?)
+- review theme parser implementation
+- are we good with dependency name constant being the 'tie that binds'
+- could split nav-search back into css for now - there is no scss 
+
 Dart-Sass:
 - use comment or perhaps could just detect first style 
 // theme:declarations
