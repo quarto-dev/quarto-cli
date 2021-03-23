@@ -64,14 +64,16 @@ window.document.addEventListener("DOMContentLoaded", function() {
     while (linkStyle.firstChild) {
       linkStyle.removeChild(linkStyle.firstChild);
     }
-    linkStyle.appendChild(window.document.createTextNode(`
+    if (offset > 0) {
+      linkStyle.appendChild(window.document.createTextNode(`
       :target::before {
         content: "";
         display: block;
         height: ${offset}px;
         margin: -${offset}px 0 0;
       }`)
-    );
+      );
+    }
   }
 
   // initialize headroom

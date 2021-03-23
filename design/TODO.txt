@@ -37,7 +37,6 @@ asdasdas
 :::
 
 HTML:
-  - anchor links
   - tabs (may require Sass)
   - admonitions (requires Sass)
   - option to have shaded code blocks:

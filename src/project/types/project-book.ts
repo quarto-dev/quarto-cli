@@ -16,7 +16,7 @@ export const bookProjectType: ProjectType = {
     const supportingDir = resourcePath(join("projects", "book"));
 
     return {
-      configTemplate: join(supportingDir, "templates", "_quarto.yml.ejs"),
+      configTemplate: join(supportingDir, "templates", "_quarto.ejs.yml"),
       scaffold: [
         {
           name: "01-intro",
