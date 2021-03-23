@@ -447,11 +447,24 @@ function bootstrapHtmlPostprocessor(doc: Document): string[] {
   }
 
   // add .table class to pandoc tables
-  var tableHeaders = doc.querySelectorAll("tr.header");
+  const tableHeaders = doc.querySelectorAll("tr.header");
   for (let i = 0; i < tableHeaders.length; i++) {
     const th = tableHeaders[i];
     if (th.parentNode?.parentNode) {
       (th.parentNode.parentNode as Element).classList.add("table");
+    }
+  }
+
+  // move ids from section to headers
+  const sections = doc.querySelectorAll('section[class^="level"]');
+  for (let i = 0; i < sections.length; i++) {
+    const section = sections[i] as Element;
+    const heading = section.querySelector("h2") ||
+      section.querySelector("h3") || section.querySelector("h4") ||
+      section.querySelector("h5") || section.querySelector("h6");
+    if (heading) {
+      heading.setAttribute("id", section.id);
+      section.removeAttribute("id");
     }
   }
 
