@@ -291,6 +291,7 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
 
   // ensure title and search are present
   sidebar.title = sidebarTitle(sidebar, project);
+  sidebar.logo = resolveLogo(sidebar.logo);
   sidebar.search = websiteSearch(project) === "sidebar"
     ? sidebar.search
     : false;
@@ -443,7 +444,7 @@ async function navbarEjsData(
     search: websiteSearch(project) === "navbar" ? navbar.search : false,
     type: navbar.type || "dark",
     background: navbar.background || "primary",
-    logo: navbar.logo ? `/${navbar.logo}` : undefined,
+    logo: resolveLogo(navbar.logo),
     collapse,
     [kCollapseBelow]: !collapse ? ""
     : ("-" + (navbar[kCollapseBelow] || "lg")) as LayoutBreak,
@@ -583,6 +584,14 @@ function sidebarTitle(sidebar: Sidebar, project: ProjectContext) {
   } else {
     // There is a logo, just let the logo appear
     return undefined;
+  }
+}
+
+function resolveLogo(logo?: string) {
+  if (logo && !isExternalPath(logo) && !logo.startsWith("/")) {
+    return "/" + logo;
+  } else {
+    return logo;
   }
 }
 
