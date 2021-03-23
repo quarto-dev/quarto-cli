@@ -11,30 +11,7 @@ SASS:
 Windows:
 - Need to figure out what the deal is with quarto bundled error (cliffy?) before next published release.
 
-Admonitions
 
-::: {.admonition-warning collapsed=true icon=bi-github}
-## Title text
-
-Admonition content
-:::
-
-
-::: {.tabset}
-
-## Tab 1
-
-content fof tab 1
-
-## Tab 2
-
-asdasdas
-
-## Tab 3
-
-asdasdas
-
-:::
 
 HTML:
   - tabs (may require Sass)
