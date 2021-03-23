@@ -1,3 +1,5 @@
+@import "bootstrap";
+
 .navbar-brand > img {
   max-height: 24px;
   width: auto;
@@ -85,7 +87,8 @@ nav .dropdown-item i {
   margin-bottom: -4px;
 }
 
-@media (max-width: 991.98px) {
+
+@include media-breakpoint-down(md) {
   .sidebar-logo {
     display: none;
   }
@@ -135,7 +138,7 @@ header.headroom--unpinned {
   transform: translateY(-100%);
 }
 
-@media (min-width: 992px) {
+@include media-breakpoint-up(lg) {
   .sidebar.sidebar-navigation {
     height: 100vh;
     display: block;

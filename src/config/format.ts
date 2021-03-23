@@ -78,6 +78,7 @@ import {
 import { PandocFlags } from "./flags.ts";
 
 export const kDependencies = "dependencies";
+export const kSassBundles = "saas-bundles";
 export const kHtmlPostprocessors = "html-postprocessors";
 export const kBodyEnvelope = "body-envelope";
 
@@ -101,10 +102,21 @@ export interface BodyEnvelope {
   after?: string;
 }
 
+export interface SassBundle {
+  key: string;
+  dependency: string;
+  declarations: string;
+  name: string;
+  variables: string;
+  rules: string;
+  loadPath?: string;
+}
+
 export interface FormatExtras {
   pandoc?: FormatPandoc;
   [kTocTitle]?: string;
   [kDependencies]?: FormatDependency[];
+  [kSassBundles]?: SassBundle[];
   [kBodyEnvelope]?: BodyEnvelope;
   [kIncludeInHeader]?: string[];
   [kIncludeBeforeBody]?: string[];
