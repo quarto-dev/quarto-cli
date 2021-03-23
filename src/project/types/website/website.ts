@@ -44,7 +44,7 @@ export const websiteProjectType: ProjectType = {
     const supportingDir = resourcePath(join("projects", "website"));
 
     return {
-      configTemplate: join(supportingDir, "templates", "_quarto.yml.ejs"),
+      configTemplate: join(supportingDir, "templates", "_quarto.ejs.yml"),
       scaffold: [
         {
           name: "index",

@@ -126,7 +126,7 @@ async function readSitemap(sitemapPath: string): Promise<Urlset> {
 function writeSitemap(sitemapPath: string, urlset: Urlset) {
   const sitemap = renderEjs(
     resourcePath(
-      join("projects", "website", "templates", "sitemap.xml.ejs"),
+      join("projects", "website", "templates", "sitemap.ejs.xml"),
     ),
     { urlset },
   );

@@ -17,7 +17,7 @@ export const defaultProjectType: ProjectType = {
   create: (title: string): ProjectCreate => {
     const supportingDir = resourcePath(join("projects", "default"));
     return {
-      configTemplate: join(supportingDir, "templates", "_quarto.yml.ejs"),
+      configTemplate: join(supportingDir, "templates", "_quarto.ejs.yml"),
       scaffold: [{
         name: title,
         content: "",
