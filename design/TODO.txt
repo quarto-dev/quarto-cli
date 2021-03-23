@@ -1,16 +1,6 @@
 
-Questions:
-- name of bootstrap css file (bootstrap-quarto.css?)
-- review theme parser implementation
-- are we good with dependency name constant being the 'tie that binds'
-- could split nav-search back into css for now - there is no scss 
-
-Dart-Sass:
-- use comment or perhaps could just detect first style 
-// theme:declarations
-// theme:variables
-// theme:rules
-
+SCSS:
+- why are rules in the wrong order
 - Create explicit border color for navbars?
 
 - Import bootswatch themes into "unified" format
