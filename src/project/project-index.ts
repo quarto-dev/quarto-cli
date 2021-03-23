@@ -9,13 +9,17 @@ import { join } from "path/mod.ts";
 import { exists } from "fs/mod.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
 
-import { ProjectContext } from "./project-context.ts";
+import { Metadata } from "../config/metadata.ts";
+import { Format } from "../config/format.ts";
+
+import { renderFormats } from "../command/render/render.ts";
+
+import { projectConfigFile, ProjectContext } from "./project-context.ts";
 
 import { projectScratchPath } from "./project-scratch.ts";
-import { Metadata } from "../config/metadata.ts";
 
 export interface InputTargetIndex extends Metadata {
-  metadata: Metadata;
+  formats: Record<string, Format>;
 }
 
 export async function inputTargetIndex(
@@ -35,21 +39,23 @@ export async function inputTargetIndex(
   if (await exists(indexFile)) {
     const inputMod = (await Deno.stat(inputFile)).mtime;
     const indexMod = (await Deno.stat(indexFile)).mtime;
-    if (inputMod && indexMod && (indexMod >= inputMod)) {
+    const projConfigFile = projectConfigFile(project.dir);
+    const projMod = projConfigFile
+      ? (await Deno.stat(projConfigFile)).mtime
+      : 0;
+    if (
+      inputMod && indexMod && (indexMod >= inputMod) &&
+      (!projMod || (indexMod >= projMod))
+    ) {
       return JSON.parse(Deno.readTextFileSync(indexFile));
     }
   }
 
   // otherwise read the metadata and index it
-  const engine = fileExecutionEngine(inputFile);
-  if (engine) {
-    const metadata = await engine.metadata(inputFile);
-    const index = { metadata };
-    Deno.writeTextFileSync(indexFile, JSON.stringify(index));
-    return index;
-  } else {
-    return undefined;
-  }
+  const formats = await renderFormats(inputFile);
+  const index = { formats };
+  Deno.writeTextFileSync(indexFile, JSON.stringify(index));
+  return index;
 }
 
 function inputTargetIndexFile(project: ProjectContext, input: string): string {
@@ -57,5 +63,5 @@ function inputTargetIndexFile(project: ProjectContext, input: string): string {
 }
 
 function indexPath(project: ProjectContext, path = ""): string {
-  return projectScratchPath(project, join("idx", path));
+  return projectScratchPath(project, join("index", path));
 }

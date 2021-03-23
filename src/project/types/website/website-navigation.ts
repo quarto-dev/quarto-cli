@@ -17,7 +17,7 @@ import { renderEjs } from "../../../core/ejs.ts";
 
 import { pandocAutoIdentifier } from "../../../core/pandoc/pandoc-id.ts";
 
-import { kTitle, kTocTitle } from "../../../config/constants.ts";
+import { kOutputFile, kTitle, kTocTitle } from "../../../config/constants.ts";
 import {
   Format,
   FormatDependency,
@@ -540,11 +540,13 @@ async function resolveItem(
   if (!isExternalPath(href)) {
     const index = await inputTargetIndex(project, href);
     if (index) {
+      const format = Object.values(index.formats)[0];
       const [hrefDir, hrefStem] = dirAndStem(href);
+      const outputFile = format?.pandoc[kOutputFile] || `${hrefStem}.html`;
       const htmlHref = pathWithForwardSlashes(
-        "/" + join(hrefDir, `${hrefStem}.html`),
+        "/" + join(hrefDir, outputFile),
       );
-      const title = index.metadata?.[kTitle] as string ||
+      const title = format.metadata?.[kTitle] as string ||
         ((hrefDir === "." && hrefStem === "index")
           ? project.metadata?.project?.title
           : undefined);

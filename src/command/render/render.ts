@@ -24,7 +24,7 @@ import { createSessionTempDir } from "../../core/temp.ts";
 import { inputFilesDir } from "../../core/render.ts";
 import { progressBar } from "../../core/progress.ts";
 import { message } from "../../core/console.ts";
-import { removeIfExists } from "../../core/path.ts";
+import { dirAndStem, removeIfExists } from "../../core/path.ts";
 
 import {
   formatFromMetadata,
@@ -48,6 +48,8 @@ import {
   kKernelKeepalive,
   kKernelRestart,
   kMetadataFormat,
+  kOutputExt,
+  kOutputFile,
   kSelfContained,
 } from "../../config/constants.ts";
 import { Format } from "../../config/format.ts";
@@ -63,6 +65,7 @@ import { removePandocToArg, RenderFlags, resolveParams } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
 import {
+  deleteProjectMetadata,
   kLibDir,
   kOutputDir,
   ProjectContext,
@@ -310,6 +313,29 @@ export async function renderContexts(
     };
   });
   return contexts;
+}
+
+export async function renderFormats(
+  file: string,
+  to = "all",
+): Promise<Record<string, Format>> {
+  const contexts = await renderContexts(file, { flags: { to } });
+  const formats: Record<string, Format> = {};
+  Object.keys(contexts).forEach((context) => {
+    // get the format
+    const format = contexts[context].format;
+    // remove other formats
+    delete format.metadata.format;
+    // remove project level metadata
+    deleteProjectMetadata(format.metadata);
+    // resolve output-file
+    if (!format.pandoc[kOutputFile]) {
+      const [_dir, stem] = dirAndStem(file);
+      format.pandoc[kOutputFile] = `${stem}.${format.render[kOutputExt]}`;
+    }
+    formats[context] = format;
+  });
+  return formats;
 }
 
 export async function renderExecute(

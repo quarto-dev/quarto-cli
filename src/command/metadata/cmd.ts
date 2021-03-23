@@ -9,14 +9,8 @@ import { stringify } from "encoding/yaml.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { Format } from "../../config/format.ts";
-
-import { renderContexts } from "../render/render.ts";
-import {
-  deleteProjectMetadata,
-  projectContext,
-} from "../../project/project-context.ts";
-import { projectType } from "../../project/types/project-types.ts";
+import { renderFormats } from "../render/render.ts";
+import { projectContext } from "../../project/project-context.ts";
 
 export const metadataCommand = new Command()
   .name("metadata")
@@ -54,7 +48,7 @@ export const metadataCommand = new Command()
     // deno-lint-ignore no-explicit-any
     const config: any = stat.isDirectory
       ? projectContext(path).metadata
-      : await fileMetadata(path, options.to);
+      : await renderFormats(path, options.to);
     if (config) {
       // write using the requisite format
       const output = options.json
@@ -65,15 +59,3 @@ export const metadataCommand = new Command()
       throw new Error(`No configuration found for path '${path}'`);
     }
   });
-
-async function fileMetadata(path: string, to = "all") {
-  const contexts = await renderContexts(path, { flags: { to } });
-  const formats: Record<string, Format> = {};
-  Object.keys(contexts).forEach((context) => {
-    const format = contexts[context].format;
-    delete format.metadata.format;
-    deleteProjectMetadata(format.metadata);
-    formats[context] = format;
-  });
-  return formats;
-}
