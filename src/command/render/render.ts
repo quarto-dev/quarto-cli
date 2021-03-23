@@ -37,6 +37,7 @@ import {
   kCache,
   kCss,
   kExecute,
+  kFreeze,
   kHeaderIncludes,
   kIncludeAfter,
   kIncludeAfterBody,
@@ -59,6 +60,8 @@ import {
   ExecutionTarget,
   fileExecutionEngine,
 } from "../../execute/engine.ts";
+
+import { markdownEngine } from "../../execute/markdown.ts";
 
 import { PandocOptions, runPandoc } from "./pandoc.ts";
 import { removePandocToArg, RenderFlags, resolveParams } from "./flags.ts";
@@ -150,6 +153,7 @@ export async function renderFiles(
   files: string[],
   options: RenderOptions,
   project?: ProjectContext,
+  projectIncremental?: boolean,
 ): Promise<Record<string, RenderResult[]>> {
   // make a copy of options so we don't mutate caller context
   options = ld.cloneDeep(options);
@@ -192,7 +196,12 @@ export async function renderFiles(
       const fileOptions = ld.cloneDeep(options);
 
       // get contexts
-      const contexts = await renderContexts(file, fileOptions, project);
+      const contexts = await renderContexts(
+        file,
+        fileOptions,
+        project,
+        projectIncremental,
+      );
 
       // remove --to (it's been resolved into contexts)
       delete fileOptions.flags?.to;
@@ -278,12 +287,14 @@ export async function renderContexts(
   file: string,
   options: RenderOptions,
   project?: ProjectContext,
+  projectIncremental?: boolean,
 ): Promise<Record<string, RenderContext>> {
   // determine the computation engine and any alternate input file
   const engine = await fileExecutionEngine(file);
   if (!engine) {
     throw new Error("Unable to render " + file);
   }
+
   const target = await engine.target(file, options.flags?.quiet);
   if (!target) {
     throw new Error("Unable to render " + file);
@@ -303,11 +314,44 @@ export async function renderContexts(
   // return contexts
   const contexts: Record<string, RenderContext> = {};
   Object.keys(formats).forEach((format: string) => {
+    // if we are in a project and it's not an incremental render then we may want to
+    // re-wire the target to the md. we do this if 'freeze' is specified and there is
+    // an appopriately up to date md file for htis input
+    let formatEngine = engine;
+    const formatConfig = ld.cloneDeep(formats[format]);
+    if (project) {
+      const freeze = formatConfig.execution[kFreeze];
+      if (freeze) { // either true or "auto"
+        // freeze always implies keepMd
+        formatConfig.render[kKeepMd] = true;
+
+        // if this isn't an incremental render see if we can rewire to an existing md file
+        const keepMdFile = engine.keepMd(target.input);
+        if (keepMdFile && !projectIncremental) {
+          // if there is an md file, then re-wire the target to it for:
+          //  - freeze === true
+          //  - freeze === "auto" and an input file more recent than the md
+          if (existsSync(keepMdFile)) {
+            const inputMod = Deno.statSync(target.input).mtime;
+            const mdMod = Deno.statSync(keepMdFile).mtime;
+            const rewire = (freeze === true) ||
+              (inputMod && mdMod && inputMod <= mdMod);
+            if (rewire) {
+              formatEngine = markdownEngine;
+              target.source = keepMdFile;
+              target.input = keepMdFile;
+            }
+          }
+        }
+      }
+    }
+
+    // set format
     contexts[format] = {
       target,
       options,
-      engine,
-      format: formats[format],
+      engine: formatEngine,
+      format: formatConfig,
       project,
       libDir: libDir!,
     };
