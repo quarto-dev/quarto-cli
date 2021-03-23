@@ -17,6 +17,7 @@ HTML:
   - admonitions (requires Sass)
   - option to have shaded code blocks:
      code-background: light | secondary | etc.
+  - special treatment for code blocks inside tabs (no margin)
   - copy code block to clipboard
   - hoverable footnotes and citations
 
