@@ -1,8 +1,11 @@
 
-SCSS:
-- why are rules in the wrong order
-- Create explicit border color for navbars?
 
+
+
+SASS:
+- Create explicit border color for navbars?
+- cache should be in files, use DependencyFile.name to set pretty name
+- should i delete sassbundles from formatextras once resolved 
 - Import bootswatch themes into "unified" format
 
 Windows:
