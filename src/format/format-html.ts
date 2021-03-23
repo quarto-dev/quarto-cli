@@ -177,7 +177,7 @@ function resolveThemeScss(
                 accum = vars;
                 break;
               case "rules":
-                accum = vars;
+                accum = rules;
                 break;
               case "declarations":
                 accum = declarations;
