@@ -25,12 +25,15 @@ import {
   kBodyEnvelope,
   kDependencies,
   kHtmlPostprocessors,
+  kSassBundles,
+  SassBundle,
 } from "../../../config/format.ts";
 import { PandocFlags } from "../../../config/flags.ts";
 
 import {
   hasTableOfContents,
   hasTableOfContentsTitle,
+  kBootstrapDependencyName,
   kPageLayout,
   kTocFloat,
 } from "../../../format/format-html.ts";
@@ -38,7 +41,11 @@ import {
 import { ProjectContext, projectOffset } from "../../project-context.ts";
 import { inputTargetIndex } from "../../project-index.ts";
 
-import { websiteSearch, websiteSearchDependency } from "./website-search.ts";
+import {
+  websiteSearch,
+  websiteSearchDependency,
+  websiteSearchSassBundle,
+} from "./website-search.ts";
 import { resolveResourceRefs } from "./website-resources.ts";
 
 export const kNavbar = "nav-top";
@@ -198,9 +205,14 @@ export function websiteNavigationExtras(
   const dependencies: FormatDependency[] = [
     websiteNavigationDependency(project),
   ];
+
+  // Determine any sass bundles
+  const sassBundles: SassBundle[] = [websiteNavigationSassBundle()];
+
   const searchDep = websiteSearchDependency(project, input);
   if (searchDep) {
     dependencies.push(searchDep);
+    sassBundles.push(websiteSearchSassBundle());
   }
 
   // determine body envelope
@@ -224,6 +236,8 @@ export function websiteNavigationExtras(
         format.metadata[kTocFloat] !== false
       ? "On this page"
       : undefined,
+
+    [kSassBundles]: sassBundles,
     [kDependencies]: dependencies,
     [kBodyEnvelope]: bodyEnvelope,
     [kHtmlPostprocessors]: [navigationHtmlPostprocessor(href, offset)],
@@ -596,21 +610,34 @@ function websiteHeadroom(project: ProjectContext) {
   }
 }
 
-function websiteNavigationDependency(project: ProjectContext) {
-  const navigationDependency = (resource: string) => {
-    return {
-      name: basename(resource),
-      path: resourcePath(`projects/website/navigation/${resource}`),
-    };
+const kDependencyName = "quarto-nav";
+function websiteNavigationSassBundle() {
+  const scssPath = navigationDependency("quarto-nav.scss").path;
+  return {
+    dependency: kBootstrapDependencyName,
+    key: scssPath,
+    name: "quarto-nav.css",
+    variables: "",
+    declarations: "",
+    rules: Deno.readTextFileSync(scssPath),
   };
+}
+
+function websiteNavigationDependency(project: ProjectContext) {
   const scripts = [navigationDependency("quarto-nav.js")];
   if (websiteHeadroom(project)) {
     scripts.push(navigationDependency("headroom.min.js"));
   }
   return {
-    name: "quarto-nav",
+    name: kDependencyName,
     scripts,
-    stylesheets: [navigationDependency("quarto-nav.css")],
+  };
+}
+
+function navigationDependency(resource: string) {
+  return {
+    name: basename(resource),
+    path: resourcePath(`projects/website/navigation/${resource}`),
   };
 }
 

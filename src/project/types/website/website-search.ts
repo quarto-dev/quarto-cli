@@ -19,12 +19,12 @@ import { isHtmlContent } from "../../../core/mime.ts";
 
 import { FormatDependency } from "../../../config/format.ts";
 
+import { kBootstrapDependencyName } from "../../../format/format-html.ts";
 import {
   ProjectContext,
   projectOffset,
   projectOutputDir,
 } from "../../project-context.ts";
-
 import { ProjectOutputFile } from "../project-types.ts";
 
 import { websiteNavigationConfig } from "./website-navigation.ts";
@@ -164,27 +164,31 @@ export function websiteSearch(project: ProjectContext) {
   }
 }
 
+const kDependencyName = "quarto-search";
+export function websiteSearchSassBundle() {
+  const scssPath = searchDependency("quarto-search.scss").path;
+  return {
+    dependency: kBootstrapDependencyName,
+    key: scssPath,
+    name: "quarto-search.css",
+    declarations: "",
+    variables: "",
+    rules: Deno.readTextFileSync(scssPath),
+  };
+}
+
 export function websiteSearchDependency(
   project: ProjectContext,
   input: string,
 ): FormatDependency | undefined {
   if (websiteSearch(project) !== "none") {
-    const searchDependency = (resource: string) => {
-      return {
-        name: basename(resource),
-        path: resourcePath(`projects/website/search/${resource}`),
-      };
-    };
-
     const offset = projectOffset(project, input);
     return {
-      name: "quarto-search",
+      name: kDependencyName,
       meta: {
         "quarto:offset": offset,
       },
-      stylesheets: [
-        searchDependency("quarto-search.css"),
-      ],
+      stylesheets: [],
       scripts: [
         searchDependency("autocomplete.min.js"),
         searchDependency("fuse.min.js"),
@@ -194,4 +198,11 @@ export function websiteSearchDependency(
   } else {
     return undefined;
   }
+}
+
+function searchDependency(resource: string) {
+  return {
+    name: basename(resource),
+    path: resourcePath(`projects/website/search/${resource}`),
+  };
 }

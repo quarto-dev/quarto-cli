@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, isAbsolute, join } from "path/mod.ts";
+import { basename, dirname, isAbsolute, join } from "path/mod.ts";
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 
@@ -29,9 +29,15 @@ import {
   kBodyEnvelope,
   kDependencies,
   kHtmlPostprocessors,
+  kSassBundles,
+  SassBundle,
 } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
-import { binaryPath, resourcePath } from "../../core/resources.ts";
+import {
+  binaryPath,
+  formatResourcePath,
+  resourcePath,
+} from "../../core/resources.ts";
 import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
 
 import { kResources, ProjectContext } from "../../project/project-context.ts";
@@ -58,6 +64,7 @@ import {
 import { sessionTempFile } from "../../core/temp.ts";
 
 import { RenderResourceFiles } from "./render.ts";
+import { compileSass } from "./sass.ts";
 
 // options required to run pandoc
 export interface PandocOptions {
@@ -160,7 +167,7 @@ export async function runPandoc(
       ? (await options.format.formatExtras(options.flags || {}, options.format))
       : {};
 
-    const extras = resolveExtras(
+    const extras = await resolveExtras(
       projectExtras,
       formatExtras,
       cwd,
@@ -347,7 +354,7 @@ export function pandocMetadataPath(path: string) {
   return pathWithForwardSlashes(path);
 }
 
-function resolveExtras(
+async function resolveExtras(
   projectExtras: FormatExtras,
   formatExtras: FormatExtras,
   inputDir: string,
@@ -365,6 +372,12 @@ function resolveExtras(
   if (projectExtras[kTocTitle]) {
     extras[kTocTitle] = projectExtras[kTocTitle];
   }
+
+  extras = await resolveSassBundles(
+    extras,
+    formatExtras[kSassBundles],
+    projectExtras[kSassBundles],
+  );
 
   // resolve dependencies
   extras = resolveDependencies(extras, inputDir, libDir);
@@ -468,6 +481,67 @@ function resolveBodyEnvelope(extras: FormatExtras) {
     delete extras[kBodyEnvelope];
   }
 
+  return extras;
+}
+
+async function resolveSassBundles(
+  extras: FormatExtras,
+  formatBundles?: SassBundle[],
+  projectBundles?: SassBundle[],
+) {
+  extras = ld.cloneDeep(extras);
+
+  const mergedBundles: Record<string, SassBundle[]> = {};
+  const group = (
+    bundles: SassBundle[],
+    groupedBundles: Record<string, SassBundle[]>,
+  ) => {
+    bundles.forEach((bundle) => {
+      if (!groupedBundles[bundle.dependency]) {
+        groupedBundles[bundle.dependency] = [];
+      }
+      groupedBundles[bundle.dependency].push(bundle);
+    });
+  };
+  if (projectBundles) {
+    group(projectBundles, mergedBundles);
+  }
+
+  if (formatBundles) {
+    group(formatBundles, mergedBundles);
+  }
+
+  // Go through and compile the cssPath for each dependency
+  for (const dependency of Object.keys(mergedBundles)) {
+    // compile the cssPath
+    const bundles = mergedBundles[dependency];
+    const cssPath = await compileSass(bundles, `${dependency}.css`);
+
+    // Push the compiled Css onto the dependency
+    const extraDeps = extras[kDependencies];
+    if (extraDeps) {
+      const existingDependency = extraDeps.find((extraDep) =>
+        extraDep.name === dependency
+      );
+      if (existingDependency) {
+        if (!existingDependency.stylesheets) {
+          existingDependency.stylesheets = [];
+        }
+        existingDependency.stylesheets.push({
+          name: basename(cssPath),
+          path: cssPath,
+        });
+      } else {
+        extraDeps.push({
+          name: dependency,
+          stylesheets: [{
+            name: basename(cssPath),
+            path: cssPath,
+          }],
+        });
+      }
+    }
+  }
   return extras;
 }
 

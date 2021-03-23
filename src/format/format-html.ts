@@ -6,14 +6,13 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
+import { dirname, join } from "path/mod.ts";
 
 import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
 
 import { renderEjs } from "../core/ejs.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { formatResourcePath } from "../core/resources.ts";
-import { compileScss } from "../core/dart-sass.ts";
 
 import {
   kFilters,
@@ -31,6 +30,8 @@ import {
   kBodyEnvelope,
   kDependencies,
   kHtmlPostprocessors,
+  kSassBundles,
+  SassBundle,
 } from "../config/format.ts";
 import { PandocFlags } from "../config/flags.ts";
 import { Metadata } from "../config/metadata.ts";
@@ -40,8 +41,11 @@ export const kTheme = "theme";
 export const kTocFloat = "toc-float";
 export const kPageLayout = "page-layout";
 export const kDocumentCss = "document-css";
+export const kBootstrapDependencyName = "bootstrap-quarto";
 const kDefaultTheme = "default";
-const kThemeSeparatorToken = "// bootstrap-styles";
+const kThemeVariablesToken = "// theme:variables";
+const kThemeRulesToken = "// theme:rules";
+const kThemeDeclarationsToken = "// theme:declarations";
 
 export function htmlFormat(
   figwidth: number,
@@ -99,12 +103,7 @@ export function hasTableOfContentsTitle(flags: PandocFlags, format: Format) {
     format.metadata[kTocTitle] !== undefined;
 }
 
-export async function bootstrapFormatDependency(format: Format) {
-  // Compile the scss
-  const bootstrapCss = await compileBootstrapScss(
-    format.metadata,
-  );
-
+export function bootstrapFormatDependency(format: Format) {
   const boostrapResource = (resource: string) =>
     formatResourcePath(
       "html",
@@ -116,10 +115,9 @@ export async function bootstrapFormatDependency(format: Format) {
   });
 
   return {
-    name: "bootstrap",
+    name: kBootstrapDependencyName,
     version: "v5.0.0-beta2",
     stylesheets: [
-      { name: "bootstrap.min.css", path: bootstrapCss },
       bootstrapDependency("bootstrap-icons.css"),
     ],
     scripts: [
@@ -155,7 +153,7 @@ function resolveThemeScss(
       if (Deno.statSync(theme).isFile) {
         // It is not a built in theme, so read the theme file and parse it.
         const rawContents = Deno.readTextFileSync(theme);
-        const splitContents = rawContents.split(kThemeSeparatorToken);
+        const splitContents = rawContents.split(kThemeVariablesToken);
         if (splitContents.length === 2) {
           themeScss.push({
             variables: splitContents[0],
@@ -199,30 +197,30 @@ function mapPandocVariables(metadata: Metadata) {
     }
   });
 
-  const pushIfDefined = (cssVar?: ScssVariable) => {
+  const addVariable = (cssVar?: ScssVariable) => {
     if (cssVar) {
       explicitVars.push(cssVar);
     }
   };
 
-  pushIfDefined(scssVarFromMetadata(
+  addVariable(scssVarFromMetadata(
     metadata,
     "backgroundcolor",
     "background-color",
   ));
 
-  pushIfDefined(scssVarFromMetadata(
+  addVariable(scssVarFromMetadata(
     metadata,
     "linestretch",
     "line-height",
   ));
 
-  pushIfDefined(scssVarFromMetadata(metadata, "fontcolor", "font-color"));
-  pushIfDefined(scssVarFromMetadata(metadata, "linkcolor", "link-color"));
-  pushIfDefined(
+  addVariable(scssVarFromMetadata(metadata, "fontcolor", "font-color"));
+  addVariable(scssVarFromMetadata(metadata, "linkcolor", "link-color"));
+  addVariable(
     scssVarFromMetadata(metadata, "mainfont", "main-font", asCssFont),
   );
-  pushIfDefined(
+  addVariable(
     scssVarFromMetadata(metadata, "monofont", "mono-font", asCssFont),
   );
 
@@ -244,14 +242,12 @@ function mapPandocVariables(metadata: Metadata) {
   return explicitVars;
 }
 
-async function compileBootstrapScss(
-  metadata: Metadata,
-) {
+function resolveBootstrapSass(metadata: Metadata): SassBundle {
   // Quarto built in css
   const quartoThemesDir = formatResourcePath("html", `bootstrap/themes`);
 
   // The core bootstrap styles
-  const bootstrapCore = join(
+  const boostrapRules = join(
     quartoThemesDir,
     "default/scss/bootstrap.scss",
   );
@@ -264,14 +260,14 @@ async function compileBootstrapScss(
   const themeScss = resolveThemeScss(themes, quartoThemesDir);
 
   const themeVariables: string[] = [];
-  const themeStyles: string[] = [];
+  const themeRules: string[] = [];
   themeScss.forEach((theme) => {
     if (theme.variables) {
       themeVariables.push(theme.variables);
     }
 
     if (theme.styles) {
-      themeStyles.push(theme.styles);
+      themeRules.push(theme.styles);
     }
   });
 
@@ -280,40 +276,36 @@ async function compileBootstrapScss(
     "html",
     "_quarto-variables.scss",
   );
-  const quartoBootstrap = formatResourcePath("html", "_quarto.scss");
+  const quartoRules = formatResourcePath("html", "_quarto.scss");
 
   // If any pandoc specific variables were provided, just pile them in here
   let documentVariables;
-  const pandocMappings = mapPandocVariables(metadata);
-  if (pandocMappings) {
-    documentVariables = pandocMappings.map((variable) =>
+  const pandocVariables = mapPandocVariables(metadata);
+  if (pandocVariables) {
+    documentVariables = pandocVariables.map((variable) =>
       `$${variable.name}: ${variable.value};`
     ).join("\n");
   }
 
-  // Generate the list of scss files
-  const scssInputs: string[] = [];
-  scssInputs.push(...themeVariables);
-  if (documentVariables) {
-    scssInputs.push(documentVariables);
-  }
-  scssInputs.push(Deno.readTextFileSync(quartoVariables));
-  scssInputs.push(Deno.readTextFileSync(bootstrapCore));
-  scssInputs.push(Deno.readTextFileSync(quartoBootstrap));
-  scssInputs.push(...themeStyles);
-
-  // Read the scss files into a single input string
-  const scssInput = scssInputs.join("\n\n");
-
-  // Compile the scss
-  return await compileScss(
-    scssInput,
-    [
-      join(quartoThemesDir, "default/scss/"),
-    ],
-    true,
-    themes.join("|"),
-  );
+  return {
+    dependency: kBootstrapDependencyName,
+    key: themes.join("|"),
+    loadPath: dirname(boostrapRules),
+    name: "bootstrap.min.css",
+    variables: [
+      documentVariables,
+      Deno.readTextFileSync(quartoVariables),
+      ...themeVariables,
+    ].join(
+      "\n\n",
+    ),
+    declarations: "",
+    rules: [
+      Deno.readTextFileSync(boostrapRules),
+      ...themeRules,
+      Deno.readTextFileSync(quartoRules),
+    ].join("\n\n"),
+  };
 }
 
 function pandocExtras(metadata: Metadata) {
@@ -335,10 +327,10 @@ function pandocExtras(metadata: Metadata) {
   };
 }
 
-async function boostrapExtras(
+function boostrapExtras(
   flags: PandocFlags,
   format: Format,
-): Promise<FormatExtras> {
+): FormatExtras {
   const toc = hasTableOfContents(flags, format);
 
   const renderTemplate = (template: string) => {
@@ -364,7 +356,8 @@ async function boostrapExtras(
     [kTocTitle]: !hasTableOfContentsTitle(flags, format)
       ? "Table of contents"
       : undefined,
-    [kDependencies]: [await bootstrapFormatDependency(format)],
+    [kSassBundles]: [resolveBootstrapSass(format.metadata)],
+    [kDependencies]: [bootstrapFormatDependency(format)],
     [kBodyEnvelope]: bodyEnvelope,
     [kFilters]: {
       pre: [
