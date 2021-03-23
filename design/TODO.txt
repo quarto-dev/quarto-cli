@@ -14,13 +14,11 @@ Windows:
 
 
 HTML:
-  - tabs (may require Sass)
   - admonitions (requires Sass)
   - option to have shaded code blocks:
      code-background: light | secondary | etc.
   - copy code block to clipboard
   - hoverable footnotes and citations
-
 
 
 TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx)
