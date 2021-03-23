@@ -14,7 +14,10 @@ body {
   }
 }
 
-code, kbd, pre, samp {
+code,
+kbd,
+pre,
+samp {
   @if variable-exists(mono-background-color) {
     background-color: $mono-background-color;
   }
@@ -22,7 +25,7 @@ code, kbd, pre, samp {
     padding: $mono-padding;
   }
 }
-  
+
 pre.sourceCode {
   @if variable-exists(codeblock-padding-left) {
     padding-left: $codeblock-padding-left;
@@ -30,7 +33,7 @@ pre.sourceCode {
   @if variable-exists(codeblock-border-left) {
     border-left: $codeblock-border-left;
   }
-} 
+}
 
 main {
   margin-top: 1em;
@@ -47,6 +50,15 @@ h2 {
 h3,
 h4 {
   margin-top: 1.5rem;
+}
+
+/* workaround for anchorjs not hitting on generic :hover selector */
+h2:hover > .anchorjs-link,
+h3:hover > .anchorjs-link,
+h4:hover > .anchorjs-link,
+h5:hover > .anchorjs-link,
+h6:hover > .anchorjs-link {
+  opacity: 1;
 }
 
 .sidebar {
