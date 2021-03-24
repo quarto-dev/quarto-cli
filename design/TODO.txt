@@ -18,8 +18,10 @@ HTML:
   - admonitions (requires Sass)
   - option to have shaded code blocks:
      code-background: light | secondary | etc.
-  - special treatment for code blocks inside tabs (no margin)
+  - use of arrow with dark themes
+
   - copy code block to clipboard
+  - improve (and note for docs) kbd treatment (use span?)
   - hoverable footnotes and citations
 
 
@@ -33,6 +35,8 @@ TODO:  htmlwidgets need a fluid container (as perhaps do jupyter widgets)
 
 Future
 =========================================================================
+
+TODO: rsc_publish function based on rmarkdown::publish_site
 
 Search: https://stork-search.net/
 TODO: embedding pdfs in website via pdf.js
