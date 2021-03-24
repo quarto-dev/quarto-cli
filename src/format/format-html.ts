@@ -386,8 +386,8 @@ function resolveBootstrapSass(metadata: Metadata): SassBundle {
     loadPath: dirname(boostrapRules),
     variables: [
       documentVariables,
-      Deno.readTextFileSync(quartoVariables),
       ...themeVariables,
+      Deno.readTextFileSync(quartoVariables),
     ].join(
       "\n\n",
     ),

@@ -1,3 +1,5 @@
+@import "bootstrap";
+
 // Heading font size customization
 $h1-font-size: 2.2rem !default;
 $h2-font-size: 1.75rem !default;
@@ -10,3 +12,14 @@ $max-width: 1400px !default;
 
 // Speed up the default transition for the navbar
 $transition-collapse: height .20s ease !default;
+
+// notice colors
+$notice-border-weight: 3px !default;
+
+$notice-warning-color: $warning !default;
+$notice-warning-background: tint-color($notice-warning-color, 80%) !default;
+$notice-warning-border: $notice-warning-color !default;
+
+$notice-danger-color: $danger !default;
+$notice-danger-background: tint-color($notice-danger-color, 75%) !default;
+$notice-danger-border: $notice-danger-color !default;
