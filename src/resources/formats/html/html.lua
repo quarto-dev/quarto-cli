@@ -17,7 +17,7 @@ end
 
 -- tabsets and notices
 Div = function(div)
-  if div.attr.classes:find("admonition") then
+  if div.attr.classes:find_if(isNotice) then
     return noticeDiv(div)
   elseif div.attr.classes:find("tabset") then
     return tabsetDiv(div)
@@ -25,39 +25,57 @@ Div = function(div)
 end
 
 function noticeDiv(div)
-  -- capture type information
-  local type = div.attr.attributes["type"] 
-  if type == nil then
-    type = "info"
-  end
-
-  -- capture caption information
-  local caption = div.attr.attributes["caption"]
-  div.attr.attributes["caption"] = nil
-
-  -- Make an outer card div and transfer classes
-  local cardDiv = pandoc.Div({})
-  cardDiv.attr.classes = div.attr.classes:clone()
-  div.attr.classes = pandoc.List:new() 
-
-  -- add card attributes
-  cardDiv.attr.classes:insert("card")
+    -- look for divs with a class notice-*
+    if div.attr.classes:find_if(
+      function(class) 
+        return class:match("^notice-")
+      end
+     ) then
   
-  -- create a card header
-  if caption ~= nil then
-    local cardHeaderDiv = pandoc.Div({})
-    cardHeaderDiv.attr.classes:insert("card-header")
-    cardHeaderDiv.content:insert(pandoc.Plain(type))
-    cardDiv.content:insert(cardHeaderDiv)
-  end
-
-  -- create a card body
-  div.attr.classes:insert("card-body")
-  cardDiv.content:insert(div)
+      -- capture caption information
+      local caption = div.attr.attributes["caption"]
+      div.attr.attributes["caption"] = nil
   
-  return cardDiv
+      -- Make an outer card div and transfer classes
+      local noticeDiv = pandoc.Div({})
+      noticeDiv.attr.classes = div.attr.classes:clone()
+      div.attr.classes = pandoc.List:new() 
+  
+      -- add card attribute
+      noticeDiv.attr.classes:insert("card")
+
+      -- the image placeholder
+      local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='notice-img'></i>")});
+            
+      if caption ~= nil then
+        -- create a card with title
+        -- create the header to contain the caption
+        local headerDiv = pandoc.Div({imgPlaceholder, pandoc.Plain(caption)}, {"card-header"})
+        noticeDiv.content:insert(headerDiv)
+         
+        -- make the existing div the card body and add it to the notice
+        div.attr.classes:insert("card-body")
+        noticeDiv.content:insert(div)
+   
+      else 
+        -- create a card without a title
+        -- div that holds image placeholder
+        local imgDiv = pandoc.Div({imgPlaceholder});
+        
+        -- create a card body
+        local containerDiv = pandoc.Div({imgDiv, div}, {"card-body"})
+
+        -- add the container to the notice card
+        noticeDiv.content:insert(containerDiv)
+      end
+      
+      return noticeDiv
+    end
 end
 
+function isNotice(class)
+  return class:match("^notice-")
+end
 
 function tabsetDiv(div)
 
