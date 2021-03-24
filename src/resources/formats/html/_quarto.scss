@@ -151,23 +151,51 @@ code.sourceCode {
 // Cards with header
 
 div[class^="notice-"] {
-  border-left: $notice-border-weight solid;
+  border-left: $notice-border-width solid;
   border-top: none;
   border-right: none;
   border-bottom: none;
-  margin-bottom: 1em;
+  margin-bottom: $notice-margin-bottom;
+}
+
+div[class^="notice-"] > div.card-body {
+  display: flex;
 }
 
 div[class^="notice-"] > div.card-header {
   border-bottom: none;
+  font-weight: 500;
+}
+
+div[class^="notice-"] > div.card-body > div > :last-child {
+  margin-bottom: 0;
 }
 
 div.notice-warning {
+  color: $notice-warning-color;
   background-color: $notice-warning-background;
   border-color: $notice-warning-border;
 }
 
-div.notice-danger {
-  background-color: $notice-danger-background;
-  border-color: $notice-danger-border;
+div.notice-warning a {
+  color: $notice-warning-link;
 }
+
+
+div.card-notice-icon-container {
+  padding-top: .2em;
+  padding-right: .2em;
+}
+
+div.notice-warning .card-notice-icon::before {
+  height: 1.1rem;
+  width: 1.1rem;
+  display: inline-block;
+  content: "";
+  vertical-align: -.125em;
+  background-image: $notice-warning-bg-img;
+  background-repeat: no-repeat;
+  background-size: 1.1rem 1.1rem;
+  margin-right: .25rem;
+}
+

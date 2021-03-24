@@ -25,52 +25,48 @@ Div = function(div)
 end
 
 function noticeDiv(div)
-    -- look for divs with a class notice-*
-    if div.attr.classes:find_if(
-      function(class) 
-        return class:match("^notice-")
-      end
-     ) then
-  
-      -- capture caption information
-      local caption = div.attr.attributes["caption"]
-      div.attr.attributes["caption"] = nil
-  
-      -- Make an outer card div and transfer classes
-      local noticeDiv = pandoc.Div({})
-      noticeDiv.attr.classes = div.attr.classes:clone()
-      div.attr.classes = pandoc.List:new() 
-  
-      -- add card attribute
-      noticeDiv.attr.classes:insert("card")
 
-      -- the image placeholder
-      local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='notice-img'></i>")});
-            
-      if caption ~= nil then
-        -- create a card with title
-        -- create the header to contain the caption
-        local headerDiv = pandoc.Div({imgPlaceholder, pandoc.Plain(caption)}, pandoc.Attr("", {"card-header"}))
-        noticeDiv.content:insert(headerDiv)
-         
-        -- make the existing div the card body and add it to the notice
-        div.attr.classes:insert("card-body")
-        noticeDiv.content:insert(div)
-   
-      else 
-        -- create a card without a title
-        -- div that holds image placeholder
-        local imgDiv = pandoc.Div({imgPlaceholder});
+  -- Make an outer card div and transfer classes
+  local noticeDiv = pandoc.Div({})
+  noticeDiv.attr.classes = div.attr.classes:clone()
+  div.attr.classes = pandoc.List:new() 
+
+  -- add card attribute
+  noticeDiv.attr.classes:insert("card")
+
+  -- the image placeholder
+  local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='card-notice-icon'></i>")});
         
-        -- create a card body
-        local containerDiv = pandoc.Div({imgDiv, div}, pandoc.Attr("", {"card-body"}))
+  -- capture caption information
+  local caption = div.attr.attributes["caption"]
+  div.attr.attributes["caption"] = nil
 
-        -- add the container to the notice card
-        noticeDiv.content:insert(containerDiv)
-      end
+  if caption ~= nil then
+    -- with caption can be collapsible
+    -- collapse=true|false (if present, its collapsible, use state)
+
+    -- create a card with title
+    -- create the header to contain the caption
+    local headerDiv = pandoc.Div({imgPlaceholder, pandoc.Plain(caption)}, pandoc.Attr("", {"card-header"}))
+    noticeDiv.content:insert(headerDiv)
       
-      return noticeDiv
-    end
+    -- make the existing div the card body and add it to the notice
+    div.attr.classes:insert("card-body")
+    noticeDiv.content:insert(div)
+
+  else 
+    -- create a card without a title
+    -- div that holds image placeholder
+    local imgDiv = pandoc.Div({imgPlaceholder}, pandoc.Attr("", {"card-notice-icon-container"}));
+    
+    -- create a card body
+    local containerDiv = pandoc.Div({imgDiv, div}, pandoc.Attr("", {"card-body"}))
+
+    -- add the container to the notice card
+    noticeDiv.content:insert(containerDiv)
+  end
+  
+  return noticeDiv
 end
 
 function isNotice(class)
