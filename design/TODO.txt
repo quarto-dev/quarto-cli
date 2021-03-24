@@ -16,13 +16,17 @@ Windows:
 
 HTML:
   - admonitions (requires Sass)
-  - option to have shaded code blocks:
-     code-background: light | secondary | etc.
-  - use of arrow with dark themes
+  
+  - [Ctrl+A]{.kbd} bootstrap "extension"
 
-  - copy code block to clipboard
-  - improve (and note for docs) kbd treatment (use span?)
   - hoverable footnotes and citations
+
+  - option to have shaded code blocks:
+    code-background: true | false | "color-literal"
+    code-border: true | false | "color-literal"
+    make sure that e.g. zenburn has it's background color overridden by us
+    automaticallly switch to a "dark theme friendly" highlight-style
+
 
 
 TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx)
