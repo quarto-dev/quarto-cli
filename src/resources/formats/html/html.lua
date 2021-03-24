@@ -4,8 +4,8 @@
 -- required version
 PANDOC_VERSION:must_be_at_least '2.13'
 
--- initialize random number generator (used for tabset ids)
-math.randomseed(os.time())
+-- initialize tabset index
+local tabsetidx = 1
 
 -- make images responsive (unless they have an explicit height attribute)
 Image = function(image)
@@ -63,7 +63,8 @@ end
 function tabsetDiv(div)
 
   -- create a unique id for the tabset
-  local tabsetid = "tabset-" .. math.random(100000)
+  local tabsetid = "tabset-" .. tabsetidx
+  tabsetidx = tabsetidx + 1
 
   -- find the first heading in the tabset
   local heading = div.content:find_if(function(el) return el.t == "Header" end)
