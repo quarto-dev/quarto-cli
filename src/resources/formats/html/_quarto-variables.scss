@@ -1,3 +1,4 @@
+@use 'sass:color';
 @import "bootstrap";
 
 // Heading font size customization
@@ -11,7 +12,7 @@ $h5-font-size: 1.1rem !default;
 $max-width: 1400px !default;
 
 // Speed up the default transition for the navbar
-$transition-collapse: height .20s ease !default;
+$transition-collapse: height 0.2s ease !default;
 
 // notice colors
 $notice-border-weight: 3px !default;
