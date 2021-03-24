@@ -68,7 +68,14 @@ h6:hover > .anchorjs-link {
 // Source Code Blocks
 pre.sourceCode,
 code.sourceCode {
+  position: relative;
   border-color: $gray-200 !important;
+}
+
+.code-copy {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
 }
 
 /* table of contents */
@@ -113,7 +120,7 @@ code.sourceCode {
 
 // Cards with header
 
-div[class^='notice-'] {
+div[class^="notice-"] {
   border-left: $notice-border-weight solid;
   border-top: none;
   border-right: none;
@@ -121,7 +128,7 @@ div[class^='notice-'] {
   margin-bottom: 1em;
 }
 
-div[class^='notice-']  > div.card-header {
+div[class^="notice-"] > div.card-header {
   border-bottom: none;
 }
 

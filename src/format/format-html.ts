@@ -41,8 +41,10 @@ import { baseHtmlFormat } from "./formats.ts";
 
 export const kTheme = "theme";
 export const kTocFloat = "toc-float";
+export const kCodeCopy = "code-copy";
 export const kAnchorSections = "anchor-sections";
 export const kPageLayout = "page-layout";
+
 export const kDocumentCss = "document-css";
 export const kBootstrapDependencyName = "bootstrap";
 const kDefaultTheme = "default";
@@ -456,71 +458,91 @@ function boostrapExtras(
         formatResourcePath("html", "html.lua"),
       ],
     },
-    [kHtmlPostprocessors]: [bootstrapHtmlPostprocessor],
+    [kHtmlPostprocessors]: [bootstrapHtmlPostprocessor(format)],
   };
 }
 
-function bootstrapHtmlPostprocessor(doc: Document): string[] {
-  // use display-6 style for title
-  const title = doc.querySelector("header > .title");
-  if (title) {
-    title.classList.add("display-6");
-  }
+function bootstrapHtmlPostprocessor(format: Format) {
+  // read options
+  const codeCopy = format.metadata[kCodeCopy] === true;
 
-  // add 'lead' to subtitle
-  const subtitle = doc.querySelector("header > .subtitle");
-  if (subtitle) {
-    subtitle.classList.add("lead");
-  }
+  return (doc: Document): string[] => {
+    // use display-6 style for title
+    const title = doc.querySelector("header > .title");
+    if (title) {
+      title.classList.add("display-6");
+    }
 
-  // move the toc if there is a sidebar
-  const toc = doc.querySelector('nav[role="doc-toc"]');
-  const tocSidebar = doc.getElementById("quarto-toc-sidebar");
-  if (toc && tocSidebar) {
-    tocSidebar.appendChild(toc);
-    // add scroll spy to the body
-    const body = doc.body;
-    body.setAttribute("data-bs-spy", "scroll");
-    body.setAttribute("data-bs-target", "#" + tocSidebar.id);
+    // add 'lead' to subtitle
+    const subtitle = doc.querySelector("header > .subtitle");
+    if (subtitle) {
+      subtitle.classList.add("lead");
+    }
 
-    // add nav-link class to the TOC links
-    const tocLinks = doc.querySelectorAll('nav[role="doc-toc"] a');
-    for (let i = 0; i < tocLinks.length; i++) {
-      // Mark the toc links as nav-links
-      const tocLink = tocLinks[i] as Element;
-      tocLink.classList.add("nav-link");
+    // move the toc if there is a sidebar
+    const toc = doc.querySelector('nav[role="doc-toc"]');
+    const tocSidebar = doc.getElementById("quarto-toc-sidebar");
+    if (toc && tocSidebar) {
+      tocSidebar.appendChild(toc);
+      // add scroll spy to the body
+      const body = doc.body;
+      body.setAttribute("data-bs-spy", "scroll");
+      body.setAttribute("data-bs-target", "#" + tocSidebar.id);
 
-      // move the raw href to the target attribute (need the raw value, not the full path)
-      if (!tocLink.hasAttribute("data-bs-target")) {
-        tocLink.setAttribute("data-bs-target", tocLink.getAttribute("href"));
+      // add nav-link class to the TOC links
+      const tocLinks = doc.querySelectorAll('nav[role="doc-toc"] a');
+      for (let i = 0; i < tocLinks.length; i++) {
+        // Mark the toc links as nav-links
+        const tocLink = tocLinks[i] as Element;
+        tocLink.classList.add("nav-link");
+
+        // move the raw href to the target attribute (need the raw value, not the full path)
+        if (!tocLink.hasAttribute("data-bs-target")) {
+          tocLink.setAttribute("data-bs-target", tocLink.getAttribute("href"));
+        }
       }
     }
-  }
 
-  // add .table class to pandoc tables
-  const tableHeaders = doc.querySelectorAll("tr.header");
-  for (let i = 0; i < tableHeaders.length; i++) {
-    const th = tableHeaders[i];
-    if (th.parentNode?.parentNode) {
-      (th.parentNode.parentNode as Element).classList.add("table");
+    // add .table class to pandoc tables
+    const tableHeaders = doc.querySelectorAll("tr.header");
+    for (let i = 0; i < tableHeaders.length; i++) {
+      const th = tableHeaders[i];
+      if (th.parentNode?.parentNode) {
+        (th.parentNode.parentNode as Element).classList.add("table");
+      }
     }
-  }
 
-  // move ids from section to headers
-  const sections = doc.querySelectorAll('section[class^="level"]');
-  for (let i = 0; i < sections.length; i++) {
-    const section = sections[i] as Element;
-    const heading = section.querySelector("h2") ||
-      section.querySelector("h3") || section.querySelector("h4") ||
-      section.querySelector("h5") || section.querySelector("h6");
-    if (heading) {
-      heading.setAttribute("id", section.id);
-      section.removeAttribute("id");
+    // move ids from section to headers
+    const sections = doc.querySelectorAll('section[class^="level"]');
+    for (let i = 0; i < sections.length; i++) {
+      const section = sections[i] as Element;
+      const heading = section.querySelector("h2") ||
+        section.querySelector("h3") || section.querySelector("h4") ||
+        section.querySelector("h5") || section.querySelector("h6");
+      if (heading) {
+        heading.setAttribute("id", section.id);
+        section.removeAttribute("id");
+      }
     }
-  }
 
-  // no resource refs
-  return [];
+    // insert code copy button
+    if (codeCopy) {
+      const codeBlocks = doc.querySelectorAll("pre.sourceCode");
+      for (let i = 0; i < codeBlocks.length; i++) {
+        const code = codeBlocks[i];
+        const copyButton = doc.createElement("button");
+        copyButton.classList.add("code-copy-button");
+        copyButton.innerHTML = "Copy";
+        const copyDiv = doc.createElement("div");
+        copyDiv.classList.add("code-copy");
+        copyDiv.appendChild(copyButton);
+        code.appendChild(copyDiv);
+      }
+    }
+
+    // no resource refs
+    return [];
+  };
 }
 
 function scssVarFromMetadata(
