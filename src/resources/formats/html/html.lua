@@ -50,7 +50,7 @@ function noticeDiv(div)
       if caption ~= nil then
         -- create a card with title
         -- create the header to contain the caption
-        local headerDiv = pandoc.Div({imgPlaceholder, pandoc.Plain(caption)}, {"card-header"})
+        local headerDiv = pandoc.Div({imgPlaceholder, pandoc.Plain(caption)}, pandoc.Attr("", {"card-header"}))
         noticeDiv.content:insert(headerDiv)
          
         -- make the existing div the card body and add it to the notice
@@ -63,7 +63,7 @@ function noticeDiv(div)
         local imgDiv = pandoc.Div({imgPlaceholder});
         
         -- create a card body
-        local containerDiv = pandoc.Div({imgDiv, div}, {"card-body"})
+        local containerDiv = pandoc.Div({imgDiv, div}, pandoc.Attr("", {"card-body"}))
 
         -- add the container to the notice card
         noticeDiv.content:insert(containerDiv)
