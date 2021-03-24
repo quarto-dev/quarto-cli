@@ -35,13 +35,16 @@ function noticeDiv(div)
   noticeDiv.attr.classes:insert("card")
 
   -- the image placeholder
-  local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='notice-img'></i>")});
+  local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='card-notice-icon'></i>")});
         
   -- capture caption information
   local caption = div.attr.attributes["caption"]
   div.attr.attributes["caption"] = nil
 
   if caption ~= nil then
+    -- with caption can be collapsible
+    -- collapse=true|false (if present, its collapsible, use state)
+
     -- create a card with title
     -- create the header to contain the caption
     local headerDiv = pandoc.Div({imgPlaceholder, pandoc.Plain(caption)}, pandoc.Attr("", {"card-header"}))
@@ -54,7 +57,7 @@ function noticeDiv(div)
   else 
     -- create a card without a title
     -- div that holds image placeholder
-    local imgDiv = pandoc.Div({imgPlaceholder});
+    local imgDiv = pandoc.Div({imgPlaceholder}, pandoc.Attr("", {"card-notice-icon-container"}));
     
     -- create a card body
     local containerDiv = pandoc.Div({imgDiv, div}, pandoc.Attr("", {"card-body"}))
