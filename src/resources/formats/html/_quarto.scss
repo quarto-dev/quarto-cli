@@ -148,6 +148,15 @@ code.sourceCode {
   color: $primary !important;
 }
 
+// .kbd equivalance to kbd
+.kbd {
+  padding: $kbd-padding-y $kbd-padding-x;
+  @include font-size($kbd-font-size);
+  color: $kbd-color;
+  background-color: $kbd-bg;
+  @include border-radius($border-radius-sm);
+}
+
 // Cards with header
 
 div[class^="notice-"] {
@@ -181,10 +190,9 @@ div.notice-warning a {
   color: $notice-warning-link;
 }
 
-
 div.card-notice-icon-container {
-  padding-top: .2em;
-  padding-right: .2em;
+  padding-top: 0.2em;
+  padding-right: 0.2em;
 }
 
 div.notice-warning .card-notice-icon::before {
@@ -192,10 +200,9 @@ div.notice-warning .card-notice-icon::before {
   width: 1.1rem;
   display: inline-block;
   content: "";
-  vertical-align: -.125em;
+  vertical-align: -0.125em;
   background-image: $notice-warning-bg-img;
   background-repeat: no-repeat;
   background-size: 1.1rem 1.1rem;
-  margin-right: .25rem;
+  margin-right: 0.25rem;
 }
-
