@@ -29,14 +29,16 @@ import {
   SassBundle,
 } from "../../../config/format.ts";
 import { PandocFlags } from "../../../config/flags.ts";
-
 import {
   hasTableOfContents,
   hasTableOfContentsTitle,
+  kTocFloat,
+} from "../../../config/toc.ts";
+
+import {
   kBootstrapDependencyName,
   kPageLayout,
-  kTocFloat,
-} from "../../../format/format-html.ts";
+} from "../../../format/html/format-html.ts";
 
 import { ProjectContext, projectOffset } from "../../project-context.ts";
 import { inputTargetIndex } from "../../project-index.ts";

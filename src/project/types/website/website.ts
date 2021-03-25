@@ -24,7 +24,7 @@ import {
   kTitlePrefix,
   kVariables,
 } from "../../../config/constants.ts";
-import { formatHasBootstrap } from "../../../format/format-html.ts";
+import { formatHasBootstrap } from "../../../format/html/format-html-bootstrap.ts";
 
 import {
   initWebsiteNavigation,

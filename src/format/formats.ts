@@ -49,7 +49,7 @@ import {
 
 import { Format } from "../config/format.ts";
 
-import { htmlFormat } from "./format-html.ts";
+import { htmlFormat } from "./html/format-html.ts";
 
 export function defaultWriterFormat(to: string): Format {
   // to can sometimes have a variant, don't include that in the lookup here
