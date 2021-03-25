@@ -84,7 +84,7 @@ nav .dropdown-item i {
 }
 
 
-@include media-breakpoint-down(md) {
+@include media-breakpoint-down(lg) {
   .sidebar-logo {
     display: none;
   }
