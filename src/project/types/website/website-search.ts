@@ -170,10 +170,12 @@ export function websiteSearchSassBundle() {
   return {
     dependency: kBootstrapDependencyName,
     key: scssPath,
-    name: "quarto-search.css",
-    declarations: "",
-    variables: "",
-    rules: Deno.readTextFileSync(scssPath),
+    quarto: {
+      name: "quarto-search.css",
+      declarations: "",
+      rules: Deno.readTextFileSync(scssPath),
+      variables: "",
+    },
   };
 }
 

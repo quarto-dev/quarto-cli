@@ -6,6 +6,8 @@ PANDOC_VERSION:must_be_at_least '2.13'
 
 -- initialize tabset index
 local tabsetidx = 1
+local noticeidx = 1
+
 
 -- make images responsive (unless they have an explicit height attribute)
 Image = function(image)
@@ -26,6 +28,17 @@ end
 
 function noticeDiv(div)
 
+
+  -- read and clear attributes
+  local caption = div.attr.attributes["caption"]
+  div.attr.attributes["caption"] = nil
+
+  local icon = div.attr.attributes["icon"]
+  div.attr.attributes["icon"] = nil
+
+  local collapse = div.attr.attributes["collapse"]
+  div.attr.attributes["collapse"] = nil
+
   -- Make an outer card div and transfer classes
   local noticeDiv = pandoc.Div({})
   noticeDiv.attr.classes = div.attr.classes:clone()
@@ -35,32 +48,65 @@ function noticeDiv(div)
   noticeDiv.attr.classes:insert("card")
 
   -- the image placeholder
-  local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='card-notice-icon'></i>")});
+  local noicon = ""
+  if icon == "false" then
+    noicon = "no-icon"
+  end
+  local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='card-notice-icon" .. noicon .. "'></i>")});
         
-  -- capture caption information
-  local caption = div.attr.attributes["caption"]
-  div.attr.attributes["caption"] = nil
-
+  -- show a captioned notice
   if caption ~= nil then
-    -- with caption can be collapsible
-    -- collapse=true|false (if present, its collapsible, use state)
 
-    -- create a card with title
+    -- create a unique id for the notice
+    local noticeid = "notice-" .. noticeidx
+    noticeidx = noticeidx + 1
+
     -- create the header to contain the caption
     local headerDiv = pandoc.Div({imgPlaceholder, pandoc.Plain(caption)}, pandoc.Attr("", {"card-header"}))
+    local bodyDiv = div
+    bodyDiv.attr.classes:insert("card-body")
+
+    if collapse ~= nil then 
+
+      -- collapse default value     
+      local expandedAttrVal= "true"
+      if collapse == "true" then
+        expandedAttrVal = "false"
+      end
+
+      -- create the collapse button
+      local btnClasses = "notice-btn-toggle btn d-inline-block border-0 px-0 pb-0 float-end"
+      local btnIcon = "<i class='card-notice-toggle'></i>"
+      local btnAttr = "data-bs-toggle='collapse' data-bs-target='#" .. noticeid .. "' aria-controls='" .. noticeid .. "' aria-expanded='" .. expandedAttrVal .. "' aria-label='Toggle notice'"
+      local toggleButton = pandoc.RawInline("html", "<button type='button' class='" .. btnClasses .. "' " .. btnAttr .. ">" .. btnIcon .. "</button>")
+      headerDiv.content:insert(pandoc.Plain(toggleButton));
+
+      -- configure the div for collapse
+      local collapseDiv = pandoc.Div({})
+      collapseDiv.attr.identifier = noticeid
+      collapseDiv.attr.classes:insert("card-notice-collapse")
+      collapseDiv.attr.classes:insert("collapse")
+      if expandedAttrVal == "true" then
+        collapseDiv.attr.classes:insert("show")
+      end
+
+      -- add the current body to the collapse div and use the collapse div instead
+      collapseDiv.content:insert(bodyDiv)
+      bodyDiv = collapseDiv
+    end
+
+    -- add the header and body to the div
     noticeDiv.content:insert(headerDiv)
-      
-    -- make the existing div the card body and add it to the notice
-    div.attr.classes:insert("card-body")
-    noticeDiv.content:insert(div)
+    noticeDiv.content:insert(bodyDiv)
 
   else 
-    -- create a card without a title
+    -- show an uncaptioned notice
     -- div that holds image placeholder
     local imgDiv = pandoc.Div({imgPlaceholder}, pandoc.Attr("", {"card-notice-icon-container"}));
     
     -- create a card body
     local containerDiv = pandoc.Div({imgDiv, div}, pandoc.Attr("", {"card-body"}))
+    containerDiv.attr.classes:insert("d-flex")
 
     -- add the container to the notice card
     noticeDiv.content:insert(containerDiv)

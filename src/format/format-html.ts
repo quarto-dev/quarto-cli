@@ -309,7 +309,12 @@ function mapMetadataVariables(metadata: Metadata) {
   addVariable(scssVarFromMetadata(metadata, "fontcolor", "body-color"));
   addVariable(scssVarFromMetadata(metadata, "linkcolor", "link-color"));
   addVariable(
-    scssVarFromMetadata(metadata, "mainfont", "font-family-base", asCssFont),
+    scssVarFromMetadata(
+      metadata,
+      "mainfont",
+      "font-family-bootstrap",
+      asCssFont,
+    ),
   );
   addVariable(
     scssVarFromMetadata(metadata, "monofont", "font-family-code", asCssFont),
@@ -403,20 +408,31 @@ function resolveBootstrapSass(metadata: Metadata): SassBundle {
   return {
     dependency: kBootstrapDependencyName,
     key: themes.join("|"),
+    quarto: {
+      variables: [
+        Deno.readTextFileSync(quartoVariables),
+      ].join(
+        "\n\n",
+      ),
+      declarations: "",
+      rules: [
+        Deno.readTextFileSync(quartoRules),
+      ].join("\n\n"),
+    },
+    bootstrap: {
+      variables: [
+        documentVariables,
+        ...themeVariables,
+      ].join(
+        "\n\n",
+      ),
+      declarations: "",
+      rules: [
+        Deno.readTextFileSync(boostrapRules),
+        ...themeRules,
+      ].join("\n\n"),
+    },
     loadPath: dirname(boostrapRules),
-    variables: [
-      documentVariables,
-      ...themeVariables,
-      Deno.readTextFileSync(quartoVariables),
-    ].join(
-      "\n\n",
-    ),
-    declarations: "",
-    rules: [
-      Deno.readTextFileSync(boostrapRules),
-      ...themeRules,
-      Deno.readTextFileSync(quartoRules),
-    ].join("\n\n"),
   };
 }
 

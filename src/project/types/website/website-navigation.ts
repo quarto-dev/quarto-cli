@@ -627,10 +627,12 @@ function websiteNavigationSassBundle() {
   return {
     dependency: kBootstrapDependencyName,
     key: scssPath,
-    name: "quarto-nav.css",
-    variables: "",
-    declarations: "",
-    rules: Deno.readTextFileSync(scssPath),
+    quarto: {
+      name: "quarto-nav.css",
+      variables: "",
+      declarations: "",
+      rules: Deno.readTextFileSync(scssPath),
+    },
   };
 }
 
