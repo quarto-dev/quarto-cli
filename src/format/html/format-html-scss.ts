@@ -13,12 +13,12 @@ import { asCssFont, asCssNumber, asCssSize } from "../../core/css.ts";
 
 import { SassBundle } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
+import { kTheme } from "../../config/constants.ts";
 
 import {
   kBootstrapDependencyName,
   kCodeCopy,
   kDefaultTheme,
-  kTheme,
 } from "./format-html.ts";
 
 const kThemeScopeRegex =
@@ -64,7 +64,10 @@ export function resolveBootstrapScss(metadata: Metadata): SassBundle {
     "_quarto-variables.scss",
   );
   const quartoRules = formatResourcePath("html", "_quarto.scss");
-  const quartoDeclarations = formatResourcePath("html", "_quarto-declarations.scss");
+  const quartoDeclarations = formatResourcePath(
+    "html",
+    "_quarto-declarations.scss",
+  );
 
   // If any pandoc specific variables were provided, just pile them in here
   let documentVariables;

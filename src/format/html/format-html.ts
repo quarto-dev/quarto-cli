@@ -26,13 +26,14 @@ import {
 } from "../../config/format.ts";
 import { PandocFlags } from "../../config/flags.ts";
 import { Metadata } from "../../config/metadata.ts";
+import { kTheme } from "../../config/constants.ts";
+
 import { baseHtmlFormat } from "./../formats.ts";
 
 import { boostrapExtras, formatHasBootstrap } from "./format-html-bootstrap.ts";
 
 export const kDefaultTheme = "default";
 
-export const kTheme = "theme";
 export const kCodeCopy = "code-copy";
 export const kAnchorSections = "anchor-sections";
 export const kPageLayout = "page-layout";

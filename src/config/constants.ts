@@ -164,6 +164,7 @@ export const kHeaderIncludes = "header-includes";
 export const kIncludeBefore = "include-before";
 export const kIncludeAfter = "include-after";
 export const kTocTitle = "toc-title";
+export const kTheme = "theme";
 
 // https://pandoc.org/MANUAL.html#default-files
 // note: we are keeping some things out of 'defaults' b/ca
