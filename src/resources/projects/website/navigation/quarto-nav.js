@@ -66,7 +66,7 @@ window.document.addEventListener("DOMContentLoaded", function() {
     }
     if (offset > 0) {
       linkStyle.appendChild(window.document.createTextNode(`
-      :target::before {
+      h2:target::before,h3:target::before,h4:target::before,h5:target::before,h6:target::before {
         content: "";
         display: block;
         height: ${offset}px;

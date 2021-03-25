@@ -36,6 +36,8 @@ export const kTheme = "theme";
 export const kCodeCopy = "code-copy";
 export const kAnchorSections = "anchor-sections";
 export const kPageLayout = "page-layout";
+export const kHoverCitations = "hover-citations";
+export const kHoverFootnotes = "hover-footnotes";
 
 export const kDocumentCss = "document-css";
 export const kBootstrapDependencyName = "bootstrap";
@@ -95,6 +97,10 @@ function htmlFormatExtras(format: Format): FormatExtras {
     copyCode: format.metadata[kCodeCopy] !== false &&
       formatHasBootstrap(format),
     anchors: format.metadata[kAnchorSections],
+    hoverCitations: format.metadata[kHoverCitations] !== false &&
+      formatHasBootstrap(format),
+    hoverFootnotes: format.metadata[kHoverFootnotes] !== false &&
+      formatHasBootstrap(format),
   };
 
   // clipboard.js if requested
