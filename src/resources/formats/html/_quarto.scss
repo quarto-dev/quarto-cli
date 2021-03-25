@@ -69,13 +69,43 @@ h6:hover > .anchorjs-link {
 pre.sourceCode,
 code.sourceCode {
   position: relative;
+  overflow-y: hidden;
   border-color: $gray-200 !important;
 }
 
-.code-copy {
+.code-copy-button {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
+  top: 0;
+  right: 0;
+  border: 0;
+  background-color: transparent;
+}
+
+.code-copy-button:focus {
+  outline: none;
+}
+
+#{$code-copy-selector} .code-copy-button > .bi::before {
+  display: inline-block;
+  height: 1rem;
+  width: 1rem;
+  content: "";
+  vertical-align: -0.125em;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="rgb(#{color.red($text-muted)},#{color.green($text-muted)},#{color.blue($text-muted)})" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>');
+  background-repeat: no-repeat;
+  background-size: 1rem 1rem;
+}
+
+#{$code-copy-selector} .code-copy-button:hover > .bi::before {
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="rgb(#{color.red($link-hover-color)},#{color.green($link-hover-color)},#{color.blue($link-hover-color)})" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>');
+}
+
+#{$code-copy-selector} .code-copy-button-checked > .bi::before {
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="rgb(#{color.red($text-muted)},#{color.green($text-muted)},#{color.blue($text-muted)})" viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>');
+}
+
+#{$code-copy-selector} .code-copy-button-checked:hover > .bi::before {
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="rgb(#{color.red($link-hover-color)},#{color.green($link-hover-color)},#{color.blue($link-hover-color)})" viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>');
 }
 
 /* table of contents */
@@ -116,6 +146,13 @@ code.sourceCode {
 .sidebar-toc > nav ul > li > a.active {
   border-color: $primary;
   color: $primary !important;
+}
+
+// tweaking default keyboard settings
+kbd,
+.kbd {
+  color: $body-color;
+  background-color: $progress-bg;
 }
 
 // Cards with header
@@ -189,10 +226,9 @@ div.notice-warning .card-notice-icon::before {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{shift-color($warning, $notice-fill-scale)}" class="bi bi-exclamation-triangle-fill" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>');
   background-repeat: no-repeat;
   background-size: 1.1rem 1.1rem;
-  margin-right: .25rem;
+  margin-right: 0.25rem;
 }
 
 div.notice-warning .card-notice-icon .no-icon {
   display: none;
 }
-

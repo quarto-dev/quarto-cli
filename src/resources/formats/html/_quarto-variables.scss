@@ -1,3 +1,4 @@
+@use 'sass:color';
 
 // Heading font size customization
 $h1-font-size: 2.2rem !default;
@@ -6,11 +7,15 @@ $h3-font-size: 1.5rem !default;
 $h4-font-size: 1.25rem !default;
 $h5-font-size: 1.1rem !default;
 
+// TODO: restore !default
+$kbd-padding-y: 0.4rem;
+$kbd-padding-x: 0.4rem;
+
 // Body max-width
 $max-width: 1400px !default;
 
 // Speed up the default transition for the navbar
-$transition-collapse: height .20s ease !default;
+$transition-collapse: height 0.2s ease !default;
 
 // notice colors
 $notice-border-width: 3px !default;
@@ -20,4 +25,3 @@ $notice-border-scale: -50% !default;
 $notice-color-scale: 40% !default;
 $notice-link-scale: 20% !default;
 $notice-margin-bottom: 1rem !default;
-

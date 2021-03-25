@@ -100,18 +100,29 @@ function themeFormatExtras(flags: PandocFlags, format: Format) {
 function htmlFormatExtras(format: Format): FormatExtras {
   // lists of scripts and ejs data for the orchestration script
   const scripts: DependencyFile[] = [];
-  const ejsData: Record<string, unknown> = {};
+  const options: Record<string, unknown> = {
+    copyCode: format.metadata[kCodeCopy] !== false &&
+      formatHasBootstrap(format),
+    anchors: format.metadata[kAnchorSections],
+  };
+
+  // clipboard.js if requested
+  if (options.copyCode) {
+    scripts.push({
+      name: "clipboard.min.js",
+      path: formatResourcePath("html", join("clipboard", "clipboard.min.js")),
+    });
+  }
 
   // anchors if requested
-  if (format.metadata[kAnchorSections] !== false) {
+  if (options.anchors !== false) {
     scripts.push({
       name: "anchor.min.js",
       path: formatResourcePath("html", join("anchor", "anchor.min.js")),
     });
-    const anchors = format.metadata[kAnchorSections];
-    ejsData.anchors = typeof (anchors) === "string" ? anchors : true;
-  } else {
-    ejsData.anchors = false;
+    options.anchors = typeof (options.anchors) === "string"
+      ? options.anchors
+      : true;
   }
 
   // add main orchestion script
@@ -120,7 +131,7 @@ function htmlFormatExtras(format: Format): FormatExtras {
     quartoHtmlScript,
     renderEjs(
       formatResourcePath("html", join("templates", "quarto-html.ejs.js")),
-      ejsData,
+      options,
     ),
   );
 
@@ -264,14 +275,21 @@ export interface ScssVariable {
   value: string;
 }
 
-function mapPandocVariables(metadata: Metadata) {
+function mapMetadataVariables(metadata: Metadata) {
   const explicitVars: ScssVariable[] = [];
 
   const addVariable = (cssVar?: ScssVariable) => {
-    if (cssVar) {
+    if (cssVar !== undefined) {
       explicitVars.push(cssVar);
     }
   };
+
+  addVariable({
+    name: "code-copy-selector",
+    value: metadata[kCodeCopy] === undefined || metadata[kCodeCopy] === "hover"
+      ? '"pre.sourceCode:hover > "'
+      : '""',
+  });
 
   // Map some variables to bootstrap vars
   addVariable(scssVarFromMetadata(
@@ -380,7 +398,7 @@ function resolveBootstrapSass(metadata: Metadata): SassBundle {
 
   // If any pandoc specific variables were provided, just pile them in here
   let documentVariables;
-  const pandocVariables = mapPandocVariables(metadata);
+  const pandocVariables = mapMetadataVariables(metadata);
   if (pandocVariables) {
     documentVariables = pandocVariables.map((variable) =>
       `$${variable.name}: ${variable.value};`
@@ -480,7 +498,7 @@ function boostrapExtras(
 
 function bootstrapHtmlPostprocessor(format: Format) {
   // read options
-  const codeCopy = format.metadata[kCodeCopy] === true;
+  const codeCopy = format.metadata[kCodeCopy] !== false;
 
   return (doc: Document): string[] => {
     // use display-6 style for title
@@ -546,13 +564,17 @@ function bootstrapHtmlPostprocessor(format: Format) {
       const codeBlocks = doc.querySelectorAll("pre.sourceCode");
       for (let i = 0; i < codeBlocks.length; i++) {
         const code = codeBlocks[i];
+
         const copyButton = doc.createElement("button");
-        copyButton.classList.add("code-copy-button");
-        copyButton.innerHTML = "Copy";
-        const copyDiv = doc.createElement("div");
-        copyDiv.classList.add("code-copy");
-        copyDiv.appendChild(copyButton);
-        code.appendChild(copyDiv);
+        const title = "Copy to Clipboard";
+        copyButton.setAttribute("title", title);
+        copyButton.classList
+          .add("code-copy-button");
+        const copyIcon = doc.createElement("i");
+        copyIcon.classList.add("bi");
+        copyButton.appendChild(copyIcon);
+
+        code.appendChild(copyButton);
       }
     }
 
@@ -567,16 +589,16 @@ function scssVarFromMetadata(
   cssName: string,
   formatter?: (val: string) => string | undefined,
 ): ScssVariable | undefined {
-  if (metadata[name]) {
+  if (metadata[name] !== undefined) {
     const value = typeof (metadata[name]) === "string"
       ? metadata[name]
       : undefined;
-    if (value) {
+    if (value !== undefined) {
       const formattedValue = formatter
         ? formatter(value as string)
         : value as string;
 
-      if (formattedValue) {
+      if (formattedValue !== undefined) {
         return {
           name: cssName,
           value: formattedValue,

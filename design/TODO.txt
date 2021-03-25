@@ -16,13 +16,34 @@ Windows:
 
 HTML:
   - admonitions (requires Sass)
+  
+  
   - option to have shaded code blocks:
-     code-background: light | secondary | etc.
-  - use of arrow with dark themes
+    code-background: true | false | "color-literal"
+    code-border: true | false | "color-literal"
+    make sure that e.g. zenburn has it's background color overridden by us
+    automaticallly switch to a "dark theme friendly" highlight-style
 
-  - copy code block to clipboard
-  - improve (and note for docs) kbd treatment (use span?)
-  - hoverable footnotes and citations
+- hoverable footnotes and citations
+- placement/formatting of bibliography and footnotes
+
+## Citations
+
+<span class="citation" data-cites="pirzada2020">
+<a href="#ref-pirzada2020" role="doc-biblioref">Pirzada, Mokhtar, and Moeller</a> 
+(<a href="#ref-pirzada2020" role="doc-biblioref">2020</a>)
+</span>
+
+<div id="ref-pirzada2020" class="csl-entry" role="doc-biblioentry">
+Pirzada, Ashar, Ahmed T. Mokhtar, and Andrew D. Moeller. 2020. <span>“COVID-19 and Myocarditis: What Do We Know So Far?”</span> <em>CJC open</em> 2 (4): 278–85.
+ <a href="https://doi.org/10.1016/j.cjco.2020.05.005">https://doi.org/10.1016/j.cjco.2020.05.005</a>.
+</div>
+
+## Footnotes
+
+<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>
+
+<li id="fn1" role="doc-endnote"><p>This is a footnote that I want to see<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a
 
 
 TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx)
