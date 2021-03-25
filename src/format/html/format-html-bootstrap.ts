@@ -61,7 +61,7 @@ export function bootstrapFormatDependency(format: Format) {
       bootstrapDependency("bootstrap-icons.css"),
     ],
     scripts: [
-      bootstrapDependency("bootstrap.bundle.min.js"),
+      bootstrapDependency("bootstrap.min.js"),
     ],
     resources: [
       bootstrapDependency("bootstrap-icons.woff"),
