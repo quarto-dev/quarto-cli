@@ -45,14 +45,14 @@ function calloutDiv(div)
   div.attr.classes = pandoc.List:new() 
 
   -- add card attribute
-  calloutDiv.attr.classes:insert("card")
+  calloutDiv.attr.classes:insert("callout")
   
   -- the image placeholder
   local noicon = ""
   if icon == "false" then
     noicon = "no-icon"
   end
-  local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='card-callout-icon" .. noicon .. "'></i>")});
+  local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='callout-icon" .. noicon .. "'></i>")});
         
   -- show a captioned callout
   if caption ~= nil then
@@ -65,9 +65,9 @@ function calloutDiv(div)
     calloutidx = calloutidx + 1
 
     -- create the header to contain the caption
-    local headerDiv = pandoc.Div({imgPlaceholder, pandoc.Plain(caption)}, pandoc.Attr("", {"card-header"}))
+    local headerDiv = pandoc.Div({imgPlaceholder, pandoc.Plain(caption)}, pandoc.Attr("", {"callout-header"}))
     local bodyDiv = div
-    bodyDiv.attr.classes:insert("card-body")
+    bodyDiv.attr.classes:insert("callout-body")
 
     if collapse ~= nil then 
 
@@ -79,7 +79,7 @@ function calloutDiv(div)
 
       -- create the collapse button
       local btnClasses = "callout-btn-toggle btn d-inline-block border-0 py-1 ps-1 pe-0 float-end"
-      local btnIcon = "<i class='card-callout-toggle'></i>"
+      local btnIcon = "<i class='callout-toggle'></i>"
       local toggleButton = pandoc.RawInline("html", "<button type='button' class='" .. btnClasses .. "'>" .. btnIcon .. "</button>")
       headerDiv.content:insert(pandoc.Plain(toggleButton));
 
@@ -93,7 +93,7 @@ function calloutDiv(div)
       -- configure the body div for collapse
       local collapseDiv = pandoc.Div({})
       collapseDiv.attr.identifier = calloutid
-      collapseDiv.attr.classes:insert("card-callout-collapse")
+      collapseDiv.attr.classes:insert("callout-collapse")
       collapseDiv.attr.classes:insert("collapse")
       if expandedAttrVal == "true" then
         collapseDiv.attr.classes:insert("show")
@@ -111,10 +111,10 @@ function calloutDiv(div)
   else 
     -- show an uncaptioned callout
     -- div that holds image placeholder
-    local imgDiv = pandoc.Div({imgPlaceholder}, pandoc.Attr("", {"card-callout-icon-container"}));
+    local imgDiv = pandoc.Div({imgPlaceholder}, pandoc.Attr("", {"callout-icon-container"}));
     
     -- create a card body
-    local containerDiv = pandoc.Div({imgDiv, div}, pandoc.Attr("", {"card-body"}))
+    local containerDiv = pandoc.Div({imgDiv, div}, pandoc.Attr("", {"callout-body"}))
     containerDiv.attr.classes:insert("d-flex")
 
     -- add the container to the callout card
