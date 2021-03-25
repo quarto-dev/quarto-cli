@@ -64,6 +64,7 @@ export function resolveBootstrapScss(metadata: Metadata): SassBundle {
     "_quarto-variables.scss",
   );
   const quartoRules = formatResourcePath("html", "_quarto.scss");
+  const quartoDeclarations = formatResourcePath("html", "_quarto-declarations.scss");
 
   // If any pandoc specific variables were provided, just pile them in here
   let documentVariables;
@@ -83,7 +84,11 @@ export function resolveBootstrapScss(metadata: Metadata): SassBundle {
       ].join(
         "\n\n",
       ),
-      declarations: "",
+      declarations: [
+        Deno.readTextFileSync(quartoDeclarations),
+      ].join(
+        "\n\n",
+      ),
       rules: [
         Deno.readTextFileSync(quartoRules),
       ].join("\n\n"),
