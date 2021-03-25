@@ -148,13 +148,11 @@ code.sourceCode {
   color: $primary !important;
 }
 
-// .kbd equivalance to kbd
+// tweaking default keyboard settings
+kbd,
 .kbd {
-  padding: $kbd-padding-y $kbd-padding-x;
-  @include font-size($kbd-font-size);
-  color: $kbd-color;
-  background-color: $kbd-bg;
-  @include border-radius($border-radius-sm);
+  color: $body-color;
+  background-color: $progress-bg;
 }
 
 // Cards with header
