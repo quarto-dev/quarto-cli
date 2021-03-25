@@ -683,8 +683,6 @@ async function resolveFormats(
     // theme is handled automatically
     mergedFormats[format].metadata[kTheme] = inputFormat.metadata[kTheme] ||
       projFormat.metadata[kTheme];
-
-    console.log(mergedFormats[format]);
   });
 
   return mergedFormats;
