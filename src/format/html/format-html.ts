@@ -66,15 +66,15 @@ export function htmlFormat(
 function themeFormatExtras(flags: PandocFlags, format: Format) {
   const theme = format.metadata[kTheme];
   if (theme === "none") {
-    return Promise.resolve({
+    return {
       pandoc: {
         [kVariables]: {
           [kDocumentCss]: false,
         },
       },
-    });
+    };
   } else if (theme === "pandoc") {
-    return Promise.resolve(pandocExtras(format.metadata));
+    return pandocExtras(format.metadata);
   } else {
     return boostrapExtras(flags, format);
   }
