@@ -171,6 +171,10 @@ div[class^="notice-"] > div.card-header {
   font-weight: 500;
 }
 
+div[class^="notice-"] > div.card-header[data-bs-toggle="collapse"] {
+  cursor: pointer;
+}
+
 div[class^="notice-"] .card-body > :last-child,
 div[class^="notice-"] .card-body > div > :last-child {
   margin-bottom: 0;
@@ -182,7 +186,6 @@ div[class^="notice-"] .card-notice-toggle::before {
   display: inline-block;
   content: "";
   vertical-align: -.125em;
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{shift-color($warning, $notice-fill-scale)}" class="bi bi-chevron-down" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>');
   background-repeat: no-repeat;
   background-size: 1.1rem 1.1rem;
   margin-right: .25rem;
@@ -192,13 +195,23 @@ div[class^="notice-"] .notice-btn-toggle .card-notice-toggle::before {
   transition: transform 0.2s linear;
 }
 
-div[class^="notice-"] .notice-btn-toggle[aria-expanded="false"] .card-notice-toggle::before {
+div[class^="notice-"] .card-header[aria-expanded="false"] .card-notice-toggle::before {
   transform: rotate(-90deg);  
   
 }
 
-div[class^="notice-"] .notice-btn-toggle[aria-expanded="true"] .card-notice-toggle::before {
+div[class^="notice-"] .card-header[aria-expanded="true"] .card-notice-toggle::before {
   transform: none;
+}
+
+div[class^="notice-"] div.card-notice-icon-container {
+  padding-top: .2em;
+  padding-right: .4em;
+  margin-left: -.2em;
+}
+
+div[class^="notice-"] .no-icon {
+  display: none;
 }
 
 div.notice-warning {
@@ -209,12 +222,6 @@ div.notice-warning {
 
 div.notice-warning a {
   color: shift-color($warning, $notice-link-scale);
-}
-
-div.card-notice-icon-container {
-  padding-top: .2em;
-  padding-right: .4em;
-  margin-left: -.2em;
 }
 
 div.notice-warning .card-notice-icon::before {
@@ -229,6 +236,6 @@ div.notice-warning .card-notice-icon::before {
   margin-right: 0.25rem;
 }
 
-div.notice-warning .card-notice-icon .no-icon {
-  display: none;
+div.notice-warning .card-notice-toggle::before {
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{shift-color($warning, $notice-fill-scale)}" class="bi bi-chevron-down" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>');
 }

@@ -75,13 +75,19 @@ function noticeDiv(div)
       end
 
       -- create the collapse button
-      local btnClasses = "notice-btn-toggle btn d-inline-block border-0 px-0 pb-0 float-end"
+      local btnClasses = "notice-btn-toggle btn d-inline-block border-0 px-1 ps-1 pe-0 float-end"
       local btnIcon = "<i class='card-notice-toggle'></i>"
-      local btnAttr = "data-bs-toggle='collapse' data-bs-target='#" .. noticeid .. "' aria-controls='" .. noticeid .. "' aria-expanded='" .. expandedAttrVal .. "' aria-label='Toggle notice'"
-      local toggleButton = pandoc.RawInline("html", "<button type='button' class='" .. btnClasses .. "' " .. btnAttr .. ">" .. btnIcon .. "</button>")
+      local toggleButton = pandoc.RawInline("html", "<button type='button' class='" .. btnClasses .. "'>" .. btnIcon .. "</button>")
       headerDiv.content:insert(pandoc.Plain(toggleButton));
 
-      -- configure the div for collapse
+      -- configure the header div for collapse
+      headerDiv.attr.attributes["bs-toggle"] = "collapse"
+      headerDiv.attr.attributes["bs-target"] = "#" .. noticeid
+      headerDiv.attr.attributes["aria-controls"] = noticeid
+      headerDiv.attr.attributes["aria-expanded"] = expandedAttrVal
+      headerDiv.attr.attributes["aria-label"] = 'Toggle notice'
+
+      -- configure the body div for collapse
       local collapseDiv = pandoc.Div({})
       collapseDiv.attr.identifier = noticeid
       collapseDiv.attr.classes:insert("card-notice-collapse")
