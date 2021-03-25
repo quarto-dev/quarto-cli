@@ -63,6 +63,7 @@ import {
 } from "../../execute/engine.ts";
 
 import { markdownEngine } from "../../execute/markdown.ts";
+import { formatHasBootstrap } from "../../format/html/format-html-bootstrap.ts";
 
 import { PandocOptions, runPandoc } from "./pandoc.ts";
 import { removePandocToArg, RenderFlags, resolveParams } from "./flags.ts";
@@ -675,14 +676,21 @@ async function resolveFormats(
   // merge the formats
   const mergedFormats: Record<string, Format> = {};
   formats.forEach((format) => {
-    // do the merge
+    // alias formats
     const projFormat = projFormats[format];
     const inputFormat = inputFormats[format];
-    mergedFormats[format] = mergeConfigs(projFormat, inputFormat);
 
-    // theme is handled automatically
-    mergedFormats[format].metadata[kTheme] = inputFormat.metadata[kTheme] ||
-      projFormat.metadata[kTheme];
+    // resolve theme (project-level bootstrap theme always wins)
+    if (formatHasBootstrap(projFormat)) {
+      if (formatHasBootstrap(inputFormat)) {
+        delete inputFormat.metadata[kTheme];
+      } else {
+        delete projFormat.metadata[kTheme];
+      }
+    }
+
+    // do the merge
+    mergedFormats[format] = mergeConfigs(projFormat, inputFormat);
   });
 
   return mergedFormats;
