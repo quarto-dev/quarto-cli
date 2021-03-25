@@ -6,7 +6,7 @@ PANDOC_VERSION:must_be_at_least '2.13'
 
 -- initialize tabset index
 local tabsetidx = 1
-local noticeidx = 1
+local calloutidx = 1
 
 
 -- make images responsive (unless they have an explicit height attribute)
@@ -17,16 +17,16 @@ Image = function(image)
   end
 end
 
--- tabsets and notices
+-- tabsets and callouts
 Div = function(div)
-  if div.attr.classes:find_if(isNotice) then
-    return noticeDiv(div)
+  if div.attr.classes:find_if(isCallout) then
+    return calloutDiv(div)
   elseif div.attr.classes:find("tabset") then
     return tabsetDiv(div)
   end  
 end
 
-function noticeDiv(div)
+function calloutDiv(div)
 
 
   -- read and clear attributes
@@ -40,29 +40,29 @@ function noticeDiv(div)
   div.attr.attributes["collapse"] = nil
 
   -- Make an outer card div and transfer classes
-  local noticeDiv = pandoc.Div({})
-  noticeDiv.attr.classes = div.attr.classes:clone()
+  local calloutDiv = pandoc.Div({})
+  calloutDiv.attr.classes = div.attr.classes:clone()
   div.attr.classes = pandoc.List:new() 
 
   -- add card attribute
-  noticeDiv.attr.classes:insert("card")
+  calloutDiv.attr.classes:insert("card")
   
   -- the image placeholder
   local noicon = ""
   if icon == "false" then
     noicon = "no-icon"
   end
-  local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='card-notice-icon" .. noicon .. "'></i>")});
+  local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='card-callout-icon" .. noicon .. "'></i>")});
         
-  -- show a captioned notice
+  -- show a captioned callout
   if caption ~= nil then
 
-    -- mark the notice as being captioned
-    noticeDiv.attr.classes:insert("notice-captioned")
+    -- mark the callout as being captioned
+    calloutDiv.attr.classes:insert("callout-captioned")
 
-    -- create a unique id for the notice
-    local noticeid = "notice-" .. noticeidx
-    noticeidx = noticeidx + 1
+    -- create a unique id for the callout
+    local calloutid = "callout-" .. calloutidx
+    calloutidx = calloutidx + 1
 
     -- create the header to contain the caption
     local headerDiv = pandoc.Div({imgPlaceholder, pandoc.Plain(caption)}, pandoc.Attr("", {"card-header"}))
@@ -78,22 +78,22 @@ function noticeDiv(div)
       end
 
       -- create the collapse button
-      local btnClasses = "notice-btn-toggle btn d-inline-block border-0 py-1 ps-1 pe-0 float-end"
-      local btnIcon = "<i class='card-notice-toggle'></i>"
+      local btnClasses = "callout-btn-toggle btn d-inline-block border-0 py-1 ps-1 pe-0 float-end"
+      local btnIcon = "<i class='card-callout-toggle'></i>"
       local toggleButton = pandoc.RawInline("html", "<button type='button' class='" .. btnClasses .. "'>" .. btnIcon .. "</button>")
       headerDiv.content:insert(pandoc.Plain(toggleButton));
 
       -- configure the header div for collapse
       headerDiv.attr.attributes["bs-toggle"] = "collapse"
-      headerDiv.attr.attributes["bs-target"] = "#" .. noticeid
-      headerDiv.attr.attributes["aria-controls"] = noticeid
+      headerDiv.attr.attributes["bs-target"] = "#" .. calloutid
+      headerDiv.attr.attributes["aria-controls"] = calloutid
       headerDiv.attr.attributes["aria-expanded"] = expandedAttrVal
-      headerDiv.attr.attributes["aria-label"] = 'Toggle notice'
+      headerDiv.attr.attributes["aria-label"] = 'Toggle callout'
 
       -- configure the body div for collapse
       local collapseDiv = pandoc.Div({})
-      collapseDiv.attr.identifier = noticeid
-      collapseDiv.attr.classes:insert("card-notice-collapse")
+      collapseDiv.attr.identifier = calloutid
+      collapseDiv.attr.classes:insert("card-callout-collapse")
       collapseDiv.attr.classes:insert("collapse")
       if expandedAttrVal == "true" then
         collapseDiv.attr.classes:insert("show")
@@ -105,27 +105,27 @@ function noticeDiv(div)
     end
 
     -- add the header and body to the div
-    noticeDiv.content:insert(headerDiv)
-    noticeDiv.content:insert(bodyDiv)
+    calloutDiv.content:insert(headerDiv)
+    calloutDiv.content:insert(bodyDiv)
 
   else 
-    -- show an uncaptioned notice
+    -- show an uncaptioned callout
     -- div that holds image placeholder
-    local imgDiv = pandoc.Div({imgPlaceholder}, pandoc.Attr("", {"card-notice-icon-container"}));
+    local imgDiv = pandoc.Div({imgPlaceholder}, pandoc.Attr("", {"card-callout-icon-container"}));
     
     -- create a card body
     local containerDiv = pandoc.Div({imgDiv, div}, pandoc.Attr("", {"card-body"}))
     containerDiv.attr.classes:insert("d-flex")
 
-    -- add the container to the notice card
-    noticeDiv.content:insert(containerDiv)
+    -- add the container to the callout card
+    calloutDiv.content:insert(containerDiv)
   end
   
-  return noticeDiv
+  return calloutDiv
 end
 
-function isNotice(class)
-  return class:match("^notice-")
+function isCallout(class)
+  return class:match("^callout-")
 end
 
 function tabsetDiv(div)

@@ -15,10 +15,10 @@ $max-width: 1400px !default;
 // Speed up the default transition for the navbar
 $transition-collapse: height 0.2s ease !default;
 
-// notice colors
-$notice-border-width: 5px !default;
-$notice-border-scale: 0% !default;
-$notice-bg-scale: -70% !default;
-$notice-icon-scale: 10% !default;
-$notice-text-scale: 60% !default;
-$notice-margin-bottom: 1rem !default;
+// callout colors
+$callout-border-width: 5px !default;
+$callout-border-scale: 0% !default;
+$callout-bg-scale: -70% !default;
+$callout-icon-scale: 10% !default;
+$callout-text-scale: 60% !default;
+$callout-margin-bottom: 1rem !default;

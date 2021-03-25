@@ -172,37 +172,37 @@ kbd,
 }
 
 // Cards with header
-div[class^="notice-"] {
-  margin-bottom: $notice-margin-bottom;
+div[class^="callout-"] {
+  margin-bottom: $callout-margin-bottom;
 }
 
-div[class^="notice-"]:not(.notice-captioned) {
-  border-left: $notice-border-width solid;
+div[class^="callout-"]:not(.callout-captioned) {
+  border-left: $callout-border-width solid;
   border-right: 1px solid $table-border-color;
   border-top: 1px solid $table-border-color;
   border-bottom: 1px solid $table-border-color;
 }
 
-div[class^="notice-"].notice-captioned {
+div[class^="callout-"].callout-captioned {
   border: 1px solid $table-border-color;
 }
 
-div[class^="notice-"] > div.card-header {
+div[class^="callout-"] > div.card-header {
   padding: 0.25em 0.65rem !important;
   border-bottom: none;
   font-weight: 500;
 }
 
-div[class^="notice-"] > div.card-header[data-bs-toggle="collapse"] {
+div[class^="callout-"] > div.card-header[data-bs-toggle="collapse"] {
   cursor: pointer;
 }
 
-div[class^="notice-"] .card-body > :last-child,
-div[class^="notice-"] .card-body > div > :last-child {
+div[class^="callout-"] .card-body > :last-child,
+div[class^="callout-"] .card-body > div > :last-child {
   margin-bottom: 0;
 }
 
-div[class^="notice-"] .card-notice-toggle::before {
+div[class^="callout-"] .card-callout-toggle::before {
   height: 1.1rem;
   width: 1.1rem;
   display: inline-block;
@@ -213,7 +213,7 @@ div[class^="notice-"] .card-notice-toggle::before {
   margin-right: 0.25rem;
 }
 
-div[class^="notice-"] .card-notice-icon::before {
+div[class^="callout-"] .card-callout-icon::before {
   height: 1.1rem;
   width: 1.1rem;
   display: inline-block;
@@ -224,26 +224,26 @@ div[class^="notice-"] .card-notice-icon::before {
   margin-right: 0.25rem;
 }
 
-div[class^="notice-"] .notice-btn-toggle .card-notice-toggle::before {
+div[class^="callout-"] .callout-btn-toggle .card-callout-toggle::before {
   transition: transform 0.2s linear;
 }
 
-div[class^="notice-"] .card-header[aria-expanded="false"] .card-notice-toggle::before {
+div[class^="callout-"] .card-header[aria-expanded="false"] .card-callout-toggle::before {
   transform: rotate(-90deg);  
   
 }
 
-div[class^="notice-"] .card-header[aria-expanded="true"] .card-notice-toggle::before {
+div[class^="callout-"] .card-header[aria-expanded="true"] .card-callout-toggle::before {
   transform: none;
 }
 
-div[class^="notice-"] div.card-notice-icon-container {
+div[class^="callout-"] div.card-callout-icon-container {
   padding-top: .2em;
   padding-right: .4em;
   margin-left: -.2em;
 }
 
-div[class^="notice-"] .no-icon {
+div[class^="callout-"] .no-icon {
   display: none;
 }
 
@@ -302,27 +302,27 @@ $callouts: (
 
 
 @each $name, $info in $callouts {
-  div.notice-#{$name}:not(.notice-captioned) {
-    border-left-color: shift-color(map.get($info, "color"), $notice-border-scale);
+  div.callout-#{$name}:not(.callout-captioned) {
+    border-left-color: shift-color(map.get($info, "color"), $callout-border-scale);
   }
 
-  div.notice-#{$name} .card-header {
-    background-color: shift-color(map.get($info, "color"), $notice-bg-scale);
+  div.callout-#{$name} .card-header {
+    background-color: shift-color(map.get($info, "color"), $callout-bg-scale);
   }
 
-  div.notice-#{$name} .card-header {
-    color: shift-color(map.get($info, "color"), $notice-text-scale);
+  div.callout-#{$name} .card-header {
+    color: shift-color(map.get($info, "color"), $callout-text-scale);
   }
 
-  div.notice-#{$name}:not(.notice-captioned) .card-notice-icon::before { 
-    background-image: #{"url('data:image/svg+xml," + str-replace(map.get($info, "icon"), "currentColor", #{shift-color(map.get($info, "color"), $notice-border-scale)}) + "');"}
+  div.callout-#{$name}:not(.callout-captioned) .card-callout-icon::before { 
+    background-image: #{"url('data:image/svg+xml," + str-replace(map.get($info, "icon"), "currentColor", #{shift-color(map.get($info, "color"), $callout-border-scale)}) + "');"}
   }
 
-  div.notice-#{$name}.notice-captioned .card-notice-icon::before {
-    background-image: #{"url('data:image/svg+xml," + str-replace(map.get($info, "icon"), "currentColor", #{shift-color(map.get($info, "color"), $notice-icon-scale)}) + "');"}
+  div.callout-#{$name}.callout-captioned .card-callout-icon::before {
+    background-image: #{"url('data:image/svg+xml," + str-replace(map.get($info, "icon"), "currentColor", #{shift-color(map.get($info, "color"), $callout-icon-scale)}) + "');"}
   }
 
-  div.notice-#{$name} .card-notice-toggle::before {
-    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{shift-color(map.get($info, "color"), $notice-text-scale)}" class="bi bi-chevron-down" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>');
+  div.callout-#{$name} .card-callout-toggle::before {
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{shift-color(map.get($info, "color"), $callout-text-scale)}" class="bi bi-chevron-down" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>');
   } 
 }
