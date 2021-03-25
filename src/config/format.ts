@@ -105,9 +105,16 @@ export interface BodyEnvelope {
 export interface SassBundle {
   key: string;
   dependency: string;
-  declarations: string;
-  variables: string;
-  rules: string;
+  quarto: {
+    declarations: string;
+    variables: string;
+    rules: string;
+  };
+  bootstrap?: {
+    declarations: string;
+    variables: string;
+    rules: string;
+  };
   loadPath?: string;
 }
 

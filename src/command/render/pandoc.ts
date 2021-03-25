@@ -33,11 +33,7 @@ import {
   SassBundle,
 } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
-import {
-  binaryPath,
-  formatResourcePath,
-  resourcePath,
-} from "../../core/resources.ts";
+import { binaryPath, resourcePath } from "../../core/resources.ts";
 import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
 
 import {
@@ -45,7 +41,6 @@ import {
   kResources,
   ProjectContext,
 } from "../../project/project-context.ts";
-import { projectType } from "../../project/types/project-types.ts";
 
 import { RenderFlags } from "./flags.ts";
 import {

@@ -15,22 +15,44 @@ import { SassBundle } from "../../config/format.ts";
 import { dartCompile } from "../../core/dart-sass.ts";
 
 export async function compileSass(bundles: SassBundle[], output: string) {
-  // declarations are available to variables and rules
-  const declarations = bundles.filter((bundle) => bundle.declarations.length)
+  // bootstrapDeclarations are available to variables and rules
+  const bootstrapDeclarations = bundles.filter((bundle) =>
+    bundle.bootstrap?.declarations.length
+  )
     .map(
-      (bundle) => bundle.declarations,
+      (bundle) => bundle.bootstrap?.declarations,
     );
+
+  // quarto declarations follow bootstrap declarations so bootstrap functions are available to all
+  const quartoDeclarations = bundles.filter((bundle) =>
+    bundle.quarto.declarations.length
+  ).map((bundle) => bundle.quarto.declarations);
 
   // Variables are applied in reverse order (bottom to top as we are expecting)
   // scss files to the !default notation to allow earlier files to set values
-  const variables = bundles.filter((bundle) => bundle.variables.length).map(
-    (bundle) => bundle.variables,
+  const boostrapVariables = bundles.filter((bundle) =>
+    bundle.bootstrap?.variables.length
+  ).map(
+    (bundle) => bundle.bootstrap?.variables,
   ).reverse();
 
-  // rules may use variables and declarations
-  const rules = bundles.filter((bundle) => bundle.rules.length)
+  const quartoVariables = bundles.filter((bundle) =>
+    bundle.quarto.variables.length
+  )
     .map(
-      (bundle) => bundle.rules,
+      (bundle) => bundle.quarto.variables,
+    ).reverse();
+
+  // rules may use variables and bootstrapDeclarations
+  const bootstrapRules = bundles.filter((bundle) =>
+    bundle.bootstrap?.rules.length
+  )
+    .map(
+      (bundle) => bundle.bootstrap?.rules,
+    );
+  const quartoRules = bundles.filter((bundle) => bundle.quarto.rules.length)
+    .map(
+      (bundle) => bundle.quarto.rules,
     );
 
   // Set any load paths used to resolve imports
@@ -42,7 +64,14 @@ export async function compileSass(bundles: SassBundle[], output: string) {
   });
 
   // Read the scss files into a single input string
-  const scssInput = [...declarations, ...variables, ...rules].join("\n\n");
+  const scssInput = [
+    ...bootstrapDeclarations,
+    ...quartoDeclarations,
+    ...quartoVariables,
+    ...boostrapVariables,
+    ...bootstrapRules,
+    ...quartoRules,
+  ].join("\n\n");
 
   // Compile the scss
   return await compileWithCache(
