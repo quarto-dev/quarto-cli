@@ -37,26 +37,30 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
   <% } %>
 
-  const popoverOptions = {
-    trigger: 'hover',
-    html: true,
-    delay: { "show": 100, "hide": 100},
-    placement: 'bottom',
-  };
+
+  function tippyHover(el, contentFn) {
+    window.tippy(el, {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'light-border',
+      placement: 'bottom-start'
+    }); 
+  }
 
   <% if (hoverFootnotes) { %>
 
   const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
   for (var i=0; i<noterefs.length; i++) {
     const ref = noterefs[i];
-    const options = Object.assign({
-      customClass: 'footnote-hover',
-      content: function() {
-        const id = new URL(this.getAttribute('href')).hash.replace(/^#/, "");
-        const note = window.document.getElementById(id);
-        return note.innerHTML;
-      }}, popoverOptions);
-    new window.bootstrap.Popover(ref, options);
+    tippyHover(ref, function() {
+      const id = new URL(ref.getAttribute('href')).hash.replace(/^#/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
   }
 
   <% } %>
@@ -67,22 +71,20 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   for (var i=0; i<bibliorefs.length; i++) {
     const ref = bibliorefs[i];
     const cites = ref.parentNode.getAttribute('data-cites').split(' ');
-    const options = Object.assign({
-      customClass: 'citation-hover hanging-indent',
-      content: function() {
-        var popup = window.document.createElement('div');
-        cites.forEach(function(cite) {
-          var citeDiv = window.document.createElement('div');
-          citeDiv.classList.add('csl-entry');
-          var biblioDiv = window.document.getElementById('ref-' + cite);
-          if (biblioDiv) {
-            citeDiv.innerHTML = biblioDiv.innerHTML;
-          }
-          popup.appendChild(citeDiv);
-        });
-        return popup.innerHTML;
-      }}, popoverOptions);
-     new window.bootstrap.Popover(ref, options);
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
   }
   
 

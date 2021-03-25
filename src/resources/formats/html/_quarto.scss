@@ -155,19 +155,24 @@ kbd,
   background-color: $progress-bg;
 }
 
+// tweak pandoc default hanging indent
+div.hanging-indent {
+  margin-left: 1em;
+  text-indent: -1em;
+}
+
 // footnotes/citations
 .citation a,
 .footnote-ref {
   text-decoration: none;
 }
-.citation-hover,
-.footnote-hover {
-  max-width: 500px;
+.tippy-content > * {
+  margin-bottom: 0.7em;
 }
-.footnote-hover p:last-child {
+.tippy-content > *:last-child {
   margin-bottom: 0;
 }
-.footnote-hover a.footnote-back {
+.tippy-content a.footnote-back {
   display: none;
 }
 

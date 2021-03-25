@@ -55,8 +55,8 @@ export function htmlFormat(
     {
       formatExtras: (flags: PandocFlags, format: Format) => {
         return mergeConfigs(
-          themeFormatExtras(flags, format),
           htmlFormatExtras(format),
+          themeFormatExtras(flags, format),
         );
       },
     },
@@ -83,17 +83,42 @@ function themeFormatExtras(flags: PandocFlags, format: Format) {
 function htmlFormatExtras(format: Format): FormatExtras {
   // lists of scripts and ejs data for the orchestration script
   const scripts: DependencyFile[] = [];
+  const stylesheets: DependencyFile[] = [];
+  const bootstrap = formatHasBootstrap(format);
   const options: Record<string, unknown> = {
     copyCode: format.metadata[kCodeCopy] !== false &&
       formatHasBootstrap(format),
     anchors: format.metadata[kAnchorSections],
-    hoverCitations: format.metadata[kHoverCitations] !== false &&
-      formatHasBootstrap(format),
-    hoverFootnotes: format.metadata[kHoverFootnotes] !== false &&
-      formatHasBootstrap(format),
+    hoverCitations: format.metadata[kHoverCitations] !== false,
+    hoverFootnotes: format.metadata[kHoverFootnotes] !== false,
   };
 
-  // clipboard.js if requested
+  // popper if required
+  const tippy = options.hoverCitations || options.hoverFootnotes;
+  if (bootstrap || tippy) {
+    scripts.push({
+      name: "popper.min.js",
+      path: formatResourcePath("html", join("popper", "popper.min.js")),
+    });
+  }
+
+  // tippy if required
+  if (tippy) {
+    scripts.push({
+      name: "tippy.umd.min.js",
+      path: formatResourcePath("html", join("tippy", "tippy.umd.min.js")),
+    });
+    stylesheets.push({
+      name: "tippy.css",
+      path: formatResourcePath("html", join("tippy", "tippy.css")),
+    });
+    stylesheets.push({
+      name: "light-border.css",
+      path: formatResourcePath("html", join("tippy", "light-border.css")),
+    });
+  }
+
+  // clipboard.js if required
   if (options.copyCode) {
     scripts.push({
       name: "clipboard.min.js",
@@ -101,7 +126,7 @@ function htmlFormatExtras(format: Format): FormatExtras {
     });
   }
 
-  // anchors if requested
+  // anchors if required
   if (options.anchors !== false) {
     scripts.push({
       name: "anchor.min.js",
@@ -132,6 +157,7 @@ function htmlFormatExtras(format: Format): FormatExtras {
     [kDependencies]: [{
       name: "quarto-html",
       scripts,
+      stylesheets,
     }],
   };
 }
