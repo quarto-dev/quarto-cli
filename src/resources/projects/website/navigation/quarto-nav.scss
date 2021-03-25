@@ -91,8 +91,7 @@ nav .dropdown-item i {
 
   .sidebar.sidebar-navigation {
     position: static;
-    border-top: 1px solid #cdd4d9;
-    border-bottom: 1px solid #cdd4d9;
+    border-bottom: 1px solid $table-border-color;
   }
 
   .sidebar.sidebar-navigation nav {
@@ -113,6 +112,14 @@ nav .dropdown-item i {
   .sidebar.sidebar-navigation.show {
     position: fixed;
     z-index: 1000;
+  }
+
+  .sidebar.sidebar-navigation {
+    transition: height 0.15s linear;
+  }
+
+  nav.quarto-secondary-nav {
+    border-bottom: 1px solid $table-border-color;
   }
 }
 
