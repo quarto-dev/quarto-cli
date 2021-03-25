@@ -1,5 +1,3 @@
-@use 'sass:color';
-
 // Heading font size customization
 $h1-font-size: 2.2rem !default;
 $h2-font-size: 1.75rem !default;
@@ -18,10 +16,9 @@ $max-width: 1400px !default;
 $transition-collapse: height 0.2s ease !default;
 
 // notice colors
-$notice-border-width: 3px !default;
-$notice-bg-scale: -80% !default;
-$notice-fill-scale: -20% !default;
-$notice-border-scale: -50% !default;
-$notice-color-scale: 40% !default;
-$notice-link-scale: 20% !default;
+$notice-border-width: 5px !default;
+$notice-border-scale: 0% !default;
+$notice-bg-scale: -70% !default;
+$notice-icon-scale: 10% !default;
+$notice-text-scale: 60% !default;
 $notice-margin-bottom: 1rem !default;

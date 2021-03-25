@@ -40,7 +40,7 @@ import {
 
 export function formatHasBootstrap(format: Format) {
   const theme = format.metadata["theme"];
-  return theme && theme !== "pandoc";
+  return theme !== "none" && theme !== "pandoc";
 }
 
 export function bootstrapFormatDependency(format: Format) {

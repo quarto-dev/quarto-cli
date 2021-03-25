@@ -13,13 +13,9 @@ import { asCssFont, asCssNumber, asCssSize } from "../../core/css.ts";
 
 import { SassBundle } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
+import { kTheme } from "../../config/constants.ts";
 
-import {
-  kBootstrapDependencyName,
-  kCodeCopy,
-  kDefaultTheme,
-  kTheme,
-} from "./format-html.ts";
+import { kBootstrapDependencyName, kCodeCopy } from "./format-html.ts";
 
 const kThemeScopeRegex =
   /^\/\/[ \t]*theme:(variables|rules|declarations)[ \t]*$/;
@@ -35,7 +31,7 @@ export function resolveBootstrapScss(metadata: Metadata): SassBundle {
   );
 
   // Resolve the provided themes to a set of variables and styles
-  const themeRaw = metadata[kTheme];
+  const themeRaw = metadata[kTheme] || [];
   const themes = Array.isArray(themeRaw)
     ? themeRaw
     : [String(metadata[kTheme])];
@@ -64,6 +60,10 @@ export function resolveBootstrapScss(metadata: Metadata): SassBundle {
     "_quarto-variables.scss",
   );
   const quartoRules = formatResourcePath("html", "_quarto.scss");
+  const quartoDeclarations = formatResourcePath(
+    "html",
+    "_quarto-declarations.scss",
+  );
 
   // If any pandoc specific variables were provided, just pile them in here
   let documentVariables;
@@ -83,7 +83,11 @@ export function resolveBootstrapScss(metadata: Metadata): SassBundle {
       ].join(
         "\n\n",
       ),
-      declarations: "",
+      declarations: [
+        Deno.readTextFileSync(quartoDeclarations),
+      ].join(
+        "\n\n",
+      ),
       rules: [
         Deno.readTextFileSync(quartoRules),
       ].join("\n\n"),
@@ -125,10 +129,7 @@ function resolveThemeScss(
       }
     };
 
-    if (theme === kDefaultTheme) {
-      // The default theme doesn't require any additional boostrap variables or styles
-      return [];
-    } else if (existsSync(resolvedThemeDir)) {
+    if (existsSync(resolvedThemeDir)) {
       // It's a built in theme, just read and return the data
       themeScss.push({
         variables: read(join(resolvedThemeDir, "_variables.scss")),

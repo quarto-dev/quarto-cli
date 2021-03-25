@@ -52,6 +52,7 @@ import {
   kOutputExt,
   kOutputFile,
   kSelfContained,
+  kTheme,
 } from "../../config/constants.ts";
 import { Format } from "../../config/format.ts";
 import {
@@ -652,7 +653,9 @@ async function resolveFormats(
   const inputMetadata = await engine.metadata(target.input);
 
   // determine order of formats
-  const formats = formatKeys(inputMetadata).concat(formatKeys(projMetadata));
+  const formats = ld.uniq(
+    formatKeys(inputMetadata).concat(formatKeys(projMetadata)),
+  );
 
   // resolve formats for proj and input
   const projFormats = resolveFormatsFromMetadata(
@@ -670,8 +673,19 @@ async function resolveFormats(
   );
 
   // merge the formats
-  const mergedFormats = mergeQuartoConfigs(projFormats, inputFormats);
-  return mergedFormats as Record<string, Format>;
+  const mergedFormats: Record<string, Format> = {};
+  formats.forEach((format) => {
+    // do the merge
+    const projFormat = projFormats[format];
+    const inputFormat = inputFormats[format];
+    mergedFormats[format] = mergeConfigs(projFormat, inputFormat);
+
+    // theme is handled automatically
+    mergedFormats[format].metadata[kTheme] = inputFormat.metadata[kTheme] ||
+      projFormat.metadata[kTheme];
+  });
+
+  return mergedFormats;
 }
 
 // determine all target formats (use original input and

@@ -17,8 +17,9 @@ nav .dropdown-item i {
 .sidebar {
   position: sticky;
   overflow-y: auto;
-  max-width: 15rem;
 }
+
+
 
 .sidebar-navigation {
   padding-left: 20px;
@@ -60,19 +61,15 @@ nav .dropdown-item i {
   display: none;
 }
 
-.quarto-secondary-nav[aria-expanded="false"]
-  .quarto-btn-toggle
-  .bi-chevron-down::before {
+.quarto-secondary-nav[aria-expanded="false"] .quarto-btn-toggle .bi-chevron-right::before {
   transform: none;
 }
 
-.quarto-secondary-nav[aria-expanded="true"]
-  .quarto-btn-toggle
-  .bi-chevron-down::before {
-  transform: rotate(-180deg);
+.quarto-secondary-nav[aria-expanded="true"] .quarto-btn-toggle .bi-chevron-right::before {
+  transform: rotate(90deg);
 }
 
-.quarto-secondary-nav .quarto-btn-toggle .bi-chevron-down::before {
+.quarto-secondary-nav .quarto-btn-toggle .bi-chevron-right::before {
   transition: transform 200ms ease;
 }
 
@@ -87,15 +84,14 @@ nav .dropdown-item i {
 }
 
 
-@include media-breakpoint-down(md) {
+@include media-breakpoint-down(lg) {
   .sidebar-logo {
     display: none;
   }
 
   .sidebar.sidebar-navigation {
     position: static;
-    border-top: 1px solid #cdd4d9;
-    border-bottom: 1px solid #cdd4d9;
+    border-bottom: 1px solid $table-border-color;
   }
 
   .sidebar.sidebar-navigation nav {
@@ -116,6 +112,14 @@ nav .dropdown-item i {
   .sidebar.sidebar-navigation.show {
     position: fixed;
     z-index: 1000;
+  }
+
+  .sidebar.sidebar-navigation {
+    transition: height 0.15s linear;
+  }
+
+  nav.quarto-secondary-nav {
+    border-bottom: 1px solid $table-border-color;
   }
 }
 

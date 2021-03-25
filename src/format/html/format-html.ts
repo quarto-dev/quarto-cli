@@ -26,13 +26,12 @@ import {
 } from "../../config/format.ts";
 import { PandocFlags } from "../../config/flags.ts";
 import { Metadata } from "../../config/metadata.ts";
+import { kTheme } from "../../config/constants.ts";
+
 import { baseHtmlFormat } from "./../formats.ts";
 
 import { boostrapExtras, formatHasBootstrap } from "./format-html-bootstrap.ts";
 
-export const kDefaultTheme = "default";
-
-export const kTheme = "theme";
 export const kCodeCopy = "code-copy";
 export const kAnchorSections = "anchor-sections";
 export const kPageLayout = "page-layout";
@@ -49,9 +48,6 @@ export function htmlFormat(
   return mergeConfigs(
     baseHtmlFormat(figwidth, figheight),
     {
-      metadata: {
-        [kTheme]: kDefaultTheme,
-      },
       pandoc: {
         [kHtmlMathMethod]: "mathjax",
       },
@@ -68,18 +64,8 @@ export function htmlFormat(
 }
 
 function themeFormatExtras(flags: PandocFlags, format: Format) {
-  if (format.metadata[kTheme]) {
-    const themeRaw = format.metadata[kTheme];
-    if (typeof (themeRaw) === "string" && themeRaw === "pandoc") {
-      // 'pandoc' theme means include default pandoc document css
-      return Promise.resolve(pandocExtras(format.metadata));
-    } else {
-      // other themes are bootswatch themes or bootstrap css files
-      return boostrapExtras(flags, format);
-    }
-
-    // theme: null means no default document css at all
-  } else {
+  const theme = format.metadata[kTheme];
+  if (theme === "none") {
     return Promise.resolve({
       pandoc: {
         [kVariables]: {
@@ -87,6 +73,10 @@ function themeFormatExtras(flags: PandocFlags, format: Format) {
         },
       },
     });
+  } else if (theme === "pandoc") {
+    return Promise.resolve(pandocExtras(format.metadata));
+  } else {
+    return boostrapExtras(flags, format);
   }
 }
 
