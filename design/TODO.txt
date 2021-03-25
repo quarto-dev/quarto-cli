@@ -46,10 +46,7 @@ Pirzada, Ashar, Ahmed T. Mokhtar, and Andrew D. Moeller. 2020. <span>“COVID-19
 <li id="fn1" role="doc-endnote"><p>This is a footnote that I want to see<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a
 
 
-TODO: 'theme' at global scope in project not working?
-
 TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx)
-
 
 TODO: prime thematic with theme info
 
