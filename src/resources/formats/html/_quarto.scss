@@ -172,6 +172,7 @@ div[class^="notice-"].notice-captioned {
 }
 
 div[class^="notice-"] > div.card-header {
+  padding: .25em .65rem !important;
   border-bottom: none;
   font-weight: 500;
 }
@@ -204,7 +205,7 @@ div[class^="notice-"] .card-notice-icon::before {
   vertical-align: -.125em; 
   background-repeat: no-repeat;
   background-size: 1.1rem 1.1rem;
-  margin-right: 0.25rem;
+  margin-right: 0.30rem;
 }
 
 
@@ -232,10 +233,6 @@ div[class^="notice-"] .no-icon {
 }
 
 
-
-// Need
-
-
 div.notice-warning:not(.notice-captioned) {
   border-left-color: shift-color($warning, $notice-border-scale);
 }
@@ -253,7 +250,7 @@ div.notice-warning:not(.notice-captioned) .card-notice-icon::before {
 }
 
 div.notice-warning.notice-captioned .card-notice-icon::before {
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{shift-color($warning, $notice-text-scale)}" class="bi bi-exclamation-triangle-fill" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>');
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{shift-color($warning, $notice-icon-scale)}" class="bi bi-exclamation-triangle-fill" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>');
 }
 
 
