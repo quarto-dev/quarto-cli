@@ -28,6 +28,17 @@ end
 
 function noticeDiv(div)
 
+
+  -- read and clear attributes
+  local caption = div.attr.attributes["caption"]
+  div.attr.attributes["caption"] = nil
+
+  local icon = div.attr.attributes["icon"]
+  div.attr.attributes["icon"] = nil
+
+  local collapse = div.attr.attributes["collapse"]
+  div.attr.attributes["collapse"] = nil
+
   -- Make an outer card div and transfer classes
   local noticeDiv = pandoc.Div({})
   noticeDiv.attr.classes = div.attr.classes:clone()
@@ -37,12 +48,13 @@ function noticeDiv(div)
   noticeDiv.attr.classes:insert("card")
 
   -- the image placeholder
-  local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='card-notice-icon'></i>")});
+  local noicon = ""
+  if icon == "false" then
+    noicon = "no-icon"
+  end
+  local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='card-notice-icon" .. noicon .. "'></i>")});
         
-  -- capture caption information
-  local caption = div.attr.attributes["caption"]
-  div.attr.attributes["caption"] = nil
-
+  -- show a captioned notice
   if caption ~= nil then
 
     -- create a unique id for the notice
@@ -54,14 +66,13 @@ function noticeDiv(div)
     local bodyDiv = div
     bodyDiv.attr.classes:insert("card-body")
 
-    if div.attr.attributes["collapse"] ~= nil then 
+    if collapse ~= nil then 
 
-      -- collapse default value
+      -- collapse default value     
       local expandedAttrVal= "true"
-      if div.attr.attributes["collapse"] == "true" then
+      if collapse == "true" then
         expandedAttrVal = "false"
       end
-      div.attr.attributes["collapse"] = nil
 
       -- create the collapse button
       local btnClasses = "notice-btn-toggle btn d-inline-block border-0 px-0 pb-0 float-end"
@@ -89,7 +100,7 @@ function noticeDiv(div)
     noticeDiv.content:insert(bodyDiv)
 
   else 
-    -- create a card without a title
+    -- show an uncaptioned notice
     -- div that holds image placeholder
     local imgDiv = pandoc.Div({imgPlaceholder}, pandoc.Attr("", {"card-notice-icon-container"}));
     
