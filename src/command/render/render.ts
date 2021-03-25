@@ -52,6 +52,7 @@ import {
   kOutputExt,
   kOutputFile,
   kSelfContained,
+  kTheme,
 } from "../../config/constants.ts";
 import { Format } from "../../config/format.ts";
 import {
@@ -650,28 +651,21 @@ async function resolveFormats(
   // merge input metadata into project metadata
   const projMetadata = projectMetadataForInputFile(target.input);
   const inputMetadata = await engine.metadata(target.input);
+  const baseMetadata = mergeQuartoConfigs(
+    projMetadata,
+    inputMetadata,
+  );
 
   // determine order of formats
   const formats = formatKeys(inputMetadata).concat(formatKeys(projMetadata));
 
-  // resolve formats for proj and input
-  const projFormats = resolveFormatsFromMetadata(
-    projMetadata,
+  // return resolved formats
+  return resolveFormatsFromMetadata(
+    baseMetadata,
     dirname(target.input),
     formats,
     flags,
   );
-
-  const inputFormats = resolveFormatsFromMetadata(
-    inputMetadata,
-    dirname(target.input),
-    formats,
-    flags,
-  );
-
-  // merge the formats
-  const mergedFormats = mergeQuartoConfigs(projFormats, inputFormats);
-  return mergedFormats as Record<string, Format>;
 }
 
 // determine all target formats (use original input and
@@ -761,6 +755,15 @@ function mergeQuartoConfigs(
         }
       });
   };
+
+  // themes can be scalars or arrays but are NOT mergeable
+  const themeConfig = configs.reverse().find((config) => {
+    return config[kTheme] !== undefined;
+  });
+  if (themeConfig) {
+    config[kTheme] = themeConfig[kTheme];
+    configs.forEach((config) => delete config[kTheme]);
+  }
 
   // formats need to always be objects
   const fixupFormat = (config: Record<string, unknown>) => {

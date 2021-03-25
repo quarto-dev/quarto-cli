@@ -15,11 +15,7 @@ import { SassBundle } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
 import { kTheme } from "../../config/constants.ts";
 
-import {
-  kBootstrapDependencyName,
-  kCodeCopy,
-  kDefaultTheme,
-} from "./format-html.ts";
+import { kBootstrapDependencyName, kCodeCopy } from "./format-html.ts";
 
 const kThemeScopeRegex =
   /^\/\/[ \t]*theme:(variables|rules|declarations)[ \t]*$/;
@@ -35,7 +31,7 @@ export function resolveBootstrapScss(metadata: Metadata): SassBundle {
   );
 
   // Resolve the provided themes to a set of variables and styles
-  const themeRaw = metadata[kTheme];
+  const themeRaw = metadata[kTheme] || [];
   const themes = Array.isArray(themeRaw)
     ? themeRaw
     : [String(metadata[kTheme])];
@@ -133,10 +129,7 @@ function resolveThemeScss(
       }
     };
 
-    if (theme === kDefaultTheme) {
-      // The default theme doesn't require any additional boostrap variables or styles
-      return [];
-    } else if (existsSync(resolvedThemeDir)) {
+    if (existsSync(resolvedThemeDir)) {
       // It's a built in theme, just read and return the data
       themeScss.push({
         variables: read(join(resolvedThemeDir, "_variables.scss")),
