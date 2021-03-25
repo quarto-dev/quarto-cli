@@ -18,10 +18,8 @@ $max-width: 1400px !default;
 $transition-collapse: height 0.2s ease !default;
 
 // notice colors
-$notice-border-width: 3px !default;
-$notice-bg-scale: -80% !default;
-$notice-fill-scale: -20% !default;
-$notice-border-scale: -50% !default;
-$notice-color-scale: 40% !default;
-$notice-link-scale: 20% !default;
+$notice-border-width: 5px !default;
+$notice-border-scale: 0% !default;
+$notice-bg-scale: -40% !default;
+$notice-text-scale: 50% !default;
 $notice-margin-bottom: 1rem !default;

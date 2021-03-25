@@ -46,7 +46,7 @@ function noticeDiv(div)
 
   -- add card attribute
   noticeDiv.attr.classes:insert("card")
-
+  
   -- the image placeholder
   local noicon = ""
   if icon == "false" then
@@ -56,6 +56,9 @@ function noticeDiv(div)
         
   -- show a captioned notice
   if caption ~= nil then
+
+    -- mark the notice as being captioned
+    noticeDiv.attr.classes:insert("notice-captioned")
 
     -- create a unique id for the notice
     local noticeid = "notice-" .. noticeidx
@@ -75,7 +78,7 @@ function noticeDiv(div)
       end
 
       -- create the collapse button
-      local btnClasses = "notice-btn-toggle btn d-inline-block border-0 px-1 ps-1 pe-0 float-end"
+      local btnClasses = "notice-btn-toggle btn d-inline-block border-0 py-1 ps-1 pe-0 float-end"
       local btnIcon = "<i class='card-notice-toggle'></i>"
       local toggleButton = pandoc.RawInline("html", "<button type='button' class='" .. btnClasses .. "'>" .. btnIcon .. "</button>")
       headerDiv.content:insert(pandoc.Plain(toggleButton));
