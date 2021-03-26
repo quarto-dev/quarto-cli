@@ -54,20 +54,9 @@ export function resolveBootstrapScss(metadata: Metadata): SassBundle {
     }
   });
 
-  // Quarto variables and styles
-  const quartoVariables = formatResourcePath(
-    "html",
-    "_quarto-variables.scss",
-  );
-  const quartoRules = formatResourcePath("html", "_quarto.scss");
-  const quartoDeclarations = formatResourcePath(
-    "html",
-    "_quarto-declarations.scss",
-  );
-
   // If any pandoc specific variables were provided, just pile them in here
   let documentVariables;
-  const pandocVariables = mapMetadataVariables(metadata);
+  const pandocVariables = mapBootstrapMetadataVariables(metadata);
   if (pandocVariables) {
     documentVariables = pandocVariables.map((variable) =>
       `$${variable.name}: ${variable.value};`
@@ -79,17 +68,18 @@ export function resolveBootstrapScss(metadata: Metadata): SassBundle {
     key: themes.join("|"),
     quarto: {
       variables: [
-        Deno.readTextFileSync(quartoVariables),
+        Deno.readTextFileSync(quartoBootstrapVariables()),
       ].join(
         "\n\n",
       ),
       declarations: [
-        Deno.readTextFileSync(quartoDeclarations),
+        Deno.readTextFileSync(quartoDeclarations()),
       ].join(
         "\n\n",
       ),
       rules: [
-        Deno.readTextFileSync(quartoRules),
+        Deno.readTextFileSync(quartoRules()),
+        Deno.readTextFileSync(quartoBootstrapRules()),
       ].join("\n\n"),
     },
     bootstrap: {
@@ -188,7 +178,7 @@ export interface ScssVariable {
   value: string;
 }
 
-function mapMetadataVariables(metadata: Metadata) {
+function mapBootstrapMetadataVariables(metadata: Metadata) {
   const explicitVars: ScssVariable[] = [];
 
   const addVariable = (cssVar?: ScssVariable) => {
@@ -298,3 +288,28 @@ function scssVarFromMetadata(
     return undefined;
   }
 }
+
+// Quarto variables and styles
+export const quartoBootstrapVariables = () =>
+  formatResourcePath(
+    "html",
+    join("bootstrap", "_bootstrap-variables.scss"),
+  );
+
+export const quartoRules = () =>
+  formatResourcePath(
+    "html",
+    "_quarto-rules.scss",
+  );
+
+export const quartoBootstrapRules = () =>
+  formatResourcePath(
+    "html",
+    join("bootstrap", "_bootstrap-rules.scss"),
+  );
+
+export const quartoDeclarations = () =>
+  formatResourcePath(
+    "html",
+    "_quarto-declarations.scss",
+  );

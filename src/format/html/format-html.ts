@@ -7,6 +7,8 @@
 
 import { join } from "path/mod.ts";
 
+import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
+
 import { renderEjs } from "../../core/ejs.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
@@ -19,6 +21,7 @@ import {
   Format,
   FormatExtras,
   kDependencies,
+  kHtmlPostprocessors,
   kSassBundles,
   SassBundle,
 } from "../../config/format.ts";
@@ -29,6 +32,8 @@ import { kTheme } from "../../config/constants.ts";
 import { baseHtmlFormat } from "./../formats.ts";
 
 import { boostrapExtras, formatHasBootstrap } from "./format-html-bootstrap.ts";
+
+import { quartoDeclarations, quartoRules } from "./format-html-scss.ts";
 
 export const kCodeCopy = "code-copy";
 export const kAnchorSections = "anchor-sections";
@@ -58,6 +63,37 @@ export function htmlFormat(
   );
 }
 
+export function htmlFormatPostprocessor(format: Format) {
+  // read options
+  const codeCopy = formatHasBootstrap(format)
+    ? format.metadata[kCodeCopy] !== false
+    : format.metadata[kCodeCopy] || false;
+
+  return (doc: Document): string[] => {
+    // insert code copy button
+    if (codeCopy) {
+      const codeBlocks = doc.querySelectorAll("pre.sourceCode");
+      for (let i = 0; i < codeBlocks.length; i++) {
+        const code = codeBlocks[i];
+
+        const copyButton = doc.createElement("button");
+        const title = "Copy to Clipboard";
+        copyButton.setAttribute("title", title);
+        copyButton.classList
+          .add("code-copy-button");
+        const copyIcon = doc.createElement("i");
+        copyIcon.classList.add("bi");
+        copyButton.appendChild(copyIcon);
+
+        code.appendChild(copyButton);
+      }
+    }
+
+    // no resource refs
+    return [];
+  };
+}
+
 function themeFormatExtras(flags: PandocFlags, format: Format) {
   const theme = format.metadata[kTheme];
   if (theme === "none") {
@@ -67,7 +103,7 @@ function themeFormatExtras(flags: PandocFlags, format: Format) {
       },
     };
   } else if (theme === "pandoc") {
-    return pandocExtras(format.metadata);
+    return pandocExtras(format);
   } else {
     return boostrapExtras(flags, format);
   }
@@ -80,12 +116,18 @@ function htmlFormatExtras(format: Format): FormatExtras {
   const bootstrap = formatHasBootstrap(format);
   const sassBundles: SassBundle[] = [];
 
-  const options: Record<string, unknown> = {
-    copyCode: format.metadata[kCodeCopy] !== false,
-    anchors: format.metadata[kAnchorSections] !== false,
-    hoverCitations: format.metadata[kHoverCitations] !== false,
-    hoverFootnotes: format.metadata[kHoverFootnotes] !== false,
-  };
+  const options: Record<string, unknown> = {};
+  if (bootstrap) {
+    options.copyCode = format.metadata[kCodeCopy] !== false;
+    options.anchors = format.metadata[kAnchorSections] !== false;
+    options.hoverCitations = format.metadata[kHoverCitations] !== false;
+    options.hoverFootnotes = format.metadata[kHoverFootnotes] !== false;
+  } else {
+    options.copyCode = format.metadata[kCodeCopy] || false;
+    options.anchors = format.metadata[kAnchorSections] || false;
+    options.hoverCitations = format.metadata[kHoverCitations] || false;
+    options.hoverFootnotes = format.metadata[kHoverFootnotes] || false;
+  }
 
   // popper if required
   const tippy = options.hoverCitations || options.hoverFootnotes;
@@ -106,13 +148,10 @@ function htmlFormatExtras(format: Format): FormatExtras {
       name: "tippy.css",
       path: formatResourcePath("html", join("tippy", "tippy.css")),
     });
-    stylesheets.push({
-      name: "light-border.css",
-      path: formatResourcePath("html", join("tippy", "light-border.css")),
-    });
 
     // If this is a bootstrap format, include requires sass
-    if (formatHasBootstrap(format)) {
+    if (bootstrap) {
+      options.tippyTheme = "quarto";
       sassBundles.push({
         key: "tippy.scss",
         dependency: kBootstrapDependencyName,
@@ -123,6 +162,12 @@ function htmlFormatExtras(format: Format): FormatExtras {
             formatResourcePath("html", join("tippy", "_tippy.scss")),
           ),
         },
+      });
+    } else {
+      options.tippyTheme = "light-border";
+      stylesheets.push({
+        name: "light-border.css",
+        path: formatResourcePath("html", join("tippy", "light-border.css")),
       });
     }
   }
@@ -161,22 +206,48 @@ function htmlFormatExtras(format: Format): FormatExtras {
     path: quartoHtmlScript,
   });
 
+  // add quarto sass bundle of we aren't in bootstrap
+  const kQuartoHtmlDependency = "quarto-html";
+  if (!bootstrap) {
+    const quartoVariables = `$code-copy-selector: ${
+      format.metadata[kCodeCopy] === "hover"
+        ? '"pre.sourceCode:hover > "'
+        : '""'
+    } !default;";`;
+    sassBundles.push({
+      dependency: kQuartoHtmlDependency,
+      key: kQuartoHtmlDependency,
+      quarto: {
+        variables: quartoVariables,
+        declarations: [
+          Deno.readTextFileSync(quartoDeclarations()),
+        ].join(
+          "\n\n",
+        ),
+        rules: [
+          Deno.readTextFileSync(quartoRules()),
+        ].join("\n\n"),
+      },
+    });
+  }
+
   // return extras
   return {
     html: {
       [kDependencies]: [{
-        name: "quarto-html",
+        name: kQuartoHtmlDependency,
         scripts,
         stylesheets,
       }],
       [kSassBundles]: sassBundles,
+      [kHtmlPostprocessors]: [htmlFormatPostprocessor(format)],
     },
   };
 }
 
-function pandocExtras(metadata: Metadata) {
+function pandocExtras(format: Format) {
   // see if there is a max-width
-  const maxWidth = metadata["max-width"];
+  const maxWidth = format.metadata["max-width"];
   const headerIncludes = maxWidth
     ? `<style type="text/css">body { max-width: ${
       asCssSize(maxWidth)
