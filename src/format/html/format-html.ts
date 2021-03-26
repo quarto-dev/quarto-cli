@@ -23,6 +23,8 @@ import {
   Format,
   FormatExtras,
   kDependencies,
+  kSassBundles,
+  SassBundle,
 } from "../../config/format.ts";
 import { PandocFlags } from "../../config/flags.ts";
 import { Metadata } from "../../config/metadata.ts";
@@ -87,6 +89,7 @@ function htmlFormatExtras(format: Format): FormatExtras {
   const scripts: DependencyFile[] = [];
   const stylesheets: DependencyFile[] = [];
   const bootstrap = formatHasBootstrap(format);
+  const sassBundles: SassBundle[] = [];
   const options: Record<string, unknown> = {
     copyCode: format.metadata[kCodeCopy] !== false &&
       formatHasBootstrap(format),
@@ -118,6 +121,21 @@ function htmlFormatExtras(format: Format): FormatExtras {
       name: "light-border.css",
       path: formatResourcePath("html", join("tippy", "light-border.css")),
     });
+
+    // If this is a bootstrap format, include requires sass
+    if (formatHasBootstrap(format)) {
+      sassBundles.push({
+        key: "tippy.scss",
+        dependency: kBootstrapDependencyName,
+        quarto: {
+          declarations: "",
+          variables: "",
+          rules: Deno.readTextFileSync(
+            formatResourcePath("html", join("tippy", "_tippy.scss")),
+          ),
+        },
+      });
+    }
   }
 
   // clipboard.js if required
@@ -161,6 +179,7 @@ function htmlFormatExtras(format: Format): FormatExtras {
       scripts,
       stylesheets,
     }],
+    [kSassBundles]: sassBundles,
   };
 }
 

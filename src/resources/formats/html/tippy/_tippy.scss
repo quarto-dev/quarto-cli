@@ -1,0 +1,23 @@
+// Tippy customizations
+
+.tippy-box[data-theme~='quarto'] {
+  background-color: $body-bg;
+  color: $body-color;
+  border-radius: $border-radius;
+  border: solid $border-width $border-color;
+  font-size: $font-size-sm;
+}
+
+.tippy-box[data-theme~='quarto'] .tippy-arrow {
+  color: $border-color;
+}
+
+.tippy-box[data-placement^=bottom]>.tippy-arrow {
+  top: -$border-width;
+}
+
+.tippy-box[data-placement^=bottom]>.tippy-content {
+  padding: .75em 1em;
+  z-index: 1
+}
+
