@@ -2,6 +2,7 @@
 
 
 Theme TippyJs
+- Switch index.md to format PDF. Error rendering document.
 
 SASS:
 - cache should be in files, use DependencyFile.name to set pretty name
