@@ -161,6 +161,7 @@ export async function runPandoc(
     const extras = await resolveExtras(
       projectExtras,
       formatExtras,
+      options.format,
       cwd,
       options.libDir,
     );
@@ -348,33 +349,41 @@ export function pandocMetadataPath(path: string) {
 async function resolveExtras(
   projectExtras: FormatExtras,
   formatExtras: FormatExtras,
+  format: Format,
   inputDir: string,
   libDir: string,
 ) {
   // start with the merge
   let extras = mergeConfigs(projectExtras, formatExtras);
 
-  // project body envelope always wins
-  if (projectExtras[kBodyEnvelope]) {
-    extras[kBodyEnvelope] = projectExtras[kBodyEnvelope];
-  }
-
   // project default toc title always wins
   if (projectExtras[kTocTitle]) {
     extras[kTocTitle] = projectExtras[kTocTitle];
   }
 
-  extras = await resolveSassBundles(
-    extras,
-    formatExtras[kSassBundles],
-    projectExtras[kSassBundles],
-  );
+  // perform html-specific merging
+  if (isHtmlOutput(format.pandoc)) {
+    // resolve sass bundles
+    extras = await resolveSassBundles(
+      extras,
+      formatExtras[kSassBundles],
+      projectExtras[kSassBundles],
+    );
 
-  // resolve dependencies
-  extras = resolveDependencies(extras, inputDir, libDir);
+    // resolve dependencies
+    extras = resolveDependencies(extras, inputDir, libDir);
 
-  // resolve body envelope
-  extras = resolveBodyEnvelope(extras);
+    // body envelope to includes (project body envelope always wins)
+    if (extras[kBodyEnvelope] && projectExtras[kBodyEnvelope]) {
+      extras[kBodyEnvelope] = projectExtras[kBodyEnvelope];
+    }
+    extras = resolveBodyEnvelope(extras);
+  } else {
+    delete extras[kDependencies];
+    delete extras[kSassBundles];
+    delete extras[kBodyEnvelope];
+    delete extras[kHtmlPostprocessors];
+  }
 
   return extras;
 }

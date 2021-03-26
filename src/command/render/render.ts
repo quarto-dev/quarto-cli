@@ -679,18 +679,19 @@ async function resolveFormats(
     // alias formats
     const projFormat = projFormats[format];
     const inputFormat = inputFormats[format];
-
-    // resolve theme (project-level bootstrap theme always wins)
-    if (formatHasBootstrap(projFormat)) {
-      if (formatHasBootstrap(inputFormat)) {
-        delete inputFormat.metadata[kTheme];
-      } else {
-        delete projFormat.metadata[kTheme];
+    if (projFormat || inputFormat) {
+      // resolve theme (project-level bootstrap theme always wins)
+      if (formatHasBootstrap(projFormat)) {
+        if (formatHasBootstrap(inputFormat)) {
+          delete inputFormat.metadata[kTheme];
+        } else {
+          delete projFormat.metadata[kTheme];
+        }
       }
-    }
 
-    // do the merge
-    mergedFormats[format] = mergeConfigs(projFormat, inputFormat);
+      // do the merge
+      mergedFormats[format] = mergeConfigs(projFormat || {}, inputFormat || {});
+    }
   });
 
   return mergedFormats;
