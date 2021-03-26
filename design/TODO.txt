@@ -60,7 +60,7 @@ where we fixup refs, but really need the projectInputFiles for this)
 //  Websites:
 //    - edit on github
 //    - google analytics (or coolster alternative). cookie consent
-//    - commenting / hypotheses
+//    - twitter card
 
 TODO: generalized warning system (look for 'WARNING:')
 
