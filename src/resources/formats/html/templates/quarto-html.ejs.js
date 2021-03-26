@@ -37,7 +37,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
   <% } %>
 
-
+  <% if (tippy) { %>
   function tippyHover(el, contentFn) {
     window.tippy(el, {
       allowHTML: true,
@@ -50,6 +50,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       placement: 'bottom-start'
     }); 
   }
+  <% } %>
 
   <% if (hoverFootnotes) { %>
 
