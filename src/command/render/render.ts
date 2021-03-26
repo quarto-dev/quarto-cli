@@ -303,7 +303,7 @@ export async function renderContexts(
   }
 
   // resolve render target
-  const formats = await resolveFormats(target, engine, options.flags);
+  const formats = await resolveFormats(target, engine, options.flags, project);
 
   // see if there is a libDir
   let libDir = project?.metadata?.project?.[kLibDir];
@@ -648,6 +648,7 @@ async function resolveFormats(
   target: ExecutionTarget,
   engine: ExecutionEngine,
   flags?: RenderFlags,
+  project?: ProjectContext,
 ): Promise<Record<string, Format>> {
   // merge input metadata into project metadata
   const projMetadata = projectMetadataForInputFile(target.input);
@@ -684,7 +685,7 @@ async function resolveFormats(
     const inputFormat = inputFormats[format];
 
     // resolve theme (project-level bootstrap theme always wins)
-    if (formatHasBootstrap(projFormat)) {
+    if (project && formatHasBootstrap(projFormat)) {
       if (formatHasBootstrap(inputFormat)) {
         delete inputFormat.metadata[kTheme];
       } else {
