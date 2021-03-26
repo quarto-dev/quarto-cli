@@ -1,8 +1,6 @@
 
 
 
-Theme TippyJs
-
 SASS:
 - cache should be in files, use DependencyFile.name to set pretty name
 - should i delete sassbundles from formatextras once resolved 
