@@ -2,7 +2,6 @@
 
 
 Theme TippyJs
-- Switch index.md to format PDF. Error rendering document.
 
 SASS:
 - cache should be in files, use DependencyFile.name to set pretty name
@@ -18,6 +17,8 @@ HTML:
     code-border: true | false | "color-literal"
     make sure that e.g. zenburn has it's background color overridden by us
     automaticallly switch to a "dark theme friendly" highlight-style
+
+TODO: render multiple formats in website project
 
 TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx)
 
