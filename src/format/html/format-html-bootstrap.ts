@@ -12,9 +12,10 @@ import { formatResourcePath } from "../../core/resources.ts";
 
 import {
   kFilters,
+  kHtmlMathMethod,
+  kLinkCitations,
   kSectionDivs,
   kTocTitle,
-  kVariables,
 } from "../../config/constants.ts";
 import {
   Format,
@@ -96,9 +97,11 @@ export function boostrapExtras(
   return {
     pandoc: {
       [kSectionDivs]: true,
-      [kVariables]: {
-        [kDocumentCss]: false,
-      },
+      [kHtmlMathMethod]: "mathjax",
+    },
+    metadata: {
+      [kDocumentCss]: false,
+      [kLinkCitations]: true,
     },
     [kTocTitle]: !hasTableOfContentsTitle(flags, format)
       ? "Table of contents"

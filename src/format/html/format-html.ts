@@ -13,11 +13,7 @@ import { formatResourcePath } from "../../core/resources.ts";
 import { sessionTempFile } from "../../core/temp.ts";
 import { asCssSize } from "../../core/css.ts";
 
-import {
-  kHeaderIncludes,
-  kHtmlMathMethod,
-  kVariables,
-} from "../../config/constants.ts";
+import { kHeaderIncludes } from "../../config/constants.ts";
 import {
   DependencyFile,
   Format,
@@ -52,11 +48,6 @@ export function htmlFormat(
   return mergeConfigs(
     baseHtmlFormat(figwidth, figheight),
     {
-      pandoc: {
-        [kHtmlMathMethod]: "mathjax",
-      },
-    },
-    {
       formatExtras: (flags: PandocFlags, format: Format) => {
         return mergeConfigs(
           htmlFormatExtras(format),
@@ -71,10 +62,8 @@ function themeFormatExtras(flags: PandocFlags, format: Format) {
   const theme = format.metadata[kTheme];
   if (theme === "none") {
     return {
-      pandoc: {
-        [kVariables]: {
-          [kDocumentCss]: false,
-        },
+      metadata: {
+        [kDocumentCss]: false,
       },
     };
   } else if (theme === "pandoc") {
@@ -90,10 +79,10 @@ function htmlFormatExtras(format: Format): FormatExtras {
   const stylesheets: DependencyFile[] = [];
   const bootstrap = formatHasBootstrap(format);
   const sassBundles: SassBundle[] = [];
+
   const options: Record<string, unknown> = {
-    copyCode: format.metadata[kCodeCopy] !== false &&
-      formatHasBootstrap(format),
-    anchors: format.metadata[kAnchorSections],
+    copyCode: format.metadata[kCodeCopy] !== false,
+    anchors: format.metadata[kAnchorSections] !== false,
     hoverCitations: format.metadata[kHoverCitations] !== false,
     hoverFootnotes: format.metadata[kHoverFootnotes] !== false,
   };
@@ -147,7 +136,7 @@ function htmlFormatExtras(format: Format): FormatExtras {
   }
 
   // anchors if required
-  if (options.anchors !== false) {
+  if (options.anchors) {
     scripts.push({
       name: "anchor.min.js",
       path: formatResourcePath("html", join("anchor", "anchor.min.js")),
@@ -195,11 +184,9 @@ function pandocExtras(metadata: Metadata) {
     : undefined;
 
   return {
-    pandoc: {
-      [kVariables]: {
-        [kDocumentCss]: true,
-        [kHeaderIncludes]: headerIncludes,
-      },
+    metadata: {
+      [kDocumentCss]: true,
+      [kHeaderIncludes]: headerIncludes,
     },
   };
 }

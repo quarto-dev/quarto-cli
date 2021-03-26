@@ -18,12 +18,7 @@ import {
 import { Format, FormatExtras } from "../../../config/format.ts";
 import { PandocFlags } from "../../../config/flags.ts";
 
-import {
-  kPageTitle,
-  kTitle,
-  kTitlePrefix,
-  kVariables,
-} from "../../../config/constants.ts";
+import { kPageTitle, kTitle, kTitlePrefix } from "../../../config/constants.ts";
 import { formatHasBootstrap } from "../../../format/html/format-html-bootstrap.ts";
 
 import {
@@ -87,7 +82,7 @@ export const websiteProjectType: ProjectType = {
 
     // add some title related variables
     extras.pandoc = extras.pandoc || {};
-    extras.pandoc[kVariables] = extras.pandoc[kVariables] || {};
+    extras.metadata = extras.metadata || {};
 
     // is this the home page? (gets some special handling)
     const offset = projectOffset(project, input);
@@ -97,7 +92,7 @@ export const websiteProjectType: ProjectType = {
     // title prefix if the project has a title and this isn't the home page
     const title = project.metadata?.project?.title;
     if (title && !home) {
-      extras.pandoc[kVariables] = {
+      extras.metadata = {
         [kTitlePrefix]: project.metadata?.project?.title,
       };
     }
@@ -106,7 +101,7 @@ export const websiteProjectType: ProjectType = {
     if (
       home && !format.metadata[kTitle] && !format.metadata[kPageTitle] && title
     ) {
-      extras.pandoc[kVariables]![kPageTitle] = title;
+      extras.metadata[kPageTitle] = title;
     }
 
     return Promise.resolve(extras);

@@ -181,9 +181,17 @@ export async function runPandoc(
       extras.filters.post.unshift(...sysFilters);
     }
 
-    // merge pandoc stuff
+    // merge pandoc
     if (extras.pandoc) {
-      allDefaults = mergeConfigs(allDefaults, extras.pandoc);
+      allDefaults = mergeConfigs(extras.pandoc, allDefaults);
+    }
+
+    // merge metadata
+    if (extras.metadata) {
+      options.format.metadata = mergeConfigs(
+        extras.metadata,
+        options.format.metadata,
+      );
     }
 
     if (extras[kIncludeInHeader]) {

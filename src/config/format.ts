@@ -21,6 +21,7 @@ import {
   kFilters,
   kFreeze,
   kHighlightStyle,
+  kHtmlMathMethod,
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
@@ -120,6 +121,7 @@ export interface SassBundle {
 
 export interface FormatExtras {
   pandoc?: FormatPandoc;
+  metadata?: Metadata;
   [kTocTitle]?: string;
   [kIncludeInHeader]?: string[];
   [kIncludeBeforeBody]?: string[];
@@ -215,6 +217,7 @@ export interface FormatPandoc {
   [kNumberSections]?: boolean;
   [kHighlightStyle]?: string;
   [kSectionDivs]?: boolean;
+  [kHtmlMathMethod]?: string;
 }
 
 export function isLatexOutput(format: FormatPandoc) {
