@@ -1,10 +1,10 @@
 
 
 
-Theme TippyJs
+render.ts: 667
+- Project context exists even for standalone html document so theme not working
 
 SASS:
-- cache should be in files, use DependencyFile.name to set pretty name
 - should i delete sassbundles from formatextras once resolved 
 - Import bootswatch themes into "unified" format (bootstrap beta 3 with script)
 
