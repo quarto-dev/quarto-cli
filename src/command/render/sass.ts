@@ -14,7 +14,20 @@ import { sessionTempFile } from "../../core/temp.ts";
 import { SassBundle } from "../../config/format.ts";
 import { dartCompile } from "../../core/dart-sass.ts";
 
+import { ld } from "lodash/mod.ts";
+
 export async function compileSass(bundles: SassBundle[]) {
+  const imports = ld.uniq(bundles.flatMap((bundle) => {
+    return [
+      ...(bundle.user?.use || []),
+      ...(bundle.quarto?.use || []),
+      ...(bundle.framework?.use || []),
+    ];
+  }));
+  const useStatements = imports.map((use) => {
+    return `@use '${use}';`;
+  }).join("\n");
+
   // Gather the inputs for the framework
   const frameworkDeclarations = bundles.map(
     (bundle) => bundle.framework?.declarations || "",
@@ -28,10 +41,21 @@ export async function compileSass(bundles: SassBundle[]) {
     (bundle) => bundle.framework?.rules || "",
   );
 
-  // Gather inputs for the
-  const layerDeclarations = bundles.map((bundle) => bundle.layer.declarations);
-  const layerVariables = bundles.map((bundle) => bundle.layer.variables);
-  const layerRules = bundles.map((bundle) => bundle.layer.rules);
+  // Gather sasslayer for quarto
+  const quartoDeclarations = bundles.map((bundle) =>
+    bundle.quarto?.declarations || ""
+  );
+  const quartoVariables = bundles.map((bundle) =>
+    bundle.quarto?.variables || ""
+  );
+  const quartoRules = bundles.map((bundle) => bundle.quarto?.rules || "");
+
+  // Gather sasslayer for the user
+  const userDeclarations = bundles.map((bundle) =>
+    bundle.user?.declarations || ""
+  );
+  const userVariables = bundles.map((bundle) => bundle.user?.variables || "");
+  const userRules = bundles.map((bundle) => bundle.user?.rules || "");
 
   // Set any load paths used to resolve imports
   const loadPaths: string[] = [];
@@ -49,12 +73,16 @@ export async function compileSass(bundles: SassBundle[]) {
   // * Rules may use variables and declarations
   //   (theme follows framework so it can override the framework rules)
   const scssInput = [
+    useStatements,
     ...frameworkDeclarations,
-    ...layerDeclarations,
-    ...layerVariables.reverse(),
+    ...quartoDeclarations,
+    ...userDeclarations,
+    ...userVariables.reverse(),
+    ...quartoVariables.reverse(),
     ...frameworkVariables.reverse(),
     ...frameworkRules,
-    ...layerRules,
+    ...quartoRules,
+    ...userRules,
   ].join("\n\n");
 
   // Compile the scss
@@ -79,7 +107,6 @@ async function compileWithCache(
 
     // check the cache
     const cacheDir = quartoCacheDir("sass");
-    console.log(cacheDir);
     const cacheIdxPath = join(cacheDir, "index.json");
 
     const outputFile = `${identifierHash}.css`;
@@ -91,7 +118,7 @@ async function compileWithCache(
     if (existsSync(outputFilePath)) {
       cacheIndex = JSON.parse(Deno.readTextFileSync(cacheIdxPath));
       const existingEntry = cacheIndex[identifierHash];
-      writeCache = existingEntry.hash !== inputHash;
+      writeCache = !existingEntry || (existingEntry.hash !== inputHash);
     }
 
     // We need to refresh the cache

@@ -62,11 +62,16 @@ export function resolveBootstrapScss(metadata: Metadata): SassBundle {
       `$${variable.name}: ${variable.value};`
     ).join("\n");
   }
-
   return {
     dependency: kBootstrapDependencyName,
     key: themes.join("|"),
-    layer: {
+    user: {
+      variables: themeVariables.join("\n\n"),
+      declarations: themeDeclarations.join("\n\n"),
+      rules: themeRules.join("\n\n"),
+    },
+    quarto: {
+      use: ["sass:color", "sass:map"],
       variables: [
         Deno.readTextFileSync(quartoBootstrapVariables()),
       ].join(
@@ -85,14 +90,12 @@ export function resolveBootstrapScss(metadata: Metadata): SassBundle {
     framework: {
       variables: [
         documentVariables,
-        ...themeVariables,
       ].join(
         "\n\n",
       ),
       declarations: "",
       rules: [
         Deno.readTextFileSync(boostrapRules),
-        ...themeRules,
       ].join("\n\n"),
     },
     loadPath: dirname(boostrapRules),

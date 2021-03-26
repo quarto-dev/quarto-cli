@@ -1,5 +1,3 @@
-@use 'sass:color';
-@use 'sass:map';
 
 @function colorToRGB ($color) {
   @return "rgb(" + red($color) + ", " + green($color) + ", " + blue($color)+ ")";

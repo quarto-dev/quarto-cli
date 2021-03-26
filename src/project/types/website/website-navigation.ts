@@ -630,7 +630,7 @@ function websiteNavigationSassBundle() {
   return {
     dependency: kBootstrapDependencyName,
     key: scssPath,
-    layer: {
+    quarto: {
       name: "quarto-nav.css",
       variables: "",
       declarations: "",

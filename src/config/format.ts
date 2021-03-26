@@ -103,19 +103,19 @@ export interface BodyEnvelope {
   after?: string;
 }
 
+export interface SassLayer {
+  use?: string[];
+  variables: string;
+  declarations: string;
+  rules: string;
+}
+
 export interface SassBundle {
   key: string;
   dependency: string;
-  layer: {
-    declarations: string;
-    variables: string;
-    rules: string;
-  };
-  framework?: {
-    declarations: string;
-    variables: string;
-    rules: string;
-  };
+  user?: SassLayer;
+  quarto?: SassLayer;
+  framework?: SassLayer;
   loadPath?: string;
 }
 
