@@ -106,12 +106,12 @@ export interface BodyEnvelope {
 export interface SassBundle {
   key: string;
   dependency: string;
-  quarto: {
+  layer: {
     declarations: string;
     variables: string;
     rules: string;
   };
-  bootstrap?: {
+  framework?: {
     declarations: string;
     variables: string;
     rules: string;

@@ -4,56 +4,34 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 import { createHash } from "hash/mod.ts";
 
 import { quartoCacheDir } from "../../core/appdirs.ts";
-import { sessionTempDir, sessionTempFile } from "../../core/temp.ts";
+import { sessionTempFile } from "../../core/temp.ts";
 
 import { SassBundle } from "../../config/format.ts";
 import { dartCompile } from "../../core/dart-sass.ts";
 
 export async function compileSass(bundles: SassBundle[]) {
-  // bootstrapDeclarations are available to variables and rules
-  const bootstrapDeclarations = bundles.filter((bundle) =>
-    bundle.bootstrap?.declarations.length
-  )
-    .map(
-      (bundle) => bundle.bootstrap?.declarations,
-    );
+  // Gather the inputs for the framework
+  const frameworkDeclarations = bundles.map(
+    (bundle) => bundle.framework?.declarations || "",
+  );
 
-  // quarto declarations follow bootstrap declarations so bootstrap functions are available to all
-  const quartoDeclarations = bundles.filter((bundle) =>
-    bundle.quarto.declarations.length
-  ).map((bundle) => bundle.quarto.declarations);
+  const frameworkVariables = bundles.map((bundle) =>
+    bundle.framework?.variables || ""
+  );
 
-  // Variables are applied in reverse order (bottom to top as we are expecting)
-  // scss files to the !default notation to allow earlier files to set values
-  const boostrapVariables = bundles.filter((bundle) =>
-    bundle.bootstrap?.variables.length
-  ).map(
-    (bundle) => bundle.bootstrap?.variables,
-  ).reverse();
+  const frameworkRules = bundles.map(
+    (bundle) => bundle.framework?.rules || "",
+  );
 
-  const quartoVariables = bundles.filter((bundle) =>
-    bundle.quarto.variables.length
-  )
-    .map(
-      (bundle) => bundle.quarto.variables,
-    ).reverse();
-
-  // rules may use variables and bootstrapDeclarations
-  const bootstrapRules = bundles.filter((bundle) =>
-    bundle.bootstrap?.rules.length
-  )
-    .map(
-      (bundle) => bundle.bootstrap?.rules,
-    );
-  const quartoRules = bundles.filter((bundle) => bundle.quarto.rules.length)
-    .map(
-      (bundle) => bundle.quarto.rules,
-    );
+  // Gather inputs for the
+  const layerDeclarations = bundles.map((bundle) => bundle.layer.declarations);
+  const layerVariables = bundles.map((bundle) => bundle.layer.variables);
+  const layerRules = bundles.map((bundle) => bundle.layer.rules);
 
   // Set any load paths used to resolve imports
   const loadPaths: string[] = [];
@@ -64,13 +42,19 @@ export async function compileSass(bundles: SassBundle[]) {
   });
 
   // Read the scss files into a single input string
+  // * Declarations are available to variables and rules
+  //   (framework declarations are first to make them acessible to all)
+  // * Variables are applied in reverse order
+  //   (first variable generally takes precedence in sass assuming use of !default)
+  // * Rules may use variables and declarations
+  //   (theme follows framework so it can override the framework rules)
   const scssInput = [
-    ...bootstrapDeclarations,
-    ...quartoDeclarations,
-    ...quartoVariables,
-    ...boostrapVariables,
-    ...bootstrapRules,
-    ...quartoRules,
+    ...frameworkDeclarations,
+    ...layerDeclarations,
+    ...layerVariables.reverse(),
+    ...frameworkVariables.reverse(),
+    ...frameworkRules,
+    ...layerRules,
   ].join("\n\n");
 
   // Compile the scss

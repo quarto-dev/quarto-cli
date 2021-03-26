@@ -155,7 +155,7 @@ function htmlFormatExtras(format: Format): FormatExtras {
       sassBundles.push({
         key: "tippy.scss",
         dependency: kBootstrapDependencyName,
-        quarto: {
+        layer: {
           declarations: "",
           variables: "",
           rules: Deno.readTextFileSync(
@@ -217,7 +217,7 @@ function htmlFormatExtras(format: Format): FormatExtras {
     sassBundles.push({
       dependency: kQuartoHtmlDependency,
       key: kQuartoHtmlDependency,
-      quarto: {
+      layer: {
         variables: quartoVariables,
         declarations: [
           Deno.readTextFileSync(quartoDeclarations()),

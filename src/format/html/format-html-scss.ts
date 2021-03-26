@@ -66,7 +66,7 @@ export function resolveBootstrapScss(metadata: Metadata): SassBundle {
   return {
     dependency: kBootstrapDependencyName,
     key: themes.join("|"),
-    quarto: {
+    layer: {
       variables: [
         Deno.readTextFileSync(quartoBootstrapVariables()),
       ].join(
@@ -82,7 +82,7 @@ export function resolveBootstrapScss(metadata: Metadata): SassBundle {
         Deno.readTextFileSync(quartoBootstrapRules()),
       ].join("\n\n"),
     },
-    bootstrap: {
+    framework: {
       variables: [
         documentVariables,
         ...themeVariables,
