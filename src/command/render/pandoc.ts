@@ -515,7 +515,8 @@ async function resolveSassBundles(
   for (const dependency of Object.keys(mergedBundles)) {
     // compile the cssPath
     const bundles = mergedBundles[dependency];
-    const cssPath = await compileSass(bundles, `${dependency}.css`);
+    const cssPath = await compileSass(bundles);
+    const csssName = `${dependency}.css`;
 
     // Push the compiled Css onto the dependency
     const extraDeps = extras[kDependencies];
@@ -528,14 +529,14 @@ async function resolveSassBundles(
           existingDependency.stylesheets = [];
         }
         existingDependency.stylesheets.push({
-          name: basename(cssPath),
+          name: csssName,
           path: cssPath,
         });
       } else {
         extraDeps.push({
           name: dependency,
           stylesheets: [{
-            name: basename(cssPath),
+            name: csssName,
             path: cssPath,
           }],
         });

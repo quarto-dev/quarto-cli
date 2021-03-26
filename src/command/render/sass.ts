@@ -9,12 +9,12 @@ import { join } from "path/mod.ts";
 import { createHash } from "hash/mod.ts";
 
 import { quartoCacheDir } from "../../core/appdirs.ts";
-import { sessionTempDir } from "../../core/temp.ts";
+import { sessionTempDir, sessionTempFile } from "../../core/temp.ts";
 
 import { SassBundle } from "../../config/format.ts";
 import { dartCompile } from "../../core/dart-sass.ts";
 
-export async function compileSass(bundles: SassBundle[], output: string) {
+export async function compileSass(bundles: SassBundle[]) {
   // bootstrapDeclarations are available to variables and rules
   const bootstrapDeclarations = bundles.filter((bundle) =>
     bundle.bootstrap?.declarations.length
@@ -76,7 +76,6 @@ export async function compileSass(bundles: SassBundle[], output: string) {
   // Compile the scss
   return await compileWithCache(
     scssInput,
-    output,
     loadPaths,
     true,
     bundles.map((bundle) => bundle.key).join("|"),
@@ -85,7 +84,6 @@ export async function compileSass(bundles: SassBundle[], output: string) {
 
 async function compileWithCache(
   input: string,
-  output: string,
   loadPaths: string[],
   compressed?: boolean,
   cacheIdentifier?: string,
@@ -96,21 +94,20 @@ async function compileWithCache(
     const inputHash = createHash("md5").update(input).toString();
 
     // check the cache
-    const cacheDir = quartoCacheDir("input");
+    const cacheDir = quartoCacheDir("sass");
+    console.log(cacheDir);
     const cacheIdxPath = join(cacheDir, "index.json");
-    const outputDirectory = join(cacheDir, identifierHash);
-    const outputFilePath = join(outputDirectory, output);
 
-    // Make sure the output directory exists
-    ensureDirSync(outputDirectory);
+    const outputFile = `${identifierHash}.css`;
+    const outputFilePath = join(cacheDir, outputFile);
 
     // Check whether we can use a cached file
-    let cacheIndex: { [key: string]: string } = {};
+    let cacheIndex: { [key: string]: { key: string; hash: string } } = {};
     let writeCache = true;
     if (existsSync(outputFilePath)) {
       cacheIndex = JSON.parse(Deno.readTextFileSync(cacheIdxPath));
-      const existingHash = cacheIndex[identifierHash];
-      writeCache = existingHash !== inputHash;
+      const existingEntry = cacheIndex[identifierHash];
+      writeCache = existingEntry.hash !== inputHash;
     }
 
     // We need to refresh the cache
@@ -119,13 +116,12 @@ async function compileWithCache(
       if (cssOutput) {
         Deno.writeTextFileSync(outputFilePath, cssOutput || "");
       }
-      cacheIndex[identifierHash] = inputHash;
+      cacheIndex[identifierHash] = { key: cacheIdentifier, hash: inputHash };
       Deno.writeTextFileSync(cacheIdxPath, JSON.stringify(cacheIndex));
     }
     return outputFilePath;
   } else {
-    const outputDir = sessionTempDir();
-    const outputFilePath = join(outputDir, output);
+    const outputFilePath = sessionTempFile({ suffix: "css" });
     // Skip the cache and just compile
     const cssOutput = await dartCompile(input, loadPaths, compressed);
     Deno.writeTextFileSync(outputFilePath, cssOutput || "");
