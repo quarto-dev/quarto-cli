@@ -16,6 +16,35 @@ import { dartCompile } from "../../core/dart-sass.ts";
 
 import { ld } from "lodash/mod.ts";
 
+export interface SassVariable {
+  name: string;
+  value: unknown;
+}
+
+export function sassVariable(
+  name: string,
+  value: unknown,
+  formatter?: (val: unknown) => unknown | undefined,
+) {
+  if (value) {
+    return {
+      name: name,
+      value: formatter ? formatter(value) : value,
+    };
+  } else {
+    return undefined;
+  }
+}
+
+// prints a Sass variable
+export function print(variable: SassVariable, isDefault = true): string {
+  let outputValue = variable.value;
+  if (typeof (variable.value) === "string") {
+    outputValue = `"${variable.value}"`;
+  }
+  return `$${variable.name}: ${outputValue}${isDefault ? " !default" : ""};`;
+}
+
 export async function compileSass(bundles: SassBundle[]) {
   const imports = ld.uniq(bundles.flatMap((bundle) => {
     return [

@@ -16,6 +16,11 @@ import { Metadata } from "../../config/metadata.ts";
 import { kTheme } from "../../config/constants.ts";
 
 import { kBootstrapDependencyName, kCodeCopy } from "./format-html.ts";
+import {
+  print,
+  SassVariable,
+  sassVariable,
+} from "../../command/render/sass.ts";
 
 const kThemeScopeRegex =
   /^\/\/[ \t]*theme:(variables|rules|declarations)[ \t]*$/;
@@ -54,49 +59,29 @@ export function resolveBootstrapScss(metadata: Metadata): SassBundle {
     }
   });
 
-  // If any pandoc specific variables were provided, just pile them in here
-  let documentVariables;
-  const pandocVariables = mapBootstrapMetadataVariables(metadata);
-  if (pandocVariables) {
-    documentVariables = pandocVariables.map((variable) =>
-      `$${variable.name}: ${variable.value};`
-    ).join("\n");
-  }
   return {
     dependency: kBootstrapDependencyName,
     key: themes.join("|"),
     user: {
-      variables: themeVariables.join("\n\n"),
-      declarations: themeDeclarations.join("\n\n"),
-      rules: themeRules.join("\n\n"),
+      variables: themeVariables.join("\n"),
+      declarations: themeDeclarations.join("\n"),
+      rules: themeRules.join("\n"),
     },
     quarto: {
       use: ["sass:color", "sass:map"],
-      variables: [
-        Deno.readTextFileSync(quartoBootstrapVariables()),
-      ].join(
-        "\n\n",
-      ),
-      declarations: [
-        Deno.readTextFileSync(quartoDeclarations()),
-      ].join(
-        "\n\n",
-      ),
+      variables: Deno.readTextFileSync(quartoBootstrapVariables()),
+      declarations: Deno.readTextFileSync(quartoDeclarations()),
       rules: [
         Deno.readTextFileSync(quartoRules()),
         Deno.readTextFileSync(quartoBootstrapRules()),
-      ].join("\n\n"),
+      ].join("\n"),
     },
     framework: {
-      variables: [
-        documentVariables,
-      ].join(
-        "\n\n",
-      ),
+      variables: mapBootstrapPandocVariables(metadata).map((variable) => {
+        return print(variable, false);
+      }).join("\n"),
       declarations: "",
-      rules: [
-        Deno.readTextFileSync(boostrapRules),
-      ].join("\n\n"),
+      rules: Deno.readTextFileSync(boostrapRules),
     },
     loadPath: dirname(boostrapRules),
   };
@@ -176,57 +161,47 @@ function resolveThemeScss(
   return themeScss;
 }
 
-export interface ScssVariable {
-  name: string;
-  value: string;
-}
+function mapBootstrapPandocVariables(metadata: Metadata): SassVariable[] {
+  const explicitVars: SassVariable[] = [];
 
-function mapBootstrapMetadataVariables(metadata: Metadata) {
-  const explicitVars: ScssVariable[] = [];
+  // our code copy selector
+  explicitVars.push({
+    name: "code-copy-selector",
+    value: metadata[kCodeCopy] === undefined || metadata[kCodeCopy] === "hover"
+      ? "pre.sourceCode:hover > "
+      : "",
+  });
 
-  const addVariable = (cssVar?: ScssVariable) => {
+  // Helper for adding explicitly set variables
+  const addIfDefined = (cssVar?: SassVariable) => {
     if (cssVar !== undefined) {
       explicitVars.push(cssVar);
     }
   };
 
-  addVariable({
-    name: "code-copy-selector",
-    value: metadata[kCodeCopy] === undefined || metadata[kCodeCopy] === "hover"
-      ? '"pre.sourceCode:hover > "'
-      : '""',
-  });
-
-  // Map some variables to bootstrap vars
-  addVariable(scssVarFromMetadata(
-    metadata,
-    "linestretch",
-    "line-height-base",
-    (val) => {
-      return asCssNumber(val);
-    },
-  ));
-  addVariable(scssVarFromMetadata(metadata, "font-size", "font-size-root"));
-  addVariable(scssVarFromMetadata(
-    metadata,
-    "backgroundcolor",
-    "body-bgr",
-  ));
-  addVariable(scssVarFromMetadata(metadata, "fontcolor", "body-color"));
-  addVariable(scssVarFromMetadata(metadata, "linkcolor", "link-color"));
-  addVariable(
-    scssVarFromMetadata(
-      metadata,
-      "mainfont",
-      "font-family-bootstrap",
+  // Pass through to some bootstrap variables
+  addIfDefined(
+    sassVariable("line-height-base", metadata["linestretch"], asCssNumber),
+  );
+  addIfDefined(sassVariable("font-size-root", metadata["font-size"]));
+  addIfDefined(sassVariable("body-bg", metadata["backgroundcolor"]));
+  addIfDefined(sassVariable("body-color", metadata["fontcolor"]));
+  addIfDefined(sassVariable("link-color", metadata["linkcolor"]));
+  addIfDefined(
+    sassVariable(
+      "font-family-base",
+      metadata["mainfont"],
       asCssFont,
     ),
   );
-  addVariable(
-    scssVarFromMetadata(metadata, "monofont", "font-family-code", asCssFont),
+  addIfDefined(
+    sassVariable("font-family-code", metadata["monofont"], asCssFont),
+  );
+  addIfDefined(
+    sassVariable("mono-background-color", metadata["monobackgroundcolor"]),
   );
 
-  // Special case for Body width and margins
+  // Deal with sizes
   const explicitSizes = [
     "max-width",
     "margin-top",
@@ -235,61 +210,10 @@ function mapBootstrapMetadataVariables(metadata: Metadata) {
     "margin-right",
   ];
   explicitSizes.forEach((attrib) => {
-    if (metadata[attrib]) {
-      const size = asCssSize(metadata[attrib]);
-      if (size) {
-        explicitVars.push({ name: attrib, value: size });
-      }
-    }
+    addIfDefined(sassVariable(attrib, metadata[attrib], asCssSize));
   });
 
-  // Special case for mono background
-  const monoBackground = scssVarFromMetadata(
-    metadata,
-    "monobackgroundcolor",
-    "mono-background-color",
-  );
-  if (monoBackground) {
-    // if we have a monobackground color then add padding
-    explicitVars.push(monoBackground);
-    explicitVars.push({ name: "mono-padding", value: "0.2em" });
-  } else {
-    // otherwise provide a default code block border treatment
-    explicitVars.push({ name: "codeblock-padding-left", value: "0.6rem" });
-    explicitVars.push({ name: "codeblock-border-left", value: "3px solid" });
-  }
   return explicitVars;
-}
-
-function scssVarFromMetadata(
-  metadata: Metadata,
-  name: string,
-  cssName: string,
-  formatter?: (val: string) => string | undefined,
-): ScssVariable | undefined {
-  if (metadata[name] !== undefined) {
-    const value = typeof (metadata[name]) === "string"
-      ? metadata[name]
-      : undefined;
-    if (value !== undefined) {
-      const formattedValue = formatter
-        ? formatter(value as string)
-        : value as string;
-
-      if (formattedValue !== undefined) {
-        return {
-          name: cssName,
-          value: formattedValue,
-        };
-      } else {
-        return undefined;
-      }
-    } else {
-      return undefined;
-    }
-  } else {
-    return undefined;
-  }
 }
 
 // Quarto variables and styles
