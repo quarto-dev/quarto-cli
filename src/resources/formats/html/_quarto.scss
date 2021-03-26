@@ -166,6 +166,9 @@ div.hanging-indent {
 .footnote-ref {
   text-decoration: none;
 }
+.footnotes ol {
+  padding-left: 1em;
+}
 .tippy-content > * {
   margin-bottom: 0.7em;
 }
@@ -178,7 +181,7 @@ div.hanging-indent {
 
 // Cards with header
 .callout {
-  padding: .5em 1em;
+  padding: 0.5em 1em;
   border-left: $callout-border-width solid;
   border-right: 1px solid $table-border-color;
   border-top: 1px solid $table-border-color;
@@ -188,7 +191,7 @@ div.hanging-indent {
 }
 
 .callout.callout-captioned .callout-body {
-  margin-top: .5em;
+  margin-top: 0.5em;
 }
 
 div[class^="callout-"] > div.callout-header {
@@ -232,8 +235,7 @@ div[class^="callout-"] .callout-btn-toggle .callout-toggle::before {
 }
 
 div[class^="callout-"] .header[aria-expanded="false"] .callout-toggle::before {
-  transform: rotate(-90deg);  
-  
+  transform: rotate(-90deg);
 }
 
 div[class^="callout-"] .header[aria-expanded="true"] .callout-toggle::before {
@@ -241,9 +243,9 @@ div[class^="callout-"] .header[aria-expanded="true"] .callout-toggle::before {
 }
 
 div[class^="callout-"] div.callout-icon-container {
-  padding-top: .2em;
-  padding-right: .4em;
-  margin-left: -.2em;
+  padding-top: 0.2em;
+  padding-right: 0.4em;
+  margin-left: -0.2em;
 }
 
 div[class^="callout-"] .no-icon {
@@ -254,59 +256,72 @@ div[class^="callout-"] .no-icon {
 // Define the callouts for which we should define styles
 $callouts: (
   // NOTE
-  "note": (
-    "color": $info,
-    "icon": '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark-fill" viewBox="0 0 16 16"><path d="M2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/></svg>'
-  ),   
-
+  "note":
+    (
+      "color": $info,
+      "icon":
+        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark-fill" viewBox="0 0 16 16"><path d="M2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/></svg>',
+    ),
   // TIP
-  "tip": (
-    "color": $success,
-    "icon": '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-lightbulb-fill" viewBox="0 0 16 16"><path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.46-.302l-.761-1.77a1.964 1.964 0 0 0-.453-.618A5.984 5.984 0 0 1 2 6zm3 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1-.5-.5z"/></svg>'
-  ),
-
+  "tip":
+    (
+      "color": $success,
+      "icon":
+        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-lightbulb-fill" viewBox="0 0 16 16"><path d="M2 6a6 6 0 1 1 10.174 4.31c-.203.196-.359.4-.453.619l-.762 1.769A.5.5 0 0 1 10.5 13h-5a.5.5 0 0 1-.46-.302l-.761-1.77a1.964 1.964 0 0 0-.453-.618A5.984 5.984 0 0 1 2 6zm3 8.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1l-.224.447a1 1 0 0 1-.894.553H6.618a1 1 0 0 1-.894-.553L5.5 15a.5.5 0 0 1-.5-.5z"/></svg>',
+    ),
   // WARNING
-  "warning": (
-    "color": $warning,
-    "icon": '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-triangle-fill" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>'
-  ),
-
+  "warning":
+    (
+      "color": $warning,
+      "icon":
+        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-triangle-fill" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>',
+    ),
   // CAUTION
-  "caution": (
-    "color": $orange,
-    "icon": '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cone-striped" viewBox="0 0 16 16"><path d="M9.97 4.88l.953 3.811C10.158 8.878 9.14 9 8 9c-1.14 0-2.159-.122-2.923-.309L6.03 4.88C6.635 4.957 7.3 5 8 5s1.365-.043 1.97-.12zm-.245-.978L8.97.88C8.718-.13 7.282-.13 7.03.88L6.274 3.9C6.8 3.965 7.382 4 8 4c.618 0 1.2-.036 1.725-.098zm4.396 8.613a.5.5 0 0 1 .037.96l-6 2a.5.5 0 0 1-.316 0l-6-2a.5.5 0 0 1 .037-.96l2.391-.598.565-2.257c.862.212 1.964.339 3.165.339s2.303-.127 3.165-.339l.565 2.257 2.391.598z"/></svg>'
-  ), 
-
+  "caution":
+    (
+      "color": $orange,
+      "icon":
+        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cone-striped" viewBox="0 0 16 16"><path d="M9.97 4.88l.953 3.811C10.158 8.878 9.14 9 8 9c-1.14 0-2.159-.122-2.923-.309L6.03 4.88C6.635 4.957 7.3 5 8 5s1.365-.043 1.97-.12zm-.245-.978L8.97.88C8.718-.13 7.282-.13 7.03.88L6.274 3.9C6.8 3.965 7.382 4 8 4c.618 0 1.2-.036 1.725-.098zm4.396 8.613a.5.5 0 0 1 .037.96l-6 2a.5.5 0 0 1-.316 0l-6-2a.5.5 0 0 1 .037-.96l2.391-.598.565-2.257c.862.212 1.964.339 3.165.339s2.303-.127 3.165-.339l.565 2.257 2.391.598z"/></svg>',
+    ),
   // IMPORTANT
-  "important": (
-    "color": $danger,
-    "icon": '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>'
-  ), //circle exclamation point
-
+  "important":
+    (
+      "color": $danger,
+      "icon":
+        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle-fill" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>',
+    ),
+  //circle exclamation point
 );
-
-
-
-
-
-
-
-
 
 @each $name, $info in $callouts {
   div.callout-#{$name} {
-    border-left-color: shift-color(map.get($info, "color"), $callout-border-scale);
+    border-left-color: shift-color(
+      map.get($info, "color"),
+      $callout-border-scale
+    );
   }
 
-  div.callout-#{$name}:not(.callout-captioned) .callout-icon::before { 
-    background-image: #{"url('data:image/svg+xml," + str-replace(map.get($info, "icon"), "currentColor", #{shift-color(map.get($info, "color"), $callout-border-scale)}) + "');"}
+  div.callout-#{$name}:not(.callout-captioned) .callout-icon::before {
+    background-image: #{"url('data:image/svg+xml," +
+      str-replace(
+        map.get($info, "icon"),
+        "currentColor",
+        #{shift-color(map.get($info, "color"), $callout-border-scale)}
+      ) +
+      "');"};
   }
 
   div.callout-#{$name}.callout-captioned .callout-icon::before {
-    background-image: #{"url('data:image/svg+xml," + str-replace(map.get($info, "icon"), "currentColor", #{shift-color(map.get($info, "color"), $callout-icon-scale)}) + "');"}
+    background-image: #{"url('data:image/svg+xml," +
+      str-replace(
+        map.get($info, "icon"),
+        "currentColor",
+        #{shift-color(map.get($info, "color"), $callout-icon-scale)}
+      ) +
+      "');"};
   }
 
   div.callout-#{$name} .callout-toggle::before {
     background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGB($body-color)}" class="bi bi-chevron-down" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>');
-  } 
+  }
 }
