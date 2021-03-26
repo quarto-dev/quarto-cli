@@ -128,11 +128,12 @@ export interface FormatExtras {
     pre?: string[];
     post?: string[];
   };
-  // html-specific extras
-  [kDependencies]?: FormatDependency[];
-  [kSassBundles]?: SassBundle[];
-  [kBodyEnvelope]?: BodyEnvelope;
-  [kHtmlPostprocessors]?: Array<(doc: Document) => string[]>;
+  html?: {
+    [kDependencies]?: FormatDependency[];
+    [kSassBundles]?: SassBundle[];
+    [kBodyEnvelope]?: BodyEnvelope;
+    [kHtmlPostprocessors]?: Array<(doc: Document) => string[]>;
+  };
 }
 
 // pandoc output format

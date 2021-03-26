@@ -156,11 +156,13 @@ function htmlFormatExtras(format: Format): FormatExtras {
 
   // return extras
   return {
-    [kDependencies]: [{
-      name: "quarto-html",
-      scripts,
-      stylesheets,
-    }],
+    html: {
+      [kDependencies]: [{
+        name: "quarto-html",
+        scripts,
+        stylesheets,
+      }],
+    },
   };
 }
 

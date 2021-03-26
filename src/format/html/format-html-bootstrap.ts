@@ -103,15 +103,19 @@ export function boostrapExtras(
     [kTocTitle]: !hasTableOfContentsTitle(flags, format)
       ? "Table of contents"
       : undefined,
-    [kSassBundles]: [resolveBootstrapScss(format.metadata)],
-    [kDependencies]: [bootstrapFormatDependency(format)],
-    [kBodyEnvelope]: bodyEnvelope,
+
     [kFilters]: {
       pre: [
         formatResourcePath("html", "html.lua"),
       ],
     },
-    [kHtmlPostprocessors]: [bootstrapHtmlPostprocessor(format)],
+
+    html: {
+      [kSassBundles]: [resolveBootstrapScss(format.metadata)],
+      [kDependencies]: [bootstrapFormatDependency(format)],
+      [kBodyEnvelope]: bodyEnvelope,
+      [kHtmlPostprocessors]: [bootstrapHtmlPostprocessor(format)],
+    },
   };
 }
 

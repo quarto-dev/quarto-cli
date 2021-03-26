@@ -238,11 +238,12 @@ export function websiteNavigationExtras(
         format.metadata[kTocFloat] !== false
       ? "On this page"
       : undefined,
-
-    [kSassBundles]: sassBundles,
-    [kDependencies]: dependencies,
-    [kBodyEnvelope]: bodyEnvelope,
-    [kHtmlPostprocessors]: [navigationHtmlPostprocessor(href, offset)],
+    html: {
+      [kSassBundles]: sassBundles,
+      [kDependencies]: dependencies,
+      [kBodyEnvelope]: bodyEnvelope,
+      [kHtmlPostprocessors]: [navigationHtmlPostprocessor(href, offset)],
+    },
   };
 }
 

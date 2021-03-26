@@ -167,7 +167,7 @@ export async function runPandoc(
     );
 
     // save post-processors
-    htmlPostprocessors.push(...(extras[kHtmlPostprocessors] || []));
+    htmlPostprocessors.push(...(extras.html?.[kHtmlPostprocessors] || []));
 
     // provide default toc-title if necessary
     if (extras[kTocTitle]) {
@@ -366,23 +366,20 @@ async function resolveExtras(
     // resolve sass bundles
     extras = await resolveSassBundles(
       extras,
-      formatExtras[kSassBundles],
-      projectExtras[kSassBundles],
+      formatExtras.html?.[kSassBundles],
+      projectExtras.html?.[kSassBundles],
     );
 
     // resolve dependencies
     extras = resolveDependencies(extras, inputDir, libDir);
 
     // body envelope to includes (project body envelope always wins)
-    if (extras[kBodyEnvelope] && projectExtras[kBodyEnvelope]) {
-      extras[kBodyEnvelope] = projectExtras[kBodyEnvelope];
+    if (extras.html?.[kBodyEnvelope] && projectExtras.html?.[kBodyEnvelope]) {
+      extras.html[kBodyEnvelope] = projectExtras.html[kBodyEnvelope];
     }
     extras = resolveBodyEnvelope(extras);
   } else {
-    delete extras[kDependencies];
-    delete extras[kSassBundles];
-    delete extras[kBodyEnvelope];
-    delete extras[kHtmlPostprocessors];
+    delete extras.html;
   }
 
   return extras;
@@ -405,8 +402,8 @@ function resolveDependencies(
     `<link href="<%- href %>" rel="stylesheet" />`,
   );
   const lines: string[] = [];
-  if (extras[kDependencies]) {
-    for (const dependency of extras[kDependencies]!) {
+  if (extras.html?.[kDependencies]) {
+    for (const dependency of extras.html?.[kDependencies]!) {
       const dir = dependency.version
         ? `${dependency.name}-${dependency.version}`
         : dependency.name;
@@ -438,7 +435,7 @@ function resolveDependencies(
         dependency.resources.forEach(copyDep);
       }
     }
-    delete extras[kDependencies];
+    delete extras.html?.[kDependencies];
 
     // write to external file
     const dependenciesHead = sessionTempFile({
@@ -458,7 +455,7 @@ function resolveBodyEnvelope(extras: FormatExtras) {
   // deep copy to not mutate caller's object
   extras = ld.cloneDeep(extras);
 
-  const envelope = extras[kBodyEnvelope];
+  const envelope = extras.html?.[kBodyEnvelope];
   if (envelope) {
     const writeBodyFile = (
       type: "include-in-header" | "include-before-body" | "include-after-body",
@@ -478,7 +475,7 @@ function resolveBodyEnvelope(extras: FormatExtras) {
     writeBodyFile(kIncludeBeforeBody, envelope.before);
     writeBodyFile(kIncludeAfterBody, envelope.after);
 
-    delete extras[kBodyEnvelope];
+    delete extras.html?.[kBodyEnvelope];
   }
 
   return extras;
@@ -518,7 +515,7 @@ async function resolveSassBundles(
     const cssPath = await compileSass(bundles, `${dependency}.css`);
 
     // Push the compiled Css onto the dependency
-    const extraDeps = extras[kDependencies];
+    const extraDeps = extras.html?.[kDependencies];
     if (extraDeps) {
       const existingDependency = extraDeps.find((extraDep) =>
         extraDep.name === dependency
