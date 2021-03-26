@@ -46,7 +46,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       delay: 100,
       interactive: true,
       interactiveBorder: 10,
-      theme: 'quarto',
+      theme: '<%= tippyTheme %>',
       placement: 'bottom-start'
     }); 
   }

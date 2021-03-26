@@ -12,9 +12,10 @@ import { formatResourcePath } from "../../core/resources.ts";
 
 import {
   kFilters,
+  kHtmlMathMethod,
+  kLinkCitations,
   kSectionDivs,
   kTocTitle,
-  kVariables,
 } from "../../config/constants.ts";
 import {
   Format,
@@ -32,8 +33,8 @@ import {
 
 import { resolveBootstrapScss } from "./format-html-scss.ts";
 import {
+  htmlFormatPostprocessor,
   kBootstrapDependencyName,
-  kCodeCopy,
   kDocumentCss,
   kFootnoteSectionTitle,
   kPageLayout,
@@ -96,29 +97,34 @@ export function boostrapExtras(
   return {
     pandoc: {
       [kSectionDivs]: true,
-      [kVariables]: {
-        [kDocumentCss]: false,
-      },
+      [kHtmlMathMethod]: "mathjax",
+    },
+    metadata: {
+      [kDocumentCss]: false,
+      [kLinkCitations]: true,
     },
     [kTocTitle]: !hasTableOfContentsTitle(flags, format)
       ? "Table of contents"
       : undefined,
-    [kSassBundles]: [resolveBootstrapScss(format.metadata)],
-    [kDependencies]: [bootstrapFormatDependency(format)],
-    [kBodyEnvelope]: bodyEnvelope,
+
     [kFilters]: {
       pre: [
         formatResourcePath("html", "html.lua"),
       ],
     },
-    [kHtmlPostprocessors]: [bootstrapHtmlPostprocessor(format)],
+
+    html: {
+      [kSassBundles]: [resolveBootstrapScss(format.metadata)],
+      [kDependencies]: [bootstrapFormatDependency(format)],
+      [kBodyEnvelope]: bodyEnvelope,
+      [kHtmlPostprocessors]: [
+        bootstrapHtmlPostprocessor(format),
+      ],
+    },
   };
 }
 
 function bootstrapHtmlPostprocessor(format: Format) {
-  // read options
-  const codeCopy = format.metadata[kCodeCopy] !== false;
-
   return (doc: Document): string[] => {
     // use display-6 style for title
     const title = doc.querySelector("header > .title");
@@ -191,25 +197,6 @@ function bootstrapHtmlPostprocessor(format: Format) {
       const hr = footnotes.querySelector("hr");
       if (hr) {
         hr.remove();
-      }
-    }
-
-    // insert code copy button
-    if (codeCopy) {
-      const codeBlocks = doc.querySelectorAll("pre.sourceCode");
-      for (let i = 0; i < codeBlocks.length; i++) {
-        const code = codeBlocks[i];
-
-        const copyButton = doc.createElement("button");
-        const title = "Copy to Clipboard";
-        copyButton.setAttribute("title", title);
-        copyButton.classList
-          .add("code-copy-button");
-        const copyIcon = doc.createElement("i");
-        copyIcon.classList.add("bi");
-        copyButton.appendChild(copyIcon);
-
-        code.appendChild(copyButton);
       }
     }
 

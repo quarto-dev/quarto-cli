@@ -21,6 +21,7 @@ import {
   kFilters,
   kFreeze,
   kHighlightStyle,
+  kHtmlMathMethod,
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
@@ -120,6 +121,7 @@ export interface SassBundle {
 
 export interface FormatExtras {
   pandoc?: FormatPandoc;
+  metadata?: Metadata;
   [kTocTitle]?: string;
   [kIncludeInHeader]?: string[];
   [kIncludeBeforeBody]?: string[];
@@ -128,11 +130,12 @@ export interface FormatExtras {
     pre?: string[];
     post?: string[];
   };
-  // html-specific extras
-  [kDependencies]?: FormatDependency[];
-  [kSassBundles]?: SassBundle[];
-  [kBodyEnvelope]?: BodyEnvelope;
-  [kHtmlPostprocessors]?: Array<(doc: Document) => string[]>;
+  html?: {
+    [kDependencies]?: FormatDependency[];
+    [kSassBundles]?: SassBundle[];
+    [kBodyEnvelope]?: BodyEnvelope;
+    [kHtmlPostprocessors]?: Array<(doc: Document) => string[]>;
+  };
 }
 
 // pandoc output format
@@ -214,6 +217,7 @@ export interface FormatPandoc {
   [kNumberSections]?: boolean;
   [kHighlightStyle]?: string;
   [kSectionDivs]?: boolean;
+  [kHtmlMathMethod]?: string;
 }
 
 export function isLatexOutput(format: FormatPandoc) {
