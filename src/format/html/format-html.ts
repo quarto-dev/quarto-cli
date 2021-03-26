@@ -111,6 +111,7 @@ function themeFormatExtras(flags: PandocFlags, format: Format) {
 
 function htmlFormatExtras(format: Format): FormatExtras {
   // lists of scripts and ejs data for the orchestration script
+  const kQuartoHtmlDependency = "quarto-html";
   const scripts: DependencyFile[] = [];
   const stylesheets: DependencyFile[] = [];
   const bootstrap = formatHasBootstrap(format);
@@ -130,8 +131,8 @@ function htmlFormatExtras(format: Format): FormatExtras {
   }
 
   // popper if required
-  const tippy = options.hoverCitations || options.hoverFootnotes;
-  if (bootstrap || tippy) {
+  options.tippy = options.hoverCitations || options.hoverFootnotes;
+  if (bootstrap || options.tippy) {
     scripts.push({
       name: "popper.min.js",
       path: formatResourcePath("html", join("popper", "popper.min.js")),
@@ -139,7 +140,7 @@ function htmlFormatExtras(format: Format): FormatExtras {
   }
 
   // tippy if required
-  if (tippy) {
+  if (options.tippy) {
     scripts.push({
       name: "tippy.umd.min.js",
       path: formatResourcePath("html", join("tippy", "tippy.umd.min.js")),
@@ -191,44 +192,49 @@ function htmlFormatExtras(format: Format): FormatExtras {
       : true;
   }
 
-  // add main orchestion script
-  const quartoHtmlScript = sessionTempFile({ suffix: ".html" });
-  Deno.writeTextFileSync(
-    quartoHtmlScript,
-    renderEjs(
-      formatResourcePath("html", join("templates", "quarto-html.ejs.js")),
-      options,
-    ),
+  // add main orchestion script if we have any options enabled
+  const quartoHtmlRequired = Object.keys(options).some((option) =>
+    options[option]
   );
 
-  scripts.push({
-    name: "quarto-html.js",
-    path: quartoHtmlScript,
-  });
-
-  // add quarto sass bundle of we aren't in bootstrap
-  const kQuartoHtmlDependency = "quarto-html";
-  if (!bootstrap) {
-    const quartoVariables = `$code-copy-selector: ${
-      format.metadata[kCodeCopy] === "hover"
-        ? '"pre.sourceCode:hover > "'
-        : '""'
-    } !default;";`;
-    sassBundles.push({
-      dependency: kQuartoHtmlDependency,
-      key: kQuartoHtmlDependency,
-      layer: {
-        variables: quartoVariables,
-        declarations: [
-          Deno.readTextFileSync(quartoDeclarations()),
-        ].join(
-          "\n\n",
-        ),
-        rules: [
-          Deno.readTextFileSync(quartoRules()),
-        ].join("\n\n"),
-      },
+  if (quartoHtmlRequired) {
+    // html orchestration script
+    const quartoHtmlScript = sessionTempFile();
+    Deno.writeTextFileSync(
+      quartoHtmlScript,
+      renderEjs(
+        formatResourcePath("html", join("templates", "quarto-html.ejs.js")),
+        options,
+      ),
+    );
+    scripts.push({
+      name: "quarto-html.js",
+      path: quartoHtmlScript,
     });
+
+    // add quarto sass bundle of we aren't in bootstrap
+    if (!bootstrap) {
+      const quartoVariables = `$code-copy-selector: ${
+        format.metadata[kCodeCopy] === "hover"
+          ? '"pre.sourceCode:hover > "'
+          : '""'
+      } !default;`;
+      sassBundles.push({
+        dependency: kQuartoHtmlDependency,
+        key: kQuartoHtmlDependency,
+        layer: {
+          variables: quartoVariables,
+          declarations: [
+            Deno.readTextFileSync(quartoDeclarations()),
+          ].join(
+            "\n\n",
+          ),
+          rules: [
+            Deno.readTextFileSync(quartoRules()),
+          ].join("\n\n"),
+        },
+      });
+    }
   }
 
   // return extras
