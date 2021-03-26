@@ -35,6 +35,7 @@ import {
   kBootstrapDependencyName,
   kCodeCopy,
   kDocumentCss,
+  kFootnoteSectionTitle,
   kPageLayout,
 } from "./format-html.ts";
 
@@ -170,6 +171,22 @@ function bootstrapHtmlPostprocessor(format: Format) {
       if (heading) {
         heading.setAttribute("id", section.id);
         section.removeAttribute("id");
+      }
+    }
+
+    // provide heading for footnotes
+    const footnotes = doc.querySelector('section[role="doc-endnotes"]');
+    if (footnotes) {
+      const h2 = doc.createElement("h2");
+      const title =
+        (format.metadata[kFootnoteSectionTitle] || "Footnotes") as string;
+      if (typeof (title) == "string" && title !== "none") {
+        h2.innerHTML = title;
+      }
+      footnotes.insertBefore(h2, footnotes.firstChild);
+      const hr = footnotes.querySelector("hr");
+      if (hr) {
+        hr.remove();
       }
     }
 

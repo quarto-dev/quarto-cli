@@ -19,8 +19,6 @@ HTML:
     make sure that e.g. zenburn has it's background color overridden by us
     automaticallly switch to a "dark theme friendly" highlight-style
 
-- placement/formatting of bibliography and footnotes
-
 TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx)
 
 TODO: prime thematic with theme info

@@ -38,6 +38,8 @@ export const kPageLayout = "page-layout";
 export const kHoverCitations = "hover-citations";
 export const kHoverFootnotes = "hover-footnotes";
 
+export const kFootnoteSectionTitle = "footnote-section-title";
+
 export const kDocumentCss = "document-css";
 export const kBootstrapDependencyName = "bootstrap";
 
