@@ -674,8 +674,11 @@ async function resolveFormats(
   );
 
   // merge the formats
+  const targetFormats = ld.uniq(
+    Object.keys(projFormats).concat(Object.keys(inputFormats)),
+  );
   const mergedFormats: Record<string, Format> = {};
-  formats.forEach((format) => {
+  targetFormats.forEach((format) => {
     // alias formats
     const projFormat = projFormats[format];
     const inputFormat = inputFormats[format];
@@ -690,7 +693,7 @@ async function resolveFormats(
     }
 
     // do the merge
-    mergedFormats[format] = mergeConfigs(projFormat, inputFormat);
+    mergedFormats[format] = mergeConfigs(projFormat || {}, inputFormat || {});
   });
 
   return mergedFormats;

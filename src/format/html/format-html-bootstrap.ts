@@ -40,8 +40,12 @@ import {
 } from "./format-html.ts";
 
 export function formatHasBootstrap(format: Format) {
-  const theme = format.metadata["theme"];
-  return theme !== "none" && theme !== "pandoc";
+  if (format) {
+    const theme = format.metadata["theme"];
+    return theme !== "none" && theme !== "pandoc";
+  } else {
+    return false;
+  }
 }
 
 export function bootstrapFormatDependency(format: Format) {

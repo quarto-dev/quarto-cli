@@ -121,9 +121,6 @@ export interface SassBundle {
 export interface FormatExtras {
   pandoc?: FormatPandoc;
   [kTocTitle]?: string;
-  [kDependencies]?: FormatDependency[];
-  [kSassBundles]?: SassBundle[];
-  [kBodyEnvelope]?: BodyEnvelope;
   [kIncludeInHeader]?: string[];
   [kIncludeBeforeBody]?: string[];
   [kIncludeAfterBody]?: string[];
@@ -131,6 +128,10 @@ export interface FormatExtras {
     pre?: string[];
     post?: string[];
   };
+  // html-specific extras
+  [kDependencies]?: FormatDependency[];
+  [kSassBundles]?: SassBundle[];
+  [kBodyEnvelope]?: BodyEnvelope;
   [kHtmlPostprocessors]?: Array<(doc: Document) => string[]>;
 }
 

@@ -102,8 +102,10 @@ export async function renderProject(
           Deno.removeSync(targetDir, { recursive: true });
         }
         const srcDir = join(projDir, dir);
-        ensureDirSync(dirname(targetDir));
-        Deno.renameSync(srcDir, targetDir);
+        if (existsSync(srcDir)) {
+          ensureDirSync(dirname(targetDir));
+          Deno.renameSync(srcDir, targetDir);
+        }
       };
 
       // move the lib dir if we have one (move one subdirectory at a time so that we can

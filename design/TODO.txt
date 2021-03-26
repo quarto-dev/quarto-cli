@@ -2,7 +2,6 @@
 
 
 Theme TippyJs
-- Switch index.md to format PDF. Error rendering document.
 
 SASS:
 - cache should be in files, use DependencyFile.name to set pretty name
@@ -60,7 +59,7 @@ where we fixup refs, but really need the projectInputFiles for this)
 //  Websites:
 //    - edit on github
 //    - google analytics (or coolster alternative). cookie consent
-//    - commenting / hypotheses
+//    - twitter card
 
 TODO: generalized warning system (look for 'WARNING:')
 
