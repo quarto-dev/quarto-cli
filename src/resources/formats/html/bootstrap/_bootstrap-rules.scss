@@ -36,32 +36,32 @@ h4 {
 }
 
 // sort out border color
-$codeblock-border-left-color: $table-border-color !default;
-@if type_of($codeblock-border-left) == color { 
-  $codeblock-border-left-color: $codeblock-border-left;
+$code-border-left-color: $table-border-color !default;
+@if type_of($code-border-left) == color { 
+  $code-border-left-color: $code-border-left;
 }
 
 // sort out background color
-$codeblock-background-color: color.adjust($progress-bg, $alpha: $codeblock-background-alpha) !default;
-@if type_of($codeblock-background) == color { 
-  $codeblock-background-color: $codeblock-background;
+$code-background-color: color.adjust($progress-bg, $alpha: $code-background-alpha) !default;
+@if type_of($code-background) == color { 
+  $code-background-color: $code-background;
 }
 
 pre.sourceCode {
   // Apply border, if specified
-  @if $codeblock-border-left {
-    border-left: $codeblock-border-left-size;
-    border-left-style:  $codeblock-border-left-style;
-    border-left-color: $codeblock-border-left-color;
-    padding-left: $codeblock-padding-left;
+  @if $code-border-left {
+    border-left: $code-border-left-size;
+    border-left-style:  $code-border-left-style;
+    border-left-color: $code-border-left-color;
+    padding-left: $code-padding-left;
   } @else {
     border: none;
   }
 
   // Clear code background if is not specified
-  @if $codeblock-background {
-    background-color: $codeblock-background-color;
-    padding: $codeblock-background-padding;      
+  @if $code-background {
+    background-color: $code-background-color;
+    padding: $code-background-padding;      
   } @else {
     background-color: $body-bg !important;
   }  

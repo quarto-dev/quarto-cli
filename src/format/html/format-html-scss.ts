@@ -216,9 +216,8 @@ function mapBootstrapPandocVariables(metadata: Metadata): SassVariable[] {
   return explicitVars;
 }
 
-const kCodeBorderLeft = "codeblock-border-left";
-const kCodeBlockBorderLeftColor = "codeblock-border-left-color";
-const kCodeBlockBackground = "codeblock-background";
+const kCodeBorderLeft = "code-border-left";
+const kCodeBlockBackground = "code-background";
 
 // Quarto variables and styles
 export const quartoBootstrapVariables = (metadata: Metadata) => {
@@ -240,18 +239,6 @@ export const quartoBootstrapVariables = (metadata: Metadata) => {
         ),
       ),
     );
-
-    if (typeof (codeblockLeftBorder) === "string") {
-      variables.push(
-        print(
-          sassVariable(
-            kCodeBlockBorderLeftColor,
-            codeblockLeftBorder,
-            asCssColor,
-          ),
-        ),
-      );
-    }
   }
 
   // code background color
