@@ -26,7 +26,6 @@ import {
   SassBundle,
 } from "../../config/format.ts";
 import { PandocFlags } from "../../config/flags.ts";
-import { Metadata } from "../../config/metadata.ts";
 import { kTheme } from "../../config/constants.ts";
 
 import { baseHtmlFormat } from "./../formats.ts";
@@ -34,6 +33,7 @@ import { baseHtmlFormat } from "./../formats.ts";
 import { boostrapExtras, formatHasBootstrap } from "./format-html-bootstrap.ts";
 
 import { quartoDeclarations, quartoRules } from "./format-html-scss.ts";
+import { print, sassVariable } from "../../command/render/sass.ts";
 
 export const kCodeCopy = "code-copy";
 export const kAnchorSections = "anchor-sections";
@@ -214,25 +214,22 @@ function htmlFormatExtras(format: Format): FormatExtras {
 
     // add quarto sass bundle of we aren't in bootstrap
     if (!bootstrap) {
-      const quartoVariables = `$code-copy-selector: ${
-        format.metadata[kCodeCopy] === "hover"
-          ? '"pre.sourceCode:hover > "'
-          : '""'
-      } !default;`;
+      const quartoVariables = print(
+        sassVariable(
+          "code-copy-selector",
+          format.metadata[kCodeCopy] === "hover"
+            ? '"pre.sourceCode:hover > "'
+            : '""',
+        ),
+      );
       sassBundles.push({
         dependency: kQuartoHtmlDependency,
         key: kQuartoHtmlDependency,
         quarto: {
           use: ["sass:color"],
           variables: quartoVariables,
-          declarations: [
-            Deno.readTextFileSync(quartoDeclarations()),
-          ].join(
-            "\n\n",
-          ),
-          rules: [
-            Deno.readTextFileSync(quartoRules()),
-          ].join("\n\n"),
+          declarations: quartoDeclarations(),
+          rules: quartoRules(),
         },
       });
     }

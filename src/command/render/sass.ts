@@ -23,26 +23,18 @@ export interface SassVariable {
 
 export function sassVariable(
   name: string,
-  value?: unknown,
-  formatter?: (val: unknown) => unknown | undefined,
+  value: unknown,
+  formatter?: (val: unknown) => unknown,
 ) {
-  if (value) {
-    return {
-      name: name,
-      value: formatter ? formatter(value) : value,
-    };
-  } else {
-    return undefined;
-  }
+  return {
+    name: name,
+    value: formatter ? formatter(value) : value,
+  };
 }
 
 // prints a Sass variable
 export function print(variable: SassVariable, isDefault = true): string {
-  let outputValue = variable.value;
-  if (typeof (variable.value) === "string") {
-    outputValue = `"${variable.value}"`;
-  }
-  return `$${variable.name}: ${outputValue}${isDefault ? " !default" : ""};`;
+  return `$${variable.name}: ${variable.value}${isDefault ? " !default" : ""};`;
 }
 
 export async function compileSass(bundles: SassBundle[]) {

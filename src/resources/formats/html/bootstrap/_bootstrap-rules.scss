@@ -14,27 +14,6 @@ body {
   }
 }
 
-code,
-kbd,
-pre,
-samp {
-  @if variable-exists(mono-background-color) {
-    background-color: $mono-background-color;
-  }
-  @if variable-exists(mono-padding) {
-    padding: $mono-padding;
-  }
-}
-
-pre.sourceCode {
-  @if variable-exists(codeblock-padding-left) {
-    padding-left: $codeblock-padding-left;
-  }
-  @if variable-exists(codeblock-border-left) {
-    border-left: $codeblock-border-left;
-  }
-}
-
 main {
   margin-top: 1em;
   margin-bottom: 1em;
@@ -57,9 +36,50 @@ h4 {
 }
 
 // Source Code Blocks
-pre.sourceCode,
-code.sourceCode {
-  border-color: $gray-200 !important;
+code:not(.sourceCode),
+kbd,
+pre:not(.sourceCode),
+samp {
+  @if variable-exists(mono-background-color) {
+    background-color: $mono-background-color;
+    padding: 0.2em;
+  }
+}
+
+// sort out border color
+$codeblock-border-left-color: $table-border-color !default;
+@if type_of($codeblock-border-left) == color { 
+  $codeblock-border-left-color: $codeblock-border-left;
+}
+
+// sort out background color
+$codeblock-background-color: color.adjust($progress-bg, $alpha: $codeblock-background-alpha) !default;
+@if type_of($codeblock-background) == color { 
+  $codeblock-background-color: $codeblock-background;
+}
+
+pre.sourceCode {
+  // Apply border, if specified
+  @if $codeblock-border-left {
+    border-left: $codeblock-border-left-size;
+    border-left-style:  $codeblock-border-left-style;
+    border-left-color: $codeblock-border-left-color;
+    padding-left: $codeblock-padding-left;
+  } @else {
+    border: none;
+  }
+
+  // Clear code background if is not specified
+  @if $codeblock-background {
+    background-color: $codeblock-background-color;
+    padding: $codeblock-background-padding;      
+  } @else {
+    background-color: $body-bg !important;
+  }  
+}
+
+div.sourceCode {
+  background-color: $body-bg !important;
 }
 
 #{$code-copy-selector} .code-copy-button > .bi::before {

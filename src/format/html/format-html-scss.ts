@@ -9,7 +9,12 @@ import { existsSync } from "fs/mod.ts";
 import { dirname, join } from "path/mod.ts";
 
 import { formatResourcePath } from "../../core/resources.ts";
-import { asCssFont, asCssNumber, asCssSize } from "../../core/css.ts";
+import {
+  asCssColor,
+  asCssFont,
+  asCssNumber,
+  asCssSize,
+} from "../../core/css.ts";
 
 import { SassBundle } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
@@ -69,11 +74,11 @@ export function resolveBootstrapScss(metadata: Metadata): SassBundle {
     },
     quarto: {
       use: ["sass:color", "sass:map"],
-      variables: Deno.readTextFileSync(quartoBootstrapVariables()),
-      declarations: Deno.readTextFileSync(quartoDeclarations()),
+      variables: quartoBootstrapVariables(metadata),
+      declarations: quartoDeclarations(),
       rules: [
-        Deno.readTextFileSync(quartoRules()),
-        Deno.readTextFileSync(quartoBootstrapRules()),
+        quartoRules(),
+        quartoBootstrapRules(),
       ].join("\n"),
     },
     framework: {
@@ -164,42 +169,36 @@ function resolveThemeScss(
 function mapBootstrapPandocVariables(metadata: Metadata): SassVariable[] {
   const explicitVars: SassVariable[] = [];
 
-  // our code copy selector
-  explicitVars.push({
-    name: "code-copy-selector",
-    value: metadata[kCodeCopy] === undefined || metadata[kCodeCopy] === "hover"
-      ? "pre.sourceCode:hover > "
-      : "",
-  });
-
   // Helper for adding explicitly set variables
-  const addIfDefined = (cssVar?: SassVariable) => {
-    if (cssVar !== undefined) {
-      explicitVars.push(cssVar);
+  const add = (
+    variables: SassVariable[],
+    name: string,
+    value?: unknown,
+    formatter?: (val: unknown) => unknown,
+  ) => {
+    if (value) {
+      const sassVar = sassVariable(name, value, formatter);
+      variables.push(sassVar);
     }
   };
+  // code copy selector
+  add(
+    explicitVars,
+    "code-copy-selector",
+    metadata[kCodeCopy] === undefined || metadata[kCodeCopy] === "hover"
+      ? '"pre.sourceCode:hover > "'
+      : '""',
+  );
 
   // Pass through to some bootstrap variables
-  addIfDefined(
-    sassVariable("line-height-base", metadata["linestretch"], asCssNumber),
-  );
-  addIfDefined(sassVariable("font-size-root", metadata["font-size"]));
-  addIfDefined(sassVariable("body-bg", metadata["backgroundcolor"]));
-  addIfDefined(sassVariable("body-color", metadata["fontcolor"]));
-  addIfDefined(sassVariable("link-color", metadata["linkcolor"]));
-  addIfDefined(
-    sassVariable(
-      "font-family-base",
-      metadata["mainfont"],
-      asCssFont,
-    ),
-  );
-  addIfDefined(
-    sassVariable("font-family-code", metadata["monofont"], asCssFont),
-  );
-  addIfDefined(
-    sassVariable("mono-background-color", metadata["monobackgroundcolor"]),
-  );
+  add(explicitVars, "line-height-base", metadata["linestretch"], asCssNumber);
+  add(explicitVars, "font-size-root", metadata["font-size"]);
+  add(explicitVars, "body-bg", metadata["backgroundcolor"]);
+  add(explicitVars, "body-color", metadata["fontcolor"]);
+  add(explicitVars, "link-color", metadata["linkcolor"]);
+  add(explicitVars, "font-family-base", metadata["mainfont"], asCssFont);
+  add(explicitVars, "font-family-code", metadata["monofont"], asCssFont);
+  add(explicitVars, "mono-background-color", metadata["monobackgroundcolor"]);
 
   // Deal with sizes
   const explicitSizes = [
@@ -210,33 +209,83 @@ function mapBootstrapPandocVariables(metadata: Metadata): SassVariable[] {
     "margin-right",
   ];
   explicitSizes.forEach((attrib) => {
-    addIfDefined(sassVariable(attrib, metadata[attrib], asCssSize));
+    add(explicitVars, attrib, metadata[attrib], asCssSize);
   });
 
   return explicitVars;
 }
 
+const kCodeBorderLeft = "codeblock-border-left";
+const kCodeBlockBorderLeftColor = "codeblock-border-left-color";
+const kCodeBlockBackground = "codeblock-background";
+
 // Quarto variables and styles
-export const quartoBootstrapVariables = () =>
-  formatResourcePath(
+export const quartoBootstrapVariables = (metadata: Metadata) => {
+  const varFilePath = formatResourcePath(
     "html",
     join("bootstrap", "_bootstrap-variables.scss"),
   );
+  const variables = [Deno.readTextFileSync(varFilePath)];
+
+  // Forward codeleft-border
+  const codeblockLeftBorder = metadata[kCodeBorderLeft];
+  if (codeblockLeftBorder !== undefined) {
+    variables.push(
+      print(
+        sassVariable(
+          kCodeBorderLeft,
+          codeblockLeftBorder,
+          typeof (codeblockLeftBorder) === "string" ? asCssColor : undefined,
+        ),
+      ),
+    );
+
+    if (typeof (codeblockLeftBorder) === "string") {
+      variables.push(
+        print(
+          sassVariable(
+            kCodeBlockBorderLeftColor,
+            codeblockLeftBorder,
+            asCssColor,
+          ),
+        ),
+      );
+    }
+  }
+
+  // code background color
+  const codeblockBackground = metadata[kCodeBlockBackground];
+  if (codeblockBackground !== undefined) {
+    variables.push(print(sassVariable(
+      kCodeBlockBackground,
+      codeblockBackground,
+      typeof (codeblockBackground) === "string" ? asCssColor : undefined,
+    )));
+
+    if (codeblockLeftBorder === undefined) {
+      variables.push(print(sassVariable(kCodeBorderLeft, false)));
+    }
+  }
+
+  // Any of the variables that we added from metadata should go first
+  // So they provide the defaults
+  return variables.reverse().join("\n");
+};
 
 export const quartoRules = () =>
-  formatResourcePath(
+  Deno.readTextFileSync(formatResourcePath(
     "html",
     "_quarto-rules.scss",
-  );
+  ));
 
 export const quartoBootstrapRules = () =>
-  formatResourcePath(
+  Deno.readTextFileSync(formatResourcePath(
     "html",
     join("bootstrap", "_bootstrap-rules.scss"),
-  );
+  ));
 
 export const quartoDeclarations = () =>
-  formatResourcePath(
+  Deno.readTextFileSync(formatResourcePath(
     "html",
     "_quarto-declarations.scss",
-  );
+  ));

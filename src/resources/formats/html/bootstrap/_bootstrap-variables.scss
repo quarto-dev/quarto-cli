@@ -5,9 +5,8 @@ $h3-font-size: 1.5rem !default;
 $h4-font-size: 1.25rem !default;
 $h5-font-size: 1.1rem !default;
 
-// TODO: restore !default
-$kbd-padding-y: 0.4rem;
-$kbd-padding-x: 0.4rem;
+$kbd-padding-y: 0.4rem !default;
+$kbd-padding-x: 0.4rem !default;
 
 // Body max-width
 $max-width: 1400px !default;
@@ -20,3 +19,15 @@ $callout-border-width: 5px !default;
 $callout-border-scale: 0% !default;
 $callout-icon-scale: 10% !default;
 $callout-margin-bottom: 1rem !default;
+
+// codeblock-left-border
+$codeblock-border-left: true !default;
+$codeblock-border-left-style: solid !default;
+$codeblock-border-left-size: 3px !default;
+$codeblock-padding-left: 0.6em !default;
+
+// codeblock-background
+$codeblock-background: false !default;
+$codeblock-background-padding: 0.4em !default;
+$codeblock-background-alpha: -0.35 !default;
+
