@@ -6,7 +6,6 @@ SASS:
 Code-blocks
 - CONFIRM- I am always overwriting the pandoc background to body color (we are always in charge of this
 Theme work:
-- Review pandoc options esp monospace and make sure all good
 - read sass variables body-bg and determine if its dark and switch the default pandoc highlighter
 - https://kate-editor.org/themes/
 
