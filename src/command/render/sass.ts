@@ -23,7 +23,7 @@ export interface SassVariable {
 
 export function sassVariable(
   name: string,
-  value: unknown,
+  value?: unknown,
   formatter?: (val: unknown) => unknown | undefined,
 ) {
   if (value) {
