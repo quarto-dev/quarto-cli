@@ -1,22 +1,17 @@
 
 
-
-render.ts: 667
-- Project context exists even for standalone html document so theme not working
-
 SASS:
-- should i delete sassbundles from formatextras once resolved 
 - Import bootswatch themes into "unified" format (bootstrap beta 3 with script)
+
+Code-blocks
+- CONFIRM- I am always overwriting the pandoc background to body color (we are always in charge of this
+Theme work:
+- Review pandoc options esp monospace and make sure all good
+- read sass variables body-bg and determine if its dark and switch the default pandoc highlighter
+- https://kate-editor.org/themes/
 
 Windows:
 - Need to figure out what the deal is with quarto bundled error (cliffy?) before next published release.
-
-HTML:  
-  - option to have shaded code blocks:
-    code-background: true | false | "color-literal"
-    code-border: true | false | "color-literal"
-    make sure that e.g. zenburn has it's background color overridden by us
-    automaticallly switch to a "dark theme friendly" highlight-style
 
 TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx)
 
