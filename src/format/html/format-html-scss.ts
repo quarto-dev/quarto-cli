@@ -16,7 +16,7 @@ import {
   asCssSize,
 } from "../../core/css.ts";
 
-import { SassBundle } from "../../config/format.ts";
+import { SassBundle, SassLayer } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
 import { kTheme } from "../../config/constants.ts";
 
@@ -45,33 +45,12 @@ export function resolveBootstrapScss(metadata: Metadata): SassBundle {
   const themes = Array.isArray(themeRaw)
     ? themeRaw
     : [String(metadata[kTheme])];
-  const themeScss = resolveThemeScss(themes, quartoThemesDir);
-
-  const themeVariables: string[] = [];
-  const themeRules: string[] = [];
-  const themeDeclarations: string[] = [];
-  themeScss.forEach((theme) => {
-    if (theme.variables) {
-      themeVariables.push(theme.variables);
-    }
-
-    if (theme.rules) {
-      themeRules.push(theme.rules);
-    }
-
-    if (theme.declarations) {
-      themeDeclarations.push(theme.declarations);
-    }
-  });
+  const themeLayer = resolveThemeLayer(themes, quartoThemesDir);
 
   return {
     dependency: kBootstrapDependencyName,
     key: themes.join("|"),
-    user: {
-      variables: themeVariables.join("\n"),
-      declarations: themeDeclarations.join("\n"),
-      rules: themeRules.join("\n"),
-    },
+    user: themeLayer,
     quarto: {
       use: ["sass:color", "sass:map"],
       variables: quartoBootstrapVariables(metadata),
@@ -92,11 +71,11 @@ export function resolveBootstrapScss(metadata: Metadata): SassBundle {
   };
 }
 
-function resolveThemeScss(
+function resolveThemeLayer(
   themes: string[],
   quartoThemesDir: string,
-): Array<{ variables?: string; rules?: string; declarations?: string }> {
-  const themeScss: Array<
+): SassLayer {
+  const themeLayers: Array<
     { variables?: string; rules?: string; declarations?: string }
   > = [];
 
@@ -114,7 +93,7 @@ function resolveThemeScss(
 
     if (existsSync(resolvedThemeDir)) {
       // It's a built in theme, just read and return the data
-      themeScss.push({
+      themeLayers.push({
         variables: read(join(resolvedThemeDir, "_variables.scss")),
         rules: read(join(resolvedThemeDir, "_bootswatch.scss")),
       });
@@ -148,14 +127,14 @@ function resolveThemeScss(
           }
         });
 
-        themeScss.push({
+        themeLayers.push({
           variables: vars.join("\n"),
           rules: rules.join("\n"),
           declarations: declarations.join("\n"),
         });
       } else {
         // It's a directory, look for names files instead
-        themeScss.push({
+        themeLayers.push({
           variables: read(join(theme, "_variables.scss")),
           rules: read(join(theme, "_rules.scss")),
           declarations: read(join(theme, "_declarations.scss")),
@@ -163,7 +142,29 @@ function resolveThemeScss(
       }
     }
   });
-  return themeScss;
+
+  const themeVariables: string[] = [];
+  const themeRules: string[] = [];
+  const themeDeclarations: string[] = [];
+  themeLayers.forEach((theme) => {
+    if (theme.variables) {
+      themeVariables.push(theme.variables);
+    }
+
+    if (theme.rules) {
+      themeRules.push(theme.rules);
+    }
+
+    if (theme.declarations) {
+      themeDeclarations.push(theme.declarations);
+    }
+  });
+
+  return {
+    variables: themeVariables.join("\n"),
+    declarations: themeDeclarations.join("\n"),
+    rules: themeRules.join("\n"),
+  };
 }
 
 function mapBootstrapPandocVariables(metadata: Metadata): SassVariable[] {
