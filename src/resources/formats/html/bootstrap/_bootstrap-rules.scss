@@ -35,17 +35,6 @@ h4 {
   padding-top: 1.2em;
 }
 
-// Source Code Blocks
-code:not(.sourceCode),
-kbd,
-pre:not(.sourceCode),
-samp {
-  @if variable-exists(mono-background-color) {
-    background-color: $mono-background-color;
-    padding: 0.2em;
-  }
-}
-
 // sort out border color
 $codeblock-border-left-color: $table-border-color !default;
 @if type_of($codeblock-border-left) == color { 
@@ -81,6 +70,21 @@ pre.sourceCode {
 div.sourceCode {
   background-color: $body-bg !important;
 }
+
+// Maps the pandoc 'monobackgroundcolor' to bootstrap
+// Note this only targets code outside of sourceCode blocks
+@if variable-exists(mono-background-color) {
+  code:not(.sourceCode),
+  kbd,
+  pre:not(.sourceCode),
+  samp {
+
+      background-color: $mono-background-color;
+      padding: 0.2em;
+    
+  }
+}
+
 
 #{$code-copy-selector} .code-copy-button > .bi::before {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGB($text-muted)}" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>');
