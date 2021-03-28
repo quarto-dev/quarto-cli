@@ -64,6 +64,7 @@ import { sessionTempFile } from "../../core/temp.ts";
 
 import { RenderResourceFiles } from "./render.ts";
 import { compileSass } from "./sass.ts";
+import { kBootstrapDependencyName } from "../../format/html/format-html";
 
 // options required to run pandoc
 export interface PandocOptions {
@@ -128,16 +129,6 @@ export async function runPandoc(
   // generate defaults and capture defaults to be printed
   let allDefaults = await generateDefaults(options) || {};
   const printAllDefaults = allDefaults ? ld.cloneDeep(allDefaults) : undefined;
-
-  // provide arrow highlight style
-  if (
-    allDefaults[kHighlightStyle] === undefined ||
-    allDefaults[kHighlightStyle] === "arrow"
-  ) {
-    allDefaults[kHighlightStyle] = Deno.realPathSync(
-      resourcePath(join("pandoc", "arrow.theme")),
-    );
-  }
 
   // see if there are extras
   const htmlPostprocessors: Array<(doc: Document) => string[]> = [];
@@ -378,6 +369,14 @@ async function resolveExtras(
       projectExtras.html?.[kSassBundles],
     );
 
+    // Resolve the highlight style based upon the theme
+    extras.pandoc = extras.pandoc || {};
+    if (extras.pandoc?.[kHighlightStyle] === undefined) {
+      extras.pandoc[kHighlightStyle] = highlightStyle(extras);
+    } else if (extras.pandoc?.[kHighlightStyle] === "arrow") {
+      extras.pandoc[kHighlightStyle] = arrowStyle();
+    }
+
     // resolve dependencies
     extras = resolveDependencies(extras, inputDir, libDir);
 
@@ -577,5 +576,37 @@ function runPandocMessage(
       message("metadata", { bold: true });
       message(stringify(printMetadata), { indent: 2 });
     }
+  }
+}
+
+function arrowStyle() {
+  return Deno.realPathSync(
+    resourcePath(join("pandoc", "arrow.theme")),
+  );
+}
+
+function highlightStyle(extras: FormatExtras): string {
+  // Look for a token indicating that that the theme is dark
+  const dark = extras.html?.[kDependencies]?.some((dependency) => {
+    // Inspect any bootstrap dependencies for a sentinel value
+    // that indicates that we should select a dark theme
+    if (dependency.name === kBootstrapDependencyName) {
+      return dependency.stylesheets?.some((stylesheet) => {
+        const css = Deno.readTextFileSync(stylesheet.path);
+        if (css.match(/\/\*! dark \*\//g)) {
+          return true;
+        } else {
+          return false;
+        }
+      });
+    } else {
+      return false;
+    }
+  });
+
+  if (dark) {
+    return "zenburn";
+  } else {
+    return arrowStyle();
   }
 }
