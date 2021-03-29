@@ -15,7 +15,7 @@ import { resolvePathGlobs } from "../core/path.ts";
 import { kOutputDir, kResources, ProjectContext } from "./project-context.ts";
 import { kGitignoreEntries } from "./project-gitignore.ts";
 
-export function projectResourceFiles(project: ProjectContext) {
+export function projectResourceFiles(project: ProjectContext): string[] {
   let resourceGlobs = project.metadata?.project?.[kResources];
   if (resourceGlobs) {
     const resourceFiles: string[] = [];

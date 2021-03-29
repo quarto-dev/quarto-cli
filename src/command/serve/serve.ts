@@ -21,7 +21,7 @@ import {
   projectType,
 } from "../../project/types/project-types.ts";
 
-import { render } from "../render/render.ts";
+import { render, RenderResult } from "../render/render.ts";
 
 import { ProjectWatcher, watchProject } from "./watch.ts";
 
@@ -53,8 +53,9 @@ export async function serveProject(
   };
 
   // render if requested
+  let renderResult: RenderResult | undefined;
   if (options.render) {
-    await render(project.dir, {
+    renderResult = await render(project.dir, {
       flags: {
         quiet: options.quiet,
         debug: options.debug,
@@ -74,7 +75,7 @@ export async function serveProject(
   const siteDir = outputDir ? join(project.dir, outputDir) : project.dir;
 
   // create project watcher
-  const watcher = watchProject(project, options, projServe);
+  const watcher = watchProject(project, options, renderResult, projServe);
 
   // main request handler
   const handler = async (req: ServerRequest): Promise<void> => {
