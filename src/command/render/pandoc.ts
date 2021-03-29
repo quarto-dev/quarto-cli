@@ -591,7 +591,7 @@ function arrowStyle() {
 }
 
 const kDefaultLightTheme = "arrow";
-const kDefaultDarkTheme = "Dracula";
+const kDefaultDarkTheme = "quarto";
 
 function resolveHighlightStyle(
   extras: FormatExtras,
@@ -624,7 +624,7 @@ function resolveHighlightStyle(
   // and find a matching theme file
   const names = [`${style}-${dark ? "dark" : "light"}`, style];
   const theme = names.map((name) => {
-    return resourcePath(join("pandoc", "themes", `${name}.theme`));
+    return resourcePath(join("pandoc", "highlight-styles", `${name}.theme`));
   }).find((path) => existsSync(path));
 
   // If the name maps to a locally installed theme, use it
