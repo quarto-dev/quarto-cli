@@ -16,13 +16,12 @@ TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx
 
 TODO: prime thematic with theme info
 
-TODO:  htmlwidgets need a fluid container (as perhaps do jupyter widgets)
-
-
 Future
 =========================================================================
 
 TODO: rsc_publish function based on rmarkdown::publish_site
+
+TODO: consider using grid for column layout (margin figures)
 
 Search: https://stork-search.net/
 TODO: embedding pdfs in website via pdf.js
