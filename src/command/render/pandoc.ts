@@ -42,6 +42,8 @@ import {
   ProjectContext,
 } from "../../project/project-context.ts";
 
+import { kBootstrapDependencyName } from "../../format/html/format-html.ts";
+
 import { RenderFlags } from "./flags.ts";
 import {
   generateDefaults,
@@ -64,7 +66,6 @@ import { sessionTempFile } from "../../core/temp.ts";
 
 import { RenderResourceFiles } from "./render.ts";
 import { compileSass } from "./sass.ts";
-import { kBootstrapDependencyName } from "../../format/html/format-html";
 
 // options required to run pandoc
 export interface PandocOptions {
