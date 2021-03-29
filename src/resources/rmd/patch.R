@@ -19,6 +19,27 @@ htmlPreserve <- function(x) {
 }
 assignInNamespace("htmlPreserve", htmlPreserve, ns = "htmltools")
 
+# tweak sizing for htmlwidget figures (use 100% to be responsive)
+if (requireNamespace("htmlwidgets", quietly = TRUE)) {
+  htmlwidgets_resolveSizing = htmlwidgets:::resolveSizing
+  resolveSizing <- function(x, sp, standalone, knitrOptions = NULL) {
+    # default sizing resolution
+    sizing <- htmlwidgets_resolveSizing(x, sp, standalone, knitrOptions)
+    
+    # if this is a knitr figure then set width to 100% and height
+    # to an appropriately proportioned value based on the assumption
+    # that the display width will be ~650px
+    if (isTRUE(sp$knitr$figure) && is.numeric(sizing$height) && is.numeric(sizing$width)) {
+      sizing$height <- paste0(as.integer(sizing$height/sizing$width*650), "px")
+      sizing$width <- "100%"
+    }
+   
+    # return sizing
+    sizing
+  }
+}
+assignInNamespace("resolveSizing", resolveSizing, ns = "htmlwidgets")
+
 
 # override wrapping behavior for knitr_asis output (including htmlwidgets)
 # to provide for enclosing output div and support for figure captions
