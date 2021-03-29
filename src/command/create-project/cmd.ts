@@ -16,7 +16,7 @@ import { projectTypes } from "../../project/types/project-types.ts";
 import { kOutputDir } from "../../project/project-context.ts";
 
 const kProjectTypes = projectTypes();
-const kExecutionEngines = executionEngines();
+const kExecutionEngines = executionEngines().reverse();
 
 export const createProjectCommand = new Command()
   .name("create-project")

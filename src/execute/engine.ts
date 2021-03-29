@@ -102,7 +102,7 @@ const kEngines = [
 ];
 
 export function executionEngines() {
-  return kEngines.reverse().map((engine) => engine.name);
+  return kEngines.map((engine) => engine.name);
 }
 
 export function executionEngine(name: string) {
