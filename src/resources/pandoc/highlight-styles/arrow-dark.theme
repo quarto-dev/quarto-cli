@@ -1,16 +1,15 @@
 {
     "_comments": [
-        "Last update: Feb 22, 2021 (revision 3)",
-        "This file has been converted from: https://github.com/dempfi/ayu",
-        "Also see: https://github.com/ayu-theme"
+        "Last update: Mar 29, 2021",
     ],
     "metadata": {
         "copyright": [
             "SPDX-FileCopyrightText: 2016 Ike Ku",
-            "SPDX-FileCopyrightText: 2020 Nibaldo González <nibgonz@gmail.com>"
+            "SPDX-FileCopyrightText: 2020 Nibaldo González <nibgonz@gmail.com>",
+            "SPDX-FileCopyrightText: 2020 RStudio, PBC"
         ],
         "license": "SPDX-License-Identifier: MIT",
-        "name": "ayu Mirage",
+        "name": "Arrow Dark",
         "revision": 3
     },
     "editor-colors": {
