@@ -13,10 +13,6 @@ import { ld } from "lodash/mod.ts";
 import { resolvePathGlobs } from "../../core/path.ts";
 import { message } from "../../core/console.ts";
 
-import { Format } from "../../config/format.ts";
-
-import { fileExecutionEngine } from "../../execute/engine.ts";
-
 import {
   kExecuteDir,
   kLibDir,
@@ -35,12 +31,15 @@ import { renderFiles, RenderOptions, RenderResult } from "./render.ts";
 
 export async function renderProject(
   context: ProjectContext,
-  files: string[],
   incremental: boolean,
   options: RenderOptions,
+  files?: string[],
 ): Promise<RenderResult> {
   // get real path to the project
   const projDir = Deno.realPathSync(context.dir);
+
+  // default for files if not specified
+  files = files || context.inputFiles;
 
   // projResults to return
   const projResults: RenderResult = {
@@ -182,6 +181,7 @@ export async function renderProject(
           // render file result
           projResults.files.push({
             input: result.input,
+            markdown: result.markdown,
             format: result.format,
             file: result.file,
             filesDir: result.filesDir,
@@ -226,6 +226,7 @@ export async function renderProject(
           ...fileResults[format].map((result) => {
             return {
               input: result.input,
+              markdown: result.markdown,
               format: result.format,
               file: result.file,
               filesDir: result.filesDir,
@@ -255,57 +256,4 @@ export async function renderProject(
   } finally {
     Deno.env.delete("QUARTO_PROJECT_DIR");
   }
-}
-
-export function projectInputFiles(context: ProjectContext) {
-  const files: string[] = [];
-  const keepFiles: string[] = [];
-
-  const outputDir = context.metadata?.project?.[kOutputDir];
-
-  const addFile = (file: string) => {
-    if (!outputDir || !file.startsWith(join(context.dir, outputDir))) {
-      const engine = fileExecutionEngine(file);
-      if (engine) {
-        files.push(file);
-        const keep = engine.keepFiles(file);
-        if (keep) {
-          keepFiles.push(...keep);
-        }
-      }
-    }
-  };
-
-  const addDir = (dir: string) => {
-    for (
-      const walk of walkSync(
-        dir,
-        { includeDirs: false, followSymlinks: true, skip: [/[/\\][_\.]/] },
-      )
-    ) {
-      addFile(walk.path);
-    }
-  };
-
-  const renderFiles = context.metadata?.project?.render;
-  if (renderFiles) {
-    const exclude = outputDir ? [outputDir] : [];
-    const resolved = resolvePathGlobs(context.dir, renderFiles, exclude);
-    (ld.difference(resolved.include, resolved.exclude) as string[])
-      .forEach((file) => {
-        if (Deno.statSync(file).isDirectory) {
-          addDir(file);
-        } else {
-          addFile(file);
-        }
-      });
-  } else {
-    addDir(context.dir);
-  }
-
-  const inputFiles = ld.difference(
-    ld.uniq(files),
-    ld.uniq(keepFiles),
-  ) as string[];
-  return inputFiles;
 }

@@ -6,7 +6,9 @@
 */
 
 import { dirname, join, relative } from "path/mod.ts";
-import { existsSync } from "fs/mod.ts";
+import { existsSync, walkSync } from "fs/mod.ts";
+
+import { ld } from "lodash/mod.ts";
 
 import { readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
@@ -19,6 +21,10 @@ import { PandocFlags } from "../config/flags.ts";
 
 import { projectType } from "./types/project-types.ts";
 
+import { resolvePathGlobs } from "../core/path.ts";
+
+import { fileExecutionEngine } from "../execute/engine.ts";
+
 export const kExecuteDir = "execute-dir";
 export const kOutputDir = "output-dir";
 export const kLibDir = "lib-dir";
@@ -26,6 +32,7 @@ export const kResources = "resources";
 
 export interface ProjectContext {
   dir: string;
+  inputFiles: string[];
   metadata?: {
     project?: ProjectMetadata;
     [key: string]: unknown;
@@ -92,6 +99,7 @@ export function projectContext(path: string): ProjectContext {
         }
         return {
           dir,
+          inputFiles: projectInputFiles(dir, project),
           metadata: {
             ...projectConfig,
             project,
@@ -101,6 +109,7 @@ export function projectContext(path: string): ProjectContext {
       } else {
         return {
           dir,
+          inputFiles: projectInputFiles(dir),
         };
       }
     } else {
@@ -108,6 +117,7 @@ export function projectContext(path: string): ProjectContext {
       if (nextDir === dir) {
         return {
           dir: originalDir,
+          inputFiles: projectInputFiles(dir),
         };
       } else {
         dir = nextDir;
@@ -131,4 +141,57 @@ export function projectOffset(context: ProjectContext, input: string) {
   const inputDir = Deno.realPathSync(dirname(input));
   const offset = relative(inputDir, projDir) || ".";
   return pathWithForwardSlashes(offset);
+}
+
+function projectInputFiles(dir: string, metadata?: ProjectMetadata) {
+  const files: string[] = [];
+  const keepFiles: string[] = [];
+
+  const outputDir = metadata?.[kOutputDir];
+
+  const addFile = (file: string) => {
+    if (!outputDir || !file.startsWith(join(dir, outputDir))) {
+      const engine = fileExecutionEngine(file);
+      if (engine) {
+        files.push(file);
+        const keep = engine.keepFiles(file);
+        if (keep) {
+          keepFiles.push(...keep);
+        }
+      }
+    }
+  };
+
+  const addDir = (dir: string) => {
+    for (
+      const walk of walkSync(
+        dir,
+        { includeDirs: false, followSymlinks: true, skip: [/[/\\][_\.]/] },
+      )
+    ) {
+      addFile(walk.path);
+    }
+  };
+
+  const renderFiles = metadata?.render;
+  if (renderFiles) {
+    const exclude = outputDir ? [outputDir] : [];
+    const resolved = resolvePathGlobs(dir, renderFiles, exclude);
+    (ld.difference(resolved.include, resolved.exclude) as string[])
+      .forEach((file) => {
+        if (Deno.statSync(file).isDirectory) {
+          addDir(file);
+        } else {
+          addFile(file);
+        }
+      });
+  } else {
+    addDir(dir);
+  }
+
+  const inputFiles = ld.difference(
+    ld.uniq(files),
+    ld.uniq(keepFiles),
+  ) as string[];
+  return inputFiles;
 }

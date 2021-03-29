@@ -22,10 +22,7 @@ import {
   kOutputDir,
   ProjectContext,
 } from "../../project/project-context.ts";
-import {
-  copyResourceFile,
-  projectResourceFiles,
-} from "../../project/project-resources.ts";
+import { copyResourceFile } from "../../project/project-resources.ts";
 import { ProjectServe } from "../../project/types/project-types.ts";
 
 import { RenderResult } from "../render/render.ts";
@@ -36,11 +33,6 @@ export interface ProjectWatcher {
   handle: (req: ServerRequest) => boolean;
   connect: (req: ServerRequest) => Promise<void>;
   injectClient: (file: Uint8Array) => Uint8Array;
-}
-
-interface WatchedResources {
-  project: string[];
-  targets: Record<string, string[]>;
 }
 
 export function watchProject(

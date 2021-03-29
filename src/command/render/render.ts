@@ -78,7 +78,7 @@ import {
   projectOffset,
 } from "../../project/project-context.ts";
 
-import { projectInputFiles, renderProject } from "./project.ts";
+import { renderProject } from "./project.ts";
 
 // command line options for render
 export interface RenderOptions {
@@ -110,6 +110,7 @@ export interface RenderResult {
 
 export interface RenderResultFile {
   input: string;
+  markdown: string;
   format: Format;
   file: string;
   filesDir?: string;
@@ -127,17 +128,19 @@ export async function render(
     // all directories are considered projects
     return renderProject(
       context,
-      projectInputFiles(context),
       false,
       options,
     );
   } else if (context.metadata) {
     // if there is a project file then treat this as a project render
     // if the passed file is in the render list
-    const projFiles = projectInputFiles(context);
     const renderPath = Deno.realPathSync(path);
-    if (projFiles.map((file) => Deno.realPathSync(file)).includes(renderPath)) {
-      return renderProject(context, [path], true, options);
+    if (
+      context.inputFiles.map((file) => Deno.realPathSync(file)).includes(
+        renderPath,
+      )
+    ) {
+      return renderProject(context, true, options, [path]);
     }
   }
 
@@ -147,6 +150,7 @@ export async function render(
     files: Object.keys(results).flatMap((key) => {
       return results[key].map((result) => ({
         input: result.input,
+        markdown: result.markdown,
         format: result.format,
         file: result.file,
         filesDir: result.filesDir,
@@ -158,6 +162,7 @@ export async function render(
 
 export interface RenderedFile {
   input: string;
+  markdown: string;
   format: Format;
   file: string;
   filesDir?: string;
@@ -254,6 +259,7 @@ export async function renderFiles(
 
         fileResults.push({
           input: projectPath(file),
+          markdown: executeResult.markdown,
           format: context.format,
           file: projectPath(pandocResult.finalOutput),
           filesDir: filesDir ? projectPath(filesDir) : undefined,
@@ -665,7 +671,7 @@ async function resolveFormats(
   project?: ProjectContext,
 ): Promise<Record<string, Format>> {
   // merge input metadata into project metadata
-  const projMetadata = projectMetadataForInputFile(target.input);
+  const projMetadata = projectMetadataForInputFile(target.input, project);
   const inputMetadata = await engine.metadata(target.input);
 
   // determine order of formats
@@ -727,9 +733,13 @@ function formatKeys(metadata: Metadata): string[] {
   }
 }
 
-function projectMetadataForInputFile(input: string): Metadata {
-  const context = projectContext(input);
-  const projMetadata = context.metadata || {};
+function projectMetadataForInputFile(
+  input: string,
+  project?: ProjectContext,
+): Metadata {
+  project = project || projectContext(input);
+
+  const projMetadata = project.metadata || {};
 
   const fixupPaths = (collection: Array<unknown> | Record<string, unknown>) => {
     ld.forEach(
@@ -754,12 +764,12 @@ function projectMetadataForInputFile(input: string): Metadata {
         } else if (typeof (value) === "string") {
           if (!isAbsolute(value)) {
             // if this is a valid file, then transform it to be relative to the input path
-            const projectPath = join(context.dir, value);
+            const projectPath = join(project!.dir, value);
 
             // Paths could be invalid paths (e.g. with colons or other weird characters)
             try {
               if (existsSync(projectPath)) {
-                const offset = relative(dirname(input), context.dir);
+                const offset = relative(dirname(input), project!.dir);
                 assign(join(offset, value));
               }
             } catch (e) {
