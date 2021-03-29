@@ -28,6 +28,8 @@ import {
 } from "../../project/project-resources.ts";
 import { ProjectServe } from "../../project/types/project-types.ts";
 
+import { RenderResult } from "../render/render.ts";
+
 import { kLocalhost, ServeOptions } from "./serve.ts";
 
 export interface ProjectWatcher {
@@ -44,8 +46,24 @@ interface WatchedResources {
 export function watchProject(
   project: ProjectContext,
   options: ServeOptions,
+  renderResult?: RenderResult,
   projServe?: ProjectServe,
 ): ProjectWatcher {
+  // is this a resource file?
+  const isResourceFile = (path: string) => {
+    if (renderResult) {
+      if (renderResult.resourceFiles?.includes(path)) {
+        return true;
+      } else {
+        return renderResult.files.some((file) =>
+          file.resourceFiles.includes(path)
+        );
+      }
+    } else {
+      return false;
+    }
+  };
+
   // error display
   const displayError = (e: Error) => {
     if (options.debug) {
@@ -71,13 +89,6 @@ export function watchProject(
   // lib dir
   const libDirConfig = project.metadata?.project?.[kLibDir];
   const libDir = libDirConfig ? join(outputDir, libDirConfig) : undefined;
-
-  // resource files
-  const watchedResources = {
-    project: projectResourceFiles(project),
-    targets: [],
-  };
-  const resourceFiles = projectResourceFiles(project);
 
   // function to create an output dir path for a given project file
   const outputPath = (file: string) => {
@@ -125,22 +136,8 @@ export function watchProject(
           return true;
         }
 
-        // if it's a "hot reloading file" (e.g. css or js) and if it exists
-        // in the output dir, then it coundt as "resource file"
-        const hotreloadFiles = paths.filter((path) => {
-          const kHotreloadExts = [".css", ".js"];
-          if (kHotreloadExts.includes(extname(path).toLowerCase())) {
-            return existsSync(outputPath(path));
-          } else {
-            return false;
-          }
-        });
-
         // (the copy will come in as another change)
-        const modifiedResources = ld.intersection(
-          resourceFiles.concat(hotreloadFiles),
-          paths,
-        ) as string[];
+        const modifiedResources = paths.filter(isResourceFile);
         for (const file of modifiedResources) {
           copyResourceFile(projDir, file, outputPath(file));
         }
