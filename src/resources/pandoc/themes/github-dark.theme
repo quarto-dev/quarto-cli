@@ -1,0 +1,216 @@
+{
+    "custom-styles": {
+        "INI Files": {
+            "Section": {
+                "selected-text-color": "#b392f0",
+                "text-color": "#b392f0"
+            }
+        },
+        "Python": {
+            "Builtin Function": {
+                "selected-text-color": "#b392f0",
+                "text-color": "#b392f0"
+            },
+            "Import": {
+                "selected-text-color": "#f97583",
+                "text-color": "#f97583"
+            },
+            "Special Variable": {
+                "selected-text-color": "#79b8ff",
+                "text-color": "#79b8ff"
+            }
+        },
+        "Rust": {
+            "Attribute": {
+                "selected-text-color": "#e1e4e8",
+                "text-color": "#e1e4e8"
+            },
+            "Macro": {
+                "selected-text-color": "#79b8ff",
+                "text-color": "#79b8ff"
+            },
+            "Self": {
+                "selected-text-color": "#79b8ff",
+                "text-color": "#79b8ff"
+            },
+            "Trait": {
+                "selected-text-color": "#e1e4e8",
+                "text-color": "#e1e4e8"
+            }
+        },
+        "XML": {
+            "Element": {
+                "selected-text-color": "#85e89d",
+                "text-color": "#85e89d"
+            }
+        }
+    },
+    "editor-colors": {
+        "BackgroundColor": "#24292e",
+        "BracketMatching": "#65676a",
+        "CodeFolding": "#253749",
+        "CurrentLine": "#2b3036",
+        "CurrentLineNumber": "#e1e4e8",
+        "IconBorder": "#24292e",
+        "IndentationLine": "#d7dbe0",
+        "LineNumbers": "#444d56",
+        "MarkBookmark": "#8be9fd",
+        "MarkBreakpointActive": "#ff5555",
+        "MarkBreakpointDisabled": "#bd93f9",
+        "MarkBreakpointReached": "#f1fa8c",
+        "MarkError": "#b31d28",
+        "MarkExecution": "#44475a",
+        "MarkWarning": "#ffab70",
+        "ModifiedLines": "#f97583",
+        "ReplaceHighlight": "#40c661",
+        "SavedLines": "#28a745",
+        "SearchHighlight": "#404030",
+        "Separator": "#1b1f23",
+        "SpellChecking": "#ff5555",
+        "TabMarker": "#444d56",
+        "TemplateBackground": "#23241e",
+        "TemplateFocusedPlaceholder": "#22231d",
+        "TemplatePlaceholder": "#22231d",
+        "TemplateReadOnlyPlaceholder": "#262721",
+        "TextSelection": "#253749",
+        "WordWrapMarker": "#2f3031"
+    },
+    "metadata": {
+        "copyright": [
+            "SPDX-FileCopyrightText: 2020 GitHub Inc.",
+            "SPDX-FileCopyrightText: 2020 Waqar Ahmed <waqar.17a@gmail.com>"
+        ],
+        "license": "SPDX-License-Identifier: MIT",
+        "name": "GitHub Dark",
+        "revision": 2
+    },
+    "text-styles": {
+        "Alert": {
+            "bold": true,
+            "selected-text-color": "#ff5555",
+            "text-color": "#ff5555"
+        },
+        "Annotation": {
+            "selected-text-color": "#6a737d",
+            "text-color": "#6a737d"
+        },
+        "Attribute": {
+            "selected-text-color": "#f97583",
+            "text-color": "#f97583"
+        },
+        "BaseN": {
+            "selected-text-color": "#79b8ff",
+            "text-color": "#79b8ff"
+        },
+        "BuiltIn": {
+            "selected-text-color": "#f97583",
+            "text-color": "#f97583"
+        },
+        "Char": {
+            "selected-text-color": "#9ecbff",
+            "text-color": "#9ecbff"
+        },
+        "Comment": {
+            "selected-text-color": "#6a737d",
+            "text-color": "#6a737d"
+        },
+        "CommentVar": {
+            "selected-text-color": "#6a737d",
+            "text-color": "#6a737d"
+        },
+        "Constant": {
+            "selected-text-color": "#79b8ff",
+            "text-color": "#79b8ff"
+        },
+        "ControlFlow": {
+            "selected-text-color": "#f97583",
+            "text-color": "#f97583"
+        },
+        "DataType": {
+            "selected-text-color": "#f97583",
+            "text-color": "#f97583"
+        },
+        "DecVal": {
+            "selected-text-color": "#79b8ff",
+            "text-color": "#79b8ff"
+        },
+        "Documentation": {
+            "selected-text-color": "#6a737d",
+            "text-color": "#6a737d"
+        },
+        "Error": {
+            "selected-text-color": "#ff5555",
+            "text-color": "#ff5555",
+            "underline": true
+        },
+        "Extension": {
+            "bold": true,
+            "selected-text-color": "#f97583",
+            "text-color": "#f97583"
+        },
+        "Float": {
+            "selected-text-color": "#79b8ff",
+            "text-color": "#79b8ff"
+        },
+        "Function": {
+            "selected-text-color": "#b392f0",
+            "text-color": "#b392f0"
+        },
+        "Import": {
+            "selected-text-color": "#9ecbff",
+            "text-color": "#9ecbff"
+        },
+        "Information": {
+            "selected-text-color": "#6a737d",
+            "text-color": "#6a737d"
+        },
+        "Keyword": {
+            "selected-text-color": "#f97583",
+            "text-color": "#f97583"
+        },
+        "Normal": {
+            "selected-text-color": "#e1e4e8",
+            "text-color": "#e1e4e8"
+        },
+        "Operator": {
+            "selected-text-color": "#e1e4e8",
+            "text-color": "#e1e4e8"
+        },
+        "Others": {
+            "selected-text-color": "#b392f0",
+            "text-color": "#b392f0"
+        },
+        "Preprocessor": {
+            "selected-text-color": "#f97583",
+            "text-color": "#f97583"
+        },
+        "RegionMarker": {
+            "selected-text-color": "#6a737d",
+            "text-color": "#6a737d"
+        },
+        "SpecialChar": {
+            "selected-text-color": "#79b8ff",
+            "text-color": "#79b8ff"
+        },
+        "SpecialString": {
+            "selected-text-color": "#9ecbff",
+            "text-color": "#9ecbff"
+        },
+        "String": {
+            "selected-text-color": "#9ecbff",
+            "text-color": "#9ecbff"
+        },
+        "Variable": {
+            "selected-text-color": "#ffab70",
+            "text-color": "#ffab70"
+        },
+        "VerbatimString": {
+            "selected-text-color": "#9ecbff",
+            "text-color": "#9ecbff"
+        },
+        "Warning": {
+            "selected-text-color": "#ff5555",
+            "text-color": "#ff5555"
+        }
+    }
+}

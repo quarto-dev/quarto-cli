@@ -1,0 +1,25 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+ <qresource prefix="/org.kde.syntax-highlighting/themes">
+  <file>atom-one-dark.theme</file>
+  <file>atom-one-light.theme</file>
+  <file>breeze-dark.theme</file>
+  <file>breeze-light.theme</file>
+  <file>ayu-dark.theme</file>
+  <file>ayu-light.theme</file>
+  <file>ayu-mirage.theme</file>
+  <file>dracula.theme</file>
+  <file>github-dark.theme</file>
+  <file>github-light.theme</file>
+  <file>gruvbox-dark.theme</file>
+  <file>gruvbox-light.theme</file>
+  <file>monokai.theme</file>
+  <file>nord.theme</file>
+  <file>oblivion.theme</file>
+  <file>printing.theme</file>
+  <file>radical.theme</file>
+  <file>solarized-dark.theme</file>
+  <file>solarized-light.theme</file>
+  <file>vim-dark.theme</file>
+ </qresource>
+</RCC>
