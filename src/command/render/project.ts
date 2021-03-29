@@ -13,6 +13,8 @@ import { ld } from "lodash/mod.ts";
 import { resolvePathGlobs } from "../../core/path.ts";
 import { message } from "../../core/console.ts";
 
+import { Format } from "../../config/format.ts";
+
 import { fileExecutionEngine } from "../../execute/engine.ts";
 
 import {
@@ -22,26 +24,31 @@ import {
   ProjectContext,
 } from "../../project/project-context.ts";
 
-import {
-  ProjectOutputFile,
-  projectType,
-} from "../../project/types/project-types.ts";
+import { projectType } from "../../project/types/project-types.ts";
 import {
   copyResourceFile,
   projectResourceFiles,
 } from "../../project/project-resources.ts";
 import { ensureGitignore } from "../../project/project-gitignore.ts";
 
-import { renderFiles, RenderOptions, RenderResults } from "./render.ts";
+import { renderFiles, RenderOptions, RenderResult } from "./render.ts";
 
 export async function renderProject(
   context: ProjectContext,
   files: string[],
   incremental: boolean,
   options: RenderOptions,
-): Promise<RenderResults> {
+): Promise<RenderResult> {
   // get real path to the project
   const projDir = Deno.realPathSync(context.dir);
+
+  // projResults to return
+  const projResults: RenderResult = {
+    baseDir: projDir,
+    outputDir: context.metadata?.project?.[kOutputDir],
+    resourceFiles: [],
+    files: [],
+  };
 
   // ensure we have the requisite entries in .gitignore
   await ensureGitignore(context);
@@ -77,18 +84,15 @@ export async function renderProject(
   // set QUARTO_PROJECT_DIR
   Deno.env.set("QUARTO_PROJECT_DIR", projDir);
   try {
-    // track output files (for postRender hook)
-    const outputFiles: ProjectOutputFile[] = [];
-
     // render the files
     const fileResults = await renderFiles(files, options, context, incremental);
 
     // move to the output directory if we have one
-    const outputDir = context.metadata?.project?.[kOutputDir];
+    const outputDir = projResults.outputDir;
 
     if (outputDir) {
       // determine global list of included resource files
-      let resourceFiles = projectResourceFiles(context);
+      projResults.resourceFiles = projectResourceFiles(context);
 
       // resolve output dir and ensure that it exists
       let realOutputDir = join(projDir, outputDir);
@@ -123,19 +127,15 @@ export async function renderProject(
         }
       }
 
-      // move/copy results to output_dir
+      // move/copy projResults to output_dir
       Object.keys(fileResults).forEach((format) => {
         const results = fileResults[format];
 
         for (const result of results) {
-          // output file
+          // move the output file
           const outputFile = join(realOutputDir, result.file);
           ensureDirSync(dirname(outputFile));
           Deno.renameSync(join(projDir, result.file), outputFile);
-          outputFiles.push({
-            file: outputFile,
-            format: result.format,
-          });
 
           // files dir
           if (result.filesDir) {
@@ -153,9 +153,6 @@ export async function renderProject(
             )
             : { include: [], exclude: [] };
 
-          // merge the resolved globs into the global list
-          resourceFiles.push(...fileResourceFiles.include);
-
           // add the explicitly discovered files (if they exist and
           // the output isn't self-contained)
           if (!result.selfContained) {
@@ -163,30 +160,55 @@ export async function renderProject(
               .map((file) => join(resourceDir, file))
               .filter(existsSync)
               .map(Deno.realPathSync);
-            resourceFiles.push(...resultFiles);
+            fileResourceFiles.include.push(...resultFiles);
           }
 
           // apply removes and filter files dir
-          resourceFiles = resourceFiles.filter((file: string) => {
-            if (fileResourceFiles.exclude.includes(file)) {
-              return false;
-            } else if (
-              result.filesDir &&
-              file.startsWith(join(projDir, result.filesDir!))
-            ) {
-              return false;
-            } else {
-              return true;
-            }
+          const resourceFiles = fileResourceFiles.include.filter(
+            (file: string) => {
+              if (fileResourceFiles.exclude.includes(file)) {
+                return false;
+              } else if (
+                result.filesDir &&
+                file.startsWith(join(projDir, result.filesDir!))
+              ) {
+                return false;
+              } else {
+                return true;
+              }
+            },
+          );
+
+          // render file result
+          projResults.files.push({
+            input: result.input,
+            format: result.format,
+            file: result.file,
+            filesDir: result.filesDir,
+            resourceFiles,
           });
         }
       });
 
-      // make resource files unique then remove directories
-      resourceFiles = ld.uniq(resourceFiles);
+      // determine the output files and filter them out of the resourceFiles
+      const outputFiles = projResults.files.map((result) =>
+        join(projDir, result.file)
+      );
+      projResults.files.forEach((file) => {
+        file.resourceFiles = file.resourceFiles.filter((resource) =>
+          !outputFiles.includes(resource)
+        );
+      });
+
+      // copy all of the resource files
+      const allResourceFiles = ld.uniq(
+        projResults.resourceFiles.concat(
+          projResults.files.flatMap((file) => file.resourceFiles),
+        ),
+      );
 
       // copy the resource files to the output dir
-      resourceFiles.forEach((file: string) => {
+      allResourceFiles.forEach((file: string) => {
         const sourcePath = relative(projDir, file);
         const destPath = join(realOutputDir, sourcePath);
         if (existsSync(file)) {
@@ -200,11 +222,14 @@ export async function renderProject(
     } else {
       // track output files
       Object.keys(fileResults).forEach((format) => {
-        outputFiles.push(
+        projResults.files.push(
           ...fileResults[format].map((result) => {
             return {
-              file: join(projDir, result.file),
+              input: result.input,
               format: result.format,
+              file: result.file,
+              filesDir: result.filesDir,
+              resourceFiles: [],
             };
           }),
         );
@@ -213,14 +238,20 @@ export async function renderProject(
 
     // call post-render
     if (projType.postRender) {
-      await projType.postRender(context, incremental, outputFiles);
+      await projType.postRender(
+        context,
+        incremental,
+        projResults.files.map((result) => {
+          const file = outputDir ? join(outputDir, result.file) : result.file;
+          return {
+            file: join(projDir, file),
+            format: result.format,
+          };
+        }),
+      );
     }
 
-    return {
-      baseDir: context.dir,
-      outputDir: outputDir,
-      results: fileResults,
-    };
+    return projResults;
   } finally {
     Deno.env.delete("QUARTO_PROJECT_DIR");
   }

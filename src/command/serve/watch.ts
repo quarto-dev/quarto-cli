@@ -36,6 +36,11 @@ export interface ProjectWatcher {
   injectClient: (file: Uint8Array) => Uint8Array;
 }
 
+interface WatchedResources {
+  project: string[];
+  targets: Record<string, string[]>;
+}
+
 export function watchProject(
   project: ProjectContext,
   options: ServeOptions,
@@ -68,6 +73,10 @@ export function watchProject(
   const libDir = libDirConfig ? join(outputDir, libDirConfig) : undefined;
 
   // resource files
+  const watchedResources = {
+    project: projectResourceFiles(project),
+    targets: [],
+  };
   const resourceFiles = projectResourceFiles(project);
 
   // function to create an output dir path for a given project file
@@ -147,7 +156,11 @@ export function watchProject(
   };
 
   // track client clients
-  const clients: WebSocket[] = [];
+  interface Client {
+    path: string;
+    socket: WebSocket;
+  }
+  const clients: Client[] = [];
 
   // debounced function for notifying all clients of a change
   // (ensures that we wait for bulk file copying to complete
@@ -169,7 +182,7 @@ export function watchProject(
     modified.splice(0, modified.length);
 
     for (let i = clients.length - 1; i >= 0; i--) {
-      const socket = clients[i];
+      const socket = clients[i].socket;
       try {
         await socket.send(`reload${reloadTarget}`);
       } catch (e) {
@@ -211,7 +224,7 @@ export function watchProject(
           bufWriter,
           headers,
         });
-        clients.push(socket);
+        clients.push({ path: req.url, socket });
       } catch (e) {
         displaySocketError(e);
       }
@@ -237,7 +250,7 @@ export function watchProject(
 function watchClientScript(port: number): string {
   return `
 <script>
-  const socket = new WebSocket('ws://${kLocalhost}:${port}');
+  const socket = new WebSocket('ws://${kLocalhost}:${port}' + window.location.pathname );
   socket.onopen = () => {
     console.log('Socket connection open. Listening for events.');
   };

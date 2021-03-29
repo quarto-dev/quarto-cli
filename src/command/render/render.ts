@@ -77,6 +77,7 @@ import {
   projectContext,
   projectOffset,
 } from "../../project/project-context.ts";
+
 import { projectInputFiles, renderProject } from "./project.ts";
 
 // command line options for render
@@ -101,30 +102,30 @@ export interface RenderResourceFiles {
 }
 
 export interface RenderResult {
+  baseDir?: string;
+  outputDir?: string;
+  resourceFiles?: string[];
+  files: RenderResultFile[];
+}
+
+export interface RenderResultFile {
   input: string;
   format: Format;
   file: string;
   filesDir?: string;
-  resourceFiles: RenderResourceFiles;
-  selfContained: boolean;
-}
-
-export interface RenderResults {
-  baseDir?: string;
-  outputDir?: string;
-  results: Record<string, RenderResult[]>;
+  resourceFiles: string[];
 }
 
 export async function render(
   path: string,
   options: RenderOptions,
-): Promise<RenderResults> {
+): Promise<RenderResult> {
   // determine target context/files
   const context = projectContext(path);
 
   if (Deno.statSync(path).isDirectory) {
     // all directories are considered projects
-    return await renderProject(
+    return renderProject(
       context,
       projectInputFiles(context),
       false,
@@ -136,19 +137,32 @@ export async function render(
     const projFiles = projectInputFiles(context);
     const renderPath = Deno.realPathSync(path);
     if (projFiles.map((file) => Deno.realPathSync(file)).includes(renderPath)) {
-      return await renderProject(context, [path], true, options);
-    } else {
-      // otherwise it's just a file render
-      return {
-        results: await renderFiles([path], options),
-      };
+      return renderProject(context, [path], true, options);
     }
-  } else {
-    // not a directory and not a file with a _quarto project parent
-    return {
-      results: await renderFiles([path], options),
-    };
   }
+
+  // otherwise it's just a file render
+  const results = await renderFiles([path], options);
+  return {
+    files: Object.keys(results).flatMap((key) => {
+      return results[key].map((result) => ({
+        input: result.input,
+        format: result.format,
+        file: result.file,
+        filesDir: result.filesDir,
+        resourceFiles: [],
+      }));
+    }),
+  };
+}
+
+export interface RenderedFile {
+  input: string;
+  format: Format;
+  file: string;
+  filesDir?: string;
+  resourceFiles: RenderResourceFiles;
+  selfContained: boolean;
 }
 
 export async function renderFiles(
@@ -156,7 +170,7 @@ export async function renderFiles(
   options: RenderOptions,
   project?: ProjectContext,
   projectIncremental?: boolean,
-): Promise<Record<string, RenderResult[]>> {
+): Promise<Record<string, RenderedFile[]>> {
   // make a copy of options so we don't mutate caller context
   options = ld.cloneDeep(options);
 
@@ -184,7 +198,7 @@ export async function renderFiles(
     options.flags.quiet = true;
   }
 
-  const results: Record<string, RenderResult[]> = {};
+  const results: Record<string, RenderedFile[]> = {};
 
   try {
     for (let i = 0; i < files.length; i++) {
@@ -211,7 +225,7 @@ export async function renderFiles(
         fileOptions.pandocArgs = removePandocToArg(fileOptions.pandocArgs);
       }
 
-      const fileResults: RenderResult[] = [];
+      const fileResults: RenderedFile[] = [];
 
       for (const context of Object.values(contexts)) {
         // execute

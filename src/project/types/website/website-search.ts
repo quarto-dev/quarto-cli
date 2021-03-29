@@ -112,19 +112,16 @@ export function updateSearchIndex(
       if (sections.length > 0) {
         for (let i = 0; i < sections.length; i++) {
           const section = sections[i] as Element;
-          const id = section.id;
-          if (id) {
-            const h2 = section.querySelector("h2");
-            if (h2) {
-              const sectionTitle = h2.textContent;
-              h2.remove();
-              updateDoc({
-                href: `${href}#${id}`,
-                title,
-                section: sectionTitle,
-                text: section.textContent.trim(),
-              });
-            }
+          const h2 = section.querySelector("h2");
+          if (h2 && h2.id) {
+            const sectionTitle = h2.textContent;
+            h2.remove();
+            updateDoc({
+              href: `${href}#${h2.id}`,
+              title,
+              section: sectionTitle,
+              text: section.textContent.trim(),
+            });
           }
         }
       } else { // otherwise a single doc

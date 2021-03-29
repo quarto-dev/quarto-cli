@@ -14,7 +14,7 @@ import { message } from "../../core/console.ts";
 
 import { fixupPandocArgs, kStdOut, parseRenderFlags } from "./flags.ts";
 
-import { render, RenderResults } from "./render.ts";
+import { render, RenderResult } from "./render.ts";
 
 export const renderCommand = new Command()
   .name("render")
@@ -132,36 +132,31 @@ export const renderCommand = new Command()
 
     // run render on input files
 
-    let renderResults: RenderResults | undefined;
+    let renderResult: RenderResult | undefined;
     for (const input of inputs) {
       for (const walk of expandGlobSync(input)) {
         const input = relative(Deno.cwd(), walk.path) || ".";
-        renderResults = await render(input, { flags, pandocArgs: args });
+        renderResult = await render(input, { flags, pandocArgs: args });
       }
     }
-    if (renderResults) {
+    if (renderResult) {
       // report output created
       if (!options.flags?.quiet && options.flags?.output !== kStdOut) {
-        message("Output created: " + finalOutput(renderResults) + "\n");
+        message("Output created: " + finalOutput(renderResult) + "\n");
       }
     } else {
       throw new Error(`No valid input files passed to render`);
     }
   });
 
-function finalOutput(renderResults: RenderResults) {
+function finalOutput(renderResults: RenderResult) {
   // final output defaults to the first output of the first result
-  const firstFile = Object.keys(renderResults.results)[0];
-  let result = renderResults.results[firstFile][0];
+  let result = renderResults.files[0];
 
   // see if we can find an index.html instead
-  const files = Object.keys(renderResults.results);
-  for (const file of files) {
-    const indexResult = renderResults.results[file].find((result) => {
-      return result.file === "index.html";
-    });
-    if (indexResult) {
-      result = indexResult;
+  for (const fileResult of renderResults.files) {
+    if (fileResult.file === "index.html") {
+      result = fileResult;
       break;
     }
   }

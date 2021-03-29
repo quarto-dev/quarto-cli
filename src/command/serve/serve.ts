@@ -54,7 +54,7 @@ export async function serveProject(
 
   // render if requested
   if (options.render) {
-    await render(project.dir, {
+    const result = await render(project.dir, {
       flags: {
         quiet: options.quiet,
         debug: options.debug,
