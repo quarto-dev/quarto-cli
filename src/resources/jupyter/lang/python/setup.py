@@ -22,13 +22,10 @@ try:
 except Exception:
   pass
 
-# plotly express width/height defaults
+# plotly use connected mode
 try:
   import plotly.io as pio
   pio.renderers.default = "notebook_connected"
-  import plotly.express as px
-  px.defaults.width = fig_width * fig_dpi
-  px.defaults.height = fig_height * fig_dpi
 except Exception:
   pass
 
