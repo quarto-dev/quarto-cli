@@ -3,12 +3,6 @@
 SASS:
 - Import bootswatch themes into "unified" format (bootstrap beta 3 with script)
 
-Code-blocks
-- CONFIRM- I am always overwriting the pandoc background to body color (we are always in charge of this
-Theme work:
-- read sass variables body-bg and determine if its dark and switch the default pandoc highlighter
-- https://kate-editor.org/themes/
-
 Windows:
 - Need to figure out what the deal is with quarto bundled error (cliffy?) before next published release.
 
@@ -21,7 +15,6 @@ TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx
     - changes to _quarto.yml (or any file referenced from it) triggers a re-render of
       all previously rendered docs. this is done in a queue where priority is given to
       any file currently displayed
-
 
 
 TODO: prime thematic with theme info

@@ -176,6 +176,11 @@ export async function runPandoc(
     // merge pandoc
     if (extras.pandoc) {
       allDefaults = mergeConfigs(extras.pandoc, allDefaults);
+
+      // Special case - theme is resolved on extras and should override allDefaults
+      if (extras.pandoc[kHighlightStyle]) {
+        allDefaults[kHighlightStyle] = extras.pandoc[kHighlightStyle];
+      }
     }
 
     // merge metadata
@@ -370,13 +375,12 @@ async function resolveExtras(
       projectExtras.html?.[kSassBundles],
     );
 
-    // Resolve the highlight style based upon the theme
+    // resolve the merged highlight style
     extras.pandoc = extras.pandoc || {};
-    if (extras.pandoc?.[kHighlightStyle] === undefined) {
-      extras.pandoc[kHighlightStyle] = highlightStyle(extras);
-    } else if (extras.pandoc?.[kHighlightStyle] === "arrow") {
-      extras.pandoc[kHighlightStyle] = arrowStyle();
-    }
+    extras.pandoc[kHighlightStyle] = resolveHighlightStyle(
+      extras,
+      format.pandoc,
+    );
 
     // resolve dependencies
     extras = resolveDependencies(extras, inputDir, libDir);
@@ -586,7 +590,13 @@ function arrowStyle() {
   );
 }
 
-function highlightStyle(extras: FormatExtras): string {
+const kDefaultLightTheme = "arrow";
+const kDefaultDarkTheme = "Dracula";
+
+function resolveHighlightStyle(
+  extras: FormatExtras,
+  pandoc: FormatPandoc,
+): string | undefined {
   // Look for a token indicating that that the theme is dark
   const dark = extras.html?.[kDependencies]?.some((dependency) => {
     // Inspect any bootstrap dependencies for a sentinel value
@@ -594,6 +604,7 @@ function highlightStyle(extras: FormatExtras): string {
     if (dependency.name === kBootstrapDependencyName) {
       return dependency.stylesheets?.some((stylesheet) => {
         const css = Deno.readTextFileSync(stylesheet.path);
+
         if (css.match(/\/\*! dark \*\//g)) {
           return true;
         } else {
@@ -605,9 +616,22 @@ function highlightStyle(extras: FormatExtras): string {
     }
   });
 
-  if (dark) {
-    return "zenburn";
+  // Get the user selected theme or choose a default
+  const style = pandoc[kHighlightStyle] ||
+    (dark ? kDefaultDarkTheme : kDefaultLightTheme);
+
+  // create the possible name matches based upon the dark vs. light
+  // and find a matching theme file
+  const names = [`${style}-${dark ? "dark" : "light"}`, style];
+  const theme = names.map((name) => {
+    return resourcePath(join("pandoc", "themes", `${name}.theme`));
+  }).find((path) => existsSync(path));
+
+  // If the name maps to a locally installed theme, use it
+  // otherwise just return the style name
+  if (theme) {
+    return theme;
   } else {
-    return arrowStyle();
+    return style;
   }
 }

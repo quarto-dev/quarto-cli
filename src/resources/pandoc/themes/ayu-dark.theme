@@ -1,0 +1,205 @@
+{
+    "_comments": [
+        "Last update: Feb 22, 2021 (revision 3)",
+        "This file has been converted from: https://github.com/dempfi/ayu",
+        "Also see: https://github.com/ayu-theme"
+    ],
+    "metadata": {
+        "copyright": [
+            "SPDX-FileCopyrightText: 2016 Ike Ku",
+            "SPDX-FileCopyrightText: 2020 Nibaldo González <nibgonz@gmail.com>"
+        ],
+        "license": "SPDX-License-Identifier: MIT",
+        "name": "ayu Dark",
+        "revision": 3
+    },
+    "editor-colors": {
+        "BackgroundColor": "#0a0e14",
+        "BracketMatching": "#1e232d",
+        "CodeFolding": "#121a23",
+        "CurrentLine": "#00010a",
+        "CurrentLineNumber": "#414857",
+        "IconBorder": "#0e1218",
+        "IndentationLine": "#252b35",
+        "LineNumbers": "#323844",
+        "MarkBookmark": "#59c2ff",
+        "MarkBreakpointActive": "#f07178",
+        "MarkBreakpointDisabled": "#ffee99",
+        "MarkBreakpointReached": "#e6b673",
+        "MarkError": "#ff3333",
+        "MarkExecution": "#95e6cb",
+        "MarkWarning": "#c2d94c",
+        "ModifiedLines": "#6994bf",
+        "ReplaceHighlight": "#705728",
+        "SavedLines": "#91b362",
+        "SearchHighlight": "#414857",
+        "Separator": "#151a1e",
+        "SpellChecking": "#d96c75",
+        "TabMarker": "#1d222b",
+        "TemplateBackground": "#030810",
+        "TemplateFocusedPlaceholder": "#3c4250",
+        "TemplatePlaceholder": "#2b303a",
+        "TemplateReadOnlyPlaceholder": "#0d1016",
+        "TextSelection": "#273747",
+        "WordWrapMarker": "#1e222b"
+    },
+    "text-styles": {
+        "Alert": {
+            "background-color": "#2a0f15",
+            "bold": true,
+            "selected-text-color": "#ff3333",
+            "text-color": "#ff3333"
+        },
+        "Annotation": {
+            "selected-text-color": "#e6b673",
+            "text-color": "#e6b673"
+        },
+        "Attribute": {
+            "selected-text-color": "#59c2ff",
+            "text-color": "#59c2ff"
+        },
+        "BaseN": {
+            "selected-text-color": "#e6b450",
+            "text-color": "#e6b450"
+        },
+        "BuiltIn": {
+            "selected-text-color": "#95e6cb",
+            "text-color": "#95e6cb"
+        },
+        "Char": {
+            "selected-text-color": "#95e6cb",
+            "text-color": "#95e6cb"
+        },
+        "Comment": {
+            "italic": true,
+            "selected-text-color": "#626a73",
+            "text-color": "#626a73"
+        },
+        "CommentVar": {
+            "selected-text-color": "#ffee99",
+            "text-color": "#ffee99"
+        },
+        "Constant": {
+            "selected-text-color": "#ffee99",
+            "text-color": "#ffee99"
+        },
+        "ControlFlow": {
+            "bold": true,
+            "selected-text-color": "#ff8f40",
+            "text-color": "#ff8f40"
+        },
+        "DataType": {
+            "selected-text-color": "#ff8f40",
+            "text-color": "#ff8f40"
+        },
+        "DecVal": {
+            "selected-text-color": "#e6b450",
+            "text-color": "#e6b450"
+        },
+        "Documentation": {
+            "selected-text-color": "#626a73",
+            "text-color": "#626a73"
+        },
+        "Error": {
+            "selected-text-color": "#ff3333",
+            "text-color": "#ff3333",
+            "underline": true
+        },
+        "Extension": {
+            "bold": true,
+            "selected-text-color": "#59c2ff",
+            "text-color": "#59c2ff"
+        },
+        "Float": {
+            "selected-text-color": "#e6b450",
+            "text-color": "#e6b450"
+        },
+        "Function": {
+            "selected-text-color": "#ffb454",
+            "text-color": "#ffb454"
+        },
+        "Import": {
+            "selected-text-color": "#c2d94c",
+            "text-color": "#c2d94c"
+        },
+        "Information": {
+            "selected-text-color": "#e6b450",
+            "text-color": "#e6b450"
+        },
+        "Keyword": {
+            "bold": true,
+            "selected-text-color": "#ff8f40",
+            "text-color": "#ff8f40"
+        },
+        "Normal": {
+            "selected-text-color": "#b3b1ad",
+            "text-color": "#b3b1ad"
+        },
+        "Operator": {
+            "selected-text-color": "#f29668",
+            "text-color": "#f29668"
+        },
+        "Others": {
+            "selected-text-color": "#39bae6",
+            "text-color": "#39bae6"
+        },
+        "Preprocessor": {
+            "selected-text-color": "#f07178",
+            "text-color": "#f07178"
+        },
+        "RegionMarker": {
+            "background-color": "#173649",
+            "selected-text-color": "#59c2ff",
+            "text-color": "#59c2ff"
+        },
+        "SpecialChar": {
+            "selected-text-color": "#95e6cb",
+            "text-color": "#95e6cb"
+        },
+        "SpecialString": {
+            "selected-text-color": "#95e6cb",
+            "text-color": "#95e6cb"
+        },
+        "String": {
+            "selected-text-color": "#c2d94c",
+            "text-color": "#c2d94c"
+        },
+        "Variable": {
+            "selected-text-color": "#39bae6",
+            "text-color": "#39bae6"
+        },
+        "VerbatimString": {
+            "selected-text-color": "#c2d94c",
+            "text-color": "#c2d94c"
+        },
+        "Warning": {
+            "selected-text-color": "#f07178",
+            "text-color": "#f07178"
+        }
+    },
+    "custom-styles": {
+        "XML": {
+            "Attribute": {
+                "selected-text-color": "#ffb454",
+                "text-color": "#ffb454"
+            },
+            "Element": {
+                "selected-text-color": "#39bae6",
+                "text-color": "#39bae6",
+                "bold": false
+            },
+            "Element Symbols": {
+                "selected-text-color": "#307896",
+                "text-color": "#22647d"
+            },
+            "EntityRef": {
+                "selected-text-color": "#95e6cb",
+                "text-color": "#95e6cb"
+            },
+            "PEntityRef": {
+                "selected-text-color": "#95e6cb",
+                "text-color": "#95e6cb"
+            }
+        }
+    }
+}
