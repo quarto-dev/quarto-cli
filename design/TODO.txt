@@ -14,6 +14,16 @@ Windows:
 
 TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx)
 
+    - render site at server startup (required?). alternative is render on navigate
+      (render at startup could also just populate the queue)
+    - keep-md into memory (or stable location in scratch a la index)
+    - keep track of all 'resource files' and automatically copy them into output dir
+    - changes to _quarto.yml (or any file referenced from it) triggers a re-render of
+      all previously rendered docs. this is done in a queue where priority is given to
+      any file currently displayed
+
+
+
 TODO: prime thematic with theme info
 
 Future
