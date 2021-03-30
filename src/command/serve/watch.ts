@@ -44,7 +44,7 @@ export function watchProject(
   // is this a resource file?
   const isResourceFile = (path: string) => {
     if (renderResult) {
-      if (renderResult.resourceFiles?.includes(path)) {
+      if (project.files.resources.includes(path)) {
         return true;
       } else {
         return renderResult.files.some((file) =>
