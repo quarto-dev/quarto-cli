@@ -99,7 +99,6 @@ export function formatFromMetadata(
 
   // merge user config into default config
   const mergedFormat = mergeConfigs(
-    defaultWriterFormat(to),
     baseFormat,
     format,
   );
