@@ -7,14 +7,7 @@
 
 import { existsSync } from "fs/mod.ts";
 
-import {
-  basename,
-  dirname,
-  extname,
-  isAbsolute,
-  join,
-  relative,
-} from "path/mod.ts";
+import { basename, dirname, extname, join, relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
@@ -75,10 +68,11 @@ import {
   kOutputDir,
   ProjectContext,
   projectContext,
+  projectMetadataForInputFile,
   projectOffset,
 } from "../../project/project-context.ts";
 
-import { projectInputFiles, renderProject } from "./project.ts";
+import { renderProject } from "./project.ts";
 
 // command line options for render
 export interface RenderOptions {
@@ -104,12 +98,12 @@ export interface RenderResourceFiles {
 export interface RenderResult {
   baseDir?: string;
   outputDir?: string;
-  resourceFiles?: string[];
   files: RenderResultFile[];
 }
 
 export interface RenderResultFile {
   input: string;
+  markdown: string;
   format: Format;
   file: string;
   filesDir?: string;
@@ -127,17 +121,19 @@ export async function render(
     // all directories are considered projects
     return renderProject(
       context,
-      projectInputFiles(context),
       false,
       options,
     );
   } else if (context.metadata) {
     // if there is a project file then treat this as a project render
     // if the passed file is in the render list
-    const projFiles = projectInputFiles(context);
     const renderPath = Deno.realPathSync(path);
-    if (projFiles.map((file) => Deno.realPathSync(file)).includes(renderPath)) {
-      return renderProject(context, [path], true, options);
+    if (
+      context.files.input.map((file) => Deno.realPathSync(file)).includes(
+        renderPath,
+      )
+    ) {
+      return renderProject(context, true, options, [path]);
     }
   }
 
@@ -147,6 +143,7 @@ export async function render(
     files: Object.keys(results).flatMap((key) => {
       return results[key].map((result) => ({
         input: result.input,
+        markdown: result.markdown,
         format: result.format,
         file: result.file,
         filesDir: result.filesDir,
@@ -158,6 +155,7 @@ export async function render(
 
 export interface RenderedFile {
   input: string;
+  markdown: string;
   format: Format;
   file: string;
   filesDir?: string;
@@ -254,6 +252,7 @@ export async function renderFiles(
 
         fileResults.push({
           input: projectPath(file),
+          markdown: executeResult.markdown,
           format: context.format,
           file: projectPath(pandocResult.finalOutput),
           filesDir: filesDir ? projectPath(filesDir) : undefined,
@@ -577,10 +576,10 @@ export function resolveFormatsFromMetadata(
   flags?: RenderFlags,
 ): Record<string, Format> {
   // Read any included metadata files and merge in and metadata from the command
-  const includeMetadata = includedMetadata(includeDir, metadata);
+  const included = includedMetadata(includeDir, metadata);
   const allMetadata = mergeQuartoConfigs(
     metadata,
-    includeMetadata,
+    included.metadata,
     flags?.metadata || {},
   );
 
@@ -665,7 +664,7 @@ async function resolveFormats(
   project?: ProjectContext,
 ): Promise<Record<string, Format>> {
   // merge input metadata into project metadata
-  const projMetadata = projectMetadataForInputFile(target.input);
+  const projMetadata = projectMetadataForInputFile(target.input, project);
   const inputMetadata = await engine.metadata(target.input);
 
   // determine order of formats
@@ -725,54 +724,6 @@ function formatKeys(metadata: Metadata): string[] {
   } else {
     return [];
   }
-}
-
-function projectMetadataForInputFile(input: string): Metadata {
-  const context = projectContext(input);
-  const projMetadata = context.metadata || {};
-
-  const fixupPaths = (collection: Array<unknown> | Record<string, unknown>) => {
-    ld.forEach(
-      collection,
-      (
-        value: unknown,
-        index: unknown,
-        collection: Array<unknown> | Record<string, unknown>,
-      ) => {
-        const assign = (value: unknown) => {
-          if (typeof (index) === "number") {
-            (collection as Array<unknown>)[index] = value;
-          } else if (typeof (index) === "string") {
-            (collection as Record<string, unknown>)[index] = value;
-          }
-        };
-
-        if (Array.isArray(value)) {
-          assign(fixupPaths(value));
-        } else if (typeof (value) === "object") {
-          assign(fixupPaths(value as Record<string, unknown>));
-        } else if (typeof (value) === "string") {
-          if (!isAbsolute(value)) {
-            // if this is a valid file, then transform it to be relative to the input path
-            const projectPath = join(context.dir, value);
-
-            // Paths could be invalid paths (e.g. with colons or other weird characters)
-            try {
-              if (existsSync(projectPath)) {
-                const offset = relative(dirname(input), context.dir);
-                assign(join(offset, value));
-              }
-            } catch (e) {
-              // Just ignore this error as the path must not be a local file path
-            }
-          }
-        }
-      },
-    );
-    return collection;
-  };
-
-  return fixupPaths(projMetadata) as Metadata;
 }
 
 function mergeQuartoConfigs(

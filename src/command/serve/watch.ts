@@ -22,10 +22,7 @@ import {
   kOutputDir,
   ProjectContext,
 } from "../../project/project-context.ts";
-import {
-  copyResourceFile,
-  projectResourceFiles,
-} from "../../project/project-resources.ts";
+import { copyResourceFile } from "../../project/project-resources.ts";
 import { ProjectServe } from "../../project/types/project-types.ts";
 
 import { RenderResult } from "../render/render.ts";
@@ -38,11 +35,6 @@ export interface ProjectWatcher {
   injectClient: (file: Uint8Array) => Uint8Array;
 }
 
-interface WatchedResources {
-  project: string[];
-  targets: Record<string, string[]>;
-}
-
 export function watchProject(
   project: ProjectContext,
   options: ServeOptions,
@@ -52,7 +44,7 @@ export function watchProject(
   // is this a resource file?
   const isResourceFile = (path: string) => {
     if (renderResult) {
-      if (renderResult.resourceFiles?.includes(path)) {
+      if (project.files.resources?.includes(path)) {
         return true;
       } else {
         return renderResult.files.some((file) =>
@@ -136,11 +128,14 @@ export function watchProject(
           return true;
         }
 
-        // (the copy will come in as another change)
+        // if any resource files changed, copy them to the output directory
+        // (the reload will be subsequently triggered by detection of these writes)
         const modifiedResources = paths.filter(isResourceFile);
         for (const file of modifiedResources) {
           copyResourceFile(projDir, file, outputPath(file));
         }
+
+        // TODO: config and configResources should trigger re-scan / re-build (respectively)
 
         return false;
       } else {
