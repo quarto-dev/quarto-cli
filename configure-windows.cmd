@@ -21,12 +21,7 @@ IF NOT EXIST %QUARTO_BIN_DIR% (
 )
 PUSHD %QUARTO_BIN_DIR%
 
-ECHO Copying Quarto command...
-REM Create quarto cmd
-COPY ..\..\scripts\windows\quarto.cmd quarto.cmd
-ECHO.
-
-ECHO Downloading Dependencies...
+ECHO Bootstrapping Deno...
 ECHO Deno
 REM Download Deno
 SET DENO_FILE="deno-x86_64-pc-windows-msvc.zip"
@@ -36,34 +31,16 @@ TAR -xvf %DENO_FILE%
 DEL %DENO_FILE%
 ECHO .
 
-ECHO Pandoc
-REM download Pandoc
-SET PANDOC_FILE="pandoc-%PANDOC%-windows-x86_64.zip"
-SET PANDOC_URL="https://github.com/jgm/pandoc/releases/download/%PANDOC%/%PANDOC_FILE%"
-CURL --fail -L %PANDOC_URL% -o %PANDOC_FILE%
-TAR -xvf %PANDOC_FILE%
-MOVE /Y pandoc-%PANDOC%\pandoc.exe pandoc.exe
-DEL %PANDOC_FILE%
-RMDIR/S /Q pandoc-%PANDOC%
-ECHO.
-ECHO.
-
-ECHO Dart-Sass
-REM download Dart-Sass
-SET DART_SASS_DIR="dart-sass"
-SET DART_SASS_FILE="dart-sass-%DARTSASS%-windows-x64.zip"
-SET DART_SASS_URL="https://github.com/sass/dart-sass/releases/download/%DARTSASS%/%DART_SASS_FILE%"
-CURL --fail -L %DART_SASS_URL% -o %DART_SASS_FILE%
-RMDIR/S /Q %DART_SASS_DIR%
-TAR -xvf %DART_SASS_FILE%
-DEL %DART_SASS_FILE%
-ECHO.
-ECHO.
-
 SET FINAL_BIN_PATH=%cd%
 
 POPD
 POPD
+POPD
+
+PUSHD %QUARTO_PACKAGE_DIR%\src
+ECHO Configuring Quarto
+quarto-bld configure --log-level info
+
 POPD
 
 SET QUARTO_DENO_EXTRA_OPTIONS="--reload"

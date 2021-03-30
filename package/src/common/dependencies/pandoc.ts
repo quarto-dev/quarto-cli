@@ -29,15 +29,23 @@ export function pandoc(version: string, log: Logger): Dependency {
         // Extract pandoc
         if (Deno.build.os === "linux") {
           await unTar(path, log);
+          
+          // move the binary
+          Deno.renameSync(
+            join(pandocSubdir, "bin", pandocBinary),
+            join(dir, pandocBinary),
+          );
         } else {
           await unzip(path, dir, log);
+
+          // move the binary
+          Deno.renameSync(
+            join(pandocSubdir, pandocBinary),
+            join(dir, pandocBinary),
+          );
         }
 
-        // move the binary
-        Deno.renameSync(
-          join(pandocSubdir, "bin", pandocBinary),
-          join(dir, pandocBinary),
-        );
+
 
         // cleanup
         if (existsSync(pandocSubdir)) {
