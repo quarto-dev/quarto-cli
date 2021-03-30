@@ -1,3 +1,9 @@
+/*
+* pandoc.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
 import { existsSync } from "fs/mod.ts";
 import { dirname, join } from "path/mod.ts";
 
@@ -29,7 +35,7 @@ export function pandoc(version: string, log: Logger): Dependency {
         // Extract pandoc
         if (Deno.build.os === "linux") {
           await unTar(path, log);
-          
+
           // move the binary
           Deno.renameSync(
             join(pandocSubdir, "bin", pandocBinary),
@@ -44,8 +50,6 @@ export function pandoc(version: string, log: Logger): Dependency {
             join(dir, pandocBinary),
           );
         }
-
-
 
         // cleanup
         if (existsSync(pandocSubdir)) {

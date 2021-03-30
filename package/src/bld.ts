@@ -10,6 +10,7 @@ import { packageCommand } from "./cmd/pkg-cmd.ts";
 import { configure } from "./common/configure.ts";
 
 import { prepareDist } from "./common/prepare-dist.ts";
+import { updateRepoDependencies } from "./common/update-repo-dependencies.ts";
 import { makeInstallerDeb } from "./linux/installer.ts";
 import { makeInstallerMac } from "./macos/installer.ts";
 import { defaultLogger } from "./util/logger.ts";
@@ -63,6 +64,11 @@ function getCommands() {
       .description(
         "Configures this machine for running developer version of Quarto",
       ),
+  );
+  commands.push(
+    packageCommand(updateRepoDependencies)
+      .name("update-repo-deps")
+      .description("Updates Bootstrap based upon the version in configuration"),
   );
   commands.push(
     packageCommand(prepareDist)
