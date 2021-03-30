@@ -104,7 +104,6 @@ export interface RenderResourceFiles {
 export interface RenderResult {
   baseDir?: string;
   outputDir?: string;
-  resourceFiles?: string[];
   files: RenderResultFile[];
 }
 
@@ -136,7 +135,7 @@ export async function render(
     // if the passed file is in the render list
     const renderPath = Deno.realPathSync(path);
     if (
-      context.inputFiles.map((file) => Deno.realPathSync(file)).includes(
+      context.files.input.map((file) => Deno.realPathSync(file)).includes(
         renderPath,
       )
     ) {

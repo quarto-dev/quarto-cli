@@ -39,13 +39,12 @@ export async function renderProject(
   const projDir = Deno.realPathSync(context.dir);
 
   // default for files if not specified
-  files = files || context.inputFiles;
+  files = files || context.files.input;
 
   // projResults to return
   const projResults: RenderResult = {
     baseDir: projDir,
     outputDir: context.metadata?.project?.[kOutputDir],
-    resourceFiles: [],
     files: [],
   };
 
@@ -90,9 +89,6 @@ export async function renderProject(
     const outputDir = projResults.outputDir;
 
     if (outputDir) {
-      // determine global list of included resource files
-      projResults.resourceFiles = projectResourceFiles(context);
-
       // resolve output dir and ensure that it exists
       let realOutputDir = join(projDir, outputDir);
       ensureDirSync(realOutputDir);
@@ -202,7 +198,7 @@ export async function renderProject(
 
       // copy all of the resource files
       const allResourceFiles = ld.uniq(
-        projResults.resourceFiles.concat(
+        context.files.resources.concat(
           projResults.files.flatMap((file) => file.resourceFiles),
         ),
       );

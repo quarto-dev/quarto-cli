@@ -24,6 +24,7 @@ import { projectType } from "./types/project-types.ts";
 import { resolvePathGlobs } from "../core/path.ts";
 
 import { fileExecutionEngine } from "../execute/engine.ts";
+import { projectResourceFiles } from "./project-resources.ts";
 
 export const kExecuteDir = "execute-dir";
 export const kOutputDir = "output-dir";
@@ -32,7 +33,10 @@ export const kResources = "resources";
 
 export interface ProjectContext {
   dir: string;
-  inputFiles: string[];
+  files: {
+    input: string[];
+    resources: string[];
+  };
   metadata?: {
     project?: ProjectMetadata;
     [key: string]: unknown;
@@ -99,7 +103,10 @@ export function projectContext(path: string): ProjectContext {
         }
         return {
           dir,
-          inputFiles: projectInputFiles(dir, project),
+          files: {
+            input: projectInputFiles(dir, project),
+            resources: projectResourceFiles(dir, project),
+          },
           metadata: {
             ...projectConfig,
             project,
@@ -109,7 +116,10 @@ export function projectContext(path: string): ProjectContext {
       } else {
         return {
           dir,
-          inputFiles: projectInputFiles(dir),
+          files: {
+            input: projectInputFiles(dir),
+            resources: [],
+          },
         };
       }
     } else {
@@ -117,7 +127,10 @@ export function projectContext(path: string): ProjectContext {
       if (nextDir === dir) {
         return {
           dir: originalDir,
-          inputFiles: projectInputFiles(dir),
+          files: {
+            input: projectInputFiles(dir),
+            resources: [],
+          },
         };
       } else {
         dir = nextDir;
