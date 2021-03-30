@@ -7,6 +7,7 @@
 
 import { Command } from "cliffy/command/mod.ts";
 import { packageCommand } from "./cmd/pkg-cmd.ts";
+import { configure } from "./common/configure.ts";
 
 import { prepareDist } from "./common/prepare-dist.ts";
 import { makeInstallerDeb } from "./linux/installer.ts";
@@ -56,6 +57,13 @@ if (import.meta.main) {
 // Supported package commands
 function getCommands() {
   const commands: Command[] = [];
+  commands.push(
+    packageCommand(configure)
+      .name("configure")
+      .description(
+        "Configures this machine for running developer version of Quarto",
+      ),
+  );
   commands.push(
     packageCommand(prepareDist)
       .name("prepare-dist")

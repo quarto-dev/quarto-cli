@@ -33,7 +33,7 @@ export async function unzip(
   log: Logger,
 ): Promise<CmdResult> {
   if (Deno.build.os === "windows") {
-    return runCmd("PowerShell", [
+    return await runCmd("PowerShell", [
       "Expand-Archive",
       "-Path",
       zipFile,
@@ -41,6 +41,6 @@ export async function unzip(
       dest,
     ], log);
   } else {
-    return runCmd("unzip", [zipFile, "-d", dest], log);
+    return await runCmd("unzip", [zipFile, "-d", dest], log);
   }
 }

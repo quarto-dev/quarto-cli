@@ -5,6 +5,8 @@
 *
 */
 
+import { dirname } from "path/mod.ts";
+
 import { Logger } from "./logger.ts";
 
 export async function makeTarball(
@@ -27,5 +29,27 @@ export async function makeTarball(
   const status = await p.status();
   if (status.code !== 0) {
     throw Error("Failure to make tarball");
+  }
+}
+
+export async function unTar(input: string, log: Logger) {
+  log.info("Untar");
+  log.info(`Input: ${input}`);
+
+  const cwd = dirname(input);
+
+  const tarCmd: string[] = [];
+  tarCmd.push("tar");
+  tarCmd.push("-xzf");
+  tarCmd.push(input);
+  log.info(tarCmd);
+
+  const p = Deno.run({
+    cmd: tarCmd,
+    cwd,
+  });
+  const status = await p.status();
+  if (status.code !== 0) {
+    throw Error("Failure to untar");
   }
 }
