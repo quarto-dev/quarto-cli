@@ -11,8 +11,24 @@ export const websiteServe: ProjectServe = {};
 
 // TODO
 
-// libDir is likely broken today with freeze (rename to site-libs)
-// md files in projects are currently deleted even if keep-md
+// freeze as currently implemented actually loses dependencies AND potentially doesn't do preserveHTML
+// we actually need to save the executeResult (per-format) to implement freeze (filesDir is implicitly part of result,
+// in fact, we should packge the executeResult as JSON within the files dir)
+// (at that point we won't need the libs dir preserved)
+
+/*
+Freezer
+   put(foo.md, executeResult)
+   get(foo.md, mtime of Rmd) -- re-render and put if get returns null
+   cleanup(foo.md)
+
+Normal implementation writes everything side-by-side and doesn't clean up
+
+Preview implementation:
+   - writes into the output dir
+   - retreives from the output dir
+   - removes on cleanup
+*/
 
 // kPreview
 
