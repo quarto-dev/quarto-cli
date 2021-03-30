@@ -56,6 +56,8 @@ import {
 } from "../../execute/engine.ts";
 
 import { markdownEngine } from "../../execute/markdown.ts";
+import { defaultWriterFormat } from "../../format/formats.ts";
+
 import { formatHasBootstrap } from "../../format/html/format-html-bootstrap.ts";
 
 import { PandocOptions, runPandoc } from "./pandoc.ts";
@@ -707,7 +709,11 @@ async function resolveFormats(
     }
 
     // do the merge
-    mergedFormats[format] = mergeConfigs(projFormat || {}, inputFormat || {});
+    mergedFormats[format] = mergeConfigs(
+      defaultWriterFormat(format),
+      projFormat || {},
+      inputFormat || {},
+    );
   });
 
   return mergedFormats;
