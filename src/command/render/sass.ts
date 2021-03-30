@@ -11,7 +11,7 @@ import { createHash } from "hash/mod.ts";
 import { quartoCacheDir } from "../../core/appdirs.ts";
 import { sessionTempFile } from "../../core/temp.ts";
 
-import { SassBundle } from "../../config/format.ts";
+import { SassBundle, SassLayer } from "../../config/format.ts";
 import { dartCompile } from "../../core/dart-sass.ts";
 
 import { ld } from "lodash/mod.ts";
@@ -113,6 +113,115 @@ export async function compileSass(bundles: SassBundle[]) {
     true,
     bundles.map((bundle) => bundle.key).join("|"),
   );
+}
+
+const kLayerBoundary = /^\/\/[ \t]*theme:(variables|rules|declarations)[ \t]*$/;
+
+export function mergeLayers(...layers: SassLayer[]) {
+  const themeVariables: string[] = [];
+  const themeRules: string[] = [];
+  const themeDeclarations: string[] = [];
+  layers.forEach((theme) => {
+    if (theme.variables) {
+      themeVariables.push(theme.variables);
+    }
+
+    if (theme.rules) {
+      themeRules.push(theme.rules);
+    }
+
+    if (theme.declarations) {
+      themeDeclarations.push(theme.declarations);
+    }
+  });
+
+  return {
+    variables: themeVariables.join("\n"),
+    declarations: themeDeclarations.join("\n"),
+    rules: themeRules.join("\n"),
+  };
+}
+
+export function sassLayer(path: string): SassLayer {
+  if (Deno.statSync(path).isFile) {
+    return sassLayerFile(path);
+  } else {
+    return sassLayerDir(
+      path,
+      {
+        declarations: "_declarations.scss",
+        variables: "_variables.scss",
+        rules: "_rules.scss",
+      },
+    );
+  }
+}
+
+export function sassLayerFile(theme: string): SassLayer {
+  // It is not a built in theme, so read the theme file and parse it.
+  const rawContents = Deno.readTextFileSync(theme);
+  const lines = rawContents.split("\n");
+
+  const vars: string[] = [];
+  const rules: string[] = [];
+  const declarations: string[] = [];
+  let accum = vars;
+  lines.forEach((line) => {
+    const scopeMatch = line.match(kLayerBoundary);
+    if (scopeMatch) {
+      const scope = scopeMatch[1];
+      switch (scope) {
+        case "variables":
+          accum = vars;
+          break;
+        case "rules":
+          accum = rules;
+          break;
+        case "declarations":
+          accum = declarations;
+          break;
+      }
+    } else {
+      accum.push(line);
+    }
+  });
+
+  return {
+    variables: vars.join("\n"),
+    rules: rules.join("\n"),
+    declarations: declarations.join("\n"),
+  };
+}
+
+export function sassLayerDir(
+  dir: string,
+  names: {
+    declarations?: string;
+    variables?: string;
+    rules?: string;
+  },
+): SassLayer {
+  const read = (
+    path?: string,
+  ) => {
+    if (path) {
+      path = join(dir, path);
+      if (existsSync(path)) {
+        return Deno.readTextFileSync(path);
+      } else {
+        return "";
+      }
+    } else {
+      return "";
+    }
+  };
+
+  // It's a directory, look for names files instead
+  return {
+    variables: read(names.variables),
+    rules: read(names.rules),
+    declarations: read(names.declarations),
+  };
 }
 
 async function compileWithCache(

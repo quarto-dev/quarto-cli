@@ -584,7 +584,9 @@ function runPandocMessage(
   }
 }
 
-const kDfaultHighlightStyle = "arrow";
+const kDefaultHighlightStyle = "arrow";
+const kDarkSuffix = "dark";
+const kLightSuffix = "light";
 
 function resolveHighlightStyle(
   extras: FormatExtras,
@@ -610,11 +612,11 @@ function resolveHighlightStyle(
   });
 
   // Get the user selected theme or choose a default
-  const style = pandoc[kHighlightStyle] || kDfaultHighlightStyle;
+  const style = pandoc[kHighlightStyle] || kDefaultHighlightStyle;
 
   // create the possible name matches based upon the dark vs. light
   // and find a matching theme file
-  const names = [`${style}-${dark ? "dark" : "light"}`, style];
+  const names = [`${style}-${dark ? kDarkSuffix : kLightSuffix}`, style];
   const theme = names.map((name) => {
     return resourcePath(join("pandoc", "highlight-styles", `${name}.theme`));
   }).find((path) => existsSync(path));
