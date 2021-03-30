@@ -60,7 +60,7 @@ export const websiteProjectType: ProjectType = {
     };
   },
 
-  libDir: "libs",
+  libDir: "site_libs",
   outputDir: "_site",
 
   preRender: async (context: ProjectContext) => {

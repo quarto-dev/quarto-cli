@@ -5,13 +5,15 @@
 *
 */
 
-import { ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
+import { copySync, ensureDirSync, existsSync } from "fs/mod.ts";
 import { basename, dirname, join, relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
 import { resolvePathGlobs } from "../../core/path.ts";
 import { message } from "../../core/console.ts";
+
+import { kKeepMd } from "../../config/constants.ts";
 
 import {
   kExecuteDir,
@@ -21,10 +23,7 @@ import {
 } from "../../project/project-context.ts";
 
 import { projectType } from "../../project/types/project-types.ts";
-import {
-  copyResourceFile,
-  projectResourceFiles,
-} from "../../project/project-resources.ts";
+import { copyResourceFile } from "../../project/project-resources.ts";
 import { ensureGitignore } from "../../project/project-gitignore.ts";
 
 import { renderFiles, RenderOptions, RenderResult } from "./render.ts";
@@ -94,8 +93,8 @@ export async function renderProject(
       ensureDirSync(realOutputDir);
       realOutputDir = Deno.realPathSync(realOutputDir);
 
-      // function to move a directory into the output dir
-      const moveDir = (dir: string) => {
+      // move or copy dir
+      const relocateDir = (dir: string, copy = false) => {
         const targetDir = join(realOutputDir, dir);
         if (existsSync(targetDir)) {
           Deno.removeSync(targetDir, { recursive: true });
@@ -103,30 +102,28 @@ export async function renderProject(
         const srcDir = join(projDir, dir);
         if (existsSync(srcDir)) {
           ensureDirSync(dirname(targetDir));
-          Deno.renameSync(srcDir, targetDir);
+          if (copy) {
+            copySync(srcDir, targetDir);
+          } else {
+            Deno.renameSync(srcDir, targetDir);
+          }
         }
       };
+      const moveDir = relocateDir;
+      const copyDir = (dir: string) => relocateDir(dir, true);
 
-      // move the lib dir if we have one (move one subdirectory at a time so that we can
-      // merge with what's already there)
-      const libDir = context.metadata?.project?.[kLibDir];
-      if (libDir) {
-        const libDirFull = join(context.dir, libDir);
-        if (existsSync(libDirFull)) {
-          for (const lib of Deno.readDirSync(libDirFull)) {
-            if (lib.isDirectory) {
-              moveDir(join(libDir, basename(lib.name)));
-            }
-          }
-          Deno.removeSync(libDirFull, { recursive: true });
-        }
-      }
+      // track whether we have any keep-md (in that case we'll copy rather than move libs)
+      let siteKeepMd = false;
 
       // move/copy projResults to output_dir
       Object.keys(fileResults).forEach((format) => {
         const results = fileResults[format];
 
         for (const result of results) {
+          // look for keepMd
+          const keepMd = !!result.format.render[kKeepMd];
+          siteKeepMd = siteKeepMd || keepMd;
+
           // move the output file
           const outputFile = join(realOutputDir, result.file);
           ensureDirSync(dirname(outputFile));
@@ -134,7 +131,11 @@ export async function renderProject(
 
           // files dir
           if (result.filesDir) {
-            moveDir(result.filesDir);
+            if (kKeepMd) {
+              copyDir(result.filesDir);
+            } else {
+              moveDir(result.filesDir);
+            }
           }
 
           // resource files
@@ -185,6 +186,23 @@ export async function renderProject(
           });
         }
       });
+
+      // move or copy the lib dir if we have one (move one subdirectory at a time
+      // so that we can merge with what's already there)
+      const libDir = context.metadata?.project?.[kLibDir];
+      if (libDir) {
+        const libDirFull = join(context.dir, libDir);
+        if (existsSync(libDirFull)) {
+          for (const lib of Deno.readDirSync(libDirFull)) {
+            if (lib.isDirectory) {
+              relocateDir(join(libDir, basename(lib.name)), siteKeepMd);
+            }
+          }
+          if (!siteKeepMd) {
+            Deno.removeSync(libDirFull, { recursive: true });
+          }
+        }
+      }
 
       // determine the output files and filter them out of the resourceFiles
       const outputFiles = projResults.files.map((result) =>
