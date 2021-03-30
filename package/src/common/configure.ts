@@ -7,7 +7,10 @@
 import { join } from "path/mod.ts";
 
 import { Configuration } from "./config.ts";
-import { dependencies, PlatformDependency } from "./dependencies.ts";
+import {
+  dependencies,
+  PlatformDependency,
+} from "./dependencies/dependencies.ts";
 
 export async function configure(
   config: Configuration,
@@ -15,6 +18,9 @@ export async function configure(
   const log = config.log;
 
   log.info("Configuring local machine for development");
+
+  // Download dependencies
+  log.info("Downloading dependencies");
   for (const dependency of dependencies(config)) {
     log.info("Configuring " + dependency.name);
     const platformDep = dependency[Deno.build.os];
@@ -23,6 +29,29 @@ export async function configure(
       await platformDep.configure(targetFile);
       Deno.removeSync(targetFile);
     }
+  }
+
+  // Move the quarto script into place
+  log.info("Creating Quarto script");
+  if (Deno.build.os === "windows") {
+    Deno.copyFileSync(
+      join(config.directoryInfo.pkg, "scripts", "windows", "quarto.cmd"),
+      join(config.directoryInfo.bin, "quarto.cmd"),
+    );
+  } else {
+    Deno.copyFileSync(
+      join(config.directoryInfo.pkg, "scripts", "common", "quarto"),
+      join(config.directoryInfo.bin, "quarto"),
+    );
+  }
+
+  // Set up a symlink (if appropriate)
+  log.info("Creating Quarto script");
+  if (Deno.build.os !== "windows") {
+    Deno.symlinkSync(
+      join(config.directoryInfo.bin, "quarto"),
+      "/usr/local/bin/quarto",
+    );
   }
 }
 

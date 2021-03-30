@@ -6,10 +6,10 @@ source configuration
 # capture install dir
 INSTALL_DIR=`pwd`
 
+# Ensure directory is there for Deno
 echo "Creating Package Directories..."
 
 pushd $QUARTO_PACKAGE_DIR
-
 rm -rf $QUARTO_DIST_DIR
 
 if [ ! -d "$QUARTO_DIST_DIR" ]; then
@@ -17,25 +17,10 @@ if [ ! -d "$QUARTO_DIST_DIR" ]; then
 fi
 pushd $QUARTO_DIST_DIR
 
-## Share Directory
-if [ ! -d "$QUARTO_SHARE_DIR" ]; then
-	mkdir -p "$QUARTO_SHARE_DIR"
-fi
-
 ## Binary Directory
 if [ ! -d "$QUARTO_BIN_DIR" ]; then
 	mkdir -p "$QUARTO_BIN_DIR"
 fi
-
-echo "Creating Quarto Scipt..."
-
-# Move the quarto shell script into place
-cp ../scripts/common/quarto $QUARTO_BIN_DIR/quarto
-
-echo "Creating Quarto Symlink..."
-
-# setup local symlink
-sudo ln -fs $INSTALL_DIR/$QUARTO_PACKAGE_DIR/$QUARTO_DIST_DIR/$QUARTO_BIN_DIR/quarto /usr/local/bin/quarto
 
 popd
 popd
