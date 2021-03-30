@@ -112,18 +112,11 @@ export async function renderProject(
       const moveDir = relocateDir;
       const copyDir = (dir: string) => relocateDir(dir, true);
 
-      // track whether we have any keep-md (in that case we'll copy rather than move libs)
-      let siteKeepMd = false;
-
       // move/copy projResults to output_dir
       Object.keys(fileResults).forEach((format) => {
         const results = fileResults[format];
 
         for (const result of results) {
-          // look for keepMd
-          const keepMd = !!result.format.render[kKeepMd];
-          siteKeepMd = siteKeepMd || keepMd;
-
           // move the output file
           const outputFile = join(realOutputDir, result.file);
           ensureDirSync(dirname(outputFile));
@@ -131,7 +124,7 @@ export async function renderProject(
 
           // files dir
           if (result.filesDir) {
-            if (kKeepMd) {
+            if (result.format.render[kKeepMd]) {
               copyDir(result.filesDir);
             } else {
               moveDir(result.filesDir);
@@ -195,12 +188,10 @@ export async function renderProject(
         if (existsSync(libDirFull)) {
           for (const lib of Deno.readDirSync(libDirFull)) {
             if (lib.isDirectory) {
-              relocateDir(join(libDir, basename(lib.name)), siteKeepMd);
+              moveDir(join(libDir, basename(lib.name)));
             }
           }
-          if (!siteKeepMd) {
-            Deno.removeSync(libDirFull, { recursive: true });
-          }
+          Deno.removeSync(libDirFull, { recursive: true });
         }
       }
 
