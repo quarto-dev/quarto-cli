@@ -8,7 +8,7 @@
 import { exists } from "fs/exists.ts";
 import { join } from "path/mod.ts";
 
-import { readYamlFromMarkdownFile } from "../core/yaml.ts";
+import { readYaml, readYamlFromMarkdownFile } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { message } from "../core/console.ts";
 
@@ -36,12 +36,12 @@ export type Metadata = {
 export function includedMetadata(
   dir: string,
   baseMetadata: Metadata,
-): Metadata {
+): { metadata: Metadata; files: string[] } {
   // Read any metadata files that are defined in the metadata itself
   const yamlFiles: string[] = [];
   const metadataFile = baseMetadata[kMetadataFile];
   if (metadataFile) {
-    yamlFiles.push(metadataFile as string);
+    yamlFiles.push(join(dir, metadataFile as string));
   }
 
   const metadataFiles = baseMetadata[kMetadataFiles];
@@ -50,10 +50,10 @@ export function includedMetadata(
   }
 
   // Read the yaml
-  const metadata = yamlFiles.map((yamlFile) => {
+  const filesMetadata = yamlFiles.map((yamlFile) => {
     if (exists(yamlFile)) {
       try {
-        return readYamlFromMarkdownFile(yamlFile);
+        return readYaml(yamlFile);
       } catch (e) {
         message("\nError reading metadata file from " + yamlFile + "\n");
         throw e;
@@ -64,7 +64,10 @@ export function includedMetadata(
   });
 
   // merge the result
-  return mergeConfigs({}, ...metadata);
+  return {
+    metadata: mergeConfigs({}, ...filesMetadata),
+    files: yamlFiles,
+  };
 }
 
 export function formatFromMetadata(

@@ -44,7 +44,7 @@ export function watchProject(
   // is this a resource file?
   const isResourceFile = (path: string) => {
     if (renderResult) {
-      if (project.files.resources.includes(path)) {
+      if (project.files.resources?.includes(path)) {
         return true;
       } else {
         return renderResult.files.some((file) =>
@@ -128,11 +128,14 @@ export function watchProject(
           return true;
         }
 
-        // (the copy will come in as another change)
+        // if any resource files changed, copy them to the output directory
+        // (the reload will be subsequently triggered by detection of these writes)
         const modifiedResources = paths.filter(isResourceFile);
         for (const file of modifiedResources) {
           copyResourceFile(projDir, file, outputPath(file));
         }
+
+        // TODO: config and configResources should trigger re-scan / re-build (respectively)
 
         return false;
       } else {

@@ -7,14 +7,7 @@
 
 import { existsSync } from "fs/mod.ts";
 
-import {
-  basename,
-  dirname,
-  extname,
-  isAbsolute,
-  join,
-  relative,
-} from "path/mod.ts";
+import { basename, dirname, extname, join, relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
@@ -75,6 +68,7 @@ import {
   kOutputDir,
   ProjectContext,
   projectContext,
+  projectMetadataForInputFile,
   projectOffset,
 } from "../../project/project-context.ts";
 
@@ -582,10 +576,10 @@ export function resolveFormatsFromMetadata(
   flags?: RenderFlags,
 ): Record<string, Format> {
   // Read any included metadata files and merge in and metadata from the command
-  const includeMetadata = includedMetadata(includeDir, metadata);
+  const included = includedMetadata(includeDir, metadata);
   const allMetadata = mergeQuartoConfigs(
     metadata,
-    includeMetadata,
+    included.metadata,
     flags?.metadata || {},
   );
 
@@ -730,58 +724,6 @@ function formatKeys(metadata: Metadata): string[] {
   } else {
     return [];
   }
-}
-
-function projectMetadataForInputFile(
-  input: string,
-  project?: ProjectContext,
-): Metadata {
-  project = project || projectContext(input);
-
-  const projMetadata = project.metadata || {};
-
-  const fixupPaths = (collection: Array<unknown> | Record<string, unknown>) => {
-    ld.forEach(
-      collection,
-      (
-        value: unknown,
-        index: unknown,
-        collection: Array<unknown> | Record<string, unknown>,
-      ) => {
-        const assign = (value: unknown) => {
-          if (typeof (index) === "number") {
-            (collection as Array<unknown>)[index] = value;
-          } else if (typeof (index) === "string") {
-            (collection as Record<string, unknown>)[index] = value;
-          }
-        };
-
-        if (Array.isArray(value)) {
-          assign(fixupPaths(value));
-        } else if (typeof (value) === "object") {
-          assign(fixupPaths(value as Record<string, unknown>));
-        } else if (typeof (value) === "string") {
-          if (!isAbsolute(value)) {
-            // if this is a valid file, then transform it to be relative to the input path
-            const projectPath = join(project!.dir, value);
-
-            // Paths could be invalid paths (e.g. with colons or other weird characters)
-            try {
-              if (existsSync(projectPath)) {
-                const offset = relative(dirname(input), project!.dir);
-                assign(join(offset, value));
-              }
-            } catch (e) {
-              // Just ignore this error as the path must not be a local file path
-            }
-          }
-        }
-      },
-    );
-    return collection;
-  };
-
-  return fixupPaths(projMetadata) as Metadata;
 }
 
 function mergeQuartoConfigs(

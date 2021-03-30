@@ -25,6 +25,7 @@ export interface ProjectType {
     format: Format,
   ) => Promise<FormatExtras>;
   metadataFields?: () => string[];
+  resourceIgnoreFields?: () => string[];
   preRender?: (context: ProjectContext) => Promise<void>;
   postRender?: (
     context: ProjectContext,

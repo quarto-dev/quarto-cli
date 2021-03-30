@@ -198,7 +198,7 @@ export async function renderProject(
 
       // copy all of the resource files
       const allResourceFiles = ld.uniq(
-        context.files.resources.concat(
+        (context.files.resources || []).concat(
           projResults.files.flatMap((file) => file.resourceFiles),
         ),
       );

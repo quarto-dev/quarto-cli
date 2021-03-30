@@ -109,6 +109,8 @@ export const websiteProjectType: ProjectType = {
 
   metadataFields: () => [kNavbar, kSidebar, kBaseUrl],
 
+  resourceIgnoreFields: () => [kNavbar, kSidebar],
+
   postRender: async (
     context: ProjectContext,
     incremental: boolean,
