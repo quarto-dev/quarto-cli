@@ -22,13 +22,13 @@ import { kTheme } from "../../config/constants.ts";
 
 import { kBootstrapDependencyName, kCodeCopy } from "./format-html.ts";
 import {
+  mergeLayers,
   print,
+  sassLayer,
+  sassLayerDir,
   SassVariable,
   sassVariable,
 } from "../../command/render/sass.ts";
-
-const kThemeScopeRegex =
-  /^\/\/[ \t]*theme:(variables|rules|declarations)[ \t]*$/;
 
 export function resolveBootstrapScss(metadata: Metadata): SassBundle {
   // Quarto built in css
@@ -75,96 +75,28 @@ function resolveThemeLayer(
   themes: string[],
   quartoThemesDir: string,
 ): SassLayer {
-  const themeLayers: Array<
-    { variables?: string; rules?: string; declarations?: string }
-  > = [];
+  const themeLayers: SassLayer[] = [];
 
   themes.forEach((theme) => {
+    // The directory for this theme
     const resolvedThemeDir = join(quartoThemesDir, theme);
-    const read = (
-      path: string,
-    ) => {
-      if (existsSync(path)) {
-        return Deno.readTextFileSync(path);
-      } else {
-        return undefined;
-      }
-    };
 
+    // Read the sass layers
     if (existsSync(resolvedThemeDir)) {
-      // It's a built in theme, just read and return the data
-      themeLayers.push({
-        variables: read(join(resolvedThemeDir, "_variables.scss")),
-        rules: read(join(resolvedThemeDir, "_bootswatch.scss")),
-      });
+      // The theme appears to be a built in theme
+      themeLayers.push(sassLayerDir(
+        resolvedThemeDir,
+        {
+          variables: "_variables.scss",
+          rules: "_bootswatch.scss",
+        },
+      ));
     } else if (existsSync(theme)) {
-      if (Deno.statSync(theme).isFile) {
-        // It is not a built in theme, so read the theme file and parse it.
-        const rawContents = Deno.readTextFileSync(theme);
-        const lines = rawContents.split("\n");
-
-        const vars: string[] = [];
-        const rules: string[] = [];
-        const declarations: string[] = [];
-        let accum = vars;
-        lines.forEach((line) => {
-          const scopeMatch = line.match(kThemeScopeRegex);
-          if (scopeMatch) {
-            const scope = scopeMatch[1];
-            switch (scope) {
-              case "variables":
-                accum = vars;
-                break;
-              case "rules":
-                accum = rules;
-                break;
-              case "declarations":
-                accum = declarations;
-                break;
-            }
-          } else {
-            accum.push(line);
-          }
-        });
-
-        themeLayers.push({
-          variables: vars.join("\n"),
-          rules: rules.join("\n"),
-          declarations: declarations.join("\n"),
-        });
-      } else {
-        // It's a directory, look for names files instead
-        themeLayers.push({
-          variables: read(join(theme, "_variables.scss")),
-          rules: read(join(theme, "_rules.scss")),
-          declarations: read(join(theme, "_declarations.scss")),
-        });
-      }
+      themeLayers.push(sassLayer(theme));
     }
   });
 
-  const themeVariables: string[] = [];
-  const themeRules: string[] = [];
-  const themeDeclarations: string[] = [];
-  themeLayers.forEach((theme) => {
-    if (theme.variables) {
-      themeVariables.push(theme.variables);
-    }
-
-    if (theme.rules) {
-      themeRules.push(theme.rules);
-    }
-
-    if (theme.declarations) {
-      themeDeclarations.push(theme.declarations);
-    }
-  });
-
-  return {
-    variables: themeVariables.join("\n"),
-    declarations: themeDeclarations.join("\n"),
-    rules: themeRules.join("\n"),
-  };
+  return mergeLayers(...themeLayers);
 }
 
 function mapBootstrapPandocVariables(metadata: Metadata): SassVariable[] {

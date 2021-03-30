@@ -584,14 +584,9 @@ function runPandocMessage(
   }
 }
 
-function arrowStyle() {
-  return Deno.realPathSync(
-    resourcePath(join("pandoc", "arrow.theme")),
-  );
-}
-
-const kDefaultLightTheme = "arrow";
-const kDefaultDarkTheme = "Dracula";
+const kDefaultHighlightStyle = "arrow";
+const kDarkSuffix = "dark";
+const kLightSuffix = "light";
 
 function resolveHighlightStyle(
   extras: FormatExtras,
@@ -617,14 +612,13 @@ function resolveHighlightStyle(
   });
 
   // Get the user selected theme or choose a default
-  const style = pandoc[kHighlightStyle] ||
-    (dark ? kDefaultDarkTheme : kDefaultLightTheme);
+  const style = pandoc[kHighlightStyle] || kDefaultHighlightStyle;
 
   // create the possible name matches based upon the dark vs. light
   // and find a matching theme file
-  const names = [`${style}-${dark ? "dark" : "light"}`, style];
+  const names = [`${style}-${dark ? kDarkSuffix : kLightSuffix}`, style];
   const theme = names.map((name) => {
-    return resourcePath(join("pandoc", "themes", `${name}.theme`));
+    return resourcePath(join("pandoc", "highlight-styles", `${name}.theme`));
   }).find((path) => existsSync(path));
 
   // If the name maps to a locally installed theme, use it
