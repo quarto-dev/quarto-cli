@@ -3,9 +3,6 @@
 SASS:
 - Import bootswatch themes into "unified" format (bootstrap beta 3 with script)
 
-Windows:
-- Need to figure out what the deal is with quarto bundled error (cliffy?) before next published release.
-
 TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx)
 
     - render site at server startup (required?). alternative is render on navigate
@@ -314,3 +311,13 @@ Julia Dev workflow
 - using Quarto
 
 - changes should show up automatically now
+
+
+
+Future - Charles
+---------------------------------------------
+
+Windows:
+- Continue to monitor Cliffy + Deno versions for Windows support.
+  Unpinned Cliffy was causing an error when running bundled version (e.g. installed version) on Windows
+  Deno 1.8.1+ currently stack overflows when bundling on windows
