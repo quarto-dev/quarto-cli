@@ -1,8 +1,5 @@
 
 
-SASS:
-- Import bootswatch themes into "unified" format (bootstrap beta 3 with script)
-
 TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx)
 
     - render site at server startup (required?). alternative is render on navigate
