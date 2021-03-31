@@ -7,7 +7,7 @@
 import * as colors from "fmt/colors.ts";
 import { Command } from "cliffy/command/mod.ts";
 
-import { message } from "../../core/console.ts";
+import { message, spinner } from "../../core/console.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { pythonEnv, rBinaryEnv, rPackageEnv } from "./execution.ts";
 import { binaryEnv, dartSassEnv, QuartoEnv, tinyTexEnv } from "./bin.ts";
@@ -90,6 +90,7 @@ async function printEnvironmentData(
   envData: EnvironmentData,
   optional: boolean,
 ) {
+  const cancelSpinner = spinner(`${envData.name}...`);
   const getMetadata = (envData: EnvironmentData) => {
     if (envData.metadata) {
       return envData.metadata();
@@ -100,6 +101,7 @@ async function printEnvironmentData(
   const path = await envData.path();
   const version = await envData.version();
   const metadata = await getMetadata(envData);
+  cancelSpinner();
 
   if (path || version || metadata) {
     // Print the title
