@@ -13,6 +13,7 @@ import { ld } from "lodash/mod.ts";
 
 import { inputFilesDir } from "../../core/render.ts";
 import { sessionTempFile } from "../../core/temp.ts";
+import { copyDir, removeIfExists } from "../../core/path.ts";
 
 import {
   kIncludeAfterBody,
@@ -25,13 +26,15 @@ import { ExecuteResult } from "../../execute/engine.ts";
 import { ProjectContext } from "../../project/project-context.ts";
 import { projectScratchPath } from "../../project/project-scratch.ts";
 
+const kFreezeSubDir = "freeze";
+
 export function freezeExecuteResult(
   input: string,
   output: string,
   result: ExecuteResult,
 ) {
   // resolve includes within executeResult
-  result = ld.cloneDeep(result);
+  result = ld.cloneDeep(result) as ExecuteResult;
   const resolveIncludes = (
     name: "include-in-header" | "include-before-body" | "include-after-body",
   ) => {
@@ -104,14 +107,33 @@ export function defrostExecuteResult(
   }
 }
 
-export function copyFilesToFreezer(project: ProjectContext, filesDir: string) {
-  const freezerDir = projectScratchPath(project, "freezer");
+export function removeFreezeResults(filesDir: string) {
+  const freezeDir = join(filesDir, kFreezeSubDir);
+  removeIfExists(freezeDir);
+}
+
+export function copyFilesToFreezer(
+  project: ProjectContext,
+  filesDir: string,
+  incremental = false,
+) {
+  const freezerDir = projectScratchPath(project, kFreezeSubDir);
   const filesRelative = relative(project.dir, filesDir);
   const destFilesDir = join(freezerDir, filesRelative);
-  copySync(filesDir, destFilesDir, {
-    overwrite: true,
-    preserveTimestamps: true,
-  });
+  copyDir(filesDir, destFilesDir, incremental);
+}
+
+export function copyFilesFromFreezer(
+  project: ProjectContext,
+  filesDir: string,
+  incremental = false,
+) {
+  const freezerDir = projectScratchPath(project, kFreezeSubDir);
+  const srcFilesDir = join(freezerDir, filesDir);
+  const destFilesDir = join(project.dir, filesDir);
+  if (existsSync(srcFilesDir)) {
+    copyDir(srcFilesDir, destFilesDir, incremental);
+  }
 }
 
 function freezeInputHash(input: string) {
@@ -124,7 +146,7 @@ function freezeResultFile(
   ensureDir = false,
 ) {
   const filesDir = inputFilesDir(input);
-  const freezeDir = join(filesDir, "freeze");
+  const freezeDir = join(filesDir, kFreezeSubDir);
   if (ensureDir) {
     ensureDirSync(freezeDir);
   }
