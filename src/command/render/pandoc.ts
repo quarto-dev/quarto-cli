@@ -170,7 +170,9 @@ export async function runPandoc(
     if (sysFilters.length > 0) {
       extras.filters = extras.filters || {};
       extras.filters.post = extras.filters.post || [];
-      extras.filters.post.unshift(...sysFilters);
+      extras.filters.post.unshift(
+        ...(sysFilters.map((filter) => resourcePath(join("filters", filter)))),
+      );
     }
 
     // merge pandoc

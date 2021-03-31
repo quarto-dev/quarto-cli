@@ -43,6 +43,6 @@ export const bookProjectType: ProjectType = {
     };
   },
 
-  libDir: "libs",
+  libDir: "site_libs",
   outputDir: "_book",
 };
