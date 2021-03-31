@@ -47,12 +47,13 @@ import {
   kSelfContained,
   kTheme,
 } from "../../config/constants.ts";
-import { Format } from "../../config/format.ts";
+import { Format, FormatPandoc } from "../../config/format.ts";
 import {
   ExecuteResult,
   ExecutionEngine,
   ExecutionTarget,
   fileExecutionEngine,
+  PandocIncludes,
 } from "../../execute/engine.ts";
 
 import { markdownEngine } from "../../execute/markdown.ts";
@@ -63,7 +64,7 @@ import { formatHasBootstrap } from "../../format/html/format-html-bootstrap.ts";
 import { PandocOptions, runPandoc } from "./pandoc.ts";
 import { removePandocToArg, RenderFlags, resolveParams } from "./flags.ts";
 import { cleanup } from "./cleanup.ts";
-import { outputRecipe } from "./output.ts";
+import { OutputRecipe, outputRecipe } from "./output.ts";
 import {
   deleteProjectMetadata,
   kLibDir,
@@ -75,6 +76,7 @@ import {
 } from "../../project/project-context.ts";
 
 import { renderProject } from "./project.ts";
+import { defrostExecuteResult, freezeExecuteResult } from "./freeze.ts";
 
 // command line options for render
 export interface RenderOptions {
@@ -123,7 +125,6 @@ export async function render(
     // all directories are considered projects
     return renderProject(
       context,
-      false,
       options,
     );
   } else if (context.metadata) {
@@ -135,7 +136,7 @@ export async function render(
         renderPath,
       )
     ) {
-      return renderProject(context, true, options, [path]);
+      return renderProject(context, options, [path]);
     }
   }
 
@@ -169,7 +170,7 @@ export async function renderFiles(
   files: string[],
   options: RenderOptions,
   project?: ProjectContext,
-  projectIncremental?: boolean,
+  alwaysExecute?: boolean,
 ): Promise<Record<string, RenderedFile[]>> {
   // make a copy of options so we don't mutate caller context
   options = ld.cloneDeep(options);
@@ -216,7 +217,6 @@ export async function renderFiles(
         file,
         fileOptions,
         project,
-        projectIncremental,
       );
 
       // remove --to (it's been resolved into contexts)
@@ -228,11 +228,19 @@ export async function renderFiles(
       const fileResults: RenderedFile[] = [];
 
       for (const context of Object.values(contexts)) {
+        // get output recipe
+        const recipe = await outputRecipe(context);
+
         // execute
-        const executeResult = await renderExecute(context, true);
+        const executeResult = await renderExecute(
+          context,
+          recipe.output,
+          true,
+          alwaysExecute,
+        );
 
         // run pandoc
-        const pandocResult = await renderPandoc(context, executeResult);
+        const pandocResult = await renderPandoc(context, recipe, executeResult);
 
         // determine if we have a files dir
         const relativeFilesDir = inputFilesDir(file);
@@ -304,7 +312,6 @@ export async function renderContexts(
   file: string,
   options: RenderOptions,
   project?: ProjectContext,
-  projectIncremental?: boolean,
 ): Promise<Record<string, RenderContext>> {
   // determine the computation engine and any alternate input file
   const engine = await fileExecutionEngine(file);
@@ -331,44 +338,12 @@ export async function renderContexts(
   // return contexts
   const contexts: Record<string, RenderContext> = {};
   Object.keys(formats).forEach((format: string) => {
-    // if we are in a project and it's not an incremental render then we may want to
-    // re-wire the target to the md. we do this if 'freeze' is specified and there is
-    // an appopriately up to date md file for htis input
-    let formatEngine = engine;
-    const formatConfig = ld.cloneDeep(formats[format]);
-    if (project) {
-      const freeze = formatConfig.execution[kFreeze];
-      if (freeze) { // either true or "auto"
-        // freeze always implies keepMd
-        formatConfig.render[kKeepMd] = true;
-
-        // if this isn't an incremental render see if we can rewire to an existing md file
-        const keepMdFile = engine.keepMd(target.input);
-        if (keepMdFile && !projectIncremental) {
-          // if there is an md file, then re-wire the target to it for:
-          //  - freeze === true
-          //  - freeze === "auto" and an input file more recent than the md
-          if (existsSync(keepMdFile)) {
-            const inputMod = Deno.statSync(target.input).mtime;
-            const mdMod = Deno.statSync(keepMdFile).mtime;
-            const rewire = (freeze === true) ||
-              (inputMod && mdMod && inputMod <= mdMod);
-            if (rewire) {
-              formatEngine = markdownEngine;
-              target.source = keepMdFile;
-              target.input = keepMdFile;
-            }
-          }
-        }
-      }
-    }
-
     // set format
     contexts[format] = {
       target,
       options,
-      engine: formatEngine,
-      format: formatConfig,
+      engine,
+      format: formats[format],
       project,
       libDir: libDir!,
     };
@@ -401,10 +376,27 @@ export async function renderFormats(
 
 export async function renderExecute(
   context: RenderContext,
+  output: string,
   resolveDependencies: boolean,
+  alwaysExecute?: boolean,
 ): Promise<ExecuteResult> {
   // alias flags
   const flags = context.options.flags || {};
+
+  // use previous frozen results if they are available
+  if (context.project && !alwaysExecute) {
+    const freeze = context.format.execution[kFreeze];
+    if (freeze) {
+      const thawedResult = defrostExecuteResult(
+        context.target.input,
+        output,
+        freeze === true, // force use of frozen // (as opposed to "auto")
+      );
+      if (thawedResult) {
+        return thawedResult;
+      }
+    }
+  }
 
   // execute computations
   const executeResult = await context.engine.execute({
@@ -425,6 +417,11 @@ export async function renderExecute(
     Deno.writeTextFileSync(keepMd, executeResult.markdown);
   }
 
+  // write the freeze file if we are in a project
+  if (context.project) {
+    freezeExecuteResult(context.target.input, output, executeResult);
+  }
+
   // return result
   return executeResult;
 }
@@ -438,26 +435,23 @@ export interface PandocResult {
 
 export async function renderPandoc(
   context: RenderContext,
+  recipe: OutputRecipe,
   executeResult: ExecuteResult,
 ): Promise<PandocResult> {
-  // merge any pandoc options provided by the computation
-  context.format.pandoc = mergeConfigs(
-    context.format.pandoc || {},
-    executeResult.pandoc,
-  );
+  // alias format
+  const format = recipe.format;
 
-  // pandoc output recipe (target file, args, complete handler)
-  const recipe = await outputRecipe(
-    context.target.source,
-    context.options,
-    context.format,
+  // merge any pandoc options provided by the computation
+  format.pandoc = mergePandocIncludes(
+    format.pandoc || {},
+    executeResult.includes,
   );
 
   // run the dependencies step if we didn't do it during execution
   if (executeResult.dependencies) {
     const dependenciesResult = await context.engine.dependencies({
       target: context.target,
-      format: context.format,
+      format,
       output: recipe.output,
       resourceDir: resourcePath(),
       tempDir: createSessionTempDir(),
@@ -465,9 +459,9 @@ export async function renderPandoc(
       dependencies: [executeResult.dependencies],
       quiet: context.options.flags?.quiet,
     });
-    recipe.format.pandoc = mergeConfigs(
-      recipe.format.pandoc,
-      dependenciesResult.pandoc,
+    format.pandoc = mergePandocIncludes(
+      format.pandoc,
+      dependenciesResult.includes,
     );
   }
 
@@ -477,7 +471,7 @@ export async function renderPandoc(
     input: context.target.input,
     output: recipe.output,
     libDir: context.libDir,
-    format: recipe.format,
+    format,
     project: context.project,
     args: recipe.args,
     flags: context.options.flags,
@@ -499,7 +493,7 @@ export async function renderPandoc(
     await context.engine.postprocess({
       engine: context.engine,
       target: context.target,
-      format: context.format,
+      format,
       output: recipe.output,
       preserve: executeResult.preserve,
       quiet: context.options.flags?.quiet,
@@ -515,7 +509,7 @@ export async function renderPandoc(
   // determine whether this is self-contained output
   const selfContained = isSelfContainedOutput(
     flags,
-    context.format,
+    format,
     finalOutput,
   );
 
@@ -531,7 +525,7 @@ export async function renderPandoc(
 
   cleanup(
     selfContained,
-    context.format,
+    format,
     finalOutput,
     supporting,
     context.engine.keepMd(context.target.input),
@@ -543,6 +537,24 @@ export async function renderPandoc(
     resourceFiles,
     selfContained,
   };
+}
+
+function mergePandocIncludes(
+  format: FormatPandoc,
+  pandocIncludes: PandocIncludes,
+) {
+  const includesFormat: FormatPandoc = {};
+  const mergeIncludes = (
+    name: "include-in-header" | "include-before-body" | "include-after-body",
+  ) => {
+    if (pandocIncludes[name]) {
+      includesFormat[name] = [pandocIncludes[name]!];
+    }
+  };
+  mergeIncludes(kIncludeInHeader);
+  mergeIncludes(kIncludeBeforeBody);
+  mergeIncludes(kIncludeAfterBody);
+  return mergeConfigs(format, includesFormat);
 }
 
 function isSelfContainedOutput(

@@ -13,7 +13,7 @@ import { ld } from "lodash/mod.ts";
 import { resolvePathGlobs } from "../../core/path.ts";
 import { message } from "../../core/console.ts";
 
-import { kKeepMd } from "../../config/constants.ts";
+import { kFreeze, kKeepMd } from "../../config/constants.ts";
 
 import {
   kExecuteDir,
@@ -28,12 +28,16 @@ import { ensureGitignore } from "../../project/project-gitignore.ts";
 
 import { renderFiles, RenderOptions, RenderResult } from "./render.ts";
 
+import { copyFilesToFreezer } from "./freeze.ts";
+
 export async function renderProject(
   context: ProjectContext,
-  incremental: boolean,
   options: RenderOptions,
   files?: string[],
 ): Promise<RenderResult> {
+  // is this an incremental render
+  const incremental = !!files;
+
   // get real path to the project
   const projDir = Deno.realPathSync(context.dir);
 
@@ -112,6 +116,19 @@ export async function renderProject(
       const moveDir = relocateDir;
       const copyDir = (dir: string) => relocateDir(dir, true);
 
+      // copy files dirs to freezer
+      const filesDirs = ld.uniq(
+        Object.keys(fileResults).flatMap((format) => {
+          return fileResults[format].flatMap((result) => result.filesDir);
+        }),
+      ).filter((dir) => !!dir);
+      filesDirs.forEach((filesDir) => {
+        copyFilesToFreezer(context, filesDir);
+      });
+
+      // track whether we need to keep the lib dir around
+      let keepLibsDir = false;
+
       // move/copy projResults to output_dir
       Object.keys(fileResults).forEach((format) => {
         const results = fileResults[format];
@@ -123,8 +140,11 @@ export async function renderProject(
           Deno.renameSync(join(projDir, result.file), outputFile);
 
           // files dir
+          const keepFiles = result.format.render[kKeepMd] ||
+            result.format.execution[kFreeze] !== false;
+          keepLibsDir = keepLibsDir || keepFiles;
           if (result.filesDir) {
-            if (result.format.render[kKeepMd]) {
+            if (keepFiles) {
               copyDir(result.filesDir);
             } else {
               moveDir(result.filesDir);
@@ -188,10 +208,18 @@ export async function renderProject(
         if (existsSync(libDirFull)) {
           for (const lib of Deno.readDirSync(libDirFull)) {
             if (lib.isDirectory) {
-              moveDir(join(libDir, basename(lib.name)));
+              const srcDir = join(libDir, basename(lib.name));
+              copyFilesToFreezer(context, srcDir);
+              if (keepLibsDir) {
+                copyDir(srcDir);
+              } else {
+                moveDir(srcDir);
+              }
             }
           }
-          Deno.removeSync(libDirFull, { recursive: true });
+          if (!keepLibsDir) {
+            Deno.removeSync(libDirFull, { recursive: true });
+          }
         }
       }
 

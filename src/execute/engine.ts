@@ -7,6 +7,11 @@
 
 import { Format, FormatPandoc } from "../config/format.ts";
 import { Metadata } from "../config/metadata.ts";
+import {
+  kIncludeAfterBody,
+  kIncludeBeforeBody,
+  kIncludeInHeader,
+} from "../config/constants.ts";
 
 import { knitrEngine } from "./rmd.ts";
 import { jupyterEngine } from "./jupyter/jupyter.ts";
@@ -55,9 +60,15 @@ export interface ExecuteResult {
   markdown: string;
   supporting: string[];
   filters: string[];
-  pandoc: FormatPandoc;
+  includes: PandocIncludes;
   dependencies?: unknown;
   preserve?: Record<string, string>;
+}
+
+export interface PandocIncludes {
+  [kIncludeBeforeBody]?: string;
+  [kIncludeAfterBody]?: string;
+  [kIncludeInHeader]?: string;
 }
 
 // dependencies options
@@ -74,7 +85,7 @@ export interface DependenciesOptions {
 
 // dependencies result
 export interface DependenciesResult {
-  pandoc: FormatPandoc;
+  includes: PandocIncludes;
 }
 
 // post processing options

@@ -9,14 +9,13 @@ import { extname } from "path/mod.ts";
 
 import { readYamlFromMarkdownFile } from "../core/yaml.ts";
 
-import { FormatPandoc } from "../config/format.ts";
 import { Metadata } from "../config/metadata.ts";
 
 import {
   DependenciesOptions,
   ExecuteOptions,
   ExecutionEngine,
-  ExecutionTarget,
+  PandocIncludes,
   PostProcessOptions,
 } from "./engine.ts";
 
@@ -47,12 +46,12 @@ export const markdownEngine: ExecutionEngine = {
       markdown,
       supporting: [],
       filters: [],
-      pandoc: {} as FormatPandoc,
+      includes: {},
     });
   },
   dependencies: (_options: DependenciesOptions) => {
     return Promise.resolve({
-      pandoc: {},
+      includes: {},
     });
   },
   postprocess: (_options: PostProcessOptions) => Promise.resolve(),

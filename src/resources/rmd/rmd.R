@@ -26,7 +26,7 @@
 
     # yield pandoc format
     list(
-      pandoc = pandoc_format(input, format, output, files_dir, knit_meta, tempDir)
+      includes = pandoc_includes(input, format, output, files_dir, knit_meta, tempDir)
     )
   }
 
