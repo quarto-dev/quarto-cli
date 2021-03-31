@@ -231,8 +231,6 @@ function mergedSassLayer(
   varPath: string,
   rulesPath: string,
 ) {
-  // TODO: strip leading comments from contents
-
   const merged: string[] = [];
   [{
     name: "declarations",
