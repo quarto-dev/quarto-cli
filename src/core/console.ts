@@ -43,19 +43,28 @@ export function message(line: string, options?: MessageOptions) {
   Deno.stderr.writeSync(new TextEncoder().encode(line + (newline ? "\n" : "")));
 }
 
-export function spinner(status: string): () => void {
+export function spinner(status: string, timeInterval = 100): () => void {
+  // Used to spin the spinner
   let count = 0;
+  // Used to clear the output when complete
+  let maxLen = 0;
 
+  // The spinner characters
   const progress = ["|", "/", "-", "\\"];
+
+  // Increment the spinner every timeInterval
   const id = setInterval(() => {
     const char = progress[count % progress.length];
-    message(`\r(${char}) ${status}`, { newline: false });
+    const msg = `(${char}) ${status}`;
+    message(`\r ${msg}`, { newline: false });
     count = count + 1;
-  }, 100);
+    maxLen = Math.max(msg.length, maxLen);
+  }, timeInterval);
 
+  // Return a function to cancel the spinner
   return () => {
     clearInterval(id);
-    message("\r" + " ".repeat(40), { newline: false });
+    message("\r" + " ".repeat(maxLen + 1), { newline: false });
     message("\r", { newline: false });
   };
 }
