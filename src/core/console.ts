@@ -43,6 +43,23 @@ export function message(line: string, options?: MessageOptions) {
   Deno.stderr.writeSync(new TextEncoder().encode(line + (newline ? "\n" : "")));
 }
 
+export function spinner(status: string): () => void {
+  let count = 0;
+
+  const progress = ["|", "/", "-", "\\"];
+  const id = setInterval(() => {
+    const char = progress[count % progress.length];
+    message(`\r(${char}) ${status}`, { newline: false });
+    count = count + 1;
+  }, 100);
+
+  return () => {
+    clearInterval(id);
+    message("\r" + " ".repeat(40), { newline: false });
+    message("\r", { newline: false });
+  };
+}
+
 export function messageFormatData(data: Uint8Array, options?: MessageOptions) {
   const decoder = new TextDecoder("utf8");
   const encoder = new TextEncoder();
