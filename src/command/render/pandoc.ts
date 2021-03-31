@@ -527,7 +527,7 @@ async function resolveSassBundles(
     // compile the cssPath
     const bundles = mergedBundles[dependency];
     const cssPath = await compileSass(bundles);
-    const csssName = `${dependency}.css`;
+    const csssName = `${dependency}.min.css`;
 
     // Push the compiled Css onto the dependency
     const extraDeps = extras.html?.[kDependencies];

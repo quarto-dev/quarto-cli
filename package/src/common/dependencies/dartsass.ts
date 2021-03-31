@@ -1,3 +1,9 @@
+/*
+* dartsass.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
 import { existsSync } from "fs/mod.ts";
 import { dirname, join } from "path/mod.ts";
 

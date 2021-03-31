@@ -5,6 +5,7 @@
 *
 */
 import { join } from "path/mod.ts";
+import { existsSync } from "fs/mod.ts";
 
 import { Configuration } from "./config.ts";
 import {
@@ -22,13 +23,19 @@ export async function configure(
   // Download dependencies
   log.info("Downloading dependencies");
   for (const dependency of dependencies(config)) {
-    log.info("Configuring " + dependency.name);
+    log.info(`Preparing ${dependency.name}`);
     const platformDep = dependency[Deno.build.os];
     if (platformDep) {
+      log.info(`Downloading ${dependency.name}`);
       const targetFile = await downloadBinaryDependency(platformDep, config);
+
+      log.info(`Configuring ${dependency.name}`);
       await platformDep.configure(targetFile);
+
+      log.info(`Cleaning up`);
       Deno.removeSync(targetFile);
     }
+    log.info(`${dependency.name} complete.\n`);
   }
 
   // Move the quarto script into place
@@ -46,8 +53,14 @@ export async function configure(
   }
 
   // Set up a symlink (if appropriate)
-  log.info("Creating Quarto script");
+  const symlinkPath = "/usr/local/bin/quarto";
   if (Deno.build.os !== "windows") {
+    log.info("Creating Quarto Symlink");
+
+    if (existsSync(symlinkPath)) {
+      Deno.removeSync(symlinkPath);
+    }
+
     Deno.symlinkSync(
       join(config.directoryInfo.bin, "quarto"),
       "/usr/local/bin/quarto",

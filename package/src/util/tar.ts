@@ -37,12 +37,12 @@ export async function unTar(input: string, log: Logger) {
   log.info(`Input: ${input}`);
 
   const cwd = dirname(input);
+  log.info(`Cwd: ${cwd}`);
 
   const tarCmd: string[] = [];
   tarCmd.push("tar");
   tarCmd.push("-xzf");
   tarCmd.push(input);
-  log.info(tarCmd);
 
   const p = Deno.run({
     cmd: tarCmd,

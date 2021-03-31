@@ -9,11 +9,6 @@ import { Configuration } from "../config.ts";
 import { dartSass } from "./dartsass.ts";
 import { pandoc } from "./pandoc.ts";
 
-/*
-export BOOTSTRAP=5.0.0-beta3
-export BOOTSTRAP_ICON=1.4.1
-*/
-
 export interface Dependency {
   name: string;
   version: string;

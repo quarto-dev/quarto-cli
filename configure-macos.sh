@@ -35,7 +35,7 @@ popd
 pushd $QUARTO_PACKAGE_DIR/src/
 
 # Run the configure command to bootstrap installation
-./quarto-bld configure
+./quarto-bld configure --log-level info
 
 popd
 

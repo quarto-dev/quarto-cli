@@ -1,0 +1,164 @@
+// theme:variables 
+
+$theme: "spacelab" !default;
+
+//
+// Color system
+//
+
+$white:    #fff !default;
+$gray-100: #f8f9fa !default;
+$gray-200: #eee !default;
+$gray-300: #dee2e6 !default;
+$gray-400: #ced4da !default;
+$gray-500: #999 !default;
+$gray-600: #777 !default;
+$gray-700: #495057 !default;
+$gray-800: #333 !default;
+$gray-900: #2d2d2d !default;
+$black:    #000 !default;
+
+$blue:    #446e9b !default;
+$indigo:  #6610f2 !default;
+$purple:  #6f42c1 !default;
+$pink:    #e83e8c !default;
+$red:     #cd0200 !default;
+$orange:  #fd7e14 !default;
+$yellow:  #d47500 !default;
+$green:   #3cb521 !default;
+$teal:    #20c997 !default;
+$cyan:    #3399f3 !default;
+
+$primary:       $blue !default;
+$secondary:     $gray-500 !default;
+$success:       $green !default;
+$info:          $cyan !default;
+$warning:       $yellow !default;
+$danger:        $red !default;
+$light:         $gray-200 !default;
+$dark:          $gray-800 !default;
+
+$min-contrast-ratio:   2.65 !default;
+
+// Body
+
+$body-color:                $gray-600 !default;
+
+// Links
+
+$link-color:                $info !default;
+
+// Fonts
+
+// stylelint-disable-next-line value-keyword-case
+$font-family-sans-serif:      "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" !default;
+$headings-color:              $gray-900 !default;
+
+// Navbar
+
+$navbar-dark-color:                 rgba($white, .75) !default;
+$navbar-dark-hover-color:           $white !default;
+$navbar-light-color:                rgba($black, .4) !default;
+$navbar-light-hover-color:          $info !default;
+$navbar-light-active-color:         $info !default;
+
+
+
+// theme:rules 
+
+
+// Variables
+
+$web-font-path: "https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" !default;
+@import url($web-font-path);
+
+// Mixins =
+
+@mixin btn-shadow($color){
+  @include gradient-y-three-colors(lighten($color, 15%), $color, 50%, darken($color, 4%));
+  filter: none;
+  border: 1px solid darken($color, 10%);
+}
+
+// Navbar
+
+.navbar {
+  .nav-link,
+  .navbar-brand {
+    text-shadow: -1px -1px 0 rgba(0, 0, 0, .1);
+    transition: color ease-in-out .2s;
+  }
+
+  &.bg-primary {
+    @include btn-shadow(map-get($theme-colors, "primary"));
+  }
+
+  &.bg-dark {
+    @include btn-shadow(map-get($theme-colors, "secondary"));
+  }
+
+  &.bg-light {
+    @include btn-shadow(map-get($theme-colors, "light"));
+
+    .nav-link,
+    .navbar-brand {
+      text-shadow: 1px 1px 0 rgba(255, 255, 255, .1);
+    }
+
+    .navbar-brand {
+      color: $navbar-light-color;
+
+      &:hover {
+        color: $info;
+      }
+    }
+  }
+}
+
+// Buttons
+
+.btn {
+  text-shadow: -1px -1px 0 rgba(0, 0, 0, .1);
+
+  &-link {
+    text-shadow: none;
+  }
+}
+
+@each $color, $value in $theme-colors {
+  .btn-#{$color} {
+    @include btn-shadow($value);
+  }
+
+  .btn-#{$color}:not(.disabled):hover {
+    @include btn-shadow(darken($value, 4%));
+  }
+}
+
+[class*="btn-outline-"] {
+  text-shadow: none;
+}
+
+// Indicators
+
+.badge {
+  &-secondary {
+    color: $white;
+  }
+}
+
+// Containers
+
+.card,
+.list-group-item {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: inherit;
+  }
+}
+
+
