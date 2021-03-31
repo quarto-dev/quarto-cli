@@ -10,7 +10,7 @@ import { packageCommand } from "./cmd/pkg-cmd.ts";
 import { configure } from "./common/configure.ts";
 
 import { prepareDist } from "./common/prepare-dist.ts";
-import { updateRepoDependencies } from "./common/update-repo-dependencies.ts";
+import { updateBootstrap } from "./common/update-bootstrap.ts";
 import { makeInstallerDeb } from "./linux/installer.ts";
 import { makeInstallerMac } from "./macos/installer.ts";
 import { defaultLogger } from "./util/logger.ts";
@@ -66,9 +66,11 @@ function getCommands() {
       ),
   );
   commands.push(
-    packageCommand(updateRepoDependencies)
-      .name("update-repo-deps")
-      .description("Updates Bootstrap based upon the version in configuration"),
+    packageCommand(updateBootstrap)
+      .name("update-bootstrap")
+      .description(
+        "Updates Bootstrap and themes based upon the version in configuration",
+      ),
   );
   commands.push(
     packageCommand(prepareDist)

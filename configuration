@@ -13,6 +13,7 @@ export PANDOC=2.13
 export DARTSASS=1.32.8
 export BOOTSTRAP=5.0.0-beta3
 export BOOTSTRAP_FONT=1.4.1
+export BOOTSWATCH_BRANCH=v5
 
 # Quarto Info Version
 export QUARTO_VERSION=0.1
