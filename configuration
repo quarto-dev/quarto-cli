@@ -7,13 +7,19 @@
 # but it also used when packaging (e.g. run configure.sh, then prepare-dist.sh, then package.sh)
 
 
-# Dependency versions
+# Binary dependencies
 export DENO=v1.7.5
 export PANDOC=2.13
 export DARTSASS=1.32.8
+
+# Bootstrap / javascript HTML dependencies
 export BOOTSTRAP=5.0.0-beta3
 export BOOTSTRAP_FONT=1.4.1
 export BOOTSWATCH_BRANCH=v5
+export ANCHOR_JS=4.3.0
+export POPPER_JS=2.9.1
+export CLIPBOARD_JS=2.0.8
+export TIPPY_JS=6.3.0
 
 # Quarto Info Version
 export QUARTO_VERSION=0.1

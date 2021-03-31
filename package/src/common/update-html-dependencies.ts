@@ -10,7 +10,7 @@ import { join } from "path/mod.ts";
 import { download, unzip } from "../util/utils.ts";
 import { Configuration } from "./config.ts";
 
-export async function updateBootstrap(config: Configuration) {
+export async function updateHtmlDepedencies(config: Configuration) {
   config.log.info("Updating Bootstrap with version info:");
 
   // Read the version information from the environment
@@ -32,11 +32,15 @@ export async function updateBootstrap(config: Configuration) {
   config.log.info(`Bootswatch: ${bSwatchVersion}`);
 
   // the bootstrap and dist/themes dir
-  const bsDir = join(
+  const formatDir = join(
     config.directoryInfo.src,
     "resources",
     "formats",
     "html",
+  );
+
+  const bsDir = join(
+    formatDir,
     "bootstrap",
   );
 
@@ -48,6 +52,56 @@ export async function updateBootstrap(config: Configuration) {
   const bsDistDir = join(
     bsDir,
     "dist",
+  );
+
+  // Anchor
+  await updateUnpkgDependency(
+    "ANCHOR_JS",
+    "anchor-js",
+    "anchor.min.js",
+    join(formatDir, "anchor", "anchor.min.js"),
+  );
+
+  // Poppper
+  await updateUnpkgDependency(
+    "POPPER_JS",
+    "@popperjs/core",
+    "dist/umd/popper.min.js",
+    join(formatDir, "popper", "popper.min.js"),
+  );
+
+  // Clipboard
+  await updateGithubSourceCodeDependency(
+    "clipboardjs",
+    "zenorocha/clipboard.js",
+    "CLIPBOARD_JS",
+    config,
+    workingDir,
+    (dir: string, version: string) => {
+      console.log(
+        join(dir, `clipboard.js-${version}`, "dist", "clipboard.min.js"),
+      );
+      console.log(join(formatDir, "clipboard", "clipboard.min.js"));
+      // Copy the js file
+      Deno.copyFileSync(
+        join(dir, `clipboard.js-${version}`, "dist", "clipboard.min.js"),
+        join(formatDir, "clipboard", "clipboard.min.js"),
+      );
+    },
+  );
+
+  // Tippy
+  await updateUnpkgDependency(
+    "TIPPY_JS",
+    "tippy.js",
+    "dist/tippy.umd.min.js",
+    join(formatDir, "tippy", "tippy.umd.min.js"),
+  );
+  await updateUnpkgDependency(
+    "TIPPY_JS",
+    "tippy.js",
+    "dist/tippy.css",
+    join(formatDir, "tippy", "tippy.css"),
   );
 
   // Clean existing directories
@@ -66,7 +120,6 @@ export async function updateBootstrap(config: Configuration) {
 
   // Clean up the temp dir
   Deno.removeSync(workingDir, { recursive: true });
-
   config.log.info(
     "\n** Done- please commit any files that have been updated. **\n",
   );
@@ -205,6 +258,51 @@ async function updateBoostrapIcons(
     cssPath,
   );
   fixupFontCss(cssPath);
+
+  config.log.info("Done\n");
+}
+
+async function updateUnpkgDependency(
+  versionEnvVar: string,
+  pkg: string,
+  filename: string,
+  target: string,
+) {
+  const version = Deno.env.get(versionEnvVar);
+  if (version) {
+    const url = `https://unpkg.com/${pkg}@${version}/${filename}`;
+
+    await download(url, target);
+  } else {
+    throw new Error(`${versionEnvVar} is not defined`);
+  }
+}
+
+async function updateGithubSourceCodeDependency(
+  name: string,
+  repo: string,
+  versionEnvVar: string,
+  config: Configuration,
+  working: string,
+  onDownload: (dir: string, version: string) => void,
+) {
+  config.log.info(`Updating ${name}...`);
+  const version = Deno.env.get(versionEnvVar);
+  if (version) {
+    const fileName = `${name}.zip`;
+    const distUrl =
+      `https://github.com/${repo}/archive/refs/tags/v${version}.zip`;
+    const zipFile = join(working, fileName);
+
+    // Download and unzip the release
+    config.log.info(`Downloading ${distUrl}`);
+    await download(distUrl, zipFile);
+    await unzip(zipFile, working, config.log);
+
+    onDownload(working, version);
+  } else {
+    throw new Error(`${versionEnvVar} is not defined`);
+  }
 
   config.log.info("Done\n");
 }

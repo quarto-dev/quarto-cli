@@ -10,7 +10,7 @@ import { packageCommand } from "./cmd/pkg-cmd.ts";
 import { configure } from "./common/configure.ts";
 
 import { prepareDist } from "./common/prepare-dist.ts";
-import { updateBootstrap } from "./common/update-bootstrap.ts";
+import { updateHtmlDepedencies } from "./common/update-html-dependencies.ts";
 import { makeInstallerDeb } from "./linux/installer.ts";
 import { makeInstallerMac } from "./macos/installer.ts";
 import { defaultLogger } from "./util/logger.ts";
@@ -66,10 +66,10 @@ function getCommands() {
       ),
   );
   commands.push(
-    packageCommand(updateBootstrap)
-      .name("update-bootstrap")
+    packageCommand(updateHtmlDepedencies)
+      .name("update-html-dependencies")
       .description(
-        "Updates Bootstrap and themes based upon the version in configuration",
+        "Updates Bootstrap, themes, and JS/CSS dependencies based upon the version in configuration",
       ),
   );
   commands.push(
