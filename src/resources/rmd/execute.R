@@ -78,8 +78,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params) {
 
   # see if we are going to resolve knit_meta now or later
   if (dependencies) {
-
-    pandoc <- pandoc_format(
+    includes <- pandoc_includes(
       input, 
       format,
        output_file, 
@@ -89,7 +88,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params) {
     )
     dependencies_data <- NA
   } else {
-    pandoc <- list()
+    includes <- list()
     dependencies_data <- jsonlite::serializeJSON(knit_meta)
   }
   
@@ -110,7 +109,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params) {
     markdown = paste(markdown, collapse="\n"),
     supporting = I(supporting),
     filters = I("rmarkdown/pagebreak.lua"),
-    pandoc = pandoc,
+    includes = includes,
     dependencies = dependencies_data,
     preserve = preserve
   )
@@ -236,7 +235,7 @@ knitr_cache_dir <- function(input, format) {
 }
 
 # produce pandoc format (e.g. includes from knit_meta)
-pandoc_format <- function(input, format, output, files_dir, knit_meta, tempDir) {
+pandoc_includes <- function(input, format, output, files_dir, knit_meta, tempDir) {
 
   # get dependencies from render 
   dependencies <- dependencies_from_render(input, files_dir, knit_meta)
@@ -253,11 +252,8 @@ pandoc_format <- function(input, format, output, files_dir, knit_meta, tempDir) 
   # apply any required patches
   includes <- apply_patches(format, dependencies$includes)
 
-    # write the includes to temp files
-  pandoc <- pandoc_includes(includes, tempDir)
-
-  # return format object
-  pandoc
+  # write the includes to temp files
+  create_pandoc_includes(includes, tempDir)
 }
 
 # get dependencies implied by the result of render (e.g. html dependencies)
@@ -331,14 +327,14 @@ html_dependencies_as_string <- function(dependencies, files_dir) {
 }
 
 
-pandoc_includes <- function(includes, tempDir) {
+create_pandoc_includes <- function(includes, tempDir) {
   pandoc <- list()
   write_includes <- function(from, to) {
     content <- includes[[from]]
     if (!is.null(content)) {
       path <- tempfile(tmpdir = tempDir)
       xfun::write_utf8(content, path)
-      pandoc[[to]] <<- I(path)
+      pandoc[[to]] <<- path
     }
   }
   write_includes("in_header", "include-in-header")

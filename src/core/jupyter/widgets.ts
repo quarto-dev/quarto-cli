@@ -149,14 +149,14 @@ export function includesForJupyterWidgetDependencies(
   };
 
   const result = {
-    inHeader: new Array<string>(),
-    afterBody: new Array<string>(),
+    inHeader: "",
+    afterBody: "",
   };
   if (head.length > 0) {
-    result.inHeader.push(widgetTempFile(head));
+    result.inHeader = widgetTempFile(head);
   }
   if (afterBody.length > 0) {
-    result.afterBody.push(widgetTempFile(afterBody));
+    result.afterBody = widgetTempFile(afterBody);
   }
   return result;
 }

@@ -27,7 +27,7 @@ import { Format, isHtmlOutput } from "../../config/format.ts";
 
 import { havePandocArg, kStdOut, replacePandocArg } from "./flags.ts";
 import { PandocOptions } from "./pandoc.ts";
-import { RenderOptions } from "./render.ts";
+import { RenderContext } from "./render.ts";
 import {
   quartoLatexmkOutputRecipe,
   useQuartoLatexmk,
@@ -56,10 +56,13 @@ export interface OutputRecipe {
 }
 
 export async function outputRecipe(
-  input: string,
-  options: RenderOptions,
-  format: Format,
+  context: RenderContext,
 ): Promise<OutputRecipe> {
+  // alias
+  const input = context.target.input;
+  const options = context.options;
+  const format = context.format;
+
   // determine if an output file was specified (could be on the command line or
   // could be within metadata)
   let output = options.flags?.output;

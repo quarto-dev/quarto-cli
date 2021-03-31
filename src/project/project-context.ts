@@ -103,8 +103,6 @@ export function projectContext(path: string): ProjectContext {
         if (!project[kOutputDir] && type.outputDir) {
           project[kOutputDir] = type.outputDir;
         }
-        // TODO: configResources needs exclude list
-        // (input files, output files, project resources)
         return {
           dir,
           files: {

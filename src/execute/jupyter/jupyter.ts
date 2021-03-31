@@ -25,6 +25,7 @@ import type {
   ExecuteResult,
   ExecutionEngine,
   ExecutionTarget,
+  PandocIncludes,
   PostProcessOptions,
 } from "../engine.ts";
 import {
@@ -251,15 +252,19 @@ export const jupyterEngine: ExecutionEngine = {
     );
 
     // convert dependencies to include files
-    const pandoc: FormatPandoc = {};
+    const includes: PandocIncludes = {};
     let dependencies: JupyterWidgetDependencies | undefined;
     if (options.dependencies) {
       if (result.dependencies) {
         const includeFiles = includesForJupyterWidgetDependencies(
           [result.dependencies],
         );
-        pandoc[kIncludeInHeader] = includeFiles.inHeader;
-        pandoc[kIncludeAfterBody] = includeFiles.afterBody;
+        if (includeFiles.inHeader) {
+          includes[kIncludeInHeader] = includeFiles.inHeader;
+        }
+        if (includeFiles.afterBody) {
+          includes[kIncludeAfterBody] = includeFiles.afterBody;
+        }
       }
     } else {
       dependencies = result.dependencies;
@@ -281,23 +286,27 @@ export const jupyterEngine: ExecutionEngine = {
       markdown: result.markdown,
       supporting: [assets.supporting_dir],
       filters: [],
-      pandoc,
+      includes,
       dependencies,
       preserve: result.htmlPreserve,
     };
   },
 
   dependencies: (options: DependenciesOptions) => {
-    const pandoc: FormatPandoc = {};
+    const includes: PandocIncludes = {};
     if (options.dependencies) {
       const includeFiles = includesForJupyterWidgetDependencies(
         [options.dependencies as JupyterWidgetDependencies],
       );
-      pandoc[kIncludeInHeader] = includeFiles.inHeader;
-      pandoc[kIncludeAfterBody] = includeFiles.afterBody;
+      if (includeFiles.inHeader) {
+        includes[kIncludeInHeader] = includeFiles.inHeader;
+      }
+      if (includeFiles.afterBody) {
+        includes[kIncludeAfterBody] = includeFiles.afterBody;
+      }
     }
     return Promise.resolve({
-      pandoc,
+      includes,
     });
   },
 
