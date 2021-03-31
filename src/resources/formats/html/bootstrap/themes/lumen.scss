@@ -1,0 +1,450 @@
+// theme:variables 
+// Lumen 5.0.0-beta2
+// Bootswatch
+
+$theme: "lumen" !default;
+
+//
+// Color system
+//
+
+$white:    #fff !default;
+$gray-100: #f6f6f6 !default;
+$gray-200: #f0f0f0 !default;
+$gray-300: #dee2e6 !default;
+$gray-400: #ced4da !default;
+$gray-500: #adb5bd !default;
+$gray-600: #999 !default;
+$gray-700: #555 !default;
+$gray-800: #333 !default;
+$gray-900: #222 !default;
+$black:    #000 !default;
+
+$blue:    #158cba !default;
+$indigo:  #6610f2 !default;
+$purple:  #6f42c1 !default;
+$pink:    #e83e8c !default;
+$red:     #ff4136 !default;
+$orange:  #fd7e14 !default;
+$yellow:  #ff851b !default;
+$green:   #28b62c !default;
+$teal:    #20c997 !default;
+$cyan:    #75caeb !default;
+
+$primary:       $blue !default;
+$secondary:     $gray-200 !default;
+$success:       $green !default;
+$info:          $cyan !default;
+$warning:       $yellow !default;
+$danger:        $red !default;
+$light:         $gray-100 !default;
+$dark:          $gray-700 !default;
+
+$min-contrast-ratio:   1.75 !default;
+
+// Fonts
+
+// stylelint-disable-next-line value-keyword-case
+$font-family-sans-serif:      "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" !default;
+
+// Tables
+
+$table-bg-scale:              0 !default;
+
+// Buttons
+
+$btn-font-weight:             700 !default;
+
+// Dropdowns
+
+$dropdown-link-color:         rgba(0, 0, 0, .5) !default;
+
+// Navs
+
+$nav-tabs-border-color:             $gray-200 !default;
+$nav-tabs-link-hover-border-color:  $nav-tabs-border-color !default;
+$nav-tabs-link-active-color:        $gray-900 !default;
+$nav-tabs-link-active-border-color: $nav-tabs-border-color !default;
+
+// Pagination
+
+$pagination-color:                  $gray-700 !default;
+$pagination-bg:                     $gray-200 !default;
+$pagination-hover-color:            $pagination-color !default;
+$pagination-hover-bg:               $pagination-bg !default;
+$pagination-active-border-color:    darken($primary, 5%) !default;
+$pagination-disabled-color:         $gray-600 !default;
+$pagination-disabled-bg:            $pagination-bg !default;
+
+// Breadcrumbs
+
+$breadcrumb-padding-y:              .375rem !default;
+$breadcrumb-padding-x:              .75rem !default;
+$breadcrumb-bg:                     $pagination-bg !default;
+$breadcrumb-border-radius:          .25rem !default;
+
+// Modals
+
+$modal-content-border-color:        rgba($black, .1) !default;
+
+// Close
+
+$btn-close-color:            $white !default;
+$btn-close-opacity:          .4 !default;
+$btn-close-hover-opacity:    1 !default;
+
+
+
+// theme:rules 
+// Lumen 5.0.0-beta2
+// Bootswatch
+
+
+// Variables
+
+$web-font-path: "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,300;0,400;0,700;1,400&display=swap" !default;
+@import url($web-font-path);
+
+// Mixins
+
+@mixin shadow($width: 4px){
+  border-style: solid;
+  border-width: 0 1px $width 1px;
+}
+
+// Navbar
+
+.navbar {
+  @include shadow();
+}
+
+.bg-primary {
+  border-color: darken($primary, 5%);
+}
+
+.bg-dark {
+  border-color: darken($dark, 5%);
+}
+
+.bg-light {
+  background-color: $white !important;
+  border-color: darken($white, 5%);
+}
+
+// Buttons
+
+.btn {
+  @include shadow();
+  text-transform: uppercase;
+
+  &:not(.disabled):hover {
+    margin-top: 1px;
+    border-bottom-width: 3px;
+  }
+
+  &:not(.disabled):active {
+    margin-top: 2px;
+    border-bottom-width: 2px;
+    @include box-shadow(none);
+  }
+
+  &-primary {
+    border-color: darken($primary, 5%);
+  }
+
+  &-secondary {
+    border-color: darken($secondary, 5%);
+  }
+
+  &-success {
+    border-color: darken($success, 5%);
+  }
+
+  &-info {
+    border-color: darken($info, 5%);
+  }
+
+  &-danger {
+    border-color: darken($danger, 5%);
+  }
+
+  &-warning {
+    border-color: darken($warning, 5%);
+  }
+
+  &-light {
+    border-color: darken($light, 5%);
+  }
+
+  &-dark {
+    border-color: darken($dark, 5%);
+  }
+}
+
+[class*="btn-outline"] {
+  border-top-width: 1px;
+}
+
+.btn-group-vertical {
+  .btn + .btn {
+    &:hover {
+      margin-top: -1px;
+      border-top-width: 1px;
+    }
+
+    &:active {
+      margin-top: -1px;
+      border-top-width: 2px;
+    }
+  }
+}
+
+// Typography
+
+.text-secondary {
+  color: $gray-700 !important;
+}
+
+.blockquote-footer {
+  color: $gray-600;
+}
+
+// Forms
+
+.form-control {
+  box-shadow: inset 0 2px 0 rgba(0, 0, 0, .075);
+}
+
+.input-group-sm {
+  > .input-group-prepend,
+  > .input-group-append {
+    .btn {
+      font-size: $btn-font-size-sm;
+    }
+  }
+}
+
+// Navs
+
+.nav {
+  .open > a,
+  .open > a:hover,
+  .open > a:focus {
+    border-color: transparent;
+  }
+}
+
+.nav-tabs {
+  .nav-link {
+    color: $body-color;
+
+    &,
+    &.disabled,
+    &.disabled:hover,
+    &.disabled:focus {
+      margin-top: 6px;
+      border-color: $nav-tabs-border-color;
+      transition: padding-bottom .2s ease-in-out, margin-top .2s ease-in-out, border-bottom .2s ease-in-out;
+    }
+
+    &:not(.disabled):hover,
+    &:not(.disabled):focus,
+    &.active {
+      padding-bottom: add(.5rem, 6px);
+      border-bottom-color: transparent;
+      margin-top: 0;
+    }
+  }
+
+  &.nav-justified > li {
+    vertical-align: bottom;
+  }
+}
+
+.dropdown-menu {
+  margin-top: 0;
+  @include shadow();
+  border-top-width: 1px;
+  @include box-shadow(none);
+}
+
+.breadcrumb {
+  border-color: darken($breadcrumb-bg, 5%);
+  @include shadow();
+}
+
+.pagination {
+  > li > a,
+  > li > span {
+    position: relative;
+    top: 0;
+    @include shadow();
+    color: $pagination-color;
+    font-weight: 700;
+    text-transform: uppercase;
+
+    &:hover,
+    &:focus {
+      top: 1px;
+      border-bottom-width: 3px;
+      text-decoration: none;
+    }
+
+    &:active {
+      top: 2px;
+      border-bottom-width: 2px;
+    }
+  }
+
+  > .disabled > a,
+  > .disabled > span {
+    &:hover {
+      top: 0;
+      @include shadow();
+    }
+
+    &:active {
+      top: 0;
+      @include shadow();
+    }
+  }
+}
+
+.pager {
+  > li > a,
+  > li > span,
+  > .disabled > a,
+  > .disabled > span {
+    &,
+    &:hover,
+    &:active {
+      border-left-width: 2px;
+      border-right-width: 2px;
+    }
+  }
+}
+
+// Indicators
+
+.btn-close {
+  text-decoration: none;
+  opacity: .4;
+
+  &:hover,
+  &:focus {
+    opacity: 1;
+  }
+}
+
+.alert {
+  color: $white;
+  @include shadow();
+
+  &-primary {
+    background-color: $primary;
+    border-color: darken($primary, 5%);
+  }
+
+  &-secondary {
+    background-color: $secondary;
+    border-color: darken($secondary, 5%);
+  }
+
+  &-success {
+    background-color: $success;
+    border-color: darken($success, 5%);
+  }
+
+  &-info {
+    background-color: $info;
+    border-color: darken($info, 5%);
+  }
+
+  &-danger {
+    background-color: $danger;
+    border-color: darken($danger, 5%);
+  }
+
+  &-warning {
+    background-color: $warning;
+    border-color: darken($warning, 5%);
+  }
+
+  &-dark {
+    background-color: $dark;
+    border-color: darken($dark, 5%);
+  }
+
+  &-light {
+    background-color: $light;
+    border-color: darken($light, 5%);
+  }
+
+  .alert-link {
+    font-weight: 400;
+    color: $white;
+    text-decoration: underline;
+  }
+
+  &-secondary,
+  &-light {
+    &,
+    a,
+    .alert-link {
+      color: $body-color;
+    }
+  }
+}
+
+.badge {
+  &-warning,
+  &-info {
+    color: $white;
+  }
+}
+
+// Containers
+
+a.list-group-item {
+  &-success {
+    &.active {
+      background-color: $success;
+    }
+
+    &.active:hover,
+    &.active:focus {
+      background-color: darken($success, 5%);
+    }
+  }
+
+  &-warning {
+    &.active {
+      background-color: $warning;
+    }
+
+    &.active:hover,
+    &.active:focus {
+      background-color: darken($warning, 5%);
+    }
+  }
+
+  &-danger {
+    &.active {
+      background-color: $danger;
+    }
+
+    &.active:hover,
+    &.active:focus {
+      background-color: darken($danger, 5%);
+    }
+  }
+}
+
+.modal,
+.toast {
+  .btn-close {
+    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'><path d='M.293.293a1 1 0 011.414 0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 01-1.414-1.414L6.586 8 .293 1.707a1 1 0 010-1.414z'/></svg>");
+  }
+}
+
+

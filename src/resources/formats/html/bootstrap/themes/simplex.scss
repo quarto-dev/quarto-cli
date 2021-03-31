@@ -1,0 +1,239 @@
+// theme:variables 
+// Simplex 5.0.0-beta2
+// Bootswatch
+
+$theme: "simplex" !default;
+
+//
+// Color system
+//
+
+$white:    #fff !default;
+$gray-100: #f8f9fa !default;
+$gray-200: #ddd !default;
+$gray-300: #ccc !default;
+$gray-400: #bbb !default;
+$gray-500: #adb5bd !default;
+$gray-600: #777 !default;
+$gray-700: #444 !default;
+$gray-800: #373a3c !default;
+$gray-900: #212529 !default;
+$black:    #000 !default;
+
+$blue:    #007bff !default;
+$indigo:  #6610f2 !default;
+$purple:  #9b479f !default;
+$pink:    #e83e8c !default;
+$red:     #d9230f !default;
+$orange:  #d9831f !default;
+$yellow:  #ffc107 !default;
+$green:   #469408 !default;
+$teal:    #20c997 !default;
+$cyan:    #029acf !default;
+
+$primary:       $red !default;
+$secondary:     $white !default;
+$success:       $green !default;
+$info:          $cyan !default;
+$warning:       $orange !default;
+$danger:        $purple !default;
+$light:         $white !default;
+$dark:          $gray-800 !default;
+
+$min-contrast-ratio:   2.8 !default;
+
+// Body
+
+$body-bg:                   #fcfcfc !default;
+
+// Fonts
+
+// stylelint-disable-next-line value-keyword-case
+$font-family-sans-serif:      "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" !default;
+
+// Dropdowns
+
+$dropdown-link-hover-color:         $white !default;
+$dropdown-link-hover-bg:            $primary !default;
+
+// Navs
+
+$nav-link-padding-y:                .9rem !default;
+$nav-link-disabled-color:           $gray-400 !default;
+$nav-tabs-border-color:             darken(#fff, 6.5%) !default;
+
+// Navbar
+
+$navbar-dark-color:                 rgba($white, .75) !default;
+$navbar-dark-hover-color:           $white !default;
+
+// Pagination
+
+$pagination-border-color:           $nav-tabs-border-color !default;
+$pagination-hover-color:            $white !default;
+$pagination-hover-bg:               $primary !default;
+$pagination-hover-border-color:     $primary !default;
+$pagination-disabled-color:         $gray-400 !default;
+$pagination-disabled-border-color:  $pagination-border-color !default;
+
+// Cards
+
+$card-border-color:                 $nav-tabs-border-color !default;
+
+// Popovers
+
+$popover-border-color:              $nav-tabs-border-color !default;
+
+// Modals
+
+$modal-content-border-color:        $nav-tabs-border-color !default;
+$modal-header-border-color:         $nav-tabs-border-color !default;
+
+// Progress bars
+
+$progress-bar-color:                $primary !default;
+
+// List group
+
+$list-group-border-color:           $nav-tabs-border-color !default;
+$list-group-disabled-bg:            $nav-tabs-border-color !default;
+
+// Breadcrumbs
+
+$breadcrumb-padding-y:              .375rem !default;
+$breadcrumb-padding-x:              .75rem !default;
+$breadcrumb-border-radius:          .25rem !default;
+
+
+
+// theme:rules 
+// Simplex 5.0.0-beta2
+// Bootswatch
+
+
+// Variables
+
+$web-font-path: "https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap" !default;
+@import url($web-font-path);
+
+// Mixins
+
+@mixin btn-shadow($color){
+  @include gradient-y-three-colors(lighten($color, 3%), $color, 6%, darken($color, 3%));
+  filter: none;
+  border: 1px solid darken($color, 6.5%);
+}
+
+// Navbar
+
+.navbar {
+  border-width: 1px;
+  border-style: solid;
+
+  &-fixed-top {
+    border-width: 0 0 1px;
+  }
+
+  &-fixed-bottom {
+    border-top-width: 1px 0 0 0;
+    border-style: solid;
+  }
+}
+
+.bg-primary {
+  background-color: $primary !important;
+  border-color: darken($primary, 6.5%) !important;
+}
+
+.bg-dark {
+  border-color: darken($dark, 6.5%) !important;
+}
+
+.bg-light {
+  border-color: darken($white, 6.5%);
+}
+
+// Buttons
+
+.btn-primary,
+.btn-primary:hover {
+  @include btn-shadow($primary);
+}
+
+.btn-secondary,
+.btn-secondary:hover {
+  @include btn-shadow($secondary);
+}
+
+.btn-secondary:focus,
+.btn-secondary:not([disabled]):not(.disabled):active,
+.btn-secondary:not([disabled]):not(.disabled).active {
+  box-shadow: 0 0 0 .2rem rgba($gray-200, .5);
+}
+
+.btn-success,
+.btn-success:hover {
+  @include btn-shadow($success);
+}
+
+.btn-info,
+.btn-info:hover {
+  @include btn-shadow($info);
+}
+
+.btn-warning,
+.btn-warning:hover {
+  @include btn-shadow($warning);
+}
+
+.btn-danger,
+.btn-danger:hover {
+  @include btn-shadow($danger);
+}
+
+.btn-dark,
+.btn-dark:hover {
+  @include btn-shadow($dark);
+}
+
+.btn-light,
+.btn-light:hover {
+  @include btn-shadow($light);
+}
+
+.btn-outline-secondary {
+  border-color: $gray-400;
+  color: $gray-400;
+
+  &:hover {
+    background-color: $gray-400;
+    color: $white;
+  }
+}
+
+// Typography
+
+.text-secondary {
+  color: $gray-600 !important;
+}
+
+// Forms
+
+legend,
+label {
+  color: $headings-color;
+}
+
+// Navs
+
+.breadcrumb {
+  border: 1px solid darken($white, 6.5%);
+}
+
+.pagination {
+  .page-link:hover {
+    text-decoration: none;
+  }
+}
+
+

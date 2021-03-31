@@ -32,12 +32,21 @@ import {
 
 export function resolveBootstrapScss(metadata: Metadata): SassBundle {
   // Quarto built in css
-  const quartoThemesDir = formatResourcePath("html", `bootstrap/themes`);
+  const quartoThemesDir = formatResourcePath(
+    "html",
+    join("bootstrap", "themes"),
+  );
+
+  const bootstrapDistDir = formatResourcePath(
+    "html",
+    join("bootstrap", "dist"),
+  );
 
   // The core bootstrap styles
   const boostrapRules = join(
-    quartoThemesDir,
-    "default/scss/bootstrap.scss",
+    bootstrapDistDir,
+    "scss",
+    "bootstrap.scss",
   );
 
   // Resolve the provided themes to a set of variables and styles
@@ -79,18 +88,12 @@ function resolveThemeLayer(
 
   themes.forEach((theme) => {
     // The directory for this theme
-    const resolvedThemeDir = join(quartoThemesDir, theme);
+    const resolvedThemePath = join(quartoThemesDir, `${theme}.scss`);
 
     // Read the sass layers
-    if (existsSync(resolvedThemeDir)) {
+    if (existsSync(resolvedThemePath)) {
       // The theme appears to be a built in theme
-      themeLayers.push(sassLayerDir(
-        resolvedThemeDir,
-        {
-          variables: "_variables.scss",
-          rules: "_bootswatch.scss",
-        },
-      ));
+      themeLayers.push(sassLayer(resolvedThemePath));
     } else if (existsSync(theme)) {
       themeLayers.push(sassLayer(theme));
     }

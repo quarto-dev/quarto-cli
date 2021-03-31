@@ -1,0 +1,379 @@
+// theme:variables 
+// Flatly 5.0.0-beta2
+// Bootswatch
+
+$theme: "flatly" !default;
+
+//
+// Color system
+//
+
+$white:    #fff !default;
+$gray-100: #f8f9fa !default;
+$gray-200: #ecf0f1 !default;
+$gray-300: #dee2e6 !default;
+$gray-400: #ced4da !default;
+$gray-500: #b4bcc2 !default;
+$gray-600: #95a5a6 !default;
+$gray-700: #7b8a8b !default;
+$gray-800: #343a40 !default;
+$gray-900: #212529 !default;
+$black:    #000 !default;
+
+$blue:    #2c3e50 !default;
+$indigo:  #6610f2 !default;
+$purple:  #6f42c1 !default;
+$pink:    #e83e8c !default;
+$red:     #e74c3c !default;
+$orange:  #fd7e14 !default;
+$yellow:  #f39c12 !default;
+$green:   #18bc9c !default;
+$teal:    #20c997 !default;
+$cyan:    #3498db !default;
+
+$primary:       $blue !default;
+$secondary:     $gray-600 !default;
+$success:       $green !default;
+$info:          $cyan !default;
+$warning:       $yellow !default;
+$danger:        $red !default;
+$light:         $gray-200 !default;
+$dark:          $gray-700 !default;
+
+$min-contrast-ratio:   2.15 !default;
+
+// Links
+
+$link-color:                $success !default;
+
+// Fonts
+
+// stylelint-disable-next-line value-keyword-case
+$font-family-sans-serif:      Lato, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol" !default;
+$h1-font-size:                3rem !default;
+$h2-font-size:                2.5rem !default;
+$h3-font-size:                2rem !default;
+
+// Tables
+
+$table-accent-bg:             $gray-200 !default;
+
+// Dropdowns
+
+$dropdown-link-color:               $gray-700 !default;
+$dropdown-link-hover-color:         $white !default;
+$dropdown-link-hover-bg:            $primary !default;
+
+// Navs
+
+$nav-link-padding-y:                .5rem !default !default;
+$nav-link-padding-x:                2rem !default;
+$nav-link-disabled-color:           $gray-600 !default !default;
+$nav-tabs-border-color:             $gray-200 !default;
+
+// Navbar
+
+$navbar-padding-y:                  1rem !default;
+$navbar-dark-color:                 $white !default;
+$navbar-dark-hover-color:           $success !default;
+
+// Pagination
+
+$pagination-color:                  $white !default;
+$pagination-bg:                     $success !default;
+$pagination-border-width:           0 !default;
+$pagination-border-color:           transparent !default;
+$pagination-hover-color:            $white !default;
+$pagination-hover-bg:               darken($success, 15%) !default;
+$pagination-hover-border-color:     transparent !default;
+$pagination-active-bg:              $pagination-hover-bg !default;
+$pagination-active-border-color:    transparent !default;
+$pagination-disabled-color:         $gray-200 !default;
+$pagination-disabled-bg:            lighten($success, 15%) !default;
+$pagination-disabled-border-color:  transparent !default;
+
+// List group
+
+$list-group-hover-bg:               $gray-200 !default;
+$list-group-disabled-bg:            $gray-200 !default;
+
+// Breadcrumbs
+
+$breadcrumb-padding-y:              .375rem !default;
+$breadcrumb-padding-x:              .75rem !default;
+$breadcrumb-border-radius:          .25rem !default;
+
+// Close
+
+$btn-close-color:            $white !default;
+$btn-close-opacity:          .4 !default;
+$btn-close-hover-opacity:    1 !default;
+
+
+
+// theme:rules 
+// Flatly 5.0.0-beta2
+// Bootswatch
+
+
+// Variables
+
+$web-font-path: "https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400&display=swap" !default;
+@import url($web-font-path);
+
+// Navbar
+
+.bg-primary {
+  .navbar-nav .active > .nav-link {
+    color: $success !important;
+  }
+}
+
+.bg-dark {
+  &.navbar-dark .navbar-nav {
+    .nav-link:focus,
+    .nav-link:hover,
+    .active > .nav-link {
+      color: $primary !important;
+    }
+  }
+}
+
+// Buttons
+
+.btn {
+  &-secondary,
+  &-secondary:hover,
+  &-warning,
+  &-warning:hover {
+    color: $white;
+  }
+}
+
+// Tables
+
+.table {
+  &-primary,
+  &-secondary,
+  &-success,
+  &-info,
+  &-warning,
+  &-danger {
+    color: $white;
+  }
+
+  &-primary {
+    &,
+    > th,
+    > td {
+      background-color: $primary;
+    }
+  }
+
+  &-secondary {
+    &,
+    > th,
+    > td {
+      background-color: $secondary;
+    }
+  }
+
+  &-light {
+    &,
+    > th,
+    > td {
+      background-color: $light;
+    }
+  }
+
+  &-dark {
+    &,
+    > th,
+    > td {
+      background-color: $dark;
+    }
+  }
+
+  &-success {
+    &,
+    > th,
+    > td {
+      background-color: $success;
+    }
+  }
+
+  &-info {
+    &,
+    > th,
+    > td {
+      background-color: $info;
+    }
+  }
+
+  &-danger {
+    &,
+    > th,
+    > td {
+      background-color: $danger;
+    }
+  }
+
+  &-warning {
+    &,
+    > th,
+    > td {
+      background-color: $warning;
+    }
+  }
+
+  &-active {
+    &,
+    > th,
+    > td {
+      background-color: $table-active-bg;
+    }
+  }
+
+  &-hover {
+    .table-primary:hover {
+      &,
+      > th,
+      > td {
+        background-color: darken($primary, 5%);
+      }
+    }
+
+    .table-secondary:hover {
+      &,
+      > th,
+      > td {
+        background-color: darken($secondary, 5%);
+      }
+    }
+
+    .table-light:hover {
+      &,
+      > th,
+      > td {
+        background-color: darken($light, 5%);
+      }
+    }
+
+    .table-dark:hover {
+      &,
+      > th,
+      > td {
+        background-color: darken($dark, 5%);
+      }
+    }
+
+    .table-success:hover {
+      &,
+      > th,
+      > td {
+        background-color: darken($success, 5%);
+      }
+    }
+
+    .table-info:hover {
+      &,
+      > th,
+      > td {
+        background-color: darken($info, 5%);
+      }
+    }
+
+    .table-danger:hover {
+      &,
+      > th,
+      > td {
+        background-color: darken($danger, 5%);
+      }
+    }
+
+    .table-warning:hover {
+      &,
+      > th,
+      > td {
+        background-color: darken($warning, 5%);
+      }
+    }
+
+    .table-active:hover {
+      &,
+      > th,
+      > td {
+        background-color: $table-active-bg;
+      }
+    }
+
+  }
+}
+
+// Navs
+
+.nav-tabs {
+  .nav-link.active,
+  .nav-link.active:focus,
+  .nav-link.active:hover,
+  .nav-item.open .nav-link,
+  .nav-item.open .nav-link:focus,
+  .nav-item.open .nav-link:hover {
+    color: $primary;
+  }
+}
+
+.pagination {
+  a:hover {
+    text-decoration: none;
+  }
+}
+
+// Indicators
+
+.badge {
+  &-secondary,
+  &-warning {
+    color: $white;
+  }
+}
+
+.alert {
+  border: none;
+  color: $white;
+
+  a,
+  .alert-link {
+    color: $white;
+    text-decoration: underline;
+  }
+
+  @each $color, $value in $theme-colors {
+    &-#{$color} {
+      @if $enable-gradients {
+        background: $value linear-gradient(180deg, mix($body-bg, $value, 15%), $value) repeat-x;
+      } @else {
+        background-color: $value;
+      }
+    }
+  }
+
+  &-light {
+    &,
+    a,
+    .alert-link {
+      color: $body-color;
+    }
+  }
+}
+
+// Containers
+
+.modal,
+.toast {
+  .btn-close {
+    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'><path d='M.293.293a1 1 0 011.414 0L8 6.586 14.293.293a1 1 0 111.414 1.414L9.414 8l6.293 6.293a1 1 0 01-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 01-1.414-1.414L6.586 8 .293 1.707a1 1 0 010-1.414z'/></svg>");
+  }
+}
+
+

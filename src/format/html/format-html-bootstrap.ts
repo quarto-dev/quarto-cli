@@ -6,6 +6,7 @@
 */
 
 import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
+import { join } from "path/mod.ts";
 
 import { renderEjs } from "../../core/ejs.ts";
 import { formatResourcePath } from "../../core/resources.ts";
@@ -33,7 +34,6 @@ import {
 
 import { resolveBootstrapScss } from "./format-html-scss.ts";
 import {
-  htmlFormatPostprocessor,
   kBootstrapDependencyName,
   kDocumentCss,
   kFootnoteSectionTitle,
@@ -49,11 +49,15 @@ export function formatHasBootstrap(format: Format) {
   }
 }
 
-export function bootstrapFormatDependency(format: Format) {
+// Do not manually update- this value is updated automatically when
+// quarto-bld update-bootstrap is run
+const kBootstrapVersion = "5.0.0-beta3";
+
+export function bootstrapFormatDependency() {
   const boostrapResource = (resource: string) =>
     formatResourcePath(
       "html",
-      `bootstrap/themes/default/${resource}`,
+      join("bootstrap", "dist", resource),
     );
   const bootstrapDependency = (resource: string) => ({
     name: resource,
@@ -62,7 +66,7 @@ export function bootstrapFormatDependency(format: Format) {
 
   return {
     name: kBootstrapDependencyName,
-    version: "v5.0.0-beta2",
+    version: kBootstrapVersion,
     stylesheets: [
       bootstrapDependency("bootstrap-icons.css"),
     ],
@@ -115,7 +119,7 @@ export function boostrapExtras(
 
     html: {
       [kSassBundles]: [resolveBootstrapScss(format.metadata)],
-      [kDependencies]: [bootstrapFormatDependency(format)],
+      [kDependencies]: [bootstrapFormatDependency()],
       [kBodyEnvelope]: bodyEnvelope,
       [kHtmlPostprocessors]: [
         bootstrapHtmlPostprocessor(format),

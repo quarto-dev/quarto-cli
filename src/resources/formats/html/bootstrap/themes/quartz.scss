@@ -1,0 +1,479 @@
+// theme:variables 
+// Quartz 5.0.0-beta2
+// Bootswatch
+
+$theme: "quartz" !default;
+
+//
+// Color system
+//
+
+$white:    #fff !default;
+$gray-100: #f8f9fa !default;
+$gray-200: #e9ecef !default;
+$gray-300: #dee2e6 !default;
+$gray-400: #ced4da !default;
+$gray-500: #adb5bd !default;
+$gray-600: #6c757d !default;
+$gray-700: #495057 !default;
+$gray-800: #343a40 !default;
+$gray-900: #212529 !default;
+$black:    #000 !default;
+
+$blue:    #3a8fd9 !default;
+$indigo:  #6610f2 !default;
+$purple:  #686dc3 !default;
+$pink:    #e83283 !default;
+$red:     #fc346f !default;
+$orange:  #fd7e14 !default;
+$yellow:  #ffc107 !default;
+$green:   #41d7a7 !default;
+$teal:    #528fb3 !default;
+$cyan:    #39cbfb !default;
+
+$primary:       $pink !default;
+$secondary:     rgba($white, .4) !default;
+$success:       $green !default;
+$info:          $cyan !default;
+$warning:       $yellow !default;
+$danger:        $orange !default;
+$light:         $gray-100 !default;
+$dark:          $gray-900 !default;
+
+$min-contrast-ratio:   1.5 !default;
+
+// Spacing
+
+$spacer: 2rem !default;
+
+// Body
+
+$body-bg:                   $purple !default;
+$body-color:                $white !default;
+
+// Links
+
+$link-color:                              $white !default;
+
+// Components
+
+$border-color:                rgba($white, .2) !default;
+
+$border-radius:               .5rem !default;
+$border-radius-sm:            .6rem !default;
+$border-radius-lg:            .7rem !default;
+$border-radius-pill:          50rem !default;
+
+$box-shadow:                  1px 3px 24px -1px rgba($black, .15) !default;
+$box-shadow-sm:               0 1px 1px rgba($black, .1) !default;
+
+// Fonts
+
+$headings-font-weight:        700 !default;
+
+$text-muted:                  rgba($white, .7) !default;
+
+$blockquote-footer-color:     $text-muted !default;
+
+// Tables
+
+$table-dark-bg:               $dark !default;
+$table-dark-border-color:     darken($dark, 5%) !default;
+
+$table-bg-scale:              0 !default;
+
+// Buttons + Forms
+
+$input-btn-padding-y:         .75rem !default;
+$input-btn-padding-x:         1.5rem !default;
+
+// Buttons
+
+$btn-box-shadow:              $box-shadow !default;
+
+// Forms
+
+$input-bg:                              transparent !default;
+$input-disabled-bg:                     rgba($white, .1) !default;
+
+$input-border-color:                    rgba($white, .4) !default;
+$input-border-width:                    1px !default;
+
+$input-focus-border-color:              $input-border-color !default;
+$input-focus-box-shadow:                none !default;
+
+$input-placeholder-color:               $text-muted !default;
+
+$form-switch-color:               $white !default;
+
+$form-switch-focus-color:         $form-switch-color !default;
+
+$input-group-addon-bg:                  transparent !default;
+
+$form-check-input-bg:                     rgba($white, .3) !default;
+$form-check-input-border:                 1px solid $border-color !default;
+
+$form-select-indicator-color:       $white !default;
+$form-select-focus-box-shadow:    none !default;
+
+$form-range-track-bg:             rgba($black, .2) !default;
+
+$form-range-thumb-disabled-bg:             $gray-500 !default;
+
+// Navs
+
+$nav-link-disabled-color:           $text-muted !default;
+
+$nav-tabs-border-width:             0 !default;
+$nav-tabs-border-radius:            0 !default;
+$nav-tabs-link-active-color:        $gray-800 !default;
+$nav-tabs-link-active-bg:           $white !default;
+$nav-tabs-link-active-border-color: $gray-300 $gray-300 $nav-tabs-link-active-bg !default;
+
+$nav-pills-border-radius:           $border-radius-pill !default;
+$nav-pills-link-active-color:       $white !default;
+$nav-pills-link-active-bg:          $primary !default;
+
+// Navbars
+
+$navbar-dark-color:                 rgba($white, .8) !default;
+$navbar-dark-hover-color:           $white !default;
+
+$navbar-light-color:                rgba($gray-800, .8) !default;
+$navbar-light-hover-color:          $gray-800 !default;
+$navbar-light-active-color:         $gray-800 !default;
+$navbar-light-disabled-color:       rgba($gray-800, .3) !default;
+
+// Dropdowns
+
+$dropdown-border-color:             $border-color !default;
+$dropdown-link-hover-color:         $white !default;
+$dropdown-link-hover-bg:            rgba($white, .4) !default;
+
+// Pagination
+
+$pagination-bg:                     rgba($white, .3) !default;
+$pagination-border-width:           0 !default;
+
+$pagination-focus-color:            $white !default;
+$pagination-focus-bg:               $dropdown-link-hover-bg !default;
+$pagination-focus-box-shadow:       none !default;
+
+$pagination-hover-color:            $white !default;
+$pagination-hover-bg:               $dropdown-link-hover-bg !default;
+
+$pagination-disabled-color:         $text-muted !default;
+$pagination-disabled-bg:            $pagination-bg !default;
+
+// Cards
+
+$card-spacer-y:                     1.75rem !default;
+$card-spacer-x:                     2rem !default;
+$card-border-color:                 $border-color !default;
+$card-cap-bg:                       transparent !default;
+$card-cap-color:                    $white !default;
+$card-color:                        $white !default;
+$card-bg:                           transparent !default;
+
+// Tooltips
+
+$tooltip-opacity:                   .7 !default;
+
+// Popovers
+
+$popover-header-bg:                 $card-cap-bg !default;
+
+$popover-body-color:                $card-color !default;
+$popover-body-padding-y:            $spacer / 2 !default;
+
+$popover-arrow-color:               $border-color !default;
+
+$popover-arrow-outer-color:         transparent !default;
+
+// Toasts
+
+$toast-header-color:                $card-color !default;
+$toast-header-background-color:     $card-cap-bg !default;
+$toast-header-border-color:         $border-color !default;
+
+// Progress bars
+
+$progress-bg:                       rgba($black, .2) !default;
+
+// List group
+
+$list-group-bg:                     transparent !default;
+$list-group-border-color:           $border-color !default;
+$list-group-border-width:           0 !default;
+
+$list-group-hover-bg:               $dropdown-link-hover-bg !default;
+
+$list-group-disabled-color:         $text-muted !default;
+
+$list-group-action-color:           $white !default;
+$list-group-action-hover-color:     $white !default;
+
+// Breadcrumbs
+
+$breadcrumb-divider-color:          $white !default;
+$breadcrumb-active-color:           $white !default;
+
+// Close
+
+$btn-close-color:            $white !default;
+
+
+
+// theme:rules 
+// Quartz 5.0.0-beta2
+// Bootswatch
+
+
+// Variables
+
+$body-bg-image: linear-gradient(90deg, darken($cyan, 10%), darken($purple, 10%), darken($pink, 5%)) !default;
+$frosted-opacity: .3 !default;
+
+@mixin glass($opacity: $frosted-opacity, $bg: $white) {
+  border: none;
+  box-shadow: inset 1px 1px $border-color, inset -1px -1px rgba($white, .1), $box-shadow;
+  @include frost($opacity, $bg);
+
+  a {
+    color: $card-color;
+  }
+
+  .text-muted {
+    color: rgba($card-color, .7) !important;
+  }
+}
+
+@mixin frost($opacity: $frosted-opacity, $bg: $white) {
+  background-color: transparent;
+  background-image: linear-gradient(125deg, rgba($bg, ($opacity)), rgba($bg, ($opacity - .1)) 70%);
+  backdrop-filter: blur(5px);
+}
+
+// Body
+
+body {
+  background-image: $body-bg-image;
+}
+
+// Tables
+
+.table-secondary {
+  --bs-table-hover-color: $white;
+}
+
+// Buttons
+
+.btn {
+  &-secondary {
+    border: none;
+    color: $white;
+
+    &:hover,
+    &:focus {
+      color: $white;
+    }
+
+    &.disabled {
+      color: $white;
+    }
+  }
+}
+
+.btn-group > .btn:not(:first-child),
+.btn-group > .btn-group:not(:first-child) {
+  margin-left: 0;
+}
+
+.btn-group-vertical > .btn:not(:first-child),
+.btn-group-vertical > .btn-group:not(:first-child) {
+  margin-top: 0;
+}
+
+.bg-light .btn {
+  background-color: rgba($black, .2);
+}
+
+// Forms
+
+.input-group-text,
+.form-control::-webkit-file-upload-button {
+  background-color: transparent;
+  background-image: linear-gradient(125deg, rgba($white, .3), rgba($white, .2) 70%);
+  border: none;
+  backdrop-filter: blur(5px);
+}
+
+.input-group-text {
+  box-shadow: inset 1px 1px $border-color, inset -1px -1px rgba($white, .1);
+}
+
+.input-group > :not(:first-child):not(.dropdown-menu):not(.valid-tooltip):not(.valid-feedback):not(.invalid-tooltip):not(.invalid-feedback) {
+  margin-left: 0;
+  border-left: none;
+}
+
+.input-group:not(.has-validation) > :not(:last-child):not(.dropdown-toggle):not(.dropdown-menu),
+.input-group:not(.has-validation) > .dropdown-toggle:nth-last-child(n + 3) {
+  border-right: none;
+}
+
+.form-select {
+  transition: border-color .15s ease-in-out;
+}
+
+.bg-light .form-control {
+  border-color: rgba($black, .2);
+  color: $gray-800;
+
+  &::placeholder {
+    color: rgba($black, .2);
+  }
+}
+
+// Navs
+
+.dropdown-menu {
+  @include glass(.3);
+}
+
+.nav-tabs {
+  .nav-link {
+    transition: none;
+
+    &:hover {
+      color: $white;
+    }
+
+    &,
+    &.disabled {
+      background-color: $progress-bg;
+    }
+  }
+
+  .nav-item:first-child > .nav-link {
+    border-radius: $border-radius 0 0 $border-radius;
+  }
+
+  .nav-item:last-child > .nav-link {
+    border-radius: 0 $border-radius $border-radius 0;
+  }
+
+  .nav-item .nav-link.active,
+  .nav-item.show .nav-link {
+    @include glass(1, $white);
+    border-radius: $border-radius;
+    transform: scale(1.1);
+
+    &:hover {
+      color: $gray-800;
+    }
+  }
+
+  .dropdown-menu {
+    border-radius: $border-radius;
+  }
+}
+
+// Indicators
+
+.alert {
+  @include glass();
+  position: relative;
+  overflow: hidden;
+  color: $white;
+
+  @each $color, $value in $theme-colors {
+    $opacity: .7;
+    &-#{$color}::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: .5rem;
+      height: 100%;
+      background-color: $value;
+    }
+  }
+
+  .alert-link {
+    color: $card-color;
+  }
+}
+
+.badge {
+  &.bg-light {
+    color: $gray-800;
+  }
+}
+
+// Containers
+
+.list-group {
+  @include glass();
+}
+
+.card {
+  @include glass();
+
+  @each $color, $value in $theme-colors {
+    &.bg-#{$color} {
+      background-image: none;
+    }
+  }
+
+  &.bg-light {
+    .card-header,
+    .card-body {
+      color: $gray-800;
+    }
+  }
+
+  &.border {
+    @each $color, $value in $theme-colors {
+      &-#{$color} {
+        @include glass();
+
+        .card-header {
+          background-color: $value !important;
+          border-bottom: none;
+
+          @if ($color == light) {
+            color: $gray-800;
+          }
+        }
+      }
+    }
+  }
+
+  &-header {
+    font-weight: $headings-font-weight;
+  }
+}
+
+.toast {
+  @include glass();
+}
+
+.popover {
+  @include glass();
+
+  &-header {
+    border-bottom-color: $border-color;
+  }
+}
+
+.tooltip {
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  @include glass();
+}
+
+
+

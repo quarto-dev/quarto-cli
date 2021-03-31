@@ -59,6 +59,7 @@ export async function updateBootstrap(config: Configuration) {
   await updateBootstrapSass(bsVersion, config, workingDir, bsDistDir);
   await updateBoostrapIcons(bsIconVersion, config, workingDir, bsDistDir);
   await updateBootswatch(bSwatchVersion, config, workingDir, bsThemesDir);
+  updateBootstrapVersion(bsVersion, config);
 
   // Clean up the temp dir
   Deno.removeSync(workingDir, { recursive: true });
@@ -194,11 +195,46 @@ async function updateBoostrapIcons(
     join(distDir, "bootstrap-icons.woff"),
   );
 
+  const cssPath = join(distDir, "bootstrap-icons.css");
   Deno.copyFileSync(
     join(working, dirName, "bootstrap-icons.css"),
-    join(distDir, "bootstrap-icons.css"),
+    cssPath,
   );
+
+  fixupFontCss(cssPath);
+
   config.log.info("Done Updating Bootstrap Icons...\n");
+}
+
+function updateBootstrapVersion(version: string, config: Configuration) {
+  const srcPath = join(
+    config.directoryInfo.src,
+    "format",
+    "html",
+    "format-html-bootstrap.ts",
+  );
+  let src = Deno.readTextFileSync(srcPath);
+  src = src.replace(
+    /const kBootstrapVersion = ".*";/,
+    `const kBootstrapVersion = "${version}";`,
+  );
+  Deno.writeTextFileSync(srcPath, src);
+}
+
+function fixupFontCss(path: string) {
+  // Update the font reference to point to the local font
+  let css = Deno.readTextFileSync(path);
+  // Clear the woff2 reference
+  const woff2Regex =
+    /url\("\.\/fonts\/bootstrap-icons\.woff2.*format\("woff2"\),/;
+  css = css.replace(woff2Regex, "");
+
+  const woffPathRegex = /url\("\.(\/fonts)\/bootstrap-icons\.woff\?/;
+  css = css.replace(woffPathRegex, (substring: string) => {
+    return substring.replace("/fonts", "");
+  });
+
+  Deno.writeTextFileSync(path, css);
 }
 
 function mergedSassLayer(
@@ -221,7 +257,7 @@ function mergedSassLayer(
       ? Deno.readTextFileSync(part.path)
       : undefined;
     if (contents) {
-      merged.push(`// theme:${part.name} //`);
+      merged.push(`// theme:${part.name} `);
       merged.push(contents);
       merged.push("\n");
     }

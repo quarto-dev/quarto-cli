@@ -1,0 +1,630 @@
+// theme:variables 
+// Sketchy 5.0.0-beta2
+// Bootswatch
+
+$theme: "sketchy" !default;
+
+//
+// Color system
+//
+
+$white:    #fff !default;
+$gray-100: #f8f9fa !default;
+$gray-200: #f7f7f9 !default;
+$gray-300: #dee2e6 !default;
+$gray-400: #ccc !default;
+$gray-500: #aaa !default;
+$gray-600: #868e96 !default;
+$gray-700: #555 !default;
+$gray-800: #333 !default;
+$gray-900: #212529 !default;
+$black:    #000 !default;
+
+$blue:    #007bff !default;
+$indigo:  #6610f2 !default;
+$purple:  #6f42c1 !default;
+$pink:    #e83e8c !default;
+$red:     #dc3545 !default;
+$orange:  #fd7e14 !default;
+$yellow:  #ffc107 !default;
+$green:   #28a745 !default;
+$teal:    #20c997 !default;
+$cyan:    #17a2b8 !default;
+
+$primary:       $gray-800 !default;
+$secondary:     $gray-700 !default;
+$success:       $green !default;
+$info:          $cyan !default;
+$warning:       $yellow !default;
+$danger:        $red !default;
+$light:         $white !default;
+$dark:          $gray-700 !default;
+
+$min-contrast-ratio:   1.6 !default;
+
+// Links
+
+$link-decoration:           underline !default;
+
+// Components
+
+$border-width:              2px !default;
+$border-radius:             25px !default;
+$border-radius-lg:          35px !default;
+$border-radius-sm:          15px !default;
+
+// Fonts
+
+// stylelint-disable-next-line value-keyword-case
+$font-family-sans-serif:      Neucha, -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !default;
+$font-weight-base:            700 !default;
+$headings-font-family:        "Cabin Sketch", cursive !default;
+
+$blockquote-small-color:      $gray-800 !default;
+
+// Tables
+
+$table-accent-bg:             $gray-400 !default;
+$table-hover-bg:              $white !default;
+$table-border-width:          2px !default;
+$table-border-color:          $gray-800 !default;
+
+// Forms
+
+$input-border-color:                $gray-800 !default;
+$input-focus-border-color:          $input-border-color !default;
+
+// Dropdowns
+
+$dropdown-border-color:             $gray-800 !default;
+$dropdown-divider-bg:               $gray-800 !default;
+$dropdown-link-hover-color:         $white !default;
+$dropdown-link-hover-bg:            $gray-800 !default;
+
+// Navs
+
+$nav-tabs-border-color:             $gray-800 !default;
+$nav-tabs-link-hover-border-color:  $gray-800 !default;
+$nav-tabs-link-active-color:        $gray-800 !default;
+$nav-tabs-link-active-border-color: $gray-800 !default;
+
+// Navbar
+
+$navbar-dark-color:                 $white !default;
+$navbar-dark-hover-color:           $white !default;
+$navbar-dark-toggler-border-color:  $white !default;
+$navbar-light-color:                $gray-800 !default;
+$navbar-light-hover-color:          $gray-800 !default;
+$navbar-light-active-color:         $gray-800 !default;
+$navbar-light-toggler-border-color: $gray-800 !default;
+
+// Pagination
+
+$pagination-border-color:           $gray-800 !default;
+$pagination-hover-color:            $white !default;
+$pagination-hover-bg:               $gray-800 !default;
+$pagination-hover-border-color:     $gray-800 !default;
+$pagination-disabled-color:         $gray-400 !default;
+$pagination-disabled-border-color:  $gray-800 !default;
+
+// Cards
+
+$card-border-width:                 2px !default;
+$card-border-color:                 $gray-800 !default;
+
+// Popovers
+
+$popover-border-color:              $gray-800 !default;
+
+// Badges
+
+$badge-padding-y:                   .5em !default;
+$badge-padding-x:                   1.2em !default;
+
+// Toasts
+
+$toast-border-width:                2px !default;
+$toast-border-color:                $gray-800 !default;
+$toast-header-color:                $gray-800 !default;
+$toast-header-border-color:         $toast-border-color !default;
+
+// Modals
+
+$modal-content-border-color:        $gray-800 !default;
+$modal-header-border-color:         $gray-800 !default;
+
+// Progress bars
+
+$progress-bg:                       $white !default;
+$progress-bar-bg:                   $gray-400 !default;
+
+// List group
+
+$list-group-border-color:           $gray-800 !default;
+$list-group-hover-bg:               $gray-300 !default;
+$list-group-active-color:           $white !default;
+$list-group-active-bg:              $gray-800 !default;
+$list-group-action-color:           $gray-800 !default;
+
+// Breadcrumbs
+
+$breadcrumb-padding-y:              .375rem !default;
+$breadcrumb-padding-x:              .75rem !default;
+$breadcrumb-divider-color:          $gray-800 !default;
+$breadcrumb-active-color:           $gray-800 !default;
+$breadcrumb-border-radius:          .25rem !default;
+
+// Close
+
+$btn-close-color:            inherit !default;
+$btn-close-opacity:          1 !default;
+$btn-close-hover-opacity:    1 !default;
+$btn-close-focus-shadow:     none !default;
+
+
+
+// theme:rules 
+// Sketchy 5.0.0-beta2
+// Bootswatch
+
+
+// Variables
+
+$web-font-path: "https://fonts.googleapis.com/css?family=Neucha|Cabin+Sketch&display=swap" !default;
+@import url($web-font-path);
+
+// stylelint-disable scss/dollar-variable-default
+$border-radius-sketchy:    255px 25px 225px 25px / 25px 225px 25px 255px;
+$border-radius-lg-sketchy: 55px 225px 15px 25px / 25px 25px 35px 355px;
+$border-radius-sm-sketchy: 255px 25px 225px 25px / 25px 225px 25px 255px;
+// style-enable scss/dollar-variable-default
+
+// Navbar
+
+.navbar {
+  border-width: 2px;
+  border-style: solid;
+  border-radius: 25px 25px 55px 5px/5px 55px 25px 25px;
+
+  &.bg-light {
+    border-color: $gray-800;
+  }
+
+  &.fixed-top {
+    border-radius: 0 25px 225px 0/25px 0 25px 255px;
+    border-width: 0 0 2px;
+  }
+
+  &.fixed-bottom {
+    border-radius: 255px 25px 0 25px/25px 225px 25px 0;
+    border-width: 2px 0 0;
+  }
+
+  &-brand {
+    font-family: $headings-font-family;
+    font-weight: 400;
+    text-decoration: none;
+  }
+}
+
+// Buttons
+
+.btn {
+  border-radius: $border-radius-sketchy;
+  text-decoration: none;
+
+  &-lg {
+    border-radius: $border-radius-lg-sketchy;
+  }
+
+  &-sm {
+    border-radius: $border-radius-sm-sketchy;
+  }
+}
+
+.btn-check {
+  display: none;
+}
+
+// Typography
+
+button,
+input,
+optgroup,
+select,
+textarea {
+  font-family: $font-family-sans-serif;
+}
+
+blockquote {
+  border-radius: 15px 27px 25px 25px/25px 25px 305px 635px;
+}
+
+// Tables
+
+table {
+  th,
+  td {
+    background-color: $white;
+  }
+}
+
+.table-bordered {
+  background-color: $gray-800;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 5px 25px 5px 25px/25px 5px 25px 5px;
+  overflow: hidden;
+
+  th,
+  td {
+    border-radius: 5px 5px 25px 4px/5px 4px 3px 5px;
+  }
+
+  .table-success,
+  .table-success:hover {
+    td,
+    th {
+      background-color: $success;
+      color: $white;
+    }
+  }
+
+  .table-info,
+  .table-info:hover {
+    td,
+    th {
+      background-color: $info;
+      color: $white;
+    }
+  }
+
+  .table-warning,
+  .table-warning:hover {
+    td,
+    th {
+      background-color: $warning;
+      color: $white;
+    }
+  }
+
+  .table-danger,
+  .table-danger:hover {
+    td,
+    th {
+      background-color: $danger;
+      color: $white;
+    }
+  }
+}
+
+.table-dark {
+  th,
+  td,
+  &.table-hover .table-active:hover > th,
+  &.table-hover .table-active:hover > td {
+    background-color: $gray-800;
+  }
+}
+
+
+// Forms
+
+input,
+.form-control,
+.input-group-text {
+  border-radius: $border-radius-sketchy;
+}
+
+textarea,
+textarea.form-control,
+select,
+select.form-control {
+  border-radius: $border-radius-lg-sketchy !important;
+}
+
+[type="checkbox"] {
+  position: relative;
+  appearance: none;
+  width: 0;
+  height: 0;
+  border: none;
+  cursor: pointer;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: -.1em;
+    display: inline-block;
+    width: 15px;
+    height: 16px;
+    border: 2px solid $gray-800;
+    border-radius: 2px 8px 2px 4px / 5px 3px 5px 3px;
+  }
+
+  &:checked::after {
+    content: "x";
+    position: absolute;
+    left: .1em;
+    top: 0;
+    font-size: 1.5rem;
+    line-height: .5;
+    color: $gray-800;
+  }
+
+  &:disabled {
+    &::before {
+      border: 2px solid $gray-500;
+    }
+  }
+}
+
+[type="radio"] {
+  position: relative;
+  appearance: none;
+  width: 0;
+  height: 0;
+  border: none;
+  cursor: pointer;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: -.1em;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid $gray-800;
+    border-radius: 50% 45% 40% 50% / 40% 50% 50% 45%;
+  }
+
+  &:checked::before {
+    background-color: $gray-800;
+  }
+
+  &:disabled {
+    &::before {
+      border: 2px solid $gray-500;
+    }
+  }
+}
+
+.form-check-input {
+  &:focus {
+    box-shadow: none;
+  }
+}
+
+.form-switch {
+  padding-left: 0;
+
+  .form-check-input {
+    position: relative;
+    margin-left: 0;
+
+    &::before {
+      width: 32px;
+      border-radius: 30% 35% 30% 30% / 30% 50% 30% 45%;
+    }
+
+    &::after {
+      content: "";
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      background-color: $white;
+      border: 2px solid #333;
+      border-radius: 50% 45% 40% 50% / 40% 50% 50% 45%;
+      transition: left .15s ease-in-out;
+    }
+
+    &:checked::after {
+      top: 0;
+      left: 18px;
+      background-color: $gray-800;
+    }
+  }
+
+  .form-check-label {
+    margin-left: .5em;
+  }
+}
+
+// Navs
+
+.dropdown-menu {
+  border-radius: 555px 25px 25px 25px/25px 25px 25px 555px;
+  overflow: hidden;
+}
+
+.dropdown-divider {
+  border-top-width: 2px;
+}
+
+.list-group {
+  background-color: $gray-800;
+  border: 2px solid $gray-800;
+  border-radius: 45px 15px 35px 5px/15px 5px 15px 65px;
+  overflow: hidden;
+
+  &-item {
+    border-left: none;
+    border-right: none;
+    border-top: 2px solid $gray-800;
+    border-radius: 255px 5px 225px 5px/25px 225px 25px 255px;
+
+    &:first-child {
+      border-top: none;
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+.nav-pills .nav-link, {
+  border-radius: $border-radius-sketchy;
+}
+
+.nav-link,
+.page-link,
+.list-group-item,
+.dropdown-item {
+  text-decoration: none;
+}
+
+.nav-tabs {
+  .nav-link {
+    border-radius: 45px 15px 225px 5px/25px 225px 25px 255px;
+  }
+}
+
+.breadcrumb {
+  border: 2px solid $gray-800;
+  border-radius: $border-radius-sketchy;
+}
+
+.pagination {
+  .page-link {
+    border-radius: 425px 255px 25px 25px/25px 25px 5px 25px;
+  }
+}
+
+// Indicators
+
+.badge {
+  border-radius: $border-radius-sm-sketchy;
+
+  &-pill {
+    border-radius: 7rem 8rem 8rem 8rem / 4rem 5rem 6rem 6rem;
+  }
+
+  &-warning {
+    color: $white;
+  }
+}
+
+.alert {
+  border-radius: $border-radius-sketchy;
+
+  .btn-close {
+    &::before {
+      color: inherit;
+    }
+  }
+}
+
+// Progress bars
+
+.progress {
+  border: 2px solid $gray-800;
+  border-radius: $border-radius-sm-sketchy;
+}
+
+// Containers
+
+.card {
+  border-radius: 5px 5px 5px 5px/25px 25px 25px 5px;
+
+  &-outline {
+    &-primary,
+    &-success,
+    &-info,
+    &-warning,
+    &-danger {
+      border-width: 2px;
+    }
+  }
+
+  &-header {
+    border-bottom-width: 2px;
+    border-color: inherit;
+
+    &:first-child {
+      border-radius: 3px 3px 0 0/23px 23px 0 0;
+    }
+  }
+
+  &-footer {
+    border-top-width: 2px;
+  }
+}
+
+.toast {
+  border-radius: 10px 10px 15px 5px/5px 15px 5px 15px;
+
+  &-header {
+    font-family: $headings-font-family;
+  }
+}
+
+.modal {
+  &-content {
+    border-radius: 15px 5px 5px 25px/5px 25px 25px 5px;
+  }
+}
+
+.popover {
+  padding: 0;
+  border-radius: 45px 85px 15px 25px/15px 10px 35px 555px;
+
+  &-title {
+    border-bottom: 2px solid $gray-800;
+  }
+
+  &.bs-popover-start::before,
+  &.bs-tether-element-attached-right::before {
+    right: -13px;
+  }
+
+  &.bs-popover-top::before,
+  &.bs-tether-element-attached-bottom::before {
+    bottom: -13px;
+  }
+
+  &.bs-popover-bottom::before,
+  &.bs-tether-element-attached-top::before {
+    top: -13px;
+  }
+
+  &.bs-popover-end::before,
+  &.bs-tether-element-attached-left::before {
+    left: -13px;
+  }
+}
+
+.tooltip {
+  &-inner {
+    border-radius: $border-radius-sm-sketchy;
+  }
+}
+
+pre {
+  border: 2px solid $gray-800;
+  border-radius: 15px 5px 5px 25px/5px 25px 25px 5px;
+}
+
+.btn-close {
+  background-image: none;
+
+  &::before {
+    content: "X";
+    position: absolute;
+    right: 1rem;
+    top: .8rem;
+  }
+}
+
+.img {
+  &-thumbnail {
+    border-radius: $border-radius-sketchy;
+  }
+}
+
+
