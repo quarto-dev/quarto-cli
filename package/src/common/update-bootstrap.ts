@@ -148,20 +148,9 @@ async function updateBootstrapDist(
 
   await unzip(zipFile, working, config.log);
 
-  ["bootstrap.min.js", "bootstrap.bundle.min.js"]
+  ["bootstrap.min.js"]
     .forEach((file) => {
       const from = join(working, dirName, "js", file);
-      const to = join(distDir, file);
-      config.log.info(`Copying ${from} to ${to}`);
-      Deno.copyFileSync(
-        from,
-        to,
-      );
-    });
-
-  ["bootstrap.min.css"]
-    .forEach((file) => {
-      const from = join(working, dirName, "css", file);
       const to = join(distDir, file);
       config.log.info(`Copying ${from} to ${to}`);
       Deno.copyFileSync(
@@ -242,6 +231,8 @@ function mergedSassLayer(
   varPath: string,
   rulesPath: string,
 ) {
+  // TODO: strip leading comments from contents
+
   const merged: string[] = [];
   [{
     name: "declarations",
@@ -258,7 +249,22 @@ function mergedSassLayer(
       : undefined;
     if (contents) {
       merged.push(`// theme:${part.name} `);
-      merged.push(contents);
+
+      const inputLines = contents.split("\n");
+      const outputLines: string[] = [];
+
+      let emit = false;
+      inputLines.forEach((line) => {
+        if (!line.startsWith("//")) {
+          emit = true;
+        }
+
+        if (emit) {
+          outputLines.push(line);
+        }
+      });
+
+      merged.push(outputLines.join("\n"));
       merged.push("\n");
     }
   });

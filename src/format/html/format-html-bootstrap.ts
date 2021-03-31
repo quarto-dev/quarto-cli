@@ -49,10 +49,6 @@ export function formatHasBootstrap(format: Format) {
   }
 }
 
-// Do not manually update- this value is updated automatically when
-// quarto-bld update-bootstrap is run
-const kBootstrapVersion = "5.0.0-beta3";
-
 export function bootstrapFormatDependency() {
   const boostrapResource = (resource: string) =>
     formatResourcePath(
@@ -66,7 +62,6 @@ export function bootstrapFormatDependency() {
 
   return {
     name: kBootstrapDependencyName,
-    version: kBootstrapVersion,
     stylesheets: [
       bootstrapDependency("bootstrap-icons.css"),
     ],
