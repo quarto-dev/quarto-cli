@@ -1,20 +1,12 @@
 
-
-TODO: new scheme for dynamic preview based on keep-md (in a private dir like idx)
-
-    - render site at server startup (required?). alternative is render on navigate
-      (render at startup could also just populate the queue)
-    - keep-md into memory (or stable location in scratch a la index)
-    - keep track of all 'resource files' and automatically copy them into output dir
-    - changes to _quarto.yml (or any file referenced from it) triggers a re-render of
-      all previously rendered docs. this is done in a queue where priority is given to
-      any file currently displayed
-
-
 TODO: prime thematic with theme info
+
+Books
+
 
 Future
 =========================================================================
+
 
 TODO: rsc_publish function based on rmarkdown::publish_site
 
@@ -47,9 +39,13 @@ where we fixup refs, but really need the projectInputFiles for this)
 
 
 //  Websites:
-//    - edit on github
-//    - google analytics (or coolster alternative). cookie consent
-//    - twitter card
+//  - edit on github
+//  - google analytics (or coolster alternative). cookie consent
+//  - twitter card
+//  - code menu (show all, hide all, download code)
+//  - lightbox
+//  - auto-growing iframes
+//  - progressive image loading data-src
 
 TODO: generalized warning system (look for 'WARNING:')
 
@@ -64,22 +60,9 @@ Jmd
 ```{python mylabel}
 echo: true
 tags: ["foo", "bar"]
-
-
 ```
 
-
-
-
-  - code menu (show all, hide all, download code)
-  - lightbox
-  - auto-growing iframes
-  - progressive image loading data-src
-
-
 Look into Teal: https://news.ycombinator.com/item?id=26247813
-
-
 
 Could say that while there is *always* a lockfile, package installations
 are always global (b/c they popuplate the global cache). the only local
