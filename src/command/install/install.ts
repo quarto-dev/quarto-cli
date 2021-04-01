@@ -4,7 +4,12 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { message, progressBar, spinner } from "../../core/console.ts";
+import {
+  message,
+  progressBar,
+  SpinnerOptions,
+  withSpinner,
+} from "../../core/console.ts";
 
 import { GitHubRelease } from "./github.ts";
 import { tinyTexInstallable } from "./tools/tinytex.ts";
@@ -55,7 +60,10 @@ export interface ToolInfo {
 export interface InstallContext {
   workingDir: string;
   info: (msg: string) => void;
-  spinner: (msg: string) => (msg?: string) => void;
+  withSpinner: (
+    options: SpinnerOptions,
+    op: () => Promise<void>,
+  ) => Promise<void>;
   error: (msg: string) => void;
   download: (name: string, url: string, target: string) => Promise<void>;
   props: { [key: string]: unknown };
@@ -249,7 +257,7 @@ const installContext = (workingDir: string): InstallContext => {
     error: (msg: string) => {
       message(msg);
     },
-    spinner,
+    withSpinner,
   };
 
   return {

@@ -93,16 +93,20 @@ export function progressBar(total: number, prefixMessage?: string): {
   };
 }
 
-export function withSpinner(
-  status: string,
-  op: () => void,
-  timeInterval = 100,
+export interface SpinnerOptions {
+  message: string;
+  doneMessage?: string | boolean;
+}
+
+export async function withSpinner(
+  options: SpinnerOptions,
+  op: () => Promise<void>,
 ) {
-  const cancel = spinner(status, timeInterval);
+  const cancel = spinner(options.message);
   try {
-    op();
+    await op();
   } finally {
-    cancel();
+    cancel(options.doneMessage);
   }
 }
 

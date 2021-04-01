@@ -155,20 +155,25 @@ async function install(
 
     if (existsSync(realParentDir)) {
       // Extract the package
-      let cancelSpinner = context.spinner(
-        `Unzipping ${basename(pkgInfo.filePath)}`,
+
+      await context.withSpinner(
+        { message: `Unzipping ${basename(pkgInfo.filePath)}` },
+        async () => {
+          await unzip(pkgInfo.filePath);
+        },
       );
-      await unzip(pkgInfo.filePath);
-      cancelSpinner();
 
-      // Move it to the install dir
-      cancelSpinner = context.spinner(`Moving files`);
-      const from = join(context.workingDir, tinyTexDirName);
-      moveSync(from, installDir, { overwrite: true });
-      cancelSpinner();
+      await context.withSpinner(
+        { message: `Moving files` },
+        () => {
+          const from = join(context.workingDir, tinyTexDirName);
+          moveSync(from, installDir, { overwrite: true });
 
-      // Note the version that we have installed
-      noteInstalledVersion(pkgInfo.version);
+          // Note the version that we have installed
+          noteInstalledVersion(pkgInfo.version);
+          return Promise.resolve();
+        },
+      );
 
       // Find the tlmgr and note its location
       const binFolder = Deno.build.os === "windows"
@@ -201,56 +206,66 @@ async function afterInstall(context: InstallContext) {
   const tlmgrPath = context.props[kTlMgrKey] as string;
   if (tlmgrPath) {
     // Install tlgpg to permit safe utilization of https
-    let cancelSpinner = context.spinner("Verifying tlgpg support");
-    if (["darwin", "windows"].includes(Deno.build.os)) {
-      await exec(
-        tlmgrPath,
-        [
-          "-q",
-          "--repository",
-          "http://www.preining.info/tlgpg/",
-          "install",
-          "tlgpg",
-        ],
-      );
-    }
-    cancelSpinner();
+    await context.withSpinner(
+      { message: "Verifying tlgpg support" },
+      async () => {
+        if (["darwin", "windows"].includes(Deno.build.os)) {
+          await exec(
+            tlmgrPath,
+            [
+              "-q",
+              "--repository",
+              "http://www.preining.info/tlgpg/",
+              "install",
+              "tlgpg",
+            ],
+          );
+        }
+      },
+    );
 
     // Set the default repo to an https repo
-    const defaultRepo = textLiveRepo();
-    cancelSpinner = context.spinner(
-      `Setting default repository`,
-    );
-    await exec(
-      tlmgrPath,
-      ["-q", "option", "repository", defaultRepo],
-    );
-
     let restartRequired = false;
-    if (Deno.build.os === "linux") {
-      const binPath = expandPath("~/bin");
-      if (!existsSync(binPath)) {
-        // Make the directory
-        Deno.mkdirSync(binPath);
-
-        // Notify tlmgr of it
+    const defaultRepo = textLiveRepo();
+    await context.withSpinner(
+      {
+        message: `Setting default repository`,
+        doneMessage: `Default Repository: ${defaultRepo}`,
+      },
+      async () => {
         await exec(
           tlmgrPath,
-          ["option", "sys_bin", binPath],
+          ["-q", "option", "repository", defaultRepo],
         );
 
-        restartRequired = true;
-      }
-    }
-    cancelSpinner(`Default repository:\n ${defaultRepo}`);
+        if (Deno.build.os === "linux") {
+          const binPath = expandPath("~/bin");
+          if (!existsSync(binPath)) {
+            // Make the directory
+            Deno.mkdirSync(binPath);
+
+            // Notify tlmgr of it
+            await exec(
+              tlmgrPath,
+              ["option", "sys_bin", binPath],
+            );
+
+            restartRequired = true;
+          }
+        }
+      },
+    );
 
     // Ensure symlinks are all set
-    cancelSpinner = context.spinner("Updating paths");
-    await exec(
-      tlmgrPath,
-      ["path", "add"],
+    await context.withSpinner(
+      { message: "Updating paths" },
+      async () => {
+        await exec(
+          tlmgrPath,
+          ["path", "add"],
+        );
+      },
     );
-    cancelSpinner();
 
     // After installing on windows, the path may not be updated which means a restart is required
     if (Deno.build.os === "windows") {
@@ -271,24 +286,30 @@ async function uninstall(context: InstallContext) {
     return Promise.reject();
   }
   // remove symlinks
-  let cancelSpin = context.spinner("Removing commands");
-  const result = await removePath();
-  if (!result.success) {
-    context.error("Failed to uninstall");
-    return Promise.reject();
-  }
-  cancelSpin();
+  await context.withSpinner(
+    { message: "Removing commands" },
+    async () => {
+      const result = await removePath();
+      if (!result.success) {
+        context.error("Failed to uninstall");
+        return Promise.reject();
+      }
+    },
+  );
 
-  // Remove the directory
-  cancelSpin = context.spinner("Removing directory");
-  const installDir = tinyTexInstallDir();
-  if (installDir) {
-    Deno.removeSync(installDir, { recursive: true });
-  } else {
-    context.error("Couldn't find install directory");
-    return Promise.reject();
-  }
-  cancelSpin();
+  await context.withSpinner(
+    { message: "Removing directory" },
+    async () => {
+      // Remove the directory
+      const installDir = tinyTexInstallDir();
+      if (installDir) {
+        await Deno.remove(installDir, { recursive: true });
+      } else {
+        context.error("Couldn't find install directory");
+        return Promise.reject();
+      }
+    },
+  );
 }
 
 function exec(path: string, cmd: string[]) {
