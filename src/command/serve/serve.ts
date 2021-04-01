@@ -104,7 +104,7 @@ export async function serveProject(
       if (fileInfo.isDirectory) {
         fsPath = join(fsPath, "index.html");
       }
-      response = await serveFile(project, fsPath!, watcher, projServe);
+      response = await serveFile(fsPath!, watcher, projServe);
       if (!options.quiet) {
         printUrl(normalizedUrl);
       }
@@ -193,11 +193,13 @@ function serveFallback(
 }
 
 async function serveFile(
-  project: ProjectContext,
   filePath: string,
   watcher: ProjectWatcher,
   projServe?: ProjectServe,
 ): Promise<Response> {
+  // alias project
+  const project = watcher.project();
+
   // read file
   let fileContents = new Uint8Array();
 

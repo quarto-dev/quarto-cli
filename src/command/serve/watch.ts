@@ -21,6 +21,7 @@ import {
   kLibDir,
   kOutputDir,
   ProjectContext,
+  projectContext,
 } from "../../project/project-context.ts";
 import { copyResourceFile } from "../../project/project-resources.ts";
 import { ProjectServe } from "../../project/types/project-types.ts";
@@ -30,6 +31,7 @@ import { RenderResult } from "../render/render.ts";
 import { kLocalhost, ServeOptions } from "./serve.ts";
 
 export interface ProjectWatcher {
+  project: () => ProjectContext;
   handle: (req: ServerRequest) => boolean;
   connect: (req: ServerRequest) => Promise<void>;
   injectClient: (file: Uint8Array) => Uint8Array;
@@ -135,6 +137,12 @@ export function watchProject(
           return true;
         }
 
+        // if any of the config files change, reload the config and return true (will cause browser reload)
+        if (paths.some((path) => (project.files.config || []).includes(path))) {
+          project = projectContext(project.dir);
+          return true;
+        }
+
         // if any of the config resource files change then return true to reload
         if (
           paths.some((path) =>
@@ -222,6 +230,9 @@ export function watchProject(
 
   // return watcher interface
   return {
+    project: () => {
+      return project;
+    },
     handle: (req: ServerRequest) => {
       return !!options.watch && (req.headers.get("upgrade") === "websocket");
     },
