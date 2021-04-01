@@ -19,6 +19,7 @@ export interface MessageOptions {
 // The spinner and progress characters
 const kSpinnerChars = ["|", "/", "-", "\\"];
 const kSpinerContainerChars = ["(", ")"];
+const kSpinerCompleteContainerChars = ["[", "]"];
 const kSpinnerCompleteChar = "✓";
 const kProgressIncrementChar = "#";
 const kProgressContainerChars = ["[", "]"];
@@ -149,9 +150,14 @@ function spinContainer(body: string) {
 }
 
 function completeMessage(msg: string) {
-  message(`\r${spinContainer(kSpinnerCompleteChar)} ${msg}`, {
-    newline: true,
-  });
+  message(
+    `\r${kSpinerCompleteContainerChars[0]}${kSpinnerCompleteChar}${
+      kSpinerCompleteContainerChars[1]
+    } ${msg}`,
+    {
+      newline: true,
+    },
+  );
 }
 
 export function messageFormatData(data: Uint8Array, options?: MessageOptions) {
