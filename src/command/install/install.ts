@@ -4,8 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { message } from "../../core/console.ts";
-import { asciiProgressBar } from "../../core/progress.ts";
+import { message, progress, spinner } from "../../core/console.ts";
 
 import { GitHubRelease } from "./github.ts";
 import { tinyTexInstallable } from "./tools/tinytex.ts";
@@ -56,13 +55,8 @@ export interface ToolInfo {
 export interface InstallContext {
   workingDir: string;
   info: (msg: string) => void;
+  spinner: (msg: string) => (msg?: string) => void;
   error: (msg: string) => void;
-  progress: (
-    progress: number,
-    total: number,
-    precision?: number,
-    units?: string,
-  ) => void;
   download: (name: string, url: string, target: string) => Promise<void>;
   props: { [key: string]: unknown };
 }
@@ -255,25 +249,7 @@ const installContext = (workingDir: string): InstallContext => {
     error: (msg: string) => {
       message(msg);
     },
-    progress: (
-      progress: number,
-      total: number,
-      precision?: number,
-      units?: string,
-    ) => {
-      precision = precision || 1;
-      const msg = units
-        ? `[${progress.toFixed(precision)}/${
-          total.toFixed(precision)
-        } ${units}]`
-        : `[${progress.toFixed(precision)}/${total.toFixed(precision)}]`;
-
-      const progressBar = asciiProgressBar((progress / total) * 100);
-      message(
-        `\r${progressBar} ${msg}`,
-        { newline: progress === total },
-      );
-    },
+    spinner,
   };
 
   return {
@@ -282,10 +258,6 @@ const installContext = (workingDir: string): InstallContext => {
       url: string,
       target: string,
     ) => {
-      installMessaging.info(
-        `Downloading ${name}`,
-      );
-
       // Fetch the data
       const response = await fetch(
         url,
@@ -302,19 +274,20 @@ const installContext = (workingDir: string): InstallContext => {
           (response.headers.get("content-length") || 0) as number;
         const contentLengthMb = contentLength / 1024 / 1024;
 
+        const prog = progress(contentLengthMb, `Downloading ${name}`);
+
         let totalLength = 0;
         for await (const chunk of response.body) {
           await Deno.writeAll(pkgFile, chunk);
           totalLength = totalLength + chunk.length;
           if (contentLength > 0) {
-            installMessaging.progress(
+            prog.update(
               totalLength / 1024 / 1024,
-              contentLengthMb,
-              1,
-              "MB",
+              `${(totalLength / 1024 / 1024).toFixed(1)}MB`,
             );
           }
         }
+        prog.complete();
         pkgFile.close();
       } else {
         installMessaging.error(

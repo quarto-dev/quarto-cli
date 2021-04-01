@@ -6,6 +6,7 @@
 */
 
 import * as colors from "fmt/colors.ts";
+import { AnsiEscape } from "ansi/mod.ts";
 
 export interface MessageOptions {
   newline?: boolean;
@@ -40,33 +41,91 @@ export function message(line: string, options?: MessageOptions) {
   if (format) {
     line = format(line);
   }
-  Deno.stderr.writeSync(new TextEncoder().encode(line + (newline ? "\n" : "")));
+  Deno.stderr.writeSync(
+    new TextEncoder().encode(line + (newline ? "\n" : "")),
+  );
 }
 
-export function spinner(status: string, timeInterval = 100): () => void {
-  // Used to spin the spinner
-  let count = 0;
-  // Used to clear the output when complete
-  let maxLen = 0;
+// A progress display for the console
+// Includes optional prefix message as well as status text and a final state
+export function progress(total: number, prefixMessage?: string): {
+  update: (progress: number, status?: string) => void;
+  complete: () => void;
+} {
+  // Core function to display the progress bar
+  const progress = (progress: number, status?: string) => {
+    const progressBar = `${asciiProgressBar((progress / total) * 100, 50)}`;
+    const progressText = `\r${
+      prefixMessage ? prefixMessage + " " : ""
+    }${progressBar}${" " + status || ""}`;
 
-  // The spinner characters
-  const progress = ["|", "/", "-", "\\"];
+    clearLine();
+    message(progressText, { newline: false });
+  };
+
+  // Display empty progress
+  progress(0, "");
+
+  // Return control functions for progress
+  return {
+    update: progress,
+    complete: (clear?: boolean) => {
+      clearLine();
+      if (!clear && prefixMessage) {
+        message(`\r(✓) ${prefixMessage}`, { newline: true });
+      }
+    },
+  };
+}
+
+// A spinner in the console. Displays a message with a spinner
+// and when canceled can disappear or display a completed message.
+export function spinner(
+  status: string,
+  timeInterval = 100,
+): (finalMsg?: string | boolean) => void {
+  // Used to spin the spinner
+  let spin = 0;
 
   // Increment the spinner every timeInterval
   const id = setInterval(() => {
-    const char = progress[count % progress.length];
-    const msg = `(${char}) ${status}`;
-    message(`\r ${msg}`, { newline: false });
-    count = count + 1;
-    maxLen = Math.max(msg.length, maxLen);
+    // Display the message
+    const char = kSpinnerChars[spin % kSpinnerChars.length];
+    const msg = `${spinContainer(char)} ${status}`;
+    message(`\r${msg}`, {
+      newline: false,
+    });
+
+    // Increment the spin counter
+    spin = spin + 1;
   }, timeInterval);
 
-  // Return a function to cancel the spinner
-  return () => {
+  // Use returned function to cancel the spinner
+  return (finalMsg?: string | boolean) => {
+    // Clear the spin interval
     clearInterval(id);
-    message("\r" + " ".repeat(maxLen + 1), { newline: false });
-    message("\r", { newline: false });
+
+    // Clear the line and display an optional final message
+    clearLine();
+    if (typeof (finalMsg) === "string") {
+      message(`\r${spinContainer(kSpinnerCompleteChar)} ${finalMsg}`, {
+        newline: true,
+      });
+    } else {
+      if (finalMsg !== false) {
+        message(`\r${spinContainer(kSpinnerCompleteChar)} ${status}`, {
+          newline: true,
+        });
+      }
+    }
   };
+}
+
+// The spinner characters
+const kSpinnerChars = ["|", "/", "-", "\\"];
+const kSpinnerCompleteChar = "✓";
+function spinContainer(body: string) {
+  return `(${body})`;
 }
 
 export function messageFormatData(data: Uint8Array, options?: MessageOptions) {
@@ -109,4 +168,19 @@ export function writeFileToStdout(file: string) {
   const contents = Deno.readAllSync(df);
   Deno.writeAllSync(Deno.stdout, contents);
   Deno.close(df.rid);
+}
+
+function clearLine() {
+  AnsiEscape.from(Deno.stderr).eraseLine().cursorLeft();
+}
+
+// Creates an ascii progress bar of a specified width, displaying a percentage complete
+function asciiProgressBar(percent: number, width = 25): string {
+  const segsComplete = Math.floor(percent / (100 / width));
+  let progressBar = "[";
+  for (let i = 0; i < width; i++) {
+    progressBar = progressBar + (i < segsComplete ? "#" : " ");
+  }
+  progressBar = progressBar + "]";
+  return progressBar;
 }

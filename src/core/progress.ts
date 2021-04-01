@@ -18,15 +18,13 @@ export function progressBar(options: ProgressBarOptions) {
   let line = "";
 
   return (text: string, complete: number) => {
-    // clear last line
+    // clear last line (in case it was longer than this list)
     if (line) {
       message(`\r${" ".repeat(line.length)}`, { newline: false });
     }
 
     // compute new line
-    const progressBar = `${complete}/${total} ${
-      asciiProgressBar((complete / total) * 100, width)
-    }`;
+    const progressBar = `${asciiProgressBar((complete / total) * 100, width)}`;
     line = `\r${progressBar} ${text}`;
     message(line, { newline: false });
   };
