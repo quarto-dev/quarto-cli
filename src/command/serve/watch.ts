@@ -24,7 +24,6 @@ import {
 } from "../../project/project-context.ts";
 import { copyResourceFile } from "../../project/project-resources.ts";
 import { ProjectServe } from "../../project/types/project-types.ts";
-import { projectScratchPath } from "../../project/project-scratch.ts";
 
 import { RenderResult } from "../render/render.ts";
 
@@ -72,9 +71,7 @@ export function watchProject(
 
   // proj dir
   const projDir = Deno.realPathSync(project.dir);
-
-  // quarto scratch dir
-  const quartoScratchDir = projectScratchPath(project);
+  const projDirHidden = projDir + "/.";
 
   // output dir
   const outputDirConfig = project.metadata?.project?.[kOutputDir];
@@ -85,6 +82,20 @@ export function watchProject(
   // lib dir
   const libDirConfig = project.metadata?.project?.[kLibDir];
   const libDir = libDirConfig ? join(outputDir, libDirConfig) : undefined;
+
+  // if any of the paths are in the output dir (but not the lib dir) then return true
+  const inOutputDir = (path: string) => {
+    if (path.startsWith(outputDir)) {
+      // exclude lib dir
+      if (libDir && path.startsWith(libDir)) {
+        return false;
+      } else {
+        return true;
+      }
+    } else {
+      return false;
+    }
+  };
 
   // function to create an output dir path for a given project file
   const outputPath = (file: string) => {
@@ -100,10 +111,11 @@ export function watchProject(
     try {
       if (["modify", "create"].includes(event.kind)) {
         // filter out paths that no longer exist or are in the quarto scratch dir
-        const paths = event.paths
-          .filter(existsSync)
-          .map(Deno.realPathSync)
-          .filter((path) => !path.startsWith(quartoScratchDir));
+        const paths = ld.uniq(
+          event.paths
+            .filter(existsSync)
+            .filter((path) => !path.startsWith(projDirHidden)),
+        );
 
         // track modified
         modified.push(...paths);
@@ -119,19 +131,16 @@ export function watchProject(
         }
 
         // if any of the paths are in the output dir (but not the lib dir) then return true
-        const inOutputDir = paths.some((path) => {
-          if (path.startsWith(outputDir)) {
-            // exclude lib dir
-            if (libDir && path.startsWith(libDir)) {
-              return false;
-            } else {
-              return true;
-            }
-          } else {
-            return false;
-          }
-        });
-        if (inOutputDir) {
+        if (paths.some(inOutputDir)) {
+          return true;
+        }
+
+        // if any of the config resource files change then return true to reload
+        if (
+          paths.some((path) =>
+            (project.files.configResources || []).includes(path)
+          )
+        ) {
           return true;
         }
 
@@ -139,10 +148,12 @@ export function watchProject(
         // (the reload will be subsequently triggered by detection of these writes)
         const modifiedResources = paths.filter(isResourceFile);
         for (const file of modifiedResources) {
-          copyResourceFile(projDir, file, outputPath(file));
+          try {
+            copyResourceFile(projDir, file, outputPath(file));
+          } catch {
+            // multiple concurrent renders sometimes result in missing resource files
+          }
         }
-
-        // TODO: config and configResources should trigger re-scan / re-build (respectively)
 
         return false;
       } else {
@@ -167,7 +178,7 @@ export function watchProject(
   const reloadClients = ld.debounce(async () => {
     // see if there is a reload target (last html file modified)
     const lastHtmlFile = ld.uniq(modified).reverse().find((file) => {
-      return extname(file) === ".html";
+      return extname(file) === ".html" && inOutputDir(file);
     });
     let reloadTarget = "";
     if (lastHtmlFile && options.navigate) {
