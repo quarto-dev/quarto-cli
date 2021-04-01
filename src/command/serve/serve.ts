@@ -203,14 +203,18 @@ async function serveFile(
 
   // if this is an html file then append watch script and allow any projServe filter to run
   if (existsSync(filePath) && isHtmlContent(filePath)) {
-    // find the input file associated with this output and render it
-    const inputFile = await inputFileForOutputFile(project, filePath);
-    if (inputFile) {
-      await renderProject(
-        project,
-        { useFreezer: true, flags: { quiet: true } },
-        [inputFile],
-      );
+    // if the output file is < 1 second old we don't re-render
+    const fileTime = Deno.statSync(filePath).mtime;
+    if (!fileTime || ((Date.now() - fileTime.getTime()) > 1000)) {
+      // find the input file associated with this output and render it
+      const inputFile = await inputFileForOutputFile(project, filePath);
+      if (inputFile) {
+        await renderProject(
+          project,
+          { useFreezer: true, flags: { quiet: true } },
+          [inputFile],
+        );
+      }
     }
 
     fileContents = Deno.readFileSync(filePath);
