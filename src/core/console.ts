@@ -92,6 +92,19 @@ export function progressBar(total: number, prefixMessage?: string): {
   };
 }
 
+export function withSpinner(
+  status: string,
+  op: () => void,
+  timeInterval = 100,
+) {
+  const cancel = spinner(status, timeInterval);
+  try {
+    op();
+  } finally {
+    cancel();
+  }
+}
+
 // A spinner in the console. Displays a message with a spinner
 // and when canceled can disappear or display a completed message.
 export function spinner(

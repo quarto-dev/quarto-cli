@@ -75,7 +75,7 @@ import {
 
 import { renderProject } from "./project.ts";
 import {
-  copyFilesFromFreezer,
+  copyFromProjectFreezer,
   defrostExecuteResult,
   freezeExecuteResult,
 } from "./freeze.ts";
@@ -397,7 +397,7 @@ export async function renderExecute(
         dirname(context.target.input),
       );
       const filesDir = join(inputDir, inputFilesDir(context.target.input));
-      copyFilesFromFreezer(context.project, filesDir);
+      copyFromProjectFreezer(context.project, filesDir);
       thaw = true;
     }
 

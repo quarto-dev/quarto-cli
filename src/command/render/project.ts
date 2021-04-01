@@ -29,8 +29,8 @@ import { ensureGitignore } from "../../project/project-gitignore.ts";
 import { renderFiles, RenderOptions, RenderResult } from "./render.ts";
 
 import {
-  copyFilesFromFreezer,
-  copyFilesToFreezer,
+  copyFromProjectFreezer,
+  copyToProjectFreezer,
   removeFreezeResults,
 } from "./freeze.ts";
 
@@ -92,11 +92,18 @@ export async function renderProject(
     options.flags.kernelKeepalive = 0;
   }
 
+  // determine the output dir
+  const outputDir = projResults.outputDir;
+  const outputDirAbsolute = outputDir ? join(projDir, outputDir) : undefined;
+  if (outputDirAbsolute) {
+    ensureDirSync(outputDirAbsolute);
+  }
+
   // copy the site_libs dir from the freezer if requested
   // (e.g. when running dev server)
   const libDir = context.metadata?.project?.[kLibDir];
   if (options.useFreezer && libDir) {
-    copyFilesFromFreezer(context, libDir, true);
+    copyFromProjectFreezer(context, libDir, true);
   }
 
   // set QUARTO_PROJECT_DIR
@@ -110,18 +117,12 @@ export async function renderProject(
       alwaysExecute,
     );
 
-    // move to the output directory if we have one
-    const outputDir = projResults.outputDir;
-
-    if (outputDir) {
-      // resolve output dir and ensure that it exists
-      let realOutputDir = join(projDir, outputDir);
-      ensureDirSync(realOutputDir);
-      realOutputDir = Deno.realPathSync(realOutputDir);
+    if (outputDirAbsolute) {
+      ensureDirSync(outputDirAbsolute);
 
       // move or copy dir
       const relocateDir = (dir: string, copy = false) => {
-        const targetDir = join(realOutputDir, dir);
+        const targetDir = join(outputDirAbsolute, dir);
         if (existsSync(targetDir)) {
           Deno.removeSync(targetDir, { recursive: true });
         }
@@ -145,7 +146,7 @@ export async function renderProject(
         }),
       ).filter((dir) => !!dir);
       filesDirs.forEach((filesDir) => {
-        copyFilesToFreezer(context, filesDir);
+        copyToProjectFreezer(context, filesDir);
       });
 
       // track whether we need to keep the lib dir around
@@ -156,8 +157,11 @@ export async function renderProject(
         const results = fileResults[format];
 
         for (const result of results) {
-          // move the output file
-          const outputFile = join(realOutputDir, result.file);
+          // copy the result to the freezer
+          copyToProjectFreezer(context, result.file);
+
+          // move the result to the output dir
+          const outputFile = join(outputDirAbsolute, result.file);
           ensureDirSync(dirname(outputFile));
           Deno.renameSync(join(projDir, result.file), outputFile);
 
@@ -173,7 +177,7 @@ export async function renderProject(
             }
             // remove the 'freeze' dir from the output directory (that's
             // a development/build time construct)
-            removeFreezeResults(join(realOutputDir, result.filesDir));
+            removeFreezeResults(join(outputDirAbsolute, result.filesDir));
           }
 
           // resource files
@@ -234,7 +238,7 @@ export async function renderProject(
             if (lib.isDirectory) {
               const srcDir = join(libDir, basename(lib.name));
               // always copy to the freezer so we can restore on a call w/ useFreezer
-              copyFilesToFreezer(context, srcDir);
+              copyToProjectFreezer(context, srcDir);
               if (keepLibsDir) {
                 copyDir(srcDir);
               } else {
@@ -268,7 +272,7 @@ export async function renderProject(
       // copy the resource files to the output dir
       allResourceFiles.forEach((file: string) => {
         const sourcePath = relative(projDir, file);
-        const destPath = join(realOutputDir, sourcePath);
+        const destPath = join(outputDirAbsolute, sourcePath);
         if (existsSync(file)) {
           if (Deno.statSync(file).isFile) {
             copyResourceFile(context.dir, file, destPath);

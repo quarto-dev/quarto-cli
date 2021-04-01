@@ -13,7 +13,7 @@ import { ld } from "lodash/mod.ts";
 
 import { inputFilesDir } from "../../core/render.ts";
 import { sessionTempFile } from "../../core/temp.ts";
-import { copyDir, removeIfExists } from "../../core/path.ts";
+import { copy, removeIfExists } from "../../core/path.ts";
 
 import {
   kIncludeAfterBody,
@@ -112,27 +112,31 @@ export function removeFreezeResults(filesDir: string) {
   removeIfExists(freezeDir);
 }
 
-export function copyFilesToFreezer(
-  project: ProjectContext,
-  filesDir: string,
-  incremental = false,
-) {
-  const freezerDir = projectScratchPath(project, kFreezeSubDir);
-  const filesRelative = relative(project.dir, filesDir);
-  const destFilesDir = join(freezerDir, filesRelative);
-  copyDir(filesDir, destFilesDir, incremental);
+export function projectFreezerDir(project: ProjectContext) {
+  return Deno.realPathSync(projectScratchPath(project, kFreezeSubDir));
 }
 
-export function copyFilesFromFreezer(
+export function copyToProjectFreezer(
   project: ProjectContext,
-  filesDir: string,
+  file: string,
   incremental = false,
 ) {
-  const freezerDir = projectScratchPath(project, kFreezeSubDir);
-  const srcFilesDir = join(freezerDir, filesDir);
-  const destFilesDir = join(project.dir, filesDir);
+  const freezerDir = projectFreezerDir(project);
+  const filesRelative = relative(project.dir, file);
+  const destFilesDir = join(freezerDir, filesRelative);
+  copy(file, destFilesDir, incremental);
+}
+
+export function copyFromProjectFreezer(
+  project: ProjectContext,
+  file: string,
+  incremental = false,
+) {
+  const freezerDir = projectFreezerDir(project);
+  const srcFilesDir = join(freezerDir, file);
+  const destFilesDir = join(project.dir, file);
   if (existsSync(srcFilesDir)) {
-    copyDir(srcFilesDir, destFilesDir, incremental);
+    copy(srcFilesDir, destFilesDir, incremental);
   }
 }
 

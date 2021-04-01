@@ -21,7 +21,7 @@ import {
   projectType,
 } from "../../project/types/project-types.ts";
 
-import { render, RenderResult } from "../render/render.ts";
+import { renderProject } from "../render/project.ts";
 
 import { ProjectWatcher, watchProject } from "./watch.ts";
 
@@ -52,16 +52,14 @@ export async function serveProject(
     ...options,
   };
 
-  // render if requested
-  let renderResult: RenderResult | undefined;
-  if (options.render) {
-    renderResult = await render(project.dir, {
-      flags: {
-        quiet: options.quiet,
-        debug: options.debug,
-      },
-    });
-  }
+  // render the project
+  const renderResult = await renderProject(project, {
+    useFreezer: true,
+    flags: {
+      quiet: options.quiet,
+      debug: options.debug,
+    },
+  });
 
   // get project serve hooks and call init if we have it
   const projType = projectType(project.metadata?.project?.type);
