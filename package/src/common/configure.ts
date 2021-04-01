@@ -64,7 +64,7 @@ export async function configure(
     try {
       Deno.symlinkSync(
         join(config.directoryInfo.bin, "quarto"),
-        "/usr/local/bin/quarto",
+        symlinkPath,
       );
     } catch (e) {
       config.log.warning("Failed to create symlink to quarto.");

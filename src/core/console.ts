@@ -19,6 +19,7 @@ export interface MessageOptions {
 // The spinner and progress characters
 const kSpinnerChars = ["|", "/", "-", "\\"];
 const kSpinerContainerChars = ["(", ")"];
+const kSpinerCompleteContainerChars = ["[", "]"];
 const kSpinnerCompleteChar = "✓";
 const kProgressIncrementChar = "#";
 const kProgressContainerChars = ["[", "]"];
@@ -92,16 +93,20 @@ export function progressBar(total: number, prefixMessage?: string): {
   };
 }
 
-export function withSpinner(
-  status: string,
-  op: () => void,
-  timeInterval = 100,
+export interface SpinnerOptions {
+  message: string;
+  doneMessage?: string | boolean;
+}
+
+export async function withSpinner(
+  options: SpinnerOptions,
+  op: () => Promise<void>,
 ) {
-  const cancel = spinner(status, timeInterval);
+  const cancel = spinner(options.message);
   try {
-    op();
+    await op();
   } finally {
-    cancel();
+    cancel(options.doneMessage);
   }
 }
 
@@ -149,9 +154,14 @@ function spinContainer(body: string) {
 }
 
 function completeMessage(msg: string) {
-  message(`\r${spinContainer(kSpinnerCompleteChar)} ${msg}`, {
-    newline: true,
-  });
+  message(
+    `\r${kSpinerCompleteContainerChars[0]}${kSpinnerCompleteChar}${
+      kSpinerCompleteContainerChars[1]
+    } ${msg}`,
+    {
+      newline: true,
+    },
+  );
 }
 
 export function messageFormatData(data: Uint8Array, options?: MessageOptions) {

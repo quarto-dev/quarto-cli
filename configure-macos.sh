@@ -41,5 +41,9 @@ popd
 
 # Run the quarto command with 'reload', which will force the import_map dependencies
 # to be reloaded
-export QUARTO_DENO_EXTRA_OPTIONS="--reload"
-quarto --version
+if ! quarto_loc="$(type -p quarto)" || [[ -z $quarto_loc ]]; then
+  echo "Quarto symlink doesn't appear to be configured."
+else 
+  export QUARTO_DENO_EXTRA_OPTIONS="--reload"
+	quarto --version
+fi
