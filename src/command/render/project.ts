@@ -234,20 +234,31 @@ export async function renderProject(
       if (libDir) {
         const libDirFull = join(context.dir, libDir);
         if (existsSync(libDirFull)) {
-          copyToProjectFreezer(context, libDir, true);
-          for (const lib of Deno.readDirSync(libDirFull)) {
-            if (lib.isDirectory) {
-              const srcDir = join(libDir, basename(lib.name));
-              // always copy to the freezer so we can restore on a call w/ useFreezer
-              if (keepLibsDir) {
-                copyDir(srcDir);
-              } else {
-                moveDir(srcDir);
+          // if this is an incremental render or we are uzing the freezer, then
+          // copy lib dirs incrementally (don't replace the whole directory).
+          // otherwise, replace the whole thing so we get a clean start
+          const libsIncremental = incremental || options.useFreezer;
+          copyToProjectFreezer(context, libDir, libsIncremental);
+          if (libsIncremental) {
+            for (const lib of Deno.readDirSync(libDirFull)) {
+              if (lib.isDirectory) {
+                const srcDir = join(libDir, basename(lib.name));
+                if (keepLibsDir) {
+                  copyDir(srcDir);
+                } else {
+                  moveDir(srcDir);
+                }
               }
             }
-          }
-          if (!keepLibsDir) {
-            Deno.removeSync(libDirFull, { recursive: true });
+            if (!keepLibsDir) {
+              Deno.removeSync(libDirFull, { recursive: true });
+            }
+          } else {
+            if (keepLibsDir) {
+              copyDir(libDir);
+            } else {
+              moveDir(libDir);
+            }
           }
         }
       }
