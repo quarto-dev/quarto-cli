@@ -61,10 +61,14 @@ export async function configure(
       Deno.removeSync(symlinkPath);
     }
 
-    Deno.symlinkSync(
-      join(config.directoryInfo.bin, "quarto"),
-      "/usr/local/bin/quarto",
-    );
+    try {
+      Deno.symlinkSync(
+        join(config.directoryInfo.bin, "quarto"),
+        "/usr/local/bin/quarto",
+      );
+    } catch (e) {
+      config.log.warning("Failed to create symlink to quarto.");
+    }
   }
 }
 

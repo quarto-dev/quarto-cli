@@ -33,7 +33,7 @@ export function pandoc(version: string, log: Logger): Dependency {
         }
 
         // Extract pandoc
-        if (Deno.build.os === "linux") {
+        if (Deno.build.os !== "windows") {
           await unTar(path, log);
 
           // move the binary
