@@ -22,10 +22,6 @@ export const serveCommand = new Command()
     "Port to listen on (defaults to 4848).",
   )
   .option(
-    "--no-render",
-    "Don't render the site before serving.",
-  )
-  .option(
     "--no-browse",
     "Don't open a browser to preview the site.",
   )
@@ -62,7 +58,6 @@ export const serveCommand = new Command()
 
     await serveProject(context, {
       port: parseInt(options.port) || 4848,
-      render: options.render,
       browse: options.browse,
       watch: options.watch,
       navigate: options.navigate,
