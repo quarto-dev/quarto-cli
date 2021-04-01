@@ -7,15 +7,24 @@
 
 import * as colors from "fmt/colors.ts";
 
-import { basename, extname, join, posix, relative } from "path/mod.ts";
+import { existsSync } from "fs/mod.ts";
+import { basename, dirname, extname, join, posix, relative } from "path/mod.ts";
 
 import { Response, serve, ServerRequest } from "http/server.ts";
 
 import { message } from "../../core/console.ts";
 import { openUrl } from "../../core/shell.ts";
 import { contentType, isHtmlContent } from "../../core/mime.ts";
+import { dirAndStem } from "../../core/path.ts";
+
+import { kOutputFile } from "../../config/constants.ts";
 
 import { kOutputDir, ProjectContext } from "../../project/project-context.ts";
+import {
+  inputFileForOutputFile,
+  inputTargetIndex,
+} from "../../project/project-index.ts";
+
 import {
   ProjectServe,
   projectType,
@@ -95,7 +104,7 @@ export async function serveProject(
       if (fileInfo.isDirectory) {
         fsPath = join(fsPath, "index.html");
       }
-      response = serveFile(project, fsPath!, watcher, projServe);
+      response = await serveFile(project, fsPath!, watcher, projServe);
       if (!options.quiet) {
         printUrl(normalizedUrl);
       }
@@ -183,21 +192,34 @@ function serveFallback(
   }
 }
 
-function serveFile(
+async function serveFile(
   project: ProjectContext,
   filePath: string,
   watcher: ProjectWatcher,
   projServe?: ProjectServe,
-): Response {
+): Promise<Response> {
   // read file
-  let fileContents = Deno.readFileSync(filePath);
+  let fileContents = new Uint8Array();
 
   // if this is an html file then append watch script and allow any projServe filter to run
-  if (isHtmlContent(filePath)) {
+  if (existsSync(filePath) && isHtmlContent(filePath)) {
+    // find the input file associated with this output and render it
+    const inputFile = await inputFileForOutputFile(project, filePath);
+    if (inputFile) {
+      await renderProject(
+        project,
+        { useFreezer: true, flags: { quiet: true } },
+        [inputFile],
+      );
+    }
+
+    fileContents = Deno.readFileSync(filePath);
     fileContents = watcher.injectClient(fileContents);
     if (projServe?.htmlFilter) {
       fileContents = projServe.htmlFilter(project, filePath, fileContents);
     }
+  } else {
+    fileContents = Deno.readFileSync(filePath);
   }
 
   // content headers

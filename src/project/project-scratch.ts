@@ -13,7 +13,13 @@ import { ProjectContext } from "./project-context.ts";
 export const kQuartoScratch = ".quarto";
 
 export function projectScratchPath(project: ProjectContext, path = "") {
-  path = join(project.dir, kQuartoScratch, path);
-  ensureDirSync(dirname(path));
-  return path;
+  const scratchDir = join(project.dir, kQuartoScratch);
+  ensureDirSync(scratchDir);
+  if (path) {
+    path = join(scratchDir, path);
+    ensureDirSync(dirname(path));
+    return Deno.realPathSync(path);
+  } else {
+    return Deno.realPathSync(scratchDir);
+  }
 }

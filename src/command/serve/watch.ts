@@ -24,6 +24,7 @@ import {
 } from "../../project/project-context.ts";
 import { copyResourceFile } from "../../project/project-resources.ts";
 import { ProjectServe } from "../../project/types/project-types.ts";
+import { projectScratchPath } from "../../project/project-scratch.ts";
 
 import { RenderResult } from "../render/render.ts";
 
@@ -72,6 +73,9 @@ export function watchProject(
   // proj dir
   const projDir = Deno.realPathSync(project.dir);
 
+  // quarto scratch dir
+  const quartoScratchDir = projectScratchPath(project);
+
   // output dir
   const outputDirConfig = project.metadata?.project?.[kOutputDir];
   let outputDir = outputDirConfig ? join(projDir, outputDirConfig) : projDir;
@@ -95,11 +99,14 @@ export function watchProject(
   const handleWatchEvent = async (event: Deno.FsEvent) => {
     try {
       if (["modify", "create"].includes(event.kind)) {
-        // track modified
-        modified.push(...event.paths);
+        // filter out paths that no longer exist or are in the quarto scratch dir
+        const paths = event.paths
+          .filter(existsSync)
+          .map(Deno.realPathSync)
+          .filter((path) => !path.startsWith(quartoScratchDir));
 
-        // filter out paths that no longer exist and create real paths
-        const paths = event.paths.filter(existsSync).map(Deno.realPathSync);
+        // track modified
+        modified.push(...paths);
 
         // notify project of files changed (return true if it indicates that
         // this change should cause a reload)

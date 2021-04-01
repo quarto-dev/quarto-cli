@@ -234,11 +234,11 @@ export async function renderProject(
       if (libDir) {
         const libDirFull = join(context.dir, libDir);
         if (existsSync(libDirFull)) {
+          copyToProjectFreezer(context, libDir, true);
           for (const lib of Deno.readDirSync(libDirFull)) {
             if (lib.isDirectory) {
               const srcDir = join(libDir, basename(lib.name));
               // always copy to the freezer so we can restore on a call w/ useFreezer
-              copyToProjectFreezer(context, srcDir);
               if (keepLibsDir) {
                 copyDir(srcDir);
               } else {

@@ -158,8 +158,8 @@ export function relocate(
   } else {
     for (const path of Deno.readDirSync(src)) {
       if (path.isDirectory) {
-        const srcPath = join(src, basename(path.name));
-        relocate(srcPath, join(dest, basename(src)), move);
+        const srcPath = join(src, path.name);
+        relocate(srcPath, join(dest, path.name), move);
       }
     }
   }

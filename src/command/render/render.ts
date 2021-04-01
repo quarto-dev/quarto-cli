@@ -398,14 +398,14 @@ export async function renderExecute(
       );
       const filesDir = join(inputDir, inputFilesDir(context.target.input));
       copyFromProjectFreezer(context.project, filesDir);
-      thaw = true;
+      thaw = "auto";
     }
 
     if (thaw) {
       const thawedResult = defrostExecuteResult(
         context.target.input,
         output,
-        thaw === true, // force use of frozen // (as opposed to "auto")
+        thaw === true,
       );
       if (thawedResult) {
         return thawedResult;
