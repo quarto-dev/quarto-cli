@@ -15,8 +15,7 @@ import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { createSessionTempDir } from "../../core/temp.ts";
 import { inputFilesDir } from "../../core/render.ts";
-import { progressBar } from "../../core/progress.ts";
-import { message } from "../../core/console.ts";
+import { message, progressBar } from "../../core/console.ts";
 import { dirAndStem, removeIfExists } from "../../core/path.ts";
 
 import {
@@ -56,7 +55,6 @@ import {
   PandocIncludes,
 } from "../../execute/engine.ts";
 
-import { markdownEngine } from "../../execute/markdown.ts";
 import { defaultWriterFormat } from "../../format/formats.ts";
 
 import { formatHasBootstrap } from "../../format/html/format-html-bootstrap.ts";
@@ -193,13 +191,11 @@ export async function renderFiles(
 
   // see if we should be using file-by-file progress
   const progress = project && (files.length > 1) && !options.flags?.quiet
-    ? progressBar({
-      total: files.length,
-    })
+    ? progressBar(files.length)
     : undefined;
 
   if (progress) {
-    message(`Rendering ${project!.dir}:\n`);
+    message(`\nRendering ${project!.dir}:`);
     options.flags = options.flags || {};
     options.flags.quiet = true;
   }
@@ -211,7 +207,7 @@ export async function renderFiles(
       const file = files[i];
 
       if (progress) {
-        progress(relative(project!.dir, file), i + 1);
+        progress.update(i + 1, relative(project!.dir, file));
       }
 
       // make a copy of options (since we mutate it)
@@ -280,7 +276,7 @@ export async function renderFiles(
     }
 
     if (progress) {
-      progress("Done", files.length);
+      progress.complete("Done");
       message("\n");
     }
 

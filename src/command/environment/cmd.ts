@@ -101,7 +101,7 @@ async function printEnvironmentData(
   const path = await envData.path();
   const version = await envData.version();
   const metadata = await getMetadata(envData);
-  cancelSpinner();
+  cancelSpinner(false);
 
   if (path || version || metadata) {
     // Print the title

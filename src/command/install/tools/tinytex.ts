@@ -22,7 +22,7 @@ import {
   PackageInfo,
   RemotePackageInfo,
 } from "../install.ts";
-import { getLatestRelease, GitHubRelease } from "../github.ts";
+import { getLatestRelease } from "../github.ts";
 
 // This the https texlive repo that we use by default
 const kDefaultRepos = [
@@ -155,13 +155,17 @@ async function install(
 
     if (existsSync(realParentDir)) {
       // Extract the package
-      context.info(`Unzipping ${basename(pkgInfo.filePath)}`);
+      let cancelSpinner = context.spinner(
+        `Unzipping ${basename(pkgInfo.filePath)}`,
+      );
       await unzip(pkgInfo.filePath);
+      cancelSpinner();
 
       // Move it to the install dir
-      context.info(`Moving files`);
+      cancelSpinner = context.spinner(`Moving files`);
       const from = join(context.workingDir, tinyTexDirName);
       moveSync(from, installDir, { overwrite: true });
+      cancelSpinner();
 
       // Note the version that we have installed
       noteInstalledVersion(pkgInfo.version);
@@ -197,20 +201,29 @@ async function afterInstall(context: InstallContext) {
   const tlmgrPath = context.props[kTlMgrKey] as string;
   if (tlmgrPath) {
     // Install tlgpg to permit safe utilization of https
-    context.info("Verifying tlgpg support");
+    let cancelSpinner = context.spinner("Verifying tlgpg support");
     if (["darwin", "windows"].includes(Deno.build.os)) {
       await exec(
         tlmgrPath,
-        ["--repository", "http://www.preining.info/tlgpg/", "install", "tlgpg"],
+        [
+          "-q",
+          "--repository",
+          "http://www.preining.info/tlgpg/",
+          "install",
+          "tlgpg",
+        ],
       );
     }
+    cancelSpinner();
 
     // Set the default repo to an https repo
     const defaultRepo = textLiveRepo();
-    context.info(`Default repository set to\n${defaultRepo}`);
+    cancelSpinner = context.spinner(
+      `Setting default repository`,
+    );
     await exec(
       tlmgrPath,
-      ["option", "repository", defaultRepo],
+      ["-q", "option", "repository", defaultRepo],
     );
 
     let restartRequired = false;
@@ -229,13 +242,15 @@ async function afterInstall(context: InstallContext) {
         restartRequired = true;
       }
     }
+    cancelSpinner(`Default repository:\n ${defaultRepo}`);
 
     // Ensure symlinks are all set
-    context.info("Updating paths");
+    cancelSpinner = context.spinner("Updating paths");
     await exec(
       tlmgrPath,
       ["path", "add"],
     );
+    cancelSpinner();
 
     // After installing on windows, the path may not be updated which means a restart is required
     if (Deno.build.os === "windows") {
@@ -256,15 +271,16 @@ async function uninstall(context: InstallContext) {
     return Promise.reject();
   }
   // remove symlinks
-  context.info("Removing commands");
+  let cancelSpin = context.spinner("Removing commands");
   const result = await removePath();
   if (!result.success) {
     context.error("Failed to uninstall");
     return Promise.reject();
   }
+  cancelSpin();
 
   // Remove the directory
-  context.info("Removing directory");
+  cancelSpin = context.spinner("Removing directory");
   const installDir = tinyTexInstallDir();
   if (installDir) {
     Deno.removeSync(installDir, { recursive: true });
@@ -272,6 +288,7 @@ async function uninstall(context: InstallContext) {
     context.error("Couldn't find install directory");
     return Promise.reject();
   }
+  cancelSpin();
 }
 
 function exec(path: string, cmd: string[]) {
