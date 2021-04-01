@@ -46,33 +46,35 @@ export function message(line: string, options?: MessageOptions) {
   );
 }
 
-// A progress display for the console
+// A progressBar display for the console
 // Includes optional prefix message as well as status text and a final state
-export function progress(total: number, prefixMessage?: string): {
+export function progressBar(total: number, prefixMessage?: string): {
   update: (progress: number, status?: string) => void;
-  complete: () => void;
+  complete: (finalMsg?: string | boolean) => void;
 } {
-  // Core function to display the progress bar
-  const progress = (progress: number, status?: string) => {
+  // Core function to display the progressBar bar
+  const updateProgress = (progress: number, status?: string) => {
     const progressBar = `${asciiProgressBar((progress / total) * 100, 50)}`;
     const progressText = `\r${
       prefixMessage ? prefixMessage + " " : ""
-    }${progressBar}${" " + status || ""}`;
+    }${progressBar}${status ? " " + status : ""}`;
 
     clearLine();
     message(progressText, { newline: false });
   };
 
-  // Display empty progress
-  progress(0, "");
-
-  // Return control functions for progress
+  // Return control functions for progressBar
   return {
-    update: progress,
-    complete: (clear?: boolean) => {
+    update: updateProgress,
+    complete: (finalMsg?: string | boolean) => {
+      // Clear the line and display an optional final message
       clearLine();
-      if (!clear && prefixMessage) {
-        message(`\r(✓) ${prefixMessage}`, { newline: true });
+      if (typeof (finalMsg) === "string") {
+        updateProgress(total, finalMsg);
+      } else {
+        if (finalMsg !== false) {
+          updateProgress(total);
+        }
       }
     },
   };
@@ -174,7 +176,7 @@ function clearLine() {
   AnsiEscape.from(Deno.stderr).eraseLine().cursorLeft();
 }
 
-// Creates an ascii progress bar of a specified width, displaying a percentage complete
+// Creates an ascii progressBar bar of a specified width, displaying a percentage complete
 function asciiProgressBar(percent: number, width = 25): string {
   const segsComplete = Math.floor(percent / (100 / width));
   let progressBar = "[";

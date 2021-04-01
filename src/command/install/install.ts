@@ -4,7 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { message, progress, spinner } from "../../core/console.ts";
+import { message, progressBar, spinner } from "../../core/console.ts";
 
 import { GitHubRelease } from "./github.ts";
 import { tinyTexInstallable } from "./tools/tinytex.ts";
@@ -274,7 +274,7 @@ const installContext = (workingDir: string): InstallContext => {
           (response.headers.get("content-length") || 0) as number;
         const contentLengthMb = contentLength / 1024 / 1024;
 
-        const prog = progress(contentLengthMb, `Downloading ${name}`);
+        const prog = progressBar(contentLengthMb, `Downloading ${name}`);
 
         let totalLength = 0;
         for await (const chunk of response.body) {
