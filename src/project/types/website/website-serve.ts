@@ -21,3 +21,5 @@ export const websiteServe: ProjectServe = {};
 // when we see a request for an output file (.html), do a re-render (with freeze: true) then return the file
 
 // a normal re-render in a separate process should be detected by monitoring the file system
+
+// TODO: think about site_libs and freeze (some better locality?)
