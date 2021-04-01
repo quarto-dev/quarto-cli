@@ -123,43 +123,43 @@ export function pathWithForwardSlashes(path: string) {
   return path.replace(/\\/g, "/");
 }
 
-export function moveDir(
-  srcDir: string,
-  destDir: string,
+export function move(
+  src: string,
+  dest: string,
   incremental = false,
 ) {
-  relocateDir(srcDir, destDir, true, incremental);
+  relocate(src, dest, true, incremental);
 }
 
-export function copyDir(
-  srcDir: string,
-  destDir: string,
+export function copy(
+  src: string,
+  dest: string,
   incremental = false,
 ) {
-  relocateDir(srcDir, destDir, false, incremental);
+  relocate(src, dest, false, incremental);
 }
 
-export function relocateDir(
-  srcDir: string,
-  destDir: string,
+export function relocate(
+  src: string,
+  dest: string,
   move = false,
   incremental = false,
 ) {
   if (!incremental) {
-    if (existsSync(destDir)) {
-      Deno.removeSync(destDir, { recursive: true });
+    if (existsSync(dest)) {
+      Deno.removeSync(dest, { recursive: true });
     }
-    ensureDirSync(dirname(destDir));
+    ensureDirSync(dirname(dest));
     if (move) {
-      Deno.renameSync(srcDir, destDir);
+      Deno.renameSync(src, dest);
     } else {
-      copySync(srcDir, destDir, { overwrite: true, preserveTimestamps: true });
+      copySync(src, dest, { overwrite: true, preserveTimestamps: true });
     }
   } else {
-    for (const path of Deno.readDirSync(srcDir)) {
+    for (const path of Deno.readDirSync(src)) {
       if (path.isDirectory) {
-        const src = join(srcDir, basename(path.name));
-        relocateDir(src, join(destDir, basename(src)), move);
+        const srcPath = join(src, basename(path.name));
+        relocate(srcPath, join(dest, basename(src)), move);
       }
     }
   }
