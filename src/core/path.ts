@@ -5,8 +5,9 @@
 *
 */
 
-import { basename, dirname, extname } from "path/mod.ts";
+import { basename, dirname, extname, join } from "path/mod.ts";
 
+import { copySync, ensureDirSync } from "fs/mod.ts";
 import { existsSync } from "fs/exists.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
 
@@ -120,4 +121,46 @@ export function resolvePathGlobs(
 
 export function pathWithForwardSlashes(path: string) {
   return path.replace(/\\/g, "/");
+}
+
+export function moveDir(
+  srcDir: string,
+  destDir: string,
+  incremental = false,
+) {
+  relocateDir(srcDir, destDir, true, incremental);
+}
+
+export function copyDir(
+  srcDir: string,
+  destDir: string,
+  incremental = false,
+) {
+  relocateDir(srcDir, destDir, false, incremental);
+}
+
+export function relocateDir(
+  srcDir: string,
+  destDir: string,
+  move = false,
+  incremental = false,
+) {
+  if (!incremental) {
+    if (existsSync(destDir)) {
+      Deno.removeSync(destDir, { recursive: true });
+    }
+    ensureDirSync(dirname(destDir));
+    if (move) {
+      Deno.renameSync(srcDir, destDir);
+    } else {
+      copySync(srcDir, destDir, { overwrite: true, preserveTimestamps: true });
+    }
+  } else {
+    for (const path of Deno.readDirSync(srcDir)) {
+      if (path.isDirectory) {
+        const src = join(srcDir, basename(path.name));
+        relocateDir(src, join(destDir, basename(src)), move);
+      }
+    }
+  }
 }

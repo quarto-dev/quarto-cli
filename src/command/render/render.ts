@@ -74,12 +74,17 @@ import {
 } from "../../project/project-context.ts";
 
 import { renderProject } from "./project.ts";
-import { defrostExecuteResult, freezeExecuteResult } from "./freeze.ts";
+import {
+  copyFilesFromFreezer,
+  defrostExecuteResult,
+  freezeExecuteResult,
+} from "./freeze.ts";
 
-// command line options for render
+// options for render
 export interface RenderOptions {
   flags?: RenderFlags;
   pandocArgs?: string[];
+  useFreezer?: boolean;
 }
 
 // context for render
@@ -206,7 +211,7 @@ export async function renderFiles(
       }
 
       // make a copy of options (since we mutate it)
-      const fileOptions = ld.cloneDeep(options);
+      const fileOptions = ld.cloneDeep(options) as RenderOptions;
 
       // get contexts
       const contexts = await renderContexts(
@@ -381,12 +386,26 @@ export async function renderExecute(
 
   // use previous frozen results if they are available
   if (context.project && !alwaysExecute) {
-    const freeze = context.format.execution[kFreeze];
-    if (freeze) {
+    // check if the user has enabled freeze
+    let thaw = context.format.execution[kFreeze];
+
+    // if the user hasn't enable freeze explicitly, we still might need to
+    // do it useFreezer was specified (e.g. for the dev server)
+    if (context.options.useFreezer) {
+      const inputDir = relative(
+        context.project.dir,
+        dirname(context.target.input),
+      );
+      const filesDir = join(inputDir, inputFilesDir(context.target.input));
+      copyFilesFromFreezer(context.project, filesDir);
+      thaw = true;
+    }
+
+    if (thaw) {
       const thawedResult = defrostExecuteResult(
         context.target.input,
         output,
-        freeze === true, // force use of frozen // (as opposed to "auto")
+        thaw === true, // force use of frozen // (as opposed to "auto")
       );
       if (thawedResult) {
         return thawedResult;
