@@ -16,6 +16,14 @@ export interface MessageOptions {
   indent?: number;
 }
 
+// The spinner and progress characters
+const kSpinnerChars = ["|", "/", "-", "\\"];
+const kSpinerContainerChars = ["(", ")"];
+const kSpinnerCompleteChar = "✓";
+const kProgressIncrementChar = "#";
+const kProgressContainerChars = ["[", "]"];
+const kProgressBarWidth = 50;
+
 export function message(line: string, options?: MessageOptions) {
   const {
     newline = true,
@@ -54,7 +62,9 @@ export function progressBar(total: number, prefixMessage?: string): {
 } {
   // Core function to display the progressBar bar
   const updateProgress = (progress: number, status?: string) => {
-    const progressBar = `${asciiProgressBar((progress / total) * 100, 50)}`;
+    const progressBar = `${
+      asciiProgressBar((progress / total) * 100, kProgressBarWidth)
+    }`;
     const progressText = `\r${
       prefixMessage ? prefixMessage + " " : ""
     }${progressBar}${status ? " " + status : ""}`;
@@ -72,7 +82,9 @@ export function progressBar(total: number, prefixMessage?: string): {
       if (typeof (finalMsg) === "string") {
         updateProgress(total, finalMsg);
       } else {
-        if (finalMsg !== false) {
+        if (finalMsg !== false && prefixMessage) {
+          completeMessage(prefixMessage);
+        } else if (finalMsg !== false) {
           updateProgress(total);
         }
       }
@@ -110,24 +122,23 @@ export function spinner(
     // Clear the line and display an optional final message
     clearLine();
     if (typeof (finalMsg) === "string") {
-      message(`\r${spinContainer(kSpinnerCompleteChar)} ${finalMsg}`, {
-        newline: true,
-      });
+      completeMessage(finalMsg);
     } else {
       if (finalMsg !== false) {
-        message(`\r${spinContainer(kSpinnerCompleteChar)} ${status}`, {
-          newline: true,
-        });
+        completeMessage(status);
       }
     }
   };
 }
 
-// The spinner characters
-const kSpinnerChars = ["|", "/", "-", "\\"];
-const kSpinnerCompleteChar = "✓";
 function spinContainer(body: string) {
-  return `(${body})`;
+  return `${kSpinerContainerChars[0]}${body}${kSpinerContainerChars[1]}`;
+}
+
+function completeMessage(msg: string) {
+  message(`\r${spinContainer(kSpinnerCompleteChar)} ${msg}`, {
+    newline: true,
+  });
 }
 
 export function messageFormatData(data: Uint8Array, options?: MessageOptions) {
@@ -179,10 +190,11 @@ function clearLine() {
 // Creates an ascii progressBar bar of a specified width, displaying a percentage complete
 function asciiProgressBar(percent: number, width = 25): string {
   const segsComplete = Math.floor(percent / (100 / width));
-  let progressBar = "[";
+  let progressBar = kProgressContainerChars[0];
   for (let i = 0; i < width; i++) {
-    progressBar = progressBar + (i < segsComplete ? "#" : " ");
+    progressBar = progressBar +
+      (i < segsComplete ? kProgressIncrementChar : " ");
   }
-  progressBar = progressBar + "]";
+  progressBar = progressBar + kProgressContainerChars[1];
   return progressBar;
 }
