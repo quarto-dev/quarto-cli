@@ -162,7 +162,12 @@ export function projectMetadataForInputFile(
   input: string,
   project?: ProjectContext,
 ): Metadata {
-  project = project || projectContext(input);
+  if (project) {
+    // don't mutate caller
+    project = ld.cloneDeep(project) as ProjectContext;
+  } else {
+    project = projectContext(input);
+  }
 
   const projMetadata = project.metadata || {};
 

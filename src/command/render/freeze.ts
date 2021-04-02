@@ -151,7 +151,7 @@ function freezeResultFile(
   output: string,
   ensureDir = false,
 ) {
-  const filesDir = inputFilesDir(input);
+  const filesDir = join(dirname(input), inputFilesDir(input));
   const freezeDir = join(filesDir, kFreezeSubDir);
   if (ensureDir) {
     ensureDirSync(freezeDir);

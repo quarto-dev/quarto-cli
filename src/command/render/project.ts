@@ -118,8 +118,6 @@ export async function renderProject(
     );
 
     if (outputDirAbsolute) {
-      ensureDirSync(outputDirAbsolute);
-
       // move or copy dir
       const relocateDir = (dir: string, copy = false) => {
         const targetDir = join(outputDirAbsolute, dir);

@@ -252,7 +252,7 @@ function navigationHtmlPostprocessor(project: ProjectContext, input: string) {
   const offset = projectOffset(project, input);
   const href = inputFileHref(inputRelative);
 
-  return (doc: Document) => {
+  return async (doc: Document) => {
     // latch active nav link
     const navLinks = doc.querySelectorAll("a.nav-link");
     for (let i = 0; i < navLinks.length; i++) {
@@ -290,7 +290,6 @@ function navigationHtmlPostprocessor(project: ProjectContext, input: string) {
     }
 
     // resolve links to input (src) files
-    /*
     const links = doc.querySelectorAll("a[href]");
     for (let i = 0; i < links.length; i++) {
       const link = links[i] as Element;
@@ -300,12 +299,11 @@ function navigationHtmlPostprocessor(project: ProjectContext, input: string) {
         const resolved = await resolveInputTarget(project, projRelativeHref);
         if (resolved) {
           const inputDir = join(project.dir, dirname(projRelativeHref));
-          const htmlPath = join(project.dir, resolved.htmlHref);
+          const htmlPath = join(project.dir, resolved.htmlHref.slice(1));
           link.setAttribute("href", relative(inputDir, htmlPath));
         }
       }
     }
-    */
 
     // resolve resource refs
     return Promise.resolve(resolveResourceRefs(doc, offset));
@@ -582,7 +580,7 @@ async function resolveItem(
     if (resolved) {
       return {
         ...item,
-        href: "/" + resolved.htmlHref,
+        href: resolved.htmlHref,
         text: item.text || resolved.title,
       };
     } else {
@@ -602,7 +600,7 @@ async function resolveInputTarget(project: ProjectContext, href: string) {
     const format = Object.values(index.formats)[0];
     const [hrefDir, hrefStem] = dirAndStem(href);
     const outputFile = format?.pandoc[kOutputFile] || `${hrefStem}.html`;
-    const htmlHref = pathWithForwardSlashes(join(hrefDir, outputFile));
+    const htmlHref = pathWithForwardSlashes("/" + join(hrefDir, outputFile));
     const title = format.metadata?.[kTitle] as string ||
       ((hrefDir === "." && hrefStem === "index")
         ? project.metadata?.project?.title
