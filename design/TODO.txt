@@ -3,9 +3,20 @@
 Books
 =========================================================================
 
+- webshot equivalent for printed output
 
 - Glossaries (https://jupyterbook.org/content/content-blocks.html#glossaries)
+- Indexes (equivalent of \makeindex)
+{{ pagebreak }}
+{{ makeindex }}
+[span]{index="foo"}
 
+
+- Concept of non-HTML themes (e.g. LaTeX template, docx template)
+
+- projects: shell command to run before/after render or per-file render
+
+- localization?
 
 
 HTML Format (all these require grid, all need to deal with floating toc)
@@ -28,9 +39,16 @@ The side effects might require an id of some kind (for managing duplicates):
 Future
 =========================================================================
 
+TODO: add cleverref and do it by default
+
+TODO: produce 'tinytex' standalone binary (map command line options, etc.)
+
 TODO: launch buttons for interactivity (https://jupyterbook.org/interactive/launchbuttons.html#launch-buttons-for-interactivity)
       - run on binder and/or rstudio cloud
 
+TODO: cleverref
+TODO: section ref without numbers
+TODO: redirection and 404
 
 TODO: does the user need to be able to set the render priority:
       https://jupyterbook.org/content/code-outputs.html#render-priority
@@ -115,8 +133,10 @@ extensions:
   fancytweet: https://quarto.land/fancytweet@3.4.2
   
 
-TODO: revealjs images resources (global, per slide)
-      (metadata fields that point to files, ast elements / attributes that point to files)
+TODO: multi-lingual sites
+        - top-level content directories:  en/, zh/, per-language config (menus)
+
+
 
 {{ fancytweet qwerqwer }}
 
