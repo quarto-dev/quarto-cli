@@ -295,12 +295,17 @@ function navigationHtmlPostprocessor(project: ProjectContext, input: string) {
       const link = links[i] as Element;
       const href = link.getAttribute("href");
       if (href && !isExternalPath(href)) {
-        const projRelativeHref = href.startsWith("/")
+        let projRelativeHref = href.startsWith("/")
           ? href.slice(1)
           : join(dirname(inputRelative), href);
+        const hashLoc = projRelativeHref.indexOf("#");
+        const hash = hashLoc !== -1 ? projRelativeHref.slice(hashLoc) : "";
+        if (hash) {
+          projRelativeHref = projRelativeHref.slice(0, hashLoc);
+        }
         const resolved = await resolveInputTarget(project, projRelativeHref);
         if (resolved) {
-          link.setAttribute("href", offset + resolved.htmlHref);
+          link.setAttribute("href", offset + resolved.htmlHref + hash);
         }
       }
     }
