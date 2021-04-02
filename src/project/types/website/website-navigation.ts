@@ -305,7 +305,7 @@ function navigationHtmlPostprocessor(project: ProjectContext, input: string) {
         }
         const resolved = await resolveInputTarget(project, projRelativeHref);
         if (resolved) {
-          link.setAttribute("href", offset + resolved.htmlHref + hash);
+          link.setAttribute("href", offset + resolved.outputHref + hash);
         }
       }
     }
@@ -585,7 +585,7 @@ async function resolveItem(
     if (resolved) {
       return {
         ...item,
-        href: resolved.htmlHref,
+        href: resolved.outputHref,
         text: item.text || resolved.title,
       };
     } else {
@@ -605,12 +605,12 @@ async function resolveInputTarget(project: ProjectContext, href: string) {
     const format = Object.values(index.formats)[0];
     const [hrefDir, hrefStem] = dirAndStem(href);
     const outputFile = format?.pandoc[kOutputFile] || `${hrefStem}.html`;
-    const htmlHref = pathWithForwardSlashes("/" + join(hrefDir, outputFile));
+    const outputHref = pathWithForwardSlashes("/" + join(hrefDir, outputFile));
     const title = format.metadata?.[kTitle] as string ||
       ((hrefDir === "." && hrefStem === "index")
         ? project.metadata?.project?.title
         : undefined);
-    return { title, htmlHref };
+    return { title, outputHref };
   } else {
     return undefined;
   }
