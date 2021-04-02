@@ -3,6 +3,17 @@ TODO: prime thematic with theme info
 
 Books
 
+TODO: consider auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
+  - more testing to confirm it works and handles boundary conditions 
+    (currently commented out)
+
+  - having Rmd files in subdirs seems to cause problems in incremental and global render
+    (subdir filesDir left in root!)
+
+  - test auto-resolution of links to and from subdirs
+
+TODO: should inputTargetIndex be checking the list of project files
+TODO: adding a new Rmd or ipynb file while dev server is running (re-scan?)
 
 Future
 =========================================================================
@@ -32,10 +43,6 @@ TODO: clean:
  quarto clean all (output,cache,state, frozen)
   - global purge?
 
-TODO: consider auto-resolution of links to input docs (e.g. .Rmd, .ipynb, etc.)
-(need to consider how this interacts with resource discovery, as linking to the source
-files could cause them to be discovered and copied. probably needs to be embedded
-where we fixup refs, but really need the projectInputFiles for this)
 
 
 //  Websites:
