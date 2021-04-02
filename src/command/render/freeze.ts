@@ -6,7 +6,7 @@
 */
 
 import { dirname, isAbsolute, join, relative } from "path/mod.ts";
-import { copySync, ensureDirSync, existsSync } from "fs/mod.ts";
+import { copySync, ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
 import { createHash } from "hash/mod.ts";
 
 import { ld } from "lodash/mod.ts";
@@ -110,6 +110,16 @@ export function defrostExecuteResult(
 export function removeFreezeResults(filesDir: string) {
   const freezeDir = join(filesDir, kFreezeSubDir);
   removeIfExists(freezeDir);
+  if (existsSync(filesDir)) {
+    let empty = true;
+    for (const _entry of Deno.readDirSync(filesDir)) {
+      empty = false;
+      break;
+    }
+    if (empty) {
+      Deno.removeSync(filesDir, { recursive: true });
+    }
+  }
 }
 
 export function projectFreezerDir(project: ProjectContext) {
