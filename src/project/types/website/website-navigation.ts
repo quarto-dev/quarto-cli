@@ -295,12 +295,12 @@ function navigationHtmlPostprocessor(project: ProjectContext, input: string) {
       const link = links[i] as Element;
       const href = link.getAttribute("href");
       if (href && !isExternalPath(href)) {
-        const projRelativeHref = join(dirname(inputRelative), href);
+        const projRelativeHref = href.startsWith("/")
+          ? href.slice(1)
+          : join(dirname(inputRelative), href);
         const resolved = await resolveInputTarget(project, projRelativeHref);
         if (resolved) {
-          const inputDir = join(project.dir, dirname(projRelativeHref));
-          const htmlPath = join(project.dir, resolved.htmlHref.slice(1));
-          link.setAttribute("href", relative(inputDir, htmlPath));
+          link.setAttribute("href", offset + resolved.htmlHref);
         }
       }
     }
