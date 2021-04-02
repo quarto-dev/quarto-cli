@@ -1,11 +1,50 @@
 
-TODO: prime thematic with theme info
 
 Books
+=========================================================================
+
+
+- Glossaries (https://jupyterbook.org/content/content-blocks.html#glossaries)
+
+
+
+HTML Format (all these require grid, all need to deal with floating toc)
+- Sidebar content (https://jupyterbook.org/content/layout.html#sidebars-within-content)
+- Margin content (once we are using CSS grid) https://jupyterbook.org/content/layout.html#margin-content
+- Full width content (https://jupyterbook.org/content/layout.html#full-width-code-cells)
+- Figure captions in the right margin
+- fig.classes (knitr mapping, jupyter)
+
+Renders have side effects (knit_meta) that need to be preserved for books.
+The side effects might require an id of some kind (for managing duplicates):
+   R: 
+     - html dependencies
+     - preserves
+     - patches (e.g. slides for htmlwidgets)
+     - intermediates/intermediates-dir
+
+
 
 Future
 =========================================================================
 
+TODO: launch buttons for interactivity (https://jupyterbook.org/interactive/launchbuttons.html#launch-buttons-for-interactivity)
+      - run on binder and/or rstudio cloud
+
+
+TODO: does the user need to be able to set the render priority:
+      https://jupyterbook.org/content/code-outputs.html#render-priority
+
+TODO: some sort of out-of-line execution
+
+TODO: easy way to interpolate variables for Jupyter
+
+TODO: stats on render (how executed, runtime) --print-stats
+
+TODO: format text output with ansi color codes (filter)
+      https://github.com/r-lib/crayon/issues/24
+
+TODO: prime thematic with theme info
 
 TODO: rsc_publish function based on rmarkdown::publish_site
 
@@ -13,7 +52,7 @@ TODO: consider using grid for column layout (margin figures)
 
 Search: https://stork-search.net/
 TODO: embedding pdfs in website via pdf.js
-TODO: commenting via Hypothesis  
+TODO: commenting via Hypothesis and/or Utterances
 
 TODO: do template patching at configure time or just use pandoc version keyed cache (25ms)
 
@@ -32,25 +71,34 @@ TODO: clean:
   - global purge?
 
 
+- Epigraph (blockquote w/ author)
+
+
+// HTML format:
+     - panels/cards
+     - auto-growing iframes
+     - code menu (show all, hide all, download code)
+     - lightbox
+     - run on binder and/or rstudio cloud
+     - progressive image loading data-src
+
 
 //  Websites:
 //  - edit on github
 //  - google analytics (or coolster alternative). cookie consent
 //  - twitter card
-//  - code menu (show all, hide all, download code)
-//  - lightbox
-//  - auto-growing iframes
-//  - progressive image loading data-src
+//  - paginator
+
 
 TODO: generalized warning system (look for 'WARNING:')
 
+Common markdown format: (e.g. qmd)
 
 TODO: common yaml option reading (all docs use yaml)
 use Rmd-style chunks for Jupyter (Jmd). YAML encoding.
 (need to add support for this to Jupytext)
 Use e.g. fig-width vs. fig.width?  figwidth
 Jmd
-
 
 ```{python mylabel}
 echo: true
@@ -136,46 +184,6 @@ FUTURE
 4) Lock file / Extensions
 
 
-- there is always an output_dir for projects (we could put caches/intermedite md there)
-- alternatively, we could stick this stuff in _quarto (which could have a default .gitignore)
-
-Renders have side effects (knit_meta) that need to be preserved for books.
-The side effects might require an id of some kind (for managing duplicates):
-   R: 
-     - html dependencies
-     - preserves
-     - patches (e.g. slides for htmlwidgets)
-     - intermediates/intermediates-dir
-
-Engine returns a data structure that includes:
-    - markdown for pandoc
-    - arbitrary data that will be passed back to it to create pandoc includes
-    - arbitrary data that will be passed back to it for postprocessing
-
-
-- Project is always a _quarto folder
-  - for a document we crawl up tree to find project folder
-  - slurp up every yaml file in folder and merge
-  - default suggestion: metadata.yml
-  ---
-  project:
-    name:
-    type:
-    output-dir:
-    files: [foo.ipynb]
-    include: 
-      - supporting.py
-    exlude:
-      - ignore.png
-
-  format:
-    html:
-      main-font: Arial
-
-  bibliography: foo.bibtex
-
-  metadata-file: crossref.yml
-  ---
 
 
 A 'format' is a director or zip file which is:
@@ -215,9 +223,10 @@ library(bs4)
 {{ include <path> }}
 {{ <reference metadata>  }}
 {{ rstudio.version }}
+{{ metadata.date | formatDate }}  ?
 {{= print("x") }}
 {{< figure projections.xlsx#chunk-label caption="asfdasdf" label="myplot" >}}
-{{< table projections.xlsx#fy-2019 label="projections" label="">}}
+{{< table projections.ipynb#fy-2019 label="projections" label="">}}
 {{< text notebook.Rmd##chunk-label >}}
 {{< tweet https://twitter.com/foo/status/34453323455 >}}
 {{< video https://youtube.com/foo/status/34453323455 >}}
