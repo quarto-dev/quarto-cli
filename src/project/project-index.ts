@@ -40,8 +40,8 @@ export async function inputTargetIndex(
     return Promise.resolve(undefined);
   }
 
-  // return undefined if it's not in the list of input files
-  if (!project.files.input.includes(Deno.realPathSync(inputFile))) {
+  // check if this can be handled by one of our engines
+  if (fileExecutionEngine(inputFile) === undefined) {
     return Promise.resolve(undefined);
   }
 
