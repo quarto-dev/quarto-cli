@@ -69,7 +69,7 @@ export function htmlFormatPostprocessor(format: Format) {
     ? format.metadata[kCodeCopy] !== false
     : format.metadata[kCodeCopy] || false;
 
-  return (doc: Document): string[] => {
+  return (doc: Document): Promise<string[]> => {
     // insert code copy button
     if (codeCopy) {
       const codeBlocks = doc.querySelectorAll("pre.sourceCode");
@@ -90,7 +90,7 @@ export function htmlFormatPostprocessor(format: Format) {
     }
 
     // no resource refs
-    return [];
+    return Promise.resolve([]);
   };
 }
 

@@ -132,7 +132,7 @@ export async function runPandoc(
   const printAllDefaults = allDefaults ? ld.cloneDeep(allDefaults) : undefined;
 
   // see if there are extras
-  const htmlPostprocessors: Array<(doc: Document) => string[]> = [];
+  const htmlPostprocessors: Array<(doc: Document) => Promise<string[]>> = [];
   if (
     sysFilters.length > 0 || options.format.formatExtras ||
     options.project?.formatExtras
@@ -309,9 +309,10 @@ export async function runPandoc(
     const outputFile = join(cwd, options.output);
     const htmlInput = Deno.readTextFileSync(outputFile);
     const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
-    htmlPostprocessors.forEach((preprocessor) => {
-      resourceRefs.push(...preprocessor(doc));
-    });
+    for (let i = 0; i < htmlPostprocessors.length; i++) {
+      const postprocessor = htmlPostprocessors[i];
+      resourceRefs.push(...(await postprocessor(doc)));
+    }
     const htmlOutput = doc.documentElement?.outerHTML!;
     Deno.writeTextFileSync(outputFile, htmlOutput);
   }

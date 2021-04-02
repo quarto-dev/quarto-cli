@@ -124,7 +124,7 @@ export function boostrapExtras(
 }
 
 function bootstrapHtmlPostprocessor(format: Format) {
-  return (doc: Document): string[] => {
+  return (doc: Document): Promise<string[]> => {
     // use display-6 style for title
     const title = doc.querySelector("header > .title");
     if (title) {
@@ -200,6 +200,6 @@ function bootstrapHtmlPostprocessor(format: Format) {
     }
 
     // no resource refs
-    return [];
+    return Promise.resolve([]);
   };
 }

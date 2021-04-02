@@ -18,7 +18,7 @@ export function projectScratchPath(project: ProjectContext, path = "") {
   if (path) {
     path = join(scratchDir, path);
     ensureDirSync(dirname(path));
-    return Deno.realPathSync(path);
+    return path;
   } else {
     return Deno.realPathSync(scratchDir);
   }

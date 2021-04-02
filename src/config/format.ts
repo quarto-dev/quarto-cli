@@ -134,7 +134,7 @@ export interface FormatExtras {
     [kDependencies]?: FormatDependency[];
     [kSassBundles]?: SassBundle[];
     [kBodyEnvelope]?: BodyEnvelope;
-    [kHtmlPostprocessors]?: Array<(doc: Document) => string[]>;
+    [kHtmlPostprocessors]?: Array<(doc: Document) => Promise<string[]>>;
   };
 }
 

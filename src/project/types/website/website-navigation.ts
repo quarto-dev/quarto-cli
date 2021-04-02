@@ -5,7 +5,7 @@
 *
 */
 
-import { basename, join, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
@@ -242,12 +242,16 @@ export function websiteNavigationExtras(
       [kSassBundles]: sassBundles,
       [kDependencies]: dependencies,
       [kBodyEnvelope]: bodyEnvelope,
-      [kHtmlPostprocessors]: [navigationHtmlPostprocessor(href, offset)],
+      [kHtmlPostprocessors]: [navigationHtmlPostprocessor(project, input)],
     },
   };
 }
 
-function navigationHtmlPostprocessor(href: string, offset: string) {
+function navigationHtmlPostprocessor(project: ProjectContext, input: string) {
+  const inputRelative = relative(project.dir, input);
+  const offset = projectOffset(project, input);
+  const href = inputFileHref(inputRelative);
+
   return (doc: Document) => {
     // latch active nav link
     const navLinks = doc.querySelectorAll("a.nav-link");
@@ -285,8 +289,26 @@ function navigationHtmlPostprocessor(href: string, offset: string) {
       }
     }
 
+    // resolve links to input (src) files
+    /*
+    const links = doc.querySelectorAll("a[href]");
+    for (let i = 0; i < links.length; i++) {
+      const link = links[i] as Element;
+      const href = link.getAttribute("href");
+      if (href && !isExternalPath(href)) {
+        const projRelativeHref = join(dirname(inputRelative), href);
+        const resolved = await resolveInputTarget(project, projRelativeHref);
+        if (resolved) {
+          const inputDir = join(project.dir, dirname(projRelativeHref));
+          const htmlPath = join(project.dir, resolved.htmlHref);
+          link.setAttribute("href", relative(inputDir, htmlPath));
+        }
+      }
+    }
+    */
+
     // resolve resource refs
-    return resolveResourceRefs(doc, offset);
+    return Promise.resolve(resolveResourceRefs(doc, offset));
   };
 }
 
@@ -556,23 +578,12 @@ async function resolveItem(
   item: { href?: string; text?: string },
 ): Promise<{ href?: string; text?: string }> {
   if (!isExternalPath(href)) {
-    const index = await inputTargetIndex(project, href);
-    if (index) {
-      const format = Object.values(index.formats)[0];
-      const [hrefDir, hrefStem] = dirAndStem(href);
-      const outputFile = format?.pandoc[kOutputFile] || `${hrefStem}.html`;
-      const htmlHref = pathWithForwardSlashes(
-        "/" + join(hrefDir, outputFile),
-      );
-      const title = format.metadata?.[kTitle] as string ||
-        ((hrefDir === "." && hrefStem === "index")
-          ? project.metadata?.project?.title
-          : undefined);
-
+    const resolved = await resolveInputTarget(project, href);
+    if (resolved) {
       return {
         ...item,
-        href: htmlHref,
-        text: item.text || title,
+        href: "/" + resolved.htmlHref,
+        text: item.text || resolved.title,
       };
     } else {
       return {
@@ -582,6 +593,23 @@ async function resolveItem(
     }
   } else {
     return item;
+  }
+}
+
+async function resolveInputTarget(project: ProjectContext, href: string) {
+  const index = await inputTargetIndex(project, href);
+  if (index) {
+    const format = Object.values(index.formats)[0];
+    const [hrefDir, hrefStem] = dirAndStem(href);
+    const outputFile = format?.pandoc[kOutputFile] || `${hrefStem}.html`;
+    const htmlHref = pathWithForwardSlashes(join(hrefDir, outputFile));
+    const title = format.metadata?.[kTitle] as string ||
+      ((hrefDir === "." && hrefStem === "index")
+        ? project.metadata?.project?.title
+        : undefined);
+    return { title, htmlHref };
+  } else {
+    return undefined;
   }
 }
 

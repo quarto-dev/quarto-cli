@@ -40,6 +40,11 @@ export async function inputTargetIndex(
     return Promise.resolve(undefined);
   }
 
+  // return undefined if it's not in the list of input files
+  if (!project.files.input.includes(Deno.realPathSync(inputFile))) {
+    return Promise.resolve(undefined);
+  }
+
   // see if we have an up to date index file
   const indexFile = inputTargetIndexFile(project, input);
   if (await exists(indexFile)) {
