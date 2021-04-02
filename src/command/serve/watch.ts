@@ -32,6 +32,7 @@ import { kLocalhost, ServeOptions } from "./serve.ts";
 
 export interface ProjectWatcher {
   project: () => ProjectContext;
+  refresh: () => ProjectContext;
   handle: (req: ServerRequest) => boolean;
   connect: (req: ServerRequest) => Promise<void>;
   injectClient: (file: Uint8Array) => Uint8Array;
@@ -231,6 +232,10 @@ export function watchProject(
   // return watcher interface
   return {
     project: () => {
+      return project;
+    },
+    refresh: () => {
+      project = projectContext(project.dir);
       return project;
     },
     handle: (req: ServerRequest) => {

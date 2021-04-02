@@ -209,7 +209,13 @@ async function serveFile(
     const fileTime = Deno.statSync(filePath).mtime;
     if (!fileTime || ((Date.now() - fileTime.getTime()) > 1000)) {
       // find the input file associated with this output and render it
-      const inputFile = await inputFileForOutputFile(project, filePath);
+      // if we can't find an input file for this .html file it may have
+      // been an input added after the server started running, to catch
+      // this case run a refresh on the watcher then try again
+      let inputFile = await inputFileForOutputFile(project, filePath);
+      if (!inputFile) {
+        inputFile = await inputFileForOutputFile(watcher.refresh(), filePath);
+      }
       if (inputFile) {
         await renderProject(
           project,
