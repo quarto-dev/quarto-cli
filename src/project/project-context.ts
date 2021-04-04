@@ -121,7 +121,9 @@ export function projectContext(path: string): ProjectContext {
         return {
           dir,
           files: {
-            input: projectInputFiles(dir),
+            input: Deno.statSync(path).isDirectory
+              ? projectInputFiles(dir)
+              : [Deno.realPathSync(path)],
           },
         };
       }
@@ -131,7 +133,9 @@ export function projectContext(path: string): ProjectContext {
         return {
           dir: originalDir,
           files: {
-            input: projectInputFiles(dir),
+            input: Deno.statSync(path).isDirectory
+              ? projectInputFiles(dir)
+              : [Deno.realPathSync(path)],
           },
         };
       } else {
