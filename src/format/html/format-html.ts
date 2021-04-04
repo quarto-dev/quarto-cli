@@ -15,7 +15,11 @@ import { formatResourcePath } from "../../core/resources.ts";
 import { sessionTempFile } from "../../core/temp.ts";
 import { asCssSize } from "../../core/css.ts";
 
-import { kHeaderIncludes, kIncludeInHeader } from "../../config/constants.ts";
+import {
+  kHeaderIncludes,
+  kIncludeAfterBody,
+  kIncludeInHeader,
+} from "../../config/constants.ts";
 import {
   DependencyFile,
   Format,
@@ -41,6 +45,7 @@ export const kPageLayout = "page-layout";
 export const kHoverCitations = "hover-citations";
 export const kHoverFootnotes = "hover-footnotes";
 export const kHypothesis = "hypothesis";
+export const kUtterances = "utterances";
 
 export const kFootnoteSectionTitle = "footnote-section-title";
 
@@ -120,6 +125,7 @@ function htmlFormatExtras(format: Format): FormatExtras {
 
   const options: Record<string, unknown> = {
     [kHypothesis]: format.metadata[kHypothesis] || false,
+    [kUtterances]: format.metadata[kUtterances] || false,
   };
   if (bootstrap) {
     options.copyCode = format.metadata[kCodeCopy] !== false;
@@ -254,9 +260,35 @@ function htmlFormatExtras(format: Format): FormatExtras {
     includeInHeader.push(hypothesisHeader);
   }
 
+  // after body
+  const includeAfterBody: string[] = [];
+
+  // utterances
+  if (options.utterances) {
+    if (typeof (options.utterances) !== "object") {
+      throw new Error("Invalid utterances configuration (must provide a repo");
+    }
+    const utterances = options.utterances as Record<string, string>;
+    if (!utterances["repo"]) {
+      throw new Error("Invalid utterances coniguration (must provide a repo)");
+    }
+    utterances["issue-term"] = utterances["issue-term"] || "pathname";
+    utterances["theme"] = utterances["theme"] || "github-light";
+    const utterancesAfterBody = sessionTempFile({ suffix: ".html" });
+    Deno.writeTextFileSync(
+      utterancesAfterBody,
+      renderEjs(
+        formatResourcePath("html", join("utterances", "utterances.ejs")),
+        { utterances },
+      ),
+    );
+    includeAfterBody.push(utterancesAfterBody);
+  }
+
   // return extras
   return {
     [kIncludeInHeader]: includeInHeader,
+    [kIncludeAfterBody]: includeAfterBody,
     html: {
       [kDependencies]: [{
         name: kQuartoHtmlDependency,
