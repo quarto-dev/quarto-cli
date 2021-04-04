@@ -1,8 +1,5 @@
 
 
-- quarto_render() from R doesn't show progress
-
-
 Books
 =========================================================================
 
@@ -113,7 +110,7 @@ TODO: consider using grid for column layout (margin figures)
 
 Search: https://stork-search.net/
 TODO: embedding pdfs in website via pdf.js
-TODO: commenting via Hypothesis and/or Utterances
+(note: add hypotheis support for pdf.js at the same time)
 
 TODO: do template patching at configure time or just use pandoc version keyed cache (25ms)
 
