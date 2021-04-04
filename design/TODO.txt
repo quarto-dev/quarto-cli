@@ -1,7 +1,49 @@
 
 
+- quarto_render() from R doesn't show progress
+
+
 Books
 =========================================================================
+
+- we need section cross refs to NOT require section numbering. links to sections need to be global
+  HTML books you need to use crossrefs
+- [Another option is that we resolve .md#foobar to just be #foobar  @sec:asdfasdf]
+
+
+
+- For HTML output, we want to execute pandoc for each file, however some things are effectively "global":
+    - cross references
+        - persist the index across all pandoc renders (resolveRefs in a separate pass at the end)
+        - paste together all of of the markdown and run the filters on it, then run pandoc without the filters on each file
+    - bibliography 
+        - per page option?
+        - global: 
+            - collect up every key that is used anywhere in the book
+            - tell pandoc to create a page using those keys
+            - hide the bibliography in the individual chapters
+            - fixup up the citation links to point to the bibliography
+
+- Should seriously consider whether HTML should also be pasted together. If we do the global render followed by split, 
+  then we need to save out the dependencies and htmlPreserve and apply it per file
+
+- Incremental render uses the freezer
+
+- Running all markdown files as one pandoc render (pdf, epub, asciidoc, whatever)
+    - we need to render one format at a time
+    - we need to accumulate a set of executeResults (it would be nice if only one place computed the filesDir)
+    - we need to feed all of those executeResults back to pandoc together 
+         - concatenate the dependencies and resolve them in one step
+         - concatenate the markdown (fixup relative references -- the md file needs a marker e.g. a comment to indicate the offset)
+           (done in a lua filter)
+         - there needs to be a source of front-matter for that file (derived from _quarto.yml)
+         - (if there is front-matter in chapters e.g. for web output, we need to strip it out of the markdown)
+    - then we run the preserve step with an array of preserves
+    - visual editor needs to use the full path to chapters for the id-prefix for footnotes
+
+
+IDE/Docs unlock users actually using this and engaging with it
+
 
 - webshot equivalent for printed output
 
@@ -13,6 +55,7 @@ Books
 
 
 - Concept of non-HTML themes (e.g. LaTeX template, docx template)
+
 
 - projects: shell command to run before/after render or per-file render
 
