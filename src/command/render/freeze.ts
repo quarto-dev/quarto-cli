@@ -6,7 +6,7 @@
 */
 
 import { dirname, isAbsolute, join, relative } from "path/mod.ts";
-import { copySync, ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { createHash } from "hash/mod.ts";
 
 import { ld } from "lodash/mod.ts";
