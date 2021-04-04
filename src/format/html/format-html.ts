@@ -15,7 +15,7 @@ import { formatResourcePath } from "../../core/resources.ts";
 import { sessionTempFile } from "../../core/temp.ts";
 import { asCssSize } from "../../core/css.ts";
 
-import { kHeaderIncludes } from "../../config/constants.ts";
+import { kHeaderIncludes, kIncludeInHeader } from "../../config/constants.ts";
 import {
   DependencyFile,
   Format,
@@ -40,6 +40,7 @@ export const kAnchorSections = "anchor-sections";
 export const kPageLayout = "page-layout";
 export const kHoverCitations = "hover-citations";
 export const kHoverFootnotes = "hover-footnotes";
+export const kHypothesis = "hypothesis";
 
 export const kFootnoteSectionTitle = "footnote-section-title";
 
@@ -117,7 +118,9 @@ function htmlFormatExtras(format: Format): FormatExtras {
   const bootstrap = formatHasBootstrap(format);
   const sassBundles: SassBundle[] = [];
 
-  const options: Record<string, unknown> = {};
+  const options: Record<string, unknown> = {
+    [kHypothesis]: format.metadata[kHypothesis] || false,
+  };
   if (bootstrap) {
     options.copyCode = format.metadata[kCodeCopy] !== false;
     options.anchors = format.metadata[kAnchorSections] !== false;
@@ -194,7 +197,7 @@ function htmlFormatExtras(format: Format): FormatExtras {
 
   // add main orchestion script if we have any options enabled
   const quartoHtmlRequired = Object.keys(options).some((option) =>
-    options[option]
+    !!options[option]
   );
 
   if (quartoHtmlRequired) {
@@ -235,8 +238,25 @@ function htmlFormatExtras(format: Format): FormatExtras {
     }
   }
 
+  // header includes
+  const includeInHeader: string[] = [];
+
+  // hypothesis
+  if (options.hypothesis) {
+    const hypothesisHeader = sessionTempFile({ suffix: ".html" });
+    Deno.writeTextFileSync(
+      hypothesisHeader,
+      renderEjs(
+        formatResourcePath("html", join("hypothesis", "hypothesis.ejs")),
+        { hypothesis: options.hypothesis },
+      ),
+    );
+    includeInHeader.push(hypothesisHeader);
+  }
+
   // return extras
   return {
+    [kIncludeInHeader]: includeInHeader,
     html: {
       [kDependencies]: [{
         name: kQuartoHtmlDependency,
