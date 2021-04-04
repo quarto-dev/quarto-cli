@@ -190,9 +190,7 @@ export async function renderFiles(
   }
 
   // see if we should be using file-by-file progress
-  const progress = project && (files.length > 1) && !options.flags?.quiet
-    ? progressBar(files.length)
-    : undefined;
+  const progress = project && (files.length > 1) && !options.flags?.quiet;
 
   if (progress) {
     message(`\nRendering ${project!.dir}:`);
@@ -207,7 +205,7 @@ export async function renderFiles(
       const file = files[i];
 
       if (progress) {
-        progress.update(i + 1, relative(project!.dir, file));
+        message(relative(project!.dir, file), { indent: 2 });
       }
 
       // make a copy of options (since we mutate it)
@@ -276,8 +274,7 @@ export async function renderFiles(
     }
 
     if (progress) {
-      progress.complete("Done");
-      message("\n");
+      message("");
     }
 
     return results;
