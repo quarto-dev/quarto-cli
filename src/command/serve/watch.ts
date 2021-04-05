@@ -33,6 +33,8 @@ import { kLocalhost, ServeOptions } from "./serve.ts";
 export interface ProjectWatcher {
   project: () => ProjectContext;
   refresh: () => ProjectContext;
+  suspend: () => void;
+  resume: () => void;
   handle: (req: ServerRequest) => boolean;
   connect: (req: ServerRequest) => Promise<void>;
   injectClient: (file: Uint8Array) => Uint8Array;
@@ -100,12 +102,6 @@ export function watchProject(
     }
   };
 
-  // function to create an output dir path for a given project file
-  const outputPath = (file: string) => {
-    const sourcePath = relative(projDir, file);
-    return join(outputDir, sourcePath);
-  };
-
   // track every path that has been modified since the last reload
   const modified: string[] = [];
 
@@ -155,13 +151,8 @@ export function watchProject(
 
         // if any resource files changed, copy them to the output directory
         // (the reload will be subsequently triggered by detection of these writes)
-        const modifiedResources = paths.filter(isResourceFile);
-        for (const file of modifiedResources) {
-          try {
-            copyResourceFile(projDir, file, outputPath(file));
-          } catch {
-            // multiple concurrent renders sometimes result in missing resource files
-          }
+        if (paths.some(isResourceFile)) {
+          return true;
         }
 
         return false;
@@ -215,10 +206,16 @@ export function watchProject(
     }
   }, 50);
 
+  // track suspend/resume
+  let suspended = false;
+
   // watch project dir recursively
   const watcher = Deno.watchFs(project.dir, { recursive: true });
   const watchForChanges = () => {
     watcher.next().then(async (iter) => {
+      if (suspended) {
+        return;
+      }
       try {
         // see if we need to handle this
         if (await handleWatchEvent(iter.value)) {
@@ -238,10 +235,18 @@ export function watchProject(
     project: () => {
       return project;
     },
+    suspend: () => {
+      suspended = true;
+    },
+    resume: () => {
+      suspended = false;
+      watchForChanges();
+    },
     refresh: () => {
       project = projectContext(project.dir);
       return project;
     },
+
     handle: (req: ServerRequest) => {
       return !!options.watch && (req.headers.get("upgrade") === "websocket");
     },
