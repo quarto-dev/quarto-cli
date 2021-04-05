@@ -391,16 +391,16 @@ export async function renderExecute(
     if (context.options.useFreezer) {
       const inputDir = relative(
         context.project.dir,
-        dirname(context.target.input),
+        dirname(context.target.source),
       );
-      const filesDir = join(inputDir, inputFilesDir(context.target.input));
+      const filesDir = join(inputDir, inputFilesDir(context.target.source));
       copyFromProjectFreezer(context.project, filesDir);
       thaw = "auto";
     }
 
     if (thaw) {
       const thawedResult = defrostExecuteResult(
-        context.target.input,
+        context.target.source,
         output,
         thaw === true,
       );
