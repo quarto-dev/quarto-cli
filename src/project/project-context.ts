@@ -23,7 +23,11 @@ import { ProjectType, projectType } from "./types/project-types.ts";
 
 import { resolvePathGlobs } from "../core/path.ts";
 
-import { fileExecutionEngine } from "../execute/engine.ts";
+import {
+  executionEngine,
+  executionEngines,
+  fileExecutionEngine,
+} from "../execute/engine.ts";
 import { projectResourceFiles } from "./project-resources.ts";
 
 export const kExecuteDir = "execute-dir";
@@ -237,13 +241,25 @@ function projectInputFiles(dir: string, metadata?: ProjectMetadata) {
   };
 
   const addDir = (dir: string) => {
+    // Allow engines to provide directories that can be ignored
+    const skip = [/[/\\][_\.]/];
+    executionEngines().forEach((name) => {
+      const engine = executionEngine(name);
+      if (engine && engine.ignoreDirs) {
+        const ignores = engine.ignoreDirs();
+        if (ignores) {
+          skip.push(...ignores);
+        }
+      }
+    });
+
     for (
       const walk of walkSync(
         dir,
         {
           includeDirs: false,
           followSymlinks: false,
-          skip: [/[/\\][_\.]/, /renv/, /packrat/],
+          skip,
         },
       )
     ) {

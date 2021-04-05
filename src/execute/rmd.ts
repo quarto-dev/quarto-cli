@@ -93,6 +93,10 @@ export const knitrEngine: ExecutionEngine = {
 
   keepFiles: (input: string) => [keepMd(input)],
 
+  ignoreDirs: () => {
+    return [/renv/, /packrat/];
+  },
+
   run: (options: RunOptions) => {
     return callR<void>(
       "run",

@@ -32,6 +32,7 @@ export interface ExecutionEngine {
   postprocess: (options: PostProcessOptions) => Promise<void>;
   keepMd: (input: string) => string | undefined;
   keepFiles: (input: string) => string[] | undefined;
+  ignoreDirs?: () => RegExp[] | undefined;
   run?: (options: RunOptions) => Promise<void>;
 }
 
