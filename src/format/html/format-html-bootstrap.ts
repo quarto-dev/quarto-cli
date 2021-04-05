@@ -170,6 +170,24 @@ function bootstrapHtmlPostprocessor(format: Format) {
       }
     }
 
+    // add .table class to pandas tables
+    const pandasTables = doc.querySelectorAll("table.dataframe");
+    for (let i = 0; i < pandasTables.length; i++) {
+      const table = pandasTables[i] as Element;
+      table.removeAttribute("border");
+      table.classList.add("table");
+      const headerRows = table.querySelectorAll("tr");
+      for (let r = 0; r < headerRows.length; r++) {
+        (headerRows[i] as Element).removeAttribute("style");
+      }
+      if (
+        table.previousElementSibling &&
+        table.previousElementSibling.tagName === "STYLE"
+      ) {
+        table.previousElementSibling.remove();
+      }
+    }
+
     // move ids from section to headers
     const sections = doc.querySelectorAll('section[class^="level"]');
     for (let i = 0; i < sections.length; i++) {
