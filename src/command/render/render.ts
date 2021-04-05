@@ -273,10 +273,6 @@ export async function renderFiles(
       results[file] = fileResults;
     }
 
-    if (progress) {
-      message("");
-    }
-
     return results;
   } catch (error) {
     // cleanup for project render (as their could be multiple results)
