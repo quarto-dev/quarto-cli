@@ -39,9 +39,10 @@ function layoutMetaInject()
   }
   .quarto-layout-cell {
     position: relative;
+    margin-right: 20px;
   }
   .quarto-layout-cell:last-child {
-    padding-right: 0;
+    margin-right: 0;
   }
   .quarto-layout-cell figure,
   .quarto-layout-cell > p {
