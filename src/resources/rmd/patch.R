@@ -37,8 +37,8 @@ if (requireNamespace("htmlwidgets", quietly = TRUE)) {
     # return sizing
     sizing
   }
+  assignInNamespace("resolveSizing", resolveSizing, ns = "htmlwidgets")
 }
-assignInNamespace("resolveSizing", resolveSizing, ns = "htmlwidgets")
 
 
 # override wrapping behavior for knitr_asis output (including htmlwidgets)
