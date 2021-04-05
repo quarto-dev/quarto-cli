@@ -101,7 +101,7 @@ export async function serveProject(
         fsPath = join(fsPath, "index.html");
       }
       response = await serveFile(fsPath!, watcher, projServe);
-      if (options.debug) {
+      if (options.quiet) {
         printUrl(normalizedUrl);
       }
     } catch (e) {
