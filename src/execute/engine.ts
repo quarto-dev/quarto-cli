@@ -21,7 +21,7 @@ export interface ExecutionEngine {
   name: string;
   defaultExt: string;
   defaultYaml: (kernel?: string) => string[];
-  canHandle: (file: string) => boolean;
+  canHandle: (file: string, contentOnly: boolean) => boolean;
   target: (
     file: string,
     quiet?: boolean,
@@ -125,11 +125,11 @@ export function executionEngine(name: string) {
   }
 }
 
-export function fileExecutionEngine(file: string) {
+export function fileExecutionEngine(file: string, contentOnly = false) {
   // try to find an engine
   for (const engine of kEngines) {
     if (engine.canHandle) {
-      if (engine.canHandle(file)) {
+      if (engine.canHandle(file, contentOnly)) {
         return engine;
       }
     }

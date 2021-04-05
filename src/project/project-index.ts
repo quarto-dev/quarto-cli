@@ -41,7 +41,7 @@ export async function inputTargetIndex(
   }
 
   // check if this can be handled by one of our engines
-  if (fileExecutionEngine(inputFile) === undefined) {
+  if (fileExecutionEngine(inputFile, true) === undefined) {
     return Promise.resolve(undefined);
   }
 

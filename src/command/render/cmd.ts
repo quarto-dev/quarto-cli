@@ -14,7 +14,7 @@ import { message } from "../../core/console.ts";
 
 import { fixupPandocArgs, kStdOut, parseRenderFlags } from "./flags.ts";
 
-import { render, RenderResult } from "./render.ts";
+import { render, RenderResult, renderResultFinalOutput } from "./render.ts";
 
 export const renderCommand = new Command()
   .name("render")
@@ -142,46 +142,12 @@ export const renderCommand = new Command()
     if (renderResult) {
       // report output created
       if (!options.flags?.quiet && options.flags?.output !== kStdOut) {
-        message("Output created: " + finalOutput(renderResult) + "\n");
+        message(
+          "Output created: " + renderResultFinalOutput(renderResult, true) +
+            "\n",
+        );
       }
     } else {
       throw new Error(`No valid input files passed to render`);
     }
   });
-
-function finalOutput(renderResults: RenderResult) {
-  // final output defaults to the first output of the first result
-  let result = renderResults.files[0];
-
-  // see if we can find an index.html instead
-  for (const fileResult of renderResults.files) {
-    if (fileResult.file === "index.html") {
-      result = fileResult;
-      break;
-    }
-  }
-
-  // determine final output
-  let finalInput = result.input;
-  let finalOutput = result.file;
-
-  if (renderResults.baseDir) {
-    finalInput = join(renderResults.baseDir, finalInput);
-    if (renderResults.outputDir) {
-      finalOutput = join(
-        renderResults.baseDir,
-        renderResults.outputDir,
-        finalOutput,
-      );
-    } else {
-      finalOutput = join(renderResults.baseDir, finalOutput);
-    }
-  } else {
-    finalOutput = join(dirname(finalInput), finalOutput);
-  }
-
-  // return a path relative to the input file
-  const inputRealPath = Deno.realPathSync(finalInput);
-  const outputRealPath = Deno.realPathSync(finalOutput);
-  return relative(dirname(inputRealPath), outputRealPath);
-}

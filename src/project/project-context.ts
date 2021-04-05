@@ -225,7 +225,7 @@ function projectInputFiles(dir: string, metadata?: ProjectMetadata) {
 
   const addFile = (file: string) => {
     if (!outputDir || !file.startsWith(join(dir, outputDir))) {
-      const engine = fileExecutionEngine(file);
+      const engine = fileExecutionEngine(file, true);
       if (engine) {
         files.push(file);
         const keep = engine.keepFiles(file);
@@ -240,7 +240,11 @@ function projectInputFiles(dir: string, metadata?: ProjectMetadata) {
     for (
       const walk of walkSync(
         dir,
-        { includeDirs: false, followSymlinks: true, skip: [/[/\\][_\.]/] },
+        {
+          includeDirs: false,
+          followSymlinks: false,
+          skip: [/[/\\][_\.]/, /renv/, /packrat/],
+        },
       )
     ) {
       addFile(walk.path);

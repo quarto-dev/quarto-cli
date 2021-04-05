@@ -329,12 +329,16 @@ export const jupyterEngine: ExecutionEngine = {
   keepMd,
 
   keepFiles: (input: string) => {
-    const keep = [keepMd(input)];
-    if (!isNotebook(input)) {
-      const [fileDir, fileStem] = dirAndStem(input);
-      keep.push(join(fileDir, fileStem + ".ipynb"));
+    const files: string[] = [];
+    const keep = keepMd(input);
+    if (keep) {
+      files.push(keep);
     }
-    return keep;
+    if (!isNotebook(input) && !input.endsWith(kKeepSuffix)) {
+      const [fileDir, fileStem] = dirAndStem(input);
+      files.push(join(fileDir, fileStem + ".ipynb"));
+    }
+    return files;
   },
 };
 
@@ -342,8 +346,13 @@ export function pythonBinary(binary = "python3") {
   return binary;
 }
 
+const kKeepSuffix = ".ipynb.md";
+
 function keepMd(input: string) {
-  return join(dirname(input), basename(input) + ".md");
+  if (!input.endsWith(kKeepSuffix)) {
+    const [dir, stem] = dirAndStem(input);
+    return join(dir, stem + ".ipynb.md");
+  }
 }
 
 interface JupyterTargetData {

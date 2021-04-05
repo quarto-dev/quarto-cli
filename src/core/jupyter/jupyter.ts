@@ -8,7 +8,7 @@
 // deno-lint-ignore-file camelcase
 
 import { ensureDirSync } from "fs/ensure_dir.ts";
-import { dirname, join } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 import { walkSync } from "fs/walk.ts";
 import { decode as base64decode } from "encoding/base64.ts";
 
@@ -333,6 +333,7 @@ export interface JupyterAssets {
 
 export function jupyterAssets(input: string, to?: string) {
   // calculate and create directories
+  input = Deno.realPathSync(input);
   const files_dir = join(dirname(input), inputFilesDir(input));
   to = (to || "html").replace(/[\+\-].*$/, "");
   const figures_dir = join(files_dir, "figure-" + to);
@@ -352,11 +353,12 @@ export function jupyterAssets(input: string, to?: string) {
     }
   }
 
+  const base_dir = dirname(input);
   return {
-    base_dir: dirname(input),
-    files_dir,
-    figures_dir,
-    supporting_dir,
+    base_dir,
+    files_dir: relative(base_dir, files_dir),
+    figures_dir: relative(base_dir, figures_dir),
+    supporting_dir: relative(supporting_dir, supporting_dir),
   };
 }
 
@@ -820,7 +822,7 @@ function mdImageOutput(
 
   // calculate output file name
   const ext = extensionForMimeImageType(mimeType);
-  const imageFile = join(options.assets.figures_dir, filename + "." + ext);
+  const imageFile = options.assets.figures_dir + "/" + filename + "." + ext;
 
   // get the data
   const imageText = Array.isArray(data)
@@ -844,7 +846,6 @@ function mdImageOutput(
         height = Math.round(png.height / 2);
       }
     }
-
     Deno.writeFileSync(outputFile, imageData);
   } else {
     Deno.writeTextFileSync(outputFile, imageText);

@@ -15,15 +15,10 @@ import { Response, serve, ServerRequest } from "http/server.ts";
 import { message } from "../../core/console.ts";
 import { openUrl } from "../../core/shell.ts";
 import { contentType, isHtmlContent } from "../../core/mime.ts";
-import { dirAndStem } from "../../core/path.ts";
-
-import { kOutputFile } from "../../config/constants.ts";
+import { pathWithForwardSlashes } from "../../core/path.ts";
 
 import { kOutputDir, ProjectContext } from "../../project/project-context.ts";
-import {
-  inputFileForOutputFile,
-  inputTargetIndex,
-} from "../../project/project-index.ts";
+import { inputFileForOutputFile } from "../../project/project-index.ts";
 
 import {
   ProjectServe,
@@ -31,6 +26,7 @@ import {
 } from "../../project/types/project-types.ts";
 
 import { renderProject } from "../render/project.ts";
+import { renderResultFinalOutput } from "../render/render.ts";
 
 import { ProjectWatcher, watchProject } from "./watch.ts";
 
@@ -146,7 +142,16 @@ export async function serveProject(
 
   // open browser if requested
   if (options.browse) {
-    openUrl(siteUrl);
+    if (renderResult.baseDir && renderResult.outputDir) {
+      const finalOutput = renderResultFinalOutput(renderResult);
+      const targetPath = pathWithForwardSlashes(relative(
+        join(renderResult.baseDir, renderResult.outputDir),
+        finalOutput,
+      ));
+      openUrl(targetPath === "index.html" ? siteUrl : siteUrl + targetPath);
+    } else {
+      openUrl(siteUrl);
+    }
   }
 
   // wait for requests
@@ -169,7 +174,10 @@ function serveFallback(
     });
   } else if (e instanceof Deno.errors.NotFound) {
     const url = normalizeURL(req.url);
-    if (basename(fsPath) !== "favicon.ico" && extname(fsPath) !== ".map") {
+    if (
+      basename(fsPath) !== "favicon.ico" && extname(fsPath) !== ".map" &&
+      !basename(fsPath).startsWith("jupyter-")
+    ) {
       if (!options.quiet) {
         printUrl(url, false);
       }

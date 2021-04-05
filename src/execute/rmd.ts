@@ -39,8 +39,9 @@ export const knitrEngine: ExecutionEngine = {
 
   defaultYaml: () => [],
 
-  canHandle: (file: string) => {
-    return kEngineExtensions.includes(extname(file).toLowerCase());
+  canHandle: (file: string, contentOnly: boolean) => {
+    const extensions = contentOnly ? kRmdExtensions : kEngineExtensions;
+    return extensions.includes(extname(file).toLowerCase());
   },
 
   target: (file: string, quiet?: boolean) => {

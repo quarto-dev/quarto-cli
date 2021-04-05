@@ -431,7 +431,7 @@ export async function renderExecute(
 
   // write the freeze file if we are in a project
   if (context.project) {
-    freezeExecuteResult(context.target.input, output, executeResult);
+    freezeExecuteResult(context.target.source, output, executeResult);
   }
 
   // return result
@@ -549,6 +549,50 @@ export async function renderPandoc(
     resourceFiles,
     selfContained,
   };
+}
+
+export function renderResultFinalOutput(
+  renderResults: RenderResult,
+  relativeToInput = false,
+) {
+  // final output defaults to the first output of the first result
+  let result = renderResults.files[0];
+
+  // see if we can find an index.html instead
+  for (const fileResult of renderResults.files) {
+    if (fileResult.file === "index.html") {
+      result = fileResult;
+      break;
+    }
+  }
+
+  // determine final output
+  let finalInput = result.input;
+  let finalOutput = result.file;
+
+  if (renderResults.baseDir) {
+    finalInput = join(renderResults.baseDir, finalInput);
+    if (renderResults.outputDir) {
+      finalOutput = join(
+        renderResults.baseDir,
+        renderResults.outputDir,
+        finalOutput,
+      );
+    } else {
+      finalOutput = join(renderResults.baseDir, finalOutput);
+    }
+  } else {
+    finalOutput = join(dirname(finalInput), finalOutput);
+  }
+
+  // return a path relative to the input file
+  if (relativeToInput) {
+    const inputRealPath = Deno.realPathSync(finalInput);
+    const outputRealPath = Deno.realPathSync(finalOutput);
+    return relative(dirname(inputRealPath), outputRealPath);
+  } else {
+    return finalOutput;
+  }
 }
 
 function mergePandocIncludes(
