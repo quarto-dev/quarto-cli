@@ -255,6 +255,7 @@ export function jupyterMdToJupyter(
       if (inCodeCell) {
         inCodeCell = false;
         flushLineBuffer("code", cellMetadata);
+        cellMetadata = {};
 
         // otherwise this flips the state of in-code
       } else {
