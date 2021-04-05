@@ -219,12 +219,16 @@ export function watchProject(
   const watcher = Deno.watchFs(project.dir, { recursive: true });
   const watchForChanges = () => {
     watcher.next().then(async (iter) => {
-      // see if we need to handle this
-      if (await handleWatchEvent(iter.value)) {
-        await reloadClients();
+      try {
+        // see if we need to handle this
+        if (await handleWatchEvent(iter.value)) {
+          await reloadClients();
+        }
+      } catch (e) {
+        displayError(e);
+      } finally {
+        watchForChanges();
       }
-      // keep watching
-      watchForChanges();
     });
   };
   watchForChanges();
