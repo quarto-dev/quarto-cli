@@ -84,10 +84,24 @@ function supportingFiles(config: Configuration, log: Logger) {
   pathsToClean.forEach((path) => Deno.removeSync(path, { recursive: true }));
 }
 
+interface Filter {
+  // The name of the filter (the LUA file and perhaps the directory)
+  name: string;
+
+  // An optional name of the directory, if it is not the name of the LUA filter
+  dir?: string;
+}
+
 function inlineFilters(config: Configuration) {
   config.log.info("Building inlined filters");
   const outDir = join(config.directoryInfo.share, "filters");
-  const filtersToInline = ["quarto-pre", "crossref", "layout", "quarto-post"];
+  const filtersToInline: Filter[] = [
+    { name: "quarto-pre" },
+    { name: "crossref" },
+    { name: "layout" },
+    { name: "quarto-post" },
+    { name: "pagebreak", dir: "rmarkdown" },
+  ];
 
   filtersToInline.forEach((filter) => {
     config.log.info(filter);
@@ -96,10 +110,10 @@ function inlineFilters(config: Configuration) {
         config.directoryInfo.src,
         "resources",
         "filters",
-        filter,
-        `${filter}.lua`,
+        filter.dir || filter.name,
+        `${filter.name}.lua`,
       ),
-      join(outDir, filter, `${filter}.lua`),
+      join(outDir, filter.dir || filter.name, `${filter.name}.lua`),
       config.log,
     );
   });
