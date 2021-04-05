@@ -11,15 +11,35 @@ import {
 } from "cliffy/command/mod.ts";
 
 import { commands } from "./command/command.ts";
-import { logError } from "./core/log.ts";
+import {
+  cleanupLogger,
+  initializeLogger,
+  logError,
+  LogOptions,
+} from "./core/log.ts";
 import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
 import { quartoConfig } from "./core/quarto.ts";
+import { Args, parse } from "flags/mod.ts";
 
 export async function quarto(args: string[]) {
   const quartoCommand = new Command()
     .name("quarto")
     .version(quartoConfig.version())
     .description("Quarto CLI")
+    .option(
+      "-l, --log <file>",
+      "Log to this file",
+      {
+        global: true,
+      },
+    )
+    .option(
+      "-ll, --log-level <level>",
+      "Log level (info, warning, error, critical)",
+      {
+        global: true,
+      },
+    )
     .throwErrors();
 
   commands().forEach((command) => {
@@ -34,14 +54,25 @@ export async function quarto(args: string[]) {
 
 if (import.meta.main) {
   try {
+    // Parse the raw args to read globals and initialize logging
+    const args = parse(Deno.args);
+    await initializeLogger(logOptions(args));
     initSessionTempDir();
     await quarto(Deno.args);
     cleanupSessionTempDir();
-  } catch (error) {
-    if (error) {
-      logError(error);
+  } catch (e) {
+    if (e) {
+      logError(e);
     }
     cleanupSessionTempDir();
+    await cleanupLogger();
     Deno.exit(1);
   }
+}
+
+function logOptions(args: Args) {
+  const logOptions: LogOptions = {};
+  logOptions.log = args.l || args.log;
+  logOptions.level = args.ll || args["log-level"];
+  return logOptions;
 }
