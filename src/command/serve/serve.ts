@@ -234,7 +234,7 @@ async function serveFile(
         try {
           await renderForServe(
             project,
-            serveDir,
+            relative(project.dir, serveDir),
             { quiet: true },
             [inputFile],
           );

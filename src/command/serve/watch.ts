@@ -165,7 +165,10 @@ export function watchProject(
     }
   };
 
-  // track client clients
+  // track suspend/resume
+  let suspended = false;
+
+  // track clients
   interface Client {
     path: string;
     socket: WebSocket;
@@ -176,6 +179,11 @@ export function watchProject(
   // (ensures that we wait for bulk file copying to complete
   // before triggering the reload)
   const reloadClients = ld.debounce(async () => {
+    // ignore if suspended
+    if (suspended) {
+      return;
+    }
+
     // see if there is a reload target (last html file modified)
     const lastHtmlFile = ld.uniq(modified).reverse().find((file) => {
       return extname(file) === ".html" && inOutputDir(file);
@@ -205,9 +213,6 @@ export function watchProject(
       }
     }
   }, 50);
-
-  // track suspend/resume
-  let suspended = false;
 
   // watch project dir recursively
   const watcher = Deno.watchFs(project.dir, { recursive: true });
