@@ -308,12 +308,14 @@ export async function runPandoc(
   if (isHtmlOutput(options.format.pandoc) && htmlPostprocessors.length > 0) {
     const outputFile = join(cwd, options.output);
     const htmlInput = Deno.readTextFileSync(outputFile);
+    const doctypeMatch = htmlInput.match(/^<!DOCTYPE.*?>/);
     const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
     for (let i = 0; i < htmlPostprocessors.length; i++) {
       const postprocessor = htmlPostprocessors[i];
       resourceRefs.push(...(await postprocessor(doc)));
     }
-    const htmlOutput = doc.documentElement?.outerHTML!;
+    const htmlOutput = (doctypeMatch ? doctypeMatch[0] + "\n" : "") +
+      doc.documentElement?.outerHTML!;
     Deno.writeTextFileSync(outputFile, htmlOutput);
   }
 
