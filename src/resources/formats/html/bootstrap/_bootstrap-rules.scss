@@ -37,13 +37,16 @@ h4 {
 
 // sort out border color
 $code-border-left-color: $table-border-color !default;
-@if type_of($code-border-left) == color { 
+@if type_of($code-border-left) == color {
   $code-border-left-color: $code-border-left;
 }
 
 // sort out background color
-$code-background-color: color.adjust($progress-bg, $alpha: $code-background-alpha) !default;
-@if type_of($code-background) == color { 
+$code-background-color: color.adjust(
+  $progress-bg,
+  $alpha: $code-background-alpha
+) !default;
+@if type_of($code-background) == color {
   $code-background-color: $code-background;
 }
 
@@ -51,7 +54,7 @@ pre.sourceCode {
   // Apply border, if specified
   @if $code-border-left {
     border-left: $code-border-left-size;
-    border-left-style:  $code-border-left-style;
+    border-left-style: $code-border-left-style;
     border-left-color: $code-border-left-color;
     padding-left: $code-padding-left;
   } @else {
@@ -61,10 +64,10 @@ pre.sourceCode {
   // Clear code background if is not specified
   @if $code-background {
     background-color: $code-background-color;
-    padding: $code-background-padding;      
+    padding: $code-background-padding;
   } @else {
     background-color: $body-bg !important;
-  }  
+  }
 }
 
 div.sourceCode {
@@ -78,13 +81,10 @@ div.sourceCode {
   kbd,
   pre:not(.sourceCode),
   samp {
-
-      background-color: $mono-background-color;
-      padding: 0.2em;
-    
+    background-color: $mono-background-color;
+    padding: 0.2em;
   }
 }
-
 
 #{$code-copy-selector} .code-copy-button > .bi::before {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGB($text-muted)}" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>');
@@ -153,6 +153,10 @@ kbd,
 div.hanging-indent {
   margin-left: 1em;
   text-indent: -1em;
+}
+
+caption {
+  text-align: center;
 }
 
 // footnotes/citations
@@ -319,7 +323,7 @@ $callouts: (
 
 // This is a sentinel value that renderers can use to determine
 // whether the theme is dark or light
-@if (color.blackness($body-bg) > $code-theme-dark-threshhold ) {
+@if (color.blackness($body-bg) > $code-theme-dark-threshhold) {
   /*! dark */
 } @else {
   /*! light */
