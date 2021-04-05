@@ -66,11 +66,11 @@ export function freezeExecuteResult(
 }
 
 export function defrostExecuteResult(
-  input: string,
+  source: string,
   output: string,
   force = false,
 ) {
-  const resultFile = freezeResultFile(input, output);
+  const resultFile = freezeResultFile(source, output);
   if (existsSync(resultFile)) {
     // parse result
     const { hash, result } = JSON.parse(Deno.readTextFileSync(resultFile)) as {
@@ -78,11 +78,11 @@ export function defrostExecuteResult(
       result: ExecuteResult;
     };
 
-    // use frozen version for force or equivalent input hash
-    if (force || hash === freezeInputHash(input)) {
+    // use frozen version for force or equivalent source hash
+    if (force || hash === freezeInputHash(source)) {
       // full path to supporting
       result.supporting = result.supporting.map((file) =>
-        Deno.realPathSync(join(dirname(input), file))
+        Deno.realPathSync(join(dirname(source), file))
       );
 
       // convert includes to files
