@@ -11,7 +11,7 @@ import { basename, dirname, join, relative } from "path/mod.ts";
 import { ld } from "lodash/mod.ts";
 
 import { resolvePathGlobs } from "../../core/path.ts";
-import { message } from "../../core/console.ts";
+import { warning } from "../../core/log.ts";
 
 import { kFreeze, kKeepMd } from "../../config/constants.ts";
 
@@ -287,7 +287,7 @@ export async function renderProject(
             copyResourceFile(context.dir, file, destPath);
           }
         } else if (!existsSync(destPath)) {
-          message(`WARNING: File '${sourcePath}' was not found.`);
+          warning(`File '${sourcePath}' was not found.`);
         }
       });
     } else {
