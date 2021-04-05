@@ -240,7 +240,7 @@ export async function renderProject(
           if (libsIncremental) {
             for (const lib of Deno.readDirSync(libDirFull)) {
               if (lib.isDirectory) {
-                const srcDir = join(libDir, basename(lib.name));
+                const srcDir = join(libDir, lib.name);
                 if (keepLibsDir) {
                   copyDir(srcDir);
                 } else {

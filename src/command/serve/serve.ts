@@ -101,7 +101,7 @@ export async function serveProject(
         fsPath = join(fsPath, "index.html");
       }
       response = await serveFile(fsPath!, watcher, projServe);
-      if (!options.quiet) {
+      if (options.quiet) {
         printUrl(normalizedUrl);
       }
     } catch (e) {
@@ -178,7 +178,7 @@ function serveFallback(
       basename(fsPath) !== "favicon.ico" && extname(fsPath) !== ".map" &&
       !basename(fsPath).startsWith("jupyter-")
     ) {
-      if (!options.quiet) {
+      if (options.debug) {
         printUrl(url, false);
       }
     }

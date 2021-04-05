@@ -178,7 +178,7 @@ function bootstrapHtmlPostprocessor(format: Format) {
       table.classList.add("table");
       const headerRows = table.querySelectorAll("tr");
       for (let r = 0; r < headerRows.length; r++) {
-        (headerRows[i] as Element).removeAttribute("style");
+        (headerRows[r] as Element).removeAttribute("style");
       }
       if (
         table.previousElementSibling &&

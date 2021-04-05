@@ -1,7 +1,8 @@
 
-Discuss project recursive render (exclude renv, packrat, etc.)
-Probably we want the engines to provide ignore dirs!!!
 
+
+TODO: render progress for R quarto_serve()
+TODO: open in browser with no index.html for R quarto_serve()
 
 Books
 =========================================================================
@@ -104,6 +105,8 @@ Tinytex install should optionally accept a version (?)
 Future
 =========================================================================
 
+TODO: can we get the progress bar for render to work in the rstudio console?
+
 TODO: add cleverref and do it by default
 
 TODO: produce 'tinytex' standalone binary (map command line options, etc.)
@@ -177,9 +180,19 @@ use Rmd-style chunks for Jupyter (Jmd). YAML encoding.
 Use e.g. fig-width vs. fig.width?  figwidth
 Jmd
 
+```{r mylabel}
+echo: true
+tags: ["foo", "bar"]
+
+
+```
+
+
 ```{python mylabel}
 echo: true
 tags: ["foo", "bar"]
+
+
 ```
 
 Look into Teal: https://news.ycombinator.com/item?id=26247813
