@@ -73,12 +73,12 @@ export async function inputFileForOutputFile(
   project: ProjectContext,
   output: string,
 ) {
-  // real path to output file
-  output = Deno.realPathSync(output);
-
   // compute output dir
   let outputDir = project.metadata?.project?.[kOutputDir];
   outputDir = outputDir ? join(project.dir, outputDir) : project.dir;
+
+  // full path to output (it's relative to output dir)
+  output = Deno.realPathSync(join(outputDir, output));
 
   for (const file of project.files.input) {
     const inputRelative = relative(project.dir, file);

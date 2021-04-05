@@ -23,7 +23,6 @@ import {
   ProjectContext,
   projectContext,
 } from "../../project/project-context.ts";
-import { copyResourceFile } from "../../project/project-resources.ts";
 import { ProjectServe } from "../../project/types/project-types.ts";
 
 import { RenderResult } from "../render/render.ts";
@@ -33,6 +32,8 @@ import { kLocalhost, ServeOptions } from "./serve.ts";
 export interface ProjectWatcher {
   project: () => ProjectContext;
   refresh: () => ProjectContext;
+  suspend: () => void;
+  resume: () => void;
   handle: (req: ServerRequest) => boolean;
   connect: (req: ServerRequest) => Promise<void>;
   injectClient: (file: Uint8Array) => Uint8Array;
@@ -100,71 +101,25 @@ export function watchProject(
     }
   };
 
-  // function to create an output dir path for a given project file
-  const outputPath = (file: string) => {
-    const sourcePath = relative(projDir, file);
-    return join(outputDir, sourcePath);
-  };
-
   // track every path that has been modified since the last reload
   const modified: string[] = [];
 
   // handle a watch event (return true if a reload should occur)
-  const handleWatchEvent = async (event: Deno.FsEvent) => {
+  const handleWatchEvent = (event: Deno.FsEvent) => {
     try {
       if (["modify", "create"].includes(event.kind)) {
-        // filter out paths that no longer exist or are in the quarto scratch dir
+        // filter out paths in hidden folders (e.g. .quarto, .git, .Rproj.user)
         const paths = ld.uniq(
-          event.paths
-            .filter(existsSync)
-            .filter((path) => !path.startsWith(projDirHidden)),
+          event.paths.filter((path) => !path.startsWith(projDirHidden)),
         );
 
-        // track modified
-        modified.push(...paths);
-
-        // notify project of files changed (return true if it indicates that
-        // this change should cause a reload)
-        if (projServe?.filesChanged) {
-          // create paths relative to project dir
-          const files = paths.map((path) => relative(project.dir, path));
-          if (await projServe.filesChanged(project, files)) {
-            return true;
-          }
-        }
-
-        // if any of the paths are in the output dir (but not the lib dir) then return true
-        if (paths.some(inOutputDir)) {
+        // request reload (debounced) for any change
+        if (paths.length > 0) {
+          modified.push(...paths);
           return true;
+        } else {
+          return false;
         }
-
-        // if any of the config files change, reload the config and return true (will cause browser reload)
-        if (paths.some((path) => (project.files.config || []).includes(path))) {
-          project = projectContext(project.dir);
-          return true;
-        }
-
-        // if any of the config resource files change then return true to reload
-        if (
-          paths.some((path) =>
-            (project.files.configResources || []).includes(path)
-          )
-        ) {
-          return true;
-        }
-
-        // if any resource files changed, copy them to the output directory
-        // (the reload will be subsequently triggered by detection of these writes)
-        const modifiedResources = paths.filter(isResourceFile);
-        for (const file of modifiedResources) {
-          try {
-            copyResourceFile(projDir, file, outputPath(file));
-          } catch {
-            // multiple concurrent renders sometimes result in missing resource files
-          }
-        }
-
-        return false;
       } else {
         return false;
       }
@@ -174,7 +129,10 @@ export function watchProject(
     }
   };
 
-  // track client clients
+  // track suspend/resume
+  let suspended = false;
+
+  // track clients
   interface Client {
     path: string;
     socket: WebSocket;
@@ -185,18 +143,28 @@ export function watchProject(
   // (ensures that we wait for bulk file copying to complete
   // before triggering the reload)
   const reloadClients = ld.debounce(async () => {
+    // ignore if suspended
+    if (suspended) {
+      return;
+    }
+
     // see if there is a reload target (last html file modified)
     const lastHtmlFile = ld.uniq(modified).reverse().find((file) => {
-      return extname(file) === ".html" && inOutputDir(file);
+      return extname(file) === ".html";
     });
+
     let reloadTarget = "";
     if (lastHtmlFile && options.navigate) {
       if (lastHtmlFile.startsWith(outputDir)) {
-        reloadTarget = "/" + relative(outputDir, lastHtmlFile);
+        reloadTarget = relative(outputDir, lastHtmlFile);
       } else {
-        reloadTarget = "/" + relative(projDir, lastHtmlFile);
+        reloadTarget = relative(projDir, lastHtmlFile);
       }
-      reloadTarget = pathWithForwardSlashes(reloadTarget);
+      if (existsSync(join(outputDir, reloadTarget))) {
+        reloadTarget = "/" + pathWithForwardSlashes(reloadTarget);
+      } else {
+        reloadTarget = "";
+      }
     }
     modified.splice(0, modified.length);
 
@@ -213,12 +181,15 @@ export function watchProject(
         clients.splice(i, 1);
       }
     }
-  }, 50);
+  }, 100);
 
   // watch project dir recursively
   const watcher = Deno.watchFs(project.dir, { recursive: true });
   const watchForChanges = () => {
     watcher.next().then(async (iter) => {
+      if (suspended) {
+        return;
+      }
       try {
         // see if we need to handle this
         if (await handleWatchEvent(iter.value)) {
@@ -238,10 +209,18 @@ export function watchProject(
     project: () => {
       return project;
     },
+    suspend: () => {
+      suspended = true;
+    },
+    resume: () => {
+      suspended = false;
+      watchForChanges();
+    },
     refresh: () => {
       project = projectContext(project.dir);
       return project;
     },
+
     handle: (req: ServerRequest) => {
       return !!options.watch && (req.headers.get("upgrade") === "websocket");
     },
