@@ -92,6 +92,8 @@ Logging
 // TODO: Json support
 // TODO: write log preamble with environment, version and so on
 // TODO: If error, should we also emit environment information
+Logging to respect quiet flag 
+Use global functions for logging (not our overrides (perhaps except for logging an error)
 
 Tinytex install / uninstall / update broken?
 Tinytex install update uninstall should require name
