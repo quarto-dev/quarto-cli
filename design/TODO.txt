@@ -1,4 +1,7 @@
 
+Discuss project recursive render (exclude renv, packrat, etc.)
+Probably we want the engines to provide ignore dirs!!!
+
 
 Books
 =========================================================================
@@ -6,8 +9,6 @@ Books
 - we need section cross refs to NOT require section numbering. links to sections need to be global
   HTML books you need to use crossrefs
 - [Another option is that we resolve .md#foobar to just be #foobar  @sec:asdfasdf]
-
-
 
 - For HTML output, we want to execute pandoc for each file, however some things are effectively "global":
     - cross references
@@ -86,12 +87,8 @@ TODO: produce 'tinytex' standalone binary (map command line options, etc.)
 TODO: launch buttons for interactivity (https://jupyterbook.org/interactive/launchbuttons.html#launch-buttons-for-interactivity)
       - run on binder and/or rstudio cloud
 
-TODO: cleverref
 TODO: section ref without numbers
 TODO: redirection and 404
-
-TODO: does the user need to be able to set the render priority:
-      https://jupyterbook.org/content/code-outputs.html#render-priority
 
 TODO: some sort of out-of-line execution
 
@@ -103,8 +100,6 @@ TODO: format text output with ansi color codes (filter)
       https://github.com/r-lib/crayon/issues/24
 
 TODO: prime thematic with theme info
-
-TODO: rsc_publish function based on rmarkdown::publish_site
 
 TODO: consider using grid for column layout (margin figures)
 
