@@ -14,6 +14,7 @@ export interface LogOptions {
   log?: string;
   level?: string;
   format?: string;
+  quiet?: boolean;
 }
 export async function initializeLogger(logOptions: LogOptions) {
   const isDebug = getenv("QUARTO_DEBUG", "false") === "true";
@@ -23,29 +24,31 @@ export async function initializeLogger(logOptions: LogOptions) {
   const file = logOptions.log;
   const level = logOptions.level || isDebug ? "debug" : "warning";
 
-  // Default logger just redirects to the console
-  handlers["console"] = new log.handlers.ConsoleHandler(
-    isDebug ? "DEBUG" : "INFO",
-    {
-      formatter: "{levelName}: {msg}",
-    },
-  );
-  defaultHandlers.push("console");
+  if (!logOptions.quiet) {
+    // Default logger just redirects to the console
+    handlers["console"] = new log.handlers.ConsoleHandler(
+      isDebug ? "DEBUG" : "INFO",
+      {
+        formatter: "{levelName}: {msg}",
+      },
+    );
+    defaultHandlers.push("console");
 
-  // If a file is specified, use a file based logger
-  if (file) {
-    handlers["file"] = new log.handlers.FileHandler(parseLevel(level), {
-      filename: file,
-      formatter: "{datetime} {levelName}: {msg}",
-    });
-    defaultHandlers.push("file");
+    // If a file is specified, use a file based logger
+    if (file) {
+      handlers["file"] = new log.handlers.FileHandler(parseLevel(level), {
+        filename: file,
+        formatter: "{datetime} {levelName}: {msg}",
+      });
+      defaultHandlers.push("file");
+    }
   }
 
   // Setup the logger
   await log.setup({
     handlers,
     loggers: {
-      quarto: {
+      default: {
         level: "DEBUG",
         handlers: defaultHandlers,
       },
@@ -56,21 +59,12 @@ export async function initializeLogger(logOptions: LogOptions) {
 export async function cleanupLogger() {
 }
 
-// Use the quarto specific logger, or fall back to the default
-function logger(): Logger {
-  let logger = log.getLogger("quarto");
-  if (!logger) {
-    logger = log.getLogger();
-  }
-  return logger;
-}
-
 export function logError(error: Error) {
   const isDebug = getenv("QUARTO_DEBUG", "false") === "true";
   if (isDebug) {
-    logger().error(error.stack);
+    log.error(error.stack);
   } else {
-    logger().error(`${error.name}: ${error.message}`);
+    log.error(`${error.name}: ${error.message}`);
   }
 }
 
