@@ -65,14 +65,6 @@ function logger(): Logger {
   return logger;
 }
 
-export function warning(msg: string) {
-  logger().warning(msg);
-}
-
-export function error(msg: string) {
-  logger().error(msg);
-}
-
 export function logError(error: Error) {
   const isDebug = getenv("QUARTO_DEBUG", "false") === "true";
   if (isDebug) {

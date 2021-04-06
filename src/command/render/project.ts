@@ -6,12 +6,12 @@
 */
 
 import { copySync, ensureDirSync, existsSync } from "fs/mod.ts";
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
+import { warning } from "log/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
 import { resolvePathGlobs } from "../../core/path.ts";
-import { warning } from "../../core/log.ts";
 
 import { kFreeze, kKeepMd } from "../../config/constants.ts";
 
