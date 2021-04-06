@@ -28,8 +28,6 @@ import {
   websiteNavigationExtras,
 } from "./website-navigation.ts";
 
-import { websiteServe } from "./website-serve.ts";
-
 import { kBaseUrl, updateSitemap } from "./website-sitemap.ts";
 import { updateSearchIndex } from "./website-search.ts";
 
@@ -66,8 +64,6 @@ export const websiteProjectType: ProjectType = {
   preRender: async (context: ProjectContext) => {
     await initWebsiteNavigation(context);
   },
-
-  serve: websiteServe,
 
   formatExtras: (
     project: ProjectContext,

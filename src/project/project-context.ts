@@ -6,7 +6,7 @@
 */
 
 import { dirname, isAbsolute, join, relative } from "path/mod.ts";
-import { existsSync, walkSync } from "fs/mod.ts";
+import { ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
@@ -24,6 +24,7 @@ import { ProjectType, projectType } from "./types/project-types.ts";
 import { resolvePathGlobs } from "../core/path.ts";
 
 import {
+  engineIgnoreDirs,
   executionEngine,
   executionEngines,
   fileExecutionEngine,
@@ -154,6 +155,7 @@ export function projectOutputDir(context: ProjectContext) {
   } else {
     outputDir = context.dir;
   }
+  ensureDirSync(outputDir);
   return Deno.realPathSync(outputDir);
 }
 
@@ -242,23 +244,15 @@ function projectInputFiles(dir: string, metadata?: ProjectMetadata) {
 
   const addDir = (dir: string) => {
     // Allow engines to provide directories that can be ignored
-    const skip = [/[/\\][_\.]/];
-    executionEngines().forEach((name) => {
-      const engine = executionEngine(name);
-      if (engine && engine.ignoreDirs) {
-        const ignores = engine.ignoreDirs();
-        if (ignores) {
-          skip.push(...ignores);
-        }
-      }
-    });
+    const skip = [/[/\\][\.]/];
+    skip.push(...engineIgnoreDirs());
 
     for (
       const walk of walkSync(
         dir,
         {
           includeDirs: false,
-          followSymlinks: false,
+          followSymlinks: true,
           skip,
         },
       )

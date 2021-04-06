@@ -5,9 +5,9 @@
 *
 */
 
-import { basename, dirname, extname, join } from "path/mod.ts";
+import { basename, dirname, extname, join, relative } from "path/mod.ts";
 
-import { copySync, ensureDirSync } from "fs/mod.ts";
+import { copySync, ensureDirSync, walkSync } from "fs/mod.ts";
 import { existsSync } from "fs/exists.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
 
@@ -161,6 +161,62 @@ export function relocate(
         const srcPath = join(src, path.name);
         relocate(srcPath, join(dest, path.name), move);
       }
+    }
+  }
+}
+
+export function copyMinimal(
+  srcDir: string,
+  destDir: string,
+  followSymlinks: boolean,
+  skip: RegExp[],
+  filter?: (path: string) => boolean,
+) {
+  // build list of src fiels
+  const srcFiles: string[] = [];
+  for (
+    const walk of walkSync(
+      srcDir,
+      {
+        includeDirs: false,
+        followSymlinks,
+        skip,
+      },
+    )
+  ) {
+    // alias source file
+    const srcFile = walk.path;
+
+    // apply filter
+    if (filter && !filter(srcFile)) {
+      continue;
+    }
+
+    // add to src files
+    srcFiles.push(srcFile);
+  }
+
+  // copy src files
+  for (const srcFile of srcFiles) {
+    if (!existsSync(srcFile)) {
+      continue;
+    }
+    const destFile = join(destDir, relative(srcDir, srcFile));
+    ensureDirSync(dirname(destFile));
+    if (existsSync(destFile)) {
+      const srcInfo = Deno.statSync(srcFile);
+      const destInfo = Deno.statSync(destFile);
+      if (!srcInfo.mtime || !destInfo.mtime || destInfo.mtime < srcInfo.mtime) {
+        copySync(srcFile, destFile, {
+          overwrite: true,
+          preserveTimestamps: true,
+        });
+      }
+    } else {
+      copySync(srcFile, destFile, {
+        overwrite: true,
+        preserveTimestamps: true,
+      });
     }
   }
 }

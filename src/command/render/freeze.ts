@@ -122,8 +122,8 @@ export function removeFreezeResults(filesDir: string) {
   }
 }
 
-export function projectFreezerDir(project: ProjectContext) {
-  const freezeDir = projectScratchPath(project, kFreezeSubDir);
+export function projectFreezerDir(dir: string) {
+  const freezeDir = projectScratchPath(dir, kFreezeSubDir);
   ensureDirSync(freezeDir);
   return Deno.realPathSync(freezeDir);
 }
@@ -133,7 +133,7 @@ export function copyToProjectFreezer(
   file: string,
   incremental = false,
 ) {
-  const freezerDir = projectFreezerDir(project);
+  const freezerDir = projectFreezerDir(project.dir);
   const srcFilesDir = join(project.dir, file);
   const destFilesDir = join(freezerDir, file);
   copy(srcFilesDir, destFilesDir, incremental);
@@ -144,7 +144,7 @@ export function copyFromProjectFreezer(
   file: string,
   incremental = false,
 ) {
-  const freezerDir = projectFreezerDir(project);
+  const freezerDir = projectFreezerDir(project.dir);
   const srcFilesDir = join(freezerDir, file);
   const destFilesDir = join(project.dir, file);
   if (existsSync(srcFilesDir)) {

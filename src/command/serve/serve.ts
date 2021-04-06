@@ -5,6 +5,10 @@
 *
 */
 
+// TODO: atomicity of render artifacts (timing)
+// TODO: _ filter not serving us well (exludes osx temp)
+// TODO: are we safe to skip the kOutputDir and kLibsDir (I think so)
+
 import * as colors from "fmt/colors.ts";
 
 import { existsSync } from "fs/mod.ts";
@@ -17,20 +21,23 @@ import { ld } from "lodash/mod.ts";
 import { message } from "../../core/console.ts";
 import { openUrl } from "../../core/shell.ts";
 import { contentType, isHtmlContent } from "../../core/mime.ts";
-import { pathWithForwardSlashes } from "../../core/path.ts";
-
-import { kOutputDir, ProjectContext } from "../../project/project-context.ts";
-import { inputFileForOutputFile } from "../../project/project-index.ts";
-import { projectScratchPath } from "../../project/project-scratch.ts";
+import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
+import { createSessionTempDir } from "../../core/temp.ts";
+import { logError } from "../../core/log.ts";
 
 import {
-  ProjectServe,
-  projectType,
-} from "../../project/types/project-types.ts";
+  kOutputDir,
+  ProjectContext,
+  projectContext,
+  projectOutputDir,
+} from "../../project/project-context.ts";
+import { inputFileForOutputFile } from "../../project/project-index.ts";
+
+import { engineIgnoreDirs } from "../../execute/engine.ts";
 
 import { renderProject } from "../render/project.ts";
 import { renderResultFinalOutput } from "../render/render.ts";
-import { RenderFlags } from "../render/flags.ts";
+import { projectFreezerDir } from "../render/freeze.ts";
 
 import { ProjectWatcher, watchProject } from "./watch.ts";
 
@@ -61,29 +68,20 @@ export async function serveProject(
     ...options,
   };
 
-  // determine the serve dir
-  const serveDir = relative(project.dir, projectScratchPath(project, "serve"));
+  // create mirror or project for serving
+  const serveDir = copyProjectForServe(project);
+  const serveProject = projectContext(serveDir);
 
-  // render the project
-  const renderResult = await renderForServe(project, serveDir, {
-    quiet: options.quiet,
-    debug: options.debug,
-  });
-
-  // get project serve hooks and call init if we have it
-  const projType = projectType(project.metadata?.project?.type);
-  const projServe = projType.serve;
-  if (projServe?.init) {
-    projServe.init(project);
-  }
+  const renderResult = await renderProject(
+    serveProject,
+    {
+      useFreezer: true,
+      flags: { quiet: options.quiet, debug: options.debug },
+    },
+  );
 
   // create project watcher
-  const watcher = watchProject(
-    project,
-    options,
-    renderResult,
-    projServe,
-  );
+  const watcher = watchProject(project, serveProject, renderResult, options);
 
   // main request handler
   const handler = async (req: ServerRequest): Promise<void> => {
@@ -97,18 +95,18 @@ export async function serveProject(
     let fsPath: string | undefined;
     try {
       const normalizedUrl = normalizeURL(req.url);
-      const serveDirAbsolute = Deno.realPathSync(join(project.dir, serveDir));
-      fsPath = serveDirAbsolute + normalizedUrl!;
+      const serveOutputDir = projectOutputDir(serveProject);
+      fsPath = serveOutputDir + normalizedUrl!;
       fsPath = Deno.realPathSync(fsPath);
       // don't let the path escape the serveDir
-      if (fsPath!.indexOf(serveDirAbsolute) !== 0) {
+      if (fsPath!.indexOf(serveOutputDir) !== 0) {
         fsPath = serveDir;
       }
       const fileInfo = await Deno.stat(fsPath!);
       if (fileInfo.isDirectory) {
         fsPath = join(fsPath, "index.html");
       }
-      response = await serveFile(fsPath!, serveDirAbsolute, watcher, projServe);
+      response = await serveFile(fsPath!, watcher);
       if (options.quiet) {
         printUrl(normalizedUrl);
       }
@@ -160,6 +158,32 @@ export async function serveProject(
   }
 }
 
+export function copyProjectForServe(
+  project: ProjectContext,
+  serveDir?: string,
+) {
+  serveDir = serveDir || createSessionTempDir();
+  const engineSkip = engineIgnoreDirs();
+  const skip = [/[/\\][\.]/].concat(engineSkip);
+  const outputDir = projectOutputDir(project);
+  copyMinimal(
+    project.dir,
+    serveDir,
+    true,
+    skip,
+    (path) => {
+      return !path.startsWith(outputDir);
+    },
+  );
+  copyMinimal(
+    projectFreezerDir(project.dir),
+    projectFreezerDir(serveDir),
+    true,
+    engineSkip,
+  );
+  return Deno.realPathSync(serveDir);
+}
+
 function serveFallback(
   req: ServerRequest,
   e: Error,
@@ -202,13 +226,8 @@ function serveFallback(
 
 async function serveFile(
   filePath: string,
-  serveDir: string,
   watcher: ProjectWatcher,
-  projServe?: ProjectServe,
 ): Promise<Response> {
-  // alias project
-  const project = watcher.project();
-
   // read file
   let fileContents = new Uint8Array();
 
@@ -221,34 +240,29 @@ async function serveFile(
       // if we can't find an input file for this .html file it may have
       // been an input added after the server started running, to catch
       // this case run a refresh on the watcher then try again
+      const serveDir = projectOutputDir(watcher.serveProject());
       const filePathRelative = relative(serveDir, filePath);
-      let inputFile = await inputFileForOutputFile(project, filePathRelative);
+      let inputFile = await inputFileForOutputFile(
+        watcher.serveProject(),
+        filePathRelative,
+      );
       if (!inputFile) {
         inputFile = await inputFileForOutputFile(
-          watcher.refresh(),
+          watcher.refreshProject(),
           filePathRelative,
         );
       }
       if (inputFile) {
-        watcher.suspend();
-        try {
-          await renderForServe(
-            project,
-            relative(project.dir, serveDir),
-            { quiet: true },
-            [inputFile],
-          );
-        } finally {
-          watcher.resume();
-        }
+        await renderProject(
+          watcher.serveProject(),
+          { useFreezer: true, flags: { quiet: true } },
+          [inputFile],
+        );
       }
     }
 
     fileContents = Deno.readFileSync(filePath);
     fileContents = watcher.injectClient(fileContents);
-    if (projServe?.htmlFilter) {
-      fileContents = projServe.htmlFilter(project, filePath, fileContents);
-    }
   } else {
     fileContents = Deno.readFileSync(filePath);
   }
@@ -267,28 +281,6 @@ async function serveFile(
     body: fileContents,
     headers,
   };
-}
-
-function renderForServe(
-  project: ProjectContext,
-  serveDir: string,
-  flags: RenderFlags,
-  files?: string[],
-) {
-  // provide alternate serve dir
-  project = ld.cloneDeep(project);
-  project.metadata = project.metadata || {};
-  project.metadata.project = project.metadata.project || {};
-  project.metadata.project[kOutputDir] = serveDir;
-
-  return renderProject(
-    project,
-    {
-      useFreezer: true,
-      flags,
-    },
-    files,
-  );
 }
 
 function printUrl(url: string, found = true) {

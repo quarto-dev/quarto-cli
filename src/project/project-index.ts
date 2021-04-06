@@ -108,5 +108,5 @@ function inputTargetIndexFile(project: ProjectContext, input: string): string {
 }
 
 function indexPath(project: ProjectContext, path = ""): string {
-  return projectScratchPath(project, join("index", path));
+  return projectScratchPath(project.dir, join("index", path));
 }

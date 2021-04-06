@@ -136,3 +136,17 @@ export function fileExecutionEngine(file: string, contentOnly = false) {
     }
   }
 }
+
+export function engineIgnoreDirs() {
+  const ignoreDirs: RegExp[] = [];
+  executionEngines().forEach((name) => {
+    const engine = executionEngine(name);
+    if (engine && engine.ignoreDirs) {
+      const engineIgnores = engine.ignoreDirs();
+      if (engineIgnores) {
+        ignoreDirs.push(...engineIgnores);
+      }
+    }
+  });
+  return ignoreDirs;
+}

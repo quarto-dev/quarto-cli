@@ -32,22 +32,11 @@ export interface ProjectType {
     incremental: boolean,
     outputFiles: ProjectOutputFile[],
   ) => Promise<void>;
-  serve?: ProjectServe;
 }
 
 export interface ProjectOutputFile {
   file: string;
   format: Format;
-}
-
-export interface ProjectServe {
-  init?: (project: ProjectContext) => Promise<void>;
-  filesChanged?: (project: ProjectContext, files: string[]) => Promise<boolean>;
-  htmlFilter?: (
-    project: ProjectContext,
-    href: string,
-    doc: Uint8Array,
-  ) => Uint8Array;
 }
 
 export interface ProjectCreate {

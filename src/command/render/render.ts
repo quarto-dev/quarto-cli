@@ -193,7 +193,7 @@ export async function renderFiles(
   const progress = project && (files.length > 1) && !options.flags?.quiet;
 
   if (progress) {
-    message(`\nRendering ${project!.dir}:`);
+    message(`\nRendering project:`);
     options.flags = options.flags || {};
     options.flags.quiet = true;
   }
