@@ -20,7 +20,6 @@ import {
 import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
 import { quartoConfig } from "./core/quarto.ts";
 import { Args, parse } from "flags/mod.ts";
-import { warning } from "log/mod.ts";
 
 export async function quarto(args: string[]) {
   const quartoCommand = new Command()
@@ -72,6 +71,7 @@ if (import.meta.main) {
   }
 }
 
+// Read the raw args and configure logging
 function logOptions(args: Args) {
   const logOptions: LogOptions = {};
   logOptions.log = args.l || args.log;

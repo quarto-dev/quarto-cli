@@ -330,6 +330,11 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   removeArgs.set("--metadata-file", true);
   removeArgs.set("--latex-makeindex-opt", true);
   removeArgs.set("--latex-tlmgr-opt", true);
+  removeArgs.set("--log", true);
+  removeArgs.set("--l", true);
+  removeArgs.set("--log-level", true);
+  removeArgs.set("--ll", true);
+  removeArgs.set("--quiet", false);
 
   // Remove un-needed pandoc args (including -M/--metadata as appropriate)
   pandocArgs = removePandocArgs(pandocArgs, removeArgs);
