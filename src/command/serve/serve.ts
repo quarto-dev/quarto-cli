@@ -181,14 +181,12 @@ export function copyProjectForServe(
   copyMinimal(
     project.dir,
     serveDir,
-    true,
     [kSkipHidden],
     filter,
   );
   copyMinimal(
     projectFreezerDir(project.dir),
     projectFreezerDir(serveDir),
-    true,
   );
   return Deno.realPathSync(serveDir);
 }

@@ -170,7 +170,6 @@ export function relocate(
 export function copyMinimal(
   srcDir: string,
   destDir: string,
-  followSymlinks: boolean,
   skip?: RegExp[],
   filter?: (path: string) => boolean,
 ) {
@@ -183,7 +182,7 @@ export function copyMinimal(
       srcDir,
       {
         includeDirs: false,
-        followSymlinks,
+        followSymlinks: false,
         skip,
       },
     )

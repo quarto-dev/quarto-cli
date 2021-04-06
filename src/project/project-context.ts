@@ -265,8 +265,11 @@ function projectInputFiles(dir: string, metadata?: ProjectMetadata) {
         dir,
         {
           includeDirs: false,
-          followSymlinks: true,
-          skip: [kSkipHidden],
+          // this was done b/c some directories e.g. renv/packrat and potentially python 
+          // virtualenvs include symblinks to R or Python libraries that are in turn 
+          // circular. much safer to not follow symlinks!
+          followSymlinks: false,
+          skip: [kSkipHidden]),
         },
       )
     ) {
