@@ -233,7 +233,13 @@ function projectInputFiles(dir: string, metadata?: ProjectMetadata) {
 
   const outputDir = metadata?.[kOutputDir];
 
-  const projectIgnore = projectIgnoreRegexes();
+  const projectIgnores = projectIgnoreRegexes();
+
+  // Also exclude files or folders that are prefixed with an underscore
+  const includeIgnores = ["**/_*", "**/_*/**"].map((glob) =>
+    globToRegExp(glob, { extended: true, globstar: true })
+  );
+  projectIgnores.push(...includeIgnores);
 
   const addFile = (file: string) => {
     if (!outputDir || !file.startsWith(join(dir, outputDir))) {
@@ -262,7 +268,7 @@ function projectInputFiles(dir: string, metadata?: ProjectMetadata) {
       )
     ) {
       const pathRelative = pathWithForwardSlashes(relative(dir, walk.path));
-      if (!projectIgnore.some((regex) => regex.test(pathRelative))) {
+      if (!projectIgnores.some((regex) => regex.test(pathRelative))) {
         addFile(walk.path);
       }
     }
