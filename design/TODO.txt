@@ -10,6 +10,8 @@ TODO: open in browser with no index.html for R quarto_serve()
 
 TODO: review split("\n and consider replacing with split(/\r?\n/)
 
+git complaint about git ignore when rendering outside of git dir
+
 Books
 =========================================================================
 
