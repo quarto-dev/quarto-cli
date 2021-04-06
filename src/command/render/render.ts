@@ -15,7 +15,7 @@ import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { createSessionTempDir } from "../../core/temp.ts";
 import { inputFilesDir } from "../../core/render.ts";
-import { message, progressBar } from "../../core/console.ts";
+import { message } from "../../core/console.ts";
 import { dirAndStem, removeIfExists } from "../../core/path.ts";
 
 import {
@@ -193,7 +193,7 @@ export async function renderFiles(
   const progress = project && (files.length > 1) && !options.flags?.quiet;
 
   if (progress) {
-    message(`\nRendering ${project!.dir}:`);
+    message(`\nRendering project:`);
     options.flags = options.flags || {};
     options.flags.quiet = true;
   }
@@ -348,8 +348,9 @@ export async function renderContexts(
 export async function renderFormats(
   file: string,
   to = "all",
+  project?: ProjectContext,
 ): Promise<Record<string, Format>> {
-  const contexts = await renderContexts(file, { flags: { to } });
+  const contexts = await renderContexts(file, { flags: { to } }, project);
   const formats: Record<string, Format> = {};
   Object.keys(contexts).forEach((context) => {
     // get the format
@@ -555,6 +556,9 @@ export function renderResultFinalOutput(
 ) {
   // final output defaults to the first output of the first result
   let result = renderResults.files[0];
+  if (!result) {
+    return undefined;
+  }
 
   // see if we can find an index.html instead
   for (const fileResult of renderResults.files) {

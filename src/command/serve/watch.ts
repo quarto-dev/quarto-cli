@@ -23,43 +23,32 @@ import {
   ProjectContext,
   projectContext,
 } from "../../project/project-context.ts";
-import { ProjectServe } from "../../project/types/project-types.ts";
+
+import {
+  inputTargetIndex,
+  resolveInputTarget,
+} from "../../project/project-index.ts";
+
+import { fileExecutionEngine } from "../../execute/engine.ts";
 
 import { RenderResult } from "../render/render.ts";
 
-import { kLocalhost, ServeOptions } from "./serve.ts";
+import { copyProjectForServe, kLocalhost, ServeOptions } from "./serve.ts";
 
 export interface ProjectWatcher {
-  project: () => ProjectContext;
-  refresh: () => ProjectContext;
-  suspend: () => void;
-  resume: () => void;
   handle: (req: ServerRequest) => boolean;
   connect: (req: ServerRequest) => Promise<void>;
   injectClient: (file: Uint8Array) => Uint8Array;
+  serveProject: () => ProjectContext;
+  refreshProject: () => ProjectContext;
 }
 
 export function watchProject(
   project: ProjectContext,
+  serveProject: ProjectContext,
+  renderResult: RenderResult,
   options: ServeOptions,
-  renderResult?: RenderResult,
-  projServe?: ProjectServe,
 ): ProjectWatcher {
-  // is this a resource file?
-  const isResourceFile = (path: string) => {
-    if (renderResult) {
-      if (project.files.resources?.includes(path)) {
-        return true;
-      } else {
-        return renderResult.files.some((file) =>
-          file.resourceFiles.includes(path)
-        );
-      }
-    } else {
-      return false;
-    }
-  };
-
   // error display
   const displayError = (e: Error) => {
     if (options.debug) {
@@ -101,6 +90,29 @@ export function watchProject(
     }
   };
 
+  // is this a resource file?
+  const isResourceFile = (path: string) => {
+    if (renderResult) {
+      if (project.files.resources?.includes(path)) {
+        return true;
+      } else {
+        return renderResult.files.some((file) =>
+          file.resourceFiles.includes(path)
+        );
+      }
+    } else {
+      return false;
+    }
+  };
+
+  // is this a renderOnChange input file?
+  const isRenderOnChangeInput = (path: string) => {
+    if (project.files.input.includes(path)) {
+      const engine = fileExecutionEngine(path, true);
+      return engine && !!engine.renderOnChange;
+    }
+  };
+
   // track every path that has been modified since the last reload
   const modified: string[] = [];
 
@@ -115,8 +127,36 @@ export function watchProject(
 
         // request reload (debounced) for any change
         if (paths.length > 0) {
+          // note modified
           modified.push(...paths);
-          return true;
+
+          const configFile = paths.some((path) =>
+            (project.files.config || []).includes(path)
+          );
+          const configResourceFile = paths.some((path) =>
+            (project.files.configResources || []).includes(path)
+          );
+          const resourceFile = paths.some(isResourceFile);
+
+          const outputDirFile = paths.some(inOutputDir);
+
+          const renderOnChangeInput = paths.some(isRenderOnChangeInput);
+
+          const reload = configFile || configResourceFile || resourceFile ||
+            outputDirFile || renderOnChangeInput;
+
+          if (reload) {
+            // copy project
+            copyProjectForServe(project, serveProject.dir);
+
+            if (configFile) {
+              serveProject = projectContext(serveProject.dir);
+            }
+
+            return true;
+          } else {
+            return false;
+          }
         } else {
           return false;
         }
@@ -129,9 +169,6 @@ export function watchProject(
     }
   };
 
-  // track suspend/resume
-  let suspended = false;
-
   // track clients
   interface Client {
     path: string;
@@ -143,16 +180,10 @@ export function watchProject(
   // (ensures that we wait for bulk file copying to complete
   // before triggering the reload)
   const reloadClients = ld.debounce(async () => {
-    // ignore if suspended
-    if (suspended) {
-      return;
-    }
-
     // see if there is a reload target (last html file modified)
     const lastHtmlFile = ld.uniq(modified).reverse().find((file) => {
       return extname(file) === ".html";
     });
-
     let reloadTarget = "";
     if (lastHtmlFile && options.navigate) {
       if (lastHtmlFile.startsWith(outputDir)) {
@@ -166,6 +197,20 @@ export function watchProject(
         reloadTarget = "";
       }
     }
+    // if we don't have a reload target based on html output, see if we can
+    // get one from a reloadOnChange input
+    const input = modified.find(isRenderOnChangeInput);
+    if (input) {
+      const target = await resolveInputTarget(
+        project,
+        relative(project.dir, input),
+      );
+      if (target) {
+        reloadTarget = target.outputHref;
+      }
+    }
+
+    // clear out the modified list
     modified.splice(0, modified.length);
 
     for (let i = clients.length - 1; i >= 0; i--) {
@@ -187,9 +232,6 @@ export function watchProject(
   const watcher = Deno.watchFs(project.dir, { recursive: true });
   const watchForChanges = () => {
     watcher.next().then(async (iter) => {
-      if (suspended) {
-        return;
-      }
       try {
         // see if we need to handle this
         if (await handleWatchEvent(iter.value)) {
@@ -206,21 +248,6 @@ export function watchProject(
 
   // return watcher interface
   return {
-    project: () => {
-      return project;
-    },
-    suspend: () => {
-      suspended = true;
-    },
-    resume: () => {
-      suspended = false;
-      watchForChanges();
-    },
-    refresh: () => {
-      project = projectContext(project.dir);
-      return project;
-    },
-
     handle: (req: ServerRequest) => {
       return !!options.watch && (req.headers.get("upgrade") === "websocket");
     },
@@ -252,6 +279,11 @@ export function watchProject(
       } else {
         return file;
       }
+    },
+    serveProject: () => serveProject,
+    refreshProject: () => {
+      serveProject = projectContext(serveProject.dir);
+      return serveProject;
     },
   };
 }

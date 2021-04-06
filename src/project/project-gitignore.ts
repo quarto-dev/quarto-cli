@@ -41,6 +41,7 @@ export async function ensureGitignore(project: ProjectContext) {
       cmd: ["git", "status"],
       cwd: project.dir,
       stdout: "piped",
+      stderr: "piped",
     });
     if (result.success) {
       await createGitignore(project.dir);

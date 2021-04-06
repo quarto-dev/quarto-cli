@@ -8,12 +8,10 @@
 import { dirname, join } from "path/mod.ts";
 import { ensureDirSync } from "fs/mod.ts";
 
-import { ProjectContext } from "./project-context.ts";
-
 export const kQuartoScratch = ".quarto";
 
-export function projectScratchPath(project: ProjectContext, path = "") {
-  const scratchDir = join(project.dir, kQuartoScratch);
+export function projectScratchPath(dir: string, path = "") {
+  const scratchDir = join(dir, kQuartoScratch);
   ensureDirSync(scratchDir);
   if (path) {
     path = join(scratchDir, path);

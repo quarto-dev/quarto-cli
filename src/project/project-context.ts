@@ -5,14 +5,14 @@
 *
 */
 
-import { dirname, isAbsolute, join, relative } from "path/mod.ts";
-import { existsSync, walkSync } from "fs/mod.ts";
+import { dirname, globToRegExp, isAbsolute, join, relative } from "path/mod.ts";
+import { ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
 import { readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
-import { pathWithForwardSlashes } from "../core/path.ts";
+import { kSkipHidden, pathWithForwardSlashes } from "../core/path.ts";
 
 import { includedMetadata, Metadata } from "../config/metadata.ts";
 import { kMetadataFile, kMetadataFiles } from "../config/constants.ts";
@@ -23,12 +23,9 @@ import { ProjectType, projectType } from "./types/project-types.ts";
 
 import { resolvePathGlobs } from "../core/path.ts";
 
-import {
-  executionEngine,
-  executionEngines,
-  fileExecutionEngine,
-} from "../execute/engine.ts";
+import { engineIgnoreGlobs, fileExecutionEngine } from "../execute/engine.ts";
 import { projectResourceFiles } from "./project-resources.ts";
+import { kGitignoreEntries } from "./project-gitignore.ts";
 
 export const kExecuteDir = "execute-dir";
 export const kOutputDir = "output-dir";
@@ -154,6 +151,7 @@ export function projectOutputDir(context: ProjectContext) {
   } else {
     outputDir = context.dir;
   }
+  ensureDirSync(outputDir);
   return Deno.realPathSync(outputDir);
 }
 
@@ -162,6 +160,14 @@ export function projectOffset(context: ProjectContext, input: string) {
   const inputDir = Deno.realPathSync(dirname(input));
   const offset = relative(inputDir, projDir) || ".";
   return pathWithForwardSlashes(offset);
+}
+
+export function projectIgnoreRegexes() {
+  return engineIgnoreGlobs().concat(
+    kGitignoreEntries.map((ignore) => `**/${ignore}**`),
+  ).map(
+    (glob) => globToRegExp(glob, { extended: true, globstar: true }),
+  );
 }
 
 export function projectMetadataForInputFile(
@@ -227,6 +233,8 @@ function projectInputFiles(dir: string, metadata?: ProjectMetadata) {
 
   const outputDir = metadata?.[kOutputDir];
 
+  const projectIgnore = projectIgnoreRegexes();
+
   const addFile = (file: string) => {
     if (!outputDir || !file.startsWith(join(dir, outputDir))) {
       const engine = fileExecutionEngine(file, true);
@@ -241,29 +249,22 @@ function projectInputFiles(dir: string, metadata?: ProjectMetadata) {
   };
 
   const addDir = (dir: string) => {
-    // Allow engines to provide directories that can be ignored
-    const skip = [/[/\\][_\.]/];
-    executionEngines().forEach((name) => {
-      const engine = executionEngine(name);
-      if (engine && engine.ignoreDirs) {
-        const ignores = engine.ignoreDirs();
-        if (ignores) {
-          skip.push(...ignores);
-        }
-      }
-    });
+    // ignore selected other globs
 
     for (
       const walk of walkSync(
         dir,
         {
           includeDirs: false,
-          followSymlinks: false,
-          skip,
+          followSymlinks: true,
+          skip: [kSkipHidden],
         },
       )
     ) {
-      addFile(walk.path);
+      const pathRelative = pathWithForwardSlashes(relative(dir, walk.path));
+      if (!projectIgnore.some((regex) => regex.test(pathRelative))) {
+        addFile(walk.path);
+      }
     }
   };
 

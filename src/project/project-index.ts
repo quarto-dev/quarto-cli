@@ -9,10 +9,12 @@ import { dirname, join, relative } from "path/mod.ts";
 import { exists, existsSync } from "fs/mod.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
 
+import { dirAndStem, pathWithForwardSlashes } from "../core/path.ts";
+
 import { Metadata } from "../config/metadata.ts";
 import { Format } from "../config/format.ts";
 
-import { kOutputFile } from "../config/constants.ts";
+import { kOutputFile, kTitle } from "../config/constants.ts";
 
 import { renderFormats } from "../command/render/render.ts";
 
@@ -63,10 +65,30 @@ export async function inputTargetIndex(
   }
 
   // otherwise read the metadata and index it
-  const formats = await renderFormats(inputFile);
+  const formats = await renderFormats(inputFile, "all", project);
   const index = { formats };
   Deno.writeTextFileSync(indexFile, JSON.stringify(index));
   return index;
+}
+
+export async function resolveInputTarget(
+  project: ProjectContext,
+  href: string,
+) {
+  const index = await inputTargetIndex(project, href);
+  if (index) {
+    const format = Object.values(index.formats)[0];
+    const [hrefDir, hrefStem] = dirAndStem(href);
+    const outputFile = format?.pandoc[kOutputFile] || `${hrefStem}.html`;
+    const outputHref = pathWithForwardSlashes("/" + join(hrefDir, outputFile));
+    const title = format.metadata?.[kTitle] as string ||
+      ((hrefDir === "." && hrefStem === "index")
+        ? project.metadata?.project?.title
+        : undefined);
+    return { title, outputHref };
+  } else {
+    return undefined;
+  }
 }
 
 export async function inputFileForOutputFile(
@@ -108,5 +130,5 @@ function inputTargetIndexFile(project: ProjectContext, input: string): string {
 }
 
 function indexPath(project: ProjectContext, path = ""): string {
-  return projectScratchPath(project, join("index", path));
+  return projectScratchPath(project.dir, join("index", path));
 }

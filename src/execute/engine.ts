@@ -5,7 +5,7 @@
 *
 */
 
-import { Format, FormatPandoc } from "../config/format.ts";
+import { Format } from "../config/format.ts";
 import { Metadata } from "../config/metadata.ts";
 import {
   kIncludeAfterBody,
@@ -32,7 +32,8 @@ export interface ExecutionEngine {
   postprocess: (options: PostProcessOptions) => Promise<void>;
   keepMd: (input: string) => string | undefined;
   keepFiles: (input: string) => string[] | undefined;
-  ignoreDirs?: () => RegExp[] | undefined;
+  ignoreGlobs?: () => string[] | undefined;
+  renderOnChange?: boolean;
   run?: (options: RunOptions) => Promise<void>;
 }
 
@@ -135,4 +136,18 @@ export function fileExecutionEngine(file: string, contentOnly = false) {
       }
     }
   }
+}
+
+export function engineIgnoreGlobs() {
+  const ignoreGlobs: string[] = [];
+  executionEngines().forEach((name) => {
+    const engine = executionEngine(name);
+    if (engine && engine.ignoreGlobs) {
+      const engineIgnores = engine.ignoreGlobs();
+      if (engineIgnores) {
+        ignoreGlobs.push(...engineIgnores);
+      }
+    }
+  });
+  return ignoreGlobs;
 }
