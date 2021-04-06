@@ -160,7 +160,7 @@ export function sassLayer(path: string): SassLayer {
 export function sassLayerFile(theme: string): SassLayer {
   // It is not a built in theme, so read the theme file and parse it.
   const rawContents = Deno.readTextFileSync(theme);
-  const lines = rawContents.split("\n");
+  const lines = rawContents.split(/\r?\n/);
 
   const vars: string[] = [];
   const rules: string[] = [];
