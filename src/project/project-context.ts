@@ -269,7 +269,7 @@ function projectInputFiles(dir: string, metadata?: ProjectMetadata) {
           // virtualenvs include symblinks to R or Python libraries that are in turn 
           // circular. much safer to not follow symlinks!
           followSymlinks: false,
-          skip: [kSkipHidden]),
+          skip: [kSkipHidden],
         },
       )
     ) {
