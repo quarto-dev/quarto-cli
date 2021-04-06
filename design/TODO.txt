@@ -1,4 +1,8 @@
 
+TODO: concurrent renders (w/ multiple dev servers) can cause problems with moving 
+output files to different output dirs
+  - solution to this may be to have the dev server have it's own complete copy 
+    of the input dir ()
 
 
 TODO: render progress for R quarto_serve()

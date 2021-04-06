@@ -8,9 +8,11 @@
 import * as colors from "fmt/colors.ts";
 
 import { existsSync } from "fs/mod.ts";
-import { basename, dirname, extname, join, posix, relative } from "path/mod.ts";
+import { basename, extname, join, posix, relative } from "path/mod.ts";
 
 import { Response, serve, ServerRequest } from "http/server.ts";
+
+import { ld } from "lodash/mod.ts";
 
 import { message } from "../../core/console.ts";
 import { openUrl } from "../../core/shell.ts";
@@ -19,6 +21,7 @@ import { pathWithForwardSlashes } from "../../core/path.ts";
 
 import { kOutputDir, ProjectContext } from "../../project/project-context.ts";
 import { inputFileForOutputFile } from "../../project/project-index.ts";
+import { projectScratchPath } from "../../project/project-scratch.ts";
 
 import {
   ProjectServe,
@@ -27,6 +30,7 @@ import {
 
 import { renderProject } from "../render/project.ts";
 import { renderResultFinalOutput } from "../render/render.ts";
+import { RenderFlags } from "../render/flags.ts";
 
 import { ProjectWatcher, watchProject } from "./watch.ts";
 
@@ -57,13 +61,13 @@ export async function serveProject(
     ...options,
   };
 
+  // determine the serve dir
+  const serveDir = relative(project.dir, projectScratchPath(project, "serve"));
+
   // render the project
-  const renderResult = await renderProject(project, {
-    useFreezer: true,
-    flags: {
-      quiet: options.quiet,
-      debug: options.debug,
-    },
+  const renderResult = await renderForServe(project, serveDir, {
+    quiet: options.quiet,
+    debug: options.debug,
   });
 
   // get project serve hooks and call init if we have it
@@ -73,12 +77,13 @@ export async function serveProject(
     projServe.init(project);
   }
 
-  // determine site dir
-  const outputDir = project.metadata?.project?.[kOutputDir];
-  const siteDir = outputDir ? join(project.dir, outputDir) : project.dir;
-
   // create project watcher
-  const watcher = watchProject(project, options, renderResult, projServe);
+  const watcher = watchProject(
+    project,
+    options,
+    renderResult,
+    projServe,
+  );
 
   // main request handler
   const handler = async (req: ServerRequest): Promise<void> => {
@@ -92,15 +97,18 @@ export async function serveProject(
     let fsPath: string | undefined;
     try {
       const normalizedUrl = normalizeURL(req.url);
-      fsPath = posix.join(siteDir, normalizedUrl)!;
-      if (fsPath!.indexOf(siteDir) !== 0) {
-        fsPath = siteDir;
+      const serveDirAbsolute = Deno.realPathSync(join(project.dir, serveDir));
+      fsPath = serveDirAbsolute + normalizedUrl!;
+      fsPath = Deno.realPathSync(fsPath);
+      // don't let the path escape the serveDir
+      if (fsPath!.indexOf(serveDirAbsolute) !== 0) {
+        fsPath = serveDir;
       }
       const fileInfo = await Deno.stat(fsPath!);
       if (fileInfo.isDirectory) {
         fsPath = join(fsPath, "index.html");
       }
-      response = await serveFile(fsPath!, watcher, projServe);
+      response = await serveFile(fsPath!, serveDirAbsolute, watcher, projServe);
       if (options.quiet) {
         printUrl(normalizedUrl);
       }
@@ -123,18 +131,10 @@ export async function serveProject(
 
   // print status
   if (!options.quiet) {
-    const siteDirRelative = relative(Deno.cwd(), siteDir);
-    message(`\nServing site from ${siteDirRelative}`, {
-      bold: true,
-      format: colors.green,
-    });
     if (options.watch) {
-      message("Watching project for reload on changes", {
-        indent: 1,
-      });
+      message("Watching project for reload on changes");
     }
     message(`Browse the site at `, {
-      indent: 1,
       newline: false,
     });
     message(`${siteUrl}`, { format: colors.underline });
@@ -202,6 +202,7 @@ function serveFallback(
 
 async function serveFile(
   filePath: string,
+  serveDir: string,
   watcher: ProjectWatcher,
   projServe?: ProjectServe,
 ): Promise<Response> {
@@ -220,16 +221,26 @@ async function serveFile(
       // if we can't find an input file for this .html file it may have
       // been an input added after the server started running, to catch
       // this case run a refresh on the watcher then try again
-      let inputFile = await inputFileForOutputFile(project, filePath);
+      const filePathRelative = relative(serveDir, filePath);
+      let inputFile = await inputFileForOutputFile(project, filePathRelative);
       if (!inputFile) {
-        inputFile = await inputFileForOutputFile(watcher.refresh(), filePath);
+        inputFile = await inputFileForOutputFile(
+          watcher.refresh(),
+          filePathRelative,
+        );
       }
       if (inputFile) {
-        await renderProject(
-          project,
-          { useFreezer: true, flags: { quiet: true } },
-          [inputFile],
-        );
+        watcher.suspend();
+        try {
+          await renderForServe(
+            project,
+            relative(project.dir, serveDir),
+            { quiet: true },
+            [inputFile],
+          );
+        } finally {
+          watcher.resume();
+        }
       }
     }
 
@@ -256,6 +267,28 @@ async function serveFile(
     body: fileContents,
     headers,
   };
+}
+
+function renderForServe(
+  project: ProjectContext,
+  serveDir: string,
+  flags: RenderFlags,
+  files?: string[],
+) {
+  // provide alternate serve dir
+  project = ld.cloneDeep(project);
+  project.metadata = project.metadata || {};
+  project.metadata.project = project.metadata.project || {};
+  project.metadata.project[kOutputDir] = serveDir;
+
+  return renderProject(
+    project,
+    {
+      useFreezer: true,
+      flags,
+    },
+    files,
+  );
 }
 
 function printUrl(url: string, found = true) {
