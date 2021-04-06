@@ -9,10 +9,12 @@ import { dirname, join, relative } from "path/mod.ts";
 import { exists, existsSync } from "fs/mod.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
 
+import { dirAndStem, pathWithForwardSlashes } from "../core/path.ts";
+
 import { Metadata } from "../config/metadata.ts";
 import { Format } from "../config/format.ts";
 
-import { kOutputFile } from "../config/constants.ts";
+import { kOutputFile, kTitle } from "../config/constants.ts";
 
 import { renderFormats } from "../command/render/render.ts";
 
@@ -67,6 +69,26 @@ export async function inputTargetIndex(
   const index = { formats };
   Deno.writeTextFileSync(indexFile, JSON.stringify(index));
   return index;
+}
+
+export async function resolveInputTarget(
+  project: ProjectContext,
+  href: string,
+) {
+  const index = await inputTargetIndex(project, href);
+  if (index) {
+    const format = Object.values(index.formats)[0];
+    const [hrefDir, hrefStem] = dirAndStem(href);
+    const outputFile = format?.pandoc[kOutputFile] || `${hrefStem}.html`;
+    const outputHref = pathWithForwardSlashes("/" + join(hrefDir, outputFile));
+    const title = format.metadata?.[kTitle] as string ||
+      ((hrefDir === "." && hrefStem === "index")
+        ? project.metadata?.project?.title
+        : undefined);
+    return { title, outputHref };
+  } else {
+    return undefined;
+  }
 }
 
 export async function inputFileForOutputFile(

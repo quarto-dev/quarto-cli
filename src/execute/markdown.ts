@@ -57,4 +57,5 @@ export const markdownEngine: ExecutionEngine = {
   postprocess: (_options: PostProcessOptions) => Promise.resolve(),
   keepMd: (_input: string) => undefined,
   keepFiles: (__input: string) => undefined,
+  renderOnChange: true,
 };

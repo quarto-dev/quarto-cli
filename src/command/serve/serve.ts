@@ -6,8 +6,6 @@
 */
 
 // TODO: _ filter not serving us well (exludes osx temp)
-// TODO: render on save for .md (non-Jupyter) files. allow engines to decide
-// TODO: are we sometime getting the wrong file for refresh target
 
 import * as colors from "fmt/colors.ts";
 

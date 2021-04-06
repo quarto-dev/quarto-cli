@@ -24,6 +24,13 @@ import {
   projectContext,
 } from "../../project/project-context.ts";
 
+import {
+  inputTargetIndex,
+  resolveInputTarget,
+} from "../../project/project-index.ts";
+
+import { fileExecutionEngine } from "../../execute/engine.ts";
+
 import { RenderResult } from "../render/render.ts";
 
 import { copyProjectForServe, kLocalhost, ServeOptions } from "./serve.ts";
@@ -42,21 +49,6 @@ export function watchProject(
   renderResult: RenderResult,
   options: ServeOptions,
 ): ProjectWatcher {
-  // is this a resource file?
-  const isResourceFile = (path: string) => {
-    if (renderResult) {
-      if (project.files.resources?.includes(path)) {
-        return true;
-      } else {
-        return renderResult.files.some((file) =>
-          file.resourceFiles.includes(path)
-        );
-      }
-    } else {
-      return false;
-    }
-  };
-
   // error display
   const displayError = (e: Error) => {
     if (options.debug) {
@@ -98,6 +90,29 @@ export function watchProject(
     }
   };
 
+  // is this a resource file?
+  const isResourceFile = (path: string) => {
+    if (renderResult) {
+      if (project.files.resources?.includes(path)) {
+        return true;
+      } else {
+        return renderResult.files.some((file) =>
+          file.resourceFiles.includes(path)
+        );
+      }
+    } else {
+      return false;
+    }
+  };
+
+  // is this a renderOnChange input file?
+  const isRenderOnChangeInput = (path: string) => {
+    if (project.files.input.includes(path)) {
+      const engine = fileExecutionEngine(path, true);
+      return engine && !!engine.renderOnChange;
+    }
+  };
+
   // track every path that has been modified since the last reload
   const modified: string[] = [];
 
@@ -125,8 +140,10 @@ export function watchProject(
 
           const outputDirFile = paths.some(inOutputDir);
 
+          const renderOnChangeInput = paths.some(isRenderOnChangeInput);
+
           const reload = configFile || configResourceFile || resourceFile ||
-            outputDirFile;
+            outputDirFile || renderOnChangeInput;
 
           if (reload) {
             // copy project
@@ -167,7 +184,6 @@ export function watchProject(
     const lastHtmlFile = ld.uniq(modified).reverse().find((file) => {
       return extname(file) === ".html";
     });
-
     let reloadTarget = "";
     if (lastHtmlFile && options.navigate) {
       if (lastHtmlFile.startsWith(outputDir)) {
@@ -181,6 +197,20 @@ export function watchProject(
         reloadTarget = "";
       }
     }
+    // if we don't have a reload target based on html output, see if we can
+    // get one from a reloadOnChange input
+    const input = modified.find(isRenderOnChangeInput);
+    if (input) {
+      const target = await resolveInputTarget(
+        project,
+        relative(project.dir, input),
+      );
+      if (target) {
+        reloadTarget = target.outputHref;
+      }
+    }
+
+    // clear out the modified list
     modified.splice(0, modified.length);
 
     for (let i = clients.length - 1; i >= 0; i--) {

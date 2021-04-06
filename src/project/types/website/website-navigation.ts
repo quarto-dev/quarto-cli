@@ -41,7 +41,7 @@ import {
 } from "../../../format/html/format-html.ts";
 
 import { ProjectContext, projectOffset } from "../../project-context.ts";
-import { inputTargetIndex } from "../../project-index.ts";
+import { inputTargetIndex, resolveInputTarget } from "../../project-index.ts";
 
 import {
   websiteSearch,
@@ -596,23 +596,6 @@ async function resolveItem(
     }
   } else {
     return item;
-  }
-}
-
-async function resolveInputTarget(project: ProjectContext, href: string) {
-  const index = await inputTargetIndex(project, href);
-  if (index) {
-    const format = Object.values(index.formats)[0];
-    const [hrefDir, hrefStem] = dirAndStem(href);
-    const outputFile = format?.pandoc[kOutputFile] || `${hrefStem}.html`;
-    const outputHref = pathWithForwardSlashes("/" + join(hrefDir, outputFile));
-    const title = format.metadata?.[kTitle] as string ||
-      ((hrefDir === "." && hrefStem === "index")
-        ? project.metadata?.project?.title
-        : undefined);
-    return { title, outputHref };
-  } else {
-    return undefined;
   }
 }
 

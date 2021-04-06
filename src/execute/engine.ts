@@ -5,7 +5,7 @@
 *
 */
 
-import { Format, FormatPandoc } from "../config/format.ts";
+import { Format } from "../config/format.ts";
 import { Metadata } from "../config/metadata.ts";
 import {
   kIncludeAfterBody,
@@ -33,6 +33,7 @@ export interface ExecutionEngine {
   keepMd: (input: string) => string | undefined;
   keepFiles: (input: string) => string[] | undefined;
   ignoreDirs?: () => RegExp[] | undefined;
+  renderOnChange?: boolean;
   run?: (options: RunOptions) => Promise<void>;
 }
 
