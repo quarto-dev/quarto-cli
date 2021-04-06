@@ -151,8 +151,11 @@ export function projectOutputDir(context: ProjectContext) {
   } else {
     outputDir = context.dir;
   }
-  ensureDirSync(outputDir);
-  return Deno.realPathSync(outputDir);
+  if (existsSync(outputDir)) {
+    return Deno.realPathSync(outputDir);
+  } else {
+    return outputDir;
+  }
 }
 
 export function projectOffset(context: ProjectContext, input: string) {
@@ -262,7 +265,10 @@ function projectInputFiles(dir: string, metadata?: ProjectMetadata) {
         dir,
         {
           includeDirs: false,
-          followSymlinks: true,
+          // this was done b/c some directories e.g. renv/packrat and potentially python 
+          // virtualenvs include symblinks to R or Python libraries that are in turn 
+          // circular. much safer to not follow symlinks!
+          followSymlinks: false,
           skip: [kSkipHidden],
         },
       )

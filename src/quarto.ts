@@ -4,6 +4,9 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+
+import { onSignal } from "signal/mod.ts";
+
 import {
   Command,
   CompletionsCommand,
@@ -57,21 +60,31 @@ if (import.meta.main) {
     // Parse the raw args to read globals and initialize logging
     const args = parse(Deno.args);
     await initializeLogger(logOptions(args));
+
+    // init temp dir
     initSessionTempDir();
+
+    // install termination signal handlers
+    onSignal(Deno.Signal.SIGINT, cleanup);
+    onSignal(Deno.Signal.SIGTERM, cleanup);
+
+    // run quarto
     await quarto(Deno.args);
-    cleanupSessionTempDir();
-    quarto;
   } catch (e) {
     if (e) {
       logError(e);
     }
-    cleanupSessionTempDir();
-    await cleanupLogger();
-    Deno.exit(1);
+  } finally {
+    cleanup();
   }
 }
 
-// Read the raw args and configure logging
+function cleanup() {
+  cleanupSessionTempDir();
+  cleanupLogger();
+  Deno.exit(1);
+}
+
 function logOptions(args: Args) {
   const logOptions: LogOptions = {};
   logOptions.log = args.l || args.log;

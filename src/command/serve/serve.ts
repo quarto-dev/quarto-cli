@@ -166,7 +166,7 @@ export function copyProjectForServe(
   const outputDir = projectOutputDir(project);
   // lib dir
   const libDirConfig = project.metadata?.project?.[kLibDir];
-  const libDir = libDirConfig ? join(outputDir, libDirConfig) : undefined;
+  const libDir = libDirConfig ? join(project.dir, libDirConfig) : undefined;
 
   const projectIgnore = projectIgnoreRegexes();
 
@@ -181,14 +181,12 @@ export function copyProjectForServe(
   copyMinimal(
     project.dir,
     serveDir,
-    true,
     [kSkipHidden],
     filter,
   );
   copyMinimal(
     projectFreezerDir(project.dir),
     projectFreezerDir(serveDir),
-    true,
   );
   return Deno.realPathSync(serveDir);
 }

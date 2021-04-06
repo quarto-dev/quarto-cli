@@ -1,22 +1,10 @@
 
-TODO: concurrent renders (w/ multiple dev servers) can cause problems with moving 
-output files to different output dirs
-  - solution to this may be to have the dev server have it's own complete copy 
-    of the input dir 
-  - this can be in a temp directory that exists for the lifetime of the process
-  - once the watcher is triggered may want to do a pretty comprehensive copy
-    (rather than piecemeal copy of only detected changes). can use file modified 
-    time to make sure we are doing the most efficient possible copy
-  - could do a selective copy of resources, etc.
-    (does it get cleaned up on Ctrl+C? it can via https://deno.land/manual/examples/os_signals)
 
 TODO: render progress for R quarto_serve()
 TODO: open in browser with no index.html for R quarto_serve()
 
 TODO: review split("\n and consider replacing with split(/\r?\n/)
 make readlines function that takes a buffer and use that to read anywhere we're using that regex
-
-git complaint about git ignore when rendering outside of git dir
 
 Books
 =========================================================================
@@ -27,7 +15,7 @@ Books
 
 - For HTML output, we want to execute pandoc for each file, however some things are effectively "global":
     - cross references
-        - persist the index across all pandoc renders (resolveRefs in a separate pass at the end)
+        - persist the index across all pandoc renders (esolveRefs in a separate pass at the end)
         - paste together all of of the markdown and run the filters on it, then run pandoc without the filters on each file
     - bibliography 
         - per page option?

@@ -22,6 +22,7 @@ import {
   kOutputDir,
   ProjectContext,
   projectContext,
+  projectOutputDir,
 } from "../../project/project-context.ts";
 
 import {
@@ -67,10 +68,7 @@ export function watchProject(
   const projDirHidden = projDir + "/.";
 
   // output dir
-  const outputDirConfig = project.metadata?.project?.[kOutputDir];
-  let outputDir = outputDirConfig ? join(projDir, outputDirConfig) : projDir;
-  ensureDirSync(outputDir);
-  outputDir = Deno.realPathSync(outputDir);
+  const outputDir = projectOutputDir(project);
 
   // lib dir
   const libDirConfig = project.metadata?.project?.[kLibDir];
