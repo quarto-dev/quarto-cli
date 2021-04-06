@@ -5,8 +5,6 @@
 *
 */
 
-// TODO: _ filter not serving us well (exludes osx temp)
-
 import * as colors from "fmt/colors.ts";
 
 import { existsSync } from "fs/mod.ts";
@@ -17,18 +15,21 @@ import { Response, serve, ServerRequest } from "http/server.ts";
 import { message } from "../../core/console.ts";
 import { openUrl } from "../../core/shell.ts";
 import { contentType, isHtmlContent } from "../../core/mime.ts";
-import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
+import {
+  copyMinimal,
+  kSkipHidden,
+  pathWithForwardSlashes,
+} from "../../core/path.ts";
 import { createSessionTempDir } from "../../core/temp.ts";
 
 import {
   kLibDir,
   ProjectContext,
   projectContext,
+  projectIgnoreRegexes,
   projectOutputDir,
 } from "../../project/project-context.ts";
 import { inputFileForOutputFile } from "../../project/project-index.ts";
-
-import { engineIgnoreDirs } from "../../execute/engine.ts";
 
 import { renderProject } from "../render/project.ts";
 import { renderResultFinalOutput } from "../render/render.ts";
@@ -137,11 +138,13 @@ export async function serveProject(
   if (options.browse) {
     if (renderResult.baseDir && renderResult.outputDir) {
       const finalOutput = renderResultFinalOutput(renderResult);
-      const targetPath = pathWithForwardSlashes(relative(
-        join(renderResult.baseDir, renderResult.outputDir),
-        finalOutput,
-      ));
-      openUrl(targetPath === "index.html" ? siteUrl : siteUrl + targetPath);
+      if (finalOutput) {
+        const targetPath = pathWithForwardSlashes(relative(
+          join(renderResult.baseDir, renderResult.outputDir),
+          finalOutput,
+        ));
+        openUrl(targetPath === "index.html" ? siteUrl : siteUrl + targetPath);
+      }
     } else {
       openUrl(siteUrl);
     }
@@ -158,29 +161,34 @@ export function copyProjectForServe(
   serveDir?: string,
 ) {
   serveDir = serveDir || createSessionTempDir();
-  const engineSkip = engineIgnoreDirs();
-  const skip = [/[/\\][\.]/].concat(engineSkip);
+
   // output dir
   const outputDir = projectOutputDir(project);
   // lib dir
   const libDirConfig = project.metadata?.project?.[kLibDir];
   const libDir = libDirConfig ? join(outputDir, libDirConfig) : undefined;
 
+  const projectIgnore = projectIgnoreRegexes();
+
+  const filter = (path: string) => {
+    if (path.startsWith(outputDir) || (libDir && path.startsWith(libDir))) {
+      return false;
+    }
+    const pathRelative = pathWithForwardSlashes(relative(project.dir, path));
+    return !projectIgnore.some((regex) => regex.test(pathRelative));
+  };
+
   copyMinimal(
     project.dir,
     serveDir,
     true,
-    skip,
-    (path) => {
-      return !path.startsWith(outputDir) &&
-        (!libDir || !path.startsWith(libDir));
-    },
+    [kSkipHidden],
+    filter,
   );
   copyMinimal(
     projectFreezerDir(project.dir),
     projectFreezerDir(serveDir),
     true,
-    engineSkip,
   );
   return Deno.realPathSync(serveDir);
 }

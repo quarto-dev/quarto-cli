@@ -16,6 +16,8 @@ import { ld } from "lodash/mod.ts";
 import { getenv } from "./env.ts";
 import { execProcess } from "./process.ts";
 
+export const kSkipHidden = /[/\\][\.]/;
+
 export function removeIfExists(file: string) {
   if (existsSync(file)) {
     Deno.removeSync(file, { recursive: true });
@@ -169,9 +171,11 @@ export function copyMinimal(
   srcDir: string,
   destDir: string,
   followSymlinks: boolean,
-  skip: RegExp[],
+  skip?: RegExp[],
   filter?: (path: string) => boolean,
 ) {
+  skip = skip || [];
+
   // build list of src fiels
   const srcFiles: string[] = [];
   for (

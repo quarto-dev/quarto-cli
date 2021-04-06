@@ -93,8 +93,8 @@ export const knitrEngine: ExecutionEngine = {
 
   keepFiles: (input: string) => [keepMd(input)],
 
-  ignoreDirs: () => {
-    return [/renv/, /packrat/, /rsconnect/];
+  ignoreGlobs: () => {
+    return ["**/renv/**", "**/packrat/**", "**/rsconnect/**"];
   },
 
   run: (options: RunOptions) => {

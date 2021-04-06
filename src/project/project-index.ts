@@ -65,7 +65,7 @@ export async function inputTargetIndex(
   }
 
   // otherwise read the metadata and index it
-  const formats = await renderFormats(inputFile);
+  const formats = await renderFormats(inputFile, "all", project);
   const index = { formats };
   Deno.writeTextFileSync(indexFile, JSON.stringify(index));
   return index;

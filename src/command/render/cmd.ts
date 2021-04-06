@@ -142,10 +142,10 @@ export const renderCommand = new Command()
     if (renderResult) {
       // report output created
       if (!options.flags?.quiet && options.flags?.output !== kStdOut) {
-        message(
-          "Output created: " + renderResultFinalOutput(renderResult, true) +
-            "\n",
-        );
+        const finalOutput = renderResultFinalOutput(renderResult, true);
+        if (finalOutput) {
+          message("Output created: " + finalOutput + "\n");
+        }
       }
     } else {
       throw new Error(`No valid input files passed to render`);

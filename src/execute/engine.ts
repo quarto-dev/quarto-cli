@@ -32,7 +32,7 @@ export interface ExecutionEngine {
   postprocess: (options: PostProcessOptions) => Promise<void>;
   keepMd: (input: string) => string | undefined;
   keepFiles: (input: string) => string[] | undefined;
-  ignoreDirs?: () => RegExp[] | undefined;
+  ignoreGlobs?: () => string[] | undefined;
   renderOnChange?: boolean;
   run?: (options: RunOptions) => Promise<void>;
 }
@@ -138,16 +138,16 @@ export function fileExecutionEngine(file: string, contentOnly = false) {
   }
 }
 
-export function engineIgnoreDirs() {
-  const ignoreDirs: RegExp[] = [];
+export function engineIgnoreGlobs() {
+  const ignoreGlobs: string[] = [];
   executionEngines().forEach((name) => {
     const engine = executionEngine(name);
-    if (engine && engine.ignoreDirs) {
-      const engineIgnores = engine.ignoreDirs();
+    if (engine && engine.ignoreGlobs) {
+      const engineIgnores = engine.ignoreGlobs();
       if (engineIgnores) {
-        ignoreDirs.push(...engineIgnores);
+        ignoreGlobs.push(...engineIgnores);
       }
     }
   });
-  return ignoreDirs;
+  return ignoreGlobs;
 }

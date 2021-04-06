@@ -5,14 +5,14 @@
 *
 */
 
-import { dirname, isAbsolute, join, relative } from "path/mod.ts";
+import { dirname, globToRegExp, isAbsolute, join, relative } from "path/mod.ts";
 import { ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
 import { readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
-import { pathWithForwardSlashes } from "../core/path.ts";
+import { kSkipHidden, pathWithForwardSlashes } from "../core/path.ts";
 
 import { includedMetadata, Metadata } from "../config/metadata.ts";
 import { kMetadataFile, kMetadataFiles } from "../config/constants.ts";
@@ -23,13 +23,9 @@ import { ProjectType, projectType } from "./types/project-types.ts";
 
 import { resolvePathGlobs } from "../core/path.ts";
 
-import {
-  engineIgnoreDirs,
-  executionEngine,
-  executionEngines,
-  fileExecutionEngine,
-} from "../execute/engine.ts";
+import { engineIgnoreGlobs, fileExecutionEngine } from "../execute/engine.ts";
 import { projectResourceFiles } from "./project-resources.ts";
+import { kGitignoreEntries } from "./project-gitignore.ts";
 
 export const kExecuteDir = "execute-dir";
 export const kOutputDir = "output-dir";
@@ -166,6 +162,14 @@ export function projectOffset(context: ProjectContext, input: string) {
   return pathWithForwardSlashes(offset);
 }
 
+export function projectIgnoreRegexes() {
+  return engineIgnoreGlobs().concat(
+    kGitignoreEntries.map((ignore) => `**/${ignore}**`),
+  ).map(
+    (glob) => globToRegExp(glob, { extended: true, globstar: true }),
+  );
+}
+
 export function projectMetadataForInputFile(
   input: string,
   project?: ProjectContext,
@@ -229,6 +233,8 @@ function projectInputFiles(dir: string, metadata?: ProjectMetadata) {
 
   const outputDir = metadata?.[kOutputDir];
 
+  const projectIgnore = projectIgnoreRegexes();
+
   const addFile = (file: string) => {
     if (!outputDir || !file.startsWith(join(dir, outputDir))) {
       const engine = fileExecutionEngine(file, true);
@@ -243,9 +249,7 @@ function projectInputFiles(dir: string, metadata?: ProjectMetadata) {
   };
 
   const addDir = (dir: string) => {
-    // Allow engines to provide directories that can be ignored
-    const skip = [/[/\\][\.]/];
-    skip.push(...engineIgnoreDirs());
+    // ignore selected other globs
 
     for (
       const walk of walkSync(
@@ -253,11 +257,14 @@ function projectInputFiles(dir: string, metadata?: ProjectMetadata) {
         {
           includeDirs: false,
           followSymlinks: true,
-          skip,
+          skip: [kSkipHidden],
         },
       )
     ) {
-      addFile(walk.path);
+      const pathRelative = pathWithForwardSlashes(relative(dir, walk.path));
+      if (!projectIgnore.some((regex) => regex.test(pathRelative))) {
+        addFile(walk.path);
+      }
     }
   };
 
