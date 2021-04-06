@@ -166,7 +166,7 @@ export function copyProjectForServe(
   const outputDir = projectOutputDir(project);
   // lib dir
   const libDirConfig = project.metadata?.project?.[kLibDir];
-  const libDir = libDirConfig ? join(outputDir, libDirConfig) : undefined;
+  const libDir = libDirConfig ? join(project.dir, libDirConfig) : undefined;
 
   const projectIgnore = projectIgnoreRegexes();
 

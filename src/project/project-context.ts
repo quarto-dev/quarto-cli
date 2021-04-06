@@ -151,8 +151,11 @@ export function projectOutputDir(context: ProjectContext) {
   } else {
     outputDir = context.dir;
   }
-  ensureDirSync(outputDir);
-  return Deno.realPathSync(outputDir);
+  if (existsSync(outputDir)) {
+    return Deno.realPathSync(outputDir);
+  } else {
+    return outputDir;
+  }
 }
 
 export function projectOffset(context: ProjectContext, input: string) {
