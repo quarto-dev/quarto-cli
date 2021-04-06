@@ -10,6 +10,7 @@
     "uuid/": "https://deno.land/std/uuid/",
     "testing/": "https://deno.land/std/testing/",
     "http/": "https://deno.land/std/http/",
+    "signal/": "https://deno.land/std/signal/",
     "ws/": "https://deno.land/std/ws/",
     "datetime/": "https://deno.land/std/datetime/",
     "xmlp/": "https://deno.land/x/xmlp/",

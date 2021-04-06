@@ -56,7 +56,7 @@ export async function initializeLogger(logOptions: LogOptions) {
   });
 }
 
-export async function cleanupLogger() {
+export function cleanupLogger() {
 }
 
 export function logError(error: Error) {
