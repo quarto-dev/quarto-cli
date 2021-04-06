@@ -5,9 +5,9 @@
 *
 */
 
-// TODO: atomicity of render artifacts (timing)
 // TODO: _ filter not serving us well (exludes osx temp)
-// TODO: are we safe to skip the kOutputDir and kLibsDir (I think so)
+// TODO: render on save for .md (non-Jupyter) files. allow engines to decide
+// TODO: are we sometime getting the wrong file for refresh target
 
 import * as colors from "fmt/colors.ts";
 
@@ -16,17 +16,14 @@ import { basename, extname, join, posix, relative } from "path/mod.ts";
 
 import { Response, serve, ServerRequest } from "http/server.ts";
 
-import { ld } from "lodash/mod.ts";
-
 import { message } from "../../core/console.ts";
 import { openUrl } from "../../core/shell.ts";
 import { contentType, isHtmlContent } from "../../core/mime.ts";
 import { copyMinimal, pathWithForwardSlashes } from "../../core/path.ts";
 import { createSessionTempDir } from "../../core/temp.ts";
-import { logError } from "../../core/log.ts";
 
 import {
-  kOutputDir,
+  kLibDir,
   ProjectContext,
   projectContext,
   projectOutputDir,
@@ -165,14 +162,20 @@ export function copyProjectForServe(
   serveDir = serveDir || createSessionTempDir();
   const engineSkip = engineIgnoreDirs();
   const skip = [/[/\\][\.]/].concat(engineSkip);
+  // output dir
   const outputDir = projectOutputDir(project);
+  // lib dir
+  const libDirConfig = project.metadata?.project?.[kLibDir];
+  const libDir = libDirConfig ? join(outputDir, libDirConfig) : undefined;
+
   copyMinimal(
     project.dir,
     serveDir,
     true,
     skip,
     (path) => {
-      return !path.startsWith(outputDir);
+      return !path.startsWith(outputDir) &&
+        (!libDir || !path.startsWith(libDir));
     },
   );
   copyMinimal(
