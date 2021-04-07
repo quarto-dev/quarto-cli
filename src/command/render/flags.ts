@@ -224,11 +224,6 @@ export function parseRenderFlags(args: string[]) {
         arg = argsStack.shift();
         break;
 
-      case "--quiet":
-        flags.quiet = true;
-        arg = argsStack.shift();
-        break;
-
       case "-P":
       case "--execute-param":
         arg = argsStack.shift();
