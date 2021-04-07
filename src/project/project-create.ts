@@ -27,7 +27,6 @@ export interface ProjectCreateOptions {
   engine: string;
   [kOutputDir]?: string;
   kernel?: string;
-  quiet?: boolean;
 }
 
 export async function projectCreate(options: ProjectCreateOptions) {
@@ -48,11 +47,9 @@ export async function projectCreate(options: ProjectCreateOptions) {
   }
 
   options.dir = Deno.realPathSync(options.dir);
-  if (!options.quiet) {
-    info(`Creating project at `, { newline: false });
-    info(`${options.dir}`, { bold: true, newline: false });
-    info(":");
-  }
+  info(`Creating project at `, { newline: false });
+  info(`${options.dir}`, { bold: true, newline: false });
+  info(":");
 
   // call create on the project type
   const projType = projectType(options.type);
@@ -65,19 +62,15 @@ export async function projectCreate(options: ProjectCreateOptions) {
     ext: engine.defaultExt,
   }, false);
   await Deno.writeTextFile(join(options.dir, "_quarto.yml"), quartoConfig);
-  if (!options.quiet) {
-    info(
-      "- Created _quarto.yml",
-      { indent: 2 },
-    );
-  }
+  info(
+    "- Created _quarto.yml",
+    { indent: 2 },
+  );
   await createGitignore(options.dir);
-  if (!options.quiet) {
-    info(
-      "- Created .gitignore",
-      { indent: 2 },
-    );
-  }
+  info(
+    "- Created .gitignore",
+    { indent: 2 },
+  );
 
   // create scaffold files if we aren't creating a project within the
   // current working directory (which presumably already has files)
@@ -92,9 +85,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
         scaffold.title,
         scaffold.format,
       );
-      if (!options.quiet) {
-        info("- Created " + md, { indent: 2 });
-      }
+      info("- Created " + md, { indent: 2 });
     }
   }
 
@@ -103,9 +94,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
     for (const supporting of projCreate.supporting) {
       const name = basename(supporting);
       Deno.copyFileSync(supporting, join(options.dir, name));
-      if (!options.quiet) {
-        info("- Created " + name, { indent: 2 });
-      }
+      info("- Created " + name, { indent: 2 });
     }
   }
 }

@@ -110,6 +110,5 @@ export const createProjectCommand = new Command()
       engine: engine[0] || "none",
       [kOutputDir]: options.outputDir,
       kernel: engine[1],
-      quiet: options.quiet,
     });
   });
