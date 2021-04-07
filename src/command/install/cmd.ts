@@ -9,7 +9,7 @@ import { Command } from "cliffy/command/mod.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
 import { info } from "log/mod.ts";
 
-import { formatLine } from "../../core/console.ts";
+import { formatLine, withSpinner } from "../../core/console.ts";
 import { ToolSummaryData } from "./install.ts";
 
 import {
@@ -40,7 +40,7 @@ export const installCommand = new Command()
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, name: string) => {
     if (options.listTools) {
-      outputTools();
+      await outputTools();
     } else if (name) {
       await installTool(name);
     }
@@ -61,7 +61,7 @@ export const uninstallCommand = new Command()
   )
   // deno-lint-ignore no-explicit-any
   .action(async (_options: any, name: string) => {
-    confirmDestructiveAction(
+    await confirmDestructiveAction(
       name,
       `This will remove ${name} and all of its files. Are you sure?`,
       async () => {
@@ -88,7 +88,7 @@ export const updateCommand = new Command()
   // deno-lint-ignore no-explicit-any
   .action(async (_options: any, name: string) => {
     const summary = await toolSummary(name);
-    confirmDestructiveAction(
+    await confirmDestructiveAction(
       name,
       `This will update ${name} from ${summary?.installedVersion} to ${
         summary?.latestRelease.version
@@ -104,7 +104,7 @@ export const updateCommand = new Command()
 async function confirmDestructiveAction(
   name: string,
   prompt: string,
-  action: () => void,
+  action: () => Promise<void>,
   update: boolean,
   summary?: ToolSummaryData,
 ) {
@@ -117,7 +117,7 @@ async function confirmDestructiveAction(
       } else if (summary.installedVersion !== undefined) {
         const confirmed: boolean = await Confirm.prompt(prompt);
         if (confirmed) {
-          action();
+          await action();
         }
       } else {
         info(
@@ -137,43 +137,47 @@ async function confirmDestructiveAction(
 }
 
 async function outputTools() {
-  // Reads the status
-  const installStatus = (summary: ToolSummaryData): string => {
-    if (summary.installed) {
-      if (summary.installedVersion) {
-        if (summary.installedVersion === summary.latestRelease.version) {
-          return "Up to date";
+  const toolRows: string[] = [];
+  const cols = [20, 32, 14, 14];
+  await withSpinner({
+    message: "Reading Tool Data",
+  }, async () => {
+    // Reads the status
+    const installStatus = (summary: ToolSummaryData): string => {
+      if (summary.installed) {
+        if (summary.installedVersion) {
+          if (summary.installedVersion === summary.latestRelease.version) {
+            return "Up to date";
+          } else {
+            return "Update available";
+          }
         } else {
-          return "Update available";
+          return "Present - ext. managed";
         }
       } else {
-        return "Present - ext. managed";
+        return "Not installed";
       }
-    } else {
-      return "Not installed";
-    }
-  };
+    };
 
-  // The column widths for output (in chars)
-  const cols = [20, 32, 14, 14];
-  const toolRows: string[] = [];
-  for (const tool of installableTools()) {
-    const summary = await toolSummary(tool);
-    if (summary) {
-      toolRows.push(
-        formatLine(
-          [
-            tool,
-            installStatus(summary),
-            summary.installedVersion || "----",
-            summary.latestRelease.version,
-          ],
-          cols,
-        ),
-      );
-    }
-  }
+    // The column widths for output (in chars)
 
+    for (const tool of installableTools()) {
+      const summary = await toolSummary(tool);
+      if (summary) {
+        toolRows.push(
+          formatLine(
+            [
+              tool,
+              installStatus(summary),
+              summary.installedVersion || "----",
+              summary.latestRelease.version,
+            ],
+            cols,
+          ),
+        );
+      }
+    }
+  });
   // Write the output
   info(
     formatLine(["Tool", "Status", "Installed", "Latest"], cols),

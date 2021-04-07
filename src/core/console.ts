@@ -5,7 +5,6 @@
 *
 */
 
-import * as colors from "fmt/colors.ts";
 import { AnsiEscape } from "ansi/mod.ts";
 import { info } from "log/mod.ts";
 
