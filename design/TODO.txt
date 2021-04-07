@@ -13,15 +13,13 @@ BrokenPipe: Broken pipe (os error 32)
     at async handler (file:///Users/jjallaire/quarto/quarto-cli/src/command/serve/serve.ts:113:9)
 
 
-TODO: use e.g. #tbl:mtcars as identifier for table produced from R (currently requires embedding in caption)
-
 
 
 TODO: render progress for R quarto_serve()
 TODO: open in browser with no index.html for R quarto_serve()
 
 TODO: review split("\n and consider replacing with split(/\r?\n/)
-make readlines function that takes a buffer and use that to read anywhere we're using that regex
+TODO: make readlines function that takes a buffer and use that to read anywhere we're using that regex
 
 Books
 =========================================================================
