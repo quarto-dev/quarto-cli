@@ -12,7 +12,7 @@ crossref = {}
 
 -- [import]
 function import(script)
-  local path = PANDOC_SCRIPT_FILE:match("(.*/)")
+  local path = PANDOC_SCRIPT_FILE:match("(.*[/\\])")
   dofile(path .. script)
 end
 import("index.lua")
