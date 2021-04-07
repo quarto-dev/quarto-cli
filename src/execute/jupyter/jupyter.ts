@@ -5,7 +5,8 @@
 *
 */
 
-import { basename, dirname, extname, join } from "path/mod.ts";
+import { extname, join } from "path/mod.ts";
+import { info } from "log/mod.ts";
 
 import { execProcess } from "../../core/process.ts";
 import {
@@ -15,7 +16,6 @@ import {
 } from "../../core/yaml.ts";
 
 import { dirAndStem } from "../../core/path.ts";
-import { message } from "../../core/console.ts";
 
 import { Metadata } from "../../config/metadata.ts";
 
@@ -144,7 +144,7 @@ export const jupyterEngine: ExecutionEngine = {
         // progress
         if (!quiet && !transient) {
           const pairedExts = target.paired.map((p) => extname(p).slice(1));
-          message(
+          info(
             "[jupytext] " + "Syncing " + pairedExts.join(",") + "...",
             { newline: false },
           );
@@ -169,7 +169,7 @@ export const jupyterEngine: ExecutionEngine = {
         }
 
         if (!quiet && !transient) {
-          message("Done");
+          info("Done");
         }
       }
 

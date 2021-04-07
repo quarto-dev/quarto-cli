@@ -6,8 +6,9 @@
 */
 import * as colors from "fmt/colors.ts";
 import { Command } from "cliffy/command/mod.ts";
+import { info } from "log/mod.ts";
 
-import { message, spinner } from "../../core/console.ts";
+import { spinner } from "../../core/console.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { pythonEnv, rBinaryEnv, rPackageEnv } from "./execution.ts";
 import { binaryEnv, dartSassEnv, QuartoEnv, tinyTexEnv } from "./bin.ts";
@@ -105,7 +106,7 @@ async function printEnvironmentData(
 
   if (path || version || metadata) {
     // Print the title
-    message(`${colors.bold(envData.name)}:`);
+    info(envData.name, { bold: true });
 
     // Print the path information (single path or record of paths)
     if (path) {
@@ -133,18 +134,18 @@ async function printEnvironmentData(
 
     // optional new line
     if (envData.options?.newLine) {
-      message("");
+      info("");
     }
   } else if (!optional) {
     // Print a not found message
-    message(`${envData.name}:`);
-    message("(Not found)\n", { indent: 1 });
+    info(`${envData.name}:`);
+    info("(Not found)\n", { indent: 1 });
   } else {
     // This is optional, so will just allow it through silently.
   }
 }
 
 function printEnv(name: string, value: string) {
-  message(`${name}:`, { indent: 1 });
-  message(value, { indent: 2 });
+  info(`${name}:`, { indent: 1 });
+  info(value, { indent: 2 });
 }

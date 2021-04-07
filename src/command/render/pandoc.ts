@@ -5,7 +5,9 @@
 *
 */
 
-import { basename, dirname, isAbsolute, join } from "path/mod.ts";
+import { dirname, join } from "path/mod.ts";
+
+import { info } from "log/mod.ts";
 
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 
@@ -16,7 +18,6 @@ import { ld } from "lodash/mod.ts";
 import { Document, DOMParser } from "deno_dom/deno-dom-wasm.ts";
 
 import { execProcess } from "../../core/process.ts";
-import { message } from "../../core/console.ts";
 import { dirAndStem, pathWithForwardSlashes } from "../../core/path.ts";
 import { mergeConfigs } from "../../core/config.ts";
 
@@ -568,9 +569,9 @@ function runPandocMessage(
   metadata: Metadata,
   debug?: boolean,
 ) {
-  message(`pandoc ${args.join(" ")}`, { bold: true });
+  info(`pandoc ${args.join(" ")}`, { bold: true });
   if (pandoc) {
-    message(pandocDefaultsMessage(pandoc, sysFilters, debug), { indent: 2 });
+    info(pandocDefaultsMessage(pandoc, sysFilters, debug), { indent: 2 });
   }
 
   const keys = Object.keys(metadata);
@@ -583,8 +584,8 @@ function runPandocMessage(
 
     // print message
     if (Object.keys(printMetadata).length > 0) {
-      message("metadata", { bold: true });
-      message(stringify(printMetadata), { indent: 2 });
+      info("metadata", { bold: true });
+      info(stringify(printMetadata), { indent: 2 });
     }
   }
 }

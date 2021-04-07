@@ -9,14 +9,6 @@ import * as colors from "fmt/colors.ts";
 import { AnsiEscape } from "ansi/mod.ts";
 import { info } from "log/mod.ts";
 
-export interface MessageOptions {
-  newline?: boolean;
-  bold?: boolean;
-  dim?: boolean;
-  indent?: number;
-  format?: (line: string) => string;
-}
-
 // The spinner and progress characters
 const kSpinnerChars = ["|", "/", "-", "\\"];
 const kSpinerContainerChars = ["(", ")"];
@@ -25,10 +17,6 @@ const kSpinnerCompleteChar = "✓";
 const kProgressIncrementChar = "#";
 const kProgressContainerChars = ["[", "]"];
 const kProgressBarWidth = 50;
-
-export function message(line: string, options?: MessageOptions) {
-  info(line, options);
-}
 
 // A progressBar display for the console
 // Includes optional prefix message as well as status text and a final state
@@ -137,26 +125,6 @@ function completeMessage(msg: string) {
       newline: true,
     },
   );
-}
-
-export function messageFormatData(data: Uint8Array, options?: MessageOptions) {
-  const decoder = new TextDecoder("utf8");
-  const encoder = new TextEncoder();
-
-  const { newline = true, bold = false, indent = 0 } = options || {};
-  let output = decoder.decode(data);
-  if (indent) {
-    const pad = " ".repeat(indent);
-    output = output
-      .split(/\r?\n/)
-      .map((output) => pad + output)
-      .join("\n");
-  }
-  if (bold) {
-    output = colors.bold(output);
-  }
-
-  Deno.stderr.writeSync(encoder.encode(output + (newline ? "\n" : "")));
 }
 
 export function formatLine(values: string[], lengths: number[]) {

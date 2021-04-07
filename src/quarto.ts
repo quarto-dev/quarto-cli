@@ -43,6 +43,13 @@ export async function quarto(args: string[]) {
         global: true,
       },
     )
+    .option(
+      "-q, --quiet",
+      "Suppress console output.",
+      {
+        global: true,
+      },
+    )
     .throwErrors();
 
   commands().forEach((command) => {
