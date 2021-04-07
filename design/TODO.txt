@@ -79,8 +79,6 @@ The side effects might require an id of some kind (for managing duplicates):
      - intermediates/intermediates-dir
 
 
-
-
 Logging
 =========================================================================
 // TODO: Errors and warnings go to a log
@@ -90,21 +88,18 @@ Logging
 // --log-level "debug" : "info"
 // --log-format: "json"
 
-// TODO: Should we clean log between runs or just keep appending
-// TODO: Be sure stack traces show up in logs for debug builds.
 // TODO: Json support
 // TODO: write log preamble with environment, version and so on
 // TODO: If error, should we also emit environment information
-Logging to respect quiet flag 
-Use global functions for logging (not our overrides (perhaps except for logging an error)
+// TODO: Put third party tools in verbose mode when appropriate
+// TODO: suppport type = plain | json | streaming json
 
-Tinytex install / uninstall / update broken?
-Tinytex install update uninstall should require name
+
+TinyTex
+============================================================================
 Tinytex install should optionally accept a version (?)
-// TODO: unpin logger version in import_map
-// Put third party tools in verbose mode when appropriate
-// suppport type = plain | json | streaming json
-// consider adding quiet as global command (since it will be respected)
+Create bundled standalone version
+Consider consolidating the main loop (single loop rather than pdf compile followed by loop)
 
 
 Future
