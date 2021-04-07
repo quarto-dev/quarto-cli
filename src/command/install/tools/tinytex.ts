@@ -175,6 +175,23 @@ async function install(
         },
       );
 
+      const macBinFolder = () => {
+        const oldBinFolder = join(
+          installDir,
+          "bin",
+          `${Deno.build.arch}-${Deno.build.os}`,
+        );
+        if (existsSync(oldBinFolder)) {
+          return oldBinFolder;
+        } else {
+          return join(
+            installDir,
+            "bin",
+            `universal-${Deno.build.os}`,
+          );
+        }
+      };
+
       // Find the tlmgr and note its location
       const binFolder = Deno.build.os === "windows"
         ? join(
@@ -182,11 +199,8 @@ async function install(
           "bin",
           "win32",
         )
-        : join(
-          installDir,
-          "bin",
-          `${Deno.build.arch}-${Deno.build.os}`,
-        );
+        : macBinFolder();
+
       context.props[kTlMgrKey] = Deno.build.os === "windows"
         ? join(binFolder, "tlmgr.bat")
         : join(binFolder, "tlmgr");
