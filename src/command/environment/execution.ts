@@ -139,6 +139,6 @@ export function rPackageEnv(): EnvironmentData {
         packages: packages,
       });
     },
-    options: { newLine: true },
+    options: { newline: true },
   };
 }

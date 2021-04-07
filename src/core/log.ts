@@ -16,6 +16,7 @@ export interface LogOptions {
   level?: string;
   format?: string;
   quiet?: boolean;
+  newline?: true;
 }
 
 export interface LogMessageOptions {
@@ -89,7 +90,7 @@ export class MessageHandler extends BaseHandler {
 export class LogFileHandler extends FileHandler {
   format(logRecord: LogRecord): string {
     const options = {
-      newLine: true,
+      newline: true,
       ...logRecord.args[0] as LogMessageOptions,
       bold: false,
       dim: false,

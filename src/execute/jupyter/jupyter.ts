@@ -574,9 +574,7 @@ async function jupytext(...args: string[]) {
         stderr: "piped",
       },
       undefined,
-      (data: Uint8Array) => {
-        Deno.stderr.writeSync(data);
-      },
+      "stdout>stderr",
     );
     if (!result.success) {
       throw new Error(result.stderr || "Error syncing jupytext");

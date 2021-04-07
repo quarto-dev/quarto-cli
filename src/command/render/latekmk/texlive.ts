@@ -282,25 +282,12 @@ function tlmgrCommand(
   cmd: string,
   args: string[],
   quiet?: boolean,
-  stdout?: (stdout: Uint8Array) => void,
 ) {
   try {
     const result = execProcess(
       {
         cmd: [...tlmgr, cmd, ...args],
         stdout: "piped",
-        stderr: quiet ? "piped" : undefined,
-      },
-      undefined,
-      (data: Uint8Array) => {
-        if (!quiet) {
-          const decoder = new TextDecoder("utf8");
-          info(decoder.decode(data), kLatexBodyMessageOptions);
-        }
-
-        if (stdout) {
-          stdout(data);
-        }
       },
     );
     return result;

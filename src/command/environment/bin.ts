@@ -22,7 +22,7 @@ export function tinyTexEnv() {
     version: () => {
       return tlVersion();
     },
-    options: { newLine: true },
+    options: { newline: true },
   };
 }
 
@@ -35,7 +35,7 @@ export function dartSassEnv() {
     version: () => {
       return dartSassVersion();
     },
-    options: { newLine: true },
+    options: { newline: true },
   };
 }
 
@@ -77,6 +77,6 @@ export function QuartoEnv(config: QuartoConfig): EnvironmentData {
         config.isDebug() ? "DEBUG" : quartoConfig.version(),
       );
     },
-    options: { newLine: true },
+    options: { newline: true },
   };
 }

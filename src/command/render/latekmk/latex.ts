@@ -162,17 +162,9 @@ async function runLatexCommand(
     stderr: "piped",
   };
 
-  // Redirect stdoutput to stderr
-  const stdoutHandler = (data: Uint8Array) => {
-    if (!quiet) {
-      const decoder = new TextDecoder("utf8");
-      info(decoder.decode(data), kLatexBodyMessageOptions);
-    }
-  };
-
   // Run the command
   const runCmd = async () => {
-    const result = await execProcess(runOptions, undefined, stdoutHandler);
+    const result = await execProcess(runOptions, undefined, "stdout>stderr");
     if (!quiet && result.stderr) {
       info(result.stderr, kLatexBodyMessageOptions);
     }

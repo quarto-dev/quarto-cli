@@ -22,7 +22,7 @@ export interface EnvironmentData {
 }
 
 export interface EnvironmentDataOutputOptions {
-  newLine: boolean;
+  newline: boolean;
 }
 
 export const environmentCommand = new Command()
@@ -84,7 +84,7 @@ const r: EnvironmentData[] = [
 const python: EnvironmentData[] = [
   pythonEnv("python"),
   pythonEnv("jupyter"),
-  pythonEnv("jupytext", { newLine: true }),
+  pythonEnv("jupytext", { newline: true }),
 ];
 
 async function printEnvironmentData(
@@ -133,7 +133,7 @@ async function printEnvironmentData(
     }
 
     // optional new line
-    if (envData.options?.newLine) {
+    if (envData.options?.newline) {
       info("");
     }
   } else if (!optional) {

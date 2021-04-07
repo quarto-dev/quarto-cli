@@ -132,16 +132,9 @@ async function callR<T>(
         rBinaryPath("Rscript"),
         resourcePath("rmd/rmd.R"),
       ],
-      stdout: "piped",
-      stderr: quiet ? "piped" : undefined,
     },
     input,
-    // stream stdout to stderr
-    (data: Uint8Array) => {
-      if (!quiet) {
-        Deno.stderr.writeSync(data);
-      }
-    },
+    "stdout>stderr",
   );
 
   if (result.success) {
