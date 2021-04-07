@@ -56,10 +56,6 @@ export class MessageHandler extends BaseHandler {
       ...(logRecord.args[0] as LogMessageOptions),
     };
 
-    if (options.newline) {
-      msg = msg + "\n";
-    }
-
     switch (logRecord.level) {
       case log.LogLevels.INFO:
       case log.LogLevels.DEBUG:
@@ -76,6 +72,10 @@ export class MessageHandler extends BaseHandler {
         break;
       default:
         break;
+    }
+
+    if (options.newline) {
+      msg = msg + "\n";
     }
 
     return msg;
