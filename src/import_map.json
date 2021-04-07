@@ -2,7 +2,7 @@
   "imports": {
     "fmt/": "https://deno.land/std/fmt/",
     "flags/": "https://deno.land/std/flags/",
-    "log/": "https://deno.land/std@/log/",
+    "log/": "https://deno.land/std/log/",
     "path/": "https://deno.land/std/path/",
     "fs/": "https://deno.land/std/fs/",
     "hash/": "https://deno.land/std/hash/",
@@ -18,6 +18,7 @@
     "ansi/": "https://deno.land/x/cliffy@v0.16.0/ansi_escape/",
     "lodash/": "https://deno.land/x/deno_lodash/",
     "fuse/": "https://deno.land/x/fuse/",
-    "deno_dom/": "https://deno.land/x/deno_dom/"
+    "deno_dom/": "https://deno.land/x/deno_dom/",
+    "async/": "https://deno.land/std/async/"
   }
 }

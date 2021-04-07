@@ -23,7 +23,6 @@ import {
 import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
 import { quartoConfig } from "./core/quarto.ts";
 import { Args, parse } from "flags/mod.ts";
-import { warning } from "log/mod.ts";
 
 export async function quarto(args: string[]) {
   const quartoCommand = new Command()
@@ -40,6 +39,13 @@ export async function quarto(args: string[]) {
     .option(
       "-ll, --log-level <level>",
       "Log level (info, warning, error, critical)",
+      {
+        global: true,
+      },
+    )
+    .option(
+      "-q, --quiet",
+      "Suppress console output.",
       {
         global: true,
       },
@@ -68,7 +74,7 @@ if (import.meta.main) {
     // install termination signal handlers
     onSignal(Deno.Signal.SIGINT, cleanup);
     onSignal(Deno.Signal.SIGTERM, cleanup);
-  
+
     // run quarto
     await quarto(Deno.args);
   } catch (e) {

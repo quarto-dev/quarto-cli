@@ -8,9 +8,9 @@
 import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 import { createHash } from "hash/mod.ts";
+import { error, info, warning } from "log/mod.ts";
 
 import { sleep } from "../../core/async.ts";
-import { message } from "../../core/console.ts";
 import { quartoDataDir, quartoRuntimeDir } from "../../core/appdirs.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 import { resourcePath } from "../../core/resources.ts";
@@ -102,7 +102,7 @@ export async function executeKernelKeepalive(
             const msg: { type: string; data: string } = JSON.parse(
               jsonMessage,
             );
-            message(msg.data, { newline: false });
+            info(msg.data, { newline: false });
             if (msg.type === "error") {
               trace(options, "Error response received");
               return Promise.reject();
@@ -237,7 +237,7 @@ function readKernelTransportFile(
           throw new Error("Invalid file format");
         }
       } catch (e) {
-        message(
+        error(
           "Error reading kernel transport file: " + e.toString() +
             "(removing file)",
         );
@@ -320,13 +320,13 @@ async function connectToKernel(
       } catch (e) {
         // remove the transport file
         Deno.removeSync(transportFile);
-        message("Error connecting to Jupyter kernel: " + e.toString());
+        error("Error connecting to Jupyter kernel: " + e.toString());
         return Promise.reject();
       }
     }
   }
 
-  message("Unable to start Jupyter kernel for " + options.target.input);
+  warning("Unable to start Jupyter kernel for " + options.target.input);
   return Promise.reject();
 }
 
@@ -351,11 +351,11 @@ async function denoConnectToKernel(
 }
 
 function messageStartingKernel() {
-  message("\nStarting Jupyter kernel...", { newline: false });
+  info("\nStarting Jupyter kernel...", { newline: false });
 }
 
 function trace(options: ExecuteOptions, msg: string) {
   if (options.format.execution[kKernelDebug]) {
-    message("- " + msg, { bold: true });
+    info("- " + msg, { bold: true });
   }
 }

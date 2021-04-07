@@ -11,11 +11,12 @@ import { basename, dirname, extname, join, relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
+import { info } from "log/mod.ts";
+
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { createSessionTempDir } from "../../core/temp.ts";
 import { inputFilesDir } from "../../core/render.ts";
-import { message } from "../../core/console.ts";
 import { dirAndStem, removeIfExists } from "../../core/path.ts";
 
 import {
@@ -193,7 +194,7 @@ export async function renderFiles(
   const progress = project && (files.length > 1) && !options.flags?.quiet;
 
   if (progress) {
-    message(`\nRendering project:`);
+    info(`\nRendering project:`);
     options.flags = options.flags || {};
     options.flags.quiet = true;
   }
@@ -205,7 +206,7 @@ export async function renderFiles(
       const file = files[i];
 
       if (progress) {
-        message(relative(project!.dir, file), { indent: 2 });
+        info(relative(project!.dir, file), { indent: 2 });
       }
 
       // make a copy of options (since we mutate it)

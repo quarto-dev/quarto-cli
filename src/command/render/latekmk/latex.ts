@@ -7,8 +7,8 @@
 
 import { basename, join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
+import { error, info } from "log/mod.ts";
 
-import { message, messageFormatData } from "../../../core/console.ts";
 import { dirAndStem } from "../../../core/path.ts";
 import { execProcess, ProcessResult } from "../../../core/process.ts";
 
@@ -162,18 +162,11 @@ async function runLatexCommand(
     stderr: "piped",
   };
 
-  // Redirect stdoutput to stderr
-  const stdoutHandler = (data: Uint8Array) => {
-    if (!quiet) {
-      messageFormatData(data, kLatexBodyMessageOptions);
-    }
-  };
-
   // Run the command
   const runCmd = async () => {
-    const result = await execProcess(runOptions, undefined, stdoutHandler);
+    const result = await execProcess(runOptions, undefined, "stdout>stderr");
     if (!quiet && result.stderr) {
-      message(result.stderr, kLatexBodyMessageOptions);
+      info(result.stderr, kLatexBodyMessageOptions);
     }
     return result;
   };
@@ -185,7 +178,7 @@ async function runLatexCommand(
     // First confirm that there is a TeX installation available
     const tex = await hasLatexDistribution();
     if (!tex) {
-      message(
+      info(
         "\nNo TeX installation was detected.\n\nPlease run 'quarto install tinytex' to install TinyTex.\nIf you prefer, you may install TexLive or another TeX distribution.\n",
       );
       return Promise.reject();
@@ -193,7 +186,7 @@ async function runLatexCommand(
       // If the command itself can't be found, try installing the command
       // if auto installation is enabled
       if (!quiet) {
-        message(
+        info(
           `command ${latexCmd} not found, attempting install`,
           kLatexHeaderMessageOptions,
         );
@@ -209,7 +202,7 @@ async function runLatexCommand(
       return await runCmd();
     } else {
       // Some other error has occurred
-      message(
+      error(
         `Error executing ${latexCmd}`,
         kLatexHeaderMessageOptions,
       );

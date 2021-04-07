@@ -6,13 +6,12 @@
 */
 
 import * as colors from "fmt/colors.ts";
-
+import { error, info } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { basename, extname, join, posix, relative } from "path/mod.ts";
 
 import { Response, serve, ServerRequest } from "http/server.ts";
 
-import { message } from "../../core/console.ts";
 import { openUrl } from "../../core/shell.ts";
 import { contentType, isHtmlContent } from "../../core/mime.ts";
 import {
@@ -126,12 +125,12 @@ export async function serveProject(
   // print status
   if (!options.quiet) {
     if (options.watch) {
-      message("Watching project for reload on changes");
+      info("Watching project for reload on changes");
     }
-    message(`Browse the site at `, {
+    info(`Browse the site at `, {
       newline: false,
     });
-    message(`${siteUrl}`, { format: colors.underline });
+    info(`${siteUrl}`, { format: colors.underline });
   }
 
   // open browser if requested
@@ -219,7 +218,7 @@ function serveFallback(
     });
   } else {
     if (!options.quiet) {
-      message(`500 (Internal Error): ${(e as Error).message}`, { bold: true });
+      error(`500 (Internal Error): ${(e as Error).message}`, { bold: true });
     }
     if (options.debug) {
       console.error(e);
@@ -296,9 +295,9 @@ function printUrl(url: string, found = true) {
   if (
     isHtmlContent(url) || url.endsWith("/") || extname(url) === ""
   ) {
-    message(`\nGET: ${url}`, { bold: true, format: format || colors.green });
+    info(`\nGET: ${url}`, { bold: true, format: format || colors.green });
   } else {
-    message(url, { dim: found, format, indent: 1 });
+    info(url, { dim: found, format, indent: 1 });
   }
 }
 

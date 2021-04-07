@@ -70,10 +70,6 @@ export const createProjectCommand = new Command()
     "--no-scaffold",
     "Don't create initial project file(s)",
   )
-  .option(
-    "--quiet",
-    "Suppress warning and other messages.",
-  )
   .example(
     "Create a project in the current directory",
     "quarto create-project",

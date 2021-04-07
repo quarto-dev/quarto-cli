@@ -34,10 +34,6 @@ export const serveCommand = new Command()
     "Don't navigate the browser automatically.",
   )
   .option(
-    "--quiet",
-    "Suppress warning and other messages.",
-  )
-  .option(
     "--debug",
     "Print debug output.",
   )

@@ -8,33 +8,29 @@
 import { ServerRequest } from "http/server.ts";
 
 import { extname, join, relative } from "path/mod.ts";
-import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { existsSync } from "fs/mod.ts";
 
 import { acceptWebSocket, WebSocket } from "ws/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
-import { message } from "../../core/console.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 
 import {
   kLibDir,
-  kOutputDir,
   ProjectContext,
   projectContext,
   projectOutputDir,
 } from "../../project/project-context.ts";
 
-import {
-  inputTargetIndex,
-  resolveInputTarget,
-} from "../../project/project-index.ts";
+import { resolveInputTarget } from "../../project/project-index.ts";
 
 import { fileExecutionEngine } from "../../execute/engine.ts";
 
 import { RenderResult } from "../render/render.ts";
 
 import { copyProjectForServe, kLocalhost, ServeOptions } from "./serve.ts";
+import { logError } from "../../core/log.ts";
 
 export interface ProjectWatcher {
   handle: (req: ServerRequest) => boolean;
@@ -51,15 +47,9 @@ export function watchProject(
   options: ServeOptions,
 ): ProjectWatcher {
   // error display
-  const displayError = (e: Error) => {
-    if (options.debug) {
-      console.error(e);
-    }
-    message((e as Error).message);
-  };
   const displaySocketError = (e: Error) => {
     if (!(e instanceof Deno.errors.BrokenPipe)) {
-      displayError(e);
+      logError(e);
     }
   };
 
@@ -162,7 +152,7 @@ export function watchProject(
         return false;
       }
     } catch (e) {
-      displayError(e);
+      logError(e);
       return false;
     }
   };
@@ -236,7 +226,7 @@ export function watchProject(
           await reloadClients();
         }
       } catch (e) {
-        displayError(e);
+        logError(e);
       } finally {
         watchForChanges();
       }

@@ -4,12 +4,13 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+import { info } from "log/mod.ts";
 import {
-  message,
   progressBar,
   SpinnerOptions,
   withSpinner,
 } from "../../core/console.ts";
+import { logError } from "../../core/log.ts";
 
 import { GitHubRelease } from "./github.ts";
 import { tinyTexInstallable } from "./tools/tinytex.ts";
@@ -138,11 +139,11 @@ export async function installTool(name: string) {
     }
   } else {
     // No tool found
-    message(
+    info(
       `Could not install '${name}'- try again with one of the following:`,
     );
     installableTools().forEach((name) =>
-      message("quarto install " + name, { indent: 2 })
+      info("quarto install " + name, { indent: 2 })
     );
   }
 }
@@ -161,14 +162,14 @@ export async function uninstallTool(name: string) {
       try {
         // The context for the installers
         await installableTool.uninstall(context);
-        message(`Uninstallation successful\n`);
+        info(`Uninstallation successful\n`);
       } catch (e) {
-        message(e);
+        logError(e);
       } finally {
         Deno.removeSync(workingDir, { recursive: true });
       }
     } else {
-      message(
+      info(
         `${name} is not installed Use 'quarto install ${name} to install it.`,
       );
     }
@@ -211,12 +212,12 @@ export async function updateTool(name: string) {
         );
       }
     } catch (e) {
-      message(e);
+      logError(e);
     } finally {
       Deno.removeSync(workingDir, { recursive: true });
     }
   } else {
-    message(
+    info(
       `${name} is not installed Use 'quarto install ${name} to install it.`,
     );
   }
@@ -252,10 +253,10 @@ export function installableTool(name: string) {
 const installContext = (workingDir: string): InstallContext => {
   const installMessaging = {
     info: (msg: string) => {
-      message(msg);
+      info(msg);
     },
     error: (msg: string) => {
-      message(msg);
+      info(msg);
     },
     withSpinner,
   };

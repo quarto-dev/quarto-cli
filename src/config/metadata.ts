@@ -7,10 +7,10 @@
 
 import { exists } from "fs/exists.ts";
 import { join } from "path/mod.ts";
+import { error } from "log/mod.ts";
 
 import { readYaml, readYamlFromMarkdownFile } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
-import { message } from "../core/console.ts";
 
 import {
   kExecutionDefaults,
@@ -27,7 +27,6 @@ import {
   kRenderDefaultsKeys,
 } from "./constants.ts";
 import { Format } from "./format.ts";
-import { defaultWriterFormat } from "../format/formats.ts";
 
 export type Metadata = {
   [key: string]: unknown;
@@ -55,7 +54,7 @@ export function includedMetadata(
       try {
         return readYaml(yamlFile);
       } catch (e) {
-        message("\nError reading metadata file from " + yamlFile + "\n");
+        error("\nError reading metadata file from " + yamlFile + "\n");
         throw e;
       }
     } else {

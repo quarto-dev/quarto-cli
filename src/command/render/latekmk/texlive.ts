@@ -4,9 +4,9 @@
  * Copyright (C) 2020 by RStudio, PBC
  *
  */
+import { info } from "log/mod.ts";
 import { ld } from "lodash/mod.ts";
 
-import { message, messageFormatData } from "../../../core/console.ts";
 import { execProcess } from "../../../core/process.ts";
 import { kLatexBodyMessageOptions, kLatexHeaderMessageOptions } from "./pdf.ts";
 
@@ -40,7 +40,7 @@ export async function findPackages(
 
   for (const searchTerm of searchTerms) {
     if (!quiet) {
-      message(
+      info(
         `finding package for ${searchTerm}`,
         kLatexHeaderMessageOptions,
       );
@@ -131,7 +131,7 @@ export async function installPackages(
   quiet?: boolean,
 ) {
   if (!quiet) {
-    message(
+    info(
       `> ${pkgs.length} ${
         pkgs.length === 1 ? "package" : "packages"
       } to install`,
@@ -141,7 +141,7 @@ export async function installPackages(
   let count = 1;
   for (const pkg of pkgs) {
     if (!quiet) {
-      message(
+      info(
         `> installing ${pkg} (${count} of ${pkgs.length})`,
         kLatexHeaderMessageOptions,
       );
@@ -282,24 +282,12 @@ function tlmgrCommand(
   cmd: string,
   args: string[],
   quiet?: boolean,
-  stdout?: (stdout: Uint8Array) => void,
 ) {
   try {
     const result = execProcess(
       {
         cmd: [...tlmgr, cmd, ...args],
         stdout: "piped",
-        stderr: quiet ? "piped" : undefined,
-      },
-      undefined,
-      (data: Uint8Array) => {
-        if (!quiet) {
-          messageFormatData(data, kLatexBodyMessageOptions);
-        }
-
-        if (stdout) {
-          stdout(data);
-        }
       },
     );
     return result;

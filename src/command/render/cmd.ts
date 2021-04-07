@@ -5,12 +5,10 @@
 *
 */
 
-import { dirname, join, relative } from "path/mod.ts";
+import { relative } from "path/mod.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
-
 import { Command } from "cliffy/command/mod.ts";
-
-import { message } from "../../core/console.ts";
+import { info } from "log/mod.ts";
 
 import { fixupPandocArgs, kStdOut, parseRenderFlags } from "./flags.ts";
 
@@ -66,10 +64,6 @@ export const renderCommand = new Command()
   .option(
     "--debug",
     "Leave intermediate files in place after render.",
-  )
-  .option(
-    "--quiet",
-    "Suppress warning and other messages.",
   )
   .option(
     "pandoc-args...",
@@ -144,7 +138,7 @@ export const renderCommand = new Command()
       if (!options.flags?.quiet && options.flags?.output !== kStdOut) {
         const finalOutput = renderResultFinalOutput(renderResult, true);
         if (finalOutput) {
-          message("Output created: " + finalOutput + "\n");
+          info("Output created: " + finalOutput + "\n");
         }
       }
     } else {

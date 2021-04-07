@@ -8,9 +8,9 @@
 import { ld } from "lodash/mod.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { basename, join } from "path/mod.ts";
+import { info } from "log/mod.ts";
 
 import { jupyterKernelspec } from "../core/jupyter/kernels.ts";
-import { message } from "../core/console.ts";
 import { projectType } from "./types/project-types.ts";
 import { renderEjs } from "../core/ejs.ts";
 
@@ -49,9 +49,9 @@ export async function projectCreate(options: ProjectCreateOptions) {
 
   options.dir = Deno.realPathSync(options.dir);
   if (!options.quiet) {
-    message(`Creating project at `, { newline: false });
-    message(`${options.dir}`, { bold: true, newline: false });
-    message(":");
+    info(`Creating project at `, { newline: false });
+    info(`${options.dir}`, { bold: true, newline: false });
+    info(":");
   }
 
   // call create on the project type
@@ -66,14 +66,14 @@ export async function projectCreate(options: ProjectCreateOptions) {
   }, false);
   await Deno.writeTextFile(join(options.dir, "_quarto.yml"), quartoConfig);
   if (!options.quiet) {
-    message(
+    info(
       "- Created _quarto.yml",
       { indent: 2 },
     );
   }
   await createGitignore(options.dir);
   if (!options.quiet) {
-    message(
+    info(
       "- Created .gitignore",
       { indent: 2 },
     );
@@ -93,7 +93,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
         scaffold.format,
       );
       if (!options.quiet) {
-        message("- Created " + md, { indent: 2 });
+        info("- Created " + md, { indent: 2 });
       }
     }
   }
@@ -104,7 +104,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
       const name = basename(supporting);
       Deno.copyFileSync(supporting, join(options.dir, name));
       if (!options.quiet) {
-        message("- Created " + name, { indent: 2 });
+        info("- Created " + name, { indent: 2 });
       }
     }
   }
