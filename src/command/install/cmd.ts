@@ -23,7 +23,7 @@ import {
 // The quarto install command
 export const installCommand = new Command()
   .name("install")
-  .arguments("[name:string]")
+  .arguments("<name:string>")
   .description(
     `Installs tools, extensions, and templates.\n\nTools that can be installed include:\n${
       installableTools().map((name) => "  " + name).join("\n")
@@ -49,7 +49,7 @@ export const installCommand = new Command()
 // The quarto uninstall command
 export const uninstallCommand = new Command()
   .name("uninstall")
-  .arguments("[name:string]")
+  .arguments("<name:string>")
   .description(
     `Uninstalls tools, extensions, and templates.\n\nTools that can be uninstalled include:\n${
       installableTools().map((name) => "  " + name).join("\n")
@@ -75,7 +75,7 @@ export const uninstallCommand = new Command()
 // The quarto update command
 export const updateCommand = new Command()
   .name("update")
-  .arguments("[name: string]")
+  .arguments("<name: string>")
   .description(
     `Updates tools, extensions, and templates.\n\nTools that can be updated include:\n${
       installableTools().map((name) => "  " + name).join("\n")
