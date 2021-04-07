@@ -45,10 +45,6 @@ function formatMsg(msg: string, options: LogMessageOptions) {
     msg = options.format(msg);
   }
 
-  if (options.newline) {
-    msg = msg + "\n";
-  }
-
   return msg;
 }
 
@@ -59,6 +55,10 @@ export class MessageHandler extends BaseHandler {
       newline: true,
       ...(logRecord.args[0] as LogMessageOptions),
     };
+
+    if (options.newline) {
+      msg = msg + "\n";
+    }
 
     switch (logRecord.level) {
       case log.LogLevels.INFO:
@@ -88,6 +88,11 @@ export class MessageHandler extends BaseHandler {
 }
 
 export class LogFileHandler extends FileHandler {
+  setup = async () => {
+    await super.setup();
+    // Write a preable based upon format desired for output
+  };
+
   format(logRecord: LogRecord): string {
     const options = {
       newline: true,
@@ -96,16 +101,29 @@ export class LogFileHandler extends FileHandler {
       dim: false,
       format: undefined,
     };
-    const msg = formatMsg(logRecord.msg, options);
-    return msg;
+    let msg = formatMsg(logRecord.msg, options);
+    if (options.newline) {
+      msg = msg + "\n";
+    }
+
+    // Error formatting
+    if (logRecord.level >= log.LogLevels.WARNING) {
+      return `(${logRecord.levelName}) ${msg}`;
+    } else {
+      return msg;
+    }
   }
 
   log(msg: string): void {
     if (!msg.startsWith("\r")) {
       msg = colors.stripColor(msg);
-      this._buf.writeSync(this._encoder.encode(msg + "\n"));
+      this._buf.writeSync(this._encoder.encode(msg));
     }
   }
+
+  destroy = async () => {
+    await super.destroy();
+  };
 }
 
 export async function initializeLogger(logOptions: LogOptions) {
