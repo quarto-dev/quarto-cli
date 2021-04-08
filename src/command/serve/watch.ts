@@ -162,7 +162,13 @@ export function watchProject(
   // debounced function for notifying all clients of a change
   // (ensures that we wait for bulk file copying to complete
   // before triggering the reload)
-  const reloadClients = ld.debounce(async () => {
+  const reloadClients = ld.debounce(async (refreshProject: boolean) => {
+    // copy the project (refresh if requested)
+    copyProjectForServe(project, serveProject.dir);
+    if (refreshProject) {
+      serveProject = projectContext(serveProject.dir);
+    }
+
     // see if there is a reload target (last html file modified)
     const lastHtmlFile = ld.uniq(modified).reverse().find((file) => {
       return extname(file) === ".html";
@@ -219,11 +225,7 @@ export function watchProject(
         // see if we need to handle this
         const result = handleWatchEvent(iter.value);
         if (result) {
-          copyProjectForServe(project, serveProject.dir);
-          if (result === "config") {
-            serveProject = projectContext(serveProject.dir);
-          }
-          await reloadClients();
+          await reloadClients(result === "config");
         }
       } catch (e) {
         logError(e);
