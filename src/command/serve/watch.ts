@@ -29,7 +29,12 @@ import { fileExecutionEngine } from "../../execute/engine.ts";
 
 import { RenderResult } from "../render/render.ts";
 
-import { copyProjectForServe, kLocalhost, ServeOptions } from "./serve.ts";
+import {
+  copyProjectForServe,
+  kLocalhost,
+  maybeDisplaySocketError,
+  ServeOptions,
+} from "./serve.ts";
 import { logError } from "../../core/log.ts";
 
 export interface ProjectWatcher {
@@ -46,13 +51,6 @@ export function watchProject(
   renderResult: RenderResult,
   options: ServeOptions,
 ): ProjectWatcher {
-  // error display
-  const displaySocketError = (e: Error) => {
-    if (!(e instanceof Deno.errors.BrokenPipe)) {
-      logError(e);
-    }
-  };
-
   // proj dir
   const projDir = Deno.realPathSync(project.dir);
   const projDirHidden = projDir + "/.";
@@ -206,10 +204,10 @@ export function watchProject(
       try {
         await socket.send(`reload${reloadTarget}`);
       } catch (e) {
-        displaySocketError(e);
+        maybeDisplaySocketError(e);
       } finally {
         if (!socket.isClosed) {
-          socket.close().catch(displaySocketError);
+          socket.close().catch(maybeDisplaySocketError);
         }
         clients.splice(i, 1);
       }
@@ -250,7 +248,7 @@ export function watchProject(
         });
         clients.push({ path: req.url, socket });
       } catch (e) {
-        displaySocketError(e);
+        maybeDisplaySocketError(e);
       }
     },
     injectClient: (file: Uint8Array) => {

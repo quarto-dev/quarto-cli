@@ -111,7 +111,7 @@ export async function serveProject(
       try {
         await req.respond(response!);
       } catch (e) {
-        console.error(e);
+        maybeDisplaySocketError(e);
       }
     }
   };
@@ -188,6 +188,12 @@ export function copyProjectForServe(
     projectFreezerDir(serveDir),
   );
   return Deno.realPathSync(serveDir);
+}
+
+export function maybeDisplaySocketError(e: Error) {
+  if (!(e instanceof Deno.errors.BrokenPipe)) {
+    logError(e);
+  }
 }
 
 function serveFallback(
