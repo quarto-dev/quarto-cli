@@ -27,18 +27,21 @@ export interface LogMessageOptions {
   format?: (line: string) => string;
 }
 
-export class MessageHandler extends BaseHandler {
+export class StdErrOutputHandler extends BaseHandler {
   format(logRecord: LogRecord): string {
     let msg = super.format(logRecord);
+
+    // Set default options
     const options = {
       newline: true,
       ...(logRecord.args[0] as LogMessageOptions),
     };
 
+    // Format the message based upon type
     switch (logRecord.level) {
       case log.LogLevels.INFO:
       case log.LogLevels.DEBUG:
-        msg = formatMsg(msg, options);
+        msg = applyMsgOptions(msg, options);
         break;
       case log.LogLevels.WARNING:
         msg = colors.yellow(msg);
@@ -53,6 +56,7 @@ export class MessageHandler extends BaseHandler {
         break;
     }
 
+    // Apply the new line (it applies across all types)
     if (options.newline) {
       msg = msg + "\n";
     }
@@ -66,12 +70,6 @@ export class MessageHandler extends BaseHandler {
   }
 }
 
-interface LogFileHandlerOptions {
-  filename: string;
-  mode?: "a" | "w" | "x";
-  format?: "plain" | "json-stream";
-}
-
 export class LogFileHandler extends FileHandler {
   constructor(levelName: log.LevelName, options: LogFileHandlerOptions) {
     super(levelName, options);
@@ -79,13 +77,16 @@ export class LogFileHandler extends FileHandler {
   }
   msgFormat;
 
-  setup = async () => {
-    await super.setup();
-    // Write a preable based upon format desired for output
-  };
-
   format(logRecord: LogRecord): string {
+    // Messages that start with a carriage return are progress messages
+    // that rewrite a line, so just ignore these
+    if (logRecord.msg.startsWith("\r")) {
+      return "";
+    }
+
     if (this.msgFormat === undefined || this.msgFormat === "plain") {
+      // Implement a plain formatted message which is basically
+      // the console output, but written without formatting to the log file
       const options = {
         newline: true,
         ...logRecord.args[0] as LogMessageOptions,
@@ -93,7 +94,7 @@ export class LogFileHandler extends FileHandler {
         dim: false,
         format: undefined,
       };
-      let msg = formatMsg(logRecord.msg, options);
+      let msg = applyMsgOptions(logRecord.msg, options);
       if (options.newline) {
         msg = msg + "\n";
       }
@@ -105,20 +106,25 @@ export class LogFileHandler extends FileHandler {
         return msg;
       }
     } else {
+      // Implement streaming JSON output
       return JSON.stringify(logRecord, undefined, 0) + "\n";
     }
   }
 
   log(msg: string): void {
-    if (!msg.startsWith("\r")) {
+    // Ignore any messages that are blank
+    if (msg) {
+      // Strip any color information that may have been applied
       msg = colors.stripColor(msg);
       this._buf.writeSync(this._encoder.encode(msg));
     }
   }
+}
 
-  destroy = async () => {
-    await super.destroy();
-  };
+interface LogFileHandlerOptions {
+  filename: string;
+  mode?: "a" | "w" | "x";
+  format?: "plain" | "json-stream";
 }
 
 export async function initializeLogger(logOptions: LogOptions) {
@@ -127,12 +133,17 @@ export async function initializeLogger(logOptions: LogOptions) {
   const handlers: Record<string, BaseHandler> = {};
   const defaultHandlers = [];
   const file = logOptions.log;
-  const level = logOptions.level || isDebug ? "debug" : "warning";
+  const logLevel = logOptions.level
+    ? parseLevel(logOptions.level)
+    : isDebug
+    ? "DEBUG"
+    : "INFO";
 
+  // Don't add the StdErroutputHandler if we're quiet
   if (!logOptions.quiet) {
     // Default logger just redirects to the console
-    handlers["console"] = new MessageHandler(
-      isDebug ? "DEBUG" : "INFO",
+    handlers["console"] = new StdErrOutputHandler(
+      logLevel,
       {
         formatter: "{msg}",
       },
@@ -140,17 +151,20 @@ export async function initializeLogger(logOptions: LogOptions) {
     defaultHandlers.push("console");
   }
 
-  // If a file is specified, use a file based logger
+  // If a file is specified, add a file based logger
   if (file) {
-    handlers["file"] = new LogFileHandler(parseLevel(level), {
-      filename: file,
-      mode: "w",
-      format: logOptions.format,
-    });
+    handlers["file"] = new LogFileHandler(
+      logLevel,
+      {
+        filename: file,
+        mode: "w",
+        format: logOptions.format,
+      },
+    );
     defaultHandlers.push("file");
   }
 
-  // Setup the logger
+  // Setup the loggers
   await log.setup({
     handlers,
     loggers: {
@@ -163,6 +177,7 @@ export async function initializeLogger(logOptions: LogOptions) {
 }
 
 export function cleanupLogger() {
+  // Currently no cleanup required
 }
 
 export function logError(error: Error) {
@@ -174,7 +189,7 @@ export function logError(error: Error) {
   }
 }
 
-function formatMsg(msg: string, options: LogMessageOptions) {
+function applyMsgOptions(msg: string, options: LogMessageOptions) {
   if (options.indent) {
     const pad = " ".repeat(options.indent);
     msg = msg
