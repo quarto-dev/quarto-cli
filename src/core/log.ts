@@ -176,12 +176,14 @@ export function cleanupLogger() {
 }
 
 export function logError(error: Error) {
-  const isDebug = getenv("QUARTO_DEBUG", "false") === "true";
-  if (isDebug) {
-    log.error(error.stack);
-  } else {
-    log.error(`${error.name}: ${error.message}`);
-  }
+  log.error(() => {
+    const isDebug = getenv("QUARTO_DEBUG", "false") === "true";
+    if (isDebug) {
+      return error.stack;
+    } else {
+      return `${error.name}: ${error.message}`;
+    }
+  });
 }
 
 function applyMsgOptions(msg: string, options: LogMessageOptions) {
