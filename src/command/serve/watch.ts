@@ -103,7 +103,7 @@ export function watchProject(
   const modified: string[] = [];
 
   // handle a watch event (return true if a reload should occur)
-  const handleWatchEvent = (event: Deno.FsEvent) => {
+  const handleWatchEvent = (event: Deno.FsEvent): boolean | "config" => {
     try {
       if (["modify", "create"].includes(event.kind)) {
         // filter out paths in hidden folders (e.g. .quarto, .git, .Rproj.user)
@@ -132,14 +132,11 @@ export function watchProject(
             outputDirFile || renderOnChangeInput;
 
           if (reload) {
-            // copy project
-            copyProjectForServe(project, serveProject.dir);
-
             if (configFile) {
-              serveProject = projectContext(serveProject.dir);
+              return "config";
+            } else {
+              return true;
             }
-
-            return true;
           } else {
             return false;
           }
@@ -220,7 +217,12 @@ export function watchProject(
     watcher.next().then(async (iter) => {
       try {
         // see if we need to handle this
-        if (await handleWatchEvent(iter.value)) {
+        const result = handleWatchEvent(iter.value);
+        if (result) {
+          copyProjectForServe(project, serveProject.dir);
+          if (result === "config") {
+            serveProject = projectContext(serveProject.dir);
+          }
           await reloadClients();
         }
       } catch (e) {
