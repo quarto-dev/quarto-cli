@@ -113,10 +113,11 @@ export class LogFileHandler extends FileHandler {
 
   log(msg: string): void {
     // Ignore any messages that are blank
-    if (msg) {
+    if (msg !== "") {
       // Strip any color information that may have been applied
       msg = colors.stripColor(msg);
       this._buf.writeSync(this._encoder.encode(msg));
+      this._buf.flush();
     }
   }
 }
@@ -128,16 +129,10 @@ interface LogFileHandlerOptions {
 }
 
 export async function initializeLogger(logOptions: LogOptions) {
-  const isDebug = getenv("QUARTO_DEBUG", "false") === "true";
-
   const handlers: Record<string, BaseHandler> = {};
   const defaultHandlers = [];
   const file = logOptions.log;
-  const logLevel = logOptions.level
-    ? parseLevel(logOptions.level)
-    : isDebug
-    ? "DEBUG"
-    : "INFO";
+  const logLevel = logOptions.level ? parseLevel(logOptions.level) : "INFO";
 
   // Don't add the StdErroutputHandler if we're quiet
   if (!logOptions.quiet) {

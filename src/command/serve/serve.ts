@@ -6,7 +6,7 @@
 */
 
 import * as colors from "fmt/colors.ts";
-import { error, info } from "log/mod.ts";
+import { debug, error, info } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { basename, extname, join, posix, relative } from "path/mod.ts";
 
@@ -45,7 +45,6 @@ export type ServeOptions = {
   browse?: boolean;
   watch?: boolean;
   navigate?: boolean;
-  quiet?: boolean;
   debug?: boolean;
 };
 
@@ -59,7 +58,6 @@ export async function serveProject(
     browse: true,
     watch: true,
     navigate: true,
-    quiet: false,
     debug: false,
     ...options,
   };
@@ -72,7 +70,7 @@ export async function serveProject(
     serveProject,
     {
       useFreezer: true,
-      flags: { quiet: options.quiet, debug: options.debug },
+      flags: { debug: options.debug },
     },
   );
 
@@ -102,9 +100,7 @@ export async function serveProject(
         fsPath = join(fsPath, "index.html");
       }
       response = await serveFile(fsPath!, watcher);
-      if (options.quiet) {
-        printUrl(normalizedUrl);
-      }
+      printUrl(normalizedUrl);
     } catch (e) {
       response = await serveFallback(req, e, fsPath!, options);
     } finally {
@@ -123,15 +119,13 @@ export async function serveProject(
   const siteUrl = `http://localhost:${options.port}/`;
 
   // print status
-  if (!options.quiet) {
-    if (options.watch) {
-      info("Watching project for reload on changes");
-    }
-    info(`Browse the site at `, {
-      newline: false,
-    });
-    info(`${siteUrl}`, { format: colors.underline });
+  if (options.watch) {
+    info("Watching project for reload on changes");
   }
+  info(`Browse the site at `, {
+    newline: false,
+  });
+  info(`${siteUrl}`, { format: colors.underline });
 
   // open browser if requested
   if (options.browse) {
@@ -223,9 +217,7 @@ function serveFallback(
       body: encoder.encode("Not Found"),
     });
   } else {
-    if (!options.quiet) {
-      error(`500 (Internal Error): ${(e as Error).message}`, { bold: true });
-    }
+    error(`500 (Internal Error): ${(e as Error).message}`, { bold: true });
     if (options.debug) {
       console.error(e);
     }
@@ -303,9 +295,9 @@ function printUrl(url: string, found = true) {
   if (
     isHtmlContent(url) || url.endsWith("/") || extname(url) === ""
   ) {
-    info(`\nGET: ${url}`, { bold: true, format: format || colors.green });
+    debug(`\nGET: ${url}`, { bold: true, format: format || colors.green });
   } else {
-    info(url, { dim: found, format, indent: 1 });
+    debug(url, { dim: found, format, indent: 1 });
   }
 }
 
