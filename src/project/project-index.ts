@@ -22,6 +22,7 @@ import {
   kOutputDir,
   projectConfigFile,
   ProjectContext,
+  projectOutputDir,
 } from "./project-context.ts";
 
 import { projectScratchPath } from "./project-scratch.ts";
@@ -96,11 +97,10 @@ export async function inputFileForOutputFile(
   output: string,
 ) {
   // compute output dir
-  let outputDir = project.metadata?.project?.[kOutputDir];
-  outputDir = outputDir ? join(project.dir, outputDir) : project.dir;
+  const outputDir = projectOutputDir(project);
 
   // full path to output (it's relative to output dir)
-  output = Deno.realPathSync(join(outputDir, output));
+  output = join(outputDir, output);
 
   for (const file of project.files.input) {
     const inputRelative = relative(project.dir, file);
@@ -114,8 +114,7 @@ export async function inputFileForOutputFile(
             dirname(inputRelative),
             format.pandoc[kOutputFile]!,
           );
-          return existsSync(formatOutputPath) &&
-            (output === Deno.realPathSync(formatOutputPath));
+          return output === formatOutputPath;
         }
       });
       if (hasOutput) {

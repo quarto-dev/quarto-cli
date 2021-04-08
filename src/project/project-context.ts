@@ -144,7 +144,7 @@ export function projectContext(path: string): ProjectContext {
   }
 }
 
-export function projectOutputDir(context: ProjectContext) {
+export function projectOutputDir(context: ProjectContext): string {
   let outputDir = context.metadata?.project?.[kOutputDir];
   if (outputDir) {
     outputDir = join(context.dir, outputDir);
@@ -265,8 +265,8 @@ function projectInputFiles(dir: string, metadata?: ProjectMetadata) {
         dir,
         {
           includeDirs: false,
-          // this was done b/c some directories e.g. renv/packrat and potentially python 
-          // virtualenvs include symblinks to R or Python libraries that are in turn 
+          // this was done b/c some directories e.g. renv/packrat and potentially python
+          // virtualenvs include symblinks to R or Python libraries that are in turn
           // circular. much safer to not follow symlinks!
           followSymlinks: false,
           skip: [kSkipHidden],

@@ -20,6 +20,7 @@ import {
   pathWithForwardSlashes,
 } from "../../core/path.ts";
 import { createSessionTempDir } from "../../core/temp.ts";
+import { logError } from "../../core/log.ts";
 
 import {
   kLibDir,
@@ -92,13 +93,12 @@ export async function serveProject(
       const normalizedUrl = normalizeURL(req.url);
       const serveOutputDir = projectOutputDir(serveProject);
       fsPath = serveOutputDir + normalizedUrl!;
-      fsPath = Deno.realPathSync(fsPath);
       // don't let the path escape the serveDir
       if (fsPath!.indexOf(serveOutputDir) !== 0) {
         fsPath = serveDir;
       }
-      const fileInfo = await Deno.stat(fsPath!);
-      if (fileInfo.isDirectory) {
+      const fileInfo = existsSync(fsPath) ? Deno.statSync(fsPath!) : undefined;
+      if (fileInfo && fileInfo.isDirectory) {
         fsPath = join(fsPath, "index.html");
       }
       response = await serveFile(fsPath!, watcher);
@@ -111,7 +111,7 @@ export async function serveProject(
       try {
         await req.respond(response!);
       } catch (e) {
-        console.error(e);
+        maybeDisplaySocketError(e);
       }
     }
   };
@@ -190,6 +190,12 @@ export function copyProjectForServe(
   return Deno.realPathSync(serveDir);
 }
 
+export function maybeDisplaySocketError(e: Error) {
+  if (!(e instanceof Deno.errors.BrokenPipe)) {
+    logError(e);
+  }
+}
+
 function serveFallback(
   req: ServerRequest,
   e: Error,
@@ -238,9 +244,11 @@ async function serveFile(
   let fileContents = new Uint8Array();
 
   // if this is an html file then append watch script and allow any projServe filter to run
-  if (existsSync(filePath) && isHtmlContent(filePath)) {
+  if (isHtmlContent(filePath)) {
     // if the output file is < 1 second old we don't re-render
-    const fileTime = Deno.statSync(filePath).mtime;
+    const fileTime = existsSync(filePath)
+      ? Deno.statSync(filePath).mtime
+      : undefined;
     if (!fileTime || ((Date.now() - fileTime.getTime()) > 1000)) {
       // find the input file associated with this output and render it
       // if we can't find an input file for this .html file it may have

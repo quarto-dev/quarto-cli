@@ -29,7 +29,12 @@ import { fileExecutionEngine } from "../../execute/engine.ts";
 
 import { RenderResult } from "../render/render.ts";
 
-import { copyProjectForServe, kLocalhost, ServeOptions } from "./serve.ts";
+import {
+  copyProjectForServe,
+  kLocalhost,
+  maybeDisplaySocketError,
+  ServeOptions,
+} from "./serve.ts";
 import { logError } from "../../core/log.ts";
 
 export interface ProjectWatcher {
@@ -46,13 +51,6 @@ export function watchProject(
   renderResult: RenderResult,
   options: ServeOptions,
 ): ProjectWatcher {
-  // error display
-  const displaySocketError = (e: Error) => {
-    if (!(e instanceof Deno.errors.BrokenPipe)) {
-      logError(e);
-    }
-  };
-
   // proj dir
   const projDir = Deno.realPathSync(project.dir);
   const projDirHidden = projDir + "/.";
@@ -95,7 +93,7 @@ export function watchProject(
 
   // is this a renderOnChange input file?
   const isRenderOnChangeInput = (path: string) => {
-    if (project.files.input.includes(path)) {
+    if (project.files.input.includes(path) && existsSync(path)) {
       const engine = fileExecutionEngine(path, true);
       return engine && !!engine.renderOnChange;
     }
@@ -105,7 +103,7 @@ export function watchProject(
   const modified: string[] = [];
 
   // handle a watch event (return true if a reload should occur)
-  const handleWatchEvent = (event: Deno.FsEvent) => {
+  const handleWatchEvent = (event: Deno.FsEvent): boolean | "config" => {
     try {
       if (["modify", "create"].includes(event.kind)) {
         // filter out paths in hidden folders (e.g. .quarto, .git, .Rproj.user)
@@ -134,14 +132,11 @@ export function watchProject(
             outputDirFile || renderOnChangeInput;
 
           if (reload) {
-            // copy project
-            copyProjectForServe(project, serveProject.dir);
-
             if (configFile) {
-              serveProject = projectContext(serveProject.dir);
+              return "config";
+            } else {
+              return true;
             }
-
-            return true;
           } else {
             return false;
           }
@@ -167,7 +162,13 @@ export function watchProject(
   // debounced function for notifying all clients of a change
   // (ensures that we wait for bulk file copying to complete
   // before triggering the reload)
-  const reloadClients = ld.debounce(async () => {
+  const reloadClients = ld.debounce(async (refreshProject: boolean) => {
+    // copy the project (refresh if requested)
+    copyProjectForServe(project, serveProject.dir);
+    if (refreshProject) {
+      serveProject = projectContext(serveProject.dir);
+    }
+
     // see if there is a reload target (last html file modified)
     const lastHtmlFile = ld.uniq(modified).reverse().find((file) => {
       return extname(file) === ".html";
@@ -206,10 +207,10 @@ export function watchProject(
       try {
         await socket.send(`reload${reloadTarget}`);
       } catch (e) {
-        displaySocketError(e);
+        maybeDisplaySocketError(e);
       } finally {
         if (!socket.isClosed) {
-          socket.close().catch(displaySocketError);
+          socket.close().catch(maybeDisplaySocketError);
         }
         clients.splice(i, 1);
       }
@@ -222,8 +223,9 @@ export function watchProject(
     watcher.next().then(async (iter) => {
       try {
         // see if we need to handle this
-        if (await handleWatchEvent(iter.value)) {
-          await reloadClients();
+        const result = handleWatchEvent(iter.value);
+        if (result) {
+          await reloadClients(result === "config");
         }
       } catch (e) {
         logError(e);
@@ -250,7 +252,7 @@ export function watchProject(
         });
         clients.push({ path: req.url, socket });
       } catch (e) {
-        displaySocketError(e);
+        maybeDisplaySocketError(e);
       }
     },
     injectClient: (file: Uint8Array) => {
