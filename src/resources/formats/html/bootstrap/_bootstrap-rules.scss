@@ -208,10 +208,10 @@ div[class^="callout-"] .callout-toggle::before {
   width: 1.1rem;
   display: inline-block;
   content: "";
-  vertical-align: -0.125em;
+  margin-top: -0.125em;
   background-repeat: no-repeat;
   background-size: 1.1rem 1.1rem;
-  margin-right: 0.25rem;
+  margin-right: 0rem;
 }
 
 div[class^="callout-"] .callout-icon::before {
@@ -229,18 +229,16 @@ div[class^="callout-"] .callout-btn-toggle .callout-toggle::before {
   transition: transform 0.2s linear;
 }
 
-div[class^="callout-"] .header[aria-expanded="false"] .callout-toggle::before {
+div[class^="callout-"] .callout-header[aria-expanded="false"] .callout-toggle::before {
   transform: rotate(-90deg);
 }
 
-div[class^="callout-"] .header[aria-expanded="true"] .callout-toggle::before {
+div[class^="callout-"] .callout-header[aria-expanded="true"] .callout-toggle::before {
   transform: none;
 }
 
 div[class^="callout-"] div.callout-icon-container {
-  padding-top: 0.2em;
-  padding-right: 0.4em;
-  margin-left: -0.2em;
+  padding-right: 0.3em;
 }
 
 div[class^="callout-"] .no-icon {
