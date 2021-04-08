@@ -12,8 +12,8 @@ import { moveSync } from "fs/move.ts";
 import { getenv } from "../../../core/env.ts";
 import { expandPath, which } from "../../../core/path.ts";
 import { unzip } from "../../../core/zip.ts";
-import { hasLatexDistribution } from "../../render/latekmk/latex.ts";
-import { hasTexLive, removePath } from "../../render/latekmk/texlive.ts";
+import { hasLatexDistribution } from "../../render/latexmk/latex.ts";
+import { hasTexLive, removePath } from "../../render/latexmk/texlive.ts";
 import { execProcess } from "../../../core/process.ts";
 
 import {

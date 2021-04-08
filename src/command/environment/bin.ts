@@ -8,7 +8,7 @@ import { execProcess } from "../../core/process.ts";
 import { binaryPath } from "../../core/resources.ts";
 
 import { tinyTexInstallDir } from "../install/tools/tinytex.ts";
-import { tlVersion } from "../render/latekmk/texlive.ts";
+import { tlVersion } from "../render/latexmk/texlive.ts";
 import { QuartoConfig, quartoConfig } from "../../core/quarto.ts";
 import { EnvironmentData, EnvironmentDataOutputOptions } from "./cmd.ts";
 import { dartSassInstallDir, dartSassVersion } from "../../core/dart-sass.ts";

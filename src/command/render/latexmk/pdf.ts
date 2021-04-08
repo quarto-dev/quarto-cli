@@ -28,7 +28,6 @@ import { info, warning } from "log/mod.ts";
 
 export const kLatexHeaderMessageOptions = { bold: true };
 export const kLatexBodyMessageOptions = { indent: 2 };
-
 export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {
   if (!mkOptions.quiet) {
     info(
