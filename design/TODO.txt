@@ -102,18 +102,8 @@ The side effects might require an id of some kind (for managing duplicates):
 
 Logging
 =========================================================================
-// TODO: Errors and warnings go to a log
-// Pandoc: --log (writes in machine readable form to log file)
-// quarto
-// --log foo.txt
-// --log-level "debug" : "info"
-// --log-format: "json"
-
-// TODO: Json support
-// TODO: write log preamble with environment, version and so on
-// TODO: If error, should we also emit environment information
-// TODO: Put third party tools in verbose mode when appropriate
-// TODO: suppport type = plain | json | streaming json
+// TODO: Verbose support?
+// TODO: Consider converting quiet in render pipeline to actually emit debug output
 
 
 TinyTex

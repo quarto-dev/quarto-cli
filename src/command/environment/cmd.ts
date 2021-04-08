@@ -77,7 +77,7 @@ const required: EnvironmentData[] = [
 ];
 
 const r: EnvironmentData[] = [
-  rBinaryEnv("R", "R"),
+  rBinaryEnv("R", "R", { newline: false }),
   rPackageEnv(),
 ];
 

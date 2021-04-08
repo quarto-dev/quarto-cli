@@ -132,6 +132,7 @@ async function callR<T>(
         rBinaryPath("Rscript"),
         resourcePath("rmd/rmd.R"),
       ],
+      stderr: quiet ? "piped" : "inherit",
     },
     input,
     "stdout>stderr",

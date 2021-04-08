@@ -14,7 +14,7 @@ import { getenv } from "./env.ts";
 export interface LogOptions {
   log?: string;
   level?: string;
-  format?: string;
+  format?: "plain" | "json-stream";
   quiet?: boolean;
   newline?: true;
 }
@@ -27,7 +27,166 @@ export interface LogMessageOptions {
   format?: (line: string) => string;
 }
 
-function formatMsg(msg: string, options: LogMessageOptions) {
+export class StdErrOutputHandler extends BaseHandler {
+  format(logRecord: LogRecord): string {
+    let msg = super.format(logRecord);
+
+    // Set default options
+    const options = {
+      newline: true,
+      ...(logRecord.args[0] as LogMessageOptions),
+    };
+
+    // Format the message based upon type
+    switch (logRecord.level) {
+      case log.LogLevels.INFO:
+      case log.LogLevels.DEBUG:
+        msg = applyMsgOptions(msg, options);
+        break;
+      case log.LogLevels.WARNING:
+        msg = colors.yellow(msg);
+        break;
+      case log.LogLevels.ERROR:
+        msg = colors.red(msg);
+        break;
+      case log.LogLevels.CRITICAL:
+        msg = colors.bold(colors.red(msg));
+        break;
+      default:
+        break;
+    }
+
+    // Apply the new line (it applies across all types)
+    if (options.newline) {
+      msg = msg + "\n";
+    }
+
+    return msg;
+  }
+  log(msg: string): void {
+    Deno.stderr.writeSync(
+      new TextEncoder().encode(msg),
+    );
+  }
+}
+
+export class LogFileHandler extends FileHandler {
+  constructor(levelName: log.LevelName, options: LogFileHandlerOptions) {
+    super(levelName, options);
+    this.msgFormat = options.format;
+  }
+  msgFormat;
+
+  format(logRecord: LogRecord): string {
+    // Messages that start with a carriage return are progress messages
+    // that rewrite a line, so just ignore these
+    if (logRecord.msg.startsWith("\r")) {
+      return "";
+    }
+
+    if (this.msgFormat === undefined || this.msgFormat === "plain") {
+      // Implement a plain formatted message which is basically
+      // the console output, but written without formatting to the log file
+      const options = {
+        newline: true,
+        ...logRecord.args[0] as LogMessageOptions,
+        bold: false,
+        dim: false,
+        format: undefined,
+      };
+      let msg = applyMsgOptions(logRecord.msg, options);
+      if (options.newline) {
+        msg = msg + "\n";
+      }
+
+      // Error formatting
+      if (logRecord.level >= log.LogLevels.WARNING) {
+        return `(${logRecord.levelName}) ${msg}`;
+      } else {
+        return msg;
+      }
+    } else {
+      // Implement streaming JSON output
+      return JSON.stringify(logRecord, undefined, 0) + "\n";
+    }
+  }
+
+  log(msg: string): void {
+    // Ignore any messages that are blank
+    if (msg !== "") {
+      // Strip any color information that may have been applied
+      msg = colors.stripColor(msg);
+      this._buf.writeSync(this._encoder.encode(msg));
+      this._buf.flush();
+    }
+  }
+}
+
+interface LogFileHandlerOptions {
+  filename: string;
+  mode?: "a" | "w" | "x";
+  format?: "plain" | "json-stream";
+}
+
+export async function initializeLogger(logOptions: LogOptions) {
+  const handlers: Record<string, BaseHandler> = {};
+  const defaultHandlers = [];
+  const file = logOptions.log;
+  const logLevel = logOptions.level ? parseLevel(logOptions.level) : "INFO";
+
+  // Don't add the StdErroutputHandler if we're quiet
+  if (!logOptions.quiet) {
+    // Default logger just redirects to the console
+    handlers["console"] = new StdErrOutputHandler(
+      logLevel,
+      {
+        formatter: "{msg}",
+      },
+    );
+    defaultHandlers.push("console");
+  }
+
+  // If a file is specified, add a file based logger
+  if (file) {
+    handlers["file"] = new LogFileHandler(
+      logLevel,
+      {
+        filename: file,
+        mode: "w",
+        format: logOptions.format,
+      },
+    );
+    defaultHandlers.push("file");
+  }
+
+  // Setup the loggers
+  await log.setup({
+    handlers,
+    loggers: {
+      default: {
+        level: "DEBUG",
+        handlers: defaultHandlers,
+      },
+    },
+  });
+}
+
+export function cleanupLogger() {
+  // Currently no cleanup required
+}
+
+export function logError(error: Error) {
+  log.error(() => {
+    const isDebug = getenv("QUARTO_DEBUG", "false") === "true";
+    if (isDebug) {
+      return error.stack;
+    } else {
+      return `${error.name}: ${error.message}`;
+    }
+  });
+}
+
+function applyMsgOptions(msg: string, options: LogMessageOptions) {
   if (options.indent) {
     const pad = " ".repeat(options.indent);
     msg = msg
@@ -46,139 +205,6 @@ function formatMsg(msg: string, options: LogMessageOptions) {
   }
 
   return msg;
-}
-
-export class MessageHandler extends BaseHandler {
-  format(logRecord: LogRecord): string {
-    let msg = super.format(logRecord);
-    const options = {
-      newline: true,
-      ...(logRecord.args[0] as LogMessageOptions),
-    };
-
-    switch (logRecord.level) {
-      case log.LogLevels.INFO:
-      case log.LogLevels.DEBUG:
-        msg = formatMsg(msg, options);
-        break;
-      case log.LogLevels.WARNING:
-        msg = colors.yellow(msg);
-        break;
-      case log.LogLevels.ERROR:
-        msg = colors.red(msg);
-        break;
-      case log.LogLevels.CRITICAL:
-        msg = colors.bold(colors.red(msg));
-        break;
-      default:
-        break;
-    }
-
-    if (options.newline) {
-      msg = msg + "\n";
-    }
-
-    return msg;
-  }
-  log(msg: string): void {
-    Deno.stderr.writeSync(
-      new TextEncoder().encode(msg),
-    );
-  }
-}
-
-export class LogFileHandler extends FileHandler {
-  setup = async () => {
-    await super.setup();
-    // Write a preable based upon format desired for output
-  };
-
-  format(logRecord: LogRecord): string {
-    const options = {
-      newline: true,
-      ...logRecord.args[0] as LogMessageOptions,
-      bold: false,
-      dim: false,
-      format: undefined,
-    };
-    let msg = formatMsg(logRecord.msg, options);
-    if (options.newline) {
-      msg = msg + "\n";
-    }
-
-    // Error formatting
-    if (logRecord.level >= log.LogLevels.WARNING) {
-      return `(${logRecord.levelName}) ${msg}`;
-    } else {
-      return msg;
-    }
-  }
-
-  log(msg: string): void {
-    if (!msg.startsWith("\r")) {
-      msg = colors.stripColor(msg);
-      this._buf.writeSync(this._encoder.encode(msg));
-    }
-  }
-
-  destroy = async () => {
-    await super.destroy();
-  };
-}
-
-export async function initializeLogger(logOptions: LogOptions) {
-  const isDebug = getenv("QUARTO_DEBUG", "false") === "true";
-
-  const handlers: Record<string, BaseHandler> = {};
-  const defaultHandlers = [];
-  const file = logOptions.log;
-  const level = logOptions.level || isDebug ? "debug" : "warning";
-
-  if (!logOptions.quiet) {
-    // Default logger just redirects to the console
-    handlers["console"] = new MessageHandler(
-      isDebug ? "DEBUG" : "INFO",
-      {
-        formatter: "{msg}",
-      },
-    );
-    defaultHandlers.push("console");
-  }
-
-  // If a file is specified, use a file based logger
-  if (file) {
-    handlers["file"] = new LogFileHandler(parseLevel(level), {
-      filename: file,
-      mode: "w",
-    });
-    defaultHandlers.push("file");
-  }
-
-  // Setup the logger
-  await log.setup({
-    handlers,
-    loggers: {
-      default: {
-        level: "DEBUG",
-        handlers: defaultHandlers,
-      },
-    },
-  });
-}
-
-export function cleanupLogger() {
-}
-
-export function logError(error: Error) {
-  const isDebug = getenv("QUARTO_DEBUG", "false") === "true";
-  if (isDebug) {
-    log.error(error.stack);
-  } else {
-    log.error(`${error.name}: ${error.message}`);
-  }
-}
-
-export function logInfo(msg: string) {
 }
 
 function parseLevel(

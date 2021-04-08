@@ -57,7 +57,6 @@ export const serveCommand = new Command()
       browse: options.browse,
       watch: options.watch,
       navigate: options.navigate,
-      quiet: !!options.quiet,
       debug: !!options.debug,
     });
   });
