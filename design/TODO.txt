@@ -1,19 +1,10 @@
 
 
-TODO: adding a new document during quarto serve. file not found errors?
-TODO: same thing for renaming (must be using the old/initial list of inputs?
-TODO: user sees broken pipe error in above scenario:
-BrokenPipe: Broken pipe (os error 32) 
-    at unwrapResponse (deno:runtime/js/10_dispatch_minimal.js:60:13)
-    at sendAsync (deno:runtime/js/10_dispatch_minimal.js:99:12)
-    at async write (deno:runtime/js/12_io.js:118:20)
-    at async BufWriter.write (https://deno.land/std@0.91.0/io/bufio.ts:499:29)
-    at async writeResponse (https://deno.land/std@0.91.0/http/_io.ts:274:15)
-    at async ServerRequest.respond (https://deno.land/std@0.91.0/http/server.ts:88:7)
-    at async handler (file:///Users/jjallaire/quarto/quarto-cli/src/command/serve/serve.ts:113:9)
+TODO: Uncaught SyntaxError: Failed to execute 'querySelector' on 'Document': '#sec:sections' is not a valid selector.
+(for jupyter crossref)
 
 
-
+TODO: how many times is copyMinimal called for a render?
 
 TODO: render progress for R quarto_serve()
 TODO: open in browser with no index.html for R quarto_serve()
