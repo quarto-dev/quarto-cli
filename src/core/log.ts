@@ -14,7 +14,7 @@ import { getenv } from "./env.ts";
 export interface LogOptions {
   log?: string;
   level?: string;
-  format?: string;
+  format?: "plain" | "json-stream";
   quiet?: boolean;
   newline?: true;
 }
@@ -25,27 +25,6 @@ export interface LogMessageOptions {
   dim?: boolean;
   indent?: number;
   format?: (line: string) => string;
-}
-
-function formatMsg(msg: string, options: LogMessageOptions) {
-  if (options.indent) {
-    const pad = " ".repeat(options.indent);
-    msg = msg
-      .split(/\r?\n/)
-      .map((msg) => pad + msg)
-      .join("\n");
-  }
-  if (options.bold) {
-    msg = colors.bold(msg);
-  }
-  if (options.dim) {
-    msg = colors.dim(msg);
-  }
-  if (options.format) {
-    msg = options.format(msg);
-  }
-
-  return msg;
 }
 
 export class MessageHandler extends BaseHandler {
@@ -87,30 +66,46 @@ export class MessageHandler extends BaseHandler {
   }
 }
 
+interface LogFileHandlerOptions {
+  filename: string;
+  mode?: "a" | "w" | "x";
+  format?: "plain" | "json-stream";
+}
+
 export class LogFileHandler extends FileHandler {
+  constructor(levelName: log.LevelName, options: LogFileHandlerOptions) {
+    super(levelName, options);
+    this.msgFormat = options.format;
+  }
+  msgFormat;
+
   setup = async () => {
     await super.setup();
     // Write a preable based upon format desired for output
   };
 
   format(logRecord: LogRecord): string {
-    const options = {
-      newline: true,
-      ...logRecord.args[0] as LogMessageOptions,
-      bold: false,
-      dim: false,
-      format: undefined,
-    };
-    let msg = formatMsg(logRecord.msg, options);
-    if (options.newline) {
-      msg = msg + "\n";
-    }
+    if (this.msgFormat === undefined || this.msgFormat === "plain") {
+      const options = {
+        newline: true,
+        ...logRecord.args[0] as LogMessageOptions,
+        bold: false,
+        dim: false,
+        format: undefined,
+      };
+      let msg = formatMsg(logRecord.msg, options);
+      if (options.newline) {
+        msg = msg + "\n";
+      }
 
-    // Error formatting
-    if (logRecord.level >= log.LogLevels.WARNING) {
-      return `(${logRecord.levelName}) ${msg}`;
+      // Error formatting
+      if (logRecord.level >= log.LogLevels.WARNING) {
+        return `(${logRecord.levelName}) ${msg}`;
+      } else {
+        return msg;
+      }
     } else {
-      return msg;
+      return JSON.stringify(logRecord, undefined, 0) + "\n";
     }
   }
 
@@ -150,6 +145,7 @@ export async function initializeLogger(logOptions: LogOptions) {
     handlers["file"] = new LogFileHandler(parseLevel(level), {
       filename: file,
       mode: "w",
+      format: logOptions.format,
     });
     defaultHandlers.push("file");
   }
@@ -178,7 +174,25 @@ export function logError(error: Error) {
   }
 }
 
-export function logInfo(msg: string) {
+function formatMsg(msg: string, options: LogMessageOptions) {
+  if (options.indent) {
+    const pad = " ".repeat(options.indent);
+    msg = msg
+      .split(/\r?\n/)
+      .map((msg) => pad + msg)
+      .join("\n");
+  }
+  if (options.bold) {
+    msg = colors.bold(msg);
+  }
+  if (options.dim) {
+    msg = colors.dim(msg);
+  }
+  if (options.format) {
+    msg = options.format(msg);
+  }
+
+  return msg;
 }
 
 function parseLevel(

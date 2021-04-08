@@ -329,6 +329,8 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   removeArgs.set("--l", true);
   removeArgs.set("--log-level", true);
   removeArgs.set("--ll", true);
+  removeArgs.set("--log-format", true);
+  removeArgs.set("--lf", true);
   removeArgs.set("--quiet", false);
   removeArgs.set("--q", false);
 

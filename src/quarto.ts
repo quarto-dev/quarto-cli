@@ -44,6 +44,13 @@ export async function quarto(args: string[]) {
       },
     )
     .option(
+      "-lf, --log-format <level>",
+      "Log format (plain, json-stream)",
+      {
+        global: true,
+      },
+    )
+    .option(
       "-q, --quiet",
       "Suppress console output.",
       {
@@ -97,5 +104,21 @@ function logOptions(args: Args) {
   logOptions.log = args.l || args.log;
   logOptions.level = args.ll || args["log-level"];
   logOptions.quiet = args.q || args.quiet;
+  logOptions.format = parseFormat(args.lf || args["log-format"]);
   return logOptions;
+}
+
+function parseFormat(format?: string) {
+  if (format) {
+    format = format.toLowerCase();
+    switch (format) {
+      case "plain":
+      case "json-stream":
+        return format;
+      default:
+        return "plain";
+    }
+  } else {
+    return "plain";
+  }
 }
