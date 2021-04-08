@@ -87,9 +87,8 @@ The side effects might require an id of some kind (for managing duplicates):
 
 Logging
 =========================================================================
-// TODO: write log preamble with environment, version and so on
-// TODO: If error, should we also emit environment information
-// TODO: Put third party tools in verbose mode when appropriate
+// TODO: Verbose support?
+// TODO: Consider converting quiet in render pipeline to actually emit debug output
 
 
 TinyTex
