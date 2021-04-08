@@ -17,7 +17,8 @@ preState = {
 
 -- [import]
 function import(script)
-  local path = PANDOC_SCRIPT_FILE:match("(.*[/\\])")
+  local PATH_SEP = package.config:sub(1,1)
+  local path = PANDOC_SCRIPT_FILE:match("(.*"..PATH_SEP..")")
   dofile(path .. script)
 end
 import("includes.lua")
