@@ -1,13 +1,28 @@
 
 
-TODO: Uncaught SyntaxError: Failed to execute 'querySelector' on 'Document': '#sec:sections' is not a valid selector.
-(for jupyter crossref)
+TODO: bad YAML in _quarto.yml kills the dev server:
+error: Uncaught (in promise) YAMLError: bad indentation of a mapping entry at line 32, column 9:
+            - href: website-basics.md
+            ^
+  return new YAMLError(
+         ^
+    at generateError (https://deno.land/std@0.91.0/encoding/_yaml/loader/loader.ts:163:10)
+    at throwError (https://deno.land/std@0.91.0/encoding/_yaml/loader/loader.ts:176:9)
+    at readBlockMapping (https://deno.land/std@0.91.0/encoding/_yaml/loader/loader.ts:1234:14)
+    at composeNode (https://deno.land/std@0.91.0/encoding/_yaml/loader/loader.ts:1509:13)
+    at readBlockSequence (https://deno.land/std@0.91.0/encoding/_yaml/loader/loader.ts:1044:5)
+    at composeNode (https://deno.land/std@0.91.0/encoding/_yaml/loader/loader.ts:1508:12)
+    at readBlockMapping (https://deno.land/std@0.91.0/encoding/_yaml/loader/loader.ts:1206:9)
+    at composeNode (https://deno.land/std@0.91.0/encoding/_yaml/loader/loader.ts:1509:13)
+    at readBlockMapping (https://deno.land/std@0.91.0/encoding/_yaml/loader/loader.ts:1206:9)
+    at composeNode (https://deno.land/std@0.91.0/encoding/_yaml/loader/loader.ts:1509:13)
+later: exception occurred while executing callback: 
+Evaluation error: 'con' is not a connection.
+> 
 
-
-TODO: how many times is copyMinimal called for a render?
-
-TODO: render progress for R quarto_serve()
-TODO: open in browser with no index.html for R quarto_serve()
+TODO: renamed files in website nav preview. problem was that a "re-render" of a markdown file was somehow
+not updating the state in the preview folder (due to freezing?). saving as opposed to rendering the file 
+caused it to update.
 
 TODO: review split("\n and consider replacing with split(/\r?\n/)
 TODO: make readlines function that takes a buffer and use that to read anywhere we're using that regex
