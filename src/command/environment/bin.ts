@@ -35,7 +35,7 @@ export function dartSassEnv() {
     version: () => {
       return dartSassVersion();
     },
-    options: { newline: true },
+    options: { newline: false },
   };
 }
 
