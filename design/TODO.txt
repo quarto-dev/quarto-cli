@@ -3,6 +3,11 @@ atom-one theme broken (probably - in name)
 be sure that passing a .theme file directly also works and that we don't interfere
 Floating TOC - try formatting start border not only for h3, but for whole toc (all levels)
 
+TODO: need to use pre-wrap for source code blocks (scroll off to the right currently)
+
+TODO: sometimes when we have a render on save there is no postprocessing step (so e.g. TOC is not floating
+and secondary nav is not promoted)
+
 TODO: bad YAML in _quarto.yml kills the dev server:
 error: Uncaught (in promise) YAMLError: bad indentation of a mapping entry at line 32, column 9:
             - href: website-basics.md
