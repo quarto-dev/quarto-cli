@@ -107,7 +107,7 @@ export function boostrapExtras(
       : undefined,
 
     [kFilters]: {
-      pre: [
+      post: [
         formatResourcePath("html", "html.lua"),
       ],
     },

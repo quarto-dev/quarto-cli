@@ -1,5 +1,10 @@
 
+
 TODO: quarto serve freeze files should end up back in the freezer (otherwise serve-only workflow is slow)
+
+atom-one theme broken (probably - in name)
+be sure that passing a .theme file directly also works and that we don't interfere
+Floating TOC - try formatting start border not only for h3, but for whole toc (all levels)
 
 TODO: need to use pre-wrap for source code blocks (scroll off to the right currently)
 
