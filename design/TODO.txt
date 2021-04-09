@@ -1,4 +1,4 @@
-
+TODO: when converting index.Rmd to index.md, we don't pickup index.md because it's a keepMd file for index.Rmd
 
 TODO: quarto serve freeze files should end up back in the freezer (otherwise serve-only workflow is slow)
 
