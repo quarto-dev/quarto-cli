@@ -23,6 +23,10 @@ code.sourceCode {
   overflow-y: hidden;
 }
 
+pre > code.sourceCode {
+  white-space: pre-wrap;
+}
+
 .code-copy-button {
   position: absolute;
   top: 0;
