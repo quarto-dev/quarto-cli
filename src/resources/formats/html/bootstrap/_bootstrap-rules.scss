@@ -16,7 +16,7 @@ body {
 
 main {
   margin-top: 1em;
-  margin-bottom: 1em;
+  margin-bottom: 3em;
 }
 
 h2 {
@@ -229,11 +229,15 @@ div[class^="callout-"] .callout-btn-toggle .callout-toggle::before {
   transition: transform 0.2s linear;
 }
 
-div[class^="callout-"] .callout-header[aria-expanded="false"] .callout-toggle::before {
+div[class^="callout-"]
+  .callout-header[aria-expanded="false"]
+  .callout-toggle::before {
   transform: rotate(-90deg);
 }
 
-div[class^="callout-"] .callout-header[aria-expanded="true"] .callout-toggle::before {
+div[class^="callout-"]
+  .callout-header[aria-expanded="true"]
+  .callout-toggle::before {
   transform: none;
 }
 
