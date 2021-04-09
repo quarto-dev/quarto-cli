@@ -31,7 +31,7 @@ import { RenderContext } from "./render.ts";
 import {
   quartoLatexmkOutputRecipe,
   useQuartoLatexmk,
-} from "./latekmk/latexmk.ts";
+} from "./latexmk/latexmk.ts";
 
 // render commands imply the --output argument for pandoc and the final
 // output file to create for the user, but we need a 'recipe' to go from

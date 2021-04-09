@@ -1,4 +1,4 @@
-import { removePackage } from "../src/command/render/latekmk/texlive.ts";
+import { removePackage } from "../src/command/render/latexmk/texlive.ts";
 import { testRender } from "./render.ts";
 
 Deno.test("render: (all)", async () => {
