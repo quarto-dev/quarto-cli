@@ -1,4 +1,7 @@
 
+atom-one theme broken (probably - in name)
+be sure that passing a .theme file directly also works and that we don't interfere
+Floating TOC - try formatting start border not only for h3, but for whole toc (all levels)
 
 TODO: bad YAML in _quarto.yml kills the dev server:
 error: Uncaught (in promise) YAMLError: bad indentation of a mapping entry at line 32, column 9:
