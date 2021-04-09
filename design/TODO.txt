@@ -1,4 +1,6 @@
 
+TODO: quarto serve freeze files should end up back in the freezer (otherwise serve-only workflow is slow)
+
 TODO: need to use pre-wrap for source code blocks (scroll off to the right currently)
 
 TODO: sometimes when we have a render on save there is no postprocessing step (so e.g. TOC is not floating
