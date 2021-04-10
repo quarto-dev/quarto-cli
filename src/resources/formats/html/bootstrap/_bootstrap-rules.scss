@@ -214,10 +214,10 @@ div[class^="callout-"] .callout-toggle::before {
   width: 1.1rem;
   display: inline-block;
   content: "";
-  margin-top: -0.125em;
+  vertical-align: -0.125em;
   background-repeat: no-repeat;
   background-size: 1.1rem 1.1rem;
-  margin-right: 0rem;
+  margin-right: 0.25rem;
 }
 
 div[class^="callout-"] .callout-icon::before {
@@ -248,7 +248,9 @@ div[class^="callout-"]
 }
 
 div[class^="callout-"] div.callout-icon-container {
-  padding-right: 0.3em;
+  padding-top: 0.2em;
+  padding-right: 0.4em;
+  margin-left: -0.2em;
 }
 
 div[class^="callout-"] .no-icon {
@@ -304,12 +306,15 @@ $callouts: (
     );
   }
 
+  $shifted-color: #{shift-color(map.get($info, "color"), $callout-icon-scale)};
+  $shifted-color-svg: str-replace($shifted-color, "#", "%23");
+  
   div.callout-#{$name}:not(.callout-captioned) .callout-icon::before {
     background-image: #{"url('data:image/svg+xml," +
       str-replace(
         map.get($info, "icon"),
-        "currentColor",
-        #{shift-color(map.get($info, "color"), $callout-border-scale)}
+        'fill="currentColor"',
+        'style="fill: #{$shifted-color-svg}"',
       ) +
       "');"};
   }
@@ -318,11 +323,12 @@ $callouts: (
     background-image: #{"url('data:image/svg+xml," +
       str-replace(
         map.get($info, "icon"),
-        "currentColor",
-        #{shift-color(map.get($info, "color"), $callout-icon-scale)}
+        'fill="currentColor"',
+        'style="fill: #{$shifted-color-svg}"',
       ) +
       "');"};
   }
+
 
   div.callout-#{$name} .callout-toggle::before {
     background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGB($body-color)}" class="bi bi-chevron-down" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>');
