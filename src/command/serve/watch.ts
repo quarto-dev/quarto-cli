@@ -51,6 +51,12 @@ export function watchProject(
   renderResult: RenderResult,
   options: ServeOptions,
 ): ProjectWatcher {
+  // helper to refresh project config
+  const refreshProjectConfig = () => {
+    project = projectContext(project.dir);
+    serveProject = projectContext(serveProject.dir);
+  };
+
   // proj dir
   const projDir = Deno.realPathSync(project.dir);
   const projDirHidden = projDir + "/.";
@@ -167,7 +173,7 @@ export function watchProject(
       // copy the project (refresh if requested)
       copyProjectForServe(project, serveProject.dir);
       if (refreshProject) {
-        serveProject = projectContext(serveProject.dir);
+        refreshProjectConfig();
       }
 
       // see if there is a reload target (last html file modified)
@@ -276,7 +282,7 @@ export function watchProject(
     },
     serveProject: () => serveProject,
     refreshProject: () => {
-      serveProject = projectContext(serveProject.dir);
+      refreshProjectConfig();
       return serveProject;
     },
   };
