@@ -4,8 +4,7 @@ TODO: callout icons not displayed in chrome or firefox
 TODO: nav menus use too light a color on their menus
 
 TODO: when converting index.Rmd to index.md, we don't pickup index.md because it's a keepMd file for index.Rmd
-
-TODO: quarto serve freeze files should end up back in the freezer (otherwise serve-only workflow is slow)
+(may need to explicitly look for newly created files that have an engine, then re-scan for them)
 
 atom-one theme broken (probably - in name)
 be sure that passing a .theme file directly also works and that we don't interfere
