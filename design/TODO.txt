@@ -1,3 +1,8 @@
+TODO: for renderOnInputChange we currently get a double refresh (once for the save and once for the render)
+do we need to track the last file modified time?
+
+TODO: code blocks inside callouts should not have a left border
+
 TODO: nav menus use too light a color on their menus
 
 TODO: when converting index.Rmd to index.md, we don't pickup index.md because it's a keepMd file for index.Rmd
@@ -8,30 +13,7 @@ atom-one theme broken (probably - in name)
 be sure that passing a .theme file directly also works and that we don't interfere
 Floating TOC - try formatting start border not only for h3, but for whole toc (all levels)
 
-TODO: need to use pre-wrap for source code blocks (scroll off to the right currently)
 
-TODO: sometimes when we have a render on save there is no postprocessing step (so e.g. TOC is not floating
-and secondary nav is not promoted)
-
-TODO: bad YAML in _quarto.yml kills the dev server:
-error: Uncaught (in promise) YAMLError: bad indentation of a mapping entry at line 32, column 9:
-            - href: website-basics.md
-            ^
-  return new YAMLError(
-         ^
-    at generateError (https://deno.land/std@0.91.0/encoding/_yaml/loader/loader.ts:163:10)
-    at throwError (https://deno.land/std@0.91.0/encoding/_yaml/loader/loader.ts:176:9)
-    at readBlockMapping (https://deno.land/std@0.91.0/encoding/_yaml/loader/loader.ts:1234:14)
-    at composeNode (https://deno.land/std@0.91.0/encoding/_yaml/loader/loader.ts:1509:13)
-    at readBlockSequence (https://deno.land/std@0.91.0/encoding/_yaml/loader/loader.ts:1044:5)
-    at composeNode (https://deno.land/std@0.91.0/encoding/_yaml/loader/loader.ts:1508:12)
-    at readBlockMapping (https://deno.land/std@0.91.0/encoding/_yaml/loader/loader.ts:1206:9)
-    at composeNode (https://deno.land/std@0.91.0/encoding/_yaml/loader/loader.ts:1509:13)
-    at readBlockMapping (https://deno.land/std@0.91.0/encoding/_yaml/loader/loader.ts:1206:9)
-    at composeNode (https://deno.land/std@0.91.0/encoding/_yaml/loader/loader.ts:1509:13)
-later: exception occurred while executing callback: 
-Evaluation error: 'con' is not a connection.
-> 
 
 TODO: renamed files in website nav preview. problem was that a "re-render" of a markdown file was somehow
 not updating the state in the preview folder (due to freezing?). saving as opposed to rendering the file 
