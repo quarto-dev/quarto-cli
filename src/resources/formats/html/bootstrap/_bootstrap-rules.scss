@@ -70,6 +70,12 @@ pre.sourceCode {
   }
 }
 
+// no border inside callouts
+.callout pre.sourceCode {
+  border: none;
+  padding-left: 0;
+}
+
 div.sourceCode {
   background-color: $body-bg !important;
 }
