@@ -26,7 +26,8 @@ export function projectResourceFiles(
     if (outputDir) {
       resourceGlobs = resourceGlobs
         // ignore anything specified in our standard .gitignore
-        .concat(kGitignoreEntries.map((entry) => `!${entry}`));
+        .concat(kGitignoreEntries.map((entry) => `!${entry}`))
+        .concat(["robots.txt"]);
 
       const exclude = outputDir ? [outputDir] : [];
       const projectResourceFiles = resolvePathGlobs(

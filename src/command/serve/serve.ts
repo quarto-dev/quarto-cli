@@ -21,6 +21,7 @@ import {
 } from "../../core/path.ts";
 import { createSessionTempDir } from "../../core/temp.ts";
 import { logError } from "../../core/log.ts";
+import { PromiseQueue } from "../../core/promise.ts";
 
 import {
   kLibDir,
@@ -77,6 +78,9 @@ export async function serveProject(
   // create project watcher
   const watcher = watchProject(project, serveProject, renderResult, options);
 
+  // create a promise queue so we only do one renderProject at a time
+  const renderQueue = new PromiseQueue();
+
   // main request handler
   const handler = async (req: ServerRequest): Promise<void> => {
     // handle watcher request
@@ -99,7 +103,7 @@ export async function serveProject(
       if (fileInfo && fileInfo.isDirectory) {
         fsPath = join(fsPath, "index.html");
       }
-      response = await serveFile(fsPath!, watcher);
+      response = await serveFile(fsPath!, watcher, renderQueue);
       printUrl(normalizedUrl);
     } catch (e) {
       response = await serveFallback(req, e, fsPath!, options);
@@ -231,39 +235,40 @@ function serveFallback(
 async function serveFile(
   filePath: string,
   watcher: ProjectWatcher,
+  renderQueue: PromiseQueue,
 ): Promise<Response> {
   // read file
   let fileContents = new Uint8Array();
 
-  // if this is an html file then append watch script and allow any projServe filter to run
+  // if this is an html file then re-render (using the freezer)
   if (isHtmlContent(filePath)) {
-    // if the output file is < 1 second old we don't re-render
-    const fileTime = existsSync(filePath)
-      ? Deno.statSync(filePath).mtime
-      : undefined;
-    if (!fileTime || ((Date.now() - fileTime.getTime()) > 1000)) {
-      // find the input file associated with this output and render it
-      // if we can't find an input file for this .html file it may have
-      // been an input added after the server started running, to catch
-      // this case run a refresh on the watcher then try again
-      const serveDir = projectOutputDir(watcher.serveProject());
-      const filePathRelative = relative(serveDir, filePath);
-      let inputFile = await inputFileForOutputFile(
-        watcher.serveProject(),
+    // find the input file associated with this output and render it
+    // if we can't find an input file for this .html file it may have
+    // been an input added after the server started running, to catch
+    // this case run a refresh on the watcher then try again
+    const serveDir = projectOutputDir(watcher.serveProject());
+    const filePathRelative = relative(serveDir, filePath);
+    let inputFile = await inputFileForOutputFile(
+      watcher.serveProject(),
+      filePathRelative,
+    );
+    if (!inputFile) {
+      inputFile = await inputFileForOutputFile(
+        watcher.refreshProject(),
         filePathRelative,
       );
-      if (!inputFile) {
-        inputFile = await inputFileForOutputFile(
-          watcher.refreshProject(),
-          filePathRelative,
+    }
+    if (inputFile) {
+      try {
+        await renderQueue.enqueue(() =>
+          renderProject(
+            watcher.serveProject(),
+            { useFreezer: true, flags: { quiet: true } },
+            [inputFile!],
+          )
         );
-      }
-      if (inputFile) {
-        await renderProject(
-          watcher.serveProject(),
-          { useFreezer: true, flags: { quiet: true } },
-          [inputFile],
-        );
+      } catch (e) {
+        logError(e);
       }
     }
 

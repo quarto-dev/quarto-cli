@@ -163,57 +163,61 @@ export function watchProject(
   // (ensures that we wait for bulk file copying to complete
   // before triggering the reload)
   const reloadClients = ld.debounce(async (refreshProject: boolean) => {
-    // copy the project (refresh if requested)
-    copyProjectForServe(project, serveProject.dir);
-    if (refreshProject) {
-      serveProject = projectContext(serveProject.dir);
-    }
-
-    // see if there is a reload target (last html file modified)
-    const lastHtmlFile = ld.uniq(modified).reverse().find((file) => {
-      return extname(file) === ".html";
-    });
-    let reloadTarget = "";
-    if (lastHtmlFile && options.navigate) {
-      if (lastHtmlFile.startsWith(outputDir)) {
-        reloadTarget = relative(outputDir, lastHtmlFile);
-      } else {
-        reloadTarget = relative(projDir, lastHtmlFile);
+    try {
+      // copy the project (refresh if requested)
+      copyProjectForServe(project, serveProject.dir);
+      if (refreshProject) {
+        serveProject = projectContext(serveProject.dir);
       }
-      if (existsSync(join(outputDir, reloadTarget))) {
-        reloadTarget = "/" + pathWithForwardSlashes(reloadTarget);
-      } else {
-        reloadTarget = "";
-      }
-    }
-    // if we don't have a reload target based on html output, see if we can
-    // get one from a reloadOnChange input
-    const input = modified.find(isRenderOnChangeInput);
-    if (input) {
-      const target = await resolveInputTarget(
-        project,
-        relative(project.dir, input),
-      );
-      if (target) {
-        reloadTarget = target.outputHref;
-      }
-    }
 
-    // clear out the modified list
-    modified.splice(0, modified.length);
-
-    for (let i = clients.length - 1; i >= 0; i--) {
-      const socket = clients[i].socket;
-      try {
-        await socket.send(`reload${reloadTarget}`);
-      } catch (e) {
-        maybeDisplaySocketError(e);
-      } finally {
-        if (!socket.isClosed) {
-          socket.close().catch(maybeDisplaySocketError);
+      // see if there is a reload target (last html file modified)
+      const lastHtmlFile = ld.uniq(modified).reverse().find((file) => {
+        return extname(file) === ".html";
+      });
+      let reloadTarget = "";
+      if (lastHtmlFile && options.navigate) {
+        if (lastHtmlFile.startsWith(outputDir)) {
+          reloadTarget = relative(outputDir, lastHtmlFile);
+        } else {
+          reloadTarget = relative(projDir, lastHtmlFile);
         }
-        clients.splice(i, 1);
+        if (existsSync(join(outputDir, reloadTarget))) {
+          reloadTarget = "/" + pathWithForwardSlashes(reloadTarget);
+        } else {
+          reloadTarget = "";
+        }
       }
+      // if we don't have a reload target based on html output, see if we can
+      // get one from a reloadOnChange input
+      const input = modified.find(isRenderOnChangeInput);
+      if (input) {
+        const target = await resolveInputTarget(
+          project,
+          relative(project.dir, input),
+        );
+        if (target) {
+          reloadTarget = target.outputHref;
+        }
+      }
+
+      // clear out the modified list
+      modified.splice(0, modified.length);
+
+      for (let i = clients.length - 1; i >= 0; i--) {
+        const socket = clients[i].socket;
+        try {
+          await socket.send(`reload${reloadTarget}`);
+        } catch (e) {
+          maybeDisplaySocketError(e);
+        } finally {
+          if (!socket.isClosed) {
+            socket.close().catch(maybeDisplaySocketError);
+          }
+          clients.splice(i, 1);
+        }
+      }
+    } catch (e) {
+      logError(e);
     }
   }, 100);
 
