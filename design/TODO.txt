@@ -1,5 +1,3 @@
-TODO: for renderOnInputChange we currently get a double refresh (once for the save and once for the render)
-do we need to track the last file modified time?
 
 TODO: code blocks inside callouts should not have a left border
 
@@ -60,6 +58,17 @@ Books
 
 
 IDE/Docs unlock users actually using this and engaging with it
+
+
+RStudio IDE
+=====================================================================
+
+- New project type: "quarto"
+- Automatically use quarto render when in quarto project (unless 'output: ')
+- Crossrefs 
+- Divs
+- Run dev server on startup? Automatically disable external/viewer preview when dev server running
+- When running the dev server, the "Preview" or "Render" button for .md just saves and brings Viewer to front
 
 
 - webshot equivalent for printed output
