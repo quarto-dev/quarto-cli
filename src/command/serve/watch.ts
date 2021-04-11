@@ -14,7 +14,7 @@ import { acceptWebSocket, WebSocket } from "ws/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
-import { pathWithForwardSlashes } from "../../core/path.ts";
+import { pathWithForwardSlashes, removeIfExists } from "../../core/path.ts";
 
 import {
   kLibDir,
@@ -111,40 +111,42 @@ export function watchProject(
   // handle a watch event (return true if a reload should occur)
   const handleWatchEvent = (event: Deno.FsEvent): boolean | "config" => {
     try {
+      // filter out paths in hidden folders (e.g. .quarto, .git, .Rproj.user)
+      const paths = ld.uniq(
+        event.paths.filter((path) => !path.startsWith(projDirHidden)),
+      );
+      if (paths.length === 0) {
+        return false;
+      }
+
       if (["modify", "create"].includes(event.kind)) {
-        // filter out paths in hidden folders (e.g. .quarto, .git, .Rproj.user)
-        const paths = ld.uniq(
-          event.paths.filter((path) => !path.startsWith(projDirHidden)),
+        // note modified
+        modified.push(...paths);
+
+        const configFile = paths.some((path) =>
+          (project.files.config || []).includes(path)
+        );
+        const configResourceFile = paths.some((path) =>
+          (project.files.configResources || []).includes(path)
+        );
+        const resourceFile = paths.some(isResourceFile);
+
+        const outputDirFile = paths.some(inOutputDir);
+
+        const renderOnChangeInput = paths.some(isRenderOnChangeInput);
+
+        const inputFileRemoved = project.files.input.some((file) =>
+          !existsSync(file)
         );
 
-        // request reload (debounced) for any change
-        if (paths.length > 0) {
-          // note modified
-          modified.push(...paths);
+        const reload = configFile || configResourceFile || resourceFile ||
+          outputDirFile || renderOnChangeInput || inputFileRemoved;
 
-          const configFile = paths.some((path) =>
-            (project.files.config || []).includes(path)
-          );
-          const configResourceFile = paths.some((path) =>
-            (project.files.configResources || []).includes(path)
-          );
-          const resourceFile = paths.some(isResourceFile);
-
-          const outputDirFile = paths.some(inOutputDir);
-
-          const renderOnChangeInput = paths.some(isRenderOnChangeInput);
-
-          const reload = configFile || configResourceFile || resourceFile ||
-            outputDirFile || renderOnChangeInput;
-
-          if (reload) {
-            if (configFile) {
-              return "config";
-            } else {
-              return true;
-            }
+        if (reload) {
+          if (configFile || inputFileRemoved) {
+            return "config";
           } else {
-            return false;
+            return true;
           }
         } else {
           return false;
@@ -171,6 +173,10 @@ export function watchProject(
   const reloadClients = ld.debounce(async (refreshProject: boolean) => {
     try {
       // copy the project (refresh if requested)
+      if (refreshProject) {
+        // remove input files
+        serveProject.files.input.forEach(removeIfExists);
+      }
       copyProjectForServe(project, serveProject.dir);
       if (refreshProject) {
         refreshProjectConfig();
