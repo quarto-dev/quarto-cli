@@ -52,8 +52,9 @@ function calloutDiv(div)
   if icon == "false" then
     noicon = "no-icon"
   end
-  local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='callout-icon" .. noicon .. "'></i>")});
-        
+  local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='callout-icon" .. noicon .. "'></i>")});       
+  local imgDiv = pandoc.Div({imgPlaceholder}, pandoc.Attr("", {"callout-icon-container"}));
+
   -- show a captioned callout
   if caption ~= nil then
 
@@ -65,7 +66,9 @@ function calloutDiv(div)
     calloutidx = calloutidx + 1
 
     -- create the header to contain the caption
-    local headerDiv = pandoc.Div({imgPlaceholder, pandoc.Plain(caption)}, pandoc.Attr("", {"callout-header"}))
+    -- caption should expand to fill its space
+    local captionDiv = pandoc.Div({pandoc.Plain(caption)}, pandoc.Attr("", {"flex-fill"}))
+    local headerDiv = pandoc.Div({imgDiv, captionDiv}, pandoc.Attr("", {"callout-header", "d-flex", "align-content-center"}))
     local bodyDiv = div
     bodyDiv.attr.classes:insert("callout-body")
 
@@ -110,9 +113,7 @@ function calloutDiv(div)
 
   else 
     -- show an uncaptioned callout
-    -- div that holds image placeholder
-    local imgDiv = pandoc.Div({imgPlaceholder}, pandoc.Attr("", {"callout-icon-container"}));
-    
+  
     -- create a card body
     local containerDiv = pandoc.Div({imgDiv, div}, pandoc.Attr("", {"callout-body"}))
     containerDiv.attr.classes:insert("d-flex")
