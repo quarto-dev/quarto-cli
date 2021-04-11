@@ -3,14 +3,9 @@ TODO: callout icons not displayed in chrome or firefox
 
 TODO: nav menus use too light a color on their menus
 
-TODO: when converting index.Rmd to index.md, we don't pickup index.md because it's a keepMd file for index.Rmd
-
-TODO: quarto serve freeze files should end up back in the freezer (otherwise serve-only workflow is slow)
-
 atom-one theme broken (probably - in name)
 be sure that passing a .theme file directly also works and that we don't interfere
 Floating TOC - try formatting start border not only for h3, but for whole toc (all levels)
-
 
 TODO: review split("\n and consider replacing with split(/\r?\n/)
 TODO: make readlines function that takes a buffer and use that to read anywhere we're using that regex

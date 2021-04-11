@@ -252,7 +252,7 @@ async function serveFile(
       watcher.serveProject(),
       filePathRelative,
     );
-    if (!inputFile) {
+    if (!inputFile || !existsSync(inputFile)) {
       inputFile = await inputFileForOutputFile(
         watcher.refreshProject(),
         filePathRelative,
