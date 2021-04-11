@@ -1,11 +1,5 @@
 
-TODO: callout icons not displayed in chrome or firefox
-
-TODO: nav menus use too light a color on their menus
-
-atom-one theme broken (probably - in name)
-be sure that passing a .theme file directly also works and that we don't interfere
-Floating TOC - try formatting start border not only for h3, but for whole toc (all levels)
+TODO: Floating TOC with toc-depth: 4 - looks meh
 
 TODO: review split("\n and consider replacing with split(/\r?\n/)
 TODO: make readlines function that takes a buffer and use that to read anywhere we're using that regex
