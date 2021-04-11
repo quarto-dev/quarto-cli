@@ -177,36 +177,6 @@
             }
         }
     },
-    "editor-colors": {
-        "BackgroundColor": "#282c34",
-        "BracketMatching": "#8e44ad",
-        "CodeFolding": "#363c4a",
-        "CurrentLine": "#0A99BBFF",
-        "CurrentLineNumber": "#abb2bf",
-        "IconBorder": "#282c34",
-        "IndentationLine": "#3a3f44",
-        "LineNumbers": "#636D83",
-        "MarkBookmark": "#0404bf",
-        "MarkBreakpointActive": "#8b0607",
-        "MarkBreakpointDisabled": "#820683",
-        "MarkBreakpointReached": "#6d6e07",
-        "MarkError": "#c24038",
-        "MarkExecution": "#4d4e50",
-        "MarkWarning": "#d19a66",
-        "ModifiedLines": "#e06c75",
-        "ReplaceHighlight": "#a34f56",
-        "SavedLines": "#98c379",
-        "SearchHighlight": "#3D528BFF",
-        "Separator": "#3f4347",
-        "SpellChecking": "#c24038",
-        "TabMarker": "#21252B",
-        "TemplateBackground": "#31363b",
-        "TemplateFocusedPlaceholder": "#123723",
-        "TemplatePlaceholder": "#123723",
-        "TemplateReadOnlyPlaceholder": "#4d1f24",
-        "TextSelection": "#363c4a",
-        "WordWrapMarker": "#3a3f44"
-    },
     "metadata": {
         "copyright": [
             "SPDX-FileCopyrightText: 2016 GitHub Inc.",
