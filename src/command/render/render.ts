@@ -170,118 +170,95 @@ export interface RenderedFile {
   selfContained: boolean;
 }
 
+export interface PandocRenderer {
+  onRender: (file: ExecutedFile) => Promise<void>;
+  onComplete: () => Promise<Record<string, RenderedFile[]>>;
+  onError: () => void;
+}
+
 export async function renderFiles(
   files: string[],
   options: RenderOptions,
+  pandocRenderer?: PandocRenderer,
   project?: ProjectContext,
   alwaysExecute?: boolean,
 ): Promise<Record<string, RenderedFile[]>> {
-  const results: Record<string, RenderedFile[]> = {};
-
-  const runPandoc = async (executedFile: ExecutedFile) => {
-    const source = executedFile.context.target.source;
-    results[source] = results[source] || [];
-    results[source].push(await renderPandoc(executedFile));
-  };
-
   try {
-    await executeFiles(files, options, runPandoc, project, alwaysExecute);
-    return Promise.resolve(results);
-  } catch (error) {
-    // cleanup for project render (as their could be multiple results)
-    if (project && project.metadata?.project?.[kOutputDir]) {
-      // outputs
-      Object.values(results).forEach((fileResults) => {
-        fileResults.forEach((fileResult) => {
-          removeIfExists(join(project.dir, fileResult.file));
-          if (fileResult.filesDir) {
-            removeIfExists(join(project.dir, fileResult.filesDir));
-          }
-        });
-      });
-      // lib dir
-      const libDir = project.metadata?.project?.[kLibDir];
-      if (libDir) {
-        removeIfExists(join(project.dir, libDir));
+    // provide default renderer
+    pandocRenderer = pandocRenderer || defaultPandocRenderer(project);
+
+    // make a copy of options so we don't mutate caller context
+    options = ld.cloneDeep(options);
+
+    // kernel keepalive default of 5 mintues for interactive sessions
+    if (options.flags && options.flags.kernelKeepalive === undefined) {
+      const isInteractive = Deno.isatty(Deno.stderr.rid) ||
+        !!Deno.env.get("RSTUDIO_VERSION");
+      if (isInteractive) {
+        options.flags.kernelKeepalive = 300;
+      } else {
+        options.flags.kernelKeepalive = 0;
       }
     }
 
-    // propagate error
-    if (error) {
-      throw (error);
-    } else {
-      throw new Error();
-    }
-  }
-}
-
-export async function executeFiles(
-  files: string[],
-  options: RenderOptions,
-  onExecuted: (file: ExecutedFile) => Promise<void>,
-  project?: ProjectContext,
-  alwaysExecute?: boolean,
-) {
-  // make a copy of options so we don't mutate caller context
-  options = ld.cloneDeep(options);
-
-  // kernel keepalive default of 5 mintues for interactive sessions
-  if (options.flags && options.flags.kernelKeepalive === undefined) {
-    const isInteractive = Deno.isatty(Deno.stderr.rid) ||
-      !!Deno.env.get("RSTUDIO_VERSION");
-    if (isInteractive) {
-      options.flags.kernelKeepalive = 300;
-    } else {
-      options.flags.kernelKeepalive = 0;
-    }
-  }
-
-  // see if we should be using file-by-file progress
-  const progress = project && (files.length > 1) && !options.flags?.quiet;
-
-  if (progress) {
-    info(`\nRendering project:`);
-    options.flags = options.flags || {};
-    options.flags.quiet = true;
-  }
-
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
+    // see if we should be using file-by-file progress
+    const progress = project && (files.length > 1) && !options.flags?.quiet;
 
     if (progress) {
-      info(relative(project!.dir, file), { indent: 2 });
+      info(`\nRendering project:`);
+      options.flags = options.flags || {};
+      options.flags.quiet = true;
     }
 
-    // make a copy of options (since we mutate it)
-    const fileOptions = ld.cloneDeep(options) as RenderOptions;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
 
-    // get contexts
-    const contexts = await renderContexts(
-      file,
-      fileOptions,
-      project,
-    );
+      if (progress) {
+        info(relative(project!.dir, file), { indent: 2 });
+      }
 
-    // remove --to (it's been resolved into contexts)
-    delete fileOptions.flags?.to;
-    if (fileOptions.pandocArgs) {
-      fileOptions.pandocArgs = removePandocToArg(fileOptions.pandocArgs);
-    }
+      // make a copy of options (since we mutate it)
+      const fileOptions = ld.cloneDeep(options) as RenderOptions;
 
-    for (const context of Object.values(contexts)) {
-      // get output recipe
-      const recipe = await outputRecipe(context);
-
-      // execute
-      const executeResult = await renderExecute(
-        context,
-        recipe.output,
-        true,
-        alwaysExecute,
+      // get contexts
+      const contexts = await renderContexts(
+        file,
+        fileOptions,
+        project,
       );
 
-      // callback
-      await onExecuted({ context, recipe, executeResult });
+      // remove --to (it's been resolved into contexts)
+      delete fileOptions.flags?.to;
+      if (fileOptions.pandocArgs) {
+        fileOptions.pandocArgs = removePandocToArg(fileOptions.pandocArgs);
+      }
+
+      for (const context of Object.values(contexts)) {
+        // get output recipe
+        const recipe = await outputRecipe(context);
+
+        // execute
+        const executeResult = await renderExecute(
+          context,
+          recipe.output,
+          true,
+          alwaysExecute,
+        );
+
+        // callback
+        await pandocRenderer.onRender({ context, recipe, executeResult });
+      }
+    }
+
+    return pandocRenderer.onComplete();
+  } catch (error) {
+    // call error handler if we have one
+    pandocRenderer?.onError();
+    // propagate error
+    if (error) {
+      return error;
+    } else {
+      throw new Error();
     }
   }
 }
@@ -602,6 +579,41 @@ export function renderResultFinalOutput(
   } else {
     return finalOutput;
   }
+}
+
+// default pandoc renderer immediately renders each execution result
+function defaultPandocRenderer(project?: ProjectContext): PandocRenderer {
+  const results: Record<string, RenderedFile[]> = {};
+
+  return {
+    onRender: async (executedFile: ExecutedFile) => {
+      const source = executedFile.context.target.source;
+      results[source] = results[source] || [];
+      results[source].push(await renderPandoc(executedFile));
+    },
+    onComplete: () => {
+      return Promise.resolve(results);
+    },
+    onError: () => {
+      // cleanup for project render (as their could be multiple results)
+      if (project && project.metadata?.project?.[kOutputDir]) {
+        // outputs
+        Object.values(results).forEach((fileResults) => {
+          fileResults.forEach((fileResult) => {
+            removeIfExists(join(project.dir, fileResult.file));
+            if (fileResult.filesDir) {
+              removeIfExists(join(project.dir, fileResult.filesDir));
+            }
+          });
+        });
+        // lib dir
+        const libDir = project.metadata?.project?.[kLibDir];
+        if (libDir) {
+          removeIfExists(join(project.dir, libDir));
+        }
+      }
+    },
+  };
 }
 
 function mergePandocIncludes(

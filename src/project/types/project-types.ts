@@ -9,6 +9,8 @@ import { PandocFlags } from "../../config/flags.ts";
 import { Format, FormatExtras } from "../../config/format.ts";
 import { ProjectContext } from "../project-context.ts";
 
+import { PandocRenderer } from "../../command/render/render.ts";
+
 import { bookProjectType } from "./project-book.ts";
 import { defaultProjectType } from "./project-default.ts";
 import { websiteProjectType } from "./website/website.ts";
@@ -27,6 +29,7 @@ export interface ProjectType {
   metadataFields?: () => string[];
   resourceIgnoreFields?: () => string[];
   preRender?: (context: ProjectContext) => Promise<void>;
+  pandocRenderer?: PandocRenderer;
   postRender?: (
     context: ProjectContext,
     incremental: boolean,
