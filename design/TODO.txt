@@ -14,6 +14,19 @@ TODO: make readlines function that takes a buffer and use that to read anywhere 
 Books
 =========================================================================
 
+
+
+TODO: centralize error cleanup and consider caching
+
+
+
+
+
+
+
+
+
+
 - we need section cross refs to NOT require section numbering. links to sections need to be global
   HTML books you need to use crossrefs
 - [Another option is that we resolve .md#foobar to just be #foobar  @sec:asdfasdf]
