@@ -355,15 +355,24 @@ async function resolveSidebarItems(
   items: SidebarItem[],
 ) {
   for (let i = 0; i < items.length; i++) {
-    items[i] = await resolveSidebarItem(
-      project,
-      items[i] as SidebarItem,
-    );
     if (Object.keys(items[i]).includes("items")) {
       const subItems = items[i].items || [];
+
+      // If this item has an href, resolve that
+      const item = items[i];
+      if (item.href) {
+        items[i] = await resolveItem(project, item.href, item);
+      }
+
+      // Resolve any subitems
       for (let i = 0; i < subItems.length; i++) {
         subItems[i] = await resolveSidebarItem(project, subItems[i]);
       }
+    } else {
+      items[i] = await resolveSidebarItem(
+        project,
+        items[i] as SidebarItem,
+      );
     }
   }
 }
@@ -375,7 +384,9 @@ async function resolveSidebarItem(project: ProjectContext, item: SidebarItem) {
       item.href,
       item,
     ) as SidebarItem;
-  } else if (item.items) {
+  }
+
+  if (item.items) {
     await resolveSidebarItems(project, item.items);
     return item;
   } else {
@@ -447,11 +458,13 @@ function containsHref(href: string, items: SidebarItem[]) {
 
 function expandedSidebar(href: string, sidebar?: Sidebar): Sidebar | undefined {
   if (sidebar) {
+    console.log("HREF: " + href);
     // Walk through items and mark any items as 'expanded' if they
     // contain the item with this href
     const resolveExpandedItems = (href: string, items: SidebarItem[]) => {
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
+        console.log(item.href);
         item.active = item.href === href;
         if (Object.keys(item).includes("items")) {
           if (resolveExpandedItems(href, item.items || [])) {
