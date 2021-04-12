@@ -355,16 +355,15 @@ async function resolveSidebarItems(
   items: SidebarItem[],
 ) {
   for (let i = 0; i < items.length; i++) {
+    items[i] = await resolveSidebarItem(
+      project,
+      items[i] as SidebarItem,
+    );
     if (Object.keys(items[i]).includes("items")) {
       const subItems = items[i].items || [];
       for (let i = 0; i < subItems.length; i++) {
         subItems[i] = await resolveSidebarItem(project, subItems[i]);
       }
-    } else {
-      items[i] = await resolveSidebarItem(
-        project,
-        items[i] as SidebarItem,
-      );
     }
   }
 }
@@ -453,13 +452,13 @@ function expandedSidebar(href: string, sidebar?: Sidebar): Sidebar | undefined {
     const resolveExpandedItems = (href: string, items: SidebarItem[]) => {
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
+        item.active = item.href === href;
         if (Object.keys(item).includes("items")) {
           if (resolveExpandedItems(href, item.items || [])) {
             item.expanded = true;
             return true;
           }
-        } else if (item.href === href) {
-          item.active = true;
+        } else if (item.active) {
           return true;
         }
       }

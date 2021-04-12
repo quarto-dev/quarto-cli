@@ -1,4 +1,4 @@
-<% if (item.href && item.text) { %>
+<% if (item.href && item.text && !item.items) { %>
 <li class="pb-2 px-0">
   <a href="<%- item.href %>" class="<%- item.active ? "active" : "" %> <%- depth === 1 ? "fw-normal" : "fw-lighter" %>"><%- item.text %></a>
 </li>
@@ -9,10 +9,25 @@
 
   <ul class="list-unstyled my-0">
     <li class="sidebar-section <%- depth === 1 ? "pb-1" : "" %> ">
-      <button class="btn d-inline-flex text-start w-100 px-0 pt-0 pb-1 <%- isCollapsed ? "collapsed" : "" %> " data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded=" <%- isCollapsed ? "false" : "true" %>">
-        <div class="me-auto <%- depth === 1 ? "fw-normal" : "fw-lighter" %> <%- textStyleCss %> >"><%- item.text %></div>
-        <div><i class="bi bi-chevron-right ms-2 <%- textStyleCss %>"></i></div>
-      </button>   
+        <div class="me-auto <%- depth === 1 ? "fw-normal" : "fw-lighter" %> <%- textStyleCss %> >">
+          <% if (item.href) { %>
+          <div class="d-inline-flex w-100 pb-1">
+            <div class="me-auto <%- depth === 1 ? "fw-normal" : "fw-lighter" %> <%- textStyleCss %> >">
+            <a href="<%- item.href %>" class="<%- item.active ? "active" : "" %> <%- depth === 1 ? "fw-normal" : "fw-lighter" %>"><%- item.text %></a>
+            </div>
+            <button class="btn text-start p-0 <%- isCollapsed ? "collapsed" : "" %> " data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded=" <%- isCollapsed ? "false" : "true" %>">
+              <div><i class="bi bi-chevron-right ms-2 <%- textStyleCss %>"></i></div>
+            </button>
+            </div>
+          <% } else { %>
+            <button class="btn d-inline-flex text-start w-100 px-0 pt-0 pb-1 <%- isCollapsed ? "collapsed" : "" %> " data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded=" <%- isCollapsed ? "false" : "true" %>">
+              <div class="me-auto <%- depth === 1 ? "fw-normal" : "fw-lighter" %> <%- textStyleCss %> >">
+                <%- item.text %>
+              </div>
+            <div><i class="bi bi-chevron-right ms-2 <%- textStyleCss %>"></i></div>
+            </button>
+          <% }  %>
+      
       <div class="collapse  <%- isCollapsed ? "" : "show" %>" id="<%- sectionId %>">
         <ul class="list-unstyled <%- paddingCss %>">
         <% item.items.forEach(subItem => { %>
