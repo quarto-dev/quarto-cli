@@ -245,9 +245,7 @@ function projectInputFiles(dir: string, metadata?: ProjectMetadata) {
   projectIgnores.push(...includeIgnores);
 
   // also exclude README.R?md for git projects
-  if (existsSync(join(dir, ".git"))) {
-    projectIgnores.push(/README\.[Rr]?md/);
-  }
+  projectIgnores.push(/README\.[Rr]?md/);
 
   const addFile = (file: string) => {
     if (!outputDir || !file.startsWith(join(dir, outputDir))) {
