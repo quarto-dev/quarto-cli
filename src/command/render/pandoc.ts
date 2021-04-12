@@ -622,6 +622,8 @@ function resolveHighlightStyle(
 
   // create the possible name matches based upon the dark vs. light
   // and find a matching theme file
+  // Themes from
+  // https://invent.kde.org/frameworks/syntax-highlighting/-/tree/master/data/themes
   const names = [`${style}-${dark ? kDarkSuffix : kLightSuffix}`, style];
   const theme = names.map((name) => {
     return resourcePath(join("pandoc", "highlight-styles", `${name}.theme`));
