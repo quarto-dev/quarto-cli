@@ -18,7 +18,7 @@ Books
 
 TODO: centralize error cleanup and consider caching
 
-
+TODO: Decide whether by default Sass should be treated as variables or rules.
 
 
 
