@@ -29,7 +29,7 @@ export interface ProjectType {
   metadataFields?: () => string[];
   resourceIgnoreFields?: () => string[];
   preRender?: (context: ProjectContext) => Promise<void>;
-  pandocRenderer?: PandocRenderer;
+  pandocRenderer?: () => PandocRenderer;
   postRender?: (
     context: ProjectContext,
     incremental: boolean,

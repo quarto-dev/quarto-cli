@@ -1,10 +1,11 @@
 /*
-* proejct-book.ts
+* project-book.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
 import { join } from "path/mod.ts";
+import { ExecutedFile } from "../../command/render/render.ts";
 import { resourcePath } from "../../core/resources.ts";
 
 import { ProjectCreate, ProjectType } from "./project-types.ts";
@@ -45,4 +46,17 @@ export const bookProjectType: ProjectType = {
 
   libDir: "site_libs",
   outputDir: "_book",
+
+  pandocRenderer: () => {
+    return {
+      onRender: (file: ExecutedFile) => {
+        return Promise.resolve();
+      },
+      onComplete: () => {
+        return Promise.resolve({});
+      },
+      onError: () => {
+      },
+    };
+  },
 };
