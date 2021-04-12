@@ -1,6 +1,4 @@
 
-TODO: Floating TOC with toc-depth: 4 - looks meh
-
 TODO: review split("\n and consider replacing with split(/\r?\n/)
 TODO: make readlines function that takes a buffer and use that to read anywhere we're using that regex
 
@@ -42,6 +40,7 @@ Books
 
 
 IDE/Docs unlock users actually using this and engaging with it
+
 
 
 RStudio IDE
@@ -87,6 +86,77 @@ The side effects might require an id of some kind (for managing duplicates):
      - preserves
      - patches (e.g. slides for htmlwidgets)
      - intermediates/intermediates-dir
+
+HIGHER PRIORITY BACKGROUND WORK
+
+code chunks
+===========================================
+TODO: test line numbers and formatting 
+TODO: left-border treatment add negative margin to align code and text
+
+commenting
+==========================================
+TODO: Place commenting options in own YAML namespace
+
+toc
+=========================================
+TODO: consider updating demo to be toc-float: false which is more realistic since true is default
+TODO: Support toc-depth with nested indenting
+TODO: Support collapsing - expand only to show current node (bookdown has option we can look at)
+
+navigation
+==============================================
+TODO: ensure floating centers on page properly
+
+LOWER PRIORITY BACKGROUND WORK
+
+commenting
+==========================================
+TODO: Consider higher abstraction level for commenting options
+TODO: Consider Yammer support
+
+callouts
+==========================================
+TODO: Allow user to provide a custom emoji for a callout. 
+TODO: If supporting emoji easy to support color too
+TODO: could allow definition of callout types (emoji + color) and automatically generate css to format them
+      - what about latex / asciidoc :(
+callout-types:
+  - name: my-custom-type
+    category: info
+    emoji: emoji
+    color: red
+:::{.callout-my-custom-type} 
+This is a custom callout
+:::
+
+code chunks
+===========================================
+TODO: Support line highlighting
+  (use inline comment to denote lines that should be highlighted?)
+TODO: Ansi escape support
+  (need to be sure that ansi escapes use theme or highlight colors)
+
+
+theming
+==============================================
+TODO: Real dark mode support
+      - allow theme swithing with nice ui
+      - auto detect dark mode vs light mode in supported platforms
+      - need to capture dark and light highlight styles
+      - need to deal with thematic render
+TODO ensure that when wide, we try bumping up font size slightly
+
+navigation
+==============================================
+TODO: ensure floating centers on page properly
+TODO: Consider adding toggle to hide sidebar
+TODO: Consider reading mode that hides all unecessary chrome
+
+GA
+==============================================
+TODO: be sure we do cookie consent banner
+
 
 
 Logging
