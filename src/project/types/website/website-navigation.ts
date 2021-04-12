@@ -458,13 +458,11 @@ function containsHref(href: string, items: SidebarItem[]) {
 
 function expandedSidebar(href: string, sidebar?: Sidebar): Sidebar | undefined {
   if (sidebar) {
-    console.log("HREF: " + href);
     // Walk through items and mark any items as 'expanded' if they
     // contain the item with this href
     const resolveExpandedItems = (href: string, items: SidebarItem[]) => {
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
-        console.log(item.href);
         item.active = item.href === href;
         if (Object.keys(item).includes("items")) {
           if (resolveExpandedItems(href, item.items || [])) {
