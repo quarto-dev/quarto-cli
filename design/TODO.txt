@@ -1,4 +1,10 @@
 
+TODO: why are .ipynb files showing up when using freeze? they should be removed
+
+TODO: render md file saves to docs dir but save doesn't
+
+TODO: try out article-per-directory w/ "page bundles" (auto-resolve directories to index.html)
+
 TODO: Floating TOC with toc-depth: 4 - looks meh
 
 TODO: review split("\n and consider replacing with split(/\r?\n/)
@@ -284,8 +290,11 @@ A 'format' is a director or zip file which is:
   - Arbitrary other files that can be referenced (relatively) by the format YAML
 
 
-Port a dozen or rticles formats
+# paged.js format
+
+Port a dozen or rticles formats  (collect feedback, currently maintaining templates is unweildy)
   - Authors metadata standard 
+  - Shared schema
 
 # standalone document formats
 
@@ -324,9 +333,10 @@ library(bs4)
 {{< video https://youtube.com/foo/status/34453323455 >}}
 
 
-
 Future
 -----------------------------------------
+
+TODO: algorithms: https://github.com/SaswatPadhi/pseudocode.js
 
 Take a look at prosemirror-typerighter: https://github.com/guardian/prosemirror-typerighter
 
