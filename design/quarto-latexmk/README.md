@@ -9,7 +9,7 @@ $ git clone https://github.com/quarto-dev/quarto-cli
 $ cd quarto-cli
 ```
 
-2)  Configure your machine using the platform appropriate version of the configure command `configure-macos.sh`, `configure-linux.sh`, or `configure-windows.cmd`
+2)  Configure your machine using the platform appropriate version of the configure command `configure-macos.sh`, `configure-linux.sh`, or `configure-windows`
 
 ``` {.bash}
 $ ./configure-macos.sh 
@@ -22,7 +22,7 @@ $ cd package/src
 $ ./quarto-bld compile-quarto-latexmk -d
 ```
 
-Be sure to follow any instructions that are displayed in the console with regards to PATH.
+(On Windows, you will need to use the command `quarto-bld` omitting the leading `./` . Be sure to follow any instructions that are displayed in the console with regards to PATH.
 
 4)  Once installed, usage is relatively straightforward:
 
