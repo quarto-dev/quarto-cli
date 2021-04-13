@@ -5,6 +5,7 @@ TODO: why are .ipynb files showing up when using freeze? they should be removed
 TODO: render md file saves to docs dir but save doesn't
 
 TODO: try out article-per-directory w/ "page bundles" (auto-resolve directories to index.html)
+TODO: also try output-file: index.html
 
 TODO: Floating TOC with toc-depth: 4 - looks meh
 
@@ -14,6 +15,10 @@ TODO: make readlines function that takes a buffer and use that to read anywhere 
 Books
 =========================================================================
 
+
+Some things automatically set behind the scenes:
+toc: true
+documentclass: book
 
 
 
