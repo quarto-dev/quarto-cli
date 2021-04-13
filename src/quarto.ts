@@ -50,9 +50,10 @@ if (import.meta.main) {
     initSessionTempDir();
 
     // install termination signal handlers
-    onSignal(Deno.Signal.SIGINT, cleanup);
-    onSignal(Deno.Signal.SIGTERM, cleanup);
-
+    if (Deno.build.os !== "windows") {
+      onSignal(Deno.Signal.SIGINT, cleanup);
+      onSignal(Deno.Signal.SIGTERM, cleanup);
+    }
     // run quarto
     await quarto(Deno.args);
   } catch (e) {
