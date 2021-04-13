@@ -15,7 +15,6 @@ import { updateHtmlDepedencies } from "./common/update-html-dependencies.ts";
 import { makeInstallerDeb } from "./linux/installer.ts";
 import { makeInstallerMac } from "./macos/installer.ts";
 import {
-  compileQuartoLatexmk,
   compileQuartoLatexmkCommand,
 } from "./common/compile-quarto-latexmk.ts";
 import { makeInstallerWindows } from "./windows/installer.ts";

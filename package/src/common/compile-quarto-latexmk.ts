@@ -20,8 +20,11 @@ export function compileQuartoLatexmkCommand() {
     .option(
       "-t, --target <target:string>",
       "The target architecture for the binary (e.g. x86_64-unknown-linux-gnu, x86_64-pc-windows-msvc, x86_64-apple-darwin, aarch64-apple-darwin)",
+      {
+        collect: true,
+      },
     )
-    .action((args, target?: string) => {
+    .action((args) => {
       const logLevel = args[kLogLevel];
       const version = args[kVersion];
 
@@ -30,16 +33,16 @@ export function compileQuartoLatexmkCommand() {
       configuration.log.info(configuration);
       configuration.log.info("");
 
-      compileQuartoLatexmk(configuration, target);
+      compileQuartoLatexmk(configuration, args.target);
     });
 }
 
 export async function compileQuartoLatexmk(
   config: Configuration,
-  target?: string,
+  targets?: string[],
 ) {
   // If target isn't specified, build for whatever the current architecture is
-  target = target || Deno.build.arch;
+  targets = targets || [Deno.build.target];
 
   const input = join(
     config.directoryInfo.src,
@@ -49,27 +52,32 @@ export async function compileQuartoLatexmk(
     "quarto-latexmk.ts",
   );
 
-  const outputDir = join(
-    config.directoryInfo.bin,
-    "quarto-latexmk",
-    target,
-  );
-  ensureDirSync(outputDir);
-  const output = join(outputDir, filename());
+  for (const target of targets) {
+    config.log.info(`Compiling for ${target}:`);
+    const outputDir = join(
+      config.directoryInfo.bin,
+      "quarto-latexmk",
+      target,
+    );
+    ensureDirSync(outputDir);
+    const output = join(outputDir, filename(target));
 
-  const flags: string[] = [
-    "--allow-read",
-    "--allow-write",
-    "--allow-run",
-    "--allow-env",
-    "--allow-net",
-  ];
+    const flags: string[] = [
+      "--allow-read",
+      "--allow-write",
+      "--allow-run",
+      "--allow-env",
+      "--allow-net",
+      "--lite",
+    ];
 
-  await compile(input, output, flags, config);
+    await compile(input, output, flags, config);
+    config.log.info(output + "\n");
+  }
 }
 
-function filename() {
-  if (Deno.build.os === "windows") {
+function filename(target: string) {
+  if (target.match(/.*windows.*/)) {
     return "quarto-latexmk.exe";
   } else {
     return "quarto-latexmk";
