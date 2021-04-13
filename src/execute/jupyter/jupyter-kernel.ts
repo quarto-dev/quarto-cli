@@ -333,21 +333,30 @@ async function connectToKernel(
 async function denoConnectToKernel(
   transport: KernelTransport,
 ): Promise<[Deno.Conn, KernelTransport]> {
-  return [
-    await Deno.connect(
-      transport.type == "tcp"
-        ? {
-          transport: transport.type,
-          hostname: "127.0.0.1",
-          port: transport.port as number,
-        }
-        : {
-          transport: transport.type,
-          path: transport.port as string,
-        },
-    ),
-    transport,
-  ];
+  if (transport.type === "tcp") {
+    const tcpConnectOptions = {
+      transport: transport.type,
+      hostname: "127.0.0.1",
+      port: transport.port as number,
+    };
+    return [
+      await Deno.connect(
+        tcpConnectOptions,
+      ),
+      transport,
+    ];
+  } else {
+    const unixConnectOptions = {
+      transport: transport.type,
+      path: transport.port as string,
+    };
+    return [
+      await Deno.connect(
+        unixConnectOptions,
+      ),
+      transport,
+    ];
+  }
 }
 
 function messageStartingKernel() {

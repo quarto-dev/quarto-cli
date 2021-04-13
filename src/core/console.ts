@@ -5,7 +5,7 @@
 *
 */
 
-import { AnsiEscape } from "ansi/mod.ts";
+import { ansi } from "cliffy/ansi/mod.ts";
 import { info } from "log/mod.ts";
 
 // The spinner and progress characters
@@ -149,7 +149,7 @@ export function writeFileToStdout(file: string) {
 }
 
 function clearLine() {
-  AnsiEscape.from(Deno.stderr).eraseLine().cursorLeft();
+  info(ansi.eraseLine.cursorLeft(), { newline: false });
 }
 
 // Creates an ascii progressBar bar of a specified width, displaying a percentage complete
