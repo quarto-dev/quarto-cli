@@ -450,6 +450,9 @@ async function recompileLatexUntilComplete(
 ) {
   // Run the engine until the bibliography is fully resolved
   let runCount = 0;
+
+  // convert to zero based minimum
+  minRuns = minRuns - 1;
   while (true) {
     // If we've exceeded maximum runs break
     if (runCount >= maxRuns) {

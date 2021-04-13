@@ -21,6 +21,14 @@ toc: true
 documentclass: book
 
 
+TODO: centralize error cleanup and consider caching
+
+TODO: Decide whether by default Sass should be treated as variables or rules.
+
+
+
+
+
 
 
 - we need section cross refs to NOT require section numbering. links to sections need to be global
