@@ -8,8 +8,10 @@ import * as colors from "fmt/colors.ts";
 import * as log from "log/mod.ts";
 import { LogRecord } from "log/logger.ts";
 import { BaseHandler, FileHandler } from "log/handlers.ts";
+import { Command } from "cliffy/command/mod.ts";
 
 import { getenv } from "./env.ts";
+import { Args } from "flags/mod.ts";
 
 export interface LogOptions {
   log?: string;
@@ -25,6 +27,39 @@ export interface LogMessageOptions {
   dim?: boolean;
   indent?: number;
   format?: (line: string) => string;
+}
+
+export function appendLogOptions(cmd: Command): Command {
+  return cmd.option(
+    "--log-level <level>",
+    "Log level (info, warning, error, critical)",
+    {
+      global: true,
+    },
+  )
+    .option(
+      "--log-format <format>",
+      "Log format (plain, json-stream)",
+      {
+        global: true,
+      },
+    )
+    .option(
+      "--quiet",
+      "Suppress console output.",
+      {
+        global: true,
+      },
+    );
+}
+
+export function logOptions(args: Args) {
+  const logOptions: LogOptions = {};
+  logOptions.log = args.l || args.log;
+  logOptions.level = args.ll || args["log-level"];
+  logOptions.quiet = args.q || args.quiet;
+  logOptions.format = parseFormat(args.lf || args["log-format"]);
+  return logOptions;
 }
 
 export class StdErrOutputHandler extends BaseHandler {
@@ -205,6 +240,21 @@ function applyMsgOptions(msg: string, options: LogMessageOptions) {
   }
 
   return msg;
+}
+
+function parseFormat(format?: string) {
+  if (format) {
+    format = format.toLowerCase();
+    switch (format) {
+      case "plain":
+      case "json-stream":
+        return format;
+      default:
+        return "plain";
+    }
+  } else {
+    return "plain";
+  }
 }
 
 function parseLevel(
