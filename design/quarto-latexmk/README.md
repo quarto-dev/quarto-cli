@@ -18,6 +18,7 @@ $ ./configure-macos.sh
 3)  'Install' the development version of `quarto-latexmk` using (this will create a script that points back to the Typescript entry point and place that executable script in an appropriate bin directory).
 
 ``` {.bash}
+$ cd package/src
 $ ./quarto-bld compile-quarto-latexmk -d
 ```
 
