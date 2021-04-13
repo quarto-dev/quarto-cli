@@ -26,7 +26,6 @@ TODO: Decide whether by default Sass should be treated as variables or rules.
 
 
 
-
 - we need section cross refs to NOT require section numbering. links to sections need to be global
   HTML books you need to use crossrefs
 - [Another option is that we resolve .md#foobar to just be #foobar  @sec:asdfasdf]

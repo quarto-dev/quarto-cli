@@ -107,6 +107,7 @@ export interface RenderResult {
   baseDir?: string;
   outputDir?: string;
   files: RenderResultFile[];
+  error?: Error;
 }
 
 export interface RenderResultFile {
@@ -145,10 +146,10 @@ export async function render(
   }
 
   // otherwise it's just a file render
-  const results = await renderFiles([path], options);
+  const result = await renderFiles([path], options);
   return {
-    files: Object.keys(results).flatMap((key) => {
-      return results[key].map((result) => ({
+    files: Object.keys(result.files).flatMap((key) => {
+      return result.files[key].map((result) => ({
         input: result.input,
         markdown: result.markdown,
         format: result.format,
@@ -157,6 +158,7 @@ export async function render(
         resourceFiles: [],
       }));
     }),
+    error: result.error,
   };
 }
 
@@ -176,17 +178,22 @@ export interface PandocRenderer {
   onError: () => void;
 }
 
+export interface RenderFilesResult {
+  files: Record<string, RenderedFile[]>;
+  error?: Error;
+}
+
 export async function renderFiles(
   files: string[],
   options: RenderOptions,
   pandocRenderer?: PandocRenderer,
   project?: ProjectContext,
   alwaysExecute?: boolean,
-): Promise<Record<string, RenderedFile[]>> {
-  try {
-    // provide default renderer
-    pandocRenderer = pandocRenderer || defaultPandocRenderer(project);
+): Promise<RenderFilesResult> {
+  // provide default renderer
+  pandocRenderer = pandocRenderer || defaultPandocRenderer();
 
+  try {
     // make a copy of options so we don't mutate caller context
     options = ld.cloneDeep(options);
 
@@ -250,16 +257,18 @@ export async function renderFiles(
       }
     }
 
-    return pandocRenderer.onComplete();
+    return {
+      files: await pandocRenderer.onComplete(),
+    };
   } catch (error) {
     // call error handler if we have one
     pandocRenderer?.onError();
-    // propagate error
-    if (error) {
-      return error;
-    } else {
-      throw new Error();
-    }
+
+    // return result with error
+    return {
+      files: await pandocRenderer.onComplete(),
+      error: error || new Error(),
+    };
   }
 }
 
@@ -582,7 +591,7 @@ export function renderResultFinalOutput(
 }
 
 // default pandoc renderer immediately renders each execution result
-function defaultPandocRenderer(project?: ProjectContext): PandocRenderer {
+function defaultPandocRenderer(): PandocRenderer {
   const results: Record<string, RenderedFile[]> = {};
 
   return {
@@ -595,23 +604,6 @@ function defaultPandocRenderer(project?: ProjectContext): PandocRenderer {
       return Promise.resolve(results);
     },
     onError: () => {
-      // cleanup for project render (as their could be multiple results)
-      if (project && project.metadata?.project?.[kOutputDir]) {
-        // outputs
-        Object.values(results).forEach((fileResults) => {
-          fileResults.forEach((fileResult) => {
-            removeIfExists(join(project.dir, fileResult.file));
-            if (fileResult.filesDir) {
-              removeIfExists(join(project.dir, fileResult.filesDir));
-            }
-          });
-        });
-        // lib dir
-        const libDir = project.metadata?.project?.[kLibDir];
-        if (libDir) {
-          removeIfExists(join(project.dir, libDir));
-        }
-      }
     },
   };
 }
