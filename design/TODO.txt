@@ -208,8 +208,6 @@ TODO: can we get the progress bar for render to work in the rstudio console?
 
 TODO: add cleverref and do it by default
 
-TODO: produce 'tinytex' standalone binary (map command line options, etc.)
-
 TODO: launch buttons for interactivity (https://jupyterbook.org/interactive/launchbuttons.html#launch-buttons-for-interactivity)
       - run on binder and/or rstudio cloud
 
