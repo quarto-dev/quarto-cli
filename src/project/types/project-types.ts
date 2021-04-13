@@ -44,6 +44,7 @@ export interface ProjectOutputFile {
 
 export interface ProjectCreate {
   configTemplate: string;
+  resourceDir: string;
   scaffold?: ProjectScaffoldFile[];
   supporting?: string[];
 }

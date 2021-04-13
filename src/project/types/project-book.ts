@@ -14,33 +14,39 @@ export const bookProjectType: ProjectType = {
   type: "book",
 
   create: (): ProjectCreate => {
-    const supportingDir = resourcePath(join("projects", "book"));
+    const resourceDir = resourcePath(join("projects", "book"));
 
     return {
-      configTemplate: join(supportingDir, "templates", "_quarto.ejs.yml"),
+      configTemplate: join(resourceDir, "templates", "_quarto.ejs.yml"),
+      resourceDir,
       scaffold: [
         {
           name: "01-intro",
           content: "The introduction",
           title: "Introduction",
+          format: "html",
         },
         {
           name: "02-summary",
           content: "The summary",
           title: "Summary",
+          format: "html",
         },
         {
           name: "03-references",
           content: "",
           title: "References",
+          format: "html",
         },
       ],
 
       supporting: [
         "references.bib",
-        "styles.css",
-        "preamble.tex",
-      ].map((path) => join(supportingDir, path)),
+        "assets/epub-styles.css",
+        "assets/epub-cover.png",
+        "assets/html-theme.scss",
+        "assets/pdf-preamble.tex",
+      ],
     };
   },
 

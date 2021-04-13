@@ -34,10 +34,11 @@ import { updateSearchIndex } from "./website-search.ts";
 export const websiteProjectType: ProjectType = {
   type: "website",
   create: (): ProjectCreate => {
-    const supportingDir = resourcePath(join("projects", "website"));
+    const resourceDir = resourcePath(join("projects", "website"));
 
     return {
-      configTemplate: join(supportingDir, "templates", "_quarto.ejs.yml"),
+      configTemplate: join(resourceDir, "templates", "_quarto.ejs.yml"),
+      resourceDir,
       scaffold: [
         {
           name: "index",
@@ -54,7 +55,7 @@ export const websiteProjectType: ProjectType = {
 
       supporting: [
         "styles.css",
-      ].map((path) => join(supportingDir, path)),
+      ],
     };
   },
 
