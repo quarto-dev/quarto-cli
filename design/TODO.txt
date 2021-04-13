@@ -16,15 +16,6 @@ Books
 
 
 
-TODO: centralize error cleanup and consider caching
-
-
-
-
-
-
-
-
 
 
 - we need section cross refs to NOT require section numbering. links to sections need to be global
