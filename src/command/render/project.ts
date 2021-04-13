@@ -140,8 +140,8 @@ export async function renderProject(
 
       // copy files dirs to freezer (we always do this for future calls that might specify useFreezer)
       const filesDirs = ld.uniq(
-        Object.keys(fileResults).flatMap((format) => {
-          return fileResults[format].flatMap((result) => result.filesDir);
+        Object.keys(fileResults.files).flatMap((format) => {
+          return fileResults.files[format].flatMap((result) => result.filesDir);
         }),
       ).filter((dir) => !!dir);
       filesDirs.forEach((filesDir) => {
@@ -152,8 +152,8 @@ export async function renderProject(
       let keepLibsDir = false;
 
       // move/copy projResults to output_dir
-      Object.keys(fileResults).forEach((format) => {
-        const results = fileResults[format];
+      Object.keys(fileResults.files).forEach((format) => {
+        const results = fileResults.files[format];
 
         for (const result of results) {
           // copy the result to the freezer
@@ -293,9 +293,9 @@ export async function renderProject(
       });
     } else {
       // track output files
-      Object.keys(fileResults).forEach((format) => {
+      Object.keys(fileResults.files).forEach((format) => {
         projResults.files.push(
-          ...fileResults[format].map((result) => {
+          ...fileResults.files[format].map((result) => {
             return {
               input: result.input,
               markdown: result.markdown,
@@ -308,6 +308,9 @@ export async function renderProject(
         );
       });
     }
+
+    // forward error to projResults
+    projResults.error = fileResults.error;
 
     // call post-render
     if (projType.postRender) {

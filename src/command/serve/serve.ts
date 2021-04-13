@@ -75,6 +75,11 @@ export async function serveProject(
     },
   );
 
+  // exit if there was an error
+  if (renderResult.error) {
+    throw error;
+  }
+
   // create project watcher
   const watcher = watchProject(project, serveProject, renderResult, options);
 

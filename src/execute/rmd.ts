@@ -6,6 +6,7 @@
 */
 
 import { extname, join } from "path/mod.ts";
+import { error } from "log/mod.ts";
 
 import { dirAndStem } from "../core/path.ts";
 import { execProcess } from "../core/process.ts";
@@ -144,6 +145,7 @@ async function callR<T>(
     const resultsJson = JSON.parse(results);
     return resultsJson as T;
   } else {
+    error(result.stderr);
     return Promise.reject();
   }
 }
