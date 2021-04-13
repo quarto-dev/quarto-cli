@@ -12,6 +12,7 @@
       "deno.importMap": "./src/import_map.json",
       "deno.lint": true,
       "deno.enable": true,
-      "deno.unstable": true
+      "deno.unstable": true,
+      "deno.path": "./package/dist/bin/deno"
    }
 }
