@@ -1,6 +1,6 @@
 # Quarto Latexmk
 
-### Building
+### Running / Developing Locally
 
 1) Clone the quarto repo:
 
@@ -15,19 +15,13 @@ $ cd quarto-cli
 $ ./configure-macos.sh 
 ```
 
-3) Compile `quarto-latexmk` for your target platform(s)
+3) 'Install' the development version of `quarto-latexmk` using:
 
-``` {.bash}
-$ cd package/src
-$ ./quarto-bld compile-quarto-latexmk --target x86_64-apple-darwin --target x86_64-pc-windows-msvc
+```{.bash}
+$ ./quarto-bld compile-quarto-latexmk -d
 ```
 
-You can compile for multiple target architectures with a single call by passing the \`-target\` flag multiple times. Supported target architectures include:
-
--   x86_64-unknown-linux-gnu,
--   x86_64-pc-windows-msvc
--   x86_64-apple-darwin
--   aarch64-apple-darwin
+Be sure to follow any instructions that are displayed in the console with regards to PATH.
 
 4) Use the `--help` option to view options
 
@@ -44,6 +38,24 @@ $ ./quarto-latexmk my-test.tex
  Which will produce `my-test.pdf` upon completion.
 
 Note that the arguments `pdf-engine-opts` , `index-engine-opts`, and `tlmgr-opts` should pass not pass the raw options, but instead should pass the path to a file which contains the arguments. The file will be read and each line of the file will be passed as an argument as appropriate.
+
+### Building
+
+1) Follow steps 1 and 2 above (the building machine must have the repo and be configured).
+
+2) Compile `quarto-latexmk` for your target platform(s)
+
+``` {.bash}
+$ cd package/src
+$ ./quarto-bld compile-quarto-latexmk --target x86_64-apple-darwin --target x86_64-pc-windows-msvc
+```
+
+You can compile for multiple target architectures with a single call by passing the \`-target\` flag multiple times. Supported target architectures include:
+
+-   x86_64-unknown-linux-gnu,
+-   x86_64-pc-windows-msvc
+-   x86_64-apple-darwin
+-   aarch64-apple-darwin
 
 ### Key Source Code Files
 

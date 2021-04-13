@@ -25,7 +25,7 @@ export async function pdf(args: string[]) {
     .name("quarto-pdf")
     .arguments("<input:string>")
     .version(kVersion)
-    .description("Quarto PDF engine")
+    .description("Quarto Latexmk engine")
     .option(
       "--pdf-engine <engine>",
       "The PDF engine to use",

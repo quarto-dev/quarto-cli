@@ -28,7 +28,7 @@ export async function bundle(
   });
   const status = await p.status();
   if (status.code !== 0) {
-    throw Error("Failure to bundle quarto.ts");
+    throw Error(`Failure to bundle ${input}`);
   }
 }
 
@@ -55,6 +55,30 @@ export async function compile(
   });
   const status = await p.status();
   if (status.code !== 0) {
-    throw Error("Failure to compile quarto.ts");
+    throw Error(`Failure to compile ${input}`);
+  }
+}
+
+export async function install(
+  input: string,
+  flags: string[],
+  configuration: Configuration,
+) {
+  const denoBundleCmd: string[] = [];
+  denoBundleCmd.push(join(configuration.directoryInfo.bin, "deno"));
+  denoBundleCmd.push("install");
+  denoBundleCmd.push("--unstable");
+  denoBundleCmd.push(
+    "--importmap=" + configuration.importmap,
+  );
+  denoBundleCmd.push(...flags);
+
+  denoBundleCmd.push(input);
+  const p = Deno.run({
+    cmd: denoBundleCmd,
+  });
+  const status = await p.status();
+  if (status.code !== 0) {
+    throw Error(`Failure to install ${input}`);
   }
 }
