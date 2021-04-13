@@ -9,8 +9,8 @@ import { Command } from "cliffy/command/mod.ts";
 import { Configuration, readConfiguration } from "../common/config.ts";
 import { parseLogLevel } from "../util/logger.ts";
 
-const kLogLevel = "logLevel";
-const kVersion = "setVersion";
+export const kLogLevel = "logLevel";
+export const kVersion = "setVersion";
 
 export function packageCommand(run: (config: Configuration) => void) {
   return new Command().action((args) => {

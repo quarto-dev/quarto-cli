@@ -34,6 +34,8 @@ export async function bundle(
 
 export async function compile(
   input: string,
+  output: string,
+  flags: string[],
   configuration: Configuration,
 ) {
   const denoBundleCmd: string[] = [];
@@ -43,6 +45,9 @@ export async function compile(
   denoBundleCmd.push(
     "--importmap=" + configuration.importmap,
   );
+  denoBundleCmd.push("--output");
+  denoBundleCmd.push(output);
+  denoBundleCmd.push(...flags);
 
   denoBundleCmd.push(input);
   const p = Deno.run({

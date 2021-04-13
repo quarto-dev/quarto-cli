@@ -31,7 +31,10 @@ export interface DirectoryInfo {
 }
 
 // Read the configuration fromt the environment
-export function readConfiguration(logLevel: number, version?: string) {
+export function readConfiguration(
+  logLevel: number,
+  version?: string,
+): Configuration {
   const productName = getEnv("QUARTO_NAME");
   version = version || getEnv("QUARTO_VERSION");
 
