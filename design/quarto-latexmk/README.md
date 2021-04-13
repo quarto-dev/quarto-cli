@@ -36,6 +36,12 @@ $ cd ..
 $ cd dist/bin/quarto-latexmk/x86_64-apple-darwin
 $ ./quarto-latexmk --help
 ```
+5) Usage is relatively straightforward:
+
+```{.bash}
+$ ./quarto-latexmk my-test.tex
+```
+ Which will produce `my-test.pdf` upon completion.
 
 Note that the arguments `pdf-engine-opts` , `index-engine-opts`, and `tlmgr-opts` should pass not pass the raw options, but instead should pass the path to a file which contains the arguments. The file will be read and each line of the file will be passed as an argument as appropriate.
 
