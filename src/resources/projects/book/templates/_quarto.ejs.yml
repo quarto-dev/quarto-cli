@@ -3,15 +3,13 @@ project:
   type: book
   output-dir: <%= outputDir %>
 
+bibliography: references.bib
+
 format:
   html:
-    css: styles.css
+    theme: [cosmo, assets/html-theme.scss]
   epub:
-    css: styles.css
+    css: assets/epub-styles.css
+    cover-image: assets/epub-cover.png
   pdf:
-    documentclass: "book"
-    include-in-header: "preamble.tex"
-
-bibliography: "references.bib"
-
-
+    include-in-header: assets/pdf-preamble.tex

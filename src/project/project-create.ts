@@ -7,7 +7,7 @@
 
 import { ld } from "lodash/mod.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
-import { basename, join } from "path/mod.ts";
+import { basename, dirname, join } from "path/mod.ts";
 import { info } from "log/mod.ts";
 
 import { jupyterKernelspec } from "../core/jupyter/kernels.ts";
@@ -61,7 +61,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
     outputDir: options[kOutputDir] || projType.outputDir,
     ext: engine.defaultExt,
   }, false);
-  await Deno.writeTextFile(join(options.dir, "_quarto.yml"), quartoConfig);
+  await Deno.writeTextFileSync(join(options.dir, "_quarto.yml"), quartoConfig);
   info(
     "- Created _quarto.yml",
     { indent: 2 },
@@ -92,9 +92,11 @@ export async function projectCreate(options: ProjectCreateOptions) {
   // copy supporting files
   if (projCreate.supporting) {
     for (const supporting of projCreate.supporting) {
-      const name = basename(supporting);
-      Deno.copyFileSync(supporting, join(options.dir, name));
-      info("- Created " + name, { indent: 2 });
+      const src = join(projCreate.resourceDir, supporting);
+      const dest = join(options.dir, supporting);
+      ensureDirSync(dirname(dest));
+      Deno.copyFileSync(src, dest);
+      info("- Created " + supporting, { indent: 2 });
     }
   }
 }

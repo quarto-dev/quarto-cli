@@ -25,7 +25,7 @@ import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
 import { quartoConfig } from "./core/quarto.ts";
 import { Args, parse } from "flags/mod.ts";
 
-export function quarto(args: string[]) {
+export async function quarto(args: string[]) {
   const quartoCommand = new Command()
     .name("quarto")
     .version(quartoConfig.version())
@@ -36,7 +36,7 @@ export function quarto(args: string[]) {
     quartoCommand.command(command.getName(), appendLogOptions(command));
   });
 
-  quartoCommand.command("help", new HelpCommand().global())
+  await quartoCommand.command("help", new HelpCommand().global())
     .command("completions", new CompletionsCommand()).hidden().parse(args);
 }
 
