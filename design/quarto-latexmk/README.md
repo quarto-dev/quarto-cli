@@ -2,48 +2,48 @@
 
 ### Running / Developing Locally
 
-1) Clone the quarto repo:
+1)  Clone the quarto repo:
 
 ``` {.bash}
 $ git clone https://github.com/quarto-dev/quarto-cli
 $ cd quarto-cli
 ```
 
-2) Configure your machine using the platform appropriate version of the configure command `configure-maxos.sh`, `configure-linux.sh`, or `configure-windows.cmd`
+2)  Configure your machine using the platform appropriate version of the configure command `configure-maxos.sh`, `configure-linux.sh`, or `configure-windows.cmd`
 
 ``` {.bash}
 $ ./configure-macos.sh 
 ```
 
-3) 'Install' the development version of `quarto-latexmk` using:
+3)  'Install' the development version of `quarto-latexmk` using (this will create a script that points back to the Typescript entry point and place that executable script in an appropriate bin directory).
 
-```{.bash}
+``` {.bash}
 $ ./quarto-bld compile-quarto-latexmk -d
 ```
 
 Be sure to follow any instructions that are displayed in the console with regards to PATH.
 
-4) Use the `--help` option to view options
+4)  Once installed, usage is relatively straightforward:
 
 ``` {.bash}
-$ cd ..
-$ cd dist/bin/quarto-latexmk/x86_64-apple-darwin
-$ ./quarto-latexmk --help
+$ quarto-latexmk my-test.tex
 ```
-5) Usage is relatively straightforward:
 
-```{.bash}
-$ ./quarto-latexmk my-test.tex
+Which will produce `my-test.pdf` upon completion.
+
+5)  Use the `--help` option to view options
+
+``` {.bash}
+$ quarto-latexmk --help
 ```
- Which will produce `my-test.pdf` upon completion.
 
 Note that the arguments `pdf-engine-opts` , `index-engine-opts`, and `tlmgr-opts` should pass not pass the raw options, but instead should pass the path to a file which contains the arguments. The file will be read and each line of the file will be passed as an argument as appropriate.
 
 ### Building
 
-1) Follow steps 1 and 2 above (the building machine must have the repo and be configured).
+1)  Follow steps 1 and 2 above (the building machine must have the repo and be configured).
 
-2) Compile `quarto-latexmk` for your target platform(s)
+2)  Compile `quarto-latexmk` for your target platform(s)
 
 ``` {.bash}
 $ cd package/src
@@ -77,6 +77,4 @@ Implements a wrapper around texlive / tlmgr for installing and updating packages
 
 -   The binary that is produce is not currently properly versioned
 
--   There isn't currently a way to test using the tool locally (for example, if you wanted to develop locally)
-
--   Should a release emit a versioned build of the binary that could be use by third parties in order to keep version numbers in sync with underlying quarto source code?
+-   Should a Quarto release emit a versioned build of the binary that could be used by third parties in order to keep version numbers in sync with underlying quarto source code or shall we handle versioning in some other way?
