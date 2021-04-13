@@ -8,12 +8,16 @@
 import { Command } from "cliffy/command/mod.ts";
 import { packageCommand } from "./cmd/pkg-cmd.ts";
 import { configure } from "./common/configure.ts";
+import { defaultLogger } from "./util/logger.ts";
 
 import { prepareDist } from "./common/prepare-dist.ts";
 import { updateHtmlDepedencies } from "./common/update-html-dependencies.ts";
 import { makeInstallerDeb } from "./linux/installer.ts";
 import { makeInstallerMac } from "./macos/installer.ts";
-import { defaultLogger } from "./util/logger.ts";
+import {
+  compileQuartoLatexmk,
+  compileQuartoLatexmkCommand,
+} from "./common/compile-quarto-latexmk.ts";
 import { makeInstallerWindows } from "./windows/installer.ts";
 
 // Core command dispatch
@@ -95,6 +99,9 @@ function getCommands() {
     packageCommand(makeInstallerWindows)
       .name("make-installer-win")
       .description("Builds Windows installer"),
+  );
+  commands.push(
+    compileQuartoLatexmkCommand(),
   );
   return commands;
 }
