@@ -9,7 +9,7 @@ $ git clone https://github.com/quarto-dev/quarto-cli
 $ cd quarto-cli
 ```
 
-2)  Configure your machine using the platform appropriate version of the configure command `configure-maxos.sh`, `configure-linux.sh`, or `configure-windows.cmd`
+2)  Configure your machine using the platform appropriate version of the configure command `configure-macos.sh`, `configure-linux.sh`, or `configure-windows.cmd`
 
 ``` {.bash}
 $ ./configure-macos.sh 
