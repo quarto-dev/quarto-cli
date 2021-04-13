@@ -89,11 +89,15 @@ if (import.meta.main) {
     //    const args = parse(Deno.args);
     const args = parse(Deno.args);
     await initializeLogger(logOptions(args));
-
+ 
+    // install termination signal handlers (not yet supported on Windows)
+    if (Deno.build.os !== "windows") {
+      onSignal(Deno.Signal.SIGINT, cleanup);
+      onSignal(Deno.Signal.SIGTERM, cleanup);
+    }
+ 
     await pdf(Deno.args);
-    // install termination signal handlers
-    onSignal(Deno.Signal.SIGINT, cleanup);
-    onSignal(Deno.Signal.SIGTERM, cleanup);
+    
   } catch (e) {
     if (e) {
       logError(e);

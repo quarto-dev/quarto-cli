@@ -12,6 +12,13 @@ TODO: Floating TOC with toc-depth: 4 - looks meh
 TODO: review split("\n and consider replacing with split(/\r?\n/)
 TODO: make readlines function that takes a buffer and use that to read anywhere we're using that regex
 
+TODO: Need to update quarto-latexmk dev installer to use local version of deno (not global version)
+TODO: Need to be sure all updates to tinytex are in quarto-latexmk
+TODO: Need to provide version info for quarto-latexmk
+
+TODO: Switch quarto-bld to use logging infrastructure - should probably just start allowing cross build includes
+
+
 Books
 =========================================================================
 
