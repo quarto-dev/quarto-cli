@@ -78,6 +78,9 @@ pre.sourceCode {
 
 div.sourceCode {
   background-color: $body-bg !important;
+  @if $code-border-left {
+    margin-left: add(-$code-padding-left, -$code-border-left-size);
+  }
 }
 
 // Maps the pandoc 'monobackgroundcolor' to bootstrap
