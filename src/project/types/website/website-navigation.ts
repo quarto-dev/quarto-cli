@@ -285,7 +285,7 @@ async function resolveSidebarItems(
   items: SidebarItem[],
 ) {
   for (let i = 0; i < items.length; i++) {
-    const item = normalizeSidebarItem(project, items[i]);
+    const item = normalizeSidebarItem(project.dir, items[i]);
 
     if (Object.keys(item).includes("contents")) {
       const subItems = item.contents || [];
@@ -299,7 +299,7 @@ async function resolveSidebarItems(
       for (let i = 0; i < subItems.length; i++) {
         subItems[i] = await resolveSidebarItem(
           project,
-          normalizeSidebarItem(project, subItems[i]),
+          normalizeSidebarItem(project.dir, subItems[i]),
         );
       }
 

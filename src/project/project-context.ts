@@ -106,7 +106,7 @@ export function projectContext(path: string): ProjectContext {
         }
         // see if the project type wants to provide a custom render list
         if (type.render) {
-          project.render = type.render(project);
+          project.render = type.render(dir, projectConfig);
         }
         return {
           dir,

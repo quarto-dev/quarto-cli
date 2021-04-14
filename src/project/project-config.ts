@@ -10,7 +10,6 @@ import { join } from "path/mod.ts";
 import { ld } from "lodash/mod.ts";
 
 import { safeExistsSync } from "../core/path.ts";
-import { ProjectContext } from "./project-context.ts";
 
 export const kAriaLabel = "aria-label";
 export const kCollapseLevel = "collapse-level";
@@ -92,14 +91,14 @@ export interface SidebarTool {
 }
 
 export function normalizeSidebarItem(
-  project: ProjectContext,
+  projectDir: string,
   item: SidebarItem,
 ): SidebarItem {
   // clone so we can mutate
   item = ld.cloneDeep(item);
 
   if (typeof (item) === "string") {
-    if (safeExistsSync(join(project.dir, item))) {
+    if (safeExistsSync(join(projectDir, item))) {
       return {
         href: item,
       };
@@ -112,7 +111,7 @@ export function normalizeSidebarItem(
     // section is a special key that can provide either text or href
     // for an item with 'contents'
     if (item.section) {
-      if (safeExistsSync(join(project.dir, item.section))) {
+      if (safeExistsSync(join(projectDir, item.section))) {
         item.href = item.section;
       } else {
         item.text = item.section;
@@ -123,7 +122,7 @@ export function normalizeSidebarItem(
     // handle subitems
     if (item.contents) {
       for (let i = 0; i < item.contents.length; i++) {
-        item.contents[i] = normalizeSidebarItem(project, item.contents[i]);
+        item.contents[i] = normalizeSidebarItem(projectDir, item.contents[i]);
       }
     }
 
