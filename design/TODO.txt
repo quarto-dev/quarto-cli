@@ -1,8 +1,8 @@
 
 
-TODO: why are .ipynb files showing up when using freeze? they should be removed
+TODO: use _freeze directory to not cruft up main dir
 
-TODO: render md file saves to docs dir but save doesn't
+TODO: _freeze shouldn't contain .ipynb
 
 TODO: try out article-per-directory w/ "page bundles" (auto-resolve directories to index.html)
 TODO: also try output-file: index.html
@@ -21,10 +21,12 @@ Some things automatically set behind the scenes:
 toc: true
 documentclass: book
 
+TODO: pull front matter out of md files (emit title as '# Title')
+TODO: emit section markdown (and or \part)
+
 TODO: Parts
 TODO: Appendixes (uses letter numbering by default)
 
-We could support url or path rather than href
 
 TODO: centralize error cleanup and consider caching
 
