@@ -12,6 +12,7 @@ import { Command } from "cliffy/command/mod.ts";
 
 import { getenv } from "./env.ts";
 import { Args } from "flags/mod.ts";
+import { lines } from "./text.ts";
 
 export interface LogOptions {
   log?: string;
@@ -31,6 +32,12 @@ export interface LogMessageOptions {
 
 export function appendLogOptions(cmd: Command): Command {
   return cmd.option(
+    "--log <level>",
+    "Path to log file",
+    {
+      global: true,
+    },
+  ).option(
     "--log-level <level>",
     "Log level (info, warning, error, critical)",
     {
@@ -224,8 +231,7 @@ export function logError(error: Error) {
 function applyMsgOptions(msg: string, options: LogMessageOptions) {
   if (options.indent) {
     const pad = " ".repeat(options.indent);
-    msg = msg
-      .split(/\r?\n/)
+    msg = lines(msg)
       .map((msg) => pad + msg)
       .join("\n");
   }

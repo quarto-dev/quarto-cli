@@ -1,0 +1,51 @@
+Using configuration:
+{"productName":"Quarto","version":"0.1","importmap":"/Users/charlesteague/Development/quarto/quarto-cli/src/import_map.json","directoryInfo":{"root":"/Users/charlesteague/Development/quarto/quarto-cli","pkg":"/Users/charlesteague/Development/quarto/quarto-cli/package","dist":"/Users/charlesteague/Development/quarto/quarto-cli/package/dist","share":"/Users/charlesteague/Development/quarto/quarto-cli/package/dist/share","src":"/Users/charlesteague/Development/quarto/quarto-cli/src","out":"/Users/charlesteague/Development/quarto/quarto-cli/package/out","bin":"/Users/charlesteague/Development/quarto/quarto-cli/package/dist/bin"}}
+
+Moving supporting files
+Ensuring dir /Users/charlesteague/Development/quarto/quarto-cli/package/dist exists
+Copying /Users/charlesteague/Development/quarto/quarto-cli/COPYING.md to /Users/charlesteague/Development/quarto/quarto-cli/package/dist/COPYING.md
+Ensuring dir /Users/charlesteague/Development/quarto/quarto-cli/package/dist exists
+Copying /Users/charlesteague/Development/quarto/quarto-cli/COPYRIGHT to /Users/charlesteague/Development/quarto/quarto-cli/package/dist/COPYRIGHT
+Ensuring dir /Users/charlesteague/Development/quarto/quarto-cli/package/dist exists
+Copying /Users/charlesteague/Development/quarto/quarto-cli/src/resources to /Users/charlesteague/Development/quarto/quarto-cli/package/dist/share
+
+
+Creating Deno Bundle
+/Users/charlesteague/Development/quarto/quarto-cli/package/dist/bin/quarto.js
+
+
+Creating Inlined LUA Filters
+Building inlined filters
+{"name":"quarto-pre"}
+From: /Users/charlesteague/Development/quarto/quarto-cli/src/resources/filters/quarto-pre/quarto-pre.lua
+To: /Users/charlesteague/Development/quarto/quarto-cli/package/dist/share/filters/quarto-pre/quarto-pre.lua
+Writing inlined file /Users/charlesteague/Development/quarto/quarto-cli/package/dist/share/filters/quarto-pre/quarto-pre.lua
+Ensure directory /Users/charlesteague/Development/quarto/quarto-cli/package/dist/share/filters/quarto-pre exists
+Writing inlined /Users/charlesteague/Development/quarto/quarto-cli/package/dist/share/filters/quarto-pre/quarto-pre.lua
+{"name":"crossref"}
+From: /Users/charlesteague/Development/quarto/quarto-cli/src/resources/filters/crossref/crossref.lua
+To: /Users/charlesteague/Development/quarto/quarto-cli/package/dist/share/filters/crossref/crossref.lua
+Writing inlined file /Users/charlesteague/Development/quarto/quarto-cli/package/dist/share/filters/crossref/crossref.lua
+Ensure directory /Users/charlesteague/Development/quarto/quarto-cli/package/dist/share/filters/crossref exists
+Writing inlined /Users/charlesteague/Development/quarto/quarto-cli/package/dist/share/filters/crossref/crossref.lua
+{"name":"layout"}
+From: /Users/charlesteague/Development/quarto/quarto-cli/src/resources/filters/layout/layout.lua
+To: /Users/charlesteague/Development/quarto/quarto-cli/package/dist/share/filters/layout/layout.lua
+Writing inlined file /Users/charlesteague/Development/quarto/quarto-cli/package/dist/share/filters/layout/layout.lua
+Ensure directory /Users/charlesteague/Development/quarto/quarto-cli/package/dist/share/filters/layout exists
+Writing inlined /Users/charlesteague/Development/quarto/quarto-cli/package/dist/share/filters/layout/layout.lua
+{"name":"quarto-post"}
+From: /Users/charlesteague/Development/quarto/quarto-cli/src/resources/filters/quarto-post/quarto-post.lua
+To: /Users/charlesteague/Development/quarto/quarto-cli/package/dist/share/filters/quarto-post/quarto-post.lua
+Writing inlined file /Users/charlesteague/Development/quarto/quarto-cli/package/dist/share/filters/quarto-post/quarto-post.lua
+Ensure directory /Users/charlesteague/Development/quarto/quarto-cli/package/dist/share/filters/quarto-post exists
+Writing inlined /Users/charlesteague/Development/quarto/quarto-cli/package/dist/share/filters/quarto-post/quarto-post.lua
+{"name":"pagebreak","dir":"rmarkdown"}
+From: /Users/charlesteague/Development/quarto/quarto-cli/src/resources/filters/rmarkdown/pagebreak.lua
+To: /Users/charlesteague/Development/quarto/quarto-cli/package/dist/share/filters/rmarkdown/pagebreak.lua
+Writing inlined file /Users/charlesteague/Development/quarto/quarto-cli/package/dist/share/filters/rmarkdown/pagebreak.lua
+Ensure directory /Users/charlesteague/Development/quarto/quarto-cli/package/dist/share/filters/rmarkdown exists
+Writing inlined /Users/charlesteague/Development/quarto/quarto-cli/package/dist/share/filters/rmarkdown/pagebreak.lua
+
+Writing version: 0.1
+

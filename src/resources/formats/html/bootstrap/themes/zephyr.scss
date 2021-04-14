@@ -1,4 +1,4 @@
-// theme:variables 
+/*-- scss:variables --*/
 
 $theme: "zephyr" !default;
 
@@ -163,13 +163,15 @@ $breadcrumb-divider:                quote(">") !default;
 
 
 
-// theme:rules 
+/*-- scss:rules --*/
 
 
 // Variables
 
 $web-font-path: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" !default;
-@import url($web-font-path);
+@if $web-font-path {
+  @import url($web-font-path);
+}
 
 // Navbar
 

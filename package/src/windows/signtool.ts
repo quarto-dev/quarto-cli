@@ -1,8 +1,8 @@
+import { info } from "log/mod.ts";
 import { join } from "path/mod.ts";
 import { decode as base64decode } from "encoding/base64.ts";
 
 import { runCmd } from "../util/cmd.ts";
-import { Logger } from "../util/logger.ts";
 
 const kSignToolPath =
   "C:/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x86/signtool.exe";
@@ -17,7 +17,6 @@ export async function signtool(
   pfx: string,
   pw: string,
   workingDir: string,
-  log: Logger,
 ) {
   // add \d descr
   // Create the pfx file
@@ -33,8 +32,8 @@ export async function signtool(
       const desc = descriptor.desc;
       const fileArgs = desc ? ["/d", desc, file] : [file];
 
-      log.info(`> Signing ${file}`);
-      const result = await runCmd(kSignToolPath, [...args, ...fileArgs], log);
+      info(`> Signing ${file}`);
+      const result = await runCmd(kSignToolPath, [...args, ...fileArgs]);
       if (!result.status.success) {
         console.error(`Failed to sign ${file}`);
         return Promise.reject();

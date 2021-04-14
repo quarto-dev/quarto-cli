@@ -17,6 +17,7 @@ import {
 } from "../../../core/log.ts";
 import { LatexmkOptions } from "./latexmk.ts";
 import { generatePdf } from "./pdf.ts";
+import { lines } from "../../../core/text.ts";
 
 const kVersion = "1.0";
 
@@ -89,15 +90,14 @@ if (import.meta.main) {
     //    const args = parse(Deno.args);
     const args = parse(Deno.args);
     await initializeLogger(logOptions(args));
- 
+
     // install termination signal handlers (not yet supported on Windows)
     if (Deno.build.os !== "windows") {
       onSignal(Deno.Signal.SIGINT, cleanup);
       onSignal(Deno.Signal.SIGTERM, cleanup);
     }
- 
+
     await pdf(Deno.args);
-    
   } catch (e) {
     if (e) {
       logError(e);
@@ -143,8 +143,7 @@ function readOptionsFile(file?: string): string[] {
   const commands: string[] = [];
   if (file && existsSync(file)) {
     const contents = Deno.readTextFileSync(file);
-    const lines = contents.split(/\r?\n/);
-    lines.forEach((line) => commands.push(line));
+    lines(contents).forEach((line) => commands.push(line));
   }
   return commands;
 }

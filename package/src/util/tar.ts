@@ -5,18 +5,16 @@
 *
 */
 
+import { info } from "log/mod.ts";
 import { dirname } from "path/mod.ts";
-
-import { Logger } from "./logger.ts";
 
 export async function makeTarball(
   input: string,
   output: string,
-  log: Logger,
 ) {
-  log.info("Make Tarball");
-  log.info(`Input: ${input}`);
-  log.info(`Output: ${output}\n`);
+  info("Make Tarball");
+  info(`Input: ${input}`);
+  info(`Output: ${output}\n`);
   const tarCmd: string[] = [];
   tarCmd.push("tar");
   tarCmd.push("czvf");
@@ -32,12 +30,12 @@ export async function makeTarball(
   }
 }
 
-export async function unTar(input: string, log: Logger) {
-  log.info("Untar");
-  log.info(`Input: ${input}`);
+export async function unTar(input: string) {
+  info("Untar");
+  info(`Input: ${input}`);
 
   const cwd = dirname(input);
-  log.info(`Cwd: ${cwd}`);
+  info(`Cwd: ${cwd}`);
 
   const tarCmd: string[] = [];
   tarCmd.push("tar");

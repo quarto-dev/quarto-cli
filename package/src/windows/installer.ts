@@ -1,3 +1,4 @@
+import { info, warning } from "log/mod.ts";
 import { basename, join } from "path/mod.ts";
 import {
   _createWalkEntry,
@@ -33,7 +34,7 @@ export async function makeInstallerWindows(configuration: Configuration) {
   const pfxPw = getEnv("QUARTO_WIN_PFX_PW", "");
   const sign = encodedPfx.length > 0 && pfxPw.length > 0;
   if (!sign) {
-    configuration.log.warning(
+    warning(
       "No Signing information available in environment, skipping signing",
     );
   }
@@ -53,20 +54,20 @@ export async function makeInstallerWindows(configuration: Configuration) {
     const destZip = join(workingDir, fileName);
 
     // Download the wix tools
-    configuration.log.info(`Downloading ${wixToolsUrl}`);
-    configuration.log.info(`to ${destZip}`);
+    info(`Downloading ${wixToolsUrl}`);
+    info(`to ${destZip}`);
     await download(wixToolsUrl, destZip);
 
     // Uncompress the wix tools in the supporting directory
-    configuration.log.info("Unzipping wix tools...");
-    await unzip(destZip, wixDir, configuration.log);
+    info("Unzipping wix tools...");
+    await unzip(destZip, wixDir);
 
     // Delete the downloaded zip file
     Deno.remove(destZip);
   }
 
   if (sign) {
-    configuration.log.info("Signing application files");
+    info("Signing application files");
 
     const filesToSign = [
       { file: join(configuration.directoryInfo.bin, "quarto.js") },
@@ -76,7 +77,6 @@ export async function makeInstallerWindows(configuration: Configuration) {
       encodedPfx,
       pfxPw,
       workingDir,
-      configuration.log,
     );
   }
 
@@ -84,7 +84,7 @@ export async function makeInstallerWindows(configuration: Configuration) {
   Deno.env.set("QUARTO_INSTALLER_VERSION", configuration.version);
 
   // heat the directory to generate a wix file for it
-  configuration.log.info("Heating directory");
+  info("Heating directory");
   const heatOutput = join(workingDir, "quarto-frag.wxs");
   await runCmd(
     heatCmd,
@@ -103,14 +103,17 @@ export async function makeInstallerWindows(configuration: Configuration) {
       "-out",
       heatOutput,
     ],
-    configuration.log,
   );
 
-
   // use candle to build the wixobj file
-  configuration.log.info("Making the candle");
+  info("Making the candle");
   const candleFiles = [
-    join(configuration.directoryInfo.pkg, "src", "windows", "WixUI_Advanced_Custom.wxs"),
+    join(
+      configuration.directoryInfo.pkg,
+      "src",
+      "windows",
+      "WixUI_Advanced_Custom.wxs",
+    ),
     join(configuration.directoryInfo.pkg, "src", "windows", "quarto.wxs"),
     heatOutput,
   ];
@@ -124,16 +127,15 @@ export async function makeInstallerWindows(configuration: Configuration) {
       [
         `-dSourceDir=${configuration.directoryInfo.dist}`,
         "-arch",
-        "x64", 
+        "x64",
         "-out",
         outputPath,
         candleInput,
       ],
-      configuration.log,
     );
   }));
 
-  configuration.log.info("Lighting the candle");
+  info("Lighting the candle");
   const licenseRtf = join(
     configuration.directoryInfo.pkg,
     "src",
@@ -148,23 +150,22 @@ export async function makeInstallerWindows(configuration: Configuration) {
   lightArgs.push("-ext");
   lightArgs.push("WixUIExtension");
   lightArgs.push(`-dWixUILicenseRtf=${licenseRtf}`);
-  await runCmd(lightCmd, lightArgs, configuration.log);
+  await runCmd(lightCmd, lightArgs);
 
   Deno.env.delete("QUARTO_INSTALLER_VERSION");
 
   // Use signtool to sign the MSI
   if (sign) {
-    configuration.log.info("Signing installer");
+    info("Signing installer");
     await signtool(
       [{ file: lightOutput, desc: "Quarto CLI" }],
       encodedPfx,
       pfxPw,
       workingDir,
-      configuration.log,
     );
   }
 
-  configuration.log.info(
+  info(
     `Moving ${lightOutput} to ${configuration.directoryInfo.out}`,
   );
   moveSync(

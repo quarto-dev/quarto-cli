@@ -1,4 +1,4 @@
-// theme:variables 
+/*-- scss:variables --*/
 
 $theme: "sketchy" !default;
 
@@ -161,13 +161,15 @@ $btn-close-focus-shadow:     none !default;
 
 
 
-// theme:rules 
+/*-- scss:rules --*/
 
 
 // Variables
 
 $web-font-path: "https://fonts.googleapis.com/css?family=Neucha|Cabin+Sketch&display=swap" !default;
-@import url($web-font-path);
+@if $web-font-path {
+  @import url($web-font-path);
+}
 
 // stylelint-disable scss/dollar-variable-default
 $border-radius-sketchy:    255px 25px 225px 25px / 25px 225px 25px 255px;
@@ -464,7 +466,7 @@ select.form-control {
   }
 }
 
-.nav-pills .nav-link, {
+.nav-pills .nav-link {
   border-radius: $border-radius-sketchy;
 }
 

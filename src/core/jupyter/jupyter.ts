@@ -23,7 +23,6 @@ import {
   kTextLatex,
 } from "../mime.ts";
 
-import { dirAndStem } from "../path.ts";
 import PngImage from "../png.ts";
 
 import {
@@ -64,6 +63,7 @@ import { pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
 import { Metadata } from "../../config/metadata.ts";
 import { JupyterKernelspec } from "./kernels.ts";
 import { inputFilesDir } from "../render.ts";
+import { lines } from "../text.ts";
 
 export const kCellCollapsed = "collapsed";
 export const kCellAutoscroll = "autoscroll";
@@ -200,7 +200,7 @@ export function jupyterMdToJupyter(
   const endCodeRegEx = /^```\s*$/;
 
   // read the file into lines
-  const lines = Deno.readTextFileSync(input).split(/\r?\n/);
+  const inputContent = Deno.readTextFileSync(input);
 
   // line buffer
   const lineBuffer: string[] = [];
@@ -228,7 +228,7 @@ export function jupyterMdToJupyter(
   // loop through lines and create cells based on state transitions
   let cellMetadata: Record<string, unknown> | undefined;
   let inYaml = false, inCodeCell = false, inCode = false;
-  for (const line of lines) {
+  for (const line of lines(inputContent)) {
     // yaml front matter
     if (yamlRegEx.test(line) && !inCodeCell && !inCode) {
       if (inYaml) {

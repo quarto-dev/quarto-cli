@@ -6,6 +6,7 @@
 */
 import { join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
+import { info, warning } from "log/mod.ts";
 
 import { Configuration } from "./config.ts";
 import {
@@ -16,30 +17,28 @@ import {
 export async function configure(
   config: Configuration,
 ) {
-  const log = config.log;
-
-  log.info("Configuring local machine for development");
+  info("Configuring local machine for development");
 
   // Download dependencies
-  log.info("Downloading dependencies");
-  for (const dependency of dependencies(config)) {
-    log.info(`Preparing ${dependency.name}`);
+  info("Downloading dependencies");
+  for (const dependency of dependencies()) {
+    info(`Preparing ${dependency.name}`);
     const platformDep = dependency[Deno.build.os];
     if (platformDep) {
-      log.info(`Downloading ${dependency.name}`);
+      info(`Downloading ${dependency.name}`);
       const targetFile = await downloadBinaryDependency(platformDep, config);
 
-      log.info(`Configuring ${dependency.name}`);
+      info(`Configuring ${dependency.name}`);
       await platformDep.configure(targetFile);
 
-      log.info(`Cleaning up`);
+      info(`Cleaning up`);
       Deno.removeSync(targetFile);
     }
-    log.info(`${dependency.name} complete.\n`);
+    info(`${dependency.name} complete.\n`);
   }
 
   // Move the quarto script into place
-  log.info("Creating Quarto script");
+  info("Creating Quarto script");
   if (Deno.build.os === "windows") {
     Deno.copyFileSync(
       join(config.directoryInfo.pkg, "scripts", "windows", "quarto.cmd"),
@@ -55,7 +54,7 @@ export async function configure(
   // Set up a symlink (if appropriate)
   const symlinkPath = "/usr/local/bin/quarto";
   if (Deno.build.os !== "windows") {
-    log.info("Creating Quarto Symlink");
+    info("Creating Quarto Symlink");
 
     if (existsSync(symlinkPath)) {
       Deno.removeSync(symlinkPath);
@@ -67,7 +66,7 @@ export async function configure(
         symlinkPath,
       );
     } catch (e) {
-      config.log.warning("Failed to create symlink to quarto.");
+      warning("Failed to create symlink to quarto.");
     }
   }
 }
@@ -78,8 +77,8 @@ async function downloadBinaryDependency(
 ) {
   const targetFile = join(configuration.directoryInfo.bin, dependency.filename);
 
-  configuration.log.info("Downloading " + dependency.url);
-  configuration.log.info("to " + targetFile);
+  info("Downloading " + dependency.url);
+  info("to " + targetFile);
   const response = await fetch(dependency.url);
   const blob = await response.blob();
 

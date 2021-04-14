@@ -4,11 +4,11 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-
+import { parse } from "flags/mod.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { packageCommand } from "./cmd/pkg-cmd.ts";
 import { configure } from "./common/configure.ts";
-import { defaultLogger } from "./util/logger.ts";
+import { error } from "log/mod.ts";
 
 import { prepareDist } from "./common/prepare-dist.ts";
 import { updateHtmlDepedencies } from "./common/update-html-dependencies.ts";
@@ -19,6 +19,13 @@ import {
 } from "./common/compile-quarto-latexmk.ts";
 import { makeInstallerWindows } from "./windows/installer.ts";
 
+import {
+  appendLogOptions,
+  cleanupLogger,
+  initializeLogger,
+  logOptions,
+} from "../../src/core/log.ts";
+
 // Core command dispatch
 export async function quartoBld(args: string[]) {
   const rootCommand = new Command()
@@ -28,11 +35,6 @@ export async function quartoBld(args: string[]) {
       "Utility that implements packaging and distribution of quarto cli",
     )
     .option(
-      "-l, --log-level=[level:string]",
-      "Log Level (info, warning, or error)",
-      { global: true },
-    )
-    .option(
       "-s, --signing-identity=[id:string]",
       "Signing identity to use when signing any files.",
       { global: true },
@@ -40,7 +42,7 @@ export async function quartoBld(args: string[]) {
     .throwErrors();
 
   getCommands().forEach((command) => {
-    rootCommand.command(command.getName(), command);
+    rootCommand.command(command.getName(), appendLogOptions(command));
   });
 
   await rootCommand
@@ -49,12 +51,17 @@ export async function quartoBld(args: string[]) {
 
 if (import.meta.main) {
   try {
+    const args = parse(Deno.args);
+    await initializeLogger(logOptions(args));
+
     await quartoBld(Deno.args);
-  } catch (error) {
-    if (error) {
-      defaultLogger().error(`${error.stack}\n`);
+  } catch (e) {
+    if (e) {
+      error(`${e.stack}\n`);
     }
     Deno.exit(1);
+  } finally {
+    cleanupLogger();
   }
 }
 

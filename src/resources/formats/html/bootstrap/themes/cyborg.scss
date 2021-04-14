@@ -1,4 +1,4 @@
-// theme:variables 
+/*-- scss:variables --*/
 
 $theme: "cyborg" !default;
 
@@ -178,13 +178,15 @@ $pre-color:                         inherit !default;
 
 
 
-// theme:rules 
+/*-- scss:rules --*/
 
 
 // Variables
 
 $web-font-path: "https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" !default;
-@import url($web-font-path);
+@if $web-font-path {
+  @import url($web-font-path);
+}
 
 // Navbar
 

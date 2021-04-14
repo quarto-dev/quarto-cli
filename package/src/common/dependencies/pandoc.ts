@@ -9,10 +9,9 @@ import { dirname, join } from "path/mod.ts";
 
 import { unTar } from "../../util/tar.ts";
 import { unzip } from "../../util/utils.ts";
-import { Logger } from "../../util/logger.ts";
 import { Dependency } from "./dependencies.ts";
 
-export function pandoc(version: string, log: Logger): Dependency {
+export function pandoc(version: string): Dependency {
   // Maps the file name and pandoc executable file name to a repo and expand
   // to create a pandocRelease
   const pandocRelease = (
@@ -34,7 +33,7 @@ export function pandoc(version: string, log: Logger): Dependency {
 
         // Extract pandoc
         if (Deno.build.os !== "windows") {
-          await unTar(path, log);
+          await unTar(path);
 
           // move the binary
           Deno.renameSync(
@@ -42,7 +41,7 @@ export function pandoc(version: string, log: Logger): Dependency {
             join(dir, pandocBinary),
           );
         } else {
-          await unzip(path, dir, log);
+          await unzip(path, dir);
 
           // move the binary
           Deno.renameSync(

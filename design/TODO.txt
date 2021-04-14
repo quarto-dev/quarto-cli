@@ -9,14 +9,8 @@ TODO: also try output-file: index.html
 
 TODO: Floating TOC with toc-depth: 4 - looks meh
 
-TODO: review split("\n and consider replacing with split(/\r?\n/)
-TODO: make readlines function that takes a buffer and use that to read anywhere we're using that regex
-
-TODO: Need to update quarto-latexmk dev installer to use local version of deno (not global version)
 TODO: Need to be sure all updates to tinytex are in quarto-latexmk
 TODO: Need to provide version info for quarto-latexmk
-
-TODO: Switch quarto-bld to use logging infrastructure - should probably just start allowing cross build includes
 
 
 Books
@@ -33,16 +27,6 @@ TODO: Appendixes (uses letter numbering by default)
 We could support url or path rather than href
 
 TODO: centralize error cleanup and consider caching
-
-TODO: Decide whether by default Sass should be treated as variables or rules.
-Throw if no separator is present
-/*-- scss:variables --*/
-update docs with new format
-
-
-
-
-
 
 
 - we need section cross refs to NOT require section numbering. links to sections need to be global

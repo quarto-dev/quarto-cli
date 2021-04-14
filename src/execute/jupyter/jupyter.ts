@@ -46,7 +46,6 @@ import {
 } from "../../config/constants.ts";
 import {
   Format,
-  FormatPandoc,
   isHtmlOutput,
   isLatexOutput,
   isMarkdownOutput,
@@ -66,6 +65,7 @@ import {
   JupyterKernelspec,
   jupyterKernelspec,
 } from "../../core/jupyter/kernels.ts";
+import { lines } from "../../core/text.ts";
 
 const kNotebookExtensions = [
   ".ipynb",
@@ -454,7 +454,7 @@ async function pairedPaths(file: string) {
     stdout: "piped",
   });
   if (result.stdout) {
-    return result.stdout.split(/\r?\n/).filter((line) => line.length > 0);
+    return lines(result.stdout).filter((line) => line.length > 0);
   } else {
     return [];
   }

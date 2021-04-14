@@ -5,7 +5,7 @@
 *
 */
 
-import { Logger } from "./logger.ts";
+import { error, info } from "log/mod.ts";
 
 export interface CmdResult {
   status: Deno.ProcessStatus;
@@ -16,14 +16,13 @@ export interface CmdResult {
 export async function runCmd(
   runCmd: string,
   args: string[],
-  log: Logger,
 ): Promise<CmdResult> {
   const cmd: string[] = [];
   cmd.push(runCmd);
   cmd.push(...args);
 
-  log.info(cmd);
-  log.info(`Starting ${runCmd}`);
+  info(cmd);
+  info(`Starting ${runCmd}`);
   const p = Deno.run({
     cmd,
     stdout: "piped",
@@ -31,13 +30,13 @@ export async function runCmd(
   });
   const stdout = new TextDecoder().decode(await p.output());
   const stderr = new TextDecoder().decode(await p.stderrOutput());
-  log.info(`Finished ${runCmd}`);
-  log.info(stdout);
+  info(`Finished ${runCmd}`);
+  info(stdout);
 
   const status = await p.status();
-  log.info(`Status ${status.code}`);
+  info(`Status ${status.code}`);
   if (status.code !== 0) {
-    log.error(stderr);
+    error(stderr);
     throw Error(`Command ${cmd} failed.`);
   }
 

@@ -5,23 +5,20 @@
 *
 */
 import { Command } from "cliffy/command/mod.ts";
+import { info } from "log/mod.ts";
 
 import { Configuration, readConfiguration } from "../common/config.ts";
-import { parseLogLevel } from "../util/logger.ts";
 
 export const kLogLevel = "logLevel";
 export const kVersion = "setVersion";
 
 export function packageCommand(run: (config: Configuration) => void) {
   return new Command().action((args) => {
-    const logLevel = args[kLogLevel];
     const version = args[kVersion];
 
-    const config = readConfiguration(parseLogLevel(logLevel), version);
-    config.log.info("Using configuration:");
-    config.log.info(config);
-    config.log.info("");
-
+    const config = readConfiguration(version);
+    info("Using configuration:");
+    info(config);
     run(config);
   });
 }

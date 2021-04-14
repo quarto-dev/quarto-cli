@@ -1,4 +1,4 @@
-// theme:variables 
+/*-- scss:variables --*/
 
 $theme: "solar" !default;
 
@@ -188,13 +188,15 @@ $pre-color:                         inherit !default;
 
 
 
-// theme:rules 
+/*-- scss:rules --*/
 
 
 // Variables
 
 $web-font-path: "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap" !default;
-@import url($web-font-path);
+@if $web-font-path {
+  @import url($web-font-path);
+}
 
 // Buttons
 

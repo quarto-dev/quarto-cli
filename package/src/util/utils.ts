@@ -1,5 +1,4 @@
 import { CmdResult, runCmd } from "./cmd.ts";
-import { Logger } from "./logger.ts";
 
 // Read an environment variable
 export function getEnv(name: string, defaultValue?: string) {
@@ -30,7 +29,6 @@ export async function download(src: string, dest: string): Promise<void> {
 export async function unzip(
   zipFile: string,
   dest: string,
-  log: Logger,
 ): Promise<CmdResult> {
   if (Deno.build.os === "windows") {
     return await runCmd("PowerShell", [
@@ -39,8 +37,8 @@ export async function unzip(
       zipFile,
       "-DestinationPath",
       dest,
-    ], log);
+    ]);
   } else {
-    return await runCmd("unzip", [zipFile, "-d", dest], log);
+    return await runCmd("unzip", [zipFile, "-d", dest]);
   }
 }

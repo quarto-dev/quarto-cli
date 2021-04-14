@@ -8,7 +8,8 @@ import { info } from "log/mod.ts";
 import { ld } from "lodash/mod.ts";
 
 import { execProcess } from "../../../core/process.ts";
-import { kLatexBodyMessageOptions, kLatexHeaderMessageOptions } from "./pdf.ts";
+import { kLatexHeaderMessageOptions } from "./pdf.ts";
+import { lines } from "../../../core/text.ts";
 
 const tlmgr = Deno.build.os === "windows"
   ? ["cmd.exe", "/c", "tlmgr"]
@@ -62,14 +63,13 @@ export async function findPackages(
         // Regexes for reading packages and search matches
         const packageNameRegex = /^(.+)\:$/;
         const searchTermRegex = new RegExp(`\/${searchTerm}$`);
-        const lines = text.split(/\r?\n/);
 
         // Inspect each line- if it is a package name, collect it and begin
         // looking at each line to see if they end with the search term
         // When we find a line matching the search term, put the package name
         // into the results and continue
         let currentPackage: string | undefined = undefined;
-        lines.forEach((line) => {
+        lines(text).forEach((line) => {
           const packageMatch = line.match(packageNameRegex);
           if (packageMatch) {
             const packageName = packageMatch[1];

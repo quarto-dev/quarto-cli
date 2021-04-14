@@ -5,7 +5,6 @@
 *
 */
 
-import { Configuration } from "../config.ts";
 import { dartSass } from "./dartsass.ts";
 import { pandoc } from "./pandoc.ts";
 
@@ -23,11 +22,11 @@ export interface PlatformDependency {
   configure(path: string): Promise<void>;
 }
 
-export function dependencies(configuration: Configuration): Dependency[] {
+export function dependencies(): Dependency[] {
   // List of the dependencies that can be installed
   return [
-    pandoc(version("PANDOC"), configuration.log),
-    dartSass(version("DARTSASS"), configuration.log),
+    pandoc(version("PANDOC")),
+    dartSass(version("DARTSASS")),
   ];
 }
 
