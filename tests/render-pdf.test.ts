@@ -56,8 +56,8 @@ Deno.test("render:missing font", async () => {
 
 async function ensurePackageRemoved(pkg: string) {
   try {
-    await removePackage("fontawesome");
-  } catch (e) {
+    await removePackage(pkg);
+  } catch {
     // do nothing
   }
 }
