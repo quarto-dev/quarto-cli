@@ -115,8 +115,7 @@ HIGHER PRIORITY BACKGROUND WORK
 
 code chunks
 ===========================================
-TODO: test line numbers and formatting 
-TODO: left-border treatment add negative margin to align code and text
+consider improving line number appearance and indention
 
 commenting
 ==========================================
