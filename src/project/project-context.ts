@@ -6,7 +6,7 @@
 */
 
 import { dirname, globToRegExp, isAbsolute, join, relative } from "path/mod.ts";
-import { ensureDirSync, existsSync, walkSync } from "fs/mod.ts";
+import { existsSync, walkSync } from "fs/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
@@ -103,6 +103,10 @@ export function projectContext(path: string): ProjectContext {
         }
         if (!project[kOutputDir] && type.outputDir) {
           project[kOutputDir] = type.outputDir;
+        }
+        // see if the project type wants to provide a custom render list
+        if (type.render) {
+          project.render = type.render(project);
         }
         return {
           dir,

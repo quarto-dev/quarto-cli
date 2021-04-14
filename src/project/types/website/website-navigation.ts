@@ -46,6 +46,7 @@ import {
 
 import { ProjectContext, projectOffset } from "../../project-context.ts";
 import { resolveInputTarget } from "../../project-index.ts";
+import { asNavigationalItem } from "../../project-config.ts";
 
 import {
   websiteSearch,
@@ -353,7 +354,7 @@ async function resolveSidebarItems(
   items: SidebarItem[],
 ) {
   for (let i = 0; i < items.length; i++) {
-    const item = asItem(items[i]);
+    const item = asNavigationalItem(project, items[i]);
 
     if (Object.keys(item).includes("contents")) {
       const subItems = item.contents || [];
@@ -375,7 +376,10 @@ async function resolveSidebarItems(
 
       // Resolve any subitems
       for (let i = 0; i < subItems.length; i++) {
-        subItems[i] = await resolveSidebarItem(project, asItem(subItems[i]));
+        subItems[i] = await resolveSidebarItem(
+          project,
+          asNavigationalItem(project, subItems[i]),
+        );
       }
     } else {
       items[i] = await resolveSidebarItem(
@@ -384,10 +388,6 @@ async function resolveSidebarItems(
       );
     }
   }
-}
-
-function asItem(item: SidebarItem | string): SidebarItem {
-  return typeof (item) === "string" ? { href: item } as SidebarItem : item;
 }
 
 async function resolveSidebarItem(project: ProjectContext, item: SidebarItem) {
