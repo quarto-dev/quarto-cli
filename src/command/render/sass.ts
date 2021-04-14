@@ -116,7 +116,13 @@ export async function compileSass(bundles: SassBundle[]) {
   );
 }
 
-const kLayerBoundary = /^\/\/[ \t]*theme:(variables|rules|declarations)[ \t]*$/;
+/*-- scss:declarations --*/
+/*-- scss:variables --*/
+/*-- scss:rules --*/
+const layoutBoundary =
+  "^\/\\*\\-\\-[ \\t]*scss:(variables|rules|declarations)[ \\t]*\\-\\-\\*\\/$";
+const kLayerBoundaryLine = RegExp(layoutBoundary);
+const kLayerBoundaryTest = RegExp(layoutBoundary, "m");
 
 export function mergeLayers(...layers: SassLayer[]) {
   const themeVariables: string[] = [];
@@ -162,12 +168,19 @@ export function sassLayerFile(theme: string): SassLayer {
   // It is not a built in theme, so read the theme file and parse it.
   const rawContents = Deno.readTextFileSync(theme);
 
+  // Verify that the scss file has required boundaries
+  if (!kLayerBoundaryTest.test(rawContents)) {
+    throw new Error(
+      `The file ${theme} doesn't contain at least one layer boundaries (/*-- scss:variables --*/, /*-- scss:rules --*/, or /*-- scss:declarations --*/)`,
+    );
+  }
+
   const vars: string[] = [];
   const rules: string[] = [];
   const declarations: string[] = [];
   let accum = vars;
   lines(rawContents).forEach((line) => {
-    const scopeMatch = line.match(kLayerBoundary);
+    const scopeMatch = line.match(kLayerBoundaryLine);
     if (scopeMatch) {
       const scope = scopeMatch[1];
       switch (scope) {

@@ -339,7 +339,7 @@ function mergedSassLayer(
       ? Deno.readTextFileSync(part.path)
       : undefined;
     if (contents) {
-      merged.push(`// theme:${part.name} `);
+      merged.push(`/*-- scss:${part.name} --*/`);
 
       const inputLines = contents.split("\n");
       const outputLines: string[] = [];
