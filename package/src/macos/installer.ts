@@ -12,9 +12,9 @@
 
 import { dirname, join } from "path/mod.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { error, info, warning } from "log/mod.ts";
 
 import { Configuration } from "../common/config.ts";
-import { Logger } from "../util/logger.ts";
 import { runCmd } from "../util/cmd.ts";
 import { getEnv } from "../util/utils.ts";
 
@@ -38,7 +38,7 @@ export async function makeInstallerMac(config: Configuration) {
     unsignedPackageName,
   );
 
-  config.log.info(`Packaging into ${unsignedPackagePath}`);
+  info(`Packaging into ${unsignedPackagePath}`);
 
   // Clean any existing package
   if (existsSync(unsignedPackagePath)) {
@@ -54,7 +54,7 @@ export async function makeInstallerMac(config: Configuration) {
 
   // Sign the deno executable
   if (signBinaries) {
-    config.log.info("Signing binaries");
+    info("Signing binaries");
     const entitlements = join(
       config.directoryInfo.pkg,
       "scripts",
@@ -62,17 +62,17 @@ export async function makeInstallerMac(config: Configuration) {
       "entitlements.plist",
     );
     const deno = join(config.directoryInfo.bin, "deno");
-    await signCode(applicationDevId, deno, config.log, entitlements);
+    await signCode(applicationDevId, deno, entitlements);
 
     // Sign the quarto js file
     const quartojs = join(config.directoryInfo.bin, "quarto.js");
-    await signCode(applicationDevId, quartojs, config.log);
+    await signCode(applicationDevId, quartojs);
 
     // Sign the quarto shell script
     const quartosh = join(config.directoryInfo.bin, "quarto");
-    await signCode(applicationDevId, quartosh, config.log);
+    await signCode(applicationDevId, quartosh);
   } else {
-    config.log.warning("Missing Application Developer Id, not signing");
+    warning("Missing Application Developer Id, not signing");
   }
 
   // Run pkg build
@@ -97,7 +97,6 @@ export async function makeInstallerMac(config: Configuration) {
       "recommended",
       unsignedPackagePath,
     ],
-    config.log,
   );
 
   // The application cert developer Id
@@ -105,16 +104,15 @@ export async function makeInstallerMac(config: Configuration) {
   const signInstaller = installerDevId.length > 0;
   const signedPackage = join(config.directoryInfo.out, packageName);
   if (signInstaller) {
-    config.log.info("Signing file");
-    config.log.info(unsignedPackagePath);
+    info("Signing file");
+    info(unsignedPackagePath);
 
     await signPackage(
       installerDevId,
       unsignedPackagePath,
       signedPackage,
-      config.log,
     );
-    config.log.info("Cleaning unsigned file");
+    info("Cleaning unsigned file");
     Deno.removeSync(unsignedPackagePath);
 
     // Submit package for notary
@@ -126,19 +124,18 @@ export async function makeInstallerMac(config: Configuration) {
         bundleIdentifier,
         username,
         password,
-        config.log,
       );
 
       // This will succeed or throw
-      await waitForNotaryStatus(requestId, username, password, config.log);
+      await waitForNotaryStatus(requestId, username, password);
 
       // Staple the notary to the package
-      await stapleNotary(signedPackage, config.log);
+      await stapleNotary(signedPackage);
     } else {
-      config.log.warning("Missing Connect credentials, not notarizing");
+      warning("Missing Connect credentials, not notarizing");
     }
   } else {
-    config.log.warning("Missing Installer Developer Id, not signing");
+    warning("Missing Installer Developer Id, not signing");
   }
 }
 
@@ -146,19 +143,16 @@ async function signPackage(
   developerId: string,
   input: string,
   output: string,
-  log: Logger,
 ) {
   await runCmd(
     "productsign",
     ["--sign", developerId, "--timestamp", input, output],
-    log,
   );
 }
 
 async function signCode(
   developerId: string,
   input: string,
-  log: Logger,
   entitlements?: string,
 ) {
   const args = [
@@ -177,7 +171,6 @@ async function signCode(
   await runCmd(
     "codesign",
     [...args, input],
-    log,
   );
 }
 
@@ -186,7 +179,6 @@ async function submitNotary(
   bundleId: string,
   username: string,
   password: string,
-  log: Logger,
 ) {
   const result = await runCmd(
     "xcrun",
@@ -202,7 +194,6 @@ async function submitNotary(
       "--file",
       input,
     ],
-    log,
   );
   const match = result.stdout.match(/RequestUUID = (.*)/);
   if (match) {
@@ -217,7 +208,6 @@ async function waitForNotaryStatus(
   requestId: string,
   username: string,
   password: string,
-  log: Logger,
 ) {
   let notaryResult = undefined;
   while (notaryResult == undefined) {
@@ -232,7 +222,6 @@ async function waitForNotaryStatus(
         "--password",
         password,
       ],
-      log,
     );
 
     const match = result.stdout.match(/Status: (.*)\n/);
@@ -244,7 +233,7 @@ async function waitForNotaryStatus(
       } else if (status === "success") {
         notaryResult = "Success";
       } else {
-        log.error(result.stderr);
+        error(result.stderr);
         throw new Error("Failed to Notarize - " + status);
       }
     }
@@ -252,10 +241,9 @@ async function waitForNotaryStatus(
   return notaryResult;
 }
 
-async function stapleNotary(input: string, log: Logger) {
+async function stapleNotary(input: string) {
   await runCmd(
     "xcrun",
     ["stapler", "staple", input],
-    log,
   );
 }

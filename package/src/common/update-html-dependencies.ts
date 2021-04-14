@@ -5,13 +5,14 @@
 *
 */
 import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { info } from "log/mod.ts";
 import { join } from "path/mod.ts";
 
 import { download, unzip } from "../util/utils.ts";
 import { Configuration } from "./config.ts";
 
 export async function updateHtmlDepedencies(config: Configuration) {
-  config.log.info("Updating Bootstrap with version info:");
+  info("Updating Bootstrap with version info:");
 
   // Read the version information from the environment
   const workingDir = Deno.makeTempDirSync();
@@ -27,9 +28,9 @@ export async function updateHtmlDepedencies(config: Configuration) {
   if (!bSwatchVersion) {
     throw new Error(`BOOTSWATCH_BRANCH is not defined`);
   }
-  config.log.info(`Boostrap: ${bsVersion}`);
-  config.log.info(`Boostrap Icon: ${bsIconVersion}`);
-  config.log.info(`Bootswatch: ${bSwatchVersion}`);
+  info(`Boostrap: ${bsVersion}`);
+  info(`Boostrap Icon: ${bsIconVersion}`);
+  info(`Bootswatch: ${bSwatchVersion}`);
 
   // the bootstrap and dist/themes dir
   const formatDir = join(
@@ -75,7 +76,6 @@ export async function updateHtmlDepedencies(config: Configuration) {
     "clipboardjs",
     "zenorocha/clipboard.js",
     "CLIPBOARD_JS",
-    config,
     workingDir,
     (dir: string, version: string) => {
       console.log(
@@ -113,25 +113,24 @@ export async function updateHtmlDepedencies(config: Configuration) {
   });
 
   // Update bootstrap
-  await updateBootstrapDist(bsVersion, config, workingDir, bsDistDir);
-  await updateBootstrapSass(bsVersion, config, workingDir, bsDistDir);
-  await updateBoostrapIcons(bsIconVersion, config, workingDir, bsDistDir);
-  await updateBootswatch(bSwatchVersion, config, workingDir, bsThemesDir);
+  await updateBootstrapDist(bsVersion, workingDir, bsDistDir);
+  await updateBootstrapSass(bsVersion, workingDir, bsDistDir);
+  await updateBoostrapIcons(bsIconVersion, workingDir, bsDistDir);
+  await updateBootswatch(bSwatchVersion, workingDir, bsThemesDir);
 
   // Clean up the temp dir
   Deno.removeSync(workingDir, { recursive: true });
-  config.log.info(
+  info(
     "\n** Done- please commit any files that have been updated. **\n",
   );
 }
 
 async function updateBootswatch(
   version: string,
-  config: Configuration,
   working: string,
   themesDir: string,
 ) {
-  config.log.info("Updating Bootswatch themes...");
+  info("Updating Bootswatch themes...");
   const fileName = `${version}.zip`;
   const distUrl =
     `https://github.com/thomaspark/bootswatch/archive/refs/heads/${fileName}`;
@@ -139,13 +138,13 @@ async function updateBootswatch(
   const exclude = ["4"];
 
   // Download and unpack the source code
-  config.log.info(`Downloading ${distUrl}`);
+  info(`Downloading ${distUrl}`);
   await download(distUrl, zipFile);
-  await unzip(zipFile, working, config.log);
+  await unzip(zipFile, working);
 
   // Read each bootswatch theme directory and merge the scss files
   // into a single theme file for Quarto
-  config.log.info("Merging themes:");
+  info("Merging themes:");
   const distPath = join(working, "bootswatch-5", "dist");
   for (const dirEntry of Deno.readDirSync(distPath)) {
     if (dirEntry.isDirectory && !exclude.includes(dirEntry.name)) {
@@ -153,7 +152,7 @@ async function updateBootswatch(
       const theme = dirEntry.name;
       const themeDir = join(distPath, theme);
 
-      config.log.info(`${theme}`);
+      info(`${theme}`);
       const layer = mergedSassLayer(
         join(themeDir, "_declarations.scss"),
         join(themeDir, "_variables.scss"),
@@ -164,16 +163,15 @@ async function updateBootswatch(
       Deno.writeTextFileSync(themeOut, layer);
     }
   }
-  config.log.info("Done\n");
+  info("Done\n");
 }
 
 async function updateBootstrapSass(
   version: string,
-  config: Configuration,
   working: string,
   distDir: string,
 ) {
-  config.log.info("Updating Bootstrap Scss Files...");
+  info("Updating Bootstrap Scss Files...");
 
   const dirName = `bootstrap-${version}`;
   const fileName = `v${version}.zip`;
@@ -182,24 +180,23 @@ async function updateBootstrapSass(
   const zipFile = join(working, fileName);
 
   // Download and unzip the bootstrap source code
-  config.log.info(`Downloading ${distUrl}`);
+  info(`Downloading ${distUrl}`);
   await download(distUrl, zipFile);
-  await unzip(zipFile, working, config.log);
+  await unzip(zipFile, working);
 
   // Move the scss directory from the source into our repo
   const from = join(working, dirName, "scss");
   const to = join(distDir, "scss");
-  config.log.info(`Moving ${from} to ${to}`);
+  info(`Moving ${from} to ${to}`);
   Deno.renameSync(from, to);
 }
 
 async function updateBootstrapDist(
   version: string,
-  config: Configuration,
   working: string,
   distDir: string,
 ) {
-  config.log.info("Updating Bootstrap Distribution Files...");
+  info("Updating Bootstrap Distribution Files...");
 
   const dirName = `bootstrap-${version}-dist`;
   const fileName = `${dirName}.zip`;
@@ -208,32 +205,31 @@ async function updateBootstrapDist(
   const zipFile = join(working, fileName);
 
   // Download and unzip the release
-  config.log.info(`Downloading ${distUrl}`);
+  info(`Downloading ${distUrl}`);
   await download(distUrl, zipFile);
-  await unzip(zipFile, working, config.log);
+  await unzip(zipFile, working);
 
   // Grab the js file that we need
   ["bootstrap.min.js"]
     .forEach((file) => {
       const from = join(working, dirName, "js", file);
       const to = join(distDir, file);
-      config.log.info(`Copying ${from} to ${to}`);
+      info(`Copying ${from} to ${to}`);
       Deno.copyFileSync(
         from,
         to,
       );
     });
 
-  config.log.info("Done\n");
+  info("Done\n");
 }
 
 async function updateBoostrapIcons(
   version: string,
-  config: Configuration,
   working: string,
   distDir: string,
 ) {
-  config.log.info("Updating Bootstrap Icons...");
+  info("Updating Bootstrap Icons...");
   const dirName = `bootstrap-icons-${version}`;
   const fileName = `${dirName}.zip`;
   const distUrl =
@@ -241,9 +237,9 @@ async function updateBoostrapIcons(
   const zipFile = join(working, fileName);
 
   // Download and unzip the release
-  config.log.info(`Downloading ${distUrl}`);
+  info(`Downloading ${distUrl}`);
   await download(distUrl, zipFile);
-  await unzip(zipFile, working, config.log);
+  await unzip(zipFile, working);
 
   // Copy the woff file
   Deno.copyFileSync(
@@ -259,7 +255,7 @@ async function updateBoostrapIcons(
   );
   fixupFontCss(cssPath);
 
-  config.log.info("Done\n");
+  info("Done\n");
 }
 
 async function updateUnpkgDependency(
@@ -282,11 +278,10 @@ async function updateGithubSourceCodeDependency(
   name: string,
   repo: string,
   versionEnvVar: string,
-  config: Configuration,
   working: string,
   onDownload: (dir: string, version: string) => void,
 ) {
-  config.log.info(`Updating ${name}...`);
+  info(`Updating ${name}...`);
   const version = Deno.env.get(versionEnvVar);
   if (version) {
     const fileName = `${name}.zip`;
@@ -295,16 +290,16 @@ async function updateGithubSourceCodeDependency(
     const zipFile = join(working, fileName);
 
     // Download and unzip the release
-    config.log.info(`Downloading ${distUrl}`);
+    info(`Downloading ${distUrl}`);
     await download(distUrl, zipFile);
-    await unzip(zipFile, working, config.log);
+    await unzip(zipFile, working);
 
     onDownload(working, version);
   } else {
     throw new Error(`${versionEnvVar} is not defined`);
   }
 
-  config.log.info("Done\n");
+  info("Done\n");
 }
 
 function fixupFontCss(path: string) {

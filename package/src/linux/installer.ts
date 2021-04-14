@@ -6,6 +6,7 @@
 */
 import { join } from "path/mod.ts";
 import { copySync, emptyDirSync, ensureDirSync, walk } from "fs/mod.ts";
+import { error, info } from "log/mod.ts";
 
 import { Configuration } from "../common/config.ts";
 import { runCmd } from "../util/cmd.ts";
@@ -13,23 +14,22 @@ import { runCmd } from "../util/cmd.ts";
 export async function makeInstallerDeb(
   configuration: Configuration,
 ) {
-  const log = configuration.log;
-  log.info("Building deb package...");
+  info("Building deb package...");
 
   // detect packaging machine architecture
-  const result = await runCmd("dpkg-architecture", ["-qDEB_BUILD_ARCH"], log);
+  const result = await runCmd("dpkg-architecture", ["-qDEB_BUILD_ARCH"]);
   const architecture =
     (result.status.code === 0 ? result.stdout.trim() : undefined);
   if (!architecture) {
-    log.error("Can't detect package architecture.");
+    error("Can't detect package architecture.");
     throw new Error("Undetectable architecture. Packaging failed.");
   }
   const packageName = `quarto-${configuration.version}-${architecture}.deb`;
-  log.info("Building package " + packageName);
+  info("Building package " + packageName);
 
   // Prepare working directory
   const workingDir = join(configuration.directoryInfo.out, "working");
-  log.info(`Preparing working directory ${workingDir}`);
+  info(`Preparing working directory ${workingDir}`);
   ensureDirSync(workingDir);
   emptyDirSync(workingDir);
 
@@ -40,7 +40,7 @@ export async function makeInstallerDeb(
     configuration.productName.toLowerCase(),
     "bin",
   );
-  log.info(`Preparing bin directory ${workingBinPath}`);
+  info(`Preparing bin directory ${workingBinPath}`);
   copySync(configuration.directoryInfo.bin, workingBinPath, {
     overwrite: true,
   });
@@ -51,7 +51,7 @@ export async function makeInstallerDeb(
     configuration.productName.toLowerCase(),
     "share",
   );
-  log.info(`Preparing share directory ${workingSharePath}`);
+  info(`Preparing share directory ${workingSharePath}`);
   copySync(configuration.directoryInfo.share, workingSharePath, {
     overwrite: true,
   });
@@ -72,7 +72,7 @@ export async function makeInstallerDeb(
   });
   const url = "https://github.com/quarto-dev/quarto-cli";
   // Make the control file
-  log.info("Creating control file");
+  info("Creating control file");
   let control = "";
   control = control + val("Package", configuration.productName);
   control = control + val("Version", configuration.version);
@@ -87,7 +87,7 @@ export async function makeInstallerDeb(
       "Description",
       "Quarto is an academic, scientific, and technical publishing system built on Pandoc.",
     );
-  log.info(control);
+  info(control);
 
   // Place
   const debianDir = join(workingDir, "DEBIAN");
@@ -97,7 +97,7 @@ export async function makeInstallerDeb(
   Deno.writeTextFileSync(join(debianDir, "control"), control);
 
   // Generate and write a copyright file
-  log.info("Creating copyright file");
+  info("Creating copyright file");
   const copyrightLines = [];
   copyrightLines.push(
     "Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/",
@@ -112,7 +112,7 @@ export async function makeInstallerDeb(
   Deno.writeTextFileSync(join(debianDir, "copyright"), copyrightText);
 
   // copy the install scripts
-  log.info("Copying install scripts...");
+  info("Copying install scripts...");
   copySync(
     join(configuration.directoryInfo.pkg, "scripts", "linux", "deb"),
     debianDir,
@@ -127,7 +127,7 @@ export async function makeInstallerDeb(
     "--build",
     workingDir,
     join(configuration.directoryInfo.out, packageName),
-  ], log);
+  ]);
 
   // Remove the working directory
   // Deno.removeSync(workingDir, { recursive: true });

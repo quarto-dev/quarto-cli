@@ -7,10 +7,10 @@
 import { Command } from "cliffy/command/mod.ts";
 import { join } from "path/mod.ts";
 import { ensureDirSync } from "fs/mod.ts";
+import { info } from "log/mod.ts";
 
 import { Configuration, readConfiguration } from "../common/config.ts";
-import { parseLogLevel } from "../util/logger.ts";
-import { kLogLevel, kVersion } from "../cmd/pkg-cmd.ts";
+import { kVersion } from "../cmd/pkg-cmd.ts";
 import { compile, install } from "../util/deno.ts";
 
 export function compileQuartoLatexmkCommand() {
@@ -29,13 +29,12 @@ export function compileQuartoLatexmkCommand() {
       },
     )
     .action((args) => {
-      const logLevel = args[kLogLevel];
       const version = args[kVersion];
 
-      const configuration = readConfiguration(parseLogLevel(logLevel), version);
-      configuration.log.info("Using configuration:");
-      configuration.log.info(configuration);
-      configuration.log.info("");
+      const configuration = readConfiguration(version);
+      info("Using configuration:");
+      info(configuration);
+      info("");
 
       if (args.development) {
         installQuartoLatexmk(configuration);
@@ -64,7 +63,7 @@ export async function installQuartoLatexmk(
 
   // Fix up the path to deno
   if (installPath) {
-    config.log.info("Updating install script deno path");
+    info("Updating install script deno path");
     const installTxt = Deno.readTextFileSync(installPath);
     const finalTxt = Deno.build.os === "windows"
       ? installTxt.replace(
@@ -90,7 +89,7 @@ export async function compileQuartoLatexmk(
   targets = targets || [Deno.build.target];
 
   for (const target of targets) {
-    config.log.info(`Compiling for ${target}:`);
+    info(`Compiling for ${target}:`);
     const outputDir = join(
       config.directoryInfo.bin,
       "quarto-latexmk",
@@ -105,7 +104,7 @@ export async function compileQuartoLatexmk(
       [...kFlags, "--lite"],
       config,
     );
-    config.log.info(output + "\n");
+    info(output + "\n");
   }
 }
 

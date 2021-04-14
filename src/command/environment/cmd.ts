@@ -4,7 +4,6 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import * as colors from "fmt/colors.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { info } from "log/mod.ts";
 

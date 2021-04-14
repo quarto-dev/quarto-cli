@@ -8,10 +8,9 @@ import { existsSync } from "fs/mod.ts";
 import { dirname, join } from "path/mod.ts";
 
 import { unTar } from "../../util/tar.ts";
-import { Logger } from "../../util/logger.ts";
 import { Dependency } from "./dependencies.ts";
 
-export function dartSass(version: string, log: Logger): Dependency {
+export function dartSass(version: string): Dependency {
   // Maps the file name and pandoc executable file name to a repo and expand
   // to create a pandocRelease
   const dartRelease = (
@@ -30,7 +29,7 @@ export function dartSass(version: string, log: Logger): Dependency {
         }
 
         // Expand
-        await unTar(path, log);
+        await unTar(path);
       },
     };
   };

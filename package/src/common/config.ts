@@ -7,7 +7,6 @@
 
 import { join } from "path/mod.ts";
 
-import { Logger, logger } from "../util/logger.ts";
 import { getEnv } from "../util/utils.ts";
 
 // The core configuration for the packaging process
@@ -16,7 +15,6 @@ export interface Configuration {
   version: string;
   importmap: string;
   directoryInfo: DirectoryInfo;
-  log: Logger;
 }
 
 // Directories avaialable for step
@@ -32,7 +30,6 @@ export interface DirectoryInfo {
 
 // Read the configuration fromt the environment
 export function readConfiguration(
-  logLevel: number,
   version?: string,
 ): Configuration {
   const productName = getEnv("QUARTO_NAME");
@@ -63,6 +60,5 @@ export function readConfiguration(
     version,
     importmap,
     directoryInfo,
-    log: logger(logLevel),
   };
 }

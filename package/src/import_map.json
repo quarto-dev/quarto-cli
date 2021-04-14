@@ -1,8 +1,11 @@
 {
     "imports": {
-        "fs/": "https://deno.land/std/fs/",
-        "path/": "https://deno.land/std/path/",
         "cliffy/": "https://deno.land/x/cliffy/",
-        "encoding/": "https://deno.land/std/encoding/"
+        "encoding/": "https://deno.land/std/encoding/",
+        "flags/": "https://deno.land/std/flags/",
+        "fmt/": "https://deno.land/std/fmt/",
+        "fs/": "https://deno.land/std/fs/",
+        "log/": "https://deno.land/std/log/",
+        "path/": "https://deno.land/std/path/"
     }
 }

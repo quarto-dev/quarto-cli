@@ -31,6 +31,12 @@ export interface LogMessageOptions {
 
 export function appendLogOptions(cmd: Command): Command {
   return cmd.option(
+    "--log <level>",
+    "Path to log file",
+    {
+      global: true,
+    },
+  ).option(
     "--log-level <level>",
     "Log level (info, warning, error, critical)",
     {

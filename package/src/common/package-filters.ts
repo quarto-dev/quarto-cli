@@ -6,17 +6,15 @@
 */
 import { dirname, join } from "path/mod.ts";
 import { ensureDirSync } from "fs/mod.ts";
-
-import { Logger } from "../util/logger.ts";
+import { info } from "log/mod.ts";
 
 // Creates inlined version of the filters that can be distributed with our installer
 export function buildFilter(
   input: string,
   output: string,
-  log: Logger,
 ) {
-  log.info(`From: ${input}`);
-  log.info(`To: ${output}`);
+  info(`From: ${input}`);
+  info(`To: ${output}`);
 
   const filterDir = dirname(input);
   let src = Deno.readTextFileSync(input);
@@ -42,12 +40,12 @@ export function buildFilter(
   }
 
   // write src to dist
-  log.info(`Writing inlined file ${output}`);
+  info(`Writing inlined file ${output}`);
 
   const dir = dirname(output);
-  log.info(`Ensure directory ${dir} exists`);
+  info(`Ensure directory ${dir} exists`);
   ensureDirSync(dir);
 
-  log.info(`Writing inlined ${output}`);
+  info(`Writing inlined ${output}`);
   Deno.writeTextFileSync(output, src);
 }

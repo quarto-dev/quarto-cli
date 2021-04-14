@@ -11,45 +11,43 @@ import { copySync, ensureDirSync } from "fs/mod.ts";
 import { Configuration } from "../common/config.ts";
 import { buildFilter } from "./package-filters.ts";
 import { bundle } from "../util/deno.ts";
-import { Logger } from "../util/logger.ts";
+import { info } from "log/mod.ts";
 
 export async function prepareDist(
   config: Configuration,
 ) {
-  const log = config.log;
-
   // Move the supporting files into place
-  log.info("\nMoving supporting files");
-  supportingFiles(config, log);
-  log.info("");
+  info("\nMoving supporting files");
+  supportingFiles(config);
+  info("");
 
   // Create the deno bundle
   const input = join(config.directoryInfo.src, "quarto.ts");
   const output = join(config.directoryInfo.bin, "quarto.js");
-  log.info("\nCreating Deno Bundle");
-  log.info(output);
+  info("\nCreating Deno Bundle");
+  info(output);
   await bundle(
     input,
     output,
     config,
   );
-  log.info("");
+  info("");
 
   // Inline the LUA Filters and move them into place
-  log.info("\nCreating Inlined LUA Filters");
+  info("\nCreating Inlined LUA Filters");
   inlineFilters(config);
-  log.info("");
+  info("");
 
   // Write a version file to share
-  log.info(`Writing version: ${config.version}`);
+  info(`Writing version: ${config.version}`);
   Deno.writeTextFileSync(
     join(config.directoryInfo.share, "version"),
     config.version,
   );
-  log.info("");
+  info("");
 }
 
-function supportingFiles(config: Configuration, log: Logger) {
+function supportingFiles(config: Configuration) {
   // Move information and share resources into place
   const filesToCopy = [
     {
@@ -69,10 +67,10 @@ function supportingFiles(config: Configuration, log: Logger) {
   // Gather supporting files
   filesToCopy.forEach((fileToCopy) => {
     const dir = dirname(fileToCopy.to);
-    log.info(`Ensuring dir ${dir} exists`);
+    info(`Ensuring dir ${dir} exists`);
     ensureDirSync(dir);
 
-    log.info(`Copying ${fileToCopy.from} to ${fileToCopy.to}`);
+    info(`Copying ${fileToCopy.from} to ${fileToCopy.to}`);
     copySync(fileToCopy.from, fileToCopy.to, { overwrite: true });
   });
 
@@ -93,7 +91,7 @@ interface Filter {
 }
 
 function inlineFilters(config: Configuration) {
-  config.log.info("Building inlined filters");
+  info("Building inlined filters");
   const outDir = join(config.directoryInfo.share, "filters");
   const filtersToInline: Filter[] = [
     { name: "quarto-pre" },
@@ -104,7 +102,7 @@ function inlineFilters(config: Configuration) {
   ];
 
   filtersToInline.forEach((filter) => {
-    config.log.info(filter);
+    info(filter);
     buildFilter(
       join(
         config.directoryInfo.src,
@@ -114,7 +112,6 @@ function inlineFilters(config: Configuration) {
         `${filter.name}.lua`,
       ),
       join(outDir, filter.dir || filter.name, `${filter.name}.lua`),
-      config.log,
     );
   });
 }
