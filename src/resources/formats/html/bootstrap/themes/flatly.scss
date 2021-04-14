@@ -38,7 +38,7 @@ $danger:        $red !default;
 $light:         $gray-200 !default;
 $dark:          $gray-700 !default;
 
-$min-contrast-ratio:   2.15 !default;
+$min-contrast-ratio:   2.05 !default;
 
 // Links
 
@@ -55,6 +55,7 @@ $h3-font-size:                2rem !default;
 // Tables
 
 $table-accent-bg:             $gray-200 !default;
+$table-bg-scale:              0 !default;
 
 // Dropdowns
 
@@ -73,7 +74,11 @@ $nav-tabs-border-color:             $gray-200 !default;
 
 $navbar-padding-y:                  1rem !default;
 $navbar-dark-color:                 $white !default;
-$navbar-dark-hover-color:           $success !default;
+$navbar-dark-hover-color:           $primary !default;
+$navbar-dark-active-color:          $primary !default;
+
+$navbar-dark-brand-color:                 $white !default;
+$navbar-dark-brand-hover-color:           $navbar-dark-brand-color !default;
 
 // Pagination
 
@@ -115,194 +120,18 @@ $btn-close-hover-opacity:    1 !default;
 // Variables
 
 $web-font-path: "https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400&display=swap" !default;
-@import url($web-font-path);
+@if $web-font-path {
+  @import url($web-font-path);
+}
 
 // Navbar
 
 .bg-primary {
-  .navbar-nav .active > .nav-link {
+  .navbar-nav .show > .nav-link,
+  .navbar-nav .nav-link.active,
+  .navbar-nav .nav-link:hover,
+  .navbar-nav .nav-link:focus {
     color: $success !important;
-  }
-}
-
-.bg-dark {
-  &.navbar-dark .navbar-nav {
-    .nav-link:focus,
-    .nav-link:hover,
-    .active > .nav-link {
-      color: $primary !important;
-    }
-  }
-}
-
-// Buttons
-
-.btn {
-  &-secondary,
-  &-secondary:hover,
-  &-warning,
-  &-warning:hover {
-    color: $white;
-  }
-}
-
-// Tables
-
-.table {
-  &-primary,
-  &-secondary,
-  &-success,
-  &-info,
-  &-warning,
-  &-danger {
-    color: $white;
-  }
-
-  &-primary {
-    &,
-    > th,
-    > td {
-      background-color: $primary;
-    }
-  }
-
-  &-secondary {
-    &,
-    > th,
-    > td {
-      background-color: $secondary;
-    }
-  }
-
-  &-light {
-    &,
-    > th,
-    > td {
-      background-color: $light;
-    }
-  }
-
-  &-dark {
-    &,
-    > th,
-    > td {
-      background-color: $dark;
-    }
-  }
-
-  &-success {
-    &,
-    > th,
-    > td {
-      background-color: $success;
-    }
-  }
-
-  &-info {
-    &,
-    > th,
-    > td {
-      background-color: $info;
-    }
-  }
-
-  &-danger {
-    &,
-    > th,
-    > td {
-      background-color: $danger;
-    }
-  }
-
-  &-warning {
-    &,
-    > th,
-    > td {
-      background-color: $warning;
-    }
-  }
-
-  &-active {
-    &,
-    > th,
-    > td {
-      background-color: $table-active-bg;
-    }
-  }
-
-  &-hover {
-    .table-primary:hover {
-      &,
-      > th,
-      > td {
-        background-color: darken($primary, 5%);
-      }
-    }
-
-    .table-secondary:hover {
-      &,
-      > th,
-      > td {
-        background-color: darken($secondary, 5%);
-      }
-    }
-
-    .table-light:hover {
-      &,
-      > th,
-      > td {
-        background-color: darken($light, 5%);
-      }
-    }
-
-    .table-dark:hover {
-      &,
-      > th,
-      > td {
-        background-color: darken($dark, 5%);
-      }
-    }
-
-    .table-success:hover {
-      &,
-      > th,
-      > td {
-        background-color: darken($success, 5%);
-      }
-    }
-
-    .table-info:hover {
-      &,
-      > th,
-      > td {
-        background-color: darken($info, 5%);
-      }
-    }
-
-    .table-danger:hover {
-      &,
-      > th,
-      > td {
-        background-color: darken($danger, 5%);
-      }
-    }
-
-    .table-warning:hover {
-      &,
-      > th,
-      > td {
-        background-color: darken($warning, 5%);
-      }
-    }
-
-    .table-active:hover {
-      &,
-      > th,
-      > td {
-        background-color: $table-active-bg;
-      }
-    }
-
   }
 }
 
