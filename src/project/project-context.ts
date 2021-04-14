@@ -221,7 +221,7 @@ export function projectMetadataForInputFile(
                 const offset = relative(dirname(input), project!.dir);
                 assign(join(offset, value));
               }
-            } catch (e) {
+            } catch {
               // Just ignore this error as the path must not be a local file path
             }
           }
@@ -338,7 +338,7 @@ function projectConfigResources(
             if (existsSync(path) && !Deno.statSync(path).isDirectory) {
               resources.push(Deno.realPathSync(path));
             }
-          } catch (e) {
+          } catch {
             // Just ignore this error as the path must not be a local file path
           }
         }
