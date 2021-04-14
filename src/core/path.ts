@@ -39,6 +39,14 @@ export function expandPath(path: string) {
   }
 }
 
+export function safeExistsSync(path: string) {
+  try {
+    return existsSync(path);
+  } catch {
+    return false;
+  }
+}
+
 export async function which(cmd: string) {
   const args = Deno.build.os === "windows"
     ? ["CMD", "/C", "where", cmd]

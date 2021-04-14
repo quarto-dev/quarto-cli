@@ -5,15 +5,17 @@
 *
 */
 
-import { existsSync } from "fs/exists.ts";
-
 import { basename, dirname, join, relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
 import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
 
-import { dirAndStem, pathWithForwardSlashes } from "../../../core/path.ts";
+import {
+  dirAndStem,
+  pathWithForwardSlashes,
+  safeExistsSync,
+} from "../../../core/path.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 
@@ -106,13 +108,7 @@ interface SidebarTool {
   icon: string;
   text?: string;
   href?: string;
-  menu?: SidebarToolItem[];
-}
-
-interface SidebarToolItem {
-  icon: string;
-  text?: string;
-  href?: string;
+  menu?: NavbarItem[];
 }
 
 interface Navbar {
@@ -365,7 +361,7 @@ async function resolveSidebarItems(
       // section is a special key that can provide either text or href
       // for an item with 'contents'
       if (item.section) {
-        if (existsSync(join(project.dir, item.section))) {
+        if (safeExistsSync(join(project.dir, item.section))) {
           item.href = item.section;
         } else {
           item.text = item.section;
@@ -420,7 +416,7 @@ async function resolveSidebarTools(
       if (Object.keys(tools[i]).includes("menu")) {
         const items = tools[i].menu || [];
         for (let i = 0; i < items.length; i++) {
-          const toolItem = items[i];
+          const toolItem = await navigationItem(project, items[i], 1);
           if (toolItem.href) {
             items[i] = await resolveItem(
               project,
@@ -551,6 +547,15 @@ async function navigationItem(
   // make a copy we can mutate
   navItem = ld.cloneDeep(navItem);
 
+  // allow short form syntax
+  if (typeof (navItem) === "string") {
+    if (safeExistsSync(join(project.dir, navItem))) {
+      navItem = { href: navItem };
+    } else {
+      navItem = { text: navItem };
+    }
+  }
+
   // resolve icon
   navItem.icon = navItem.icon
     ? !navItem.icon.startsWith("bi-") ? `bi-${navItem.icon}` : navItem.icon
@@ -562,7 +567,7 @@ async function navigationItem(
     // no sub-menus
     if (level > 0) {
       throw Error(
-        `"${navItem.text || ""}" menu: navbar menus do not support sub-menus`,
+        `"${navItem.text || ""}" menu: this menu does not support sub-menus`,
       );
     }
 
