@@ -357,10 +357,10 @@ async function resolveSidebarItems(
   items: SidebarItem[],
 ) {
   for (let i = 0; i < items.length; i++) {
-    if (Object.keys(items[i]).includes("contents")) {
-      // alias item and subitems
-      const item = items[i];
-      const subItems = items[i].contents || [];
+    const item = asItem(items[i]);
+
+    if (Object.keys(item).includes("contents")) {
+      const subItems = item.contents || [];
 
       // section is a special key that can provide either text or href
       // for an item with 'contents'
@@ -379,15 +379,19 @@ async function resolveSidebarItems(
 
       // Resolve any subitems
       for (let i = 0; i < subItems.length; i++) {
-        subItems[i] = await resolveSidebarItem(project, subItems[i]);
+        subItems[i] = await resolveSidebarItem(project, asItem(subItems[i]));
       }
     } else {
       items[i] = await resolveSidebarItem(
         project,
-        items[i] as SidebarItem,
+        item,
       );
     }
   }
+}
+
+function asItem(item: SidebarItem | string): SidebarItem {
+  return typeof (item) === "string" ? { href: item } as SidebarItem : item;
 }
 
 async function resolveSidebarItem(project: ProjectContext, item: SidebarItem) {
