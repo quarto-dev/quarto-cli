@@ -76,6 +76,10 @@ pre.sourceCode {
   padding-left: 0;
 }
 
+pre.sourceCode {
+  overflow:visible !important;
+}
+
 div.sourceCode {
   background-color: $body-bg !important;
   @if $code-border-left {
