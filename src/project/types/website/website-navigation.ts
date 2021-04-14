@@ -46,7 +46,17 @@ import {
 
 import { ProjectContext, projectOffset } from "../../project-context.ts";
 import { resolveInputTarget } from "../../project-index.ts";
-import { asNavigationalItem } from "../../project-config.ts";
+import {
+  kCollapseBelow,
+  kCollapseLevel,
+  LayoutBreak,
+  Navbar,
+  NavbarItem,
+  normalizeSidebarItem,
+  Sidebar,
+  SidebarItem,
+  SidebarTool,
+} from "../../project-config.ts";
 
 import {
   websiteSearch,
@@ -58,88 +68,9 @@ import { resolveResourceRefs } from "./website-resources.ts";
 export const kNavbar = "nav-top";
 export const kSidebar = "nav-side";
 
-const kAriaLabel = "aria-label";
-const kCollapseLevel = "collapse-level";
-const kCollapseBelow = "collapse-below";
-
-type LayoutBreak = "" | "sm" | "md" | "lg" | "xl" | "xxl";
-
 interface Navigation {
   navbar?: Navbar;
   sidebars: Sidebar[];
-}
-
-interface Sidebar {
-  id?: string;
-  title?: string;
-  subtitle?: string;
-  logo?: string;
-  aligment?: "left" | "right" | "center";
-  background?:
-    | "none"
-    | "primary"
-    | "secondary"
-    | "success"
-    | "danger"
-    | "warning"
-    | "info"
-    | "light"
-    | "dark"
-    | "white";
-  type?: "light" | "dark";
-  search?: boolean | string;
-  [kCollapseLevel]?: number;
-  contents: SidebarItem[];
-  tools: SidebarTool[];
-  style: "anchored" | "floating";
-  pinned?: boolean;
-}
-
-interface SidebarItem {
-  href?: string;
-  text?: string;
-  section?: string;
-  contents?: SidebarItem[];
-  [kAriaLabel]?: string;
-  expanded?: boolean;
-  active?: boolean;
-}
-
-interface SidebarTool {
-  icon: string;
-  text?: string;
-  href?: string;
-  menu?: NavbarItem[];
-}
-
-interface Navbar {
-  title?: string;
-  logo?: string;
-  type?: "dark" | "light";
-  background:
-    | "primary"
-    | "secondary"
-    | "success"
-    | "danger"
-    | "warning"
-    | "info"
-    | "light"
-    | "dark";
-  search?: boolean | string;
-  left?: NavbarItem[];
-  right?: NavbarItem[];
-  collapse?: boolean;
-  pinned?: boolean;
-  [kCollapseBelow]?: LayoutBreak;
-}
-
-interface NavbarItem {
-  id?: string;
-  text?: string;
-  href?: string;
-  icon?: string;
-  [kAriaLabel]?: string;
-  menu?: NavbarItem[];
 }
 
 // static navigation (initialized during project preRender)
@@ -354,20 +285,10 @@ async function resolveSidebarItems(
   items: SidebarItem[],
 ) {
   for (let i = 0; i < items.length; i++) {
-    const item = asNavigationalItem(project, items[i]);
+    const item = normalizeSidebarItem(project.dir, items[i]);
 
     if (Object.keys(item).includes("contents")) {
       const subItems = item.contents || [];
-
-      // section is a special key that can provide either text or href
-      // for an item with 'contents'
-      if (item.section) {
-        if (safeExistsSync(join(project.dir, item.section))) {
-          item.href = item.section;
-        } else {
-          item.text = item.section;
-        }
-      }
 
       // If this item has an href, resolve that
       if (item.href) {
@@ -378,9 +299,11 @@ async function resolveSidebarItems(
       for (let i = 0; i < subItems.length; i++) {
         subItems[i] = await resolveSidebarItem(
           project,
-          asNavigationalItem(project, subItems[i]),
+          normalizeSidebarItem(project.dir, subItems[i]),
         );
       }
+
+      items[i] = item;
     } else {
       items[i] = await resolveSidebarItem(
         project,
