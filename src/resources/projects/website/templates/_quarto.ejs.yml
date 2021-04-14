@@ -9,7 +9,7 @@ nav-top:
   left:
     - href: index<%= ext %>
       text: Home
-    - href: about<%= ext %>
+    - about<%= ext %>
 
 format:
   html:

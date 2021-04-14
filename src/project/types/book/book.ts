@@ -1,14 +1,16 @@
 /*
-* project-book.ts
+* book.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
 import { join } from "path/mod.ts";
-import { ExecutedFile } from "../../command/render/render.ts";
-import { resourcePath } from "../../core/resources.ts";
+import { ExecutedFile } from "../../../command/render/render.ts";
+import { resourcePath } from "../../../core/resources.ts";
 
-import { ProjectCreate, ProjectType } from "./project-types.ts";
+import { ProjectCreate, ProjectType } from "../project-types.ts";
+
+import { bookRenderList, kContents } from "./book-render.ts";
 
 export const bookProjectType: ProjectType = {
   type: "book",
@@ -21,19 +23,19 @@ export const bookProjectType: ProjectType = {
       resourceDir,
       scaffold: [
         {
-          name: "01-intro",
+          name: "intro",
           content: "The introduction",
           title: "Introduction",
           format: "html",
         },
         {
-          name: "02-summary",
+          name: "summary",
           content: "The summary",
           title: "Summary",
           format: "html",
         },
         {
-          name: "03-references",
+          name: "references",
           content: "",
           title: "References",
           format: "html",
@@ -50,8 +52,14 @@ export const bookProjectType: ProjectType = {
     };
   },
 
+  render: bookRenderList,
+
   libDir: "site_libs",
   outputDir: "_book",
+
+  metadataFields: () => [kContents],
+
+  resourceIgnoreFields: () => [kContents],
 
   pandocRenderer: () => {
     return {
