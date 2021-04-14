@@ -1,8 +1,8 @@
-<% if (item.href && item.text && !item.items) { %>
+<% if (item.href && item.text && !item.contents) { %>
 <li class="pb-2 px-0">
   <a href="<%- item.href %>" class="<%- item.active ? "active" : "" %> <%- depth === 1 ? "fw-normal" : "fw-lighter" %>"><%- item.text %></a>
 </li>
-<% } else if (item.items && item.text) { %>  
+<% } else if (item.contents && item.text) { %>  
   <% sectionId = (item.text + "-collapse").toLowerCase().replace(/\s/g,'') %>
   <% paddingCss = "ps-3" %>
   <% isCollapsed = collapse <= depth  && !item.expanded %>
@@ -30,7 +30,7 @@
       
       <div class="collapse  <%- isCollapsed ? "" : "show" %>" id="<%- sectionId %>">
         <ul class="list-unstyled <%- paddingCss %>">
-        <% item.items.forEach(subItem => { %>
+        <% item.contents.forEach(subItem => { %>
           <% partial('sidebaritem.ejs', { item: subItem, depth: depth + 1, collapse: collapse, borderColor: borderColor, textStyleCss: textStyleCss }) %>
          <% }) %>
         </ul>

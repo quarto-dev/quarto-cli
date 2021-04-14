@@ -5,6 +5,8 @@
 *
 */
 
+import { existsSync } from "fs/exists.ts";
+
 import { basename, dirname, join, relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
@@ -17,7 +19,7 @@ import { renderEjs } from "../../../core/ejs.ts";
 
 import { pandocAutoIdentifier } from "../../../core/pandoc/pandoc-id.ts";
 
-import { kOutputFile, kTitle, kTocTitle } from "../../../config/constants.ts";
+import { kTocTitle } from "../../../config/constants.ts";
 import {
   Format,
   FormatDependency,
@@ -41,7 +43,7 @@ import {
 } from "../../../format/html/format-html.ts";
 
 import { ProjectContext, projectOffset } from "../../project-context.ts";
-import { inputTargetIndex, resolveInputTarget } from "../../project-index.ts";
+import { resolveInputTarget } from "../../project-index.ts";
 
 import {
   websiteSearch,
@@ -84,7 +86,7 @@ interface Sidebar {
   type?: "light" | "dark";
   search?: boolean | string;
   [kCollapseLevel]?: number;
-  items: SidebarItem[];
+  contents: SidebarItem[];
   tools: SidebarTool[];
   style: "anchored" | "floating";
   pinned?: boolean;
@@ -92,8 +94,9 @@ interface Sidebar {
 
 interface SidebarItem {
   href?: string;
-  items?: SidebarItem[];
   text?: string;
+  section?: string;
+  contents?: SidebarItem[];
   [kAriaLabel]?: string;
   expanded?: boolean;
   active?: boolean;
@@ -103,7 +106,7 @@ interface SidebarTool {
   icon: string;
   text?: string;
   href?: string;
-  items?: SidebarToolItem[];
+  menu?: SidebarToolItem[];
 }
 
 interface SidebarToolItem {
@@ -199,9 +202,8 @@ export function websiteNavigationExtras(
   flags: PandocFlags,
   format: Format,
 ): FormatExtras {
-  // find the href and offset for this input
+  // find the relative path for this input
   const inputRelative = relative(project.dir, input);
-  const offset = projectOffset(project, input);
 
   // determine dependencies (always include baseline nav dependency)
   const dependencies: FormatDependency[] = [
@@ -344,7 +346,7 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
 
   sidebar.pinned = sidebar.pinned !== undefined ? !!sidebar.pinned : false;
 
-  await resolveSidebarItems(project, sidebar.items);
+  await resolveSidebarItems(project, sidebar.contents);
   await resolveSidebarTools(project, sidebar.tools);
 
   return sidebar;
@@ -355,11 +357,22 @@ async function resolveSidebarItems(
   items: SidebarItem[],
 ) {
   for (let i = 0; i < items.length; i++) {
-    if (Object.keys(items[i]).includes("items")) {
-      const subItems = items[i].items || [];
+    if (Object.keys(items[i]).includes("contents")) {
+      // alias item and subitems
+      const item = items[i];
+      const subItems = items[i].contents || [];
+
+      // section is a special key that can provide either text or href
+      // for an item with 'contents'
+      if (item.section) {
+        if (existsSync(join(project.dir, item.section))) {
+          item.href = item.section;
+        } else {
+          item.text = item.section;
+        }
+      }
 
       // If this item has an href, resolve that
-      const item = items[i];
       if (item.href) {
         items[i] = await resolveItem(project, item.href, item);
       }
@@ -386,8 +399,8 @@ async function resolveSidebarItem(project: ProjectContext, item: SidebarItem) {
     ) as SidebarItem;
   }
 
-  if (item.items) {
-    await resolveSidebarItems(project, item.items);
+  if (item.contents) {
+    await resolveSidebarItems(project, item.contents);
     return item;
   } else {
     return item;
@@ -400,8 +413,8 @@ async function resolveSidebarTools(
 ) {
   if (tools) {
     for (let i = 0; i < tools.length; i++) {
-      if (Object.keys(tools[i]).includes("items")) {
-        const items = tools[i].items || [];
+      if (Object.keys(tools[i]).includes("menu")) {
+        const items = tools[i].menu || [];
         for (let i = 0; i < items.length; i++) {
           const toolItem = items[i];
           if (toolItem.href) {
@@ -432,7 +445,7 @@ function sidebarForHref(href: string) {
     return navigation.sidebars[0];
   } else {
     for (const sidebar of navigation.sidebars) {
-      if (containsHref(href, sidebar.items)) {
+      if (containsHref(href, sidebar.contents)) {
         return sidebar;
       }
     }
@@ -441,8 +454,8 @@ function sidebarForHref(href: string) {
 
 function containsHref(href: string, items: SidebarItem[]) {
   for (let i = 0; i < items.length; i++) {
-    if (Object.keys(items[i]).includes("items")) {
-      const subItems = items[i].items || [];
+    if (Object.keys(items[i]).includes("contents")) {
+      const subItems = items[i].contents || [];
       const subItemsHasHref = containsHref(href, subItems);
       if (subItemsHasHref) {
         return true;
@@ -458,14 +471,14 @@ function containsHref(href: string, items: SidebarItem[]) {
 
 function expandedSidebar(href: string, sidebar?: Sidebar): Sidebar | undefined {
   if (sidebar) {
-    // Walk through items and mark any items as 'expanded' if they
+    // Walk through menu and mark any items as 'expanded' if they
     // contain the item with this href
     const resolveExpandedItems = (href: string, items: SidebarItem[]) => {
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
         item.active = item.href === href;
-        if (Object.keys(item).includes("items")) {
-          if (resolveExpandedItems(href, item.items || [])) {
+        if (Object.keys(item).includes("contents")) {
+          if (resolveExpandedItems(href, item.contents || [])) {
             item.expanded = true;
             return true;
           }
@@ -478,7 +491,7 @@ function expandedSidebar(href: string, sidebar?: Sidebar): Sidebar | undefined {
 
     // Copy and return the sidebar with expanded marked
     const expandedSidebar = ld.cloneDeep(sidebar);
-    resolveExpandedItems(href, expandedSidebar.items);
+    resolveExpandedItems(href, expandedSidebar.contents);
     return expandedSidebar;
   }
 }
@@ -503,10 +516,10 @@ async function navbarEjsData(
     pinned: navbar.pinned !== undefined ? !!navbar.pinned : false,
   };
 
-  // normalize nav items
+  // normalize nav contents
   if (navbar.left) {
     if (!Array.isArray(navbar.left)) {
-      throw new Error("navbar 'left' must be an array of menu items");
+      throw new Error("navbar 'left' must be an array of nav items");
     }
     data.left = new Array<NavbarItem>();
     for (let i = 0; i < navbar.left.length; i++) {
@@ -515,7 +528,7 @@ async function navbarEjsData(
   }
   if (navbar.right) {
     if (!Array.isArray(navbar.right)) {
-      throw new Error("navbar 'right' must be an array of menu items");
+      throw new Error("navbar 'right' must be an array of nav items");
     }
     data.right = new Array<NavbarItem>();
     for (let i = 0; i < navbar.right.length; i++) {
@@ -734,8 +747,8 @@ function resolveNavReference(href: string) {
   if (match) {
     const id = match[1];
     const sidebar = navigation.sidebars.find((sidebar) => sidebar.id === id);
-    if (sidebar && sidebar.items?.length) {
-      const item = findFirstItem(sidebar.items[0]);
+    if (sidebar && sidebar.contents?.length) {
+      const item = findFirstItem(sidebar.contents[0]);
       if (item) {
         return {
           href: item.href!,
@@ -748,8 +761,8 @@ function resolveNavReference(href: string) {
 }
 
 function findFirstItem(item: SidebarItem): SidebarItem | undefined {
-  if (item.items?.length) {
-    return findFirstItem(item.items[0]);
+  if (item.contents?.length) {
+    return findFirstItem(item.contents[0]);
   } else if (item.href) {
     return item;
   } else {
