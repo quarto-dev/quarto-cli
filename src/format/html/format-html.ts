@@ -44,6 +44,7 @@ export const kAnchorSections = "anchor-sections";
 export const kPageLayout = "page-layout";
 export const kHoverCitations = "hover-citations";
 export const kHoverFootnotes = "hover-footnotes";
+export const kComments = "comments";
 export const kHypothesis = "hypothesis";
 export const kUtterances = "utterances";
 
@@ -123,10 +124,16 @@ function htmlFormatExtras(format: Format): FormatExtras {
   const bootstrap = formatHasBootstrap(format);
   const sassBundles: SassBundle[] = [];
 
-  const options: Record<string, unknown> = {
-    [kHypothesis]: format.metadata[kHypothesis] || false,
-    [kUtterances]: format.metadata[kUtterances] || false,
-  };
+  const options: Record<string, unknown> = format.metadata[kComments]
+    ? {
+      [kHypothesis]:
+        (format.metadata[kComments] as Record<string, unknown>)[kHypothesis] ||
+        false,
+      [kUtterances]:
+        (format.metadata[kComments] as Record<string, unknown>)[kUtterances] ||
+        false,
+    }
+    : {};
   if (bootstrap) {
     options.copyCode = format.metadata[kCodeCopy] !== false;
     options.anchors = format.metadata[kAnchorSections] !== false;
