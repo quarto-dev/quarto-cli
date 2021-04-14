@@ -66,11 +66,15 @@ export async function installQuartoLatexmk(
   if (installPath) {
     config.log.info("Updating install script deno path");
     const installTxt = Deno.readTextFileSync(installPath);
-    const finalTxt = installTxt.replace(
-      /deno /g,
-      join(config.directoryInfo.bin, "deno") + " ",
-    );
-    console.log(finalTxt);
+    const finalTxt = Deno.build.os === "windows"
+      ? installTxt.replace(
+        /deno.exe /g,
+        join(config.directoryInfo.bin, "deno.exe") + " ",
+      )
+      : installTxt.replace(
+        /deno /g,
+        join(config.directoryInfo.bin, "deno") + " ",
+      );
     Deno.writeTextFileSync(
       installPath,
       finalTxt,
