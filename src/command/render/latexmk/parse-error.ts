@@ -9,6 +9,8 @@ import { basename, join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { ld } from "lodash/mod.ts";
 
+import { lines } from "../../../core/text.ts";
+
 // The missing font log file name
 export const kMissingFontLog = "missfont.log";
 
@@ -186,8 +188,7 @@ function findMissingPackages(logFileText: string): string[] {
 
 function findInMissingFontLog(missFontLogText: string): string[] {
   const toInstall: string[] = [];
-  const lines = missFontLogText.split(/\r?\n/);
-  lines.forEach((line) => {
+  lines(missFontLogText).forEach((line) => {
     // Trim the line
     line = line.trim();
 

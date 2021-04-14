@@ -14,6 +14,7 @@ import { execProcess } from "../core/process.ts";
 import { ProjectContext } from "./project-context.ts";
 
 import { kQuartoScratch } from "./project-scratch.ts";
+import { lines } from "../core/text.ts";
 
 export const kGitignoreEntries = [
   `${kQuartoScratch}/`,
@@ -24,7 +25,7 @@ export async function ensureGitignore(project: ProjectContext) {
   // if .gitignore exists, then ensure it has the requisite entries
   const gitignorePath = join(project.dir, ".gitignore");
   if (await exists(gitignorePath)) {
-    const gitignore = await Deno.readTextFileSync(gitignorePath).split(/\r?\n/)
+    const gitignore = lines(Deno.readTextFileSync(gitignorePath))
       .map((line) => line.trim());
     const requiredEntries: string[] = [];
     for (const requiredEntry of kGitignoreEntries) {

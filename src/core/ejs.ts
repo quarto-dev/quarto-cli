@@ -8,6 +8,7 @@
 import { dirname, join } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
+import { lines } from "./text.ts";
 
 export type EjsData = {
   [key: string]: unknown;
@@ -22,9 +23,7 @@ export function renderEjs(
   const template = compileTemplate(file, removeEmptyLines);
 
   // render it, passing an include function for partials
-  return template(data)
-    .trimLeft()
-    .split(/\r?\n/)
+  return lines(template(data).trimLeft())
     .filter((line) => !removeEmptyLines || (line.trim().length > 0))
     .join("\n") + "\n";
 }
