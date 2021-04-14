@@ -9,9 +9,6 @@ TODO: also try output-file: index.html
 
 TODO: Floating TOC with toc-depth: 4 - looks meh
 
-TODO: review split("\n and consider replacing with split(/\r?\n/)
-TODO: make readlines function that takes a buffer and use that to read anywhere we're using that regex
-
 TODO: Need to be sure all updates to tinytex are in quarto-latexmk
 TODO: Need to provide version info for quarto-latexmk
 
