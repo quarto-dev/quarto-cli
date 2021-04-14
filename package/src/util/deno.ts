@@ -76,9 +76,26 @@ export async function install(
   denoBundleCmd.push(input);
   const p = Deno.run({
     cmd: denoBundleCmd,
+    stdout: "piped",
   });
   const status = await p.status();
   if (status.code !== 0) {
     throw Error(`Failure to install ${input}`);
   }
+  const output = await p.output();
+
+  if (output) {
+    // Try to read the installation path and return it
+    const outputTxt = new TextDecoder().decode(output);
+
+    // Forward the output
+    configuration.log.info(outputTxt);
+
+    const match = outputTxt.match(/Successfully installed.*\n(.*)/);
+    if (match) {
+      return match[1];
+    }
+  }
+
+  return undefined;
 }

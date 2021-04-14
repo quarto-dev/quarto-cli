@@ -56,7 +56,26 @@ const kFlags = [
 export async function installQuartoLatexmk(
   config: Configuration,
 ) {
-  await install(entryPointPath(config), [...kFlags], config);
+  const installPath = await install(
+    entryPointPath(config),
+    ["-f", ...kFlags],
+    config,
+  );
+
+  // Fix up the path to deno
+  if (installPath) {
+    config.log.info("Updating install script deno path");
+    const installTxt = Deno.readTextFileSync(installPath);
+    const finalTxt = installTxt.replace(
+      /deno /g,
+      join(config.directoryInfo.bin, "deno") + " ",
+    );
+    console.log(finalTxt);
+    Deno.writeTextFileSync(
+      installPath,
+      finalTxt,
+    );
+  }
 }
 
 export async function compileQuartoLatexmk(
