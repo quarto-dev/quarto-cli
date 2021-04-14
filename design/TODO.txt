@@ -30,37 +30,7 @@ documentclass: book
 TODO: Parts
 TODO: Appendixes (uses letter numbering by default)
 
-outline:
- 
-  - index.Rmd
-  
-  - introduction.Rmd
-  
-  - section: "Getting Started"
-    contents:
-      - basic-app.Rmd
-      - basic-ui.Rmd
-      - basic-reactivity.Rmd
-      - basic-case-study.Rmd
-    
-  - section: action.Rmd
-    contents:
-      - action-workflow.Rmd
-      - action-layout.Rmd
-      - action-graphics.Rmd
-      - action-feedback.Rmd
-      - action-transfer.Rmd
-      - action-dynamic.Rmd
-      - action-bookmark.Rmd
-      - action-tidy.Rmd
- 
-  - section: appendix
-    contents:
-      - installation.Rmd
-      - examples.Rmd
-      - tools.Rmd
-      
-
+We could support url or path rather than href
 
 TODO: centralize error cleanup and consider caching
 
