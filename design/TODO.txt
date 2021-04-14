@@ -16,6 +16,7 @@ TODO: Need to provide version info for quarto-latexmk
 Books
 =========================================================================
 
+TODO: for books do we need to force the format from the project level?
 
 Some things automatically set behind the scenes:
 toc: true
@@ -135,10 +136,7 @@ TODO: ensure floating centers on page properly
 
 LOWER PRIORITY BACKGROUND WORK
 
-commenting
-==========================================
-TODO: Consider higher abstraction level for commenting options
-TODO: Consider Yammer support
+
 
 callouts
 ==========================================
