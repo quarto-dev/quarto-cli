@@ -10,7 +10,13 @@ import { resourcePath } from "../../../core/resources.ts";
 
 import { ProjectCreate, ProjectType } from "../project-types.ts";
 
-import { bookRenderList, kContents } from "./book-render.ts";
+import { websiteProjectType } from "../website/website.ts";
+
+import {
+  bookPandocRenderer,
+  bookRenderList,
+  kContents,
+} from "./book-render.ts";
 
 export const bookProjectType: ProjectType = {
   type: "book",
@@ -52,25 +58,16 @@ export const bookProjectType: ProjectType = {
     };
   },
 
-  render: bookRenderList,
-
   libDir: "site_libs",
   outputDir: "_book",
 
-  metadataFields: () => [kContents],
+  formatLibDirs: websiteProjectType.formatLibDirs,
 
-  resourceIgnoreFields: () => [kContents],
+  metadataFields: () => [...websiteProjectType.metadataFields!(), kContents],
 
-  pandocRenderer: () => {
-    return {
-      onRender: (_file: ExecutedFile) => {
-        return Promise.resolve();
-      },
-      onComplete: () => {
-        return Promise.resolve({});
-      },
-      onError: () => {
-      },
-    };
-  },
+  resourceIgnoreFields:
+    () => [...websiteProjectType.resourceIgnoreFields!(), kContents],
+
+  render: bookRenderList,
+  pandocRenderer: bookPandocRenderer,
 };

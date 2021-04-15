@@ -62,12 +62,16 @@ export const websiteProjectType: ProjectType = {
   libDir: "site_libs",
   outputDir: "_site",
 
+  formatLibDirs:
+    () => ["bootstrap", "quarto-nav", "quarto-search", "quarto-html"],
+
+  metadataFields: () => [kNavbar, kSidebar, kBaseUrl],
+
+  resourceIgnoreFields: () => [kNavbar, kSidebar, kBaseUrl],
+
   preRender: async (context: ProjectContext) => {
     await initWebsiteNavigation(context);
   },
-
-  formatLibDirs:
-    () => ["bootstrap", "quarto-nav", "quarto-search", "quarto-html"],
 
   formatExtras: (
     project: ProjectContext,
@@ -106,10 +110,6 @@ export const websiteProjectType: ProjectType = {
 
     return Promise.resolve(extras);
   },
-
-  metadataFields: () => [kNavbar, kSidebar, kBaseUrl],
-
-  resourceIgnoreFields: () => [kNavbar, kSidebar],
 
   postRender: async (
     context: ProjectContext,

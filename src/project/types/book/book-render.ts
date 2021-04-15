@@ -14,9 +14,28 @@ import { Metadata } from "../../../config/metadata.ts";
 
 import { fileExecutionEngine } from "../../../execute/engine.ts";
 
+import { ExecutedFile } from "../../../command/render/render.ts";
+
 import { normalizeSidebarItem, SidebarItem } from "../../project-config.ts";
 
 export const kContents = "contents";
+
+export function bookPandocRenderer() {
+  // accumulate executed files
+  const files: ExecutedFile[] = [];
+
+  return {
+    onRender: (file: ExecutedFile) => {
+      files.push(file);
+      return Promise.resolve();
+    },
+    onComplete: () => {
+      return Promise.resolve({});
+    },
+    onError: () => {
+    },
+  };
+}
 
 export function bookRenderList(projectDir: string, metadata: Metadata) {
   if (metadata[kContents]) {
