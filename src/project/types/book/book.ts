@@ -5,7 +5,6 @@
 *
 */
 import { join } from "path/mod.ts";
-import { ExecutedFile } from "../../../command/render/render.ts";
 import { resourcePath } from "../../../core/resources.ts";
 
 import { ProjectCreate, ProjectType } from "../project-types.ts";
@@ -62,6 +61,7 @@ export const bookProjectType: ProjectType = {
   outputDir: "_book",
 
   formatLibDirs: websiteProjectType.formatLibDirs,
+  projectFormatsOnly: true,
 
   metadataFields: () => [...websiteProjectType.metadataFields!(), kContents],
 

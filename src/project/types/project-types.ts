@@ -9,7 +9,7 @@ import { PandocFlags } from "../../config/flags.ts";
 import { Format, FormatExtras } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
 
-import { PandocRenderer } from "../../command/render/render.ts";
+import { PandocRenderer, RenderOptions } from "../../command/render/render.ts";
 
 import { ProjectContext } from "../project-context.ts";
 
@@ -30,10 +30,14 @@ export interface ProjectType {
     flags: PandocFlags,
     format: Format,
   ) => Promise<FormatExtras>;
+  projectFormatsOnly?: boolean;
   metadataFields?: () => string[];
   resourceIgnoreFields?: () => string[];
   preRender?: (context: ProjectContext) => Promise<void>;
-  pandocRenderer?: () => PandocRenderer;
+  pandocRenderer?: (
+    options: RenderOptions,
+    context?: ProjectContext,
+  ) => PandocRenderer;
   postRender?: (
     context: ProjectContext,
     incremental: boolean,

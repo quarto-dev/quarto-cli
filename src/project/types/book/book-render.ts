@@ -14,13 +14,16 @@ import { Metadata } from "../../../config/metadata.ts";
 
 import { fileExecutionEngine } from "../../../execute/engine.ts";
 
-import { ExecutedFile } from "../../../command/render/render.ts";
+import { ExecutedFile, RenderOptions } from "../../../command/render/render.ts";
 
 import { normalizeSidebarItem, SidebarItem } from "../../project-config.ts";
-
+import { ProjectContext } from "../../project-context.ts";
 export const kContents = "contents";
 
-export function bookPandocRenderer() {
+export function bookPandocRenderer(
+  options: RenderOptions,
+  project?: ProjectContext,
+) {
   // accumulate executed files
   const files: ExecutedFile[] = [];
 
@@ -33,6 +36,7 @@ export function bookPandocRenderer() {
       return Promise.resolve({});
     },
     onError: () => {
+      // TODO: We can probably clean up files_dirs here
     },
   };
 }

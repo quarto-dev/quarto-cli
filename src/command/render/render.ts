@@ -76,6 +76,7 @@ import {
   projectMetadataForInputFile,
   projectOffset,
 } from "../../project/project-context.ts";
+import { projectType } from "../../project/types/project-types.ts";
 
 import { renderProject } from "./project.ts";
 import {
@@ -199,7 +200,7 @@ export async function renderFiles(
   alwaysExecute?: boolean,
 ): Promise<RenderFilesResult> {
   // provide default renderer
-  pandocRenderer = pandocRenderer || defaultPandocRenderer();
+  pandocRenderer = pandocRenderer || defaultPandocRenderer(options, project);
 
   try {
     // make a copy of options so we don't mutate caller context
@@ -669,7 +670,10 @@ export function renderResultFinalOutput(
 }
 
 // default pandoc renderer immediately renders each execution result
-function defaultPandocRenderer(): PandocRenderer {
+function defaultPandocRenderer(
+  _options: RenderOptions,
+  _project?: ProjectContext,
+): PandocRenderer {
   const results: Record<string, RenderedFile[]> = {};
 
   return {
@@ -829,9 +833,12 @@ async function resolveFormats(
   const inputMetadata = await engine.metadata(target.input);
 
   // determine order of formats
-  const formats = ld.uniq(
-    formatKeys(inputMetadata).concat(formatKeys(projMetadata)),
-  );
+  const projType = projectType(project?.metadata?.project?.type);
+  const formats = projType.projectFormatsOnly
+    ? formatKeys(projMetadata)
+    : ld.uniq(
+      formatKeys(inputMetadata).concat(formatKeys(projMetadata)),
+    );
 
   // resolve formats for proj and input
   const projFormats = resolveFormatsFromMetadata(

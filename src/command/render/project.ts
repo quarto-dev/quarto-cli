@@ -109,7 +109,9 @@ export async function renderProject(
     const fileResults = await renderFiles(
       files,
       options,
-      projType?.pandocRenderer ? projType.pandocRenderer() : undefined,
+      projType?.pandocRenderer
+        ? projType.pandocRenderer(options, context)
+        : undefined,
       context,
       alwaysExecute,
     );
