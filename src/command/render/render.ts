@@ -182,7 +182,7 @@ export interface RenderedFile {
 }
 
 export interface PandocRenderer {
-  onRender: (file: ExecutedFile) => Promise<void>;
+  onRender: (format: string, file: ExecutedFile) => Promise<void>;
   onComplete: () => Promise<Record<string, RenderedFile[]>>;
   onError: () => void;
 }
@@ -249,7 +249,9 @@ export async function renderFiles(
         fileOptions.pandocArgs = removePandocToArg(fileOptions.pandocArgs);
       }
 
-      for (const context of Object.values(contexts)) {
+      for (const format of Object.keys(contexts)) {
+        const context = contexts[format];
+
         // get output recipe
         const recipe = await outputRecipe(context);
 
@@ -262,7 +264,11 @@ export async function renderFiles(
         );
 
         // callback
-        await pandocRenderer.onRender({ context, recipe, executeResult });
+        await pandocRenderer.onRender(format, {
+          context,
+          recipe,
+          executeResult,
+        });
       }
     }
 
@@ -677,7 +683,7 @@ function defaultPandocRenderer(
   const results: Record<string, RenderedFile[]> = {};
 
   return {
-    onRender: async (executedFile: ExecutedFile) => {
+    onRender: async (_format: string, executedFile: ExecutedFile) => {
       const source = executedFile.context.target.source;
       results[source] = results[source] || [];
       results[source].push(await renderPandoc(executedFile));
@@ -822,6 +828,19 @@ export function resolveFormatsFromMetadata(
   return resolved;
 }
 
+// determine all target formats (use original input and
+// project metadata to preserve order of keys and to
+// prefer input-level format keys to project-level)
+export function formatKeys(metadata: Metadata): string[] {
+  if (typeof metadata[kMetadataFormat] === "string") {
+    return [metadata[kMetadataFormat] as string];
+  } else if (metadata[kMetadataFormat] instanceof Object) {
+    return Object.keys(metadata[kMetadataFormat] as Metadata);
+  } else {
+    return [];
+  }
+}
+
 async function resolveFormats(
   target: ExecutionTarget,
   engine: ExecutionEngine,
@@ -883,19 +902,6 @@ async function resolveFormats(
   });
 
   return mergedFormats;
-}
-
-// determine all target formats (use original input and
-// project metadata to preserve order of keys and to
-// prefer input-level format keys to project-level)
-function formatKeys(metadata: Metadata): string[] {
-  if (typeof metadata[kMetadataFormat] === "string") {
-    return [metadata[kMetadataFormat] as string];
-  } else if (metadata[kMetadataFormat] instanceof Object) {
-    return Object.keys(metadata[kMetadataFormat] as Metadata);
-  } else {
-    return [];
-  }
 }
 
 function mergeQuartoConfigs(

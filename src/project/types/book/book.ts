@@ -60,8 +60,9 @@ export const bookProjectType: ProjectType = {
   libDir: "site_libs",
   outputDir: "_book",
 
-  formatLibDirs: websiteProjectType.formatLibDirs,
   projectFormatsOnly: true,
+
+  formatLibDirs: websiteProjectType.formatLibDirs,
 
   metadataFields: () => [...websiteProjectType.metadataFields!(), kContents],
 

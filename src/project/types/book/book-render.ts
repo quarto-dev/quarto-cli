@@ -14,25 +14,41 @@ import { Metadata } from "../../../config/metadata.ts";
 
 import { fileExecutionEngine } from "../../../execute/engine.ts";
 
-import { ExecutedFile, RenderOptions } from "../../../command/render/render.ts";
+import {
+  ExecutedFile,
+  formatKeys,
+  RenderOptions,
+} from "../../../command/render/render.ts";
 
 import { normalizeSidebarItem, SidebarItem } from "../../project-config.ts";
 import { ProjectContext } from "../../project-context.ts";
 export const kContents = "contents";
 
 export function bookPandocRenderer(
-  options: RenderOptions,
+  _options: RenderOptions,
   project?: ProjectContext,
 ) {
+  // project always exists
+  project = project!;
+
+  // determine target formats and keep a list of executes files for each
+  const formats = formatKeys(project.metadata || {});
+  if (formats.length === 0) {
+    formats.push("html");
+  }
+
   // accumulate executed files
-  const files: ExecutedFile[] = [];
+  const files: Record<string, ExecutedFile[]> = {};
+  formats.forEach((format) => files[format] = []);
 
   return {
-    onRender: (file: ExecutedFile) => {
-      files.push(file);
+    onRender: (format: string, file: ExecutedFile) => {
+      files[format].push(file);
       return Promise.resolve();
     },
     onComplete: () => {
+      // determine which formats actually have executed files
+
       return Promise.resolve({});
     },
     onError: () => {
