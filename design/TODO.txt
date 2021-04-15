@@ -1,8 +1,6 @@
 
 
-TODO: use _freeze directory to not cruft up main dir
 
-TODO: _freeze shouldn't contain .ipynb
 
 TODO: try out article-per-directory w/ "page bundles" (auto-resolve directories to index.html)
 TODO: also try output-file: index.html
