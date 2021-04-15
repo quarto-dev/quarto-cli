@@ -1,5 +1,4 @@
 body {
-  max-width: $max-width;
   @if variable-exists(margin-top) {
     margin-top: $margin-top;
   }
@@ -12,6 +11,10 @@ body {
   @if variable-exists(margin-right) {
     margin-right: $margin-right;
   }
+}
+
+div#quarto-content {
+  max-width: $max-width;
 }
 
 main {
