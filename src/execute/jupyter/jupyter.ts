@@ -292,6 +292,16 @@ export const jupyterEngine: ExecutionEngine = {
     };
   },
 
+  executeTargetSkipped: (target: ExecutionTarget, format: Format) => {
+    // remove transient notebook if appropriate
+    const data = target.data as JupyterTargetData;
+    if (data.transient) {
+      if (!format.render[kKeepIpynb]) {
+        Deno.removeSync(target.input);
+      }
+    }
+  },
+
   dependencies: (options: DependenciesOptions) => {
     const includes: PandocIncludes = {};
     if (options.dependencies) {

@@ -5,7 +5,14 @@
 *
 */
 
-import { dirname, isAbsolute, join, relative } from "path/mod.ts";
+import {
+  basename,
+  dirname,
+  extname,
+  isAbsolute,
+  join,
+  relative,
+} from "path/mod.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { createHash } from "hash/mod.ts";
 
@@ -13,7 +20,7 @@ import { ld } from "lodash/mod.ts";
 
 import { inputFilesDir } from "../../core/render.ts";
 import { sessionTempFile } from "../../core/temp.ts";
-import { copy, removeIfExists } from "../../core/path.ts";
+import { copy, removeIfEmptyDir, removeIfExists } from "../../core/path.ts";
 
 import {
   kIncludeAfterBody,
@@ -23,10 +30,11 @@ import {
 
 import { ExecuteResult } from "../../execute/engine.ts";
 
-import { ProjectContext } from "../../project/project-context.ts";
+import { kLibDir, ProjectContext } from "../../project/project-context.ts";
 import { projectScratchPath } from "../../project/project-scratch.ts";
 
-const kFreezeSubDir = "freeze";
+export const kProjectFreezeDir = "_freeze";
+export const kFreezeExecuteResults = "results";
 
 export function freezeExecuteResult(
   input: string,
@@ -59,10 +67,14 @@ export function freezeExecuteResult(
   const hash = freezeInputHash(input);
 
   // write the freeze json
+  const freezeJsonFile = freezeResultFile(input, output, true);
   Deno.writeTextFileSync(
-    freezeResultFile(input, output, true),
+    freezeJsonFile,
     JSON.stringify({ hash, result }, undefined, 2),
   );
+
+  // return the file
+  return freezeJsonFile;
 }
 
 export function defrostExecuteResult(
@@ -107,23 +119,10 @@ export function defrostExecuteResult(
   }
 }
 
-export function removeFreezeResults(filesDir: string) {
-  const freezeDir = join(filesDir, kFreezeSubDir);
-  removeIfExists(freezeDir);
-  if (existsSync(filesDir)) {
-    let empty = true;
-    for (const _entry of Deno.readDirSync(filesDir)) {
-      empty = false;
-      break;
-    }
-    if (empty) {
-      Deno.removeSync(filesDir, { recursive: true });
-    }
-  }
-}
-
-export function projectFreezerDir(dir: string) {
-  const freezeDir = projectScratchPath(dir, kFreezeSubDir);
+export function projectFreezerDir(dir: string, hidden: boolean) {
+  const freezeDir = hidden
+    ? projectScratchPath(dir, kProjectFreezeDir)
+    : join(dir, kProjectFreezeDir);
   ensureDirSync(freezeDir);
   return Deno.realPathSync(freezeDir);
 }
@@ -131,24 +130,105 @@ export function projectFreezerDir(dir: string) {
 export function copyToProjectFreezer(
   project: ProjectContext,
   file: string,
-  incremental = false,
+  hidden: boolean,
+  incremental: boolean,
 ) {
-  const freezerDir = projectFreezerDir(project.dir);
+  const freezerDir = projectFreezerDir(project.dir, hidden);
   const srcFilesDir = join(project.dir, file);
-  const destFilesDir = join(freezerDir, file);
+  const destFilesDir = join(freezerDir, asFreezerDir(file));
   copy(srcFilesDir, destFilesDir, incremental);
 }
 
 export function copyFromProjectFreezer(
   project: ProjectContext,
   file: string,
-  incremental = false,
+  hidden: boolean,
+  incremental: boolean,
 ) {
-  const freezerDir = projectFreezerDir(project.dir);
-  const srcFilesDir = join(freezerDir, file);
+  const freezerDir = projectFreezerDir(project.dir, hidden);
+  const srcFilesDir = join(
+    freezerDir,
+    asFreezerDir(file),
+  );
   const destFilesDir = join(project.dir, file);
   if (existsSync(srcFilesDir)) {
     copy(srcFilesDir, destFilesDir, incremental);
+  }
+}
+
+export function pruneProjectFreezerDir(
+  project: ProjectContext,
+  dir: string,
+  files: string[],
+  hidden: boolean,
+) {
+  const freezerDir = projectFreezerDir(project.dir, hidden);
+  files.map((file) => removeIfExists(join(freezerDir, dir, file)));
+  removeIfEmptyDir(join(freezerDir, dir));
+}
+
+export function pruneProjectFreezer(project: ProjectContext, hidden: boolean) {
+  const freezerDir = projectFreezerDir(project.dir, hidden);
+  const libDir = project.metadata?.project?.[kLibDir];
+  if (libDir) {
+    let remove = true;
+    for (const entry of Deno.readDirSync(freezerDir)) {
+      if (entry.isFile || entry.name !== libDir) {
+        remove = false;
+        break;
+      }
+    }
+    if (remove) {
+      removeIfExists(freezerDir);
+    }
+  } else {
+    removeIfEmptyDir(freezerDir);
+  }
+}
+
+export function freezerFreezeFile(project: ProjectContext, freezeFile: string) {
+  const filesDir = asFreezerDir(dirname(dirname(freezeFile)));
+  return join(
+    project.dir,
+    kProjectFreezeDir,
+    filesDir,
+    kFreezeExecuteResults,
+    basename(freezeFile),
+  );
+}
+
+export function freezerFigsDir(
+  project: ProjectContext,
+  filesDir: string,
+  figsDir: string,
+) {
+  return join(
+    project.dir,
+    kProjectFreezeDir,
+    asFreezerDir(filesDir),
+    figsDir,
+  );
+}
+
+export function freezeResultFile(
+  input: string,
+  output: string,
+  ensureDir = false,
+) {
+  const filesDir = join(dirname(input), inputFilesDir(input));
+  const freezeDir = join(filesDir, kFreezeExecuteResults);
+  if (ensureDir) {
+    ensureDirSync(freezeDir);
+  }
+
+  return join(freezeDir, extname(output).slice(1) + ".json");
+}
+
+export function removeFreezeResults(filesDir: string) {
+  const freezeDir = join(filesDir, kFreezeExecuteResults);
+  removeIfExists(freezeDir);
+  if (existsSync(filesDir)) {
+    removeIfEmptyDir(filesDir);
   }
 }
 
@@ -156,16 +236,7 @@ function freezeInputHash(input: string) {
   return createHash("md5").update(Deno.readTextFileSync(input)).toString();
 }
 
-function freezeResultFile(
-  input: string,
-  output: string,
-  ensureDir = false,
-) {
-  const filesDir = join(dirname(input), inputFilesDir(input));
-  const freezeDir = join(filesDir, kFreezeSubDir);
-  if (ensureDir) {
-    ensureDirSync(freezeDir);
-  }
-
-  return join(freezeDir, output + ".json");
+// don't use _files suffix in freezer
+function asFreezerDir(dir: string) {
+  return dir.replace(/_files$/, "");
 }

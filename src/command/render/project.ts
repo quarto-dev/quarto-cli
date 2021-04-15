@@ -13,7 +13,7 @@ import { ld } from "lodash/mod.ts";
 
 import { resolvePathGlobs } from "../../core/path.ts";
 
-import { kFreeze, kKeepMd } from "../../config/constants.ts";
+import { kKeepMd } from "../../config/constants.ts";
 
 import {
   kExecuteDir,
@@ -27,11 +27,11 @@ import { copyResourceFile } from "../../project/project-resources.ts";
 import { ensureGitignore } from "../../project/project-gitignore.ts";
 
 import { renderFiles, RenderOptions, RenderResult } from "./render.ts";
-
 import {
-  copyFromProjectFreezer,
   copyToProjectFreezer,
-  removeFreezeResults,
+  kProjectFreezeDir,
+  pruneProjectFreezer,
+  pruneProjectFreezerDir,
 } from "./freeze.ts";
 
 export async function renderProject(
@@ -99,12 +99,8 @@ export async function renderProject(
     ensureDirSync(outputDirAbsolute);
   }
 
-  // copy the site_libs dir from the freezer if requested
-  // (e.g. when running dev server)
+  // track the lib dir
   const libDir = context.metadata?.project?.[kLibDir];
-  if (options.useFreezer && libDir) {
-    copyFromProjectFreezer(context, libDir, true);
-  }
 
   // set QUARTO_PROJECT_DIR
   Deno.env.set("QUARTO_PROJECT_DIR", projDir);
@@ -138,16 +134,6 @@ export async function renderProject(
       const moveDir = relocateDir;
       const copyDir = (dir: string) => relocateDir(dir, true);
 
-      // copy files dirs to freezer (we always do this for future calls that might specify useFreezer)
-      const filesDirs = ld.uniq(
-        Object.keys(fileResults.files).flatMap((format) => {
-          return fileResults.files[format].flatMap((result) => result.filesDir);
-        }),
-      ).filter((dir) => !!dir);
-      filesDirs.forEach((filesDir) => {
-        copyToProjectFreezer(context, filesDir);
-      });
-
       // track whether we need to keep the lib dir around
       let keepLibsDir = false;
 
@@ -156,17 +142,13 @@ export async function renderProject(
         const results = fileResults.files[format];
 
         for (const result of results) {
-          // copy the result to the freezer
-          copyToProjectFreezer(context, result.file);
-
           // move the result to the output dir
           const outputFile = join(outputDirAbsolute, result.file);
           ensureDirSync(dirname(outputFile));
           Deno.renameSync(join(projDir, result.file), outputFile);
 
           // files dir
-          const keepFiles = result.format.render[kKeepMd] ||
-            result.format.execution[kFreeze] !== false;
+          const keepFiles = !!result.format.render[kKeepMd];
           keepLibsDir = keepLibsDir || keepFiles;
           if (result.filesDir) {
             if (keepFiles) {
@@ -174,9 +156,6 @@ export async function renderProject(
             } else {
               moveDir(result.filesDir);
             }
-            // remove the 'freeze' dir from the output directory (that's
-            // a development/build time construct)
-            removeFreezeResults(join(outputDirAbsolute, result.filesDir));
           }
 
           // resource files
@@ -236,8 +215,28 @@ export async function renderProject(
           // if this is an incremental render or we are uzing the freezer, then
           // copy lib dirs incrementally (don't replace the whole directory).
           // otherwise, replace the whole thing so we get a clean start
-          const libsIncremental = incremental || options.useFreezer;
-          copyToProjectFreezer(context, libDir, libsIncremental);
+          const libsIncremental = !!(incremental || options.useFreezer);
+
+          // determine format lib dirs (for pruning)
+          const formatLibDirs = projType.formatLibDirs
+            ? projType.formatLibDirs()
+            : [];
+
+          // lib dir to freezer
+          const freezeLibDir = (hidden: boolean) => {
+            copyToProjectFreezer(context, libDir, hidden, libsIncremental);
+            pruneProjectFreezerDir(context, libDir, formatLibDirs, hidden);
+            pruneProjectFreezer(context, hidden);
+          };
+
+          // copy to hidden freezer
+          freezeLibDir(true);
+
+          // if we have a visible freezer then copy to it as well
+          if (existsSync(join(context.dir, kProjectFreezeDir))) {
+            freezeLibDir(false);
+          }
+
           if (libsIncremental) {
             for (const lib of Deno.readDirSync(libDirFull)) {
               if (lib.isDirectory) {

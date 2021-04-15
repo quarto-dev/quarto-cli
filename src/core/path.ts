@@ -24,6 +24,19 @@ export function removeIfExists(file: string) {
   }
 }
 
+export function removeIfEmptyDir(dir: string) {
+  if (existsSync(dir)) {
+    let empty = true;
+    for (const _entry of Deno.readDirSync(dir)) {
+      empty = false;
+      break;
+    }
+    if (empty) {
+      Deno.removeSync(dir, { recursive: true });
+    }
+  }
+}
+
 export function dirAndStem(file: string) {
   return [
     dirname(file),

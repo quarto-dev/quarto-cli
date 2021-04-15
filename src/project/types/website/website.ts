@@ -66,6 +66,9 @@ export const websiteProjectType: ProjectType = {
     await initWebsiteNavigation(context);
   },
 
+  formatLibDirs:
+    () => ["bootstrap", "quarto-nav", "quarto-search", "quarto-html"],
+
   formatExtras: (
     project: ProjectContext,
     input: string,

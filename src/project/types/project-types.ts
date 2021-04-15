@@ -23,6 +23,7 @@ export interface ProjectType {
   render?: (projectDir: string, metadata: Metadata) => string[];
   libDir?: string;
   outputDir?: string;
+  formatLibDirs?: () => string[];
   formatExtras?: (
     context: ProjectContext,
     input: string,

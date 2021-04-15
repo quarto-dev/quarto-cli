@@ -16,8 +16,12 @@ import { info } from "log/mod.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { createSessionTempDir } from "../../core/temp.ts";
-import { inputFilesDir } from "../../core/render.ts";
-import { dirAndStem } from "../../core/path.ts";
+import { figuresDir, inputFilesDir } from "../../core/render.ts";
+import {
+  dirAndStem,
+  removeIfEmptyDir,
+  removeIfExists,
+} from "../../core/path.ts";
 
 import {
   formatFromMetadata,
@@ -76,8 +80,13 @@ import {
 import { renderProject } from "./project.ts";
 import {
   copyFromProjectFreezer,
+  copyToProjectFreezer,
   defrostExecuteResult,
   freezeExecuteResult,
+  freezerFigsDir,
+  freezerFreezeFile,
+  kProjectFreezeDir,
+  removeFreezeResults,
 } from "./freeze.ts";
 
 // options for render
@@ -347,34 +356,65 @@ export async function renderExecute(
   // alias flags
   const flags = context.options.flags || {};
 
+  // compute filesDir
+  const filesDir = inputFilesDir(context.target.source);
+
+  // compute project relative files dir (if we are in a project)
+  let projRelativeFilesDir: string | undefined;
+  if (context.project) {
+    const inputDir = relative(
+      context.project.dir,
+      dirname(context.target.source),
+    );
+    projRelativeFilesDir = join(inputDir, filesDir);
+  }
+
   // use previous frozen results if they are available
   if (context.project && !alwaysExecute) {
-    // check if the user has enabled freeze
-    let thaw = context.format.execution[kFreeze];
+    // check if we are using the freezer
 
-    // if the user hasn't enable freeze explicitly, we still might need to
-    // do it useFreezer was specified (e.g. for the dev server)
-    if (context.options.useFreezer) {
-      const inputDir = relative(
-        context.project.dir,
-        dirname(context.target.source),
-      );
-      const filesDir = join(inputDir, inputFilesDir(context.target.source));
-      copyFromProjectFreezer(context.project, filesDir);
-      thaw = "auto";
-    }
+    const thaw = context.format.execution[kFreeze] ||
+      (context.options.useFreezer ? "auto" : false);
 
     if (thaw) {
+      const hidden = context.format.execution[kFreeze] === false;
+      copyFromProjectFreezer(
+        context.project,
+        projRelativeFilesDir!,
+        hidden,
+        false,
+      );
+
       const thawedResult = defrostExecuteResult(
         context.target.source,
         output,
         thaw === true,
       );
       if (thawedResult) {
+        // copy the site_libs dir from the freezer
+        const libDir = context.project?.metadata?.project?.[kLibDir];
+        if (libDir) {
+          copyFromProjectFreezer(context.project, libDir, hidden, true);
+        }
+
+        // remove the results dir
+        removeFreezeResults(join(context.project.dir, projRelativeFilesDir!));
+
+        // notify engine that we skipped execution
+        if (context.engine.executeTargetSkipped) {
+          context.engine.executeTargetSkipped(context.target, context.format);
+        }
+
+        // return results
         return thawedResult;
       }
     }
   }
+
+  // remove the figures dir before execution (so we don't inherit
+  // cruft from a previous execution)
+  const figsDir = join(filesDir, figuresDir(context.format.pandoc.to));
+  removeIfExists(figsDir);
 
   // execute computations
   const executeResult = await context.engine.execute({
@@ -397,7 +437,46 @@ export async function renderExecute(
 
   // write the freeze file if we are in a project
   if (context.project) {
-    freezeExecuteResult(context.target.source, output, executeResult);
+    // write the freezer file
+    const freezeFile = freezeExecuteResult(
+      context.target.source,
+      output,
+      executeResult,
+    );
+
+    // always copy to the hidden freezer
+    copyToProjectFreezer(context.project, projRelativeFilesDir!, true, true);
+
+    // copy to the _freeze dir if explicit _freeze is requested
+    if (context.format.execution[kFreeze] !== false) {
+      copyToProjectFreezer(context.project, projRelativeFilesDir!, false, true);
+    } else {
+      // otherwise cleanup the _freeze subdir b/c we aren't explicitly freezing anymore
+
+      // figs dir for this target format
+      const freezeFigsDir = freezerFigsDir(
+        context.project,
+        projRelativeFilesDir!,
+        basename(figsDir),
+      );
+      removeIfExists(freezeFigsDir);
+
+      // freezer file
+      const projRelativeFreezeFile = relative(context.project.dir, freezeFile);
+      const freezerFile = freezerFreezeFile(
+        context.project,
+        projRelativeFreezeFile,
+      );
+      removeIfExists(freezerFile);
+
+      // remove empty directories
+      removeIfEmptyDir(dirname(freezerFile));
+      removeIfEmptyDir(dirname(freezeFigsDir));
+      removeIfEmptyDir(join(context.project.dir, kProjectFreezeDir));
+    }
+
+    // remove the freeze results file (now that it's safely in the freezer)
+    removeFreezeResults(join(context.project.dir, projRelativeFilesDir!));
   }
 
   // return result

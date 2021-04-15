@@ -62,7 +62,7 @@ import { FormatExecution } from "../../config/format.ts";
 import { pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
 import { Metadata } from "../../config/metadata.ts";
 import { JupyterKernelspec } from "./kernels.ts";
-import { inputFilesDir } from "../render.ts";
+import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines } from "../text.ts";
 
 export const kCellCollapsed = "collapsed";
@@ -335,8 +335,7 @@ export function jupyterAssets(input: string, to?: string) {
   // calculate and create directories
   input = Deno.realPathSync(input);
   const files_dir = join(dirname(input), inputFilesDir(input));
-  to = (to || "html").replace(/[\+\-].*$/, "");
-  const figures_dir = join(files_dir, "figure-" + to);
+  const figures_dir = join(files_dir, figuresDir(to));
   ensureDirSync(figures_dir);
 
   // determine supporting_dir (if there are no other figures dirs then it's

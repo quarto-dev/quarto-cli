@@ -28,6 +28,7 @@ export interface ExecutionEngine {
   ) => Promise<ExecutionTarget | undefined>;
   metadata: (file: string) => Promise<Metadata>;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
+  executeTargetSkipped?: (target: ExecutionTarget, format: Format) => void;
   dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;
   keepMd: (input: string) => string | undefined;
