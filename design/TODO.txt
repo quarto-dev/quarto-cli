@@ -128,9 +128,6 @@ TODO: consider updating demo to be toc-float: false which is more realistic sinc
 TODO: Support toc-depth with nested indenting
 TODO: Support collapsing - expand only to show current node (bookdown has option we can look at)
 
-navigation
-==============================================
-TODO: ensure floating centers on page properly
 
 LOWER PRIORITY BACKGROUND WORK
 
