@@ -25,7 +25,6 @@ import {
   mergeLayers,
   print,
   sassLayer,
-  sassLayerDir,
   SassVariable,
   sassVariable,
 } from "../../command/render/sass.ts";

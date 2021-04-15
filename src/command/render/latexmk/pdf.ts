@@ -264,7 +264,7 @@ async function makeIndexIntermediates(
         }
       }
       return true;
-    } catch (e) {
+    } catch {
       writeError(
         `error generating index`,
       );
@@ -382,7 +382,7 @@ async function findAndInstallPackages(
   pkgMgr: PackageManager,
   logFile: string,
   stderr?: string,
-  quiet?: boolean,
+  _quiet?: boolean,
 ) {
   if (existsSync(logFile)) {
     // Read the log file itself

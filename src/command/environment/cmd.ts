@@ -31,7 +31,7 @@ export const environmentCommand = new Command()
     "Prints Quarto environment information. Type can be one of all, r, python",
   )
   // deno-lint-ignore no-explicit-any
-  .action(async (options: any, type?: string) => {
+  .action(async (_options: any, type?: string) => {
     const envDataRequired: EnvironmentData[] = [];
     const envDataOptional: EnvironmentData[] = [];
     switch (type) {

@@ -15,7 +15,7 @@ export function performanceMark(mark: string) {
 
 export function performanceEnd() {
   const marks = performance.getEntriesByType("mark");
-  return marks.map((entry, i) => {
+  return marks.map((_entry, i) => {
     const markStart = marks[i].startTime;
     const markEnd = marks[i + 1] ? marks[i + 1].startTime : performance.now();
     return {

@@ -9,7 +9,7 @@ import { exists } from "fs/exists.ts";
 import { join } from "path/mod.ts";
 import { error } from "log/mod.ts";
 
-import { readYaml, readYamlFromMarkdownFile } from "../core/yaml.ts";
+import { readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
 
 import {

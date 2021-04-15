@@ -122,7 +122,7 @@ const packageMatchers = [
   },
   {
     regex: /.*Package widetext error: Install the ([^ ]+) package.*/g,
-    filter: (match: string, text: string) => {
+    filter: (match: string, _text: string) => {
       return `${match}.sty`;
     },
   },

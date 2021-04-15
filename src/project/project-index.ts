@@ -6,7 +6,7 @@
 */
 
 import { dirname, join, relative } from "path/mod.ts";
-import { exists, existsSync } from "fs/mod.ts";
+import { exists } from "fs/mod.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
 
 import { dirAndStem, pathWithForwardSlashes } from "../core/path.ts";
@@ -19,7 +19,6 @@ import { kOutputFile, kTitle } from "../config/constants.ts";
 import { renderFormats } from "../command/render/render.ts";
 
 import {
-  kOutputDir,
   projectConfigFile,
   ProjectContext,
   projectOutputDir,

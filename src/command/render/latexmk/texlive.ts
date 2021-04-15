@@ -24,7 +24,7 @@ export async function hasTexLive(): Promise<boolean> {
       stderr: "piped",
     });
     return result.code === 0;
-  } catch (e) {
+  } catch {
     return false;
   }
 }
@@ -254,7 +254,7 @@ export async function tlVersion() {
     } else {
       return undefined;
     }
-  } catch (e) {
+  } catch {
     return undefined;
   }
 }
@@ -281,7 +281,7 @@ async function verifyPackageInstalled(
 function tlmgrCommand(
   cmd: string,
   args: string[],
-  quiet?: boolean,
+  _quiet?: boolean,
 ) {
   try {
     const result = execProcess(
@@ -291,7 +291,7 @@ function tlmgrCommand(
       },
     );
     return result;
-  } catch (e) {
+  } catch {
     return Promise.reject();
   }
 }

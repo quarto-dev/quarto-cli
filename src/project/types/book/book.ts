@@ -63,7 +63,7 @@ export const bookProjectType: ProjectType = {
 
   pandocRenderer: () => {
     return {
-      onRender: (file: ExecutedFile) => {
+      onRender: (_file: ExecutedFile) => {
         return Promise.resolve();
       },
       onComplete: () => {

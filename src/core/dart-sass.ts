@@ -22,8 +22,6 @@ export async function dartCompile(
   loadPaths?: string[],
   compressed?: boolean,
 ): Promise<string | undefined> {
-  const command = Deno.build.os === "windows" ? "sass.bat" : "sass";
-  const sass = binaryPath(join("dart-sass", command));
   const args = [
     "--stdin",
     "--style",

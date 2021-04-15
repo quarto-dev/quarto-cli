@@ -32,7 +32,7 @@ export function pythonEnv(
           stderr: "piped",
         });
         return r.stdout;
-      } catch (e) {
+      } catch {
         return undefined;
       }
     },
@@ -63,7 +63,7 @@ export function rBinaryEnv(
           stderr: "piped",
         });
         return res.stdout || res.stderr;
-      } catch (e) {
+      } catch {
         return undefined;
       }
     },

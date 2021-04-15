@@ -33,8 +33,8 @@ const kDefaultRepos = [
 
 // Different packages
 const kTinyTexRepo = "yihui/tinytex-releases";
-const kPackageMinimal = "TinyTeX-0"; // smallest
-const kPackageDefault = "TinyTeX-1"; // Compiles most RMarkdown
+// const kPackageMinimal = "TinyTeX-0"; // smallest
+// const kPackageDefault = "TinyTeX-1"; // Compiles most RMarkdown
 const kPackageMaximal = "TinyTeX"; // Compiles 80% of documents
 
 // The name of the file that we use to store the installed version

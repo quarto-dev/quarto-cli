@@ -53,7 +53,6 @@ import {
 } from "./defaults.ts";
 import { filterParamsJson, removeFilterParmas } from "./filters.ts";
 import {
-  kCss,
   kHighlightStyle,
   kIncludeAfterBody,
   kIncludeBeforeBody,

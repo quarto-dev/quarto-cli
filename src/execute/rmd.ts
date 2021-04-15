@@ -45,7 +45,7 @@ export const knitrEngine: ExecutionEngine = {
     return extensions.includes(extname(file).toLowerCase());
   },
 
-  target: (file: string, quiet?: boolean) => {
+  target: (file: string, _quiet?: boolean) => {
     return Promise.resolve({ source: file, input: file });
   },
 

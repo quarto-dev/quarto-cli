@@ -280,7 +280,7 @@ async function connectToKernel(
   if (transport) {
     try {
       return await denoConnectToKernel(transport);
-    } catch (e) {
+    } catch {
       // remove the transport file
       Deno.removeSync(transportFile);
     }

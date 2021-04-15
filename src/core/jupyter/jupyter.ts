@@ -738,7 +738,6 @@ function isImage(output: JupyterOutput, options: JupyterToMarkdownOptions) {
 function mdOutputStream(output: JupyterOutputStream) {
   // trim off warning source line for notebook
   if (output.name === "stderr") {
-    const firstLine = output.text[0];
     if (output.text[0]) {
       const firstLine = output.text[0].replace(
         /<ipython-input.*?>:\d+:\s+/,

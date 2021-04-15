@@ -17,7 +17,7 @@ import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { createSessionTempDir } from "../../core/temp.ts";
 import { inputFilesDir } from "../../core/render.ts";
-import { dirAndStem, removeIfExists } from "../../core/path.ts";
+import { dirAndStem } from "../../core/path.ts";
 
 import {
   formatFromMetadata,
@@ -67,7 +67,6 @@ import { OutputRecipe, outputRecipe } from "./output.ts";
 import {
   deleteProjectMetadata,
   kLibDir,
-  kOutputDir,
   ProjectContext,
   projectContext,
   projectMetadataForInputFile,

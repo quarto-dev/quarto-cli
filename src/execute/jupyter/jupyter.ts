@@ -579,7 +579,7 @@ async function jupytext(...args: string[]) {
     if (!result.success) {
       throw new Error(result.stderr || "Error syncing jupytext");
     }
-  } catch (e) {
+  } catch {
     throw new Error(
       "Unable to execute jupytext. Have you installed the jupytext package?",
     );

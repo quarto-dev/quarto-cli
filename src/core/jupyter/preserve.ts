@@ -56,6 +56,6 @@ export function restorePreservedHtml(
   return html;
 }
 
-export function isPreservedHtml(html: string) {
+export function isPreservedHtml(_html: string) {
   return false;
 }

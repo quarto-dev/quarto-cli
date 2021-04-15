@@ -15,7 +15,6 @@ import {
   DependenciesOptions,
   ExecuteOptions,
   ExecutionEngine,
-  PandocIncludes,
   PostProcessOptions,
 } from "./engine.ts";
 

@@ -30,7 +30,7 @@ export async function hasLatexDistribution() {
       stderr: "piped",
     });
     return result.code === 0;
-  } catch (e) {
+  } catch {
     return false;
   }
 }
