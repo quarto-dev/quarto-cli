@@ -136,7 +136,6 @@ export interface FormatExtras {
     [kBodyEnvelope]?: BodyEnvelope;
     [kHtmlPostprocessors]?: Array<(doc: Document) => Promise<string[]>>;
   };
-  book?: {};
 }
 
 // pandoc output format
@@ -146,6 +145,7 @@ export interface Format {
   pandoc: FormatPandoc;
   metadata: Metadata;
   formatExtras?: (flags: PandocFlags, format: Format) => Promise<FormatExtras>;
+  extensions?: Record<string, unknown>;
 }
 
 export interface FormatRender {

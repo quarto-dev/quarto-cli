@@ -13,7 +13,6 @@ import {
   kShowCode,
   kShowWarnings,
 } from "../../config/constants.ts";
-import { PandocFlags } from "../../config/flags.ts";
 import { Format } from "../../config/format.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { createFormat } from "../formats.ts";
@@ -22,10 +21,8 @@ export function pdfFormat(): Format {
   return mergeConfigs(
     createPdfFormat(),
     {
-      formatExtras: (_flags: PandocFlags, _format: Format) => {
-        return {
-          book: {},
-        };
+      extensions: {
+        book: {},
       },
     },
   );

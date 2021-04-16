@@ -14,10 +14,8 @@ export function epubFormat(): Format {
   return mergeConfigs(
     createEbookFormat("epub"),
     {
-      formatExtras: (_flags: PandocFlags, _format: Format) => {
-        return {
-          book: {},
-        };
+      extensions: {
+        book: {},
       },
     },
   );

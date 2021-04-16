@@ -11,7 +11,7 @@ import { basename, dirname, extname, join, relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
-import { info } from "log/mod.ts";
+import { info, warning } from "log/mod.ts";
 
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
@@ -860,11 +860,11 @@ async function resolveFormats(
 
   // determine order of formats
   const projType = projectType(project?.metadata?.project?.type);
-  const projFormatKeys = formatKeys(projMetadata);
-  const inputFormatKeys = formatKeys(inputMetadata);
-  const formats = projType.outputFormats
-    ? projType.outputFormats(projFormatKeys, inputFormatKeys)
-    : ld.uniq(projFormatKeys.concat(inputFormatKeys));
+  const formats = projType.projectFormatsOnly
+    ? formatKeys(projMetadata)
+    : ld.uniq(
+      formatKeys(inputMetadata).concat(formatKeys(projMetadata)),
+    );
 
   // resolve formats for proj and input
   const projFormats = resolveFormatsFromMetadata(
@@ -907,6 +907,19 @@ async function resolveFormats(
       inputFormat || {},
     );
   });
+
+  // filter on formats supported by this project
+  for (const formatName of Object.keys(mergedFormats)) {
+    const format: Format = mergedFormats[formatName];
+    if (projType.isSupportedFormat) {
+      if (!projType.isSupportedFormat(format)) {
+        delete mergedFormats[formatName];
+        warning(
+          `The ${formatName} format is not supported by ${projType.type} projects`,
+        );
+      }
+    }
+  }
 
   return mergedFormats;
 }

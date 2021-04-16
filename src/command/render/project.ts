@@ -75,18 +75,6 @@ export async function renderProject(
     await projType.preRender(context);
   }
 
-  // validate the project formats
-  if (projType.outputFormats) {
-    const projFormats = formatKeys(context.metadata || {});
-    const validFormats = projType.outputFormats(projFormats, []);
-    const unsupportedFormats = ld.difference(projFormats, validFormats);
-    for (const format of unsupportedFormats) {
-      warning(
-        `The ${format} format is not supported for ${projType.type} projects.`,
-      );
-    }
-  }
-
   // set execute dir if requested
   const executeDir = context.metadata?.project?.[kExecuteDir];
   if (options.flags?.executeDir === undefined && executeDir === "project") {

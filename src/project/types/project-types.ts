@@ -30,10 +30,8 @@ export interface ProjectType {
     flags: PandocFlags,
     format: Format,
   ) => Promise<FormatExtras>;
-  outputFormats?: (
-    projFormats: string[],
-    inputFormats: string[],
-  ) => string[];
+  projectFormatsOnly?: boolean;
+  isSupportedFormat?: (format: Format) => boolean;
   metadataFields?: () => string[];
   resourceIgnoreFields?: () => string[];
   preRender?: (context: ProjectContext) => Promise<void>;

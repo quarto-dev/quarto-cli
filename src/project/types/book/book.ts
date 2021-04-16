@@ -7,6 +7,8 @@
 import { join } from "path/mod.ts";
 import { resourcePath } from "../../../core/resources.ts";
 
+import { Format } from "../../../config/format.ts";
+
 import { ProjectCreate, ProjectType } from "../project-types.ts";
 
 import { websiteProjectType } from "../website/website.ts";
@@ -16,8 +18,6 @@ import {
   bookRenderList,
   kContents,
 } from "./book-render.ts";
-
-import { bookOutputFormats } from "./book-formats.ts";
 
 export const bookProjectType: ProjectType = {
   type: "book",
@@ -62,7 +62,11 @@ export const bookProjectType: ProjectType = {
   libDir: "site_libs",
   outputDir: "_book",
 
-  outputFormats: bookOutputFormats,
+  projectFormatsOnly: true,
+
+  isSupportedFormat: (format: Format) => {
+    return !!format.extensions?.book;
+  },
 
   formatLibDirs: websiteProjectType.formatLibDirs,
 
