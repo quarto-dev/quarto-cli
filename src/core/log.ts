@@ -13,6 +13,7 @@ import { Command } from "cliffy/command/mod.ts";
 import { getenv } from "./env.ts";
 import { Args } from "flags/mod.ts";
 import { lines } from "./text.ts";
+import { warning } from "log/mod.ts";
 
 export interface LogOptions {
   log?: string;
@@ -231,6 +232,14 @@ export function logError(error: Error) {
     }
   });
 }
+
+export function warnOnce(msg: string) {
+  if (!warnings[msg]) {
+    warnings[msg] = true;
+    warning(msg);
+  }
+}
+const warnings: Record<string, boolean> = {};
 
 function applyMsgOptions(msg: string, options: LogMessageOptions) {
   if (options.indent) {

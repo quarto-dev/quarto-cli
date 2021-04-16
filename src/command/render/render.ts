@@ -11,7 +11,7 @@ import { basename, dirname, extname, join, relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
-import { info, warning } from "log/mod.ts";
+import { info } from "log/mod.ts";
 
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
@@ -22,6 +22,7 @@ import {
   removeIfEmptyDir,
   removeIfExists,
 } from "../../core/path.ts";
+import { warnOnce } from "../../core/log.ts";
 
 import {
   formatFromMetadata,
@@ -914,7 +915,7 @@ async function resolveFormats(
     if (projType.isSupportedFormat) {
       if (!projType.isSupportedFormat(format)) {
         delete mergedFormats[formatName];
-        warning(
+        warnOnce(
           `The ${formatName} format is not supported by ${projType.type} projects`,
         );
       }
