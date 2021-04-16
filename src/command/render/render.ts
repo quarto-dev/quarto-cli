@@ -852,11 +852,11 @@ async function resolveFormats(
 
   // determine order of formats
   const projType = projectType(project?.metadata?.project?.type);
-  const formats = projType.projectFormatsOnly
-    ? formatKeys(projMetadata)
-    : ld.uniq(
-      formatKeys(inputMetadata).concat(formatKeys(projMetadata)),
-    );
+  const projFormatKeys = formatKeys(projMetadata);
+  const inputFormatKeys = formatKeys(inputMetadata);
+  const formats = projType.outputFormats
+    ? projType.outputFormats(projFormatKeys, inputFormatKeys)
+    : ld.uniq(projFormatKeys.concat(inputFormatKeys));
 
   // resolve formats for proj and input
   const projFormats = resolveFormatsFromMetadata(

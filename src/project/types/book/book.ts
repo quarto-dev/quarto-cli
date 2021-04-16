@@ -17,6 +17,8 @@ import {
   kContents,
 } from "./book-render.ts";
 
+import { bookOutputFormats } from "./book-formats.ts";
+
 export const bookProjectType: ProjectType = {
   type: "book",
 
@@ -60,7 +62,7 @@ export const bookProjectType: ProjectType = {
   libDir: "site_libs",
   outputDir: "_book",
 
-  projectFormatsOnly: true,
+  outputFormats: bookOutputFormats,
 
   formatLibDirs: websiteProjectType.formatLibDirs,
 

@@ -17,6 +17,7 @@ import { fileExecutionEngine } from "../../../execute/engine.ts";
 import {
   ExecutedFile,
   formatKeys,
+  RenderedFile,
   RenderOptions,
 } from "../../../command/render/render.ts";
 
@@ -47,14 +48,22 @@ export function bookPandocRenderer(
       return Promise.resolve();
     },
     onComplete: () => {
+      // rendered files to return
+      const renderedFiles: RenderedFile[] = [];
+
       // determine which formats actually have executed files
       const renderToFormats = formats.filter((format) =>
         files[format].length > 0
       );
 
-      console.log(renderToFormats);
+      // some formats need to end up returning all of the individual renderedFiles
+      // (e.g. html or asciidoc) and some formats will consolidate all of their
+      // files into a single one (e.g. pdf or epub)
 
-      return Promise.resolve([]);
+      for (const format of renderToFormats) {
+      }
+
+      return Promise.resolve(renderedFiles);
     },
     onError: () => {
       // TODO: We can probably clean up files_dirs here
@@ -97,8 +106,4 @@ export function bookRenderList(projectDir: string, metadata: Metadata) {
   } else {
     return [];
   }
-}
-
-function combineExecutedFiles(files: ExecutedFile[]) {
-  return files[0];
 }
