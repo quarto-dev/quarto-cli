@@ -28,12 +28,9 @@ import { BookExtension } from "./book-extension.ts";
 export const kContents = "contents";
 
 export function bookPandocRenderer(
-  _options: RenderOptions,
+  options: RenderOptions,
   project?: ProjectContext,
 ) {
-  // project always exists
-  project = project!;
-
   // accumulate executed files for all formats
   const files: Record<string, ExecutedFile[]> = {};
 
@@ -55,7 +52,9 @@ export function bookPandocRenderer(
         if (executedFiles.length > 0) {
           const format = executedFiles[0].context.format;
           const extension = format.extensions?.book as BookExtension;
-          renderedFiles.push(...await extension.renderPandoc(executedFiles));
+          renderedFiles.push(
+            ...await extension.renderPandoc(project!, options, executedFiles),
+          );
         }
       }
 

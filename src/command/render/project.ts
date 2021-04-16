@@ -26,12 +26,7 @@ import { projectType } from "../../project/types/project-types.ts";
 import { copyResourceFile } from "../../project/project-resources.ts";
 import { ensureGitignore } from "../../project/project-gitignore.ts";
 
-import {
-  formatKeys,
-  renderFiles,
-  RenderOptions,
-  RenderResult,
-} from "./render.ts";
+import { renderFiles, RenderOptions, RenderResult } from "./render.ts";
 import {
   copyToProjectFreezer,
   kProjectFreezeDir,

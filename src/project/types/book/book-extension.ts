@@ -5,8 +5,17 @@
 *
 */
 
-import { ExecutedFile, RenderedFile } from "../../../command/render/render.ts";
+import {
+  ExecutedFile,
+  RenderedFile,
+  RenderOptions,
+} from "../../../command/render/render.ts";
+import { ProjectContext } from "../../project-context.ts";
 
 export interface BookExtension {
-  renderPandoc: (files: ExecutedFile[]) => Promise<RenderedFile[]>;
+  renderPandoc: (
+    project: ProjectContext,
+    options: RenderOptions,
+    files: ExecutedFile[],
+  ) => Promise<RenderedFile[]>;
 }
