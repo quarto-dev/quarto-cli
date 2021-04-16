@@ -384,6 +384,7 @@ export async function renderExecute(
       (context.options.useFreezer ? "auto" : false);
 
     if (thaw) {
+      // copy from project freezer
       const hidden = context.format.execution[kFreeze] === false;
       copyFromProjectFreezer(
         context.project,
