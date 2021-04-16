@@ -65,7 +65,7 @@ export async function configure(
         join(config.directoryInfo.bin, "quarto"),
         symlinkPath,
       );
-    } catch (e) {
+    } catch {
       warning("Failed to create symlink to quarto.");
     }
   }

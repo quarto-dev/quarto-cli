@@ -11,7 +11,7 @@ import { info } from "log/mod.ts";
 
 import { Configuration, readConfiguration } from "../common/config.ts";
 import { kVersion } from "../cmd/pkg-cmd.ts";
-import { compile, install } from "../util/deno.ts";
+import { compile, install, updateDenoPath } from "../util/deno.ts";
 
 export function compileQuartoLatexmkCommand() {
   return new Command()
@@ -60,24 +60,8 @@ export async function installQuartoLatexmk(
     ["-f", ...kFlags],
     config,
   );
-
-  // Fix up the path to deno
   if (installPath) {
-    info("Updating install script deno path");
-    const installTxt = Deno.readTextFileSync(installPath);
-    const finalTxt = Deno.build.os === "windows"
-      ? installTxt.replace(
-        /deno.exe /g,
-        join(config.directoryInfo.bin, "deno.exe") + " ",
-      )
-      : installTxt.replace(
-        /deno /g,
-        join(config.directoryInfo.bin, "deno") + " ",
-      );
-    Deno.writeTextFileSync(
-      installPath,
-      finalTxt,
-    );
+    updateDenoPath(installPath, config);
   }
 }
 

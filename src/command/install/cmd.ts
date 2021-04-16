@@ -23,7 +23,7 @@ import {
 // The quarto install command
 export const installCommand = new Command()
   .name("install")
-  .arguments("<name:string>")
+  .arguments("[name:string]")
   .description(
     `Installs tools, extensions, and templates.\n\nTools that can be installed include:\n${
       installableTools().map((name) => "  " + name).join("\n")

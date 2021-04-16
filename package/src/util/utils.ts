@@ -1,3 +1,4 @@
+import { writeAll } from "io/mod.ts";
 import { CmdResult, runCmd } from "./cmd.ts";
 
 // Read an environment variable
@@ -22,7 +23,7 @@ export async function download(src: string, dest: string): Promise<void> {
   const contents = new Uint8Array(buffer);
 
   const file = await Deno.create(dest);
-  await Deno.writeAll(file, contents);
+  await writeAll(file, contents);
   Deno.close(file.rid);
 }
 

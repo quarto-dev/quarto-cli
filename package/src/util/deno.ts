@@ -4,6 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+import { info } from "log/mod.ts";
 import { join } from "path/mod.ts";
 import { Configuration } from "../common/config.ts";
 
@@ -99,4 +100,25 @@ export async function install(
   }
 
   return undefined;
+}
+
+export function updateDenoPath(installPath: string, config: Configuration) {
+  // Fix up the path to deno
+  if (installPath) {
+    info("Updating install script deno path");
+    const installTxt = Deno.readTextFileSync(installPath);
+    const finalTxt = Deno.build.os === "windows"
+      ? installTxt.replace(
+        /deno.exe /g,
+        join(config.directoryInfo.bin, "deno.exe") + " ",
+      )
+      : installTxt.replace(
+        /deno /g,
+        join(config.directoryInfo.bin, "deno") + " ",
+      );
+    Deno.writeTextFileSync(
+      installPath,
+      finalTxt,
+    );
+  }
 }

@@ -6,6 +6,7 @@
 */
 
 import { MuxAsyncIterator } from "async/mod.ts";
+import { iter } from "io/mod.ts";
 import { info } from "log/mod.ts";
 
 export interface ProcessResult {
@@ -54,7 +55,7 @@ export async function execProcess(
       // Add streams to the multiplexer
       const addStream = (stream: (Deno.Reader & Deno.Closer) | null) => {
         if (stream !== null) {
-          multiplexIterator.add(Deno.iter(stream));
+          multiplexIterator.add(iter(stream));
         }
       };
       addStream(process.stdout);
@@ -85,7 +86,7 @@ export async function execProcess(
       // Process the streams independently
       if (process.stdout !== null) {
         stdoutText = await processOutput(
-          Deno.iter(process.stdout),
+          iter(process.stdout),
           options.stdout,
         );
         process.stdout.close();
@@ -93,7 +94,7 @@ export async function execProcess(
 
       if (process.stderr != null) {
         stderrText = await processOutput(
-          Deno.iter(process.stderr),
+          iter(process.stderr),
           options.stderr,
         );
         process.stderr.close();
