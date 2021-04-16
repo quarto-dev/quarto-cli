@@ -177,7 +177,7 @@ export function copyProjectForServe(
       return false;
     }
     const pathRelative = pathWithForwardSlashes(relative(project.dir, path));
-    return !projectIgnore.some((regex) => regex.test(pathRelative));
+    return !projectIgnore.some((regex: RegExp) => regex.test(pathRelative));
   };
 
   copyMinimal(
