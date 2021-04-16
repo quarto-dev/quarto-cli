@@ -32,18 +32,12 @@ export function bookPandocRenderer(
   // project always exists
   project = project!;
 
-  // determine target formats and keep a list of executes files for each
-  const formats = formatKeys(project.metadata || {});
-  if (formats.length === 0) {
-    formats.push("html");
-  }
-
-  // accumulate executed files
+  // accumulate executed files for all formats
   const files: Record<string, ExecutedFile[]> = {};
-  formats.forEach((format) => files[format] = []);
 
   return {
     onRender: (format: string, file: ExecutedFile) => {
+      files[format] = files[format] || [];
       files[format].push(file);
       return Promise.resolve();
     },
@@ -51,16 +45,11 @@ export function bookPandocRenderer(
       // rendered files to return
       const renderedFiles: RenderedFile[] = [];
 
-      // determine which formats actually have executed files
-      const renderToFormats = formats.filter((format) =>
-        files[format].length > 0
-      );
-
       // some formats need to end up returning all of the individual renderedFiles
       // (e.g. html or asciidoc) and some formats will consolidate all of their
       // files into a single one (e.g. pdf or epub)
-
-      for (const format of renderToFormats) {
+      for (const format of Object.keys(files)) {
+        console.log(format);
       }
 
       return Promise.resolve(renderedFiles);

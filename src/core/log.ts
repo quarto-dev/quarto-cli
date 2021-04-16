@@ -73,6 +73,10 @@ export class StdErrOutputHandler extends BaseHandler {
   format(logRecord: LogRecord): string {
     let msg = super.format(logRecord);
 
+    if (logRecord.level >= log.LogLevels.WARNING) {
+      msg = `${logRecord.levelName}: ${msg}`;
+    }
+
     // Set default options
     const options = {
       newline: true,

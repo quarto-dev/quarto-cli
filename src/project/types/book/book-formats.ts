@@ -5,10 +5,19 @@
 *
 */
 
+const kBookFormats = ["pdf", "epub"];
+
 export function bookOutputFormats(
   projFormats: string[],
   _inputFormats: string[],
 ) {
-  // TODO: filter/warn by supported formats
-  return projFormats;
+  const formats: string[] = [];
+
+  for (const format of projFormats) {
+    if (kBookFormats.includes(format)) {
+      formats.push(format);
+    }
+  }
+
+  return formats;
 }

@@ -26,7 +26,12 @@ import { projectType } from "../../project/types/project-types.ts";
 import { copyResourceFile } from "../../project/project-resources.ts";
 import { ensureGitignore } from "../../project/project-gitignore.ts";
 
-import { renderFiles, RenderOptions, RenderResult } from "./render.ts";
+import {
+  formatKeys,
+  renderFiles,
+  RenderOptions,
+  RenderResult,
+} from "./render.ts";
 import {
   copyToProjectFreezer,
   kProjectFreezeDir,
@@ -68,6 +73,18 @@ export async function renderProject(
   const projType = projectType(context.metadata?.project?.type);
   if (projType.preRender) {
     await projType.preRender(context);
+  }
+
+  // validate the project formats
+  if (projType.outputFormats) {
+    const projFormats = formatKeys(context.metadata || {});
+    const validFormats = projType.outputFormats(projFormats, []);
+    const unsupportedFormats = ld.difference(projFormats, validFormats);
+    for (const format of unsupportedFormats) {
+      warning(
+        `The ${format} format is not supported for ${projType.type} projects.`,
+      );
+    }
   }
 
   // set execute dir if requested
