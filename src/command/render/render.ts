@@ -157,15 +157,15 @@ export async function render(
   // otherwise it's just a file render
   const result = await renderFiles([path], options);
   return {
-    files: Object.keys(result.files).flatMap((key) => {
-      return result.files[key].map((result) => ({
+    files: result.files.map((result) => {
+      return {
         input: result.input,
         markdown: result.markdown,
         format: result.format,
         file: result.file,
         filesDir: result.filesDir,
         resourceFiles: [],
-      }));
+      };
     }),
     error: result.error,
   };
@@ -183,12 +183,12 @@ export interface RenderedFile {
 
 export interface PandocRenderer {
   onRender: (format: string, file: ExecutedFile) => Promise<void>;
-  onComplete: () => Promise<Record<string, RenderedFile[]>>;
+  onComplete: () => Promise<RenderedFile[]>;
   onError: () => void;
 }
 
 export interface RenderFilesResult {
-  files: Record<string, RenderedFile[]>;
+  files: RenderedFile[];
   error?: Error;
 }
 
@@ -681,16 +681,14 @@ function defaultPandocRenderer(
   _options: RenderOptions,
   _project?: ProjectContext,
 ): PandocRenderer {
-  const results: Record<string, RenderedFile[]> = {};
+  const renderedFiles: RenderedFile[] = [];
 
   return {
     onRender: async (_format: string, executedFile: ExecutedFile) => {
-      const source = executedFile.context.target.source;
-      results[source] = results[source] || [];
-      results[source].push(await renderPandoc(executedFile));
+      renderedFiles.push(await renderPandoc(executedFile));
     },
     onComplete: () => {
-      return Promise.resolve(results);
+      return Promise.resolve(renderedFiles);
     },
     onError: () => {
     },

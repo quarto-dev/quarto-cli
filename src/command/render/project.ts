@@ -140,73 +140,69 @@ export async function renderProject(
       let keepLibsDir = false;
 
       // move/copy projResults to output_dir
-      Object.keys(fileResults.files).forEach((format) => {
-        const results = fileResults.files[format];
+      fileResults.files.forEach((renderedFile) => {
+        // move the renderedFile to the output dir
+        const outputFile = join(outputDirAbsolute, renderedFile.file);
+        ensureDirSync(dirname(outputFile));
+        Deno.renameSync(join(projDir, renderedFile.file), outputFile);
 
-        for (const result of results) {
-          // move the result to the output dir
-          const outputFile = join(outputDirAbsolute, result.file);
-          ensureDirSync(dirname(outputFile));
-          Deno.renameSync(join(projDir, result.file), outputFile);
-
-          // files dir
-          const keepFiles = !!result.format.render[kKeepMd];
-          keepLibsDir = keepLibsDir || keepFiles;
-          if (result.filesDir) {
-            if (keepFiles) {
-              copyDir(result.filesDir);
-            } else {
-              moveDir(result.filesDir);
-            }
+        // files dir
+        const keepFiles = !!renderedFile.format.render[kKeepMd];
+        keepLibsDir = keepLibsDir || keepFiles;
+        if (renderedFile.filesDir) {
+          if (keepFiles) {
+            copyDir(renderedFile.filesDir);
+          } else {
+            moveDir(renderedFile.filesDir);
           }
-
-          // resource files
-          const resourceDir = join(projDir, dirname(result.file));
-          const globs = result.resourceFiles.globs;
-          const fileResourceFiles = globs.length > 0
-            ? resolvePathGlobs(
-              resourceDir,
-              result.resourceFiles.globs,
-              [],
-            )
-            : { include: [], exclude: [] };
-
-          // add the explicitly discovered files (if they exist and
-          // the output isn't self-contained)
-          if (!result.selfContained) {
-            const resultFiles = result.resourceFiles.files
-              .map((file) => join(resourceDir, file))
-              .filter(existsSync)
-              .map(Deno.realPathSync);
-            fileResourceFiles.include.push(...resultFiles);
-          }
-
-          // apply removes and filter files dir
-          const resourceFiles = fileResourceFiles.include.filter(
-            (file: string) => {
-              if (fileResourceFiles.exclude.includes(file)) {
-                return false;
-              } else if (
-                result.filesDir &&
-                file.startsWith(join(projDir, result.filesDir!))
-              ) {
-                return false;
-              } else {
-                return true;
-              }
-            },
-          );
-
-          // render file result
-          projResults.files.push({
-            input: result.input,
-            markdown: result.markdown,
-            format: result.format,
-            file: result.file,
-            filesDir: result.filesDir,
-            resourceFiles,
-          });
         }
+
+        // resource files
+        const resourceDir = join(projDir, dirname(renderedFile.file));
+        const globs = renderedFile.resourceFiles.globs;
+        const fileResourceFiles = globs.length > 0
+          ? resolvePathGlobs(
+            resourceDir,
+            renderedFile.resourceFiles.globs,
+            [],
+          )
+          : { include: [], exclude: [] };
+
+        // add the explicitly discovered files (if they exist and
+        // the output isn't self-contained)
+        if (!renderedFile.selfContained) {
+          const resultFiles = renderedFile.resourceFiles.files
+            .map((file) => join(resourceDir, file))
+            .filter(existsSync)
+            .map(Deno.realPathSync);
+          fileResourceFiles.include.push(...resultFiles);
+        }
+
+        // apply removes and filter files dir
+        const resourceFiles = fileResourceFiles.include.filter(
+          (file: string) => {
+            if (fileResourceFiles.exclude.includes(file)) {
+              return false;
+            } else if (
+              renderedFile.filesDir &&
+              file.startsWith(join(projDir, renderedFile.filesDir!))
+            ) {
+              return false;
+            } else {
+              return true;
+            }
+          },
+        );
+
+        // render file renderedFile
+        projResults.files.push({
+          input: renderedFile.input,
+          markdown: renderedFile.markdown,
+          format: renderedFile.format,
+          file: renderedFile.file,
+          filesDir: renderedFile.filesDir,
+          resourceFiles,
+        });
       });
 
       // move or copy the lib dir if we have one (move one subdirectory at a time
@@ -294,20 +290,16 @@ export async function renderProject(
       });
     } else {
       // track output files
-      Object.keys(fileResults.files).forEach((format) => {
-        projResults.files.push(
-          ...fileResults.files[format].map((result) => {
-            return {
-              input: result.input,
-              markdown: result.markdown,
-              format: result.format,
-              file: result.file,
-              filesDir: result.filesDir,
-              resourceFiles: [],
-            };
-          }),
-        );
-      });
+      projResults.files.push(
+        ...fileResults.files.map((result) => ({
+          input: result.input,
+          markdown: result.markdown,
+          format: result.format,
+          file: result.file,
+          filesDir: result.filesDir,
+          resourceFiles: [],
+        })),
+      );
     }
 
     // forward error to projResults

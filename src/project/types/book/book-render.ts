@@ -48,8 +48,13 @@ export function bookPandocRenderer(
     },
     onComplete: () => {
       // determine which formats actually have executed files
+      const renderToFormats = formats.filter((format) =>
+        files[format].length > 0
+      );
 
-      return Promise.resolve({});
+      console.log(renderToFormats);
+
+      return Promise.resolve([]);
     },
     onError: () => {
       // TODO: We can probably clean up files_dirs here
@@ -92,4 +97,8 @@ export function bookRenderList(projectDir: string, metadata: Metadata) {
   } else {
     return [];
   }
+}
+
+function combineExecutedFiles(files: ExecutedFile[]) {
+  return files[0];
 }
