@@ -713,30 +713,38 @@ function mergePandocIncludes(
   return mergeConfigs(format, includesFormat);
 }
 
-function isSelfContainedOutput(
+// some extensions are 'known' to be standalone/self-contained
+// see https://pandoc.org/MANUAL.html#option--standalone
+const kStandaloneExtensionNames = [
+  "pdf",
+  "epub",
+  "fb2",
+  "docx",
+  "rtf",
+  "pptx",
+  "odt",
+  "ipynb",
+];
+
+const kStandaloneExtensions = kStandaloneExtensionNames.map((name) =>
+  `.${name}`
+);
+
+export function isSelfContainedOutput(
   flags: RenderFlags,
   format: Format,
   finalOutput: string,
 ) {
-  // some extensions are 'known' to be standalone/self-contained
-  // see https://pandoc.org/MANUAL.html#option--standalone
-  const kStandaloneExtensions = [
-    ".pdf",
-    ".epub",
-    ".fb2",
-    ".docx",
-    ".rtf",
-    ".pptx",
-    ".odt",
-    ".ipynb",
-  ];
-
   // determine if we will be self contained
   const selfContained = flags[kSelfContained] ||
     (format.pandoc && format.pandoc[kSelfContained]) ||
     kStandaloneExtensions.includes(extname(finalOutput));
 
   return selfContained;
+}
+
+export function isStandaloneFormat(format: Format) {
+  return kStandaloneExtensionNames.includes(format.render[kOutputExt] || "");
 }
 
 export function resolveFormatsFromMetadata(

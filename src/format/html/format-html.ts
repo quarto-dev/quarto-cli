@@ -32,7 +32,7 @@ import {
 import { PandocFlags } from "../../config/flags.ts";
 import { kTheme } from "../../config/constants.ts";
 
-import { baseHtmlFormat } from "./../formats.ts";
+import { createHtmlFormat } from "./../formats.ts";
 
 import { boostrapExtras, formatHasBootstrap } from "./format-html-bootstrap.ts";
 
@@ -58,7 +58,7 @@ export function htmlFormat(
   figheight: number,
 ): Format {
   return mergeConfigs(
-    baseHtmlFormat(figwidth, figheight),
+    createHtmlFormat(figwidth, figheight),
     {
       formatExtras: (flags: PandocFlags, format: Format) => {
         return mergeConfigs(

@@ -16,7 +16,6 @@ import { fileExecutionEngine } from "../../../execute/engine.ts";
 
 import {
   ExecutedFile,
-  formatKeys,
   RenderedFile,
   RenderOptions,
 } from "../../../command/render/render.ts";

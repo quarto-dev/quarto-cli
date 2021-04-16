@@ -50,6 +50,8 @@ import {
 import { Format } from "../config/format.ts";
 
 import { htmlFormat } from "./html/format-html.ts";
+import { beamerFormat, latexFormat, pdfFormat } from "./pdf/format-pdf.ts";
+import { epubFormat } from "./epub/format-epub.ts";
 
 export function defaultWriterFormat(to: string): Format {
   // to can sometimes have a variant, don't include that in the lookup here
@@ -141,11 +143,11 @@ export function defaultWriterFormat(to: string): Format {
     case "epub":
     case "epub2":
     case "epub3":
-      writerFormat = ebookFormat("epub");
+      writerFormat = epubFormat();
       break;
 
     case "fb2":
-      writerFormat = ebookFormat("fb2");
+      writerFormat = createEbookFormat("fb2");
       break;
 
     case "zimwiki":
@@ -196,15 +198,27 @@ export function defaultWriterFormat(to: string): Format {
     writerFormat.pandoc.to = pandocTo;
   }
 
-  // return the format
+  // return the createFormat
   return writerFormat;
 }
 
-export function baseHtmlFormat(
+export function createFormat(ext: string, ...formats: Array<unknown>): Format {
+  return mergeConfigs(
+    defaultFormat(),
+    ...formats,
+    {
+      render: {
+        [kOutputExt]: ext,
+      },
+    },
+  );
+}
+
+export function createHtmlFormat(
   figwidth: number,
   figheight: number,
 ) {
-  return format("html", {
+  return createFormat("html", {
     execution: {
       [kFigFormat]: "retina",
       [kFigWidth]: figwidth,
@@ -216,52 +230,18 @@ export function baseHtmlFormat(
   });
 }
 
-function pdfFormat(): Format {
-  return format(
-    "pdf",
-    {
-      execution: {
-        [kFigWidth]: 6.5,
-        [kFigHeight]: 4.5,
-        [kFigFormat]: "pdf",
-        [kFigDpi]: 300,
-      },
-      pandoc: {
-        standalone: true,
-        variables: {
-          graphics: true,
-          tables: true,
-        },
-      },
+export function createEbookFormat(ext: string): Format {
+  return createFormat(ext, {
+    execution: {
+      [kFigWidth]: 5,
+      [kFigHeight]: 4,
     },
-  );
-}
-
-function beamerFormat(): Format {
-  return format(
-    "pdf",
-    pdfFormat(),
-    {
-      execution: {
-        [kFigWidth]: 10,
-        [kFigHeight]: 7,
-        [kShowCode]: false,
-        [kShowWarnings]: false,
-      },
-    },
-  );
-}
-
-function latexFormat(): Format {
-  return format(
-    "tex",
-    pdfFormat(),
-  );
+  });
 }
 
 function htmlPresentationFormat(figwidth: number, figheight: number): Format {
   return mergeConfigs(
-    baseHtmlFormat(figwidth, figheight),
+    createHtmlFormat(figwidth, figheight),
     {
       execution: {
         [kShowCode]: false,
@@ -272,7 +252,7 @@ function htmlPresentationFormat(figwidth: number, figheight: number): Format {
 }
 
 function hugoFormat(): Format {
-  return format("md", markdownFormat(), {
+  return createFormat("md", markdownFormat(), {
     render: {
       [kKeepYaml]: true,
       [kPreferHtml]: true,
@@ -291,11 +271,11 @@ function hugoFormat(): Format {
 }
 
 function markdownFormat(): Format {
-  return format("md", plaintextFormat("md"), {});
+  return createFormat("md", plaintextFormat("md"), {});
 }
 
 function powerpointFormat(): Format {
-  return format("pptx", {
+  return createFormat("pptx", {
     render: {
       [kPageWidth]: 9,
       [kOutputDivs]: false,
@@ -310,7 +290,7 @@ function powerpointFormat(): Format {
 }
 
 function wordprocessorFormat(ext: string): Format {
-  return format(ext, {
+  return createFormat(ext, {
     render: {
       [kPageWidth]: 6.5,
     },
@@ -322,7 +302,7 @@ function wordprocessorFormat(ext: string): Format {
 }
 
 function rtfFormat(): Format {
-  return format("rtf", wordprocessorFormat("rtf"), {
+  return createFormat("rtf", wordprocessorFormat("rtf"), {
     pandoc: {
       standalone: true,
     },
@@ -330,7 +310,7 @@ function rtfFormat(): Format {
 }
 
 function ipynbFormat(): Format {
-  return format("ipynb", {
+  return createFormat("ipynb", {
     pandoc: {
       standalone: true,
       "ipynb-output": "all",
@@ -339,32 +319,11 @@ function ipynbFormat(): Format {
 }
 
 function plaintextFormat(ext: string): Format {
-  return format(ext, {
+  return createFormat(ext, {
     pandoc: {
       standalone: true,
     },
   });
-}
-
-function ebookFormat(ext: string): Format {
-  return format(ext, {
-    execution: {
-      [kFigWidth]: 5,
-      [kFigHeight]: 4,
-    },
-  });
-}
-
-function format(ext: string, ...formats: Array<unknown>): Format {
-  return mergeConfigs(
-    defaultFormat(),
-    ...formats,
-    {
-      render: {
-        [kOutputExt]: ext,
-      },
-    },
-  );
 }
 
 function defaultFormat(): Format {
