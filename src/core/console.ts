@@ -6,6 +6,7 @@
 */
 
 import { ansi } from "cliffy/ansi/mod.ts";
+import { readAllSync, writeAllSync } from "io/mod.ts";
 import { info } from "log/mod.ts";
 
 // The spinner and progress characters
@@ -143,8 +144,8 @@ export function formatLine(values: string[], lengths: number[]) {
 
 export function writeFileToStdout(file: string) {
   const df = Deno.openSync(file, { read: true });
-  const contents = Deno.readAllSync(df);
-  Deno.writeAllSync(Deno.stdout, contents);
+  const contents = readAllSync(df);
+  writeAllSync(Deno.stdout, contents);
   Deno.close(df.rid);
 }
 

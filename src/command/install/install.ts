@@ -4,6 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+import { writeAll } from "io/mod.ts";
 import { info } from "log/mod.ts";
 import {
   progressBar,
@@ -287,7 +288,7 @@ const installContext = (workingDir: string): InstallContext => {
 
         let totalLength = 0;
         for await (const chunk of response.body) {
-          await Deno.writeAll(pkgFile, chunk);
+          await writeAll(pkgFile, chunk);
           totalLength = totalLength + chunk.length;
           if (contentLength > 0) {
             prog.update(
