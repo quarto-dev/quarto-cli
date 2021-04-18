@@ -14,7 +14,7 @@ TODO: Need to provide version info for quarto-latexmk
 Books
 =========================================================================
 
-TODO: for books do we need to force the format from the project level?
+Automaticallly generate redirecting 'index.html' for books that don't have an index
 
 Some things automatically set behind the scenes:
 toc: true
