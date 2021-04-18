@@ -13,11 +13,8 @@ import { ProjectCreate, ProjectType } from "../project-types.ts";
 
 import { websiteProjectType } from "../website/website.ts";
 
-import {
-  bookPandocRenderer,
-  bookRenderList,
-  kContents,
-} from "./book-render.ts";
+import { bookPandocRenderer } from "./book-render.ts";
+import { bookProjectConfig, kContents } from "./book-config.ts";
 
 export const bookProjectType: ProjectType = {
   type: "book",
@@ -62,19 +59,22 @@ export const bookProjectType: ProjectType = {
   libDir: "site_libs",
   outputDir: "_book",
 
+  config: bookProjectConfig,
+
   projectFormatsOnly: true,
 
   isSupportedFormat: (format: Format) => {
     return !!format.extensions?.book;
   },
 
+  pandocRenderer: bookPandocRenderer,
+
+  // inherit a bunch of behavior from website projects
+  preRender: websiteProjectType.preRender,
+  postRender: websiteProjectType.postRender,
+  formatExtras: websiteProjectType.formatExtras,
   formatLibDirs: websiteProjectType.formatLibDirs,
-
   metadataFields: () => [...websiteProjectType.metadataFields!(), kContents],
-
   resourceIgnoreFields:
     () => [...websiteProjectType.resourceIgnoreFields!(), kContents],
-
-  render: bookRenderList,
-  pandocRenderer: bookPandocRenderer,
 };

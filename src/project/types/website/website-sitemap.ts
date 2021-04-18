@@ -39,7 +39,7 @@ export async function updateSitemap(
     });
   }
 
-  const baseUrlConfig = context.metadata?.[kBaseUrl];
+  const baseUrlConfig = context.config?.[kBaseUrl];
   const sitemapPath = join(outputDir, "sitemap.xml");
   if (typeof baseUrlConfig === "string") {
     // normalize baseUrl

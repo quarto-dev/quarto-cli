@@ -95,7 +95,7 @@ export function updateSearchIndex(
       const titleEl = doc.querySelector("h1.title");
       const title = titleEl
         ? titleEl.textContent
-        : (context.metadata?.project?.title || "");
+        : (context.config?.project?.title || "");
 
       // remove pandoc generated header and toc
       const header = doc.getElementById("title-block-header");

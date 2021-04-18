@@ -32,12 +32,15 @@ import {
 import { PandocFlags } from "../../config/flags.ts";
 import { kTheme } from "../../config/constants.ts";
 
+import { print, sassVariable } from "../../command/render/sass.ts";
+import { BookExtension } from "../../project/types/book/book-extension.ts";
+
 import { createHtmlFormat } from "./../formats.ts";
 
 import { boostrapExtras, formatHasBootstrap } from "./format-html-bootstrap.ts";
 
 import { quartoDeclarations, quartoRules } from "./format-html-scss.ts";
-import { print, sassVariable } from "../../command/render/sass.ts";
+import { renderHtmlBook } from "./format-html-book.ts";
 
 export const kCodeCopy = "code-copy";
 export const kAnchorSections = "anchor-sections";
@@ -57,6 +60,10 @@ export function htmlFormat(
   figwidth: number,
   figheight: number,
 ): Format {
+  const bookExtension: BookExtension = {
+    renderPandoc: renderHtmlBook,
+  };
+
   return mergeConfigs(
     createHtmlFormat(figwidth, figheight),
     {
@@ -65,6 +72,9 @@ export function htmlFormat(
           htmlFormatExtras(format),
           themeFormatExtras(flags, format),
         );
+      },
+      extensions: {
+        book: bookExtension,
       },
     },
   );

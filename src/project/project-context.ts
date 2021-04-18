@@ -40,16 +40,18 @@ export interface ProjectContext {
     config?: string[];
     configResources?: string[];
   };
-  metadata?: {
-    project?: ProjectMetadata;
-    [key: string]: unknown;
-  };
+  config?: ProjectConfig;
   formatExtras?: (
     project: ProjectContext,
     input: string,
     flags: PandocFlags,
     format: Format,
   ) => Promise<FormatExtras>;
+}
+
+export interface ProjectConfig {
+  project?: ProjectMetadata;
+  [key: string]: unknown;
 }
 
 export interface ProjectMetadata extends Metadata {
@@ -69,7 +71,7 @@ export function projectConfigFile(dir: string): string | undefined {
 }
 
 export function deleteProjectMetadata(metadata: Metadata) {
-  // see if the active project type wants to filter the metadata printed
+  // see if the active project type wants to filter the config printed
   const projType = projectType((metadata.project as ProjectMetadata)?.type);
   if (projType.metadataFields) {
     for (const field of projType.metadataFields()) {
@@ -77,7 +79,7 @@ export function deleteProjectMetadata(metadata: Metadata) {
     }
   }
 
-  // remove project metadata
+  // remove project config
   delete metadata.project;
 }
 
@@ -96,6 +98,7 @@ export function projectContext(path: string): ProjectContext {
       delete projectConfig[kMetadataFile];
       delete projectConfig[kMetadataFiles];
       if (projectConfig.project) {
+        // get project config and type
         const project = projectConfig.project as ProjectMetadata;
         const type = projectType(project.type);
         if (project[kLibDir] === undefined && type.libDir) {
@@ -104,9 +107,9 @@ export function projectContext(path: string): ProjectContext {
         if (!project[kOutputDir] && type.outputDir) {
           project[kOutputDir] = type.outputDir;
         }
-        // see if the project type wants to provide a custom render list
-        if (type.render) {
-          project.render = type.render(dir, projectConfig);
+        // see if the project type wants to filter the project config
+        if (type.config) {
+          projectConfig = type.config(dir, projectConfig);
         }
         return {
           dir,
@@ -116,7 +119,7 @@ export function projectContext(path: string): ProjectContext {
             config: [configFile].concat(files),
             configResources: projectConfigResources(dir, type, projectConfig),
           },
-          metadata: {
+          config: {
             ...projectConfig,
             project,
           },
@@ -149,7 +152,7 @@ export function projectContext(path: string): ProjectContext {
 }
 
 export function projectOutputDir(context: ProjectContext): string {
-  let outputDir = context.metadata?.project?.[kOutputDir];
+  let outputDir = context.config?.project?.[kOutputDir];
   if (outputDir) {
     outputDir = join(context.dir, outputDir);
   } else {
@@ -188,7 +191,7 @@ export function projectMetadataForInputFile(
     project = projectContext(input);
   }
 
-  const projMetadata = project.metadata || {};
+  const projConfig = project.config || {};
 
   const fixupPaths = (collection: Array<unknown> | Record<string, unknown>) => {
     ld.forEach(
@@ -231,7 +234,7 @@ export function projectMetadataForInputFile(
     return collection;
   };
 
-  return fixupPaths(projMetadata) as Metadata;
+  return fixupPaths(projConfig) as Metadata;
 }
 
 function projectInputFiles(dir: string, metadata?: ProjectMetadata) {

@@ -106,13 +106,13 @@ export async function initWebsiteNavigation(project: ProjectContext) {
 
 export function websiteNavigationConfig(project: ProjectContext) {
   // read navbar
-  let navbar = project.metadata?.[kNavbar] as Navbar | undefined;
+  let navbar = project.config?.[kNavbar] as Navbar | undefined;
   if (typeof (navbar) !== "object") {
     navbar = undefined;
   }
 
   // read sidebar
-  const sidebar = project.metadata?.[kSidebar];
+  const sidebar = project.config?.[kSidebar];
   const sidebars =
     (Array.isArray(sidebar)
       ? sidebar
@@ -428,7 +428,7 @@ async function navbarEjsData(
     ...navbar,
     title: navbar.title !== undefined
       ? navbar.title
-      : project.metadata?.project?.title || "",
+      : project.config?.project?.title || "",
     search: websiteSearch(project) === "navbar" ? navbar.search : false,
     type: navbar.type || "dark",
     background: navbar.background || "primary",
@@ -562,7 +562,7 @@ function sidebarTitle(sidebar: Sidebar, project: ProjectContext) {
   } else if (!sidebar.logo) {
     if (!navbar) {
       // If there isn't a logo and there isn't a sidebar, use the project title
-      return project.metadata?.project?.title;
+      return project.config?.project?.title;
     } else {
       // The navbar will display the title
       return undefined;

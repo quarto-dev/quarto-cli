@@ -83,7 +83,7 @@ export async function resolveInputTarget(
     const outputHref = pathWithForwardSlashes("/" + join(hrefDir, outputFile));
     const title = format.metadata?.[kTitle] as string ||
       ((hrefDir === "." && hrefStem === "index")
-        ? project.metadata?.project?.title
+        ? project.config?.project?.title
         : undefined);
     return { title, outputHref };
   } else {

@@ -142,7 +142,7 @@ export async function render(
       context,
       options,
     );
-  } else if (context.metadata) {
+  } else if (context.config) {
     // if there is a project file then treat this as a project render
     // if the passed file is in the render list
     const renderPath = Deno.realPathSync(path);
@@ -308,7 +308,7 @@ export async function renderContexts(
   const formats = await resolveFormats(target, engine, options.flags, project);
 
   // see if there is a libDir
-  let libDir = project?.metadata?.project?.[kLibDir];
+  let libDir = project?.config?.project?.[kLibDir];
   if (project && libDir) {
     libDir = relative(dirname(file), join(project.dir, libDir));
   } else {
@@ -401,7 +401,7 @@ export async function renderExecute(
       );
       if (thawedResult) {
         // copy the site_libs dir from the freezer
-        const libDir = context.project?.metadata?.project?.[kLibDir];
+        const libDir = context.project?.config?.project?.[kLibDir];
         if (libDir) {
           copyFromProjectFreezer(context.project, libDir, hidden, true);
         }
@@ -860,7 +860,7 @@ async function resolveFormats(
   const inputMetadata = await engine.metadata(target.input);
 
   // determine order of formats
-  const projType = projectType(project?.metadata?.project?.type);
+  const projType = projectType(project?.config?.project?.type);
   const formats = projType.projectFormatsOnly
     ? formatKeys(projMetadata)
     : ld.uniq(

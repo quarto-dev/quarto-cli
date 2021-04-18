@@ -7,11 +7,10 @@
 
 import { PandocFlags } from "../../config/flags.ts";
 import { Format, FormatExtras } from "../../config/format.ts";
-import { Metadata } from "../../config/metadata.ts";
 
 import { PandocRenderer, RenderOptions } from "../../command/render/render.ts";
 
-import { ProjectContext } from "../project-context.ts";
+import { ProjectConfig, ProjectContext } from "../project-context.ts";
 
 import { bookProjectType } from "./book/book.ts";
 import { defaultProjectType } from "./project-default.ts";
@@ -20,7 +19,7 @@ import { websiteProjectType } from "./website/website.ts";
 export interface ProjectType {
   type: string;
   create: (title: string) => ProjectCreate;
-  render?: (projectDir: string, metadata: Metadata) => string[];
+  config?: (projectDir: string, config: ProjectConfig) => ProjectConfig;
   libDir?: string;
   outputDir?: string;
   formatLibDirs?: () => string[];
