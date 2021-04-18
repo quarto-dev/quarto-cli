@@ -14,7 +14,6 @@ TODO: Need to provide version info for quarto-latexmk
 Books
 =========================================================================
 
-Automaticallly generate redirecting 'index.html' for books that don't have an index
 
 Some things automatically set behind the scenes:
 toc: true
@@ -23,6 +22,7 @@ documentclass: book
 TODO: pull front matter out of md files (emit title as '# Title')
 TODO: emit section markdown (and or \part)
 
+TODO: Preface / index page
 TODO: Parts
 TODO: Appendixes (uses letter numbering by default)
 
