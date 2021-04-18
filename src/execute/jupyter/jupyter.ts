@@ -521,7 +521,7 @@ async function jupytextSync(
   }
   await jupytext(...args);
 }
-
+/*
 async function jupytextTo(
   file: string,
   format: string,
@@ -572,6 +572,7 @@ async function jupytextUpdateMetadata(
   }
   await jupytext(...args);
 }
+*/
 
 async function jupytext(...args: string[]) {
   try {
