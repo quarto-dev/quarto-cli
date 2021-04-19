@@ -67,7 +67,7 @@ import { resolveResourceRefs } from "./website-resources.ts";
 
 export const kNavbar = "nav-top";
 export const kSidebar = "nav-side";
-export const kWebsiteTitle = "website-title";
+export const kWebsiteTitle = "site-title";
 
 interface Navigation {
   navbar?: Navbar;

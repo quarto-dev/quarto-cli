@@ -1,8 +1,8 @@
 project:
-  type: website
+  type: site
   output-dir: <%= outputDir %>
 
-website-title: "<%= title %>"
+site-title: "<%= title %>"
 
 nav-top:
   type: dark

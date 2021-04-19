@@ -33,7 +33,7 @@ import { kBaseUrl, updateSitemap } from "./website-sitemap.ts";
 import { updateSearchIndex } from "./website-search.ts";
 
 export const websiteProjectType: ProjectType = {
-  type: "website",
+  type: "site",
   create: (): ProjectCreate => {
     const resourceDir = resourcePath(join("projects", "website"));
 
