@@ -553,7 +553,7 @@ async function resolveItem(
       return {
         ...item,
         href: resolved.outputHref,
-        text: item.text || resolved.title,
+        text: item.text || resolved.title || basename(resolved.outputHref),
       };
     } else {
       return {

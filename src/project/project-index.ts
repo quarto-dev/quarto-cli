@@ -81,10 +81,7 @@ export async function resolveInputTarget(
     const [hrefDir, hrefStem] = dirAndStem(href);
     const outputFile = format?.pandoc[kOutputFile] || `${hrefStem}.html`;
     const outputHref = pathWithForwardSlashes("/" + join(hrefDir, outputFile));
-    const title = format.metadata?.[kTitle] as string ||
-      ((hrefDir === "." && hrefStem === "index")
-        ? project.config?.project?.title
-        : undefined);
+    const title = format.metadata?.[kTitle] as string | undefined;
     return { title, outputHref };
   } else {
     return undefined;
