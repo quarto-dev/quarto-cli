@@ -22,7 +22,7 @@ import { bookProjectConfig, kContents } from "./book-config.ts";
 export const bookProjectType: ProjectType = {
   type: "book",
 
-  create: (): ProjectCreate => {
+  create: (title: string): ProjectCreate => {
     const resourceDir = resourcePath(join("projects", "book"));
 
     return {
@@ -32,7 +32,7 @@ export const bookProjectType: ProjectType = {
         {
           name: "index",
           content: "The preface",
-          title: "Preface {.unnumbered}",
+          title,
           format: "html",
         },
         {

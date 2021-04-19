@@ -67,6 +67,7 @@ import { resolveResourceRefs } from "./website-resources.ts";
 
 export const kNavbar = "nav-top";
 export const kSidebar = "nav-side";
+export const kWebsiteTitle = "website-title";
 
 interface Navigation {
   navbar?: Navbar;
@@ -439,7 +440,7 @@ async function navbarEjsData(
     ...navbar,
     title: navbar.title !== undefined
       ? navbar.title
-      : project.config?.project?.title || "",
+      : (project.config?.[kWebsiteTitle] as string | undefined) || "",
     search: websiteSearch(project) === "navbar" ? navbar.search : false,
     type: navbar.type || "dark",
     background: navbar.background || "primary",
@@ -574,7 +575,7 @@ function sidebarTitle(sidebar: Sidebar, project: ProjectContext) {
   } else if (!sidebar.logo) {
     if (!navbar) {
       // If there isn't a logo and there isn't a sidebar, use the project title
-      return project.config?.project?.title;
+      return project.config?.[kWebsiteTitle] as string | undefined;
     } else {
       // The navbar will display the title
       return undefined;

@@ -59,6 +59,7 @@ import {
   kIncludeInHeader,
   kPageTitle,
   kTitle,
+  kTitlePrefix,
   kTocTitle,
   kVariables,
 } from "../../config/constants.ts";
@@ -232,18 +233,27 @@ export async function runPandoc(
     allDefaults.filters = allDefaults.filters.map(pandocMetadataPath);
   }
 
+  // resolve some title variables
+  const title = allDefaults?.[kVariables]?.[kTitle] ||
+    options.format.metadata[kTitle];
+  const pageTitle = allDefaults?.[kVariables]?.[kPageTitle] ||
+    options.format.metadata[kPageTitle];
+  const titlePrefix = allDefaults?.[kVariables]?.[kTitlePrefix] ||
+    options.format.metadata[kTitlePrefix];
+
   // provide default page title if necessary
-  if (
-    !options.format.metadata[kTitle] &&
-    !options.format.metadata[kPageTitle] &&
-    !allDefaults?.[kVariables]?.[kTitle] &&
-    !allDefaults?.[kVariables]?.[kPageTitle]
-  ) {
+  if (!title && !pageTitle) {
     const [_dir, stem] = dirAndStem(options.input);
     args.push(
       "--metadata",
       `pagetitle:${pandocAutoIdentifier(stem, false)}`,
     );
+  }
+
+  // don't ever duplicate title and title-prefix
+  if (title === titlePrefix) {
+    delete allDefaults?.[kVariables]?.[kTitlePrefix];
+    delete options.format.metadata[kTitlePrefix];
   }
 
   // create a temp file for any filter results

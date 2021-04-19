@@ -134,7 +134,7 @@ export async function render(
   options: RenderOptions,
 ): Promise<RenderResult> {
   // determine target context/files
-  const context = projectContext(path);
+  const context = await projectContext(path);
 
   if (Deno.statSync(path).isDirectory) {
     // all directories are considered projects
@@ -856,7 +856,7 @@ async function resolveFormats(
   project?: ProjectContext,
 ): Promise<Record<string, Format>> {
   // merge input metadata into project metadata
-  const projMetadata = projectMetadataForInputFile(target.input, project);
+  const projMetadata = await projectMetadataForInputFile(target.input, project);
   const inputMetadata = await engine.metadata(target.input);
 
   // determine order of formats

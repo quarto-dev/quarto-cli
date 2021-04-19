@@ -47,7 +47,7 @@ export const metadataCommand = new Command()
     const stat = Deno.statSync(path);
     // deno-lint-ignore no-explicit-any
     const config: any = stat.isDirectory
-      ? projectContext(path).config
+      ? (await projectContext(path)).config
       : await renderFormats(path, options.to);
     if (config) {
       // write using the requisite format

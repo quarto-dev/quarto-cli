@@ -9,20 +9,24 @@ import { ld } from "lodash/mod.ts";
 
 import { join } from "path/mod.ts";
 
-import { safeExistsSync } from "../../../core/path.ts";
+import { dirAndStem, safeExistsSync } from "../../../core/path.ts";
 
 import { Metadata } from "../../../config/metadata.ts";
+import { kTitle } from "../../../config/constants.ts";
 
 import { fileExecutionEngine } from "../../../execute/engine.ts";
 
 import { normalizeSidebarItem, SidebarItem } from "../../project-config.ts";
 import { ProjectConfig } from "../../project-context.ts";
 
-import { kSidebar } from "../website/website-navigation.ts";
+import { kSidebar, kWebsiteTitle } from "../website/website-navigation.ts";
 
 export const kContents = "contents";
 
-export function bookProjectConfig(projectDir: string, config: ProjectConfig) {
+export async function bookProjectConfig(
+  projectDir: string,
+  config: ProjectConfig,
+) {
   // clone and make sure we have a project entry
   config = ld.cloneDeep(config);
   config.project = config.project || {};
@@ -38,6 +42,24 @@ export function bookProjectConfig(projectDir: string, config: ProjectConfig) {
 
   // create render list from 'contents'
   config.project.render = bookRenderList(projectDir, config);
+
+  // some special handling for the index file / preface
+  const indexFile = config.project.render.find((file) => {
+    const [dir, stem] = dirAndStem(file);
+    return dir === "." && stem === "index";
+  });
+  if (indexFile) {
+    // derive website title from index file 'title'
+    const indexFilePath = join(projectDir, indexFile);
+    const engine = fileExecutionEngine(indexFilePath);
+    if (engine) {
+      const metadata = await engine.metadata(indexFilePath);
+      const title = metadata[kTitle];
+      if (title) {
+        config[kWebsiteTitle] = title;
+      }
+    }
+  }
 
   // return config
   return config;

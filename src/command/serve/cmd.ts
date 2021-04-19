@@ -47,7 +47,7 @@ export const serveCommand = new Command()
     if (!stat.isDirectory) {
       throw new Error(`${projDir} is not a directory`);
     }
-    const context = projectContext(projDir);
+    const context = await projectContext(projDir);
     if (!context.config) {
       throw new Error(`${projDir} is not a project`);
     }

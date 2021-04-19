@@ -19,7 +19,10 @@ import { websiteProjectType } from "./website/website.ts";
 export interface ProjectType {
   type: string;
   create: (title: string) => ProjectCreate;
-  config?: (projectDir: string, config: ProjectConfig) => ProjectConfig;
+  config?: (
+    projectDir: string,
+    config: ProjectConfig,
+  ) => Promise<ProjectConfig>;
   libDir?: string;
   outputDir?: string;
   formatLibDirs?: () => string[];

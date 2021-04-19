@@ -56,7 +56,6 @@ export interface ProjectConfig {
 
 export interface ProjectMetadata extends Metadata {
   type?: string;
-  title?: string;
   render?: string[];
   [kExecuteDir]?: "file" | "project";
   [kOutputDir]?: string;
@@ -83,7 +82,7 @@ export function deleteProjectMetadata(metadata: Metadata) {
   delete metadata.project;
 }
 
-export function projectContext(path: string): ProjectContext {
+export async function projectContext(path: string): Promise<ProjectContext> {
   let dir = Deno.realPathSync(
     Deno.statSync(path).isDirectory ? path : dirname(path),
   );
@@ -109,7 +108,7 @@ export function projectContext(path: string): ProjectContext {
         }
         // see if the project type wants to filter the project config
         if (type.config) {
-          projectConfig = type.config(dir, projectConfig);
+          projectConfig = await type.config(dir, projectConfig);
         }
         return {
           dir,
@@ -180,15 +179,15 @@ export function projectIgnoreRegexes() {
   );
 }
 
-export function projectMetadataForInputFile(
+export async function projectMetadataForInputFile(
   input: string,
   project?: ProjectContext,
-): Metadata {
+): Promise<Metadata> {
   if (project) {
     // don't mutate caller
     project = ld.cloneDeep(project) as ProjectContext;
   } else {
-    project = projectContext(input);
+    project = await projectContext(input);
   }
 
   const projConfig = project.config || {};

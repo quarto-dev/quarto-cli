@@ -25,6 +25,7 @@ import {
   initWebsiteNavigation,
   kNavbar,
   kSidebar,
+  kWebsiteTitle,
   websiteNavigationExtras,
 } from "./website-navigation.ts";
 
@@ -65,7 +66,7 @@ export const websiteProjectType: ProjectType = {
   formatLibDirs:
     () => ["bootstrap", "quarto-nav", "quarto-search", "quarto-html"],
 
-  metadataFields: () => [kNavbar, kSidebar, kBaseUrl],
+  metadataFields: () => [kNavbar, kSidebar, kBaseUrl, kWebsiteTitle],
 
   resourceIgnoreFields: () => [kNavbar, kSidebar, kBaseUrl],
 
@@ -89,20 +90,18 @@ export const websiteProjectType: ProjectType = {
       extras.pandoc = extras.pandoc || {};
       extras.metadata = extras.metadata || {};
 
-      // is this the home page? (gets some special handling)
-      const offset = projectOffset(project, input);
-      const [_dir, stem] = dirAndStem(input);
-      const home = (stem === "index" && offset === ".");
-
       // title prefix if the project has a title and this isn't the home page
-      const title = project.config?.project?.title;
-      if (title && !home) {
+      const title = project.config?.[kWebsiteTitle] as string | undefined;
+      if (title) {
         extras.metadata = {
-          [kTitlePrefix]: project.config?.project?.title,
+          [kTitlePrefix]: title,
         };
       }
 
       // pagetitle for home page if it has no title
+      const offset = projectOffset(project, input);
+      const [_dir, stem] = dirAndStem(input);
+      const home = (stem === "index" && offset === ".");
       if (
         home && !format.metadata[kTitle] && !format.metadata[kPageTitle] &&
         title

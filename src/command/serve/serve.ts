@@ -65,7 +65,7 @@ export async function serveProject(
 
   // create mirror or project for serving
   const serveDir = copyProjectForServe(project);
-  const serveProject = projectContext(serveDir);
+  const serveProject = await projectContext(serveDir);
 
   const renderResult = await renderProject(
     serveProject,
@@ -259,7 +259,7 @@ async function serveFile(
     );
     if (!inputFile || !existsSync(inputFile)) {
       inputFile = await inputFileForOutputFile(
-        watcher.refreshProject(),
+        await watcher.refreshProject(),
         filePathRelative,
       );
     }

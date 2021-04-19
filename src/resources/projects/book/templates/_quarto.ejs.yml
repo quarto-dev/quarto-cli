@@ -1,11 +1,10 @@
 project:
-  title: "<%= title %>"
   type: book
   output-dir: <%= outputDir %>
 
 contents:
-  - href: index<=% ext %>
-    text: "Preface"
+  - text: "Preface"
+    file: index<%= ext %>
   - intro<%= ext %>
   - summary<%= ext %>
   - references<%= ext %>

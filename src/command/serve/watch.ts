@@ -42,7 +42,7 @@ export interface ProjectWatcher {
   connect: (req: ServerRequest) => Promise<void>;
   injectClient: (file: Uint8Array) => Uint8Array;
   serveProject: () => ProjectContext;
-  refreshProject: () => ProjectContext;
+  refreshProject: () => Promise<ProjectContext>;
 }
 
 export function watchProject(
@@ -52,9 +52,9 @@ export function watchProject(
   options: ServeOptions,
 ): ProjectWatcher {
   // helper to refresh project config
-  const refreshProjectConfig = () => {
-    project = projectContext(project.dir);
-    serveProject = projectContext(serveProject.dir);
+  const refreshProjectConfig = async () => {
+    project = await projectContext(project.dir);
+    serveProject = await projectContext(serveProject.dir);
   };
 
   // proj dir
@@ -179,7 +179,7 @@ export function watchProject(
       }
       copyProjectForServe(project, serveProject.dir);
       if (refreshProject) {
-        refreshProjectConfig();
+        await refreshProjectConfig();
       }
 
       // see if there is a reload target (last html file modified)
@@ -287,8 +287,8 @@ export function watchProject(
       }
     },
     serveProject: () => serveProject,
-    refreshProject: () => {
-      refreshProjectConfig();
+    refreshProject: async () => {
+      await refreshProjectConfig();
       return serveProject;
     },
   };
