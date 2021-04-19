@@ -7,9 +7,12 @@
 import { join } from "path/mod.ts";
 import { resourcePath } from "../../../core/resources.ts";
 
-import { Format } from "../../../config/format.ts";
+import { Format, isLatexOutput } from "../../../config/format.ts";
+import { PandocFlags } from "../../../config/flags.ts";
+import { kDocumentClass } from "../../../config/constants.ts";
 
 import { ProjectCreate, ProjectType } from "../project-types.ts";
+import { ProjectContext } from "../../project-context.ts";
 
 import { websiteProjectType } from "../website/website.ts";
 
@@ -78,9 +81,37 @@ export const bookProjectType: ProjectType = {
   // inherit a bunch of behavior from website projects
   preRender: websiteProjectType.preRender,
   postRender: websiteProjectType.postRender,
-  formatExtras: websiteProjectType.formatExtras,
   formatLibDirs: websiteProjectType.formatLibDirs,
   metadataFields: () => [...websiteProjectType.metadataFields!(), kContents],
   resourceIgnoreFields:
     () => [...websiteProjectType.resourceIgnoreFields!(), kContents],
+
+  // format extras
+  formatExtras: async (
+    context: ProjectContext,
+    input: string,
+    flags: PandocFlags,
+    format: Format,
+  ) => {
+    // delegate to get website extras
+    const websiteExtras = await websiteProjectType.formatExtras!(
+      context,
+      input,
+      flags,
+      format,
+    );
+
+    // toc by default
+    websiteExtras.pandoc = websiteExtras.pandoc || {};
+    websiteExtras.pandoc.toc = true;
+
+    // documentclass book by default
+    if (isLatexOutput(format.pandoc)) {
+      websiteExtras.metadata = websiteExtras.metadata || {};
+      websiteExtras.metadata[kDocumentClass] = "book";
+    }
+
+    // return
+    return websiteExtras;
+  },
 };
