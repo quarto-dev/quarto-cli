@@ -10,22 +10,35 @@ TODO: Floating TOC with toc-depth: 4 - looks meh
 TODO: Need to be sure all updates to tinytex are in quarto-latexmk
 TODO: Need to provide version info for quarto-latexmk
 
-
 Books
 =========================================================================
 
+toc and number-sections should get included in all formats
 
-Some things automatically set behind the scenes:
-toc: true
-documentclass: book
+should we auto-generate a redirecting index.html?
+first file always has the metadata (book title, etc.)
 
-TODO: pull front matter out of md files (emit title as '# Title')
-TODO: emit section markdown (and or \part)
+- Preface page (index.md) and section pages are unnumbered by default (via filter)
+- Use of the .numbered class within these pages selectively overrides this
+- additional 'unumbered' metadata value which switches document into unumbered mode
 
-TODO: Preface / index page
-TODO: Parts
-TODO: Appendixes (uses letter numbering by default)
+- index.md contains typical title/author/date/subtitle/abstract metadata:
+- index.md is *required*, and it listed in the sidebar as "Preface" 
 
+
+Title handling:
+- Handle {.unnumered} or {-}
+
+Build the full book (markdown merge)
+- Replace metadata with actual title (including emit H1)
+
+Section/part handling:
+
+- Emit \part for pdf
+- What's correct/required for epub / docx?
+
+
+- Appendixes (uses letter numbering by default)
 
 TODO: centralize error cleanup and consider caching
 
@@ -66,6 +79,13 @@ TODO: centralize error cleanup and consider caching
 
 IDE/Docs unlock users actually using this and engaging with it
 
+
+Installation/Compilation
+=====================================================================
+
+- Discover our executables path:
+   - https://github.com/rstudio/rstudio/blob/master/src/cpp/core/system/PosixSystem.cpp#L892-L931
+   - https://github.com/rstudio/rstudio/blob/master/src/cpp/core/system/Win32System.cpp#L498-L510
 
 
 RStudio IDE
@@ -117,6 +137,9 @@ HIGHER PRIORITY BACKGROUND WORK
 code chunks
 ===========================================
 consider improving line number appearance and indention
+copy button should only copy code: https://github.com/rstudio/bookdown/issues/1072
+
+
 
 commenting
 ==========================================
