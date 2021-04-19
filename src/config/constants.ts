@@ -27,6 +27,7 @@ export const kExecute = "execute";
 export const kCache = "cache";
 export const kFreeze = "freeze";
 export const kAllowErrors = "allow-errors";
+export const kResources = "resources";
 
 export const kHideWarnings = "hide-warnings";
 export const kRemoveCell = "remove-cell";

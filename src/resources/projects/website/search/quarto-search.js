@@ -1,5 +1,5 @@
 
-window.document.addEventListener("DOMContentLoaded", function (event) {
+window.document.addEventListener("DOMContentLoaded", function (_event) {
 
   // get search element (bail if we don't have one)
   var searchEl = window.document.getElementById('quarto-search');
@@ -131,10 +131,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
           }
         }
       }])
-      .on('autocomplete:redrawn', function(event) {
+      .on('autocomplete:redrawn', function(_event) {
         // fixup popup position
-        var input = this;
-        var inputRect = input.getBoundingClientRect();
+        var inputRect = this.getBoundingClientRect();
         var results = window.document.querySelector("#quarto-search-results .algolia-autocomplete");
         var width = results.clientWidth;
         if ((inputRect.left + width) > window.innerWidth) {  

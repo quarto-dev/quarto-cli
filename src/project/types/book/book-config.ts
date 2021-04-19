@@ -17,11 +17,15 @@ import { kTitle } from "../../../config/constants.ts";
 import { fileExecutionEngine } from "../../../execute/engine.ts";
 
 import { normalizeSidebarItem, SidebarItem } from "../../project-config.ts";
-import { ProjectConfig } from "../../project-context.ts";
+import { kProjectRender, ProjectConfig } from "../../project-context.ts";
 
-import { kSidebar, kWebsiteTitle } from "../website/website-navigation.ts";
+import {
+  kContents,
+  kSiteSidebar,
+  kSiteTitle,
+} from "../website/website-config.ts";
 
-export const kContents = "contents";
+export const kBookContents = "book-contents";
 
 export async function bookProjectConfig(
   projectDir: string,
@@ -29,22 +33,21 @@ export async function bookProjectConfig(
 ) {
   // clone and make sure we have a project entry
   config = ld.cloneDeep(config);
-  config.project = config.project || {};
 
-  // ensure we have a nav-side
-  config[kSidebar] = config[kSidebar] || {};
+  // ensure we have a sidebar
+  config[kSiteSidebar] = config[kSiteSidebar] || {};
 
-  // if we have a top-level 'contents' then fold it into nav-side
-  if (config[kContents]) {
-    (config[kSidebar] as Metadata)[kContents] = config[kContents];
-    delete config[kContents];
+  // if we have a top-level 'contents' then fold it into sidebar
+  if (config[kBookContents]) {
+    (config[kSiteSidebar] as Metadata)[kContents] = config[kBookContents];
+    delete config[kBookContents];
   }
 
   // create render list from 'contents'
-  config.project.render = bookRenderList(projectDir, config);
+  config[kProjectRender] = bookRenderList(projectDir, config);
 
   // some special handling for the index file / preface
-  const indexFile = config.project.render.find((file) => {
+  const indexFile = (config[kProjectRender] || []).find((file) => {
     const [dir, stem] = dirAndStem(file);
     return dir === "." && stem === "index";
   });
@@ -56,7 +59,7 @@ export async function bookProjectConfig(
       const metadata = await engine.metadata(indexFilePath);
       const title = metadata[kTitle];
       if (title) {
-        config[kWebsiteTitle] = title;
+        config[kSiteTitle] = title;
       }
     }
   }
@@ -68,8 +71,8 @@ export async function bookProjectConfig(
 function bookRenderList(projectDir: string, config: ProjectConfig) {
   // determine contents
   const contents: SidebarItem[] = [];
-  if (config[kSidebar]) {
-    const sidebar = config[kSidebar] as Record<string, unknown>;
+  if (config[kSiteSidebar]) {
+    const sidebar = config[kSiteSidebar] as Record<string, unknown>;
     if (sidebar[kContents]) {
       contents.push(...(sidebar[kContents] as SidebarItem[])
         .map((item) => normalizeSidebarItem(projectDir, item)));

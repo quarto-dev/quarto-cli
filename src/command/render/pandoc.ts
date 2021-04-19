@@ -39,7 +39,6 @@ import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
 
 import {
   deleteProjectMetadata,
-  kResources,
   ProjectContext,
 } from "../../project/project-context.ts";
 
@@ -58,6 +57,7 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
   kPageTitle,
+  kResources,
   kTitle,
   kTitlePrefix,
   kTocTitle,

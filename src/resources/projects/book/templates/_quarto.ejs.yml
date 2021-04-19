@@ -1,7 +1,6 @@
-project:
-  type: book
+project-type: book
 
-contents:
+book-contents:
   - text: "Preface"
     file: index<%= ext %>
   - intro<%= ext %>
@@ -15,6 +14,6 @@ format:
     theme: [cosmo, assets/html-theme.scss]
   epub:
     css: assets/epub-styles.css
-    cover-image: assets/epub-cover.png
+    epub-cover-image: assets/epub-cover.png
   pdf:
     include-in-header: assets/pdf-preamble.tex

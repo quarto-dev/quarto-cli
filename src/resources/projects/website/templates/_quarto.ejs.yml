@@ -1,9 +1,8 @@
-project:
-  type: site
+project-type: site
 
 site-title: "<%= title %>"
 
-nav-top:
+site-navbar:
   type: dark
   background: primary
   left:

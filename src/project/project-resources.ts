@@ -12,17 +12,21 @@ import { ld } from "lodash/mod.ts";
 
 import { resolvePathGlobs } from "../core/path.ts";
 
-import { kOutputDir, kResources, ProjectMetadata } from "./project-context.ts";
+import {
+  kProjectOutputDir,
+  kProjectResources,
+  ProjectConfig,
+} from "./project-context.ts";
 import { kGitignoreEntries } from "./project-gitignore.ts";
 
 export function projectResourceFiles(
   dir: string,
-  metadata: ProjectMetadata,
+  config: ProjectConfig,
 ): string[] {
-  let resourceGlobs = metadata?.[kResources];
+  let resourceGlobs = config?.[kProjectResources];
   if (resourceGlobs) {
     const resourceFiles: string[] = [];
-    const outputDir = metadata?.[kOutputDir];
+    const outputDir = config?.[kProjectOutputDir];
     if (outputDir) {
       resourceGlobs = resourceGlobs
         // ignore anything specified in our standard .gitignore

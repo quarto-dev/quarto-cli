@@ -13,7 +13,6 @@ import { executionEngine, executionEngines } from "../../execute/engine.ts";
 
 import { projectCreate } from "../../project/project-create.ts";
 import { projectTypes } from "../../project/types/project-types.ts";
-import { kOutputDir } from "../../project/project-context.ts";
 
 const kProjectTypes = projectTypes();
 const kExecutionEngines = executionEngines().reverse();

@@ -65,9 +65,7 @@ import {
 } from "./website-search.ts";
 import { resolveResourceRefs } from "./website-resources.ts";
 
-export const kNavbar = "nav-top";
-export const kSidebar = "nav-side";
-export const kWebsiteTitle = "site-title";
+import { kSiteNavbar, kSiteSidebar, kSiteTitle } from "./website-config.ts";
 
 interface Navigation {
   navbar?: Navbar;
@@ -107,13 +105,13 @@ export async function initWebsiteNavigation(project: ProjectContext) {
 
 export function websiteNavigationConfig(project: ProjectContext) {
   // read navbar
-  let navbar = project.config?.[kNavbar] as Navbar | undefined;
+  let navbar = project.config?.[kSiteNavbar] as Navbar | undefined;
   if (typeof (navbar) !== "object") {
     navbar = undefined;
   }
 
   // read sidebar
-  const sidebar = project.config?.[kSidebar];
+  const sidebar = project.config?.[kSiteSidebar];
   const sidebars =
     (Array.isArray(sidebar)
       ? sidebar
@@ -440,7 +438,7 @@ async function navbarEjsData(
     ...navbar,
     title: navbar.title !== undefined
       ? navbar.title
-      : (project.config?.[kWebsiteTitle] as string | undefined) || "",
+      : (project.config?.[kSiteTitle] as string | undefined) || "",
     search: websiteSearch(project) === "navbar" ? navbar.search : false,
     type: navbar.type || "dark",
     background: navbar.background || "primary",
@@ -575,7 +573,7 @@ function sidebarTitle(sidebar: Sidebar, project: ProjectContext) {
   } else if (!sidebar.logo) {
     if (!navbar) {
       // If there isn't a logo and there isn't a sidebar, use the project title
-      return project.config?.[kWebsiteTitle] as string | undefined;
+      return project.config?.[kSiteTitle] as string | undefined;
     } else {
       // The navbar will display the title
       return undefined;
@@ -688,7 +686,7 @@ function resolveNavReferences(
 }
 
 function resolveNavReference(href: string) {
-  const match = href.match(/^nav:([^\s]+).*$/);
+  const match = href.match(/^sidebar:([^\s]+).*$/);
   if (match) {
     const id = match[1];
     const sidebar = navigation.sidebars.find((sidebar) => sidebar.id === id);

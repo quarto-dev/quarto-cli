@@ -23,14 +23,17 @@ import { formatHasBootstrap } from "../../../format/html/format-html-bootstrap.t
 
 import {
   initWebsiteNavigation,
-  kNavbar,
-  kSidebar,
-  kWebsiteTitle,
   websiteNavigationExtras,
 } from "./website-navigation.ts";
 
-import { kBaseUrl, updateSitemap } from "./website-sitemap.ts";
+import { updateSitemap } from "./website-sitemap.ts";
 import { updateSearchIndex } from "./website-search.ts";
+import {
+  kSiteNavbar,
+  kSiteSidebar,
+  kSiteTitle,
+  websiteMetadataFields,
+} from "./website-config.ts";
 
 export const websiteProjectType: ProjectType = {
   type: "site",
@@ -66,9 +69,9 @@ export const websiteProjectType: ProjectType = {
   formatLibDirs:
     () => ["bootstrap", "quarto-nav", "quarto-search", "quarto-html"],
 
-  metadataFields: () => [kNavbar, kSidebar, kBaseUrl, kWebsiteTitle],
+  metadataFields: websiteMetadataFields,
 
-  resourceIgnoreFields: () => [kNavbar, kSidebar, kBaseUrl],
+  resourceIgnoreFields: () => [kSiteNavbar, kSiteSidebar],
 
   preRender: async (context: ProjectContext) => {
     await initWebsiteNavigation(context);
@@ -91,7 +94,7 @@ export const websiteProjectType: ProjectType = {
       extras.metadata = extras.metadata || {};
 
       // title prefix if the project has a title and this isn't the home page
-      const title = project.config?.[kWebsiteTitle] as string | undefined;
+      const title = project.config?.[kSiteTitle] as string | undefined;
       if (title) {
         extras.metadata = {
           [kTitlePrefix]: title,

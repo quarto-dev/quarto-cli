@@ -16,7 +16,7 @@ import { renderEjs } from "../core/ejs.ts";
 
 import { ExecutionEngine, executionEngine } from "../execute/engine.ts";
 
-import { kOutputDir, projectConfigFile } from "./project-context.ts";
+import { projectConfigFile } from "./project-context.ts";
 import { createGitignore } from "./project-gitignore.ts";
 
 export interface ProjectCreateOptions {

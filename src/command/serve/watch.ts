@@ -17,7 +17,7 @@ import { ld } from "lodash/mod.ts";
 import { pathWithForwardSlashes, removeIfExists } from "../../core/path.ts";
 
 import {
-  kLibDir,
+  kProjectLibDir,
   ProjectContext,
   projectContext,
   projectOutputDir,
@@ -65,7 +65,7 @@ export function watchProject(
   const outputDir = projectOutputDir(project);
 
   // lib dir
-  const libDirConfig = project.config?.project?.[kLibDir];
+  const libDirConfig = project.config?.[kProjectLibDir];
   const libDir = libDirConfig ? join(outputDir, libDirConfig) : undefined;
 
   // if any of the paths are in the output dir (but not the lib dir) then return true

@@ -34,7 +34,7 @@ export interface ProjectType {
   ) => Promise<FormatExtras>;
   projectFormatsOnly?: boolean;
   isSupportedFormat?: (format: Format) => boolean;
-  metadataFields?: () => string[];
+  metadataFields?: () => Array<string | RegExp>;
   resourceIgnoreFields?: () => string[];
   preRender?: (context: ProjectContext) => Promise<void>;
   pandocRenderer?: (

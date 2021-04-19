@@ -24,7 +24,7 @@ import { logError } from "../../core/log.ts";
 import { PromiseQueue } from "../../core/promise.ts";
 
 import {
-  kLibDir,
+  kProjectLibDir,
   ProjectContext,
   projectContext,
   projectIgnoreRegexes,
@@ -167,7 +167,7 @@ export function copyProjectForServe(
   // output dir
   const outputDir = projectOutputDir(project);
   // lib dir
-  const libDirConfig = project.config?.project?.[kLibDir];
+  const libDirConfig = project.config?.[kProjectLibDir];
   const libDir = libDirConfig ? join(project.dir, libDirConfig) : undefined;
 
   const projectIgnore = projectIgnoreRegexes();

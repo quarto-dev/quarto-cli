@@ -17,7 +17,7 @@ import { ProjectContext } from "../../project-context.ts";
 import { websiteProjectType } from "../website/website.ts";
 
 import { bookPandocRenderer } from "./book-render.ts";
-import { bookProjectConfig, kContents } from "./book-config.ts";
+import { bookProjectConfig, kBookContents } from "./book-config.ts";
 
 export const bookProjectType: ProjectType = {
   type: "book",
@@ -82,9 +82,9 @@ export const bookProjectType: ProjectType = {
   preRender: websiteProjectType.preRender,
   postRender: websiteProjectType.postRender,
   formatLibDirs: websiteProjectType.formatLibDirs,
-  metadataFields: () => [...websiteProjectType.metadataFields!(), kContents],
+  metadataFields: () => [...websiteProjectType.metadataFields!(), /^book-.*$/],
   resourceIgnoreFields:
-    () => [...websiteProjectType.resourceIgnoreFields!(), kContents],
+    () => [...websiteProjectType.resourceIgnoreFields!(), kBookContents],
 
   // format extras
   formatExtras: async (

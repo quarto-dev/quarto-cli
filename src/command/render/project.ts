@@ -16,9 +16,10 @@ import { resolvePathGlobs } from "../../core/path.ts";
 import { kKeepMd } from "../../config/constants.ts";
 
 import {
-  kExecuteDir,
-  kLibDir,
-  kOutputDir,
+  kProjectExecuteDir,
+  kProjectLibDir,
+  kProjectOutputDir,
+  kProjectType,
   ProjectContext,
 } from "../../project/project-context.ts";
 
@@ -57,7 +58,7 @@ export async function renderProject(
   // projResults to return
   const projResults: RenderResult = {
     baseDir: projDir,
-    outputDir: context.config?.project?.[kOutputDir],
+    outputDir: context.config?.[kProjectOutputDir],
     files: [],
   };
 
@@ -65,13 +66,13 @@ export async function renderProject(
   await ensureGitignore(context);
 
   // lookup the project type and call preRender
-  const projType = projectType(context.config?.project?.type);
+  const projType = projectType(context.config?.[kProjectType]);
   if (projType.preRender) {
     await projType.preRender(context);
   }
 
   // set execute dir if requested
-  const executeDir = context.config?.project?.[kExecuteDir];
+  const executeDir = context.config?.[kProjectExecuteDir];
   if (options.flags?.executeDir === undefined && executeDir === "project") {
     options = {
       ...options,
@@ -100,7 +101,7 @@ export async function renderProject(
   }
 
   // track the lib dir
-  const libDir = context.config?.project?.[kLibDir];
+  const libDir = context.config?.[kProjectLibDir];
 
   // set QUARTO_PROJECT_DIR
   Deno.env.set("QUARTO_PROJECT_DIR", projDir);

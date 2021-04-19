@@ -30,7 +30,10 @@ import {
 
 import { ExecuteResult } from "../../execute/engine.ts";
 
-import { kLibDir, ProjectContext } from "../../project/project-context.ts";
+import {
+  kProjectLibDir,
+  ProjectContext,
+} from "../../project/project-context.ts";
 import { projectScratchPath } from "../../project/project-scratch.ts";
 
 export const kProjectFreezeDir = "_freeze";
@@ -169,7 +172,7 @@ export function pruneProjectFreezerDir(
 
 export function pruneProjectFreezer(project: ProjectContext, hidden: boolean) {
   const freezerDir = projectFreezerDir(project.dir, hidden);
-  const libDir = project.config?.project?.[kLibDir];
+  const libDir = project.config?.[kProjectLibDir];
   if (libDir) {
     let remove = true;
     for (const entry of Deno.readDirSync(freezerDir)) {
