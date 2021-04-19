@@ -4,6 +4,8 @@ project:
   output-dir: <%= outputDir %>
 
 contents:
+  - href: index<=% ext %>
+    text: "Preface"
   - intro<%= ext %>
   - summary<%= ext %>
   - references<%= ext %>

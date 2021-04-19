@@ -39,9 +39,16 @@ export interface Navbar {
 }
 
 export interface NavbarItem {
+  // core identification
   id?: string;
   text?: string;
+
+  // href + more readable/understndable aliases
   href?: string;
+  file?: string;
+  url?: string;
+
+  // more
   icon?: string;
   [kAriaLabel]?: string;
   menu?: NavbarItem[];
@@ -74,20 +81,32 @@ export interface Sidebar {
 }
 
 export interface SidebarItem {
-  href?: string;
-  text?: string;
+  // core structure/contents
   section?: string;
+  text?: string;
   contents?: SidebarItem[];
+
+  // href + more readable/understndable aliases
+  href?: string;
+  file?: string;
+  url?: string;
+
+  // more
   [kAriaLabel]?: string;
   expanded?: boolean;
   active?: boolean;
 }
 
 export interface SidebarTool {
+  // label/contents
   icon: string;
   text?: string;
-  href?: string;
   menu?: NavbarItem[];
+
+  // href + more readable/understndable aliases
+  href?: string;
+  file?: string;
+  url?: string;
 }
 
 export function normalizeSidebarItem(

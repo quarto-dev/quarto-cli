@@ -291,6 +291,7 @@ async function resolveSidebarItems(
       const subItems = item.contents || [];
 
       // If this item has an href, resolve that
+      resolveHrefAttribute(item);
       if (item.href) {
         items[i] = await resolveItem(project, item.href, item);
       }
@@ -314,6 +315,7 @@ async function resolveSidebarItems(
 }
 
 async function resolveSidebarItem(project: ProjectContext, item: SidebarItem) {
+  resolveHrefAttribute(item);
   if (item.href) {
     return await resolveItem(
       project,
@@ -350,6 +352,7 @@ async function resolveSidebarTools(
         }
       } else {
         const toolItem = tools[i];
+        resolveHrefAttribute(toolItem);
         if (toolItem.href) {
           tools[i] = await resolveItem(
             project,
@@ -360,6 +363,14 @@ async function resolveSidebarTools(
       }
     }
   }
+}
+
+function resolveHrefAttribute(
+  item: { href?: string; file?: string; url?: string },
+) {
+  item.href = item.href || item.file || item.url;
+  delete item.file;
+  delete item.url;
 }
 
 function sidebarForHref(href: string) {
@@ -484,6 +495,7 @@ async function navigationItem(
     ? !navItem.icon.startsWith("bi-") ? `bi-${navItem.icon}` : navItem.icon
     : navItem.icon;
 
+  resolveHrefAttribute(navItem);
   if (navItem.href) {
     return await resolveItem(project, navItem.href, navItem);
   } else if (navItem.menu) {

@@ -27,6 +27,12 @@ export const bookProjectType: ProjectType = {
       resourceDir,
       scaffold: [
         {
+          name: "index",
+          content: "The preface",
+          title: "Preface {.unnumbered}",
+          format: "html",
+        },
+        {
           name: "intro",
           content: "The introduction",
           title: "Introduction",

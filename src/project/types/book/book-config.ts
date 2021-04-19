@@ -70,7 +70,8 @@ function bookRenderList(projectDir: string, config: ProjectConfig) {
           } else if (typeof (value) === "object") {
             findInputs(value as Record<string, unknown>);
           } else if (
-            index === "href" && typeof (value) === "string" &&
+            ((index === "href" || index === "file") &&
+              typeof (value) === "string") &&
             safeExistsSync(join(projectDir, value)) &&
             fileExecutionEngine(join(projectDir, value), true)
           ) {
