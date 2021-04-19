@@ -63,10 +63,6 @@ export const createProjectCommand = new Command()
     },
   )
   .option(
-    "--output-dir <dir:string>",
-    "Directory for project outputs",
-  )
-  .option(
     "--no-scaffold",
     "Don't create initial project file(s)",
   )
@@ -108,7 +104,6 @@ export const createProjectCommand = new Command()
       title: options.title || basename(dir),
       scaffold: !!options.scaffold,
       engine: engine[0] || "none",
-      [kOutputDir]: options.outputDir,
       kernel: engine[1],
     });
   });

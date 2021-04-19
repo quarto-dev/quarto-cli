@@ -25,7 +25,6 @@ export interface ProjectCreateOptions {
   title: string;
   scaffold: boolean;
   engine: string;
-  [kOutputDir]?: string;
   kernel?: string;
 }
 
@@ -58,7 +57,6 @@ export async function projectCreate(options: ProjectCreateOptions) {
   // create the initial project config
   const quartoConfig = renderEjs(projCreate.configTemplate, {
     title: options.title,
-    outputDir: options[kOutputDir] || projType.outputDir,
     ext: engine.defaultExt,
   }, false);
   await Deno.writeTextFileSync(join(options.dir, "_quarto.yml"), quartoConfig);

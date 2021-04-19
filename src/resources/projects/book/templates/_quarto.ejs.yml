@@ -1,6 +1,5 @@
 project:
   type: book
-  output-dir: <%= outputDir %>
 
 contents:
   - text: "Preface"

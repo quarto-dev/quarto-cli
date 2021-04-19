@@ -1,6 +1,5 @@
 project:
   type: site
-  output-dir: <%= outputDir %>
 
 site-title: "<%= title %>"
 
