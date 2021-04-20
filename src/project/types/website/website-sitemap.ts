@@ -17,7 +17,7 @@ import { renderEjs } from "../../../core/ejs.ts";
 import { resourcePath } from "../../../core/resources.ts";
 
 import { ProjectOutputFile } from "../project-types.ts";
-import { kSiteBaseUrl } from "./website-config.ts";
+import { websiteBaseurl } from "./website-config.ts";
 
 export async function updateSitemap(
   context: ProjectContext,
@@ -38,7 +38,7 @@ export async function updateSitemap(
     });
   }
 
-  const baseUrlConfig = context.config?.[kSiteBaseUrl];
+  const baseUrlConfig = websiteBaseurl(context.config);
   const sitemapPath = join(outputDir, "sitemap.xml");
   if (typeof baseUrlConfig === "string") {
     // normalize baseUrl

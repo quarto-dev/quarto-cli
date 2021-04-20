@@ -65,7 +65,12 @@ import {
 } from "./website-search.ts";
 import { resolveResourceRefs } from "./website-resources.ts";
 
-import { kSiteNavbar, kSiteSidebar, kSiteTitle } from "./website-config.ts";
+import {
+  kSiteNavbar,
+  kSiteSidebar,
+  websiteConfig,
+  websiteTitle,
+} from "./website-config.ts";
 
 interface Navigation {
   navbar?: Navbar;
@@ -105,13 +110,13 @@ export async function initWebsiteNavigation(project: ProjectContext) {
 
 export function websiteNavigationConfig(project: ProjectContext) {
   // read navbar
-  let navbar = project.config?.[kSiteNavbar] as Navbar | undefined;
+  let navbar = websiteConfig(kSiteNavbar, project.config) as Navbar | undefined;
   if (typeof (navbar) !== "object") {
     navbar = undefined;
   }
 
   // read sidebar
-  const sidebar = project.config?.[kSiteSidebar];
+  const sidebar = websiteConfig(kSiteSidebar, project.config);
   const sidebars =
     (Array.isArray(sidebar)
       ? sidebar
@@ -261,7 +266,7 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
   }
 
   // ensure title and search are present
-  sidebar.title = sidebarTitle(sidebar, project);
+  sidebar.title = sidebarTitle(sidebar, project) as string | undefined;
   sidebar.logo = resolveLogo(sidebar.logo);
   sidebar.search = websiteSearch(project) === "sidebar"
     ? sidebar.search
@@ -438,7 +443,7 @@ async function navbarEjsData(
     ...navbar,
     title: navbar.title !== undefined
       ? navbar.title
-      : (project.config?.[kSiteTitle] as string | undefined) || "",
+      : websiteTitle(project.config) || "",
     search: websiteSearch(project) === "navbar" ? navbar.search : false,
     type: navbar.type || "dark",
     background: navbar.background || "primary",
@@ -573,7 +578,7 @@ function sidebarTitle(sidebar: Sidebar, project: ProjectContext) {
   } else if (!sidebar.logo) {
     if (!navbar) {
       // If there isn't a logo and there isn't a sidebar, use the project title
-      return project.config?.[kSiteTitle] as string | undefined;
+      return websiteTitle(project.config);
     } else {
       // The navbar will display the title
       return undefined;

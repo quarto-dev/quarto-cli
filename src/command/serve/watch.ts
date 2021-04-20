@@ -65,7 +65,7 @@ export function watchProject(
   const outputDir = projectOutputDir(project);
 
   // lib dir
-  const libDirConfig = project.config?.[kProjectLibDir];
+  const libDirConfig = project.config?.project[kProjectLibDir];
   const libDir = libDirConfig ? join(outputDir, libDirConfig) : undefined;
 
   // if any of the paths are in the output dir (but not the lib dir) then return true

@@ -309,7 +309,7 @@ export async function renderContexts(
   const formats = await resolveFormats(target, engine, options.flags, project);
 
   // see if there is a libDir
-  let libDir = project?.config?.[kProjectLibDir];
+  let libDir = project?.config?.project[kProjectLibDir];
   if (project && libDir) {
     libDir = relative(dirname(file), join(project.dir, libDir));
   } else {
@@ -402,7 +402,7 @@ export async function renderExecute(
       );
       if (thawedResult) {
         // copy the site_libs dir from the freezer
-        const libDir = context.project?.config?.[kProjectLibDir];
+        const libDir = context.project?.config?.project[kProjectLibDir];
         if (libDir) {
           copyFromProjectFreezer(context.project, libDir, hidden, true);
         }
@@ -861,7 +861,7 @@ async function resolveFormats(
   const inputMetadata = await engine.metadata(target.input);
 
   // determine order of formats
-  const projType = projectType(project?.config?.[kProjectType]);
+  const projType = projectType(project?.config?.project?.[kProjectType]);
   const formats = projType.projectFormatsOnly
     ? formatKeys(projMetadata)
     : ld.uniq(

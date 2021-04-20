@@ -9,10 +9,9 @@ import { ld } from "lodash/mod.ts";
 
 import { join } from "path/mod.ts";
 
-import { dirAndStem, safeExistsSync } from "../../../core/path.ts";
+import { safeExistsSync } from "../../../core/path.ts";
 
 import { Metadata } from "../../../config/metadata.ts";
-import { kTitle } from "../../../config/constants.ts";
 
 import { fileExecutionEngine } from "../../../execute/engine.ts";
 
@@ -21,58 +20,73 @@ import { kProjectRender, ProjectConfig } from "../../project-context.ts";
 
 import {
   kContents,
+  kSite,
+  kSiteBaseUrl,
+  kSiteNavbar,
   kSiteSidebar,
   kSiteTitle,
+  websiteConfig,
 } from "../website/website-config.ts";
 
-export const kBookContents = "book-contents";
+export const kBook = "book";
+export const kBookContents = "contents";
 
-export async function bookProjectConfig(
+export function bookProjectConfig(
   projectDir: string,
   config: ProjectConfig,
 ) {
   // clone and make sure we have a project entry
   config = ld.cloneDeep(config);
 
-  // ensure we have a sidebar
-  config[kSiteSidebar] = config[kSiteSidebar] || {};
+  // ensure we have a site
+  const site = (config[kSite] || {}) as Record<string, unknown>;
+  config[kSite] = site;
+
+  // copy some book config into site
+  const book = config[kBook] as Record<string, unknown>;
+  if (book) {
+    site[kSiteTitle] = book[kSiteTitle];
+    site[kSiteBaseUrl] = book[kSiteBaseUrl];
+    site[kSiteNavbar] = book[kSiteNavbar];
+    site[kSiteSidebar] = book[kSiteSidebar];
+  }
 
   // if we have a top-level 'contents' then fold it into sidebar
-  if (config[kBookContents]) {
-    (config[kSiteSidebar] as Metadata)[kContents] = config[kBookContents];
-    delete config[kBookContents];
+  site[kSiteSidebar] = site[kSiteSidebar] || {};
+  const bookContents = bookConfig(kBookContents, config);
+  if (bookContents) {
+    (site[kSiteSidebar] as Metadata)[kContents] = bookContents;
   }
 
   // create render list from 'contents'
-  config[kProjectRender] = bookRenderList(projectDir, config);
-
-  // some special handling for the index file / preface
-  const indexFile = (config[kProjectRender] || []).find((file) => {
-    const [dir, stem] = dirAndStem(file);
-    return dir === "." && stem === "index";
-  });
-  if (indexFile) {
-    // derive website title from index file 'title'
-    const indexFilePath = join(projectDir, indexFile);
-    const engine = fileExecutionEngine(indexFilePath);
-    if (engine) {
-      const metadata = await engine.metadata(indexFilePath);
-      const title = metadata[kTitle];
-      if (title) {
-        config[kSiteTitle] = title;
-      }
-    }
-  }
+  config.project[kProjectRender] = bookRenderList(projectDir, config);
 
   // return config
-  return config;
+  return Promise.resolve(config);
+}
+
+export function bookConfig(
+  name: "contents",
+  project?: ProjectConfig,
+) {
+  const book = project?.[kBook] as
+    | Record<string, unknown>
+    | undefined;
+  if (book) {
+    return book[name] as Record<string, unknown> | string | undefined;
+  } else {
+    return undefined;
+  }
 }
 
 function bookRenderList(projectDir: string, config: ProjectConfig) {
   // determine contents
   const contents: SidebarItem[] = [];
-  if (config[kSiteSidebar]) {
-    const sidebar = config[kSiteSidebar] as Record<string, unknown>;
+  const sidebar = websiteConfig(kSiteSidebar, config) as Record<
+    string,
+    unknown
+  >;
+  if (sidebar) {
     if (sidebar[kContents]) {
       contents.push(...(sidebar[kContents] as SidebarItem[])
         .map((item) => normalizeSidebarItem(projectDir, item)));

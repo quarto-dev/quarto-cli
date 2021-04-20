@@ -58,7 +58,7 @@ export async function renderProject(
   // projResults to return
   const projResults: RenderResult = {
     baseDir: projDir,
-    outputDir: context.config?.[kProjectOutputDir],
+    outputDir: context.config?.project?.[kProjectOutputDir],
     files: [],
   };
 
@@ -66,13 +66,13 @@ export async function renderProject(
   await ensureGitignore(context);
 
   // lookup the project type and call preRender
-  const projType = projectType(context.config?.[kProjectType]);
+  const projType = projectType(context.config?.project?.[kProjectType]);
   if (projType.preRender) {
     await projType.preRender(context);
   }
 
   // set execute dir if requested
-  const executeDir = context.config?.[kProjectExecuteDir];
+  const executeDir = context.config?.project?.[kProjectExecuteDir];
   if (options.flags?.executeDir === undefined && executeDir === "project") {
     options = {
       ...options,
@@ -101,7 +101,7 @@ export async function renderProject(
   }
 
   // track the lib dir
-  const libDir = context.config?.[kProjectLibDir];
+  const libDir = context.config?.project[kProjectLibDir];
 
   // set QUARTO_PROJECT_DIR
   Deno.env.set("QUARTO_PROJECT_DIR", projDir);

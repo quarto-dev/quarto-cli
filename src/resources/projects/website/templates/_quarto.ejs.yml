@@ -1,14 +1,15 @@
-project-type: site
+project:
+  type: site
 
-site-title: "<%= title %>"
-
-site-navbar:
-  type: dark
-  background: primary
-  left:
-    - href: index<%= ext %>
-      text: Home
-    - about<%= ext %>
+site:
+  title: "<%= title %>"
+  navbar:
+    type: dark
+    background: primary
+    left:
+      - href: index<%= ext %>
+        text: Home
+      - about<%= ext %>
 
 format:
   html:

@@ -29,10 +29,9 @@ import {
 import { updateSitemap } from "./website-sitemap.ts";
 import { updateSearchIndex } from "./website-search.ts";
 import {
-  kSiteNavbar,
-  kSiteSidebar,
-  kSiteTitle,
+  kSite,
   websiteMetadataFields,
+  websiteTitle,
 } from "./website-config.ts";
 
 export const websiteProjectType: ProjectType = {
@@ -71,7 +70,7 @@ export const websiteProjectType: ProjectType = {
 
   metadataFields: websiteMetadataFields,
 
-  resourceIgnoreFields: () => [kSiteNavbar, kSiteSidebar],
+  resourceIgnoreFields: () => [kSite],
 
   preRender: async (context: ProjectContext) => {
     await initWebsiteNavigation(context);
@@ -94,7 +93,7 @@ export const websiteProjectType: ProjectType = {
       extras.metadata = extras.metadata || {};
 
       // title prefix if the project has a title and this isn't the home page
-      const title = project.config?.[kSiteTitle] as string | undefined;
+      const title = websiteTitle(project.config);
       if (title) {
         extras.metadata = {
           [kTitlePrefix]: title,

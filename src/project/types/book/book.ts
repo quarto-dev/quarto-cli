@@ -18,6 +18,7 @@ import { PandocFlags } from "../../../config/flags.ts";
 import {
   kDocumentClass,
   kNumberSections,
+  kToc,
   kTocTitle,
 } from "../../../config/constants.ts";
 import { disabledTableOfContents } from "../../../config/toc.ts";
@@ -93,7 +94,7 @@ export const bookProjectType: ProjectType = {
   preRender: websiteProjectType.preRender,
   postRender: websiteProjectType.postRender,
   formatLibDirs: websiteProjectType.formatLibDirs,
-  metadataFields: () => [...websiteProjectType.metadataFields!(), /^book-.*$/],
+  metadataFields: () => [...websiteProjectType.metadataFields!(), "book"],
   resourceIgnoreFields:
     () => [...websiteProjectType.resourceIgnoreFields!(), kBookContents],
 
@@ -107,7 +108,7 @@ export const bookProjectType: ProjectType = {
     // defaults for all formats
     let extras: FormatExtras = {
       pandoc: {
-        toc: true,
+        [kToc]: true,
         [kNumberSections]: true,
       },
     };

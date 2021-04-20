@@ -28,7 +28,7 @@ import {
 import { ProjectOutputFile } from "../project-types.ts";
 
 import { websiteNavigationConfig } from "./website-navigation.ts";
-import { kSiteTitle } from "./website-config.ts";
+import { websiteTitle } from "./website-config.ts";
 
 const kSearch = "search";
 
@@ -96,7 +96,7 @@ export function updateSearchIndex(
       const titleEl = doc.querySelector("h1.title");
       const title = titleEl
         ? titleEl.textContent
-        : ((context.config?.[kSiteTitle] as string | undefined) || "");
+        : (websiteTitle(context.config) || "");
 
       // remove pandoc generated header and toc
       const header = doc.getElementById("title-block-header");

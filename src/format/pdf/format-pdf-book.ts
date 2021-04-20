@@ -5,15 +5,8 @@
 *
 */
 
-import { ExecutedFile } from "../../command/render/render.ts";
-import { RenderedFile, RenderOptions } from "../../command/render/render.ts";
-import { ProjectContext } from "../../project/project-context.ts";
+import { BookExtension } from "../../project/types/book/book-extension.ts";
 
-export function renderPdfBook(
-  _project: ProjectContext,
-  _options: RenderOptions,
-  _files: ExecutedFile[],
-): Promise<RenderedFile[]> {
-  console.log("rendering pdf book");
-  return Promise.resolve([]);
-}
+export const pdfBookExtension: BookExtension = {
+  //
+};
