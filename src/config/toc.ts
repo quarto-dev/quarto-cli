@@ -16,6 +16,11 @@ export function hasTableOfContents(flags: PandocFlags, format: Format) {
     format.pandoc[kTableOfContents]) && (format.metadata[kTocFloat] !== false));
 }
 
+export function disabledTableOfContents(format: Format) {
+  return format.pandoc[kToc] === false ||
+    format.pandoc[kTableOfContents] === false;
+}
+
 export function hasTableOfContentsTitle(flags: PandocFlags, format: Format) {
   return flags[kTocTitle] !== undefined ||
     format.metadata[kTocTitle] !== undefined;

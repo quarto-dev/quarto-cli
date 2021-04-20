@@ -6,10 +6,21 @@
 */
 import { join } from "path/mod.ts";
 import { resourcePath } from "../../../core/resources.ts";
+import { mergeConfigs } from "../../../core/config.ts";
 
-import { Format, isLatexOutput } from "../../../config/format.ts";
+import {
+  Format,
+  FormatExtras,
+  isHtmlOutput,
+  isLatexOutput,
+} from "../../../config/format.ts";
 import { PandocFlags } from "../../../config/flags.ts";
-import { kDocumentClass, kNumberSections } from "../../../config/constants.ts";
+import {
+  kDocumentClass,
+  kNumberSections,
+  kTocTitle,
+} from "../../../config/constants.ts";
+import { disabledTableOfContents } from "../../../config/toc.ts";
 
 import { ProjectCreate, ProjectType } from "../project-types.ts";
 import { ProjectContext } from "../../project-context.ts";
@@ -93,26 +104,45 @@ export const bookProjectType: ProjectType = {
     flags: PandocFlags,
     format: Format,
   ) => {
-    // delegate to get website extras
-    const websiteExtras = await websiteProjectType.formatExtras!(
-      context,
-      input,
-      flags,
-      format,
-    );
+    // defaults for all formats
+    let extras: FormatExtras = {
+      pandoc: {
+        toc: true,
+        [kNumberSections]: true,
+      },
+    };
 
-    // toc by default
-    websiteExtras.pandoc = websiteExtras.pandoc || {};
-    websiteExtras.pandoc.toc = true;
-    websiteExtras.pandoc[kNumberSections] = true;
+    if (isHtmlOutput(format.pandoc)) {
+      // ensure toc unless explicitly disabled
+      if (!disabledTableOfContents(format)) {
+        flags = { ...flags, toc: true };
+      }
+      const websiteExtras = await websiteProjectType.formatExtras!(
+        context,
+        input,
+        flags,
+        format,
+      );
 
-    // documentclass book by default
-    if (isLatexOutput(format.pandoc)) {
-      websiteExtras.metadata = websiteExtras.metadata || {};
-      websiteExtras.metadata[kDocumentClass] = "book";
+      // use default toc title for books
+      delete websiteExtras[kTocTitle];
+
+      // merge
+      extras = mergeConfigs(extras, websiteExtras);
+
+      // documentclass book for latex output
+    } else if (isLatexOutput(format.pandoc)) {
+      extras = mergeConfigs(
+        extras,
+        {
+          metadata: {
+            [kDocumentClass]: "book",
+          },
+        },
+      );
     }
 
     // return
-    return websiteExtras;
+    return extras;
   },
 };
