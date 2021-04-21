@@ -95,35 +95,7 @@ async function renderSelfContainedBook(
 function mergeExecutedFiles(files: ExecutedFile[]): Promise<ExecutedFile> {
   // naive implemetnation -- merge all markdown
   const markdown = files.reduce((markdown: string, file: ExecutedFile) => {
-    // partition front matter
-    const partitions = partitionYamlFrontMatter(file.executeResult.markdown);
-    if (partitions) {
-      // remove the title and then restore the YAML
-      const yaml = readYamlFromString(partitions.yaml) as Record<
-        string,
-        unknown
-      >;
-      const title = yaml[kTitle];
-      delete yaml[kTitle];
-      const buffer: string[] = [];
-      buffer.push(
-        `\n---\n${
-          stringify(yaml, { indent: 2, sortKeys: false, skipInvalid: true })
-        }---\n\n`,
-      );
-      if (title) {
-        buffer.push(`# ${title}\n\n`);
-      }
-      // strip leading newlines and ensure there is a trailing newline
-      let md = partitions.markdown.replace(/^\n+/, "");
-      if (!md.endsWith("\n")) {
-        md = md + "\n";
-      }
-      buffer.push(md);
-      return markdown + buffer.join("");
-    } else {
-      return markdown + file.executeResult.markdown;
-    }
+    return markdown + file.executeResult.markdown + "\n\n";
   }, "");
 
   return Promise.resolve({

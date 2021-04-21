@@ -27,6 +27,7 @@ export interface ExecutionEngine {
     quiet?: boolean,
   ) => Promise<ExecutionTarget | undefined>;
   metadata: (file: string) => Promise<Metadata>;
+  firstHeading: (file: string) => Promise<string | undefined>;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
   executeTargetSkipped?: (target: ExecutionTarget, format: Format) => void;
   dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;
@@ -109,7 +110,7 @@ export interface RunOptions {
   quiet?: boolean;
 }
 
-const kEngines = [
+const kEngines: ExecutionEngine[] = [
   knitrEngine,
   jupyterEngine,
   markdownEngine,

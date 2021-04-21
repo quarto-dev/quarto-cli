@@ -8,6 +8,7 @@
 import { extname } from "path/mod.ts";
 
 import { readYamlFromMarkdownFile } from "../core/yaml.ts";
+import { firstHeadingFromMarkdownFile } from "../core/markdown.ts";
 
 import { Metadata } from "../config/metadata.ts";
 
@@ -37,6 +38,11 @@ export const markdownEngine: ExecutionEngine = {
 
   metadata: (file: string) =>
     Promise.resolve(readYamlFromMarkdownFile(file) as Metadata),
+
+  firstHeading: (file: string) => {
+    return Promise.resolve(firstHeadingFromMarkdownFile(file));
+  },
+
   execute: (options: ExecuteOptions) => {
     // read markdown
     const markdown = Deno.readTextFileSync(options.target.input);

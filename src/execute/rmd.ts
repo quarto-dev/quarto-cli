@@ -15,6 +15,7 @@ import {
   readYamlFromMarkdown,
   readYamlFromMarkdownFile,
 } from "../core/yaml.ts";
+import { firstHeadingFromMarkdownFile } from "../core/markdown.ts";
 
 import { Metadata } from "../config/metadata.ts";
 
@@ -64,6 +65,10 @@ export const knitrEngine: ExecutionEngine = {
       // otherwise just read the metadata from the file
       return readYamlFromMarkdownFile(file);
     }
+  },
+
+  firstHeading: (file: string) => {
+    return Promise.resolve(firstHeadingFromMarkdownFile(file));
   },
 
   execute: (options: ExecuteOptions): Promise<ExecuteResult> => {
