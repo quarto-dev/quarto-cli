@@ -15,20 +15,15 @@ import {
 } from "../../config/constants.ts";
 import { Format } from "../../config/format.ts";
 import { mergeConfigs } from "../../core/config.ts";
-import { BookExtension } from "../../project/types/book/book-extension.ts";
 import { createFormat } from "../formats.ts";
-import { renderPdfBook } from "./format-pdf-book.ts";
+import { pdfBookExtension } from "./format-pdf-book.ts";
 
 export function pdfFormat(): Format {
-  const bookExtension: BookExtension = {
-    renderPandoc: renderPdfBook,
-  };
-
   return mergeConfigs(
     createPdfFormat(),
     {
       extensions: {
-        book: bookExtension,
+        book: pdfBookExtension,
       },
     },
   );

@@ -27,12 +27,12 @@ import { engineIgnoreGlobs, fileExecutionEngine } from "../execute/engine.ts";
 import { projectResourceFiles } from "./project-resources.ts";
 import { kGitignoreEntries } from "./project-gitignore.ts";
 
-export const kProjectType = "project-type";
-export const kProjectRender = "project-render";
-export const kProjectExecuteDir = "project-execute-dir";
-export const kProjectOutputDir = "project-output-dir";
-export const kProjectLibDir = "project-lib-dir";
-export const kProjectResources = "project-resources";
+export const kProjectType = "type";
+export const kProjectRender = "render";
+export const kProjectExecuteDir = "execute-dir";
+export const kProjectOutputDir = "output-dir";
+export const kProjectLibDir = "lib-dir";
+export const kProjectResources = "resources";
 
 export interface ProjectContext {
   dir: string;
@@ -52,12 +52,14 @@ export interface ProjectContext {
 }
 
 export interface ProjectConfig {
-  [kProjectType]?: string;
-  [kProjectRender]?: string[];
-  [kProjectExecuteDir]?: "file" | "project";
-  [kProjectOutputDir]?: string;
-  [kProjectLibDir]?: string;
-  [kProjectResources]?: string[];
+  project: {
+    [kProjectType]?: string;
+    [kProjectRender]?: string[];
+    [kProjectExecuteDir]?: "file" | "project";
+    [kProjectOutputDir]?: string;
+    [kProjectLibDir]?: string;
+    [kProjectResources]?: string[];
+  };
   [key: string]: unknown;
 }
 
@@ -69,9 +71,11 @@ export function projectConfigFile(dir: string): string | undefined {
 
 export function deleteProjectMetadata(metadata: Metadata) {
   // see if the active project type wants to filter the config printed
-  const projType = projectType((metadata as ProjectConfig)?.[kProjectType]);
+  const projType = projectType(
+    (metadata as ProjectConfig).project?.[kProjectType],
+  );
   if (projType.metadataFields) {
-    for (const field of projType.metadataFields().concat(/^project-.*$/)) {
+    for (const field of projType.metadataFields().concat("project")) {
       if (typeof (field) === "string") {
         delete metadata[field];
       } else {
@@ -98,19 +102,22 @@ export async function projectContext(path: string): Promise<ProjectContext> {
     const configFile = projectConfigFile(dir);
     if (configFile) {
       let projectConfig: ProjectConfig = readYaml(configFile) as ProjectConfig;
+      projectConfig.project = projectConfig.project || {};
       const { metadata, files } = includedMetadata(dir, projectConfig);
       projectConfig = mergeConfigs(projectConfig, metadata);
       delete projectConfig[kMetadataFile];
       delete projectConfig[kMetadataFiles];
-      if (projectConfig?.[kProjectType]) {
+      if (projectConfig?.project?.[kProjectType]) {
         // get project config and type
 
-        const type = projectType(projectConfig?.[kProjectType]);
-        if (projectConfig[kProjectLibDir] === undefined && type.libDir) {
-          projectConfig[kProjectLibDir] = type.libDir;
+        const type = projectType(projectConfig.project?.[kProjectType]);
+        if (
+          projectConfig.project[kProjectLibDir] === undefined && type.libDir
+        ) {
+          projectConfig.project[kProjectLibDir] = type.libDir;
         }
-        if (!projectConfig[kProjectOutputDir] && type.outputDir) {
-          projectConfig[kProjectOutputDir] = type.outputDir;
+        if (!projectConfig.project[kProjectOutputDir] && type.outputDir) {
+          projectConfig.project[kProjectOutputDir] = type.outputDir;
         }
         // see if the project [kProjectType] wants to filter the project config
         if (type.config) {
@@ -154,7 +161,7 @@ export async function projectContext(path: string): Promise<ProjectContext> {
 }
 
 export function projectOutputDir(context: ProjectContext): string {
-  let outputDir = context.config?.[kProjectOutputDir];
+  let outputDir = context.config?.project[kProjectOutputDir];
   if (outputDir) {
     outputDir = join(context.dir, outputDir);
   } else {
@@ -243,7 +250,7 @@ function projectInputFiles(dir: string, metadata?: ProjectConfig) {
   const files: string[] = [];
   const keepFiles: string[] = [];
 
-  const outputDir = metadata?.[kProjectOutputDir];
+  const outputDir = metadata?.project[kProjectOutputDir];
 
   const projectIgnores = projectIgnoreRegexes();
 
@@ -292,7 +299,7 @@ function projectInputFiles(dir: string, metadata?: ProjectConfig) {
     }
   };
 
-  const renderFiles = metadata?.[kProjectRender];
+  const renderFiles = metadata?.project[kProjectRender];
   if (renderFiles) {
     const exclude = outputDir ? [outputDir] : [];
     const resolved = resolvePathGlobs(dir, renderFiles, exclude);

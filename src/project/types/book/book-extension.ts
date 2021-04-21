@@ -5,17 +5,10 @@
 *
 */
 
-import {
-  ExecutedFile,
-  RenderedFile,
-  RenderOptions,
-} from "../../../command/render/render.ts";
-import { ProjectContext } from "../../project-context.ts";
+import { ExecutedFile, RenderedFile } from "../../../command/render/render.ts";
 
 export interface BookExtension {
-  renderPandoc: (
-    project: ProjectContext,
-    options: RenderOptions,
-    files: ExecutedFile[],
-  ) => Promise<RenderedFile[]>;
+  // book extensions can choose to either render a file at time
+  // or wait and get called back for everything at once
+  renderFile?: (file: ExecutedFile) => Promise<RenderedFile>;
 }

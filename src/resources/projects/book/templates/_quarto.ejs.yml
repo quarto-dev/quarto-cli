@@ -1,11 +1,13 @@
-project-type: book
+project:
+  type: book
 
-book-contents:
-  - text: "Preface"
-    file: index<%= ext %>
-  - intro<%= ext %>
-  - summary<%= ext %>
-  - references<%= ext %>
+book:
+  contents:
+    - text: "Preface"
+      file: index<%= ext %>
+    - intro<%= ext %>
+    - summary<%= ext %>
+    - references<%= ext %>
 
 bibliography: references.bib
 

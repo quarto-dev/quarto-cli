@@ -42,9 +42,7 @@ export function readYamlFromMarkdown(
     kRegExYAML.lastIndex = 0;
     let match = kRegExYAML.exec(markdown);
     while (match != null) {
-      yaml += match[2]
-        .replace(/^---/, "")
-        .replace(/---\s*$/, "");
+      yaml += removeYamlDelimiters(match[2]);
       match = kRegExYAML.exec(markdown);
     }
     kRegExYAML.lastIndex = 0;
@@ -68,9 +66,9 @@ export function readYamlFrontMatterFromMarkdownFile(
   file: string,
 ) {
   const markdown = Deno.readTextFileSync(file);
-  const yaml = partitionYamlFrontMatter(markdown);
-  if (yaml) {
-    return readYamlFromMarkdown(yaml);
+  const result = partitionYamlFrontMatter(markdown);
+  if (result) {
+    return readYamlFromMarkdown(result.yaml);
   } else {
     return null;
   }
@@ -78,13 +76,24 @@ export function readYamlFrontMatterFromMarkdownFile(
 
 export function partitionYamlFrontMatter(
   markdown: string,
-): string | null {
+): { yaml: string; markdown: string } | null {
   kRegExYAML.lastIndex = 0;
   const match = kRegExYAML.exec(markdown);
   kRegExYAML.lastIndex = 0;
   if (match) {
-    return match[2];
+    const yaml = match[2];
+    const yamlPos = markdown.indexOf(yaml);
+
+    const md = (yamlPos > 0 ? markdown.slice(0, yamlPos) : "") +
+      markdown.slice(yamlPos + yaml.length);
+    return { yaml, markdown: md };
   } else {
     return null;
   }
+}
+
+export function removeYamlDelimiters(yaml: string) {
+  return yaml
+    .replace(/^---/, "")
+    .replace(/---\s*$/, "");
 }

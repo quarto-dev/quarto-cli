@@ -14,6 +14,10 @@ import {
   readYamlFromMarkdownFile,
   readYamlFrontMatterFromMarkdownFile,
 } from "../../core/yaml.ts";
+import {
+  firstHeadingFromMarkdown,
+  firstHeadingFromMarkdownFile,
+} from "../../core/markdown.ts";
 
 import { dirAndStem } from "../../core/path.ts";
 
@@ -188,20 +192,17 @@ export const jupyterEngine: ExecutionEngine = {
   metadata: async (file: string): Promise<Metadata> => {
     // read metadata
     if (isNotebook(file)) {
-      const decoder = new TextDecoder("utf-8");
-      const nbContents = await Deno.readFile(file);
-      const nb = JSON.parse(decoder.decode(nbContents));
-      const cells = nb.cells as Array<{ cell_type: string; source: string[] }>;
-      const markdown = cells.reduce((md, cell) => {
-        if (["markdown", "raw"].includes(cell.cell_type)) {
-          return md + "\n" + cell.source.join("");
-        } else {
-          return md;
-        }
-      }, "");
-      return readYamlFromMarkdown(markdown);
+      return readYamlFromMarkdown(await markdownFromNotebook(file));
     } else {
       return readYamlFromMarkdown(Deno.readTextFileSync(file));
+    }
+  },
+
+  firstHeading: async (file: string) => {
+    if (isNotebook(file)) {
+      return firstHeadingFromMarkdown(await markdownFromNotebook(file));
+    } else {
+      return firstHeadingFromMarkdownFile(file);
     }
   },
 
@@ -489,6 +490,21 @@ function isMarkdown(file: string) {
 function isHtmlCompatible(format: Format) {
   return isHtmlOutput(format.pandoc) ||
     (isMarkdownOutput(format.pandoc) && format.render[kPreferHtml]);
+}
+
+async function markdownFromNotebook(file: string) {
+  const decoder = new TextDecoder("utf-8");
+  const nbContents = await Deno.readFile(file);
+  const nb = JSON.parse(decoder.decode(nbContents));
+  const cells = nb.cells as Array<{ cell_type: string; source: string[] }>;
+  const markdown = cells.reduce((md, cell) => {
+    if (["markdown", "raw"].includes(cell.cell_type)) {
+      return md + "\n" + cell.source.join("");
+    } else {
+      return md;
+    }
+  }, "");
+  return markdown;
 }
 
 async function jupytextSync(

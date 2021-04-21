@@ -23,10 +23,10 @@ export function projectResourceFiles(
   dir: string,
   config: ProjectConfig,
 ): string[] {
-  let resourceGlobs = config?.[kProjectResources];
+  let resourceGlobs = config.project[kProjectResources];
   if (resourceGlobs) {
     const resourceFiles: string[] = [];
-    const outputDir = config?.[kProjectOutputDir];
+    const outputDir = config.project[kProjectOutputDir];
     if (outputDir) {
       resourceGlobs = resourceGlobs
         // ignore anything specified in our standard .gitignore

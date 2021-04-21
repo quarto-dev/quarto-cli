@@ -9,6 +9,7 @@ import {
   ExecutedFile,
   RenderedFile,
   RenderOptions,
+  renderPandoc,
 } from "../../../command/render/render.ts";
 
 import { ProjectContext } from "../../project-context.ts";
@@ -39,10 +40,26 @@ export function bookPandocRenderer(
         // determine the format from the first file
         if (executedFiles.length > 0) {
           const format = executedFiles[0].context.format;
+
+          // get the book extension
           const extension = format.extensions?.book as BookExtension;
-          renderedFiles.push(
-            ...await extension.renderPandoc(project!, options, executedFiles),
-          );
+
+          // if it has a renderFile method then just do a file at a time
+          if (extension.renderFile) {
+            for (const executedFile of executedFiles) {
+              renderedFiles.push(await extension.renderFile(executedFile));
+            }
+            // otherwise render the entire book
+          } else {
+            renderedFiles.push(
+              await renderSelfContainedBook(
+                project!,
+                options,
+                extension,
+                executedFiles,
+              ),
+            );
+          }
         }
       }
 
@@ -52,4 +69,31 @@ export function bookPandocRenderer(
       // TODO: We can probably clean up files_dirs here
     },
   };
+}
+
+async function renderSelfContainedBook(
+  _project: ProjectContext,
+  _options: RenderOptions,
+  _extension: BookExtension,
+  files: ExecutedFile[],
+): Promise<RenderedFile> {
+  // we are going to compose a single ExecutedFile from the array we have been passed
+  const executedFile = await mergeExecutedFiles(files);
+
+  return renderPandoc(executedFile);
+}
+
+function mergeExecutedFiles(files: ExecutedFile[]): Promise<ExecutedFile> {
+  // naive implemetnation -- merge all markdown
+  const markdown = files.reduce((markdown: string, file: ExecutedFile) => {
+    return markdown + file.executeResult.markdown + "\n\n";
+  }, "");
+
+  return Promise.resolve({
+    ...files[0],
+    executeResult: {
+      ...files[0].executeResult,
+      markdown,
+    },
+  });
 }

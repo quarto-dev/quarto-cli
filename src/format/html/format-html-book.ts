@@ -6,19 +6,11 @@
 */
 
 import { ExecutedFile, renderPandoc } from "../../command/render/render.ts";
-import { RenderedFile, RenderOptions } from "../../command/render/render.ts";
-import { ProjectContext } from "../../project/project-context.ts";
+import { RenderedFile } from "../../command/render/render.ts";
+import { BookExtension } from "../../project/types/book/book-extension.ts";
 
-export async function renderHtmlBook(
-  _project: ProjectContext,
-  _options: RenderOptions,
-  files: ExecutedFile[],
-): Promise<RenderedFile[]> {
-  const renderedFiles: RenderedFile[] = [];
-
-  for (const file of files) {
-    renderedFiles.push(await renderPandoc(file));
-  }
-
-  return renderedFiles;
-}
+export const htmlBookExtension: BookExtension = {
+  renderFile: (file: ExecutedFile): Promise<RenderedFile> => {
+    return renderPandoc(file);
+  },
+};

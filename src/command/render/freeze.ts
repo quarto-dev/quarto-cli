@@ -172,7 +172,7 @@ export function pruneProjectFreezerDir(
 
 export function pruneProjectFreezer(project: ProjectContext, hidden: boolean) {
   const freezerDir = projectFreezerDir(project.dir, hidden);
-  const libDir = project.config?.[kProjectLibDir];
+  const libDir = project.config?.project[kProjectLibDir];
   if (libDir) {
     let remove = true;
     for (const entry of Deno.readDirSync(freezerDir)) {

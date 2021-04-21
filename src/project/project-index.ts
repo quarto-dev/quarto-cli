@@ -27,6 +27,7 @@ import {
 import { projectScratchPath } from "./project-scratch.ts";
 
 export interface InputTargetIndex extends Metadata {
+  title?: string;
   formats: Record<string, Format>;
 }
 
@@ -43,7 +44,8 @@ export async function inputTargetIndex(
   }
 
   // check if this can be handled by one of our engines
-  if (fileExecutionEngine(inputFile, true) === undefined) {
+  const engine = fileExecutionEngine(inputFile, true);
+  if (engine === undefined) {
     return Promise.resolve(undefined);
   }
 
@@ -66,7 +68,19 @@ export async function inputTargetIndex(
 
   // otherwise read the metadata and index it
   const formats = await renderFormats(inputFile, "all", project);
-  const index = { formats };
+  const firstFormat = Object.values(formats)[0];
+  const index = {
+    title: firstFormat
+      ? firstFormat.metadata?.[kTitle] as string | undefined
+      : undefined,
+    formats,
+  };
+
+  // if there is no title then try to extract it from a header
+  if (!index.title) {
+    index.title = await engine.firstHeading(inputFile);
+  }
+
   Deno.writeTextFileSync(indexFile, JSON.stringify(index));
   return index;
 }
@@ -81,8 +95,7 @@ export async function resolveInputTarget(
     const [hrefDir, hrefStem] = dirAndStem(href);
     const outputFile = format?.pandoc[kOutputFile] || `${hrefStem}.html`;
     const outputHref = pathWithForwardSlashes("/" + join(hrefDir, outputFile));
-    const title = format.metadata?.[kTitle] as string | undefined;
-    return { title, outputHref };
+    return { title: index.title, outputHref };
   } else {
     return undefined;
   }
