@@ -5,18 +5,20 @@
 *
 */
 
-import { ld } from "lodash/mod.ts";
+import { relative } from "path/mod.ts";
 
-import { stringify } from "encoding/yaml.ts";
+import { ld } from "lodash/mod.ts";
 
 import {
   kAbstract,
   kAuthor,
   kDate,
+  kNumberSections,
   kSubtitle,
   kTitle,
+  kToc,
 } from "../../../config/constants.ts";
-import { Metadata } from "../../../config/metadata.ts";
+import { Format } from "../../../config/format.ts";
 
 import {
   ExecutedFile,
@@ -98,9 +100,21 @@ async function renderMultiFileBook(
   const renderedFiles: RenderedFile[] = [];
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
-    if (file.context.target.source === project.files.input[0]) {
-      file.executeResult.markdown = bookTitleYaml(project.config) +
-        file.executeResult.markdown;
+    const fileRelative = relative(project.dir, file.context.target.source);
+    if (fileRelative.startsWith("index.")) {
+      // generate an H1 from any title present
+      const title = file.recipe.format.metadata[kTitle];
+      if (title) {
+        file.executeResult.markdown = `# ${title}\n\n` +
+          file.executeResult.markdown;
+      }
+      file.recipe.format = withBookTitleMetadata(
+        file.recipe.format,
+        project.config,
+      );
+      // turn off toc and numbering
+      file.recipe.format.metadata[kToc] = false;
+      file.recipe.format.pandoc[kNumberSections] = false;
     }
     renderedFiles.push(await extension.renderFile!(file));
   }
@@ -117,9 +131,11 @@ async function renderSingleFileBook(
   // we are going to compose a single ExecutedFile from the array we have been passed
   const executedFile = await mergeExecutedFiles(files);
 
-  // prepend book title yaml
-  executedFile.executeResult.markdown = bookTitleYaml(project.config) +
-    executedFile.executeResult.markdown;
+  // set book title metadata
+  executedFile.recipe.format = withBookTitleMetadata(
+    executedFile.recipe.format,
+    project.config,
+  );
 
   return renderPandoc(executedFile);
 }
@@ -139,15 +155,15 @@ function mergeExecutedFiles(files: ExecutedFile[]): Promise<ExecutedFile> {
   });
 }
 
-function bookTitleYaml(config?: ProjectConfig) {
+function withBookTitleMetadata(format: Format, config?: ProjectConfig) {
+  format = ld.cloneDeep(format);
   if (config) {
-    const metadata: Metadata = {};
     const setMetadata = (
       key: BookConfigKey,
     ) => {
       const value = bookConfig(key, config);
       if (value) {
-        metadata[key] = value;
+        format.metadata[key] = value;
       }
     };
     setMetadata(kTitle);
@@ -155,13 +171,6 @@ function bookTitleYaml(config?: ProjectConfig) {
     setMetadata(kAuthor);
     setMetadata(kDate);
     setMetadata(kAbstract);
-    const yaml = stringify(metadata, {
-      indent: 2,
-      sortKeys: false,
-      skipInvalid: true,
-    });
-    return `---\n${yaml}---\n\n`;
-  } else {
-    return "";
   }
+  return format;
 }
