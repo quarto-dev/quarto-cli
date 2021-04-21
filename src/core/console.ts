@@ -149,7 +149,7 @@ export function writeFileToStdout(file: string) {
   Deno.close(df.rid);
 }
 
-function clearLine() {
+export function clearLine() {
   info(ansi.eraseLine.cursorLeft(), { newline: false });
 }
 

@@ -19,6 +19,7 @@
     "lodash/": "https://deno.land/x/deno_lodash/",
     "fuse/": "https://deno.land/x/fuse/",
     "deno_dom/": "https://deno.land/x/deno_dom/",
-    "async/": "https://deno.land/std/async/"
+    "async/": "https://deno.land/std/async/",
+    "puppeteer/": "https://deno.land/x/puppeteer/"
   }
 }
