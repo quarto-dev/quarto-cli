@@ -1,6 +1,6 @@
 import { warning } from "log/mod.ts";
 import puppeteer from "puppeteer/mod.ts";
-import { installed } from "../install/tools/puppeteer.ts";
+import { installed } from "../install/tools/chromium.ts";
 
 // The region within the viewport to screenshot
 export interface ScreenshotRegion {

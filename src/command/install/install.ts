@@ -14,7 +14,7 @@ import {
 import { logError } from "../../core/log.ts";
 
 import { GitHubRelease } from "./github.ts";
-import { puppeteerInstallable } from "./tools/puppeteer.ts";
+import { chromiumInstallable } from "./tools/chromium.ts";
 import { tinyTexInstallable } from "./tools/tinytex.ts";
 
 // Installable Tool interface
@@ -75,7 +75,7 @@ export interface InstallContext {
 // The tools that are available to install
 const kInstallableTools: { [key: string]: InstallableTool } = {
   tinytex: tinyTexInstallable,
-  chromium: puppeteerInstallable,
+  chromium: chromiumInstallable,
 };
 
 export function installableTools(): string[] {
