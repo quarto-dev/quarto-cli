@@ -5,15 +5,6 @@
 *
 */
 
-import { stringify } from "encoding/yaml.ts";
-
-import {
-  partitionYamlFrontMatter,
-  readYamlFromString,
-} from "../../../core/yaml.ts";
-
-import { kTitle } from "../../../config/constants.ts";
-
 import {
   ExecutedFile,
   RenderedFile,
