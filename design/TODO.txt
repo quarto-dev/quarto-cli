@@ -13,7 +13,19 @@ TODO: Need to provide version info for quarto-latexmk
 Books
 =========================================================================
 
-toc and number-sections should get included in all formats
+TODO: jupyter md completely broken
+
+self-contained output:
+   prepend book: title, book: subtitle, etc. to document to be rendered
+
+web output:
+   prepend book: title, book: subtitle, etc. to first document
+   generate a redirecting index.html if there is no index
+   remove h1 and inject a title?
+
+
+
+ensure that stuff in formatExtras can be overridden by the user
 
 should we auto-generate a redirecting index.html?
 first file always has the metadata (book title, etc.)
@@ -25,6 +37,7 @@ first file always has the metadata (book title, etc.)
 - index.md contains typical title/author/date/subtitle/abstract metadata:
 - index.md is *required*, and it listed in the sidebar as "Preface" 
 
+Incremental rendering (use freezer)
 
 Fixup relative resource refs (b/c we are rendering from the root)
 
@@ -41,6 +54,10 @@ Section/part handling:
 
 
 - Appendixes (uses letter numbering by default)
+
+
+TODO: other chapter-level metadata that we need to pull out and mark up (e.g. subtitle, author, etc.)
+
 
 TODO: centralize error cleanup and consider caching
 
