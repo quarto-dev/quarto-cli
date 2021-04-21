@@ -66,7 +66,12 @@ export function generateDefaults(
 }
 
 export async function writeDefaultsFile(defaults: FormatPandoc) {
-  const defaultsStr = "---\n" + stringify(defaults as Record<string, unknown>);
+  const defaultsStr = "---\n" +
+    stringify(defaults as Record<string, unknown>, {
+      indent: 2,
+      sortKeys: false,
+      skipInvalid: true,
+    });
   const defaultsFile = sessionTempFile(
     { prefix: "quarto-defaults", suffix: ".yml" },
   );

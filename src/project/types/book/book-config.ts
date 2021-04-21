@@ -31,6 +31,14 @@ import {
 export const kBook = "book";
 export const kBookContents = "contents";
 
+export type BookConfigKey =
+  | "contents"
+  | "title"
+  | "subtitle"
+  | "author"
+  | "date"
+  | "abstract";
+
 export function bookProjectConfig(
   projectDir: string,
   config: ProjectConfig,
@@ -66,7 +74,7 @@ export function bookProjectConfig(
 }
 
 export function bookConfig(
-  name: "contents",
+  name: BookConfigKey,
   project?: ProjectConfig,
 ) {
   const book = project?.[kBook] as
