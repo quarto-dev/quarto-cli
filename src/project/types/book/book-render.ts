@@ -22,6 +22,7 @@ import {
   kNumberSections,
   kSubtitle,
   kTitle,
+  kToc,
 } from "../../../config/constants.ts";
 import { Format, isHtmlOutput } from "../../../config/format.ts";
 
@@ -115,6 +116,8 @@ async function renderMultiFileBook(
         file.recipe.format,
         project.config,
       );
+      file.recipe.format.metadata[kToc] = false;
+      file.recipe.format.metadata[kNumberSections] = false;
       // other files
     } else {
       // since this could be an incremental render we need to compute the
@@ -150,7 +153,8 @@ async function renderMultiFileBook(
           chapterNumber,
         );
       }
-      file.recipe.format.pandoc[kNumberOffset] = [chapterNumber];
+
+      // provide markdown
       file.executeResult.markdown = partitioned.markdown;
     }
 
@@ -225,6 +229,7 @@ function withChapterTitleMetadata(
   if (!isNumberedChapter(partitioned)) {
     format.pandoc[kNumberSections] = false;
   }
+  format.pandoc[kNumberOffset] = [chapterNumber];
   return format;
 }
 
