@@ -9,6 +9,8 @@ import { relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
+import { partitionMarkdown } from "../../../core/pandoc/pandoc-partition.ts";
+
 import {
   kAbstract,
   kAuthor,
@@ -16,7 +18,6 @@ import {
   kNumberSections,
   kSubtitle,
   kTitle,
-  kToc,
 } from "../../../config/constants.ts";
 import { Format } from "../../../config/format.ts";
 
@@ -101,20 +102,25 @@ async function renderMultiFileBook(
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     const fileRelative = relative(project.dir, file.context.target.source);
+    // index file
     if (fileRelative.startsWith("index.")) {
-      // generate an H1 from any title present
-      const title = file.recipe.format.metadata[kTitle];
-      if (title) {
-        file.executeResult.markdown = `# ${title}\n\n` +
-          file.executeResult.markdown;
-      }
       file.recipe.format = withBookTitleMetadata(
         file.recipe.format,
         project.config,
       );
-      // turn off toc and numbering
-      file.recipe.format.metadata[kToc] = false;
-      file.recipe.format.pandoc[kNumberSections] = false;
+      // other files
+    } else {
+      const partitioned = partitionMarkdown(file.executeResult.markdown);
+      if (partitioned.headingText) {
+        file.recipe.format.metadata[kTitle] = partitioned.headingText;
+        if (
+          partitioned.headingAttr &&
+          partitioned.headingAttr.classes.includes("unnumbered")
+        ) {
+          file.recipe.format.pandoc[kNumberSections] = false;
+        }
+      }
+      file.executeResult.markdown = partitioned.markdown;
     }
     renderedFiles.push(await extension.renderFile!(file));
   }
@@ -155,7 +161,7 @@ function mergeExecutedFiles(files: ExecutedFile[]): Promise<ExecutedFile> {
   });
 }
 
-function withBookTitleMetadata(format: Format, config?: ProjectConfig) {
+function withBookTitleMetadata(format: Format, config?: ProjectConfig): Format {
   format = ld.cloneDeep(format);
   if (config) {
     const setMetadata = (

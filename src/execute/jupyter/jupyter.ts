@@ -17,7 +17,7 @@ import {
 import {
   firstHeadingFromMarkdown,
   firstHeadingFromMarkdownFile,
-} from "../../core/markdown.ts";
+} from "../../core/pandoc/pandoc-partition.ts";
 
 import { dirAndStem } from "../../core/path.ts";
 

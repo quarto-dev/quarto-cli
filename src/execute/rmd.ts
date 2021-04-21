@@ -15,7 +15,7 @@ import {
   readYamlFromMarkdown,
   readYamlFromMarkdownFile,
 } from "../core/yaml.ts";
-import { firstHeadingFromMarkdownFile } from "../core/markdown.ts";
+import { firstHeadingFromMarkdownFile } from "../core/pandoc/pandoc-partition.ts";
 
 import { Metadata } from "../config/metadata.ts";
 
