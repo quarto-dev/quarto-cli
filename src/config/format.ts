@@ -42,6 +42,7 @@ import {
   kLatexTlmgrOpts,
   kListings,
   kMarkdownHeadings,
+  kNumberOffset,
   kNumberSections,
   kOutputFile,
   kPdfEngine,
@@ -216,6 +217,7 @@ export interface FormatPandoc {
   [kTableOfContents]?: boolean;
   [kListings]?: boolean;
   [kNumberSections]?: boolean;
+  [kNumberOffset]?: number[];
   [kHighlightStyle]?: string;
   [kSectionDivs]?: boolean;
   [kHtmlMathMethod]?: string;

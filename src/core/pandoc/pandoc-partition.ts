@@ -19,7 +19,15 @@ export function firstHeadingFromMarkdown(markdown: string): string | undefined {
 }
 
 // partition markdown into yaml, the first heading, and the rest of the markdown text
-export function partitionMarkdown(markdown: string) {
+
+export interface PartitionedMarkdown {
+  yaml?: string;
+  headingText?: string;
+  headingAttr?: PandocAttr;
+  markdown: string;
+}
+
+export function partitionMarkdown(markdown: string): PartitionedMarkdown {
   const markdownLines: string[] = [];
   let markdownHeading: string | undefined;
   let markdownHeadingAttr: PandocAttr | undefined;

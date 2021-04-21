@@ -10,6 +10,7 @@ import { exists } from "fs/mod.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
 
 import { dirAndStem, pathWithForwardSlashes } from "../core/path.ts";
+import { PartitionedMarkdown } from "../core/pandoc/pandoc-partition.ts";
 
 import { Metadata } from "../config/metadata.ts";
 import { Format } from "../config/format.ts";
@@ -28,6 +29,7 @@ import { projectScratchPath } from "./project-scratch.ts";
 
 export interface InputTargetIndex extends Metadata {
   title?: string;
+  markdown: PartitionedMarkdown;
   formats: Record<string, Format>;
 }
 
@@ -73,12 +75,13 @@ export async function inputTargetIndex(
     title: firstFormat
       ? firstFormat.metadata?.[kTitle] as string | undefined
       : undefined,
+    markdown: await engine.partitionedMarkdown(inputFile),
     formats,
   };
 
   // if there is no title then try to extract it from a header
   if (!index.title) {
-    index.title = await engine.firstHeading(inputFile);
+    index.title = index.markdown.headingText;
   }
 
   Deno.writeTextFileSync(indexFile, JSON.stringify(index));

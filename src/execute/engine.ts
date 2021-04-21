@@ -5,6 +5,8 @@
 *
 */
 
+import { PartitionedMarkdown } from "../core/pandoc/pandoc-partition.ts";
+
 import { Format } from "../config/format.ts";
 import { Metadata } from "../config/metadata.ts";
 import {
@@ -27,7 +29,7 @@ export interface ExecutionEngine {
     quiet?: boolean,
   ) => Promise<ExecutionTarget | undefined>;
   metadata: (file: string) => Promise<Metadata>;
-  firstHeading: (file: string) => Promise<string | undefined>;
+  partitionedMarkdown: (file: string) => Promise<PartitionedMarkdown>;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
   executeTargetSkipped?: (target: ExecutionTarget, format: Format) => void;
   dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;

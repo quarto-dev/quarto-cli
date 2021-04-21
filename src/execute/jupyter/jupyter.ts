@@ -14,10 +14,7 @@ import {
   readYamlFromMarkdownFile,
   readYamlFrontMatterFromMarkdownFile,
 } from "../../core/yaml.ts";
-import {
-  firstHeadingFromMarkdown,
-  firstHeadingFromMarkdownFile,
-} from "../../core/pandoc/pandoc-partition.ts";
+import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
 
 import { dirAndStem } from "../../core/path.ts";
 
@@ -198,11 +195,11 @@ export const jupyterEngine: ExecutionEngine = {
     }
   },
 
-  firstHeading: async (file: string) => {
+  partitionedMarkdown: async (file: string) => {
     if (isNotebook(file)) {
-      return firstHeadingFromMarkdown(await markdownFromNotebook(file));
+      return partitionMarkdown(await markdownFromNotebook(file));
     } else {
-      return firstHeadingFromMarkdownFile(file);
+      return partitionMarkdown(Deno.readTextFileSync(file));
     }
   },
 
