@@ -117,7 +117,6 @@ async function renderMultiFileBook(
         project.config,
       );
       file.recipe.format.metadata[kToc] = false;
-      file.recipe.format.metadata[kNumberSections] = false;
       // other files
     } else {
       // since this could be an incremental render we need to compute the
