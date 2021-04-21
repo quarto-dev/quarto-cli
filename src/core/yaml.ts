@@ -86,13 +86,13 @@ export function partitionYamlFrontMatter(
 
     const md = (yamlPos > 0 ? markdown.slice(0, yamlPos) : "") +
       markdown.slice(yamlPos + yaml.length);
-    return { yaml: removeYamlDelimiters(yaml), markdown: md };
+    return { yaml, markdown: md };
   } else {
     return null;
   }
 }
 
-function removeYamlDelimiters(yaml: string) {
+export function removeYamlDelimiters(yaml: string) {
   return yaml
     .replace(/^---/, "")
     .replace(/---\s*$/, "");
