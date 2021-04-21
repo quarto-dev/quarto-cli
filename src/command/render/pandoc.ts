@@ -280,7 +280,13 @@ export async function runPandoc(
   // input to pandoc on stdin
   const input = options.markdown +
     "\n\n<!-- -->\n" +
-    `\n---\n${stringify(options.format.metadata || {})}\n---\n`;
+    `\n---\n${
+      stringify(options.format.metadata || {}, {
+        indent: 2,
+        sortKeys: false,
+        skipInvalid: true,
+      })
+    }\n---\n`;
 
   // write input to temp file and pass it to pandoc
   const inputTemp = sessionTempFile({ prefix: "quarto-input", suffix: ".md" });

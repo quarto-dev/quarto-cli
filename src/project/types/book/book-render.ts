@@ -106,7 +106,11 @@ function mergeExecutedFiles(files: ExecutedFile[]): Promise<ExecutedFile> {
       const title = yaml[kTitle];
       delete yaml[kTitle];
       const buffer: string[] = [];
-      buffer.push(`\n---\n${stringify(yaml)}---\n\n`);
+      buffer.push(
+        `\n---\n${
+          stringify(yaml, { indent: 2, sortKeys: false, skipInvalid: true })
+        }---\n\n`,
+      );
       if (title) {
         buffer.push(`# ${title}\n\n`);
       }
@@ -121,8 +125,6 @@ function mergeExecutedFiles(files: ExecutedFile[]): Promise<ExecutedFile> {
       return markdown + file.executeResult.markdown;
     }
   }, "");
-
-  console.log(markdown);
 
   return Promise.resolve({
     ...files[0],
