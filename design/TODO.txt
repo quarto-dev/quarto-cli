@@ -13,31 +13,22 @@ TODO: Need to provide version info for quarto-latexmk
 Books
 =========================================================================
 
-TODO: jupyter md completely broken
-
-self-contained output:
-   prepend book: title, book: subtitle, etc. to document to be rendered
-
-web output:
-   prepend book: title, book: subtitle, etc. to first document
-   generate a redirecting index.html if there is no index
-   remove h1 and inject a title?
+ 
+generate a redirecting index.html if there is no index
 
 
+Propagate chapter number to sidebar
+
+recipe.format vs. context.format in renderPandoc implementation and return
 
 ensure that stuff in formatExtras can be overridden by the user
 
-should we auto-generate a redirecting index.html?
-first file always has the metadata (book title, etc.)
 
 - Preface page (index.md) and section pages are unnumbered by default (via filter)
 - Use of the .numbered class within these pages selectively overrides this
 - additional 'unumbered' metadata value which switches document into unumbered mode
 
-- index.md contains typical title/author/date/subtitle/abstract metadata:
-- index.md is *required*, and it listed in the sidebar as "Preface" 
-
-Incremental rendering (use freezer)
+Incremental rendering of self-contained (use freezer)
 
 Fixup relative resource refs (b/c we are rendering from the root)
 
