@@ -227,25 +227,38 @@ export function isLatexOutput(format: FormatPandoc) {
   return ["pdf", "latex", "beamer"].includes(format.to || "");
 }
 
-export function isHtmlOutput(format: string): boolean;
-export function isHtmlOutput(format: FormatPandoc): boolean;
-export function isHtmlOutput(format?: string | FormatPandoc): boolean {
+export function isHtmlOutput(format: string, strict?: boolean): boolean;
+export function isHtmlOutput(format: FormatPandoc, strict?: boolean): boolean;
+export function isHtmlOutput(
+  format?: string | FormatPandoc,
+  strict?: boolean,
+): boolean {
   if (typeof (format) !== "string") {
     format = format?.to;
   }
-  return [
-    "html",
-    "html4",
-    "html5",
-    "s5",
-    "dzslides",
-    "slidy",
-    "slideous",
-    "revealjs",
-    "epub",
-    "epub2",
-    "epub3",
-  ].includes(format || "html");
+  format = format || "html";
+  if (
+    [
+      "html",
+      "html4",
+      "html5",
+    ].includes(format)
+  ) {
+    return true;
+  } else if (!strict) {
+    return [
+      "s5",
+      "dzslides",
+      "slidy",
+      "slideous",
+      "revealjs",
+      "epub",
+      "epub2",
+      "epub3",
+    ].includes(format);
+  } else {
+    return false;
+  }
 }
 
 export function isMarkdownOutput(format: FormatPandoc) {

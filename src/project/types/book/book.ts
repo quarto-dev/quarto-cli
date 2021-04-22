@@ -119,7 +119,7 @@ export const bookProjectType: ProjectType = {
       },
     };
 
-    if (isHtmlOutput(format.pandoc)) {
+    if (isHtmlOutput(format.pandoc, true)) {
       // ensure toc unless explicitly disabled
       if (!disabledTableOfContents(format)) {
         flags = { ...flags, toc: true };
