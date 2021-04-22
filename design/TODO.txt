@@ -14,10 +14,6 @@ Books
 =========================================================================
 
  
-generate a redirecting index.html if there is no index
-
-
-Propagate chapter number to sidebar
 
 recipe.format vs. context.format in renderPandoc implementation and return
 
