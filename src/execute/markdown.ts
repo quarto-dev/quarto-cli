@@ -8,7 +8,7 @@
 import { extname } from "path/mod.ts";
 
 import { readYamlFromMarkdownFile } from "../core/yaml.ts";
-import { firstHeadingFromMarkdownFile } from "../core/markdown.ts";
+import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 
 import { Metadata } from "../config/metadata.ts";
 
@@ -39,8 +39,8 @@ export const markdownEngine: ExecutionEngine = {
   metadata: (file: string) =>
     Promise.resolve(readYamlFromMarkdownFile(file) as Metadata),
 
-  firstHeading: (file: string) => {
-    return Promise.resolve(firstHeadingFromMarkdownFile(file));
+  partitionedMarkdown: (file: string) => {
+    return Promise.resolve(partitionMarkdown(Deno.readTextFileSync(file)));
   },
 
   execute: (options: ExecuteOptions) => {

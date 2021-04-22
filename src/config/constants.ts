@@ -156,6 +156,11 @@ export const kSectionDivs = "section-divs";
 
 // metadata fields
 export const kTitle = "title";
+export const kSubtitle = "subtitle";
+export const kAuthor = "author";
+export const kDate = "date";
+export const kAbstract = "abstract";
+
 export const kPageTitle = "pagetitle";
 export const kTitlePrefix = "title-prefix";
 export const kCsl = "csl";

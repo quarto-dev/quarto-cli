@@ -30,11 +30,12 @@ import { websiteProjectType } from "../website/website.ts";
 
 import { bookPandocRenderer } from "./book-render.ts";
 import { bookProjectConfig, kBookContents } from "./book-config.ts";
+import { chapterNumberForInput, formatChapterLabel } from "./book-chapters.ts";
 
 export const bookProjectType: ProjectType = {
   type: "book",
 
-  create: (title: string): ProjectCreate => {
+  create: (_title: string): ProjectCreate => {
     const resourceDir = resourcePath(join("projects", "book"));
 
     return {
@@ -43,26 +44,22 @@ export const bookProjectType: ProjectType = {
       scaffold: [
         {
           name: "index",
-          content: "The preface",
-          title,
+          content: "# Preface {.unnumbered}",
           format: "html",
         },
         {
           name: "intro",
-          content: "The introduction",
-          title: "Introduction",
+          content: "# Introduction",
           format: "html",
         },
         {
           name: "summary",
-          content: "The summary",
-          title: "Summary",
+          content: "# Summary",
           format: "html",
         },
         {
           name: "references",
-          content: "",
-          title: "References",
+          content: "# References",
           format: "html",
         },
       ],
@@ -89,6 +86,15 @@ export const bookProjectType: ProjectType = {
   },
 
   pandocRenderer: bookPandocRenderer,
+
+  navItemText: async (context: ProjectContext, input: string, text: string) => {
+    const chapterNumber = await chapterNumberForInput(context, input);
+    if (chapterNumber > 0) {
+      return formatChapterLabel(text, chapterNumber);
+    } else {
+      return text;
+    }
+  },
 
   // inherit a bunch of behavior from website projects
   preRender: websiteProjectType.preRender,

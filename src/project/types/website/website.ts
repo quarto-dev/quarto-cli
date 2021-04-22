@@ -22,6 +22,7 @@ import { kPageTitle, kTitle, kTitlePrefix } from "../../../config/constants.ts";
 import { formatHasBootstrap } from "../../../format/html/format-html-bootstrap.ts";
 
 import {
+  ensureIndexPage,
   initWebsiteNavigation,
   websiteNavigationExtras,
 } from "./website-navigation.ts";
@@ -127,5 +128,8 @@ export const websiteProjectType: ProjectType = {
 
     // update search index
     updateSearchIndex(context, outputFiles, incremental);
+
+    // write redirecting index.html if there is none
+    ensureIndexPage(context);
   },
 };
