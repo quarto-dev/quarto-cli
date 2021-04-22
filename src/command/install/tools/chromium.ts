@@ -4,6 +4,8 @@
  * Copyright (C) 2020 by RStudio, PBC
  *
  */
+import { warning } from "log/mod.ts";
+import { join, resolve } from "path/mod.ts";
 import puppeteer from "puppeteer/mod.ts";
 
 import {
@@ -74,6 +76,20 @@ async function preparePackage(_ctx: InstallContext): Promise<PackageInfo> {
     spinnerStatus();
   }
 
+  // Mark helpers executable after install
+  if (Deno.build.os !== "windows") {
+    await withSpinner(
+      { message: "Updating Permissions", doneMessage: true },
+      async () => {
+        await Deno.chmod(revisionInfo.executablePath, 0o755);
+        if (Deno.build.os === "darwin") {
+          await macOSMakeChromiumHelpersExecutable(revisionInfo.executablePath);
+        }
+        return Promise.resolve();
+      },
+    );
+  }
+
   return {
     filePath: revisionInfo.folderPath,
     version: revisionInfo.revision,
@@ -106,4 +122,48 @@ function fetcher() {
 // TODO: https://github.com/puppeteer/puppeteer/blob/main/versions.js
 function supportedRevision(): string {
   return puppeteer._preferredRevision;
+}
+
+// These are workarounds to a known issue with install that should be fixed in a future release
+// https://github.com/lucacasonato/deno-puppeteer/pull/15
+async function macOSMakeChromiumHelpersExecutable(executablePath: string) {
+  const helperApps = [
+    "Chromium Helper",
+    "Chromium Helper (GPU)",
+    "Chromium Helper (Plugin)",
+    "Chromium Helper (Renderer)",
+  ];
+
+  const frameworkPath = resolve(
+    executablePath,
+    join(
+      "..",
+      "..",
+      "Frameworks",
+      "Chromium Framework.framework",
+      "Versions",
+    ),
+  );
+
+  const versionPath = join(frameworkPath, "Current");
+
+  try {
+    const version = await Deno.readTextFile(versionPath);
+
+    for (const helperApp of helperApps) {
+      const helperAppPath = join(
+        frameworkPath,
+        version,
+        "Helpers",
+        helperApp + ".app",
+        "Contents",
+        "MacOS",
+        helperApp,
+      );
+
+      await Deno.chmod(helperAppPath, 0o755);
+    }
+  } catch (err) {
+    warning("Failed to make Chromium Helpers executable", String(err));
+  }
 }

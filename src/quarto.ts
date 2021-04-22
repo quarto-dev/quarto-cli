@@ -24,6 +24,10 @@ import {
 import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
 import { quartoConfig } from "./core/quarto.ts";
 import { parse } from "flags/mod.ts";
+import {
+  cleanupScreenshot,
+  initScreenshot,
+} from "./command/render/screenshot.ts";
 
 export async function quarto(args: string[]) {
   const quartoCommand = new Command()
@@ -49,6 +53,9 @@ if (import.meta.main) {
     // init temp dir
     initSessionTempDir();
 
+    // initialize the screenshotter
+    initScreenshot();
+
     // install termination signal handlers
     if (Deno.build.os !== "windows") {
       onSignal(Deno.Signal.SIGINT, cleanup);
@@ -61,12 +68,13 @@ if (import.meta.main) {
       logError(e);
     }
   } finally {
-    cleanup();
+    await cleanup();
   }
 }
 
-function cleanup() {
+async function cleanup() {
   cleanupSessionTempDir();
   cleanupLogger();
+  await cleanupScreenshot();
   Deno.exit(1);
 }
