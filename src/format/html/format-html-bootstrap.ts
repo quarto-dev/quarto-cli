@@ -21,6 +21,7 @@ import {
 import {
   Format,
   FormatExtras,
+  isHtmlOutput,
   kBodyEnvelope,
   kDependencies,
   kHtmlPostprocessors,
@@ -41,7 +42,7 @@ import {
 } from "./format-html.ts";
 
 export function formatHasBootstrap(format: Format) {
-  if (format) {
+  if (format && isHtmlOutput(format.pandoc, true)) {
     const theme = format.metadata["theme"];
     return theme !== "none" && theme !== "pandoc";
   } else {

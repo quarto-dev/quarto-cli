@@ -12,7 +12,8 @@ preState = {
   usingTikz = false,
   results = {
     resourceFiles = pandoc.List:new({})
-  }
+  },
+  file = nil
 }
 
 -- [import]
@@ -24,9 +25,12 @@ end
 import("includes.lua")
 import("outputs.lua")
 import("figures.lua")
+import("filemetadata.lua")
+import("resourcerefs.lua")
 import("meta.lua")
 import("results.lua")
 import("../common/params.lua")
+import("../common/base64.lua")
 import("../common/json.lua")
 import("../common/meta.lua")
 import("../common/table.lua")
@@ -43,6 +47,8 @@ return {
   readIncludes(),
   outputs(),
   combineFilters({
+    fileMetadata(),
+    resourceRefs(),
     figures(),
   }),
   quartoPreMetaInject(),

@@ -5,7 +5,9 @@
 *
 */
 
-import { relative } from "path/mod.ts";
+import { dirname, relative } from "path/mod.ts";
+
+import { encode as base64Encode } from "encoding/base64.ts";
 
 import { ld } from "lodash/mod.ts";
 
@@ -148,7 +150,7 @@ async function renderSingleFileBook(
   files: ExecutedFile[],
 ): Promise<RenderedFile> {
   // we are going to compose a single ExecutedFile from the array we have been passed
-  const executedFile = await mergeExecutedFiles(files);
+  const executedFile = await mergeExecutedFiles(project, files);
 
   // set book title metadata
   executedFile.recipe.format = withBookTitleMetadata(
@@ -159,10 +161,15 @@ async function renderSingleFileBook(
   return renderPandoc(executedFile);
 }
 
-function mergeExecutedFiles(files: ExecutedFile[]): Promise<ExecutedFile> {
-  // naive implemetnation -- merge all markdown
+function mergeExecutedFiles(
+  project: ProjectContext,
+  files: ExecutedFile[],
+): Promise<ExecutedFile> {
+  // merge markdown, writing a metadata comment into each file
   const markdown = files.reduce((markdown: string, file: ExecutedFile) => {
-    return markdown + file.executeResult.markdown + "\n\n";
+    return markdown +
+      executedFileMetadata(project, file) +
+      file.executeResult.markdown;
   }, "");
 
   return Promise.resolve({
@@ -172,6 +179,14 @@ function mergeExecutedFiles(files: ExecutedFile[]): Promise<ExecutedFile> {
       markdown,
     },
   });
+}
+
+function executedFileMetadata(project: ProjectContext, file: ExecutedFile) {
+  const resourceDir = relative(project.dir, dirname(file.context.target.input));
+  const metadata = base64Encode(
+    JSON.stringify({ resourceDir: resourceDir || "." }),
+  );
+  return `\n\n\`<!-- quarto-file-metadata: ${metadata} -->\`{=html}\n\n\`\`\`{=html}\n<!-- quarto-file-metadata: ${metadata} -->\n\`\`\`\n\n`;
 }
 
 function withBookTitleMetadata(format: Format, config?: ProjectConfig): Format {

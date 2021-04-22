@@ -50,12 +50,17 @@ function isHtmlOutput()
 
 end
 
+
+function isRaw(el)
+  return el.t == "RawBlock" or el.t == "RawInline"
+end
+
 function isRawHtml(rawEl)
-  return string.find(rawEl.format, "^html") 
+  return isRaw(rawEl) and string.find(rawEl.format, "^html") 
 end
 
 function isRawLatex(rawEl)
-  return rawEl.format == "tex" or  rawEl.format == "latex"
+  return isRaw(rawEl) and (rawEl.format == "tex" or rawEl.format == "latex")
 end
 
 -- read attribute w/ default
