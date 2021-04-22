@@ -13,15 +13,15 @@ TODO: Need to provide version info for quarto-latexmk
 Books
 =========================================================================
 
- 
+- Correct output file name for single file formats
+- Add docx format
+
 - Preface page (index.md) and section pages are unnumbered by default (via filter)
 - Use of the .numbered class within these pages selectively overrides this
 - additional 'unumbered' metadata value which switches document into unumbered mode
 
 Incremental rendering of self-contained (use freezer)
 
-Title handling:
-- Handle {.unnumered} or {-}
 
 Section/part handling:
 
@@ -32,7 +32,6 @@ Section/part handling:
 - Appendixes (uses letter numbering by default)
 
 
-TODO: other chapter-level metadata that we need to pull out and mark up (e.g. subtitle, author, etc.)
 
 
 TODO: centralize error cleanup and consider caching
