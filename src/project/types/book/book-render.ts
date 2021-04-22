@@ -186,15 +186,7 @@ function executedFileMetadata(project: ProjectContext, file: ExecutedFile) {
   const metadata = base64Encode(
     JSON.stringify({ resourceDir: resourceDir || "." }),
   );
-  return `
-  
-  \`<!-- quarto-file-metadata: ${metadata} -->\`{=html}
-  
-  \`\`\`{=html}
-  <!-- quarto-file-metadata: ${metadata} -->
-  \`\`\`
-  
-  `;
+  return `\n\n\`<!-- quarto-file-metadata: ${metadata} -->\`{=html}\n\n\`\`\`{=html}\n<!-- quarto-file-metadata: ${metadata} -->\n\`\`\`\n\n`;
 }
 
 function withBookTitleMetadata(format: Format, config?: ProjectConfig): Format {
