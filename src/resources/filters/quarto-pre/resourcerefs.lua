@@ -1,9 +1,7 @@
 -- resourceRefs.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
-
 function resourceRefs() 
-  
   return {
     Image = function(el)
       local file = currentFileMetadata()
@@ -34,7 +32,17 @@ function handleRawElement(el)
   end
 end
 
+function handleHtmlRefs(text, resourceDir, tag, attrib)
+  return text:gsub("(<" .. tag .. " [^>]*" .. attrib .. "%s*=%s*)\"([^\"]+)\"", function(preface, value)
+    return preface .. "\"" .. resourceRef(value, resourceDir) .. "\""
+  end)
+end
 
+function handleCssRefs(text, resourceDir, prefix)
+  return text:gsub("(" .. prefix .. ")\"([^\"]+)\"", function(preface, value)
+    return preface .. "\"" .. resourceRef(value, resourceDir) .. "\""
+  end) 
+end
 
 function resourceRef(ref, resourceDir)
   -- if the ref starts with / then just strip if off
@@ -53,19 +61,4 @@ function isRelativeRef(ref)
          ref:find("^data:") == nil and 
          ref:find("^#") == nil
 end
-
-
-function handleHtmlRefs(text, resourceDir, tag, attrib)
-  return text:gsub("(<" .. tag .. " [^>]*" .. attrib .. "%s*=%s*)\"([^\"]+)\"", function(preface, value)
-    return preface .. "\"" .. resourceRef(value, resourceDir) .. "\""
-  end)
-end
-
-function handleCssRefs(text, resourceDir, prefix)
-  return text:gsub("(" .. prefix .. ")\"([^\"]+)\"", function(preface, value)
-    return preface .. "\"" .. resourceRef(value, resourceDir) .. "\""
-  end) 
-end
-
-
 
