@@ -30,8 +30,7 @@ export const chromiumInstallable: InstallableTool = {
 };
 
 export async function installed(): Promise<boolean> {
-  const localRevisions = await fetcher().localRevisions();
-  return localRevisions.includes(supportedRevision());
+  return await installedVersion() !== undefined;
 }
 
 async function installedVersion(): Promise<string | undefined> {

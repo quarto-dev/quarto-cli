@@ -11,7 +11,7 @@ export async function readRegistryKey(
   keyname: string | "(Default)",
 ) {
   // Build the the reg command
-  const cmd = ["reg", "query", registryPath];
+  const cmd = ["reg.exe", "query", registryPath];
   if (keyname === "(Default)") {
     cmd.push("/ve");
     keyname = "\\(Default\\)";
@@ -32,7 +32,7 @@ export async function readRegistryKey(
     // Parse the output to read the value
     const output = result.stdout;
     const regexStr =
-      `*${keyname} *(?:REG_SZ|REG_MULTI_SZ|REG_EXPAND_SZ|REG_DWORD|REG_BINARY|REG_NONE) *(.*)$`;
+      ` *${keyname} *(?:REG_SZ|REG_MULTI_SZ|REG_EXPAND_SZ|REG_DWORD|REG_BINARY|REG_NONE) *(.*)$`;
     const match = output?.match(RegExp(regexStr, "m"));
     if (match) {
       return match[1];
