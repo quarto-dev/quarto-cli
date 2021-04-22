@@ -11,6 +11,7 @@ import { mergeConfigs } from "../../../core/config.ts";
 import {
   Format,
   FormatExtras,
+  isEpubOutput,
   isHtmlOutput,
   isLatexOutput,
 } from "../../../config/format.ts";
@@ -114,7 +115,7 @@ export const bookProjectType: ProjectType = {
     // defaults for all formats
     let extras: FormatExtras = {
       pandoc: {
-        [kToc]: true,
+        [kToc]: !isEpubOutput(format.pandoc),
         [kNumberSections]: true,
       },
     };
