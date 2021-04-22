@@ -45,6 +45,7 @@ import {
 } from "../../../format/html/format-html.ts";
 
 import {
+  kProjectType,
   ProjectContext,
   projectOffset,
   projectOutputDir,
@@ -61,6 +62,7 @@ import {
   SidebarItem,
   SidebarTool,
 } from "../../project-config.ts";
+import { projectType } from "../project-types.ts";
 
 import {
   websiteSearch,
@@ -579,11 +581,20 @@ async function resolveItem(
   if (!isExternalPath(href)) {
     const resolved = await resolveInputTarget(project, href);
     if (resolved) {
-      return {
+      const inputItem = {
         ...item,
         href: resolved.outputHref,
         text: item.text || resolved.title || basename(resolved.outputHref),
       };
+      const projType = projectType(project.config?.project?.[kProjectType]);
+      if (projType.navItemText) {
+        inputItem.text = await projType.navItemText(
+          project,
+          href,
+          inputItem.text,
+        );
+      }
+      return inputItem;
     } else {
       return {
         ...item,

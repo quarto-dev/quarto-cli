@@ -36,6 +36,11 @@ export interface ProjectType {
   isSupportedFormat?: (format: Format) => boolean;
   metadataFields?: () => Array<string | RegExp>;
   resourceIgnoreFields?: () => string[];
+  navItemText?: (
+    context: ProjectContext,
+    input: string,
+    text: string,
+  ) => Promise<string>;
   preRender?: (context: ProjectContext) => Promise<void>;
   pandocRenderer?: (
     options: RenderOptions,

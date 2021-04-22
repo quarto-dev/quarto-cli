@@ -9,17 +9,12 @@ import { relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
-import {
-  PartitionedMarkdown,
-  partitionMarkdown,
-} from "../../../core/pandoc/pandoc-partition.ts";
+import { partitionMarkdown } from "../../../core/pandoc/pandoc-partition.ts";
 
 import {
   kAbstract,
   kAuthor,
   kDate,
-  kNumberOffset,
-  kNumberSections,
   kSubtitle,
   kTitle,
   kToc,
@@ -34,10 +29,13 @@ import {
 } from "../../../command/render/render.ts";
 
 import { ProjectConfig, ProjectContext } from "../../project-context.ts";
-import { inputTargetIndex } from "../../project-index.ts";
 
 import { BookExtension } from "./book-extension.ts";
 import { bookConfig, BookConfigKey } from "./book-config.ts";
+import {
+  chapterNumberForInput,
+  withChapterTitleMetadata,
+} from "./book-chapters.ts";
 
 export function bookPandocRenderer(
   options: RenderOptions,
@@ -119,30 +117,10 @@ async function renderMultiFileBook(
       file.recipe.format.metadata[kToc] = false;
       // other files
     } else {
-      // since this could be an incremental render we need to compute the
-      // chapter number based on the list of project input files and
-      // whether they are numbered. note we only do this for HTML since
-      let chapterNumber = 0;
-      if (
-        isHtmlOutput(file.recipe.format.pandoc) &&
-        isNumberedChapter(partitioned)
-      ) {
-        for (const input of project.files.input) {
-          const inputRelative = relative(project.dir, input);
-          // found ourselves, increment then break
-          if (inputRelative === fileRelative) {
-            chapterNumber++;
-            break;
-          }
-          const inputIndex = await inputTargetIndex(project, inputRelative);
-          if (inputIndex) {
-            // increment for numbered chapters
-            if (isNumberedChapter(inputIndex?.markdown)) {
-              chapterNumber++;
-            }
-          }
-        }
-      }
+      // since this could be an incremental render we need to compute the chapter number
+      const chapterNumber = isHtmlOutput(file.recipe.format.pandoc)
+        ? await chapterNumberForInput(project, fileRelative)
+        : 0;
 
       // provide title metadata
       if (partitioned.headingText) {
@@ -214,25 +192,4 @@ function withBookTitleMetadata(format: Format, config?: ProjectConfig): Format {
     setMetadata(kAbstract);
   }
   return format;
-}
-
-function withChapterTitleMetadata(
-  format: Format,
-  partitioned: PartitionedMarkdown,
-  chapterNumber: number,
-) {
-  format = ld.cloneDeep(format);
-  format.metadata[kTitle] = chapterNumber > 0
-    ? `${chapterNumber} – ${partitioned.headingText}`
-    : partitioned.headingText;
-  if (!isNumberedChapter(partitioned)) {
-    format.pandoc[kNumberSections] = false;
-  }
-  format.pandoc[kNumberOffset] = [chapterNumber];
-  return format;
-}
-
-function isNumberedChapter(partitioned: PartitionedMarkdown) {
-  return !partitioned.headingAttr ||
-    !partitioned.headingAttr.classes.includes("unnumbered");
 }
