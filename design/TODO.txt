@@ -23,9 +23,6 @@ Incremental rendering of self-contained (use freezer)
 Title handling:
 - Handle {.unnumered} or {-}
 
-Build the full book (markdown merge)
-- Replace metadata with actual title (including emit H1)
-
 Section/part handling:
 
 - Emit \part for pdf
