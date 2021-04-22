@@ -14,19 +14,11 @@ Books
 =========================================================================
 
  
-
-recipe.format vs. context.format in renderPandoc implementation and return
-
-ensure that stuff in formatExtras can be overridden by the user
-
-
 - Preface page (index.md) and section pages are unnumbered by default (via filter)
 - Use of the .numbered class within these pages selectively overrides this
 - additional 'unumbered' metadata value which switches document into unumbered mode
 
 Incremental rendering of self-contained (use freezer)
-
-Fixup relative resource refs (b/c we are rendering from the root)
 
 Title handling:
 - Handle {.unnumered} or {-}
