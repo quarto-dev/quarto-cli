@@ -622,7 +622,7 @@ export async function renderPandoc(
   return {
     input: projectPath(context.target.source),
     markdown: executeResult.markdown,
-    format: context.format,
+    format,
     filesDir: filesDir ? projectPath(filesDir) : undefined,
 
     file: projectPath(finalOutput),
