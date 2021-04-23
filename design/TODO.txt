@@ -7,9 +7,6 @@ TODO: also try output-file: index.html
 
 TODO: Floating TOC with toc-depth: 4 - looks meh
 
-TODO: Need to be sure all updates to tinytex are in quarto-latexmk
-TODO: Need to provide version info for quarto-latexmk
-
 Books
 =========================================================================
 
@@ -202,9 +199,10 @@ Logging
 
 TinyTex
 ============================================================================
-Tinytex install should optionally accept a version (?)
-Create bundled standalone version
-Consider consolidating the main loop (single loop rather than pdf compile followed by loop)
+TODO: `quarto install tinytex` could optionally accept a version (?)
+TODO: Consider consolidating the main loop (single loop rather than pdf compile followed by loop)
+TODO: Need to be sure all updates to tinytex are in quarto-latexmk
+TODO: Need to provide version info for quarto-latexmk
 
 
 Future
@@ -273,7 +271,6 @@ TODO: clean:
 //  - paginator
 
 
-TODO: generalized warning system (look for 'WARNING:')
 
 Common markdown format: (e.g. qmd)
 
@@ -496,11 +493,3 @@ Julia Dev workflow
 - changes should show up automatically now
 
 
-
-Future - Charles
----------------------------------------------
-
-Windows:
-- Continue to monitor Cliffy + Deno versions for Windows support.
-  Unpinned Cliffy was causing an error when running bundled version (e.g. installed version) on Windows
-  Deno 1.8.1+ currently stack overflows when bundling on windows
