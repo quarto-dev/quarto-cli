@@ -66,8 +66,10 @@ export interface ExecuteResult {
   markdown: string;
   supporting: string[];
   filters: string[];
-  includes: PandocIncludes;
-  dependencies?: unknown;
+  dependencies?: {
+    type: "includes" | "dependencies";
+    data: PandocIncludes | Array<unknown>;
+  };
   preserve?: Record<string, string>;
 }
 
@@ -85,7 +87,7 @@ export interface DependenciesOptions {
   resourceDir: string;
   tempDir: string;
   libDir?: string;
-  dependencies?: unknown;
+  dependencies?: Array<unknown>;
   quiet?: boolean;
 }
 

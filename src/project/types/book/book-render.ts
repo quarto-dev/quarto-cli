@@ -47,6 +47,14 @@ export function bookPandocRenderer(
   const files: Record<string, ExecutedFile[]> = {};
 
   return {
+    onBeforeExecute: (format: Format) => {
+      const extension = format.extensions?.book as BookExtension;
+      return {
+        // if we render a file at a time then resolve dependencies immediately
+        resolveDependencies: !!extension.renderFile,
+      };
+    },
+
     onRender: (format: string, file: ExecutedFile) => {
       files[format] = files[format] || [];
       files[format].push(file);
@@ -165,6 +173,8 @@ function mergeExecutedFiles(
   project: ProjectContext,
   files: ExecutedFile[],
 ): Promise<ExecutedFile> {
+  // reduce to a single ExecutedFile
+
   // merge markdown, writing a metadata comment into each file
   const markdown = files.reduce((markdown: string, file: ExecutedFile) => {
     return markdown +
@@ -172,11 +182,54 @@ function mergeExecutedFiles(
       file.executeResult.markdown;
   }, "");
 
+  // merge supporting
+  const supporting = files.reduce(
+    (supporting: string[], file: ExecutedFile) => {
+      return ld.uniq(
+        supporting.concat(
+          file.executeResult.supporting.map((f) => relative(project.dir, f)),
+        ),
+      );
+    },
+    [] as string[],
+  );
+
+  // merge filters
+  const filters = ld.uniq(files.flatMap((file) => file.executeResult.filters));
+
+  // merge dependencies
+  const dependencies = files.reduce(
+    (dependencies: Array<unknown>, file: ExecutedFile) => {
+      return dependencies.concat(
+        file.executeResult.dependencies?.data as Array<unknown> || [],
+      );
+    },
+    new Array<unknown>(),
+  );
+
+  // merge preserves
+  const preserve = files.reduce(
+    (preserve: Record<string, string>, file: ExecutedFile) => {
+      return {
+        ...preserve,
+        ...file.executeResult.preserve,
+      };
+    },
+    {} as Record<string, string>,
+  );
+
   return Promise.resolve({
-    ...files[0],
+    context: files[0].context,
+    recipe: files[0].recipe,
     executeResult: {
-      ...files[0].executeResult,
       markdown,
+      supporting,
+      filters,
+      dependencies: {
+        type: "dependencies",
+        data: dependencies,
+      },
+      preserve,
     },
   });
 }
