@@ -90,8 +90,7 @@ export async function install(
     const outputTxt = new TextDecoder().decode(output);
 
     // Forward the output
-    // TODO: Replace this with info() when logging is updated
-    console.log(outputTxt);
+    info(outputTxt);
 
     const match = outputTxt.match(/Successfully installed.*\n(.*)/);
     if (match) {
