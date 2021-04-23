@@ -40,13 +40,68 @@ export interface ScreenshotOptions {
   omitBackground?: boolean;
 }
 
-export async function initScreenshot() {
+// The target of a screenshot
+export interface ScreenshotTarget {
+  url: string;
+  outputFile: string;
 }
 
-export async function cleanupScreenshot() {
-  if (browser) {
-    (await connectedBrowser()).close();
+export async function screenshot(
+  target: ScreenshotTarget,
+  options?: ScreenshotOptions,
+) {
+  await withHeadlessBrowser(async (browser: Browser) => {
+    await browserScreenshot(browser, target, options);
+    return Promise.resolve();
+  });
+}
+
+export async function screenshots(
+  targets: ScreenshotTarget[],
+  options?: ScreenshotOptions,
+) {
+  await withHeadlessBrowser(async (browser: Browser) => {
+    for (const target of targets) {
+      await browserScreenshot(browser, target, options);
+    }
+    return Promise.resolve();
+  });
+}
+
+async function withHeadlessBrowser(
+  fn: (browser: Browser) => Promise<void>,
+) {
+  const browser = await fetchBrowser();
+  if (browser !== undefined) {
+    try {
+      await fn(browser);
+    } finally {
+      browser.close();
+    }
   }
+}
+
+async function browserScreenshot(
+  browser: Browser,
+  target: ScreenshotTarget,
+  options?: ScreenshotOptions,
+) {
+  // Navigate to the requested page
+  const page = await browser.newPage();
+
+  await page.goto(target.url, { waitUntil: "networkidle2" });
+
+  // Take the screenshot
+  await page.screenshot({
+    path: target.outputFile,
+    type: options?.type,
+    clip: options?.region,
+    fullPage: options?.fullPage,
+    quality: options?.quality,
+    omitBackground: options?.omitBackground,
+  });
+
+  await page.close();
 }
 
 async function findChrome(): Promise<string | undefined> {
@@ -76,50 +131,19 @@ async function findChrome(): Promise<string | undefined> {
   return path;
 }
 
-let browser: Browser;
-async function connectedBrowser() {
-  if (!browser) {
-    // Cook up a new instance
-    const isChromiumInstalled = await installed();
-    const executablePath = !isChromiumInstalled
-      ? await findChrome()
-      : undefined;
-    if (isChromiumInstalled || executablePath) {
-      browser = await puppeteer.launch({
-        product: "chrome",
-        executablePath,
-      });
-    } else {
-      warning(
-        "Chromium is not installed so a screenshot can't be taken. Please use `quarto install chromium` to install the required version of Chromium",
-      );
-    }
+async function fetchBrowser() {
+  // Cook up a new instance
+  const isChromiumInstalled = await installed();
+  const executablePath = !isChromiumInstalled ? await findChrome() : undefined;
+  if (isChromiumInstalled || executablePath) {
+    return await puppeteer.launch({
+      product: "chrome",
+      executablePath,
+    });
+  } else {
+    warning(
+      "Screenshotting of embedded web content disabled. Please use `quarto install chromium` to install the required version of Chromium",
+    );
+    return undefined;
   }
-  return browser;
-}
-
-export async function screenshot(
-  url: string,
-  outputFile: string,
-  options?: ScreenshotOptions,
-) {
-  // Launch the browser
-  const browser = await connectedBrowser();
-
-  // Navigate to the requested page
-  const page = await browser.newPage();
-
-  await page.goto(url, { waitUntil: "networkidle2" });
-
-  // Take the screenshot
-  await page.screenshot({
-    path: outputFile,
-    type: options?.type,
-    clip: options?.region,
-    fullPage: options?.fullPage,
-    quality: options?.quality,
-    omitBackground: options?.omitBackground,
-  });
-
-  await page.close();
 }
