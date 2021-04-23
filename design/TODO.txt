@@ -13,8 +13,13 @@ TODO: Need to provide version info for quarto-latexmk
 Books
 =========================================================================
 
+- Throw error if there is no index file
+- Throw error if one of the files listed in 'contents' doesn't exist
+
 - Correct output file name for single file formats
 - Add docx format
+
+- deal with merging of dependencies, preserves,
 
 - Preface page (index.md) and section pages are unnumbered by default (via filter)
 - Use of the .numbered class within these pages selectively overrides this
