@@ -1,6 +1,9 @@
 
 
+TODO: Allison's font files are not being copied to output directory (not discovered as reference?)
 
+TODO: Scss function(s) for referencing fonts (e.g. google, etc...)
+  @useFont('google', 'roboto') (automates downloading of fonts and generating rules to load them)
 
 TODO: try out article-per-directory w/ "page bundles" (auto-resolve directories to index.html)
 TODO: also try output-file: index.html
@@ -189,7 +192,16 @@ GA
 ==============================================
 TODO: be sure we do cookie consent banner
 
-
+Website Footers:
+==============================================
+- Add TOC footer (flowing vs pinned) - flowing
+- Add TOC header (e.g. before and and after TOC)
+- Add Sidebar footer (flowing vs pinned) - flowing
+- Add Sidebar header (e.g. before and and after Sidebar)
+- Body footer?
+- Site footer?
+- Support arbitrary HTML content in sidebar
+- hero image support
 
 Logging
 =========================================================================
