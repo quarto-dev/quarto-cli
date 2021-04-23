@@ -78,18 +78,22 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params) {
 
   # see if we are going to resolve knit_meta now or later
   if (dependencies) {
-    includes <- pandoc_includes(
-      input, 
-      format,
-       output_file, 
-       ifelse(!is.null(libDir), libDir, files_dir), 
-       knit_meta, 
-       tempDir
+    dependencies_data <- list(
+      type = "includes",
+      data = pandoc_includes(
+        input, 
+        format,
+        output_file, 
+        ifelse(!is.null(libDir), libDir, files_dir), 
+        knit_meta, 
+        tempDir
+      )
     )
-    dependencies_data <- NA
   } else {
-    includes <- list()
-    dependencies_data <- I(list(jsonlite::serializeJSON(knit_meta)))
+    dependencies_data <- list(
+      type = "dependencies",
+      data = I(list(jsonlite::serializeJSON(knit_meta)))
+    ) 
   }
   
 
@@ -109,7 +113,6 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params) {
     markdown = paste(markdown, collapse="\n"),
     supporting = I(supporting),
     filters = I("rmarkdown/pagebreak.lua"),
-    includes = includes,
     dependencies = dependencies_data,
     preserve = preserve
   )

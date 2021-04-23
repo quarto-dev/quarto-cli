@@ -51,7 +51,6 @@ export const markdownEngine: ExecutionEngine = {
       markdown,
       supporting: [],
       filters: [],
-      includes: {},
     });
   },
   dependencies: (_options: DependenciesOptions) => {

@@ -527,13 +527,13 @@ export async function renderPandoc(
   const format = recipe.format;
 
   // merge any pandoc options provided by the computation
-  format.pandoc = mergePandocIncludes(
-    format.pandoc || {},
-    executeResult.includes,
-  );
-
-  // run the dependencies step if we didn't do it during execution
-  if (executeResult.dependencies) {
+  if (executeResult.dependencies?.type === "includes") {
+    format.pandoc = mergePandocIncludes(
+      format.pandoc || {},
+      executeResult.dependencies.data as PandocIncludes,
+    );
+  } // run the dependencies step if we didn't do it during execution
+  else if (executeResult.dependencies?.type === "dependencies") {
     const dependenciesResult = await context.engine.dependencies({
       target: context.target,
       format,
@@ -541,7 +541,7 @@ export async function renderPandoc(
       resourceDir: resourcePath(),
       tempDir: createSessionTempDir(),
       libDir: context.libDir,
-      dependencies: executeResult.dependencies,
+      dependencies: executeResult.dependencies.data as Array<unknown>,
       quiet: context.options.flags?.quiet,
     });
     format.pandoc = mergePandocIncludes(

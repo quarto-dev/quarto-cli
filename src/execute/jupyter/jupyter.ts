@@ -249,24 +249,11 @@ export const jupyterEngine: ExecutionEngine = {
       },
     );
 
-    // convert dependencies to include files
-    const includes: PandocIncludes = {};
-    let dependencies: JupyterWidgetDependencies[] | undefined;
-    if (options.dependencies) {
-      if (result.dependencies) {
-        const includeFiles = includesForJupyterWidgetDependencies(
-          [result.dependencies],
-        );
-        if (includeFiles.inHeader) {
-          includes[kIncludeInHeader] = includeFiles.inHeader;
-        }
-        if (includeFiles.afterBody) {
-          includes[kIncludeAfterBody] = includeFiles.afterBody;
-        }
-      }
-    } else {
-      dependencies = result.dependencies ? [result.dependencies] : undefined;
-    }
+    // return dependencies as either includes or raw dependencies
+    const dependencies = executeResultDependencies(
+      options.dependencies ? "includes" : "dependencies",
+      result.dependencies,
+    );
 
     // if it's a transient notebook then remove it, otherwise
     // sync so that jupyter[lab] can open the .ipynb w/o errors
@@ -284,7 +271,6 @@ export const jupyterEngine: ExecutionEngine = {
       markdown: result.markdown,
       supporting: [assets.supporting_dir],
       filters: [],
-      includes,
       dependencies,
       preserve: result.htmlPreserve,
     };
@@ -487,6 +473,37 @@ function isMarkdown(file: string) {
 function isHtmlCompatible(format: Format) {
   return isHtmlOutput(format.pandoc) ||
     (isMarkdownOutput(format.pandoc) && format.render[kPreferHtml]);
+}
+
+function executeResultDependencies(
+  type: "includes" | "dependencies",
+  dependencies?: JupyterWidgetDependencies,
+) {
+  // convert dependencies to include files
+  const dependenciesAsIncludes = () => {
+    const includes: PandocIncludes = {};
+    if (dependencies) {
+      const includeFiles = includesForJupyterWidgetDependencies(
+        [dependencies],
+      );
+      if (includeFiles.inHeader) {
+        includes[kIncludeInHeader] = includeFiles.inHeader;
+      }
+      if (includeFiles.afterBody) {
+        includes[kIncludeAfterBody] = includeFiles.afterBody;
+      }
+    }
+    return includes;
+  };
+
+  return {
+    type,
+    data: type === "includes"
+      ? dependenciesAsIncludes()
+      : dependencies
+      ? [dependencies]
+      : [],
+  };
 }
 
 async function markdownFromNotebook(file: string) {

@@ -66,8 +66,10 @@ export interface ExecuteResult {
   markdown: string;
   supporting: string[];
   filters: string[];
-  includes: PandocIncludes;
-  dependencies?: Array<unknown>;
+  dependencies?: {
+    type: "includes" | "dependencies";
+    data: PandocIncludes | Array<unknown>;
+  };
   preserve?: Record<string, string>;
 }
 

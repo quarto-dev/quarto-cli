@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, relative } from "path/mod.ts";
 
 import { encode as base64Encode } from "encoding/base64.ts";
 
@@ -200,8 +200,9 @@ function mergeExecutedFiles(
   // merge dependencies
   const dependencies = files.reduce(
     (dependencies: Array<unknown>, file: ExecutedFile) => {
-      file.executeResult.dependencies;
-      return dependencies.concat(file.executeResult.dependencies || []);
+      return dependencies.concat(
+        file.executeResult.dependencies?.data as Array<unknown> || [],
+      );
     },
     new Array<unknown>(),
   );
@@ -224,8 +225,10 @@ function mergeExecutedFiles(
       markdown,
       supporting,
       filters,
-      includes: files[0].executeResult.includes,
-      dependencies,
+      dependencies: {
+        type: "dependencies",
+        data: dependencies,
+      },
       preserve,
     },
   });
