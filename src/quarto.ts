@@ -24,7 +24,6 @@ import {
 import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
 import { quartoConfig } from "./core/quarto.ts";
 import { parse } from "flags/mod.ts";
-import { screenshots } from "./command/render/screenshot.ts";
 
 export async function quarto(args: string[]) {
   const quartoCommand = new Command()
