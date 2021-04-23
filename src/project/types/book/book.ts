@@ -45,7 +45,7 @@ export const bookProjectType: ProjectType = {
       scaffold: [
         {
           name: "index",
-          content: "# Preface {.unnumbered}",
+          content: "## Preface {.unnumbered}",
           format: "html",
         },
         {
