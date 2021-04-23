@@ -89,7 +89,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params) {
     dependencies_data <- NA
   } else {
     includes <- list()
-    dependencies_data <- jsonlite::serializeJSON(knit_meta)
+    dependencies_data <- I(list(jsonlite::serializeJSON(knit_meta)))
   }
   
 

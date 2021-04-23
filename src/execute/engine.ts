@@ -67,7 +67,7 @@ export interface ExecuteResult {
   supporting: string[];
   filters: string[];
   includes: PandocIncludes;
-  dependencies?: unknown;
+  dependencies?: Array<unknown>;
   preserve?: Record<string, string>;
 }
 
@@ -85,7 +85,7 @@ export interface DependenciesOptions {
   resourceDir: string;
   tempDir: string;
   libDir?: string;
-  dependencies?: unknown;
+  dependencies?: Array<unknown>;
   quiet?: boolean;
 }
 

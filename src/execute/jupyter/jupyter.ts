@@ -251,7 +251,7 @@ export const jupyterEngine: ExecutionEngine = {
 
     // convert dependencies to include files
     const includes: PandocIncludes = {};
-    let dependencies: JupyterWidgetDependencies | undefined;
+    let dependencies: JupyterWidgetDependencies[] | undefined;
     if (options.dependencies) {
       if (result.dependencies) {
         const includeFiles = includesForJupyterWidgetDependencies(
@@ -265,7 +265,7 @@ export const jupyterEngine: ExecutionEngine = {
         }
       }
     } else {
-      dependencies = result.dependencies;
+      dependencies = result.dependencies ? [result.dependencies] : undefined;
     }
 
     // if it's a transient notebook then remove it, otherwise
@@ -304,7 +304,7 @@ export const jupyterEngine: ExecutionEngine = {
     const includes: PandocIncludes = {};
     if (options.dependencies) {
       const includeFiles = includesForJupyterWidgetDependencies(
-        [options.dependencies as JupyterWidgetDependencies],
+        options.dependencies as JupyterWidgetDependencies[],
       );
       if (includeFiles.inHeader) {
         includes[kIncludeInHeader] = includeFiles.inHeader;

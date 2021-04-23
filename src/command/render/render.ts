@@ -184,6 +184,7 @@ export interface RenderedFile {
 }
 
 export interface PandocRenderer {
+  onBeforeExecute: (format: Format) => RenderExecuteOptions;
   onRender: (format: string, file: ExecutedFile) => Promise<void>;
   onComplete: () => Promise<RenderedFile[]>;
   onError: () => void;
@@ -203,6 +204,11 @@ export async function renderFiles(
 ): Promise<RenderFilesResult> {
   // provide default renderer
   pandocRenderer = pandocRenderer || defaultPandocRenderer(options, project);
+
+  // establish default execution options
+  const defaultExecuteOptions: RenderExecuteOptions = {
+    alwaysExecute,
+  };
 
   try {
     // make a copy of options so we don't mutate caller context
@@ -257,12 +263,17 @@ export async function renderFiles(
         // get output recipe
         const recipe = await outputRecipe(context);
 
+        // determine execute options
+        const executeOptions = mergeConfigs(
+          defaultExecuteOptions,
+          pandocRenderer.onBeforeExecute(recipe.format),
+        );
+
         // execute
         const executeResult = await renderExecute(
           context,
           recipe.output,
-          true,
-          alwaysExecute,
+          executeOptions,
         );
 
         // callback
@@ -356,12 +367,19 @@ export async function renderFormats(
   return formats;
 }
 
+export interface RenderExecuteOptions {
+  resolveDependencies?: boolean;
+  alwaysExecute?: boolean;
+}
+
 export async function renderExecute(
   context: RenderContext,
   output: string,
-  resolveDependencies: boolean,
-  alwaysExecute?: boolean,
+  options: RenderExecuteOptions,
 ): Promise<ExecuteResult> {
+  // alias options
+  const { resolveDependencies = true, alwaysExecute = false } = options;
+
   // alias flags
   const flags = context.options.flags || {};
 
@@ -523,7 +541,7 @@ export async function renderPandoc(
       resourceDir: resourcePath(),
       tempDir: createSessionTempDir(),
       libDir: context.libDir,
-      dependencies: [executeResult.dependencies],
+      dependencies: executeResult.dependencies,
       quiet: context.options.flags?.quiet,
     });
     format.pandoc = mergePandocIncludes(
@@ -686,6 +704,8 @@ function defaultPandocRenderer(
   const renderedFiles: RenderedFile[] = [];
 
   return {
+    onBeforeExecute: (_format: Format) => ({}),
+
     onRender: async (_format: string, executedFile: ExecutedFile) => {
       renderedFiles.push(await renderPandoc(executedFile));
     },
