@@ -78,10 +78,6 @@ export async function updateHtmlDepedencies(config: Configuration) {
     "CLIPBOARD_JS",
     workingDir,
     (dir: string, version: string) => {
-      console.log(
-        join(dir, `clipboard.js-${version}`, "dist", "clipboard.min.js"),
-      );
-      console.log(join(formatDir, "clipboard", "clipboard.min.js"));
       // Copy the js file
       Deno.copyFileSync(
         join(dir, `clipboard.js-${version}`, "dist", "clipboard.min.js"),
