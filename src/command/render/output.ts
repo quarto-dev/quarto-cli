@@ -96,7 +96,7 @@ export async function outputRecipe(
     };
 
     // keep source if requested (and we are targeting html)
-    if (format.render[kKeepSource] && isHtmlOutput(format.pandoc)) {
+    if (format.render[kKeepSource] && isHtmlOutput(format.pandoc, true)) {
       format.pandoc[kIncludeAfterBody] = format.pandoc[kIncludeAfterBody] || [];
       format.pandoc[kIncludeAfterBody]?.push(embeddedSourceCode(input));
     }
@@ -105,7 +105,7 @@ export async function outputRecipe(
     if (
       !format.pandoc[kTemplate] && !havePandocArg(recipe.args, "--template")
     ) {
-      if (format.pandoc.to && isHtmlOutput(format.pandoc.to)) {
+      if (format.pandoc.to && isHtmlOutput(format.pandoc.to, true)) {
         recipe.format.pandoc[kTemplate] = await patchHtmlTemplate(
           format.pandoc.to,
         );

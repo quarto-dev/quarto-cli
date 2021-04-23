@@ -242,7 +242,7 @@ export async function renderFiles(
       }
 
       // make a copy of options (since we mutate it)
-      const fileOptions = ld.cloneDeep(options) as RenderOptions;
+      let fileOptions = ld.cloneDeep(options) as RenderOptions;
 
       // get contexts
       const contexts = await renderContexts(
@@ -252,10 +252,7 @@ export async function renderFiles(
       );
 
       // remove --to (it's been resolved into contexts)
-      delete fileOptions.flags?.to;
-      if (fileOptions.pandocArgs) {
-        fileOptions.pandocArgs = removePandocToArg(fileOptions.pandocArgs);
-      }
+      fileOptions = removePandocTo(fileOptions);
 
       for (const format of Object.keys(contexts)) {
         const context = contexts[format];
@@ -647,6 +644,15 @@ export async function renderPandoc(
     resourceFiles: resourceFiles,
     selfContained: selfContained,
   };
+}
+
+export function removePandocTo(renderOptions: RenderOptions) {
+  renderOptions = ld.cloneDeep(renderOptions);
+  delete renderOptions.flags?.to;
+  if (renderOptions.pandocArgs) {
+    renderOptions.pandocArgs = removePandocToArg(renderOptions.pandocArgs);
+  }
+  return renderOptions;
 }
 
 export function renderResultFinalOutput(

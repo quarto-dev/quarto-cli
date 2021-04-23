@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, relative } from "path/mod.ts";
+import { basename, dirname, relative } from "path/mod.ts";
 
 import { encode as base64Encode } from "encoding/base64.ts";
 
@@ -17,6 +17,8 @@ import {
   kAbstract,
   kAuthor,
   kDate,
+  kOutputExt,
+  kOutputFile,
   kSubtitle,
   kTitle,
   kToc,
@@ -25,10 +27,13 @@ import { Format, isHtmlOutput } from "../../../config/format.ts";
 
 import {
   ExecutedFile,
+  removePandocTo,
+  RenderContext,
   RenderedFile,
   RenderOptions,
   renderPandoc,
 } from "../../../command/render/render.ts";
+import { outputRecipe } from "../../../command/render/output.ts";
 
 import { ProjectConfig, ProjectContext } from "../../project-context.ts";
 
@@ -153,12 +158,12 @@ async function renderMultiFileBook(
 
 async function renderSingleFileBook(
   project: ProjectContext,
-  _options: RenderOptions,
+  options: RenderOptions,
   _extension: BookExtension,
   files: ExecutedFile[],
 ): Promise<RenderedFile> {
   // we are going to compose a single ExecutedFile from the array we have been passed
-  const executedFile = await mergeExecutedFiles(project, files);
+  const executedFile = await mergeExecutedFiles(project, options, files);
 
   // set book title metadata
   executedFile.recipe.format = withBookTitleMetadata(
@@ -169,11 +174,25 @@ async function renderSingleFileBook(
   return renderPandoc(executedFile);
 }
 
-function mergeExecutedFiles(
+async function mergeExecutedFiles(
   project: ProjectContext,
+  options: RenderOptions,
   files: ExecutedFile[],
 ): Promise<ExecutedFile> {
-  // reduce to a single ExecutedFile
+  // base context on the first file
+  const context = ld.cloneDeep(files[0].context) as RenderContext;
+
+  // use global render options
+  context.options = removePandocTo(options);
+
+  // set output file based on book title
+  const title = bookConfig(kTitle, project.config) || basename(project.dir);
+  context.format.pandoc[kOutputFile] = `${title}.${
+    context.format.render[kOutputExt]
+  }`;
+
+  // create output recipe (tweak output file)
+  const recipe = await outputRecipe(context);
 
   // merge markdown, writing a metadata comment into each file
   const markdown = files.reduce((markdown: string, file: ExecutedFile) => {
@@ -219,8 +238,8 @@ function mergeExecutedFiles(
   );
 
   return Promise.resolve({
-    context: files[0].context,
-    recipe: files[0].recipe,
+    context,
+    recipe,
     executeResult: {
       markdown,
       supporting,

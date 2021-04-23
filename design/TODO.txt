@@ -15,7 +15,10 @@ Books
 =========================================================================
 
 - Throw error if there is no index file
+- Index file is always brought to the front 
 - Throw error if one of the files listed in 'contents' doesn't exist
+
+- Change "anchored" to "docked"
 
 - Correct output file name for single file formats
 - Add docx format
