@@ -11,6 +11,7 @@ import { dirname, extname, join, relative } from "path/mod.ts";
 import { ld } from "lodash/mod.ts";
 
 import { resolvePathGlobs } from "../core/path.ts";
+import { kCssImportRegex, kCssUrlRegex } from "../core/css.ts";
 
 import {
   kProjectOutputDir,
@@ -79,9 +80,8 @@ export function fixupCssReferences(
   onRef: (ref: string) => void,
 ) {
   // fixup / copy refs from url()
-  const kUrlRegex = /url\((?!['"]?(?:data|https?):)(['"])?([^'"]*)\1\)/g;
   let destCss = css.replaceAll(
-    kUrlRegex,
+    kCssUrlRegex,
     (_match, p1: string, p2: string) => {
       const ref = p2.startsWith("/") ? `${offset}${p2.slice(1)}` : p2;
       onRef(ref);
@@ -90,9 +90,8 @@ export function fixupCssReferences(
   );
 
   // fixup / copy refs from @import
-  const kImportRegEx = /@import\s(?!['"](?:data|https?):)(['"])([^'"]*)\1/g;
   destCss = destCss.replaceAll(
-    kImportRegEx,
+    kCssImportRegex,
     (_match, p1: string, p2: string) => {
       const ref = p2.startsWith("/") ? `${offset}${p2.slice(1)}` : p2;
       onRef(ref);
