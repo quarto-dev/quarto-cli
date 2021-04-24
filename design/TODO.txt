@@ -10,8 +10,12 @@ TODO: also try output-file: index.html
 
 TODO: Floating TOC with toc-depth: 4 - looks meh
 
+TODO: migrate some sites (e.g. environments.rstudio.com)
+
 Books
 =========================================================================
+
+- KeepMd and other cleanup that occurs per-file in renderPandoc
 
 - Throw error if there is no index file
 - Index file is always brought to the front 
