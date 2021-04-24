@@ -5,7 +5,7 @@
 *
 */
 
-import { basename, dirname, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "path/mod.ts";
 
 import { encode as base64Encode } from "encoding/base64.ts";
 
@@ -34,6 +34,7 @@ import {
   renderPandoc,
 } from "../../../command/render/render.ts";
 import { outputRecipe } from "../../../command/render/output.ts";
+import { renderCleanup } from "../../../command/render/cleanup.ts";
 
 import { ProjectConfig, ProjectContext } from "../../project-context.ts";
 
@@ -171,7 +172,23 @@ async function renderSingleFileBook(
     project.config,
   );
 
-  return renderPandoc(executedFile);
+  // do pandoc render
+  const renderedFile = await renderPandoc(executedFile);
+
+  // cleanup step for each executed file
+  files.forEach((file) => {
+    renderCleanup(
+      file.context.target.input,
+      join(project.dir, renderedFile.file),
+      file.recipe.format,
+      true,
+      file.executeResult.supporting,
+      file.context.engine.keepMd(file.context.target.input),
+    );
+  });
+
+  // return rendered file
+  return renderedFile;
 }
 
 async function mergeExecutedFiles(

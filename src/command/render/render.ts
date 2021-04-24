@@ -67,7 +67,7 @@ import { formatHasBootstrap } from "../../format/html/format-html-bootstrap.ts";
 
 import { PandocOptions, runPandoc } from "./pandoc.ts";
 import { removePandocToArg, RenderFlags, resolveParams } from "./flags.ts";
-import { cleanup } from "./cleanup.ts";
+import { renderCleanup } from "./cleanup.ts";
 import { OutputRecipe, outputRecipe } from "./output.ts";
 import {
   deleteProjectMetadata,
@@ -597,21 +597,12 @@ export async function renderPandoc(
     finalOutput,
   );
 
-  // determine supporting files
-  const supporting = executeResult.supporting;
-  const libDir = join(
-    dirname(context.target.input),
-    filesDirLibDir(context.target.input),
-  );
-  if (existsSync(libDir)) {
-    supporting.push(Deno.realPathSync(libDir));
-  }
-
-  cleanup(
-    selfContained,
-    format,
+  renderCleanup(
+    context.target.input,
     finalOutput,
-    supporting,
+    format,
+    selfContained,
+    executeResult.supporting,
     context.engine.keepMd(context.target.input),
   );
 
@@ -876,6 +867,10 @@ export function formatKeys(metadata: Metadata): string[] {
   }
 }
 
+export function filesDirLibDir(input: string) {
+  return join(inputFilesDir(input), "libs");
+}
+
 async function resolveFormats(
   target: ExecutionTarget,
   engine: ExecutionEngine,
@@ -1000,8 +995,4 @@ function mergeQuartoConfigs(
     fixupFormat(config),
     ...configs.map((c) => fixupFormat(c)),
   );
-}
-
-function filesDirLibDir(input: string) {
-  return join(inputFilesDir(input), "libs");
 }
