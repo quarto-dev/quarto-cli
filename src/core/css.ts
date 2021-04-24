@@ -5,6 +5,31 @@
 *
 */
 
+export const kCssUrlRegex =
+  /url\((?!['"]?(?:data|https?):)(['"])?([^'"]*)\1\)/g;
+export const kCssImportRegex =
+  /@import\s(?!['"](?:data|https?):)(['"])([^'"]*)\1/g;
+
+export function cssResources(css: string) {
+  return matchCss(css, kCssUrlRegex);
+}
+
+export function cssImports(css: string) {
+  return matchCss(css, kCssImportRegex);
+}
+
+function matchCss(css: string, regex: RegExp): string[] {
+  const matches = [];
+  regex.lastIndex = 0;
+  let match = regex.exec(css);
+  while (match != null) {
+    matches.push(match[2]);
+    match = regex.exec(css);
+  }
+  regex.lastIndex = 0;
+  return matches;
+}
+
 export function asCssFont(value: unknown): string | undefined {
   if (!value) {
     return undefined;

@@ -64,6 +64,7 @@ import {
   kVariables,
 } from "../../config/constants.ts";
 import { sessionTempFile } from "../../core/temp.ts";
+import { cssImports, cssResources } from "../../core/css.ts";
 
 import { RenderResourceFiles } from "./render.ts";
 import { compileSass } from "./sass.ts";
@@ -157,6 +158,7 @@ export async function runPandoc(
       options.format,
       cwd,
       options.libDir,
+      options.project,
     );
 
     // save post-processors
@@ -378,6 +380,7 @@ async function resolveExtras(
   format: Format,
   inputDir: string,
   libDir: string,
+  project?: ProjectContext,
 ) {
   // start with the merge
   let extras = mergeConfigs(projectExtras, formatExtras);
@@ -394,6 +397,7 @@ async function resolveExtras(
       extras,
       formatExtras.html?.[kSassBundles],
       projectExtras.html?.[kSassBundles],
+      project,
     );
 
     // resolve the merged highlight style
@@ -465,7 +469,7 @@ function resolveDependencies(
         );
       }
       if (dependency.resources) {
-        dependency.resources.forEach(copyDep);
+        dependency.resources.forEach((resource) => copyDep(resource));
       }
     }
     delete extras.html?.[kDependencies];
@@ -518,6 +522,7 @@ async function resolveSassBundles(
   extras: FormatExtras,
   formatBundles?: SassBundle[],
   projectBundles?: SassBundle[],
+  project?: ProjectContext,
 ) {
   extras = ld.cloneDeep(extras);
 
@@ -548,12 +553,28 @@ async function resolveSassBundles(
     const cssPath = await compileSass(bundles);
     const csssName = `${dependency}.min.css`;
 
+    // Find any imported stylesheets or url references
+    // (These could come from user scss that is merged into our theme, for example)
+    const css = Deno.readTextFileSync(cssPath);
+    const toDependencies = (paths: string[]) => {
+      return paths.map((path) => {
+        return {
+          name: path,
+          path: project ? join(project.dir, path) : path,
+        };
+      });
+    };
+    const resources = toDependencies(cssResources(css));
+    const imports = toDependencies(cssImports(css));
+
     // Push the compiled Css onto the dependency
     const extraDeps = extras.html?.[kDependencies];
+
     if (extraDeps) {
       const existingDependency = extraDeps.find((extraDep) =>
         extraDep.name === dependency
       );
+
       if (existingDependency) {
         if (!existingDependency.stylesheets) {
           existingDependency.stylesheets = [];
@@ -562,13 +583,18 @@ async function resolveSassBundles(
           name: csssName,
           path: cssPath,
         });
+
+        // Add any css references
+        existingDependency.stylesheets.push(...imports);
+        existingDependency.resources?.push(...resources);
       } else {
         extraDeps.push({
           name: dependency,
           stylesheets: [{
             name: csssName,
             path: cssPath,
-          }],
+          }, ...imports],
+          resources,
         });
       }
     }

@@ -1,4 +1,5 @@
 
+TODO: Quarto render book with and output path -> --output _book/foo.pdf causes latexmk error
 
 TODO: Allison's font files are not being copied to output directory (not discovered as reference?)
 
