@@ -45,6 +45,10 @@ Section/part handling:
 - Emit \part for pdf
 - What's correct/required for epub / docx?
 
+- Asciidoc format. Should mostly just be copying the output
+files and bringing back markdown resource detection from the
+old resourcerefs implementation (or just tweak the current
+one to also record refs)
 
 - Appendixes (uses letter numbering by default)
 
