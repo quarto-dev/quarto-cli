@@ -24,10 +24,8 @@ Books
 
 - Change "anchored" to "docked"
 
-- Correct output file name for single file formats
 - Add docx format
 
-- deal with merging of dependencies, preserves,
 
 - Preface page (index.md) and section pages are unnumbered by default (via filter)
 - Use of the .numbered class within these pages selectively overrides this
@@ -35,6 +33,7 @@ Books
 
 Incremental rendering of self-contained (use freezer)
 
+Remove front matter from chapters when concatenating?
 
 Section/part handling:
 
@@ -66,21 +65,8 @@ TODO: centralize error cleanup and consider caching
             - hide the bibliography in the individual chapters
             - fixup up the citation links to point to the bibliography
 
-- Should seriously consider whether HTML should also be pasted together. If we do the global render followed by split, 
-  then we need to save out the dependencies and htmlPreserve and apply it per file
 
-- Incremental render uses the freezer
 
-- Running all markdown files as one pandoc render (pdf, epub, asciidoc, whatever)
-    - we need to render one format at a time
-    - we need to accumulate a set of executeResults (it would be nice if only one place computed the filesDir)
-    - we need to feed all of those executeResults back to pandoc together 
-         - concatenate the dependencies and resolve them in one step
-         - concatenate the markdown (fixup relative references -- the md file needs a marker e.g. a comment to indicate the offset)
-           (done in a lua filter)
-         - there needs to be a source of front-matter for that file (derived from _quarto.yml)
-         - (if there is front-matter in chapters e.g. for web output, we need to strip it out of the markdown)
-    - then we run the preserve step with an array of preserves
     - visual editor needs to use the full path to chapters for the id-prefix for footnotes
 
 
