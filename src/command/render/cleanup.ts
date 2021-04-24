@@ -19,35 +19,33 @@ export function renderCleanup(
   input: string,
   output: string,
   format: Format,
-  selfContained: boolean,
-  supporting: string[],
+  supporting?: string[],
   keepMd?: string,
 ) {
-  // ammend supporting with lib dir (if it existss
-  const libDir = join(
-    dirname(input),
-    filesDirLibDir(input),
-  );
-  if (existsSync(libDir)) {
-    supporting.push(Deno.realPathSync(libDir));
-  }
-
   // cleanup md if necessary
   if (keepMd && !format.render[kKeepMd] && keepMd !== output) {
     removeIfExists(keepMd);
   }
 
-  // if we aren't keeping the markdown and we are self-contained, then
-  // delete the supporting files
+  // if we aren't keeping the markdown or text and we are instructed to
+  // clean supporting files then do it
   if (
-    !format.render[kKeepMd] && !format.render[kKeepTex] && selfContained
+    !format.render[kKeepMd] && !format.render[kKeepTex] && supporting
   ) {
-    if (supporting) {
-      supporting.forEach((path) => {
-        if (existsSync(path)) {
-          Deno.removeSync(path, { recursive: true });
-        }
-      });
+    // ammend supporting with lib dir (if it exists)
+    const libDir = join(
+      dirname(input),
+      filesDirLibDir(input),
+    );
+    if (existsSync(libDir)) {
+      supporting.push(Deno.realPathSync(libDir));
     }
+
+    // clean supporting
+    supporting.forEach((path) => {
+      if (existsSync(path)) {
+        Deno.removeSync(path, { recursive: true });
+      }
+    });
   }
 }

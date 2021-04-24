@@ -186,8 +186,7 @@ export interface RenderedFile {
 export interface PandocRenderer {
   onBeforeExecute: (format: Format) => RenderExecuteOptions;
   onRender: (format: string, file: ExecutedFile) => Promise<void>;
-  onComplete: () => Promise<RenderedFile[]>;
-  onError: () => void;
+  onComplete: (error?: boolean) => Promise<RenderFilesResult>;
 }
 
 export interface RenderFilesResult {
@@ -282,16 +281,10 @@ export async function renderFiles(
       }
     }
 
-    return {
-      files: await pandocRenderer.onComplete(),
-    };
+    return await pandocRenderer.onComplete();
   } catch (error) {
-    // call error handler if we have one
-    pandocRenderer?.onError();
-
-    // return result with error
     return {
-      files: await pandocRenderer.onComplete(),
+      files: (await pandocRenderer.onComplete(true)).files,
       error: error || new Error(),
     };
   }
@@ -601,8 +594,7 @@ export async function renderPandoc(
     context.target.input,
     finalOutput,
     format,
-    selfContained,
-    executeResult.supporting,
+    selfContained ? executeResult.supporting : undefined,
     context.engine.keepMd(context.target.input),
   );
 
@@ -706,10 +698,10 @@ function defaultPandocRenderer(
     onRender: async (_format: string, executedFile: ExecutedFile) => {
       renderedFiles.push(await renderPandoc(executedFile));
     },
-    onComplete: () => {
-      return Promise.resolve(renderedFiles);
-    },
-    onError: () => {
+    onComplete: async () => {
+      return {
+        files: await Promise.resolve(renderedFiles),
+      };
     },
   };
 }

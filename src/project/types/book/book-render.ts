@@ -52,6 +52,20 @@ export function bookPandocRenderer(
   // accumulate executed files for all formats
   const files: Record<string, ExecutedFile[]> = {};
 
+  // function to cleanup any files that haven't gone all the way
+  // through the rendering pipeline
+  const cleanupExecutedFiles = () => {
+    for (const format of Object.keys(files)) {
+      const executedFiles = files[format];
+      executedFiles.forEach((executedFile) => {
+        cleanupExecutedFile(
+          executedFile,
+          executedFile.recipe.output,
+        );
+      });
+    }
+  };
+
   return {
     onBeforeExecute: (format: Format) => {
       const extension = format.extensions?.book as BookExtension;
@@ -66,48 +80,71 @@ export function bookPandocRenderer(
       files[format].push(file);
       return Promise.resolve();
     },
-    onComplete: async () => {
+    onComplete: async (error?: boolean) => {
       // rendered files to return. some formats need to end up returning all of the individual
       // renderedFiles (e.g. html or asciidoc) and some formats will consolidate all of their
       // files into a single one (e.g. pdf or epub)
       const renderedFiles: RenderedFile[] = [];
 
-      for (const executedFiles of Object.values(files)) {
-        // determine the format from the first file
-        if (executedFiles.length > 0) {
-          const format = executedFiles[0].context.format;
-
-          // get the book extension
-          const extension = format.extensions?.book as BookExtension;
-
-          // if it has a renderFile method then just do a file at a time
-          if (extension.renderFile) {
-            renderedFiles.push(
-              ...(await renderMultiFileBook(
-                project!,
-                options,
-                extension,
-                executedFiles,
-              )),
-            );
-            // otherwise render the entire book
-          } else {
-            renderedFiles.push(
-              await renderSingleFileBook(
-                project!,
-                options,
-                extension,
-                executedFiles,
-              ),
-            );
-          }
-        }
+      // if there was an error during execution then cleanup any
+      // executed files we've accumulated and return no rendered files
+      if (error) {
+        cleanupExecutedFiles();
+        return {
+          files: renderedFiles,
+        };
       }
 
-      return renderedFiles;
-    },
-    onError: () => {
-      // TODO: We can probably clean up files_dirs here
+      try {
+        const renderFormats = Object.keys(files);
+        for (const renderFormat of renderFormats) {
+          // get files
+          const executedFiles = files[renderFormat];
+
+          // determine the format from the first file
+          if (executedFiles.length > 0) {
+            const format = executedFiles[0].context.format;
+
+            // get the book extension
+            const extension = format.extensions?.book as BookExtension;
+
+            // if it has a renderFile method then just do a file at a time
+            if (extension.renderFile) {
+              renderedFiles.push(
+                ...(await renderMultiFileBook(
+                  project!,
+                  options,
+                  extension,
+                  executedFiles,
+                )),
+              );
+              // otherwise render the entire book
+            } else {
+              renderedFiles.push(
+                await renderSingleFileBook(
+                  project!,
+                  options,
+                  extension,
+                  executedFiles,
+                ),
+              );
+            }
+          }
+
+          // remove the rendered files (indicating they have already been cleaned up)
+          delete files[renderFormat];
+        }
+
+        return {
+          files: renderedFiles,
+        };
+      } catch (error) {
+        cleanupExecutedFiles();
+        return {
+          files: renderedFiles,
+          error: error || new Error(),
+        };
+      }
     },
   };
 }
@@ -177,18 +214,27 @@ async function renderSingleFileBook(
 
   // cleanup step for each executed file
   files.forEach((file) => {
-    renderCleanup(
-      file.context.target.input,
+    cleanupExecutedFile(
+      file,
       join(project.dir, renderedFile.file),
-      file.recipe.format,
-      true,
-      file.executeResult.supporting,
-      file.context.engine.keepMd(file.context.target.input),
     );
   });
 
   // return rendered file
   return renderedFile;
+}
+
+function cleanupExecutedFile(
+  file: ExecutedFile,
+  finalOutput: string,
+) {
+  renderCleanup(
+    file.context.target.input,
+    finalOutput,
+    file.recipe.format,
+    file.executeResult.supporting,
+    file.context.engine.keepMd(file.context.target.input),
+  );
 }
 
 async function mergeExecutedFiles(
