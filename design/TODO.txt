@@ -15,16 +15,16 @@ TODO: migrate some sites (e.g. environments.rstudio.com)
 Books
 =========================================================================
 
+Incremental rendering of self-contained (use freezer)
+
 - GH Issues including remove anchor link from brand/navbar
 
 - Add docx format
-
 
 - Preface page (index.md) and section pages are unnumbered by default (via filter)
 - Use of the .numbered class within these pages selectively overrides this
 - additional 'unumbered' metadata value which switches document into unumbered mode
 
-Incremental rendering of self-contained (use freezer)
 
 book tools (download, github link, etc.)
 
