@@ -5,6 +5,8 @@
 *
 */
 
+import { existsSync } from "fs/mod.ts";
+
 import { ld } from "lodash/mod.ts";
 
 import { join } from "path/mod.ts";
@@ -128,6 +130,16 @@ function bookRenderList(projectDir: string, config: ProjectConfig) {
       );
     };
     findInputs(contents);
+
+    // validate that all of the chapters exist
+    const missing = inputs.filter((input) =>
+      !existsSync(join(projectDir, input))
+    );
+    if (missing.length) {
+      throw new Error(
+        "Book contents file(s) do not exist: " + missing.join(", "),
+      );
+    }
 
     // find the index and place it at the front (error if no index)
     const indexPos = inputs.findIndex((input) => input.startsWith("index."));
