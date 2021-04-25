@@ -7,7 +7,7 @@
 
 import { join } from "path/mod.ts";
 
-import { Document } from "deno_dom/deno-dom-wasm.ts";
+import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
 
 import { renderEjs } from "../../core/ejs.ts";
 import { mergeConfigs } from "../../core/config.ts";
@@ -76,10 +76,17 @@ export function htmlFormat(
 }
 
 export function htmlFormatPostprocessor(format: Format) {
+  // do we have haveBootstrap
+  const haveBootstrap = formatHasBootstrap(format);
+
   // read options
-  const codeCopy = formatHasBootstrap(format)
+  const codeCopy = haveBootstrap
     ? format.metadata[kCodeCopy] !== false
     : format.metadata[kCodeCopy] || false;
+
+  const anchors = haveBootstrap
+    ? format.metadata[kAnchorSections] !== false
+    : format.metadata[kAnchorSections] || false;
 
   return (doc: Document): Promise<string[]> => {
     // insert code copy button
@@ -98,6 +105,25 @@ export function htmlFormatPostprocessor(format: Format) {
         copyButton.appendChild(copyIcon);
 
         code.appendChild(copyButton);
+      }
+    }
+
+    // add .anchored class to headings
+    if (anchors) {
+      const container = haveBootstrap
+        ? doc.querySelector("main")
+        : doc.querySelector("body");
+
+      if (container) {
+        ["h2", "h3", "h4", "h5", "h6"].forEach((selector) => {
+          const headings = container.querySelectorAll(selector);
+          for (let i = 0; i < headings.length; i++) {
+            const heading = headings[i] as Element;
+            if (heading.id !== "toc-title") {
+              heading.classList.add("anchored");
+            }
+          }
+        });
       }
     }
 

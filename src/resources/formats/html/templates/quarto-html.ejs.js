@@ -10,7 +10,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     placement: 'right',
     icon: icon
   };
-  anchorJS.add();
+  anchorJS.add('.anchored');
   <% } %>
 
   <% if (copyCode) { %>
