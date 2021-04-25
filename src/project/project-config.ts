@@ -76,7 +76,7 @@ export interface Sidebar {
   [kCollapseLevel]?: number;
   contents: SidebarItem[];
   tools: SidebarTool[];
-  style: "anchored" | "floating";
+  style: "docked" | "floating";
   pinned?: boolean;
 }
 
