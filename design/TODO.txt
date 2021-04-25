@@ -102,6 +102,11 @@ RStudio IDE
 [span]{index="foo"}
 
 
+- investigate observable integration:
+     - Embed/macro source
+     - Notebook engine (https://starboard.gg/gz/open-source-observablehq-nfwK2VA)
+     - RStudio/authoring implications
+
 - Concept of non-HTML themes (e.g. LaTeX template, docx template)
 
 
