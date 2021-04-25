@@ -129,7 +129,15 @@ function bookRenderList(projectDir: string, config: ProjectConfig) {
     };
     findInputs(contents);
 
-    return inputs;
+    // find the index and place it at the front (error if no index)
+    const indexPos = inputs.findIndex((input) => input.startsWith("index."));
+    if (indexPos === -1) {
+      throw new Error(
+        "Book contents must include a home page (e.g. index.md)",
+      );
+    }
+    const index = inputs.splice(indexPos, 1);
+    return index.concat(inputs);
   } else {
     return [];
   }
