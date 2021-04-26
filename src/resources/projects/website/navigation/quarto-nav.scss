@@ -186,3 +186,9 @@ header.headroom--unpinned {
   -o-transition: none !important;
   transition: none !important;
 }
+
+// This is used to suppress the focus borders on Chrome when the user is simply
+// clicking with the mouse vs using the keyboard to move focus.
+.btn:focus:not(:focus-visible) {
+  box-shadow: none;
+}
