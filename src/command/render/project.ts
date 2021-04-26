@@ -6,7 +6,7 @@
 */
 
 import { copySync, ensureDirSync, existsSync } from "fs/mod.ts";
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { warning } from "log/mod.ts";
 
 import { ld } from "lodash/mod.ts";
@@ -49,21 +49,22 @@ export async function renderProject(
   // is this an incremental render?
   const incremental = !!files;
 
-  // resolves files to real paths (and validate they exist)
-  if (files) {
+  // force execution for any incremental files (unless options.useFreezer is set)
+  const alwaysExecuteFiles = incremental && !options.useFreezer
+    ? ld.cloneDeep(files) as string[]
+    : undefined;
+
+  // if we have alwaysExecuteFiles then we need to normalize
+  // the files list for comparison
+  if (alwaysExecuteFiles && files) {
     files = files.map((file) => {
-      const target = join(Deno.cwd(), file);
+      const target = isAbsolute(file) ? file : join(Deno.cwd(), file);
       if (!existsSync(target)) {
         throw new Error("Render target does not exist: " + file);
       }
       return Deno.realPathSync(target);
     });
   }
-
-  // force execution for any incremental files (unless options.useFreezer is set)
-  const alwaysExecuteFiles = incremental && !options.useFreezer
-    ? ld.cloneDeep(files) as string[]
-    : undefined;
 
   // check with the project type to see if we should render all
   // of the files in the project with the freezer enabled (required
