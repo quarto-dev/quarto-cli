@@ -197,17 +197,12 @@ export interface RenderFilesResult {
 export async function renderFiles(
   files: string[],
   options: RenderOptions,
+  alwaysExecuteFiles?: string[],
   pandocRenderer?: PandocRenderer,
   project?: ProjectContext,
-  alwaysExecute?: boolean,
 ): Promise<RenderFilesResult> {
   // provide default renderer
   pandocRenderer = pandocRenderer || defaultPandocRenderer(options, project);
-
-  // establish default execution options
-  const defaultExecuteOptions: RenderExecuteOptions = {
-    alwaysExecute,
-  };
 
   try {
     // make a copy of options so we don't mutate caller context
@@ -261,7 +256,9 @@ export async function renderFiles(
 
         // determine execute options
         const executeOptions = mergeConfigs(
-          defaultExecuteOptions,
+          {
+            alwaysExecute: alwaysExecuteFiles?.includes(file),
+          },
           pandocRenderer.onBeforeExecute(recipe.format),
         );
 

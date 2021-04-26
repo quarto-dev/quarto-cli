@@ -11,6 +11,8 @@ import { encode as base64Encode } from "encoding/base64.ts";
 
 import { ld } from "lodash/mod.ts";
 
+import { inputFilesDir } from "../../../core/render.ts";
+
 import { partitionMarkdown } from "../../../core/pandoc/pandoc-partition.ts";
 
 import {
@@ -29,6 +31,7 @@ import {
   ExecutedFile,
   removePandocTo,
   RenderContext,
+  renderContexts,
   RenderedFile,
   RenderOptions,
   renderPandoc,
@@ -149,6 +152,33 @@ export function bookPandocRenderer(
   };
 }
 
+export async function bookIncrementalRenderAll(
+  context: ProjectContext,
+  options: RenderOptions,
+  files: string[],
+) {
+  for (let i = 0; i < files.length; i++) {
+    // get contexts (formats)
+    const contexts = await renderContexts(
+      files[i],
+      options,
+      context,
+    );
+
+    // do any of them have a single-file book extension?
+    for (const context of Object.values(contexts)) {
+      const bookExtension = context.format.extensions?.book as
+        | BookExtension
+        | undefined;
+      if (!bookExtension?.renderFile) {
+        return true;
+      }
+    }
+  }
+  // no single-file book extensions found
+  return false;
+}
+
 async function renderMultiFileBook(
   project: ProjectContext,
   _options: RenderOptions,
@@ -232,7 +262,17 @@ function cleanupExecutedFile(
     file.context.target.input,
     finalOutput,
     file.recipe.format,
-    file.executeResult.supporting,
+    // because we may have only rendered a single self-contained format (and used the
+    // freezer), we want to cleanup all of the files_dir which may have been
+    // copied from the freezer
+    file.executeResult.supporting.length > 0
+      ? [
+        join(
+          dirname(file.context.target.input),
+          inputFilesDir(file.context.target.input),
+        ),
+      ]
+      : [],
     file.context.engine.keepMd(file.context.target.input),
   );
 }

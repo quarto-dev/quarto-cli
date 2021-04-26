@@ -29,7 +29,7 @@ import { ProjectContext } from "../../project-context.ts";
 
 import { websiteProjectType } from "../website/website.ts";
 
-import { bookPandocRenderer } from "./book-render.ts";
+import { bookIncrementalRenderAll, bookPandocRenderer } from "./book-render.ts";
 import { bookProjectConfig, kBookContents } from "./book-config.ts";
 import { chapterNumberForInput, formatChapterLabel } from "./book-chapters.ts";
 
@@ -96,6 +96,8 @@ export const bookProjectType: ProjectType = {
       return text;
     }
   },
+
+  incrementalRenderAll: bookIncrementalRenderAll,
 
   // inherit a bunch of behavior from website projects
   preRender: websiteProjectType.preRender,
