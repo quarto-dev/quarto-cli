@@ -23,6 +23,8 @@ import { createSessionTempDir } from "../../core/temp.ts";
 import { logError } from "../../core/log.ts";
 import { PromiseQueue } from "../../core/promise.ts";
 
+import { isHtmlOutput } from "../../config/format.ts";
+
 import {
   kProjectLibDir,
   ProjectContext,
@@ -33,7 +35,7 @@ import {
 import { inputFileForOutputFile } from "../../project/project-index.ts";
 
 import { renderProject } from "../render/project.ts";
-import { renderResultFinalOutput } from "../render/render.ts";
+import { formatKeys, renderResultFinalOutput } from "../render/render.ts";
 import { projectFreezerDir } from "../render/freeze.ts";
 
 import { ProjectWatcher, watchProject } from "./watch.ts";
@@ -67,11 +69,16 @@ export async function serveProject(
   const serveDir = copyProjectForServe(project);
   const serveProject = await projectContext(serveDir);
 
+  // render the first html format listed in the project file
+  const formats = project.config ? formatKeys(project.config) : [];
+  const htmlFormat = formats.find((format) => isHtmlOutput(format, true)) ||
+    "html";
+
   const renderResult = await renderProject(
     serveProject,
     {
       useFreezer: true,
-      flags: { debug: options.debug },
+      flags: { to: htmlFormat, debug: options.debug },
     },
   );
 
