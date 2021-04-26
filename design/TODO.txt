@@ -17,31 +17,32 @@ Books
 
 Incremental rendering of self-contained (use freezer)
 
-- GH Issues including remove anchor link from brand/navbar
 
-- Add docx format
+
+Section/part handling:
+- Emit \part for pdf
+- What's correct/required for epub / docx?
+
+- Appendixes (uses letter numbering by default)
 
 - Preface page (index.md) and section pages are unnumbered by default (via filter)
 - Use of the .numbered class within these pages selectively overrides this
 - additional 'unumbered' metadata value which switches document into unumbered mode
 
+multi-file html / cross referencdes
 
 book tools (download, github link, etc.)
 
 view or download pdf/epub (where view uses pdf.js and web epub)
 not that view can also include hypothesis 
 
-Section/part handling:
 
-- Emit \part for pdf
-- What's correct/required for epub / docx?
 
 - Asciidoc format. Should mostly just be copying the output
 files and bringing back markdown resource detection from the
 old resourcerefs implementation (or just tweak the current
 one to also record refs)
 
-- Appendixes (uses letter numbering by default)
 
 
 
@@ -104,7 +105,9 @@ RStudio IDE
 
 - investigate observable integration:
      - Embed/macro source
-     - Notebook engine (https://starboard.gg/gz/open-source-observablehq-nfwK2VA)
+     - Notebook engine:
+         - https://starboard.gg/gz/open-source-observablehq-nfwK2VA
+         - https://observablehq.com/@asg017/an-unofficial-observablehq-compiler
      - RStudio/authoring implications
 
 - Concept of non-HTML themes (e.g. LaTeX template, docx template)
