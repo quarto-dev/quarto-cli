@@ -32,9 +32,11 @@ import {
 
 export const kBook = "book";
 export const kBookContents = "contents";
+export const kBookAppendix = "appendix";
 
 export type BookConfigKey =
   | "contents"
+  | "appendix"
   | "title"
   | "subtitle"
   | "author"
@@ -61,11 +63,18 @@ export function bookProjectConfig(
     site[kSiteSidebar] = book[kSiteSidebar];
   }
 
-  // if we have a top-level 'contents' then fold it into sidebar
+  // if we have a top-level 'contents' or 'appendix' fields fold into sidebar
   site[kSiteSidebar] = site[kSiteSidebar] || {};
+  const siteSidebar = site[kSiteSidebar] as Metadata;
   const bookContents = bookConfig(kBookContents, config);
-  if (bookContents) {
-    (site[kSiteSidebar] as Metadata)[kContents] = bookContents;
+  if (Array.isArray(bookContents)) {
+    siteSidebar[kContents] = bookContents;
+  }
+  const bookAppendix = bookConfig(kBookAppendix, config);
+  if (Array.isArray(bookAppendix)) {
+    siteSidebar[kContents] = (siteSidebar[kContents] as unknown[] || []).concat(
+      bookAppendix,
+    );
   }
 
   // create render list from 'contents'
