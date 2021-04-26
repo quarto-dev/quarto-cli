@@ -15,21 +15,30 @@ TODO: migrate some sites (e.g. environments.rstudio.com)
 Books
 =========================================================================
 
-Incremental rendering of self-contained (use freezer)
+
+- part structure is defined in yaml
+
+    section: (always have text, may or may not have a URL which is the "content" for the section)
+    - index page and section pages always get a file level 'unnumbered' attribute (then our filter sets unnumbered on all headers)
+    - pdf: \part{text}
+    - html: update the sidebar with the part, include the page if appropriate
+    - epub and docx: eliminate the parts
+
+    book:
+       contents:
+         - asdfasdf.md
+       appendix:
+         - illustrations.md
+
+    - appendixes are numbered using alpha numbering by default
+      appendixes take advantage of epub:type
+         
 
 
-
-Section/part handling:
-- Emit \part for pdf
-- What's correct/required for epub / docx?
-
-- Appendixes (uses letter numbering by default)
-
-- Preface page (index.md) and section pages are unnumbered by default (via filter)
-- Use of the .numbered class within these pages selectively overrides this
-- additional 'unumbered' metadata value which switches document into unumbered mode
 
 multi-file html / cross referencdes
+
+admonitions
 
 book tools (download, github link, etc.)
 
