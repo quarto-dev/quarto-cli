@@ -122,11 +122,8 @@ export async function outputRecipe(
       }
     };
 
-    // read and remove output-ext if it's there
+    // determine ext
     const ext = format.render[kOutputExt] || "html";
-    if (format.render[kOutputExt]) {
-      delete format.render[kOutputExt];
-    }
 
     // compute dir and stem
     const [inputDir, inputStem] = dirAndStem(input);

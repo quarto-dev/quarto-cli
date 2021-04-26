@@ -52,6 +52,7 @@ import { Format } from "../config/format.ts";
 import { htmlFormat } from "./html/format-html.ts";
 import { beamerFormat, latexFormat, pdfFormat } from "./pdf/format-pdf.ts";
 import { epubFormat } from "./epub/format-epub.ts";
+import { docxFormat } from "./docx/format-docx.ts";
 
 export function defaultWriterFormat(to: string): Format {
   // to can sometimes have a variant, don't include that in the lookup here
@@ -117,7 +118,7 @@ export function defaultWriterFormat(to: string): Format {
       break;
 
     case "docx":
-      writerFormat = wordprocessorFormat("docx");
+      writerFormat = docxFormat();
       break;
 
     case "pptx":
@@ -125,11 +126,11 @@ export function defaultWriterFormat(to: string): Format {
       break;
 
     case "odt":
-      writerFormat = wordprocessorFormat("odt");
+      writerFormat = createWordprocessorFormat("odt");
       break;
 
     case "opendocument":
-      writerFormat = wordprocessorFormat("xml");
+      writerFormat = createWordprocessorFormat("xml");
       break;
 
     case "rtf":
@@ -239,6 +240,18 @@ export function createEbookFormat(ext: string): Format {
   });
 }
 
+export function createWordprocessorFormat(ext: string): Format {
+  return createFormat(ext, {
+    render: {
+      [kPageWidth]: 6.5,
+    },
+    execution: {
+      [kFigWidth]: 5,
+      [kFigHeight]: 4,
+    },
+  });
+}
+
 function htmlPresentationFormat(figwidth: number, figheight: number): Format {
   return mergeConfigs(
     createHtmlFormat(figwidth, figheight),
@@ -289,20 +302,8 @@ function powerpointFormat(): Format {
   });
 }
 
-function wordprocessorFormat(ext: string): Format {
-  return createFormat(ext, {
-    render: {
-      [kPageWidth]: 6.5,
-    },
-    execution: {
-      [kFigWidth]: 5,
-      [kFigHeight]: 4,
-    },
-  });
-}
-
 function rtfFormat(): Format {
-  return createFormat("rtf", wordprocessorFormat("rtf"), {
+  return createFormat("rtf", createWordprocessorFormat("rtf"), {
     pandoc: {
       standalone: true,
     },
