@@ -19,7 +19,6 @@ import { pathWithForwardSlashes, removeIfExists } from "../../core/path.ts";
 import {
   kProjectLibDir,
   ProjectContext,
-  projectContext,
   projectOutputDir,
 } from "../../project/project-context.ts";
 
@@ -34,6 +33,7 @@ import {
   kLocalhost,
   maybeDisplaySocketError,
   ServeOptions,
+  serveProjectContext,
 } from "./serve.ts";
 import { logError } from "../../core/log.ts";
 
@@ -53,8 +53,8 @@ export function watchProject(
 ): ProjectWatcher {
   // helper to refresh project config
   const refreshProjectConfig = async () => {
-    project = await projectContext(project.dir);
-    serveProject = await projectContext(serveProject.dir);
+    project = await serveProjectContext(project.dir);
+    serveProject = await serveProjectContext(serveProject.dir);
   };
 
   // proj dir
