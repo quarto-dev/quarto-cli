@@ -170,9 +170,10 @@ export function websiteSearchSassBundle() {
     key: scssPath,
     quarto: {
       name: "quarto-search.css",
-      declarations: "",
+      functions: "",
+      mixins: "",
       rules: Deno.readTextFileSync(scssPath),
-      variables: "",
+      defaults: "",
     },
   };
 }

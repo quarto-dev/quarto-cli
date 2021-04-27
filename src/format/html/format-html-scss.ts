@@ -61,18 +61,20 @@ export function resolveBootstrapScss(metadata: Metadata): SassBundle {
     user: themeLayer,
     quarto: {
       use: ["sass:color", "sass:map"],
-      variables: quartoBootstrapVariables(metadata),
-      declarations: quartoDeclarations(),
+      defaults: quartoBootstrapDefaults(metadata),
+      functions: quartoFunctions(),
+      mixins: "",
       rules: [
         quartoRules(),
         quartoBootstrapRules(),
       ].join("\n"),
     },
     framework: {
-      variables: mapBootstrapPandocVariables(metadata).map((variable) => {
+      defaults: pandocVariablesToBootstrapDefaults(metadata).map((variable) => {
         return print(variable, false);
       }).join("\n"),
-      declarations: "",
+      functions: "",
+      mixins: "",
       rules: Deno.readTextFileSync(boostrapRules),
     },
     loadPath: dirname(boostrapRules),
@@ -101,19 +103,21 @@ function resolveThemeLayer(
   return mergeLayers(...themeLayers);
 }
 
-function mapBootstrapPandocVariables(metadata: Metadata): SassVariable[] {
+function pandocVariablesToBootstrapDefaults(
+  metadata: Metadata,
+): SassVariable[] {
   const explicitVars: SassVariable[] = [];
 
   // Helper for adding explicitly set variables
   const add = (
-    variables: SassVariable[],
+    defaults: SassVariable[],
     name: string,
     value?: unknown,
     formatter?: (val: unknown) => unknown,
   ) => {
     if (value) {
       const sassVar = sassVariable(name, value, formatter);
-      variables.push(sassVar);
+      defaults.push(sassVar);
     }
   };
   // code copy selector
@@ -154,7 +158,7 @@ const kCodeBorderLeft = "code-border-left";
 const kCodeBlockBackground = "code-background";
 
 // Quarto variables and styles
-export const quartoBootstrapVariables = (metadata: Metadata) => {
+export const quartoBootstrapDefaults = (metadata: Metadata) => {
   const varFilePath = formatResourcePath(
     "html",
     join("bootstrap", "_bootstrap-variables.scss"),
@@ -206,8 +210,8 @@ export const quartoBootstrapRules = () =>
     join("bootstrap", "_bootstrap-rules.scss"),
   ));
 
-export const quartoDeclarations = () =>
+export const quartoFunctions = () =>
   Deno.readTextFileSync(formatResourcePath(
     "html",
-    "_quarto-declarations.scss",
+    "_quarto-functions.scss",
   ));

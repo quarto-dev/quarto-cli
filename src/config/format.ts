@@ -106,8 +106,9 @@ export interface BodyEnvelope {
 
 export interface SassLayer {
   use?: string[];
-  variables: string;
-  declarations: string;
+  defaults: string;
+  functions: string;
+  mixins: string;
   rules: string;
 }
 
