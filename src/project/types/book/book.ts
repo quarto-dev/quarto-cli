@@ -29,8 +29,12 @@ import { ProjectContext } from "../../project-context.ts";
 
 import { websiteProjectType } from "../website/website.ts";
 
-import { bookPandocRenderer } from "./book-render.ts";
-import { bookProjectConfig, kBookContents } from "./book-config.ts";
+import { bookIncrementalRenderAll, bookPandocRenderer } from "./book-render.ts";
+import {
+  bookProjectConfig,
+  kBookAppendix,
+  kBookContents,
+} from "./book-config.ts";
 import { chapterNumberForInput, formatChapterLabel } from "./book-chapters.ts";
 
 export const bookProjectType: ProjectType = {
@@ -97,13 +101,19 @@ export const bookProjectType: ProjectType = {
     }
   },
 
+  incrementalRenderAll: bookIncrementalRenderAll,
+
   // inherit a bunch of behavior from website projects
   preRender: websiteProjectType.preRender,
   postRender: websiteProjectType.postRender,
   formatLibDirs: websiteProjectType.formatLibDirs,
   metadataFields: () => [...websiteProjectType.metadataFields!(), "book"],
   resourceIgnoreFields:
-    () => [...websiteProjectType.resourceIgnoreFields!(), kBookContents],
+    () => [
+      ...websiteProjectType.resourceIgnoreFields!(),
+      kBookContents,
+      kBookAppendix,
+    ],
 
   // format extras
   formatExtras: async (

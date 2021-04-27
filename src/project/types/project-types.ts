@@ -41,6 +41,11 @@ export interface ProjectType {
     input: string,
     text: string,
   ) => Promise<string>;
+  incrementalRenderAll?: (
+    context: ProjectContext,
+    options: RenderOptions,
+    files: string[],
+  ) => Promise<boolean>;
   preRender?: (context: ProjectContext) => Promise<void>;
   pandocRenderer?: (
     options: RenderOptions,

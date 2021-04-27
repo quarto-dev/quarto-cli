@@ -6,7 +6,7 @@
 */
 
 import { copySync, ensureDirSync, existsSync } from "fs/mod.ts";
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 import { warning } from "log/mod.ts";
 
 import { ld } from "lodash/mod.ts";
@@ -40,17 +40,44 @@ export async function renderProject(
   options: RenderOptions,
   files?: string[],
 ): Promise<RenderResult> {
-  // is this an incremental render?
-  const incremental = !!files;
-
-  // should we be forcing execution? note that when the caller
-  // explicitly requests the user of the freezer then we
-  // shouldn't force execution (this might happen e.g. for
-  // render on navigate for the dev server)
-  const alwaysExecute = incremental && !options.useFreezer;
+  // lookup the project type
+  const projType = projectType(context.config?.project?.[kProjectType]);
 
   // get real path to the project
   const projDir = Deno.realPathSync(context.dir);
+
+  // is this an incremental render?
+  const incremental = !!files;
+
+  // force execution for any incremental files (unless options.useFreezer is set)
+  const alwaysExecuteFiles = incremental && !options.useFreezer
+    ? ld.cloneDeep(files) as string[]
+    : undefined;
+
+  // if we have alwaysExecuteFiles then we need to normalize
+  // the files list for comparison
+  if (alwaysExecuteFiles && files) {
+    files = files.map((file) => {
+      const target = isAbsolute(file) ? file : join(Deno.cwd(), file);
+      if (!existsSync(target)) {
+        throw new Error("Render target does not exist: " + file);
+      }
+      return Deno.realPathSync(target);
+    });
+  }
+
+  // check with the project type to see if we should render all
+  // of the files in the project with the freezer enabled (required
+  // for projects that produce self-contained output from a
+  // collection of input files)
+  if (
+    files && alwaysExecuteFiles &&
+    projType.incrementalRenderAll &&
+    projType.incrementalRenderAll(context, options, files)
+  ) {
+    files = context.files.input;
+    options = { ...options, useFreezer: true };
+  }
 
   // default for files if not specified
   files = files || context.files.input;
@@ -66,7 +93,6 @@ export async function renderProject(
   await ensureGitignore(context);
 
   // lookup the project type and call preRender
-  const projType = projectType(context.config?.project?.[kProjectType]);
   if (projType.preRender) {
     await projType.preRender(context);
   }
@@ -110,11 +136,11 @@ export async function renderProject(
     const fileResults = await renderFiles(
       files,
       options,
+      alwaysExecuteFiles,
       projType?.pandocRenderer
         ? projType.pandocRenderer(options, context)
         : undefined,
       context,
-      alwaysExecute,
     );
 
     if (outputDirAbsolute) {

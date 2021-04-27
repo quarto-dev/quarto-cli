@@ -143,9 +143,11 @@ export function updateSearchIndex(
   );
 
   // write search docs if they have changed
-  const updatedSearchJson = JSON.stringify(updatedSearchDocs, undefined, 2);
-  if (searchJson !== updatedSearchJson) {
-    Deno.writeTextFileSync(searchJsonPath, updatedSearchJson);
+  if (updatedSearchDocs.length > 0) {
+    const updatedSearchJson = JSON.stringify(updatedSearchDocs, undefined, 2);
+    if (searchJson !== updatedSearchJson) {
+      Deno.writeTextFileSync(searchJsonPath, updatedSearchJson);
+    }
   }
 }
 
