@@ -83,6 +83,7 @@ export interface Sidebar {
 export interface SidebarItem {
   // core structure/contents
   section?: string;
+  part?: string;
   text?: string;
   contents?: SidebarItem[];
 
@@ -127,15 +128,17 @@ export function normalizeSidebarItem(
       };
     }
   } else {
-    // section is a special key that can provide either text or href
+    // section and part are special keys that can provide either text or href
     // for an item with 'contents'
-    if (item.section) {
-      if (safeExistsSync(join(projectDir, item.section))) {
-        item.href = item.section;
+    const section = item.section || item.part;
+    if (section) {
+      if (safeExistsSync(join(projectDir, section))) {
+        item.href = section;
       } else {
-        item.text = item.section;
+        item.text = section;
       }
       delete item.section;
+      delete item.part;
     }
 
     // handle subitems
