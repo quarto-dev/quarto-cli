@@ -12,33 +12,24 @@ TODO: Floating TOC with toc-depth: 4 - looks meh
 
 TODO: migrate some sites (e.g. environments.rstudio.com)
 
+TODO: centralized _cache dir for projects (alongside _freeze)
+
 Books
 =========================================================================
 
 
-- part structure is defined in yaml
-
-    section: (always have text, may or may not have a URL which is the "content" for the section)
-    - index page and section pages always get a file level 'unnumbered' attribute (then our filter sets unnumbered on all headers)
-    - pdf: \part{text}
-    - html: update the sidebar with the part, include the page if appropriate
-    - epub and docx: eliminate the parts
-
-    book:
-       contents:
-         - asdfasdf.md
-       appendix:
-         - illustrations.md
-
-    - appendixes are numbered using alpha numbering by default
-      appendixes take advantage of epub:type
-         
+- determine correct treatment of appendix header for docx and epub (epub:type)
+- For latex, we need to alpha number (and reset counter) for appendixes 
 
 
 
+
+html sidebar parts/numbering/appendixes
 multi-file html / cross referencdes
 
 admonitions
+
+footer
 
 book tools (download, github link, etc.)
 
