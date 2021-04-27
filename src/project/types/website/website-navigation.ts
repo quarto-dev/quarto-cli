@@ -644,8 +644,9 @@ function websiteNavigationSassBundle() {
     key: scssPath,
     quarto: {
       name: "quarto-nav.css",
-      variables: "",
-      declarations: "",
+      defaults: "",
+      functions: "",
+      mixins: "",
       rules: Deno.readTextFileSync(scssPath),
     },
   };

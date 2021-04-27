@@ -38,7 +38,7 @@ import { createHtmlFormat } from "./../formats.ts";
 
 import { boostrapExtras, formatHasBootstrap } from "./format-html-bootstrap.ts";
 
-import { quartoDeclarations, quartoRules } from "./format-html-scss.ts";
+import { quartoFunctions, quartoRules } from "./format-html-scss.ts";
 import { htmlBookExtension } from "./format-html-book.ts";
 
 export const kCodeCopy = "code-copy";
@@ -204,8 +204,9 @@ function htmlFormatExtras(format: Format): FormatExtras {
         key: "tippy.scss",
         dependency: kBootstrapDependencyName,
         quarto: {
-          declarations: "",
-          variables: "",
+          functions: "",
+          defaults: "",
+          mixins: "",
           rules: Deno.readTextFileSync(
             formatResourcePath("html", join("tippy", "_tippy.scss")),
           ),
@@ -261,7 +262,7 @@ function htmlFormatExtras(format: Format): FormatExtras {
 
     // add quarto sass bundle of we aren't in bootstrap
     if (!bootstrap) {
-      const quartoVariables = print(
+      const quartoDefaults = print(
         sassVariable(
           "code-copy-selector",
           format.metadata[kCodeCopy] === "hover"
@@ -274,8 +275,9 @@ function htmlFormatExtras(format: Format): FormatExtras {
         key: kQuartoHtmlDependency,
         quarto: {
           use: ["sass:color"],
-          variables: quartoVariables,
-          declarations: quartoDeclarations(),
+          defaults: quartoDefaults,
+          functions: quartoFunctions(),
+          mixins: "",
           rules: quartoRules(),
         },
       });

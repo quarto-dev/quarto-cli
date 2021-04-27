@@ -51,33 +51,36 @@ export async function compileSass(bundles: SassBundle[]) {
   }).join("\n");
 
   // Gather the inputs for the framework
-  const frameworkDeclarations = bundles.map(
-    (bundle) => bundle.framework?.declarations || "",
+  const frameworkFunctions = bundles.map(
+    (bundle) => bundle.framework?.functions || "",
   );
 
-  const frameworkVariables = bundles.map((bundle) =>
-    bundle.framework?.variables || ""
+  const frameworkDefaults = bundles.map((bundle) =>
+    bundle.framework?.defaults || ""
   );
 
   const frameworkRules = bundles.map(
     (bundle) => bundle.framework?.rules || "",
   );
 
+  const frameworkMixins = bundles.map(
+    (bundle) => bundle.framework?.mixins || "",
+  );
+
   // Gather sasslayer for quarto
-  const quartoDeclarations = bundles.map((bundle) =>
-    bundle.quarto?.declarations || ""
+  const quartoFunctions = bundles.map((bundle) =>
+    bundle.quarto?.functions || ""
   );
-  const quartoVariables = bundles.map((bundle) =>
-    bundle.quarto?.variables || ""
-  );
+  const quartoDefaults = bundles.map((bundle) => bundle.quarto?.defaults || "");
   const quartoRules = bundles.map((bundle) => bundle.quarto?.rules || "");
 
+  const quartoMixins = bundles.map((bundle) => bundle.quarto?.mixins || "");
+
   // Gather sasslayer for the user
-  const userDeclarations = bundles.map((bundle) =>
-    bundle.user?.declarations || ""
-  );
-  const userVariables = bundles.map((bundle) => bundle.user?.variables || "");
+  const userFunctions = bundles.map((bundle) => bundle.user?.functions || "");
+  const userDefaults = bundles.map((bundle) => bundle.user?.defaults || "");
   const userRules = bundles.map((bundle) => bundle.user?.rules || "");
+  const userMixins = bundles.map((bundle) => bundle.user?.mixins || "");
 
   // Set any load paths used to resolve imports
   const loadPaths: string[] = [];
@@ -88,20 +91,24 @@ export async function compileSass(bundles: SassBundle[]) {
   });
 
   // Read the scss files into a single input string
-  // * Declarations are available to variables and rules
-  //   (framework declarations are first to make them acessible to all)
+  // * Functions are available to variables and rules
+  //   (framework functions are first to make them acessible to all)
   // * Variables are applied in reverse order
   //   (first variable generally takes precedence in sass assuming use of !default)
-  // * Rules may use variables and declarations
+  // * Mixins are available to rules as well
+  // * Rules may use functions, variables, and mixins
   //   (theme follows framework so it can override the framework rules)
   const scssInput = [
     useStatements,
-    ...frameworkDeclarations,
-    ...quartoDeclarations,
-    ...userDeclarations,
-    ...userVariables.reverse(),
-    ...quartoVariables.reverse(),
-    ...frameworkVariables.reverse(),
+    ...frameworkFunctions,
+    ...quartoFunctions,
+    ...userFunctions,
+    ...userDefaults.reverse(),
+    ...quartoDefaults.reverse(),
+    ...frameworkDefaults.reverse(),
+    ...frameworkMixins,
+    ...quartoMixins,
+    ...userMixins,
     ...frameworkRules,
     ...quartoRules,
     ...userRules,
@@ -116,35 +123,42 @@ export async function compileSass(bundles: SassBundle[]) {
   );
 }
 
-/*-- scss:declarations --*/
-/*-- scss:variables --*/
+/*-- scss:functions --*/
+/*-- scss:defaults --*/
+/*-- scss:mixins --*/
 /*-- scss:rules --*/
 const layoutBoundary =
-  "^\/\\*\\-\\-[ \\t]*scss:(variables|rules|declarations)[ \\t]*\\-\\-\\*\\/$";
+  "^\/\\*\\-\\-[ \\t]*scss:(functions|rules|defaults|mixins)[ \\t]*\\-\\-\\*\\/$";
 const kLayerBoundaryLine = RegExp(layoutBoundary);
 const kLayerBoundaryTest = RegExp(layoutBoundary, "m");
 
 export function mergeLayers(...layers: SassLayer[]) {
-  const themeVariables: string[] = [];
+  const themeDefaults: string[] = [];
   const themeRules: string[] = [];
-  const themeDeclarations: string[] = [];
+  const themeFunctions: string[] = [];
+  const themeMixins: string[] = [];
   layers.forEach((theme) => {
-    if (theme.variables) {
-      themeVariables.push(theme.variables);
+    if (theme.defaults) {
+      themeDefaults.push(theme.defaults);
     }
 
     if (theme.rules) {
       themeRules.push(theme.rules);
     }
 
-    if (theme.declarations) {
-      themeDeclarations.push(theme.declarations);
+    if (theme.functions) {
+      themeFunctions.push(theme.functions);
+    }
+
+    if (theme.mixins) {
+      themeMixins.push(theme.mixins);
     }
   });
 
   return {
-    variables: themeVariables.join("\n"),
-    declarations: themeDeclarations.join("\n"),
+    defaults: themeDefaults.join("\n"),
+    functions: themeFunctions.join("\n"),
+    mixins: themeMixins.join("\n"),
     rules: themeRules.join("\n"),
   };
 }
@@ -156,8 +170,9 @@ export function sassLayer(path: string): SassLayer {
     return sassLayerDir(
       path,
       {
-        declarations: "_declarations.scss",
-        variables: "_variables.scss",
+        functions: "_functions.scss",
+        defaults: "_defaults.scss",
+        mixins: "_mixins.scss",
         rules: "_rules.scss",
       },
     );
@@ -171,27 +186,31 @@ export function sassLayerFile(theme: string): SassLayer {
   // Verify that the scss file has required boundaries
   if (!kLayerBoundaryTest.test(rawContents)) {
     throw new Error(
-      `The file ${theme} doesn't contain at least one layer boundaries (/*-- scss:variables --*/, /*-- scss:rules --*/, or /*-- scss:declarations --*/)`,
+      `The file ${theme} doesn't contain at least one layer boundaries (/*-- scss:defaults --*/, /*-- scss:rules --*/, /*-- scss:mixins --*/ or /*-- scss:functions --*/)`,
     );
   }
 
-  const vars: string[] = [];
+  const defaults: string[] = [];
   const rules: string[] = [];
-  const declarations: string[] = [];
-  let accum = vars;
+  const functions: string[] = [];
+  const mixins: string[] = [];
+  let accum = defaults;
   lines(rawContents).forEach((line) => {
     const scopeMatch = line.match(kLayerBoundaryLine);
     if (scopeMatch) {
       const scope = scopeMatch[1];
       switch (scope) {
-        case "variables":
-          accum = vars;
+        case "defaults":
+          accum = defaults;
           break;
         case "rules":
           accum = rules;
           break;
-        case "declarations":
-          accum = declarations;
+        case "functions":
+          accum = functions;
+          break;
+        case "mixins":
+          accum = mixins;
           break;
       }
     } else {
@@ -200,17 +219,19 @@ export function sassLayerFile(theme: string): SassLayer {
   });
 
   return {
-    variables: vars.join("\n"),
+    defaults: defaults.join("\n"),
     rules: rules.join("\n"),
-    declarations: declarations.join("\n"),
+    mixins: mixins.join("\n"),
+    functions: functions.join("\n"),
   };
 }
 
 export function sassLayerDir(
   dir: string,
   names: {
-    declarations?: string;
-    variables?: string;
+    functions?: string;
+    defaults?: string;
+    mixins?: string;
     rules?: string;
   },
 ): SassLayer {
@@ -231,9 +252,10 @@ export function sassLayerDir(
 
   // It's a directory, look for names files instead
   return {
-    variables: read(names.variables),
+    defaults: read(names.defaults),
     rules: read(names.rules),
-    declarations: read(names.declarations),
+    mixins: read(names.mixins),
+    functions: read(names.functions),
   };
 }
 

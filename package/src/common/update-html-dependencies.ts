@@ -150,8 +150,9 @@ async function updateBootswatch(
 
       info(`${theme}`);
       const layer = mergedSassLayer(
-        join(themeDir, "_declarations.scss"),
+        join(themeDir, "_functions.scss"),
         join(themeDir, "_variables.scss"),
+        join(themeDir, "_mixins.scss"),
         join(themeDir, "_bootswatch.scss"),
       );
 
@@ -316,17 +317,21 @@ function fixupFontCss(path: string) {
 }
 
 function mergedSassLayer(
-  declPath: string,
-  varPath: string,
+  funcPath: string,
+  defaultsPath: string,
+  mixinsPath: string,
   rulesPath: string,
 ) {
   const merged: string[] = [];
   [{
-    name: "declarations",
-    path: declPath,
+    name: "functions",
+    path: funcPath,
   }, {
-    name: "variables",
-    path: varPath,
+    name: "defaults",
+    path: defaultsPath,
+  }, {
+    name: "mixins",
+    path: mixinsPath,
   }, {
     name: "rules",
     path: rulesPath,
