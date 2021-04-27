@@ -27,7 +27,6 @@ import {
   kSiteNavbar,
   kSiteSidebar,
   kSiteTitle,
-  websiteConfig,
 } from "../website/website-config.ts";
 
 export const kBook = "book";
@@ -72,13 +71,18 @@ export function bookProjectConfig(
   }
   const bookAppendix = bookConfig(kBookAppendix, config);
   if (Array.isArray(bookAppendix)) {
-    siteSidebar[kContents] = (siteSidebar[kContents] as unknown[] || []).concat(
-      bookAppendix,
-    );
+    siteSidebar[kContents] = (siteSidebar[kContents] as unknown[] || [])
+      .concat([{
+        section: "Appendix",
+        contents: bookAppendix,
+      }]);
   }
 
   // create render list from 'contents'
-  config.project[kProjectRender] = bookRenderList(projectDir, config);
+  const targets = bookItems(projectDir, config);
+  config.project[kProjectRender] = targets
+    .filter((target) => !!target.file)
+    .map((target) => target.file!);
 
   // return config
   return Promise.resolve(config);
@@ -98,68 +102,100 @@ export function bookConfig(
   }
 }
 
-function bookRenderList(projectDir: string, config: ProjectConfig) {
-  // determine contents
-  const contents: SidebarItem[] = [];
-  const sidebar = websiteConfig(kSiteSidebar, config) as Record<
-    string,
-    unknown
-  >;
-  if (sidebar) {
-    if (sidebar[kContents]) {
-      contents.push(...(sidebar[kContents] as SidebarItem[])
-        .map((item) => normalizeSidebarItem(projectDir, item)));
-    }
-  }
-
-  if (contents.length > 0) {
-    const inputs: string[] = [];
-    const findInputs = (
-      collection: Array<unknown> | Record<string, unknown>,
-    ) => {
-      ld.forEach(
-        collection,
-        (
-          value: unknown,
-          index: unknown,
-        ) => {
-          if (Array.isArray(value)) {
-            findInputs(value);
-          } else if (typeof (value) === "object") {
-            findInputs(value as Record<string, unknown>);
-          } else if (
-            ((index === "href" || index === "file") &&
-              typeof (value) === "string") &&
-            safeExistsSync(join(projectDir, value)) &&
-            fileExecutionEngine(join(projectDir, value), true)
-          ) {
-            inputs.push(value);
-          }
-        },
-      );
-    };
-    findInputs(contents);
-
-    // validate that all of the chapters exist
-    const missing = inputs.filter((input) =>
-      !existsSync(join(projectDir, input))
-    );
-    if (missing.length) {
-      throw new Error(
-        "Book contents file(s) do not exist: " + missing.join(", "),
-      );
-    }
-
-    // find the index and place it at the front (error if no index)
-    const indexPos = inputs.findIndex((input) => input.startsWith("index."));
-    if (indexPos === -1) {
-      throw new Error(
-        "Book contents must include a home page (e.g. index.md)",
-      );
-    }
-    const index = inputs.splice(indexPos, 1);
-    return index.concat(inputs);
+export function isBookIndexPage(target: BookItem): boolean;
+export function isBookIndexPage(target: string): boolean;
+export function isBookIndexPage(target: string | BookItem): boolean {
+  if (typeof (target) !== "string") {
+    return target.type == "index";
   } else {
+    return target.startsWith("index.");
+  }
+}
+
+export type BookItemType = "index" | "chapter" | "appendix" | "part";
+
+export interface BookItem {
+  type: BookItemType;
+  text?: string;
+  file?: string;
+}
+
+export function bookItems(
+  projectDir: string,
+  config?: ProjectConfig,
+): BookItem[] {
+  if (!config) {
     return [];
   }
+
+  const inputs: BookItem[] = [];
+
+  const findInputs = (
+    type: BookItemType,
+    items: SidebarItem[],
+  ) => {
+    for (const item of items) {
+      if (item.contents) {
+        inputs.push({
+          type: "part",
+          file: item.href,
+          text: item.text,
+        });
+        findInputs(type, item.contents);
+      } else if (item.href) {
+        if (
+          safeExistsSync(join(projectDir, item.href)) &&
+          fileExecutionEngine(join(projectDir, item.href), true)
+        ) {
+          inputs.push({
+            type: isBookIndexPage(item.href) ? "index" : type,
+            file: item.href,
+          });
+        }
+      }
+    }
+  };
+
+  const findChapters = (
+    key: "contents" | "appendix",
+    delimiter?: BookItem,
+  ) => {
+    const bookInputs = bookConfig(key, config) as
+      | Array<unknown>
+      | undefined;
+    if (bookInputs) {
+      if (delimiter) {
+        inputs.push(delimiter);
+      }
+      findInputs(
+        "chapter",
+        bookInputs.map((item) =>
+          normalizeSidebarItem(projectDir, item as SidebarItem)
+        ),
+      );
+    }
+  };
+
+  findChapters("contents");
+  findChapters("appendix", { type: "appendix", text: "Appendix" });
+
+  // validate that all of the chapters exist
+  const missing = inputs.filter((input) =>
+    input.file && !existsSync(join(projectDir, input.file))
+  );
+  if (missing.length) {
+    throw new Error(
+      "Book contents file(s) do not exist: " + missing.join(", "),
+    );
+  }
+
+  // find the index and place it at the front (error if no index)
+  const indexPos = inputs.findIndex(isBookIndexPage);
+  if (indexPos === -1) {
+    throw new Error(
+      "Book contents must include a home page (e.g. index.md)",
+    );
+  }
+  const index = inputs.splice(indexPos, 1);
+  return index.concat(inputs);
 }

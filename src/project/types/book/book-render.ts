@@ -42,7 +42,13 @@ import { renderCleanup } from "../../../command/render/cleanup.ts";
 import { ProjectConfig, ProjectContext } from "../../project-context.ts";
 
 import { BookExtension } from "./book-extension.ts";
-import { bookConfig, BookConfigKey } from "./book-config.ts";
+import {
+  bookConfig,
+  BookConfigKey,
+  BookItem,
+  bookItems,
+  isBookIndexPage,
+} from "./book-config.ts";
 import {
   chapterNumberForInput,
   withChapterTitleMetadata,
@@ -192,7 +198,7 @@ async function renderMultiFileBook(
     const fileRelative = relative(project.dir, file.context.target.source);
 
     // index file
-    if (fileRelative.startsWith("index.")) {
+    if (isBookIndexPage(fileRelative)) {
       file.recipe.format = withBookTitleMetadata(
         file.recipe.format,
         project.config,
@@ -298,11 +304,42 @@ async function mergeExecutedFiles(
   const recipe = await outputRecipe(context);
 
   // merge markdown, writing a metadata comment into each file
-  const markdown = files.reduce((markdown: string, file: ExecutedFile) => {
-    return markdown +
-      executedFileMetadata(project, file) +
-      file.executeResult.markdown;
-  }, "");
+  const items = bookItems(project.dir, project.config);
+  const markdown = items.reduce(
+    (markdown: string, item: BookItem) => {
+      // item markdown
+      let itemMarkdown = "";
+
+      // get executed file for book item
+      if (item.file) {
+        const itemInputPath = join(project.dir, item.file);
+        const file = files.find((file) =>
+          file.context.target.input === itemInputPath
+        );
+        if (file) {
+          itemMarkdown = bookItemMetadata(project, item, file) +
+            file.executeResult.markdown;
+        } else {
+          throw new Error(
+            "Executed file not found for book item: " + item.file,
+          );
+        }
+        // if there is no file then this must be a part
+      } else if (item.type === "part" || item.type === "appendix") {
+        itemMarkdown = bookPartMarkdown(project, item);
+      }
+
+      // if this is part divider, then surround it in a special div so we
+      // can discard it in formats that don't support parts
+      if (item.type === "part" && itemMarkdown.length > 0) {
+        itemMarkdown = `\n\n::: {.quarto-book-part}\n${itemMarkdown}\n:::\n\n`;
+      }
+
+      // fallthrough
+      return markdown + itemMarkdown;
+    },
+    "",
+  );
 
   // merge supporting
   const supporting = files.reduce(
@@ -356,12 +393,26 @@ async function mergeExecutedFiles(
   });
 }
 
-function executedFileMetadata(project: ProjectContext, file: ExecutedFile) {
-  const resourceDir = relative(project.dir, dirname(file.context.target.input));
+function bookItemMetadata(
+  project: ProjectContext,
+  item: BookItem,
+  file?: ExecutedFile,
+) {
+  const resourceDir = file
+    ? relative(project.dir, dirname(file.context.target.input))
+    : undefined;
   const metadata = base64Encode(
-    JSON.stringify({ resourceDir: resourceDir || "." }),
+    JSON.stringify({
+      bookItemType: item.type,
+      resourceDir: resourceDir || ".",
+    }),
   );
   return `\n\n\`<!-- quarto-file-metadata: ${metadata} -->\`{=html}\n\n\`\`\`{=html}\n<!-- quarto-file-metadata: ${metadata} -->\n\`\`\`\n\n`;
+}
+
+function bookPartMarkdown(project: ProjectContext, item: BookItem) {
+  const metadata = bookItemMetadata(project, item);
+  return `${metadata}# ${item.text}\n\n`;
 }
 
 function withBookTitleMetadata(format: Format, config?: ProjectConfig): Format {

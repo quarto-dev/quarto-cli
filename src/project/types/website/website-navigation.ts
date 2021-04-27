@@ -58,6 +58,7 @@ import {
   Navbar,
   NavbarItem,
   normalizeSidebarItem,
+  resolveHrefAttribute,
   Sidebar,
   SidebarItem,
   SidebarTool,
@@ -322,7 +323,6 @@ async function resolveSidebarItems(
       const subItems = item.contents || [];
 
       // If this item has an href, resolve that
-      resolveHrefAttribute(item);
       if (item.href) {
         items[i] = await resolveItem(project, item.href, item);
       }
@@ -346,7 +346,6 @@ async function resolveSidebarItems(
 }
 
 async function resolveSidebarItem(project: ProjectContext, item: SidebarItem) {
-  resolveHrefAttribute(item);
   if (item.href) {
     return await resolveItem(
       project,
@@ -394,14 +393,6 @@ async function resolveSidebarTools(
       }
     }
   }
-}
-
-function resolveHrefAttribute(
-  item: { href?: string; file?: string; url?: string },
-) {
-  item.href = item.href || item.file || item.url;
-  delete item.file;
-  delete item.url;
 }
 
 function sidebarForHref(href: string) {

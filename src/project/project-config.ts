@@ -128,6 +128,9 @@ export function normalizeSidebarItem(
       };
     }
   } else {
+    // resolve aliases for href
+    resolveHrefAttribute(item);
+
     // section and part are special keys that can provide either text or href
     // for an item with 'contents'
     const section = item.section || item.part;
@@ -150,4 +153,12 @@ export function normalizeSidebarItem(
 
     return item;
   }
+}
+
+export function resolveHrefAttribute(
+  item: { href?: string; file?: string; url?: string },
+) {
+  item.href = item.href || item.file || item.url;
+  delete item.file;
+  delete item.url;
 }

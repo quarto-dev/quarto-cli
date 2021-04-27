@@ -27,6 +27,7 @@ import("outputs.lua")
 import("figures.lua")
 import("filemetadata.lua")
 import("resourcerefs.lua")
+import("book.lua")
 import("meta.lua")
 import("results.lua")
 import("../common/params.lua")
@@ -48,6 +49,7 @@ return {
   outputs(),
   combineFilters({
     fileMetadata(),
+    book(),
     resourceRefs(),
     figures(),
   }),
