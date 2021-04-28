@@ -10,7 +10,7 @@ import { Format } from "../../../config/format.ts";
 import { ProjectContext } from "../../project-context.ts";
 import { inputTargetIndex } from "../../project-index.ts";
 
-export function withChapterTitleMetadata(
+export function withChapterMetadata(
   format: Format,
   partitioned: PartitionedMarkdown,
   chapterNumber: number,

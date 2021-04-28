@@ -49,10 +49,7 @@ import {
   bookRenderItems,
   isBookIndexPage,
 } from "./book-config.ts";
-import {
-  chapterNumberForInput,
-  withChapterTitleMetadata,
-} from "./book-chapters.ts";
+import { chapterNumberForInput, withChapterMetadata } from "./book-chapters.ts";
 
 export function bookPandocRenderer(
   options: RenderOptions,
@@ -220,7 +217,7 @@ async function renderMultiFileBook(
 
       // provide title metadata
       if (partitioned.headingText) {
-        file.recipe.format = withChapterTitleMetadata(
+        file.recipe.format = withChapterMetadata(
           file.recipe.format,
           partitioned,
           chapterNumber,
