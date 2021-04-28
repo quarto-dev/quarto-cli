@@ -19,6 +19,7 @@ import {
   kAbstract,
   kAuthor,
   kDate,
+  kNumberSections,
   kOutputExt,
   kOutputFile,
   kSubtitle,
@@ -45,9 +46,9 @@ import { BookExtension } from "./book-extension.ts";
 import {
   bookConfig,
   BookConfigKey,
+  bookConfigRenderItems,
   BookRenderItem,
   isBookIndexPage,
-  kBookRender,
 } from "./book-config.ts";
 import { chapterNumberForInput, withChapterMetadata } from "./book-chapters.ts";
 
@@ -189,6 +190,7 @@ async function renderMultiFileBook(
   files: ExecutedFile[],
 ): Promise<RenderedFile[]> {
   const renderedFiles: RenderedFile[] = [];
+
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     const partitioned = partitionMarkdown(file.executeResult.markdown);
@@ -201,12 +203,13 @@ async function renderMultiFileBook(
         project.config,
       );
       file.recipe.format.metadata[kToc] = false;
+      file.recipe.format.pandoc[kNumberSections] = false;
       // other files
     } else {
       // since this could be an incremental render we need to compute the chapter number
       const chapterNumber = isHtmlOutput(file.recipe.format.pandoc)
-        ? await chapterNumberForInput(project, fileRelative)
-        : 0;
+        ? chapterNumberForInput(project, fileRelative)
+        : undefined;
 
       // provide title metadata
       if (partitioned.headingText) {
@@ -304,12 +307,9 @@ async function mergeExecutedFiles(
   // create output recipe (tweak output file)
   const recipe = await outputRecipe(context);
 
-  // merge markdown, writing a metadata comment into each file
-  const renderItems = bookConfig(
-    kBookRender,
-    project.config,
-  ) as BookRenderItem[];
+  const renderItems = bookConfigRenderItems(project.config);
 
+  // merge markdown, writing a metadata comment into each file
   const markdown = renderItems.reduce(
     (markdown: string, item: BookRenderItem) => {
       // item markdown

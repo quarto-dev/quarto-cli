@@ -15,14 +15,14 @@ import { safeExistsSync } from "../../../core/path.ts";
 
 import { Metadata } from "../../../config/metadata.ts";
 
-import {
-  ExecutionEngine,
-  fileExecutionEngine,
-} from "../../../execute/engine.ts";
+import { fileExecutionEngine } from "../../../execute/engine.ts";
 
-import { normalizeSidebarItem, SidebarItem } from "../../project-config.ts";
+import {
+  normalizeSidebarItem,
+  partitionedMarkdownForInput,
+  SidebarItem,
+} from "../../project-config.ts";
 import { kProjectRender, ProjectConfig } from "../../project-context.ts";
-import { readInputTargetIndex } from "../../project-index.ts";
 
 import {
   kContents,
@@ -74,6 +74,7 @@ export async function bookProjectConfig(
   site[kSiteSidebar] = site[kSiteSidebar] || {};
   const siteSidebar = site[kSiteSidebar] as Metadata;
   const bookContents = bookConfig(kBookContents, config);
+
   if (Array.isArray(bookContents)) {
     siteSidebar[kContents] = bookContents;
   }
@@ -114,6 +115,15 @@ export function bookConfig(
   } else {
     return undefined;
   }
+}
+
+export function bookConfigRenderItems(
+  project?: ProjectConfig,
+): BookRenderItem[] {
+  return bookConfig(
+    kBookRender,
+    project,
+  ) as BookRenderItem[];
 }
 
 export function isBookIndexPage(target: BookRenderItem): boolean;
@@ -171,7 +181,7 @@ export async function bookRenderItems(
 
             if (
               itemType === "chapter" &&
-              await inputIsNumbered(projectDir, engine, item.href)
+              await inputIsNumbered(projectDir, item.href)
             ) {
               number = nextNumber++;
             }
@@ -235,18 +245,12 @@ export async function bookRenderItems(
 
 async function inputIsNumbered(
   projectDir: string,
-  engine: ExecutionEngine,
   input: string,
 ) {
-  // first see if we can get the partioned markdown out of the index
-  const index = readInputTargetIndex(projectDir, input);
-  if (index) {
-    return isNumberedChapter(index.markdown);
-    // otherwise fall back to calling the engine to do the partition
-  } else {
-    const partitioned = await engine.partitionedMarkdown(
-      join(projectDir, input),
-    );
+  const partitioned = await partitionedMarkdownForInput(projectDir, input);
+  if (partitioned) {
     return isNumberedChapter(partitioned);
+  } else {
+    return false;
   }
 }

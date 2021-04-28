@@ -92,12 +92,12 @@ export const bookProjectType: ProjectType = {
 
   pandocRenderer: bookPandocRenderer,
 
-  navItemText: async (context: ProjectContext, input: string, text: string) => {
-    const chapterNumber = await chapterNumberForInput(context, input);
-    if (chapterNumber > 0) {
-      return formatChapterLabel(text, chapterNumber);
+  navItemText: (context: ProjectContext, input: string, text: string) => {
+    const chapterNumber = chapterNumberForInput(context, input);
+    if (chapterNumber) {
+      return Promise.resolve(formatChapterLabel(text, chapterNumber));
     } else {
-      return text;
+      return Promise.resolve(text);
     }
   },
 
@@ -108,12 +108,11 @@ export const bookProjectType: ProjectType = {
   postRender: websiteProjectType.postRender,
   formatLibDirs: websiteProjectType.formatLibDirs,
   metadataFields: () => [...websiteProjectType.metadataFields!(), "book"],
-  resourceIgnoreFields:
-    () => [
-      ...websiteProjectType.resourceIgnoreFields!(),
-      kBookContents,
-      kBookAppendix,
-    ],
+  resourceIgnoreFields: () => [
+    ...websiteProjectType.resourceIgnoreFields!(),
+    kBookContents,
+    kBookAppendix,
+  ],
 
   // format extras
   formatExtras: async (

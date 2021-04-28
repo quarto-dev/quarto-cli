@@ -11,6 +11,9 @@ import { ld } from "lodash/mod.ts";
 
 import { safeExistsSync } from "../core/path.ts";
 
+import { readInputTargetIndex } from "./project-index.ts";
+import { fileExecutionEngine } from "../execute/engine.ts";
+
 export const kAriaLabel = "aria-label";
 export const kCollapseLevel = "collapse-level";
 export const kCollapseBelow = "collapse-below";
@@ -119,11 +122,11 @@ export function normalizeSidebarItem(
 
   if (typeof (item) === "string") {
     if (safeExistsSync(join(projectDir, item))) {
-      return {
+      item = {
         href: item,
       };
     } else {
-      return {
+      item = {
         text: item,
       };
     }
@@ -147,12 +150,15 @@ export function normalizeSidebarItem(
     // handle subitems
     if (item.contents) {
       for (let i = 0; i < item.contents.length; i++) {
-        item.contents[i] = normalizeSidebarItem(projectDir, item.contents[i]);
+        item.contents[i] = normalizeSidebarItem(
+          projectDir,
+          item.contents[i],
+        );
       }
     }
-
-    return item;
   }
+
+  return item;
 }
 
 export function resolveHrefAttribute(
@@ -161,4 +167,24 @@ export function resolveHrefAttribute(
   item.href = item.href || item.file || item.url;
   delete item.file;
   delete item.url;
+}
+
+export async function partitionedMarkdownForInput(
+  projectDir: string,
+  input: string,
+) {
+  // first see if we can get the partioned markdown out of the index
+  const index = readInputTargetIndex(projectDir, input);
+  if (index) {
+    index.markdown;
+    // otherwise fall back to calling the engine to do the partition
+  } else {
+    const inputPath = join(projectDir, input);
+    const engine = fileExecutionEngine(inputPath, true);
+    if (engine) {
+      return await engine.partitionedMarkdown(inputPath);
+    } else {
+      return undefined;
+    }
+  }
 }
