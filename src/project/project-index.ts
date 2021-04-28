@@ -6,7 +6,7 @@
 */
 
 import { dirname, join, relative } from "path/mod.ts";
-import { exists } from "fs/mod.ts";
+import { exists, existsSync } from "fs/mod.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
 
 import { dirAndStem, pathWithForwardSlashes } from "../core/path.ts";
@@ -52,20 +52,9 @@ export async function inputTargetIndex(
   }
 
   // see if we have an up to date index file
-  const indexFile = inputTargetIndexFile(project, input);
-  if (await exists(indexFile)) {
-    const inputMod = (await Deno.stat(inputFile)).mtime;
-    const indexMod = (await Deno.stat(indexFile)).mtime;
-    const projConfigFile = projectConfigFile(project.dir);
-    const projMod = projConfigFile
-      ? (await Deno.stat(projConfigFile)).mtime
-      : 0;
-    if (
-      inputMod && indexMod && (indexMod >= inputMod) &&
-      (!projMod || (indexMod >= projMod))
-    ) {
-      return JSON.parse(Deno.readTextFileSync(indexFile));
-    }
+  const targetIndex = readInputTargetIndex(project.dir, input);
+  if (targetIndex) {
+    return targetIndex;
   }
 
   // otherwise read the metadata and index it
@@ -84,8 +73,30 @@ export async function inputTargetIndex(
     index.title = index.markdown.headingText;
   }
 
+  const indexFile = inputTargetIndexFile(project.dir, input);
   Deno.writeTextFileSync(indexFile, JSON.stringify(index));
   return index;
+}
+
+// reads an existing input target index file
+export function readInputTargetIndex(
+  projectDir: string,
+  input: string,
+): InputTargetIndex | undefined {
+  const inputFile = join(projectDir, input);
+  const indexFile = inputTargetIndexFile(projectDir, input);
+  if (existsSync(indexFile)) {
+    const inputMod = Deno.statSync(inputFile).mtime;
+    const indexMod = Deno.statSync(indexFile).mtime;
+    const projConfigFile = projectConfigFile(projectDir);
+    const projMod = projConfigFile ? Deno.statSync(projConfigFile).mtime : 0;
+    if (
+      inputMod && indexMod && (indexMod >= inputMod) &&
+      (!projMod || (indexMod >= projMod))
+    ) {
+      return JSON.parse(Deno.readTextFileSync(indexFile));
+    }
+  }
 }
 
 export async function resolveInputTarget(
@@ -136,10 +147,10 @@ export async function inputFileForOutputFile(
   }
 }
 
-function inputTargetIndexFile(project: ProjectContext, input: string): string {
-  return indexPath(project, `${input}.json`);
+function inputTargetIndexFile(projectDir: string, input: string): string {
+  return indexPath(projectDir, `${input}.json`);
 }
 
-function indexPath(project: ProjectContext, path = ""): string {
-  return projectScratchPath(project.dir, join("index", path));
+function indexPath(projectDir: string, path = ""): string {
+  return projectScratchPath(projectDir, join("index", path));
 }
