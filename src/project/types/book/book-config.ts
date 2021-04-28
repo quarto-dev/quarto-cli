@@ -32,6 +32,7 @@ import {
 export const kBook = "book";
 export const kBookContents = "contents";
 export const kBookAppendix = "appendix";
+export const kBookRender = "render";
 
 export type BookConfigKey =
   | "contents"
@@ -79,8 +80,8 @@ export function bookProjectConfig(
   }
 
   // create render list from 'contents'
-  const targets = bookItems(projectDir, config);
-  config.project[kProjectRender] = targets
+  const renderItems = bookRenderItems(projectDir, config);
+  config.project[kProjectRender] = renderItems
     .filter((target) => !!target.file)
     .map((target) => target.file!);
 
@@ -102,9 +103,9 @@ export function bookConfig(
   }
 }
 
-export function isBookIndexPage(target: BookItem): boolean;
+export function isBookIndexPage(target: BookRenderItem): boolean;
 export function isBookIndexPage(target: string): boolean;
-export function isBookIndexPage(target: string | BookItem): boolean {
+export function isBookIndexPage(target: string | BookRenderItem): boolean {
   if (typeof (target) !== "string") {
     return target.type == "index";
   } else {
@@ -112,26 +113,26 @@ export function isBookIndexPage(target: string | BookItem): boolean {
   }
 }
 
-export type BookItemType = "index" | "chapter" | "appendix" | "part";
+export type BookRenderItemType = "index" | "chapter" | "appendix" | "part";
 
-export interface BookItem {
-  type: BookItemType;
+export interface BookRenderItem {
+  type: BookRenderItemType;
   text?: string;
   file?: string;
 }
 
-export function bookItems(
+export function bookRenderItems(
   projectDir: string,
   config?: ProjectConfig,
-): BookItem[] {
+): BookRenderItem[] {
   if (!config) {
     return [];
   }
 
-  const inputs: BookItem[] = [];
+  const inputs: BookRenderItem[] = [];
 
   const findInputs = (
-    type: BookItemType,
+    type: BookRenderItemType,
     items: SidebarItem[],
   ) => {
     for (const item of items) {
@@ -143,14 +144,15 @@ export function bookItems(
         });
         findInputs(type, item.contents);
       } else if (item.href) {
-        if (
-          safeExistsSync(join(projectDir, item.href)) &&
-          fileExecutionEngine(join(projectDir, item.href), true)
-        ) {
-          inputs.push({
-            type: isBookIndexPage(item.href) ? "index" : type,
-            file: item.href,
-          });
+        const itemPath = join(projectDir, item.href);
+        if (safeExistsSync(itemPath)) {
+          const engine = fileExecutionEngine(itemPath, true);
+          if (engine) {
+            inputs.push({
+              type: isBookIndexPage(item.href) ? "index" : type,
+              file: item.href,
+            });
+          }
         }
       }
     }
@@ -158,7 +160,7 @@ export function bookItems(
 
   const findChapters = (
     key: "contents" | "appendix",
-    delimiter?: BookItem,
+    delimiter?: BookRenderItem,
   ) => {
     const bookInputs = bookConfig(key, config) as
       | Array<unknown>

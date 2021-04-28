@@ -45,8 +45,8 @@ import { BookExtension } from "./book-extension.ts";
 import {
   bookConfig,
   BookConfigKey,
-  BookItem,
-  bookItems,
+  BookRenderItem,
+  bookRenderItems,
   isBookIndexPage,
 } from "./book-config.ts";
 import {
@@ -90,6 +90,10 @@ export function bookPandocRenderer(
       return Promise.resolve();
     },
     onComplete: async (error?: boolean) => {
+      // compute all render items
+      project = project!;
+      const renderItems = bookRenderItems(project.dir, project.config);
+
       // rendered files to return. some formats need to end up returning all of the individual
       // renderedFiles (e.g. html or asciidoc) and some formats will consolidate all of their
       // files into a single one (e.g. pdf or epub)
@@ -121,9 +125,10 @@ export function bookPandocRenderer(
             if (extension.renderFile) {
               renderedFiles.push(
                 ...(await renderMultiFileBook(
-                  project!,
+                  project,
                   options,
                   extension,
+                  renderItems,
                   executedFiles,
                 )),
               );
@@ -131,9 +136,10 @@ export function bookPandocRenderer(
             } else {
               renderedFiles.push(
                 await renderSingleFileBook(
-                  project!,
+                  project,
                   options,
                   extension,
+                  renderItems,
                   executedFiles,
                 ),
               );
@@ -189,6 +195,7 @@ async function renderMultiFileBook(
   project: ProjectContext,
   _options: RenderOptions,
   extension: BookExtension,
+  _renderItems: BookRenderItem[],
   files: ExecutedFile[],
 ): Promise<RenderedFile[]> {
   const renderedFiles: RenderedFile[] = [];
@@ -234,10 +241,16 @@ async function renderSingleFileBook(
   project: ProjectContext,
   options: RenderOptions,
   _extension: BookExtension,
+  renderItems: BookRenderItem[],
   files: ExecutedFile[],
 ): Promise<RenderedFile> {
   // we are going to compose a single ExecutedFile from the array we have been passed
-  const executedFile = await mergeExecutedFiles(project, options, files);
+  const executedFile = await mergeExecutedFiles(
+    project,
+    options,
+    renderItems,
+    files,
+  );
 
   // set book title metadata
   executedFile.recipe.format = withBookTitleMetadata(
@@ -286,6 +299,7 @@ function cleanupExecutedFile(
 async function mergeExecutedFiles(
   project: ProjectContext,
   options: RenderOptions,
+  renderItems: BookRenderItem[],
   files: ExecutedFile[],
 ): Promise<ExecutedFile> {
   // base context on the first file
@@ -304,9 +318,8 @@ async function mergeExecutedFiles(
   const recipe = await outputRecipe(context);
 
   // merge markdown, writing a metadata comment into each file
-  const items = bookItems(project.dir, project.config);
-  const markdown = items.reduce(
-    (markdown: string, item: BookItem) => {
+  const markdown = renderItems.reduce(
+    (markdown: string, item: BookRenderItem) => {
       // item markdown
       let itemMarkdown = "";
 
@@ -398,7 +411,7 @@ async function mergeExecutedFiles(
 
 function bookItemMetadata(
   project: ProjectContext,
-  item: BookItem,
+  item: BookRenderItem,
   file?: ExecutedFile,
 ) {
   const resourceDir = file
@@ -416,7 +429,7 @@ function bookItemMetadata(
   return `\n\n\`<!-- quarto-file-metadata: ${inlineMetadataEncoced} -->\`{=html}\n\n\`\`\`{=html}\n<!-- quarto-file-metadata: ${blockMetadataEncoded} -->\n\`\`\`\n\n`;
 }
 
-function bookPartMarkdown(project: ProjectContext, item: BookItem) {
+function bookPartMarkdown(project: ProjectContext, item: BookRenderItem) {
   const metadata = bookItemMetadata(project, item);
   return `${metadata}# ${item.text}\n\n`;
 }
