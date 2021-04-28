@@ -17,13 +17,6 @@ TODO: centralized _cache dir for projects (alongside _freeze)
 Books
 =========================================================================
 
-
-- determine correct treatment of appendix header for docx and epub (epub:type)
-- For latex, we need to alpha number (and reset counter) for appendixes 
-
-
-
-
 html sidebar parts/numbering/appendixes
 multi-file html / cross referencdes
 
