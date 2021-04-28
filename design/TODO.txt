@@ -31,10 +31,12 @@ not that view can also include hypothesis
 
 
 
+- Latex format (requires markdown resource detection)
+
 - Asciidoc format. Should mostly just be copying the output
 files and bringing back markdown resource detection from the
 old resourcerefs implementation (or just tweak the current
-one to also record refs)
+one to also record refs). also requires handling in crossrefs
 
 
 
