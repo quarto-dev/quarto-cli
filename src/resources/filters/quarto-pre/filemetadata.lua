@@ -17,6 +17,10 @@ function parseFileMetadata(el)
       local decoded = base64_decode(rawMetadata)
       local file = jsonDecode(decoded)
       preState.file = file
+      -- flip into appendix mode as appropriate
+      if file.bookItemType == "appendix" then
+        preState.appendix = true
+      end
       return pandoc.Null()
     end
   end

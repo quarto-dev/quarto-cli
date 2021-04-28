@@ -177,7 +177,7 @@ export function bookItems(
   };
 
   findChapters("contents");
-  findChapters("appendix", { type: "appendix", text: "Appendix" });
+  findChapters("appendix", { type: "appendix", text: "Appendices" });
 
   // validate that all of the chapters exist
   const missing = inputs.filter((input) =>

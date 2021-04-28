@@ -31,6 +31,16 @@ function isPowerPointOutput()
   return FORMAT == "pptx"
 end
 
+-- check for epub output
+function isEpubOutput()
+  local formats = {
+    "epub",
+    "epub2",
+    "epub3"
+  }
+  return tcontains(formats, FORMAT)
+end
+
 -- check for html output
 function isHtmlOutput()
   local formats = {

@@ -331,7 +331,10 @@ async function mergeExecutedFiles(
 
       // if this is part divider, then surround it in a special div so we
       // can discard it in formats that don't support parts
-      if (item.type === "part" && itemMarkdown.length > 0) {
+      if (
+        (item.type === "part" || item.type === "appendix") &&
+        itemMarkdown.length > 0
+      ) {
         itemMarkdown = `\n\n::: {.quarto-book-part}\n${itemMarkdown}\n:::\n\n`;
       }
 
@@ -401,13 +404,16 @@ function bookItemMetadata(
   const resourceDir = file
     ? relative(project.dir, dirname(file.context.target.input))
     : undefined;
-  const metadata = base64Encode(
-    JSON.stringify({
-      bookItemType: item.type,
-      resourceDir: resourceDir || ".",
-    }),
-  );
-  return `\n\n\`<!-- quarto-file-metadata: ${metadata} -->\`{=html}\n\n\`\`\`{=html}\n<!-- quarto-file-metadata: ${metadata} -->\n\`\`\`\n\n`;
+  const inlineMetadata = {
+    resourceDir: resourceDir || ".",
+  };
+  const blockMetadata = {
+    ...inlineMetadata,
+    bookItemType: item.type,
+  };
+  const inlineMetadataEncoced = base64Encode(JSON.stringify(inlineMetadata));
+  const blockMetadataEncoded = base64Encode(JSON.stringify(blockMetadata));
+  return `\n\n\`<!-- quarto-file-metadata: ${inlineMetadataEncoced} -->\`{=html}\n\n\`\`\`{=html}\n<!-- quarto-file-metadata: ${blockMetadataEncoded} -->\n\`\`\`\n\n`;
 }
 
 function bookPartMarkdown(project: ProjectContext, item: BookItem) {

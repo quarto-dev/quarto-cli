@@ -13,7 +13,8 @@ preState = {
   results = {
     resourceFiles = pandoc.List:new({})
   },
-  file = nil
+  file = nil,
+  appendix = false
 }
 
 -- [import]
