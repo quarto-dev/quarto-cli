@@ -15,10 +15,14 @@ import { safeExistsSync } from "../../../core/path.ts";
 
 import { Metadata } from "../../../config/metadata.ts";
 
-import { fileExecutionEngine } from "../../../execute/engine.ts";
+import {
+  ExecutionEngine,
+  fileExecutionEngine,
+} from "../../../execute/engine.ts";
 
 import { normalizeSidebarItem, SidebarItem } from "../../project-config.ts";
 import { kProjectRender, ProjectConfig } from "../../project-context.ts";
+import { readInputTargetIndex } from "../../project-index.ts";
 
 import {
   kContents,
@@ -29,6 +33,8 @@ import {
   kSiteTitle,
 } from "../website/website-config.ts";
 
+import { isNumberedChapter } from "./book-chapters.ts";
+
 export const kBook = "book";
 export const kBookContents = "contents";
 export const kBookAppendix = "appendix";
@@ -37,13 +43,14 @@ export const kBookRender = "render";
 export type BookConfigKey =
   | "contents"
   | "appendix"
+  | "render"
   | "title"
   | "subtitle"
   | "author"
   | "date"
   | "abstract";
 
-export function bookProjectConfig(
+export async function bookProjectConfig(
   projectDir: string,
   config: ProjectConfig,
 ) {
@@ -79,14 +86,16 @@ export function bookProjectConfig(
       }]);
   }
 
-  // create render list from 'contents'
-  const renderItems = bookRenderItems(projectDir, config);
+  // save our own render list (which has more fine grained info about parts,
+  // appendices, numbering, etc.) and popuplate the main config render list
+  const renderItems = await bookRenderItems(projectDir, config);
+  book[kBookRender] = renderItems;
   config.project[kProjectRender] = renderItems
     .filter((target) => !!target.file)
     .map((target) => target.file!);
 
   // return config
-  return Promise.resolve(config);
+  return config;
 }
 
 export function bookConfig(
@@ -97,7 +106,11 @@ export function bookConfig(
     | Record<string, unknown>
     | undefined;
   if (book) {
-    return book[name] as Record<string, unknown> | string | undefined;
+    return book[name] as
+      | Array<unknown>
+      | Record<string, unknown>
+      | string
+      | undefined;
   } else {
     return undefined;
   }
@@ -119,19 +132,21 @@ export interface BookRenderItem {
   type: BookRenderItemType;
   text?: string;
   file?: string;
+  number?: number;
 }
 
-export function bookRenderItems(
+export async function bookRenderItems(
   projectDir: string,
   config?: ProjectConfig,
-): BookRenderItem[] {
+): Promise<BookRenderItem[]> {
   if (!config) {
     return [];
   }
 
+  let nextNumber = 1;
   const inputs: BookRenderItem[] = [];
 
-  const findInputs = (
+  const findInputs = async (
     type: BookRenderItemType,
     items: SidebarItem[],
   ) => {
@@ -142,15 +157,30 @@ export function bookRenderItems(
           file: item.href,
           text: item.text,
         });
-        findInputs(type, item.contents);
+        await findInputs(type, item.contents);
       } else if (item.href) {
         const itemPath = join(projectDir, item.href);
         if (safeExistsSync(itemPath)) {
           const engine = fileExecutionEngine(itemPath, true);
           if (engine) {
+            // set index type if appropriate
+            const itemType = isBookIndexPage(item.href) ? "index" : type;
+
+            // for chapters, check if we are numbered
+            let number: number | undefined;
+
+            if (
+              itemType === "chapter" &&
+              await inputIsNumbered(projectDir, engine, item.href)
+            ) {
+              number = nextNumber++;
+            }
+
+            // add the input
             inputs.push({
-              type: isBookIndexPage(item.href) ? "index" : type,
+              type: itemType,
               file: item.href,
+              number,
             });
           }
         }
@@ -158,10 +188,11 @@ export function bookRenderItems(
     }
   };
 
-  const findChapters = (
+  const findChapters = async (
     key: "contents" | "appendix",
     delimiter?: BookRenderItem,
   ) => {
+    nextNumber = 1;
     const bookInputs = bookConfig(key, config) as
       | Array<unknown>
       | undefined;
@@ -169,7 +200,7 @@ export function bookRenderItems(
       if (delimiter) {
         inputs.push(delimiter);
       }
-      findInputs(
+      await findInputs(
         "chapter",
         bookInputs.map((item) =>
           normalizeSidebarItem(projectDir, item as SidebarItem)
@@ -178,8 +209,8 @@ export function bookRenderItems(
     }
   };
 
-  findChapters("contents");
-  findChapters("appendix", { type: "appendix", text: "Appendices" });
+  await findChapters("contents");
+  await findChapters("appendix", { type: "appendix", text: "Appendices" });
 
   // validate that all of the chapters exist
   const missing = inputs.filter((input) =>
@@ -200,4 +231,22 @@ export function bookRenderItems(
   }
   const index = inputs.splice(indexPos, 1);
   return index.concat(inputs);
+}
+
+async function inputIsNumbered(
+  projectDir: string,
+  engine: ExecutionEngine,
+  input: string,
+) {
+  // first see if we can get the partioned markdown out of the index
+  const index = readInputTargetIndex(projectDir, input);
+  if (index) {
+    return isNumberedChapter(index.markdown);
+    // otherwise fall back to calling the engine to do the partition
+  } else {
+    const partitioned = await engine.partitionedMarkdown(
+      join(projectDir, input),
+    );
+    return isNumberedChapter(partitioned);
+  }
 }
