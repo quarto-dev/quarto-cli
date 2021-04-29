@@ -10,15 +10,14 @@ TODO: also try output-file: index.html
 
 TODO: Floating TOC with toc-depth: 4 - looks meh
 
-TODO: migrate some sites (e.g. environments.rstudio.com)
-
 TODO: centralized _cache dir for projects (alongside _freeze)
 
 Books
 =========================================================================
 
+output_format = "pdf" leads to crufty files_dir
 
-alpha for appendixes (check cross refs)
+set alpha for appendix cross refs in html
 
 html cross references
 
