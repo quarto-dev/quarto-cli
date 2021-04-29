@@ -15,10 +15,6 @@ TODO: centralized _cache dir for projects (alongside _freeze)
 Books
 =========================================================================
 
-output_format = "pdf" leads to crufty files_dir
-
-set alpha for appendix cross refs in html
-
 html cross references
 
 admonitions
@@ -29,6 +25,8 @@ admonitions
     fontawesome5.sty
 
 footer
+
+page controls
 
 book tools (download, github link, etc.)
 
