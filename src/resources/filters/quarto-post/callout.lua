@@ -2,27 +2,14 @@
 -- Copyright (C) 2021 by RStudio, PBC
 
 local calloutidx = 1
-local hasCallouts = false
 
 function callout() 
   return {
-
-    Meta = function(meta)
-      -- inject tcolorbox
-      if hasCallouts and isLatexOutput() then
-        metaInjectLatex(meta, function(inject)
-          inject(
-            usePackage("awesomebox")
-          )
-        end)
-      end
-      return meta
-    end,
-    
+  
     -- Convert callout Divs into the appropriate element for this format
     Div = function(div)
       if div.attr.classes:find_if(isCallout) then
-        hasCallouts = true
+        postState.hasCallouts = true
         if isHtmlOutput() then
           return calloutDiv(div) 
         elseif isLatexOutput() then
