@@ -176,7 +176,7 @@ export async function partitionedMarkdownForInput(
   // first see if we can get the partioned markdown out of the index
   const index = readInputTargetIndex(projectDir, input);
   if (index) {
-    index.markdown;
+    return index.markdown;
     // otherwise fall back to calling the engine to do the partition
   } else {
     const inputPath = join(projectDir, input);
