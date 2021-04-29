@@ -175,6 +175,7 @@ export const kDocumentClass = "documentclass";
 
 export const kTheme = "theme";
 export const kCrossref = "crossref";
+export const kCrossrefChapters = "chapters";
 export const kCrossrefLabels = "labels";
 export const kCrossrefChaptersAlpha = "chapters-alpha";
 

@@ -17,6 +17,8 @@ import {
 } from "../../../config/format.ts";
 import { PandocFlags } from "../../../config/flags.ts";
 import {
+  kCrossref,
+  kCrossrefChapters,
   kDocumentClass,
   kNumberSections,
   kToc,
@@ -122,6 +124,11 @@ export const bookProjectType: ProjectType = {
       pandoc: {
         [kToc]: !isEpubOutput(format.pandoc),
         [kNumberSections]: true,
+      },
+      metadata: {
+        [kCrossref]: {
+          [kCrossrefChapters]: true,
+        },
       },
     };
 
