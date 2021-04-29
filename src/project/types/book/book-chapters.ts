@@ -3,11 +3,14 @@ import { ld } from "lodash/mod.ts";
 import { PartitionedMarkdown } from "../../../core/pandoc/pandoc-partition.ts";
 
 import {
+  kCrossref,
+  kCrossrefChaptersAlpha,
   kNumberOffset,
   kNumberSections,
   kTitle,
 } from "../../../config/constants.ts";
 import { Format } from "../../../config/format.ts";
+import { Metadata } from "../../../config/metadata.ts";
 
 import { ProjectContext } from "../../project-context.ts";
 
@@ -28,7 +31,16 @@ export function withChapterMetadata(
   }
 
   if (chapterInfo) {
+    // set offset
     format.pandoc[kNumberOffset] = [chapterInfo.number];
+
+    // set crossref label type if this is an appendix
+    if (chapterInfo.appendix) {
+      format.metadata[kCrossref] = format.metadata[kCrossref] || {};
+      const crossref = format.metadata[kCrossref] as Metadata;
+      crossref[kCrossrefChaptersAlpha] = true;
+      format.pandoc[kNumberSections] = false;
+    }
   } else {
     format.pandoc[kNumberSections] = false;
   }

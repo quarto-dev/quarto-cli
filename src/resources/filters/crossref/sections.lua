@@ -71,7 +71,8 @@ function currentSectionLevel()
 end
 
 function numberSections()
-  return formatRequiresSectionNumber() and param("number-sections", false)
+  return (formatRequiresSectionNumber() and param("number-sections", false)) or
+          crossrefOption("chapters-alpha", false)
 end
 
 function formatRequiresSectionNumber()
