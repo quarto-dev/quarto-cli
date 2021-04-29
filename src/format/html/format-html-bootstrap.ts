@@ -107,12 +107,6 @@ export function boostrapExtras(
       ? "Table of contents"
       : undefined,
 
-    [kFilters]: {
-      post: [
-        formatResourcePath("html", "html.lua"),
-      ],
-    },
-
     html: {
       [kSassBundles]: [resolveBootstrapScss(format.metadata)],
       [kDependencies]: [bootstrapFormatDependency()],
