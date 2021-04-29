@@ -7,8 +7,6 @@
 
 import { existsSync } from "fs/mod.ts";
 
-import { ld } from "lodash/mod.ts";
-
 import { join } from "path/mod.ts";
 
 import { safeExistsSync } from "../../../core/path.ts";
@@ -31,6 +29,7 @@ import {
   kSiteNavbar,
   kSiteSidebar,
   kSiteTitle,
+  websiteProjectConfig,
 } from "../website/website-config.ts";
 
 import { isNumberedChapter } from "./book-chapters.ts";
@@ -54,8 +53,8 @@ export async function bookProjectConfig(
   projectDir: string,
   config: ProjectConfig,
 ) {
-  // clone and make sure we have a project entry
-  config = ld.cloneDeep(config);
+  // inherit website config behavior
+  config = await websiteProjectConfig(projectDir, config);
 
   // ensure we have a site
   const site = (config[kSite] || {}) as Record<string, unknown>;

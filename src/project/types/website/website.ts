@@ -32,6 +32,7 @@ import { updateSearchIndex } from "./website-search.ts";
 import {
   kSite,
   websiteMetadataFields,
+  websiteProjectConfig,
   websiteTitle,
 } from "./website-config.ts";
 
@@ -68,6 +69,8 @@ export const websiteProjectType: ProjectType = {
 
   formatLibDirs:
     () => ["bootstrap", "quarto-nav", "quarto-search", "quarto-html"],
+
+  config: websiteProjectConfig,
 
   metadataFields: websiteMetadataFields,
 
