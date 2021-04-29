@@ -50,7 +50,8 @@ import {
   BookRenderItem,
   isBookIndexPage,
 } from "./book-config.ts";
-import { chapterNumberForInput, withChapterMetadata } from "./book-chapters.ts";
+
+import { chapterInfoForInput, withChapterMetadata } from "./book-chapters.ts";
 
 export function bookPandocRenderer(
   options: RenderOptions,
@@ -207,8 +208,8 @@ async function renderMultiFileBook(
       // other files
     } else {
       // since this could be an incremental render we need to compute the chapter number
-      const chapterNumber = isHtmlOutput(file.recipe.format.pandoc)
-        ? chapterNumberForInput(project, fileRelative)
+      const chapterInfo = isHtmlOutput(file.recipe.format.pandoc)
+        ? chapterInfoForInput(project, fileRelative)
         : undefined;
 
       // provide title metadata
@@ -216,7 +217,7 @@ async function renderMultiFileBook(
         file.recipe.format = withChapterMetadata(
           file.recipe.format,
           partitioned,
-          chapterNumber,
+          chapterInfo,
         );
       }
 

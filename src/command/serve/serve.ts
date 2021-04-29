@@ -23,9 +23,6 @@ import { createSessionTempDir } from "../../core/temp.ts";
 import { logError } from "../../core/log.ts";
 import { PromiseQueue } from "../../core/promise.ts";
 
-import { kMetadataFormat } from "../../config/constants.ts";
-import { isHtmlOutput } from "../../config/format.ts";
-
 import {
   kProjectLibDir,
   ProjectContext,
@@ -36,7 +33,7 @@ import {
 import { inputFileForOutputFile } from "../../project/project-index.ts";
 
 import { renderProject } from "../render/project.ts";
-import { formatKeys, renderResultFinalOutput } from "../render/render.ts";
+import { renderResultFinalOutput } from "../render/render.ts";
 import { projectFreezerDir } from "../render/freeze.ts";
 
 import { ProjectWatcher, watchProject } from "./watch.ts";
@@ -68,7 +65,7 @@ export async function serveProject(
 
   // create mirror or project for serving
   const serveDir = copyProjectForServe(project);
-  const serveProject = await serveProjectContext(serveDir);
+  const serveProject = await projectContext(serveDir);
 
   const renderResult = await renderProject(
     serveProject,
@@ -159,49 +156,6 @@ export async function serveProject(
   for await (const req of server) {
     handler(req);
   }
-}
-
-// provide a project context that prefers html
-export async function serveProjectContext(dir: string) {
-  const project = await projectContext(dir);
-  if (project.config) {
-    const format = project.config?.[kMetadataFormat] as
-      | string
-      | Record<string, unknown>
-      | undefined;
-    if (format !== undefined) {
-      if (typeof (format) === "string") {
-        if (isHtmlOutput(format, true)) {
-          return project;
-        } else {
-          project.config[kMetadataFormat] = {
-            html: "default",
-            [format]: "default",
-          };
-        }
-      } else {
-        const formats = Object.keys(format);
-        const orderedFormats = {} as Record<string, unknown>;
-        const htmlFormatPos = formats.findIndex((format) =>
-          isHtmlOutput(format, true)
-        );
-        if (htmlFormatPos !== -1) {
-          const htmlFormatName = formats.splice(htmlFormatPos, 1)[0];
-          orderedFormats[htmlFormatName] = format[htmlFormatName];
-        } else {
-          orderedFormats["html"] = "default";
-        }
-        for (const formatName of formats) {
-          orderedFormats[formatName] = format[formatName];
-        }
-        project.config[kMetadataFormat] = orderedFormats;
-      }
-    } else {
-      project.config[kMetadataFormat] = "html";
-    }
-  }
-
-  return project;
 }
 
 export function copyProjectForServe(

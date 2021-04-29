@@ -17,8 +17,10 @@ TODO: centralized _cache dir for projects (alongside _freeze)
 Books
 =========================================================================
 
-html sidebar parts/numbering/appendixes
-multi-file html / cross referencdes
+
+alpha for appendixes (check cross refs)
+
+html cross references
 
 admonitions
 - responsive images only for bootstrap
