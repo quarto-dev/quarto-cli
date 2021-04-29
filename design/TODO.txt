@@ -21,6 +21,11 @@ html sidebar parts/numbering/appendixes
 multi-file html / cross referencdes
 
 admonitions
+- responsive images only for bootstrap
+- docx / epub formats
+- open PR for tinytex to include awesomebox and fontawesome
+    awesomebox.sty
+    fontawesome5.sty
 
 footer
 
@@ -134,12 +139,6 @@ code chunks
 ===========================================
 consider improving line number appearance and indention
 copy button should only copy code: https://github.com/rstudio/bookdown/issues/1072
-
-
-
-commenting
-==========================================
-TODO: Place commenting options in own YAML namespace
 
 toc
 =========================================
