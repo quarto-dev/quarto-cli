@@ -328,7 +328,7 @@ function latexCell(cell, vAlign, endOfRow, endOfTable)
     tappend(content, cell.content)
 
     -- vertically align the minipage
-    if miniPageVAlign == "[t]" then
+    if miniPageVAlign == "[t]" and tbl == nil then
       latexAppend(prefix, "\\raisebox{-\\height}{") 
       latexAppend(suffix, "}")
     end  

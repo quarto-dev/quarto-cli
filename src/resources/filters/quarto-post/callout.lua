@@ -2,33 +2,20 @@
 -- Copyright (C) 2021 by RStudio, PBC
 
 local calloutidx = 1
-local hasCallouts = false
 
 function callout() 
   return {
-
-    Meta = function(meta)
-      -- inject tcolorbox
-      if hasCallouts and isLatexOutput() then
-        metaInjectLatex(meta, function(inject)
-          inject(
-            usePackage("awesomebox")
-          )
-        end)
-      end
-      return meta
-    end,
-    
+  
     -- Convert callout Divs into the appropriate element for this format
     Div = function(div)
       if div.attr.classes:find_if(isCallout) then
-        hasCallouts = true
+        postState.hasCallouts = true
         if isHtmlOutput() then
           return calloutDiv(div) 
         elseif isLatexOutput() then
           return calloutLatex(div)
         else
-          return div
+          return simpleCallout(div)
         end
       end  
     end
@@ -179,6 +166,26 @@ function calloutLatex(div)
     table.insert(calloutContents, pandoc.Para({endEnvironment}))
   end
   return pandoc.Div(calloutContents)
+end
+
+function simpleCallout(div) 
+  local caption = div.attr.attributes["caption"]
+  local type = calloutType(div)
+
+  div.attr.attributes["caption"] = nil
+  div.attr.attributes["icon"] = nil
+  div.attr.attributes["collapse"] = nil
+
+  local calloutContents = pandoc.List:new({});
+    
+  -- Add the captions and contents
+  if caption == nil then 
+    caption = type:sub(1,1):upper()..type:sub(2)
+  end
+  calloutContents:insert(pandoc.Para(pandoc.Strong(stringToInlines(caption))))
+  tappend(calloutContents, div.content)
+
+  return pandoc.BlockQuote(calloutContents)
 end
 
 function environmentForType(type, caption)
