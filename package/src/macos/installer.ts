@@ -126,6 +126,10 @@ export async function makeInstallerMac(config: Configuration) {
         password,
       );
 
+      // Add a delay to allow the Apple servers to propagate the
+      // request Id that they've just provided
+      Deno.sleepSync(10000);
+
       // This will succeed or throw
       await waitForNotaryStatus(requestId, username, password);
 
