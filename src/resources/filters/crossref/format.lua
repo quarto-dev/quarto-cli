@@ -94,7 +94,13 @@ function numberOption(type, order, default)
   -- return a pandoc.Str w/ chapter prefix (if any)
   function resolve(num)
     if section then
-      num = tostring(section[1]) .. "." .. num
+      local sectionIndex = section[1]
+      if crossrefOption("chapters-alpha", false) then
+        sectionIndex = string.char(64 + sectionIndex)
+      else
+        sectionIndex = tostring(sectionIndex)
+      end
+      num = sectionIndex .. "." .. num
     end
     return { pandoc.Str(num) }
   end
@@ -111,6 +117,8 @@ function numberOption(type, order, default)
   
   -- determine the style
   local styleRaw = crossrefOption(opt, labelOpt)
+
+
   local numberStyle = pandoc.utils.stringify(styleRaw)
 
   -- process the style
@@ -155,10 +163,11 @@ function sectionNumber(section, maxLevel)
       break
     end
     if section[i] > 0 then
-      if i>1 then
-        num = num .. "."
+      if i == 1 then
+        num = formatChapterIndex(section[i])
+      elseif i>1 then
+        num = num .. "." .. tostring(section[i])
       end
-      num = num .. tostring(section[i])
     else
       break
     end
@@ -166,6 +175,13 @@ function sectionNumber(section, maxLevel)
   return num
 end
 
+function formatChapterIndex(index)
+  if crossrefOption("chapters-alpha", false) then
+    return string.char(64 + index)
+  else
+    return tostring(index)
+  end
+end
 
 function toRoman(num, lower)
   local roman = pandoc.utils.to_roman_numeral(num)

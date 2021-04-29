@@ -126,7 +126,7 @@ export interface RenderResultFile {
   markdown: string;
   format: Format;
   file: string;
-  filesDir?: string;
+  supporting?: string[];
   resourceFiles: string[];
 }
 
@@ -165,7 +165,7 @@ export async function render(
         markdown: result.markdown,
         format: result.format,
         file: result.file,
-        filesDir: result.filesDir,
+        supporting: result.supporting,
         resourceFiles: [],
       };
     }),
@@ -178,7 +178,7 @@ export interface RenderedFile {
   markdown: string;
   format: Format;
   file: string;
-  filesDir?: string;
+  supporting?: string[];
   resourceFiles: RenderResourceFiles;
   selfContained: boolean;
 }
@@ -618,8 +618,11 @@ export async function renderPandoc(
     input: projectPath(context.target.source),
     markdown: executeResult.markdown,
     format,
-    filesDir: filesDir ? projectPath(filesDir) : undefined,
-
+    supporting: filesDir
+      ? executeResult.supporting.filter(existsSync).map((file) =>
+        context.project ? relative(context.project.dir, file) : file
+      )
+      : undefined,
     file: projectPath(finalOutput),
     resourceFiles: resourceFiles,
     selfContained: selfContained,

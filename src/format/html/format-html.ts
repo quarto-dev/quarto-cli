@@ -127,6 +127,16 @@ export function htmlFormatPostprocessor(format: Format) {
       }
     }
 
+    // remove toc-section-number if we have provided our own section numbers
+    const headerSections = doc.querySelectorAll(".header-section-number");
+    for (let i = 0; i < headerSections.length; i++) {
+      const secNumber = headerSections[i] as Element;
+      const prevElement = secNumber.previousElementSibling;
+      if (prevElement && prevElement.classList.contains("toc-section-number")) {
+        prevElement.remove();
+      }
+    }
+
     // no resource refs
     return Promise.resolve([]);
   };

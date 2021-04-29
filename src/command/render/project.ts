@@ -176,11 +176,11 @@ export async function renderProject(
         // files dir
         const keepFiles = !!renderedFile.format.render[kKeepMd];
         keepLibsDir = keepLibsDir || keepFiles;
-        if (renderedFile.filesDir) {
+        if (renderedFile.supporting) {
           if (keepFiles) {
-            copyDir(renderedFile.filesDir);
+            renderedFile.supporting.map((file) => copyDir(file));
           } else {
-            moveDir(renderedFile.filesDir);
+            renderedFile.supporting.map((file) => moveDir(file));
           }
         }
 
@@ -211,8 +211,10 @@ export async function renderProject(
             if (fileResourceFiles.exclude.includes(file)) {
               return false;
             } else if (
-              renderedFile.filesDir &&
-              file.startsWith(join(projDir, renderedFile.filesDir!))
+              renderedFile.supporting &&
+              renderedFile.supporting.some((support) =>
+                file.startsWith(join(projDir, support))
+              )
             ) {
               return false;
             } else {
@@ -227,7 +229,7 @@ export async function renderProject(
           markdown: renderedFile.markdown,
           format: renderedFile.format,
           file: renderedFile.file,
-          filesDir: renderedFile.filesDir,
+          supporting: renderedFile.supporting,
           resourceFiles,
         });
       });
@@ -323,7 +325,7 @@ export async function renderProject(
           markdown: result.markdown,
           format: result.format,
           file: result.file,
-          filesDir: result.filesDir,
+          supporting: result.supporting,
           resourceFiles: [],
         })),
       );
