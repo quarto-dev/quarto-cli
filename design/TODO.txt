@@ -17,15 +17,10 @@ TODO: centralized _cache dir for projects (alongside _freeze)
 Books
 =========================================================================
 
-what happens to some of our resolution when e.g docx is first
-(do we need logic to re-order to html first for books, e.g. based on serve)
 
-_files directories not deleted in web mode?
+alpha for appendixes (check cross refs)
 
-
-html sidebar parts/numbering/appendixes
-
-multi-file html / cross referencdes
+html cross references
 
 admonitions
 - responsive images only for bootstrap
