@@ -34,6 +34,8 @@ import {
 
 import { isNumberedChapter } from "./book-chapters.ts";
 
+const kAppendicesSectionLabel = "Appendices";
+
 export const kBook = "book";
 export const kBookContents = "contents";
 export const kBookAppendix = "appendix";
@@ -81,7 +83,7 @@ export async function bookProjectConfig(
   if (Array.isArray(bookAppendix)) {
     siteSidebar[kContents] = (siteSidebar[kContents] as unknown[] || [])
       .concat([{
-        section: "Appendix",
+        section: kAppendicesSectionLabel,
         contents: bookAppendix,
       }]);
   }
@@ -219,7 +221,10 @@ export async function bookRenderItems(
   };
 
   await findChapters("contents");
-  await findChapters("appendix", { type: "appendix", text: "Appendices" });
+  await findChapters("appendix", {
+    type: "appendix",
+    text: kAppendicesSectionLabel,
+  });
 
   // validate that all of the chapters exist
   const missing = inputs.filter((input) =>

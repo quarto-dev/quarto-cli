@@ -35,7 +35,8 @@ import {
   kBookAppendix,
   kBookContents,
 } from "./book-config.ts";
-import { chapterNumberForInput, formatChapterLabel } from "./book-chapters.ts";
+
+import { chapterInfoForInput, formatChapterLabel } from "./book-chapters.ts";
 
 export const bookProjectType: ProjectType = {
   type: "book",
@@ -93,9 +94,9 @@ export const bookProjectType: ProjectType = {
   pandocRenderer: bookPandocRenderer,
 
   navItemText: (context: ProjectContext, input: string, text: string) => {
-    const chapterNumber = chapterNumberForInput(context, input);
-    if (chapterNumber) {
-      return Promise.resolve(formatChapterLabel(text, chapterNumber));
+    const chapterInfo = chapterInfoForInput(context, input);
+    if (chapterInfo) {
+      return Promise.resolve(formatChapterLabel(text, chapterInfo, true));
     } else {
       return Promise.resolve(text);
     }
