@@ -317,14 +317,14 @@ async function resolveSidebarItems(
   items: SidebarItem[],
 ) {
   for (let i = 0; i < items.length; i++) {
-    const item = normalizeSidebarItem(project.dir, items[i]);
+    let item = normalizeSidebarItem(project.dir, items[i]);
 
     if (Object.keys(item).includes("contents")) {
       const subItems = item.contents || [];
 
       // If this item has an href, resolve that
       if (item.href) {
-        items[i] = await resolveItem(project, item.href, item);
+        item = await resolveItem(project, item.href, item);
       }
 
       // Resolve any subitems
