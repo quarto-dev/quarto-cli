@@ -36,7 +36,7 @@ import {
 import { inputFileForOutputFile } from "../../project/project-index.ts";
 
 import { renderProject } from "../render/project.ts";
-import { formatKeys, renderResultFinalOutput } from "../render/render.ts";
+import { renderResultFinalOutput } from "../render/render.ts";
 import { projectFreezerDir } from "../render/freeze.ts";
 
 import { ProjectWatcher, watchProject } from "./watch.ts";
