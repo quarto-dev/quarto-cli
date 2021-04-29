@@ -47,7 +47,10 @@ end
 function wpPageWidth()
   local width = param("page-width", nil)
   if width then 
-    width = tonumber(pandoc.utils.stringify(width))
+    if (type(width) == 'table') then
+      width = tonumber(pandoc.utils.stringify(width))
+    end
+
     if not width then
       error("You must use a number for page-width")
     else
