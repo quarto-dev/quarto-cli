@@ -11,8 +11,6 @@ import { encode as base64Encode } from "encoding/base64.ts";
 
 import { ld } from "lodash/mod.ts";
 
-import { inputFilesDir } from "../../../core/render.ts";
-
 import { partitionMarkdown } from "../../../core/pandoc/pandoc-partition.ts";
 
 import {
@@ -273,17 +271,7 @@ function cleanupExecutedFile(
     file.context.target.input,
     finalOutput,
     file.recipe.format,
-    // because we may have only rendered a single self-contained format (and used the
-    // freezer), we want to cleanup all of the files_dir which may have been
-    // copied from the freezer
-    file.executeResult.supporting.length > 0
-      ? [
-        join(
-          dirname(file.context.target.input),
-          inputFilesDir(file.context.target.input),
-        ),
-      ]
-      : [],
+    file.executeResult.supporting,
     file.context.engine.keepMd(file.context.target.input),
   );
 }
