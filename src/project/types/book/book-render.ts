@@ -19,6 +19,7 @@ import {
   kAbstract,
   kAuthor,
   kDate,
+  kNumberSections,
   kOutputExt,
   kOutputFile,
   kSubtitle,
@@ -45,8 +46,8 @@ import { BookExtension } from "./book-extension.ts";
 import {
   bookConfig,
   BookConfigKey,
+  bookConfigRenderItems,
   BookRenderItem,
-  bookRenderItems,
   isBookIndexPage,
 } from "./book-config.ts";
 import { chapterNumberForInput, withChapterMetadata } from "./book-chapters.ts";
@@ -87,10 +88,6 @@ export function bookPandocRenderer(
       return Promise.resolve();
     },
     onComplete: async (error?: boolean) => {
-      // compute all render items
-      project = project!;
-      const renderItems = bookRenderItems(project.dir, project.config);
-
       // rendered files to return. some formats need to end up returning all of the individual
       // renderedFiles (e.g. html or asciidoc) and some formats will consolidate all of their
       // files into a single one (e.g. pdf or epub)
@@ -122,10 +119,9 @@ export function bookPandocRenderer(
             if (extension.renderFile) {
               renderedFiles.push(
                 ...(await renderMultiFileBook(
-                  project,
+                  project!,
                   options,
                   extension,
-                  renderItems,
                   executedFiles,
                 )),
               );
@@ -133,10 +129,9 @@ export function bookPandocRenderer(
             } else {
               renderedFiles.push(
                 await renderSingleFileBook(
-                  project,
+                  project!,
                   options,
                   extension,
-                  renderItems,
                   executedFiles,
                 ),
               );
@@ -192,10 +187,10 @@ async function renderMultiFileBook(
   project: ProjectContext,
   _options: RenderOptions,
   extension: BookExtension,
-  _renderItems: BookRenderItem[],
   files: ExecutedFile[],
 ): Promise<RenderedFile[]> {
   const renderedFiles: RenderedFile[] = [];
+
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     const partitioned = partitionMarkdown(file.executeResult.markdown);
@@ -208,12 +203,13 @@ async function renderMultiFileBook(
         project.config,
       );
       file.recipe.format.metadata[kToc] = false;
+      file.recipe.format.pandoc[kNumberSections] = false;
       // other files
     } else {
       // since this could be an incremental render we need to compute the chapter number
       const chapterNumber = isHtmlOutput(file.recipe.format.pandoc)
-        ? await chapterNumberForInput(project, fileRelative)
-        : 0;
+        ? chapterNumberForInput(project, fileRelative)
+        : undefined;
 
       // provide title metadata
       if (partitioned.headingText) {
@@ -238,14 +234,12 @@ async function renderSingleFileBook(
   project: ProjectContext,
   options: RenderOptions,
   _extension: BookExtension,
-  renderItems: BookRenderItem[],
   files: ExecutedFile[],
 ): Promise<RenderedFile> {
   // we are going to compose a single ExecutedFile from the array we have been passed
   const executedFile = await mergeExecutedFiles(
     project,
     options,
-    renderItems,
     files,
   );
 
@@ -296,7 +290,6 @@ function cleanupExecutedFile(
 async function mergeExecutedFiles(
   project: ProjectContext,
   options: RenderOptions,
-  renderItems: BookRenderItem[],
   files: ExecutedFile[],
 ): Promise<ExecutedFile> {
   // base context on the first file
@@ -313,6 +306,8 @@ async function mergeExecutedFiles(
 
   // create output recipe (tweak output file)
   const recipe = await outputRecipe(context);
+
+  const renderItems = bookConfigRenderItems(project.config);
 
   // merge markdown, writing a metadata comment into each file
   const markdown = renderItems.reduce(
