@@ -4,7 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { join } from "path/mod.ts";
+import { dirname, join } from "path/mod.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { mergeConfigs } from "../../../core/config.ts";
 
@@ -31,7 +31,11 @@ import {
   PandocOptions,
 } from "../../../command/render/pandoc.ts";
 
-import { ProjectCreate, ProjectType } from "../project-types.ts";
+import {
+  ProjectCreate,
+  ProjectOutputFile,
+  ProjectType,
+} from "../project-types.ts";
 import { ProjectContext } from "../../project-context.ts";
 import {
   crossrefIndexForOutputFile,
@@ -46,6 +50,7 @@ import { bookProjectConfig, kBook } from "./book-config.ts";
 
 import { chapterInfoForInput, formatChapterLabel } from "./book-chapters.ts";
 import { isMultiFileBookFormat } from "./book-extension.ts";
+import { bookCrossrefsPostRender } from "./book-crossrefs.ts";
 
 export const bookProjectType: ProjectType = {
   type: "book",
@@ -104,7 +109,10 @@ export const bookProjectType: ProjectType = {
     if (options.project && isMultiFileBookFormat(options.format)) {
       return {
         [kCrossrefIndexFile]: pandocMetadataPath(
-          crossrefIndexForOutputFile(options.project.dir, options.output),
+          crossrefIndexForOutputFile(
+            options.project.dir,
+            join(dirname(options.input), options.output),
+          ),
         ),
         [kCrossrefResolveRefs]: false,
       };
@@ -128,7 +136,14 @@ export const bookProjectType: ProjectType = {
 
   // inherit a bunch of behavior from website projects
   preRender: websiteProjectType.preRender,
-  postRender: websiteProjectType.postRender,
+  postRender: async (
+    context: ProjectContext,
+    incremental: boolean,
+    outputFiles: ProjectOutputFile[],
+  ) => {
+    await bookCrossrefsPostRender(context, incremental, outputFiles);
+    return websiteProjectType.postRender!(context, incremental, outputFiles);
+  },
   formatLibDirs: websiteProjectType.formatLibDirs,
   metadataFields: () => [...websiteProjectType.metadataFields!(), "book"],
   resourceIgnoreFields: () => [
