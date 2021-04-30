@@ -15,7 +15,14 @@ TODO: centralized _cache dir for projects (alongside _freeze)
 Books
 =========================================================================
 
-html cross references
+TODO: test out various crossref formatting options
+
+TODO: yihui don't implement yaml in chunk yet
+
+TODO: downlit integration
+
+TODO: keep-tex file shouldn't be index.tex
+
 
 admonitions
 - responsive images only for bootstrap
