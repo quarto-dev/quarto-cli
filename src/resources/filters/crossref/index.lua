@@ -98,8 +98,8 @@ function writeIndex()
             }
           }
           -- add section if we have one
-          if v.order.section ~= nil and v.order.section[1] > 0 then
-            entry.order.chapter = v.order.section[1]
+          if v.order.section ~= nil then
+            entry.order.section = v.order.section
           end
           -- add entry
           index.entries:insert(entry)

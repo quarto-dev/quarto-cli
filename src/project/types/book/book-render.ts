@@ -39,6 +39,9 @@ import { outputRecipe } from "../../../command/render/output.ts";
 import { renderCleanup } from "../../../command/render/cleanup.ts";
 
 import { ProjectConfig, ProjectContext } from "../../project-context.ts";
+import { ProjectOutputFile } from "../project-types.ts";
+
+import { websiteOutputFiles, websitePostRender } from "../website/website.ts";
 
 import { BookExtension, isMultiFileBookFormat } from "./book-extension.ts";
 import {
@@ -50,6 +53,7 @@ import {
 } from "./book-config.ts";
 
 import { chapterInfoForInput, withChapterMetadata } from "./book-chapters.ts";
+import { bookCrossrefsPostRender } from "./book-crossrefs.ts";
 
 export function bookPandocRenderer(
   options: RenderOptions,
@@ -148,6 +152,29 @@ export function bookPandocRenderer(
       }
     },
   };
+}
+
+export async function bookPostRender(
+  context: ProjectContext,
+  incremental: boolean,
+  outputFiles: ProjectOutputFile[],
+) {
+  // read the dom of each file
+  const websiteFiles = websiteOutputFiles(outputFiles);
+
+  // run crossrefs
+  await bookCrossrefsPostRender(context, incremental, websiteFiles);
+
+  // run standard website stuff (search, etc.)
+  await websitePostRender(context, incremental, websiteFiles);
+
+  // write website files
+  websiteFiles.forEach((websiteFile) => {
+    const doctype = websiteFile.doctype;
+    const htmlOutput = (doctype ? doctype + "\n" : "") +
+      websiteFile.doc.documentElement?.outerHTML!;
+    Deno.writeTextFileSync(websiteFile.file, htmlOutput);
+  });
 }
 
 export async function bookIncrementalRenderAll(

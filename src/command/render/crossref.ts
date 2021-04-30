@@ -21,7 +21,7 @@ export function crossrefFilter() {
 
 export function crossrefFilterActive(options: PandocOptions) {
   if (options.format.metadata.crossref === undefined) {
-    return !!options.markdown.match(/#\w+\:/);
+    return !!options.markdown.match(/[#@]\w+\:/);
   } else {
     return options.format.metadata.crossref !== false;
   }

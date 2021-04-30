@@ -31,11 +31,7 @@ import {
   PandocOptions,
 } from "../../../command/render/pandoc.ts";
 
-import {
-  ProjectCreate,
-  ProjectOutputFile,
-  ProjectType,
-} from "../project-types.ts";
+import { ProjectCreate, ProjectType } from "../project-types.ts";
 import { ProjectContext } from "../../project-context.ts";
 import {
   crossrefIndexForOutputFile,
@@ -45,12 +41,15 @@ import {
 
 import { websiteProjectType } from "../website/website.ts";
 
-import { bookIncrementalRenderAll, bookPandocRenderer } from "./book-render.ts";
+import {
+  bookIncrementalRenderAll,
+  bookPandocRenderer,
+  bookPostRender,
+} from "./book-render.ts";
 import { bookProjectConfig, kBook } from "./book-config.ts";
 
 import { chapterInfoForInput, formatChapterLabel } from "./book-chapters.ts";
 import { isMultiFileBookFormat } from "./book-extension.ts";
-import { bookCrossrefsPostRender } from "./book-crossrefs.ts";
 
 export const bookProjectType: ProjectType = {
   type: "book",
@@ -136,14 +135,7 @@ export const bookProjectType: ProjectType = {
 
   // inherit a bunch of behavior from website projects
   preRender: websiteProjectType.preRender,
-  postRender: async (
-    context: ProjectContext,
-    incremental: boolean,
-    outputFiles: ProjectOutputFile[],
-  ) => {
-    await bookCrossrefsPostRender(context, incremental, outputFiles);
-    return websiteProjectType.postRender!(context, incremental, outputFiles);
-  },
+  postRender: bookPostRender,
   formatLibDirs: websiteProjectType.formatLibDirs,
   metadataFields: () => [...websiteProjectType.metadataFields!(), "book"],
   resourceIgnoreFields: () => [

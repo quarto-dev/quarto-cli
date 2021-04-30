@@ -8,6 +8,10 @@
 import { dirname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
+import { Element, HTMLDocument } from "deno_dom/deno-dom-wasm.ts";
+
+import { pathWithForwardSlashes } from "../../../core/path.ts";
+
 import {
   kCrossrefChapters,
   kCrossrefChaptersAlpha,
@@ -17,15 +21,16 @@ import {
 import { defaultWriterFormat } from "../../../format/formats.ts";
 import { ProjectContext, projectOutputDir } from "../../project-context.ts";
 import { crossrefIndexForOutputFile } from "../../project-crossrefs.ts";
+import { WebsiteProjectOutputFile } from "../website/website.ts";
+
 import { inputTargetIndex } from "../../project-index.ts";
-import { ProjectOutputFile } from "../project-types.ts";
 import { bookConfigRenderItems } from "./book-config.ts";
 import { isMultiFileBookFormat } from "./book-extension.ts";
 
 export async function bookCrossrefsPostRender(
   context: ProjectContext,
   _incremental: boolean,
-  outputFiles: ProjectOutputFile[],
+  outputFiles: WebsiteProjectOutputFile[],
 ) {
   // output dir for the project
   const projOutput = projectOutputDir(context);
@@ -36,13 +41,58 @@ export async function bookCrossrefsPostRender(
   );
   if (crossrefOutputFiles.length > 0) {
     const indexes = await bookCrossrefIndexes(context);
-    console.log(indexes);
 
     for (const outputFile of crossrefOutputFiles) {
-      const index = bookCrossrefIndexForOutputFile(
-        relative(projOutput, outputFile.file),
-        indexes,
-      );
+      // get the appropriate index for this output file
+      const fileRelative = relative(projOutput, outputFile.file);
+      const index = bookCrossrefIndexForOutputFile(fileRelative, indexes);
+      if (index) {
+        // resolve crossrefs
+        resolveCrossrefs(context, fileRelative, outputFile.doc, index);
+      }
+    }
+  }
+}
+
+function resolveCrossrefs(
+  context: ProjectContext,
+  file: string,
+  doc: HTMLDocument,
+  index: BookCrossrefIndex,
+) {
+  // record proj output (all the paths we have are proj output relative)
+  const projOutput = projectOutputDir(context);
+
+  // find all the unresolved crossrefs
+  const refs = doc.querySelectorAll(".quarto-unresolved-ref");
+  for (let i = 0; i < refs.length; i++) {
+    const ref = refs[i] as Element;
+    const id = ref.textContent;
+    const entry = index.entries[id];
+    if (entry) {
+      // update the link to point to the correct output file
+      const parentLink = ref.parentElement;
+      if (
+        file !== entry.file &&
+        parentLink?.tagName === "A" &&
+        parentLink?.getAttribute("href") === `#${id}`
+      ) {
+        const currentFile = join(projOutput, file);
+        const targetFile = join(projOutput, entry.file);
+        const relativeFilePath = pathWithForwardSlashes(
+          relative(dirname(currentFile), targetFile),
+        );
+        parentLink.setAttribute("href", `${relativeFilePath}#${id}`);
+      }
+
+      // determine ref number and set it
+      const refNumber = entry.order.number.toString();
+      const refPrefix = entry.order.section && entry.order.section[0] &&
+          entry.order.section[0] > 0
+        ? entry.order.section[0].toString() + "."
+        : "";
+      ref.innerHTML = refPrefix + refNumber;
+      ref.removeAttribute("class");
     }
   }
 }
@@ -64,7 +114,7 @@ interface BookCrossrefEntry {
   file: string;
   order: {
     number: number;
-    chapter?: number;
+    section?: number[];
   };
 }
 

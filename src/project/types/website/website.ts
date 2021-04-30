@@ -6,6 +6,9 @@
 */
 
 import { join } from "path/mod.ts";
+
+import { DOMParser, HTMLDocument } from "deno_dom/deno-dom-wasm.ts";
+
 import { ProjectContext, projectOffset } from "../../project-context.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { dirAndStem } from "../../../core/path.ts";
@@ -126,13 +129,43 @@ export const websiteProjectType: ProjectType = {
     incremental: boolean,
     outputFiles: ProjectOutputFile[],
   ) => {
-    // update sitemap
-    await updateSitemap(context, outputFiles, incremental);
-
-    // update search index
-    updateSearchIndex(context, outputFiles, incremental);
-
-    // write redirecting index.html if there is none
-    ensureIndexPage(context);
+    await websitePostRender(
+      context,
+      incremental,
+      websiteOutputFiles(outputFiles),
+    );
   },
 };
+
+export interface WebsiteProjectOutputFile extends ProjectOutputFile {
+  doc: HTMLDocument;
+  doctype?: string;
+}
+
+export async function websitePostRender(
+  context: ProjectContext,
+  incremental: boolean,
+  outputFiles: WebsiteProjectOutputFile[],
+) {
+  // update sitemap
+  await updateSitemap(context, outputFiles, incremental);
+
+  // update search index
+  updateSearchIndex(context, outputFiles, incremental);
+
+  // write redirecting index.html if there is none
+  ensureIndexPage(context);
+}
+
+export function websiteOutputFiles(outputFiles: ProjectOutputFile[]) {
+  return outputFiles.map((outputFile) => {
+    const contents = Deno.readTextFileSync(outputFile.file);
+    const doctypeMatch = contents.match(/^<!DOCTYPE.*?>/);
+    const doc = new DOMParser().parseFromString(contents, "text/html")!;
+    return {
+      ...outputFile,
+      doc,
+      doctype: doctypeMatch ? doctypeMatch[0] : undefined,
+    };
+  });
+}
