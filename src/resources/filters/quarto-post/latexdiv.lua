@@ -17,8 +17,8 @@ function latexDiv()
       
       -- if the output format is not latex, remove the attr and return
       if not isLatexOutput() then
-        divEl.attributes['latex'] = nil
-        divEl.attributes['data-latex'] = nil
+        if divEl.attributes['latex'] then divEl.attributes['latex']  = nil end
+        if divEl.attributes['data-latex'] then divEl.attributes['data-latex'] = nil end
         return divEl
       end
       
