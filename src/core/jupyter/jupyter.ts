@@ -357,7 +357,7 @@ export function jupyterAssets(input: string, to?: string) {
     base_dir,
     files_dir: relative(base_dir, files_dir),
     figures_dir: relative(base_dir, figures_dir),
-    supporting_dir: relative(supporting_dir, supporting_dir),
+    supporting_dir: relative(base_dir, supporting_dir),
   };
 }
 
