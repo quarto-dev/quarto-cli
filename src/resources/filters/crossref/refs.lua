@@ -19,8 +19,9 @@ function resolveRefs()
         local upper = not not string.match(cite.id, "^[A-Z]")
         
         -- lookup the label
+        local resolveRefs = param("crossref-resolve-refs", true)
         local entry = crossref.index.entries[label]
-        if entry ~= nil then
+        if entry ~= nil or not resolveRefs then
       
           -- preface with delimiter unless this is citation 1
           if (i > 1) then
@@ -42,15 +43,23 @@ function resolveRefs()
           if isLatexOutput() then
             ref:extend({pandoc.RawInline('latex', '\\ref{' .. label .. '}')})
           else
-            if entry.parent ~= nil then
-              local parentType = refType(entry.parent)
-              local parent = crossref.index.entries[entry.parent]
-              ref:extend(numberOption(parentType,parent.order))
-              ref:extend({pandoc.Space(), pandoc.Str("(")})
-              ref:extend(subrefNumber(entry.order))
-              ref:extend({pandoc.Str(")")})
+            if resolveRefs then
+              if entry.parent ~= nil then
+                local parentType = refType(entry.parent)
+                local parent = crossref.index.entries[entry.parent]
+                ref:extend(numberOption(parentType,parent.order))
+                ref:extend({pandoc.Space(), pandoc.Str("(")})
+                ref:extend(subrefNumber(entry.order))
+                ref:extend({pandoc.Str(")")})
+              else
+                ref:extend(numberOption(type, entry.order))
+              end
             else
-              ref:extend(numberOption(type, entry.order))
+              local refSpan = pandoc.Span(
+                stringToInlines(label), 
+                pandoc.Attr("", {"quarto-unresolved-ref"})
+              )
+              ref:insert(refSpan)
             end
               -- link if requested
             if (refHyperlink()) then

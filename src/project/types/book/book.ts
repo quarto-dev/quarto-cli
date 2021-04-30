@@ -33,7 +33,11 @@ import {
 
 import { ProjectCreate, ProjectType } from "../project-types.ts";
 import { ProjectContext } from "../../project-context.ts";
-import { crossrefIndexForOutputFile } from "../../project-crossrefs.ts";
+import {
+  crossrefIndexForOutputFile,
+  kCrossrefIndexFile,
+  kCrossrefResolveRefs,
+} from "../../project-crossrefs.ts";
 
 import { websiteProjectType } from "../website/website.ts";
 
@@ -42,8 +46,6 @@ import { bookProjectConfig, kBook } from "./book-config.ts";
 
 import { chapterInfoForInput, formatChapterLabel } from "./book-chapters.ts";
 import { isMultiFileBookFormat } from "./book-extension.ts";
-
-const kCrossrefIndexFile = "crossref-index-file";
 
 export const bookProjectType: ProjectType = {
   type: "book",
@@ -104,6 +106,7 @@ export const bookProjectType: ProjectType = {
         [kCrossrefIndexFile]: pandocMetadataPath(
           crossrefIndexForOutputFile(options.project.dir, options.output),
         ),
+        [kCrossrefResolveRefs]: false,
       };
     } else {
       return undefined;
