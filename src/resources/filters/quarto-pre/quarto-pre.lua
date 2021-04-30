@@ -30,7 +30,6 @@ import("filemetadata.lua")
 import("resourcerefs.lua")
 import("book.lua")
 import("meta.lua")
-import("results.lua")
 import("../common/params.lua")
 import("../common/base64.lua")
 import("../common/json.lua")
@@ -55,7 +54,6 @@ return {
     figures(),
   }),
   quartoPreMetaInject(),
-  writeResults()
 }
 
 

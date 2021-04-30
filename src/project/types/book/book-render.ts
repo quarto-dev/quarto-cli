@@ -40,7 +40,7 @@ import { renderCleanup } from "../../../command/render/cleanup.ts";
 
 import { ProjectConfig, ProjectContext } from "../../project-context.ts";
 
-import { BookExtension } from "./book-extension.ts";
+import { BookExtension, isMultiFileBookFormat } from "./book-extension.ts";
 import {
   bookConfig,
   BookConfigKey,
@@ -74,10 +74,9 @@ export function bookPandocRenderer(
 
   return {
     onBeforeExecute: (format: Format) => {
-      const extension = format.extensions?.book as BookExtension;
       return {
         // if we render a file at a time then resolve dependencies immediately
-        resolveDependencies: !!extension.renderFile,
+        resolveDependencies: isMultiFileBookFormat(format),
       };
     },
 
@@ -111,16 +110,13 @@ export function bookPandocRenderer(
           if (executedFiles.length > 0) {
             const format = executedFiles[0].context.format;
 
-            // get the book extension
-            const extension = format.extensions?.book as BookExtension;
-
             // if it has a renderFile method then just do a file at a time
-            if (extension.renderFile) {
+            if (isMultiFileBookFormat(format)) {
               renderedFiles.push(
                 ...(await renderMultiFileBook(
                   project!,
                   options,
-                  extension,
+                  format.extensions?.book as BookExtension,
                   executedFiles,
                 )),
               );
@@ -130,7 +126,6 @@ export function bookPandocRenderer(
                 await renderSingleFileBook(
                   project!,
                   options,
-                  extension,
                   executedFiles,
                 ),
               );
@@ -170,10 +165,7 @@ export async function bookIncrementalRenderAll(
 
     // do any of them have a single-file book extension?
     for (const context of Object.values(contexts)) {
-      const bookExtension = context.format.extensions?.book as
-        | BookExtension
-        | undefined;
-      if (!bookExtension?.renderFile) {
+      if (!isMultiFileBookFormat(context.format)) {
         return true;
       }
     }
@@ -232,7 +224,6 @@ async function renderMultiFileBook(
 async function renderSingleFileBook(
   project: ProjectContext,
   options: RenderOptions,
-  _extension: BookExtension,
   files: ExecutedFile[],
 ): Promise<RenderedFile> {
   // we are going to compose a single ExecutedFile from the array we have been passed

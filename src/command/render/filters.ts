@@ -31,17 +31,17 @@ import { pandocMetadataPath, PandocOptions } from "./pandoc.ts";
 import { removePandocArgs } from "./flags.ts";
 import { ld } from "lodash/mod.ts";
 import { mergeConfigs } from "../../core/config.ts";
+import { kProjectType } from "../../project/project-context.ts";
+import { projectType } from "../../project/types/project-types.ts";
 
 const kQuartoParams = "quarto-params";
 
 const kProjectOffset = "project-offset";
-const kResultsFile = "results-file";
 
 export function filterParamsJson(
   args: string[],
   options: PandocOptions,
   defaults: FormatPandoc | undefined,
-  resultsFile: string,
 ) {
   // extract include params (possibly mutating it's arguments)
   const includes = extractIncludeParams(
@@ -56,7 +56,6 @@ export function filterParamsJson(
     ...quartoFilterParams(options.format),
     ...crossrefFilterParams(options),
     ...layoutFilterParams(options.format),
-    [kResultsFile]: pandocMetadataPath(resultsFile),
   };
 
   return JSON.stringify(params);
@@ -151,12 +150,21 @@ function extractIncludeVariables(obj: { [key: string]: unknown }) {
 }
 
 function projectFilterParams(options: PandocOptions) {
+  // see if the project wants to provide any filter params
+  const projType = projectType(
+    options.project?.config?.project?.[kProjectType],
+  );
+  const params =
+    ((projType.filterParams ? projType.filterParams(options) : undefined) ||
+      {}) as Metadata;
+
   if (options.offset) {
     return {
+      ...params,
       [kProjectOffset]: options.offset,
     };
   } else {
-    return {};
+    return params;
   }
 }
 

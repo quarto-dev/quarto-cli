@@ -7,8 +7,10 @@
 
 import { PandocFlags } from "../../config/flags.ts";
 import { Format, FormatExtras } from "../../config/format.ts";
+import { Metadata } from "../../config/metadata.ts";
 
 import { PandocRenderer, RenderOptions } from "../../command/render/render.ts";
+import { PandocOptions } from "../../command/render/pandoc.ts";
 
 import { ProjectConfig, ProjectContext } from "../project-context.ts";
 
@@ -35,6 +37,7 @@ export interface ProjectType {
   projectFormatsOnly?: boolean;
   isSupportedFormat?: (format: Format) => boolean;
   metadataFields?: () => Array<string | RegExp>;
+  filterParams?: (options: PandocOptions) => Metadata | undefined;
   resourceIgnoreFields?: () => string[];
   navItemText?: (
     context: ProjectContext,

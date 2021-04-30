@@ -57,5 +57,6 @@ return {
   }),
   resolveRefs(),
   crossrefMetaInject(),
+  writeIndex()
 }
 

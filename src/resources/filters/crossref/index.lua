@@ -72,3 +72,46 @@ end
 function indexHasElement(el)
   return crossref.index.entries[el.attr.identifier] ~= nil
 end
+
+
+-- filter to write the index
+function writeIndex()
+  return {
+    Pandoc = function(doc)
+      local indexFile = param("crossref-index-file")
+      if indexFile ~= nil then
+        -- create an index data structure to serialize for this file 
+        local index = {
+          entries = pandoc.List:new()
+        }
+        -- add options if we have them
+        if next(crossref.options) then
+          index.options = crossref.options
+        end
+        for k,v in pairs(crossref.index.entries) do
+          -- create entry 
+          local entry = {
+            key = k,
+            parent = v.parent,
+            order = {
+              number = v.order.order,
+            }
+          }
+          -- add section if we have one
+          if v.order.section ~= nil and v.order.section[1] > 0 then
+            entry.order.chapter = v.order.section[1]
+          end
+          -- add entry
+          index.entries:insert(entry)
+        end
+       
+        -- write the index
+        local json = jsonEncode(index)
+        local file = io.open(indexFile, "w")
+        file:write(json)
+        file:close()
+        
+      end
+    end
+  }
+end

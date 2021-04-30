@@ -258,8 +258,7 @@ export async function runPandoc(
     delete options.format.metadata[kTitlePrefix];
   }
 
-  // create a temp file for any filter results
-  const filterResultsFile = sessionTempFile();
+  // determine path to crossref file
 
   // set parameters required for filters (possibily mutating all of it's arguments
   // to pull includes out into quarto parameters so they can be merged)
@@ -267,7 +266,6 @@ export async function runPandoc(
     args,
     options,
     allDefaults,
-    filterResultsFile,
   );
 
   // write the defaults file
@@ -349,16 +347,6 @@ export async function runPandoc(
       globs.push(String(files));
     }
   }
-
-  // process filter results (currently there are none)
-  /*
-  if (existsSync(filterResultsFile)) {
-    const filterResultsJSON = Deno.readTextFileSync(filterResultsFile);
-    if (filterResultsJSON.trim().length > 0) {
-      const filterResults = JSON.parse(filterResultsJSON);
-    }
-  }
-  */
 
   if (result.success) {
     return {
