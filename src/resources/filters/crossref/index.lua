@@ -86,7 +86,18 @@ function writeIndex()
         }
         -- add options if we have them
         if next(crossref.options) then
-          index.options = crossref.options
+          index.options = {}
+          for k,v in pairs(crossref.options) do
+            if type(v) == "table" then
+              if tisarray(v) then
+                index.options[k] = v:map(function(item) return pandoc.utils.stringify(item) end)
+              else
+                index.options[k] = pandoc.utils.stringify(v)
+              end
+            else
+              index.options[k] = v
+            end
+          end
         end
         for k,v in pairs(crossref.index.entries) do
           -- create entry 

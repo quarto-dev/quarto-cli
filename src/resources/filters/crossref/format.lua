@@ -148,7 +148,7 @@ function numberOption(type, order, default)
 
     -- select an index based upon the num, wrapping it around
     local entryIndex = (num - 1) % entryCount + 1
-    local option = styleRaw[entryIndex]
+    local option = styleRaw[entryIndex]:clone()
     if section then
       tprepend(option, { pandoc.Str(tostring(section[1]) .. ".") })
     end

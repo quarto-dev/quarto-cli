@@ -24,6 +24,17 @@ function tslice(t, first, last, step)
   return sliced
 end
 
+-- is the table a simple array?
+-- see: https://web.archive.org/web/20140227143701/http://ericjmritz.name/2014/02/26/lua-is_array/
+function tisarray(t)
+  local i = 0
+  for _ in pairs(t) do
+      i = i + 1
+      if t[i] == nil then return false end
+  end
+  return true
+end
+
 -- does the table contain a value
 function tcontains(t,value)
   if t and type(t)=="table" and value then
