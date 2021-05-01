@@ -130,6 +130,7 @@ export function bookPandocRenderer(
                 await renderSingleFileBook(
                   project!,
                   options,
+                  format.extensions?.book as BookExtension,
                   executedFiles,
                 ),
               );
@@ -251,6 +252,7 @@ async function renderMultiFileBook(
 async function renderSingleFileBook(
   project: ProjectContext,
   options: RenderOptions,
+  extension: BookExtension,
   files: ExecutedFile[],
 ): Promise<RenderedFile> {
   // we are going to compose a single ExecutedFile from the array we have been passed
@@ -276,6 +278,11 @@ async function renderSingleFileBook(
       join(project.dir, renderedFile.file),
     );
   });
+
+  // call book extension if applicable
+  if (extension.onSingleFileRendered) {
+    extension.onSingleFileRendered(project, renderedFile);
+  }
 
   // return rendered file
   return renderedFile;

@@ -9,6 +9,7 @@ import { join, normalize } from "path/mod.ts";
 
 import { writeFileToStdout } from "../../../core/console.ts";
 import { dirAndStem, expandPath } from "../../../core/path.ts";
+import { texSafeFilename } from "../../../core/tex.ts";
 
 import {
   kKeepTex,
@@ -79,7 +80,7 @@ export function quartoLatexmkOutputRecipe(
 
   // there are many characters that give tex trouble in filenames, create
   // a target stem that replaces them with the '-' character
-  const texStem = inputStem.replaceAll(/[ <>()|\:&;#?*']/g, "-");
+  const texStem = texSafeFilename(inputStem);
 
   // cacluate output and args for pandoc (this is an intermediate file
   // which we will then compile to a pdf and rename to .tex)
