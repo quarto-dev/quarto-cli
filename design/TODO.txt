@@ -15,16 +15,19 @@ TODO: centralized _cache dir for projects (alongside _freeze)
 Books
 =========================================================================
 
+TODO: latexmk output recipe doesn't work quite right with books
+      when book is rendered from outside the book dir (e.g. 
+      quarto render mybook). when addressing this also ensure that
+      the onSingleFileRenderComplete for pdf books works correctly
 
-TODO: test out various crossref formatting options
+TODO: quarto serve doesn't trigger re-render with updated _quarto.yml options (e.g. crossref)
+      seems like it should be rendering markdown at least and reflecting the option
 
-TODO: yihui don't implement yaml in chunk yet
+TODO: website/book file render progress
 
 TODO: downlit integration
 
-TODO: keep-tex file shouldn't be index.tex
 
-TODO: website/book file render progress
 
 admonitions
 - responsive images only for bootstrap
