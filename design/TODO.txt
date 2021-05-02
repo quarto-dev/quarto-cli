@@ -23,7 +23,16 @@ TODO: latexmk output recipe doesn't work quite right with books
 TODO: quarto serve doesn't trigger re-render with updated _quarto.yml options (e.g. crossref)
       seems like it should be rendering markdown at least and reflecting the option
 
-TODO: website/book file render progress
+      the problem is that any config that affects pandoc rendering (either at a 
+      project level or file level) has been saved in the freezer so isn't 
+      reflected in a pandoc only render from the freezer. freezer renders could
+      consider re-merging pandoc/metadata options?
+
+TODO: website/book file render progress. we could probably pull actual pandoc rendering
+      back into onRender for multi-file books (all it actually does is compute
+      chapter number and deal with title/heading partitioning). note we still have
+      the logic that turns an incremental render into a 'render all' and that seems
+      to apply for html book output, should it?
 
 TODO: downlit integration
 
