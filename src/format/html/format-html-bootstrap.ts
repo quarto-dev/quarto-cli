@@ -12,7 +12,6 @@ import { renderEjs } from "../../core/ejs.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 
 import {
-  kFilters,
   kHtmlMathMethod,
   kLinkCitations,
   kSectionDivs,

@@ -74,14 +74,21 @@ import { resolveResourceRefs } from "./website-resources.ts";
 
 import {
   kSiteNavbar,
+  kSitePageNavigation,
   kSiteSidebar,
   websiteConfig,
   websiteTitle,
 } from "./website-config.ts";
 
+interface NavigationItem {
+  text?: string;
+  href?: string;
+}
+
 interface Navigation {
   navbar?: Navbar;
   sidebars: Sidebar[];
+  pageNavigation?: boolean;
 }
 
 // static navigation (initialized during project preRender)
@@ -91,8 +98,8 @@ const navigation: Navigation = {
 
 export async function initWebsiteNavigation(project: ProjectContext) {
   // read config
-  const { navbar, sidebars } = websiteNavigationConfig(project);
-  if (!navbar && !sidebars) {
+  const { navbar, sidebars, pageNavigation } = websiteNavigationConfig(project);
+  if (!navbar && !sidebars && !pageNavigation) {
     return;
   }
 
@@ -113,6 +120,7 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   // resolve nav references
   navigation.navbar = resolveNavReferences(navigation.navbar) as Navbar;
   navigation.sidebars = resolveNavReferences(navigation.sidebars) as Sidebar[];
+  navigation.pageNavigation = pageNavigation;
 }
 
 export function websiteNavigationConfig(project: ProjectContext) {
@@ -131,8 +139,11 @@ export function websiteNavigationConfig(project: ProjectContext) {
       ? [sidebar]
       : undefined) as Sidebar[] | undefined;
 
+  // read the page navigation
+  const pageNavigation = !!websiteConfig(kSitePageNavigation, project.config);
+
   // return
-  return { navbar, sidebars };
+  return { navbar, sidebars, pageNavigation };
 }
 
 export function websiteNavigationExtras(
@@ -158,14 +169,19 @@ export function websiteNavigationExtras(
     sassBundles.push(websiteSearchSassBundle());
   }
 
+  // Determine the previous and next page
+
   // determine body envelope
   const href = inputFileHref(inputRelative);
+  const sidebar = sidebarForHref(href);
   const nav = {
     toc: hasTableOfContents(flags, format),
     layout: format.metadata[kPageLayout] !== "none",
     navbar: navigation.navbar,
-    sidebar: expandedSidebar(href, sidebarForHref(href)),
+    sidebar: expandedSidebar(href, sidebar),
+    ...nextAndPrevious(href, sidebar),
   };
+
   const projTemplate = (template: string) =>
     resourcePath(`projects/website/templates/${template}`);
   const bodyEnvelope = {
@@ -449,6 +465,40 @@ function expandedSidebar(href: string, sidebar?: Sidebar): Sidebar | undefined {
     const expandedSidebar = ld.cloneDeep(sidebar);
     resolveExpandedItems(href, expandedSidebar.contents);
     return expandedSidebar;
+  }
+}
+
+function flattenItems(sidebarItems: SidebarItem[]): SidebarItem[] {
+  const items: SidebarItem[] = [];
+  const flatten = (sidebarItem: SidebarItem) => {
+    if (sidebarItem.href) {
+      items.push(sidebarItem);
+    }
+    if (sidebarItem.contents) {
+      items.push(...flattenItems(sidebarItem.contents));
+    }
+  };
+  sidebarItems.forEach(flatten);
+  return items;
+}
+
+function nextAndPrevious(
+  href: string,
+  sidebar?: Sidebar,
+): { prevPage?: SidebarItem; nextPage?: SidebarItem } {
+  if (sidebar?.contents) {
+    const sidebarItems = flattenItems(sidebar?.contents);
+    const index = sidebarItems.findIndex((item) => item.href === href);
+    return {
+      nextPage: index > -1 && index < sidebarItems.length - 1
+        ? sidebarItems[index + 1]
+        : undefined,
+      prevPage: index > 0 && index < sidebarItems.length
+        ? sidebarItems[index - 1]
+        : undefined,
+    };
+  } else {
+    return {};
   }
 }
 

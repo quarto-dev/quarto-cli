@@ -19,6 +19,7 @@ export const kSiteBaseUrl = "base-url";
 
 export const kSiteNavbar = "navbar";
 export const kSiteSidebar = "sidebar";
+export const kSitePageNavigation = "page-navigation";
 
 export const kContents = "contents";
 
@@ -27,10 +28,11 @@ export interface WebsiteConfig {
   [kSiteBaseUrl]?: string;
   [kSiteNavbar]?: string;
   [kSiteSidebar]?: string;
+  [kSitePageNavigation]?: boolean;
 }
 
 export function websiteConfig(
-  name: "title" | "base-url" | "navbar" | "sidebar",
+  name: "title" | "base-url" | "navbar" | "sidebar" | "page-navigation",
   project?: ProjectConfig,
 ) {
   const site = project?.[kSite] as
