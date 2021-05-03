@@ -192,3 +192,31 @@ header.headroom--unpinned {
 .btn:focus:not(:focus-visible) {
   box-shadow: none;
 }
+
+.nav-page-next {
+  display: inline-block;
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  text-align: right;
+}
+
+.nav-page-previous {
+  display: inline-block;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+}
+
+.nav-page {
+  font-size: 2rem;
+}
+
+.nav-page a {
+  color: $input-border-color;
+}
+
+.nav-page a:hover {
+  color: $link-hover-color;
+}
+
