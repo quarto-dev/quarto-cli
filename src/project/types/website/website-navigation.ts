@@ -169,18 +169,22 @@ export function websiteNavigationExtras(
     sassBundles.push(websiteSearchSassBundle());
   }
 
-  // Determine the previous and next page
-
   // determine body envelope
   const href = inputFileHref(inputRelative);
   const sidebar = sidebarForHref(href);
-  const nav = {
+  const nav: Record<string, unknown> = {
     toc: hasTableOfContents(flags, format),
     layout: format.metadata[kPageLayout] !== "none",
     navbar: navigation.navbar,
     sidebar: expandedSidebar(href, sidebar),
-    ...nextAndPrevious(href, sidebar),
   };
+
+  // Determine the previous and next page
+  if (navigation.pageNavigation) {
+    const pageNavigation = nextAndPrevious(href, sidebar);
+    nav.prevPage = pageNavigation.prevPage;
+    nav.nextPage = pageNavigation.nextPage;
+  }
 
   const projTemplate = (template: string) =>
     resourcePath(`projects/website/templates/${template}`);
