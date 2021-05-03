@@ -12,6 +12,7 @@ import { DOMParser, HTMLDocument } from "deno_dom/deno-dom-wasm.ts";
 import { ProjectContext, projectOffset } from "../../project-context.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { dirAndStem } from "../../../core/path.ts";
+import { isHtmlContent } from "../../../core/mime.ts";
 
 import {
   ProjectCreate,
@@ -160,7 +161,7 @@ export async function websitePostRender(
 export function websiteOutputFiles(outputFiles: ProjectOutputFile[]) {
   return outputFiles
     .filter((outputFile) => {
-      isHtmlOutput(outputFile.file);
+      return isHtmlContent(outputFile.file);
     })
     .map((outputFile) => {
       const contents = Deno.readTextFileSync(outputFile.file);

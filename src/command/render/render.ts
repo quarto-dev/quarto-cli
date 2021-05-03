@@ -235,18 +235,12 @@ export async function renderFiles(
         info(relative(project!.dir, file), { indent: 2 });
       }
 
-      // make a copy of options (since we mutate it)
-      let fileOptions = ld.cloneDeep(options) as RenderOptions;
-
       // get contexts
       const contexts = await renderContexts(
         file,
-        fileOptions,
+        options,
         project,
       );
-
-      // remove --to (it's been resolved into contexts)
-      fileOptions = removePandocTo(fileOptions);
 
       for (const format of Object.keys(contexts)) {
         const context = contexts[format];
@@ -292,6 +286,9 @@ export async function renderContexts(
   options: RenderOptions,
   project?: ProjectContext,
 ): Promise<Record<string, RenderContext>> {
+  // clone options (b/c we will modify them)
+  options = ld.cloneDeep(options) as RenderOptions;
+
   // determine the computation engine and any alternate input file
   const engine = await fileExecutionEngine(file);
   if (!engine) {
@@ -305,6 +302,9 @@ export async function renderContexts(
 
   // resolve render target
   const formats = await resolveFormats(target, engine, options.flags, project);
+
+  // remove --to (it's been resolved into contexts)
+  options = removePandocTo(options);
 
   // see if there is a libDir
   let libDir = project?.config?.project[kProjectLibDir];
