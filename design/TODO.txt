@@ -15,11 +15,6 @@ TODO: centralized _cache dir for projects (alongside _freeze)
 Books
 =========================================================================
 
-TODO: latexmk output recipe doesn't work quite right with books
-      when book is rendered from outside the book dir (e.g. 
-      quarto render mybook). when addressing this also ensure that
-      the onSingleFileRenderComplete for pdf books works correctly
-
 TODO: quarto serve doesn't trigger re-render with updated _quarto.yml options (e.g. crossref)
       seems like it should be rendering markdown at least and reflecting the option
 
@@ -29,11 +24,6 @@ TODO: quarto serve doesn't trigger re-render with updated _quarto.yml options (e
       consider re-merging pandoc/metadata options?
 
 TODO: downlit integration
-
-
-
-admonitions
-- responsive images only for bootstrap
 
 footer
 
