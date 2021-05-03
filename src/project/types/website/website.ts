@@ -158,14 +158,18 @@ export async function websitePostRender(
 }
 
 export function websiteOutputFiles(outputFiles: ProjectOutputFile[]) {
-  return outputFiles.map((outputFile) => {
-    const contents = Deno.readTextFileSync(outputFile.file);
-    const doctypeMatch = contents.match(/^<!DOCTYPE.*?>/);
-    const doc = new DOMParser().parseFromString(contents, "text/html")!;
-    return {
-      ...outputFile,
-      doc,
-      doctype: doctypeMatch ? doctypeMatch[0] : undefined,
-    };
-  });
+  return outputFiles
+    .filter((outputFile) => {
+      isHtmlOutput(outputFile.file);
+    })
+    .map((outputFile) => {
+      const contents = Deno.readTextFileSync(outputFile.file);
+      const doctypeMatch = contents.match(/^<!DOCTYPE.*?>/);
+      const doc = new DOMParser().parseFromString(contents, "text/html")!;
+      return {
+        ...outputFile,
+        doc,
+        doctype: doctypeMatch ? doctypeMatch[0] : undefined,
+      };
+    });
 }
