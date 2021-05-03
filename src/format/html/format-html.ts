@@ -16,6 +16,7 @@ import { sessionTempFile } from "../../core/temp.ts";
 import { asCssSize } from "../../core/css.ts";
 
 import {
+  kFilterParams,
   kHeaderIncludes,
   kIncludeAfterBody,
   kIncludeInHeader,
@@ -62,9 +63,11 @@ export function htmlFormat(
     createHtmlFormat(figwidth, figheight),
     {
       formatExtras: (flags: PandocFlags, format: Format) => {
+        const htmlFilterParams = htmlFormatFilterParams(format);
         return mergeConfigs(
           htmlFormatExtras(format),
           themeFormatExtras(flags, format),
+          { [kFilterParams]: htmlFilterParams },
         );
       },
       extensions: {
@@ -74,6 +77,13 @@ export function htmlFormat(
       },
     },
   );
+}
+
+const kFormatHasBootstrap = "has-bootstrap";
+function htmlFormatFilterParams(format: Format) {
+  return {
+    [kFormatHasBootstrap]: formatHasBootstrap(format),
+  };
 }
 
 export function htmlFormatPostprocessor(format: Format) {

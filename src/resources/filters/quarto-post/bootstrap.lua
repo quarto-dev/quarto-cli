@@ -1,12 +1,11 @@
 -- bootstrap.lua
 -- Copyright (C) 2021 by RStudio, PBC
 
-
 function bootstrap() 
   return {
     -- make images responsive (unless they have an explicit height attribute)
     Image = function(image)
-      if isHtmlOutput() and isBootstrap() then
+      if isHtmlOutput() and hasBootstrap() then
         if not image.attr.attributes["height"] then
           image.attr.classes:insert("img-fluid")
           return image
@@ -16,9 +15,9 @@ function bootstrap()
   }
 end
 
-function isBootstrap() 
-  -- TODO: This should only be called for bootstrap
-  return true
+function hasBootstrap() 
+  local hasBootstrap = param("has-bootstrap", false)
+  return hasBootstrap
 end
 
 
