@@ -193,30 +193,55 @@ header.headroom--unpinned {
   box-shadow: none;
 }
 
+.page-navigation-anchored {
+  border-top: 1px solid $input-border-color;
+}
+
 .nav-page-next {
-  display: inline-block;
-  position: fixed;
-  bottom: 0;
-  right: 0;
   text-align: right;
 }
 
-.nav-page-previous {
-  display: inline-block;
-  position: fixed;
-  bottom: 0;
-  left: 0;
+.nav-page {
+  display: flex;
+  align-items: center;
 }
 
-.nav-page {
-  font-size: 2rem;
+.nav-page-next {
+  justify-content: flex-end;
+}
+
+.nav-page-text-container {
+  display: flex;
+  flex-direction: column;
+  padding-left: .5em;
+  padding-right: .5em;
+}
+
+.nav-page .nav-page-action {
+  font-size: .9em;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  color: $text-muted;
+  margin-bottom: -.5em;
+}
+
+.nav-page .nav-page-arrow {
+  font-size: 2.5em;
+  color: $text-muted;
+}
+
+.nav-page .nav-page-text {
+  font-size: 1.2em;
+  padding-top: 0px;
+  padding-bottom: 0px;
 }
 
 .nav-page a {
-  color: $input-border-color;
+  color: $text-muted;
 }
 
 .nav-page a:hover {
   color: $link-hover-color;
 }
+
 

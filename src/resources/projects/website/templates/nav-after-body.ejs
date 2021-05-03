@@ -12,23 +12,43 @@
 
 </div> <!-- /row -->
 
-<div class="row">
+<div class="row page-navigation page-navigation-<%- nav.sidebar.style %>">
 
-<% if (nav.prevPage) { %>
   <div class="nav-page nav-page-previous col col-6">
-    <a href="<%- nav.prevPage.href %>" title="<%- nav.prevPage.text %>">
-      <i class="bi bi-arrow-left-short"></i>
-    </a>
+    <% if (nav.prevPage) { %>
+      <div class="nav-page-arrow">
+        <a  href="<%- nav.prevPage.href %>">
+          <i class="bi bi-arrow-left-short"></i>
+        </a>          
+      </div>
+      <div class="nav-page-text-container">
+        <div class="nav-page-action">Previous</div>
+        <div class="nav-page-text">
+            <a  href="<%- nav.prevPage.href %>">
+              <%- nav.prevPage.text %>
+            </a>
+        </div>
+      </div>
+    <% } %>
   </div>
-<% } %>
 
-<% if (nav.nextPage) { %>
   <div class="nav-page nav-page-next col col-6">
-    <a  href="<%- nav.nextPage.href %>" title="<%- nav.nextPage.text %>">
-      <i class="bi bi-arrow-right-short"></i>
-    </a>
+    <% if (nav.nextPage) { %>
+      <div class="nav-page-text-container">
+        <div class="nav-page-action">Next</div>
+        <div class="nav-page-text">
+            <a  href="<%- nav.nextPage.href %>">
+              <%- nav.nextPage.text %>
+            </a>
+        </div>
+      </div>
+      <div class="nav-page-arrow">
+        <a  href="<%- nav.nextPage.href %>">
+          <i class="bi bi-arrow-right-short"></i>
+        </a>          
+      </div>
+    <% } %>
   </div>
-<% } %>
 
 </div>
 

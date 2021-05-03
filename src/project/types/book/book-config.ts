@@ -70,9 +70,7 @@ export async function bookProjectConfig(
     site[kSiteBaseUrl] = book[kSiteBaseUrl];
     site[kSiteNavbar] = book[kSiteNavbar];
     site[kSiteSidebar] = book[kSiteSidebar];
-    site[kSitePageNavigation] = book[kSitePageNavigation] !== undefined
-      ? book[kSitePageNavigation]
-      : true;
+    site[kSitePageNavigation] = book[kSitePageNavigation] !== false;
   }
 
   // if we have a top-level 'contents' or 'appendix' fields fold into sidebar
