@@ -60,17 +60,21 @@ import { bookCrossrefsPostRender } from "./book-crossrefs.ts";
 
 export function bookPandocRenderer(
   options: RenderOptions,
-  project?: ProjectContext,
+  project: ProjectContext,
 ) {
-  // accumulate executed files for all formats
-  const files: Record<string, ExecutedFile[]> = {};
+  // rendered files to return. some formats need to end up returning all of the individual
+  // renderedFiles (e.g. html or asciidoc) and some formats will consolidate all of their
+  // files into a single one (e.g. pdf or epub)
+  const renderedFiles: RenderedFile[] = [];
+
+  // accumulate executed files for formats that need deferred rendering
+  const executedFiles: Record<string, ExecutedFile[]> = {};
 
   // function to cleanup any files that haven't gone all the way
   // through the rendering pipeline
   const cleanupExecutedFiles = () => {
-    for (const format of Object.keys(files)) {
-      const executedFiles = files[format];
-      executedFiles.forEach((executedFile) => {
+    for (const format of Object.keys(executedFiles)) {
+      executedFiles[format].forEach((executedFile) => {
         cleanupExecutedFile(
           executedFile,
           executedFile.recipe.output,
@@ -87,17 +91,51 @@ export function bookPandocRenderer(
       };
     },
 
-    onRender: (format: string, file: ExecutedFile) => {
-      files[format] = files[format] || [];
-      files[format].push(file);
-      return Promise.resolve();
+    onRender: async (format: string, file: ExecutedFile) => {
+      // render immediately for multi-file book formats (with appropriate
+      // handling of titles, headings, etc.)
+      if (isMultiFileBookFormat(file.context.format)) {
+        const partitioned = partitionMarkdown(file.executeResult.markdown);
+        const fileRelative = relative(project.dir, file.context.target.source);
+
+        // index file
+        if (isBookIndexPage(fileRelative)) {
+          file.recipe.format = withBookTitleMetadata(
+            file.recipe.format,
+            project.config,
+          );
+          file.recipe.format.metadata[kToc] = false;
+          file.recipe.format.pandoc[kNumberSections] = false;
+          // other files
+        } else {
+          // since this could be an incremental render we need to compute the chapter number
+          const chapterInfo = isHtmlOutput(file.recipe.format.pandoc)
+            ? chapterInfoForInput(project, fileRelative)
+            : undefined;
+
+          // provide title metadata
+          if (partitioned.headingText) {
+            file.recipe.format = withChapterMetadata(
+              file.recipe.format,
+              partitioned,
+              chapterInfo,
+            );
+          }
+
+          // provide markdown
+          file.executeResult.markdown = partitioned.markdown;
+        }
+
+        // perform the render
+        renderedFiles.push(await renderPandoc(file));
+
+        // accumulate executed files for single file formats
+      } else {
+        executedFiles[format] = executedFiles[format] || [];
+        executedFiles[format].push(file);
+      }
     },
     onComplete: async (error?: boolean) => {
-      // rendered files to return. some formats need to end up returning all of the individual
-      // renderedFiles (e.g. html or asciidoc) and some formats will consolidate all of their
-      // files into a single one (e.g. pdf or epub)
-      const renderedFiles: RenderedFile[] = [];
-
       // if there was an error during execution then cleanup any
       // executed files we've accumulated and return no rendered files
       if (error) {
@@ -107,39 +145,32 @@ export function bookPandocRenderer(
         };
       }
 
+      // handle executed files
       try {
-        const renderFormats = Object.keys(files);
+        const renderFormats = Object.keys(executedFiles);
         for (const renderFormat of renderFormats) {
           // get files
-          const executedFiles = files[renderFormat];
+          const files = executedFiles[renderFormat];
 
           // determine the format from the first file
-          if (executedFiles.length > 0) {
-            const format = executedFiles[0].context.format;
+          if (files.length > 0) {
+            const format = files[0].context.format;
 
-            // if it has a renderFile method then just do a file at a time
-            if (isMultiFileBookFormat(format)) {
-              renderedFiles.push(
-                ...(await renderMultiFileBook(
-                  project!,
-                  options,
-                  executedFiles,
-                )),
-              );
-              // otherwise render the entire book
-            } else {
+            // if it's not a multi-file book then we need to render from the
+            // accumulated exected files
+            if (!isMultiFileBookFormat(format)) {
               renderedFiles.push(
                 await renderSingleFileBook(
                   project!,
                   options,
-                  executedFiles,
+                  files,
                 ),
               );
             }
           }
 
           // remove the rendered files (indicating they have already been cleaned up)
-          delete files[renderFormat];
+          delete executedFiles[renderFormat];
         }
 
         return {
@@ -154,99 +185,6 @@ export function bookPandocRenderer(
       }
     },
   };
-}
-
-export async function bookPostRender(
-  context: ProjectContext,
-  incremental: boolean,
-  outputFiles: ProjectOutputFile[],
-) {
-  // read the dom of each file
-  const websiteFiles = websiteOutputFiles(outputFiles);
-
-  // run crossrefs
-  await bookCrossrefsPostRender(context, incremental, websiteFiles);
-
-  // run standard website stuff (search, etc.)
-  await websitePostRender(context, incremental, websiteFiles);
-
-  // write website files
-  websiteFiles.forEach((websiteFile) => {
-    const doctype = websiteFile.doctype;
-    const htmlOutput = (doctype ? doctype + "\n" : "") +
-      websiteFile.doc.documentElement?.outerHTML!;
-    Deno.writeTextFileSync(websiteFile.file, htmlOutput);
-  });
-}
-
-export async function bookIncrementalRenderAll(
-  context: ProjectContext,
-  options: RenderOptions,
-  files: string[],
-) {
-  for (let i = 0; i < files.length; i++) {
-    // get contexts (formats)
-    const contexts = await renderContexts(
-      files[i],
-      options,
-      context,
-    );
-
-    // do any of them have a single-file book extension?
-    for (const context of Object.values(contexts)) {
-      if (!isMultiFileBookFormat(context.format)) {
-        return true;
-      }
-    }
-  }
-  // no single-file book extensions found
-  return false;
-}
-
-async function renderMultiFileBook(
-  project: ProjectContext,
-  _options: RenderOptions,
-  files: ExecutedFile[],
-): Promise<RenderedFile[]> {
-  const renderedFiles: RenderedFile[] = [];
-
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    const partitioned = partitionMarkdown(file.executeResult.markdown);
-    const fileRelative = relative(project.dir, file.context.target.source);
-
-    // index file
-    if (isBookIndexPage(fileRelative)) {
-      file.recipe.format = withBookTitleMetadata(
-        file.recipe.format,
-        project.config,
-      );
-      file.recipe.format.metadata[kToc] = false;
-      file.recipe.format.pandoc[kNumberSections] = false;
-      // other files
-    } else {
-      // since this could be an incremental render we need to compute the chapter number
-      const chapterInfo = isHtmlOutput(file.recipe.format.pandoc)
-        ? chapterInfoForInput(project, fileRelative)
-        : undefined;
-
-      // provide title metadata
-      if (partitioned.headingText) {
-        file.recipe.format = withChapterMetadata(
-          file.recipe.format,
-          partitioned,
-          chapterInfo,
-        );
-      }
-
-      // provide markdown
-      file.executeResult.markdown = partitioned.markdown;
-    }
-
-    renderedFiles.push(await renderPandoc(file));
-  }
-
-  return renderedFiles;
 }
 
 async function renderSingleFileBook(
@@ -283,19 +221,6 @@ async function renderSingleFileBook(
 
   // return rendered file
   return renderedFile;
-}
-
-function cleanupExecutedFile(
-  file: ExecutedFile,
-  finalOutput: string,
-) {
-  renderCleanup(
-    file.context.target.input,
-    finalOutput,
-    file.recipe.format,
-    file.executeResult.supporting,
-    file.context.engine.keepMd(file.context.target.input),
-  );
 }
 
 async function mergeExecutedFiles(
@@ -410,6 +335,66 @@ async function mergeExecutedFiles(
       preserve,
     },
   });
+}
+
+export async function bookPostRender(
+  context: ProjectContext,
+  incremental: boolean,
+  outputFiles: ProjectOutputFile[],
+) {
+  // read the dom of each file
+  const websiteFiles = websiteOutputFiles(outputFiles);
+
+  // run crossrefs
+  await bookCrossrefsPostRender(context, incremental, websiteFiles);
+
+  // run standard website stuff (search, etc.)
+  await websitePostRender(context, incremental, websiteFiles);
+
+  // write website files
+  websiteFiles.forEach((websiteFile) => {
+    const doctype = websiteFile.doctype;
+    const htmlOutput = (doctype ? doctype + "\n" : "") +
+      websiteFile.doc.documentElement?.outerHTML!;
+    Deno.writeTextFileSync(websiteFile.file, htmlOutput);
+  });
+}
+
+export async function bookIncrementalRenderAll(
+  context: ProjectContext,
+  options: RenderOptions,
+  files: string[],
+) {
+  for (let i = 0; i < files.length; i++) {
+    // get contexts (formats)
+    const contexts = await renderContexts(
+      files[i],
+      options,
+      context,
+    );
+
+    // do any of them have a single-file book extension?
+    for (const context of Object.values(contexts)) {
+      if (!isMultiFileBookFormat(context.format)) {
+        return true;
+      }
+    }
+  }
+  // no single-file book extensions found
+  return false;
+}
+
+function cleanupExecutedFile(
+  file: ExecutedFile,
+  finalOutput: string,
+) {
+  renderCleanup(
+    file.context.target.input,
+    finalOutput,
+    file.recipe.format,
+    file.executeResult.supporting,
+    file.context.engine.keepMd(file.context.target.input),
+  );
 }
 
 function bookItemMetadata(

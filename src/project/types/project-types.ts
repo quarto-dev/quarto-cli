@@ -52,7 +52,7 @@ export interface ProjectType {
   preRender?: (context: ProjectContext) => Promise<void>;
   pandocRenderer?: (
     options: RenderOptions,
-    context?: ProjectContext,
+    context: ProjectContext,
   ) => PandocRenderer;
   postRender?: (
     context: ProjectContext,
