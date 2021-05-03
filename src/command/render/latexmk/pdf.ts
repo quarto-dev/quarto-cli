@@ -114,7 +114,7 @@ export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {
 
   return mkOptions.outputDir
     ? join(mkOptions.outputDir, stem + ".pdf")
-    : join(stem + ".pdf");
+    : join(cwd, stem + ".pdf");
 }
 
 // The first pass compilation of the latex with the ability to discover
