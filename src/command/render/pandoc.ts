@@ -52,6 +52,7 @@ import {
 } from "./defaults.ts";
 import { filterParamsJson, removeFilterParmas } from "./filters.ts";
 import {
+  kFilterParams,
   kHighlightStyle,
   kIncludeAfterBody,
   kIncludeBeforeBody,
@@ -132,6 +133,9 @@ export async function runPandoc(
   // generate defaults and capture defaults to be printed
   let allDefaults = await generateDefaults(options) || {};
   const printAllDefaults = allDefaults ? ld.cloneDeep(allDefaults) : undefined;
+
+  // capture any filterParams in the FormatExtras
+  const formatFilterParams = {} as Record<string, unknown>;
 
   // see if there are extras
   const htmlPostprocessors: Array<(doc: Document) => Promise<string[]>> = [];
@@ -233,6 +237,14 @@ export async function runPandoc(
 
     // make the filter paths windows safe
     allDefaults.filters = allDefaults.filters.map(pandocMetadataPath);
+
+    // Capture any format filter params
+    const filterParams = extras[kFilterParams];
+    if (filterParams) {
+      Object.keys(filterParams).forEach((key) => {
+        formatFilterParams[key] = filterParams[key];
+      });
+    }
   }
 
   // resolve some title variables
@@ -266,6 +278,7 @@ export async function runPandoc(
     args,
     options,
     allDefaults,
+    formatFilterParams,
   );
 
   // write the defaults file

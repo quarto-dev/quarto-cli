@@ -42,6 +42,7 @@ export function filterParamsJson(
   args: string[],
   options: PandocOptions,
   defaults: FormatPandoc | undefined,
+  formatFilterParams: Record<string, unknown>,
 ) {
   // extract include params (possibly mutating it's arguments)
   const includes = extractIncludeParams(
@@ -56,6 +57,7 @@ export function filterParamsJson(
     ...quartoFilterParams(options.format),
     ...crossrefFilterParams(options),
     ...layoutFilterParams(options.format),
+    ...formatFilterParams,
   };
 
   return JSON.stringify(params);

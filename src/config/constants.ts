@@ -134,6 +134,7 @@ export const kIncludeInHeader = "include-in-header";
 export const kCiteproc = "citeproc";
 export const kCiteMethod = "cite-method";
 export const kFilters = "filters";
+export const kFilterParams = "filter-params";
 export const kPdfEngine = "pdf-engine";
 export const kPdfEngineOpts = "pdf-engine-opts";
 export const kPdfEngineOpt = "pdf-engine-opt";

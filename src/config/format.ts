@@ -18,6 +18,7 @@ import {
   kExecute,
   kFigAlign,
   kFigDpi,
+  kFilterParams,
   kFilters,
   kFreeze,
   kHighlightStyle,
@@ -132,6 +133,7 @@ export interface FormatExtras {
     pre?: string[];
     post?: string[];
   };
+  [kFilterParams]?: Record<string, unknown>;
   html?: {
     [kDependencies]?: FormatDependency[];
     [kSassBundles]?: SassBundle[];
