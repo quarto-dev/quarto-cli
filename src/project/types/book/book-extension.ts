@@ -7,13 +7,12 @@
 
 import { Format } from "../../../config/format.ts";
 
-import { ExecutedFile, RenderedFile } from "../../../command/render/render.ts";
+import { RenderedFile } from "../../../command/render/render.ts";
 import { ProjectContext } from "../../project-context.ts";
 
 export interface BookExtension {
-  // book extensions can choose to either render a file at time
-  // or wait and get called back for everything at once
-  renderFile?: (file: ExecutedFile) => Promise<RenderedFile>;
+  // bool extensions are single file by default but can elect to be multi file
+  multiFile?: boolean;
 
   // book extensions can post-process the final rendered file
   onSingleFileRendered?: (project: ProjectContext, file: RenderedFile) => void;
@@ -22,8 +21,18 @@ export interface BookExtension {
 export function isMultiFileBookFormat(format: Format) {
   const extension = format.extensions?.book as BookExtension;
   if (extension) {
-    return !!extension.renderFile;
+    return extension.multiFile;
   } else {
     return false;
+  }
+}
+
+export function onSingleFileBookRendered(
+  project: ProjectContext,
+  file: RenderedFile,
+) {
+  const extension = file.format.extensions?.book as BookExtension;
+  if (extension && extension.onSingleFileRendered) {
+    extension.onSingleFileRendered(project, file);
   }
 }

@@ -43,7 +43,10 @@ import { ProjectOutputFile } from "../project-types.ts";
 
 import { websiteOutputFiles, websitePostRender } from "../website/website.ts";
 
-import { BookExtension, isMultiFileBookFormat } from "./book-extension.ts";
+import {
+  isMultiFileBookFormat,
+  onSingleFileBookRendered,
+} from "./book-extension.ts";
 import {
   bookConfig,
   BookConfigKey,
@@ -120,7 +123,6 @@ export function bookPandocRenderer(
                 ...(await renderMultiFileBook(
                   project!,
                   options,
-                  format.extensions?.book as BookExtension,
                   executedFiles,
                 )),
               );
@@ -130,7 +132,6 @@ export function bookPandocRenderer(
                 await renderSingleFileBook(
                   project!,
                   options,
-                  format.extensions?.book as BookExtension,
                   executedFiles,
                 ),
               );
@@ -205,7 +206,6 @@ export async function bookIncrementalRenderAll(
 async function renderMultiFileBook(
   project: ProjectContext,
   _options: RenderOptions,
-  extension: BookExtension,
   files: ExecutedFile[],
 ): Promise<RenderedFile[]> {
   const renderedFiles: RenderedFile[] = [];
@@ -243,7 +243,7 @@ async function renderMultiFileBook(
       file.executeResult.markdown = partitioned.markdown;
     }
 
-    renderedFiles.push(await extension.renderFile!(file));
+    renderedFiles.push(await renderPandoc(file));
   }
 
   return renderedFiles;
@@ -252,7 +252,6 @@ async function renderMultiFileBook(
 async function renderSingleFileBook(
   project: ProjectContext,
   options: RenderOptions,
-  extension: BookExtension,
   files: ExecutedFile[],
 ): Promise<RenderedFile> {
   // we are going to compose a single ExecutedFile from the array we have been passed
@@ -280,9 +279,7 @@ async function renderSingleFileBook(
   });
 
   // call book extension if applicable
-  if (extension.onSingleFileRendered) {
-    extension.onSingleFileRendered(project, renderedFile);
-  }
+  onSingleFileBookRendered(project, renderedFile);
 
   // return rendered file
   return renderedFile;

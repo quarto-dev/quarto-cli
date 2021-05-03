@@ -39,7 +39,6 @@ import { createHtmlFormat } from "./../formats.ts";
 import { boostrapExtras, formatHasBootstrap } from "./format-html-bootstrap.ts";
 
 import { quartoFunctions, quartoRules } from "./format-html-scss.ts";
-import { htmlBookExtension } from "./format-html-book.ts";
 
 export const kCodeCopy = "code-copy";
 export const kAnchorSections = "anchor-sections";
@@ -69,7 +68,9 @@ export function htmlFormat(
         );
       },
       extensions: {
-        book: htmlBookExtension,
+        book: {
+          multiFile: true,
+        },
       },
     },
   );
