@@ -27,8 +27,6 @@ TODO: downlit integration
 
 footer
 
-page controls
-
 book tools (download, github link, etc.)
 
 book sidebar layout
