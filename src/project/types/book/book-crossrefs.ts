@@ -29,7 +29,6 @@ import { isMultiFileBookFormat } from "./book-extension.ts";
 
 export async function bookCrossrefsPostRender(
   context: ProjectContext,
-  _incremental: boolean,
   outputFiles: WebsiteProjectOutputFile[],
 ) {
   // output dir for the project

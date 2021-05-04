@@ -57,6 +57,7 @@ import {
 
 import { chapterInfoForInput, withChapterMetadata } from "./book-chapters.ts";
 import { bookCrossrefsPostRender } from "./book-crossrefs.ts";
+import { bookBibliographyPostRender } from "./book-bibliography.ts";
 
 export function bookPandocRenderer(
   options: RenderOptions,
@@ -345,8 +346,11 @@ export async function bookPostRender(
   // read the dom of each file
   const websiteFiles = websiteOutputFiles(outputFiles);
 
+  // resolve bibliography
+  await bookBibliographyPostRender(context, websiteFiles);
+
   // run crossrefs
-  await bookCrossrefsPostRender(context, incremental, websiteFiles);
+  await bookCrossrefsPostRender(context, websiteFiles);
 
   // run standard website stuff (search, etc.)
   await websitePostRender(context, incremental, websiteFiles);

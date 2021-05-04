@@ -40,10 +40,12 @@ const kAppendicesSectionLabel = "Appendices";
 export const kBook = "book";
 export const kBookContents = "contents";
 export const kBookAppendix = "appendix";
+export const kBookReferences = "references";
 export const kBookRender = "render";
 
 export type BookConfigKey =
   | "contents"
+  | "references"
   | "appendix"
   | "render"
   | "title"
@@ -76,14 +78,19 @@ export async function bookProjectConfig(
   // if we have a top-level 'contents' or 'appendix' fields fold into sidebar
   site[kSiteSidebar] = site[kSiteSidebar] || {};
   const siteSidebar = site[kSiteSidebar] as Metadata;
+  siteSidebar[kContents] = [];
   const bookContents = bookConfig(kBookContents, config);
 
   if (Array.isArray(bookContents)) {
     siteSidebar[kContents] = bookContents;
   }
+  const bookReferences = bookConfig(kBookReferences, config);
+  if (bookReferences) {
+    (siteSidebar[kContents] as unknown[]).push(bookReferences);
+  }
   const bookAppendix = bookConfig(kBookAppendix, config);
   if (Array.isArray(bookAppendix)) {
-    siteSidebar[kContents] = (siteSidebar[kContents] as unknown[] || [])
+    siteSidebar[kContents] = (siteSidebar[kContents] as unknown[])
       .concat([{
         section: kAppendicesSectionLabel,
         contents: bookAppendix,
@@ -223,7 +230,13 @@ export async function bookRenderItems(
   };
 
   await findChapters("contents");
-  await findChapters("appendix", {
+
+  const references = bookConfig("references", config);
+  await findInputs("chapter", [
+    normalizeSidebarItem(projectDir, references as SidebarItem),
+  ]);
+
+  await findChapters(kBookAppendix, {
     type: "appendix",
     text: kAppendicesSectionLabel,
   });

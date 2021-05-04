@@ -7,7 +7,7 @@ book:
       file: index<%= ext %>
     - intro<%= ext %>
     - summary<%= ext %>
-    - references<%= ext %>
+  references: references<%= ext %>
 
 bibliography: references.bib
 
