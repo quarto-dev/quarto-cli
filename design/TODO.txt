@@ -12,47 +12,44 @@ TODO: Floating TOC with toc-depth: 4 - looks meh
 
 TODO: centralized _cache dir for projects (alongside _freeze)
 
+TODO: downlit integration
+
 Books
 =========================================================================
 
-
-TODO: downlit integration
-
 footer
 
-book tools (download, github link, etc.)
+book:
+  output-file: "My book"
+
+  # used by 'repo' tool and view/edit source below toc
+  repository: https://github.com/hadley/mastering-shiny
+  
+  tools:
+    - fullscreen
+    - download (: pdf epub docx)
+    - download: pdf
+    - download: epub
+    - repository
+    - sharing: facebook twitter linkedin
+   
+   
+    - icon: someicon
+      url:  https://example.com  
+ 
 
 book sidebar layout
 
 view or download pdf/epub (where view uses pdf.js and web epub)
 not that view can also include hypothesis 
 
-
-TODO: centralize error cleanup and consider caching
-
-
-- we need section cross refs to NOT require section numbering. links to sections need to be global
-  HTML books you need to use crossrefs
-- [Another option is that we resolve .md#foobar to just be #foobar  @sec:asdfasdf]
-
-- For HTML output, we want to execute pandoc for each file, however some things are effectively "global":
-    - cross references
-        - persist the index across all pandoc renders (esolveRefs in a separate pass at the end)
-        - paste together all of of the markdown and run the filters on it, then run pandoc without the filters on each file
-    - bibliography 
-        - per page option?
-        - global: 
-            - collect up every key that is used anywhere in the book
-            - tell pandoc to create a page using those keys
-            - hide the bibliography in the individual chapters
-            - fixup up the citation links to point to the bibliography
+global bibliography for web output
+  - collect up every key that is used anywhere in the book
+  - tell pandoc to create a page using those keys
+  - hide the bibliography in the individual chapters
+  - fixup up the citation links to point to the bibliography
 
 
-
-    - visual editor needs to use the full path to chapters for the id-prefix for footnotes
-
-
-IDE/Docs unlock users actually using this and engaging with it
 
 
 Installation/Compilation
@@ -66,6 +63,8 @@ Installation/Compilation
 RStudio IDE
 =====================================================================
 
+- visual editor needs to use the full path to chapters for the id-prefix for footnotes
+
 - New project type: "quarto"
 - Introduce "Render on Save" 
 - Automatically use quarto render when in quarto project (unless 'output: ')
@@ -77,7 +76,10 @@ RStudio IDE
 
 - webshot equivalent for printed output
 
+- Bibliography per chapter
+
 - Glossaries (https://jupyterbook.org/content/content-blocks.html#glossaries)
+
 - Indexes (equivalent of \makeindex)
 {{ pagebreak }}
 {{ makeindex }}
