@@ -1,4 +1,8 @@
 
+div.quarto-container {
+  min-height: 100vh;
+}
+
 .navbar-brand > img {
   max-height: 24px;
   width: auto;
@@ -142,7 +146,6 @@ header.headroom--unpinned {
 
 @include media-breakpoint-up(lg) {
   .sidebar.sidebar-navigation {
-    height: 100vh;
     display: block;
     position: sticky;
   }
@@ -213,31 +216,24 @@ header.headroom--unpinned {
 .nav-page-text-container {
   display: flex;
   flex-direction: column;
-  padding-left: .5em;
-  padding-right: .5em;
-}
-
-.nav-page .nav-page-action {
-  font-size: .9em;
-  padding-top: 0px;
-  padding-bottom: 0px;
-  color: $text-muted;
-  margin-bottom: -.5em;
+  padding-left: .125em;
+  padding-right: .125em;
 }
 
 .nav-page .nav-page-arrow {
-  font-size: 2.5em;
+  font-size: 2em;
   color: $text-muted;
 }
 
 .nav-page .nav-page-text {
-  font-size: 1.2em;
+  font-size: 1em;
   padding-top: 0px;
   padding-bottom: 0px;
 }
 
 .nav-page a {
   color: $text-muted;
+  text-decoration: none;
 }
 
 .nav-page a:hover {
