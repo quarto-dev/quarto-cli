@@ -15,13 +15,6 @@ TODO: centralized _cache dir for projects (alongside _freeze)
 Books
 =========================================================================
 
-TODO: quarto serve doesn't trigger re-render with updated _quarto.yml options (e.g. crossref)
-      seems like it should be rendering markdown at least and reflecting the option
-
-      the problem is that any config that affects pandoc rendering (either at a 
-      project level or file level) has been saved in the freezer so isn't 
-      reflected in a pandoc only render from the freezer. freezer renders could
-      consider re-merging pandoc/metadata options?
 
 TODO: downlit integration
 
