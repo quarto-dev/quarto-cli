@@ -133,14 +133,14 @@ export async function bookProjectConfig(
     });
   }
 
+  // Create any download tools
+  (siteSidebar[kBookTools] as SidebarTool[]).push(
+    ...(downloadTools(projectDir, config) || []),
+  );
+
   // Create any sharing options
   (siteSidebar[kBookTools] as SidebarTool[]).push(
     ...(sharingTools(config) || []),
-  );
-
-  // Create any download tools
-  (siteSidebar[kBookTools] as SidebarTool[]).push(
-    ...(downloads(projectDir, config) || []),
   );
 
   // save our own render list (which has more fine grained info about parts,
@@ -331,7 +331,7 @@ export async function bookRenderItems(
   return index.concat(inputs);
 }
 
-function downloads(
+function downloadTools(
   projectDir: string,
   config: ProjectConfig,
 ): SidebarTool[] | undefined {
@@ -345,10 +345,11 @@ function downloads(
       return false;
     }
   });
+  console.log(filteredActions);
 
   // Map the action into sidebar items
   const outputStem = bookOutputStem(projectDir, config);
-  const downloadTools = filteredActions.map((action) => {
+  const downloads = filteredActions.map((action) => {
     const format = defaultWriterFormat(action);
     return {
       text: `Download ${action}`,
@@ -357,18 +358,18 @@ function downloads(
   });
 
   // Form the menu (or single item download button)
-  if (downloadTools.length === 0) {
+  if (downloads.length === 0) {
     return undefined;
   } else if (downloadTools.length === 1) {
     return [{
-      ...downloadTools[0],
+      ...downloads[0],
       icon: "download",
     }];
   } else {
     return [{
       icon: "download",
       text: "Download",
-      menu: downloadTools,
+      menu: downloads,
     }];
   }
 }
