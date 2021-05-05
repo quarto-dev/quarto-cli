@@ -5,7 +5,7 @@
 *
 */
 
-import { basename, dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, extname, join, relative } from "path/mod.ts";
 
 import { encode as base64Encode } from "encoding/base64.ts";
 
@@ -53,6 +53,7 @@ import {
   bookConfigRenderItems,
   BookRenderItem,
   isBookIndexPage,
+  kBookOutputFile,
 } from "./book-config.ts";
 
 import { chapterInfoForInput, withChapterMetadata } from "./book-chapters.ts";
@@ -235,9 +236,11 @@ async function mergeExecutedFiles(
   // use global render options
   context.options = removePandocTo(options);
 
-  // set output file based on book title
-  const title = bookConfig(kTitle, project.config) || basename(project.dir);
-  context.format.pandoc[kOutputFile] = `${title}.${
+  // set output file based on book outputFile (or explicit config if provided)
+  const outputFile = (bookConfig(kBookOutputFile, project.config) ||
+    bookConfig(kTitle, project.config) || basename(project.dir)) as string;
+  const stem = basename(outputFile, extname(outputFile));
+  context.format.pandoc[kOutputFile] = `${stem}.${
     context.format.render[kOutputExt]
   }`;
 
@@ -343,13 +346,11 @@ export async function bookPostRender(
   incremental: boolean,
   outputFiles: ProjectOutputFile[],
 ) {
-  // read the dom of each file
+  // get web output contained in the outputFiles passed to us
   const websiteFiles = websiteOutputFiles(outputFiles);
 
-  // resolve bibliography
+  // fixup crossrefs and bibliography for web output
   await bookBibliographyPostRender(context, incremental, websiteFiles);
-
-  // run crossrefs
   await bookCrossrefsPostRender(context, websiteFiles);
 
   // write website files

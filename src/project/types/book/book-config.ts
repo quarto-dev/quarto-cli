@@ -42,8 +42,10 @@ export const kBookContents = "contents";
 export const kBookAppendix = "appendix";
 export const kBookReferences = "references";
 export const kBookRender = "render";
+export const kBookOutputFile = "output-file";
 
 export type BookConfigKey =
+  | "output-file"
   | "contents"
   | "references"
   | "appendix"
