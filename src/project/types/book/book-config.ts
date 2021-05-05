@@ -12,6 +12,7 @@ import { join } from "path/mod.ts";
 import { safeExistsSync } from "../../../core/path.ts";
 
 import { Metadata } from "../../../config/metadata.ts";
+import { mergeConfigs } from "../../../core/config.ts";
 
 import { fileExecutionEngine } from "../../../execute/engine.ts";
 
@@ -25,11 +26,12 @@ import { kProjectRender, ProjectConfig } from "../../project-context.ts";
 import {
   kContents,
   kSite,
-  kSiteBaseUrl,
   kSiteNavbar,
   kSitePageNavigation,
+  kSiteRepoUrl,
   kSiteSidebar,
   kSiteTitle,
+  kSiteUrl,
   websiteProjectConfig,
 } from "../website/website-config.ts";
 
@@ -43,6 +45,10 @@ export const kBookAppendix = "appendix";
 export const kBookReferences = "references";
 export const kBookRender = "render";
 export const kBookOutputFile = "output-file";
+export const kBookRepoActions = "repo-actions";
+export const kBookSharing = "sharing";
+export const kBookDownloads = "downloads";
+export const kBookTools = "tools";
 
 export type BookConfigKey =
   | "output-file"
@@ -50,6 +56,10 @@ export type BookConfigKey =
   | "references"
   | "appendix"
   | "render"
+  | "repo-actions"
+  | "sharing"
+  | "downloads"
+  | "tools"
   | "title"
   | "subtitle"
   | "author"
@@ -71,7 +81,8 @@ export async function bookProjectConfig(
   const book = config[kBook] as Record<string, unknown>;
   if (book) {
     site[kSiteTitle] = book[kSiteTitle];
-    site[kSiteBaseUrl] = book[kSiteBaseUrl];
+    site[kSiteUrl] = book[kSiteUrl];
+    site[kSiteRepoUrl] = book[kSiteRepoUrl];
     site[kSiteNavbar] = book[kSiteNavbar];
     site[kSiteSidebar] = book[kSiteSidebar];
     site[kSitePageNavigation] = book[kSitePageNavigation] !== false;
@@ -97,6 +108,15 @@ export async function bookProjectConfig(
         section: kAppendicesSectionLabel,
         contents: bookAppendix,
       }]);
+  }
+
+  // if we have tools then fold those into the sidebar
+  siteSidebar[kBookTools] = siteSidebar[kBookTools] || {};
+  if (book[kBookTools]) {
+    siteSidebar[kBookTools] = mergeConfigs(
+      siteSidebar[kBookTools],
+      book[kBookTools],
+    );
   }
 
   // save our own render list (which has more fine grained info about parts,
@@ -126,6 +146,27 @@ export function bookConfig(
       | undefined;
   } else {
     return undefined;
+  }
+}
+
+export function bookConfigActions(
+  key: "repo-actions" | "sharing" | "downloads",
+  project?: ProjectConfig,
+): string[] {
+  const book = project?.[kBook] as
+    | Record<string, unknown>
+    | undefined;
+  if (book) {
+    const value = book[key];
+    if (typeof (value) === "string") {
+      return [value];
+    } else if (Array.isArray(value)) {
+      return value.map((x) => String(x));
+    } else {
+      return [];
+    }
+  } else {
+    return [];
   }
 }
 

@@ -15,7 +15,8 @@ import { ProjectConfig } from "../../project-context.ts";
 export const kSite = "site";
 
 export const kSiteTitle = "title";
-export const kSiteBaseUrl = "base-url";
+export const kSiteUrl = "site-url";
+export const kSiteRepoUrl = "repo-url";
 
 export const kSiteNavbar = "navbar";
 export const kSiteSidebar = "sidebar";
@@ -25,14 +26,21 @@ export const kContents = "contents";
 
 export interface WebsiteConfig {
   [kSiteTitle]?: string;
-  [kSiteBaseUrl]?: string;
+  [kSiteUrl]?: string;
+  [kSiteRepoUrl]?: string;
   [kSiteNavbar]?: string;
   [kSiteSidebar]?: string;
   [kSitePageNavigation]?: boolean;
 }
 
 export function websiteConfig(
-  name: "title" | "base-url" | "navbar" | "sidebar" | "page-navigation",
+  name:
+    | "title"
+    | "site-url"
+    | "repo-url"
+    | "navbar"
+    | "sidebar"
+    | "page-navigation",
   project?: ProjectConfig,
 ) {
   const site = project?.[kSite] as
@@ -50,7 +58,11 @@ export function websiteTitle(project?: ProjectConfig): string | undefined {
 }
 
 export function websiteBaseurl(project?: ProjectConfig): string | undefined {
-  return websiteConfig(kSiteBaseUrl, project) as string | undefined;
+  return websiteConfig(kSiteUrl, project) as string | undefined;
+}
+
+export function websiteRepourl(project?: ProjectConfig): string | undefined {
+  return websiteConfig(kSiteRepoUrl, project) as string | undefined;
 }
 
 export function websiteMetadataFields(): Array<string | RegExp> {
