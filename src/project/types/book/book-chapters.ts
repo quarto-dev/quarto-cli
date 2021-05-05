@@ -91,7 +91,9 @@ export function formatChapterLabel(
   short: boolean,
 ) {
   if (short || !info || !info.appendix) {
-    return info ? `${info.labelPrefix}\u00A0 ${label}` : label;
+    return info
+      ? `<span class='chapter-number'>${info.labelPrefix}</span>\u00A0 ${label}`
+      : label;
   } else {
     return `Appendix ${info.labelPrefix} — ${label}`;
   }
