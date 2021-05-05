@@ -472,14 +472,17 @@ function expandedSidebar(href: string, sidebar?: Sidebar): Sidebar | undefined {
   }
 }
 
-function flattenItems(sidebarItems: SidebarItem[]): SidebarItem[] {
+function flattenItems(
+  sidebarItems: SidebarItem[],
+  includeItem: (item: SidebarItem) => boolean,
+) {
   const items: SidebarItem[] = [];
   const flatten = (sidebarItem: SidebarItem) => {
-    if (sidebarItem.href) {
+    if (includeItem(sidebarItem)) {
       items.push(sidebarItem);
     }
     if (sidebarItem.contents) {
-      items.push(...flattenItems(sidebarItem.contents));
+      items.push(...flattenItems(sidebarItem.contents, includeItem));
     }
   };
   sidebarItems.forEach(flatten);
@@ -491,7 +494,13 @@ function nextAndPrevious(
   sidebar?: Sidebar,
 ): { prevPage?: SidebarItem; nextPage?: SidebarItem } {
   if (sidebar?.contents) {
-    const sidebarItems = flattenItems(sidebar?.contents);
+    const sidebarItems = flattenItems(
+      sidebar?.contents,
+      (item: SidebarItem) => {
+        // Only include items that have a link that isn't external
+        return item.href !== undefined && !isExternalPath(item.href);
+      },
+    );
     const index = sidebarItems.findIndex((item) => item.href === href);
     return {
       nextPage: index > -1 && index < sidebarItems.length - 1

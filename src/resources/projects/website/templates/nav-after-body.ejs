@@ -16,35 +16,17 @@
 
   <div class="nav-page nav-page-previous col col-6">
     <% if (nav.prevPage) { %>
-      <div class="nav-page-arrow">
-        <a  href="<%- nav.prevPage.href %>">
-          <i class="bi bi-arrow-left-short"></i>
-        </a>          
-      </div>
-      <div class="nav-page-text-container">
-        <div class="nav-page-text">
-            <a  href="<%- nav.prevPage.href %>">
-              <%- nav.prevPage.text %>
-            </a>
-        </div>
-      </div>
+      <a  href="<%- nav.prevPage.href %>">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><%- nav.prevPage.text %></span>
+      </a>          
     <% } %>
   </div>
 
   <div class="nav-page nav-page-next col col-6">
     <% if (nav.nextPage) { %>
-      <div class="nav-page-text-container">
-        <div class="nav-page-text">
-            <a  href="<%- nav.nextPage.href %>">
-              <%- nav.nextPage.text %>
-            </a>
-        </div>
-      </div>
-      <div class="nav-page-arrow">
-        <a  href="<%- nav.nextPage.href %>">
-          <i class="bi bi-arrow-right-short"></i>
-        </a>          
-      </div>
+      <a  href="<%- nav.nextPage.href %>">
+        <span class="nav-page-text"><%- nav.nextPage.text %></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
     <% } %>
   </div>
 

@@ -232,9 +232,11 @@ export async function bookRenderItems(
   await findChapters("contents");
 
   const references = bookConfig("references", config);
-  await findInputs("chapter", [
-    normalizeSidebarItem(projectDir, references as SidebarItem),
-  ]);
+  if (references) {
+    await findInputs("chapter", [
+      normalizeSidebarItem(projectDir, references as SidebarItem),
+    ]);
+  }
 
   await findChapters(kBookAppendix, {
     type: "appendix",
