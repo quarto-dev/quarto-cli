@@ -12,7 +12,6 @@ import { join } from "path/mod.ts";
 import { safeExistsSync } from "../../../core/path.ts";
 
 import { Metadata } from "../../../config/metadata.ts";
-import { mergeConfigs } from "../../../core/config.ts";
 
 import { fileExecutionEngine } from "../../../execute/engine.ts";
 
@@ -20,6 +19,7 @@ import {
   normalizeSidebarItem,
   partitionedMarkdownForInput,
   SidebarItem,
+  SidebarTool,
 } from "../../project-config.ts";
 import { kProjectRender, ProjectConfig } from "../../project-context.ts";
 
@@ -111,10 +111,15 @@ export async function bookProjectConfig(
   }
 
   // if we have tools then fold those into the sidebar
+  siteSidebar[kBookTools] = siteSidebar[kBookTools] || [];
   if (book[kBookTools]) {
-    siteSidebar[kBookTools] = siteSidebar[kBookTools] || [];
     (siteSidebar[kBookTools] as []).push(...book[kBookTools] as []);
   }
+
+  // Create any sharing options
+  (siteSidebar[kBookTools] as SidebarTool[]).push(
+    ...(sharingTools(book) || []),
+  );
 
   // save our own render list (which has more fine grained info about parts,
   // appendices, numbering, etc.) and popuplate the main config render list
@@ -303,6 +308,58 @@ export async function bookRenderItems(
   const index = inputs.splice(indexPos, 1);
   return index.concat(inputs);
 }
+
+function sharingTools(
+  book: Record<string, unknown>,
+): SidebarTool[] | undefined {
+  const sharing = book[kBookSharing];
+
+  if (Array.isArray(sharing)) {
+    // Filter the items to only the kinds that we know about
+    const shareList = sharing as string[];
+    const sidebarItems = shareList.filter((shareItem) =>
+      Object.keys(kSharingUrls).find((key) => key === shareItem)
+    ).map((share) => {
+      return {
+        text: kSharingUrls[share].text,
+        icon: share,
+        href: kSharingUrls[share].url,
+      };
+    });
+
+    if (sidebarItems.length === 1) {
+      // If there is one item, just return it
+      return sidebarItems;
+    } else {
+      // If there are more than one items, make a menu
+      return [{
+        text: "Share",
+        icon: kShareIcon,
+        menu: sidebarItems,
+      }];
+    }
+  } else {
+    // No sharing
+    return undefined;
+  }
+}
+
+const kShareIcon = "share";
+const kSharingUrls: Record<string, { text: string; url: string }> = {
+  linkedin: {
+    text: "LinkedIn",
+    url: "https://www.linkedin.com/",
+  },
+  facebook: {
+    text: "Facebook",
+    url: "https://www.facebook.com/sharer/sharer.php",
+  },
+  twitter: {
+    text: "Twitter",
+    url: "http://www.twitter.com/share",
+  },
+};
+//url: "https://www.linkedin.com/sharing/share-offsite/?url=",
 
 async function inputIsNumbered(
   projectDir: string,
