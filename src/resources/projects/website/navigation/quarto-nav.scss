@@ -38,11 +38,12 @@ nav .dropdown-item i {
 
 .sidebar-title {
   padding-bottom: 0.5rem;
+  font-size: 1.5rem;
 }
 
 .sidebar-navigation .active {
   color: inherit;
-  color: var(--bs-primary) !important;
+  color: $link-color;
 }
 
 .sidebar-logo {
@@ -65,17 +66,32 @@ nav .dropdown-item i {
 }
 
 .sidebar-navigation .sidebar-section.depth1 {
-  padding-bottom: 0.4rem;
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
+}
+
+.sidebar-navigation ul.sidebar-section.depth1 .sidebar-section-item {
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 1.0rem;
+}
+
+.sidebar-navigation ul.sidebar-section.depth2 .sidebar-section-item {
+  text-transform: none;
+  font-weight: normal;
+}
+
+.sidebar-navigation ul.sidebar-section.depth2  .sidebar-item-contents {
+  padding-left: 0.5rem;
 }
 
 .sidebar-navigation .sidebar-section-item {
   font-size: 0.8rem;
-  text-transform: uppercase;
-  font-weight: 600;
   padding-left: 0px;
   padding-right: 0px;
   padding-top: 0.1rem;
   padding-bottom: 0.1rem;
+  margin-left: -1px;
 }
 
 .sidebar-navigation .sidebar-item {
@@ -116,6 +132,11 @@ nav .dropdown-item i {
   padding-top: 4px;
 
 }
+
+.sidebar.sidebar-navigation nav:not(.floating) {
+  border-right: 1px solid $table-border-color !important;
+}
+
 
 
 @include media-breakpoint-down(lg) {

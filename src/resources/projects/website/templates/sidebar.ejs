@@ -1,9 +1,4 @@
 <% 
-let borderEnd = sidebar.style === "floating" ? "" : "border-end";
-
-let bgCss = sidebar.background ? 
-  (sidebar.background === "none" ? "bg-body" : "bg-" + sidebar.background) :
-  (sidebar.style === "floating" ? "bg-body" : "bg-light");
 
 let mCss = sidebar.style === "floating" ? "ms-lg-auto" : "me-lg-auto";
 let styleCss = sidebar.style === "floating" ? "floating" : "docked";
@@ -19,7 +14,7 @@ if (sidebar.align === "left") {
 }
 %>
 
-<nav class="<%- mCss %> py-2 <%- borderEnd %> <%- borderColor %> <%- bgCss %> <%- styleCss %> <%- textStyleCss %> overflow-scroll ">
+<nav class="<%- mCss %> py-2 <%- styleCss %> <%- textStyleCss %> overflow-scroll ">
   <div class="px-3 pt-lg-3 d-flex flex-column <%= alignCss %>">
     <% if (sidebar.logo) { %>
     <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo my-1 py-0 d-lg-inline d-none"/>

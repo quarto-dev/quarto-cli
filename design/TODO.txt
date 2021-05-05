@@ -25,6 +25,11 @@ for websites:
  repo-actions: [edit]
 
 DOI feature (on title page)
+TODO:
+- search box background color should be transparent (e.g. look at darkly theme)
+
+DOI feature
+
 
 footer
 book sidebar layout
