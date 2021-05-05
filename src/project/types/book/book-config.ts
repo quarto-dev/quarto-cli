@@ -352,7 +352,7 @@ function downloadTools(
   const downloads = filteredActions.map((action) => {
     const format = defaultWriterFormat(action);
     return {
-      text: `Download ${action}`,
+      text: `${action}`,
       href: `${outputStem}.${format.render[kOutputExt]}`,
     };
   });
