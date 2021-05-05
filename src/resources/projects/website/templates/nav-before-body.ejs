@@ -72,8 +72,8 @@
 targetDiv = !nav.sidebar || nav.sidebar.style === "floating"
 %>
 
-<div class="container-fluid quarto-container" <%= targetDiv ? 'id="quarto-content"' : "" %>>
-<div class="row" <%= !targetDiv ? 'id="quarto-content"' : "" %>>
+<div class="container-fluid quarto-container d-flex flex-column" <%= targetDiv ? 'id="quarto-content"' : "" %>>
+<div class="row flex-fill" <%= !targetDiv ? 'id="quarto-content"' : "" %>>
 
 <% marginCss = "mx-auto" %>
 <% if (nav.sidebar) { %>
