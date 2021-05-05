@@ -1,27 +1,27 @@
 <% if (item.href && item.text && !item.contents) { %>
-<li class="pb-2 px-0">
-  <a href="<%- item.href %>" class="<%- item.active ? "active" : "" %> <%- depth === 1 ? "fw-normal" : "fw-lighter" %>"><%- item.text %></a>
+<li class="sidebar-item">
+  <a href="<%- item.href %>" class="sidebar-item <%- item.active ? "active" : "" %>"><%- item.text %></a>
 </li>
 <% } else if (item.contents && item.text) { %>  
   <% sectionId = (item.text + "-collapse").toLowerCase().replace(/\s/g,'') %>
-  <% paddingCss = "ps-3" %>
+  <% paddingCss = "ps-2" %>
   <% isCollapsed = collapse <= depth  && !item.expanded %>
 
-  <ul class="list-unstyled my-0">
-    <li class="sidebar-section <%- depth === 1 ? "pb-1" : "" %> ">
-        <div class="me-auto <%- depth === 1 ? "fw-normal" : "fw-lighter" %> <%- textStyleCss %> >">
+  <ul class="list-unstyled sidebar-section depth<%-depth%>">
+    <li class="">
+        <div class="me-auto <%- textStyleCss %>">
           <% if (item.href) { %>
-          <div class="d-inline-flex w-100 pb-1">
-            <div class="me-auto <%- depth === 1 ? "fw-normal" : "fw-lighter" %> <%- textStyleCss %> >">
-            <a href="<%- item.href %>" class="<%- item.active ? "active" : "" %> <%- depth === 1 ? "fw-normal" : "fw-lighter" %>"><%- item.text %></a>
+          <div class="d-inline-flex w-100 sidebar-section-item">
+            <div class="me-auto <%- textStyleCss %> >">
+            <a href="<%- item.href %>" class="<%- item.active ? "active" : "" %>"><%- item.text %></a>
             </div>
-            <button class="btn text-start p-0 <%- isCollapsed ? "collapsed" : "" %> " data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded=" <%- isCollapsed ? "false" : "true" %>">
+            <button class="btn text-start <%- isCollapsed ? "collapsed" : "" %> " data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded=" <%- isCollapsed ? "false" : "true" %>">
               <div><i class="bi bi-chevron-right ms-2 <%- textStyleCss %>"></i></div>
             </button>
             </div>
           <% } else { %>
-            <button class="btn d-inline-flex text-start w-100 px-0 pt-0 pb-1 <%- isCollapsed ? "collapsed" : "" %> " data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded=" <%- isCollapsed ? "false" : "true" %>">
-              <div class="me-auto <%- depth === 1 ? "fw-normal" : "fw-lighter" %> <%- textStyleCss %> >">
+            <button class="btn sidebar-section-item d-inline-flex text-start w-100 <%- isCollapsed ? "collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded=" <%- isCollapsed ? "false" : "true" %>">
+              <div class="me-auto <%- textStyleCss %> <%- depth === 1 ? "sidebar-section-item" : "sidebar-item" %>">
                 <%- item.text %>
               </div>
             <div><i class="bi bi-chevron-right ms-2 <%- textStyleCss %>"></i></div>
@@ -38,5 +38,5 @@
     </li>
   </ul>
 <% } else if (item.text && item.text.match(/^\-+$/)) { %>
-<li class="px-0"><hr class="my-1 sidebar-divider hi <%- borderColor %>"></li>
+<li class="px-0"><hr class="sidebar-divider hi <%- borderColor %>"></li>
 <% } %>

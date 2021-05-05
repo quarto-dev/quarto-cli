@@ -23,8 +23,6 @@ nav .dropdown-item i {
   overflow-y: auto;
 }
 
-
-
 .sidebar-navigation {
   padding-left: 20px;
 }
@@ -59,6 +57,39 @@ nav .dropdown-item i {
 .sidebar-navigation .sidebar-tool {
   opacity: 0.8;
   font-size: 1.2em;
+}
+
+.sidebar-section .bi {
+  font-size: 0.7rem;
+  text-align: center;
+}
+
+.sidebar-navigation .sidebar-section.depth1 {
+  padding-bottom: 0.4rem;
+}
+
+.sidebar-navigation .sidebar-section-item {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding-left: 0px;
+  padding-right: 0px;
+  padding-top: 0.1rem;
+  padding-bottom: 0.1rem;
+}
+
+.sidebar-navigation .sidebar-item {
+  padding-left: 0px;
+  padding-right: 0px;
+  padding-bottom: 0.25rem;
+}
+
+.sidebar-navigation .sidebar-item a {
+  font-size: 1.0rem;
+}
+
+.sidebar-navigation .sidebar-divider {
+  margin-left: .25rem;
 }
 
 .sidebar-navigation .sidebar-tool.dropdown-toggle::after {
