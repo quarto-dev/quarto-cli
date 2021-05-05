@@ -19,22 +19,22 @@ TODO: downlit integration
 Books
 =========================================================================
 
-DOI feature
+for websites:
+ repo-url: https://github.com/hadley/mastering-shiny  
+ repo-actions: [source, edit, issue]
+ repo-actions: [edit]
+
+DOI feature (on title page)
 
 footer
 book sidebar layout
 
 book:
-  output-file: "My book"
-
-  # used by 'repo' tool and view/edit source below toc
-
-  repository: https://github.com/hadley/mastering-shiny
-  repository: 
-     url: https://github.com/hadley/mastering-shiny
-     tools: [source, issue, edit]
+  we will create a tool from the repo-url
   sharing: [facebook, twitter, linkedin, discord]
   downloads: [pdf, epub]
+
+ 
 
 Installation/Compilation
 =====================================================================
