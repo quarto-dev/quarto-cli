@@ -351,7 +351,6 @@ function downloadTools(
       return false;
     }
   });
-  console.log(filteredActions);
 
   // Map the action into sidebar items
   const outputStem = bookOutputStem(projectDir, config);
