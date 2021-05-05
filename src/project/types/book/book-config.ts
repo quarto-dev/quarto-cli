@@ -6,11 +6,10 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { warning } from "log/mod.ts";
 import { join } from "path/mod.ts";
 
 import { safeExistsSync } from "../../../core/path.ts";
-
+import { warnOnce } from "../../../core/log.ts";
 import { Metadata } from "../../../config/metadata.ts";
 
 import { fileExecutionEngine } from "../../../execute/engine.ts";
@@ -117,7 +116,18 @@ export async function bookProjectConfig(
     (siteSidebar[kBookTools] as []).push(...book[kBookTools] as []);
   }
 
-  // Prorcess the repo-url
+  // Prorcess the repo-url (github or journal-code)
+  if (site[kSiteRepoUrl]) {
+    const repoUrl = site[kSiteRepoUrl] as string;
+    const icon = repoUrl.match(/^http[s]?:\/\/github\.com/)
+      ? "github"
+      : "journal-code";
+    (siteSidebar[kBookTools] as SidebarTool[]).push({
+      text: "Source Code",
+      icon,
+      href: repoUrl,
+    });
+  }
 
   // Create any sharing options
   (siteSidebar[kBookTools] as SidebarTool[]).push(
@@ -326,7 +336,7 @@ function sharingTools(
       const sidebarTool = kSharingUrls[action];
       if (sidebarTool) {
         if (sidebarTool.requiresSiteUrl && !siteUrl) {
-          warning(
+          warnOnce(
             `Sharing using ${action} requires that you provide a site-url.`,
           );
           return false;
