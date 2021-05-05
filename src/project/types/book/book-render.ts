@@ -347,13 +347,10 @@ export async function bookPostRender(
   const websiteFiles = websiteOutputFiles(outputFiles);
 
   // resolve bibliography
-  await bookBibliographyPostRender(context, websiteFiles);
+  await bookBibliographyPostRender(context, incremental, websiteFiles);
 
   // run crossrefs
   await bookCrossrefsPostRender(context, websiteFiles);
-
-  // run standard website stuff (search, etc.)
-  await websitePostRender(context, incremental, websiteFiles);
 
   // write website files
   websiteFiles.forEach((websiteFile) => {
@@ -362,6 +359,9 @@ export async function bookPostRender(
       websiteFile.doc.documentElement?.outerHTML!;
     Deno.writeTextFileSync(websiteFile.file, htmlOutput);
   });
+
+  // run standard website stuff (search, etc.)
+  await websitePostRender(context, incremental, outputFiles);
 }
 
 export async function bookIncrementalRenderAll(

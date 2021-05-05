@@ -146,7 +146,7 @@ export interface WebsiteProjectOutputFile extends ProjectOutputFile {
 export async function websitePostRender(
   context: ProjectContext,
   incremental: boolean,
-  outputFiles: WebsiteProjectOutputFile[],
+  outputFiles: ProjectOutputFile[],
 ) {
   // update sitemap
   await updateSitemap(context, outputFiles, incremental);

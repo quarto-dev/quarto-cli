@@ -11,7 +11,7 @@ import { ld } from "lodash/mod.ts";
 import { stringify } from "encoding/yaml.ts";
 import { error } from "log/mod.ts";
 
-import { Element } from "deno_dom/deno-dom-wasm.ts";
+import { Document, DOMParser, Element } from "deno_dom/deno-dom-wasm.ts";
 
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 import { execProcess } from "../../../core/process.ts";
@@ -25,9 +25,11 @@ import { ProjectContext, projectOutputDir } from "../../project-context.ts";
 import { resolveInputTarget } from "../../project-index.ts";
 import { WebsiteProjectOutputFile } from "../website/website.ts";
 import { bookConfig, kBookReferences } from "./book-config.ts";
+import { bookMultiFileHtmlOutputs } from "./book-extension.ts";
 
 export async function bookBibliographyPostRender(
   context: ProjectContext,
+  incremental: boolean,
   outputFiles: WebsiteProjectOutputFile[],
 ) {
   // get (required) references config
@@ -71,22 +73,17 @@ export async function bookBibliographyPostRender(
         relative(dirname(file.file), refsHtml!),
       );
       // check each citation
-      const cites = file.doc.querySelectorAll(".citation");
-      for (let i = 0; i < cites.length; i++) {
-        // get cite
-        const cite = cites[i] as Element;
-        // record id
-        const citeTarget = cite.getAttribute("data-cites");
-        if (citeTarget) {
-          citeIds.push(...citeTarget.split(" "));
-        }
+      forEachCite(file.doc, (cite: Element) => {
+        // record ids
+        citeIds.push(...citeIdsFromCite(cite));
         // fix hrefs
         const citeLinks = cite.querySelectorAll("a[role='doc-biblioref']");
         for (let l = 0; l < citeLinks.length; l++) {
           const link = citeLinks[l] as Element;
           link.setAttribute("href", refsRelative + link.getAttribute("href"));
         }
-      }
+      });
+
       // hide the bibliography
       const refsDiv = file.doc.getElementById("refs");
       if (refsDiv) {
@@ -94,19 +91,45 @@ export async function bookBibliographyPostRender(
       }
     });
 
-    if (citeIds.length > 0) {
-      // genereate bibliography html
-      const biblioHtml = await generateBibliographyHTML(
-        context,
-        bibliography,
-        csl,
-        citeIds,
-      );
+    // is the refs one of our output files?
+    const refsOutputFile = outputFiles.find((file) => file.file === refsHtml);
+    if (refsOutputFile) {
+      // if it's incremental and the references file is the target, then we actually
+      // need to additionally collect citeIds from any file not in the list of outputFiles
+      if (incremental) {
+        // find all the html output files for the book and add their cite ids if they
+        // aren't already included in the cite ids passed to us (this would happen e.g.
+        // in an incremental render by the dev server)
+        const bookHtmlOutputs = await bookMultiFileHtmlOutputs(context);
+        bookHtmlOutputs.forEach((htmlOutput) => {
+          if (
+            outputFiles.findIndex((file) => file.file === htmlOutput) === -1
+          ) {
+            const doc = new DOMParser().parseFromString(
+              Deno.readTextFileSync(htmlOutput),
+              "text/html",
+            );
+            if (doc) {
+              forEachCite(doc, (cite: Element) => {
+                citeIds.push(...citeIdsFromCite(cite));
+              });
+            }
+          }
+        });
+      }
 
-      // either append this to the end of the references file or replace an explicit
-      // refs div in the references file
-      const refsOutputFile = outputFiles.find((file) => file.file === refsHtml);
-      if (refsOutputFile) {
+      if (citeIds.length > 0) {
+        // either append this to the end of the references file or replace an explicit
+        // refs div in the references file
+
+        // genereate bibliography html
+        const biblioHtml = await generateBibliographyHTML(
+          context,
+          bibliography,
+          csl,
+          citeIds,
+        );
+
         const newRefsDiv = refsOutputFile.doc.createElement("div");
         newRefsDiv.innerHTML = biblioHtml;
         const refsDiv = refsOutputFile.doc.getElementById("refs") as Element;
@@ -156,5 +179,22 @@ async function generateBibliographyHTML(
   } else {
     error(result.stderr);
     throw new Error();
+  }
+}
+
+function forEachCite(doc: Document, f: (cite: Element) => void) {
+  const cites = doc.querySelectorAll(".citation");
+  for (let i = 0; i < cites.length; i++) {
+    const cite = cites[i] as Element;
+    f(cite);
+  }
+}
+
+function citeIdsFromCite(cite: Element): string[] {
+  const citeTarget = cite.getAttribute("data-cites");
+  if (citeTarget) {
+    return citeTarget.split(" ");
+  } else {
+    return [];
   }
 }
