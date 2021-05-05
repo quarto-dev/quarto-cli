@@ -24,15 +24,13 @@ for websites:
  repo-actions: [source, edit, issue]
  repo-actions: [edit]
 
-DOI feature (on title page)
+
 TODO:
 - search box background color should be transparent (e.g. look at darkly theme)
 
-DOI feature
+DOI feature (on title page)
 
-
-footer
-book sidebar layout
+footer (attribution, including add attribution to the templates)
 
 book:
   we will create a tool from the repo-url
