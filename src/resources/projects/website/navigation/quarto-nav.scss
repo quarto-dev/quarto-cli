@@ -237,29 +237,20 @@ header.headroom--unpinned {
 
 .nav-page {
   display: flex;
-  align-items: center;
 }
 
 .nav-page-next {
   justify-content: flex-end;
 }
 
-.nav-page-text-container {
-  display: flex;
-  flex-direction: column;
-  padding-left: .125em;
-  padding-right: .125em;
-}
-
-.nav-page .nav-page-arrow {
-  font-size: 2em;
-  color: $text-muted;
+.nav-page .bi {
+  font-size: 1.8rem;
+  vertical-align:middle;
 }
 
 .nav-page .nav-page-text {
-  font-size: 1em;
-  padding-top: 0px;
-  padding-bottom: 0px;
+  font-size: 1rem;
+  vertical-align:middle;
 }
 
 .nav-page a {
