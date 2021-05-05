@@ -6,13 +6,14 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { join } from "path/mod.ts";
+import { basename, extname, join } from "path/mod.ts";
 
 import { safeExistsSync } from "../../../core/path.ts";
 import { warnOnce } from "../../../core/log.ts";
 import { Metadata } from "../../../config/metadata.ts";
 
 import { fileExecutionEngine } from "../../../execute/engine.ts";
+import { defaultWriterFormat } from "../../../format/formats.ts";
 
 import {
   normalizeSidebarItem,
@@ -36,6 +37,9 @@ import {
 } from "../website/website-config.ts";
 
 import { isNumberedChapter } from "./book-chapters.ts";
+import { kOutputExt, kTitle } from "../../../config/constants.ts";
+
+import { isMultiFileBookFormat } from "./book-extension.ts";
 
 const kAppendicesSectionLabel = "Appendices";
 
@@ -134,6 +138,11 @@ export async function bookProjectConfig(
       href: repoUrl,
     });
   }
+
+  // Create any download tools
+  (siteSidebar[kBookTools] as SidebarTool[]).push(
+    ...(downloadTools(projectDir, config) || []),
+  );
 
   // Create any sharing options
   (siteSidebar[kBookTools] as SidebarTool[]).push(
@@ -326,6 +335,56 @@ export async function bookRenderItems(
   }
   const index = inputs.splice(indexPos, 1);
   return index.concat(inputs);
+}
+
+function downloadTools(
+  projectDir: string,
+  config: ProjectConfig,
+): SidebarTool[] | undefined {
+  // Filter the user actions to the set that are single file books
+  const downloadActions = bookConfigActions("downloads", config);
+  const filteredActions = downloadActions.filter((action) => {
+    const format = defaultWriterFormat(action);
+    if (format) {
+      return format.extensions?.book && !isMultiFileBookFormat(format);
+    } else {
+      return false;
+    }
+  });
+  console.log(filteredActions);
+
+  // Map the action into sidebar items
+  const outputStem = bookOutputStem(projectDir, config);
+  const downloads = filteredActions.map((action) => {
+    const format = defaultWriterFormat(action);
+    return {
+      text: `${action}`,
+      href: `${outputStem}.${format.render[kOutputExt]}`,
+    };
+  });
+
+  // Form the menu (or single item download button)
+  if (downloads.length === 0) {
+    return undefined;
+  } else if (downloadTools.length === 1) {
+    return [{
+      ...downloads[0],
+      icon: "download",
+    }];
+  } else {
+    return [{
+      icon: "download",
+      text: "Download",
+      menu: downloads,
+    }];
+  }
+}
+
+export function bookOutputStem(projectDir: string, config?: ProjectConfig) {
+  const outputFile = (bookConfig(kBookOutputFile, config) ||
+    bookConfig(kTitle, config) || basename(projectDir)) as string;
+  const stem = basename(outputFile, extname(outputFile));
+  return stem;
 }
 
 function sharingTools(
