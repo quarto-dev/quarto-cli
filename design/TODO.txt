@@ -20,15 +20,12 @@ Books
 =========================================================================
 
 for websites:
- repo-url: https://github.com/hadley/mastering-shiny  
  repo-actions: [source, edit, issue]
  repo-actions: [edit]
 
 
 TODO:
 - search box background color should be transparent (e.g. look at darkly theme)
-
-DOI feature (on title page)
 
 footer (attribution, including add attribution to the templates)
 
