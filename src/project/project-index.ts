@@ -102,13 +102,16 @@ export function readInputTargetIndex(
 export async function resolveInputTarget(
   project: ProjectContext,
   href: string,
+  absolute = true,
 ) {
   const index = await inputTargetIndex(project, href);
   if (index) {
     const format = Object.values(index.formats)[0];
     const [hrefDir, hrefStem] = dirAndStem(href);
     const outputFile = format?.pandoc[kOutputFile] || `${hrefStem}.html`;
-    const outputHref = pathWithForwardSlashes("/" + join(hrefDir, outputFile));
+    const outputHref = pathWithForwardSlashes(
+      (absolute ? "/" : "") + join(hrefDir, outputFile),
+    );
     return { title: index.title, outputHref };
   } else {
     return undefined;

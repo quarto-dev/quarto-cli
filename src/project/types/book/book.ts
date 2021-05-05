@@ -63,7 +63,7 @@ export const bookProjectType: ProjectType = {
       scaffold: [
         {
           name: "index",
-          content: "## Preface {.unnumbered}",
+          content: "## Preface",
           format: "html",
         },
         {
@@ -78,7 +78,7 @@ export const bookProjectType: ProjectType = {
         },
         {
           name: "references",
-          content: "# References",
+          content: "# References {.unnumbered}",
           format: "html",
         },
       ],
