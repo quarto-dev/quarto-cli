@@ -6,7 +6,7 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-
+import { warning } from "log/mod.ts";
 import { join } from "path/mod.ts";
 
 import { safeExistsSync } from "../../../core/path.ts";
@@ -32,6 +32,7 @@ import {
   kSiteSidebar,
   kSiteTitle,
   kSiteUrl,
+  websiteBaseurl,
   websiteProjectConfig,
 } from "../website/website-config.ts";
 
@@ -116,9 +117,11 @@ export async function bookProjectConfig(
     (siteSidebar[kBookTools] as []).push(...book[kBookTools] as []);
   }
 
+  // Prorcess the repo-url
+
   // Create any sharing options
   (siteSidebar[kBookTools] as SidebarTool[]).push(
-    ...(sharingTools(book) || []),
+    ...(sharingTools(config) || []),
   );
 
   // save our own render list (which has more fine grained info about parts,
@@ -310,56 +313,71 @@ export async function bookRenderItems(
 }
 
 function sharingTools(
-  book: Record<string, unknown>,
+  projectConfig: ProjectConfig,
 ): SidebarTool[] | undefined {
-  const sharing = book[kBookSharing];
+  // alias the site url
+  const siteUrl = websiteBaseurl(projectConfig);
 
-  if (Array.isArray(sharing)) {
-    // Filter the items to only the kinds that we know about
-    const shareList = sharing as string[];
-    const sidebarItems = shareList.filter((shareItem) =>
-      Object.keys(kSharingUrls).find((key) => key === shareItem)
-    ).map((share) => {
-      return {
-        text: kSharingUrls[share].text,
-        icon: share,
-        href: kSharingUrls[share].url,
-      };
-    });
+  const sharingActions = bookConfigActions("sharing", projectConfig);
+  // Filter the items to only the kinds that we know about
+  const sidebarTools: SidebarTool[] = [];
+  sidebarTools.push(
+    ...sharingActions.filter((action) => {
+      const sidebarTool = kSharingUrls[action];
+      if (sidebarTool) {
+        if (sidebarTool.requiresSiteUrl && !siteUrl) {
+          warning(
+            `Sharing using ${action} requires that you provide a site-url.`,
+          );
+          return false;
+        }
+        return true;
+      } else {
+        return false;
+      }
+    }).map((action) => {
+      return kSharingUrls[action];
+    }),
+  );
 
-    if (sidebarItems.length === 1) {
-      // If there is one item, just return it
-      return sidebarItems;
-    } else {
-      // If there are more than one items, make a menu
-      return [{
-        text: "Share",
-        icon: kShareIcon,
-        menu: sidebarItems,
-      }];
-    }
-  } else {
-    // No sharing
+  if (sidebarTools.length === 0) {
     return undefined;
+  } else if (sidebarTools.length === 1) {
+    // If there is one item, just return it
+    return sidebarTools;
+  } else {
+    // If there are more than one items, make a menu
+    return [{
+      text: "Share",
+      icon: kShareIcon,
+      menu: sidebarTools,
+    }];
   }
 }
 
+interface SharingSidebarTool extends SidebarTool {
+  requiresSiteUrl?: boolean;
+}
+
 const kShareIcon = "share";
-const kSharingUrls: Record<string, { text: string; url: string }> = {
+const kSharingUrls: Record<string, SharingSidebarTool> = {
   linkedin: {
+    icon: "linkedin",
     text: "LinkedIn",
-    url: "https://www.linkedin.com/",
+    href: "https://www.linkedin.com/sharing/share-offsite/?url=",
+    requiresSiteUrl: true,
   },
   facebook: {
+    icon: "facebook",
     text: "Facebook",
     url: "https://www.facebook.com/sharer/sharer.php",
   },
   twitter: {
+    icon: "twitter",
     text: "Twitter",
     url: "http://www.twitter.com/share",
   },
 };
-//url: "https://www.linkedin.com/sharing/share-offsite/?url=",
 
 async function inputIsNumbered(
   projectDir: string,
