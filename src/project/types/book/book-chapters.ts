@@ -5,6 +5,7 @@ import { PartitionedMarkdown } from "../../../core/pandoc/pandoc-partition.ts";
 import {
   kCrossref,
   kCrossrefChaptersAlpha,
+  kDoi,
   kNumberOffset,
   kNumberSections,
   kTitle,
@@ -44,6 +45,9 @@ export function withChapterMetadata(
   } else {
     format.pandoc[kNumberSections] = false;
   }
+
+  // never show doi in chapters
+  delete format.metadata[kDoi];
 
   return format;
 }
