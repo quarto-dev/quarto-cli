@@ -5,7 +5,7 @@
 *
 */
 
-import { basename, dirname, extname, join, relative } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 
 import { encode as base64Encode } from "encoding/base64.ts";
 
@@ -51,9 +51,9 @@ import {
   bookConfig,
   BookConfigKey,
   bookConfigRenderItems,
+  bookOutputStem,
   BookRenderItem,
   isBookIndexPage,
-  kBookOutputFile,
 } from "./book-config.ts";
 
 import { chapterInfoForInput, withChapterMetadata } from "./book-chapters.ts";
@@ -237,10 +237,8 @@ async function mergeExecutedFiles(
   context.options = removePandocTo(options);
 
   // set output file based on book outputFile (or explicit config if provided)
-  const outputFile = (bookConfig(kBookOutputFile, project.config) ||
-    bookConfig(kTitle, project.config) || basename(project.dir)) as string;
-  const stem = basename(outputFile, extname(outputFile));
-  context.format.pandoc[kOutputFile] = `${stem}.${
+  const outputStem = bookOutputStem(project.dir, project.config);
+  context.format.pandoc[kOutputFile] = `${outputStem}.${
     context.format.render[kOutputExt]
   }`;
 
