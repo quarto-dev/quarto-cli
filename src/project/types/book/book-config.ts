@@ -111,12 +111,9 @@ export async function bookProjectConfig(
   }
 
   // if we have tools then fold those into the sidebar
-  siteSidebar[kBookTools] = siteSidebar[kBookTools] || {};
   if (book[kBookTools]) {
-    siteSidebar[kBookTools] = mergeConfigs(
-      siteSidebar[kBookTools],
-      book[kBookTools],
-    );
+    siteSidebar[kBookTools] = siteSidebar[kBookTools] || [];
+    (siteSidebar[kBookTools] as []).push(...book[kBookTools] as []);
   }
 
   // save our own render list (which has more fine grained info about parts,
