@@ -12,13 +12,16 @@ TODO: Floating TOC with toc-depth: 4 - looks meh
 
 TODO: centralized _cache dir for projects (alongside _freeze)
 
+TODO: include-after as text ends up doubling-up
+
 TODO: downlit integration
 
 Books
 =========================================================================
 
-footer
+DOI feature
 
+footer
 book sidebar layout
 
 book:
@@ -32,22 +35,6 @@ book:
      tools: [source, issue, edit]
   sharing: [facebook, twitter, linkedin, discord]
   downloads: [pdf, epub]
-  
-global bibliography for web output
-
-   - we will create a file called references.html and will
-     place at the end of the content before the appendix
-
-   - alternatively, use this syntax anywhere to locate 
-      the bibliography there:
-      ::: {#refs}
-      :::
-
-   - collect up every key that is used anywhere in the book
-   - tell pandoc to create a page using those keys
-   - hide the bibliography in the individual chapters
-   - fixup up the citation links to point to the bibliography
-
 
 Installation/Compilation
 =====================================================================
