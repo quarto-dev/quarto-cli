@@ -14,6 +14,7 @@ import {
   isEpubOutput,
   isHtmlOutput,
   isLatexOutput,
+  kSassBundles,
 } from "../../../config/format.ts";
 import { PandocFlags } from "../../../config/flags.ts";
 import {
@@ -50,6 +51,7 @@ import { bookProjectConfig, kBook } from "./book-config.ts";
 
 import { chapterInfoForInput, formatChapterLabel } from "./book-chapters.ts";
 import { isMultiFileBookFormat } from "./book-extension.ts";
+import { kBootstrapDependencyName } from "../../../format/html/format-html.ts";
 
 export const bookProjectType: ProjectType = {
   type: "book",
@@ -161,6 +163,9 @@ export const bookProjectType: ProjectType = {
           [kCrossrefChapters]: true,
         },
       },
+      html: {
+        [kSassBundles]: [bookScssBundle()],
+      },
     };
 
     if (isHtmlOutput(format.pandoc, true)) {
@@ -197,3 +202,18 @@ export const bookProjectType: ProjectType = {
     return extras;
   },
 };
+
+function bookScssBundle() {
+  const scssPath = resourcePath("projects/book/book.scss");
+  return {
+    dependency: kBootstrapDependencyName,
+    key: scssPath,
+    quarto: {
+      name: "quarto-book.css",
+      defaults: "",
+      functions: "",
+      mixins: "",
+      rules: Deno.readTextFileSync(scssPath),
+    },
+  };
+}
