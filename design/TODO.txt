@@ -26,6 +26,7 @@ for websites:
 
 TODO:
 - search box background color should be transparent (e.g. look at darkly theme)
+- support sidebar background as an attribute (or remove from docs)
 - including add attribution to the templates
 
 
