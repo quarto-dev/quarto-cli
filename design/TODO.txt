@@ -22,15 +22,10 @@ Books
 
 TODO:
 - Large sidebar width based on title
-- Download menu w/ "Download PDF", "Download ePub"
 - Double-slash in download links
 - search box background color should be transparent (e.g. look at darkly theme)
 - support sidebar background as an attribute (or remove from docs)
 - including add attribution to the templates
-
-
-book:
-  we will create a tool from the repo-url 
 
 Installation/Compilation
 =====================================================================
