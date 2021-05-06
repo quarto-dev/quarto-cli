@@ -24,16 +24,19 @@ import {
 import { kProjectRender, ProjectConfig } from "../../project-context.ts";
 
 import {
+  isGithubRepoUrl,
   kContents,
   kSite,
   kSiteFooter,
   kSiteNavbar,
   kSitePageNavigation,
+  kSiteRepoActions,
   kSiteRepoUrl,
   kSiteSidebar,
   kSiteTitle,
   kSiteUrl,
   websiteBaseurl,
+  websiteConfigActions,
   websiteProjectConfig,
 } from "../website/website-config.ts";
 
@@ -92,6 +95,7 @@ export async function bookProjectConfig(
     site[kSiteTitle] = book[kSiteTitle];
     site[kSiteUrl] = book[kSiteUrl];
     site[kSiteRepoUrl] = book[kSiteRepoUrl];
+    site[kSiteRepoActions] = book[kSiteRepoActions];
     site[kSiteNavbar] = book[kSiteNavbar];
     site[kSiteSidebar] = book[kSiteSidebar];
     site[kSitePageNavigation] = book[kSitePageNavigation] !== false;
@@ -144,9 +148,7 @@ export async function bookProjectConfig(
   // Prorcess the repo-url (github or journal-code)
   if (site[kSiteRepoUrl]) {
     const repoUrl = site[kSiteRepoUrl] as string;
-    const icon = repoUrl.match(/^http[s]?:\/\/github\.com/)
-      ? "github"
-      : "journal-code";
+    const icon = isGithubRepoUrl(repoUrl) ? "github" : "journal-code";
     (siteSidebar[kBookTools] as SidebarTool[]).push({
       text: "Source Code",
       icon,
@@ -191,27 +193,6 @@ export function bookConfig(
       | undefined;
   } else {
     return undefined;
-  }
-}
-
-export function bookConfigActions(
-  key: "repo-actions" | "sharing" | "downloads",
-  project?: ProjectConfig,
-): string[] {
-  const book = project?.[kBook] as
-    | Record<string, unknown>
-    | undefined;
-  if (book) {
-    const value = book[key];
-    if (typeof (value) === "string") {
-      return [value];
-    } else if (Array.isArray(value)) {
-      return value.map((x) => String(x));
-    } else {
-      return [];
-    }
-  } else {
-    return [];
   }
 }
 
@@ -357,7 +338,7 @@ function downloadTools(
   config: ProjectConfig,
 ): SidebarTool[] | undefined {
   // Filter the user actions to the set that are single file books
-  const downloadActions = bookConfigActions("downloads", config);
+  const downloadActions = websiteConfigActions("downloads", kBook, config);
   const filteredActions = downloadActions.filter((action) => {
     const format = defaultWriterFormat(action);
     if (format) {
@@ -407,7 +388,7 @@ function sharingTools(
   // alias the site url
   const siteUrl = websiteBaseurl(projectConfig);
 
-  const sharingActions = bookConfigActions("sharing", projectConfig);
+  const sharingActions = websiteConfigActions("sharing", kBook, projectConfig);
   // Filter the items to only the kinds that we know about
   const sidebarTools: SidebarTool[] = [];
   sidebarTools.push(

@@ -18,6 +18,7 @@ import {
 } from "../../../core/path.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { renderEjs } from "../../../core/ejs.ts";
+import { warnOnce } from "../../../core/log.ts";
 
 import { pandocAutoIdentifier } from "../../../core/pandoc/pandoc-id.ts";
 
@@ -46,6 +47,7 @@ import {
 
 import {
   kProjectType,
+  ProjectConfig,
   ProjectContext,
   projectOffset,
   projectOutputDir,
@@ -73,11 +75,17 @@ import {
 import { resolveResourceRefs } from "./website-resources.ts";
 
 import {
+  isGithubRepoUrl,
+  kSite,
   kSiteFooter,
   kSiteNavbar,
   kSitePageNavigation,
+  kSiteRepoActions,
+  kSiteRepoUrl,
   kSiteSidebar,
   websiteConfig,
+  websiteConfigActions,
+  websiteRepourl,
   websiteTitle,
 } from "./website-config.ts";
 
@@ -305,9 +313,82 @@ function navigationHtmlPostprocessor(project: ProjectContext, input: string) {
       }
     }
 
+    // append repo actions to toc
+    addRepoActions(doc, inputRelative, project.config);
+
     // resolve resource refs
     return Promise.resolve(resolveResourceRefs(doc, offset));
   };
+}
+
+function addRepoActions(doc: Document, input: string, config?: ProjectConfig) {
+  const repoActions = websiteConfigActions(
+    kSiteRepoActions,
+    kSite,
+    config,
+  );
+  if (repoActions.length > 0) {
+    const repoUrl = websiteRepourl(config);
+    if (repoUrl) {
+      if (isGithubRepoUrl(repoUrl)) {
+        // find the toc
+        const toc = doc.querySelector(`nav[role="doc-toc"]`);
+        if (toc) {
+          // get the action links
+          const links = repoActionLinks(repoActions, repoUrl, input);
+          links.forEach((link) => {
+            const a = doc.createElement("a");
+            a.setAttribute("href", link.url);
+            a.innerHTML = link.text;
+            toc.appendChild(a);
+          });
+        } else {
+          warnOnce(
+            `${kSiteRepoActions} requires a table of contents (toc: true)`,
+          );
+        }
+      } else {
+        warnOnce(`${kSiteRepoActions} requires a github.com ${kSiteRepoUrl}`);
+      }
+    } else {
+      warnOnce(
+        `${kSiteRepoActions} requires that you also specify a ${kSiteRepoUrl}`,
+      );
+    }
+  }
+}
+
+function repoActionLinks(
+  actions: string[],
+  repoUrl: string,
+  input: string,
+): Array<{ text: string; url: string }> {
+  return actions.map((action) => {
+    switch (action) {
+      case "edit":
+        return {
+          text: "Edit this page",
+          url: `${repoUrl}edit/master/${input}`,
+        };
+      case "source":
+        return {
+          text: "View source",
+          url: `${repoUrl}blob/master/${input}`,
+        };
+      case "issue":
+        return {
+          text: "Report an issue",
+          url: `${repoUrl}issues/new`,
+        };
+
+      default: {
+        warnOnce(`Unknown repo action '${action}'`);
+        return null;
+      }
+    }
+  }).filter((action) => action !== null) as Array<
+    { text: string; url: string }
+  >;
 }
 
 async function sidebarsEjsData(project: ProjectContext, sidebars: Sidebar[]) {

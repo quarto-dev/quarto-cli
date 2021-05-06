@@ -17,6 +17,7 @@ export const kSite = "site";
 export const kSiteTitle = "title";
 export const kSiteUrl = "site-url";
 export const kSiteRepoUrl = "repo-url";
+export const kSiteRepoActions = "repo-actions";
 
 export const kSiteNavbar = "navbar";
 export const kSiteSidebar = "sidebar";
@@ -29,6 +30,7 @@ export interface WebsiteConfig {
   [kSiteTitle]?: string;
   [kSiteUrl]?: string;
   [kSiteRepoUrl]?: string;
+  [kSiteRepoActions]?: string;
   [kSiteNavbar]?: string;
   [kSiteSidebar]?: string;
   [kSitePageNavigation]?: boolean;
@@ -40,6 +42,7 @@ export function websiteConfig(
     | "title"
     | "site-url"
     | "repo-url"
+    | "repo-actions"
     | "navbar"
     | "sidebar"
     | "page-navigation"
@@ -66,11 +69,50 @@ export function websiteBaseurl(project?: ProjectConfig): string | undefined {
 }
 
 export function websiteRepourl(project?: ProjectConfig): string | undefined {
-  return websiteConfig(kSiteRepoUrl, project) as string | undefined;
+  const repoUrl = websiteConfig(kSiteRepoUrl, project) as string | undefined;
+  if (repoUrl) {
+    if (!repoUrl.endsWith("/")) {
+      return repoUrl + "/";
+    } else {
+      return repoUrl;
+    }
+  } else {
+    return undefined;
+  }
 }
 
 export function websiteMetadataFields(): Array<string | RegExp> {
   return [kSite];
+}
+
+export function isGithubRepoUrl(url: string): boolean {
+  return !!url.match(/^http[s]?:\/\/github\.com/);
+}
+
+export function websiteConfigActions(
+  key: string,
+  subkey: string,
+  project?: ProjectConfig,
+): string[] {
+  const book = project?.[subkey] as
+    | Record<string, unknown>
+    | undefined;
+  if (book) {
+    const value = book[key];
+    if (typeof (value) === "string") {
+      if (value === "none") {
+        return [];
+      } else {
+        return [value];
+      }
+    } else if (Array.isArray(value)) {
+      return value.map((x) => String(x));
+    } else {
+      return [];
+    }
+  } else {
+    return [];
+  }
 }
 
 // provide a project context that elevates html to the default
