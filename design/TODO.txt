@@ -20,13 +20,9 @@ Books
 =========================================================================
 
 
-TODO:
-- Large sidebar width based on title
-- Double-slash in download links
-- search box background color should be transparent (e.g. look at darkly theme)
-- support sidebar background as an attribute (or remove from docs)
-- including add attribution to the templates
-
+Move page next into the body (right and left aligned)
+Move footer cetered into body and remove bottom border
+sidebar when too small title gets shrunk/compressed
 
 book:
   we will create a tool from the repo-url 
