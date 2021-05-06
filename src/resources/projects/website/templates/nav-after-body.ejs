@@ -22,9 +22,11 @@
     <% } %>
   </div>
 
-  <div class="nav-footer col">
-    <div class="nav-footer-contents"><%=nav.footer%></div>
-  </div>
+  <% if (nav.footer) { %>
+    <div class="nav-footer col">
+      <div class="nav-footer-contents"><%=nav.footer%></div>
+    </div>
+  <% } %>
 
   <div class="nav-page nav-page-next col">
     <% if (nav.nextPage) { %>
