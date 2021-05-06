@@ -27,6 +27,42 @@ TODO:
 - support sidebar background as an attribute (or remove from docs)
 - including add attribution to the templates
 
+
+book:
+  we will create a tool from the repo-url 
+
+
+Markdown Serialization
+=====================================================================
+
+foo.md file extension
+
+foo.knitr.md or foo.jupyter.md for keep-md
+
+README.qmd
+README.md
+
+---
+title: "Woozy Foobar"
+engine: knitr
+---
+
+---
+title: "Woozy Foobar"
+engine: jupyter:python3
+---
+
+```r
+#| label: mylabel
+#| eval: true
+#| code-fold: true
+#| fig-cap: "this is my figure"
+
+plot(cars)
+```
+
+
+
 Installation/Compilation
 =====================================================================
 
