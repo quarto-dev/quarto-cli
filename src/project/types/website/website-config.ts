@@ -21,6 +21,7 @@ export const kSiteRepoUrl = "repo-url";
 export const kSiteNavbar = "navbar";
 export const kSiteSidebar = "sidebar";
 export const kSitePageNavigation = "page-navigation";
+export const kSiteFooter = "footer";
 
 export const kContents = "contents";
 
@@ -31,6 +32,7 @@ export interface WebsiteConfig {
   [kSiteNavbar]?: string;
   [kSiteSidebar]?: string;
   [kSitePageNavigation]?: boolean;
+  [kSiteFooter]?: string;
 }
 
 export function websiteConfig(
@@ -40,12 +42,14 @@ export function websiteConfig(
     | "repo-url"
     | "navbar"
     | "sidebar"
-    | "page-navigation",
+    | "page-navigation"
+    | "footer",
   project?: ProjectConfig,
 ) {
   const site = project?.[kSite] as
     | Record<string, unknown>
     | undefined;
+
   if (site) {
     return site[name] as Record<string, unknown> | string | undefined;
   } else {

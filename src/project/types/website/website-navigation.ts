@@ -73,6 +73,7 @@ import {
 import { resolveResourceRefs } from "./website-resources.ts";
 
 import {
+  kSiteFooter,
   kSiteNavbar,
   kSitePageNavigation,
   kSiteSidebar,
@@ -89,6 +90,7 @@ interface Navigation {
   navbar?: Navbar;
   sidebars: Sidebar[];
   pageNavigation?: boolean;
+  footer?: string;
 }
 
 // static navigation (initialized during project preRender)
@@ -98,7 +100,9 @@ const navigation: Navigation = {
 
 export async function initWebsiteNavigation(project: ProjectContext) {
   // read config
-  const { navbar, sidebars, pageNavigation } = websiteNavigationConfig(project);
+  const { navbar, sidebars, pageNavigation, footer } = websiteNavigationConfig(
+    project,
+  );
   if (!navbar && !sidebars && !pageNavigation) {
     return;
   }
@@ -121,6 +125,7 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   navigation.navbar = resolveNavReferences(navigation.navbar) as Navbar;
   navigation.sidebars = resolveNavReferences(navigation.sidebars) as Sidebar[];
   navigation.pageNavigation = pageNavigation;
+  navigation.footer = footer as string;
 }
 
 export function websiteNavigationConfig(project: ProjectContext) {
@@ -142,8 +147,11 @@ export function websiteNavigationConfig(project: ProjectContext) {
   // read the page navigation
   const pageNavigation = !!websiteConfig(kSitePageNavigation, project.config);
 
+  // read any footer
+  const footer = websiteConfig(kSiteFooter, project.config);
+
   // return
-  return { navbar, sidebars, pageNavigation };
+  return { navbar, sidebars, pageNavigation, footer };
 }
 
 export function websiteNavigationExtras(
@@ -184,6 +192,11 @@ export function websiteNavigationExtras(
     const pageNavigation = nextAndPrevious(href, sidebar);
     nav.prevPage = pageNavigation.prevPage;
     nav.nextPage = pageNavigation.nextPage;
+  }
+
+  // forward the footer
+  if (navigation.footer) {
+    nav.footer = navigation.footer;
   }
 
   const projTemplate = (template: string) =>

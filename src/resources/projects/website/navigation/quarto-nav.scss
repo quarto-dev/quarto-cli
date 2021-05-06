@@ -264,6 +264,17 @@ header.headroom--unpinned {
   display: flex;
 }
 
+.nav-footer  {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.nav-footer-contents {
+  padding-top: .75rem;
+  padding-bottom: .75rem;
+}
+
 .nav-page-next {
   justify-content: flex-end;
 }
