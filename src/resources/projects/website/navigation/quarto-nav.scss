@@ -41,6 +41,11 @@ nav .dropdown-item i {
 .sidebar-title {
   padding-bottom: 0.5rem;
   font-size: 1.5rem;
+  max-width: $sidebar-max-width;
+}
+
+.sidebar-subtitle {
+  max-width: $sidebar-max-width;
 }
 
 .sidebar-navigation .active {
@@ -224,7 +229,10 @@ header.headroom--unpinned {
 
   .sidebar .sidebar-footer {
      visibility: visible;
+     max-width: $sidebar-max-width;
   }
+
+  
 }
 
 .sidebar .sidebar-footer {
