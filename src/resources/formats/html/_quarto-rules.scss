@@ -9,7 +9,10 @@ h6:hover > .anchorjs-link {
   opacity: 1;
 }
 
-// no link decoration in title
+#title-block-header {
+  margin-block-end: 1rem;
+}
+
 #title-block-header a {
   text-decoration: none;
 }
@@ -17,7 +20,7 @@ h6:hover > .anchorjs-link {
 #title-block-header .author,
 #title-block-header .date,
 #title-block-header .doi {
-  margin-block-end: 0.2em;
+  margin-block-end: 0.2rem;
 }
 
 // utterances

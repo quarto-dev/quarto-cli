@@ -17,6 +17,7 @@ import {
   kAbstract,
   kAuthor,
   kDate,
+  kDescription,
   kNumberSections,
   kOutputExt,
   kOutputFile,
@@ -121,6 +122,7 @@ export function bookPandocRenderer(
               file.recipe.format,
               partitioned,
               chapterInfo,
+              project.config,
             );
           }
 
@@ -441,6 +443,7 @@ function withBookTitleMetadata(format: Format, config?: ProjectConfig): Format {
     setMetadata(kAuthor);
     setMetadata(kDate);
     setMetadata(kAbstract);
+    setMetadata(kDescription);
   }
   return format;
 }

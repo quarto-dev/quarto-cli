@@ -76,6 +76,7 @@ export type BookConfigKey =
   | "title"
   | "subtitle"
   | "author"
+  | "description"
   | "date"
   | "abstract";
 

@@ -80,7 +80,7 @@ pre.sourceCode {
 }
 
 pre.sourceCode {
-  overflow:visible !important;
+  overflow: visible !important;
 }
 
 div.sourceCode {
@@ -88,6 +88,16 @@ div.sourceCode {
   @if $code-border-left {
     margin-left: add(-$code-padding-left, -$code-border-left-size);
   }
+}
+
+// improve treatment of blockquotes
+.blockquote {
+  font-size: inherit;
+  font-weight: 300;
+  border-left: $code-border-left-size;
+  border-left-style: $code-border-left-style;
+  border-left-color: $code-border-left-color;
+  padding-left: $code-padding-left;
 }
 
 // Maps the pandoc 'monobackgroundcolor' to bootstrap
@@ -129,7 +139,7 @@ div.sourceCode {
   padding-bottom: 0;
 }
 
-.sidebar-toc > nav > ul  a{
+.sidebar-toc > nav > ul a {
   border-left: 1px solid $gray-200;
   padding-left: 0.6rem;
 }
@@ -139,7 +149,6 @@ div.sourceCode {
   list-style: none;
   font-size: 0.9rem;
   font-weight: 300;
-  
 }
 
 .sidebar-toc > nav ul li a {
@@ -322,13 +331,13 @@ $callouts: (
 
   $shifted-color: #{shift-color(map.get($info, "color"), $callout-icon-scale)};
   $shifted-color-svg: str-replace($shifted-color, "#", "%23");
-  
+
   div.callout-#{$name}:not(.callout-captioned) .callout-icon::before {
     background-image: #{"url('data:image/svg+xml," +
       str-replace(
         map.get($info, "icon"),
         'fill="currentColor"',
-        'style="fill: #{$shifted-color-svg}"',
+        'style="fill: #{$shifted-color-svg}"'
       ) +
       "');"};
   }
@@ -338,11 +347,10 @@ $callouts: (
       str-replace(
         map.get($info, "icon"),
         'fill="currentColor"',
-        'style="fill: #{$shifted-color-svg}"',
+        'style="fill: #{$shifted-color-svg}"'
       ) +
       "');"};
   }
-
 
   div.callout-#{$name} .callout-toggle::before {
     background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGB($body-color)}" class="bi bi-chevron-down" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>');

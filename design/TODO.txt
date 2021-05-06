@@ -19,6 +19,9 @@ TODO: downlit integration
 Books
 =========================================================================
 
+- Why does an incremental render render every chapter?
+- Chapters can't be linked to via #sec
+- Why are there JS errors when the page loads
 
 Move page next into the body (right and left aligned)
 Move footer cetered into body and remove bottom border

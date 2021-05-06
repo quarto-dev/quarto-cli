@@ -131,6 +131,15 @@ function bootstrapHtmlPostprocessor(format: Format) {
       subtitle.classList.add("lead");
     }
 
+    // add 'blockquote' class to blockquotes
+    const blockquotes = doc.querySelectorAll("blockquote");
+    if (blockquotes) {
+      for (let i = 0; i < blockquotes.length; i++) {
+        const classList = (blockquotes[i] as Element).classList;
+        classList.add("blockquote");
+      }
+    }
+
     // move the toc if there is a sidebar
     const toc = doc.querySelector('nav[role="doc-toc"]');
     const tocSidebar = doc.getElementById("quarto-toc-sidebar");
