@@ -142,7 +142,7 @@ function bootstrapHtmlPostprocessor(format: Format) {
       body.setAttribute("data-bs-target", "#" + tocSidebar.id);
 
       // add nav-link class to the TOC links
-      const tocLinks = doc.querySelectorAll('nav[role="doc-toc"] a');
+      const tocLinks = doc.querySelectorAll('nav[role="doc-toc"] > ul a');
       for (let i = 0; i < tocLinks.length; i++) {
         // Mark the toc links as nav-links
         const tocLink = tocLinks[i] as Element;

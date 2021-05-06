@@ -342,12 +342,25 @@ function addRepoActions(doc: Document, input: string, config?: ProjectConfig) {
             websiteRepoBranch(config),
             input,
           );
+          const actionsDiv = doc.createElement("div");
+          actionsDiv.classList.add("toc-actions");
+          const iconDiv = doc.createElement("div");
+          const iconEl = doc.createElement("i");
+          iconEl.classList.add("bi").add("bi-github");
+          iconDiv.appendChild(iconEl);
+          actionsDiv.appendChild(iconDiv);
+          const linksDiv = doc.createElement("div");
+          linksDiv.classList.add("action-links");
           links.forEach((link) => {
             const a = doc.createElement("a");
             a.setAttribute("href", link.url);
             a.innerHTML = link.text;
-            toc.appendChild(a);
+            const p = doc.createElement("p");
+            p.appendChild(a);
+            linksDiv.appendChild(p);
           });
+          actionsDiv.appendChild(linksDiv);
+          toc.appendChild(actionsDiv);
         } else {
           warnOnce(
             `${kSiteRepoActions} requires a table of contents (toc: true)`,
