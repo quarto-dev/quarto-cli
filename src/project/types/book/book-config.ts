@@ -26,6 +26,7 @@ import { kProjectRender, ProjectConfig } from "../../project-context.ts";
 import {
   kContents,
   kSite,
+  kSiteFooter,
   kSiteNavbar,
   kSitePageNavigation,
   kSiteRepoUrl,
@@ -40,6 +41,8 @@ import { isNumberedChapter } from "./book-chapters.ts";
 import { kOutputExt, kTitle } from "../../../config/constants.ts";
 
 import { isMultiFileBookFormat } from "./book-extension.ts";
+import { binaryPath } from "../../../core/resources.ts";
+import { execProcess } from "../../../core/process.ts";
 
 const kAppendicesSectionLabel = "Appendices";
 
@@ -54,6 +57,7 @@ export const kBookSharing = "sharing";
 export const kBookDownloads = "downloads";
 export const kBookTools = "tools";
 export const kBookSearch = "search";
+export const kBookAttribution = "attribution";
 
 export type BookConfigKey =
   | "output-file"
@@ -91,6 +95,17 @@ export async function bookProjectConfig(
     site[kSiteNavbar] = book[kSiteNavbar];
     site[kSiteSidebar] = book[kSiteSidebar];
     site[kSitePageNavigation] = book[kSitePageNavigation] !== false;
+
+    // Conver the attribution markdown into html and place it into the footer
+    const attributionMarkdown = book[kBookAttribution];
+    if (attributionMarkdown && typeof (attributionMarkdown) === "string") {
+      // render the markdown
+      const markdown = await renderMarkdown(
+        attributionMarkdown,
+        kBookAttribution,
+      );
+      site[kSiteFooter] = markdown;
+    }
   }
 
   // if we have a top-level 'contents' or 'appendix' fields fold into sidebar
@@ -452,6 +467,27 @@ const kSharingUrls: Record<string, SharingSidebarTool> = {
     url: "http://www.twitter.com/share",
   },
 };
+
+async function renderMarkdown(markdown: string, keyname: string) {
+  const result = await execProcess({
+    cmd: [
+      binaryPath("pandoc"),
+      "--from",
+      "markdown",
+      "--to",
+      "html",
+    ],
+    stdout: "piped",
+  }, markdown);
+
+  if (result.success) {
+    return result.stdout;
+  } else {
+    throw new Error(
+      `Invalid ${keyname} - please verify that the markdown is valid.`,
+    );
+  }
+}
 
 async function inputIsNumbered(
   projectDir: string,
