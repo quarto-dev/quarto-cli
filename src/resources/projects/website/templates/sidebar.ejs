@@ -38,10 +38,16 @@ if (sidebar.align === "left") {
     </div>
   <% } %>
 
+  <div class="sidebar-menu-container"> 
   <ul class="list-unstyled mt-3 px-3">
   <% sidebar.contents.forEach(item => { %>
       <% partial('sidebaritem.ejs', { item, depth: 1, collapse: sidebar['collapse-level'], borderColor: borderColor, textStyleCss: textStyleCss }) %>
   <% }) %>
   </ul>
+  </div>
+
+  <% if (sidebar.footer) { %>
+    <div class="sidebar-footer"><%= sidebar.footer %></div>
+  <% } %>
 
 </nav>
