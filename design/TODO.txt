@@ -26,15 +26,11 @@ for websites:
 
 TODO:
 - search box background color should be transparent (e.g. look at darkly theme)
+- including add attribution to the templates
 
-footer (attribution, including add attribution to the templates)
 
 book:
-  we will create a tool from the repo-url
-  sharing: [facebook, twitter, linkedin, discord]
-  downloads: [pdf, epub]
-
- 
+  we will create a tool from the repo-url 
 
 Installation/Compilation
 =====================================================================
