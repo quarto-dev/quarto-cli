@@ -19,6 +19,9 @@ TODO: downlit integration
 Books
 =========================================================================
 
+- Why does an incremental render render every chapter?
+- Chapters can't be linked to via #sec
+- Why are there JS errors when the page loads
 
 TODO:
 - Large sidebar width based on title
