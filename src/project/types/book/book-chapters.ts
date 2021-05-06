@@ -5,6 +5,7 @@ import { PartitionedMarkdown } from "../../../core/pandoc/pandoc-partition.ts";
 import {
   kCrossref,
   kCrossrefChaptersAlpha,
+  kDescription,
   kDoi,
   kNumberOffset,
   kNumberSections,
@@ -13,14 +14,15 @@ import {
 import { Format } from "../../../config/format.ts";
 import { Metadata } from "../../../config/metadata.ts";
 
-import { ProjectContext } from "../../project-context.ts";
+import { ProjectConfig, ProjectContext } from "../../project-context.ts";
 
-import { bookConfigRenderItems } from "./book-config.ts";
+import { bookConfig, bookConfigRenderItems } from "./book-config.ts";
 
 export function withChapterMetadata(
   format: Format,
   partitioned: PartitionedMarkdown,
   chapterInfo?: ChapterInfo,
+  config?: ProjectConfig,
 ) {
   format = ld.cloneDeep(format);
   if (partitioned.headingText) {
@@ -48,6 +50,12 @@ export function withChapterMetadata(
 
   // never show doi in chapters
   delete format.metadata[kDoi];
+
+  // forward description
+  const description = bookConfig("description", config);
+  if (description) {
+    format.metadata[kDescription] = description;
+  }
 
   return format;
 }

@@ -159,7 +159,7 @@ nav .dropdown-item i {
     border-left: none !important;
     border-right: none !important;
   }
-  
+
   .sidebar.sidebar-navigation nav {
     padding-top: 0.5em !important;
     padding-bottom: 0.5em;
@@ -187,15 +187,13 @@ nav .dropdown-item i {
     visibility: visible;
     padding-top: 1rem;
     position: inherit;
- }
-
+  }
 }
 
 header.headroom {
   will-change: transform;
   transition: transform 200ms linear;
 }
-
 
 header.headroom--pinned {
   transform: translateY(0%);
@@ -228,15 +226,13 @@ header.headroom--unpinned {
   }
 
   .sidebar .sidebar-footer {
-     visibility: visible;
-     max-width: $sidebar-max-width;
+    visibility: visible;
+    max-width: $sidebar-max-width;
   }
-
-  
 }
 
 .sidebar .sidebar-footer {
-  padding: .5rem 1rem;
+  padding: 0.5rem 1rem;
   align-self: flex-end;
   color: $text-muted;
   width: 100%;
@@ -305,7 +301,7 @@ header.headroom--unpinned {
 
 .nav-footer-contents {
   color: $text-muted;
-  margin-top: .25rem;
+  margin-top: 0.25rem;
 }
 
 .nav-page-next {
@@ -338,6 +334,16 @@ header.headroom--unpinned {
 .toc-actions p {
   margin-block-start: 0;
   margin-block-end: 0;
+}
+
+.toc-actions a {
+  text-decoration: none;
+  color: inherit;
+  font-weight: 300;
+}
+
+.toc-actions a:hover {
+  color: $link-hover-color;
 }
 
 .toc-actions .action-links {

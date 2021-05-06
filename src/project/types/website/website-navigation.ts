@@ -361,10 +361,6 @@ function addRepoActions(doc: Document, input: string, config?: ProjectConfig) {
           });
           actionsDiv.appendChild(linksDiv);
           toc.appendChild(actionsDiv);
-        } else {
-          warnOnce(
-            `${kSiteRepoActions} requires a table of contents (toc: true)`,
-          );
         }
       } else {
         warnOnce(`${kSiteRepoActions} requires a github.com ${kSiteRepoUrl}`);

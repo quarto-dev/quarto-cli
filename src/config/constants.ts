@@ -162,6 +162,7 @@ export const kAuthor = "author";
 export const kDate = "date";
 export const kDoi = "doi";
 export const kAbstract = "abstract";
+export const kDescription = "description";
 
 export const kPageTitle = "pagetitle";
 export const kTitlePrefix = "title-prefix";
