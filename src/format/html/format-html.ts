@@ -16,6 +16,7 @@ import { sessionTempFile } from "../../core/temp.ts";
 import { asCssSize } from "../../core/css.ts";
 
 import {
+  kDoi,
   kFilterParams,
   kHeaderIncludes,
   kIncludeAfterBody,
@@ -145,6 +146,22 @@ export function htmlFormatPostprocessor(format: Format) {
       const prevElement = secNumber.previousElementSibling;
       if (prevElement && prevElement.classList.contains("toc-section-number")) {
         prevElement.remove();
+      }
+    }
+
+    // add doi to header if provided
+    const doi = format.metadata[kDoi];
+    if (typeof (doi) === "string") {
+      const header = doc.getElementById("title-block-header");
+      if (header) {
+        const p = doc.createElement("p");
+        p.classList.add("doi");
+        const doiUrl = `https://doi.org/${doi}`;
+        const a = doc.createElement("a");
+        a.innerHTML = doiUrl;
+        a.setAttribute("href", doiUrl);
+        p.appendChild(a);
+        header.appendChild(p);
       }
     }
 

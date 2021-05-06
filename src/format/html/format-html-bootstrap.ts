@@ -150,7 +150,10 @@ function bootstrapHtmlPostprocessor(format: Format) {
 
         // move the raw href to the target attribute (need the raw value, not the full path)
         if (!tocLink.hasAttribute("data-bs-target")) {
-          tocLink.setAttribute("data-bs-target", tocLink.getAttribute("href"));
+          tocLink.setAttribute(
+            "data-bs-target",
+            tocLink.getAttribute("href")?.replaceAll(":", "\\:"),
+          );
         }
       }
     }

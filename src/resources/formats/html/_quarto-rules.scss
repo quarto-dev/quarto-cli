@@ -9,6 +9,17 @@ h6:hover > .anchorjs-link {
   opacity: 1;
 }
 
+// no link decoration in title
+#title-block-header a {
+  text-decoration: none;
+}
+
+#title-block-header .author,
+#title-block-header .date,
+#title-block-header .doi {
+  margin-block-end: 0.2em;
+}
+
 // utterances
 .utterances {
   max-width: none;

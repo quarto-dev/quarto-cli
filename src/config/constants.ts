@@ -160,6 +160,7 @@ export const kTitle = "title";
 export const kSubtitle = "subtitle";
 export const kAuthor = "author";
 export const kDate = "date";
+export const kDoi = "doi";
 export const kAbstract = "abstract";
 
 export const kPageTitle = "pagetitle";

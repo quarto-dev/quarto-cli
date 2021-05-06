@@ -53,6 +53,7 @@ export const kBookRepoActions = "repo-actions";
 export const kBookSharing = "sharing";
 export const kBookDownloads = "downloads";
 export const kBookTools = "tools";
+export const kBookSearch = "search";
 
 export type BookConfigKey =
   | "output-file"
@@ -112,6 +113,11 @@ export async function bookProjectConfig(
         section: kAppendicesSectionLabel,
         contents: bookAppendix,
       }]);
+  }
+
+  // if search for book isn't false then enable search
+  if (book[kBookSearch] !== false) {
+    siteSidebar[kBookSearch] = true;
   }
 
   // if we have tools then fold those into the sidebar
