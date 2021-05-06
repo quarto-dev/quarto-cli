@@ -280,10 +280,6 @@ header.headroom--unpinned {
   box-shadow: none;
 }
 
-.page-navigation-docked {
-  border-top: 1px solid $input-border-color;
-}
-
 .nav-page-next {
   text-align: right;
 }
@@ -297,6 +293,7 @@ header.headroom--unpinned {
   justify-content: center;
   align-items: center;
   text-align: center;
+  padding-top: 1rem;
 }
 
 .nav-footer-contents {

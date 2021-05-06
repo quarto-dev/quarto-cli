@@ -2,15 +2,6 @@
 
 </main>
 
-</div> <!-- /main column -->
-
-<% if (nav.toc) { %>
-<div id="quarto-toc-sidebar" class="col col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-toc">
-  
-</div> <!-- /toc column -->
-<% } %>
-
-</div> <!-- /row -->
 
 <div class="row page-navigation <%- nav.sidebar.style !== "floating" ? "page-navigation-docked" : ""  %>">
 
@@ -22,11 +13,6 @@
     <% } %>
   </div>
 
-  <% if (nav.footer) { %>
-    <div class="nav-footer col">
-      <div class="nav-footer-contents"><%=nav.footer%></div>
-    </div>
-  <% } %>
 
   <div class="nav-page nav-page-next col">
     <% if (nav.nextPage) { %>
@@ -37,6 +23,23 @@
   </div>
 
 </div>
+
+<% if (nav.footer) { %>
+  <div class="row nav-footer">
+    <div class="nav-footer-contents"><%=nav.footer%></div>
+  </div>
+<% } %>
+
+
+</div> <!-- /main column -->
+
+<% if (nav.toc) { %>
+<div id="quarto-toc-sidebar" class="col col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-toc">
+  
+</div> <!-- /toc column -->
+<% } %>
+
+</div> <!-- /row -->
 
 </div> <!-- /container fluid -->
 
