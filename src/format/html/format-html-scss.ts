@@ -29,6 +29,11 @@ import {
   sassVariable,
 } from "../../command/render/sass.ts";
 
+import {
+  kSite,
+  kSiteSidebar,
+} from "../../project/types/website/website-config.ts";
+
 export function resolveBootstrapScss(metadata: Metadata): SassBundle {
   // Quarto built in css
   const quartoThemesDir = formatResourcePath(
@@ -156,6 +161,7 @@ function pandocVariablesToBootstrapDefaults(
 
 const kCodeBorderLeft = "code-border-left";
 const kCodeBlockBackground = "code-background";
+const kBackground = "background";
 
 // Quarto variables and styles
 export const quartoBootstrapDefaults = (metadata: Metadata) => {
@@ -164,6 +170,22 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     join("bootstrap", "_bootstrap-variables.scss"),
   );
   const variables = [Deno.readTextFileSync(varFilePath)];
+
+  // Forward background color
+  // TODO: look in sidebar
+  const sidebar = (metadata[kSite] as Metadata)?.[kSiteSidebar] as Metadata;
+  const sidebarBackground = sidebar[kBackground];
+  if (sidebarBackground !== undefined) {
+    variables.push(
+      print(
+        sassVariable(
+          "sidebar-bg",
+          sidebarBackground,
+          typeof (sidebarBackground) === "string" ? asCssColor : undefined,
+        ),
+      ),
+    );
+  }
 
   // Forward codeleft-border
   const codeblockLeftBorder = metadata[kCodeBorderLeft];

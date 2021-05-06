@@ -32,3 +32,8 @@ $code-background-padding: 0.4em !default;
 $code-background-alpha: -0.35 !default;
 
 $code-theme-dark-threshhold: 40% !default;
+
+// The sidebar background color
+// If by default we don't have a body background, then use white
+$body-bg: #fff !default;
+$sidebar-bg: $body-bg !default;

@@ -18,6 +18,9 @@ nav .dropdown-item i {
 }
 
 .sidebar {
+  will-change: top;
+  transition: top 200ms linear;
+  background-color: $body-bg;
   position: sticky;
   overflow-y: auto;
 }
@@ -133,13 +136,11 @@ nav .dropdown-item i {
 }
 
 .sidebar.sidebar-navigation nav:not(.floating) {
+  background-color: $sidebar-bg;
   border-right: 1px solid $table-border-color !important;
 }
 
 @include media-breakpoint-down(lg) {
-  .sidebar {
-    background-color: $body-bg;
-  }
   .sidebar-logo {
     display: none;
   }
@@ -153,7 +154,7 @@ nav .dropdown-item i {
     border-left: none !important;
     border-right: none !important;
   }
-
+  
   .sidebar.sidebar-navigation nav {
     padding-top: 0.5em !important;
     padding-bottom: 0.5em;
@@ -190,10 +191,6 @@ header.headroom {
   transition: transform 200ms linear;
 }
 
-.sidebar {
-  will-change: top;
-  transition: top 200ms linear;
-}
 
 header.headroom--pinned {
   transform: translateY(0%);
