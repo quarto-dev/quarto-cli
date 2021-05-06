@@ -335,6 +335,12 @@ export async function bookRenderItems(
   return index.concat(inputs);
 }
 
+const kDownloadNames: Record<string, string> = {
+  "epub": "ePub",
+  "pdf": "PDF",
+  "docx": "Docx",
+};
+
 function downloadTools(
   projectDir: string,
   config: ProjectConfig,
@@ -355,7 +361,7 @@ function downloadTools(
   const downloads = filteredActions.map((action) => {
     const format = defaultWriterFormat(action);
     return {
-      text: `${action}`,
+      text: `Download ${kDownloadNames[action] || action}`,
       href: `${outputStem}.${format.render[kOutputExt]}`,
     };
   });
@@ -363,11 +369,6 @@ function downloadTools(
   // Form the menu (or single item download button)
   if (downloads.length === 0) {
     return undefined;
-  } else if (downloadTools.length === 1) {
-    return [{
-      ...downloads[0],
-      icon: "download",
-    }];
   } else {
     return [{
       icon: "download",
