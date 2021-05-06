@@ -3,8 +3,7 @@ project:
 
 book:
   contents:
-    - text: "Preface"
-      file: index<%= ext %>
+    - index<%= ext %>
     - intro<%= ext %>
     - summary<%= ext %>
   references: references<%= ext %>
