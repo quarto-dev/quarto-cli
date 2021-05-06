@@ -362,7 +362,7 @@ function downloadTools(
     const format = defaultWriterFormat(action);
     return {
       text: `Download ${kDownloadNames[action] || action}`,
-      href: `${outputStem}.${format.render[kOutputExt]}`,
+      href: `/${outputStem}.${format.render[kOutputExt]}`,
     };
   });
 
