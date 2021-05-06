@@ -297,3 +297,30 @@ header.headroom--unpinned {
 .nav-page a:hover {
   color: $link-hover-color;
 }
+
+.toc-actions {
+  display: flex;
+}
+
+.toc-actions p {
+  margin-block-start: 0;
+  margin-block-end: 0;
+}
+
+.toc-actions .action-links {
+  margin-left: 4px;
+}
+
+.sidebar-toc .toc-actions .bi {
+  margin-left: -4px;
+  font-size: 0.7rem;
+  color: $text-muted;
+}
+
+.sidebar-toc .toc-actions > div:first-of-type {
+  margin-top: -3px;
+}
+
+.sidebar-toc .toc-actions p {
+  font-size: 0.9rem;
+}
