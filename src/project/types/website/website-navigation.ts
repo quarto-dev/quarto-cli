@@ -85,7 +85,8 @@ import {
   kSiteSidebar,
   websiteConfig,
   websiteConfigActions,
-  websiteRepourl,
+  websiteRepoBranch,
+  websiteRepoUrl,
   websiteTitle,
 } from "./website-config.ts";
 
@@ -328,14 +329,19 @@ function addRepoActions(doc: Document, input: string, config?: ProjectConfig) {
     config,
   );
   if (repoActions.length > 0) {
-    const repoUrl = websiteRepourl(config);
+    const repoUrl = websiteRepoUrl(config);
     if (repoUrl) {
       if (isGithubRepoUrl(repoUrl)) {
         // find the toc
         const toc = doc.querySelector(`nav[role="doc-toc"]`);
         if (toc) {
           // get the action links
-          const links = repoActionLinks(repoActions, repoUrl, input);
+          const links = repoActionLinks(
+            repoActions,
+            repoUrl,
+            websiteRepoBranch(config),
+            input,
+          );
           links.forEach((link) => {
             const a = doc.createElement("a");
             a.setAttribute("href", link.url);
@@ -361,6 +367,7 @@ function addRepoActions(doc: Document, input: string, config?: ProjectConfig) {
 function repoActionLinks(
   actions: string[],
   repoUrl: string,
+  branch: string,
   input: string,
 ): Array<{ text: string; url: string }> {
   return actions.map((action) => {
@@ -368,12 +375,12 @@ function repoActionLinks(
       case "edit":
         return {
           text: "Edit this page",
-          url: `${repoUrl}edit/master/${input}`,
+          url: `${repoUrl}edit/${branch}/${input}`,
         };
       case "source":
         return {
           text: "View source",
-          url: `${repoUrl}blob/master/${input}`,
+          url: `${repoUrl}blob/${branch}/${input}`,
         };
       case "issue":
         return {

@@ -17,6 +17,7 @@ export const kSite = "site";
 export const kSiteTitle = "title";
 export const kSiteUrl = "site-url";
 export const kSiteRepoUrl = "repo-url";
+export const kSiteRepoBranch = "repo-branch";
 export const kSiteRepoActions = "repo-actions";
 
 export const kSiteNavbar = "navbar";
@@ -30,6 +31,7 @@ export interface WebsiteConfig {
   [kSiteTitle]?: string;
   [kSiteUrl]?: string;
   [kSiteRepoUrl]?: string;
+  [kSiteRepoBranch]?: string;
   [kSiteRepoActions]?: string;
   [kSiteNavbar]?: string;
   [kSiteSidebar]?: string;
@@ -42,6 +44,7 @@ export function websiteConfig(
     | "title"
     | "site-url"
     | "repo-url"
+    | "repo-branch"
     | "repo-actions"
     | "navbar"
     | "sidebar"
@@ -68,7 +71,7 @@ export function websiteBaseurl(project?: ProjectConfig): string | undefined {
   return websiteConfig(kSiteUrl, project) as string | undefined;
 }
 
-export function websiteRepourl(project?: ProjectConfig): string | undefined {
+export function websiteRepoUrl(project?: ProjectConfig): string | undefined {
   const repoUrl = websiteConfig(kSiteRepoUrl, project) as string | undefined;
   if (repoUrl) {
     if (!repoUrl.endsWith("/")) {
@@ -79,6 +82,11 @@ export function websiteRepourl(project?: ProjectConfig): string | undefined {
   } else {
     return undefined;
   }
+}
+
+export function websiteRepoBranch(project?: ProjectConfig): string {
+  return websiteConfig(kSiteRepoBranch, project) as string | undefined ||
+    "main";
 }
 
 export function websiteMetadataFields(): Array<string | RegExp> {

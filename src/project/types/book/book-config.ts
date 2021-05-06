@@ -31,6 +31,7 @@ import {
   kSiteNavbar,
   kSitePageNavigation,
   kSiteRepoActions,
+  kSiteRepoBranch,
   kSiteRepoUrl,
   kSiteSidebar,
   kSiteTitle,
@@ -95,6 +96,7 @@ export async function bookProjectConfig(
     site[kSiteTitle] = book[kSiteTitle];
     site[kSiteUrl] = book[kSiteUrl];
     site[kSiteRepoUrl] = book[kSiteRepoUrl];
+    site[kSiteRepoBranch] = book[kSiteRepoBranch];
     site[kSiteRepoActions] = book[kSiteRepoActions];
     site[kSiteNavbar] = book[kSiteNavbar];
     site[kSiteSidebar] = book[kSiteSidebar];
