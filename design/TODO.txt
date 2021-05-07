@@ -19,8 +19,9 @@ TODO: downlit integration
 Books
 =========================================================================
 
-- Why does an incremental render render every chapter?
-- Chapters can't be linked to via #sec
+- dev server may be getting the wrong target b/c of postRender writes
+- Chapters can't be linked to via #sec (docs on common crossref patterns)
+- Evaluate blockquote style
 - Why are there JS errors when the page loads
 
 TODO:
