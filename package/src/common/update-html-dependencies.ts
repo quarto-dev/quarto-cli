@@ -56,22 +56,27 @@ export async function updateHtmlDepedencies(config: Configuration) {
   );
 
   // Anchor
+  const anchorJs = join(formatDir, "anchor", "anchor.min.js");
   await updateUnpkgDependency(
     "ANCHOR_JS",
     "anchor-js",
     "anchor.min.js",
-    join(formatDir, "anchor", "anchor.min.js"),
+    anchorJs,
   );
+  cleanSourceMap(anchorJs);
 
   // Poppper
+  const popperJs = join(formatDir, "popper", "popper.min.js");
   await updateUnpkgDependency(
     "POPPER_JS",
     "@popperjs/core",
     "dist/umd/popper.min.js",
-    join(formatDir, "popper", "popper.min.js"),
+    popperJs,
   );
+  cleanSourceMap(popperJs);
 
   // Clipboard
+  const clipboardJs = join(formatDir, "clipboard", "clipboard.min.js");
   await updateGithubSourceCodeDependency(
     "clipboardjs",
     "zenorocha/clipboard.js",
@@ -81,24 +86,30 @@ export async function updateHtmlDepedencies(config: Configuration) {
       // Copy the js file
       Deno.copyFileSync(
         join(dir, `clipboard.js-${version}`, "dist", "clipboard.min.js"),
-        join(formatDir, "clipboard", "clipboard.min.js"),
+        clipboardJs,
       );
     },
   );
+  cleanSourceMap(clipboardJs);
 
   // Tippy
+  const tippyUmdJs = join(formatDir, "tippy", "tippy.umd.min.js");
   await updateUnpkgDependency(
     "TIPPY_JS",
     "tippy.js",
     "dist/tippy.umd.min.js",
-    join(formatDir, "tippy", "tippy.umd.min.js"),
+    tippyUmdJs,
   );
+  cleanSourceMap(tippyUmdJs);
+
+  const tippyJs = join(formatDir, "tippy", "tippy.css");
   await updateUnpkgDependency(
     "TIPPY_JS",
     "tippy.js",
     "dist/tippy.css",
-    join(formatDir, "tippy", "tippy.css"),
+    tippyJs,
   );
+  cleanSourceMap(tippyJs);
 
   // Clean existing directories
   [bsThemesDir, bsDistDir].forEach((dir) => {
@@ -142,7 +153,6 @@ async function updateBootswatch(
   // into a single theme file for Quarto
   info("Merging themes:");
   const distPath = join(working, "bootswatch-master", "dist");
-  info(distPath);
   for (const dirEntry of Deno.readDirSync(distPath)) {
     if (dirEntry.isDirectory && !exclude.includes(dirEntry.name)) {
       // this is a theme directory
@@ -315,6 +325,17 @@ function fixupFontCss(path: string) {
   });
 
   Deno.writeTextFileSync(path, css);
+}
+
+// Cleans the source map declaration at the end of a JS file
+function cleanSourceMap(path: string) {
+  if (existsSync(path)) {
+    const source = Deno.readTextFileSync(path);
+    Deno.writeTextFileSync(
+      path,
+      source.replaceAll(/^\/\/#\s*sourceMappingURL\=.*\.map$/gm, ""),
+    );
+  }
 }
 
 function mergedSassLayer(
