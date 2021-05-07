@@ -19,10 +19,17 @@ TODO: downlit integration
 Books
 =========================================================================
 
-- dev server may be getting the wrong target b/c of postRender writes
 - Chapters can't be linked to via #sec (docs on common crossref patterns)
-- Evaluate blockquote style
 - Why are there JS errors when the page loads
+
+callouts:
+  - should important be so red?
+  - ability to include the caption as a heading?
+  - darker font for caption
+
+figure caption in italics?
+
+negative margin for code doesn't look good w/ callouts
 
 sidebar when too small title gets shrunk/compressed
 
