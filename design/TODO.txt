@@ -1,9 +1,6 @@
 
-update bootstrap version and bootswatch templates
-
 
 TODO: Quarto render book with and output path -> --output _book/foo.pdf causes latexmk error
-
 
 TODO: Scss function(s) for referencing fonts (e.g. google, etc...)
   @useFont('google', 'roboto') (automates downloading of fonts and generating rules to load them)
@@ -23,17 +20,7 @@ Books
 =========================================================================
 
 - See if chapter-id gets printed by us during single-page render
-- Why are there JS errors when the page loads
-
-- Deal with number of tabs / callout titles
-
 - documentation on crossrefs
-
-
-figure caption in italics?
-
-book:
-  we will create a tool from the repo-url 
 
 
 Markdown Serialization
