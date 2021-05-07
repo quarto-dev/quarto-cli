@@ -73,7 +73,7 @@ export async function renderProject(
   if (
     files && alwaysExecuteFiles &&
     projType.incrementalRenderAll &&
-    projType.incrementalRenderAll(context, options, files)
+    await projType.incrementalRenderAll(context, options, files)
   ) {
     files = context.files.input;
     options = { ...options, useFreezer: true };
