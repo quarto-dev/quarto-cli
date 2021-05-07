@@ -3,7 +3,6 @@
 
 local tabsetidx = 1
 
--- TODO: should we return the div when we don't modify it (googlel this)
 function tabset() 
   return {
     -- tabsets and callouts

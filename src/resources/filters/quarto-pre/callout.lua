@@ -9,7 +9,7 @@ function callout()
     -- Convert callout Divs into the appropriate element for this format
     Div = function(div)
       if div.attr.classes:find_if(isCallout) then
-        postState.hasCallouts = true
+        preState.hasCallouts = true
         if isHtmlOutput() then
           return calloutDiv(div) 
         elseif isLatexOutput() then

@@ -17,11 +17,9 @@ function import(script)
   dofile(path .. script)
 end
 import("bootstrap.lua")
-import("callout.lua")
 import("latexdiv.lua")
 import("foldcode.lua")
 import("meta.lua")
-import("tabset.lua")
 import("../common/params.lua")
 import("../common/table.lua")
 import("../common/pandoc.lua")
@@ -37,9 +35,7 @@ return {
   combineFilters({
     latexDiv(),
     foldCode(),
-    bootstrap(),
-    callout(),
-    tabset(),
+    bootstrap()
   }),
   quartoPostMetaInject()
 }

@@ -30,6 +30,8 @@ import("filemetadata.lua")
 import("resourcerefs.lua")
 import("book.lua")
 import("meta.lua")
+import("tabset.lua")
+import("callout.lua")
 import("../common/params.lua")
 import("../common/base64.lua")
 import("../common/json.lua")
@@ -52,6 +54,8 @@ return {
     book(),
     resourceRefs(),
     figures(),
+    callout(),
+    tabset()
   }),
   quartoPreMetaInject(),
 }

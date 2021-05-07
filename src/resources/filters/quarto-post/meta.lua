@@ -6,16 +6,6 @@ function quartoPostMetaInject()
   return {
     Meta = function(meta)
       
-
-      -- injection awesomebox for captions, if needed
-      if postState.hasCallouts and isLatexOutput() then
-        metaInjectLatex(meta, function(inject)
-          inject(
-            usePackage("awesomebox")
-          )
-        end)
-      end
-
       metaInjectHtml(meta, function(inject)
         if postState.codeFoldingCss then
           inject([[
