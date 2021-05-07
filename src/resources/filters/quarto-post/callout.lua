@@ -38,87 +38,92 @@ end
 -- an HTML callout div
 function calloutDiv(div)
 
-  -- read and clear attributes
-  local caption = div.attr.attributes["caption"]
-  div.attr.attributes["caption"] = nil
+-- the first heading is the caption
+local capEl = div.content[1]
+local caption
+if capEl ~= nil and capEl.t == 'Header' then
+caption = capEl
+div.content:remove(1)
+end
 
-  local icon = div.attr.attributes["icon"]
-  div.attr.attributes["icon"] = nil
 
-  local collapse = div.attr.attributes["collapse"]
-  div.attr.attributes["collapse"] = nil
+local icon = div.attr.attributes["icon"]
+div.attr.attributes["icon"] = nil
 
-  -- Make an outer card div and transfer classes
-  local calloutDiv = pandoc.Div({})
-  calloutDiv.attr.classes = div.attr.classes:clone()
-  div.attr.classes = pandoc.List:new() 
+local collapse = div.attr.attributes["collapse"]
+div.attr.attributes["collapse"] = nil
 
-  -- add card attribute
-  calloutDiv.attr.classes:insert("callout")
-  
-  -- the image placeholder
-  local noicon = ""
-  if icon == "false" then
-    noicon = "no-icon"
-  end
-  local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='callout-icon" .. noicon .. "'></i>")});       
-  local imgDiv = pandoc.Div({imgPlaceholder}, pandoc.Attr("", {"callout-icon-container"}));
+-- Make an outer card div and transfer classes
+local calloutDiv = pandoc.Div({})
+calloutDiv.attr.classes = div.attr.classes:clone()
+div.attr.classes = pandoc.List:new() 
 
-  -- show a captioned callout
-  if caption ~= nil then
+-- add card attribute
+calloutDiv.attr.classes:insert("callout")
 
-    -- mark the callout as being captioned
-    calloutDiv.attr.classes:insert("callout-captioned")
+-- the image placeholder
+local noicon = ""
+if icon == "false" then
+  noicon = "no-icon"
+end
+local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='callout-icon" .. noicon .. "'></i>")});       
+local imgDiv = pandoc.Div({imgPlaceholder}, pandoc.Attr("", {"callout-icon-container"}));
 
-    -- create a unique id for the callout
-    local calloutid = "callout-" .. calloutidx
-    calloutidx = calloutidx + 1
+-- show a captioned callout
+if caption ~= nil then
 
-    -- create the header to contain the caption
-    -- caption should expand to fill its space
-    local captionDiv = pandoc.Div({pandoc.Plain(caption)}, pandoc.Attr("", {"flex-fill"}))
-    local headerDiv = pandoc.Div({imgDiv, captionDiv}, pandoc.Attr("", {"callout-header", "d-flex", "align-content-center"}))
-    local bodyDiv = div
-    bodyDiv.attr.classes:insert("callout-body")
+  -- mark the callout as being captioned
+  calloutDiv.attr.classes:insert("callout-captioned")
 
-    if collapse ~= nil then 
+  -- create a unique id for the callout
+  local calloutid = "callout-" .. calloutidx
+  calloutidx = calloutidx + 1
 
-      -- collapse default value     
-      local expandedAttrVal= "true"
-      if collapse == "true" then
-        expandedAttrVal = "false"
-      end
+  -- create the header to contain the caption
+  -- caption should expand to fill its space
+  local captionDiv = pandoc.Div(pandoc.Plain(caption.content), pandoc.Attr("", {"flex-fill"}))
+  local headerDiv = pandoc.Div({imgDiv, captionDiv}, pandoc.Attr("", {"callout-header", "d-flex", "align-content-center"}))
+  local bodyDiv = div
+  bodyDiv.attr.classes:insert("callout-body")
 
-      -- create the collapse button
-      local btnClasses = "callout-btn-toggle btn d-inline-block border-0 py-1 ps-1 pe-0 float-end"
-      local btnIcon = "<i class='callout-toggle'></i>"
-      local toggleButton = pandoc.RawInline("html", "<button type='button' class='" .. btnClasses .. "'>" .. btnIcon .. "</button>")
-      headerDiv.content:insert(pandoc.Plain(toggleButton));
+  if collapse ~= nil then 
 
-      -- configure the header div for collapse
-      headerDiv.attr.attributes["bs-toggle"] = "collapse"
-      headerDiv.attr.attributes["bs-target"] = "#" .. calloutid
-      headerDiv.attr.attributes["aria-controls"] = calloutid
-      headerDiv.attr.attributes["aria-expanded"] = expandedAttrVal
-      headerDiv.attr.attributes["aria-label"] = 'Toggle callout'
-
-      -- configure the body div for collapse
-      local collapseDiv = pandoc.Div({})
-      collapseDiv.attr.identifier = calloutid
-      collapseDiv.attr.classes:insert("callout-collapse")
-      collapseDiv.attr.classes:insert("collapse")
-      if expandedAttrVal == "true" then
-        collapseDiv.attr.classes:insert("show")
-      end
-
-      -- add the current body to the collapse div and use the collapse div instead
-      collapseDiv.content:insert(bodyDiv)
-      bodyDiv = collapseDiv
+    -- collapse default value     
+    local expandedAttrVal= "true"
+    if collapse == "true" then
+      expandedAttrVal = "false"
     end
 
-    -- add the header and body to the div
-    calloutDiv.content:insert(headerDiv)
-    calloutDiv.content:insert(bodyDiv)
+    -- create the collapse button
+    local btnClasses = "callout-btn-toggle btn d-inline-block border-0 py-1 ps-1 pe-0 float-end"
+    local btnIcon = "<i class='callout-toggle'></i>"
+    local toggleButton = pandoc.RawInline("html", "<button type='button' class='" .. btnClasses .. "'>" .. btnIcon .. "</button>")
+    headerDiv.content:insert(pandoc.Plain(toggleButton));
+
+    -- configure the header div for collapse
+    headerDiv.attr.attributes["bs-toggle"] = "collapse"
+    headerDiv.attr.attributes["bs-target"] = "#" .. calloutid
+    headerDiv.attr.attributes["aria-controls"] = calloutid
+    headerDiv.attr.attributes["aria-expanded"] = expandedAttrVal
+    headerDiv.attr.attributes["aria-label"] = 'Toggle callout'
+
+    -- configure the body div for collapse
+    local collapseDiv = pandoc.Div({})
+    collapseDiv.attr.identifier = calloutid
+    collapseDiv.attr.classes:insert("callout-collapse")
+    collapseDiv.attr.classes:insert("collapse")
+    if expandedAttrVal == "true" then
+      collapseDiv.attr.classes:insert("show")
+    end
+
+    -- add the current body to the collapse div and use the collapse div instead
+    collapseDiv.content:insert(bodyDiv)
+    bodyDiv = collapseDiv
+  end
+
+  -- add the header and body to the div
+  calloutDiv.content:insert(headerDiv)
+  calloutDiv.content:insert(bodyDiv)
 
   else 
     -- show an uncaptioned callout

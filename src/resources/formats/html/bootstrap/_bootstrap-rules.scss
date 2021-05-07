@@ -215,6 +215,11 @@ caption {
   border-radius: $border-radius;
 }
 
+.callout .callout-body {
+  font-size: 1rem;
+  font-weight: 300;
+}
+
 .callout.callout-captioned .callout-body {
   margin-top: 0.5em;
 }
@@ -227,6 +232,7 @@ caption {
 div[class^="callout-"] > div.callout-header {
   border-bottom: none;
   font-weight: 500;
+  font-size: 1.0rem;
 }
 
 div[class^="callout-"] > div.callout-header[data-bs-toggle="collapse"] {
