@@ -22,6 +22,8 @@ Books
 - See if chapter-id gets printed by us during single-page render
 - Why are there JS errors when the page loads
 
+- documentation on crossrefs
+
 callouts:
   - the caption is the very first heading
   - darker font for caption
