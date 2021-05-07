@@ -366,8 +366,7 @@ function downloadTools(
   const downloads = filteredActions.map((action) => {
     const format = defaultWriterFormat(action);
     return {
-      text: `D
-      ownload ${kDownloadNames[action] || action}`,
+      text: `Download ${kDownloadNames[action] || action}`,
       href: `/${outputStem}.${format.render[kOutputExt]}`,
     };
   });
