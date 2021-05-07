@@ -174,17 +174,19 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
   // Forward background color
   // TODO: look in sidebar
   const sidebar = (metadata[kSite] as Metadata)?.[kSiteSidebar] as Metadata;
-  const sidebarBackground = sidebar[kBackground];
-  if (sidebarBackground !== undefined) {
-    variables.push(
-      print(
-        sassVariable(
-          "sidebar-bg",
-          sidebarBackground,
-          typeof (sidebarBackground) === "string" ? asCssColor : undefined,
+  if (sidebar) {
+    const sidebarBackground = sidebar[kBackground];
+    if (sidebarBackground !== undefined) {
+      variables.push(
+        print(
+          sassVariable(
+            "sidebar-bg",
+            sidebarBackground,
+            typeof (sidebarBackground) === "string" ? asCssColor : undefined,
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   // Forward codeleft-border
