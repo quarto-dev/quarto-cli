@@ -90,14 +90,18 @@ div.sourceCode {
   }
 }
 
+.callout div.sourceCode {
+  margin-left: initial;
+}
+
 // improve treatment of blockquotes
 .blockquote {
   font-size: inherit;
-  font-weight: 300;
+  padding-left: 2rem;
+  margin-right: 50px;
   border-left: $code-border-left-size;
   border-left-style: $code-border-left-style;
   border-left-color: $code-border-left-color;
-  padding-left: $code-padding-left;
 }
 
 // Maps the pandoc 'monobackgroundcolor' to bootstrap
