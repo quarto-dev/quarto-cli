@@ -1,4 +1,7 @@
 
+update bootstrap version and bootswatch templates
+
+
 TODO: Quarto render book with and output path -> --output _book/foo.pdf causes latexmk error
 
 
@@ -22,17 +25,12 @@ Books
 - See if chapter-id gets printed by us during single-page render
 - Why are there JS errors when the page loads
 
+- Deal with number of tabs / callout titles
+
 - documentation on crossrefs
 
-callouts:
-  - the caption is the very first heading
-  - darker font for caption
 
 figure caption in italics?
-
-negative margin for code doesn't look good w/ callouts
-
-sidebar when too small title gets shrunk/compressed
 
 book:
   we will create a tool from the repo-url 
