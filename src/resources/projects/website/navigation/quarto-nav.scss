@@ -286,6 +286,7 @@ header.headroom--unpinned {
 
 .nav-page {
   display: flex;
+  padding-bottom: .75em;
 }
 
 .nav-footer {
@@ -293,7 +294,8 @@ header.headroom--unpinned {
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding-top: 1rem;
+  padding-top: .5rem;
+  padding-bottom: .25rem;
 }
 
 .nav-footer-contents {
