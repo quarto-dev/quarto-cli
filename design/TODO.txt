@@ -19,12 +19,11 @@ TODO: downlit integration
 Books
 =========================================================================
 
-- Chapters can't be linked to via #sec (docs on common crossref patterns)
+- See if chapter-id gets printed by us during single-page render
 - Why are there JS errors when the page loads
 
 callouts:
-  - should important be so red?
-  - ability to include the caption as a heading?
+  - the caption is the very first heading
   - darker font for caption
 
 figure caption in italics?
