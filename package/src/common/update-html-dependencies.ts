@@ -127,7 +127,7 @@ async function updateBootswatch(
   themesDir: string,
 ) {
   info("Updating Bootswatch themes...");
-  const fileName = `${version}.zip`;
+  const fileName = `master.zip`;
   const distUrl =
     `https://github.com/thomaspark/bootswatch/archive/refs/heads/${fileName}`;
   const zipFile = join(working, fileName);
@@ -141,7 +141,8 @@ async function updateBootswatch(
   // Read each bootswatch theme directory and merge the scss files
   // into a single theme file for Quarto
   info("Merging themes:");
-  const distPath = join(working, "bootswatch-5", "dist");
+  const distPath = join(working, "bootswatch-master", "dist");
+  info(distPath);
   for (const dirEntry of Deno.readDirSync(distPath)) {
     if (dirEntry.isDirectory && !exclude.includes(dirEntry.name)) {
       // this is a theme directory
