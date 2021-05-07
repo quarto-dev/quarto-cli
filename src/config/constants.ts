@@ -181,6 +181,7 @@ export const kCrossref = "crossref";
 export const kCrossrefChapters = "chapters";
 export const kCrossrefLabels = "labels";
 export const kCrossrefChaptersAlpha = "chapters-alpha";
+export const kCrossrefChapterId = "chapter-id";
 
 // https://pandoc.org/MANUAL.html#default-files
 // note: we are keeping some things out of 'defaults' b/ca

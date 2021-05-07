@@ -20,10 +20,12 @@ function initIndex()
     nextSubrefOrder = 1,
     section = sectionOffsets,
     sectionOffsets = sectionOffsets,
+    numberOffset = sectionOffsets:clone(),
     entries = {}
   }
   
 end
+
 
 -- advance a chapter
 function indexNextChapter()
@@ -84,12 +86,13 @@ function writeIndex()
         local index = {
           entries = pandoc.List:new()
         }
+
         -- add options if we have them
         if next(crossref.options) then
           index.options = {}
           for k,v in pairs(crossref.options) do
             if type(v) == "table" then
-              if tisarray(v) then
+              if tisarray(v) and not v.t == "MetaInlines" then
                 index.options[k] = v:map(function(item) return pandoc.utils.stringify(item) end)
               else
                 index.options[k] = pandoc.utils.stringify(v)
@@ -99,6 +102,21 @@ function writeIndex()
             end
           end
         end
+
+        -- write a special entry if this is a multi-file chapter with an id
+        local chapterId = crossrefOption("chapter-id")
+        if chapterId then
+          local chapterEntry = {
+            key = pandoc.utils.stringify(chapterId),
+            parent = nil,
+            order = {
+              number = 1,
+              section = crossref.index.numberOffset
+            }
+          }
+          index.entries:insert(chapterEntry)
+        end
+
         for k,v in pairs(crossref.index.entries) do
           -- create entry 
           local entry = {
