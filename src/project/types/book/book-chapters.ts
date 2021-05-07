@@ -4,6 +4,7 @@ import { PartitionedMarkdown } from "../../../core/pandoc/pandoc-partition.ts";
 
 import {
   kCrossref,
+  kCrossrefChapterId,
   kCrossrefChaptersAlpha,
   kDescription,
   kDoi,
@@ -37,10 +38,17 @@ export function withChapterMetadata(
     // set offset
     format.pandoc[kNumberOffset] = [chapterInfo.number];
 
+    // make sure we have crossref metadata
+    format.metadata[kCrossref] = format.metadata[kCrossref] || {};
+    const crossref = format.metadata[kCrossref] as Metadata;
+
+    // if we have an id set the chapter id
+    if (partitioned.headingAttr?.id) {
+      crossref[kCrossrefChapterId] = partitioned.headingAttr?.id;
+    }
+
     // set crossref label type if this is an appendix
     if (chapterInfo.appendix) {
-      format.metadata[kCrossref] = format.metadata[kCrossref] || {};
-      const crossref = format.metadata[kCrossref] as Metadata;
       crossref[kCrossrefChaptersAlpha] = true;
       format.pandoc[kNumberSections] = false;
     }

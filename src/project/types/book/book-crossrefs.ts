@@ -87,7 +87,8 @@ function resolveCrossrefs(
         const relativeFilePath = pathWithForwardSlashes(
           relative(dirname(currentFile), targetFile),
         );
-        parentLink.setAttribute("href", `${relativeFilePath}#${id}`);
+        const hash = isChapterRef(entry) ? "" : `#${id}`;
+        parentLink.setAttribute("href", `${relativeFilePath}${hash}`);
       }
 
       ref.innerHTML = formatCrossref(
@@ -135,6 +136,14 @@ interface BookCrossrefEntry {
 interface BookCrossrefOrder {
   number: number;
   section?: number[];
+}
+
+function isChapterRef(entry: BookCrossrefEntry) {
+  if (refType(entry.key) === "sec" && entry.order.section) {
+    return !entry.order.section.slice(1).some((index) => index > 0);
+  } else {
+    return false;
+  }
 }
 
 function bookCrossrefIndexForOutputFile(
