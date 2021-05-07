@@ -22,11 +22,36 @@ Books
 - documentation on crossrefs
     When you want to refer a chapter or appendix by number use a cross ref 
     When you want to refer to it by name (or refer to an unnumbered part) then use a normal link
-    Custom prefixes
+    In either case try to use #sec
+    For referencing chapters or appendixes, use [Appendix -@sec:fooappdenix]
 
+- finish porting the hopr:
+    - convert 'solution' environments once we have that
+    - always use #sec for chapter ids
 
-- Chapter cross refs don't actually say "Chapter"
+- todo: always show left margin for code (but not computational output
 
+- for proofs, etc. we need to also support putting the name as an initial heading
+
+- should we have additional framing around e.g. exercises
+
+The proof environments currently supported are proof, remark, and solution. The syntax is similar to theorem environments,
+and proof environments can also be named. The only difference is that since they are unnumbered, you cannot reference them.
+
+We have tried to make all these theorem and proof environments work out of the box, no matter if your output is PDF, HTML, 
+or EPUB. If you are a LaTeX or HTML expert, you may want to customize the style of these environments anyway (see Chapter 4). 
+Customization in HTML is easy with CSS, and each environment is enclosed in <div></div> with the CSS class being the 
+environment name, e.g., <div class="lemma"></div>. For LaTeX output, we have predefined the style to be definition for 
+environments definition, example, exercise, and hypothesis, and remark for environments proof and remark. All other 
+environments use the plain style. The style definition is done through the \theoremstyle{} command of the amsthm package.
+
+Bookdown porting:
+   - convert cross refs
+   - don't use implicit heading links
+   - convert theorems etc.
+   - convert admonitions (block2) convert those
+   - move stuff from _output.yml, _bookdown.yml, and index.Rmd into _quarto.yml
+   - explicitly enumerate your chapters / appendix / etc.
 
 
 Markdown Serialization
