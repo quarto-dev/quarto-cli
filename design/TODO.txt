@@ -19,8 +19,14 @@ TODO: downlit integration
 Books
 =========================================================================
 
-- See if chapter-id gets printed by us during single-page render
 - documentation on crossrefs
+    When you want to refer a chapter or appendix by number use a cross ref 
+    When you want to refer to it by name (or refer to an unnumbered part) then use a normal link
+    Custom prefixes
+
+
+- Chapter cross refs don't actually say "Chapter"
+
 
 
 Markdown Serialization
