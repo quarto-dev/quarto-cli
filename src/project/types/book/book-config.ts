@@ -34,6 +34,7 @@ import {
   kSiteRepoBranch,
   kSiteRepoUrl,
   kSiteSidebar,
+  kSiteSidebarStyle,
   kSiteTitle,
   kSiteUrl,
   websiteBaseurl,
@@ -141,6 +142,9 @@ export async function bookProjectConfig(
   if (book[kBookSearch] !== false) {
     siteSidebar[kBookSearch] = true;
   }
+
+  // set the sidebar to "floating" if it isn't already set
+  siteSidebar[kSiteSidebarStyle] = siteSidebar[kSiteSidebarStyle] || "floating";
 
   // if we have tools then fold those into the sidebar
   siteSidebar[kBookTools] = siteSidebar[kBookTools] || [];
@@ -362,7 +366,8 @@ function downloadTools(
   const downloads = filteredActions.map((action) => {
     const format = defaultWriterFormat(action);
     return {
-      text: `Download ${kDownloadNames[action] || action}`,
+      text: `D
+      ownload ${kDownloadNames[action] || action}`,
       href: `/${outputStem}.${format.render[kOutputExt]}`,
     };
   });

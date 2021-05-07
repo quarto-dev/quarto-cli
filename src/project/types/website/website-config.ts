@@ -22,6 +22,7 @@ export const kSiteRepoActions = "repo-actions";
 
 export const kSiteNavbar = "navbar";
 export const kSiteSidebar = "sidebar";
+export const kSiteSidebarStyle = "style";
 export const kSitePageNavigation = "page-navigation";
 export const kSiteFooter = "footer";
 
