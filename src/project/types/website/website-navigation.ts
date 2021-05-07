@@ -762,7 +762,7 @@ async function resolveItem(
     } else {
       return {
         ...item,
-        href: "/" + href,
+        href: !href.startsWith("/") ? "/" + href : href,
       };
     }
   } else {
