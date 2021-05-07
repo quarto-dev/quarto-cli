@@ -21,7 +21,8 @@ function initIndex()
     section = sectionOffsets,
     sectionOffsets = sectionOffsets,
     numberOffset = sectionOffsets:clone(),
-    entries = {}
+    entries = {},
+    headings = pandoc.List:new()
   }
   
 end
@@ -49,6 +50,12 @@ function indexNextOrder(type)
     section = crossref.index.section:clone(),
     order = nextOrder
   }
+end
+
+function indexAddHeading(identifier)
+  if identifier ~= nil and identifier ~= '' then
+    crossref.index.headings:insert(identifier)
+  end
 end
 
 -- add an entry to the index
@@ -84,7 +91,8 @@ function writeIndex()
       if indexFile ~= nil then
         -- create an index data structure to serialize for this file 
         local index = {
-          entries = pandoc.List:new()
+          entries = pandoc.List:new(),
+          headings = crossref.index.headings:clone()
         }
 
         -- add options if we have them
@@ -105,16 +113,25 @@ function writeIndex()
 
         -- write a special entry if this is a multi-file chapter with an id
         local chapterId = crossrefOption("chapter-id")
+        
         if chapterId then
-          local chapterEntry = {
-            key = pandoc.utils.stringify(chapterId),
-            parent = nil,
-            order = {
-              number = 1,
-              section = crossref.index.numberOffset
+          chapterId = pandoc.utils.stringify(chapterId)
+
+           -- chapter heading
+          index.headings:insert(chapterId)
+
+          -- chapter entry
+          if refType(chapterId) == "sec" and param("number-offset") ~= nil then
+            local chapterEntry = {
+              key = chapterId,
+              parent = nil,
+              order = {
+                number = 1,
+                section = crossref.index.numberOffset
+              }
             }
-          }
-          index.entries:insert(chapterEntry)
+            index.entries:insert(chapterEntry)
+          end
         end
 
         for k,v in pairs(crossref.index.entries) do

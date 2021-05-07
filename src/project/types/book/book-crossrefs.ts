@@ -13,6 +13,7 @@ import { Element, HTMLDocument } from "deno_dom/deno-dom-wasm.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 
 import {
+  kCrossrefChapterId,
   kCrossrefChapters,
   kCrossrefChaptersAlpha,
   kCrossrefLabels,
@@ -62,6 +63,15 @@ function resolveCrossrefs(
   // record proj output (all the paths we have are proj output relative)
   const projOutput = projectOutputDir(context);
 
+  // compute a relative file path to the current file
+  const relativePathTo = (target: string) => {
+    const currentFile = join(projOutput, file);
+    const targetFile = join(projOutput, target);
+    return pathWithForwardSlashes(
+      relative(dirname(currentFile), targetFile),
+    );
+  };
+
   // find all the unresolved crossrefs
   const refs = doc.querySelectorAll(".quarto-unresolved-ref");
   for (let i = 0; i < refs.length; i++) {
@@ -82,11 +92,7 @@ function resolveCrossrefs(
     if (entry) {
       // update the link to point to the correct output file
       if (parentLink && file !== entry.file) {
-        const currentFile = join(projOutput, file);
-        const targetFile = join(projOutput, entry.file);
-        const relativeFilePath = pathWithForwardSlashes(
-          relative(dirname(currentFile), targetFile),
-        );
+        const relativeFilePath = relativePathTo(entry.file);
         const hash = isChapterRef(entry) ? "" : `#${id}`;
         parentLink.setAttribute("href", `${relativeFilePath}${hash}`);
       }
@@ -112,11 +118,35 @@ function resolveCrossrefs(
       }
     }
   }
+
+  // fixup all heading links
+  const links = doc.querySelectorAll("a");
+  for (let i = 0; i < links.length; i++) {
+    const link = links[i] as Element;
+    const href = link.getAttribute("href");
+    if (href && href.startsWith("#")) {
+      // determine target file(s) for link
+      const id = href.slice(1);
+      if (index.headings[id]) {
+        // if it's a link to another file then fix it up. if it's the chapter id
+        // then just link to the file
+        if (!index.headings[id].files.includes(file)) {
+          const linkToFile = index.headings[id].files[0];
+          const hash = index.files[linkToFile]?.[kCrossrefChapterId] === id
+            ? ""
+            : `#${id}`;
+          const relativeFilePath = relativePathTo(index.headings[id].files[0]);
+          link.setAttribute("href", `${relativeFilePath}${hash}`);
+        }
+      }
+    }
+  }
 }
 
 interface BookCrossrefIndex {
   files: { [key: string]: BookCrossrefOptions };
   entries: { [key: string]: BookCrossrefEntry };
+  headings: { [id: string]: BookCrossrefHeading };
 }
 
 interface BookCrossrefOptions {
@@ -131,6 +161,11 @@ interface BookCrossrefEntry {
   parent?: string;
   file: string;
   order: BookCrossrefOrder;
+}
+
+interface BookCrossrefHeading {
+  id: string;
+  files: string[];
 }
 
 interface BookCrossrefOrder {
@@ -183,7 +218,7 @@ async function bookCrossrefIndexes(
 
               // ensure we have an index for this format
               indexes[formatName] = indexes[formatName] ||
-                { files: {}, entries: {} };
+                { files: {}, entries: {}, headings: {} };
               const index = indexes[formatName];
 
               // set file options
@@ -195,6 +230,17 @@ async function bookCrossrefIndexes(
                   ...entry,
                   file: outputFile,
                 };
+              });
+
+              // grab headings
+              indexJson.headings.forEach((heading: string) => {
+                if (!index.headings[heading]) {
+                  index.headings[heading] = {
+                    id: heading,
+                    files: [],
+                  };
+                }
+                index.headings[heading].files.push(outputFile);
               });
             }
           }
