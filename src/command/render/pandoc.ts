@@ -41,6 +41,7 @@ import {
   deleteProjectMetadata,
   ProjectContext,
 } from "../../project/project-context.ts";
+import { deleteCrossrefMetadata } from "../../project/project-crossrefs.ts";
 
 import { kBootstrapDependencyName } from "../../format/html/format-html.ts";
 
@@ -124,11 +125,10 @@ export async function runPandoc(
     ...options.flags?.metadata,
   };
 
-  // don't print params metadata (that's for the computation engine not pandoc)
+  // remove some metadata that are used as parameters to our lua filters
   delete printMetadata.params;
-
-  // don't print project metadata
   deleteProjectMetadata(printMetadata);
+  deleteCrossrefMetadata(printMetadata);
 
   // generate defaults and capture defaults to be printed
   let allDefaults = await generateDefaults(options) || {};

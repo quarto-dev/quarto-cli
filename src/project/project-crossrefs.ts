@@ -6,6 +6,12 @@
 */
 
 import { isAbsolute, join, relative } from "path/mod.ts";
+import {
+  kCrossref,
+  kCrossrefChapterId,
+  kCrossrefChaptersAlpha,
+} from "../config/constants.ts";
+import { Metadata } from "../config/metadata.ts";
 
 import { projectScratchPath } from "./project-scratch.ts";
 
@@ -17,4 +23,15 @@ export function crossrefIndexForOutputFile(projectDir: string, output: string) {
     output = relative(projectDir, output);
   }
   return projectScratchPath(projectDir, join("crossrefs", `${output}.json`));
+}
+
+export function deleteCrossrefMetadata(metadata: Metadata) {
+  const crossref = metadata[kCrossref] as Metadata;
+  if (crossref) {
+    delete crossref[kCrossrefChaptersAlpha];
+    delete crossref[kCrossrefChapterId];
+    if (Object.keys(crossref).length === 0) {
+      delete metadata[kCrossref];
+    }
+  }
 }
