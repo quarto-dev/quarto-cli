@@ -46,7 +46,9 @@ if (requireNamespace("htmlwidgets", quietly = TRUE)) {
 knitr_wrap <- knitr:::wrap
 wrap <- function(x, options = list(), ...) {
   
-  if (inherits(x, "knit_asis")) {
+  if (inherits(x, "knit_image_paths")) {
+    knitr:::wrap.knit_image_paths(x, options, ...)
+  } else if (inherits(x, "knit_asis")) {
     # delegate
     is_html_widget <- inherits(x, "knit_asis_htmlwidget")
     x <- knitr:::wrap.knit_asis(x, options, ...)
@@ -63,8 +65,6 @@ wrap <- function(x, options = list(), ...) {
   # dispatch correctly via UseMethod so we do manual binding
   } else if (inherits(x, "character")) {
     knitr:::wrap.character(x, options, ...)
-  } else if (inherits(x, "knit_image_paths")) {
-    knitr:::wrap.knit_image_paths(x, options, ...)
   } else if (inherits(x, "html_screenshot")) {
     knitr:::wrap.html_screenshot(x, options, ...)
   } else if (inherits(x, "knit_embed_url")) {
