@@ -24,6 +24,8 @@ Books
 - consider whether we need distinct text for figure captions (or perhaps bold on the "Figure" prefix?)
   (see current treatment of table captions)
 
+- epub and docx callouts?
+
 - don't love the 'note' icon for callouts (looks too much like a bookmark)
 
 - allow 'main' in  pages without toc to occupy more bootstrap columns
@@ -35,6 +37,7 @@ Books
     For referencing chapters or appendixes, use [Appendix -@sec:fooappdenix]
 
 - finish porting the hopr:
+    - convert to visual editor markdown
     - convert 'solution' environments once we have that
     - update 'exercise' environments to use embedded header
     - always use #sec for chapter ids
