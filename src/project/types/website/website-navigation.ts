@@ -22,7 +22,7 @@ import { warnOnce } from "../../../core/log.ts";
 
 import { pandocAutoIdentifier } from "../../../core/pandoc/pandoc-id.ts";
 
-import { kTocTitle } from "../../../config/constants.ts";
+import { kToc, kTocTitle } from "../../../config/constants.ts";
 import {
   Format,
   FormatDependency,
@@ -190,7 +190,7 @@ export function websiteNavigationExtras(
   const href = inputFileHref(inputRelative);
   const sidebar = sidebarForHref(href);
   const nav: Record<string, unknown> = {
-    toc: hasTableOfContents(flags, format),
+    toc: hasTableOfContents(flags, format) && format.metadata[kToc] !== false,
     layout: format.metadata[kPageLayout] !== "none",
     navbar: navigation.navbar,
     sidebar: expandedSidebar(href, sidebar),
