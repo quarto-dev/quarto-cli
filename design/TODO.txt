@@ -19,6 +19,15 @@ TODO: downlit integration
 Books
 =========================================================================
 
+- update docs on callouts to reflect embedded heading
+
+- consider whether we need distinct text for figure captions (or perhaps bold on the "Figure" prefix?)
+  (see current treatment of table captions)
+
+- don't love the 'note' icon for callouts (looks too much like a bookmark)
+
+- allow 'main' in  pages without toc to occupy more bootstrap columns
+
 - documentation on crossrefs
     When you want to refer a chapter or appendix by number use a cross ref 
     When you want to refer to it by name (or refer to an unnumbered part) then use a normal link
@@ -27,7 +36,9 @@ Books
 
 - finish porting the hopr:
     - convert 'solution' environments once we have that
+    - update 'exercise' environments to use embedded header
     - always use #sec for chapter ids
+    - convert to plain md (don't need include_graphics)
 
 - todo: always show left margin for code (but not computational output
 
