@@ -85,7 +85,13 @@ targetDiv = !nav.sidebar || nav.sidebar.style === "floating"
   </div>
 <% } %>
 
-<div class="col mx-auto col-sm-12 col-md-9 col-lg-7 px-lg-4">
+<% if (nav.toc) { %>
+  <div class="col mx-auto col-sm-12 col-md-9 col-lg-7 px-lg-4">
+<% } else { %>
+  <div class="col mx-auto col-sm-12 col-md-11 col-lg-9 px-lg-4">
+<% } %>
+
+
 <main>
 
 <% } %>
