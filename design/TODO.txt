@@ -19,6 +19,10 @@ TODO: downlit integration
 Books
 =========================================================================
 
+- book.scss (which is used by epub) makes reference to  $body-color (commenting this out for now)
+
+- kBootstrapDependencyName is used as the name of several of our dependencies (copy/paste error?)
+
 - update docs on callouts to reflect embedded heading
 
 - consider whether we need distinct text for figure captions (or perhaps bold on the "Figure" prefix?)
