@@ -23,15 +23,13 @@ book:
 contents:
 appendix
 
-# Authoring
-
 ## Workflow
 
 dev server / incremental preview
 
-cache and freeze
-
 building all versions of the book
+
+# Authoring
 
 ## Structure
 
@@ -42,10 +40,23 @@ building all versions of the book
 
 No YAML front matter, just level 1 header
 
+## Code Execution
+
+Rmd
+ipynb
+
+- cache
+- freeze
+
 ## Cross References
 
 - Chapters/sections
 - Other stuff
+
+## Callouts
+
+- Callout types
+- Handling in different formats
 
 ## Reader Tools
 
