@@ -30,6 +30,8 @@ Books
 
 - allow 'main' in  pages without toc to occupy more bootstrap columns
 
+- responsive sidebar heading transparency issues
+
 - documentation on crossrefs
     When you want to refer a chapter or appendix by number use a cross ref 
     When you want to refer to it by name (or refer to an unnumbered part) then use a normal link
@@ -61,6 +63,7 @@ environments use the plain style. The style definition is done through the \theo
 
 Bookdown porting:
    - convert cross refs
+   - no include_graphics
    - don't use implicit heading links
    - convert theorems etc.
    - convert admonitions (block2) convert those
