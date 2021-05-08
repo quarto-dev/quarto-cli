@@ -39,11 +39,8 @@ Books
     For referencing chapters or appendixes, use [Appendix -@sec:fooappdenix]
 
 - finish porting the hopr:
-    - convert to visual editor markdown
     - convert 'solution' environments once we have that
     - update 'exercise' environments to use embedded header
-    - always use #sec for chapter ids
-    - convert to plain md (don't need include_graphics)
 
 - todo: always show left margin for code (but not computational output
 
