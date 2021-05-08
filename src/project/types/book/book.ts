@@ -164,7 +164,7 @@ export const bookProjectType: ProjectType = {
         },
       },
       html: {
-        [kSassBundles]: [bookScssBundle()],
+        // [kSassBundles]: [bookScssBundle()],
       },
     };
 
