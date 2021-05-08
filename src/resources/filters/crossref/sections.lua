@@ -6,6 +6,9 @@ function sections()
   return {
     Header = function(el)
       
+      -- index the heading
+      indexAddHeading(el.attr.identifier)
+
       -- skip unnumbered
       if (el.classes:find("unnumbered")) then
         return el
