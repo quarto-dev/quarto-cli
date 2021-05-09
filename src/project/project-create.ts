@@ -81,7 +81,6 @@ export async function projectCreate(options: ProjectCreateOptions) {
         engine,
         options.kernel,
         scaffold.title,
-        scaffold.format,
       );
       info("- Created " + md, { indent: 2 });
     }
@@ -134,7 +133,6 @@ function projectMarkdownFile(
   engine: ExecutionEngine,
   kernel?: string,
   title?: string,
-  format?: string,
 ) {
   // yaml/title
   const lines: string[] = ["---"];
@@ -142,13 +140,11 @@ function projectMarkdownFile(
     lines.push(`title: "${title}"`);
   }
 
-  // format
-  if (format) {
-    lines.push(`format: ${format}`);
-  }
-
   // write jupyter kernel if necessary
   lines.push(...engine.defaultYaml(kernel));
+
+  // knit with quarto
+  lines.push("knit: quarto render");
 
   // end yaml
   lines.push("---", "");

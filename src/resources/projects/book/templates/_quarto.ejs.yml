@@ -2,6 +2,9 @@ project:
   type: book
 
 book:
+  title: "<%= title %>"
+  author: "Jane Doe"
+  date: "<%= new Date().toLocaleDateString() %>"
   contents:
     - index<%= ext %>
     - intro<%= ext %>
@@ -12,9 +15,6 @@ bibliography: references.bib
 
 format:
   html:
-    theme: [cosmo, assets/html-theme.scss]
-  epub:
-    css: assets/epub-styles.css
-    epub-cover-image: assets/epub-cover.png
-  pdf:
-    include-in-header: assets/pdf-preamble.tex
+    theme: cosmo
+  epub: default
+  pdf: default

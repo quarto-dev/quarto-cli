@@ -29,6 +29,8 @@ dev server / incremental preview
 
 building all versions of the book
 
+latex version
+
 # Authoring
 
 ## Structure
@@ -52,6 +54,10 @@ ipynb
 
 - Chapters/sections
 - Other stuff
+
+## Styles
+
+themes, epub, preamble
 
 ## Callouts
 

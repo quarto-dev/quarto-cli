@@ -66,31 +66,23 @@ export const bookProjectType: ProjectType = {
         {
           name: "index",
           content: "## Preface",
-          format: "html",
         },
         {
           name: "intro",
           content: "# Introduction",
-          format: "html",
         },
         {
           name: "summary",
           content: "# Summary",
-          format: "html",
         },
         {
           name: "references",
           content: "# References {.unnumbered}",
-          format: "html",
         },
       ],
 
       supporting: [
         "references.bib",
-        "assets/epub-styles.css",
-        "assets/epub-cover.png",
-        "assets/html-theme.scss",
-        "assets/pdf-preamble.tex",
       ],
     };
   },

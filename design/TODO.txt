@@ -26,6 +26,8 @@ Books
 - PDF preface subsections are still numbered (inherit page level unnumbered)
 - "Part 1" still ends up in the ePub (strip it)
 
+- toc scrollspy out of sync in hopr book
+
 - update docs on callouts to reflect embedded heading
 
 - consider whether we need distinct text for figure captions (or perhaps bold on the "Figure" prefix?)
