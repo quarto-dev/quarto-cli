@@ -32,7 +32,8 @@ export function projectResourceFiles(
       resourceGlobs = resourceGlobs
         // ignore anything specified in our standard .gitignore
         .concat(kGitignoreEntries.map((entry) => `!${entry}`))
-        .concat(["robots.txt"]);
+        // some files typically included in the root of websites
+        .concat(["robots.txt", ".nojekyll", "_redirects"]);
 
       const exclude = outputDir ? [outputDir] : [];
       const projectResourceFiles = resolvePathGlobs(
