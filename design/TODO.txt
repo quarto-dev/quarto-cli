@@ -19,6 +19,8 @@ TODO: downlit integration
 Books
 =========================================================================
 
+- discuss part behavior and matching LaTeX part behavior
+
 - don't like 'references' and 'appendix' (appendices)
 
 - 'appendix' -> 'appendices'
