@@ -35,6 +35,9 @@ Books
 
 - output-file is printed as full path for --to docx
 
+- consider whether we should improve the visual appearance of 
+  callouts in epub / docx / pdf
+
 - for proofs, etc. we need to also support putting the name as an initial heading
 
 - should we have additional framing around e.g. exercises
