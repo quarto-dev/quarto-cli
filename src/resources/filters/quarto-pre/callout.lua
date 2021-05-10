@@ -10,7 +10,7 @@ function callout()
     Div = function(div)
       if div.attr.classes:find_if(isCallout) then
         preState.hasCallouts = true
-        if isHtmlOutput() then
+        if isHtmlOutput() and not isEpubOutput() then
           return calloutDiv(div) 
         elseif isLatexOutput() then
           return calloutLatex(div)
@@ -39,13 +39,7 @@ end
 function calloutDiv(div)
 
 -- the first heading is the caption
-local capEl = div.content[1]
-local caption
-if capEl ~= nil and capEl.t == 'Header' then
-caption = capEl
-div.content:remove(1)
-end
-
+local caption = resolveCaption(div)
 
 local icon = div.attr.attributes["icon"]
 div.attr.attributes["icon"] = nil
@@ -143,7 +137,7 @@ end
 function calloutLatex(div)
   
   -- read and clear attributes
-  local caption = div.attr.attributes["caption"]
+  local caption = resolveCaption(div)
   local type = calloutType(div)
 
   div.attr.attributes["caption"] = nil
@@ -174,7 +168,7 @@ function calloutLatex(div)
 end
 
 function simpleCallout(div) 
-  local caption = div.attr.attributes["caption"]
+  local caption = resolveCaption(div)
   local type = calloutType(div)
 
   div.attr.attributes["caption"] = nil
@@ -190,7 +184,20 @@ function simpleCallout(div)
   calloutContents:insert(pandoc.Para(pandoc.Strong(stringToInlines(caption))))
   tappend(calloutContents, div.content)
 
-  return pandoc.BlockQuote(calloutContents)
+  local callout = pandoc.BlockQuote(calloutContents)
+  return pandoc.Div(callout)
+end
+
+function resolveCaption(div) 
+  -- the first heading is the caption
+  local capEl = div.content[1]
+  
+  if capEl ~= nil and capEl.t == 'Header' then
+    div.content:remove(1)
+    return capEl
+  else 
+    return nil
+  end
 end
 
 function environmentForType(type, caption)
