@@ -39,8 +39,6 @@ Books
 
 - allow 'main' in  pages without toc to occupy more bootstrap columns
 
-- responsive sidebar heading transparency issues
-
 - documentation on crossrefs
     When you want to refer a chapter or appendix by number use a cross ref 
     When you want to refer to it by name (or refer to an unnumbered part) then use a normal link
@@ -75,6 +73,8 @@ Bookdown porting:
    - convert admonitions (block2) convert those
    - move stuff from _output.yml, _bookdown.yml, and index.Rmd into _quarto.yml
    - explicitly enumerate your chapters / appendix / etc.
+
+- When sidebar collapses, consider removing title and placing tools to right of search box
 
 
 Markdown Serialization
