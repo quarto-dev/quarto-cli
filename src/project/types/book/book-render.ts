@@ -425,7 +425,7 @@ function bookItemMetadata(
 
 function bookPartMarkdown(project: ProjectContext, item: BookRenderItem) {
   const metadata = bookItemMetadata(project, item);
-  return `${metadata}# ${item.text}\n\n`;
+  return `${metadata}# ${item.text ? item.text : ""}\n\n`;
 }
 
 function withBookTitleMetadata(format: Format, config?: ProjectConfig): Format {
