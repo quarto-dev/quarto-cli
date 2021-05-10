@@ -340,10 +340,10 @@ export async function bookRenderItems(
   return index.concat(inputs);
 }
 
-const kDownloadNames: Record<string, string> = {
-  "epub": "ePub",
-  "pdf": "PDF",
-  "docx": "Docx",
+const kDownloadableItems: Record<string, { name: string; icon: string }> = {
+  "epub": { name: "ePub", icon: "journal" },
+  "pdf": { name: "PDF", icon: "file-pdf" },
+  "docx": { name: "Docx", icon: "file-word" },
 };
 
 function downloadTools(
@@ -365,10 +365,19 @@ function downloadTools(
   const outputStem = bookOutputStem(projectDir, config);
   const downloads = filteredActions.map((action) => {
     const format = defaultWriterFormat(action);
-    return {
-      text: `Download ${kDownloadNames[action] || action}`,
-      href: `/${outputStem}.${format.render[kOutputExt]}`,
-    };
+    const downloadItem = kDownloadableItems[action];
+    if (downloadItem) {
+      return {
+        icon: downloadItem.icon,
+        text: `Download ${downloadItem.name}`,
+        href: `/${outputStem}.${format.render[kOutputExt]}`,
+      };
+    } else {
+      return {
+        text: `Download action}`,
+        href: `/${outputStem}.${format.render[kOutputExt]}`,
+      };
+    }
   });
 
   // Form the menu (or single item download button)
