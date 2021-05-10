@@ -28,7 +28,8 @@ import("outputs.lua")
 import("figures.lua")
 import("filemetadata.lua")
 import("resourcerefs.lua")
-import("book.lua")
+import("book-numbering.lua")
+import("book-parts.lua")
 import("meta.lua")
 import("tabset.lua")
 import("callout.lua")
@@ -51,12 +52,13 @@ return {
   outputs(),
   combineFilters({
     fileMetadata(),
-    book(),
+    bookNumbering(),
     resourceRefs(),
     figures(),
     callout(),
     tabset()
   }),
+  bookParts(),
   quartoPreMetaInject(),
 }
 

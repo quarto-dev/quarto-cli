@@ -1,7 +1,7 @@
--- book.lua
+-- book-numbering.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
-function book() 
+function bookNumbering() 
   return {
     Header = function(el)
       local file = currentFileMetadata()
@@ -45,17 +45,6 @@ function book()
 
           -- return potentially modified heading el
           return el
-        end
-      end
-    end,
-
-    Div = function(el)
-      -- only latex includes explicit book part headings/sections
-      if el.attr.classes:includes('quarto-book-part') then
-        if isLatexOutput() then
-          return el
-        else 
-          return pandoc.Div({})
         end
       end
     end
