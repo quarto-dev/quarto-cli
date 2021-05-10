@@ -107,7 +107,7 @@ export function bookPandocRenderer(
             file.recipe.format,
             project.config,
           );
-          file.recipe.format.metadata[kToc] = false;
+          file.recipe.format.pandoc[kToc] = false;
           file.recipe.format.pandoc[kNumberSections] = false;
           // other files
         } else {
