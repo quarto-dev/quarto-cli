@@ -316,7 +316,7 @@ export async function bookRenderItems(
 
   await findChapters(kBookAppendix, {
     type: "appendix",
-    text: kAppendicesSectionLabel,
+    text: kAppendicesSectionLabel + " {.unnumbered}",
   });
 
   // validate that all of the chapters exist

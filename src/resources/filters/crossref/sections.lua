@@ -79,6 +79,6 @@ function numberSections()
 end
 
 function formatRequiresSectionNumber()
-  return not isLatexOutput() and not isHtmlOutput() and not isDocxOutput()
+  return isEpubOutput() or (not isLatexOutput() and not isHtmlOutput())
 end
 

@@ -176,7 +176,10 @@ function sectionNumber(section, maxLevel)
 end
 
 function formatChapterIndex(index)
-  if crossrefOption("chapters-alpha", false) then
+  local fileMetadata = currentFileMetadataState()
+  if fileMetadata.appendix then
+    return string.char(64 + fileMetadata.file.bookItemNumber)
+  elseif crossrefOption("chapters-alpha", false) then
     return string.char(64 + index)
   else
     return tostring(index)

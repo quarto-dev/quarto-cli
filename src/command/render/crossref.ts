@@ -11,6 +11,8 @@ import {
   kNumberSections,
   kTopLevelDivision,
 } from "../../config/constants.ts";
+import { FormatPandoc } from "../../config/format.ts";
+import { PandocFlags } from "../../config/flags.ts";
 import { Metadata } from "../../config/metadata.ts";
 
 import { PandocOptions } from "./pandoc.ts";
@@ -51,11 +53,14 @@ export function crossrefGeneratedDefaults(options: PandocOptions) {
   return undefined;
 }
 
-export function crossrefFilterParams(options: PandocOptions) {
+export function crossrefFilterParams(
+  flags?: PandocFlags,
+  defaults?: FormatPandoc,
+) {
   const kCrossrefFilterParams = [kListings, kNumberSections, kNumberOffset];
   const params: Metadata = {};
   kCrossrefFilterParams.forEach((option) => {
-    const value = crossrefOption(option, options);
+    const value = crossrefOption(option, flags, defaults);
     if (value) {
       // validation
       if (option === kNumberOffset) {
@@ -74,13 +79,17 @@ export function crossrefFilterParams(options: PandocOptions) {
   return params;
 }
 
-function crossrefOption(name: string, options: PandocOptions) {
-  if (options.flags && Object.keys(options.flags).includes(name)) {
+function crossrefOption(
+  name: string,
+  flags?: PandocFlags,
+  defaults?: FormatPandoc,
+) {
+  if (flags && Object.keys(flags).includes(name)) {
     // deno-lint-ignore no-explicit-any
-    return (options.flags as any)[name];
-  } else if (Object.keys(options.format.pandoc).includes(name)) {
+    return (flags as any)[name];
+  } else if (Object.keys(defaults || {}).includes(name)) {
     // deno-lint-ignore no-explicit-any
-    return (options.format.pandoc as any)[name];
+    return (defaults as any)[name];
   } else {
     return undefined;
   }

@@ -22,7 +22,7 @@ import { warnOnce } from "../../../core/log.ts";
 
 import { pandocAutoIdentifier } from "../../../core/pandoc/pandoc-id.ts";
 
-import { kToc, kTocTitle } from "../../../config/constants.ts";
+import { kTocTitle } from "../../../config/constants.ts";
 import {
   Format,
   FormatDependency,

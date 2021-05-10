@@ -4,7 +4,7 @@
 function resourceRefs() 
   return {
     Image = function(el)
-      local file = currentFileMetadata()
+      local file = currentFileMetadataState().file
       if file ~= nil then
         el.src = resourceRef(el.src, file.resourceDir)
         return el
@@ -18,7 +18,7 @@ end
 
 function handleRawElement(el)
   if isRawHtml(el) then
-    local file = currentFileMetadata()
+    local file = currentFileMetadataState().file
     if file ~= nil then
       el.text = handleHtmlRefs(el.text, file.resourceDir, "img", "src")
       el.text = handleHtmlRefs(el.text, file.resourceDir, "link", "href")

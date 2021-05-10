@@ -234,6 +234,15 @@ export function isEpubOutput(format: FormatPandoc) {
   return ["epub", "epub2", "epub3"].includes(format.to || "");
 }
 
+export function isDocxOutput(format: string): boolean;
+export function isDocxOutput(format: FormatPandoc): boolean;
+export function isDocxOutput(format: string | FormatPandoc): boolean {
+  if (typeof (format) !== "string") {
+    format = format?.to || "html";
+  }
+  return format === "docx";
+}
+
 export function isHtmlOutput(format: string, strict?: boolean): boolean;
 export function isHtmlOutput(format: FormatPandoc, strict?: boolean): boolean;
 export function isHtmlOutput(

@@ -20,6 +20,7 @@ import("bootstrap.lua")
 import("latexdiv.lua")
 import("foldcode.lua")
 import("meta.lua")
+import("book-cleanup.lua")
 import("../common/params.lua")
 import("../common/table.lua")
 import("../common/pandoc.lua")
@@ -32,6 +33,7 @@ import("../common/json.lua")
 initParams()
 
 return {
+  bookCleanup(),
   combineFilters({
     latexDiv(),
     foldCode(),
