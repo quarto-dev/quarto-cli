@@ -21,7 +21,6 @@ Books
 
 
 
-- epub and docx callouts?
 
 - don't love the 'note' icon for callouts (looks too much like a bookmark)
 
