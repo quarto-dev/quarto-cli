@@ -25,7 +25,6 @@ Books
 
 - don't love the 'note' icon for callouts (looks too much like a bookmark)
 
-- responsive sidebar heading transparency issues
 
 - finish porting the hopr:
     - convert 'solution' environments once we have that
@@ -61,6 +60,8 @@ Bookdown porting:
    - convert admonitions (block2) convert those
    - move stuff from _output.yml, _bookdown.yml, and index.Rmd into _quarto.yml
    - explicitly enumerate your chapters / appendix / etc.
+
+- When sidebar collapses, consider removing title and placing tools to right of search box
 
 
 Markdown Serialization
