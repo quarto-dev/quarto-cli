@@ -26,10 +26,8 @@ end
 import("includes.lua")
 import("outputs.lua")
 import("figures.lua")
-import("filemetadata.lua")
 import("resourcerefs.lua")
 import("book-numbering.lua")
-import("book-parts.lua")
 import("meta.lua")
 import("tabset.lua")
 import("callout.lua")
@@ -39,6 +37,7 @@ import("../common/json.lua")
 import("../common/meta.lua")
 import("../common/table.lua")
 import("../common/pandoc.lua")
+import("../common/filemetadata.lua")
 import("../common/layout.lua")
 import("../common/refs.lua")
 import("../common/figures.lua")
@@ -58,7 +57,6 @@ return {
     callout(),
     tabset()
   }),
-  bookParts(),
   quartoPreMetaInject(),
 }
 

@@ -2,6 +2,11 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 
+fileMetadataState = {
+  file = nil,
+  appendix = false,
+}
+
 
 function fileMetadata() 
   return {
@@ -16,17 +21,17 @@ function parseFileMetadata(el)
     if rawMetadata then
       local decoded = base64_decode(rawMetadata)
       local file = jsonDecode(decoded)
-      preState.file = file
+      fileMetadataState.file = file
       -- flip into appendix mode as appropriate
       if file.bookItemType == "appendix" then
-        preState.appendix = true
+        fileMetadataState.appendix = true
       end
-      return pandoc.Null()
     end
   end
+  return el
 end
 
-function currentFileMetadata()
-  return preState.file
+function currentFileMetadataState()
+  return fileMetadataState
 end
 

@@ -54,6 +54,8 @@ import { isMultiFileBookFormat } from "./book-extension.ts";
 import { kBootstrapDependencyName } from "../../../format/html/format-html.ts";
 import { formatHasBootstrap } from "../../../format/html/format-html-bootstrap.ts";
 
+const kSingleFileBook = "single-file-book";
+
 export const bookProjectType: ProjectType = {
   type: "book",
 
@@ -100,18 +102,20 @@ export const bookProjectType: ProjectType = {
   },
 
   filterParams: (options: PandocOptions) => {
-    if (options.project && isMultiFileBookFormat(options.format)) {
+    if (isMultiFileBookFormat(options.format)) {
       return {
         [kCrossrefIndexFile]: pandocMetadataPath(
           crossrefIndexForOutputFile(
-            options.project.dir,
+            options.project!.dir,
             join(dirname(options.input), options.output),
           ),
         ),
         [kCrossrefResolveRefs]: false,
       };
     } else {
-      return undefined;
+      return {
+        [kSingleFileBook]: true,
+      };
     }
   },
 

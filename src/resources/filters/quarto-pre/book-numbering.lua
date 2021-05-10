@@ -4,7 +4,7 @@
 function bookNumbering() 
   return {
     Header = function(el)
-      local file = currentFileMetadata()
+      local file = currentFileMetadataState().file
       if file ~= nil then
         local bookItemType = file.bookItemType
         if bookItemType ~= nil then
@@ -35,7 +35,7 @@ function bookNumbering()
 
           -- mark appendix chapters for epub
           if el.level == 1 and isEpubOutput() then
-            if preState.appendix == true and bookItemType == "chapter" then
+            if file.appendix == true and bookItemType == "chapter" then
               el.attr.attributes["epub:type"] = "appendix"
             end
           end

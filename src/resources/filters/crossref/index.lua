@@ -18,8 +18,8 @@ function initIndex()
   crossref.index = {
     nextOrder = {},
     nextSubrefOrder = 1,
-    section = sectionOffsets,
-    sectionOffsets = sectionOffsets,
+    section = sectionOffsets:clone(),
+    sectionOffsets = sectionOffsets:clone(),
     numberOffset = sectionOffsets:clone(),
     entries = {},
     headings = pandoc.List:new()
@@ -32,6 +32,7 @@ end
 function indexNextChapter()
    -- reset nextOrder to 1 for all types if we are in chapters mode
   if crossrefOption("chapters", false) then
+    -- reset all of the cross type counters
     for k,v in pairs(crossref.index.nextOrder) do
       crossref.index.nextOrder[k] = 1
     end

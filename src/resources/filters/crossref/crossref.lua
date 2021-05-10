@@ -31,8 +31,10 @@ import("options.lua")
 import("../common/pandoc.lua")
 import("../common/format.lua")
 import("../common/params.lua")
+import("../common/base64.lua")
 import("../common/options.lua")
 import("../common/refs.lua")
+import("../common/filemetadata.lua")
 import("../common/figures.lua")
 import("../common/meta.lua")
 import("../common/table.lua")
@@ -48,6 +50,7 @@ return {
   initCrossrefOptions(),
   preprocess(),
   combineFilters({
+    fileMetadata(),
     sections(),
     figures(),
     tables(),

@@ -19,29 +19,27 @@ TODO: downlit integration
 Books
 =========================================================================
 
+- don't like 'references' and 'appendix' (appendices)
 
+- 'appendix' -> 'appendices'
+- 'contents' -> 'chapters'
 
-
-- don't love the 'note' icon for callouts (looks too much like a bookmark)
-
-
-- documentation on crossrefs
-    When you want to refer a chapter or appendix by number use a cross ref 
-    When you want to refer to it by name (or refer to an unnumbered part) then use a normal link
-    In either case try to use #sec
-    For referencing chapters or appendixes, use [Appendix -@sec:fooappdenix]
-
-- appendix numbering and references for word/epub
-
-- finish porting the hopr:
-    - convert 'solution' environments once we have that
-    - update 'exercise' environments to use embedded header
+- references will go in the id='refs' div (just like pandoc)
+- will will generate that (unnumbered) as part of the scaffold
 
 - todo: always show left margin for code (but not computational output
+
+- Part 1 double-down in LaTeX
+
+- docs on using sidebar options directly
+
+- output-file is printed as full path for --to docx
 
 - for proofs, etc. we need to also support putting the name as an initial heading
 
 - should we have additional framing around e.g. exercises
+
+- add secnumdepth and take over HTML numbering
 
 The proof environments currently supported are proof, remark, and solution. The syntax is similar to theorem environments,
 and proof environments can also be named. The only difference is that since they are unnumbered, you cannot reference them.
@@ -53,14 +51,10 @@ environment name, e.g., <div class="lemma"></div>. For LaTeX output, we have pre
 environments definition, example, exercise, and hypothesis, and remark for environments proof and remark. All other 
 environments use the plain style. The style definition is done through the \theoremstyle{} command of the amsthm package.
 
-Bookdown porting:
-   - convert cross refs
-   - no include_graphics
-   - don't use implicit heading links
-   - convert theorems etc.
-   - convert admonitions (block2) convert those
-   - move stuff from _output.yml, _bookdown.yml, and index.Rmd into _quarto.yml
-   - explicitly enumerate your chapters / appendix / etc.
+- finish porting the hopr:
+    - convert 'solution' environments once we have that
+    - update 'exercise' environments to use embedded header
+
 
 - When sidebar collapses, consider removing title and placing tools to right of search box
 

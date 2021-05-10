@@ -26,6 +26,8 @@ import {
   Format,
   FormatExtras,
   FormatPandoc,
+  isDocxOutput,
+  isEpubOutput,
   isHtmlOutput,
   kBodyEnvelope,
   kDependencies,
@@ -45,7 +47,7 @@ import { deleteCrossrefMetadata } from "../../project/project-crossrefs.ts";
 
 import { kBootstrapDependencyName } from "../../format/html/format-html.ts";
 
-import { RenderFlags } from "./flags.ts";
+import { removePandocArgs, RenderFlags } from "./flags.ts";
 import {
   generateDefaults,
   pandocDefaultsMessage,
@@ -58,6 +60,8 @@ import {
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
+  kNumberOffset,
+  kNumberSections,
   kPageTitle,
   kResources,
   kTitle,
@@ -281,6 +285,20 @@ export async function runPandoc(
     formatFilterParams,
   );
 
+  // remove selected args and defaults if we are handling some things on behalf of pandoc
+  // (e.g. handling section numbering for docx or epub)
+  let pandocArgs = args;
+  if (
+    isDocxOutput(options.format.pandoc) || isEpubOutput(options.format.pandoc)
+  ) {
+    delete allDefaults[kNumberSections];
+    delete allDefaults[kNumberOffset];
+    const removeArgs = new Map<string, boolean>();
+    removeArgs.set("--number-sections", false);
+    removeArgs.set("--number-offset", true);
+    pandocArgs = removePandocArgs(pandocArgs, removeArgs);
+  }
+
   // write the defaults file
   if (allDefaults) {
     const defaultsFile = await writeDefaultsFile(allDefaults);
@@ -307,7 +325,7 @@ export async function runPandoc(
   cmd.push(inputTemp);
 
   // add user command line args
-  cmd.push(...args);
+  cmd.push(...pandocArgs);
 
   // print full resolved input to pandoc
   if (!options.flags?.quiet && options.format.metadata) {
