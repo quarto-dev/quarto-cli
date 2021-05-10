@@ -1,13 +1,19 @@
--- book.lua
+-- book-numbering.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
-function book() 
+function bookNumbering() 
   return {
     Header = function(el)
       local file = currentFileMetadata()
       if file ~= nil then
         local bookItemType = file.bookItemType
         if bookItemType ~= nil then
+
+          -- if we are in an unnumbered chapter then add unnumbered class
+          if bookItemType == "chapter" and file.bookItemNumber == nil then
+            el.attr.classes:insert('unnumbered')
+          end
+
           -- handle latex "part" and "appendix" headers
           if el.level == 1 and isLatexOutput() then
             if bookItemType == "part" then
@@ -45,17 +51,6 @@ function book()
 
           -- return potentially modified heading el
           return el
-        end
-      end
-    end,
-
-    Div = function(el)
-      -- only latex includes explicit book part headings/sections
-      if el.attr.classes:includes('quarto-book-part') then
-        if isLatexOutput() then
-          return el
-        else 
-          return pandoc.Div({})
         end
       end
     end

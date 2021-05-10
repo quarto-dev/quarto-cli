@@ -190,7 +190,7 @@ export function websiteNavigationExtras(
   const href = inputFileHref(inputRelative);
   const sidebar = sidebarForHref(href);
   const nav: Record<string, unknown> = {
-    toc: hasTableOfContents(flags, format) && format.metadata[kToc] !== false,
+    toc: hasTableOfContents(flags, format),
     layout: format.metadata[kPageLayout] !== "none",
     navbar: navigation.navbar,
     sidebar: expandedSidebar(href, sidebar),

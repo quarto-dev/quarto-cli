@@ -19,31 +19,20 @@ TODO: downlit integration
 Books
 =========================================================================
 
-- book.scss (which is used by epub) makes reference to  $body-color (commenting this out for now)
 
-- kBootstrapDependencyName is used as the name of several of our dependencies (copy/paste error?)
-
-- PDF preface subsections are still numbered (inherit page level unnumbered)
-- "Part 1" still ends up in the ePub (strip it)
-
-- toc scrollspy out of sync in hopr book
-
-- update docs on callouts to reflect embedded heading
-
-- consider whether we need distinct text for figure captions (or perhaps bold on the "Figure" prefix?)
-  (see current treatment of table captions)
 
 - epub and docx callouts?
 
 - don't love the 'note' icon for callouts (looks too much like a bookmark)
 
-- allow 'main' in  pages without toc to occupy more bootstrap columns
 
 - documentation on crossrefs
     When you want to refer a chapter or appendix by number use a cross ref 
     When you want to refer to it by name (or refer to an unnumbered part) then use a normal link
     In either case try to use #sec
     For referencing chapters or appendixes, use [Appendix -@sec:fooappdenix]
+
+- appendix numbering and references for word/epub
 
 - finish porting the hopr:
     - convert 'solution' environments once we have that
