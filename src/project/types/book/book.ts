@@ -52,6 +52,7 @@ import { bookProjectConfig, kBook } from "./book-config.ts";
 import { chapterInfoForInput, formatChapterLabel } from "./book-chapters.ts";
 import { isMultiFileBookFormat } from "./book-extension.ts";
 import { kBootstrapDependencyName } from "../../../format/html/format-html.ts";
+import { formatHasBootstrap } from "../../../format/html/format-html-bootstrap.ts";
 
 export const bookProjectType: ProjectType = {
   type: "book",
@@ -155,12 +156,16 @@ export const bookProjectType: ProjectType = {
           [kCrossrefChapters]: true,
         },
       },
-      html: {
-        // [kSassBundles]: [bookScssBundle()],
-      },
     };
 
     if (isHtmlOutput(format.pandoc, true)) {
+      // include scss bundle
+      if (formatHasBootstrap(format)) {
+        extras.html = {
+          [kSassBundles]: [bookScssBundle()],
+        };
+      }
+
       // ensure toc unless explicitly disabled
       if (!disabledTableOfContents(format)) {
         flags = { ...flags, toc: true };
