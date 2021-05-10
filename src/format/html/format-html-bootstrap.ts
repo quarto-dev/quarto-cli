@@ -133,10 +133,23 @@ function bootstrapHtmlPostprocessor(format: Format) {
 
     // add 'blockquote' class to blockquotes
     const blockquotes = doc.querySelectorAll("blockquote");
-    if (blockquotes) {
-      for (let i = 0; i < blockquotes.length; i++) {
-        const classList = (blockquotes[i] as Element).classList;
-        classList.add("blockquote");
+    for (let i = 0; i < blockquotes.length; i++) {
+      const classList = (blockquotes[i] as Element).classList;
+      classList.add("blockquote");
+    }
+
+    // add figure classes to figures
+    const figures = doc.querySelectorAll("figure");
+    for (let i = 0; i < figures.length; i++) {
+      const figure = (figures[i] as Element);
+      figure.classList.add("figure");
+      const images = figure.querySelectorAll("img");
+      for (let j = 0; j < images.length; j++) {
+        (images[j] as Element).classList.add("figure-img");
+      }
+      const captions = figure.querySelectorAll("figcaption");
+      for (let j = 0; j < captions.length; j++) {
+        (captions[j] as Element).classList.add("figure-caption");
       }
     }
 
