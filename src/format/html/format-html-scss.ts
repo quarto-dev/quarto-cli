@@ -172,7 +172,6 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
   const variables = [Deno.readTextFileSync(varFilePath)];
 
   // Forward background color
-  // TODO: look in sidebar
   const sidebar = (metadata[kSite] as Metadata)?.[kSiteSidebar] as Metadata;
   if (sidebar) {
     const sidebarBackground = sidebar[kBackground];

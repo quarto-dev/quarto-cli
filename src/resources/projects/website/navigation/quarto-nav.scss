@@ -135,8 +135,11 @@ nav .dropdown-item i {
   padding-top: 4px;
 }
 
-.sidebar.sidebar-navigation nav:not(.floating) {
+.sidebar.sidebar-navigation {
   background-color: $sidebar-bg;
+}
+
+.sidebar.sidebar-navigation nav:not(.floating) {
   border-right: 1px solid $table-border-color !important;
 }
 
@@ -175,6 +178,7 @@ nav .dropdown-item i {
   }
 
   nav.quarto-secondary-nav {
+    background-color: $sidebar-bg;
     border-bottom: 1px solid $table-border-color;
   }
 
