@@ -416,6 +416,7 @@ function bookItemMetadata(
   const blockMetadata = {
     ...inlineMetadata,
     bookItemType: item.type,
+    bookItemNumber: item.number ? item.number : null,
   };
   const inlineMetadataEncoced = base64Encode(JSON.stringify(inlineMetadata));
   const blockMetadataEncoded = base64Encode(JSON.stringify(blockMetadata));

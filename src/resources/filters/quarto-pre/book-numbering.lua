@@ -8,6 +8,12 @@ function bookNumbering()
       if file ~= nil then
         local bookItemType = file.bookItemType
         if bookItemType ~= nil then
+
+          -- if we are in an unnumbered chapter then add unnumbered class
+          if bookItemType == "chapter" and file.bookItemNumber == nil then
+            el.attr.classes:insert('unnumbered')
+          end
+
           -- handle latex "part" and "appendix" headers
           if el.level == 1 and isLatexOutput() then
             if bookItemType == "part" then
