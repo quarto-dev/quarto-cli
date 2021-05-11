@@ -37,7 +37,9 @@ if (sidebar.align === "left") {
       <div class="sidebar-search flex-fill">
       <% partial('navsearch.ejs', { search: sidebar.search }) %>
       </div>
-      <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-collapse' })%>
+      <% if (sidebar.tools) { %>
+        <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-collapse' })%>
+      <% } %>
     </div>
   <% } %>
 
