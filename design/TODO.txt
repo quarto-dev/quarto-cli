@@ -21,29 +21,22 @@ Books
 
 - parts with links have extra padding
 
-- discuss part behavior and matching LaTeX part behavior
-
-- references will go in the id='refs' div (just like pandoc)
-- will will generate that (unnumbered) as part of the scaffold
-
 - todo: always show left margin for code (but not computational output
 
 - docs on using sidebar options directly
 
 - output-file is printed as full path for --to docx
 
-- probably should default to 'report' not 'book' for PDF
-
 - consider whether we should improve the visual appearance of 
   callouts in epub / docx / pdf
+
+- numbering when crossref: false
 
 - for proofs, etc. we need to also support putting the name as an initial heading
 
 - should we have additional framing around e.g. exercises
 
 - update the docs to use the new hopr screen shots (with parts)
-
-- add secnumdepth equivalent (number-depth) and take over HTML numbering
 
 The proof environments currently supported are proof, remark, and solution. The syntax is similar to theorem environments,
 and proof environments can also be named. The only difference is that since they are unnumbered, you cannot reference them.
