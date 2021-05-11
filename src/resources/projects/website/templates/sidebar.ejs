@@ -25,16 +25,19 @@ if (sidebar.align === "left") {
     <% } %>
 
     <% if (sidebar.subtitle) { %>
-    <div class="sidebbar-subtitle lead mt-1 pb-0 text-center"><%- sidebar.subtitle %></div>
+    <div class="sidebar-subtitle lead mt-1 pb-0 text-center"><%- sidebar.subtitle %></div>
     <% } %>
 
     <% if (sidebar.tools) { %>
-      <% partial('sidebartools.ejs', { tools: sidebar.tools })%>
+      <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main' })%>
     <% } %>
   </div>
   <% if (sidebar.search) { %>
-    <div class="sidebar-search px-3 mt-4">
-    <% partial('navsearch.ejs', { search: sidebar.search }) %>
+    <div class="d-flex px-3 mt-4">
+      <div class="sidebar-search flex-fill">
+      <% partial('navsearch.ejs', { search: sidebar.search }) %>
+      </div>
+      <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-collapse' })%>
     </div>
   <% } %>
 

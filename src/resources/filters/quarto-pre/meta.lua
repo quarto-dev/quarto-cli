@@ -12,6 +12,14 @@ function quartoPreMetaInject()
           inject(
             usePackage("awesomebox")
           )
+          inject(
+            "\\definecolor{quarto-callout-color}{HTML}{20c997}\n" ..
+            "\\definecolor{quarto-callout-note-color}{HTML}{4582ec}\n" ..
+            "\\definecolor{quarto-callout-important-color}{HTML}{d9534f}\n" ..
+            "\\definecolor{quarto-callout-warning-color}{HTML}{f0ad4e}\n" ..
+            "\\definecolor{quarto-callout-tip-color}{HTML}{02b875}\n" ..
+            "\\definecolor{quarto-callout-danger-color}{HTML}{fd7e14}\n"
+          )
         end)
       end
 

@@ -147,16 +147,18 @@ function calloutLatex(div)
   local calloutContents = pandoc.List:new({});
     
   -- Add the captions and contents
-  if caption == nil then 
-    caption = type:sub(1,1):upper()..type:sub(2)
+  if caption ~= nil then 
+    calloutContents:insert(pandoc.Para(stringToInlines(caption)))
   end
-  calloutContents:insert(pandoc.Para(stringToInlines(caption)))
   tappend(calloutContents, div.content)
 
   -- Add the environment info, using inlines if possible 
-  local environment = environmentForType(type);  
-  local beginEnvironment = pandoc.RawInline('latex', '\\begin{' .. environment .. '}\n')
-  local endEnvironment = pandoc.RawInline('latex', '\n\\end{' .. environment .. '}')
+  local color = colorForType(type)
+  local icon = iconForType(type)
+  local separatorWidth = '1pt'
+  
+  local beginEnvironment = pandoc.RawInline('latex', '\\begin{awesomeblock}[' .. color .. ']{' .. separatorWidth .. '}{\\' .. icon .. '}{' .. color ..'}\n')
+  local endEnvironment = pandoc.RawInline('latex', '\n\\end{awesomeblock}')
   if calloutContents[1].t == "Para" and calloutContents[#calloutContents].t == "Para" then
     table.insert(calloutContents[1].content, 1, beginEnvironment)
     table.insert(calloutContents[#calloutContents].content, endEnvironment)
@@ -200,19 +202,34 @@ function resolveCaption(div)
   end
 end
 
-function environmentForType(type, caption)
+function colorForType(type) 
   if type == 'note' then
-    return "noteblock"
+    return "quarto-callout-note-color"
   elseif type == "warning" then
-    return "warningblock"
+    return "quarto-callout-warning-color"
   elseif type == "important" then
-    return "importantblock"
+    return "quarto-callout-important-color"
   elseif type == "caution" then
-    return "cautionblock"
+    return "quarto-callout-caution-color"
   elseif type == "tip" then 
-    return "tipblock"
+    return "quarto-callout-tip-color"
   else
-    return "noteblock"
+    return "quarto-callout-color"
   end
 end
 
+function iconForType(type) 
+  if type == 'note' then
+    return "faInfo"
+  elseif type == "warning" then
+    return "faExclamationTriangle"
+  elseif type == "important" then
+    return "faExclamation"
+  elseif type == "caution" then
+    return "faBurn"
+  elseif type == "tip" then 
+    return "faLightbulb"
+  else
+    return "faStickyNote"
+  end
+end
