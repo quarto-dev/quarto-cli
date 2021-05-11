@@ -32,8 +32,6 @@ Books
 
 - should we have additional framing around e.g. exercises
 
-- add secnumdepth equivalent (number-depth) and take over HTML numbering
-
 The proof environments currently supported are proof, remark, and solution. The syntax is similar to theorem environments,
 and proof environments can also be named. The only difference is that since they are unnumbered, you cannot reference them.
 
