@@ -19,6 +19,8 @@ TODO: downlit integration
 Books
 =========================================================================
 
+- parts with links have extra padding
+
 - discuss part behavior and matching LaTeX part behavior
 
 - references will go in the id='refs' div (just like pandoc)
@@ -32,12 +34,16 @@ Books
 
 - output-file is printed as full path for --to docx
 
+- probably should default to 'report' not 'book' for PDF
+
 - consider whether we should improve the visual appearance of 
   callouts in epub / docx / pdf
 
 - for proofs, etc. we need to also support putting the name as an initial heading
 
 - should we have additional framing around e.g. exercises
+
+- update the docs to use the new hopr screen shots (with parts)
 
 - add secnumdepth equivalent (number-depth) and take over HTML numbering
 
