@@ -16,5 +16,7 @@ bibliography: references.bib
 format:
   html:
     theme: cosmo
-  epub: default
-  pdf: default
+  pdf:
+    documentclass: report
+  epub:
+    epub-cover-image: cover.png
