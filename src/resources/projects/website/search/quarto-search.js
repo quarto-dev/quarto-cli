@@ -117,7 +117,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
             } else {
               lines.push(escape(item.section));
               lines.push(...[
-                '<span class="text-muted">',
+                '<span class="search-result-section">',
                 ' — ' + escape(item.title),
                 '</span>'
               ]);

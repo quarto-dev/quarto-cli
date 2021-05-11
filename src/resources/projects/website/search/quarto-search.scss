@@ -29,6 +29,10 @@
   max-height: 2.4rem;      /* fallback */
 }
 
+#quarto-search-results .search-result-section {
+  color: theme-dim($popover-body-color, 25%);
+  font-size: 0.9em;
+}
 
 #quarto-search-results .aa-suggestion {
   cursor: pointer;
@@ -40,6 +44,9 @@
   border-left: none;
   border-right: none;
   border-top: none;
+  background-color: $popover-bg;
+  border-color: $popover-border-color;
+  color: $popover-body-color;
 }
 
 #quarto-search-results .aa-suggestion .card p {
@@ -51,14 +58,21 @@
   margin-bottom: 0.1rem;
 }
 
-
 .algolia-autocomplete .aa-dropdown-menu .aa-suggestion.aa-cursor .card {
-  background-color: var(--bs-light);
+  background-color: theme-fade($component-active-bg, $popover-bg, 5%) !important;
+  color: $component-active-color !important;
 }
+
+.algolia-autocomplete .aa-dropdown-menu .aa-suggestion.aa-cursor .card .search-result-section {
+  color: theme-dim($component-active-color, 15%) !important;
+}
+
 .algolia-autocomplete .aa-dropdown-menu .aa-suggestion em {
   font-weight: 500;
   font-style: normal;
 }
+
+
 
 
 
