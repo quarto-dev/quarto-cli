@@ -24,6 +24,7 @@ export interface PartitionedMarkdown {
   yaml?: string;
   headingText?: string;
   headingAttr?: PandocAttr;
+  containsRefs: boolean;
   markdown: string;
 }
 
@@ -31,9 +32,15 @@ export function partitionMarkdown(markdown: string): PartitionedMarkdown {
   const markdownLines: string[] = [];
   let markdownHeading: string | undefined;
   let markdownHeadingAttr: PandocAttr | undefined;
+  let markdownContainsRefs = false;
   const partitioned = partitionYamlFrontMatter(markdown);
   markdown = partitioned ? partitioned.markdown : markdown;
   for (const line of lines(markdown)) {
+    // does this line contains the refs div?
+    if (!markdownContainsRefs) {
+      markdownContainsRefs = /^:::\s*{#refs([\s}]|.*?})\s*$/.test(line);
+    }
+
     if (!markdownHeading) {
       if (line.startsWith("#")) {
         let beginAttrPos = -1;
@@ -83,6 +90,7 @@ export function partitionMarkdown(markdown: string): PartitionedMarkdown {
     yaml: (partitioned ? partitioned.yaml : undefined),
     headingText: markdownHeading,
     headingAttr: markdownHeadingAttr,
+    containsRefs: markdownContainsRefs,
     markdown: markdownLines.join("\n"),
   };
 }

@@ -21,10 +21,14 @@ import { kBibliography, kCsl } from "../../../config/constants.ts";
 import { Metadata } from "../../../config/metadata.ts";
 
 import { normalizeSidebarItem, SidebarItem } from "../../project-config.ts";
-import { ProjectContext, projectOutputDir } from "../../project-context.ts";
-import { resolveInputTarget } from "../../project-index.ts";
+import {
+  kProjectRender,
+  ProjectContext,
+  projectOutputDir,
+} from "../../project-context.ts";
+import { inputTargetIndex, resolveInputTarget } from "../../project-index.ts";
 import { WebsiteProjectOutputFile } from "../website/website.ts";
-import { bookConfig, kBookReferences } from "./book-config.ts";
+import { bookConfig, bookRenderItems, kBookReferences } from "./book-config.ts";
 import { bookMultiFileHtmlOutputs } from "./book-extension.ts";
 
 export async function bookBibliographyPostRender(
@@ -32,23 +36,18 @@ export async function bookBibliographyPostRender(
   incremental: boolean,
   outputFiles: WebsiteProjectOutputFile[],
 ) {
-  // get (required) references config
-  const references = bookConfig(kBookReferences, context.config) as SidebarItem;
-  if (!references) {
-    return;
-  }
-
   // make sure the references file exists and compute it's path
+  const renderFiles = context.config?.project[kProjectRender] || [];
+
   let refsHtml: string | undefined;
-  const refsItem = normalizeSidebarItem(context.dir, references);
-  if (refsItem.href) {
-    const refsTarget = await resolveInputTarget(
-      context,
-      refsItem.href,
-      false,
-    );
-    if (refsTarget) {
-      refsHtml = join(projectOutputDir(context), refsTarget.outputHref);
+  for (const file of renderFiles) {
+    const index = await inputTargetIndex(context, file);
+    if (index?.markdown.containsRefs) {
+      const target = await resolveInputTarget(context, file, false);
+      if (target) {
+        refsHtml = join(projectOutputDir(context), target.outputHref);
+      }
+      break;
     }
   }
 
