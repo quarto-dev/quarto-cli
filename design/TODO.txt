@@ -21,8 +21,6 @@ Books
 
 - discuss part behavior and matching LaTeX part behavior
 
-- why does book-authoring suddenly have quarto layout css?
-
 - references will go in the id='refs' div (just like pandoc)
 - will will generate that (unnumbered) as part of the scaffold
 
@@ -41,7 +39,7 @@ Books
 
 - should we have additional framing around e.g. exercises
 
-- add secnumdepth and take over HTML numbering
+- add secnumdepth equivalent (number-depth) and take over HTML numbering
 
 The proof environments currently supported are proof, remark, and solution. The syntax is similar to theorem environments,
 and proof environments can also be named. The only difference is that since they are unnumbered, you cannot reference them.
