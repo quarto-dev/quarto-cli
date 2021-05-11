@@ -187,13 +187,13 @@ export const bookProjectType: ProjectType = {
       // merge
       extras = mergeConfigs(extras, websiteExtras);
 
-      // documentclass book for latex output
+      // documentclass report for latex output
     } else if (isLatexOutput(format.pandoc)) {
       extras = mergeConfigs(
         extras,
         {
           metadata: {
-            [kDocumentClass]: "book",
+            [kDocumentClass]: "report",
           },
         },
       );

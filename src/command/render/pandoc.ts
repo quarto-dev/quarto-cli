@@ -26,8 +26,6 @@ import {
   Format,
   FormatExtras,
   FormatPandoc,
-  isDocxOutput,
-  isEpubOutput,
   isHtmlOutput,
   isLatexOutput,
   kBodyEnvelope,
