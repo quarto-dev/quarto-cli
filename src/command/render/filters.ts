@@ -55,7 +55,7 @@ export function filterParamsJson(
     ...includes,
     ...projectFilterParams(options),
     ...quartoFilterParams(options.format),
-    ...crossrefFilterParams(options.flags, defaults),
+    ...crossrefFilterParams(options.flags, defaults, options.format.metadata),
     ...layoutFilterParams(options.format),
     ...formatFilterParams,
   };

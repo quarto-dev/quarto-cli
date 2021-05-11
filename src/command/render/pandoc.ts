@@ -29,6 +29,7 @@ import {
   isDocxOutput,
   isEpubOutput,
   isHtmlOutput,
+  isLatexOutput,
   kBodyEnvelope,
   kDependencies,
   kHtmlPostprocessors,
@@ -288,9 +289,7 @@ export async function runPandoc(
   // remove selected args and defaults if we are handling some things on behalf of pandoc
   // (e.g. handling section numbering for docx or epub)
   let pandocArgs = args;
-  if (
-    isDocxOutput(options.format.pandoc) || isEpubOutput(options.format.pandoc)
-  ) {
+  if (!isLatexOutput(options.format.pandoc)) {
     delete allDefaults[kNumberSections];
     delete allDefaults[kNumberOffset];
     const removeArgs = new Map<string, boolean>();
