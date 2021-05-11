@@ -41,6 +41,7 @@ nav .dropdown-item i {
 .sidebar-title {
   padding-bottom: 0.5rem;
   font-size: 1.5rem;
+  visibility: visible;
 }
 
 .sidebar-navigation .active {
@@ -60,6 +61,15 @@ nav .dropdown-item i {
 .sidebar-navigation .sidebar-tool {
   opacity: 0.8;
   font-size: 1.2em;
+}
+
+.sidebar-tools-main {
+  display: block;
+  
+}
+
+.sidebar-tools-collapse {
+  display: none;
 }
 
 .sidebar-section .bi {
@@ -186,7 +196,25 @@ nav .dropdown-item i {
     visibility: visible;
     padding-top: 1rem;
     position: inherit;
+  }  
+
+  .sidebar-title {
+    display:none;
   }
+
+  .sidebar-subtitle {
+    display:none;
+  }
+
+  .sidebar-tools-main {
+    display: none;
+  }
+  
+  .sidebar-tools-collapse {
+    display: block;
+    padding-left: 1rem;
+  }
+  
 }
 
 header.headroom {
