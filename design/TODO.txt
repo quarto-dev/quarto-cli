@@ -21,10 +21,7 @@ Books
 
 - discuss part behavior and matching LaTeX part behavior
 
-- don't like 'references' and 'appendix' (appendices)
-
-- 'appendix' -> 'appendices'
-- 'contents' -> 'chapters'
+- why does book-authoring suddenly have quarto layout css?
 
 - references will go in the id='refs' div (just like pandoc)
 - will will generate that (unnumbered) as part of the scaffold
