@@ -141,6 +141,7 @@ export const kPdfEngineOpt = "pdf-engine-opt";
 export const kListings = "listings";
 export const kNumberSections = "number-sections";
 export const kNumberOffset = "number-offset";
+export const kNumberDepth = "number-depth";
 export const kTopLevelDivision = "top-level-division";
 export const kLogFile = "log-file";
 export const kHighlightStyle = "highlight-style";

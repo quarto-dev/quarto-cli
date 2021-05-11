@@ -5,11 +5,11 @@ book:
   title: "<%= title %>"
   author: "Jane Doe"
   date: "<%= new Date().toLocaleDateString() %>"
-  contents:
+  chapters:
     - index<%= ext %>
     - intro<%= ext %>
     - summary<%= ext %>
-  references: references<%= ext %>
+    - references<%= ext %>
 
 bibliography: references.bib
 

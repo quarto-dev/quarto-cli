@@ -28,8 +28,6 @@ Books
 
 - todo: always show left margin for code (but not computational output
 
-- Part 1 double-down in LaTeX
-
 - docs on using sidebar options directly
 
 - output-file is printed as full path for --to docx
@@ -60,9 +58,6 @@ environments use the plain style. The style definition is done through the \theo
 - finish porting the hopr:
     - convert 'solution' environments once we have that
     - update 'exercise' environments to use embedded header
-
-
-- When sidebar collapses, consider removing title and placing tools to right of search box
 
 
 Markdown Serialization

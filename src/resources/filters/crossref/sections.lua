@@ -44,7 +44,7 @@ function sections()
       end
       
       -- number the section if required
-      if (numberSections()) then
+      if (numberSections() and level <= numberDepth() + 1) then
         local section = sectionNumber(crossref.index.section, level)
         el.attr.attributes["number"] = section
         el.content:insert(1, pandoc.Space())
@@ -79,6 +79,10 @@ function numberSections()
 end
 
 function formatRequiresSectionNumber()
-  return isEpubOutput() or (not isLatexOutput() and not isHtmlOutput())
+  return not isLatexOutput()
+end
+
+function numberDepth() 
+  return param("number-depth", 6)
 end
 

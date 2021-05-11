@@ -10,7 +10,7 @@ import { stringify } from "encoding/yaml.ts";
 
 import { mergeConfigs } from "../../core/config.ts";
 
-import { FormatPandoc } from "../../config/format.ts";
+import { FormatPandoc, isLatexOutput } from "../../config/format.ts";
 
 import {
   kFilters,
@@ -18,6 +18,7 @@ import {
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
+  kNumberDepth,
   kOutputFile,
   kSelfContained,
   kStandalone,
@@ -57,6 +58,15 @@ export function generateDefaults(
     );
     if (resolvedFilters) {
       allDefaults[kFilters] = resolvedFilters;
+    }
+
+    // If we're rendering Latex, forward the number-depth to pandoc (it handles numbering)
+    if (isLatexOutput(options.format.pandoc)) {
+      if (options.format.metadata[kNumberDepth]) {
+        allDefaults.variables = allDefaults.variables || {};
+        allDefaults.variables["secnumdepth"] =
+          options.format.metadata[kNumberDepth];
+      }
     }
 
     return Promise.resolve(allDefaults);

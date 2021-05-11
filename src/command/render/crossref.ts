@@ -7,6 +7,7 @@
 import { resourcePath } from "../../core/resources.ts";
 import {
   kListings,
+  kNumberDepth,
   kNumberOffset,
   kNumberSections,
   kTopLevelDivision,
@@ -56,6 +57,7 @@ export function crossrefGeneratedDefaults(options: PandocOptions) {
 export function crossrefFilterParams(
   flags?: PandocFlags,
   defaults?: FormatPandoc,
+  metadata?: Metadata,
 ) {
   const kCrossrefFilterParams = [kListings, kNumberSections, kNumberOffset];
   const params: Metadata = {};
@@ -76,6 +78,9 @@ export function crossrefFilterParams(
       params[option] = value;
     }
   });
+
+  // Read the number depth
+  params[kNumberDepth] = metadata?.[kNumberDepth];
   return params;
 }
 

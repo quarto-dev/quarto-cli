@@ -80,7 +80,7 @@ export const bookProjectType: ProjectType = {
         },
         {
           name: "references",
-          content: "# References {.unnumbered}",
+          content: "# References {.unnumbered}\n\n:::{#refs}\n:::\n",
         },
       ],
 
