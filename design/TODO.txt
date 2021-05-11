@@ -19,12 +19,6 @@ TODO: downlit integration
 Books
 =========================================================================
 
-- Part 1 double-down in LaTeX
-- discuss part behavior and matching LaTeX part behavior
-
-- references will go in the id='refs' div (just like pandoc)
-- will will generate that (unnumbered) as part of the scaffold
-
 - todo: always show left margin for code (but not computational output
 
 - docs on using sidebar options directly
