@@ -86,7 +86,6 @@ export interface Sidebar {
 export interface SidebarItem {
   // core structure/contents
   section?: string;
-  part?: string;
   text?: string;
   contents?: SidebarItem[];
 
@@ -134,9 +133,9 @@ export function normalizeSidebarItem(
     // resolve aliases for href
     resolveHrefAttribute(item);
 
-    // section and part are special keys that can provide either text or href
+    // section is a special key that can provide either text or href
     // for an item with 'contents'
-    const section = item.section || item.part;
+    const section = item.section;
     if (section) {
       if (safeExistsSync(join(projectDir, section))) {
         item.href = section;
@@ -144,7 +143,6 @@ export function normalizeSidebarItem(
         item.text = section;
       }
       delete item.section;
-      delete item.part;
     }
 
     // handle subitems

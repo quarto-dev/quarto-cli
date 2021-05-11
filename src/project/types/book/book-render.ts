@@ -55,6 +55,8 @@ import {
   bookOutputStem,
   BookRenderItem,
   isBookIndexPage,
+  kBookItemAppendix,
+  kBookItemPart,
 } from "./book-config.ts";
 
 import { chapterInfoForInput, withChapterMetadata } from "./book-chapters.ts";
@@ -270,14 +272,16 @@ async function mergeExecutedFiles(
           );
         }
         // if there is no file then this must be a part
-      } else if (item.type === "part" || item.type === "appendix") {
+      } else if (
+        item.type === kBookItemPart || item.type === kBookItemAppendix
+      ) {
         itemMarkdown = bookPartMarkdown(project, item);
       }
 
       // if this is part divider, then surround it in a special div so we
       // can discard it in formats that don't support parts
       if (
-        (item.type === "part" || item.type === "appendix") &&
+        (item.type === kBookItemPart || item.type === kBookItemAppendix) &&
         itemMarkdown.length > 0
       ) {
         itemMarkdown = `\n\n::: {.quarto-book-part}\n${itemMarkdown}\n:::\n\n`;

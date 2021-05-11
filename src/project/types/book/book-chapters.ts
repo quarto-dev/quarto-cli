@@ -17,7 +17,11 @@ import { Metadata } from "../../../config/metadata.ts";
 
 import { ProjectConfig, ProjectContext } from "../../project-context.ts";
 
-import { bookConfig, bookConfigRenderItems } from "./book-config.ts";
+import {
+  bookConfig,
+  bookConfigRenderItems,
+  kBookItemAppendix,
+} from "./book-config.ts";
 
 export function withChapterMetadata(
   format: Format,
@@ -84,7 +88,9 @@ export function chapterInfoForInput(
   chapterHref: string,
 ) {
   const renderItems = bookConfigRenderItems(project.config);
-  const appendixPos = renderItems.findIndex((item) => item.type === "appendix");
+  const appendixPos = renderItems.findIndex((item) =>
+    item.type === kBookItemAppendix
+  );
   const itemPos = renderItems.findIndex((item) => item.file === chapterHref);
   if (itemPos !== -1) {
     const appendix = appendixPos !== -1 && itemPos > appendixPos;

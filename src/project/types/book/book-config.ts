@@ -8,6 +8,8 @@
 import { existsSync } from "fs/mod.ts";
 import { basename, extname, join } from "path/mod.ts";
 
+import { ld } from "lodash/mod.ts";
+
 import { safeExistsSync } from "../../../core/path.ts";
 import { warnOnce } from "../../../core/log.ts";
 import { Metadata } from "../../../config/metadata.ts";
@@ -52,8 +54,8 @@ import { execProcess } from "../../../core/process.ts";
 const kAppendicesSectionLabel = "Appendices";
 
 export const kBook = "book";
-export const kBookContents = "contents";
-export const kBookAppendix = "appendix";
+export const kBookChapters = "chapters";
+export const kBookAppendix = "appendices";
 export const kBookReferences = "references";
 export const kBookRender = "render";
 export const kBookOutputFile = "output-file";
@@ -64,11 +66,16 @@ export const kBookTools = "tools";
 export const kBookSearch = "search";
 export const kBookAttribution = "attribution";
 
+export const kBookItemIndex = "index";
+export const kBookItemChapter = "chapter";
+export const kBookItemAppendix = "appendix";
+export const kBookItemPart = "part";
+
 export type BookConfigKey =
   | "output-file"
-  | "contents"
+  | "chapters"
   | "references"
-  | "appendix"
+  | "appendices"
   | "render"
   | "repo-actions"
   | "sharing"
@@ -120,10 +127,12 @@ export async function bookProjectConfig(
   site[kSiteSidebar] = site[kSiteSidebar] || {};
   const siteSidebar = site[kSiteSidebar] as Metadata;
   siteSidebar[kContents] = [];
-  const bookContents = bookConfig(kBookContents, config);
+  const bookContents = bookConfig(kBookChapters, config);
 
   if (Array.isArray(bookContents)) {
-    siteSidebar[kContents] = bookContents;
+    siteSidebar[kContents] = bookChaptersToSidebarItems(
+      bookContents as BookChapterItem[],
+    );
   }
   const bookReferences = bookConfig(kBookReferences, config);
   if (bookReferences) {
@@ -216,7 +225,7 @@ export function isBookIndexPage(target: BookRenderItem): boolean;
 export function isBookIndexPage(target: string): boolean;
 export function isBookIndexPage(target: string | BookRenderItem): boolean {
   if (typeof (target) !== "string") {
-    return target.type == "index";
+    return target.type == kBookItemIndex;
   } else {
     return target.startsWith("index.");
   }
@@ -249,7 +258,7 @@ export async function bookRenderItems(
     for (const item of items) {
       if (item.contents) {
         inputs.push({
-          type: "part",
+          type: kBookItemPart,
           file: item.href,
           text: item.text,
         });
@@ -260,13 +269,13 @@ export async function bookRenderItems(
           const engine = fileExecutionEngine(itemPath, true);
           if (engine) {
             // set index type if appropriate
-            const itemType = isBookIndexPage(item.href) ? "index" : type;
+            const itemType = isBookIndexPage(item.href) ? kBookItemIndex : type;
 
             // for chapters, check if we are numbered
             let number: number | undefined;
 
             if (
-              itemType === "chapter" &&
+              itemType === kBookItemChapter &&
               await inputIsNumbered(projectDir, item.href)
             ) {
               number = nextNumber++;
@@ -285,37 +294,36 @@ export async function bookRenderItems(
   };
 
   const findChapters = async (
-    key: "contents" | "appendix",
+    key: "chapters" | "appendices",
     delimiter?: BookRenderItem,
   ) => {
     nextNumber = 1;
     const bookInputs = bookConfig(key, config) as
-      | Array<unknown>
+      | Array<BookChapterItem>
       | undefined;
     if (bookInputs) {
       if (delimiter) {
         inputs.push(delimiter);
       }
       await findInputs(
-        "chapter",
-        bookInputs.map((item) =>
-          normalizeSidebarItem(projectDir, item as SidebarItem)
-        ),
+        kBookItemChapter,
+        bookChaptersToSidebarItems(bookInputs)
+          .map((item) => normalizeSidebarItem(projectDir, item)),
       );
     }
   };
 
-  await findChapters("contents");
+  await findChapters(kBookChapters);
 
   const references = bookConfig("references", config);
   if (references) {
-    await findInputs("chapter", [
+    await findInputs(kBookItemChapter, [
       normalizeSidebarItem(projectDir, references as SidebarItem),
     ]);
   }
 
   await findChapters(kBookAppendix, {
-    type: "appendix",
+    type: kBookItemAppendix,
     text: kAppendicesSectionLabel + " {.unnumbered}",
   });
 
@@ -345,6 +353,27 @@ const kDownloadableItems: Record<string, { name: string; icon: string }> = {
   "pdf": { name: "PDF", icon: "file-pdf" },
   "docx": { name: "Docx", icon: "file-word" },
 };
+
+interface BookChapterItem extends SidebarItem {
+  part?: string;
+  chapters?: BookChapterItem[];
+}
+
+function bookChaptersToSidebarItems(chapters: BookChapterItem[]) {
+  const chapterToItem = (chapter: BookChapterItem) => {
+    const item = ld.cloneDeep(chapter) as BookChapterItem;
+    if (item.part) {
+      item.section = item.part;
+      delete item.part;
+    }
+    if (item.chapters) {
+      item.contents = bookChaptersToSidebarItems(item.chapters);
+      delete item.chapters;
+    }
+    return item;
+  };
+  return chapters.map(chapterToItem);
+}
 
 function downloadTools(
   projectDir: string,
