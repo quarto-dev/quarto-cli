@@ -21,16 +21,17 @@ Books
 
 - parts with links have extra padding
 
+- consider whether we should improve the visual appearance of 
+  callouts in epub / docx / pdf
+
 - todo: always show left margin for code (but not computational output
 
 - docs on using sidebar options directly
 
 - output-file is printed as full path for --to docx
 
-- consider whether we should improve the visual appearance of 
-  callouts in epub / docx / pdf
-
 - numbering when crossref: false
+
 
 - for proofs, etc. we need to also support putting the name as an initial heading
 
