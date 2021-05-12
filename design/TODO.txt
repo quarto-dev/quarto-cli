@@ -28,6 +28,9 @@ Books
   -> figure captions (more muted font, perhaps size)
 
 
+callouts:
+latex = TODO: Add support for icon = false
+
 - numbering when crossref: false
   commit: https://github.com/quarto-dev/quarto-cli/commit/980977910f6560a7d1607e41878f171f688e9e65
   note that pandoc will still provide numbers even when there is no level 1 header
