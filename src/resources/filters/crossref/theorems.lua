@@ -3,7 +3,7 @@
 
 function theorems()
 
-  local types = theoremTypes()
+  local types = theoremTypes
 
   return {
     Div = function(el)
@@ -21,8 +21,10 @@ function theorems()
         -- capture then remove name
         local name = markdownToInlines(el.attr.attributes["name"])
         if not name then
-          
-          name = stringToInlines("Unnamed")
+          name = resolveHeadingCaption(el)
+          if not name then
+            name = stringToInlines("Unnamed")
+          end
         end
         el.attr.attributes["name"] = nil 
         
@@ -78,57 +80,12 @@ function theorems()
 
 end
 
--- available theorem types
-function theoremTypes()
-  return pandoc.List({
-    thm = {
-      env = "theorem",
-      style = "plain",
-      title = "Theorem"
-    },
-    lem = {
-      env = "lemma",
-      style = "plain",
-      title = "Lemma"
-    },
-    cor = {
-      env = "corollary",
-      style = "plain",
-      title = "Corollary",
-    },
-    prp = {
-      env = "proposition",
-      style = "plain",
-      title = "Proposition",
-    },
-    cnj = {
-      env = "conjecture",
-      style = "plain",
-      title = "Conjecture"
-    },
-    def = {
-      env = "definition",
-      style = "definition",
-      title = "Definition",
-    },
-    exm = {
-      env = "example",
-      style = "definition",
-      title = "Example",
-    },
-    exr  = {
-      env = "exercise",
-      style = "definition",
-      title = "Exercise"
-    }
-  })
-end
 
 -- theorem latex includes
 function theoremLatexIncludes()
   
   -- determine which theorem types we are using
-  local types = theoremTypes()
+  local types = theoremTypes
   local refs = tkeys(crossref.index.entries)
   local usingTheorems = false
   for k,v in pairs(crossref.index.entries) do
