@@ -39,7 +39,7 @@ end
 function calloutDiv(div)
 
 -- the first heading is the caption
-local caption = resolveCaption(div)
+local caption = resolveHeadingCaption(div)
 
 local icon = div.attr.attributes["icon"]
 div.attr.attributes["icon"] = nil
@@ -75,7 +75,7 @@ if caption ~= nil then
 
   -- create the header to contain the caption
   -- caption should expand to fill its space
-  local captionDiv = pandoc.Div(pandoc.Plain(caption.content), pandoc.Attr("", {"flex-fill"}))
+  local captionDiv = pandoc.Div(pandoc.Plain(caption), pandoc.Attr("", {"flex-fill"}))
   local headerDiv = pandoc.Div({imgDiv, captionDiv}, pandoc.Attr("", {"callout-header", "d-flex", "align-content-center"}))
   local bodyDiv = div
   bodyDiv.attr.classes:insert("callout-body")
@@ -137,7 +137,7 @@ end
 function calloutLatex(div)
   
   -- read and clear attributes
-  local caption = resolveCaption(div)
+  local caption = resolveHeadingCaption(div)
   local type = calloutType(div)
 
   div.attr.attributes["caption"] = nil
@@ -148,7 +148,7 @@ function calloutLatex(div)
     
   -- Add the captions and contents
   if caption ~= nil then 
-    calloutContents:insert(pandoc.Para(stringToInlines(caption)))
+    calloutContents:insert(pandoc.Para(caption))
   end
   tappend(calloutContents, div.content)
 
@@ -170,7 +170,7 @@ function calloutLatex(div)
 end
 
 function simpleCallout(div) 
-  local caption = resolveCaption(div)
+  local caption = resolveHeadingCaption(div)
   local type = calloutType(div)
 
   div.attr.attributes["caption"] = nil
@@ -181,25 +181,13 @@ function simpleCallout(div)
     
   -- Add the captions and contents
   if caption == nil then 
-    caption = type:sub(1,1):upper()..type:sub(2)
+    caption = stringToInlines(type:sub(1,1):upper()..type:sub(2))
   end
-  calloutContents:insert(pandoc.Para(pandoc.Strong(stringToInlines(caption))))
+  calloutContents:insert(pandoc.Para(pandoc.Strong(caption)))
   tappend(calloutContents, div.content)
 
   local callout = pandoc.BlockQuote(calloutContents)
   return pandoc.Div(callout)
-end
-
-function resolveCaption(div) 
-  -- the first heading is the caption
-  local capEl = div.content[1]
-  
-  if capEl ~= nil and capEl.t == 'Header' then
-    div.content:remove(1)
-    return capEl
-  else 
-    return nil
-  end
 end
 
 function colorForType(type) 

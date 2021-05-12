@@ -134,4 +134,14 @@ function nbspString()
   return pandoc.Str '\u{a0}'
 end
 
+-- the first heading in a div is sometimes the caption
+function resolveHeadingCaption(div) 
+  local capEl = div.content[1]
+  if capEl ~= nil and capEl.t == 'Header' then
+    div.content:remove(1)
+    return capEl.content
+  else 
+    return nil
+  end
+end
 
