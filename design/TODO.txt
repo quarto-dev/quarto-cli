@@ -30,9 +30,6 @@ Books
   note that pandoc will still provide numbers even when there is no level 1 header
   e.g. "0.1 This is a test document." however we don't (no numbers appear)
 
-
-- for proofs, etc. we need to also support putting the name as an initial heading
-
 - should we have additional framing around e.g. exercises
 
 - update the docs to use the new hopr screen shots (with parts)
@@ -49,7 +46,6 @@ environments use the plain style. The style definition is done through the \theo
 
 - finish porting the hopr:
     - convert 'solution' environments once we have that
-    - update 'exercise' environments to use embedded header
 
 
 Markdown Serialization
