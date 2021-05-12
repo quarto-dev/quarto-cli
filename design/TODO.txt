@@ -26,6 +26,9 @@ Books
 
 
 - numbering when crossref: false
+  commit: https://github.com/quarto-dev/quarto-cli/commit/980977910f6560a7d1607e41878f171f688e9e65
+  note that pandoc will still provide numbers even when there is no level 1 header
+  e.g. "0.1 This is a test document." however we don't (no numbers appear)
 
 
 - for proofs, etc. we need to also support putting the name as an initial heading
