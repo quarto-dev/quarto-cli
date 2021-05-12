@@ -73,6 +73,7 @@ import { cssImports, cssResources } from "../../core/css.ts";
 
 import { RenderResourceFiles } from "./render.ts";
 import { compileSass } from "./sass.ts";
+import { crossrefFilterActive } from "./crossref.ts";
 
 // options required to run pandoc
 export interface PandocOptions {
@@ -285,9 +286,10 @@ export async function runPandoc(
   );
 
   // remove selected args and defaults if we are handling some things on behalf of pandoc
-  // (e.g. handling section numbering for docx or epub)
+  // (e.g. handling section numbering). note that section numbering is handled by the
+  // crossref filter so we only do this if the user hasn't disabled the crossref filter
   let pandocArgs = args;
-  if (!isLatexOutput(options.format.pandoc)) {
+  if (!isLatexOutput(options.format.pandoc) && crossrefFilterActive(options)) {
     delete allDefaults[kNumberSections];
     delete allDefaults[kNumberOffset];
     const removeArgs = new Map<string, boolean>();
