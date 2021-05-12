@@ -24,11 +24,6 @@ Books
 - consider whether we should improve the visual appearance of 
   callouts in epub / docx / pdf
 
-- todo: always show left margin for code (but not computational output
-
-- docs on using sidebar options directly
-
-- output-file is printed as full path for --to docx
 
 - numbering when crossref: false
 
