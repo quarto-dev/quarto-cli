@@ -6,6 +6,35 @@ local calloutidx = 1
 function callout() 
   return {
   
+    -- Insert paragraphs between consecutive callouts or tables for docx
+    Blocks = function(blocks)
+      if isDocxOutput() then
+        local lastWasCalloutOrTable = false
+        local newBlocks = pandoc.List:new()
+        for i,el in pairs(blocks) do 
+          local isCalloutOrTable = el.t == "Table" or 
+                                   (el.t == "Div" and el.attr.classes:find_if(isDocxCallout)) or 
+                                   isFigureDiv(el) or 
+                                   (discoverFigure(el, true)) ~= nil
+          if isCalloutOrTable then
+            if lastWasCalloutOrTable then
+              newBlocks:insert(pandoc.Para(stringToInlines(" ")))
+            end
+            lastWasCalloutOrTable = true
+          else
+            lastWasCalloutOrTable = false
+          end
+          newBlocks:insert(el)
+        end
+
+        if #newBlocks > #blocks then
+          return newBlocks
+        else
+          return nil
+        end
+      end
+    end,
+
     -- Convert callout Divs into the appropriate element for this format
     Div = function(div)
       if div.attr.classes:find_if(isCallout) then
@@ -26,6 +55,10 @@ end
 
 function isCallout(class)
   return class:match("^callout%-")
+end
+
+function isDocxCallout(class)
+  return class == "docx-callout"
 end
 
 function calloutType(div)
@@ -213,20 +246,6 @@ function calloutDocx(div)
   local suffix = pandoc.List:new({pandoc.RawBlock("openxml", [[
     </w:tc>
     </w:tr>
-      <w:tr>
-        <w:trPr>
-          <w:trHeight w:hRule="exact" w:val="72" />
-        </w:trPr>
-        <w:tc>
-          <w:tcPr>
-            <w:tcBorders>
-              <w:left w:val="nil" />
-            </w:tcBorders>
-          </w:tcPr>
-          <w:p>
-          </w:p>
-        </w:tc>
-      </w:tr>    
   </w:tbl>
   ]])})
 
@@ -239,7 +258,7 @@ function calloutDocx(div)
   tappend(calloutContents, contents)
   tappend(calloutContents, suffix)
 
-  local callout = pandoc.Div(calloutContents)
+  local callout = pandoc.Div(calloutContents, pandoc.Attr("", {"docx-callout"}))
   return callout
 end
 
