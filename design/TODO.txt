@@ -22,7 +22,13 @@ Books
 - parts with links have extra padding
 
 - consider whether we should improve the visual appearance of 
-  callouts in epub / docx / pdf
+  callouts in epub / docx
+  -> attach CSS, markup html (e.g. callouts), simple structural CSS
+  -> fix callouts (icon, layout fine tuning using css)
+  -> figure captions (more muted font, perhaps size)
+
+docx:
+  - try sticking additional paragraph properties
 
 
 - numbering when crossref: false
@@ -475,7 +481,7 @@ Take a look at Pluto (Julia)
     - quarto publishing workflow (preview, etc.)
 
 
-<< write tests >>
+- write tests
 
 https://github.com/microsoft/vscode-jupyter
 https://devblogs.microsoft.com/python/introducing-the-jupyter-extension-for-vs-code/

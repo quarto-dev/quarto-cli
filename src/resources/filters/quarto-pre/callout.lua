@@ -14,6 +14,8 @@ function callout()
           return calloutDiv(div) 
         elseif isLatexOutput() then
           return calloutLatex(div)
+        elseif isDocxOutput() then
+          return calloutDocx(div)
         else
           return simpleCallout(div)
         end
@@ -153,10 +155,11 @@ function calloutLatex(div)
   tappend(calloutContents, div.content)
 
   -- Add the environment info, using inlines if possible 
-  local color = colorForType(type)
+  local color = latexColorForType(type)
   local icon = iconForType(type)
   local separatorWidth = '1pt'
   
+  -- TODO: Add support for icon = false
   local beginEnvironment = pandoc.RawInline('latex', '\\begin{awesomeblock}[' .. color .. ']{' .. separatorWidth .. '}{\\' .. icon .. '}{' .. color ..'}\n')
   local endEnvironment = pandoc.RawInline('latex', '\n\\end{awesomeblock}')
   if calloutContents[1].t == "Para" and calloutContents[#calloutContents].t == "Para" then
@@ -169,7 +172,78 @@ function calloutLatex(div)
   return pandoc.Div(calloutContents)
 end
 
-function simpleCallout(div) 
+-- TODO: Additional column to hold image (center image in column)
+-- TODO: Break up admonitions that appear sequentially
+function calloutDocx(div) 
+
+  local type, contents = resolveCalloutContents(div, false)
+  local color = htmlColorForType(type)
+
+  local tablePrefix = [[
+    <w:tbl>
+    <w:tblPr>
+      <w:tblStyle w:val="Table" />
+      <w:tblLook w:firstRow="0" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noHBand="0" w:noVBand="0" w:val="0000" />
+      <w:tblBorders>  
+        <w:left w:val="single" w:sz="24" w:space="0" w:color="$color"/>  
+      </w:tblBorders> 
+      <w:tblCellMar>
+        <w:left w:w="0" w:type="dxa" />
+        <w:right w:w="0" w:type="dxa" />
+      </w:tblCellMar>
+
+    </w:tblPr>
+    <w:tr>
+      <w:tc>
+        <w:tcPr>
+          <w:tcW w:w="420" w:type="dxa" />
+        </w:tcPr>
+  ]]
+
+  local imagePara = pandoc.Para({
+    pandoc.RawInline("openxml", '<w:pPr>\n<w:spacing w:before="0" w:after="0" />\n<w:jc w:val="center" />\n</w:pPr>'),
+    docxCalloutImage(type)})
+  
+  local prefix = pandoc.List:new({
+    pandoc.RawBlock("openxml", tablePrefix:gsub('$color', color)),
+    imagePara,
+    pandoc.RawBlock("openxml",  "</w:tc>\n<w:tc>")
+  })
+
+  local suffix = pandoc.List:new({pandoc.RawBlock("openxml", [[
+    </w:tc>
+    </w:tr>
+      <w:tr>
+        <w:trPr>
+          <w:trHeight w:hRule="exact" w:val="72" />
+        </w:trPr>
+        <w:tc>
+          <w:tcPr>
+            <w:tcBorders>
+              <w:left w:val="nil" />
+            </w:tcBorders>
+          </w:tcPr>
+          <w:p>
+          </w:p>
+        </w:tc>
+      </w:tr>    
+  </w:tbl>
+  ]])})
+
+  local calloutContents = pandoc.List:new({});
+  tappend(calloutContents, prefix)
+  
+  -- convert to open xml paragraph
+  removeParagraphPadding(contents)
+  
+  tappend(calloutContents, contents)
+  tappend(calloutContents, suffix)
+
+  local callout = pandoc.Div(calloutContents)
+  return callout
+end
+
+function resolveCalloutContents(div, requireCaption)
   local caption = resolveHeadingCaption(div)
   local type = calloutType(div)
 
@@ -177,20 +251,83 @@ function simpleCallout(div)
   div.attr.attributes["icon"] = nil
   div.attr.attributes["collapse"] = nil
 
-  local calloutContents = pandoc.List:new({});
+  local contents = pandoc.List:new({});
     
   -- Add the captions and contents
-  if caption == nil then 
+  -- classname 
+  if caption == nil and requireCaption then 
     caption = stringToInlines(type:sub(1,1):upper()..type:sub(2))
   end
-  calloutContents:insert(pandoc.Para(pandoc.Strong(caption)))
-  tappend(calloutContents, div.content)
+  
+  -- raw paragraph with styles (left border, colored)
+  if caption ~= nil then
+    contents:insert(pandoc.Para(pandoc.Strong(caption),  pandoc.Attr("", {'callout-caption'})))
+  end
+  tappend(contents, div.content)
 
-  local callout = pandoc.BlockQuote(calloutContents)
+  return type, contents
+end
+
+function simpleCallout(div) 
+  local type, contents = resolveCalloutContents(div, true)
+  local callout = pandoc.BlockQuote(contents,  pandoc.Attr("", {'callout', 'callout-' .. type}))
   return pandoc.Div(callout)
 end
 
-function colorForType(type) 
+function removeParagraphPadding(contents) 
+  if #contents > 0 then
+
+    if #contents == 1 then
+      if contents[1].t == "Para" then
+        contents[1] = openXmlPara(contents[1], 'w:before="0" w:after="0"')
+      end  
+    else
+      if contents[1].t == "Para" then 
+        contents[1] = openXmlPara(contents[1], 'w:before="0"')
+      end
+
+      if contents[#contents].t == "Para" then 
+        contents[#contents] = openXmlPara(contents[#contents], 'w:after="0"')
+      end
+    end
+  end
+end
+
+function openXmlPara(para, spacing) 
+  local xmlPara = pandoc.Para({
+    pandoc.RawInline("openxml", "<w:pPr>\n<w:spacing " .. spacing .. "/>\n</w:pPr>")
+  })
+  tappend(xmlPara.content, para.content)
+  return xmlPara
+end
+
+
+function docxCalloutImage(type)
+  local note = param("icon-note")
+  local svg = param("icon-" .. type, note)
+  local img = pandoc.Image({}, svg)
+  img.attr.attributes["width"] = 16
+  img.attr.attributes["height"] = 16
+  return img
+end
+
+function htmlColorForType(type) 
+  if type == 'note' then
+    return kColorNote
+  elseif type == "warning" then
+    return kColorWarning
+  elseif type == "important" then
+    return kColorImportant
+  elseif type == "caution" then
+    return kColorDanger
+  elseif type == "tip" then 
+    return kColorTip
+  else
+    return kColorUnknown
+  end
+end
+
+function latexColorForType(type) 
   if type == 'note' then
     return "quarto-callout-note-color"
   elseif type == "warning" then
