@@ -21,12 +21,19 @@ Books
 
 - todo: always show left margin for code (but not computational output
 
+
 - docs on using sidebar options directly
 
 - output-file is printed as full path for --to docx
 
 - consider whether we should improve the visual appearance of 
-  callouts in epub / docx / pdf
+  callouts in epub / docx
+  -> attach CSS, markup html (e.g. callouts), simple structural CSS
+  -> fix callouts (icon, layout fine tuning using css)
+  -> figure captions (more muted font, perhaps size)
+
+docx:
+  - try sticking additional paragraph properties
 
 - for proofs, etc. we need to also support putting the name as an initial heading
 
