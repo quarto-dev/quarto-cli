@@ -30,6 +30,9 @@ Books
 docx:
   - try sticking additional paragraph properties
 
+callouts:
+latex = TODO: Add support for icon = false
+
 
 - numbering when crossref: false
   commit: https://github.com/quarto-dev/quarto-cli/commit/980977910f6560a7d1607e41878f171f688e9e65
