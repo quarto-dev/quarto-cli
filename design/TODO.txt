@@ -27,9 +27,6 @@ Books
   -> fix callouts (icon, layout fine tuning using css)
   -> figure captions (more muted font, perhaps size)
 
-docx:
-  - try sticking additional paragraph properties
-
 
 - numbering when crossref: false
   commit: https://github.com/quarto-dev/quarto-cli/commit/980977910f6560a7d1607e41878f171f688e9e65
