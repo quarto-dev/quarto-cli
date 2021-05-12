@@ -192,7 +192,6 @@ function calloutLatex(div)
   local icon = iconForType(type)
   local separatorWidth = '1pt'
   
-  -- TODO: Add support for icon = false
   local beginEnvironment = pandoc.RawInline('latex', '\\begin{awesomeblock}[' .. color .. ']{' .. separatorWidth .. '}{\\' .. icon .. '}{' .. color ..'}\n')
   local endEnvironment = pandoc.RawInline('latex', '\n\\end{awesomeblock}')
   if calloutContents[1].t == "Para" and calloutContents[#calloutContents].t == "Para" then
@@ -205,8 +204,6 @@ function calloutLatex(div)
   return pandoc.Div(calloutContents)
 end
 
--- TODO: Additional column to hold image (center image in column)
--- TODO: Break up admonitions that appear sequentially
 function calloutDocx(div) 
 
   local type, contents = resolveCalloutContents(div, false)
@@ -224,12 +221,18 @@ function calloutDocx(div)
         <w:left w:w="0" w:type="dxa" />
         <w:right w:w="0" w:type="dxa" />
       </w:tblCellMar>
-
+      <w:tblInd w:w="164" w:type="dxa" />
     </w:tblPr>
     <w:tr>
+      <w:trPr>
+        <w:cantSplit/>
+      </w:trPr>
       <w:tc>
         <w:tcPr>
-          <w:tcW w:w="420" w:type="dxa" />
+          <w:tcMar>
+            <w:left w:w="144" w:type="dxa" />
+            <w:right w:w="144" w:type="dxa" />
+          </w:tcMar>
         </w:tcPr>
   ]]
 
