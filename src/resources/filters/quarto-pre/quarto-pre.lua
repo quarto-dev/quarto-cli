@@ -26,6 +26,7 @@ end
 import("includes.lua")
 import("outputs.lua")
 import("figures.lua")
+import("theorems.lua")
 import("resourcerefs.lua")
 import("book-numbering.lua")
 import("meta.lua")
@@ -42,6 +43,7 @@ import("../common/filemetadata.lua")
 import("../common/layout.lua")
 import("../common/refs.lua")
 import("../common/figures.lua")
+import("../common/theorems.lua")
 import("../common/debug.lua")
 -- [/import]
 
@@ -55,6 +57,7 @@ return {
     bookNumbering(),
     resourceRefs(),
     figures(),
+    theorems(),
     callout(),
     tabset()
   }),

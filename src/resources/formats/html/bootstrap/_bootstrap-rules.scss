@@ -53,7 +53,7 @@ $code-background-color: color.adjust(
   $code-background-color: $code-background;
 }
 
-pre.sourceCode {
+pre > code {
   // Apply border, if specified
   @if $code-border-left {
     border-left: $code-border-left-size;
@@ -73,13 +73,15 @@ pre.sourceCode {
   }
 }
 
-// no border inside callouts
-.callout pre.sourceCode {
+// no border for cell output or inside callouts
+.cell-output-stdout pre > code,
+.cell-output-stderr pre > code,
+.callout pre > code {
   border: none;
   padding-left: 0;
 }
 
-pre.sourceCode {
+pre > code {
   overflow: visible !important;
 }
 

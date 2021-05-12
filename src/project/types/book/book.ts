@@ -80,11 +80,12 @@ export const bookProjectType: ProjectType = {
         },
         {
           name: "references",
-          content: "# References {.unnumbered}\n\n:::{#refs}\n:::\n",
+          content: "# References {.unnumbered}\n\n::: {#refs}\n:::\n",
         },
       ],
 
       supporting: [
+        "cover.png",
         "references.bib",
       ],
     };
@@ -187,13 +188,13 @@ export const bookProjectType: ProjectType = {
       // merge
       extras = mergeConfigs(extras, websiteExtras);
 
-      // documentclass book for latex output
+      // documentclass report for latex output
     } else if (isLatexOutput(format.pandoc)) {
       extras = mergeConfigs(
         extras,
         {
           metadata: {
-            [kDocumentClass]: "book",
+            [kDocumentClass]: "report",
           },
         },
       );

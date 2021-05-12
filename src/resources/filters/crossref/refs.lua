@@ -124,7 +124,7 @@ end
 
 
 function validRefTypes()
-  local types = tkeys(theoremTypes())
+  local types = tkeys(theoremTypes)
   table.insert(types, "fig")
   table.insert(types, "tbl")
   table.insert(types, "eq")

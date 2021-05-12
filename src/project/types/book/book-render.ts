@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, isAbsolute, join, relative } from "path/mod.ts";
 
 import { encode as base64Encode } from "encoding/base64.ts";
 
@@ -234,7 +234,7 @@ async function mergeExecutedFiles(
   options: RenderOptions,
   files: ExecutedFile[],
 ): Promise<ExecutedFile> {
-  // base context on the first file
+  // base context on the first file (which has to be index.md in the root)
   const context = ld.cloneDeep(files[0].context) as RenderContext;
 
   // use global render options
@@ -248,6 +248,12 @@ async function mergeExecutedFiles(
 
   // create output recipe (tweak output file)
   const recipe = await outputRecipe(context);
+
+  // make output relative to the project dir (where the command will be run)
+  if (isAbsolute(recipe.output)) {
+    recipe.output = relative(project.dir, recipe.output);
+    recipe.format.pandoc[kOutputFile] = recipe.output;
+  }
 
   const renderItems = bookConfigRenderItems(project.config);
 

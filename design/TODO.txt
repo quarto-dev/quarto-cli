@@ -19,12 +19,7 @@ TODO: downlit integration
 Books
 =========================================================================
 
-- todo: always show left margin for code (but not computational output
-
-
-- docs on using sidebar options directly
-
-- output-file is printed as full path for --to docx
+- parts with links have extra padding
 
 - consider whether we should improve the visual appearance of 
   callouts in epub / docx
@@ -35,9 +30,15 @@ Books
 docx:
   - try sticking additional paragraph properties
 
-- for proofs, etc. we need to also support putting the name as an initial heading
+
+- numbering when crossref: false
+  commit: https://github.com/quarto-dev/quarto-cli/commit/980977910f6560a7d1607e41878f171f688e9e65
+  note that pandoc will still provide numbers even when there is no level 1 header
+  e.g. "0.1 This is a test document." however we don't (no numbers appear)
 
 - should we have additional framing around e.g. exercises
+
+- update the docs to use the new hopr screen shots (with parts)
 
 The proof environments currently supported are proof, remark, and solution. The syntax is similar to theorem environments,
 and proof environments can also be named. The only difference is that since they are unnumbered, you cannot reference them.
@@ -51,7 +52,6 @@ environments use the plain style. The style definition is done through the \theo
 
 - finish porting the hopr:
     - convert 'solution' environments once we have that
-    - update 'exercise' environments to use embedded header
 
 
 Markdown Serialization
@@ -479,7 +479,7 @@ Take a look at Pluto (Julia)
     - quarto publishing workflow (preview, etc.)
 
 
-<< write tests >>
+- write tests
 
 https://github.com/microsoft/vscode-jupyter
 https://devblogs.microsoft.com/python/introducing-the-jupyter-extension-for-vs-code/

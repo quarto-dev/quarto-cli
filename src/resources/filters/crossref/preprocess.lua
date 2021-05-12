@@ -1,4 +1,4 @@
--- subrefs.lua
+-- preprocess.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- figures and tables support sub-references. mark them up before
