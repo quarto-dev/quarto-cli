@@ -223,29 +223,32 @@ caption {
 
 .callout.callout-captioned .callout-body {
   margin-top: 0.5em;
+  margin-left: 1.6rem;
 }
+
 
 .callout.callout-captioned .callout-header {
   padding-top: 0.2em;
   margin-bottom: -0.2em;
 }
 
-div[class^="callout-"] > div.callout-header {
+.callout > div.callout-header {
   border-bottom: none;
   font-weight: 500;
   font-size: 1.1rem;
 }
 
-div[class^="callout-"] > div.callout-header[data-bs-toggle="collapse"] {
+.callout > div.callout-header[data-bs-toggle="collapse"] {
   cursor: pointer;
 }
 
-div[class^="callout-"] .callout-body > :last-child,
-div[class^="callout-"] .callout-body > div > :last-child {
+.callout .callout-body > :last-child,
+.callout .callout-body > div > :last-child {
   margin-bottom: 0;
 }
 
-div[class^="callout-"] .callout-toggle::before {
+.callout .callout-icon::before,
+.callout .callout-toggle::before {
   height: 1rem;
   width: 1rem;
   display: inline-block;
@@ -254,28 +257,28 @@ div[class^="callout-"] .callout-toggle::before {
   background-size: 1rem 1rem;
 }
 
-div[class^="callout-"] .callout-btn-toggle .callout-toggle::before {
+.callout .callout-btn-toggle .callout-toggle::before {
   transition: transform 0.2s linear;
 }
 
-div[class^="callout-"]
+.callout
   .callout-header[aria-expanded="false"]
   .callout-toggle::before {
   transform: rotate(-90deg);
 }
 
-div[class^="callout-"]
+.callout
   .callout-header[aria-expanded="true"]
   .callout-toggle::before {
   transform: none;
 }
 
-div[class^="callout-"] div.callout-icon-container {
+.callout div.callout-icon-container {
   padding-top: 0.2em;
   padding-right: 0.55em;
 }
 
-div[class^="callout-"] .no-icon {
+.callout .no-icon {
   display: none;
 }
 
