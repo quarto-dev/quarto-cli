@@ -35,8 +35,6 @@ latex = TODO: Add support for icon = false
 
 - should we have additional framing around e.g. exercises
 
-- make appendix label and appendix separator customizable
-
 - hopr: convert exercises into new syntax
 
 - numbering when crossref: false

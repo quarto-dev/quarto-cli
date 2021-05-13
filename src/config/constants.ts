@@ -77,6 +77,7 @@ export const kPageWidth = "page-width";
 export const kFigAlign = "fig-align";
 export const kCodeFold = "code-fold";
 export const kCodeSummary = "code-summary";
+export const kCodeLink = "code-link";
 export const kPreferHtml = "prefer-html";
 
 export const kLatexAutoMk = "latex-auto-mk";
@@ -104,6 +105,7 @@ export const kRenderDefaultsKeys = [
   kPageWidth,
   kFigAlign,
   kCodeFold,
+  kCodeLink,
   kCodeSummary,
   kLatexAutoMk,
   kLatexAutoInstall,
