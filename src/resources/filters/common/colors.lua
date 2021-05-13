@@ -1,7 +1,7 @@
 -- colors.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
-kColorUnknown = "20c997"
+kColorUnknown = "acacac"
 kColorNote = "4582ec"
 kColorImportant = "d9534f"
 kColorWarning = "f0ad4e"
