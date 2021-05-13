@@ -74,12 +74,7 @@ function currentSectionLevel()
 end
 
 function numberSections()
-  return (formatRequiresSectionNumber() and param("number-sections", false)) or
-          crossrefOption("chapters-alpha", false)
-end
-
-function formatRequiresSectionNumber()
-  return not isLatexOutput()
+  return not isLatexOutput() and param("number-sections", false)
 end
 
 function numberDepth() 
