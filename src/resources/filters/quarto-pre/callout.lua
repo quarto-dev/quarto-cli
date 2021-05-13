@@ -45,6 +45,8 @@ function callout()
           return calloutLatex(div)
         elseif isDocxOutput() then
           return calloutDocx(div)
+        elseif isEpubOutput() then
+          return epubCallout(div)
         else
           return simpleCallout(div)
         end
@@ -265,10 +267,37 @@ function calloutDocx(div)
   return callout
 end
 
-function resolveCalloutContents(div, requireCaption)
+function epubCallout(div)
+  -- read the caption and type info
   local caption = resolveHeadingCaption(div)
   local type = calloutType(div)
 
+  -- the body of the callout
+  local calloutBody = pandoc.Div({}, pandoc.Attr("", {"callout-body"}))
+
+  -- caption
+  if caption ~= nil then
+    local calloutCaption = pandoc.Div(pandoc.Para(pandoc.Strong(caption)), pandoc.Attr("", {"callout-caption"}))
+    calloutBody.content:insert(calloutCaption)
+  end
+
+  -- contents 
+  local calloutContents = pandoc.Div(div.content, pandoc.Attr("", {"callout-content"}))
+  calloutBody.content:insert(calloutContents)
+
+  return pandoc.Div({calloutBody}, pandoc.Attr("", {"callout", "callout-" .. type}))
+end
+
+function simpleCallout(div) 
+  local type, contents = resolveCalloutContents(div, true)
+  local callout = pandoc.BlockQuote(contents,  pandoc.Attr("", {'callout', 'callout-' .. type}))
+  return pandoc.Div(callout)
+end
+
+function resolveCalloutContents(div, requireCaption)
+  local caption = resolveHeadingCaption(div)
+  local type = calloutType(div)
+  
   div.attr.attributes["caption"] = nil
   div.attr.attributes["icon"] = nil
   div.attr.attributes["collapse"] = nil
@@ -288,12 +317,6 @@ function resolveCalloutContents(div, requireCaption)
   tappend(contents, div.content)
 
   return type, contents
-end
-
-function simpleCallout(div) 
-  local type, contents = resolveCalloutContents(div, true)
-  local callout = pandoc.BlockQuote(contents,  pandoc.Attr("", {'callout', 'callout-' .. type}))
-  return pandoc.Div(callout)
 end
 
 function removeParagraphPadding(contents) 
