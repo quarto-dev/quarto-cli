@@ -51,10 +51,11 @@ function sections()
         local appendix = (level == 1) and currentFileMetadataState().appendix
         if appendix then
           el.content:insert(1, pandoc.Space())
-          el.content:insert(1, pandoc.Str("—"))
+          tprepend(el.content, crossrefOption("appendix-delim", stringToInlines(" —")))
+        else
+          el.content:insert(1, pandoc.Space())
         end
 
-        el.content:insert(1, pandoc.Space())
         el.content:insert(1, pandoc.Span(
           stringToInlines(section),
           pandoc.Attr("", { "header-section-number"})
@@ -62,7 +63,7 @@ function sections()
 
         if appendix then
           el.content:insert(1, pandoc.Space())
-          el.content:insert(1, pandoc.Str("Appendix"))
+          tprepend(el.content, crossrefOption("appendix-title", stringToInlines("Appendix")))
         end
 
       end
