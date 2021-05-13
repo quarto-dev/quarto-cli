@@ -54,7 +54,6 @@ export function withChapterMetadata(
     // set crossref label type if this is an appendix
     if (chapterInfo.appendix) {
       crossref[kCrossrefChaptersAlpha] = true;
-      format.pandoc[kNumberSections] = false;
     }
   } else {
     format.pandoc[kNumberSections] = false;
