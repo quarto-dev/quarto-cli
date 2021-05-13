@@ -35,10 +35,9 @@ latex = TODO: Add support for icon = false
 
 - should we have additional framing around e.g. exercises
 
-- 'Appendix' prefix?
+- make appendix label and appendix separator customizable
 
-- finish porting the hopr:
-    - convert 'exercise' and 'solution' environments 
+- hopr: convert exercises into new syntax
 
 - numbering when crossref: false
   commit: https://github.com/quarto-dev/quarto-cli/commit/980977910f6560a7d1607e41878f171f688e9e65
