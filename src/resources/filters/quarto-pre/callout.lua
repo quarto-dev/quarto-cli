@@ -108,10 +108,10 @@ function calloutDiv(div)
   -- the image placeholder
   local noicon = ""
   if icon == "false" or type == nil then
-    noicon = "no-icon"
+    noicon = " no-icon"
     calloutDiv.attr.classes:insert("no-icon")
   end
-  local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='callout-icon " .. noicon .. "'></i>")});       
+  local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='callout-icon" .. noicon .. "'></i>")});       
   local imgDiv = pandoc.Div({imgPlaceholder}, pandoc.Attr("", {"callout-icon-container"}));
 
   -- show a captioned callout
