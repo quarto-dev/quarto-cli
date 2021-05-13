@@ -20,7 +20,6 @@ import { binaryPath } from "../../../core/resources.ts";
 import { kBibliography, kCsl } from "../../../config/constants.ts";
 import { Metadata } from "../../../config/metadata.ts";
 
-import { normalizeSidebarItem, SidebarItem } from "../../project-config.ts";
 import {
   kProjectRender,
   ProjectContext,
@@ -28,7 +27,6 @@ import {
 } from "../../project-context.ts";
 import { inputTargetIndex, resolveInputTarget } from "../../project-index.ts";
 import { WebsiteProjectOutputFile } from "../website/website.ts";
-import { bookConfig, bookRenderItems, kBookReferences } from "./book-config.ts";
 import { bookMultiFileHtmlOutputs } from "./book-extension.ts";
 
 export async function bookBibliographyPostRender(
