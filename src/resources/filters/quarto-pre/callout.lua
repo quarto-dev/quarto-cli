@@ -176,9 +176,9 @@ function calloutLatex(div)
   -- read and clear attributes
   local caption = resolveHeadingCaption(div)
   local type = calloutType(div)
-
-  div.attr.attributes["caption"] = nil
+  local icon = div.attr.attributes["icon"]
   div.attr.attributes["icon"] = nil
+  div.attr.attributes["caption"] = nil
   div.attr.attributes["collapse"] = nil
 
   local calloutContents = pandoc.List:new({});
@@ -191,13 +191,21 @@ function calloutLatex(div)
 
   -- Add the environment info, using inlines if possible 
   local color = latexColorForType(type)
-  local icon = iconForType(type)
+  local leftMarginWidth = '0'
+  local iconForType = iconForType(type)
+  local iconName = ''
+  if icon ~= false and iconForType ~= nil then
+    iconName = '\\' .. iconForType
+    leftMarginWidth = '0.12'
+  end
   local separatorWidth = '1pt'
-  
-  local beginEnvironment = pandoc.RawInline('latex', '\\begin{awesomeblock}[' .. color .. ']{' .. separatorWidth .. '}{\\' .. icon .. '}{' .. color ..'}\n')
+
+  local leftMargin = pandoc.RawInline('latex', '\\setlength{\\aweboxleftmargin}{' .. leftMarginWidth .. '\\linewidth}');
+  local beginEnvironment = pandoc.RawInline('latex', '\\begin{awesomeblock}[' .. color .. ']{' .. separatorWidth .. '}{' .. iconName .. '}{' .. color ..'}\n')
   local endEnvironment = pandoc.RawInline('latex', '\n\\end{awesomeblock}')
   if calloutContents[1].t == "Para" and calloutContents[#calloutContents].t == "Para" then
     table.insert(calloutContents[1].content, 1, beginEnvironment)
+    table.insert(calloutContents[1].content, 1, leftMargin)
     table.insert(calloutContents[#calloutContents].content, endEnvironment)
   else
     table.insert(calloutContents, 1, pandoc.Para({beginEnvironment}))
@@ -400,6 +408,6 @@ function iconForType(type)
   elseif type == "tip" then 
     return "faLightbulb"
   else
-    return "faStickyNote"
+    return nil
   end
 end
