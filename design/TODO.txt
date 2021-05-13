@@ -19,7 +19,6 @@ TODO: downlit integration
 Books
 =========================================================================
 
-- parts with links have extra padding
 
 - consider whether we should improve the visual appearance of 
   callouts in epub / docx
@@ -27,26 +26,26 @@ Books
   -> fix callouts (icon, layout fine tuning using css)
   -> figure captions (more muted font, perhaps size)
 
-
 callouts:
 latex = TODO: Add support for icon = false
 
  - Plain .callout which would give a body color border and would imply 
  icon=false. Then we could just use that for exercises
 
-- numbering when crossref: false
-  commit: https://github.com/quarto-dev/quarto-cli/commit/980977910f6560a7d1607e41878f171f688e9e65
-  note that pandoc will still provide numbers even when there is no level 1 header
-  e.g. "0.1 This is a test document." however we don't (no numbers appear)
 
 - should we have additional framing around e.g. exercises
 
-- update the docs to use the new hopr screen shots (with parts)
-
-- 'Appendix' prefix
+- 'Appendix' prefix?
 
 - finish porting the hopr:
     - convert 'exercise' and 'solution' environments 
+
+- numbering when crossref: false
+  commit: https://github.com/quarto-dev/quarto-cli/commit/980977910f6560a7d1607e41878f171f688e9e65
+  commit: https://github.com/quarto-dev/quarto-cli/commit/90dbc658a9e79606ec593f2cdbf5084b74d67a63
+
+- parts with links have extra padding
+  commit: https://github.com/quarto-dev/quarto-cli/commit/3500cddf9570c56c9b128d77092f35772e3f34f5
 
 
 Markdown Serialization
