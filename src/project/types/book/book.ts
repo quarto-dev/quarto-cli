@@ -23,7 +23,6 @@ import {
   kDocumentClass,
   kNumberSections,
   kToc,
-  kTocTitle,
 } from "../../../config/constants.ts";
 import { disabledTableOfContents } from "../../../config/toc.ts";
 
@@ -68,7 +67,7 @@ export const bookProjectType: ProjectType = {
       scaffold: [
         {
           name: "index",
-          content: "## Preface",
+          content: "## Preface {.unnumbered} ",
         },
         {
           name: "intro",
@@ -183,9 +182,6 @@ export const bookProjectType: ProjectType = {
         flags,
         format,
       );
-
-      // use default toc title for books
-      delete websiteExtras[kTocTitle];
 
       // merge
       extras = mergeConfigs(extras, websiteExtras);

@@ -13,6 +13,7 @@ import {
   kNumberOffset,
   kNumberSections,
   kTitle,
+  kToc,
 } from "../../../config/constants.ts";
 import { Format } from "../../../config/format.ts";
 import { Metadata } from "../../../config/metadata.ts";
@@ -61,6 +62,8 @@ export function withChapterMetadata(
     format.pandoc[kNumberSections] = false;
   }
 
+  format.pandoc[kToc] = isListedChapter(partitioned);
+
   // never show doi in chapters
   delete format.metadata[kDoi];
 
@@ -76,6 +79,11 @@ export function withChapterMetadata(
 export function isNumberedChapter(partitioned: PartitionedMarkdown) {
   return !partitioned.headingAttr ||
     !partitioned.headingAttr.classes.includes("unnumbered");
+}
+
+export function isListedChapter(partitioned: PartitionedMarkdown) {
+  return !partitioned.headingAttr ||
+    !partitioned.headingAttr.classes.includes("unlisted");
 }
 
 export interface ChapterInfo {

@@ -8,7 +8,6 @@ function bookNumbering()
       if file ~= nil then
         local bookItemType = file.bookItemType
         if bookItemType ~= nil then
-
           -- if we are in an unnumbered chapter then add unnumbered class
           if bookItemType == "chapter" and file.bookItemNumber == nil then
             el.attr.classes:insert('unnumbered')
@@ -40,13 +39,9 @@ function bookNumbering()
             end
           end
 
-          -- index and part cover pages have unnumbered headings, part cover
-          -- pages also leave embedded headings unlisted
-          if (bookItemType == "index" or bookItemType == "part") then
+          -- part cover pages have unnumbered headings
+          if (bookItemType == "part") then
             el.attr.classes:insert("unnumbered")
-            if bookItemType == "part" then
-              el.attr.classes:insert("unlisted")
-            end
           end
 
           -- return potentially modified heading el

@@ -66,7 +66,6 @@ export const kBookTools = "tools";
 export const kBookSearch = "search";
 export const kBookAttribution = "attribution";
 
-export const kBookItemIndex = "index";
 export const kBookItemChapter = "chapter";
 export const kBookItemAppendix = "appendix";
 export const kBookItemPart = "part";
@@ -221,14 +220,8 @@ export function bookConfigRenderItems(
   ) as BookRenderItem[];
 }
 
-export function isBookIndexPage(target: BookRenderItem): boolean;
-export function isBookIndexPage(target: string): boolean;
-export function isBookIndexPage(target: string | BookRenderItem): boolean {
-  if (typeof (target) !== "string") {
-    return target.type == kBookItemIndex;
-  } else {
-    return target.startsWith("index.");
-  }
+export function isBookIndexPage(target?: string): boolean {
+  return target !== undefined && target.startsWith("index.");
 }
 
 export type BookRenderItemType = "index" | "chapter" | "appendix" | "part";
@@ -268,14 +261,11 @@ export async function bookRenderItems(
         if (safeExistsSync(itemPath)) {
           const engine = fileExecutionEngine(itemPath, true);
           if (engine) {
-            // set index type if appropriate
-            const itemType = isBookIndexPage(item.href) ? kBookItemIndex : type;
-
             // for chapters, check if we are numbered
             let number: number | undefined;
 
             if (
-              itemType === kBookItemChapter &&
+              type === kBookItemChapter &&
               await inputIsNumbered(projectDir, item.href)
             ) {
               number = nextNumber++;
@@ -283,7 +273,7 @@ export async function bookRenderItems(
 
             // add the input
             inputs.push({
-              type: itemType,
+              type,
               file: item.href,
               number,
             });
@@ -338,7 +328,7 @@ export async function bookRenderItems(
   }
 
   // find the index and place it at the front (error if no index)
-  const indexPos = inputs.findIndex(isBookIndexPage);
+  const indexPos = inputs.findIndex((input) => isBookIndexPage(input.file));
   if (indexPos === -1) {
     throw new Error(
       "Book contents must include a home page (e.g. index.md)",

@@ -59,7 +59,12 @@ import {
   kBookItemPart,
 } from "./book-config.ts";
 
-import { chapterInfoForInput, withChapterMetadata } from "./book-chapters.ts";
+import {
+  chapterInfoForInput,
+  isListedChapter,
+  isNumberedChapter,
+  withChapterMetadata,
+} from "./book-chapters.ts";
 import { bookCrossrefsPostRender } from "./book-crossrefs.ts";
 import { bookBibliographyPostRender } from "./book-bibliography.ts";
 
@@ -109,8 +114,12 @@ export function bookPandocRenderer(
             file.recipe.format,
             project.config,
           );
-          file.recipe.format.pandoc[kToc] = false;
-          file.recipe.format.pandoc[kNumberSections] = false;
+          if (!isNumberedChapter(partitioned)) {
+            file.recipe.format.pandoc[kNumberSections] = false;
+          }
+          if (!isListedChapter(partitioned)) {
+            file.recipe.format.pandoc[kToc] = false;
+          }
           // other files
         } else {
           // since this could be an incremental render we need to compute the chapter number
