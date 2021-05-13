@@ -12,6 +12,7 @@ import {
   kCache,
   kCodeFold,
   kCodeSummary,
+  kCss,
   kExecute,
   kFigAlign,
   kFigDpi,
@@ -53,6 +54,7 @@ import { htmlFormat } from "./html/format-html.ts";
 import { beamerFormat, latexFormat, pdfFormat } from "./pdf/format-pdf.ts";
 import { epubFormat } from "./epub/format-epub.ts";
 import { docxFormat } from "./docx/format-docx.ts";
+import { formatResourcePath } from "../core/resources.ts";
 
 export function defaultWriterFormat(to: string): Format {
   // to can sometimes have a variant, don't include that in the lookup here
@@ -233,6 +235,9 @@ export function createHtmlFormat(
 
 export function createEbookFormat(ext: string): Format {
   return createFormat(ext, {
+    pandoc: {
+      [kCss]: [formatResourcePath("epub", "styles.css")],
+    },
     execution: {
       [kFigWidth]: 5,
       [kFigHeight]: 4,
