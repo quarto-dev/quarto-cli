@@ -14,28 +14,12 @@ TODO: centralized _cache dir for projects (alongside _freeze)
 
 TODO: include-after as text ends up doubling-up
 
-TODO: downlit integration
-
 Books
 =========================================================================
 
+- MS word callout corruption bug (.callout)
 
-- consider whether we should improve the visual appearance of 
-  callouts in epub / docx
-  -> attach CSS, markup html (e.g. callouts), simple structural CSS
-  -> fix callouts (icon, layout fine tuning using css)
-  -> figure captions (more muted font, perhaps size)
-
-callouts:
-latex = TODO: Add support for icon = false
-
- - Plain .callout which would give a body color border and would imply 
- icon=false. Then we could just use that for exercises
-
-
-- should we have additional framing around e.g. exercises
-
-- hopr: convert exercises into new syntax
+- Discuss downlit highlight style
 
 - numbering when crossref: false
   commit: https://github.com/quarto-dev/quarto-cli/commit/980977910f6560a7d1607e41878f171f688e9e65
