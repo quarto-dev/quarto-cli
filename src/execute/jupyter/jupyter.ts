@@ -273,6 +273,8 @@ export const jupyterEngine: ExecutionEngine = {
       filters: [],
       dependencies,
       preserve: result.htmlPreserve,
+      postProcess: result.htmlPreserve &&
+        (Object.keys(result.htmlPreserve).length > 0),
     };
   },
 

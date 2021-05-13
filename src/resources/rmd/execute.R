@@ -103,6 +103,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params) {
   } else {
     preserve <- NA
   }
+  postProcess <- !is.na(preserve) || isTRUE(format$render$`code-link`)
 
   # read and then delete the rendered output file
   markdown <- xfun::read_utf8(output_file)
@@ -114,7 +115,8 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params) {
     supporting = I(supporting),
     filters = I("rmarkdown/pagebreak.lua"),
     dependencies = dependencies_data,
-    preserve = preserve
+    preserve = preserve,
+    postProcess = postProcess
   )
 }
 

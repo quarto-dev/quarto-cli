@@ -71,6 +71,7 @@ export interface ExecuteResult {
     data: PandocIncludes | Array<unknown>;
   };
   preserve?: Record<string, string>;
+  postProcess?: boolean;
 }
 
 export interface PandocIncludes {

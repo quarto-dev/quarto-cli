@@ -13,6 +13,7 @@ import {
   kCiteMethod,
   kCiteproc,
   kCodeFold,
+  kCodeLink,
   kCodeSummary,
   kCss,
   kExecute,
@@ -166,6 +167,7 @@ export interface FormatRender {
   [kFigAlign]?: "left" | "right" | "center" | "default";
   [kCodeFold]?: "none" | "show" | "hide" | boolean;
   [kCodeSummary]?: string;
+  [kCodeLink]?: boolean;
   [kLatexAutoMk]?: boolean;
   [kLatexAutoInstall]?: boolean;
   [kLatexMinRuns]?: number;

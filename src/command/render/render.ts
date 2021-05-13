@@ -561,9 +561,7 @@ export async function renderPandoc(
   }
 
   // run optional post-processor (e.g. to restore html-preserve regions)
-  if (
-    executeResult.preserve && (Object.keys(executeResult.preserve).length > 0)
-  ) {
+  if (executeResult.postProcess) {
     await context.engine.postprocess({
       engine: context.engine,
       target: context.target,

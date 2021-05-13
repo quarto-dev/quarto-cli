@@ -33,8 +33,12 @@
   # postprocess (restore preserved)
   postprocess <- function(input, format, output, preserved_chunks) {
 
-    # bail if we don't have any perserved chunks
-    if (length(preserved_chunks) == 0)
+    # check for html output
+    isHTML <- knitr::is_html_output(format$pandoc$to)
+
+    # bail if we don't have any perserved chunks and aren't doing code linking
+    code_link <- isHTML && isTRUE(format$render$`code-link`)
+    if (length(preserved_chunks) == 0 && code_link == FALSE)
       return()
 
     # change to input dir and make input relative
@@ -48,36 +52,49 @@
       do.call(options, r_options)
     }
 
-    # convert preserved chunks to named character vector
-    names <- names(preserved_chunks)
-    preserved_chunks <- as.character(preserved_chunks)
-    names(preserved_chunks) <- names
 
-    # read the output file
-    output_str <- xfun::read_utf8(output)
-
-    if (knitr::is_html_output(format$pandoc$to)) {
-      # Pandoc adds an empty <p></p> around the IDs of preserved chunks, and we
-      # need to remove these empty tags, otherwise we may have invalid HTML like
-      # <p><div>...</div></p>. For the reason of the second gsub(), see
-      # https://github.com/rstudio/rmarkdown/issues/133.
-      output_res <- output_str
-      for (i in names(preserved_chunks)) {
-        output_res <- gsub(paste0("<p>", i, "</p>"), i, output_res,
-                           fixed = TRUE, useBytes = TRUE)
-        output_res <- gsub(paste0(' id="[^"]*?', i, '[^"]*?" '), ' ', output_res,
-                           useBytes = TRUE)
-      }
-      output_res <- htmltools::restorePreserveChunks(output_res, preserved_chunks)
-
-    } else {
-
-      output_res <- knitr::restore_raw_output(output_str, preserved_chunks)
+    # perform code linking if requested
+    if (isTRUE(code_link)) {
+       if (requireNamespace("downlit", quietly = TRUE) && requireNamespace("xml2", quietly = TRUE)) {
+         downlit::downlit_html_path(output, output)
+       } else {
+         warning("The downlit and xml2 packages are required for code linking")
+       }
     }
+   
+    # restore preserved chunks if requested
+    if (length(preserved_chunks) > 0) {
+      # convert preserved chunks to named character vector
+      names <- names(preserved_chunks)
+      preserved_chunks <- as.character(preserved_chunks)
+      names(preserved_chunks) <- names
 
-    # re-write output if necessary
-    if (!identical(output_str, output_res))
-      xfun::write_utf8(output_res, output)
+      # read the output file
+      output_str <- xfun::read_utf8(output)
+
+      if (isHTML) {
+        # Pandoc adds an empty <p></p> around the IDs of preserved chunks, and we
+        # need to remove these empty tags, otherwise we may have invalid HTML like
+        # <p><div>...</div></p>. For the reason of the second gsub(), see
+        # https://github.com/rstudio/rmarkdown/issues/133.
+        output_res <- output_str
+        for (i in names(preserved_chunks)) {
+          output_res <- gsub(paste0("<p>", i, "</p>"), i, output_res,
+                            fixed = TRUE, useBytes = TRUE)
+          output_res <- gsub(paste0(' id="[^"]*?', i, '[^"]*?" '), ' ', output_res,
+                            useBytes = TRUE)
+        }
+        output_res <- htmltools::restorePreserveChunks(output_res, preserved_chunks)
+
+      } else {
+
+        output_res <- knitr::restore_raw_output(output_str, preserved_chunks)
+      }
+
+      # re-write output if necessary
+      if (!identical(output_str, output_res))
+        xfun::write_utf8(output_res, output)  
+    }
   }
 
   run <- function(input, port) {
