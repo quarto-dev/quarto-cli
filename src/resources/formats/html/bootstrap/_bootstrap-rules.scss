@@ -256,15 +256,6 @@ div[class^="callout-"] .callout-toggle::before {
   background-size: 1rem 1rem;
 }
 
-div[class^="callout-"] .callout-icon::before {
-  height: 1rem;
-  width: 1rem;
-  display: inline-block;
-  content: "";
-  background-repeat: no-repeat;
-  background-size: 1rem 1rem;
-}
-
 div[class^="callout-"] .callout-btn-toggle .callout-toggle::before {
   transition: transform 0.2s linear;
 }
