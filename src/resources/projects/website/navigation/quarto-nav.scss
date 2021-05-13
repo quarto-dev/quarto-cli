@@ -65,7 +65,6 @@ nav .dropdown-item i {
 
 .sidebar-tools-main {
   display: block;
-  
 }
 
 .sidebar-tools-collapse {
@@ -100,6 +99,15 @@ nav .dropdown-item i {
   font-size: 0.8rem;
   padding: 0.1rem 0px;
   margin-left: -1px;
+}
+
+.sidebar-navigation .sidebar-section-item > button {
+  padding: 0;
+}
+
+.sidebar-navigation .sidebar-section-item > .sidebar-section-link {
+  padding-top: 4px;
+  padding-bottom: 3px;
 }
 
 .sidebar-navigation .sidebar-item {
@@ -196,25 +204,24 @@ nav .dropdown-item i {
     visibility: visible;
     padding-top: 1rem;
     position: inherit;
-  }  
+  }
 
   .sidebar-title {
-    display:none;
+    display: none;
   }
 
   .sidebar-subtitle {
-    display:none;
+    display: none;
   }
 
   .sidebar-tools-main {
     display: none;
   }
-  
+
   .sidebar-tools-collapse {
     display: block;
     padding-left: 1rem;
   }
-  
 }
 
 header.headroom {
@@ -312,7 +319,7 @@ header.headroom--unpinned {
 
 .nav-page {
   display: flex;
-  padding-bottom: .75em;
+  padding-bottom: 0.75em;
 }
 
 .nav-footer {
@@ -320,8 +327,8 @@ header.headroom--unpinned {
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding-top: .5rem;
-  padding-bottom: .25rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.25rem;
 }
 
 .nav-footer-contents {
