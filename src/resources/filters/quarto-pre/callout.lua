@@ -9,22 +9,34 @@ function callout()
     -- Insert paragraphs between consecutive callouts or tables for docx
     Blocks = function(blocks)
       if isDocxOutput() then
-        local lastWasCalloutOrTable = false
+        local lastWasCallout = false
+        local lastWasTable = false
         local newBlocks = pandoc.List:new()
         for i,el in pairs(blocks) do 
-          local isCalloutOrTable = el.t == "Table" or 
-                                   (el.t == "Div" and el.attr.classes:find_if(isDocxCallout)) or 
-                                   isFigureDiv(el) or 
-                                   (discoverFigure(el, true)) ~= nil
-          if isCalloutOrTable then
-            if lastWasCalloutOrTable then
-              newBlocks:insert(pandoc.Para(stringToInlines(" ")))
-            end
-            lastWasCalloutOrTable = true
-          else
-            lastWasCalloutOrTable = false
+          -- determine what this block is
+          local isCallout = el.t == "Div" and el.attr.classes:find_if(isDocxCallout)
+          local isTable = el.t == "Table" or isFigureDiv(el) or (discoverFigure(el, true) ~= nil)
+          local isCodeBlock = el.t == "CodeBlock"
+          
+          -- insert spacer if appropriate
+          local insertSpacer = false
+          if isCallout and (lastWasCallout or lastWasTable) then
+            insertSpacer = true
           end
+          if isCodeBlock and lastWasCallout then
+            insertSpacer = true
+          end
+          if insertSpacer then
+            newBlocks:insert(pandoc.Para(stringToInlines(" ")))
+          end
+
+          -- always insert
           newBlocks:insert(el)
+
+          -- record last state
+          lastWasCallout = isCallout
+          lastWasTable = isTable
+
         end
 
         if #newBlocks > #blocks then
