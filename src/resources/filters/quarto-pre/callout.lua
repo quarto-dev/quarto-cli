@@ -56,7 +56,7 @@ function callout()
 end
 
 function isCallout(class)
-  return class:match("^callout%-")
+  return class == 'callout' or class:match("^callout%-")
 end
 
 function isDocxCallout(class)
@@ -185,7 +185,7 @@ function calloutLatex(div)
     
   -- Add the captions and contents
   if caption ~= nil then 
-    calloutContents:insert(pandoc.Para(caption))
+    calloutContents:insert(pandoc.Para(pandoc.Strong(caption)))
   end
   tappend(calloutContents, div.content)
 
@@ -294,7 +294,10 @@ function epubCallout(div)
   calloutBody.content:insert(calloutContents)
 
   -- set attributes (including hiding icon)
-  local attributes = pandoc.List({"callout", "callout-" .. type})
+  local attributes = pandoc.List({"callout"})
+  if type ~= nil then
+    attributes:insert("callout-" .. type)
+  end
   if hasIcon == 'false' then
     attributes:insert("no-icon")
   end
@@ -363,7 +366,14 @@ end
 
 
 function docxCalloutImage(type)
-  local svg = param("icon-" .. type, nil)
+
+  -- try to form the svg name
+  local svg = nil
+  if type ~= nil then
+    svg = param("icon-" .. type, nil)
+  end
+
+  -- lookup the image
   if svg ~= nil then
     local img = pandoc.Image({}, svg)
     img.attr.attributes["width"] = 16
