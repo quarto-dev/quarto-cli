@@ -276,9 +276,10 @@ end
 
 function epubCallout(div)
   -- read the caption and type info
+  local hasIcon = div.attr.attributes["icon"]
   local caption = resolveHeadingCaption(div)
   local type = calloutType(div)
-
+  
   -- the body of the callout
   local calloutBody = pandoc.Div({}, pandoc.Attr("", {"callout-body"}))
 
@@ -292,7 +293,13 @@ function epubCallout(div)
   local calloutContents = pandoc.Div(div.content, pandoc.Attr("", {"callout-content"}))
   calloutBody.content:insert(calloutContents)
 
-  return pandoc.Div({calloutBody}, pandoc.Attr("", {"callout", "callout-" .. type}))
+  -- set attributes (including hiding icon)
+  local attributes = pandoc.List({"callout", "callout-" .. type})
+  if hasIcon == 'false' then
+    attributes:insert("no-icon")
+  end
+
+  return pandoc.Div({calloutBody}, pandoc.Attr("", attributes))
 end
 
 function simpleCallout(div) 
@@ -305,7 +312,6 @@ function resolveCalloutContents(div, requireCaption)
   local caption = resolveHeadingCaption(div)
   local type = calloutType(div)
   local icon = div.attr.attributes["icon"]
-  
   
   div.attr.attributes["caption"] = nil
   div.attr.attributes["icon"] = nil
