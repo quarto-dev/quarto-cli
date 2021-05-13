@@ -47,11 +47,25 @@ function sections()
       if (numberSections() and level <= numberDepth() + 1) then
         local section = sectionNumber(crossref.index.section, level)
         el.attr.attributes["number"] = section
-        el.content:insert(1, pandoc.Space())
+
+        local appendix = (level == 1) and currentFileMetadataState().appendix
+        if appendix then
+          el.content:insert(1, pandoc.Space())
+          tprepend(el.content, crossrefOption("appendix-delim", stringToInlines(" —")))
+        else
+          el.content:insert(1, pandoc.Space())
+        end
+
         el.content:insert(1, pandoc.Span(
           stringToInlines(section),
           pandoc.Attr("", { "header-section-number"})
         ))
+
+        if appendix then
+          el.content:insert(1, pandoc.Space())
+          tprepend(el.content, crossrefOption("appendix-title", stringToInlines("Appendix")))
+        end
+
       end
       
       -- return 
@@ -74,12 +88,7 @@ function currentSectionLevel()
 end
 
 function numberSections()
-  return (formatRequiresSectionNumber() and param("number-sections", false)) or
-          crossrefOption("chapters-alpha", false)
-end
-
-function formatRequiresSectionNumber()
-  return not isLatexOutput()
+  return not isLatexOutput() and param("number-sections", false)
 end
 
 function numberDepth() 

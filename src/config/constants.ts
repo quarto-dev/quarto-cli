@@ -181,6 +181,8 @@ export const kTheme = "theme";
 export const kCrossref = "crossref";
 export const kCrossrefChapters = "chapters";
 export const kCrossrefLabels = "labels";
+export const kCrossrefAppendixTitle = "appendix-title";
+export const kCrossrefAppendixDelim = "appendix-delim";
 export const kCrossrefChaptersAlpha = "chapters-alpha";
 export const kCrossrefChapterId = "chapter-id";
 

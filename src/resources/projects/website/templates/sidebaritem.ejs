@@ -11,7 +11,7 @@
         <div class="me-auto <%- textStyleCss %>">
           <% if (item.href) { %>
           <div class="d-inline-flex w-100 sidebar-section-item">
-            <div class="me-auto <%- textStyleCss %> >">
+            <div class="sidebar-section-link me-auto <%- textStyleCss %>">
             <a href="<%- item.href %>" class="<%- item.active ? "active" : "" %>"><%= item.text %></a>
             </div>
             <button class="btn text-start <%- isCollapsed ? "collapsed" : "" %> " data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded=" <%- isCollapsed ? "false" : "true" %>">

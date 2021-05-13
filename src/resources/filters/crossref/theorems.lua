@@ -70,7 +70,57 @@ function theorems()
             )
           })
         end
-      
+
+      else
+        -- see if this is a proof, remark, or solution
+        local proof = proofType(el)
+        if proof ~= nil then
+
+          -- ensure requisite latex is injected
+          crossref.usingTheorems = true
+
+          if proof.env ~= "proof" then
+            el.attr.classes:insert("proof")
+          end
+
+          -- capture then remove name
+          local name = markdownToInlines(el.attr.attributes["name"])
+          if not name then
+            name = resolveHeadingCaption(el)
+          end
+          el.attr.attributes["name"] = nil 
+
+          -- output
+          if isLatexOutput() then
+            local preamble = pandoc.Para(pandoc.RawInline("latex", 
+              "\\begin{" .. proof.env .. "}"))
+            if name ~= nil then
+              preamble.content:insert(pandoc.RawInline("latex", "["))
+              tappend(preamble.content, name)
+              preamble.content:insert(pandoc.RawInline("latex", "]"))
+            end 
+            el.content:insert(1, preamble)
+            el.content:insert(pandoc.Para(pandoc.RawInline("latex", 
+              "\\end{" .. proof.env .. "}"
+            )))
+          else
+            local span = pandoc.Span(
+              { pandoc.Emph(pandoc.Str(proof.title))},
+              pandoc.Attr("", { "proof-title" })
+            )
+            if name ~= nil then
+              span.content:insert(pandoc.Str(" ("))
+              tappend(span.content, name)
+              span.content:insert(pandoc.Str(")"))
+            end
+            tappend(span.content, { pandoc.Str(".", pandoc.Space())})
+            if #el.content > 0 and #el.content[1].content > 0 then
+              el.content[1].content:insert(1, span)
+            end
+          end
+
+        end
+
       end
      
       return el
@@ -87,7 +137,7 @@ function theoremLatexIncludes()
   -- determine which theorem types we are using
   local types = theoremTypes
   local refs = tkeys(crossref.index.entries)
-  local usingTheorems = false
+  local usingTheorems = crossref.usingTheorems
   for k,v in pairs(crossref.index.entries) do
     local type = refType(k)
     if types[type] then
@@ -98,15 +148,25 @@ function theoremLatexIncludes()
   
   -- return requisite latex if we are using theorems
   if usingTheorems then
+    local secType 
+    if crossrefOption("chapters", false) then 
+      secType = "chapter" 
+    else 
+      secType = "section" 
+    end
     local theoremIncludes = "\\usepackage{amsthm}\n"
     for _, type in ipairs(tkeys(types)) do
       if types[type].active then
         theoremIncludes = theoremIncludes .. 
           "\\theoremstyle{" .. types[type].style .. "}\n" ..
           "\\newtheorem{" .. types[type].env .. "}{" .. 
-          titleString(type, types[type].title) .. "}[section]\n"
+          titleString(type, types[type].title) .. "}[" .. secType .. "]\n"
       end
     end
+    theoremIncludes = theoremIncludes ..
+      "\\theoremstyle{remark}\n" ..
+      "\\newtheorem*{remark}{Remark}\n" ..
+      "\\newtheorem*{solution}{Solution}\n"
     return theoremIncludes
   else
     return nil

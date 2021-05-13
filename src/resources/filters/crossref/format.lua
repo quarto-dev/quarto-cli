@@ -157,17 +157,13 @@ function numberOption(type, order, default)
 end
 
 function sectionNumber(section, maxLevel)
-  local num = ""
-  for i=1,#section do
+  local num = formatChapterIndex(section[1])
+  for i=2,#section do
     if maxLevel and i>maxLevel then
       break
     end
     if section[i] > 0 then
-      if i == 1 then
-        num = formatChapterIndex(section[i])
-      elseif i>1 then
-        num = num .. "." .. tostring(section[i])
-      end
+      num = num .. "." .. tostring(section[i])
     else
       break
     end

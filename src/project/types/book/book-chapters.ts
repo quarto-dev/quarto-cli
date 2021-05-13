@@ -4,6 +4,8 @@ import { PartitionedMarkdown } from "../../../core/pandoc/pandoc-partition.ts";
 
 import {
   kCrossref,
+  kCrossrefAppendixDelim,
+  kCrossrefAppendixTitle,
   kCrossrefChapterId,
   kCrossrefChaptersAlpha,
   kDescription,
@@ -34,6 +36,7 @@ export function withChapterMetadata(
     format.metadata[kTitle] = formatChapterLabel(
       partitioned.headingText,
       chapterInfo,
+      format,
       false,
     );
   }
@@ -54,7 +57,6 @@ export function withChapterMetadata(
     // set crossref label type if this is an appendix
     if (chapterInfo.appendix) {
       crossref[kCrossrefChaptersAlpha] = true;
-      format.pandoc[kNumberSections] = false;
     }
   } else {
     format.pandoc[kNumberSections] = false;
@@ -114,6 +116,7 @@ export function chapterInfoForInput(
 export function formatChapterLabel(
   label: string,
   info: ChapterInfo | undefined,
+  format: Format | undefined,
   short: boolean,
 ) {
   if (short || !info || !info.appendix) {
@@ -121,6 +124,13 @@ export function formatChapterLabel(
       ? `<span class='chapter-number'>${info.labelPrefix}</span>\u00A0 ${label}`
       : label;
   } else {
-    return `Appendix ${info.labelPrefix} — ${label}`;
+    // determine appendix-title and sep
+    const crossref = format?.metadata?.crossref as Metadata;
+    const title = crossref?.[kCrossrefAppendixTitle] || "Appendix";
+    const delim = crossref?.[kCrossrefAppendixDelim] !== undefined
+      ? crossref?.[kCrossrefAppendixDelim]
+      : " —";
+
+    return `${title} ${info.labelPrefix}${delim} ${label}`;
   }
 }

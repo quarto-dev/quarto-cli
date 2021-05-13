@@ -125,7 +125,9 @@ export const bookProjectType: ProjectType = {
   navItemText: (context: ProjectContext, input: string, text: string) => {
     const chapterInfo = chapterInfoForInput(context, input);
     if (chapterInfo) {
-      return Promise.resolve(formatChapterLabel(text, chapterInfo, true));
+      return Promise.resolve(
+        formatChapterLabel(text, chapterInfo, undefined, true),
+      );
     } else {
       return Promise.resolve(text);
     }
