@@ -17,19 +17,12 @@ TODO: centralized _cache dir for projects (alongside _freeze)
 
 TODO: include-after as text ends up doubling-up
 
+TODO: quarto-r should use processx so render doesn't block the UI
+TODO: submit updated quarto-r to CRAN
+
 Books
 =========================================================================
 
-- MS word callout corruption bug (.callout)
-
-- Discuss downlit highlight style
-
-- numbering when crossref: false
-  commit: https://github.com/quarto-dev/quarto-cli/commit/980977910f6560a7d1607e41878f171f688e9e65
-  commit: https://github.com/quarto-dev/quarto-cli/commit/90dbc658a9e79606ec593f2cdbf5084b74d67a63
-
-- parts with links have extra padding
-  commit: https://github.com/quarto-dev/quarto-cli/commit/3500cddf9570c56c9b128d77092f35772e3f34f5
 
 
 Markdown Serialization
