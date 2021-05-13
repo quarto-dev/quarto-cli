@@ -8,7 +8,9 @@ PANDOC_VERSION:must_be_at_least '2.13'
 text = require 'text'
 
 -- global crossref state
-crossref = {}
+crossref = {
+  usingTheorems = false
+}
 
 -- [import]
 function import(script)
