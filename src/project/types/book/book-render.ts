@@ -335,6 +335,14 @@ async function mergeExecutedFiles(
     {} as Record<string, string>,
   );
 
+  // merge postProcess
+  const postProcess = files.reduce(
+    (postProcess: boolean, file: ExecutedFile) => {
+      return postProcess || !!file.executeResult.postProcess;
+    },
+    false,
+  );
+
   return Promise.resolve({
     context,
     recipe,
@@ -347,6 +355,7 @@ async function mergeExecutedFiles(
         data: dependencies,
       },
       preserve,
+      postProcess,
     },
   });
 }
