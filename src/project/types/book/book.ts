@@ -49,7 +49,7 @@ import {
 } from "./book-render.ts";
 import { bookProjectConfig, kBook } from "./book-config.ts";
 
-import { chapterInfoForInput, formatChapterLabel } from "./book-chapters.ts";
+import { chapterInfoForInput, formatChapterHtmlNav } from "./book-chapters.ts";
 import { isMultiFileBookFormat } from "./book-extension.ts";
 import { kBootstrapDependencyName } from "../../../format/html/format-html.ts";
 import { formatHasBootstrap } from "../../../format/html/format-html-bootstrap.ts";
@@ -126,7 +126,7 @@ export const bookProjectType: ProjectType = {
     const chapterInfo = chapterInfoForInput(context, input);
     if (chapterInfo) {
       return Promise.resolve(
-        formatChapterLabel(text, chapterInfo, undefined, true),
+        formatChapterHtmlNav(text, chapterInfo),
       );
     } else {
       return Promise.resolve(text);

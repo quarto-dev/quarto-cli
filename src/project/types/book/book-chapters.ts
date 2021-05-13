@@ -33,11 +33,10 @@ export function withChapterMetadata(
 ) {
   format = ld.cloneDeep(format);
   if (partitioned.headingText) {
-    format.metadata[kTitle] = formatChapterLabel(
+    format.metadata[kTitle] = formatChapterTitle(
       partitioned.headingText,
-      chapterInfo,
       format,
-      false,
+      chapterInfo,
     );
   }
 
@@ -113,24 +112,31 @@ export function chapterInfoForInput(
   }
 }
 
-export function formatChapterLabel(
+export function formatChapterTitle(
   label: string,
-  info: ChapterInfo | undefined,
-  format: Format | undefined,
-  short: boolean,
+  format: Format,
+  info?: ChapterInfo,
 ) {
-  if (short || !info || !info.appendix) {
-    return info
-      ? `<span class='chapter-number'>${info.labelPrefix}</span>\u00A0 ${label}`
-      : label;
+  if (info) {
+    if (info.appendix) {
+      const crossref = format.metadata?.crossref as Metadata;
+      const title = crossref?.[kCrossrefAppendixTitle] || "Appendix";
+      const delim = crossref?.[kCrossrefAppendixDelim] !== undefined
+        ? crossref?.[kCrossrefAppendixDelim]
+        : " —";
+      return `${title} ${info.labelPrefix}${delim} ${label}`;
+    } else {
+      return `${info.labelPrefix}\u00A0 ${label}`;
+    }
   } else {
-    // determine appendix-title and sep
-    const crossref = format?.metadata?.crossref as Metadata;
-    const title = crossref?.[kCrossrefAppendixTitle] || "Appendix";
-    const delim = crossref?.[kCrossrefAppendixDelim] !== undefined
-      ? crossref?.[kCrossrefAppendixDelim]
-      : " —";
+    return label;
+  }
+}
 
-    return `${title} ${info.labelPrefix}${delim} ${label}`;
+export function formatChapterHtmlNav(label: string, info?: ChapterInfo) {
+  if (info) {
+    return `<span class='chapter-number'>${info.labelPrefix}</span>\u00A0 ${label}`;
+  } else {
+    return label;
   }
 }
