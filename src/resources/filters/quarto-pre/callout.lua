@@ -269,6 +269,14 @@ function calloutDocx(div)
   -- convert to open xml paragraph
   removeParagraphPadding(contents)
   
+  -- ensure there are no nested callouts
+  if contents:find_if(function(el) 
+    return el.t == "Div" and el.attr.classes:find_if(isDocxOutput) ~= nil 
+  end) ~= nil then
+    print("Found a nested callout in the document. Please fix this issue and try again.")
+    os.exit(1)
+  end
+
   tappend(calloutContents, contents)
   tappend(calloutContents, suffix)
 
