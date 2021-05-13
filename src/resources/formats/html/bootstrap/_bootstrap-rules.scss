@@ -223,9 +223,7 @@ caption {
 
 .callout.callout-captioned .callout-body {
   margin-top: 0.5em;
-  margin-left: 1.6rem;
 }
-
 
 .callout.callout-captioned .callout-header {
   padding-top: 0.2em;
@@ -273,7 +271,7 @@ caption {
   transform: none;
 }
 
-.callout div.callout-icon-container {
+.callout:not(.no-icon) div.callout-icon-container {
   padding-top: 0.2em;
   padding-right: 0.55em;
 }
