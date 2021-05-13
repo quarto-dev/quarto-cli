@@ -79,6 +79,10 @@ function theorems()
           -- ensure requisite latex is injected
           crossref.usingTheorems = true
 
+          if proof.env ~= "proof" then
+            el.attr.classes:insert("proof")
+          end
+
           -- capture then remove name
           local name = markdownToInlines(el.attr.attributes["name"])
           if not name then
@@ -100,9 +104,10 @@ function theorems()
               "\\end{" .. proof.env .. "}"
             )))
           else
-            local span = pandoc.Span({
-              pandoc.Emph(pandoc.Str(proof.title))
-            })
+            local span = pandoc.Span(
+              { pandoc.Emph(pandoc.Str(proof.title))},
+              pandoc.Attr("", { "proof-title" })
+            )
             if name ~= nil then
               span.content:insert(pandoc.Str(" ("))
               tappend(span.content, name)
