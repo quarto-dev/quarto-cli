@@ -47,11 +47,24 @@ function sections()
       if (numberSections() and level <= numberDepth() + 1) then
         local section = sectionNumber(crossref.index.section, level)
         el.attr.attributes["number"] = section
+
+        local appendix = (level == 1) and currentFileMetadataState().appendix
+        if appendix then
+          el.content:insert(1, pandoc.Space())
+          el.content:insert(1, pandoc.Str("—"))
+        end
+
         el.content:insert(1, pandoc.Space())
         el.content:insert(1, pandoc.Span(
           stringToInlines(section),
           pandoc.Attr("", { "header-section-number"})
         ))
+
+        if appendix then
+          el.content:insert(1, pandoc.Space())
+          el.content:insert(1, pandoc.Str("Appendix"))
+        end
+
       end
       
       -- return 
