@@ -90,6 +90,7 @@ export function asCssColor(value: unknown): string | undefined {
   }
 }
 
+// The named colors
 const kBootstrapColors = [
   "primary",
   "secondary",
@@ -100,9 +101,16 @@ const kBootstrapColors = [
   "light",
   "dark",
 ];
+
+const kBootstrapPaletteRegex = RegExp(
+  `gray\-[1-9]00`,
+);
+
 export function asBootstrapColor(value: unknown): string | undefined {
   if (typeof (value) === "string") {
-    if (kBootstrapColors.includes(value)) {
+    if (
+      kBootstrapColors.includes(value) || value.match(kBootstrapPaletteRegex)
+    ) {
       return `$${value}`;
     } else {
       return asCssColor(value);
