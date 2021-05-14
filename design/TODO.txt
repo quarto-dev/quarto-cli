@@ -25,6 +25,8 @@ TODO: project level renders should forward params
 Books
 ===========================================
 
+- hadley feedback
+
 - consider expanding/collapsing side toc (too much as it is now)
 
 - code blocks not appearing for epub
