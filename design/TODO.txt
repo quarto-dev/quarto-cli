@@ -22,16 +22,28 @@ TODO: submit updated quarto-r to CRAN
 
 TODO: project level renders should forward params
 
+TODO: merging includes at the lua filter level does not appear
+      to work for ebooks. perhaps even dynamically injecting
+      metadata for includes doesn't work
+
+TODO: convert to css grid for columns (allows for content floating and crossing margin)
+
+
 Books
 ===========================================
 
+- Does changing _quarto.yml still result in serve reloads?
+
+- sidebar-navigation color isn't using bootstrap classes (requries hard code color)
+
+- consider expanding/collapsing side toc like bs4_book
+  (https://mastering-shiny.org/basic-reactivity.html)
+
 - hadley feedback
 
-- consider expanding/collapsing side toc (too much as it is now)
 
-- code blocks not appearing for epub
-- ouput-file name doesn't have 'admin-guide' at the end or complete version
-- pdf has essentially two cover pages
+
+- Language customization
 
 - https://uwdata.github.io/visualization-curriculum/intro.html
 - Tidy text mining?
