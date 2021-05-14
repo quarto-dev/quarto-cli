@@ -15,7 +15,7 @@ import {
   kTitle,
   kToc,
 } from "../../../config/constants.ts";
-import { Format } from "../../../config/format.ts";
+import { Format, isHtmlOutput } from "../../../config/format.ts";
 import { Metadata } from "../../../config/metadata.ts";
 
 import { ProjectConfig, ProjectContext } from "../../project-context.ts";
@@ -134,7 +134,11 @@ export function formatChapterTitle(
         : " —";
       return `${title} ${info.labelPrefix}${delim} ${label}`;
     } else {
-      return `${info.labelPrefix}\u00A0 ${label}`;
+      if (isHtmlOutput(format.pandoc)) {
+        return `<span class="header-chapter-number">${info.labelPrefix}</span>\u00A0 ${label}`;
+      } else {
+        return `${info.labelPrefix}\u00A0 ${label}`;
+      }
     }
   } else {
     return label;

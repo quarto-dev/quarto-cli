@@ -69,7 +69,7 @@ export function resolveBootstrapScss(metadata: Metadata): SassBundle {
       use: ["sass:color", "sass:map"],
       defaults: quartoBootstrapDefaults(metadata),
       functions: [quartoFunctions(), quartoBootstrapFunctions()].join("\n"),
-      mixins: "",
+      mixins: quartoBootstrapMixins(),
       rules: [
         quartoRules(),
         quartoBootstrapRules(),
@@ -236,6 +236,12 @@ export const quartoBootstrapRules = () =>
   Deno.readTextFileSync(formatResourcePath(
     "html",
     join("bootstrap", "_bootstrap-rules.scss"),
+  ));
+
+export const quartoBootstrapMixins = () =>
+  Deno.readTextFileSync(formatResourcePath(
+    "html",
+    join("bootstrap", "_bootstrap-mixins.scss"),
   ));
 
 export const quartoBootstrapFunctions = () =>

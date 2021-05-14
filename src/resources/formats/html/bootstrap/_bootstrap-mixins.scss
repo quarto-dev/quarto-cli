@@ -1,0 +1,9 @@
+
+
+@mixin body-secondary {
+  @if variable-exists(body-secondary) {
+    color: $body-secondary;
+  } @else {
+    color: theme-dim($body-color, 25%);
+  }
+}
