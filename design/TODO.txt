@@ -40,7 +40,9 @@ Books
 - try out negative margin for code block, blockquote, and callouts
   (implications for line numbering?)
 
-- left align figure captions (perhaps undo custom figures for word?)
+- left align figure captions (perhaps undo custom figures for word?). that would 
+  just mean not calling for special docx output in figures.lua. or just change
+  fig-align default for word to left 
 
 - figure captions a bit bigger and a bit darker (https://mastering-shiny.org/action-graphics.html)
 
@@ -54,8 +56,6 @@ Books
 - 'cover' class to wrap text around cover on home page
   encourage use of raw html for these images (so that they don't show up in pdf and word)
 
-
-- Does changing _quarto.yml still result in serve reloads?
 
 
 - Language customization
