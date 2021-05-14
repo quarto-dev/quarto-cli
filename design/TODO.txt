@@ -44,14 +44,8 @@ Figure Caption Alignment
 
 - auto-anchoring for cross-referenceable figures (anchorjs customization)
 
-- section numbers a bit more subtle: https://r4ds.hadley.nz/data-visualisation.html#a-graphing-template
-  (may need to programatically derive a text-light color? use that for toc/figure captions, etc.)
-
-- larger font for collapsed sidebar chapter title
-
 - 'cover' class to wrap text around cover on home page
   encourage use of raw html for these images (so that they don't show up in pdf and word)
-
 
 
 - Language customization
