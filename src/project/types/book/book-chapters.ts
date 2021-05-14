@@ -134,11 +134,7 @@ export function formatChapterTitle(
         : " —";
       return `${title} ${info.labelPrefix}${delim} ${label}`;
     } else {
-      if (isHtmlOutput(format.pandoc)) {
-        return `<span class="header-chapter-number">${info.labelPrefix}</span>\u00A0 ${label}`;
-      } else {
-        return `${info.labelPrefix}\u00A0 ${label}`;
-      }
+      return `${info.labelPrefix}\u00A0 ${label}`;
     }
   } else {
     return label;
