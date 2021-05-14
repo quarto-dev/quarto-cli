@@ -13,7 +13,6 @@ import {
   kCodeFold,
   kCodeLink,
   kCodeSummary,
-  kCss,
   kExecute,
   kFigAlign,
   kFigDpi,
@@ -21,6 +20,7 @@ import {
   kFigHeight,
   kFigWidth,
   kFreeze,
+  kIncludeInHeader,
   kKeepHidden,
   kKeepIpynb,
   kKeepMd,
@@ -37,6 +37,7 @@ import {
   kLatexMaxRuns,
   kLatexOutputDir,
   kLatexTlmgrOpts,
+  kMergeIncludes,
   kOutputDivs,
   kOutputExt,
   kOutputFile,
@@ -236,8 +237,13 @@ export function createHtmlFormat(
 
 export function createEbookFormat(ext: string): Format {
   return createFormat(ext, {
-    pandoc: {
-      [kCss]: [formatResourcePath("epub", "styles.css")],
+    formatExtras: () => {
+      return {
+        [kIncludeInHeader]: [formatResourcePath("epub", "styles.html")],
+      };
+    },
+    render: {
+      [kMergeIncludes]: false,
     },
     execution: {
       [kFigWidth]: 5,
@@ -364,6 +370,7 @@ function defaultFormat(): Format {
       [kCodeFold]: "none",
       [kCodeSummary]: "Code",
       [kCodeLink]: false,
+      [kMergeIncludes]: true,
       [kLatexAutoMk]: true,
       [kLatexAutoInstall]: true,
       [kLatexClean]: true,

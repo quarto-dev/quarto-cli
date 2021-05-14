@@ -44,6 +44,7 @@ import {
   kLatexTlmgrOpts,
   kListings,
   kMarkdownHeadings,
+  kMergeIncludes,
   kNumberOffset,
   kNumberSections,
   kOutputFile,
@@ -168,6 +169,7 @@ export interface FormatRender {
   [kCodeFold]?: "none" | "show" | "hide" | boolean;
   [kCodeSummary]?: string;
   [kCodeLink]?: boolean;
+  [kMergeIncludes]?: boolean;
   [kLatexAutoMk]?: boolean;
   [kLatexAutoInstall]?: boolean;
   [kLatexMinRuns]?: number;

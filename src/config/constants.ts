@@ -78,6 +78,7 @@ export const kFigAlign = "fig-align";
 export const kCodeFold = "code-fold";
 export const kCodeSummary = "code-summary";
 export const kCodeLink = "code-link";
+export const kMergeIncludes = "merge-includes";
 export const kPreferHtml = "prefer-html";
 
 export const kLatexAutoMk = "latex-auto-mk";

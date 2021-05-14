@@ -15,6 +15,7 @@ import {
   kIncludeBefore,
   kIncludeBeforeBody,
   kIncludeInHeader,
+  kMergeIncludes,
   kOutputDivs,
 } from "../../config/constants.ts";
 import { Format, FormatPandoc } from "../../config/format.ts";
@@ -45,11 +46,13 @@ export function filterParamsJson(
   formatFilterParams: Record<string, unknown>,
 ) {
   // extract include params (possibly mutating it's arguments)
-  const includes = extractIncludeParams(
-    args,
-    options.format.metadata,
-    defaults || {},
-  );
+  const includes = options.format.render[kMergeIncludes] !== false
+    ? extractIncludeParams(
+      args,
+      options.format.metadata,
+      defaults || {},
+    )
+    : {};
 
   const params: Metadata = {
     ...includes,
