@@ -20,9 +20,16 @@ TODO: include-after as text ends up doubling-up
 TODO: quarto-r should use processx so render doesn't block the UI
 TODO: submit updated quarto-r to CRAN
 
+TODO: project level renders should forward params
 
 Books
 ===========================================
+
+- consider expanding/collapsing side toc (too much as it is now)
+
+- code blocks not appearing for epub
+- ouput-file name doesn't have 'admin-guide' at the end or complete version
+- pdf has essentially two cover pages
 
 - https://uwdata.github.io/visualization-curriculum/intro.html
 - Tidy text mining?
