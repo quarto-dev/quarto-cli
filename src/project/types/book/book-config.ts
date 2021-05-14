@@ -414,8 +414,7 @@ function downloadTools(
 export function bookOutputStem(projectDir: string, config?: ProjectConfig) {
   const outputFile = (bookConfig(kBookOutputFile, config) ||
     bookConfig(kTitle, config) || basename(projectDir)) as string;
-  const stem = basename(outputFile, extname(outputFile));
-  return stem;
+  return outputFile;
 }
 
 function sharingTools(
