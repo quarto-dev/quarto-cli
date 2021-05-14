@@ -121,7 +121,7 @@ async function confirmDestructiveAction(
         }
       } else {
         info(
-          `${name} was not install using Quarto. Please use the tool that you used to install ${name} instead.`,
+          `${name} was not installed using Quarto. Please use the tool that you used to install ${name} instead.`,
         );
       }
     } else {

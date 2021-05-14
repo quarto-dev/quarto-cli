@@ -72,7 +72,7 @@ function htmlPanel(divEl, layout, caption)
   end
   
   -- determine alignment
-  local align = layoutAlignAttribute(divEl, "center")
+  local align = layoutAlignAttribute(divEl)
   divEl.attr.attributes[kLayoutAlign] = nil
   
   -- insert caption and </figure>

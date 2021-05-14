@@ -366,7 +366,7 @@ function defaultFormat(): Format {
       [kPreferHtml]: false,
       [kOutputDivs]: true,
       [kOutputExt]: "html",
-      [kFigAlign]: "center",
+      [kFigAlign]: "default",
       [kCodeFold]: "none",
       [kCodeSummary]: "Code",
       [kCodeLink]: false,

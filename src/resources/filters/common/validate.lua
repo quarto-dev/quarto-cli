@@ -5,7 +5,7 @@ kAlignments = pandoc.List:new({ "center", "left", "right" })
 kVAlignments = pandoc.List:new({"top", "center", "bottom"})
 
 function validatedAlign(align)
-  return validateInList(align, kAlignments, "alignment", "center")
+  return validateInList(align, kAlignments, "alignment", "left")
 end
 
 function validatedVAlign(vAlign)
@@ -13,7 +13,9 @@ function validatedVAlign(vAlign)
 end
 
 function validateInList(value, list, attribute, default)
-  if value and not list:includes(value) then
+  if value == "default" then
+    return default
+  elseif value and not list:includes(value) then
     log("Invalid " .. attribute .. " attribute value: " .. value)   
     return default
   elseif value then
