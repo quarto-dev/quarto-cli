@@ -65,9 +65,8 @@ function tablePanel(divEl, layout, caption, options)
   
   -- insert caption
   if caption then
-    local align = layoutAlignAttribute(divEl)
     if options.divCaption then
-      caption = options.divCaption(caption, align)
+      caption = options.divCaption(caption)
     end
      panel.content:insert(caption)
   end

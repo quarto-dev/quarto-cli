@@ -68,6 +68,18 @@ function layoutMetaInject()
   .quarto-layout-cell-subref figcaption {
     font-style: italic;
   }
+  .quarto-figure > figure {
+    width: 100%;
+  }
+  .quarto-figure-left > figure > p {
+   text-align: left;
+  }
+  .quarto-figure-center > figure > p {
+    text-align: center;
+  }
+  .quarto-figure-right > figure > p {
+    text-align: right;
+  }
   figure > p:empty {
     display: none;
   }

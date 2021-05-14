@@ -171,7 +171,7 @@ knitr_hooks <- function(format) {
     knitr_default_opts <- names(knitr::opts_chunk$get())
     quarto_opts <- c("label","fig.cap","fig.subcap","fig.scap","fig.link",
                      "fig.align","fig.env","fig.pos","fig.num", "lst.cap", 
-                     "lst.label")
+                     "lst.label", "layout.align", "layout.valign")
     other_opts <- c("eval", "out.width", "code", "params.src", 
                     "out.width.px", "out.height.px")
     known_opts <- c(knitr_default_opts, quarto_opts, other_opts)

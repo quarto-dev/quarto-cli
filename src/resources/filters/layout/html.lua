@@ -81,9 +81,6 @@ function htmlPanel(divEl, layout, caption)
       local captionPara = pandoc.Para({})
       -- apply alignment if we have it
       local figcaption = "<figcaption aria-hidden=\"true\""
-      if align then
-        figcaption = figcaption .. " style=\"text-align: " .. align .. ";\""
-      end
       figcaption = figcaption .. ">"
       captionPara.content:insert(pandoc.RawInline("html", figcaption))
       tappend(captionPara.content, caption.content)
@@ -91,9 +88,6 @@ function htmlPanel(divEl, layout, caption)
       panel.content:insert(captionPara)
     else
       local panelCaption = pandoc.Div(caption, pandoc.Attr("", { "panel-caption" }))
-      if align then
-         panelCaption.attr.attributes["style"] = "text-align: " .. align .. ";"
-      end
       panel.content:insert(panelCaption)
     end
   end
@@ -181,7 +175,7 @@ function renderHtmlFigure(el, render)
           
   -- apply standalone figure css
   figureDiv.attr.classes:insert("quarto-figure")
-  appendStyle(figureDiv, "text-align: " .. align .. ";")
+  figureDiv.attr.classes:insert("quarto-figure-" .. align)
 
   -- begin figure
   figureDiv.content:insert(pandoc.RawBlock("html", "<figure>"))
