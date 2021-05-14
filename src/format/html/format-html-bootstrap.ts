@@ -119,10 +119,10 @@ export function boostrapExtras(
 
 function bootstrapHtmlPostprocessor(format: Format) {
   return (doc: Document): Promise<string[]> => {
-    // use display-6 style for title
+    // use display-7 style for title
     const title = doc.querySelector("header > .title");
     if (title) {
-      title.classList.add("display-6");
+      title.classList.add("display-7");
     }
 
     // add 'lead' to subtitle
