@@ -38,3 +38,6 @@ $code-theme-dark-threshhold: 40% !default;
 // If by default we don't have a body background, then use white
 $body-bg: #fff !default;
 $sidebar-bg: $body-bg !default;
+
+// Adjust the base font size up a little
+$font-size-root: 18px;
