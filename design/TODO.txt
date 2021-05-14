@@ -15,7 +15,7 @@ TODO: include-after as text ends up doubling-up
 
 TODO: quarto-r should use processx so render doesn't block the UI
 TODO: submit updated quarto-r to CRAN
-
+ 
 TODO: project level renders should forward params
 
 TODO: merging includes at the lua filter level does not appear
@@ -28,15 +28,34 @@ TODO: convert to css grid for columns (allows for content floating and crossing 
 Books
 ===========================================
 
-- Does changing _quarto.yml still result in serve reloads?
 
 - sidebar-navigation color isn't using bootstrap classes (requries hard code color)
 
 - consider expanding/collapsing side toc like bs4_book
   (https://mastering-shiny.org/basic-reactivity.html)
 
-- hadley feedback
+- default font size too small (note impact on nav, etc. if we change it though)
+  quarto: 16, distill: 17, bs4_book: 18
 
+- try out negative margin for code block, blockquote, and callouts
+  (implications for line numbering?)
+
+- left align figure captions (perhaps undo custom figures for word?)
+
+- figure captions a bit bigger and a bit darker (https://mastering-shiny.org/action-graphics.html)
+
+- auto-anchoring for cross-referenceable figures (anchorjs customization)
+
+- section numbers a bit more subtle: https://r4ds.hadley.nz/data-visualisation.html#a-graphing-template
+  (may need to programatically derive a text-light color? use that for toc/figure captions, etc.)
+
+- larger font for collapsed sidebar chapter title
+
+- 'cover' class to wrap text around cover on home page
+  encourage use of raw html for these images (so that they don't show up in pdf and word)
+
+
+- Does changing _quarto.yml still result in serve reloads?
 
 
 - Language customization
@@ -75,6 +94,11 @@ engine: jupyter:python3
 plot(cars)
 ```
 
+
+More Features
+=====================================================================
+
+- image float feature (across formats)
 
 
 Installation/Compilation
