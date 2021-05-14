@@ -5,7 +5,7 @@
 
 
 
-function displayErrorAndExit(message)
+function fail(message)
   local file = currentFile()
   if file then
     print("An error occurred while processing '" .. file .. "'")
