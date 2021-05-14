@@ -89,6 +89,9 @@ pre.sourceCode {
 
 div.sourceCode {
   background-color: $body-bg !important;
+  @if $code-border-left {
+    margin-left: add(add(-$code-padding-left, -$code-border-left-size), 2px);
+  }
 }
 
 .callout div.sourceCode {
@@ -98,11 +101,9 @@ div.sourceCode {
 // improve treatment of blockquotes
 .blockquote {
   font-size: inherit;
-  padding-left: 2rem;
-  margin-right: 50px;
-  border-left: $code-border-left-size;
-  border-left-style: $code-border-left-style;
-  border-left-color: $code-border-left-color;
+  padding-left: 1rem;
+  padding-right: 1.5rem;
+  @include body-secondary;
 }
 
 // Maps the pandoc 'monobackgroundcolor' to bootstrap
@@ -209,8 +210,17 @@ caption {
 }
 
 // Cards with header
+.callout:not(.no-icon) {
+  @if $code-border-left {
+    margin-left: add(add(-0.4em, -$callout-border-width), -1px);
+  }
+}
+
 .callout {
-  padding: 0.5em 0.7em;
+  @if $code-border-left {
+    margin-left: add(-0.4em, -$callout-border-width);
+  }
+  padding: 0.4em 0.7em;
   border-left: $callout-border-width solid;
   border-right: 1px solid $table-border-color;
   border-top: 1px solid $table-border-color;
