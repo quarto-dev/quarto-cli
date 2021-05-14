@@ -285,8 +285,7 @@ function calloutDocx(div)
   if contents:find_if(function(el) 
     return el.t == "Div" and el.attr.classes:find_if(isDocxOutput) ~= nil 
   end) ~= nil then
-    print("Found a nested callout in the document. Please fix this issue and try again.")
-    os.exit(1)
+    fail("Found a nested callout in the document. Please fix this issue and try again.")
   end
 
   tappend(calloutContents, contents)

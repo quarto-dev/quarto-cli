@@ -1,8 +1,4 @@
 
-TODO: Restore figure CSS for epub
-
-TODO: Error function for LUA that prints current file (if availalbe)
-
 TODO: Quarto render book with and output path -> --output _book/foo.pdf causes latexmk error
 
 TODO: Scss function(s) for referencing fonts (e.g. google, etc...)

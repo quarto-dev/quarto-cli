@@ -445,10 +445,12 @@ function bookItemMetadata(
     ...inlineMetadata,
     bookItemType: item.type,
     bookItemNumber: item.number ? item.number : null,
+    bookItemFile: item.file,
   };
-  const inlineMetadataEncoced = base64Encode(JSON.stringify(inlineMetadata));
+
+  const inlineMetadataEncoded = base64Encode(JSON.stringify(inlineMetadata));
   const blockMetadataEncoded = base64Encode(JSON.stringify(blockMetadata));
-  return `\n\n\`<!-- quarto-file-metadata: ${inlineMetadataEncoced} -->\`{=html}\n\n\`\`\`{=html}\n<!-- quarto-file-metadata: ${blockMetadataEncoded} -->\n\`\`\`\n\n`;
+  return `\n\n\`<!-- quarto-file-metadata: ${inlineMetadataEncoded} -->\`{=html}\n\n\`\`\`{=html}\n<!-- quarto-file-metadata: ${blockMetadataEncoded} -->\n\`\`\`\n\n`;
 }
 
 function bookPartMarkdown(project: ProjectContext, item: BookRenderItem) {
