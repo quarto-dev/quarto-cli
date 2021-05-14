@@ -29,6 +29,10 @@ nav .dropdown-item i {
   padding-left: 20px;
 }
 
+.sidebar-navigation > nav {
+  max-width: 300px;
+}
+
 .sidebar-navigation,
 .sidebar-navigation button {
   font-size: 1em;
