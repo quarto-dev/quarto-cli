@@ -177,7 +177,7 @@ export function watchProject(
         // remove input files
         serveProject.files.input.forEach(removeIfExists);
       }
-      copyProjectForServe(project, serveProject.dir);
+      copyProjectForServe(project, false, serveProject.dir);
       if (refreshProject) {
         await refreshProjectConfig();
       }

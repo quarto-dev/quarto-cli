@@ -29,6 +29,10 @@ nav .dropdown-item i {
   padding-left: 20px;
 }
 
+.sidebar-navigation > nav {
+  max-width: 300px;
+}
+
 .sidebar-navigation,
 .sidebar-navigation button {
   font-size: 1em;
@@ -40,7 +44,7 @@ nav .dropdown-item i {
 
 .sidebar-title {
   padding-bottom: 0.5rem;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   visibility: visible;
 }
 
@@ -245,7 +249,6 @@ header.headroom--unpinned {
 
   .sidebar.sidebar-navigation nav {
     height: 100%;
-    min-width: 15em;
   }
 
   .sidebar-navigation nav.anchored .sidebar-search {

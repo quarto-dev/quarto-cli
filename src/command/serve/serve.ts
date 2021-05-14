@@ -63,12 +63,9 @@ export async function serveProject(
     ...options,
   };
 
-  // create mirror or project for serving
-  const serveDir = copyProjectForServe(project);
-  const serveProject = await projectContext(serveDir);
-
+  // render in the main directory
   const renderResult = await renderProject(
-    serveProject,
+    project,
     {
       useFreezer: true,
       flags: { debug: options.debug },
@@ -79,6 +76,10 @@ export async function serveProject(
   if (renderResult.error) {
     throw error;
   }
+
+  // create mirror of project for serving
+  const serveDir = copyProjectForServe(project, true);
+  const serveProject = await projectContext(serveDir);
 
   // create project watcher
   const watcher = watchProject(project, serveProject, renderResult, options);
@@ -160,6 +161,7 @@ export async function serveProject(
 
 export function copyProjectForServe(
   project: ProjectContext,
+  copyOutput: boolean,
   serveDir?: string,
 ) {
   serveDir = serveDir || createSessionTempDir();
@@ -173,7 +175,10 @@ export function copyProjectForServe(
   const projectIgnore = projectIgnoreRegexes();
 
   const filter = (path: string) => {
-    if (path.startsWith(outputDir) || (libDir && path.startsWith(libDir))) {
+    if (
+      !copyOutput &&
+      (path.startsWith(outputDir) || (libDir && path.startsWith(libDir)))
+    ) {
       return false;
     }
     const pathRelative = pathWithForwardSlashes(relative(project.dir, path));

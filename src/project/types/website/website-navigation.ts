@@ -90,11 +90,6 @@ import {
   websiteTitle,
 } from "./website-config.ts";
 
-interface NavigationItem {
-  text?: string;
-  href?: string;
-}
-
 interface Navigation {
   navbar?: Navbar;
   sidebars: Sidebar[];
@@ -106,6 +101,9 @@ interface Navigation {
 const navigation: Navigation = {
   sidebars: [],
 };
+
+export const kSidebarSubtitle = "subtitle";
+export const kSidebarLogo = "logo";
 
 export async function initWebsiteNavigation(project: ProjectContext) {
   // read config

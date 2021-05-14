@@ -6,7 +6,7 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { basename, extname, join } from "path/mod.ts";
+import { basename, join } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
@@ -43,6 +43,10 @@ import {
   websiteConfigActions,
   websiteProjectConfig,
 } from "../website/website-config.ts";
+import {
+  kSidebarLogo,
+  kSidebarSubtitle,
+} from "../website/website-navigation.ts";
 
 import { isNumberedChapter } from "./book-chapters.ts";
 import { kOutputExt, kTitle } from "../../../config/constants.ts";
@@ -125,6 +129,10 @@ export async function bookProjectConfig(
   // if we have a top-level 'contents' or 'appendix' fields fold into sidebar
   site[kSiteSidebar] = site[kSiteSidebar] || {};
   const siteSidebar = site[kSiteSidebar] as Metadata;
+  siteSidebar[kSiteTitle] = book[kSiteTitle];
+  siteSidebar[kSidebarSubtitle] = book[kSidebarSubtitle];
+  siteSidebar[kSidebarLogo] = book[kSidebarLogo];
+
   siteSidebar[kContents] = [];
   const bookContents = bookConfig(kBookChapters, config);
 
