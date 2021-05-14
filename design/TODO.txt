@@ -28,21 +28,17 @@ TODO: convert to css grid for columns (allows for content floating and crossing 
 Books
 ===========================================
 
-
-- sidebar-navigation color isn't using bootstrap classes (requries hard code color)
+Figure Caption Alignment
+- What is default Pandoc behavior for caption Alignment
+- Does LaTeX do somethign smart (e.g. single vs multiline captions)
+- Does LaTeX always center subfigure captions
+- Table captions?
 
 - consider expanding/collapsing side toc like bs4_book
   (https://mastering-shiny.org/basic-reactivity.html)
 
 - default font size too small (note impact on nav, etc. if we change it though)
   quarto: 16, distill: 17, bs4_book: 18
-
-- try out negative margin for code block, blockquote, and callouts
-  (implications for line numbering?)
-
-- left align figure captions (perhaps undo custom figures for word?). that would 
-  just mean not calling for special docx output in figures.lua. or just change
-  fig-align default for word to left 
 
 - figure captions a bit bigger and a bit darker (https://mastering-shiny.org/action-graphics.html)
 
