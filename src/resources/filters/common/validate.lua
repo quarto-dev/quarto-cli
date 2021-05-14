@@ -5,7 +5,7 @@ kAlignments = pandoc.List:new({ "center", "left", "right" })
 kVAlignments = pandoc.List:new({"top", "center", "bottom"})
 
 function validatedAlign(align)
-  return validateInList(align, kAlignments, "alignment", "left")
+  return validateInList(align, kAlignments, "alignment", "center")
 end
 
 function validatedVAlign(vAlign)
