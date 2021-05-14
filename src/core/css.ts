@@ -89,3 +89,23 @@ export function asCssColor(value: unknown): string | undefined {
     return value;
   }
 }
+
+const kBootstrapColors = [
+  "primary",
+  "secondary",
+  "success",
+  "info",
+  "warning",
+  "danger",
+  "light",
+  "dark",
+];
+export function asBootstrapColor(value: unknown): string | undefined {
+  if (typeof (value) === "string") {
+    if (kBootstrapColors.includes(value)) {
+      return `$${value}`;
+    } else {
+      return asCssColor(value);
+    }
+  }
+}

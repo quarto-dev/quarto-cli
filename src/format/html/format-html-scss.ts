@@ -10,6 +10,7 @@ import { dirname, join } from "path/mod.ts";
 
 import { formatResourcePath } from "../../core/resources.ts";
 import {
+  asBootstrapColor,
   asCssColor,
   asCssFont,
   asCssNumber,
@@ -181,7 +182,9 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
           sassVariable(
             "sidebar-bg",
             sidebarBackground,
-            typeof (sidebarBackground) === "string" ? asCssColor : undefined,
+            typeof (sidebarBackground) === "string"
+              ? asBootstrapColor
+              : undefined,
           ),
         ),
       );
@@ -196,7 +199,9 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
         sassVariable(
           kCodeBorderLeft,
           codeblockLeftBorder,
-          typeof (codeblockLeftBorder) === "string" ? asCssColor : undefined,
+          typeof (codeblockLeftBorder) === "string"
+            ? asBootstrapColor
+            : undefined,
         ),
       ),
     );
@@ -208,7 +213,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     variables.push(print(sassVariable(
       kCodeBlockBackground,
       codeblockBackground,
-      typeof (codeblockBackground) === "string" ? asCssColor : undefined,
+      typeof (codeblockBackground) === "string" ? asBootstrapColor : undefined,
     )));
 
     if (codeblockLeftBorder === undefined) {
