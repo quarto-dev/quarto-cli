@@ -37,9 +37,6 @@ Figure Caption Alignment
 - consider expanding/collapsing side toc like bs4_book
   (https://mastering-shiny.org/basic-reactivity.html)
 
-- default font size too small (note impact on nav, etc. if we change it though)
-  quarto: 16, distill: 17, bs4_book: 18
-
 - figure captions a bit bigger and a bit darker (https://mastering-shiny.org/action-graphics.html)
 
 - auto-anchoring for cross-referenceable figures (anchorjs customization)
