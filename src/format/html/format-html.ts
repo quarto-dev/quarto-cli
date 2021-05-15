@@ -215,6 +215,12 @@ function htmlFormatExtras(format: Format): FormatExtras {
     options.hoverFootnotes = format.metadata[kHoverFootnotes] || false;
   }
 
+  // quarto.js helpers
+  scripts.push({
+    name: "quarto.js",
+    path: formatResourcePath("html", "quarto.js"),
+  });
+
   // popper if required
   options.tippy = options.hoverCitations || options.hoverFootnotes;
   if (bootstrap || options.tippy) {

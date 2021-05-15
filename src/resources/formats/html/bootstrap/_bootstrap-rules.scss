@@ -169,7 +169,7 @@ div.sourceCode {
 }
 
 $toc-indent-depth: 5;
-$indent: 0.9em;
+$indent: 1.1em;
 @for $i from 1 through $toc-indent-depth {
 
   $selector-depth: repeat(" ul > li >", $i);
