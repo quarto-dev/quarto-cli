@@ -1,3 +1,10 @@
+ScrollSpy:
+TODO: Scrollspy confused / not properly offset when reloaded at bottom of the page
+TODO: Upon first load, why is top element of TOC not marked 'active'
+
+TOC:
+TODO: Consider fast animation for expand / collapse of TOC
+
 
 TODO: Quarto render book with and output path -> --output _book/foo.pdf causes latexmk error
 
@@ -34,16 +41,10 @@ Figure Caption Alignment
 - Does LaTeX always center subfigure captions
 - Table captions?
 
-- consider expanding/collapsing side toc like bs4_book
-  (https://mastering-shiny.org/basic-reactivity.html)
-
-- figure captions a bit bigger and a bit darker (https://mastering-shiny.org/action-graphics.html)
-
 - auto-anchoring for cross-referenceable figures (anchorjs customization)
 
 - 'cover' class to wrap text around cover on home page
   encourage use of raw html for these images (so that they don't show up in pdf and word)
-
 
 - Language customization
 
