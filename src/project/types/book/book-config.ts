@@ -43,10 +43,7 @@ import {
   websiteConfigActions,
   websiteProjectConfig,
 } from "../website/website-config.ts";
-import {
-  kSidebarLogo,
-  kSidebarSubtitle,
-} from "../website/website-navigation.ts";
+import { kSidebarLogo } from "../website/website-navigation.ts";
 
 import { isNumberedChapter } from "./book-chapters.ts";
 import { kOutputExt, kTitle } from "../../../config/constants.ts";
@@ -130,7 +127,6 @@ export async function bookProjectConfig(
   site[kSiteSidebar] = site[kSiteSidebar] || {};
   const siteSidebar = site[kSiteSidebar] as Metadata;
   siteSidebar[kSiteTitle] = book[kSiteTitle];
-  siteSidebar[kSidebarSubtitle] = book[kSidebarSubtitle];
   siteSidebar[kSidebarLogo] = book[kSidebarLogo];
 
   siteSidebar[kContents] = [];

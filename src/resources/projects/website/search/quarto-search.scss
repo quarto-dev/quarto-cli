@@ -1,3 +1,8 @@
+#quarto-search {
+  font-size: $nav-font-size;
+  padding: 0.3rem 0.6rem;
+  margin-top: 0.5rem;
+}
 
 #quarto-search:focus {
   box-shadow: none;
@@ -25,13 +30,13 @@
   display: -webkit-box;
   -webkit-line-clamp: 2; /* number of lines to show */
   -webkit-box-orient: vertical;
-  line-height: 1.2rem;     /* fallback */
-  max-height: 2.4rem;      /* fallback */
+  line-height: 1.2rem; /* fallback */
+  max-height: 2.4rem; /* fallback */
 }
 
 #quarto-search-results .search-result-section {
   color: theme-dim($popover-body-color, 25%);
-  font-size: 0.9em;
+  font-size: $nav-font-size;
 }
 
 #quarto-search-results .aa-suggestion {
@@ -59,11 +64,19 @@
 }
 
 .algolia-autocomplete .aa-dropdown-menu .aa-suggestion.aa-cursor .card {
-  background-color: theme-fade($component-active-bg, $popover-bg, 5%) !important;
+  background-color: theme-fade(
+    $component-active-bg,
+    $popover-bg,
+    5%
+  ) !important;
   color: $component-active-color !important;
 }
 
-.algolia-autocomplete .aa-dropdown-menu .aa-suggestion.aa-cursor .card .search-result-section {
+.algolia-autocomplete
+  .aa-dropdown-menu
+  .aa-suggestion.aa-cursor
+  .card
+  .search-result-section {
   color: theme-dim($component-active-color, 15%) !important;
 }
 
@@ -71,8 +84,3 @@
   font-weight: 500;
   font-style: normal;
 }
-
-
-
-
-

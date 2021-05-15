@@ -102,7 +102,6 @@ const navigation: Navigation = {
   sidebars: [],
 };
 
-export const kSidebarSubtitle = "subtitle";
 export const kSidebarLogo = "logo";
 
 export async function initWebsiteNavigation(project: ProjectContext) {

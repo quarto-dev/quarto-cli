@@ -35,7 +35,7 @@ nav .dropdown-item i {
 
 .sidebar-navigation,
 .sidebar-navigation button {
-  font-size: 0.9rem;
+  font-size: $nav-font-size;
 }
 
 .sidebar-navigation a {
@@ -44,7 +44,7 @@ nav .dropdown-item i {
 
 .sidebar-title {
   padding-bottom: 0.5rem;
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   visibility: visible;
 }
 
@@ -54,7 +54,7 @@ nav .dropdown-item i {
 }
 
 .sidebar-logo {
-  max-width: 65%;
+  max-height: 2.5rem;
   padding-bottom: 0.5rem;
 }
 
@@ -63,12 +63,13 @@ nav .dropdown-item i {
 }
 
 .sidebar-navigation .sidebar-tool {
-  opacity: 0.8;
-  font-size: 1.2em;
+  opacity: 0.7;
+  font-size: 0.875rem;
 }
 
 .sidebar-tools-main {
-  display: block;
+  margin-left: 8px;
+  display: inline-block;
 }
 
 .sidebar-tools-collapse {
@@ -86,8 +87,7 @@ nav .dropdown-item i {
 }
 
 .sidebar-navigation ul.sidebar-section.depth1 .sidebar-section-item {
-  text-transform: uppercase;
-  font-size: 0.9rem;
+  font-size: $nav-font-size;
 }
 
 .sidebar-navigation ul.sidebar-section.depth2 .sidebar-section-item {
@@ -118,11 +118,11 @@ nav .dropdown-item i {
   padding-left: 0px;
   padding-right: 0px;
   padding-bottom: 0.25rem;
-  font-weight: 300;
+  font-weight: $nav-font-weight;
 }
 
 .sidebar-navigation .sidebar-item a {
-  font-size: 0.9rem;
+  font-size: $nav-font-size;
 }
 
 .sidebar-navigation .sidebar-divider {
@@ -211,10 +211,6 @@ nav .dropdown-item i {
   }
 
   .sidebar-title {
-    display: none;
-  }
-
-  .sidebar-subtitle {
     display: none;
   }
 
@@ -349,7 +345,7 @@ header.headroom--unpinned {
 }
 
 .nav-page .nav-page-text {
-  font-size: 0.9rem;
+  font-size: $nav-font-size;
   vertical-align: middle;
 }
 
@@ -374,7 +370,7 @@ header.headroom--unpinned {
 .toc-actions a {
   text-decoration: none;
   color: inherit;
-  font-weight: 300;
+  font-weight: $nav-font-weight;
 }
 
 .toc-actions a:hover {
@@ -396,5 +392,5 @@ header.headroom--unpinned {
 }
 
 .sidebar-toc .toc-actions p {
-  font-size: 0.9rem;
+  font-size: $nav-font-size;
 }

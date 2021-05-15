@@ -5,12 +5,12 @@ let styleCss = sidebar.style === "floating" ? "floating" : "docked";
 let textStyleCss = sidebar.type ? sidebar.type === "dark" ? "text-light" : "text-dark" :  "";
 
 let alignCss = ""
-if (sidebar.align === "left") {
-  alignCss = "text-start";
+if (sidebar.align === "center") {
+  alignCss = "text-center";
 } else if (sidebar.align === "right") {
   alignCss = "text-end";
 } else {
-  alignCss = "text-center";
+  alignCss = "text-left";
 }
 %>
 
@@ -21,16 +21,15 @@ if (sidebar.align === "left") {
     <% } %>
     
     <% if (sidebar.title) { %>
-    <h4 class="sidebar-title text-center mt-1 mb-0 py-0"><%- sidebar.title %></h4>
+    <h4 class="sidebar-title mt-1 mb-0 py-0">
+      <%- sidebar.title %>
+      <% if (sidebar.tools) { %>
+        <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main' })%>
+      <% } %>
+    </h4>
+
     <% } %>
 
-    <% if (sidebar.subtitle) { %>
-    <div class="sidebar-subtitle lead mt-1 pb-0 text-center"><%- sidebar.subtitle %></div>
-    <% } %>
-
-    <% if (sidebar.tools) { %>
-      <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main' })%>
-    <% } %>
   </div>
   <% if (sidebar.search) { %>
     <div class="d-flex px-3 mt-2">
