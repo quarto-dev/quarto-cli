@@ -394,3 +394,7 @@ header.headroom--unpinned {
 .sidebar-toc .toc-actions p {
   font-size: $nav-font-size;
 }
+
+.sidebar-toc .header-section-number {
+  display: none;
+}
