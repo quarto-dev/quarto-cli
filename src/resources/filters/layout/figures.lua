@@ -23,7 +23,7 @@ function extendedFigures()
         elseif isHtmlOutput() then
           return htmlDivFigure(el)
         elseif isDocxOutput() then
-          return wpFigure(el)
+          return wpDivFigure(el)
         end
       end
     end

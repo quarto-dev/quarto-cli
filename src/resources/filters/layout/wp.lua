@@ -9,25 +9,31 @@ function tableWpPanel(divEl, layout, caption)
 end
 
 
-function wpFigure(image)
+function wpDivFigure(div)
   
   -- options
   options = {
     pageWidth = wpPageWidth(),
   }
+
+  -- determine divCaption handler (always left-align)
+  local divCaption = nil
   if isDocxOutput() then
-    options.divCaption = docxDivCaption
+    divCaption = docxDivCaption
   elseif isOdtOutput() then
-    options.divCaption = odtDivCaption
+    divCaption = odtDivCaption
+  end
+  if divCaption then
+    options.divCaption = function(el, align) return divCaption(el, "left") end
   end
 
   -- get alignment
-  local align = figAlignAttribute(image)
+  local align = figAlignAttribute(div)
   
   -- create the row/cell for the figure
   local row = pandoc.List:new()
-  local cell = pandoc.Div(pandoc.Para(image))
-  transferImageWidthToCell(image, cell)
+  local cell = div:clone()
+  transferImageWidthToCell(div, cell)
   row:insert(tableCellContent(cell, align, options))
   
   -- make the table
