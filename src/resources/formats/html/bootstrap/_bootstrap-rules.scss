@@ -168,8 +168,15 @@ div.sourceCode {
   color: inherit;
 }
 
-.sidebar-toc > nav ul > li > ul > li > a {
-  padding-left: 1.3em;
+$toc-indent-depth: 5;
+$indent: 0.9em;
+@for $i from 1 through $toc-indent-depth {
+
+  $selector-depth: repeat(" ul > li >", $i);
+
+  .sidebar-toc > nav ul > li > #{$selector-depth} a {
+    padding-left: #{$indent*$i};
+  }
 }
 
 .sidebar-toc > nav ul > li > ul > li > a.active {
