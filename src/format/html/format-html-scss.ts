@@ -137,7 +137,7 @@ function pandocVariablesToBootstrapDefaults(
 
   // Pass through to some bootstrap variables
   add(explicitVars, "line-height-base", metadata["linestretch"], asCssNumber);
-  add(explicitVars, "font-size-root", metadata["font-size"]);
+  add(explicitVars, "font-size-root", metadata["fontsize"]);
   add(explicitVars, "body-bg", metadata["backgroundcolor"]);
   add(explicitVars, "body-color", metadata["fontcolor"]);
   add(explicitVars, "link-color", metadata["linkcolor"]);
