@@ -35,10 +35,6 @@ TODO: convert to css grid for columns (allows for content floating and crossing 
 Books
 ===========================================
 
-- activating code-link results in corrupted layout (main is in the sidebar)
-  likely we have some invaild/unclosed html and one of the postprocessing
-  passes is "remedying" this and resulting in the layout problem
-
 - Table captions? (we currently set <caption> to centered in our css)
 
 - Can get HTML figcaption to behavior more like latex (center if less)
@@ -131,6 +127,7 @@ RStudio IDE
      - Notebook engine:
          - https://starboard.gg/gz/open-source-observablehq-nfwK2VA
          - https://observablehq.com/@asg017/an-unofficial-observablehq-compiler
+         - https://observablehq.com/@asg017/introducing-dataflow
      - RStudio/authoring implications
 
 - Concept of non-HTML themes (e.g. LaTeX template, docx template)
