@@ -18,3 +18,11 @@
     @return lighten($baseColor, $amount);     
   }
 }
+
+@function repeat($chars, $n){
+  $final:"";
+  @for $i from 1 through $n {
+    $final: $final + $chars;
+ }
+  @return $final;
+}
