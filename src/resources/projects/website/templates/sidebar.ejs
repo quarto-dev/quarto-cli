@@ -21,12 +21,12 @@ if (sidebar.align === "center") {
     <% } %>
     
     <% if (sidebar.title) { %>
-    <h4 class="sidebar-title mt-1 mb-0 py-0">
+    <div class="sidebar-title mt-1 mb-0 py-0">
       <%- sidebar.title %>
       <% if (sidebar.tools) { %>
         <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main' })%>
       <% } %>
-    </h4>
+    </div>
 
     <% } %>
 
