@@ -35,24 +35,25 @@ TODO: convert to css grid for columns (allows for content floating and crossing 
 Books
 ===========================================
 
-Figure Caption Alignment
-
-- Can get HTML figcaption to behavior more like latex (center if less)
+- activating code-link results in corrupted layout (main is in the sidebar)
+  likely we have some invaild/unclosed html and one of the postprocessing
+  passes is "remedying" this and resulting in the layout problem
 
 - Table captions? (we currently set <caption> to centered in our css)
 
-- copy button on single line of code causes scrollbars to appear
+- Can get HTML figcaption to behavior more like latex (center if less)
+
 
 - auto-anchoring for cross-referenceable figures (anchorjs customization)
 
 - 'cover' class to wrap text around cover on home page
-  encourage use of raw html for these images (so that they don't show up in pdf and word)
+  consider 'cover' metadata value used in epub and html?
+  encourage use of raw html for these images (so that they don't show up in pdf and word)?
 
 - Language customization
 
 - https://uwdata.github.io/visualization-curriculum/intro.html
 - Tidy text mining?
-- RStudio Server Pro https://docs.rstudio.com/ide/server-pro/
 
 
 Markdown Serialization
