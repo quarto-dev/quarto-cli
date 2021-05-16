@@ -29,15 +29,16 @@ Books
 ===========================================
 
 Figure Caption Alignment
-- What is default Pandoc behavior for caption Alignment
-- Does LaTeX do somethign smart (e.g. single vs multiline captions)
-- Does LaTeX always center subfigure captions
-- Table captions?
+
+- Can get HTML figcaption to behavior more like latex (center if less)
+
+- Table captions? (we currently set <caption> to centered in our css)
 
 - consider expanding/collapsing side toc like bs4_book
   (https://mastering-shiny.org/basic-reactivity.html)
 
-- figure captions a bit bigger and a bit darker (https://mastering-shiny.org/action-graphics.html)
+
+- copy button on single line of code causes scrollbars to appear
 
 - auto-anchoring for cross-referenceable figures (anchorjs customization)
 
