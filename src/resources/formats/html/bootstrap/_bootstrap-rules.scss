@@ -93,6 +93,7 @@ pre.sourceCode {
 }
 
 div.sourceCode {
+  overflow-y: hidden;
   background-color: $body-bg !important;
   @if $code-border-left {
     margin-left: add(add(-$code-padding-left, -$code-border-left-size), 2px);
