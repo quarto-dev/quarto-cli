@@ -163,19 +163,19 @@ div.sourceCode {
 }
 
 .sidebar-toc > nav ul li a {
-  padding-bottom: 0.07rem;
-  padding-top: 0.07rem;
+  line-height: 1.1rem;
+  padding-bottom: 0.2rem;
+  padding-top: 0.2rem;
   color: inherit;
 }
 
 $toc-indent-depth: 5;
-$indent: 1.1em;
+$indent: 1.2em;
 @for $i from 1 through $toc-indent-depth {
-
   $selector-depth: repeat(" ul > li >", $i);
 
   .sidebar-toc > nav ul > li > #{$selector-depth} a {
-    padding-left: #{$indent*$i};
+    padding-left: #{$indent * $i};
   }
 }
 
