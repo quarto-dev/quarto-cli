@@ -39,12 +39,10 @@ Books
 
 - Can get HTML figcaption to behavior more like latex (center if less)
 
-
 - auto-anchoring for cross-referenceable figures (anchorjs customization)
 
-- 'cover' class to wrap text around cover on home page
-  consider 'cover' metadata value used in epub and html?
-  encourage use of raw html for these images (so that they don't show up in pdf and word)?
+  consider 'cover' metadata value used in epub and html. would serve as the epub
+  cover image and would go as a float-right image on the index page for html
 
 - Language customization
 
