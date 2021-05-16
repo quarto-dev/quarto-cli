@@ -11,7 +11,6 @@ import { dirname, join } from "path/mod.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import {
   asBootstrapColor,
-  asCssColor,
   asCssFont,
   asCssNumber,
   asCssSize,

@@ -11,6 +11,8 @@ import { basename, dirname, extname, join, relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
+import { Document, DOMParser } from "deno_dom/deno-dom-wasm.ts";
+
 import { info } from "log/mod.ts";
 
 import { mergeConfigs } from "../../core/config.ts";
@@ -107,6 +109,11 @@ export interface RenderContext {
   format: Format;
   libDir: string;
   project?: ProjectContext;
+}
+
+export interface RunPandocResult {
+  resources: string[];
+  htmlPostprocessors: Array<(doc: Document) => Promise<string[]>>;
 }
 
 export interface RenderResourceFiles {
@@ -555,8 +562,8 @@ export async function renderPandoc(
   }
 
   // run pandoc conversion (exit on failure)
-  const resourceFiles = await runPandoc(pandocOptions, executeResult.filters);
-  if (!resourceFiles) {
+  const pandocResult = await runPandoc(pandocOptions, executeResult.filters);
+  if (!pandocResult) {
     return Promise.reject();
   }
 
@@ -571,6 +578,12 @@ export async function renderPandoc(
       quiet: context.options.flags?.quiet,
     });
   }
+
+  // run html postprocessors if we have them
+  const resourceRefs = await runHtmlPostprocessors(
+    pandocOptions,
+    pandocResult.htmlPostprocessors,
+  );
 
   // ensure flags
   const flags = context.options.flags || {};
@@ -622,7 +635,10 @@ export async function renderPandoc(
       )
       : undefined,
     file: projectPath(finalOutput),
-    resourceFiles: resourceFiles,
+    resourceFiles: {
+      globs: pandocResult.resources,
+      files: resourceRefs,
+    },
     selfContained: selfContained,
   };
 }
@@ -859,6 +875,27 @@ export function formatKeys(metadata: Metadata): string[] {
 
 export function filesDirLibDir(input: string) {
   return join(inputFilesDir(input), "libs");
+}
+
+async function runHtmlPostprocessors(
+  options: PandocOptions,
+  htmlPostprocessors: Array<(doc: Document) => Promise<string[]>>,
+): Promise<string[]> {
+  const resourceRefs: string[] = [];
+  if (htmlPostprocessors.length > 0) {
+    const outputFile = join(dirname(options.input), options.output);
+    const htmlInput = Deno.readTextFileSync(outputFile);
+    const doctypeMatch = htmlInput.match(/^<!DOCTYPE.*?>/);
+    const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
+    for (let i = 0; i < htmlPostprocessors.length; i++) {
+      const postprocessor = htmlPostprocessors[i];
+      resourceRefs.push(...(await postprocessor(doc)));
+    }
+    const htmlOutput = (doctypeMatch ? doctypeMatch[0] + "\n" : "") +
+      doc.documentElement?.outerHTML!;
+    Deno.writeTextFileSync(outputFile, htmlOutput);
+  }
+  return resourceRefs;
 }
 
 async function resolveFormats(

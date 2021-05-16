@@ -15,7 +15,7 @@ import { stringify } from "encoding/yaml.ts";
 
 import { ld } from "lodash/mod.ts";
 
-import { Document, DOMParser } from "deno_dom/deno-dom-wasm.ts";
+import { Document } from "deno_dom/deno-dom-wasm.ts";
 
 import { execProcess } from "../../core/process.ts";
 import { dirAndStem, pathWithForwardSlashes } from "../../core/path.ts";
@@ -71,7 +71,7 @@ import {
 import { sessionTempFile } from "../../core/temp.ts";
 import { cssImports, cssResources } from "../../core/css.ts";
 
-import { RenderResourceFiles } from "./render.ts";
+import { RunPandocResult } from "./render.ts";
 import { compileSass } from "./sass.ts";
 import { crossrefFilterActive } from "./crossref.ts";
 
@@ -107,7 +107,7 @@ export interface PandocOptions {
 export async function runPandoc(
   options: PandocOptions,
   sysFilters: string[],
-): Promise<RenderResourceFiles | null> {
+): Promise<RunPandocResult | null> {
   // compute cwd for render
   const cwd = dirname(options.input);
 
@@ -347,41 +347,25 @@ export async function runPandoc(
     },
   );
 
-  // track discovered resource refs
-  const resourceRefs: string[] = [];
-
-  // post-processing for html
-  if (isHtmlOutput(options.format.pandoc) && htmlPostprocessors.length > 0) {
-    const outputFile = join(cwd, options.output);
-    const htmlInput = Deno.readTextFileSync(outputFile);
-    const doctypeMatch = htmlInput.match(/^<!DOCTYPE.*?>/);
-    const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
-    for (let i = 0; i < htmlPostprocessors.length; i++) {
-      const postprocessor = htmlPostprocessors[i];
-      resourceRefs.push(...(await postprocessor(doc)));
-    }
-    const htmlOutput = (doctypeMatch ? doctypeMatch[0] + "\n" : "") +
-      doc.documentElement?.outerHTML!;
-    Deno.writeTextFileSync(outputFile, htmlOutput);
-  }
-
   // resolve resource files from metadata
-  const globs: string[] = [];
+  const resources: string[] = [];
   if (options.format.metadata[kResources]) {
     const files = options.format.metadata[kResources];
     if (Array.isArray(files)) {
       for (const file of files) {
-        globs.push(String(file));
+        resources.push(String(file));
       }
     } else {
-      globs.push(String(files));
+      resources.push(String(files));
     }
   }
 
   if (result.success) {
     return {
-      globs,
-      files: resourceRefs,
+      resources,
+      htmlPostprocessors: isHtmlOutput(options.format.pandoc)
+        ? htmlPostprocessors
+        : [],
     };
   } else {
     return null;
