@@ -40,8 +40,8 @@ $body-bg: #fff !default;
 $sidebar-bg: $body-bg !default;
 
 // Adjust the base font size up a little
-$font-size-root: 18px;
+$font-size-root: 18px !default;
 
 // Font size for navigational elements
-$nav-font-size: 0.875rem;
-$nav-font-weight: 300;
+$nav-font-size: 0.875rem !default;
+$nav-font-weight: 300 !default;
