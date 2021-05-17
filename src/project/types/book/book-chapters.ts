@@ -15,7 +15,7 @@ import {
   kTitle,
   kToc,
 } from "../../../config/constants.ts";
-import { Format, isHtmlOutput } from "../../../config/format.ts";
+import { Format } from "../../../config/format.ts";
 import { Metadata } from "../../../config/metadata.ts";
 
 import { ProjectConfig, ProjectContext } from "../../project-context.ts";

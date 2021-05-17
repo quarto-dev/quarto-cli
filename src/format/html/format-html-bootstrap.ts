@@ -158,10 +158,6 @@ function bootstrapHtmlPostprocessor(format: Format) {
     const tocSidebar = doc.getElementById("quarto-toc-sidebar");
     if (toc && tocSidebar) {
       tocSidebar.appendChild(toc);
-      // add scroll spy to the body
-      const body = doc.body;
-      body.setAttribute("data-bs-spy", "scroll");
-      body.setAttribute("data-bs-target", "#" + tocSidebar.id);
 
       // add nav-link class to the TOC links
       const tocLinks = doc.querySelectorAll('nav[role="doc-toc"] > ul a');
@@ -169,14 +165,24 @@ function bootstrapHtmlPostprocessor(format: Format) {
         // Mark the toc links as nav-links
         const tocLink = tocLinks[i] as Element;
         tocLink.classList.add("nav-link");
+        if (i === 0) {
+          tocLink.classList.add("active");
+        }
 
         // move the raw href to the target attribute (need the raw value, not the full path)
-        if (!tocLink.hasAttribute("data-bs-target")) {
+        if (!tocLink.hasAttribute("data-scroll-target")) {
           tocLink.setAttribute(
-            "data-bs-target",
+            "data-scroll-target",
             tocLink.getAttribute("href")?.replaceAll(":", "\\:"),
           );
         }
+      }
+
+      // default collapse non-top level TOC nodes
+      const nestedUls = toc.querySelectorAll("ul ul");
+      for (let i = 0; i < nestedUls.length; i++) {
+        const ul = nestedUls[i] as Element;
+        ul.classList.add("collapse");
       }
     }
 
