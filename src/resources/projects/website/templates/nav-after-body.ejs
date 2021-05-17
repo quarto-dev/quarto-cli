@@ -3,9 +3,9 @@
 </main>
 
 
-<div class="row page-navigation <%- nav.sidebar.style !== "floating" ? "page-navigation-docked" : ""  %>">
+<div class="page-navigation <%- nav.sidebar.style !== "floating" ? "page-navigation-docked" : ""  %>">
 
-  <div class="nav-page nav-page-previous col">
+  <div class="nav-page nav-page-previous">
     <% if (nav.prevPage) { %>
       <a  href="<%- nav.prevPage.href %>">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><%= nav.prevPage.text %></span>
@@ -14,7 +14,7 @@
   </div>
 
 
-  <div class="nav-page nav-page-next col">
+  <div class="nav-page nav-page-next">
     <% if (nav.nextPage) { %>
       <a  href="<%- nav.nextPage.href %>">
         <span class="nav-page-text"><%= nav.nextPage.text %></span> <i class="bi bi-arrow-right-short"></i>
