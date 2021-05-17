@@ -178,6 +178,13 @@ function bootstrapHtmlPostprocessor(format: Format) {
           );
         }
       }
+
+      // default collapse non-top level TOC nodes
+      const nestedUls = toc.querySelectorAll("ul ul");
+      for (let i = 0; i < nestedUls.length; i++) {
+        const ul = nestedUls[i] as Element;
+        ul.classList.add("collapse");
+      }
     }
 
     // add .table class to pandoc tables
