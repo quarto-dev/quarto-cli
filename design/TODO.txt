@@ -1,6 +1,5 @@
 ScrollSpy:
-TODO: Scrollspy confused / not properly offset when reloaded at bottom of the page
-TODO: Upon first load, why is top element of TOC not marked 'active'
+TODO: Scrollspy doesn't work properly with cross referenceable sections (colon in target)
 
 TOC:
 TODO: Consider fast animation for expand / collapse of TOC
@@ -13,8 +12,6 @@ TODO: Scss function(s) for referencing fonts (e.g. google, etc...)
 
 TODO: try out article-per-directory w/ "page bundles" (auto-resolve directories to index.html)
 TODO: also try output-file: index.html
-
-TODO: Floating TOC with toc-depth: 4 - looks meh
 
 TODO: centralized _cache dir for projects (alongside _freeze)
 
@@ -37,7 +34,6 @@ Books
 
 - Wrapping of long chapter names in page-navigation 
 
-- Jerky page load when non-trivial processing preceeds TOC layout (see altair example book)
 
 - Table captions? (we currently set <caption> to centered in our css)
 
