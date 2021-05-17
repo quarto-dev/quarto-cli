@@ -101,3 +101,9 @@ code a:any-link {
 .quarto-unresolved-ref {
   font-weight: 600;
 }
+
+// cells
+
+.cell-output-display {
+  overflow-x: scroll;
+}
