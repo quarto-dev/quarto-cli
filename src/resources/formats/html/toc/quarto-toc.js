@@ -15,6 +15,40 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     }
   }
 
+  // Track scrolling and mark TOC links as active
+  const tocLinks = [...tocEl.querySelectorAll("a[data-scroll-target]")];  
+  const makeActive = (link) => tocLinks[link].classList.add("active");
+  const removeActive = (link) => tocLinks[link].classList.remove("active");
+  const removeAllActive = () => [...Array(tocLinks.length).keys()].forEach((link) => removeActive(link));
+
+  const sections = tocLinks.map(link => {
+    const target = link.getAttribute("data-scroll-target")?.replaceAll(":", "\\:");
+    return window.document.querySelector(`${target}`);
+  });
+  const sectionMargin = 200;
+  let currentActive = 0;
+  
+  const updateActiveLink = () => {
+
+    // The index from bottom to top (e.g. reversed list)
+    let sectionIndex = -1;
+    if ((window.innerHeight + window.pageYOffset) >= window.document.body.offsetHeight) {
+      sectionIndex = 0;
+    } else {
+      sectionIndex = [...sections].reverse().findIndex((section) => window.pageYOffset >= section.offsetTop - sectionMargin );
+    }
+   
+    if (sectionIndex > -1) {
+      const current = sections.length - sectionIndex - 1
+      if (current !== currentActive) {
+        removeAllActive();
+        currentActive = current;
+        makeActive(current);
+      }
+    }
+  }
+  
+
   // Walk the TOC and collapse/expand nodes
   // Nodes are expanded if:
   // - they are top level
@@ -54,28 +88,39 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   }
 
   // walk the TOC and expand / collapse any items that should be shown
+
   walk(tocEl, 0);
+  updateActiveLink();
 
   // Throttle the scroll event and walk peridiocally
-  let ticking = false;
-  window.document.addEventListener('scroll', () => {
-    if (!ticking) {
-      window.requestAnimationFrame(function() {
-        walk(tocEl, 0);
-        ticking = false;
-      });
-        ticking = true;
-    }
-  });
-
-
-  // Refresh the scroll spy
-  const bodySpy = new bootstrap.ScrollSpy(document.body)
-  if (bodySpy) {
-    bodySpy.refresh();
-  }
-
+  window.document.addEventListener('scroll', throttle(() =>{
+    updateActiveLink();
+    walk(tocEl, 0);
+  }, 10));
 });
+
+
+// TODO: Create shared throttle js function (see quarto-nav.js)
+function throttle(func, wait) {
+  var timeout;
+  return function() {
+    const context = this
+    const args = arguments;
+    const later = function() {
+      clearTimeout(timeout);
+      timeout = null;
+      func.apply(context, args);
+    };
+
+    if (!timeout) {
+      timeout = setTimeout(later, wait);
+    }
+  };
+}
+
+
+
+
 
 
 

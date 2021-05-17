@@ -158,10 +158,6 @@ function bootstrapHtmlPostprocessor(format: Format) {
     const tocSidebar = doc.getElementById("quarto-toc-sidebar");
     if (toc && tocSidebar) {
       tocSidebar.appendChild(toc);
-      // add scroll spy to the body
-      const body = doc.body;
-      body.setAttribute("data-bs-spy", "scroll");
-      body.setAttribute("data-bs-target", "#" + tocSidebar.id);
 
       // add nav-link class to the TOC links
       const tocLinks = doc.querySelectorAll('nav[role="doc-toc"] > ul a');
@@ -174,9 +170,9 @@ function bootstrapHtmlPostprocessor(format: Format) {
         }
 
         // move the raw href to the target attribute (need the raw value, not the full path)
-        if (!tocLink.hasAttribute("data-bs-target")) {
+        if (!tocLink.hasAttribute("data-scroll-target")) {
           tocLink.setAttribute(
-            "data-bs-target",
+            "data-scroll-target",
             tocLink.getAttribute("href")?.replaceAll(":", "\\:"),
           );
         }
