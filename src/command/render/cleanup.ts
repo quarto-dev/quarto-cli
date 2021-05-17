@@ -8,7 +8,8 @@
 import { existsSync } from "fs/mod.ts";
 import { dirname, join } from "path/mod.ts";
 
-import { removeIfExists } from "../../core/path.ts";
+import { removeIfEmptyDir, removeIfExists } from "../../core/path.ts";
+import { figuresDir, inputFilesDir } from "../../core/render.ts";
 
 import { Format } from "../../config/format.ts";
 import { kKeepMd, kKeepTex } from "../../config/constants.ts";
@@ -48,4 +49,12 @@ export function renderCleanup(
       }
     });
   }
+
+  // remove empty files/lib dirs
+  const filesDir = inputFilesDir(input);
+  const figsDir = join(filesDir, figuresDir(format.pandoc.to));
+  const libDir = filesDirLibDir(input);
+  removeIfEmptyDir(figsDir);
+  removeIfEmptyDir(libDir);
+  removeIfEmptyDir(filesDir);
 }
