@@ -39,9 +39,6 @@ Books
 
 - Jerky page load when non-trivial processing preceeds TOC layout (see altair example book)
 
-- When re-executing the altair notebooks execution_count starts at 2
-  (is this b/c of the setup chunk?)
-
 - Table captions? (we currently set <caption> to centered in our css)
 
 - Can get HTML figcaption to behavior more like latex (center if less)
