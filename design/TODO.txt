@@ -1,9 +1,3 @@
-ScrollSpy:
-TODO: Scrollspy doesn't work properly with cross referenceable sections (colon in target)
-
-TOC:
-TODO: Consider fast animation for expand / collapse of TOC
-
 
 TODO: Quarto render book with and output path -> --output _book/foo.pdf causes latexmk error
 
@@ -31,9 +25,6 @@ TODO: convert to css grid for columns (allows for content floating and crossing 
 
 Books
 ===========================================
-
-- Wrapping of long chapter names in page-navigation 
-
 
 - Table captions? (we currently set <caption> to centered in our css)
 
