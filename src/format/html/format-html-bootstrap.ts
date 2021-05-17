@@ -169,6 +169,9 @@ function bootstrapHtmlPostprocessor(format: Format) {
         // Mark the toc links as nav-links
         const tocLink = tocLinks[i] as Element;
         tocLink.classList.add("nav-link");
+        if (i === 0) {
+          tocLink.classList.add("active");
+        }
 
         // move the raw href to the target attribute (need the raw value, not the full path)
         if (!tocLink.hasAttribute("data-bs-target")) {
