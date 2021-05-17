@@ -31,6 +31,9 @@ TODO: merging includes at the lua filter level does not appear
 
 TODO: convert to css grid for columns (allows for content floating and crossing margin)
 
+TODO: re-render server docs, hopr, and altair with latest changes
+
+TODO: no jupyter progress when freeze: auto in project file
 
 Books
 ===========================================
