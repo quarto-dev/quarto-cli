@@ -314,12 +314,12 @@ header.headroom--unpinned {
   box-shadow: none;
 }
 
-.nav-page-next {
-  text-align: right;
+.page-navigation {
+  display: flex;
+  justify-content: space-between;
 }
 
 .nav-page {
-  display: flex;
   padding-bottom: 0.75em;
 }
 
@@ -337,10 +337,6 @@ header.headroom--unpinned {
   margin-top: 0.25rem;
 }
 
-.nav-page-next {
-  justify-content: flex-end;
-}
-
 .nav-page .bi {
   font-size: 1.8rem;
   vertical-align: middle;
@@ -348,12 +344,16 @@ header.headroom--unpinned {
 
 .nav-page .nav-page-text {
   font-size: $nav-font-size;
-  vertical-align: middle;
+  padding-left: .25em;
+  padding-right: .25em;
+  margin-bottom: 5px;
 }
 
 .nav-page a {
   color: $text-muted;
   text-decoration: none;
+  display: flex;
+  align-items: center;
 }
 
 .nav-page a:hover {
