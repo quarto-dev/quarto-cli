@@ -39,6 +39,7 @@ import {
   kExecute,
   kFigDpi,
   kFigFormat,
+  kFreeze,
   kIncludeAfterBody,
   kIncludeInHeader,
   kKeepIpynb,
@@ -207,7 +208,8 @@ export const jupyterEngine: ExecutionEngine = {
     // determine default execution behavior if none is specified
     let execute = options.format.execution[kExecute];
     if (execute === null) {
-      execute = !isNotebook(options.target.source);
+      execute = !isNotebook(options.target.source) ||
+        !!options.format.execution[kFreeze];
     }
     // execute if we need to
     if (execute) {
