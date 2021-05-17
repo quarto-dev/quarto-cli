@@ -116,8 +116,8 @@ export function parseRenderFlags(args: string[]) {
         flags.biblatex = true;
         break;
 
-      case kToc:
-      case kTableOfContents:
+      case `--${kToc}`:
+      case `--${kTableOfContents}`:
         arg = argsStack.shift();
         flags.toc = true;
         break;
