@@ -5,7 +5,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   if (!tocEl)
     return;
 
-
   // function to determine whether the element has a previous sibling that is active
   const prevSiblingIsActiveLink = (el) => {
     const sibling = el.previousElementSibling;
@@ -68,6 +67,13 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
         ticking = true;
     }
   });
+
+
+  // Refresh the scroll spy
+  const bodySpy = new bootstrap.ScrollSpy(document.body)
+  if (bodySpy) {
+    bodySpy.refresh();
+  }
 
 });
 

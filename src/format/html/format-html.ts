@@ -218,7 +218,7 @@ function htmlFormatExtras(format: Format): FormatExtras {
   // quarto.js helpers
   scripts.push({
     name: "quarto.js",
-    path: formatResourcePath("html", "quarto.js"),
+    path: formatResourcePath("html", join("toc", "quarto-toc.js")),
   });
 
   // popper if required
