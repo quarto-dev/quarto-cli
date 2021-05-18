@@ -37,6 +37,7 @@ import {
 import { Metadata } from "../../config/metadata.ts";
 import { binaryPath, resourcePath } from "../../core/resources.ts";
 import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
+import { partitionYamlFrontMatter } from "../../core/yaml.ts";
 
 import {
   deleteProjectMetadata,
@@ -304,11 +305,15 @@ export async function runPandoc(
     cmd.push("--defaults", defaultsFile);
   }
 
+  // remove front matter from markdown (we've got it all incorporated into options.format.metadata)
+  const markdown = partitionYamlFrontMatter(options.markdown)?.markdown ||
+    options.markdown;
+
   // read the input file then append the metadata to the file (this is to that)
   // our fully resolved metadata, which incorporates project and format-specific
   // values, overrides the metadata contained within the file). we'll feed the
   // input to pandoc on stdin
-  const input = options.markdown +
+  const input = markdown +
     "\n\n<!-- -->\n" +
     `\n---\n${
       stringify(options.format.metadata || {}, {
