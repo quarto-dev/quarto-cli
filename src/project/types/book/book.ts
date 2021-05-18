@@ -4,6 +4,9 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+
+import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
+
 import { dirname, join } from "path/mod.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { mergeConfigs } from "../../../core/config.ts";
@@ -14,6 +17,7 @@ import {
   isEpubOutput,
   isHtmlOutput,
   isLatexOutput,
+  kHtmlPostprocessors,
   kSassBundles,
 } from "../../../config/format.ts";
 import { PandocFlags } from "../../../config/flags.ts";
@@ -169,6 +173,7 @@ export const bookProjectType: ProjectType = {
       if (formatHasBootstrap(format)) {
         extras.html = {
           [kSassBundles]: [bookScssBundle()],
+          [kHtmlPostprocessors]: [bookHtmlPostprocessor()],
         };
       }
 
@@ -202,6 +207,21 @@ export const bookProjectType: ProjectType = {
     return extras;
   },
 };
+
+function bookHtmlPostprocessor() {
+  return (doc: Document): Promise<string[]> => {
+    // find the cover image
+    const coverImage = doc.querySelector(".quarto-cover-image");
+    // if the very next element is a section, move it into the section below the header
+    const nextEl = (coverImage?.parentNode as Element)?.nextElementSibling;
+    if (nextEl && nextEl.tagName === "SECTION" && coverImage?.parentNode) {
+      coverImage?.parentNode.remove();
+      nextEl.firstChild.after(coverImage?.parentNode);
+    }
+
+    return Promise.resolve([]);
+  };
+}
 
 function bookScssBundle() {
   const scssPath = resourcePath("projects/book/book.scss");

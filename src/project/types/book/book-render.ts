@@ -46,7 +46,8 @@ import { websiteOutputFiles, websitePostRender } from "../website/website.ts";
 
 import {
   isMultiFileBookFormat,
-  onSingleFileBookRendered,
+  onSingleFileBookPostRender,
+  onSingleFileBookPreRender,
 } from "./book-extension.ts";
 import {
   bookConfig,
@@ -55,6 +56,7 @@ import {
   bookOutputStem,
   BookRenderItem,
   isBookIndexPage,
+  kBookCoverImage,
   kBookItemAppendix,
   kBookItemPart,
 } from "./book-config.ts";
@@ -120,6 +122,19 @@ export function bookPandocRenderer(
           if (!isListedChapter(partitioned)) {
             file.recipe.format.pandoc[kToc] = false;
           }
+
+          // prepend any cover image
+          const coverImage = (file.recipe.format.metadata[kBookCoverImage] ||
+            bookConfig(kBookCoverImage, project.config)) as
+              | string
+              | undefined;
+          if (coverImage) {
+            const title = file.recipe.format.metadata[kTitle] || "";
+            file.executeResult.markdown =
+              `![](${coverImage} "${title}"){.quarto-cover-image}\n\n` +
+              file.executeResult.markdown;
+          }
+
           // other files
         } else {
           // since this could be an incremental render we need to compute the chapter number
@@ -220,6 +235,12 @@ async function renderSingleFileBook(
     project.config,
   );
 
+  // call book extension if applicable
+  executedFile.recipe.format = onSingleFileBookPreRender(
+    executedFile.recipe.format,
+    project.config,
+  );
+
   // do pandoc render
   const renderedFile = await renderPandoc(executedFile);
 
@@ -232,7 +253,7 @@ async function renderSingleFileBook(
   });
 
   // call book extension if applicable
-  onSingleFileBookRendered(project, renderedFile);
+  onSingleFileBookPostRender(project, renderedFile);
 
   // return rendered file
   return renderedFile;
@@ -460,6 +481,7 @@ function bookPartMarkdown(project: ProjectContext, item: BookRenderItem) {
 
 function withBookTitleMetadata(format: Format, config?: ProjectConfig): Format {
   format = ld.cloneDeep(format);
+
   if (config) {
     const setMetadata = (
       key: BookConfigKey,

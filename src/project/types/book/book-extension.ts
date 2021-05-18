@@ -15,7 +15,11 @@ import { kOutputFile } from "../../../config/constants.ts";
 
 import { defaultWriterFormat } from "../../../format/formats.ts";
 
-import { ProjectContext, projectOutputDir } from "../../project-context.ts";
+import {
+  ProjectConfig,
+  ProjectContext,
+  projectOutputDir,
+} from "../../project-context.ts";
 import { inputTargetIndex } from "../../project-index.ts";
 import { bookConfigRenderItems } from "./book-config.ts";
 import { BookRenderItem } from "./book-config.ts";
@@ -25,8 +29,14 @@ export interface BookExtension {
   // bool extensions are single file by default but can elect to be multi file
   multiFile?: boolean;
 
+  // book extensions can modify the format before render
+  onSingleFilePreRender?: (format: Format, config?: ProjectConfig) => Format;
+
   // book extensions can post-process the final rendered file
-  onSingleFileRendered?: (project: ProjectContext, file: RenderedFile) => void;
+  onSingleFilePostRender?: (
+    project: ProjectContext,
+    file: RenderedFile,
+  ) => void;
 }
 
 export function isMultiFileBookFormat(format: Format) {
@@ -38,13 +48,24 @@ export function isMultiFileBookFormat(format: Format) {
   }
 }
 
-export function onSingleFileBookRendered(
+export function onSingleFileBookPreRender(
+  format: Format,
+  config?: ProjectConfig,
+): Format {
+  const extension = format.extensions?.book as BookExtension;
+  if (extension && extension.onSingleFilePreRender) {
+    extension.onSingleFilePreRender(format, config);
+  }
+  return format;
+}
+
+export function onSingleFileBookPostRender(
   project: ProjectContext,
   file: RenderedFile,
 ) {
   const extension = file.format.extensions?.book as BookExtension;
-  if (extension && extension.onSingleFileRendered) {
-    extension.onSingleFileRendered(project, file);
+  if (extension && extension.onSingleFilePostRender) {
+    extension.onSingleFilePostRender(project, file);
   }
 }
 

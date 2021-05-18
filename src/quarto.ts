@@ -51,22 +51,31 @@ if (import.meta.main) {
 
     // install termination signal handlers
     if (Deno.build.os !== "windows") {
-      onSignal(Deno.Signal.SIGINT, cleanup);
-      onSignal(Deno.Signal.SIGTERM, cleanup);
+      onSignal(Deno.Signal.SIGINT, abend);
+      onSignal(Deno.Signal.SIGTERM, abend);
     }
     // run quarto
     await quarto(Deno.args);
+
+    // cleanup
+    cleanup();
+
+    // exit
+    Deno.exit(0);
   } catch (e) {
     if (e) {
       logError(e);
     }
-  } finally {
-    cleanup();
+    abend();
   }
+}
+
+function abend() {
+  cleanup();
+  Deno.exit(1);
 }
 
 function cleanup() {
   cleanupSessionTempDir();
   cleanupLogger();
-  Deno.exit(1);
 }
