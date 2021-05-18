@@ -22,9 +22,10 @@ TODO: merging includes at the lua filter level does not appear
 
 TODO: convert to css grid for columns (allows for content floating and crossing margin)
 
-TODO: re-render server docs, hopr, and altair with latest changes
-
-TODO: no jupyter progress when freeze: auto in project file
+TODO: H1 on index page has no id and toc behavior is messed up
+TODO: long delay at beginning of ipynb render (extraction?)
+TODO: .nojekyll not being copied to docs/
+TODO: no toc highlighting for https://optimistic-albattani-e5a8f5.netlify.app/
 
 Books
 ===========================================
