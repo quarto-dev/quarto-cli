@@ -22,7 +22,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   const removeAllActive = () => [...Array(tocLinks.length).keys()].forEach((link) => removeActive(link));
 
   const sections = tocLinks.map(link => {
-    const target = link.getAttribute("data-scroll-target")?.replaceAll(":", "\\:");
+    const target = link.getAttribute("data-scroll-target");
     return window.document.querySelector(`${target}`);
   });
   const sectionMargin = 200;
