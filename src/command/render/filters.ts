@@ -137,7 +137,7 @@ function extractIncludeParams(
 function extractIncludeVariables(obj: { [key: string]: unknown }) {
   const extractVariable = (name: string): unknown[] => {
     const value = obj[name];
-    obj[name] = [];
+    delete obj[name];
     if (!value) {
       return [];
     } else if (ld.isArray(value)) {
