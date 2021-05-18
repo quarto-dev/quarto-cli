@@ -142,7 +142,8 @@ export async function outputRecipe(
     // complete hook for keep-yaml (to: markdown already implements keep-yaml by default)
     if (
       format.render[kKeepYaml] &&
-      !/^markdown(\+|$)/.test(format.pandoc.to || "")
+      !/^markdown(\+|$)/.test(format.pandoc.to || "") &&
+      !format.pandoc.to?.startsWith("gfm")
     ) {
       completeActions.push(() => {
         // read yaml and output markdown
@@ -151,7 +152,10 @@ export async function outputRecipe(
         );
         if (yamlMd) {
           const outputMd = Deno.readTextFileSync(recipe.output);
-          Deno.writeTextFileSync(recipe.output, yamlMd + "\n\n" + outputMd);
+          Deno.writeTextFileSync(
+            recipe.output,
+            yamlMd.yaml + "\n\n" + outputMd,
+          );
         }
       });
     }

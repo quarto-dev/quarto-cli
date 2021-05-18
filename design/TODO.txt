@@ -1,10 +1,4 @@
 
-TODO before editor
-=====================================================================
-
-include-after as text ends up doubling-up (only when at root level metadata)
-
-
 Markdown Serialization
 =====================================================================
 
