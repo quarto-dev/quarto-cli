@@ -14,7 +14,7 @@ TODO: include-after as text ends up doubling-up
 TODO: quarto-r should use processx so render doesn't block the UI
 TODO: submit updated quarto-r to CRAN
  
-TODO: project level renders should forward params
+TODO: project level renders should forward params (or do they?)
 
 TODO: merging includes at the lua filter level does not appear
       to work for ebooks. perhaps even dynamically injecting
@@ -22,26 +22,14 @@ TODO: merging includes at the lua filter level does not appear
 
 TODO: convert to css grid for columns (allows for content floating and crossing margin)
 
-TODO: re-render server docs, hopr, and altair with latest changes
-
-TODO: no jupyter progress when freeze: auto in project file
 
 Books
 ===========================================
 
-- Table captions? (we currently set <caption> to centered in our css)
-
-- Can get HTML figcaption to behavior more like latex (center if less)
-
-- auto-anchoring for cross-referenceable figures (anchorjs customization)
-
   consider 'cover' metadata value used in epub and html. would serve as the epub
   cover image and would go as a float-right image on the index page for html
+  https://github.com/rstudio/bookdown/issues/473
 
-- Language customization
-
-- https://uwdata.github.io/visualization-curriculum/intro.html
-- Tidy text mining?
 
 
 Markdown Serialization
@@ -77,7 +65,12 @@ plot(cars)
 More Features
 =====================================================================
 
+- Language customization
+
 - image float feature (across formats)
+
+- Can get HTML figcaption to behavior more like latex (center if less)
+
 
 
 Installation/Compilation
