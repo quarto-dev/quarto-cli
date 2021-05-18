@@ -127,15 +127,18 @@ export function htmlFormatPostprocessor(format: Format) {
         : doc.querySelector("body");
 
       if (container) {
-        ["h2", "h3", "h4", "h5", "h6"].forEach((selector) => {
-          const headings = container.querySelectorAll(selector);
-          for (let i = 0; i < headings.length; i++) {
-            const heading = headings[i] as Element;
-            if (heading.id !== "toc-title") {
-              heading.classList.add("anchored");
-            }
-          }
-        });
+        ["h2", "h3", "h4", "h5", "h6", ".quarto-figure[id]", "div[id^=tbl\\:]"]
+          .forEach(
+            (selector) => {
+              const headings = container.querySelectorAll(selector);
+              for (let i = 0; i < headings.length; i++) {
+                const heading = headings[i] as Element;
+                if (heading.id !== "toc-title") {
+                  heading.classList.add("anchored");
+                }
+              }
+            },
+          );
       }
     }
 

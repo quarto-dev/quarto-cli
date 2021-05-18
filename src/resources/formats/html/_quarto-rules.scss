@@ -1,6 +1,23 @@
 // anchor
 
+
+// anchor js
+
+div[id^=tbl\:] {
+  position: relative;
+}
+
+.quarto-figure > .anchorjs-link,
+div[id^=tbl\:] > .anchorjs-link  {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+
 /* workaround for anchorjs not hitting on generic :hover selector */
+.quarto-figure:hover > .anchorjs-link, 
+div[id^=tbl\:]:hover > .anchorjs-link,
 h2:hover > .anchorjs-link,
 h3:hover > .anchorjs-link,
 h4:hover > .anchorjs-link,
