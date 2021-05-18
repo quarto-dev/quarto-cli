@@ -1,36 +1,8 @@
 
-TODO: Quarto render book with and output path -> --output _book/foo.pdf causes latexmk error
+TODO before editor
+=====================================================================
 
-TODO: Scss function(s) for referencing fonts (e.g. google, etc...)
-  @useFont('google', 'roboto') (automates downloading of fonts and generating rules to load them)
-
-TODO: try out article-per-directory w/ "page bundles" (auto-resolve directories to index.html)
-TODO: also try output-file: index.html
-
-TODO: centralized _cache dir for projects (alongside _freeze)
-
-TODO: include-after as text ends up doubling-up
-
-TODO: quarto-r should use processx so render doesn't block the UI
-TODO: submit updated quarto-r to CRAN
- 
-TODO: project level renders should forward params (or do they?)
-
-TODO: merging includes at the lua filter level does not appear
-      to work for ebooks. perhaps even dynamically injecting
-      metadata for includes doesn't work
-
-TODO: convert to css grid for columns (allows for content floating and crossing margin)
-
-TODO: .nojekyll not being copied to docs/
-
-Books
-===========================================
-
-  consider 'cover' metadata value used in epub and html. would serve as the epub
-  cover image and would go as a float-right image on the index page for html
-  https://github.com/rstudio/bookdown/issues/473
-
+include-after as text ends up doubling-up (only when at root level metadata)
 
 
 Markdown Serialization
@@ -62,6 +34,27 @@ engine: jupyter:python3
 plot(cars)
 ```
 
+
+
+
+
+TODO: Quarto render book with and output path -> --output _book/foo.pdf causes latexmk error
+
+TODO: Scss function(s) for referencing fonts (e.g. google, etc...)
+  @useFont('google', 'roboto') (automates downloading of fonts and generating rules to load them)
+
+TODO: try out article-per-directory w/ "page bundles" (auto-resolve directories to index.html)
+TODO: also try output-file: index.html
+
+TODO: centralized _cache dir for projects (alongside _freeze)
+ 
+TODO: project level renders should forward params (or do they?)
+
+TODO: merging includes at the lua filter level does not appear
+      to work for ebooks. perhaps even dynamically injecting
+      metadata for includes doesn't work
+
+TODO: convert to css grid for columns (allows for content floating and crossing margin)
 
 More Features
 =====================================================================
@@ -131,13 +124,7 @@ HTML Format (all these require grid, all need to deal with floating toc)
 - Figure captions in the right margin
 - fig.classes (knitr mapping, jupyter)
 
-Renders have side effects (knit_meta) that need to be preserved for books.
-The side effects might require an id of some kind (for managing duplicates):
-   R: 
-     - html dependencies
-     - preserves
-     - patches (e.g. slides for htmlwidgets)
-     - intermediates/intermediates-dir
+
 
 HIGHER PRIORITY BACKGROUND WORK
 
@@ -145,12 +132,6 @@ code chunks
 ===========================================
 consider improving line number appearance and indention
 copy button should only copy code: https://github.com/rstudio/bookdown/issues/1072
-
-toc
-=========================================
-TODO: consider updating demo to be toc-float: false which is more realistic since true is default
-TODO: Support toc-depth with nested indenting
-TODO: Support collapsing - expand only to show current node (bookdown has option we can look at)
 
 
 LOWER PRIORITY BACKGROUND WORK
@@ -191,7 +172,6 @@ TODO ensure that when wide, we try bumping up font size slightly
 
 navigation
 ==============================================
-TODO: ensure floating centers on page properly
 TODO: Consider adding toggle to hide sidebar
 TODO: Consider reading mode that hides all unecessary chrome
 
@@ -248,7 +228,6 @@ TODO: format text output with ansi color codes (filter)
 
 TODO: prime thematic with theme info
 
-TODO: consider using grid for column layout (margin figures)
 
 Search: https://stork-search.net/
 TODO: embedding pdfs in website via pdf.js
@@ -271,6 +250,11 @@ TODO: clean:
   - global purge?
 
 
+create-project wizard
+
+support for creating / using virtual environments
+
+
 - Epigraph (blockquote w/ author)
 
 
@@ -290,29 +274,6 @@ TODO: clean:
 //  - paginator
 
 
-
-Common markdown format: (e.g. qmd)
-
-TODO: common yaml option reading (all docs use yaml)
-use Rmd-style chunks for Jupyter (Jmd). YAML encoding.
-(need to add support for this to Jupytext)
-Use e.g. fig-width vs. fig.width?  figwidth
-Jmd
-
-```{r mylabel}
-echo: true
-tags: ["foo", "bar"]
-
-
-```
-
-
-```{python mylabel}
-echo: true
-tags: ["foo", "bar"]
-
-
-```
 
 Look into Teal: https://news.ycombinator.com/item?id=26247813
 
@@ -490,7 +451,7 @@ rmarkdown::run b/c we need to figure out which Rmd to render
 Future
 ---------------------------------------------
 
-- Evaluate esbuild
+- Evaluate esbuild / https://vitejs.dev/
 
 - Consider yaml for chunk options
     * knitr
@@ -499,7 +460,9 @@ Future
 
 Julia Dev workflow
 
+- https://github.com/dmolina/DaemonMode.jl
 - Make sure that Revise.jl is loaded at startup https://timholy.github.io/Revise.jl/stable/
+  
 
 - Run Julia in Quarto dir
 
