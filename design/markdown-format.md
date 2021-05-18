@@ -7,6 +7,7 @@ format: html
 
 -   Common chunk option syntax that works well with existing Jupyter front-ends (which have terrible cell metadata editing UI)
 -   Backwards compatibility with `.md`, `.Rmd`, and `.ipynb`
+-   Computational markdown file that is still valid Pandoc markdown (code chunks not mauled when reading into the AST)
 -   Ability to determine the computation engine (knitr, jupyter, or none) for a given input file
 -   Ability of editors and front ends to detect when Quarto tooling should be enabled (e.g. render button, visual editor, etc.)
 
@@ -66,6 +67,8 @@ df
 ````
 
 There will be a huge benefit to sharing chunk option encoding syntax across engines, since we won't need to repeat documentation for things like figure/layout options or cross-references once per computation engine.
+
+Note also that unlike e.g. ```` ```{r, echo=TRUE} ````, the chunk header ```` ```{r} ```` actually results in a legal Pandoc code block---the language of the code block is `{r}` (with the braces).
 
 ## Computation Engine
 
