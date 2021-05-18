@@ -82,7 +82,7 @@ function createPdfFormat(): Format {
 }
 
 const pdfBookExtension: BookExtension = {
-  onSingleFileRendered: (
+  onSingleFilePostRender: (
     project: ProjectContext,
     renderedFile: RenderedFile,
   ) => {

@@ -158,6 +158,7 @@ export const kHtmlMathMethod = "html-math-method";
 export const kToc = "toc";
 export const kTableOfContents = "table-of-contents";
 export const kSectionDivs = "section-divs";
+export const kEPubCoverImage = "epub-cover-image";
 
 // metadata fields
 export const kTitle = "title";
@@ -259,7 +260,7 @@ export const kPandocDefaultsKeys = [
   "epub-metadata",
   "epub-fonts",
   "epub-chapter-level",
-  "epub-cover-image",
+  kEPubCoverImage,
   "reference-links",
   "reference-location",
   kAtxHeaders,

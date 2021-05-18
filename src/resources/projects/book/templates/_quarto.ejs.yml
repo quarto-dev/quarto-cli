@@ -19,4 +19,4 @@ format:
   pdf:
     documentclass: report
   epub:
-    epub-cover-image: cover.png
+    cover-image: cover.png

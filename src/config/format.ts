@@ -16,6 +16,7 @@ import {
   kCodeLink,
   kCodeSummary,
   kCss,
+  kEPubCoverImage,
   kExecute,
   kFigAlign,
   kFigDpi,
@@ -219,6 +220,7 @@ export interface FormatPandoc {
   [kPdfEngine]?: string;
   [kPdfEngineOpts]?: string[];
   [kPdfEngineOpt]?: string;
+  [kEPubCoverImage]?: string;
   [kCss]?: string | string[];
   [kToc]?: boolean;
   [kTableOfContents]?: boolean;

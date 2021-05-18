@@ -66,6 +66,7 @@ export const kBookDownloads = "downloads";
 export const kBookTools = "tools";
 export const kBookSearch = "search";
 export const kBookAttribution = "attribution";
+export const kBookCoverImage = "cover-image";
 
 export const kBookItemChapter = "chapter";
 export const kBookItemAppendix = "appendix";
@@ -86,7 +87,8 @@ export type BookConfigKey =
   | "author"
   | "description"
   | "date"
-  | "abstract";
+  | "abstract"
+  | "cover-image";
 
 export async function bookProjectConfig(
   projectDir: string,
