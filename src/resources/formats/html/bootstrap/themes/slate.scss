@@ -144,6 +144,7 @@ $progress-bar-color:                $gray-600 !default;
 
 // List group
 
+$list-group-color:                  $white !default;
 $list-group-bg:                     lighten($body-bg, 5%) !default;
 $list-group-border-color:           rgba($black, .6) !default;
 $list-group-hover-bg:               lighten($body-bg, 10%) !default;
@@ -513,10 +514,8 @@ legend {
 }
 
 .badge {
-  &-success,
-  &-warning,
-  &-info {
-    color: $white;
+  &.bg-light {
+    color: $dark;
   }
 }
 

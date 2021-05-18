@@ -35,7 +35,7 @@ $success:       $green !default;
 $info:          $cyan !default;
 $warning:       $yellow !default;
 $danger:        $red !default;
-$light:         $white !default;
+$light:         $gray-100 !default;
 $dark:          $gray-800 !default;
 
 $min-contrast-ratio:   2.15 !default;
@@ -763,17 +763,9 @@ select.form-control {
 }
 
 .badge {
-  &-secondary {
-    background-color: $gray-500;
-    color: $white;
-  }
-
-  &-light {
-    background-color: $gray-200;
-  }
-
-  &-warning {
-    color: $white;
+  &.bg-secondary,
+  &.bg-light {
+    color: $dark;
   }
 }
 

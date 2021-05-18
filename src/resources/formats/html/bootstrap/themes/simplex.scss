@@ -234,4 +234,13 @@ label {
   }
 }
 
+// Indicators
+
+.badge {
+  &.bg-secondary,
+  &.bg-light {
+    color: $dark;
+  }
+}
+
 

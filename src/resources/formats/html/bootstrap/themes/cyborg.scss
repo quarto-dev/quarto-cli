@@ -153,10 +153,12 @@ $progress-bg:                       $gray-700 !default;
 
 // List group
 
+$list-group-color:                  $white !default;
 $list-group-bg:                     $gray-800 !default;
 $list-group-border-color:           $gray-700 !default;
 $list-group-hover-bg:               $primary !default;
 $list-group-disabled-bg:            $gray-700 !default;
+$list-group-action-color:           $white !default;
 $list-group-action-active-bg:       $primary !default;
 
 // Breadcrumbs
@@ -301,40 +303,17 @@ legend {
 }
 
 .badge {
-  &-warning {
-    color: $white;
+  &.bg-dark {
+    color: $gray-900;
   }
 }
+
 // Containers
 
 .list-group-item {
+
   &:hover {
-    background-color: $gray-700;
-    color: $white;
-  }
-
-  &-action {
-    color: $gray-500;
-
-    .list-group-item-heading {
-      color: $gray-500;
-    }
-  }
-
-  &:hover .list-group-item-heading {
-    color: $white;
-  }
-}
-
-.card,
-.list-group-item {
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    color: inherit;
+    border-color: $primary;
   }
 }
 

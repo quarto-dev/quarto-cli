@@ -201,11 +201,8 @@ $list-group-disabled-color:         lighten($list-group-bg, 30%) !default;
 // Indicators
 
 .badge {
-  padding-bottom: .4em;
-
-  &-secondary,
-  &-warning {
-    color: $white;
+  &.bg-light {
+    color: $dark;
   }
 }
 

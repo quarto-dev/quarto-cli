@@ -161,14 +161,15 @@ $progress-bar-color:                $primary !default;
 
 // List group
 
+$list-group-color:                  $white !default;
 $list-group-bg:                     transparent !default;
 $list-group-border-color:           $gray-800 !default;
 $list-group-hover-bg:               $gray-800 !default;
-$list-group-active-color:           rgba(255, 255, 255, .75) !default;
-$list-group-disabled-color:         $component-active-bg !default;
+$list-group-active-color:           $white !default;
+$list-group-disabled-color:         $gray-600 !default;
 $list-group-disabled-bg:            transparent !default;
 $list-group-action-color:           $body-color !default;
-$list-group-action-hover-color:     $component-active-color !default;
+$list-group-action-hover-color:     $white !default;
 
 // Breadcrumbs
 
@@ -240,6 +241,13 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@4
     .alert-link {
       color: $body-bg;
     }
+  }
+}
+
+
+.badge {
+  &.bg-light {
+    color: $dark;
   }
 }
 
