@@ -45,7 +45,6 @@ import { ProjectOutputFile } from "../project-types.ts";
 import { websiteOutputFiles, websitePostRender } from "../website/website.ts";
 
 import {
-  BookExtension,
   isMultiFileBookFormat,
   onSingleFileBookPostRender,
   onSingleFileBookPreRender,

@@ -25,33 +25,29 @@ export function projectResourceFiles(
   config: ProjectConfig,
 ): string[] {
   let resourceGlobs = config.project[kProjectResources];
-  if (resourceGlobs) {
-    const resourceFiles: string[] = [];
-    const outputDir = config.project[kProjectOutputDir];
-    if (outputDir) {
-      resourceGlobs = resourceGlobs
-        // ignore anything specified in our standard .gitignore
-        .concat(kGitignoreEntries.map((entry) => `!${entry}`))
-        // some files typically included in the root of websites
-        .concat(["robots.txt", ".nojekyll", "_redirects"]);
+  const resourceFiles: string[] = [];
+  const outputDir = config.project[kProjectOutputDir];
+  if (outputDir) {
+    resourceGlobs = (resourceGlobs || [])
+      // ignore anything specified in our standard .gitignore
+      .concat(kGitignoreEntries.map((entry) => `!${entry}`))
+      // some files typically included in the root of websites
+      .concat(["robots.txt", ".nojekyll", "_redirects"]);
 
-      const exclude = outputDir ? [outputDir] : [];
-      const projectResourceFiles = resolvePathGlobs(
-        dir,
-        resourceGlobs,
-        exclude,
-      );
-      resourceFiles.push(
-        ...ld.difference(
-          projectResourceFiles.include,
-          projectResourceFiles.exclude,
-        ),
-      );
-    }
-    return ld.uniq(resourceFiles);
-  } else {
-    return [];
+    const exclude = outputDir ? [outputDir] : [];
+    const projectResourceFiles = resolvePathGlobs(
+      dir,
+      resourceGlobs,
+      exclude,
+    );
+    resourceFiles.push(
+      ...ld.difference(
+        projectResourceFiles.include,
+        projectResourceFiles.exclude,
+      ),
+    );
   }
+  return ld.uniq(resourceFiles);
 }
 
 export function copyResourceFile(
