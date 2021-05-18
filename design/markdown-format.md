@@ -5,7 +5,7 @@ format: html
 
 ## Objectives
 
--   Common chunk option syntax that works well with existing Jupyter front-ends (which have terrible or non-existent cell metadata editing UI)
+-   Common chunk option syntax that works well with existing Jupyter front-ends (which have terrible cell metadata editing UI)
 -   Backwards compatibility with `.md`, `.Rmd`, and `.ipynb`
 -   Ability to determine the computation engine (knitr, jupyter, or none) for a given input file
 -   Ability of editors and front ends to detect when Quarto tooling should be enabled (e.g. render button, visual editor, etc.)
