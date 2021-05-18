@@ -22,15 +22,10 @@ TODO: merging includes at the lua filter level does not appear
 
 TODO: convert to css grid for columns (allows for content floating and crossing margin)
 
-TODO: long delay at beginning of ipynb render (extraction? crawline)
 TODO: .nojekyll not being copied to docs/
 
 Books
 ===========================================
-
-TODO: H1 on index page has no id and toc behavior is messed up
-      (do we need to add an id, filter it out, ?)
-      https://optimistic-albattani-e5a8f5.netlify.app/
 
   consider 'cover' metadata value used in epub and html. would serve as the epub
   cover image and would go as a float-right image on the index page for html
