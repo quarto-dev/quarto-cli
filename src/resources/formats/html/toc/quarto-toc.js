@@ -35,9 +35,14 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     if ((window.innerHeight + window.pageYOffset) >= window.document.body.offsetHeight) {
       sectionIndex = 0;
     } else {
-      sectionIndex = [...sections].reverse().findIndex((section) => window.pageYOffset >= section.offsetTop - sectionMargin );
-    }
-   
+      sectionIndex = [...sections].reverse().findIndex((section) => {
+          if (section) {
+            return window.pageYOffset >= section.offsetTop - sectionMargin 
+          } else {
+            return -1;
+          }
+        });
+    } 
     if (sectionIndex > -1) {
       const current = sections.length - sectionIndex - 1
       if (current !== currentActive) {
