@@ -2,6 +2,69 @@
 Markdown Serialization
 =====================================================================
 
+drawbacks to .md:
+  - managing markdown outputs
+  - have to read the contents of the file to determine it's "type"
+  - GitHub "rendering" your source code
+  - file assocations
+
+
+.qmd 
+  - Succesfullly parsed by Pandoc AST (look into other users of {})
+  - Uses YAML encoding (not JSON or R or Python or HTML or Pandoc)
+
+---
+title: "Woozy Foobar"
+---
+
+
+```{r}
+#| label: fig:show
+#| echo: false
+#| fig-cap: | 
+#|   This is how I tell the story about my figure. A sordid tale indeed!
+
+
+```
+
+
+(rename kernel to jupyter)
+kernel-run-cells: true
+
+
+notebook.Rmd -> means use knitr
+notebook.xmd
+
+
+
+---
+title: "Woozy Foobar"
+jupyter:
+   kernel: python3
+   run-cells: true
+   allow-errors: true
+   cache: true
+   freeze: auto
+---
+
+---
+title: "Woozy Foobar"
+knitr: 
+  cache: true
+  errors: true
+---
+
+---
+title: "Woozy Foobar"
+jupyter: python3
+---
+
+
+
+
+
+
+
 foo.md file extension
 
 foo.knitr.md or foo.jupyter.md for keep-md
