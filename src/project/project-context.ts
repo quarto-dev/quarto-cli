@@ -181,11 +181,15 @@ export function projectOffset(context: ProjectContext, input: string) {
   return pathWithForwardSlashes(offset);
 }
 
-export function projectIgnoreRegexes() {
+export function projectIgnoreGlobs() {
   return engineIgnoreGlobs().concat(
     kGitignoreEntries.map((ignore) => `**/${ignore}**`),
-  ).map(
-    (glob) => globToRegExp(glob, { extended: true, globstar: true }),
+  );
+}
+
+export function projectIgnoreRegexes() {
+  return projectIgnoreGlobs().map((glob) =>
+    globToRegExp(glob, { extended: true, globstar: true })
   );
 }
 
@@ -252,16 +256,15 @@ function projectInputFiles(dir: string, metadata?: ProjectConfig) {
 
   const outputDir = metadata?.project[kProjectOutputDir];
 
-  const projectIgnores = projectIgnoreRegexes();
+  const projIgnoreGlobs = projectIgnoreGlobs() // standard ignores for all projects
+    .concat(["**/_*", "**/_*/**"]) // underscore prefx
+    .concat(["**/.*", "**/.*/**"]) // hidden (dot prefix)
+    .concat(["README.?([Rr])md"]); // README
 
-  // Also exclude files or folders that are prefixed with an underscore
-  const includeIgnores = ["**/_*", "**/_*/**"].map((glob) =>
+  // map to regex
+  const projectIgnores = projIgnoreGlobs.map((glob) =>
     globToRegExp(glob, { extended: true, globstar: true })
   );
-  projectIgnores.push(...includeIgnores);
-
-  // also exclude README.R?md for git projects
-  projectIgnores.push(/README\.[Rr]?md/);
 
   const addFile = (file: string) => {
     if (!outputDir || !file.startsWith(join(dir, outputDir))) {
@@ -301,7 +304,7 @@ function projectInputFiles(dir: string, metadata?: ProjectConfig) {
 
   const renderFiles = metadata?.project[kProjectRender];
   if (renderFiles) {
-    const exclude = outputDir ? [outputDir] : [];
+    const exclude = projIgnoreGlobs.concat(outputDir ? [outputDir] : []);
     const resolved = resolvePathGlobs(dir, renderFiles, exclude);
     (ld.difference(resolved.include, resolved.exclude) as string[])
       .forEach((file) => {
@@ -319,6 +322,7 @@ function projectInputFiles(dir: string, metadata?: ProjectConfig) {
     ld.uniq(files),
     ld.uniq(keepFiles),
   ) as string[];
+
   return inputFiles;
 }
 
