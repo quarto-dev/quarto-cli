@@ -463,7 +463,6 @@ knitr_engine_comment_chars <- list(
   gawk = "#",
   stata = "*",
   java = "//",
-  bash = "#",
   groovy = "//",
   sed = "#",
   perl = "#",

@@ -8,6 +8,8 @@ import copy
 
 from pathlib import Path
 
+import yaml
+
 import nbformat
 from nbclient import NotebookClient
 
@@ -295,6 +297,9 @@ def cell_execute(client, cell, index, execution_count, store_history):
    no_execute_tag = 'no-execute'
    allow_errors_tag = 'allow-errors'
 
+   # read cell options
+   cell_options = nb_cell_yaml_options(client, cell)
+
    # ensure we have tags
    tags = cell.get('metadata', {}).get('tags', [])
      
@@ -403,3 +408,80 @@ def find_first_tagged_cell_index(nb, tag):
    return parameters_indices[0]
 
 
+def nb_cell_yaml_options(client, cell):
+
+   # determine language comment chars
+   lang = client.nb.metadata.kernelspec.language
+   comment_chars = nb_language_comment_chars(lang)
+   option_prefix = comment_chars[0] + "| "
+   option_suffix = comment_chars[1] if len(comment_chars) > 1 else None
+
+   # go through the lines until we've found all of the yaml
+   yaml_lines = []
+   for line in cell.source.splitlines():
+      if line.startswith(option_prefix):
+         if (not option_suffix) or line.rstrip().endswith(option_suffix):
+            yaml_option = line[len(option_prefix):]
+            if (option_suffix):
+               yaml_option = yaml_option.rstrip()[:-len(option_suffix)]
+            yaml_lines.append(yaml_option)
+            continue
+      break
+
+   # if we have yaml then parse it
+   if len(yaml_lines) > 0:
+      return yaml.load("\n".join(yaml_lines))
+   else:
+      return dict()
+   
+
+def nb_language_comment_chars(lang):
+   langs = dict(
+      r = "#",
+      python = "#",
+      julia = "#",
+      scala = "//",
+      matlab = "%",
+      csharp = "//",
+      fsharp = "//",
+      c = ["/*",  "*/"],
+      css = ["/*",  "*/"],
+      sas = ["*", ";"],
+      powershell = "#",
+      bash = "#",
+      sql = "--",
+      mysql = "--",
+      psql = "--",
+      lua = "--",
+      cpp = "//",
+      cc = "//",
+      stan = "#",
+      octave = "#",
+      fortran = "!",
+      fortran95 = "!",
+      awk = "#",
+      gawk = "#",
+      stata = "*",
+      java = "//",
+      groovy = "//",
+      sed = "#",
+      perl = "#",
+      ruby = "#",
+      tikz = "%",
+      js = "//",
+      d3 = "//",
+      node = "//",
+      sass = "//",
+      coffee = "#",
+      go = "//",
+      asy = "//",
+      haskell = "--",
+      dot = "//"
+   )
+   if lang in langs:
+      chars = langs[lang]
+      if not isinstance(chars, list):
+         chars = [chars]
+      return chars
+   else:
+      return ["#"]
