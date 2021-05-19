@@ -1,22 +1,23 @@
-
-
 Markdown Serialization
 =====================================================================
 
+jupyter:    (or knitr:)
+  cache: true
+  freeze: auto
+  execute: true
 
-migration:
-  https://nbformat.readthedocs.io/en/latest/format_description.html#cell-metadata
-   - name -> label
+  output:
+    code: true        map to knitr 'echo'
+    results: true   | also could be 'hide', etc. for knitr
+    warning: true
+    message: false
+    error: true
+    include: false (don't show any output)
+    keep: true (adds .hidden class)
+      - TODO: register .hidden as display: none
+      - TODO: strip for other formats
 
-Stop using tags and adopt a standard schema for the
-code/output/warning visibility
-
-- jupyter should stop using execution tags (unless we want to migrate some)
-
-
-- Allow 'execute' fields to exist within jupyter or knitr (but note conflicts,
-  are there any w/ opts_knit, opts_chunk, etc. ?)
-
+all 'output' fields are also available per-cell
 
 
 TODO
