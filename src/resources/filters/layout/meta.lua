@@ -66,6 +66,7 @@ function layoutMetaInject()
      display: inline-table;
   }
   .quarto-layout-cell-subref figcaption {
+    text-align: center;
     font-style: italic;
   }
   .quarto-figure {
