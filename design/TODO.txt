@@ -3,6 +3,7 @@ Markdown Serialization
 =====================================================================
 
 
+
 - jupyter should stop using execution tags (unless we want to migrate some)
 
 - use layout-ncol rather than layout.ncol
@@ -13,14 +14,9 @@ Markdown Serialization
 
 
 
-
-
-
 TODO
 =====================================================================
 
-
-TODO: Quarto render book with and output path -> --output _book/foo.pdf causes latexmk error
 
 TODO: Scss function(s) for referencing fonts (e.g. google, etc...)
   @useFont('google', 'roboto') (automates downloading of fonts and generating rules to load them)
