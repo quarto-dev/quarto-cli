@@ -2,34 +2,22 @@
 Markdown Serialization
 =====================================================================
 
-foo.md file extension
 
-foo.knitr.md or foo.jupyter.md for keep-md
+- jupyter should stop using execution tags (unless we want to migrate some)
 
-README.qmd
-README.md
+- use layout-ncol rather than layout.ncol
 
----
-title: "Woozy Foobar"
-engine: knitr
----
 
----
-title: "Woozy Foobar"
-engine: jupyter:python3
----
-
-```r
-#| label: mylabel
-#| eval: true
-#| code-fold: true
-#| fig-cap: "this is my figure"
-
-plot(cars)
-```
+- Allow 'execute' fields to exist within jupyter or knitr (but note conflicts,
+  are there any w/ opts_knit, opts_chunk, etc. ?)
 
 
 
+
+
+
+TODO
+=====================================================================
 
 
 TODO: Quarto render book with and output path -> --output _book/foo.pdf causes latexmk error
@@ -50,14 +38,11 @@ TODO: merging includes at the lua filter level does not appear
 
 TODO: convert to css grid for columns (allows for content floating and crossing margin)
 
-More Features
-=====================================================================
-
-- Language customization
+- Language customization for projects/books
 
 - image float feature (across formats)
 
-- Can get HTML figcaption to behavior more like latex (center if less)
+- Can get HTML figcaption to behave more like latex (center if less)
 
 
 
