@@ -422,7 +422,7 @@ knitr_options_in_code_hook <- function(options) {
     }
     yaml <- substr(yaml, nchar(comment_start) + 1, nchar(yaml))
     yaml <- strtrim(yaml, nchar(yaml) - nchar(comment_end))
-    yaml_options <- yaml::yaml.load(yaml)
+    yaml_options <- yaml::yaml.load(yaml, eval.expr = TRUE)
     
     # merge into knitr options
     options <- knitr:::merge_list(options, yaml_options)
