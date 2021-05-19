@@ -6,6 +6,9 @@ knitr_hooks <- function(format) {
   knit_hooks <- list()
   opts_hooks <- list()
   
+  # options in yaml
+  opts_hooks[["code"]] <- knitr_options_in_code_hook
+  
   # automatically set gifski hook for fig.animate
   opts_hooks[["fig.show"]] <- function(options) {
     
@@ -396,6 +399,87 @@ knitr_plot_hook <- function(htmlOutput) {
 
   }
 }
+
+knitr_options_in_code_hook <- function(options) {
+  
+  # determine comment matching patterns
+  comment_chars <- knitr_engine_comment_chars[[options$engine]] %||% "#"
+  comment_start <- paste0(comment_chars[[1]], "| ")
+  comment_end <- ifelse(length(comment_chars) > 1, comment_chars[[2]], "")
+  
+  # check for option comments
+  match_start <- startsWith(options$code, comment_start)
+  match_end <- endsWith(trimws(options$code, "right"), comment_end)
+  last_match <- which.min(match_start & match_end) - 1
+  
+  
+  # if we had some then cleave them off
+  if (last_match > 0) {
+    # extract and parse options
+    yaml <- options$code[1:last_match]
+    if (any(match_end)) {
+      yaml <- trimws(yaml, "right")
+    }
+    yaml <- substr(yaml, nchar(comment_start) + 1, nchar(yaml))
+    yaml <- strtrim(yaml, nchar(yaml) - nchar(comment_end))
+    yaml_options <- yaml::yaml.load(yaml)
+    
+    # merge into knitr options
+    options <- knitr:::merge_list(options, yaml_options)
+    
+    # set code
+    options$code <- options$code[(last_match+1):length(options$code)]
+  }
+  
+  # return options  
+  options
+}
+
+
+knitr_engine_comment_chars <- list(
+  r = "#",
+  python = "#",
+  julia = "#",
+  scala = "//",
+  matlab = "%",
+  csharp = "//",
+  fsharp = "//",
+  c = c("/*",  "*/"),
+  css = c("/*",  "*/"),
+  sas = c("*", ";"),
+  powershell = "#",
+  bash = "#",
+  sql = "--",
+  mysql = "--",
+  psql = "--",
+  lua = "--",
+  Rcpp = "//",
+  cc = "//",
+  stan = "#",
+  octave = "#",
+  fortran = "!",
+  fortran95 = "!",
+  awk = "#",
+  gawk = "#",
+  stata = "*",
+  java = "//",
+  bash = "#",
+  groovy = "//",
+  sed = "#",
+  perl = "#",
+  ruby = "#",
+  tikz = "%",
+  js = "//",
+  d3 = "//",
+  node = "//",
+  sass = "//",
+  coffee = "#",
+  go = "//",
+  asy = "//",
+  haskell = "--",
+  dot = "//"
+)
+
 
 # helper to create an output div
 output_div <- function(x, label, classes, attr = NULL) {
