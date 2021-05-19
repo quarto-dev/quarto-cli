@@ -91,12 +91,6 @@ engine: jupyter:python3
 plot(cars)
 ```
 
-
-
-
-
-TODO: Quarto render book with and output path -> --output _book/foo.pdf causes latexmk error
-
 TODO: Scss function(s) for referencing fonts (e.g. google, etc...)
   @useFont('google', 'roboto') (automates downloading of fonts and generating rules to load them)
 
