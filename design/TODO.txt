@@ -1,5 +1,3 @@
-- Figure captions in layout panels should be centered
-- renv getting copied to docs
 
 
 Markdown Serialization
