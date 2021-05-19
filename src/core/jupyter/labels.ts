@@ -7,6 +7,7 @@ import {
 
 import {
   JupyterCell,
+  JupyterCellWithOptions,
   JupyterOutput,
   JupyterOutputDisplayData,
   JupyterToMarkdownOptions,
@@ -17,8 +18,8 @@ import {
 } from "./jupyter.ts";
 import { includeOutput } from "./tags.ts";
 
-export function cellLabel(cell: JupyterCell) {
-  const label = (cell.metadata[kCellLabel] || cell.metadata[kCellName] || "");
+export function cellLabel(cell: JupyterCellWithOptions) {
+  const label = (cell.options[kCellLabel] || cell.metadata[kCellName] || "");
   if (label && !label.startsWith("#")) {
     return "#" + label;
   } else {
@@ -29,7 +30,7 @@ export function cellLabel(cell: JupyterCell) {
 // validate unique labels
 export function cellLabelValidator() {
   const cellLabels = new Set<string>();
-  return function (cell: JupyterCell) {
+  return function (cell: JupyterCellWithOptions) {
     const label = cellLabel(cell);
     if (label) {
       if (cellLabels.has(label)) {
@@ -101,10 +102,10 @@ export function isFigureLabel(label: string) {
   return label && label.startsWith("#fig:");
 }
 
-export function resolveCaptions(cell: JupyterCell) {
+export function resolveCaptions(cell: JupyterCellWithOptions) {
   // if we have display data outputs, then break off their captions
-  if (Array.isArray(cell.metadata[kCellFigCap])) {
-    const figCap = cell.metadata[kCellFigCap] as string[];
+  if (Array.isArray(cell.options[kCellFigCap])) {
+    const figCap = cell.options[kCellFigCap] as string[];
     if (
       cell.outputs &&
       cell.outputs.filter(isCaptionableData).length > 0
@@ -119,16 +120,16 @@ export function resolveCaptions(cell: JupyterCell) {
         outputCaptions: [],
       };
     }
-  } else if (cell.metadata[kCellFigCap]) {
-    if (cell.metadata[kCellFigSubCap]) {
+  } else if (cell.options[kCellFigCap]) {
+    if (cell.options[kCellFigSubCap]) {
       return {
-        cellCaption: cell.metadata[kCellFigCap],
-        outputCaptions: cell.metadata[kCellFigSubCap] || [],
+        cellCaption: cell.options[kCellFigCap],
+        outputCaptions: cell.options[kCellFigSubCap] || [],
       };
     } else {
       return {
         cellCaption: undefined,
-        outputCaptions: [cell.metadata[kCellFigCap] as string],
+        outputCaptions: [cell.options[kCellFigCap] as string],
       };
     }
   } else {

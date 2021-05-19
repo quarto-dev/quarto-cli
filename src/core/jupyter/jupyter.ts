@@ -113,32 +113,19 @@ export interface JupyterCell {
     [kCellAutoscroll]?: boolean | "auto";
     [kCellDeletable]?: boolean;
     [kCellFormat]?: string; // for "raw"
-    [kCellName]?: string;
+    [kCellName]?: string; // optional alias for 'label'
     [kCellTags]?: string[];
     [kRawMimeType]?: string;
 
-    // quarto schema (note that 'name' from nbformat is
-    // automatically used as an alias for 'label')
-    [kCellLabel]?: string;
-    [kCellFigCap]?: string | string[];
-    [kCellFigSubCap]?: string[];
-    [kCellFigScap]?: string;
-    [kCellFigLink]?: string;
-    [kCellFigEnv]?: string;
-    [kCellFigPos]?: string;
-    [kCellFigAlign]?: string;
-    [kCellLstLabel]?: string;
-    [kCellLstCap]?: string;
-    [kCellClasses]?: string;
-
     // used by jupytext to preserve line spacing
     [kCellLinesToNext]?: number;
-
-    // other metadata
-    [key: string]: unknown;
   };
   source: string[];
   outputs?: JupyterOutput[];
+}
+
+export interface JupyterCellWithOptions extends JupyterCell {
+  options: JupyterCellOptions;
 }
 
 export interface JupyterOutput {
@@ -155,6 +142,17 @@ export interface JupyterOutputDisplayData extends JupyterOutput {
   data: { [mimeType: string]: unknown };
   metadata: { [mimeType: string]: Record<string, unknown> };
   noCaption?: boolean;
+}
+
+export interface JupyterCellOptions extends JupyterOutputFigureOptions {
+  [kCellLabel]?: string;
+  [kCellFigCap]?: string | string[];
+  [kCellFigSubCap]?: string[];
+  [kCellLstLabel]?: string;
+  [kCellLstCap]?: string;
+  [kCellClasses]?: string;
+  [kCellFold]?: string;
+  [kCellSummary]?: string;
 }
 
 export interface JupyterOutputFigureOptions {
@@ -399,11 +397,8 @@ export function jupyterToMarkdown(
   let codeCellIndex = 0;
 
   for (let i = 0; i < nb.cells.length; i++) {
-    // get cell
-    const cell = nb.cells[i];
-
     // convert cell yaml to cell metadata
-    resolveCellYamlOptions(nb, cell);
+    const cell = jupyterCellWithOptions(nb, nb.cells[i]);
 
     // validate unique cell labels
     validateCellLabel(cell);
@@ -432,7 +427,10 @@ export function jupyterToMarkdown(
   };
 }
 
-function resolveCellYamlOptions(nb: JupyterNotebook, cell: JupyterCell) {
+function jupyterCellWithOptions(
+  nb: JupyterNotebook,
+  cell: JupyterCell,
+): JupyterCellWithOptions {
   const lang = nb.metadata.kernelspec.language;
   const commentChars = langCommentChars(lang);
   const optionPrefix = commentChars[0] + "| ";
@@ -459,17 +457,16 @@ function resolveCellYamlOptions(nb: JupyterNotebook, cell: JupyterCell) {
   }
 
   // parse the options and set them into metadata
-  const yamlOptions = readYamlFromString(yamlLines.join("\n")) as Record<
+  const options = (readYamlFromString(yamlLines.join("\n")) || {}) as Record<
     string,
     unknown
   >;
-  cell.metadata = {
-    ...cell.metadata,
-    ...yamlOptions,
-  };
 
-  // slice the yaml out of the source
-  cell.source = cell.source.slice(yamlLines.length);
+  return {
+    ...cell,
+    source: cell.source.slice(yamlLines.length),
+    options,
+  };
 }
 
 function langCommentChars(lang: string): string[] {
@@ -524,11 +521,11 @@ const kLangCommentChars: Record<string, string | string[]> = {
   dot: "//",
 };
 
-function mdFromContentCell(cell: JupyterCell) {
+function mdFromContentCell(cell: JupyterCellWithOptions) {
   return [...cell.source, "\n\n"];
 }
 
-function mdFromRawCell(cell: JupyterCell, firstCell: boolean) {
+function mdFromRawCell(cell: JupyterCellWithOptions, firstCell: boolean) {
   const mimeType = cell.metadata?.[kRawMimeType];
   if (mimeType) {
     switch (mimeType) {
@@ -564,7 +561,7 @@ function mdFromRawCell(cell: JupyterCell, firstCell: boolean) {
 // https://ipython.org/ipython-doc/dev/notebook/nbformat.html
 // https://github.com/mwouts/jupytext/blob/master/jupytext/cell_to_text.py
 function mdFromCodeCell(
-  cell: JupyterCell,
+  cell: JupyterCellWithOptions,
   cellIndex: number,
   options: JupyterToMarkdownOptions,
 ) {
@@ -585,7 +582,7 @@ function mdFromCodeCell(
   const divMd: string[] = [`::: {`];
 
   // metadata to exclude from cell div attributes
-  const kCellMetadataFilter = [
+  const kCellOptionsFilter = [
     kCellCollapsed,
     kCellAutoscroll,
     kCellDeletable,
@@ -630,18 +627,24 @@ function mdFromCodeCell(
   }
 
   // css classes
-  if (cell.metadata.classes) {
-    const classes = cell.metadata.classes.trim().split(/\s+/)
+  if (cell.options[kCellClasses]) {
+    const classes = cell.options[kCellClasses]!.trim().split(/\s+/)
       .map((clz) => clz.startsWith(".") ? clz : ("." + clz))
       .join(" ");
     divMd.push(classes + " ");
   }
 
-  // forward other attributes we don't know about
-  for (const key of Object.keys(cell.metadata)) {
-    if (!kCellMetadataFilter.includes(key.toLowerCase())) {
+  // forward other attributes we don't know about (combine attributes
+  // from options yaml and cell metadata)
+  const cellOptions = {
+    ...cell.metadata,
+    ...cell.options,
+  };
+
+  for (const key of Object.keys(cellOptions)) {
+    if (!kCellOptionsFilter.includes(key.toLowerCase())) {
       // deno-lint-ignore no-explicit-any
-      const value = (cell.metadata as any)[key];
+      const value = (cellOptions as any)[key];
       if (value) {
         divMd.push(`${key}="${value}" `);
       }
@@ -655,8 +658,8 @@ function mdFromCodeCell(
   // write code if appropriate
   if (includeCode(cell, options.execution)) {
     md.push("``` {");
-    if (typeof cell.metadata[kCellLstLabel] === "string") {
-      let label = cell.metadata[kCellLstLabel]!;
+    if (typeof cell.options[kCellLstLabel] === "string") {
+      let label = cell.options[kCellLstLabel]!;
       if (!label.startsWith("#")) {
         label = "#" + label;
       }
@@ -667,14 +670,14 @@ function mdFromCodeCell(
     if (hideCode(cell, options.execution)) {
       md.push(" .hidden");
     }
-    if (typeof cell.metadata[kCellLstCap] === "string") {
-      md.push(` caption=\"${cell.metadata[kCellLstCap]}\"`);
+    if (typeof cell.options[kCellLstCap] === "string") {
+      md.push(` caption=\"${cell.options[kCellLstCap]}\"`);
     }
-    if (typeof cell.metadata[kCellFold] !== "undefined") {
-      md.push(` fold=\"${cell.metadata[kCellFold]}\"`);
+    if (typeof cell.options[kCellFold] !== "undefined") {
+      md.push(` fold=\"${cell.options[kCellFold]}\"`);
     }
-    if (typeof cell.metadata[kCellSummary] !== "undefined") {
-      md.push(` summary=\"${cell.metadata[kCellSummary]}\"`);
+    if (typeof cell.options[kCellSummary] !== "undefined") {
+      md.push(` summary=\"${cell.options[kCellSummary]}\"`);
     }
     md.push("}\n");
     md.push(...mdTrimEmptyLines(cell.source), "\n");
@@ -747,7 +750,7 @@ function mdFromCodeCell(
           | "fig.scap"
           | "fig.alt",
       ) => {
-        const value = cell.metadata[name];
+        const value = cell.options[name];
         if (value) {
           if (Array.isArray(value)) {
             return value[index];
