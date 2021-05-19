@@ -19,7 +19,7 @@ In addition to the core capabilities of Pandoc, Quarto includes:
 
 The overall design of Quarto is influenced heavily by
 [R Markdown](https://rmarkdown.rstudio.com/), however unlike R Markdown the
-architecture is language agnostic. In it's current iteration, Quarto can render
+architecture is language agnostic. In its current iteration, Quarto can render
 plain markdown, Rmd documents, and Jupyter notebooks.
 
 Quarto is currently in alpha development, so not generally recommended for
