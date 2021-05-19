@@ -430,7 +430,7 @@ def nb_cell_yaml_options(client, cell):
 
    # if we have yaml then parse it
    if len(yaml_lines) > 0:
-      return yaml.load("\n".join(yaml_lines))
+      return yaml.load("\n".join(yaml_lines), Loader=yaml.FullLoader)
    else:
       return dict()
    
