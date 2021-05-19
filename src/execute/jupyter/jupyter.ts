@@ -237,6 +237,10 @@ export const jupyterEngine: ExecutionEngine = {
       options.target.input,
       options.format.pandoc.to,
     );
+    // NOTE: for perforance reasons the 'nb' is mutated in place
+    // by jupyterToMarkdown (we don't want to make a copy of a
+    // potentially very large notebook) so should not be relied
+    // on subseuqent to this call
     const result = jupyterToMarkdown(
       nb,
       {

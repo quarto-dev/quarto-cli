@@ -64,6 +64,7 @@ import { Metadata } from "../../config/metadata.ts";
 import { JupyterKernelspec } from "./kernels.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines } from "../text.ts";
+import { readYamlFromString } from "../yaml.ts";
 
 export const kCellCollapsed = "collapsed";
 export const kCellAutoscroll = "autoscroll";
@@ -401,6 +402,9 @@ export function jupyterToMarkdown(
     // get cell
     const cell = nb.cells[i];
 
+    // convert cell yaml to cell metadata
+    resolveCellYamlOptions(nb, cell);
+
     // validate unique cell labels
     validateCellLabel(cell);
 
@@ -427,6 +431,98 @@ export function jupyterToMarkdown(
     htmlPreserve,
   };
 }
+
+function resolveCellYamlOptions(nb: JupyterNotebook, cell: JupyterCell) {
+  const lang = nb.metadata.kernelspec.language;
+  const commentChars = langCommentChars(lang);
+  const optionPrefix = commentChars[0] + "| ";
+  const optionSuffix = commentChars[1] || "";
+
+  // find the yaml lines
+  const yamlLines: string[] = [];
+  for (const line of cell.source) {
+    if (line.startsWith(optionPrefix)) {
+      if (!optionSuffix || line.trimRight().endsWith(optionSuffix)) {
+        let yamlOption = line.substring(optionPrefix.length);
+        if (optionSuffix) {
+          yamlOption = yamlOption.trimRight();
+          yamlOption = yamlOption.substring(
+            0,
+            yamlOption.length - optionSuffix.length,
+          );
+        }
+        yamlLines.push(yamlOption);
+        continue;
+      }
+    }
+    break;
+  }
+
+  // parse the options and set them into metadata
+  const yamlOptions = readYamlFromString(yamlLines.join("\n")) as Record<
+    string,
+    unknown
+  >;
+  cell.metadata = {
+    ...cell.metadata,
+    ...yamlOptions,
+  };
+
+  // slice the yaml out of the source
+  cell.source = cell.source.slice(yamlLines.length);
+}
+
+function langCommentChars(lang: string): string[] {
+  const chars = kLangCommentChars[lang] || "#";
+  if (!Array.isArray(chars)) {
+    return [chars];
+  } else {
+    return chars;
+  }
+}
+
+const kLangCommentChars: Record<string, string | string[]> = {
+  r: "#",
+  python: "#",
+  julia: "#",
+  scala: "//",
+  matlab: "%",
+  csharp: "//",
+  fsharp: "//",
+  c: ["/*", "*/"],
+  css: ["/*", "*/"],
+  sas: ["*", ";"],
+  powershell: "#",
+  bash: "#",
+  sql: "--",
+  mysql: "--",
+  psql: "--",
+  lua: "--",
+  cpp: "//",
+  cc: "//",
+  stan: "#",
+  octave: "#",
+  fortran: "!",
+  fortran95: "!",
+  awk: "#",
+  gawk: "#",
+  stata: "*",
+  java: "//",
+  groovy: "//",
+  sed: "#",
+  perl: "#",
+  ruby: "#",
+  tikz: "%",
+  js: "//",
+  d3: "//",
+  node: "//",
+  sass: "//",
+  coffee: "#",
+  go: "//",
+  asy: "//",
+  haskell: "--",
+  dot: "//",
+};
 
 function mdFromContentCell(cell: JupyterCell) {
   return [...cell.source, "\n\n"];
@@ -581,7 +677,7 @@ function mdFromCodeCell(
       md.push(` summary=\"${cell.metadata[kCellSummary]}\"`);
     }
     md.push("}\n");
-    md.push(...cell.source, "\n");
+    md.push(...mdTrimEmptyLines(cell.source), "\n");
     md.push("```\n");
   }
 
@@ -910,6 +1006,30 @@ function mdScriptOutput(mimeType: string, script: string[]) {
     "\n</script>",
   ];
   return mdHtmlOutput(scriptTag);
+}
+
+function mdTrimEmptyLines(lines: string[]) {
+  // trim leading lines
+  const firstNonEmpty = lines.findIndex((line) => line.trim().length > 0);
+  if (firstNonEmpty === -1) {
+    return [];
+  }
+  lines = lines.slice(firstNonEmpty);
+
+  // trim trailing lines
+  let lastNonEmpty = -1;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i].trim().length > 0) {
+      lastNonEmpty = i;
+      break;
+    }
+  }
+
+  if (lastNonEmpty > -1) {
+    lines = lines.slice(0, lastNonEmpty + 1);
+  }
+
+  return lines;
 }
 
 function mdCodeOutput(code: string[]) {
