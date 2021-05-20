@@ -11,6 +11,9 @@ import { ensureDirSync } from "fs/ensure_dir.ts";
 import { dirname, join, relative } from "path/mod.ts";
 import { walkSync } from "fs/walk.ts";
 import { decode as base64decode } from "encoding/base64.ts";
+import { stringify } from "encoding/yaml.ts";
+
+import { warnOnce } from "../../core/log.ts";
 
 import {
   extensionForMimeImageType,
@@ -127,6 +130,9 @@ export interface JupyterCell {
 
     // used by jupytext to preserve line spacing
     [kCellLinesToNext]?: number;
+
+    // anything else
+    [key: string]: unknown;
   };
   source: string[];
   outputs?: JupyterOutput[];
@@ -178,6 +184,28 @@ export interface JupyterOutputFigureOptions {
   [kCellFigAlt]?: string;
 }
 
+export const kJupyterCellOptionKeys = [
+  kCellLabel,
+  kCellFigCap,
+  kCellFigSubCap,
+  kCellLstLabel,
+  kCellLstCap,
+  kCellClasses,
+  kCellFold,
+  kCellSummary,
+  kEval,
+  kEcho,
+  kWarning,
+  kOutput,
+  kInclude,
+  kCellFigScap,
+  kCellFigLink,
+  kCellFigAlign,
+  kCellFigEnv,
+  kCellFigPos,
+  kCellFigAlt,
+];
+
 export interface JupyterOutputExecuteResult extends JupyterOutputDisplayData {
   execution_count: number;
 }
@@ -188,7 +216,7 @@ export interface JupyterOutputError extends JupyterOutput {
   traceback: string[];
 }
 
-export function jupyterMdToJupyter(
+export function quartoMdToJupyter(
   input: string,
   kernelspec: JupyterKernelspec,
   metadata: Metadata,
@@ -207,7 +235,7 @@ export function jupyterMdToJupyter(
   // regexes
   const yamlRegEx = /^---\s*$/;
   const startCodeCellRegEx = new RegExp(
-    "^```" + kernelspec.language + "\s*(.*)$",
+    "^```{" + kernelspec.language + "}\s*$",
   );
   const startCodeRegEx = /^```/;
   const endCodeRegEx = /^```\s*$/;
@@ -219,27 +247,58 @@ export function jupyterMdToJupyter(
   const lineBuffer: string[] = [];
   const flushLineBuffer = (
     cell_type: "markdown" | "code" | "raw",
-    metadata?: Record<string, unknown>,
   ) => {
     if (lineBuffer.length) {
       const cell: JupyterCell = {
         cell_type,
-        metadata: metadata || {},
+        metadata: {},
         source: lineBuffer.map((line, index) => {
           return line + (index < (lineBuffer.length - 1) ? "\n" : "");
         }),
       };
       if (cell_type === "code") {
+        // see if there is embedded metadata we should forward into the cell metadata
+        const { yaml, source } = partitionJupyterCellOptions(
+          kernelspec.language,
+          cell.source,
+        );
+        if (yaml) {
+          const yamlKeys = Object.keys(yaml);
+          yamlKeys.forEach((key) => {
+            if (!kJupyterCellOptionKeys.includes(key)) {
+              cell.metadata[key] = yaml[key];
+              delete yaml[key];
+            }
+          });
+
+          // if we hit at least one we need to re-write the source
+          if (Object.keys(yaml).length < yamlKeys.length) {
+            const cellYaml = stringify(yaml, {
+              indent: 2,
+              sortKeys: false,
+              skipInvalid: true,
+            });
+            const commentChars = langCommentChars(kernelspec.language);
+            const yamlOutput = lines(cellYaml).map((line) => {
+              line = optionCommentPrefix(commentChars[0]) + line +
+                optionCommentSuffix(commentChars[1]);
+              return line;
+            }).concat([""]);
+            cell.source = yamlOutput.concat(source);
+          }
+        }
+
+        // reset outputs and execution_count
         cell.execution_count = null;
         cell.outputs = [];
       }
+
       nb.cells.push(cell);
       lineBuffer.splice(0, lineBuffer.length);
     }
   };
 
   // loop through lines and create cells based on state transitions
-  let cellMetadata: Record<string, unknown> | undefined;
   let inYaml = false, inCodeCell = false, inCode = false;
   for (const line of lines(inputContent)) {
     // yaml front matter
@@ -257,18 +316,13 @@ export function jupyterMdToJupyter(
     else if (startCodeCellRegEx.test(line)) {
       flushLineBuffer("markdown");
       inCodeCell = true;
-      const match = line.match(startCodeCellRegEx);
-      if (match && match[1]) {
-        cellMetadata = parseCellMetadata(match[1]);
-      }
 
       // end code block: ^``` (tolerate trailing ws)
     } else if (endCodeRegEx.test(line)) {
       // in a code cell, flush it
       if (inCodeCell) {
         inCodeCell = false;
-        flushLineBuffer("code", cellMetadata);
-        cellMetadata = {};
+        flushLineBuffer("code");
 
         // otherwise this flips the state of in-code
       } else {
@@ -289,34 +343,6 @@ export function jupyterMdToJupyter(
   flushLineBuffer("markdown");
 
   return nb;
-}
-
-function parseCellMetadata(metadata: string): Record<string, unknown> {
-  const cellMetadata: Record<string, unknown> = {};
-
-  const kKeyRegEx = /\s*([^\s=]+)\s*=\s*/;
-  let nextLoc = 0;
-  while (nextLoc < metadata.length) {
-    const match = metadata.slice(nextLoc).match(kKeyRegEx);
-    if (!match) {
-      break;
-    }
-    const key = match[1];
-    let value = "";
-    const remaining = metadata.slice(nextLoc + match[0].length);
-    const nextMatch = remaining.match(kKeyRegEx);
-    if (nextMatch) {
-      value = remaining.slice(0, nextMatch.index);
-      nextLoc = nextLoc + match[0].length + (nextMatch.index || 0);
-    } else {
-      value = remaining;
-      nextLoc = metadata.length;
-    }
-
-    cellMetadata[key] = JSON.parse(value);
-  }
-
-  return cellMetadata;
 }
 
 export function jupyterFromFile(input: string): JupyterNotebook {
@@ -413,7 +439,10 @@ export function jupyterToMarkdown(
 
   for (let i = 0; i < nb.cells.length; i++) {
     // convert cell yaml to cell metadata
-    const cell = jupyterCellWithOptions(nb, nb.cells[i]);
+    const cell = jupyterCellWithOptions(
+      nb.metadata.kernelspec.language,
+      nb.cells[i],
+    );
 
     // validate unique cell labels
     validateCellLabel(cell);
@@ -443,17 +472,41 @@ export function jupyterToMarkdown(
 }
 
 function jupyterCellWithOptions(
-  nb: JupyterNotebook,
+  language: string,
   cell: JupyterCell,
 ): JupyterCellWithOptions {
-  const lang = nb.metadata.kernelspec.language;
-  const commentChars = langCommentChars(lang);
-  const optionPrefix = commentChars[0] + "| ";
+  const { yaml, source } = partitionJupyterCellOptions(language, cell.source);
+
+  // read any options defined in cell metadata
+  const metadataOptions: Record<string, unknown> = kJupyterCellOptionKeys
+    .reduce((options, key) => {
+      if (cell.metadata[key]) {
+        options[key] = cell.metadata[key];
+      }
+      return options;
+    }, {} as Record<string, unknown>);
+
+  // combine metadata options with yaml options (giving yaml options priority)
+  const options = {
+    ...metadataOptions,
+    ...yaml,
+  };
+
+  return {
+    ...cell,
+    source,
+    options,
+  };
+}
+
+function partitionJupyterCellOptions(language: string, source: string[]) {
+  const commentChars = langCommentChars(language);
+  const optionPrefix = optionCommentPrefix(commentChars[0]);
   const optionSuffix = commentChars[1] || "";
 
   // find the yaml lines
   const yamlLines: string[] = [];
-  for (const line of cell.source) {
+  for (const line of source) {
     if (line.startsWith(optionPrefix)) {
       if (!optionSuffix || line.trimRight().endsWith(optionSuffix)) {
         let yamlOption = line.substring(optionPrefix.length);
@@ -471,17 +524,33 @@ function jupyterCellWithOptions(
     break;
   }
 
-  // parse the options and set them into metadata
-  const options = (readYamlFromString(yamlLines.join("\n")) || {}) as Record<
-    string,
-    unknown
-  >;
+  let yaml = yamlLines.length > 0
+    ? readYamlFromString(yamlLines.join("\n"))
+    : undefined;
+
+  // check that we got what we expected
+  if (
+    yaml !== undefined && (typeof (yaml) !== "object" || Array.isArray(yaml))
+  ) {
+    warnOnce("Invalid YAML option format in cell:\n" + yamlLines.join("\n"));
+    yaml = undefined;
+  }
 
   return {
-    ...cell,
-    source: cell.source.slice(yamlLines.length),
-    options,
+    yaml: yaml as Record<string, unknown> | undefined,
+    source: source.slice(yamlLines.length),
   };
+}
+
+function optionCommentPrefix(comment: string) {
+  return comment + "| ";
+}
+function optionCommentSuffix(comment?: string) {
+  if (comment) {
+    return " " + comment;
+  } else {
+    return "";
+  }
 }
 
 function langCommentChars(lang: string): string[] {

@@ -423,6 +423,10 @@ knitr_options_hook <- function(options) {
     yaml <- substr(yaml, nchar(comment_start) + 1, nchar(yaml))
     yaml <- strtrim(yaml, nchar(yaml) - nchar(comment_end))
     yaml_options <- yaml::yaml.load(yaml, eval.expr = TRUE)
+    if (!is.list(yaml_options) || length(names(yaml_options)) == 0) {
+      warning("Invalid YAML option format in chunk: \n", paste(yaml, collapse = "\n"), "\n")
+      yaml_options <- list()
+    }
     
     # merge into knitr options
     options <- knitr:::merge_list(options, yaml_options)

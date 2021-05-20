@@ -32,8 +32,8 @@ import type {
 import {
   jupyterAssets,
   jupyterFromFile,
-  jupyterMdToJupyter,
   jupyterToMarkdown,
+  quartoMdToJupyter,
 } from "../../core/jupyter/jupyter.ts";
 import {
   kEval,
@@ -166,7 +166,7 @@ export const jupyterEngine: ExecutionEngine = {
 
           // write the notebook
           const [fileDir, fileStem] = dirAndStem(file);
-          const nb = jupyterMdToJupyter(file, kernelspec, metadata);
+          const nb = quartoMdToJupyter(file, kernelspec, metadata);
           notebook = join(fileDir, fileStem + ".ipynb");
           Deno.writeTextFileSync(notebook, JSON.stringify(nb, null, 2));
         }
