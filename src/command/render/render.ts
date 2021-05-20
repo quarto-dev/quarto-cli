@@ -222,17 +222,6 @@ export async function renderFiles(
     // make a copy of options so we don't mutate caller context
     options = ld.cloneDeep(options);
 
-    // kernel keepalive default of 5 mintues for interactive sessions
-    if (options.flags && options.flags.kernelKeepalive === undefined) {
-      const isInteractive = Deno.isatty(Deno.stderr.rid) ||
-        !!Deno.env.get("RSTUDIO_VERSION");
-      if (isInteractive) {
-        options.flags.kernelKeepalive = 300;
-      } else {
-        options.flags.kernelKeepalive = 0;
-      }
-    }
-
     // see if we should be using file-by-file progress
     const progress = project && (files.length > 1) && !options.flags?.quiet;
 

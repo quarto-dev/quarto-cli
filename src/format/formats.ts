@@ -354,7 +354,7 @@ function defaultFormat(): Format {
       [kShowCode]: true,
       [kShowOutput]: true,
       [kShowWarnings]: true,
-      [kKernelKeepalive]: 300,
+      [kKernelKeepalive]: null,
       [kKernelRestart]: false,
       [kKernelDebug]: false,
     },

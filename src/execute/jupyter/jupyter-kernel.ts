@@ -297,7 +297,16 @@ async function connectToKernel(
   }
 
   // determine timeout
-  const timeout = options.format.execution[kKernelKeepalive] || 300;
+  const isInteractive = Deno.isatty(Deno.stderr.rid) ||
+    !!Deno.env.get("RSTUDIO_VERSION");
+  const defaultTimeout = isInteractive ? 300 : 0;
+  const keepAlive = options.format.execution[kKernelKeepalive];
+  const timeout =
+    keepAlive === true || keepAlive === null || keepAlive === undefined
+      ? defaultTimeout
+      : keepAlive === false
+      ? 0
+      : keepAlive;
 
   // try to start the server
   const result = await execJupyter("start", {

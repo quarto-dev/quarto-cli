@@ -195,7 +195,7 @@ export interface FormatExecution {
   [kShowCode]?: boolean;
   [kShowOutput]?: boolean;
   [kShowWarnings]?: boolean;
-  [kKernelKeepalive]?: number;
+  [kKernelKeepalive]?: number | boolean | null;
   [kKernelRestart]?: boolean;
   [kKernelDebug]?: boolean;
 }

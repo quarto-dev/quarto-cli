@@ -225,7 +225,10 @@ export const jupyterEngine: ExecutionEngine = {
         },
       };
 
-      if (options.format.execution[kKernelKeepalive] === 0) {
+      if (
+        options.format.execution[kKernelKeepalive] === false ||
+        options.format.execution[kKernelKeepalive] === 0
+      ) {
         await executeKernelOneshot(execOptions);
       } else {
         await executeKernelKeepalive(execOptions);
