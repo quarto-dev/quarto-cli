@@ -1,23 +1,35 @@
 Markdown Serialization
 =====================================================================
 
-jupyter:    (or knitr:)
+execute:
+  engine: auto | jupyter | knitr
   cache: true
   freeze: auto
-  execute: true
+  
+  keepalive: true
+  restart: true
+  debug: true
 
-  output:
-    code: true        map to knitr 'echo'
-    results: true   | also could be 'hide', etc. for knitr
-    warning: true
-    message: false
-    error: true
-    include: false (don't show any output)
-    keep: true (adds .hidden class)
-      - TODO: register .hidden as display: none
-      - TODO: strip for other formats
+  eval: true 
+  echo: true        
+  results: 'markup'  | also could be false, 'hide', 'asis' etc. for knitr
+  warning: true
+  message: false
+  error: true
+  include: false (don't show any output)
+  
+  hide: true (adds .hidden class)
+    - TODO: register .hidden as display: none
+    - TODO: strip for other formats
 
-all 'output' fields are also available per-cell
+  # works for knitr and matplotlib
+  fig.width
+  fig.height
+  fig.dpi
+  fig.format  (alias to knitr 'dev')
+
+
+
 
 
 TODO
