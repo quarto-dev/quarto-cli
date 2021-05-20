@@ -268,7 +268,7 @@ function projectInputFiles(dir: string, metadata?: ProjectConfig) {
 
   const addFile = (file: string) => {
     if (!outputDir || !file.startsWith(join(dir, outputDir))) {
-      const engine = fileExecutionEngine(file, true);
+      const engine = fileExecutionEngine(file);
       if (engine) {
         files.push(file);
         const keep = engine.keepFiles(file);

@@ -11,10 +11,7 @@ import { error } from "log/mod.ts";
 import { dirAndStem } from "../core/path.ts";
 import { execProcess } from "../core/process.ts";
 import { rBinaryPath, resourcePath } from "../core/resources.ts";
-import {
-  readYamlFromMarkdown,
-  readYamlFromMarkdownFile,
-} from "../core/yaml.ts";
+import { readYamlFromMarkdownFile } from "../core/yaml.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 
 import { Metadata } from "../config/metadata.ts";
@@ -31,8 +28,6 @@ import type {
 import { sessionTempFile } from "../core/temp.ts";
 
 const kRmdExtensions = [".rmd", ".rmarkdown"];
-const kRScriptExtensions = [".r", ".s", ".q"];
-const kEngineExtensions = [...kRmdExtensions, ...kRScriptExtensions];
 
 export const knitrEngine: ExecutionEngine = {
   name: "knitr",
@@ -41,30 +36,16 @@ export const knitrEngine: ExecutionEngine = {
 
   defaultYaml: () => [],
 
-  canHandle: (file: string, contentOnly: boolean) => {
-    const extensions = contentOnly ? kRmdExtensions : kEngineExtensions;
-    return extensions.includes(extname(file).toLowerCase());
+  canHandle: (file: string) => {
+    return kRmdExtensions.includes(extname(file).toLowerCase());
   },
 
   target: (file: string, _quiet?: boolean) => {
     return Promise.resolve({ source: file, input: file });
   },
 
-  metadata: async (file: string): Promise<Metadata> => {
-    if (kRScriptExtensions.includes(extname(file.toLowerCase()))) {
-      // if it's an R script, spin it into markdown
-      const result = await callR<string>(
-        "spin",
-        {
-          input: file,
-        },
-        true,
-      );
-      return readYamlFromMarkdown(result);
-    } else {
-      // otherwise just read the metadata from the file
-      return readYamlFromMarkdownFile(file);
-    }
+  metadata: (file: string): Promise<Metadata> => {
+    return Promise.resolve(readYamlFromMarkdownFile(file));
   },
 
   partitionedMarkdown: (file: string) => {

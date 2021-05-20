@@ -178,7 +178,7 @@ export async function partitionedMarkdownForInput(
     // otherwise fall back to calling the engine to do the partition
   } else {
     const inputPath = join(projectDir, input);
-    const engine = fileExecutionEngine(inputPath, true);
+    const engine = fileExecutionEngine(inputPath);
     if (engine) {
       return await engine.partitionedMarkdown(inputPath);
     } else {
