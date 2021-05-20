@@ -70,6 +70,11 @@ RStudio IDE
 - When running the dev server, the "Preview" or "Render" button for .md just saves and brings Viewer to front
 
 
+JupyterLab
+======================================================================
+
+- https://github.com/jupyterlab/jupyterlab-latex
+
 - webshot equivalent for printed output
 
 - Bibliography per chapter
