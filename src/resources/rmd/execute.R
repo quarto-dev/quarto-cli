@@ -157,10 +157,10 @@ knitr_options <- function(format) {
   # opts_chunk
   opts_chunk <- list(
     # options derived from format
-    fig.width = format$execution$`fig-width`,
-    fig.height = format$execution$`fig-height`,
-    dev = format$execution$`fig-format`,
-    dpi = format$execution$`fig-dpi`,
+    fig.width = format$execution$`fig.width`,
+    fig.height = format$execution$`fig.height`,
+    dev = format$execution$`fig.format`,
+    dpi = format$execution$`fig.dpi`,
     eval = format$execution[["execute"]],
     error = format$execution$`allow-errors`,
     echo = isTRUE(format$execution$`show-code`),

@@ -12,10 +12,10 @@ export const kExecutionDefaults = "execution";
 export const kPandocDefaults = "pandoc";
 export const kPandocMetadata = "metadata";
 
-export const kFigWidth = "fig-width";
-export const kFigHeight = "fig-height";
-export const kFigFormat = "fig-format";
-export const kFigDpi = "fig-dpi";
+export const kFigWidth = "fig.width";
+export const kFigHeight = "fig.height";
+export const kFigFormat = "fig.format";
+export const kFigDpi = "fig.dpi";
 
 export const kHideCell = "hide-cell";
 export const kHideCode = "hide-code";
