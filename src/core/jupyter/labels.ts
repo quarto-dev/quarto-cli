@@ -6,7 +6,6 @@ import {
 } from "./display_data.ts";
 
 import {
-  JupyterCell,
   JupyterCellWithOptions,
   JupyterOutput,
   JupyterOutputDisplayData,
@@ -45,7 +44,7 @@ export function cellLabelValidator() {
 }
 
 export function shouldLabelCellContainer(
-  cell: JupyterCell,
+  cell: JupyterCellWithOptions,
   options: JupyterToMarkdownOptions,
 ) {
   // no outputs

@@ -48,9 +48,9 @@ def notebook_execute(options, status):
    input = Path(input).name
 
    # read variables out of format
-   execute = format["execution"]
+   execute = format["execute"]
 
-   allow_errors = bool(execute["allow-errors"])
+   allow_errors = bool(execute["error"])
    fig_width = execute["fig.width"]
    fig_height = execute["fig.height"]
    fig_format = execute["fig.format"]
@@ -294,20 +294,21 @@ def nb_kernel_depenencies(cell):
 
 def cell_execute(client, cell, index, execution_count, store_history):
 
-   no_execute_tag = 'no-execute'
-   allow_errors_tag = 'allow-errors'
-
    # read cell options
    cell_options = nb_cell_yaml_options(client, cell)
 
    # ensure we have tags
    tags = cell.get('metadata', {}).get('tags', [])
+
+   # check options for eval and error
+   eval = cell_options.get('eval', True)
+   allow_errors = cell_options.get('error', False)
      
    # execute unless the 'no-execute' tag is active
-   if not no_execute_tag in tags:
+   if eval:
       
-      # if we see 'allow-errors' then add 'raises-exception'
-      if allow_errors_tag in tags:
+      # add 'raises-exception' tag for allow_errors
+      if allow_errors:
          if not "metadata" in cell:
             cell["metadata"] = {}
          cell["metadata"]["tags"] = tags + ['raises-exception'] 
@@ -326,7 +327,7 @@ def cell_execute(client, cell, index, execution_count, store_history):
          cell["metadata"]["lines_to_next_cell"] = 1
 
       # remove injected raises-exception
-      if allow_errors_tag in tags:
+      if allow_errors:
         cell["metadata"]["tags"].remove('raises-exception')
 
    # update execution count

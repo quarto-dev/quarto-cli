@@ -43,7 +43,10 @@ import {
   kBibliography,
   kCache,
   kCss,
-  kExecute,
+  kEval,
+  kExecuteDaemon,
+  kExecuteDaemonRestart,
+  kExecuteDebug,
   kFreeze,
   kHeaderIncludes,
   kIncludeAfter,
@@ -52,9 +55,6 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
   kKeepMd,
-  kKernelDebug,
-  kKernelKeepalive,
-  kKernelRestart,
   kMetadataFormat,
   kOutputExt,
   kOutputFile,
@@ -390,12 +390,12 @@ export async function renderExecute(
   if (context.project && !alwaysExecute) {
     // check if we are using the freezer
 
-    const thaw = context.format.execution[kFreeze] ||
+    const thaw = context.format.execute[kFreeze] ||
       (context.options.useFreezer ? "auto" : false);
 
     if (thaw) {
       // copy from project freezer
-      const hidden = context.format.execution[kFreeze] === false;
+      const hidden = context.format.execute[kFreeze] === false;
       copyFromProjectFreezer(
         context.project,
         projRelativeFilesDir!,
@@ -418,7 +418,7 @@ export async function renderExecute(
         // remove the results dir
         removeFreezeResults(join(context.project.dir, projRelativeFilesDir!));
 
-        // notify engine that we skipped execution
+        // notify engine that we skipped execute
         if (context.engine.executeTargetSkipped) {
           context.engine.executeTargetSkipped(context.target, context.format);
         }
@@ -429,8 +429,8 @@ export async function renderExecute(
     }
   }
 
-  // remove the figures dir before execution (so we don't inherit
-  // cruft from a previous execution)
+  // remove the figures dir before execute (so we don't inherit
+  // cruft from a previous execute)
   const figsDir = join(filesDir, figuresDir(context.format.pandoc.to));
   removeIfExists(figsDir);
 
@@ -466,7 +466,7 @@ export async function renderExecute(
     copyToProjectFreezer(context.project, projRelativeFilesDir!, true, true);
 
     // copy to the _freeze dir if explicit _freeze is requested
-    if (context.format.execution[kFreeze] !== false) {
+    if (context.format.execute[kFreeze] !== false) {
       copyToProjectFreezer(context.project, projRelativeFilesDir!, false, true);
     } else {
       // otherwise cleanup the _freeze subdir b/c we aren't explicitly freezing anymore
@@ -522,7 +522,7 @@ export async function renderPandoc(
       format.pandoc || {},
       executeResult.dependencies.data as PandocIncludes,
     );
-  } // run the dependencies step if we didn't do it during execution
+  } // run the dependencies step if we didn't do it during execute
   else if (executeResult.dependencies?.type === "dependencies") {
     const dependenciesResult = await context.engine.dependencies({
       target: context.target,
@@ -697,7 +697,7 @@ export function renderResultFinalOutput(
   }
 }
 
-// default pandoc renderer immediately renders each execution result
+// default pandoc renderer immediately renders each execute result
 function defaultPandocRenderer(
   _options: RenderOptions,
   _project?: ProjectContext,
@@ -829,27 +829,27 @@ export function resolveFormatsFromMetadata(
 
     // --no-execute-code
     if (flags?.execute !== undefined) {
-      config.execution[kExecute] = flags?.execute;
+      config.execute[kEval] = flags?.execute;
     }
 
     // --cache
     if (flags?.executeCache !== undefined) {
-      config.execution[kCache] = flags?.executeCache;
+      config.execute[kCache] = flags?.executeCache;
     }
 
-    // --kernel-keepalive
-    if (flags?.kernelKeepalive !== undefined) {
-      config.execution[kKernelKeepalive] = flags.kernelKeepalive;
+    // --execute-daemon
+    if (flags?.executeDaemon !== undefined) {
+      config.execute[kExecuteDaemon] = flags.executeDaemon;
     }
 
-    // --kernel-restart
-    if (flags?.kernelRestart !== undefined) {
-      config.execution[kKernelRestart] = flags.kernelRestart;
+    // --execute-daemon-restart
+    if (flags?.executeDaemonRestart !== undefined) {
+      config.execute[kExecuteDaemonRestart] = flags.executeDaemonRestart;
     }
 
-    // --kernel-debug
-    if (flags?.kernelDebug !== undefined) {
-      config.execution[kKernelDebug] = flags.kernelDebug;
+    // --execute-debug
+    if (flags?.executeDebug !== undefined) {
+      config.execute[kExecuteDebug] = flags.executeDebug;
     }
 
     resolved[to] = config;

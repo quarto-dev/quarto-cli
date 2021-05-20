@@ -58,9 +58,17 @@ import {
   JupyterWidgetDependencies,
 } from "./widgets.ts";
 import { removeAndPreserveHtml } from "./preserve.ts";
-import { FormatExecution } from "../../config/format.ts";
+import { FormatExecute } from "../../config/format.ts";
 import { pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
 import { Metadata } from "../../config/metadata.ts";
+import {
+  kEcho,
+  kError,
+  kEval,
+  kInclude,
+  kOutput,
+  kWarning,
+} from "../../config/constants.ts";
 import { JupyterKernelspec } from "./kernels.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines } from "../text.ts";
@@ -153,6 +161,12 @@ export interface JupyterCellOptions extends JupyterOutputFigureOptions {
   [kCellClasses]?: string;
   [kCellFold]?: string;
   [kCellSummary]?: string;
+  [kEval]?: true | false | null;
+  [kEcho]?: boolean;
+  [kWarning]?: boolean;
+  [kError]?: boolean;
+  [kOutput]?: boolean;
+  [kInclude]?: boolean;
 }
 
 export interface JupyterOutputFigureOptions {
@@ -363,7 +377,7 @@ export function jupyterAssets(input: string, to?: string) {
 export interface JupyterToMarkdownOptions {
   language: string;
   assets: JupyterAssets;
-  execution: FormatExecution;
+  execute: FormatExecute;
   keepHidden?: boolean;
   toHtml?: boolean;
   toLatex?: boolean;
@@ -623,7 +637,7 @@ function mdFromCodeCell(
   divMd.push(`.cell `);
 
   // add hidden if requested
-  if (hideCell(cell)) {
+  if (hideCell(cell, options)) {
     divMd.push(`.hidden `);
   }
 
@@ -668,7 +682,7 @@ function mdFromCodeCell(
     }
     md.push("." + options.language);
     md.push(" .cell-code");
-    if (hideCode(cell, options.execution)) {
+    if (hideCode(cell, options)) {
       md.push(" .hidden");
     }
     if (typeof cell.options[kCellLstCap] === "string") {
@@ -732,8 +746,8 @@ function mdFromCodeCell(
 
       // add hidden if necessary
       if (
-        hideOutput(cell, options.execution) ||
-        (isWarningOutput(output) && hideWarnings(cell, options.execution))
+        hideOutput(cell, options) ||
+        (isWarningOutput(output) && hideWarnings(cell, options))
       ) {
         md.push(` .hidden`);
       }

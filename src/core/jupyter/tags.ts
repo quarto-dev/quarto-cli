@@ -5,170 +5,102 @@
 *
 */
 
-import {
-  kHideCell,
-  kHideCode,
-  kHideOutput,
-  kHideWarnings,
-  kIncludeCode,
-  kIncludeOutput,
-  kIncludeWarnings,
-  kRemoveCell,
-  kRemoveCode,
-  kRemoveOutput,
-  kRemoveWarnings,
-  kShowCode,
-  kShowOutput,
-  kShowWarnings,
-} from "../../config/constants.ts";
-import { FormatExecution } from "../../config/format.ts";
+import { kEcho, kInclude, kOutput, kWarning } from "../../config/constants.ts";
 
-import { JupyterCell, JupyterToMarkdownOptions } from "./jupyter.ts";
+import { JupyterCellWithOptions, JupyterToMarkdownOptions } from "./jupyter.ts";
 
-const kHideCellTags = [kHideCell];
-const kHideCodeTags = [kHideCode];
-const kHideOutputTags = [kHideOutput];
-const kHideWarningsTags = [kHideWarnings];
-const kShowCodeTags = [kShowCode];
-const kShowOutputTags = [kShowOutput];
-const kShowWarningsTags = [kShowWarnings];
-
-const kIncludeCodeTags = [kIncludeCode];
-const kIncludeOutputTags = [kIncludeOutput];
-const kIncludeWarningsTags = [kIncludeWarnings];
-const kRemoveCodeTags = [kRemoveCode];
-const kRemoveOutputTags = [kRemoveOutput];
-const kRemoveWarningsTags = [kRemoveWarnings];
-const kRemoveCellTags = [kRemoveCell];
-
-export function hideCell(cell: JupyterCell) {
-  return hasTag(cell, kHideCellTags);
+export function hideCell(
+  cell: JupyterCellWithOptions,
+  options: JupyterToMarkdownOptions,
+) {
+  return shouldHide(cell, options, kInclude);
 }
 
-export function hideCode(cell: JupyterCell, execution: FormatExecution) {
-  return shouldHide(
-    cell,
-    !execution[kShowCode],
-    kHideCodeTags,
-    kShowCodeTags,
-  );
+export function hideCode(
+  cell: JupyterCellWithOptions,
+  options: JupyterToMarkdownOptions,
+) {
+  return shouldHide(cell, options, kEcho);
 }
 
-export function hideOutput(cell: JupyterCell, execution: FormatExecution) {
-  return shouldHide(
-    cell,
-    !execution[kShowOutput],
-    kHideOutputTags,
-    kShowOutputTags,
-  );
+export function hideOutput(
+  cell: JupyterCellWithOptions,
+  options: JupyterToMarkdownOptions,
+) {
+  return shouldHide(cell, options, kOutput);
 }
 
-export function hideWarnings(cell: JupyterCell, execution: FormatExecution) {
-  return shouldHide(
-    cell,
-    !execution[kShowWarnings],
-    kHideWarningsTags,
-    kShowWarningsTags,
-  );
+export function hideWarnings(
+  cell: JupyterCellWithOptions,
+  options: JupyterToMarkdownOptions,
+) {
+  return shouldHide(cell, options, kWarning);
 }
 
 export function includeCell(
-  cell: JupyterCell,
-  options: JupyterToMarkdownOptions,
-) {
-  const removeTags = kRemoveCellTags.concat(
-    !options.keepHidden ? kHideCellTags : [],
-  );
-  return !hasTag(cell, removeTags);
-}
-
-export function includeCode(
-  cell: JupyterCell,
+  cell: JupyterCellWithOptions,
   options: JupyterToMarkdownOptions,
 ) {
   return shouldInclude(
     cell,
     options,
-    kShowCode,
-    kIncludeCodeTags,
-    kRemoveCodeTags,
+    kInclude,
+  );
+}
+
+export function includeCode(
+  cell: JupyterCellWithOptions,
+  options: JupyterToMarkdownOptions,
+) {
+  return shouldInclude(
+    cell,
+    options,
+    kEcho,
   );
 }
 
 export function includeOutput(
-  cell: JupyterCell,
+  cell: JupyterCellWithOptions,
   options: JupyterToMarkdownOptions,
 ) {
   return shouldInclude(
     cell,
     options,
-    kShowOutput,
-    kIncludeOutputTags,
-    kRemoveOutputTags,
+    kOutput,
   );
 }
 
 export function includeWarnings(
-  cell: JupyterCell,
+  cell: JupyterCellWithOptions,
   options: JupyterToMarkdownOptions,
 ) {
   return shouldInclude(
     cell,
     options,
-    kShowWarnings,
-    kIncludeWarningsTags,
-    kRemoveWarningsTags,
+    kWarning,
   );
 }
 
 function shouldHide(
-  cell: JupyterCell,
-  hideDefault: boolean,
-  hideTags: string[],
-  showTags: string[],
+  cell: JupyterCellWithOptions,
+  options: JupyterToMarkdownOptions,
+  context: "echo" | "output" | "warning" | "include",
 ) {
-  if (hideDefault) {
-    return !hasTag(cell, showTags);
+  if (cell.options[context] !== undefined) {
+    return !cell.options[context] && options.keepHidden;
   } else {
-    return hasTag(cell, hideTags);
+    return !options.execute[context] && options.keepHidden;
   }
 }
 
 function shouldInclude(
-  cell: JupyterCell,
+  cell: JupyterCellWithOptions,
   options: JupyterToMarkdownOptions,
-  context: "show-code" | "show-output" | "show-warnings",
-  includeTags: string[],
-  removeTags: string[],
+  context: "echo" | "output" | "warning" | "include",
 ) {
-  // if we aren't keeping hidden then show == include and hide == remove
-  if (!options.keepHidden) {
-    switch (context) {
-      case "show-code":
-        includeTags = includeTags.concat(kShowCodeTags);
-        removeTags = removeTags.concat(kHideCodeTags);
-        break;
-      case "show-output":
-        includeTags = includeTags.concat(kShowOutputTags);
-        removeTags = removeTags.concat(kHideOutputTags);
-        break;
-      case "show-warnings":
-        includeTags = includeTags.concat(kShowWarningsTags);
-        removeTags = removeTags.concat(kHideWarningsTags);
-        break;
-    }
-  }
-  const includeDefault = options.keepHidden || options.execution[context];
-  if (includeDefault) {
-    return !hasTag(cell, removeTags);
+  if (cell.options[context] !== undefined) {
+    return !!(cell.options[context] || options.keepHidden);
   } else {
-    return hasTag(cell, includeTags);
+    return !!(options.execute[context] || options.keepHidden);
   }
-}
-
-function hasTag(cell: JupyterCell, tags: string[]) {
-  if (!cell.metadata.tags) {
-    return false;
-  }
-  return cell.metadata.tags.filter((tag) => tags.includes(tag)).length > 0;
 }

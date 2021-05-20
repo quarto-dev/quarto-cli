@@ -8,18 +8,23 @@
 import { mergeConfigs } from "../core/config.ts";
 
 import {
-  kAllowErrors,
   kCache,
   kCodeFold,
   kCodeLink,
   kCodeSummary,
-  kExecute,
+  kEcho,
+  kError,
+  kEval,
+  kExecuteDaemon,
+  kExecuteDaemonRestart,
+  kExecuteDebug,
   kFigAlign,
   kFigDpi,
   kFigFormat,
   kFigHeight,
   kFigWidth,
   kFreeze,
+  kInclude,
   kIncludeInHeader,
   kKeepHidden,
   kKeepIpynb,
@@ -27,9 +32,6 @@ import {
   kKeepSource,
   kKeepTex,
   kKeepYaml,
-  kKernelDebug,
-  kKernelKeepalive,
-  kKernelRestart,
   kLatexAutoInstall,
   kLatexAutoMk,
   kLatexClean,
@@ -39,16 +41,15 @@ import {
   kLatexOutputDir,
   kLatexTlmgrOpts,
   kMergeIncludes,
+  kOutput,
   kOutputDivs,
   kOutputExt,
   kOutputFile,
   kPageWidth,
   kPreferHtml,
-  kShowCode,
-  kShowOutput,
-  kShowWarnings,
   kStandalone,
   kVariant,
+  kWarning,
 } from "../config/constants.ts";
 
 import { Format } from "../config/format.ts";
@@ -225,7 +226,7 @@ export function createHtmlFormat(
   figheight: number,
 ) {
   return createFormat("html", {
-    execution: {
+    execute: {
       [kFigFormat]: "retina",
       [kFigWidth]: figwidth,
       [kFigHeight]: figheight,
@@ -246,7 +247,7 @@ export function createEbookFormat(ext: string): Format {
     render: {
       [kMergeIncludes]: false,
     },
-    execution: {
+    execute: {
       [kFigWidth]: 5,
       [kFigHeight]: 4,
     },
@@ -258,7 +259,7 @@ export function createWordprocessorFormat(ext: string): Format {
     render: {
       [kPageWidth]: 6.5,
     },
-    execution: {
+    execute: {
       [kFigWidth]: 5,
       [kFigHeight]: 4,
     },
@@ -269,9 +270,9 @@ function htmlPresentationFormat(figwidth: number, figheight: number): Format {
   return mergeConfigs(
     createHtmlFormat(figwidth, figheight),
     {
-      execution: {
-        [kShowCode]: false,
-        [kShowWarnings]: false,
+      execute: {
+        [kEcho]: false,
+        [kWarning]: false,
       },
     },
   );
@@ -284,7 +285,7 @@ function hugoFormat(): Format {
       [kPreferHtml]: true,
       [kVariant]: "+definition_lists+footnotes+smart",
     },
-    execution: {
+    execute: {
       [kFigFormat]: "retina",
       [kFigWidth]: 8,
       [kFigHeight]: 5,
@@ -306,11 +307,11 @@ function powerpointFormat(): Format {
       [kPageWidth]: 9,
       [kOutputDivs]: false,
     },
-    execution: {
+    execute: {
       [kFigWidth]: 7.5,
       [kFigHeight]: 5.5,
-      [kShowCode]: false,
-      [kShowWarnings]: false,
+      [kEcho]: false,
+      [kWarning]: false,
     },
   });
 }
@@ -342,21 +343,22 @@ function plaintextFormat(ext: string): Format {
 
 function defaultFormat(): Format {
   return {
-    execution: {
+    execute: {
       [kFigWidth]: 7,
       [kFigHeight]: 5,
       [kFigFormat]: "png",
       [kFigDpi]: 96,
-      [kAllowErrors]: false,
-      [kExecute]: null,
+      [kError]: false,
+      [kEval]: null,
       [kCache]: null,
       [kFreeze]: false,
-      [kShowCode]: true,
-      [kShowOutput]: true,
-      [kShowWarnings]: true,
-      [kKernelKeepalive]: null,
-      [kKernelRestart]: false,
-      [kKernelDebug]: false,
+      [kEcho]: true,
+      [kOutput]: true,
+      [kWarning]: true,
+      [kInclude]: true,
+      [kExecuteDaemon]: null,
+      [kExecuteDaemonRestart]: false,
+      [kExecuteDebug]: false,
     },
     render: {
       [kKeepMd]: false,

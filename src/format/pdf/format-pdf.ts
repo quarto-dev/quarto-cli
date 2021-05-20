@@ -11,13 +11,13 @@ import { mergeConfigs } from "../../core/config.ts";
 import { texSafeFilename } from "../../core/tex.ts";
 
 import {
+  kEcho,
   kFigDpi,
   kFigFormat,
   kFigHeight,
   kFigWidth,
   kKeepTex,
-  kShowCode,
-  kShowWarnings,
+  kWarning,
 } from "../../config/constants.ts";
 import { Format } from "../../config/format.ts";
 
@@ -43,11 +43,11 @@ export function beamerFormat(): Format {
     "pdf",
     createPdfFormat(),
     {
-      execution: {
+      execute: {
         [kFigWidth]: 10,
         [kFigHeight]: 7,
-        [kShowCode]: false,
-        [kShowWarnings]: false,
+        [kEcho]: false,
+        [kWarning]: false,
       },
     },
   );
@@ -64,7 +64,7 @@ function createPdfFormat(): Format {
   return createFormat(
     "pdf",
     {
-      execution: {
+      execute: {
         [kFigWidth]: 6.5,
         [kFigHeight]: 4.5,
         [kFigFormat]: "pdf",

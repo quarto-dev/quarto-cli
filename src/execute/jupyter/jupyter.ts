@@ -36,7 +36,8 @@ import {
   jupyterToMarkdown,
 } from "../../core/jupyter/jupyter.ts";
 import {
-  kExecute,
+  kEval,
+  kExecuteDaemon,
   kFigDpi,
   kFigFormat,
   kFreeze,
@@ -44,7 +45,6 @@ import {
   kIncludeInHeader,
   kKeepHidden,
   kKeepIpynb,
-  kKernelKeepalive,
   kPreferHtml,
 } from "../../config/constants.ts";
 import {
@@ -206,11 +206,11 @@ export const jupyterEngine: ExecutionEngine = {
   },
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
-    // determine default execution behavior if none is specified
-    let execute = options.format.execution[kExecute];
+    // determine default execute behavior if none is specified
+    let execute = options.format.execute[kEval];
     if (execute === null) {
       execute = !isNotebook(options.target.source) ||
-        !!options.format.execution[kFreeze];
+        !!options.format.execute[kFreeze];
     }
     // execute if we need to
     if (execute) {
@@ -226,8 +226,8 @@ export const jupyterEngine: ExecutionEngine = {
       };
 
       if (
-        options.format.execution[kKernelKeepalive] === false ||
-        options.format.execution[kKernelKeepalive] === 0
+        options.format.execute[kExecuteDaemon] === false ||
+        options.format.execute[kExecuteDaemon] === 0
       ) {
         await executeKernelOneshot(execOptions);
       } else {
@@ -250,13 +250,13 @@ export const jupyterEngine: ExecutionEngine = {
       {
         language: nb.metadata.kernelspec.language,
         assets,
-        execution: options.format.execution,
+        execute: options.format.execute,
         keepHidden: options.format.render[kKeepHidden],
         toHtml: isHtmlCompatible(options.format),
         toLatex: isLatexOutput(options.format.pandoc),
         toMarkdown: isMarkdownOutput(options.format.pandoc),
-        figFormat: options.format.execution[kFigFormat],
-        figDpi: options.format.execution[kFigDpi],
+        figFormat: options.format.execute[kFigFormat],
+        figDpi: options.format.execute[kFigDpi],
       },
     );
 

@@ -109,14 +109,14 @@ export async function renderProject(
     };
   }
 
-  // set kernelKeepalive to 0 for renders of the entire project
+  // set executeDaemon to 0 for renders of the entire project
   // or a list of more than one file (don't want to leave dozens of
   // kernels in memory)
   if (
     files.length > 1 && options.flags &&
-    options.flags.kernelKeepalive === undefined
+    options.flags.executeDaemon === undefined
   ) {
-    options.flags.kernelKeepalive = 0;
+    options.flags.executeDaemon = 0;
   }
 
   // determine the output dir
