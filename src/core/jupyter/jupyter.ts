@@ -104,6 +104,12 @@ export const kCellAlt = "alt";
 export const kCellFold = "fold";
 export const kCellSummary = "summary";
 
+export const kLayoutAlign = "layout.align";
+export const kLayoutVAlign = "layout.valign";
+export const kLayoutNcol = "layout.ncol";
+export const kLayoutNrow = "layout.nrow";
+export const kLayout = "layout";
+
 export interface JupyterNotebook {
   metadata: {
     kernelspec: JupyterKernelspec;
@@ -204,6 +210,11 @@ export const kJupyterCellOptionKeys = [
   kCellFigEnv,
   kCellFigPos,
   kCellFigAlt,
+  kLayoutAlign,
+  kLayoutVAlign,
+  kLayoutNcol,
+  kLayoutNrow,
+  kLayout,
 ];
 
 export interface JupyterOutputExecuteResult extends JupyterOutputDisplayData {
@@ -282,7 +293,7 @@ export function quartoMdToJupyter(
             const yamlOutput = lines(cellYaml).map((line) => {
               line = optionCommentPrefix(commentChars[0]) + line +
                 optionCommentSuffix(commentChars[1]);
-              return line;
+              return line + "\n";
             }).concat([""]);
             cell.source = yamlOutput.concat(source);
           }
