@@ -134,7 +134,7 @@ export interface JupyterCell {
     [kCellTags]?: string[];
     [kRawMimeType]?: string;
 
-    // used by jupytext to preserve line spacing
+    // used to preserve line spacing
     [kCellLinesToNext]?: number;
 
     // anything else
@@ -653,8 +653,6 @@ function mdFromRawCell(cell: JupyterCellWithOptions, firstCell: boolean) {
   }
 }
 
-// https://ipython.org/ipython-doc/dev/notebook/nbformat.html
-// https://github.com/mwouts/jupytext/blob/master/jupytext/cell_to_text.py
 function mdFromCodeCell(
   cell: JupyterCellWithOptions,
   cellIndex: number,

@@ -83,7 +83,6 @@ const r: EnvironmentData[] = [
 const python: EnvironmentData[] = [
   pythonEnv("python"),
   pythonEnv("jupyter"),
-  pythonEnv("jupytext", { newline: true }),
 ];
 
 async function printEnvironmentData(
