@@ -1,39 +1,25 @@
 Markdown Serialization
 =====================================================================
 
+
+- Consider mapping some 'known' tags?
+(https://docs.google.com/spreadsheets/d/1aDaHvyYlrfsqwEr2W2G7tbWK-ZMgAvXAzUA3CiqCpIo/edit#gid=0)
+
+
 execute:
   engine: auto | jupyter | knitr
-  cache: true
-  freeze: auto
-  
-  keepalive: true
-  restart: true
-  debug: true
-
-  eval: true 
-  echo: true        
-  results: 'markup'  | also could be false, 'hide', 'asis' etc. for knitr
-  warning: true
-  message: false
-  error: true
-  include: false (don't show any output)
-  
-  hide: true (adds .hidden class)
-    - TODO: register .hidden as display: none
-    - TODO: strip for other formats
-
-  # works for knitr and matplotlib
-  fig.width
-  fig.height
-  fig.dpi
-  fig.format  (alias to knitr 'dev')
 
 
+
+Process .hidden CSS class (remove for non-HTML, hide for html)
 
 
 
 TODO
 =====================================================================
+
+TODO: measure lag at the beginning of project single file render
+
 
 
 TODO: Scss function(s) for referencing fonts (e.g. google, etc...)
