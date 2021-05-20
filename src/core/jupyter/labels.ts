@@ -54,7 +54,7 @@ export function shouldLabelCellContainer(
   }
 
   // not including output
-  if (!includeOutput(cell, options.execution)) {
+  if (!includeOutput(cell, options)) {
     return true;
   }
 

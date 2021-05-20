@@ -43,7 +43,7 @@ knitr_hooks <- function(format) {
       options
     }
   }
-  if (isTRUE(format$execution[["keep-hidden"]])) {
+  if (isTRUE(format$render[["keep-hidden"]])) {
     register_hidden_hook("echo", c("source"))
     register_hidden_hook("include", c("output", "plot"))
     register_hidden_hook("warning")

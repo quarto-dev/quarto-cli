@@ -13,7 +13,6 @@ import {
   kIncludeCode,
   kIncludeOutput,
   kIncludeWarnings,
-  kKeepHidden,
   kRemoveCell,
   kRemoveCode,
   kRemoveOutput,
@@ -24,7 +23,7 @@ import {
 } from "../../config/constants.ts";
 import { FormatExecution } from "../../config/format.ts";
 
-import { JupyterCell } from "./jupyter.ts";
+import { JupyterCell, JupyterToMarkdownOptions } from "./jupyter.ts";
 
 const kHideCellTags = [kHideCell];
 const kHideCodeTags = [kHideCode];
@@ -73,37 +72,49 @@ export function hideWarnings(cell: JupyterCell, execution: FormatExecution) {
   );
 }
 
-export function includeCell(cell: JupyterCell, execution: FormatExecution) {
+export function includeCell(
+  cell: JupyterCell,
+  options: JupyterToMarkdownOptions,
+) {
   const removeTags = kRemoveCellTags.concat(
-    !execution[kKeepHidden] ? kHideCellTags : [],
+    !options.keepHidden ? kHideCellTags : [],
   );
   return !hasTag(cell, removeTags);
 }
 
-export function includeCode(cell: JupyterCell, execution: FormatExecution) {
+export function includeCode(
+  cell: JupyterCell,
+  options: JupyterToMarkdownOptions,
+) {
   return shouldInclude(
     cell,
-    execution,
+    options,
     kShowCode,
     kIncludeCodeTags,
     kRemoveCodeTags,
   );
 }
 
-export function includeOutput(cell: JupyterCell, execution: FormatExecution) {
+export function includeOutput(
+  cell: JupyterCell,
+  options: JupyterToMarkdownOptions,
+) {
   return shouldInclude(
     cell,
-    execution,
+    options,
     kShowOutput,
     kIncludeOutputTags,
     kRemoveOutputTags,
   );
 }
 
-export function includeWarnings(cell: JupyterCell, execution: FormatExecution) {
+export function includeWarnings(
+  cell: JupyterCell,
+  options: JupyterToMarkdownOptions,
+) {
   return shouldInclude(
     cell,
-    execution,
+    options,
     kShowWarnings,
     kIncludeWarningsTags,
     kRemoveWarningsTags,
@@ -125,13 +136,13 @@ function shouldHide(
 
 function shouldInclude(
   cell: JupyterCell,
-  execution: FormatExecution,
+  options: JupyterToMarkdownOptions,
   context: "show-code" | "show-output" | "show-warnings",
   includeTags: string[],
   removeTags: string[],
 ) {
   // if we aren't keeping hidden then show == include and hide == remove
-  if (!execution[kKeepHidden]) {
+  if (!options.keepHidden) {
     switch (context) {
       case "show-code":
         includeTags = includeTags.concat(kShowCodeTags);
@@ -147,7 +158,7 @@ function shouldInclude(
         break;
     }
   }
-  const includeDefault = execution[kKeepHidden] || execution[context];
+  const includeDefault = options.keepHidden || options.execution[context];
   if (includeDefault) {
     return !hasTag(cell, removeTags);
   } else {

@@ -161,6 +161,7 @@ export interface FormatRender {
   [kKeepYaml]?: boolean;
   [kKeepIpynb]?: boolean;
   [kKeepSource]?: boolean;
+  [kKeepHidden]?: boolean;
   [kPreferHtml]?: boolean;
   [kOutputDivs]?: boolean;
   [kVariant]?: string;
@@ -194,7 +195,6 @@ export interface FormatExecution {
   [kShowCode]?: boolean;
   [kShowOutput]?: boolean;
   [kShowWarnings]?: boolean;
-  [kKeepHidden]?: boolean;
   [kKernelKeepalive]?: number;
   [kKernelRestart]?: boolean;
   [kKernelDebug]?: boolean;

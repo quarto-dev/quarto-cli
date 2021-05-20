@@ -364,6 +364,7 @@ export interface JupyterToMarkdownOptions {
   language: string;
   assets: JupyterAssets;
   execution: FormatExecution;
+  keepHidden?: boolean;
   toHtml?: boolean;
   toLatex?: boolean;
   toMarkdown?: boolean;
@@ -566,7 +567,7 @@ function mdFromCodeCell(
   options: JupyterToMarkdownOptions,
 ) {
   // bail if we aren't including this cell
-  if (!includeCell(cell, options.execution)) {
+  if (!includeCell(cell, options)) {
     return [];
   }
 
@@ -656,7 +657,7 @@ function mdFromCodeCell(
   const divBeginMd = divMd.join("").replace(/ $/, "").concat("}\n");
 
   // write code if appropriate
-  if (includeCode(cell, options.execution)) {
+  if (includeCode(cell, options)) {
     md.push("``` {");
     if (typeof cell.options[kCellLstLabel] === "string") {
       let label = cell.options[kCellLstLabel]!;
@@ -685,7 +686,7 @@ function mdFromCodeCell(
   }
 
   // write output if approproate
-  if (includeOutput(cell, options.execution)) {
+  if (includeOutput(cell, options)) {
     // compute label prefix for output (in case we need it for files, etc.)
     const labelName = label
       ? label.replace(/^#/, "").replaceAll(":", "-")
@@ -705,7 +706,7 @@ function mdFromCodeCell(
       if (
         output.output_type === "stream" &&
         (output as JupyterOutputStream).name === "stderr" &&
-        !includeWarnings(cell, options.execution)
+        !includeWarnings(cell, options)
       ) {
         continue;
       }
