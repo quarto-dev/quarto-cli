@@ -485,14 +485,23 @@ partition_yaml_options <- function(engine, code) {
   
   # has to have at least one matched line at the beginning
   if (isTRUE(matched_lines[[1]])) {
-    # find last option line
-    last_match <- which.min(matched_lines) - 1
     
-    # extract and parse options
-    yaml <-code[1:last_match]
+    # divide into yaml and code
+    if (all(matched_lines)) {
+      yaml <- code
+      code <- c()
+    } else {
+      last_match <- which.min(matched_lines) - 1
+      yaml <- code[1:last_match]
+      code <- code[(last_match+1):length(code)]
+    }
+    
+    # trim right
     if (any(match_end)) {
       yaml <- trimws(yaml, "right")
     }
+  
+    # extract yaml from comments, then parse it
     yaml <- substr(yaml, nchar(comment_start) + 1, nchar(yaml))
     yaml <- strtrim(yaml, nchar(yaml) - nchar(comment_end))
     yaml_options <- yaml::yaml.load(yaml, eval.expr = TRUE)
@@ -502,7 +511,6 @@ partition_yaml_options <- function(engine, code) {
     }
     
     # extract code
-    code <- code[(last_match+1):length(code)]
     if (length(code) > 0 && knitr:::is_blank(code[[1]])) {
       code <- code[-1]
     }

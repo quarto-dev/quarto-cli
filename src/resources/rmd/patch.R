@@ -60,7 +60,7 @@ parse_block = function(code, header, params.src, markdown_mode = out_format('mar
   # strip trailing comma and whitespace
   params.src <- sub("\\s*,?\\s*$", "", params.src)
   
-  # clear label and look for other options to forward
+  # look for other options to forward
   extra_opts <- list()
   for (opt in c("ref.label")) {
     if (!is.null(partitioned$yaml[[opt]])) {
