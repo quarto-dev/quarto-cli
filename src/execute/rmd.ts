@@ -5,10 +5,8 @@
 *
 */
 
-import { join } from "path/mod.ts";
 import { error } from "log/mod.ts";
 
-import { dirAndStem } from "../core/path.ts";
 import { execProcess } from "../core/process.ts";
 import { rBinaryPath, resourcePath } from "../core/resources.ts";
 import { readYamlFromMarkdownFile } from "../core/yaml.ts";
@@ -16,12 +14,13 @@ import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 
 import { Metadata } from "../config/metadata.ts";
 
-import type {
+import {
   DependenciesOptions,
   DependenciesResult,
   ExecuteOptions,
   ExecuteResult,
   ExecutionEngine,
+  kQmdExtensions,
   PostProcessOptions,
   RunOptions,
 } from "./engine.ts";
@@ -29,20 +28,22 @@ import { sessionTempFile } from "../core/temp.ts";
 
 const kRmdExtensions = [".rmd", ".rmarkdown"];
 
+const kKnitrEngine = "knitr";
+
 export const knitrEngine: ExecutionEngine = {
-  name: "knitr",
+  name: kKnitrEngine,
 
   defaultExt: ".Rmd",
 
-  defaultYaml: () => [
-    `knitr: true`,
-  ],
+  defaultYaml: () => [],
 
-  handlesExtension: (ext: string) => {
+  validExtensions: () => kRmdExtensions.concat(kQmdExtensions),
+
+  claimsExtension: (ext: string) => {
     return kRmdExtensions.includes(ext.toLowerCase());
   },
 
-  handlesLanguage: (language: string) => {
+  claimsLanguage: (language: string) => {
     return language.toLowerCase() === "r";
   },
 
@@ -82,9 +83,7 @@ export const knitrEngine: ExecutionEngine = {
     );
   },
 
-  keepMd,
-
-  keepFiles: (input: string) => [keepMd(input)],
+  canKeepMd: true,
 
   ignoreGlobs: () => {
     return ["**/renv/**", "**/packrat/**", "**/rsconnect/**"];
@@ -97,11 +96,6 @@ export const knitrEngine: ExecutionEngine = {
     );
   },
 };
-
-function keepMd(input: string) {
-  const [inputDir, inputStem] = dirAndStem(input);
-  return join(inputDir, inputStem + ".md");
-}
 
 async function callR<T>(
   action: string,

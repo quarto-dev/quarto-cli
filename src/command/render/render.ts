@@ -65,6 +65,7 @@ import { Format, FormatPandoc } from "../../config/format.ts";
 import {
   ExecuteResult,
   ExecutionEngine,
+  executionEngineKeepMd,
   ExecutionTarget,
   fileExecutionEngine,
   PandocIncludes,
@@ -448,7 +449,7 @@ export async function renderExecute(
   });
 
   // keep md if requested
-  const keepMd = context.engine.keepMd(context.target.input);
+  const keepMd = executionEngineKeepMd(context.engine, context.target.input);
   if (keepMd && context.format.render[kKeepMd]) {
     Deno.writeTextFileSync(keepMd, executeResult.markdown);
   }
@@ -599,7 +600,7 @@ export async function renderPandoc(
     finalOutput,
     format,
     selfContained ? executeResult.supporting : undefined,
-    context.engine.keepMd(context.target.input),
+    executionEngineKeepMd(context.engine, context.target.input),
   );
 
   // determine if we have a files dir

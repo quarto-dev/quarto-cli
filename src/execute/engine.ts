@@ -5,12 +5,14 @@
 *
 */
 
-import { extname } from "path/mod.ts";
+import { extname, join } from "path/mod.ts";
 
 import {
   partitionYamlFrontMatter,
   readYamlFromMarkdown,
 } from "../core/yaml.ts";
+import { dirAndStem } from "../core/path.ts";
+
 import { PartitionedMarkdown } from "../core/pandoc/pandoc-partition.ts";
 
 import { Format, FormatExecute } from "../config/format.ts";
@@ -27,12 +29,15 @@ import { knitrEngine } from "./rmd.ts";
 import { jupyterEngine } from "./jupyter/jupyter.ts";
 import { markdownEngine } from "./markdown.ts";
 
+export const kQmdExtensions = [".md", ".markdown", ".qmd"];
+
 export interface ExecutionEngine {
   name: string;
   defaultExt: string;
   defaultYaml: (kernel?: string) => string[];
-  handlesExtension: (ext: string) => boolean;
-  handlesLanguage: (language: string) => boolean;
+  validExtensions: () => string[];
+  claimsExtension: (ext: string) => boolean;
+  claimsLanguage: (language: string) => boolean;
   target: (
     file: string,
     quiet?: boolean,
@@ -43,8 +48,8 @@ export interface ExecutionEngine {
   executeTargetSkipped?: (target: ExecutionTarget, format: Format) => void;
   dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;
-  keepMd: (input: string) => string | undefined;
-  keepFiles: (input: string) => string[] | undefined;
+  canKeepMd: boolean;
+  keepFiles?: (input: string) => string[] | undefined;
   ignoreGlobs?: () => string[] | undefined;
   renderOnChange?: boolean;
   run?: (options: RunOptions) => Promise<void>;
@@ -143,10 +148,56 @@ export function executionEngine(name: string) {
   }
 }
 
+export function executionEngineKeepMd(
+  engine: ExecutionEngine,
+  input: string,
+) {
+  if (engine.canKeepMd) {
+    const keepSuffix = `.${engine.name}.md`;
+    if (!input.endsWith(keepSuffix)) {
+      const [dir, stem] = dirAndStem(input);
+      return join(dir, stem + keepSuffix);
+    }
+  }
+}
+
+export function executionEngineKeepFiles(
+  engine: ExecutionEngine,
+  input: string,
+) {
+  // standard keepMd
+  const files: string[] = [];
+  const keep = executionEngineKeepMd(engine, input);
+  if (keep) {
+    files.push(keep);
+  }
+
+  // additional files
+  const engineKeepFiles = engine.keepFiles
+    ? engine.keepFiles(input)
+    : undefined;
+  if (engineKeepFiles) {
+    return files.concat(engineKeepFiles);
+  } else {
+    return files;
+  }
+}
+
 export function fileExecutionEngine(file: string) {
-  // try to find an engine that claims this extension
+  // get the extension and validate that it can be handled by at least one of our engines
+  const ext = extname(file).toLowerCase();
+  if (!kEngines.some((engine) => engine.validExtensions().includes(ext))) {
+    return undefined;
+  }
+
+  // if this is a keepMd file then automatically use the markdown engine
+  if (kEngines.find((engine) => file.endsWith(`.${engine.name}.md`))) {
+    return markdownEngine;
+  }
+
+  // try to find an engine that claims this extension outright
   for (const engine of kEngines) {
-    if (engine.handlesExtension(extname(file))) {
+    if (engine.claimsExtension(ext)) {
       return engine;
     }
   }
@@ -177,7 +228,7 @@ export function fileExecutionEngine(file: string) {
   if (languages.size > 0) {
     for (const language of languages) {
       for (const engine of kEngines) {
-        if (engine.handlesLanguage(language)) {
+        if (engine.claimsLanguage(language)) {
           return engine;
         }
       }
