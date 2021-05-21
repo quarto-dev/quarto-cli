@@ -40,6 +40,26 @@ if (requireNamespace("htmlwidgets", quietly = TRUE)) {
   assignInNamespace("resolveSizing", resolveSizing, ns = "htmlwidgets")
 }
 
+# override parse_block to assign chunk labels from yaml options
+knitr_parse_block <- knitr:::parse_block
+parse_block = function(code, header, params.src, markdown_mode = out_format('markdown')) {
+  engine = sub('^([a-zA-Z0-9_]+).*$', '\\1', params.src)
+  params = sub('^([a-zA-Z0-9_]+)', '', params.src)
+  params <- knitr:::parse_params(params)
+  if (!is.null(params$label)) {
+    partitioned <- partition_yaml_options(engine, code)
+    label <- partitioned$yaml$label
+    if (!is.null(label)) {
+      params.src <- sub("^[a-zA-Z0-9_]+ *[ ,]", 
+                        paste0(engine, " ", label, ", "), 
+                        params.src)
+    }
+  } 
+  knitr_parse_block(code, header, params.src, markdown_mode)
+}
+assignInNamespace("parse_block", parse_block, ns = "knitr")
+
+
 
 # override wrapping behavior for knitr_asis output (including htmlwidgets)
 # to provide for enclosing output div and support for figure captions

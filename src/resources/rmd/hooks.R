@@ -401,6 +401,36 @@ knitr_plot_hook <- function(htmlOutput) {
 
 knitr_options_hook <- function(options) {
 
+  # partition yaml options
+  results <- partition_yaml_options(options$engine, options$code)
+  if (!is.null(results$yaml)) {
+    options <- knitr:::merge_list(options, results$yaml)
+    options$code <- results$code
+  } 
+  
+  # some aliases
+  if (!is.null(options[["fig.format"]])) {
+    options[["dev"]] <- options[["fig.format"]]
+  }
+  if (!is.null(options[["fig.dpi"]])) {
+    options[["dpi"]] <- options[["fig.dpi"]]
+  }
+  
+  # return options  
+  options
+}
+
+
+partition_yaml_options <- function(engine, code) {
+
+  # mask out empty blocks
+  if (length(code) == 0) {
+    return(list(
+      yaml = NULL,
+      code = code
+    ))
+  }
+  
   # determine comment matching patterns
   knitr_engine_comment_chars <- list(
     r = "#",
@@ -444,22 +474,22 @@ knitr_options_hook <- function(options) {
     haskell = "--",
     dot = "//"
   )
-  comment_chars <- knitr_engine_comment_chars[[options$engine]] %||% "#"
+  comment_chars <- knitr_engine_comment_chars[[engine]] %||% "#"
   comment_start <- paste0(comment_chars[[1]], "| ")
   comment_end <- ifelse(length(comment_chars) > 1, comment_chars[[2]], "")
   
   # check for option comments
-  match_start <- startsWith(options$code, comment_start)
-  match_end <- endsWith(trimws(options$code, "right"), comment_end)
+  match_start <- startsWith(code, comment_start)
+  match_end <- endsWith(trimws(code, "right"), comment_end)
   matched_lines <- match_start & match_end
-
+  
   # has to have at least one matched line at the beginning
   if (isTRUE(matched_lines[[1]])) {
     # find last option line
     last_match <- which.min(matched_lines) - 1
-
+    
     # extract and parse options
-    yaml <- options$code[1:last_match]
+    yaml <-code[1:last_match]
     if (any(match_end)) {
       yaml <- trimws(yaml, "right")
     }
@@ -471,27 +501,22 @@ knitr_options_hook <- function(options) {
       yaml_options <- list()
     }
     
-    # merge into knitr options
-    options <- knitr:::merge_list(options, yaml_options)
-    
-    # set code
-    code <- options$code[(last_match+1):length(options$code)]
+    # extract code
+    code <- code[(last_match+1):length(code)]
     if (length(code) > 0 && knitr:::is_blank(code[[1]])) {
       code <- code[-1]
     }
-    options$code <- code
+    
+    list(
+      yaml = yaml_options,
+      code = code
+    )
+  } else {
+    list(
+      yaml = NULL,
+      code = code
+    )
   }
-  
-  # some aliases
-  if (!is.null(options[["fig.format"]])) {
-    options[["dev"]] <- options[["fig.format"]]
-  }
-  if (!is.null(options[["fig.dpi"]])) {
-    options[["dpi"]] <- options[["fig.dpi"]]
-  }
-  
-  # return options  
-  options
 }
 
 
