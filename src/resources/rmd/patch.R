@@ -64,7 +64,10 @@ parse_block = function(code, header, params.src, markdown_mode = out_format('mar
   extra_opts <- list()
   for (opt in c("ref.label")) {
     if (!is.null(partitioned$yaml[[opt]])) {
-      extra_opts[[opt]] <- deparse(partitioned$yaml[[opt]]) 
+      extra_opts[[opt]] <- paste(gsub("\n", " ", deparse(partitioned$yaml[[opt]], 
+                                                   width.cutoff = 500, 
+                                                   nlines = 1), fixed = TRUE), 
+                                 collapse = " ") 
     }
   }
   if (length(extra_opts) > 0) {
