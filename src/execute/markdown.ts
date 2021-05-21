@@ -5,8 +5,6 @@
 *
 */
 
-import { extname } from "path/mod.ts";
-
 import { readYamlFromMarkdownFile } from "../core/yaml.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 
@@ -19,17 +17,18 @@ import {
   PostProcessOptions,
 } from "./engine.ts";
 
-const kMarkdownExtensions = [".md", ".markdown"];
-
 export const markdownEngine: ExecutionEngine = {
   name: "none",
 
-  defaultExt: ".md",
+  defaultExt: ".qmd",
 
   defaultYaml: () => [],
 
-  canHandle: (file: string) => {
-    return kMarkdownExtensions.includes(extname(file).toLowerCase());
+  handlesExtension: (_ext: string) => {
+    return false;
+  },
+  handlesLanguage: (_language: string) => {
+    return false;
   },
 
   target: (file: string) => {

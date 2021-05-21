@@ -19,6 +19,7 @@ export const kFigDpi = "fig.dpi";
 
 export const kCache = "cache";
 export const kFreeze = "freeze";
+export const kEngine = "engine";
 export const kEval = "eval";
 export const kEcho = "echo";
 export const kOutput = "output";
@@ -41,6 +42,7 @@ export const kExecuteDefaultsKeys = [
   kFigDpi,
   kError,
   kEval,
+  kEngine,
   kCache,
   kFreeze,
   kEcho,

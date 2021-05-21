@@ -200,7 +200,10 @@ knitr_options <- function(format) {
   }
 
   # return options
-  knitr <- format$metadata$knitr %||% list()
+  knitr <- list()
+  if (is.list(format$metadata$knitr)) {
+    knitr <- format$metadata$knitr
+  }
   hooks <- knitr_hooks(format)
   rmarkdown::knitr_options(
     opts_knit = rmarkdown:::merge_lists(opts_knit, knitr$opts_knit),
