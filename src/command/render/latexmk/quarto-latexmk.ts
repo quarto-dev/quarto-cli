@@ -28,7 +28,7 @@ export async function pdf(args: string[]) {
   const pdfCommand = new Command()
     .name(kExeName)
     .arguments("<input:string>")
-    .version(kExeVersion)
+    .version(kExeVersion + "\n")
     .description(kExeDescription)
     .option(
       "--pdf-engine <engine>",
