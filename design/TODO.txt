@@ -5,7 +5,7 @@ Markdown Serialization
 - Consider mapping some 'known' tags?
 (https://docs.google.com/spreadsheets/d/1aDaHvyYlrfsqwEr2W2G7tbWK-ZMgAvXAzUA3CiqCpIo/edit#gid=0)
 
-
+- see if we can get .qmd to work 
 
 - update documentation
 
