@@ -1,25 +1,22 @@
 Markdown Serialization
 =====================================================================
 
+- update documentation
+
+
+- convert to/from text vs. ipynb representation
 
 - Consider mapping some 'known' tags?
 (https://docs.google.com/spreadsheets/d/1aDaHvyYlrfsqwEr2W2G7tbWK-ZMgAvXAzUA3CiqCpIo/edit#gid=0)
 
-- see if we can get .qmd to work 
+- What happens to 'extra' attributes (do they end up in the markdown)
 
-- update documentation
+- Do we need to process 'classes'
 
-- keep-md doesn't work if your input file is .md (.jupyter.md, or .knitr.md)
-- engine: knitr doesn't work if your input file is .md
 
-- convert to/from text vs. ipynb representation
-- ipynb as output target (is that just keep-ipynb?). format: ipynb
-
-Process .hidden CSS class (remove for non-HTML, hide for html)
-
-What happens to 'extra' attributes (do they end up in the markdown)
-
-Do we need to process 'classes'
+- trimming of whitespace leftover from chunk options seems to be broken (knitr)
+- keep-hidden for knitr ends up with a bunch of crap on the .cell (source.hidden='true' output.hidden='true' plot.hidden='true')
+  and furthermore doesn't forward the .hidden attribute to the code cell
 
 
 TODO
