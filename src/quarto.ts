@@ -28,7 +28,7 @@ import { parse } from "flags/mod.ts";
 export async function quarto(args: string[]) {
   const quartoCommand = new Command()
     .name("quarto")
-    .version(quartoConfig.version())
+    .version(quartoConfig.version() + "\n")
     .description("Quarto CLI")
     .throwErrors();
 
