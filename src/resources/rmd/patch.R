@@ -44,17 +44,36 @@ if (requireNamespace("htmlwidgets", quietly = TRUE)) {
 knitr_parse_block <- knitr:::parse_block
 parse_block = function(code, header, params.src, markdown_mode = out_format('markdown')) {
   engine = sub('^([a-zA-Z0-9_]+).*$', '\\1', params.src)
+  partitioned <- partition_yaml_options(engine, code)
   params = sub('^([a-zA-Z0-9_]+)', '', params.src)
   params <- knitr:::parse_params(params)
-  if (!is.null(params$label)) {
-    partitioned <- partition_yaml_options(engine, code)
-    label <- partitioned$yaml$label
+  unnamed_label <- knitr::opts_knit$get('unnamed.chunk.label')
+  if (startsWith(params$label, unnamed_label)) {
+    label <- partitioned$yaml[["label"]]
     if (!is.null(label)) {
-      params.src <- sub("^[a-zA-Z0-9_]+ *[ ,]", 
+      params.src <- sub("^[a-zA-Z0-9_]+ *[ ,]?", 
                         paste0(engine, " ", label, ", "), 
                         params.src)
     }
   } 
+  
+  # strip trailing comma and whitespace
+  params.src <- sub("\\s*,?\\s*$", "", params.src)
+  
+  # clear label and look for other options to forward
+  extra_opts <- list()
+  for (opt in c("ref.label")) {
+    if (!is.null(partitioned$yaml[[opt]])) {
+      extra_opts[[opt]] <- deparse(partitioned$yaml[[opt]]) 
+    }
+  }
+  if (length(extra_opts) > 0) {
+    extra_opts <- paste(paste0(names(extra_opts), "=", as.character(extra_opts), ", "), 
+                        collapse = "")
+    params.src <- paste0(params.src, ", ", sub(",\\s*$", "", extra_opts))
+  }
+  
+  # proceed
   knitr_parse_block(code, header, params.src, markdown_mode)
 }
 assignInNamespace("parse_block", parse_block, ns = "knitr")
