@@ -3,28 +3,27 @@ Markdown Serialization
 
 - update documentation
 
-
 - convert to/from text vs. ipynb representation
 
 - Consider mapping some 'known' tags?
 (https://docs.google.com/spreadsheets/d/1aDaHvyYlrfsqwEr2W2G7tbWK-ZMgAvXAzUA3CiqCpIo/edit#gid=0)
 
-- What happens to 'extra' attributes (do they end up in the markdown)
-
-- Do we need to process 'classes'
-
-
-- trimming of whitespace leftover from chunk options seems to be broken (knitr)
 - keep-hidden for knitr ends up with a bunch of crap on the .cell (source.hidden='true' output.hidden='true' plot.hidden='true')
   and furthermore doesn't forward the .hidden attribute to the code cell
 
 - Only do .hidden filter if keep-hidden is active
 
-- Breathing room for callout and code block on the left in responsive mode
+
+TODO
+=====================================================================
+
+
+- TODO: Breathing room for callout and code block on the left in responsive mode
 
 - TODO: measure lag at the beginning of project single file render
 
 - [Job Launcher] link issue raised by Christophe
+- crossref broken in https://jjallaire.github.io/hopr/dice.html
 
 - More opinionated <kbd>
 
