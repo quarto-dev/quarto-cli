@@ -8,7 +8,7 @@
 // deno-lint-ignore-file camelcase
 
 import { ensureDirSync } from "fs/ensure_dir.ts";
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, extname, join, relative } from "path/mod.ts";
 import { walkSync } from "fs/walk.ts";
 import { decode as base64decode } from "encoding/base64.ts";
 import { stringify } from "encoding/yaml.ts";
@@ -109,6 +109,13 @@ export const kLayoutVAlign = "layout.valign";
 export const kLayoutNcol = "layout.ncol";
 export const kLayoutNrow = "layout.nrow";
 export const kLayout = "layout";
+
+export const kJupyterNotebookExtensions = [
+  ".ipynb",
+];
+export function isJupyterNotebook(file: string) {
+  return kJupyterNotebookExtensions.includes(extname(file).toLowerCase());
+}
 
 export interface JupyterNotebook {
   metadata: {

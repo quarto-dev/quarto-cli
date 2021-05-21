@@ -29,9 +29,11 @@ import {
   PostProcessOptions,
 } from "../engine.ts";
 import {
+  isJupyterNotebook,
   jupyterAssets,
   jupyterFromFile,
   jupyterToMarkdown,
+  kJupyterNotebookExtensions,
   quartoMdToJupyter,
 } from "../../core/jupyter/jupyter.ts";
 import {
@@ -69,10 +71,6 @@ import {
   jupyterKernelspecs,
 } from "../../core/jupyter/kernels.ts";
 
-const kNotebookExtensions = [
-  ".ipynb",
-];
-
 const kJupyterEngine = "jupyter";
 
 export const jupyterEngine: ExecutionEngine = {
@@ -84,10 +82,10 @@ export const jupyterEngine: ExecutionEngine = {
     `jupyter: ${kernel || "python3"}`,
   ],
 
-  validExtensions: () => kNotebookExtensions.concat(kQmdExtensions),
+  validExtensions: () => kJupyterNotebookExtensions.concat(kQmdExtensions),
 
   claimsExtension: (ext: string) => {
-    return kNotebookExtensions.includes(ext.toLowerCase());
+    return kJupyterNotebookExtensions.includes(ext.toLowerCase());
   },
 
   claimsLanguage: (_language: string) => {
@@ -107,7 +105,7 @@ export const jupyterEngine: ExecutionEngine = {
       const notebook = join(fileDir, fileStem + ".ipynb");
       Deno.writeTextFileSync(notebook, JSON.stringify(nb, null, 2));
       return { source: file, input: notebook, data: { transient: true } };
-    } else if (isNotebook(file)) {
+    } else if (isJupyterNotebook(file)) {
       return { source: file, input: file, data: { transient: false } };
     } else {
       return undefined;
@@ -116,7 +114,7 @@ export const jupyterEngine: ExecutionEngine = {
 
   metadata: async (file: string): Promise<Metadata> => {
     // read metadata
-    if (isNotebook(file)) {
+    if (isJupyterNotebook(file)) {
       return readYamlFromMarkdown(await markdownFromNotebook(file));
     } else {
       return readYamlFromMarkdown(Deno.readTextFileSync(file));
@@ -124,7 +122,7 @@ export const jupyterEngine: ExecutionEngine = {
   },
 
   partitionedMarkdown: async (file: string) => {
-    if (isNotebook(file)) {
+    if (isJupyterNotebook(file)) {
       return partitionMarkdown(await markdownFromNotebook(file));
     } else {
       return partitionMarkdown(Deno.readTextFileSync(file));
@@ -135,7 +133,7 @@ export const jupyterEngine: ExecutionEngine = {
     // determine default execute behavior if none is specified
     let execute = options.format.execute[kEval];
     if (execute === null) {
-      execute = !isNotebook(options.target.source) ||
+      execute = !isJupyterNotebook(options.target.source) ||
         !!options.format.execute[kFreeze];
     }
     // execute if we need to
@@ -247,7 +245,7 @@ export const jupyterEngine: ExecutionEngine = {
   canKeepMd: true,
 
   keepFiles: (input: string) => {
-    if (!isNotebook(input) && !input.endsWith(`.${kJupyterEngine}.md`)) {
+    if (!isJupyterNotebook(input) && !input.endsWith(`.${kJupyterEngine}.md`)) {
       const [fileDir, fileStem] = dirAndStem(input);
       return [join(fileDir, fileStem + ".ipynb")];
     }
@@ -332,10 +330,6 @@ async function jupyterKernelspecFromFile(
       ),
     );
   }
-}
-
-function isNotebook(file: string) {
-  return kNotebookExtensions.includes(extname(file).toLowerCase());
 }
 
 function isHtmlCompatible(format: Format) {
