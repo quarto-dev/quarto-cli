@@ -15,7 +15,7 @@ import {
 import { mergeConfigs } from "../../core/config.ts";
 
 import {
-  kExecutionDefaultsKeys,
+  kExecuteDefaultsKeys,
   kListings,
   kNumberOffset,
   kNumberSections,
@@ -37,9 +37,9 @@ export interface RenderFlags extends PandocFlags {
   executeDir?: string;
   execute?: boolean;
   executeCache?: true | false | "refresh";
-  kernelKeepalive?: number;
-  kernelRestart?: boolean;
-  kernelDebug?: boolean;
+  executeDaemon?: number;
+  executeDaemonRestart?: boolean;
+  executeDebug?: boolean;
   metadata?: { [key: string]: unknown };
   params?: { [key: string]: unknown };
   paramsFile?: string;
@@ -181,27 +181,27 @@ export function parseRenderFlags(args: string[]) {
         flags.executeDir = arg;
         break;
 
-      case "--kernel-keepalive":
+      case "--execute-daemon":
         arg = argsStack.shift();
-        flags.kernelKeepalive = parseInt(arg!, 10);
-        if (isNaN(flags.kernelKeepalive)) {
-          delete flags.kernelKeepalive;
+        flags.executeDaemon = parseInt(arg!, 10);
+        if (isNaN(flags.executeDaemon)) {
+          delete flags.executeDaemon;
         }
         break;
 
-      case "--no-kernel-keepalive":
+      case "--no-execute-daemon":
         arg = argsStack.shift();
-        flags.kernelKeepalive = 0;
+        flags.executeDaemon = 0;
         break;
 
-      case "--kernel-restart":
+      case "--execute-daemon-restart":
         arg = argsStack.shift();
-        flags.kernelRestart = true;
+        flags.executeDaemonRestart = true;
         break;
 
-      case "--kernel-debug":
+      case "--execute-debug":
         arg = argsStack.shift();
-        flags.kernelDebug = true;
+        flags.executeDebug = true;
         break;
 
       case "--cache":
@@ -314,10 +314,10 @@ export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   removeArgs.set("--execute-param", true);
   removeArgs.set("--execute-params", true);
   removeArgs.set("--execute-dir", true);
-  removeArgs.set("--kernel-keepalive", true);
-  removeArgs.set("--no-kernel-keepalive", false);
-  removeArgs.set("--kernel-restart", false);
-  removeArgs.set("--kernel-debug", false);
+  removeArgs.set("--execute-daemon", true);
+  removeArgs.set("--no-execute-daemon", false);
+  removeArgs.set("--execute-daemon-restart", false);
+  removeArgs.set("--execute-debug", false);
   removeArgs.set("--cache", false);
   removeArgs.set("--no-cache", false);
   removeArgs.set("--cache-refresh", false);
@@ -391,7 +391,7 @@ function removeQuartoMetadataFlags(pandocArgs: string[]) {
 
 function isQuartoArg(arg: string) {
   return kRenderDefaultsKeys.includes(arg) ||
-    kExecutionDefaultsKeys.includes(arg) ||
+    kExecuteDefaultsKeys.includes(arg) ||
     kPandocDefaultsKeys.includes(arg);
 }
 

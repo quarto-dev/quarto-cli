@@ -16,9 +16,9 @@ import { execProcess, ProcessResult } from "../../core/process.ts";
 import { resourcePath } from "../../core/resources.ts";
 
 import {
-  kKernelDebug,
-  kKernelKeepalive,
-  kKernelRestart,
+  kExecuteDaemon,
+  kExecuteDaemonRestart,
+  kExecuteDebug,
 } from "../../config/constants.ts";
 
 import { ExecuteOptions } from "../engine.ts";
@@ -36,7 +36,7 @@ export async function executeKernelOneshot(
   }
 
   trace(options, "Executing notebook with oneshot kernel");
-  const debug = !!options.format.execution[kKernelDebug];
+  const debug = !!options.format.execute[kExecuteDebug];
   const result = await execJupyter("execute", { ...options, debug });
 
   if (!result.success) {
@@ -49,7 +49,7 @@ export async function executeKernelKeepalive(
 ): Promise<void> {
   // if we are in debug mode then tail follow the log file
   let serverLogProcess: Deno.Process | undefined;
-  if (options.format.execution[kKernelDebug]) {
+  if (options.format.execute[kExecuteDebug]) {
     if (Deno.build.os !== "windows") {
       serverLogProcess = Deno.run({
         cmd: ["tail", "-F", "-n", "0", kernelLogFile()],
@@ -58,7 +58,7 @@ export async function executeKernelKeepalive(
   }
 
   // if we have a restart request then abort before proceeding
-  if (options.format.execution[kKernelRestart]) {
+  if (options.format.execute[kExecuteDaemonRestart]) {
     await abortKernel(options);
   }
 
@@ -261,7 +261,7 @@ async function connectToKernel(
   startIfRequired = true,
 ): Promise<[Deno.Conn, KernelTransport]> {
   // see if we are in debug mode
-  const debug = !!options.format.execution[kKernelDebug];
+  const debug = !!options.format.execute[kExecuteDebug];
 
   // derive the file path for this connection
   const transportFile = kernelTransportFile(options.target.input);
@@ -297,7 +297,16 @@ async function connectToKernel(
   }
 
   // determine timeout
-  const timeout = options.format.execution[kKernelKeepalive] || 300;
+  const isInteractive = Deno.isatty(Deno.stderr.rid) ||
+    !!Deno.env.get("RSTUDIO_VERSION");
+  const defaultTimeout = isInteractive ? 300 : 0;
+  const keepAlive = options.format.execute[kExecuteDaemon];
+  const timeout =
+    keepAlive === true || keepAlive === null || keepAlive === undefined
+      ? defaultTimeout
+      : keepAlive === false
+      ? 0
+      : keepAlive;
 
   // try to start the server
   const result = await execJupyter("start", {
@@ -364,7 +373,7 @@ function messageStartingKernel() {
 }
 
 function trace(options: ExecuteOptions, msg: string) {
-  if (options.format.execution[kKernelDebug]) {
+  if (options.format.execute[kExecuteDebug]) {
     info("- " + msg, { bold: true });
   }
 }

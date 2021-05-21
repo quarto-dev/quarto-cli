@@ -265,7 +265,7 @@ export async function bookRenderItems(
       } else if (item.href) {
         const itemPath = join(projectDir, item.href);
         if (safeExistsSync(itemPath)) {
-          const engine = fileExecutionEngine(itemPath, true);
+          const engine = fileExecutionEngine(itemPath);
           if (engine) {
             // for chapters, check if we are numbered
             let number: number | undefined;

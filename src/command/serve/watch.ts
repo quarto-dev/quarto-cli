@@ -100,7 +100,7 @@ export function watchProject(
   // is this a renderOnChange input file?
   const isRenderOnChangeInput = (path: string) => {
     if (project.files.input.includes(path) && existsSync(path)) {
-      const engine = fileExecutionEngine(path, true);
+      const engine = fileExecutionEngine(path);
       return engine && !!engine.renderOnChange;
     }
   };

@@ -157,19 +157,25 @@ knitr_options <- function(format) {
   # opts_chunk
   opts_chunk <- list(
     # options derived from format
-    fig.width = format$execution$`fig-width`,
-    fig.height = format$execution$`fig-height`,
-    dev = format$execution$`fig-format`,
-    dpi = format$execution$`fig-dpi`,
-    eval = format$execution[["execute"]],
-    error = format$execution$`allow-errors`,
-    echo = isTRUE(format$execution$`show-code`),
-    warning = isTRUE(format$execution$`show-warnings`),
-    message = isTRUE(format$execution$`show-warnings`),
-    include = isTRUE(format$execution$`show-output`),
+    fig.width = format$execute$`fig.width`,
+    fig.height = format$execute$`fig.height`,
+    dev = format$execute$`fig.format`,
+    dpi = format$execute$`fig.dpi`,
+    eval = format$execute[["eval"]],
+    error = format$execute[["error"]],
+    echo = isTRUE(format$execute[["echo"]]),
+    warning = isTRUE(format$execute[["warning"]]),
+    message = isTRUE(format$execute[["warning"]]),
+    include = isTRUE(format$execute[["include"]]),
     # hard coded (overideable in setup chunk but not format)
     comment = NA
   )
+
+  if (!isTRUE(format$execute[["output"]])) {
+    opts_chunk$results <- "hide"
+    opts_chunk$fig.show <- "hide"
+  }
+
 
   # add screenshot force if prefer-html specified
   if (isTRUE(format$render$`prefer-html`)) {
@@ -207,7 +213,7 @@ knitr_options <- function(format) {
 
 knitr_options_with_cache <- function(input, format, opts) {
   # handle cache behavior
-  cache <- format$execution$`cache`
+  cache <- format$execute$`cache`
   if (!is.null(cache)) {
     # remove the cache dir for refresh or false
     if (identical(cache, "refresh")) {

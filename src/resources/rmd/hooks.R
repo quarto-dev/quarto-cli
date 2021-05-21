@@ -7,7 +7,7 @@ knitr_hooks <- function(format) {
   opts_hooks <- list()
   
   # options in yaml
-  opts_hooks[["code"]] <- knitr_options_in_code_hook
+  opts_hooks[["code"]] <- knitr_options_hook
   
   # automatically set gifski hook for fig.animate
   opts_hooks[["fig.show"]] <- function(options) {
@@ -400,7 +400,7 @@ knitr_plot_hook <- function(htmlOutput) {
   }
 }
 
-knitr_options_in_code_hook <- function(options) {
+knitr_options_hook <- function(options) {
   
   # determine comment matching patterns
   comment_chars <- knitr_engine_comment_chars[[options$engine]] %||% "#"
@@ -423,12 +423,24 @@ knitr_options_in_code_hook <- function(options) {
     yaml <- substr(yaml, nchar(comment_start) + 1, nchar(yaml))
     yaml <- strtrim(yaml, nchar(yaml) - nchar(comment_end))
     yaml_options <- yaml::yaml.load(yaml, eval.expr = TRUE)
+    if (!is.list(yaml_options) || length(names(yaml_options)) == 0) {
+      warning("Invalid YAML option format in chunk: \n", paste(yaml, collapse = "\n"), "\n")
+      yaml_options <- list()
+    }
     
     # merge into knitr options
     options <- knitr:::merge_list(options, yaml_options)
     
     # set code
     options$code <- options$code[(last_match+1):length(options$code)]
+  }
+  
+  # some aliases
+  if (!is.null(options[["fig.format"]])) {
+    options[["dev"]] <- options[["fig.format"]]
+  }
+  if (!is.null(options[["fig.dpi"]])) {
+    options[["dpi"]] <- options[["fig.dpi"]]
   }
   
   # return options  

@@ -13,8 +13,8 @@ import { readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
 
 import {
-  kExecutionDefaults,
-  kExecutionDefaultsKeys,
+  kExecuteDefaults,
+  kExecuteDefaultsKeys,
   kKeepMd,
   kKeepTex,
   kMetadataFile,
@@ -77,7 +77,7 @@ export function formatFromMetadata(
   // user format options (allow any b/c this is just untyped yaml)
   const typedFormat: Format = {
     render: {},
-    execution: {},
+    execute: {},
     pandoc: {},
     metadata: {},
   };
@@ -114,7 +114,7 @@ export function formatFromMetadata(
 export function metadataAsFormat(metadata: Metadata): Format {
   const typedFormat: Format = {
     render: {},
-    execution: {},
+    execute: {},
     pandoc: {},
     metadata: {},
   };
@@ -125,19 +125,19 @@ export function metadataAsFormat(metadata: Metadata): Format {
     if (
       [
         kRenderDefaults,
-        kExecutionDefaults,
+        kExecuteDefaults,
         kPandocDefaults,
         kPandocMetadata,
       ]
         .includes(key)
     ) {
-      format[key] = metadata[key];
+      format[key] = { ...format[key], ...(metadata[key] as Metadata) };
     } else {
       // move the key into the appropriate top level key
       if (kRenderDefaultsKeys.includes(key)) {
         format.render[key] = metadata[key];
-      } else if (kExecutionDefaultsKeys.includes(key)) {
-        format.execution[key] = metadata[key];
+      } else if (kExecuteDefaultsKeys.includes(key)) {
+        format.execute[key] = metadata[key];
       } else if (kPandocDefaultsKeys.includes(key)) {
         format.pandoc[key] = metadata[key];
       } else {

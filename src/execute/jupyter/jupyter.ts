@@ -6,9 +6,7 @@
 */
 
 import { extname, join } from "path/mod.ts";
-import { info } from "log/mod.ts";
 
-import { execProcess } from "../../core/process.ts";
 import {
   readYamlFromMarkdown,
   readYamlFromMarkdownFile,
@@ -32,11 +30,12 @@ import type {
 import {
   jupyterAssets,
   jupyterFromFile,
-  jupyterMdToJupyter,
   jupyterToMarkdown,
+  quartoMdToJupyter,
 } from "../../core/jupyter/jupyter.ts";
 import {
-  kExecute,
+  kEval,
+  kExecuteDaemon,
   kFigDpi,
   kFigFormat,
   kFreeze,
@@ -44,7 +43,6 @@ import {
   kIncludeInHeader,
   kKeepHidden,
   kKeepIpynb,
-  kKernelKeepalive,
   kPreferHtml,
 } from "../../config/constants.ts";
 import {
@@ -68,12 +66,11 @@ import {
   JupyterKernelspec,
   jupyterKernelspec,
 } from "../../core/jupyter/kernels.ts";
-import { lines } from "../../core/text.ts";
 
 const kNotebookExtensions = [
   ".ipynb",
 ];
-const kJupytextMdExtensions = [
+const kJupyterMdExtensions = [
   ".md",
   ".markdown",
 ];
@@ -88,8 +85,7 @@ export const jupyterEngine: ExecutionEngine = {
   ],
 
   canHandle: (file: string) => {
-    const ext = extname(file);
-    if (kJupytextMdExtensions.includes(ext)) {
+    if (isMarkdown(file)) {
       const yaml = readYamlFrontMatterFromMarkdownFile(file);
       return !!yaml?.jupyter;
     } else {
@@ -99,92 +95,21 @@ export const jupyterEngine: ExecutionEngine = {
 
   target: async (
     file: string,
-    quiet?: boolean,
   ): Promise<ExecutionTarget | undefined> => {
-    const notebookTarget = async () => {
-      // if it's an .Rmd or .md file, then read the YAML to see if has jupytext,
-      // if it does, check for a paired notebook and return it
-      const ext = extname(file);
-      if (kJupytextMdExtensions.includes(ext)) {
-        const yaml = readYamlFromMarkdownFile(file);
-        if (yaml.jupyter) {
-          if (typeof (yaml.jupyter) === "string") {
-            return { sync: true, paired: [file] };
-          } else if ((yaml.jupyter as Record<string, unknown>).jupytext) {
-            const paired = await pairedPaths(file);
-            return { sync: true, paired: [file, ...paired] };
-          } else if (
-            typeof ((yaml.jupyter as Record<string, unknown>).kernel) ===
-              "string" ||
-            isJupyterKernelspec(
-              (yaml.jupyter as Record<string, unknown>).kernelspec,
-            )
-          ) {
-            return { sync: true, paired: [file] };
-          }
-        }
-      } else if (isNotebook(file)) {
-        const nb = jupyterFromFile(file);
-        const isJupytext = !!nb.metadata.jupytext;
-        return {
-          sync: isJupytext,
-          paired: isJupytext ? [file, ...await pairedPaths(file)] : [file],
-        };
-      }
-    };
-
-    // see if there is a notebook target, if there is then sync it if required and return
-    const target = await notebookTarget();
-    if (target) {
-      let notebook = pairedPath(target.paired, isNotebook);
-
-      // track whether the notebook is transient or a permanent artifact
-      const transient = !notebook;
-
-      // sync if there are paired represenations in play (wouldn't sync if e.g.
-      // this was just a plain .ipynb file w/ no jupytext peers)
-      if (target.sync) {
-        // progress
-        if (!quiet && !transient) {
-          const pairedExts = target.paired.map((p) => extname(p).slice(1));
-          info(
-            "[jupytext] " + "Syncing " + pairedExts.join(",") + "...",
-            { newline: false },
-          );
-        }
-
-        // perform the sync if there are other targets
-        if (target.paired.length > 1) {
-          await jupytextSync(file, target.paired, true);
-        }
-
-        // if this is a markdown file with no paired notebook then create a transient one
-        const ext = extname(file);
-        if (kJupytextMdExtensions.includes(ext) && !notebook) {
-          // get the kernelspec and jupyter metadata
-          const [kernelspec, metadata] = await jupyterKernelspecFromFile(file);
-
-          // write the notebook
-          const [fileDir, fileStem] = dirAndStem(file);
-          const nb = jupyterMdToJupyter(file, kernelspec, metadata);
-          notebook = join(fileDir, fileStem + ".ipynb");
-          Deno.writeTextFileSync(notebook, JSON.stringify(nb, null, 2));
-        }
-
-        if (!quiet && !transient) {
-          info("Done");
-        }
-      }
-
-      if (notebook) {
-        const data: JupyterTargetData = {
-          transient,
-          jupytext: target.sync && target.paired.length > 1,
-        };
-        return { source: file, input: notebook, data };
-      } else {
-        return undefined;
-      }
+    // if this is a text markdown file then create a notebook for use as the execution target
+    const ext = extname(file);
+    if (kJupyterMdExtensions.includes(ext)) {
+      // write a transient notebook
+      const [kernelspec, metadata] = await jupyterKernelspecFromFile(file);
+      const [fileDir, fileStem] = dirAndStem(file);
+      const nb = quartoMdToJupyter(file, kernelspec, metadata);
+      const notebook = join(fileDir, fileStem + ".ipynb");
+      Deno.writeTextFileSync(notebook, JSON.stringify(nb, null, 2));
+      return { source: file, input: notebook, data: { transient: true } };
+    } else if (isNotebook(file)) {
+      return { source: file, input: file, data: { transient: false } };
+    } else {
+      return undefined;
     }
   },
 
@@ -206,11 +131,11 @@ export const jupyterEngine: ExecutionEngine = {
   },
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
-    // determine default execution behavior if none is specified
-    let execute = options.format.execution[kExecute];
+    // determine default execute behavior if none is specified
+    let execute = options.format.execute[kEval];
     if (execute === null) {
       execute = !isNotebook(options.target.source) ||
-        !!options.format.execution[kFreeze];
+        !!options.format.execute[kFreeze];
     }
     // execute if we need to
     if (execute) {
@@ -225,7 +150,10 @@ export const jupyterEngine: ExecutionEngine = {
         },
       };
 
-      if (options.format.execution[kKernelKeepalive] === 0) {
+      if (
+        options.format.execute[kExecuteDaemon] === false ||
+        options.format.execute[kExecuteDaemon] === 0
+      ) {
         await executeKernelOneshot(execOptions);
       } else {
         await executeKernelKeepalive(execOptions);
@@ -247,13 +175,13 @@ export const jupyterEngine: ExecutionEngine = {
       {
         language: nb.metadata.kernelspec.language,
         assets,
-        execution: options.format.execution,
+        execute: options.format.execute,
         keepHidden: options.format.render[kKeepHidden],
         toHtml: isHtmlCompatible(options.format),
         toLatex: isLatexOutput(options.format.pandoc),
         toMarkdown: isMarkdownOutput(options.format.pandoc),
-        figFormat: options.format.execution[kFigFormat],
-        figDpi: options.format.execution[kFigDpi],
+        figFormat: options.format.execute[kFigFormat],
+        figDpi: options.format.execute[kFigDpi],
       },
     );
 
@@ -270,8 +198,6 @@ export const jupyterEngine: ExecutionEngine = {
       if (!options.format.render[kKeepIpynb]) {
         Deno.removeSync(options.target.input);
       }
-    } else if (data.jupytext) {
-      await jupytextSync(options.target.input, [], true);
     }
 
     // return results
@@ -361,7 +287,6 @@ function keepMd(input: string) {
 
 interface JupyterTargetData {
   transient: boolean;
-  jupytext: boolean;
 }
 
 async function jupyterKernelspecFromFile(
@@ -416,68 +341,12 @@ async function jupyterKernelspecFromFile(
   }
 }
 
-function filteredMetadata(paired: string[]) {
-  // if there is a markdown file in the paried representations that doesn't have
-  // the jupytext text_representation & notebook_metadata_filter fields then
-  // we've opted in to a lighter metadata treatment
-  const markdown = pairedPath(paired, isMarkdown);
-  if (markdown) {
-    const yaml = readYamlFromMarkdownFile(markdown) as Record<
-      string,
-      // deno-lint-ignore no-explicit-any
-      any
-    >;
-    const filter: string[] = [];
-
-    if (!yaml.jupyter?.jupytext?.text_representation.format_version) {
-      filter.push("jupytext.text_representation.format_version");
-    }
-    if (!yaml.jupyter?.jupytext?.text_representation.jupytext_version) {
-      filter.push("jupytext.text_representation.jupytext_version");
-    }
-    if (!yaml.jupyter?.jupytext?.notebook_metadata_filter) {
-      filter.push("jupytext.notebook_metadata_filter");
-    }
-    if (!yaml.jupyter?.jupytext?.main_language) {
-      filter.push("jupytext.main_language");
-    }
-
-    return filter;
-  }
-  return [];
-}
-
-async function pairedPaths(file: string) {
-  const result = await execProcess({
-    cmd: [
-      pythonBinary("jupytext"),
-      "--paired-paths",
-      "--quiet",
-      file,
-    ],
-    stdout: "piped",
-  });
-  if (result.stdout) {
-    return lines(result.stdout).filter((line) => line.length > 0);
-  } else {
-    return [];
-  }
-}
-
-function pairedPath(paired: string[], selector: (file: string) => boolean) {
-  if (paired) {
-    return paired.find(selector);
-  } else {
-    return undefined;
-  }
-}
-
 function isNotebook(file: string) {
   return kNotebookExtensions.includes(extname(file).toLowerCase());
 }
 
 function isMarkdown(file: string) {
-  return kJupytextMdExtensions.includes(extname(file).toLowerCase());
+  return kJupyterMdExtensions.includes(extname(file).toLowerCase());
 }
 
 function isHtmlCompatible(format: Format) {
@@ -529,110 +398,4 @@ async function markdownFromNotebook(file: string) {
     }
   }, "");
   return markdown;
-}
-
-async function jupytextSync(
-  file: string,
-  paired: string[],
-  quiet?: boolean,
-) {
-  const args = [
-    "--sync",
-    file,
-  ];
-  if (paired.length > 0) {
-    const filtered = filteredMetadata(paired);
-    args.push(
-      "--opt",
-      "notebook_metadata_filter=" +
-        filtered.map((m) => `-${m}`).join(","),
-    );
-    // if we are filtering the kernelspec then make sure we
-    // set the kernel when syncing the notebook
-    if (filtered.includes("kernelspec")) {
-      args.push(
-        "--set-kernel",
-        "-",
-      );
-    }
-  }
-  if (quiet) {
-    args.push("--quiet");
-  }
-  await jupytext(...args);
-}
-/*
-async function jupytextTo(
-  file: string,
-  format: string,
-  kernel?: string,
-  output?: string,
-  quiet?: boolean,
-) {
-  const args = [file, "--from", "md:markdown", "--to", format];
-  if (kernel) {
-    args.push("--set-kernel");
-    args.push("-");
-  }
-  if (output) {
-    args.push("--output");
-    args.push(output);
-  }
-  if (quiet) {
-    args.push("--quiet");
-  }
-  await jupytext(...args);
-}
-
-async function jupytextSetFormats(
-  file: string,
-  formats: string[],
-  quiet?: boolean,
-) {
-  // create ipynb
-  const args = ["--set-formats", formats.join(","), file];
-  if (quiet) {
-    args.push("--quiet");
-  }
-  await jupytext(...args);
-}
-
-async function jupytextUpdateMetadata(
-  file: string,
-  metadata: Record<string, unknown>,
-  quiet?: boolean,
-) {
-  const args = [
-    "--update-metadata",
-    JSON.stringify(metadata),
-    file,
-  ];
-  if (quiet) {
-    args.push("--quiet");
-  }
-  await jupytext(...args);
-}
-*/
-
-async function jupytext(...args: string[]) {
-  try {
-    const result = await execProcess(
-      {
-        cmd: [
-          pythonBinary("jupytext"),
-          ...args,
-        ],
-        stderr: "piped",
-      },
-      undefined,
-      "stdout>stderr",
-    );
-    if (!result.success) {
-      throw new Error(result.stderr || "Error syncing jupytext");
-    }
-  } catch {
-    throw new Error(
-      "Unable to execute jupytext. Have you installed the jupytext package?",
-    );
-  }
 }

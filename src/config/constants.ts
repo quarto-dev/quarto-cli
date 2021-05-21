@@ -8,60 +8,48 @@
 export const kMetadataFormat = "format";
 
 export const kRenderDefaults = "render";
-export const kExecutionDefaults = "execution";
+export const kExecuteDefaults = "execute";
 export const kPandocDefaults = "pandoc";
 export const kPandocMetadata = "metadata";
 
-export const kFigWidth = "fig-width";
-export const kFigHeight = "fig-height";
-export const kFigFormat = "fig-format";
-export const kFigDpi = "fig-dpi";
+export const kFigWidth = "fig.width";
+export const kFigHeight = "fig.height";
+export const kFigFormat = "fig.format";
+export const kFigDpi = "fig.dpi";
 
-export const kHideCell = "hide-cell";
-export const kHideCode = "hide-code";
-export const kHideOutput = "hide-output";
-export const kIncludeCode = "include-code";
-export const kIncludeOutput = "include-output";
-export const kIncludeWarnings = "include-warnings";
-export const kExecute = "execute";
 export const kCache = "cache";
 export const kFreeze = "freeze";
-export const kAllowErrors = "allow-errors";
+export const kEval = "eval";
+export const kEcho = "echo";
+export const kOutput = "output";
+export const kWarning = "warning";
+export const kError = "error";
+export const kInclude = "include";
+
 export const kResources = "resources";
 
-export const kHideWarnings = "hide-warnings";
-export const kRemoveCell = "remove-cell";
-export const kRemoveCode = "remove-code";
-export const kRemoveOutput = "remove-output";
-export const kRemoveWarnings = "remove-warnings";
-
 export const kKeepHidden = "keep-hidden";
-export const kShowCode = "show-code";
-export const kShowOutput = "show-output";
-export const kShowWarnings = "show-warnings";
 
-export const kKernelKeepalive = "kernel-keepalive";
-export const kKernelRestart = "kernel-restart";
-export const kKernelDebug = "kernel-debug";
+export const kExecuteDaemon = "daemon";
+export const kExecuteDaemonRestart = "daemon-restart";
+export const kExecuteDebug = "debug";
 
-export const kExecutionDefaultsKeys = [
+export const kExecuteDefaultsKeys = [
   kFigWidth,
   kFigHeight,
   kFigFormat,
   kFigDpi,
-  kIncludeCode,
-  kIncludeOutput,
-  kIncludeWarnings,
-  kAllowErrors,
-  kExecute,
+  kError,
+  kEval,
   kCache,
   kFreeze,
-  kShowCode,
-  kShowOutput,
-  kShowWarnings,
-  kKernelKeepalive,
-  kKernelRestart,
-  kKernelDebug,
+  kEcho,
+  kOutput,
+  kWarning,
+  kInclude,
+  kExecuteDaemon,
+  kExecuteDaemonRestart,
+  kExecuteDebug,
 ];
 
 export const kKeepMd = "keep-md";

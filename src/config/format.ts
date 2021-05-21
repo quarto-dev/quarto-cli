@@ -16,8 +16,12 @@ import {
   kCodeLink,
   kCodeSummary,
   kCss,
+  kEcho,
   kEPubCoverImage,
-  kExecute,
+  kEval,
+  kExecuteDaemon,
+  kExecuteDaemonRestart,
+  kExecuteDebug,
   kFigAlign,
   kFigDpi,
   kFilterParams,
@@ -25,15 +29,13 @@ import {
   kFreeze,
   kHighlightStyle,
   kHtmlMathMethod,
+  kInclude,
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
   kKeepHidden,
   kKeepIpynb,
   kKeepYaml,
-  kKernelDebug,
-  kKernelKeepalive,
-  kKernelRestart,
   kLatexAutoInstall,
   kLatexAutoMk,
   kLatexClean,
@@ -48,6 +50,7 @@ import {
   kMergeIncludes,
   kNumberOffset,
   kNumberSections,
+  kOutput,
   kOutputFile,
   kPdfEngine,
   kPdfEngineOpt,
@@ -55,21 +58,19 @@ import {
   kPreferHtml,
   kSectionDivs,
   kSelfContained,
-  kShowCode,
-  kShowOutput,
-  kShowWarnings,
   kTableOfContents,
   kTemplate,
   kToc,
   kTocTitle,
   kVariables,
   kVariant,
+  kWarning,
 } from "../config/constants.ts";
 
 import { Metadata } from "./metadata.ts";
 
 import {
-  kAllowErrors,
+  kError,
   kFigFormat,
   kFigHeight,
   kFigWidth,
@@ -148,7 +149,7 @@ export interface FormatExtras {
 // pandoc output format
 export interface Format {
   render: FormatRender;
-  execution: FormatExecution;
+  execute: FormatExecute;
   pandoc: FormatPandoc;
   metadata: Metadata;
   formatExtras?: (flags: PandocFlags, format: Format) => Promise<FormatExtras>;
@@ -183,21 +184,23 @@ export interface FormatRender {
   [kLatexOutputDir]?: string | null;
 }
 
-export interface FormatExecution {
+export interface FormatExecute {
+  // done
   [kFigWidth]?: number;
   [kFigHeight]?: number;
   [kFigFormat]?: "retina" | "png" | "jpeg" | "svg" | "pdf";
   [kFigDpi]?: number;
-  [kAllowErrors]?: boolean;
-  [kExecute]?: true | false | null;
   [kCache]?: true | false | "refresh" | null;
   [kFreeze]?: true | false | "auto";
-  [kShowCode]?: boolean;
-  [kShowOutput]?: boolean;
-  [kShowWarnings]?: boolean;
-  [kKernelKeepalive]?: number;
-  [kKernelRestart]?: boolean;
-  [kKernelDebug]?: boolean;
+  [kExecuteDaemon]?: number | boolean | null;
+  [kExecuteDaemonRestart]?: boolean;
+  [kExecuteDebug]?: boolean;
+  [kEval]?: true | false | null;
+  [kError]?: boolean;
+  [kEcho]?: boolean;
+  [kOutput]?: boolean;
+  [kWarning]?: boolean;
+  [kInclude]?: boolean;
 }
 
 export interface FormatPandoc {
