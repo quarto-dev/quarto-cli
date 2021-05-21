@@ -19,12 +19,14 @@ Markdown Serialization
   and furthermore doesn't forward the .hidden attribute to the code cell
 
 
+- Breathing room for callout and code block on the left in responsive mode
+
+- TODO: measure lag at the beginning of project single file render
+
+- [Job Launcher] link issue raised by Christophe
+
 TODO
 =====================================================================
-
-TODO: measure lag at the beginning of project single file render
-
-
 
 TODO: Scss function(s) for referencing fonts (e.g. google, etc...)
   @useFont('google', 'roboto') (automates downloading of fonts and generating rules to load them)
