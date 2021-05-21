@@ -7,7 +7,7 @@ function quartoPostMetaInject()
     Meta = function(meta)
       
       metaInjectHtml(meta, function(inject)
-        if postState.codeFoldingCss then
+       
           inject([[
 <style type="text/css">
   details {
@@ -16,10 +16,28 @@ function quartoPostMetaInject()
   details[show] {
     margin-bottom: 0;
   }
+
+  .quarto-unresolved-ref {
+    font-weight: 600;
+  }
+
+  .quarto-cover-image {
+    max-width: 35%;
+    float: right;
+    margin-left: 30px;
+  }
+
+  .cell-output-display {
+    overflow-x: scroll;
+  }
+
+  .hidden {
+    display: none;
+  }
 </style>
 ]]
           )
-        end
+        
       end)
       
       return meta

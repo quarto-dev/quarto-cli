@@ -45,7 +45,6 @@ h6:hover > .anchorjs-link {
 }
 
 // codeCopy
-
 pre.sourceCode,
 code.sourceCode {
   position: relative;
@@ -110,22 +109,4 @@ code a:any-link {
 
 .tippy-content .footnote-back {
   display: none;
-}
-
-// unresolved refs
-.quarto-unresolved-ref {
-  font-weight: 600;
-}
-
-// cells
-
-.cell-output-display {
-  overflow-x: scroll;
-}
-
-// cover image
-.quarto-cover-image {
-  max-width: 35%;
-  float: right;
-  margin-left: 30px;
 }
