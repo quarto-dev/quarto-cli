@@ -79,7 +79,7 @@ const kJupyterMdExtensions = [
 export const jupyterEngine: ExecutionEngine = {
   name: "jupyter",
 
-  defaultExt: ".qmd",
+  defaultExt: ".md",
 
   defaultYaml: (kernel?: string) => [
     `jupyter: ${kernel || "python3"}`,

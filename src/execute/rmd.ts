@@ -32,7 +32,7 @@ const kRmdExtensions = [".rmd", ".rmarkdown"];
 export const knitrEngine: ExecutionEngine = {
   name: "knitr",
 
-  defaultExt: ".qmd",
+  defaultExt: ".Rmd",
 
   defaultYaml: () => [
     `knitr: true`,

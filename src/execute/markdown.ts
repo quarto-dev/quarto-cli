@@ -20,7 +20,7 @@ import {
 export const markdownEngine: ExecutionEngine = {
   name: "none",
 
-  defaultExt: ".qmd",
+  defaultExt: ".md",
 
   defaultYaml: () => [],
 
