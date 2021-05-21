@@ -6,7 +6,7 @@
 */
 
 import { dirname, join, relative } from "path/mod.ts";
-import { exists, existsSync } from "fs/mod.ts";
+import { existsSync } from "fs/mod.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
 
 import { dirAndStem, pathWithForwardSlashes } from "../core/path.ts";
@@ -41,7 +41,7 @@ export async function inputTargetIndex(
   const inputFile = join(project.dir, input);
 
   // return undefined if the file doesn't exist
-  if (!await exists(inputFile)) {
+  if (!existsSync(inputFile) || Deno.statSync(inputFile).isDirectory) {
     return Promise.resolve(undefined);
   }
 

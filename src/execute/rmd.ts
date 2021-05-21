@@ -5,7 +5,7 @@
 *
 */
 
-import { extname, join } from "path/mod.ts";
+import { join } from "path/mod.ts";
 import { error } from "log/mod.ts";
 
 import { dirAndStem } from "../core/path.ts";
@@ -32,12 +32,18 @@ const kRmdExtensions = [".rmd", ".rmarkdown"];
 export const knitrEngine: ExecutionEngine = {
   name: "knitr",
 
-  defaultExt: ".Rmd",
+  defaultExt: ".qmd",
 
-  defaultYaml: () => [],
+  defaultYaml: () => [
+    `knitr: true`,
+  ],
 
-  canHandle: (file: string) => {
-    return kRmdExtensions.includes(extname(file).toLowerCase());
+  handlesExtension: (ext: string) => {
+    return kRmdExtensions.includes(ext.toLowerCase());
+  },
+
+  handlesLanguage: (language: string) => {
+    return language.toLowerCase() === "r";
   },
 
   target: (file: string, _quiet?: boolean) => {

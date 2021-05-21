@@ -5,11 +5,19 @@
 *
 */
 
+import { extname } from "path/mod.ts";
+
+import {
+  partitionYamlFrontMatter,
+  readYamlFromMarkdown,
+} from "../core/yaml.ts";
 import { PartitionedMarkdown } from "../core/pandoc/pandoc-partition.ts";
 
-import { Format } from "../config/format.ts";
+import { Format, FormatExecute } from "../config/format.ts";
 import { Metadata } from "../config/metadata.ts";
 import {
+  kEngine,
+  kExecuteDefaults,
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
@@ -23,7 +31,8 @@ export interface ExecutionEngine {
   name: string;
   defaultExt: string;
   defaultYaml: (kernel?: string) => string[];
-  canHandle: (file: string) => boolean;
+  handlesExtension: (ext: string) => boolean;
+  handlesLanguage: (language: string) => boolean;
   target: (
     file: string,
     quiet?: boolean,
@@ -135,14 +144,71 @@ export function executionEngine(name: string) {
 }
 
 export function fileExecutionEngine(file: string) {
-  // try to find an engine
+  // try to find an engine that claims this extension
   for (const engine of kEngines) {
-    if (engine.canHandle) {
-      if (engine.canHandle(file)) {
-        return engine;
+    if (engine.handlesExtension(extname(file))) {
+      return engine;
+    }
+  }
+
+  // read yaml and see if the engine is declared in yaml
+  // (note that if the file were a non text-file like ipynb
+  //  it would have already been claimed via extension)
+  const markdown = Deno.readTextFileSync(file);
+  const result = partitionYamlFrontMatter(markdown);
+  if (result) {
+    const yaml = readYamlFromMarkdown(result.yaml);
+    if (yaml) {
+      for (const engine of kEngines) {
+        if (yaml[engine.name]) {
+          return engine;
+        }
+        if (
+          (yaml[kExecuteDefaults] as FormatExecute)?.[kEngine] === engine.name
+        ) {
+          return engine;
+        }
       }
     }
   }
+
+  // if there are languages see if any engines want to claim them
+  const languages = languagesInMarkdown(markdown);
+  if (languages.size > 0) {
+    for (const language of languages) {
+      for (const engine of kEngines) {
+        if (engine.handlesLanguage(language)) {
+          return engine;
+        }
+      }
+    }
+    // no engines claimed this language so default to jupyter
+    return jupyterEngine;
+  } else {
+    // no languages so use plain markdown
+    return markdownEngine;
+  }
+}
+
+export function languagesInMarkdownFile(file: string) {
+  return languagesInMarkdown(Deno.readTextFileSync(file));
+}
+
+export function languagesInMarkdown(markdown: string) {
+  // see if there are any code chunks in the file
+  const languages = new Set<string>();
+  const kChunkRegex = /^[\t >]*```+\s*\{([a-zA-Z0-9_]+)( *[ ,].*)?\}\s*$/gm;
+  kChunkRegex.lastIndex = 0;
+  let match = kChunkRegex.exec(markdown);
+  while (match) {
+    const language = match[1];
+    if (!languages.has(language)) {
+      languages.add(language);
+    }
+    match = kChunkRegex.exec(markdown);
+  }
+  kChunkRegex.lastIndex = 0;
+  return languages;
 }
 
 export function engineIgnoreGlobs() {

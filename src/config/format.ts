@@ -17,6 +17,7 @@ import {
   kCodeSummary,
   kCss,
   kEcho,
+  kEngine,
   kEPubCoverImage,
   kEval,
   kExecuteDaemon,
@@ -195,6 +196,7 @@ export interface FormatExecute {
   [kExecuteDaemon]?: number | boolean | null;
   [kExecuteDaemonRestart]?: boolean;
   [kExecuteDebug]?: boolean;
+  [kEngine]?: string;
   [kEval]?: true | false | null;
   [kError]?: boolean;
   [kEcho]?: boolean;
