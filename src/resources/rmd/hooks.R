@@ -174,7 +174,7 @@ knitr_hooks <- function(format) {
     knitr_default_opts <- names(knitr::opts_chunk$get())
     quarto_opts <- c("label","fig.cap","fig.subcap","fig.scap","fig.link",
                      "fig.align","fig.env","fig.pos","fig.num", "lst.cap", 
-                     "lst.label", "layout.align", "layout.valign")
+                     "lst.label", "layout.align", "layout.valign", "classes")
     other_opts <- c("eval", "out.width", "code", "params.src", 
                     "out.width.px", "out.height.px")
     known_opts <- c(knitr_default_opts, quarto_opts, other_opts)
@@ -191,15 +191,14 @@ knitr_hooks <- function(format) {
     # append to forward list
     forwardAttr <- c(forwardAttr, 
                      sprintf("%s='%s'", unknown_opts, unknown_values))
-  
-    
     forwardAttr <- paste(forwardAttr, collapse = " ")
-    if (nzchar(forwardAttr)) {
-      forwardAttr <- paste0(" ", forwardAttr)
-    }
     
+    # handle classes
+    classes <- c("cell",options[["classes"]] )
+    classes <- sapply(classes, function(clz) ifelse(startsWith(clz, "."), clz, paste0(".", clz)))
+
     # return cell
-    paste0("::: {", labelId(label) ,".cell", forwardAttr, "}\n", x, "\n", cell.cap ,":::")
+    paste0("::: {", labelId(label), paste(classes, collapse = " ") ," ", forwardAttr, "}\n", x, "\n", cell.cap ,":::")
   })
   knit_hooks$source <- function(x, options) {
     x <- knitr:::one_string(c('', x))
