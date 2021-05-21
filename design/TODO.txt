@@ -18,12 +18,44 @@ Markdown Serialization
 - keep-hidden for knitr ends up with a bunch of crap on the .cell (source.hidden='true' output.hidden='true' plot.hidden='true')
   and furthermore doesn't forward the .hidden attribute to the code cell
 
+- Only do .hidden filter if keep-hidden is active
 
 - Breathing room for callout and code block on the left in responsive mode
 
 - TODO: measure lag at the beginning of project single file render
 
 - [Job Launcher] link issue raised by Christophe
+
+- More opinionated <kbd>
+
+
+books
+=====================================================================
+
+- title link should go to home page
+
+- sharing doesn't work b/c either we dont provide the link or we don't have metadata
+- change the generator metadata option
+
+- crossref broken in https://jjallaire.github.io/hopr/dice.html
+- make sure that crossrefs are appropriately disabled for unumbered chapters
+
+- can we make section-numbers work more sensibly with H2 (chapter-level). --top-level-vision, --shift-heading-level
+
+- footnotes: 
+    (1) do we have consistent behavior across formats
+    (2) can we provide options for per-chapter vs. global
+
+- <link rel="next" href="how-to-read-this-book.html">
+
+- search highlighting like is done in mastering-shiny
+  (https://mastering-shiny.org/performance.html?q=plot#caching-plots)
+  jumping between highlighted terms (via keyboard or affordance at right or top)
+
+- incorporate new xml R highligter
+
+- redirects
+
 
 TODO
 =====================================================================
