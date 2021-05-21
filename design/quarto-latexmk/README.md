@@ -51,12 +51,22 @@ $ cd package/src
 $ ./quarto-bld compile-quarto-latexmk --target x86_64-apple-darwin --target x86_64-pc-windows-msvc
 ```
 
-You can compile for multiple target architectures with a single call by passing the \`-target\` flag multiple times. Supported target architectures include:
+You can compile for multiple target architectures with a single call by passing the \`--target\` flag multiple times. Supported target architectures include:
 
 -   x86_64-unknown-linux-gnu,
 -   x86_64-pc-windows-msvc
 -   x86_64-apple-darwin
 -   aarch64-apple-darwin
+
+You can provide the following additional information to control the output of the build process:
+
+
+| key  | purpose  |
+|---|---|
+| --name  |  The name of the compiled executable  |
+| --version  |  The version number of the compiled executable  |
+| --description  |  The description of the compiled executable  |
+
 
 ### Key Source Code Files
 
@@ -75,7 +85,5 @@ Implements a wrapper around texlive / tlmgr for installing and updating packages
 ### Open Issues:
 
 -   I haven't yet reviewed any changes to tinytex since I first ported this- I need to review and make any of those updates.
-
--   The binary that is produce is not currently properly versioned
 
 -   Should a Quarto release emit a versioned build of the binary that could be used by third parties in order to keep version numbers in sync with underlying quarto source code or shall we handle versioning in some other way?
