@@ -401,8 +401,50 @@ knitr_plot_hook <- function(htmlOutput) {
 }
 
 knitr_options_hook <- function(options) {
-  
+
   # determine comment matching patterns
+  knitr_engine_comment_chars <- list(
+    r = "#",
+    python = "#",
+    julia = "#",
+    scala = "//",
+    matlab = "%",
+    csharp = "//",
+    fsharp = "//",
+    c = c("/*",  "*/"),
+    css = c("/*",  "*/"),
+    sas = c("*", ";"),
+    powershell = "#",
+    bash = "#",
+    sql = "--",
+    mysql = "--",
+    psql = "--",
+    lua = "--",
+    Rcpp = "//",
+    cc = "//",
+    stan = "#",
+    octave = "#",
+    fortran = "!",
+    fortran95 = "!",
+    awk = "#",
+    gawk = "#",
+    stata = "*",
+    java = "//",
+    groovy = "//",
+    sed = "#",
+    perl = "#",
+    ruby = "#",
+    tikz = "%",
+    js = "//",
+    d3 = "//",
+    node = "//",
+    sass = "//",
+    coffee = "#",
+    go = "//",
+    asy = "//",
+    haskell = "--",
+    dot = "//"
+  )
   comment_chars <- knitr_engine_comment_chars[[options$engine]] %||% "#"
   comment_start <- paste0(comment_chars[[1]], "| ")
   comment_end <- ifelse(length(comment_chars) > 1, comment_chars[[2]], "")
@@ -410,11 +452,13 @@ knitr_options_hook <- function(options) {
   # check for option comments
   match_start <- startsWith(options$code, comment_start)
   match_end <- endsWith(trimws(options$code, "right"), comment_end)
-  last_match <- which.min(match_start & match_end) - 1
-  
-  
-  # if we had some then cleave them off
-  if (last_match > 0) {
+  matched_lines <- match_start & match_end
+
+  # has to have at least one matched line at the beginning
+  if (isTRUE(matched_lines[[1]])) {
+    # find last option line
+    last_match <- which.min(matched_lines) - 1
+
     # extract and parse options
     yaml <- options$code[1:last_match]
     if (any(match_end)) {
@@ -432,7 +476,11 @@ knitr_options_hook <- function(options) {
     options <- knitr:::merge_list(options, yaml_options)
     
     # set code
-    options$code <- options$code[(last_match+1):length(options$code)]
+    code <- options$code[(last_match+1):length(options$code)]
+    if (length(code) > 0 && knitr:::is_blank(code[[1]])) {
+      code <- code[-1]
+    }
+    options$code <- code
   }
   
   # some aliases
@@ -446,50 +494,6 @@ knitr_options_hook <- function(options) {
   # return options  
   options
 }
-
-
-knitr_engine_comment_chars <- list(
-  r = "#",
-  python = "#",
-  julia = "#",
-  scala = "//",
-  matlab = "%",
-  csharp = "//",
-  fsharp = "//",
-  c = c("/*",  "*/"),
-  css = c("/*",  "*/"),
-  sas = c("*", ";"),
-  powershell = "#",
-  bash = "#",
-  sql = "--",
-  mysql = "--",
-  psql = "--",
-  lua = "--",
-  Rcpp = "//",
-  cc = "//",
-  stan = "#",
-  octave = "#",
-  fortran = "!",
-  fortran95 = "!",
-  awk = "#",
-  gawk = "#",
-  stata = "*",
-  java = "//",
-  groovy = "//",
-  sed = "#",
-  perl = "#",
-  ruby = "#",
-  tikz = "%",
-  js = "//",
-  d3 = "//",
-  node = "//",
-  sass = "//",
-  coffee = "#",
-  go = "//",
-  asy = "//",
-  haskell = "--",
-  dot = "//"
-)
 
 
 # helper to create an output div
