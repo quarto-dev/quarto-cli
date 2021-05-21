@@ -44,7 +44,6 @@ export function compileQuartoLatexmkCommand() {
       info("Using configuration:");
       info(configuration);
       info("");
-      console.log(args);
 
       if (args.development) {
         installQuartoLatexmk(configuration);
@@ -106,10 +105,7 @@ export async function compileQuartoLatexmk(
       join(workingTempDir, basename(metadataPath)),
     );
 
-    // Update the source in line
-    // Read the file
-    // Replace the contents of variables
-    // Write the file
+    // Generate the proper constants and compile
     const verRegex = /^(export const kExeVersion = ").*(";)$/gm;
     const nameRegex = /^(export const kExeName = ").*(";)$/gm;
     const descRegex = /^(export const kExeDescription = ").*(";)$/gm;
