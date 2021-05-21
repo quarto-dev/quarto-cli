@@ -18,15 +18,18 @@ import {
 import { LatexmkOptions } from "./latexmk.ts";
 import { generatePdf } from "./pdf.ts";
 import { lines } from "../../../core/text.ts";
-
-const kVersion = "1.0";
+import {
+  kExeDescription,
+  kExeName,
+  kExeVersion,
+} from "./quarto-latexmk-metadata.ts";
 
 export async function pdf(args: string[]) {
   const pdfCommand = new Command()
-    .name("quarto-pdf")
+    .name(kExeName)
     .arguments("<input:string>")
-    .version(kVersion)
-    .description("Quarto Latexmk engine")
+    .version(kExeVersion)
+    .description(kExeDescription)
     .option(
       "--pdf-engine <engine>",
       "The PDF engine to use",
