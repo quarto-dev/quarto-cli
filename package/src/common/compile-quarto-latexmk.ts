@@ -5,12 +5,11 @@
 *
 */
 import { Command } from "cliffy/command/mod.ts";
-import { join } from "path/mod.ts";
+import { basename, join } from "path/mod.ts";
 import { ensureDirSync } from "fs/mod.ts";
 import { info } from "log/mod.ts";
 
 import { Configuration, readConfiguration } from "../common/config.ts";
-import { kVersion } from "../cmd/pkg-cmd.ts";
 import { compile, install, updateDenoPath } from "../util/deno.ts";
 
 export function compileQuartoLatexmkCommand() {
@@ -28,18 +27,35 @@ export function compileQuartoLatexmkCommand() {
         collect: true,
       },
     )
+    .option(
+      "-v, --version <version:string>",
+      "The version number of the compiled executable",
+    )
+    .option(
+      "-n, --name <name:string>",
+      "The name of the compiled executable",
+    )
+    .option(
+      "--description <description...:string>",
+      "The description of the compiled executable",
+    )
     .action((args) => {
-      const version = args[kVersion];
-
-      const configuration = readConfiguration(version);
+      const configuration = readConfiguration();
       info("Using configuration:");
       info(configuration);
       info("");
+      console.log(args);
 
       if (args.development) {
         installQuartoLatexmk(configuration);
       } else {
-        compileQuartoLatexmk(configuration, args.target);
+        compileQuartoLatexmk(
+          configuration,
+          args.target,
+          args.version || "0.0.9",
+          args.name || "quarto-latexmk",
+          args.description.join(" ") || "Quarto Latexmk Engine",
+        );
       }
     });
 }
@@ -67,37 +83,90 @@ export async function installQuartoLatexmk(
 
 export async function compileQuartoLatexmk(
   config: Configuration,
-  targets?: string[],
+  targets: string[],
+  version: string,
+  name: string,
+  description: string,
 ) {
-  // If target isn't specified, build for whatever the current architecture is
-  targets = targets || [Deno.build.target];
+  const workingTempDir = Deno.makeTempDirSync();
+  try {
+    // If target isn't specified, build for whatever the current architecture is
+    targets = targets || [Deno.build.target];
 
-  for (const target of targets) {
-    info(`Compiling for ${target}:`);
-    const outputDir = join(
-      config.directoryInfo.bin,
-      "quarto-latexmk",
-      target,
-    );
-    ensureDirSync(outputDir);
-    const output = join(outputDir, filename(target));
+    // temporarily update the constants to reflect the provided information
+    const metadataPath = metadataFilePath(config);
+    info("Using executable info:");
+    info(`version: ${version}`);
+    info(`name: ${name}`);
+    info(`description: ${description}`);
 
-    await compile(
-      entryPointPath(config),
-      output,
-      [...kFlags, "--lite"],
-      config,
+    // Backup a copy of the source
+    Deno.copyFileSync(
+      metadataPath,
+      join(workingTempDir, basename(metadataPath)),
     );
-    info(output + "\n");
+
+    // Update the source in line
+    // Read the file
+    // Replace the contents of variables
+    // Write the file
+    const verRegex = /^(export const kExeVersion = ").*(";)$/gm;
+    const nameRegex = /^(export const kExeName = ").*(";)$/gm;
+    const descRegex = /^(export const kExeDescription = ").*(";)$/gm;
+
+    let contents = Deno.readTextFileSync(metadataPath);
+    contents = contents.replace(verRegex, `$1${version}$2`);
+    contents = contents.replace(nameRegex, `$1${name}$2`);
+    contents = contents.replace(descRegex, `$1${description}$2`);
+
+    Deno.writeTextFileSync(metadataPath, contents);
+
+    for (const target of targets) {
+      const outputName = name || "quarto-latexmk";
+      info(`Compiling for ${target}:`);
+      const outputDir = join(
+        config.directoryInfo.bin,
+        outputName,
+        target,
+      );
+      ensureDirSync(outputDir);
+      const output = join(outputDir, filename(outputName, target));
+
+      await compile(
+        entryPointPath(config),
+        output,
+        [...kFlags, "--lite"],
+        config,
+      );
+      info(output + "\n");
+    }
+
+    // Restore the previously backed up file
+    Deno.copyFileSync(
+      join(workingTempDir, basename(metadataPath)),
+      metadataPath,
+    );
+  } finally {
+    Deno.removeSync(workingTempDir, { recursive: true });
   }
 }
 
-function filename(target: string) {
+function filename(name: string, target: string) {
   if (target.match(/.*windows.*/)) {
-    return "quarto-latexmk.exe";
+    return `${name}.exe`;
   } else {
-    return "quarto-latexmk";
+    return name;
   }
+}
+
+function metadataFilePath(config: Configuration) {
+  return join(
+    config.directoryInfo.src,
+    "command",
+    "render",
+    "latexmk",
+    "quarto-latexmk-metadata.ts",
+  );
 }
 
 function entryPointPath(config: Configuration) {
