@@ -31,8 +31,7 @@ Markdown Serialization
 TODO
 =====================================================================
 
-
-- TODO: Breathing room for callout and code block on the left in responsive mode
+- Flash of borders on sidebar tree in Chrome when loading (JJ's demo)
 
 - TODO: measure lag at the beginning of project single file render
 
