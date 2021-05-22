@@ -2,14 +2,17 @@ Markdown Serialization
 =====================================================================
 
 - update documentation:
-    - Add GitHub links + sidebar tools
     - Creating a Website "Overview"
     - computations.md article
     - authoring-tools.md article
     - output-formats.md article added to getting started section
     - Update computational sections of Figures and Crossrefs 
     - remove defunct pages
+    - article on using with hugo
     - take down wiki and put this link up
+
+- execute: false w/ jupyter in the new schema? (eval: false)
+  maybe use run-cells as alias?
 
 - Server no longer hot reloading on save of .md file or on save of _quarto.yml
   (also not re-rendering on navigate)
@@ -20,8 +23,7 @@ Markdown Serialization
         - 'jupyter' front matter goes into notebook metadata
     - code as convert target
     
-- execute: false w/ jupyter in the new schema? (eval: false)
-  maybe use run-cells as alias?
+
 
 - Consider mapping some 'known' tags?
 (https://docs.google.com/spreadsheets/d/1aDaHvyYlrfsqwEr2W2G7tbWK-ZMgAvXAzUA3CiqCpIo/edit#gid=0)
