@@ -8,11 +8,6 @@ Markdown Serialization
 - Consider mapping some 'known' tags?
 (https://docs.google.com/spreadsheets/d/1aDaHvyYlrfsqwEr2W2G7tbWK-ZMgAvXAzUA3CiqCpIo/edit#gid=0)
 
-- keep-hidden for knitr ends up with a bunch of crap on the .cell (source.hidden='true' output.hidden='true' plot.hidden='true')
-  and furthermore doesn't forward the .hidden attribute to the code cell
-
-- Only do .hidden filter if keep-hidden is active
-
 
 TODO
 =====================================================================
