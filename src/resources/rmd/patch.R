@@ -60,7 +60,12 @@ parse_block = function(code, header, params.src, markdown_mode = out_format('mar
   # strip trailing comma and whitespace
   params.src <- sub("\\s*,?\\s*$", "", params.src)
   
-  # look for other options to forward
+  # look for other options to forward. note that ideally we could extract *all*
+  # parameters and then pass partitioned$code below, however we can construct
+  # cases where deparsed versions of the options include a newline, which causes
+  # an error. we'll wait and see if this capability is incorporated natively
+  # into knitr parse_block -- if it's not then we can pursue more robust versions
+  # of textual option forwarding that don't run into newlines 
   extra_opts <- list()
   for (opt in c("ref.label")) {
     if (!is.null(partitioned$yaml[[opt]])) {
