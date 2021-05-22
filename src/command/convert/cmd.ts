@@ -10,7 +10,8 @@ import { exists } from "fs/exists.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 
-type ConvertFormat = "markdown" | "ipynb";
+const kJupyterFormat = "jupyter";
+const kMarkdownFormat = "markdown";
 
 export const convertCommand = new Command()
   .name("convert")
@@ -49,9 +50,14 @@ export const convertCommand = new Command()
     }
 
     // determine source format
-    const srcFormat = isJupyterNotebook(path) ? "jupyter" : "markdown";
+    const srcFormat = isJupyterNotebook(path)
+      ? kJupyterFormat
+      : kMarkdownFormat;
 
     // determine and validate target format
-    // const targetFormat = options.to ||
-    //   (srcFormat === "jupyter" ? "markdown" : "jupyter");
+    const targetFormat = options.to ||
+      (srcFormat === kJupyterFormat ? kMarkdownFormat : kJupyterFormat);
+    if (![kJupyterFormat, kMarkdownFormat].includes(targetFormat)) {
+      throw new Error("Invalid target format: " + targetFormat);
+    }
   });
