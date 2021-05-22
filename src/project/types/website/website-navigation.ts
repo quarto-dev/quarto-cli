@@ -198,6 +198,24 @@ export function websiteNavigationExtras(
     const pageNavigation = nextAndPrevious(href, sidebar);
     nav.prevPage = pageNavigation.prevPage;
     nav.nextPage = pageNavigation.nextPage;
+
+    // Inject link tags with rel nest/prev for the page
+    const metaLinks = [];
+    if (pageNavigation.nextPage?.href) {
+      metaLinks.push(
+        { rel: "next", href: pageNavigation.nextPage?.href },
+      );
+    }
+
+    if (pageNavigation.prevPage?.href) {
+      metaLinks.push(
+        { rel: "prev", href: pageNavigation.prevPage?.href },
+      );
+    }
+
+    if (metaLinks.length > 0) {
+      dependencies.push({ name: "website-pagination", links: metaLinks });
+    }
   }
 
   // forward the footer

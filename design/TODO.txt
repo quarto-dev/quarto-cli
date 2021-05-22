@@ -33,8 +33,7 @@ Markdown Serialization
 TODO
 =====================================================================
 
-
-- TODO: Breathing room for callout and code block on the left in responsive mode
+- Flash of borders on sidebar tree in Chrome when loading (JJ's demo)
 
 - TODO: measure lag at the beginning of project single file render
 
@@ -60,8 +59,6 @@ books
 - footnotes: 
     (1) do we have consistent behavior across formats
     (2) can we provide options for per-chapter vs. global
-
-- <link rel="next" href="how-to-read-this-book.html">
 
 - search highlighting like is done in mastering-shiny
   (https://mastering-shiny.org/performance.html?q=plot#caching-plots)

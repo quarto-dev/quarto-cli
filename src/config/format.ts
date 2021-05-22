@@ -94,6 +94,7 @@ export interface FormatDependency {
   name: string;
   version?: string;
   meta?: Record<string, string>;
+  links?: { rel: string; href: string }[];
   scripts?: DependencyFile[];
   stylesheets?: DependencyFile[];
   resources?: DependencyFile[];

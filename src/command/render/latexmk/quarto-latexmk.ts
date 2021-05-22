@@ -24,7 +24,45 @@ import {
   kExeVersion,
 } from "./quarto-latexmk-metadata.ts";
 
+interface EngineOpts {
+  pdf: string[];
+  index: string[];
+  tlmgr: string[];
+}
+
+function parseOpts(args: string[]): [string[], EngineOpts] {
+  const pdfOpts = parseEngineFlags("pdf-engine-opt", args);
+  const indexOpts = parseEngineFlags("index-engine-opt", pdfOpts.resultArgs);
+  const tlmgrOpts = parseEngineFlags("tlmgr-opt", indexOpts.resultArgs);
+  return [
+    tlmgrOpts.resultArgs,
+    {
+      pdf: pdfOpts.values,
+      index: indexOpts.values,
+      tlmgr: tlmgrOpts.values,
+    },
+  ];
+}
+
+function parseEngineFlags(optFlag: string, args: string[]) {
+  const values = [];
+  const resultArgs = [];
+
+  for (const arg of args) {
+    if (arg.startsWith(`--${optFlag}=`)) {
+      const value = arg.split("=")[1];
+      values.push(value);
+    } else {
+      resultArgs.push(arg);
+    }
+  }
+  return { values, resultArgs };
+}
+
 export async function pdf(args: string[]) {
+  // Parse any of the option flags
+  const [parsedArgs, engineOpts] = parseOpts(args);
+
   const pdfCommand = new Command()
     .name(kExeName)
     .arguments("<input:string>")
@@ -35,16 +73,16 @@ export async function pdf(args: string[]) {
       "The PDF engine to use",
     )
     .option(
-      "--pdf-engine-opts <optionsfile:string>",
-      "File containing options passed to the pdf engine (one arg per line)",
+      "--pdf-engine-opt=<optionsfile:string>",
+      "Options passed to the pdf engine. Can be used multiple times - values will be passed in the order they appear in the command. These must be specified using an '='.",
     )
     .option(
       "--index-engine <engine>",
       "The index engine to use",
     )
     .option(
-      "--index-engine-opts <optionsfile:string>",
-      "File containing options passed to the index engine (one arg per line)",
+      "--index-engine-opt=<optionsfile:string>",
+      "Options passed to the index engine. Can be used multiple times - values will be passed in the order they appear in the command. These must be specified using an '='.",
     )
     .option(
       "--bib-engine <engine>",
@@ -55,8 +93,8 @@ export async function pdf(args: string[]) {
       "Disable automatic package installation",
     )
     .option(
-      "--tlmgr-opts <optionsfile:string>",
-      "File containing options passed to the tlmgr engine (one arg per line)",
+      "--tlmgr-opt=<optionsfile:string>",
+      "Options passed to the tlmgr engine. Can be used multiple times - values will be passed in the order they appear in the command. These must be specified using an '='.",
     )
     .option(
       "--no-auto-mk",
@@ -77,6 +115,7 @@ export async function pdf(args: string[]) {
       const latexmkOptions = mkOptions(
         input,
         options as Record<string, unknown>,
+        engineOpts,
       );
       await generatePdf(latexmkOptions);
     });
@@ -84,7 +123,7 @@ export async function pdf(args: string[]) {
   await appendLogOptions(pdfCommand)
     .command("help", new HelpCommand().global())
     .command("completions", new CompletionsCommand()).hidden()
-    .parse(args);
+    .parse(parsedArgs);
 }
 
 if (import.meta.main) {
@@ -113,14 +152,15 @@ if (import.meta.main) {
 function mkOptions(
   input: string,
   options: Record<string, unknown>,
+  engineOpts: EngineOpts,
 ): LatexmkOptions {
   const engine = {
     pdfEngine: options.pdfEngine as string || "pdflatex",
-    pdfEngineOpts: readOptionsFile(options.pdfEngineOpts as string),
+    pdfEngineOpts: engineOpts.pdf,
     bibEngine: bibEngine(options.bibEngine as string) || "biblatex",
     indexEngine: options.indexEngine as string || "makeindex",
-    indexEngineOpts: readOptionsFile(options.indexEngineOpts as string),
-    tlmgrOpts: readOptionsFile(options.tlmgrOpts as string),
+    indexEngineOpts: engineOpts.index,
+    tlmgrOpts: engineOpts.tlmgr,
   };
 
   const latexMkOptions = {
@@ -133,6 +173,7 @@ function mkOptions(
     outputDir: options.outputDir as string,
     clean: options.clean as boolean,
   };
+  console.log(latexMkOptions);
 
   // Debug message that show engine configuration (set --log-level debug to view)
   debug(() => {
@@ -140,15 +181,6 @@ function mkOptions(
   });
 
   return latexMkOptions;
-}
-
-function readOptionsFile(file?: string): string[] {
-  const commands: string[] = [];
-  if (file && existsSync(file)) {
-    const contents = Deno.readTextFileSync(file);
-    lines(contents).forEach((line) => commands.push(line));
-  }
-  return commands;
 }
 
 function bibEngine(bibEngine?: string): "biblatex" | "natbib" {
