@@ -612,7 +612,7 @@ export async function renderPandoc(
 
   // if there is a project context then return paths relative to the project
   const projectPath = (path: string) => {
-    if (context.project) {
+    if (context.project && isAbsolute(path)) {
       return relative(
         Deno.realPathSync(context.project.dir),
         Deno.realPathSync(path),
