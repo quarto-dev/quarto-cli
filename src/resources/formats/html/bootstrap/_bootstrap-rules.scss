@@ -96,9 +96,6 @@ pre.sourceCode {
 div.sourceCode {
   overflow-y: hidden;
   background-color: $body-bg !important;
-  @if $code-border-left {
-    margin-left: add(add(-$code-padding-left, -$code-border-left-size), 2px);
-  }
 }
 
 .callout div.sourceCode {
@@ -219,17 +216,26 @@ div.hanging-indent {
   margin-bottom: 0;
 }
 
-// Cards with header
-.callout:not(.no-icon) {
-  @if $code-border-left {
-    margin-left: add(add(-0.4em, -$callout-border-width), -1px);
-  }
+@if $code-border-left {
+  // Align source code and callout text (not border) with main body text when there is room
+  @include media-breakpoint-up(lg) {
+
+    // Cards with header
+    .callout:not(.no-icon) {
+          margin-left: add(add(-0.4em, -$callout-border-width), -1px);
+    }
+
+    .callout {
+      margin-left: add(-0.4em, -$callout-border-width);
+    }
+    
+    div.sourceCode {
+      margin-left: add(add(-$code-padding-left, -$code-border-left-size), 2px);
+    }
+  } 
 }
 
 .callout {
-  @if $code-border-left {
-    margin-left: add(-0.4em, -$callout-border-width);
-  }
   padding: 0.4em 0.7em;
   border-left: $callout-border-width solid;
   border-right: 1px solid $table-border-color;
