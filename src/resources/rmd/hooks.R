@@ -45,7 +45,8 @@ knitr_hooks <- function(format) {
   }
   if (isTRUE(format$render[["keep-hidden"]])) {
     register_hidden_hook("echo", c("source"))
-    register_hidden_hook("include", c("output", "plot"))
+    register_hidden_hook("output", c("output", "plot"))
+    register_hidden_hook("include")
     register_hidden_hook("warning")
     register_hidden_hook("message")
   }
@@ -174,7 +175,8 @@ knitr_hooks <- function(format) {
     knitr_default_opts <- names(knitr::opts_chunk$get())
     quarto_opts <- c("label","fig.cap","fig.subcap","fig.scap","fig.link",
                      "fig.align","fig.env","fig.pos","fig.num", "lst.cap", 
-                     "lst.label", "layout.align", "layout.valign", "classes")
+                     "lst.label", "layout.align", "layout.valign", "classes",
+                     "output", "include.hidden", "source.hidden", "plot.hidden", "output.hidden")
     other_opts <- c("eval", "out.width", "code", "params.src", 
                     "out.width.px", "out.height.px")
     known_opts <- c(knitr_default_opts, quarto_opts, other_opts)
@@ -195,6 +197,9 @@ knitr_hooks <- function(format) {
     
     # handle classes
     classes <- c("cell",options[["classes"]] )
+    if (isTRUE(options[["include.hidden"]])) {
+      classes <- c(classes, "hidden")
+    }
     classes <- sapply(classes, function(clz) ifelse(startsWith(clz, "."), clz, paste0(".", clz)))
 
     # return cell
@@ -205,7 +210,7 @@ knitr_hooks <- function(format) {
     class <- options$class.source
     attr <- options$attr.source
     class <- paste(class, "cell-code")
-    if (isTRUE(options["source.hidden"])) {
+    if (isTRUE(options[["source.hidden"]])) {
       class <- paste(class, "hidden")
     }
     if (!identical(format$metadata[["crossref"]], FALSE)) {
