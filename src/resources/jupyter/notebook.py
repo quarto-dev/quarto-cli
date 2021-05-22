@@ -50,6 +50,7 @@ def notebook_execute(options, status):
    # read variables out of format
    execute = format["execute"]
 
+   eval = execute["eval"]
    allow_errors = bool(execute["error"])
    fig_width = execute["fig.width"]
    fig_height = execute["fig.height"]
@@ -135,6 +136,7 @@ def notebook_execute(options, status):
          cell, 
          index, 
          current_code_cell,
+         eval,
          index > 0 # add_to_history
       )
 
@@ -292,7 +294,7 @@ def nb_kernel_depenencies(cell):
          return json.loads(output.text)
    return None
 
-def cell_execute(client, cell, index, execution_count, store_history):
+def cell_execute(client, cell, index, execution_count, eval_default, store_history):
 
    # read cell options
    cell_options = nb_cell_yaml_options(client, cell)
@@ -301,11 +303,11 @@ def cell_execute(client, cell, index, execution_count, store_history):
    tags = cell.get('metadata', {}).get('tags', [])
 
    # check options for eval and error
-   eval = cell_options.get('eval', True)
+   eval = cell_options.get('eval', eval_default)
    allow_errors = cell_options.get('error', False)
      
-   # execute unless the 'no-execute' tag is active
-   if eval:
+   # execute if eval is active
+   if eval == True:
       
       # add 'raises-exception' tag for allow_errors
       if allow_errors:

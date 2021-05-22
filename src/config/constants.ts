@@ -31,6 +31,7 @@ export const kResources = "resources";
 
 export const kKeepHidden = "keep-hidden";
 
+export const kExecutePreserve = "preserve";
 export const kExecuteDaemon = "daemon";
 export const kExecuteDaemonRestart = "daemon-restart";
 export const kExecuteDebug = "debug";
@@ -49,6 +50,7 @@ export const kExecuteDefaultsKeys = [
   kOutput,
   kWarning,
   kInclude,
+  kExecutePreserve,
   kExecuteDaemon,
   kExecuteDaemonRestart,
   kExecuteDebug,

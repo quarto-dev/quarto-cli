@@ -23,6 +23,7 @@ import {
   kExecuteDaemon,
   kExecuteDaemonRestart,
   kExecuteDebug,
+  kExecutePreserve,
   kFigAlign,
   kFigDpi,
   kFilterParams,
@@ -194,6 +195,7 @@ export interface FormatExecute {
   [kFigDpi]?: number;
   [kCache]?: true | false | "refresh" | null;
   [kFreeze]?: true | false | "auto";
+  [kExecutePreserve]?: boolean;
   [kExecuteDaemon]?: number | boolean | null;
   [kExecuteDaemonRestart]?: boolean;
   [kExecuteDebug]?: boolean;

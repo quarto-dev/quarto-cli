@@ -37,11 +37,10 @@ import {
   quartoMdToJupyter,
 } from "../../core/jupyter/jupyter.ts";
 import {
-  kEval,
   kExecuteDaemon,
+  kExecutePreserve,
   kFigDpi,
   kFigFormat,
-  kFreeze,
   kIncludeAfterBody,
   kIncludeInHeader,
   kKeepHidden,
@@ -131,11 +130,8 @@ export const jupyterEngine: ExecutionEngine = {
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
     // determine default execute behavior if none is specified
-    let execute = options.format.execute[kEval];
-    if (execute === null) {
-      execute = !isJupyterNotebook(options.target.source) ||
-        !!options.format.execute[kFreeze];
-    }
+    const execute = options.format.execute[kExecutePreserve] !== true;
+
     // execute if we need to
     if (execute) {
       // jupyter back end requires full path to input (to ensure that
