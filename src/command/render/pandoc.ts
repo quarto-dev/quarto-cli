@@ -445,6 +445,10 @@ function resolveDependencies(
   const stylesheetTempate = ld.template(
     `<link href="<%- href %>" rel="stylesheet" />`,
   );
+  const rawLinkTemplate = ld.template(
+    `<link href="<%- href %>" rel="<%- rel %>" />`,
+  );
+
   const lines: string[] = [];
   if (extras.html?.[kDependencies]) {
     for (const dependency of extras.html?.[kDependencies]!) {
@@ -474,6 +478,11 @@ function resolveDependencies(
         dependency.stylesheets.forEach((stylesheet) =>
           copyDep(stylesheet, stylesheetTempate)
         );
+      }
+      if (dependency.links) {
+        dependency.links.forEach((link) => {
+          lines.push(rawLinkTemplate(link));
+        });
       }
       if (dependency.resources) {
         dependency.resources.forEach((resource) => copyDep(resource));
