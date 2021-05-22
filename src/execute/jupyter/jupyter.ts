@@ -37,10 +37,12 @@ import {
   quartoMdToJupyter,
 } from "../../core/jupyter/jupyter.ts";
 import {
+  kCache,
   kExecuteDaemon,
-  kExecutePreserve,
+  kExecuteEnabled,
   kFigDpi,
   kFigFormat,
+  kFreeze,
   kIncludeAfterBody,
   kIncludeInHeader,
   kKeepHidden,
@@ -130,7 +132,14 @@ export const jupyterEngine: ExecutionEngine = {
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
     // determine default execute behavior if none is specified
-    const execute = options.format.execute[kExecutePreserve] !== true;
+    //   - execute markdown files but not notebooks
+    //   - exectue if any freeze or cache options are active
+    let execute = options.format.execute[kExecuteEnabled];
+    if (execute === null) {
+      execute = !isJupyterNotebook(options.target.source) ||
+        !!options.format.execute[kFreeze] ||
+        !!options.format.execute[kCache];
+    }
 
     // execute if we need to
     if (execute) {
