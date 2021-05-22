@@ -32,6 +32,7 @@ import("book-numbering.lua")
 import("meta.lua")
 import("tabset.lua")
 import("callout.lua")
+import("hidden.lua")
 import("../common/colors.lua")
 import("../common/params.lua")
 import("../common/error.lua")
@@ -52,6 +53,7 @@ initParams()
 
 return {
   readIncludes(),
+  hidden(),
   outputs(),
   combineFilters({
     fileMetadata(),

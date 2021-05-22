@@ -1,33 +1,85 @@
 Markdown Serialization
 =====================================================================
 
+- update documentation:
+    - Add GitHub links + sidebar tools
+    - Creating a Website "Overview"
+    - computations.md article
+    - authoring-tools.md article
+    - output-formats.md article added to getting started section
+    - Update computational sections of Figures and Crossrefs 
+    - remove defunct pages
+    - take down wiki and put this link up
+
+- Server no longer hot reloading on save of .md file or on save of _quarto.yml
+  (also not re-rendering on navigate)
+
+- convert to/from text vs. ipynb representation
+    - notebook metadata: 
+        - dump into 'jupyter' front matter key on way to markdown
+        - 'jupyter' front matter goes into notebook metadata
+    - code as convert target
+    
+- execute: false w/ jupyter in the new schema? (eval: false)
+  maybe use run-cells as alias?
 
 - Consider mapping some 'known' tags?
 (https://docs.google.com/spreadsheets/d/1aDaHvyYlrfsqwEr2W2G7tbWK-ZMgAvXAzUA3CiqCpIo/edit#gid=0)
 
-- see if we can get .qmd to work 
-
-- update documentation
-
-- keep-md doesn't work if your input file is .md (.jupyter.md, or .knitr.md)
-- engine: knitr doesn't work if your input file is .md
-
-- convert to/from text vs. ipynb representation
-- ipynb as output target (is that just keep-ipynb?). format: ipynb
-
-Process .hidden CSS class (remove for non-HTML, hide for html)
-
-What happens to 'extra' attributes (do they end up in the markdown)
-
-Do we need to process 'classes'
 
 
 TODO
 =====================================================================
 
-TODO: measure lag at the beginning of project single file render
+
+- TODO: Breathing room for callout and code block on the left in responsive mode
+
+- TODO: measure lag at the beginning of project single file render
+
+- [Job Launcher] link issue raised by Christophe
+- crossref broken in https://jjallaire.github.io/hopr/dice.html
+
+- More opinionated <kbd>
 
 
+books
+=====================================================================
+
+- title link should go to home page
+
+- sharing doesn't work b/c either we dont provide the link or we don't have metadata
+- change the generator metadata option
+
+- crossref broken in https://jjallaire.github.io/hopr/dice.html
+- make sure that crossrefs are appropriately disabled for unumbered chapters
+
+- can we make section-numbers work more sensibly with H2 (chapter-level). --top-level-vision, --shift-heading-level
+
+- footnotes: 
+    (1) do we have consistent behavior across formats
+    (2) can we provide options for per-chapter vs. global
+
+- <link rel="next" href="how-to-read-this-book.html">
+
+- search highlighting like is done in mastering-shiny
+  (https://mastering-shiny.org/performance.html?q=plot#caching-plots)
+  jumping between highlighted terms (via keyboard or affordance at right or top)
+
+- incorporate new xml R highligter
+
+- redirects
+
+
+quarto-python dev workflow:
+
+```bash
+$ python3 -m venv .venv    
+$ source .venv/bin/activate
+$ pip install -e ./ 
+```
+
+TODO
+=====================================================================
 
 TODO: Scss function(s) for referencing fonts (e.g. google, etc...)
   @useFont('google', 'roboto') (automates downloading of fonts and generating rules to load them)

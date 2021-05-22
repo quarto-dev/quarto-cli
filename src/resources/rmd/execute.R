@@ -13,6 +13,24 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params) {
   on.exit(setwd(oldwd), add = TRUE)
   input <- basename(input)
 
+  # give the input an .Rmd extension if it doesn't already have one
+  # (this is a temporary copy which we'll remove before exiting)
+  if (!tolower(xfun::file_ext(input)) %in% c("r", "rmd", "rmarkdown")) {
+    rmd_input <- paste0(xfun::sans_ext(input), ".Rmd")
+    if (file.exists(rmd_input)) {
+      stop("Unable to render ", input, 
+           ": Not using Rmd extension and Rmd with the same file stem already exists")
+    }
+    # swap out the input
+    file.copy(input, rmd_input)
+    input <- rmd_input
+    
+    # remove the rmd input on exit
+    rmd_input_path <- rmarkdown:::abs_path(rmd_input)
+    on.exit(unlink(rmd_input_path))
+  }
+  
+
   # apply r-options (if any)
   r_options <- format$metadata$`r-options`
   if (!is.null(r_options)) {

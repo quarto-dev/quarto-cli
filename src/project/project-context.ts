@@ -23,7 +23,11 @@ import { ProjectType, projectType } from "./types/project-types.ts";
 
 import { resolvePathGlobs } from "../core/path.ts";
 
-import { engineIgnoreGlobs, fileExecutionEngine } from "../execute/engine.ts";
+import {
+  engineIgnoreGlobs,
+  executionEngineKeepFiles,
+  fileExecutionEngine,
+} from "../execute/engine.ts";
 import { projectResourceFiles } from "./project-resources.ts";
 import { kGitignoreEntries } from "./project-gitignore.ts";
 
@@ -271,7 +275,7 @@ function projectInputFiles(dir: string, metadata?: ProjectConfig) {
       const engine = fileExecutionEngine(file);
       if (engine) {
         files.push(file);
-        const keep = engine.keepFiles(file);
+        const keep = executionEngineKeepFiles(engine, file);
         if (keep) {
           keepFiles.push(...keep);
         }

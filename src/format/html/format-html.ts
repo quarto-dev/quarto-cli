@@ -16,6 +16,7 @@ import { sessionTempFile } from "../../core/temp.ts";
 import { asCssSize } from "../../core/css.ts";
 
 import {
+  kCodeLink,
   kDoi,
   kFilterParams,
   kHeaderIncludes,
@@ -206,6 +207,7 @@ function htmlFormatExtras(format: Format): FormatExtras {
         false,
     }
     : {};
+  options.codeLink = format.metadata[kCodeLink] || false;
   if (bootstrap) {
     options.copyCode = format.metadata[kCodeCopy] !== false;
     options.anchors = format.metadata[kAnchorSections] !== false;

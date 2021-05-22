@@ -8,10 +8,12 @@
 // deno-lint-ignore-file camelcase
 
 import { ensureDirSync } from "fs/ensure_dir.ts";
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, extname, join, relative } from "path/mod.ts";
 import { walkSync } from "fs/walk.ts";
 import { decode as base64decode } from "encoding/base64.ts";
 import { stringify } from "encoding/yaml.ts";
+
+import { ld } from "lodash/mod.ts";
 
 import { warnOnce } from "../../core/log.ts";
 
@@ -98,9 +100,8 @@ export const kCellFigAlt = "fig.alt";
 export const kCellLstLabel = "lst.label";
 export const kCellLstCap = "lst.cap";
 export const kCellClasses = "classes";
-export const kCellWidth = "width";
-export const kCellHeight = "height";
-export const kCellAlt = "alt";
+export const kCellOutWidth = "out.width";
+export const kCellOutHeight = "out.height";
 export const kCellFold = "fold";
 export const kCellSummary = "summary";
 
@@ -109,6 +110,13 @@ export const kLayoutVAlign = "layout.valign";
 export const kLayoutNcol = "layout.ncol";
 export const kLayoutNrow = "layout.nrow";
 export const kLayout = "layout";
+
+export const kJupyterNotebookExtensions = [
+  ".ipynb",
+];
+export function isJupyterNotebook(file: string) {
+  return kJupyterNotebookExtensions.includes(extname(file).toLowerCase());
+}
 
 export interface JupyterNotebook {
   metadata: {
@@ -215,6 +223,17 @@ export const kJupyterCellOptionKeys = [
   kLayoutNcol,
   kLayoutNrow,
   kLayout,
+  kCellOutWidth,
+  kCellOutHeight,
+];
+
+export const kJupyterCellStandardMetadataKeys = [
+  kCellCollapsed,
+  kCellAutoscroll,
+  kCellDeletable,
+  kCellFormat,
+  kCellName,
+  kCellLinesToNext,
 ];
 
 export interface JupyterOutputExecuteResult extends JupyterOutputDisplayData {
@@ -675,29 +694,9 @@ function mdFromCodeCell(
   const divMd: string[] = [`::: {`];
 
   // metadata to exclude from cell div attributes
-  const kCellOptionsFilter = [
-    kCellCollapsed,
-    kCellAutoscroll,
-    kCellDeletable,
-    kCellFormat,
-    kCellName,
-    kCellLabel,
-    kCellFigCap,
-    kCellFigSubCap,
-    kCellFigScap,
-    kCellFigLink,
-    kCellFigAlign,
-    kCellFigAlt,
-    kCellFigEnv,
-    kCellFigPos,
-    kCellClasses,
-    kCellWidth,
-    kCellHeight,
-    kCellAlt,
-    kCellLinesToNext,
-    kCellFold,
-    kCellSummary,
-  ];
+  const kCellOptionsFilter = kJupyterCellOptionKeys.concat(
+    kJupyterCellStandardMetadataKeys,
+  );
 
   // determine label -- this will be forwarded to the output (e.g. a figure)
   // if there is a single output. otherwise it will included on the enclosing
@@ -721,10 +720,15 @@ function mdFromCodeCell(
 
   // css classes
   if (cell.options[kCellClasses]) {
-    const classes = cell.options[kCellClasses]!.trim().split(/\s+/)
-      .map((clz) => clz.startsWith(".") ? clz : ("." + clz))
+    const cellClasses = cell.options[kCellClasses]!;
+    const classes = Array.isArray(cellClasses) ? cellClasses : [cellClasses];
+    const classText = classes
+      .map((clz: string) => {
+        clz = ld.toString(clz);
+        return clz.startsWith(".") ? clz : ("." + clz);
+      })
       .join(" ");
-    divMd.push(classes + " ");
+    divMd.push(classText + " ");
   }
 
   // forward other attributes we don't know about (combine attributes
@@ -1006,9 +1010,9 @@ function mdImageOutput(
   function metadataValue<T>(key: string, defaultValue: T) {
     return metadata && metadata[key] ? metadata["key"] as T : defaultValue;
   }
-  let width = metadataValue(kCellWidth, 0);
-  let height = metadataValue(kCellHeight, 0);
-  const alt = caption || metadataValue(kCellAlt, "");
+  let width = metadataValue(kCellOutWidth, 0);
+  let height = metadataValue(kCellOutHeight, 0);
+  const alt = caption || "";
 
   // calculate output file name
   const ext = extensionForMimeImageType(mimeType);

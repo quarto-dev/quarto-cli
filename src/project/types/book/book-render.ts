@@ -42,6 +42,8 @@ import { renderCleanup } from "../../../command/render/cleanup.ts";
 import { ProjectConfig, ProjectContext } from "../../project-context.ts";
 import { ProjectOutputFile } from "../project-types.ts";
 
+import { executionEngineKeepMd } from "../../../execute/engine.ts";
+
 import { websiteOutputFiles, websitePostRender } from "../website/website.ts";
 
 import {
@@ -447,7 +449,7 @@ function cleanupExecutedFile(
     finalOutput,
     file.recipe.format,
     file.executeResult.supporting,
-    file.context.engine.keepMd(file.context.target.input),
+    executionEngineKeepMd(file.context.engine, file.context.target.input),
   );
 }
 

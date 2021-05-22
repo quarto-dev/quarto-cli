@@ -14,6 +14,7 @@ import {
   DependenciesOptions,
   ExecuteOptions,
   ExecutionEngine,
+  kQmdExtensions,
   PostProcessOptions,
 } from "./engine.ts";
 
@@ -24,10 +25,12 @@ export const markdownEngine: ExecutionEngine = {
 
   defaultYaml: () => [],
 
-  handlesExtension: (_ext: string) => {
+  validExtensions: () => kQmdExtensions,
+
+  claimsExtension: (_ext: string) => {
     return false;
   },
-  handlesLanguage: (_language: string) => {
+  claimsLanguage: (_language: string) => {
     return false;
   },
 
@@ -58,7 +61,8 @@ export const markdownEngine: ExecutionEngine = {
     });
   },
   postprocess: (_options: PostProcessOptions) => Promise.resolve(),
-  keepMd: (_input: string) => undefined,
-  keepFiles: (__input: string) => undefined,
+
+  canKeepMd: false,
+
   renderOnChange: true,
 };

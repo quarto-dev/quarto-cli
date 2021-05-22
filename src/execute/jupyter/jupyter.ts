@@ -23,14 +23,17 @@ import {
   ExecuteResult,
   ExecutionEngine,
   ExecutionTarget,
+  kQmdExtensions,
   languagesInMarkdownFile,
   PandocIncludes,
   PostProcessOptions,
 } from "../engine.ts";
 import {
+  isJupyterNotebook,
   jupyterAssets,
   jupyterFromFile,
   jupyterToMarkdown,
+  kJupyterNotebookExtensions,
   quartoMdToJupyter,
 } from "../../core/jupyter/jupyter.ts";
 import {
@@ -68,16 +71,10 @@ import {
   jupyterKernelspecs,
 } from "../../core/jupyter/kernels.ts";
 
-const kNotebookExtensions = [
-  ".ipynb",
-];
-const kJupyterMdExtensions = [
-  ".md",
-  ".markdown",
-];
+const kJupyterEngine = "jupyter";
 
 export const jupyterEngine: ExecutionEngine = {
-  name: "jupyter",
+  name: kJupyterEngine,
 
   defaultExt: ".md",
 
@@ -85,11 +82,13 @@ export const jupyterEngine: ExecutionEngine = {
     `jupyter: ${kernel || "python3"}`,
   ],
 
-  handlesExtension: (ext: string) => {
-    return kNotebookExtensions.includes(ext.toLowerCase());
+  validExtensions: () => kJupyterNotebookExtensions.concat(kQmdExtensions),
+
+  claimsExtension: (ext: string) => {
+    return kJupyterNotebookExtensions.includes(ext.toLowerCase());
   },
 
-  handlesLanguage: (_language: string) => {
+  claimsLanguage: (_language: string) => {
     return false;
   },
 
@@ -98,7 +97,7 @@ export const jupyterEngine: ExecutionEngine = {
   ): Promise<ExecutionTarget | undefined> => {
     // if this is a text markdown file then create a notebook for use as the execution target
     const ext = extname(file);
-    if (kJupyterMdExtensions.includes(ext)) {
+    if (kQmdExtensions.includes(ext)) {
       // write a transient notebook
       const [kernelspec, metadata] = await jupyterKernelspecFromFile(file);
       const [fileDir, fileStem] = dirAndStem(file);
@@ -106,7 +105,7 @@ export const jupyterEngine: ExecutionEngine = {
       const notebook = join(fileDir, fileStem + ".ipynb");
       Deno.writeTextFileSync(notebook, JSON.stringify(nb, null, 2));
       return { source: file, input: notebook, data: { transient: true } };
-    } else if (isNotebook(file)) {
+    } else if (isJupyterNotebook(file)) {
       return { source: file, input: file, data: { transient: false } };
     } else {
       return undefined;
@@ -115,7 +114,7 @@ export const jupyterEngine: ExecutionEngine = {
 
   metadata: async (file: string): Promise<Metadata> => {
     // read metadata
-    if (isNotebook(file)) {
+    if (isJupyterNotebook(file)) {
       return readYamlFromMarkdown(await markdownFromNotebook(file));
     } else {
       return readYamlFromMarkdown(Deno.readTextFileSync(file));
@@ -123,7 +122,7 @@ export const jupyterEngine: ExecutionEngine = {
   },
 
   partitionedMarkdown: async (file: string) => {
-    if (isNotebook(file)) {
+    if (isJupyterNotebook(file)) {
       return partitionMarkdown(await markdownFromNotebook(file));
     } else {
       return partitionMarkdown(Deno.readTextFileSync(file));
@@ -134,7 +133,7 @@ export const jupyterEngine: ExecutionEngine = {
     // determine default execute behavior if none is specified
     let execute = options.format.execute[kEval];
     if (execute === null) {
-      execute = !isNotebook(options.target.source) ||
+      execute = !isJupyterNotebook(options.target.source) ||
         !!options.format.execute[kFreeze];
     }
     // execute if we need to
@@ -191,14 +190,9 @@ export const jupyterEngine: ExecutionEngine = {
       result.dependencies,
     );
 
-    // if it's a transient notebook then remove it, otherwise
-    // sync so that jupyter[lab] can open the .ipynb w/o errors
-    const data = options.target.data as JupyterTargetData;
-    if (data.transient) {
-      if (!options.format.render[kKeepIpynb]) {
-        Deno.removeSync(options.target.input);
-      }
-    }
+    // if it's a transient notebook then remove it
+    // (unless keep-ipynb was specified)
+    cleanupNotebook(options.target, options.format);
 
     // return results
     return {
@@ -212,15 +206,7 @@ export const jupyterEngine: ExecutionEngine = {
     };
   },
 
-  executeTargetSkipped: (target: ExecutionTarget, format: Format) => {
-    // remove transient notebook if appropriate
-    const data = target.data as JupyterTargetData;
-    if (data.transient) {
-      if (!format.render[kKeepIpynb]) {
-        Deno.removeSync(target.input);
-      }
-    }
-  },
+  executeTargetSkipped: cleanupNotebook,
 
   dependencies: (options: DependenciesOptions) => {
     const includes: PandocIncludes = {};
@@ -256,19 +242,13 @@ export const jupyterEngine: ExecutionEngine = {
     return Promise.resolve();
   },
 
-  keepMd,
+  canKeepMd: true,
 
   keepFiles: (input: string) => {
-    const files: string[] = [];
-    const keep = keepMd(input);
-    if (keep) {
-      files.push(keep);
-    }
-    if (!isNotebook(input) && !input.endsWith(kKeepSuffix)) {
+    if (!isJupyterNotebook(input) && !input.endsWith(`.${kJupyterEngine}.md`)) {
       const [fileDir, fileStem] = dirAndStem(input);
-      files.push(join(fileDir, fileStem + ".ipynb"));
+      return [join(fileDir, fileStem + ".ipynb")];
     }
-    return files;
   },
 };
 
@@ -276,12 +256,13 @@ export function pythonBinary(binary = "python3") {
   return binary;
 }
 
-const kKeepSuffix = ".ipynb.md";
-
-function keepMd(input: string) {
-  if (!input.endsWith(kKeepSuffix)) {
-    const [dir, stem] = dirAndStem(input);
-    return join(dir, stem + ".ipynb.md");
+function cleanupNotebook(target: ExecutionTarget, format: Format) {
+  // remove transient notebook if appropriate
+  const data = target.data as JupyterTargetData;
+  if (data.transient) {
+    if (!format.render[kKeepIpynb]) {
+      Deno.removeSync(target.input);
+    }
   }
 }
 
@@ -349,10 +330,6 @@ async function jupyterKernelspecFromFile(
       ),
     );
   }
-}
-
-function isNotebook(file: string) {
-  return kNotebookExtensions.includes(extname(file).toLowerCase());
 }
 
 function isHtmlCompatible(format: Format) {
