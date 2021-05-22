@@ -25,5 +25,3 @@ plain markdown, Rmd documents, and Jupyter notebooks.
 Quarto is currently in alpha development, so not generally recommended for
 everyday use!
 
-For additional documentation, see the
-[Quarto Wiki](https://github.com/quarto-dev/quarto-cli/wiki).
