@@ -4,6 +4,9 @@ Markdown Serialization
 - update documentation
 
 - convert to/from text vs. ipynb representation
+    - notebook metadata: 
+        - dump into 'jupyter' front matter key on way to markdown
+        - 'jupyter' front matter goes into notebook metadata
 
 - Consider mapping some 'known' tags?
 (https://docs.google.com/spreadsheets/d/1aDaHvyYlrfsqwEr2W2G7tbWK-ZMgAvXAzUA3CiqCpIo/edit#gid=0)
