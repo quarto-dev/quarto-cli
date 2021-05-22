@@ -70,6 +70,14 @@ books
 - redirects
 
 
+quarto-python dev workflow:
+
+```bash
+$ python3 -m venv .venv    
+$ source .venv/bin/activate
+$ pip install -e ./ 
+```
+
 TODO
 =====================================================================
 
