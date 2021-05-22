@@ -15,6 +15,7 @@ import {
   kIncludeBefore,
   kIncludeBeforeBody,
   kIncludeInHeader,
+  kKeepHidden,
   kMergeIncludes,
   kOutputDivs,
 } from "../../config/constants.ts";
@@ -188,6 +189,10 @@ function quartoFilterParams(format: Format) {
   const foldSummary = format.render[kCodeSummary];
   if (foldSummary) {
     params[kCodeSummary] = foldSummary;
+  }
+  const keepHidden = format.render[kKeepHidden];
+  if (keepHidden) {
+    params[kKeepHidden] = kKeepHidden;
   }
   return params;
 }
