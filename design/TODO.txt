@@ -59,8 +59,6 @@ books
     (1) do we have consistent behavior across formats
     (2) can we provide options for per-chapter vs. global
 
-- <link rel="next" href="how-to-read-this-book.html">
-
 - search highlighting like is done in mastering-shiny
   (https://mastering-shiny.org/performance.html?q=plot#caching-plots)
   jumping between highlighted terms (via keyboard or affordance at right or top)
