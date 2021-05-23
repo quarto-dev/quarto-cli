@@ -17,7 +17,17 @@ Markdown Serialization
         - 'jupyter' front matter goes into notebook metadata
         -  'notebook', 'markdown' as convert targets
     
+- figure out a way to use label for id:
+    - recast 'label' as 'id' (map to label for knitr)
+    - when explicit id field is given validate against jupyter regex
+      (even in knitr)
+    - use - intead of : in crossrefs
+    - notebook to markdown does or does not sereialize the id?
 
+
+- Deal with  new 'id' field (note doesn't allow :):
+https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html
+https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html#recommended-application-usage-of-id-field
 
 
 TODO
