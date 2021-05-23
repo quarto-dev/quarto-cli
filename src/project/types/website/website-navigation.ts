@@ -6,7 +6,7 @@
 */
 
 import { basename, dirname, join, relative } from "path/mod.ts";
-
+import { warning } from "log/mod.ts";
 import { ld } from "lodash/mod.ts";
 
 import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
@@ -518,11 +518,13 @@ async function resolveSidebarTools(
         for (let i = 0; i < items.length; i++) {
           const toolItem = await navigationItem(project, items[i], 1);
           if (toolItem.href) {
-            items[i] = await resolveItem(
+            const tool = await resolveItem(
               project,
               toolItem.href,
               toolItem,
             ) as SidebarTool;
+            validateTool(tool);
+            items[i] = tool;
           }
         }
       } else {
@@ -534,9 +536,16 @@ async function resolveSidebarTools(
             toolItem.href,
             toolItem,
           ) as SidebarTool;
+          validateTool(tools[i]);
         }
       }
     }
+  }
+}
+
+function validateTool(tool: SidebarTool) {
+  if (tool.icon === undefined && tool.text === undefined) {
+    warning("A sidebar tool is defined without text or an icon.");
   }
 }
 
@@ -765,6 +774,7 @@ async function resolveItem(
         href: resolved.outputHref,
         text: item.text || resolved.title || basename(resolved.outputHref),
       };
+
       const projType = projectType(project.config?.project?.[kProjectType]);
       if (projType.navItemText) {
         inputItem.text = await projType.navItemText(
