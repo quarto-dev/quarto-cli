@@ -15,11 +15,10 @@ import { dirAndStem } from "../core/path.ts";
 
 import { PartitionedMarkdown } from "../core/pandoc/pandoc-partition.ts";
 
-import { Format, FormatExecute } from "../config/format.ts";
-import { Metadata } from "../config/metadata.ts";
+import { Format } from "../config/format.ts";
+import { Metadata, metadataAsFormat } from "../config/metadata.ts";
 import {
   kEngine,
-  kExecuteDefaults,
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
@@ -214,8 +213,9 @@ export function fileExecutionEngine(file: string) {
         if (yaml[engine.name]) {
           return engine;
         }
+        const format = metadataAsFormat(yaml);
         if (
-          (yaml[kExecuteDefaults] as FormatExecute)?.[kEngine] === engine.name
+          format.extensions?.[kEngine] === engine.name
         ) {
           return engine;
         }

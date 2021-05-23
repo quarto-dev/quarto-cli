@@ -259,7 +259,7 @@ export function quartoMdToJupyter(
     },
     cells: [],
     nbformat: 4,
-    nbformat_minor: 4,
+    nbformat_minor: 5,
   };
 
   // regexes

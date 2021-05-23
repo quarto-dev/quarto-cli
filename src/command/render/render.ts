@@ -43,7 +43,7 @@ import {
   kBibliography,
   kCache,
   kCss,
-  kEval,
+  kExecuteEnabled,
   kExecuteDaemon,
   kExecuteDaemonRestart,
   kExecuteDebug,
@@ -830,7 +830,7 @@ export function resolveFormatsFromMetadata(
 
     // --no-execute-code
     if (flags?.execute !== undefined) {
-      config.execute[kEval] = flags?.execute;
+      config.execute[kExecuteEnabled] = flags?.execute;
     }
 
     // --cache
