@@ -11,27 +11,38 @@ Markdown Serialization
     - article on using with hugo
     - take down wiki and put this link up
 
-- execute: false w/ jupyter in the new schema? (eval: false)
-  maybe use run-cells as alias?
-
-- Server no longer hot reloading on save of .md file or on save of _quarto.yml
-  (also not re-rendering on navigate)
-
 - convert to/from text vs. ipynb representation
     - notebook metadata: 
         - dump into 'jupyter' front matter key on way to markdown
         - 'jupyter' front matter goes into notebook metadata
-    - code as convert target
+        -  'notebook', 'markdown' as convert targets
     
-
-
-- Consider mapping some 'known' tags?
-(https://docs.google.com/spreadsheets/d/1aDaHvyYlrfsqwEr2W2G7tbWK-ZMgAvXAzUA3CiqCpIo/edit#gid=0)
 
 
 
 TODO
 =====================================================================
+
+- try out jupyter cache again. this doc:
+---
+title: "Here we go"
+author: "J.J. Allaire"
+format: html
+keep-md: true
+keep-hidden: false
+keep-ipynb: true
+execute:
+  echo: true
+---
+
+```{python}
+#| eval: true
+
+1 + 1
+```
+
+Yielded this when using --cache: Expected cell 0 to have execution_count 1 not 0
+
 
 - Flash of borders on sidebar tree in Chrome when loading (JJ's demo)
 
