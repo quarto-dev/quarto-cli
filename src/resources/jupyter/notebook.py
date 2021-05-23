@@ -115,7 +115,7 @@ def notebook_execute(options, status):
       status("Done\n")
       
    # compute total code cells (for progress)
-   current_code_cell = 0
+   current_code_cell = 1
    total_code_cells = sum(cell.cell_type == 'code' for cell in client.nb.cells)
 
    # execute the cells
@@ -124,7 +124,7 @@ def notebook_execute(options, status):
       progress = (not quiet) and cell.cell_type == 'code' and index > 0
       if progress:
          status("  Cell {0}/{1}...".format(
-            current_code_cell, total_code_cells - 1
+            current_code_cell- 1, total_code_cells - 1
          ))
          
       # clear cell output
