@@ -426,22 +426,14 @@ export function bookOutputStem(projectDir: string, config?: ProjectConfig) {
 function sharingTools(
   projectConfig: ProjectConfig,
 ): SidebarTool[] | undefined {
-  // alias the site url
-  const siteUrl = websiteBaseurl(projectConfig);
-
   const sharingActions = websiteConfigActions("sharing", kBook, projectConfig);
+
   // Filter the items to only the kinds that we know about
   const sidebarTools: SidebarTool[] = [];
   sidebarTools.push(
     ...sharingActions.filter((action) => {
       const sidebarTool = kSharingUrls[action];
       if (sidebarTool) {
-        if (sidebarTool.requiresSiteUrl && !siteUrl) {
-          warnOnce(
-            `Sharing using ${action} requires that you provide a site-url.`,
-          );
-          return false;
-        }
         return true;
       } else {
         return false;
@@ -466,27 +458,22 @@ function sharingTools(
   }
 }
 
-interface SharingSidebarTool extends SidebarTool {
-  requiresSiteUrl?: boolean;
-}
-
 const kShareIcon = "share";
-const kSharingUrls: Record<string, SharingSidebarTool> = {
+const kSharingUrls: Record<string, SidebarTool> = {
   linkedin: {
     icon: "linkedin",
     text: "LinkedIn",
-    href: "https://www.linkedin.com/sharing/share-offsite/?url=",
-    requiresSiteUrl: true,
+    href: "https://www.linkedin.com/sharing/share-offsite/?url=|url|",
   },
   facebook: {
     icon: "facebook",
     text: "Facebook",
-    url: "https://www.facebook.com/sharer/sharer.php",
+    url: "https://www.facebook.com/sharer/sharer.php?u=|url|",
   },
   twitter: {
     icon: "twitter",
     text: "Twitter",
-    url: "http://www.twitter.com/share",
+    url: "https://twitter.com/intent/tweet?url=|url|",
   },
 };
 
