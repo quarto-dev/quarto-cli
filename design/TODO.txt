@@ -54,9 +54,6 @@ TODO
 books
 =====================================================================
 
-- title link should go to home page
-
-- sharing doesn't work b/c either we dont provide the link or we don't have metadata
 - change the generator metadata option
 
 - crossref broken in https://jjallaire.github.io/hopr/dice.html
