@@ -15,6 +15,7 @@ import { mergeConfigs } from "../core/config.ts";
 import {
   kExecuteDefaults,
   kExecuteDefaultsKeys,
+  kExecuteEnabled,
   kKeepMd,
   kKeepTex,
   kMetadataFile,
@@ -131,7 +132,13 @@ export function metadataAsFormat(metadata: Metadata): Format {
       ]
         .includes(key)
     ) {
-      format[key] = { ...format[key], ...(metadata[key] as Metadata) };
+      // special case for 'execute' as boolean
+      if (typeof (metadata[key]) == "boolean") {
+        format[key] = format[key] || {};
+        format[kExecuteDefaults][kExecuteEnabled] = metadata[key];
+      } else {
+        format[key] = { ...format[key], ...(metadata[key] as Metadata) };
+      }
     } else {
       // move the key into the appropriate top level key
       if (kRenderDefaultsKeys.includes(key)) {
