@@ -49,7 +49,7 @@ parse_block = function(code, header, params.src, markdown_mode = out_format('mar
   params <- knitr:::parse_params(params)
   unnamed_label <- knitr::opts_knit$get('unnamed.chunk.label')
   if (startsWith(params$label, unnamed_label)) {
-    label <- partitioned$yaml[["label"]]
+    label <- partitioned$yaml[["label"]] %||% partitioned$yaml[["id"]]
     if (!is.null(label)) {
       params.src <- sub("^[a-zA-Z0-9_]+ *[ ,]?", 
                         paste0(engine, " ", label, ", "), 

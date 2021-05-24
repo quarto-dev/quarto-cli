@@ -18,7 +18,8 @@ import {
 import { includeOutput } from "./tags.ts";
 
 export function cellLabel(cell: JupyterCellWithOptions) {
-  const label = (cell.options[kCellLabel] || cell.metadata[kCellName] || "");
+  const label =
+    (cell.options[kCellLabel] || cell.metadata[kCellName] || cell.id || "");
   if (label && !label.startsWith("#")) {
     return "#" + label;
   } else {
