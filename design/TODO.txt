@@ -14,34 +14,51 @@ Markdown Serialization
     - notebook metadata: 
         - dump into 'jupyter' front matter key on way to markdown
         - 'jupyter' front matter goes into notebook metadata
-        -  'notebook', 'markdown' as convert targets
+        -  'notebook', 'markdown' as convert targets, 
     
-- figure out a way to use label for id:
-    - recast 'label' as 'id' (map to label for knitr)
-    - when explicit id field is given validate against jupyter regex
-      (even in knitr)
-    - use - intead of : in crossrefs
-    - notebook to markdown does or does not sereialize the id?
-    - ids are currently kind of a mess (auto-created by jlab):
-      https://github.com/jupyterlab/jupyterlab/pull/10018#pullrequestreview-623469782
 
-      we may still want to make 'label' adhere to the id schema?
-      we may want to claim notebook v4.4 when writing (and somehow
-      customize our use of jupyter-cache prevent id injection. or maybe
-      the 4.5 alone just auto-injects)
+-  labels and ids
+    - convert to '-' delimiter for crossrefs
 
-      real question is whether we want to constrain the schema for labels
-      and/or change the prefix for crossrefs. note that : in ids 
-      creates escaping requirement
+    - use 'label' as we do now
 
+     label: (more liberal, reference code chunk outputs)
+
+     id: (more constrained, potentially has special editing UI)
+
+     - for notebook (ipynb in JupyerLab) users, we just read either id or label (preferring label)
+     - for notebook markdown users, accept id as an alias for label
+     - for knitr users, accept id as an alias for label
+
+     - when converting to a notebook from markdown, we synthesize the id (using pandoc auto-identifier w/ ascii=true)
+     - when converting from notebook to markdown, we do carry any id we find into metadata, however if the
+       id matches the auto-converted label then we don't include id
+        (could be command line flags to eliminate ids)
 
 - Deal with  new 'id' field (note doesn't allow :):
 https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html
 https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html#recommended-application-usage-of-id-field
+https://github.com/jupyterlab/jupyterlab/pull/10018#pullrequestreview-623469782
+
+
+```{python}
+#| label: foo
+#| id: foo
+
+
+```
 
 
 TODO
 =====================================================================
+
+- Ensure that execution is enabled by default for .ipynb
+
+- Make global execute: false (execute: enabled: false) work for knitr
+
+- layout.ncol not working for jupyter code chunk figures
+
+- Tables without headers are not automatically styled with bootstra
 
 - Flash of borders on sidebar tree in Chrome when loading (JJ's demo)
 
