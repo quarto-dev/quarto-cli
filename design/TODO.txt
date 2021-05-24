@@ -15,52 +15,16 @@ Markdown Serialization
         - dump into 'jupyter' front matter key on way to markdown
         - 'jupyter' front matter goes into notebook metadata
         -  'notebook', 'markdown' as convert targets, 
-    
-
--  labels and ids
-    - convert to '-' delimiter for crossrefs
-
-    - use 'label' as we do now
-
-     label: (more liberal, reference code chunk outputs)
-
-     id: (more constrained, potentially has special editing UI)
-
-     - for notebook (ipynb in JupyerLab) users, we just read either id or label (preferring label)
-     - for notebook markdown users, accept id as an alias for label
-     - for knitr users, accept id as an alias for label
-
-     - when converting to a notebook from markdown, we synthesize the id (using pandoc auto-identifier w/ ascii=true)
-     - when converting from notebook to markdown, we do carry any id we find into metadata, however if the
-       id matches the auto-converted label then we don't include id
-        (could be command line flags to eliminate ids)
-
-- Deal with  new 'id' field (note doesn't allow :):
-https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html
-https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html#recommended-application-usage-of-id-field
-https://github.com/jupyterlab/jupyterlab/pull/10018#pullrequestreview-623469782
-
-
-```{python}
-#| label: foo
-#| id: foo
-
-
-```
+  
 
 
 TODO
 =====================================================================
 
-- Ensure that execution is enabled by default for .ipynb
-
-- Make global execute: false (execute: enabled: false) work for knitr
 
 - layout.ncol not working for jupyter code chunk figures
 
 - Tables without headers are not automatically styled with bootstra
-
-- Flash of borders on sidebar tree in Chrome when loading (JJ's demo)
 
 - TODO: measure lag at the beginning of project single file render
 
