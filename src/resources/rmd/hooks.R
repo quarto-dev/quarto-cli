@@ -8,7 +8,16 @@ knitr_hooks <- function(format) {
   
   # options in yaml
   opts_hooks[["code"]] <- knitr_options_hook
-  
+
+
+   # force eval to 'FALSE' for all chunks if execute: enabled: false
+  if (format$execute[["enabled"]] == FALSE) {
+    opts_hooks[["eval"]] <- function(options) {
+      options$eval <- FALSE
+      options
+    }
+  }
+
   # automatically set gifski hook for fig.animate
   opts_hooks[["fig.show"]] <- function(options) {
     
