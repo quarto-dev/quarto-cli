@@ -300,13 +300,12 @@ export function quartoMdToJupyter(
           cell.source,
         );
         if (yaml) {
-          const yamlKeys = Object.keys(yaml);
-
           // use label as id if necessary
-          if (yamlKeys.includes(kCellLabel) && !yamlKeys.includes(kCellId)) {
+          if (yaml[kCellLabel] && !yaml[kCellId]) {
             yaml[kCellId] = jupyterAutoIdentifier(String(yaml[kCellLabel]));
           }
 
+          const yamlKeys = Object.keys(yaml);
           yamlKeys.forEach((key) => {
             if (key === kCellId) {
               cell.id = String(yaml[key]);
@@ -418,7 +417,9 @@ export function jupyterAutoIdentifier(label: string) {
     // Replace all spaces with hyphens
     .replace(/\s/g, "-")
     // Remove invalid chars
-    .replace(/[^a-zA-Z0-9-_]/g, "");
+    .replace(/[^a-zA-Z0-9-_]/g, "")
+    // Remove everything up to the first letter
+    .replace(/^[^A-Za-z]+/, "");
 
   // if it's empty then create a random id
   if (label.length > 0) {
