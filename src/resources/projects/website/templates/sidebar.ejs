@@ -14,7 +14,7 @@ if (sidebar.align === "center") {
 }
 %>
 
-<nav class="<%- mCss %> py-2 <%- styleCss %> <%- textStyleCss %> overflow-scroll ">
+<nav class="<%- mCss %> py-2 <%- styleCss %> <%- textStyleCss %> overflow-scroll">
   <div class="px-3 pt-lg-2 <%= alignCss %>">
     <% if (sidebar.logo) { %>
     <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo my-1 py-0 d-lg-inline d-none"/>
@@ -34,8 +34,8 @@ if (sidebar.align === "center") {
 
   </div>
   <% if (sidebar.search) { %>
-    <div class="d-flex px-3 mt-2">
-      <div class="sidebar-search flex-fill">
+    <div class="d-flex px-3 mt-2 flex-shrink-0">
+      <div class="sidebar-search">
       <% partial('navsearch.ejs', { search: sidebar.search }) %>
       </div>
       <% if (sidebar.tools) { %>
