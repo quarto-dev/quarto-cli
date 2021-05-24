@@ -7,7 +7,14 @@
 
 import { existsSync } from "fs/mod.ts";
 
-import { basename, dirname, extname, join, relative } from "path/mod.ts";
+import {
+  basename,
+  dirname,
+  extname,
+  isAbsolute,
+  join,
+  relative,
+} from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
@@ -36,10 +43,10 @@ import {
   kBibliography,
   kCache,
   kCss,
-  kExecuteEnabled,
   kExecuteDaemon,
   kExecuteDaemonRestart,
   kExecuteDebug,
+  kExecuteEnabled,
   kFreeze,
   kHeaderIncludes,
   kIncludeAfter,
@@ -606,10 +613,17 @@ export async function renderPandoc(
   // if there is a project context then return paths relative to the project
   const projectPath = (path: string) => {
     if (context.project) {
-      return relative(
-        Deno.realPathSync(context.project.dir),
-        Deno.realPathSync(join(dirname(context.target.source), basename(path))),
-      );
+      if (isAbsolute(path)) {
+        return relative(
+          Deno.realPathSync(context.project.dir),
+          Deno.realPathSync(path),
+        );
+      } else {
+        return relative(
+          Deno.realPathSync(context.project.dir),
+          Deno.realPathSync(join(dirname(context.target.source), path)),
+        );
+      }
     } else {
       return path;
     }

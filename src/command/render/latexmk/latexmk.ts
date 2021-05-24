@@ -5,7 +5,7 @@
  *
  */
 
-import { dirname, join, normalize } from "path/mod.ts";
+import { dirname, isAbsolute, join, normalize, relative } from "path/mod.ts";
 import { ensureDirSync } from "fs/mod.ts";
 
 import { writeFileToStdout } from "../../../core/console.ts";
@@ -148,7 +148,16 @@ export function quartoLatexmkOutputRecipe(
         }
       }
 
-      return finalOutput;
+      // final output needs to either absolute or input dir relative
+      // (however it may be working dir relative when it is passed in)
+      if (isAbsolute(finalOutput)) {
+        return finalOutput;
+      } else {
+        return relative(
+          Deno.realPathSync(dirname(input)),
+          Deno.realPathSync(finalOutput),
+        );
+      }
     } else {
       return pdfOutput;
     }
