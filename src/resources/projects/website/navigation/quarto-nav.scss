@@ -50,6 +50,10 @@ nav .dropdown-item i {
   visibility: visible;
 }
 
+.sidebar-title a {
+  text-decoration: none;  
+}
+
 .sidebar-navigation .active {
   color: inherit;
   color: $link-color;
