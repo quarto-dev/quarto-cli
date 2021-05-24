@@ -10,48 +10,47 @@ Markdown Serialization
     - article on using with hugo
     - take down wiki and put this link up
 
+JJ: 
+
 - convert to/from text vs. ipynb representation
     - notebook metadata: 
         - dump into 'jupyter' front matter key on way to markdown
         - 'jupyter' front matter goes into notebook metadata
         -  'notebook', 'markdown' as convert targets, 
   
+- "Websites" as section name doesn't show up. Nice.
+- layout.ncol not working for jupyter code chunk figures
+- Tables without headers are not automatically styled with bootstra
+- TODO: measure lag at the beginning of project single file render
+
+
+CT:
+- when sidebar becomes short, overlap between search box and title
+- sidebar navigation toggle doesn't animate on select (button selector in css)
+- redo callout latex to not use awesomebox so callouts look sweet
+- shrink disclosure arrows
+- search highlighting like is done in mastering-shiny
+  (https://mastering-shiny.org/performance.html?q=plot#caching-plots)
+  jumping between highlighted terms (via keyboard or affordance at right or top)
 
 
 TODO
 =====================================================================
-
-- "Websites" as section name doesn't show up. Nice.
-
-- layout.ncol not working for jupyter code chunk figures
-
-- Tables without headers are not automatically styled with bootstra
-
-- TODO: measure lag at the beginning of project single file render
-
-- [Job Launcher] link issue raised by Christophe
 - crossref broken in https://jjallaire.github.io/hopr/dice.html
-
-- More opinionated <kbd>
-
+  books-crossrefs.ts#127 - fixing up heading links not working properly 
 
 books
 =====================================================================
 
 - change the generator metadata option
 
-- crossref broken in https://jjallaire.github.io/hopr/dice.html
-- make sure that crossrefs are appropriately disabled for unumbered chapters
+- More opinionated <kbd>
 
 - can we make section-numbers work more sensibly with H2 (chapter-level). --top-level-division, --shift-heading-level
 
 - footnotes: 
     (1) do we have consistent behavior across formats
     (2) can we provide options for per-chapter vs. global
-
-- search highlighting like is done in mastering-shiny
-  (https://mastering-shiny.org/performance.html?q=plot#caching-plots)
-  jumping between highlighted terms (via keyboard or affordance at right or top)
 
 - incorporate new xml R highligter
 
