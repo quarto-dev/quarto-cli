@@ -203,34 +203,38 @@ export interface JupyterOutputFigureOptions {
   [kCellFigAlt]?: string;
 }
 
-export const kJupyterCellOptionKeys = [
-  kCellLabel,
-  kCellFigCap,
-  kCellFigSubCap,
-  kCellLstLabel,
-  kCellLstCap,
-  kCellClasses,
-  kCellFold,
-  kCellSummary,
+// option keys we handle internally so should not forward into generated markdown
+export const kJupyterCellInternalOptionKeys = [
   kEval,
   kEcho,
   kWarning,
   kOutput,
   kInclude,
+  kCellLabel,
+  kCellClasses,
+  kCellFold,
+  kCellSummary,
+  kCellFigCap,
+  kCellFigSubCap,
   kCellFigScap,
   kCellFigLink,
   kCellFigAlign,
+  kCellFigAlt,
   kCellFigEnv,
   kCellFigPos,
-  kCellFigAlt,
+  kCellLstLabel,
+  kCellLstCap,
+  kCellOutWidth,
+  kCellOutHeight,
+];
+
+export const kJupyterCellOptionKeys = kJupyterCellInternalOptionKeys.concat([
   kLayoutAlign,
   kLayoutVAlign,
   kLayoutNcol,
   kLayoutNrow,
   kLayout,
-  kCellOutWidth,
-  kCellOutHeight,
-];
+]);
 
 export const kJupyterCellStandardMetadataKeys = [
   kCellCollapsed,
@@ -730,7 +734,7 @@ function mdFromCodeCell(
   const divMd: string[] = [`::: {`];
 
   // metadata to exclude from cell div attributes
-  const kCellOptionsFilter = kJupyterCellOptionKeys.concat(
+  const kCellOptionsFilter = kJupyterCellInternalOptionKeys.concat(
     kJupyterCellStandardMetadataKeys,
   );
 
