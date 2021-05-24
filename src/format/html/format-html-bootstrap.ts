@@ -187,7 +187,7 @@ function bootstrapHtmlPostprocessor(format: Format) {
     }
 
     // add .table class to pandoc tables
-    const tableHeaders = doc.querySelectorAll("tr.header");
+    const tableHeaders = doc.querySelectorAll("tbody > tr:first-child.odd");
     for (let i = 0; i < tableHeaders.length; i++) {
       const th = tableHeaders[i];
       if (th.parentNode?.parentNode) {
