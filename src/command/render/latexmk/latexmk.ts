@@ -5,7 +5,8 @@
  *
  */
 
-import { join, normalize } from "path/mod.ts";
+import { dirname, join, normalize } from "path/mod.ts";
+import { ensureDirSync } from "fs/mod.ts";
 
 import { writeFileToStdout } from "../../../core/console.ts";
 import { dirAndStem, expandPath } from "../../../core/path.ts";
@@ -130,6 +131,9 @@ export function quartoLatexmkOutputRecipe(
         const outputPdf = expandPath(finalOutput);
 
         if (normalize(pdfOutput) !== normalize(outputPdf)) {
+          // ensure the target directory exists
+          ensureDirSync(dirname(outputPdf));
+
           Deno.renameSync(pdfOutput, outputPdf);
         }
       }
