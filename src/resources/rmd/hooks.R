@@ -11,7 +11,8 @@ knitr_hooks <- function(format) {
 
 
    # force eval to 'FALSE' for all chunks if execute: enabled: false
-  if (format$execute[["enabled"]] == FALSE) {
+  executeEnabled <- format$execute[["enabled"]]
+  if (!is.null(executeEnabled) && executeEnabled == FALSE) {
     opts_hooks[["eval"]] <- function(options) {
       options$eval <- FALSE
       options
