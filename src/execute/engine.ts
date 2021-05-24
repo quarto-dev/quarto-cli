@@ -215,7 +215,7 @@ export function fileExecutionEngine(file: string) {
         }
         const format = metadataAsFormat(yaml);
         if (
-          format.extensions?.[kEngine] === engine.name
+          format.execute?.[kEngine] === engine.name
         ) {
           return engine;
         }
