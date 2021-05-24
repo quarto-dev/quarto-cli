@@ -13,6 +13,10 @@ import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 const kJupyterFormat = "jupyter";
 const kMarkdownFormat = "markdown";
 
+// TODO:  when converting from notebook to markdown, we do carry any id we find into metadata, however if the
+//        id matches the auto-converted label then we don't include id
+//         (could be command line flags to eliminate ids)
+
 export const convertCommand = new Command()
   .name("convert")
   .arguments("[path:string]")

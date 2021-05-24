@@ -593,7 +593,7 @@ export function pandocAsciify(text: string) {
     }
     if (newch) {
       chars.push(newch.charCodeAt(0));
-    } else {
+    } else if (ch < 128) {
       chars.push(ch);
     }
   }

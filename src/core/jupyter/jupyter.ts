@@ -15,7 +15,8 @@ import { stringify } from "encoding/yaml.ts";
 
 import { ld } from "lodash/mod.ts";
 
-import { warnOnce } from "../../core/log.ts";
+import { warnOnce } from "../log.ts";
+import { shortUuid } from "../uuid.ts";
 
 import {
   extensionForMimeImageType,
@@ -64,7 +65,7 @@ import {
 } from "./widgets.ts";
 import { removeAndPreserveHtml } from "./preserve.ts";
 import { FormatExecute } from "../../config/format.ts";
-import { pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
+import { pandocAsciify, pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
 import { Metadata } from "../../config/metadata.ts";
 import {
   kEcho,
@@ -88,6 +89,7 @@ export const kCellTags = "tags";
 export const kCellLinesToNext = "lines_to_next_cell";
 export const kRawMimeType = "raw_mimetype";
 
+export const kCellId = "id";
 export const kCellLabel = "label";
 export const kCellFigCap = "fig.cap";
 export const kCellFigSubCap = "fig.subcap";
@@ -130,26 +132,29 @@ export interface JupyterNotebook {
 }
 
 export interface JupyterCell {
+  id: string;
   cell_type: "markdown" | "code" | "raw";
   execution_count?: null | number;
-  metadata: {
-    // nbformat v4 spec
-    [kCellCollapsed]?: boolean;
-    [kCellAutoscroll]?: boolean | "auto";
-    [kCellDeletable]?: boolean;
-    [kCellFormat]?: string; // for "raw"
-    [kCellName]?: string; // optional alias for 'label'
-    [kCellTags]?: string[];
-    [kRawMimeType]?: string;
-
-    // used to preserve line spacing
-    [kCellLinesToNext]?: number;
-
-    // anything else
-    [key: string]: unknown;
-  };
+  metadata: JupyterCellMetadata;
   source: string[];
   outputs?: JupyterOutput[];
+}
+
+export interface JupyterCellMetadata {
+  // nbformat v4 spec
+  [kCellCollapsed]?: boolean;
+  [kCellAutoscroll]?: boolean | "auto";
+  [kCellDeletable]?: boolean;
+  [kCellFormat]?: string; // for "raw"
+  [kCellName]?: string; // optional alias for 'label'
+  [kCellTags]?: string[];
+  [kRawMimeType]?: string;
+
+  // used to preserve line spacing
+  [kCellLinesToNext]?: number;
+
+  // anything else
+  [key: string]: unknown;
 }
 
 export interface JupyterCellWithOptions extends JupyterCell {
@@ -281,6 +286,7 @@ export function quartoMdToJupyter(
   ) => {
     if (lineBuffer.length) {
       const cell: JupyterCell = {
+        id: shortUuid(),
         cell_type,
         metadata: {},
         source: lineBuffer.map((line, index) => {
@@ -295,10 +301,21 @@ export function quartoMdToJupyter(
         );
         if (yaml) {
           const yamlKeys = Object.keys(yaml);
+
+          // use label as id if necessary
+          if (yamlKeys.includes(kCellLabel) && !yamlKeys.includes(kCellId)) {
+            yaml[kCellId] = jupyterAutoIdentifier(String(yaml[kCellLabel]));
+          }
+
           yamlKeys.forEach((key) => {
-            if (!kJupyterCellOptionKeys.includes(key)) {
-              cell.metadata[key] = yaml[key];
+            if (key === kCellId) {
+              cell.id = String(yaml[key]);
               delete yaml[key];
+            } else {
+              if (!kJupyterCellOptionKeys.includes(key)) {
+                cell.metadata[key] = yaml[key];
+                delete yaml[key];
+              }
             }
           });
 
@@ -392,6 +409,23 @@ export function jupyterFromFile(input: string): JupyterNotebook {
   }
 
   return nb;
+}
+
+export function jupyterAutoIdentifier(label: string) {
+  label = pandocAsciify(label);
+
+  label = label
+    // Replace all spaces with hyphens
+    .replace(/\s/g, "-")
+    // Remove invalid chars
+    .replace(/[^a-zA-Z0-9-_]/g, "");
+
+  // if it's empty then create a random id
+  if (label.length > 0) {
+    return label.slice(0, 64);
+  } else {
+    return shortUuid();
+  }
 }
 
 export interface JupyterAssets {
