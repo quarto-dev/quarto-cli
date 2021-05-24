@@ -264,8 +264,9 @@ export function quartoMdToJupyter(
 
   // regexes
   const yamlRegEx = /^---\s*$/;
+  /^\s*```+\s*\{([a-zA-Z0-9_]+)( *[ ,].*)?\}\s*$/;
   const startCodeCellRegEx = new RegExp(
-    "^```{" + kernelspec.language + "}\\s*$",
+    "^\\s*```+\\s*\\{" + kernelspec.language + "( *[ ,].*)?\\}\\s*$",
   );
   const startCodeRegEx = /^```/;
   const endCodeRegEx = /^```\s*$/;
