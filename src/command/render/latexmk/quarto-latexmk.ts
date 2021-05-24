@@ -173,6 +173,7 @@ function mkOptions(
     outputDir: options.outputDir as string,
     clean: options.clean as boolean,
   };
+  console.log(latexMkOptions);
 
   // Debug message that show engine configuration (set --log-level debug to view)
   debug(() => {

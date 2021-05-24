@@ -7,14 +7,7 @@
 
 import { existsSync } from "fs/mod.ts";
 
-import {
-  basename,
-  dirname,
-  extname,
-  isAbsolute,
-  join,
-  relative,
-} from "path/mod.ts";
+import { basename, dirname, extname, join, relative } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
@@ -612,10 +605,10 @@ export async function renderPandoc(
 
   // if there is a project context then return paths relative to the project
   const projectPath = (path: string) => {
-    if (context.project && isAbsolute(path)) {
+    if (context.project) {
       return relative(
         Deno.realPathSync(context.project.dir),
-        Deno.realPathSync(path),
+        Deno.realPathSync(join(dirname(context.target.source), basename(path))),
       );
     } else {
       return path;
@@ -683,9 +676,7 @@ export function renderResultFinalOutput(
       finalOutput = join(renderResults.baseDir, finalOutput);
     }
   } else {
-    if (!isAbsolute(finalOutput)) {
-      finalOutput = join(dirname(finalInput), finalOutput);
-    }
+    finalOutput = join(dirname(finalInput), finalOutput);
   }
 
   // return a path relative to the input file

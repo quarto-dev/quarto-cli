@@ -171,10 +171,7 @@ export async function renderProject(
         // move the renderedFile to the output dir
         const outputFile = join(outputDirAbsolute, renderedFile.file);
         ensureDirSync(dirname(outputFile));
-        Deno.renameSync(
-          join(projDir, dirname(renderedFile.input), renderedFile.file),
-          outputFile,
-        );
+        Deno.renameSync(join(projDir, renderedFile.file), outputFile);
 
         // files dir
         const keepFiles = !!renderedFile.format.render[kKeepMd];

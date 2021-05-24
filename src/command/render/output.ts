@@ -64,7 +64,6 @@ export async function outputRecipe(
   const format = context.format;
 
   // determine if an output file was specified (could be on the command line or
-  // could be within metadata) and ensure it is an absolute path
   // could be within metadata)
   let output = options.flags?.output;
   if (!output) {
@@ -77,10 +76,6 @@ export async function outputRecipe(
       }
     } else {
       output = "";
-    }
-  } else {
-    if (!isAbsolute(output)) {
-      output = join(Deno.cwd(), output);
     }
   }
 
