@@ -25,13 +25,14 @@ JJ:
 
 
 CT:
-- when sidebar becomes short, overlap between search box and title
-- sidebar navigation toggle doesn't animate on select (button selector in css)
 - redo callout latex to not use awesomebox so callouts look sweet
-- shrink disclosure arrows
 - search highlighting like is done in mastering-shiny
   (https://mastering-shiny.org/performance.html?q=plot#caching-plots)
   jumping between highlighted terms (via keyboard or affordance at right or top)
+
+- when sidebar becomes short, overlap between search box and title
+- shrink disclosure arrows
+- sidebar navigation toggle doesn't animate on select (button selector in css)
 
 
 TODO
