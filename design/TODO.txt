@@ -2,7 +2,6 @@ Markdown Serialization
 =====================================================================
 
 - update documentation:
-    - Creating a Website "Overview"
     - computations.md article
     - authoring-tools.md article
     - output-formats.md article added to getting started section
@@ -23,6 +22,17 @@ Markdown Serialization
       (even in knitr)
     - use - intead of : in crossrefs
     - notebook to markdown does or does not sereialize the id?
+    - ids are currently kind of a mess (auto-created by jlab):
+      https://github.com/jupyterlab/jupyterlab/pull/10018#pullrequestreview-623469782
+
+      we may still want to make 'label' adhere to the id schema?
+      we may want to claim notebook v4.4 when writing (and somehow
+      customize our use of jupyter-cache prevent id injection. or maybe
+      the 4.5 alone just auto-injects)
+
+      real question is whether we want to constrain the schema for labels
+      and/or change the prefix for crossrefs. note that : in ids 
+      creates escaping requirement
 
 
 - Deal with  new 'id' field (note doesn't allow :):
@@ -32,27 +42,6 @@ https://jupyter.org/enhancement-proposals/62-cell-id/cell-id.html#recommended-ap
 
 TODO
 =====================================================================
-
-- try out jupyter cache again. this doc:
----
-title: "Here we go"
-author: "J.J. Allaire"
-format: html
-keep-md: true
-keep-hidden: false
-keep-ipynb: true
-execute:
-  echo: true
----
-
-```{python}
-#| eval: true
-
-1 + 1
-```
-
-Yielded this when using --cache: Expected cell 0 to have execution_count 1 not 0
-
 
 - Flash of borders on sidebar tree in Chrome when loading (JJ's demo)
 
