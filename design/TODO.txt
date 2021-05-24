@@ -23,9 +23,7 @@ TODO
 
 - "Websites" as section name doesn't show up. Nice.
 
-- layout.ncol not working for jupyter code chunk figures
-
-- Tables without headers are not automatically styled with bootstra
+- dev server preview doesn't drive to last rendered
 
 - TODO: measure lag at the beginning of project single file render
 
@@ -40,7 +38,6 @@ books
 
 - change the generator metadata option
 
-- crossref broken in https://jjallaire.github.io/hopr/dice.html
 - make sure that crossrefs are appropriately disabled for unumbered chapters
 
 - can we make section-numbers work more sensibly with H2 (chapter-level). --top-level-division, --shift-heading-level
