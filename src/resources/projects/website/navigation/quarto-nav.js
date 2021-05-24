@@ -125,6 +125,17 @@ window.document.addEventListener("DOMContentLoaded", function() {
     for (let i=0; i<links.length; i++) {
       links[i].href = links[i].href.replace(/\/index\.html/, "/");
     }
+
+    // Fixup any sharing links that require urls
+    // Append url to any sharing urls
+    const sharingLinks = window.document.querySelectorAll("a.sidebar-tools-main-item");
+    for (let i = 0; i < sharingLinks.length; i++) {
+      const sharingLink = sharingLinks[i];
+      const href = sharingLink.getAttribute("href");
+      if (href) {
+        sharingLink.setAttribute("href", href.replace("|url|", window.location.href));
+      }
+    }
   }
 });
 
