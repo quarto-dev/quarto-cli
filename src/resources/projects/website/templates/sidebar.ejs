@@ -22,7 +22,9 @@ if (sidebar.align === "center") {
     
     <% if (sidebar.title) { %>
     <div class="sidebar-title mt-1 mb-0 py-0">
+      <a href="/">
       <%- sidebar.title %>
+      </a>
       <% if (sidebar.tools) { %>
         <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main' })%>
       <% } %>
