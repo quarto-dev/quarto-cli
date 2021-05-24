@@ -119,7 +119,7 @@ function extractRefLabel(type, text)
 end
 
 function refLabelPattern(type)
-  return "{#(" .. type .. ":[^ }]+)}"
+  return "{#(" .. type .. "%-[^ }]+)}"
 end
 
 

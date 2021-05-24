@@ -9,7 +9,7 @@ function listings()
   
   return {
     CodeBlock = function(el)
-      local label = string.match(el.attr.identifier, "^lst:[^ ]+$")
+      local label = string.match(el.attr.identifier, "^lst%-[^ ]+$")
       local caption = el.attr.attributes[kLstCap]
       if label and caption then
     

@@ -575,7 +575,7 @@ figure_cap <- function(options) {
 
 output_label <- function(options) {
   label <- options[["label"]]
-  if (!is.null(label) && grepl("^#?(fig|tbl):", label)) {
+  if (!is.null(label) && grepl("^#?(fig|tbl)-", label)) {
     label
   } else {
     NULL
@@ -600,7 +600,7 @@ is_table_label <- function(label) {
 }
 
 is_label_type <- function(type, label) {
-  !is.null(label) && grepl(paste0("^#?", type, ":"), label)
+  !is.null(label) && grepl(paste0("^#?", type, "-"), label)
 }
 
 

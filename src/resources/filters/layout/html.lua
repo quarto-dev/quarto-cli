@@ -136,8 +136,9 @@ function htmlImageFigure(image)
     local caption = image.caption:clone()
     tclear(image.caption)
    
-    -- pandoc sometimes ends up with a title of "fig:"
-    if image.title == "fig:" then
+    -- pandoc sometimes ends up with a fig prefixed title
+    -- (no idea way right now!)
+    if image.title == "fig:" or image.title == "fig-" then
       image.title = ""
     end
    

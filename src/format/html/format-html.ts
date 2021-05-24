@@ -128,7 +128,7 @@ export function htmlFormatPostprocessor(format: Format) {
         : doc.querySelector("body");
 
       if (container) {
-        ["h2", "h3", "h4", "h5", "h6", ".quarto-figure[id]", "div[id^=tbl\\:]"]
+        ["h2", "h3", "h4", "h5", "h6", ".quarto-figure[id]", "div[id^=tbl-]"]
           .forEach(
             (selector) => {
               const headings = container.querySelectorAll(selector);

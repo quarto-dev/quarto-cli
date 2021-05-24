@@ -93,11 +93,11 @@ function discoverLinkedFigureDiv(el, captionRequired)
 end
 
 function anonymousFigId()
-  return "fig:anonymous-" .. tostring(math.random(10000000))
+  return "fig-anonymous-" .. tostring(math.random(10000000))
 end
 
 function isAnonymousFigId(identifier)
-  return string.find(identifier, "^fig:anonymous-")
+  return string.find(identifier, "^fig%-anonymous-")
 end
 
 

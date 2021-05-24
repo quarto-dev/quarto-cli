@@ -10,7 +10,7 @@ function hasFigureRef(el)
 end
 
 function isFigureRef(identifier)
-  return string.find(identifier, "^fig:")
+  return string.find(identifier, "^fig%-")
 end
 
 -- does this element have a table label?
@@ -19,7 +19,7 @@ function hasTableRef(el)
 end
 
 function isTableRef(identifier)
-  return string.find(identifier, "^tbl:")
+  return string.find(identifier, "^tbl%-")
 end
 
 -- does this element support sub-references
@@ -39,7 +39,7 @@ function hasRefParent(el)
 end
 
 function refType(id)
-  return string.match(id, "^(%a+)%:")
+  return string.match(id, "^(%a+)%-")
 end
 
 function refCaptionFromDiv(el)
