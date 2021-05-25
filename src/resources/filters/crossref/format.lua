@@ -89,6 +89,8 @@ function numberOption(type, order, default)
   local section = order.section
   if not crossrefOption("chapters", false) then
     section = nil
+  elseif section[1] == 0 then
+    section = nil
   end
   
   -- return a pandoc.Str w/ chapter prefix (if any)
