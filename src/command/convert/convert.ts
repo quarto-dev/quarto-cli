@@ -7,24 +7,27 @@
 
 import { stringify } from "encoding/yaml.ts";
 
+import { ld } from "lodash/mod.ts";
+
 import {
   partitionYamlFrontMatter,
   readYamlFromMarkdown,
 } from "../../core/yaml.ts";
 import {
   jupyterAutoIdentifier,
+  JupyterCell,
+  JupyterCellOptions,
   jupyterCellOptionsAsComment,
-  JupyterCellWithOptions,
-  jupyterCellWithOptions,
   jupyterFromFile,
   kCellId,
   kCellLabel,
   mdEnsureTrailingNewline,
   mdFromContentCell,
   mdFromRawCell,
+  partitionJupyterCellOptions,
   quartoMdToJupyter,
 } from "../../core/jupyter/jupyter.ts";
-import { cellLabelValidator } from "../../core/jupyter/labels.ts";
+import { Metadata } from "../../config/metadata.ts";
 
 export async function convertMarkdownToNotebook(
   file: string,
@@ -42,19 +45,10 @@ export function convertNotebookToMarkdown(file: string, includeIds: boolean) {
   // generate markdown
   const md: string[] = [];
 
-  // validate unique cell labels as we go
-  const validateCellLabel = cellLabelValidator();
-
   for (let i = 0; i < notebook.cells.length; i++) {
     {
-      // convert cell yaml to cell metadata
-      const cell = jupyterCellWithOptions(
-        kernelspec.language,
-        notebook.cells[i],
-      );
-
-      // validate unique cell labels
-      validateCellLabel(cell);
+      // alias cell
+      const cell = notebook.cells[i];
 
       // write markdown
       switch (cell.cell_type) {
@@ -94,7 +88,7 @@ export function convertNotebookToMarkdown(file: string, includeIds: boolean) {
 
 function mdFromCodeCell(
   language: string,
-  cell: JupyterCellWithOptions,
+  cell: JupyterCell,
   includeIds: boolean,
 ) {
   // redact if the cell has no source
@@ -105,26 +99,70 @@ function mdFromCodeCell(
   // begin code cell
   const md: string[] = ["```{" + language + "}\n"];
 
-  // remove the id if requested or if it matches what would be auto-generated from the label
-  if (cell.options[kCellId]) {
+  // partition
+  const { yaml, source } = partitionJupyterCellOptions(language, cell.source);
+  const options = yaml ? yaml as JupyterCellOptions : {};
+  console.log(options);
+
+  // handle id
+  if (cell.id) {
     if (!includeIds) {
-      delete cell.options[kCellId];
-    } else if (cell.options[kCellLabel]) {
-      const label = String(cell.options[kCellLabel]);
-      if (jupyterAutoIdentifier(label) === cell.options[kCellId]) {
-        delete cell.options[kCellId];
+      cell.id = undefined;
+    } else if (options[kCellLabel]) {
+      const label = String(options[kCellLabel]);
+      if (jupyterAutoIdentifier(label) === cell.id) {
+        cell.id = undefined;
       }
     }
   }
 
-  // write cell options
-  if (Object.keys(cell.options).length > 0) {
-    const yamlOptions = jupyterCellOptionsAsComment(language, cell.options);
-    md.push(...yamlOptions);
+  // prepare the options for writing
+  let yamlOptions: Metadata = {};
+  if (cell.id) {
+    yamlOptions[kCellId] = cell.id;
+  }
+  yamlOptions = {
+    ...cell.metadata,
+    ...yaml,
+    ...yamlOptions,
+  };
+
+  // cell id first
+  if (yamlOptions[kCellId]) {
+    md.push(
+      ...jupyterCellOptionsAsComment(language, { id: yamlOptions[kCellId] }),
+    );
+    delete yamlOptions[kCellId];
   }
 
+  // yaml
+  if (yaml) {
+    const yamlOutput: Metadata = {};
+    for (const key in yaml) {
+      const value = yamlOptions[key];
+      if (value !== undefined) {
+        yamlOutput[key] = value;
+        delete yamlOptions[key];
+      }
+    }
+    md.push(...jupyterCellOptionsAsComment(language, yamlOutput));
+  }
+
+  // metadata
+  const metadataOutput: Metadata = {};
+  for (const key in cell.metadata) {
+    const value = cell.metadata[key];
+    if (value !== undefined) {
+      metadataOutput[key] = value;
+      delete yamlOptions[key];
+    }
+  }
+  md.push(
+    ...jupyterCellOptionsAsComment(language, metadataOutput, { flowLevel: 1 }),
+  );
+
   // write cell code
-  md.push(...mdEnsureTrailingNewline(cell.source));
+  md.push(...mdEnsureTrailingNewline(source));
 
   // end code cell
   md.push("```\n");

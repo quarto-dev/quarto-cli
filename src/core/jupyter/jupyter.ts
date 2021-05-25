@@ -11,7 +11,7 @@ import { ensureDirSync } from "fs/ensure_dir.ts";
 import { dirname, extname, join, relative } from "path/mod.ts";
 import { walkSync } from "fs/walk.ts";
 import { decode as base64decode } from "encoding/base64.ts";
-import { stringify } from "encoding/yaml.ts";
+import { stringify, StringifyOptions } from "encoding/yaml.ts";
 
 import { ld } from "lodash/mod.ts";
 
@@ -689,26 +689,32 @@ export function jupyterCellWithOptions(
 export function jupyterCellOptionsAsComment(
   language: string,
   options: Record<string, unknown>,
+  stringifyOptions?: StringifyOptions,
 ) {
-  const cellYaml = stringify(options, {
-    indent: 2,
-    sortKeys: false,
-    skipInvalid: true,
-  });
-  const commentChars = langCommentChars(language);
-  const yamlOutput = lines(cellYaml).map((line) => {
-    line = optionCommentPrefix(commentChars[0]) + line +
-      optionCommentSuffix(commentChars[1]);
-    return line + "\n";
-  }).concat([""]);
-  return yamlOutput;
+  if (Object.keys(options).length > 0) {
+    const cellYaml = stringify(options, {
+      indent: 2,
+      sortKeys: false,
+      skipInvalid: true,
+      ...stringifyOptions,
+    });
+    const commentChars = langCommentChars(language);
+    const yamlOutput = mdTrimEmptyLines(lines(cellYaml)).map((line) => {
+      line = optionCommentPrefix(commentChars[0]) + line +
+        optionCommentSuffix(commentChars[1]);
+      return line + "\n";
+    });
+    return yamlOutput;
+  } else {
+    return [];
+  }
 }
 
-export function mdFromContentCell(cell: JupyterCellWithOptions) {
+export function mdFromContentCell(cell: JupyterCell) {
   return mdEnsureTrailingNewline(cell.source);
 }
 
-export function mdFromRawCell(cell: JupyterCellWithOptions) {
+export function mdFromRawCell(cell: JupyterCell) {
   const mimeType = cell.metadata?.[kRawMimeType];
   if (mimeType) {
     switch (mimeType) {
@@ -738,7 +744,10 @@ export function mdEnsureTrailingNewline(source: string[]) {
   }
 }
 
-function partitionJupyterCellOptions(language: string, source: string[]) {
+export function partitionJupyterCellOptions(
+  language: string,
+  source: string[],
+) {
   const commentChars = langCommentChars(language);
   const optionPrefix = optionCommentPrefix(commentChars[0]);
   const optionSuffix = commentChars[1] || "";

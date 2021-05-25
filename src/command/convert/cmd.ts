@@ -26,7 +26,7 @@ export const convertCommand = new Command()
     "Convert between markdown and notebook representations of documents.",
   )
   .option(
-    "-t, --to <format:string>",
+    "-t, --to [format:string]",
     "Format to convert to (markdown or notebook)",
   )
   .option(
@@ -65,8 +65,10 @@ export const convertCommand = new Command()
       : kMarkdownFormat;
 
     // determine and validate target format
-    const targetFormat = options.to ||
-      (srcFormat === kNotebookFormat ? kMarkdownFormat : kNotebookFormat);
+    const targetFormat = options.to;
+    if (!targetFormat) {
+      throw new Error("Target format (--to) not specified");
+    }
     if (![kNotebookFormat, kMarkdownFormat].includes(targetFormat)) {
       throw new Error("Invalid target format: " + targetFormat);
     }
