@@ -16,10 +16,11 @@ import { ProjectContext } from "./project-context.ts";
 import { kQuartoScratch } from "./project-scratch.ts";
 import { lines } from "../core/text.ts";
 
-export const kGitignoreEntries = [
-  `${kQuartoScratch}/`,
+export const kQuartoIgnore = [`/${kQuartoScratch}/`];
+
+export const kGitignoreEntries = kQuartoIgnore.concat([
   "*_cache/",
-];
+]);
 
 export async function ensureGitignore(project: ProjectContext) {
   // if .gitignore exists, then ensure it has the requisite entries

@@ -102,7 +102,7 @@ export function resolvePathGlobs(
     if (!glob.startsWith("/")) {
       return "**/" + glob;
     } else {
-      return glob.slice(1);
+      return glob;
     }
   };
 
