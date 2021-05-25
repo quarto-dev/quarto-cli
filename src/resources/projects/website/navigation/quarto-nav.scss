@@ -51,7 +51,8 @@ nav .dropdown-item i {
 }
 
 .sidebar-title a {
-  text-decoration: none;  
+  font-size: 1.3rem;
+  text-decoration: none;
 }
 
 .sidebar-navigation .active {
@@ -305,7 +306,7 @@ header.headroom--unpinned {
 }
 
 .sidebar-section .bi-chevron-right::before {
-  font-size: .9em;
+  font-size: 0.9em;
   transition: transform 200ms ease;
 }
 
@@ -352,8 +353,8 @@ header.headroom--unpinned {
 
 .nav-page .nav-page-text {
   font-size: $nav-font-size;
-  padding-left: .25em;
-  padding-right: .25em;
+  padding-left: 0.25em;
+  padding-right: 0.25em;
   margin-bottom: 5px;
 }
 
