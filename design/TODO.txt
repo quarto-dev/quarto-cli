@@ -12,11 +12,13 @@ Markdown Serialization
 
 JJ: 
 
+- layout.ncol broken again for jupyter
+
 - convert to/from text vs. ipynb representation
-    - notebook metadata: 
-        - dump into 'jupyter' front matter key on way to markdown
-        - 'jupyter' front matter goes into notebook metadata
-        -  'notebook', 'markdown' as convert targets, 
+    - try round tripping with custom notebook and cell metadata
+    - handling of raw cells from markdown to notebook
+    - use of nbformat when ids excluded
+    
         
 - dev server preview doesn't drive to last rendered
 - books-crossrefs.ts#127 - fixing up heading links not working properly 
