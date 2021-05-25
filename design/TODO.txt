@@ -17,11 +17,9 @@ JJ:
         - dump into 'jupyter' front matter key on way to markdown
         - 'jupyter' front matter goes into notebook metadata
         -  'notebook', 'markdown' as convert targets, 
-  
-- "Websites" as section name doesn't show up. Nice.
-
+        
 - dev server preview doesn't drive to last rendered
-
+- books-crossrefs.ts#127 - fixing up heading links not working properly 
 - TODO: measure lag at the beginning of project single file render
 
 
@@ -32,15 +30,9 @@ CT:
   jumping between highlighted terms (via keyboard or affordance at right or top)
 
 
-TODO
-=====================================================================
-- crossref broken in https://jjallaire.github.io/hopr/dice.html
-  books-crossrefs.ts#127 - fixing up heading links not working properly 
 
 books
 =====================================================================
-
-- change the generator metadata option
 
 - make sure that crossrefs are appropriately disabled for unumbered chapters
 - More opinionated <kbd>
@@ -50,10 +42,6 @@ books
 - footnotes: 
     (1) do we have consistent behavior across formats
     (2) can we provide options for per-chapter vs. global
-
-- incorporate new xml R highligter
-
-- redirects
 
 
 quarto-python dev workflow:
