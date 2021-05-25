@@ -10,12 +10,16 @@ import {
   quartoMdToJupyter,
 } from "../../core/jupyter/jupyter.ts";
 
-export async function convertMarkdownToNotebook(file: string) {
+export async function convertMarkdownToNotebook(
+  file: string,
+  includeIds: boolean,
+) {
   const [kernelspec, metadata] = await jupyterKernelspecFromFile(file);
   const notebook = quartoMdToJupyter(
-    Deno.readTextFileSync(file),
+    file,
     kernelspec,
     metadata,
+    includeIds,
   );
   return JSON.stringify(notebook, null, 2);
 }

@@ -33,6 +33,10 @@ export const convertCommand = new Command()
     "--output",
     "Write output to FILE (use '--output -' for stdout).",
   )
+  .option(
+    "--no-ids",
+    "Don't convert Jupyter cell ids",
+  )
   .example(
     "Convert notebook to markdown",
     "quarto convert mydocument.ipynb --to markdown",
@@ -73,10 +77,13 @@ export const convertCommand = new Command()
       throw new Error(`Unable to convert ${srcFormat} to ${targetFormat}`);
     }
 
+    // are we converting ids?
+    const includeIds = !!options.ids;
+
     // perform conversion
     const converted = srcFormat === kNotebookFormat
       ? convertNotebookToMarkdown(path)
-      : await convertMarkdownToNotebook(path);
+      : await convertMarkdownToNotebook(path, includeIds);
 
     // write output
     const [dir, stem] = dirAndStem(path);
@@ -84,7 +91,7 @@ export const convertCommand = new Command()
     if (!output) {
       output = join(
         dir,
-        stem + targetFormat === kNotebookFormat ? ".ipynb" : ".md",
+        stem + (targetFormat === kNotebookFormat ? ".ipynb" : ".md"),
       );
     }
     if (output === "-") {

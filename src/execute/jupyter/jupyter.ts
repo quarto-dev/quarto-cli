@@ -91,7 +91,7 @@ export const jupyterEngine: ExecutionEngine = {
       // write a transient notebook
       const [kernelspec, metadata] = await jupyterKernelspecFromFile(file);
       const [fileDir, fileStem] = dirAndStem(file);
-      const nb = quartoMdToJupyter(file, kernelspec, metadata);
+      const nb = quartoMdToJupyter(file, kernelspec, metadata, true);
       const notebook = join(fileDir, fileStem + ".ipynb");
       Deno.writeTextFileSync(notebook, JSON.stringify(nb, null, 2));
       return { source: file, input: notebook, data: { transient: true } };

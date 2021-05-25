@@ -137,7 +137,7 @@ export interface JupyterNotebook {
 }
 
 export interface JupyterCell {
-  id: string;
+  id?: string;
   cell_type: "markdown" | "code" | "raw";
   execution_count?: null | number;
   metadata: JupyterCellMetadata;
@@ -264,6 +264,7 @@ export function quartoMdToJupyter(
   input: string,
   kernelspec: JupyterKernelspec,
   metadata: Metadata,
+  includeIds: boolean,
 ): JupyterNotebook {
   // notebook to return
   const nb: JupyterNotebook = {
@@ -273,7 +274,7 @@ export function quartoMdToJupyter(
     },
     cells: [],
     nbformat: 4,
-    nbformat_minor: 5,
+    nbformat_minor: includeIds ? 5 : 4,
   };
 
   // regexes
@@ -295,13 +296,15 @@ export function quartoMdToJupyter(
   ) => {
     if (lineBuffer.length) {
       const cell: JupyterCell = {
-        id: shortUuid(),
         cell_type,
         metadata: {},
         source: lineBuffer.map((line, index) => {
           return line + (index < (lineBuffer.length - 1) ? "\n" : "");
         }),
       };
+      if (includeIds) {
+        cell.id = shortUuid();
+      }
       if (cell_type === "code") {
         // see if there is embedded metadata we should forward into the cell metadata
         const { yaml, source } = partitionJupyterCellOptions(
@@ -310,14 +313,16 @@ export function quartoMdToJupyter(
         );
         if (yaml) {
           // use label as id if necessary
-          if (yaml[kCellLabel] && !yaml[kCellId]) {
+          if (includeIds && yaml[kCellLabel] && !yaml[kCellId]) {
             yaml[kCellId] = jupyterAutoIdentifier(String(yaml[kCellLabel]));
           }
 
           const yamlKeys = Object.keys(yaml);
           yamlKeys.forEach((key) => {
             if (key === kCellId) {
-              cell.id = String(yaml[key]);
+              if (includeIds) {
+                cell.id = String(yaml[key]);
+              }
               delete yaml[key];
             } else {
               if (!kJupyterCellOptionKeys.includes(key)) {
