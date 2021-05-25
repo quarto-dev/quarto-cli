@@ -24,7 +24,6 @@ JJ:
 
 
 CT:
-- redo callout latex to not use awesomebox so callouts look sweet
 - search highlighting like is done in mastering-shiny
   (https://mastering-shiny.org/performance.html?q=plot#caching-plots)
   jumping between highlighted terms (via keyboard or affordance at right or top)
