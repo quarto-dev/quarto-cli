@@ -18,11 +18,7 @@ import {
 import { includeOutput } from "./tags.ts";
 
 export function cellLabel(cell: JupyterCellWithOptions) {
-  // ensure id starts with a letter
-  const id = cell.id ? `cell-id-${cell.id}` : "";
-
-  const label =
-    (cell.options[kCellLabel] || cell.metadata[kCellName] || id || "");
+  const label = (cell.options[kCellLabel] || cell.metadata[kCellName] || "");
 
   if (label && !label.startsWith("#")) {
     return "#" + label;
