@@ -99,10 +99,18 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
           
           callback(fuse.search(query, searchOptions)
             .map(result => {
+              const addParam = (url, name, value) => {
+                const anchorParts = url.split('#');
+                const baseUrl = anchorParts[0];
+                const sep = baseUrl.search("\\?") > 0 ? "&" : "?";
+                anchorParts[0] =  baseUrl + sep + name + "=" + value;
+                return anchorParts.join("#");
+              }
+
               return {
                 title: result.item.title,
                 section: result.item.section,
-                href: result.item.href,
+                href: addParam(result.item.href, "q", query),
                 text: highlightMatch(query, result.item.text)
               }
             })
@@ -157,4 +165,99 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       console.log(error);
     });
 
+    // If there is a query param indicating that a search was performed, highlight any matching terms
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("q")) {
+
+      // show the search term in the search box
+      const searchterm = params.get("q");
+      searchEl.value = searchterm;
+      searchEl.focus();
+
+      // Search the main section of the document for matching terms to highlight
+      const mainEl = window.document.querySelector("main");
+      if (mainEl) {
+        // highlight matches
+        highlight(searchterm, mainEl);
+        
+        // if the input changes, clear the highlighting
+        let highlighting = true; 
+        searchEl.addEventListener('input', () => {
+          if (highlighting && searchEl.value !== searchterm) {
+            clearHighlight(searchterm, mainEl)
+            highlighting = false;
+          }
+        });
+
+        // clear the search input if the user presses 'esc'
+        searchEl.onkeydown = (event) => {
+          if (event.key === "Escape") { 
+            searchEl.value = "";
+          }
+        }
+      }
+    }
 });
+
+// removes highlighting as implemented by the mark tag
+function clearHighlight(searchterm, el) {
+  const childNodes = el.childNodes;
+  for (let i = childNodes.length - 1; i >= 0; i--) {
+    const node = childNodes[i];
+    if (node.nodeType === Node.ELEMENT_NODE) { 
+      if (node.tagName === 'MARK'&& node.innerText.toLowerCase() === searchterm.toLowerCase()) {
+        el.replaceChild(document.createTextNode(node.innerText), node);
+      } else {
+        clearHighlight(searchterm, node);
+      }
+    }
+  }
+}
+
+// highlight matches
+function highlight(term, el) {
+  const termRegex = new RegExp(term, 'ig')
+  const childNodes = el.childNodes;
+
+  // walk back to front avoid mutating elements in front of us
+  for (let i = childNodes.length - 1; i >= 0; i--) {
+    const node = childNodes[i];
+
+    
+    if (node.nodeType === Node.TEXT_NODE) {
+      // Search text nodes for text to highlight
+      const text = node.nodeValue;
+
+      let startIndex = 0;
+      let matchIndex = text.search(termRegex);
+      if (matchIndex > -1) {
+        const markFragment = document.createDocumentFragment();
+        while (matchIndex > -1) {
+          const prefix = text.slice(startIndex, matchIndex);
+          markFragment.appendChild(document.createTextNode(prefix));
+  
+          const mark = document.createElement("mark");
+          mark.appendChild(document.createTextNode(text.slice(matchIndex, matchIndex + term.length)));
+          markFragment.appendChild(mark);
+    
+          
+          startIndex = matchIndex + term.length;
+          matchIndex = text.slice(startIndex).search(new RegExp(term, 'ig'));
+          if (matchIndex > -1) {
+            matchIndex = startIndex + matchIndex;
+          }
+        } 
+        if (startIndex < text.length) {
+          markFragment.appendChild(document.createTextNode(text.slice(startIndex, text.length)));
+        }
+
+        el.replaceChild(markFragment, node);
+      }
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      // recurse through elements
+      highlight(term, node);      
+    }
+  }
+}
+
+
