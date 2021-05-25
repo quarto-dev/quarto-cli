@@ -137,7 +137,8 @@ export function normalizeSidebarItem(
     // for an item with 'contents'
     const section = item.section;
     if (section) {
-      if (safeExistsSync(join(projectDir, section))) {
+      const sectionPath = join(projectDir, section);
+      if (safeExistsSync(sectionPath) && Deno.statSync(sectionPath).isFile) {
         item.href = section;
       } else {
         item.text = section;

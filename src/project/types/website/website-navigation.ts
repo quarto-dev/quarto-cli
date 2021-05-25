@@ -702,7 +702,8 @@ async function navigationItem(
 
   // allow short form syntax
   if (typeof (navItem) === "string") {
-    if (safeExistsSync(join(project.dir, navItem))) {
+    const navItemPath = join(project.dir, navItem);
+    if (safeExistsSync(navItemPath) && Deno.statSync(navItemPath).isFile) {
       navItem = { href: navItem };
     } else {
       navItem = { text: navItem };
