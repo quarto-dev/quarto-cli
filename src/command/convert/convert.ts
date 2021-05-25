@@ -7,8 +7,6 @@
 
 import { stringify } from "encoding/yaml.ts";
 
-import { ld } from "lodash/mod.ts";
-
 import {
   partitionYamlFrontMatter,
   readYamlFromMarkdown,
