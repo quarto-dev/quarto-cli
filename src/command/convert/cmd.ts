@@ -82,7 +82,7 @@ export const convertCommand = new Command()
 
     // perform conversion
     const converted = srcFormat === kNotebookFormat
-      ? convertNotebookToMarkdown(path)
+      ? convertNotebookToMarkdown(path, includeIds)
       : await convertMarkdownToNotebook(path, includeIds);
 
     // write output
