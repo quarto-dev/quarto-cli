@@ -7,10 +7,7 @@
 
 import { extname, join } from "path/mod.ts";
 
-import {
-  readYamlFromMarkdown,
-  readYamlFromMarkdownFile,
-} from "../../core/yaml.ts";
+import { readYamlFromMarkdown } from "../../core/yaml.ts";
 import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
 
 import { dirAndStem } from "../../core/path.ts";
@@ -24,7 +21,6 @@ import {
   ExecutionEngine,
   ExecutionTarget,
   kQmdExtensions,
-  languagesInMarkdownFile,
   PandocIncludes,
   PostProcessOptions,
 } from "../engine.ts";
@@ -32,6 +28,7 @@ import {
   isJupyterNotebook,
   jupyterAssets,
   jupyterFromFile,
+  jupyterKernelspecFromFile,
   jupyterToMarkdown,
   kJupyterNotebookExtensions,
   quartoMdToJupyter,
@@ -63,12 +60,6 @@ import {
   includesForJupyterWidgetDependencies,
   JupyterWidgetDependencies,
 } from "../../core/jupyter/widgets.ts";
-import {
-  isJupyterKernelspec,
-  JupyterKernelspec,
-  jupyterKernelspec,
-  jupyterKernelspecs,
-} from "../../core/jupyter/kernels.ts";
 
 const kJupyterEngine = "jupyter";
 
@@ -262,68 +253,6 @@ function cleanupNotebook(target: ExecutionTarget, format: Format) {
 
 interface JupyterTargetData {
   transient: boolean;
-}
-
-async function jupyterKernelspecFromFile(
-  file: string,
-): Promise<[JupyterKernelspec, Metadata]> {
-  const yaml = readYamlFromMarkdownFile(file);
-  const yamlJupyter = yaml.jupyter;
-
-  // if there is no yaml.jupyter then detect the file's language(s) and
-  // find a kernelspec that supports this language
-  if (!yamlJupyter) {
-    const languages = languagesInMarkdownFile(file);
-    const kernelspecs = await jupyterKernelspecs();
-    for (const language of languages) {
-      for (const kernelspec of kernelspecs.values()) {
-        if (kernelspec.language === language) {
-          return [kernelspec, {}];
-        }
-      }
-    }
-  }
-
-  if (typeof (yamlJupyter) === "string") {
-    const kernel = yamlJupyter;
-    const kernelspec = await jupyterKernelspec(kernel);
-    if (kernelspec) {
-      return [kernelspec, {}];
-    } else {
-      return Promise.reject(
-        new Error("Jupyter kernel '" + kernel + "' not found."),
-      );
-    }
-  } else if (typeof (yamlJupyter) === "object") {
-    const jupyter = { ...yamlJupyter } as Record<string, unknown>;
-    if (isJupyterKernelspec(jupyter.kernelspec)) {
-      const kernelspec = jupyter.kernelspec;
-      delete jupyter.kernelspec;
-      return [kernelspec, jupyter];
-    } else if (typeof (jupyter.kernel) === "string") {
-      const kernelspec = await jupyterKernelspec(jupyter.kernel);
-      if (kernelspec) {
-        delete jupyter.kernel;
-        return [kernelspec, jupyter];
-      } else {
-        return Promise.reject(
-          new Error("Jupyter kernel '" + jupyter.kernel + "' not found."),
-        );
-      }
-    } else {
-      return Promise.reject(
-        new Error(
-          "Invalid Jupyter kernelspec (must include name, language, & display_name)",
-        ),
-      );
-    }
-  } else {
-    return Promise.reject(
-      new Error(
-        "Invalid jupyter YAML metadata found in file (must be string or object)",
-      ),
-    );
-  }
 }
 
 function isHtmlCompatible(format: Format) {

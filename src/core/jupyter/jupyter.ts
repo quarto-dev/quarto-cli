@@ -75,10 +75,15 @@ import {
   kOutput,
   kWarning,
 } from "../../config/constants.ts";
-import { JupyterKernelspec } from "./kernels.ts";
+import {
+  isJupyterKernelspec,
+  JupyterKernelspec,
+  jupyterKernelspec,
+  jupyterKernelspecs,
+} from "./kernels.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines } from "../text.ts";
-import { readYamlFromString } from "../yaml.ts";
+import { readYamlFromMarkdownFile, readYamlFromString } from "../yaml.ts";
 
 export const kCellCollapsed = "collapsed";
 export const kCellAutoscroll = "autoscroll";
@@ -396,6 +401,68 @@ export function quartoMdToJupyter(
   return nb;
 }
 
+export async function jupyterKernelspecFromFile(
+  file: string,
+): Promise<[JupyterKernelspec, Metadata]> {
+  const yaml = readYamlFromMarkdownFile(file);
+  const yamlJupyter = yaml.jupyter;
+
+  // if there is no yaml.jupyter then detect the file's language(s) and
+  // find a kernelspec that supports this language
+  if (!yamlJupyter) {
+    const languages = languagesInMarkdownFile(file);
+    const kernelspecs = await jupyterKernelspecs();
+    for (const language of languages) {
+      for (const kernelspec of kernelspecs.values()) {
+        if (kernelspec.language === language) {
+          return [kernelspec, {}];
+        }
+      }
+    }
+  }
+
+  if (typeof (yamlJupyter) === "string") {
+    const kernel = yamlJupyter;
+    const kernelspec = await jupyterKernelspec(kernel);
+    if (kernelspec) {
+      return [kernelspec, {}];
+    } else {
+      return Promise.reject(
+        new Error("Jupyter kernel '" + kernel + "' not found."),
+      );
+    }
+  } else if (typeof (yamlJupyter) === "object") {
+    const jupyter = { ...yamlJupyter } as Record<string, unknown>;
+    if (isJupyterKernelspec(jupyter.kernelspec)) {
+      const kernelspec = jupyter.kernelspec;
+      delete jupyter.kernelspec;
+      return [kernelspec, jupyter];
+    } else if (typeof (jupyter.kernel) === "string") {
+      const kernelspec = await jupyterKernelspec(jupyter.kernel);
+      if (kernelspec) {
+        delete jupyter.kernel;
+        return [kernelspec, jupyter];
+      } else {
+        return Promise.reject(
+          new Error("Jupyter kernel '" + jupyter.kernel + "' not found."),
+        );
+      }
+    } else {
+      return Promise.reject(
+        new Error(
+          "Invalid Jupyter kernelspec (must include name, language, & display_name)",
+        ),
+      );
+    }
+  } else {
+    return Promise.reject(
+      new Error(
+        "Invalid jupyter YAML metadata found in file (must be string or object)",
+      ),
+    );
+  }
+}
+
 export function jupyterFromFile(input: string): JupyterNotebook {
   // parse the notebook
   const nbContents = Deno.readTextFileSync(input);
@@ -412,6 +479,27 @@ export function jupyterFromFile(input: string): JupyterNotebook {
   }
 
   return nb;
+}
+
+export function languagesInMarkdownFile(file: string) {
+  return languagesInMarkdown(Deno.readTextFileSync(file));
+}
+
+export function languagesInMarkdown(markdown: string) {
+  // see if there are any code chunks in the file
+  const languages = new Set<string>();
+  const kChunkRegex = /^[\t >]*```+\s*\{([a-zA-Z0-9_]+)( *[ ,].*)?\}\s*$/gm;
+  kChunkRegex.lastIndex = 0;
+  let match = kChunkRegex.exec(markdown);
+  while (match) {
+    const language = match[1];
+    if (!languages.has(language)) {
+      languages.add(language);
+    }
+    match = kChunkRegex.exec(markdown);
+  }
+  kChunkRegex.lastIndex = 0;
+  return languages;
 }
 
 export function jupyterAutoIdentifier(label: string) {

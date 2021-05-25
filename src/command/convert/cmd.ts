@@ -6,45 +6,47 @@
 */
 
 import { exists } from "fs/exists.ts";
+import { join } from "path/mod.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
+import { dirAndStem } from "../../core/path.ts";
+import {
+  convertMarkdownToNotebook,
+  convertNotebookToMarkdown,
+} from "./convert.ts";
 
-const kJupyterFormat = "jupyter";
+const kNotebookFormat = "notebook";
 const kMarkdownFormat = "markdown";
-
-// TODO:  when converting from notebook to markdown, we do carry any id we find into metadata, however if the
-//        id matches the auto-converted label then we don't include id
-//         (could be command line flags to eliminate ids)
 
 export const convertCommand = new Command()
   .name("convert")
   .arguments("[path:string]")
   .description(
-    "Convert between markdown and ipynb representations of documents.",
+    "Convert between markdown and notebook representations of documents.",
   )
   .option(
     "-t, --to <format:string>",
-    "Format to convert to (markdown or ipynb)",
+    "Format to convert to (markdown or notebook)",
   )
   .option(
     "--output",
     "Write output to FILE (use '--output -' for stdout).",
   )
   .example(
-    "Convert ipynb to markdown",
+    "Convert notebook to markdown",
     "quarto convert mydocument.ipynb --to markdown",
   )
   .example(
-    "Convert markdown to ipynb",
-    "quarto convert mydocument.md --to ipynb",
+    "Convert markdown to notebook",
+    "quarto convert mydocument.md --to notebook",
   )
   .example(
-    "Convert ipynb to markdown, writing to filename",
+    "Convert notebook to markdown, writing to filename",
     "quarto convert mydocument.ipynb --to markdown --output mydoc.qmd",
   )
   .example(
-    "Convert ipynb to markdown, writing to stdout",
+    "Convert notebook to markdown, writing to stdout",
     "quarto convert mydocument.ipynb --to markdown --output -",
   )
   // deno-lint-ignore no-explicit-any
@@ -55,13 +57,39 @@ export const convertCommand = new Command()
 
     // determine source format
     const srcFormat = isJupyterNotebook(path)
-      ? kJupyterFormat
+      ? kNotebookFormat
       : kMarkdownFormat;
 
     // determine and validate target format
     const targetFormat = options.to ||
-      (srcFormat === kJupyterFormat ? kMarkdownFormat : kJupyterFormat);
-    if (![kJupyterFormat, kMarkdownFormat].includes(targetFormat)) {
+      (srcFormat === kNotebookFormat ? kMarkdownFormat : kNotebookFormat);
+    if (![kNotebookFormat, kMarkdownFormat].includes(targetFormat)) {
       throw new Error("Invalid target format: " + targetFormat);
+    }
+    if (
+      srcFormat === kNotebookFormat && targetFormat !== kMarkdownFormat ||
+      srcFormat === kMarkdownFormat && targetFormat !== kNotebookFormat
+    ) {
+      throw new Error(`Unable to convert ${srcFormat} to ${targetFormat}`);
+    }
+
+    // perform conversion
+    const converted = srcFormat === kNotebookFormat
+      ? convertNotebookToMarkdown(path)
+      : await convertMarkdownToNotebook(path);
+
+    // write output
+    const [dir, stem] = dirAndStem(path);
+    let output = options.output;
+    if (!output) {
+      output = join(
+        dir,
+        stem + targetFormat === kNotebookFormat ? ".ipynb" : ".md",
+      );
+    }
+    if (output === "-") {
+      Deno.stdout.writeSync(new TextEncoder().encode(converted));
+    } else {
+      Deno.writeTextFileSync(output, converted);
     }
   });
