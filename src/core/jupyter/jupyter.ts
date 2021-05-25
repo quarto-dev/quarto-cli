@@ -301,6 +301,12 @@ export async function quartoMdToJupyter(
     frontMatter?: boolean,
   ) => {
     if (lineBuffer.length) {
+      if (lineBuffer[0] === "") {
+        lineBuffer.splice(0, 1);
+      }
+      if (lineBuffer[lineBuffer.length - 1] === "") {
+        lineBuffer.splice(lineBuffer.length - 1, 1);
+      }
       const cell: JupyterCell = {
         cell_type,
         metadata: {},
