@@ -12,14 +12,6 @@ Markdown Serialization
 
 JJ: 
 
-- layout.ncol broken again for jupyter
-
-- convert to/from text vs. ipynb representation
-    - try round tripping with custom notebook and cell metadata
-    - handling of raw cells from markdown to notebook
-    - use of nbformat when ids excluded
-    
-        
 - dev server preview doesn't drive to last rendered
 - books-crossrefs.ts#127 - fixing up heading links not working properly 
 - TODO: measure lag at the beginning of project single file render
@@ -30,6 +22,8 @@ CT:
   (https://mastering-shiny.org/performance.html?q=plot#caching-plots)
   jumping between highlighted terms (via keyboard or affordance at right or top)
 
+- Better treatment for code blocks within tabs (just use a thin border, could
+  consider background color)
 
 
 books
