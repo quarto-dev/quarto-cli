@@ -196,7 +196,10 @@ $indent: 1.2em;
 kbd,
 .kbd {
   color: $body-color;
-  background-color: $progress-bg;
+  background-color: $gray-100;
+  border: 1px solid;
+  border-radius: 5px;
+  border-color: $table-border-color;
 }
 
 // tweak pandoc default hanging indent
@@ -223,20 +226,19 @@ div.hanging-indent {
 @if $code-border-left {
   // Align source code and callout text (not border) with main body text when there is room
   @include media-breakpoint-up(lg) {
-
     // Cards with header
     .callout:not(.no-icon) {
-          margin-left: add(add(-0.4em, -$callout-border-width), -1px);
+      margin-left: add(add(-0.4em, -$callout-border-width), -1px);
     }
 
     .callout {
       margin-left: add(-0.4em, -$callout-border-width);
     }
-    
+
     div.sourceCode {
       margin-left: add(add(-$code-padding-left, -$code-border-left-size), 2px);
     }
-  } 
+  }
 }
 
 .callout {
@@ -408,4 +410,3 @@ $callouts: (
   border: none;
   background-color: transparent;
 }
-
