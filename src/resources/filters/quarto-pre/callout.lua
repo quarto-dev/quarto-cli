@@ -184,7 +184,7 @@ function calloutDiv(div)
   return calloutDiv
 end
 
--- Latex awesomebox callout
+-- Latex callout
 function calloutLatex(div)
   
   -- read and clear attributes
@@ -194,39 +194,94 @@ function calloutLatex(div)
   div.attr.attributes["icon"] = nil
   div.attr.attributes["caption"] = nil
   div.attr.attributes["collapse"] = nil
-
-  local calloutContents = pandoc.List:new({});
-    
+  
   -- Add the captions and contents
+  local calloutContents = pandoc.List:new({});
   if caption ~= nil then 
     calloutContents:insert(pandoc.Para(pandoc.Strong(caption)))
   end
   tappend(calloutContents, div.content)
 
-  -- Add the environment info, using inlines if possible 
-  local color = latexColorForType(type)
-  local leftMarginWidth = '0'
-  local iconForType = iconForType(type)
-  local iconName = ''
-  if icon ~= false and iconForType ~= nil then
-    iconName = '\\' .. iconForType
-    leftMarginWidth = '0.12'
-  end
-  local separatorWidth = '1pt'
-
-  local leftMargin = pandoc.RawInline('latex', '\\setlength{\\aweboxleftmargin}{' .. leftMarginWidth .. '\\linewidth}');
-  local beginEnvironment = pandoc.RawInline('latex', '\\begin{awesomeblock}[' .. color .. ']{' .. separatorWidth .. '}{' .. iconName .. '}{' .. color ..'}\n')
-  local endEnvironment = pandoc.RawInline('latex', '\n\\end{awesomeblock}')
+  -- generate the callout box
+  local callout = latexCalloutBox(type)
+  local beginEnvironment = callout.beginInlines;
+  local endEnvironment = callout.endInlines;
+  
   if calloutContents[1].t == "Para" and calloutContents[#calloutContents].t == "Para" then
-    table.insert(calloutContents[1].content, 1, beginEnvironment)
-    table.insert(calloutContents[1].content, 1, leftMargin)
-    table.insert(calloutContents[#calloutContents].content, endEnvironment)
+    tprepend(calloutContents[1].content, beginEnvironment)
+    tappend(calloutContents[#calloutContents].content, endEnvironment)
   else
-    table.insert(calloutContents, 1, pandoc.Para({beginEnvironment}))
-    table.insert(calloutContents, pandoc.Para({endEnvironment}))
+    tprepend(calloutContents, pandoc.Para(beginEnvironment))
+    tappend(calloutContents, pandoc.Para(endEnvironment))
   end
+
+
   return pandoc.Div(calloutContents)
 end
+
+-- create the tcolorBox
+function latexCalloutBox(type, icon)
+
+  -- calllout dimensions
+  local leftBorderWidth = '1mm'
+  local borderWidth = '.15mm'
+  local borderRadius = '.15mm'
+  local leftPad = '2mm'
+  local color = latexColorForType(type)
+
+  -- generate options
+  local options = {
+    colframe = color,
+    colback = 'white',
+    left = leftPad,
+    leftrule = leftBorderWidth,
+    toprule = borderWidth, 
+    bottomrule = borderWidth,
+    rightrule = borderWidth,
+    arc = borderRadius,
+  }
+
+  -- the core latex for the box
+  local beginInlines = { pandoc.RawInline('latex', '\\begin{tcolorbox}[' .. tColorOptions(options) .. ']\n') }
+  local endInlines = { pandoc.RawInline('latex', '\n\\end{tcolorbox}') }
+
+  -- generate the icon and use a minipage to position it
+  local iconForType = iconForType(type)
+  if icon ~= false and iconForType ~= nil then
+    local iconName = '\\' .. iconForType
+    local iconColSize = '5.5mm'
+
+    -- add an icon to the begin
+    local iconTex = '\\begin{minipage}[t]{' .. iconColSize .. '}\n\\textcolor{' .. color .. '}{' .. iconName .. '}\n\\end{minipage}%\n\\begin{minipage}[t]{\\textwidth - ' .. iconColSize .. '}\n'
+    tappend(beginInlines, {pandoc.RawInline('latex',  iconTex)})
+
+    -- close the icon
+    tprepend(endInlines, {pandoc.RawInline('latex', '\\end{minipage}%')});
+  end
+
+  -- the inlines
+  return { 
+    beginInlines = beginInlines, 
+    endInlines = endInlines
+  }
+end
+
+-- generates a set of options for a tColorBox
+function tColorOptions(options) 
+
+  local optionStr = ""
+  local prepend = false
+  for k, v in pairs(options) do
+    if (prepend) then 
+      optionStr = optionStr .. ', '
+    end
+    optionStr = optionStr .. k .. '=' .. v
+    prepend = true
+  end
+  return optionStr
+
+end
+
 
 function calloutDocx(div) 
 
@@ -447,7 +502,7 @@ function iconForType(type)
   elseif type == "caution" then
     return "faBurn"
   elseif type == "tip" then 
-    return "faLightbulb"
+    return "faLightbulbO"
   else
     return nil
   end
