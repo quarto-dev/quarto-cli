@@ -11,7 +11,6 @@ import { basename, join } from "path/mod.ts";
 import { ld } from "lodash/mod.ts";
 
 import { safeExistsSync } from "../../../core/path.ts";
-import { warnOnce } from "../../../core/log.ts";
 import { Metadata } from "../../../config/metadata.ts";
 
 import { fileExecutionEngine } from "../../../execute/engine.ts";
@@ -39,7 +38,6 @@ import {
   kSiteSidebarStyle,
   kSiteTitle,
   kSiteUrl,
-  websiteBaseurl,
   websiteConfigActions,
   websiteProjectConfig,
 } from "../website/website-config.ts";

@@ -11,7 +11,7 @@ import { ensureDirSync } from "fs/ensure_dir.ts";
 import { dirname, extname, join, relative } from "path/mod.ts";
 import { walkSync } from "fs/walk.ts";
 import { decode as base64decode } from "encoding/base64.ts";
-import { stringify } from "encoding/yaml.ts";
+import { stringify, StringifyOptions } from "encoding/yaml.ts";
 
 import { ld } from "lodash/mod.ts";
 
@@ -83,7 +83,11 @@ import {
 } from "./kernels.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines } from "../text.ts";
-import { readYamlFromMarkdownFile, readYamlFromString } from "../yaml.ts";
+import {
+  readYamlFromMarkdown,
+  readYamlFromMarkdownFile,
+  readYamlFromString,
+} from "../yaml.ts";
 
 export const kCellCollapsed = "collapsed";
 export const kCellAutoscroll = "autoscroll";
@@ -197,6 +201,7 @@ export interface JupyterCellOptions extends JupyterOutputFigureOptions {
   [kError]?: boolean;
   [kOutput]?: boolean;
   [kInclude]?: boolean;
+  [key: string]: unknown;
 }
 
 export interface JupyterOutputFigureOptions {
@@ -260,12 +265,12 @@ export interface JupyterOutputError extends JupyterOutput {
   traceback: string[];
 }
 
-export function quartoMdToJupyter(
+export async function quartoMdToJupyter(
   input: string,
-  kernelspec: JupyterKernelspec,
-  metadata: Metadata,
   includeIds: boolean,
-): JupyterNotebook {
+): Promise<JupyterNotebook> {
+  const [kernelspec, metadata] = await jupyterKernelspecFromFile(input);
+
   // notebook to return
   const nb: JupyterNotebook = {
     metadata: {
@@ -293,8 +298,15 @@ export function quartoMdToJupyter(
   const lineBuffer: string[] = [];
   const flushLineBuffer = (
     cell_type: "markdown" | "code" | "raw",
+    frontMatter?: boolean,
   ) => {
     if (lineBuffer.length) {
+      if (lineBuffer[0] === "") {
+        lineBuffer.splice(0, 1);
+      }
+      if (lineBuffer[lineBuffer.length - 1] === "") {
+        lineBuffer.splice(lineBuffer.length - 1, 1);
+      }
       const cell: JupyterCell = {
         cell_type,
         metadata: {},
@@ -305,7 +317,23 @@ export function quartoMdToJupyter(
       if (includeIds) {
         cell.id = shortUuid();
       }
-      if (cell_type === "code") {
+      if (cell_type === "raw" && frontMatter) {
+        // delete 'jupyter' metadata since we've already transferred it
+        const yaml = readYamlFromMarkdown(cell.source.join("\n"));
+        if (yaml.jupyter) {
+          delete yaml.jupyter;
+          const yamlFrontMatter = mdTrimEmptyLines(lines(stringify(yaml, {
+            indent: 2,
+            sortKeys: false,
+            skipInvalid: true,
+          })));
+          cell.source = [
+            "---\n",
+            ...(yamlFrontMatter.map((line) => line + "\n")),
+            "---",
+          ];
+        }
+      } else if (cell_type === "code") {
         // see if there is embedded metadata we should forward into the cell metadata
         const { yaml, source } = partitionJupyterCellOptions(
           kernelspec.language,
@@ -334,17 +362,10 @@ export function quartoMdToJupyter(
 
           // if we hit at least one we need to re-write the source
           if (Object.keys(yaml).length < yamlKeys.length) {
-            const cellYaml = stringify(yaml, {
-              indent: 2,
-              sortKeys: false,
-              skipInvalid: true,
-            });
-            const commentChars = langCommentChars(kernelspec.language);
-            const yamlOutput = lines(cellYaml).map((line) => {
-              line = optionCommentPrefix(commentChars[0]) + line +
-                optionCommentSuffix(commentChars[1]);
-              return line + "\n";
-            }).concat([""]);
+            const yamlOutput = jupyterCellOptionsAsComment(
+              kernelspec.language,
+              yaml,
+            );
             cell.source = yamlOutput.concat(source);
           }
         }
@@ -354,19 +375,28 @@ export function quartoMdToJupyter(
         cell.outputs = [];
       }
 
-      nb.cells.push(cell);
+      // if the source is empty then don't add it
+      cell.source = mdTrimEmptyLines(cell.source);
+      if (cell.source.length > 0) {
+        nb.cells.push(cell);
+      }
+
       lineBuffer.splice(0, lineBuffer.length);
     }
   };
 
   // loop through lines and create cells based on state transitions
-  let inYaml = false, inCodeCell = false, inCode = false;
+  let parsedFrontMatter = false,
+    inYaml = false,
+    inCodeCell = false,
+    inCode = false;
   for (const line of lines(inputContent)) {
     // yaml front matter
     if (yamlRegEx.test(line) && !inCodeCell && !inCode) {
       if (inYaml) {
         lineBuffer.push(line);
-        flushLineBuffer("raw");
+        flushLineBuffer("raw", !parsedFrontMatter);
+        parsedFrontMatter = true;
         inYaml = false;
       } else {
         flushLineBuffer("markdown");
@@ -616,7 +646,7 @@ export function jupyterToMarkdown(
         md.push(...mdFromContentCell(cell));
         break;
       case "raw":
-        md.push(...mdFromRawCell(cell, i === 0));
+        md.push(...mdFromRawCell(cell));
         break;
       case "code":
         md.push(...mdFromCodeCell(cell, ++codeCellIndex, options));
@@ -634,7 +664,7 @@ export function jupyterToMarkdown(
   };
 }
 
-function jupyterCellWithOptions(
+export function jupyterCellWithOptions(
   language: string,
   cell: JupyterCell,
 ): JupyterCellWithOptions {
@@ -662,7 +692,68 @@ function jupyterCellWithOptions(
   };
 }
 
-function partitionJupyterCellOptions(language: string, source: string[]) {
+export function jupyterCellOptionsAsComment(
+  language: string,
+  options: Record<string, unknown>,
+  stringifyOptions?: StringifyOptions,
+) {
+  if (Object.keys(options).length > 0) {
+    const cellYaml = stringify(options, {
+      indent: 2,
+      sortKeys: false,
+      skipInvalid: true,
+      ...stringifyOptions,
+    });
+    const commentChars = langCommentChars(language);
+    const yamlOutput = mdTrimEmptyLines(lines(cellYaml)).map((line) => {
+      line = optionCommentPrefix(commentChars[0]) + line +
+        optionCommentSuffix(commentChars[1]);
+      return line + "\n";
+    });
+    return yamlOutput;
+  } else {
+    return [];
+  }
+}
+
+export function mdFromContentCell(cell: JupyterCell) {
+  return mdEnsureTrailingNewline(cell.source);
+}
+
+export function mdFromRawCell(cell: JupyterCell) {
+  const mimeType = cell.metadata?.[kRawMimeType];
+  if (mimeType) {
+    switch (mimeType) {
+      case kTextHtml:
+        return mdHtmlOutput(cell.source);
+      case kTextLatex:
+        return mdLatexOutput(cell.source);
+      case kRestructuredText:
+        return mdFormatOutput("rst", cell.source);
+      case kApplicationRtf:
+        return mdFormatOutput("rtf", cell.source);
+      case kApplicationJavascript:
+        return mdScriptOutput(mimeType, cell.source);
+    }
+  }
+
+  return mdFromContentCell(cell);
+}
+
+export function mdEnsureTrailingNewline(source: string[]) {
+  if (source.length > 0 && !source[source.length - 1].endsWith("\n")) {
+    return source.slice(0, source.length - 1).concat(
+      [source[source.length - 1] + "\n"],
+    );
+  } else {
+    return source;
+  }
+}
+
+export function partitionJupyterCellOptions(
+  language: string,
+  source: string[],
+) {
   const commentChars = langCommentChars(language);
   const optionPrefix = optionCommentPrefix(commentChars[0]);
   const optionSuffix = commentChars[1] || "";
@@ -767,43 +858,6 @@ const kLangCommentChars: Record<string, string | string[]> = {
   haskell: "--",
   dot: "//",
 };
-
-function mdFromContentCell(cell: JupyterCellWithOptions) {
-  return [...cell.source, "\n\n"];
-}
-
-function mdFromRawCell(cell: JupyterCellWithOptions, firstCell: boolean) {
-  const mimeType = cell.metadata?.[kRawMimeType];
-  if (mimeType) {
-    switch (mimeType) {
-      case kTextHtml:
-        return mdHtmlOutput(cell.source);
-      case kTextLatex:
-        return mdLatexOutput(cell.source);
-      case kRestructuredText:
-        return mdFormatOutput("rst", cell.source);
-      case kApplicationRtf:
-        return mdFormatOutput("rtf", cell.source);
-      case kApplicationJavascript:
-        return mdScriptOutput(mimeType, cell.source);
-    }
-  }
-
-  // if it's the first cell then it may be the yaml block, do some
-  // special handling to remove any "jupyter" metadata so that if
-  // the file is run through "quarto render" it's treated as a plain
-  // markdown file
-  if (firstCell) {
-    return mdFromContentCell({
-      ...cell,
-      source: cell.source.filter((line) => {
-        return !/^jupyter:\s+true\s*$/.test(line);
-      }),
-    });
-  } else {
-    return mdFromContentCell(cell);
-  }
-}
 
 function mdFromCodeCell(
   cell: JupyterCellWithOptions,

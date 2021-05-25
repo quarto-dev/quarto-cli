@@ -12,15 +12,10 @@ Markdown Serialization
 
 JJ: 
 
-- convert to/from text vs. ipynb representation
-    - notebook metadata: 
-        - dump into 'jupyter' front matter key on way to markdown
-        - 'jupyter' front matter goes into notebook metadata
-        -  'notebook', 'markdown' as convert targets, 
-        
-- dev server preview doesn't drive to last rendered
-- books-crossrefs.ts#127 - fixing up heading links not working properly 
 - TODO: measure lag at the beginning of project single file render
+- make sure that crossrefs are appropriately disabled for unumbered chapters
+- More opinionated <kbd>
+- can we make section-numbers work more sensibly with H2 (chapter-level). --top-level-division, --shift-heading-level
 
 
 CT:
@@ -28,28 +23,12 @@ CT:
   (https://mastering-shiny.org/performance.html?q=plot#caching-plots)
   jumping between highlighted terms (via keyboard or affordance at right or top)
 
+- Better treatment for code blocks within tabs (just use a thin border, could
+  consider background color)
 
 
-books
-=====================================================================
-
-- make sure that crossrefs are appropriately disabled for unumbered chapters
-- More opinionated <kbd>
-
-- can we make section-numbers work more sensibly with H2 (chapter-level). --top-level-division, --shift-heading-level
-
-- footnotes: 
-    (1) do we have consistent behavior across formats
-    (2) can we provide options for per-chapter vs. global
 
 
-quarto-python dev workflow:
-
-```bash
-$ python3 -m venv .venv    
-$ source .venv/bin/activate
-$ pip install -e ./ 
-```
 
 TODO
 =====================================================================
@@ -76,6 +55,16 @@ TODO: convert to css grid for columns (allows for content floating and crossing 
 
 - Can get HTML figcaption to behave more like latex (center if less)
 
+
+
+
+quarto-python dev workflow:
+
+```bash
+$ python3 -m venv .venv    
+$ source .venv/bin/activate
+$ pip install -e ./ 
+```
 
 
 Installation/Compilation
@@ -106,6 +95,11 @@ JupyterLab
 - https://github.com/jupyterlab/jupyterlab-latex
 
 - webshot equivalent for printed output
+
+
+- footnotes: 
+    (1) do we have consistent behavior across formats
+    (2) can we provide options for per-chapter vs. global
 
 - Bibliography per chapter
 

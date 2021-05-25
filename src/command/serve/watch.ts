@@ -66,6 +66,9 @@ export function watchProject(
 
   // lib dir
   const libDirConfig = project.config?.project[kProjectLibDir];
+  const libDirSource = libDirConfig
+    ? join(project.dir, libDirConfig)
+    : undefined;
   const libDir = libDirConfig ? join(outputDir, libDirConfig) : undefined;
 
   // if any of the paths are in the output dir (but not the lib dir) then return true
@@ -84,6 +87,10 @@ export function watchProject(
 
   // is this a resource file?
   const isResourceFile = (path: string) => {
+    // exclude libdir
+    if (libDirSource && path.startsWith(libDirSource)) {
+      return false;
+    }
     if (renderResult) {
       if (project.files.resources?.includes(path)) {
         return true;
