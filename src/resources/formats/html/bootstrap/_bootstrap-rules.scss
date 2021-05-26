@@ -67,6 +67,25 @@ $code-background-color: color.adjust(
   $code-background-color: $code-background;
 }
 
+.tab-pane div.sourceCode {
+  margin-top: 0px;
+  border-left: $border-color 1px solid;
+  border-right: $border-color 1px solid;
+  border-bottom: $border-color 1px solid;
+  margin-left: 0;
+  padding: .5em;
+  
+}
+
+.tab-pane pre.sourceCode {
+  border-left: none;
+  background-color: $body-bg;
+}
+
+.tab-pane > p {
+  padding-top: 1em;
+}
+
 pre.sourceCode {
   // Apply border, if specified
   @if $code-border-left {

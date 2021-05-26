@@ -198,7 +198,10 @@ function calloutLatex(div)
   -- Add the captions and contents
   local calloutContents = pandoc.List:new({});
   if caption ~= nil then 
-    calloutContents:insert(pandoc.Para(pandoc.Strong(caption)))
+
+    tprepend(caption, {pandoc.RawInline('latex', '\\textbf{')})
+    tappend(caption, {pandoc.RawInline('latex', '}\\vspace{2mm}')})
+    calloutContents:insert(pandoc.Para(caption))
   end
   tappend(calloutContents, div.content)
 
