@@ -18,7 +18,7 @@ import {
   kProjectResources,
   ProjectConfig,
 } from "./project-context.ts";
-import { kGitignoreEntries } from "./project-gitignore.ts";
+import { kQuartoIgnore } from "./project-gitignore.ts";
 
 export function projectResourceFiles(
   dir: string,
@@ -29,10 +29,8 @@ export function projectResourceFiles(
   const outputDir = config.project[kProjectOutputDir];
   if (outputDir) {
     resourceGlobs = (resourceGlobs || [])
-      // ignore anything specified in our standard .gitignore
-      .concat(kGitignoreEntries.map((entry) => `!${entry}`))
-      // some files typically included in the root of websites
-      .concat(["/robots.txt", "/.nojekyll", "/_redirects"]);
+      // ignore standard quarto ignores (e.g. /.quarto/)
+      .concat(kQuartoIgnore.map((entry) => `!${entry}`));
 
     const exclude = outputDir ? [outputDir] : [];
     const projectResourceFiles = resolvePathGlobs(
@@ -45,6 +43,12 @@ export function projectResourceFiles(
         projectResourceFiles.include,
         projectResourceFiles.exclude,
       ),
+    );
+    // literals
+    resourceFiles.push(
+      ...["robots.txt", ".nojekyll", "_redirects"]
+        .map((file) => join(dir, file))
+        .filter(existsSync),
     );
   }
   return ld.uniq(resourceFiles);

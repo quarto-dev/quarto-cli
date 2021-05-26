@@ -295,7 +295,7 @@ function projectInputFiles(dir: string, metadata?: ProjectConfig) {
           // virtualenvs include symblinks to R or Python libraries that are in turn
           // circular. much safer to not follow symlinks!
           followSymlinks: false,
-          skip: [kSkipHidden],
+          skip: projectIgnores.concat([kSkipHidden]),
         },
       )
     ) {

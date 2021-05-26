@@ -10,9 +10,14 @@ import {
   kNumberDepth,
   kNumberOffset,
   kNumberSections,
+  kShiftHeadingLevelBy,
   kTopLevelDivision,
 } from "../../config/constants.ts";
-import { FormatPandoc } from "../../config/format.ts";
+import {
+  FormatPandoc,
+  isBeamerOutput,
+  isLatexOutput,
+} from "../../config/format.ts";
 import { PandocFlags } from "../../config/flags.ts";
 import { Metadata } from "../../config/metadata.ts";
 
@@ -44,6 +49,20 @@ export function crossrefGeneratedDefaults(options: PandocOptions) {
       }
       return defaults;
     }
+  }
+
+  // pdfs with no other heading level oriented options get their heading level shifted by -1
+  if (
+    (isLatexOutput(options.format.pandoc) &&
+      !isBeamerOutput(options.format.pandoc)) &&
+    options.flags?.[kTopLevelDivision] === undefined &&
+    options.format.pandoc?.[kTopLevelDivision] === undefined &&
+    options.flags?.[kShiftHeadingLevelBy] === undefined &&
+    options.format.pandoc?.[kShiftHeadingLevelBy] === undefined
+  ) {
+    return {
+      [kShiftHeadingLevelBy]: -1,
+    };
   }
 
   // return no defaults

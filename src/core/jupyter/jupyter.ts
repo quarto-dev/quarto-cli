@@ -654,6 +654,7 @@ export function jupyterToMarkdown(
       default:
         throw new Error("Unexpected cell type " + cell.cell_type);
     }
+    md.push("\n");
   }
 
   // return markdown and any widget requirements

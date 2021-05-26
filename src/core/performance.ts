@@ -5,6 +5,15 @@
 *
 */
 
+export function withTiming<T>(label: string, op: () => T) {
+  console.time(label);
+  try {
+    return op();
+  } finally {
+    console.timeEnd(label);
+  }
+}
+
 export function performanceStart() {
   performanceClear();
 }

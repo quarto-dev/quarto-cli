@@ -62,6 +62,7 @@ export function convertNotebookToMarkdown(file: string, includeIds: boolean) {
         default:
           throw new Error("Unexpected cell type " + cell.cell_type);
       }
+      md.push("\n");
     }
   }
 
@@ -100,7 +101,6 @@ function mdFromCodeCell(
   // partition
   const { yaml, source } = partitionJupyterCellOptions(language, cell.source);
   const options = yaml ? yaml as JupyterCellOptions : {};
-  console.log(options);
 
   // handle id
   if (cell.id) {

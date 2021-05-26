@@ -60,10 +60,12 @@ import {
   kPreferHtml,
   kSectionDivs,
   kSelfContained,
+  kShiftHeadingLevelBy,
   kTableOfContents,
   kTemplate,
   kToc,
   kTocTitle,
+  kTopLevelDivision,
   kVariables,
   kVariant,
   kWarning,
@@ -238,10 +240,16 @@ export interface FormatPandoc {
   [kHighlightStyle]?: string;
   [kSectionDivs]?: boolean;
   [kHtmlMathMethod]?: string;
+  [kTopLevelDivision]?: string;
+  [kShiftHeadingLevelBy]?: string;
 }
 
 export function isLatexOutput(format: FormatPandoc) {
   return ["pdf", "latex", "beamer"].includes(format.to || "");
+}
+
+export function isBeamerOutput(format: FormatPandoc) {
+  return ["beamer"].includes(format.to || "");
 }
 
 export function isEpubOutput(format: FormatPandoc) {

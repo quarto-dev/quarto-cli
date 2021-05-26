@@ -6,6 +6,11 @@
 function preprocess()
   
   return {
+
+    Header = function(el)
+      crossref.maxHeading = math.min(crossref.maxHeading, el.level)
+    end,
+
     Pandoc = function(doc)
       
       -- initialize autolabels table
