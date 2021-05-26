@@ -12,6 +12,7 @@ Markdown Serialization
 
 JJ: 
 
+- absolute image paths not getting copied to output dir
 
 CT:
 - Better treatment for code blocks within tabs (just use a thin border, could
