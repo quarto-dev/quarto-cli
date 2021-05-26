@@ -30,9 +30,7 @@ export function projectResourceFiles(
   if (outputDir) {
     resourceGlobs = (resourceGlobs || [])
       // ignore standard quarto ignores (e.g. /.quarto/)
-      .concat(kQuartoIgnore.map((entry) => `!${entry}`))
-      // some files typically included in the root of websites
-      .concat(["/robots.txt", "/.nojekyll", "/_redirects"]);
+      .concat(kQuartoIgnore.map((entry) => `!${entry}`));
 
     const exclude = outputDir ? [outputDir] : [];
     const projectResourceFiles = resolvePathGlobs(
@@ -45,6 +43,12 @@ export function projectResourceFiles(
         projectResourceFiles.include,
         projectResourceFiles.exclude,
       ),
+    );
+    // literals
+    resourceFiles.push(
+      ...["robots.txt", ".nojekyll", "_redirects"]
+        .map((file) => join(dir, file))
+        .filter(existsSync),
     );
   }
   return ld.uniq(resourceFiles);
