@@ -18,10 +18,6 @@ CT:
 - Better treatment for code blocks within tabs (just use a thin border, could
   consider background color)
 
-
-
-
-
 TODO
 =====================================================================
 
