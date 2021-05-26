@@ -42,7 +42,7 @@ function tabsetDiv(div)
 
     -- init tab navigation 
     local nav = pandoc.List:new()
-    nav:insert(pandoc.RawInline('html', '<ul class="nav nav-tabs mb-3" role="tablist">'))
+    nav:insert(pandoc.RawInline('html', '<ul class="nav nav-tabs" role="tablist">'))
 
     -- init tab panes
     local panes = pandoc.Div({}, div.attr)
