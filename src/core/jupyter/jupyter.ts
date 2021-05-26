@@ -116,6 +116,10 @@ export const kCellOutHeight = "out.height";
 export const kCellFold = "fold";
 export const kCellSummary = "summary";
 
+export const kCellColab = "colab";
+export const kCellColabType = "colab_type";
+export const kCellColbOutputId = "outputId";
+
 export const kLayoutAlign = "layout.align";
 export const kLayoutVAlign = "layout.valign";
 export const kLayoutNcol = "layout.ncol";
@@ -252,6 +256,16 @@ export const kJupyterCellStandardMetadataKeys = [
   kCellDeletable,
   kCellFormat,
   kCellName,
+];
+
+export const kJupyterCellThirdPartyMetadataKeys = [
+  // colab
+  kCellId,
+  kCellColab,
+  kCellColabType,
+  kCellColbOutputId,
+
+  // jupytext
   kCellLinesToNext,
 ];
 
@@ -884,6 +898,7 @@ function mdFromCodeCell(
   // metadata to exclude from cell div attributes
   const kCellOptionsFilter = kJupyterCellInternalOptionKeys.concat(
     kJupyterCellStandardMetadataKeys,
+    kJupyterCellThirdPartyMetadataKeys,
   );
 
   // determine label -- this will be forwarded to the output (e.g. a figure)
@@ -930,7 +945,7 @@ function mdFromCodeCell(
     if (!kCellOptionsFilter.includes(key.toLowerCase())) {
       // deno-lint-ignore no-explicit-any
       const value = (cellOptions as any)[key];
-      if (value) {
+      if (value && !ld.isObject(value) && !ld.isArray(value)) {
         divMd.push(`${key}="${value}" `);
       }
     }
