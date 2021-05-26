@@ -29,6 +29,6 @@ IF EXIST "%QUARTO_TS_PATH%" (
 	SET "QUARTO_SHARE_PATH=%SCRIPT_DIR%..\share"
 )
 
-SET QUARTO_DENO_OPTIONS=--unstable --allow-read --allow-write --allow-run --allow-env --allow-net
+SET QUARTO_DENO_OPTIONS=--unstable --allow-read --allow-write --allow-run --allow-env --allow-net  --location http://rstudio.com/quarto-dev
 "%SCRIPT_DIR%deno" %QUARTO_ACTION% %QUARTO_DENO_OPTIONS% %QUARTO_DENO_EXTRA_OPTIONS% %QUARTO_IMPORT_ARGMAP% %QUARTO_TARGET% %*
 
