@@ -62,6 +62,7 @@ export function convertNotebookToMarkdown(file: string, includeIds: boolean) {
         default:
           throw new Error("Unexpected cell type " + cell.cell_type);
       }
+      md.push("\n");
     }
   }
 
