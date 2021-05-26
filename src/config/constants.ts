@@ -136,6 +136,7 @@ export const kPdfEngineOpt = "pdf-engine-opt";
 export const kListings = "listings";
 export const kNumberSections = "number-sections";
 export const kNumberOffset = "number-offset";
+export const kShiftHeadingLevelBy = "shift-heading-level-by";
 export const kNumberDepth = "number-depth";
 export const kTopLevelDivision = "top-level-division";
 export const kLogFile = "log-file";
@@ -227,7 +228,7 @@ export const kPandocDefaultsKeys = [
   "toc-depth",
   kNumberSections,
   kNumberOffset,
-  "shift-heading-level-by",
+  kShiftHeadingLevelBy,
   kSectionDivs,
   "identifier-prefix",
   kTitlePrefix,

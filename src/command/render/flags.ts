@@ -22,6 +22,7 @@ import {
   kPandocDefaultsKeys,
   kRenderDefaultsKeys,
   kSelfContained,
+  kShiftHeadingLevelBy,
   kTableOfContents,
   kToc,
   kTocTitle,
@@ -148,6 +149,11 @@ export function parseRenderFlags(args: string[]) {
       case "--top-level-division":
         arg = argsStack.shift();
         flags[kTopLevelDivision] = arg;
+        break;
+
+      case "--shift-heading-level-by":
+        arg = argsStack.shift();
+        flags[kShiftHeadingLevelBy] = arg;
         break;
 
       case "--include-in-header":

@@ -13,6 +13,7 @@ import {
   kNumberOffset,
   kNumberSections,
   kSelfContained,
+  kShiftHeadingLevelBy,
   kToc,
   kTocTitle,
   kTopLevelDivision,
@@ -34,6 +35,7 @@ export interface PandocFlags {
   [kNumberSections]?: boolean;
   [kNumberOffset]?: number[];
   [kTopLevelDivision]?: string;
+  [kShiftHeadingLevelBy]?: string;
   [kIncludeInHeader]?: string;
   [kIncludeBeforeBody]?: string;
   [kIncludeAfterBody]?: string;

@@ -91,6 +91,8 @@ function numberOption(type, order, default)
     section = nil
   elseif section[1] == 0 then
     section = nil
+  elseif crossref.maxHeading ~= 1 then
+    section = nil
   end
   
   -- return a pandoc.Str w/ chapter prefix (if any)
@@ -159,13 +161,19 @@ function numberOption(type, order, default)
 end
 
 function sectionNumber(section, maxLevel)
-  local num = formatChapterIndex(section[1])
+  local num = ""
+  if crossref.maxHeading == 1 then
+    num = formatChapterIndex(section[1])
+  end
   for i=2,#section do
     if maxLevel and i>maxLevel then
       break
     end
     if section[i] > 0 then
-      num = num .. "." .. tostring(section[i])
+      if num ~= '' then
+        num = num .. "."
+      end
+      num = num .. tostring(section[i])
     else
       break
     end
