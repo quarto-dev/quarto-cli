@@ -13,7 +13,6 @@ Markdown Serialization
 JJ: 
 
 
-
 CT:
 - search highlighting like is done in mastering-shiny
   (https://mastering-shiny.org/performance.html?q=plot#caching-plots)
