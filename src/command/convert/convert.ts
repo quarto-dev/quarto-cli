@@ -43,6 +43,7 @@ export function convertNotebookToMarkdown(file: string, includeIds: boolean) {
   // generate markdown
   const md: string[] = [];
 
+  let frontMatter: string | undefined;
   for (let i = 0; i < notebook.cells.length; i++) {
     {
       // alias cell
@@ -54,7 +55,16 @@ export function convertNotebookToMarkdown(file: string, includeIds: boolean) {
           md.push(...mdFromContentCell(cell));
           break;
         case "raw":
-          md.push(...mdFromRawCell(cell));
+          // see if this is the front matter
+          if (i === 0) {
+            frontMatter = partitionYamlFrontMatter(cell.source.join(""))?.yaml;
+            if (!frontMatter) {
+              md.push(...mdFromRawCell(cell));
+            }
+          } else {
+            md.push(...mdFromRawCell(cell));
+          }
+
           break;
         case "code":
           md.push(...mdFromCodeCell(kernelspec.language, cell, includeIds));
@@ -62,7 +72,11 @@ export function convertNotebookToMarkdown(file: string, includeIds: boolean) {
         default:
           throw new Error("Unexpected cell type " + cell.cell_type);
       }
-      md.push("\n");
+
+      // if we didn't capture frontMatter then add a newline
+      if (i > 0 || !frontMatter) {
+        md.push("\n");
+      }
     }
   }
 
@@ -70,16 +84,15 @@ export function convertNotebookToMarkdown(file: string, includeIds: boolean) {
   const mdSource = md.join("");
 
   // add jupyter kernelspec to front-matter
-  const partitioned = partitionYamlFrontMatter(mdSource);
-  if (partitioned?.yaml) {
-    const yaml = readYamlFromMarkdown(partitioned.yaml);
+  if (frontMatter) {
+    const yaml = readYamlFromMarkdown(frontMatter);
     yaml.jupyter = notebook.metadata;
     const yamlText = stringify(yaml, {
       indent: 2,
       sortKeys: false,
       skipInvalid: true,
     });
-    return `---\n${yamlText}---\n${partitioned.markdown}\n`;
+    return `---\n${yamlText}---\n\n${mdSource}`;
   } else {
     return mdSource;
   }
