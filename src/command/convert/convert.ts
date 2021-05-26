@@ -101,7 +101,6 @@ function mdFromCodeCell(
   // partition
   const { yaml, source } = partitionJupyterCellOptions(language, cell.source);
   const options = yaml ? yaml as JupyterCellOptions : {};
-  console.log(options);
 
   // handle id
   if (cell.id) {
