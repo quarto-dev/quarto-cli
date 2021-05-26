@@ -10,16 +10,6 @@ Markdown Serialization
     - article on using with hugo
     - take down wiki and put this link up
 
-JJ: 
-
-
-CT:
-- Better treatment for code blocks within tabs (just use a thin border, could
-  consider background color)
-
-
-
-
 
 TODO
 =====================================================================
