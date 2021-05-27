@@ -53,9 +53,7 @@ export function compileQuartoLatexmkCommand() {
           args.target,
           args.version || "0.0.9",
           args.name || "quarto-latexmk",
-          args.description
-            ? args.description.join(" ")
-            : "Quarto Latexmk Engine",
+          args.description.join(" ") || "Quarto Latexmk Engine",
         );
       }
     });
@@ -133,7 +131,7 @@ export async function compileQuartoLatexmk(
       await compile(
         entryPointPath(config),
         output,
-        kFlags,
+        [...kFlags, "--lite"],
         config,
       );
       info(output + "\n");

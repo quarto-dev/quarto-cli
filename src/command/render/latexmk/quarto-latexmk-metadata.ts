@@ -1,3 +1,3 @@
-export const kExeVersion = "0.0.9";
-export const kExeName = "quarto-latexmk";
+export const kExeVersion = "1.0";
+export const kExeName = "foobar";
 export const kExeDescription = "Quarto Latexmk Engine";
