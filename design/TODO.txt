@@ -1,6 +1,10 @@
 
 JJ: 
 
+- Slight difference in some project output (presence/absence of newlines) when 
+  rendered for serve vs. straight up rendered
+  
+
 CT:
 - Better treatment for code blocks within tabs (just use a thin border, could
   consider background color)
