@@ -3,6 +3,8 @@ JJ:
 
 - more on license, contriuting, code of conduct, project sponsor, etc.
 
+- 100% width for tables by default?
+
 - Slight difference in some project output (presence/absence of newlines) when 
   rendered for serve vs. straight up rendered
   
