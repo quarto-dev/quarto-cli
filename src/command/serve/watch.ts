@@ -208,16 +208,21 @@ export function watchProject(
       }
       // if we don't have a reload target based on html output, see if we can
       // get one from a reloadOnChange input
-      const input = modified.find(isRenderOnChangeInput);
-      if (input) {
-        const target = await resolveInputTarget(
-          project,
-          relative(project.dir, input),
-        );
-        if (target) {
-          reloadTarget = target.outputHref;
+      if (!reloadTarget) {
+        const input = modified.find(isRenderOnChangeInput);
+        if (input) {
+          const target = await resolveInputTarget(
+            project,
+            relative(project.dir, input),
+          );
+          if (target) {
+            reloadTarget = target.outputHref;
+          }
         }
       }
+
+      // normalize index.html
+      reloadTarget = reloadTarget.replace(/\/index\.html$/, "");
 
       // clear out the modified list
       modified.splice(0, modified.length);
