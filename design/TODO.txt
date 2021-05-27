@@ -1,14 +1,3 @@
-Markdown Serialization
-=====================================================================
-
-- update documentation:
-    - computations.md article
-    - authoring-tools.md article
-    - output-formats.md article added to getting started section
-    - Update computational sections of Figures and Crossrefs 
-    - remove defunct pages
-    - article on using with hugo
-    - take down wiki and put this link up
 
 JJ: 
 
