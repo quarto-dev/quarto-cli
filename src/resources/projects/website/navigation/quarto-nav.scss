@@ -51,7 +51,7 @@ nav .dropdown-item i {
 }
 
 .sidebar-title a {
-  font-size: 1.3rem;
+  font-size: inherit;
   text-decoration: none;
 }
 
@@ -253,7 +253,7 @@ header.headroom--unpinned {
   .sidebar.sidebar-navigation nav {
     height: 100%;
   }
-  
+
   .sidebar-search {
     width: 100%;
   }
