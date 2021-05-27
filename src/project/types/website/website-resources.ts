@@ -52,10 +52,11 @@ function resolveTag(
   const tags = doc.querySelectorAll(tag);
   for (let i = 0; i < tags.length; i++) {
     const tag = tags[i] as Element;
-    const href = tag.getAttribute(attrib);
+    let href = tag.getAttribute(attrib);
     if (href && isSiteRef(href)) {
       if (href.startsWith("/")) {
-        tag.setAttribute(attrib, offset + href);
+        href = offset + href;
+        tag.setAttribute(attrib, href);
       }
       refs.push(href!);
     }
