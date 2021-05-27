@@ -1,9 +1,14 @@
 
 JJ: 
 
+
 - Slight difference in some project output (presence/absence of newlines) when 
   rendered for serve vs. straight up rendered
   
+- R code chunks not highlighted in figures-and-layout.md
+
+- Engine: none required to suppress incidental code chunks (could 
+  support comments and code blocks in our detection)
 
 CT:
 - Better treatment for code blocks within tabs (just use a thin border, could
