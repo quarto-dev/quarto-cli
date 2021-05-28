@@ -1,8 +1,26 @@
 #!/bin/zsh
 
-export QUARTO_ACTION=test
-export QUARTO_IMPORT_MAP=$(realpath ../src/import_map.json)
-export QUARTO_TARGET=""
-export QUARTO_DENO_EXTRA_OPTIONS="--coverage=cov_profile"
+# Determine the path to this script (we'll use this to figure out relative positions of other files)
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  SCRIPT_PATH="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+export SCRIPT_PATH="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
-quarto $@
+
+DENO_DIR="`cd "$SCRIPT_PATH/../package/dist/bin/" > /dev/null 2>&1 && pwd`"
+
+QUARTO_SRC_DIR="`cd "$SCRIPT_PATH/../src" > /dev/null 2>&1 && pwd`"
+
+# Local import map
+QUARTO_IMPORT_ARGMAP=--importmap=$QUARTO_SRC_DIR/import_map.json
+
+export QUARTO_BIN_PATH=$DENO_DIR
+export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../src/resources/";pwd`"
+export QUARTO_DEBUG=true
+
+QUARTO_DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env --allow-net"
+
+${DENO_DIR}/deno test ${QUARTO_DENO_OPTIONS} ${QUARTO_IMPORT_ARGMAP} $@
