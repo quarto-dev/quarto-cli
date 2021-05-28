@@ -227,8 +227,14 @@ const kGhostPattern = {
     "GhostScript is likely required to compile this document. Please be sure GhostScript (https://ghostscript.com) is installed and try again.",
 };
 
+const kGhostCorruptPattern = {
+  regex: /^GPL Ghostscript .*: Can't find initialization file gs_init.ps/m,
+  hint:
+    "GhostScript is likely required to compile this document. Please be sure GhostScript (https://ghostscript.com) is installed and configured properly and try again.",
+};
+
 const kLogOutputPatterns = [kUnicodePattern, kInlinePattern];
-const kStdErrPatterns = [kGhostPattern];
+const kStdErrPatterns = [kGhostPattern, kGhostCorruptPattern];
 
 function suggestHint(
   logText: string,
