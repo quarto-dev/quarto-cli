@@ -24,14 +24,14 @@ export function renderCleanup(
   keepMd?: string,
 ) {
   // cleanup md if necessary
-  if (keepMd && !format.render[kKeepMd] && keepMd !== output) {
+  if (keepMd && !format.execute[kKeepMd] && keepMd !== output) {
     removeIfExists(keepMd);
   }
 
   // if we aren't keeping the markdown or text and we are instructed to
   // clean supporting files then do it
   if (
-    !format.render[kKeepMd] && !format.render[kKeepTex] && supporting
+    !format.execute[kKeepMd] && !format.render[kKeepTex] && supporting
   ) {
     // ammend supporting with lib dir (if it exists)
     const libDir = join(

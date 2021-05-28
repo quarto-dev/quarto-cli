@@ -391,8 +391,9 @@ export async function renderExecute(
   if (context.project && !alwaysExecute) {
     // check if we are using the freezer
 
-    const thaw = context.format.execute[kFreeze] ||
-      (context.options.useFreezer ? "auto" : false);
+    const thaw = context.engine.canFreeze &&
+      (context.format.execute[kFreeze] ||
+        (context.options.useFreezer ? "auto" : false));
 
     if (thaw) {
       // copy from project freezer
@@ -450,7 +451,7 @@ export async function renderExecute(
 
   // keep md if requested
   const keepMd = executionEngineKeepMd(context.engine, context.target.input);
-  if (keepMd && context.format.render[kKeepMd]) {
+  if (keepMd && context.format.execute[kKeepMd]) {
     Deno.writeTextFileSync(keepMd, executeResult.markdown);
   }
 

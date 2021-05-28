@@ -174,7 +174,7 @@ export async function renderProject(
         Deno.renameSync(join(projDir, renderedFile.file), outputFile);
 
         // files dir
-        const keepFiles = !!renderedFile.format.render[kKeepMd];
+        const keepFiles = !!renderedFile.format.execute[kKeepMd];
         keepLibsDir = keepLibsDir || keepFiles;
         if (renderedFile.supporting) {
           if (keepFiles) {

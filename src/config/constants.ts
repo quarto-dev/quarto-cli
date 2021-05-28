@@ -36,26 +36,6 @@ export const kExecuteDaemon = "daemon";
 export const kExecuteDaemonRestart = "daemon-restart";
 export const kExecuteDebug = "debug";
 
-export const kExecuteDefaultsKeys = [
-  kFigWidth,
-  kFigHeight,
-  kFigFormat,
-  kFigDpi,
-  kError,
-  kEval,
-  kEngine,
-  kCache,
-  kFreeze,
-  kEcho,
-  kOutput,
-  kWarning,
-  kInclude,
-  kExecuteEnabled,
-  kExecuteDaemon,
-  kExecuteDaemonRestart,
-  kExecuteDebug,
-];
-
 export const kKeepMd = "keep-md";
 export const kKeepTex = "keep-tex";
 export const kKeepYaml = "keep-yaml";
@@ -84,11 +64,31 @@ export const kLatexMakeIndexOpts = "latex-makeindex-opts";
 export const kLatexTlmgrOpts = "latex-tlmgr-opts";
 export const kLatexOutputDir = "latex-output-dir";
 
-export const kRenderDefaultsKeys = [
+export const kExecuteDefaultsKeys = [
+  kFigWidth,
+  kFigHeight,
+  kFigFormat,
+  kFigDpi,
+  kError,
+  kEval,
+  kEngine,
+  kCache,
+  kFreeze,
+  kEcho,
+  kOutput,
+  kWarning,
+  kInclude,
   kKeepMd,
+  kKeepIpynb,
+  kExecuteEnabled,
+  kExecuteDaemon,
+  kExecuteDaemonRestart,
+  kExecuteDebug,
+];
+
+export const kRenderDefaultsKeys = [
   kKeepTex,
   kKeepYaml,
-  kKeepIpynb,
   kKeepSource,
   kKeepHidden,
   kVariant,

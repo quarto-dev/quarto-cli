@@ -49,6 +49,7 @@ export interface ExecutionEngine {
   dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;
   canKeepMd: boolean;
+  canFreeze: boolean;
   keepFiles?: (input: string) => string[] | undefined;
   ignoreGlobs?: () => string[] | undefined;
   renderOnChange?: boolean;

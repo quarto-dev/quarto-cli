@@ -105,7 +105,7 @@ export function formatFromMetadata(
 
   // force keep_md and keep_tex if we are in debug mode
   if (debug) {
-    mergedFormat.render[kKeepMd] = true;
+    mergedFormat.execute[kKeepMd] = true;
     mergedFormat.render[kKeepTex] = true;
   }
 

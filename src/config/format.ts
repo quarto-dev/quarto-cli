@@ -162,10 +162,8 @@ export interface Format {
 }
 
 export interface FormatRender {
-  [kKeepMd]?: boolean;
   [kKeepTex]?: boolean;
   [kKeepYaml]?: boolean;
-  [kKeepIpynb]?: boolean;
   [kKeepSource]?: boolean;
   [kKeepHidden]?: boolean;
   [kPreferHtml]?: boolean;
@@ -208,6 +206,8 @@ export interface FormatExecute {
   [kOutput]?: boolean;
   [kWarning]?: boolean;
   [kInclude]?: boolean;
+  [kKeepMd]?: boolean;
+  [kKeepIpynb]?: boolean;
 }
 
 export interface FormatPandoc {
