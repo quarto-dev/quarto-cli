@@ -26,6 +26,7 @@ export async function testRender(
     args.push(...quartoArgs);
   }
 
+  // run quarto
   await quarto(args);
 
   if (verify) {

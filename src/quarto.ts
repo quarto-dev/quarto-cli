@@ -25,7 +25,10 @@ import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
 import { quartoConfig } from "./core/quarto.ts";
 import { parse } from "flags/mod.ts";
 
-export async function quarto(args: string[]) {
+export async function quarto(
+  args: string[],
+  cmdHandler?: (command: Command) => Command,
+) {
   const quartoCommand = new Command()
     .name("quarto")
     .version(quartoConfig.version() + "\n")
@@ -33,32 +36,34 @@ export async function quarto(args: string[]) {
     .throwErrors();
 
   commands().forEach((command) => {
-    quartoCommand.command(command.getName(), appendLogOptions(command));
+    quartoCommand.command(
+      command.getName(),
+      cmdHandler !== undefined ? cmdHandler(command) : command,
+    );
   });
 
+  await initializeLogger(logOptions(parse(args)));
+
+  // init temp dir
+  initSessionTempDir();
+
+  console.log(args);
   await quartoCommand.command("help", new HelpCommand().global())
     .command("completions", new CompletionsCommand()).hidden().parse(args);
+
+  // cleanup
+  cleanup();
 }
 
 if (import.meta.main) {
   try {
-    // Parse the raw args to read globals and initialize logging
-    const args = parse(Deno.args);
-    await initializeLogger(logOptions(args));
-
-    // init temp dir
-    initSessionTempDir();
-
     // install termination signal handlers
     if (Deno.build.os !== "windows") {
       onSignal(Deno.Signal.SIGINT, abend);
       onSignal(Deno.Signal.SIGTERM, abend);
     }
     // run quarto
-    await quarto(Deno.args);
-
-    // cleanup
-    cleanup();
+    await quarto(Deno.args, appendLogOptions);
 
     // exit
     Deno.exit(0);

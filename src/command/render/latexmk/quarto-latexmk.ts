@@ -120,7 +120,7 @@ export async function pdf(args: string[]) {
       await generatePdf(latexmkOptions);
     });
 
-  await appendLogOptions(pdfCommand)
+  appendLogOptions(pdfCommand)
     .command("help", new HelpCommand().global())
     .command("completions", new CompletionsCommand()).hidden()
     .parse(parsedArgs);

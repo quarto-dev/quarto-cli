@@ -7,3 +7,4 @@ __pycache__/
 tests/run-tests.sh
 package/dist/**
 /package/out
+/tests/cov_profile
