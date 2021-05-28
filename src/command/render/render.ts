@@ -391,8 +391,9 @@ export async function renderExecute(
   if (context.project && !alwaysExecute) {
     // check if we are using the freezer
 
-    const thaw = context.format.execute[kFreeze] ||
-      (context.options.useFreezer ? "auto" : false);
+    const thaw = context.engine.canFreeze &&
+      (context.format.execute[kFreeze] ||
+        (context.options.useFreezer ? "auto" : false));
 
     if (thaw) {
       // copy from project freezer

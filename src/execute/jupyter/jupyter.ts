@@ -225,6 +225,8 @@ export const jupyterEngine: ExecutionEngine = {
     return Promise.resolve();
   },
 
+  canFreeze: true,
+
   canKeepMd: true,
 
   keepFiles: (input: string) => {

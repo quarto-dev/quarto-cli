@@ -83,6 +83,8 @@ export const knitrEngine: ExecutionEngine = {
     );
   },
 
+  canFreeze: true,
+
   canKeepMd: true,
 
   ignoreGlobs: () => {
