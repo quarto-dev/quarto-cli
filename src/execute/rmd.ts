@@ -26,7 +26,7 @@ import {
 } from "./engine.ts";
 import { sessionTempFile } from "../core/temp.ts";
 
-const kRmdExtensions = [".rmd", ".rmarkdown"];
+const kRmdExtensions = [".rmd", ".rmarkdown", ".r"];
 
 const kKnitrEngine = "knitr";
 
