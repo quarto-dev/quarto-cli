@@ -122,6 +122,17 @@ export function quartoLatexmkOutputRecipe(
       Deno.removeSync(compileTex);
     }
 
+    const normalizePath = (input: string, output: string) => {
+      if (isAbsolute(output)) {
+        return output;
+      } else {
+        return relative(
+          Deno.realPathSync(dirname(input)),
+          Deno.realPathSync(output),
+        );
+      }
+    };
+
     // copy (or write for stdout) compiled pdf to final output location
     if (finalOutput) {
       if (finalOutput === kStdOut) {
@@ -150,16 +161,9 @@ export function quartoLatexmkOutputRecipe(
 
       // final output needs to either absolute or input dir relative
       // (however it may be working dir relative when it is passed in)
-      if (isAbsolute(finalOutput)) {
-        return finalOutput;
-      } else {
-        return relative(
-          Deno.realPathSync(dirname(input)),
-          Deno.realPathSync(finalOutput),
-        );
-      }
+      return normalizePath(input, finalOutput);
     } else {
-      return pdfOutput;
+      return normalizePath(input, pdfOutput);
     }
   };
 
