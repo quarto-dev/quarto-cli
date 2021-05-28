@@ -29,11 +29,6 @@ nav .dropdown-item i {
   padding-left: 20px;
 }
 
-.sidebar-navigation > nav {
-  max-width: 300px;
-  min-width: 250px;
-}
-
 .sidebar-navigation,
 .sidebar-navigation a {
   font-size: $nav-font-size;
@@ -245,6 +240,12 @@ header.headroom--unpinned {
 }
 
 @include media-breakpoint-up(lg) {
+
+  .sidebar-navigation > nav {
+    max-width: 300px;
+    min-width: 250px;
+  }
+  
   .sidebar.sidebar-navigation {
     display: block;
     position: sticky;
