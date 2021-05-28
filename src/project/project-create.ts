@@ -143,14 +143,11 @@ function projectMarkdownFile(
   // write jupyter kernel if necessary
   lines.push(...engine.defaultYaml(kernel));
 
-  // knit with quarto
-  lines.push("knit: quarto render");
-
   // end yaml
   lines.push("---", "");
 
-  // if there are only 3 lines then there was no title or jupyter entry, clear them
-  if (lines.length === 3) {
+  // if there are only 2 lines then there was no title or jupyter entry, clear them
+  if (lines.length === 2) {
     lines.splice(0, lines.length);
   }
 
