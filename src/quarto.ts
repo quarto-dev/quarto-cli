@@ -47,7 +47,6 @@ export async function quarto(
   // init temp dir
   initSessionTempDir();
 
-  console.log(args);
   await quartoCommand.command("help", new HelpCommand().global())
     .command("completions", new CompletionsCommand()).hidden().parse(args);
 
