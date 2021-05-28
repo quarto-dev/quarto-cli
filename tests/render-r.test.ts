@@ -7,7 +7,7 @@ const supportingFilesPath = "docs/test_files";
 // Basic HTML rendering with a plot
 Deno.test("render: Rmd\n", async () => {
   await testRender("docs/test.Rmd", true, "html", [], () => {
-    verifyAndCleanOutput("docs/test_files/figure-html/unnamed-chunk-1-1.png");
+    verifyAndCleanOutput("docs/test_files/figure-html/unnamed-chunk-2-1.png");
   });
 });
 
