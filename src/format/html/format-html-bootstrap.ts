@@ -213,7 +213,7 @@ function bootstrapHtmlPostprocessor(format: Format) {
       }
     }
 
-    // move ids from section to headers
+    // provide data-anchor-id to headings
     const sections = doc.querySelectorAll('section[class^="level"]');
     for (let i = 0; i < sections.length; i++) {
       const section = sections[i] as Element;
@@ -221,8 +221,7 @@ function bootstrapHtmlPostprocessor(format: Format) {
         section.querySelector("h3") || section.querySelector("h4") ||
         section.querySelector("h5") || section.querySelector("h6");
       if (heading) {
-        heading.setAttribute("id", section.id);
-        section.removeAttribute("id");
+        heading.setAttribute("data-anchor-id", section.id);
       }
     }
 
