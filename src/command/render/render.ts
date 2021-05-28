@@ -450,7 +450,7 @@ export async function renderExecute(
 
   // keep md if requested
   const keepMd = executionEngineKeepMd(context.engine, context.target.input);
-  if (keepMd && context.format.render[kKeepMd]) {
+  if (keepMd && context.format.execute[kKeepMd]) {
     Deno.writeTextFileSync(keepMd, executeResult.markdown);
   }
 

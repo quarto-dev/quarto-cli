@@ -243,7 +243,7 @@ function cleanupNotebook(target: ExecutionTarget, format: Format) {
   // remove transient notebook if appropriate
   const data = target.data as JupyterTargetData;
   if (data.transient) {
-    if (!format.render[kKeepIpynb]) {
+    if (!format.execute[kKeepIpynb]) {
       Deno.removeSync(target.input);
     }
   }
