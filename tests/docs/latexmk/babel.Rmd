@@ -10,7 +10,7 @@ header-includes: |
   \usepackage{sansmath}
   \usepackage{makeidx}
   \makeindex
-  \usepackage[brazil]{babel}
+  \usepackage[french]{babel}
   \usepackage[T1]{fontenc}
   \usepackage[utf8]{inputenc}
 latex-makeindex: texindy
