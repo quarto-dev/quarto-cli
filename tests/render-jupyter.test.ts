@@ -11,7 +11,3 @@ Deno.test("render: ipynb", async () => {
 Deno.test("render: jupyter md", async () => {
   await testRender("docs/unpaired-md.md");
 });
-
-Deno.test("render: py file", async () => {
-  await testRender("docs/unpaired-py.py");
-});
