@@ -112,9 +112,11 @@ export function defrostExecuteResult(
       ) => {
         if (result.dependencies?.type === "includes") {
           const includes = result.dependencies.data as PandocIncludes;
-          const includeFile = sessionTempFile();
-          Deno.writeTextFileSync(includeFile, includes[name]!);
-          includes[name] = includeFile;
+          if (includes[name]) {
+            const includeFile = sessionTempFile();
+            Deno.writeTextFileSync(includeFile, includes[name]!);
+            includes[name] = includeFile;
+          }
         }
       };
       resolveIncludes(kIncludeInHeader);
