@@ -182,7 +182,7 @@ async function runLatexCommand(
         "\nNo TeX installation was detected.\n\nPlease run 'quarto install tinytex' to install TinyTex.\nIf you prefer, you may install TexLive or another TeX distribution.\n",
       );
       return Promise.reject();
-    } else if (e.name === "NotFound" && pkMgr && pkMgr.autoInstall) {
+    } else if (pkMgr && pkMgr.autoInstall) {
       // If the command itself can't be found, try installing the command
       // if auto installation is enabled
       if (!quiet) {
