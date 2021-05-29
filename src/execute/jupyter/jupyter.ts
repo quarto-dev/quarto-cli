@@ -180,7 +180,7 @@ export const jupyterEngine: ExecutionEngine = {
     // return results
     return {
       markdown: result.markdown,
-      supporting: [assets.supporting_dir],
+      supporting: [join(assets.base_dir, assets.supporting_dir)],
       filters: [],
       dependencies,
       preserve: result.htmlPreserve,
