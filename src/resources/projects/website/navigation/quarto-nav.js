@@ -65,8 +65,9 @@ window.document.addEventListener("DOMContentLoaded", function() {
       linkStyle.removeChild(linkStyle.firstChild);
     }
     if (offset > 0) {
+
       linkStyle.appendChild(window.document.createTextNode(`
-      h2:target::before,h3:target::before,h4:target::before,h5:target::before,h6:target::before {
+      section:target::before {
         content: "";
         display: block;
         height: ${offset}px;
