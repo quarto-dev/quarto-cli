@@ -8,3 +8,4 @@ tests/run-tests.sh
 package/dist/**
 /package/out
 /tests/cov_profile
+/tests/cov_profile.lcov
