@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 
 # Determine the path to this script (we'll use this to figure out relative positions of other files)
 SOURCE="${BASH_SOURCE[0]}"
@@ -24,3 +24,10 @@ export QUARTO_DEBUG=true
 QUARTO_DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env --allow-net"
 
 ${DENO_DIR}/deno test ${QUARTO_DENO_OPTIONS} ${QUARTO_IMPORT_ARGMAP} $@
+
+${DENO_DIR}/deno coverage --unstable cov_profile --lcov > cov_profile.lcov
+
+genhtml -o cov_profile/html cov_profile.lcov
+
+open cov_profile/html/index.html
+
