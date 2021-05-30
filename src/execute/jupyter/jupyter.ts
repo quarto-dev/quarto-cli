@@ -65,7 +65,7 @@ const kJupyterEngine = "jupyter";
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,
 
-  defaultExt: ".md",
+  defaultExt: ".qmd",
 
   defaultYaml: (kernel?: string) => [
     `jupyter: ${kernel || "python3"}`,

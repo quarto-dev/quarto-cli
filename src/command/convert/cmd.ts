@@ -43,7 +43,7 @@ export const convertCommand = new Command()
   )
   .example(
     "Convert markdown to notebook",
-    "quarto convert mydocument.md --to notebook",
+    "quarto convert mydocument.qmd --to notebook",
   )
   .example(
     "Convert notebook to markdown, writing to filename",

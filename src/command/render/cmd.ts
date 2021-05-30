@@ -74,15 +74,15 @@ export const renderCommand = new Command()
     "Additional pandoc command line arguments.",
   )
   .example(
-    "Render R Markdown",
+    "Render Markdown (w/ Knitr engine)",
     "quarto render notebook.Rmd\n" +
       "quarto render notebook.Rmd --to html\n" +
       "quarto render notebook.Rmd --to pdf --toc",
   )
   .example(
-    "Render Jupyter Markdown",
-    "quarto render notebook.md\n" +
-      "quarto render notebook.md --to docx --highlight-style=espresso",
+    "Render Markdown (w/ Jupyter engine)",
+    "quarto render notebook.qmd\n" +
+      "quarto render notebook.qmd --to docx --highlight-style=espresso",
   )
   .example(
     "Render Jupyter Notebook",
