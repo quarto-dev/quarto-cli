@@ -14,9 +14,10 @@ import {
   DependenciesOptions,
   ExecuteOptions,
   ExecutionEngine,
-  kQmdExtensions,
   PostProcessOptions,
 } from "./engine.ts";
+
+export const kMdExtensions = [".md", ".markdown"];
 
 export const markdownEngine: ExecutionEngine = {
   name: "none",
@@ -25,10 +26,10 @@ export const markdownEngine: ExecutionEngine = {
 
   defaultYaml: () => [],
 
-  validExtensions: () => kQmdExtensions,
+  validExtensions: () => kMdExtensions,
 
-  claimsExtension: (_ext: string) => {
-    return false;
+  claimsExtension: (ext: string) => {
+    return kMdExtensions.includes(ext.toLowerCase());
   },
   claimsLanguage: (_language: string) => {
     return false;

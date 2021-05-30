@@ -29,7 +29,7 @@ import { knitrEngine } from "./rmd.ts";
 import { jupyterEngine } from "./jupyter/jupyter.ts";
 import { markdownEngine } from "./markdown.ts";
 
-export const kQmdExtensions = [".md", ".markdown", ".qmd"];
+export const kQmdExtensions = [".qmd"];
 
 export interface ExecutionEngine {
   name: string;
@@ -154,11 +154,8 @@ export function executionEngineKeepMd(
   input: string,
 ) {
   if (engine.canKeepMd) {
-    const keepSuffix = `.${engine.name}.md`;
-    if (!input.endsWith(keepSuffix)) {
-      const [dir, stem] = dirAndStem(input);
-      return join(dir, stem + keepSuffix);
-    }
+    const [dir, stem] = dirAndStem(input);
+    return join(dir, stem + ".md");
   }
 }
 
