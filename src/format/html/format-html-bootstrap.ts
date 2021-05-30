@@ -191,7 +191,9 @@ function bootstrapHtmlPostprocessor(format: Format) {
     for (let i = 0; i < tableHeaders.length; i++) {
       const th = tableHeaders[i];
       if (th.parentNode?.parentNode) {
-        (th.parentNode.parentNode as Element).classList.add("table");
+        const table = th.parentNode.parentNode as Element;
+        table.removeAttribute("style");
+        table.classList.add("table");
       }
     }
 
