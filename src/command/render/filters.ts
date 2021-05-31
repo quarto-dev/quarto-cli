@@ -197,28 +197,31 @@ function quartoFilterParams(format: Format) {
   return params;
 }
 
-export function resolveFilters(userFilters: string[], options: PandocOptions) {
-  // filter chain
-  const filters: string[] = [];
-
-  // always run quarto pre filter
-  filters.push(quartoPreFilter());
-
-  // add crossref filter if necessary
+export function resolveFilters(filters: string[], options: PandocOptions) {
+  // build list of quarto filters
+  const quartoFilters: string[] = [];
+  quartoFilters.push(quartoPreFilter());
   if (crossrefFilterActive(options)) {
-    filters.push(crossrefFilter());
+    quartoFilters.push(crossrefFilter());
+  }
+  quartoFilters.push(layoutFilter());
+  quartoFilters.push(quartoPostFilter());
+
+  // if 'quarto' is in the filters, inject our filters at that spot,
+  // otherwise inject them at the end (they will be followed by citeproc)
+  const quartoLoc = filters.findIndex((filter) => filter === "quarto");
+  if (quartoLoc !== -1) {
+    filters = [
+      ...filters.slice(0, quartoLoc),
+      ...quartoFilters,
+      ...filters.slice(quartoLoc + 1),
+    ];
+  } else {
+    filters.push(...quartoFilters);
   }
 
-  // add layout filter
-  filters.push(layoutFilter());
-
-  // add quarto post filter
-  filters.push(quartoPostFilter());
-
-  // add user filters (remove citeproc if it's there)
-  filters.push(...userFilters.filter((filter) => filter !== "citeproc"));
-
   // citeproc at the very end so all other filters can interact with citations
+  filters = filters.filter((filter) => filter !== "citeproc");
   const citeproc = citeMethod(options) === "citeproc";
   if (citeproc) {
     filters.push("citeproc");
