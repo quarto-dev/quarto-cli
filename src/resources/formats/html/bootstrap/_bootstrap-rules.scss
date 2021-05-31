@@ -253,6 +253,10 @@ div.hanging-indent {
   white-space: pre;
 }
 
+.table a {
+  word-break: break-word;
+}
+
 @if $code-border-left {
   // Align source code and callout text (not border) with main body text when there is room
   @include media-breakpoint-up(lg) {
