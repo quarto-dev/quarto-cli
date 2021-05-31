@@ -25,9 +25,8 @@ QUARTO_DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-e
 
 ${DENO_DIR}/deno test ${QUARTO_DENO_OPTIONS} ${QUARTO_IMPORT_ARGMAP} $@
 
-${DENO_DIR}/deno coverage --unstable cov_profile --lcov > cov_profile.lcov
-
-genhtml -o cov_profile/html cov_profile.lcov
-
-open cov_profile/html/index.html
+# Generates the coverage report
+# ${DENO_DIR}/deno coverage --unstable cov_profile --lcov > cov_profile.lcov
+# genhtml -o cov_profile/html cov_profile.lcov
+# open cov_profile/html/index.html
 
