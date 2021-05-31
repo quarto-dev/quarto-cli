@@ -1,4 +1,7 @@
+import { existsSync } from "fs/mod.ts";
+
 import { removePackage } from "../src/command/render/latexmk/texlive.ts";
+
 import { testRender } from "./render.ts";
 
 Deno.test("render: (all)", async () => {
@@ -38,6 +41,12 @@ Deno.test("render:esto pdf", async () => {
   ensurePackageRemoved("epstopdf");
 
   await testRender("docs/latexmk/estopdf.Rmd", false, "pdf");
+
+  // clean intermediary that is produced:
+  const estopdf = "docs/latexmk/estosoccer-eps-converted-to.pdf";
+  if (existsSync(estopdf)) {
+    Deno.removeSync(estopdf);
+  }
 });
 
 Deno.test("render:make index", async () => {

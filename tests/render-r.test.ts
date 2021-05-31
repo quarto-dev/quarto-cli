@@ -1,8 +1,5 @@
-import { quarto } from "../src/quarto.ts";
-import { verifyAndCleanOutput, verifyNoPath } from "./verify.ts";
+import { verifyAndCleanOutput } from "./verify.ts";
 import { testRender } from "./render.ts";
-
-const supportingFilesPath = "docs/test_files";
 
 // Basic HTML rendering with a plot
 Deno.test("render: Rmd\n", async () => {
