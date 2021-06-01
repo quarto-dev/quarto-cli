@@ -241,7 +241,7 @@ export interface FormatPandoc {
   [kSectionDivs]?: boolean;
   [kHtmlMathMethod]?: string;
   [kTopLevelDivision]?: string;
-  [kShiftHeadingLevelBy]?: string;
+  [kShiftHeadingLevelBy]?: number;
 }
 
 export function isLatexOutput(format: FormatPandoc) {
