@@ -31,6 +31,8 @@ TAR -xvf %DENO_FILE%
 DEL %DENO_FILE%
 ECHO .
 
+deno cache --reload ..\..\..\src\quarto.ts --unstable --importmap=..\..\..\src\import_map.json
+
 SET FINAL_BIN_PATH=%cd%
 
 POPD
