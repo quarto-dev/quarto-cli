@@ -24,9 +24,9 @@ export async function updateHtmlDepedencies(config: Configuration) {
   if (!bsIconVersion) {
     throw new Error(`BOOTSTRAP_FONT is not defined`);
   }
-  const bSwatchVersion = Deno.env.get("BOOTSWATCH_BRANCH");
+  const bSwatchVersion = Deno.env.get("BOOTSWATCH");
   if (!bSwatchVersion) {
-    throw new Error(`BOOTSWATCH_BRANCH is not defined`);
+    throw new Error(`BOOTSWATCH is not defined`);
   }
   info(`Boostrap: ${bsVersion}`);
   info(`Boostrap Icon: ${bsIconVersion}`);
@@ -119,11 +119,25 @@ export async function updateHtmlDepedencies(config: Configuration) {
     ensureDirSync(dir);
   });
 
+  const workingSubDir = (name: string) => {
+    const dir = join(workingDir, name);
+    ensureDirSync(dir);
+    return dir;
+  };
+
   // Update bootstrap
-  await updateBootstrapDist(bsVersion, workingDir, bsDistDir);
-  await updateBootstrapSass(bsVersion, workingDir, bsDistDir);
-  await updateBoostrapIcons(bsIconVersion, workingDir, bsDistDir);
-  await updateBootswatch(bSwatchVersion, workingDir, bsThemesDir);
+  await updateBootstrapDist(bsVersion, workingSubDir("bsdist"), bsDistDir);
+  await updateBootstrapSass(bsVersion, workingSubDir("bssass"), bsDistDir);
+  await updateBoostrapIcons(
+    bsIconVersion,
+    workingSubDir("bsicons"),
+    bsDistDir,
+  );
+  await updateBootswatch(
+    bSwatchVersion,
+    workingSubDir("bootswatch"),
+    bsThemesDir,
+  );
 
   // Clean up the temp dir
   Deno.removeSync(workingDir, { recursive: true });
@@ -138,9 +152,9 @@ async function updateBootswatch(
   themesDir: string,
 ) {
   info("Updating Bootswatch themes...");
-  const fileName = `master.zip`;
+  const fileName = `v${version}.zip`;
   const distUrl =
-    `https://github.com/thomaspark/bootswatch/archive/refs/heads/${fileName}`;
+    `https://github.com/thomaspark/bootswatch/archive/refs/tags/${fileName}`;
   const zipFile = join(working, fileName);
   const exclude = ["4"];
 
@@ -152,7 +166,7 @@ async function updateBootswatch(
   // Read each bootswatch theme directory and merge the scss files
   // into a single theme file for Quarto
   info("Merging themes:");
-  const distPath = join(working, "bootswatch-master", "dist");
+  const distPath = join(working, `bootswatch-${version}`, "dist");
   for (const dirEntry of Deno.readDirSync(distPath)) {
     if (dirEntry.isDirectory && !exclude.includes(dirEntry.name)) {
       // this is a theme directory
