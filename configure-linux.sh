@@ -28,6 +28,8 @@ wget -q --show-progress -O $DENOFILE $DENOURL/$DENO/$DENOFILE
 unzip -o $DENOFILE
 rm $DENOFILE
 
+deno cache --reload ../../../src/quarto.ts --unstable --importmap=../../../src/import_map.json
+
 popd
 popd
 popd
