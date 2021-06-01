@@ -24,7 +24,7 @@ import {
   kTopLevelDivision,
   kWarning,
 } from "../../config/constants.ts";
-import { Format } from "../../config/format.ts";
+import { Format, FormatExtras } from "../../config/format.ts";
 
 import { createFormat } from "../formats.ts";
 
@@ -76,10 +76,6 @@ function createPdfFormat(autoShiftHeadings = true): Format {
         [kFigFormat]: "pdf",
         [kFigDpi]: 300,
       },
-      metadata: {
-        [kDocumentClass]: "scrartcl",
-        [kPaperSize]: "letter",
-      },
       pandoc: {
         standalone: true,
         variables: {
@@ -88,6 +84,15 @@ function createPdfFormat(autoShiftHeadings = true): Format {
         },
       },
       formatExtras: (flags: PandocFlags, format: Format) => {
+        // default to KOMA article class. we do this here rather than
+        // above so that projectExtras can override us
+        const extras: FormatExtras = {
+          metadata: {
+            [kDocumentClass]: "scrartcl",
+            [kPaperSize]: "letter",
+          },
+        };
+
         // pdfs with no other heading level oriented options get their heading level shifted by -1
         if (
           autoShiftHeadings &&
@@ -98,12 +103,12 @@ function createPdfFormat(autoShiftHeadings = true): Format {
           flags?.[kShiftHeadingLevelBy] === undefined &&
           format.pandoc?.[kShiftHeadingLevelBy] === undefined
         ) {
-          return {
-            pandoc: {
-              [kShiftHeadingLevelBy]: -1,
-            },
+          extras.pandoc = {
+            [kShiftHeadingLevelBy]: -1,
           };
         }
+
+        return extras;
       },
     },
   );

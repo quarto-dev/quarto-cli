@@ -397,6 +397,12 @@ async function resolveExtras(
     extras[kTocTitle] = projectExtras[kTocTitle];
   }
 
+  // project documentclass always wins
+  if (projectExtras.metadata?.[kDocumentClass]) {
+    extras.metadata = extras.metadata || {};
+    extras.metadata[kDocumentClass] = projectExtras.metadata?.[kDocumentClass];
+  }
+
   // perform html-specific merging
   if (isHtmlOutput(format.pandoc)) {
     // resolve sass bundles
