@@ -107,7 +107,9 @@ function calloutDiv(div)
 
   -- the image placeholder
   local noicon = ""
-  if icon == "false" or type == nil then
+
+  -- Check to see whether this is a recognized type
+  if icon == "false" or not isBuiltInType(type) or type == nil then
     noicon = " no-icon"
     calloutDiv.attr.classes:insert("no-icon")
   end
@@ -509,4 +511,9 @@ function iconForType(type)
   else
     return nil
   end
+end
+
+function isBuiltInType(type) 
+  local icon = iconForType(type)
+  return icon ~= nil
 end
