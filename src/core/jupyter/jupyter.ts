@@ -930,7 +930,7 @@ function mdFromCodeCell(
     const classes = Array.isArray(cellClasses) ? cellClasses : [cellClasses];
     const classText = classes
       .map((clz: string) => {
-        clz = ld.toString(clz);
+        clz = ld.toString(clz) as string;
         return clz.startsWith(".") ? clz : ("." + clz);
       })
       .join(" ");
