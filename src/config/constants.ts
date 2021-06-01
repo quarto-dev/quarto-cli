@@ -139,6 +139,7 @@ export const kNumberOffset = "number-offset";
 export const kShiftHeadingLevelBy = "shift-heading-level-by";
 export const kNumberDepth = "number-depth";
 export const kTopLevelDivision = "top-level-division";
+export const kPaperSize = "papersize";
 export const kLogFile = "log-file";
 export const kHighlightStyle = "highlight-style";
 export const kVariables = "variables";

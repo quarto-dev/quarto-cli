@@ -31,44 +31,6 @@ export function crossrefFilterActive(options: PandocOptions) {
   return options.format.metadata.crossref !== false;
 }
 
-export function crossrefGeneratedDefaults(options: PandocOptions) {
-  // if the chapters options is set and there is no explicit top-level-division
-  // then set the top-level-division to chapters
-  if (typeof options.format.metadata.crossref === "object") {
-    const crossref = options.format.metadata.crossref as Record<
-      string,
-      unknown
-    >;
-    if (crossref.chapters) {
-      const defaults: Record<string, unknown> = {};
-      if (crossrefOption(kTopLevelDivision, options) === undefined) {
-        defaults[kTopLevelDivision] = "chapter";
-      }
-      if (crossrefOption(kNumberSections, options) === undefined) {
-        defaults[kNumberSections] = true;
-      }
-      return defaults;
-    }
-  }
-
-  // pdfs with no other heading level oriented options get their heading level shifted by -1
-  if (
-    (isLatexOutput(options.format.pandoc) &&
-      !isBeamerOutput(options.format.pandoc)) &&
-    options.flags?.[kTopLevelDivision] === undefined &&
-    options.format.pandoc?.[kTopLevelDivision] === undefined &&
-    options.flags?.[kShiftHeadingLevelBy] === undefined &&
-    options.format.pandoc?.[kShiftHeadingLevelBy] === undefined
-  ) {
-    return {
-      [kShiftHeadingLevelBy]: -1,
-    };
-  }
-
-  // return no defaults
-  return undefined;
-}
-
 export function crossrefFilterParams(
   flags?: PandocFlags,
   defaults?: FormatPandoc,
