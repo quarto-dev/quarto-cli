@@ -15,6 +15,7 @@ import {
   kQmdExtensions,
   PostProcessOptions,
 } from "../engine.ts";
+import { lines } from "../../core/text.ts";
 
 import { includesForObservableDependencies } from "../../core/observable/includes.ts";
 
@@ -54,8 +55,24 @@ export const observableEngine: ExecutionEngine = {
     // equivalent of quartoMdToJupyter, then off to the races!!!!
     // Errors in execution need to still render a page with the error
 
+    // Stupid attempt #1:
+    //   (may they be merciful on my soul)
+    let ls = lines(markdown);
+    for (let i = 0; i < ls.length; ++i) {
+      let l = ls[i];
+      if (l === "```{ojs}") {
+        ls[i] = "```{=html}\n<script type=\"observable-js\">";
+        for (let j = i + 1; j < ls.length; ++j) {
+          let maybeCloseTicks = ls[j];
+          if (ls[j] === "```") {
+            ls[j] = "</script>\n```";
+          }
+        }
+      }
+    }
+    
     return Promise.resolve({
-      markdown: markdown,
+      markdown: ls.join("\n") + "\n\n**Now with observable-js script tags**",
 
       // for raw html,
       // ```{=html}
