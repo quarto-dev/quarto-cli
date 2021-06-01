@@ -16,6 +16,8 @@ import {
   PostProcessOptions,
 } from "../engine.ts";
 
+import { includesForObservableDependencies } from "../../core/observable/includes.ts";
+
 export const observableEngine: ExecutionEngine = {
   name: "observable",
 
@@ -46,13 +48,14 @@ export const observableEngine: ExecutionEngine = {
   execute: (options: ExecuteOptions) => {
     // read markdown
     const markdown = Deno.readTextFileSync(options.target.input);
-
+    const dependencies = includesForObservableDependencies();
+    
     // TODO
     // equivalent of quartoMdToJupyter, then off to the races!!!!
     // Errors in execution need to still render a page with the error
 
     return Promise.resolve({
-      markdown: markdown + "\n\nBrought to you by Observable",
+      markdown: markdown,
 
       // for raw html,
       // ```{=html}
@@ -60,10 +63,8 @@ export const observableEngine: ExecutionEngine = {
       // ```
 
       dependencies: {
-        type: "includes",
-        data: {
-          // files or not files, who knows!
-        },
+        ...dependencies,
+        type: "includes"
       },
       supporting: [],
       filters: [],
