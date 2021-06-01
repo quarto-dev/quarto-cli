@@ -1,13 +1,11 @@
-import { testRender } from "./render.ts";
+/*
+* render.jupyter.test.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
+import { tryRender } from "./render.ts";
 
-Deno.test("render: jupyter md to pdf", async () => {
-  await testRender("docs/test-jupyter.md", false, "pdf");
-});
-
-Deno.test("render: ipynb", async () => {
-  await testRender("docs/unpaired.ipynb");
-});
-
-Deno.test("render: jupyter md", async () => {
-  await testRender("docs/unpaired-md.md");
-});
+tryRender("docs/test-jupyter.md", "pdf");
+tryRender("docs/unpaired.ipynb", "html", ["--quiet"]);
+tryRender("docs/unpaired-md.md", "html");
