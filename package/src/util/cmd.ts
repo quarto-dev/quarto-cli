@@ -40,6 +40,9 @@ export async function runCmd(
     throw Error(`Command ${cmd} failed.`);
   }
 
+  // Close the child process
+  p.close();
+
   return {
     status,
     stdout,
