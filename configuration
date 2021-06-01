@@ -13,7 +13,7 @@ export PANDOC=2.14.0.1
 export DARTSASS=1.32.8
 
 # Bootstrap / javascript HTML dependencies
-export BOOTSTRAP=5.0.0
+export BOOTSTRAP=5.0.1
 export BOOTSTRAP_FONT=1.5.0
 export BOOTSWATCH=5.0.1
 export ANCHOR_JS=4.3.0
