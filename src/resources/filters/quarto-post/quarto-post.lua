@@ -12,8 +12,7 @@ postState = {}
 
 -- [import]
 function import(script)
-  local PATH_SEP = package.config:sub(1,1)
-  local path = PANDOC_SCRIPT_FILE:match("(.*"..PATH_SEP..")")
+  local path = PANDOC_SCRIPT_FILE:match("(.*[/\\])")
   dofile(path .. script)
 end
 import("bootstrap.lua")
