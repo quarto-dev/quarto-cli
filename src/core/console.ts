@@ -13,7 +13,7 @@ import { info } from "log/mod.ts";
 const kSpinnerChars = ["|", "/", "-", "\\"];
 const kSpinerContainerChars = ["(", ")"];
 const kSpinerCompleteContainerChars = ["[", "]"];
-const kSpinnerCompleteChar = "✓";
+const kSpinnerCompleteChar = Deno.build.os !== "windows" ? "✓" : "*";
 const kProgressIncrementChar = "#";
 const kProgressContainerChars = ["[", "]"];
 const kProgressBarWidth = 50;
