@@ -55,6 +55,7 @@ import {
 } from "./defaults.ts";
 import { filterParamsJson, removeFilterParmas } from "./filters.ts";
 import {
+  kDocumentClass,
   kFilterParams,
   kHighlightStyle,
   kIncludeAfterBody,
@@ -125,19 +126,22 @@ export async function runPandoc(
 
   // save args and metadata so we can print them (we may subsequently edit them)
   const printArgs = [...args];
-  const printMetadata = {
+  let printMetadata = {
     ...ld.cloneDeep(options.format.metadata),
     ...options.flags?.metadata,
   };
 
   // remove some metadata that are used as parameters to our lua filters
-  delete printMetadata.params;
-  deleteProjectMetadata(printMetadata);
-  deleteCrossrefMetadata(printMetadata);
+  const cleanMetadataForPrinting = (metadata: Metadata) => {
+    delete metadata.params;
+    deleteProjectMetadata(metadata);
+    deleteCrossrefMetadata(metadata);
+  };
+  cleanMetadataForPrinting(printMetadata);
 
   // generate defaults and capture defaults to be printed
   let allDefaults = await generateDefaults(options) || {};
-  const printAllDefaults = allDefaults ? ld.cloneDeep(allDefaults) : undefined;
+  let printAllDefaults = ld.cloneDeep(allDefaults) as FormatPandoc;
 
   // capture any filterParams in the FormatExtras
   const formatFilterParams = {} as Record<string, unknown>;
@@ -190,9 +194,11 @@ export async function runPandoc(
     // merge pandoc
     if (extras.pandoc) {
       allDefaults = mergeConfigs(extras.pandoc, allDefaults);
+      printAllDefaults = mergeConfigs(extras.pandoc, printAllDefaults);
 
       // Special case - theme is resolved on extras and should override allDefaults
       if (extras.pandoc[kHighlightStyle]) {
+        delete printAllDefaults[kHighlightStyle];
         allDefaults[kHighlightStyle] = extras.pandoc[kHighlightStyle];
       }
     }
@@ -203,6 +209,8 @@ export async function runPandoc(
         extras.metadata,
         options.format.metadata,
       );
+      printMetadata = mergeConfigs(extras.metadata, printMetadata);
+      cleanMetadataForPrinting(printMetadata);
     }
 
     if (extras[kIncludeInHeader]) {
@@ -395,6 +403,12 @@ async function resolveExtras(
   // project default toc title always wins
   if (projectExtras[kTocTitle]) {
     extras[kTocTitle] = projectExtras[kTocTitle];
+  }
+
+  // project documentclass always wins
+  if (projectExtras.metadata?.[kDocumentClass]) {
+    extras.metadata = extras.metadata || {};
+    extras.metadata[kDocumentClass] = projectExtras.metadata?.[kDocumentClass];
   }
 
   // perform html-specific merging
