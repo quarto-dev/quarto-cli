@@ -41,7 +41,7 @@ POPD
 
 PUSHD %QUARTO_PACKAGE_DIR%\src
 ECHO Configuring Quarto
-quarto-bld configure --log-level info
+CALL quarto-bld configure --log-level info
 
 POPD
 
