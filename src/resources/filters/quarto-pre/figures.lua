@@ -36,6 +36,19 @@ function figures()
         return createFigureDiv(el, linkedFig)
       end
       
+    end,
+
+    -- propagate fig.alt
+    Image = function(image)
+      if isHtmlOutput() then
+        -- read the fig.alt text and set the image alt
+        local altText = attribute(image, kFigAlt, nil);
+        if altText ~= nil then
+          image.attr.attributes["alt"] = altText
+          image.attr.attributes["fig.alt"] = nil
+          return image
+        end
+      end
     end
   }
 end
