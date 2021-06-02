@@ -190,11 +190,6 @@ export function fileExecutionEngine(file: string) {
     return undefined;
   }
 
-  // if this is a keepMd file then automatically use the markdown engine
-  if (kEngines.find((engine) => file.endsWith(`.${engine.name}.md`))) {
-    return markdownEngine;
-  }
-
   // try to find an engine that claims this extension outright
   for (const engine of kEngines) {
     if (engine.claimsExtension(ext)) {
