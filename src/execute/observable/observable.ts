@@ -18,6 +18,11 @@ import {
 import { lines } from "../../core/text.ts";
 
 import { includesForObservableDependencies } from "../../core/observable/includes.ts";
+import * as ojsSourceIncludes from "../../core/observable/js_source.ts";
+
+function escapeBackticks(str: String) {
+  return str.replaceAll(/`/g, '\\`').replaceAll(/\$/g, '\\$');
+}
 
 export const observableEngine: ExecutionEngine = {
   name: "observable",
@@ -50,38 +55,68 @@ export const observableEngine: ExecutionEngine = {
     // read markdown
     const markdown = Deno.readTextFileSync(options.target.input);
     const dependencies = includesForObservableDependencies();
-    
-    // TODO
-    // equivalent of quartoMdToJupyter, then off to the races!!!!
-    // Errors in execution need to still render a page with the error
 
-    // Stupid attempt #1:
-    //   (may they be merciful on my soul)
+    let ojsCellID = 0;
+
+    let needsPreamble = true;
+    let insideOjsCell: Boolean = false;
+
+    let uuid = "";
+    
     let ls = lines(markdown);
     for (let i = 0; i < ls.length; ++i) {
       let l = ls[i];
-      if (l === "```{ojs}") {
-        ls[i] = "```{=html}\n<script type=\"observable-js\">";
-        for (let j = i + 1; j < ls.length; ++j) {
-          let maybeCloseTicks = ls[j];
-          if (ls[j] === "```") {
-            ls[j] = "</script>\n```";
+      switch (insideOjsCell) {
+        case false:
+          if (l === "```{ojs}") {
+            insideOjsCell = true;
+            ojsCellID += 1;
+            const content = [
+              '```{=html}',
+              `<div id='ojs-cell-${ojsCellID}'></div>`,
+              `<script type='module'>`];
+            if (needsPreamble) {
+              needsPreamble = false;
+              content.push(ojsSourceIncludes.imports);
+              content.push(ojsSourceIncludes.preamble);
+            }
+
+            content.push(`window._ojsRuntime.setTargetElement(document.getElementById("ojs-cell-${ojsCellID}"));`)
+            content.push("window._ojsRuntime.interpret(`");
+            ls[i] = content.join("\n");
+            for (let j = i + 1; j < ls.length; ++j) {
+              let maybeCloseTicks = ls[j];
+              if (ls[j] === "```") {
+                // FIXME find a better way to uuid
+                uuid = String(Math.random()).slice(2,);
+                ls[j] = `/*${uuid}*/\n\`);\n</script>\n\`\`\``;
+                break;
+              }
+            }
           }
-        }
+          break;
+        case true:
+          if (ls[i].startsWith(`/*${uuid}*/`)) {
+            // cut the uuid out, we're no longer inside a cell.
+            ls[i] = ls[i].slice(uuid.length+4);
+            insideOjsCell = false;
+          } else {
+            // we're inside the ojs source definition This is sent to
+            // the runtime as a backtick string, so we need escaping.
+            ls[i] = escapeBackticks(ls[i]); 
+          }
+          break;
+        default:
+          break;
       }
     }
-    
-    return Promise.resolve({
-      markdown: ls.join("\n") + "\n\n**Now with observable-js script tags**",
 
-      // for raw html,
-      // ```{=html}
-      //
-      // ```
+    return Promise.resolve({
+      markdown: ls.join("\n"),
 
       dependencies: {
         ...dependencies,
-        type: "includes"
+        type: "includes",
       },
       supporting: [],
       filters: [],

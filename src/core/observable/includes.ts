@@ -7,17 +7,13 @@
 *
 */
 
-import {
-  kIncludeAfterBody,
-  kIncludeInHeader,
-} from "../../config/constants.ts";
+import { kIncludeAfterBody, kIncludeInHeader } from "../../config/constants.ts";
 
 import { sessionTempFile } from "../temp.ts";
 
 import { PandocIncludes } from "../../execute/engine.ts";
 
-export function includesForObservableDependencies()
-{
+export function includesForObservableDependencies() {
   const includes: PandocIncludes = {};
 
   // FIXME should move to core since it's copied from widgets.ts
@@ -30,10 +26,10 @@ export function includesForObservableDependencies()
   };
 
   includes[kIncludeInHeader] = widgetTempFile([`<script type="module">
-  import alexGarciaUnofficialObservablehqCompiler from 'https://cdn.skypack.dev/@alex.garcia/unofficial-observablehq-compiler';
+  import { Interpreter, Runtime } from 'https://cdn.skypack.dev/@alex.garcia/unofficial-observablehq-compiler';
 </script>`]);
 
   return {
-    data: includes
+    data: includes,
   };
 }
