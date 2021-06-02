@@ -13,6 +13,8 @@ import { sessionTempFile } from "../temp.ts";
 
 import { PandocIncludes } from "../../execute/engine.ts";
 
+import { css } from "./js_source.ts";
+
 export function includesForObservableDependencies() {
   const includes: PandocIncludes = {};
 
@@ -25,9 +27,7 @@ export function includesForObservableDependencies() {
     return tempFile;
   };
 
-  includes[kIncludeInHeader] = widgetTempFile([`<script type="module">
-  import { Interpreter, Runtime } from 'https://cdn.skypack.dev/@alex.garcia/unofficial-observablehq-compiler';
-</script>`]);
+  includes[kIncludeInHeader] = widgetTempFile([css]);
 
   return {
     data: includes,
