@@ -50,12 +50,12 @@ export function rBinaryEnv(
   return {
     name,
     path: async () => {
-      let path = rBinaryPath(cmd);
+      const path = rBinaryPath(cmd);
       if (path === cmd) {
-        path = await which(cmd) ||
-          cmd;
+        return await which(cmd);
+      } else {
+        return path;
       }
-      return path;
     },
     version: async () => {
       try {

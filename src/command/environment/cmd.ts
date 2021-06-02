@@ -102,7 +102,7 @@ async function printEnvironmentData(
   const metadata = await getMetadata(envData);
   cancelSpinner(false);
 
-  if (path || version || metadata) {
+  if ((path && version) || metadata) {
     // Print the title
     info(envData.name, { bold: true });
 
