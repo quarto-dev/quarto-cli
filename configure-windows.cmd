@@ -41,12 +41,12 @@ POPD
 
 PUSHD %QUARTO_PACKAGE_DIR%\src
 ECHO Configuring Quarto
-quarto-bld configure --log-level info
+CALL quarto-bld configure --log-level info
 
 POPD
 
 SET QUARTO_DENO_EXTRA_OPTIONS="--reload"
-%FINAL_BIN_PATH%\quarto --version
+CALL %FINAL_BIN_PATH%\quarto --version
 
 ECHO NOTE: To use quarto please use quarto-cmd (located in this folder) or add the following path to your PATH
 ECHO %FINAL_BIN_PATH%
