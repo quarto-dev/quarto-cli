@@ -21,7 +21,12 @@ export function createRuntime()
       targetElement = el;
     },
     async interpret(src) {
-      let result = await interpreter.module(src);
+      // immediately bind current value of targetElement to an IIFE
+      // to avoid a race between quarto and the observable async runtime
+      let iife = (function(target) {
+        return () => new Inspector(target.appendChild(document.createElement("div")));
+      })(targetElement);
+      let result = await interpreter.module(src, undefined, iife);
       return result;
     }
   };
