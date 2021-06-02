@@ -10,18 +10,20 @@ import { defaultProjectType } from "./project-default.ts";
 import { ProjectType } from "./project-type.ts";
 import { websiteProjectType } from "./website/website.ts";
 
-const kTypes = [
-  defaultProjectType,
-  websiteProjectType,
-  bookProjectType,
-];
+function kTypes() {
+  return [
+    defaultProjectType,
+    websiteProjectType,
+    bookProjectType,
+  ];
+}
 
 export function projectTypes(): string[] {
-  return kTypes.map((type) => type.type);
+  return kTypes().map((type) => type.type);
 }
 
 export function projectType(type = "default"): ProjectType {
-  const projectType = kTypes.find((pt) => pt.type === type);
+  const projectType = kTypes().find((pt) => pt.type === type);
   if (projectType) {
     return projectType;
   } else {
