@@ -223,14 +223,9 @@ export function cleanupLogger() {
 }
 
 export function logError(e: Error) {
-  error(() => {
-    const isDebug = getenv("QUARTO_DEBUG", "false") === "true";
-    if (isDebug) {
-      return e.stack;
-    } else {
-      return `${e.name}: ${e.message}`;
-    }
-  });
+  const isDebug = getenv("QUARTO_DEBUG", "false") === "true";
+  // Suppress the stack if this isn't a local / debug build
+  error(isDebug ? e.stack : `${e.name}: ${e.message}`);
 }
 
 export function warnOnce(msg: string) {
