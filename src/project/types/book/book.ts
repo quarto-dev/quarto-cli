@@ -37,7 +37,7 @@ import {
   PandocOptions,
 } from "../../../command/render/pandoc.ts";
 
-import { ProjectCreate, ProjectType } from "../project-types.ts";
+import { ProjectCreate, ProjectType } from "../project-type.ts";
 import { ProjectContext } from "../../project-context.ts";
 import {
   crossrefIndexForOutputFile,

@@ -19,7 +19,8 @@ import { kMetadataFile, kMetadataFiles } from "../config/constants.ts";
 import { Format, FormatExtras } from "../config/format.ts";
 import { PandocFlags } from "../config/flags.ts";
 
-import { ProjectType, projectType } from "./types/project-types.ts";
+import { ProjectType } from "./types/project-type.ts";
+import { projectType } from "./types/project-types.ts";
 
 import { resolvePathGlobs } from "../core/path.ts";
 
