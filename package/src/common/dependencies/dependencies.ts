@@ -22,13 +22,10 @@ export interface PlatformDependency {
   configure(path: string): Promise<void>;
 }
 
-export function dependencies(): Dependency[] {
-  // List of the dependencies that can be installed
-  return [
-    pandoc(version("PANDOC")),
-    dartSass(version("DARTSASS")),
-  ];
-}
+export const kDependencies = [
+  pandoc(version("PANDOC")),
+  dartSass(version("DARTSASS")),
+];
 
 function version(env: string) {
   const version = Deno.env.get(env);

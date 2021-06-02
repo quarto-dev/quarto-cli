@@ -16,7 +16,7 @@ export interface EnvironmentData {
   name: string;
   path: () => Promise<string | Record<string, string> | undefined>;
   version: () => Promise<string | undefined>;
-  metadata?: () => Promise<Record<string, string>>;
+  metadata?: () => Promise<Record<string, string> | undefined>;
   options?: EnvironmentDataOutputOptions;
 }
 
@@ -102,7 +102,7 @@ async function printEnvironmentData(
   const metadata = await getMetadata(envData);
   cancelSpinner(false);
 
-  if (path || version || metadata) {
+  if ((path && version) || metadata) {
     // Print the title
     info(envData.name, { bold: true });
 
