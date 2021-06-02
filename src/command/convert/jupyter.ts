@@ -27,7 +27,7 @@ import {
 } from "../../core/jupyter/jupyter.ts";
 import { Metadata } from "../../config/metadata.ts";
 
-export async function convertMarkdownToNotebook(
+export async function markdownToJupyterNotebook(
   file: string,
   includeIds: boolean,
 ) {
@@ -35,7 +35,7 @@ export async function convertMarkdownToNotebook(
   return JSON.stringify(notebook, null, 2);
 }
 
-export function convertNotebookToMarkdown(file: string, includeIds: boolean) {
+export function jupyterNotebookToMarkdown(file: string, includeIds: boolean) {
   // read notebook & alias kernelspec
   const notebook = jupyterFromFile(file);
   const kernelspec = notebook.metadata.kernelspec;

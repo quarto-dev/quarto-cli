@@ -12,9 +12,9 @@ import { Command } from "cliffy/command/mod.ts";
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
 import { dirAndStem } from "../../core/path.ts";
 import {
-  convertMarkdownToNotebook,
-  convertNotebookToMarkdown,
-} from "./convert.ts";
+  jupyterNotebookToMarkdown,
+  markdownToJupyterNotebook,
+} from "./jupyter.ts";
 
 const kNotebookFormat = "notebook";
 const kMarkdownFormat = "markdown";
@@ -84,8 +84,8 @@ export const convertCommand = new Command()
 
     // perform conversion
     const converted = srcFormat === kNotebookFormat
-      ? convertNotebookToMarkdown(path, includeIds)
-      : await convertMarkdownToNotebook(path, includeIds);
+      ? jupyterNotebookToMarkdown(path, includeIds)
+      : await markdownToJupyterNotebook(path, includeIds);
 
     // write output
     const [dir, stem] = dirAndStem(path);
