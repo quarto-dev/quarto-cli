@@ -18,8 +18,10 @@ export function pythonEnv(
 ): EnvironmentData {
   return {
     name: name,
-    path: () => {
-      return Promise.resolve(pythonBinary(name));
+    path: async () => {
+      // Need to resolve the path (e.g. which)
+      const path = await which(pythonBinary(name));
+      return path;
     },
     version: async () => {
       try {
@@ -53,7 +55,7 @@ export function rBinaryEnv(
         path = await which(cmd) ||
           cmd;
       }
-      return Promise.resolve(path);
+      return path;
     },
     version: async () => {
       try {
@@ -81,63 +83,68 @@ export function rPackageEnv(): EnvironmentData {
       return Promise.resolve(undefined);
     },
     metadata: async () => {
-      const runR = async (code: string): Promise<string> => {
-        const codePath = sessionTempFile({ suffix: ".R" });
-        Deno.writeTextFileSync(
-          codePath,
-          code,
+      try {
+        const runR = async (code: string): Promise<string> => {
+          const codePath = sessionTempFile({ suffix: ".R" });
+          Deno.writeTextFileSync(
+            codePath,
+            code,
+          );
+
+          const result = await execProcess(
+            {
+              cmd: [
+                rBinaryPath("Rscript"),
+                codePath,
+              ],
+              stdout: "piped",
+              stderr: "piped",
+            },
+          );
+
+          return Promise.resolve(result.stdout || result.stderr || "");
+        };
+
+        // Read the required packages
+        const requiredRaw = await runR(
+          `ap <- available.packages(repos = "http://cran.us.r-project.org")
+          packs <- tools::package_dependencies(packages = "quarto", db = ap, recursive = TRUE)
+          packs <- paste(packs, collapse=",")
+          packs`,
         );
 
-        const result = await execProcess(
-          {
-            cmd: [
-              rBinaryPath("Rscript"),
-              codePath,
-            ],
-            stdout: "piped",
-            stderr: "piped",
-          },
-        );
+        const pkgRegex = /\\\"([a-zA-Z0-9_.-]*)\\\"/g;
+        const matches = requiredRaw.matchAll(pkgRegex);
+        const requiredPackages: string[] = [];
+        for (const match of matches) {
+          requiredPackages.push(match[1]);
+        }
 
-        return Promise.resolve(result.stdout || result.stderr || "");
-      };
+        // Read installed packages
+        const packagesRaw = await runR(`
+          installedPackages <- as.data.frame(installed.packages()[,c(1,3:4)])
+          installedPackages <- installedPackages[is.na(installedPackages$Priority),2,drop=FALSE]
+          installedPackages`);
 
-      // Read the required packages
-      const requiredRaw = await runR(
-        `ap <- available.packages(repos = "http://cran.us.r-project.org")
-        packs <- tools::package_dependencies(packages = "quarto", db = ap, recursive = TRUE)
-        packs <- paste(packs, collapse=",")
-        packs`,
-      );
-
-      const pkgRegex = /\\\"([a-zA-Z0-9_.-]*)\\\"/g;
-      const matches = requiredRaw.matchAll(pkgRegex);
-      const requiredPackages: string[] = [];
-      for (const match of matches) {
-        requiredPackages.push(match[1]);
-      }
-
-      // Read installed packages
-      const packagesRaw = await runR(`
-        installedPackages <- as.data.frame(installed.packages()[,c(1,3:4)])
-        installedPackages <- installedPackages[is.na(installedPackages$Priority),2,drop=FALSE]
-        installedPackages`);
-
-      const packages = packagesRaw
-        .split("\n").filter((line) => {
-          for (
-            const pkg of requiredPackages
-          ) {
-            if (line.startsWith(`${pkg} `)) {
-              return true;
+        const packages = packagesRaw
+          .split("\n").filter((line) => {
+            for (
+              const pkg of requiredPackages
+            ) {
+              if (line.startsWith(`${pkg} `)) {
+                return true;
+              }
             }
-          }
-          return false;
-        })
-        .join("\n");
-      return Promise.resolve({
-        packages: packages,
-      });
+            return false;
+          })
+          .join("\n");
+        const result: Record<string, string> = {
+          packages: packages,
+        };
+        return result;
+      } catch {
+        return Promise.resolve(undefined);
+      }
     },
     options: { newline: true },
   };

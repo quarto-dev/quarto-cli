@@ -16,7 +16,7 @@ export interface EnvironmentData {
   name: string;
   path: () => Promise<string | Record<string, string> | undefined>;
   version: () => Promise<string | undefined>;
-  metadata?: () => Promise<Record<string, string>>;
+  metadata?: () => Promise<Record<string, string> | undefined>;
   options?: EnvironmentDataOutputOptions;
 }
 
