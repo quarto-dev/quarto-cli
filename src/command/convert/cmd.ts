@@ -32,7 +32,7 @@ export const convertCommand = new Command()
     "Format to convert to (markdown or notebook)",
   )
   .option(
-    "--output",
+    "--output [path:string]",
     "Write output to PATH (use '--output -' for stdout).",
   )
   .option(
