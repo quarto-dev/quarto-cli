@@ -58,7 +58,7 @@ import {
   displayDataMimeType,
   isCaptionableData,
   isDisplayData,
-} from "./display_data.ts";
+} from "./display-data.ts";
 import {
   extractJupyterWidgetDependencies,
   JupyterWidgetDependencies,
