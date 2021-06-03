@@ -36,17 +36,18 @@ export async function observableNotebookToMarkdown(
   const json = new TextDecoder().decode(body);
   const nb = JSON.parse(json);
 
+  // see if we can determine a default file name
+  let file = output || nb.id as string;
+  const slug = nb.slug || nb.fork_of?.slug;
+  if (typeof (slug) === "string") {
+    file = slug;
+  } else if (typeof (nb.title) === "string") {
+    file = pandocAutoIdentifier(nb.title, false);
+  }
+
   // determine/ensure output directory
   if (!output) {
-    // first check slug
-    const slug = nb.slug || nb.fork_of?.slug;
-    if (typeof (slug) === "string") {
-      output = slug;
-    } else if (typeof (nb.title) === "string") {
-      output = pandocAutoIdentifier(nb.title, false);
-    } else {
-      output = nb.id as string;
-    }
+    output = file;
   }
   ensureDirSync(output);
   info(`Writing converted notebook to: ${output}/`);
@@ -162,7 +163,7 @@ export async function observableNotebookToMarkdown(
   lines.push("");
 
   // write markdown
-  const qmdFile = join(output, basename(output) + ".qmd");
+  const qmdFile = join(output, file + ".qmd");
   info("  Writing markdown: " + basename(qmdFile));
   Deno.writeTextFileSync(qmdFile, lines.join("\n"));
 }
