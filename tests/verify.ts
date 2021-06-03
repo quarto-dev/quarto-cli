@@ -1,21 +1,18 @@
+/*
+* verify.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
+
 import { existsSync } from "fs/exists.ts";
 import { assert } from "testing/asserts.ts";
 
-import { basename, dirname, extname, join } from "path/mod.ts";
+import { outputForInput } from "./utils.ts";
 
-export function verifyAndCleanOutput(
-  output: string,
-) {
-  const outputExists = existsSync(output);
-  assert(outputExists, `Missing output: ${output}`);
-  if (outputExists) {
-    Deno.removeSync(output, { recursive: true });
-  }
-}
-
-export function verifyNoPath(path: string) {
+export function verifyPath(path: string) {
   const pathExists = existsSync(path);
-  assert(!pathExists, `Unexpected directory: ${path}`);
+  assert(pathExists, `Path ${path} doesn't exist`);
 }
 
 interface Output {
@@ -23,17 +20,45 @@ interface Output {
   supportPath: string;
 }
 
-function outputForInput(input: string, to: string) {
-  const dir = dirname(input);
-  const stem = basename(input, extname(input));
+export interface VerifyRender {
+  name: string;
+  verify: (input: string, to: string) => void;
+}
 
-  const outputExt = to || "html";
-
-  const outputPath = join(dir, `${stem}.${outputExt}`);
-  const supportPath = join(dir, `${stem}_files`);
-
+export const fileExists = (file: string): VerifyRender => {
   return {
-    outputPath,
-    supportPath,
+    name: `File ${file} exists`,
+    verify: (_input: string, _to: string) => {
+      verifyPath(file);
+    },
   };
+};
+
+export const noSupportingFiles = {
+  name: "No Supporting Files Dir",
+  verify: (input: string, to: string) => {
+    const output = outputForInput(input, to);
+    verifyNoPath(output.supportPath);
+  },
+};
+
+export const hasSupportingFiles = {
+  name: "Has Supporting Files Dir",
+  verify: (input: string, to: string) => {
+    const output = outputForInput(input, to);
+    verifyPath(output.supportPath);
+  },
+};
+
+export const outputCreated = {
+  name: "Output Created",
+  verify: (input: string, to: string) => {
+    const output = outputForInput(input, to);
+    verifyPath(output.outputPath);
+  },
+};
+
+function verifyNoPath(path: string) {
+  const pathExists = existsSync(path);
+  assert(!pathExists, `Unexpected directory: ${path}`);
 }

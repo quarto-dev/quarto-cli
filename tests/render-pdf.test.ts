@@ -1,66 +1,85 @@
+/*
+* render-pdf.test.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
+
 import { existsSync } from "fs/mod.ts";
 
 import { removePackage } from "../src/command/render/latexmk/texlive.ts";
 
 import { testRender } from "./render.ts";
+import { noSupportingFiles, outputCreated } from "./verify.ts";
 
-Deno.test("render: (all)", async () => {
-  // Uninstall the cjk pacakge
+testRender("docs/latexmk/all.Rmd", "pdf", [
+  outputCreated,
+  noSupportingFiles,
+], async () => {
   await ensurePackageRemoved("fontawesome");
   await ensurePackageRemoved("makeindex");
   await ensurePackageRemoved("sansmath");
   await ensurePackageRemoved("xindy");
-
-  await testRender("docs/latexmk/all.Rmd", false, "pdf");
 });
 
-Deno.test("render: plain pdf", async () => {
-  await testRender("docs/latexmk/plain.Rmd", false, "pdf");
+testRender("docs/latexmk/plain.Rmd", "pdf", [
+  outputCreated,
+  noSupportingFiles,
+]);
+
+testRender("docs/latexmk/bibliography-biblatex.Rmd", "pdf", [
+  outputCreated,
+  noSupportingFiles,
+]);
+
+testRender("docs/latexmk/bibliography-citeproc.Rmd", "pdf", [
+  outputCreated,
+  noSupportingFiles,
+]);
+
+testRender("docs/latexmk/bibliography-natbib.Rmd", "pdf", [
+  outputCreated,
+  noSupportingFiles,
+]);
+
+testRender("docs/latexmk/babel.Rmd", "pdf", [
+  outputCreated,
+  noSupportingFiles,
+], async () => {
+  await ensurePackageRemoved("hyphen-portuguese");
+  await ensurePackageRemoved("babel-portuges");
 });
 
-Deno.test("render: biblatex pdf", async () => {
-  await testRender("docs/latexmk/bibliography-biblatex.Rmd", false, "pdf");
-});
-
-Deno.test("render: citeproc pdf", async () => {
-  await testRender("docs/latexmk/bibliography-citeproc.Rmd", false, "pdf");
-});
-
-Deno.test("render: natbib pdf", async () => {
-  await testRender("docs/latexmk/bibliography-natbib.Rmd", false, "pdf");
-});
-
-Deno.test("render: babel pdf", async () => {
-  ensurePackageRemoved("hyphen-portuguese");
-  ensurePackageRemoved("babel-portuges");
-
-  await testRender("docs/latexmk/babel.Rmd", false, "pdf");
-});
-
-Deno.test("render:esto pdf", async () => {
-  ensurePackageRemoved("epstopdf");
-
-  await testRender("docs/latexmk/estopdf.Rmd", false, "pdf");
-
+testRender("docs/latexmk/estopdf.Rmd", "pdf", [
+  outputCreated,
+  noSupportingFiles,
+], async () => {
+  await ensurePackageRemoved("epstopdf");
+}, () => {
   // clean intermediary that is produced:
   const estopdf = "docs/latexmk/estosoccer-eps-converted-to.pdf";
   if (existsSync(estopdf)) {
     Deno.removeSync(estopdf);
   }
+  return Promise.resolve();
 });
 
-Deno.test("render:make index", async () => {
-  await testRender("docs/latexmk/make-index.Rmd", false, "pdf");
-});
+testRender("docs/latexmk/make-index.Rmd", "pdf", [
+  outputCreated,
+  noSupportingFiles,
+]);
 
-Deno.test("render:make index (custom)", async () => {
-  await testRender("docs/latexmk/make-index-custom.Rmd", false, "pdf");
-});
+testRender("docs/latexmk/make-index-custom.Rmd", "pdf", [
+  outputCreated,
+  noSupportingFiles,
+]);
 
-Deno.test("render:missing font", async () => {
-  ensurePackageRemoved("fontawesome");
+testRender("docs/latexmk/make-index-custom.Rmd", "pdf", [
+  outputCreated,
+  noSupportingFiles,
+], async () => {
+  await ensurePackageRemoved("fontawesome");
   Deno.copyFileSync("docs/latexmk/missfont.txt", "docs/latexmk/missfont.log");
-  await testRender("docs/latexmk/missing-font.Rmd", false, "pdf");
 });
 
 async function ensurePackageRemoved(pkg: string) {
