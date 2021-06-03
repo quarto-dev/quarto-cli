@@ -27,7 +27,6 @@ import {
 
 import { knitrEngine } from "./rmd.ts";
 import { jupyterEngine } from "./jupyter/jupyter.ts";
-import { observableEngine } from "./observable/observable.ts";
 import { markdownEngine } from "./markdown.ts";
 
 export const kQmdExtensions = [".qmd"];
@@ -134,7 +133,6 @@ export interface RunOptions {
 const kEngines: ExecutionEngine[] = [
   knitrEngine,
   jupyterEngine,
-  observableEngine,
   markdownEngine,
 ];
 

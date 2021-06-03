@@ -33,6 +33,8 @@ import {
 } from "../../core/path.ts";
 import { warnOnce } from "../../core/log.ts";
 
+import { observableCompile } from "../../core/observable/compile.ts";
+
 import {
   formatFromMetadata,
   includedMetadata,
@@ -266,6 +268,14 @@ export async function renderFiles(
           recipe.output,
           executeOptions,
         );
+
+        // evaluate observable chunks
+        executeResult.markdown = observableCompile({
+          source: context.target.source,
+          format: context.format,
+          markdown: executeResult.markdown,
+          libDir: context.libDir,
+        });
 
         // callback
         await pandocRenderer.onRender(format, {
