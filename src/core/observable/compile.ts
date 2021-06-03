@@ -41,6 +41,9 @@ export function observableCompile(options: ObserveableCompileOptions): string {
     }
   }
 
+  let scriptContents = [ensurePreamble()];
+
+  
   function interpret(jsSrc: string[], inline: boolean) {
     let inlineStr = inline ? "inline-" : "";
     let content = [
@@ -54,11 +57,8 @@ export function observableCompile(options: ObserveableCompileOptions): string {
   function inlineInterpolation(str: string) {
     return str.replaceAll(inlineOJSInterpRE, function(m, g1, g2) {
       ojsCellID += 1;
-      let result = [`<span id="ojs-inline-cell-${ojsCellID}" class="ojs-inline"></span>`,
-                    `<script type="module">`,
-                    ensurePreamble(),
-                    interpret([g1], true),
-                    `</script>`, g2];
+      let result = [`<span id="ojs-inline-cell-${ojsCellID}" class="ojs-inline"></span>`, g2];
+      scriptContents.push(interpret([g1], true));
       return result.join("");
     });
   }
@@ -72,12 +72,9 @@ export function observableCompile(options: ObserveableCompileOptions): string {
       ojsCellID += 1;
       const content = [
         '```{=html}\n',
-        `<div id='ojs-cell-${ojsCellID}'></div>\n`,
-        `<script type='module'>\n`,
-        ensurePreamble(),
-        interpret(cell.source, false),
-        '</script>\n```\n'
+        `<div id='ojs-cell-${ojsCellID}'></div>\n\`\`\`\n`
       ];
+      scriptContents.push(interpret(cell.source, false));
       ls.push(content.join(""));
     } else {
       logError({
@@ -87,5 +84,11 @@ export function observableCompile(options: ObserveableCompileOptions): string {
     }
   }
 
+  ls.push(`<script type="module">`);
+  ls.push(...scriptContents);
+  ls.push(`</script>`);
+
+  console.log(ls.join("\n"));
+  
   return ls.join("\n");
 }
