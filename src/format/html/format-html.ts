@@ -47,7 +47,7 @@ export const kCodeCopy = "code-copy";
 export const kAnchorSections = "anchor-sections";
 export const kPageLayout = "page-layout";
 export const kPageLayoutArticle = "article";
-export const kPageLayoutContainer = "container";
+export const kPageLayoutCustom = "custom";
 export const kPageLayoutNone = "none";
 export const kHoverCitations = "hover-citations";
 export const kHoverFootnotes = "hover-footnotes";
@@ -79,23 +79,6 @@ export function htmlFormat(
         book: {
           multiFile: true,
         },
-      },
-    },
-  );
-}
-
-export function htmlApplicationFormat(
-  figwidth: number,
-  figheight: number,
-) {
-  return mergeConfigs(
-    htmlFormat(figwidth, figheight),
-    {
-      pandoc: {
-        to: "html",
-      },
-      metadata: {
-        [kPageLayout]: kPageLayoutContainer,
       },
     },
   );

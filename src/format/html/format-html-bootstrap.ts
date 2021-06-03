@@ -39,7 +39,7 @@ import {
   kFootnoteSectionTitle,
   kPageLayout,
   kPageLayoutArticle,
-  kPageLayoutContainer,
+  kPageLayoutCustom,
   kPageLayoutNone,
 } from "./format-html.ts";
 
@@ -66,8 +66,8 @@ export function formatHasArticlePageLayout(format: Format) {
     format.metadata[kPageLayout] === kPageLayoutArticle;
 }
 
-export function formatHasContainerPageLayout(format: Format) {
-  return format.metadata[kPageLayout] == kPageLayoutContainer;
+export function formatHasCustomPageLayout(format: Format) {
+  return format.metadata[kPageLayout] == kPageLayoutCustom;
 }
 
 export function bootstrapFormatDependency() {
@@ -113,10 +113,10 @@ export function boostrapExtras(
       before: renderTemplate("before-body-article.ejs", kPageLayoutArticle),
       after: renderTemplate("after-body-article.ejs", kPageLayoutArticle),
     }
-    : formatHasContainerPageLayout(format)
+    : formatHasCustomPageLayout(format)
     ? {
-      before: renderTemplate("before-body-container.ejs", kPageLayoutContainer),
-      after: renderTemplate("after-body-container.ejs", kPageLayoutContainer),
+      before: renderTemplate("before-body-custom.ejs", kPageLayoutCustom),
+      after: renderTemplate("after-body-custom.ejs", kPageLayoutCustom),
     }
     : undefined;
 

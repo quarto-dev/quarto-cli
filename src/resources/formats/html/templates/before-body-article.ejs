@@ -1,8 +1,10 @@
-<% partial('before-body-container.ejs', { pageLayout: pageLayout } ) %>
+<div id="quarto-content" class="container-fluid page-layout-<%- pageLayout %>">
 
-  <% if (toc) { %>
-    <div id="quarto-toc-sidebar" class="col col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-toc order-last"></div>
-    <% } %>
+<div class="row">
 
-      <div class="col mx-auto col-sm-12 col-md-9 col-lg-7">
-        <main>
+<% if (toc) { %>
+  <div id="quarto-toc-sidebar" class="col col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-toc order-last"></div>
+<% } %>
+
+<div class="col mx-auto col-sm-12 col-md-9 col-lg-7">
+<main>
