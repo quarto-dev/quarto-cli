@@ -7,7 +7,7 @@ function tabset()
   return {
     -- tabsets and callouts
     Div = function(div)
-      if isHtmlOutput() and div.attr.classes:find("tabset") then
+      if isHtmlOutput() and div.attr.classes:find("panel-tabset") then
         return tabsetDiv(div)
       else
         return div
@@ -47,7 +47,7 @@ function tabsetDiv(div)
     -- init tab panes
     local panes = pandoc.Div({}, div.attr)
     panes.attr.classes = div.attr.classes:map(function(class) 
-      if class == "tabset" then
+      if class == "panel-tabset" then
         return "tab-content" 
       else
         return name
