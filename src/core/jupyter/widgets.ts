@@ -15,7 +15,7 @@ import {
   kTextHtml,
 } from "../mime.ts";
 import { sessionTempFile } from "../temp.ts";
-import { isDisplayData } from "./display_data.ts";
+import { isDisplayData } from "./display-data.ts";
 import { JupyterNotebook, JupyterOutputDisplayData } from "./jupyter.ts";
 
 export interface JupyterWidgetsState {

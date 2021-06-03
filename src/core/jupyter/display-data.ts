@@ -1,5 +1,5 @@
 /*
-* display_data.ts
+* display-data.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
