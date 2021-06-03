@@ -15,8 +15,6 @@ import {
   kQmdExtensions,
   PostProcessOptions,
 } from "../engine.ts";
-import { lines } from "../../core/text.ts";
-import { shortUuid } from "../../core/uuid.ts";
 import { includesForObservableDependencies } from "../../core/observable/includes.ts";
 import * as ojsSourceIncludes from "../../core/observable/js-source.ts";
 import { breakQuartoMd } from "../../core/break-quarto-md.ts";
@@ -59,14 +57,9 @@ export const observableEngine: ExecutionEngine = {
     const dependencies = includesForObservableDependencies();
 
     let ojsCellID = 0;
-
     let needsPreamble = true;
-    let insideOjsCell: Boolean = false;
-
-    let uuid = "";
 
     let output = breakQuartoMd(markdown, "ojs");
-    Deno.writeTextFileSync("./debug-break-quarto-md.json", JSON.stringify(output, null, 2));
 
     let ls = [];
     // now we convert it back
