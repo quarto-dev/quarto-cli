@@ -2,6 +2,10 @@ export let css = `<style type="text/css">
   pre.ojs-source {
     background-color: #eee;
   }
+
+  span.ojs-inline span div {
+    display: inline-block;
+  }
 </style>
 `;
 
@@ -11,6 +15,12 @@ import { Inspector, Runtime } from 'https://cdn.skypack.dev/@observablehq/runtim
 `;
 
 export let preamble = `
+let css = "span.ojs-inline span div { display: inline-block; }";
+let cssEl = document.createElement("style");
+cssEl.setAttribute("type", "text/css");
+cssEl.innerText = css;
+document.head.appendChild(cssEl);
+
 function createOJSSourceElement(el, src)
 {
   let sourceEl = document.createElement("pre");
@@ -24,7 +34,6 @@ export function createRuntime()
 {
   const runtime = new Runtime();
   const mainMod = runtime.module();
-  let targetElement = document.body;
 
   function ourObserver() {
     return new Inspector(targetElement.appendChild(document.createElement("div")));
@@ -33,18 +42,9 @@ export function createRuntime()
   const interpreter = new Interpreter({ module: mainMod, observer: ourObserver });
   
   let result = {
-    setTargetElement(el) {
-      targetElement = el;
-    },
-    async interpret(src) {
-      // let sourceEl = createOJSSourceElement(targetElement, src);
-      // immediately bind current value of targetElement to an IIFE
-      // to avoid a race between quarto and the observable async runtime
-
-      let iife = (function(target) {
-        return () => new Inspector(target.appendChild(document.createElement("div")));
-      })(targetElement);
-      let result = await interpreter.module(src, undefined, iife);
+    async interpret(src, targetElement, inline) {
+      let observer = () => new Inspector(targetElement.appendChild(document.createElement(inline ? "span" : "div")));
+      let result = await interpreter.module(src, undefined, observer);
       return result;
     }
   };

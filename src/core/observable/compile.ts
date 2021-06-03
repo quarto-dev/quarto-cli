@@ -32,27 +32,52 @@ export function observableCompile(options: ObserveableCompileOptions): string {
 
   let output = breakQuartoMd(markdown, "ojs");
 
+  function ensurePreamble() {
+    if (needsPreamble) {
+      needsPreamble = false;
+      return `${ojsSourceIncludes.imports}${ojsSourceIncludes.preamble}`;
+    } else {
+      return ``;
+    }
+  }
+
+  function interpret(jsSrc: string[], inline: boolean) {
+    let inlineStr = inline ? "inline-" : "";
+    let content = [
+      "window._ojsRuntime.interpret(`",
+      jsSrc.map(escapeBackticks).join(""),
+      `\`, document.getElementById("ojs-${inlineStr}cell-${ojsCellID}"), ${inline});`];
+    return content.join("");
+  }
+  
+  const inlineOJSInterpRE = /\$\{([^}]+)\}([^$])/g;
+  function inlineInterpolation(str: string) {
+    return str.replaceAll(inlineOJSInterpRE, function(m, g1, g2) {
+      ojsCellID += 1;
+      let result = [`<span id="ojs-inline-cell-${ojsCellID}" class="ojs-inline"></span>`,
+                    `<script type="module">`,
+                    ensurePreamble(),
+                    interpret([g1], true),
+                    `</script>`, g2];
+      return result.join("");
+    });
+  }
   let ls = [];
   // now we convert it back
   for (const cell of output.cells) {
     if (cell.cell_type === "raw" ||
       cell.cell_type === "markdown") {
-      ls.push(cell.source.join(""));
+      ls.push(cell.source.map(inlineInterpolation).join(""));
     } else if (cell.cell_type?.language === "ojs") {
       ojsCellID += 1;
       const content = [
         '```{=html}\n',
         `<div id='ojs-cell-${ojsCellID}'></div>\n`,
-        `<script type='module'>\n`];
-      if (needsPreamble) {
-        needsPreamble = false;
-        content.push(ojsSourceIncludes.imports);
-        content.push(ojsSourceIncludes.preamble);
-      }
-      content.push(`window._ojsRuntime.setTargetElement(document.getElementById("ojs-cell-${ojsCellID}"));\n`)
-      content.push("window._ojsRuntime.interpret(`\n");
-      content.push(cell.source.map(escapeBackticks).join(""));
-      content.push("`);\n</script>\n```\n");
+        `<script type='module'>\n`,
+        ensurePreamble(),
+        interpret(cell.source, false),
+        '</script>\n```\n'
+      ];
       ls.push(content.join(""));
     } else {
       logError({
@@ -61,6 +86,8 @@ export function observableCompile(options: ObserveableCompileOptions): string {
       });
     }
   }
+
+  console.log(ls.join("\n"));
   
   return ls.join("\n");
 }
