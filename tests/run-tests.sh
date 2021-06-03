@@ -26,7 +26,13 @@ QUARTO_DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-e
 ${DENO_DIR}/deno test ${QUARTO_DENO_OPTIONS} ${QUARTO_IMPORT_ARGMAP} $@
 
 # Generates the coverage report
-# ${DENO_DIR}/deno coverage --unstable cov_profile --lcov > cov_profile.lcov
-# genhtml -o cov_profile/html cov_profile.lcov
-# open cov_profile/html/index.html
+if [[ $@ == *"--coverage"* ]]; then
 
+  # read the coverage value from the command 
+  [[ $@ =~ .*--coverage=(.+) ]] && export COV="${BASH_REMATCH[1]}"
+
+  echo Generating coverage report...
+  ${DENO_DIR}/deno coverage --unstable ${COV} --lcov > ${COV}.lcov
+  genhtml -o cov_profile/html ${COV}.lcov
+  open cov_profile/html/index.html
+fi

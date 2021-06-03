@@ -4,6 +4,9 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+
+import { info } from "log/mod.ts";
+
 // Quarto Reponse
 export interface QuartoResult {
   status: Deno.ProcessStatus;
@@ -17,6 +20,8 @@ export async function quartoCmd(
   args: string[],
 ): Promise<QuartoResult> {
   const quartoCommand = ["quarto", cmd, ...args];
+  info(`\n$ ${quartoCommand.join(" ")}\n`);
+
   const p = Deno.run({
     cmd: quartoCommand,
     stdout: "piped",
@@ -25,9 +30,9 @@ export async function quartoCmd(
   const stdout = new TextDecoder().decode(await p.output());
   const stderr = new TextDecoder().decode(await p.stderrOutput());
   const status = await p.status();
-  if (status.code !== 0) {
-    throw Error(`Command ${cmd} failed.`);
-  }
+
+  info(`${stdout}\n`);
+  info(`${stderr}\n`);
 
   // Close the child process
   p.close();

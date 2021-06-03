@@ -1,65 +1,102 @@
-import { verifyAndCleanOutput, verifyNoPath } from "./verify.ts";
-import { basename, dirname, extname, join } from "path/mod.ts";
-import { assertEquals } from "testing/asserts.ts";
-import { quartoCmd } from "./quarto-cmd.ts";
+/*
+* render.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
 
-export function tryRender(
+import { VerifyRender } from "./verify.ts";
+import { assertEquals } from "testing/asserts.ts";
+import { outputForInput } from "./utils.ts";
+
+import { existsSync } from "fs/mod.ts";
+import { quarto } from "../src/quarto.ts";
+
+export interface Verify {
+  name: string;
+  verify: () => void;
+}
+
+export interface TestDescriptor {
+  // The name of the test
+  name: string;
+
+  // Sets up the test
+  setup: () => Promise<void>;
+
+  // Executes the test
+  execute: () => Promise<void>;
+
+  // Used to verify the outcome of the test
+  verify: Verify[];
+
+  // Cleans up the test
+  teardown: () => Promise<void>;
+}
+
+// Tests Rendering of Documents
+export function testRender(
   input: string,
   to: string,
-  verify: VoidFunction[],
+  verify: VerifyRender[],
+  setup = async () => {},
+  teardown = async () => {},
   args?: string[],
 ) {
+  // Render Test Name
   const name = `Render: ${input} -> ${to}${
     args && args.length > 0 ? " (args:" + args.join(" ") + ")" : ""
   }`;
-  Deno.test(name, async () => {
-    await testRender(input, false, to), () => {
-      verify.forEach((ver) => ver());
-    };
+
+  // The Test itself
+  test({
+    name,
+    verify: verify.map((ver) => {
+      return {
+        name: ver.name,
+        verify: () => {
+          ver.verify(input, to);
+        },
+      };
+    }),
+    setup,
+    execute: async () => {
+      // Run a Quarto render command and check its output
+      const renderArgs = ["render", input];
+      if (to) {
+        renderArgs.push("--to");
+        renderArgs.push(to);
+      }
+      if (args) {
+        renderArgs.push(...args);
+      }
+
+      await quarto(renderArgs);
+    },
+    teardown: async () => {
+      await teardown();
+      cleanoutput(input, to);
+    },
   });
 }
 
-export async function testRender(
-  inputFile: string,
-  hasSupportingFiles = true,
-  to?: string,
-  quartoArgs?: string[],
-  verify?: () => void,
-) {
-  const dir = dirname(inputFile);
-  const stem = basename(inputFile, extname(inputFile));
+function test(test: TestDescriptor) {
+  Deno.test(test.name, async () => {
+    await test.setup();
+    await test.execute();
+    test.verify.forEach((ver) => {
+      ver.verify();
+    });
+    await test.teardown();
+  });
+}
 
-  const outputExt = to || "html";
-
-  const output = join(dir, `${stem}.${outputExt}`);
-  const supportDir = join(dir, `${stem}_files`);
-
-  const args = [inputFile];
-  if (to) {
-    args.push("--to");
-    args.push(to);
+export function cleanoutput(input: string, to: string) {
+  const out = outputForInput(input, to);
+  if (existsSync(out.outputPath)) {
+    Deno.removeSync(out.outputPath);
   }
-  if (quartoArgs) {
-    args.push(...quartoArgs);
-  }
-
-  // run quarto
-  const result = await quartoCmd("render", args);
-
-  assertEquals(
-    result.status.success,
-    true,
-    "Quarto returned non-zero status code",
-  );
-
-  if (verify) {
-    verify();
-  }
-
-  verifyAndCleanOutput(output);
-  if (hasSupportingFiles) {
-    verifyAndCleanOutput(supportDir);
-  } else {
-    verifyNoPath(supportDir);
+  if (existsSync(out.supportPath)) {
+    Deno.removeSync(out.supportPath, { recursive: true });
   }
 }

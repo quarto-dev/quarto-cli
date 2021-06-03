@@ -25,15 +25,11 @@ export const convertCommand = new Command()
   .name("convert")
   .arguments("[input:string]")
   .description(
-    "Convert between markdown and notebook representations of documents.",
-  )
-  .option(
-    "-t, --to [format:string]",
-    "Format to convert to (markdown or notebook)",
+    "Convert documents to alternate representations.",
   )
   .option(
     "--output [path:string]",
-    "Write output to PATH (use '--output -' for stdout).",
+    "Write output to PATH.",
   )
   .option(
     "--no-ids",
@@ -41,27 +37,23 @@ export const convertCommand = new Command()
   )
   .example(
     "Convert notebook to markdown",
-    "quarto convert mydocument.ipynb --to markdown",
+    "quarto convert mydocument.ipynb ",
   )
   .example(
     "Convert markdown to notebook",
-    "quarto convert mydocument.qmd --to notebook",
+    "quarto convert mydocument.qmd",
   )
   .example(
     "Convert notebook to markdown, writing to file",
-    "quarto convert mydocument.ipynb --to markdown --output mydoc.qmd",
+    "quarto convert mydocument.ipynb --output mydoc.qmd",
   )
   .example(
-    "Convert observable notebook to markdown",
-    "quarto convert https://observablehq.com/@observablehq/javascript-and-observable",
+    "Convert observable to markdown",
+    "quarto convert https://observablehq.com/@d3/learn-d3",
   )
   .example(
-    "Convert observable notebook to markdown, writing to dir",
-    "quarto convert https://observablehq.com/@observablehq/javascript-and-observable --output js-and-observable",
-  )
-  .example(
-    "Convert notebook to markdown, writing to stdout",
-    "quarto convert mydocument.ipynb --to markdown --output -",
+    "Convert observable to markdown, writing to dir",
+    "quarto convert https://observablehq.com/@d3/learn-d3 --output d3",
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, input: string) => {
@@ -81,21 +73,6 @@ export const convertCommand = new Command()
         ? kNotebookFormat
         : kMarkdownFormat;
 
-      // determine and validate target format
-      const targetFormat = options.to;
-      if (!targetFormat) {
-        throw new Error("Target format (--to) not specified");
-      }
-      if (![kNotebookFormat, kMarkdownFormat].includes(targetFormat)) {
-        throw new Error("Invalid target format: " + targetFormat);
-      }
-      if (
-        srcFormat === kNotebookFormat && targetFormat !== kMarkdownFormat ||
-        srcFormat === kMarkdownFormat && targetFormat !== kNotebookFormat
-      ) {
-        throw new Error(`Unable to convert ${srcFormat} to ${targetFormat}`);
-      }
-
       // are we converting ids?
       const includeIds = !!options.ids;
 
@@ -110,14 +87,10 @@ export const convertCommand = new Command()
       if (!output) {
         output = join(
           dir,
-          stem + (targetFormat === kNotebookFormat ? ".ipynb" : ".qmd"),
+          stem + (srcFormat === kMarkdownFormat ? ".ipynb" : ".qmd"),
         );
       }
-      if (output === "-") {
-        Deno.stdout.writeSync(new TextEncoder().encode(converted));
-      } else {
-        Deno.writeTextFileSync(output, converted);
-        info(`${srcFormat} converted to ${targetFormat}: ${output}`);
-      }
+      Deno.writeTextFileSync(output, converted);
+      info(`Converted to ${output}`);
     }
   });
