@@ -7,10 +7,10 @@
 
 import { VerifyRender } from "./verify.ts";
 import { assertEquals } from "testing/asserts.ts";
-import { quartoCmd } from "./quarto-cmd.ts";
 import { outputForInput } from "./utils.ts";
 
 import { existsSync } from "fs/mod.ts";
+import { quarto } from "../src/quarto.ts";
 
 export interface Verify {
   name: string;
@@ -62,7 +62,7 @@ export function testRender(
     setup,
     execute: async () => {
       // Run a Quarto render command and check its output
-      const renderArgs = [input];
+      const renderArgs = ["render", input];
       if (to) {
         renderArgs.push("--to");
         renderArgs.push(to);
@@ -71,14 +71,7 @@ export function testRender(
         renderArgs.push(...args);
       }
 
-      // run quarto
-      const result = await quartoCmd("render", renderArgs);
-
-      assertEquals(
-        result.status.success,
-        true,
-        "Quarto returned non-zero status code",
-      );
+      await quarto(renderArgs);
     },
     teardown: async () => {
       await teardown();
