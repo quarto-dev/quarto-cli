@@ -11,10 +11,8 @@ function panelInput()
           "bg-light",
           "p-2",
         })
-
-        return el
       end
-
+      return el
     end
   }
 
