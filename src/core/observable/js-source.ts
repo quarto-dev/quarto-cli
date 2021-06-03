@@ -1,4 +1,4 @@
-export let css = `<style>
+export let css = `<style type="text/css">
   pre.ojs-source {
     background-color: #eee;
   }
