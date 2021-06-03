@@ -25,11 +25,11 @@ export const convertCommand = new Command()
   .name("convert")
   .arguments("[input:string]")
   .description(
-    "Convert between markdown and notebook representations of documents.",
+    "Convert documents to alternate representations.",
   )
   .option(
     "--output [path:string]",
-    "Write output to PATH (use '--output -' for stdout).",
+    "Write output to PATH.",
   )
   .option(
     "--no-ids",
@@ -48,16 +48,12 @@ export const convertCommand = new Command()
     "quarto convert mydocument.ipynb --output mydoc.qmd",
   )
   .example(
-    "Convert observable notebook to markdown",
-    "quarto convert https://observablehq.com/@observablehq/javascript-and-observable",
+    "Convert observable to markdown",
+    "quarto convert https://observablehq.com/@d3/learn-d3",
   )
   .example(
-    "Convert observable notebook to markdown, writing to dir",
-    "quarto convert https://observablehq.com/@observablehq/javascript-and-observable --output js-and-observable",
-  )
-  .example(
-    "Convert notebook to markdown, writing to stdout",
-    "quarto convert mydocument.ipynb --output -",
+    "Convert observable to markdown, writing to dir",
+    "quarto convert https://observablehq.com/@d3/learn-d3 --output d3",
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, input: string) => {
@@ -94,11 +90,7 @@ export const convertCommand = new Command()
           stem + (srcFormat === kMarkdownFormat ? ".ipynb" : ".qmd"),
         );
       }
-      if (output === "-") {
-        Deno.stdout.writeSync(new TextEncoder().encode(converted));
-      } else {
-        Deno.writeTextFileSync(output, converted);
-        info(`Converted to ${output}`);
-      }
+      Deno.writeTextFileSync(output, converted);
+      info(`Converted to ${output}`);
     }
   });

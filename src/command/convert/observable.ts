@@ -54,13 +54,13 @@ export async function observableNotebookToMarkdown(
     output = file;
   }
   ensureDirSync(output);
-  info(`Writing converted notebook to: ${output}/`);
+  info(`Writing to ${output}/`);
 
   // download attachments
   const attachments: string[] = [];
   for (const file of nb.files) {
     // download attachment
-    info("  Downloading attachment: " + file.name);
+    info("  " + file.name + " (attachment)");
     const res = await fetch(file.download_url);
     const contents = new Uint8Array(await res.arrayBuffer());
     const downloadTo = await Deno.create(join(output, file.name));
@@ -168,6 +168,6 @@ export async function observableNotebookToMarkdown(
 
   // write markdown
   const qmdFile = join(output, file + ".qmd");
-  info("  Writing markdown: " + basename(qmdFile));
+  info("  " + basename(qmdFile));
   Deno.writeTextFileSync(qmdFile, lines.join("\n"));
 }
