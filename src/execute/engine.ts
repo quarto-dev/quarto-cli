@@ -154,8 +154,11 @@ export function executionEngineKeepMd(
   input: string,
 ) {
   if (engine.canKeepMd) {
-    const [dir, stem] = dirAndStem(input);
-    return join(dir, stem + ".md");
+    const keepSuffix = `.${engine.name}.md`;
+    if (!input.endsWith(keepSuffix)) {
+      const [dir, stem] = dirAndStem(input);
+      return join(dir, stem + keepSuffix);
+    }
   }
 }
 
@@ -186,6 +189,11 @@ export function fileExecutionEngine(file: string) {
   const ext = extname(file).toLowerCase();
   if (!kEngines.some((engine) => engine.validExtensions().includes(ext))) {
     return undefined;
+  }
+
+  // if this is a keepMd file then automatically use the markdown engine
+  if (kEngines.find((engine) => file.endsWith(`.${engine.name}.md`))) {
+    return markdownEngine;
   }
 
   // try to find an engine that claims this extension outright
@@ -227,8 +235,13 @@ export function fileExecutionEngine(file: string) {
         }
       }
     }
-    // no engines claimed this language so default to jupyter
-    return jupyterEngine;
+
+    // if the only language is ojs then it's plain markdown
+    if (languages.size == 1 && languages.has("ojs")) {
+      return markdownEngine;
+    } else {
+      return jupyterEngine;
+    }
   } else {
     // no languages so use plain markdown
     return markdownEngine;
