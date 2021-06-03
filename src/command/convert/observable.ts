@@ -129,7 +129,7 @@ export async function observableNotebookToMarkdown(
   lines.push("");
 
   // write markdown
-  const qmdFile = join(output, file + ".qmd");
+  const qmdFile = join(output, file + ".md");
   info("  " + basename(qmdFile));
   Deno.writeTextFileSync(qmdFile, lines.join("\n"));
 }

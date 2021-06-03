@@ -29,8 +29,10 @@ import("theorems.lua")
 import("resourcerefs.lua")
 import("book-numbering.lua")
 import("meta.lua")
-import("tabset.lua")
 import("callout.lua")
+import("panel-sidebar.lua")
+import("panel-tabset.lua")
+import("panel-input.lua")
 import("hidden.lua")
 import("../common/colors.lua")
 import("../common/params.lua")
@@ -61,7 +63,9 @@ return {
     figures(),
     theorems(),
     callout(),
-    tabset()
+    panelInput(),
+    panelTabset(),
+    panelSidebar(),
   }),
   quartoPreMetaInject(),
 }
