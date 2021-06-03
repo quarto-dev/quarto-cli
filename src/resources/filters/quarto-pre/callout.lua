@@ -12,7 +12,7 @@ function callout()
         local lastWasCallout = false
         local lastWasTable = false
         local newBlocks = pandoc.List:new()
-        for i,el in pairs(blocks) do 
+        for i,el in ipairs(blocks) do 
           -- determine what this block is
           local isCallout = el.t == "Div" and el.attr.classes:find_if(isDocxCallout)
           local isTable = el.t == "Table" or isFigureDiv(el) or (discoverFigure(el, true) ~= nil)

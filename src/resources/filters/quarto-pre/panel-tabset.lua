@@ -1,13 +1,13 @@
--- tabset.lua
+-- panel-tabset.lua
 -- Copyright (C) 2021 by RStudio, PBC
 
 local tabsetidx = 1
 
-function tabset() 
+function panelTabset() 
   return {
     -- tabsets and callouts
     Div = function(div)
-      if isHtmlOutput() and div.attr.classes:find("panel-tabset") then
+      if hasBootstrap() and div.attr.classes:find("panel-tabset") then
         return tabsetDiv(div)
       else
         return div
