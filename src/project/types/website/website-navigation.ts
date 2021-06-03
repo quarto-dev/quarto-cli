@@ -40,10 +40,10 @@ import {
   kTocFloat,
 } from "../../../config/toc.ts";
 
+import { kBootstrapDependencyName } from "../../../format/html/format-html.ts";
 import {
-  kBootstrapDependencyName,
-  kPageLayout,
-} from "../../../format/html/format-html.ts";
+  formatPageLayout,
+} from "../../../format/html/format-html-bootstrap.ts";
 
 import {
   kProjectType,
@@ -188,7 +188,7 @@ export function websiteNavigationExtras(
   const sidebar = sidebarForHref(href);
   const nav: Record<string, unknown> = {
     toc: hasTableOfContents(flags, format),
-    layout: format.metadata[kPageLayout] !== "none",
+    layout: formatPageLayout(format),
     navbar: navigation.navbar,
     sidebar: expandedSidebar(href, sidebar),
   };

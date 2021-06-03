@@ -55,7 +55,7 @@ import {
 
 import { Format } from "../config/format.ts";
 
-import { htmlFormat } from "./html/format-html.ts";
+import { htmlApplicationFormat, htmlFormat } from "./html/format-html.ts";
 import { beamerFormat, latexFormat, pdfFormat } from "./pdf/format-pdf.ts";
 import { epubFormat } from "./epub/format-epub.ts";
 import { docxFormat } from "./docx/format-docx.ts";
@@ -73,6 +73,10 @@ export function defaultWriterFormat(to: string): Format {
     case "html4":
     case "html5":
       writerFormat = htmlFormat(7, 5);
+      break;
+
+    case "html-application":
+      writerFormat = htmlApplicationFormat(7, 5);
       break;
 
     case "pdf":

@@ -38,6 +38,9 @@ import {
   kDocumentCss,
   kFootnoteSectionTitle,
   kPageLayout,
+  kPageLayoutArticle,
+  kPageLayoutContainer,
+  kPageLayoutNone,
 } from "./format-html.ts";
 
 export function formatHasBootstrap(format: Format) {
@@ -47,6 +50,24 @@ export function formatHasBootstrap(format: Format) {
   } else {
     return false;
   }
+}
+
+export function formatPageLayout(format: Format) {
+  return format.metadata[kPageLayout] || kPageLayoutArticle;
+}
+
+export function formatHasPageLayout(format: Format) {
+  return format.metadata[kPageLayout] === undefined ||
+    format.metadata[kPageLayout] !== kPageLayoutNone;
+}
+
+export function formatHasArticlePageLayout(format: Format) {
+  return format.metadata[kPageLayout] === undefined ||
+    format.metadata[kPageLayout] === kPageLayoutArticle;
+}
+
+export function formatHasContainerPageLayout(format: Format) {
+  return format.metadata[kPageLayout] == kPageLayoutContainer;
 }
 
 export function bootstrapFormatDependency() {
@@ -80,16 +101,22 @@ export function boostrapExtras(
 ): FormatExtras {
   const toc = hasTableOfContents(flags, format);
 
-  const renderTemplate = (template: string) => {
+  const renderTemplate = (template: string, pageLayout: string) => {
     return renderEjs(formatResourcePath("html", `templates/${template}`), {
       toc,
+      pageLayout,
     });
   };
 
-  const bodyEnvelope = format.metadata[kPageLayout] !== "none"
+  const bodyEnvelope = formatHasArticlePageLayout(format)
     ? {
-      before: renderTemplate("before-body.ejs"),
-      after: renderTemplate("after-body.ejs"),
+      before: renderTemplate("before-body-article.ejs", kPageLayoutArticle),
+      after: renderTemplate("after-body-article.ejs", kPageLayoutArticle),
+    }
+    : formatHasContainerPageLayout(format)
+    ? {
+      before: renderTemplate("before-body-container.ejs", kPageLayoutContainer),
+      after: renderTemplate("after-body-container.ejs", kPageLayoutContainer),
     }
     : undefined;
 
