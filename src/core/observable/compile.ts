@@ -87,7 +87,5 @@ export function observableCompile(options: ObserveableCompileOptions): string {
     }
   }
 
-  console.log(ls.join("\n"));
-  
   return ls.join("\n");
 }
