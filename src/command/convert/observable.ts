@@ -74,7 +74,7 @@ export async function observableNotebookToMarkdown(
   const kModePrefixes = ["md", "html", "tex"];
   const lines: string[] = [];
   for (let i = 0; i < nb.nodes.length; i++) {
-    // resolve mode and value
+    // resolve mode and value (new style nodes are typed, old style use prefixes)
     const node = nb.nodes[i];
     let mode = node.mode as string;
     let value = node.value as string;
@@ -90,49 +90,11 @@ export async function observableNotebookToMarkdown(
       }
     }
 
-    // if this is the first node and it's a markdown H1 then use it as the title
-    // also handle any metadata in the second node as well as attachements
+    // consume and write front matter if this is the first cell
     if (i === 0) {
-      const match = mode === "md" ? value.match(/^\s*#\s+(.*)$/) : undefined;
-      if (match || attachments.length > 0) {
-        lines.push("---");
-        if (match) {
-          // extract title
-          const title = match[1].trim();
-          lines.push('title: "' + title + '"');
-          // check for a metadata comment in the second node
-          if (nb.nodes.length > 1 && nb.nodes[1].mode === "js") {
-            const nodeValue = nb.nodes[1].value as string;
-            const metaMatch = nodeValue.match(
-              /^\s*\/\*-{3,}\s*([\S\s)]*)\n\-{3,}\*\/\s*$/,
-            );
-            if (metaMatch) {
-              const yaml = metaMatch[1];
-              if (!yaml.includes("format:")) {
-                lines.push(kFormatHtml);
-              }
-              lines.push(yaml);
-              i++; // skip this node since we already processed it
-            } else {
-              lines.push(kFormatHtml);
-            }
-          } else {
-            lines.push(kFormatHtml);
-          }
-        }
-        if (attachments.length > 0) {
-          lines.push("attachments:");
-          attachments.forEach((file) => {
-            lines.push("  - " + file);
-          });
-        }
-        lines.push("---");
-        lines.push("");
-
-        // if we matched the first cell then continue
-        if (match) {
-          continue;
-        }
+      i = consumeFrontMatter(mode, value, nb.nodes[1], attachments, lines);
+      if (i > 0) {
+        continue;
       }
     }
 
@@ -170,4 +132,54 @@ export async function observableNotebookToMarkdown(
   const qmdFile = join(output, file + ".qmd");
   info("  " + basename(qmdFile));
   Deno.writeTextFileSync(qmdFile, lines.join("\n"));
+}
+
+function consumeFrontMatter(
+  mode: string,
+  value: string,
+  nextNode: { mode: string; value: string } | undefined,
+  attachments: string[],
+  lines: string[],
+) {
+  let skip = 0;
+  const match = mode === "md" ? value.match(/^\s*#\s+(.*)$/) : undefined;
+  if (match || attachments.length > 0) {
+    lines.push("---");
+    if (match) {
+      // skip this cell in normal processing
+      skip++;
+      // extract title
+      const title = match[1].trim();
+      lines.push('title: "' + title + '"');
+      // check for a metadata comment in the second node
+      if (nextNode?.mode === "js") {
+        const nodeValue = nextNode.value as string;
+        const metaMatch = nodeValue.match(
+          /^\s*\/\*-{3,}\s*([\S\s)]*)\n\-{3,}\*\/\s*$/,
+        );
+        if (metaMatch) {
+          const yaml = metaMatch[1];
+          if (!yaml.includes("format:")) {
+            lines.push(kFormatHtml);
+          }
+          lines.push(yaml);
+          skip++; // skip this node since we already processed it
+        } else {
+          lines.push(kFormatHtml);
+        }
+      } else {
+        lines.push(kFormatHtml);
+      }
+    }
+    if (attachments.length > 0) {
+      lines.push("attachments:");
+      attachments.forEach((file) => {
+        lines.push("  - " + file);
+      });
+    }
+    lines.push("---");
+    lines.push("");
+  }
+
+  return skip;
 }
