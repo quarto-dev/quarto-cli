@@ -18,7 +18,7 @@ import {
 import { lines } from "../../core/text.ts";
 
 import { includesForObservableDependencies } from "../../core/observable/includes.ts";
-import * as ojsSourceIncludes from "../../core/observable/js_source.ts";
+import * as ojsSourceIncludes from "../../core/observable/js-source.ts";
 
 function escapeBackticks(str: String) {
   return str.replaceAll(/`/g, '\\`').replaceAll(/\$/g, '\\$');

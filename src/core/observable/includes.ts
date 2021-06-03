@@ -13,7 +13,7 @@ import { sessionTempFile } from "../temp.ts";
 
 import { PandocIncludes } from "../../execute/engine.ts";
 
-import { css } from "./js_source.ts";
+import { css } from "./js-source.ts";
 
 export function includesForObservableDependencies() {
   const includes: PandocIncludes = {};

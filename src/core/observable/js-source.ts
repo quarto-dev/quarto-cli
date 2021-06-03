@@ -37,7 +37,7 @@ export function createRuntime()
       targetElement = el;
     },
     async interpret(src) {
-      let sourceEl = createOJSSourceElement(targetElement, src);
+      // let sourceEl = createOJSSourceElement(targetElement, src);
       // immediately bind current value of targetElement to an IIFE
       // to avoid a race between quarto and the observable async runtime
 
