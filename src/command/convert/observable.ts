@@ -142,14 +142,25 @@ function consumeFrontMatter(
   lines: string[],
 ) {
   let skip = 0;
-  const match = mode === "md" ? value.match(/^\s*#\s+(.*)$/) : undefined;
-  if (match || attachments.length > 0) {
-    lines.push("---");
-    if (match) {
-      // skip this cell in normal processing
+  let needFormat = true;
+  let title = "";
+  let leadingMd = "";
+  lines.push("---");
+
+  // if it's a markdown cell then look for a title
+  if (mode === "md") {
+    // capture the title and preserve the rest of the markdown
+    leadingMd = value.replace(/^\s*#\s+(.*)\n?/, (_m, p1) => {
+      title = p1;
+      return "";
+    }).trim();
+
+    // if we found a title then add it
+    if (title) {
+      // skip this node since we got the title and leadingMd from it
       skip++;
-      // extract title
-      const title = match[1].trim();
+
+      // add title
       lines.push('title: "' + title + '"');
       // check for a metadata comment in the second node
       if (nextNode?.mode === "js") {
@@ -159,27 +170,35 @@ function consumeFrontMatter(
         );
         if (metaMatch) {
           const yaml = metaMatch[1];
-          if (!yaml.includes("format:")) {
-            lines.push(kFormatHtml);
+          if (yaml.includes("format:")) {
+            needFormat = false;
           }
           lines.push(yaml);
           skip++; // skip this node since we already processed it
-        } else {
-          lines.push(kFormatHtml);
         }
-      } else {
-        lines.push(kFormatHtml);
       }
     }
-    if (attachments.length > 0) {
-      lines.push("attachments:");
-      attachments.forEach((file) => {
-        lines.push("  - " + file);
-      });
-    }
-    lines.push("---");
+  }
+
+  if (needFormat) {
+    lines.push(kFormatHtml);
+  }
+
+  if (attachments.length > 0) {
+    lines.push("attachments:");
+    attachments.forEach((file) => {
+      lines.push("  - " + file);
+    });
+  }
+  lines.push("---");
+  lines.push("");
+
+  // see if there is any leading markdown to add
+  if (leadingMd) {
+    lines.push(leadingMd);
     lines.push("");
   }
 
+  // number of nodes to skip in main procesing loop
   return skip;
 }
