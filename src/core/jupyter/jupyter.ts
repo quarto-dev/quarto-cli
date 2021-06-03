@@ -460,6 +460,7 @@ export async function jupyterKernelspecFromFile(
   // find a kernelspec that supports this language
   if (!yamlJupyter) {
     const languages = languagesInMarkdownFile(file);
+    languages.add("python"); // python as a default/failsafe
     const kernelspecs = await jupyterKernelspecs();
     for (const language of languages) {
       for (const kernelspec of kernelspecs.values()) {
