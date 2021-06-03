@@ -23,7 +23,7 @@ export const kMdExtensions = [".md", ".markdown"];
 export const markdownEngine: ExecutionEngine = {
   name: "none",
 
-  defaultExt: ".md",
+  defaultExt: ".qmd",
 
   defaultYaml: () => [],
 
