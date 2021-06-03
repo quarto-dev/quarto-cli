@@ -236,8 +236,8 @@ export function fileExecutionEngine(file: string) {
       }
     }
 
-    // if the only language is ojs then it's plain markdown
-    if (languages.size == 1 && languages.has("ojs")) {
+    // if there is no language or just ojs then it's plain markdown
+    if (languages.size === 0 || (languages.size == 1 && languages.has("ojs"))) {
       return markdownEngine;
     } else {
       return jupyterEngine;
