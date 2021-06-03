@@ -26,7 +26,9 @@ import {
   kCrossrefChapters,
   kDocumentClass,
   kNumberSections,
+  kPaperSize,
   kToc,
+  kTopLevelDivision,
 } from "../../../config/constants.ts";
 import { disabledTableOfContents } from "../../../config/toc.ts";
 
@@ -35,7 +37,7 @@ import {
   PandocOptions,
 } from "../../../command/render/pandoc.ts";
 
-import { ProjectCreate, ProjectType } from "../project-types.ts";
+import { ProjectCreate, ProjectType } from "../project-type.ts";
 import { ProjectContext } from "../../project-context.ts";
 import {
   crossrefIndexForOutputFile,
@@ -197,7 +199,11 @@ export const bookProjectType: ProjectType = {
         extras,
         {
           metadata: {
-            [kDocumentClass]: "report",
+            [kDocumentClass]: "scrreport",
+            [kPaperSize]: "letter",
+          },
+          pandoc: {
+            [kTopLevelDivision]: "chapter",
           },
         },
       );

@@ -25,7 +25,7 @@ import {
   projectOffset,
   projectOutputDir,
 } from "../../project-context.ts";
-import { ProjectOutputFile } from "../project-types.ts";
+import { ProjectOutputFile } from "../project-type.ts";
 
 import { websiteNavigationConfig } from "./website-navigation.ts";
 import { websiteTitle } from "./website-config.ts";

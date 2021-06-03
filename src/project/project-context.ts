@@ -19,7 +19,8 @@ import { kMetadataFile, kMetadataFiles } from "../config/constants.ts";
 import { Format, FormatExtras } from "../config/format.ts";
 import { PandocFlags } from "../config/flags.ts";
 
-import { ProjectType, projectType } from "./types/project-types.ts";
+import { ProjectType } from "./types/project-type.ts";
+import { projectType } from "./types/project-types.ts";
 
 import { resolvePathGlobs } from "../core/path.ts";
 
@@ -239,7 +240,7 @@ export async function projectMetadataForInputFile(
             try {
               if (existsSync(projectPath)) {
                 const offset = relative(dirname(input), project!.dir);
-                assign(join(offset, value));
+                assign(pathWithForwardSlashes(join(offset, value)));
               }
             } catch {
               // Just ignore this error as the path must not be a local file path

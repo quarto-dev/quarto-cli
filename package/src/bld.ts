@@ -45,8 +45,7 @@ export async function quartoBld(args: string[]) {
     rootCommand.command(command.getName(), appendLogOptions(command));
   });
 
-  await rootCommand
-    .parse(args);
+  await rootCommand.parse(args);
 }
 
 if (import.meta.main) {
@@ -55,13 +54,13 @@ if (import.meta.main) {
     await initializeLogger(logOptions(args));
 
     await quartoBld(Deno.args);
+    cleanupLogger();
   } catch (e) {
     if (e) {
       error(`${e.stack}\n`);
     }
-    Deno.exit(1);
-  } finally {
     cleanupLogger();
+    Deno.exit(1);
   }
 }
 

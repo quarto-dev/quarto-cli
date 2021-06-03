@@ -1,5 +1,5 @@
 #!/bin/sh
 set -e
 
-sudo rm /opt/quarto/bin/quarto
+sudo rm /usr/local/bin/quarto
 exit 0

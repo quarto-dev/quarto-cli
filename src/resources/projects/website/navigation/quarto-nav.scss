@@ -1,6 +1,24 @@
+
+
+
 div.quarto-container {
   min-height: 100vh;
 }
+
+// headroom
+header.headroom {
+  will-change: transform;
+  transition: transform 200ms linear;
+}
+
+header.headroom--pinned {
+  transform: translateY(0%);
+}
+
+header.headroom--unpinned {
+  transform: translateY(-100%);
+}
+
 
 .navbar-brand > img {
   max-height: 24px;
@@ -27,11 +45,6 @@ nav .dropdown-item i {
 
 .sidebar-navigation {
   padding-left: 20px;
-}
-
-.sidebar-navigation,
-.sidebar-navigation a {
-  font-size: $nav-font-size;
 }
 
 .sidebar-navigation a {
@@ -88,10 +101,6 @@ nav .dropdown-item i {
   padding-bottom: 0.2rem;
 }
 
-.sidebar-navigation ul.sidebar-section.depth1 .sidebar-section-item {
-  font-size: $nav-font-size;
-}
-
 .sidebar-navigation ul.sidebar-section.depth2 .sidebar-section-item {
   text-transform: none;
   font-weight: normal;
@@ -121,10 +130,6 @@ nav .dropdown-item i {
   padding-right: 0px;
   padding-bottom: 0.25rem;
   font-weight: $nav-font-weight;
-}
-
-.sidebar-navigation .sidebar-item a {
-  font-size: $nav-font-size;
 }
 
 .sidebar-navigation .sidebar-divider {
@@ -168,6 +173,16 @@ nav .dropdown-item i {
 }
 
 @include media-breakpoint-down(lg) {
+
+  .sidebar-navigation .sidebar-item a,
+  .sidebar-navigation ul.sidebar-section.depth1 .sidebar-section-item,
+  .nav-page .nav-page-text,
+  .sidebar-navigation,
+  .sidebar-navigation a {
+    font-size: $nav-font-size-enlarged;
+  }
+  
+
   .sidebar-logo {
     display: none;
   }
@@ -226,20 +241,15 @@ nav .dropdown-item i {
   }
 }
 
-header.headroom {
-  will-change: transform;
-  transition: transform 200ms linear;
-}
-
-header.headroom--pinned {
-  transform: translateY(0%);
-}
-
-header.headroom--unpinned {
-  transform: translateY(-100%);
-}
-
 @include media-breakpoint-up(lg) {
+
+  .sidebar-navigation .sidebar-item a,
+  .sidebar-navigation ul.sidebar-section.depth1 .sidebar-section-item,
+  .nav-page .nav-page-text,
+  .sidebar-navigation,
+  .sidebar-navigation a {
+    font-size: $nav-font-size;
+  }
 
   .sidebar-navigation > nav {
     max-width: 300px;
@@ -357,7 +367,6 @@ header.headroom--unpinned {
 }
 
 .nav-page .nav-page-text {
-  font-size: $nav-font-size;
   padding-left: 0.25em;
   padding-right: 0.25em;
   margin-bottom: 5px;

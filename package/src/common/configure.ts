@@ -10,7 +10,7 @@ import { info, warning } from "log/mod.ts";
 
 import { Configuration } from "./config.ts";
 import {
-  dependencies,
+  kDependencies,
   PlatformDependency,
 } from "./dependencies/dependencies.ts";
 
@@ -21,7 +21,7 @@ export async function configure(
 
   // Download dependencies
   info("Downloading dependencies");
-  for (const dependency of dependencies()) {
+  for (const dependency of kDependencies) {
     info(`Preparing ${dependency.name}`);
     const platformDep = dependency[Deno.build.os];
     if (platformDep) {

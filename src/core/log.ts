@@ -13,7 +13,7 @@ import { Command } from "cliffy/command/mod.ts";
 import { getenv } from "./env.ts";
 import { Args } from "flags/mod.ts";
 import { lines } from "./text.ts";
-import { warning } from "log/mod.ts";
+import { error, warning } from "log/mod.ts";
 
 export interface LogOptions {
   log?: string;
@@ -222,15 +222,10 @@ export function cleanupLogger() {
   // Currently no cleanup required
 }
 
-export function logError(error: Error) {
-  log.error(() => {
-    const isDebug = getenv("QUARTO_DEBUG", "false") === "true";
-    if (isDebug) {
-      return error.stack;
-    } else {
-      return `${error.name}: ${error.message}`;
-    }
-  });
+export function logError(e: Error) {
+  const isDebug = getenv("QUARTO_DEBUG", "false") === "true";
+  // Suppress the stack if this isn't a local / debug build
+  error(isDebug ? e.stack : `${e.name}: ${e.message}`);
 }
 
 export function warnOnce(msg: string) {

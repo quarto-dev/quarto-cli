@@ -11,21 +11,27 @@ import { mergeConfigs } from "../../core/config.ts";
 import { texSafeFilename } from "../../core/tex.ts";
 
 import {
+  kDocumentClass,
   kEcho,
   kFigDpi,
   kFigFormat,
   kFigHeight,
   kFigWidth,
   kKeepTex,
+  kNumberSections,
+  kPaperSize,
+  kShiftHeadingLevelBy,
+  kTopLevelDivision,
   kWarning,
 } from "../../config/constants.ts";
-import { Format } from "../../config/format.ts";
+import { Format, FormatExtras } from "../../config/format.ts";
 
 import { createFormat } from "../formats.ts";
 
 import { RenderedFile } from "../../command/render/render.ts";
 import { ProjectContext } from "../../project/project-context.ts";
 import { BookExtension } from "../../project/types/book/book-extension.ts";
+import { PandocFlags } from "../../config/flags.ts";
 
 export function pdfFormat(): Format {
   return mergeConfigs(
@@ -41,7 +47,7 @@ export function pdfFormat(): Format {
 export function beamerFormat(): Format {
   return createFormat(
     "pdf",
-    createPdfFormat(),
+    createPdfFormat(false),
     {
       execute: {
         [kFigWidth]: 10,
@@ -60,7 +66,7 @@ export function latexFormat(): Format {
   );
 }
 
-function createPdfFormat(): Format {
+function createPdfFormat(autoShiftHeadings = true): Format {
   return createFormat(
     "pdf",
     {
@@ -76,6 +82,33 @@ function createPdfFormat(): Format {
           graphics: true,
           tables: true,
         },
+      },
+      formatExtras: (flags: PandocFlags, format: Format) => {
+        // default to KOMA article class. we do this here rather than
+        // above so that projectExtras can override us
+        const extras: FormatExtras = {
+          metadata: {
+            [kDocumentClass]: "scrartcl",
+            [kPaperSize]: "letter",
+          },
+        };
+
+        // pdfs with no other heading level oriented options get their heading level shifted by -1
+        if (
+          autoShiftHeadings &&
+          (flags?.[kNumberSections] === true ||
+            format.pandoc[kNumberSections] === true) &&
+          flags?.[kTopLevelDivision] === undefined &&
+          format.pandoc?.[kTopLevelDivision] === undefined &&
+          flags?.[kShiftHeadingLevelBy] === undefined &&
+          format.pandoc?.[kShiftHeadingLevelBy] === undefined
+        ) {
+          extras.pandoc = {
+            [kShiftHeadingLevelBy]: -1,
+          };
+        }
+
+        return extras;
       },
     },
   );

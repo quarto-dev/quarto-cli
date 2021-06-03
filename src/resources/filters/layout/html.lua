@@ -122,14 +122,6 @@ end
 
 function htmlImageFigure(image)
 
-  -- read the fig.alt text and set the image alt
-  local altText = attribute(image, kFigAlt, nil);
-  
-  -- add alt text, if needed
-  if altText ~= nil then
-     image.attr.attributes["alt"] = altText
-  end
-
   return renderHtmlFigure(image, function(figure)
     
     -- make a copy of the caption and clear it

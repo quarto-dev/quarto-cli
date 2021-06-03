@@ -16,7 +16,7 @@ import { pathWithForwardSlashes, removeIfExists } from "../../../core/path.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { resourcePath } from "../../../core/resources.ts";
 
-import { ProjectOutputFile } from "../project-types.ts";
+import { ProjectOutputFile } from "../project-type.ts";
 import { websiteBaseurl } from "./website-config.ts";
 
 export async function updateSitemap(

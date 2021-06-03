@@ -11,8 +11,6 @@ import { exists } from "fs/mod.ts";
 import { which } from "../core/path.ts";
 import { execProcess } from "../core/process.ts";
 
-import { ProjectContext } from "./project-context.ts";
-
 import { kQuartoScratch } from "./project-scratch.ts";
 import { lines } from "../core/text.ts";
 
@@ -22,9 +20,9 @@ export const kGitignoreEntries = kQuartoIgnore.concat([
   "*_cache/",
 ]);
 
-export async function ensureGitignore(project: ProjectContext) {
+export async function ensureGitignore(dir: string) {
   // if .gitignore exists, then ensure it has the requisite entries
-  const gitignorePath = join(project.dir, ".gitignore");
+  const gitignorePath = join(dir, ".gitignore");
   if (await exists(gitignorePath)) {
     const gitignore = lines(Deno.readTextFileSync(gitignorePath))
       .map((line) => line.trim());
@@ -35,29 +33,29 @@ export async function ensureGitignore(project: ProjectContext) {
       }
     }
     if (requiredEntries.length > 0) {
-      writeGitignore(project.dir, gitignore.concat(requiredEntries));
+      writeGitignore(dir, gitignore.concat(requiredEntries));
     }
   } else if (which("git")) {
     // if it doesn't exist then auto-create if we are in a git project
     const result = await execProcess({
       cmd: ["git", "status"],
-      cwd: project.dir,
+      cwd: dir,
       stdout: "piped",
       stderr: "piped",
     });
     if (result.success) {
-      await createGitignore(project.dir);
+      await createGitignore(dir);
     }
   }
 }
 
-export async function createGitignore(dir: string) {
-  await writeGitignore(dir, kGitignoreEntries);
+export function createGitignore(dir: string) {
+  writeGitignore(dir, kGitignoreEntries);
 }
 
-async function writeGitignore(dir: string, lines: string[]) {
+function writeGitignore(dir: string, lines: string[]) {
   const lineEnding = Deno.build.os === "windows" ? "\r\n" : "\n";
-  await Deno.writeTextFile(
+  Deno.writeTextFileSync(
     join(dir, ".gitignore"),
     lines.join(lineEnding) + lineEnding,
   );

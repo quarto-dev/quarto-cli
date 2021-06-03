@@ -18,7 +18,7 @@ import {
   ProjectCreate,
   ProjectOutputFile,
   ProjectType,
-} from "../project-types.ts";
+} from "../project-type.ts";
 import { Format, FormatExtras, isHtmlOutput } from "../../../config/format.ts";
 import { PandocFlags } from "../../../config/flags.ts";
 

@@ -17,7 +17,7 @@ import { renderEjs } from "../core/ejs.ts";
 import { ExecutionEngine, executionEngine } from "../execute/engine.ts";
 
 import { projectConfigFile } from "./project-context.ts";
-import { createGitignore } from "./project-gitignore.ts";
+import { ensureGitignore } from "./project-gitignore.ts";
 
 export interface ProjectCreateOptions {
   dir: string;
@@ -64,7 +64,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
     "- Created _quarto.yml",
     { indent: 2 },
   );
-  await createGitignore(options.dir);
+  await ensureGitignore(options.dir);
   info(
     "- Created .gitignore",
     { indent: 2 },

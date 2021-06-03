@@ -8,7 +8,7 @@
 import { generate as generateUuid } from "uuid/v4.ts";
 
 import { kTextHtml, kTextMarkdown } from "../mime.ts";
-import { isDisplayData } from "./display_data.ts";
+import { isDisplayData } from "./display-data.ts";
 import { JupyterNotebook, JupyterOutputDisplayData } from "./jupyter.ts";
 
 export function removeAndPreserveHtml(

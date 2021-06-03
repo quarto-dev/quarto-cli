@@ -28,7 +28,7 @@ import {
 
 import { kPatchedTemplateExt } from "./output.ts";
 import { PandocOptions } from "./pandoc.ts";
-import { crossrefFilter, crossrefGeneratedDefaults } from "./crossref.ts";
+import { crossrefFilter } from "./crossref.ts";
 import { layoutFilter } from "./layout.ts";
 import {
   quartoPostFilter,
@@ -42,13 +42,9 @@ export function generateDefaults(
 ): Promise<FormatPandoc | undefined> {
   let allDefaults: FormatPandoc | undefined;
 
-  const crossrefDefaults = crossrefGeneratedDefaults(options);
+  if (options.format.pandoc) {
+    allDefaults = options.format.pandoc || {};
 
-  if (crossrefDefaults || options.format.pandoc) {
-    allDefaults = mergeConfigs(
-      crossrefDefaults || {},
-      options.format.pandoc || {},
-    );
     // resolve filters
     const resolvedFilters = resolveFilters(
       [
