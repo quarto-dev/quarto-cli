@@ -37,12 +37,16 @@ export async function observableNotebookToMarkdown(
   const nb = JSON.parse(json);
 
   // see if we can determine a default file name
-  let file = output || nb.id as string;
-  const slug = nb.slug || nb.fork_of?.slug;
-  if (typeof (slug) === "string") {
-    file = slug;
-  } else if (typeof (nb.title) === "string") {
-    file = pandocAutoIdentifier(nb.title, false);
+  let file = output ? basename(output) : undefined;
+  if (!file) {
+    const slug = nb.slug || nb.fork_of?.slug;
+    if (typeof (slug) === "string") {
+      file = slug;
+    } else if (typeof (nb.title) === "string") {
+      file = pandocAutoIdentifier(nb.title, false);
+    } else {
+      file = nb.id as string;
+    }
   }
 
   // determine/ensure output directory
