@@ -63,6 +63,19 @@ export const outputCreated = (input: string, to: string): Verify => {
   };
 };
 
+export const directoryEmptyButFor = (dir: string, onlyFile: string): Verify => {
+  return {
+    name: "Directory is empty",
+    verify: (_outputs: ExecuteOutput[]) => {
+      for (const item of Deno.readDirSync(dir)) {
+        if (item.name !== onlyFile) {
+          assert(false, `Unexpected content ${item.name} in ${dir}`);
+        }
+      }
+    },
+  };
+};
+
 export const noSupportingFiles = (input: string, to: string): Verify => {
   return {
     name: "No Supporting Files Dir",
