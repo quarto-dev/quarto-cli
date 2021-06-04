@@ -9,6 +9,7 @@ import { existsSync } from "fs/exists.ts";
 import { assert } from "testing/asserts.ts";
 
 import { ExecuteOutput, Verify } from "./test.ts";
+import { outputForInput } from "./utils.ts";
 
 export const noErrorsOrWarnings = {
   name: "No Errors or Warnings",
@@ -39,6 +40,43 @@ export const fileExists = (file: string): Verify => {
     name: `File ${file} exists`,
     verify: (_output: ExecuteOutput[]) => {
       verifyPath(file);
+    },
+  };
+};
+
+export const outputCreated = (input: string, to: string): Verify => {
+  return {
+    name: "Output Created",
+    verify: (outputs: ExecuteOutput[]) => {
+      // Check for output created message
+      const outputCreatedMsg = outputs.find((outMsg) =>
+        outMsg.msg.startsWith("Output created:")
+      );
+      assert(outputCreatedMsg !== undefined, "No output created message");
+
+      // Check for existence of the output
+      const outputFile = outputForInput(input, to);
+      verifyPath(outputFile.outputPath);
+    },
+  };
+};
+
+export const noSupportingFiles = (input: string, to: string): Verify => {
+  return {
+    name: "No Supporting Files Dir",
+    verify: (_output: ExecuteOutput[]) => {
+      const outputFile = outputForInput(input, to);
+      verifyNoPath(outputFile.supportPath);
+    },
+  };
+};
+
+export const hasSupportingFiles = (input: string, to: string): Verify => {
+  return {
+    name: "Has Supporting Files Dir",
+    verify: (_output: ExecuteOutput[]) => {
+      const outputFile = outputForInput(input, to);
+      verifyPath(outputFile.supportPath);
     },
   };
 };

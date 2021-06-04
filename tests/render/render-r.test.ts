@@ -5,28 +5,23 @@
 *
 */
 
-import { fileExists, hasSupportingFiles, outputCreated } from "../verify.ts";
-import { testRender } from "../render.ts";
+import { fileExists } from "../verify.ts";
+import { testRender } from "./render.ts";
 
 const plotPath = "docs/test_files/figure-html/unnamed-chunk-2-1.png";
-testRender("docs/test.Rmd", "html", [
-  outputCreated,
-  hasSupportingFiles,
+
+testRender("docs/test.Rmd", "html", false, [
   fileExists(plotPath),
-], () => {
-  return Promise.resolve();
-}, () => {
-  return Deno.remove(plotPath);
+], {
+  teardown: () => {
+    return Deno.remove(plotPath);
+  },
 });
 
-testRender("docs/test.Rmd", "html", [
-  outputCreated,
-  hasSupportingFiles,
+testRender("docs/test.Rmd", "html", false, [
   fileExists(plotPath),
-], () => {
-  return Promise.resolve();
-}, () => {
-  return Deno.remove(plotPath);
-}, () => {
-  return Promise.resolve(true);
+], {
+  teardown: () => {
+    return Deno.remove(plotPath);
+  },
 }, ["--execute-params", "docs/params.yml"]);

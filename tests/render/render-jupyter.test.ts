@@ -4,22 +4,8 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { testRender } from "../render.ts";
-import {
-  hasSupportingFiles,
-  noSupportingFiles,
-  outputCreated,
-} from "../verify.ts";
+import { testRender } from "./render.ts";
 
-testRender("docs/test-jupyter.md", "pdf", [
-  outputCreated,
-  noSupportingFiles,
-]);
-testRender("docs/unpaired.ipynb", "html", [
-  outputCreated,
-  hasSupportingFiles,
-]);
-testRender("docs/unpaired-md.md", "html", [
-  outputCreated,
-  hasSupportingFiles,
-]);
+testRender("docs/test-jupyter.md", "pdf", true);
+testRender("docs/unpaired.ipynb", "html", false);
+testRender("docs/unpaired-md.md", "html", false);
