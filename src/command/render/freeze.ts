@@ -28,7 +28,7 @@ import {
   kIncludeInHeader,
 } from "../../config/constants.ts";
 
-import { ExecuteResult, PandocIncludes } from "../../execute/engine.ts";
+import { ExecuteResult } from "../../execute/engine.ts";
 
 import {
   kProjectLibDir,
@@ -37,7 +37,7 @@ import {
 import { projectScratchPath } from "../../project/project-scratch.ts";
 
 export const kProjectFreezeDir = "_freeze";
-export const kFreezeExecuteResults = "execute";
+export const kFreezeExecuteResults = "execute-results";
 
 export function freezeExecuteResult(
   input: string,
@@ -49,10 +49,11 @@ export function freezeExecuteResult(
   const resolveIncludes = (
     name: "include-in-header" | "include-before-body" | "include-after-body",
   ) => {
-    if (result.dependencies?.type === "includes") {
-      const includes = result.dependencies?.data as PandocIncludes;
-      if (includes[name]) {
-        includes[name] = Deno.readTextFileSync(includes[name]!);
+    if (result.includes) {
+      if (result.includes[name]) {
+        result.includes[name] = result.includes[name]!.map((file) =>
+          Deno.readTextFileSync(file)
+        );
       }
     }
   };
@@ -110,12 +111,13 @@ export function defrostExecuteResult(
           | "include-before-body"
           | "include-after-body",
       ) => {
-        if (result.dependencies?.type === "includes") {
-          const includes = result.dependencies.data as PandocIncludes;
-          if (includes[name]) {
-            const includeFile = sessionTempFile();
-            Deno.writeTextFileSync(includeFile, includes[name]!);
-            includes[name] = includeFile;
+        if (result.includes) {
+          if (result.includes[name]) {
+            result.includes[name] = result.includes[name]!.map((content) => {
+              const includeFile = sessionTempFile();
+              Deno.writeTextFileSync(includeFile, content);
+              return includeFile;
+            });
           }
         }
       };

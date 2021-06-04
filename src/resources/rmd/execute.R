@@ -103,26 +103,21 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params) {
   else
     character()
 
-  # see if we are going to resolve knit_meta now or later
+  # see if we are going to resolve knit_meta now or later 
   if (dependencies) {
-    dependencies_data <- list(
-      type = "includes",
-      data = pandoc_includes(
-        input, 
-        format,
-        output_file, 
-        ifelse(!is.null(libDir), libDir, files_dir), 
-        knit_meta, 
-        tempDir
-      )
+    engineDependencies <- NULL
+    includes <- pandoc_includes(
+      input, 
+      format,
+      output_file, 
+      ifelse(!is.null(libDir), libDir, files_dir), 
+      knit_meta, 
+      tempDir
     )
   } else {
-    dependencies_data <- list(
-      type = "dependencies",
-      data = I(list(jsonlite::serializeJSON(knit_meta)))
-    ) 
+    includes <- NULL
+    engineDependencies = I(list(jsonlite::serializeJSON(knit_meta)))
   }
-  
 
   # include postprocessing if required
   if (!is.null(preserved)) {
@@ -141,7 +136,8 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params) {
     markdown = paste(markdown, collapse="\n"),
     supporting = I(supporting),
     filters = I("rmarkdown/pagebreak.lua"),
-    dependencies = dependencies_data,
+    includes = includes,
+    engineDependencies = engineDependencies,
     preserve = preserve,
     postProcess = postProcess
   )
@@ -375,7 +371,7 @@ create_pandoc_includes <- function(includes, tempDir) {
     if (!is.null(content)) {
       path <- tempfile(tmpdir = tempDir)
       xfun::write_utf8(content, path)
-      pandoc[[to]] <<- path
+      pandoc[[to]] <<- I(path)
     }
   }
   write_includes("in_header", "include-in-header")

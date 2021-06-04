@@ -80,18 +80,16 @@ export interface ExecuteResult {
   markdown: string;
   supporting: string[];
   filters: string[];
-  dependencies?: {
-    type: "includes" | "dependencies";
-    data: PandocIncludes | Array<unknown>;
-  };
+  includes?: PandocIncludes;
+  engineDependencies?: Array<unknown>;
   preserve?: Record<string, string>;
   postProcess?: boolean;
 }
 
 export interface PandocIncludes {
-  [kIncludeBeforeBody]?: string;
-  [kIncludeAfterBody]?: string;
-  [kIncludeInHeader]?: string;
+  [kIncludeBeforeBody]?: string[];
+  [kIncludeAfterBody]?: string[];
+  [kIncludeInHeader]?: string[];
 }
 
 // dependencies options

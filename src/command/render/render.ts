@@ -462,10 +462,9 @@ export async function renderExecute(
   // merge in results
   executeResult.markdown = markdown;
   if (includes) {
-    // TODO: we need to change the ExecuteResult interface so that it
-    // can accommotate both custom and include based dependencies
-    // TODO: may need it to accomodate arrays of include files (so
-    // we can stack with what juptyer or knitr returned)
+    executeResult.includes = mergeConfigs(
+      (executeResult.includes || {}, includes),
+    );
   }
 
   // keep md if requested
@@ -538,13 +537,13 @@ export async function renderPandoc(
   const format = recipe.format;
 
   // merge any pandoc options provided by the computation
-  if (executeResult.dependencies?.type === "includes") {
+  if (executeResult.includes) {
     format.pandoc = mergePandocIncludes(
       format.pandoc || {},
-      executeResult.dependencies.data as PandocIncludes,
+      executeResult.includes,
     );
   } // run the dependencies step if we didn't do it during execute
-  else if (executeResult.dependencies?.type === "dependencies") {
+  else if (executeResult.engineDependencies) {
     const dependenciesResult = await context.engine.dependencies({
       target: context.target,
       format,
@@ -552,7 +551,7 @@ export async function renderPandoc(
       resourceDir: resourcePath(),
       tempDir: createSessionTempDir(),
       libDir: context.libDir,
-      dependencies: executeResult.dependencies.data as Array<unknown>,
+      dependencies: executeResult.engineDependencies,
       quiet: context.options.flags?.quiet,
     });
     format.pandoc = mergePandocIncludes(
@@ -748,18 +747,7 @@ function mergePandocIncludes(
   format: FormatPandoc,
   pandocIncludes: PandocIncludes,
 ) {
-  const includesFormat: FormatPandoc = {};
-  const mergeIncludes = (
-    name: "include-in-header" | "include-before-body" | "include-after-body",
-  ) => {
-    if (pandocIncludes[name]) {
-      includesFormat[name] = [pandocIncludes[name]!];
-    }
-  };
-  mergeIncludes(kIncludeInHeader);
-  mergeIncludes(kIncludeBeforeBody);
-  mergeIncludes(kIncludeAfterBody);
-  return mergeConfigs(format, includesFormat);
+  return mergeConfigs(format, pandocIncludes);
 }
 
 // some extensions are 'known' to be standalone/self-contained

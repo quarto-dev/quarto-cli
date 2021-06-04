@@ -350,7 +350,7 @@ async function mergeExecutedFiles(
   const dependencies = files.reduce(
     (dependencies: Array<unknown>, file: ExecutedFile) => {
       return dependencies.concat(
-        file.executeResult.dependencies?.data as Array<unknown> || [],
+        file.executeResult.engineDependencies as Array<unknown> || [],
       );
     },
     new Array<unknown>(),
