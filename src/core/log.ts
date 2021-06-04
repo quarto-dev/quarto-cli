@@ -13,7 +13,7 @@ import { Command } from "cliffy/command/mod.ts";
 import { getenv } from "./env.ts";
 import { Args } from "flags/mod.ts";
 import { lines } from "./text.ts";
-import { error, warning } from "log/mod.ts";
+import { error, getLogger, setup, warning } from "log/mod.ts";
 
 export interface LogOptions {
   log?: string;
@@ -207,7 +207,7 @@ export async function initializeLogger(logOptions: LogOptions) {
   }
 
   // Setup the loggers
-  await log.setup({
+  await setup({
     handlers,
     loggers: {
       default: {
@@ -218,8 +218,15 @@ export async function initializeLogger(logOptions: LogOptions) {
   });
 }
 
-export function cleanupLogger() {
-  // Currently no cleanup required
+export async function cleanupLogger() {
+  // Destroy each of the handlers when we exit
+  const logger = getLogger();
+  for (const handler of logger.handlers) {
+    await handler.destroy();
+  }
+
+  // Clear the handlers
+  logger.handlers = [];
 }
 
 export function logError(e: Error) {
