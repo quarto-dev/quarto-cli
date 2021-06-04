@@ -41,7 +41,7 @@ export function testQuartoCmd(
   teardown?: () => Promise<void>,
   prereq?: () => Promise<boolean>,
 ) {
-  const name = `$ quarto ${cmd} ${args.join(" ")}`;
+  const name = `> quarto ${cmd} ${args.join(" ")}`;
   test({
     name,
     execute: async () => {
