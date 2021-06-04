@@ -1,3 +1,9 @@
+/*
+* create-project.test.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
 import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 import { Metadata } from "../../src/config/metadata.ts";
@@ -29,8 +35,10 @@ testQuartoCmd(
       }),
     ),
   ],
-  cleanWorking,
-  cleanWorking,
+  {
+    setup: cleanWorking,
+    teardown: cleanWorking,
+  },
 );
 
 // A book project
@@ -57,8 +65,10 @@ testQuartoCmd(
       }),
     ),
   ],
-  cleanWorking,
-  cleanWorking,
+  {
+    setup: cleanWorking,
+    teardown: cleanWorking,
+  },
 );
 
 // A website project
@@ -84,6 +94,8 @@ testQuartoCmd(
       }),
     ),
   ],
-  cleanWorking,
-  cleanWorking,
+  {
+    setup: cleanWorking,
+    teardown: cleanWorking,
+  },
 );

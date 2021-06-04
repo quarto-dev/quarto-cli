@@ -38,6 +38,10 @@ testRender("docs/latexmk/babel.Rmd", "pdf", true, [], {
 });
 
 testRender("docs/latexmk/estopdf.Rmd", "pdf", true, [], {
+  prereq: async () => {
+    const hasGhostscript = await which("gs") !== undefined;
+    return hasGhostscript;
+  },
   setup: async () => {
     await ensurePackageRemoved("epstopdf");
   },
@@ -48,10 +52,6 @@ testRender("docs/latexmk/estopdf.Rmd", "pdf", true, [], {
       Deno.removeSync(estopdf);
     }
     return Promise.resolve();
-  },
-  prereq: async () => {
-    const hasGhostscript = await which("gs") !== undefined;
-    return hasGhostscript;
   },
 });
 

@@ -7,30 +7,19 @@
 import { existsSync } from "fs/mod.ts";
 
 import { outputForInput } from "../utils.ts";
-import { testQuartoCmd, Verify } from "../test.ts";
+import { TestContext, testQuartoCmd, Verify } from "../test.ts";
 import {
   hasSupportingFiles,
   noSupportingFiles,
   outputCreated,
 } from "../verify.ts";
 
-export interface RenderTestContext {
-  // Sets up the test
-  setup?: () => Promise<void>;
-
-  // Cleans up the test
-  teardown?: () => Promise<void>;
-
-  // Verifies that prerequisites are met
-  prereq?: () => Promise<boolean>;
-}
-
 export function testRender(
   input: string,
   to: string,
   standalone: boolean,
   addtlVerify?: Verify[],
-  context?: RenderTestContext,
+  context?: TestContext,
   args?: string[],
 ) {
   // Verify that the output was created and
@@ -52,14 +41,15 @@ export function testRender(
     "render",
     [input, "--to", to, ...(args || [])],
     verify,
-    context.setup,
-    async () => {
-      if (context && context.teardown) {
-        await context.teardown();
-      }
-      cleanoutput(input, to);
+    {
+      ...context,
+      teardown: async () => {
+        if (context?.teardown) {
+          await context?.teardown();
+        }
+        cleanoutput(input, to);
+      },
     },
-    context.prereq,
   );
 }
 

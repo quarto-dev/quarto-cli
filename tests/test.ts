@@ -19,27 +19,31 @@ export interface TestDescriptor {
   name: string;
 
   // Sets up the test
-  setup: () => Promise<void>;
+  context: TestContext;
 
   // Executes the test
   execute: () => Promise<void>;
 
   // Used to verify the outcome of the test
   verify: Verify[];
+}
+
+export interface TestContext {
+  // Checks that prereqs for the test are met
+  prereq?: () => Promise<boolean>;
 
   // Cleans up the test
-  teardown: () => Promise<void>;
+  teardown?: () => Promise<void>;
 
-  prereq?: () => Promise<boolean>;
+  // Sets up the test
+  setup?: () => Promise<void>;
 }
 
 export function testQuartoCmd(
   cmd: string,
   args: string[],
   verify: Verify[],
-  setup?: () => Promise<void>,
-  teardown?: () => Promise<void>,
-  prereq?: () => Promise<boolean>,
+  context?: TestContext,
 ) {
   const name = `> quarto ${cmd} ${args.join(" ")}`;
   test({
@@ -48,15 +52,7 @@ export function testQuartoCmd(
       await quarto([cmd, ...args]);
     },
     verify,
-    setup: setup || (() => {
-      return Promise.resolve();
-    }),
-    teardown: teardown || (() => {
-      return Promise.resolve();
-    }),
-    prereq: prereq || (() => {
-      return Promise.resolve(true);
-    }),
+    context: context || {},
   });
 }
 
@@ -73,9 +69,11 @@ export interface ExecuteOutput {
 
 export function test(test: TestDescriptor) {
   Deno.test(test.name, async () => {
-    const runTest = !test.prereq || await test.prereq();
+    const runTest = !test.context.prereq || await test.context.prereq();
     if (runTest) {
-      await test.setup();
+      if (test.context.setup) {
+        await test.context.setup();
+      }
 
       // Capture the output
       const log = "test-out.json";
@@ -100,7 +98,9 @@ export function test(test: TestDescriptor) {
           ver.verify(testOutput);
         });
       }
-      await test.teardown();
+      if (test.context.teardown) {
+        await test.context.teardown();
+      }
     } else {
       warning(`Skipped - ${test.name}`);
     }

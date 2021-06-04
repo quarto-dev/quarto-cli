@@ -22,7 +22,9 @@ testQuartoCmd(
   "install",
   ["tinytex"],
   [noErrorsOrWarnings, printsMessage("INFO", /^Installation successful$/m)],
-  async () => {
-    await uninstallTool("tinytex");
+  {
+    setup: async () => {
+      await uninstallTool("tinytex");
+    },
   },
 );
