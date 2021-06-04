@@ -4,35 +4,13 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+import { existsSync } from "fs/mod.ts";
 
 import { VerifyRender } from "./verify.ts";
-import { assertEquals } from "testing/asserts.ts";
 import { outputForInput } from "./utils.ts";
+import { ExecuteOutput, test } from "./test.ts";
 
-import { existsSync } from "fs/mod.ts";
 import { quarto } from "../src/quarto.ts";
-
-export interface Verify {
-  name: string;
-  verify: () => void;
-}
-
-export interface TestDescriptor {
-  // The name of the test
-  name: string;
-
-  // Sets up the test
-  setup: () => Promise<void>;
-
-  // Executes the test
-  execute: () => Promise<void>;
-
-  // Used to verify the outcome of the test
-  verify: Verify[];
-
-  // Cleans up the test
-  teardown: () => Promise<void>;
-}
 
 // Tests Rendering of Documents
 export function testRender(
@@ -54,8 +32,8 @@ export function testRender(
     verify: verify.map((ver) => {
       return {
         name: ver.name,
-        verify: () => {
-          ver.verify(input, to);
+        verify: (output: ExecuteOutput[]) => {
+          ver.verify(input, to, output);
         },
       };
     }),
@@ -77,17 +55,6 @@ export function testRender(
       await teardown();
       cleanoutput(input, to);
     },
-  });
-}
-
-function test(test: TestDescriptor) {
-  Deno.test(test.name, async () => {
-    await test.setup();
-    await test.execute();
-    test.verify.forEach((ver) => {
-      ver.verify();
-    });
-    await test.teardown();
   });
 }
 
