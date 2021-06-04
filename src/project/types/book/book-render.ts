@@ -399,21 +399,22 @@ export async function bookPostRender(
 ) {
   // get web output contained in the outputFiles passed to us
   const websiteFiles = websiteOutputFiles(outputFiles);
+  if (websiteFiles.length > 0) {
+    // fixup crossrefs and bibliography for web output
+    await bookBibliographyPostRender(context, incremental, websiteFiles);
+    await bookCrossrefsPostRender(context, websiteFiles);
 
-  // fixup crossrefs and bibliography for web output
-  await bookBibliographyPostRender(context, incremental, websiteFiles);
-  await bookCrossrefsPostRender(context, websiteFiles);
+    // write website files
+    websiteFiles.forEach((websiteFile) => {
+      const doctype = websiteFile.doctype;
+      const htmlOutput = (doctype ? doctype + "\n" : "") +
+        websiteFile.doc.documentElement?.outerHTML!;
+      Deno.writeTextFileSync(websiteFile.file, htmlOutput);
+    });
 
-  // write website files
-  websiteFiles.forEach((websiteFile) => {
-    const doctype = websiteFile.doctype;
-    const htmlOutput = (doctype ? doctype + "\n" : "") +
-      websiteFile.doc.documentElement?.outerHTML!;
-    Deno.writeTextFileSync(websiteFile.file, htmlOutput);
-  });
-
-  // run standard website stuff (search, etc.)
-  await websitePostRender(context, incremental, outputFiles);
+    // run standard website stuff (search, etc.)
+    await websitePostRender(context, incremental, outputFiles);
+  }
 }
 
 export async function bookIncrementalRenderAll(
