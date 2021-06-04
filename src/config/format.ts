@@ -106,6 +106,7 @@ export interface FormatDependency {
 export interface DependencyFile {
   name: string;
   path: string;
+  attribs?: Record<string, string>;
 }
 
 export interface BodyEnvelope {

@@ -5,19 +5,24 @@
 *
 */
 
+import { dirname, join } from "path/mod.ts";
+
 import { Format } from "../../config/format.ts";
 
-import * as ojsSourceIncludes from "../../core/observable/js-source.ts";
 import { logError } from "../../core/log.ts";
 import { escapeBackticks } from "../../core/text.ts";
 import { breakQuartoMd } from "../../core/break-quarto-md.ts";
 import { PandocIncludes } from "../../execute/engine.ts";
+import { formatResourcePath } from "../resources.ts";
+import { resolveDependencies } from "../../command/render/pandoc.ts";
+import { kIncludeAfterBody, kIncludeInHeader } from "../../config/constants.ts";
+import { sessionTempFile } from "../temp.ts";
 
 export interface ObserveableCompileOptions {
   source: string;
   format: Format;
   markdown: string;
-  libDir?: string;
+  libDir: string;
 }
 
 export interface ObservableCompileResult {
@@ -45,18 +50,8 @@ export function observableCompile(
   }
 
   let ojsCellID = 0;
-  let needsPreamble = true;
 
-  function ensurePreamble() {
-    if (needsPreamble) {
-      needsPreamble = false;
-      return `${ojsSourceIncludes.imports}${ojsSourceIncludes.preamble}`;
-    } else {
-      return ``;
-    }
-  }
-
-  let scriptContents = [ensurePreamble()];
+  let scriptContents: string[] = [];
 
   function interpret(jsSrc: string[], inline: boolean) {
     let inlineStr = inline ? "inline-" : "";
@@ -108,11 +103,50 @@ export function observableCompile(
     }
   }
 
-  ls.push(`<script type="module">`);
-  ls.push(...scriptContents);
-  ls.push(`</script>`);
+  // script to append
+  const afterBody = [`<script type="module">`, ...scriptContents, `</script>`]
+    .join("\n");
+  const includeAfterBodyFile = sessionTempFile();
+  Deno.writeTextFileSync(includeAfterBodyFile, afterBody);
+
+  // copy observable dependencies and inject references to them into the head
+  const includeInHeaderFile = resolveDependencies(
+    [observableFormatDependency()],
+    dirname(options.source),
+    options.libDir,
+  );
 
   return {
     markdown: ls.join("\n"),
+    includes: {
+      [kIncludeInHeader]: [includeInHeaderFile],
+      [kIncludeAfterBody]: [includeAfterBodyFile],
+    },
+  };
+}
+
+function observableFormatDependency() {
+  const observableResource = (resource: string) =>
+    formatResourcePath(
+      "html",
+      join("observable", resource),
+    );
+  const observableDependency = (
+    resource: string,
+    attribs?: Record<string, string>,
+  ) => ({
+    name: resource,
+    path: observableResource(resource),
+    attribs,
+  });
+
+  return {
+    name: "quarto-observable",
+    stylesheets: [
+      observableDependency("quarto-observable.css"),
+    ],
+    scripts: [
+      observableDependency("quarto-observable.js", { type: "module" }),
+    ],
   };
 }
