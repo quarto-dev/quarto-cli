@@ -19,6 +19,7 @@ export function testRender(
   verify: VerifyRender[],
   setup = async () => {},
   teardown = async () => {},
+  prereq?: () => Promise<boolean>,
   args?: string[],
 ) {
   // Render Test Name
@@ -55,6 +56,7 @@ export function testRender(
       await teardown();
       cleanoutput(input, to);
     },
+    prereq,
   });
 }
 

@@ -4,6 +4,7 @@
 // TODO: render-*.test.ts
 
 import { existsSync } from "fs/mod.ts";
+import { warning } from "log/mod.ts";
 
 import { cleanupLogger, initializeLogger } from "../src/core/log.ts";
 
@@ -28,6 +29,8 @@ export interface TestDescriptor {
 
   // Cleans up the test
   teardown: () => Promise<void>;
+
+  prereq?: () => Promise<boolean>;
 }
 
 export interface Verify {
@@ -43,32 +46,37 @@ export interface ExecuteOutput {
 
 export function test(test: TestDescriptor) {
   Deno.test(test.name, async () => {
-    await test.setup();
+    const runTest = !test.prereq || await test.prereq();
+    if (runTest) {
+      await test.setup();
 
-    // Capture the output
-    const log = "test-out.json";
-    await initializeLogger({
-      log: log,
-      level: "DEBUG",
-      format: "json-stream",
-      quiet: true,
-    });
-
-    await test.execute();
-
-    // Cleanup the output loggin
-    await cleanupLogger();
-
-    // Read the output
-    if (existsSync(log)) {
-      const testOutput = readExecuteOutput(log);
-      Deno.removeSync(log);
-
-      test.verify.forEach((ver) => {
-        ver.verify(testOutput);
+      // Capture the output
+      const log = "test-out.json";
+      await initializeLogger({
+        log: log,
+        level: "DEBUG",
+        format: "json-stream",
+        quiet: true,
       });
+
+      await test.execute();
+
+      // Cleanup the output loggin
+      await cleanupLogger();
+
+      // Read the output
+      if (existsSync(log)) {
+        const testOutput = readExecuteOutput(log);
+        Deno.removeSync(log);
+
+        test.verify.forEach((ver) => {
+          ver.verify(testOutput);
+        });
+      }
+      await test.teardown();
+    } else {
+      warning(`Skipped - ${test.name}`);
     }
-    await test.teardown();
   });
 }
 

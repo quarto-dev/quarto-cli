@@ -288,6 +288,7 @@ function tlmgrCommand(
       {
         cmd: [...tlmgr, cmd, ...args],
         stdout: "piped",
+        stderr: "piped",
       },
     );
     return result;
