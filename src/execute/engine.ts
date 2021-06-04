@@ -224,7 +224,11 @@ export function fileExecutionEngine(file: string) {
     }
 
     // if there is no language or just ojs then it's plain markdown
-    if (languages.size === 0 || (languages.size == 1 && languages.has("ojs"))) {
+    if (
+      languages.size === 0 ||
+      (languages.size == 1 &&
+        (languages.has("ojs") || languages.has("observable")))
+    ) {
       return markdownEngine;
     } else {
       return jupyterEngine;
