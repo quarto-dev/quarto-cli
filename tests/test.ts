@@ -1,4 +1,3 @@
-// TODO: Add skip capability
 // TODO: Create project tests
 // TODO: test groups
 // TODO: render-*.test.ts
@@ -7,6 +6,7 @@ import { existsSync } from "fs/mod.ts";
 import { warning } from "log/mod.ts";
 
 import { cleanupLogger, initializeLogger } from "../src/core/log.ts";
+import { quarto } from "../src/quarto.ts";
 
 /*
 * test.ts
@@ -31,6 +31,33 @@ export interface TestDescriptor {
   teardown: () => Promise<void>;
 
   prereq?: () => Promise<boolean>;
+}
+
+export function testQuartoCmd(
+  cmd: string,
+  args: string[],
+  verify: Verify[],
+  setup?: () => Promise<void>,
+  teardown?: () => Promise<void>,
+  prereq?: () => Promise<boolean>,
+) {
+  const name = `$ quarto ${cmd} ${args.join(" ")}`;
+  test({
+    name,
+    execute: async () => {
+      await quarto([cmd, ...args]);
+    },
+    verify,
+    setup: setup || (() => {
+      return Promise.resolve();
+    }),
+    teardown: teardown || (() => {
+      return Promise.resolve();
+    }),
+    prereq: prereq || (() => {
+      return Promise.resolve(true);
+    }),
+  });
 }
 
 export interface Verify {
