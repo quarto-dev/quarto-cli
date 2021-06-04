@@ -92,7 +92,7 @@ export async function observableNotebookToMarkdown(
 
     // consume and write front matter if this is the first cell
     if (i === 0) {
-      i = consumeFrontMatter(mode, value, nb.nodes[1], attachments, lines);
+      i = consumeFrontMatter(mode, value, nb.nodes[1], lines);
       if (i > 0) {
         continue;
       }
@@ -138,7 +138,6 @@ function consumeFrontMatter(
   mode: string,
   value: string,
   nextNode: { mode: string; value: string } | undefined,
-  attachments: string[],
   lines: string[],
 ) {
   let skip = 0;
@@ -184,12 +183,6 @@ function consumeFrontMatter(
     lines.push(kFormatHtml);
   }
 
-  if (attachments.length > 0) {
-    lines.push("attachments:");
-    attachments.forEach((file) => {
-      lines.push("  - " + file);
-    });
-  }
   lines.push("---");
   lines.push("");
 
