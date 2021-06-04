@@ -10,7 +10,29 @@ import { assert } from "testing/asserts.ts";
 
 import { ExecuteOutput, Verify } from "./test.ts";
 
+export const noErrorsOrWarnings = {
+  name: "No Errors or Warnings",
+  verify: (outputs: ExecuteOutput[]) => {
+    return !outputs.some((output) =>
+      output.levelName === "warning" || output.levelName === "error"
+    );
+  },
+};
 
+export const printsMessage = (
+  level: "DEBUG" | "INFO" | "WARNING" | "ERROR",
+  regex: RegExp,
+): Verify => {
+  return {
+    name: `${level} matches ${String(regex)}`,
+    verify: (outputs: ExecuteOutput[]) => {
+      const printedMessage = outputs.some((output) => {
+        return output.levelName === level && output.msg.match(regex);
+      });
+      assert(printedMessage, `Missing ${level} ${String(regex)}`);
+    },
+  };
+};
 
 export const fileExists = (file: string): Verify => {
   return {
