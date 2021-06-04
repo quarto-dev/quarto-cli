@@ -1,25 +1,5 @@
-export let css = `<style type="text/css">
-  pre.ojs-source {
-    background-color: #eee;
-  }
-
-  span.ojs-inline span div {
-    display: inline-block;
-  }
-</style>
-`;
-
-export let imports = `
 import { Interpreter } from 'https://cdn.skypack.dev/@alex.garcia/unofficial-observablehq-compiler';
 import { Inspector, Runtime } from 'https://cdn.skypack.dev/@observablehq/runtime';
-`;
-
-export let preamble = `
-let css = "span.ojs-inline span div { display: inline-block; }";
-let cssEl = document.createElement("style");
-cssEl.setAttribute("type", "text/css");
-cssEl.innerText = css;
-document.head.appendChild(cssEl);
 
 function createOJSSourceElement(el, src)
 {
@@ -53,4 +33,3 @@ export function createRuntime()
 }
 
 window._ojsRuntime = createRuntime();
-`;
