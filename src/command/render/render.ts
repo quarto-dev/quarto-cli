@@ -269,14 +269,6 @@ export async function renderFiles(
           executeOptions,
         );
 
-        // evaluate observable chunks
-        executeResult.markdown = observableCompile({
-          source: context.target.source,
-          format: context.format,
-          markdown: executeResult.markdown,
-          libDir: context.libDir,
-        });
-
         // callback
         await pandocRenderer.onRender(format, {
           context,
@@ -457,6 +449,14 @@ export async function renderExecute(
     cwd: flags.executeDir,
     params: resolveParams(flags.params, flags.paramsFile),
     quiet: flags.quiet,
+  });
+
+  // evaluate observable chunks
+  executeResult.markdown = observableCompile({
+    source: context.target.source,
+    format: context.format,
+    markdown: executeResult.markdown,
+    libDir: context.libDir,
   });
 
   // keep md if requested
