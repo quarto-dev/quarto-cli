@@ -9,6 +9,7 @@ import { existsSync } from "fs/exists.ts";
 import { assert } from "testing/asserts.ts";
 
 import { outputForInput } from "./utils.ts";
+import { ExecuteOutput } from "./test.ts";
 
 export function verifyPath(path: string) {
   const pathExists = existsSync(path);
@@ -22,13 +23,13 @@ interface Output {
 
 export interface VerifyRender {
   name: string;
-  verify: (input: string, to: string) => void;
+  verify: (input: string, to: string, output: ExecuteOutput[]) => void;
 }
 
 export const fileExists = (file: string): VerifyRender => {
   return {
     name: `File ${file} exists`,
-    verify: (_input: string, _to: string) => {
+    verify: (_input: string, _to: string, _output: ExecuteOutput[]) => {
       verifyPath(file);
     },
   };
@@ -36,25 +37,32 @@ export const fileExists = (file: string): VerifyRender => {
 
 export const noSupportingFiles = {
   name: "No Supporting Files Dir",
-  verify: (input: string, to: string) => {
-    const output = outputForInput(input, to);
-    verifyNoPath(output.supportPath);
+  verify: (input: string, to: string, _output: ExecuteOutput[]) => {
+    const outputFile = outputForInput(input, to);
+    verifyNoPath(outputFile.supportPath);
   },
 };
 
 export const hasSupportingFiles = {
   name: "Has Supporting Files Dir",
-  verify: (input: string, to: string) => {
-    const output = outputForInput(input, to);
-    verifyPath(output.supportPath);
+  verify: (input: string, to: string, _output: ExecuteOutput[]) => {
+    const outputFile = outputForInput(input, to);
+    verifyPath(outputFile.supportPath);
   },
 };
 
 export const outputCreated = {
   name: "Output Created",
-  verify: (input: string, to: string) => {
-    const output = outputForInput(input, to);
-    verifyPath(output.outputPath);
+  verify: (input: string, to: string, output: ExecuteOutput[]) => {
+    // Check for output created message
+    const outputCreatedMsg = output.find((outMsg) =>
+      outMsg.msg.startsWith("Output created:")
+    );
+    assert(outputCreatedMsg !== undefined, "No output created message");
+
+    // Check for existence of the output
+    const outputFile = outputForInput(input, to);
+    verifyPath(outputFile.outputPath);
   },
 };
 
