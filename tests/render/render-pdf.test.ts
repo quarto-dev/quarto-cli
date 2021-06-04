@@ -7,11 +7,11 @@
 
 import { existsSync } from "fs/mod.ts";
 
-import { removePackage } from "../src/command/render/latexmk/texlive.ts";
-import { which } from "../src/core/path.ts";
+import { removePackage } from "../../src/command/render/latexmk/texlive.ts";
+import { which } from "../../src/core/path.ts";
 
-import { testRender } from "./render.ts";
-import { noSupportingFiles, outputCreated } from "./verify.ts";
+import { testRender } from "../render.ts";
+import { noSupportingFiles, outputCreated } from "../verify.ts";
 
 testRender("docs/latexmk/all.Rmd", "pdf", [
   outputCreated,

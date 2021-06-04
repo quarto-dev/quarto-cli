@@ -4,12 +4,12 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { testRender } from "./render.ts";
+import { testRender } from "../render.ts";
 import {
   hasSupportingFiles,
   noSupportingFiles,
   outputCreated,
-} from "./verify.ts";
+} from "../verify.ts";
 
 testRender("docs/test-jupyter.md", "pdf", [
   outputCreated,

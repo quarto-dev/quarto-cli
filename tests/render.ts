@@ -5,8 +5,9 @@
 *
 */
 import { existsSync } from "fs/mod.ts";
+import { assert } from "testing/asserts.ts";
 
-import { VerifyRender } from "./verify.ts";
+import { verifyNoPath, verifyPath } from "./verify.ts";
 import { outputForInput } from "./utils.ts";
 import { ExecuteOutput, test } from "./test.ts";
 
@@ -69,3 +70,39 @@ export function cleanoutput(input: string, to: string) {
     Deno.removeSync(out.supportPath, { recursive: true });
   }
 }
+
+export interface VerifyRender {
+  name: string;
+  verify: (input: string, to: string, output: ExecuteOutput[]) => void;
+}
+
+export const noSupportingFiles = {
+  name: "No Supporting Files Dir",
+  verify: (input: string, to: string, _output: ExecuteOutput[]) => {
+    const outputFile = outputForInput(input, to);
+    verifyNoPath(outputFile.supportPath);
+  },
+};
+
+export const hasSupportingFiles = {
+  name: "Has Supporting Files Dir",
+  verify: (input: string, to: string, _output: ExecuteOutput[]) => {
+    const outputFile = outputForInput(input, to);
+    verifyPath(outputFile.supportPath);
+  },
+};
+
+export const outputCreated = {
+  name: "Output Created",
+  verify: (input: string, to: string, output: ExecuteOutput[]) => {
+    // Check for output created message
+    const outputCreatedMsg = output.find((outMsg) =>
+      outMsg.msg.startsWith("Output created:")
+    );
+    assert(outputCreatedMsg !== undefined, "No output created message");
+
+    // Check for existence of the output
+    const outputFile = outputForInput(input, to);
+    verifyPath(outputFile.outputPath);
+  },
+};
