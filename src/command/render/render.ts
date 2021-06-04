@@ -452,12 +452,21 @@ export async function renderExecute(
   });
 
   // evaluate observable chunks
-  executeResult.markdown = observableCompile({
+  const { markdown, includes } = observableCompile({
     source: context.target.source,
     format: context.format,
     markdown: executeResult.markdown,
     libDir: context.libDir,
   });
+
+  // merge in results
+  executeResult.markdown = markdown;
+  if (includes) {
+    // TODO: we need to change the ExecuteResult interface so that it
+    // can accommotate both custom and include based dependencies
+    // TODO: may need it to accomodate arrays of include files (so
+    // we can stack with what juptyer or knitr returned)
+  }
 
   // keep md if requested
   const keepMd = executionEngineKeepMd(context.target.input);

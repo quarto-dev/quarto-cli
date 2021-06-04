@@ -10,7 +10,8 @@ import { Format } from "../../config/format.ts";
 import * as ojsSourceIncludes from "../../core/observable/js-source.ts";
 import { logError } from "../../core/log.ts";
 import { escapeBackticks } from "../../core/text.ts";
-import { breakQuartoMd, CodeCellType } from "../../core/break-quarto-md.ts";
+import { breakQuartoMd } from "../../core/break-quarto-md.ts";
+import { PandocIncludes } from "../../execute/engine.ts";
 
 export interface ObserveableCompileOptions {
   source: string;
@@ -21,11 +22,14 @@ export interface ObserveableCompileOptions {
 
 export interface ObservableCompileResult {
   markdown: string;
+  includes?: PandocIncludes;
 }
 
 // TODO decide how source code is presented, we've lost this
 // feature from the observable-engine move
-export function observableCompile(options: ObserveableCompileOptions): string {
+export function observableCompile(
+  options: ObserveableCompileOptions,
+): ObservableCompileResult {
   const { markdown } = options;
   let output = breakQuartoMd(markdown, "ojs");
 
@@ -36,7 +40,7 @@ export function observableCompile(options: ObserveableCompileOptions): string {
       cell.cell_type.language === "ojs"
     )
   ) {
-    return markdown;
+    return { markdown };
   }
 
   let ojsCellID = 0;
@@ -105,5 +109,7 @@ export function observableCompile(options: ObserveableCompileOptions): string {
   ls.push(...scriptContents);
   ls.push(`</script>`);
 
-  return ls.join("\n");
+  return {
+    markdown: ls.join("\n"),
+  };
 }
