@@ -1,7 +1,3 @@
-// TODO: Create project tests
-// TODO: test groups
-// TODO: render-*.test.ts
-
 import { existsSync } from "fs/mod.ts";
 import { warning } from "log/mod.ts";
 

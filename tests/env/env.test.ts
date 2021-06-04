@@ -7,17 +7,21 @@
 import { testQuartoCmd } from "../test.ts";
 import { noErrorsOrWarnings, printsMessage } from "../verify.ts";
 
-testQuartoCmd(
-  "env",
-  [],
-  [
-    noErrorsOrWarnings,
-    printsMessage("INFO", /^Quarto$/),
-    printsMessage("INFO", /^Deno$/),
-    printsMessage("INFO", /^Pandoc$/),
-  ],
-);
+// test all, empty
+["", "all"].forEach((arg) => {
+  testQuartoCmd(
+    "env",
+    [arg],
+    [
+      noErrorsOrWarnings,
+      printsMessage("INFO", /^Quarto$/),
+      printsMessage("INFO", /^Deno$/),
+      printsMessage("INFO", /^Pandoc$/),
+    ],
+  );
+});
 
+// test R specific
 testQuartoCmd(
   "env",
   ["r"],
@@ -27,6 +31,7 @@ testQuartoCmd(
   ],
 );
 
+// test python specific
 testQuartoCmd(
   "env",
   ["python"],
