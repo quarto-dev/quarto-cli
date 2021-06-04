@@ -142,6 +142,7 @@ export async function projectContext(path: string): Promise<ProjectContext> {
       } else {
         return {
           dir,
+          config: projectConfig,
           files: {
             input: projectInputFiles(dir),
           },
@@ -152,6 +153,7 @@ export async function projectContext(path: string): Promise<ProjectContext> {
       if (nextDir === dir) {
         return {
           dir: originalDir,
+          config: { project: {} },
           files: {
             input: Deno.statSync(path).isDirectory
               ? projectInputFiles(originalDir)
