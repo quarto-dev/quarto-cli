@@ -84,22 +84,25 @@ export function test(test: TestDescriptor) {
         quiet: true,
       });
 
-      await test.execute();
+      try {
+        await test.execute();
 
-      // Cleanup the output loggin
-      await cleanupLogger();
+        // Cleanup the output logging
+        await cleanupLogger();
 
-      // Read the output
-      if (existsSync(log)) {
-        const testOutput = readExecuteOutput(log);
-        Deno.removeSync(log);
+        // Read the output
+        if (existsSync(log)) {
+          const testOutput = readExecuteOutput(log);
+          Deno.removeSync(log);
 
-        test.verify.forEach((ver) => {
-          ver.verify(testOutput);
-        });
-      }
-      if (test.context.teardown) {
-        await test.context.teardown();
+          test.verify.forEach((ver) => {
+            ver.verify(testOutput);
+          });
+        }
+      } finally {
+        if (test.context.teardown) {
+          await test.context.teardown();
+        }
       }
     } else {
       warning(`Skipped - ${test.name}`);
