@@ -48,7 +48,6 @@ export interface ExecutionEngine {
   executeTargetSkipped?: (target: ExecutionTarget, format: Format) => void;
   dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;
-  canKeepMd: boolean;
   canFreeze: boolean;
   keepFiles?: (input: string) => string[] | undefined;
   ignoreGlobs?: () => string[] | undefined;
@@ -149,13 +148,11 @@ export function executionEngine(name: string) {
   }
 }
 
-export function executionEngineKeepMd(
-  engine: ExecutionEngine,
-  input: string,
-) {
-  if (engine.canKeepMd) {
+export function executionEngineKeepMd(input: string) {
+  const keepSuffix = `.md`;
+  if (!input.endsWith(keepSuffix)) {
     const [dir, stem] = dirAndStem(input);
-    return join(dir, stem + ".md");
+    return join(dir, stem + keepSuffix);
   }
 }
 
@@ -165,7 +162,7 @@ export function executionEngineKeepFiles(
 ) {
   // standard keepMd
   const files: string[] = [];
-  const keep = executionEngineKeepMd(engine, input);
+  const keep = executionEngineKeepMd(input);
   if (keep) {
     files.push(keep);
   }
@@ -227,8 +224,13 @@ export function fileExecutionEngine(file: string) {
         }
       }
     }
-    // no engines claimed this language so default to jupyter
-    return jupyterEngine;
+
+    // if there is no language or just ojs then it's plain markdown
+    if (languages.size === 0 || (languages.size == 1 && languages.has("ojs"))) {
+      return markdownEngine;
+    } else {
+      return jupyterEngine;
+    }
   } else {
     // no languages so use plain markdown
     return markdownEngine;

@@ -14,6 +14,7 @@ import {
   DependenciesOptions,
   ExecuteOptions,
   ExecutionEngine,
+  kQmdExtensions,
   PostProcessOptions,
 } from "./engine.ts";
 
@@ -22,11 +23,11 @@ export const kMdExtensions = [".md", ".markdown"];
 export const markdownEngine: ExecutionEngine = {
   name: "none",
 
-  defaultExt: ".md",
+  defaultExt: ".qmd",
 
   defaultYaml: () => [],
 
-  validExtensions: () => kMdExtensions,
+  validExtensions: () => kQmdExtensions.concat(kMdExtensions),
 
   claimsExtension: (ext: string) => {
     return kMdExtensions.includes(ext.toLowerCase());
@@ -64,7 +65,6 @@ export const markdownEngine: ExecutionEngine = {
   postprocess: (_options: PostProcessOptions) => Promise.resolve(),
 
   canFreeze: false,
-  canKeepMd: false,
 
   renderOnChange: true,
 };
