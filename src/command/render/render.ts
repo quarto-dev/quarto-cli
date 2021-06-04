@@ -452,7 +452,7 @@ export async function renderExecute(
   });
 
   // evaluate observable chunks
-  const { markdown, includes } = observableCompile({
+  const { markdown, includes, filters } = observableCompile({
     source: context.target.source,
     format: context.format,
     markdown: executeResult.markdown,
@@ -465,6 +465,9 @@ export async function renderExecute(
     executeResult.includes = mergeConfigs(
       (executeResult.includes || {}, includes),
     );
+  }
+  if (filters) {
+    executeResult.filters = (executeResult.filters || []).concat(filters);
   }
 
   // keep md if requested

@@ -18,6 +18,8 @@ import { resolveDependencies } from "../../command/render/pandoc.ts";
 import { kIncludeAfterBody, kIncludeInHeader } from "../../config/constants.ts";
 import { sessionTempFile } from "../temp.ts";
 
+import { languagesInMarkdown } from "../jupyter/jupyter.ts";
+
 export interface ObserveableCompileOptions {
   source: string;
   format: Format;
@@ -27,6 +29,7 @@ export interface ObserveableCompileOptions {
 
 export interface ObservableCompileResult {
   markdown: string;
+  filters?: string[];
   includes?: PandocIncludes;
 }
 
@@ -36,18 +39,12 @@ export function observableCompile(
   options: ObserveableCompileOptions,
 ): ObservableCompileResult {
   const { markdown } = options;
-  let output = breakQuartoMd(markdown, "ojs");
 
-  // skip if there are no ojs chunks
-  if (
-    !output.cells.find((cell) =>
-      cell.cell_type !== "raw" && cell.cell_type !== "markdown" &&
-      cell.cell_type !== "math" &&
-      cell.cell_type.language === "ojs"
-    )
-  ) {
+  if (!languagesInMarkdown(markdown).has("ojs")) {
     return { markdown };
   }
+
+  let output = breakQuartoMd(markdown, "ojs");
 
   let ojsCellID = 0;
 
@@ -118,6 +115,9 @@ export function observableCompile(
 
   return {
     markdown: ls.join("\n"),
+    filters: [
+      "observable/observable.lua",
+    ],
     includes: {
       [kIncludeInHeader]: [includeInHeaderFile],
       [kIncludeAfterBody]: [includeAfterBodyFile],

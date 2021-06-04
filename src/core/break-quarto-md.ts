@@ -32,11 +32,11 @@ export interface QuartoMdChunks {
 
 export function breakQuartoMd(
   src: string,
-  language: string)
-{
+  language: string,
+) {
   // notebook to return
   const nb: QuartoMdChunks = {
-    cells: []
+    cells: [],
   };
 
   // regexes
@@ -78,7 +78,7 @@ export function breakQuartoMd(
       lineBuffer.splice(0, lineBuffer.length);
     }
   };
-  
+
   // loop through lines and create cells based on state transitions
   let parsedFrontMatter = false,
     inYaml = false,
@@ -139,8 +139,6 @@ export function breakQuartoMd(
 
   // if there is still a line buffer then make it a markdown cell
   flushLineBuffer("markdown");
-
-  console.log(JSON.stringify(nb, null, 2));
 
   return nb;
 }
