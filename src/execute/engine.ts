@@ -48,7 +48,6 @@ export interface ExecutionEngine {
   executeTargetSkipped?: (target: ExecutionTarget, format: Format) => void;
   dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;
-  canKeepMd: boolean;
   canFreeze: boolean;
   keepFiles?: (input: string) => string[] | undefined;
   ignoreGlobs?: () => string[] | undefined;
@@ -149,16 +148,11 @@ export function executionEngine(name: string) {
   }
 }
 
-export function executionEngineKeepMd(
-  engine: ExecutionEngine,
-  input: string,
-) {
-  if (engine.canKeepMd) {
-    const keepSuffix = `.${engine.name}.md`;
-    if (!input.endsWith(keepSuffix)) {
-      const [dir, stem] = dirAndStem(input);
-      return join(dir, stem + keepSuffix);
-    }
+export function executionEngineKeepMd(input: string) {
+  const keepSuffix = `.md`;
+  if (!input.endsWith(keepSuffix)) {
+    const [dir, stem] = dirAndStem(input);
+    return join(dir, stem + keepSuffix);
   }
 }
 
@@ -168,7 +162,7 @@ export function executionEngineKeepFiles(
 ) {
   // standard keepMd
   const files: string[] = [];
-  const keep = executionEngineKeepMd(engine, input);
+  const keep = executionEngineKeepMd(input);
   if (keep) {
     files.push(keep);
   }
@@ -189,11 +183,6 @@ export function fileExecutionEngine(file: string) {
   const ext = extname(file).toLowerCase();
   if (!kEngines.some((engine) => engine.validExtensions().includes(ext))) {
     return undefined;
-  }
-
-  // if this is a keepMd file then automatically use the markdown engine
-  if (kEngines.find((engine) => file.endsWith(`.${engine.name}.md`))) {
-    return markdownEngine;
   }
 
   // try to find an engine that claims this extension outright

@@ -85,8 +85,6 @@ export const knitrEngine: ExecutionEngine = {
 
   canFreeze: true,
 
-  canKeepMd: true,
-
   ignoreGlobs: () => {
     return ["**/renv/**", "**/packrat/**", "**/rsconnect/**"];
   },
