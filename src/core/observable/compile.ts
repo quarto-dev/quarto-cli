@@ -10,7 +10,7 @@ import { Format } from "../../config/format.ts";
 import * as ojsSourceIncludes from "../../core/observable/js-source.ts";
 import { logError } from "../../core/log.ts";
 import { escapeBackticks } from "../../core/text.ts";
-import { breakQuartoMd } from "../../core/break-quarto-md.ts";
+import { breakQuartoMd, CodeCellType } from "../../core/break-quarto-md.ts";
 
 export interface ObserveableCompileOptions {
   source: string;
@@ -27,10 +27,20 @@ export interface ObservableCompileResult {
 // feature from the observable-engine move
 export function observableCompile(options: ObserveableCompileOptions): string {
   const { markdown } = options;
+  let output = breakQuartoMd(markdown, "ojs");
+
+  // skip if there are no ojs chunks
+  if (
+    !output.cells.find((cell) =>
+      cell.cell_type !== "raw" && cell.cell_type !== "markdown" &&
+      cell.cell_type.language === "ojs"
+    )
+  ) {
+    return markdown;
+  }
+
   let ojsCellID = 0;
   let needsPreamble = true;
-
-  let output = breakQuartoMd(markdown, "ojs");
 
   function ensurePreamble() {
     if (needsPreamble) {
@@ -43,21 +53,24 @@ export function observableCompile(options: ObserveableCompileOptions): string {
 
   let scriptContents = [ensurePreamble()];
 
-  
   function interpret(jsSrc: string[], inline: boolean) {
     let inlineStr = inline ? "inline-" : "";
     let content = [
       "window._ojsRuntime.interpret(`",
       jsSrc.map(escapeBackticks).join(""),
-      `\`, document.getElementById("ojs-${inlineStr}cell-${ojsCellID}"), ${inline});`];
+      `\`, document.getElementById("ojs-${inlineStr}cell-${ojsCellID}"), ${inline});`,
+    ];
     return content.join("");
   }
-  
+
   const inlineOJSInterpRE = /\$\{([^}]+)\}([^$])/g;
   function inlineInterpolation(str: string) {
-    return str.replaceAll(inlineOJSInterpRE, function(m, g1, g2) {
+    return str.replaceAll(inlineOJSInterpRE, function (m, g1, g2) {
       ojsCellID += 1;
-      let result = [`<span id="ojs-inline-cell-${ojsCellID}" class="ojs-inline"></span>`, g2];
+      let result = [
+        `<span id="ojs-inline-cell-${ojsCellID}" class="ojs-inline"></span>`,
+        g2,
+      ];
       scriptContents.push(interpret([g1], true));
       return result.join("");
     });
@@ -65,21 +78,25 @@ export function observableCompile(options: ObserveableCompileOptions): string {
   let ls = [];
   // now we convert it back
   for (const cell of output.cells) {
-    if (cell.cell_type === "raw" ||
-      cell.cell_type === "markdown") {
+    if (
+      cell.cell_type === "raw" ||
+      cell.cell_type === "markdown"
+    ) {
       ls.push(cell.source.map(inlineInterpolation).join(""));
     } else if (cell.cell_type?.language === "ojs") {
       ojsCellID += 1;
       const content = [
-        '```{=html}\n',
-        `<div id='ojs-cell-${ojsCellID}'></div>\n\`\`\`\n`
+        "```{=html}\n",
+        `<div id='ojs-cell-${ojsCellID}'></div>\n\`\`\`\n`,
       ];
       scriptContents.push(interpret(cell.source, false));
       ls.push(content.join(""));
     } else {
       logError({
         name: "breakQuartoMd",
-        message: `Skipping unrecognized cell type: ${JSON.stringify(cell.cell_type)}`
+        message: `Skipping unrecognized cell type: ${
+          JSON.stringify(cell.cell_type)
+        }`,
       });
     }
   }
@@ -88,7 +105,5 @@ export function observableCompile(options: ObserveableCompileOptions): string {
   ls.push(...scriptContents);
   ls.push(`</script>`);
 
-  console.log(ls.join("\n"));
-  
   return ls.join("\n");
 }
