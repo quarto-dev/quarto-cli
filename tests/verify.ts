@@ -8,6 +8,8 @@
 import { existsSync } from "fs/exists.ts";
 import { assert } from "testing/asserts.ts";
 
+import { readYamlFromString } from "../src/core/yaml.ts";
+
 import { ExecuteOutput, Verify } from "./test.ts";
 import { outputForInput } from "./utils.ts";
 
@@ -77,6 +79,26 @@ export const hasSupportingFiles = (input: string, to: string): Verify => {
     verify: (_output: ExecuteOutput[]) => {
       const outputFile = outputForInput(input, to);
       verifyPath(outputFile.supportPath);
+    },
+  };
+};
+
+export const verifyYamlFile = (
+  file: string,
+  func: (yaml: unknown) => boolean,
+): Verify => {
+  return {
+    name: "Project Yaml is Valid",
+    verify: (_output: ExecuteOutput[]) => {
+      if (existsSync(file)) {
+        const raw = Deno.readTextFileSync(file);
+        if (raw) {
+          const yaml = readYamlFromString(raw);
+          const isValid = func(yaml);
+          assert(isValid, "Project Metadata isn't valid");
+        }
+      }
+      return false;
     },
   };
 };
