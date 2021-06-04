@@ -15,10 +15,3 @@ function bootstrap()
   }
 end
 
-function hasBootstrap() 
-  local hasBootstrap = param("has-bootstrap", false)
-  return hasBootstrap
-end
-
-
-

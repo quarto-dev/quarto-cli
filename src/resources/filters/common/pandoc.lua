@@ -60,6 +60,11 @@ function isHtmlOutput()
 
 end
 
+function hasBootstrap() 
+  local hasBootstrap = param("has-bootstrap", false)
+  return hasBootstrap
+end
+
 
 function isRaw(el)
   return el.t == "RawBlock" or el.t == "RawInline"

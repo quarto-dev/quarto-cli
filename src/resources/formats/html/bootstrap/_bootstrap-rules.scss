@@ -82,6 +82,20 @@ $code-background-color: color.adjust(
   margin-bottom: 1em;
 }
 
+.layout-sidebar .tab-content {
+  border: none;
+}
+
+.panel-input > div {
+  display: inline-block;
+  vertical-align: top;
+  padding-right: 12px;
+}
+
+.panel-input > p:last-child {
+  margin-bottom: 0;
+}
+
 .tab-pane div.sourceCode {
   margin-top: 0px;
   margin-bottom: 0px;
