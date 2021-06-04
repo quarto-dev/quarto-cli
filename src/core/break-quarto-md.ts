@@ -22,7 +22,7 @@ export interface CodeCellType {
 
 export interface QuartoMdCell {
   id?: string;
-  cell_type: "markdown" | CodeCellType | "raw";
+  cell_type: "markdown" | CodeCellType | "raw" | "math";
   source: string[];
 }
 
@@ -47,11 +47,12 @@ export function breakQuartoMd(
   );
   const startCodeRegEx = /^```/;
   const endCodeRegEx = /^```\s*$/;
+  const delimitMathBlockRegEx = /^\$\$/;
 
   // line buffer
   const lineBuffer: string[] = [];
   const flushLineBuffer = (
-    cell_type: "markdown" | "code" | "raw",
+    cell_type: "markdown" | "code" | "raw" | "math",
     frontMatter?: boolean,
   ) => {
     if (lineBuffer.length) {
@@ -67,63 +68,6 @@ export function breakQuartoMd(
           return line + (index < (lineBuffer.length - 1) ? "\n" : "");
         }),
       };
-      // A bunch of jupyter-specific things we should handle through hooks or something
-      // if (includeIds) {
-      //   cell.id = shortUuid();
-      // }
-      // 
-      // if (cell_type === "raw" && frontMatter) {
-      //   // delete 'jupyter' metadata since we've already transferred it
-      //   const yaml = readYamlFromMarkdown(cell.source.join("\n"));
-      //   if (yaml.jupyter) {
-      //     delete yaml.jupyter;
-      //     const yamlFrontMatter = mdTrimEmptyLines(lines(stringify(yaml, {
-      //       indent: 2,
-      //       sortKeys: false,
-      //       skipInvalid: true,
-      //     })));
-      //     cell.source = [
-      //       "---\n",
-      //       ...(yamlFrontMatter.map((line) => line + "\n")),
-      //       "---",
-      //     ];
-      //   }
-      // } else
-      // if (cell_type === "code") {
-      //   // see if there is embedded metadata we should forward into the cell metadata
-      //   const { yaml, source } = partitionJupyterCellOptions(
-      //     kernelspec.language,
-      //     cell.source,
-      //   );
-      //   if (yaml) {
-      //     // use label as id if necessary
-      //     if (includeIds && yaml[kCellLabel] && !yaml[kCellId]) {
-      //       yaml[kCellId] = jupyterAutoIdentifier(String(yaml[kCellLabel]));
-      //     }
-      //     const yamlKeys = Object.keys(yaml);
-      //     yamlKeys.forEach((key) => {
-      //       if (key === kCellId) {
-      //         if (includeIds) {
-      //           cell.id = String(yaml[key]);
-      //         }
-      //         delete yaml[key];
-      //       } else {
-      //         if (!kJupyterCellOptionKeys.includes(key)) {
-      //           cell.metadata[key] = yaml[key];
-      //           delete yaml[key];
-      //         }
-      //       }
-      //     });
-      //     // if we hit at least one we need to re-write the source
-      //     if (Object.keys(yaml).length < yamlKeys.length) {
-      //       const yamlOutput = jupyterCellOptionsAsComment(
-      //         kernelspec.language,
-      //         yaml,
-      //       );
-      //       cell.source = yamlOutput.concat(source);
-      //     }
-      //   }
-      // }
 
       // if the source is empty then don't add it
       cell.source = mdTrimEmptyLines(cell.source);
@@ -134,15 +78,16 @@ export function breakQuartoMd(
       lineBuffer.splice(0, lineBuffer.length);
     }
   };
-
+  
   // loop through lines and create cells based on state transitions
   let parsedFrontMatter = false,
     inYaml = false,
+    inMathBlock = false,
     inCodeCell = false,
     inCode = false;
   for (const line of lines(src)) {
     // yaml front matter
-    if (yamlRegEx.test(line) && !inCodeCell && !inCode) {
+    if (yamlRegEx.test(line) && !inCodeCell && !inCode && !inMathBlock) {
       if (inYaml) {
         lineBuffer.push(line);
         flushLineBuffer("raw", !parsedFrontMatter);
@@ -175,6 +120,18 @@ export function breakQuartoMd(
     } else if (startCodeRegEx.test(line)) {
       inCode = true;
       lineBuffer.push(line);
+    } else if (delimitMathBlockRegEx.test(line)) {
+      if (inMathBlock) {
+        flushLineBuffer("math");
+      } else {
+        if (inYaml || inCode || inCodeCell) {
+          // FIXME: signal a parse error?
+          // for now, we just skip.
+        } else {
+          flushLineBuffer("markdown");
+        }
+      }
+      inMathBlock = !inMathBlock;
     } else {
       lineBuffer.push(line);
     }
@@ -182,6 +139,8 @@ export function breakQuartoMd(
 
   // if there is still a line buffer then make it a markdown cell
   flushLineBuffer("markdown");
+
+  console.log(JSON.stringify(nb, null, 2));
 
   return nb;
 }

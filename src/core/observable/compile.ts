@@ -37,6 +37,7 @@ export function observableCompile(
   if (
     !output.cells.find((cell) =>
       cell.cell_type !== "raw" && cell.cell_type !== "markdown" &&
+      cell.cell_type !== "math" &&
       cell.cell_type.language === "ojs"
     )
   ) {
@@ -87,6 +88,8 @@ export function observableCompile(
       cell.cell_type === "markdown"
     ) {
       ls.push(cell.source.map(inlineInterpolation).join(""));
+    } else if (cell.cell_type === "math") {
+      ls.push("\n$$", cell.source, "$$\n");
     } else if (cell.cell_type?.language === "ojs") {
       ojsCellID += 1;
       const content = [
