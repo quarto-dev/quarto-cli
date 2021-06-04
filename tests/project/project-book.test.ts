@@ -7,38 +7,44 @@
 import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 
-import { testQuartoCmd, Verify } from "../test.ts";
-import {
-  directoryEmptyButFor,
-  fileExists,
-  hasSupportingFiles,
-} from "../verify.ts";
+import { Metadata } from "../../src/config/metadata.ts";
 
-// Simple project render
-const expectedFiles = ["plain.qmd", "plain2.qmd"];
-const verify = expectedFiles.flatMap((filename) => {
-  const input = join("docs/project/plain", filename);
-  return [
-    fileExists(input),
-    hasSupportingFiles(input, "html"),
-  ];
-});
+import { testQuartoCmd, Verify } from "../test.ts";
+import { directoryEmptyButFor, fileExists, verifyYamlFile } from "../verify.ts";
+
+import {
+  cleanWorking,
+  kProjectWorkingDir,
+  kQuartoProjectFile,
+} from "./common.ts";
+
+// A book project
 testQuartoCmd(
-  "render",
-  ["docs/project/plain", "--to", "html"],
-  verify,
+  "create-project",
+  [kProjectWorkingDir, "--type", "book"],
+  [
+    fileExists(kQuartoProjectFile),
+    fileExists(join(kProjectWorkingDir, "index.qmd")),
+    fileExists(join(kProjectWorkingDir, "references.bib")),
+    verifyYamlFile(
+      kQuartoProjectFile,
+      ((yaml: unknown) => {
+        // Make sure there is a project yaml section
+        const metadata = yaml as Metadata;
+        if (
+          metadata["project"] !== undefined && metadata["book"] !== undefined
+        ) {
+          const type = (metadata["project"] as Metadata)["type"];
+          return type === "book";
+        } else {
+          return false;
+        }
+      }),
+    ),
+  ],
   {
-    teardown: () => {
-      ["plain.html", "plain2.html", "plain_files", "plain2_files"].forEach(
-        (file) => {
-          const path = join("docs/project/plain", file);
-          if (existsSync(path)) {
-            Deno.removeSync(path, { recursive: true });
-          }
-        },
-      );
-      return Promise.resolve();
-    },
+    setup: cleanWorking,
+    teardown: cleanWorking,
   },
 );
 
@@ -49,7 +55,7 @@ const bookOutDir = join(bookProjDir, outDir);
 
 const verifyPdfBook: Verify[] = [
   fileExists(join(bookOutDir, "book.pdf")),
-  directoryEmptyButFor(bookOutDir, "book.pdf"),
+  directoryEmptyButFor(bookOutDir, ["book.pdf"]),
 ];
 testQuartoCmd(
   "render",
@@ -66,7 +72,7 @@ testQuartoCmd(
 
 const verifyDocxBook: Verify[] = [
   fileExists(join(bookOutDir, "book.docx")),
-  directoryEmptyButFor(bookOutDir, "book.docx"),
+  directoryEmptyButFor(bookOutDir, ["book.docx"]),
 ];
 testQuartoCmd(
   "render",
@@ -83,7 +89,7 @@ testQuartoCmd(
 
 const verifyEpubBook: Verify[] = [
   fileExists(join(bookOutDir, "book.epub")),
-  directoryEmptyButFor(bookOutDir, "book.epub"),
+  directoryEmptyButFor(bookOutDir, ["book.epub"]),
 ];
 testQuartoCmd(
   "render",
