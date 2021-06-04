@@ -42,8 +42,6 @@ export async function quarto(
     );
   });
 
-  await initializeLogger(logOptions(parse(args)));
-
   // init temp dir
   initSessionTempDir();
 
@@ -61,8 +59,13 @@ if (import.meta.main) {
       onSignal(Deno.Signal.SIGINT, abend);
       onSignal(Deno.Signal.SIGTERM, abend);
     }
+
+    await initializeLogger(logOptions(parse(Deno.args)));
+
     // run quarto
     await quarto(Deno.args, appendLogOptions);
+
+    await cleanupLogger();
 
     // exit
     Deno.exit(0);
@@ -81,5 +84,4 @@ function abend() {
 
 function cleanup() {
   cleanupSessionTempDir();
-  cleanupLogger();
 }
