@@ -177,8 +177,10 @@ async function installPackage(pkg: string, opts?: string[], quiet?: boolean) {
   );
 
   // Failed to even run tlmgr
-  if (installResult.code !== 0) {
-    return Promise.reject();
+  if (installResult.code !== 0 && installResult.code !== 255) {
+    return Promise.reject(
+      `tlmgr returned a non zero status code\n${installResult.stderr}`,
+    );
   }
 
   // Check whether we should update and retry the install
