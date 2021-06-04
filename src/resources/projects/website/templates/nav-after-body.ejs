@@ -3,7 +3,7 @@
 </main>
 
 
-<div class="page-navigation <%- nav.sidebar.style !== "floating" ? "page-navigation-docked" : ""  %>">
+<div class="page-navigation <%- nav.sidebar && nav.sidebar.style !== "floating" ? "page-navigation-docked" : ""  %>">
 
   <div class="nav-page nav-page-previous">
     <% if (nav.prevPage) { %>
