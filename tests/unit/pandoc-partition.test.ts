@@ -1,3 +1,9 @@
+/*
+* pandoc-partition.test.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
 import { assert } from "testing/asserts.ts";
 import { partitionMarkdown } from "../../src/core/pandoc/pandoc-partition.ts";
 
@@ -8,6 +14,8 @@ Deno.test("partitionYaml", () => {
 
   const markdownstr = `${frontMatter}\n${headingText}${markdown}`;
   const partmd = partitionMarkdown(markdownstr);
+
+  // Tests of the result
   assert(partmd.containsRefs, "Refs Div not found");
   assert(partmd.markdown === markdown, "Partitioned markdown doesn't match");
   assert(partmd.yaml === frontMatter, "Partitioned front matter doesn't match");
