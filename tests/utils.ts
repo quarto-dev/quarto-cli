@@ -22,3 +22,7 @@ export function outputForInput(input: string, to: string) {
     supportPath,
   };
 }
+
+export function docs(path: string): string {
+  return join("docs", path);
+}

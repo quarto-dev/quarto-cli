@@ -7,10 +7,15 @@
 import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 
-import { Metadata } from "../../src/config/metadata.ts";
+import { Metadata } from "../../../src/config/metadata.ts";
 
-import { testQuartoCmd, Verify } from "../test.ts";
-import { directoryEmptyButFor, fileExists, verifyYamlFile } from "../verify.ts";
+import { testQuartoCmd, Verify } from "../../test.ts";
+import { docs } from "../../utils.ts";
+import {
+  directoryEmptyButFor,
+  fileExists,
+  verifyYamlFile,
+} from "../../verify.ts";
 
 import {
   cleanWorking,
@@ -50,7 +55,7 @@ testQuartoCmd(
 
 // Book render
 const outDir = "_book";
-const bookProjDir = "docs/project/book";
+const bookProjDir = docs("project/book");
 const bookOutDir = join(bookProjDir, outDir);
 
 const verifyPdfBook: Verify[] = [

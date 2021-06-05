@@ -6,13 +6,13 @@
 */
 import { existsSync } from "fs/mod.ts";
 
-import { outputForInput } from "../utils.ts";
-import { TestContext, testQuartoCmd, Verify } from "../test.ts";
+import { outputForInput } from "../../utils.ts";
+import { TestContext, testQuartoCmd, Verify } from "../../test.ts";
 import {
   hasSupportingFiles,
   noSupportingFiles,
   outputCreated,
-} from "../verify.ts";
+} from "../../verify.ts";
 
 export function testRender(
   input: string,

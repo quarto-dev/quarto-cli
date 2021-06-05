@@ -4,8 +4,8 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { testQuartoCmd } from "../test.ts";
-import { noErrorsOrWarnings, printsMessage } from "../verify.ts";
+import { testQuartoCmd } from "../../test.ts";
+import { noErrorsOrWarnings, printsMessage } from "../../verify.ts";
 
 // test all, empty
 ["", "all"].forEach((arg) => {

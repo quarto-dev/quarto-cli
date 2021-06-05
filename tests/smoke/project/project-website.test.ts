@@ -7,10 +7,15 @@
 import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 
-import { Metadata } from "../../src/config/metadata.ts";
+import { Metadata } from "../../../src/config/metadata.ts";
 
-import { testQuartoCmd, Verify } from "../test.ts";
-import { directoryEmptyButFor, fileExists, verifyYamlFile } from "../verify.ts";
+import { testQuartoCmd, Verify } from "../../test.ts";
+import { docs } from "../../utils.ts";
+import {
+  directoryEmptyButFor,
+  fileExists,
+  verifyYamlFile,
+} from "../../verify.ts";
 
 import {
   cleanWorking,
@@ -58,7 +63,7 @@ const websiteOutputFiles: string[] = [
 ];
 
 const outDir = "_site";
-const siteProjDir = "docs/project/site";
+const siteProjDir = docs("project/site");
 const siteOutDir = join(siteProjDir, outDir);
 
 const verifySiteFiles = websiteOutputFiles.map((file) => {

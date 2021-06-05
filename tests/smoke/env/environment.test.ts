@@ -5,8 +5,8 @@
 *
 */
 import { assert, assertEquals } from "testing/asserts.ts";
-import { getenv } from "../../src/core/env.ts";
-import { binaryPath, resourcePath } from "../../src/core/resources.ts";
+import { getenv } from "../../../src/core/env.ts";
+import { binaryPath, resourcePath } from "../../../src/core/resources.ts";
 
 Deno.test("> environment: resource path available", () => {
   const path = resourcePath("metadata.template");

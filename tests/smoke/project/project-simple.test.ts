@@ -7,11 +7,16 @@
 import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 
-import { Metadata } from "../../src/config/metadata.ts";
+import { Metadata } from "../../../src/config/metadata.ts";
 
-import { testQuartoCmd } from "../test.ts";
+import { testQuartoCmd } from "../../test.ts";
+import { docs } from "../../utils.ts";
 
-import { fileExists, hasSupportingFiles, verifyYamlFile } from "../verify.ts";
+import {
+  fileExists,
+  hasSupportingFiles,
+  verifyYamlFile,
+} from "../../verify.ts";
 
 import {
   cleanWorking,
@@ -43,7 +48,7 @@ testQuartoCmd(
 // Simple project render
 const expectedFiles = ["plain.qmd", "plain2.qmd"];
 const verify = expectedFiles.flatMap((filename) => {
-  const input = join("docs/project/plain", filename);
+  const input = join(docs("project/plain"), filename);
   return [
     fileExists(input),
     hasSupportingFiles(input, "html"),

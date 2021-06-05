@@ -5,12 +5,13 @@
 *
 */
 
-import { outputForInput } from "../utils.ts";
-import { ensureHtmlElements } from "../verify.ts";
+import { docs, outputForInput } from "../../utils.ts";
+import { ensureHtmlElements } from "../../verify.ts";
 import { testRender } from "./render.ts";
 
-const output = outputForInput("docs/callouts.qmd", "html");
-testRender("docs/callouts.qmd", "html", false, [
+const input = docs("callouts.qmd");
+const output = outputForInput(input, "html");
+testRender(input, "html", false, [
   ensureHtmlElements(output.outputPath, [
     "div.callout-warning",
     "div.callout-important",
