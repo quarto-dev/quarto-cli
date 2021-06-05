@@ -6,6 +6,7 @@
 */
 
 import { existsSync } from "fs/exists.ts";
+import { DOMParser } from "deno_dom/deno-dom-wasm.ts";
 import { assert } from "testing/asserts.ts";
 
 import { readYamlFromString } from "../src/core/yaml.ts";
@@ -75,6 +76,25 @@ export const directoryEmptyButFor = (
           assert(false, `Unexpected content ${item.name} in ${dir}`);
         }
       }
+    },
+  };
+};
+
+export const ensureHtmlElements = (
+  file: string,
+  selectors: string[],
+): Verify => {
+  return {
+    name: "Inspecting HTML for Selectors",
+    verify: (_output: ExecuteOutput[]) => {
+      const htmlInput = Deno.readTextFileSync(file);
+      const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
+      selectors.forEach((sel) => {
+        assert(
+          doc.querySelector(sel) !== null,
+          `Required DOM Element ${sel} is missing.`,
+        );
+      });
     },
   };
 };
