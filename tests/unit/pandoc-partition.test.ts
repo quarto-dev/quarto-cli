@@ -6,8 +6,9 @@
 */
 import { assert } from "testing/asserts.ts";
 import { partitionMarkdown } from "../../src/core/pandoc/pandoc-partition.ts";
+import { unitTest } from "../test.ts";
 
-Deno.test("partitionYaml", () => {
+unitTest("partitionYaml", () => {
   const frontMatter = "---\ntitle: foo\n---";
   const headingText = "## Hello World {#cool .foobar foo=bar}";
   const markdown = "\n\nThis is a paragraph\n\n:::{#refs}\n:::\n";

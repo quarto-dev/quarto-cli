@@ -22,6 +22,9 @@ export interface TestDescriptor {
 
   // Used to verify the outcome of the test
   verify: Verify[];
+
+  // type of test
+  type: "smoke" | "unit";
 }
 
 export interface TestContext {
@@ -41,7 +44,7 @@ export function testQuartoCmd(
   verify: Verify[],
   context?: TestContext,
 ) {
-  const name = `> quarto ${cmd} ${args.join(" ")}`;
+  const name = `quarto ${cmd} ${args.join(" ")}`;
   test({
     name,
     execute: async () => {
@@ -49,6 +52,7 @@ export function testQuartoCmd(
     },
     verify,
     context: context || {},
+    type: "smoke",
   });
 }
 
@@ -63,8 +67,30 @@ export interface ExecuteOutput {
   levelName: string;
 }
 
+export function unitTest(
+  name: string,
+  ver: VoidFunction,
+) {
+  test({
+    name,
+    type: "unit",
+    context: {},
+    execute: () => {
+      return Promise.resolve();
+    },
+    verify: [
+      {
+        name: `${name}`,
+        verify: (_outputs: ExecuteOutput[]) => {
+          ver();
+        },
+      },
+    ],
+  });
+}
+
 export function test(test: TestDescriptor) {
-  Deno.test(test.name, async () => {
+  Deno.test(`[${test.type}] > ${test.name}`, async () => {
     const runTest = !test.context.prereq || await test.context.prereq();
     if (runTest) {
       if (test.context.setup) {

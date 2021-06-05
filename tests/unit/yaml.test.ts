@@ -4,6 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+import { unitTest } from "../test.ts";
 import { assert } from "testing/asserts.ts";
 import { Metadata } from "../../src/config/metadata.ts";
 import { readYamlFromString } from "../../src/core/yaml.ts";
@@ -17,7 +18,7 @@ other:
     - bar
 `;
 
-Deno.test("partitionYaml", () => {
+unitTest("yaml", () => {
   const yaml = readYamlFromString(yamlStr) as Metadata;
 
   // Tests of the result
