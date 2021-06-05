@@ -144,8 +144,17 @@ export async function runPandoc(
   let allDefaults = await generateDefaults(options) || {};
   let printAllDefaults = ld.cloneDeep(allDefaults) as FormatPandoc;
 
-  // capture any filterParams in the FormatExtras
-  const formatFilterParams = {} as Record<string, unknown>;
+  // capture any filterParams implied by our arguments or formatExtras
+  const filterParams = {} as Record<string, unknown>;
+
+  // the "observable" filter is a special value that results in us
+  // just signaling our standard filter chain that the observable
+  // filter should be active
+  const kObservableFilter = "observable";
+  if (sysFilters.includes(kObservableFilter)) {
+    filterParams[kObservableFilter] = true;
+    sysFilters = sysFilters.filter((filter) => filter !== kObservableFilter);
+  }
 
   // see if there are extras
   const htmlPostprocessors: Array<(doc: Document) => Promise<string[]>> = [];
@@ -253,10 +262,10 @@ export async function runPandoc(
     allDefaults.filters = allDefaults.filters.map(pandocMetadataPath);
 
     // Capture any format filter params
-    const filterParams = extras[kFilterParams];
-    if (filterParams) {
-      Object.keys(filterParams).forEach((key) => {
-        formatFilterParams[key] = filterParams[key];
+    const extrasFilterParams = extras[kFilterParams];
+    if (extrasFilterParams) {
+      Object.keys(extrasFilterParams).forEach((key) => {
+        filterParams[key] = extrasFilterParams[key];
       });
     }
   }
@@ -292,7 +301,7 @@ export async function runPandoc(
     args,
     options,
     allDefaults,
-    formatFilterParams,
+    filterParams,
   );
 
   // remove selected args and defaults if we are handling some things on behalf of pandoc

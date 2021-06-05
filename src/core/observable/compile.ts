@@ -116,6 +116,7 @@ export function observableCompile(
   return {
     markdown: ls.join("\n"),
     filters: [
+      "observable",
       "observable/observable.lua",
     ],
     includes: {

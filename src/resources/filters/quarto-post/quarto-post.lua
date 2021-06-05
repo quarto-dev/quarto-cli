@@ -20,6 +20,7 @@ import("latexdiv.lua")
 import("foldcode.lua")
 import("meta.lua")
 import("book-cleanup.lua")
+import("observable.lua")
 import("../common/params.lua")
 import("../common/table.lua")
 import("../common/pandoc.lua")
@@ -38,6 +39,7 @@ return {
     foldCode(),
     bootstrap()
   }),
+  observable(),
   quartoPostMetaInject()
 }
 
