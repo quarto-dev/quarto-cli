@@ -239,7 +239,7 @@ export interface FormatPandoc {
   [kNumberOffset]?: number[];
   [kHighlightStyle]?: string;
   [kSectionDivs]?: boolean;
-  [kHtmlMathMethod]?: string;
+  [kHtmlMathMethod]?: string | { method: string; url: string };
   [kTopLevelDivision]?: string;
   [kShiftHeadingLevelBy]?: number;
 }

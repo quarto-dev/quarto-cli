@@ -167,6 +167,31 @@ export function parseRenderFlags(args: string[]) {
         break;
       }
 
+      case "--mathjax":
+        flags.mathjax = true;
+        arg = argsStack.shift();
+        break;
+
+      case "--katex":
+        flags.katex = true;
+        arg = argsStack.shift();
+        break;
+
+      case "--mathml":
+        flags.mathml = true;
+        arg = argsStack.shift();
+        break;
+
+      case "--gladtex":
+        flags.gladtex = true;
+        arg = argsStack.shift();
+        break;
+
+      case "--webtex":
+        flags.webtex = true;
+        arg = argsStack.shift();
+        break;
+
       case "--execute":
         flags.execute = true;
         arg = argsStack.shift();

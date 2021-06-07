@@ -154,6 +154,13 @@ export const kTableOfContents = "table-of-contents";
 export const kSectionDivs = "section-divs";
 export const kEPubCoverImage = "epub-cover-image";
 
+// command line flags
+export const kMathjax = "mathjax";
+export const kKatex = "katex";
+export const kMathml = "mathml";
+export const kGladtex = "gladtex";
+export const kWebtex = "webtex";
+
 // metadata fields
 export const kTitle = "title";
 export const kSubtitle = "subtitle";
