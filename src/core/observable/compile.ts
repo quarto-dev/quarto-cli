@@ -120,7 +120,7 @@ export function observableCompile(
       // let includeVal = firstDefined([cell.options?.include, options.format.execute[kInclude], true]);
 
       if (!evalVal || echoVal) {
-        let innerDiv = pandocCode({ classes: ["js"] });
+        let innerDiv = pandocCode({ classes: ["js", "cell-code"] });
         innerDiv.push(pandocRawStr(cell.source.join("")));
         div.push(innerDiv);
       }
