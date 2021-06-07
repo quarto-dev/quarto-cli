@@ -23,12 +23,22 @@ import {
 } from "./core/log.ts";
 import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
 import { quartoConfig } from "./core/quarto.ts";
+import { execProcess } from "./core/process.ts";
+import { binaryPath } from "./core/resources.ts";
+
 import { parse } from "flags/mod.ts";
 
 export async function quarto(
   args: string[],
   cmdHandler?: (command: Command) => Command,
 ) {
+  // passthrough to pandoc
+  if (args[0] === "pandoc") {
+    return (await execProcess({
+      cmd: [binaryPath("pandoc"), ...args.slice(1)],
+    })).code;
+  }
+
   const quartoCommand = new Command()
     .name("quarto")
     .version(quartoConfig.version() + "\n")
