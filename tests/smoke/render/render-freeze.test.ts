@@ -44,6 +44,7 @@ const useFrozen = {
         );
       }
     });
+    return Promise.resolve();
   },
 };
 
@@ -59,6 +60,7 @@ const ignoreFrozen = {
       matches,
       "Document was not executed when it should have been",
     );
+    return Promise.resolve();
   },
 };
 

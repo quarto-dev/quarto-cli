@@ -60,7 +60,7 @@ export function testQuartoCmd(
 
 export interface Verify {
   name: string;
-  verify: (outputs: ExecuteOutput[]) => void;
+  verify: (outputs: ExecuteOutput[]) => Promise<void>;
 }
 
 export interface ExecuteOutput {
@@ -85,6 +85,7 @@ export function unitTest(
         name: `${name}`,
         verify: (_outputs: ExecuteOutput[]) => {
           ver();
+          return Promise.resolve();
         },
       },
     ],
@@ -123,9 +124,9 @@ export function test(test: TestDescriptor) {
           const testOutput = readExecuteOutput(log);
           Deno.removeSync(log);
 
-          test.verify.forEach((ver) => {
-            ver.verify(testOutput);
-          });
+          for (const ver of test.verify) {
+            await ver.verify(testOutput);
+          }
         }
       } finally {
         if (test.context.teardown) {
