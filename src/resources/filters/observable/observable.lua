@@ -90,6 +90,12 @@ function string_content(inline)
     end
     -- FIXME escaping?
     return q .. internal_content .. q
+  elseif inline.t == "Code" then
+    -- Because Code inlines are denoted in Pandoc with backticks, we use
+    -- this as an opportunity to handle a construct that wouldn't typically work
+    --
+    -- FIXME What about `{r} foo`?
+    return "\\`" .. inline.text .. "\\`"
   else
     -- FIXME how do I know all possible types?
     print("WILL FAIL CANNOT HANDLE TYPE")

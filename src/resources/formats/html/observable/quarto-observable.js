@@ -15,11 +15,7 @@ export function createRuntime()
   const runtime = new Runtime();
   const mainMod = runtime.module();
 
-  function ourObserver() {
-    return new Inspector(targetElement.appendChild(document.createElement("div")));
-  }
-  
-  const interpreter = new Interpreter({ module: mainMod, observer: ourObserver });
+  const interpreter = new Interpreter({ module: mainMod });
   
   let result = {
     async interpret(src, targetElement, inline) {

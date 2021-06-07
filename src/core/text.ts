@@ -10,5 +10,5 @@ export function lines(text: string): string[] {
 }
 
 export function escapeBackticks(str: string): string {
-  return str.replaceAll(/`/g, '\\`').replaceAll(/\$/g, '\\$');
+  return str.replaceAll(/`/g, "\\`").replaceAll(/\$/g, "\\$");
 }
