@@ -12,7 +12,7 @@ import { dirname, extname, join, relative } from "path/mod.ts";
 import { walkSync } from "fs/walk.ts";
 import { decode as base64decode } from "encoding/base64.ts";
 import { stringify, StringifyOptions } from "encoding/yaml.ts";
-
+import { partitionCellOptions } from "../partition-cell-options.ts";
 import { ld } from "lodash/mod.ts";
 
 import { warnOnce } from "../log.ts";
@@ -349,7 +349,7 @@ export async function quartoMdToJupyter(
         }
       } else if (cell_type === "code") {
         // see if there is embedded metadata we should forward into the cell metadata
-        const { yaml, source } = partitionJupyterCellOptions(
+        const { yaml, source } = partitionCellOptions(
           kernelspec.language,
           cell.source,
         );
@@ -687,7 +687,7 @@ export function jupyterCellWithOptions(
   language: string,
   cell: JupyterCell,
 ): JupyterCellWithOptions {
-  const { yaml, source } = partitionJupyterCellOptions(language, cell.source);
+  const { yaml, source } = partitionCellOptions(language, cell.source);
 
   // read any options defined in cell metadata
   const metadataOptions: Record<string, unknown> = kJupyterCellOptionKeys
@@ -767,52 +767,6 @@ export function mdEnsureTrailingNewline(source: string[]) {
   } else {
     return source;
   }
-}
-
-export function partitionJupyterCellOptions(
-  language: string,
-  source: string[],
-) {
-  const commentChars = langCommentChars(language);
-  const optionPrefix = optionCommentPrefix(commentChars[0]);
-  const optionSuffix = commentChars[1] || "";
-
-  // find the yaml lines
-  const yamlLines: string[] = [];
-  for (const line of source) {
-    if (line.startsWith(optionPrefix)) {
-      if (!optionSuffix || line.trimRight().endsWith(optionSuffix)) {
-        let yamlOption = line.substring(optionPrefix.length);
-        if (optionSuffix) {
-          yamlOption = yamlOption.trimRight();
-          yamlOption = yamlOption.substring(
-            0,
-            yamlOption.length - optionSuffix.length,
-          );
-        }
-        yamlLines.push(yamlOption);
-        continue;
-      }
-    }
-    break;
-  }
-
-  let yaml = yamlLines.length > 0
-    ? readYamlFromString(yamlLines.join("\n"))
-    : undefined;
-
-  // check that we got what we expected
-  if (
-    yaml !== undefined && (typeof (yaml) !== "object" || Array.isArray(yaml))
-  ) {
-    warnOnce("Invalid YAML option format in cell:\n" + yamlLines.join("\n"));
-    yaml = undefined;
-  }
-
-  return {
-    yaml: yaml as Record<string, unknown> | undefined,
-    source: source.slice(yamlLines.length),
-  };
 }
 
 function optionCommentPrefix(comment: string) {

@@ -20,6 +20,15 @@ import { sessionTempFile } from "../temp.ts";
 
 import { languagesInMarkdown } from "../jupyter/jupyter.ts";
 
+import {
+  kEcho,
+  kError,
+  kEval,
+  kInclude,
+  kOutput,
+  kWarning,
+} from "../../config/constants.ts";
+
 export interface ObserveableCompileOptions {
   source: string;
   format: Format;
@@ -50,6 +59,10 @@ export function observableCompile(
 
   let output = breakQuartoMd(markdown);
 
+  // look at global and cell options for eval, echo, output, etc.
+  // https://quarto.org/docs/computations/execution-options.html
+  // options.format.execute[kEval];
+
   let ojsCellID = 0;
 
   const scriptContents: string[] = [];
@@ -76,7 +89,7 @@ export function observableCompile(
       return result.join("");
     });
   }
-  let ls = [];
+  const ls: string[] = [];
   // now we convert it back
   for (const cell of output.cells) {
     if (
@@ -86,15 +99,35 @@ export function observableCompile(
       // The lua filter is in charge of this, we're a NOP.
       ls.push(cell.source.join(""));
     } else if (cell.cell_type === "math") {
-      ls.push("\n$$", cell.source, "$$\n");
+      ls.push("\n$$", cell.source.join(), "$$\n");
     } else if (cell.cell_type?.language === "ojs") {
       ojsCellID += 1;
-      const content = [
-        "```{=html}\n",
-        `<div id='ojs-cell-${ojsCellID}'></div>\n\`\`\`\n`,
-      ];
-      scriptContents.push(interpret(cell.source, false));
-      ls.push(content.join(""));
+      let div = pandocDiv({
+        id: `ojs-cell-${ojsCellID}`,
+        classes: ["cell"],
+      });
+      // FIXME typescript q: ?. syntax with square brackets?
+      let evalVal = firstDefined([
+        cell.options?.eval,
+        options.format.execute[kEval],
+        true,
+      ]);
+      let echoVal = firstDefined([
+        cell.options?.echo,
+        options.format.execute[kEcho],
+        true,
+      ]);
+      // let includeVal = firstDefined([cell.options?.include, options.format.execute[kInclude], true]);
+
+      if (!evalVal || echoVal) {
+        let innerDiv = pandocCode({ classes: ["js"] });
+        innerDiv.push(pandocRawStr(cell.source.join("")));
+        div.push(innerDiv);
+      }
+      if (evalVal) {
+        scriptContents.push(interpret(cell.source, false));
+      }
+      div.emit(ls);
     } else {
       ls.push(`\n\`\`\`{${cell.cell_type.language}}`);
       ls.push(cell.source.map(inlineInterpolation).join(""));
@@ -129,6 +162,15 @@ export function observableCompile(
   };
 }
 
+function firstDefined(lst: any[]) {
+  for (const el of lst) {
+    if (el !== undefined) {
+      return el;
+    }
+  }
+  return undefined;
+}
+
 function observableFormatDependency() {
   const observableResource = (resource: string) =>
     formatResourcePath(
@@ -154,3 +196,58 @@ function observableFormatDependency() {
     ],
   };
 }
+
+// minimal pandoc emitting code
+
+interface PandocNode {
+  emit: (s: string[]) => void;
+}
+
+function pandocRawStr(content: string) {
+  return {
+    emit: (ls: string[]) => ls.push(content),
+  };
+}
+
+function pandocBlock(delimiter: string) {
+  return function (
+    opts: {
+      id?: string;
+      classes: string[];
+    } | undefined,
+  ) {
+    const { id, classes } = opts || {};
+
+    const contents: PandocNode[] = [];
+    function attrString() {
+      let strs = [];
+      if (id) {
+        strs.push(`#${id}`);
+      }
+      if (classes) {
+        strs.push(...classes.map((c) => `.${c}`));
+      }
+      if (strs.length) {
+        return `{${strs.join(" ")}}`;
+      } else {
+        return "";
+      }
+    }
+
+    return {
+      push: function (s: PandocNode) {
+        contents.push(s);
+      },
+      emit: function (ls: string[]) {
+        ls.push(`\n${delimiter}${attrString()}`);
+        for (let entry of contents) {
+          entry.emit(ls);
+        }
+        ls.push(`\n${delimiter}\n`);
+      },
+    };
+  };
+}
+
+let pandocDiv = pandocBlock(":::");
+let pandocCode = pandocBlock("```");

@@ -22,9 +22,9 @@ import {
   mdEnsureTrailingNewline,
   mdFromContentCell,
   mdFromRawCell,
-  partitionJupyterCellOptions,
   quartoMdToJupyter,
 } from "../../core/jupyter/jupyter.ts";
+import { partitionCellOptions } from "../../core/partition-cell-options.ts";
 import { Metadata } from "../../config/metadata.ts";
 
 export async function markdownToJupyterNotebook(
@@ -112,7 +112,7 @@ function mdFromCodeCell(
   const md: string[] = ["```{" + language + "}\n"];
 
   // partition
-  const { yaml, source } = partitionJupyterCellOptions(language, cell.source);
+  const { yaml, source } = partitionCellOptions(language, cell.source);
   const options = yaml ? yaml as JupyterCellOptions : {};
 
   // handle id

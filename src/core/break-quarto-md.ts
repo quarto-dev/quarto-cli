@@ -15,6 +15,7 @@ import {
   readYamlFromString,
 } from "./yaml.ts";
 import { lines } from "./text.ts";
+import { partitionCellOptions } from "./partition-cell-options.ts";
 
 export interface CodeCellType {
   language: string;
@@ -23,6 +24,7 @@ export interface CodeCellType {
 export interface QuartoMdCell {
   id?: string;
   cell_type: "markdown" | CodeCellType | "raw" | "math";
+  options?: Record<string, unknown>;
   source: string[];
 }
 
@@ -62,12 +64,23 @@ export function breakQuartoMd(
       if (lineBuffer[lineBuffer.length - 1] === "") {
         lineBuffer.splice(lineBuffer.length - 1, 1);
       }
+
       const cell: QuartoMdCell = {
         cell_type: cell_type === "code" ? { language } : cell_type,
         source: lineBuffer.map((line, index) => {
           return line + (index < (lineBuffer.length - 1) ? "\n" : "");
         }),
       };
+
+      if (cell_type === "code" && language === "ojs") {
+        // see if there is embedded metadata we should forward into the cell metadata
+        const { yaml, source } = partitionCellOptions(
+          "js",
+          cell.source,
+        );
+        cell.source = source;
+        cell.options = yaml;
+      }
 
       // if the source is empty then don't add it
       cell.source = mdTrimEmptyLines(cell.source);
