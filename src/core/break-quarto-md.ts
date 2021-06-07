@@ -32,7 +32,6 @@ export interface QuartoMdChunks {
 
 export function breakQuartoMd(
   src: string,
-  language: string,
 ) {
   // notebook to return
   const nb: QuartoMdChunks = {
@@ -43,11 +42,12 @@ export function breakQuartoMd(
   const yamlRegEx = /^---\s*$/;
   /^\s*```+\s*\{([a-zA-Z0-9_]+)( *[ ,].*)?\}\s*$/;
   const startCodeCellRegEx = new RegExp(
-    "^\\s*```+\\s*\\{" + language + "( *[ ,].*)?\\}\\s*$",
+    "^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$",
   );
   const startCodeRegEx = /^```/;
   const endCodeRegEx = /^```\s*$/;
   const delimitMathBlockRegEx = /^\$\$/;
+  let language = ""; // current language block
 
   // line buffer
   const lineBuffer: string[] = [];
@@ -100,6 +100,8 @@ export function breakQuartoMd(
       }
     } // begin code cell: ^```python
     else if (startCodeCellRegEx.test(line)) {
+      let m = line.match(startCodeCellRegEx);
+      language = (m as string[])[1];
       flushLineBuffer("markdown");
       inCodeCell = true;
 

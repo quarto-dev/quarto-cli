@@ -9,7 +9,7 @@ import { dirname, join } from "path/mod.ts";
 
 import { Format, isJavascriptCompatible } from "../../config/format.ts";
 
-import { logError } from "../../core/log.ts";
+import { warnOnce } from "../../core/log.ts";
 import { escapeBackticks } from "../../core/text.ts";
 import { breakQuartoMd } from "../../core/break-quarto-md.ts";
 import { PandocIncludes } from "../../execute/engine.ts";
@@ -48,11 +48,11 @@ export function observableCompile(
     return { markdown };
   }
 
-  let output = breakQuartoMd(markdown, "ojs");
+  let output = breakQuartoMd(markdown);
 
   let ojsCellID = 0;
 
-  let scriptContents: string[] = [];
+  const scriptContents: string[] = [];
 
   function interpret(jsSrc: string[], inline: boolean) {
     let inlineStr = inline ? "inline-" : "";
@@ -83,7 +83,8 @@ export function observableCompile(
       cell.cell_type === "raw" ||
       cell.cell_type === "markdown"
     ) {
-      ls.push(cell.source.map(inlineInterpolation).join(""));
+      // The lua filter is in charge of this, we're a NOP.
+      ls.push(cell.source.join(""));
     } else if (cell.cell_type === "math") {
       ls.push("\n$$", cell.source, "$$\n");
     } else if (cell.cell_type?.language === "ojs") {
@@ -95,12 +96,10 @@ export function observableCompile(
       scriptContents.push(interpret(cell.source, false));
       ls.push(content.join(""));
     } else {
-      logError({
-        name: "breakQuartoMd",
-        message: `Skipping unrecognized cell type: ${
-          JSON.stringify(cell.cell_type)
-        }`,
-      });
+      ls.push(`\n\`\`\`{${cell.cell_type.language}}`);
+      ls.push(cell.source.map(inlineInterpolation).join(""));
+      ls.push("```");
+      // warnOnce(`Skipping unrecognized cell type: ${JSON.stringify(cell.cell_type)}`);
     }
   }
 
