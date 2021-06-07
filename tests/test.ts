@@ -28,6 +28,8 @@ export interface TestDescriptor {
 }
 
 export interface TestContext {
+  name?: string;
+
   // Checks that prereqs for the test are met
   prereq?: () => Promise<boolean>;
 
@@ -90,7 +92,11 @@ export function unitTest(
 }
 
 export function test(test: TestDescriptor) {
-  Deno.test(`[${test.type}] > ${test.name}`, async () => {
+  const testName = test.context.name
+    ? `[${test.type}] > ${test.name} (${test.context.name})`
+    : `[${test.type}] > ${test.name}`;
+
+  Deno.test(testName, async () => {
     const runTest = !test.context.prereq || await test.context.prereq();
     if (runTest) {
       if (test.context.setup) {

@@ -62,23 +62,6 @@ const ignoreFrozen = {
   },
 };
 
-// Write test file
-// freeze: auto
-// Render to populate freezer
-// Confirm freezer is used
-
-// Write test file
-// freeze: auto
-// Render to populate freezer
-// Touch file
-// Confirm freezer is not used
-
-// Write test file
-// freeze: true
-// Render to populate freezer
-// Touch file
-// Confirm freezer is used
-
 async function writeFile(
   path: string,
   frontMatter: Metadata,
@@ -133,7 +116,10 @@ testRender(
   "html",
   false,
   [useFrozen],
-  testContext,
+  {
+    name: "clean fzr - auto",
+    ...testContext,
+  },
 );
 
 // Render and mutate to be sure we ignore freezer
@@ -143,6 +129,7 @@ testRender(
   false,
   [ignoreFrozen],
   {
+    name: "dirty fzr - auto",
     setup: async () => {
       await testContext.setup();
 
@@ -167,6 +154,7 @@ testRender(
   false,
   [useFrozen],
   {
+    name: "dirty fzr - freeze",
     setup: async () => {
       await testContext.setup();
 
