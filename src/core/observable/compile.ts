@@ -48,7 +48,7 @@ export function observableCompile(
 
   let ojsCellID = 0;
 
-  let scriptContents: string[] = [];
+  const scriptContents: string[] = [];
 
   function interpret(jsSrc: string[], inline: boolean) {
     let inlineStr = inline ? "inline-" : "";
@@ -79,7 +79,8 @@ export function observableCompile(
       cell.cell_type === "raw" ||
       cell.cell_type === "markdown"
     ) {
-      ls.push(cell.source.map(inlineInterpolation).join(""));
+      // The lua filter is in charge of this, we're a NOP.
+      ls.push(cell.source.join(""));
     } else if (cell.cell_type === "math") {
       ls.push("\n$$", cell.source, "$$\n");
     } else if (cell.cell_type?.language === "ojs") {

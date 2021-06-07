@@ -1,13 +1,40 @@
-
-
-
 -- blocks
 
-function CodeBlock(el)
-  if el.attr.classes:find("{ojs}") then
+local uid = 0
+local cells = pandoc.List:new()
 
-  end
+function uniqueId()
+  uid = uid + 1
+  return "observable-element-id-" .. uid
 end
+
+function observableInline(src)
+  local id = uniqueId()
+  cells:insert({
+      src = src,
+      id = id,
+      inline = true
+  })
+  return pandoc.Span('', { id = id })
+end
+
+function observableBlock(src)
+  local id = uniqueId()
+  cells:insert({
+      src = src,
+      id = id,
+      inline = false
+  })
+  return pandoc.Div('', { id = id })
+end
+
+-- Does not appear to be working right now.. I wonder if this is what JJ discussed on slack
+--
+-- function CodeBlock(el)
+--   if el.attr.classes:find("{ojs}") then
+--     return observableBlock(el.content)
+--   end
+-- end
 
 function DisplayMath(el)
 
@@ -21,21 +48,125 @@ function RawBlock(el)
   end
 end
 
+function isInterpolationOpen(str)
+  if str.t ~= "Str" then
+    return false
+  end
+  return str.text:find("${")
+end
+
+function isInterpolationClose(str)
+  if str.t ~= "Str" then
+    return false
+  end
+  return str.text:find("}")
+end
+
+function find_arg_if(lst, fun, start)
+  if start == nil then
+    start = 1
+  end
+  local sz = #lst
+  for i=start, sz do
+    if fun(lst[i]) then
+      return i
+    end
+  end
+  return nil
+end
+
+function string_content(inline)
+  if inline.t == "Space" then
+    return " "
+  elseif inline.t == "Str" then
+    return inline.text
+  elseif inline.t == "Quoted" then
+    local internal_content = table.concat(inline.content:map(string_content), "")
+    local q = ""
+    if inline.quotetype == "SingleQuote" then
+      q = "'"
+    else
+      q = '"'
+    end
+    -- FIXME escaping?
+    return q .. internal_content .. q
+  else
+    -- FIXME how do I know all possible types?
+    print("WILL FAIL CANNOT HANDLE TYPE")
+    print(inline.t)
+    return nil
+  end
+end
+
+-- I haven't tested this at all for nested interpolations...
+function Inlines(inlines)
+  local i = find_arg_if(inlines, isInterpolationOpen)
+  if i then
+    local j = find_arg_if(inlines, isInterpolationClose, i)
+    if j then
+      -- print("Starts at ", i, inlines[i].text, " and ends at ", j, inlines[j].text)
+      local is, ie = inlines[i].text:find("${")
+      local js, je = inlines[j].text:find("}")
+      local beforeFirst = inlines[i].text:sub(1, is - 1)
+      local firstChunk = inlines[i].text:sub(ie + 1, -1)
+      local lastChunk = inlines[j].text:sub(1, js - 1)
+      local afterLast = inlines[j].text:sub(je + 1, -1)
+      inlines[i].text = firstChunk
+      inlines[j].text = lastChunk
+      -- this is O(n^2) where n is the length of the run that makes the interpolator..
+      for k=i+1, j do
+        inlines[i].text = inlines[i].text .. string_content(inlines[i+1])
+        inlines:remove(i+1)
+      end
+      inlines[i] = pandoc.Span({
+          pandoc.Str(beforeFirst),
+          observableInline(inlines[i].text),
+          pandoc.Str(afterLast)
+      })
+      return Inlines(inlines) -- recurse to catch the next one
+    end
+  end
+  return inlines
+end
 
 -- inlines
-
 function Math(el)
-  return pandoc.Code(el.text)
+
 end
 
 function RawInline(el)
- 
+  
 end
 
+-- https://pandoc.org/lua-filters.html#macro-substitution
 function Str(el)
-  -- https://pandoc.org/lua-filters.html#macro-substitution
+  local b, e, s = el.text:find("${(.+)}")
+  if s then
+    return pandoc.Span({
+        pandoc.Str(string.sub(el.text, 1, b - 1)),
+        observableInline(s),
+        pandoc.Str(string.sub(el.text, e + 1, -1))
+    })
+  end
 end
 
+-- here we add the interpret calls to actually process the inline cells
+function Pandoc(doc)
+  if uid > 0 then
+    doc.blocks:insert(pandoc.RawBlock("html", "<script type='module'>"))
+    for i, v in ipairs(cells) do
+      local inlineStr = ''
+      if v.inline then
+        inlineStr = 'true'
+      else
+        inlineStr = 'false'
+      end
+      doc.blocks:insert(pandoc.RawBlock("html", "  window._ojsRuntime.interpret(`" .. v.src .. "`, document.getElementById('" .. v.id .. "'), " .. inlineStr .. ");"));
+    end
+    doc.blocks:insert(pandoc.RawBlock("html", "</script>"))
+  end
+  return doc
+end
 
 -- debug.lua
 -- Copyright (C) 2020 by RStudio, PBC
@@ -67,10 +198,4 @@ function tdump (tbl, indent)
     end
   end
 end
-
-
-
-
-
-
 
