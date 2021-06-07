@@ -117,10 +117,20 @@ export function observableCompile(
         options.format.execute[kEcho],
         true,
       ]);
-      // let includeVal = firstDefined([cell.options?.include, options.format.execute[kInclude], true]);
+      let outputVal = firstDefined([
+        cell.options?.output,
+        options.format.execute[kOutput],
+        true,
+      ]);
 
       if (!evalVal || echoVal) {
-        let innerDiv = pandocCode({ classes: ["js", "cell-code"] });
+        const classes = ["js", "cell-code"];
+        // FIXME this doesn't look to be working. Ask
+        if (!outputVal) {
+          classes.push("hidden");
+        }
+        const innerDiv = pandocCode({ classes });
+        
         innerDiv.push(pandocRawStr(cell.source.join("")));
         div.push(innerDiv);
       }
