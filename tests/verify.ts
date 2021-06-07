@@ -38,6 +38,26 @@ export const printsMessage = (
   };
 };
 
+export const printsJson = {
+  name: "Prints JSON Output",
+  verify: (outputs: ExecuteOutput[]) => {
+    outputs.filter((out) => out.msg !== "" && out.levelName === "INFO").forEach(
+      (out) => {
+        let json = undefined;
+        try {
+          json = JSON.parse(out.msg);
+        } catch {
+          assert(false, "Error parsing JSON returned by quarto meta");
+        }
+        assert(
+          Object.keys(json).length > 0,
+          "JSON returned by quarto meta seems invalid",
+        );
+      },
+    );
+  },
+};
+
 export const fileExists = (file: string): Verify => {
   return {
     name: `File ${file} exists`,
