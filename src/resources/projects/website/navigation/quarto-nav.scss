@@ -178,7 +178,7 @@ nav .dropdown-item i {
   .sidebar-navigation ul.sidebar-section.depth1 .sidebar-section-item,
   .nav-page .nav-page-text,
   .sidebar-navigation,
-  .sidebar-navigation a {
+  .sidebar-navigation .sidebar-menu-container a {
     font-size: $nav-font-size-enlarged;
   }
   
@@ -247,7 +247,7 @@ nav .dropdown-item i {
   .sidebar-navigation ul.sidebar-section.depth1 .sidebar-section-item,
   .nav-page .nav-page-text,
   .sidebar-navigation,
-  .sidebar-navigation a {
+  .sidebar-navigation .sidebar-menu-container a {
     font-size: $nav-font-size;
   }
 
