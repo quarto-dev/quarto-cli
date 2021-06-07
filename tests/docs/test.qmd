@@ -1,0 +1,23 @@
+---
+title: "My Document"
+author: "Jane Doe"
+toc: true
+toc-depth: 2
+format:
+  html:
+    max-width: 800px
+    fontsize: 18px
+    html-math-method: katex
+  pdf:
+    documentclass: report
+    margin-left: 30mm
+    margin-right: 30mm
+  docx:
+    number-sections: true
+    reference-docx: mytemplate.docx
+---
+
+
+## Heading
+
+This is a paragraph that is rendered.

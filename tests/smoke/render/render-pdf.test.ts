@@ -14,7 +14,7 @@ import { docs } from "../../utils.ts";
 import { testRender } from "./render.ts";
 
 // Simple rendering tests
-testRender(docs("latexmk/plain.Rmd"), "pdf", true);
+testRender(docs("latexmk/test.qmd"), "pdf", true);
 testRender(docs("latexmk/bibliography-biblatex.Rmd"), "pdf", true);
 testRender(docs("latexmk/bibliography-citeproc.Rmd"), "pdf", true);
 testRender(docs("latexmk/bibliography-natbib.Rmd"), "pdf", true);
