@@ -10,14 +10,8 @@ import {
   kNumberDepth,
   kNumberOffset,
   kNumberSections,
-  kShiftHeadingLevelBy,
-  kTopLevelDivision,
 } from "../../config/constants.ts";
-import {
-  FormatPandoc,
-  isBeamerOutput,
-  isLatexOutput,
-} from "../../config/format.ts";
+import { FormatPandoc } from "../../config/format.ts";
 import { PandocFlags } from "../../config/flags.ts";
 import { Metadata } from "../../config/metadata.ts";
 
