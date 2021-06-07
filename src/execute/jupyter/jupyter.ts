@@ -45,6 +45,7 @@ import {
 } from "../../config/constants.ts";
 import {
   Format,
+  isHtmlCompatible,
   isHtmlOutput,
   isLatexOutput,
   isMarkdownOutput,
@@ -255,11 +256,6 @@ function cleanupNotebook(target: ExecutionTarget, format: Format) {
 
 interface JupyterTargetData {
   transient: boolean;
-}
-
-function isHtmlCompatible(format: Format) {
-  return isHtmlOutput(format.pandoc) ||
-    (isMarkdownOutput(format.pandoc) && format.render[kPreferHtml]);
 }
 
 function executeResultIncludes(

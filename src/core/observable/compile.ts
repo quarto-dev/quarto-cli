@@ -7,7 +7,7 @@
 
 import { dirname, join } from "path/mod.ts";
 
-import { Format } from "../../config/format.ts";
+import { Format, isJavascriptCompatible } from "../../config/format.ts";
 
 import { logError } from "../../core/log.ts";
 import { escapeBackticks } from "../../core/text.ts";
@@ -39,6 +39,10 @@ export function observableCompile(
   options: ObserveableCompileOptions,
 ): ObservableCompileResult {
   const { markdown } = options;
+
+  if (!isJavascriptCompatible(options.format)) {
+    return { markdown };
+  }
 
   if (!languagesInMarkdown(markdown).has("ojs")) {
     return { markdown };
@@ -117,6 +121,7 @@ export function observableCompile(
   return {
     markdown: ls.join("\n"),
     filters: [
+      "observable",
       "observable/observable.lua",
     ],
     includes: {
