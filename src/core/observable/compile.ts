@@ -120,7 +120,6 @@ export function observableCompile(
     markdown: ls.join("\n"),
     filters: [
       "observable",
-      "observable/observable.lua",
     ],
     includes: {
       [kIncludeInHeader]: [includeInHeaderFile],
