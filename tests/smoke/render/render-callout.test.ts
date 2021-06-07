@@ -6,18 +6,48 @@
 */
 
 import { docs, outputForInput } from "../../utils.ts";
-import { ensureHtmlElements } from "../../verify.ts";
+import {
+  ensureDocxRegexMatches,
+  ensureHtmlElements,
+  ensureLatexRegexMatches,
+  requireLatexPackage,
+} from "../../verify.ts";
 import { testRender } from "./render.ts";
 
 const input = docs("callouts.qmd");
-const output = outputForInput(input, "html");
+const htmlOutput = outputForInput(input, "html");
+
 testRender(input, "html", false, [
-  ensureHtmlElements(output.outputPath, [
+  ensureHtmlElements(htmlOutput.outputPath, [
     "div.callout-warning",
     "div.callout-important",
     "div.callout-note",
     "div.callout-tip",
     "div.callout-caution",
     "div.callout.no-icon",
+  ]),
+]);
+
+const teXOutput = outputForInput(input, "latex");
+testRender(input, "latex", true, [
+  ensureLatexRegexMatches(teXOutput.outputPath, [
+    requireLatexPackage("fontawesome"),
+    requireLatexPackage("tcolorbox"),
+    /quarto-callout-warning/,
+    /quarto-callout-important/,
+    /quarto-callout-note/,
+    /quarto-callout-tip/,
+    /quarto-callout-caution/,
+  ]),
+]);
+
+const docXoutput = outputForInput(input, "docx");
+testRender(input, "docx", true, [
+  ensureDocxRegexMatches(docXoutput.outputPath, [
+    /warning\.png/,
+    /important\.png/,
+    /note\.png/,
+    /tip\.png/,
+    /caution\.png/,
   ]),
 ]);
