@@ -31,14 +31,13 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params) {
   }
   
   # pass through ojs chunks
-  knitr::knit_engines$set(ojs = function(options) {
+  knitr::knit_engines$set(observable = function(options) {
     knitr:::one_string(c(
-      "```{ojs}",
+      "```{observable}",
       options$code,
       "```"
     ))
   })
-  
 
   # apply r-options (if any)
   r_options <- format$metadata$`r-options`

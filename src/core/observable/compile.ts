@@ -53,7 +53,7 @@ export function observableCompile(
     return { markdown };
   }
 
-  if (!languagesInMarkdown(markdown).has("ojs")) {
+  if (!languagesInMarkdown(markdown).has("observable")) {
     return { markdown };
   }
 
@@ -100,7 +100,7 @@ export function observableCompile(
       ls.push(cell.source.join(""));
     } else if (cell.cell_type === "math") {
       ls.push("\n$$", cell.source.join(), "$$\n");
-    } else if (cell.cell_type?.language === "ojs") {
+    } else if (cell.cell_type?.language === "observable") {
       ojsCellID += 1;
       let div = pandocDiv({
         id: `ojs-cell-${ojsCellID}`,
@@ -130,7 +130,7 @@ export function observableCompile(
           classes.push("hidden");
         }
         const innerDiv = pandocCode({ classes });
-        
+
         innerDiv.push(pandocRawStr(cell.source.join("")));
         div.push(innerDiv);
       }

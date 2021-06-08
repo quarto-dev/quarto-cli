@@ -102,7 +102,7 @@ export async function observableNotebookToMarkdown(
     // write lines
     switch (mode) {
       case "js":
-        lines.push("```{ojs}");
+        lines.push("```{observable}");
         lines.push(value);
         lines.push("```");
         break;

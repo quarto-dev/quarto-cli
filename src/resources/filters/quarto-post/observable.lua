@@ -58,6 +58,14 @@ function observable()
     return nil
   end
 
+  function escape_single(str)
+    return string.gsub(str, "'", "\\\\'")
+  end
+
+  function escape_double(str)
+    return string.gsub(str, '"', '\\\\"')
+  end
+
   function string_content(inline)
     if inline.t == "Space" then
       return " "
@@ -67,23 +75,19 @@ function observable()
       local internal_content = table.concat(inline.content:map(string_content), "")
       local q = ""
       if inline.quotetype == "SingleQuote" then
-        q = "'"
+        return "  '" .. escape_single(internal_content) .. "'"
       else
-        q = '"'
+        return '"' .. escape_double(internal_content) .. '"'
       end
-      -- FIXME escaping?
-      return q .. internal_content .. q
     elseif inline.t == "Code" then
       -- Because Code inlines are denoted in Pandoc with backticks, we use
       -- this as an opportunity to handle a construct that wouldn't typically work
-      --
-      -- FIXME What about `{r} foo`?
       return "\\`" .. inline.text .. "\\`"
+    -- elseif inline.t == "Emph" then
+    --   return "_" .. inline.text .. "_"
     else
       -- FIXME Handle all https://pandoc.org/lua-filters.html#type-inline
-      -- FIXME How do I signal an internal error here?
-      print("WILL FAIL CANNOT HANDLE TYPE")
-      print(inline.t)
+      fail("Don't know how to process node of type '" .. inline.t .. "' in observable chunk conversion")
       return nil
     end
   end

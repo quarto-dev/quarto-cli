@@ -72,7 +72,7 @@ export function breakQuartoMd(
         }),
       };
 
-      if (cell_type === "code" && language === "ojs") {
+      if (cell_type === "code" && language === "observable") {
         // see if there is embedded metadata we should forward into the cell metadata
         const { yaml, source } = partitionCellOptions(
           "js",
