@@ -7,7 +7,7 @@
 
 import { copySync, ensureDirSync, existsSync } from "fs/mod.ts";
 import { dirname, isAbsolute, join, relative } from "path/mod.ts";
-import { info, warning } from "log/mod.ts";
+import { warning } from "log/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
