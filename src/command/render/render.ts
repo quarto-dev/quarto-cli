@@ -87,6 +87,7 @@ import {
   kProjectType,
   ProjectContext,
   projectContext,
+  projectContextForDirectory,
   projectMetadataForInputFile,
   projectOffset,
 } from "../../project/project-context.ts";
@@ -157,10 +158,10 @@ export async function render(
   if (Deno.statSync(path).isDirectory) {
     // all directories are considered projects
     return renderProject(
-      context,
+      context || await projectContextForDirectory(path),
       options,
     );
-  } else if (context.config) {
+  } else if (context?.config) {
     // if there is a project file then treat this as a project render
     // if the passed file is in the render list
     const renderPath = Deno.realPathSync(path);

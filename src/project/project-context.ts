@@ -97,7 +97,10 @@ export function deleteProjectMetadata(metadata: Metadata) {
   delete metadata.project;
 }
 
-export async function projectContext(path: string): Promise<ProjectContext> {
+export async function projectContext(
+  path: string,
+  force = false,
+): Promise<ProjectContext | undefined> {
   let dir = Deno.realPathSync(
     Deno.statSync(path).isDirectory ? path : dirname(path),
   );
@@ -151,20 +154,32 @@ export async function projectContext(path: string): Promise<ProjectContext> {
     } else {
       const nextDir = dirname(dir);
       if (nextDir === dir) {
-        return {
-          dir: originalDir,
-          config: { project: {} },
-          files: {
-            input: Deno.statSync(path).isDirectory
-              ? projectInputFiles(originalDir)
-              : [Deno.realPathSync(path)],
-          },
-        };
+        if (force) {
+          return {
+            dir: originalDir,
+            config: { project: {} },
+            files: {
+              input: Deno.statSync(path).isDirectory
+                ? projectInputFiles(originalDir)
+                : [Deno.realPathSync(path)],
+            },
+          };
+        } else {
+          return undefined;
+        }
       } else {
         dir = nextDir;
       }
     }
   }
+}
+
+// read project context (if there is no project config file then still create
+// a context (i.e. implicitly treat directory as a project)
+export function projectContextForDirectory(
+  path: string,
+): Promise<ProjectContext> {
+  return projectContext(path, true) as Promise<ProjectContext>;
 }
 
 export function projectOutputDir(context: ProjectContext): string {
@@ -211,7 +226,7 @@ export async function projectMetadataForInputFile(
     project = await projectContext(input);
   }
 
-  const projConfig = project.config || {};
+  const projConfig = project?.config || {};
 
   const fixupPaths = (collection: Array<unknown> | Record<string, unknown>) => {
     ld.forEach(

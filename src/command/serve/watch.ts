@@ -53,8 +53,8 @@ export function watchProject(
 ): ProjectWatcher {
   // helper to refresh project config
   const refreshProjectConfig = async () => {
-    project = await projectContext(project.dir);
-    serveProject = await projectContext(serveProject.dir);
+    project = (await projectContext(project.dir))!;
+    serveProject = (await projectContext(serveProject.dir))!;
   };
 
   // proj dir

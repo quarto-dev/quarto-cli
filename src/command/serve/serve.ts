@@ -79,7 +79,7 @@ export async function serveProject(
 
   // create mirror of project for serving
   const serveDir = copyProjectForServe(project, true);
-  const serveProject = await projectContext(serveDir);
+  const serveProject = (await projectContext(serveDir))!;
 
   // create project watcher
   const watcher = watchProject(project, serveProject, renderResult, options);
