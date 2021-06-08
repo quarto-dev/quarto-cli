@@ -143,11 +143,16 @@ export function observableCompile(
 
       if (!evalVal || echoVal) {
         const classes = ["js", "cell-code"];
+        const attrs = [];
         // FIXME this doesn't look to be working. Ask
         if (!outputVal) {
           classes.push("hidden");
         }
-        const innerDiv = pandocCode({ classes });
+        if (cell.options?.fold) {
+          attrs.push('fold="true"');
+        }
+        
+        const innerDiv = pandocCode({ classes, attrs });
 
         innerDiv.push(pandocRawStr(cell.source.join("")));
         div.push(innerDiv);
@@ -258,11 +263,15 @@ function pandocBlock(delimiter: string) {
     opts: {
       id?: string;
       classes?: string[];
+      attrs?: string[];
     } | undefined,
   ) {
-    let { id, classes } = opts || {};
+    let { id, classes, attrs } = opts || {};
     if (classes === undefined) {
       classes = [];
+    }
+    if (attrs === undefined) {
+      attrs = [];
     }
 
     const contents: PandocNode[] = [];
@@ -273,6 +282,9 @@ function pandocBlock(delimiter: string) {
       }
       if (classes) {
         strs.push(...classes.map((c) => `.${c}`));
+      }
+      if (attrs) {
+        strs.push(...attrs);
       }
       if (strs.length) {
         return `{${strs.join(" ")}}`;
