@@ -44,10 +44,10 @@ testRender(input, "latex", true, [
 const docXoutput = outputForInput(input, "docx");
 testRender(input, "docx", true, [
   ensureDocxRegexMatches(docXoutput.outputPath, [
-    /warning\.png/,
-    /important\.png/,
-    /note\.png/,
-    /tip\.png/,
-    /caution\.png/,
+    /<pic:cNvPr.*warning\.png".*?\/>/,
+    /<pic:cNvPr.*important\.png".*?\/>/,
+    /<pic:cNvPr.*note\.png".*?\/>/,
+    /<pic:cNvPr.*tip\.png".*?\/>/,
+    /<pic:cNvPr.*caution\.png".*?\/>/,
   ]),
 ]);
