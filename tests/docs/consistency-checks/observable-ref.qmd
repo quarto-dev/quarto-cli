@@ -6,7 +6,7 @@ format:
     code-background: true
 ---
 
-I thought `output:false` would suppress the output, but no? `echo: false` does it.
+I thought `output: false` would suppress the output, but no? `echo: false` does it.
 
 ```{observable}
 //| echo: false
