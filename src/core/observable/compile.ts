@@ -64,6 +64,7 @@ export function observableCompile(
   // options.format.execute[kEval];
 
   let ojsCellID = 0;
+  let userIds: Set<string> = new Set();
 
   const scriptContents: string[] = [];
 
@@ -101,9 +102,26 @@ export function observableCompile(
     } else if (cell.cell_type === "math") {
       ls.push("\n$$", cell.source.join(), "$$\n");
     } else if (cell.cell_type?.language === "observable") {
-      ojsCellID += 1;
+      function userCellId() {
+        if (cell.options?.label) {
+          let label = cell.options.label as string;
+          if (userIds.has(label)) {
+            // FIXME better error handling
+            throw new Error(`FATAL: duplicate label ${cell.options.label}`);
+          } else {
+            userIds.add(label);
+            return label;
+          }
+        } else {
+          return undefined;
+        }
+      }
+      function bumpOjsCellIdString() {
+        ojsCellID += 1;
+        return `ojs-cell-${ojsCellID}`;
+      }
+      let ojsId = bumpOjsCellIdString();
       let div = pandocDiv({
-        id: `ojs-cell-${ojsCellID}`,
         classes: ["cell"],
       });
       // FIXME typescript q: ?. syntax with square brackets?
@@ -137,6 +155,23 @@ export function observableCompile(
       if (evalVal) {
         scriptContents.push(interpret(cell.source, false));
       }
+      let outputDiv = pandocDiv({
+        id: userCellId(),
+        classes: ["cell-output-display"],
+      });
+      div.push(outputDiv);
+
+      let captionStr = "";
+      if (cell.options && cell.options["fig.cap"]) {
+        captionStr = `<figcaption aria-hidden="true" class="figure-caption">${
+          cell.options["fig.cap"]
+        }</figcaption>`;
+      }
+      outputDiv.push(
+        pandocRawStr(
+          `<figure class="figure"><div id="${ojsId}"></div>${captionStr}</figure>`,
+        ),
+      );
       div.emit(ls);
     } else {
       ls.push(`\n\`\`\`{${cell.cell_type.language}}`);
@@ -222,10 +257,13 @@ function pandocBlock(delimiter: string) {
   return function (
     opts: {
       id?: string;
-      classes: string[];
+      classes?: string[];
     } | undefined,
   ) {
-    const { id, classes } = opts || {};
+    let { id, classes } = opts || {};
+    if (classes === undefined) {
+      classes = [];
+    }
 
     const contents: PandocNode[] = [];
     function attrString() {
