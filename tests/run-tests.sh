@@ -33,6 +33,6 @@ if [[ $@ == *"--coverage"* ]]; then
 
   echo Generating coverage report...
   ${DENO_DIR}/deno coverage --unstable ${COV} --lcov > ${COV}.lcov
-  genhtml -o cov_profile/html ${COV}.lcov
-  open cov_profile/html/index.html
+  genhtml -o ${COV}/html ${COV}.lcov
+  open ${COV}/html/index.html
 fi
