@@ -29,7 +29,7 @@ name
 **(Python Bug?) This appears to break with long labels:**
 
 ```{observable}
-//| label: python label 1
+//| label: python label 2
 name
 ```
 

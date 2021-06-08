@@ -19,6 +19,7 @@ import { kIncludeAfterBody, kIncludeInHeader } from "../../config/constants.ts";
 import { sessionTempFile } from "../temp.ts";
 
 import { languagesInMarkdown } from "../jupyter/jupyter.ts";
+import { pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
 
 import {
   kCodeFold,
@@ -107,6 +108,7 @@ export function observableCompile(
       function userCellId() {
         if (cell.options?.label) {
           let label = cell.options.label as string;
+          label = pandocAutoIdentifier(label, true);
           if (userIds.has(label)) {
             // FIXME better error handling
             throw new Error(`FATAL: duplicate label ${cell.options.label}`);

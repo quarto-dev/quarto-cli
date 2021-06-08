@@ -26,7 +26,7 @@ plt.show()
 **(Python Bug?) This appears to break with long labels:**
 
 ```{python}
-#| label: python label 1
+#| label: python label 2
 
 plt.plot([1,2,3,4])
 plt.show()
