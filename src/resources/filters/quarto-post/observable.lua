@@ -152,7 +152,7 @@ function observable()
             else
               inlineStr = 'false'
             end
-            doc.blocks:insert(pandoc.RawBlock("html", "  window._ojsRuntime.interpret(`" .. v.src .. "`, document.getElementById('" .. v.id .. "'), " .. inlineStr .. ");"));
+            doc.blocks:insert(pandoc.RawBlock("html", "  window._ojsRuntime.interpret(`" .. v.src .. "`, '" .. v.id .. "', " .. inlineStr .. ");"));
           end
           doc.blocks:insert(pandoc.RawBlock("html", "</script>"))
         end

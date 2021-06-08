@@ -21,9 +21,11 @@ import { sessionTempFile } from "../temp.ts";
 import { languagesInMarkdown } from "../jupyter/jupyter.ts";
 
 import {
+  kCodeFold,
   kEcho,
   kError,
   kEval,
+  kFold,
   kInclude,
   kOutput,
   kWarning,
@@ -73,7 +75,7 @@ export function observableCompile(
     let content = [
       "window._ojsRuntime.interpret(`",
       jsSrc.map(escapeBackticks).join(""),
-      `\`, document.getElementById("ojs-${inlineStr}cell-${ojsCellID}"), ${inline});`,
+      `\`, "ojs-${inlineStr}cell-${ojsCellID}", ${inline});`,
     ];
     return content.join("");
   }
@@ -121,22 +123,23 @@ export function observableCompile(
         return `ojs-cell-${ojsCellID}`;
       }
       let ojsId = bumpOjsCellIdString();
+      let userId = userCellId();
       let div = pandocDiv({
+        id: cell.options?.["fig.subcap"] ? userId : undefined,
         classes: ["cell"],
       });
-      // FIXME typescript q: ?. syntax with square brackets?
       let evalVal = firstDefined([
-        cell.options?.eval,
+        cell.options?.[kEval],
         options.format.execute[kEval],
         true,
       ]);
       let echoVal = firstDefined([
-        cell.options?.echo,
+        cell.options?.[kEcho],
         options.format.execute[kEcho],
         true,
       ]);
       let outputVal = firstDefined([
-        cell.options?.output,
+        cell.options?.[kOutput],
         options.format.execute[kOutput],
         true,
       ]);
@@ -148,10 +151,18 @@ export function observableCompile(
         if (!outputVal) {
           classes.push("hidden");
         }
-        if (cell.options?.fold) {
+
+        // options.format.render?.[kCodeFold] appears to use "none"
+        // for "not set", so we interpret "none" as undefined
+        if (
+          firstDefined([
+            asUndefined(options.format.render?.[kCodeFold], "none"),
+            cell.options?.[kFold],
+          ])
+        ) {
           attrs.push('fold="true"');
         }
-        
+
         const innerDiv = pandocCode({ classes, attrs });
 
         innerDiv.push(pandocRawStr(cell.source.join("")));
@@ -160,29 +171,45 @@ export function observableCompile(
       if (evalVal) {
         scriptContents.push(interpret(cell.source, false));
       }
-      let outputDiv = pandocDiv({
-        id: userCellId(),
-        classes: ["cell-output-display"],
-      });
-      div.push(outputDiv);
 
-      let captionStr = "";
-      if (cell.options && cell.options["fig.cap"]) {
-        captionStr = `<figcaption aria-hidden="true" class="figure-caption">${
-          cell.options["fig.cap"]
-        }</figcaption>`;
+      if (cell.options?.["fig.subcap"]) {
+        let subcaps = cell.options["fig.subcap"] as string[];
+        let subfigIx = 1;
+        for (const subcap of subcaps) {
+          let outputDiv = pandocDiv({
+            id: `${userId}-${subfigIx}`,
+            classes: ["cell-output-display"],
+          });
+          let ojsDiv = pandocDiv({
+            id: `${ojsId}-${subfigIx}`,
+          });
+          subfigIx++;
+          outputDiv.push(ojsDiv);
+          outputDiv.push(pandocRawStr(subcap as string));
+          div.push(outputDiv);
+        }
+        if (cell.options?.["fig.cap"]) {
+          div.push(pandocRawStr(cell.options["fig.cap"] as string));
+        }
+      } else {
+        let outputDiv = pandocDiv({
+          id: cell.options?.["fig.subcap"] ? undefined : userId,
+          classes: ["cell-output-display"],
+        });
+        div.push(outputDiv);
+        outputDiv.push(pandocDiv({
+          id: ojsId,
+        }));
+        if (cell.options?.["fig.cap"]) {
+          outputDiv.push(pandocRawStr(cell.options["fig.cap"] as string));
+        }
       }
-      outputDiv.push(
-        pandocRawStr(
-          `<figure class="figure"><div id="${ojsId}"></div>${captionStr}</figure>`,
-        ),
-      );
+
       div.emit(ls);
     } else {
       ls.push(`\n\`\`\`{${cell.cell_type.language}}`);
       ls.push(cell.source.map(inlineInterpolation).join(""));
       ls.push("```");
-      // warnOnce(`Skipping unrecognized cell type: ${JSON.stringify(cell.cell_type)}`);
     }
   }
 
@@ -209,6 +236,13 @@ export function observableCompile(
       [kIncludeAfterBody]: [includeAfterBodyFile],
     },
   };
+}
+
+function asUndefined(value: any, test: any) {
+  if (value === test) {
+    return undefined;
+  }
+  return value;
 }
 
 function firstDefined(lst: any[]) {

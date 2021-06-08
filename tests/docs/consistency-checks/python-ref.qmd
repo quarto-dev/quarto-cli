@@ -35,6 +35,7 @@ plt.show()
 ### `fig.cap`
 
 ```{python}
+#| label: fig-caption-test
 #| fig.cap: A caption for the figure
 
 plt.plot([1,2,3,4])
@@ -46,6 +47,7 @@ plt.show()
 ### `fig.subcap`
 
 ```{python}
+#| label: fig-big-caption-test
 #| fig.cap: Big caption
 #| fig.subcap: 
 #|   - Caption 1
@@ -59,6 +61,7 @@ plt.show()
 **(Python Bug?) Sub-captions don't show up unless `fig.cap` is also there:**
 
 ```{python}
+#| label: fig-no-big-caption-test
 #| fig.subcap: 
 #|   - Caption 1
 #|   - Caption 2
@@ -68,11 +71,22 @@ plt.plot([1,2,3,4])
 plt.show()
 ```
 
-### `fold`
+### `fold` and `summary`
 
-**Inconsistency? The R engine uses fold="true" for both the outer and inner div; The Python engine only forwards it to the inner div.**
+**(Inconsistency?) The R engine sets fold and summary for both the outer and inner div; The Python engine only forwards it to the inner div.**
+
+Fold:
+
 ```{python}
 #| fold: true
+plt.plot([1,2,3,4])
+plt.show()
+```
+
+Summary:
+
+```{python}
+#| summary: "Some text"
 plt.plot([1,2,3,4])
 plt.show()
 ```

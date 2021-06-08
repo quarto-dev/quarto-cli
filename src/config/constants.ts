@@ -26,6 +26,7 @@ export const kOutput = "output";
 export const kWarning = "warning";
 export const kError = "error";
 export const kInclude = "include";
+export const kFold = "fold";
 
 export const kResources = "resources";
 

@@ -42,6 +42,7 @@ plot(1:10)
 ### `fig.subcap`
 
 ```{r}
+#| label: fig-big-caption-test
 #| fig.cap: Big caption
 #| fig.subcap: 
 #|   - Caption 1
@@ -60,10 +61,20 @@ plot(1:10)
 plot(10:1)
 ```
 
-### `fold`
+### `fold` and `summary`
 
-**(Inconsistency?) The R engine uses fold="true" for both the outer and inner div; The Python engine only forwards it to the inner div.**
+**(Inconsistency?) The R engine sets fold and summary for both the outer and inner div; The Python engine only forwards it to the inner div.**
+
+Fold:
+
 ```{r}
 #| fold: true
+plot(1:10)
+```
+
+Summary:
+
+```{r}
+#| summary: "some text"
 plot(1:10)
 ```

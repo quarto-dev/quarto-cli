@@ -36,6 +36,7 @@ name
 ### `fig.cap`
 
 ```{observable}
+//| label: fig-caption-test
 //| fig.cap: A caption for the figure
 name
 ```
@@ -45,6 +46,7 @@ name
 ### `fig.subcap`
 
 ```{observable}
+//| label: fig-subcap-test
 //| fig.cap: Big caption
 //| fig.subcap: 
 //|   - Caption 1
@@ -63,10 +65,20 @@ name + " 1"
 name + " 2"
 ```
 
-### `fold`
+### `fold` and `summary`
 
-**Inconsistency? The R engine uses fold="true" for both the outer and inner div; The Python engine only forwards it to the inner div.**
+**(Inconsistency?) The R engine sets fold and summary for both the outer and inner div; The Python engine only forwards it to the inner div.**
+
+Fold:
+
 ```{observable}
 //| fold: true
+name
+```
+
+Summary:
+
+```{observable}
+//| summary: "some text"
 name
 ```
