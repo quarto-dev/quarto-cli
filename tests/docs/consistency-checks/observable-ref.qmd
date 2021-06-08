@@ -1,0 +1,72 @@
+---
+title: "Quarto Observable Cell Attribute Implementation Reference"
+format:
+  html:
+    keep-md: true
+    code-background: true
+---
+
+I thought `output:false` would suppress the output, but no? `echo: false` does it.
+
+```{observable}
+//| echo: false
+
+import {text} from '@jashkenas/inputs'
+
+viewof name = text({
+  title: "what's your name?",
+  value: ''
+})
+```
+
+## `label`
+
+```{observable}
+//| label: python-label-1
+name
+```
+
+**(Python Bug?) This appears to break with long labels:**
+
+```{observable}
+//| label: python label 1
+name
+```
+
+### `fig.cap`
+
+```{observable}
+//| fig.cap: A caption for the figure
+name
+```
+
+**(Styling Bug?) Centering of images appears inconsistent depending on whether they have captions?**
+
+### `fig.subcap`
+
+```{observable}
+//| fig.cap: Big caption
+//| fig.subcap: 
+//|   - Caption 1
+//|   - Caption 2
+name + " 1"
+name + " 2"
+```
+
+**(Python Bug?) Sub-captions don't show up unless `fig.cap` is also there:**
+
+```{observable}
+//| fig.subcap: 
+//|   - Caption 1
+//|   - Caption 2
+name + " 1"
+name + " 2"
+```
+
+### `fold`
+
+**Inconsistency? The R engine uses fold="true" for both the outer and inner div; The Python engine only forwards it to the inner div.**
+```{observable}
+//| fold: true
+name
+```
