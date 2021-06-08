@@ -1,0 +1,23 @@
+project:
+  type: book
+
+book:
+  title: "book"
+  author: "Jane Doe"
+  date: "6/4/2021"
+  chapters:
+    - index.qmd
+    - intro.qmd
+    - summary.qmd
+    - references.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cosmo
+  pdf:
+    documentclass: report
+  epub:
+    cover-image: cover.png
+

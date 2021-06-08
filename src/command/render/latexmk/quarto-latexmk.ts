@@ -1,5 +1,5 @@
 import { onSignal } from "signal/mod.ts";
-import { existsSync } from "fs/mod.ts";
+
 import { debug } from "log/mod.ts";
 import {
   Command,
@@ -17,7 +17,6 @@ import {
 } from "../../../core/log.ts";
 import { LatexmkOptions } from "./latexmk.ts";
 import { generatePdf } from "./pdf.ts";
-import { lines } from "../../../core/text.ts";
 import {
   kExeDescription,
   kExeName,
@@ -120,7 +119,7 @@ export async function pdf(args: string[]) {
       await generatePdf(latexmkOptions);
     });
 
-  appendLogOptions(pdfCommand)
+  await appendLogOptions(pdfCommand)
     .command("help", new HelpCommand().global())
     .command("completions", new CompletionsCommand()).hidden()
     .parse(parsedArgs);

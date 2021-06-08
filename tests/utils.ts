@@ -9,10 +9,14 @@ import { basename, dirname, extname, join } from "path/mod.ts";
 
 // Gets output that should be created for this input file and target format
 export function outputForInput(input: string, to: string) {
+  // TODO: Consider improving this (e.g. for cases like Beamer)
   const dir = dirname(input);
   const stem = basename(input, extname(input));
 
-  const outputExt = to || "html";
+  let outputExt = to || "html";
+  if (to === "latex") {
+    outputExt = "tex";
+  }
 
   const outputPath = join(dir, `${stem}.${outputExt}`);
   const supportPath = join(dir, `${stem}_files`);
@@ -21,4 +25,8 @@ export function outputForInput(input: string, to: string) {
     outputPath,
     supportPath,
   };
+}
+
+export function docs(path: string): string {
+  return join("docs", path);
 }

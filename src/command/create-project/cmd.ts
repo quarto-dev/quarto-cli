@@ -75,7 +75,7 @@ export const createProjectCommand = new Command()
   )
   .example(
     "Create a website project",
-    "quarto create-project --type website",
+    "quarto create-project --type site",
   )
   .example(
     "Create a book project",
@@ -83,11 +83,11 @@ export const createProjectCommand = new Command()
   )
   .example(
     "Create a website project with jupyter",
-    "quarto create-project --type website --engine jupyter",
+    "quarto create-project --type site --engine jupyter",
   )
   .example(
     "Create a website project with jupyter + kernel",
-    "quarto create-project --type website --engine jupyter:python3",
+    "quarto create-project --type site --engine jupyter:python3",
   )
   .example(
     "Create a book project with knitr",

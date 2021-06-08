@@ -1,0 +1,12 @@
+---
+title: "My Document"
+author: "Jane Doe"
+crossref:
+  chapters: true
+---
+
+# Introduction
+
+![Elephant](img/painter.jpg){#fig-elephant}
+
+See @fig-elephant for an illustration.
