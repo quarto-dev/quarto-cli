@@ -92,8 +92,9 @@ export async function observableNotebookToMarkdown(
 
     // consume and write front matter if this is the first cell
     if (i === 0) {
-      i = consumeFrontMatter(mode, value, nb.nodes[1], lines);
-      if (i > 0) {
+      const skip = consumeFrontMatter(mode, value, nb.nodes[1], lines);
+      if (skip > 0) {
+        i = skip - 1;
         continue;
       }
     }
