@@ -8,6 +8,7 @@ title: Crossref Test
 
 See @fig-elephant for an illustration
 
+<!--
 
 ## Simple Sub Figure
 
@@ -22,6 +23,7 @@ Famous Elephants
 
 See @fig-elephants for examples. In particular, @fig-abbas.
 
+-->
 
 
 ## Simple Crossref Table
@@ -36,7 +38,7 @@ See @fig-elephants for examples. In particular, @fig-abbas.
 
 See @tbl-letters.
 
-
+<!--
 
 ## Sub tables
 
@@ -62,6 +64,7 @@ Main Caption
 
 See @tbl-panel for details, especially @tbl-second.
 
+-->
 
 
 ## Math
