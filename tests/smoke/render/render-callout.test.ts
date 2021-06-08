@@ -8,8 +8,8 @@
 import { docs, outputForInput } from "../../utils.ts";
 import {
   ensureDocxRegexMatches,
+  ensureFileRegexMatches,
   ensureHtmlElements,
-  ensureLatexRegexMatches,
   requireLatexPackage,
 } from "../../verify.ts";
 import { testRender } from "./render.ts";
@@ -30,7 +30,7 @@ testRender(input, "html", false, [
 
 const teXOutput = outputForInput(input, "latex");
 testRender(input, "latex", true, [
-  ensureLatexRegexMatches(teXOutput.outputPath, [
+  ensureFileRegexMatches(teXOutput.outputPath, [
     requireLatexPackage("fontawesome"),
     requireLatexPackage("tcolorbox"),
     /quarto-callout-warning/,

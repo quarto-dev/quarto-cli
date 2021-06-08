@@ -1,0 +1,111 @@
+---
+title: Theorem Test
+---
+
+
+::: {#lem-test}
+## Lemma
+
+This is a lemma
+
+$$
+y = mx + b
+$$
+:::
+
+See @lem-test.
+
+
+::: {#cor-test}
+## Corollary
+
+This is a corollary
+
+$$
+y = mx + b
+$$
+:::
+
+See @cor-test.
+
+::: {#prp-test}
+## Proposition
+
+This is a proposition
+
+$$
+y = mx + b
+$$
+:::
+
+See @prp-test.
+
+
+::: {#cnj-test}
+## Conjecture
+
+This is a conjecture
+
+$$
+y = mx + b
+$$
+:::
+
+See @cnj-test.
+
+::: {#def-test}
+## Definition
+
+This is a definition
+
+$$
+y = mx + b
+$$
+:::
+
+See @def-test.
+
+
+::: {#exm-test}
+## Example
+
+This is an example
+
+$$
+y = mx + b
+$$
+:::
+
+See @exm-test.
+
+::: {#exr-test}
+## Exercise
+
+This is an exercise
+
+$$
+y = mx + b
+$$
+:::
+
+See @exr-test.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

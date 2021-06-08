@@ -113,6 +113,7 @@ export const directoryEmptyButFor = (
 export const ensureHtmlElements = (
   file: string,
   selectors: string[],
+  noMatchSelectors?: string[],
 ): Verify => {
   return {
     name: "Inspecting HTML for Selectors",
@@ -125,24 +126,43 @@ export const ensureHtmlElements = (
           `Required DOM Element ${sel} is missing.`,
         );
       });
+
+      if (noMatchSelectors) {
+        noMatchSelectors.forEach((sel) => {
+          assert(
+            doc.querySelector(sel) === null,
+            `Illegal DOM Element ${sel} is present.`,
+          );
+        });
+      }
     },
   };
 };
 
-export const ensureLatexRegexMatches = (
+export const ensureFileRegexMatches = (
   file: string,
-  regexes: RegExp[],
+  matches: RegExp[],
+  noMatches?: RegExp[],
 ): Verify => {
   return {
-    name: "Inspecting TeX for Regex matches",
+    name: `Inspecting ${file} for Regex matches`,
     verify: async (_output: ExecuteOutput[]) => {
       const tex = await Deno.readTextFile(file);
-      regexes.forEach((regex) => {
+      matches.forEach((regex) => {
         assert(
           regex.test(tex),
-          `Required TeX Element ${String(regex)} is missing.`,
+          `Required match ${String(regex)} is missing from file ${file}.`,
         );
       });
+
+      if (noMatches) {
+        noMatches.forEach((regex) => {
+          assert(
+            !regex.test(tex),
+            `Illegal match ${String(regex)} was found in file ${file}.`,
+          );
+        });
+      }
     },
   };
 };
@@ -162,7 +182,7 @@ export const ensureDocxRegexMatches = (
         await Deno.rename(file, zipFile);
         await unzip(zipFile);
 
-        // Open the core xml document and match the regexes
+        // Open the core xml document and match the matches
         const docXml = join(temp, "word", "document.xml");
         const tex = await Deno.readTextFile(docXml);
         regexes.forEach((regex) => {
