@@ -40,6 +40,21 @@ if (requireNamespace("htmlwidgets", quietly = TRUE)) {
   assignInNamespace("resolveSizing", resolveSizing, ns = "htmlwidgets")
 }
 
+# tweak selectize dropdown parent
+# PR to shiny to accomplish same here: https://github.com/rstudio/shiny/pull/3413
+if (requireNamespace("shiny", quietly = TRUE)) {
+  shiny_selectizeIt = shiny:::selectizeIt
+  selectizeIt <- function(inputId, select, options, nonempty = FALSE) {
+    if (length(options) == 0) {
+      options <- shiny:::empty_named_list()
+    }
+    options$dropdownParent <- "body"
+    shiny_selectizeIt(inputId, select, options, nonempty)
+  }
+  assignInNamespace("selectizeIt", selectizeIt, ns = "shiny")
+}
+
+
 # override parse_block to assign chunk labels from yaml options
 knitr_parse_block <- knitr:::parse_block
 parse_block = function(code, header, params.src, markdown_mode = out_format('markdown')) {
