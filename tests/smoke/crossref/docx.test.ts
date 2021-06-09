@@ -50,9 +50,9 @@ const mathRegexes = [
 
 const subTableRegexes = [
   bookmarkStart("tbl-first"),
-  bookmarkStart("tbl-first"),
+  bookmarkStart("tbl-second"),
   anchor("tbl-first"),
-  anchor("tbl-first"),
+  anchor("tbl-second"),
   text("Table 2: Main Caption"),
   text("(a) First Table"),
   text("(b) Second Table"),
