@@ -182,10 +182,10 @@ export function websiteSearchSassBundle() {
 
 export function websiteSearchDependency(
   project: ProjectContext,
-  input: string,
+  source: string,
 ): FormatDependency | undefined {
   if (websiteSearch(project) !== "none") {
-    const offset = projectOffset(project, input);
+    const offset = projectOffset(project, source);
     return {
       name: kDependencyName,
       meta: {

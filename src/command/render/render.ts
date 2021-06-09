@@ -567,7 +567,7 @@ export async function renderPandoc(
   // pandoc options
   const pandocOptions: PandocOptions = {
     markdown: executeResult.markdown,
-    input: context.target.input,
+    source: context.target.source,
     output: recipe.output,
     libDir: context.libDir,
     format,
@@ -899,7 +899,7 @@ async function runHtmlPostprocessors(
 ): Promise<string[]> {
   const resourceRefs: string[] = [];
   if (htmlPostprocessors.length > 0) {
-    const outputFile = join(dirname(options.input), options.output);
+    const outputFile = join(dirname(options.source), options.output);
     const htmlInput = Deno.readTextFileSync(outputFile);
     const doctypeMatch = htmlInput.match(/^<!DOCTYPE.*?>/);
     const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;

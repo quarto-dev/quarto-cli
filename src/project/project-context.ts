@@ -50,7 +50,7 @@ export interface ProjectContext {
   config?: ProjectConfig;
   formatExtras?: (
     project: ProjectContext,
-    input: string,
+    source: string,
     flags: PandocFlags,
     format: Format,
   ) => Promise<FormatExtras>;
