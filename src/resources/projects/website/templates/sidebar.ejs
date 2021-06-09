@@ -18,6 +18,11 @@ if (sidebar.align === "center") {
   <div class="px-3 pt-lg-2 <%= alignCss %>">
     <% if (sidebar.logo) { %>
     <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo my-1 py-0 d-lg-inline d-none"/>
+     <% if (sidebar.tools && !sidebar.title) { %>
+      <div>
+      <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main' })%>
+      </div>
+     <% } %>
     <% } %>
     
     <% if (sidebar.title) { %>
