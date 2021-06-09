@@ -15,13 +15,11 @@ if (sidebar.align === "center") {
 %>
 
 <nav class="<%- mCss %> py-2 <%- styleCss %> <%- textStyleCss %> overflow-scroll">
-  <div class="px-3 pt-lg-2 <%= alignCss %>">
+  <div class="px-3 pt-lg-2 mt-1 <%= alignCss %>">
     <% if (sidebar.logo) { %>
-    <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo my-1 py-0 d-lg-inline d-none"/>
+    <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo py-0 d-lg-inline d-none"/>
      <% if (sidebar.tools && !sidebar.title) { %>
-      <div>
       <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main' })%>
-      </div>
      <% } %>
     <% } %>
     

@@ -1,6 +1,3 @@
-
-
-
 div.quarto-container {
   min-height: 100vh;
 }
@@ -18,7 +15,6 @@ header.headroom--pinned {
 header.headroom--unpinned {
   transform: translateY(-100%);
 }
-
 
 .navbar-brand > img {
   max-height: 24px;
@@ -85,6 +81,7 @@ nav .dropdown-item i {
 .sidebar-tools-main {
   margin-left: 8px;
   display: inline-block;
+  vertical-align: middle;
 }
 
 .sidebar-tools-collapse {
@@ -173,7 +170,6 @@ nav .dropdown-item i {
 }
 
 @include media-breakpoint-down(lg) {
-
   .sidebar-navigation .sidebar-item a,
   .sidebar-navigation ul.sidebar-section.depth1 .sidebar-section-item,
   .nav-page .nav-page-text,
@@ -181,7 +177,6 @@ nav .dropdown-item i {
   .sidebar-navigation .sidebar-menu-container a {
     font-size: $nav-font-size-enlarged;
   }
-  
 
   .sidebar-logo {
     display: none;
@@ -242,7 +237,6 @@ nav .dropdown-item i {
 }
 
 @include media-breakpoint-up(lg) {
-
   .sidebar-navigation .sidebar-item a,
   .sidebar-navigation ul.sidebar-section.depth1 .sidebar-section-item,
   .nav-page .nav-page-text,
@@ -255,7 +249,7 @@ nav .dropdown-item i {
     max-width: 300px;
     min-width: 250px;
   }
-  
+
   .sidebar.sidebar-navigation {
     display: block;
     position: sticky;
