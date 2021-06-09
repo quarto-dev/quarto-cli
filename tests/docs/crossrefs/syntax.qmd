@@ -18,5 +18,5 @@ title: Syntax Test
 :::
 
 :::{.figtest-noprefix}
--@fig-elephant
+[-@fig-elephant]
 :::
