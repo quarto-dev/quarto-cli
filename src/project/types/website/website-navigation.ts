@@ -20,7 +20,7 @@ import { resourcePath } from "../../../core/resources.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { warnOnce } from "../../../core/log.ts";
 
-import { pandocAutoIdentifier } from "../../../core/pandoc/pandoc-id.ts";
+import { asHtmlId } from "../../../core/html.ts";
 
 import { kTocTitle } from "../../../config/constants.ts";
 import {
@@ -435,7 +435,7 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
 
   // if the sidebar has a title and no id generate the id
   if (sidebar.title && !sidebar.id) {
-    sidebar.id = pandocAutoIdentifier(sidebar.title, false);
+    sidebar.id = asHtmlId(sidebar.title);
   }
 
   // ensure title and search are present
@@ -756,7 +756,7 @@ async function navigationItem(
 
 const menuIds = new Map<string, number>();
 function uniqueMenuId(navItem: NavbarItem) {
-  const id = pandocAutoIdentifier(navItem.text || navItem.icon || "", false);
+  const id = asHtmlId(navItem.text || navItem.icon || "");
   const number = menuIds.get(id) || 0;
   menuIds.set(id, number + 1);
   return `nav-menu-${id}${number ? ("-" + number) : ""}`;

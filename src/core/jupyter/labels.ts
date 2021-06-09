@@ -1,3 +1,12 @@
+/*
+* labels.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
+
+import { asHtmlId } from "../html.ts";
+
 import {
   displayDataIsImage,
   displayDataMimeType,
@@ -18,7 +27,9 @@ import {
 import { includeOutput } from "./tags.ts";
 
 export function cellLabel(cell: JupyterCellWithOptions) {
-  const label = (cell.options[kCellLabel] || cell.metadata[kCellName] || "");
+  const label = asHtmlId(
+    (cell.options[kCellLabel] || cell.metadata[kCellName] || ""),
+  );
 
   if (label && !label.startsWith("#")) {
     return "#" + label;
