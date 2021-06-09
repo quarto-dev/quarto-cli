@@ -84,14 +84,14 @@ export const websiteProjectType: ProjectType = {
 
   formatExtras: (
     project: ProjectContext,
-    input: string,
+    source: string,
     flags: PandocFlags,
     format: Format,
   ): Promise<FormatExtras> => {
     if (isHtmlOutput(format.pandoc)) {
       // navigation extras for bootstrap enabled formats
       const extras = formatHasBootstrap(format)
-        ? websiteNavigationExtras(project, input, flags, format)
+        ? websiteNavigationExtras(project, source, flags, format)
         : {};
 
       // add some title related variables
@@ -107,8 +107,8 @@ export const websiteProjectType: ProjectType = {
       }
 
       // pagetitle for home page if it has no title
-      const offset = projectOffset(project, input);
-      const [_dir, stem] = dirAndStem(input);
+      const offset = projectOffset(project, source);
+      const [_dir, stem] = dirAndStem(source);
       const home = (stem === "index" && offset === ".");
       if (
         home && !format.metadata[kTitle] && !format.metadata[kPageTitle] &&

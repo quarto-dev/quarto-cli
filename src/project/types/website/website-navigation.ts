@@ -162,12 +162,12 @@ export function websiteNavigationConfig(project: ProjectContext) {
 
 export function websiteNavigationExtras(
   project: ProjectContext,
-  input: string,
+  source: string,
   flags: PandocFlags,
   format: Format,
 ): FormatExtras {
   // find the relative path for this input
-  const inputRelative = relative(project.dir, input);
+  const inputRelative = relative(project.dir, source);
 
   // determine dependencies (always include baseline nav dependency)
   const dependencies: FormatDependency[] = [
@@ -177,7 +177,7 @@ export function websiteNavigationExtras(
   // Determine any sass bundles
   const sassBundles: SassBundle[] = [websiteNavigationSassBundle()];
 
-  const searchDep = websiteSearchDependency(project, input);
+  const searchDep = websiteSearchDependency(project, source);
   if (searchDep) {
     dependencies.push(searchDep);
     sassBundles.push(websiteSearchSassBundle());
@@ -240,7 +240,7 @@ export function websiteNavigationExtras(
       [kSassBundles]: sassBundles,
       [kDependencies]: dependencies,
       [kBodyEnvelope]: bodyEnvelope,
-      [kHtmlPostprocessors]: [navigationHtmlPostprocessor(project, input)],
+      [kHtmlPostprocessors]: [navigationHtmlPostprocessor(project, source)],
     },
   };
 }
@@ -266,10 +266,10 @@ export async function ensureIndexPage(project: ProjectContext) {
   }
 }
 
-function navigationHtmlPostprocessor(project: ProjectContext, input: string) {
-  const inputRelative = relative(project.dir, input);
-  const offset = projectOffset(project, input);
-  const href = inputFileHref(inputRelative);
+function navigationHtmlPostprocessor(project: ProjectContext, source: string) {
+  const sourceRelative = relative(project.dir, source);
+  const offset = projectOffset(project, source);
+  const href = inputFileHref(sourceRelative);
 
   return async (doc: Document) => {
     // latch active nav link
@@ -316,7 +316,7 @@ function navigationHtmlPostprocessor(project: ProjectContext, input: string) {
       if (href && !isExternalPath(href)) {
         let projRelativeHref = href.startsWith("/")
           ? href.slice(1)
-          : join(dirname(inputRelative), href);
+          : join(dirname(sourceRelative), href);
         const hashLoc = projRelativeHref.indexOf("#");
         const hash = hashLoc !== -1 ? projRelativeHref.slice(hashLoc) : "";
         if (hash) {
@@ -330,14 +330,14 @@ function navigationHtmlPostprocessor(project: ProjectContext, input: string) {
     }
 
     // append repo actions to toc
-    addRepoActions(doc, inputRelative, project.config);
+    addRepoActions(doc, sourceRelative, project.config);
 
     // resolve resource refs
     return Promise.resolve(resolveResourceRefs(doc, offset));
   };
 }
 
-function addRepoActions(doc: Document, input: string, config?: ProjectConfig) {
+function addRepoActions(doc: Document, source: string, config?: ProjectConfig) {
   const repoActions = websiteConfigActions(
     kSiteRepoActions,
     kSite,
@@ -355,7 +355,7 @@ function addRepoActions(doc: Document, input: string, config?: ProjectConfig) {
             repoActions,
             repoUrl,
             websiteRepoBranch(config),
-            input,
+            source,
           );
           const actionsDiv = doc.createElement("div");
           actionsDiv.classList.add("toc-actions");
@@ -392,19 +392,19 @@ function repoActionLinks(
   actions: string[],
   repoUrl: string,
   branch: string,
-  input: string,
+  source: string,
 ): Array<{ text: string; url: string }> {
   return actions.map((action) => {
     switch (action) {
       case "edit":
         return {
           text: "Edit this page",
-          url: `${repoUrl}edit/${branch}/${input}`,
+          url: `${repoUrl}edit/${branch}/${source}`,
         };
       case "source":
         return {
           text: "View source",
-          url: `${repoUrl}blob/${branch}/${input}`,
+          url: `${repoUrl}blob/${branch}/${source}`,
         };
       case "issue":
         return {

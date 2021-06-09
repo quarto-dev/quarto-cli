@@ -81,8 +81,9 @@ import { crossrefFilterActive } from "./crossref.ts";
 export interface PandocOptions {
   // markdown input
   markdown: string;
-  // input file being processed
-  input: string;
+
+  // original source file
+  source: string;
 
   // output file that will be written
   output: string;
@@ -111,7 +112,7 @@ export async function runPandoc(
   sysFilters: string[],
 ): Promise<RunPandocResult | null> {
   // compute cwd for render
-  const cwd = dirname(options.input);
+  const cwd = dirname(options.source);
 
   // build the pandoc command (we'll feed it the input on stdin)
   const cmd = [binaryPath("pandoc")];
@@ -155,7 +156,7 @@ export async function runPandoc(
     const projectExtras = options.project?.formatExtras
       ? (await options.project.formatExtras(
         options.project,
-        options.input,
+        options.source,
         options.flags || {},
         options.format,
       ))
@@ -270,7 +271,7 @@ export async function runPandoc(
 
   // provide default page title if necessary
   if (!title && !pageTitle) {
-    const [_dir, stem] = dirAndStem(options.input);
+    const [_dir, stem] = dirAndStem(options.source);
     args.push(
       "--metadata",
       `pagetitle:${pandocAutoIdentifier(stem, false)}`,
