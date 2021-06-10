@@ -33,9 +33,7 @@ export function createRuntime() {
 
   let result = {
     interpret(src, targetElementId, inline) {
-      debugger;
       let observer = () => {
-        debugger;
         let targetElement = document.getElementById(targetElementId);
         if (!targetElement) {
           // this is a subfigure
@@ -64,13 +62,6 @@ export function createRuntime() {
       );
       return Promise.all(results);
     },
-    //   for (const src of src.cells) {
-    //   }
-    //   console.log(src, parseModule(src));
-    //   debugger;
-    //   let result = await interpreter.module(src, undefined, observer);
-    //   return result;
-    // }
   };
 
   return result;
