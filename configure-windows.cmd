@@ -27,7 +27,7 @@ REM Download Deno
 SET DENO_FILE="deno-x86_64-pc-windows-msvc.zip"
 SET DENO_URL="https://github.com/denoland/deno/releases/download/%DENO%/%DENO_FILE%"
 CURL --fail -L %DENO_URL% -o %DENO_FILE%
-TAR -xvf %DENO_FILE%
+unzip %DENO_FILE%
 DEL %DENO_FILE%
 ECHO .
 
