@@ -93,7 +93,13 @@ $code-background-color: color.adjust(
   font-size: 0.9rem;
 }
 
-.panel-input > div {
+.panel-sidebar .form-control,
+.panel-input .form-control {
+  padding-top: 0.1rem;
+}
+
+.panel-input > div,
+.panel-input > div > div {
   display: inline-block;
   vertical-align: top;
   padding-right: 12px;
