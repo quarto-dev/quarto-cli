@@ -32,8 +32,11 @@ export function createRuntime() {
   }
 
   let result = {
-    interpret(src, targetElementId, inline) {
-      let observer = () => {
+    interpretLenient(src, targetElementId, inline) {
+      return result.interpretLenient(src, targetElementId, inline, true);
+    },
+    interpret(src, targetElementId, inline, catchErrors = false) {
+      let getElement = () => {
         let targetElement = document.getElementById(targetElementId);
         if (!targetElement) {
           // this is a subfigure
@@ -44,6 +47,10 @@ export function createRuntime() {
             throw new Error("Ran out of quarto subfigures.");
           }
         }
+        return targetElement;
+      };
+      let observer = () => {
+        let targetElement = getElement();
         return new Inspector(
           targetElement.appendChild(document.createElement(
             inline
@@ -53,7 +60,22 @@ export function createRuntime() {
         );
       };
 
-      let parse = parseModule(src);
+      // FIXME error handling is clearly not going to work well right
+      // now. at the very least we need to handle more than just
+      // syntax errors, and we need to make sure subfigures are
+      // handled correctly.
+      let parse;
+      if (catchErrors) {
+        try {
+          parse = parseModule(src);
+        } catch (e) {
+          let errorDiv = document.createElement("pre");
+          errorDiv.innerText = `${e.name}: ${e.message}`;
+          getElement().append(errorDiv);
+        }
+      } else {
+        parse = parseModule(src);
+      }
       function cellSrc(cell) {
         return src.slice(cell.start, cell.end);
       }

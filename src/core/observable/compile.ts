@@ -28,6 +28,7 @@ import {
   kEval,
   kFold,
   kInclude,
+  kKeepHidden,
   kOutput,
   kWarning,
 } from "../../config/constants.ts";
@@ -71,10 +72,11 @@ export function observableCompile(
 
   const scriptContents: string[] = [];
 
-  function interpret(jsSrc: string[], inline: boolean) {
-    let inlineStr = inline ? "inline-" : "";
-    let content = [
-      "window._ojsRuntime.interpret(`",
+  function interpret(jsSrc: string[], inline: boolean, lenient: boolean) {
+    const inlineStr = inline ? "inline-" : "";
+    const methodName = lenient ? "interpretLenient" : "interpret";
+    const content = [
+      `window._ojsRuntime.${methodName}(\``,
       jsSrc.map(escapeBackticks).join(""),
       `\`, "ojs-${inlineStr}cell-${ojsCellID}", ${inline});`,
     ];
@@ -82,20 +84,25 @@ export function observableCompile(
   }
 
   const inlineOJSInterpRE = /\$\{([^}]+)\}([^$])/g;
-  function inlineInterpolation(str: string) {
+  function inlineInterpolation(str: string, lenient: boolean) {
     return str.replaceAll(inlineOJSInterpRE, function (m, g1, g2) {
       ojsCellID += 1;
-      let result = [
+      const result = [
         `<span id="ojs-inline-cell-${ojsCellID}" class="ojs-inline"></span>`,
         g2,
       ];
-      scriptContents.push(interpret([g1], true));
+      scriptContents.push(interpret([g1], true, lenient));
       return result.join("");
     });
   }
   const ls: string[] = [];
   // now we convert it back
   for (const cell of output.cells) {
+    const errorVal = firstDefined([
+      cell.options?.[kError],
+      options.format.execute[kError],
+      false
+    ]);
     if (
       cell.cell_type === "raw" ||
       cell.cell_type === "markdown"
@@ -107,8 +114,7 @@ export function observableCompile(
     } else if (cell.cell_type?.language === "observable") {
       function userCellId() {
         if (cell.options?.label) {
-          let label = cell.options.label as string;
-          label = asHtmlId(label);
+          const label = asHtmlId(cell.options.label as string);
           if (userIds.has(label)) {
             // FIXME better error handling
             throw new Error(`FATAL: duplicate label ${cell.options.label}`);
@@ -124,33 +130,93 @@ export function observableCompile(
         ojsCellID += 1;
         return `ojs-cell-${ojsCellID}`;
       }
-      let ojsId = bumpOjsCellIdString();
-      let userId = userCellId();
-      let div = pandocDiv({
+      const ojsId = bumpOjsCellIdString();
+      const userId = userCellId();
+      const attrs = [];
+      
+      let keysToSkip = new Set([
+        "label",
+        "fig.cap",
+        "fig.subcap",
+        "fig.scap",
+        "fig.link",
+        "fig.align",
+        "fig.env",
+        "fig.pos",
+        "fig.num",
+        "fig.alt", // FIXME see if it's possible to do this right wrt accessibility
+        "classes",
+        "output",
+        "include.hidden",
+        "source.hidden", // FIXME I think this is wrong
+        "plot.hidden",
+        "output.hidden",
+        "echo.hidden", // FIXME I think this is right
+        "lst.cap",
+        "lst.label",
+        "fold",
+        "summary",
+        "classes"
+      ]);
+      for (const [key, value] of Object.entries(cell.options || {})) {
+        if (!keysToSkip.has(key)) {
+          attrs.push(`${key}="${value}"`)
+        }
+      }
+      const div = pandocDiv({
         id: cell.options?.["fig.subcap"] ? userId : undefined,
-        classes: ["cell"],
+        classes: ["cell", ...((cell.options?.classes as (undefined | string[])) || [])],
+        attrs
       });
-      let evalVal = firstDefined([
+      const evalVal = firstDefined([
         cell.options?.[kEval],
         options.format.execute[kEval],
         true,
       ]);
-      let echoVal = firstDefined([
+      const echoVal = firstDefined([
         cell.options?.[kEcho],
         options.format.execute[kEcho],
         true,
       ]);
-      let outputVal = firstDefined([
+      const outputVal = firstDefined([
         cell.options?.[kOutput],
         options.format.execute[kOutput],
         true,
       ]);
+      const keepHiddenVal = firstDefined([
+        options.format.render[kKeepHidden],
+        false
+      ]);
+      const includeVal = firstDefined([
+        cell.options?.[kInclude],
+        options.format.execute[kInclude],
+        true
+      ]);
 
-      if (!evalVal || echoVal) {
+      
+      // handle source
+      if (!evalVal // always produce div when not evaluating
+        || keepHiddenVal // always produce div with keepHidden
+        || echoVal // if echo
+        || includeVal
+         ) {
         const classes = ["js", "cell-code"];
         const attrs = [];
-        // FIXME this doesn't look to be working. Ask
-        if (!outputVal) {
+
+        //  evalVal keepHiddenVal echoVal
+        //  F       F             F       => add hidden
+        //  F       F             T       => don't add hidden
+        //  F       T             F       => add hidden
+        //  F       T             T       => don't add hidden
+        //  T       F             F       => never gets here
+        //  T       F             T       => don't add hidden
+        //  T       T             F       => add hidden
+        //  T       T             T       => don't add hidden
+        // 
+        // simplify the logic above to be correct for the cases where
+        // we are here, and we get !echoVal
+        
+        if (!echoVal || !includeVal) {
           classes.push("hidden");
         }
 
@@ -170,19 +236,27 @@ export function observableCompile(
         innerDiv.push(pandocRawStr(cell.source.join("")));
         div.push(innerDiv);
       }
+
+      // only emit interpret if eval is true
       if (evalVal) {
-        scriptContents.push(interpret(cell.source, false));
+        scriptContents.push(interpret(cell.source, false, errorVal));
       }
 
+      // handle output of computation
+      const outputCellClasses = ["cell-output-display"];
+      if (!outputVal || !includeVal) {
+        outputCellClasses.push("hidden");
+      }
+      
       if (cell.options?.["fig.subcap"]) {
-        let subcaps = cell.options["fig.subcap"] as string[];
+        const subcaps = cell.options["fig.subcap"] as string[];
         let subfigIx = 1;
         for (const subcap of subcaps) {
-          let outputDiv = pandocDiv({
+          const outputDiv = pandocDiv({
             id: `${userId}-${subfigIx}`,
-            classes: ["cell-output-display"],
+            classes: outputCellClasses
           });
-          let ojsDiv = pandocDiv({
+          const ojsDiv = pandocDiv({
             id: `${ojsId}-${subfigIx}`,
           });
           subfigIx++;
@@ -194,9 +268,9 @@ export function observableCompile(
           div.push(pandocRawStr(cell.options["fig.cap"] as string));
         }
       } else {
-        let outputDiv = pandocDiv({
+        const outputDiv = pandocDiv({
           id: cell.options?.["fig.subcap"] ? undefined : userId,
-          classes: ["cell-output-display"],
+          classes: outputCellClasses
         });
         div.push(outputDiv);
         outputDiv.push(pandocDiv({
@@ -210,7 +284,7 @@ export function observableCompile(
       div.emit(ls);
     } else {
       ls.push(`\n\`\`\`{${cell.cell_type.language}}`);
-      ls.push(cell.source.map(inlineInterpolation).join(""));
+      ls.push(cell.source.map(s => inlineInterpolation(s, errorVal)).join(""));
       ls.push("```");
     }
   }
@@ -312,7 +386,7 @@ function pandocBlock(delimiter: string) {
 
     const contents: PandocNode[] = [];
     function attrString() {
-      let strs = [];
+      const strs = [];
       if (id) {
         strs.push(`#${id}`);
       }
@@ -335,7 +409,7 @@ function pandocBlock(delimiter: string) {
       },
       emit: function (ls: string[]) {
         ls.push(`\n${delimiter}${attrString()}`);
-        for (let entry of contents) {
+        for (const entry of contents) {
           entry.emit(ls);
         }
         ls.push(`\n${delimiter}\n`);
@@ -344,5 +418,5 @@ function pandocBlock(delimiter: string) {
   };
 }
 
-let pandocDiv = pandocBlock(":::");
-let pandocCode = pandocBlock("```");
+const pandocDiv = pandocBlock(":::");
+const pandocCode = pandocBlock("```");
