@@ -23,8 +23,7 @@ main {
 }
 
 .page-layout-custom main {
-  margin-top: 0;
-  margin-bottom: 0;
+  margin-bottom: 1em;
 }
 
 h2 {
@@ -84,6 +83,14 @@ $code-background-color: color.adjust(
 
 .layout-sidebar .tab-content {
   border: none;
+}
+
+.panel-sidebar,
+.panel-sidebar .form-control,
+.panel-input,
+.panel-input .form-control,
+.selectize-dropdown {
+  font-size: 0.9rem;
 }
 
 .panel-input > div {
