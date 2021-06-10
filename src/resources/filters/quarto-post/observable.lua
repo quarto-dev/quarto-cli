@@ -59,66 +59,124 @@ function observable()
   end
 
   function escape_single(str)
-    return string.gsub(str, "'", "\\\\'")
+    local sub, _ = string.gsub(str, "'", "\\\\'")
+    return sub
   end
 
   function escape_double(str)
-    return string.gsub(str, '"', '\\\\"')
+    local sub, _ = string.gsub(str, '"', '\\\\"')
+    return sub
   end
 
-  function string_content(inline)
-    if inline.t == "Space" then
-      return " "
-    elseif inline.t == "Str" then
-      return inline.text
-    elseif inline.t == "Quoted" then
-      local internal_content = table.concat(inline.content:map(string_content), "")
-      local q = ""
-      if inline.quotetype == "SingleQuote" then
-        return "  '" .. escape_single(internal_content) .. "'"
+  function stringify_token_into(token, sequence)
+    function unknown()
+      fail("Don't know how to handle token " .. token.t)
+    end
+    if     token.t == 'Cite' then
+      unknown()
+    elseif token.t == 'Code' then
+      sequence:insert('`')
+      sequence:insert(token.text)
+      sequence:insert('`')
+    elseif token.t == 'Emph' then
+      sequence:insert('*')
+      sequence:insert(token.text)
+      sequence:insert('*')
+    elseif token.t == 'Image' then
+      unknown()
+    elseif token.t == 'LineBreak' then
+      sequence:insert("\n")
+    elseif token.t == 'Link' then
+      unknown()
+    elseif token.t == 'Math' then
+      unknown()
+    elseif token.t == 'Note' then
+      unknown()
+    elseif token.t == 'Quoted' then
+      if token.quotetype == 'SingleQuote' then
+        sequence:insert("'")
+        local inner_content = stringify_tokens(token.content)
+        sequence:insert(escape_single(inner_content))
+        sequence:insert("'")
       else
-        return '"' .. escape_double(internal_content) .. '"'
+        sequence:insert('"')
+        local inner_content = stringify_tokens(token.content)
+        sequence:insert(escape_double(inner_content))
+        sequence:insert('"')
       end
-    elseif inline.t == "Code" then
-      -- Because Code inlines are denoted in Pandoc with backticks, we use
-      -- this as an opportunity to handle a construct that wouldn't typically work
-      return "\\`" .. inline.text .. "\\`"
-    -- elseif inline.t == "Emph" then
-    --   return "_" .. inline.text .. "_"
+    elseif token.t == 'RawInline' then
+      sequence:insert(token.text)
+    elseif token.t == 'SmallCaps' then
+      unknown()
+    elseif token.t == 'SoftBreak' then
+      sequence:insert("\n")
+    elseif token.t == 'Space' then
+      sequence:insert(" ")
+    elseif token.t == 'Span' then
+      stringify_token_into(token.content, sequence)
+    elseif token.t == 'Str' then
+      sequence:insert(token.text)
+    elseif token.t == 'Strikeout' then
+      unknown()
+    elseif token.t == 'Strong' then
+      sequence:insert('**')
+      sequence:insert(token.text)
+      sequence:insert('**')
+    elseif token.t == 'Superscript' then
+      unknown()
+    elseif token.t == 'Underline' then
+      sequence:insert('_')
+      sequence:insert(token.text)
+      sequence:insert('_')
     else
-      -- FIXME Handle all https://pandoc.org/lua-filters.html#type-inline
-      fail("Don't know how to process node of type '" .. inline.t .. "' in observable chunk conversion")
-      return nil
+      unknown()
     end
   end
+  
+  function stringify_tokens(sequence)
+    local result = pandoc.List()
+    for i = 1, #sequence do
+      stringify_token_into(sequence[i], result)
+    end
+    return table.concat(result, "")
+  end
 
+  function escape_backticks(str)
+    local sub, _ = string.gsub(str, "`", "\\`")
+    return sub
+  end
+  
   function inlines_rec(inlines)
     -- FIXME I haven't tested this for nested interpolations
     local i = find_arg_if(inlines, isInterpolationOpen)
-    if i then
-      local j = find_arg_if(inlines, isInterpolationClose, i)
-      if j then
-        local is, ie = inlines[i].text:find("${")
-        local js, je = inlines[j].text:find("}")
-        local beforeFirst = inlines[i].text:sub(1, is - 1)
-        local firstChunk = inlines[i].text:sub(ie + 1, -1)
-        local lastChunk = inlines[j].text:sub(1, js - 1)
-        local afterLast = inlines[j].text:sub(je + 1, -1)
-        inlines[i].text = firstChunk
-        inlines[j].text = lastChunk
-        -- this is O(n^2) where n is the length of the run that makes the interpolator
-        -- FIXME instead, add them all to a table at once, concat, then remove all
-        -- at once.
-        for k=i+1, j do
-          inlines[i].text = inlines[i].text .. string_content(inlines[i+1])
+    while i do
+      if i then
+        local j = find_arg_if(inlines, isInterpolationClose, i)
+        if j then
+          local is, ie = inlines[i].text:find("${")
+          local js, je = inlines[j].text:find("}")
+          local beforeFirst = inlines[i].text:sub(1, is - 1)
+          local firstChunk = inlines[i].text:sub(ie + 1, -1)
+          local lastChunk = inlines[j].text:sub(1, js - 1)
+          local afterLast = inlines[j].text:sub(je + 1, -1)
+
+          local slice = {pandoc.Str(firstChunk)}
+          local slice_i = 2
+          for k=i+1, j-1 do
+            slice[slice_i] = inlines[i+1]
+            slice_i = slice_i + 1
+            inlines:remove(i+1)
+          end
+          slice[slice_i] = pandoc.Str(lastChunk)
           inlines:remove(i+1)
+          inlines[i] = pandoc.Span({
+              pandoc.Str(beforeFirst),
+              observableInline(stringify_tokens(slice)),
+              pandoc.Str(afterLast)
+          })
         end
-        inlines[i] = pandoc.Span({
-            pandoc.Str(beforeFirst),
-            observableInline(inlines[i].text),
-            pandoc.Str(afterLast)
-        })
-        return inlines_rec(inlines) -- recurse to catch the next one
+        -- recurse
+        i = find_arg_if(inlines, isInterpolationOpen, i+1)
       end
     end
     return inlines
@@ -152,7 +210,12 @@ function observable()
             else
               inlineStr = 'false'
             end
-            doc.blocks:insert(pandoc.RawBlock("html", "  window._ojsRuntime.interpret(`" .. v.src .. "`, '" .. v.id .. "', " .. inlineStr .. ");"));
+            doc.blocks:insert(
+              pandoc.RawBlock(
+                "html",
+                ("  window._ojsRuntime.interpret(`" ..
+                 escape_backticks(v.src) ..
+                 "`, '" .. v.id .. "', " .. inlineStr .. ");")))
           end
           doc.blocks:insert(pandoc.RawBlock("html", "</script>"))
         end
