@@ -192,6 +192,8 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
 
   // Forward codeleft-border
   const codeblockLeftBorder = metadata[kCodeBorderLeft];
+  const codeblockBackground = metadata[kCodeBlockBackground];
+
   if (codeblockLeftBorder !== undefined) {
     variables.push(
       print(
@@ -204,20 +206,19 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
         ),
       ),
     );
+
+    if (codeblockBackground === undefined && codeblockLeftBorder !== false) {
+      variables.push(print(sassVariable(kCodeBlockBackground, false)));
+    }
   }
 
   // code background color
-  const codeblockBackground = metadata[kCodeBlockBackground];
   if (codeblockBackground !== undefined) {
     variables.push(print(sassVariable(
       kCodeBlockBackground,
       codeblockBackground,
       typeof (codeblockBackground) === "string" ? asBootstrapColor : undefined,
     )));
-
-    if (codeblockLeftBorder === undefined) {
-      variables.push(print(sassVariable(kCodeBorderLeft, false)));
-    }
   }
 
   // Any of the variables that we added from metadata should go first

@@ -51,7 +51,7 @@ export interface ExecutionEngine {
   canFreeze: boolean;
   keepFiles?: (input: string) => string[] | undefined;
   ignoreGlobs?: () => string[] | undefined;
-  renderOnChange?: boolean;
+  renderOnChange?: (input: string) => boolean;
   run?: (options: RunOptions) => Promise<void>;
 }
 

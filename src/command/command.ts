@@ -19,6 +19,7 @@ import {
 import { environmentCommand } from "./environment/cmd.ts";
 import { serveCommand } from "./serve/cmd.ts";
 import { convertCommand } from "./convert/cmd.ts";
+import { capabilitiesCommand } from "./capabilities/cmd.ts";
 
 export function commands(): Command[] {
   return [
@@ -32,5 +33,6 @@ export function commands(): Command[] {
     environmentCommand,
     serveCommand,
     convertCommand,
+    capabilitiesCommand,
   ];
 }

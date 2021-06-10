@@ -23,8 +23,7 @@ main {
 }
 
 .page-layout-custom main {
-  margin-top: 0;
-  margin-bottom: 0;
+  margin-bottom: 1em;
 }
 
 h2 {
@@ -86,7 +85,21 @@ $code-background-color: color.adjust(
   border: none;
 }
 
-.panel-input > div {
+.panel-sidebar,
+.panel-sidebar .form-control,
+.panel-input,
+.panel-input .form-control,
+.selectize-dropdown {
+  font-size: 0.9rem;
+}
+
+.panel-sidebar .form-control,
+.panel-input .form-control {
+  padding-top: 0.1rem;
+}
+
+.panel-input > div,
+.panel-input > div > div {
   display: inline-block;
   vertical-align: top;
   padding-right: 12px;
@@ -99,11 +112,6 @@ $code-background-color: color.adjust(
 .tab-pane div.sourceCode {
   margin-top: 0px;
   margin-bottom: 0px;
-}
-
-.tab-pane pre.sourceCode {
-  border-left: none;
-  background-color: $body-bg;
 }
 
 .tab-pane > p {
@@ -125,14 +133,16 @@ pre.sourceCode {
   @if $code-background {
     background-color: $code-background-color;
     padding: $code-background-padding;
+    border: 1px solid $code-background-color;
+    border-radius: $border-radius;
   } @else {
     background-color: $body-bg !important;
+    border: none;
   }
 }
 
 // no border inside callouts
 .callout pre.sourceCode {
-  border: none;
   padding-left: 0;
 }
 
@@ -142,7 +152,6 @@ pre.sourceCode {
 
 div.sourceCode {
   overflow-y: hidden;
-  background-color: $body-bg !important;
 }
 
 .callout div.sourceCode {
@@ -303,6 +312,10 @@ div.hanging-indent {
   margin-top: $callout-margin-top;
   margin-bottom: $callout-margin-bottom;
   border-radius: $border-radius;
+}
+
+.callout .callout-body-container {
+  flex-grow: 1;
 }
 
 .callout .callout-body {

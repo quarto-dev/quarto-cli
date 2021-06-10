@@ -240,7 +240,7 @@ export const jupyterEngine: ExecutionEngine = {
   },
 };
 
-export function pythonBinary(binary = "python3") {
+export function pythonBinary(binary = "python") {
   return binary;
 }
 
