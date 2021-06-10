@@ -4,8 +4,8 @@ import importlib
 sys.stdout.write('versionMajor: ' + str(sys.version_info[0]))
 sys.stdout.write('\nversionMinor: ' + str(sys.version_info[1]))
 sys.stdout.write('\nversionStr: "' + str(sys.version).replace('\n', ' ') + '"')
-sys.stdout.write('\nexecPrefix: "' + sys.exec_prefix + '"')
-sys.stdout.write('\nexecutable: "' + sys.executable + '"')
+sys.stdout.write('\nexecPrefix: "' + sys.exec_prefix.replace("\\", "/") + '"')
+sys.stdout.write('\nexecutable: "' + sys.executable.replace("\\", "/") + '"')
 
 def discover_package(pkg):
   sys.stdout.write('\n' + pkg + ': ')

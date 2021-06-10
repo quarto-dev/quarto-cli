@@ -5,7 +5,7 @@
 *
 */
 
-import { join } from "path/mod.ts";
+import { join, basename } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 import { formatResourcePath, resourcePath } from "../../core/resources.ts";
@@ -65,9 +65,10 @@ async function formats() {
 async function themes() {
   const themesPath = formatResourcePath("html", join("bootstrap", "themes"));
   const themes: string[] = [];
+  const kScss = ".scss";
   for await (const dirEntry of Deno.readDir(themesPath)) {
-    if (dirEntry.isDirectory) {
-      themes.push(dirEntry.name);
+    if (dirEntry.isFile && dirEntry.name.endsWith(kScss)) {
+      themes.push(basename(dirEntry.name, kScss));
     }
   }
   return themes;
@@ -88,9 +89,11 @@ async function pythonCapabilities() {
 
       return caps;
     } else {
+      console.log(result);
       return undefined;
     }
-  } catch {
+  } catch (error) {
+    console.log(error);
     return undefined;
   }
 }
