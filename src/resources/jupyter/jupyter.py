@@ -8,7 +8,13 @@ import uuid
 import signal
 import subprocess
 
-from socketserver import TCPServer, UnixStreamServer, StreamRequestHandler
+from socketserver import TCPServer, StreamRequestHandler
+
+try:
+   from socketserver import UnixStreamServer
+except:
+   pass
+
 
 from log import log_init, log, log_error, trace
 from notebook import notebook_execute, RestartKernel
