@@ -94,8 +94,12 @@ nav .dropdown-item i {
 }
 
 .sidebar-navigation .sidebar-section.depth1 {
-  padding-top: 0.2rem;
-  padding-bottom: 0.2rem;
+  padding-top: 0rem;
+  padding-bottom: 0rem;
+}
+
+.sidebar-navigation .sidebar-section.depth1 > li > div > ul {
+  margin-bottom: 0.4em;
 }
 
 .sidebar-navigation ul.sidebar-section.depth2 .sidebar-section-item {
