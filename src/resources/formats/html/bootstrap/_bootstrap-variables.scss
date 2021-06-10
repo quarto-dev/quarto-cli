@@ -22,13 +22,13 @@ $callout-margin-top: 1.25rem !default;
 $callout-margin-bottom: 1.25rem !default;
 
 // code-left-border
-$code-border-left: true !default;
+$code-border-left: false !default;
 $code-border-left-style: solid !default;
 $code-border-left-size: 3px !default;
 $code-padding-left: 0.6em !default;
 
 // code-background
-$code-background: false !default;
+$code-background: true !default;
 $code-background-padding: 0.4em !default;
 $code-background-alpha: -0.35 !default;
 
