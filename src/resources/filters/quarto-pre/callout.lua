@@ -101,6 +101,7 @@ function calloutDiv(div)
   local calloutDiv = pandoc.Div({})
   calloutDiv.attr.classes = div.attr.classes:clone()
   div.attr.classes = pandoc.List:new() 
+  div.attr.classes:insert("callout-body-container")
 
   -- add card attribute
   calloutDiv.attr.classes:insert("callout")

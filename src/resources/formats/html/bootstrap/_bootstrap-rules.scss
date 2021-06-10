@@ -114,11 +114,6 @@ $code-background-color: color.adjust(
   margin-bottom: 0px;
 }
 
-.tab-pane pre.sourceCode {
-  border-left: none;
-  background-color: $body-bg;
-}
-
 .tab-pane > p {
   padding-top: 1em;
 }
@@ -138,14 +133,16 @@ pre.sourceCode {
   @if $code-background {
     background-color: $code-background-color;
     padding: $code-background-padding;
+    border: 1px solid $code-background-color;
+    border-radius: $border-radius;
   } @else {
     background-color: $body-bg !important;
+    border: none;
   }
 }
 
 // no border inside callouts
 .callout pre.sourceCode {
-  border: none;
   padding-left: 0;
 }
 
@@ -155,7 +152,6 @@ pre.sourceCode {
 
 div.sourceCode {
   overflow-y: hidden;
-  background-color: $body-bg !important;
 }
 
 .callout div.sourceCode {
@@ -316,6 +312,10 @@ div.hanging-indent {
   margin-top: $callout-margin-top;
   margin-bottom: $callout-margin-bottom;
   border-radius: $border-radius;
+}
+
+.callout .callout-body-container {
+  flex: 1 0 auto;
 }
 
 .callout .callout-body {
