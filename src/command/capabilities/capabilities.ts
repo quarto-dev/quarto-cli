@@ -5,7 +5,7 @@
 *
 */
 
-import { join, basename } from "path/mod.ts";
+import { basename, join } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 import { formatResourcePath, resourcePath } from "../../core/resources.ts";
@@ -13,7 +13,12 @@ import { formatResourcePath, resourcePath } from "../../core/resources.ts";
 import { pandocListFormats } from "../../core/pandoc/pandoc-formats.ts";
 import { execProcess } from "../../core/process.ts";
 import { readYamlFromString } from "../../core/yaml.ts";
+
 import { pythonBinary } from "../../execute/jupyter/jupyter.ts";
+import {
+  JupyterKernelspec,
+  jupyterKernelspecs,
+} from "../../core/jupyter/kernels.ts";
 
 export interface Capabilities {
   formats: string[];
@@ -26,13 +31,13 @@ export interface PythonCapabilities {
   versionMinor: number;
   execPrefix: string;
   executable: string;
+  kernels: JupyterKernelspec[] | null;
   // deno-lint-ignore camelcase
   jupyter_core: string | null;
   nbformat: string | null;
   nbclient: string | null;
   ipykernel: string | null;
   yaml: string | null;
-  kernels: string[];
 }
 
 export async function capabilities(): Promise<Capabilities> {
@@ -85,15 +90,16 @@ async function pythonCapabilities() {
     });
     if (result.success && result.stdout) {
       const caps = readYamlFromString(result.stdout) as PythonCapabilities;
-      // TODO: jupyter kernels
-
+      if (caps.jupyter_core !== null) {
+        caps.kernels = Array.from((await jupyterKernelspecs()).values());
+      } else {
+        caps.kernels = null;
+      }
       return caps;
     } else {
-      console.log(result);
       return undefined;
     }
-  } catch (error) {
-    console.log(error);
+  } catch {
     return undefined;
   }
 }
