@@ -23,6 +23,7 @@ function import(script)
   dofile(path .. script)
 end
 import("includes.lua")
+import("options.lua")
 import("outputs.lua")
 import("figures.lua")
 import("theorems.lua")
@@ -40,6 +41,7 @@ import("../common/error.lua")
 import("../common/base64.lua")
 import("../common/json.lua")
 import("../common/meta.lua")
+import("../common/options.lua")
 import("../common/table.lua")
 import("../common/pandoc.lua")
 import("../common/filemetadata.lua")
@@ -54,6 +56,7 @@ initParams()
 
 return {
   readIncludes(),
+  initOptions(),
   hidden(),
   outputs(),
   combineFilters({
