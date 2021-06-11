@@ -81,8 +81,16 @@ function testFileContext(
   frontMatter: Metadata,
   markdown: string[],
 ) {
+  const dir = dirname(path);
+  const quartoProj = join(dir, "_quarto.yml");
   return {
     setup: async () => {
+      // Write a quarto project
+      await Deno.writeTextFile(
+        quartoProj,
+        "project:\n  title: 'Hello Project\n'",
+      );
+
       // Write the test file
       await writeFile(
         path,
@@ -100,6 +108,7 @@ function testFileContext(
     teardown: async () => {
       // Clean up the test file
       await Deno.remove(path);
+      await Deno.remove(quartoProj);
 
       // Get rid of the freezer
       const freezerDir = join(dirname(path), "_freeze");
