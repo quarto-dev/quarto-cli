@@ -7,10 +7,12 @@
 
 import { extname, join } from "path/mod.ts";
 
+import { existsSync } from "fs/mod.ts";
+
 import { readYamlFromMarkdown } from "../../core/yaml.ts";
 import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
 
-import { dirAndStem } from "../../core/path.ts";
+import { dirAndStem, removeIfExists } from "../../core/path.ts";
 
 import { Metadata } from "../../config/metadata.ts";
 
@@ -85,16 +87,23 @@ export const jupyterEngine: ExecutionEngine = {
     file: string,
   ): Promise<ExecutionTarget | undefined> => {
     // if this is a text markdown file then create a notebook for use as the execution target
-    const ext = extname(file);
-    if (kQmdExtensions.includes(ext)) {
+    if (isQmdFile(file)) {
       // write a transient notebook
       const [fileDir, fileStem] = dirAndStem(file);
-      const nb = await quartoMdToJupyter(file, true);
       const notebook = join(fileDir, fileStem + ".ipynb");
-      Deno.writeTextFileSync(notebook, JSON.stringify(nb, null, 2));
-      return { source: file, input: notebook, data: { transient: true } };
+      const target = {
+        source: file,
+        input: notebook,
+        data: { transient: true },
+      };
+      await createNotebookforTarget(target);
+      return target;
     } else if (isJupyterNotebook(file)) {
-      return { source: file, input: file, data: { transient: false } };
+      return {
+        source: file,
+        input: file,
+        data: { transient: false },
+      };
     } else {
       return undefined;
     }
@@ -118,6 +127,12 @@ export const jupyterEngine: ExecutionEngine = {
   },
 
   execute: async (options: ExecuteOptions): Promise<ExecuteResult> => {
+    // create the target input if we need to (could have been removed
+    // by the cleanup step of another render in this invocation)
+    if (isQmdFile(options.target.source) && !existsSync(options.target.input)) {
+      await createNotebookforTarget(options.target);
+    }
+
     // determine execution behavior
     const execute = options.format.execute[kExecuteEnabled] !== false;
     if (execute) {
@@ -239,12 +254,22 @@ export function pythonBinary(binary = "python") {
   return binary;
 }
 
+function isQmdFile(file: string) {
+  const ext = extname(file);
+  return kQmdExtensions.includes(ext);
+}
+
+async function createNotebookforTarget(target: ExecutionTarget) {
+  const nb = await quartoMdToJupyter(target.source, true);
+  Deno.writeTextFileSync(target.input, JSON.stringify(nb, null, 2));
+}
+
 function cleanupNotebook(target: ExecutionTarget, format: Format) {
   // remove transient notebook if appropriate
   const data = target.data as JupyterTargetData;
   if (data.transient) {
     if (!format.execute[kKeepIpynb]) {
-      Deno.removeSync(target.input);
+      removeIfExists(target.input);
     }
   }
 }
