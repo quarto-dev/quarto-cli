@@ -46,6 +46,10 @@ export interface ObservableCompileResult {
   includes?: PandocIncludes;
 }
 
+interface SubfigureSpec {
+  caption?: string;
+}
+
 // TODO decide how source code is presented, we've lost this
 // feature from the observable-engine move
 export function observableCompile(
@@ -134,6 +138,43 @@ export function observableCompile(
       const userId = userCellId();
       const attrs = [];
       
+
+      function hasFigureLabel() {
+        if (!cell.options?.label) {
+          return false;
+        }
+        return (cell.options.label as string).startsWith("fig-");
+      }
+      function hasFigureCaption() {
+        return cell.options?.["fig.cap"];
+      }
+      function hasFigureSubCaptions() {
+        // FIXME figure out runtime type validation. This should check
+        // if fig.subcap is an array of strings.
+        return cell.options?.["fig.subcap"];
+      }
+      function hasManyRowsCols() {
+        // FIXME figure out runtime type validation. This should check
+        // if ncol and nrow are positive integers
+        return cell.options?.["layout.ncol"] ||
+          cell.options?.["layout.nrow"];
+      }
+      function nRow() {
+        let row = cell.options?.["layout.nrow"] as (string | number | undefined);
+        if (!row)
+          return 1;
+        return Number(row);
+      }
+      function nCol() {
+        let col = cell.options?.["layout.ncol"] as (string | number | undefined);
+        if (!col)
+          return 1;
+        return Number(col);
+      }
+      function hasSubFigures() {
+        return hasFigureSubCaptions() ||
+          (hasManyRowsCols() && ((nRow() * nCol()) > 1));
+      }
       let keysToSkip = new Set([
         "label",
         "fig.cap",
@@ -164,7 +205,7 @@ export function observableCompile(
         }
       }
       const div = pandocDiv({
-        id: cell.options?.["fig.subcap"] ? userId : undefined,
+        id: hasSubFigures() ? userId : undefined,
         classes: ["cell", ...((cell.options?.classes as (undefined | string[])) || [])],
         attrs
       });
@@ -193,6 +234,13 @@ export function observableCompile(
         true
       ]);
 
+      
+      if (hasFigureCaption() && !hasFigureLabel()) {
+        throw new Error("Cannot have figure caption without figure label")
+      }
+      if (hasFigureSubCaptions() && !hasFigureLabel()) {
+        throw new Error("Cannot have figure subcaptions without figure caption")
+      }
       
       // handle source
       if (!evalVal // always produce div when not evaluating
@@ -247,29 +295,58 @@ export function observableCompile(
       if (!outputVal || !includeVal) {
         outputCellClasses.push("hidden");
       }
-      
-      if (cell.options?.["fig.subcap"]) {
-        const subcaps = cell.options["fig.subcap"] as string[];
+
+      function makeSubFigures(specs: SubfigureSpec[]) {
         let subfigIx = 1;
-        for (const subcap of subcaps) {
+        for (const spec of specs) {
+          console.log("Spec: ", { spec });
           const outputDiv = pandocDiv({
-            id: `${userId}-${subfigIx}`,
             classes: outputCellClasses
+          });
+          const outputInnerDiv = pandocDiv({
+            id: `${userId}-${subfigIx}`
           });
           const ojsDiv = pandocDiv({
             id: `${ojsId}-${subfigIx}`,
           });
           subfigIx++;
-          outputDiv.push(ojsDiv);
-          outputDiv.push(pandocRawStr(subcap as string));
+          outputDiv.push(outputInnerDiv);
+          outputInnerDiv.push(ojsDiv);
+          if (spec.caption) {
+            outputInnerDiv.push(pandocRawStr(spec.caption as string));
+          }
           div.push(outputDiv);
         }
+      }
+
+      if (!hasFigureSubCaptions() && hasManyRowsCols()) {
+        let cellCount = nRow() * nCol();
+        const specs = [];
+        for (let i = 0; i < cellCount; ++i) {
+          specs.push({ caption: "" });
+        }
+        console.log("Is this it?", specs);
+        makeSubFigures(specs);
+        console.log("no we're done.");
+        if (cell.options?.["fig.cap"]) {
+          div.push(pandocRawStr(cell.options["fig.cap"] as string));
+        }
+      } else if (hasFigureSubCaptions()) {
+        if (hasManyRowsCols() && (cell.options?.["fig.subcap"] as string[]).length !==
+            (nRow() * nCol())) {
+          throw new Error("Cannot have subcaptions and multi-row/col layout with mismatched number of cells");
+        }
+        const specs = (cell.options?.["fig.subcap"] as string[]).map(
+          caption => ({ caption }));
+        console.log("Is it the other one?");
+        makeSubFigures(specs);
+        console.log("not it either.");
         if (cell.options?.["fig.cap"]) {
           div.push(pandocRawStr(cell.options["fig.cap"] as string));
         }
       } else {
         const outputDiv = pandocDiv({
-          id: cell.options?.["fig.subcap"] ? undefined : userId,
+          id: hasSubFigures() ? undefined : userId,
           classes: outputCellClasses
         });
         div.push(outputDiv);
