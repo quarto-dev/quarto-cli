@@ -6,10 +6,10 @@ nested:
 equation: "$a^2 + b^2 = c^2$"
 ---
 
-## {{< metadata basic-value >}}
+## {{< meta basic-value >}}
 
-This is a cool document with some math such as ({{< metadata equation >}}).
+This is a cool document with some math such as ({{< meta equation >}}).
 
 Note that subkeys work too:
 
-{{< metadata nested.subkey >}}
+{{< meta nested.subkey >}}
