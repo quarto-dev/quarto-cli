@@ -105,7 +105,7 @@ export function observableCompile(
     const errorVal = firstDefined([
       cell.options?.[kError],
       options.format.execute[kError],
-      false
+      false,
     ]);
     if (
       cell.cell_type === "raw" ||
@@ -137,7 +137,6 @@ export function observableCompile(
       const ojsId = bumpOjsCellIdString();
       const userId = userCellId();
       const attrs = [];
-      
 
       function hasFigureLabel() {
         if (!cell.options?.label) {
@@ -160,15 +159,19 @@ export function observableCompile(
           cell.options?.["layout.nrow"];
       }
       function nRow() {
-        let row = cell.options?.["layout.nrow"] as (string | number | undefined);
-        if (!row)
+        let row = cell.options
+          ?.["layout.nrow"] as (string | number | undefined);
+        if (!row) {
           return 1;
+        }
         return Number(row);
       }
       function nCol() {
-        let col = cell.options?.["layout.ncol"] as (string | number | undefined);
-        if (!col)
+        let col = cell.options
+          ?.["layout.ncol"] as (string | number | undefined);
+        if (!col) {
           return 1;
+        }
         return Number(col);
       }
       function hasSubFigures() {
@@ -197,17 +200,20 @@ export function observableCompile(
         "lst.label",
         "fold",
         "summary",
-        "classes"
+        "classes",
       ]);
       for (const [key, value] of Object.entries(cell.options || {})) {
         if (!keysToSkip.has(key)) {
-          attrs.push(`${key}="${value}"`)
+          attrs.push(`${key}="${value}"`);
         }
       }
       const div = pandocDiv({
         id: hasSubFigures() ? userId : undefined,
-        classes: ["cell", ...((cell.options?.classes as (undefined | string[])) || [])],
-        attrs
+        classes: [
+          "cell",
+          ...((cell.options?.classes as (undefined | string[])) || []),
+        ],
+        attrs,
       });
       const evalVal = firstDefined([
         cell.options?.[kEval],
@@ -226,28 +232,30 @@ export function observableCompile(
       ]);
       const keepHiddenVal = firstDefined([
         options.format.render[kKeepHidden],
-        false
+        false,
       ]);
       const includeVal = firstDefined([
         cell.options?.[kInclude],
         options.format.execute[kInclude],
-        true
+        true,
       ]);
 
-      
       if (hasFigureCaption() && !hasFigureLabel()) {
-        throw new Error("Cannot have figure caption without figure label")
+        throw new Error("Cannot have figure caption without figure label");
       }
       if (hasFigureSubCaptions() && !hasFigureLabel()) {
-        throw new Error("Cannot have figure subcaptions without figure caption")
+        throw new Error(
+          "Cannot have figure subcaptions without figure caption",
+        );
       }
-      
+
       // handle source
-      if (!evalVal // always produce div when not evaluating
-        || keepHiddenVal // always produce div with keepHidden
-        || echoVal // if echo
-        || includeVal
-         ) {
+      if (
+        !evalVal || // always produce div when not evaluating
+        keepHiddenVal || // always produce div with keepHidden
+        echoVal || // if echo
+        includeVal
+      ) {
         const classes = ["js", "cell-code"];
         const attrs = [];
 
@@ -260,10 +268,10 @@ export function observableCompile(
         //  T       F             T       => don't add hidden
         //  T       T             F       => add hidden
         //  T       T             T       => don't add hidden
-        // 
+        //
         // simplify the logic above to be correct for the cases where
         // we are here, and we get !echoVal
-        
+
         if (!echoVal || !includeVal) {
           classes.push("hidden");
         }
@@ -299,12 +307,11 @@ export function observableCompile(
       function makeSubFigures(specs: SubfigureSpec[]) {
         let subfigIx = 1;
         for (const spec of specs) {
-          console.log("Spec: ", { spec });
           const outputDiv = pandocDiv({
-            classes: outputCellClasses
+            classes: outputCellClasses,
           });
           const outputInnerDiv = pandocDiv({
-            id: `${userId}-${subfigIx}`
+            id: `${userId}-${subfigIx}`,
           });
           const ojsDiv = pandocDiv({
             id: `${ojsId}-${subfigIx}`,
@@ -325,29 +332,31 @@ export function observableCompile(
         for (let i = 0; i < cellCount; ++i) {
           specs.push({ caption: "" });
         }
-        console.log("Is this it?", specs);
         makeSubFigures(specs);
-        console.log("no we're done.");
         if (cell.options?.["fig.cap"]) {
           div.push(pandocRawStr(cell.options["fig.cap"] as string));
         }
       } else if (hasFigureSubCaptions()) {
-        if (hasManyRowsCols() && (cell.options?.["fig.subcap"] as string[]).length !==
-            (nRow() * nCol())) {
-          throw new Error("Cannot have subcaptions and multi-row/col layout with mismatched number of cells");
+        if (
+          hasManyRowsCols() &&
+          (cell.options?.["fig.subcap"] as string[]).length !==
+            (nRow() * nCol())
+        ) {
+          throw new Error(
+            "Cannot have subcaptions and multi-row/col layout with mismatched number of cells",
+          );
         }
         const specs = (cell.options?.["fig.subcap"] as string[]).map(
-          caption => ({ caption }));
-        console.log("Is it the other one?");
+          (caption) => ({ caption }),
+        );
         makeSubFigures(specs);
-        console.log("not it either.");
         if (cell.options?.["fig.cap"]) {
           div.push(pandocRawStr(cell.options["fig.cap"] as string));
         }
       } else {
         const outputDiv = pandocDiv({
           id: hasSubFigures() ? undefined : userId,
-          classes: outputCellClasses
+          classes: outputCellClasses,
         });
         div.push(outputDiv);
         outputDiv.push(pandocDiv({
@@ -361,7 +370,9 @@ export function observableCompile(
       div.emit(ls);
     } else {
       ls.push(`\n\`\`\`{${cell.cell_type.language}}`);
-      ls.push(cell.source.map(s => inlineInterpolation(s, errorVal)).join(""));
+      ls.push(
+        cell.source.map((s) => inlineInterpolation(s, errorVal)).join(""),
+      );
       ls.push("```");
     }
   }
