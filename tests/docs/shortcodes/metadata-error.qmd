@@ -1,0 +1,13 @@
+---
+title: Shortcode Test
+basic-value: "Hello World"
+weird-type:
+  - "Hello"
+  - "World"
+---
+
+This is a cool document with an invalid value such as ({{< meta equation >}}).
+
+
+This is a cool document with an invalid type such as ({{< meta weird-type >}}).
+
