@@ -20,6 +20,9 @@ function layoutMetaInject()
         if layoutState.layoutCss then
           inject([[
 <style type="text/css">
+  .quarto-layout-panel > figure {
+    width: 100%;
+  }
   .quarto-layout-panel > figure > figcaption,
   .quarto-layout-panel > .panel-caption {
     margin-top: 10pt;
