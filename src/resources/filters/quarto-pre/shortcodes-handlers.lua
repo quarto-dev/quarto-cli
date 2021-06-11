@@ -13,10 +13,12 @@
 -- }        
 function handlerForShortcode(shortCode, type)
   local handlers = {
-    metadata = { 
+    meta = { 
       type = "inline",
-      handle = handleMetadata },
+      handle = handleMeta 
+    }
   }
+  
   local handler = handlers[shortCode.name]
   if handler ~= nil and handler.type == type then
     return handler
@@ -29,9 +31,8 @@ end
 -- as {{< metadata title >}}
 -- or {{< metadata key.subkey.subkey >}}
 -- This only supports emitting simple types (not arrays or maps)
-function handleMetadata(shortCode) 
+function handleMeta(shortCode) 
   if #shortCode.args > 0 then
-
     -- the args are the var name
     local varName = inlinesToString(shortCode.args[1].value)
 
@@ -49,6 +50,8 @@ function handleMetadata(shortCode)
     end
     warn("Unknown metadata key " .. varName .. " specified in a metadata Shortcode.")
     return { pandoc.Strong({pandoc.Str("?metadata:" .. varName)}) }
-
+  else
+    -- no args, we can't do anything
+    return nil
   end
 end
