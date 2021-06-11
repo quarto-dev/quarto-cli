@@ -19,6 +19,16 @@ knitr_hooks <- function(format) {
     }
   }
 
+  # forward 'output' to 'results'
+  opts_hooks[["results"]] <- function(options) {
+    if (identical(options[["output"]], TRUE)) {
+      options[["results"]] <- "markup"
+    } else if (identical(options[["output"]], FALSE)) {
+      options[["results"]] <- "hide"
+    }
+    options
+  }
+
   # automatically set gifski hook for fig.animate
   opts_hooks[["fig.show"]] <- function(options) {
     
