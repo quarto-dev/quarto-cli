@@ -24,6 +24,8 @@ function import(script)
 end
 import("includes.lua")
 import("options.lua")
+import("shortcodes.lua")
+import("shortcodes-handlers.lua")
 import("outputs.lua")
 import("figures.lua")
 import("theorems.lua")
@@ -50,6 +52,9 @@ import("../common/refs.lua")
 import("../common/figures.lua")
 import("../common/theorems.lua")
 import("../common/debug.lua")
+import("../common/string.lua")
+import("../common/list.lua")
+import("../common/log.lua")
 -- [/import]
 
 initParams()
@@ -57,6 +62,7 @@ initParams()
 return {
   readIncludes(),
   initOptions(),
+  shortCodes(),  
   hidden(),
   outputs(),
   combineFilters({
