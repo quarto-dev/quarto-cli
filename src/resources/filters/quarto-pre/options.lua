@@ -28,7 +28,11 @@ end
 local kVarNamespace = "_quarto-vars"
 function var(name, default)
   local vars = allOptions[kVarNamespace]
-  return parseOption(name, vars, default)
+  if vars ~= nil then
+    return parseOption(name, vars, default)
+  else
+    return nil
+  end
 end
 
 function parseOption(name, options, default) 
