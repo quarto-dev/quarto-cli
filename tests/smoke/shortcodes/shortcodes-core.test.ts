@@ -1,7 +1,7 @@
 import { join } from "path/mod.ts";
 
 import { docs, outputForInput } from "../../utils.ts";
-import { ensureFileRegexMatches } from "../../verify.ts";
+import { ensureFileRegexMatches, noErrorsOrWarnings } from "../../verify.ts";
 import { testRender } from "../render/render.ts";
 
 const input = docs(join("shortcodes", "metadata.qmd"));
@@ -42,3 +42,21 @@ testRender(inputVarsErr, "html", false, [
     /\?var:foobar123/,
   ]),
 ]);
+
+const inputNoVars = docs(join("shortcodes", "vars-simple.qmd"));
+testRender(inputNoVars, "html", false, [
+  noErrorsOrWarnings,
+], {
+  setup: async () => {
+    await Deno.rename(
+      docs(join("shortcodes", "_variables.yml")),
+      docs(join("shortcodes", "_variables.yml,bak")),
+    );
+  },
+  teardown: async () => {
+    await Deno.rename(
+      docs(join("shortcodes", "_variables.yml,bak")),
+      docs(join("shortcodes", "_variables.yml")),
+    );
+  },
+});
