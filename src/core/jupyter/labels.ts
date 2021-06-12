@@ -57,10 +57,11 @@ export function cellLabelValidator() {
 
 export function shouldLabelCellContainer(
   cell: JupyterCellWithOptions,
+  outputs: JupyterOutput[],
   options: JupyterToMarkdownOptions,
 ) {
   // no outputs
-  if (!cell.outputs) {
+  if (!outputs) {
     return true;
   }
 
@@ -70,7 +71,7 @@ export function shouldLabelCellContainer(
   }
 
   // no display data outputs
-  const displayDataOutputs = cell.outputs.filter(isDisplayData);
+  const displayDataOutputs = outputs.filter(isDisplayData);
   if (displayDataOutputs.length === 0) {
     return true;
   }
