@@ -25,14 +25,14 @@ function transformShortcodeBlocks(blocks)
   local scannedBlocks = pandoc.List:new()
   
   for i,block in ipairs(blocks) do 
-
     -- inspect para and plain blocks for shortcodes
     if block.t == "Para" or block.t == "Plain" then
+
       -- if contents are only a shortcode, process and return
-      if containsOnlyShortcode(block) then
-      
-          -- there is a shortcode here, process it and return the blocks
-          local shortCode = processShortCode(block.content)
+      local onlyShortcode = onlyShortcode(block.content)
+      if onlyShortcode ~= nil then
+        -- there is a shortcode here, process it and return the blocks
+          local shortCode = processShortCode(onlyShortcode)
           local handler = handlerForShortcode(shortCode, "block")
           if handler ~= nil then
             local transformedShortcode = handler.handle(shortCode)
@@ -41,9 +41,7 @@ function transformShortcodeBlocks(blocks)
               transformed = true                  
             end
           else
-            -- if there was no handler for this shortcode, just allow it to pass through
-            -- the inlines may end up handling it
-            scannedBlocks:insert(block)
+            warn("Shortcode " .. shortCode.name .. " is not recognized.")
           end
       else 
         scannedBlocks:insert(block)
@@ -107,7 +105,7 @@ function transformShortcodeInlines(inlines)
             tappend(accum, transformedShortcode)
           end
         else
-          warn("Shortcode " .. shortCode.name .. " is not recognized.")
+          tappend(accum, shortcodeInlines)
         end
 
         local suffix = el.text:sub(#kCloseShortcode + 1)
@@ -218,37 +216,69 @@ function processShortCode(inlines)
   }
 end
 
-function containsOnlyShortcode(block)
+function onlyShortcode(contents)
+  
+  -- trim leading and trailing empty strings
+  contents = trimEmpty(contents)
+
+  if #contents < 1 then
+    return nil
+  end
+
   -- starts with a shortcode
-  local startsWithShortcode = block.content[1].t == "Str" and block.content[1].text == kOpenShortcode
+  local startsWithShortcode = contents[1].t == "Str" and contents[1].text == kOpenShortcode
   if not startsWithShortcode then
-    return false
+    return nil
   end
 
   -- ends with a shortcode
-  local endsWithShortcode = block.content[#block.content].t == "Str" and block.content[#block.content].text == kCloseShortcode
-  if not endsWithShortcode then
-    return false
+  local endsWithShortcode = contents[#contents].t == "Str" and contents[#contents].text == kCloseShortcode
+  if not endsWithShortcode then  
+    return nil
   end
 
   -- has only one open shortcode
-  local openShortcodes = filter(block.content, function(el) 
+  local openShortcodes = filter(contents, function(el) 
     return el.t == "Str" and el.text == kOpenShortcode  
   end)
   if #openShortcodes ~= 1 then
-    return false
+    return nil
   end
 
   -- has only on close shortcode 
-  local closeShortcodes = filter(block.content, function(el) 
+  local closeShortcodes = filter(contents, function(el) 
     return el.t == "Str" and el.text == kCloseShortcode  
   end) 
   if #closeShortcodes ~= 1 then
-    return false
+    return nil
   end
     
-  return true  
+  return contents
 end
 
+function trimEmpty(contents) 
+  local firstNonEmpty = 1
+  for i, el in ipairs(contents) do
+    if el.t == "Str" and el.text == "" then
+      firstNonEmpty = firstNonEmpty + 1
+    else
+      break
+    end
+  end
+  if firstNonEmpty > 1 then
+    contents = tslice(contents, firstNonEmpty, #contents)
+  end
+
+  local lastNonEmptyEl = nil
+  for i = #contents, 1, -1 do
+    el = contents[i]
+    if el.t == "Str" and el.text == "" then
+      contents = tslice(contents, 1, #contents - 1)
+    else
+      break
+    end
+  end
+  return contents
+end
 
 

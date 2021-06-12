@@ -6,8 +6,8 @@ weird-type:
   - "World"
 ---
 
-This is a cool document with an invalid value such as ({{< metadata equation >}}).
+This is a cool document with an invalid value such as ({{< meta equation >}}).
 
 
-This is a cool document with an invalid type such as ({{< metadata weird-type >}}).
+This is a cool document with an invalid type such as ({{< meta weird-type >}}).
 
