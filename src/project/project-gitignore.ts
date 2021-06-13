@@ -17,10 +17,9 @@ import { lines } from "../core/text.ts";
 export const kQuartoIgnore = [`/${kQuartoScratch}/`];
 
 export const kGitignoreEntries = kQuartoIgnore.concat([
+  "/.venv/",
+  "/.condaenv/",
   "*_cache/",
-  ".ipynb_checkpoints/",
-  ".venv/",
-  ".condaenv/",
 ]);
 
 export async function ensureGitignore(dir: string) {
