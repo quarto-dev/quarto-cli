@@ -18,9 +18,9 @@ export const kQuartoIgnore = [`/${kQuartoScratch}/`];
 
 export const kGitignoreEntries = kQuartoIgnore.concat([
   "*_cache/",
+  ".ipynb_checkpoints/",
   ".venv/",
   ".condaenv/",
-  ".ipynb_checkpoints/",
 ]);
 
 export async function ensureGitignore(dir: string) {
