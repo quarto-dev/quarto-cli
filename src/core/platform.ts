@@ -6,5 +6,9 @@
 */
 
 export function isMingw() {
-  return Deno.build.os === "windows" && !!Deno.env.get("MSYSTEM");
+  return isWindows() && !!Deno.env.get("MSYSTEM");
+}
+
+export function isWindows() {
+  return Deno.build.os === "windows";
 }
