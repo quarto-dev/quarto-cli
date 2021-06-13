@@ -10,6 +10,7 @@ import { extname, join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { readYamlFromMarkdown } from "../../core/yaml.ts";
+import { isMingw } from "../../core/platform.ts"
 import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
 
 import { dirAndStem, removeIfExists } from "../../core/path.ts";
@@ -148,6 +149,7 @@ export const jupyterEngine: ExecutionEngine = {
       };
 
       if (
+        isMingw() || // had trouble creating the subprocess under mingw
         options.format.execute[kExecuteDaemon] === false ||
         options.format.execute[kExecuteDaemon] === 0
       ) {
