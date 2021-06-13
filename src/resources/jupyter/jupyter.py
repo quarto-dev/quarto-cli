@@ -190,6 +190,7 @@ def run_server_subprocess(options, status):
       flags |= 0x00000008  # DETACHED_PROCESS
       flags |= 0x00000200  # CREATE_NEW_PROCESS_GROUP
       flags |= 0x08000000  # CREATE_NO_WINDOW
+      flags |= 0x01000000  # CREATE_BREAKAWAY_FROM_JOB
    else:
       signal.signal(signal.SIGCHLD, signal.SIG_IGN)
 
