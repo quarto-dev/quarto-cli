@@ -10,6 +10,7 @@ import { extname, join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { readYamlFromMarkdown } from "../../core/yaml.ts";
+import { isWindows } from "../../core/platform.ts";
 import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
 
 import { dirAndStem, removeIfExists } from "../../core/path.ts";
@@ -147,10 +148,13 @@ export const jupyterEngine: ExecutionEngine = {
         },
       };
 
-      if (
-        options.format.execute[kExecuteDaemon] === false ||
-        options.format.execute[kExecuteDaemon] === 0
-      ) {
+      // use daemon by default on posix but not on windows (it doesn't work in
+      // some figurations, possibly due to restrictions on creating tcpip ports)
+      let executeDaemon = options.format.execute[kExecuteDaemon];
+      if (executeDaemon === null) {
+        executeDaemon = !isWindows();
+      }
+      if (executeDaemon === false || executeDaemon === 0) {
         await executeKernelOneshot(execOptions);
       } else {
         await executeKernelKeepalive(execOptions);
