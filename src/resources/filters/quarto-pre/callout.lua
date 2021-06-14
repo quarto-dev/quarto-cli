@@ -204,8 +204,11 @@ function calloutLatex(div)
   -- read and clear attributes
   local caption = resolveHeadingCaption(div)
   local type = calloutType(div)
-  local icon = div.attr.attributes["icon"]
-  div.attr.attributes["icon"] = nil
+
+  local processedCallout = processCalloutDiv(div)
+  local calloutAppearance = processedCallout.appearance
+  local icon = processedCallout.icon
+
   div.attr.attributes["caption"] = nil
   div.attr.attributes["collapse"] = nil
   
@@ -220,7 +223,7 @@ function calloutLatex(div)
   tappend(calloutContents, div.content)
 
   -- generate the callout box
-  local callout = latexCalloutBox(type)
+  local callout = latexCalloutBox(type, icon)
   local beginEnvironment = callout.beginInlines;
   local endEnvironment = callout.endInlines;
   
