@@ -117,18 +117,23 @@ export function observableCompile(
       ls.push("\n$$", cell.source.join(), "$$\n");
     } else if (cell.cell_type?.language === "observable") {
       function userCellId() {
-        if (cell.options?.label) {
-          const label = asHtmlId(cell.options.label as string);
-          if (userIds.has(label)) {
+        function chooseId(label: string) {
+          const htmlLabel = asHtmlId(label as string);
+          if (userIds.has(htmlLabel)) {
             // FIXME better error handling
-            throw new Error(`FATAL: duplicate label ${cell.options.label}`);
+            throw new Error(`FATAL: duplicate label ${htmlLabel}`);
           } else {
-            userIds.add(label);
-            return label;
+            userIds.add(htmlLabel);
+            return htmlLabel;
           }
+        }
+        if (cell.options?.label) {
+          return chooseId(cell.options.label as string);
+        } else if (cell.options?.["lst.label"]) {
+          return chooseId(cell.options['lst.label'] as string);
         } else {
           return undefined;
-        }
+        } 
       }
       function bumpOjsCellIdString() {
         ojsCellID += 1;
@@ -178,6 +183,15 @@ export function observableCompile(
         return hasFigureSubCaptions() ||
           (hasManyRowsCols() && ((nRow() * nCol()) > 1));
       }
+      function idPlacement() {
+        if (hasSubFigures() ||
+          cell.options?.["lst.label"]) {
+          return "outer";
+        } else {
+          return "inner";
+        }
+      }
+      
       let keysToSkip = new Set([
         "label",
         "fig.cap",
@@ -192,10 +206,10 @@ export function observableCompile(
         "classes",
         "output",
         "include.hidden",
-        "source.hidden", // FIXME I think this is wrong
+        "source.hidden",
         "plot.hidden",
         "output.hidden",
-        "echo.hidden", // FIXME I think this is right
+        "echo.hidden",
         "lst.cap",
         "lst.label",
         "fold",
@@ -207,8 +221,11 @@ export function observableCompile(
           attrs.push(`${key}="${value}"`);
         }
       }
+      if (cell.options?.["lst.cap"]) {
+        attrs.push(`caption="${cell.options?.["lst.cap"]}"`)
+      }
       const div = pandocDiv({
-        id: hasSubFigures() ? userId : undefined,
+        id: idPlacement() === "outer" ? userId : undefined,
         classes: [
           "cell",
           ...((cell.options?.classes as (undefined | string[])) || []),
@@ -355,7 +372,7 @@ export function observableCompile(
         }
       } else {
         const outputDiv = pandocDiv({
-          id: hasSubFigures() ? undefined : userId,
+          id: idPlacement() === "inner" ? userId : undefined,
           classes: outputCellClasses,
         });
         div.push(outputDiv);

@@ -49,15 +49,16 @@ export function createRuntime() {
         }
         return targetElement;
       };
-      let observer = () => {
-        let targetElement = getElement();
-        return new Inspector(
-          targetElement.appendChild(document.createElement(
-            inline
-              ? "span"
-              : "div",
-          )),
-        );
+      let observer = function(targetElement) {
+        return () => {
+          return new Inspector(
+            targetElement.appendChild(document.createElement(
+              inline
+                ? "span"
+                : "div",
+            )),
+          );
+        };
       };
 
       // FIXME error handling is clearly not going to work well right
@@ -77,12 +78,11 @@ export function createRuntime() {
         parse = parseModule(src);
       }
       function cellSrc(cell) {
-        return src.slice(cell.start, cell.end);
+        let targetElement = getElement();
+        let cellSrc = src.slice(cell.start, cell.end);
+        return interpreter.module(cellSrc, undefined, observer(targetElement));
       }
-      let results = parse.cells.map(cellSrc).map((s) =>
-        interpreter.module(s, undefined, observer)
-      );
-      return Promise.all(results);
+      return Promise.all(parse.cells.map(cellSrc));
     },
   };
 
