@@ -308,6 +308,7 @@ div.hanging-indent {
 .callout {
   margin-top: $callout-margin-top;
   margin-bottom: $callout-margin-bottom;  
+  border-radius: $border-radius;
 }
 
 .callout.callout-style-simple { 
@@ -316,10 +317,9 @@ div.hanging-indent {
   border-right: 1px solid $table-border-color;
   border-top: 1px solid $table-border-color;
   border-bottom: 1px solid $table-border-color;
-  border-radius: $border-radius;
 }
 
-.callout.callout-style-material {
+.callout.callout-style-default {
   border-left: $callout-border-width solid;
   border-right: 1px solid $table-border-color;
   border-top: 1px solid $table-border-color;
@@ -335,7 +335,7 @@ div.hanging-indent {
   font-weight: 400;
 }
 
-.callout.callout-style-material .callout-body {
+.callout.callout-style-default .callout-body {
   font-size: 0.9rem;
   font-weight: 400;
 }
@@ -358,10 +358,9 @@ div.hanging-indent {
   font-size: .9rem;
   font-weight: 600;
   opacity: 75%;
-
 }
 
-.callout.callout-style-material > div.callout-header {
+.callout.callout-style-default > div.callout-header {
   border-bottom: none;
   font-weight: 600;
   opacity: 85%;
@@ -370,7 +369,8 @@ div.hanging-indent {
   padding-right: 0.5em;
 }
 
-.callout.callout-style-material div.callout-body {
+.callout.callout-style-default div.callout-body {
+  margin-top: 0.5em;
   padding-left: 0.5em;
   padding-right: 0.5em;
 }
@@ -379,8 +379,8 @@ div.hanging-indent {
   cursor: pointer;
 }
 
-.callout.callout-style-material .callout-header[aria-expanded="false"],
-.callout.callout-style-material .callout-header[aria-expanded="true"] {
+.callout.callout-style-default .callout-header[aria-expanded="false"],
+.callout.callout-style-default .callout-header[aria-expanded="true"] {
   padding-top: 0px;
   margin-bottom: 0px;
   align-items: center;
@@ -408,8 +408,8 @@ $code-border-left-color: $table-border-color !default;
   background-size: 1rem 1rem;
 }
 
-.callout.callout-style-material .callout-icon::before,
-.callout.callout-style-material .callout-toggle::before {
+.callout.callout-style-default .callout-icon::before,
+.callout.callout-style-default .callout-toggle::before {
   height: 0.9rem;
   width: 0.9rem;
   display: inline-block;
@@ -417,7 +417,6 @@ $code-border-left-color: $table-border-color !default;
   background-repeat: no-repeat;
   background-size: 0.9rem 0.9rem;
 }
-
 
 .callout .callout-btn-toggle .callout-toggle::before {
   transition: transform 0.2s linear;
@@ -436,12 +435,12 @@ $code-border-left-color: $table-border-color !default;
   padding-right: 0.55em;
 }
 
-.callout.callout-style-material:not(.no-icon) div.callout-icon-container {
+.callout.callout-style-default:not(.no-icon) div.callout-icon-container {
   padding-top: 0.1em;
   padding-right: 0.35em;
 }
 
-.callout.callout-style-material.callout-caution:not(.no-icon) div.callout-icon-container {
+.callout.callout-style-default.callout-caution:not(.no-icon) div.callout-icon-container {
   padding-top: 0.3em;
   padding-right: 0.35em;
 }
@@ -499,7 +498,7 @@ $callouts: (
     );
   }
 
-  div.callout-#{$name}.callout-style-material .callout-header {
+  div.callout-#{$name}.callout-style-default .callout-header {
     background-color: shift-color(
       map.get($info, "color"),
       -90%

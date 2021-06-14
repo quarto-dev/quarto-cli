@@ -21,21 +21,21 @@ function readOptions(meta)
 end
 
 -- get option value
-function option(name, default)
-  return parseOption(name, allOptions, default)
+function option(name, def)
+  return parseOption(name, allOptions, def)
 end
 
 local kVarNamespace = "_quarto-vars"
-function var(name, default)
+function var(name, def)
   local vars = allOptions[kVarNamespace]
   if vars ~= nil then
-    return parseOption(name, vars, default)
+    return parseOption(name, vars, def)
   else
     return nil
   end
 end
 
-function parseOption(name, options, default) 
+function parseOption(name, options, def) 
   local keys = split(name, ".")
 
   local value = nil
@@ -47,10 +47,13 @@ function parseOption(name, options, default)
 
       -- the key doesn't match a value, stop indexing
       if value == nil then
-        return default
+        break
       end
     end
   end
-  return value
-    
+  if value == nil then
+    return def
+  else
+    return value
+  end
 end
