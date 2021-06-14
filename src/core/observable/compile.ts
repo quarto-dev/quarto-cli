@@ -9,7 +9,7 @@ import { dirname, join } from "path/mod.ts";
 
 import { Format, isJavascriptCompatible } from "../../config/format.ts";
 
-import { warnOnce } from "../../core/log.ts";
+import { warnOnce, logError } from "../../core/log.ts";
 import { escapeBackticks } from "../../core/text.ts";
 import { breakQuartoMd } from "../../core/break-quarto-md.ts";
 import { PandocIncludes } from "../../execute/engine.ts";
@@ -160,8 +160,18 @@ export function observableCompile(
         return cell.options?.["fig.subcap"];
       }
 
-      // very heavyweight for what we need it, but ok.
-      let nCells = parseModule(cell.source.join("")).cells.length;
+      // very heavyweight for what we need it, but this way we can signal syntax errors
+      // as well.
+      let nCells = 0;
+      try {
+        nCells = parseModule(cell.source.join("")).cells.length;
+      } catch (e) {
+        if (e instanceof SyntaxError) {
+          warnOnce(`observablejs Parse Error in cell source:\n\n${cell.source.join("")}\n`);
+          logError(e);
+        }
+        throw e;
+      }
       function hasManyRowsCols() {
         // FIXME figure out runtime type validation. This should check
         // if ncol and nrow are positive integers
