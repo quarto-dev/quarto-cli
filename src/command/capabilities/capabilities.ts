@@ -69,7 +69,7 @@ async function formats() {
 
 async function themes() {
   const themesPath = formatResourcePath("html", join("bootstrap", "themes"));
-  const themes: string[] = [];
+  const themes: string[] = ["default"];
   const kScss = ".scss";
   for await (const dirEntry of Deno.readDir(themesPath)) {
     if (dirEntry.isFile && dirEntry.name.endsWith(kScss)) {
