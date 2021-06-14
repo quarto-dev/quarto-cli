@@ -33,6 +33,8 @@ import {
   kWarning,
 } from "../../config/constants.ts";
 
+import { parseModule } from "https://cdn.skypack.dev/@observablehq/parser";
+
 export interface ObserveableCompileOptions {
   source: string;
   format: Format;
@@ -157,11 +159,15 @@ export function observableCompile(
         // if fig.subcap is an array of strings.
         return cell.options?.["fig.subcap"];
       }
+
+      // very heavyweight for what we need it, but ok.
+      let nCells = parseModule(cell.source.join("")).cells.length;
       function hasManyRowsCols() {
         // FIXME figure out runtime type validation. This should check
         // if ncol and nrow are positive integers
         return cell.options?.["layout.ncol"] ||
-          cell.options?.["layout.nrow"];
+          cell.options?.["layout.nrow"] ||
+          (nCells > 1);
       }
       function nRow() {
         let row = cell.options
@@ -344,7 +350,7 @@ export function observableCompile(
       }
 
       if (!hasFigureSubCaptions() && hasManyRowsCols()) {
-        let cellCount = nRow() * nCol();
+        let cellCount = Math.max(nRow() * nCol(), nCells, 1);
         const specs = [];
         for (let i = 0; i < cellCount; ++i) {
           specs.push({ caption: "" });
