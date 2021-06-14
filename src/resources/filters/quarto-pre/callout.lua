@@ -84,9 +84,9 @@ function calloutCategory(div)
   return nil
 end
 
-local kCalloutTypeDefault = "default"
-local kCalloutTypeSimple = "simple"
-local kCalloutTypeMinimal = "minimal"
+local kCalloutAppearanceDefault = "default"
+local kCalloutDefaultSimple = "simple"
+local kCalloutDefaultMinimal = "minimal"
 
 -- an HTML callout div
 function calloutDiv(div)
@@ -96,12 +96,12 @@ function calloutDiv(div)
   local category = calloutCategory(div)
 
   -- the callout type
-  local processedType = processCalloutDiv(div)
-  calloutTypeName = processedType.typeName
-  local icon = processedType.icon
+  local processedCallout = processCalloutDiv(div)
+  local calloutAppearance = processedCallout.appearance
+  local icon = processedCallout.icon
 
-  if calloutTypeName == kCalloutTypeDefault and caption == nil then
-    caption = categoryDisplay(category)
+  if calloutAppearance == kCalloutAppearanceDefault and caption == nil then
+    caption = appearanceDisplayName(calloutAppearance)
   end
 
   local collapse = div.attr.attributes["collapse"]
@@ -115,7 +115,7 @@ function calloutDiv(div)
 
   -- add card attribute
   calloutDiv.attr.classes:insert("callout")
-  calloutDiv.attr.classes:insert("callout-style-" .. calloutTypeName)
+  calloutDiv.attr.classes:insert("callout-style-" .. calloutAppearance)
 
   -- the image placeholder
   local noicon = ""
@@ -301,28 +301,28 @@ end
 
 function processCalloutDiv(div) 
 
-  local calloutIcon = div.attr.attributes["icon"]
+  local icon = div.attr.attributes["icon"]
   div.attr.attributes["icon"] = nil
-  if calloutIcon == nil then
-    calloutIcon = option("callout-icon", true)
-  elseif calloutIcon == "false" then
-    calloutIcon = false
+  if icon == nil then
+    icon = option("callout-icon", true)
+  elseif icon == "false" then
+    icon = false
   end
   
 
-  local calloutType = div.attr.attributes["type"]
-  div.attr.attributes["type"] = nil
-  if calloutType == nil then
-    calloutType = option("callout-type", nil)
+  local appearanceRaw = div.attr.attributes["appearance"]
+  div.attr.attributes["appearance"] = nil
+  if appearanceRaw == nil then
+    appearanceRaw = option("callout-appearance", nil)
   end
   
-  local calloutTypeName = nameForCalloutType(calloutType);
-  if calloutTypeName == "minimal" then
-    calloutIcon = false
-    calloutTypeName = "simple"
+  local appearance = nameForCalloutStyle(appearanceRaw);
+  if appearance == "minimal" then
+    icon = false
+    appearance = "simple"
   end
 
-  return { icon = calloutIcon, typeName = calloutTypeName}
+  return { icon = icon, appearance = appearance}
 
 end
 
@@ -400,12 +400,12 @@ function epubCallout(div)
   local category = calloutCategory(div)
   
   -- the callout type
-  local processedType = processCalloutDiv(div)
-  calloutTypeName = processedType.typeName
-  local hasIcon = processedType.icon
+  local processedCallout = processCalloutDiv(div)
+  local calloutAppearance = processedCallout.appearance
+  local hasIcon = processedCallout.icon
 
-  if calloutTypeName == kCalloutTypeDefault and caption == nil then
-    caption = categoryDisplay(category)
+  if calloutAppearance == kCalloutAppearanceDefault and caption == nil then
+    caption = appearanceDisplayName(calloutAppearance)
   end
   
   -- the body of the callout
@@ -444,7 +444,7 @@ function epubCallout(div)
   if caption ~= nil then
     attributes:insert("callout-captioned")
   end
-  attributes:insert("callout-style-" .. calloutTypeName)
+  attributes:insert("callout-style-" .. calloutAppearance)
 
   return pandoc.Div({calloutBody}, pandoc.Attr("", attributes))
 end
@@ -508,7 +508,7 @@ function openXmlPara(para, spacing)
   return xmlPara
 end
 
-function nameForCalloutType(calloutType) 
+function nameForCalloutStyle(calloutType) 
   if calloutType == nil then
     return "default"
   else 
@@ -596,7 +596,7 @@ function isBuiltInCategory(category)
   return icon ~= nil
 end
 
-function categoryDisplay(category)
+function appearanceDisplayName(appearance)
     -- capitalize the category and use that as the caption if none was provided
-    return category:sub(1,1):upper()..category:sub(2)
+    return appearance:sub(1,1):upper()..appearance:sub(2)
 end
