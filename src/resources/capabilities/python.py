@@ -19,6 +19,5 @@ discover_package('jupyter_core')
 discover_package('nbformat')
 discover_package('nbclient')
 discover_package('ipykernel')
-discover_package('yaml')
 
-  
+

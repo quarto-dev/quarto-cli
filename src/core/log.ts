@@ -94,7 +94,7 @@ export class StdErrOutputHandler extends BaseHandler {
         msg = colors.yellow(msg);
         break;
       case log.LogLevels.ERROR:
-        msg = colors.red(msg);
+        msg = colors.brightRed(msg);
         break;
       case log.LogLevels.CRITICAL:
         msg = colors.bold(colors.red(msg));

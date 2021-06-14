@@ -27,6 +27,7 @@ import {
   kRestructuredText,
   kTextHtml,
   kTextLatex,
+  kTextPlain,
 } from "../mime.ts";
 
 import PngImage from "../png.ts";
@@ -842,8 +843,30 @@ function mdFromCodeCell(
     return [];
   }
 
+  // filter outputs as needed
+  const outputs = (cell.outputs || []).filter((output) => {
+    // filter warnings if requested
+    if (
+      output.output_type === "stream" &&
+      (output as JupyterOutputStream).name === "stderr" &&
+      !includeWarnings(cell, options)
+    ) {
+      return false;
+    }
+
+    // filter matplotlib intermediate vars
+    if (output.output_type === "execute_result") {
+      const textPlain = (output as JupyterOutputDisplayData).data
+        ?.[kTextPlain] as string[] | undefined;
+      if (textPlain && textPlain[0].startsWith("[<matplotlib")) {
+        return false;
+      }
+    }
+    return true;
+  });
+
   // redact if the cell has no source and no output
-  if (!cell.source.length && !cell.outputs?.length) {
+  if (!cell.source.length && !outputs.length) {
     return [];
   }
 
@@ -863,7 +886,7 @@ function mdFromCodeCell(
   // if there is a single output. otherwise it will included on the enclosing
   // div and used as a prefix for the individual outputs
   const label = cellLabel(cell);
-  const labelCellContainer = shouldLabelCellContainer(cell, options);
+  const labelCellContainer = shouldLabelCellContainer(cell, outputs, options);
   if (label && labelCellContainer) {
     divMd.push(`${label} `);
   }
@@ -954,20 +977,11 @@ function mdFromCodeCell(
 
     let nextOutputSuffix = 1;
     for (
-      const { index, output } of (cell.outputs || []).map((value, index) => ({
+      const { index, output } of outputs.map((value, index) => ({
         index,
         output: value,
       }))
     ) {
-      // filter warnings if necessary
-      if (
-        output.output_type === "stream" &&
-        (output as JupyterOutputStream).name === "stderr" &&
-        !includeWarnings(cell, options)
-      ) {
-        continue;
-      }
-
       // leading newline and beginning of div
       md.push("\n::: {");
 

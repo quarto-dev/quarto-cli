@@ -16,6 +16,10 @@ function handlerForShortcode(shortCode, type)
     meta = { 
       type = "inline",
       handle = handleMeta 
+    },
+    var = {
+      type = "inline",
+      handle = handleVars
     }
   }
   
@@ -28,8 +32,8 @@ function handlerForShortcode(shortCode, type)
 end
 
 -- Implements reading values from document metadata
--- as {{< metadata title >}}
--- or {{< metadata key.subkey.subkey >}}
+-- as {{< meta title >}}
+-- or {{< meta key.subkey.subkey >}}
 -- This only supports emitting simple types (not arrays or maps)
 function handleMeta(shortCode) 
   if #shortCode.args > 0 then
@@ -39,19 +43,49 @@ function handleMeta(shortCode)
     -- read the option value
     local optionValue = option(varName, nil)
     if optionValue ~= nil then
-      if type(optionValue) == 'boolean' then
-        return { pandoc.Str( tostring(optionValue) ) }      
-      elseif type(optionValue) == "table" and optionValue.t == "MetaInlines" then
-          return optionValue
-      else
-        warn("Unsupported metadata type for key " .. varName .. " in a metadata Shortcode.")
-        return { pandoc.Strong({pandoc.Str("?invalid metadata type:" .. varName)}) }    
-      end
+      return processValue(optionValue, varName, "meta")
+    else 
+      warn("Unknown meta key " .. varName .. " specified in a metadata Shortcode.")
+      return { pandoc.Strong({pandoc.Str("?meta:" .. varName)}) } 
     end
-    warn("Unknown metadata key " .. varName .. " specified in a metadata Shortcode.")
-    return { pandoc.Strong({pandoc.Str("?metadata:" .. varName)}) }
   else
     -- no args, we can't do anything
     return nil
+  end
+end
+
+-- Implements reading variables from quarto vars file
+-- as {{< var title >}}
+-- or {{< var key.subkey.subkey >}}
+-- This only supports emitting simple types (not arrays or maps)
+function handleVars(shortCode) 
+  if #shortCode.args > 0 then
+    
+    -- the args are the var name
+    local varName = inlinesToString(shortCode.args[1].value)
+    
+    -- read the option value
+    local varValue = var(varName, nil)
+    if varValue ~= nil then
+      return processValue(varValue, varName, "var")
+    else 
+      warn("Unknown var" .. varName .. " specified in a var shortcode.")
+      return { pandoc.Strong({pandoc.Str("?var:" .. varName)}) } 
+    end
+
+  else
+    -- no args, we can't do anything
+    return nil
+  end
+end
+
+function processValue(val, name, t) 
+  if type(val) == "boolean" then
+    return { pandoc.Str( tostring(val) ) }      
+  elseif type(val) == "table" and val.t == "MetaInlines" then
+    return val
+  else
+    warn("Unsupported type for key " .. name .. " in a " .. t .. " shortcode.")
+    return { pandoc.Strong({pandoc.Str("?invalid " .. t .. " type:" .. name)}) }    
   end
 end

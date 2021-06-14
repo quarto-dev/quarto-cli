@@ -221,6 +221,10 @@ function onlyShortcode(contents)
   -- trim leading and trailing empty strings
   contents = trimEmpty(contents)
 
+  if #contents < 1 then
+    return nil
+  end
+
   -- starts with a shortcode
   local startsWithShortcode = contents[1].t == "Str" and contents[1].text == kOpenShortcode
   if not startsWithShortcode then

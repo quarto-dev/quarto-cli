@@ -154,6 +154,7 @@ export const kToc = "toc";
 export const kTableOfContents = "table-of-contents";
 export const kSectionDivs = "section-divs";
 export const kEPubCoverImage = "epub-cover-image";
+export const kQuartoVarsKey = "_quarto-vars";
 
 // metadata fields
 export const kTitle = "title";

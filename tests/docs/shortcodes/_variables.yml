@@ -1,0 +1,4 @@
+variable-1: "Variable 1 VALUE"
+variable-2:
+  sub:
+    sub: "Variable 2 Sub Sub VALUE"
