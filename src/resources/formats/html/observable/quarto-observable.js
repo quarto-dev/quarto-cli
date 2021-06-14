@@ -70,21 +70,22 @@ export function createRuntime() {
         }
         return targetElement;
       };
-      let observer = function(targetElement) {
-        return () => {
+      let observer = function(targetElement, cell) {
+        return (name) => {
           const element = document.createElement(
             inline
               ? "span"
               : "div"
           );
           targetElement.appendChild(element);
-          // Views currently emit the element for the view and the element for the
-          // reactive view.value. We hide the latter.
-          const childCount = Array.from(targetElement.childNodes)
-                .filter(n => n.nodeType === document.ELEMENT_NODE)
-                .length;
-          if (targetElement._observableSource.id?.type === 'ViewExpression' &&
-              childCount > 1) {
+
+          // HACK: the unofficial interpreter always calls viewexpression observers
+          // twice, one with the name, and the next with 'viewof $name'.
+          // we check for 'viewof ' here and hide the element we're creating.
+          // this behavior appears inconsistent with OHQ's interpreter, so we
+          // shouldn't be surprised to see this fail in the future.
+          if (cell.id?.type === 'ViewExpression' &&
+              !name.startsWith('viewof ')) {
             element.style.display = "none";
           }
           return new Inspector(element);
@@ -110,8 +111,7 @@ export function createRuntime() {
       function cellSrc(cell) {
         let targetElement = getElement();
         let cellSrc = src.slice(cell.start, cell.end);
-        targetElement._observableSource = cell;
-        return interpreter.module(cellSrc, undefined, observer(targetElement));
+        return interpreter.module(cellSrc, undefined, observer(targetElement, cell));
       }
       return Promise.all(parse.cells.map(cellSrc));
     },
