@@ -486,7 +486,6 @@ function docxCalloutImage(type)
 end
 
 function nameForCalloutStyle(style) 
-  dump(style)
   if style:lower() == "material" then
     return "material"
   else
