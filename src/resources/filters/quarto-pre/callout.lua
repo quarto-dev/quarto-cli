@@ -84,12 +84,30 @@ function calloutType(div)
   return nil
 end
 
+local kCalloutStyleMaterial = "material"
+local kCalloutStyleSimple = "simple"
+
 -- an HTML callout div
 function calloutDiv(div)
+
+  -- the callout style
+  local calloutStyle = option("callout-style", nil)
+  if calloutStyle ~= nil then
+    calloutStyle = pandoc.utils.stringify(calloutStyle):lower()
+  else
+    calloutStyle = "simple"
+  end
 
   -- the first heading is the caption
   local caption = resolveHeadingCaption(div)
   local type = calloutType(div)
+
+  if calloutStyle == kCalloutStyleMaterial then
+    if caption == nil then
+      -- capitalize the type and use that as the caption if none was provided
+      caption = type:sub(1,1):upper()..type:sub(2)
+    end
+  end
 
   local icon = div.attr.attributes["icon"]
   div.attr.attributes["icon"] = nil
@@ -105,6 +123,7 @@ function calloutDiv(div)
 
   -- add card attribute
   calloutDiv.attr.classes:insert("callout")
+  calloutDiv.attr.classes:insert("callout-style-" .. nameForCalloutStyle(calloutStyle))
 
   -- the image placeholder
   local noicon = ""
@@ -463,6 +482,15 @@ function docxCalloutImage(type)
     return img
   else
     return nil
+  end
+end
+
+function nameForCalloutStyle(style) 
+  dump(style)
+  if style:lower() == "material" then
+    return "material"
+  else
+    return "simple"
   end
 end
 
