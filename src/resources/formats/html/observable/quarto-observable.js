@@ -51,13 +51,22 @@ export function createRuntime() {
       };
       let observer = function(targetElement) {
         return () => {
-          return new Inspector(
-            targetElement.appendChild(document.createElement(
-              inline
-                ? "span"
-                : "div",
-            )),
+          const element = document.createElement(
+            inline
+              ? "span"
+              : "div"
           );
+          targetElement.appendChild(element);
+          // Views currently emit the element for the view and the element for the
+          // reactive view.value. We hide the latter.
+          const childCount = Array.from(targetElement.childNodes)
+                .filter(n => n.nodeType === document.ELEMENT_NODE)
+                .length;
+          if (targetElement._observableSource.id?.type === 'ViewExpression' &&
+              childCount > 1) {
+            element.style.display = "none";
+          }
+          return new Inspector(element);
         };
       };
 
@@ -80,6 +89,7 @@ export function createRuntime() {
       function cellSrc(cell) {
         let targetElement = getElement();
         let cellSrc = src.slice(cell.start, cell.end);
+        targetElement._observableSource = cell;
         return interpreter.module(cellSrc, undefined, observer(targetElement));
       }
       return Promise.all(parse.cells.map(cellSrc));
