@@ -1,6 +1,7 @@
 import { Interpreter } from "https://cdn.skypack.dev/@alex.garcia/unofficial-observablehq-compiler";
 import {
   Inspector,
+  Library,
   Runtime,
 } from "https://cdn.skypack.dev/@observablehq/runtime";
 import { parseModule } from "https://cdn.skypack.dev/@observablehq/parser";
@@ -14,7 +15,27 @@ function createOJSSourceElement(el, src) {
 }
 
 export function createRuntime() {
-  const runtime = new Runtime();
+  // we're using the trick described here:
+  // https://talk.observablehq.com/t/embedded-width/1063
+  
+  let lib = new Library();
+  let mainEl = document.querySelector("main");
+  function width() {
+    return lib.Generators.observe(function(change) {
+      var width = change(mainEl.clientWidth);
+      function resized() {
+        var w = mainEl.clientWidth;
+        if (w !== width) change(width = w);
+      }
+      window.addEventListener("resize", resized);
+      return function() {
+        window.removeEventListener("resize", resized);
+      };
+    });
+  }
+  lib.width = width;
+  
+  const runtime = new Runtime(lib);
   const mainMod = runtime.module();
 
   const interpreter = new Interpreter({ module: mainMod });

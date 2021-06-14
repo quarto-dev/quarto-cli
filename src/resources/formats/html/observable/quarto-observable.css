@@ -1,3 +1,16 @@
 span.ojs-inline span div {
-  display: inline-block;
+    display: inline-block;
+}
+
+.observablehq .observablehq--inspect {
+    font-family: var(--bs-font-monospace);
+    font-size: .8em;
+}
+
+.observablehq--field {
+    margin-left: 1rem;
+}
+
+.observablehq--caret {
+    margin: 2px;
 }
