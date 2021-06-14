@@ -75,7 +75,7 @@ function isDocxCallout(class)
   return class == "docx-callout"
 end
 
-function calloutCategory(div)
+function calloutType(div)
   for _, class in ipairs(div.attr.classes) do
     if isCallout(class) then 
       return class:match("^callout%-(.*)")
@@ -93,7 +93,7 @@ function calloutDiv(div)
 
   -- the first heading is the caption
   local caption = resolveHeadingCaption(div)
-  local category = calloutCategory(div)
+  local type = calloutType(div)
 
   -- the callout type
   local processedCallout = processCalloutDiv(div)
@@ -120,8 +120,8 @@ function calloutDiv(div)
   -- the image placeholder
   local noicon = ""
 
-  -- Check to see whether this is a recognized category
-  if icon == false or not isBuiltInCategory(category) or category == nil then
+  -- Check to see whether this is a recognized type
+  if icon == false or not isBuiltInType(type) or type == nil then
     noicon = " no-icon"
     calloutDiv.attr.classes:insert("no-icon")
   end
@@ -203,7 +203,7 @@ function calloutLatex(div)
   
   -- read and clear attributes
   local caption = resolveHeadingCaption(div)
-  local category = calloutCategory(div)
+  local type = calloutType(div)
   local icon = div.attr.attributes["icon"]
   div.attr.attributes["icon"] = nil
   div.attr.attributes["caption"] = nil
@@ -220,7 +220,7 @@ function calloutLatex(div)
   tappend(calloutContents, div.content)
 
   -- generate the callout box
-  local callout = latexCalloutBox(category)
+  local callout = latexCalloutBox(type)
   local beginEnvironment = callout.beginInlines;
   local endEnvironment = callout.endInlines;
   
@@ -237,14 +237,14 @@ function calloutLatex(div)
 end
 
 -- create the tcolorBox
-function latexCalloutBox(category, icon)
+function latexCalloutBox(type, icon)
 
   -- calllout dimensions
   local leftBorderWidth = '1mm'
   local borderWidth = '.15mm'
   local borderRadius = '.15mm'
   local leftPad = '2mm'
-  local color = latexColorForCategory(category)
+  local color = latexColorForType(type)
 
   -- generate options
   local options = {
@@ -263,7 +263,7 @@ function latexCalloutBox(category, icon)
   local endInlines = { pandoc.RawInline('latex', '\n\\end{tcolorbox}') }
 
   -- generate the icon and use a minipage to position it
-  local iconForCat = iconForCategory(category)
+  local iconForCat = iconForType(type)
   if icon ~= false and iconForCat ~= nil then
     local iconName = '\\' .. iconForCat
     local iconColSize = '5.5mm'
@@ -329,8 +329,8 @@ end
 
 function calloutDocx(div) 
 
-  local hasIcon, category, contents = resolveCalloutContents(div, false)
-  local color = htmlColorForCategory(category)
+  local hasIcon, type, contents = resolveCalloutContents(div, false)
+  local color = htmlColorForType(type)
 
   local tablePrefix = [[
     <w:tbl>
@@ -357,7 +357,7 @@ function calloutDocx(div)
     pandoc.RawBlock("openxml", tablePrefix:gsub('$color', color)),
   })
 
-  local calloutImage = docxCalloutImage(category)
+  local calloutImage = docxCalloutImage(type)
   if hasIcon ~= "false" and calloutImage ~= nil then
     local imagePara = pandoc.Para({
       pandoc.RawInline("openxml", '<w:pPr>\n<w:spacing w:before="0" w:after="0" />\n<w:jc w:val="center" />\n</w:pPr>'), calloutImage})
@@ -397,7 +397,7 @@ end
 function epubCallout(div)
   -- read the caption and type info
   local caption = resolveHeadingCaption(div)
-  local category = calloutCategory(div)
+  local type = calloutType(div)
   
   -- the callout type
   local processedCallout = processCalloutDiv(div)
@@ -434,8 +434,8 @@ function epubCallout(div)
 
   -- set attributes (including hiding icon)
   local attributes = pandoc.List({"callout"})
-  if category ~= nil then
-    attributes:insert("callout-" .. category)
+  if type ~= nil then
+    attributes:insert("callout-" .. type)
   end
 
   if hasIcon == false then
@@ -450,14 +450,14 @@ function epubCallout(div)
 end
 
 function simpleCallout(div) 
-  local icon, category, contents = resolveCalloutContents(div, true)
+  local icon, type, contents = resolveCalloutContents(div, true)
   local callout = pandoc.BlockQuote(contents)
   return pandoc.Div(callout)
 end
 
 function resolveCalloutContents(div, requireCaption)
   local caption = resolveHeadingCaption(div)
-  local category = calloutCategory(div)
+  local type = calloutType(div)
   local icon = div.attr.attributes["icon"]
   
   div.attr.attributes["caption"] = nil
@@ -469,7 +469,7 @@ function resolveCalloutContents(div, requireCaption)
   -- Add the captions and contents
   -- classname 
   if caption == nil and requireCaption then 
-    caption = stringToInlines(category:sub(1,1):upper()..category:sub(2))
+    caption = stringToInlines(type:sub(1,1):upper()..type:sub(2))
   end
   
   -- raw paragraph with styles (left border, colored)
@@ -478,7 +478,7 @@ function resolveCalloutContents(div, requireCaption)
   end
   tappend(contents, div.content)
 
-  return icon, category, contents
+  return icon, type, contents
 end
 
 function removeParagraphPadding(contents) 
@@ -524,12 +524,12 @@ function nameForCalloutStyle(calloutType)
   end
 end
 
-function docxCalloutImage(category)
+function docxCalloutImage(type)
 
   -- try to form the svg name
   local svg = nil
-  if category ~= nil then
-    svg = param("icon-" .. category, nil)
+  if type ~= nil then
+    svg = param("icon-" .. type, nil)
   end
 
   -- lookup the image
@@ -543,60 +543,60 @@ function docxCalloutImage(category)
   end
 end
 
-function htmlColorForCategory(category) 
-  if category == 'note' then
+function htmlColorForType(type) 
+  if type == 'note' then
     return kColorNote
-  elseif category == "warning" then
+  elseif type == "warning" then
     return kColorWarning
-  elseif category == "important" then
+  elseif type == "important" then
     return kColorImportant
-  elseif category == "caution" then
+  elseif type == "caution" then
     return kColorDanger
-  elseif category == "tip" then 
+  elseif type == "tip" then 
     return kColorTip
   else
     return kColorUnknown
   end
 end
 
-function latexColorForCategory(category) 
-  if category == 'note' then
+function latexColorForType(type) 
+  if type == 'note' then
     return "quarto-callout-note-color"
-  elseif category == "warning" then
+  elseif type == "warning" then
     return "quarto-callout-warning-color"
-  elseif category == "important" then
+  elseif type == "important" then
     return "quarto-callout-important-color"
-  elseif category == "caution" then
+  elseif type == "caution" then
     return "quarto-callout-caution-color"
-  elseif category == "tip" then 
+  elseif type == "tip" then 
     return "quarto-callout-tip-color"
   else
     return "quarto-callout-color"
   end
 end
 
-function iconForCategory(category) 
-  if category == 'note' then
+function iconForType(type) 
+  if type == 'note' then
     return "faInfo"
-  elseif category == "warning" then
+  elseif type == "warning" then
     return "faExclamationTriangle"
-  elseif category == "important" then
+  elseif type == "important" then
     return "faExclamation"
-  elseif category == "caution" then
-    return "faBurn"
-  elseif category == "tip" then 
+  elseif type == "caution" then
+    return "faFire"
+  elseif type == "tip" then 
     return "faLightbulbO"
   else
     return nil
   end
 end
 
-function isBuiltInCategory(category) 
-  local icon = iconForCategory(category)
+function isBuiltInType(type) 
+  local icon = iconForType(type)
   return icon ~= nil
 end
 
 function appearanceDisplayName(appearance)
-    -- capitalize the category and use that as the caption if none was provided
+    -- capitalize the type and use that as the caption if none was provided
     return appearance:sub(1,1):upper()..appearance:sub(2)
 end
