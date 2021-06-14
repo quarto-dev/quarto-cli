@@ -211,21 +211,23 @@ function calloutLatex(div)
 
   div.attr.attributes["caption"] = nil
   div.attr.attributes["collapse"] = nil
-  
-  -- Add the captions and contents
-  local calloutContents = pandoc.List:new({});
-  if caption ~= nil then 
-
-    tprepend(caption, {pandoc.RawInline('latex', '\\textbf{')})
-    tappend(caption, {pandoc.RawInline('latex', '}\\vspace{2mm}')})
-    calloutContents:insert(pandoc.Para(caption))
-  end
-  tappend(calloutContents, div.content)
 
   -- generate the callout box
-  local callout = latexCalloutBox(type, icon)
-  local beginEnvironment = callout.beginInlines;
-  local endEnvironment = callout.endInlines;
+  local callout
+  if calloutAppearance == kCalloutAppearanceDefault then
+    if caption == nil then
+      caption = appearanceDisplayName(calloutAppearance)
+    else
+      caption = pandoc.utils.stringify(caption)
+    end
+    callout = latexCalloutBoxDefault(caption, type, icon)
+  else
+    callout = latexCalloutBoxSimple(caption, type, icon)
+  end
+  local beginEnvironment = callout.beginInlines
+  local endEnvironment = callout.endInlines
+  local calloutContents = callout.contents
+  tappend(calloutContents, div.content)
   
   if calloutContents[1].t == "Para" and calloutContents[#calloutContents].t == "Para" then
     tprepend(calloutContents[1].content, beginEnvironment)
@@ -239,13 +241,63 @@ function calloutLatex(div)
   return pandoc.Div(calloutContents)
 end
 
--- create the tcolorBox
-function latexCalloutBox(type, icon)
+function latexCalloutBoxDefault(caption, type, icon) 
 
-  -- calllout dimensions
-  local leftBorderWidth = '1mm'
+  -- callout dimensions
+  local leftBorderWidth = '.75mm'
   local borderWidth = '.15mm'
-  local borderRadius = '.15mm'
+  local borderRadius = '.35mm'
+  local leftPad = '2mm'
+  local color = latexColorForType(type)
+
+
+  local iconForCat = iconForType(type)
+
+  -- generate options
+  local options = {
+    colframe = color,
+    colbacktitle = color ..'!10!white',
+    coltitle = 'black',
+    colback = 'white',
+    left = leftPad,
+    leftrule = leftBorderWidth,
+    toprule = borderWidth, 
+    bottomrule = borderWidth,
+    rightrule = borderWidth,
+    arc = borderRadius,
+    title = caption,
+    titlerule = '0mm',
+    toptitle = '1mm',
+    bottomtitle = '1mm',
+  }
+
+  if icon ~= false and iconForCat ~= nil then
+    options.title = '\\textcolor{' .. color .. '}{\\' .. iconForCat .. '}\\hspace{0.5em}' ..  options.title
+  end
+
+  -- the core latex for the box
+  local beginInlines = { pandoc.RawInline('latex', '\\begin{tcolorbox}[' .. tColorOptions(options) .. ']\n') }
+  local endInlines = { pandoc.RawInline('latex', '\n\\end{tcolorbox}') }
+
+  -- Add the captions and contents
+  local calloutContents = pandoc.List:new({});
+
+  -- the inlines
+  return { 
+    contents = calloutContents,
+    beginInlines = beginInlines, 
+    endInlines = endInlines
+  }
+
+end
+
+-- create the tcolorBox
+function latexCalloutBoxSimple(caption, type, icon)
+
+  -- callout dimensions
+  local leftBorderWidth = '.75mm'
+  local borderWidth = '.15mm'
+  local borderRadius = '.35mm'
   local leftPad = '2mm'
   local color = latexColorForType(type)
 
@@ -279,12 +331,22 @@ function latexCalloutBox(type, icon)
     tprepend(endInlines, {pandoc.RawInline('latex', '\\end{minipage}%')});
   end
 
+  -- Add the captions and contents
+  local calloutContents = pandoc.List:new({});
+  if caption ~= nil then 
+    tprepend(caption, {pandoc.RawInline('latex', '\\textbf{')})
+    tappend(caption, {pandoc.RawInline('latex', '}\\vspace{2mm}')})
+    calloutContents:insert(pandoc.Para(caption))
+  end
+
   -- the inlines
   return { 
+    contents = calloutContents,
     beginInlines = beginInlines, 
     endInlines = endInlines
   }
 end
+
 
 -- generates a set of options for a tColorBox
 function tColorOptions(options) 
