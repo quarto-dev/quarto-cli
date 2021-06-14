@@ -47,9 +47,10 @@ function parseOption(name, options, default)
 
       -- the key doesn't match a value, stop indexing
       if value == nil then
-        break
+        return default
       end
     end
   end
   return value
+    
 end
