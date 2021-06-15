@@ -307,11 +307,11 @@ div.hanging-indent {
 
 .callout {
   margin-top: $callout-margin-top;
-  margin-bottom: $callout-margin-bottom;  
+  margin-bottom: $callout-margin-bottom;
   border-radius: $border-radius;
 }
 
-.callout.callout-style-simple { 
+.callout.callout-style-simple {
   padding: 0.4em 0.7em;
   border-left: $callout-border-width solid;
   border-right: 1px solid $table-border-color;
@@ -355,7 +355,7 @@ div.hanging-indent {
 
 .callout.callout-style-simple > div.callout-header {
   border-bottom: none;
-  font-size: .9rem;
+  font-size: 0.9rem;
   font-weight: 600;
   opacity: 75%;
 }
@@ -440,7 +440,12 @@ $code-border-left-color: $table-border-color !default;
   padding-right: 0.35em;
 }
 
-.callout.callout-style-default.callout-caution:not(.no-icon) div.callout-icon-container {
+.callout.callout-style-default:not(.no-icon) div.callout-caption-container {
+  margin-top: -1px;
+}
+
+.callout.callout-style-default.callout-caution:not(.no-icon)
+  div.callout-icon-container {
   padding-top: 0.3em;
   padding-right: 0.35em;
 }
@@ -491,7 +496,7 @@ $callouts: (
 );
 
 @each $name, $info in $callouts {
-  div.callout-#{$name}.callout  {
+  div.callout-#{$name}.callout {
     border-left-color: shift-color(
       map.get($info, "color"),
       $callout-border-scale
@@ -499,10 +504,7 @@ $callouts: (
   }
 
   div.callout-#{$name}.callout-style-default .callout-header {
-    background-color: shift-color(
-      map.get($info, "color"),
-      -90%
-    );
+    background-color: shift-color(map.get($info, "color"), -90%);
   }
 
   $shifted-color: #{shift-color(map.get($info, "color"), $callout-icon-scale)};
