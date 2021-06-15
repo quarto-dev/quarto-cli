@@ -446,21 +446,28 @@ function calloutDocxDefault(div, type, hasIcon)
     pandoc.RawBlock("openxml", tablePrefix:gsub('$background', backgroundColor):gsub('$color', color)),
   })
 
+  -- Create a caption if there isn't already one
   if caption == nil then
-    caption = pandoc.Str(displayName(type))
-  else 
-    caption = caption
+    caption = pandoc.List({pandoc.Str(displayName(type))})
   end
 
   -- add the image to the caption, if needed
   local calloutImage = docxCalloutImage(type);
   if hasIcon and calloutImage ~= nil then
-    -- TODO: Need to insert icon
+    -- Create a paragraph with the icon, spaces, and text
+    local imageCaption = pandoc.List({
+        pandoc.RawInline("openxml", '<w:pPr>\n<w:spacing w:before="0" w:after="0" />\n<w:textAlignment w:val="center"/>\n</w:pPr>'), 
+        calloutImage,
+        pandoc.Space(), 
+        pandoc.Space()})
+    tappend(imageCaption, caption)
+    calloutContents:insert(pandoc.Para(imageCaption))
+  else
+    local captionRaw = openXmlPara(pandoc.Para(caption), 'w:before="16" w:after="16"')
+    calloutContents:insert(captionRaw)  
   end
 
-  local captionRaw = openXmlPara(pandoc.Para(caption), 'w:before="16" w:after="16"')
-  calloutContents:insert(captionRaw)
-
+  
   -- end the caption row and start the body row
   local tableMiddle = [[
       </w:tc>
@@ -541,7 +548,7 @@ function calloutDocxSimple(div, type, hasIcon)
   local calloutImage = docxCalloutImage(type)
   if hasIcon and calloutImage ~= nil then
     local imagePara = pandoc.Para({
-      pandoc.RawInline("openxml", '<w:pPr>\n<w:spacing w:before="0" w:after="0" />\n<w:jc w:val="center" />\n</w:pPr>'), calloutImage})
+      pandoc.RawInline("openxml", '<w:pPr>\n<w:spacing w:before="0" w:after="8" />\n<w:jc w:val="center" />\n</w:pPr>'), calloutImage})
     prefix:insert(pandoc.RawBlock("openxml", '<w:tcPr><w:tcMar><w:left w:w="144" w:type="dxa" /><w:right w:w="144" w:type="dxa" /></w:tcMar></w:tcPr>'))
     prefix:insert(imagePara)
     prefix:insert(pandoc.RawBlock("openxml",  "</w:tc>\n<w:tc>"))
