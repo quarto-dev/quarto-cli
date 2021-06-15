@@ -10,7 +10,7 @@ import { extname, join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { readYamlFromMarkdown } from "../../core/yaml.ts";
-import { isWindows } from "../../core/platform.ts";
+import { isGithubAction, isWindows } from "../../core/platform.ts";
 import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
 
 import { dirAndStem, removeIfExists } from "../../core/path.ts";
@@ -152,7 +152,7 @@ export const jupyterEngine: ExecutionEngine = {
       // some figurations, possibly due to restrictions on creating tcpip ports)
       let executeDaemon = options.format.execute[kExecuteDaemon];
       if (executeDaemon === null) {
-        executeDaemon = !isWindows();
+        executeDaemon = !isWindows() && !isGithubAction();
       }
       if (executeDaemon === false || executeDaemon === 0) {
         await executeKernelOneshot(execOptions);
