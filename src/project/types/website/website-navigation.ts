@@ -254,16 +254,20 @@ export async function ensureIndexPage(project: ProjectContext) {
       const firstInputHref = relative(project.dir, firstInput);
       const resolved = await resolveInputTarget(project, firstInputHref);
       if (resolved) {
-        const redirectTemplate = resourcePath(
-          "projects/website/templates/redirect.ejs",
-        );
-        const redirectHtml = renderEjs(redirectTemplate, {
-          url: resolved.outputHref,
-        });
-        Deno.writeTextFileSync(indexPage, redirectHtml);
+        writeRedirectPage(indexPage, resolved.outputHref);
       }
     }
   }
+}
+
+export function writeRedirectPage(path: string, href: string) {
+  const redirectTemplate = resourcePath(
+    "projects/website/templates/redirect.ejs",
+  );
+  const redirectHtml = renderEjs(redirectTemplate, {
+    url: href,
+  });
+  Deno.writeTextFileSync(path, redirectHtml);
 }
 
 function navigationHtmlPostprocessor(project: ProjectContext, source: string) {

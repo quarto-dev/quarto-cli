@@ -39,6 +39,7 @@ import {
   websiteProjectConfig,
   websiteTitle,
 } from "./website-config.ts";
+import { updateAliases } from "./website-aliases.ts";
 
 export const websiteProjectType: ProjectType = {
   type: "site",
@@ -154,6 +155,9 @@ export async function websitePostRender(
 
   // write redirecting index.html if there is none
   ensureIndexPage(context);
+
+  // generate any page aliases
+  await updateAliases(outputFiles, context);
 }
 
 export function websiteOutputFiles(outputFiles: ProjectOutputFile[]) {
