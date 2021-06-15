@@ -21,7 +21,7 @@ function quartoPreMetaInject()
             "\\definecolor{quarto-callout-important-color}{HTML}{" .. kColorImportant .. "}\n" ..
             "\\definecolor{quarto-callout-warning-color}{HTML}{" .. kColorWarning .."}\n" ..
             "\\definecolor{quarto-callout-tip-color}{HTML}{" .. kColorTip .."}\n" ..
-            "\\definecolor{quarto-callout-caution-color}{HTML}{" .. kColorDanger .. "}\n"
+            "\\definecolor{quarto-callout-caution-color}{HTML}{" .. kColorCaution .. "}\n"
           )
         end)
       end
