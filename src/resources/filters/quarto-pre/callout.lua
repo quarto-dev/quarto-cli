@@ -84,6 +84,10 @@ function calloutType(div)
   return nil
 end
 
+local kCalloutAppearanceDefault = "default"
+local kCalloutDefaultSimple = "simple"
+local kCalloutDefaultMinimal = "minimal"
+
 -- an HTML callout div
 function calloutDiv(div)
 
@@ -91,8 +95,14 @@ function calloutDiv(div)
   local caption = resolveHeadingCaption(div)
   local type = calloutType(div)
 
-  local icon = div.attr.attributes["icon"]
-  div.attr.attributes["icon"] = nil
+  -- the callout type
+  local processedCallout = processCalloutDiv(div)
+  local calloutAppearance = processedCallout.appearance
+  local icon = processedCallout.icon
+
+  if calloutAppearance == kCalloutAppearanceDefault and caption == nil then
+    caption = displayName(type)
+  end
 
   local collapse = div.attr.attributes["collapse"]
   div.attr.attributes["collapse"] = nil
@@ -105,12 +115,13 @@ function calloutDiv(div)
 
   -- add card attribute
   calloutDiv.attr.classes:insert("callout")
+  calloutDiv.attr.classes:insert("callout-style-" .. calloutAppearance)
 
   -- the image placeholder
   local noicon = ""
 
   -- Check to see whether this is a recognized type
-  if icon == "false" or not isBuiltInType(type) or type == nil then
+  if icon == false or not isBuiltInType(type) or type == nil then
     noicon = " no-icon"
     calloutDiv.attr.classes:insert("no-icon")
   end
@@ -193,25 +204,30 @@ function calloutLatex(div)
   -- read and clear attributes
   local caption = resolveHeadingCaption(div)
   local type = calloutType(div)
-  local icon = div.attr.attributes["icon"]
-  div.attr.attributes["icon"] = nil
+
+  local processedCallout = processCalloutDiv(div)
+  local calloutAppearance = processedCallout.appearance
+  local icon = processedCallout.icon
+
   div.attr.attributes["caption"] = nil
   div.attr.attributes["collapse"] = nil
-  
-  -- Add the captions and contents
-  local calloutContents = pandoc.List:new({});
-  if caption ~= nil then 
-
-    tprepend(caption, {pandoc.RawInline('latex', '\\textbf{')})
-    tappend(caption, {pandoc.RawInline('latex', '}\\vspace{2mm}')})
-    calloutContents:insert(pandoc.Para(caption))
-  end
-  tappend(calloutContents, div.content)
 
   -- generate the callout box
-  local callout = latexCalloutBox(type)
-  local beginEnvironment = callout.beginInlines;
-  local endEnvironment = callout.endInlines;
+  local callout
+  if calloutAppearance == kCalloutAppearanceDefault then
+    if caption == nil then
+      caption = displayName(type)
+    else
+      caption = pandoc.utils.stringify(caption)
+    end
+    callout = latexCalloutBoxDefault(caption, type, icon)
+  else
+    callout = latexCalloutBoxSimple(caption, type, icon)
+  end
+  local beginEnvironment = callout.beginInlines
+  local endEnvironment = callout.endInlines
+  local calloutContents = callout.contents
+  tappend(calloutContents, div.content)
   
   if calloutContents[1].t == "Para" and calloutContents[#calloutContents].t == "Para" then
     tprepend(calloutContents[1].content, beginEnvironment)
@@ -225,13 +241,64 @@ function calloutLatex(div)
   return pandoc.Div(calloutContents)
 end
 
--- create the tcolorBox
-function latexCalloutBox(type, icon)
+function latexCalloutBoxDefault(caption, type, icon) 
 
-  -- calllout dimensions
-  local leftBorderWidth = '1mm'
+  -- callout dimensions
+  local leftBorderWidth = '.75mm'
   local borderWidth = '.15mm'
-  local borderRadius = '.15mm'
+  local borderRadius = '.35mm'
+  local leftPad = '2mm'
+  local color = latexColorForType(type)
+
+
+  local iconForType = iconForType(type)
+
+  -- generate options
+  local options = {
+    colframe = color,
+    colbacktitle = color ..'!10!white',
+    coltitle = 'black',
+    colback = 'white',
+    left = leftPad,
+    leftrule = leftBorderWidth,
+    toprule = borderWidth, 
+    bottomrule = borderWidth,
+    rightrule = borderWidth,
+    arc = borderRadius,
+    title = caption,
+    titlerule = '0mm',
+    toptitle = '1mm',
+    bottomtitle = '1mm',
+  }
+
+  if icon ~= false and iconForType ~= nil then
+    dump(options.title)
+    options.title = '\\textcolor{' .. color .. '}{\\' .. iconForType .. '}\\hspace{0.5em}' ..  options.title
+  end
+
+  -- the core latex for the box
+  local beginInlines = { pandoc.RawInline('latex', '\\begin{tcolorbox}[' .. tColorOptions(options) .. ']\n') }
+  local endInlines = { pandoc.RawInline('latex', '\n\\end{tcolorbox}') }
+
+  -- Add the captions and contents
+  local calloutContents = pandoc.List:new({});
+
+  -- the inlines
+  return { 
+    contents = calloutContents,
+    beginInlines = beginInlines, 
+    endInlines = endInlines
+  }
+
+end
+
+-- create the tcolorBox
+function latexCalloutBoxSimple(caption, type, icon)
+
+  -- callout dimensions
+  local leftBorderWidth = '.75mm'
+  local borderWidth = '.15mm'
+  local borderRadius = '.35mm'
   local leftPad = '2mm'
   local color = latexColorForType(type)
 
@@ -252,9 +319,9 @@ function latexCalloutBox(type, icon)
   local endInlines = { pandoc.RawInline('latex', '\n\\end{tcolorbox}') }
 
   -- generate the icon and use a minipage to position it
-  local iconForType = iconForType(type)
-  if icon ~= false and iconForType ~= nil then
-    local iconName = '\\' .. iconForType
+  local iconForCat = iconForType(type)
+  if icon ~= false and iconForCat ~= nil then
+    local iconName = '\\' .. iconForCat
     local iconColSize = '5.5mm'
 
     -- add an icon to the begin
@@ -265,12 +332,22 @@ function latexCalloutBox(type, icon)
     tprepend(endInlines, {pandoc.RawInline('latex', '\\end{minipage}%')});
   end
 
+  -- Add the captions and contents
+  local calloutContents = pandoc.List:new({});
+  if caption ~= nil then 
+    tprepend(caption, {pandoc.RawInline('latex', '\\textbf{')})
+    tappend(caption, {pandoc.RawInline('latex', '}\\vspace{2mm}')})
+    calloutContents:insert(pandoc.Para(caption))
+  end
+
   -- the inlines
   return { 
+    contents = calloutContents,
     beginInlines = beginInlines, 
     endInlines = endInlines
   }
 end
+
 
 -- generates a set of options for a tColorBox
 function tColorOptions(options) 
@@ -288,11 +365,161 @@ function tColorOptions(options)
 
 end
 
+function processCalloutDiv(div) 
 
-function calloutDocx(div) 
+  local icon = div.attr.attributes["icon"]
+  div.attr.attributes["icon"] = nil
+  if icon == nil then
+    icon = option("callout-icon", true)
+  elseif icon == "false" then
+    icon = false
+  end
+  
 
-  local hasIcon, type, contents = resolveCalloutContents(div, false)
+  local appearanceRaw = div.attr.attributes["appearance"]
+  div.attr.attributes["appearance"] = nil
+  if appearanceRaw == nil then
+    appearanceRaw = option("callout-appearance", nil)
+  end
+  
+  local appearance = nameForCalloutStyle(appearanceRaw);
+  if appearance == "minimal" then
+    icon = false
+    appearance = "simple"
+  end
+
+  return { icon = icon, appearance = appearance}
+
+end
+
+function calloutDocx(div)
+  local type = calloutType(div)
+  local processedCallout = processCalloutDiv(div)
+  local appearance = processedCallout.appearance
+  local hasIcon = processedCallout.icon 
+
+  if appearance == kCalloutAppearanceDefault then
+    return calloutDocxDefault(div, type, hasIcon)
+  else
+    return calloutDocxSimple(div, type, hasIcon)
+  end
+end
+
+
+function calloutDocxDefault(div, type, hasIcon)
+
+  local caption = resolveHeadingCaption(div)  
   local color = htmlColorForType(type)
+  local backgroundColor = htmlBackgroundColorForType(type)
+
+  local tablePrefix = [[
+    <w:tbl>
+    <w:tblPr>
+      <w:tblStyle w:val="Table" />
+      <w:tblLook w:firstRow="0" w:lastRow="0" w:firstColumn="0" w:lastColumn="0" w:noHBand="0" w:noVBand="0" w:val="0000" />
+      <w:tblBorders>  
+        <w:left w:val="single" w:sz="24" w:space="0" w:color="$color"/>  
+        <w:right w:val="single" w:sz="4" w:space="0" w:color="$color"/>  
+        <w:top w:val="single" w:sz="4" w:space="0" w:color="$color"/>  
+        <w:bottom w:val="single" w:sz="4" w:space="0" w:color="$color"/>  
+      </w:tblBorders> 
+      <w:tblCellMar>
+        <w:left w:w="144" w:type="dxa" />
+        <w:right w:w="144" w:type="dxa" />
+      </w:tblCellMar>
+      <w:tblInd w:w="164" w:type="dxa" />
+      <w:tblW w:type="pct" w:w="100%"/>
+    </w:tblPr>
+    <w:tr>
+      <w:trPr>
+        <w:cantSplit/>
+      </w:trPr>
+      <w:tc>
+        <w:tcPr>
+          <w:shd w:color="auto" w:fill="$background" w:val="clear"/>
+          <w:tcMar>
+            <w:top w:w="92" w:type="dxa" />
+            <w:bottom w:w="92" w:type="dxa" />
+          </w:tcMar>
+        </w:tcPr>
+  ]]
+  local calloutContents = pandoc.List:new({
+    pandoc.RawBlock("openxml", tablePrefix:gsub('$background', backgroundColor):gsub('$color', color)),
+  })
+
+  -- Create a caption if there isn't already one
+  if caption == nil then
+    caption = pandoc.List({pandoc.Str(displayName(type))})
+  end
+
+  -- add the image to the caption, if needed
+  local calloutImage = docxCalloutImage(type);
+  if hasIcon and calloutImage ~= nil then
+    -- Create a paragraph with the icon, spaces, and text
+    local imageCaption = pandoc.List({
+        pandoc.RawInline("openxml", '<w:pPr>\n<w:spacing w:before="0" w:after="0" />\n<w:textAlignment w:val="center"/>\n</w:pPr>'), 
+        calloutImage,
+        pandoc.Space(), 
+        pandoc.Space()})
+    tappend(imageCaption, caption)
+    calloutContents:insert(pandoc.Para(imageCaption))
+  else
+    local captionRaw = openXmlPara(pandoc.Para(caption), 'w:before="16" w:after="16"')
+    calloutContents:insert(captionRaw)  
+  end
+
+  
+  -- end the caption row and start the body row
+  local tableMiddle = [[
+      </w:tc>
+    </w:tr>
+    <w:tr>
+      <w:trPr>
+        <w:cantSplit/>
+      </w:trPr>
+      <w:tc> 
+      <w:tcPr>
+        <w:tcMar>
+          <w:top w:w="108" w:type="dxa" />
+          <w:bottom w:w="108" w:type="dxa" />
+        </w:tcMar>
+      </w:tcPr>
+
+  ]]
+  calloutContents:insert(pandoc.Div(pandoc.RawBlock("openxml", tableMiddle)))  
+
+  -- the main contents of the callout
+  local contents = div.content
+
+  -- ensure there are no nested callouts
+  if contents:find_if(function(el) 
+    return el.t == "Div" and el.attr.classes:find_if(isDocxOutput) ~= nil 
+  end) ~= nil then
+    fail("Found a nested callout in the document. Please fix this issue and try again.")
+  end
+  
+  -- remove padding from existing content and add it
+  removeParagraphPadding(contents)
+  tappend(calloutContents, contents)
+
+  -- close the table
+  local suffix = pandoc.List:new({pandoc.RawBlock("openxml", [[
+    </w:tc>
+    </w:tr>
+  </w:tbl>
+  ]])})
+  tappend(calloutContents, suffix)
+
+  -- return the callout
+  local callout = pandoc.Div(calloutContents, pandoc.Attr("", {"docx-callout"}))
+  return callout
+end
+
+
+function calloutDocxSimple(div, type, hasIcon) 
+
+  local color = htmlColorForType(type)
+  local caption = resolveHeadingCaption(div)  
 
   local tablePrefix = [[
     <w:tbl>
@@ -320,9 +547,9 @@ function calloutDocx(div)
   })
 
   local calloutImage = docxCalloutImage(type)
-  if hasIcon ~= "false" and calloutImage ~= nil then
+  if hasIcon and calloutImage ~= nil then
     local imagePara = pandoc.Para({
-      pandoc.RawInline("openxml", '<w:pPr>\n<w:spacing w:before="0" w:after="0" />\n<w:jc w:val="center" />\n</w:pPr>'), calloutImage})
+      pandoc.RawInline("openxml", '<w:pPr>\n<w:spacing w:before="0" w:after="8" />\n<w:jc w:val="center" />\n</w:pPr>'), calloutImage})
     prefix:insert(pandoc.RawBlock("openxml", '<w:tcPr><w:tcMar><w:left w:w="144" w:type="dxa" /><w:right w:w="144" w:type="dxa" /></w:tcMar></w:tcPr>'))
     prefix:insert(imagePara)
     prefix:insert(pandoc.RawBlock("openxml",  "</w:tc>\n<w:tc>"))
@@ -338,8 +565,15 @@ function calloutDocx(div)
 
   local calloutContents = pandoc.List:new({});
   tappend(calloutContents, prefix)
+
+  -- deal with the caption, if present
+  if caption ~= nil then
+    local captionPara = pandoc.Para(pandoc.Strong(caption))
+    calloutContents:insert(openXmlPara(captionPara, 'w:before="16" w:after="64"'))
+  end
   
   -- convert to open xml paragraph
+  local contents = div.content;
   removeParagraphPadding(contents)
   
   -- ensure there are no nested callouts
@@ -358,17 +592,36 @@ end
 
 function epubCallout(div)
   -- read the caption and type info
-  local hasIcon = div.attr.attributes["icon"]
   local caption = resolveHeadingCaption(div)
   local type = calloutType(div)
+  
+  -- the callout type
+  local processedCallout = processCalloutDiv(div)
+  local calloutAppearance = processedCallout.appearance
+  local hasIcon = processedCallout.icon
+
+  if calloutAppearance == kCalloutAppearanceDefault and caption == nil then
+    caption = displayName(type)
+  end
   
   -- the body of the callout
   local calloutBody = pandoc.Div({}, pandoc.Attr("", {"callout-body"}))
 
+  local imgPlaceholder = pandoc.Plain({pandoc.RawInline("html", "<i class='callout-icon'></i>")});       
+  local imgDiv = pandoc.Div({imgPlaceholder}, pandoc.Attr("", {"callout-icon-container"}));
+
   -- caption
   if caption ~= nil then
-    local calloutCaption = pandoc.Div(pandoc.Para(pandoc.Strong(caption)), pandoc.Attr("", {"callout-caption"}))
+    local calloutCaption = pandoc.Div({}, pandoc.Attr("", {"callout-caption"}))
+    if hasIcon then
+      calloutCaption.content:insert(imgDiv)
+    end
+    calloutCaption.content:insert(pandoc.Para(pandoc.Strong(caption)))
     calloutBody.content:insert(calloutCaption)
+  else 
+    if hasIcon then
+      calloutBody.content:insert(imgDiv)
+    end
   end
 
   -- contents 
@@ -380,9 +633,14 @@ function epubCallout(div)
   if type ~= nil then
     attributes:insert("callout-" .. type)
   end
-  if hasIcon == 'false' then
+
+  if hasIcon == false then
     attributes:insert("no-icon")
   end
+  if caption ~= nil then
+    attributes:insert("callout-captioned")
+  end
+  attributes:insert("callout-style-" .. calloutAppearance)
 
   return pandoc.Div({calloutBody}, pandoc.Attr("", attributes))
 end
@@ -424,15 +682,15 @@ function removeParagraphPadding(contents)
 
     if #contents == 1 then
       if contents[1].t == "Para" then
-        contents[1] = openXmlPara(contents[1], 'w:before="0" w:after="0"')
+        contents[1] = openXmlPara(contents[1], 'w:before="16" w:after="16"')
       end  
     else
       if contents[1].t == "Para" then 
-        contents[1] = openXmlPara(contents[1], 'w:before="0"')
+        contents[1] = openXmlPara(contents[1], 'w:before="16"')
       end
 
       if contents[#contents].t == "Para" then 
-        contents[#contents] = openXmlPara(contents[#contents], 'w:after="0"')
+        contents[#contents] = openXmlPara(contents[#contents], 'w:after="16"')
       end
     end
   end
@@ -446,6 +704,21 @@ function openXmlPara(para, spacing)
   return xmlPara
 end
 
+function nameForCalloutStyle(calloutType) 
+  if calloutType == nil then
+    return "default"
+  else 
+    local name = pandoc.utils.stringify(calloutType);
+
+    if name:lower() == "minimal" then
+      return "minimal"
+    elseif name:lower() == "simple" then
+      return "simple"
+    else
+      return "default"
+    end
+  end
+end
 
 function docxCalloutImage(type)
 
@@ -474,9 +747,25 @@ function htmlColorForType(type)
   elseif type == "important" then
     return kColorImportant
   elseif type == "caution" then
-    return kColorDanger
+    return kColorCaution
   elseif type == "tip" then 
     return kColorTip
+  else
+    return kColorUnknown
+  end
+end
+
+function htmlBackgroundColorForType(type)
+  if type == 'note' then
+    return kBackgroundColorNote
+  elseif type == "warning" then
+    return kBackgroundColorWarning
+  elseif type == "important" then
+    return kBackgroundColorImportant
+  elseif type == "caution" then
+    return kBackgroundColorCaution
+  elseif type == "tip" then 
+    return kBackgroundColorTip
   else
     return kColorUnknown
   end
@@ -506,7 +795,7 @@ function iconForType(type)
   elseif type == "important" then
     return "faExclamation"
   elseif type == "caution" then
-    return "faBurn"
+    return "faFire"
   elseif type == "tip" then 
     return "faLightbulbO"
   else
@@ -517,4 +806,9 @@ end
 function isBuiltInType(type) 
   local icon = iconForType(type)
   return icon ~= nil
+end
+
+function displayName(str)
+    -- capitalize the type and use that as the caption if none was provided
+    return str:sub(1,1):upper()..str:sub(2)
 end
