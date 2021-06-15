@@ -10,10 +10,11 @@ import { extname, join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { readYamlFromMarkdown } from "../../core/yaml.ts";
-import { isGithubAction, isWindows } from "../../core/platform.ts";
+import { isInteractiveSession, isWindows } from "../../core/platform.ts";
 import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
 
 import { dirAndStem, removeIfExists } from "../../core/path.ts";
+import { runningInCI } from "../../core/ci-info.ts";
 
 import { Metadata } from "../../config/metadata.ts";
 
@@ -148,11 +149,15 @@ export const jupyterEngine: ExecutionEngine = {
         },
       };
 
-      // use daemon by default on posix but not on windows (it doesn't work in
-      // some figurations, possibly due to restrictions on creating tcpip ports)
+      // use daemon by default if we are in an interactive session (terminal
+      // or rstudio) on posix and not running in a CI system. note that
+      // execlude windows b/c in some configurations the process won't have
+      // permission to create and bind to a tcp/ip port. we could overcome
+      // this by using named pipes (no deno support for this yet though)
       let executeDaemon = options.format.execute[kExecuteDaemon];
-      if (executeDaemon === null) {
-        executeDaemon = !isWindows() && !isGithubAction();
+      if (executeDaemon === null || executeDaemon === undefined) {
+        executeDaemon = isInteractiveSession() &&
+          !isWindows() && !runningInCI();
       }
       if (executeDaemon === false || executeDaemon === 0) {
         await executeKernelOneshot(execOptions);
