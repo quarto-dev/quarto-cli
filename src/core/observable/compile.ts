@@ -6,9 +6,7 @@
 */
 
 import { dirname, join } from "path/mod.ts";
-
 import { Format, isJavascriptCompatible } from "../../config/format.ts";
-
 import { warnOnce, logError } from "../../core/log.ts";
 import { escapeBackticks } from "../../core/text.ts";
 import { breakQuartoMd } from "../../core/break-quarto-md.ts";
@@ -17,9 +15,9 @@ import { formatResourcePath } from "../resources.ts";
 import { resolveDependencies } from "../../command/render/pandoc.ts";
 import { kIncludeAfterBody, kIncludeInHeader } from "../../config/constants.ts";
 import { sessionTempFile } from "../temp.ts";
-
 import { languagesInMarkdown } from "../jupyter/jupyter.ts";
 import { asHtmlId } from "../html.ts";
+import { parseModule } from "observablehq/parser";
 
 import {
   kCodeFold,
@@ -33,7 +31,6 @@ import {
   kWarning,
 } from "../../config/constants.ts";
 
-import { parseModule } from "https://cdn.skypack.dev/@observablehq/parser";
 
 export interface ObserveableCompileOptions {
   source: string;
