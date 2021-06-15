@@ -297,13 +297,11 @@ async function connectToKernel(
   }
 
   // determine timeout
-  const isInteractive = Deno.isatty(Deno.stderr.rid) ||
-    !!Deno.env.get("RSTUDIO_VERSION");
-  const defaultTimeout = isInteractive ? 300 : 0;
+  const kDefaultTimeout = 300;
   const keepAlive = options.format.execute[kExecuteDaemon];
   const timeout =
     keepAlive === true || keepAlive === null || keepAlive === undefined
-      ? defaultTimeout
+      ? kDefaultTimeout
       : keepAlive === false
       ? 0
       : keepAlive;

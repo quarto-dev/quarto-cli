@@ -140,7 +140,7 @@ function calloutDiv(div)
 
     -- create the header to contain the caption
     -- caption should expand to fill its space
-    local captionDiv = pandoc.Div(pandoc.Plain(caption), pandoc.Attr("", {"flex-fill"}))
+    local captionDiv = pandoc.Div(pandoc.Plain(caption), pandoc.Attr("", {"callout-caption-container", "flex-fill"}))
     local headerDiv = pandoc.Div({imgDiv, captionDiv}, pandoc.Attr("", {"callout-header", "d-flex", "align-content-center"}))
     local bodyDiv = div
     bodyDiv.attr.classes:insert("callout-body")
