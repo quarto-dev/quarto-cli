@@ -64,7 +64,16 @@ async function formats() {
     "epub",
   ];
 
-  return commonFormats.concat(ld.difference(formats, commonFormats));
+  const excludedFormats = [
+    "bibtex",
+    "biblatex",
+    "csljson",
+  ];
+
+  return ld.difference(
+    commonFormats.concat(ld.difference(formats, commonFormats)),
+    excludedFormats,
+  );
 }
 
 async function themes() {
