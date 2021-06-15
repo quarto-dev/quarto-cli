@@ -218,7 +218,7 @@ function calloutLatex(div)
     if caption == nil then
       caption = displayName(type)
     else
-      caption = caption
+      caption = pandoc.utils.stringify(caption)
     end
     callout = latexCalloutBoxDefault(caption, type, icon)
   else
@@ -251,7 +251,7 @@ function latexCalloutBoxDefault(caption, type, icon)
   local color = latexColorForType(type)
 
 
-  local iconForCat = iconForType(type)
+  local iconForType = iconForType(type)
 
   -- generate options
   local options = {
@@ -271,8 +271,9 @@ function latexCalloutBoxDefault(caption, type, icon)
     bottomtitle = '1mm',
   }
 
-  if icon ~= false and iconForCat ~= nil then
-    options.title = '\\textcolor{' .. color .. '}{\\' .. iconForCat .. '}\\hspace{0.5em}' ..  options.title
+  if icon ~= false and iconForType ~= nil then
+    dump(options.title)
+    options.title = '\\textcolor{' .. color .. '}{\\' .. iconForType .. '}\\hspace{0.5em}' ..  options.title
   end
 
   -- the core latex for the box
