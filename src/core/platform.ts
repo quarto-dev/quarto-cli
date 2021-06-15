@@ -12,3 +12,7 @@ export function isMingw() {
 export function isWindows() {
   return Deno.build.os === "windows";
 }
+
+export function isGithubAction() {
+  return Deno.env.get("GITHUB_ACTIONS") === "true";
+}
