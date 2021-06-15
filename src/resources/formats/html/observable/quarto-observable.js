@@ -5,6 +5,7 @@ import {
   Runtime,
 } from "https://cdn.skypack.dev/@observablehq/runtime";
 import { parseModule } from "https://cdn.skypack.dev/@observablehq/parser";
+import { FileAttachments } from "https://cdn.skypack.dev/@observablehq/stdlib";
 
 function createOJSSourceElement(el, src) {
   let sourceEl = document.createElement("pre");
@@ -34,11 +35,35 @@ export function createRuntime() {
     });
   }
   lib.width = width;
+
+  // we think this is good enough for now, but there
+  // might be better things to be done with (say) project-wide
+  // resources.
+  function fileAttachmentPathResolver(n) {
+    return n;
+  }
+
+  function importPathResolver(path) {
+    // FIXME this is ugly and requires knowledge of the path
+    // difference between this file when installed and the resources
+    if (path.startsWith("./")) {
+      return import(`../../../${path.slice(2)}`).then((m) => {
+        return es6ImportAsObservable(m);
+      });
+    } else {
+      return defaultResolveImportPath(path);
+    }
+  }
+
+  lib.FileAttachment = () => FileAttachments(fileAttachmentPathResolver);
   
   const runtime = new Runtime(lib);
   const mainMod = runtime.module();
 
-  const interpreter = new Interpreter({ module: mainMod });
+  const interpreter = new Interpreter({
+    module: mainMod,
+    resolveImportPath: importPathResolver
+  });
 
   const subfigIdMap = new Map();
 
@@ -79,7 +104,7 @@ export function createRuntime() {
           );
           targetElement.appendChild(element);
 
-          // HACK: the unofficial interpreter always calls viewexpression observers
+          // FIXME the unofficial interpreter always calls viewexpression observers
           // twice, one with the name, and the next with 'viewof $name'.
           // we check for 'viewof ' here and hide the element we're creating.
           // this behavior appears inconsistent with OHQ's interpreter, so we
@@ -93,7 +118,7 @@ export function createRuntime() {
       };
 
       // FIXME error handling is clearly not going to work well right
-      // now. at the very least we need to handle more than just
+      // now.x at the very least we need to handle more than just
       // syntax errors, and we need to make sure subfigures are
       // handled correctly.
       let parse;
@@ -120,4 +145,42 @@ export function createRuntime() {
   return result;
 }
 
+
+function defaultResolveImportPath(path) {
+  const extractPath = (path) => {
+    let source = path;
+    let m;
+    if ((m = /\.js(\?|$)/i.exec(source)))
+      source = source.slice(0, m.index);
+    if ((m = /^[0-9a-f]{16}$/i.test(source)))
+      source = `d/${source}`;
+    if ((m = /^https:\/\/(api\.|beta\.|)observablehq\.com\//i.exec(source)))
+      source = source.slice(m[0].length);
+    return source;
+  };
+  const source = extractPath(path);
+  return import(`https://api.observablehq.com/${source}.js?v=3`).then((m) => {
+    return m.default;
+  });
+}
+
+
+// here we need to convert from an ES6 module to an ObservableHQ module
+// in, well, a best-effort kind of way.
+function es6ImportAsObservable(m)
+{
+  return function(runtime, observer) {
+    const main = runtime.module();
+
+    Object.keys(m).forEach(key => {
+      let v = m[key];
+      main.variable(observer(key)).define(key, [], () => v);
+    });
+    
+    return main;
+  };
+}
+
 window._ojsRuntime = createRuntime();
+
+
