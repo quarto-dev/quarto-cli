@@ -38,10 +38,6 @@ h4 {
   margin-top: 1.5rem;
 }
 
-.sidebar {
-  padding-top: 1.2em;
-}
-
 .header-section-number {
   @include body-secondary;
 }
@@ -195,6 +191,20 @@ div.sourceCode {
 }
 
 /* table of contents */
+.sidebar {
+  will-change: top;
+  transition: top 200ms linear;
+  background-color: $body-bg;
+  position: sticky;
+  overflow-y: auto;
+  padding-top: 1.2em;
+  max-height: 100vh;
+}
+
+.sidebar.sidebar-toc {
+  top: 0px;
+}
+
 .sidebar-toc > nav > h2 {
   font-size: $nav-font-size;
   font-weight: 400;

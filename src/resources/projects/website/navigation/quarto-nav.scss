@@ -31,14 +31,6 @@ nav .dropdown-item i {
   width: 11em;
 }
 
-.sidebar {
-  will-change: top;
-  transition: top 200ms linear;
-  background-color: $body-bg;
-  position: sticky;
-  overflow-y: auto;
-}
-
 .sidebar-navigation {
   padding-left: 20px;
 }
