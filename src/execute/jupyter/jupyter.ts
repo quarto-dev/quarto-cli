@@ -5,7 +5,7 @@
 *
 */
 
-import { extname, join } from "path/mod.ts";
+import { extname, join, relative } from "path/mod.ts";
 
 import { existsSync } from "fs/mod.ts";
 
@@ -63,6 +63,9 @@ import {
   includesForJupyterWidgetDependencies,
   JupyterWidgetDependencies,
 } from "../../core/jupyter/widgets.ts";
+
+import { ProjectContext } from "../../project/project-context.ts";
+import { inputTargetIndex } from "../../project/project-index.ts";
 
 const kJupyterEngine = "jupyter";
 
@@ -214,6 +217,24 @@ export const jupyterEngine: ExecutionEngine = {
   },
 
   executeTargetSkipped: cleanupNotebook,
+
+  renderOnChange: async (input: string, project: ProjectContext) => {
+    if (isJupyterNotebook(input)) {
+      const inputRelative = relative(project.dir, input);
+      const index = await inputTargetIndex(
+        project,
+        inputRelative,
+      );
+      if (index) {
+        const format = index.formats[Object.keys(index.formats)[0]];
+        return format.execute[kExecuteEnabled] === false;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  },
 
   dependencies: (options: DependenciesOptions) => {
     const includes: PandocIncludes = {};

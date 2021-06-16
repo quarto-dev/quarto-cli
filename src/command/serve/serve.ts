@@ -82,7 +82,12 @@ export async function serveProject(
   const serveProject = (await projectContext(serveDir))!;
 
   // create project watcher
-  const watcher = watchProject(project, serveProject, renderResult, options);
+  const watcher = await watchProject(
+    project,
+    serveProject,
+    renderResult,
+    options,
+  );
 
   // create a promise queue so we only do one renderProject at a time
   const renderQueue = new PromiseQueue();

@@ -66,5 +66,5 @@ export const markdownEngine: ExecutionEngine = {
 
   canFreeze: false,
 
-  renderOnChange: () => true,
+  renderOnChange: () => Promise.resolve(true),
 };
