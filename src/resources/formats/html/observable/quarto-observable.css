@@ -12,11 +12,18 @@ span.ojs-inline span div {
 }
 
 .observablehq--caret {
-    margin: .3em 2px .5em 0;
+    margin-right: 2px;
+    vertical-align: baseline;
+}
+
+.observablehq--collapsed,
+.observablehq--expanded.observablehq--inspect a {
+    cursor: pointer;
 }
 
 /* classes directly from observable's runtime */
-.observablehq--key {
+.observablehq--key,
+.observablehq--index {
     color: var(--quarto-hl-dt-color);
 }
 
@@ -24,11 +31,18 @@ span.ojs-inline span div {
     color: var(--quarto-hl-st-color);
 }
 
-.observablehq--number {
+.observablehq--bigint,
+.observablehq--date,
+.observablehq--number,
+.observablehq--regexp,
+.observablehq--symbol {
     color: var(--quarto-hl-dv-color);
 }
 
-.observablehq--null,.observablehq--boolean,.observablehq--undefined,.observablehq--keyword {
+.observablehq--null,
+.observablehq--boolean,
+.observablehq--undefined,
+.observablehq--keyword {
     color: var(--quarto-hl-kw-color);
 }
 
@@ -55,6 +69,13 @@ pre.observablehq--md-pre span.hljs-keyword {
 
 pre.observablehq--md-pre span.hljs-string {
     color: var(--quarto-hl-st-color);
+}
+
+pre.observablehq--md-pre .span.hljs-date,
+pre.observablehq--md-pre .span.hljs-number,
+pre.observablehq--md-pre .span.hljs-regexp,
+pre.observablehq--md-pre .span.hljs-symbol {
+    color: var(--quarto-hl-dv-color);
 }
 
 /* Other general niceties, but it's possible that we should do this on a page-by-page basis */
