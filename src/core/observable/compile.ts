@@ -372,8 +372,6 @@ export function observableCompile(
           (cell.options?.["fig.subcap"] as string[]).length !==
             (nRow() * nCol())
         ) {
-          console.log((nRow() * nCol()));
-          console.log((cell.options?.["fig.subcap"] as string[]).length);
           throw new Error(
             "Cannot have subcaptions and multi-row/col layout with mismatched number of cells",
           );

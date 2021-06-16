@@ -83,11 +83,9 @@ export async function observableNotebookToMarkdown(
     let value = node.value as string;
     const trimmedValue = value.trim();
     if (mode === "js") {
-      console.log(`Attempting to convert\n${trimmedValue}\n.===`);
       for (const { prefix, re } of kModePrefixes) {
         let m = trimmedValue.match(re);
         if (m) {
-          console.log(`Matched ${prefix}!`);
           mode = prefix;
           value = m[1];
         }
