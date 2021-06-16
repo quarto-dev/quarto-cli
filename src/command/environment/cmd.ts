@@ -11,6 +11,7 @@ import { spinner } from "../../core/console.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { pythonEnv, rBinaryEnv, rPackageEnv } from "./execution.ts";
 import { binaryEnv, dartSassEnv, QuartoEnv, tinyTexEnv } from "./bin.ts";
+import { pythonBinary } from "../../core/jupyter/capabilities.ts";
 
 export interface EnvironmentData {
   name: string;
@@ -81,7 +82,7 @@ const r: EnvironmentData[] = [
 ];
 
 const python: EnvironmentData[] = [
-  pythonEnv("python"),
+  pythonEnv(pythonBinary()),
   pythonEnv("jupyter"),
 ];
 

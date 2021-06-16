@@ -43,7 +43,7 @@ import { updateAliases } from "./website-aliases.ts";
 
 export const websiteProjectType: ProjectType = {
   type: "site",
-  create: (): ProjectCreate => {
+  create: (title: string): ProjectCreate => {
     const resourceDir = resourcePath(join("projects", "website"));
 
     return {
@@ -53,6 +53,7 @@ export const websiteProjectType: ProjectType = {
         {
           name: "index",
           content: "Home page",
+          title,
         },
         {
           name: "about",
