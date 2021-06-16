@@ -20,9 +20,7 @@
             </div>
           <% } else { %>
             <a class="sidebar-section-item d-inline-flex text-start w-100 <%- isCollapsed ? "collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>">
-              <div class="me-auto <%- textStyleCss %> <%- depth === 1 ? "sidebar-section-item" : "sidebar-item" %>">
-                <%= item.text %>
-              </div>
+              <div class="me-auto <%- textStyleCss %> <%- depth === 1 ? "sidebar-section-item" : "sidebar-item" %>"><%= item.text %></div>
             <div><i class="bi bi-chevron-right ms-2 <%- textStyleCss %>"></i></div>
             </a>
           <% }  %>

@@ -39,7 +39,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
           if (section) {
             return window.pageYOffset >= section.offsetTop - sectionMargin 
           } else {
-            return -1;
+            return false;
           }
         });
     } 

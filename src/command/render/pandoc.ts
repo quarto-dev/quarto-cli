@@ -416,19 +416,24 @@ async function resolveExtras(
 
   // perform html-specific merging
   if (isHtmlOutput(format.pandoc)) {
+    extras.pandoc = extras.pandoc || {};
+    const highlightData = resolveHighlightStyle(
+      extras,
+      format.pandoc,
+    );
+    extras.pandoc[kHighlightStyle] = highlightData.style;
+    if (highlightData.sassBundle) {
+      formatExtras.html = formatExtras.html || {};
+      formatExtras.html[kSassBundles] = formatExtras.html[kSassBundles] || [];
+      formatExtras.html[kSassBundles]?.push(highlightData.sassBundle);
+    }
+
     // resolve sass bundles
     extras = await resolveSassBundles(
       extras,
       formatExtras.html?.[kSassBundles],
       projectExtras.html?.[kSassBundles],
       project,
-    );
-
-    // resolve the merged highlight style
-    extras.pandoc = extras.pandoc || {};
-    extras.pandoc[kHighlightStyle] = resolveHighlightStyle(
-      extras,
-      format.pandoc,
     );
 
     // resolve dependencies
@@ -584,7 +589,7 @@ async function resolveSassBundles(
     // compile the cssPath
     const bundles = mergedBundles[dependency];
     const cssPath = await compileSass(bundles);
-    const csssName = `${dependency}.min.css`;
+    const cssName = `${dependency}.min.css`;
 
     // Find any imported stylesheets or url references
     // (These could come from user scss that is merged into our theme, for example)
@@ -613,7 +618,7 @@ async function resolveSassBundles(
           existingDependency.stylesheets = [];
         }
         existingDependency.stylesheets.push({
-          name: csssName,
+          name: cssName,
           path: cssPath,
         });
 
@@ -624,7 +629,7 @@ async function resolveSassBundles(
         extraDeps.push({
           name: dependency,
           stylesheets: [{
-            name: csssName,
+            name: cssName,
             path: cssPath,
           }, ...imports],
           resources,
@@ -655,7 +660,6 @@ function runPandocMessage(
 
     // remove filter params
     removeFilterParmas(printMetadata);
-
     // print message
     if (Object.keys(printMetadata).length > 0) {
       info("metadata", { bold: true });
@@ -671,7 +675,7 @@ const kLightSuffix = "light";
 function resolveHighlightStyle(
   extras: FormatExtras,
   pandoc: FormatPandoc,
-): string | undefined {
+): { style: string; sassBundle: SassBundle | undefined } {
   // Look for a token indicating that that the theme is dark
   const dark = extras.html?.[kDependencies]?.some((dependency) => {
     // Inspect any bootstrap dependencies for a sentinel value
@@ -705,9 +709,91 @@ function resolveHighlightStyle(
 
   // If the name maps to a locally installed theme, use it
   // otherwise just return the style name
+  extras.pandoc = extras.pandoc || {};
   if (theme) {
-    return theme;
-  } else {
-    return style;
+    const kQuartoHtmlVariablesDependency = "quarto-html-variables";
+    const cssVars = generateThemeCssVars(theme);
+    if (cssVars) {
+      return {
+        style: theme,
+        sassBundle: {
+          dependency: kQuartoHtmlVariablesDependency,
+          key: kQuartoHtmlVariablesDependency,
+          quarto: {
+            defaults: "",
+            functions: "",
+            mixins: "",
+            rules: cssVars,
+          },
+        },
+      };
+    }
   }
+  return { style, sassBundle: undefined };
 }
+
+function generateThemeCssVars(theme: string) {
+  if (existsSync(theme)) {
+    const themeRaw = Deno.readTextFileSync(theme);
+    const themeJson = JSON.parse(themeRaw);
+    const textStyles = themeJson["text-styles"];
+    if (textStyles) {
+      const lines: string[] = [];
+      lines.push(":root {");
+      Object.keys(textStyles).forEach((styleName) => {
+        const abbr = kAbbrevs[styleName];
+        if (abbr) {
+          const textValues = textStyles[styleName];
+          Object.keys(textValues).forEach((textAttr) => {
+            switch (textAttr) {
+              case "text-color":
+                lines.push(
+                  `  --quarto-hl-${abbr}-color: ${textValues[textAttr] ||
+                    "inherit"};`,
+                );
+                break;
+            }
+          });
+        }
+      });
+      lines.push("}");
+      return lines.join("\n");
+    }
+  }
+  return undefined;
+}
+
+// From  https://github.com/jgm/skylighting/blob/a1d02a0db6260c73aaf04aae2e6e18b569caacdc/skylighting-core/src/Skylighting/Format/HTML.hs#L117-L147
+const kAbbrevs: Record<string, string> = {
+  "Keyword": "kw",
+  "DataType": "dt",
+  "DecVal": "dv",
+  "BaseN": "bn",
+  "Float": "fl",
+  "Char": "ch",
+  "String": "st",
+  "Comment": "co",
+  "Other": "ot",
+  "Alert": "al",
+  "Function": "fu",
+  "RegionMarker": "re",
+  "Error": "er",
+  "Constant": "cn",
+  "SpecialChar": "sc",
+  "VerbatimString": "vs",
+  "SpecialString": "ss",
+  "Import": "im",
+  "Documentation": "do",
+  "Annotation": "an",
+  "CommentVar": "cv",
+  "Variable": "va",
+  "ControlFlow": "cf",
+  "Operator": "op",
+  "BuiltIn": "bu",
+  "Extension": "ex",
+  "Preprocessor": "pp",
+  "Attribute": "at",
+  "Information": "in",
+  "Warning": "wa",
+  "Normal": "",
+};
