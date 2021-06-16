@@ -10,7 +10,7 @@
 import { basename, join } from "path/mod.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
 
-import { pythonBinary } from "../../execute/jupyter/jupyter.ts";
+import { pythonBinary } from "../../core/jupyter/capabilities.ts";
 import { execProcess } from "../process.ts";
 
 export interface JupyterKernelspec {
