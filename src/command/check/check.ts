@@ -17,7 +17,7 @@ import {
   jupyterCapabilities,
 } from "../../core/jupyter/capabilities.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
-import { knitrCapabilities } from "../../core/knitr.ts";
+import { KnitrCapabilities, knitrCapabilities } from "../../core/knitr.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 
 export type Target = "install" | "jupyter" | "knitr" | "all";
@@ -135,46 +135,47 @@ title: "Title"
 
 async function checkKnitrInstallation(tmpDir: string) {
   const kMessage = "Checking R installation...........";
+  let caps: KnitrCapabilities | undefined;
   await withSpinner({
     message: kMessage,
     doneMessage: false,
   }, async () => {
-    const caps = await knitrCapabilities();
-    if (caps) {
-      completeMessage(kMessage + "OK");
-      info(
-        `      Version: ${caps.versionMajor}.${caps.versionMinor}.${caps.versionPatch}`,
-      );
-      info(`      Path: ${caps.home}`);
-      info(`      LibPaths:`);
-      for (const path of caps.libPaths) {
-        info(`        - ${path}`);
-      }
-      info(`      rmarkdown: ${caps.rmarkdown || "(None)"}`);
-      info("");
-      if (caps.rmarkdown) {
-        const kKnitrMessage = "Checking Knitr engine render......";
-        await withSpinner({
-          message: kKnitrMessage,
-          doneMessage: kKnitrMessage + "OK\n",
-        }, async () => {
-          await checkKnitrRender(tmpDir);
-        });
-      } else {
-        info(
-          "      The rmarkdown package is not available in this R installation.\n" +
-            "      Install with " +
-            colors.bold('install.packages("rmarkdown")') + "\n",
-        );
-      }
+    caps = await knitrCapabilities();
+  });
+  if (caps) {
+    completeMessage(kMessage + "OK");
+    info(
+      `      Version: ${caps.versionMajor}.${caps.versionMinor}.${caps.versionPatch}`,
+    );
+    info(`      Path: ${caps.home}`);
+    info(`      LibPaths:`);
+    for (const path of caps.libPaths) {
+      info(`        - ${path}`);
+    }
+    info(`      rmarkdown: ${caps.rmarkdown || "(None)"}`);
+    info("");
+    if (caps.rmarkdown) {
+      const kKnitrMessage = "Checking Knitr engine render......";
+      await withSpinner({
+        message: kKnitrMessage,
+        doneMessage: kKnitrMessage + "OK\n",
+      }, async () => {
+        await checkKnitrRender(tmpDir);
+      });
     } else {
-      completeMessage(kMessage + "(None)\n");
       info(
-        "    Install R from " +
-          colors.bold("https://cloud.r-project.org/\n"),
+        "      The rmarkdown package is not available in this R installation.\n" +
+          "      Install with " +
+          colors.bold('install.packages("rmarkdown")') + "\n",
       );
     }
-  });
+  } else {
+    completeMessage(kMessage + "(None)\n");
+    info(
+      "    Install R from " +
+        colors.bold("https://cloud.r-project.org/\n"),
+    );
+  }
 }
 
 async function checkKnitrRender(tmpDir: string) {
