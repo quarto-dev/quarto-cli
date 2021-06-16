@@ -66,12 +66,15 @@ export function resolveBootstrapScss(metadata: Metadata): SassBundle {
     user: themeLayer,
     quarto: {
       use: ["sass:color", "sass:map"],
-      defaults: quartoBootstrapDefaults(metadata),
+      defaults: [
+        quartoBootstrapDefaults(metadata),
+      ].join("\n"),
       functions: [quartoFunctions(), quartoBootstrapFunctions()].join("\n"),
       mixins: quartoBootstrapMixins(),
       rules: [
         quartoRules(),
         quartoBootstrapRules(),
+        quartoGlobalCssVariableRules(),
       ].join("\n"),
     },
     framework: {
@@ -231,6 +234,15 @@ export const quartoRules = () =>
     "html",
     "_quarto-rules.scss",
   ));
+
+export const quartoGlobalCssVariableRules = () => {
+  return `
+  $font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !default;
+  :root {
+    --quarto-font-monospace: #{inspect($font-family-monospace)};
+  }
+  `;
+};
 
 export const quartoBootstrapRules = () =>
   Deno.readTextFileSync(formatResourcePath(

@@ -28,7 +28,7 @@ function quartoPostMetaInject()
   }
 
   .cell-output-display {
-    overflow-x: scroll;
+    overflow-x: auto;
   }
 
   .hidden {

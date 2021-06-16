@@ -50,20 +50,23 @@ export async function renderProject(
   const incremental = !!files;
 
   // force execution for any incremental files (unless options.useFreezer is set)
-  const alwaysExecuteFiles = incremental && !options.useFreezer
+  let alwaysExecuteFiles = incremental && !options.useFreezer
     ? ld.cloneDeep(files) as string[]
     : undefined;
 
-  // if we have alwaysExecuteFiles then we need to normalize
-  // the files list for comparison
+  // if we have alwaysExecuteFiles then we need to normalize the files list for comparison
   if (alwaysExecuteFiles && files) {
-    files = files.map((file) => {
-      const target = isAbsolute(file) ? file : join(Deno.cwd(), file);
-      if (!existsSync(target)) {
-        throw new Error("Render target does not exist: " + file);
-      }
-      return Deno.realPathSync(target);
-    });
+    const normalizeFiles = (targetFiles: string[]) => {
+      return targetFiles.map((file) => {
+        const target = isAbsolute(file) ? file : join(Deno.cwd(), file);
+        if (!existsSync(target)) {
+          throw new Error("Render target does not exist: " + file);
+        }
+        return Deno.realPathSync(target);
+      });
+    };
+    alwaysExecuteFiles = normalizeFiles(alwaysExecuteFiles);
+    files = normalizeFiles(files);
   }
 
   // check with the project type to see if we should render all

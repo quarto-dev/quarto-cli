@@ -9,7 +9,6 @@ import { execProcess } from "../../core/process.ts";
 import { rBinaryPath } from "../../core/resources.ts";
 import { sessionTempFile } from "../../core/temp.ts";
 
-import { pythonBinary } from "../../execute/jupyter/jupyter.ts";
 import { EnvironmentData, EnvironmentDataOutputOptions } from "./cmd.ts";
 
 export function pythonEnv(
@@ -20,14 +19,14 @@ export function pythonEnv(
     name: name,
     path: async () => {
       // Need to resolve the path (e.g. which)
-      const path = await which(pythonBinary(name));
+      const path = await which(name);
       return path;
     },
     version: async () => {
       try {
         const r = await execProcess({
           cmd: [
-            pythonBinary(name),
+            name,
             "--version",
           ],
           stdout: "piped",

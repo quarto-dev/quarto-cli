@@ -75,23 +75,23 @@ export const createProjectCommand = new Command()
   )
   .example(
     "Create a website project",
-    "quarto create-project --type site",
+    "quarto create-project mysite --type site",
   )
   .example(
     "Create a book project",
-    "quarto create-project --type book",
+    "quarto create-project mybook --type book",
   )
   .example(
     "Create a website project with jupyter",
-    "quarto create-project --type site --engine jupyter",
+    "quarto create-project mysite --type site --engine jupyter",
   )
   .example(
     "Create a website project with jupyter + kernel",
-    "quarto create-project --type site --engine jupyter:python3",
+    "quarto create-project mysite --type site --engine jupyter:python3",
   )
   .example(
     "Create a book project with knitr",
-    "quarto create-project --type book --engine knitr",
+    "quarto create-project mybook --type book --engine knitr",
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, dir?: string) => {

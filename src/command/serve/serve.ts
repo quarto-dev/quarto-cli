@@ -82,7 +82,12 @@ export async function serveProject(
   const serveProject = (await projectContext(serveDir))!;
 
   // create project watcher
-  const watcher = watchProject(project, serveProject, renderResult, options);
+  const watcher = await watchProject(
+    project,
+    serveProject,
+    renderResult,
+    options,
+  );
 
   // create a promise queue so we only do one renderProject at a time
   const renderQueue = new PromiseQueue();
@@ -109,8 +114,12 @@ export async function serveProject(
       if (fileInfo && fileInfo.isDirectory) {
         fsPath = join(fsPath, "index.html");
       }
-      response = await serveFile(fsPath!, watcher, renderQueue);
-      printUrl(normalizedUrl);
+      if (fileInfo?.isDirectory && !normalizedUrl.endsWith("/")) {
+        response = serveRedirect(normalizedUrl + "/");
+      } else {
+        response = await serveFile(fsPath!, watcher, renderQueue);
+        printUrl(normalizedUrl);
+      }
     } catch (e) {
       response = await serveFallback(req, e, fsPath!, options);
     } finally {
@@ -202,6 +211,15 @@ export function maybeDisplaySocketError(e: Error) {
   if (!(e instanceof Deno.errors.BrokenPipe)) {
     logError(e);
   }
+}
+
+function serveRedirect(url: string): Response {
+  const headers = new Headers();
+  headers.set("Location", url);
+  return {
+    status: 301,
+    headers,
+  };
 }
 
 function serveFallback(

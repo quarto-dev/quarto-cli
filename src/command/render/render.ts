@@ -393,6 +393,7 @@ export async function renderExecute(
     // check if we are using the freezer
 
     const thaw = context.engine.canFreeze &&
+      (context.format.execute[kExecuteEnabled] !== false) &&
       (context.format.execute[kFreeze] ||
         (context.options.useFreezer ? "auto" : false));
 
@@ -457,7 +458,7 @@ export async function renderExecute(
   }
 
   // write the freeze file if we are in a project
-  if (context.project) {
+  if (context.project && context.engine.canFreeze) {
     // write the freezer file
     const freezeFile = freezeExecuteResult(
       context.target.source,

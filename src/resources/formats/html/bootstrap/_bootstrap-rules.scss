@@ -38,10 +38,6 @@ h4 {
   margin-top: 1.5rem;
 }
 
-.sidebar {
-  padding-top: 1.2em;
-}
-
 .header-section-number {
   @include body-secondary;
 }
@@ -195,6 +191,20 @@ div.sourceCode {
 }
 
 /* table of contents */
+.sidebar {
+  will-change: top;
+  transition: top 200ms linear;
+  background-color: $body-bg;
+  position: sticky;
+  overflow-y: auto;
+  padding-top: 1.2em;
+  max-height: 100vh;
+}
+
+.sidebar.sidebar-toc {
+  top: 0px;
+}
+
 .sidebar-toc > nav > h2 {
   font-size: $nav-font-size;
   font-weight: 400;
@@ -303,31 +313,48 @@ div.hanging-indent {
   }
 }
 
+// Callouts
+
 .callout {
+  margin-top: $callout-margin-top;
+  margin-bottom: $callout-margin-bottom;
+  border-radius: $border-radius;
+}
+
+.callout.callout-style-simple {
   padding: 0.4em 0.7em;
   border-left: $callout-border-width solid;
   border-right: 1px solid $table-border-color;
   border-top: 1px solid $table-border-color;
   border-bottom: 1px solid $table-border-color;
-  margin-top: $callout-margin-top;
-  margin-bottom: $callout-margin-bottom;
-  border-radius: $border-radius;
+}
+
+.callout.callout-style-default {
+  border-left: $callout-border-width solid;
+  border-right: 1px solid $table-border-color;
+  border-top: 1px solid $table-border-color;
+  border-bottom: 1px solid $table-border-color;
 }
 
 .callout .callout-body-container {
   flex-grow: 1;
 }
 
-.callout .callout-body {
+.callout.callout-style-simple .callout-body {
   font-size: 1rem;
   font-weight: 400;
 }
 
-.callout.callout-captioned .callout-body {
-  margin-top: 0.5em;
+.callout.callout-style-default .callout-body {
+  font-size: 0.9rem;
+  font-weight: 400;
 }
 
-.callout:not(.no-icon).callout-captioned .callout-body {
+.callout.callout-captioned .callout-body {
+  margin-top: 0.2em;
+}
+
+.callout:not(.no-icon).callout-captioned.callout-style-simple .callout-body {
   padding-left: 1.6em;
 }
 
@@ -336,14 +363,37 @@ div.hanging-indent {
   margin-bottom: -0.2em;
 }
 
-.callout > div.callout-header {
+.callout.callout-style-simple > div.callout-header {
   border-bottom: none;
-  font-weight: 500;
-  font-size: 1.1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  opacity: 75%;
+}
+
+.callout.callout-style-default > div.callout-header {
+  border-bottom: none;
+  font-weight: 600;
+  opacity: 85%;
+  font-size: 0.9rem;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+
+.callout.callout-style-default div.callout-body {
+  margin-top: 0.5em;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
 }
 
 .callout > div.callout-header[data-bs-toggle="collapse"] {
   cursor: pointer;
+}
+
+.callout.callout-style-default .callout-header[aria-expanded="false"],
+.callout.callout-style-default .callout-header[aria-expanded="true"] {
+  padding-top: 0px;
+  margin-bottom: 0px;
+  align-items: center;
 }
 
 .callout.callout-captioned .callout-body > :last-child,
@@ -356,14 +406,26 @@ div.hanging-indent {
   margin-bottom: 0;
 }
 
-.callout .callout-icon::before,
-.callout .callout-toggle::before {
+$code-border-left-color: $table-border-color !default;
+
+.callout.callout-style-simple .callout-icon::before,
+.callout.callout-style-simple .callout-toggle::before {
   height: 1rem;
   width: 1rem;
   display: inline-block;
   content: "";
   background-repeat: no-repeat;
   background-size: 1rem 1rem;
+}
+
+.callout.callout-style-default .callout-icon::before,
+.callout.callout-style-default .callout-toggle::before {
+  height: 0.9rem;
+  width: 0.9rem;
+  display: inline-block;
+  content: "";
+  background-repeat: no-repeat;
+  background-size: 0.9rem 0.9rem;
 }
 
 .callout .callout-btn-toggle .callout-toggle::before {
@@ -378,9 +440,24 @@ div.hanging-indent {
   transform: none;
 }
 
-.callout:not(.no-icon) div.callout-icon-container {
+.callout.callout-style-simple:not(.no-icon) div.callout-icon-container {
   padding-top: 0.2em;
   padding-right: 0.55em;
+}
+
+.callout.callout-style-default:not(.no-icon) div.callout-icon-container {
+  padding-top: 0.1em;
+  padding-right: 0.35em;
+}
+
+.callout.callout-style-default:not(.no-icon) div.callout-caption-container {
+  margin-top: -1px;
+}
+
+.callout.callout-style-default.callout-caution:not(.no-icon)
+  div.callout-icon-container {
+  padding-top: 0.3em;
+  padding-right: 0.35em;
 }
 
 .callout .no-icon {
@@ -429,11 +506,15 @@ $callouts: (
 );
 
 @each $name, $info in $callouts {
-  div.callout-#{$name} {
+  div.callout-#{$name}.callout {
     border-left-color: shift-color(
       map.get($info, "color"),
       $callout-border-scale
     );
+  }
+
+  div.callout-#{$name}.callout-style-default .callout-header {
+    background-color: shift-color(map.get($info, "color"), -90%);
   }
 
   $shifted-color: #{shift-color(map.get($info, "color"), $callout-icon-scale)};
@@ -470,9 +551,4 @@ $callouts: (
   /*! dark */
 } @else {
   /*! light */
-}
-
-.btn.sidebar-section-item {
-  border: none;
-  background-color: transparent;
 }

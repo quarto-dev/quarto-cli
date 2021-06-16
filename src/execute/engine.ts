@@ -16,6 +16,8 @@ import { dirAndStem } from "../core/path.ts";
 import { PartitionedMarkdown } from "../core/pandoc/pandoc-partition.ts";
 import { languagesInMarkdown } from "../core/jupyter/jupyter.ts";
 
+import { ProjectContext } from "../project/project-context.ts";
+
 import { Format } from "../config/format.ts";
 import { Metadata, metadataAsFormat } from "../config/metadata.ts";
 import {
@@ -51,7 +53,7 @@ export interface ExecutionEngine {
   canFreeze: boolean;
   keepFiles?: (input: string) => string[] | undefined;
   ignoreGlobs?: () => string[] | undefined;
-  renderOnChange?: (input: string) => boolean;
+  renderOnChange?: (input: string, context: ProjectContext) => Promise<boolean>;
   run?: (options: RunOptions) => Promise<void>;
 }
 

@@ -39,10 +39,11 @@ import {
   websiteProjectConfig,
   websiteTitle,
 } from "./website-config.ts";
+import { updateAliases } from "./website-aliases.ts";
 
 export const websiteProjectType: ProjectType = {
   type: "site",
-  create: (): ProjectCreate => {
+  create: (title: string): ProjectCreate => {
     const resourceDir = resourcePath(join("projects", "website"));
 
     return {
@@ -52,6 +53,7 @@ export const websiteProjectType: ProjectType = {
         {
           name: "index",
           content: "Home page",
+          title,
         },
         {
           name: "about",
@@ -154,6 +156,9 @@ export async function websitePostRender(
 
   // write redirecting index.html if there is none
   ensureIndexPage(context);
+
+  // generate any page aliases
+  await updateAliases(outputFiles, context);
 }
 
 export function websiteOutputFiles(outputFiles: ProjectOutputFile[]) {

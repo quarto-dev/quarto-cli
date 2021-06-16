@@ -10,7 +10,6 @@
 import { basename, join } from "path/mod.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
 
-import { pythonBinary } from "../../execute/jupyter/jupyter.ts";
 import { execProcess } from "../process.ts";
 
 export interface JupyterKernelspec {
@@ -42,7 +41,7 @@ export async function jupyterKernelspecs(): Promise<
 > {
   const result = await execProcess(
     {
-      cmd: [pythonBinary("jupyter"), "--paths", "--json"],
+      cmd: ["jupyter", "--paths", "--json"],
       stdout: "piped",
     },
   );

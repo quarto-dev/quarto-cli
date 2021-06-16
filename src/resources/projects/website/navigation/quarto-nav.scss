@@ -31,14 +31,6 @@ nav .dropdown-item i {
   width: 11em;
 }
 
-.sidebar {
-  will-change: top;
-  transition: top 200ms linear;
-  background-color: $body-bg;
-  position: sticky;
-  overflow-y: auto;
-}
-
 .sidebar-navigation {
   padding-left: 20px;
 }
@@ -95,8 +87,13 @@ nav .dropdown-item i {
 
 .sidebar-navigation .sidebar-section.depth1 {
   padding-top: 0rem;
-  padding-bottom: 0rem;
+  padding-bottom: 0.1rem;
 }
+
+.sidebar-navigation .sidebar-section.depth1 > li:first-of-type {
+  padding-top: 0.1rem;
+}
+
 
 .sidebar-navigation .sidebar-section.depth1 > li > div > ul {
   margin-bottom: 0.4em;
@@ -113,9 +110,9 @@ nav .dropdown-item i {
 
 .sidebar-navigation .sidebar-section-item {
   font-size: 0.8rem;
-  padding: 0.1rem 0px;
-  margin-left: -1px;
+  padding-bottom: 0.1rem;
 }
+
 
 .sidebar-navigation .sidebar-section-item > a {
   padding: 0;
@@ -124,6 +121,11 @@ nav .dropdown-item i {
 .sidebar-navigation .sidebar-section-item > .sidebar-section-link {
   padding-top: 4px;
   padding-bottom: 3px;
+}
+
+.btn.sidebar-section-item {
+  border: none;
+  background-color: transparent;
 }
 
 .sidebar-navigation .sidebar-item {

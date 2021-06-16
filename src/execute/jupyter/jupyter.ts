@@ -5,14 +5,16 @@
 *
 */
 
-import { extname, join } from "path/mod.ts";
+import { extname, join, relative } from "path/mod.ts";
 
 import { existsSync } from "fs/mod.ts";
 
 import { readYamlFromMarkdown } from "../../core/yaml.ts";
+import { isInteractiveSession, isWindows } from "../../core/platform.ts";
 import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
 
 import { dirAndStem, removeIfExists } from "../../core/path.ts";
+import { runningInCI } from "../../core/ci-info.ts";
 
 import { Metadata } from "../../config/metadata.ts";
 
@@ -61,6 +63,9 @@ import {
   includesForJupyterWidgetDependencies,
   JupyterWidgetDependencies,
 } from "../../core/jupyter/widgets.ts";
+
+import { ProjectContext } from "../../project/project-context.ts";
+import { inputTargetIndex } from "../../project/project-index.ts";
 
 const kJupyterEngine = "jupyter";
 
@@ -147,10 +152,17 @@ export const jupyterEngine: ExecutionEngine = {
         },
       };
 
-      if (
-        options.format.execute[kExecuteDaemon] === false ||
-        options.format.execute[kExecuteDaemon] === 0
-      ) {
+      // use daemon by default if we are in an interactive session (terminal
+      // or rstudio) on posix and not running in a CI system. note that
+      // execlude windows b/c in some configurations the process won't have
+      // permission to create and bind to a tcp/ip port. we could overcome
+      // this by using named pipes (no deno support for this yet though)
+      let executeDaemon = options.format.execute[kExecuteDaemon];
+      if (executeDaemon === null || executeDaemon === undefined) {
+        executeDaemon = isInteractiveSession() &&
+          !isWindows() && !runningInCI();
+      }
+      if (executeDaemon === false || executeDaemon === 0) {
         await executeKernelOneshot(execOptions);
       } else {
         await executeKernelKeepalive(execOptions);
@@ -206,6 +218,24 @@ export const jupyterEngine: ExecutionEngine = {
 
   executeTargetSkipped: cleanupNotebook,
 
+  renderOnChange: async (input: string, project: ProjectContext) => {
+    if (isJupyterNotebook(input)) {
+      const inputRelative = relative(project.dir, input);
+      const index = await inputTargetIndex(
+        project,
+        inputRelative,
+      );
+      if (index) {
+        const format = index.formats[Object.keys(index.formats)[0]];
+        return format.execute[kExecuteEnabled] === false;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  },
+
   dependencies: (options: DependenciesOptions) => {
     const includes: PandocIncludes = {};
     if (options.dependencies) {
@@ -249,10 +279,6 @@ export const jupyterEngine: ExecutionEngine = {
     }
   },
 };
-
-export function pythonBinary(binary = "python") {
-  return binary;
-}
 
 function isQmdFile(file: string) {
   const ext = extname(file);

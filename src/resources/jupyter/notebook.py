@@ -8,7 +8,7 @@ import copy
 
 from pathlib import Path
 
-import yaml
+from poyo import parse_string
 
 import nbformat
 from nbclient import NotebookClient
@@ -237,14 +237,7 @@ def notebook_init(nb, resources, allow_errors):
 
 
 def nb_write(nb, input):
-   outputstr = nbformat.writes(nb, version = NB_FORMAT_VERSION)
-   if not outputstr.endswith("\n"):
-      outputstr = outputstr + "\n"
-
-   # re-write contents back to input file
-   with open(input, "w") as file:
-      file.write(outputstr)
-
+   nbformat.write(nb, input, version = NB_FORMAT_VERSION)
 
 def nb_setup_cell(kernelspec, resource_dir, fig_width, fig_height, fig_format, fig_dpi):
    return nb_language_cell('setup', kernelspec, resource_dir, fig_width, fig_height, fig_format, fig_dpi)
@@ -434,7 +427,7 @@ def nb_cell_yaml_options(client, cell):
    # if we have yaml then parse it
    if len(yaml_lines) > 0:
       yaml_code = "\n".join(yaml_lines)
-      yaml_options = yaml.load(yaml_code, Loader=yaml.FullLoader)
+      yaml_options = parse_string(yaml_code)
       if (type(yaml_options) is dict):
          return yaml_options
       else:

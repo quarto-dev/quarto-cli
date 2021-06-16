@@ -15,7 +15,11 @@ import { mergeConfigs } from "../core/config.ts";
 import { kSkipHidden, pathWithForwardSlashes } from "../core/path.ts";
 
 import { includedMetadata, Metadata } from "../config/metadata.ts";
-import { kMetadataFile, kMetadataFiles } from "../config/constants.ts";
+import {
+  kMetadataFile,
+  kMetadataFiles,
+  kQuartoVarsKey,
+} from "../config/constants.ts";
 import { Format, FormatExtras } from "../config/format.ts";
 import { PandocFlags } from "../config/flags.ts";
 
@@ -74,6 +78,12 @@ export function projectConfigFile(dir: string): string | undefined {
     .find(existsSync);
 }
 
+export function projectVarsFile(dir: string): string | undefined {
+  return ["_variables.yml", "_variables.yaml"]
+    .map((file) => join(dir, file))
+    .find(existsSync);
+}
+
 export function deleteProjectMetadata(metadata: Metadata) {
   // see if the active project type wants to filter the config printed
   const projType = projectType(
@@ -115,6 +125,17 @@ export async function projectContext(
       projectConfig = mergeConfigs(projectConfig, metadata);
       delete projectConfig[kMetadataFile];
       delete projectConfig[kMetadataFiles];
+
+      // read vars and merge into the project
+      const varsFile = projectVarsFile(dir);
+      if (varsFile) {
+        const vars = readYaml(varsFile) as Metadata;
+        projectConfig[kQuartoVarsKey] = mergeConfigs(
+          projectConfig[kQuartoVarsKey] || {},
+          vars,
+        );
+      }
+
       if (projectConfig?.project?.[kProjectType]) {
         // get project config and type
 

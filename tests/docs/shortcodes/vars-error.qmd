@@ -1,0 +1,9 @@
+---
+title: Var Test
+basic-value: "Hello World"
+_quarto-vars:
+  foo: bar
+---
+
+{{< var foobar123 >}}
+

@@ -5,7 +5,7 @@
 *
 */
 
-import { error, info } from "log/mod.ts";
+import { debug, error, info } from "log/mod.ts";
 
 export interface CmdResult {
   status: Deno.ProcessStatus;
@@ -31,7 +31,7 @@ export async function runCmd(
   const stdout = new TextDecoder().decode(await p.output());
   const stderr = new TextDecoder().decode(await p.stderrOutput());
   info(`Finished ${runCmd}`);
-  info(stdout);
+  debug(stdout);
 
   const status = await p.status();
   info(`Status ${status.code}`);

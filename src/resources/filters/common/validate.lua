@@ -16,7 +16,7 @@ function validateInList(value, list, attribute, default)
   if value == "default" then
     return default
   elseif value and not list:includes(value) then
-    log("Invalid " .. attribute .. " attribute value: " .. value)   
+    warn("Invalid " .. attribute .. " attribute value: " .. value)
     return default
   elseif value then
     return value
@@ -26,6 +26,3 @@ function validateInList(value, list, attribute, default)
 end
 
 
-function log(message)
-  io.stderr:write("WARNING: " .. message)
-end
