@@ -71,7 +71,10 @@ export async function observableNotebookToMarkdown(
   }
 
   // generate markdown
-  const kModePrefixes = ["md", "html", "tex"];
+  const kModePrefixes = ["md", "html", "tex"].map(prefix => ({
+    prefix,
+    re: new RegExp("^" + prefix + "\\s*`\(.+\)`\s*;?$")
+  }));
   const lines: string[] = [];
   for (let i = 0; i < nb.nodes.length; i++) {
     // resolve mode and value (new style nodes are typed, old style use prefixes)
@@ -80,13 +83,14 @@ export async function observableNotebookToMarkdown(
     let value = node.value as string;
     const trimmedValue = value.trim();
     if (mode === "js") {
-      const modePrefix = kModePrefixes.find((prefix) => {
-        return trimmedValue.startsWith(prefix + "`") &&
-          trimmedValue.endsWith("`");
-      });
-      if (modePrefix) {
-        mode = modePrefix;
-        value = trimmedValue.slice(mode.length + 1, trimmedValue.length - 1);
+      console.log(`Attempting to convert\n${trimmedValue}\n.===`);
+      for (const { prefix, re } of kModePrefixes) {
+        let m = trimmedValue.match(re);
+        if (m) {
+          console.log(`Matched ${prefix}!`);
+          mode = prefix;
+          value = m[1];
+        }
       }
     }
 
