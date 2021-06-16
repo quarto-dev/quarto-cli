@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, join } from "path/mod.ts";
+import { dirname, join, resolve, relative } from "path/mod.ts";
 import { Format, isJavascriptCompatible } from "../../config/format.ts";
 import { warnOnce, logError } from "../../core/log.ts";
 import { escapeBackticks } from "../../core/text.ts";
@@ -29,6 +29,7 @@ import {
   kKeepHidden,
   kOutput,
   kWarning,
+  kOutputFile
 } from "../../config/constants.ts";
 
 
@@ -66,14 +67,14 @@ export function observableCompile(
 
   let output = breakQuartoMd(markdown);
 
-  // look at global and cell options for eval, echo, output, etc.
-  // https://quarto.org/docs/computations/execution-options.html
-  // options.format.execute[kEval];
-
   let ojsCellID = 0;
   let userIds: Set<string> = new Set();
 
   const scriptContents: string[] = [];
+
+  let ojsRuntimeDir = resolve(dirname(options.source), options.libDir + "/observable");
+  let pathToDoc = relative(ojsRuntimeDir, dirname(options.source));
+  scriptContents.push(`window._ojsPathToDoc = "${pathToDoc}"`);
 
   function interpret(jsSrc: string[], inline: boolean, lenient: boolean) {
     const inlineStr = inline ? "inline-" : "";
@@ -180,7 +181,7 @@ export function observableCompile(
         let row = cell.options
           ?.["layout.nrow"] as (string | number | undefined);
         if (!row) {
-          return 1;
+          return nCells;
         }
         return Number(row);
       }
@@ -341,7 +342,7 @@ export function observableCompile(
             classes: outputCellClasses,
           });
           const outputInnerDiv = pandocDiv({
-            id: `${userId}-${subfigIx}`,
+            id: userId && `${userId}-${subfigIx}`,
           });
           const ojsDiv = pandocDiv({
             id: `${ojsId}-${subfigIx}`,
@@ -372,6 +373,8 @@ export function observableCompile(
           (cell.options?.["fig.subcap"] as string[]).length !==
             (nRow() * nCol())
         ) {
+          console.log((nRow() * nCol()));
+          console.log((cell.options?.["fig.subcap"] as string[]).length);
           throw new Error(
             "Cannot have subcaptions and multi-row/col layout with mismatched number of cells",
           );
@@ -517,7 +520,7 @@ function pandocBlock(delimiter: string) {
       if (strs.length) {
         return `{${strs.join(" ")}}`;
       } else {
-        return "";
+        return "{}";
       }
     }
 

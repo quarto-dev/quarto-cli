@@ -36,6 +36,35 @@ export function createRuntime() {
   }
   lib.width = width;
 
+  // select all panel elements with ids 
+  let layoutDivs = Array.from(document.querySelectorAll("div.quarto-layout-panel div[id]"));
+
+  // add a new function to our stdlib (!)
+  function layoutWidth() {
+    return lib.Generators.observe(function(change) {
+      let ourWidths = Object.fromEntries(layoutDivs.map(div => [div.id, div.clientWidth]));
+      change(ourWidths);
+      function resized() {
+        let changed = false;
+        for (const div of layoutDivs) {
+          let w = div.clientWidth;          
+          if (w !== ourWidths[div.id]) {
+            ourWidths[div.id] = w;
+            changed = true;
+          }
+        }
+        if (changed) {
+          change(ourWidths);
+        }
+      }
+      window.addEventListener("resize", resized);
+      return function() {
+        window.removeEventListener("resize", resized);
+      };
+    });
+  }
+  lib.layoutWidth = layoutWidth;
+
   // we think this is good enough for now, but there
   // might be better things to be done with (say) project-wide
   // resources.
@@ -44,10 +73,9 @@ export function createRuntime() {
   }
 
   function importPathResolver(path) {
-    // FIXME this is ugly and requires knowledge of the path
-    // difference between this file when installed and the resources
+    // FIXME is there a better place to pick this from than a global?
     if (path.startsWith("./")) {
-      return import(`../../../${path.slice(2)}`).then((m) => {
+      return import(`${window._ojsPathToDoc}/${path.slice(2)}`).then((m) => {
         return es6ImportAsObservable(m);
       });
     } else {
