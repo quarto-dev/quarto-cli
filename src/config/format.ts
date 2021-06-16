@@ -89,7 +89,7 @@ import {
 import { PandocFlags } from "./flags.ts";
 
 export const kDependencies = "dependencies";
-export const kSassBundles = "saas-bundles";
+export const kSassBundles = "sass-bundles";
 export const kHtmlPostprocessors = "html-postprocessors";
 export const kBodyEnvelope = "body-envelope";
 

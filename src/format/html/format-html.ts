@@ -41,7 +41,11 @@ import { createHtmlFormat } from "./../formats.ts";
 
 import { boostrapExtras, formatHasBootstrap } from "./format-html-bootstrap.ts";
 
-import { quartoFunctions, quartoRules } from "./format-html-scss.ts";
+import {
+  quartoFunctions,
+  quartoGlobalCssVariableRules,
+  quartoRules,
+} from "./format-html-scss.ts";
 
 export const kCodeCopy = "code-copy";
 export const kAnchorSections = "anchor-sections";
@@ -334,6 +338,19 @@ function htmlFormatExtras(format: Format): FormatExtras {
         },
       });
     }
+  }
+
+  if (!bootstrap) {
+    sassBundles.push({
+      dependency: kQuartoHtmlDependency,
+      key: kQuartoHtmlDependency,
+      quarto: {
+        defaults: "",
+        functions: "",
+        mixins: "",
+        rules: quartoGlobalCssVariableRules(),
+      },
+    });
   }
 
   // header includes
