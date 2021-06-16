@@ -37,7 +37,8 @@ import {
 import { projectScratchPath } from "../../project/project-scratch.ts";
 
 export const kProjectFreezeDir = "_freeze";
-export const kFreezeExecuteResults = "execute";
+export const kOldFreezeExecuteResults = "execute";
+export const kFreezeExecuteResults = "execute-results";
 
 export function freezeExecuteResult(
   input: string,
@@ -236,6 +237,8 @@ export function freezeResultFile(
 export function removeFreezeResults(filesDir: string) {
   const freezeDir = join(filesDir, kFreezeExecuteResults);
   removeIfExists(freezeDir);
+  const oldFreezeDir = join(filesDir, kOldFreezeExecuteResults);
+  removeIfExists(oldFreezeDir);
   if (existsSync(filesDir)) {
     removeIfEmptyDir(filesDir);
   }
