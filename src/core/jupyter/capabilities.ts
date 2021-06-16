@@ -10,8 +10,12 @@ import { resourcePath } from "../resources.ts";
 import { readYamlFromString } from "../yaml.ts";
 import { JupyterKernelspec, jupyterKernelspecs } from "./kernels.ts";
 
-export function pythonBinary(binary = "python") {
-  return binary;
+export function pythonBinary() {
+  if (Deno.build.os === "windows") {
+    return "python";
+  } else {
+    return "python3";
+  }
 }
 
 export interface JupyterCapabilities {
