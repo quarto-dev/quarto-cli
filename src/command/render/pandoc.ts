@@ -480,7 +480,7 @@ function resolveDependencies(
         Deno.copyFileSync(file.path, targetPath);
         if (template) {
           const href = join(libDir, dir, file.name);
-          lines.push(template({ href }));
+          lines.push(template({ href: pathWithForwardSlashes(href) }));
         }
       };
       if (dependency.meta) {
