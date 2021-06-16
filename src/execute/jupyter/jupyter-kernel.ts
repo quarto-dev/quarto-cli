@@ -14,6 +14,7 @@ import { sleep } from "../../core/async.ts";
 import { quartoDataDir, quartoRuntimeDir } from "../../core/appdirs.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 import { resourcePath } from "../../core/resources.ts";
+import { pythonBinary } from "../../core/jupyter/capabilities.ts";
 
 import {
   kExecuteDaemon,
@@ -22,7 +23,6 @@ import {
 } from "../../config/constants.ts";
 
 import { ExecuteOptions } from "../engine.ts";
-import { pythonBinary } from "./jupyter.ts";
 
 export async function executeKernelOneshot(
   options: ExecuteOptions,

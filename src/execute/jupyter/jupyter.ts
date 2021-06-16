@@ -259,10 +259,6 @@ export const jupyterEngine: ExecutionEngine = {
   },
 };
 
-export function pythonBinary(binary = "python") {
-  return binary;
-}
-
 function isQmdFile(file: string) {
   const ext = extname(file);
   return kQmdExtensions.includes(ext);
