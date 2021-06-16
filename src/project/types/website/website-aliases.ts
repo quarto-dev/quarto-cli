@@ -5,7 +5,8 @@
 *
 */
 import { ensureDirSync } from "fs/mod.ts";
-import { dirname, join, relative } from "path/mod.ts";
+import { warning } from "log/mod.ts";
+import { dirname, extname, join, relative } from "path/mod.ts";
 
 import { ProjectContext, projectOutputDir } from "../../project-context.ts";
 import { ProjectOutputFile } from "../project-type.ts";
@@ -23,8 +24,11 @@ export function updateAliases(
     if (aliases && Array.isArray(aliases)) {
       for (let alias of aliases) {
         // Ensure the alias points to a file
+        // (for paths like /foo/ or /foo)
         alias = alias as string;
         if (alias.endsWith("/")) {
+          alias = `${alias}index.html`;
+        } else if (extname(alias) === "") {
           alias = `${alias}/index.html`;
         }
 
@@ -33,15 +37,24 @@ export function updateAliases(
           ? join(outputDir, alias.slice(1))
           : join(dirname(outputFile.file), alias);
 
-        // Create a project absolute path
-        const aliasHref = "/" + relative(outputDir, outputFile.file);
+        // Resolve the href to the file
+        const aliasHref = relative(dirname(aliasTarget), outputFile.file);
 
-        // Make sure the directory exists
-        ensureDirSync(dirname(aliasTarget));
+        try {
+          // Make sure the directory exists
+          ensureDirSync(dirname(aliasTarget));
+        } catch {
+          // If there is a file with a conflicting name (this should be rare, warn and skip)
+          warning(
+            `Directory ${
+              dirname(aliasTarget)
+            } couldn't be written. Is there a file name that conflicts with a directory in that path?`,
+          );
+          continue;
+        }
 
         // Write the redirect file
         writeRedirectPage(aliasTarget, aliasHref);
-        console.log(`wrote alias ${aliasTarget}`);
       }
     }
   }
