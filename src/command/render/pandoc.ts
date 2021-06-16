@@ -584,7 +584,7 @@ async function resolveSassBundles(
     // compile the cssPath
     const bundles = mergedBundles[dependency];
     const cssPath = await compileSass(bundles);
-    const csssName = `${dependency}.min.css`;
+    const cssName = `${dependency}.min.css`;
 
     // Find any imported stylesheets or url references
     // (These could come from user scss that is merged into our theme, for example)
@@ -613,7 +613,7 @@ async function resolveSassBundles(
           existingDependency.stylesheets = [];
         }
         existingDependency.stylesheets.push({
-          name: csssName,
+          name: cssName,
           path: cssPath,
         });
 
@@ -624,7 +624,7 @@ async function resolveSassBundles(
         extraDeps.push({
           name: dependency,
           stylesheets: [{
-            name: csssName,
+            name: cssName,
             path: cssPath,
           }, ...imports],
           resources,
@@ -655,7 +655,6 @@ function runPandocMessage(
 
     // remove filter params
     removeFilterParmas(printMetadata);
-
     // print message
     if (Object.keys(printMetadata).length > 0) {
       info("metadata", { bold: true });
