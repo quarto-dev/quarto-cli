@@ -8,43 +8,25 @@
 import { basename, join } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
-import { formatResourcePath, resourcePath } from "../../core/resources.ts";
+import { formatResourcePath } from "../../core/resources.ts";
 
 import { pandocListFormats } from "../../core/pandoc/pandoc-formats.ts";
-import { execProcess } from "../../core/process.ts";
-import { readYamlFromString } from "../../core/yaml.ts";
-
-import { pythonBinary } from "../../execute/jupyter/jupyter.ts";
 import {
-  JupyterKernelspec,
-  jupyterKernelspecs,
-} from "../../core/jupyter/kernels.ts";
+  JupyterCapabilities,
+  jupyterCapabilities,
+} from "../../core/jupyter/capabilities.ts";
 
 export interface Capabilities {
   formats: string[];
   themes: string[];
-  python?: PythonCapabilities;
-}
-
-export interface PythonCapabilities {
-  versionMajor: number;
-  versionMinor: number;
-  execPrefix: string;
-  executable: string;
-  kernels: JupyterKernelspec[] | null;
-  // deno-lint-ignore camelcase
-  jupyter_core: string | null;
-  nbformat: string | null;
-  nbclient: string | null;
-  ipykernel: string | null;
-  yaml: string | null;
+  python?: JupyterCapabilities;
 }
 
 export async function capabilities(): Promise<Capabilities> {
   return {
     formats: await formats(),
     themes: await themes(),
-    python: await pythonCapabilities(),
+    python: await jupyterCapabilities(),
   };
 }
 
@@ -64,7 +46,16 @@ async function formats() {
     "epub",
   ];
 
-  return commonFormats.concat(ld.difference(formats, commonFormats));
+  const excludedFormats = [
+    "bibtex",
+    "biblatex",
+    "csljson",
+  ];
+
+  return ld.difference(
+    commonFormats.concat(ld.difference(formats, commonFormats)),
+    excludedFormats,
+  );
 }
 
 async function themes() {
@@ -77,29 +68,4 @@ async function themes() {
     }
   }
   return themes;
-}
-
-async function pythonCapabilities() {
-  try {
-    const result = await execProcess({
-      cmd: [
-        pythonBinary(),
-        resourcePath("capabilities/python.py"),
-      ],
-      stdout: "piped",
-    });
-    if (result.success && result.stdout) {
-      const caps = readYamlFromString(result.stdout) as PythonCapabilities;
-      if (caps.jupyter_core !== null) {
-        caps.kernels = Array.from((await jupyterKernelspecs()).values());
-      } else {
-        caps.kernels = null;
-      }
-      return caps;
-    } else {
-      return undefined;
-    }
-  } catch {
-    return undefined;
-  }
 }

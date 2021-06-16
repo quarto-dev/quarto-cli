@@ -14,6 +14,7 @@ import { sleep } from "../../core/async.ts";
 import { quartoDataDir, quartoRuntimeDir } from "../../core/appdirs.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 import { resourcePath } from "../../core/resources.ts";
+import { pythonBinary } from "../../core/jupyter/capabilities.ts";
 
 import {
   kExecuteDaemon,
@@ -22,7 +23,6 @@ import {
 } from "../../config/constants.ts";
 
 import { ExecuteOptions } from "../engine.ts";
-import { pythonBinary } from "./jupyter.ts";
 
 export async function executeKernelOneshot(
   options: ExecuteOptions,
@@ -297,13 +297,11 @@ async function connectToKernel(
   }
 
   // determine timeout
-  const isInteractive = Deno.isatty(Deno.stderr.rid) ||
-    !!Deno.env.get("RSTUDIO_VERSION");
-  const defaultTimeout = isInteractive ? 300 : 0;
+  const kDefaultTimeout = 300;
   const keepAlive = options.format.execute[kExecuteDaemon];
   const timeout =
     keepAlive === true || keepAlive === null || keepAlive === undefined
-      ? defaultTimeout
+      ? kDefaultTimeout
       : keepAlive === false
       ? 0
       : keepAlive;

@@ -24,7 +24,6 @@ import { mergeConfigs } from "../../core/config.ts";
 import {
   DependencyFile,
   Format,
-  FormatDependency,
   FormatExtras,
   FormatPandoc,
   isHtmlOutput,
@@ -147,17 +146,8 @@ export async function runPandoc(
   let allDefaults = await generateDefaults(options) || {};
   let printAllDefaults = ld.cloneDeep(allDefaults) as FormatPandoc;
 
-  // capture any filterParams implied by our arguments or formatExtras
-  const filterParams = {} as Record<string, unknown>;
-
-  // the "observable" filter is a special value that results in us
-  // just signaling our standard filter chain that the observable
-  // filter should be active
-  const kObservableFilter = "observable";
-  if (sysFilters.includes(kObservableFilter)) {
-    filterParams[kObservableFilter] = true;
-    sysFilters = sysFilters.filter((filter) => filter !== kObservableFilter);
-  }
+  // capture any filterParams in the FormatExtras
+  const formatFilterParams = {} as Record<string, unknown>;
 
   // see if there are extras
   const htmlPostprocessors: Array<(doc: Document) => Promise<string[]>> = [];
@@ -265,10 +255,10 @@ export async function runPandoc(
     allDefaults.filters = allDefaults.filters.map(pandocMetadataPath);
 
     // Capture any format filter params
-    const extrasFilterParams = extras[kFilterParams];
-    if (extrasFilterParams) {
-      Object.keys(extrasFilterParams).forEach((key) => {
-        filterParams[key] = extrasFilterParams[key];
+    const filterParams = extras[kFilterParams];
+    if (filterParams) {
+      Object.keys(filterParams).forEach((key) => {
+        formatFilterParams[key] = filterParams[key];
       });
     }
   }
@@ -304,7 +294,7 @@ export async function runPandoc(
     args,
     options,
     allDefaults,
-    filterParams,
+    formatFilterParams,
   );
 
   // remove selected args and defaults if we are handling some things on behalf of pandoc
@@ -402,80 +392,6 @@ export function pandocMetadataPath(path: string) {
   return pathWithForwardSlashes(path);
 }
 
-export function resolveDependencies(
-  dependencies: FormatDependency[],
-  inputDir: string,
-  libDir: string,
-) {
-  // resolve dependencies
-  const metaTemplate = ld.template(
-    `<meta name="<%- name %>" content="<%- value %>"/>`,
-  );
-  const scriptTemplate = ld.template(
-    `<script <%- attribs %> src="<%- href %>"></script>`,
-  );
-  const stylesheetTempate = ld.template(
-    `<link <%- attribs %> href="<%- href %>" rel="stylesheet" />`,
-  );
-  const rawLinkTemplate = ld.template(
-    `<link href="<%- href %>" rel="<%- rel %>" />`,
-  );
-
-  const lines: string[] = [];
-
-  for (const dependency of dependencies) {
-    const dir = dependency.version
-      ? `${dependency.name}-${dependency.version}`
-      : dependency.name;
-    const targetDir = join(inputDir, libDir, dir);
-    // deno-lint-ignore no-explicit-any
-    const copyDep = (file: DependencyFile, template?: any) => {
-      const targetPath = join(targetDir, file.name);
-      ensureDirSync(dirname(targetPath));
-      Deno.copyFileSync(file.path, targetPath);
-      if (template) {
-        const attribs = file.attribs
-          ? Object.entries(file.attribs).map((entry) => {
-            const attrib = `${entry[0]}=${entry[1]}`;
-            return attrib;
-          }).join(" ")
-          : "";
-        const href = join(libDir, dir, file.name);
-        lines.push(template({ href, attribs }));
-      }
-    };
-    if (dependency.meta) {
-      Object.keys(dependency.meta).forEach((name) => {
-        lines.push(metaTemplate({ name, value: dependency.meta![name] }));
-      });
-    }
-    if (dependency.scripts) {
-      dependency.scripts.forEach((script) => copyDep(script, scriptTemplate));
-    }
-    if (dependency.stylesheets) {
-      dependency.stylesheets.forEach((stylesheet) =>
-        copyDep(stylesheet, stylesheetTempate)
-      );
-    }
-    if (dependency.links) {
-      dependency.links.forEach((link) => {
-        lines.push(rawLinkTemplate(link));
-      });
-    }
-    if (dependency.resources) {
-      dependency.resources.forEach((resource) => copyDep(resource));
-    }
-  }
-
-  // write to external file
-  const dependenciesHead = sessionTempFile({
-    prefix: "dependencies",
-    suffix: ".html",
-  });
-  Deno.writeTextFileSync(dependenciesHead, lines.join("\n"));
-  return dependenciesHead;
-}
-
 async function resolveExtras(
   projectExtras: FormatExtras,
   formatExtras: FormatExtras,
@@ -515,21 +431,8 @@ async function resolveExtras(
       format.pandoc,
     );
 
-    // resolve html dependencies from extras
-    if (extras?.html?.[kDependencies]) {
-      // convert dependencies into head html
-      const dependenciesHead = resolveDependencies(
-        extras.html[kDependencies]!,
-        inputDir,
-        libDir,
-      );
-      delete extras.html[kDependencies];
-
-      // add to header includes
-      extras[kIncludeInHeader] = [dependenciesHead].concat(
-        extras[kIncludeInHeader] || [],
-      );
-    }
+    // resolve dependencies
+    extras = resolveDependencies(extras, inputDir, libDir);
 
     // body envelope to includes (project body envelope always wins)
     if (extras.html?.[kBodyEnvelope] && projectExtras.html?.[kBodyEnvelope]) {
@@ -538,6 +441,81 @@ async function resolveExtras(
     extras = resolveBodyEnvelope(extras);
   } else {
     delete extras.html;
+  }
+
+  return extras;
+}
+
+function resolveDependencies(
+  extras: FormatExtras,
+  inputDir: string,
+  libDir: string,
+) {
+  // deep copy to not mutate caller's object
+  extras = ld.cloneDeep(extras);
+
+  // resolve dependencies
+  const metaTemplate = ld.template(
+    `<meta name="<%- name %>" content="<%- value %>"/>`,
+  );
+  const scriptTemplate = ld.template(`<script src="<%- href %>"></script>`);
+  const stylesheetTempate = ld.template(
+    `<link href="<%- href %>" rel="stylesheet" />`,
+  );
+  const rawLinkTemplate = ld.template(
+    `<link href="<%- href %>" rel="<%- rel %>" />`,
+  );
+
+  const lines: string[] = [];
+  if (extras.html?.[kDependencies]) {
+    for (const dependency of extras.html?.[kDependencies]!) {
+      const dir = dependency.version
+        ? `${dependency.name}-${dependency.version}`
+        : dependency.name;
+      const targetDir = join(inputDir, libDir, dir);
+      // deno-lint-ignore no-explicit-any
+      const copyDep = (file: DependencyFile, template?: any) => {
+        const targetPath = join(targetDir, file.name);
+        ensureDirSync(dirname(targetPath));
+        Deno.copyFileSync(file.path, targetPath);
+        if (template) {
+          const href = join(libDir, dir, file.name);
+          lines.push(template({ href: pathWithForwardSlashes(href) }));
+        }
+      };
+      if (dependency.meta) {
+        Object.keys(dependency.meta).forEach((name) => {
+          lines.push(metaTemplate({ name, value: dependency.meta![name] }));
+        });
+      }
+      if (dependency.scripts) {
+        dependency.scripts.forEach((script) => copyDep(script, scriptTemplate));
+      }
+      if (dependency.stylesheets) {
+        dependency.stylesheets.forEach((stylesheet) =>
+          copyDep(stylesheet, stylesheetTempate)
+        );
+      }
+      if (dependency.links) {
+        dependency.links.forEach((link) => {
+          lines.push(rawLinkTemplate(link));
+        });
+      }
+      if (dependency.resources) {
+        dependency.resources.forEach((resource) => copyDep(resource));
+      }
+    }
+    delete extras.html?.[kDependencies];
+
+    // write to external file
+    const dependenciesHead = sessionTempFile({
+      prefix: "dependencies",
+      suffix: ".html",
+    });
+    Deno.writeTextFileSync(dependenciesHead, lines.join("\n"));
+    extras[kIncludeInHeader] = [dependenciesHead].concat(
+      extras[kIncludeInHeader] || [],
+    );
   }
 
   return extras;

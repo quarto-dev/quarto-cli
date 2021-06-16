@@ -9,7 +9,7 @@ import { execProcess } from "../../core/process.ts";
 import { rBinaryPath } from "../../core/resources.ts";
 import { sessionTempFile } from "../../core/temp.ts";
 
-import { pythonBinary } from "../../execute/jupyter/jupyter.ts";
+import { pythonBinary } from "../../core/jupyter/capabilities.ts";
 import { EnvironmentData, EnvironmentDataOutputOptions } from "./cmd.ts";
 
 export function pythonEnv(
