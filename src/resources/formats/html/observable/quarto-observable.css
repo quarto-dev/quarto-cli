@@ -15,6 +15,7 @@ span.ojs-inline span div {
     margin: .3em 2px .5em 0;
 }
 
+/* classes directly from observable's runtime */
 .observablehq--key {
     color: var(--quarto-hl-dt-color);
 }
@@ -29,4 +30,35 @@ span.ojs-inline span div {
 
 .observablehq--null,.observablehq--boolean,.observablehq--undefined,.observablehq--keyword {
     color: var(--quarto-hl-kw-color);
+}
+
+/* In addition, their import statements specifically come highlighted by hljs.
+   (probably some legacy feature of theirs?) We handle those here as well. 
+
+   Just to be on the safe side, we select on observable's 'md-pre'
+   class as well, in case someone else uses hljs and wishes to put
+   their own highlighting.
+
+   FIXME: Note that to make our highlighting consistent, we're
+   overriding the "im" class to present like a keyword. I should make
+   sure this looks right everywhere, but I don't know how to test it
+   comprehensively.
+*/
+
+code.javascript span.im {
+    color: var(--quarto-hl-kw-color);
+}
+
+pre.observablehq--md-pre span.hljs-keyword {
+    color: var(--quarto-hl-kw-color);
+}
+
+pre.observablehq--md-pre span.hljs-string {
+    color: var(--quarto-hl-st-color);
+}
+
+/* Other general niceties, but it's possible that we should do this on a page-by-page basis */
+
+input {
+    vertical-align: middle;
 }
