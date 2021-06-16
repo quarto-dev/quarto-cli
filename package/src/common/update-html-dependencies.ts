@@ -7,6 +7,8 @@
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { info } from "log/mod.ts";
 import { join } from "path/mod.ts";
+import { lines } from "../../../src/core/text.ts";
+import { runCmd } from "../util/cmd.ts";
 
 import { download, unzip } from "../util/utils.ts";
 import { Configuration } from "./config.ts";
@@ -138,6 +140,9 @@ export async function updateHtmlDepedencies(config: Configuration) {
     workingSubDir("bootswatch"),
     bsThemesDir,
   );
+
+  // Update Pandoc themes
+  await updatePandocHighlighting(config);
 
   // Clean up the temp dir
   Deno.removeSync(workingDir, { recursive: true });
@@ -278,6 +283,46 @@ async function updateBoostrapIcons(
   fixupFontCss(cssPath);
 
   info("Done\n");
+}
+
+async function updatePandocHighlighting(config: Configuration) {
+  info("Updating Pandoc Highlighting Themes...");
+
+  const highlightDir = join(
+    config.directoryInfo.src,
+    "resources",
+    "pandoc",
+    "highlight-styles",
+  );
+  const pandoc = join(config.directoryInfo.bin, "pandoc");
+
+  // List  the styles
+  const result = await runCmd(pandoc, ["--list-highlight-styles"]);
+  if (result.status.success) {
+    const highlightStyles = result.stdout;
+    if (highlightStyles) {
+      // Got through the list of styles and extract each style to our resources
+      const styles = lines(highlightStyles);
+      info(`Updating ${styles.length} styles...`);
+      for (const style of styles) {
+        if (style) {
+          info(`-> ${style}...`);
+          const themeResult = await runCmd(pandoc, [
+            "--print-highlight-style",
+            style,
+          ]);
+
+          if (themeResult.status.success) {
+            const themeData = themeResult.stdout;
+            await Deno.writeTextFile(
+              join(highlightDir, `${style}.theme`),
+              themeData,
+            );
+          }
+        }
+      }
+    }
+  }
 }
 
 async function updateUnpkgDependency(
