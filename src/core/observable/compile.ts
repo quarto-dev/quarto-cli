@@ -6,7 +6,7 @@
 */
 
 import { dirname, join, resolve, relative } from "path/mod.ts";
-import { Format, isJavascriptCompatible } from "../../config/format.ts";
+import { Format, isJavascriptCompatible, kDependencies  } from "../../config/format.ts";
 import { warnOnce, logError } from "../../core/log.ts";
 import { escapeBackticks } from "../../core/text.ts";
 import { breakQuartoMd } from "../../core/break-quarto-md.ts";
@@ -29,7 +29,7 @@ import {
   kKeepHidden,
   kOutput,
   kWarning,
-  kOutputFile
+  kOutputFile,
 } from "../../config/constants.ts";
 
 
@@ -417,8 +417,13 @@ export function observableCompile(
   Deno.writeTextFileSync(includeAfterBodyFile, afterBody);
 
   // copy observable dependencies and inject references to them into the head
-  const includeInHeaderFile = resolveDependencies(
-    [observableFormatDependency()],
+  
+  const extras = resolveDependencies(
+    {
+      html: {
+        [kDependencies]: [observableFormatDependency()]
+      }
+    },
     dirname(options.source),
     options.libDir,
   );
@@ -429,7 +434,7 @@ export function observableCompile(
       "observable",
     ],
     includes: {
-      [kIncludeInHeader]: [includeInHeaderFile],
+      [kIncludeInHeader]: extras?.[kIncludeInHeader] || [],
       [kIncludeAfterBody]: [includeAfterBodyFile],
     },
   };

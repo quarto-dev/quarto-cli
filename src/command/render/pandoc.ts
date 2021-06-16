@@ -149,6 +149,15 @@ export async function runPandoc(
   // capture any filterParams in the FormatExtras
   const formatFilterParams = {} as Record<string, unknown>;
 
+  // the "observable" filter is a special value that results in us
+  // just signaling our standard filter chain that the observable
+  // filter should be active
+  const kObservableFilter = "observable";
+  if (sysFilters.includes(kObservableFilter)) {
+    formatFilterParams[kObservableFilter] = true;
+    sysFilters = sysFilters.filter((filter) => filter !== kObservableFilter);
+  }
+
   // see if there are extras
   const htmlPostprocessors: Array<(doc: Document) => Promise<string[]>> = [];
   if (
@@ -446,7 +455,7 @@ async function resolveExtras(
   return extras;
 }
 
-function resolveDependencies(
+export function resolveDependencies(
   extras: FormatExtras,
   inputDir: string,
   libDir: string,
@@ -458,9 +467,11 @@ function resolveDependencies(
   const metaTemplate = ld.template(
     `<meta name="<%- name %>" content="<%- value %>"/>`,
   );
-  const scriptTemplate = ld.template(`<script src="<%- href %>"></script>`);
+  const scriptTemplate = ld.template(
+    `<script <%- attribs %> src="<%- href %>"></script>`,
+  );
   const stylesheetTempate = ld.template(
-    `<link href="<%- href %>" rel="stylesheet" />`,
+    `<link <%- attribs %> href="<%- href %>" rel="stylesheet" />`,
   );
   const rawLinkTemplate = ld.template(
     `<link href="<%- href %>" rel="<%- rel %>" />`,
@@ -479,8 +490,14 @@ function resolveDependencies(
         ensureDirSync(dirname(targetPath));
         Deno.copyFileSync(file.path, targetPath);
         if (template) {
+          const attribs = file.attribs
+            ? Object.entries(file.attribs).map((entry) => {
+              const attrib = `${entry[0]}=${entry[1]}`;
+              return attrib;
+            }).join(" ")
+          : "";
           const href = join(libDir, dir, file.name);
-          lines.push(template({ href: pathWithForwardSlashes(href) }));
+          lines.push(template({ href: pathWithForwardSlashes(href), attribs }));
         }
       };
       if (dependency.meta) {
