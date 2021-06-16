@@ -8,7 +8,3 @@
 export function lines(text: string): string[] {
   return text.split(/\r?\n/);
 }
-
-export function escapeBackticks(str: string): string {
-  return str.replaceAll(/`/g, "\\`").replaceAll(/\$/g, "\\$");
-}
