@@ -749,7 +749,7 @@ function generateThemeCssVars(theme: string) {
               case "text-color":
                 lines.push(
                   `  --quarto-hl-${abbr}-color: ${textValues[textAttr] ||
-                    "inherit"}`,
+                    "inherit"};`,
                 );
                 break;
             }
