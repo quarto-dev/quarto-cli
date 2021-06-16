@@ -8,7 +8,6 @@
 import { dirname, join, resolve, relative } from "path/mod.ts";
 import { Format, isJavascriptCompatible, kDependencies  } from "../../config/format.ts";
 import { warnOnce, logError } from "../../core/log.ts";
-import { escapeBackticks } from "../../core/text.ts";
 import { breakQuartoMd } from "../../core/break-quarto-md.ts";
 import { PandocIncludes } from "../../execute/engine.ts";
 import { formatResourcePath } from "../resources.ts";
@@ -80,9 +79,9 @@ export function observableCompile(
     const inlineStr = inline ? "inline-" : "";
     const methodName = lenient ? "interpretLenient" : "interpret";
     const content = [
-      `window._ojsRuntime.${methodName}(\``,
-      jsSrc.map(escapeBackticks).join(""),
-      `\`, "ojs-${inlineStr}cell-${ojsCellID}", ${inline});`,
+      `window._ojsRuntime.${methodName}("" + `,
+      jsSrc.map(s => JSON.stringify(s)).join(" + "),
+      `, "ojs-${inlineStr}cell-${ojsCellID}", ${inline});`,
     ];
     return content.join("");
   }
