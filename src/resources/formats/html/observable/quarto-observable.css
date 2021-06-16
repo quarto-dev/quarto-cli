@@ -12,5 +12,21 @@ span.ojs-inline span div {
 }
 
 .observablehq--caret {
-    margin: 2px;
+    margin: .3em 2px .5em 0;
+}
+
+.observablehq--key {
+    color: var(--quarto-hl-dt-color);
+}
+
+.observablehq--string {
+    color: var(--quarto-hl-st-color);
+}
+
+.observablehq--number {
+    color: var(--quarto-hl-dv-color);
+}
+
+.observablehq--null,.observablehq--boolean,.observablehq--undefined,.observablehq--keyword {
+    color: var(--quarto-hl-kw-color);
 }
