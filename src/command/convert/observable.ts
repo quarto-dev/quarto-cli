@@ -73,7 +73,7 @@ export async function observableNotebookToMarkdown(
   // generate markdown
   const kModePrefixes = ["md", "html", "tex"].map(prefix => ({
     prefix,
-    re: new RegExp("^" + prefix + "\\s*`\(.+\)`\s*;?$")
+    re: new RegExp("^" + prefix + "\\s*`((.|\\n)+)`\\s*;?")
   }));
   const lines: string[] = [];
   for (let i = 0; i < nb.nodes.length; i++) {
@@ -83,13 +83,17 @@ export async function observableNotebookToMarkdown(
     let value = node.value as string;
     const trimmedValue = value.trim();
     if (mode === "js") {
+      console.log("Attempting to match");
+      console.log(trimmedValue);
       for (const { prefix, re } of kModePrefixes) {
         let m = trimmedValue.match(re);
         if (m) {
+          console.log(`Matched ${prefix}!`);
           mode = prefix;
           value = m[1];
         }
       }
+      console.log("----");
     }
 
     // consume and write front matter if this is the first cell
