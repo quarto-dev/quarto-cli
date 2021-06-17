@@ -73,9 +73,16 @@ export function createRuntime() {
   }
 
   function importPathResolver(path) {
-    // FIXME is there a better place to pick this from than a global?
-    if (path.startsWith("./")) {
-      return import(`${window._ojsPathToDoc}/${path.slice(2)}`).then((m) => {
+    // We support ES6 modules by checking the path for ES6 module
+    // import paths
+    debugger;
+    if (path.startsWith("/")) {
+      return import(path).then((m) => {
+        return es6ImportAsObservable(m);
+      });
+    } else if (path.startsWith(".")) {
+      // FIXME is there a better place to get this variable from than a global?
+      return import(`${window._ojsPathToDoc}/${path}`).then((m) => {
         return es6ImportAsObservable(m);
       });
     } else {
