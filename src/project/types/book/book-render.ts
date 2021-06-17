@@ -375,6 +375,9 @@ async function mergeExecutedFiles(
     false,
   );
 
+  // merge resourceFiles
+  const resourceFiles = ld.uniq(files.flatMap((file) => file.resourceFiles));
+
   return Promise.resolve({
     context,
     recipe,
@@ -389,6 +392,7 @@ async function mergeExecutedFiles(
       preserve,
       postProcess,
     },
+    resourceFiles,
   });
 }
 
