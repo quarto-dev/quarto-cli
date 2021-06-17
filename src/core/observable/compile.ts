@@ -5,11 +5,17 @@
 *
 */
 
-import { dirname, join, resolve, relative } from "path/mod.ts";
-import { Format, isJavascriptCompatible, kDependencies  } from "../../config/format.ts";
-import { warnOnce, logError } from "../../core/log.ts";
+import { dirname, join, relative, resolve } from "path/mod.ts";
+import { ld } from "lodash/mod.ts";
+
+import {
+  Format,
+  isJavascriptCompatible,
+  kDependencies,
+} from "../../config/format.ts";
+import { logError, warnOnce } from "../../core/log.ts";
 import { breakQuartoMd } from "../../core/break-quarto-md.ts";
-import { PandocIncludes } from "../../execute/engine.ts";
+import { ExecuteResult, PandocIncludes } from "../../execute/engine.ts";
 import { formatResourcePath } from "../resources.ts";
 import { resolveDependencies } from "../../command/render/pandoc.ts";
 import { kIncludeAfterBody, kIncludeInHeader } from "../../config/constants.ts";
@@ -27,10 +33,10 @@ import {
   kInclude,
   kKeepHidden,
   kOutput,
-  kWarning,
-  kOutputFile,
 } from "../../config/constants.ts";
 
+import { RenderContext } from "../../command/render/render.ts";
+import { mergeConfigs } from "../config.ts";
 
 export interface ObserveableCompileOptions {
   source: string;
@@ -71,7 +77,10 @@ export function observableCompile(
 
   const scriptContents: string[] = [];
 
-  let ojsRuntimeDir = resolve(dirname(options.source), options.libDir + "/observable");
+  let ojsRuntimeDir = resolve(
+    dirname(options.source),
+    options.libDir + "/observable",
+  );
   let runtimeToDoc = relative(ojsRuntimeDir, dirname(options.source));
   let runtimeToRoot = relative(ojsRuntimeDir, "./");
   scriptContents.push(`window._ojs.paths.runtimeToDoc = "${runtimeToDoc}"`);
@@ -82,7 +91,7 @@ export function observableCompile(
     const methodName = lenient ? "interpretLenient" : "interpret";
     const content = [
       `window._ojs.runtime.${methodName}("" + `,
-      jsSrc.map(s => JSON.stringify(s)).join(" + "),
+      jsSrc.map((s) => JSON.stringify(s)).join(" + "),
       `, "ojs-${inlineStr}cell-${ojsCellID}", ${inline});`,
     ];
     return content.join("");
@@ -131,10 +140,10 @@ export function observableCompile(
         if (cell.options?.label) {
           return chooseId(cell.options.label as string);
         } else if (cell.options?.["lst.label"]) {
-          return chooseId(cell.options['lst.label'] as string);
+          return chooseId(cell.options["lst.label"] as string);
         } else {
           return undefined;
-        } 
+        }
       }
       function bumpOjsCellIdString() {
         ojsCellID += 1;
@@ -166,7 +175,11 @@ export function observableCompile(
         nCells = parseModule(cell.source.join("")).cells.length;
       } catch (e) {
         if (e instanceof SyntaxError) {
-          warnOnce(`observablejs Parse Error in cell source:\n\n${cell.source.join("")}\n`);
+          warnOnce(
+            `observablejs Parse Error in cell source:\n\n${
+              cell.source.join("")
+            }\n`,
+          );
           logError(e);
         }
         throw e;
@@ -198,15 +211,17 @@ export function observableCompile(
         return hasFigureSubCaptions() ||
           (hasManyRowsCols() && ((nRow() * nCol()) > 1));
       }
-      function idPlacement() {
-        if (hasSubFigures() ||
-          cell.options?.["lst.label"]) {
+      const idPlacement = () => {
+        if (
+          hasSubFigures() ||
+          cell.options?.["lst.label"]
+        ) {
           return "outer";
         } else {
           return "inner";
         }
-      }
-      
+      };
+
       let keysToSkip = new Set([
         "label",
         "fig.cap",
@@ -237,7 +252,7 @@ export function observableCompile(
         }
       }
       if (cell.options?.["lst.cap"]) {
-        attrs.push(`caption="${cell.options?.["lst.cap"]}"`)
+        attrs.push(`caption="${cell.options?.["lst.cap"]}"`);
       }
       const div = pandocDiv({
         id: idPlacement() === "outer" ? userId : undefined,
@@ -416,12 +431,12 @@ export function observableCompile(
   Deno.writeTextFileSync(includeAfterBodyFile, afterBody);
 
   // copy observable dependencies and inject references to them into the head
-  
+
   const extras = resolveDependencies(
     {
       html: {
-        [kDependencies]: [observableFormatDependency()]
-      }
+        [kDependencies]: [observableFormatDependency()],
+      },
     },
     dirname(options.source),
     options.libDir,
@@ -436,6 +451,38 @@ export function observableCompile(
       [kIncludeInHeader]: extras?.[kIncludeInHeader] || [],
       [kIncludeAfterBody]: [includeAfterBodyFile],
     },
+  };
+}
+
+export function observableExecuteResult(
+  context: RenderContext,
+  executeResult: ExecuteResult,
+) {
+  executeResult = ld.cloneDeep(executeResult);
+
+  // evaluate observable chunks
+  const { markdown, includes, filters } = observableCompile({
+    source: context.target.source,
+    format: context.format,
+    markdown: executeResult.markdown,
+    libDir: context.libDir,
+  });
+
+  // merge in results
+  executeResult.markdown = markdown;
+  if (includes) {
+    executeResult.includes = mergeConfigs(
+      (executeResult.includes || {}, includes),
+    );
+  }
+  if (filters) {
+    executeResult.filters = (executeResult.filters || []).concat(filters);
+  }
+
+  const resourceFiles: string[] = [];
+  return {
+    executeResult,
+    resourceFiles,
   };
 }
 

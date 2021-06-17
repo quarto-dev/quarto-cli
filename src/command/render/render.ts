@@ -33,7 +33,7 @@ import {
 } from "../../core/path.ts";
 import { warnOnce } from "../../core/log.ts";
 
-import { observableCompile } from "../../core/observable/compile.ts";
+import { observableExecuteResult } from "../../core/observable/compile.ts";
 
 import {
   formatFromMetadata,
@@ -265,10 +265,16 @@ export async function renderFiles(
         );
 
         // execute
-        const executeResult = await renderExecute(
+        const baseExecuteResult = await renderExecute(
           context,
           recipe.output,
           executeOptions,
+        );
+
+        // process observable
+        const { executeResult, resourceFiles } = observableExecuteResult(
+          context,
+          baseExecuteResult,
         );
 
         // callback
@@ -276,6 +282,7 @@ export async function renderFiles(
           context,
           recipe,
           executeResult,
+          resourceFiles,
         });
       }
     }
@@ -457,25 +464,6 @@ export async function renderExecute(
     quiet: flags.quiet,
   });
 
-  // evaluate observable chunks
-  const { markdown, includes, filters } = observableCompile({
-    source: context.target.source,
-    format: context.format,
-    markdown: executeResult.markdown,
-    libDir: context.libDir,
-  });
-
-  // merge in results
-  executeResult.markdown = markdown;
-  if (includes) {
-    executeResult.includes = mergeConfigs(
-      (executeResult.includes || {}, includes),
-    );
-  }
-  if (filters) {
-    executeResult.filters = (executeResult.filters || []).concat(filters);
-  }
-
   // keep md if requested
   const keepMd = executionEngineKeepMd(context.target.input);
   if (keepMd && context.format.execute[kKeepMd]) {
@@ -534,13 +522,14 @@ export interface ExecutedFile {
   context: RenderContext;
   recipe: OutputRecipe;
   executeResult: ExecuteResult;
+  resourceFiles: string[];
 }
 
 export async function renderPandoc(
   file: ExecutedFile,
 ): Promise<RenderedFile> {
   // alias options
-  const { context, recipe, executeResult } = file;
+  const { context, recipe, executeResult, resourceFiles } = file;
 
   // alias format
   const format = recipe.format;
@@ -669,7 +658,7 @@ export async function renderPandoc(
     file: projectPath(finalOutput),
     resourceFiles: {
       globs: pandocResult.resources,
-      files: resourceRefs,
+      files: resourceFiles.concat(resourceRefs),
     },
     selfContained: selfContained,
   };
