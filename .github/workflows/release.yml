@@ -22,7 +22,7 @@ jobs:
   configure:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{steps.config.outputs.version}}
+      version: ${{steps.config.outputs.version}}.${{ github.run_number }}
       tag_name:  v${{steps.config.outputs.version}}.${{ github.run_number }}
       release: Daily (v${{steps.config.outputs.version}} Build ${{ github.run_number }})
       changes: ${{ steps.config.outputs.changes }}  
@@ -63,20 +63,20 @@ jobs:
     - name: Prepare Distribution
       run: |
         pushd package/src/
-        ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.tag_name}} --log-level info
+        ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
         popd
 
     - name: Make Installer
       run: |
         pushd package/src/
-        ./quarto-bld make-installer-deb --set-version ${{needs.configure.outputs.tag_name}} --log-level info
+        ./quarto-bld make-installer-deb --set-version ${{needs.configure.outputs.version}} --log-level info
         popd
 
     - name: Upload Artifact 
       uses: actions/upload-artifact@v2
       with:
         name: Deb Installer
-        path: ./package/out/quarto-${{needs.configure.outputs.tag_name}}-amd64.deb
+        path: ./package/out/quarto-${{needs.configure.outputs.version}}-amd64.deb
         
   make-installer-win:
     runs-on: windows-latest
@@ -92,13 +92,13 @@ jobs:
     - name: Prepare Distribution
       run: |
         pushd package\src\
-        .\quarto-bld.cmd prepare-dist --set-version ${{needs.configure.outputs.tag_name}} --log-level info
+        .\quarto-bld.cmd prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
         popd
 
     - name: Make Installer
       run: |
         pushd package\src\
-        .\quarto-bld.cmd make-installer-win --set-version ${{needs.configure.outputs.tag_name}} --log-level info
+        .\quarto-bld.cmd make-installer-win --set-version ${{needs.configure.outputs.version}} --log-level info
         popd     
       env:
         QUARTO_WIN_PFX: ${{ secrets.WIN_PFX }}
@@ -108,7 +108,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: Windows Installer
-        path: ./package/out/quarto-${{needs.configure.outputs.tag_name}}-win.msi
+        path: ./package/out/quarto-${{needs.configure.outputs.version}}-win.msi
         
 
   make-installer-mac:
@@ -149,13 +149,13 @@ jobs:
     - name: Prepare Distribution
       run: |
         pushd package/src/
-        ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.tag_name}} --log-level info
+        ./quarto-bld prepare-dist --set-version ${{needs.configure.outputs.version}} --log-level info
         popd
 
     - name: Make Installer
       run: |
         pushd package/src/
-        ./quarto-bld make-installer-mac --set-version ${{needs.configure.outputs.tag_name}} --log-level info
+        ./quarto-bld make-installer-mac --set-version ${{needs.configure.outputs.version}} --log-level info
         popd
       env:
         QUARTO_APPLE_APP_DEV_ID: ${{ secrets.APPLE_SIGN_ID }}
@@ -167,7 +167,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: Mac Installer
-        path: ./package/out/quarto-${{needs.configure.outputs.tag_name}}-macos.pkg
+        path: ./package/out/quarto-${{needs.configure.outputs.version}}-macos.pkg
         
   publish-release:
     if: ${{ github.event.inputs.publish-release == 'true' }}
@@ -198,8 +198,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: ./Deb Installer/quarto-${{needs.configure.outputs.tag_name}}-amd64.deb
-        asset_name: quarto-${{needs.configure.outputs.tag_name}}-amd64.deb
+        asset_path: ./Deb Installer/quarto-${{needs.configure.outputs.version}}-amd64.deb
+        asset_name: quarto-${{needs.configure.outputs.version}}-amd64.deb
         asset_content_type: application/deb
 
     - name: Attach Windows Installer
@@ -209,8 +209,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: ./Windows Installer/quarto-${{needs.configure.outputs.tag_name}}-win.msi
-        asset_name: quarto-${{needs.configure.outputs.tag_name}}-win.msi
+        asset_path: ./Windows Installer/quarto-${{needs.configure.outputs.version}}-win.msi
+        asset_name: quarto-${{needs.configure.outputs.version}}-win.msi
         asset_content_type: application/msi
 
     - name: Attach Mac Installer
@@ -220,11 +220,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: ./Mac Installer/quarto-${{needs.configure.outputs.tag_name}}-macos.pkg
-        asset_name: quarto-${{needs.configure.outputs.tag_name}}-macos.pkg
+        asset_path: ./Mac Installer/quarto-${{needs.configure.outputs.version}}-macos.pkg
+        asset_name: quarto-${{needs.configure.outputs.version}}-macos.pkg
         asset_content_type: application/pkg
-        
-        
-              
-        
-
