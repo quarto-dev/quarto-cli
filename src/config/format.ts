@@ -92,6 +92,7 @@ export const kDependencies = "dependencies";
 export const kSassBundles = "sass-bundles";
 export const kHtmlPostprocessors = "html-postprocessors";
 export const kBodyEnvelope = "body-envelope";
+export const kTextHighlightingMode = "text-highlighting-mode";
 
 export interface FormatDependency {
   name: string;
@@ -148,6 +149,7 @@ export interface FormatExtras {
     [kSassBundles]?: SassBundle[];
     [kBodyEnvelope]?: BodyEnvelope;
     [kHtmlPostprocessors]?: Array<(doc: Document) => Promise<string[]>>;
+    [kTextHighlightingMode]?: "dark" | "light" | undefined;
   };
 }
 

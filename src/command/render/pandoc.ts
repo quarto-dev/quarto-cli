@@ -32,6 +32,7 @@ import {
   kDependencies,
   kHtmlPostprocessors,
   kSassBundles,
+  kTextHighlightingMode,
   SassBundle,
 } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
@@ -44,8 +45,6 @@ import {
   ProjectContext,
 } from "../../project/project-context.ts";
 import { deleteCrossrefMetadata } from "../../project/project-crossrefs.ts";
-
-import { kBootstrapDependencyName } from "../../format/html/format-html.ts";
 
 import { removePandocArgs, RenderFlags } from "./flags.ts";
 import {
@@ -77,6 +76,7 @@ import { cssImports, cssResources } from "../../core/css.ts";
 import { RunPandocResult } from "./render.ts";
 import { compileSass } from "./sass.ts";
 import { crossrefFilterActive } from "./crossref.ts";
+import { kQuartoHtmlDependency } from "../../format/html/format-html.ts";
 
 // options required to run pandoc
 export interface PandocOptions {
@@ -416,18 +416,6 @@ async function resolveExtras(
 
   // perform html-specific merging
   if (isHtmlOutput(format.pandoc)) {
-    extras.pandoc = extras.pandoc || {};
-    const highlightData = resolveHighlightStyle(
-      extras,
-      format.pandoc,
-    );
-    extras.pandoc[kHighlightStyle] = highlightData.style;
-    if (highlightData.sassBundle) {
-      formatExtras.html = formatExtras.html || {};
-      formatExtras.html[kSassBundles] = formatExtras.html[kSassBundles] || [];
-      formatExtras.html[kSassBundles]?.push(highlightData.sassBundle);
-    }
-
     // resolve sass bundles
     extras = await resolveSassBundles(
       extras,
@@ -435,6 +423,15 @@ async function resolveExtras(
       projectExtras.html?.[kSassBundles],
       project,
     );
+
+    // Set the highlighting theme
+    extras.pandoc = extras.pandoc || {};
+    extras.pandoc[kHighlightStyle] = textHighlightStyle(
+      extras,
+      format.pandoc,
+    );
+
+    extras = await resolveTextHighlightingCssVariables(extras);
 
     // resolve dependencies
     extras = resolveDependencies(extras, inputDir, libDir);
@@ -591,6 +588,14 @@ async function resolveSassBundles(
     const cssPath = await compileSass(bundles);
     const cssName = `${dependency}.min.css`;
 
+    // look for a sentinel 'dark' value and note it
+    extras.html = extras.html || {};
+    if (!extras.html[kTextHighlightingMode]) {
+      extras.html[kTextHighlightingMode] = hasDarkSentinel(cssPath)
+        ? "dark"
+        : "light";
+    }
+
     // Find any imported stylesheets or url references
     // (These could come from user scss that is merged into our theme, for example)
     const css = Deno.readTextFileSync(cssPath);
@@ -637,7 +642,45 @@ async function resolveSassBundles(
       }
     }
   }
+  return extras;
+}
 
+async function resolveTextHighlightingCssVariables(extras: FormatExtras) {
+  extras = ld.cloneDeep(extras);
+  // Generate and inject the text highlighting css
+  const kCssVariablesName = "quarto-css-variables";
+  const theme = extras.pandoc?.[kHighlightStyle] || kDefaultHighlightStyle;
+  if (theme) {
+    const highlightCss = generateThemeCssVars(theme);
+    if (highlightCss) {
+      const highlightCssPath = await compileSass([{
+        dependency: kCssVariablesName,
+        key: kCssVariablesName,
+        quarto: {
+          defaults: "",
+          functions: "",
+          mixins: "",
+          rules: highlightCss,
+        },
+      }], false);
+
+      // Find the quarto-html dependency and inject this stylesheet
+      const extraDeps = extras.html?.[kDependencies];
+      if (extraDeps) {
+        const existingDependency = extraDeps.find((extraDep) =>
+          extraDep.name === kQuartoHtmlDependency
+        );
+        if (existingDependency) {
+          existingDependency.stylesheets = existingDependency.stylesheets ||
+            [];
+          existingDependency.stylesheets.push({
+            name: `${kCssVariablesName}.css`,
+            path: highlightCssPath,
+          });
+        }
+      }
+    }
+  }
   return extras;
 }
 
@@ -672,64 +715,44 @@ const kDefaultHighlightStyle = "arrow";
 const kDarkSuffix = "dark";
 const kLightSuffix = "light";
 
-function resolveHighlightStyle(
+function textHighlightStyle(
   extras: FormatExtras,
   pandoc: FormatPandoc,
-): { style: string; sassBundle: SassBundle | undefined } {
-  // Look for a token indicating that that the theme is dark
-  const dark = extras.html?.[kDependencies]?.some((dependency) => {
-    // Inspect any bootstrap dependencies for a sentinel value
-    // that indicates that we should select a dark theme
-    if (dependency.name === kBootstrapDependencyName) {
-      return dependency.stylesheets?.some((stylesheet) => {
-        const css = Deno.readTextFileSync(stylesheet.path);
-
-        if (css.match(/\/\*! dark \*\//g)) {
-          return true;
-        } else {
-          return false;
-        }
-      });
-    } else {
-      return false;
-    }
-  });
-
+): string {
   // Get the user selected theme or choose a default
   const style = pandoc[kHighlightStyle] || kDefaultHighlightStyle;
+  const dark = extras.html?.[kTextHighlightingMode];
+  const theme = highlightFileForStyle(style, dark);
 
   // create the possible name matches based upon the dark vs. light
   // and find a matching theme file
   // Themes from
   // https://invent.kde.org/frameworks/syntax-highlighting/-/tree/master/data/themes
-  const names = [`${style}-${dark ? kDarkSuffix : kLightSuffix}`, style];
+  return theme || style;
+}
+
+function highlightFileForStyle(
+  style: string,
+  darkOrLight: "dark" | "light" | undefined,
+) {
+  const names = [
+    `${style}-${darkOrLight === "dark" ? kDarkSuffix : kLightSuffix}`,
+    style,
+  ];
   const theme = names.map((name) => {
     return resourcePath(join("pandoc", "highlight-styles", `${name}.theme`));
   }).find((path) => existsSync(path));
+  return theme;
+}
 
-  // If the name maps to a locally installed theme, use it
-  // otherwise just return the style name
-  extras.pandoc = extras.pandoc || {};
-  if (theme) {
-    const kQuartoHtmlVariablesDependency = "quarto-html-variables";
-    const cssVars = generateThemeCssVars(theme);
-    if (cssVars) {
-      return {
-        style: theme,
-        sassBundle: {
-          dependency: kQuartoHtmlVariablesDependency,
-          key: kQuartoHtmlVariablesDependency,
-          quarto: {
-            defaults: "",
-            functions: "",
-            mixins: "",
-            rules: cssVars,
-          },
-        },
-      };
-    }
+function hasDarkSentinel(cssFile: string) {
+  // Look for a token indicating that that the theme is dark
+  const css = Deno.readTextFileSync(cssFile);
+  if (css.match(/\/\*! dark \*\//g)) {
+    return true;
+  } else {
+    return false;
   }
-  return { style, sassBundle: undefined };
 }
 
 function generateThemeCssVars(theme: string) {
