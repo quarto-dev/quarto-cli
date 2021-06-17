@@ -36,9 +36,8 @@ import { renderProject } from "../render/project.ts";
 import { renderResultFinalOutput } from "../render/render.ts";
 import { projectFreezerDir } from "../render/freeze.ts";
 
+import { kLocalhost } from "./port.ts";
 import { ProjectWatcher, watchProject } from "./watch.ts";
-
-export const kLocalhost = "127.0.0.1";
 
 export type ServeOptions = {
   port: number;
@@ -291,7 +290,7 @@ async function serveFile(
         await renderQueue.enqueue(() =>
           renderProject(
             watcher.serveProject(),
-            { useFreezer: true, flags: { quiet: true } },
+            { useFreezer: true, devServerReload: true, flags: { quiet: true } },
             [inputFile!],
           )
         );
