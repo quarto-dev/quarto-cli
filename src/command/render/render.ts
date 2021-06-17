@@ -108,6 +108,7 @@ export interface RenderOptions {
   flags?: RenderFlags;
   pandocArgs?: string[];
   useFreezer?: boolean;
+  devServerReload?: boolean;
 }
 
 // context for render
@@ -306,7 +307,7 @@ export async function renderContexts(
   }
 
   // resolve render target
-  const formats = await resolveFormats(target, engine, options.flags, project);
+  const formats = await resolveFormats(target, engine, options, project);
 
   // remove --to (it's been resolved into contexts)
   options = removePandocTo(options);
@@ -911,7 +912,7 @@ async function runHtmlPostprocessors(
 async function resolveFormats(
   target: ExecutionTarget,
   engine: ExecutionEngine,
-  flags?: RenderFlags,
+  options: RenderOptions,
   project?: ProjectContext,
 ): Promise<Record<string, Format>> {
   // merge input metadata into project metadata
@@ -931,14 +932,14 @@ async function resolveFormats(
     projMetadata,
     dirname(target.input),
     formats,
-    flags,
+    options.flags,
   );
 
   const inputFormats = resolveFormatsFromMetadata(
     inputMetadata,
     dirname(target.input),
     formats,
-    flags,
+    options.flags,
   );
 
   // merge the formats
@@ -986,6 +987,7 @@ async function resolveFormats(
     for (const format of Object.keys(mergedFormats)) {
       mergedFormats[format] = engine.filterFormat(
         target.source,
+        options,
         mergedFormats[format],
       );
     }

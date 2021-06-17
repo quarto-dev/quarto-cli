@@ -291,7 +291,7 @@ async function serveFile(
         await renderQueue.enqueue(() =>
           renderProject(
             watcher.serveProject(),
-            { useFreezer: true, flags: { quiet: true } },
+            { useFreezer: true, devServerReload: true, flags: { quiet: true } },
             [inputFile!],
           )
         );

@@ -18,6 +18,8 @@ import { languagesInMarkdown } from "../core/jupyter/jupyter.ts";
 
 import { ProjectContext } from "../project/project-context.ts";
 
+import { RenderOptions } from "../command/render/render.ts";
+
 import { Format } from "../config/format.ts";
 import { Metadata, metadataAsFormat } from "../config/metadata.ts";
 import {
@@ -46,7 +48,11 @@ export interface ExecutionEngine {
   ) => Promise<ExecutionTarget | undefined>;
   metadata: (file: string) => Promise<Metadata>;
   partitionedMarkdown: (file: string) => Promise<PartitionedMarkdown>;
-  filterFormat?: (source: string, format: Format) => Format;
+  filterFormat?: (
+    source: string,
+    options: RenderOptions,
+    format: Format,
+  ) => Format;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
   executeTargetSkipped?: (target: ExecutionTarget, format: Format) => void;
   dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;
@@ -54,7 +60,10 @@ export interface ExecutionEngine {
   canFreeze: boolean;
   keepFiles?: (input: string) => string[] | undefined;
   ignoreGlobs?: () => string[] | undefined;
-  renderOnChange?: (input: string, context: ProjectContext) => Promise<boolean>;
+  devServerRenderOnChange?: (
+    input: string,
+    context: ProjectContext,
+  ) => Promise<boolean>;
   run?: (options: RunOptions) => Promise<void>;
 }
 

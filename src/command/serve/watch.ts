@@ -58,8 +58,8 @@ export async function watchProject(
     renderOnChangeInputs.splice(0, renderOnChangeInputs.length);
     for (const inputFile of project.files.input) {
       const engine = fileExecutionEngine(inputFile);
-      if (engine?.renderOnChange) {
-        if (await engine.renderOnChange(inputFile, project)) {
+      if (engine?.devServerRenderOnChange) {
+        if (await engine.devServerRenderOnChange(inputFile, project)) {
           renderOnChangeInputs.push(inputFile);
         }
       }
