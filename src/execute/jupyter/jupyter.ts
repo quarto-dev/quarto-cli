@@ -39,6 +39,7 @@ import {
 import {
   kExecuteDaemon,
   kExecuteEnabled,
+  kExecuteIpynb,
   kFigDpi,
   kFigFormat,
   kIncludeAfterBody,
@@ -128,6 +129,24 @@ export const jupyterEngine: ExecutionEngine = {
       return partitionMarkdown(await markdownFromNotebook(file));
     } else {
       return partitionMarkdown(Deno.readTextFileSync(file));
+    }
+  },
+
+  filterFormat: (source: string, format: Format) => {
+    if (isJupyterNotebook(source)) {
+      if (typeof (format.execute[kExecuteIpynb]) === "boolean") {
+        return {
+          ...format,
+          execute: {
+            ...format.execute,
+            [kExecuteEnabled]: format.execute[kExecuteIpynb],
+          },
+        };
+      } else {
+        return format;
+      }
+    } else {
+      return format;
     }
   },
 

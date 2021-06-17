@@ -46,6 +46,7 @@ export interface ExecutionEngine {
   ) => Promise<ExecutionTarget | undefined>;
   metadata: (file: string) => Promise<Metadata>;
   partitionedMarkdown: (file: string) => Promise<PartitionedMarkdown>;
+  filterFormat?: (source: string, format: Format) => Format;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
   executeTargetSkipped?: (target: ExecutionTarget, format: Format) => void;
   dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;

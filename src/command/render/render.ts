@@ -388,12 +388,15 @@ export async function renderExecute(
     projRelativeFilesDir = join(inputDir, filesDir);
   }
 
+  // are we eligible to freeze?
+  const canFreeze = context.engine.canFreeze &&
+    (context.format.execute[kExecuteEnabled] !== false);
+
   // use previous frozen results if they are available
   if (context.project && !alwaysExecute) {
     // check if we are using the freezer
 
-    const thaw = context.engine.canFreeze &&
-      (context.format.execute[kExecuteEnabled] !== false) &&
+    const thaw = canFreeze &&
       (context.format.execute[kFreeze] ||
         (context.options.useFreezer ? "auto" : false));
 
@@ -458,7 +461,7 @@ export async function renderExecute(
   }
 
   // write the freeze file if we are in a project
-  if (context.project && context.engine.canFreeze) {
+  if (context.project && canFreeze) {
     // write the freezer file
     const freezeFile = freezeExecuteResult(
       context.target.source,
@@ -975,6 +978,16 @@ async function resolveFormats(
           `The ${formatName} format is not supported by ${projType.type} projects`,
         );
       }
+    }
+  }
+
+  // apply engine format filters
+  if (engine.filterFormat) {
+    for (const format of Object.keys(mergedFormats)) {
+      mergedFormats[format] = engine.filterFormat(
+        target.source,
+        mergedFormats[format],
+      );
     }
   }
 
