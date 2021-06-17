@@ -294,6 +294,10 @@ export const jupyterEngine: ExecutionEngine = {
 
   canFreeze: true,
 
+  ignoreGlobs: () => {
+    return ["**/venv/**"];
+  },
+
   keepFiles: (input: string) => {
     if (!isJupyterNotebook(input) && !input.endsWith(`.${kJupyterEngine}.md`)) {
       const [fileDir, fileStem] = dirAndStem(input);
