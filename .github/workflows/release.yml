@@ -22,7 +22,7 @@ jobs:
   configure:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{steps.config.outputs.version}}.${{ github.run_number }}
+      version: ${{steps.config.outputs.version}}
       tag_name:  v${{steps.config.outputs.version}}.${{ github.run_number }}
       release: Daily (v${{steps.config.outputs.version}} Build ${{ github.run_number }})
       changes: ${{ steps.config.outputs.changes }}  
@@ -69,7 +69,7 @@ jobs:
     - name: Make Installer
       run: |
         pushd package/src/
-        ./quarto-bld make-installer-deb --set-version ${{needs.configure.outputs.version}} --log-level info
+        ./quarto-bld make-installer-deb --log-level info
         popd
 
     - name: Upload Artifact 
@@ -98,7 +98,7 @@ jobs:
     - name: Make Installer
       run: |
         pushd package\src\
-        .\quarto-bld.cmd make-installer-win --set-version ${{needs.configure.outputs.version}} --log-level info
+        .\quarto-bld.cmd make-installer-win --log-level info
         popd     
       env:
         QUARTO_WIN_PFX: ${{ secrets.WIN_PFX }}
@@ -155,7 +155,7 @@ jobs:
     - name: Make Installer
       run: |
         pushd package/src/
-        ./quarto-bld make-installer-mac --set-version ${{needs.configure.outputs.version}} --log-level info
+        ./quarto-bld make-installer-mac --log-level info
         popd
       env:
         QUARTO_APPLE_APP_DEV_ID: ${{ secrets.APPLE_SIGN_ID }}
