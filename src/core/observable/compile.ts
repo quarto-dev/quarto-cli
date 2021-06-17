@@ -72,14 +72,16 @@ export function observableCompile(
   const scriptContents: string[] = [];
 
   let ojsRuntimeDir = resolve(dirname(options.source), options.libDir + "/observable");
-  let pathToDoc = relative(ojsRuntimeDir, dirname(options.source));
-  scriptContents.push(`window._ojsPathToDoc = "${pathToDoc}"`);
+  let runtimeToDoc = relative(ojsRuntimeDir, dirname(options.source));
+  let runtimeToRoot = relative(ojsRuntimeDir, "./");
+  scriptContents.push(`window._ojs.paths.runtimeToDoc = "${runtimeToDoc}"`);
+  scriptContents.push(`window._ojs.paths.runtimeToRoot = "${runtimeToRoot}"`);
 
   function interpret(jsSrc: string[], inline: boolean, lenient: boolean) {
     const inlineStr = inline ? "inline-" : "";
     const methodName = lenient ? "interpretLenient" : "interpret";
     const content = [
-      `window._ojsRuntime.${methodName}("" + `,
+      `window._ojs.runtime.${methodName}("" + `,
       jsSrc.map(s => JSON.stringify(s)).join(" + "),
       `, "ojs-${inlineStr}cell-${ojsCellID}", ${inline});`,
     ];
