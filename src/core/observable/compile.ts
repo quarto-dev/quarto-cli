@@ -70,19 +70,19 @@ export function observableCompile(
     return { markdown };
   }
 
-  let output = breakQuartoMd(markdown);
+  const output = breakQuartoMd(markdown);
 
   let ojsCellID = 0;
-  let userIds: Set<string> = new Set();
+  const userIds: Set<string> = new Set();
 
   const scriptContents: string[] = [];
 
-  let ojsRuntimeDir = resolve(
+  const ojsRuntimeDir = resolve(
     dirname(options.source),
     options.libDir + "/observable",
   );
-  let runtimeToDoc = relative(ojsRuntimeDir, dirname(options.source));
-  let runtimeToRoot = relative(ojsRuntimeDir, "./");
+  const runtimeToDoc = relative(ojsRuntimeDir, dirname(options.source));
+  const runtimeToRoot = relative(ojsRuntimeDir, "./");
   scriptContents.push(`window._ojs.paths.runtimeToDoc = "${runtimeToDoc}"`);
   scriptContents.push(`window._ojs.paths.runtimeToRoot = "${runtimeToRoot}"`);
 
@@ -99,7 +99,7 @@ export function observableCompile(
 
   const inlineOJSInterpRE = /\$\{([^}]+)\}([^$])/g;
   function inlineInterpolation(str: string, lenient: boolean) {
-    return str.replaceAll(inlineOJSInterpRE, function (m, g1, g2) {
+    return str.replaceAll(inlineOJSInterpRE, function (_m, g1, g2) {
       ojsCellID += 1;
       const result = [
         `<span id="ojs-inline-cell-${ojsCellID}" class="ojs-inline"></span>`,
@@ -126,8 +126,8 @@ export function observableCompile(
     } else if (cell.cell_type === "math") {
       ls.push("\n$$", cell.source.join(), "$$\n");
     } else if (cell.cell_type?.language === "observable") {
-      function userCellId() {
-        function chooseId(label: string) {
+      const userCellId = () => {
+        const chooseId = (label: string) => {
           const htmlLabel = asHtmlId(label as string);
           if (userIds.has(htmlLabel)) {
             // FIXME better error handling
@@ -136,7 +136,7 @@ export function observableCompile(
             userIds.add(htmlLabel);
             return htmlLabel;
           }
-        }
+        };
         if (cell.options?.label) {
           return chooseId(cell.options.label as string);
         } else if (cell.options?.["lst.label"]) {
@@ -144,29 +144,29 @@ export function observableCompile(
         } else {
           return undefined;
         }
-      }
-      function bumpOjsCellIdString() {
+      };
+      const bumpOjsCellIdString = () => {
         ojsCellID += 1;
         return `ojs-cell-${ojsCellID}`;
-      }
+      };
       const ojsId = bumpOjsCellIdString();
       const userId = userCellId();
       const attrs = [];
 
-      function hasFigureLabel() {
+      const hasFigureLabel = () => {
         if (!cell.options?.label) {
           return false;
         }
         return (cell.options.label as string).startsWith("fig-");
-      }
-      function hasFigureCaption() {
+      };
+      const hasFigureCaption = () => {
         return cell.options?.["fig.cap"];
-      }
-      function hasFigureSubCaptions() {
+      };
+      const hasFigureSubCaptions = () => {
         // FIXME figure out runtime type validation. This should check
         // if fig.subcap is an array of strings.
         return cell.options?.["fig.subcap"];
-      }
+      };
 
       // very heavyweight for what we need it, but this way we can signal syntax errors
       // as well.
@@ -184,33 +184,33 @@ export function observableCompile(
         }
         throw e;
       }
-      function hasManyRowsCols() {
+      const hasManyRowsCols = () => {
         // FIXME figure out runtime type validation. This should check
         // if ncol and nrow are positive integers
         return cell.options?.["layout.ncol"] ||
           cell.options?.["layout.nrow"] ||
           (nCells > 1);
-      }
-      function nRow() {
-        let row = cell.options
+      };
+      const nRow = () => {
+        const row = cell.options
           ?.["layout.nrow"] as (string | number | undefined);
         if (!row) {
           return nCells;
         }
         return Number(row);
-      }
-      function nCol() {
-        let col = cell.options
+      };
+      const nCol = () => {
+        const col = cell.options
           ?.["layout.ncol"] as (string | number | undefined);
         if (!col) {
           return 1;
         }
         return Number(col);
-      }
-      function hasSubFigures() {
+      };
+      const hasSubFigures = () => {
         return hasFigureSubCaptions() ||
           (hasManyRowsCols() && ((nRow() * nCol()) > 1));
-      }
+      };
       const idPlacement = () => {
         if (
           hasSubFigures() ||
@@ -222,7 +222,7 @@ export function observableCompile(
         }
       };
 
-      let keysToSkip = new Set([
+      const keysToSkip = new Set([
         "label",
         "fig.cap",
         "fig.subcap",
@@ -351,7 +351,7 @@ export function observableCompile(
         outputCellClasses.push("hidden");
       }
 
-      function makeSubFigures(specs: SubfigureSpec[]) {
+      const makeSubFigures = (specs: SubfigureSpec[]) => {
         let subfigIx = 1;
         for (const spec of specs) {
           const outputDiv = pandocDiv({
@@ -371,10 +371,10 @@ export function observableCompile(
           }
           div.push(outputDiv);
         }
-      }
+      };
 
       if (!hasFigureSubCaptions() && hasManyRowsCols()) {
-        let cellCount = Math.max(nRow() * nCol(), nCells, 1);
+        const cellCount = Math.max(nRow() * nCol(), nCells, 1);
         const specs = [];
         for (let i = 0; i < cellCount; ++i) {
           specs.push({ caption: "" });
