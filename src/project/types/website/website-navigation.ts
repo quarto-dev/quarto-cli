@@ -627,6 +627,10 @@ function flattenItems(
   return items;
 }
 
+function isSeparator(item?: SidebarItem) {
+  return !!item && !!item.text?.match(/^\-\-\-[\-\s]*$/);
+}
+
 function nextAndPrevious(
   href: string,
   sidebar?: Sidebar,
@@ -636,17 +640,23 @@ function nextAndPrevious(
       sidebar?.contents,
       (item: SidebarItem) => {
         // Only include items that have a link that isn't external
-        return item.href !== undefined && !isExternalPath(item.href);
+        return item.href !== undefined && !isExternalPath(item.href) ||
+          isSeparator(item);
       },
     );
     const index = sidebarItems.findIndex((item) => item.href === href);
+    const nextPage = index > -1 && index < sidebarItems.length - 1 &&
+        !isSeparator(sidebarItems[index + 1])
+      ? sidebarItems[index + 1]
+      : undefined;
+    const prevPage = index > -1 && index < sidebarItems.length - 1 &&
+        !isSeparator(sidebarItems[index - 1])
+      ? sidebarItems[index - 1]
+      : undefined;
+
     return {
-      nextPage: index > -1 && index < sidebarItems.length - 1
-        ? sidebarItems[index + 1]
-        : undefined,
-      prevPage: index > 0 && index < sidebarItems.length
-        ? sidebarItems[index - 1]
-        : undefined,
+      nextPage,
+      prevPage,
     };
   } else {
     return {};
