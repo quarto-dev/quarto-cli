@@ -16,6 +16,8 @@ import { ld } from "lodash/mod.ts";
 
 import { pathWithForwardSlashes, removeIfExists } from "../../core/path.ts";
 
+import { logError } from "../../core/log.ts";
+
 import {
   kProjectLibDir,
   ProjectContext,
@@ -31,11 +33,11 @@ import { RenderResult } from "../render/render.ts";
 
 import {
   copyProjectForServe,
-  kLocalhost,
   maybeDisplaySocketError,
   ServeOptions,
 } from "./serve.ts";
-import { logError } from "../../core/log.ts";
+
+import { kLocalhost } from "./port.ts";
 
 export interface ProjectWatcher {
   handle: (req: ServerRequest) => boolean;
@@ -58,8 +60,8 @@ export async function watchProject(
     renderOnChangeInputs.splice(0, renderOnChangeInputs.length);
     for (const inputFile of project.files.input) {
       const engine = fileExecutionEngine(inputFile);
-      if (engine?.renderOnChange) {
-        if (await engine.renderOnChange(inputFile, project)) {
+      if (engine?.devServerRenderOnChange) {
+        if (await engine.devServerRenderOnChange(inputFile, project)) {
           renderOnChangeInputs.push(inputFile);
         }
       }

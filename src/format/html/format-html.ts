@@ -196,9 +196,10 @@ function themeFormatExtras(flags: PandocFlags, format: Format) {
   }
 }
 
+export const kQuartoHtmlDependency = "quarto-html";
 function htmlFormatExtras(format: Format): FormatExtras {
   // lists of scripts and ejs data for the orchestration script
-  const kQuartoHtmlDependency = "quarto-html";
+
   const scripts: DependencyFile[] = [];
   const stylesheets: DependencyFile[] = [];
   const bootstrap = formatHasBootstrap(format);

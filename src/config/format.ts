@@ -24,6 +24,7 @@ import {
   kExecuteDaemonRestart,
   kExecuteDebug,
   kExecuteEnabled,
+  kExecuteIpynb,
   kFigAlign,
   kFigDpi,
   kFilterParams,
@@ -92,6 +93,7 @@ export const kDependencies = "dependencies";
 export const kSassBundles = "sass-bundles";
 export const kHtmlPostprocessors = "html-postprocessors";
 export const kBodyEnvelope = "body-envelope";
+export const kTextHighlightingMode = "text-highlighting-mode";
 
 export interface FormatDependency {
   name: string;
@@ -148,6 +150,7 @@ export interface FormatExtras {
     [kSassBundles]?: SassBundle[];
     [kBodyEnvelope]?: BodyEnvelope;
     [kHtmlPostprocessors]?: Array<(doc: Document) => Promise<string[]>>;
+    [kTextHighlightingMode]?: "dark" | "light" | undefined;
   };
 }
 
@@ -196,6 +199,7 @@ export interface FormatExecute {
   [kCache]?: true | false | "refresh" | null;
   [kFreeze]?: true | false | "auto";
   [kExecuteEnabled]?: true | false | null;
+  [kExecuteIpynb]?: true | false | null;
   [kExecuteDaemon]?: number | boolean | null;
   [kExecuteDaemonRestart]?: boolean;
   [kExecuteDebug]?: boolean;

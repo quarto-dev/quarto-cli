@@ -38,7 +38,7 @@ export function print(variable: SassVariable, isDefault = true): string {
   return `$${variable.name}: ${variable.value}${isDefault ? " !default" : ""};`;
 }
 
-export async function compileSass(bundles: SassBundle[]) {
+export async function compileSass(bundles: SassBundle[], minified = true) {
   const imports = ld.uniq(bundles.flatMap((bundle) => {
     return [
       ...(bundle.user?.use || []),
@@ -118,8 +118,9 @@ export async function compileSass(bundles: SassBundle[]) {
   return await compileWithCache(
     scssInput,
     loadPaths,
-    true,
-    bundles.map((bundle) => bundle.key).join("|"),
+    minified,
+    bundles.map((bundle) => bundle.key).join("|") + "-" +
+      (minified ? "min" : "nomin"),
   );
 }
 

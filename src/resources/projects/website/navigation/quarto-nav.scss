@@ -136,7 +136,10 @@ nav .dropdown-item i {
 }
 
 .sidebar-navigation .sidebar-divider {
-  margin-left: 0.25rem;
+  margin-left: 0;
+  margin-right: 0;
+  margin-top: 0;
+  margin-bottom: .25rem;
 }
 
 .sidebar-navigation .sidebar-tool.dropdown-toggle::after {

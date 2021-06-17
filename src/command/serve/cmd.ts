@@ -8,6 +8,7 @@
 import { Command } from "cliffy/command/mod.ts";
 
 import { projectContext } from "../../project/project-context.ts";
+import { findOpenPort } from "./port.ts";
 
 import { serveProject } from "./serve.ts";
 
@@ -15,7 +16,10 @@ export const serveCommand = new Command()
   .name("serve")
   .arguments("[path:string]")
   .description(
-    "Serve a website project for local development",
+    "Serve a website project for local development. Uses port 4848 by default if it's available,\n" +
+      "otherwise chooses a random free port number (use --port to specify a specific port).\n\n" +
+      "Automatically opens a browser, watches the filesystem for site changes, and reloads the\n" +
+      "browser when changes occur (use --no-browse and --no-watch to disable these behaviors).",
   )
   .option(
     "-p, --port [port:number]",
@@ -52,8 +56,15 @@ export const serveCommand = new Command()
       throw new Error(`${projDir} is not a project`);
     }
 
+    // select a port if we need to
+    if (!options.port) {
+      options.port = findOpenPort();
+    } else {
+      options.port = parseInt(options.port);
+    }
+
     await serveProject(context, {
-      port: parseInt(options.port) || 4848,
+      port: options.port,
       browse: options.browse,
       watch: options.watch,
       navigate: options.navigate,

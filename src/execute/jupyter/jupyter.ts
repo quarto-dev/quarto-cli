@@ -39,6 +39,7 @@ import {
 import {
   kExecuteDaemon,
   kExecuteEnabled,
+  kExecuteIpynb,
   kFigDpi,
   kFigFormat,
   kIncludeAfterBody,
@@ -63,6 +64,8 @@ import {
   includesForJupyterWidgetDependencies,
   JupyterWidgetDependencies,
 } from "../../core/jupyter/widgets.ts";
+
+import { RenderOptions } from "../../command/render/render.ts";
 
 import { ProjectContext } from "../../project/project-context.ts";
 import { inputTargetIndex } from "../../project/project-index.ts";
@@ -128,6 +131,39 @@ export const jupyterEngine: ExecutionEngine = {
       return partitionMarkdown(await markdownFromNotebook(file));
     } else {
       return partitionMarkdown(Deno.readTextFileSync(file));
+    }
+  },
+
+  filterFormat: (source: string, options: RenderOptions, format: Format) => {
+    if (isJupyterNotebook(source)) {
+      // see if we want to override execute enabled
+      let executeEnabled: boolean | null | undefined;
+
+      // we never execute for a dev server reload
+      if (options.devServerReload) {
+        executeEnabled = false;
+
+        // if a specific ipynb execution policy is set then reflect it
+      } else if (typeof (format.execute[kExecuteIpynb]) === "boolean") {
+        executeEnabled = format.execute[kExecuteIpynb];
+      }
+
+      // if we had an override then return a format with it
+      if (executeEnabled !== undefined) {
+        return {
+          ...format,
+          execute: {
+            ...format.execute,
+            [kExecuteEnabled]: executeEnabled,
+          },
+        };
+        // otherwise just return the original format
+      } else {
+        return format;
+      }
+      // not an ipynb
+    } else {
+      return format;
     }
   },
 
@@ -218,22 +254,8 @@ export const jupyterEngine: ExecutionEngine = {
 
   executeTargetSkipped: cleanupNotebook,
 
-  renderOnChange: async (input: string, project: ProjectContext) => {
-    if (isJupyterNotebook(input)) {
-      const inputRelative = relative(project.dir, input);
-      const index = await inputTargetIndex(
-        project,
-        inputRelative,
-      );
-      if (index) {
-        const format = index.formats[Object.keys(index.formats)[0]];
-        return format.execute[kExecuteEnabled] === false;
-      } else {
-        return false;
-      }
-    } else {
-      return false;
-    }
+  devServerRenderOnChange: (input: string) => {
+    return Promise.resolve(isJupyterNotebook(input));
   },
 
   dependencies: (options: DependenciesOptions) => {
@@ -271,6 +293,10 @@ export const jupyterEngine: ExecutionEngine = {
   },
 
   canFreeze: true,
+
+  ignoreGlobs: () => {
+    return ["**/venv/**"];
+  },
 
   keepFiles: (input: string) => {
     if (!isJupyterNotebook(input) && !input.endsWith(`.${kJupyterEngine}.md`)) {
