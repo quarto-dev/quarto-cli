@@ -33,6 +33,7 @@ export const kResources = "resources";
 export const kKeepHidden = "keep-hidden";
 
 export const kExecuteEnabled = "enabled";
+export const kExecuteIpynb = "ipynb";
 export const kExecuteDaemon = "daemon";
 export const kExecuteDaemonRestart = "daemon-restart";
 export const kExecuteDebug = "debug";
@@ -82,6 +83,7 @@ export const kExecuteDefaultsKeys = [
   kKeepMd,
   kKeepIpynb,
   kExecuteEnabled,
+  kExecuteIpynb,
   kExecuteDaemon,
   kExecuteDaemonRestart,
   kExecuteDebug,

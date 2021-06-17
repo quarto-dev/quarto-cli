@@ -272,7 +272,6 @@ function latexCalloutBoxDefault(caption, type, icon)
   }
 
   if icon ~= false and iconForType ~= nil then
-    dump(options.title)
     options.title = '\\textcolor{' .. color .. '}{\\' .. iconForType .. '}\\hspace{0.5em}' ..  options.title
   end
 

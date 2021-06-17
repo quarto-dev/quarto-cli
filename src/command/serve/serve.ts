@@ -36,9 +36,8 @@ import { renderProject } from "../render/project.ts";
 import { renderResultFinalOutput } from "../render/render.ts";
 import { projectFreezerDir } from "../render/freeze.ts";
 
+import { kLocalhost } from "./port.ts";
 import { ProjectWatcher, watchProject } from "./watch.ts";
-
-export const kLocalhost = "127.0.0.1";
 
 export type ServeOptions = {
   port: number;
@@ -82,7 +81,12 @@ export async function serveProject(
   const serveProject = (await projectContext(serveDir))!;
 
   // create project watcher
-  const watcher = watchProject(project, serveProject, renderResult, options);
+  const watcher = await watchProject(
+    project,
+    serveProject,
+    renderResult,
+    options,
+  );
 
   // create a promise queue so we only do one renderProject at a time
   const renderQueue = new PromiseQueue();
@@ -286,7 +290,7 @@ async function serveFile(
         await renderQueue.enqueue(() =>
           renderProject(
             watcher.serveProject(),
-            { useFreezer: true, flags: { quiet: true } },
+            { useFreezer: true, devServerReload: true, flags: { quiet: true } },
             [inputFile!],
           )
         );

@@ -16,6 +16,8 @@ import { ld } from "lodash/mod.ts";
 
 import { pathWithForwardSlashes, removeIfExists } from "../../core/path.ts";
 
+import { logError } from "../../core/log.ts";
+
 import {
   kProjectLibDir,
   ProjectContext,
@@ -31,11 +33,11 @@ import { RenderResult } from "../render/render.ts";
 
 import {
   copyProjectForServe,
-  kLocalhost,
   maybeDisplaySocketError,
   ServeOptions,
 } from "./serve.ts";
-import { logError } from "../../core/log.ts";
+
+import { kLocalhost } from "./port.ts";
 
 export interface ProjectWatcher {
   handle: (req: ServerRequest) => boolean;
@@ -45,16 +47,34 @@ export interface ProjectWatcher {
   refreshProject: () => Promise<ProjectContext>;
 }
 
-export function watchProject(
+export async function watchProject(
   project: ProjectContext,
   serveProject: ProjectContext,
   renderResult: RenderResult,
   options: ServeOptions,
-): ProjectWatcher {
+): Promise<ProjectWatcher> {
+  // track renderOnChange inputs
+  const renderOnChangeInputs: string[] = [];
+  const updateRenderOnChangeInputs = async () => {
+    // track render on change inputs
+    renderOnChangeInputs.splice(0, renderOnChangeInputs.length);
+    for (const inputFile of project.files.input) {
+      const engine = fileExecutionEngine(inputFile);
+      if (engine?.devServerRenderOnChange) {
+        if (await engine.devServerRenderOnChange(inputFile, project)) {
+          renderOnChangeInputs.push(inputFile);
+        }
+      }
+    }
+  };
+  await updateRenderOnChangeInputs();
+
   // helper to refresh project config
   const refreshProjectConfig = async () => {
+    // get project and temporary serve project
     project = (await projectContext(project.dir))!;
     serveProject = (await projectContext(serveProject.dir))!;
+    await updateRenderOnChangeInputs();
   };
 
   // proj dir
@@ -106,10 +126,7 @@ export function watchProject(
 
   // is this a renderOnChange input file?
   const isRenderOnChangeInput = (path: string) => {
-    if (project.files.input.includes(path) && existsSync(path)) {
-      const engine = fileExecutionEngine(path);
-      return engine?.renderOnChange && engine.renderOnChange(path);
-    }
+    return renderOnChangeInputs.includes(path) && existsSync(path);
   };
 
   // track every path that has been modified since the last reload

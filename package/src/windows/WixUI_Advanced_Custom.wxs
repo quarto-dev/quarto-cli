@@ -91,6 +91,7 @@ Todo:
       <Publish Dialog="InstallScopeDlg" Control="Next" Property="APPLICATIONFOLDER" Value="[WixPerMachineFolder]" Order="5">WixAppFolder = "WixPerMachineFolder"</Publish>
       <Publish Dialog="InstallScopeDlg" Control="Next" Property="MSIINSTALLPERUSER" Value="1" Order="6">WixAppFolder = "WixPerUserFolder"</Publish>
       <Publish Dialog="InstallScopeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg" Order="7">1</Publish>
+      <Publish Dialog="InstallScopeDlg" Control="Next" Event="DoAction" Value="FindRelatedProducts" Order="8">1</Publish>
 
       <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="InstallScopeDlg">!(wix.WixUISupportPerUser)</Publish>
       <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">NOT !(wix.WixUISupportPerUser)</Publish>

@@ -110,6 +110,7 @@ export interface RenderOptions {
   flags?: RenderFlags;
   pandocArgs?: string[];
   useFreezer?: boolean;
+  devServerReload?: boolean;
 }
 
 // context for render
@@ -308,7 +309,7 @@ export async function renderContexts(
   }
 
   // resolve render target
-  const formats = await resolveFormats(target, engine, options.flags, project);
+  const formats = await resolveFormats(target, engine, options, project);
 
   // remove --to (it's been resolved into contexts)
   options = removePandocTo(options);
@@ -390,11 +391,15 @@ export async function renderExecute(
     projRelativeFilesDir = join(inputDir, filesDir);
   }
 
+  // are we eligible to freeze?
+  const canFreeze = context.engine.canFreeze &&
+    (context.format.execute[kExecuteEnabled] !== false);
+
   // use previous frozen results if they are available
   if (context.project && !alwaysExecute) {
     // check if we are using the freezer
 
-    const thaw = context.engine.canFreeze &&
+    const thaw = canFreeze &&
       (context.format.execute[kFreeze] ||
         (context.options.useFreezer ? "auto" : false));
 
@@ -478,7 +483,7 @@ export async function renderExecute(
   }
 
   // write the freeze file if we are in a project
-  if (context.project) {
+  if (context.project && canFreeze) {
     // write the freezer file
     const freezeFile = freezeExecuteResult(
       context.target.source,
@@ -917,7 +922,7 @@ async function runHtmlPostprocessors(
 async function resolveFormats(
   target: ExecutionTarget,
   engine: ExecutionEngine,
-  flags?: RenderFlags,
+  options: RenderOptions,
   project?: ProjectContext,
 ): Promise<Record<string, Format>> {
   // merge input metadata into project metadata
@@ -937,14 +942,14 @@ async function resolveFormats(
     projMetadata,
     dirname(target.input),
     formats,
-    flags,
+    options.flags,
   );
 
   const inputFormats = resolveFormatsFromMetadata(
     inputMetadata,
     dirname(target.input),
     formats,
-    flags,
+    options.flags,
   );
 
   // merge the formats
@@ -984,6 +989,17 @@ async function resolveFormats(
           `The ${formatName} format is not supported by ${projType.type} projects`,
         );
       }
+    }
+  }
+
+  // apply engine format filters
+  if (engine.filterFormat) {
+    for (const format of Object.keys(mergedFormats)) {
+      mergedFormats[format] = engine.filterFormat(
+        target.source,
+        options,
+        mergedFormats[format],
+      );
     }
   }
 
