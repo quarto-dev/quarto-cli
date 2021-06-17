@@ -21,6 +21,30 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   const removeActive = (link) => tocLinks[link].classList.remove("active");
   const removeAllActive = () => [...Array(tocLinks.length).keys()].forEach((link) => removeActive(link));
 
+  // activate the anchor for a section associated with this TOC entry
+  tocLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      if (anchor.contains('#')) {
+        const anchor = link.href.split('#')[1];
+        const heading = window.document.querySelector(`[data-anchor-id=${anchor}]`);
+        if (heading) {
+          // Add the class
+          heading.classList.add('reveal-anchorjs-link');
+
+          // function to show the anchor 
+          const handleMouseout = () => {
+            heading.classList.remove('reveal-anchorjs-link');
+            heading.removeEventListener("mouseout", handleMouseout);
+          };
+
+          // add a function to clear the anchor when the user mouses out of it
+          heading.addEventListener("mouseout", handleMouseout)
+        }
+  
+      }
+    });
+  })
+
   const sections = tocLinks.map(link => {
     const target = link.getAttribute("data-scroll-target");
     return window.document.querySelector(`${target}`);
