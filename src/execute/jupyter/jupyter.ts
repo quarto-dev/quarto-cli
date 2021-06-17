@@ -5,7 +5,7 @@
 *
 */
 
-import { extname, join } from "path/mod.ts";
+import { extname, join, relative } from "path/mod.ts";
 
 import { existsSync } from "fs/mod.ts";
 
@@ -39,6 +39,7 @@ import {
 import {
   kExecuteDaemon,
   kExecuteEnabled,
+  kExecuteIpynb,
   kFigDpi,
   kFigFormat,
   kIncludeAfterBody,
@@ -63,6 +64,9 @@ import {
   includesForJupyterWidgetDependencies,
   JupyterWidgetDependencies,
 } from "../../core/jupyter/widgets.ts";
+
+import { ProjectContext } from "../../project/project-context.ts";
+import { inputTargetIndex } from "../../project/project-index.ts";
 
 const kJupyterEngine = "jupyter";
 
@@ -125,6 +129,24 @@ export const jupyterEngine: ExecutionEngine = {
       return partitionMarkdown(await markdownFromNotebook(file));
     } else {
       return partitionMarkdown(Deno.readTextFileSync(file));
+    }
+  },
+
+  filterFormat: (source: string, format: Format) => {
+    if (isJupyterNotebook(source)) {
+      if (typeof (format.execute[kExecuteIpynb]) === "boolean") {
+        return {
+          ...format,
+          execute: {
+            ...format.execute,
+            [kExecuteEnabled]: format.execute[kExecuteIpynb],
+          },
+        };
+      } else {
+        return format;
+      }
+    } else {
+      return format;
     }
   },
 
@@ -214,6 +236,24 @@ export const jupyterEngine: ExecutionEngine = {
   },
 
   executeTargetSkipped: cleanupNotebook,
+
+  renderOnChange: async (input: string, project: ProjectContext) => {
+    if (isJupyterNotebook(input)) {
+      const inputRelative = relative(project.dir, input);
+      const index = await inputTargetIndex(
+        project,
+        inputRelative,
+      );
+      if (index) {
+        const format = index.formats[Object.keys(index.formats)[0]];
+        return format.execute[kExecuteEnabled] === false;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  },
 
   dependencies: (options: DependenciesOptions) => {
     const includes: PandocIncludes = {};
