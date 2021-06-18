@@ -464,6 +464,13 @@ $code-border-left-color: $table-border-color !default;
   display: none;
 }
 
+// Default values for callout colors
+$callout-color-note: $blue !default;
+$callout-color-tip: $green !default;
+$callout-color-important: $red !default;
+$callout-color-caution: $orange !default;
+$callout-color-warning: $yellow !default;
+
 // Generate per callout type css to customize their appearance
 // Define the callouts for which we should define styles
 $callouts: (
