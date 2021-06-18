@@ -165,7 +165,11 @@ export async function runPandoc(
       : {};
 
     const formatExtras = options.format.formatExtras
-      ? (await options.format.formatExtras(options.flags || {}, options.format))
+      ? (await options.format.formatExtras(
+        options.source,
+        options.flags || {},
+        options.format,
+      ))
       : {};
 
     const extras = await resolveExtras(

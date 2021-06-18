@@ -160,7 +160,11 @@ export interface Format {
   execute: FormatExecute;
   pandoc: FormatPandoc;
   metadata: Metadata;
-  formatExtras?: (flags: PandocFlags, format: Format) => Promise<FormatExtras>;
+  formatExtras?: (
+    input: string,
+    flags: PandocFlags,
+    format: Format,
+  ) => Promise<FormatExtras>;
   extensions?: Record<string, unknown>;
 }
 
