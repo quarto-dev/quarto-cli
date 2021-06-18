@@ -47,7 +47,11 @@ export async function jupyterCapabilities() {
     if (result.success && result.stdout) {
       const caps = readYamlFromString(result.stdout) as JupyterCapabilities;
       if (caps.jupyter_core !== null) {
-        caps.kernels = Array.from((await jupyterKernelspecs()).values());
+        try {
+          caps.kernels = Array.from((await jupyterKernelspecs()).values());
+        } catch {
+          caps.jupyter_core = null;
+        }
       } else {
         caps.kernels = null;
       }
