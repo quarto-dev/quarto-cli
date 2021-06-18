@@ -10,7 +10,7 @@
     <li class="">
         <div class="me-auto <%- textStyleCss %>">
           <% if (item.href) { %>
-          <div class="d-inline-flex w-100 sidebar-section-item">
+          <div class="d-inline-flex w-100 <%- depth === 1 ? "sidebar-section-item" : "sidebar-item" %>">
             <div class="sidebar-section-link me-auto <%- textStyleCss %>">
             <a href="<%- item.href %>" class="<%- item.active ? "active" : "" %>"><%= item.text %></a>
             </div>

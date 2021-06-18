@@ -369,7 +369,7 @@ async function markdownFromNotebook(file: string) {
   const cells = nb.cells as Array<{ cell_type: string; source: string[] }>;
   const markdown = cells.reduce((md, cell) => {
     if (["markdown", "raw"].includes(cell.cell_type)) {
-      return md + "\n" + cell.source.join("");
+      return md + "\n" + cell.source.join("") + "\n";
     } else {
       return md;
     }
