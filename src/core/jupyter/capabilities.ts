@@ -22,6 +22,8 @@ export interface JupyterCapabilities {
   versionMajor: number;
   versionMinor: number;
   versionPatch: number;
+  versionStr: string;
+  conda: boolean;
   execPrefix: string;
   executable: string;
   kernels: JupyterKernelspec[] | null;
