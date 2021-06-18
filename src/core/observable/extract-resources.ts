@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, resolve } from "path/mod.ts";
+import { dirname, resolve, relative } from "path/mod.ts";
 import { parseModule } from "observablehq/parser";
 import { make, simple } from "acorn/walk";
 import { parse as parseES6 } from "acorn/acorn";
@@ -100,7 +100,7 @@ export function extractResources(
   mdFilename: string,
 ) {
   // ES6 module walk
-  const result: string[] = [];
+  let result: string[] = [];
   const imports: Map<string, NameWithOrigin> = new Map();
   const ojsAST = parseModule(ojsSource);
   for (const importPath of localES6Imports(ojsAST)) {
@@ -133,8 +133,10 @@ export function extractResources(
       }
     }
   }
+  // convert ES6 resolved paths to relative paths
+  result = result.map(path => relative(dirname(mdFilename), path));
 
+  // add FileAttachment literals, which are always relative
   result.push(...literalFileAttachments(ojsAST));
-
   return result;
 }
