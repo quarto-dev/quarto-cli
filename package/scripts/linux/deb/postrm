@@ -1,5 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
-sudo rm /usr/local/bin/quarto
+if [[ "$EUID" -eq 0 ]]
+then
+rm /usr/local/bin/quarto
+else
+rm ~/bin/quarto
+fi
+
 exit 0
