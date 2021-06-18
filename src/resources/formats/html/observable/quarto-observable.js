@@ -72,19 +72,14 @@ export function createRuntime() {
     return n;
   }
 
+  // We support ES6 modules by checking the path for ES6-style module
+  // imports
   function importPathResolver(path) {
-    // We support ES6 modules by checking the path for ES6 module
-    // import paths
-    
-    // root-relative is currently disabled
-    // 
-    // if (path.startsWith("/")) {
-    //   return import(`${window._ojs.paths.runtimeToRoot}/${path}`).then((m) => {
-    //     return es6ImportAsObservable(m);
-    //   });
-    // } else
-    if (path.startsWith(".")) {
-      // FIXME is there a better place to get this variable from than a global?
+    if (path.startsWith("/")) {
+      return import(`${window._ojs.paths.runtimeToRoot}/${path}`).then((m) => {
+        return es6ImportAsObservable(m);
+      });
+    } else if (path.startsWith(".")) {
       return import(`${window._ojs.paths.runtimeToDoc}/${path}`).then((m) => {
         return es6ImportAsObservable(m);
       });
@@ -156,7 +151,7 @@ export function createRuntime() {
       };
 
       // FIXME error handling is clearly not going to work well right
-      // now.x at the very least we need to handle more than just
+      // now. at the very least we need to handle more than just
       // syntax errors, and we need to make sure subfigures are
       // handled correctly.
       let parse;
@@ -201,7 +196,6 @@ function defaultResolveImportPath(path) {
     return m.default;
   });
 }
-
 
 // here we need to convert from an ES6 module to an ObservableHQ module
 // in, well, a best-effort kind of way.

@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, resolve, relative } from "path/mod.ts";
+import { dirname, relative, resolve } from "path/mod.ts";
 import { parseModule } from "observablehq/parser";
 import { make, simple } from "acorn/walk";
 import { parse as parseES6 } from "acorn/acorn";
@@ -14,19 +14,19 @@ import { parse as parseES6 } from "acorn/acorn";
 // emits Program nodes with "cells" rather than "body"
 const walkerBase = make({
   Import() {},
-    // deno-lint-ignore no-explicit-any
+  // deno-lint-ignore no-explicit-any
   ViewExpression(node: any, st: any, c: any) {
     c(node.id, st, "Identifier");
   },
-    // deno-lint-ignore no-explicit-any
+  // deno-lint-ignore no-explicit-any
   MutableExpression(node: any, st: any, c: any) {
     c(node.id, st, "Identifier");
   },
-    // deno-lint-ignore no-explicit-any
+  // deno-lint-ignore no-explicit-any
   Cell(node: any, st: any, c: any) {
     c(node.body, st);
   },
-    // deno-lint-ignore no-explicit-any
+  // deno-lint-ignore no-explicit-any
   Program(node: any, st: any, c: any) {
     if (node.body) {
       for (let i = 0, list = node.body; i < list.length; i += 1) {
@@ -45,15 +45,14 @@ const walkerBase = make({
   },
 });
 
-    // deno-lint-ignore no-explicit-any
+// deno-lint-ignore no-explicit-any
 function localES6Imports(parse: any) {
   const result: string[] = [];
   simple(parse, {
     // deno-lint-ignore no-explicit-any
     ImportDeclaration(node: any) {
       const source = node.source?.value as string;
-      // source.startsWith('/') ??
-      if (source.startsWith(".")) {
+      if (source.startsWith("/") || source.startsWith(".")) {
         result.push(source);
       }
     },
@@ -87,8 +86,21 @@ function literalFileAttachments(parse: any) {
   return result;
 }
 
-function resolveES6Path(path: string, origin: string) {
-  return resolve(dirname(origin), path);
+function resolveES6Path(
+  path: string,
+  origin: string,
+  projectRoot?: string,
+) {
+  if (path.startsWith("/")) {
+    if (projectRoot === undefined) {
+      return resolve(dirname(origin), `.${path}`);
+    } else {
+      return resolve(projectRoot, `.${path}`);
+    }
+  } else {
+    // assert(path.startsWith('.'));
+    return resolve(dirname(origin), path);
+  }
 }
 
 interface NameWithOrigin {
@@ -98,13 +110,18 @@ interface NameWithOrigin {
 export function extractResources(
   ojsSource: string,
   mdFilename: string,
+  projectRoot?: string,
 ) {
   // ES6 module walk
   let result: string[] = [];
   const imports: Map<string, NameWithOrigin> = new Map();
   const ojsAST = parseModule(ojsSource);
   for (const importPath of localES6Imports(ojsAST)) {
-    const resolvedImportPath = resolveES6Path(importPath, mdFilename);
+    const resolvedImportPath = resolveES6Path(
+      importPath,
+      mdFilename,
+      projectRoot,
+    );
     if (!imports.has(resolvedImportPath)) {
       imports.set(resolvedImportPath, {
         origin: mdFilename,
@@ -115,16 +132,18 @@ export function extractResources(
   while (imports.size > 0) {
     const [currentImport, { origin }] = imports.entries().next().value;
     imports.delete(currentImport);
-    const contents = (new TextDecoder("utf-8")).decode(
-      Deno.readFileSync(currentImport),
-    );
+    const contents = Deno.readTextFileSync(currentImport);
     const es6AST = parseES6(contents, {
       ecmaVersion: "2020",
       sourceType: "module",
     });
     const localImports = localES6Imports(es6AST);
     for (const importPath of localImports) {
-      const resolvedImportPath = resolveES6Path(importPath, origin);
+      const resolvedImportPath = resolveES6Path(
+        importPath,
+        origin,
+        projectRoot,
+      );
       if (!imports.has(resolvedImportPath)) {
         imports.set(resolvedImportPath, {
           origin: currentImport,
@@ -134,7 +153,7 @@ export function extractResources(
     }
   }
   // convert ES6 resolved paths to relative paths
-  result = result.map(path => relative(dirname(mdFilename), path));
+  result = result.map((path) => relative(dirname(mdFilename), path));
 
   // add FileAttachment literals, which are always relative
   result.push(...literalFileAttachments(ojsAST));

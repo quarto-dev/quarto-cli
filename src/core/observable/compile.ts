@@ -44,6 +44,7 @@ export interface ObserveableCompileOptions {
   format: Format;
   markdown: string;
   libDir: string;
+  projDir?: string;
 }
 
 export interface ObservableCompileResult {
@@ -62,7 +63,7 @@ interface SubfigureSpec {
 export function observableCompile(
   options: ObserveableCompileOptions,
 ): ObservableCompileResult {
-  const { markdown } = options;
+  const { markdown, projDir } = options;
 
   if (!isJavascriptCompatible(options.format)) {
     return { markdown };
@@ -174,6 +175,7 @@ export function observableCompile(
       resourceFiles.push(...extractResources(
         cell.source.join(""),
         options.source,
+        projDir,
       ));
 
       // very heavyweight for what we need it, but this way we can signal syntax errors
@@ -475,6 +477,7 @@ export function observableExecuteResult(
     format: context.format,
     markdown: executeResult.markdown,
     libDir: context.libDir,
+    projDir: context.project?.dir,
   });
 
   // merge in results
