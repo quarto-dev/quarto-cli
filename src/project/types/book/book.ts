@@ -144,6 +144,7 @@ export const bookProjectType: ProjectType = {
   preRender: websiteProjectType.preRender,
   postRender: bookPostRender,
   formatLibDirs: websiteProjectType.formatLibDirs,
+  canServe: true,
   metadataFields: () => [...websiteProjectType.metadataFields!(), "book"],
   resourceIgnoreFields: () => [
     ...websiteProjectType.resourceIgnoreFields!(),

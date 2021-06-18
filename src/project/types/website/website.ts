@@ -74,6 +74,8 @@ export const websiteProjectType: ProjectType = {
   formatLibDirs:
     () => ["bootstrap", "quarto-nav", "quarto-search", "quarto-html"],
 
+  canServe: true,
+
   config: websiteProjectConfig,
 
   metadataFields: websiteMetadataFields,

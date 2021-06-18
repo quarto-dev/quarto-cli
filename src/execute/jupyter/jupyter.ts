@@ -189,14 +189,10 @@ export const jupyterEngine: ExecutionEngine = {
       };
 
       // use daemon by default if we are in an interactive session (terminal
-      // or rstudio) on posix and not running in a CI system. note that
-      // execlude windows b/c in some configurations the process won't have
-      // permission to create and bind to a tcp/ip port. we could overcome
-      // this by using named pipes (no deno support for this yet though)
+      // or rstudio) and not running in a CI system.
       let executeDaemon = options.format.execute[kExecuteDaemon];
       if (executeDaemon === null || executeDaemon === undefined) {
-        executeDaemon = isInteractiveSession() &&
-          !isWindows() && !runningInCI();
+        executeDaemon = isInteractiveSession() && !runningInCI();
       }
       if (executeDaemon === false || executeDaemon === 0) {
         await executeKernelOneshot(execOptions);

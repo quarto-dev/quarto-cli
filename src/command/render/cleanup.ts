@@ -11,7 +11,7 @@ import { dirname, join } from "path/mod.ts";
 import { removeIfEmptyDir, removeIfExists } from "../../core/path.ts";
 import { figuresDir, inputFilesDir } from "../../core/render.ts";
 
-import { Format } from "../../config/format.ts";
+import { Format, isHtmlOutput } from "../../config/format.ts";
 import { kKeepMd, kKeepTex } from "../../config/constants.ts";
 
 import { filesDirLibDir } from "./render.ts";
@@ -33,13 +33,15 @@ export function renderCleanup(
   if (
     !format.execute[kKeepMd] && !format.render[kKeepTex] && supporting
   ) {
-    // ammend supporting with lib dir (if it exists)
-    const libDir = join(
-      dirname(input),
-      filesDirLibDir(input),
-    );
-    if (existsSync(libDir)) {
-      supporting.push(Deno.realPathSync(libDir));
+    // ammend supporting with lib dir (if it exists) for html formats
+    if (isHtmlOutput(format.pandoc)) {
+      const libDir = join(
+        dirname(input),
+        filesDirLibDir(input),
+      );
+      if (existsSync(libDir)) {
+        supporting.push(Deno.realPathSync(libDir));
+      }
     }
 
     // clean supporting
