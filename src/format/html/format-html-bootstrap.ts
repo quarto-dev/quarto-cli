@@ -15,6 +15,7 @@ import {
   kHtmlMathMethod,
   kLinkCitations,
   kSectionDivs,
+  kTheme,
   kTocTitle,
 } from "../../config/constants.ts";
 import {
@@ -45,7 +46,7 @@ import {
 
 export function formatHasBootstrap(format: Format) {
   if (format && isHtmlOutput(format.pandoc, true)) {
-    const theme = format.metadata["theme"];
+    const theme = format.metadata[kTheme];
     return theme !== "none" && theme !== "pandoc";
   } else {
     return false;
@@ -96,6 +97,7 @@ export function bootstrapFormatDependency() {
 }
 
 export function boostrapExtras(
+  input: string,
   flags: PandocFlags,
   format: Format,
 ): FormatExtras {
@@ -134,7 +136,7 @@ export function boostrapExtras(
       : undefined,
 
     html: {
-      [kSassBundles]: [resolveBootstrapScss(format.metadata)],
+      [kSassBundles]: [resolveBootstrapScss(input, format.metadata)],
       [kDependencies]: [bootstrapFormatDependency()],
       [kBodyEnvelope]: bodyEnvelope,
       [kHtmlPostprocessors]: [

@@ -31,6 +31,7 @@ import {
   kBodyEnvelope,
   kDependencies,
   kHtmlPostprocessors,
+  kQuartoCssVariables,
   kSassBundles,
   kTextHighlightingMode,
   SassBundle,
@@ -174,7 +175,11 @@ export async function runPandoc(
       : {};
 
     const formatExtras = options.format.formatExtras
-      ? (await options.format.formatExtras(options.flags || {}, options.format))
+      ? (await options.format.formatExtras(
+        options.source,
+        options.flags || {},
+        options.format,
+      ))
       : {};
 
     const extras = await resolveExtras(
@@ -440,7 +445,8 @@ async function resolveExtras(
       format.pandoc,
     );
 
-    extras = await resolveTextHighlightingCssVariables(extras);
+    // Resolve generated quarto css variables
+    extras = await resolveQuartoCssVariables(extras);
 
     // resolve dependencies
     extras = resolveDependencies(extras, inputDir, libDir);
@@ -602,16 +608,11 @@ async function resolveSassBundles(
   for (const dependency of Object.keys(mergedBundles)) {
     // compile the cssPath
     const bundles = mergedBundles[dependency];
-    const cssPath = await compileSass(bundles);
+    let cssPath = await compileSass(bundles);
     const cssName = `${dependency}.min.css`;
 
-    // look for a sentinel 'dark' value and note it
-    extras.html = extras.html || {};
-    if (!extras.html[kTextHighlightingMode]) {
-      extras.html[kTextHighlightingMode] = hasDarkSentinel(cssPath)
-        ? "dark"
-        : "light";
-    }
+    // look for a sentinel 'dark' value, extract variables
+    cssPath = processCssIntoExtras(cssPath, extras);
 
     // Find any imported stylesheets or url references
     // (These could come from user scss that is merged into our theme, for example)
@@ -662,14 +663,22 @@ async function resolveSassBundles(
   return extras;
 }
 
-async function resolveTextHighlightingCssVariables(extras: FormatExtras) {
+async function resolveQuartoCssVariables(extras: FormatExtras) {
   extras = ld.cloneDeep(extras);
   // Generate and inject the text highlighting css
   const kCssVariablesName = "quarto-css-variables";
   const theme = extras.pandoc?.[kHighlightStyle] || kDefaultHighlightStyle;
   if (theme) {
     const highlightCss = generateThemeCssVars(theme);
+    const extraVariables = extras.html?.[kQuartoCssVariables] || [];
+
     if (highlightCss) {
+      const rules = [
+        highlightCss,
+        "",
+        "/* other quarto variables */",
+        ...extraVariables,
+      ].join("\n");
       const highlightCssPath = await compileSass([{
         dependency: kCssVariablesName,
         key: kCssVariablesName,
@@ -677,7 +686,7 @@ async function resolveTextHighlightingCssVariables(extras: FormatExtras) {
           defaults: "",
           functions: "",
           mixins: "",
-          rules: highlightCss,
+          rules,
         },
       }], false);
 
@@ -762,15 +771,37 @@ function highlightFileForStyle(
   return theme;
 }
 
-function hasDarkSentinel(cssFile: string) {
-  // Look for a token indicating that that the theme is dark
-  const css = Deno.readTextFileSync(cssFile);
-  if (css.match(/\/\*! dark \*\//g)) {
-    return true;
-  } else {
-    return false;
+function processCssIntoExtras(cssPath: string, extras: FormatExtras) {
+  extras.html = extras.html || {};
+  const css = Deno.readTextFileSync(cssPath);
+
+  // Extract dark sentinel value
+  if (!extras.html[kTextHighlightingMode] && css.match(/\/\*! dark \*\//g)) {
+    extras.html[kTextHighlightingMode] = "dark";
   }
+
+  // Extract variables
+  const matches = css.matchAll(kVariablesRegex);
+  if (matches) {
+    extras.html[kQuartoCssVariables] = extras.html[kQuartoCssVariables] || [];
+    let dirty = false;
+    for (const match of matches) {
+      const variables = match[1];
+      extras.html[kQuartoCssVariables]?.push(variables);
+      dirty = true;
+    }
+
+    if (dirty) {
+      const cleanedCss = css.replaceAll(kVariablesRegex, "");
+      const newCssPath = sessionTempFile({ suffix: ".css" });
+      Deno.writeTextFileSync(newCssPath, cleanedCss);
+      return newCssPath;
+    }
+  }
+  return cssPath;
 }
+const kVariablesRegex =
+  /\/\*\! quarto-variables-start \*\/([\S\s]*)\/\*\! quarto-variables-end \*\//g;
 
 function generateThemeCssVars(theme: string) {
   if (existsSync(theme)) {
@@ -779,6 +810,7 @@ function generateThemeCssVars(theme: string) {
     const textStyles = themeJson["text-styles"];
     if (textStyles) {
       const lines: string[] = [];
+      lines.push("/* quarto syntax highlight colors */");
       lines.push(":root {");
       Object.keys(textStyles).forEach((styleName) => {
         const abbr = kAbbrevs[styleName];

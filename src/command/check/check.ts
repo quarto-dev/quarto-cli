@@ -76,7 +76,9 @@ async function checkJupyterInstallation(tmpDir: string) {
   if (caps && caps.versionMajor >= 3) {
     completeMessage(kMessage + "OK");
     info(
-      `      Version: ${caps.versionMajor}.${caps.versionMinor}.${caps.versionPatch}`,
+      `      Version: ${caps.versionMajor}.${caps.versionMinor}.${caps.versionPatch}${
+        caps.conda ? " (Conda)" : ""
+      }`,
     );
     info(`      Path: ${caps.execPrefix}`);
     info(`      Jupyter: ${caps.jupyter_core || "(None)"}`);
@@ -98,8 +100,11 @@ async function checkJupyterInstallation(tmpDir: string) {
     } else {
       info(
         "      Jupyter not available in this Python installation.\n" +
-          "      Install with " + colors.bold("pip install jupyter") + " or " +
-          colors.bold("conda install jupyter") + "\n",
+          "      Install with " + colors.bold(`${
+            caps.conda
+              ? "conda"
+              : "pip3"
+          } install jupyter`) + "\n",
       );
     }
   } else {

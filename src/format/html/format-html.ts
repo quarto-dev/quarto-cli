@@ -71,11 +71,11 @@ export function htmlFormat(
   return mergeConfigs(
     createHtmlFormat(figwidth, figheight),
     {
-      formatExtras: (flags: PandocFlags, format: Format) => {
+      formatExtras: (input: string, flags: PandocFlags, format: Format) => {
         const htmlFilterParams = htmlFormatFilterParams(format);
         return mergeConfigs(
           htmlFormatExtras(format),
-          themeFormatExtras(flags, format),
+          themeFormatExtras(input, flags, format),
           { [kFilterParams]: htmlFilterParams },
         );
       },
@@ -181,7 +181,7 @@ export function htmlFormatPostprocessor(format: Format) {
   };
 }
 
-function themeFormatExtras(flags: PandocFlags, format: Format) {
+function themeFormatExtras(input: string, flags: PandocFlags, format: Format) {
   const theme = format.metadata[kTheme];
   if (theme === "none") {
     return {
@@ -192,9 +192,11 @@ function themeFormatExtras(flags: PandocFlags, format: Format) {
   } else if (theme === "pandoc") {
     return pandocExtras(format);
   } else {
-    return boostrapExtras(flags, format);
+    return boostrapExtras(input, flags, format);
   }
 }
+
+const kTwitter = "twitter";
 
 export const kQuartoHtmlDependency = "quarto-html";
 function htmlFormatExtras(format: Format): FormatExtras {

@@ -7,7 +7,8 @@
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { projectContext } from "../../project/project-context.ts";
+import { kProjectType, projectContext } from "../../project/project-context.ts";
+import { projectType } from "../../project/types/project-types.ts";
 import { findOpenPort } from "./port.ts";
 
 import { serveProject } from "./serve.ts";
@@ -54,6 +55,16 @@ export const serveCommand = new Command()
     const context = await projectContext(projDir);
     if (!context?.config) {
       throw new Error(`${projDir} is not a project`);
+    }
+
+    // confirm that it's a project type that can be served
+    const type = context.config.project[kProjectType];
+    const projType = projectType(type);
+    if (!projType.canServe) {
+      throw new Error(
+        `Cannot serve project of type '${type ||
+          "default"}' (try using project type 'site').`,
+      );
     }
 
     // select a port if we need to

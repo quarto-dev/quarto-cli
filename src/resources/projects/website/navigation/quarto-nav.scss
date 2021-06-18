@@ -40,6 +40,7 @@ nav .dropdown-item i {
 }
 
 .sidebar-title {
+  margin-top: 0.25rem;
   padding-bottom: 0.5rem;
   font-size: 1.3rem;
   line-height: 1.4rem;
@@ -49,6 +50,14 @@ nav .dropdown-item i {
 .sidebar-title > a {
   font-size: inherit;
   text-decoration: none;
+}
+
+.sidebar-title .sidebar-tools-main {
+  margin-top: -6px;
+}
+
+.sidebar-header-stacked .sidebar-title {
+  margin-top: 0.6rem;
 }
 
 .sidebar-navigation .active {
@@ -94,7 +103,6 @@ nav .dropdown-item i {
   padding-top: 0.1rem;
 }
 
-
 .sidebar-navigation .sidebar-section.depth1 > li > div > ul {
   margin-bottom: 0.4em;
 }
@@ -112,7 +120,6 @@ nav .dropdown-item i {
   font-size: 0.8rem;
   padding-bottom: 0.1rem;
 }
-
 
 .sidebar-navigation .sidebar-section-item > a {
   padding: 0;
@@ -139,7 +146,7 @@ nav .dropdown-item i {
   margin-left: 0;
   margin-right: 0;
   margin-top: 0;
-  margin-bottom: .25rem;
+  margin-bottom: 0.25rem;
 }
 
 .sidebar-navigation .sidebar-tool.dropdown-toggle::after {

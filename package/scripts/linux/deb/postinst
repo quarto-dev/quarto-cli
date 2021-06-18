@@ -1,5 +1,13 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
-sudo ln -fs /opt/quarto/bin/quarto /usr/local/bin/quarto
+# detect whether running as root (per machien installation)
+# if per machine (run without sudo):
+
+if [[ $EUID -eq 0 ]]; then
+ln -fs /opt/quarto/bin/quarto /usr/local/bin/quarto
+else
+ln -fs /opt/quarto/bin/quarto ~/bin/quarto
+fi
+
 exit 0

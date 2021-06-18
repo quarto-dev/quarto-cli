@@ -496,7 +496,7 @@ async function resolveSidebarItems(
 
 async function resolveSidebarItem(project: ProjectContext, item: SidebarItem) {
   if (item.href) {
-    return await resolveItem(
+    item = await resolveItem(
       project,
       item.href,
       item,

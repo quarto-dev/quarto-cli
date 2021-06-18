@@ -5,12 +5,12 @@
 *
 */
 
-import { extname, join, relative } from "path/mod.ts";
+import { extname, join } from "path/mod.ts";
 
 import { existsSync } from "fs/mod.ts";
 
 import { readYamlFromMarkdown } from "../../core/yaml.ts";
-import { isInteractiveSession, isWindows } from "../../core/platform.ts";
+import { isInteractiveSession } from "../../core/platform.ts";
 import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
 
 import { dirAndStem, removeIfExists } from "../../core/path.ts";
@@ -67,9 +67,6 @@ import {
 } from "../../core/jupyter/widgets.ts";
 
 import { RenderOptions } from "../../command/render/render.ts";
-
-import { ProjectContext } from "../../project/project-context.ts";
-import { inputTargetIndex } from "../../project/project-index.ts";
 
 const kJupyterEngine = "jupyter";
 
@@ -190,14 +187,10 @@ export const jupyterEngine: ExecutionEngine = {
       };
 
       // use daemon by default if we are in an interactive session (terminal
-      // or rstudio) on posix and not running in a CI system. note that
-      // execlude windows b/c in some configurations the process won't have
-      // permission to create and bind to a tcp/ip port. we could overcome
-      // this by using named pipes (no deno support for this yet though)
+      // or rstudio) and not running in a CI system.
       let executeDaemon = options.format.execute[kExecuteDaemon];
       if (executeDaemon === null || executeDaemon === undefined) {
-        executeDaemon = isInteractiveSession() &&
-          !isWindows() && !runningInCI();
+        executeDaemon = isInteractiveSession() && !runningInCI();
       }
       if (executeDaemon === false || executeDaemon === 0) {
         await executeKernelOneshot(execOptions);
@@ -372,7 +365,7 @@ async function markdownFromNotebook(file: string) {
   const cells = nb.cells as Array<{ cell_type: string; source: string[] }>;
   const markdown = cells.reduce((md, cell) => {
     if (["markdown", "raw"].includes(cell.cell_type)) {
-      return md + "\n" + cell.source.join("");
+      return md + "\n" + cell.source.join("") + "\n";
     } else {
       return md;
     }

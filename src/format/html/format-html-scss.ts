@@ -34,7 +34,10 @@ import {
   kSiteSidebar,
 } from "../../project/types/website/website-config.ts";
 
-export function resolveBootstrapScss(metadata: Metadata): SassBundle {
+export function resolveBootstrapScss(
+  input: string,
+  metadata: Metadata,
+): SassBundle {
   // Quarto built in css
   const quartoThemesDir = formatResourcePath(
     "html",
@@ -58,7 +61,7 @@ export function resolveBootstrapScss(metadata: Metadata): SassBundle {
   const themes = Array.isArray(themeRaw)
     ? themeRaw
     : [String(metadata[kTheme])];
-  const themeLayer = resolveThemeLayer(themes, quartoThemesDir);
+  const themeLayer = resolveThemeLayer(input, themes, quartoThemesDir);
 
   return {
     dependency: kBootstrapDependencyName,
@@ -90,6 +93,7 @@ export function resolveBootstrapScss(metadata: Metadata): SassBundle {
 }
 
 function resolveThemeLayer(
+  input: string,
   themes: string[],
   quartoThemesDir: string,
 ): SassLayer {
@@ -103,11 +107,13 @@ function resolveThemeLayer(
     if (existsSync(resolvedThemePath)) {
       // The theme appears to be a built in theme
       themeLayers.push(sassLayer(resolvedThemePath));
-    } else if (existsSync(theme)) {
-      themeLayers.push(sassLayer(theme));
+    } else {
+      const themePath = join(dirname(input), theme);
+      if (existsSync(themePath)) {
+        themeLayers.push(sassLayer(themePath));
+      }
     }
   });
-
   return mergeLayers(...themeLayers);
 }
 
@@ -238,9 +244,11 @@ export const quartoRules = () =>
 export const quartoGlobalCssVariableRules = () => {
   return `
   $font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !default;
+  /*! quarto-variables-start */
   :root {
     --quarto-font-monospace: #{inspect($font-family-monospace)};
   }
+  /*! quarto-variables-end */
   `;
 };
 
