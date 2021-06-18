@@ -359,20 +359,6 @@ function htmlFormatExtras(format: Format): FormatExtras {
   // header includes
   const includeInHeader: string[] = [];
 
-  // open graph data
-  if (format.metadata[kTwitter]) {
-    const twitter = format.metadata[kTwitter];
-    if (typeof (twitter) === "boolean") {
-      // twitter: true
-      // infer title and desc
-    } else if (typeof (twitter) === "object") {
-    }
-  }
-
-  // OpenGraph / Twitter if required
-
-  // twitter metadata
-
   // hypothesis
   if (options.hypothesis) {
     const hypothesisHeader = sessionTempFile({ suffix: ".html" });
