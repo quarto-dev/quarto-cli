@@ -23,6 +23,7 @@ export interface ProjectType {
   ) => Promise<ProjectConfig>;
   libDir?: string;
   outputDir?: string;
+  canServe?: boolean;
   formatLibDirs?: () => string[];
   formatExtras?: (
     context: ProjectContext,
