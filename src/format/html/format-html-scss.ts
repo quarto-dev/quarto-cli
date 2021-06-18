@@ -244,9 +244,11 @@ export const quartoRules = () =>
 export const quartoGlobalCssVariableRules = () => {
   return `
   $font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !default;
+  /*! quarto-variables-start */
   :root {
     --quarto-font-monospace: #{inspect($font-family-monospace)};
   }
+  /*! quarto-variables-end */
   `;
 };
 
