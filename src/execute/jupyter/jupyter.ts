@@ -5,12 +5,12 @@
 *
 */
 
-import { extname, join, relative } from "path/mod.ts";
+import { extname, join } from "path/mod.ts";
 
 import { existsSync } from "fs/mod.ts";
 
 import { readYamlFromMarkdown } from "../../core/yaml.ts";
-import { isInteractiveSession, isWindows } from "../../core/platform.ts";
+import { isInteractiveSession } from "../../core/platform.ts";
 import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
 
 import { dirAndStem, removeIfExists } from "../../core/path.ts";
@@ -66,9 +66,6 @@ import {
 } from "../../core/jupyter/widgets.ts";
 
 import { RenderOptions } from "../../command/render/render.ts";
-
-import { ProjectContext } from "../../project/project-context.ts";
-import { inputTargetIndex } from "../../project/project-index.ts";
 
 const kJupyterEngine = "jupyter";
 
