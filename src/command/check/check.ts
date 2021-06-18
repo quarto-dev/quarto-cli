@@ -103,7 +103,7 @@ async function checkJupyterInstallation(tmpDir: string) {
           "      Install with " + colors.bold(`${
             caps.conda
               ? "conda"
-              : "pip"
+              : "pip3"
           } install jupyter`) + "\n",
       );
     }
