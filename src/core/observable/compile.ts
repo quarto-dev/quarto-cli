@@ -23,6 +23,7 @@ import { sessionTempFile } from "../temp.ts";
 import { languagesInMarkdown } from "../jupyter/jupyter.ts";
 import { asHtmlId } from "../html.ts";
 import { parseModule } from "observablehq/parser";
+import { extractResources } from "./extract-resources.ts";
 
 import {
   kCodeFold,
@@ -49,6 +50,7 @@ export interface ObservableCompileResult {
   markdown: string;
   filters?: string[];
   includes?: PandocIncludes;
+  resourceFiles?: string[];
 }
 
 interface SubfigureSpec {
@@ -110,6 +112,7 @@ export function observableCompile(
     });
   }
   const ls: string[] = [];
+  const resourceFiles: string[] = [];
   // now we convert it back
   for (const cell of output.cells) {
     const errorVal = firstDefined([
@@ -167,6 +170,11 @@ export function observableCompile(
         // if fig.subcap is an array of strings.
         return cell.options?.["fig.subcap"];
       };
+
+      resourceFiles.push(...extractResources(
+        cell.source.join(""),
+        options.source,
+      ));
 
       // very heavyweight for what we need it, but this way we can signal syntax errors
       // as well.
@@ -451,6 +459,7 @@ export function observableCompile(
       [kIncludeInHeader]: extras?.[kIncludeInHeader] || [],
       [kIncludeAfterBody]: [includeAfterBodyFile],
     },
+    resourceFiles,
   };
 }
 
@@ -461,7 +470,7 @@ export function observableExecuteResult(
   executeResult = ld.cloneDeep(executeResult);
 
   // evaluate observable chunks
-  const { markdown, includes, filters } = observableCompile({
+  const { markdown, includes, filters, resourceFiles } = observableCompile({
     source: context.target.source,
     format: context.format,
     markdown: executeResult.markdown,
@@ -479,13 +488,13 @@ export function observableExecuteResult(
     executeResult.filters = (executeResult.filters || []).concat(filters);
   }
 
-  const resourceFiles: string[] = [];
   return {
     executeResult,
-    resourceFiles,
+    resourceFiles: resourceFiles || [],
   };
 }
 
+// deno-lint-ignore no-explicit-any
 function asUndefined(value: any, test: any) {
   if (value === test) {
     return undefined;
@@ -493,6 +502,7 @@ function asUndefined(value: any, test: any) {
   return value;
 }
 
+// deno-lint-ignore no-explicit-any
 function firstDefined(lst: any[]) {
   for (const el of lst) {
     if (el !== undefined) {

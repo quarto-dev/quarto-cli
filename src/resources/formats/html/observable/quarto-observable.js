@@ -75,11 +75,15 @@ export function createRuntime() {
   function importPathResolver(path) {
     // We support ES6 modules by checking the path for ES6 module
     // import paths
-    if (path.startsWith("/")) {
-      return import(`${window._ojs.paths.runtimeToRoot}/${path}`).then((m) => {
-        return es6ImportAsObservable(m);
-      });
-    } else if (path.startsWith(".")) {
+    
+    // root-relative is currently disabled
+    // 
+    // if (path.startsWith("/")) {
+    //   return import(`${window._ojs.paths.runtimeToRoot}/${path}`).then((m) => {
+    //     return es6ImportAsObservable(m);
+    //   });
+    // } else
+    if (path.startsWith(".")) {
       // FIXME is there a better place to get this variable from than a global?
       return import(`${window._ojs.paths.runtimeToDoc}/${path}`).then((m) => {
         return es6ImportAsObservable(m);
