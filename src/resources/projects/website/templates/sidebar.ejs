@@ -15,7 +15,7 @@ if (sidebar.align === "center") {
 %>
 
 <nav class="<%- mCss %> py-2 <%- styleCss %> <%- textStyleCss %> overflow-scroll">
-  <div class="px-3 pt-lg-2 mt-1 <%= alignCss %>">
+  <div class="px-3 pt-lg-2 mt-1 <%= alignCss %> sidebar-header<%= sidebar.logo && sidebar.title ? ' sidebar-header-stacked' : '' %>">
     <% if (sidebar.logo) { %>
     <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo py-0 d-lg-inline d-none"/>
      <% if (sidebar.tools && !sidebar.title) { %>
@@ -24,7 +24,7 @@ if (sidebar.align === "center") {
     <% } %>
     
     <% if (sidebar.title) { %>
-    <div class="sidebar-title mt-1 mb-0 py-0">
+    <div class="sidebar-title mb-0 py-0">
       <a href="/">
       <%- sidebar.title %>
       </a>
