@@ -32,24 +32,26 @@ let cachedJupyterCaps: JupyterCapabilities | undefined;
 export async function jupyterCapabilities() {
   if (!cachedJupyterCaps) {
     // if we are on windows and have PY_PYTHON3 or PY_PYTHON defined
-    // then force the use of the launcher from the get go
+    // then try to use the launcher
     if (isWindows() && pyPython()) {
       cachedJupyterCaps = await getPyLauncherJupyterCapabilities();
-    } else {
-      // initially probe the path
-      // TODO: dodge windows store python
-      // TODO: can we go straight for python3 on linux or does conda do 'python' there as well?
-      cachedJupyterCaps = await getJupyterCapabilities(["python"]);
+    }
 
-      // if this is conda and python >= 3 we are done, otherwise probe for python3 specifically
-      if (!cachedJupyterCaps?.conda || cachedJupyterCaps.versionMajor >= 3) {
+    // default handling (also a fallthrough if launcher didn't work out)
+    if (!cachedJupyterCaps) {
+      // look for python from conda (conda doesn't provide python3 on windows or mac)
+      const caps = await getJupyterCapabilities(["python"]);
+
+      // if it's conda w/ python >= 3 then we are done
+      if (caps?.conda && caps.versionMajor >= 3) {
+        cachedJupyterCaps = caps;
+      } else { // otherwise try to find python 3 explicitly
         const caps = isWindows()
           ? await getPyLauncherJupyterCapabilities()
           : await getJupyterCapabilities(["python3"]);
         if (caps) {
           cachedJupyterCaps = caps;
         }
-        // ... otherwise just use the non-conda install we already found
       }
     }
   }

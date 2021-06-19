@@ -13,17 +13,16 @@ export async function pythonExec(): Promise<string[]> {
   if (caps?.pyLauncher) {
     return ["py", "-3"];
   } else if (isWindows()) {
-    return ["python"];
+    return [caps?.executable || "python"];
   } else {
-    return ["python3"];
+    return [caps?.executable || "python3"];
   }
 }
 
 export async function jupyterExec(): Promise<string[]> {
-  const caps = await jupyterCapabilities();
-  if (caps?.pyLauncher) {
-    return ["py", "-3", "-m", "jupyter"];
-  } else {
-    return ["jupyter"];
-  }
+  return [
+    ...(await pythonExec()),
+    "-m",
+    "jupyter",
+  ];
 }

@@ -85,7 +85,7 @@ async function checkJupyterInstallation(tmpDir: string) {
         caps.conda ? " (Conda)" : ""
       }`,
     );
-    info(`      Path: ${caps.execPrefix}`);
+    info(`      Path: ${caps.executable}`);
     info(`      Jupyter: ${caps.jupyter_core || "(None)"}`);
     if (caps.jupyter_core) {
       const kernels = Array.from((await jupyterKernelspecs()).values())
