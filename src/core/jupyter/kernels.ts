@@ -57,6 +57,7 @@ export async function jupyterKernelspecs(): Promise<
           continue;
         }
         const kernels = join(path, "kernels");
+
         if (!existsSync(kernels)) {
           continue;
         }
@@ -76,7 +77,11 @@ export async function jupyterKernelspecs(): Promise<
           }
         }
       }
-      return kernelmap;
+      if (kernelmap.size > 0) {
+        return kernelmap;
+      } else {
+        return kDefaultKernelspecs;
+      }
     } else {
       return kDefaultKernelspecs;
     }

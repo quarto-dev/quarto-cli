@@ -40,12 +40,10 @@ export async function jupyterCapabilities() {
     // default handling (also a fallthrough if launcher didn't work out)
     if (!cachedJupyterCaps) {
       // look for python from conda (conda doesn't provide python3 on windows or mac)
-      const caps = await getJupyterCapabilities(["python"]);
+      cachedJupyterCaps = await getJupyterCapabilities(["python"]);
 
-      // if it's conda w/ python >= 3 then we are done
-      if (caps?.conda && caps.versionMajor >= 3) {
-        cachedJupyterCaps = caps;
-      } else { // otherwise try to find python 3 explicitly
+      // if it's not conda or if it's python < v3 then probe explicitly for python 3
+      if (!cachedJupyterCaps?.conda || cachedJupyterCaps.versionMajor < 3) {
         const caps = isWindows()
           ? await getPyLauncherJupyterCapabilities()
           : await getJupyterCapabilities(["python3"]);
@@ -75,6 +73,7 @@ async function getJupyterCapabilities(cmd: string[], pyLauncher = false) {
         resourcePath("capabilities/jupyter.py"),
       ],
       stdout: "piped",
+      stderr: "piped",
     });
     if (result.success && result.stdout) {
       const caps = readYamlFromString(result.stdout) as JupyterCapabilities;
