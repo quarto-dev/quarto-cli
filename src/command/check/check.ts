@@ -107,7 +107,7 @@ async function checkJupyterInstallation(tmpDir: string) {
           "      Install with " + colors.bold(`${
             caps.conda
               ? "conda"
-              : (await pythonExec()).join(" ") + " -m pip"
+              : (await pythonExec(true)).join(" ") + " -m pip"
           } install jupyter`) + "\n",
       );
     }
