@@ -19,7 +19,11 @@ import {
 import { completeMessage, withSpinner } from "../../core/console.ts";
 import { KnitrCapabilities, knitrCapabilities } from "../../core/knitr.ts";
 import { quartoConfig } from "../../core/quarto.ts";
-import { isWindows } from "../../core/platform.ts";
+import { pythonExec } from "../../core/jupyter/exec.ts";
+import {
+  JupyterKernelspec,
+  jupyterKernelspecs,
+} from "../../core/jupyter/kernels.ts";
 
 export type Target = "install" | "jupyter" | "knitr" | "all";
 
@@ -81,12 +85,11 @@ async function checkJupyterInstallation(tmpDir: string) {
         caps.conda ? " (Conda)" : ""
       }`,
     );
-    info(`      Path: ${caps.execPrefix}`);
+    info(`      Path: ${caps.executable}`);
     info(`      Jupyter: ${caps.jupyter_core || "(None)"}`);
     if (caps.jupyter_core) {
-      const kernels = caps.kernels
-        ? caps.kernels.map((kernel) => kernel.name).join(", ")
-        : "";
+      const kernels = Array.from((await jupyterKernelspecs()).values())
+        .map((kernel: JupyterKernelspec) => kernel.name).join(", ");
       info(`      Kernels: ${kernels}`);
     }
     info("");
@@ -104,9 +107,7 @@ async function checkJupyterInstallation(tmpDir: string) {
           "      Install with " + colors.bold(`${
             caps.conda
               ? "conda"
-              : (isWindows()
-                ? "py -3"
-                : "python3") + " -m pip"
+              : (await pythonExec(true)).join(" ") + " -m pip"
           } install jupyter`) + "\n",
       );
     }

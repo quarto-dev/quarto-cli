@@ -14,7 +14,7 @@ import { sleep } from "../../core/async.ts";
 import { quartoDataDir, quartoRuntimeDir } from "../../core/appdirs.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 import { resourcePath } from "../../core/resources.ts";
-import { pythonBinary } from "../../core/jupyter/capabilities.ts";
+import { pythonExec } from "../../core/jupyter/exec.ts";
 
 import {
   kExecuteDaemon,
@@ -157,14 +157,14 @@ async function abortKernel(options: ExecuteOptions) {
   }
 }
 
-function execJupyter(
+async function execJupyter(
   command: string,
   options: Record<string, unknown>,
 ): Promise<ProcessResult> {
   return execProcess(
     {
       cmd: [
-        pythonBinary(),
+        ...(await pythonExec()),
         resourcePath("jupyter/jupyter.py"),
       ],
       stdout: "piped",
