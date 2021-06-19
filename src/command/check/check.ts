@@ -136,7 +136,9 @@ title: "Title"
 \`\`\`
 `,
   );
-  const result = await render(qmdPath, { flags: { quiet: true } });
+  const result = await render(qmdPath, {
+    flags: { quiet: true, executeDaemon: 0 },
+  });
   if (result.error) {
     throw result.error;
   }
