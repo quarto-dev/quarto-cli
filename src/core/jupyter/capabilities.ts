@@ -5,56 +5,76 @@
 *
 */
 
+import { isWindows } from "../platform.ts";
 import { execProcess } from "../process.ts";
 import { resourcePath } from "../resources.ts";
 import { readYamlFromString } from "../yaml.ts";
-import { JupyterKernelspec, jupyterKernelspecs } from "./kernels.ts";
-
-export function pythonBinary() {
-  if (Deno.build.os === "windows") {
-    return "python";
-  } else {
-    return "python3";
-  }
-}
 
 export interface JupyterCapabilities {
   versionMajor: number;
   versionMinor: number;
   versionPatch: number;
   versionStr: string;
-  conda: boolean;
   execPrefix: string;
   executable: string;
-  kernels: JupyterKernelspec[] | null;
+  conda: boolean;
+  pyLauncher: boolean;
   // deno-lint-ignore camelcase
   jupyter_core: string | null;
   nbformat: string | null;
   nbclient: string | null;
   ipykernel: string | null;
-  yaml: string | null;
 }
 
+// cache capabiliites per-process
+let cachedJupyterCaps: JupyterCapabilities | undefined;
+
 export async function jupyterCapabilities() {
+  if (!cachedJupyterCaps) {
+    // if we are on windows and have PY_PYTHON3 or PY_PYTHON defined
+    // then force the use of the launcher from the get go
+    if (isWindows() && pyPython()) {
+      cachedJupyterCaps = await getPyLauncherJupyterCapabilities();
+    } else {
+      // initially probe the path
+      cachedJupyterCaps = await getJupyterCapabilities(["python"]);
+
+      // if this is conda we are done, otherwise probe for python3 specifically
+      if (!cachedJupyterCaps?.conda) {
+        const caps = isWindows()
+          ? await getPyLauncherJupyterCapabilities()
+          : await getJupyterCapabilities(["python3"]);
+        if (caps) {
+          cachedJupyterCaps = caps;
+        }
+        // ... otherwise just use the non-conda install we already found
+      }
+    }
+  }
+
+  return cachedJupyterCaps;
+}
+
+function pyPython() {
+  return Deno.env.get("PY_PYTHON3") || Deno.env.get("PY_PYTHON");
+}
+
+function getPyLauncherJupyterCapabilities() {
+  return getJupyterCapabilities(["py", "-3"], true);
+}
+
+async function getJupyterCapabilities(cmd: string[], pyLauncher = false) {
   try {
     const result = await execProcess({
       cmd: [
-        pythonBinary(),
+        ...cmd,
         resourcePath("capabilities/jupyter.py"),
       ],
       stdout: "piped",
     });
     if (result.success && result.stdout) {
       const caps = readYamlFromString(result.stdout) as JupyterCapabilities;
-      if (caps.jupyter_core !== null) {
-        try {
-          caps.kernels = Array.from((await jupyterKernelspecs()).values());
-        } catch {
-          caps.jupyter_core = null;
-        }
-      } else {
-        caps.kernels = null;
-      }
+      caps.pyLauncher = pyLauncher;
       return caps;
     } else {
       return undefined;

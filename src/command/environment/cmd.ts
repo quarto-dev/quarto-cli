@@ -11,7 +11,6 @@ import { spinner } from "../../core/console.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { pythonEnv, rBinaryEnv, rPackageEnv } from "./execution.ts";
 import { binaryEnv, dartSassEnv, QuartoEnv, tinyTexEnv } from "./bin.ts";
-import { pythonBinary } from "../../core/jupyter/capabilities.ts";
 
 export interface EnvironmentData {
   name: string;
@@ -81,10 +80,7 @@ const r: EnvironmentData[] = [
   rPackageEnv(),
 ];
 
-const python: EnvironmentData[] = [
-  pythonEnv(pythonBinary()),
-  pythonEnv("jupyter"),
-];
+const python: EnvironmentData[] = await pythonEnv();
 
 async function printEnvironmentData(
   envData: EnvironmentData,
@@ -103,7 +99,7 @@ async function printEnvironmentData(
   const metadata = await getMetadata(envData);
   cancelSpinner(false);
 
-  if ((path && version) || metadata) {
+  if ((path || version || metadata)) {
     // Print the title
     info(envData.name, { bold: true });
 
