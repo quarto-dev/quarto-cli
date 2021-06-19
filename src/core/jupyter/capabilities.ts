@@ -37,10 +37,12 @@ export async function jupyterCapabilities() {
       cachedJupyterCaps = await getPyLauncherJupyterCapabilities();
     } else {
       // initially probe the path
+      // TODO: dodge windows store python
+      // TODO: can we go straight for python3 on linux or does conda do 'python' there as well?
       cachedJupyterCaps = await getJupyterCapabilities(["python"]);
 
-      // if this is conda we are done, otherwise probe for python3 specifically
-      if (!cachedJupyterCaps?.conda) {
+      // if this is conda and python >= 3 we are done, otherwise probe for python3 specifically
+      if (!cachedJupyterCaps?.conda || cachedJupyterCaps.versionMajor >= 3) {
         const caps = isWindows()
           ? await getPyLauncherJupyterCapabilities()
           : await getJupyterCapabilities(["python3"]);
