@@ -19,6 +19,7 @@ import {
 import { completeMessage, withSpinner } from "../../core/console.ts";
 import { KnitrCapabilities, knitrCapabilities } from "../../core/knitr.ts";
 import { quartoConfig } from "../../core/quarto.ts";
+import { isWindows } from "../../core/platform.ts";
 
 export type Target = "install" | "jupyter" | "knitr" | "all";
 
@@ -103,7 +104,9 @@ async function checkJupyterInstallation(tmpDir: string) {
           "      Install with " + colors.bold(`${
             caps.conda
               ? "conda"
-              : "pip3"
+              : (isWindows()
+                ? "py -3"
+                : "python3") + " -m pip"
           } install jupyter`) + "\n",
       );
     }
