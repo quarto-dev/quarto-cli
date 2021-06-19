@@ -58,7 +58,7 @@ export async function jupyterCapabilities() {
 }
 
 function pyPython() {
-  return Deno.env.get("PY_PYTHON3") || Deno.env.get("PY_PYTHON");
+  return Deno.env.get("PY_PYTHON3");
 }
 
 function getPyLauncherJupyterCapabilities() {
