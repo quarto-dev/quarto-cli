@@ -132,8 +132,8 @@ export const websiteProjectType: ProjectType = {
 
       // html metadata
       const htmlMetadata: Record<string, string> = {
-        ...resolveTwitterMetadata(source, project, format),
-        ...resolveOpenGraphMetadata(source, project, format),
+        ...resolveTwitterMetadata(source, project, format, extras),
+        ...resolveOpenGraphMetadata(source, project, format, extras),
       };
       extras.html = extras.html || {};
       extras.html[kDependencies] = extras.html[kDependencies] || [];

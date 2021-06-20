@@ -12,7 +12,7 @@ import {
   kTitle,
   kTitlePrefix,
 } from "../../../config/constants.ts";
-import { Format } from "../../../config/format.ts";
+import { Format, FormatExtras } from "../../../config/format.ts";
 import { Metadata } from "../../../config/metadata.ts";
 import PngImage from "../../../core/png.ts";
 import { ProjectContext } from "../../project-context.ts";
@@ -22,15 +22,17 @@ export function resolveOpenGraphMetadata(
   _source: string,
   _project: ProjectContext,
   _format: Format,
+  _extras: FormatExtras,
 ) {
   return {} as Record<string, string>;
 }
 
-function previewTitle(format: Format) {
-  if (format.metadata[kPageTitle] !== undefined) {
-    return format.metadata[kPageTitle];
-  } else if (format.metadata[kTitlePrefix] !== undefined) {
-    return format.metadata[kTitlePrefix] + " - " + format.metadata[kTitle];
+function previewTitle(format: Format, extras: FormatExtras) {
+  const meta = extras.metadata || {};
+  if (meta[kPageTitle] !== undefined) {
+    return meta[kPageTitle];
+  } else if (meta[kTitlePrefix] !== undefined) {
+    return meta[kTitlePrefix] + " - " + format.metadata[kTitle];
   } else {
     return format.metadata[kTitle];
   }
@@ -40,6 +42,7 @@ export function resolveTwitterMetadata(
   source: string,
   context: ProjectContext,
   format: Format,
+  extras: FormatExtras,
 ) {
   const kTwitter = "twitter-card";
   const kCard = "card";
@@ -66,7 +69,7 @@ export function resolveTwitterMetadata(
 
       // Write defaults if the user provided none
       twitterMeta[kTitle] = twitterMeta[kTitle] ||
-        previewTitle(format) as string;
+        previewTitle(format, extras) as string;
       twitterMeta[kDescription] = twitterMeta[kDescription] ||
         format.metadata.description as string;
 
