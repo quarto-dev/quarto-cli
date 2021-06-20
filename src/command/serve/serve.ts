@@ -206,9 +206,12 @@ export function copyProjectForServe(
   return Deno.realPathSync(serveDir);
 }
 
-export function maybeDisplaySocketError(e: Error) {
-  if (!(e instanceof Deno.errors.BrokenPipe)) {
-    logError(e);
+export function maybeDisplaySocketError(e: unknown) {
+  if (
+    !(e instanceof Deno.errors.BrokenPipe) &&
+    !(e instanceof Deno.errors.ConnectionAborted)
+  ) {
+    logError(e as Error);
   }
 }
 
