@@ -175,9 +175,9 @@ async function checkKnitrInstallation(tmpDir: string) {
       });
     } else {
       info(
-        "      The rmarkdown package is not available in this R installation.\n" +
+        "      The quarto package is not available in this R installation.\n" +
           "      Install with " +
-          colors.bold('install.packages("rmarkdown")') + "\n",
+          colors.bold('install.packages("quarto")') + "\n",
       );
     }
   } else {
