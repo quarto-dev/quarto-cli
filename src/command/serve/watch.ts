@@ -15,6 +15,7 @@ import { acceptWebSocket, WebSocket } from "ws/mod.ts";
 import { ld } from "lodash/mod.ts";
 
 import { pathWithForwardSlashes, removeIfExists } from "../../core/path.ts";
+import { isRStudioServer } from "../../core/platform.ts";
 
 import { logError } from "../../core/log.ts";
 
@@ -247,6 +248,14 @@ export async function watchProject(
       for (let i = clients.length - 1; i >= 0; i--) {
         const socket = clients[i].socket;
         try {
+          // if this is rstudio server then we might need to include
+          // a port proxy url prefix
+          if (isRStudioServer()) {
+            const prefix = clients[i].path.match(/^\/p\/\w+/);
+            if (prefix) {
+              reloadTarget = prefix + reloadTarget;
+            }
+          }
           await socket.send(`reload${reloadTarget}`);
         } catch (e) {
           maybeDisplaySocketError(e);
