@@ -11,7 +11,7 @@ import { jupyterCapabilities } from "./capabilities.ts";
 export async function pythonExec(binaryOnly = false): Promise<string[]> {
   const caps = await jupyterCapabilities();
   if (caps?.pyLauncher) {
-    return ["py", "-3"];
+    return ["py"];
   } else if (isWindows()) {
     return [binaryOnly ? "python" : caps?.executable || "python"];
   } else {
