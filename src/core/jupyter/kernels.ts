@@ -47,6 +47,7 @@ export async function jupyterKernelspecs(): Promise<
       {
         cmd: [...(await jupyterExec()), "--paths", "--json"],
         stdout: "piped",
+        stderr: "piped",
       },
     );
     if (result.success) {

@@ -161,16 +161,22 @@ async function execJupyter(
   command: string,
   options: Record<string, unknown>,
 ): Promise<ProcessResult> {
-  return execProcess(
+  const result = await execProcess(
     {
       cmd: [
         ...(await pythonExec()),
         resourcePath("jupyter/jupyter.py"),
       ],
       stdout: "piped",
+      stderr: "piped",
     },
     kernelCommand(command, "", options),
   );
+  if (!result.success) {
+    info("\n");
+    error(result.stderr);
+  }
+  return result;
 }
 
 async function writeKernelCommand(
