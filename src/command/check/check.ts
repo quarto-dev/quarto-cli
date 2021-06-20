@@ -15,15 +15,15 @@ import { render } from "../render/render.ts";
 import {
   JupyterCapabilities,
   jupyterCapabilities,
+  jupyterCapabilitiesMessage,
+  jupyterInstallationMessage,
+  pythonInstallationMessage,
 } from "../../core/jupyter/capabilities.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
 import { KnitrCapabilities, knitrCapabilities } from "../../core/knitr.ts";
 import { quartoConfig } from "../../core/quarto.ts";
-import { pythonExec } from "../../core/jupyter/exec.ts";
-import {
-  JupyterKernelspec,
-  jupyterKernelspecs,
-} from "../../core/jupyter/kernels.ts";
+
+const kIndent = "      ";
 
 export type Target = "install" | "jupyter" | "knitr" | "all";
 
@@ -78,20 +78,9 @@ async function checkJupyterInstallation(tmpDir: string) {
   }, async () => {
     caps = await jupyterCapabilities();
   });
-  if (caps && caps.versionMajor >= 3) {
+  if (caps) {
     completeMessage(kMessage + "OK");
-    info(
-      `      Version: ${caps.versionMajor}.${caps.versionMinor}.${caps.versionPatch}${
-        caps.conda ? " (Conda)" : ""
-      }`,
-    );
-    info(`      Path: ${caps.executable}`);
-    info(`      Jupyter: ${caps.jupyter_core || "(None)"}`);
-    if (caps.jupyter_core) {
-      const kernels = Array.from((await jupyterKernelspecs()).values())
-        .map((kernel: JupyterKernelspec) => kernel.name).join(", ");
-      info(`      Kernels: ${kernels}`);
-    }
+    info(await jupyterCapabilitiesMessage(caps, kIndent));
     info("");
     if (caps.jupyter_core) {
       const kJupyterMessage = "Checking Jupyter engine render....";
@@ -102,21 +91,13 @@ async function checkJupyterInstallation(tmpDir: string) {
         await checkJupyterRender(tmpDir);
       });
     } else {
-      info(
-        "      Jupyter not available in this Python installation.\n" +
-          "      Install with " + colors.bold(`${
-            caps.conda
-              ? "conda"
-              : (await pythonExec(true)).join(" ") + " -m pip"
-          } install jupyter`) + "\n",
-      );
+      info(await jupyterInstallationMessage(caps), kIndent);
+      info("");
     }
   } else {
     completeMessage(kMessage + "(None)\n");
-    info(
-      "    Install Python 3 from " +
-        colors.bold("https://www.python.org/downloads/\n"),
-    );
+    info(pythonInstallationMessage(kIndent));
+    info("");
   }
 }
 

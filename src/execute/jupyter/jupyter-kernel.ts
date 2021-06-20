@@ -15,6 +15,12 @@ import { quartoDataDir, quartoRuntimeDir } from "../../core/appdirs.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { pythonExec } from "../../core/jupyter/exec.ts";
+import {
+  jupyterCapabilities,
+  jupyterCapabilitiesMessage,
+  jupyterInstallationMessage,
+  pythonInstallationMessage,
+} from "../../core/jupyter/capabilities.ts";
 
 import {
   kExecuteDaemon,
@@ -173,8 +179,24 @@ async function execJupyter(
     kernelCommand(command, "", options),
   );
   if (!result.success) {
+    // forward error
     info("\n");
     error(result.stderr);
+
+    // print some diagnostics if python and/or jupyter couldn't be found
+    const caps = await jupyterCapabilities();
+    if (caps && !caps.jupyter_core) {
+      info("Python 3 installation:");
+      info(await jupyterCapabilitiesMessage(caps, "  "));
+      info("");
+      info(await jupyterInstallationMessage(caps));
+      info("");
+    } else if (!caps) {
+      info("Unable to locate an installed version of Python 3.");
+      info("");
+      info(pythonInstallationMessage());
+      info("");
+    }
   }
   return result;
 }

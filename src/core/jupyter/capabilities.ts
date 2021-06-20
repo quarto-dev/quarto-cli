@@ -5,10 +5,14 @@
 *
 */
 
+import * as colors from "fmt/colors.ts";
+
 import { isWindows } from "../platform.ts";
 import { execProcess } from "../process.ts";
 import { resourcePath } from "../resources.ts";
 import { readYamlFromString } from "../yaml.ts";
+import { pythonExec } from "./exec.ts";
+import { JupyterKernelspec, jupyterKernelspecs } from "./kernels.ts";
 
 export interface JupyterCapabilities {
   versionMajor: number;
@@ -54,6 +58,46 @@ export async function jupyterCapabilities() {
   }
 
   return cachedJupyterCaps;
+}
+
+export async function jupyterCapabilitiesMessage(
+  caps: JupyterCapabilities,
+  indent = "",
+) {
+  const lines = [
+    `Version: ${caps.versionMajor}.${caps.versionMinor}.${caps.versionPatch}${
+      caps.conda ? " (Conda)" : ""
+    }`,
+    `Path: ${caps.executable}`,
+    `Jupyter: ${caps.jupyter_core || "(None)"}`,
+  ];
+  if (caps.jupyter_core) {
+    const kernels = Array.from((await jupyterKernelspecs()).values())
+      .map((kernel: JupyterKernelspec) => kernel.name).join(", ");
+    lines.push(`Kernels: ${kernels}`);
+  }
+  return lines.map((line: string) => `${indent}${line}`).join("\n");
+}
+
+export async function jupyterInstallationMessage(
+  caps: JupyterCapabilities,
+  indent = "",
+) {
+  const lines = [
+    "Jupyter is not available in this Python installation.",
+    "Install with " +
+    colors.bold(
+      `${
+        caps.conda ? "conda" : (await pythonExec(true)).join(" ") + " -m pip"
+      } install jupyter`,
+    ),
+  ];
+  return lines.map((line: string) => `${indent}${line}`).join("\n");
+}
+
+export function pythonInstallationMessage(indent = "") {
+  return indent + "Install Python 3 from " +
+    colors.bold("https://www.python.org/downloads/");
 }
 
 function pyPython() {
