@@ -197,8 +197,6 @@ function themeFormatExtras(input: string, flags: PandocFlags, format: Format) {
   }
 }
 
-const kTwitter = "twitter";
-
 export const kQuartoHtmlDependency = "quarto-html";
 function htmlFormatExtras(format: Format): FormatExtras {
   // lists of scripts and ejs data for the orchestration script

@@ -31,8 +31,7 @@ let cachedJupyterCaps: JupyterCapabilities | undefined;
 
 export async function jupyterCapabilities() {
   if (!cachedJupyterCaps) {
-    // if we are on windows and have PY_PYTHON3 or PY_PYTHON defined
-    // then try to use the launcher
+    // if we are on windows and have PY_PYTHON defined then use the launcher
     if (isWindows() && pyPython()) {
       cachedJupyterCaps = await getPyLauncherJupyterCapabilities();
     }
@@ -42,8 +41,8 @@ export async function jupyterCapabilities() {
       // look for python from conda (conda doesn't provide python3 on windows or mac)
       cachedJupyterCaps = await getJupyterCapabilities(["python"]);
 
-      // if it's not conda or if it's python < v3 then probe explicitly for python 3
-      if (!cachedJupyterCaps?.conda || cachedJupyterCaps.versionMajor < 3) {
+      // if it's not conda then probe explicitly for python 3
+      if (!cachedJupyterCaps?.conda) {
         const caps = isWindows()
           ? await getPyLauncherJupyterCapabilities()
           : await getJupyterCapabilities(["python3"]);
@@ -58,11 +57,11 @@ export async function jupyterCapabilities() {
 }
 
 function pyPython() {
-  return Deno.env.get("PY_PYTHON3");
+  return Deno.env.get("PY_PYTHON");
 }
 
 function getPyLauncherJupyterCapabilities() {
-  return getJupyterCapabilities(["py", "-3"], true);
+  return getJupyterCapabilities(["py"], true);
 }
 
 async function getJupyterCapabilities(cmd: string[], pyLauncher = false) {
@@ -77,8 +76,12 @@ async function getJupyterCapabilities(cmd: string[], pyLauncher = false) {
     });
     if (result.success && result.stdout) {
       const caps = readYamlFromString(result.stdout) as JupyterCapabilities;
-      caps.pyLauncher = pyLauncher;
-      return caps;
+      if (caps.versionMajor >= 3) {
+        caps.pyLauncher = pyLauncher;
+        return caps;
+      } else {
+        return undefined;
+      }
     } else {
       return undefined;
     }
