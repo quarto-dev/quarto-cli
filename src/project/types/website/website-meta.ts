@@ -14,6 +14,7 @@ import {
 } from "../../../config/constants.ts";
 import { Format, FormatExtras } from "../../../config/format.ts";
 import { Metadata } from "../../../config/metadata.ts";
+import { mergeConfigs } from "../../../core/config.ts";
 import PngImage from "../../../core/png.ts";
 import { ProjectContext } from "../../project-context.ts";
 import {
@@ -40,25 +41,24 @@ export function resolveOpenGraphMetadata(
   format: Format,
   extras: FormatExtras,
 ) {
-  const siteData = format.metadata[kSite] as Metadata;
-  if (siteData && siteData[kOpenGraph]) {
-    const openGraph = siteData[kOpenGraph];
+  const openGraph = mergedSiteAndDocumentData(kOpenGraph, format);
+  if (openGraph) {
     const ogMeta: Record<string, string | undefined> = {};
-    if (openGraph) {
-      // process explicitly set values
-      if (openGraph && typeof (openGraph) === "object") {
-        const ogData = openGraph as OpenGraphConfig;
-        ogMeta[kImage] = ogData[kImage] as string;
-        ogMeta[kImageHeight] = ogData[kImageHeight] !== undefined
-          ? String(ogData[kImageHeight])
-          : undefined;
-        ogMeta[kImageWidth] = ogData[kImageWidth] !== undefined
-          ? String(ogData[kImageWidth])
-          : undefined;
-        ogMeta[kLocale] = ogData[kLocale] as string;
-        ogMeta[kSiteName] = ogData[kSiteName] as string ||
-          siteData[kTitle] as string;
-      }
+    // process explicitly set values
+    if (openGraph && typeof (openGraph) === "object") {
+      const ogData = openGraph as OpenGraphConfig;
+      ogMeta[kTitle] = ogData[kTitle] as string;
+      ogMeta[kDescription] = ogData[kDescription] as string;
+      ogMeta[kImage] = ogData[kImage] as string;
+      ogMeta[kImageHeight] = ogData[kImageHeight] !== undefined
+        ? String(ogData[kImageHeight])
+        : undefined;
+      ogMeta[kImageWidth] = ogData[kImageWidth] !== undefined
+        ? String(ogData[kImageWidth])
+        : undefined;
+      ogMeta[kLocale] = ogData[kLocale] as string;
+      ogMeta[kSiteName] = ogData[kSiteName] as string ||
+        (format.metadata[kSite] as Metadata)?.[kTitle] as string;
     }
 
     // Write defaults if the user provided none
@@ -87,14 +87,15 @@ export function resolveTwitterMetadata(
   extras: FormatExtras,
 ) {
   // Twitter card
-  const siteData = format.metadata[kSite] as Metadata;
-  if (siteData && siteData[kTwitterCard]) {
-    const twitter = siteData[kTwitterCard];
+  const twitter = mergedSiteAndDocumentData(kTwitterCard, format);
+  if (twitter) {
     const twitterMeta: Record<string, string | undefined> = {};
     if (twitter) {
       // Process explicitly set values
       if (twitter && typeof (twitter) === "object") {
         const twData = twitter as TwitterCardConfig;
+        twitterMeta[kTitle] = twData[kTitle] as string;
+        twitterMeta[kDescription] = twData[kDescription] as string;
         twitterMeta[kCreator] = twData[kCreator] as string;
         twitterMeta[kSite] = twData[kSite] as string;
         twitterMeta[kImage] = twData[kImage] as string;
@@ -146,6 +147,35 @@ export function resolveTwitterMetadata(
       }
     });
     return metadata;
+  }
+}
+
+function mergedSiteAndDocumentData(
+  key: string,
+  format: Format,
+): boolean | Metadata {
+  const siteData = format.metadata[kSite] as Metadata;
+
+  const siteMetadata = siteData[key] !== undefined ? siteData[key] : false;
+  const docMetadata = format.metadata[key] !== undefined
+    ? format.metadata[key]
+    : false;
+
+  if (
+    typeof (siteMetadata) === "object" &&
+    typeof (docMetadata) === "object"
+  ) {
+    return mergeConfigs(
+      siteMetadata,
+      docMetadata,
+    ) as Metadata;
+  } else if (docMetadata !== false) {
+    return docMetadata as boolean | Metadata;
+  } else if (siteMetadata !== false) {
+    return siteMetadata as boolean | Metadata;
+  } else {
+    // All the metadata are false or undefined, return false
+    return false;
   }
 }
 
