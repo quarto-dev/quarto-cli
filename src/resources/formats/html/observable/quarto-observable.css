@@ -92,3 +92,13 @@ pre.observablehq--md-pre .span.hljs-symbol {
 input {
     vertical-align: middle;
 }
+
+input[type='radio'],input[type='checkbox']
+{
+    margin: 0px 0px 3px 0px;
+}
+
+/* likely that this only makes sense with bootstrap. FIXME check with charles */
+table.table {
+    font-size: .75em;
+}
