@@ -49,7 +49,7 @@ export const metadataCommand = new Command()
     let config: any | undefined;
     const stat = Deno.statSync(path);
     if (stat.isDirectory) {
-      config = await projectContext(path);
+      config = (await projectContext(path))?.config;
     }
     if (!config) {
       config = await renderFormats(path, options.to);
