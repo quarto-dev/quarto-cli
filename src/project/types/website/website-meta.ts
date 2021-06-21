@@ -49,6 +49,7 @@ export function resolveTwitterMetadata(
   const kCardStyle = "card-style";
   const kCreator = "creator";
   const kSite = "site";
+  const kPreview = "preview";
   const kImage = "image";
   const kImageWidth = "image-width";
   const kImageHeight = "image-height";
@@ -63,7 +64,7 @@ export function resolveTwitterMetadata(
         const twData = twitter as Record<string, unknown>;
         twitterMeta[kCreator] = twData[kCreator] as string;
         twitterMeta[kSite] = twData[kSite] as string;
-        twitterMeta[kImage] = twData[kImage] as string;
+        twitterMeta[kImage] = twData[kPreview] as string;
         twitterMeta[kCard] = twData[kCardStyle] as string;
       }
 
@@ -138,8 +139,10 @@ export function resolveTwitterMetadata(
   }
 }
 
-const kExplicitPreviewRegex = /!\[.*\]\((.*)\)\{.*.quarto-preview.*\}/;
-const kNamedImageRegex = /!\[.*\]\((.*?(?:feature|cover|thumbnail).*?)\)\{.*\}/;
+const kExplicitPreviewRegex =
+  /!\[.*\]\((.*?(?:\.png|\.gif|\.jpg|\.jpeg|\.webp))\)\{.*.quarto-preview.*\}/;
+const kNamedImageRegex =
+  /!\[.*\]\((.*?(?:preview|feature|cover|thumbnail).*?(?:\.png|\.gif|\.jpg|\.jpeg|\.webp))\)\{.*\}/;
 function findPreviewImage(
   source: string,
   _format: Format,
