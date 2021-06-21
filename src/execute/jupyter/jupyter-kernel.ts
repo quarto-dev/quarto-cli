@@ -180,7 +180,7 @@ async function execJupyter(
     );
     if (!result.success) {
       // forward error (print some diagnostics if python and/or jupyter couldn't be found)
-      info("\n");
+      info("");
       await printExecDiagnostics();
     }
     return result;
@@ -203,8 +203,6 @@ async function printExecDiagnostics() {
     info(await jupyterInstallationMessage(caps));
     info("");
   } else if (!caps) {
-    info("Unable to locate an installed version of Python 3.");
-    info("");
     info(pythonInstallationMessage());
     info("");
   }

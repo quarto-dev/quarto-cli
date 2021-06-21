@@ -96,8 +96,11 @@ export async function jupyterInstallationMessage(
 }
 
 export function pythonInstallationMessage(indent = "") {
-  return indent + "Install Python 3 from " +
-    colors.bold("https://www.python.org/downloads/");
+  const lines = [
+    "Unable to locate an installed version of Python 3.",
+    "Install Python 3 from " + colors.bold("https://www.python.org/downloads/"),
+  ];
+  return lines.map((line: string) => `${indent}${line}`).join("\n");
 }
 
 function pyPython() {
