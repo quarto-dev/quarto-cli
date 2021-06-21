@@ -293,7 +293,7 @@ export const jupyterEngine: ExecutionEngine = {
   canFreeze: true,
 
   ignoreGlobs: () => {
-    return ["**/venv/**"];
+    return ["**/venv/**", "**/env/**"];
   },
 
   keepFiles: (input: string) => {

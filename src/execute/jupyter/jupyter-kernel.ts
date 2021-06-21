@@ -14,7 +14,15 @@ import { sleep } from "../../core/async.ts";
 import { quartoDataDir, quartoRuntimeDir } from "../../core/appdirs.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 import { resourcePath } from "../../core/resources.ts";
-import { pythonBinary } from "../../core/jupyter/capabilities.ts";
+import { pythonExec } from "../../core/jupyter/exec.ts";
+import {
+  JupyterCapabilities,
+  jupyterCapabilities,
+  jupyterCapabilitiesMessage,
+  jupyterInstallationMessage,
+  jupyterUnactivatedEnvMessage,
+  pythonInstallationMessage,
+} from "../../core/jupyter/capabilities.ts";
 
 import {
   kExecuteDaemon,
@@ -157,20 +165,59 @@ async function abortKernel(options: ExecuteOptions) {
   }
 }
 
-function execJupyter(
+async function execJupyter(
   command: string,
   options: Record<string, unknown>,
 ): Promise<ProcessResult> {
-  return execProcess(
-    {
-      cmd: [
-        pythonBinary(),
-        resourcePath("jupyter/jupyter.py"),
-      ],
-      stdout: "piped",
-    },
-    kernelCommand(command, "", options),
-  );
+  try {
+    const result = await execProcess(
+      {
+        cmd: [
+          ...(await pythonExec()),
+          resourcePath("jupyter/jupyter.py"),
+        ],
+        stdout: "piped",
+      },
+      kernelCommand(command, "", options),
+    );
+    if (!result.success) {
+      // forward error (print some diagnostics if python and/or jupyter couldn't be found)
+      await printExecDiagnostics(result.stderr);
+    }
+    return result;
+  } catch (e) {
+    if (e?.message) {
+      info("");
+      error(e.message);
+    }
+    await printExecDiagnostics();
+    return Promise.reject();
+  }
+}
+
+async function printExecDiagnostics(stderr?: string) {
+  const caps = await jupyterCapabilities();
+  if (caps && !caps.jupyter_core) {
+    info("Python 3 installation:");
+    info(await jupyterCapabilitiesMessage(caps, "  "));
+    info("");
+    info(await jupyterInstallationMessage(caps));
+    info("");
+    maybePrintUnactivatedEnvMessage(caps);
+  } else if (!caps) {
+    info(pythonInstallationMessage());
+    info("");
+  } else if (stderr && (stderr.indexOf("ModuleNotFoundError") !== -1)) {
+    maybePrintUnactivatedEnvMessage(caps);
+  }
+}
+
+function maybePrintUnactivatedEnvMessage(caps: JupyterCapabilities) {
+  const envMessage = jupyterUnactivatedEnvMessage(caps);
+  if (envMessage) {
+    info(envMessage);
+    info("");
+  }
 }
 
 async function writeKernelCommand(

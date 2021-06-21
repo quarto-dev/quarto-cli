@@ -17,6 +17,10 @@ export function isRStudio() {
   return !!Deno.env.get("RSTUDIO_VERSION");
 }
 
+export function isRStudioServer() {
+  return isRStudio() && Deno.env.get("RSTUDIO_PROGRAM_MODE") === "server";
+}
+
 export function isInteractiveTerminal() {
   return Deno.isatty(Deno.stderr.rid);
 }

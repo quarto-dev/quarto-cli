@@ -13,10 +13,9 @@ import { execProcess } from "../core/process.ts";
 
 import { kQuartoScratch } from "./project-scratch.ts";
 import { lines } from "../core/text.ts";
+import { isEnvDir } from "../core/jupyter/capabilities.ts";
 
 export const kQuartoIgnore = [`/${kQuartoScratch}/`];
-
-export const kGitignoreEntries = kQuartoIgnore.concat([]);
 
 export async function ensureGitignore(dir: string) {
   // if .gitignore exists, then ensure it has the requisite entries
@@ -25,7 +24,7 @@ export async function ensureGitignore(dir: string) {
     const gitignore = lines(Deno.readTextFileSync(gitignorePath))
       .map((line) => line.trim());
     const requiredEntries: string[] = [];
-    for (const requiredEntry of kGitignoreEntries) {
+    for (const requiredEntry of gitignoreEntries(dir)) {
       if (!gitignore.includes(requiredEntry)) {
         requiredEntries.push(requiredEntry);
       }
@@ -48,7 +47,17 @@ export async function ensureGitignore(dir: string) {
 }
 
 export function createGitignore(dir: string) {
-  writeGitignore(dir, kGitignoreEntries);
+  writeGitignore(dir, gitignoreEntries(dir));
+}
+
+export function gitignoreEntries(dir: string) {
+  // detect virtual environment
+  const kEnv = "env/";
+  if (isEnvDir(join(dir, kEnv))) {
+    return kQuartoIgnore.concat(kEnv);
+  } else {
+    return kQuartoIgnore;
+  }
 }
 
 function writeGitignore(dir: string, lines: string[]) {

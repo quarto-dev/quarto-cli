@@ -89,7 +89,6 @@ import {
   readYamlFromMarkdownFile,
   readYamlFromString,
 } from "../yaml.ts";
-import { which } from "../path.ts";
 
 export const kCellCollapsed = "collapsed";
 export const kCellAutoscroll = "autoscroll";
@@ -457,18 +456,6 @@ export async function jupyterKernelspecFromFile(
 ): Promise<[JupyterKernelspec, Metadata]> {
   const yaml = readYamlFromMarkdownFile(file);
   const yamlJupyter = yaml.jupyter;
-
-  // if we don't have jupyter available then just return the default
-  if (!await which("jupyter")) {
-    return [
-      {
-        "display_name": "Python 3",
-        "language": "python",
-        "name": "python3",
-      },
-      {},
-    ];
-  }
 
   // if there is no yaml.jupyter then detect the file's language(s) and
   // find a kernelspec that supports this language

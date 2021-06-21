@@ -27,6 +27,7 @@ import { kProjectRender, ProjectConfig } from "../../project-context.ts";
 import {
   isGithubRepoUrl,
   kContents,
+  kOpenGraph,
   kSite,
   kSiteFooter,
   kSiteNavbar,
@@ -38,6 +39,7 @@ import {
   kSiteSidebarStyle,
   kSiteTitle,
   kSiteUrl,
+  kTwitterCard,
   websiteConfigActions,
   websiteProjectConfig,
 } from "../website/website-config.ts";
@@ -110,6 +112,8 @@ export async function bookProjectConfig(
     site[kSiteNavbar] = book[kSiteNavbar];
     site[kSiteSidebar] = book[kSiteSidebar];
     site[kSitePageNavigation] = book[kSitePageNavigation] !== false;
+    site[kOpenGraph] = book[kOpenGraph];
+    site[kTwitterCard] = book[kTwitterCard];
 
     // Conver the attribution markdown into html and place it into the footer
     const attributionMarkdown = book[kBookAttribution];

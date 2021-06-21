@@ -49,7 +49,7 @@ export const metadataCommand = new Command()
     let config: any | undefined;
     const stat = Deno.statSync(path);
     if (stat.isDirectory) {
-      config = await projectContext(path);
+      config = (await projectContext(path))?.config;
     }
     if (!config) {
       config = await renderFormats(path, options.to);
@@ -60,7 +60,9 @@ export const metadataCommand = new Command()
       const output = options.json
         ? JSON.stringify(config, undefined, 2)
         : stringify(config, { indent: 2, sortKeys: false, skipInvalid: true });
-      info(output + "\n");
+      Deno.stdout.writeSync(
+        new TextEncoder().encode(output + "\n"),
+      );
     } else {
       throw new Error(`No configuration found for path '${path}'`);
     }

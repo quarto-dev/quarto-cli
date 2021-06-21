@@ -180,7 +180,7 @@ export function copyProjectForServe(
   const libDirConfig = project.config?.project[kProjectLibDir];
   const libDir = libDirConfig ? join(project.dir, libDirConfig) : undefined;
 
-  const projectIgnore = projectIgnoreRegexes();
+  const projectIgnore = projectIgnoreRegexes(project.dir);
 
   const filter = (path: string) => {
     if (
@@ -206,9 +206,12 @@ export function copyProjectForServe(
   return Deno.realPathSync(serveDir);
 }
 
-export function maybeDisplaySocketError(e: Error) {
-  if (!(e instanceof Deno.errors.BrokenPipe)) {
-    logError(e);
+export function maybeDisplaySocketError(e: unknown) {
+  if (
+    !(e instanceof Deno.errors.BrokenPipe) &&
+    !(e instanceof Deno.errors.ConnectionAborted)
+  ) {
+    logError(e as Error);
   }
 }
 

@@ -8,17 +8,27 @@
 import { join } from "path/mod.ts";
 import { info } from "log/mod.ts";
 
-import * as colors from "fmt/colors.ts";
-
 import { createSessionTempDir } from "../../core/temp.ts";
 import { render } from "../render/render.ts";
 import {
   JupyterCapabilities,
   jupyterCapabilities,
+  jupyterCapabilitiesMessage,
+  jupyterInstallationMessage,
+  jupyterUnactivatedEnvMessage,
+  pythonInstallationMessage,
 } from "../../core/jupyter/capabilities.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
-import { KnitrCapabilities, knitrCapabilities } from "../../core/knitr.ts";
+import {
+  KnitrCapabilities,
+  knitrCapabilities,
+  knitrCapabilitiesMessage,
+  knitrInstallationMessage,
+  rInstallationMessage,
+} from "../../core/knitr.ts";
 import { quartoConfig } from "../../core/quarto.ts";
+
+const kIndent = "      ";
 
 export type Target = "install" | "jupyter" | "knitr" | "all";
 
@@ -73,21 +83,9 @@ async function checkJupyterInstallation(tmpDir: string) {
   }, async () => {
     caps = await jupyterCapabilities();
   });
-  if (caps && caps.versionMajor >= 3) {
+  if (caps) {
     completeMessage(kMessage + "OK");
-    info(
-      `      Version: ${caps.versionMajor}.${caps.versionMinor}.${caps.versionPatch}${
-        caps.conda ? " (Conda)" : ""
-      }`,
-    );
-    info(`      Path: ${caps.execPrefix}`);
-    info(`      Jupyter: ${caps.jupyter_core || "(None)"}`);
-    if (caps.jupyter_core) {
-      const kernels = caps.kernels
-        ? caps.kernels.map((kernel) => kernel.name).join(", ")
-        : "";
-      info(`      Kernels: ${kernels}`);
-    }
+    info(await jupyterCapabilitiesMessage(caps, kIndent));
     info("");
     if (caps.jupyter_core) {
       const kJupyterMessage = "Checking Jupyter engine render....";
@@ -98,21 +96,18 @@ async function checkJupyterInstallation(tmpDir: string) {
         await checkJupyterRender(tmpDir);
       });
     } else {
-      info(
-        "      Jupyter not available in this Python installation.\n" +
-          "      Install with " + colors.bold(`${
-            caps.conda
-              ? "conda"
-              : "pip3"
-          } install jupyter`) + "\n",
-      );
+      info(await jupyterInstallationMessage(caps, kIndent));
+      info("");
+      const envMessage = jupyterUnactivatedEnvMessage(caps, kIndent);
+      if (envMessage) {
+        info(envMessage);
+        info("");
+      }
     }
   } else {
     completeMessage(kMessage + "(None)\n");
-    info(
-      "    Install Python 3 from " +
-        colors.bold("https://www.python.org/downloads/\n"),
-    );
+    info(pythonInstallationMessage(kIndent));
+    info("");
   }
 }
 
@@ -132,7 +127,9 @@ title: "Title"
 \`\`\`
 `,
   );
-  const result = await render(qmdPath, { flags: { quiet: true } });
+  const result = await render(qmdPath, {
+    flags: { quiet: true, executeDaemon: 0 },
+  });
   if (result.error) {
     throw result.error;
   }
@@ -149,15 +146,7 @@ async function checkKnitrInstallation(tmpDir: string) {
   });
   if (caps) {
     completeMessage(kMessage + "OK");
-    info(
-      `      Version: ${caps.versionMajor}.${caps.versionMinor}.${caps.versionPatch}`,
-    );
-    info(`      Path: ${caps.home}`);
-    info(`      LibPaths:`);
-    for (const path of caps.libPaths) {
-      info(`        - ${path}`);
-    }
-    info(`      rmarkdown: ${caps.rmarkdown || "(None)"}`);
+    info(knitrCapabilitiesMessage(caps, kIndent));
     info("");
     if (caps.rmarkdown) {
       const kKnitrMessage = "Checking Knitr engine render......";
@@ -168,18 +157,13 @@ async function checkKnitrInstallation(tmpDir: string) {
         await checkKnitrRender(tmpDir);
       });
     } else {
-      info(
-        "      The rmarkdown package is not available in this R installation.\n" +
-          "      Install with " +
-          colors.bold('install.packages("rmarkdown")') + "\n",
-      );
+      info(knitrInstallationMessage(kIndent));
+      info("");
     }
   } else {
     completeMessage(kMessage + "(None)\n");
-    info(
-      "    Install R from " +
-        colors.bold("https://cloud.r-project.org/\n"),
-    );
+    info(rInstallationMessage(kIndent));
+    info("");
   }
 }
 

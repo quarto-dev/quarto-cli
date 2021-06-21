@@ -229,10 +229,14 @@ export async function cleanupLogger() {
   logger.handlers = [];
 }
 
-export function logError(e: Error) {
-  const isDebug = getenv("QUARTO_DEBUG", "false") === "true";
-  // Suppress the stack if this isn't a local / debug build
-  error(isDebug ? e.stack : `${e.name}: ${e.message}`);
+export function logError(e?: Error) {
+  // errors w/o messages are intended to be reported just via stderr
+  // (e.g. error tha occurred jupyter or knitr)
+  if (e?.message) {
+    const isDebug = getenv("QUARTO_DEBUG", "false") === "true";
+    // Suppress the stack if this isn't a local / debug built
+    error(isDebug ? e.stack : `${e.name}: ${e.message}`);
+  }
 }
 
 export function warnOnce(msg: string) {

@@ -114,6 +114,7 @@ export function htmlFormatPostprocessor(format: Format) {
       const codeBlocks = doc.querySelectorAll("pre.sourceCode");
       for (let i = 0; i < codeBlocks.length; i++) {
         const code = codeBlocks[i];
+        (code as Element).classList.add("code-with-copy");
 
         const copyButton = doc.createElement("button");
         const title = "Copy to Clipboard";
@@ -195,8 +196,6 @@ function themeFormatExtras(input: string, flags: PandocFlags, format: Format) {
     return boostrapExtras(input, flags, format);
   }
 }
-
-const kTwitter = "twitter";
 
 export const kQuartoHtmlDependency = "quarto-html";
 function htmlFormatExtras(format: Format): FormatExtras {

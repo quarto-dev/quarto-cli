@@ -19,7 +19,12 @@ import {
   ProjectOutputFile,
   ProjectType,
 } from "../project-type.ts";
-import { Format, FormatExtras, isHtmlOutput } from "../../../config/format.ts";
+import {
+  Format,
+  FormatExtras,
+  isHtmlOutput,
+  kDependencies,
+} from "../../../config/format.ts";
 import { PandocFlags } from "../../../config/flags.ts";
 
 import { kPageTitle, kTitle, kTitlePrefix } from "../../../config/constants.ts";
@@ -40,6 +45,10 @@ import {
   websiteTitle,
 } from "./website-config.ts";
 import { updateAliases } from "./website-aliases.ts";
+import {
+  resolveOpenGraphMetadata,
+  resolveTwitterMetadata,
+} from "./website-meta.ts";
 
 export const websiteProjectType: ProjectType = {
   type: "site",
@@ -120,6 +129,18 @@ export const websiteProjectType: ProjectType = {
       ) {
         extras.metadata[kPageTitle] = title;
       }
+
+      // html metadata
+      const htmlMetadata: Record<string, string> = {
+        ...resolveTwitterMetadata(source, project, format, extras),
+        ...resolveOpenGraphMetadata(source, project, format, extras),
+      };
+      extras.html = extras.html || {};
+      extras.html[kDependencies] = extras.html[kDependencies] || [];
+      extras.html[kDependencies]?.push({
+        name: "website-metadata",
+        meta: htmlMetadata,
+      });
 
       return Promise.resolve(extras);
     } else {
