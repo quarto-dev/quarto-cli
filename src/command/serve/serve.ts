@@ -180,7 +180,7 @@ export function copyProjectForServe(
   const libDirConfig = project.config?.project[kProjectLibDir];
   const libDir = libDirConfig ? join(project.dir, libDirConfig) : undefined;
 
-  const projectIgnore = projectIgnoreRegexes();
+  const projectIgnore = projectIgnoreRegexes(project.dir);
 
   const filter = (path: string) => {
     if (

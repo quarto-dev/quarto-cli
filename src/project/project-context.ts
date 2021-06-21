@@ -34,7 +34,7 @@ import {
   fileExecutionEngine,
 } from "../execute/engine.ts";
 import { projectResourceFiles } from "./project-resources.ts";
-import { kGitignoreEntries } from "./project-gitignore.ts";
+import { gitignoreEntries } from "./project-gitignore.ts";
 
 export const kProjectType = "type";
 export const kProjectRender = "render";
@@ -224,14 +224,14 @@ export function projectOffset(context: ProjectContext, input: string) {
   return pathWithForwardSlashes(offset);
 }
 
-export function projectIgnoreGlobs() {
+export function projectIgnoreGlobs(dir: string) {
   return engineIgnoreGlobs().concat(
-    kGitignoreEntries.map((ignore) => `**/${ignore}**`),
+    gitignoreEntries(dir).map((ignore) => `**/${ignore}**`),
   );
 }
 
-export function projectIgnoreRegexes() {
-  return projectIgnoreGlobs().map((glob) =>
+export function projectIgnoreRegexes(dir: string) {
+  return projectIgnoreGlobs(dir).map((glob) =>
     globToRegExp(glob, { extended: true, globstar: true })
   );
 }
@@ -299,7 +299,7 @@ function projectInputFiles(dir: string, metadata?: ProjectConfig) {
 
   const outputDir = metadata?.project[kProjectOutputDir];
 
-  const projIgnoreGlobs = projectIgnoreGlobs() // standard ignores for all projects
+  const projIgnoreGlobs = projectIgnoreGlobs(dir) // standard ignores for all projects
     .concat(["**/_*", "**/_*/**"]) // underscore prefx
     .concat(["**/.*", "**/.*/**"]) // hidden (dot prefix)
     .concat(["README.?([Rr])md"]); // README

@@ -6,7 +6,7 @@
 */
 
 import { join } from "path/mod.ts";
-import { exists } from "fs/mod.ts";
+import { exists, existsSync } from "fs/mod.ts";
 
 import { which } from "../core/path.ts";
 import { execProcess } from "../core/process.ts";
@@ -16,8 +16,6 @@ import { lines } from "../core/text.ts";
 
 export const kQuartoIgnore = [`/${kQuartoScratch}/`];
 
-export const kGitignoreEntries = kQuartoIgnore.concat([]);
-
 export async function ensureGitignore(dir: string) {
   // if .gitignore exists, then ensure it has the requisite entries
   const gitignorePath = join(dir, ".gitignore");
@@ -25,7 +23,7 @@ export async function ensureGitignore(dir: string) {
     const gitignore = lines(Deno.readTextFileSync(gitignorePath))
       .map((line) => line.trim());
     const requiredEntries: string[] = [];
-    for (const requiredEntry of kGitignoreEntries) {
+    for (const requiredEntry of gitignoreEntries(dir)) {
       if (!gitignore.includes(requiredEntry)) {
         requiredEntries.push(requiredEntry);
       }
@@ -48,7 +46,20 @@ export async function ensureGitignore(dir: string) {
 }
 
 export function createGitignore(dir: string) {
-  writeGitignore(dir, kGitignoreEntries);
+  writeGitignore(dir, gitignoreEntries(dir));
+}
+
+export function gitignoreEntries(dir: string) {
+  // detect virtual environment
+  const kEnv = "env/";
+  if (
+    existsSync(join(dir, kEnv, "pyvenv.cfg")) ||
+    existsSync(join(dir, kEnv, "conda-meta"))
+  ) {
+    return kQuartoIgnore.concat(kEnv);
+  } else {
+    return kQuartoIgnore;
+  }
 }
 
 function writeGitignore(dir: string, lines: string[]) {
