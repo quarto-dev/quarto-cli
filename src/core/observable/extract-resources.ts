@@ -10,6 +10,8 @@ import { parseModule } from "observablehq/parser";
 import { make, simple } from "acorn/walk";
 import { parse as parseES6 } from "acorn/acorn";
 
+import { parseError } from "./errors.ts";
+
 // we need to patch the base walker ourselves because OJS sometimes
 // emits Program nodes with "cells" rather than "body"
 const walkerBase = make({
@@ -115,7 +117,13 @@ export function extractResources(
   // ES6 module walk
   let result: string[] = [];
   const imports: Map<string, NameWithOrigin> = new Map();
-  const ojsAST = parseModule(ojsSource);
+  let ojsAST;
+  try {
+    ojsAST = parseModule(ojsSource);
+  } catch(e) {
+    parseError(e, ojsSource);
+    throw e;
+  }
   for (const importPath of localES6Imports(ojsAST)) {
     const resolvedImportPath = resolveES6Path(
       importPath,

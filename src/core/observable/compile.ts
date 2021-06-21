@@ -5,8 +5,11 @@
 *
 */
 
-import { dirname, join, relative, resolve } from "path/mod.ts";
 import { ld } from "lodash/mod.ts";
+import { error } from "log/mod.ts";
+import { dirname, join, relative, resolve } from "path/mod.ts";
+
+import { parseModule } from "observablehq/parser";
 
 import {
   Format,
@@ -22,8 +25,8 @@ import { kIncludeAfterBody, kIncludeInHeader } from "../../config/constants.ts";
 import { sessionTempFile } from "../temp.ts";
 import { languagesInMarkdown } from "../jupyter/jupyter.ts";
 import { asHtmlId } from "../html.ts";
-import { parseModule } from "observablehq/parser";
 import { extractResources } from "./extract-resources.ts";
+import { parseError } from "./errors.ts";
 
 import {
   kCodeFold,
@@ -135,6 +138,7 @@ export function observableCompile(
           const htmlLabel = asHtmlId(label as string);
           if (userIds.has(htmlLabel)) {
             // FIXME better error handling
+            error("Error: cell has duplicate label ${htmlLabel}");
             throw new Error(`FATAL: duplicate label ${htmlLabel}`);
           } else {
             userIds.add(htmlLabel);
@@ -181,16 +185,14 @@ export function observableCompile(
       // very heavyweight for what we need it, but this way we can signal syntax errors
       // as well.
       let nCells = 0;
+      const cellSrc = cell.source.join("");
       try {
-        nCells = parseModule(cell.source.join("")).cells.length;
+        nCells = parseModule(cellSrc).cells.length;
       } catch (e) {
         if (e instanceof SyntaxError) {
-          warnOnce(
-            `observablejs Parse Error in cell source:\n\n${
-              cell.source.join("")
-            }\n`,
-          );
-          logError(e);
+          parseError(e, cellSrc);
+        } else {
+          logError(e)
         }
         throw e;
       }
