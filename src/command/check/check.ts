@@ -95,7 +95,7 @@ async function checkJupyterInstallation(tmpDir: string) {
         await checkJupyterRender(tmpDir);
       });
     } else {
-      info(await jupyterInstallationMessage(caps), kIndent);
+      info(await jupyterInstallationMessage(caps, kIndent));
       info("");
     }
   } else {
