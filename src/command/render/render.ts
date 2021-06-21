@@ -155,10 +155,24 @@ export async function render(
   const context = await projectContext(path);
 
   if (Deno.statSync(path).isDirectory) {
+    // if the path is a sub-directory of the project, then create
+    // a files list that is only those files in the subdirectory
+    let files: string[] | undefined;
+    if (context) {
+      const renderDir = Deno.realPathSync(path);
+      const projectDir = Deno.realPathSync(context.dir);
+      if (renderDir !== projectDir) {
+        files = context.files.input.filter((file) =>
+          file.startsWith(renderDir)
+        );
+      }
+    }
+
     // all directories are considered projects
     return renderProject(
       context || await projectContextForDirectory(path),
       options,
+      files,
     );
   } else if (context?.config) {
     // if there is a project file then treat this as a project render
