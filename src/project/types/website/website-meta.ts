@@ -5,6 +5,7 @@
 *
 */
 
+import { existsSync } from "fs/exists.ts";
 import { dirname, join, relative } from "path/mod.ts";
 import {
   kDescription,
@@ -62,7 +63,7 @@ export function resolveOpenGraphMetadata(
     }
 
     // Write defaults if the user provided none
-    resolveTitleDesc(format, extras, ogMeta);
+    resolveDocumentData(format, extras, ogMeta);
     resolvePreviewImage(source, format, project, ogMeta);
 
     // Generate the opengraph meta
@@ -109,7 +110,7 @@ export function resolveTwitterMetadata(
       }
 
       // Write defaults if the user provided none
-      resolveTitleDesc(format, extras, twitterMeta);
+      resolveDocumentData(format, extras, twitterMeta);
 
       // Image
       resolvePreviewImage(source, format, context, twitterMeta);
@@ -179,50 +180,6 @@ function mergedSiteAndDocumentData(
   }
 }
 
-const kExplicitPreviewRegex =
-  /!\[.*\]\((.*?(?:\.png|\.gif|\.jpg|\.jpeg|\.webp))\)\{.*\.preview-image.*\}/;
-const kNamedImageRegex =
-  /!\[.*\]\((.*?(?:preview|feature|cover|thumbnail).*?(?:\.png|\.gif|\.jpg|\.jpeg|\.webp))\)\{.*\}/;
-function findPreviewImage(
-  source: string,
-  _format: Format,
-): { image: string; height?: number; width?: number } | undefined {
-  const sourceMarkdown = Deno.readTextFileSync(source);
-
-  let image = undefined;
-  // look for an image explicitly marked as the preview image (.class .quarto-preview)
-  const match = sourceMarkdown.match(kExplicitPreviewRegex);
-  if (match) {
-    image = match[1];
-  }
-
-  // look for an image with name feature, cover, or thumbnail
-  if (image == undefined) {
-    const namedMatch = sourceMarkdown.match(kNamedImageRegex);
-    if (namedMatch) {
-      image = namedMatch[1];
-    }
-  }
-
-  if (image !== undefined) {
-    if (image.endsWith(".png")) {
-      const imageData = Deno.readFileSync(join(dirname(source), image));
-      const png = new PngImage(imageData);
-      return {
-        image,
-        height: png.height,
-        width: png.width,
-      };
-    }
-    return {
-      image,
-    };
-  }
-
-  // didn't find an image, sorry!
-  return image;
-}
-
 function previewTitle(format: Format, extras: FormatExtras) {
   const meta = extras.metadata || {};
   if (meta[kPageTitle] !== undefined) {
@@ -245,37 +202,83 @@ function resolvePreviewImage(
   context: ProjectContext,
   metadata: Metadata,
 ) {
-  // Image
+  // First check if this is explicitly provided for the document
   const siteMeta = format.metadata[kSite] as Metadata;
-  if (siteMeta && siteMeta[kSiteUrl] !== undefined) {
-    // Twitter images need to be full paths, so only do this if we have a
-    // site url
-    const image = findPreviewImage(source, format);
-    if (image) {
-      if (image.image.startsWith("/")) {
-        // This is a project relative path
-        metadata[kImage] = metadata[kImage] ||
-          `${siteMeta[kSiteUrl]}${image.image}`;
-      } else {
-        // This is an input relative path
-        const sourceRelative = relative(context.dir, source);
-        const imageProjectRelative = join(
-          dirname(sourceRelative),
-          image.image,
-        );
-        // resolve the image path into an absolute href
-        metadata[kImage] = metadata[kImage] ||
-          `${siteMeta[kSiteUrl]}/${imageProjectRelative}`;
-      }
+  metadata[kImage] = metadata[kImage] || format.metadata[kImage] ||
+    siteMeta[kImage] || findPreviewImage(source, format);
 
-      // set the image size
-      metadata[kImageHeight] = String(image.height);
-      metadata[kImageWidth] = String(image.width);
+  if (metadata[kImage] && siteMeta && siteMeta[kSiteUrl] !== undefined) {
+    // Resolve any relative urls and figure out image size
+    const imgMeta = imageMetadata(
+      metadata[kImage] as string,
+      siteMeta[kSiteUrl] as string,
+      source,
+      context,
+    );
+
+    metadata[kImage] = imgMeta.href;
+    metadata[kImageHeight] = imgMeta.height;
+    metadata[kImageWidth] = imgMeta.width;
+  }
+}
+
+function imageMetadata(
+  image: string,
+  baseUrl: string,
+  source: string,
+  context: ProjectContext,
+) {
+  if (image.match(/^(?:http|https)\:\/\/.+/)) {
+    // We can't resolve any size data, just return the image
+    return {
+      href: image,
+    };
+  } else if (image.startsWith("/")) {
+    // This is a project relative path
+    const imagePath = join(context.dir, image.slice(1));
+    const size = imageSize(imagePath);
+
+    // read the image size
+    return {
+      href: `${baseUrl}${image}`,
+      height: size?.height,
+      width: size?.width,
+    };
+  } else {
+    // This is an input relative path
+    const sourceRelative = relative(context.dir, source);
+    const imageProjectRelative = join(
+      dirname(sourceRelative),
+      image,
+    );
+    const imagePath = join(context.dir, imageProjectRelative);
+    const size = imageSize(imagePath);
+
+    // resolve the image path into an absolute href
+    return {
+      href: `${baseUrl}/${imageProjectRelative}`,
+      height: size?.height,
+      width: size?.width,
+    };
+  }
+}
+
+function imageSize(path: string) {
+  if (path !== undefined) {
+    if (path.endsWith(".png")) {
+      if (existsSync(path)) {
+        const imageData = Deno.readFileSync(path);
+        const png = new PngImage(imageData);
+        return {
+          height: png.height,
+          width: png.width,
+        };
+      }
     }
   }
 }
 
-function resolveTitleDesc(
+function resolveDocumentData(
   format: Format,
   extras: FormatExtras,
   metadata: Metadata,
@@ -284,4 +287,32 @@ function resolveTitleDesc(
     previewTitle(format, extras) as string;
   metadata[kDescription] = metadata[kDescription] ||
     format.metadata.description as string;
+}
+
+const kExplicitPreviewRegex =
+  /!\[.*\]\((.*?(?:\.png|\.gif|\.jpg|\.jpeg|\.webp))\)\{.*\.preview-image.*\}/;
+const kNamedImageRegex =
+  /!\[.*\]\((.*?(?:preview|feature|cover|thumbnail).*?(?:\.png|\.gif|\.jpg|\.jpeg|\.webp))\)\{.*\}/;
+function findPreviewImage(
+  source: string,
+  _format: Format,
+): string | undefined {
+  const sourceMarkdown = Deno.readTextFileSync(source);
+
+  let image = undefined;
+  // look for an image explicitly marked as the preview image (.class .quarto-preview)
+  const match = sourceMarkdown.match(kExplicitPreviewRegex);
+  if (match) {
+    image = match[1];
+  }
+
+  // look for an image with name feature, cover, or thumbnail
+  if (image == undefined) {
+    const namedMatch = sourceMarkdown.match(kNamedImageRegex);
+    if (namedMatch) {
+      image = namedMatch[1];
+    }
+  }
+
+  return image;
 }
