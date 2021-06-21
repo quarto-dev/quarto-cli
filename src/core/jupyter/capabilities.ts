@@ -14,6 +14,7 @@ import { isWindows } from "../platform.ts";
 import { execProcess } from "../process.ts";
 import { resourcePath } from "../resources.ts";
 import { readYamlFromString } from "../yaml.ts";
+import { pathWithForwardSlashes } from "../path.ts";
 
 import { pythonExec } from "./exec.ts";
 import { JupyterKernelspec, jupyterKernelspecs } from "./kernels.ts";
@@ -108,7 +109,11 @@ export function jupyterUnactivatedEnvMessage(
       const targetPath = join(Deno.cwd(), path.name);
       if (isEnvDir(targetPath)) {
         try {
-          if (!caps.executable.startsWith(targetPath)) {
+          if (
+            !pathWithForwardSlashes(caps.executable).startsWith(
+              pathWithForwardSlashes(targetPath),
+            )
+          ) {
             return indent + "There is an unactivated Python environment in " +
               colors.bold(path.name) + ". Did you forget to activate it?";
           }
