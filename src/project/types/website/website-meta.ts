@@ -16,21 +16,23 @@ import { Format, FormatExtras } from "../../../config/format.ts";
 import { Metadata } from "../../../config/metadata.ts";
 import PngImage from "../../../core/png.ts";
 import { ProjectContext } from "../../project-context.ts";
-import { kSiteUrl } from "./website-config.ts";
+import {
+  kCardStyle,
+  kCreator,
+  kImage,
+  kImageHeight,
+  kImageWidth,
+  kLocale,
+  kOpenGraph,
+  kSite,
+  kSiteName,
+  kSiteUrl,
+  kTwitterCard,
+  OpenGraphConfig,
+  TwitterCardConfig,
+} from "./website-config.ts";
 
-const kTwitter = "twitter-card";
 const kCard = "card";
-const kCardStyle = "card-style";
-const kCreator = "creator";
-const kSite = "site";
-const kPreview = "preview";
-const kImage = "image";
-const kImageWidth = "image-width";
-const kImageHeight = "image-height";
-
-const kOpenGraph = "opengraph";
-const kLocale = "locale";
-const kSiteName = "site-name";
 
 export function resolveOpenGraphMetadata(
   source: string,
@@ -38,18 +40,27 @@ export function resolveOpenGraphMetadata(
   format: Format,
   extras: FormatExtras,
 ) {
-  if (format.metadata[kOpenGraph]) {
-    const openGraph = format.metadata[kOpenGraph];
+  const siteData = format.metadata[kSite] as Metadata;
+  if (siteData && siteData[kOpenGraph]) {
+    const openGraph = siteData[kOpenGraph];
     const ogMeta: Record<string, string | undefined> = {};
     if (openGraph) {
       // process explicitly set values
       if (openGraph && typeof (openGraph) === "object") {
-        const ogData = openGraph as Record<string, unknown>;
-        ogMeta[kImage] = ogData[kPreview] as string;
+        const ogData = openGraph as OpenGraphConfig;
+        ogMeta[kImage] = ogData[kImage] as string;
+        ogMeta[kImageHeight] = ogData[kImageHeight] !== undefined
+          ? String(ogData[kImageHeight])
+          : undefined;
+        ogMeta[kImageWidth] = ogData[kImageWidth] !== undefined
+          ? String(ogData[kImageWidth])
+          : undefined;
         ogMeta[kLocale] = ogData[kLocale] as string;
-        ogMeta[kSiteName] = ogData[kSiteName] as string;
+        ogMeta[kSiteName] = ogData[kSiteName] as string ||
+          siteData[kTitle] as string;
       }
     }
+
     // Write defaults if the user provided none
     resolveTitleDesc(format, extras, ogMeta);
     resolvePreviewImage(source, format, project, ogMeta);
@@ -76,16 +87,23 @@ export function resolveTwitterMetadata(
   extras: FormatExtras,
 ) {
   // Twitter card
-  if (format.metadata[kTwitter]) {
-    const twitter = format.metadata[kTwitter];
+  const siteData = format.metadata[kSite] as Metadata;
+  if (siteData && siteData[kTwitterCard]) {
+    const twitter = siteData[kTwitterCard];
     const twitterMeta: Record<string, string | undefined> = {};
     if (twitter) {
       // Process explicitly set values
       if (twitter && typeof (twitter) === "object") {
-        const twData = twitter as Record<string, unknown>;
+        const twData = twitter as TwitterCardConfig;
         twitterMeta[kCreator] = twData[kCreator] as string;
         twitterMeta[kSite] = twData[kSite] as string;
-        twitterMeta[kImage] = twData[kPreview] as string;
+        twitterMeta[kImage] = twData[kImage] as string;
+        twitterMeta[kImageHeight] = twData[kImageHeight] !== undefined
+          ? String(twData[kImageHeight])
+          : undefined;
+        twitterMeta[kImageWidth] = twData[kImageWidth] !== undefined
+          ? String(twData[kImageWidth])
+          : undefined;
         twitterMeta[kCard] = twData[kCardStyle] as string;
       }
 
@@ -132,7 +150,7 @@ export function resolveTwitterMetadata(
 }
 
 const kExplicitPreviewRegex =
-  /!\[.*\]\((.*?(?:\.png|\.gif|\.jpg|\.jpeg|\.webp))\)\{.*.quarto-preview.*\}/;
+  /!\[.*\]\((.*?(?:\.png|\.gif|\.jpg|\.jpeg|\.webp))\)\{.*\.preview-image.*\}/;
 const kNamedImageRegex =
   /!\[.*\]\((.*?(?:preview|feature|cover|thumbnail).*?(?:\.png|\.gif|\.jpg|\.jpeg|\.webp))\)\{.*\}/;
 function findPreviewImage(
@@ -180,7 +198,12 @@ function previewTitle(format: Format, extras: FormatExtras) {
   if (meta[kPageTitle] !== undefined) {
     return meta[kPageTitle];
   } else if (meta[kTitlePrefix] !== undefined) {
-    return meta[kTitlePrefix] + " - " + format.metadata[kTitle];
+    // If the title prefix is the same as the title, don't include it as a prefix
+    if (meta[kTitlePrefix] === format.metadata[kTitle]) {
+      return format.metadata[kTitle];
+    } else {
+      return meta[kTitlePrefix] + " - " + format.metadata[kTitle];
+    }
   } else {
     return format.metadata[kTitle];
   }

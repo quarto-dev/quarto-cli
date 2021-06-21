@@ -7,7 +7,11 @@
 
 import { ld } from "lodash/mod.ts";
 
-import { kMetadataFormat } from "../../../config/constants.ts";
+import {
+  kDescription,
+  kMetadataFormat,
+  kTitle,
+} from "../../../config/constants.ts";
 import { isHtmlOutput } from "../../../config/format.ts";
 
 import { ProjectConfig } from "../../project-context.ts";
@@ -28,6 +32,19 @@ export const kSiteFooter = "footer";
 
 export const kContents = "contents";
 
+export const kTwitterCard = "twitter-card";
+export const kOpenGraph = "opengraph";
+
+export const kCardStyle = "card-style";
+export const kImage = "image";
+export const kImageWidth = "image-width";
+export const kImageHeight = "image-height";
+export const kCreator = "creator";
+export const kTwitterSite = "site";
+
+export const kLocale = "locale";
+export const kSiteName = "site-name";
+
 export interface WebsiteConfig {
   [kSiteTitle]?: string;
   [kSiteUrl]?: string;
@@ -38,6 +55,29 @@ export interface WebsiteConfig {
   [kSiteSidebar]?: string;
   [kSitePageNavigation]?: boolean;
   [kSiteFooter]?: string;
+  [kOpenGraph]?: boolean | OpenGraphConfig;
+  [kTwitterCard]?: boolean | TwitterCardConfig;
+}
+
+export interface TwitterCardConfig {
+  [kTitle]?: string;
+  [kDescription]?: string;
+  [kCardStyle]?: string;
+  [kImage]?: string;
+  [kImageWidth]?: number;
+  [kImageHeight]?: number;
+  [kTwitterSite]?: string;
+  [kCreator]?: string;
+}
+
+export interface OpenGraphConfig {
+  [kTitle]?: string;
+  [kDescription]?: string;
+  [kImage]?: string;
+  [kImageWidth]?: number;
+  [kImageHeight]?: number;
+  [kLocale]?: string;
+  [kSiteName]?: string;
 }
 
 export function websiteConfig(
