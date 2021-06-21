@@ -18,23 +18,54 @@ import PngImage from "../../../core/png.ts";
 import { ProjectContext } from "../../project-context.ts";
 import { kSiteUrl } from "./website-config.ts";
 
-export function resolveOpenGraphMetadata(
-  _source: string,
-  _project: ProjectContext,
-  _format: Format,
-  _extras: FormatExtras,
-) {
-  return {} as Record<string, string>;
-}
+const kTwitter = "twitter-card";
+const kCard = "card";
+const kCardStyle = "card-style";
+const kCreator = "creator";
+const kSite = "site";
+const kPreview = "preview";
+const kImage = "image";
+const kImageWidth = "image-width";
+const kImageHeight = "image-height";
 
-function previewTitle(format: Format, extras: FormatExtras) {
-  const meta = extras.metadata || {};
-  if (meta[kPageTitle] !== undefined) {
-    return meta[kPageTitle];
-  } else if (meta[kTitlePrefix] !== undefined) {
-    return meta[kTitlePrefix] + " - " + format.metadata[kTitle];
-  } else {
-    return format.metadata[kTitle];
+const kOpenGraph = "opengraph";
+const kLocale = "locale";
+const kSiteName = "site-name";
+
+export function resolveOpenGraphMetadata(
+  source: string,
+  project: ProjectContext,
+  format: Format,
+  extras: FormatExtras,
+) {
+  if (format.metadata[kOpenGraph]) {
+    const openGraph = format.metadata[kOpenGraph];
+    const ogMeta: Record<string, string | undefined> = {};
+    if (openGraph) {
+      // process explicitly set values
+      if (openGraph && typeof (openGraph) === "object") {
+        const ogData = openGraph as Record<string, unknown>;
+        ogMeta[kImage] = ogData[kPreview] as string;
+        ogMeta[kLocale] = ogData[kLocale] as string;
+        ogMeta[kSiteName] = ogData[kSiteName] as string;
+      }
+    }
+    // Write defaults if the user provided none
+    resolveTitleDesc(format, extras, ogMeta);
+    resolvePreviewImage(source, format, project, ogMeta);
+
+    // Generate the opengraph meta
+    const metadata: Record<string, string> = {};
+    Object.keys(ogMeta).forEach((key) => {
+      if (ogMeta[key] !== undefined) {
+        const data = ogMeta[key] as string;
+        if ([kImageWidth, kImageHeight].includes(key)) {
+          key = key.replace("-", ":");
+        }
+        metadata[`og:${key}`] = data;
+      }
+    });
+    return metadata;
   }
 }
 
@@ -44,15 +75,6 @@ export function resolveTwitterMetadata(
   format: Format,
   extras: FormatExtras,
 ) {
-  const kTwitter = "twitter-card";
-  const kCard = "card";
-  const kCardStyle = "card-style";
-  const kCreator = "creator";
-  const kSite = "site";
-  const kImage = "image";
-  const kImageWidth = "image-width";
-  const kImageHeight = "image-height";
-
   // Twitter card
   if (format.metadata[kTwitter]) {
     const twitter = format.metadata[kTwitter];
@@ -63,44 +85,15 @@ export function resolveTwitterMetadata(
         const twData = twitter as Record<string, unknown>;
         twitterMeta[kCreator] = twData[kCreator] as string;
         twitterMeta[kSite] = twData[kSite] as string;
-        twitterMeta[kImage] = twData[kImage] as string;
+        twitterMeta[kImage] = twData[kPreview] as string;
         twitterMeta[kCard] = twData[kCardStyle] as string;
       }
 
       // Write defaults if the user provided none
-      twitterMeta[kTitle] = twitterMeta[kTitle] ||
-        previewTitle(format, extras) as string;
-      twitterMeta[kDescription] = twitterMeta[kDescription] ||
-        format.metadata.description as string;
+      resolveTitleDesc(format, extras, twitterMeta);
 
       // Image
-      const siteMeta = format.metadata[kSite] as Metadata;
-      if (siteMeta && siteMeta[kSiteUrl] !== undefined) {
-        // Twitter images need to be full paths, so only do this if we have a
-        // site url
-        const image = findPreviewImage(source, format);
-        if (image) {
-          if (image.image.startsWith("/")) {
-            // This is a project relative path
-            twitterMeta[kImage] = twitterMeta[kImage] ||
-              `${siteMeta[kSiteUrl]}${image.image}`;
-          } else {
-            // This is an input relative path
-            const sourceRelative = relative(context.dir, source);
-            const imageProjectRelative = join(
-              dirname(sourceRelative),
-              image.image,
-            );
-            // resolve the image path into an absolute href
-            twitterMeta[kImage] = twitterMeta[kImage] ||
-              `${siteMeta[kSiteUrl]}/${imageProjectRelative}`;
-          }
-
-          // set the image size
-          twitterMeta[kImageHeight] = String(image.height);
-          twitterMeta[kImageWidth] = String(image.width);
-        }
-      }
+      resolvePreviewImage(source, format, context, twitterMeta);
 
       // Automatically choose the best format based upon whether
       // we have a preview image
@@ -138,8 +131,10 @@ export function resolveTwitterMetadata(
   }
 }
 
-const kExplicitPreviewRegex = /!\[.*\]\((.*)\)\{.*.quarto-preview.*\}/;
-const kNamedImageRegex = /!\[.*\]\((.*?(?:feature|cover|thumbnail).*?)\)\{.*\}/;
+const kExplicitPreviewRegex =
+  /!\[.*\]\((.*?(?:\.png|\.gif|\.jpg|\.jpeg|\.webp))\)\{.*.quarto-preview.*\}/;
+const kNamedImageRegex =
+  /!\[.*\]\((.*?(?:preview|feature|cover|thumbnail).*?(?:\.png|\.gif|\.jpg|\.jpeg|\.webp))\)\{.*\}/;
 function findPreviewImage(
   source: string,
   _format: Format,
@@ -178,4 +173,62 @@ function findPreviewImage(
 
   // didn't find an image, sorry!
   return image;
+}
+
+function previewTitle(format: Format, extras: FormatExtras) {
+  const meta = extras.metadata || {};
+  if (meta[kPageTitle] !== undefined) {
+    return meta[kPageTitle];
+  } else if (meta[kTitlePrefix] !== undefined) {
+    return meta[kTitlePrefix] + " - " + format.metadata[kTitle];
+  } else {
+    return format.metadata[kTitle];
+  }
+}
+
+function resolvePreviewImage(
+  source: string,
+  format: Format,
+  context: ProjectContext,
+  metadata: Metadata,
+) {
+  // Image
+  const siteMeta = format.metadata[kSite] as Metadata;
+  if (siteMeta && siteMeta[kSiteUrl] !== undefined) {
+    // Twitter images need to be full paths, so only do this if we have a
+    // site url
+    const image = findPreviewImage(source, format);
+    if (image) {
+      if (image.image.startsWith("/")) {
+        // This is a project relative path
+        metadata[kImage] = metadata[kImage] ||
+          `${siteMeta[kSiteUrl]}${image.image}`;
+      } else {
+        // This is an input relative path
+        const sourceRelative = relative(context.dir, source);
+        const imageProjectRelative = join(
+          dirname(sourceRelative),
+          image.image,
+        );
+        // resolve the image path into an absolute href
+        metadata[kImage] = metadata[kImage] ||
+          `${siteMeta[kSiteUrl]}/${imageProjectRelative}`;
+      }
+
+      // set the image size
+      metadata[kImageHeight] = String(image.height);
+      metadata[kImageWidth] = String(image.width);
+    }
+  }
+}
+
+function resolveTitleDesc(
+  format: Format,
+  extras: FormatExtras,
+  metadata: Metadata,
+) {
+  metadata[kTitle] = metadata[kTitle] ||
+    previewTitle(format, extras) as string;
+  metadata[kDescription] = metadata[kDescription] ||
+    format.metadata.description as string;
 }
