@@ -6,13 +6,14 @@
 */
 
 import { join } from "path/mod.ts";
-import { exists, existsSync } from "fs/mod.ts";
+import { exists } from "fs/mod.ts";
 
 import { which } from "../core/path.ts";
 import { execProcess } from "../core/process.ts";
 
 import { kQuartoScratch } from "./project-scratch.ts";
 import { lines } from "../core/text.ts";
+import { isEnvDir } from "../core/jupyter/capabilities.ts";
 
 export const kQuartoIgnore = [`/${kQuartoScratch}/`];
 
@@ -52,10 +53,7 @@ export function createGitignore(dir: string) {
 export function gitignoreEntries(dir: string) {
   // detect virtual environment
   const kEnv = "env/";
-  if (
-    existsSync(join(dir, kEnv, "pyvenv.cfg")) ||
-    existsSync(join(dir, kEnv, "conda-meta"))
-  ) {
+  if (isEnvDir(join(dir, kEnv))) {
     return kQuartoIgnore.concat(kEnv);
   } else {
     return kQuartoIgnore;
