@@ -5,12 +5,16 @@
 *
 */
 
+import { join } from "path/mod.ts";
+import { existsSync } from "fs/mod.ts";
+
 import * as colors from "fmt/colors.ts";
 
 import { isWindows } from "../platform.ts";
 import { execProcess } from "../process.ts";
 import { resourcePath } from "../resources.ts";
 import { readYamlFromString } from "../yaml.ts";
+
 import { pythonExec } from "./exec.ts";
 import { JupyterKernelspec, jupyterKernelspecs } from "./kernels.ts";
 
@@ -95,12 +99,39 @@ export async function jupyterInstallationMessage(
   return lines.map((line: string) => `${indent}${line}`).join("\n");
 }
 
+export function jupyterUnactivatedEnvMessage(
+  caps: JupyterCapabilities,
+  indent = "",
+) {
+  for (const path of Deno.readDirSync(Deno.cwd())) {
+    if (path.isDirectory) {
+      const targetPath = join(Deno.cwd(), path.name);
+      if (isEnvDir(targetPath)) {
+        try {
+          if (!caps.executable.startsWith(targetPath)) {
+            return indent + "There is an unactivated Python environment in " +
+              colors.bold(path.name) + ". Did you forget to activate it?";
+          }
+        } catch {
+          return undefined;
+        }
+      }
+    }
+  }
+  return undefined;
+}
+
 export function pythonInstallationMessage(indent = "") {
   const lines = [
     "Unable to locate an installed version of Python 3.",
     "Install Python 3 from " + colors.bold("https://www.python.org/downloads/"),
   ];
   return lines.map((line: string) => `${indent}${line}`).join("\n");
+}
+
+export function isEnvDir(dir: string) {
+  return existsSync(join(dir, "pyvenv.cfg")) ||
+    existsSync(join(dir, "conda-meta"));
 }
 
 function pyPython() {

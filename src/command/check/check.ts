@@ -15,6 +15,7 @@ import {
   jupyterCapabilities,
   jupyterCapabilitiesMessage,
   jupyterInstallationMessage,
+  jupyterUnactivatedEnvMessage,
   pythonInstallationMessage,
 } from "../../core/jupyter/capabilities.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
@@ -97,6 +98,11 @@ async function checkJupyterInstallation(tmpDir: string) {
     } else {
       info(await jupyterInstallationMessage(caps, kIndent));
       info("");
+      const envMessage = jupyterUnactivatedEnvMessage(caps, kIndent);
+      if (envMessage) {
+        info(envMessage);
+        info("");
+      }
     }
   } else {
     completeMessage(kMessage + "(None)\n");
