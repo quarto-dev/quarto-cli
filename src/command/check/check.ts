@@ -8,8 +8,6 @@
 import { join } from "path/mod.ts";
 import { info } from "log/mod.ts";
 
-import * as colors from "fmt/colors.ts";
-
 import { createSessionTempDir } from "../../core/temp.ts";
 import { render } from "../render/render.ts";
 import {
@@ -20,7 +18,13 @@ import {
   pythonInstallationMessage,
 } from "../../core/jupyter/capabilities.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
-import { KnitrCapabilities, knitrCapabilities } from "../../core/knitr.ts";
+import {
+  KnitrCapabilities,
+  knitrCapabilities,
+  knitrCapabilitiesMessage,
+  knitrInstallationMessage,
+  rInstallationMessage,
+} from "../../core/knitr.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 
 const kIndent = "      ";
@@ -136,15 +140,7 @@ async function checkKnitrInstallation(tmpDir: string) {
   });
   if (caps) {
     completeMessage(kMessage + "OK");
-    info(
-      `      Version: ${caps.versionMajor}.${caps.versionMinor}.${caps.versionPatch}`,
-    );
-    info(`      Path: ${caps.home}`);
-    info(`      LibPaths:`);
-    for (const path of caps.libPaths) {
-      info(`        - ${path}`);
-    }
-    info(`      rmarkdown: ${caps.rmarkdown || "(None)"}`);
+    info(knitrCapabilitiesMessage(caps, kIndent));
     info("");
     if (caps.rmarkdown) {
       const kKnitrMessage = "Checking Knitr engine render......";
@@ -155,18 +151,13 @@ async function checkKnitrInstallation(tmpDir: string) {
         await checkKnitrRender(tmpDir);
       });
     } else {
-      info(
-        "      The quarto package is not available in this R installation.\n" +
-          "      Install with " +
-          colors.bold('install.packages("quarto")') + "\n",
-      );
+      info(knitrInstallationMessage(kIndent));
+      info("");
     }
   } else {
     completeMessage(kMessage + "(None)\n");
-    info(
-      "    Install R from " +
-        colors.bold("https://cloud.r-project.org/\n"),
-    );
+    info(rInstallationMessage(kIndent));
+    info("");
   }
 }
 

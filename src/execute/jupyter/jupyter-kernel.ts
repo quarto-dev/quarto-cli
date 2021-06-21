@@ -167,38 +167,47 @@ async function execJupyter(
   command: string,
   options: Record<string, unknown>,
 ): Promise<ProcessResult> {
-  const result = await execProcess(
-    {
-      cmd: [
-        ...(await pythonExec()),
-        resourcePath("jupyter/jupyter.py"),
-      ],
-      stdout: "piped",
-      stderr: "piped",
-    },
-    kernelCommand(command, "", options),
-  );
-  if (!result.success) {
-    // forward error
-    info("\n");
-    error(result.stderr);
-
-    // print some diagnostics if python and/or jupyter couldn't be found
-    const caps = await jupyterCapabilities();
-    if (caps && !caps.jupyter_core) {
-      info("Python 3 installation:");
-      info(await jupyterCapabilitiesMessage(caps, "  "));
-      info("");
-      info(await jupyterInstallationMessage(caps));
-      info("");
-    } else if (!caps) {
-      info("Unable to locate an installed version of Python 3.");
-      info("");
-      info(pythonInstallationMessage());
-      info("");
+  try {
+    const result = await execProcess(
+      {
+        cmd: [
+          ...(await pythonExec()),
+          resourcePath("jupyter/jupyter.py"),
+        ],
+        stdout: "piped",
+      },
+      kernelCommand(command, "", options),
+    );
+    if (!result.success) {
+      // forward error (print some diagnostics if python and/or jupyter couldn't be found)
+      info("\n");
+      await printExecDiagnostics();
     }
+    return result;
+  } catch (e) {
+    if (e?.message) {
+      info("");
+      error(e.message);
+    }
+    await printExecDiagnostics();
+    return Promise.reject();
   }
-  return result;
+}
+
+async function printExecDiagnostics() {
+  const caps = await jupyterCapabilities();
+  if (caps && !caps.jupyter_core) {
+    info("Python 3 installation:");
+    info(await jupyterCapabilitiesMessage(caps, "  "));
+    info("");
+    info(await jupyterInstallationMessage(caps));
+    info("");
+  } else if (!caps) {
+    info("Unable to locate an installed version of Python 3.");
+    info("");
+    info(pythonInstallationMessage());
+    info("");
+  }
 }
 
 async function writeKernelCommand(
