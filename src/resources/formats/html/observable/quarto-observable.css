@@ -7,13 +7,9 @@ div.cell-output-display div.observablehq {
     margin-bottom: 1rem;
 }
 
-/* the non-inspect output seems to have a margin-left: 1rem specifier that I can't find anywhere.
-   So we instead match it for inspect-outputs */
-
 .observablehq .observablehq--inspect {
     font-family: var(--bs-font-monospace);
     font-size: .8em;
-    margin-left: 1rem;
 }
 
 .observablehq--field {
