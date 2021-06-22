@@ -539,6 +539,7 @@ function observableFormatDependency() {
     ],
     scripts: [
       observableDependency("quarto-observable.js", { type: "module" }),
+      observableDependency("quarto-observable-shiny.js", { type: "module" }),
     ],
   };
 }

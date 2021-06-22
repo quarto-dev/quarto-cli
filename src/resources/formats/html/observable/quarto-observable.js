@@ -7,6 +7,8 @@ import {
 import { parseModule } from "https://cdn.skypack.dev/@observablehq/parser";
 import { FileAttachments } from "https://cdn.skypack.dev/@observablehq/stdlib";
 
+import { initObservableShinyRuntime } from "./quarto-observable-shiny.js";
+
 function createOJSSourceElement(el, src) {
   let sourceEl = document.createElement("pre");
   sourceEl.setAttribute("class", "ojs-source");
@@ -36,6 +38,14 @@ export function createRuntime() {
   }
   lib.width = width;
 
+  function shiny(name) {
+    debugger;
+    shinyVars.add(name);
+  }
+  lib.shiny = function() {
+    return shiny;
+  };
+  
   // select all panel elements with ids 
   let layoutDivs = Array.from(document.querySelectorAll("div.quarto-layout-panel div[id]"));
 
@@ -91,7 +101,23 @@ export function createRuntime() {
   lib.FileAttachment = () => FileAttachments(fileAttachmentPathResolver);
   
   const runtime = new Runtime(lib);
+  const shinyVars = new Set();
+
+  class ShinyInspector extends Inspector {
+    constructor(node) {
+      super(node);
+    }
+    fulfilled(value, name) {
+      if (shinyVars.has(name)) {
+        window.Shiny.setInputValue(name, value);
+      }
+      return super.fulfilled(value, name);
+    }
+  };
+
   const mainMod = runtime.module();
+  window._ojs.mainModule = mainMod;
+  window._ojs.runtime = runtime;
 
   const interpreter = new Interpreter({
     module: mainMod,
@@ -146,7 +172,7 @@ export function createRuntime() {
               !name.startsWith('viewof ')) {
             element.style.display = "none";
           }
-          return new Inspector(element);
+          return new ShinyInspector(element);
         };
       };
 
@@ -175,6 +201,12 @@ export function createRuntime() {
     },
   };
 
+  // Are we shiny?
+
+  if (window.Shiny) {
+    initObservableShinyRuntime();
+  }
+ 
   return result;
 }
 
@@ -213,9 +245,13 @@ function es6ImportAsObservable(m)
   };
 }
 
-window._ojs = {
-  runtime: createRuntime(),
-  paths: {}
-};
+//////////////////////////////////////////////////////////////////////////////
+// Are we shiny?
 
+window._ojs = {
+  runtime: undefined,
+  paths: {},
+  mainModule: undefined
+};
+window._ojs.runtime = createRuntime();
 
