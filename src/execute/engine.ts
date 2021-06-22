@@ -46,7 +46,6 @@ export interface ExecutionEngine {
     file: string,
     quiet?: boolean,
   ) => Promise<ExecutionTarget | undefined>;
-  metadata: (file: string) => Promise<Metadata>;
   partitionedMarkdown: (file: string) => Promise<PartitionedMarkdown>;
   filterFormat?: (
     source: string,
@@ -71,6 +70,7 @@ export interface ExecutionEngine {
 export interface ExecutionTarget {
   source: string;
   input: string;
+  metadata: Metadata;
   data?: unknown;
 }
 
@@ -236,17 +236,25 @@ export function fileExecutionEngine(file: string) {
     }
 
     // if there is no language or just ojs then it's plain markdown
+    // or the knitr engine if there are inline r expressions
     if (
       languages.size === 0 ||
       (languages.size == 1 &&
         (languages.has("ojs") || languages.has("observable")))
     ) {
-      return markdownEngine;
+      return engineForMarkdownWithNoLanguages(markdown);
     } else {
       return jupyterEngine;
     }
   } else {
-    // no languages so use plain markdown
+    return engineForMarkdownWithNoLanguages(markdown);
+  }
+}
+
+function engineForMarkdownWithNoLanguages(markdown: string) {
+  if (markdown.match(/`r[ #]([^`]+)\s*`/)) {
+    return knitrEngine;
+  } else {
     return markdownEngine;
   }
 }

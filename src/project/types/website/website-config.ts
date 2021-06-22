@@ -33,7 +33,7 @@ export const kSiteFooter = "footer";
 export const kContents = "contents";
 
 export const kTwitterCard = "twitter-card";
-export const kOpenGraph = "opengraph";
+export const kOpenGraph = "open-graph";
 
 export const kCardStyle = "card-style";
 export const kImage = "image";
@@ -62,7 +62,7 @@ export interface WebsiteConfig {
 export interface TwitterCardConfig {
   [kTitle]?: string;
   [kDescription]?: string;
-  [kCardStyle]?: string;
+  [kCardStyle]?: "summary" | "summary_card_large";
   [kImage]?: string;
   [kImageWidth]?: number;
   [kImageHeight]?: number;
