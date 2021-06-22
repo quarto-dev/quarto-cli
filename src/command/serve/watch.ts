@@ -253,7 +253,7 @@ export async function watchProject(
           if (isRStudioServer()) {
             const prefix = clients[i].path.match(/^\/p\/\w+/);
             if (prefix) {
-              reloadTarget = prefix + reloadTarget;
+              reloadTarget = prefix[0] + reloadTarget;
             }
           }
           await socket.send(`reload${reloadTarget}`);
