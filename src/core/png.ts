@@ -22,7 +22,7 @@ export default class PngImage {
   private filterMethod = -1;
   private interlaceMethod = -1;
 
-  constructor(bytes: Uint8Array) {
+  constructor(bytes: Uint8Array, sizeOnly = true) {
     const magicNumberBytes = bytes.slice(0, 8);
     const magicNumber = bytesToString(magicNumberBytes);
     if (magicNumber !== "13780787113102610") {
@@ -35,7 +35,7 @@ export default class PngImage {
 
       switch (chunk.type) {
         case "IHDR":
-          this.parseIHDRChunk(chunk);
+          this.parseIHDRChunk(chunk, sizeOnly);
           break;
         case "pHYs":
           this.parsePHYSChunk(chunk);
@@ -48,10 +48,18 @@ export default class PngImage {
     }
   }
 
-  private parseIHDRChunk(chunk: PngChunk) {
+  private parseIHDRChunk(chunk: PngChunk, sizeOnly: boolean) {
     this.width = bytesToUint32(chunk.data, 0, 4);
     this.height = bytesToUint32(chunk.data, 4, 4);
 
+    if (sizeOnly) {
+      return;
+    }
+
+    // we noticed that some pngs weren't able to yield all of these
+    // fields (specifically one didn't have colourType). for now
+    // we don't try to read them by default -- leave the code here
+    // though in case we need it at some point
     this.bitDepth = chunk.data.slice(8, 9)[0];
     if (this.bitDepth !== 8) throw new Error("bitDepth not supported");
 
