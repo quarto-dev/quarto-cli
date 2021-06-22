@@ -29,8 +29,8 @@ export const markdownEngine: ExecutionEngine = {
 
   validExtensions: () => kQmdExtensions.concat(kMdExtensions),
 
-  claimsExtension: (ext: string) => {
-    return kMdExtensions.includes(ext.toLowerCase());
+  claimsExtension: (_ext: string) => {
+    return false;
   },
   claimsLanguage: (_language: string) => {
     return false;
