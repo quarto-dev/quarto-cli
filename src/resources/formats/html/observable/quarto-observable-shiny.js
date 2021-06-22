@@ -1,5 +1,12 @@
 /*global Shiny,$*/
 
+/*
+ FIXME: The layout of this file is a little ugly because we don't want to
+ expose Shiny.* to the module in every case, since sometimes we'll use
+ this module without Shiny defined. We could make it cleaner by
+ creating dummy classes in a separate import.
+ */
+
 import {
   Inspector,
   Library,
@@ -9,29 +16,29 @@ import {
   button
 } from "https://cdn.skypack.dev/@observablehq/inputs";
 
-class NamedVariableOutputBinding extends Shiny.OutputBinding {
-  constructor(name, change) {
-    super();
-    this._name = name;
-    this._change = change;
-    change([]); // yeah, we know this is wrong.
-  }
-  find(scope) {
-    return $(scope).find("#" + this._name);
-  }
-  getId(el) {
-    return el.id;
-  }
-  renderValue(el, data) {
-    const id = this.getId(el);
-    this._change(data);
-  }
-}
-
 const shinyInputVars = new Set();
 
 export function extendObservableStdlib(lib)
 {
+  class NamedVariableOutputBinding extends Shiny.OutputBinding {
+    constructor(name, change) {
+      super();
+      this._name = name;
+      this._change = change;
+      change([]); // yeah, we know this is wrong.
+    }
+    find(scope) {
+      return $(scope).find("#" + this._name);
+    }
+    getId(el) {
+      return el.id;
+    }
+    renderValue(el, data) {
+      const id = this.getId(el);
+      this._change(data);
+    }
+  }
+
   lib.shinyInput = function() {
     return (name) => {
       shinyInputVars.add(name);
@@ -65,51 +72,6 @@ export class ShinyInspector extends Inspector {
 
 const { Generators } = new Library();
 
-class BindingAdapter extends Shiny.InputBinding {
-  static value_sym = Symbol("value");
-  static callback_sym = Symbol("callback");
-  static instance_sym = Symbol("instance");
-  static values = new WeakMap();
-  
-  constructor(x) {
-    super();
-    this.x = x;
-  }
-
-  find(scope) {
-    const matches = this.x.find(scope);
-    return $(matches);
-  }
-  getId(el) {
-    if (this.x.getId) {
-      return this.x.getId(el);
-    } else {
-      return super.getId(el);
-    }
-  }
-  initialize(el) {
-    const changeHandler = (value) => {
-      el[BindingAdapter.value_sym] = value;
-      el[BindingAdapter.callback_sym]();
-    };
-    const instance = this.x.init(el, changeHandler);
-    el[BindingAdapter.instance_sym] = instance;
-  }
-  getValue(el) {
-    return el[BindingAdapter.value_sym];
-  }
-  setValue(el, value) {
-    el[BindingAdapter.value_sym] = value;
-    el[BindingAdapter.instance_sym].onSetValue(value);
-  }
-  subscribe(el, callback) {
-    el[BindingAdapter.callback_sym] = callback;
-  }
-  unsubscribe(el) {
-    el[BindingAdapter.instance_sym].dispose();
-  }
-}
-
 class ObservableButtonInput /*extends ShinyInput*/ {
   find(scope) {
     return document.querySelectorAll(".observablehq-inputs-button");
@@ -140,20 +102,66 @@ class ObservableButtonInput /*extends ShinyInput*/ {
   }
 }
 
-class InspectorOutputBinding extends Shiny.OutputBinding {
-  find(scope) {
-    return $(scope).find(".observablehq-inspector");
-  }
-  getId(el) {
-    return el.id;
-  }
-  renderValue(el, data) {
-    (new Inspector(el)).fulfilled(data);
-  }
-}
-
 export function initObservableShinyRuntime()
 {
+
+  class BindingAdapter extends Shiny.InputBinding {
+    static value_sym = Symbol("value");
+    static callback_sym = Symbol("callback");
+    static instance_sym = Symbol("instance");
+    static values = new WeakMap();
+    
+    constructor(x) {
+      super();
+      this.x = x;
+    }
+
+    find(scope) {
+      const matches = this.x.find(scope);
+      return $(matches);
+    }
+    getId(el) {
+      if (this.x.getId) {
+        return this.x.getId(el);
+      } else {
+        return super.getId(el);
+      }
+    }
+    initialize(el) {
+      const changeHandler = (value) => {
+        el[BindingAdapter.value_sym] = value;
+        el[BindingAdapter.callback_sym]();
+      };
+      const instance = this.x.init(el, changeHandler);
+      el[BindingAdapter.instance_sym] = instance;
+    }
+    getValue(el) {
+      return el[BindingAdapter.value_sym];
+    }
+    setValue(el, value) {
+      el[BindingAdapter.value_sym] = value;
+      el[BindingAdapter.instance_sym].onSetValue(value);
+    }
+    subscribe(el, callback) {
+      el[BindingAdapter.callback_sym] = callback;
+    }
+    unsubscribe(el) {
+      el[BindingAdapter.instance_sym].dispose();
+    }
+  }
+
+  class InspectorOutputBinding extends Shiny.OutputBinding {
+    find(scope) {
+      return $(scope).find(".observablehq-inspector");
+    }
+    getId(el) {
+      return el.id;
+    }
+    renderValue(el, data) {
+      (new Inspector(el)).fulfilled(data);
+    }
+  }
+
   if (window.Shiny === undefined) {
     console.warn("Shiny runtime not found; Shiny features won't work.");
     return false;
