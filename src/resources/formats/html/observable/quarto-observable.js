@@ -7,22 +7,39 @@ import {
 import { parseModule } from "https://cdn.skypack.dev/@observablehq/parser";
 import { FileAttachments } from "https://cdn.skypack.dev/@observablehq/stdlib";
 
-import { initObservableShinyRuntime } from "./quarto-observable-shiny.js";
+import {
+  ShinyInspector,
+  extendObservableStdlib,
+  initObservableShinyRuntime
+} from "./quarto-observable-shiny.js";
 
 function createOJSSourceElement(el, src) {
-  let sourceEl = document.createElement("pre");
+  const sourceEl = document.createElement("pre");
   sourceEl.setAttribute("class", "ojs-source");
   sourceEl.innerText = src.trim();
   el.appendChild(sourceEl);
   return sourceEl;
 }
 
+// we use the trick described here to extend observable's standard library
+// https://talk.observablehq.com/t/embedded-width/1063
 export function createRuntime() {
-  // we're using the trick described here:
-  // https://talk.observablehq.com/t/embedded-width/1063
+
+  const quartoOjsGlobal = window._ojs;
+  const isShiny = window.Shiny !== undefined;
   
-  let lib = new Library();
-  let mainEl = document.querySelector("main");
+  // Are we shiny?
+  if (isShiny) {
+    quartoOjsGlobal.hasShiny = true;
+    initObservableShinyRuntime();
+    
+    const span = document.createElement("span");
+    window._ojs.shinyElementRoot = span;
+    document.body.appendChild(span);
+  }
+  
+  const lib = new Library();
+  const mainEl = document.querySelector("main");
   function width() {
     return lib.Generators.observe(function(change) {
       var width = change(mainEl.clientWidth);
@@ -38,26 +55,22 @@ export function createRuntime() {
   }
   lib.width = width;
 
-  function shiny(name) {
-    debugger;
-    shinyVars.add(name);
+  if (isShiny) {
+    extendObservableStdlib(lib);
   }
-  lib.shiny = function() {
-    return shiny;
-  };
   
   // select all panel elements with ids 
-  let layoutDivs = Array.from(document.querySelectorAll("div.quarto-layout-panel div[id]"));
+  const layoutDivs = Array.from(document.querySelectorAll("div.quarto-layout-panel div[id]"));
 
   // add a new function to our stdlib (!)
   function layoutWidth() {
     return lib.Generators.observe(function(change) {
-      let ourWidths = Object.fromEntries(layoutDivs.map(div => [div.id, div.clientWidth]));
+      const ourWidths = Object.fromEntries(layoutDivs.map(div => [div.id, div.clientWidth]));
       change(ourWidths);
       function resized() {
         let changed = false;
         for (const div of layoutDivs) {
-          let w = div.clientWidth;          
+          const w = div.clientWidth;          
           if (w !== ourWidths[div.id]) {
             ourWidths[div.id] = w;
             changed = true;
@@ -101,19 +114,6 @@ export function createRuntime() {
   lib.FileAttachment = () => FileAttachments(fileAttachmentPathResolver);
   
   const runtime = new Runtime(lib);
-  const shinyVars = new Set();
-
-  class ShinyInspector extends Inspector {
-    constructor(node) {
-      super(node);
-    }
-    fulfilled(value, name) {
-      if (shinyVars.has(name)) {
-        window.Shiny.setInputValue(name, value);
-      }
-      return super.fulfilled(value, name);
-    }
-  };
 
   const mainMod = runtime.module();
   window._ojs.mainModule = mainMod;
@@ -136,12 +136,12 @@ export function createRuntime() {
     return `${elementId}-${nextIx}`;
   }
 
-  let result = {
+  const result = {
     interpretLenient(src, targetElementId, inline) {
-      return result.interpretLenient(src, targetElementId, inline, true);
+      return result.interpret(src, targetElementId, inline, true);
     },
     interpret(src, targetElementId, inline, catchErrors = false) {
-      let getElement = () => {
+      const getElement = () => {
         let targetElement = document.getElementById(targetElementId);
         if (!targetElement) {
           // this is a subfigure
@@ -154,7 +154,7 @@ export function createRuntime() {
         }
         return targetElement;
       };
-      let observer = function(targetElement, cell) {
+      const observer = function(targetElement, cell) {
         return (name) => {
           const element = document.createElement(
             inline
@@ -172,7 +172,11 @@ export function createRuntime() {
               !name.startsWith('viewof ')) {
             element.style.display = "none";
           }
-          return new ShinyInspector(element);
+          if (isShiny) {
+            return new ShinyInspector(element);
+          } else {
+            return new Inspector(element);
+          }
         };
       };
 
@@ -201,15 +205,8 @@ export function createRuntime() {
     },
   };
 
-  // Are we shiny?
-
-  if (window.Shiny) {
-    initObservableShinyRuntime();
-  }
- 
   return result;
 }
-
 
 function defaultResolveImportPath(path) {
   const extractPath = (path) => {
@@ -237,7 +234,7 @@ function es6ImportAsObservable(m)
     const main = runtime.module();
 
     Object.keys(m).forEach(key => {
-      let v = m[key];
+      const v = m[key];
       main.variable(observer(key)).define(key, [], () => v);
     });
     
@@ -246,12 +243,13 @@ function es6ImportAsObservable(m)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Are we shiny?
 
 window._ojs = {
   runtime: undefined,
   paths: {},
-  mainModule: undefined
+  mainModule: undefined,
+  hasShiny: false,
+  shinyElementRoot: undefined,
 };
 window._ojs.runtime = createRuntime();
 
