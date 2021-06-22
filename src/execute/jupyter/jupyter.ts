@@ -16,8 +16,6 @@ import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
 import { dirAndStem, removeIfExists } from "../../core/path.ts";
 import { runningInCI } from "../../core/ci-info.ts";
 
-import { Metadata } from "../../config/metadata.ts";
-
 import {
   DependenciesOptions,
   ExecuteOptions,
@@ -92,6 +90,9 @@ export const jupyterEngine: ExecutionEngine = {
   target: async (
     file: string,
   ): Promise<ExecutionTarget | undefined> => {
+    // get the metadata
+    const metadata = await metadataFromInputFile(file);
+
     // if this is a text markdown file then create a notebook for use as the execution target
     if (isQmdFile(file)) {
       // write a transient notebook
@@ -100,6 +101,7 @@ export const jupyterEngine: ExecutionEngine = {
       const target = {
         source: file,
         input: notebook,
+        metadata,
         data: { transient: true },
       };
       await createNotebookforTarget(target);
@@ -108,19 +110,11 @@ export const jupyterEngine: ExecutionEngine = {
       return {
         source: file,
         input: file,
+        metadata,
         data: { transient: false },
       };
     } else {
       return undefined;
-    }
-  },
-
-  metadata: async (file: string): Promise<Metadata> => {
-    // read metadata
-    if (isJupyterNotebook(file)) {
-      return readYamlFromMarkdown(await markdownFromNotebook(file));
-    } else {
-      return readYamlFromMarkdown(Deno.readTextFileSync(file));
     }
   },
 
@@ -307,6 +301,14 @@ export const jupyterEngine: ExecutionEngine = {
 function isQmdFile(file: string) {
   const ext = extname(file);
   return kQmdExtensions.includes(ext);
+}
+
+async function metadataFromInputFile(file: string) {
+  if (isJupyterNotebook(file)) {
+    return readYamlFromMarkdown(await markdownFromNotebook(file));
+  } else {
+    return readYamlFromMarkdown(Deno.readTextFileSync(file));
+  }
 }
 
 async function createNotebookforTarget(target: ExecutionTarget) {

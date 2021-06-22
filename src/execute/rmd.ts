@@ -12,8 +12,6 @@ import { rBinaryPath, resourcePath } from "../core/resources.ts";
 import { readYamlFromMarkdownFile } from "../core/yaml.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 
-import { Metadata } from "../config/metadata.ts";
-
 import {
   DependenciesOptions,
   DependenciesResult,
@@ -54,11 +52,11 @@ export const knitrEngine: ExecutionEngine = {
   },
 
   target: (file: string, _quiet?: boolean) => {
-    return Promise.resolve({ source: file, input: file });
-  },
-
-  metadata: (file: string): Promise<Metadata> => {
-    return Promise.resolve(readYamlFromMarkdownFile(file));
+    return Promise.resolve({
+      source: file,
+      input: file,
+      metadata: readYamlFromMarkdownFile(file),
+    });
   },
 
   partitionedMarkdown: (file: string) => {

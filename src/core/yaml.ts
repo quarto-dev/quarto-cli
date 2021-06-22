@@ -42,7 +42,15 @@ export function readYamlFromMarkdown(
     kRegExYAML.lastIndex = 0;
     let match = kRegExYAML.exec(markdown);
     while (match != null) {
-      yaml += removeYamlDelimiters(match[2]);
+      const yamlBlock = removeYamlDelimiters(match[2]);
+      try {
+        // make sure it parses before we add it
+        parse(yamlBlock, { json: true });
+        // add it
+        yaml += yamlBlock;
+      } catch {
+        // continue if we find an unparseable yaml block
+      }
       match = kRegExYAML.exec(markdown);
     }
     kRegExYAML.lastIndex = 0;

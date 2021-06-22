@@ -24,10 +24,16 @@ import {
   FormatExtras,
   isHtmlOutput,
   kDependencies,
+  kHtmlPostprocessors,
 } from "../../../config/format.ts";
 import { PandocFlags } from "../../../config/flags.ts";
 
-import { kPageTitle, kTitle, kTitlePrefix } from "../../../config/constants.ts";
+import {
+  kIncludeInHeader,
+  kPageTitle,
+  kTitle,
+  kTitlePrefix,
+} from "../../../config/constants.ts";
 import { formatHasBootstrap } from "../../../format/html/format-html-bootstrap.ts";
 
 import {
@@ -45,10 +51,8 @@ import {
   websiteTitle,
 } from "./website-config.ts";
 import { updateAliases } from "./website-aliases.ts";
-import {
-  resolveOpenGraphMetadata,
-  resolveTwitterMetadata,
-} from "./website-meta.ts";
+import { metadataHtmlPostProcessor } from "./website-meta.ts";
+import { websiteAnalyticsExtras } from "./website-analytics.ts";
 
 export const websiteProjectType: ProjectType = {
   type: "site",
@@ -131,16 +135,18 @@ export const websiteProjectType: ProjectType = {
       }
 
       // html metadata
-      const htmlMetadata: Record<string, string> = {
-        ...resolveTwitterMetadata(source, project, format, extras),
-        ...resolveOpenGraphMetadata(source, project, format, extras),
-      };
       extras.html = extras.html || {};
-      extras.html[kDependencies] = extras.html[kDependencies] || [];
-      extras.html[kDependencies]?.push({
-        name: "website-metadata",
-        meta: htmlMetadata,
-      });
+      extras.html[kHtmlPostprocessors] = extras.html[kHtmlPostprocessors] || [];
+      extras.html[kHtmlPostprocessors]?.push(
+        metadataHtmlPostProcessor(source, project, format, extras),
+      );
+
+      // Add html analytics extras, if any
+      const analyticsDependency = websiteAnalyticsExtras(format);
+      if (analyticsDependency) {
+        extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
+        extras[kIncludeInHeader]?.push(analyticsDependency);
+      }
 
       return Promise.resolve(extras);
     } else {

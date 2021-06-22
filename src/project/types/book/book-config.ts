@@ -27,6 +27,7 @@ import { kProjectRender, ProjectConfig } from "../../project-context.ts";
 import {
   isGithubRepoUrl,
   kContents,
+  kImage,
   kOpenGraph,
   kSite,
   kSiteFooter,
@@ -114,6 +115,7 @@ export async function bookProjectConfig(
     site[kSitePageNavigation] = book[kSitePageNavigation] !== false;
     site[kOpenGraph] = book[kOpenGraph];
     site[kTwitterCard] = book[kTwitterCard];
+    site[kImage] = book[kImage];
 
     // Conver the attribution markdown into html and place it into the footer
     const attributionMarkdown = book[kBookAttribution];
