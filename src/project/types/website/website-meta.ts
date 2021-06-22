@@ -11,6 +11,7 @@ import { dirname, join, relative } from "path/mod.ts";
 import {
   kDescription,
   kPageTitle,
+  kSubtitle,
   kTitle,
   kTitlePrefix,
 } from "../../../config/constants.ts";
@@ -100,6 +101,12 @@ export function metadataHtmlPostProcessor(
       // find a preview image if one is not provided
       if (metadata[kImage] === undefined) {
         metadata[kImage] = findPreviewImg(doc);
+
+        // if we still haven't found a preview, use the site image
+        if (metadata[kImage] === undefined) {
+          const siteMeta = format.metadata[kSite] as Metadata;
+          metadata[kImage] = siteMeta[kImage];
+        }
       }
 
       // Convert image to absolute href and add height and width
@@ -178,7 +185,7 @@ function pageMetadata(
 
   return {
     [kTitle]: pageTitle,
-    [kDescription]: pageDescription,
+    [kDescription]: pageDescription || format.metadata[kSubtitle],
     [kImage]: pageImage,
   };
 }
