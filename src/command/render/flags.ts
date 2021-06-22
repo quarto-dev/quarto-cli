@@ -15,12 +15,9 @@ import {
 import { mergeConfigs } from "../../core/config.ts";
 
 import {
-  kExecuteDefaultsKeys,
   kListings,
   kNumberOffset,
   kNumberSections,
-  kPandocDefaultsKeys,
-  kRenderDefaultsKeys,
   kSelfContained,
   kShiftHeadingLevelBy,
   kTableOfContents,
@@ -29,6 +26,7 @@ import {
   kTopLevelDivision,
 } from "../../config/constants.ts";
 import { PandocFlags } from "../../config/flags.ts";
+import { isQuartoMetadata } from "../../config/metadata.ts";
 
 export const kStdOut = "-";
 
@@ -250,7 +248,9 @@ export function parseRenderFlags(args: string[]) {
         if (arg) {
           const metadata = parseMetadataFlagValue(arg);
           if (metadata) {
-            if (isQuartoArg(metadata.name) && metadata.value !== undefined) {
+            if (
+              isQuartoMetadata(metadata.name) && metadata.value !== undefined
+            ) {
               flags.metadata = flags.metadata || {};
               flags.metadata[metadata.name] = metadata.value;
             }
@@ -384,7 +384,7 @@ function removeQuartoMetadataFlags(pandocArgs: string[]) {
     if (metadataFlag) {
       const flagValue = parseMetadataFlagValue(arg);
       if (flagValue !== undefined) {
-        if (!isQuartoArg(flagValue.name)) {
+        if (!isQuartoMetadata(flagValue.name)) {
           // Allow this value through since it isn't Quarto specific
           args.push(metadataFlag);
           args.push(arg);
@@ -393,12 +393,6 @@ function removeQuartoMetadataFlags(pandocArgs: string[]) {
     }
     return args;
   }, new Array<string>());
-}
-
-function isQuartoArg(arg: string) {
-  return kRenderDefaultsKeys.includes(arg) ||
-    kExecuteDefaultsKeys.includes(arg) ||
-    kPandocDefaultsKeys.includes(arg);
 }
 
 function parseMetadataFlagValue(
