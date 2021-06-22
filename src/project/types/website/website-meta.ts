@@ -37,6 +37,7 @@ import {
 const kCard = "card";
 
 interface SocialMetadataProvider {
+  key: string;
   prefix: string;
   metadata: Metadata;
   filter?: (key: string) => string;
@@ -55,6 +56,7 @@ export function metadataHtmlPostProcessor(
 
     // The open graph provider
     const openGraphMetadataProvider: SocialMetadataProvider = {
+      key: kOpenGraph,
       prefix: "og",
       metadata: {
         ...pageMeta,
@@ -71,6 +73,7 @@ export function metadataHtmlPostProcessor(
 
     // The twitter card provider
     const twitterMetadataProvider: SocialMetadataProvider = {
+      key: kTwitterCard,
       prefix: "twitter",
       metadata: {
         ...pageMeta,
@@ -97,8 +100,14 @@ export function metadataHtmlPostProcessor(
       openGraphMetadataProvider,
       twitterMetadataProvider,
     ].forEach((provider) => {
-      const metadata = provider.metadata;
+      // If not explicitly enabled, skip this provider
+      const siteMeta = format.metadata[kSite] as Metadata;
+      if (!format.metadata[provider.key] && !siteMeta[provider.key]) {
+        return;
+      }
+
       // find a preview image if one is not provided
+      const metadata = provider.metadata;
       if (metadata[kImage] === undefined) {
         metadata[kImage] = findPreviewImg(doc);
 
