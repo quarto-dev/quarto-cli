@@ -5,6 +5,8 @@
 *
 */
 
+import { ld } from "lodash/mod.ts";
+
 import { exists } from "fs/exists.ts";
 import { join } from "path/mod.ts";
 import { error } from "log/mod.ts";
@@ -112,6 +114,12 @@ export function formatFromMetadata(
   return mergedFormat;
 }
 
+export function isQuartoMetadata(key: string) {
+  return kRenderDefaultsKeys.includes(key) ||
+    kExecuteDefaultsKeys.includes(key) ||
+    kPandocDefaultsKeys.includes(key);
+}
+
 export function metadataAsFormat(metadata: Metadata): Format {
   const typedFormat: Format = {
     render: {},
@@ -166,4 +174,16 @@ export function setFormatMetadata(
   }
   // deno-lint-ignore no-explicit-any
   (format.metadata[metadata] as any)[key] = value;
+}
+
+export function metadataGetDeep(metadata: Metadata, property: string) {
+  let values: unknown[] = [];
+  ld.each(metadata, (value: unknown, key: string) => {
+    if (key === property) {
+      values.push(value);
+    } else if (ld.isObject(value)) {
+      values = values.concat(metadataGetDeep(value as Metadata, property));
+    }
+  });
+  return values;
 }

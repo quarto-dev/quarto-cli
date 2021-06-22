@@ -566,6 +566,7 @@ export async function renderPandoc(
   const pandocOptions: PandocOptions = {
     markdown: executeResult.markdown,
     source: context.target.source,
+    metadata: context.target.metadata,
     output: recipe.output,
     libDir: context.libDir,
     format,
@@ -931,7 +932,7 @@ async function resolveFormats(
 ): Promise<Record<string, Format>> {
   // merge input metadata into project metadata
   const projMetadata = await projectMetadataForInputFile(target.input, project);
-  const inputMetadata = await engine.metadata(target.input);
+  const inputMetadata = target.metadata;
 
   // determine order of formats
   const projType = projectType(project?.config?.project?.[kProjectType]);

@@ -46,7 +46,6 @@ export interface ExecutionEngine {
     file: string,
     quiet?: boolean,
   ) => Promise<ExecutionTarget | undefined>;
-  metadata: (file: string) => Promise<Metadata>;
   partitionedMarkdown: (file: string) => Promise<PartitionedMarkdown>;
   filterFormat?: (
     source: string,
@@ -71,6 +70,7 @@ export interface ExecutionEngine {
 export interface ExecutionTarget {
   source: string;
   input: string;
+  metadata: Metadata;
   data?: unknown;
 }
 

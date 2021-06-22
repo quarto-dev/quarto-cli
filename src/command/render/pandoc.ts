@@ -36,10 +36,17 @@ import {
   kTextHighlightingMode,
   SassBundle,
 } from "../../config/format.ts";
-import { Metadata } from "../../config/metadata.ts";
+import {
+  isQuartoMetadata,
+  Metadata,
+  metadataGetDeep,
+} from "../../config/metadata.ts";
 import { binaryPath, resourcePath } from "../../core/resources.ts";
 import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
-import { partitionYamlFrontMatter } from "../../core/yaml.ts";
+import {
+  partitionYamlFrontMatter,
+  readYamlFromMarkdown,
+} from "../../core/yaml.ts";
 
 import {
   deleteProjectMetadata,
@@ -61,6 +68,7 @@ import {
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
+  kMetadataFormat,
   kNumberOffset,
   kNumberSections,
   kPageTitle,
@@ -86,6 +94,9 @@ export interface PandocOptions {
 
   // original source file
   source: string;
+
+  // original metadata
+  metadata: Metadata;
 
   // output file that will be written
   output: string;
@@ -322,8 +333,29 @@ export async function runPandoc(
   }
 
   // remove front matter from markdown (we've got it all incorporated into options.format.metadata)
-  const markdown = partitionYamlFrontMatter(options.markdown)?.markdown ||
-    options.markdown;
+  // also save the engine metadata as that will have the result of e.g. resolved inline expressions,
+  // (which we will use immediately below)
+  const paritioned = partitionYamlFrontMatter(options.markdown);
+  const engineMetadata =
+    (paritioned?.yaml ? readYamlFromMarkdown(paritioned.yaml) : {}) as Metadata;
+  const markdown = paritioned?.markdown || options.markdown;
+
+  // selectively overwrite some resolved metadata (e.g. ensure that metadata
+  // computed from inline r expressions gets included @ the bottom).
+  const pandocMetadata = ld.cloneDeep(options.format.metadata || {});
+  for (const key of Object.keys(engineMetadata)) {
+    // if it's standard pandoc metadata and NOT contained in a format specific
+    // override then use the engine metadata value
+    if (!isQuartoMetadata(key)) {
+      // don't do if they've overridden the value in a format
+      const formats = engineMetadata[kMetadataFormat] as Metadata;
+      if (ld.isObject(formats) && metadataGetDeep(formats, key).length > 0) {
+        continue;
+      }
+      // perform the override
+      pandocMetadata[key] = engineMetadata[key];
+    }
+  }
 
   // read the input file then append the metadata to the file (this is to that)
   // our fully resolved metadata, which incorporates project and format-specific
@@ -332,7 +364,7 @@ export async function runPandoc(
   const input = markdown +
     "\n\n<!-- -->\n" +
     `\n---\n${
-      stringify(options.format.metadata || {}, {
+      stringify(pandocMetadata, {
         indent: 2,
         sortKeys: false,
         skipInvalid: true,
