@@ -23,11 +23,17 @@ import {
   Format,
   FormatExtras,
   isHtmlOutput,
+  kDependencies,
   kHtmlPostprocessors,
 } from "../../../config/format.ts";
 import { PandocFlags } from "../../../config/flags.ts";
 
-import { kPageTitle, kTitle, kTitlePrefix } from "../../../config/constants.ts";
+import {
+  kIncludeInHeader,
+  kPageTitle,
+  kTitle,
+  kTitlePrefix,
+} from "../../../config/constants.ts";
 import { formatHasBootstrap } from "../../../format/html/format-html-bootstrap.ts";
 
 import {
@@ -46,6 +52,7 @@ import {
 } from "./website-config.ts";
 import { updateAliases } from "./website-aliases.ts";
 import { metadataHtmlPostProcessor } from "./website-meta.ts";
+import { websiteAnalyticsExtras } from "./website-analytics.ts";
 
 export const websiteProjectType: ProjectType = {
   type: "site",
@@ -133,6 +140,13 @@ export const websiteProjectType: ProjectType = {
       extras.html[kHtmlPostprocessors]?.push(
         metadataHtmlPostProcessor(source, project, format, extras),
       );
+
+      // Add html analytics extras, if any
+      const analyticsDependency = websiteAnalyticsExtras(format);
+      if (analyticsDependency) {
+        extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
+        extras[kIncludeInHeader]?.push(analyticsDependency);
+      }
 
       return Promise.resolve(extras);
     } else {
