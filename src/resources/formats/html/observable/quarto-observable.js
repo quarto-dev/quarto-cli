@@ -13,14 +13,6 @@ import {
   initObservableShinyRuntime
 } from "./quarto-observable-shiny.js";
 
-function createOJSSourceElement(el, src) {
-  const sourceEl = document.createElement("pre");
-  sourceEl.setAttribute("class", "ojs-source");
-  sourceEl.innerText = src.trim();
-  el.appendChild(sourceEl);
-  return sourceEl;
-}
-
 // we use the trick described here to extend observable's standard library
 // https://talk.observablehq.com/t/embedded-width/1063
 export function createRuntime() {
@@ -117,7 +109,7 @@ export function createRuntime() {
 
   const mainMod = runtime.module();
   window._ojs.mainModule = mainMod;
-  window._ojs.runtime = runtime;
+  window._ojs.observableRuntime = runtime;
 
   const interpreter = new Interpreter({
     module: mainMod,
@@ -242,14 +234,20 @@ function es6ImportAsObservable(m)
   };
 }
 
-//////////////////////////////////////////////////////////////////////////////
-
 window._ojs = {
-  runtime: undefined,
-  paths: {},
-  mainModule: undefined,
-  hasShiny: false,
-  shinyElementRoot: undefined,
+  observableRuntime: undefined, // the Runtime object from observableHQ
+  runtime: undefined,           // the result from `createRuntime` above
+
+  paths: {},                    // placeholder for per-quarto-file paths
+                                // necessary for module resolution
+
+  mainModule: undefined,        // observablehq's module object for the page's
+                                // main module
+
+  hasShiny: false,              // true if we have the quarto-ojs-shiny runtime
+  
+  shinyElementRoot: undefined,  // root element for the communication with shiny
+                                // via DOM
 };
 window._ojs.runtime = createRuntime();
 
