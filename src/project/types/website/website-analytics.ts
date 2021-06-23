@@ -4,42 +4,22 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { warning } from "log/mod.ts";
+import { Document } from "deno_dom/deno-dom-wasm.ts";
 import { join } from "path/mod.ts";
 import { kTitle } from "../../../config/constants.ts";
-import { Format } from "../../../config/format.ts";
+import { kHtmlPostprocessors } from "../../../config/format.ts";
 import { Metadata } from "../../../config/metadata.ts";
-import { mergeConfigs } from "../../../core/config.ts";
 import { projectTypeResourcePath } from "../../../core/resources.ts";
 import { sessionTempFile } from "../../../core/temp.ts";
+import { ProjectContext } from "../../project-context.ts";
 import { kSite } from "./website-config.ts";
+
 /*
-
-site:
-  google-analytics: UA-xxxx (v3)
-                    G-xxxxx (v4)
-site: 
-  google-analytics:
-    storage: "none" : "cookies"
-    version: 3 | 4
-    tracking-id: <>
-    anonymize-ip: true | false
-
     REVIEW:
-    THEMING:
     OTHER SCRIPT TAGS:
 
-site:
-  cookie-consent: true | false
-
-site:
-  cookie-consent:
-    type: "express"
-    style: "headline"
-    palette: "dark"
-
     hypothesis / utterances
-  footer preferences
+    footer preferences
 */
 
 // tracking id for google analytics
@@ -99,9 +79,11 @@ ${contents}
 }
 
 // Generate the script to inject into the head for Google Analytics
-export function websiteAnalyticsScriptFile(format: Format) {
+export function websiteAnalyticsScriptFile(
+  project: ProjectContext,
+) {
   // Find the ga tag
-  const siteMeta = format.metadata[kSite] as Metadata;
+  const siteMeta = project.config?.[kSite] as Metadata;
 
   // The google analytics metadata (either from the page or the site)
   const siteGa = siteMeta[kGoogleAnalytics];
@@ -116,14 +98,14 @@ export function websiteAnalyticsScriptFile(format: Format) {
     const anonymizedIp = siteGaMeta[kAnonymizeIp] as boolean;
     const version = siteGaMeta[kVersion] as number;
     gaConfig = googleAnalyticsConfig(
-      format,
+      project,
       trackingId,
       storage,
       anonymizedIp,
       version,
     );
   } else if (siteGa && typeof (siteGa) === "string") {
-    gaConfig = googleAnalyticsConfig(format, siteGa as string);
+    gaConfig = googleAnalyticsConfig(project, siteGa as string);
   }
 
   // Generate the actual GA dependencies
@@ -141,12 +123,11 @@ export function websiteAnalyticsScriptFile(format: Format) {
 
 // Generate the dependencies for cookie consent
 // see: https://www.cookieconsent.com
-export function cookieConsentDependencies(format: Format) {
-  const siteMeta = format.metadata[kSite] as Metadata;
+export function cookieConsentDependencies(project: ProjectContext) {
+  const siteMeta = project.config?.[kSite] as Metadata;
   if (siteMeta) {
     // The site title
-    const title = siteMeta[kTitle] as string ||
-      format.metadata[kTitle] as string || "";
+    const title = siteMeta[kTitle] as string || "";
 
     let configuration = undefined;
     const consent = siteMeta[kCookieConsent];
@@ -172,6 +153,12 @@ export function cookieConsentDependencies(format: Format) {
         "cookie-consent",
         name,
       );
+      const cssName = "cookie-consent.css";
+      const cssPath = join(
+        projectTypeResourcePath("website"),
+        "cookie-consent",
+        cssName,
+      );
 
       // The dependency and script to inject
       return {
@@ -184,6 +171,35 @@ export function cookieConsentDependencies(format: Format) {
             name,
             path,
           }],
+          stylesheets: [{
+            name: cssName,
+            path: cssPath,
+          }],
+        },
+        htmlPostProcessor: (doc: Document) => {
+          const anchorId = "open_preferences_center";
+          // See if there is already a prefs link - if there isn't,
+          // inject one
+          const prefsAnchor = doc.getElementById(anchorId);
+          if (!prefsAnchor) {
+            const footer = doc.querySelector("div.nav-footer");
+            if (footer) {
+              // The anchor
+              const anchor = doc.createElement("a");
+              anchor.setAttribute("href", "#");
+              anchor.setAttribute("id", anchorId);
+              anchor.innerText = "Change your cookie preferences";
+
+              // A div to hold it
+              const anchorContainer = doc.createElement("div");
+              anchorContainer.setAttribute("class", "cookie-consent-footer");
+              anchorContainer.appendChild(anchor);
+
+              // Add it to the footer
+              footer.appendChild(anchorContainer);
+            }
+          }
+          return Promise.resolve([]);
         },
       };
     } else {
@@ -194,8 +210,8 @@ export function cookieConsentDependencies(format: Format) {
   }
 }
 
-export function useCookieConsent(format: Format) {
-  const siteMeta = format.metadata[kSite] as Metadata;
+export function useCookieConsent(project: ProjectContext) {
+  const siteMeta = project.config?.[kSite] as Metadata;
   if (siteMeta) {
     return !!siteMeta[kCookieConsent];
   } else {
@@ -226,7 +242,7 @@ function cookieConsentConfiguration(
 }
 
 function googleAnalyticsConfig(
-  format: Format,
+  project: ProjectContext,
   trackingId: string,
   storage?: string,
   anoymizeIp?: boolean,
@@ -234,7 +250,7 @@ function googleAnalyticsConfig(
 ) {
   return {
     trackingId,
-    consent: useCookieConsent(format),
+    consent: useCookieConsent(project),
     storage: storage || "cookie",
     anonymizeIp: !!anoymizeIp,
     version: version || versionForTrackingId(trackingId),

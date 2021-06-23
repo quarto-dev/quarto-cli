@@ -145,12 +145,12 @@ export const websiteProjectType: ProjectType = {
       );
 
       // Add html analytics extras, if any
-      const analyticsDependency = websiteAnalyticsScriptFile(format);
+      const analyticsDependency = websiteAnalyticsScriptFile(project);
       if (analyticsDependency) {
         extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
         extras[kIncludeInHeader]?.push(analyticsDependency);
       }
-      const cookieDep = cookieConsentDependencies(format);
+      const cookieDep = cookieConsentDependencies(project);
       if (cookieDep) {
         // Inline script
         extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
@@ -162,6 +162,10 @@ export const websiteProjectType: ProjectType = {
         extras.html = extras.html || {};
         extras.html[kDependencies] = extras.html[kDependencies] || [];
         extras.html[kDependencies]?.push(cookieDep.dependency);
+
+        extras.html[kHtmlPostprocessors] = extras.html[kHtmlPostprocessors] ||
+          [];
+        extras.html[kHtmlPostprocessors]?.push(cookieDep.htmlPostProcessor);
       }
 
       return Promise.resolve(extras);
