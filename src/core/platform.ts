@@ -14,7 +14,7 @@ export function isWindows() {
 }
 
 export function isRStudio() {
-  return !!Deno.env.get("RSTUDIO_VERSION");
+  return !!Deno.env.get("RSTUDIO");
 }
 
 export function isRStudioServer() {
