@@ -11,7 +11,6 @@ import { Command } from "cliffy/command/mod.ts";
 
 import { renderFormats } from "../render/render.ts";
 import { projectContext } from "../../project/project-context.ts";
-import { info } from "log/mod.ts";
 
 export const metadataCommand = new Command()
   .name("metadata")
