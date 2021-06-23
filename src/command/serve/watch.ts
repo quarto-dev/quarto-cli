@@ -253,6 +253,9 @@ export async function watchProject(
           if (isRStudioServer()) {
             const prefix = clients[i].path.match(/^\/p\/\w+/);
             if (prefix) {
+              if (!reloadTarget.startsWith("/")) {
+                reloadTarget = "/" + reloadTarget;
+              }
               reloadTarget = prefix[0] + reloadTarget;
             }
           }
