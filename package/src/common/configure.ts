@@ -8,6 +8,7 @@ import { dirname, join } from "path/mod.ts";
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { info, warning } from "log/mod.ts";
 
+import { expandPath } from "../../../src/core/path.ts";
 import { Configuration } from "./config.ts";
 import {
   kDependencies,
@@ -52,7 +53,7 @@ export async function configure(
   }
 
   // Set up a symlink (if appropriate)
-  const symlinkPaths = ["/usr/local/bin/quarto", "~/bin/quarto"];
+  const symlinkPaths = ["/usr/local/bin/quarto", expandPath("~/bin/quarto")];
 
   if (Deno.build.os !== "windows") {
     info("Creating Quarto Symlink");
@@ -76,7 +77,8 @@ export async function configure(
         info("> Success");
         // it worked, just move on
         break;
-      } catch {
+      } catch (error) {
+        info(error);
         // none of them worked!
         if (i === symlinkPaths.length - 1) {
           warning("Failed to create symlink to quarto.");
