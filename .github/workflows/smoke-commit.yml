@@ -15,6 +15,9 @@ jobs:
         with:
           # checkout full tree
           fetch-depth: 0
+      - uses: r-lib/actions/setup-r@v1
+        with:
+          r-version: '4.0.2' # The R version to download (if necessary) and use.         
       - run: |
           ./configure-linux.sh
           pushd package/dist/bin/
