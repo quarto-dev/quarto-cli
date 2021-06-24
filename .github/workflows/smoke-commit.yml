@@ -1,9 +1,10 @@
 name: Run Smoke Tests
 
 on: 
-  push:
+  workflow_dispatch:
+  # push:
     # only trigger on branches, not on tags
-    branches: [ main ]
+    # branches: [ main ]
 
 jobs:
   build:
