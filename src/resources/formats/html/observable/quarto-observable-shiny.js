@@ -25,7 +25,6 @@ export function extendObservableStdlib(lib)
       super();
       this._name = name;
       this._change = change;
-      change([]); // yeah, we know this is wrong.
     }
     find(scope) {
       return $(scope).find("#" + this._name);
