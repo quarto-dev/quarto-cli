@@ -338,8 +338,14 @@ gtag('js', new Date());`);
 
   switch (config.storage) {
     case "none":
+      scripts.push(` 
+gtag('consent', 'default', {
+  'ad_storage': 'denied',
+  'analytics_storage': 'denied'
+});`);
+
       scripts.push(
-        `gtag('config', '${config.trackingId}', { client_storage: 'none', 'anonymize_ip': ${config.anonymizeIp} });`,
+        `gtag('config', '${config.trackingId}', { 'anonymize_ip': ${config.anonymizeIp} });`,
       );
       break;
     case "local":
@@ -356,7 +362,7 @@ gtag('consent', 'default', {
 
       // configure gtag
       scripts.push(
-        `gtag('config', '${config.trackingId}', { client_storage: 'none', 'anonymize_ip': ${config.anonymizeIp} });`,
+        `gtag('config', '${config.trackingId}', { 'anonymize_ip': ${config.anonymizeIp} });`,
       );
       break;
     case "cookie":
