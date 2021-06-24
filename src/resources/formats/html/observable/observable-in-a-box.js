@@ -48,6 +48,19 @@ export class OJSInABox {
     this.inspectorClass = inspectorClass || Inspector;
   }
 
+  define(name, module = undefined) {
+    if (!module) {
+      module = this.mainModule;
+    }
+    let change;
+    const obs = this.library.Generators.observe(change_ => {
+      change = change_;
+      // FIXME: do something about destruction
+    });
+    module.variable().define(name, obs);
+    return change;
+  }
+  
   interpret(src, elementGetter, elementCreator) {
     const observer = (targetElement, cell) => {
       return (name) => {
