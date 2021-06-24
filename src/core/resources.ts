@@ -52,3 +52,7 @@ export function rBinaryPath(binary: string): string {
   // We couldn't find R, just pass the binary itself and hope its on the path!
   return binary;
 }
+
+export function projectTypeResourcePath(projectType: string) {
+  return resourcePath(join("projects", projectType));
+}

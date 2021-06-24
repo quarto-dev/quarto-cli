@@ -4,9 +4,10 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { ensureDir, ensureDirSync, existsSync } from "fs/mod.ts";
 import { info } from "log/mod.ts";
 import { join } from "path/mod.ts";
+import { projectTypeResourcePath } from "../../../src/core/resources.ts";
 import { lines } from "../../../src/core/text.ts";
 import { runCmd } from "../util/cmd.ts";
 
@@ -113,6 +114,9 @@ export async function updateHtmlDepedencies(config: Configuration) {
   );
   cleanSourceMap(tippyJs);
 
+  // Cookie-Consent
+  await updateCookieConsent(config, "4.0.0", workingDir);
+
   // Clean existing directories
   [bsThemesDir, bsDistDir].forEach((dir) => {
     if (existsSync(dir)) {
@@ -149,6 +153,30 @@ export async function updateHtmlDepedencies(config: Configuration) {
   info(
     "\n** Done- please commit any files that have been updated. **\n",
   );
+}
+
+async function updateCookieConsent(
+  config: Configuration,
+  version: string,
+  working: string,
+) {
+  const fileName = "cookie-consent.js";
+  const url = `https://www.cookieconsent.com/releases/${version}/${fileName}`;
+  const tempPath = join(working, fileName);
+
+  info(`Downloading ${url}`);
+  await download(url, tempPath);
+
+  const targetDir = join(
+    config.directoryInfo.src,
+    "resources",
+    "projects",
+    "website",
+    "cookie-consent",
+  );
+  await ensureDir(targetDir);
+
+  await Deno.copyFile(tempPath, join(targetDir, fileName));
 }
 
 async function updateBootswatch(
