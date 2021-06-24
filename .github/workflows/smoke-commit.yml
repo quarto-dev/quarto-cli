@@ -16,7 +16,10 @@ jobs:
           fetch-depth: 0
       - run: |
           ./configure-linux.sh
-          quarto install tinytex
+          pushd package/dist/bin/
+          ./quarto install tinytex
+          popd
+          
           for commit in $(git rev-list ${{ github.event.before}}..${{ github.sha}}); do
               git checkout $commit
               pushd tests
