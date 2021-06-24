@@ -242,8 +242,8 @@ function googleAnalyticsConfig(
   return {
     trackingId,
     consent: useCookieConsent(project),
-    storage: storage || "local",
-    anonymizeIp: !!anoymizeIp,
+    storage: storage || "cookie",
+    anonymizeIp: anoymizeIp === undefined ? true : !!anoymizeIp,
     version: version || versionForTrackingId(trackingId),
   };
 }
@@ -279,22 +279,12 @@ function ga3Script(
   m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
   })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');`);
 
-  switch (config.storage) {
-    case "none":
-      scripts.push(
-        `ga('create', '${config.trackingId}', { 'storage': 'none' });`,
-      );
-      break;
-    case "local":
-      scripts.push(kClientIdJs);
-      scripts.push(
-        `ga('create', '${config.trackingId}', { 'storage': 'none', 'clientId' : clientId });`,
-      );
-      break;
-    case "cookie":
-    default:
-      scripts.push(`ga('create', '${config.trackingId}', 'auto');`);
-      break;
+  if (config.storage === "none") {
+    scripts.push(
+      `ga('create', '${config.trackingId}', { 'storage': 'none' });`,
+    );
+  } else {
+    scripts.push(`ga('create', '${config.trackingId}', 'auto');`);
   }
 
   scripts.push(`
@@ -310,22 +300,6 @@ ga('send', {
   );
 }
 
-const kClientIdJs = `
-let clientId = '';
-try {
-  const dec2hex = (dec) => {
-    return dec.toString(16).padStart(2, "0")
-  }
-  clientId = localStorage.getItem('quarto-ga-clientid');
-  if (clientId === null) {
-    let cryptoObj = window.crypto || window.msCrypto;
-    clientId = Array.from(cryptoObj.getRandomValues(new Uint8Array(16)), dec2hex).join('');
-    localStorage.setItem('quarto-ga-clientid', clientId);          
-  } 
-} catch {
-  // No ability to use local storage
-}`;
-
 function ga4Script(
   config: GaConfiguration,
 ) {
@@ -336,40 +310,17 @@ window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());`);
 
-  switch (config.storage) {
-    case "none":
-      scripts.push(` 
-gtag('consent', 'default', {
-  'ad_storage': 'denied',
-  'analytics_storage': 'denied'
-});`);
-
-      scripts.push(
-        `gtag('config', '${config.trackingId}', { 'anonymize_ip': ${config.anonymizeIp} });`,
-      );
-      break;
-    case "local":
-      // Consent mode prevents cookies
-      scripts.push(` 
-gtag('consent', 'default', {
-  'ad_storage': 'denied',
-  'analytics_storage': 'denied'
-});`);
-
-      // Generate the client id on browser
-      scripts.push(kClientIdJs);
-      scripts.push(`gtag('set', {'client_id': clientId});`);
-
-      // configure gtag
-      scripts.push(
-        `gtag('config', '${config.trackingId}', { 'anonymize_ip': ${config.anonymizeIp} });`,
-      );
-      break;
-    case "cookie":
-    default:
-      `gtag('config', '${config.trackingId}', { 'anonymize_ip': ${config.anonymizeIp} });`;
-      break;
+  if (config.storage === "none") {
+    scripts.push(` 
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'analytics_storage': 'denied'
+  });`);
   }
+  scripts.push(
+    `gtag('config', '${config.trackingId}', { 'anonymize_ip': ${config.anonymizeIp}});`,
+  );
+
   return [
     `<script async src="https://www.googletagmanager.com/gtag/js?id=${config.trackingId}"></script>`,
     scriptTagWithConsent(
