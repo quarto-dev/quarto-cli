@@ -7,20 +7,11 @@
 import { Document } from "deno_dom/deno-dom-wasm.ts";
 import { join } from "path/mod.ts";
 import { kTitle } from "../../../config/constants.ts";
-import { kHtmlPostprocessors } from "../../../config/format.ts";
 import { Metadata } from "../../../config/metadata.ts";
 import { projectTypeResourcePath } from "../../../core/resources.ts";
 import { sessionTempFile } from "../../../core/temp.ts";
 import { ProjectContext } from "../../project-context.ts";
 import { kSite } from "./website-config.ts";
-
-/*
-    REVIEW:
-    OTHER SCRIPT TAGS:
-
-    hypothesis / utterances
-    footer preferences
-*/
 
 // tracking id for google analytics
 // GA3 calls this 'tracking id'
@@ -31,7 +22,7 @@ const kStorage = "storage";
 const kAnonymizeIp = "anonymize-ip";
 const kVersion = "version";
 
-// GA3 supports anonymize ip as a setting
+// Cookie consent properties
 const kCookieConsent = "cookie-consent";
 const kCookieConsentType = "type";
 const kCookieConsentStyle = "style";
@@ -252,7 +243,7 @@ function googleAnalyticsConfig(
     trackingId,
     consent: useCookieConsent(project),
     storage: storage || "cookie",
-    anonymizeIp: !!anoymizeIp,
+    anonymizeIp: anoymizeIp === undefined ? true : !!anoymizeIp,
     version: version || versionForTrackingId(trackingId),
   };
 }
@@ -280,47 +271,62 @@ function analyticsScript(
 function ga3Script(
   config: GaConfiguration,
 ) {
-  const coreScript = `
+  const scripts: string[] = [];
+
+  scripts.push(`
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
   m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');`;
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');`);
 
-  const createGa = config.storage === "none"
-    ? `ga('create', '${config.trackingId}', { 'storage': 'none' });`
-    : `ga('create', '${config.trackingId}', 'auto');`;
+  if (config.storage === "none") {
+    scripts.push(
+      `ga('create', '${config.trackingId}', { 'storage': 'none' });`,
+    );
+  } else {
+    scripts.push(`ga('create', '${config.trackingId}', 'auto');`);
+  }
 
-  const trackPage = `
+  scripts.push(`
 ga('send', {
   hitType: 'pageview',
   'anonymizeIp': ${config.anonymizeIp},
-});`;
+});`);
 
   return scriptTagWithConsent(
     !!config.consent,
     "tracking",
-    [coreScript, createGa, trackPage].join("\n"),
+    scripts.join("\n"),
   );
 }
 
 function ga4Script(
   config: GaConfiguration,
 ) {
-  const coreScript = `
+  const scripts = [];
+
+  scripts.push(`
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());`;
+gtag('js', new Date());`);
 
-  const configGa = config.storage === "none"
-    ? `gtag('config', '${config.trackingId}', { client_storage: 'none', 'anonymize_ip': ${config.anonymizeIp} });`
-    : `gtag('config', '${config.trackingId}', { 'anonymize_ip': ${config.anonymizeIp} });`;
+  if (config.storage === "none") {
+    scripts.push(` 
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'analytics_storage': 'denied'
+  });`);
+  }
+  scripts.push(
+    `gtag('config', '${config.trackingId}', { 'anonymize_ip': ${config.anonymizeIp}});`,
+  );
 
   return [
     `<script async src="https://www.googletagmanager.com/gtag/js?id=${config.trackingId}"></script>`,
     scriptTagWithConsent(
       !!config.consent,
       "tracking",
-      [coreScript, configGa].join("\n"),
+      scripts.join("\n"),
     ),
   ].join("\n");
 }
