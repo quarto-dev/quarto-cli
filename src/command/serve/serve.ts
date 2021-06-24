@@ -120,7 +120,9 @@ export async function serveProject(
         response = serveRedirect(normalizedUrl + "/");
       } else {
         response = await serveFile(fsPath!, watcher, renderQueue);
-        printUrl(normalizedUrl);
+        if (options.debug) {
+          printUrl(normalizedUrl);
+        }
       }
     } catch (e) {
       response = await serveFallback(req, e, fsPath!, options);
@@ -343,13 +345,16 @@ async function serveFile(
 
 function printUrl(url: string, found = true) {
   const format = !found ? colors.red : undefined;
-  url = url + (found ? "" : " (404: Not Found)");
+  const urlDisplay = url + (found ? "" : " (404: Not Found)");
   if (
     isHtmlContent(url) || url.endsWith("/") || extname(url) === ""
   ) {
-    debug(`\nGET: ${url}`, { bold: true, format: format || colors.green });
-  } else {
-    debug(url, { dim: found, format, indent: 1 });
+    info(`GET: ${urlDisplay}`, {
+      bold: false,
+      format: format || colors.green,
+    });
+  } else if (!found) {
+    info(urlDisplay, { dim: found, format, indent: 2 });
   }
 }
 
