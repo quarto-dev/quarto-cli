@@ -89,7 +89,7 @@ import {
   websiteRepoUrl,
   websiteTitle,
 } from "./website-config.ts";
-import { useCookieConsent } from "./website-analytics.ts";
+import { cookieConsentEnabled } from "./website-analytics.ts";
 
 interface Navigation {
   navbar?: Navbar;
@@ -156,7 +156,7 @@ export function websiteNavigationConfig(project: ProjectContext) {
 
   // read any footer
   const footer = websiteConfig(kSiteFooter, project.config) ||
-    (useCookieConsent(project) ? "&nbsp;" : undefined);
+    (cookieConsentEnabled(project) ? "&nbsp;" : undefined);
 
   // return
   return { navbar, sidebars, pageNavigation, footer };

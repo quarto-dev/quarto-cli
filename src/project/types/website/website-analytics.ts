@@ -28,6 +28,7 @@ const kCookieConsentType = "type";
 const kCookieConsentStyle = "style";
 const kCookieConsentPalette = "palette";
 const kCookieConsentPolicyUrl = "policy-url";
+const kCookiePrefsText = "prefs-text";
 
 interface GaConfiguration {
   trackingId: string;
@@ -121,6 +122,7 @@ export function cookieConsentDependencies(project: ProjectContext) {
     const title = siteMeta[kTitle] as string || "";
 
     let configuration = undefined;
+    let changePrefsText: string | undefined = undefined;
     const consent = siteMeta[kCookieConsent];
     if (typeof (consent) === "object") {
       const cookieMeta = consent as Metadata;
@@ -131,25 +133,22 @@ export function cookieConsentDependencies(project: ProjectContext) {
         cookieMeta[kCookieConsentPalette] as string,
         cookieMeta[kCookieConsentPolicyUrl] as string | undefined,
       );
+      changePrefsText = cookieMeta[kCookiePrefsText] as string;
     } else if (consent) {
       // treat consent as a boolean
       configuration = cookieConsentConfiguration(title);
     }
 
     if (configuration) {
-      // The js file
+      // Resources
+      const consentResourcesDir = join(
+        projectTypeResourcePath("website"),
+        "cookie-consent",
+      );
       const name = "cookie-consent.js";
-      const path = join(
-        projectTypeResourcePath("website"),
-        "cookie-consent",
-        name,
-      );
+      const path = join(consentResourcesDir, name);
       const cssName = "cookie-consent.css";
-      const cssPath = join(
-        projectTypeResourcePath("website"),
-        "cookie-consent",
-        cssName,
-      );
+      const cssPath = join(consentResourcesDir, cssName);
 
       // The dependency and script to inject
       return {
@@ -179,7 +178,8 @@ export function cookieConsentDependencies(project: ProjectContext) {
               const anchor = doc.createElement("a");
               anchor.setAttribute("href", "#");
               anchor.setAttribute("id", anchorId);
-              anchor.innerText = "Change your cookie preferences";
+              anchor.innerText = changePrefsText ||
+                "Change your cookie preferences";
 
               // A div to hold it
               const anchorContainer = doc.createElement("div");
@@ -201,7 +201,8 @@ export function cookieConsentDependencies(project: ProjectContext) {
   }
 }
 
-export function useCookieConsent(project: ProjectContext) {
+// Whether or not cookie consent is enabled
+export function cookieConsentEnabled(project: ProjectContext) {
   const siteMeta = project.config?.[kSite] as Metadata;
   if (siteMeta) {
     return !!siteMeta[kCookieConsent];
@@ -210,12 +211,7 @@ export function useCookieConsent(project: ProjectContext) {
   }
 }
 
-function scriptFile(script: string) {
-  const gaScriptFile = sessionTempFile({ suffix: ".js" });
-  Deno.writeTextFileSync(gaScriptFile, script);
-  return gaScriptFile;
-}
-
+// Provides a configuration with appropriate default values
 function cookieConsentConfiguration(
   siteName: string,
   type?: string,
@@ -232,6 +228,7 @@ function cookieConsentConfiguration(
   };
 }
 
+// Provides a configuration with appropriate default values
 function googleAnalyticsConfig(
   project: ProjectContext,
   trackingId: string,
@@ -241,21 +238,14 @@ function googleAnalyticsConfig(
 ) {
   return {
     trackingId,
-    consent: useCookieConsent(project),
-    storage: storage || "cookie",
+    consent: cookieConsentEnabled(project),
+    storage: storage || "cookies",
     anonymizeIp: anoymizeIp === undefined ? true : !!anoymizeIp,
-    version: version || versionForTrackingId(trackingId),
+    version: version || (trackingId.startsWith("UA-") ? 3 : 4),
   };
 }
 
-function versionForTrackingId(trackingId: string) {
-  if (trackingId.startsWith("UA-")) {
-    return 3;
-  } else {
-    return 4;
-  }
-}
-
+// Gets the GA script for a given configuration
 function analyticsScript(
   config: GaConfiguration,
 ) {
@@ -354,4 +344,10 @@ cookieconsent.run({
 });
 </script> 
   `;
+}
+
+function scriptFile(script: string) {
+  const gaScriptFile = sessionTempFile({ suffix: ".js" });
+  Deno.writeTextFileSync(gaScriptFile, script);
+  return gaScriptFile;
 }
