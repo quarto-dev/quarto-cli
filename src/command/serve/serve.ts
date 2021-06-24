@@ -30,7 +30,10 @@ import {
   projectIgnoreRegexes,
   projectOutputDir,
 } from "../../project/project-context.ts";
-import { inputFileForOutputFile } from "../../project/project-index.ts";
+import {
+  inputFileForOutputFile,
+  resolveInputTarget,
+} from "../../project/project-index.ts";
 
 import { renderProject } from "../render/project.ts";
 import { renderResultFinalOutput } from "../render/render.ts";
@@ -117,7 +120,9 @@ export async function serveProject(
         response = serveRedirect(normalizedUrl + "/");
       } else {
         response = await serveFile(fsPath!, watcher, renderQueue);
-        printUrl(normalizedUrl);
+        if (options.debug) {
+          printUrl(normalizedUrl);
+        }
       }
     } catch (e) {
       response = await serveFallback(req, e, fsPath!, options);
@@ -134,20 +139,34 @@ export async function serveProject(
   const server = serve({ port: options.port, hostname: kLocalhost });
 
   // compute site url
-  const siteUrl = `http://localhost:${options.port}/`;
+  let siteUrl = `http://localhost:${options.port}/`;
+
+  // if there is a preview doc specified then compute it's path and append
+  // it to the siteUrl
+  const previewDoc = Deno.env.get("QUARTO_SERVE_PREVIEW_DOC");
+  if (previewDoc) {
+    const target = await resolveInputTarget(
+      project,
+      relative(project.dir, previewDoc),
+      false,
+    );
+    if (target) {
+      siteUrl = siteUrl + target.outputHref;
+    }
+  }
 
   // print status
   if (options.watch) {
     info("Watching project for reload on changes");
   }
-  info(`Browse the site at `, {
+  info(`Browse preview at `, {
     newline: false,
   });
   info(`${siteUrl}`, { format: colors.underline });
 
   // open browser if requested
   if (options.browse) {
-    if (renderResult.baseDir && renderResult.outputDir) {
+    if (!previewDoc && renderResult.baseDir && renderResult.outputDir) {
       const finalOutput = renderResultFinalOutput(renderResult);
       if (finalOutput) {
         const targetPath = pathWithForwardSlashes(relative(
@@ -326,13 +345,16 @@ async function serveFile(
 
 function printUrl(url: string, found = true) {
   const format = !found ? colors.red : undefined;
-  url = url + (found ? "" : " (404: Not Found)");
+  const urlDisplay = url + (found ? "" : " (404: Not Found)");
   if (
     isHtmlContent(url) || url.endsWith("/") || extname(url) === ""
   ) {
-    debug(`\nGET: ${url}`, { bold: true, format: format || colors.green });
-  } else {
-    debug(url, { dim: found, format, indent: 1 });
+    info(`GET: ${urlDisplay}`, {
+      bold: false,
+      format: format || colors.green,
+    });
+  } else if (!found) {
+    info(urlDisplay, { dim: found, format, indent: 2 });
   }
 }
 

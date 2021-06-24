@@ -26,7 +26,10 @@ import {
   projectOutputDir,
 } from "../../project/project-context.ts";
 
-import { resolveInputTarget } from "../../project/project-index.ts";
+import {
+  inputFileForOutputFile,
+  resolveInputTarget,
+} from "../../project/project-index.ts";
 
 import { fileExecutionEngine } from "../../execute/engine.ts";
 
@@ -211,6 +214,23 @@ export async function watchProject(
       const lastHtmlFile = ld.uniq(modified).reverse().find((file) => {
         return extname(file) === ".html";
       });
+
+      // don't reload based on changes to html files generated from reloadOnChange
+      // (as we've already reloaded)
+      if (lastHtmlFile) {
+        const outputDir = projectOutputDir(project);
+        const filePathRelative = relative(outputDir, lastHtmlFile);
+        const inputFile = await inputFileForOutputFile(
+          project,
+          filePathRelative,
+        );
+        if (inputFile && isRenderOnChangeInput(inputFile)) {
+          // clear out modified list
+          modified.splice(0, modified.length);
+          return;
+        }
+      }
+
       let reloadTarget = "";
       if (lastHtmlFile && options.navigate) {
         if (lastHtmlFile.startsWith(outputDir)) {
@@ -253,6 +273,9 @@ export async function watchProject(
           if (isRStudioServer()) {
             const prefix = clients[i].path.match(/^\/p\/\w+/);
             if (prefix) {
+              if (!reloadTarget.startsWith("/")) {
+                reloadTarget = "/" + reloadTarget;
+              }
               reloadTarget = prefix[0] + reloadTarget;
             }
           }
