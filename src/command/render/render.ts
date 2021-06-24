@@ -243,16 +243,22 @@ export async function renderFiles(
     const progress = project && (files.length > 1) && !options.flags?.quiet;
 
     if (progress) {
-      info(`Rendering:`);
       options.flags = options.flags || {};
       options.flags.quiet = true;
     }
+
+    // calculate num width
+    const numWidth = String(files.length).length;
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
 
       if (progress) {
-        info(relative(project!.dir, file), { indent: 2 });
+        info(
+          `[${String(i + 1).padStart(numWidth)}/${files.length}] ${
+            relative(project!.dir, file)
+          }`,
+        );
       }
 
       // get contexts
@@ -290,6 +296,10 @@ export async function renderFiles(
           executeResult,
         });
       }
+    }
+
+    if (progress) {
+      info("");
     }
 
     return await pandocRenderer.onComplete();
