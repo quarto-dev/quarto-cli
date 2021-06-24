@@ -7,20 +7,11 @@
 import { Document } from "deno_dom/deno-dom-wasm.ts";
 import { join } from "path/mod.ts";
 import { kTitle } from "../../../config/constants.ts";
-import { kHtmlPostprocessors } from "../../../config/format.ts";
 import { Metadata } from "../../../config/metadata.ts";
 import { projectTypeResourcePath } from "../../../core/resources.ts";
 import { sessionTempFile } from "../../../core/temp.ts";
 import { ProjectContext } from "../../project-context.ts";
 import { kSite } from "./website-config.ts";
-
-/*
-    REVIEW:
-    OTHER SCRIPT TAGS:
-
-    hypothesis / utterances
-    footer preferences
-*/
 
 // tracking id for google analytics
 // GA3 calls this 'tracking id'
@@ -31,7 +22,7 @@ const kStorage = "storage";
 const kAnonymizeIp = "anonymize-ip";
 const kVersion = "version";
 
-// GA3 supports anonymize ip as a setting
+// Cookie consent properties
 const kCookieConsent = "cookie-consent";
 const kCookieConsentType = "type";
 const kCookieConsentStyle = "style";
@@ -251,7 +242,7 @@ function googleAnalyticsConfig(
   return {
     trackingId,
     consent: useCookieConsent(project),
-    storage: storage || "cookie",
+    storage: storage || "local",
     anonymizeIp: !!anoymizeIp,
     version: version || versionForTrackingId(trackingId),
   };
@@ -280,47 +271,105 @@ function analyticsScript(
 function ga3Script(
   config: GaConfiguration,
 ) {
-  const coreScript = `
+  const scripts: string[] = [];
+
+  scripts.push(`
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
   m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');`;
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');`);
 
-  const createGa = config.storage === "none"
-    ? `ga('create', '${config.trackingId}', { 'storage': 'none' });`
-    : `ga('create', '${config.trackingId}', 'auto');`;
+  switch (config.storage) {
+    case "none":
+      scripts.push(
+        `ga('create', '${config.trackingId}', { 'storage': 'none' });`,
+      );
+      break;
+    case "local":
+      scripts.push(kClientIdJs);
+      scripts.push(
+        `ga('create', '${config.trackingId}', { 'storage': 'none', 'clientId' : clientId });`,
+      );
+      break;
+    case "cookie":
+    default:
+      scripts.push(`ga('create', '${config.trackingId}', 'auto');`);
+      break;
+  }
 
-  const trackPage = `
+  scripts.push(`
 ga('send', {
   hitType: 'pageview',
   'anonymizeIp': ${config.anonymizeIp},
-});`;
+});`);
 
   return scriptTagWithConsent(
     !!config.consent,
     "tracking",
-    [coreScript, createGa, trackPage].join("\n"),
+    scripts.join("\n"),
   );
 }
+
+const kClientIdJs = `
+let clientId = '';
+try {
+  const dec2hex = (dec) => {
+    return dec.toString(16).padStart(2, "0")
+  }
+  clientId = localStorage.getItem('quarto-ga-clientid');
+  if (clientId === null) {
+    let cryptoObj = window.crypto || window.msCrypto;
+    clientId = Array.from(cryptoObj.getRandomValues(new Uint8Array(16)), dec2hex).join('');
+    localStorage.setItem('quarto-ga-clientid', clientId);          
+  } 
+} catch {
+  // No ability to use local storage
+}`;
 
 function ga4Script(
   config: GaConfiguration,
 ) {
-  const coreScript = `
+  const scripts = [];
+
+  scripts.push(`
 window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());`;
+gtag('js', new Date());`);
 
-  const configGa = config.storage === "none"
-    ? `gtag('config', '${config.trackingId}', { client_storage: 'none', 'anonymize_ip': ${config.anonymizeIp} });`
-    : `gtag('config', '${config.trackingId}', { 'anonymize_ip': ${config.anonymizeIp} });`;
+  switch (config.storage) {
+    case "none":
+      scripts.push(
+        `gtag('config', '${config.trackingId}', { client_storage: 'none', 'anonymize_ip': ${config.anonymizeIp} });`,
+      );
+      break;
+    case "local":
+      // Consent mode prevents cookies
+      scripts.push(` 
+gtag('consent', 'default', {
+  'ad_storage': 'denied',
+  'analytics_storage': 'denied'
+});`);
 
+      // Generate the client id on browser
+      scripts.push(kClientIdJs);
+      scripts.push(`gtag('set', {'client_id': clientId});`);
+
+      // configure gtag
+      scripts.push(
+        `gtag('config', '${config.trackingId}', { client_storage: 'none', 'anonymize_ip': ${config.anonymizeIp} });`,
+      );
+      break;
+    case "cookie":
+    default:
+      `gtag('config', '${config.trackingId}', { 'anonymize_ip': ${config.anonymizeIp} });`;
+      break;
+  }
   return [
     `<script async src="https://www.googletagmanager.com/gtag/js?id=${config.trackingId}"></script>`,
     scriptTagWithConsent(
       !!config.consent,
       "tracking",
-      [coreScript, configGa].join("\n"),
+      scripts.join("\n"),
     ),
   ].join("\n");
 }
