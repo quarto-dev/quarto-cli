@@ -52,21 +52,34 @@ export async function configure(
   }
 
   // Set up a symlink (if appropriate)
-  const symlinkPath = "/usr/local/bin/quarto";
+  const symlinkPaths = ["/usr/local/bin/quarto", "~/bin/quarto"];
+
   if (Deno.build.os !== "windows") {
     info("Creating Quarto Symlink");
+    for (let i = 0; i < symlinkPaths.length; i++) {
+      const symlinkPath = symlinkPaths[i];
+      info(`> Trying ${symlinkPath}`);
+      if (existsSync(symlinkPath)) {
+        Deno.removeSync(symlinkPath);
+      }
 
-    if (existsSync(symlinkPath)) {
-      Deno.removeSync(symlinkPath);
-    }
+      try {
+        Deno.symlinkSync(
+          join(config.directoryInfo.bin, "quarto"),
+          symlinkPath,
+        );
 
-    try {
-      Deno.symlinkSync(
-        join(config.directoryInfo.bin, "quarto"),
-        symlinkPath,
-      );
-    } catch {
-      warning("Failed to create symlink to quarto.");
+        info("> Success");
+        // it worked, just move on
+        break;
+      } catch {
+        // none of them worked!
+        if (i === symlinkPaths.length - 1) {
+          warning("Failed to create symlink to quarto.");
+        } else {
+          info("> Failed");
+        }
+      }
     }
   }
 }
