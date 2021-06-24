@@ -1,0 +1,24 @@
+name: Run Smoke Tests
+
+on: 
+  push:
+    # only trigger on branches, not on tags
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          # checkout full tree
+          fetch-depth: 0
+      - run: |
+          ./configure-linux.sh
+          for commit in $(git rev-list ${{ github.event.before}}..${{ github.sha}}); do
+              git checkout $commit
+              pushd tests
+              ./run-tests.sh
+              popd
+          done
