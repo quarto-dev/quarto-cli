@@ -74,10 +74,6 @@ jobs:
           ./quarto install tinytex
           popd
           
-          pushd tests
-          quarto render docs/project/book --to pdf
-          popd
-          
       - name: Smoke Test Commits
         if: github.event.before != ''
         run: |
