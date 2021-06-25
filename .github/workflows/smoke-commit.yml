@@ -56,6 +56,7 @@ jobs:
       - name: Configure Quarto
         run: |         
           ./configure-linux.sh
+          export PATH=/home/runner/bin:$PATH
           
       - name: Quarto Check
         run: |
@@ -70,7 +71,6 @@ jobs:
           pushd package/dist/bin/
           ./quarto install tinytex
           popd
-          export PATH=/home/runner/bin:$PATH
           
           tlmgr dump-tlpdb --local
               
