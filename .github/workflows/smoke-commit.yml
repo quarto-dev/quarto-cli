@@ -5,7 +5,9 @@ on:
   # push:
     # only trigger on branches, not on tags
     # branches: [ main ]
-
+env:
+  RENV_PATHS_ROOT: ~/.local/share/renv
+  
 jobs:
   run-smokes:
     runs-on: ubuntu-latest
@@ -22,10 +24,19 @@ jobs:
         with:
           r-version: '4.0.2' # The R version to download (if necessary) and use.  
 
-      - name: R Dependencies
+      - name: Cache packages
+        uses: actions/cache@v1
+        with:
+          path: ${{ env.RENV_PATHS_ROOT }}
+          key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-renv-
+
+      - name: Restore packages
+        shell: Rscript {0}
         run: |
-          Rscript  -e 'install.packages("rmarkdown",repos = "http://cran.us.r-project.org")'
-          Rscript  -e 'install.packages("quarto",repos = "http://cran.us.r-project.org")'
+          if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
+          renv::restore()
 
       - name: Set up Python
         uses: actions/setup-python@v2
