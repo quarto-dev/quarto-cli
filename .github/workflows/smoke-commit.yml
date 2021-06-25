@@ -8,6 +8,10 @@ on:
 env:
   RENV_PATHS_ROOT: ~/.local/share/renv
   
+# Ubuntu: ~/.local/share/renv
+# macOS: ~/Library/Application Support/renv
+# Windows: %LOCALAPPDATA%/renv 
+  
 jobs:
   run-smokes:
     runs-on: ubuntu-latest
@@ -25,7 +29,7 @@ jobs:
           r-version: '4.0.2' # The R version to download (if necessary) and use.  
 
       - name: Cache packages
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ${{ env.RENV_PATHS_ROOT }}
           key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
@@ -33,11 +37,12 @@ jobs:
             ${{ runner.os }}-renv-
 
       - name: Restore packages
-        shell: Rscript {0}
         run: |
-          if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
-          renv::restore()
-
+          pushd tests
+          Rscript -e "if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')"
+          Rscript -e "renv::restore()"
+          popd
+          
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
