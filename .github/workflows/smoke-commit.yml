@@ -27,11 +27,8 @@ jobs:
           pushd package/dist/bin/
           ./quarto install tinytex
           popd
-          
-          pwd
-          echo $PATH
-          
           export PATH=/home/runner/bin:$PATH
+          
           tlmgr dump-tlpdb --local
               
       - name: Smoke Test Commits
