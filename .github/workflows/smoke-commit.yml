@@ -24,6 +24,7 @@ jobs:
           ./quarto install tinytex
           popd
           
+          echo ${{ github.event.before}}
           for commit in $(git rev-list ${{ github.event.before}}..${{ github.sha}}); do
               git checkout $commit
               pushd tests
