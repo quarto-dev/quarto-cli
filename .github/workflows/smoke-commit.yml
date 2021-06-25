@@ -65,8 +65,7 @@ jobs:
 
           pushd tests
           quarto check
-          quarto render docs/crossrefs/python.qmd --to html
-          quarto render docs/project/book --to docx
+          quarto render docs/project/book --to pdf
           popd
           
       - name: Install TinyTex
