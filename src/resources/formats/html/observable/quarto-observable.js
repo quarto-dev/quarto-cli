@@ -1,10 +1,8 @@
-// import { Interpreter } from "https://cdn.skypack.dev/@alex.garcia/unofficial-observablehq-compiler";
 import {
   Inspector,
   Library,
   Runtime,
 } from "https://cdn.skypack.dev/@observablehq/runtime";
-// import { parseModule } from "https://cdn.skypack.dev/@observablehq/parser";
 
 import { FileAttachments } from "https://cdn.skypack.dev/@observablehq/stdlib";
 
@@ -30,9 +28,11 @@ export function createRuntime() {
     window._ojs.shinyElementRoot = span;
     document.body.appendChild(span);
   }
+  
+  // we use the trick described here to extend observable's standard library
+  // https://talk.observablehq.com/t/embedded-width/1063
 
   // our stdlib
-  
   const lib = new Library();
   if (isShiny) {
     extendObservableStdlib(lib);
@@ -81,9 +81,9 @@ export function createRuntime() {
   }
   lib.layoutWidth = layoutWidth;
 
-  // we think this is good enough for now, but there
-  // might be better things to be done with (say) project-wide
-  // resources.
+  // this path resolution is fairly naive, but we think this is good
+  // enough for now. There might be better things to be done with
+  // (say) project-wide resources.
   function fileAttachmentPathResolver(n) {
     return n;
   }
@@ -95,13 +95,8 @@ export function createRuntime() {
     library: lib
   });
   quartoOjsGlobal.obsInABox = obsInABox;
-  
-  // const lib = obsInABox.library;
-  // we use the trick described here to extend observable's standard library
-  // https://talk.observablehq.com/t/embedded-width/1063
 
   const subfigIdMap = new Map();
-
   function getSubfigId(elementId) {
     if (!subfigIdMap.has(elementId)) {
       subfigIdMap.set(elementId, 0);
