@@ -66,7 +66,7 @@ export async function configure(
 
       try {
         // for the last path, try even creating a directory as a last ditch effort
-        if (i === symlinkPaths.length) {
+        if (i === symlinkPaths.length - 1) {
           ensureDirSync(dirname(symlinkPath));
         }
         Deno.symlinkSync(
