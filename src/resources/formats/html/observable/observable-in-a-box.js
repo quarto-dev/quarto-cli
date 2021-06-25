@@ -60,6 +60,15 @@ export class OJSInABox {
     module.variable().define(name, obs);
     return change;
   }
+
+  watch(name, k, module = undefined) {
+    if (!module) {
+      module = this.mainModule;
+    }
+    module.variable({
+      fulfilled: x => k(x, name)
+    }).define([name], val => val);
+  }
   
   interpret(src, elementGetter, elementCreator) {
     const observer = (targetElement, cell) => {
