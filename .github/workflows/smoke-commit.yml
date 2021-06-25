@@ -45,6 +45,7 @@ jobs:
           pushd package/dist/bin/
           ./quarto install tinytex
           popd
+          tlmgr dump-tlpdb --local
               
       - name: Smoke Test Commits
         if: github.event.before != ''
