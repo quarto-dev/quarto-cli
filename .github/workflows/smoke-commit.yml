@@ -53,23 +53,23 @@ jobs:
           python -m pip install --upgrade pip
           pip install jupyter
           pip install matplotlib
+          
+      - name: Set Path
+        run: |
+          echo "$HOME/bin" >> $GITHUB_PATH
       
       - name: Configure Quarto
         run: |         
-          export PATH=/home/runner/bin:$PATH
           ./configure-linux.sh
           
       - name: Quarto Check
         run: |
-          export PATH=/home/runner/bin:$PATH
-
           pushd tests
           quarto check
           popd
           
       - name: Install TinyTex
         run: |
-          export PATH=/home/runner/bin:$PATH
           pushd package/dist/bin/
           ./quarto install tinytex
           popd
@@ -77,7 +77,6 @@ jobs:
       - name: Smoke Test Commits
         if: github.event.before != ''
         run: |
-          export PATH=/home/runner/bin:$PATH
           for commit in $(git rev-list ${{ github.event.before}}..${{ github.sha}}); do
               git checkout $commit
               pushd tests
@@ -88,8 +87,7 @@ jobs:
       - name: Smoke Test Head
         if: github.event.before == ''
         run: |
-              export PATH=/home/runner/bin:$PATH
-              pushd tests
-              ./run-tests.sh
-              popd
+          pushd tests
+          ./run-tests.sh
+          popd
         
