@@ -57,6 +57,8 @@ jobs:
         run: |         
           ./configure-linux.sh
           export PATH=/home/runner/bin:$PATH
+          /home/runner/bin/quarto env
+          quart env
           
       - name: Quarto Check
         run: |
