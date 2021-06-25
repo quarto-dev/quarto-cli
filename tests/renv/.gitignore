@@ -1,0 +1,5 @@
+library/
+local/
+lock/
+python/
+staging/
