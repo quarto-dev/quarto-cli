@@ -71,6 +71,7 @@ jobs:
           
       - name: Install TinyTex
         run: |
+          export PATH=/home/runner/bin:$PATH
           pushd package/dist/bin/
           ./quarto install tinytex
           popd
@@ -80,6 +81,7 @@ jobs:
       - name: Smoke Test Commits
         if: github.event.before != ''
         run: |
+          export PATH=/home/runner/bin:$PATH
           for commit in $(git rev-list ${{ github.event.before}}..${{ github.sha}}); do
               git checkout $commit
               pushd tests
@@ -90,6 +92,7 @@ jobs:
       - name: Smoke Test Head
         if: github.event.before == ''
         run: |
+              export PATH=/home/runner/bin:$PATH
               pushd tests
               ./run-tests.sh
               popd
