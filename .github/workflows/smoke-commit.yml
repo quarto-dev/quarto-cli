@@ -65,7 +65,6 @@ jobs:
 
           pushd tests
           quarto check
-          quarto render docs/project/book --to pdf
           popd
           
       - name: Install TinyTex
@@ -75,8 +74,10 @@ jobs:
           ./quarto install tinytex
           popd
           
-          tlmgr dump-tlpdb --local
-              
+          pushd tests
+          quarto render docs/project/book --to pdf
+          popd
+          
       - name: Smoke Test Commits
         if: github.event.before != ''
         run: |
