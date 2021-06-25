@@ -31,7 +31,7 @@ jobs:
           pwd
           echo $PATH
           
-          # export PATH=/home/dave/work:$PATH
+          export PATH=/home/runner/bin:$PATH
           tlmgr dump-tlpdb --local
               
       - name: Smoke Test Commits
