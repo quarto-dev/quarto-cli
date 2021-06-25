@@ -52,6 +52,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install jupyter
+          pip install matplotlib
       
       - name: Configure Quarto
         run: |         
@@ -61,8 +62,9 @@ jobs:
       - name: Quarto Check
         run: |
           export PATH=/home/runner/bin:$PATH
-          quarto check
+
           pushd tests
+          quarto check
           quarto render docs/crossrefs/python.qmd --to html
           quarto render docs/project/book --to docx
           popd
