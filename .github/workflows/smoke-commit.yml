@@ -27,10 +27,7 @@ jobs:
       - name: Configure Quarto
         run: |         
           ./configure-linux.sh
-          
-          # create symlink manually using sudo
-          /usr/bin/sudo ln -sf packages/dist/bin/quarto /usr/local/bin/quarto
-          
+                    
       - name: Install TinyTex
         run: |
           pushd package/dist/bin/
