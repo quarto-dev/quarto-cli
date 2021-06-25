@@ -26,13 +26,12 @@ jobs:
       
       - name: Configure Quarto
         run: |         
-          ./configure-linux.sh
           export PATH=/home/runner/bin:$PATH
-          /home/runner/bin/quarto env
-          quarto env
+          ./configure-linux.sh
           
       - name: Quarto Check
         run: |
+          export PATH=/home/runner/bin:$PATH
           quarto check
           pushd tests
           quarto render docs/crossrefs/python.qmd --to html
