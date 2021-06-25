@@ -10,7 +10,7 @@ import { assert } from "testing/asserts.ts";
 
 import { Metadata } from "../../../src/config/metadata.ts";
 import { removeIfEmptyDir } from "../../../src/core/path.ts";
-import { execProcess } from "../../../src/core/process.ts";
+import { quarto } from "../../../src/quarto.ts";
 import { ExecuteOutput, Verify } from "../../test.ts";
 import { outputCreated } from "../../verify.ts";
 import { testRender } from "./render.ts";
@@ -107,12 +107,7 @@ function testFileContext(
         markdown,
       );
 
-      // Render to fill the freezer
-      await execProcess({
-        cmd: ["quarto", "render", path],
-        stdout: "piped",
-        stderr: "piped",
-      });
+      await quarto(["render", path]);
     },
     teardown: async () => {
       // Clean up the test file
