@@ -55,8 +55,8 @@ export function knitrCapabilitiesMessage(caps: KnitrCapabilities, indent = "") {
 
 export function knitrInstallationMessage(indent = "") {
   const lines = [
-    "The quarto package is not available in this R installation.",
-    "Install with " + colors.bold('install.packages("quarto")'),
+    "The rmarkdown package is not available in this R installation.",
+    "Install with " + colors.bold('install.packages("rmarkdown")'),
   ];
   return lines.map((line: string) => `${indent}${line}`).join("\n");
 }
