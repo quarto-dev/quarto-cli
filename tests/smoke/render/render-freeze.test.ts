@@ -10,15 +10,16 @@ import { assert } from "testing/asserts.ts";
 
 import { Metadata } from "../../../src/config/metadata.ts";
 import { removeIfEmptyDir } from "../../../src/core/path.ts";
-import { execProcess } from "../../../src/core/process.ts";
-import { ExecuteOutput } from "../../test.ts";
-import { docs } from "../../utils.ts";
+import { quarto } from "../../../src/quarto.ts";
+import { ExecuteOutput, Verify } from "../../test.ts";
+import { outputCreated } from "../../verify.ts";
 import { testRender } from "./render.ts";
 
 const regex = /^output file: .*\.knit\.md$/m;
 
 const testFileName = "freeze-test";
-const path = docs(`${testFileName}.qmd`);
+const tempDir = Deno.makeTempDirSync();
+const path = join(tempDir, `${testFileName}.qmd`);
 const baseMeta: Metadata = {
   title: "Freeze Test",
   format: "html",
@@ -64,6 +65,14 @@ const ignoreFrozen = {
   },
 };
 
+const projectOutputExists: Verify = {
+  name: "Make sure project output exists",
+  verify: (_output: ExecuteOutput[]) => {
+    outputCreated(path, "html");
+    return Promise.resolve();
+  },
+};
+
 async function writeFile(
   path: string,
   frontMatter: Metadata,
@@ -88,7 +97,7 @@ function testFileContext(
       // Write a quarto project
       await Deno.writeTextFile(
         quartoProj,
-        "project:\n  title: 'Hello Project\n'",
+        "project:\n  title: 'Hello Project'\n",
       );
 
       // Write the test file
@@ -98,12 +107,7 @@ function testFileContext(
         markdown,
       );
 
-      // Render to fill the freezer
-      await execProcess({
-        cmd: ["quarto", "render", path],
-        stdout: "piped",
-        stderr: "piped",
-      });
+      await quarto(["render", path]);
     },
     teardown: async () => {
       // Clean up the test file
@@ -123,10 +127,10 @@ function testFileContext(
 const testContext = testFileContext(path, baseMeta, baseMarkdown);
 // Reader and use the freezer (freeze, auto)
 testRender(
-  path,
+  dirname(path) + "/",
   "html",
   false,
-  [useFrozen],
+  [projectOutputExists, useFrozen],
   {
     name: "clean fzr - auto",
     ...testContext,
@@ -135,10 +139,10 @@ testRender(
 
 // Render and mutate to be sure we ignore freezer
 testRender(
-  path,
+  dirname(path) + "/",
   "html",
   false,
-  [ignoreFrozen],
+  [projectOutputExists, ignoreFrozen],
   {
     name: "dirty fzr - auto",
     setup: async () => {
@@ -160,10 +164,10 @@ testRender(
 
 // Render and mutate to be sure we ignore freezer
 testRender(
-  path,
+  dirname(path) + "/",
   "html",
   false,
-  [useFrozen],
+  [projectOutputExists, useFrozen],
   {
     name: "dirty fzr - freeze",
     setup: async () => {

@@ -178,7 +178,7 @@ export function cookieConsentDependencies(project: ProjectContext) {
               const anchor = doc.createElement("a");
               anchor.setAttribute("href", "#");
               anchor.setAttribute("id", anchorId);
-              anchor.innerText = changePrefsText ||
+              anchor.innerHTML = changePrefsText ||
                 "Change your cookie preferences";
 
               // A div to hold it
