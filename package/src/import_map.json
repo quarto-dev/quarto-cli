@@ -7,6 +7,8 @@
         "fs/": "https://deno.land/std@0.97.0/fs/",
         "io/": "https://deno.land/std@0.97.0/io/",
         "log/": "https://deno.land/std@0.97.0/log/",
-        "path/": "https://deno.land/std@0.97.0/path/"
+        "path/": "https://deno.land/std@0.97.0/path/",
+        "lodash/": "https://deno.land/x/deno_lodash/",
+        "async/": "https://deno.land/std@0.97.0/async/"
     }
 }

@@ -25,11 +25,13 @@ export function testRender(
   // Verify that the output was created and
   // that supporting files are present or missing
   const verify: Verify[] = [];
-  verify.push(outputCreated(input, to));
-  if (standalone) {
-    verify.push(noSupportingFiles(input, to));
-  } else {
-    verify.push(hasSupportingFiles(input, to));
+  if (!input.endsWith("/")) {
+    verify.push(outputCreated(input, to));
+    if (standalone) {
+      verify.push(noSupportingFiles(input, to));
+    } else {
+      verify.push(hasSupportingFiles(input, to));
+    }
   }
   if (addtlVerify) {
     verify.push(...addtlVerify);

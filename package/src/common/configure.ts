@@ -4,10 +4,11 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { join } from "path/mod.ts";
-import { existsSync } from "fs/mod.ts";
+import { dirname, join } from "path/mod.ts";
+import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { info, warning } from "log/mod.ts";
 
+import { expandPath } from "../../../src/core/path.ts";
 import { Configuration } from "./config.ts";
 import {
   kDependencies,
@@ -52,21 +53,39 @@ export async function configure(
   }
 
   // Set up a symlink (if appropriate)
-  const symlinkPath = "/usr/local/bin/quarto";
+  const symlinkPaths = ["/usr/local/bin/quarto", expandPath("~/bin/quarto")];
+
   if (Deno.build.os !== "windows") {
     info("Creating Quarto Symlink");
+    for (let i = 0; i < symlinkPaths.length; i++) {
+      const symlinkPath = symlinkPaths[i];
+      info(`> Trying ${symlinkPath}`);
+      if (existsSync(symlinkPath)) {
+        Deno.removeSync(symlinkPath);
+      }
 
-    if (existsSync(symlinkPath)) {
-      Deno.removeSync(symlinkPath);
-    }
+      try {
+        // for the last path, try even creating a directory as a last ditch effort
+        if (i === symlinkPaths.length - 1) {
+          ensureDirSync(dirname(symlinkPath));
+        }
+        Deno.symlinkSync(
+          join(config.directoryInfo.bin, "quarto"),
+          symlinkPath,
+        );
 
-    try {
-      Deno.symlinkSync(
-        join(config.directoryInfo.bin, "quarto"),
-        symlinkPath,
-      );
-    } catch {
-      warning("Failed to create symlink to quarto.");
+        info("> Success");
+        // it worked, just move on
+        break;
+      } catch (error) {
+        info(error);
+        // none of them worked!
+        if (i === symlinkPaths.length - 1) {
+          warning("Failed to create symlink to quarto.");
+        } else {
+          info("> Failed");
+        }
+      }
     }
   }
 }
