@@ -69,7 +69,7 @@ function handleVars(shortCode)
     if varValue ~= nil then
       return processValue(varValue, varName, "var")
     else 
-      warn("Unknown var" .. varName .. " specified in a var shortcode.")
+      warn("Unknown var " .. varName .. " specified in a var shortcode.")
       return { pandoc.Strong({pandoc.Str("?var:" .. varName)}) } 
     end
 
