@@ -6,7 +6,7 @@
 */
 
 import * as colors from "fmt/colors.ts";
-import { debug, error, info } from "log/mod.ts";
+import { error, info } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { basename, extname, join, posix, relative } from "path/mod.ts";
 
@@ -30,10 +30,7 @@ import {
   projectIgnoreRegexes,
   projectOutputDir,
 } from "../../project/project-context.ts";
-import {
-  inputFileForOutputFile,
-  resolveInputTarget,
-} from "../../project/project-index.ts";
+import { inputFileForOutputFile } from "../../project/project-index.ts";
 
 import { renderProject } from "../render/project.ts";
 import { renderResultFinalOutput } from "../render/render.ts";
@@ -44,7 +41,6 @@ import { ProjectWatcher, watchProject } from "./watch.ts";
 
 export type ServeOptions = {
   port: number;
-  render?: boolean;
   browse?: boolean;
   watch?: boolean;
   navigate?: boolean;
@@ -57,7 +53,6 @@ export async function serveProject(
 ) {
   // provide defaults
   options = {
-    render: true,
     browse: true,
     watch: true,
     navigate: true,
