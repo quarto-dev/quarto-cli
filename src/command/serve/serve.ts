@@ -62,12 +62,20 @@ export async function serveProject(
     ...options,
   };
 
+  // show progress indicating what we are doing to prepare for serving
+  const render = options.render !== kRenderNone;
+  if (render) {
+    info("Rendering:");
+  } else {
+    info("Preparing to serve:");
+  }
+
   // render in the main directory
   const renderResult = await renderProject(
     project,
     {
-      useFreezer: options.render === kRenderNone,
-      flags: options.render !== kRenderNone ? { to: options.render } : {},
+      useFreezer: !render,
+      flags: render ? { to: options.render } : {},
     },
   );
 
