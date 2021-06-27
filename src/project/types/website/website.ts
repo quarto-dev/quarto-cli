@@ -9,16 +9,23 @@ import { join } from "path/mod.ts";
 
 import { DOMParser, HTMLDocument } from "deno_dom/deno-dom-wasm.ts";
 
-import { ProjectContext, projectOffset } from "../../project-context.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { dirAndStem } from "../../../core/path.ts";
 import { isHtmlContent } from "../../../core/mime.ts";
+
+import {
+  ProjectContext,
+  projectOffset,
+  projectOutputDir,
+} from "../../project-context.ts";
+import { kProject404File } from "../../project-resources.ts";
 
 import {
   ProjectCreate,
   ProjectOutputFile,
   ProjectType,
 } from "../project-type.ts";
+
 import {
   Format,
   FormatExtras,
@@ -197,6 +204,12 @@ export async function websitePostRender(
   incremental: boolean,
   outputFiles: ProjectOutputFile[],
 ) {
+  // filter out outputFiles that shouldn't be indexed
+  const doc404 = join(projectOutputDir(context), kProject404File);
+  outputFiles = outputFiles.filter((file) => {
+    return file.file !== doc404;
+  });
+
   // update sitemap
   await updateSitemap(context, outputFiles, incremental);
 

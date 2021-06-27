@@ -31,6 +31,7 @@ import {
   projectOutputDir,
 } from "../../project/project-context.ts";
 import { inputFileForOutputFile } from "../../project/project-index.ts";
+import { kProject404File } from "../../project/project-resources.ts";
 
 import { renderProject } from "../render/project.ts";
 import { renderResultFinalOutput } from "../render/render.ts";
@@ -248,8 +249,8 @@ function serveFallback(
       }
     }
     let body = encoder.encode("Not Found");
-    const custom404 = join(serveOutputDir, "404.html");
-    if (isHtmlContent(fsPath) && existsSync(custom404)) {
+    const custom404 = join(serveOutputDir, kProject404File);
+    if (existsSync(custom404)) {
       body = Deno.readFileSync(custom404);
     }
     return Promise.resolve({
