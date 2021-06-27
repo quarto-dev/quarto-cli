@@ -41,6 +41,7 @@ import { kLocalhost } from "./port.ts";
 import { ProjectWatcher, watchProject } from "./watch.ts";
 
 export const kRenderNone = "none";
+export const kRenderDefault = "default";
 
 export type ServeOptions = {
   port: number;
@@ -75,7 +76,9 @@ export async function serveProject(
     project,
     {
       useFreezer: !render,
-      flags: render ? { to: options.render } : {},
+      flags: (render && options.render !== kRenderDefault)
+        ? { to: options.render }
+        : {},
     },
   );
 
