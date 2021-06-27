@@ -97,11 +97,11 @@ export async function serveProject(
     }
 
     // handle file requests
+    const serveOutputDir = projectOutputDir(serveProject);
     let response: Response | undefined;
     let fsPath: string | undefined;
     try {
       const normalizedUrl = normalizeURL(req.url);
-      const serveOutputDir = projectOutputDir(serveProject);
       fsPath = serveOutputDir + normalizedUrl!;
       // don't let the path escape the serveDir
       if (fsPath!.indexOf(serveOutputDir) !== 0) {
@@ -120,7 +120,7 @@ export async function serveProject(
         }
       }
     } catch (e) {
-      response = await serveFallback(req, e, fsPath!, options);
+      response = await serveFallback(req, e, fsPath!, serveOutputDir, options);
     } finally {
       try {
         await req.respond(response!);
@@ -228,6 +228,7 @@ function serveFallback(
   req: ServerRequest,
   e: Error,
   fsPath: string,
+  serveOutputDir: string,
   options: ServeOptions,
 ): Promise<Response> {
   const encoder = new TextEncoder();
@@ -246,9 +247,14 @@ function serveFallback(
         printUrl(url, false);
       }
     }
+    let body = encoder.encode("Not Found");
+    const custom404 = join(serveOutputDir, "404.html");
+    if (isHtmlContent(fsPath) && existsSync(custom404)) {
+      body = Deno.readFileSync(custom404);
+    }
     return Promise.resolve({
       status: 404,
-      body: encoder.encode("Not Found"),
+      body,
     });
   } else {
     error(`500 (Internal Error): ${(e as Error).message}`, { bold: true });

@@ -46,7 +46,7 @@ export function projectResourceFiles(
     );
     // literals
     resourceFiles.push(
-      ...["robots.txt", ".nojekyll", "_redirects"]
+      ...["robots.txt", ".nojekyll", "_redirects", "404.html"]
         .map((file) => join(dir, file))
         .filter(existsSync),
     );
