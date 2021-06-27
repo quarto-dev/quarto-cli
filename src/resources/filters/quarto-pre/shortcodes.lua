@@ -143,11 +143,15 @@ function transformShortcodeInlines(inlines)
         -- find the handler for this shortcode and transform
         local handler = handlerForShortcode(shortCode, "inline")
         if handler ~= nil then
-          local transformedShortcode = handler.handle(shortCode)
-          if transformedShortcode ~= nil then
-            -- append the transformed shortcode
-
-            tappend(accum, transformedShortcode)
+          local expanded = handler.handle(shortCode)
+          if expanded ~= nil then
+            -- process recursively
+            local expandedAgain = transformShortcodeInlines(expanded)
+            if (expandedAgain ~= nil) then
+              tappend(accum, expandedAgain)
+            else
+              tappend(accum, expanded)
+            end
           end
         else
           tappend(accum, shortcodeInlines)
