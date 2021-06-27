@@ -20,6 +20,7 @@ export const kSite = "site";
 
 export const kSiteTitle = "title";
 export const kSiteUrl = "site-url";
+export const kSitePath = "site-path";
 export const kSiteRepoUrl = "repo-url";
 export const kSiteRepoBranch = "repo-branch";
 export const kSiteRepoActions = "repo-actions";
@@ -84,6 +85,7 @@ export function websiteConfig(
   name:
     | "title"
     | "site-url"
+    | "site-path"
     | "repo-url"
     | "repo-branch"
     | "repo-actions"
@@ -110,6 +112,28 @@ export function websiteTitle(project?: ProjectConfig): string | undefined {
 
 export function websiteBaseurl(project?: ProjectConfig): string | undefined {
   return websiteConfig(kSiteUrl, project) as string | undefined;
+}
+
+export function websitePath(project?: ProjectConfig): string {
+  let path = websiteConfig(kSitePath, project) as string | undefined;
+  if (path) {
+    if (!path.endsWith("/")) {
+      path = path + "/";
+    }
+    return path;
+  } else {
+    const baseUrl = websiteBaseurl(project);
+    if (baseUrl) {
+      try {
+        const url = new URL(baseUrl);
+        return url.pathname;
+      } catch {
+        return "/";
+      }
+    } else {
+      return "/";
+    }
+  }
 }
 
 export function websiteRepoUrl(project?: ProjectConfig): string | undefined {

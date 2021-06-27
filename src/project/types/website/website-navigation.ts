@@ -85,6 +85,7 @@ import {
   kSiteSidebar,
   websiteConfig,
   websiteConfigActions,
+  websitePath,
   websiteRepoBranch,
   websiteRepoUrl,
   websiteTitle,
@@ -339,7 +340,8 @@ function navigationHtmlPostprocessor(project: ProjectContext, source: string) {
     addRepoActions(doc, sourceRelative, project.config);
 
     // resolve resource refs
-    return Promise.resolve(resolveResourceRefs(doc, offset));
+    const forceRoot = href === "/404.html" ? websitePath(project.config) : null;
+    return Promise.resolve(resolveResourceRefs(doc, offset, forceRoot));
   };
 }
 
