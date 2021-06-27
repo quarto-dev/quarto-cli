@@ -41,6 +41,7 @@ export const serveCommand = new Command()
   .option(
     "--debug",
     "Print debug output.",
+    { hidden: true },
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, path: string) => {
@@ -79,6 +80,5 @@ export const serveCommand = new Command()
       browse: options.browse,
       watch: options.watch,
       navigate: options.navigate,
-      debug: !!options.debug,
     });
   });

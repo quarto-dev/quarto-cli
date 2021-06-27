@@ -45,7 +45,6 @@ export type ServeOptions = {
   browse?: boolean;
   watch?: boolean;
   navigate?: boolean;
-  debug?: boolean;
 };
 
 export async function serveProject(
@@ -57,7 +56,6 @@ export async function serveProject(
     browse: true,
     watch: true,
     navigate: true,
-    debug: false,
     ...options,
   };
 
@@ -66,7 +64,6 @@ export async function serveProject(
     project,
     {
       useFreezer: true,
-      flags: { debug: options.debug },
     },
   );
 
@@ -116,12 +113,10 @@ export async function serveProject(
         response = serveRedirect(normalizedUrl + "/");
       } else {
         response = await serveFile(fsPath!, watcher, renderQueue);
-        if (options.debug) {
-          printUrl(normalizedUrl);
-        }
+        printUrl(normalizedUrl);
       }
     } catch (e) {
-      response = await serveFallback(req, e, fsPath!, serveOutputDir, options);
+      response = await serveFallback(req, e, fsPath!, serveOutputDir);
     } finally {
       try {
         await req.respond(response!);
@@ -230,7 +225,6 @@ function serveFallback(
   e: Error,
   fsPath: string,
   serveOutputDir: string,
-  options: ServeOptions,
 ): Promise<Response> {
   const encoder = new TextEncoder();
   if (e instanceof URIError) {
@@ -244,9 +238,7 @@ function serveFallback(
       basename(fsPath) !== "favicon.ico" && extname(fsPath) !== ".map" &&
       !basename(fsPath).startsWith("jupyter-")
     ) {
-      if (options.debug) {
-        printUrl(url, false);
-      }
+      printUrl(url, false);
     }
     let body = encoder.encode("Not Found");
     const custom404 = join(serveOutputDir, kProject404File);
@@ -259,9 +251,6 @@ function serveFallback(
     });
   } else {
     error(`500 (Internal Error): ${(e as Error).message}`, { bold: true });
-    if (options.debug) {
-      console.error(e);
-    }
     return Promise.resolve({
       status: 500,
       body: encoder.encode("Internal server error"),
