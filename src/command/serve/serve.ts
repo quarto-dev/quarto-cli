@@ -40,8 +40,11 @@ import { projectFreezerDir } from "../render/freeze.ts";
 import { kLocalhost } from "./port.ts";
 import { ProjectWatcher, watchProject } from "./watch.ts";
 
+export const kRenderNone = "none";
+
 export type ServeOptions = {
   port: number;
+  render: string;
   browse?: boolean;
   watch?: boolean;
   navigate?: boolean;
@@ -63,7 +66,8 @@ export async function serveProject(
   const renderResult = await renderProject(
     project,
     {
-      useFreezer: true,
+      useFreezer: options.render === kRenderNone,
+      flags: options.render !== kRenderNone ? { to: options.render } : {},
     },
   );
 
