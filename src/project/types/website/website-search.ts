@@ -28,7 +28,7 @@ import {
 import { ProjectOutputFile } from "../project-type.ts";
 
 import { websiteNavigationConfig } from "./website-navigation.ts";
-import { websiteTitle } from "./website-config.ts";
+import { websitePath, websiteTitle } from "./website-config.ts";
 
 const kSearch = "search";
 
@@ -189,7 +189,9 @@ export function websiteSearchDependency(
     return {
       name: kDependencyName,
       meta: {
-        "quarto:offset": offset,
+        "quarto:offset": offset === "."
+          ? websitePath(project.config)
+          : offset + "/",
       },
       stylesheets: [],
       scripts: [
