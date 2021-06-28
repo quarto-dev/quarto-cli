@@ -23,57 +23,13 @@ jobs:
           # checkout full tree
           fetch-depth: 0
 
-      - name: Set up R 
-        uses: r-lib/actions/setup-r@v1
+      - uses: ./.github/workflows/actions/computation-environment
         with:
-          r-version: '4.0.2' # The R version to download (if necessary) and use.  
-
-      - name: Cache packages
-        uses: actions/cache@v2
-        with:
-          path: ${{ env.RENV_PATHS_ROOT }}
-          key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-renv-
-
-      - name: Restore packages
-        run: |
-          pushd tests
-          Rscript -e "if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')"
-          Rscript -e "renv::restore()"
-          popd
-          
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
+          r-version: '4.02'
           python-version: '3.x'
-      
-      - name: Python Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install jupyter
-          pip install matplotlib
-          
-      - name: Set Path
-        run: |
-          echo "$HOME/bin" >> $GITHUB_PATH
-      
-      - name: Configure Quarto
-        run: |         
-          ./configure-linux.sh
-          
-      - name: Quarto Check
-        run: |
-          pushd tests
-          quarto check
-          popd
-          
-      - name: Install TinyTex
-        run: |
-          pushd package/dist/bin/
-          ./quarto install tinytex
-          popd
-          
+
+      - uses: ./.github/workflows/actions/quarto-dev
+            
       - name: Smoke Test Commits
         if: github.event.before != ''
         run: |

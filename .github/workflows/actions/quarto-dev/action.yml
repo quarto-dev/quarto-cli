@@ -1,0 +1,22 @@
+name: 'Configure Quarto Dev'
+description: 'Configures the image for Quarto Development'
+
+runs:
+  using: "composite"
+  steps:          
+      - name: Set Path
+        run: |
+          echo "$HOME/bin" >> $GITHUB_PATH
+      
+      - name: Configure Quarto
+        run: |
+          ./configure-linux.sh
+          
+      - name: Quarto Check
+        run: |
+          pushd tests
+          quarto check
+          popd
+
+
+
