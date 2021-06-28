@@ -126,7 +126,11 @@ export function websitePath(project?: ProjectConfig): string {
     if (baseUrl) {
       try {
         const url = new URL(baseUrl);
-        return url.pathname;
+        let path = url.pathname;
+        if (!path.endsWith("/")) {
+          path = path + "/";
+        }
+        return path;
       } catch {
         return "/";
       }
