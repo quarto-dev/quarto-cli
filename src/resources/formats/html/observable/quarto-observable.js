@@ -108,7 +108,8 @@ export function createRuntime() {
   }
 
   const result = {
-    // FIXME do we even need this now?
+    // FIXME clarify what's the expected behavior of the 'error' option
+    // when evaluation is at client-time
     interpretLenient(src, targetElementId, inline) {
       return result.interpret(src, targetElementId, inline)
         .catch(() => {});
