@@ -20,15 +20,15 @@
     <% if (nav.navbar.collapse) { %>
       <% partial('navtoggle.ejs') %>
       <% partial('navcollapse.ejs') %>
-        <% partial('navitems.ejs', { align: 'me-auto', items: nav.navbar.left}) %>
-        <% partial('navitems.ejs', { align: 'ms-auto', items: nav.navbar.right }) %>
+        <% partial('navitems.ejs', { align: 'start', items: nav.navbar.left}) %>
+        <% partial('navitems.ejs', { align: 'end', items: nav.navbar.right }) %>
         <% if (nav.navbar.search) { %>
           <% partial('navsearch.ejs', { search: nav.navbar.search }) %>
         <% } %>
       </div> <!-- /navcollapse -->
     <% } else { %>
-      <% partial('navitems.ejs', { align: 'me-auto', items: nav.navbar.left}) %>
-      <% partial('navitems.ejs', { align: 'ms-auto', items: nav.navbar.right }) %>
+      <% partial('navitems.ejs', { align: 'start', items: nav.navbar.left}) %>
+      <% partial('navitems.ejs', { align: 'end', items: nav.navbar.right }) %>
       <% if (nav.navbar.search) { %>
         <% partial('navsearch.ejs', { search: nav.navbar.search }) %>
       <% } %>

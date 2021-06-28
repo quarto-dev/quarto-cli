@@ -37,11 +37,12 @@ export const markdownEngine: ExecutionEngine = {
   },
 
   target: (file: string) => {
-    return Promise.resolve({ source: file, input: file });
+    return Promise.resolve({
+      source: file,
+      input: file,
+      metadata: readYamlFromMarkdownFile(file) as Metadata,
+    });
   },
-
-  metadata: (file: string) =>
-    Promise.resolve(readYamlFromMarkdownFile(file) as Metadata),
 
   partitionedMarkdown: (file: string) => {
     return Promise.resolve(partitionMarkdown(Deno.readTextFileSync(file)));
@@ -66,5 +67,5 @@ export const markdownEngine: ExecutionEngine = {
 
   canFreeze: false,
 
-  renderOnChange: true,
+  devServerRenderOnChange: () => Promise.resolve(true),
 };

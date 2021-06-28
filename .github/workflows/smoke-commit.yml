@@ -1,0 +1,77 @@
+name: Run Smoke Tests
+
+on: 
+  workflow_dispatch:
+  # push:
+    # only trigger on branches, not on tags
+    # branches: [ main ]
+env:
+  RENV_PATHS_ROOT: ~/.local/share/renv
+  
+# Ubuntu: ~/.local/share/renv
+# macOS: ~/Library/Application Support/renv
+# Windows: %LOCALAPPDATA%/renv 
+  
+jobs:
+  run-smokes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          # checkout full tree
+          fetch-depth: 0
+
+      - name: Set up R 
+        uses: r-lib/actions/setup-r@v1
+        with: 
+          r-version: '4.1.0'
+
+      - name: Cache packages
+        uses: actions/cache@v1
+        with:
+          path: ${{ env.RENV_PATHS_ROOT }}
+          key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-renv-
+
+      - name: Restore packages
+        run: |
+          pushd tests
+          Rscript -e "if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')"
+          Rscript -e "renv::restore()"
+          popd
+          
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+          
+      - name: Python Dependencies
+        run: |
+          pushd tests
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --user virtualenv
+          python3 -m pip install -r requirements.txt          
+          popd
+
+      - uses: ./.github/workflows/actions/quarto-dev
+            
+      - name: Smoke Test Commits
+        if: github.event.before != ''
+        run: |
+          for commit in $(git rev-list ${{ github.event.before}}..${{ github.sha}}); do
+              git checkout $commit
+              pushd tests
+              ./run-tests.sh
+              popd
+          done
+          
+      - name: Smoke Test Head
+        if: github.event.before == ''
+        run: |
+          pushd tests
+          ./run-tests.sh
+          popd
+        

@@ -6,7 +6,7 @@
 */
 
 import * as colors from "fmt/colors.ts";
-import { debug, error, info } from "log/mod.ts";
+import { error, info } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { basename, extname, join, posix, relative } from "path/mod.ts";
 
@@ -31,22 +31,26 @@ import {
   projectOutputDir,
 } from "../../project/project-context.ts";
 import { inputFileForOutputFile } from "../../project/project-index.ts";
+import { kProject404File } from "../../project/project-resources.ts";
+
+import { websitePath } from "../../project/types/website/website-config.ts";
 
 import { renderProject } from "../render/project.ts";
 import { renderResultFinalOutput } from "../render/render.ts";
 import { projectFreezerDir } from "../render/freeze.ts";
 
+import { kLocalhost } from "./port.ts";
 import { ProjectWatcher, watchProject } from "./watch.ts";
 
-export const kLocalhost = "127.0.0.1";
+export const kRenderNone = "none";
+export const kRenderDefault = "default";
 
 export type ServeOptions = {
   port: number;
-  render?: boolean;
+  render: string;
   browse?: boolean;
   watch?: boolean;
   navigate?: boolean;
-  debug?: boolean;
 };
 
 export async function serveProject(
@@ -55,20 +59,28 @@ export async function serveProject(
 ) {
   // provide defaults
   options = {
-    render: true,
     browse: true,
     watch: true,
     navigate: true,
-    debug: false,
     ...options,
   };
+
+  // show progress indicating what we are doing to prepare for serving
+  const render = options.render !== kRenderNone;
+  if (render) {
+    info("Rendering:");
+  } else {
+    info("Preparing to serve:");
+  }
 
   // render in the main directory
   const renderResult = await renderProject(
     project,
     {
-      useFreezer: true,
-      flags: { debug: options.debug },
+      useFreezer: !render,
+      flags: (render && options.render !== kRenderDefault)
+        ? { to: options.render }
+        : {},
     },
   );
 
@@ -79,10 +91,15 @@ export async function serveProject(
 
   // create mirror of project for serving
   const serveDir = copyProjectForServe(project, true);
-  const serveProject = await projectContext(serveDir);
+  const serveProject = (await projectContext(serveDir, false, true))!;
 
   // create project watcher
-  const watcher = watchProject(project, serveProject, renderResult, options);
+  const watcher = await watchProject(
+    project,
+    serveProject,
+    renderResult,
+    options,
+  );
 
   // create a promise queue so we only do one renderProject at a time
   const renderQueue = new PromiseQueue();
@@ -95,11 +112,11 @@ export async function serveProject(
     }
 
     // handle file requests
+    const serveOutputDir = projectOutputDir(serveProject);
     let response: Response | undefined;
     let fsPath: string | undefined;
     try {
       const normalizedUrl = normalizeURL(req.url);
-      const serveOutputDir = projectOutputDir(serveProject);
       fsPath = serveOutputDir + normalizedUrl!;
       // don't let the path escape the serveDir
       if (fsPath!.indexOf(serveOutputDir) !== 0) {
@@ -109,10 +126,20 @@ export async function serveProject(
       if (fileInfo && fileInfo.isDirectory) {
         fsPath = join(fsPath, "index.html");
       }
-      response = await serveFile(fsPath!, watcher, renderQueue);
-      printUrl(normalizedUrl);
+      if (fileInfo?.isDirectory && !normalizedUrl.endsWith("/")) {
+        response = serveRedirect(normalizedUrl + "/");
+      } else {
+        response = await serveFile(fsPath!, watcher, renderQueue);
+        printUrl(normalizedUrl);
+      }
     } catch (e) {
-      response = await serveFallback(req, e, fsPath!, options);
+      response = await serveFallback(
+        req,
+        e,
+        fsPath!,
+        serveOutputDir,
+        serveProject,
+      );
     } finally {
       try {
         await req.respond(response!);
@@ -132,7 +159,7 @@ export async function serveProject(
   if (options.watch) {
     info("Watching project for reload on changes");
   }
-  info(`Browse the site at `, {
+  info(`Browse preview at `, {
     newline: false,
   });
   info(`${siteUrl}`, { format: colors.underline });
@@ -172,7 +199,7 @@ export function copyProjectForServe(
   const libDirConfig = project.config?.project[kProjectLibDir];
   const libDir = libDirConfig ? join(project.dir, libDirConfig) : undefined;
 
-  const projectIgnore = projectIgnoreRegexes();
+  const projectIgnore = projectIgnoreRegexes(project.dir);
 
   const filter = (path: string) => {
     if (
@@ -198,17 +225,30 @@ export function copyProjectForServe(
   return Deno.realPathSync(serveDir);
 }
 
-export function maybeDisplaySocketError(e: Error) {
-  if (!(e instanceof Deno.errors.BrokenPipe)) {
-    logError(e);
+export function maybeDisplaySocketError(e: unknown) {
+  if (
+    !(e instanceof Deno.errors.BrokenPipe) &&
+    !(e instanceof Deno.errors.ConnectionAborted)
+  ) {
+    logError(e as Error);
   }
+}
+
+function serveRedirect(url: string): Response {
+  const headers = new Headers();
+  headers.set("Location", url);
+  return {
+    status: 301,
+    headers,
+  };
 }
 
 function serveFallback(
   req: ServerRequest,
   e: Error,
   fsPath: string,
-  options: ServeOptions,
+  serveOutputDir: string,
+  project: ProjectContext,
 ): Promise<Response> {
   const encoder = new TextEncoder();
   if (e instanceof URIError) {
@@ -222,19 +262,28 @@ function serveFallback(
       basename(fsPath) !== "favicon.ico" && extname(fsPath) !== ".map" &&
       !basename(fsPath).startsWith("jupyter-")
     ) {
-      if (options.debug) {
-        printUrl(url, false);
+      printUrl(url, false);
+    }
+    let body = encoder.encode("Not Found");
+    const custom404 = join(serveOutputDir, kProject404File);
+    if (existsSync(custom404)) {
+      let content404 = Deno.readTextFileSync(custom404);
+      // replace site-path references with / so they work in dev server mode
+      const sitePath = websitePath(project.config);
+      if (sitePath !== "/") {
+        content404 = content404.replaceAll(
+          new RegExp('((?:content|ref|src)=")(' + sitePath + ")", "g"),
+          "$1/",
+        );
       }
+      body = new TextEncoder().encode(content404);
     }
     return Promise.resolve({
       status: 404,
-      body: encoder.encode("Not Found"),
+      body,
     });
   } else {
     error(`500 (Internal Error): ${(e as Error).message}`, { bold: true });
-    if (options.debug) {
-      console.error(e);
-    }
     return Promise.resolve({
       status: 500,
       body: encoder.encode("Internal server error"),
@@ -273,7 +322,7 @@ async function serveFile(
         await renderQueue.enqueue(() =>
           renderProject(
             watcher.serveProject(),
-            { useFreezer: true, flags: { quiet: true } },
+            { useFreezer: true, devServerReload: true, flags: { quiet: true } },
             [inputFile!],
           )
         );
@@ -306,13 +355,16 @@ async function serveFile(
 
 function printUrl(url: string, found = true) {
   const format = !found ? colors.red : undefined;
-  url = url + (found ? "" : " (404: Not Found)");
+  const urlDisplay = url + (found ? "" : " (404: Not Found)");
   if (
     isHtmlContent(url) || url.endsWith("/") || extname(url) === ""
   ) {
-    debug(`\nGET: ${url}`, { bold: true, format: format || colors.green });
-  } else {
-    debug(url, { dim: found, format, indent: 1 });
+    info(`GET: ${urlDisplay}`, {
+      bold: false,
+      format: format || colors.green,
+    });
+  } else if (!found) {
+    info(urlDisplay, { dim: found, format, indent: 2 });
   }
 }
 

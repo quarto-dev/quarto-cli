@@ -24,6 +24,7 @@ import {
   kExecuteDaemonRestart,
   kExecuteDebug,
   kExecuteEnabled,
+  kExecuteIpynb,
   kFigAlign,
   kFigDpi,
   kFilterParams,
@@ -89,9 +90,11 @@ import {
 import { PandocFlags } from "./flags.ts";
 
 export const kDependencies = "dependencies";
-export const kSassBundles = "saas-bundles";
+export const kSassBundles = "sass-bundles";
 export const kHtmlPostprocessors = "html-postprocessors";
 export const kBodyEnvelope = "body-envelope";
+export const kTextHighlightingMode = "text-highlighting-mode";
+export const kQuartoCssVariables = "css-variables";
 
 export interface FormatDependency {
   name: string;
@@ -148,6 +151,8 @@ export interface FormatExtras {
     [kSassBundles]?: SassBundle[];
     [kBodyEnvelope]?: BodyEnvelope;
     [kHtmlPostprocessors]?: Array<(doc: Document) => Promise<string[]>>;
+    [kTextHighlightingMode]?: "dark" | "light" | undefined;
+    [kQuartoCssVariables]?: string[];
   };
 }
 
@@ -157,7 +162,11 @@ export interface Format {
   execute: FormatExecute;
   pandoc: FormatPandoc;
   metadata: Metadata;
-  formatExtras?: (flags: PandocFlags, format: Format) => Promise<FormatExtras>;
+  formatExtras?: (
+    input: string,
+    flags: PandocFlags,
+    format: Format,
+  ) => Promise<FormatExtras>;
   extensions?: Record<string, unknown>;
 }
 
@@ -196,6 +205,7 @@ export interface FormatExecute {
   [kCache]?: true | false | "refresh" | null;
   [kFreeze]?: true | false | "auto";
   [kExecuteEnabled]?: true | false | null;
+  [kExecuteIpynb]?: true | false | null;
   [kExecuteDaemon]?: number | boolean | null;
   [kExecuteDaemonRestart]?: boolean;
   [kExecuteDebug]?: boolean;

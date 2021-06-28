@@ -80,10 +80,7 @@ const r: EnvironmentData[] = [
   rPackageEnv(),
 ];
 
-const python: EnvironmentData[] = [
-  pythonEnv("python"),
-  pythonEnv("jupyter"),
-];
+const python: EnvironmentData[] = await pythonEnv();
 
 async function printEnvironmentData(
   envData: EnvironmentData,
@@ -102,7 +99,7 @@ async function printEnvironmentData(
   const metadata = await getMetadata(envData);
   cancelSpinner(false);
 
-  if ((path && version) || metadata) {
+  if ((path || version || metadata)) {
     // Print the title
     info(envData.name, { bold: true });
 

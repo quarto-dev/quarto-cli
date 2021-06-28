@@ -15,7 +15,11 @@ import { mergeConfigs } from "../core/config.ts";
 import { kSkipHidden, pathWithForwardSlashes } from "../core/path.ts";
 
 import { includedMetadata, Metadata } from "../config/metadata.ts";
-import { kMetadataFile, kMetadataFiles } from "../config/constants.ts";
+import {
+  kMetadataFile,
+  kMetadataFiles,
+  kQuartoVarsKey,
+} from "../config/constants.ts";
 import { Format, FormatExtras } from "../config/format.ts";
 import { PandocFlags } from "../config/flags.ts";
 
@@ -30,7 +34,7 @@ import {
   fileExecutionEngine,
 } from "../execute/engine.ts";
 import { projectResourceFiles } from "./project-resources.ts";
-import { kGitignoreEntries } from "./project-gitignore.ts";
+import { gitignoreEntries } from "./project-gitignore.ts";
 
 export const kProjectType = "type";
 export const kProjectRender = "render";
@@ -50,7 +54,7 @@ export interface ProjectContext {
   config?: ProjectConfig;
   formatExtras?: (
     project: ProjectContext,
-    input: string,
+    source: string,
     flags: PandocFlags,
     format: Format,
   ) => Promise<FormatExtras>;
@@ -70,6 +74,12 @@ export interface ProjectConfig {
 
 export function projectConfigFile(dir: string): string | undefined {
   return ["_quarto.yml", "_quarto.yaml"]
+    .map((file) => join(dir, file))
+    .find(existsSync);
+}
+
+export function projectVarsFile(dir: string): string | undefined {
+  return ["_variables.yml", "_variables.yaml"]
     .map((file) => join(dir, file))
     .find(existsSync);
 }
@@ -97,7 +107,11 @@ export function deleteProjectMetadata(metadata: Metadata) {
   delete metadata.project;
 }
 
-export async function projectContext(path: string): Promise<ProjectContext> {
+export async function projectContext(
+  path: string,
+  force = false,
+  forceHtml = false,
+): Promise<ProjectContext | undefined> {
   let dir = Deno.realPathSync(
     Deno.statSync(path).isDirectory ? path : dirname(path),
   );
@@ -112,6 +126,17 @@ export async function projectContext(path: string): Promise<ProjectContext> {
       projectConfig = mergeConfigs(projectConfig, metadata);
       delete projectConfig[kMetadataFile];
       delete projectConfig[kMetadataFiles];
+
+      // read vars and merge into the project
+      const varsFile = projectVarsFile(dir);
+      if (varsFile) {
+        const vars = readYaml(varsFile) as Metadata;
+        projectConfig[kQuartoVarsKey] = mergeConfigs(
+          projectConfig[kQuartoVarsKey] || {},
+          vars,
+        );
+      }
+
       if (projectConfig?.project?.[kProjectType]) {
         // get project config and type
 
@@ -126,7 +151,7 @@ export async function projectContext(path: string): Promise<ProjectContext> {
         }
         // see if the project [kProjectType] wants to filter the project config
         if (type.config) {
-          projectConfig = await type.config(dir, projectConfig);
+          projectConfig = await type.config(dir, projectConfig, forceHtml);
         }
         return {
           dir,
@@ -151,20 +176,32 @@ export async function projectContext(path: string): Promise<ProjectContext> {
     } else {
       const nextDir = dirname(dir);
       if (nextDir === dir) {
-        return {
-          dir: originalDir,
-          config: { project: {} },
-          files: {
-            input: Deno.statSync(path).isDirectory
-              ? projectInputFiles(originalDir)
-              : [Deno.realPathSync(path)],
-          },
-        };
+        if (force) {
+          return {
+            dir: originalDir,
+            config: { project: {} },
+            files: {
+              input: Deno.statSync(path).isDirectory
+                ? projectInputFiles(originalDir)
+                : [Deno.realPathSync(path)],
+            },
+          };
+        } else {
+          return undefined;
+        }
       } else {
         dir = nextDir;
       }
     }
   }
+}
+
+// read project context (if there is no project config file then still create
+// a context (i.e. implicitly treat directory as a project)
+export function projectContextForDirectory(
+  path: string,
+): Promise<ProjectContext> {
+  return projectContext(path, true) as Promise<ProjectContext>;
 }
 
 export function projectOutputDir(context: ProjectContext): string {
@@ -188,14 +225,14 @@ export function projectOffset(context: ProjectContext, input: string) {
   return pathWithForwardSlashes(offset);
 }
 
-export function projectIgnoreGlobs() {
+export function projectIgnoreGlobs(dir: string) {
   return engineIgnoreGlobs().concat(
-    kGitignoreEntries.map((ignore) => `**/${ignore}**`),
+    gitignoreEntries(dir).map((ignore) => `**/${ignore}**`),
   );
 }
 
-export function projectIgnoreRegexes() {
-  return projectIgnoreGlobs().map((glob) =>
+export function projectIgnoreRegexes(dir: string) {
+  return projectIgnoreGlobs(dir).map((glob) =>
     globToRegExp(glob, { extended: true, globstar: true })
   );
 }
@@ -211,7 +248,7 @@ export async function projectMetadataForInputFile(
     project = await projectContext(input);
   }
 
-  const projConfig = project.config || {};
+  const projConfig = project?.config || {};
 
   const fixupPaths = (collection: Array<unknown> | Record<string, unknown>) => {
     ld.forEach(
@@ -263,7 +300,7 @@ function projectInputFiles(dir: string, metadata?: ProjectConfig) {
 
   const outputDir = metadata?.project[kProjectOutputDir];
 
-  const projIgnoreGlobs = projectIgnoreGlobs() // standard ignores for all projects
+  const projIgnoreGlobs = projectIgnoreGlobs(dir) // standard ignores for all projects
     .concat(["**/_*", "**/_*/**"]) // underscore prefx
     .concat(["**/.*", "**/.*/**"]) // hidden (dot prefix)
     .concat(["README.?([Rr])md"]); // README

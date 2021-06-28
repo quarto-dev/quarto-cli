@@ -8,8 +8,6 @@
 import { extname } from "path/mod.ts";
 import { stringify } from "encoding/yaml.ts";
 
-import { mergeConfigs } from "../../core/config.ts";
-
 import { FormatPandoc, isLatexOutput } from "../../config/format.ts";
 
 import {

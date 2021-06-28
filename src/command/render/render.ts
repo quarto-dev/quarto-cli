@@ -85,6 +85,7 @@ import {
   kProjectType,
   ProjectContext,
   projectContext,
+  projectContextForDirectory,
   projectMetadataForInputFile,
   projectOffset,
 } from "../../project/project-context.ts";
@@ -107,6 +108,7 @@ export interface RenderOptions {
   flags?: RenderFlags;
   pandocArgs?: string[];
   useFreezer?: boolean;
+  devServerReload?: boolean;
 }
 
 // context for render
@@ -153,12 +155,26 @@ export async function render(
   const context = await projectContext(path);
 
   if (Deno.statSync(path).isDirectory) {
+    // if the path is a sub-directory of the project, then create
+    // a files list that is only those files in the subdirectory
+    let files: string[] | undefined;
+    if (context) {
+      const renderDir = Deno.realPathSync(path);
+      const projectDir = Deno.realPathSync(context.dir);
+      if (renderDir !== projectDir) {
+        files = context.files.input.filter((file) =>
+          file.startsWith(renderDir)
+        );
+      }
+    }
+
     // all directories are considered projects
     return renderProject(
-      context,
+      context || await projectContextForDirectory(path),
       options,
+      files,
     );
-  } else if (context.config) {
+  } else if (context?.config) {
     // if there is a project file then treat this as a project render
     // if the passed file is in the render list
     const renderPath = Deno.realPathSync(path);
@@ -227,16 +243,22 @@ export async function renderFiles(
     const progress = project && (files.length > 1) && !options.flags?.quiet;
 
     if (progress) {
-      info(`\nRendering project:`);
       options.flags = options.flags || {};
       options.flags.quiet = true;
     }
+
+    // calculate num width
+    const numWidth = String(files.length).length;
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
 
       if (progress) {
-        info(relative(project!.dir, file), { indent: 2 });
+        info(
+          `[${String(i + 1).padStart(numWidth)}/${files.length}] ${
+            relative(project!.dir, file)
+          }`,
+        );
       }
 
       // get contexts
@@ -276,6 +298,10 @@ export async function renderFiles(
       }
     }
 
+    if (progress) {
+      info("");
+    }
+
     return await pandocRenderer.onComplete();
   } catch (error) {
     return {
@@ -305,7 +331,7 @@ export async function renderContexts(
   }
 
   // resolve render target
-  const formats = await resolveFormats(target, engine, options.flags, project);
+  const formats = await resolveFormats(target, engine, options, project);
 
   // remove --to (it's been resolved into contexts)
   options = removePandocTo(options);
@@ -387,11 +413,15 @@ export async function renderExecute(
     projRelativeFilesDir = join(inputDir, filesDir);
   }
 
+  // are we eligible to freeze?
+  const canFreeze = context.engine.canFreeze &&
+    (context.format.execute[kExecuteEnabled] !== false);
+
   // use previous frozen results if they are available
   if (context.project && !alwaysExecute) {
     // check if we are using the freezer
 
-    const thaw = context.engine.canFreeze &&
+    const thaw = canFreeze &&
       (context.format.execute[kFreeze] ||
         (context.options.useFreezer ? "auto" : false));
 
@@ -456,7 +486,7 @@ export async function renderExecute(
   }
 
   // write the freeze file if we are in a project
-  if (context.project) {
+  if (context.project && canFreeze) {
     // write the freezer file
     const freezeFile = freezeExecuteResult(
       context.target.source,
@@ -545,7 +575,8 @@ export async function renderPandoc(
   // pandoc options
   const pandocOptions: PandocOptions = {
     markdown: executeResult.markdown,
-    input: context.target.input,
+    source: context.target.source,
+    metadata: context.target.metadata,
     output: recipe.output,
     libDir: context.libDir,
     format,
@@ -659,7 +690,7 @@ export function removePandocTo(renderOptions: RenderOptions) {
 
 export function renderResultFinalOutput(
   renderResults: RenderResult,
-  relativeToInput = false,
+  relativeToInputDir?: string,
 ) {
   // final output defaults to the first output of the first result
   let result = renderResults.files[0];
@@ -695,10 +726,10 @@ export function renderResultFinalOutput(
   }
 
   // return a path relative to the input file
-  if (relativeToInput) {
-    const inputRealPath = Deno.realPathSync(finalInput);
+  if (relativeToInputDir) {
+    const inputRealPath = Deno.realPathSync(relativeToInputDir);
     const outputRealPath = Deno.realPathSync(finalOutput);
-    return relative(dirname(inputRealPath), outputRealPath);
+    return relative(inputRealPath, outputRealPath);
   } else {
     return finalOutput;
   }
@@ -888,7 +919,7 @@ async function runHtmlPostprocessors(
 ): Promise<string[]> {
   const resourceRefs: string[] = [];
   if (htmlPostprocessors.length > 0) {
-    const outputFile = join(dirname(options.input), options.output);
+    const outputFile = join(dirname(options.source), options.output);
     const htmlInput = Deno.readTextFileSync(outputFile);
     const doctypeMatch = htmlInput.match(/^<!DOCTYPE.*?>/);
     const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
@@ -906,12 +937,12 @@ async function runHtmlPostprocessors(
 async function resolveFormats(
   target: ExecutionTarget,
   engine: ExecutionEngine,
-  flags?: RenderFlags,
+  options: RenderOptions,
   project?: ProjectContext,
 ): Promise<Record<string, Format>> {
   // merge input metadata into project metadata
   const projMetadata = await projectMetadataForInputFile(target.input, project);
-  const inputMetadata = await engine.metadata(target.input);
+  const inputMetadata = target.metadata;
 
   // determine order of formats
   const projType = projectType(project?.config?.project?.[kProjectType]);
@@ -926,14 +957,14 @@ async function resolveFormats(
     projMetadata,
     dirname(target.input),
     formats,
-    flags,
+    options.flags,
   );
 
   const inputFormats = resolveFormatsFromMetadata(
     inputMetadata,
     dirname(target.input),
     formats,
-    flags,
+    options.flags,
   );
 
   // merge the formats
@@ -973,6 +1004,17 @@ async function resolveFormats(
           `The ${formatName} format is not supported by ${projType.type} projects`,
         );
       }
+    }
+  }
+
+  // apply engine format filters
+  if (engine.filterFormat) {
+    for (const format of Object.keys(mergedFormats)) {
+      mergedFormats[format] = engine.filterFormat(
+        target.source,
+        options,
+        mergedFormats[format],
+      );
     }
   }
 

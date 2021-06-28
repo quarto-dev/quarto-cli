@@ -20,7 +20,8 @@ h2:hover > .anchorjs-link,
 h3:hover > .anchorjs-link,
 h4:hover > .anchorjs-link,
 h5:hover > .anchorjs-link,
-h6:hover > .anchorjs-link {
+h6:hover > .anchorjs-link,
+.reveal-anchorjs-link > .anchorjs-link {
   opacity: 1;
 }
 
@@ -51,8 +52,8 @@ code.sourceCode {
   overflow-y: hidden;
 }
 
-pre > code.sourceCode {
-  white-space: pre-wrap;
+pre.sourceCode.code-with-copy {
+  padding-right: 25px;
 }
 
 .code-copy-button {
@@ -60,6 +61,8 @@ pre > code.sourceCode {
   top: 0;
   right: 0;
   border: 0;
+  margin-top: 5px;
+  margin-right: 1px;
   background-color: transparent;
 }
 

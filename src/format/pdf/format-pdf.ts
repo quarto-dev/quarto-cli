@@ -83,7 +83,7 @@ function createPdfFormat(autoShiftHeadings = true): Format {
           tables: true,
         },
       },
-      formatExtras: (flags: PandocFlags, format: Format) => {
+      formatExtras: (_input: string, flags: PandocFlags, format: Format) => {
         // default to KOMA article class. we do this here rather than
         // above so that projectExtras can override us
         const extras: FormatExtras = {

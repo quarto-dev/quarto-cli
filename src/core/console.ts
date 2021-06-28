@@ -116,7 +116,7 @@ function spinContainer(body: string) {
   return `${kSpinerContainerChars[0]}${body}${kSpinerContainerChars[1]}`;
 }
 
-function completeMessage(msg: string) {
+export function completeMessage(msg: string) {
   info(
     `\r${kSpinerCompleteContainerChars[0]}${kSpinnerCompleteChar}${
       kSpinerCompleteContainerChars[1]

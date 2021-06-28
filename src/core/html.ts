@@ -7,6 +7,12 @@
 
 import { generate as generateUuid } from "uuid/v4.ts";
 
+import { pandocAutoIdentifier } from "./pandoc/pandoc-id.ts";
+
+export function asHtmlId(text: string) {
+  return pandocAutoIdentifier(text, false);
+}
+
 export function placeholderHtml(context: string, html: string) {
   return `${beginPlaceholder(context)}\n${html}\n${endPlaceholder(context)}`;
 }

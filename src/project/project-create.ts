@@ -38,12 +38,8 @@ export async function projectCreate(options: ProjectCreateOptions) {
     throw Error(`Invalid execution engine: ${options.engine}`);
   }
 
-  // track whether the directory already exists
-  // (if so then don't scaffold)
-  const dirAlreadyExists = existsSync(options.dir);
-  if (!dirAlreadyExists) {
-    ensureDirSync(options.dir);
-  }
+  // ensure that the directory exists
+  ensureDirSync(options.dir);
 
   options.dir = Deno.realPathSync(options.dir);
   info(`Creating project at `, { newline: false });
@@ -72,7 +68,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
 
   // create scaffold files if we aren't creating a project within the
   // current working directory (which presumably already has files)
-  if (options.scaffold && projCreate.scaffold && !dirAlreadyExists) {
+  if (options.scaffold && projCreate.scaffold) {
     for (const scaffold of projCreate.scaffold) {
       const md = projectMarkdownFile(
         options.dir,
@@ -82,7 +78,9 @@ export async function projectCreate(options: ProjectCreateOptions) {
         options.kernel,
         scaffold.title,
       );
-      info("- Created " + md, { indent: 2 });
+      if (md) {
+        info("- Created " + md, { indent: 2 });
+      }
     }
   }
 
@@ -133,7 +131,7 @@ function projectMarkdownFile(
   engine: ExecutionEngine,
   kernel?: string,
   title?: string,
-) {
+): string | undefined {
   // yaml/title
   const lines: string[] = ["---"];
   if (title) {
@@ -146,8 +144,8 @@ function projectMarkdownFile(
   // end yaml
   lines.push("---", "");
 
-  // if there are only 2 lines then there was no title or jupyter entry, clear them
-  if (lines.length === 2) {
+  // if there are only 3 lines then there was no title or jupyter entry, clear them
+  if (lines.length === 3) {
     lines.splice(0, lines.length);
   }
 
@@ -157,6 +155,10 @@ function projectMarkdownFile(
   // write file and return it's name
   name = name + engine.defaultExt;
   const path = join(dir, name);
-  Deno.writeTextFileSync(path, lines.join("\n") + "\n");
-  return name;
+  if (!existsSync(path)) {
+    Deno.writeTextFileSync(path, lines.join("\n") + "\n");
+    return name;
+  } else {
+    return undefined;
+  }
 }

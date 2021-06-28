@@ -113,7 +113,7 @@ export const bookProjectType: ProjectType = {
         [kCrossrefIndexFile]: pandocMetadataPath(
           crossrefIndexForOutputFile(
             options.project!.dir,
-            join(dirname(options.input), options.output),
+            join(dirname(options.source), options.output),
           ),
         ),
         [kCrossrefResolveRefs]: false,
@@ -144,6 +144,7 @@ export const bookProjectType: ProjectType = {
   preRender: websiteProjectType.preRender,
   postRender: bookPostRender,
   formatLibDirs: websiteProjectType.formatLibDirs,
+  canServe: true,
   metadataFields: () => [...websiteProjectType.metadataFields!(), "book"],
   resourceIgnoreFields: () => [
     ...websiteProjectType.resourceIgnoreFields!(),
@@ -153,7 +154,7 @@ export const bookProjectType: ProjectType = {
   // format extras
   formatExtras: async (
     context: ProjectContext,
-    input: string,
+    source: string,
     flags: PandocFlags,
     format: Format,
   ) => {
@@ -185,7 +186,7 @@ export const bookProjectType: ProjectType = {
       }
       const websiteExtras = await websiteProjectType.formatExtras!(
         context,
-        input,
+        source,
         flags,
         format,
       );

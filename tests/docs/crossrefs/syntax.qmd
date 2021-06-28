@@ -1,0 +1,22 @@
+---
+title: Syntax Test
+---
+
+
+![Elephant](img/thinker.jpg){#fig-elephant}
+
+:::{.figtest-default}
+@fig-elephant
+:::
+
+:::{.figtest-capitalized}
+@Fig-elephant
+:::
+
+:::{.figtest-prefix}
+[Figure @fig-elephant]
+:::
+
+:::{.figtest-noprefix}
+[-@fig-elephant]
+:::

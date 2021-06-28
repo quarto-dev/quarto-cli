@@ -9,20 +9,38 @@ import { join } from "path/mod.ts";
 
 import { DOMParser, HTMLDocument } from "deno_dom/deno-dom-wasm.ts";
 
-import { ProjectContext, projectOffset } from "../../project-context.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { dirAndStem } from "../../../core/path.ts";
 import { isHtmlContent } from "../../../core/mime.ts";
+
+import {
+  ProjectContext,
+  projectOffset,
+  projectOutputDir,
+} from "../../project-context.ts";
+import { kProject404File } from "../../project-resources.ts";
 
 import {
   ProjectCreate,
   ProjectOutputFile,
   ProjectType,
 } from "../project-type.ts";
-import { Format, FormatExtras, isHtmlOutput } from "../../../config/format.ts";
+
+import {
+  Format,
+  FormatExtras,
+  isHtmlOutput,
+  kDependencies,
+  kHtmlPostprocessors,
+} from "../../../config/format.ts";
 import { PandocFlags } from "../../../config/flags.ts";
 
-import { kPageTitle, kTitle, kTitlePrefix } from "../../../config/constants.ts";
+import {
+  kIncludeInHeader,
+  kPageTitle,
+  kTitle,
+  kTitlePrefix,
+} from "../../../config/constants.ts";
 import { formatHasBootstrap } from "../../../format/html/format-html-bootstrap.ts";
 
 import {
@@ -39,10 +57,16 @@ import {
   websiteProjectConfig,
   websiteTitle,
 } from "./website-config.ts";
+import { updateAliases } from "./website-aliases.ts";
+import { metadataHtmlPostProcessor } from "./website-meta.ts";
+import {
+  cookieConsentDependencies,
+  websiteAnalyticsScriptFile,
+} from "./website-analytics.ts";
 
 export const websiteProjectType: ProjectType = {
   type: "site",
-  create: (): ProjectCreate => {
+  create: (title: string): ProjectCreate => {
     const resourceDir = resourcePath(join("projects", "website"));
 
     return {
@@ -52,6 +76,7 @@ export const websiteProjectType: ProjectType = {
         {
           name: "index",
           content: "Home page",
+          title,
         },
         {
           name: "about",
@@ -72,6 +97,8 @@ export const websiteProjectType: ProjectType = {
   formatLibDirs:
     () => ["bootstrap", "quarto-nav", "quarto-search", "quarto-html"],
 
+  canServe: true,
+
   config: websiteProjectConfig,
 
   metadataFields: websiteMetadataFields,
@@ -84,14 +111,14 @@ export const websiteProjectType: ProjectType = {
 
   formatExtras: (
     project: ProjectContext,
-    input: string,
+    source: string,
     flags: PandocFlags,
     format: Format,
   ): Promise<FormatExtras> => {
     if (isHtmlOutput(format.pandoc)) {
       // navigation extras for bootstrap enabled formats
       const extras = formatHasBootstrap(format)
-        ? websiteNavigationExtras(project, input, flags, format)
+        ? websiteNavigationExtras(project, source, flags, format)
         : {};
 
       // add some title related variables
@@ -107,14 +134,45 @@ export const websiteProjectType: ProjectType = {
       }
 
       // pagetitle for home page if it has no title
-      const offset = projectOffset(project, input);
-      const [_dir, stem] = dirAndStem(input);
+      const offset = projectOffset(project, source);
+      const [_dir, stem] = dirAndStem(source);
       const home = (stem === "index" && offset === ".");
       if (
         home && !format.metadata[kTitle] && !format.metadata[kPageTitle] &&
         title
       ) {
         extras.metadata[kPageTitle] = title;
+      }
+
+      // html metadata
+      extras.html = extras.html || {};
+      extras.html[kHtmlPostprocessors] = extras.html[kHtmlPostprocessors] || [];
+      extras.html[kHtmlPostprocessors]?.push(
+        metadataHtmlPostProcessor(source, project, format, extras),
+      );
+
+      // Add html analytics extras, if any
+      const analyticsDependency = websiteAnalyticsScriptFile(project);
+      if (analyticsDependency) {
+        extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
+        extras[kIncludeInHeader]?.push(analyticsDependency);
+      }
+      const cookieDep = cookieConsentDependencies(project);
+      if (cookieDep) {
+        // Inline script
+        extras[kIncludeInHeader] = extras[kIncludeInHeader] || [];
+        extras[kIncludeInHeader]?.push(
+          cookieDep.scriptFile,
+        );
+
+        // dependency
+        extras.html = extras.html || {};
+        extras.html[kDependencies] = extras.html[kDependencies] || [];
+        extras.html[kDependencies]?.push(cookieDep.dependency);
+
+        extras.html[kHtmlPostprocessors] = extras.html[kHtmlPostprocessors] ||
+          [];
+        extras.html[kHtmlPostprocessors]?.push(cookieDep.htmlPostProcessor);
       }
 
       return Promise.resolve(extras);
@@ -146,6 +204,12 @@ export async function websitePostRender(
   incremental: boolean,
   outputFiles: ProjectOutputFile[],
 ) {
+  // filter out outputFiles that shouldn't be indexed
+  const doc404 = join(projectOutputDir(context), kProject404File);
+  outputFiles = outputFiles.filter((file) => {
+    return file.file !== doc404;
+  });
+
   // update sitemap
   await updateSitemap(context, outputFiles, incremental);
 
@@ -154,6 +218,9 @@ export async function websitePostRender(
 
   // write redirecting index.html if there is none
   ensureIndexPage(context);
+
+  // generate any page aliases
+  await updateAliases(outputFiles, context);
 }
 
 export function websiteOutputFiles(outputFiles: ProjectOutputFile[]) {

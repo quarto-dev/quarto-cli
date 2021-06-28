@@ -1,3 +1,12 @@
+/*
+* labels.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
+
+import { asHtmlId } from "../html.ts";
+
 import {
   displayDataIsImage,
   displayDataMimeType,
@@ -18,7 +27,9 @@ import {
 import { includeOutput } from "./tags.ts";
 
 export function cellLabel(cell: JupyterCellWithOptions) {
-  const label = (cell.options[kCellLabel] || cell.metadata[kCellName] || "");
+  const label = asHtmlId(
+    (cell.options[kCellLabel] || cell.metadata[kCellName] || ""),
+  );
 
   if (label && !label.startsWith("#")) {
     return "#" + label;
@@ -46,10 +57,11 @@ export function cellLabelValidator() {
 
 export function shouldLabelCellContainer(
   cell: JupyterCellWithOptions,
+  outputs: JupyterOutput[],
   options: JupyterToMarkdownOptions,
 ) {
   // no outputs
-  if (!cell.outputs) {
+  if (!outputs) {
     return true;
   }
 
@@ -59,7 +71,7 @@ export function shouldLabelCellContainer(
   }
 
   // no display data outputs
-  const displayDataOutputs = cell.outputs.filter(isDisplayData);
+  const displayDataOutputs = outputs.filter(isDisplayData);
   if (displayDataOutputs.length === 0) {
     return true;
   }

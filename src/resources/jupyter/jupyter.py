@@ -1,6 +1,7 @@
 
 import os
 import sys
+import re
 import json
 import stat
 import pprint
@@ -8,10 +9,22 @@ import uuid
 import signal
 import subprocess
 
-from socketserver import TCPServer, UnixStreamServer, StreamRequestHandler
+from socketserver import TCPServer, StreamRequestHandler
+
+try:
+   from socketserver import UnixStreamServer
+except:
+   pass
+
 
 from log import log_init, log, log_error, trace
 from notebook import notebook_execute, RestartKernel
+
+import asyncio
+if sys.platform == 'win32':
+   from asyncio.windows_events import *
+   asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 
 class ExecuteHandler(StreamRequestHandler):
 
@@ -165,14 +178,19 @@ def run_server(options):
       log_error("Unable to run server", exc_info = e)
 
 # run a server as a detached subprocess
-def run_server_subprocess(options):
+def run_server_subprocess(options, status):
+
+   # python executable
+   python_exe = sys.executable
 
    # detached process flags for windows
    flags = 0
-   if os.name == 'nt':
+   if sys.platform == 'win32':
+      python_exe = re.sub('python\\.exe$', 'pythonw.exe', python_exe)
       flags |= 0x00000008  # DETACHED_PROCESS
       flags |= 0x00000200  # CREATE_NEW_PROCESS_GROUP
       flags |= 0x08000000  # CREATE_NO_WINDOW
+      flags |= 0x01000000  # CREATE_BREAKAWAY_FROM_JOB
    else:
       signal.signal(signal.SIGCHLD, signal.SIG_IGN)
 
@@ -180,7 +198,7 @@ def run_server_subprocess(options):
    os.environ["QUARTO_JUPYTER_OPTIONS"] = json.dumps(options)
 
    # create subprocess
-   subprocess.Popen([sys.executable] + sys.argv + ["serve"],
+   subprocess.Popen([python_exe] + sys.argv + ["serve"],
       stdin = subprocess.DEVNULL,
       stdout = subprocess.DEVNULL,
       stderr = subprocess.DEVNULL,
@@ -191,11 +209,7 @@ def run_server_subprocess(options):
 
 
 # run a notebook directly (not a server)
-def run_notebook(options):
-   # stream status to stderr
-   def status(msg):
-      sys.stderr.write(msg)
-      sys.stderr.flush()
+def run_notebook(options, status):
 
    # run notebook w/ some special exception handling. note that we don't 
    # log exceptions here b/c they are considered normal course of execution
@@ -217,6 +231,11 @@ def run_notebook(options):
 
 if __name__ == "__main__":
 
+   # stream status to stderr
+   def status(msg):
+      sys.stderr.write(msg)
+      sys.stderr.flush()
+
    try:
       # read command from cmd line if it's there (in that case 
       # options are passed via environment variable)
@@ -237,7 +256,7 @@ if __name__ == "__main__":
       # only b/c Deno doesn't currently support detaching spawned processes)
       if command == "start":
          trace('starting notebook server subprocess')
-         run_server_subprocess(options)
+         run_server_subprocess(options, status)
 
       # serve a notebook (invoked by run_server_subprocess)
       elif command == "serve":
@@ -247,7 +266,7 @@ if __name__ == "__main__":
       # execute a notebook and then quit
       elif command == "execute":
          trace('running notebook without keepalive')
-         run_notebook(options)
+         run_notebook(options, status)
         
    except Exception as e:
       log_error("Unable to run notebook", exc_info = e)

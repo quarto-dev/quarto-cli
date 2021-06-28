@@ -5,14 +5,12 @@
 *
 */
 
-import { error } from "log/mod.ts";
+import { error, info } from "log/mod.ts";
 
 import { execProcess } from "../core/process.ts";
 import { rBinaryPath, resourcePath } from "../core/resources.ts";
 import { readYamlFromMarkdownFile } from "../core/yaml.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
-
-import { Metadata } from "../config/metadata.ts";
 
 import {
   DependenciesOptions,
@@ -25,6 +23,12 @@ import {
   RunOptions,
 } from "./engine.ts";
 import { sessionTempFile } from "../core/temp.ts";
+import {
+  knitrCapabilities,
+  knitrCapabilitiesMessage,
+  knitrInstallationMessage,
+  rInstallationMessage,
+} from "../core/knitr.ts";
 
 const kRmdExtensions = [".rmd", ".rmarkdown"];
 
@@ -48,11 +52,11 @@ export const knitrEngine: ExecutionEngine = {
   },
 
   target: (file: string, _quiet?: boolean) => {
-    return Promise.resolve({ source: file, input: file });
-  },
-
-  metadata: (file: string): Promise<Metadata> => {
-    return Promise.resolve(readYamlFromMarkdownFile(file));
+    return Promise.resolve({
+      source: file,
+      input: file,
+      metadata: readYamlFromMarkdownFile(file),
+    });
   },
 
   partitionedMarkdown: (file: string) => {
@@ -113,25 +117,50 @@ async function callR<T>(
     results: resultsFile,
   });
 
-  const result = await execProcess(
-    {
-      cmd: [
-        rBinaryPath("Rscript"),
-        resourcePath("rmd/rmd.R"),
-      ],
-      stderr: quiet ? "piped" : "inherit",
-    },
-    input,
-    "stdout>stderr",
-  );
+  try {
+    const result = await execProcess(
+      {
+        cmd: [
+          rBinaryPath("Rscript"),
+          resourcePath("rmd/rmd.R"),
+        ],
+        stderr: quiet ? "piped" : "inherit",
+      },
+      input,
+      "stdout>stderr",
+    );
 
-  if (result.success) {
-    const results = await Deno.readTextFile(resultsFile);
-    await Deno.remove(resultsFile);
-    const resultsJson = JSON.parse(results);
-    return resultsJson as T;
-  } else {
-    error(result.stderr);
+    if (result.success) {
+      const results = await Deno.readTextFile(resultsFile);
+      await Deno.remove(resultsFile);
+      const resultsJson = JSON.parse(results);
+      return resultsJson as T;
+    } else {
+      await printCallRDiagnostics();
+      return Promise.reject();
+    }
+  } catch (e) {
+    if (e?.message) {
+      info("");
+      error(e.message);
+    }
+    await printCallRDiagnostics();
     return Promise.reject();
+  }
+}
+
+async function printCallRDiagnostics() {
+  const caps = await knitrCapabilities();
+  if (caps && !caps.rmarkdown) {
+    info("");
+    info("R installation:");
+    info(knitrCapabilitiesMessage(caps, "  "));
+    info("");
+    info(knitrInstallationMessage());
+    info("");
+  } else if (!caps) {
+    info("");
+    info(rInstallationMessage());
+    info("");
   }
 }

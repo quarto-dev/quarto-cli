@@ -5,21 +5,26 @@
 *
 */
 
-import { existsSync } from "fs/exists.ts";
+import { exists, existsSync } from "fs/exists.ts";
 import { DOMParser } from "deno_dom/deno-dom-wasm.ts";
 import { assert } from "testing/asserts.ts";
+import { join } from "path/mod.ts";
 
 import { readYamlFromString } from "../src/core/yaml.ts";
 
 import { ExecuteOutput, Verify } from "./test.ts";
 import { outputForInput } from "./utils.ts";
+import { unzip } from "../src/core/zip.ts";
+import { dirAndStem } from "../src/core/path.ts";
 
 export const noErrorsOrWarnings = {
   name: "No Errors or Warnings",
   verify: (outputs: ExecuteOutput[]) => {
-    return !outputs.some((output) =>
+    const errorsOrWarnings = outputs.some((output) =>
       output.levelName === "warning" || output.levelName === "error"
     );
+    assert(!errorsOrWarnings, "An error or warning occurred during execution");
+    return Promise.resolve();
   },
 };
 
@@ -34,8 +39,30 @@ export const printsMessage = (
         return output.levelName === level && output.msg.match(regex);
       });
       assert(printedMessage, `Missing ${level} ${String(regex)}`);
+      return Promise.resolve();
     },
   };
+};
+
+export const printsJson = {
+  name: "Prints JSON Output",
+  verify: (outputs: ExecuteOutput[]) => {
+    outputs.filter((out) => out.msg !== "" && out.levelName === "INFO").forEach(
+      (out) => {
+        let json = undefined;
+        try {
+          json = JSON.parse(out.msg);
+        } catch {
+          assert(false, "Error parsing JSON returned by quarto meta");
+        }
+        assert(
+          Object.keys(json).length > 0,
+          "JSON returned by quarto meta seems invalid",
+        );
+      },
+    );
+    return Promise.resolve();
+  },
 };
 
 export const fileExists = (file: string): Verify => {
@@ -43,6 +70,7 @@ export const fileExists = (file: string): Verify => {
     name: `File ${file} exists`,
     verify: (_output: ExecuteOutput[]) => {
       verifyPath(file);
+      return Promise.resolve();
     },
   };
 };
@@ -60,6 +88,7 @@ export const outputCreated = (input: string, to: string): Verify => {
       // Check for existence of the output
       const outputFile = outputForInput(input, to);
       verifyPath(outputFile.outputPath);
+      return Promise.resolve();
     },
   };
 };
@@ -76,6 +105,7 @@ export const directoryEmptyButFor = (
           assert(false, `Unexpected content ${item.name} in ${dir}`);
         }
       }
+      return Promise.resolve();
     },
   };
 };
@@ -83,11 +113,12 @@ export const directoryEmptyButFor = (
 export const ensureHtmlElements = (
   file: string,
   selectors: string[],
+  noMatchSelectors?: string[],
 ): Verify => {
   return {
     name: "Inspecting HTML for Selectors",
-    verify: (_output: ExecuteOutput[]) => {
-      const htmlInput = Deno.readTextFileSync(file);
+    verify: async (_output: ExecuteOutput[]) => {
+      const htmlInput = await Deno.readTextFile(file);
       const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
       selectors.forEach((sel) => {
         assert(
@@ -95,9 +126,81 @@ export const ensureHtmlElements = (
           `Required DOM Element ${sel} is missing.`,
         );
       });
+
+      if (noMatchSelectors) {
+        noMatchSelectors.forEach((sel) => {
+          assert(
+            doc.querySelector(sel) === null,
+            `Illegal DOM Element ${sel} is present.`,
+          );
+        });
+      }
     },
   };
 };
+
+export const ensureFileRegexMatches = (
+  file: string,
+  matches: RegExp[],
+  noMatches?: RegExp[],
+): Verify => {
+  return {
+    name: `Inspecting ${file} for Regex matches`,
+    verify: async (_output: ExecuteOutput[]) => {
+      const tex = await Deno.readTextFile(file);
+      matches.forEach((regex) => {
+        assert(
+          regex.test(tex),
+          `Required match ${String(regex)} is missing from file ${file}.`,
+        );
+      });
+
+      if (noMatches) {
+        noMatches.forEach((regex) => {
+          assert(
+            !regex.test(tex),
+            `Illegal match ${String(regex)} was found in file ${file}.`,
+          );
+        });
+      }
+    },
+  };
+};
+
+export const ensureDocxRegexMatches = (
+  file: string,
+  regexes: RegExp[],
+): Verify => {
+  return {
+    name: "Inspecting Docx for Regex matches",
+    verify: async (_output: ExecuteOutput[]) => {
+      const [_dir, stem] = dirAndStem(file);
+      const temp = await Deno.makeTempDir();
+      try {
+        // Move the docx to a temp dir and unzip it
+        const zipFile = join(temp, stem + ".zip");
+        await Deno.rename(file, zipFile);
+        await unzip(zipFile);
+
+        // Open the core xml document and match the matches
+        const docXml = join(temp, "word", "document.xml");
+        const tex = await Deno.readTextFile(docXml);
+        regexes.forEach((regex) => {
+          assert(
+            regex.test(tex),
+            `Required DocX Element ${String(regex)} is missing.`,
+          );
+        });
+      } finally {
+        await Deno.remove(temp, { recursive: true });
+      }
+    },
+  };
+};
+
+export function requireLatexPackage(pkg: string): RegExp {
+  return RegExp(`\\\\usepackage{${pkg}}`, "g");
+}
 
 export const noSupportingFiles = (input: string, to: string): Verify => {
   return {
@@ -105,6 +208,7 @@ export const noSupportingFiles = (input: string, to: string): Verify => {
     verify: (_output: ExecuteOutput[]) => {
       const outputFile = outputForInput(input, to);
       verifyNoPath(outputFile.supportPath);
+      return Promise.resolve();
     },
   };
 };
@@ -115,6 +219,7 @@ export const hasSupportingFiles = (input: string, to: string): Verify => {
     verify: (_output: ExecuteOutput[]) => {
       const outputFile = outputForInput(input, to);
       verifyPath(outputFile.supportPath);
+      return Promise.resolve();
     },
   };
 };
@@ -125,16 +230,15 @@ export const verifyYamlFile = (
 ): Verify => {
   return {
     name: "Project Yaml is Valid",
-    verify: (_output: ExecuteOutput[]) => {
-      if (existsSync(file)) {
-        const raw = Deno.readTextFileSync(file);
+    verify: async (_output: ExecuteOutput[]) => {
+      if (await exists(file)) {
+        const raw = await Deno.readTextFile(file);
         if (raw) {
           const yaml = readYamlFromString(raw);
           const isValid = func(yaml);
           assert(isValid, "Project Metadata isn't valid");
         }
       }
-      return false;
     },
   };
 };

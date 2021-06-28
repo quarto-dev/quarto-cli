@@ -15,6 +15,9 @@ import { acceptWebSocket, WebSocket } from "ws/mod.ts";
 import { ld } from "lodash/mod.ts";
 
 import { pathWithForwardSlashes, removeIfExists } from "../../core/path.ts";
+import { isRStudioServer } from "../../core/platform.ts";
+
+import { logError } from "../../core/log.ts";
 
 import {
   kProjectLibDir,
@@ -23,7 +26,10 @@ import {
   projectOutputDir,
 } from "../../project/project-context.ts";
 
-import { resolveInputTarget } from "../../project/project-index.ts";
+import {
+  inputFileForOutputFile,
+  resolveInputTarget,
+} from "../../project/project-index.ts";
 
 import { fileExecutionEngine } from "../../execute/engine.ts";
 
@@ -31,11 +37,11 @@ import { RenderResult } from "../render/render.ts";
 
 import {
   copyProjectForServe,
-  kLocalhost,
   maybeDisplaySocketError,
   ServeOptions,
 } from "./serve.ts";
-import { logError } from "../../core/log.ts";
+
+import { kLocalhost } from "./port.ts";
 
 export interface ProjectWatcher {
   handle: (req: ServerRequest) => boolean;
@@ -45,16 +51,34 @@ export interface ProjectWatcher {
   refreshProject: () => Promise<ProjectContext>;
 }
 
-export function watchProject(
+export async function watchProject(
   project: ProjectContext,
   serveProject: ProjectContext,
   renderResult: RenderResult,
   options: ServeOptions,
-): ProjectWatcher {
+): Promise<ProjectWatcher> {
+  // track renderOnChange inputs
+  const renderOnChangeInputs: string[] = [];
+  const updateRenderOnChangeInputs = async () => {
+    // track render on change inputs
+    renderOnChangeInputs.splice(0, renderOnChangeInputs.length);
+    for (const inputFile of project.files.input) {
+      const engine = fileExecutionEngine(inputFile);
+      if (engine?.devServerRenderOnChange) {
+        if (await engine.devServerRenderOnChange(inputFile, project)) {
+          renderOnChangeInputs.push(inputFile);
+        }
+      }
+    }
+  };
+  await updateRenderOnChangeInputs();
+
   // helper to refresh project config
   const refreshProjectConfig = async () => {
-    project = await projectContext(project.dir);
-    serveProject = await projectContext(serveProject.dir);
+    // get project and temporary serve project
+    project = (await projectContext(project.dir, false, true))!;
+    serveProject = (await projectContext(serveProject.dir, false, true))!;
+    await updateRenderOnChangeInputs();
   };
 
   // proj dir
@@ -106,10 +130,7 @@ export function watchProject(
 
   // is this a renderOnChange input file?
   const isRenderOnChangeInput = (path: string) => {
-    if (project.files.input.includes(path) && existsSync(path)) {
-      const engine = fileExecutionEngine(path);
-      return engine && !!engine.renderOnChange;
-    }
+    return renderOnChangeInputs.includes(path) && existsSync(path);
   };
 
   // track every path that has been modified since the last reload
@@ -177,6 +198,7 @@ export function watchProject(
   // debounced function for notifying all clients of a change
   // (ensures that we wait for bulk file copying to complete
   // before triggering the reload)
+  let lastRenderOnChangeInput: string | undefined;
   const reloadClients = ld.debounce(async (refreshProject: boolean) => {
     try {
       // copy the project (refresh if requested)
@@ -193,6 +215,25 @@ export function watchProject(
       const lastHtmlFile = ld.uniq(modified).reverse().find((file) => {
         return extname(file) === ".html";
       });
+
+      // don't reload based on changes to html files generated from the last
+      // reloadOnChange refresh (as we've already reloaded)
+      if (lastHtmlFile) {
+        const outputDir = projectOutputDir(project);
+        const filePathRelative = relative(outputDir, lastHtmlFile);
+        const inputFile = await inputFileForOutputFile(
+          project,
+          filePathRelative,
+        );
+        if (inputFile && (inputFile === lastRenderOnChangeInput)) {
+          // clear out modified list
+          lastRenderOnChangeInput = undefined;
+          modified.splice(0, modified.length);
+          // return (nothing more to do)
+          return;
+        }
+      }
+
       let reloadTarget = "";
       if (lastHtmlFile && options.navigate) {
         if (lastHtmlFile.startsWith(outputDir)) {
@@ -211,6 +252,7 @@ export function watchProject(
       if (!reloadTarget) {
         const input = modified.find(isRenderOnChangeInput);
         if (input) {
+          lastRenderOnChangeInput = input;
           const target = await resolveInputTarget(
             project,
             relative(project.dir, input),
@@ -230,6 +272,17 @@ export function watchProject(
       for (let i = clients.length - 1; i >= 0; i--) {
         const socket = clients[i].socket;
         try {
+          // if this is rstudio server then we might need to include
+          // a port proxy url prefix
+          if (isRStudioServer()) {
+            const prefix = clients[i].path.match(/^\/p\/\w+/);
+            if (prefix) {
+              if (!reloadTarget.startsWith("/")) {
+                reloadTarget = "/" + reloadTarget;
+              }
+              reloadTarget = prefix[0] + reloadTarget;
+            }
+          }
           await socket.send(`reload${reloadTarget}`);
         } catch (e) {
           maybeDisplaySocketError(e);

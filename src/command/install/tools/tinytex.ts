@@ -257,15 +257,14 @@ async function afterInstall(context: InstallContext) {
           if (!existsSync(binPath)) {
             // Make the directory
             Deno.mkdirSync(binPath);
-
-            // Notify tlmgr of it
-            await exec(
-              tlmgrPath,
-              ["option", "sys_bin", binPath],
-            );
-
             restartRequired = true;
           }
+
+          // Notify tlmgr of it
+          await exec(
+            tlmgrPath,
+            ["option", "sys_bin", binPath],
+          );
         }
       },
     );

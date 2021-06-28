@@ -94,7 +94,7 @@ export class StdErrOutputHandler extends BaseHandler {
         msg = colors.yellow(msg);
         break;
       case log.LogLevels.ERROR:
-        msg = colors.red(msg);
+        msg = colors.brightRed(msg);
         break;
       case log.LogLevels.CRITICAL:
         msg = colors.bold(colors.red(msg));
@@ -231,8 +231,14 @@ export async function cleanupLogger() {
 
 export function logError(e: Error) {
   const isDebug = getenv("QUARTO_DEBUG", "false") === "true";
-  // Suppress the stack if this isn't a local / debug build
-  error(isDebug ? e.stack : `${e.name}: ${e.message}`);
+  // Suppress the stack if this isn't a local / debug built
+  if (isDebug) {
+    error(e.stack);
+  } else {
+    if (e.message) {
+      error(`${e.name}: ${e.message}`);
+    }
+  }
 }
 
 export function warnOnce(msg: string) {

@@ -19,6 +19,16 @@ knitr_hooks <- function(format) {
     }
   }
 
+  # forward 'output' to 'results'
+  opts_hooks[["results"]] <- function(options) {
+    if (identical(options[["output"]], TRUE)) {
+      options[["results"]] <- "markup"
+    } else if (identical(options[["output"]], FALSE)) {
+      options[["results"]] <- "hide"
+    }
+    options
+  }
+
   # automatically set gifski hook for fig.animate
   opts_hooks[["fig.show"]] <- function(options) {
     
@@ -176,16 +186,17 @@ knitr_hooks <- function(format) {
           }
         }
         if (!is.null(value)) {
-          forwardAttr <- c(forwardAttr, sprintf("%s='%s'", attr, value))
+          forwardAttr <- c(forwardAttr, sprintf("%s=\"%s\"", attr, value))
         }
       }
     }
 
     # forward any other unknown attributes
     knitr_default_opts <- names(knitr::opts_chunk$get())
-    quarto_opts <- c("label","fig.cap","fig.subcap","fig.scap","fig.link",
+    quarto_opts <- c("label","fig.cap","fig.subcap","fig.scap","fig.link", "fig.alt",
                      "fig.align","fig.env","fig.pos","fig.num", "lst.cap", 
-                     "lst.label", "layout.align", "layout.valign", "classes",
+                     "lst.label", "layout.align", "layout.valign", "classes", "fold", "summary",
+                     "layout", "layout.nrow", "layout.ncol", "layout.align",
                      "output", "include.hidden", "source.hidden", "plot.hidden", "output.hidden")
     other_opts <- c("eval", "out.width", "code", "params.src", 
                     "out.width.px", "out.height.px")
@@ -202,9 +213,12 @@ knitr_hooks <- function(format) {
                             })
     # append to forward list
     forwardAttr <- c(forwardAttr, 
-                     sprintf("%s='%s'", unknown_opts, unknown_values))
-    forwardAttr <- paste(forwardAttr, collapse = " ")
-    
+                     sprintf("%s=\"%s\"", unknown_opts, unknown_values))
+    if (length(forwardAttr) > 0)
+      forwardAttr <- paste0(" ", paste(forwardAttr, collapse = " "))
+    else
+      forwardAttr <- ""
+   
     # handle classes
     classes <- c("cell",options[["classes"]] )
     if (isTRUE(options[["include.hidden"]])) {
@@ -213,7 +227,7 @@ knitr_hooks <- function(format) {
     classes <- sapply(classes, function(clz) ifelse(startsWith(clz, "."), clz, paste0(".", clz)))
 
     # return cell
-    paste0("::: {", labelId(label), paste(classes, collapse = " ") ," ", forwardAttr, "}\n", x, "\n", cell.cap ,":::")
+    paste0("::: {", labelId(label), paste(classes, collapse = " ") ,forwardAttr, "}\n", x, "\n", cell.cap ,":::")
   })
   knit_hooks$source <- function(x, options) {
     x <- knitr:::one_string(c('', x))

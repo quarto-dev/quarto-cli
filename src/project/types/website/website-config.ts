@@ -7,7 +7,11 @@
 
 import { ld } from "lodash/mod.ts";
 
-import { kMetadataFormat } from "../../../config/constants.ts";
+import {
+  kDescription,
+  kMetadataFormat,
+  kTitle,
+} from "../../../config/constants.ts";
 import { isHtmlOutput } from "../../../config/format.ts";
 
 import { ProjectConfig } from "../../project-context.ts";
@@ -16,6 +20,7 @@ export const kSite = "site";
 
 export const kSiteTitle = "title";
 export const kSiteUrl = "site-url";
+export const kSitePath = "site-path";
 export const kSiteRepoUrl = "repo-url";
 export const kSiteRepoBranch = "repo-branch";
 export const kSiteRepoActions = "repo-actions";
@@ -28,6 +33,19 @@ export const kSiteFooter = "footer";
 
 export const kContents = "contents";
 
+export const kTwitterCard = "twitter-card";
+export const kOpenGraph = "open-graph";
+
+export const kCardStyle = "card-style";
+export const kImage = "image";
+export const kImageWidth = "image-width";
+export const kImageHeight = "image-height";
+export const kCreator = "creator";
+export const kTwitterSite = "site";
+
+export const kLocale = "locale";
+export const kSiteName = "site-name";
+
 export interface WebsiteConfig {
   [kSiteTitle]?: string;
   [kSiteUrl]?: string;
@@ -38,12 +56,36 @@ export interface WebsiteConfig {
   [kSiteSidebar]?: string;
   [kSitePageNavigation]?: boolean;
   [kSiteFooter]?: string;
+  [kOpenGraph]?: boolean | OpenGraphConfig;
+  [kTwitterCard]?: boolean | TwitterCardConfig;
+}
+
+export interface TwitterCardConfig {
+  [kTitle]?: string;
+  [kDescription]?: string;
+  [kCardStyle]?: "summary" | "summary_card_large";
+  [kImage]?: string;
+  [kImageWidth]?: number;
+  [kImageHeight]?: number;
+  [kTwitterSite]?: string;
+  [kCreator]?: string;
+}
+
+export interface OpenGraphConfig {
+  [kTitle]?: string;
+  [kDescription]?: string;
+  [kImage]?: string;
+  [kImageWidth]?: number;
+  [kImageHeight]?: number;
+  [kLocale]?: string;
+  [kSiteName]?: string;
 }
 
 export function websiteConfig(
   name:
     | "title"
     | "site-url"
+    | "site-path"
     | "repo-url"
     | "repo-branch"
     | "repo-actions"
@@ -70,6 +112,32 @@ export function websiteTitle(project?: ProjectConfig): string | undefined {
 
 export function websiteBaseurl(project?: ProjectConfig): string | undefined {
   return websiteConfig(kSiteUrl, project) as string | undefined;
+}
+
+export function websitePath(project?: ProjectConfig): string {
+  let path = websiteConfig(kSitePath, project) as string | undefined;
+  if (path) {
+    if (!path.endsWith("/")) {
+      path = path + "/";
+    }
+    return path;
+  } else {
+    const baseUrl = websiteBaseurl(project);
+    if (baseUrl) {
+      try {
+        const url = new URL(baseUrl);
+        let path = url.pathname;
+        if (!path.endsWith("/")) {
+          path = path + "/";
+        }
+        return path;
+      } catch {
+        return "/";
+      }
+    } else {
+      return "/";
+    }
+  }
 }
 
 export function websiteRepoUrl(project?: ProjectConfig): string | undefined {
@@ -129,6 +197,7 @@ export function websiteConfigActions(
 export function websiteProjectConfig(
   _projectDir: string,
   config: ProjectConfig,
+  forceHtml: boolean,
 ): Promise<ProjectConfig> {
   config = ld.cloneDeep(config);
   const format = config[kMetadataFormat] as
@@ -137,9 +206,7 @@ export function websiteProjectConfig(
     | undefined;
   if (format !== undefined) {
     if (typeof (format) === "string") {
-      if (isHtmlOutput(format, true)) {
-        return Promise.resolve(config);
-      } else {
+      if (!isHtmlOutput(format, true) && forceHtml) {
         config[kMetadataFormat] = {
           html: "default",
           [format]: "default",
@@ -148,14 +215,16 @@ export function websiteProjectConfig(
     } else {
       const formats = Object.keys(format);
       const orderedFormats = {} as Record<string, unknown>;
-      const htmlFormatPos = formats.findIndex((format) =>
-        isHtmlOutput(format, true)
-      );
-      if (htmlFormatPos !== -1) {
-        const htmlFormatName = formats.splice(htmlFormatPos, 1)[0];
-        orderedFormats[htmlFormatName] = format[htmlFormatName];
-      } else {
-        orderedFormats["html"] = "default";
+      if (forceHtml) {
+        const htmlFormatPos = formats.findIndex((format) =>
+          isHtmlOutput(format, true)
+        );
+        if (htmlFormatPos !== -1) {
+          const htmlFormatName = formats.splice(htmlFormatPos, 1)[0];
+          orderedFormats[htmlFormatName] = format[htmlFormatName];
+        } else {
+          orderedFormats["html"] = "default";
+        }
       }
       for (const formatName of formats) {
         orderedFormats[formatName] = format[formatName];

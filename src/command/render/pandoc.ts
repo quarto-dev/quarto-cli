@@ -31,21 +31,28 @@ import {
   kBodyEnvelope,
   kDependencies,
   kHtmlPostprocessors,
+  kQuartoCssVariables,
   kSassBundles,
+  kTextHighlightingMode,
   SassBundle,
 } from "../../config/format.ts";
-import { Metadata } from "../../config/metadata.ts";
+import {
+  isQuartoMetadata,
+  Metadata,
+  metadataGetDeep,
+} from "../../config/metadata.ts";
 import { binaryPath, resourcePath } from "../../core/resources.ts";
 import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
-import { partitionYamlFrontMatter } from "../../core/yaml.ts";
+import {
+  partitionYamlFrontMatter,
+  readYamlFromMarkdown,
+} from "../../core/yaml.ts";
 
 import {
   deleteProjectMetadata,
   ProjectContext,
 } from "../../project/project-context.ts";
 import { deleteCrossrefMetadata } from "../../project/project-crossrefs.ts";
-
-import { kBootstrapDependencyName } from "../../format/html/format-html.ts";
 
 import { removePandocArgs, RenderFlags } from "./flags.ts";
 import {
@@ -61,9 +68,11 @@ import {
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
+  kMetadataFormat,
   kNumberOffset,
   kNumberSections,
   kPageTitle,
+  kQuartoVarsKey,
   kResources,
   kTitle,
   kTitlePrefix,
@@ -76,13 +85,18 @@ import { cssImports, cssResources } from "../../core/css.ts";
 import { RunPandocResult } from "./render.ts";
 import { compileSass } from "./sass.ts";
 import { crossrefFilterActive } from "./crossref.ts";
+import { kQuartoHtmlDependency } from "../../format/html/format-html.ts";
 
 // options required to run pandoc
 export interface PandocOptions {
   // markdown input
   markdown: string;
-  // input file being processed
-  input: string;
+
+  // original source file
+  source: string;
+
+  // original metadata
+  metadata: Metadata;
 
   // output file that will be written
   output: string;
@@ -111,7 +125,7 @@ export async function runPandoc(
   sysFilters: string[],
 ): Promise<RunPandocResult | null> {
   // compute cwd for render
-  const cwd = dirname(options.input);
+  const cwd = dirname(options.source);
 
   // build the pandoc command (we'll feed it the input on stdin)
   const cmd = [binaryPath("pandoc")];
@@ -134,6 +148,7 @@ export async function runPandoc(
   // remove some metadata that are used as parameters to our lua filters
   const cleanMetadataForPrinting = (metadata: Metadata) => {
     delete metadata.params;
+    delete metadata[kQuartoVarsKey];
     deleteProjectMetadata(metadata);
     deleteCrossrefMetadata(metadata);
   };
@@ -155,14 +170,18 @@ export async function runPandoc(
     const projectExtras = options.project?.formatExtras
       ? (await options.project.formatExtras(
         options.project,
-        options.input,
+        options.source,
         options.flags || {},
         options.format,
       ))
       : {};
 
     const formatExtras = options.format.formatExtras
-      ? (await options.format.formatExtras(options.flags || {}, options.format))
+      ? (await options.format.formatExtras(
+        options.source,
+        options.flags || {},
+        options.format,
+      ))
       : {};
 
     const extras = await resolveExtras(
@@ -270,7 +289,7 @@ export async function runPandoc(
 
   // provide default page title if necessary
   if (!title && !pageTitle) {
-    const [_dir, stem] = dirAndStem(options.input);
+    const [_dir, stem] = dirAndStem(options.source);
     args.push(
       "--metadata",
       `pagetitle:${pandocAutoIdentifier(stem, false)}`,
@@ -314,8 +333,29 @@ export async function runPandoc(
   }
 
   // remove front matter from markdown (we've got it all incorporated into options.format.metadata)
-  const markdown = partitionYamlFrontMatter(options.markdown)?.markdown ||
-    options.markdown;
+  // also save the engine metadata as that will have the result of e.g. resolved inline expressions,
+  // (which we will use immediately below)
+  const paritioned = partitionYamlFrontMatter(options.markdown);
+  const engineMetadata =
+    (paritioned?.yaml ? readYamlFromMarkdown(paritioned.yaml) : {}) as Metadata;
+  const markdown = paritioned?.markdown || options.markdown;
+
+  // selectively overwrite some resolved metadata (e.g. ensure that metadata
+  // computed from inline r expressions gets included @ the bottom).
+  const pandocMetadata = ld.cloneDeep(options.format.metadata || {});
+  for (const key of Object.keys(engineMetadata)) {
+    // if it's standard pandoc metadata and NOT contained in a format specific
+    // override then use the engine metadata value
+    if (!isQuartoMetadata(key)) {
+      // don't do if they've overridden the value in a format
+      const formats = engineMetadata[kMetadataFormat] as Metadata;
+      if (ld.isObject(formats) && metadataGetDeep(formats, key).length > 0) {
+        continue;
+      }
+      // perform the override
+      pandocMetadata[key] = engineMetadata[key];
+    }
+  }
 
   // read the input file then append the metadata to the file (this is to that)
   // our fully resolved metadata, which incorporates project and format-specific
@@ -324,7 +364,7 @@ export async function runPandoc(
   const input = markdown +
     "\n\n<!-- -->\n" +
     `\n---\n${
-      stringify(options.format.metadata || {}, {
+      stringify(pandocMetadata, {
         indent: 2,
         sortKeys: false,
         skipInvalid: true,
@@ -421,12 +461,15 @@ async function resolveExtras(
       project,
     );
 
-    // resolve the merged highlight style
+    // Set the highlighting theme
     extras.pandoc = extras.pandoc || {};
-    extras.pandoc[kHighlightStyle] = resolveHighlightStyle(
+    extras.pandoc[kHighlightStyle] = textHighlightStyle(
       extras,
       format.pandoc,
     );
+
+    // Resolve generated quarto css variables
+    extras = await resolveQuartoCssVariables(extras);
 
     // resolve dependencies
     extras = resolveDependencies(extras, inputDir, libDir);
@@ -477,7 +520,7 @@ function resolveDependencies(
         Deno.copyFileSync(file.path, targetPath);
         if (template) {
           const href = join(libDir, dir, file.name);
-          lines.push(template({ href }));
+          lines.push(template({ href: pathWithForwardSlashes(href) }));
         }
       };
       if (dependency.meta) {
@@ -580,8 +623,11 @@ async function resolveSassBundles(
   for (const dependency of Object.keys(mergedBundles)) {
     // compile the cssPath
     const bundles = mergedBundles[dependency];
-    const cssPath = await compileSass(bundles);
-    const csssName = `${dependency}.min.css`;
+    let cssPath = await compileSass(bundles);
+    const cssName = `${dependency}.min.css`;
+
+    // look for a sentinel 'dark' value, extract variables
+    cssPath = processCssIntoExtras(cssPath, extras);
 
     // Find any imported stylesheets or url references
     // (These could come from user scss that is merged into our theme, for example)
@@ -610,7 +656,7 @@ async function resolveSassBundles(
           existingDependency.stylesheets = [];
         }
         existingDependency.stylesheets.push({
-          name: csssName,
+          name: cssName,
           path: cssPath,
         });
 
@@ -621,7 +667,7 @@ async function resolveSassBundles(
         extraDeps.push({
           name: dependency,
           stylesheets: [{
-            name: csssName,
+            name: cssName,
             path: cssPath,
           }, ...imports],
           resources,
@@ -629,7 +675,53 @@ async function resolveSassBundles(
       }
     }
   }
+  return extras;
+}
 
+async function resolveQuartoCssVariables(extras: FormatExtras) {
+  extras = ld.cloneDeep(extras);
+  // Generate and inject the text highlighting css
+  const kCssVariablesName = "quarto-css-variables";
+  const theme = extras.pandoc?.[kHighlightStyle] || kDefaultHighlightStyle;
+  if (theme) {
+    const highlightCss = generateThemeCssVars(theme);
+    const extraVariables = extras.html?.[kQuartoCssVariables] || [];
+
+    if (highlightCss) {
+      const rules = [
+        highlightCss,
+        "",
+        "/* other quarto variables */",
+        ...extraVariables,
+      ].join("\n");
+      const highlightCssPath = await compileSass([{
+        dependency: kCssVariablesName,
+        key: kCssVariablesName,
+        quarto: {
+          defaults: "",
+          functions: "",
+          mixins: "",
+          rules,
+        },
+      }], false);
+
+      // Find the quarto-html dependency and inject this stylesheet
+      const extraDeps = extras.html?.[kDependencies];
+      if (extraDeps) {
+        const existingDependency = extraDeps.find((extraDep) =>
+          extraDep.name === kQuartoHtmlDependency
+        );
+        if (existingDependency) {
+          existingDependency.stylesheets = existingDependency.stylesheets ||
+            [];
+          existingDependency.stylesheets.push({
+            name: `${kCssVariablesName}.css`,
+            path: highlightCssPath,
+          });
+        }
+      }
+    }
+  }
   return extras;
 }
 
@@ -652,7 +744,6 @@ function runPandocMessage(
 
     // remove filter params
     removeFilterParmas(printMetadata);
-
     // print message
     if (Object.keys(printMetadata).length > 0) {
       info("metadata", { bold: true });
@@ -665,46 +756,131 @@ const kDefaultHighlightStyle = "arrow";
 const kDarkSuffix = "dark";
 const kLightSuffix = "light";
 
-function resolveHighlightStyle(
+function textHighlightStyle(
   extras: FormatExtras,
   pandoc: FormatPandoc,
-): string | undefined {
-  // Look for a token indicating that that the theme is dark
-  const dark = extras.html?.[kDependencies]?.some((dependency) => {
-    // Inspect any bootstrap dependencies for a sentinel value
-    // that indicates that we should select a dark theme
-    if (dependency.name === kBootstrapDependencyName) {
-      return dependency.stylesheets?.some((stylesheet) => {
-        const css = Deno.readTextFileSync(stylesheet.path);
-
-        if (css.match(/\/\*! dark \*\//g)) {
-          return true;
-        } else {
-          return false;
-        }
-      });
-    } else {
-      return false;
-    }
-  });
-
+): string {
   // Get the user selected theme or choose a default
   const style = pandoc[kHighlightStyle] || kDefaultHighlightStyle;
+  const dark = extras.html?.[kTextHighlightingMode];
+  const theme = highlightFileForStyle(style, dark);
 
   // create the possible name matches based upon the dark vs. light
   // and find a matching theme file
   // Themes from
   // https://invent.kde.org/frameworks/syntax-highlighting/-/tree/master/data/themes
-  const names = [`${style}-${dark ? kDarkSuffix : kLightSuffix}`, style];
+  return theme || style;
+}
+
+function highlightFileForStyle(
+  style: string,
+  darkOrLight: "dark" | "light" | undefined,
+) {
+  const names = [
+    `${style}-${darkOrLight === "dark" ? kDarkSuffix : kLightSuffix}`,
+    style,
+  ];
   const theme = names.map((name) => {
     return resourcePath(join("pandoc", "highlight-styles", `${name}.theme`));
   }).find((path) => existsSync(path));
-
-  // If the name maps to a locally installed theme, use it
-  // otherwise just return the style name
-  if (theme) {
-    return theme;
-  } else {
-    return style;
-  }
+  return theme;
 }
+
+function processCssIntoExtras(cssPath: string, extras: FormatExtras) {
+  extras.html = extras.html || {};
+  const css = Deno.readTextFileSync(cssPath);
+
+  // Extract dark sentinel value
+  if (!extras.html[kTextHighlightingMode] && css.match(/\/\*! dark \*\//g)) {
+    extras.html[kTextHighlightingMode] = "dark";
+  }
+
+  // Extract variables
+  const matches = css.matchAll(kVariablesRegex);
+  if (matches) {
+    extras.html[kQuartoCssVariables] = extras.html[kQuartoCssVariables] || [];
+    let dirty = false;
+    for (const match of matches) {
+      const variables = match[1];
+      extras.html[kQuartoCssVariables]?.push(variables);
+      dirty = true;
+    }
+
+    if (dirty) {
+      const cleanedCss = css.replaceAll(kVariablesRegex, "");
+      const newCssPath = sessionTempFile({ suffix: ".css" });
+      Deno.writeTextFileSync(newCssPath, cleanedCss);
+      return newCssPath;
+    }
+  }
+  return cssPath;
+}
+const kVariablesRegex =
+  /\/\*\! quarto-variables-start \*\/([\S\s]*)\/\*\! quarto-variables-end \*\//g;
+
+function generateThemeCssVars(theme: string) {
+  if (existsSync(theme)) {
+    const themeRaw = Deno.readTextFileSync(theme);
+    const themeJson = JSON.parse(themeRaw);
+    const textStyles = themeJson["text-styles"];
+    if (textStyles) {
+      const lines: string[] = [];
+      lines.push("/* quarto syntax highlight colors */");
+      lines.push(":root {");
+      Object.keys(textStyles).forEach((styleName) => {
+        const abbr = kAbbrevs[styleName];
+        if (abbr) {
+          const textValues = textStyles[styleName];
+          Object.keys(textValues).forEach((textAttr) => {
+            switch (textAttr) {
+              case "text-color":
+                lines.push(
+                  `  --quarto-hl-${abbr}-color: ${textValues[textAttr] ||
+                    "inherit"};`,
+                );
+                break;
+            }
+          });
+        }
+      });
+      lines.push("}");
+      return lines.join("\n");
+    }
+  }
+  return undefined;
+}
+
+// From  https://github.com/jgm/skylighting/blob/a1d02a0db6260c73aaf04aae2e6e18b569caacdc/skylighting-core/src/Skylighting/Format/HTML.hs#L117-L147
+const kAbbrevs: Record<string, string> = {
+  "Keyword": "kw",
+  "DataType": "dt",
+  "DecVal": "dv",
+  "BaseN": "bn",
+  "Float": "fl",
+  "Char": "ch",
+  "String": "st",
+  "Comment": "co",
+  "Other": "ot",
+  "Alert": "al",
+  "Function": "fu",
+  "RegionMarker": "re",
+  "Error": "er",
+  "Constant": "cn",
+  "SpecialChar": "sc",
+  "VerbatimString": "vs",
+  "SpecialString": "ss",
+  "Import": "im",
+  "Documentation": "do",
+  "Annotation": "an",
+  "CommentVar": "cv",
+  "Variable": "va",
+  "ControlFlow": "cf",
+  "Operator": "op",
+  "BuiltIn": "bu",
+  "Extension": "ex",
+  "Preprocessor": "pp",
+  "Attribute": "at",
+  "Information": "in",
+  "Warning": "wa",
+  "Normal": "",
+};

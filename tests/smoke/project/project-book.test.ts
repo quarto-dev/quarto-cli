@@ -126,7 +126,6 @@ testQuartoCmd(
   {
     teardown: async () => {
       if (existsSync(bookOutDir)) {
-        console.log("clean " + bookOutDir);
         await Deno.remove(bookOutDir, { recursive: true });
       }
     },

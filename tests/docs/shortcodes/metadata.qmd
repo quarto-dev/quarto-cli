@@ -1,0 +1,15 @@
+---
+title: Shortcode Test
+basic-value: "Hello World"
+nested:
+  subkey: "Subkey Value"
+equation: "$a^2 + b^2 = c^2$"
+---
+
+## {{< meta basic-value >}}
+
+This is a cool document with some math such as ({{< meta equation >}}).
+
+Note that subkeys work too:
+
+{{< meta nested.subkey >}}

@@ -1,6 +1,3 @@
-
-
-
 div.quarto-container {
   min-height: 100vh;
 }
@@ -19,7 +16,6 @@ header.headroom--unpinned {
   transform: translateY(-100%);
 }
 
-
 .navbar-brand > img {
   max-height: 24px;
   width: auto;
@@ -35,14 +31,6 @@ nav .dropdown-item i {
   width: 11em;
 }
 
-.sidebar {
-  will-change: top;
-  transition: top 200ms linear;
-  background-color: $body-bg;
-  position: sticky;
-  overflow-y: auto;
-}
-
 .sidebar-navigation {
   padding-left: 20px;
 }
@@ -52,6 +40,7 @@ nav .dropdown-item i {
 }
 
 .sidebar-title {
+  margin-top: 0.25rem;
   padding-bottom: 0.5rem;
   font-size: 1.3rem;
   line-height: 1.4rem;
@@ -61,6 +50,14 @@ nav .dropdown-item i {
 .sidebar-title > a {
   font-size: inherit;
   text-decoration: none;
+}
+
+.sidebar-title .sidebar-tools-main {
+  margin-top: -6px;
+}
+
+.sidebar-header-stacked .sidebar-title {
+  margin-top: 0.6rem;
 }
 
 .sidebar-navigation .active {
@@ -85,6 +82,7 @@ nav .dropdown-item i {
 .sidebar-tools-main {
   margin-left: 8px;
   display: inline-block;
+  vertical-align: middle;
 }
 
 .sidebar-tools-collapse {
@@ -97,8 +95,16 @@ nav .dropdown-item i {
 }
 
 .sidebar-navigation .sidebar-section.depth1 {
-  padding-top: 0.2rem;
-  padding-bottom: 0.2rem;
+  padding-top: 0rem;
+  padding-bottom: 0.1rem;
+}
+
+.sidebar-navigation .sidebar-section.depth1 > li:first-of-type {
+  padding-top: 0.1rem;
+}
+
+.sidebar-navigation .sidebar-section.depth1 > li > div > ul {
+  margin-bottom: 0.4em;
 }
 
 .sidebar-navigation ul.sidebar-section.depth2 .sidebar-section-item {
@@ -112,8 +118,7 @@ nav .dropdown-item i {
 
 .sidebar-navigation .sidebar-section-item {
   font-size: 0.8rem;
-  padding: 0.1rem 0px;
-  margin-left: -1px;
+  padding-bottom: 0.1rem;
 }
 
 .sidebar-navigation .sidebar-section-item > a {
@@ -125,6 +130,11 @@ nav .dropdown-item i {
   padding-bottom: 3px;
 }
 
+.btn.sidebar-section-item {
+  border: none;
+  background-color: transparent;
+}
+
 .sidebar-navigation .sidebar-item {
   padding-left: 0px;
   padding-right: 0px;
@@ -133,7 +143,10 @@ nav .dropdown-item i {
 }
 
 .sidebar-navigation .sidebar-divider {
-  margin-left: 0.25rem;
+  margin-left: 0;
+  margin-right: 0;
+  margin-top: 0;
+  margin-bottom: 0.25rem;
 }
 
 .sidebar-navigation .sidebar-tool.dropdown-toggle::after {
@@ -173,15 +186,13 @@ nav .dropdown-item i {
 }
 
 @include media-breakpoint-down(lg) {
-
   .sidebar-navigation .sidebar-item a,
   .sidebar-navigation ul.sidebar-section.depth1 .sidebar-section-item,
   .nav-page .nav-page-text,
   .sidebar-navigation,
-  .sidebar-navigation a {
+  .sidebar-navigation .sidebar-menu-container a {
     font-size: $nav-font-size-enlarged;
   }
-  
 
   .sidebar-logo {
     display: none;
@@ -242,12 +253,11 @@ nav .dropdown-item i {
 }
 
 @include media-breakpoint-up(lg) {
-
   .sidebar-navigation .sidebar-item a,
   .sidebar-navigation ul.sidebar-section.depth1 .sidebar-section-item,
   .nav-page .nav-page-text,
   .sidebar-navigation,
-  .sidebar-navigation a {
+  .sidebar-navigation .sidebar-menu-container a {
     font-size: $nav-font-size;
   }
 
@@ -255,7 +265,7 @@ nav .dropdown-item i {
     max-width: 300px;
     min-width: 250px;
   }
-  
+
   .sidebar.sidebar-navigation {
     display: block;
     position: sticky;

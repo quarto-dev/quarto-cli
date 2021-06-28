@@ -4,9 +4,12 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { ensureDirSync, existsSync } from "fs/mod.ts";
+import { ensureDir, ensureDirSync, existsSync } from "fs/mod.ts";
 import { info } from "log/mod.ts";
 import { join } from "path/mod.ts";
+import { projectTypeResourcePath } from "../../../src/core/resources.ts";
+import { lines } from "../../../src/core/text.ts";
+import { runCmd } from "../util/cmd.ts";
 
 import { download, unzip } from "../util/utils.ts";
 import { Configuration } from "./config.ts";
@@ -111,6 +114,9 @@ export async function updateHtmlDepedencies(config: Configuration) {
   );
   cleanSourceMap(tippyJs);
 
+  // Cookie-Consent
+  await updateCookieConsent(config, "4.0.0", workingDir);
+
   // Clean existing directories
   [bsThemesDir, bsDistDir].forEach((dir) => {
     if (existsSync(dir)) {
@@ -139,11 +145,38 @@ export async function updateHtmlDepedencies(config: Configuration) {
     bsThemesDir,
   );
 
+  // Update Pandoc themes
+  await updatePandocHighlighting(config);
+
   // Clean up the temp dir
   Deno.removeSync(workingDir, { recursive: true });
   info(
     "\n** Done- please commit any files that have been updated. **\n",
   );
+}
+
+async function updateCookieConsent(
+  config: Configuration,
+  version: string,
+  working: string,
+) {
+  const fileName = "cookie-consent.js";
+  const url = `https://www.cookieconsent.com/releases/${version}/${fileName}`;
+  const tempPath = join(working, fileName);
+
+  info(`Downloading ${url}`);
+  await download(url, tempPath);
+
+  const targetDir = join(
+    config.directoryInfo.src,
+    "resources",
+    "projects",
+    "website",
+    "cookie-consent",
+  );
+  await ensureDir(targetDir);
+
+  await Deno.copyFile(tempPath, join(targetDir, fileName));
 }
 
 async function updateBootswatch(
@@ -278,6 +311,46 @@ async function updateBoostrapIcons(
   fixupFontCss(cssPath);
 
   info("Done\n");
+}
+
+async function updatePandocHighlighting(config: Configuration) {
+  info("Updating Pandoc Highlighting Themes...");
+
+  const highlightDir = join(
+    config.directoryInfo.src,
+    "resources",
+    "pandoc",
+    "highlight-styles",
+  );
+  const pandoc = join(config.directoryInfo.bin, "pandoc");
+
+  // List  the styles
+  const result = await runCmd(pandoc, ["--list-highlight-styles"]);
+  if (result.status.success) {
+    const highlightStyles = result.stdout;
+    if (highlightStyles) {
+      // Got through the list of styles and extract each style to our resources
+      const styles = lines(highlightStyles);
+      info(`Updating ${styles.length} styles...`);
+      for (const style of styles) {
+        if (style) {
+          info(`-> ${style}...`);
+          const themeResult = await runCmd(pandoc, [
+            "--print-highlight-style",
+            style,
+          ]);
+
+          if (themeResult.status.success) {
+            const themeData = themeResult.stdout;
+            await Deno.writeTextFile(
+              join(highlightDir, `${style}.theme`),
+              themeData,
+            );
+          }
+        }
+      }
+    }
+  }
 }
 
 async function updateUnpkgDependency(

@@ -44,17 +44,24 @@ export const metadataCommand = new Command()
     path = path || Deno.cwd();
 
     // print the config
-    const stat = Deno.statSync(path);
     // deno-lint-ignore no-explicit-any
-    const config: any = stat.isDirectory
-      ? (await projectContext(path)).config
-      : await renderFormats(path, options.to);
+    let config: any | undefined;
+    const stat = Deno.statSync(path);
+    if (stat.isDirectory) {
+      config = (await projectContext(path))?.config;
+    }
+    if (!config) {
+      config = await renderFormats(path, options.to);
+    }
+
     if (config) {
       // write using the requisite format
       const output = options.json
         ? JSON.stringify(config, undefined, 2)
         : stringify(config, { indent: 2, sortKeys: false, skipInvalid: true });
-      Deno.stdout.writeSync(new TextEncoder().encode(output + "\n"));
+      Deno.stdout.writeSync(
+        new TextEncoder().encode(output + "\n"),
+      );
     } else {
       throw new Error(`No configuration found for path '${path}'`);
     }

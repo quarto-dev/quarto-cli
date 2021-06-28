@@ -20,9 +20,11 @@ export interface ProjectType {
   config?: (
     projectDir: string,
     config: ProjectConfig,
+    forceHtml: boolean,
   ) => Promise<ProjectConfig>;
   libDir?: string;
   outputDir?: string;
+  canServe?: boolean;
   formatLibDirs?: () => string[];
   formatExtras?: (
     context: ProjectContext,

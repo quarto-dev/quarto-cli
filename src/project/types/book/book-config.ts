@@ -13,7 +13,10 @@ import { ld } from "lodash/mod.ts";
 import { safeExistsSync } from "../../../core/path.ts";
 import { Metadata } from "../../../config/metadata.ts";
 
-import { fileExecutionEngine } from "../../../execute/engine.ts";
+import {
+  engineValidExtensions,
+  fileExecutionEngine,
+} from "../../../execute/engine.ts";
 import { defaultWriterFormat } from "../../../format/formats.ts";
 
 import {
@@ -27,10 +30,13 @@ import { kProjectRender, ProjectConfig } from "../../project-context.ts";
 import {
   isGithubRepoUrl,
   kContents,
+  kImage,
+  kOpenGraph,
   kSite,
   kSiteFooter,
   kSiteNavbar,
   kSitePageNavigation,
+  kSitePath,
   kSiteRepoActions,
   kSiteRepoBranch,
   kSiteRepoUrl,
@@ -38,6 +44,7 @@ import {
   kSiteSidebarStyle,
   kSiteTitle,
   kSiteUrl,
+  kTwitterCard,
   websiteConfigActions,
   websiteProjectConfig,
 } from "../website/website-config.ts";
@@ -91,9 +98,10 @@ export type BookConfigKey =
 export async function bookProjectConfig(
   projectDir: string,
   config: ProjectConfig,
+  forceHtml: boolean,
 ) {
   // inherit website config behavior
-  config = await websiteProjectConfig(projectDir, config);
+  config = await websiteProjectConfig(projectDir, config, forceHtml);
 
   // ensure we have a site
   const site = (config[kSite] || {}) as Record<string, unknown>;
@@ -104,12 +112,16 @@ export async function bookProjectConfig(
   if (book) {
     site[kSiteTitle] = book[kSiteTitle];
     site[kSiteUrl] = book[kSiteUrl];
+    site[kSitePath] = book[kSitePath];
     site[kSiteRepoUrl] = book[kSiteRepoUrl];
     site[kSiteRepoBranch] = book[kSiteRepoBranch];
     site[kSiteRepoActions] = book[kSiteRepoActions];
     site[kSiteNavbar] = book[kSiteNavbar];
     site[kSiteSidebar] = book[kSiteSidebar];
     site[kSitePageNavigation] = book[kSitePageNavigation] !== false;
+    site[kOpenGraph] = book[kOpenGraph];
+    site[kTwitterCard] = book[kTwitterCard];
+    site[kImage] = book[kImage];
 
     // Conver the attribution markdown into html and place it into the footer
     const attributionMarkdown = book[kBookAttribution];
@@ -192,6 +204,14 @@ export async function bookProjectConfig(
   config.project[kProjectRender] = renderItems
     .filter((target) => !!target.file)
     .map((target) => target.file!);
+
+  // add any 404 page we find
+  const ext404 = engineValidExtensions().find((ext) =>
+    existsSync(join(projectDir, `404${ext}`))
+  );
+  if (ext404) {
+    config.project[kProjectRender]!.push(`404${ext404}`);
+  }
 
   // return config
   return config;

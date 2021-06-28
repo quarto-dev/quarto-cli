@@ -9,7 +9,11 @@ import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
 
 import { fixupCssReferences } from "../../project-resources.ts";
 
-export function resolveResourceRefs(doc: Document, offset: string) {
+export function resolveResourceRefs(
+  doc: Document,
+  offset: string,
+  forceRoot: string | null,
+) {
   // refs that need to be copied
   const refs: string[] = [];
 
@@ -22,7 +26,7 @@ export function resolveResourceRefs(doc: Document, offset: string) {
     "embed": "src",
   };
   Object.keys(tags).forEach((tag) => {
-    refs.push(...resolveTag(doc, offset, tag, tags[tag]));
+    refs.push(...resolveTag(doc, offset, tag, tags[tag], forceRoot));
   });
 
   // css references (import/url)
@@ -47,6 +51,7 @@ function resolveTag(
   offset: string,
   tag: string,
   attrib: string,
+  forceRoot: string | null,
 ) {
   const refs: string[] = [];
   const tags = doc.querySelectorAll(tag);
@@ -54,7 +59,11 @@ function resolveTag(
     const tag = tags[i] as Element;
     let href = tag.getAttribute(attrib);
     if (href && isSiteRef(href)) {
-      if (href.startsWith("/")) {
+      if (forceRoot) {
+        if (!href.startsWith("/")) {
+          tag.setAttribute(attrib, forceRoot + href);
+        }
+      } else if (href.startsWith("/")) {
         href = offset + href;
         tag.setAttribute(attrib, href);
       }

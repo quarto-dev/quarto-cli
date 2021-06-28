@@ -20,7 +20,7 @@ import { resourcePath } from "../../../core/resources.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { warnOnce } from "../../../core/log.ts";
 
-import { pandocAutoIdentifier } from "../../../core/pandoc/pandoc-id.ts";
+import { asHtmlId } from "../../../core/html.ts";
 
 import { kTocTitle } from "../../../config/constants.ts";
 import {
@@ -85,10 +85,12 @@ import {
   kSiteSidebar,
   websiteConfig,
   websiteConfigActions,
+  websitePath,
   websiteRepoBranch,
   websiteRepoUrl,
   websiteTitle,
 } from "./website-config.ts";
+import { cookieConsentEnabled } from "./website-analytics.ts";
 
 interface Navigation {
   navbar?: Navbar;
@@ -154,7 +156,8 @@ export function websiteNavigationConfig(project: ProjectContext) {
   const pageNavigation = !!websiteConfig(kSitePageNavigation, project.config);
 
   // read any footer
-  const footer = websiteConfig(kSiteFooter, project.config);
+  const footer = websiteConfig(kSiteFooter, project.config) ||
+    (cookieConsentEnabled(project) ? "&nbsp;" : undefined);
 
   // return
   return { navbar, sidebars, pageNavigation, footer };
@@ -162,12 +165,12 @@ export function websiteNavigationConfig(project: ProjectContext) {
 
 export function websiteNavigationExtras(
   project: ProjectContext,
-  input: string,
+  source: string,
   flags: PandocFlags,
   format: Format,
 ): FormatExtras {
   // find the relative path for this input
-  const inputRelative = relative(project.dir, input);
+  const inputRelative = relative(project.dir, source);
 
   // determine dependencies (always include baseline nav dependency)
   const dependencies: FormatDependency[] = [
@@ -177,7 +180,7 @@ export function websiteNavigationExtras(
   // Determine any sass bundles
   const sassBundles: SassBundle[] = [websiteNavigationSassBundle()];
 
-  const searchDep = websiteSearchDependency(project, input);
+  const searchDep = websiteSearchDependency(project, source);
   if (searchDep) {
     dependencies.push(searchDep);
     sassBundles.push(websiteSearchSassBundle());
@@ -240,7 +243,7 @@ export function websiteNavigationExtras(
       [kSassBundles]: sassBundles,
       [kDependencies]: dependencies,
       [kBodyEnvelope]: bodyEnvelope,
-      [kHtmlPostprocessors]: [navigationHtmlPostprocessor(project, input)],
+      [kHtmlPostprocessors]: [navigationHtmlPostprocessor(project, source)],
     },
   };
 }
@@ -254,22 +257,32 @@ export async function ensureIndexPage(project: ProjectContext) {
       const firstInputHref = relative(project.dir, firstInput);
       const resolved = await resolveInputTarget(project, firstInputHref);
       if (resolved) {
-        const redirectTemplate = resourcePath(
-          "projects/website/templates/redirect.ejs",
-        );
-        const redirectHtml = renderEjs(redirectTemplate, {
-          url: resolved.outputHref,
-        });
-        Deno.writeTextFileSync(indexPage, redirectHtml);
+        writeRedirectPage(indexPage, resolved.outputHref);
       }
     }
   }
 }
 
-function navigationHtmlPostprocessor(project: ProjectContext, input: string) {
-  const inputRelative = relative(project.dir, input);
-  const offset = projectOffset(project, input);
-  const href = inputFileHref(inputRelative);
+export function writeRedirectPage(path: string, href: string) {
+  const redirectTemplate = resourcePath(
+    "projects/website/templates/redirect.ejs",
+  );
+  const redirectHtml = renderEjs(redirectTemplate, {
+    url: href,
+  });
+  Deno.writeTextFileSync(path, redirectHtml);
+}
+
+export function inputFileHref(href: string) {
+  const [hrefDir, hrefStem] = dirAndStem(href);
+  const htmlHref = "/" + join(hrefDir, `${hrefStem}.html`);
+  return pathWithForwardSlashes(htmlHref);
+}
+
+function navigationHtmlPostprocessor(project: ProjectContext, source: string) {
+  const sourceRelative = relative(project.dir, source);
+  const offset = projectOffset(project, source);
+  const href = inputFileHref(sourceRelative);
 
   return async (doc: Document) => {
     // latch active nav link
@@ -316,7 +329,7 @@ function navigationHtmlPostprocessor(project: ProjectContext, input: string) {
       if (href && !isExternalPath(href)) {
         let projRelativeHref = href.startsWith("/")
           ? href.slice(1)
-          : join(dirname(inputRelative), href);
+          : join(dirname(sourceRelative), href);
         const hashLoc = projRelativeHref.indexOf("#");
         const hash = hashLoc !== -1 ? projRelativeHref.slice(hashLoc) : "";
         if (hash) {
@@ -330,14 +343,15 @@ function navigationHtmlPostprocessor(project: ProjectContext, input: string) {
     }
 
     // append repo actions to toc
-    addRepoActions(doc, inputRelative, project.config);
+    addRepoActions(doc, sourceRelative, project.config);
 
     // resolve resource refs
-    return Promise.resolve(resolveResourceRefs(doc, offset));
+    const forceRoot = href === "/404.html" ? websitePath(project.config) : null;
+    return Promise.resolve(resolveResourceRefs(doc, offset, forceRoot));
   };
 }
 
-function addRepoActions(doc: Document, input: string, config?: ProjectConfig) {
+function addRepoActions(doc: Document, source: string, config?: ProjectConfig) {
   const repoActions = websiteConfigActions(
     kSiteRepoActions,
     kSite,
@@ -355,7 +369,7 @@ function addRepoActions(doc: Document, input: string, config?: ProjectConfig) {
             repoActions,
             repoUrl,
             websiteRepoBranch(config),
-            input,
+            source,
           );
           const actionsDiv = doc.createElement("div");
           actionsDiv.classList.add("toc-actions");
@@ -392,19 +406,19 @@ function repoActionLinks(
   actions: string[],
   repoUrl: string,
   branch: string,
-  input: string,
+  source: string,
 ): Array<{ text: string; url: string }> {
   return actions.map((action) => {
     switch (action) {
       case "edit":
         return {
           text: "Edit this page",
-          url: `${repoUrl}edit/${branch}/${input}`,
+          url: `${repoUrl}edit/${branch}/${source}`,
         };
       case "source":
         return {
           text: "View source",
-          url: `${repoUrl}blob/${branch}/${input}`,
+          url: `${repoUrl}blob/${branch}/${source}`,
         };
       case "issue":
         return {
@@ -435,7 +449,7 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
 
   // if the sidebar has a title and no id generate the id
   if (sidebar.title && !sidebar.id) {
-    sidebar.id = pandocAutoIdentifier(sidebar.title, false);
+    sidebar.id = asHtmlId(sidebar.title);
   }
 
   // ensure title and search are present
@@ -492,7 +506,7 @@ async function resolveSidebarItems(
 
 async function resolveSidebarItem(project: ProjectContext, item: SidebarItem) {
   if (item.href) {
-    return await resolveItem(
+    item = await resolveItem(
       project,
       item.href,
       item,
@@ -623,6 +637,10 @@ function flattenItems(
   return items;
 }
 
+function isSeparator(item?: SidebarItem) {
+  return !!item && !!item.text?.match(/^\-\-\-[\-\s]*$/);
+}
+
 function nextAndPrevious(
   href: string,
   sidebar?: Sidebar,
@@ -632,17 +650,23 @@ function nextAndPrevious(
       sidebar?.contents,
       (item: SidebarItem) => {
         // Only include items that have a link that isn't external
-        return item.href !== undefined && !isExternalPath(item.href);
+        return item.href !== undefined && !isExternalPath(item.href) ||
+          isSeparator(item);
       },
     );
     const index = sidebarItems.findIndex((item) => item.href === href);
+    const nextPage = index > -1 && index < sidebarItems.length - 1 &&
+        !isSeparator(sidebarItems[index + 1])
+      ? sidebarItems[index + 1]
+      : undefined;
+    const prevPage = index > -1 && index < sidebarItems.length - 1 &&
+        !isSeparator(sidebarItems[index - 1])
+      ? sidebarItems[index - 1]
+      : undefined;
+
     return {
-      nextPage: index > -1 && index < sidebarItems.length - 1
-        ? sidebarItems[index + 1]
-        : undefined,
-      prevPage: index > 0 && index < sidebarItems.length
-        ? sidebarItems[index - 1]
-        : undefined,
+      nextPage,
+      prevPage,
     };
   } else {
     return {};
@@ -756,7 +780,7 @@ async function navigationItem(
 
 const menuIds = new Map<string, number>();
 function uniqueMenuId(navItem: NavbarItem) {
-  const id = pandocAutoIdentifier(navItem.text || navItem.icon || "", false);
+  const id = asHtmlId(navItem.text || navItem.icon || "");
   const number = menuIds.get(id) || 0;
   menuIds.set(id, number + 1);
   return `nav-menu-${id}${number ? ("-" + number) : ""}`;
@@ -871,12 +895,6 @@ function navigationDependency(resource: string) {
 
 function isExternalPath(path: string) {
   return /^\w+:/.test(path);
-}
-
-function inputFileHref(href: string) {
-  const [hrefDir, hrefStem] = dirAndStem(href);
-  const htmlHref = "/" + join(hrefDir, `${hrefStem}.html`);
-  return pathWithForwardSlashes(htmlHref);
 }
 
 function resolveNavReferences(

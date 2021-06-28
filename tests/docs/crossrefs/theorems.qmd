@@ -1,0 +1,16 @@
+---
+title: Theorem Test
+---
+
+
+::: {#thm-line}
+## Line
+
+The equation of any straight line, called a linear equation, can be written as:
+
+$$
+y = mx + b
+$$
+:::
+
+See @thm-line.

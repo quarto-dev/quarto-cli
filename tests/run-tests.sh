@@ -25,6 +25,8 @@ QUARTO_DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-e
 
 ${DENO_DIR}/deno test ${QUARTO_DENO_OPTIONS} ${QUARTO_IMPORT_ARGMAP} $@
 
+SUCCESS=$?
+
 # Generates the coverage report
 if [[ $@ == *"--coverage"* ]]; then
 
@@ -33,6 +35,8 @@ if [[ $@ == *"--coverage"* ]]; then
 
   echo Generating coverage report...
   ${DENO_DIR}/deno coverage --unstable ${COV} --lcov > ${COV}.lcov
-  genhtml -o cov_profile/html ${COV}.lcov
-  open cov_profile/html/index.html
+  genhtml -o ${COV}/html ${COV}.lcov
+  open ${COV}/html/index.html
 fi
+
+exit ${SUCCESS}

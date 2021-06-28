@@ -8,38 +8,33 @@ import { which } from "../../core/path.ts";
 import { execProcess } from "../../core/process.ts";
 import { rBinaryPath } from "../../core/resources.ts";
 import { sessionTempFile } from "../../core/temp.ts";
+import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
 
-import { pythonBinary } from "../../execute/jupyter/jupyter.ts";
 import { EnvironmentData, EnvironmentDataOutputOptions } from "./cmd.ts";
 
-export function pythonEnv(
-  name: string,
+export async function pythonEnv(
   options?: EnvironmentDataOutputOptions,
-): EnvironmentData {
-  return {
-    name: name,
-    path: async () => {
-      // Need to resolve the path (e.g. which)
-      const path = await which(pythonBinary(name));
-      return path;
+): Promise<EnvironmentData[]> {
+  const caps = await jupyterCapabilities();
+
+  return [{
+    name: "python",
+    path: () => {
+      return Promise.resolve(caps?.execPrefix);
     },
-    version: async () => {
-      try {
-        const r = await execProcess({
-          cmd: [
-            pythonBinary(name),
-            "--version",
-          ],
-          stdout: "piped",
-          stderr: "piped",
-        });
-        return r.stdout;
-      } catch {
-        return undefined;
-      }
+    version: () => {
+      return Promise.resolve(caps?.versionStr);
     },
     options,
-  };
+  }, {
+    name: "jupyter",
+    path: () => {
+      return Promise.resolve(undefined);
+    },
+    version: () => {
+      return Promise.resolve(caps?.jupyter_core || undefined);
+    },
+  }];
 }
 
 export function rBinaryEnv(

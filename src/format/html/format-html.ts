@@ -41,7 +41,11 @@ import { createHtmlFormat } from "./../formats.ts";
 
 import { boostrapExtras, formatHasBootstrap } from "./format-html-bootstrap.ts";
 
-import { quartoFunctions, quartoRules } from "./format-html-scss.ts";
+import {
+  quartoFunctions,
+  quartoGlobalCssVariableRules,
+  quartoRules,
+} from "./format-html-scss.ts";
 
 export const kCodeCopy = "code-copy";
 export const kAnchorSections = "anchor-sections";
@@ -67,11 +71,11 @@ export function htmlFormat(
   return mergeConfigs(
     createHtmlFormat(figwidth, figheight),
     {
-      formatExtras: (flags: PandocFlags, format: Format) => {
+      formatExtras: (input: string, flags: PandocFlags, format: Format) => {
         const htmlFilterParams = htmlFormatFilterParams(format);
         return mergeConfigs(
           htmlFormatExtras(format),
-          themeFormatExtras(flags, format),
+          themeFormatExtras(input, flags, format),
           { [kFilterParams]: htmlFilterParams },
         );
       },
@@ -110,6 +114,7 @@ export function htmlFormatPostprocessor(format: Format) {
       const codeBlocks = doc.querySelectorAll("pre.sourceCode");
       for (let i = 0; i < codeBlocks.length; i++) {
         const code = codeBlocks[i];
+        (code as Element).classList.add("code-with-copy");
 
         const copyButton = doc.createElement("button");
         const title = "Copy to Clipboard";
@@ -177,7 +182,7 @@ export function htmlFormatPostprocessor(format: Format) {
   };
 }
 
-function themeFormatExtras(flags: PandocFlags, format: Format) {
+function themeFormatExtras(input: string, flags: PandocFlags, format: Format) {
   const theme = format.metadata[kTheme];
   if (theme === "none") {
     return {
@@ -188,13 +193,14 @@ function themeFormatExtras(flags: PandocFlags, format: Format) {
   } else if (theme === "pandoc") {
     return pandocExtras(format);
   } else {
-    return boostrapExtras(flags, format);
+    return boostrapExtras(input, flags, format);
   }
 }
 
+export const kQuartoHtmlDependency = "quarto-html";
 function htmlFormatExtras(format: Format): FormatExtras {
   // lists of scripts and ejs data for the orchestration script
-  const kQuartoHtmlDependency = "quarto-html";
+
   const scripts: DependencyFile[] = [];
   const stylesheets: DependencyFile[] = [];
   const bootstrap = formatHasBootstrap(format);
@@ -334,6 +340,19 @@ function htmlFormatExtras(format: Format): FormatExtras {
         },
       });
     }
+  }
+
+  if (!bootstrap) {
+    sassBundles.push({
+      dependency: kQuartoHtmlDependency,
+      key: kQuartoHtmlDependency,
+      quarto: {
+        defaults: "",
+        functions: "",
+        mixins: "",
+        rules: quartoGlobalCssVariableRules(),
+      },
+    });
   }
 
   // header includes

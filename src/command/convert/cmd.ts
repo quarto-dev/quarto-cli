@@ -32,8 +32,8 @@ export const convertCommand = new Command()
     "Write output to PATH.",
   )
   .option(
-    "--no-ids",
-    "Don't convert Jupyter cell ids",
+    "--with-ids",
+    "Include ids in conversion",
   )
   .example(
     "Convert notebook to markdown",
@@ -74,12 +74,12 @@ export const convertCommand = new Command()
         : kMarkdownFormat;
 
       // are we converting ids?
-      const includeIds = !!options.ids;
+      const withIds = options.withIds === undefined ? false : !!options.withIds;
 
       // perform conversion
       const converted = srcFormat === kNotebookFormat
-        ? jupyterNotebookToMarkdown(input, includeIds)
-        : await markdownToJupyterNotebook(input, includeIds);
+        ? jupyterNotebookToMarkdown(input, withIds)
+        : await markdownToJupyterNotebook(input, withIds);
 
       // write output
       const [dir, stem] = dirAndStem(input);

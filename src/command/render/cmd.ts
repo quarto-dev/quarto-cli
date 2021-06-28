@@ -5,7 +5,7 @@
 *
 */
 
-import { relative } from "path/mod.ts";
+import { dirname, relative } from "path/mod.ts";
 import { expandGlobSync } from "fs/expand_glob.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { info } from "log/mod.ts";
@@ -131,20 +131,31 @@ export const renderCommand = new Command()
     // run render on input files
 
     let renderResult: RenderResult | undefined;
+    let renderResultInput: string | undefined;
     for (const input of inputs) {
       for (const walk of expandGlobSync(input)) {
-        const input = relative(Deno.cwd(), walk.path) || ".";
-        renderResult = await render(input, { flags, pandocArgs: args });
+        renderResultInput = relative(Deno.cwd(), walk.path) || ".";
+        renderResult = await render(renderResultInput, {
+          flags,
+          pandocArgs: args,
+        });
+
         // check for error
         if (renderResult.error) {
           throw renderResult.error;
         }
       }
     }
-    if (renderResult) {
+    if (renderResult && renderResultInput) {
       // report output created
       if (!options.flags?.quiet && options.flags?.output !== kStdOut) {
-        const finalOutput = renderResultFinalOutput(renderResult, true);
+        const finalOutput = renderResultFinalOutput(
+          renderResult,
+          Deno.statSync(renderResultInput).isDirectory
+            ? renderResultInput
+            : dirname(renderResultInput),
+        );
+
         if (finalOutput) {
           info("Output created: " + finalOutput + "\n");
         }

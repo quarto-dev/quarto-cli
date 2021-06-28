@@ -13,7 +13,10 @@ export const kLogLevel = "logLevel";
 export const kVersion = "setVersion";
 
 export function packageCommand(run: (config: Configuration) => Promise<void>) {
-  return new Command().action(async (args) => {
+  return new Command().option(
+    "-sv, --set-version=[version:string]",
+    "Version to set when preparing this distribution",
+  ).action(async (args) => {
     const version = args[kVersion];
 
     const config = readConfiguration(version);

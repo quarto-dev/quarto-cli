@@ -7,6 +7,8 @@
 
 import { extname, join } from "path/mod.ts";
 
+import { ld } from "lodash/mod.ts";
+
 import {
   partitionYamlFrontMatter,
   readYamlFromMarkdown,
@@ -15,6 +17,10 @@ import { dirAndStem } from "../core/path.ts";
 
 import { PartitionedMarkdown } from "../core/pandoc/pandoc-partition.ts";
 import { languagesInMarkdown } from "../core/jupyter/jupyter.ts";
+
+import { ProjectContext } from "../project/project-context.ts";
+
+import { RenderOptions } from "../command/render/render.ts";
 
 import { Format } from "../config/format.ts";
 import { Metadata, metadataAsFormat } from "../config/metadata.ts";
@@ -42,8 +48,12 @@ export interface ExecutionEngine {
     file: string,
     quiet?: boolean,
   ) => Promise<ExecutionTarget | undefined>;
-  metadata: (file: string) => Promise<Metadata>;
   partitionedMarkdown: (file: string) => Promise<PartitionedMarkdown>;
+  filterFormat?: (
+    source: string,
+    options: RenderOptions,
+    format: Format,
+  ) => Format;
   execute: (options: ExecuteOptions) => Promise<ExecuteResult>;
   executeTargetSkipped?: (target: ExecutionTarget, format: Format) => void;
   dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;
@@ -51,7 +61,10 @@ export interface ExecutionEngine {
   canFreeze: boolean;
   keepFiles?: (input: string) => string[] | undefined;
   ignoreGlobs?: () => string[] | undefined;
-  renderOnChange?: boolean;
+  devServerRenderOnChange?: (
+    input: string,
+    context: ProjectContext,
+  ) => Promise<boolean>;
   run?: (options: RunOptions) => Promise<void>;
 }
 
@@ -59,6 +72,7 @@ export interface ExecutionEngine {
 export interface ExecutionTarget {
   source: string;
   input: string;
+  metadata: Metadata;
   data?: unknown;
 }
 
@@ -178,6 +192,10 @@ export function executionEngineKeepFiles(
   }
 }
 
+export function engineValidExtensions(): string[] {
+  return ld.uniq(kEngines.flatMap((engine) => engine.validExtensions()));
+}
+
 export function fileExecutionEngine(file: string) {
   // get the extension and validate that it can be handled by at least one of our engines
   const ext = extname(file).toLowerCase();
@@ -226,13 +244,21 @@ export function fileExecutionEngine(file: string) {
     }
 
     // if there is no language or just ojs then it's plain markdown
+    // or the knitr engine if there are inline r expressions
     if (languages.size === 0 || (languages.size == 1 && languages.has("ojs"))) {
-      return markdownEngine;
+      return engineForMarkdownWithNoLanguages(markdown);
     } else {
       return jupyterEngine;
     }
   } else {
-    // no languages so use plain markdown
+    return engineForMarkdownWithNoLanguages(markdown);
+  }
+}
+
+function engineForMarkdownWithNoLanguages(markdown: string) {
+  if (markdown.match(/`r[ #]([^`]+)\s*`/)) {
+    return knitrEngine;
+  } else {
     return markdownEngine;
   }
 }

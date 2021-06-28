@@ -10,7 +10,7 @@
     <li class="">
         <div class="me-auto <%- textStyleCss %>">
           <% if (item.href) { %>
-          <div class="d-inline-flex w-100 sidebar-section-item">
+          <div class="d-inline-flex w-100 <%- depth === 1 ? "sidebar-section-item" : "sidebar-item" %>">
             <div class="sidebar-section-link me-auto <%- textStyleCss %>">
             <a href="<%- item.href %>" class="<%- item.active ? "active" : "" %>"><%= item.text %></a>
             </div>
@@ -20,9 +20,7 @@
             </div>
           <% } else { %>
             <a class="sidebar-section-item d-inline-flex text-start w-100 <%- isCollapsed ? "collapsed" : "" %>" data-bs-toggle="collapse" data-bs-target="#<%- sectionId %>" aria-expanded="<%- isCollapsed ? "false" : "true" %>">
-              <div class="me-auto <%- textStyleCss %> <%- depth === 1 ? "sidebar-section-item" : "sidebar-item" %>">
-                <%= item.text %>
-              </div>
+              <div class="me-auto <%- textStyleCss %> <%- depth === 1 ? "sidebar-section-item" : "sidebar-item" %>"><%= item.text %></div>
             <div><i class="bi bi-chevron-right ms-2 <%- textStyleCss %>"></i></div>
             </a>
           <% }  %>
