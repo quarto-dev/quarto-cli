@@ -6,7 +6,7 @@
 */
 
 import * as colors from "fmt/colors.ts";
-import { debug, error, info } from "log/mod.ts";
+import { error, info } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { basename, extname, join, posix, relative } from "path/mod.ts";
 
@@ -30,10 +30,10 @@ import {
   projectIgnoreRegexes,
   projectOutputDir,
 } from "../../project/project-context.ts";
-import {
-  inputFileForOutputFile,
-  resolveInputTarget,
-} from "../../project/project-index.ts";
+import { inputFileForOutputFile } from "../../project/project-index.ts";
+import { kProject404File } from "../../project/project-resources.ts";
+
+import { websitePath } from "../../project/types/website/website-config.ts";
 
 import { renderProject } from "../render/project.ts";
 import { renderResultFinalOutput } from "../render/render.ts";
@@ -42,13 +42,15 @@ import { projectFreezerDir } from "../render/freeze.ts";
 import { kLocalhost } from "./port.ts";
 import { ProjectWatcher, watchProject } from "./watch.ts";
 
+export const kRenderNone = "none";
+export const kRenderDefault = "default";
+
 export type ServeOptions = {
   port: number;
-  render?: boolean;
+  render: string;
   browse?: boolean;
   watch?: boolean;
   navigate?: boolean;
-  debug?: boolean;
 };
 
 export async function serveProject(
@@ -57,20 +59,28 @@ export async function serveProject(
 ) {
   // provide defaults
   options = {
-    render: true,
     browse: true,
     watch: true,
     navigate: true,
-    debug: false,
     ...options,
   };
+
+  // show progress indicating what we are doing to prepare for serving
+  const render = options.render !== kRenderNone;
+  if (render) {
+    info("Rendering:");
+  } else {
+    info("Preparing to serve:");
+  }
 
   // render in the main directory
   const renderResult = await renderProject(
     project,
     {
-      useFreezer: true,
-      flags: { debug: options.debug },
+      useFreezer: !render,
+      flags: (render && options.render !== kRenderDefault)
+        ? { to: options.render }
+        : {},
     },
   );
 
@@ -81,7 +91,7 @@ export async function serveProject(
 
   // create mirror of project for serving
   const serveDir = copyProjectForServe(project, true);
-  const serveProject = (await projectContext(serveDir))!;
+  const serveProject = (await projectContext(serveDir, false, true))!;
 
   // create project watcher
   const watcher = await watchProject(
@@ -102,11 +112,11 @@ export async function serveProject(
     }
 
     // handle file requests
+    const serveOutputDir = projectOutputDir(serveProject);
     let response: Response | undefined;
     let fsPath: string | undefined;
     try {
       const normalizedUrl = normalizeURL(req.url);
-      const serveOutputDir = projectOutputDir(serveProject);
       fsPath = serveOutputDir + normalizedUrl!;
       // don't let the path escape the serveDir
       if (fsPath!.indexOf(serveOutputDir) !== 0) {
@@ -120,12 +130,16 @@ export async function serveProject(
         response = serveRedirect(normalizedUrl + "/");
       } else {
         response = await serveFile(fsPath!, watcher, renderQueue);
-        if (options.debug) {
-          printUrl(normalizedUrl);
-        }
+        printUrl(normalizedUrl);
       }
     } catch (e) {
-      response = await serveFallback(req, e, fsPath!, options);
+      response = await serveFallback(
+        req,
+        e,
+        fsPath!,
+        serveOutputDir,
+        serveProject,
+      );
     } finally {
       try {
         await req.respond(response!);
@@ -139,21 +153,7 @@ export async function serveProject(
   const server = serve({ port: options.port, hostname: kLocalhost });
 
   // compute site url
-  let siteUrl = `http://localhost:${options.port}/`;
-
-  // if there is a preview doc specified then compute it's path and append
-  // it to the siteUrl
-  const previewDoc = Deno.env.get("QUARTO_SERVE_PREVIEW_DOC");
-  if (previewDoc) {
-    const target = await resolveInputTarget(
-      project,
-      relative(project.dir, previewDoc),
-      false,
-    );
-    if (target) {
-      siteUrl = siteUrl + target.outputHref;
-    }
-  }
+  const siteUrl = `http://localhost:${options.port}/`;
 
   // print status
   if (options.watch) {
@@ -166,7 +166,7 @@ export async function serveProject(
 
   // open browser if requested
   if (options.browse) {
-    if (!previewDoc && renderResult.baseDir && renderResult.outputDir) {
+    if (renderResult.baseDir && renderResult.outputDir) {
       const finalOutput = renderResultFinalOutput(renderResult);
       if (finalOutput) {
         const targetPath = pathWithForwardSlashes(relative(
@@ -247,7 +247,8 @@ function serveFallback(
   req: ServerRequest,
   e: Error,
   fsPath: string,
-  options: ServeOptions,
+  serveOutputDir: string,
+  project: ProjectContext,
 ): Promise<Response> {
   const encoder = new TextEncoder();
   if (e instanceof URIError) {
@@ -261,19 +262,28 @@ function serveFallback(
       basename(fsPath) !== "favicon.ico" && extname(fsPath) !== ".map" &&
       !basename(fsPath).startsWith("jupyter-")
     ) {
-      if (options.debug) {
-        printUrl(url, false);
+      printUrl(url, false);
+    }
+    let body = encoder.encode("Not Found");
+    const custom404 = join(serveOutputDir, kProject404File);
+    if (existsSync(custom404)) {
+      let content404 = Deno.readTextFileSync(custom404);
+      // replace site-path references with / so they work in dev server mode
+      const sitePath = websitePath(project.config);
+      if (sitePath !== "/") {
+        content404 = content404.replaceAll(
+          new RegExp('((?:content|ref|src)=")(' + sitePath + ")", "g"),
+          "$1/",
+        );
       }
+      body = new TextEncoder().encode(content404);
     }
     return Promise.resolve({
       status: 404,
-      body: encoder.encode("Not Found"),
+      body,
     });
   } else {
     error(`500 (Internal Error): ${(e as Error).message}`, { bold: true });
-    if (options.debug) {
-      console.error(e);
-    }
     return Promise.resolve({
       status: 500,
       body: encoder.encode("Internal server error"),

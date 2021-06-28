@@ -4,7 +4,9 @@
 
 -- The open and close shortcode indicators
 local kOpenShortcode = "{{<"
+local kOpenShortcodeEscape = "/*"
 local kCloseShortcode = ">}}"
+local kCloseShortcodeEscape = "*/"
 
 function shortCodes() 
   return {
@@ -15,8 +17,51 @@ function shortCodes()
     
     Inlines = function(inlines)
       return transformShortcodeInlines(inlines)
-    end
+    end,
+
+    Code = transformShortcodeCode,
+    CodeBlock =  transformShortcodeCode,
   }
+end
+
+-- transforms shortcodes inside code
+function transformShortcodeCode(el)
+
+  -- don't process shortcodes in code output from engines
+  -- (anything in an engine processed code block was actually
+  --  proccessed by the engine, so should be printed as is)
+  if el.attr.classes:includes("cell-code") then
+    return
+  end
+
+  -- don't process shortcodes if they are explicitly turned off
+  if el.attr.attributes["shortcodes"] == "false" then
+    return
+  end
+  
+  -- process shortcodes
+  local text = el.text:gsub(kOpenShortcode .. "(.-)" .. kCloseShortcode, function(code)
+    -- handle shortcode escape -- e.g. {{</* shortcode_name */>}}
+    if code:match("^" .. kOpenShortcodeEscape) and code:match(kCloseShortcodeEscape .. "$") then
+      return kOpenShortcode .. code:sub(#kOpenShortcodeEscape+1, -#kCloseShortcodeEscape-1) .. kCloseShortcode
+
+    -- see if any of the shortcode handlers want it (and transform results to plain text)
+    else
+      local inlines = markdownToInlines(kOpenShortcode .. code .. kCloseShortcode)
+      local transformed = transformShortcodeInlines(inlines)
+      if transformed ~= nil then
+        return inlinesToString(transformed)
+      else
+        return code
+      end
+    end    
+  end)
+
+  -- return new element if the text changd
+  if text ~= el.text then
+    el.text = text
+    return el
+  end
 end
 
 -- finds blocks that only contain a shortcode and processes them
@@ -98,11 +143,15 @@ function transformShortcodeInlines(inlines)
         -- find the handler for this shortcode and transform
         local handler = handlerForShortcode(shortCode, "inline")
         if handler ~= nil then
-          local transformedShortcode = handler.handle(shortCode)
-          if transformedShortcode ~= nil then
-            -- append the transformed shortcode
-
-            tappend(accum, transformedShortcode)
+          local expanded = handler.handle(shortCode)
+          if expanded ~= nil then
+            -- process recursively
+            local expandedAgain = transformShortcodeInlines(expanded)
+            if (expandedAgain ~= nil) then
+              tappend(accum, expandedAgain)
+            else
+              tappend(accum, expanded)
+            end
           end
         else
           tappend(accum, shortcodeInlines)

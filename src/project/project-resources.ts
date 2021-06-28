@@ -20,6 +20,8 @@ import {
 } from "./project-context.ts";
 import { kQuartoIgnore } from "./project-gitignore.ts";
 
+export const kProject404File = "404.html";
+
 export function projectResourceFiles(
   dir: string,
   config: ProjectConfig,
@@ -46,7 +48,7 @@ export function projectResourceFiles(
     );
     // literals
     resourceFiles.push(
-      ...["robots.txt", ".nojekyll", "_redirects"]
+      ...["robots.txt", ".nojekyll", "_redirects", kProject404File]
         .map((file) => join(dir, file))
         .filter(existsSync),
     );

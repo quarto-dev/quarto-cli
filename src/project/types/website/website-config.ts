@@ -20,6 +20,7 @@ export const kSite = "site";
 
 export const kSiteTitle = "title";
 export const kSiteUrl = "site-url";
+export const kSitePath = "site-path";
 export const kSiteRepoUrl = "repo-url";
 export const kSiteRepoBranch = "repo-branch";
 export const kSiteRepoActions = "repo-actions";
@@ -84,6 +85,7 @@ export function websiteConfig(
   name:
     | "title"
     | "site-url"
+    | "site-path"
     | "repo-url"
     | "repo-branch"
     | "repo-actions"
@@ -110,6 +112,32 @@ export function websiteTitle(project?: ProjectConfig): string | undefined {
 
 export function websiteBaseurl(project?: ProjectConfig): string | undefined {
   return websiteConfig(kSiteUrl, project) as string | undefined;
+}
+
+export function websitePath(project?: ProjectConfig): string {
+  let path = websiteConfig(kSitePath, project) as string | undefined;
+  if (path) {
+    if (!path.endsWith("/")) {
+      path = path + "/";
+    }
+    return path;
+  } else {
+    const baseUrl = websiteBaseurl(project);
+    if (baseUrl) {
+      try {
+        const url = new URL(baseUrl);
+        let path = url.pathname;
+        if (!path.endsWith("/")) {
+          path = path + "/";
+        }
+        return path;
+      } catch {
+        return "/";
+      }
+    } else {
+      return "/";
+    }
+  }
 }
 
 export function websiteRepoUrl(project?: ProjectConfig): string | undefined {
@@ -169,6 +197,7 @@ export function websiteConfigActions(
 export function websiteProjectConfig(
   _projectDir: string,
   config: ProjectConfig,
+  forceHtml: boolean,
 ): Promise<ProjectConfig> {
   config = ld.cloneDeep(config);
   const format = config[kMetadataFormat] as
@@ -177,9 +206,7 @@ export function websiteProjectConfig(
     | undefined;
   if (format !== undefined) {
     if (typeof (format) === "string") {
-      if (isHtmlOutput(format, true)) {
-        return Promise.resolve(config);
-      } else {
+      if (!isHtmlOutput(format, true) && forceHtml) {
         config[kMetadataFormat] = {
           html: "default",
           [format]: "default",
@@ -188,14 +215,16 @@ export function websiteProjectConfig(
     } else {
       const formats = Object.keys(format);
       const orderedFormats = {} as Record<string, unknown>;
-      const htmlFormatPos = formats.findIndex((format) =>
-        isHtmlOutput(format, true)
-      );
-      if (htmlFormatPos !== -1) {
-        const htmlFormatName = formats.splice(htmlFormatPos, 1)[0];
-        orderedFormats[htmlFormatName] = format[htmlFormatName];
-      } else {
-        orderedFormats["html"] = "default";
+      if (forceHtml) {
+        const htmlFormatPos = formats.findIndex((format) =>
+          isHtmlOutput(format, true)
+        );
+        if (htmlFormatPos !== -1) {
+          const htmlFormatName = formats.splice(htmlFormatPos, 1)[0];
+          orderedFormats[htmlFormatName] = format[htmlFormatName];
+        } else {
+          orderedFormats["html"] = "default";
+        }
       }
       for (const formatName of formats) {
         orderedFormats[formatName] = format[formatName];

@@ -20,7 +20,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   // get the offset from this page for a given site root relative url
   function offsetURL(url) {
     var offset = getMeta('quarto:offset');
-    return offset ? offset + '/' + url : url;
+    return offset ? offset + url : url;
   }
   
   // create the index

@@ -110,6 +110,7 @@ export function deleteProjectMetadata(metadata: Metadata) {
 export async function projectContext(
   path: string,
   force = false,
+  forceHtml = false,
 ): Promise<ProjectContext | undefined> {
   let dir = Deno.realPathSync(
     Deno.statSync(path).isDirectory ? path : dirname(path),
@@ -150,7 +151,7 @@ export async function projectContext(
         }
         // see if the project [kProjectType] wants to filter the project config
         if (type.config) {
-          projectConfig = await type.config(dir, projectConfig);
+          projectConfig = await type.config(dir, projectConfig, forceHtml);
         }
         return {
           dir,

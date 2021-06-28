@@ -5,7 +5,13 @@ on:
   # push:
     # only trigger on branches, not on tags
     # branches: [ main ]
-
+env:
+  RENV_PATHS_ROOT: ~/.local/share/renv
+  
+# Ubuntu: ~/.local/share/renv
+# macOS: ~/Library/Application Support/renv
+# Windows: %LOCALAPPDATA%/renv 
+  
 jobs:
   run-smokes:
     runs-on: ubuntu-latest
@@ -16,36 +22,42 @@ jobs:
         with:
           # checkout full tree
           fetch-depth: 0
+
       - name: Set up R 
         uses: r-lib/actions/setup-r@v1
+        with: 
+          r-version: '4.1.0'
+
+      - name: Cache packages
+        uses: actions/cache@v1
         with:
-          r-version: '4.0.2' # The R version to download (if necessary) and use.  
+          path: ${{ env.RENV_PATHS_ROOT }}
+          key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-renv-
 
-      - name: R Dependencies
+      - name: Restore packages
         run: |
-          Rscript  -e 'install.packages("rmarkdown",repos = "http://cran.us.r-project.org")'
-          Rscript  -e 'install.packages("quarto",repos = "http://cran.us.r-project.org")'
-
+          pushd tests
+          Rscript -e "if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')"
+          Rscript -e "renv::restore()"
+          popd
+          
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
-      
+          
       - name: Python Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install jupyter
-      
-      - name: Configure Quarto
-        run: |         
-          ./configure-linux.sh
-                    
-      - name: Install TinyTex
-        run: |
-          pushd package/dist/bin/
-          ./quarto install tinytex
-          popd
-              
+          pip install matplotlib          
+
+      - uses: ./.github/workflows/actions/computation-dependencies
+
+      - uses: ./.github/workflows/actions/quarto-dev
+            
       - name: Smoke Test Commits
         if: github.event.before != ''
         run: |
@@ -59,7 +71,7 @@ jobs:
       - name: Smoke Test Head
         if: github.event.before == ''
         run: |
-              pushd tests
-              ./run-tests.sh
-              popd
+          pushd tests
+          ./run-tests.sh
+          popd
         

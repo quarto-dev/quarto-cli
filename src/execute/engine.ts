@@ -7,6 +7,8 @@
 
 import { extname, join } from "path/mod.ts";
 
+import { ld } from "lodash/mod.ts";
+
 import {
   partitionYamlFrontMatter,
   readYamlFromMarkdown,
@@ -186,6 +188,10 @@ export function executionEngineKeepFiles(
   } else {
     return files;
   }
+}
+
+export function engineValidExtensions(): string[] {
+  return ld.uniq(kEngines.flatMap((engine) => engine.validExtensions()));
 }
 
 export function fileExecutionEngine(file: string) {

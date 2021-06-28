@@ -76,8 +76,8 @@ export async function watchProject(
   // helper to refresh project config
   const refreshProjectConfig = async () => {
     // get project and temporary serve project
-    project = (await projectContext(project.dir))!;
-    serveProject = (await projectContext(serveProject.dir))!;
+    project = (await projectContext(project.dir, false, true))!;
+    serveProject = (await projectContext(serveProject.dir, false, true))!;
     await updateRenderOnChangeInputs();
   };
 
@@ -198,6 +198,7 @@ export async function watchProject(
   // debounced function for notifying all clients of a change
   // (ensures that we wait for bulk file copying to complete
   // before triggering the reload)
+  let lastRenderOnChangeInput: string | undefined;
   const reloadClients = ld.debounce(async (refreshProject: boolean) => {
     try {
       // copy the project (refresh if requested)
@@ -215,8 +216,8 @@ export async function watchProject(
         return extname(file) === ".html";
       });
 
-      // don't reload based on changes to html files generated from reloadOnChange
-      // (as we've already reloaded)
+      // don't reload based on changes to html files generated from the last
+      // reloadOnChange refresh (as we've already reloaded)
       if (lastHtmlFile) {
         const outputDir = projectOutputDir(project);
         const filePathRelative = relative(outputDir, lastHtmlFile);
@@ -224,9 +225,11 @@ export async function watchProject(
           project,
           filePathRelative,
         );
-        if (inputFile && isRenderOnChangeInput(inputFile)) {
+        if (inputFile && (inputFile === lastRenderOnChangeInput)) {
           // clear out modified list
+          lastRenderOnChangeInput = undefined;
           modified.splice(0, modified.length);
+          // return (nothing more to do)
           return;
         }
       }
@@ -249,6 +252,7 @@ export async function watchProject(
       if (!reloadTarget) {
         const input = modified.find(isRenderOnChangeInput);
         if (input) {
+          lastRenderOnChangeInput = input;
           const target = await resolveInputTarget(
             project,
             relative(project.dir, input),

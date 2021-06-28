@@ -27,8 +27,11 @@ import {
 } from "../../project-context.ts";
 import { ProjectOutputFile } from "../project-type.ts";
 
-import { websiteNavigationConfig } from "./website-navigation.ts";
-import { websiteTitle } from "./website-config.ts";
+import {
+  inputFileHref,
+  websiteNavigationConfig,
+} from "./website-navigation.ts";
+import { websitePath, websiteTitle } from "./website-config.ts";
 
 const kSearch = "search";
 
@@ -185,11 +188,16 @@ export function websiteSearchDependency(
   source: string,
 ): FormatDependency | undefined {
   if (websiteSearch(project) !== "none") {
+    const sourceRelative = relative(project.dir, source);
     const offset = projectOffset(project, source);
+    const href = inputFileHref(sourceRelative);
+
     return {
       name: kDependencyName,
       meta: {
-        "quarto:offset": offset,
+        "quarto:offset": href === "/404.html"
+          ? websitePath(project.config)
+          : offset + "/",
       },
       stylesheets: [],
       scripts: [

@@ -700,7 +700,7 @@ export function removePandocTo(renderOptions: RenderOptions) {
 
 export function renderResultFinalOutput(
   renderResults: RenderResult,
-  relativeToInput = false,
+  relativeToInputDir?: string,
 ) {
   // final output defaults to the first output of the first result
   let result = renderResults.files[0];
@@ -736,10 +736,10 @@ export function renderResultFinalOutput(
   }
 
   // return a path relative to the input file
-  if (relativeToInput) {
-    const inputRealPath = Deno.realPathSync(finalInput);
+  if (relativeToInputDir) {
+    const inputRealPath = Deno.realPathSync(relativeToInputDir);
     const outputRealPath = Deno.realPathSync(finalOutput);
-    return relative(dirname(inputRealPath), outputRealPath);
+    return relative(inputRealPath, outputRealPath);
   } else {
     return finalOutput;
   }

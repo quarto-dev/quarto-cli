@@ -85,6 +85,7 @@ import {
   kSiteSidebar,
   websiteConfig,
   websiteConfigActions,
+  websitePath,
   websiteRepoBranch,
   websiteRepoUrl,
   websiteTitle,
@@ -272,6 +273,12 @@ export function writeRedirectPage(path: string, href: string) {
   Deno.writeTextFileSync(path, redirectHtml);
 }
 
+export function inputFileHref(href: string) {
+  const [hrefDir, hrefStem] = dirAndStem(href);
+  const htmlHref = "/" + join(hrefDir, `${hrefStem}.html`);
+  return pathWithForwardSlashes(htmlHref);
+}
+
 function navigationHtmlPostprocessor(project: ProjectContext, source: string) {
   const sourceRelative = relative(project.dir, source);
   const offset = projectOffset(project, source);
@@ -339,7 +346,8 @@ function navigationHtmlPostprocessor(project: ProjectContext, source: string) {
     addRepoActions(doc, sourceRelative, project.config);
 
     // resolve resource refs
-    return Promise.resolve(resolveResourceRefs(doc, offset));
+    const forceRoot = href === "/404.html" ? websitePath(project.config) : null;
+    return Promise.resolve(resolveResourceRefs(doc, offset, forceRoot));
   };
 }
 
@@ -887,12 +895,6 @@ function navigationDependency(resource: string) {
 
 function isExternalPath(path: string) {
   return /^\w+:/.test(path);
-}
-
-function inputFileHref(href: string) {
-  const [hrefDir, hrefStem] = dirAndStem(href);
-  const htmlHref = "/" + join(hrefDir, `${hrefStem}.html`);
-  return pathWithForwardSlashes(htmlHref);
 }
 
 function resolveNavReferences(
