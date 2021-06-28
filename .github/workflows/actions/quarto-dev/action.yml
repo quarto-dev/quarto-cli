@@ -3,13 +3,7 @@ description: 'Configures the image for Quarto Development'
 
 runs:
   using: "composite"
-  steps: 
-      - name: Checkout Repo
-        uses: actions/checkout@v2
-        with:
-          # checkout full tree
-          fetch-depth: 0
-         
+  steps:          
       - name: Set Path
         run: |
           echo "$HOME/bin" >> $GITHUB_PATH
