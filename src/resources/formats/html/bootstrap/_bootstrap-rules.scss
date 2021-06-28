@@ -114,17 +114,7 @@ $code-background-color: color.adjust(
   padding-top: 1em;
 }
 
-pre.sourceCode {
-  // Apply border, if specified
-  @if $code-border-left {
-    border-left: $code-border-left-size;
-    border-left-style: $code-border-left-style;
-    border-left-color: $code-border-left-color;
-    padding-left: $code-padding-left;
-  } @else {
-    border: none;
-  }
-
+div.sourceCode {
   // Clear code background if is not specified
   @if $code-background {
     background-color: $code-background-color;
@@ -133,6 +123,18 @@ pre.sourceCode {
     border-radius: $border-radius;
   } @else {
     background-color: $body-bg !important;
+    border: none;
+  }
+}
+
+pre.sourceCode {
+  // Apply border, if specified
+  @if $code-border-left {
+    border-left: $code-border-left-size;
+    border-left-style: $code-border-left-style;
+    border-left-color: $code-border-left-color;
+    padding-left: $code-padding-left;
+  } @else {
     border: none;
   }
 }
@@ -526,7 +528,7 @@ $callouts: (
     } @else {
       background-color: shift-color(map.get($info, "color"), -90%);
     }
-    }
+  }
 
   $shifted-color: #{shift-color(map.get($info, "color"), $callout-icon-scale)};
   $shifted-color-svg: str-replace($shifted-color, "#", "%23");
