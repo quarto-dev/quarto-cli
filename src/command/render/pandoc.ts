@@ -74,6 +74,7 @@ import {
   kPageTitle,
   kQuartoVarsKey,
   kResources,
+  kSelfContained,
   kTitle,
   kTitlePrefix,
   kTocTitle,
@@ -166,6 +167,15 @@ export async function runPandoc(
   // filter should be active
   const kObservableFilter = "observable";
   if (sysFilters.includes(kObservableFilter)) {
+    if (options.format.pandoc?.[kSelfContained]) {
+      // FIXME: What's the correct way to print an error message?
+      // "error" from core.log expects an exception value.
+      console.error(
+        "FATAL: self-contained format option not supported with observable cells",
+      );
+      return null;
+    }
+
     formatFilterParams[kObservableFilter] = true;
     sysFilters = sysFilters.filter((filter) => filter !== kObservableFilter);
   }
@@ -535,7 +545,7 @@ export function resolveDependencies(
               const attrib = `${entry[0]}=${entry[1]}`;
               return attrib;
             }).join(" ")
-          : "";
+            : "";
           const href = join(libDir, dir, file.name);
           lines.push(template({ href: pathWithForwardSlashes(href), attribs }));
         }
