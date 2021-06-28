@@ -26,7 +26,7 @@ jobs:
       - name: Set up R 
         uses: r-lib/actions/setup-r@v1
         with: 
-          r-version: '4.02'
+          r-version: '4.0.2'
 
       - name: Cache packages
         uses: actions/cache@v1
