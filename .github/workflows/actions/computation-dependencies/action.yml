@@ -5,10 +5,10 @@ runs:
   using: "composite"
   steps: 
     - name: Restore R packages
-      shell: Rscript {0}
+      shell: bash
       run: |
-        if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
-        renv::restore()
+        Rscript -e 'if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
+        renv::restore()'
 
     - name: Python Dependenencies
       shell: bash
