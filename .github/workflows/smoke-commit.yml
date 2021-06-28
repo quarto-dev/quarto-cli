@@ -18,12 +18,11 @@ jobs:
 
     steps:
       - uses: ./.github/workflows/actions/computation-environment
-         with:
-           r-version: '4.02'
-           python-version: '3.x'
+        with:
+          r-version: '4.02'
+          python-version: '3.x'
 
       - uses: ./.github/workflows/actions/quarto-dev
-            
             
       - name: Smoke Test Commits
         if: github.event.before != ''
