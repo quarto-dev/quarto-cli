@@ -26,7 +26,7 @@ jobs:
       - name: Set up R 
         uses: r-lib/actions/setup-r@v1
         with: 
-          r-version: ${{ inputs.r-version }}
+          r-version: '4.02'
 
       - name: Cache packages
         uses: actions/cache@v1
@@ -40,12 +40,9 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ inputs.python-version }}
+          python-version: '3.x'
 
       - uses: ./.github/workflows/actions/computation-dependencies
-        with:
-          r-version: '4.02'
-          python-version: '3.x'
 
       - uses: ./.github/workflows/actions/quarto-dev
             
