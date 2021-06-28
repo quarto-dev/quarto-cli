@@ -60,6 +60,8 @@ jobs:
         if: github.event.before == ''
         run: |
           pushd tests
+          quarto render docs/crossrefs/python.qmd --to html
+          quarto render docs/crossrefs/knitr.qmd --to html
           ./run-tests.sh
           popd
         
