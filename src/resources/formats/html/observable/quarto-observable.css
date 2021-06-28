@@ -98,3 +98,7 @@ input[type='radio'],input[type='checkbox']
 table.table {
     font-size: .75em;
 }
+
+.observable-in-a-box-waiting-for-module-import {
+    visibility: hidden;
+}

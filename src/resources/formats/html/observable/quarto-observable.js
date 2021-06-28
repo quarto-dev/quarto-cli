@@ -108,6 +108,10 @@ export function createRuntime() {
   }
 
   const result = {
+    finishInterpreting() {
+      obsInABox.finishInterpreting();
+    },
+    
     // FIXME clarify what's the expected behavior of the 'error' option
     // when evaluation is at client-time
     interpretLenient(src, targetElementId, inline) {

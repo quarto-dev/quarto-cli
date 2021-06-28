@@ -16,7 +16,7 @@ import {
   isJavascriptCompatible,
   kDependencies,
 } from "../../config/format.ts";
-import { logError, warnOnce } from "../../core/log.ts";
+import { logError } from "../../core/log.ts";
 import { breakQuartoMd } from "../../core/break-quarto-md.ts";
 import { ExecuteResult, PandocIncludes } from "../../execute/engine.ts";
 import { formatResourcePath } from "../resources.ts";
@@ -192,7 +192,7 @@ export function observableCompile(
         if (e instanceof SyntaxError) {
           parseError(e, cellSrc);
         } else {
-          logError(e)
+          logError(e);
         }
         throw e;
       }
@@ -435,6 +435,9 @@ export function observableCompile(
       ls.push("```");
     }
   }
+
+  // finish script by calling runtime's "done with new source" handler,
+  scriptContents.push("window._ojs.runtime.finishInterpreting();");
 
   // script to append
   const afterBody = [`<script type="module">`, ...scriptContents, `</script>`]

@@ -46,6 +46,11 @@ export class OJSInABox {
       resolveImportPath: importPathResolver(paths)
     });
     this.inspectorClass = inspectorClass || Inspector;
+
+    // state to handle flash of unevaluated js because of async module imports
+    this.mainModuleHasImports = false;
+    this.mainModuleOutstandingImportCount = 0;
+    this.chunkPromises = [];
   }
 
   define(name, module = undefined) {
@@ -69,6 +74,22 @@ export class OJSInABox {
       fulfilled: x => k(x, name)
     }).define([name], val => val);
   }
+
+  clearImportModuleWait() {
+    const array = Array.from(document.querySelectorAll('.observable-in-a-box-waiting-for-module-import'));
+    for (const node of array) {
+      node.classList.remove('observable-in-a-box-waiting-for-module-import');
+    }
+  }
+  
+  finishInterpreting() {
+    Promise.all(this.chunkPromises)
+      .then(() => {
+        if (!this.mainModuleHasImports) {
+          this.clearImportModuleWait();
+        }
+      });
+  }
   
   interpret(src, elementGetter, elementCreator) {
     const observer = (targetElement, cell) => {
@@ -87,6 +108,8 @@ export class OJSInABox {
           element.style.display = "none";
         }
 
+        element.classList.add('observable-in-a-box-waiting-for-module-import');
+
         return new this.inspectorClass(element);
       };
     };
@@ -94,7 +117,19 @@ export class OJSInABox {
       const targetElement = typeof elementGetter === "function" ?
             elementGetter() : elementGetter;
       const cellSrc = src.slice(cell.start, cell.end);
-      return this.interpreter.module(cellSrc, undefined, observer(targetElement, cell));
+      let promise = this.interpreter.module(cellSrc, undefined, observer(targetElement, cell));
+      if (cell.body.type === "ImportDeclaration") {
+        this.mainModuleHasImports = true;
+        this.mainModuleOutstandingImportCount++;
+        promise = promise.then(result => {
+          this.mainModuleOutstandingImportCount--;
+          if (this.mainModuleOutstandingImportCount === 0) {
+            this.clearImportModuleWait();
+          }
+          return result;
+        });
+      }
+      return promise;
     };
 
     let parse;
@@ -103,8 +138,10 @@ export class OJSInABox {
     } catch (error) {
       return Promise.reject(error);
     }
-    
-    return Promise.all(parse.cells.map(runCell));
+
+    const chunkPromise = Promise.all(parse.cells.map(runCell));
+    this.chunkPromises.push(chunkPromise);
+    return chunkPromise;
   }
 }
 
