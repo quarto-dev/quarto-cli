@@ -54,8 +54,6 @@ jobs:
           pip install jupyter
           pip install matplotlib          
 
-      - uses: ./.github/workflows/actions/computation-dependencies
-
       - uses: ./.github/workflows/actions/quarto-dev
             
       - name: Smoke Test Commits
