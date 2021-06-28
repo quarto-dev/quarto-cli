@@ -50,11 +50,11 @@ jobs:
           
       - name: Python Dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install jupyter
-          pip install matplotlib          
-
-      - uses: ./.github/workflows/actions/computation-dependencies
+          pushd tests
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --user virtualenv
+          python3 -m pip install -r requirements.txt          
+          popd
 
       - uses: ./.github/workflows/actions/quarto-dev
             
