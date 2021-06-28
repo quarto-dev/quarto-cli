@@ -10,8 +10,14 @@ runs:
         if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
         renv::restore()
 
-    - name: Restore Python Dependencies
-      shell: bash
-      run: |
-        python -m pip install --upgrade pip
-        pip install jupyter
+    - name: Upgrade Pip
+      shell: python -m pip install {0}
+      run: --upgrade pip
+        
+    - name: Install Jupyter
+      shell: python -m pip install {0}
+      run: jupyter
+
+    - name: Install Matplotlib
+      shell: python -m pip install {0}
+      run: matplotlib
