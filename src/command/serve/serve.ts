@@ -33,6 +33,8 @@ import {
 import { inputFileForOutputFile } from "../../project/project-index.ts";
 import { kProject404File } from "../../project/project-resources.ts";
 
+import { websitePath } from "../../project/types/website/website-config.ts";
+
 import { renderProject } from "../render/project.ts";
 import { renderResultFinalOutput } from "../render/render.ts";
 import { projectFreezerDir } from "../render/freeze.ts";
@@ -131,7 +133,13 @@ export async function serveProject(
         printUrl(normalizedUrl);
       }
     } catch (e) {
-      response = await serveFallback(req, e, fsPath!, serveOutputDir);
+      response = await serveFallback(
+        req,
+        e,
+        fsPath!,
+        serveOutputDir,
+        serveProject,
+      );
     } finally {
       try {
         await req.respond(response!);
@@ -240,6 +248,7 @@ function serveFallback(
   e: Error,
   fsPath: string,
   serveOutputDir: string,
+  project: ProjectContext,
 ): Promise<Response> {
   const encoder = new TextEncoder();
   if (e instanceof URIError) {
@@ -258,7 +267,16 @@ function serveFallback(
     let body = encoder.encode("Not Found");
     const custom404 = join(serveOutputDir, kProject404File);
     if (existsSync(custom404)) {
-      body = Deno.readFileSync(custom404);
+      let content404 = Deno.readTextFileSync(custom404);
+      // replace site-path references with / so they work in dev server mode
+      const sitePath = websitePath(project.config);
+      if (sitePath !== "/") {
+        content404 = content404.replaceAll(
+          new RegExp('((?:content|ref|src)=")(' + sitePath + ")", "g"),
+          "$1/",
+        );
+      }
+      body = new TextEncoder().encode(content404);
     }
     return Promise.resolve({
       status: 404,
