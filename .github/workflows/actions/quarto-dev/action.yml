@@ -5,14 +5,17 @@ runs:
   using: "composite"
   steps:          
       - name: Set Path
+        shell: bash
         run: |
           echo "$HOME/bin" >> $GITHUB_PATH
       
       - name: Configure Quarto
+        shell: bash
         run: |
           ./configure-linux.sh
           
       - name: Quarto Check
+        shell: bash
         run: |
           pushd tests
           quarto check
