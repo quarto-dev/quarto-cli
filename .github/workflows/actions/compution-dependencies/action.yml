@@ -1,0 +1,16 @@
+name: 'Restore Computation Environment'
+description: 'Restore packages for an environment with already configured R and Python.'
+
+runs:
+  using: "composite"
+  steps: 
+    - name: Restore R packages
+      shell: Rscript {0}
+      run: |
+        if (!requireNamespace("renv", quietly = TRUE)) install.packages("renv")
+        renv::restore()
+
+    - name: Restore Python Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install jupyter

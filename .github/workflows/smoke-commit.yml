@@ -23,7 +23,26 @@ jobs:
           # checkout full tree
           fetch-depth: 0
 
-      - uses: ./.github/workflows/actions/computation-environment
+      - name: Set up R 
+        uses: r-lib/actions/setup-r@v1
+        with: 
+          r-version: ${{ inputs.r-version }}
+
+      - name: Cache packages
+        uses: actions/cache@v1
+        with:
+          path: ${{ env.RENV_PATHS_ROOT }}
+          key: ${{ runner.os }}-renv-${{ hashFiles('**/renv.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-renv-
+
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - uses: ./.github/workflows/actions/computation-dependencies
         with:
           r-version: '4.02'
           python-version: '3.x'
