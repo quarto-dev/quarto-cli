@@ -76,8 +76,8 @@ export async function watchProject(
   // helper to refresh project config
   const refreshProjectConfig = async () => {
     // get project and temporary serve project
-    project = (await projectContext(project.dir))!;
-    serveProject = (await projectContext(serveProject.dir))!;
+    project = (await projectContext(project.dir, false, true))!;
+    serveProject = (await projectContext(serveProject.dir, false, true))!;
     await updateRenderOnChangeInputs();
   };
 

@@ -20,6 +20,7 @@ export interface ProjectType {
   config?: (
     projectDir: string,
     config: ProjectConfig,
+    forceHtml: boolean,
   ) => Promise<ProjectConfig>;
   libDir?: string;
   outputDir?: string;

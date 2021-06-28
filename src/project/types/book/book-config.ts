@@ -98,9 +98,10 @@ export type BookConfigKey =
 export async function bookProjectConfig(
   projectDir: string,
   config: ProjectConfig,
+  forceHtml: boolean,
 ) {
   // inherit website config behavior
-  config = await websiteProjectConfig(projectDir, config);
+  config = await websiteProjectConfig(projectDir, config, forceHtml);
 
   // ensure we have a site
   const site = (config[kSite] || {}) as Record<string, unknown>;

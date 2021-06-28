@@ -193,6 +193,7 @@ export function websiteConfigActions(
 export function websiteProjectConfig(
   _projectDir: string,
   config: ProjectConfig,
+  forceHtml: boolean,
 ): Promise<ProjectConfig> {
   config = ld.cloneDeep(config);
   const format = config[kMetadataFormat] as
@@ -201,9 +202,7 @@ export function websiteProjectConfig(
     | undefined;
   if (format !== undefined) {
     if (typeof (format) === "string") {
-      if (isHtmlOutput(format, true)) {
-        return Promise.resolve(config);
-      } else {
+      if (!isHtmlOutput(format, true) && forceHtml) {
         config[kMetadataFormat] = {
           html: "default",
           [format]: "default",
@@ -212,14 +211,16 @@ export function websiteProjectConfig(
     } else {
       const formats = Object.keys(format);
       const orderedFormats = {} as Record<string, unknown>;
-      const htmlFormatPos = formats.findIndex((format) =>
-        isHtmlOutput(format, true)
-      );
-      if (htmlFormatPos !== -1) {
-        const htmlFormatName = formats.splice(htmlFormatPos, 1)[0];
-        orderedFormats[htmlFormatName] = format[htmlFormatName];
-      } else {
-        orderedFormats["html"] = "default";
+      if (forceHtml) {
+        const htmlFormatPos = formats.findIndex((format) =>
+          isHtmlOutput(format, true)
+        );
+        if (htmlFormatPos !== -1) {
+          const htmlFormatName = formats.splice(htmlFormatPos, 1)[0];
+          orderedFormats[htmlFormatName] = format[htmlFormatName];
+        } else {
+          orderedFormats["html"] = "default";
+        }
       }
       for (const formatName of formats) {
         orderedFormats[formatName] = format[formatName];
