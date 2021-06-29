@@ -1,3 +1,8 @@
+
+// JJA: file level comment here
+
+// JJA: use import maps here
+
 import {
   Inspector,
   Library,
@@ -84,6 +89,10 @@ export function createRuntime() {
   // this path resolution is fairly naive, but we think this is good
   // enough for now. There might be better things to be done with
   // (say) project-wide resources.
+  // JJA: for images, etc. we allow the user to preface urls with "/"
+  // and then we automatically convert that to a relative URL
+  // (via our knowledge of the current page's offset). Is that 
+  // something we could do here?
   function fileAttachmentPathResolver(n) {
     return n;
   }
@@ -125,6 +134,8 @@ export function createRuntime() {
           // this is a subfigure
           targetElement = document.getElementById(getSubfigId(targetElementId));
           if (!targetElement) {
+            // JJA: probably don't need the 'console.error' calls here?
+            // (or are they visible in dev/debug mode but not to users)
             console.error("Ran out of subfigures for element", targetElementId);
             console.error("This will fail.");
             throw new Error("Ran out of quarto subfigures.");
@@ -143,6 +154,7 @@ export function createRuntime() {
       
       return obsInABox.interpret(src, getElement, makeElement)
         .catch(e => {
+          // JJA: const
           let errorDiv = document.createElement("pre");
           errorDiv.innerText = `${e.name}: ${e.message}`;
           getElement().append(errorDiv);

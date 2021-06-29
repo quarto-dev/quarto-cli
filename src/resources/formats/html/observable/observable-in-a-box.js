@@ -15,6 +15,9 @@
 *
 */
 
+// JJA: could we think of a more pithy name than observable-in-a-box ?
+
+// JJA: we should use import maps for all of these imports
 import { Interpreter } from "https://cdn.skypack.dev/@alex.garcia/unofficial-observablehq-compiler";
 import {
   Inspector,

@@ -138,6 +138,7 @@ export function observableCompile(
           const htmlLabel = asHtmlId(label as string);
           if (userIds.has(htmlLabel)) {
             // FIXME better error handling
+            // JJA: the throw *should* be enough here to report the error in a sane way
             error("Error: cell has duplicate label ${htmlLabel}");
             throw new Error(`FATAL: duplicate label ${htmlLabel}`);
           } else {
@@ -147,6 +148,8 @@ export function observableCompile(
         };
         if (cell.options?.label) {
           return chooseId(cell.options.label as string);
+          // JJA: we have a kCellLstLabel constant defined in jupyter.ts,
+          // we should probably move this to constants.ts and use it here
         } else if (cell.options?.["lst.label"]) {
           return chooseId(cell.options["lst.label"] as string);
         } else {
@@ -168,16 +171,22 @@ export function observableCompile(
         return (cell.options.label as string).startsWith("fig-");
       };
       const hasFigureCaption = () => {
+        // JJA: same story on relocating kCellFigCap from jupyter.ts to constants.ts
         return cell.options?.["fig.cap"];
       };
       const hasFigureSubCaptions = () => {
+        // JJA: one of our upcoming projects is to create schemas for *all* YAML
+        // consumed in the system and use them to validate yaml before we consume
+        // it and generate sane error messages. so we can defer any extra checking
+        // here in anticipation of that upcomining work.
         // FIXME figure out runtime type validation. This should check
         // if fig.subcap is an array of strings.
+        // JJA: use constant here as well
         return cell.options?.["fig.subcap"];
       };
 
       resourceFiles.push(...extractResources(
-        cell.source.join(""),
+        cell.source.join(""), // JJA: does join here need to use "\n" ?
         options.source,
         projDir,
       ));
@@ -194,11 +203,15 @@ export function observableCompile(
         } else {
           logError(e);
         }
+        // JJA: if we've already printed sufficient error diagnostics we can simply
+        // throw new Error()  (which won't print any additional output on the catch side)
         throw e;
       }
       const hasManyRowsCols = () => {
+        // JJA: same comment re: YAML validation/parsing -- we can pick this up later
         // FIXME figure out runtime type validation. This should check
         // if ncol and nrow are positive integers
+        // JJA: same comment re: constants.ts for these (and for others below)
         return cell.options?.["layout.ncol"] ||
           cell.options?.["layout.nrow"] ||
           (nCells > 1);
@@ -258,6 +271,7 @@ export function observableCompile(
         "summary",
         "classes",
       ]);
+
       for (const [key, value] of Object.entries(cell.options || {})) {
         if (!keysToSkip.has(key)) {
           attrs.push(`${key}="${value}"`);

@@ -71,9 +71,9 @@ export async function observableNotebookToMarkdown(
   }
 
   // generate markdown
-  const kModePrefixes = ["md", "html", "tex"].map(prefix => ({
+  const kModePrefixes = ["md", "html", "tex"].map((prefix) => ({
     prefix,
-    re: new RegExp("^" + prefix + "\\s*`((.|\\n)+)`\\s*;?")
+    re: new RegExp("^" + prefix + "\\s*`((.|\\n)+)`\\s*;?"),
   }));
   const lines: string[] = [];
   for (let i = 0; i < nb.nodes.length; i++) {
@@ -84,6 +84,7 @@ export async function observableNotebookToMarkdown(
     const trimmedValue = value.trim();
     if (mode === "js") {
       for (const { prefix, re } of kModePrefixes) {
+        // JJA: const
         let m = trimmedValue.match(re);
         if (m) {
           mode = prefix;
@@ -106,6 +107,7 @@ export async function observableNotebookToMarkdown(
       case "js":
         lines.push("```{observable}");
         if (!node.pinned) {
+          // JJA: 1 space rather than 2
           lines.push("//|  echo: false");
         }
         lines.push(value);

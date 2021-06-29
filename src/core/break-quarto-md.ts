@@ -23,7 +23,14 @@ export interface CodeCellType {
 
 export interface QuartoMdCell {
   id?: string;
-  cell_type: "markdown" | CodeCellType | "raw" | "math";
+
+  // JJA: we have a linter setting that prohibits underscore in variable names
+  // We should either change this to camel case or if needs to have an underscore
+  // (e.g. b/c it's a declaration of an externally provided JS object) then
+  // add a lint ignore declaration (as I've done here by way of example)
+
+  // deno-lint-ignore camelcase
+  cell_type: "markdown" | CodeCellType | "raw" | "math"; // JJA: re-order to group strings together
   options?: Record<string, unknown>;
   source: string[];
 }
@@ -42,6 +49,7 @@ export function breakQuartoMd(
 
   // regexes
   const yamlRegEx = /^---\s*$/;
+  // JJA: discard this line b/c it's not assigned to anything?
   /^\s*```+\s*\{([a-zA-Z0-9_]+)( *[ ,].*)?\}\s*$/;
   const startCodeCellRegEx = new RegExp(
     "^\\s*```+\\s*\\{([=A-Za-z]+)( *[ ,].*)?\\}\\s*$",
@@ -55,6 +63,7 @@ export function breakQuartoMd(
   const lineBuffer: string[] = [];
   const flushLineBuffer = (
     cell_type: "markdown" | "code" | "raw" | "math",
+    // JJA: unused, remove
     frontMatter?: boolean,
   ) => {
     if (lineBuffer.length) {

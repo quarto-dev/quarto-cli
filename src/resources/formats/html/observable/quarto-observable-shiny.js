@@ -7,6 +7,8 @@
  creating dummy classes in a separate import.
  */
 
+// JJA: use import maps here
+
 import {
   Inspector,
   Library,
@@ -33,6 +35,7 @@ export function extendObservableStdlib(lib)
       return el.id;
     }
     renderValue(el, data) {
+      // JJA: id isn't used, are we calling this for a side-effect?
       const id = this.getId(el);
       this._change(data);
     }
@@ -72,11 +75,14 @@ export class ShinyInspector extends Inspector {
 const { Generators } = new Library();
 
 class ObservableButtonInput /*extends ShinyInput*/ {
+  // JJA: unused 'scope' var (note that if you still want the arg just to document
+  // it's presence you can name it _scope and the linter will stand down)
   find(scope) {
     return document.querySelectorAll(".observablehq-inputs-button");
   }
 
   init(el, change) {
+    // JJA: use const here and for 'obs' below
     let btn = button(el.textContent);
     el.innerHTML = "";
     el.appendChild(btn);

@@ -3,6 +3,8 @@ title: "Hello Quarto Observable"
 format: html
 ---
 
+<!-- // JJA: change to {observable} -->
+
 I wonder if it'll work.
 
 ## Cell 1, imports and input

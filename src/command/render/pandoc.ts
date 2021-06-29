@@ -167,7 +167,13 @@ export async function runPandoc(
   // filter should be active
   const kObservableFilter = "observable";
   if (sysFilters.includes(kObservableFilter)) {
+    // JJA: I think we should perform the check further upstream (e.g. right
+    // when we detect that there are observable code chunks in observableCompile)
     if (options.format.pandoc?.[kSelfContained]) {
+      // JJA: Here you should just throw an exception with an appropriate
+      // message. In dev mode you'll see a call stack printed, but in release
+      // mode the user should just see the plain error message
+
       // FIXME: What's the correct way to print an error message?
       // "error" from core.log expects an exception value.
       console.error(

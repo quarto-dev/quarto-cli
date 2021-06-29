@@ -184,6 +184,7 @@ function observable()
 
   if (param("observable", false)) then
     return {
+      -- // JJA: are the empty function bodies here still TODO?
       CodeBlock = function(el)
         
       end,

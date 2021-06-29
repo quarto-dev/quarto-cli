@@ -14,6 +14,10 @@ import { parseError } from "./errors.ts";
 
 // we need to patch the base walker ourselves because OJS sometimes
 // emits Program nodes with "cells" rather than "body"
+// JJA: in the version of acorn that deno downloaded on my system
+// a second argumento to make ('baseVisitor') is required. It looks
+// like it can be 'undefined' though. you should probably update
+// your acorn dependency and see if you see the same error
 const walkerBase = make({
   Import() {},
   // deno-lint-ignore no-explicit-any
@@ -120,8 +124,9 @@ export function extractResources(
   let ojsAST;
   try {
     ojsAST = parseModule(ojsSource);
-  } catch(e) {
+  } catch (e) {
     parseError(e, ojsSource);
+    // JJA: if an adequate error message has been printed we can just do throw new Error()
     throw e;
   }
   for (const importPath of localES6Imports(ojsAST)) {

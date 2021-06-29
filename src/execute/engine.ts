@@ -246,6 +246,7 @@ export function fileExecutionEngine(file: string) {
     if (
       languages.size === 0 ||
       (languages.size == 1 &&
+        // JJA: we can probably drop the 'ojs' at this point
         (languages.has("ojs") || languages.has("observable")))
     ) {
       return engineForMarkdownWithNoLanguages(markdown);
