@@ -53,7 +53,6 @@ import {
   isLatexOutput,
   isMarkdownOutput,
 } from "../../config/format.ts";
-import { restorePreservedHtml } from "../../core/jupyter/preserve.ts";
 
 import {
   executeKernelKeepalive,
