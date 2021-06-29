@@ -42,8 +42,7 @@ if (requireNamespace("htmlwidgets", quietly = TRUE)) {
 
 # tweak selectize dropdown parent
 # PR to shiny to accomplish same here: https://github.com/rstudio/shiny/pull/3413
-# if (requireNamespace("shiny", quietly = TRUE)) {
-if (FALSE) {
+if (requireNamespace("shiny", quietly = TRUE)) {
   shiny_selectizeIt = shiny:::selectizeIt
   selectizeIt <- function(inputId, select, options, nonempty = FALSE) {
     if (length(options) == 0) {
