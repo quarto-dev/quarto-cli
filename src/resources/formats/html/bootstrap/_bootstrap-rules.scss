@@ -118,7 +118,6 @@ div.sourceCode {
   // Clear code background if is not specified
   @if $code-background {
     background-color: $code-background-color;
-    padding: $code-background-padding;
     border: 1px solid $code-background-color;
     border-radius: $border-radius;
   } @else {
@@ -136,6 +135,9 @@ pre.sourceCode {
     padding-left: $code-padding-left;
   } @else {
     border: none;
+  }
+  @if $code-background {
+    padding: $code-background-padding;
   }
 }
 
