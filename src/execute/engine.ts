@@ -17,6 +17,7 @@ import { dirAndStem } from "../core/path.ts";
 
 import { PartitionedMarkdown } from "../core/pandoc/pandoc-partition.ts";
 import { languagesInMarkdown } from "../core/jupyter/jupyter.ts";
+import { restorePreservedHtml } from "../core/jupyter/preserve.ts";
 
 import { ProjectContext } from "../project/project-context.ts";
 
@@ -275,4 +276,18 @@ export function engineIgnoreGlobs() {
     }
   });
   return ignoreGlobs;
+}
+
+export function postProcessRestorePreservedHtml(options: PostProcessOptions) {
+  // read the output file
+  let output = Deno.readTextFileSync(options.output);
+
+  // substitute
+  output = restorePreservedHtml(
+    output,
+    options.preserve,
+  );
+
+  // re-write the output
+  Deno.writeTextFileSync(options.output, output);
 }

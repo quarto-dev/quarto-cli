@@ -5,12 +5,14 @@
 *
 */
 
-import { error, info } from "log/mod.ts";
+import { error, info, warning } from "log/mod.ts";
 
 import { execProcess } from "../core/process.ts";
 import { rBinaryPath, resourcePath } from "../core/resources.ts";
 import { readYamlFromMarkdownFile } from "../core/yaml.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
+
+import { kCodeLink } from "../config/constants.ts";
 
 import {
   DependenciesOptions,
@@ -20,6 +22,7 @@ import {
   ExecutionEngine,
   kQmdExtensions,
   PostProcessOptions,
+  postProcessRestorePreservedHtml,
   RunOptions,
 } from "./engine.ts";
 import { sessionTempFile } from "../core/temp.ts";
@@ -79,12 +82,26 @@ export const knitrEngine: ExecutionEngine = {
     );
   },
 
-  postprocess: (options: PostProcessOptions) => {
-    return callR<void>(
-      "postprocess",
-      options,
-      options.quiet,
-    );
+  postprocess: async (options: PostProcessOptions) => {
+    // handle preserved html in js-land
+    postProcessRestorePreservedHtml(options);
+
+    // see if we can code link
+    if (options.format.render?.[kCodeLink]) {
+      await callR<void>(
+        "postprocess",
+        { ...options, preserve: undefined },
+        options.quiet,
+        false,
+      ).then(() => {
+        return Promise.resolve();
+      }, () => {
+        warning(
+          `Unable to perform code-link (code-link requires R and the downlit package)`,
+        );
+        return Promise.resolve();
+      });
+    }
   },
 
   canFreeze: true,
@@ -105,6 +122,7 @@ async function callR<T>(
   action: string,
   params: unknown,
   quiet?: boolean,
+  reportError?: boolean,
 ): Promise<T> {
   // create a temp file for writing the results
   const resultsFile = sessionTempFile(
@@ -136,15 +154,19 @@ async function callR<T>(
       const resultsJson = JSON.parse(results);
       return resultsJson as T;
     } else {
-      await printCallRDiagnostics();
+      if (reportError) {
+        await printCallRDiagnostics();
+      }
       return Promise.reject();
     }
   } catch (e) {
-    if (e?.message) {
-      info("");
-      error(e.message);
+    if (reportError) {
+      if (e?.message) {
+        info("");
+        error(e.message);
+      }
+      await printCallRDiagnostics();
     }
-    await printCallRDiagnostics();
     return Promise.reject();
   }
 }
