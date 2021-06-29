@@ -88,7 +88,7 @@ export function fixupCssReferences(
     (_match, p1: string, p2: string) => {
       const ref = p2.startsWith("/") ? `${offset}${p2.slice(1)}` : p2;
       onRef(ref);
-      return `url(${p1}${ref}${p1})`;
+      return `url(${p1 || ""}${ref}${p1 || ""})`;
     },
   );
 
@@ -98,7 +98,7 @@ export function fixupCssReferences(
     (_match, p1: string, p2: string) => {
       const ref = p2.startsWith("/") ? `${offset}${p2.slice(1)}` : p2;
       onRef(ref);
-      return `@import ${p1}${ref}${p1}`;
+      return `@import ${p1 || ""}${ref}${p1 || ""}`;
     },
   );
 

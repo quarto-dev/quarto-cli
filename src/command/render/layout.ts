@@ -5,6 +5,8 @@
 *
 */
 
+import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
+
 import { kPageWidth } from "../../config/constants.ts";
 import { Format } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
@@ -21,4 +23,18 @@ export function layoutFilterParams(format: Format) {
     params[kPageWidth] = pageWidth;
   }
   return params;
+}
+
+export function selectInputPostprocessor(doc: Document): Promise<string[]> {
+  // look for cell-output-display (these will have overflow-x set on them which we
+  // will want to disable if there are seledct inputs inside)
+  const outputs = doc.querySelectorAll(".cell-output-display");
+  for (let i = 0; i < outputs.length; i++) {
+    const output = outputs[i] as Element;
+    const hasSelect = !!output.querySelector("select");
+    if (hasSelect) {
+      output.classList.add("no-overflow-x");
+    }
+  }
+  return Promise.resolve([]);
 }

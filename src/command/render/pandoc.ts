@@ -86,6 +86,7 @@ import { RunPandocResult } from "./render.ts";
 import { compileSass } from "./sass.ts";
 import { crossrefFilterActive } from "./crossref.ts";
 import { kQuartoHtmlDependency } from "../../format/html/format-html.ts";
+import { selectInputPostprocessor } from "./layout.ts";
 
 // options required to run pandoc
 export interface PandocOptions {
@@ -204,6 +205,9 @@ export async function runPandoc(
 
     // save post-processors
     htmlPostprocessors.push(...(extras.html?.[kHtmlPostprocessors] || []));
+
+    // add a post-processor for fixing overflow-x in cell output display
+    htmlPostprocessors.push(selectInputPostprocessor);
 
     // provide default toc-title if necessary
     if (extras[kTocTitle]) {

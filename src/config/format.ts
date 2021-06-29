@@ -61,6 +61,7 @@ import {
   kPreferHtml,
   kSectionDivs,
   kSelfContained,
+  kSelfContainedMath,
   kShiftHeadingLevelBy,
   kTableOfContents,
   kTemplate,
@@ -186,6 +187,7 @@ export interface FormatRender {
   [kCodeSummary]?: string;
   [kCodeLink]?: boolean;
   [kMergeIncludes]?: boolean;
+  [kSelfContainedMath]?: boolean;
   [kLatexAutoMk]?: boolean;
   [kLatexAutoInstall]?: boolean;
   [kLatexMinRuns]?: number;
@@ -250,7 +252,7 @@ export interface FormatPandoc {
   [kNumberOffset]?: number[];
   [kHighlightStyle]?: string;
   [kSectionDivs]?: boolean;
-  [kHtmlMathMethod]?: string;
+  [kHtmlMathMethod]?: string | { method: string; url: string };
   [kTopLevelDivision]?: string;
   [kShiftHeadingLevelBy]?: number;
 }

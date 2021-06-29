@@ -25,6 +25,7 @@ import {
   kQmdExtensions,
   PandocIncludes,
   PostProcessOptions,
+  postProcessRestorePreservedHtml,
 } from "../engine.ts";
 import {
   isJupyterNotebook,
@@ -53,7 +54,6 @@ import {
   isLatexOutput,
   isMarkdownOutput,
 } from "../../config/format.ts";
-import { restorePreservedHtml } from "../../core/jupyter/preserve.ts";
 
 import {
   executeKernelKeepalive,
@@ -269,18 +269,7 @@ export const jupyterEngine: ExecutionEngine = {
   },
 
   postprocess: (options: PostProcessOptions) => {
-    // read the output file
-    let output = Deno.readTextFileSync(options.output);
-
-    // substitute
-    output = restorePreservedHtml(
-      output,
-      options.preserve,
-    );
-
-    // re-write the output
-    Deno.writeTextFileSync(options.output, output);
-
+    postProcessRestorePreservedHtml(options);
     return Promise.resolve();
   },
 

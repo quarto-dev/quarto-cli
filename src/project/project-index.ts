@@ -94,7 +94,11 @@ export function readInputTargetIndex(
       inputMod && indexMod && (indexMod >= inputMod) &&
       (!projMod || (indexMod >= projMod))
     ) {
-      return JSON.parse(Deno.readTextFileSync(indexFile));
+      try {
+        return JSON.parse(Deno.readTextFileSync(indexFile));
+      } catch {
+        return undefined;
+      }
     }
   }
 }

@@ -16,6 +16,7 @@ import { kSkipHidden, pathWithForwardSlashes } from "../core/path.ts";
 
 import { includedMetadata, Metadata } from "../config/metadata.ts";
 import {
+  kHtmlMathMethod,
   kMetadataFile,
   kMetadataFiles,
   kQuartoVarsKey,
@@ -250,7 +251,10 @@ export async function projectMetadataForInputFile(
 
   const projConfig = project?.config || {};
 
-  const fixupPaths = (collection: Array<unknown> | Record<string, unknown>) => {
+  const fixupPaths = (
+    collection: Array<unknown> | Record<string, unknown>,
+    parentKey?: unknown,
+  ) => {
     ld.forEach(
       collection,
       (
@@ -266,10 +270,12 @@ export async function projectMetadataForInputFile(
           }
         };
 
-        if (Array.isArray(value)) {
+        if (parentKey === kHtmlMathMethod && index === "method") {
+          // don't fixup html-math-method
+        } else if (Array.isArray(value)) {
           assign(fixupPaths(value));
         } else if (typeof (value) === "object") {
-          assign(fixupPaths(value as Record<string, unknown>));
+          assign(fixupPaths(value as Record<string, unknown>, index));
         } else if (typeof (value) === "string") {
           if (!isAbsolute(value)) {
             // if this is a valid file, then transform it to be relative to the input path
@@ -303,7 +309,7 @@ function projectInputFiles(dir: string, metadata?: ProjectConfig) {
   const projIgnoreGlobs = projectIgnoreGlobs(dir) // standard ignores for all projects
     .concat(["**/_*", "**/_*/**"]) // underscore prefx
     .concat(["**/.*", "**/.*/**"]) // hidden (dot prefix)
-    .concat(["README.?([Rr])md"]); // README
+    .concat(["**/README.?([Rrq])md"]); // README
 
   // map to regex
   const projectIgnores = projIgnoreGlobs.map((glob) =>
@@ -381,16 +387,19 @@ function projectConfigResources(
   const resources: string[] = [];
   const findResources = (
     collection: Array<unknown> | Record<string, unknown>,
+    parentKey?: unknown,
   ) => {
     ld.forEach(
       collection,
       (value: unknown, index: unknown) => {
-        if (resourceIgnoreFields.includes(index as string)) {
+        if (parentKey === kHtmlMathMethod && index === "method") {
+          // don't resolve html-math-method
+        } else if (resourceIgnoreFields.includes(index as string)) {
           // project type specific ignore (e.g. site-navbar, site-sidebar)
         } else if (Array.isArray(value)) {
           findResources(value);
         } else if (typeof (value) === "object") {
-          findResources(value as Record<string, unknown>);
+          findResources(value as Record<string, unknown>, index);
         } else if (typeof (value) === "string") {
           const path = isAbsolute(value) ? value : join(dir, value);
           // Paths could be invalid paths (e.g. with colons or other weird characters)

@@ -6,10 +6,14 @@
 */
 
 import {
+  kGladtex,
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
+  kKatex,
   kListings,
+  kMathjax,
+  kMathml,
   kNumberOffset,
   kNumberSections,
   kSelfContained,
@@ -17,6 +21,7 @@ import {
   kToc,
   kTocTitle,
   kTopLevelDivision,
+  kWebtex,
 } from "./constants.ts";
 
 export interface PandocFlags {
@@ -39,4 +44,9 @@ export interface PandocFlags {
   [kIncludeInHeader]?: string;
   [kIncludeBeforeBody]?: string;
   [kIncludeAfterBody]?: string;
+  [kMathjax]?: boolean;
+  [kKatex]?: boolean;
+  [kMathml]?: boolean;
+  [kGladtex]?: boolean;
+  [kWebtex]?: boolean;
 }
