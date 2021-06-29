@@ -114,6 +114,18 @@ $code-background-color: color.adjust(
   padding-top: 1em;
 }
 
+div.sourceCode {
+  // Clear code background if is not specified
+  @if $code-background {
+    background-color: $code-background-color;
+    border: 1px solid $code-background-color;
+    border-radius: $border-radius;
+  } @else {
+    background-color: $body-bg !important;
+    border: none;
+  }
+}
+
 pre.sourceCode {
   // Apply border, if specified
   @if $code-border-left {
@@ -124,16 +136,8 @@ pre.sourceCode {
   } @else {
     border: none;
   }
-
-  // Clear code background if is not specified
   @if $code-background {
-    background-color: $code-background-color;
     padding: $code-background-padding;
-    border: 1px solid $code-background-color;
-    border-radius: $border-radius;
-  } @else {
-    background-color: $body-bg !important;
-    border: none;
   }
 }
 
@@ -526,7 +530,7 @@ $callouts: (
     } @else {
       background-color: shift-color(map.get($info, "color"), -90%);
     }
-    }
+  }
 
   $shifted-color: #{shift-color(map.get($info, "color"), $callout-icon-scale)};
   $shifted-color-svg: str-replace($shifted-color, "#", "%23");

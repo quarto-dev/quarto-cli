@@ -7,6 +7,8 @@
 
 import { dirname, extname, isAbsolute, join, relative } from "path/mod.ts";
 
+import { ld } from "lodash/mod.ts";
+
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
 import { partitionYamlFrontMatter } from "../../core/yaml.ts";
@@ -15,17 +17,25 @@ import { binaryPath } from "../../core/resources.ts";
 import { createSessionTempDir, sessionTempFile } from "../../core/temp.ts";
 
 import {
+  kHtmlMathMethod,
   kIncludeAfterBody,
   kKeepSource,
   kKeepYaml,
   kOutputExt,
   kOutputFile,
+  kSelfContained,
+  kSelfContainedMath,
   kTemplate,
   kVariant,
 } from "../../config/constants.ts";
 import { Format, isHtmlOutput } from "../../config/format.ts";
 
-import { havePandocArg, kStdOut, replacePandocArg } from "./flags.ts";
+import {
+  havePandocArg,
+  kStdOut,
+  RenderFlags,
+  replacePandocArg,
+} from "./flags.ts";
 import { PandocOptions } from "./pandoc.ts";
 import { RenderContext } from "./render.ts";
 import {
@@ -108,6 +118,8 @@ export async function outputRecipe(
       if (format.pandoc.to && isHtmlOutput(format.pandoc.to, true)) {
         recipe.format.pandoc[kTemplate] = await patchHtmlTemplate(
           format.pandoc.to,
+          format,
+          options.flags,
         );
       }
     }
@@ -201,8 +213,12 @@ function embeddedSourceCode(file: string) {
   return tempFile;
 }
 
-async function patchHtmlTemplate(format: string) {
-  return await patchTemplate(format, (template) => {
+async function patchHtmlTemplate(
+  templateName: string,
+  format: Format,
+  flags?: RenderFlags,
+) {
+  return await patchTemplate(templateName, (template) => {
     // extract/capture css
     let css = "";
     let patchedTemplate = template.replace(
@@ -225,11 +241,114 @@ async function patchHtmlTemplate(format: string) {
     }
 
     // extra stuff so reveal works with jupyter widgets
-    if (format === "revealjs") {
+    if (templateName === "revealjs") {
       patchedTemplate = patchRevealsJsTemplate(template);
     }
+
+    // make math evade self-contained
+    if (
+      ((flags && flags[kSelfContained]) || format.pandoc[kSelfContained]) &&
+      !format.render[kSelfContainedMath]
+    ) {
+      const math = mathConfig(format, flags);
+      if (math) {
+        const mathTemplate = math.method === "mathjax"
+          ? mathjaxScript(math.url)
+          : math.method == "katex"
+          ? katexScript(math.url)
+          : "";
+
+        if (mathTemplate) {
+          patchedTemplate = patchedTemplate.replace(/\$math\$/, mathTemplate);
+        }
+      }
+    }
+
     return patchedTemplate;
   });
+}
+
+function mathConfig(format: Format, flags?: RenderFlags) {
+  // if any command line math flags were passed then bail
+  if (
+    flags?.mathjax || flags?.katex || flags?.webtex || flags?.gladtex ||
+    flags?.mathml
+  ) {
+    return undefined;
+  }
+
+  const math = format.pandoc[kHtmlMathMethod];
+  if (math === undefined || math === "mathjax") {
+    return {
+      method: "mathjax",
+      url: "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js",
+    };
+  } else if (math === "katex") {
+    return {
+      method: "katex",
+      url: "https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/",
+    };
+  } else if (ld.isObject(math)) {
+    const mathMethod = math as { method: string; url: string };
+    if (
+      (mathMethod.method === "mathjax" || mathMethod.method === "katex") &&
+      typeof (mathMethod.url) === "string"
+    ) {
+      return mathMethod;
+    }
+  }
+}
+
+function mathjaxScript(url: string) {
+  return `
+  <script>
+    (function () {
+      var script = document.createElement("script");
+      script.type = "text/javascript";
+      script.src  = "${url}";
+      document.getElementsByTagName("head")[0].appendChild(script);
+    })();
+  </script>
+`;
+}
+
+function katexScript(url: string) {
+  url = url.trim();
+  if (!url.endsWith("/")) {
+    url += "/";
+  }
+  return `
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      var head = document.getElementsByTagName("head")[0];
+      var link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = "${url}katex.min.css";
+      head.appendChild(link);
+
+      var script = document.createElement("script");
+      script.type = "text/javascript";
+      script.src  = "${url}katex.min.js";
+      script.async = false;
+      script.addEventListener('load', function() {
+        var mathElements = document.getElementsByClassName("math");
+          var macros = [];
+          for (var i = 0; i < mathElements.length; i++) {
+            var texText = mathElements[i].firstChild;
+            if (mathElements[i].tagName == "SPAN") {
+              window.katex.render(texText.data, mathElements[i], {
+                displayMode: mathElements[i].classList.contains('display'),
+                throwOnError: false,
+                macros: macros,
+                fleqn: false
+              });
+            }
+          }
+      });
+      head.appendChild(script);
+    });
+  </script>
+  `;
 }
 
 function patchRevealsJsTemplate(template: string) {
