@@ -303,7 +303,7 @@ function projectInputFiles(dir: string, metadata?: ProjectConfig) {
   const projIgnoreGlobs = projectIgnoreGlobs(dir) // standard ignores for all projects
     .concat(["**/_*", "**/_*/**"]) // underscore prefx
     .concat(["**/.*", "**/.*/**"]) // hidden (dot prefix)
-    .concat(["README.?([Rr])md"]); // README
+    .concat(["**/README.?([Rrq])md"]); // README
 
   // map to regex
   const projectIgnores = projIgnoreGlobs.map((glob) =>
