@@ -6,7 +6,6 @@
 */
 
 import { ld } from "lodash/mod.ts";
-import { error } from "log/mod.ts";
 import { dirname, join, relative, resolve } from "path/mod.ts";
 
 import { parseModule } from "observablehq/parser";
@@ -96,14 +95,9 @@ export function observableCompile(
     return { markdown };
   }
 
-  // CES: Moved from pandoc.ts as suggested.
-  //
-  // JJA: I think we should perform the check further upstream (e.g. right
-  // when we detect that there are observable code chunks in observableCompile)
   if (options.format.pandoc?.[kSelfContained]) {
     throw new Error("FATAL: self-contained format option not supported with observable cells");
   }
-  
 
   const output = breakQuartoMd(markdown);
 

@@ -74,7 +74,6 @@ import {
   kPageTitle,
   kQuartoVarsKey,
   kResources,
-  kSelfContained,
   kTitle,
   kTitlePrefix,
   kTocTitle,

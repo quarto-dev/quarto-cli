@@ -41,7 +41,7 @@ export function extendObservableStdlib(lib)
     getId(el) {
       return el.id;
     }
-    renderValue(el, data) {
+    renderValue(_el, data) {
       this._change(data);
     }
   }
@@ -75,16 +75,11 @@ export class ShinyInspector extends Inspector {
     }
     return super.fulfilled(value, name);
   }
-};
+}
 
 const { Generators } = new Library();
 
 class ObservableButtonInput /*extends ShinyInput*/ {
-  // JJA: unused 'scope' var (note that if you still want the arg just to document
-  // it's presence you can name it _scope and the linter will stand down)
-  
-  // CES: Ok, I'll keep it and prefix it with underscore because it's
-  // possible that Joe's code will expect it
   find(_scope) {
     return document.querySelectorAll(".observablehq-inputs-button");
   }
@@ -105,7 +100,7 @@ class ObservableButtonInput /*extends ShinyInput*/ {
     // TODO: error handling
 
     return {
-      onSetValue: (value) => {
+      onSetValue: (_value) => {
       },
       dispose: () => {
         obs.return();

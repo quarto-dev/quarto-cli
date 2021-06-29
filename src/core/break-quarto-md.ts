@@ -103,8 +103,7 @@ export function breakQuartoMd(
   };
 
   // loop through lines and create cells based on state transitions
-  let parsedFrontMatter = false,
-    inYaml = false,
+  let inYaml = false,
     inMathBlock = false,
     inCodeCell = false,
     inCode = false;
@@ -114,7 +113,6 @@ export function breakQuartoMd(
       if (inYaml) {
         lineBuffer.push(line);
         flushLineBuffer("raw");
-        parsedFrontMatter = true;
         inYaml = false;
       } else {
         flushLineBuffer("markdown");

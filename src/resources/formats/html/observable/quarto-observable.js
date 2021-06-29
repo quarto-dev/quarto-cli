@@ -9,9 +9,7 @@
 // CES: These are browser-side; import maps are only supported on Google Chrome.
 
 import {
-  Inspector,
   Library,
-  Runtime,
 } from "https://cdn.skypack.dev/@observablehq/runtime";
 
 import { FileAttachments } from "https://cdn.skypack.dev/@observablehq/stdlib";

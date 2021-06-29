@@ -127,7 +127,7 @@ export function extractResources(
   let ojsAST;
   try {
     ojsAST = parseModule(ojsSource);
-  } catch (e) {
+  } catch (_e) {
     parseError(ojsSource);
     throw new Error();
   }
