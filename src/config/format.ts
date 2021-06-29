@@ -61,6 +61,7 @@ import {
   kPreferHtml,
   kSectionDivs,
   kSelfContained,
+  kSelfContainedMath,
   kShiftHeadingLevelBy,
   kTableOfContents,
   kTemplate,
@@ -185,6 +186,7 @@ export interface FormatRender {
   [kCodeSummary]?: string;
   [kCodeLink]?: boolean;
   [kMergeIncludes]?: boolean;
+  [kSelfContainedMath]?: boolean;
   [kLatexAutoMk]?: boolean;
   [kLatexAutoInstall]?: boolean;
   [kLatexMinRuns]?: number;

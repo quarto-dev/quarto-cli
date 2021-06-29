@@ -24,6 +24,7 @@ import {
   kOutputExt,
   kOutputFile,
   kSelfContained,
+  kSelfContainedMath,
   kTemplate,
   kVariant,
 } from "../../config/constants.ts";
@@ -245,7 +246,10 @@ async function patchHtmlTemplate(
     }
 
     // make math evade self-contained
-    if ((flags && flags[kSelfContained]) || format.pandoc[kSelfContained]) {
+    if (
+      ((flags && flags[kSelfContained]) || format.pandoc[kSelfContained]) &&
+      !format.render[kSelfContainedMath]
+    ) {
       const math = mathConfig(format, flags);
       if (math) {
         const mathTemplate = math.method === "mathjax"
@@ -282,7 +286,7 @@ function mathConfig(format: Format, flags?: RenderFlags) {
   } else if (math === "katex") {
     return {
       method: "katex",
-      url: "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/",
+      url: "https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/",
     };
   } else if (ld.isObject(math)) {
     const mathMethod = math as { method: string; url: string };
@@ -315,8 +319,7 @@ function katexScript(url: string) {
   }
   return `
   <script>
-    (function () {
-      
+    document.addEventListener("DOMContentLoaded", function () {
       var head = document.getElementsByTagName("head")[0];
       var link = document.createElement("link");
       link.rel = "stylesheet";
@@ -327,11 +330,8 @@ function katexScript(url: string) {
       script.type = "text/javascript";
       script.src  = "${url}katex.min.js";
       script.async = false;
-      head.appendChild(script);
-
       script.addEventListener('load', function() {
-        document.addEventListener("DOMContentLoaded", function () {
-          var mathElements = document.getElementsByClassName("math");
+        var mathElements = document.getElementsByClassName("math");
           var macros = [];
           for (var i = 0; i < mathElements.length; i++) {
             var texText = mathElements[i].firstChild;
@@ -344,10 +344,9 @@ function katexScript(url: string) {
               });
             }
           }
-        });
       });
-    
-    })();
+      head.appendChild(script);
+    });
   </script>
   `;
 }

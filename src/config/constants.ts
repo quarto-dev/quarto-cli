@@ -52,6 +52,7 @@ export const kCodeSummary = "code-summary";
 export const kCodeLink = "code-link";
 export const kMergeIncludes = "merge-includes";
 export const kPreferHtml = "prefer-html";
+export const kSelfContainedMath = "self-contained-math";
 
 export const kLatexAutoMk = "latex-auto-mk";
 export const kLatexAutoInstall = "latex-auto-install";
@@ -102,6 +103,7 @@ export const kRenderDefaultsKeys = [
   kCodeFold,
   kCodeLink,
   kCodeSummary,
+  kSelfContainedMath,
   kLatexAutoMk,
   kLatexAutoInstall,
   kLatexMinRuns,
