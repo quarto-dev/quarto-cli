@@ -27,7 +27,7 @@ function quartoPostMetaInject()
     margin-left: 30px;
   }
 
-  .cell-output-display {
+  .cell-output-display:not(.no-overflow-x) {
     overflow-x: auto;
   }
 
