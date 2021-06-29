@@ -13,22 +13,16 @@
  creating dummy classes in a separate import.
  */
 
-// JJA: use import maps here
-// CES: These are browser-side; import maps are only supported on Google Chrome.
-
 import {
   Inspector,
   Library,
 } from "https://cdn.skypack.dev/@observablehq/runtime";
 
-import {
-  button
-} from "https://cdn.skypack.dev/@observablehq/inputs";
+import { button } from "https://cdn.skypack.dev/@observablehq/inputs";
 
 const shinyInputVars = new Set();
 
-export function extendObservableStdlib(lib)
-{
+export function extendObservableStdlib(lib) {
   class NamedVariableOutputBinding extends Shiny.OutputBinding {
     constructor(name, change) {
       super();
@@ -46,20 +40,22 @@ export function extendObservableStdlib(lib)
     }
   }
 
-  lib.shinyInput = function() {
+  lib.shinyInput = function () {
     return (name) => {
       shinyInputVars.add(name);
     };
   };
 
-  lib.shinyOutput = function() {
-    return function(name) {
+  lib.shinyOutput = function () {
+    return function (name) {
       const dummySpan = document.createElement("div");
       dummySpan.id = name;
       dummySpan.classList.add("observablehq-variable-writer");
       window._ojs.shinyElementRoot.appendChild(dummySpan);
-      return lib.Generators.observe(change => {
-        Shiny.outputBindings.register(new NamedVariableOutputBinding(name, change));
+      return lib.Generators.observe((change) => {
+        Shiny.outputBindings.register(
+          new NamedVariableOutputBinding(name, change),
+        );
       });
     };
   };
@@ -90,7 +86,7 @@ class ObservableButtonInput /*extends ShinyInput*/ {
     el.appendChild(btn);
 
     const obs = Generators.input(el.firstChild);
-    (async function() {
+    (async function () {
       // throw away the first value, it doesn't count for buttons
       await obs.next().value;
       for (const x of obs) {
@@ -104,20 +100,18 @@ class ObservableButtonInput /*extends ShinyInput*/ {
       },
       dispose: () => {
         obs.return();
-      }
+      },
     };
   }
 }
 
-export function initObservableShinyRuntime()
-{
-
+export function initObservableShinyRuntime() {
   class BindingAdapter extends Shiny.InputBinding {
     static value_sym = Symbol("value");
     static callback_sym = Symbol("callback");
     static instance_sym = Symbol("instance");
     static values = new WeakMap();
-    
+
     constructor(x) {
       super();
       this.x = x;
@@ -179,6 +173,3 @@ export function initObservableShinyRuntime()
 
   return true;
 }
-
-
-

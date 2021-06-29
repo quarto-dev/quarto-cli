@@ -21,16 +21,6 @@ function observable()
     return pandoc.Span('', { id = id })
   end
 
-  function observableBlock(src)
-    local id = uniqueId()
-    cells:insert({
-        src = src,
-        id = id,
-        inline = false
-    })
-    return pandoc.Div('', { id = id })
-  end
-
   function isInterpolationOpen(str)
     if str.t ~= "Str" then
       return false
@@ -45,7 +35,7 @@ function observable()
     return str.text:find("}")
   end
 
-  function find_arg_if(lst, fun, start)
+  function findArgIf(lst, fun, start)
     if start == nil then
       start = 1
     end
@@ -58,17 +48,17 @@ function observable()
     return nil
   end
 
-  function escape_single(str)
+  function escapeSingle(str)
     local sub, _ = string.gsub(str, "'", "\\\\'")
     return sub
   end
 
-  function escape_double(str)
+  function escapeDouble(str)
     local sub, _ = string.gsub(str, '"', '\\\\"')
     return sub
   end
 
-  function stringify_token_into(token, sequence)
+  function stringifyTokenInto(token, sequence)
     function unknown()
       fail("Don't know how to handle token " .. token.t)
     end
@@ -95,13 +85,13 @@ function observable()
     elseif token.t == 'Quoted' then
       if token.quotetype == 'SingleQuote' then
         sequence:insert("'")
-        local inner_content = stringify_tokens(token.content)
-        sequence:insert(escape_single(inner_content))
+        local innerContent = stringifyTokens(token.content)
+        sequence:insert(escapeSingle(innerContent))
         sequence:insert("'")
       else
         sequence:insert('"')
-        local inner_content = stringify_tokens(token.content)
-        sequence:insert(escape_double(inner_content))
+        local innerContent = stringifyTokens(token.content)
+        sequence:insert(escapeDouble(innerContent))
         sequence:insert('"')
       end
     elseif token.t == 'RawInline' then
@@ -113,7 +103,7 @@ function observable()
     elseif token.t == 'Space' then
       sequence:insert(" ")
     elseif token.t == 'Span' then
-      stringify_token_into(token.content, sequence)
+      stringifyTokenInto(token.content, sequence)
     elseif token.t == 'Str' then
       sequence:insert(token.text)
     elseif token.t == 'Strikeout' then
@@ -133,10 +123,10 @@ function observable()
     end
   end
   
-  function stringify_tokens(sequence)
+  function stringifyTokens(sequence)
     local result = pandoc.List()
     for i = 1, #sequence do
-      stringify_token_into(sequence[i], result)
+      stringifyTokenInto(sequence[i], result)
     end
     return table.concat(result, "")
   end
@@ -148,10 +138,10 @@ function observable()
   
   function inlines_rec(inlines)
     -- FIXME I haven't tested this for nested interpolations
-    local i = find_arg_if(inlines, isInterpolationOpen)
+    local i = findArgIf(inlines, isInterpolationOpen)
     while i do
       if i then
-        local j = find_arg_if(inlines, isInterpolationClose, i)
+        local j = findArgIf(inlines, isInterpolationClose, i)
         if j then
           local is, ie = inlines[i].text:find("${")
           local js, je = inlines[j].text:find("}")
@@ -171,12 +161,12 @@ function observable()
           inlines:remove(i+1)
           inlines[i] = pandoc.Span({
               pandoc.Str(beforeFirst),
-              observableInline(stringify_tokens(slice)),
+              observableInline(stringifyTokens(slice)),
               pandoc.Str(afterLast)
           })
         end
         -- recurse
-        i = find_arg_if(inlines, isInterpolationOpen, i+1)
+        i = findArgIf(inlines, isInterpolationOpen, i+1)
       end
     end
     return inlines
@@ -184,23 +174,10 @@ function observable()
 
   if (param("observable", false)) then
     return {
-      -- // JJA: are the empty function bodies here still TODO?
-      CodeBlock = function(el)
-        
-      end,
-      
-      DisplayMath = function(el)
-      
-      end,
-      
       Inlines = function (inlines)
         return inlines_rec(inlines)
       end,
       
-      Math = function(el)
-        
-      end,
-
       Pandoc = function(doc)
         if uid > 0 then
           doc.blocks:insert(pandoc.RawBlock("html", "<script type='module'>"))
@@ -221,14 +198,6 @@ function observable()
           doc.blocks:insert(pandoc.RawBlock("html", "</script>"))
         end
         return doc
-      end,
-      
-      RawBlock = function(el)
-        
-      end,
-      
-      RawInline = function(el)
-      
       end,
       
       Str = function(el)

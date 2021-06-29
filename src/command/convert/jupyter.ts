@@ -11,14 +11,13 @@ import {
   partitionYamlFrontMatter,
   readYamlFromMarkdown,
 } from "../../core/yaml.ts";
+import { kCellId, kCellLabel } from "../../config/constants.ts";
 import {
   jupyterAutoIdentifier,
   JupyterCell,
   JupyterCellOptions,
   jupyterCellOptionsAsComment,
   jupyterFromFile,
-  kCellId,
-  kCellLabel,
   mdEnsureTrailingNewline,
   mdFromContentCell,
   mdFromRawCell,

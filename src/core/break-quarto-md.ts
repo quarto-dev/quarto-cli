@@ -18,22 +18,8 @@ export interface CodeCellType {
 export interface QuartoMdCell {
   id?: string;
 
-  // JJA: we have a linter setting that prohibits underscore in variable names
-  // We should either change this to camel case or if needs to have an underscore
-  // (e.g. b/c it's a declaration of an externally provided JS object) then
-  // add a lint ignore declaration (as I've done here by way of example)
-
-  // CES: I was copying "cell_type" from what I saw on jupyter/jupyter.ts.
-  //      Happy to change it here, but it's probably worth to be consistent
-  //      along the code base.
-
   // deno-lint-ignore camelcase
-  cell_type: CodeCellType | "markdown" | "raw" | "math"; // JJA: re-order to group strings together
-  // CES Ok. I just checking deno fmt and lint and they didn't complain, and the
-  // code base is not 100% consistent. Strings before or after?
-  //
-  //   src/core/jupyter/jupyter.ts:160:  [kCellAutoscroll]?: boolean | "auto";
-  //   src/config/format.ts:185:         [kCodeFold]?: "none" | "show" | "hide" | boolean;
+  cell_type: CodeCellType | "markdown" | "raw" | "math";
   options?: Record<string, unknown>;
   source: string[];
 }
@@ -74,7 +60,6 @@ export function breakQuartoMd(
       }
 
       const cell: QuartoMdCell = {
-        // FIXME: check with JJA
         // deno-lint-ignore camelcase
         cell_type: cell_type === "code" ? { language } : cell_type,
         source: lineBuffer.map((line, index) => {

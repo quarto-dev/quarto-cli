@@ -15,10 +15,6 @@
 *
 */
 
-// JJA: could we think of a more pithy name than observable-in-a-box ?
-// CES: ObservableBridge? ObservableFFI? ObservableWrapper?
-
-// JJA: we should use import maps for all of these imports
 import { Interpreter } from "https://cdn.skypack.dev/@alex.garcia/unofficial-observablehq-compiler";
 import {
   Inspector,
@@ -28,7 +24,6 @@ import {
 import { parseModule } from "https://cdn.skypack.dev/@observablehq/parser";
 
 export class OJSInABox {
-  
   constructor({
     paths,
     inspectorClass,
@@ -42,7 +37,7 @@ export class OJSInABox {
     this.mainModule = this.runtime.module();
     this.interpreter = new Interpreter({
       module: this.mainModule,
-      resolveImportPath: importPathResolver(paths)
+      resolveImportPath: importPathResolver(paths),
     });
     this.inspectorClass = inspectorClass || Inspector;
 
@@ -57,7 +52,7 @@ export class OJSInABox {
       module = this.mainModule;
     }
     let change;
-    const obs = this.library.Generators.observe(change_ => {
+    const obs = this.library.Generators.observe((change_) => {
       change = change_;
       // FIXME: do something about destruction
     });
@@ -70,17 +65,21 @@ export class OJSInABox {
       module = this.mainModule;
     }
     module.variable({
-      fulfilled: x => k(x, name)
-    }).define([name], val => val);
+      fulfilled: (x) => k(x, name),
+    }).define([name], (val) => val);
   }
 
   clearImportModuleWait() {
-    const array = Array.from(document.querySelectorAll('.observable-in-a-box-waiting-for-module-import'));
+    const array = Array.from(
+      document.querySelectorAll(
+        ".observable-in-a-box-waiting-for-module-import",
+      ),
+    );
     for (const node of array) {
-      node.classList.remove('observable-in-a-box-waiting-for-module-import');
+      node.classList.remove("observable-in-a-box-waiting-for-module-import");
     }
   }
-  
+
   finishInterpreting() {
     Promise.all(this.chunkPromises)
       .then(() => {
@@ -89,12 +88,13 @@ export class OJSInABox {
         }
       });
   }
-  
+
   interpret(src, elementGetter, elementCreator) {
     const observer = (targetElement, cell) => {
       return (name) => {
-        const element = typeof elementCreator === "function" ?
-              elementCreator() : elementCreator;
+        const element = typeof elementCreator === "function"
+          ? elementCreator()
+          : elementCreator;
         targetElement.appendChild(element);
 
         // FIXME the unofficial interpreter always calls viewexpression observers
@@ -102,25 +102,32 @@ export class OJSInABox {
         // we check for 'viewof ' here and hide the element we're creating.
         // this behavior appears inconsistent with OHQ's interpreter, so we
         // shouldn't be surprised to see this fail in the future.
-        if (cell.id?.type === 'ViewExpression' &&
-            !name.startsWith('viewof ')) {
+        if (
+          cell.id?.type === "ViewExpression" &&
+          !name.startsWith("viewof ")
+        ) {
           element.style.display = "none";
         }
 
-        element.classList.add('observable-in-a-box-waiting-for-module-import');
+        element.classList.add("observable-in-a-box-waiting-for-module-import");
 
         return new this.inspectorClass(element);
       };
     };
     const runCell = (cell) => {
-      const targetElement = typeof elementGetter === "function" ?
-            elementGetter() : elementGetter;
+      const targetElement = typeof elementGetter === "function"
+        ? elementGetter()
+        : elementGetter;
       const cellSrc = src.slice(cell.start, cell.end);
-      let promise = this.interpreter.module(cellSrc, undefined, observer(targetElement, cell));
+      let promise = this.interpreter.module(
+        cellSrc,
+        undefined,
+        observer(targetElement, cell),
+      );
       if (cell.body.type === "ImportDeclaration") {
         this.mainModuleHasImports = true;
         this.mainModuleOutstandingImportCount++;
-        promise = promise.then(result => {
+        promise = promise.then((result) => {
           this.mainModuleOutstandingImportCount--;
           if (this.mainModuleOutstandingImportCount === 0) {
             this.clearImportModuleWait();
@@ -146,32 +153,33 @@ export class OJSInABox {
 
 // here we need to convert from an ES6 module to an ObservableHQ module
 // in, well, a best-effort kind of way.
-function es6ImportAsObservable(m)
-{
-  return function(runtime, observer) {
+function es6ImportAsObservable(m) {
+  return function (runtime, observer) {
     const main = runtime.module();
 
-    Object.keys(m).forEach(key => {
+    Object.keys(m).forEach((key) => {
       const v = m[key];
       main.variable(observer(key)).define(key, [], () => v);
     });
-    
+
     return main;
   };
 }
-
 
 // this is Observable's import resolution
 function defaultResolveImportPath(path) {
   const extractPath = (path) => {
     let source = path;
     let m;
-    if ((m = /\.js(\?|$)/i.exec(source)))
+    if ((m = /\.js(\?|$)/i.exec(source))) {
       source = source.slice(0, m.index);
-    if ((m = /^[0-9a-f]{16}$/i.test(source)))
+    }
+    if ((m = /^[0-9a-f]{16}$/i.test(source))) {
       source = `d/${source}`;
-    if ((m = /^https:\/\/(api\.|beta\.|)observablehq\.com\//i.exec(source)))
+    }
+    if ((m = /^https:\/\/(api\.|beta\.|)observablehq\.com\//i.exec(source))) {
       source = source.slice(m[0].length);
+    }
     return source;
   };
   const source = extractPath(path);
@@ -185,7 +193,7 @@ function importPathResolver(paths) {
   // and relativePath. If we prematurely optimize this by moving the
   // const declarations outside, then we will capture the
   // uninitialized values.
-  
+
   function rootPath(path) {
     const { runtimeToRoot } = paths;
     if (!runtimeToRoot) {
@@ -203,7 +211,7 @@ function importPathResolver(paths) {
       return `${runtimeToDoc}/${path}`;
     }
   }
-  
+
   return (path) => {
     if (path.startsWith("/")) {
       return import(rootPath(path)).then((m) => {

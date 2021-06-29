@@ -5,38 +5,32 @@
 *
 */
 
-// JJA: use import maps here
-// CES: These are browser-side; import maps are only supported on Google Chrome.
-
-import {
-  Library,
-} from "https://cdn.skypack.dev/@observablehq/runtime";
+import { Library } from "https://cdn.skypack.dev/@observablehq/runtime";
 
 import { FileAttachments } from "https://cdn.skypack.dev/@observablehq/stdlib";
 
 import {
-  ShinyInspector,
   extendObservableStdlib,
-  initObservableShinyRuntime
+  initObservableShinyRuntime,
+  ShinyInspector,
 } from "./quarto-observable-shiny.js";
 
 import { OJSInABox } from "./observable-in-a-box.js";
 
 export function createRuntime() {
-
   const quartoOjsGlobal = window._ojs;
   const isShiny = window.Shiny !== undefined;
-  
+
   // Are we shiny?
   if (isShiny) {
     quartoOjsGlobal.hasShiny = true;
     initObservableShinyRuntime();
-    
+
     const span = document.createElement("span");
     window._ojs.shinyElementRoot = span;
     document.body.appendChild(span);
   }
-  
+
   // we use the trick described here to extend observable's standard library
   // https://talk.observablehq.com/t/embedded-width/1063
 
@@ -48,30 +42,34 @@ export function createRuntime() {
 
   const mainEl = document.querySelector("main");
   function width() {
-    return lib.Generators.observe(function(change) {
+    return lib.Generators.observe(function (change) {
       var width = change(mainEl.clientWidth);
       function resized() {
         var w = mainEl.clientWidth;
         if (w !== width) change(width = w);
       }
       window.addEventListener("resize", resized);
-      return function() {
+      return function () {
         window.removeEventListener("resize", resized);
       };
     });
   }
   lib.width = width;
-  
-  // select all panel elements with ids 
-  const layoutDivs = Array.from(document.querySelectorAll("div.quarto-layout-panel div[id]"));
+
+  // select all panel elements with ids
+  const layoutDivs = Array.from(
+    document.querySelectorAll("div.quarto-layout-panel div[id]"),
+  );
   function layoutWidth() {
-    return lib.Generators.observe(function(change) {
-      const ourWidths = Object.fromEntries(layoutDivs.map(div => [div.id, div.clientWidth]));
+    return lib.Generators.observe(function (change) {
+      const ourWidths = Object.fromEntries(
+        layoutDivs.map((div) => [div.id, div.clientWidth]),
+      );
       change(ourWidths);
       function resized() {
         let changed = false;
         for (const div of layoutDivs) {
-          const w = div.clientWidth;          
+          const w = div.clientWidth;
           if (w !== ourWidths[div.id]) {
             ourWidths[div.id] = w;
             changed = true;
@@ -82,7 +80,7 @@ export function createRuntime() {
         }
       }
       window.addEventListener("resize", resized);
-      return function() {
+      return function () {
         window.removeEventListener("resize", resized);
       };
     });
@@ -92,12 +90,6 @@ export function createRuntime() {
   // this path resolution is fairly naive, but we think this is good
   // enough for now. There might be better things to be done with
   // (say) project-wide resources.
-  // JJA: for images, etc. we allow the user to preface urls with "/"
-  // and then we automatically convert that to a relative URL
-  // (via our knowledge of the current page's offset). Is that 
-  // something we could do here?
-  //
-  // CES: yes, I'll get on it.
   function fileAttachmentPathResolver(n) {
     return n;
   }
@@ -106,7 +98,7 @@ export function createRuntime() {
   const obsInABox = new OJSInABox({
     paths: quartoOjsGlobal.paths,
     inspectorClass: isShiny ? ShinyInspector : undefined,
-    library: lib
+    library: lib,
   });
   quartoOjsGlobal.obsInABox = obsInABox;
 
@@ -125,7 +117,7 @@ export function createRuntime() {
     finishInterpreting() {
       obsInABox.finishInterpreting();
     },
-    
+
     // FIXME clarify what's the expected behavior of the 'error' option
     // when evaluation is at client-time
     interpretLenient(src, targetElementId, inline) {
@@ -139,15 +131,6 @@ export function createRuntime() {
           // this is a subfigure
           targetElement = document.getElementById(getSubfigId(targetElementId));
           if (!targetElement) {
-            // JJA: probably don't need the 'console.error' calls here?
-            // (or are they visible in dev/debug mode but not to users)
-            //
-            // CES: This is client-side; I'd like to signal something
-            // on the chrome console for visibility. But we need a
-            // better error handling story there as well. I believe
-            // this error can come up at runtime because we don't have
-            // sufficiently strict consistency validation while emitting
-            // the pandoc markdown in compile.ts
             console.error("Ran out of subfigures for element", targetElementId);
             console.error("This will fail.");
             throw new Error("Ran out of quarto subfigures.");
@@ -155,23 +138,21 @@ export function createRuntime() {
         }
         return targetElement;
       };
- 
+
       const makeElement = () => {
         return document.createElement(
-          inline
-            ? "span"
-            : "div"
+          inline ? "span" : "div",
         );
       };
-      
+
       return obsInABox.interpret(src, getElement, makeElement)
-        .catch(e => {
+        .catch((e) => {
           const errorDiv = document.createElement("pre");
           errorDiv.innerText = `${e.name}: ${e.message}`;
           getElement().append(errorDiv);
           return e;
         });
-    }
+    },
   };
 
   return result;
@@ -180,14 +161,13 @@ export function createRuntime() {
 // FIXME: "obs" or "ojs"? Inconsistent naming.
 window._ojs = {
   obsInABox: undefined,
-  
-  paths: {},                    // placeholder for per-quarto-file paths
-                                // necessary for module resolution
 
-  hasShiny: false,              // true if we have the quarto-ojs-shiny runtime
-  
-  shinyElementRoot: undefined,  // root element for the communication with shiny
-                                // via DOM
+  paths: {}, // placeholder for per-quarto-file paths
+  // necessary for module resolution
+
+  hasShiny: false, // true if we have the quarto-ojs-shiny runtime
+
+  shinyElementRoot: undefined, // root element for the communication with shiny
+  // via DOM
 };
 window._ojs.runtime = createRuntime();
-

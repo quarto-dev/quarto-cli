@@ -27,26 +27,11 @@ import { asHtmlId } from "../html.ts";
 import { extractResources } from "./extract-resources.ts";
 import { parseError } from "./errors.ts";
 
-// JJA: we have a kCellLstLabel constant defined in jupyter.ts,
-// we should probably move this to constants.ts and use it here
-//
-// CES: ok, but then should we also move the whole block of kCell* in there?
-// They all seem potentially more general
-
-// FIXME this is going away when we decide what to do with the other
-// kCell* constants in jupyter.ts. Specifically, should jupyter.ts
-// still export these in addition to constants.ts?
-
 import {
-  kCellLstCap,
-  kCellLstLabel,
   kCellFigCap,
   kCellFigSubCap,
-  kLayoutNrow,
-  kLayoutNcol
-} from "../jupyter/jupyter.ts";
-
-import {
+  kCellLstCap,
+  kCellLstLabel,
   kCodeFold,
   kEcho,
   kError,
@@ -54,6 +39,8 @@ import {
   kFold,
   kInclude,
   kKeepHidden,
+  kLayoutNcol,
+  kLayoutNrow,
   kOutput,
   kSelfContained,
 } from "../../config/constants.ts";
@@ -96,7 +83,9 @@ export function observableCompile(
   }
 
   if (options.format.pandoc?.[kSelfContained]) {
-    throw new Error("FATAL: self-contained format option not supported with observable cells");
+    throw new Error(
+      "FATAL: self-contained format option not supported with observable cells",
+    );
   }
 
   const output = breakQuartoMd(markdown);
@@ -140,8 +129,10 @@ export function observableCompile(
   }
   const ls: string[] = [];
   const resourceFiles: string[] = [];
+
   // now we convert it back
   for (const cell of output.cells) {
+    const cellSrcStr = cell.source.join("");
     const errorVal = firstDefined([
       cell.options?.[kError],
       options.format.execute[kError],
@@ -152,20 +143,16 @@ export function observableCompile(
       cell.cell_type === "markdown"
     ) {
       // The lua filter is in charge of this, we're a NOP.
-      ls.push(cell.source.join(""));
+      ls.push(cellSrcStr);
     } else if (cell.cell_type === "math") {
-      ls.push("\n$$", cell.source.join(), "$$\n");
+      ls.push("\n$$", cellSrcStr, "$$\n");
     } else if (cell.cell_type?.language === "observable") {
       const userCellId = () => {
         const chooseId = (label: string) => {
           const htmlLabel = asHtmlId(label as string);
           if (userIds.has(htmlLabel)) {
-            // FIXME better error handling
-            // JJA: the throw *should* be enough here to report the error in a sane way
-            // CES: Sorry, I should have been clearer. "better" here refers also
-            // to the fact that htmlLabel might not be exactly what the user typed.
-            // We canonicalize spaces to dashes etc and _then_ check for duplicates
-            // so a label "fig 1" followed by "fig-1" will trigger this
+            // FIXME explain error better to avoid confusion
+            // that might come up under id canonicalization
             throw new Error(`FATAL: duplicate label ${htmlLabel}`);
           } else {
             userIds.add(htmlLabel);
@@ -198,22 +185,15 @@ export function observableCompile(
         return cell.options?.[kCellFigCap];
       };
       const hasFigureSubCaptions = () => {
-        // JJA: one of our upcoming projects is to create schemas for *all* YAML
-        // consumed in the system and use them to validate yaml before we consume
-        // it and generate sane error messages. so we can defer any extra checking
-        // here in anticipation of that upcomining work.
         // FIXME figure out runtime type validation. This should check
         // if fig.subcap is an array of strings.
+        //
+        // WAITING for YAML schemas + validation
         return cell.options?.[kCellFigSubCap];
       };
 
       resourceFiles.push(...extractResources(
-        cell.source.join(""), // JJA: does join here need to use "\n" ?
-                              //
-                              // CES: these are not trimmed, I suspect
-                              // because of relevant-whitespace issues
-                              // (since this code came ultimately from
-                              // jupyter.ts etc)
+        cellSrcStr,
         options.source,
         projDir,
       ));
@@ -221,21 +201,21 @@ export function observableCompile(
       // very heavyweight for what we need it, but this way we can signal syntax errors
       // as well.
       let nCells = 0;
-      const cellSrc = cell.source.join("");
       try {
-        nCells = parseModule(cellSrc).cells.length;
+        nCells = parseModule(cellSrcStr).cells.length;
       } catch (e) {
         if (e instanceof SyntaxError) {
-          parseError(cellSrc);
+          parseError(cellSrcStr);
         } else {
           logError(e);
         }
         throw new Error();
       }
       const hasManyRowsCols = () => {
-        // JJA: same comment re: YAML validation/parsing -- we can pick this up later
         // FIXME figure out runtime type validation. This should check
         // if ncol and nrow are positive integers
+        //
+        // WAITING for YAML schemas + validation
         return cell.options?.[kLayoutNcol] ||
           cell.options?.[kLayoutNrow] ||
           (nCells > 1);
@@ -386,7 +366,7 @@ export function observableCompile(
 
         const innerDiv = pandocCode({ classes, attrs });
 
-        innerDiv.push(pandocRawStr(cell.source.join("")));
+        innerDiv.push(pandocRawStr(cellSrcStr));
         div.push(innerDiv);
       }
 

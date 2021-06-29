@@ -15,7 +15,6 @@ import { stringify, StringifyOptions } from "encoding/yaml.ts";
 import { partitionCellOptions } from "../partition-cell-options.ts";
 import { ld } from "lodash/mod.ts";
 
-import { warnOnce } from "../log.ts";
 import { shortUuid } from "../uuid.ts";
 
 import {
@@ -69,11 +68,44 @@ import { FormatExecute } from "../../config/format.ts";
 import { pandocAsciify, pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
 import { Metadata } from "../../config/metadata.ts";
 import {
+  kCellAutoscroll,
+  kCellClasses,
+  kCellColab,
+  kCellColabType,
+  kCellColbOutputId,
+  kCellCollapsed,
+  kCellDeletable,
+  kCellFigAlign,
+  kCellFigAlt,
+  kCellFigCap,
+  kCellFigEnv,
+  kCellFigLink,
+  kCellFigPos,
+  kCellFigScap,
+  kCellFigSubCap,
+  kCellFold,
+  kCellFormat,
+  kCellId,
+  kCellLabel,
+  kCellLinesToNext,
+  kCellLstCap,
+  kCellLstLabel,
+  kCellName,
+  kCellOutHeight,
+  kCellOutWidth,
+  kCellSummary,
+  kCellTags,
   kEcho,
   kError,
   kEval,
   kInclude,
+  kLayout,
+  kLayoutAlign,
+  kLayoutNcol,
+  kLayoutNrow,
+  kLayoutVAlign,
   kOutput,
+  kRawMimeType,
   kWarning,
 } from "../../config/constants.ts";
 import {
@@ -84,48 +116,7 @@ import {
 } from "./kernels.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines } from "../text.ts";
-import {
-  readYamlFromMarkdown,
-  readYamlFromMarkdownFile,
-  readYamlFromString,
-} from "../yaml.ts";
-
-export const kCellCollapsed = "collapsed";
-export const kCellAutoscroll = "autoscroll";
-export const kCellDeletable = "deletable";
-export const kCellFormat = "format";
-export const kCellName = "name";
-export const kCellTags = "tags";
-export const kCellLinesToNext = "lines_to_next_cell";
-export const kRawMimeType = "raw_mimetype";
-
-export const kCellId = "id";
-export const kCellLabel = "label";
-export const kCellFigCap = "fig.cap";
-export const kCellFigSubCap = "fig.subcap";
-export const kCellFigScap = "fig.scap";
-export const kCellFigLink = "fig.link";
-export const kCellFigAlign = "fig.align";
-export const kCellFigEnv = "fig.env";
-export const kCellFigPos = "fig.pos";
-export const kCellFigAlt = "fig.alt";
-export const kCellLstLabel = "lst.label";
-export const kCellLstCap = "lst.cap";
-export const kCellClasses = "classes";
-export const kCellOutWidth = "out.width";
-export const kCellOutHeight = "out.height";
-export const kCellFold = "fold";
-export const kCellSummary = "summary";
-
-export const kCellColab = "colab";
-export const kCellColabType = "colab_type";
-export const kCellColbOutputId = "outputId";
-
-export const kLayoutAlign = "layout.align";
-export const kLayoutVAlign = "layout.valign";
-export const kLayoutNcol = "layout.ncol";
-export const kLayoutNrow = "layout.nrow";
-export const kLayout = "layout";
+import { readYamlFromMarkdown, readYamlFromMarkdownFile } from "../yaml.ts";
 
 export const kJupyterNotebookExtensions = [
   ".ipynb",

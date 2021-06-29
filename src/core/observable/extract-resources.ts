@@ -14,13 +14,6 @@ import { parseError } from "./errors.ts";
 
 // we need to patch the base walker ourselves because OJS sometimes
 // emits Program nodes with "cells" rather than "body"
-// JJA: in the version of acorn that deno downloaded on my system
-// a second argumento to make ('baseVisitor') is required. It looks
-// like it can be 'undefined' though. you should probably update
-// your acorn dependency and see if you see the same error
-//
-// ASK: Learn a better way to find deno installed deno deps than
-// grepping for hashes in ~/Library/Caches
 const walkerBase = make({
   Import() {},
   // deno-lint-ignore no-explicit-any
