@@ -18,6 +18,9 @@ import { parseError } from "./errors.ts";
 // a second argumento to make ('baseVisitor') is required. It looks
 // like it can be 'undefined' though. you should probably update
 // your acorn dependency and see if you see the same error
+//
+// ASK: Learn a better way to find deno installed deno deps than
+// grepping for hashes in ~/Library/Caches
 const walkerBase = make({
   Import() {},
   // deno-lint-ignore no-explicit-any
@@ -125,9 +128,8 @@ export function extractResources(
   try {
     ojsAST = parseModule(ojsSource);
   } catch (e) {
-    parseError(e, ojsSource);
-    // JJA: if an adequate error message has been printed we can just do throw new Error()
-    throw e;
+    parseError(ojsSource);
+    throw new Error();
   }
   for (const importPath of localES6Imports(ojsAST)) {
     const resolvedImportPath = resolveES6Path(

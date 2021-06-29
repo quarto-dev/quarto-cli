@@ -84,8 +84,7 @@ export async function observableNotebookToMarkdown(
     const trimmedValue = value.trim();
     if (mode === "js") {
       for (const { prefix, re } of kModePrefixes) {
-        // JJA: const
-        let m = trimmedValue.match(re);
+        const m = trimmedValue.match(re);
         if (m) {
           mode = prefix;
           value = m[1];
@@ -107,8 +106,7 @@ export async function observableNotebookToMarkdown(
       case "js":
         lines.push("```{observable}");
         if (!node.pinned) {
-          // JJA: 1 space rather than 2
-          lines.push("//|  echo: false");
+          lines.push("//| echo: false");
         }
         lines.push(value);
         lines.push("```");

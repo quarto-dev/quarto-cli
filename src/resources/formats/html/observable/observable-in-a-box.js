@@ -16,6 +16,7 @@
 */
 
 // JJA: could we think of a more pithy name than observable-in-a-box ?
+// CES: ObservableBridge? ObservableFFI? ObservableWrapper?
 
 // JJA: we should use import maps for all of these imports
 import { Interpreter } from "https://cdn.skypack.dev/@alex.garcia/unofficial-observablehq-compiler";
@@ -33,11 +34,6 @@ export class OJSInABox {
     inspectorClass,
     library,
   }) {
-    paths = paths || {
-      runtimeToRoot: "",
-      runtimeToDoc: ""
-    };
-
     this.library = library || new Library();
     // NB it looks like Runtime makes a local copy of the library object,
     // such that mutating library after this is initializaed doesn't actually
@@ -185,13 +181,14 @@ function defaultResolveImportPath(path) {
 }
 
 function importPathResolver(paths) {
-  const {
-    runtimeToRoot,
-    runtimeToDoc
-  } = paths;
-
+  // NB: only resolve the field values in paths when calling rootPath
+  // and relativePath. If we prematurely optimize this by moving the
+  // const declarations outside, then we will capture the
+  // uninitialized values.
+  
   function rootPath(path) {
-    if (runtimeToRoot === "") {
+    const { runtimeToRoot } = paths;
+    if (!runtimeToRoot) {
       return path;
     } else {
       return `${runtimeToRoot}/${path}`;
@@ -199,7 +196,8 @@ function importPathResolver(paths) {
   }
 
   function relativePath(path) {
-    if (runtimeToDoc === "") {
+    const { runtimeToDoc } = paths;
+    if (!runtimeToDoc) {
       return path;
     } else {
       return `${runtimeToDoc}/${path}`;

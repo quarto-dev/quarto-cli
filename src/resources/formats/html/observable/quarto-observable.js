@@ -1,7 +1,12 @@
-
-// JJA: file level comment here
+/*
+* quarto-observable.js
+*
+* Copyright (C) 2021 by RStudio, PBC
+*
+*/
 
 // JJA: use import maps here
+// CES: These are browser-side; import maps are only supported on Google Chrome.
 
 import {
   Inspector,
@@ -93,6 +98,8 @@ export function createRuntime() {
   // and then we automatically convert that to a relative URL
   // (via our knowledge of the current page's offset). Is that 
   // something we could do here?
+  //
+  // CES: yes, I'll get on it.
   function fileAttachmentPathResolver(n) {
     return n;
   }
@@ -136,6 +143,13 @@ export function createRuntime() {
           if (!targetElement) {
             // JJA: probably don't need the 'console.error' calls here?
             // (or are they visible in dev/debug mode but not to users)
+            //
+            // CES: This is client-side; I'd like to signal something
+            // on the chrome console for visibility. But we need a
+            // better error handling story there as well. I believe
+            // this error can come up at runtime because we don't have
+            // sufficiently strict consistency validation while emitting
+            // the pandoc markdown in compile.ts
             console.error("Ran out of subfigures for element", targetElementId);
             console.error("This will fail.");
             throw new Error("Ran out of quarto subfigures.");
@@ -154,8 +168,7 @@ export function createRuntime() {
       
       return obsInABox.interpret(src, getElement, makeElement)
         .catch(e => {
-          // JJA: const
-          let errorDiv = document.createElement("pre");
+          const errorDiv = document.createElement("pre");
           errorDiv.innerText = `${e.name}: ${e.message}`;
           getElement().append(errorDiv);
           return e;
@@ -166,6 +179,7 @@ export function createRuntime() {
   return result;
 }
 
+// FIXME: "obs" or "ojs"? Inconsistent naming.
 window._ojs = {
   obsInABox: undefined,
   

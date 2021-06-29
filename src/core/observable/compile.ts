@@ -28,6 +28,25 @@ import { asHtmlId } from "../html.ts";
 import { extractResources } from "./extract-resources.ts";
 import { parseError } from "./errors.ts";
 
+// JJA: we have a kCellLstLabel constant defined in jupyter.ts,
+// we should probably move this to constants.ts and use it here
+//
+// CES: ok, but then should we also move the whole block of kCell* in there?
+// They all seem potentially more general
+
+// FIXME this is going away when we decide what to do with the other
+// kCell* constants in jupyter.ts. Specifically, should jupyter.ts
+// still export these in addition to constants.ts?
+
+import {
+  kCellLstCap,
+  kCellLstLabel,
+  kCellFigCap,
+  kCellFigSubCap,
+  kLayoutNrow,
+  kLayoutNcol
+} from "../jupyter/jupyter.ts";
+
 import {
   kCodeFold,
   kEcho,
@@ -37,6 +56,7 @@ import {
   kInclude,
   kKeepHidden,
   kOutput,
+  kSelfContained,
 } from "../../config/constants.ts";
 
 import { RenderContext } from "../../command/render/render.ts";
@@ -75,6 +95,15 @@ export function observableCompile(
   if (!languagesInMarkdown(markdown).has("observable")) {
     return { markdown };
   }
+
+  // CES: Moved from pandoc.ts as suggested.
+  //
+  // JJA: I think we should perform the check further upstream (e.g. right
+  // when we detect that there are observable code chunks in observableCompile)
+  if (options.format.pandoc?.[kSelfContained]) {
+    throw new Error("FATAL: self-contained format option not supported with observable cells");
+  }
+  
 
   const output = breakQuartoMd(markdown);
 
@@ -139,7 +168,10 @@ export function observableCompile(
           if (userIds.has(htmlLabel)) {
             // FIXME better error handling
             // JJA: the throw *should* be enough here to report the error in a sane way
-            error("Error: cell has duplicate label ${htmlLabel}");
+            // CES: Sorry, I should have been clearer. "better" here refers also
+            // to the fact that htmlLabel might not be exactly what the user typed.
+            // We canonicalize spaces to dashes etc and _then_ check for duplicates
+            // so a label "fig 1" followed by "fig-1" will trigger this
             throw new Error(`FATAL: duplicate label ${htmlLabel}`);
           } else {
             userIds.add(htmlLabel);
@@ -148,10 +180,8 @@ export function observableCompile(
         };
         if (cell.options?.label) {
           return chooseId(cell.options.label as string);
-          // JJA: we have a kCellLstLabel constant defined in jupyter.ts,
-          // we should probably move this to constants.ts and use it here
-        } else if (cell.options?.["lst.label"]) {
-          return chooseId(cell.options["lst.label"] as string);
+        } else if (cell.options?.[kCellLstLabel]) {
+          return chooseId(cell.options[kCellLstLabel] as string);
         } else {
           return undefined;
         }
@@ -171,8 +201,7 @@ export function observableCompile(
         return (cell.options.label as string).startsWith("fig-");
       };
       const hasFigureCaption = () => {
-        // JJA: same story on relocating kCellFigCap from jupyter.ts to constants.ts
-        return cell.options?.["fig.cap"];
+        return cell.options?.[kCellFigCap];
       };
       const hasFigureSubCaptions = () => {
         // JJA: one of our upcoming projects is to create schemas for *all* YAML
@@ -181,12 +210,16 @@ export function observableCompile(
         // here in anticipation of that upcomining work.
         // FIXME figure out runtime type validation. This should check
         // if fig.subcap is an array of strings.
-        // JJA: use constant here as well
-        return cell.options?.["fig.subcap"];
+        return cell.options?.[kCellFigSubCap];
       };
 
       resourceFiles.push(...extractResources(
         cell.source.join(""), // JJA: does join here need to use "\n" ?
+                              //
+                              // CES: these are not trimmed, I suspect
+                              // because of relevant-whitespace issues
+                              // (since this code came ultimately from
+                              // jupyter.ts etc)
         options.source,
         projDir,
       ));
@@ -199,26 +232,23 @@ export function observableCompile(
         nCells = parseModule(cellSrc).cells.length;
       } catch (e) {
         if (e instanceof SyntaxError) {
-          parseError(e, cellSrc);
+          parseError(cellSrc);
         } else {
           logError(e);
         }
-        // JJA: if we've already printed sufficient error diagnostics we can simply
-        // throw new Error()  (which won't print any additional output on the catch side)
-        throw e;
+        throw new Error();
       }
       const hasManyRowsCols = () => {
         // JJA: same comment re: YAML validation/parsing -- we can pick this up later
         // FIXME figure out runtime type validation. This should check
         // if ncol and nrow are positive integers
-        // JJA: same comment re: constants.ts for these (and for others below)
-        return cell.options?.["layout.ncol"] ||
-          cell.options?.["layout.nrow"] ||
+        return cell.options?.[kLayoutNcol] ||
+          cell.options?.[kLayoutNrow] ||
           (nCells > 1);
       };
       const nRow = () => {
         const row = cell.options
-          ?.["layout.nrow"] as (string | number | undefined);
+          ?.[kLayoutNrow] as (string | number | undefined);
         if (!row) {
           return nCells;
         }
@@ -226,7 +256,7 @@ export function observableCompile(
       };
       const nCol = () => {
         const col = cell.options
-          ?.["layout.ncol"] as (string | number | undefined);
+          ?.[kLayoutNcol] as (string | number | undefined);
         if (!col) {
           return 1;
         }
@@ -239,7 +269,7 @@ export function observableCompile(
       const idPlacement = () => {
         if (
           hasSubFigures() ||
-          cell.options?.["lst.label"]
+          cell.options?.[kCellLstLabel]
         ) {
           return "outer";
         } else {
@@ -277,8 +307,8 @@ export function observableCompile(
           attrs.push(`${key}="${value}"`);
         }
       }
-      if (cell.options?.["lst.cap"]) {
-        attrs.push(`caption="${cell.options?.["lst.cap"]}"`);
+      if (cell.options?.[kCellLstCap]) {
+        attrs.push(`caption="${cell.options?.[kCellLstCap]}"`);
       }
       const div = pandocDiv({
         id: idPlacement() === "outer" ? userId : undefined,
@@ -406,25 +436,25 @@ export function observableCompile(
           specs.push({ caption: "" });
         }
         makeSubFigures(specs);
-        if (cell.options?.["fig.cap"]) {
-          div.push(pandocRawStr(cell.options["fig.cap"] as string));
+        if (cell.options?.[kCellFigCap]) {
+          div.push(pandocRawStr(cell.options[kCellFigCap] as string));
         }
       } else if (hasFigureSubCaptions()) {
         if (
           hasManyRowsCols() &&
-          (cell.options?.["fig.subcap"] as string[]).length !==
+          (cell.options?.[kCellFigSubCap] as string[]).length !==
             (nRow() * nCol())
         ) {
           throw new Error(
             "Cannot have subcaptions and multi-row/col layout with mismatched number of cells",
           );
         }
-        const specs = (cell.options?.["fig.subcap"] as string[]).map(
+        const specs = (cell.options?.[kCellFigSubCap] as string[]).map(
           (caption) => ({ caption }),
         );
         makeSubFigures(specs);
-        if (cell.options?.["fig.cap"]) {
-          div.push(pandocRawStr(cell.options["fig.cap"] as string));
+        if (cell.options?.[kCellFigCap]) {
+          div.push(pandocRawStr(cell.options[kCellFigCap] as string));
         }
       } else {
         const outputDiv = pandocDiv({
@@ -435,8 +465,8 @@ export function observableCompile(
         outputDiv.push(pandocDiv({
           id: ojsId,
         }));
-        if (cell.options?.["fig.cap"]) {
-          outputDiv.push(pandocRawStr(cell.options["fig.cap"] as string));
+        if (cell.options?.[kCellFigCap]) {
+          outputDiv.push(pandocRawStr(cell.options[kCellFigCap] as string));
         }
       }
 

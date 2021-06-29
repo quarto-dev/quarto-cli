@@ -245,9 +245,7 @@ export function fileExecutionEngine(file: string) {
     // or the knitr engine if there are inline r expressions
     if (
       languages.size === 0 ||
-      (languages.size == 1 &&
-        // JJA: we can probably drop the 'ojs' at this point
-        (languages.has("ojs") || languages.has("observable")))
+        (languages.size == 1 && languages.has("observable"))
     ) {
       return engineForMarkdownWithNoLanguages(markdown);
     } else {

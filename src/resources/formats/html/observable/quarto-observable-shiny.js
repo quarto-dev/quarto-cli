@@ -1,4 +1,10 @@
-/*global Shiny,$*/
+/*global Shiny,$
+*
+* quarto-observable-shiny.ts
+*
+* Copyright (C) 2021 by RStudio, PBC
+*
+*/
 
 /*
  FIXME: The layout of this file is a little ugly because we don't want to
@@ -8,6 +14,7 @@
  */
 
 // JJA: use import maps here
+// CES: These are browser-side; import maps are only supported on Google Chrome.
 
 import {
   Inspector,
@@ -35,8 +42,6 @@ export function extendObservableStdlib(lib)
       return el.id;
     }
     renderValue(el, data) {
-      // JJA: id isn't used, are we calling this for a side-effect?
-      const id = this.getId(el);
       this._change(data);
     }
   }
@@ -77,17 +82,19 @@ const { Generators } = new Library();
 class ObservableButtonInput /*extends ShinyInput*/ {
   // JJA: unused 'scope' var (note that if you still want the arg just to document
   // it's presence you can name it _scope and the linter will stand down)
-  find(scope) {
+  
+  // CES: Ok, I'll keep it and prefix it with underscore because it's
+  // possible that Joe's code will expect it
+  find(_scope) {
     return document.querySelectorAll(".observablehq-inputs-button");
   }
 
   init(el, change) {
-    // JJA: use const here and for 'obs' below
-    let btn = button(el.textContent);
+    const btn = button(el.textContent);
     el.innerHTML = "";
     el.appendChild(btn);
 
-    let obs = Generators.input(el.firstChild);
+    const obs = Generators.input(el.firstChild);
     (async function() {
       // throw away the first value, it doesn't count for buttons
       await obs.next().value;

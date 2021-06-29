@@ -7,9 +7,8 @@
 
 import { error } from "log/mod.ts";
 
+// FIXME Figure out line numbering story for error reporting
 export function parseError(
-  // JJA: unused argument
-  e: Error,
   ojsSource: string,
 ) {
   error(
