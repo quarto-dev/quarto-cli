@@ -42,7 +42,6 @@ import {
   kLayoutNcol,
   kLayoutNrow,
   kOutput,
-  kSelfContained,
 } from "../../config/constants.ts";
 
 import { RenderContext } from "../../command/render/render.ts";
@@ -82,12 +81,6 @@ export function observableCompile(
     return { markdown };
   }
 
-  if (options.format.pandoc?.[kSelfContained]) {
-    throw new Error(
-      "FATAL: self-contained format option not supported with OJS cells",
-    );
-  }
-
   const output = breakQuartoMd(markdown);
 
   let ojsCellID = 0;
@@ -99,10 +92,14 @@ export function observableCompile(
     dirname(options.source),
     options.libDir + "/observable",
   );
-  const runtimeToDoc = relative(ojsRuntimeDir, dirname(options.source));
-  const runtimeToRoot = relative(ojsRuntimeDir, "./");
+  const docDir = dirname(options.source);
+  const rootDir = "./";
+  const runtimeToDoc = relative(ojsRuntimeDir, docDir);
+  const runtimeToRoot = relative(ojsRuntimeDir, rootDir);
+  const docToRoot = relative(docDir, rootDir);
   scriptContents.push(`window._ojs.paths.runtimeToDoc = "${runtimeToDoc}"`);
   scriptContents.push(`window._ojs.paths.runtimeToRoot = "${runtimeToRoot}"`);
+  scriptContents.push(`window._ojs.paths.docToRoot = "${docToRoot}"`);
 
   function interpret(jsSrc: string[], inline: boolean, lenient: boolean) {
     const inlineStr = inline ? "inline-" : "";
@@ -559,9 +556,10 @@ function observableFormatDependency() {
       observableDependency("quarto-observable.css"),
     ],
     scripts: [
-      observableDependency("quarto-observable.js", { type: "module" }),
-      observableDependency("observable-in-a-box.js", { type: "module" }),
-      observableDependency("quarto-observable-shiny.js", { type: "module" }),
+      observableDependency("ojs-bundle.js", { type: "module" }),
+      // observableDependency("quarto-observable.js", { type: "module" }),
+      // observableDependency("observable-in-a-box.js", { type: "module" }),
+      // observableDependency("quarto-observable-shiny.js", { type: "module" }),
     ],
   };
 }
