@@ -104,7 +104,7 @@ export async function observableNotebookToMarkdown(
     // write lines
     switch (mode) {
       case "js":
-        lines.push("```{observable}");
+        lines.push("```{ojs}");
         if (!node.pinned) {
           lines.push("//| echo: false");
         }

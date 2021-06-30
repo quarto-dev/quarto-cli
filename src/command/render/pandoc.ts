@@ -162,13 +162,13 @@ export async function runPandoc(
   // capture any filterParams in the FormatExtras
   const formatFilterParams = {} as Record<string, unknown>;
 
-  // the "observable" filter is a special value that results in us
-  // just signaling our standard filter chain that the observable
+  // the "ojs" filter is a special value that results in us
+  // just signaling our standard filter chain that the observable-js
   // filter should be active
-  const kObservableFilter = "observable";
-  if (sysFilters.includes(kObservableFilter)) {
-    formatFilterParams[kObservableFilter] = true;
-    sysFilters = sysFilters.filter((filter) => filter !== kObservableFilter);
+  const kOJSFilter = "ojs";
+  if (sysFilters.includes(kOJSFilter)) {
+    formatFilterParams[kOJSFilter] = true;
+    sysFilters = sysFilters.filter((filter) => filter !== kOJSFilter);
   }
 
   // see if there are extras

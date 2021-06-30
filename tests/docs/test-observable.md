@@ -1,11 +1,11 @@
 ---
-title: "Hello Quarto Observable"
+title: "Hello Quarto OJS"
 format: html
 ---
 
 ## Cell 1, imports and input
 
-```{observable}
+```{ojs}
 import {text} from '@jashkenas/inputs'
 
 viewof name = text({
@@ -16,6 +16,6 @@ viewof name = text({
 
 ## Cell 2, output
 
-```{observable}
+```{ojs}
 md`Hello **${name}**, it's nice to meet you!`
 ```

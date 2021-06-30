@@ -78,13 +78,13 @@ export function observableCompile(
     return { markdown };
   }
 
-  if (!languagesInMarkdown(markdown).has("observable")) {
+  if (!languagesInMarkdown(markdown).has("ojs")) {
     return { markdown };
   }
 
   if (options.format.pandoc?.[kSelfContained]) {
     throw new Error(
-      "FATAL: self-contained format option not supported with observable cells",
+      "FATAL: self-contained format option not supported with OJS cells",
     );
   }
 
@@ -146,7 +146,7 @@ export function observableCompile(
       ls.push(cellSrcStr);
     } else if (cell.cell_type === "math") {
       ls.push("\n$$", cellSrcStr, "$$\n");
-    } else if (cell.cell_type?.language === "observable") {
+    } else if (cell.cell_type?.language === "ojs") {
       const userCellId = () => {
         const chooseId = (label: string) => {
           const htmlLabel = asHtmlId(label as string);
@@ -478,7 +478,7 @@ export function observableCompile(
   return {
     markdown: ls.join("\n"),
     filters: [
-      "observable",
+      "ojs",
     ],
     includes: {
       [kIncludeInHeader]: extras?.[kIncludeInHeader] || [],

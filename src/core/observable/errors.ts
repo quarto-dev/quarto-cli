@@ -12,7 +12,7 @@ export function parseError(
   ojsSource: string,
 ) {
   error(
-    "An error occurred while parsing the following statement in an observable code block:",
+    "An error occurred while parsing the following statement in an OJS code block:",
   );
   error("----------");
   error(ojsSource);

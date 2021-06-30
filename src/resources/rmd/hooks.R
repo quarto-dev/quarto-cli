@@ -94,7 +94,7 @@ knitr_hooks <- function(format) {
   knit_hooks$chunk <- delegating_hook("chunk", function(x, options) {
     
     # ojs engine should return output unadorned
-    if (startsWith(x, "```{observable}") && endsWith(x, "```")) {
+    if (startsWith(x, "```{ojs}") && endsWith(x, "```")) {
       return(x)
     }
 

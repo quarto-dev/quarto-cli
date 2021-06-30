@@ -1,5 +1,5 @@
 ---
-title: "Quarto Observable Cell Attribute Implementation Reference"
+title: "Quarto OJS Cell Attribute Implementation Reference"
 format:
   html:
     keep-md: true
@@ -8,7 +8,7 @@ format:
 
 I thought `output: false` would suppress the output, but no? `echo: false` does it.
 
-```{observable}
+```{ojs}
 //| echo: false
 
 import {text} from '@jashkenas/inputs'
@@ -21,21 +21,21 @@ viewof name = text({
 
 ## `label`
 
-```{observable}
+```{ojs}
 //| label: python-label-1
 name
 ```
 
 **(Python Bug?) This appears to break with long labels:**
 
-```{observable}
+```{ojs}
 //| label: python label 2
 name
 ```
 
 ### `fig.cap`
 
-```{observable}
+```{ojs}
 //| label: fig-caption-test
 //| fig.cap: A caption for the figure
 name
@@ -45,7 +45,7 @@ name
 
 ### `fig.subcap`
 
-```{observable}
+```{ojs}
 //| label: fig-subcap-test
 //| fig.cap: Big caption
 //| fig.subcap: 
@@ -57,7 +57,7 @@ name + " 2"
 
 **(Python Bug?) Sub-captions don't show up unless `fig.cap` is also there:**
 
-```{observable}
+```{ojs}
 //| fig.subcap: 
 //|   - Caption 1
 //|   - Caption 2
@@ -71,14 +71,14 @@ name + " 2"
 
 Fold:
 
-```{observable}
+```{ojs}
 //| fold: true
 name
 ```
 
 Summary:
 
-```{observable}
+```{ojs}
 //| summary: "some text"
 name
 ```
