@@ -9,7 +9,9 @@ function panelLayout()
         local fill = el.attr.classes:find("panel-fill")
         local center = el.attr.classes:find("panel-center")
         if fill or center then
+          local layoutClass =  fill and "panel-fill" or "panel-center"
           local div = pandoc.Div({ el })
+          el.attr.classes = el.attr.classes:filter(function(clz) return clz ~= layoutClass end)
           if fill then
             tappend(div.attr.classes, {
               "col",
@@ -25,7 +27,8 @@ function panelLayout()
           end
           -- return wrapped in a raw
           return pandoc.Div({ div }, pandoc.Attr("", { 
-            "row", 
+            layoutClass,
+            "row"
           }))
         end
       end
