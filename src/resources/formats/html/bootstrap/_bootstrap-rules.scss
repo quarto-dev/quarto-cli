@@ -178,6 +178,56 @@ div.sourceCode {
   }
 }
 
+/*
+<!--
+<button class="btn code-menu-button" type="button">
+  <i class="bi"></i> Code
+</button>
+-->
+
+<button class="btn code-menu-button dropdown-toggle" type="button" id="ddmenubutton"
+        data-bs-toggle="dropdown" aria-expanded="false">
+  <i class="bi"></i> Code
+</button>
+<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="ddmenubutton">
+  <li><a id="quarto-hide-all-code" class="dropdown-item" href="#">Hide All Code</a></li>
+  <li><a id="quarto-show-all-code" class="dropdown-item" href="#">Show All Code</a></li>
+  <li><hr class="dropdown-divider"></li>
+  <li><a id="quarto-view-source" class="dropdown-item" href="#">View Source</a></li>
+</ul>
+
+<script type="application/javascript">
+
+</script>
+*/
+
+.code-menu-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  border: 0;
+  margin-top: 5px;
+  margin-right: 1px;
+  font-size: 1rem;
+  color: $text-muted;
+  background-color: transparent;
+}
+
+.code-menu-button > .bi::before {
+  display: inline-block;
+  height: 1rem;
+  width: 1rem;
+  content: "";
+  vertical-align: -0.125em;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGB($text-muted)}" viewBox="0 0 16 16"><path d="M10.478 1.647a.5.5 0 1 0-.956-.294l-4 13a.5.5 0 0 0 .956.294l4-13zM4.854 4.146a.5.5 0 0 1 0 .708L1.707 8l3.147 3.146a.5.5 0 0 1-.708.708l-3.5-3.5a.5.5 0 0 1 0-.708l3.5-3.5a.5.5 0 0 1 .708 0zm6.292 0a.5.5 0 0 0 0 .708L14.293 8l-3.147 3.146a.5.5 0 0 0 .708.708l3.5-3.5a.5.5 0 0 0 0-.708l-3.5-3.5a.5.5 0 0 0-.708 0z"/></svg>');
+  background-repeat: no-repeat;
+  background-size: 1rem 1rem;
+}
+
+.code-menu-button:hover > .bi::before {
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M10.478 1.647a.5.5 0 1 0-.956-.294l-4 13a.5.5 0 0 0 .956.294l4-13zM4.854 4.146a.5.5 0 0 1 0 .708L1.707 8l3.147 3.146a.5.5 0 0 1-.708.708l-3.5-3.5a.5.5 0 0 1 0-.708l3.5-3.5a.5.5 0 0 1 .708 0zm6.292 0a.5.5 0 0 0 0 .708L14.293 8l-3.147 3.146a.5.5 0 0 0 .708.708l3.5-3.5a.5.5 0 0 0 0-.708l-3.5-3.5a.5.5 0 0 0-.708 0z"/></svg>');
+}
+
 #{$code-copy-selector} .code-copy-button > .bi::before {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGB($text-muted)}" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/></svg>');
 }
