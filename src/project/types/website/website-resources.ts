@@ -62,6 +62,8 @@ function resolveTag(
       if (forceRoot) {
         if (!href.startsWith("/")) {
           tag.setAttribute(attrib, forceRoot + href);
+        } else if (!href.startsWith(forceRoot)) {
+          tag.setAttribute(attrib, forceRoot + href.slice(1));
         }
       } else if (href.startsWith("/")) {
         href = offset + href;
