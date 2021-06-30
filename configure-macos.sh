@@ -28,7 +28,7 @@ curl -fail -L $DENOURL/$DENO/$DENOFILE -o $DENOFILE --no-include
 unzip -o $DENOFILE
 rm $DENOFILE
 
-deno cache --reload ../../../src/quarto.ts --unstable --importmap=../../../src/import_map.json
+./deno cache --reload ../../../src/quarto.ts --unstable --importmap=../../../src/import_map.json
 
 popd
 popd
