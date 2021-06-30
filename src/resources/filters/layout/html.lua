@@ -7,8 +7,9 @@ function htmlPanel(divEl, layout, caption)
   layoutState.layoutCss = true
   
   -- outer panel to contain css and figure panel
-  local panel = pandoc.Div({}, pandoc.Attr("", { "quarto-layout-panel" }))
-
+  local panel = pandoc.Div({}, pandoc.Attr(divEl.attr.id, divEl.attr.classes))
+  panel.attr.classes:insert("quarto-layout-panel")
+  
   -- enclose in figure if it's a figureRef
   if hasFigureRef(divEl) then
     panel.content:insert(pandoc.RawBlock("html", "<figure>"))
