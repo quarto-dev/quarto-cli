@@ -5,7 +5,7 @@ function panelLayout()
 
   return {
     Div = function(el)
-      if (hasBootstrap()) then
+      if (hasBootstrap() and el.t == "Div") then
         local fill = el.attr.classes:find("panel-fill")
         local center = el.attr.classes:find("panel-center")
         if fill or center then
