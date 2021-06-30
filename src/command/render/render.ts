@@ -33,6 +33,8 @@ import {
 } from "../../core/path.ts";
 import { warnOnce } from "../../core/log.ts";
 
+import { observableExecuteResult } from "../../core/observable/compile.ts";
+
 import {
   formatFromMetadata,
   includedMetadata,
@@ -283,10 +285,16 @@ export async function renderFiles(
         );
 
         // execute
-        const executeResult = await renderExecute(
+        const baseExecuteResult = await renderExecute(
           context,
           recipe.output,
           executeOptions,
+        );
+
+        // process observable
+        const { executeResult, resourceFiles } = observableExecuteResult(
+          context,
+          baseExecuteResult,
         );
 
         // callback
@@ -294,6 +302,7 @@ export async function renderFiles(
           context,
           recipe,
           executeResult,
+          resourceFiles,
         });
       }
     }
@@ -537,25 +546,26 @@ export interface ExecutedFile {
   context: RenderContext;
   recipe: OutputRecipe;
   executeResult: ExecuteResult;
+  resourceFiles: string[];
 }
 
 export async function renderPandoc(
   file: ExecutedFile,
 ): Promise<RenderedFile> {
   // alias options
-  const { context, recipe, executeResult } = file;
+  const { context, recipe, executeResult, resourceFiles } = file;
 
   // alias format
   const format = recipe.format;
 
   // merge any pandoc options provided by the computation
-  if (executeResult.dependencies?.type === "includes") {
+  if (executeResult.includes) {
     format.pandoc = mergePandocIncludes(
       format.pandoc || {},
-      executeResult.dependencies.data as PandocIncludes,
+      executeResult.includes,
     );
   } // run the dependencies step if we didn't do it during execute
-  else if (executeResult.dependencies?.type === "dependencies") {
+  else if (executeResult.engineDependencies) {
     const dependenciesResult = await context.engine.dependencies({
       target: context.target,
       format,
@@ -563,7 +573,7 @@ export async function renderPandoc(
       resourceDir: resourcePath(),
       tempDir: createSessionTempDir(),
       libDir: context.libDir,
-      dependencies: executeResult.dependencies.data as Array<unknown>,
+      dependencies: executeResult.engineDependencies,
       quiet: context.options.flags?.quiet,
     });
     format.pandoc = mergePandocIncludes(
@@ -673,7 +683,7 @@ export async function renderPandoc(
     file: projectPath(finalOutput),
     resourceFiles: {
       globs: pandocResult.resources,
-      files: resourceRefs,
+      files: resourceFiles.concat(resourceRefs),
     },
     selfContained: selfContained,
   };
@@ -760,18 +770,7 @@ function mergePandocIncludes(
   format: FormatPandoc,
   pandocIncludes: PandocIncludes,
 ) {
-  const includesFormat: FormatPandoc = {};
-  const mergeIncludes = (
-    name: "include-in-header" | "include-before-body" | "include-after-body",
-  ) => {
-    if (pandocIncludes[name]) {
-      includesFormat[name] = [pandocIncludes[name]!];
-    }
-  };
-  mergeIncludes(kIncludeInHeader);
-  mergeIncludes(kIncludeBeforeBody);
-  mergeIncludes(kIncludeAfterBody);
-  return mergeConfigs(format, includesFormat);
+  return mergeConfigs(format, pandocIncludes);
 }
 
 // some extensions are 'known' to be standalone/self-contained

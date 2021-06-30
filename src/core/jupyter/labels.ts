@@ -19,11 +19,15 @@ import {
   JupyterOutput,
   JupyterOutputDisplayData,
   JupyterToMarkdownOptions,
+} from "./jupyter.ts";
+
+import {
   kCellFigCap,
   kCellFigSubCap,
   kCellLabel,
   kCellName,
-} from "./jupyter.ts";
+} from "../../config/constants.ts";
+
 import { includeOutput } from "./tags.ts";
 
 export function cellLabel(cell: JupyterCellWithOptions) {
