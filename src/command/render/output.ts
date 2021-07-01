@@ -18,8 +18,6 @@ import { createSessionTempDir, sessionTempFile } from "../../core/temp.ts";
 
 import {
   kHtmlMathMethod,
-  kIncludeAfterBody,
-  kKeepSource,
   kKeepYaml,
   kOutputExt,
   kOutputFile,
@@ -31,6 +29,11 @@ import {
 import { Format, isHtmlOutput } from "../../config/format.ts";
 
 import {
+  quartoLatexmkOutputRecipe,
+  useQuartoLatexmk,
+} from "./latexmk/latexmk.ts";
+
+import {
   havePandocArg,
   kStdOut,
   RenderFlags,
@@ -38,10 +41,7 @@ import {
 } from "./flags.ts";
 import { PandocOptions } from "./pandoc.ts";
 import { RenderContext } from "./render.ts";
-import {
-  quartoLatexmkOutputRecipe,
-  useQuartoLatexmk,
-} from "./latexmk/latexmk.ts";
+import { resolveKeepSource } from "./keepsource.ts";
 
 // render commands imply the --output argument for pandoc and the final
 // output file to create for the user, but we need a 'recipe' to go from
@@ -105,11 +105,9 @@ export async function outputRecipe(
       },
     };
 
-    // keep source if requested (and we are targeting html)
-    if (format.render[kKeepSource] && isHtmlOutput(format.pandoc, true)) {
-      format.pandoc[kIncludeAfterBody] = format.pandoc[kIncludeAfterBody] || [];
-      format.pandoc[kIncludeAfterBody]?.push(embeddedSourceCode(input));
-    }
+    // keep source if requested (via keep-source or code-tools), we are targeting html,
+    // and engine can keep it (e.g. we wouldn't keep an .ipynb file as source)
+    resolveKeepSource(recipe.format, context.engine, context.target);
 
     // patch templates as necessary (don't patch if there is a user specified template)
     if (
@@ -202,15 +200,6 @@ export async function outputRecipe(
     // return
     return recipe;
   }
-}
-
-function embeddedSourceCode(file: string) {
-  const code = Deno.readTextFileSync(file);
-  const scriptTag =
-    `<script id="quarto-embedded-source-code" type="text/plain">\n${code}</script>`;
-  const tempFile = sessionTempFile({ suffix: ".html" });
-  Deno.writeTextFileSync(tempFile, scriptTag);
-  return tempFile;
 }
 
 async function patchHtmlTemplate(

@@ -108,6 +108,11 @@ code a:any-link {
 }
 */
 
+// embedded source code
+#quarto-embedded-source-code {
+  display: none;
+}
+
 // tippy
 
 [data-tippy-root] {

@@ -68,6 +68,7 @@ import {
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
+  kKeepSource,
   kMetadataFormat,
   kNumberOffset,
   kNumberSections,
@@ -87,6 +88,9 @@ import { compileSass } from "./sass.ts";
 import { crossrefFilterActive } from "./crossref.ts";
 import { kQuartoHtmlDependency } from "../../format/html/format-html.ts";
 import { selectInputPostprocessor } from "./layout.ts";
+import { keepSourceBlock, keepSourcePostprocessor } from "./keepsource.ts";
+
+export const kMarkdownBlockSeparator = "\n\n<!-- -->\n\n";
 
 // options required to run pandoc
 export interface PandocOptions {
@@ -208,6 +212,11 @@ export async function runPandoc(
 
     // add a post-processor for fixing overflow-x in cell output display
     htmlPostprocessors.push(selectInputPostprocessor);
+
+    // add a keep-source post processor if we need one
+    if (options.format?.render[kKeepSource]) {
+      htmlPostprocessors.push(keepSourcePostprocessor);
+    }
 
     // provide default toc-title if necessary
     if (extras[kTocTitle]) {
@@ -370,12 +379,13 @@ export async function runPandoc(
     }
   }
 
-  // read the input file then append the metadata to the file (this is to that)
+  // append keep-source (if requested) + the metadata to the file (this is so that
   // our fully resolved metadata, which incorporates project and format-specific
-  // values, overrides the metadata contained within the file). we'll feed the
-  // input to pandoc on stdin
+  // values, overrides the metadata contained within the file).
+
   const input = markdown +
-    "\n\n<!-- -->\n" +
+    keepSourceBlock(options.format, options.source) +
+    kMarkdownBlockSeparator +
     `\n---\n${
       stringify(pandocMetadata, {
         indent: 2,
