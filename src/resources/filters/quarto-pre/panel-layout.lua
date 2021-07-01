@@ -32,6 +32,7 @@ function panelLayout()
           }))
         end
       end
+      return el
     end
   }
   
