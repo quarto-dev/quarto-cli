@@ -11,8 +11,7 @@ import { unTar } from "../../util/tar.ts";
 import { Dependency } from "./dependencies.ts";
 
 export function esBuild(version: string): Dependency {
-  // Maps the file name and pandoc executable file name to a repo and expand
-  // to create a pandocRelease
+  // Handle the configuration for this dependency
   const esBuildRelease = (
     platformstr: string,
   ) => {
@@ -21,7 +20,7 @@ export function esBuild(version: string): Dependency {
       url:
         `https://registry.npmjs.org/esbuild-${platformstr}/-/esbuild-${platformstr}-${version}.tgz`,
       configure: async (path: string) => {
-        // Remove existing dart-sass dir
+        // Remove existing dir
         const dir = dirname(path);
 
         // extracts to package/bin
@@ -35,9 +34,12 @@ export function esBuild(version: string): Dependency {
 
         try {
           // Move the file and cleanup
-          const file = "esbuild";
+          const file = Deno.build.os === "windows" ? "esbuild.exe" : "esbuild";
+          const intialPath = Deno.build.os === "windows"
+            ? join(esbuildDir, file)
+            : join(esbuildDir, "bin", file);
           Deno.renameSync(
-            join(esbuildDir, "bin", file),
+            intialPath,
             join(dir, file),
           );
         } finally {
