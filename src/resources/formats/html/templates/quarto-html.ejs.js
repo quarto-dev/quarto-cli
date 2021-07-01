@@ -47,19 +47,37 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       return false;
     });
   }
+  function toggleCodeHandler(show) {
+    return function(e) {
+      const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+      for (let i=0; i<detailsSrc.length; i++) {
+        const details = detailsSrc[i].parentElement;
+        if (show) {
+          details.open = true;
+        } else {
+          details.removeAttribute("open");
+        }
+      }
+      const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+      const fromCls = show ? "hidden" : "unhidden";
+      const toCls = show ? "unhidden" : "hidden";
+      for (let i=0; i<cellCodeDivs.length; i++) {
+        const codeDiv = cellCodeDivs[i];
+        if (codeDiv.classList.contains(fromCls)) {
+          codeDiv.classList.remove(fromCls);
+          codeDiv.classList.add(toCls);
+        } 
+      }
+      return false;
+    }
+  }
   const hideAllCode = window.document.getElementById("quarto-hide-all-code");
   if (hideAllCode) {
-    hideAllCode.addEventListener("click", function() {
-      console.log('hide all code');
-      return false;
-    });
+    hideAllCode.addEventListener("click", toggleCodeHandler(false));
   }
   const showAllCode = window.document.getElementById("quarto-show-all-code");
   if (showAllCode) {
-    showAllCode.addEventListener("click", function() {
-      console.log('show all code');
-      return false;
-    });
+    showAllCode.addEventListener("click", toggleCodeHandler(true));
   }
 
   <% } %>
