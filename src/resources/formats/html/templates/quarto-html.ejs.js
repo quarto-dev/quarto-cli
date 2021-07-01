@@ -37,6 +37,33 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
   <% } %>
 
+  <% if (codeTools) { %>
+
+  const viewSource = window.document.getElementById('quarto-view-source') ||
+                     window.document.getElementById('quarto-code-tools-source');
+  if (viewSource) {
+    viewSource.addEventListener("click", function() {
+      console.log('view source');
+      return false;
+    });
+  }
+  const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+  if (hideAllCode) {
+    hideAllCode.addEventListener("click", function() {
+      console.log('hide all code');
+      return false;
+    });
+  }
+  const showAllCode = window.document.getElementById("quarto-show-all-code");
+  if (showAllCode) {
+    showAllCode.addEventListener("click", function() {
+      console.log('show all code');
+      return false;
+    });
+  }
+
+  <% } %>
+
   <% if (tippy) { %>
   function tippyHover(el, contentFn) {
     window.tippy(el, {

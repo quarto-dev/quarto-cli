@@ -41,7 +41,7 @@ import {
 } from "./flags.ts";
 import { PandocOptions } from "./pandoc.ts";
 import { RenderContext } from "./render.ts";
-import { resolveKeepSource } from "./keepsource.ts";
+import { resolveKeepSource } from "./codetools.ts";
 
 // render commands imply the --output argument for pandoc and the final
 // output file to create for the user, but we need a 'recipe' to go from

@@ -88,7 +88,11 @@ import { compileSass } from "./sass.ts";
 import { crossrefFilterActive } from "./crossref.ts";
 import { kQuartoHtmlDependency } from "../../format/html/format-html.ts";
 import { selectInputPostprocessor } from "./layout.ts";
-import { keepSourceBlock, keepSourcePostprocessor } from "./keepsource.ts";
+import {
+  codeToolsPostprocessor,
+  formatHasCodeTools,
+  keepSourceBlock,
+} from "./codetools.ts";
 
 export const kMarkdownBlockSeparator = "\n\n<!-- -->\n\n";
 
@@ -214,8 +218,10 @@ export async function runPandoc(
     htmlPostprocessors.push(selectInputPostprocessor);
 
     // add a keep-source post processor if we need one
-    if (options.format?.render[kKeepSource]) {
-      htmlPostprocessors.push(keepSourcePostprocessor);
+    if (
+      options.format?.render[kKeepSource] || formatHasCodeTools(options.format)
+    ) {
+      htmlPostprocessors.push(codeToolsPostprocessor(options.format));
     }
 
     // provide default toc-title if necessary
