@@ -44,7 +44,7 @@ export function filterParamsJson(
   args: string[],
   options: PandocOptions,
   defaults: FormatPandoc | undefined,
-  formatFilterParams: Record<string, unknown>,
+  filterParams: Record<string, unknown>,
 ) {
   // extract include params (possibly mutating it's arguments)
   const includes = options.format.render[kMergeIncludes] !== false
@@ -61,7 +61,7 @@ export function filterParamsJson(
     ...quartoFilterParams(options.format),
     ...crossrefFilterParams(options.flags, defaults, options.format.metadata),
     ...layoutFilterParams(options.format),
-    ...formatFilterParams,
+    ...filterParams,
   };
 
   return JSON.stringify(params);

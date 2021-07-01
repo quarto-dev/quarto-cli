@@ -110,6 +110,7 @@ export interface FormatDependency {
 export interface DependencyFile {
   name: string;
   path: string;
+  attribs?: Record<string, string>;
 }
 
 export interface BodyEnvelope {
@@ -314,4 +315,13 @@ export function isHtmlOutput(
 export function isMarkdownOutput(format: FormatPandoc) {
   const to = (format.to || "").replace(/[\+\-_].*$/, "");
   return ["markdown", "gfm", "commonmark"].includes(to);
+}
+
+export function isHtmlCompatible(format: Format) {
+  return isHtmlOutput(format.pandoc) ||
+    (isMarkdownOutput(format.pandoc) && format.render[kPreferHtml]);
+}
+
+export function isJavascriptCompatible(format: Format) {
+  return isHtmlCompatible(format) && !isEpubOutput(format.pandoc);
 }

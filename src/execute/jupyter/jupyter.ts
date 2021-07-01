@@ -49,6 +49,7 @@ import {
 } from "../../config/constants.ts";
 import {
   Format,
+  isHtmlCompatible,
   isHtmlOutput,
   isLatexOutput,
   isMarkdownOutput,
@@ -218,10 +219,13 @@ export const jupyterEngine: ExecutionEngine = {
     );
 
     // return dependencies as either includes or raw dependencies
-    const dependencies = executeResultDependencies(
-      options.dependencies ? "includes" : "dependencies",
-      result.dependencies,
-    );
+    let includes: PandocIncludes | undefined;
+    let engineDependencies: Array<unknown> | undefined;
+    if (options.dependencies) {
+      includes = executeResultIncludes(result.dependencies);
+    } else {
+      engineDependencies = executeResultEngineDependencies(result.dependencies);
+    }
 
     // if it's a transient notebook then remove it
     // (unless keep-ipynb was specified)
@@ -232,7 +236,8 @@ export const jupyterEngine: ExecutionEngine = {
       markdown: result.markdown,
       supporting: [join(assets.base_dir, assets.supporting_dir)],
       filters: [],
-      dependencies,
+      includes,
+      engineDependencies,
       preserve: result.htmlPreserve,
       postProcess: result.htmlPreserve &&
         (Object.keys(result.htmlPreserve).length > 0),
@@ -252,10 +257,10 @@ export const jupyterEngine: ExecutionEngine = {
         options.dependencies as JupyterWidgetDependencies[],
       );
       if (includeFiles.inHeader) {
-        includes[kIncludeInHeader] = includeFiles.inHeader;
+        includes[kIncludeInHeader] = [includeFiles.inHeader];
       }
       if (includeFiles.afterBody) {
-        includes[kIncludeAfterBody] = includeFiles.afterBody;
+        includes[kIncludeAfterBody] = [includeFiles.afterBody];
       }
     }
     return Promise.resolve({
@@ -314,40 +319,34 @@ interface JupyterTargetData {
   transient: boolean;
 }
 
-function isHtmlCompatible(format: Format) {
-  return isHtmlOutput(format.pandoc) ||
-    (isMarkdownOutput(format.pandoc) && format.render[kPreferHtml]);
-}
-
-function executeResultDependencies(
-  type: "includes" | "dependencies",
-  dependencies?: JupyterWidgetDependencies,
-) {
-  // convert dependencies to include files
-  const dependenciesAsIncludes = () => {
+function executeResultIncludes(
+  widgetDependencies?: JupyterWidgetDependencies,
+): PandocIncludes | undefined {
+  if (widgetDependencies) {
     const includes: PandocIncludes = {};
-    if (dependencies) {
-      const includeFiles = includesForJupyterWidgetDependencies(
-        [dependencies],
-      );
-      if (includeFiles.inHeader) {
-        includes[kIncludeInHeader] = includeFiles.inHeader;
-      }
-      if (includeFiles.afterBody) {
-        includes[kIncludeAfterBody] = includeFiles.afterBody;
-      }
+    const includeFiles = includesForJupyterWidgetDependencies(
+      [widgetDependencies],
+    );
+    if (includeFiles.inHeader) {
+      includes[kIncludeInHeader] = [includeFiles.inHeader];
+    }
+    if (includeFiles.afterBody) {
+      includes[kIncludeAfterBody] = [includeFiles.afterBody];
     }
     return includes;
-  };
+  } else {
+    return undefined;
+  }
+}
 
-  return {
-    type,
-    data: type === "includes"
-      ? dependenciesAsIncludes()
-      : dependencies
-      ? [dependencies]
-      : [],
-  };
+function executeResultEngineDependencies(
+  widgetDependencies?: JupyterWidgetDependencies,
+): Array<unknown> | undefined {
+  if (widgetDependencies) {
+    return [widgetDependencies];
+  } else {
+    return undefined;
+  }
 }
 
 async function markdownFromNotebook(file: string) {
