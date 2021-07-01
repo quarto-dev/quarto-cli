@@ -6,6 +6,7 @@
 */
 
 import { dartSass } from "./dartsass.ts";
+import { esBuild } from "./esbuild.ts";
 import { pandoc } from "./pandoc.ts";
 
 export interface Dependency {
@@ -25,6 +26,7 @@ export interface PlatformDependency {
 export const kDependencies = [
   pandoc(version("PANDOC")),
   dartSass(version("DARTSASS")),
+  esBuild(version("ESBUILD")),
 ];
 
 function version(env: string) {

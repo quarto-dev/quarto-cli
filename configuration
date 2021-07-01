@@ -11,6 +11,7 @@
 export DENO=v1.9.2
 export PANDOC=2.13
 export DARTSASS=1.32.8
+export ESBUILD=0.12.10
 
 # Bootstrap / javascript HTML dependencies
 export BOOTSTRAP=5.0.1
