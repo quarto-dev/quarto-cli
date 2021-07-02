@@ -29,6 +29,7 @@ import {
   extractSelfContainedResources,
 } from "./extract-resources.ts";
 import { parseError } from "./errors.ts";
+import { projectIsWebserverTarget } from "../../project/project-context.ts";
 
 import {
   kCellFigCap,
@@ -45,12 +46,12 @@ import {
   kLayoutNcol,
   kLayoutNrow,
   kOutput,
-  kSelfContained,
 } from "../../config/constants.ts";
 
 import { RenderContext } from "../../command/render/render.ts";
 import { mergeConfigs } from "../config.ts";
 import { ProjectContext } from "../../project/project-context.ts";
+import { quartoConfig } from "../quarto.ts";
 
 export interface ObservableCompileOptions {
   source: string;
@@ -78,6 +79,7 @@ export async function observableCompile(
 ): Promise<ObservableCompileResult> {
   const { markdown, project } = options;
   const projDir = project?.dir;
+  const selfContained = !(project && projectIsWebserverTarget(project));
 
   if (!isJavascriptCompatible(options.format)) {
     return { markdown };
@@ -107,7 +109,7 @@ export async function observableCompile(
   scriptContents.push(`window._ojs.paths.runtimeToRoot = "${runtimeToRoot}";`);
   scriptContents.push(`window._ojs.paths.docToRoot = "${docToRoot}";`);
   scriptContents.push(
-    `window._ojs.selfContained = ${!!options.format.pandoc?.[kSelfContained]};`,
+    `window._ojs.selfContained = ${selfContained};`,
   );
 
   function interpret(jsSrc: string[], inline: boolean, lenient: boolean) {
@@ -199,12 +201,13 @@ export async function observableCompile(
         return cell.options?.[kCellFigSubCap];
       };
 
-      // when running in self-contained mode, we must treat resources
-      // differently, bundling all OJS and JS into single modules, and
-      // adding all other files into a data structure that can be
-      // referred to by the FileAttachment mechanism in our OJS
-      // runtime.
-      if (options.format.pandoc?.[kSelfContained]) {
+      // when running in contexts outside of a web project (eg when
+      // self-contained), we must treat resources differently,
+      // bundling all OJS and JS into single modules, and adding all
+      // other files into a data structure that can be referred to by
+      // the FileAttachment mechanism in our OJS runtime.
+
+      if (selfContained) {
         const selfContainedCellResources = await extractSelfContainedResources(
           cellSrcStr,
           options.source,
@@ -478,7 +481,7 @@ export async function observableCompile(
     }
   }
 
-  if (options.format.pandoc?.[kSelfContained]) {
+  if (selfContained) {
     const resolver = JSON.stringify(
       Object.fromEntries(Array.from(selfContainedPageResources)),
     );
@@ -496,17 +499,42 @@ export async function observableCompile(
   const includeAfterBodyFile = sessionTempFile();
   Deno.writeTextFileSync(includeAfterBodyFile, afterBody);
 
-  // copy observable dependencies and inject references to them into the head
+  // we need to inline ojs-bundle.js rather than link to it in order
+  // for ojs to work in non-webserver contexts. <script type="module"></script> runs into CORS restrictions
 
   const extras = resolveDependencies(
     {
       html: {
-        [kDependencies]: [observableFormatDependency()],
+        [kDependencies]: [observableFormatDependency(selfContained)],
       },
     },
     dirname(options.source),
     options.libDir,
   );
+
+  const ojsBundleTempFiles = [];
+  // FIXME is this the correct way to specify a resources path in quarto?
+  if (selfContained) {
+    const ojsBundleFilename = join(
+      quartoConfig.sharePath(),
+      "formats/html/observable/ojs-bundle.js",
+    );
+    const ojsBundle = [
+      `<script type="module">`,
+      Deno.readTextFileSync(ojsBundleFilename),
+      `</script>`,
+    ];
+
+    const filename = sessionTempFile();
+    Deno.writeTextFileSync(filename, ojsBundle.join("\n"));
+    ojsBundleTempFiles.push(filename);
+  }
+
+  // copy observable dependencies and inject references to them into the head
+  const includeInHeader = [
+    ...(extras?.[kIncludeInHeader] || []),
+    ...ojsBundleTempFiles,
+  ];
 
   return {
     markdown: ls.join("\n"),
@@ -514,7 +542,7 @@ export async function observableCompile(
       "ojs",
     ],
     includes: {
-      [kIncludeInHeader]: extras?.[kIncludeInHeader] || [],
+      [kIncludeInHeader]: includeInHeader,
       [kIncludeAfterBody]: [includeAfterBodyFile],
     },
     resourceFiles,
@@ -572,7 +600,7 @@ function firstDefined(lst: any[]) {
   return undefined;
 }
 
-function observableFormatDependency() {
+function observableFormatDependency(selfContained: boolean) {
   const observableResource = (resource: string) =>
     formatResourcePath(
       "html",
@@ -587,17 +615,17 @@ function observableFormatDependency() {
     attribs,
   });
 
+  // we potentially skip scripts here because we might need to force
+  // them to be inline in case we are running in a file:/// context.
+  const scripts = selfContained
+    ? []
+    : [observableDependency("ojs-bundle.js", { type: "module" })];
   return {
     name: "quarto-observable",
     stylesheets: [
       observableDependency("quarto-observable.css"),
     ],
-    scripts: [
-      observableDependency("ojs-bundle.js", { type: "module" }),
-      // observableDependency("quarto-observable.js", { type: "module" }),
-      // observableDependency("observable-in-a-box.js", { type: "module" }),
-      // observableDependency("quarto-observable-shiny.js", { type: "module" }),
-    ],
+    scripts,
   };
 }
 
