@@ -215,20 +215,22 @@ async function waitForNotaryStatus(
 ) {
   let notaryResult = undefined;
   while (notaryResult == undefined) {
-    try {
-      const result = await runCmd(
-        "xcrun",
-        [
-          "altool",
-          "--notarization-info",
-          requestId,
-          "--username",
-          username,
-          "--password",
-          password,
-        ],
-      );
+    const result = await runCmd(
+      "xcrun",
+      [
+        "altool",
+        "--notarization-info",
+        requestId,
+        "--username",
+        username,
+        "--password",
+        password,
+      ],
+    );
 
+    // ignore process errors which happen for things like
+    // transient gateway timeouts
+    if (result.status.success) {
       const match = result.stdout.match(/Status: (.*)\n/);
       if (match) {
         const status = match[1];
@@ -242,9 +244,6 @@ async function waitForNotaryStatus(
           throw new Error("Failed to Notarize - " + status);
         }
       }
-    } catch (er) {
-      warning("Exception while requesting notary status");
-      warning(er);
     }
   }
   return notaryResult;
