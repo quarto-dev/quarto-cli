@@ -167,13 +167,15 @@ export function codeToolsPostprocessor(format: Format) {
             };
             addListItem(kHideAllCodeLinkId, "Hide All Code");
             addListItem(kShowAllCodeLinkId, "Show All Code");
-            addDivider();
-            const vsLi = addListItem(kViewSourceLinkId, "View Source");
-            if (typeof (codeTools.source) === "string") {
-              (vsLi.firstChild as Element).setAttribute(
-                kDataQuartoSourceUrl,
-                codeTools.source,
-              );
+            if (codeTools.source) {
+              addDivider();
+              const vsLi = addListItem(kViewSourceLinkId, "View Source");
+              if (typeof (codeTools.source) === "string") {
+                (vsLi.firstChild as Element).setAttribute(
+                  kDataQuartoSourceUrl,
+                  codeTools.source,
+                );
+              }
             }
             titleDiv.appendChild(ul);
           } else {
@@ -251,11 +253,11 @@ function resolveCodeTools(format: Format, doc: Document): CodeTools {
       ? codeTools
       : codeTools?.source !== undefined
       ? codeTools?.source
-      : false,
+      : true,
     toggle: typeof (codeTools) === "boolean" ? codeTools
     : codeTools?.toggle !== undefined
       ? !!codeTools?.toggle
-      : false,
+      : true,
     caption: typeof (codeTools) === "boolean" ? kCodeCaption
     : codeTools?.caption || kCodeCaption,
   };
