@@ -61,8 +61,14 @@ export async function makeInstallerMac(config: Configuration) {
       "macos",
       "entitlements.plist",
     );
+
+    // Sign deno
     const deno = join(config.directoryInfo.bin, "deno");
     await signCode(applicationDevId, deno, entitlements);
+
+    // Sign esbuild
+    const esbuild = join(config.directoryInfo.bin, "esbuild");
+    await signCode(applicationDevId, esbuild, entitlements);
 
     // Sign the quarto js file
     const quartojs = join(config.directoryInfo.bin, "quarto.js");
