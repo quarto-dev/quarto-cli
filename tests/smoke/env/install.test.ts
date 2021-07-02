@@ -17,14 +17,3 @@ testQuartoCmd(
     printsMessage("INFO", /^chromium\s+/),
   ],
 );
-
-testQuartoCmd(
-  "install",
-  ["tinytex"],
-  [noErrorsOrWarnings, printsMessage("INFO", /^Installation successful$/m)],
-  {
-    setup: async () => {
-      await uninstallTool("tinytex");
-    },
-  },
-);
