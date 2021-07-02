@@ -45,7 +45,11 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
     viewSource.addEventListener("click", function(e) {
       if (sourceUrl) {
-        window.location.href = sourceUrl;
+        if (/\bviewer_pane=1\b/.test(window.location)) {
+          window.open(sourceUrl);
+        } else {
+          window.location.href = sourceUrl;
+        }
       } else {
         const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
         modal.show();
