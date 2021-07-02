@@ -784,7 +784,14 @@ function runPandocMessage(
     // print message
     if (Object.keys(printMetadata).length > 0) {
       info("metadata", { bold: true });
-      info(stringify(printMetadata), { indent: 2 });
+      info(
+        stringify(printMetadata, {
+          indent: 2,
+          sortKeys: false,
+          skipInvalid: true,
+        }),
+        { indent: 2 },
+      );
     }
   }
 }
