@@ -22,7 +22,9 @@ const kShowAllCodeLinkId = "quarto-show-all-code";
 const kViewSourceLinkId = "quarto-view-source";
 const kCodeToolsSourceButtonId = "quarto-code-tools-source";
 const kCodeToolsMenuButtonId = "quarto-code-tools-menu";
-const kKeepSourceClass = "quarto-embedded-source-code";
+const kEmbeddedSourceClass = "quarto-embedded-source-code";
+const kEmbeddedSourceModalId = kEmbeddedSourceClass + "-modal";
+const kEmbeddedSourceModalLabelId = kEmbeddedSourceClass + "-modal-label";
 const kKeepSourceSentinel = "quarto-executable-code-5450563D";
 
 interface CodeTools {
@@ -71,9 +73,9 @@ export function keepSourceBlock(format: Format, source: string) {
     );
 
     const kKeepSourceBackticks = "```````````````";
-    return `${kMarkdownBlockSeparator}${kKeepSourceBackticks}` +
-      `{.markdown .${kKeepSourceClass}}\n${code}` +
-      `${kKeepSourceBackticks}\n`;
+    return `${kMarkdownBlockSeparator}::: {.${kEmbeddedSourceClass}}\n${kKeepSourceBackticks}` +
+      `{.markdown}\n${code}` +
+      `${kKeepSourceBackticks}\n:::\n`;
   } else {
     return "";
   }
@@ -81,6 +83,40 @@ export function keepSourceBlock(format: Format, source: string) {
 
 export function codeToolsPostprocessor(format: Format) {
   return (doc: Document): Promise<string[]> => {
+    if (format.render[kKeepSource]) {
+      // fixup the lines in embedded source
+      const lines = doc.querySelectorAll(
+        `.${kEmbeddedSourceClass} > div.sourceCode > pre > code > span`,
+      );
+
+      if (lines.length > 0) {
+        const newLines: Element[] = [];
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i] as Element;
+          if (line.innerText === kKeepSourceSentinel) {
+            i += 2;
+            const codeBlockLine = lines[i] as Element;
+            const codeSpan = codeBlockLine.lastChild as Element;
+            codeSpan.innerHTML = codeSpan.innerHTML.replace(
+              /```(\w+)/,
+              "```{$1}",
+            );
+            newLines.push(codeBlockLine);
+          } else {
+            newLines.push(line);
+          }
+        }
+        if (newLines.length !== lines.length) {
+          const parent = (lines[0] as Element).parentElement!;
+          parent.innerHTML = "";
+          newLines.forEach((line) => {
+            parent.appendChild(line);
+            parent.appendChild(doc.createTextNode("\n"));
+          });
+        }
+      }
+    }
+
     // provide code tools in header
     if (formatHasCodeTools(format)) {
       // resolve what sort of code tools we will present
@@ -138,45 +174,50 @@ export function codeToolsPostprocessor(format: Format) {
             button.setAttribute("id", kCodeToolsSourceButtonId);
           }
         }
-      }
-    }
-
-    // fixup code block delimiters in keep-source
-    if (format.render[kKeepSource]) {
-      // make sure the div.sourceCode parent of keep source is hidden
-      const keepSource = doc.querySelector(".quarto-embedded-source-code");
-      if (keepSource) {
-        (keepSource as Element).parentElement?.classList.add("hidden");
-      }
-
-      // fixup the lines
-      const lines = doc.querySelectorAll(
-        `.${kKeepSourceClass} > pre > code > span`,
-      );
-      if (lines.length > 0) {
-        const newLines: Element[] = [];
-        for (let i = 0; i < lines.length; i++) {
-          const line = lines[i] as Element;
-          if (line.innerText === kKeepSourceSentinel) {
-            i += 2;
-            const codeBlockLine = lines[i] as Element;
-            const codeSpan = codeBlockLine.lastChild as Element;
-            codeSpan.innerHTML = codeSpan.innerHTML.replace(
-              /```(\w+)/,
-              "```{$1}",
+        if (codeTools.source) {
+          // grab the embedded source code element
+          const embeddedCode = doc.querySelector(`.${kEmbeddedSourceClass}`);
+          if (embeddedCode) {
+            // create a bootstrap model to wrap it
+            const modalDiv = doc.createElement("div");
+            modalDiv.classList.add("modal").add("fade");
+            modalDiv.setAttribute("id", kEmbeddedSourceModalId);
+            modalDiv.setAttribute("tabindex", "-1");
+            modalDiv.setAttribute(
+              "aria-labelledby",
+              kEmbeddedSourceModalLabelId,
             );
-            newLines.push(codeBlockLine);
-          } else {
-            newLines.push(line);
+            modalDiv.setAttribute("aria-hidden", "true");
+            const modalDialogDiv = doc.createElement("div");
+            modalDialogDiv.classList.add("modal-dialog").add(
+              "modal-dialog-scrollable",
+            );
+            const modalContentDiv = doc.createElement("div");
+            modalContentDiv.classList.add("modal-content");
+            const modalDialogHeader = doc.createElement("div");
+            modalDialogHeader.classList.add("modal-header");
+            const h5 = doc.createElement("h5");
+            h5.classList.add("modal-title");
+            h5.setAttribute("id", kEmbeddedSourceModalLabelId);
+            h5.appendChild(doc.createTextNode("Source Code"));
+            modalDialogHeader.appendChild(h5);
+            const button = doc.createElement("button");
+            button.classList.add("btn-close");
+            button.setAttribute("data-bs-dismiss", "modal");
+            button.setAttribute("aria-label", "Close");
+            modalDialogHeader.appendChild(button);
+            modalContentDiv.appendChild(modalDialogHeader);
+            const modalBody = doc.createElement("div");
+            modalBody.classList.add("modal-body");
+            modalContentDiv.appendChild(modalBody);
+            modalDialogDiv.appendChild(modalContentDiv);
+            modalDiv.appendChild(modalDialogDiv);
+
+            // insert it
+            embeddedCode.parentElement?.insertBefore(modalDiv, embeddedCode);
+            modalBody.appendChild(embeddedCode);
+            embeddedCode.classList.delete(kEmbeddedSourceClass);
           }
-        }
-        if (newLines.length !== lines.length) {
-          const parent = (lines[0] as Element).parentElement!;
-          parent.innerHTML = "";
-          newLines.forEach((line) => {
-            parent.appendChild(line);
-            parent.appendChild(doc.createTextNode("\n"));
-          });
         }
       }
     }

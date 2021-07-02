@@ -43,7 +43,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
                      window.document.getElementById('quarto-code-tools-source');
   if (viewSource) {
     viewSource.addEventListener("click", function() {
-      console.log('view source');
+      const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+      modal.show();
       return false;
     });
   }

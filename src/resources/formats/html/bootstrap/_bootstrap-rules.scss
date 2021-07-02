@@ -178,6 +178,37 @@ div.sourceCode {
   }
 }
 
+#quarto-embedded-source-code-modal > .modal-dialog {
+  max-width: 1000px;
+  padding-left: 1.75rem;
+  padding-right: 1.75rem;
+}
+
+#quarto-embedded-source-code-modal
+  > .modal-dialog
+  > .modal-content
+  > .modal-body {
+  padding: 0;
+}
+
+#quarto-embedded-source-code-modal
+  > .modal-dialog
+  > .modal-content
+  > .modal-body
+  div.sourceCode {
+  margin: 0;
+  padding: 0.2rem 0.2rem;
+  background-color: inherit;
+  border: none;
+}
+
+#quarto-embedded-source-code-modal
+  > .modal-dialog
+  > .modal-content
+  > .modal-header {
+  padding: 0.7rem;
+}
+
 .code-tools-button {
   font-size: 1rem;
   padding: 0.15rem 0.15rem;
