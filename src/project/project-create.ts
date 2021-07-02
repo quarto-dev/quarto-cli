@@ -60,11 +60,12 @@ export async function projectCreate(options: ProjectCreateOptions) {
     "- Created _quarto.yml",
     { indent: 2 },
   );
-  await ensureGitignore(options.dir);
-  info(
-    "- Created .gitignore",
-    { indent: 2 },
-  );
+  if (await ensureGitignore(options.dir)) {
+    info(
+      "- Created .gitignore",
+      { indent: 2 },
+    );
+  }
 
   // create scaffold files if we aren't creating a project within the
   // current working directory (which presumably already has files)
