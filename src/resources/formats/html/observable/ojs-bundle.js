@@ -32,6 +32,11 @@ export class OJSInABox {
     library,
   }) {
     this.library = library || new Library();
+
+    // this map contains a mapping from resource names to data URLs
+    // that governs fileAttachment and import() resolutions in the
+    // case of self-contained files.
+    this.localResolverMap = new Map();
     // NB it looks like Runtime makes a local copy of the library object,
     // such that mutating library after this is initializaed doesn't actually
     // work.
@@ -39,7 +44,7 @@ export class OJSInABox {
     this.mainModule = this.runtime.module();
     this.interpreter = new Interpreter({
       module: this.mainModule,
-      resolveImportPath: importPathResolver(paths),
+      resolveImportPath: importPathResolver(paths, this.localResolverMap),
     });
     this.inspectorClass = inspectorClass || Inspector;
 
@@ -47,6 +52,12 @@ export class OJSInABox {
     this.mainModuleHasImports = false;
     this.mainModuleOutstandingImportCount = 0;
     this.chunkPromises = [];
+  }
+
+  setLocalResolver(map) {
+    for (const [key, value] of Object.entries(map)) {
+      this.localResolverMap.set(key, value);
+    }
   }
 
   define(name, module = undefined) {
@@ -458,8 +469,13 @@ export function createRuntime() {
     });
   }
   lib.layoutWidth = layoutWidth;
+  let localResolver = {};
 
   function fileAttachmentPathResolver(n) {
+    if (localResolver[n]) {
+      return localResolver[n];
+    }
+    
     if (n.startsWith('/')) {
       return `${quartoOjsGlobal.paths.docToRoot}${n}`;
     } else {
@@ -487,6 +503,10 @@ export function createRuntime() {
   }
 
   const result = {
+    setLocalResolver(obj) {
+      localResolver = obj;
+      obsInABox.setLocalResolver(obj);
+    },
     finishInterpreting() {
       obsInABox.finishInterpreting();
     },

@@ -6,11 +6,15 @@
 */
 
 import { dirname, relative, resolve } from "path/mod.ts";
+import { encode as base64Encode } from "encoding/base64.ts";
+import { lookup } from "media_types/mod.ts";
+
 import { parseModule } from "observablehq/parser";
 import { make, simple } from "acorn/walk";
 import { parse as parseES6 } from "acorn/acorn";
 
 import { parseError } from "./errors.ts";
+import { esbuildCompile } from "../esbuild.ts";
 
 // we need to patch the base walker ourselves because OJS sometimes
 // emits Program nodes with "cells" rather than "body"
@@ -105,10 +109,6 @@ function resolveES6Path(
   }
 }
 
-interface NameWithOrigin {
-  origin: string;
-}
-
 export function extractResources(
   ojsSource: string,
   mdFilename: string,
@@ -116,7 +116,7 @@ export function extractResources(
 ) {
   // ES6 module walk
   let result: string[] = [];
-  const imports: Map<string, NameWithOrigin> = new Map();
+  const imports: Map<string, string> = new Map();
   let ojsAST;
   try {
     ojsAST = parseModule(ojsSource);
@@ -131,14 +131,12 @@ export function extractResources(
       projectRoot,
     );
     if (!imports.has(resolvedImportPath)) {
-      imports.set(resolvedImportPath, {
-        origin: mdFilename,
-      });
+      imports.set(resolvedImportPath, mdFilename);
       result.push(resolvedImportPath);
     }
   }
   while (imports.size > 0) {
-    const [currentImport, { origin }] = imports.entries().next().value;
+    const [currentImport, origin] = imports.entries().next().value;
     imports.delete(currentImport);
     const contents = Deno.readTextFileSync(currentImport);
     const es6AST = parseES6(contents, {
@@ -153,9 +151,7 @@ export function extractResources(
         projectRoot,
       );
       if (!imports.has(resolvedImportPath)) {
-        imports.set(resolvedImportPath, {
-          origin: currentImport,
-        });
+        imports.set(resolvedImportPath, currentImport);
         result.push(resolvedImportPath);
       }
     }
@@ -166,4 +162,42 @@ export function extractResources(
   // add FileAttachment literals, which are always relative
   result.push(...literalFileAttachments(ojsAST));
   return result;
+}
+
+export async function extractSelfContainedResources(
+  ojsSource: string,
+  mdFilename: string,
+  projectRoot?: string,
+)
+{
+  const imports: Map<string, string> = new Map();
+  const wd = dirname(mdFilename);
+
+  let ojsAST;
+  try {
+    ojsAST = parseModule(ojsSource);
+  } catch (_e) {
+    parseError(ojsSource);
+    throw new Error();
+  }
+  for (const importPath of localES6Imports(ojsAST)) {
+    const moduleSrc = Deno.readTextFileSync(importPath);
+    const moduleBundle = await esbuildCompile(moduleSrc, wd);
+    if (moduleBundle) {
+      const b64Src = base64Encode(moduleBundle);
+      const contents = `data:application/json;base64,${b64Src}`;
+      imports.set(importPath, contents);
+    }
+  }
+
+  literalFileAttachments(ojsAST)
+    .forEach(path => {
+      const attachment = Deno.readTextFileSync(path);
+      const mimeType = lookup(path);
+      const b64Src = base64Encode(attachment);
+      const contents = `data:${mimeType};base64,${b64Src}`;
+      imports.set(path, contents);
+    });
+
+  return imports;
 }
