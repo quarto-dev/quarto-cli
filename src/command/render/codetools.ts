@@ -55,6 +55,7 @@ export function resolveKeepSource(
   }
   format.render[kKeepSource] = format.render[kKeepSource] &&
     isHtmlOutput(format.pandoc, true) &&
+    formatHasBootstrap(format) &&
     executionEngineCanKeepSource(engine, target);
 }
 
