@@ -24,7 +24,10 @@ import { kIncludeAfterBody, kIncludeInHeader } from "../../config/constants.ts";
 import { sessionTempFile } from "../temp.ts";
 import { languagesInMarkdown } from "../jupyter/jupyter.ts";
 import { asHtmlId } from "../html.ts";
-import { extractResources, extractSelfContainedResources } from "./extract-resources.ts";
+import {
+  extractResources,
+  extractSelfContainedResources,
+} from "./extract-resources.ts";
 import { parseError } from "./errors.ts";
 
 import {
@@ -41,19 +44,20 @@ import {
   kKeepHidden,
   kLayoutNcol,
   kLayoutNrow,
-  kSelfContained,
   kOutput,
+  kSelfContained,
 } from "../../config/constants.ts";
 
 import { RenderContext } from "../../command/render/render.ts";
 import { mergeConfigs } from "../config.ts";
+import { ProjectContext } from "../../project/project-context.ts";
 
 export interface ObservableCompileOptions {
   source: string;
   format: Format;
   markdown: string;
   libDir: string;
-  projDir?: string;
+  project?: ProjectContext;
 }
 
 export interface ObservableCompileResult {
@@ -72,7 +76,8 @@ interface SubfigureSpec {
 export async function observableCompile(
   options: ObservableCompileOptions,
 ): Promise<ObservableCompileResult> {
-  const { markdown, projDir } = options;
+  const { markdown, project } = options;
+  const projDir = project?.dir;
 
   if (!isJavascriptCompatible(options.format)) {
     return { markdown };
@@ -101,7 +106,9 @@ export async function observableCompile(
   scriptContents.push(`window._ojs.paths.runtimeToDoc = "${runtimeToDoc}";`);
   scriptContents.push(`window._ojs.paths.runtimeToRoot = "${runtimeToRoot}";`);
   scriptContents.push(`window._ojs.paths.docToRoot = "${docToRoot}";`);
-  scriptContents.push(`window._ojs.selfContained = ${!!options.format.pandoc?.[kSelfContained]};`);
+  scriptContents.push(
+    `window._ojs.selfContained = ${!!options.format.pandoc?.[kSelfContained]};`,
+  );
 
   function interpret(jsSrc: string[], inline: boolean, lenient: boolean) {
     const inlineStr = inline ? "inline-" : "";
@@ -205,7 +212,8 @@ export async function observableCompile(
         );
         selfContainedPageResources = new Map([
           ...selfContainedPageResources,
-          ...selfContainedCellResources]);
+          ...selfContainedCellResources,
+        ]);
       } else {
         resourceFiles.push(...extractResources(
           cellSrcStr,
@@ -471,10 +479,14 @@ export async function observableCompile(
   }
 
   if (options.format.pandoc?.[kSelfContained]) {
-    const resolver = JSON.stringify(Object.fromEntries(Array.from(selfContainedPageResources)));
-    scriptContents.unshift(`window._ojs.runtime.setLocalResolver(${resolver});`)
+    const resolver = JSON.stringify(
+      Object.fromEntries(Array.from(selfContainedPageResources)),
+    );
+    scriptContents.unshift(
+      `window._ojs.runtime.setLocalResolver(${resolver});`,
+    );
   }
-  
+
   // finish script by calling runtime's "done with new source" handler,
   scriptContents.push("window._ojs.runtime.finishInterpreting();");
 
@@ -516,13 +528,14 @@ export async function observableExecuteResult(
   executeResult = ld.cloneDeep(executeResult);
 
   // evaluate observable chunks
-  const { markdown, includes, filters, resourceFiles } = await observableCompile({
-    source: context.target.source,
-    format: context.format,
-    markdown: executeResult.markdown,
-    libDir: context.libDir,
-    projDir: context.project?.dir,
-  });
+  const { markdown, includes, filters, resourceFiles } =
+    await observableCompile({
+      source: context.target.source,
+      format: context.format,
+      markdown: executeResult.markdown,
+      libDir: context.libDir,
+      project: context.project,
+    });
 
   // merge in results
   executeResult.markdown = markdown;
