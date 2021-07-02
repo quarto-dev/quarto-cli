@@ -307,7 +307,7 @@ function navigationHtmlPostprocessor(project: ProjectContext, source: string) {
     }
 
     // Hide the title when it will appear in the secondary nav
-    const title = doc.querySelector("header > .title");
+    const title = doc.querySelector("header .title");
     const sidebar = doc.getElementById("quarto-sidebar");
     if (title && sidebar) {
       // hide below lg
@@ -320,6 +320,15 @@ function navigationHtmlPostprocessor(project: ProjectContext, source: string) {
       );
       if (secondaryNavTitle) {
         secondaryNavTitle.innerHTML = title.innerHTML;
+        // include the code button as well if we have one
+        const button = doc.querySelector(
+          "header > .quarto-title-block > .code-tools-button",
+        );
+        if (button) {
+          // hide below lg
+          button.classList.add("d-none");
+          button.classList.add("d-lg-block");
+        }
       }
     }
 

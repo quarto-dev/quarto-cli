@@ -125,6 +125,7 @@ export function codeToolsPostprocessor(format: Format) {
           const header = (title as Element).parentElement;
           const titleDiv = doc.createElement("div");
           titleDiv.classList.add("quarto-title-block");
+          header?.replaceChild(titleDiv, title);
           titleDiv.appendChild(title);
           const button = doc.createElement("button");
           button.setAttribute("type", "button");
