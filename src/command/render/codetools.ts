@@ -49,7 +49,8 @@ export function resolveKeepSource(
   const codeTools = format.render?.[kCodeTools];
   if (
     codeTools === true ||
-    (typeof (codeTools) === "object" && codeTools?.source !== false)
+    (typeof (codeTools) === "object" &&
+      (codeTools?.source === undefined || codeTools?.source === true))
   ) {
     format.render[kKeepSource] = true;
   }
@@ -152,11 +153,13 @@ export function codeToolsPostprocessor(format: Format) {
               const a = doc.createElement("a");
               a.setAttribute("id", id);
               a.classList.add("dropdown-item");
-              a.setAttribute("href", "#");
+              a.setAttribute("href", "javascript:void(0)");
+              a.setAttribute("role", "button");
               a.appendChild(doc.createTextNode(text));
               const li = doc.createElement("li");
               li.appendChild(a);
               ul.appendChild(li);
+              return li;
             };
             const addDivider = () => {
               const hr = doc.createElement("hr");
@@ -168,11 +171,20 @@ export function codeToolsPostprocessor(format: Format) {
             addListItem(kHideAllCodeLinkId, "Hide All Code");
             addListItem(kShowAllCodeLinkId, "Show All Code");
             addDivider();
-            addListItem(kViewSourceLinkId, "View Source");
+            const vsLi = addListItem(kViewSourceLinkId, "View Source");
+            if (typeof (codeTools.source) === "string") {
+              (vsLi.firstChild as Element).setAttribute(
+                "data-source-url",
+                codeTools.source,
+              );
+            }
             titleDiv.appendChild(ul);
           } else {
             // no toggle, so just a button to show source code
             button.setAttribute("id", kCodeToolsSourceButtonId);
+            if (typeof (codeTools.source) === "string") {
+              button.setAttribute("data-source-url", codeTools.source);
+            }
           }
         }
         if (codeTools.source) {
@@ -235,7 +247,7 @@ function resolveCodeTools(format: Format, doc: Document): CodeTools {
     source: typeof (codeTools) === "boolean"
       ? codeTools
       : codeTools?.source !== undefined
-      ? !!codeTools?.source
+      ? codeTools?.source
       : false,
     toggle: typeof (codeTools) === "boolean" ? codeTools
     : codeTools?.toggle !== undefined
