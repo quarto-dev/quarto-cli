@@ -215,31 +215,36 @@ async function waitForNotaryStatus(
 ) {
   let notaryResult = undefined;
   while (notaryResult == undefined) {
-    const result = await runCmd(
-      "xcrun",
-      [
-        "altool",
-        "--notarization-info",
-        requestId,
-        "--username",
-        username,
-        "--password",
-        password,
-      ],
-    );
+    try {
+      const result = await runCmd(
+        "xcrun",
+        [
+          "altool",
+          "--notarization-info",
+          requestId,
+          "--username",
+          username,
+          "--password",
+          password,
+        ],
+      );
 
-    const match = result.stdout.match(/Status: (.*)\n/);
-    if (match) {
-      const status = match[1];
-      if (status === "in progress") {
-        // Sleep for 15 seconds between checks
-        await new Promise((resolve) => setTimeout(resolve, 15 * 1000));
-      } else if (status === "success") {
-        notaryResult = "Success";
-      } else {
-        error(result.stderr);
-        throw new Error("Failed to Notarize - " + status);
+      const match = result.stdout.match(/Status: (.*)\n/);
+      if (match) {
+        const status = match[1];
+        if (status === "in progress") {
+          // Sleep for 15 seconds between checks
+          await new Promise((resolve) => setTimeout(resolve, 15 * 1000));
+        } else if (status === "success") {
+          notaryResult = "Success";
+        } else {
+          error(result.stderr);
+          throw new Error("Failed to Notarize - " + status);
+        }
       }
+    } catch (er) {
+      warning("Exception while requesting notary status");
+      warning(er);
     }
   }
   return notaryResult;
