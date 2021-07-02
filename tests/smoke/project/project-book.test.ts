@@ -4,7 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { existsSync } from "fs/mod.ts";
+import { exists, existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 
 import { Metadata } from "../../../src/config/metadata.ts";
@@ -85,7 +85,7 @@ testQuartoCmd(
   verifyDocxBook,
   {
     teardown: async () => {
-      if (existsSync(bookOutDir)) {
+      if (await exists(bookOutDir)) {
         await Deno.remove(bookOutDir, { recursive: true });
       }
     },
