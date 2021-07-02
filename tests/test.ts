@@ -104,6 +104,14 @@ export function test(test: TestDescriptor) {
         await test.context.setup();
       }
 
+      let cleanedup = false;
+      const cleanupLogOnce = async () => {
+        if (!cleanedup) {
+          await cleanupLogger();
+          cleanedup = true;
+        }
+      };
+
       // Capture the output
       const log = "test-out.json";
       await initializeLogger({
@@ -117,7 +125,7 @@ export function test(test: TestDescriptor) {
         await test.execute();
 
         // Cleanup the output logging
-        await cleanupLogger();
+        await cleanupLogOnce();
 
         // Read the output
         if (existsSync(log)) {
@@ -129,6 +137,7 @@ export function test(test: TestDescriptor) {
           }
         }
       } finally {
+        await cleanupLogOnce();
         if (test.context.teardown) {
           await test.context.teardown();
         }

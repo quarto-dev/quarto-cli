@@ -61,8 +61,14 @@ export async function makeInstallerMac(config: Configuration) {
       "macos",
       "entitlements.plist",
     );
+
+    // Sign deno
     const deno = join(config.directoryInfo.bin, "deno");
     await signCode(applicationDevId, deno, entitlements);
+
+    // Sign esbuild
+    const esbuild = join(config.directoryInfo.bin, "esbuild");
+    await signCode(applicationDevId, esbuild, entitlements);
 
     // Sign the quarto js file
     const quartojs = join(config.directoryInfo.bin, "quarto.js");
@@ -213,6 +219,7 @@ async function waitForNotaryStatus(
   username: string,
   password: string,
 ) {
+  let errorCount = 0;
   let notaryResult = undefined;
   while (notaryResult == undefined) {
     const result = await runCmd(
@@ -232,13 +239,21 @@ async function waitForNotaryStatus(
     if (match) {
       const status = match[1];
       if (status === "in progress") {
+        // Successful status means reset error counter
+        errorCount = 0;
+
         // Sleep for 15 seconds between checks
         await new Promise((resolve) => setTimeout(resolve, 15 * 1000));
       } else if (status === "success") {
         notaryResult = "Success";
       } else {
-        error(result.stderr);
-        throw new Error("Failed to Notarize - " + status);
+        if (errorCount > 5) {
+          error(result.stderr);
+          throw new Error("Failed to Notarize - " + status);
+        }
+
+        //increment error counter
+        errorCount = errorCount + 1;
       }
     }
   }
