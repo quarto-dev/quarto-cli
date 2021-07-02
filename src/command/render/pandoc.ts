@@ -211,18 +211,18 @@ export async function runPandoc(
       options.project,
     );
 
-    // save post-processors
-    htmlPostprocessors.push(...(extras.html?.[kHtmlPostprocessors] || []));
-
-    // add a post-processor for fixing overflow-x in cell output display
-    htmlPostprocessors.push(selectInputPostprocessor);
-
     // add a keep-source post processor if we need one
     if (
       options.format?.render[kKeepSource] || formatHasCodeTools(options.format)
     ) {
       htmlPostprocessors.push(codeToolsPostprocessor(options.format));
     }
+
+    // save post-processors
+    htmlPostprocessors.push(...(extras.html?.[kHtmlPostprocessors] || []));
+
+    // add a post-processor for fixing overflow-x in cell output display
+    htmlPostprocessors.push(selectInputPostprocessor);
 
     // provide default toc-title if necessary
     if (extras[kTocTitle]) {

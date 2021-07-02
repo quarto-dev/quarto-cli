@@ -42,7 +42,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   const viewSource = window.document.getElementById('quarto-view-source') ||
                      window.document.getElementById('quarto-code-tools-source');
   if (viewSource) {
-    const sourceUrl = viewSource.getAttribute("data-source-url");
+    const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
     viewSource.addEventListener("click", function(e) {
       if (sourceUrl) {
         window.location.href = sourceUrl;

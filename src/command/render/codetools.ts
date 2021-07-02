@@ -20,18 +20,14 @@ import { kMarkdownBlockSeparator } from "./pandoc.ts";
 const kHideAllCodeLinkId = "quarto-hide-all-code";
 const kShowAllCodeLinkId = "quarto-show-all-code";
 const kViewSourceLinkId = "quarto-view-source";
-const kCodeToolsSourceButtonId = "quarto-code-tools-source";
-const kCodeToolsMenuButtonId = "quarto-code-tools-menu";
 const kEmbeddedSourceClass = "quarto-embedded-source-code";
 const kEmbeddedSourceModalId = kEmbeddedSourceClass + "-modal";
 const kEmbeddedSourceModalLabelId = kEmbeddedSourceClass + "-modal-label";
 const kKeepSourceSentinel = "quarto-executable-code-5450563D";
 
-interface CodeTools {
-  source: boolean | string;
-  toggle: boolean;
-  caption: string;
-}
+export const kCodeToolsSourceButtonId = "quarto-code-tools-source";
+export const kCodeToolsMenuButtonId = "quarto-code-tools-menu";
+export const kDataQuartoSourceUrl = "data-quarto-source-url";
 
 export function formatHasCodeTools(format: Format) {
   const codeTools = format.render?.[kCodeTools];
@@ -174,7 +170,7 @@ export function codeToolsPostprocessor(format: Format) {
             const vsLi = addListItem(kViewSourceLinkId, "View Source");
             if (typeof (codeTools.source) === "string") {
               (vsLi.firstChild as Element).setAttribute(
-                "data-source-url",
+                kDataQuartoSourceUrl,
                 codeTools.source,
               );
             }
@@ -183,7 +179,7 @@ export function codeToolsPostprocessor(format: Format) {
             // no toggle, so just a button to show source code
             button.setAttribute("id", kCodeToolsSourceButtonId);
             if (typeof (codeTools.source) === "string") {
-              button.setAttribute("data-source-url", codeTools.source);
+              button.setAttribute(kDataQuartoSourceUrl, codeTools.source);
             }
           }
         }
@@ -237,6 +233,12 @@ export function codeToolsPostprocessor(format: Format) {
 
     return Promise.resolve([]);
   };
+}
+
+interface CodeTools {
+  source: boolean | string;
+  toggle: boolean;
+  caption: string;
 }
 
 function resolveCodeTools(format: Format, doc: Document): CodeTools {
