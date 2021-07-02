@@ -185,7 +185,7 @@ export async function extractSelfContainedResources(
     const moduleBundle = await esbuildCompile(moduleSrc, wd);
     if (moduleBundle) {
       const b64Src = base64Encode(moduleBundle);
-      const contents = `data:application/json;base64,${b64Src}`;
+      const contents = `data:application/javascript;base64,${b64Src}`;
       imports.set(importPath, contents);
     }
   }

@@ -201,7 +201,7 @@ function defaultResolveImportPath(path) {
   });
 }
 
-function importPathResolver(paths) {
+function importPathResolver(paths, localResolverMap) {
   // NB: only resolve the field values in paths when calling rootPath
   // and relativePath. If we prematurely optimize this by moving the
   // const declarations outside, then we will capture the
@@ -226,17 +226,23 @@ function importPathResolver(paths) {
   }
 
   return (path) => {
-    if (path.startsWith("/")) {
-      return import(rootPath(path)).then((m) => {
-        return es6ImportAsObservable(m);
-      });
-    } else if (path.startsWith(".")) {
-      return import(relativePath(path)).then((m) => {
-        return es6ImportAsObservable(m);
-      });
-    } else {
+    if (!(path.startsWith("/") || path.startsWith("."))) {
       return defaultResolveImportPath(path);
     }
+
+    if (localResolverMap) {
+      const resolved = localResolverMap.get(path);
+      if (resolved === undefined) {
+        throw new Error(`missing local file ${path} in self-contained mode`);
+      }
+      path = resolved;
+    } else if (path.startsWith("/")) {
+      path = rootPath(path);
+    } else {
+      // assert(path.startsWith("."))
+      path = relativePath(path);
+    }
+    return import(path).then((m) => es6ImportAsObservable(m));
   };
 }
 
