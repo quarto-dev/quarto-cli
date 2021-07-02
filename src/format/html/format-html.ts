@@ -36,6 +36,7 @@ import { PandocFlags } from "../../config/flags.ts";
 import { kTheme } from "../../config/constants.ts";
 
 import { print, sassVariable } from "../../command/render/sass.ts";
+import { formatHasCodeTools } from "../../command/render/codetools.ts";
 
 import { createHtmlFormat } from "./../formats.ts";
 
@@ -109,13 +110,20 @@ export function htmlFormatPostprocessor(format: Format) {
     : format.metadata[kAnchorSections] || false;
 
   return (doc: Document): Promise<string[]> => {
-    // insert code copy button
-    if (codeCopy) {
-      const codeBlocks = doc.querySelectorAll("pre.sourceCode");
-      for (let i = 0; i < codeBlocks.length; i++) {
-        const code = codeBlocks[i];
-        (code as Element).classList.add("code-with-copy");
+    // process all of the code blocks
+    const codeBlocks = doc.querySelectorAll("pre.sourceCode");
+    for (let i = 0; i < codeBlocks.length; i++) {
+      const code = codeBlocks[i] as Element;
 
+      // hoist hidden to parent div
+      if (code.classList.contains("hidden")) {
+        code.classList.delete("hidden");
+        code.parentElement?.classList.add("hidden");
+      }
+
+      // insert code copy button
+      if (codeCopy) {
+        code.classList.add("code-with-copy");
         const copyButton = doc.createElement("button");
         const title = "Copy to Clipboard";
         copyButton.setAttribute("title", title);
@@ -228,6 +236,7 @@ function htmlFormatExtras(format: Format): FormatExtras {
     options.hoverCitations = format.metadata[kHoverCitations] || false;
     options.hoverFootnotes = format.metadata[kHoverFootnotes] || false;
   }
+  options.codeTools = formatHasCodeTools(format);
 
   // quarto.js helpers
   scripts.push({

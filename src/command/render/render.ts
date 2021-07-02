@@ -292,7 +292,7 @@ export async function renderFiles(
         );
 
         // process observable
-        const { executeResult, resourceFiles } = observableExecuteResult(
+        const { executeResult, resourceFiles } = await observableExecuteResult(
           context,
           baseExecuteResult,
         );

@@ -24,7 +24,7 @@ import { kIncludeAfterBody, kIncludeInHeader } from "../../config/constants.ts";
 import { sessionTempFile } from "../temp.ts";
 import { languagesInMarkdown } from "../jupyter/jupyter.ts";
 import { asHtmlId } from "../html.ts";
-import { extractResources } from "./extract-resources.ts";
+import { extractResources, extractSelfContainedResources } from "./extract-resources.ts";
 import { parseError } from "./errors.ts";
 
 import {
@@ -41,13 +41,14 @@ import {
   kKeepHidden,
   kLayoutNcol,
   kLayoutNrow,
+  kSelfContained,
   kOutput,
 } from "../../config/constants.ts";
 
 import { RenderContext } from "../../command/render/render.ts";
 import { mergeConfigs } from "../config.ts";
 
-export interface ObserveableCompileOptions {
+export interface ObservableCompileOptions {
   source: string;
   format: Format;
   markdown: string;
@@ -68,9 +69,9 @@ interface SubfigureSpec {
 
 // TODO decide how source code is presented, we've lost this
 // feature from the observable-engine move
-export function observableCompile(
-  options: ObserveableCompileOptions,
-): ObservableCompileResult {
+export async function observableCompile(
+  options: ObservableCompileOptions,
+): Promise<ObservableCompileResult> {
   const { markdown, projDir } = options;
 
   if (!isJavascriptCompatible(options.format)) {
@@ -97,9 +98,10 @@ export function observableCompile(
   const runtimeToDoc = relative(ojsRuntimeDir, docDir);
   const runtimeToRoot = relative(ojsRuntimeDir, rootDir);
   const docToRoot = relative(docDir, rootDir);
-  scriptContents.push(`window._ojs.paths.runtimeToDoc = "${runtimeToDoc}"`);
-  scriptContents.push(`window._ojs.paths.runtimeToRoot = "${runtimeToRoot}"`);
-  scriptContents.push(`window._ojs.paths.docToRoot = "${docToRoot}"`);
+  scriptContents.push(`window._ojs.paths.runtimeToDoc = "${runtimeToDoc}";`);
+  scriptContents.push(`window._ojs.paths.runtimeToRoot = "${runtimeToRoot}";`);
+  scriptContents.push(`window._ojs.paths.docToRoot = "${docToRoot}";`);
+  scriptContents.push(`window._ojs.selfContained = ${!!options.format.pandoc?.[kSelfContained]};`);
 
   function interpret(jsSrc: string[], inline: boolean, lenient: boolean) {
     const inlineStr = inline ? "inline-" : "";
@@ -126,6 +128,7 @@ export function observableCompile(
   }
   const ls: string[] = [];
   const resourceFiles: string[] = [];
+  let selfContainedPageResources: Map<string, string> = new Map();
 
   // now we convert it back
   for (const cell of output.cells) {
@@ -189,11 +192,27 @@ export function observableCompile(
         return cell.options?.[kCellFigSubCap];
       };
 
-      resourceFiles.push(...extractResources(
-        cellSrcStr,
-        options.source,
-        projDir,
-      ));
+      // when running in self-contained mode, we must treat resources
+      // differently, bundling all OJS and JS into single modules, and
+      // adding all other files into a data structure that can be
+      // referred to by the FileAttachment mechanism in our OJS
+      // runtime.
+      if (options.format.pandoc?.[kSelfContained]) {
+        const selfContainedCellResources = await extractSelfContainedResources(
+          cellSrcStr,
+          options.source,
+          projDir,
+        );
+        selfContainedPageResources = new Map([
+          ...selfContainedPageResources,
+          ...selfContainedCellResources]);
+      } else {
+        resourceFiles.push(...extractResources(
+          cellSrcStr,
+          options.source,
+          projDir,
+        ));
+      }
 
       // very heavyweight for what we need it, but this way we can signal syntax errors
       // as well.
@@ -451,6 +470,11 @@ export function observableCompile(
     }
   }
 
+  if (options.format.pandoc?.[kSelfContained]) {
+    const resolver = JSON.stringify(Object.fromEntries(Array.from(selfContainedPageResources)));
+    scriptContents.unshift(`window._ojs.runtime.setLocalResolver(${resolver});`)
+  }
+  
   // finish script by calling runtime's "done with new source" handler,
   scriptContents.push("window._ojs.runtime.finishInterpreting();");
 
@@ -485,14 +509,14 @@ export function observableCompile(
   };
 }
 
-export function observableExecuteResult(
+export async function observableExecuteResult(
   context: RenderContext,
   executeResult: ExecuteResult,
 ) {
   executeResult = ld.cloneDeep(executeResult);
 
   // evaluate observable chunks
-  const { markdown, includes, filters, resourceFiles } = observableCompile({
+  const { markdown, includes, filters, resourceFiles } = await observableCompile({
     source: context.target.source,
     format: context.format,
     markdown: executeResult.markdown,

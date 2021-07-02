@@ -15,6 +15,7 @@ import {
   kCodeFold,
   kCodeLink,
   kCodeSummary,
+  kCodeTools,
   kCss,
   kEcho,
   kEngine,
@@ -186,6 +187,11 @@ export interface FormatRender {
   [kCodeFold]?: "none" | "show" | "hide" | boolean;
   [kCodeSummary]?: string;
   [kCodeLink]?: boolean;
+  [kCodeTools]?: boolean | {
+    source?: boolean;
+    toggle?: boolean;
+    caption?: string;
+  };
   [kMergeIncludes]?: boolean;
   [kSelfContainedMath]?: boolean;
   [kLatexAutoMk]?: boolean;
