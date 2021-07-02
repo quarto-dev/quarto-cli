@@ -74,6 +74,7 @@ jobs:
         if: github.event.before == ''
         run: |
           pushd tests
+          quarto render docs/test.qmd --to pdf
           ./run-tests.sh
           popd
         
