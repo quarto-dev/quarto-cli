@@ -1,0 +1,17 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <title>Redirect</title>
+  <script type="text/javascript">
+    var redirects = <%= JSON.stringify(redirects) %>;
+    var hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash;
+    var redirect = redirects[hash] || redirects[""] || "/";
+    window.document.title = 'Redirect to  ' +  redirect;
+    window.location.replace(redirect);
+  </script>
+</head>
+
+<body>
+</body>
+
+</html>

@@ -265,7 +265,7 @@ export async function ensureIndexPage(project: ProjectContext) {
 
 export function writeRedirectPage(path: string, href: string) {
   const redirectTemplate = resourcePath(
-    "projects/website/templates/redirect.ejs",
+    "projects/website/templates/redirect-simple.ejs",
   );
   const redirectHtml = renderEjs(redirectTemplate, {
     url: href,

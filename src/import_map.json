@@ -21,6 +21,9 @@
     "deno_dom/": "https://deno.land/x/deno_dom/",
     "port/": "https://deno.land/x/port/",
     "async/": "https://deno.land/std@0.97.0/async/",
-    "puppeteer/": "https://deno.land/x/puppeteer/"
+    "puppeteer/": "https://deno.land/x/puppeteer/",
+    "observablehq/parser": "https://cdn.skypack.dev/@observablehq/parser",
+    "acorn/walk": "https://cdn.skypack.dev/acorn-walk",
+    "acorn/acorn": "https://cdn.skypack.dev/acorn"
   }
 }

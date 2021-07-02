@@ -71,7 +71,10 @@ export async function observableNotebookToMarkdown(
   }
 
   // generate markdown
-  const kModePrefixes = ["md", "html", "tex"];
+  const kModePrefixes = ["md", "html", "tex"].map((prefix) => ({
+    prefix,
+    re: new RegExp("^" + prefix + "\\s*`((.|\\n)+)`\\s*;?"),
+  }));
   const lines: string[] = [];
   for (let i = 0; i < nb.nodes.length; i++) {
     // resolve mode and value (new style nodes are typed, old style use prefixes)
@@ -80,20 +83,20 @@ export async function observableNotebookToMarkdown(
     let value = node.value as string;
     const trimmedValue = value.trim();
     if (mode === "js") {
-      const modePrefix = kModePrefixes.find((prefix) => {
-        return trimmedValue.startsWith(prefix + "`") &&
-          trimmedValue.endsWith("`");
-      });
-      if (modePrefix) {
-        mode = modePrefix;
-        value = trimmedValue.slice(mode.length + 1, trimmedValue.length - 1);
+      for (const { prefix, re } of kModePrefixes) {
+        const m = trimmedValue.match(re);
+        if (m) {
+          mode = prefix;
+          value = m[1];
+        }
       }
     }
 
     // consume and write front matter if this is the first cell
     if (i === 0) {
-      i = consumeFrontMatter(mode, value, nb.nodes[1], lines);
-      if (i > 0) {
+      const skip = consumeFrontMatter(mode, value, nb.nodes[1], lines);
+      if (skip > 0) {
+        i = skip - 1;
         continue;
       }
     }
@@ -102,6 +105,9 @@ export async function observableNotebookToMarkdown(
     switch (mode) {
       case "js":
         lines.push("```{ojs}");
+        if (!node.pinned) {
+          lines.push("//| echo: false");
+        }
         lines.push(value);
         lines.push("```");
         break;

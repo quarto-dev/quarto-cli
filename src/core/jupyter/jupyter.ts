@@ -12,10 +12,9 @@ import { dirname, extname, join, relative } from "path/mod.ts";
 import { walkSync } from "fs/walk.ts";
 import { decode as base64decode } from "encoding/base64.ts";
 import { stringify, StringifyOptions } from "encoding/yaml.ts";
-
+import { partitionCellOptions } from "../partition-cell-options.ts";
 import { ld } from "lodash/mod.ts";
 
-import { warnOnce } from "../log.ts";
 import { shortUuid } from "../uuid.ts";
 
 import {
@@ -69,11 +68,44 @@ import { FormatExecute } from "../../config/format.ts";
 import { pandocAsciify, pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
 import { Metadata } from "../../config/metadata.ts";
 import {
+  kCellAutoscroll,
+  kCellClasses,
+  kCellColab,
+  kCellColabType,
+  kCellColbOutputId,
+  kCellCollapsed,
+  kCellDeletable,
+  kCellFigAlign,
+  kCellFigAlt,
+  kCellFigCap,
+  kCellFigEnv,
+  kCellFigLink,
+  kCellFigPos,
+  kCellFigScap,
+  kCellFigSubCap,
+  kCellFold,
+  kCellFormat,
+  kCellId,
+  kCellLabel,
+  kCellLinesToNext,
+  kCellLstCap,
+  kCellLstLabel,
+  kCellName,
+  kCellOutHeight,
+  kCellOutWidth,
+  kCellSummary,
+  kCellTags,
   kEcho,
   kError,
   kEval,
   kInclude,
+  kLayout,
+  kLayoutAlign,
+  kLayoutNcol,
+  kLayoutNrow,
+  kLayoutVAlign,
   kOutput,
+  kRawMimeType,
   kWarning,
 } from "../../config/constants.ts";
 import {
@@ -84,48 +116,7 @@ import {
 } from "./kernels.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines } from "../text.ts";
-import {
-  readYamlFromMarkdown,
-  readYamlFromMarkdownFile,
-  readYamlFromString,
-} from "../yaml.ts";
-
-export const kCellCollapsed = "collapsed";
-export const kCellAutoscroll = "autoscroll";
-export const kCellDeletable = "deletable";
-export const kCellFormat = "format";
-export const kCellName = "name";
-export const kCellTags = "tags";
-export const kCellLinesToNext = "lines_to_next_cell";
-export const kRawMimeType = "raw_mimetype";
-
-export const kCellId = "id";
-export const kCellLabel = "label";
-export const kCellFigCap = "fig.cap";
-export const kCellFigSubCap = "fig.subcap";
-export const kCellFigScap = "fig.scap";
-export const kCellFigLink = "fig.link";
-export const kCellFigAlign = "fig.align";
-export const kCellFigEnv = "fig.env";
-export const kCellFigPos = "fig.pos";
-export const kCellFigAlt = "fig.alt";
-export const kCellLstLabel = "lst.label";
-export const kCellLstCap = "lst.cap";
-export const kCellClasses = "classes";
-export const kCellOutWidth = "out.width";
-export const kCellOutHeight = "out.height";
-export const kCellFold = "fold";
-export const kCellSummary = "summary";
-
-export const kCellColab = "colab";
-export const kCellColabType = "colab_type";
-export const kCellColbOutputId = "outputId";
-
-export const kLayoutAlign = "layout.align";
-export const kLayoutVAlign = "layout.valign";
-export const kLayoutNcol = "layout.ncol";
-export const kLayoutNrow = "layout.nrow";
-export const kLayout = "layout";
+import { readYamlFromMarkdown, readYamlFromMarkdownFile } from "../yaml.ts";
 
 export const kJupyterNotebookExtensions = [
   ".ipynb",
@@ -350,7 +341,7 @@ export async function quartoMdToJupyter(
         }
       } else if (cell_type === "code") {
         // see if there is embedded metadata we should forward into the cell metadata
-        const { yaml, source } = partitionJupyterCellOptions(
+        const { yaml, source } = partitionCellOptions(
           kernelspec.language,
           cell.source,
         );
@@ -461,6 +452,7 @@ export async function jupyterKernelspecFromFile(
   // find a kernelspec that supports this language
   if (!yamlJupyter) {
     const languages = languagesInMarkdownFile(file);
+    languages.add("python"); // python as a default/failsafe
     const kernelspecs = await jupyterKernelspecs();
     for (const language of languages) {
       for (const kernelspec of kernelspecs.values()) {
@@ -687,7 +679,7 @@ export function jupyterCellWithOptions(
   language: string,
   cell: JupyterCell,
 ): JupyterCellWithOptions {
-  const { yaml, source } = partitionJupyterCellOptions(language, cell.source);
+  const { yaml, source } = partitionCellOptions(language, cell.source);
 
   // read any options defined in cell metadata
   const metadataOptions: Record<string, unknown> = kJupyterCellOptionKeys
@@ -767,52 +759,6 @@ export function mdEnsureTrailingNewline(source: string[]) {
   } else {
     return source;
   }
-}
-
-export function partitionJupyterCellOptions(
-  language: string,
-  source: string[],
-) {
-  const commentChars = langCommentChars(language);
-  const optionPrefix = optionCommentPrefix(commentChars[0]);
-  const optionSuffix = commentChars[1] || "";
-
-  // find the yaml lines
-  const yamlLines: string[] = [];
-  for (const line of source) {
-    if (line.startsWith(optionPrefix)) {
-      if (!optionSuffix || line.trimRight().endsWith(optionSuffix)) {
-        let yamlOption = line.substring(optionPrefix.length);
-        if (optionSuffix) {
-          yamlOption = yamlOption.trimRight();
-          yamlOption = yamlOption.substring(
-            0,
-            yamlOption.length - optionSuffix.length,
-          );
-        }
-        yamlLines.push(yamlOption);
-        continue;
-      }
-    }
-    break;
-  }
-
-  let yaml = yamlLines.length > 0
-    ? readYamlFromString(yamlLines.join("\n"))
-    : undefined;
-
-  // check that we got what we expected
-  if (
-    yaml !== undefined && (typeof (yaml) !== "object" || Array.isArray(yaml))
-  ) {
-    warnOnce("Invalid YAML option format in cell:\n" + yamlLines.join("\n"));
-    yaml = undefined;
-  }
-
-  return {
-    yaml: yaml as Record<string, unknown> | undefined,
-    source: source.slice(yamlLines.length),
-  };
 }
 
 function optionCommentPrefix(comment: string) {

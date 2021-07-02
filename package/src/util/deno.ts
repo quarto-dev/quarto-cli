@@ -18,12 +18,16 @@ export async function bundle(
   denoBundleCmd.push(join(configuration.directoryInfo.bin, "deno"));
   denoBundleCmd.push("bundle");
   denoBundleCmd.push("--unstable");
+  denoBundleCmd.push("--log-level");
+  denoBundleCmd.push("debug");
   denoBundleCmd.push(
     "--importmap=" + configuration.importmap,
   );
 
   denoBundleCmd.push(input);
   denoBundleCmd.push(output);
+  info(denoBundleCmd);
+
   const p = Deno.run({
     cmd: denoBundleCmd,
   });
@@ -75,6 +79,7 @@ export async function install(
   denoBundleCmd.push(...flags);
 
   denoBundleCmd.push(input);
+
   const p = Deno.run({
     cmd: denoBundleCmd,
     stdout: "piped",

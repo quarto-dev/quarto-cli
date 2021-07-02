@@ -4,58 +4,166 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { ensureDirSync } from "fs/mod.ts";
-import { warning } from "log/mod.ts";
+import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { dirname, extname, join, relative } from "path/mod.ts";
 
-import { ProjectContext, projectOutputDir } from "../../project-context.ts";
 import { ProjectOutputFile } from "../project-type.ts";
-import { writeRedirectPage } from "./website-navigation.ts";
+
+import { ProjectContext, projectOutputDir } from "../../project-context.ts";
+import { renderEjs } from "../../../core/ejs.ts";
+import { resourcePath } from "../../../core/resources.ts";
+import { inputTargetIndex, resolveInputTarget } from "../../project-index.ts";
 
 const kAliases = "aliases";
 
-export function updateAliases(
-  outputFiles: ProjectOutputFile[],
+export async function updateAliases(
   context: ProjectContext,
+  outputFiles: ProjectOutputFile[],
+  incremental: boolean,
 ) {
+  // Generate a map of the redirect files and targetHrefs redirect data
+  const redirectMap: Record<string, Anchor[]> = {};
   const outputDir = projectOutputDir(context);
+
+  // First go through any files that were rendered and add any Aliases
+  // to the map of aliases that we'll use to generate the redirect files.
   for (const outputFile of outputFiles) {
     const aliases = outputFile.format.metadata[kAliases];
     if (aliases && Array.isArray(aliases)) {
-      for (let alias of aliases) {
-        // Ensure the alias points to a file
-        // (for paths like /foo/ or /foo)
-        alias = alias as string;
-        if (alias.endsWith("/")) {
-          alias = `${alias}index.html`;
-        } else if (extname(alias) === "") {
-          alias = `${alias}/index.html`;
+      addRedirectsToMap(aliases, outputFile.file, outputDir, true, redirectMap);
+    }
+  }
+
+  // If this is incremental, go through the project inputs and for any of the inputs
+  // that would need to contribute to one of the redirect files generated above, add
+  // their aliases to the redirect data structure
+  if (incremental && Object.keys(redirectMap).length > 0) {
+    for (const file of context.files.input) {
+      const relativePath = relative(context.dir, file);
+      const inputIndexEntry = await inputTargetIndex(
+        context,
+        relativePath,
+      );
+      if (inputIndexEntry) {
+        // The html format
+        const format = Object.values(inputIndexEntry.formats)[0];
+
+        // Find the target output file
+        const outputTarget = await resolveInputTarget(
+          context,
+          relativePath,
+          false,
+        );
+        if (outputTarget) {
+          // Read the aliases and process them
+          const aliases = format.metadata[kAliases];
+          if (aliases && Array.isArray(aliases)) {
+            addRedirectsToMap(
+              aliases,
+              join(outputDir, outputTarget.outputHref),
+              outputDir,
+              false,
+              redirectMap,
+            );
+          }
         }
-
-        // The file to write
-        const aliasTarget = alias.startsWith("/")
-          ? join(outputDir, alias.slice(1))
-          : join(dirname(outputFile.file), alias);
-
-        // Resolve the href to the file
-        const aliasHref = relative(dirname(aliasTarget), outputFile.file);
-
-        try {
-          // Make sure the directory exists
-          ensureDirSync(dirname(aliasTarget));
-        } catch {
-          // If there is a file with a conflicting name (this should be rare, warn and skip)
-          warning(
-            `Directory ${
-              dirname(aliasTarget)
-            } couldn't be written. Is there a file name that conflicts with a directory in that path?`,
-          );
-          continue;
-        }
-
-        // Write the redirect file
-        writeRedirectPage(aliasTarget, aliasHref);
       }
     }
   }
+
+  // For each of the target redirect files, generate the data structure
+  // and render the ejs template
+  for (const targetFile of Object.keys(redirectMap)) {
+    const targetHrefs = redirectMap[targetFile];
+
+    const redirects: Record<string, string> = {};
+    for (const targetHref of targetHrefs) {
+      // Resolve the href to the file
+      const aliasHref = relative(dirname(targetFile), targetHref.outputFile);
+      redirects[targetHref.hash || ""] = aliasHref;
+    }
+
+    // Make sure the directory exists
+    if (!existsSync(targetFile)) {
+      ensureDirSync(dirname(targetFile));
+    }
+
+    // Write the redirect file
+    writeMultipleRedirectPage(targetFile, redirects);
+  }
+}
+
+function addRedirectsToMap(
+  aliases: string[],
+  outputFile: string,
+  outputDir: string,
+  allowNewAnchors: boolean,
+  anchorMap: Record<string, Anchor[]>,
+) {
+  for (const alias of aliases) {
+    const anchor = toAnchor(alias as string, outputFile);
+
+    // The file to write
+    const aliasTarget = anchor.href.startsWith("/")
+      ? join(outputDir, anchor.href.slice(1))
+      : join(dirname(outputFile), anchor.href);
+
+    if (allowNewAnchors && !anchorMap[aliasTarget]) {
+      anchorMap[aliasTarget] = [];
+    }
+    if (anchorMap[aliasTarget]) {
+      anchorMap[aliasTarget].push(anchor);
+    }
+  }
+}
+
+interface Anchor {
+  href: string;
+  hash?: string;
+  outputFile: string;
+}
+
+// Converts raw
+function toAnchor(url: string, outputFile: string): Anchor {
+  // Ensure the alias points to a file
+  // (for paths like /foo/ or /foo)
+  const fixupHref = (href: string) => {
+    if (href.endsWith("/")) {
+      return `${href}index.html`;
+    } else if (extname(href) === "") {
+      return `${href}/index.html`;
+    } else {
+      return href;
+    }
+  };
+
+  // See if the alias contains an hash
+  if (url.includes("#")) {
+    const anchorParts = url.split("#");
+    return {
+      href: fixupHref(anchorParts[0]),
+      outputFile,
+      hash: anchorParts[1],
+    };
+  } else {
+    return {
+      href: fixupHref(url),
+      outputFile,
+    };
+  }
+}
+
+// Write the redirect html page
+export function writeMultipleRedirectPage(
+  path: string,
+  redirects: Record<string, string>,
+) {
+  const redirectTemplate = resourcePath(
+    "projects/website/templates/redirect-map.ejs",
+  );
+  const redirectHtml = renderEjs(redirectTemplate, {
+    redirects,
+  });
+
+  Deno.writeTextFileSync(path, redirectHtml);
 }

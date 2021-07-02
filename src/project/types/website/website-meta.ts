@@ -100,14 +100,21 @@ export function metadataHtmlPostProcessor(
       openGraphMetadataProvider,
       twitterMetadataProvider,
     ].forEach((provider) => {
+      // alias metadata
+      const metadata = provider.metadata;
+
       // If not explicitly enabled, skip this provider
       const siteMeta = format.metadata[kSite] as Metadata;
       if (!format.metadata[provider.key] && !siteMeta[provider.key]) {
         return;
       }
 
+      // If there is no title, skip this provider
+      if (metadata[kTitle] === undefined) {
+        return;
+      }
+
       // find a preview image if one is not provided
-      const metadata = provider.metadata;
       if (metadata[kImage] === undefined) {
         metadata[kImage] = findPreviewImg(doc);
 
@@ -260,8 +267,10 @@ function previewTitle(format: Format, extras: FormatExtras) {
     // If the title prefix is the same as the title, don't include it as a prefix
     if (meta[kTitlePrefix] === format.metadata[kTitle]) {
       return format.metadata[kTitle];
-    } else {
+    } else if (format.metadata[kTitle]) {
       return meta[kTitlePrefix] + " - " + format.metadata[kTitle];
+    } else {
+      return undefined;
     }
   } else {
     return format.metadata[kTitle];

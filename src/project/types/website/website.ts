@@ -220,7 +220,7 @@ export async function websitePostRender(
   ensureIndexPage(context);
 
   // generate any page aliases
-  await updateAliases(outputFiles, context);
+  await updateAliases(context, outputFiles, incremental);
 }
 
 export function websiteOutputFiles(outputFiles: ProjectOutputFile[]) {

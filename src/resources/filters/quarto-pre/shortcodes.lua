@@ -11,15 +11,12 @@ local kCloseShortcodeEscape = "*/"
 function shortCodes() 
   return {
 
-    Blocks = function(blocks)
-      return transformShortcodeBlocks(blocks)
-    end,
-    
-    Inlines = function(inlines)
-      return transformShortcodeInlines(inlines)
-    end,
+    Blocks = transformShortcodeBlocks,
+
+    Inlines = transformShortcodeInlines,
 
     Code = transformShortcodeCode,
+
     CodeBlock =  transformShortcodeCode,
   }
 end
@@ -41,20 +38,14 @@ function transformShortcodeCode(el)
   
   -- process shortcodes
   local text = el.text:gsub(kOpenShortcode .. "(.-)" .. kCloseShortcode, function(code)
-    -- handle shortcode escape -- e.g. {{</* shortcode_name */>}}
-    if code:match("^" .. kOpenShortcodeEscape) and code:match(kCloseShortcodeEscape .. "$") then
-      return kOpenShortcode .. code:sub(#kOpenShortcodeEscape+1, -#kCloseShortcodeEscape-1) .. kCloseShortcode
-
     -- see if any of the shortcode handlers want it (and transform results to plain text)
+    local inlines = markdownToInlines(kOpenShortcode .. code .. kCloseShortcode)
+    local transformed = transformShortcodeInlines(inlines)
+    if transformed ~= nil then
+      return inlinesToString(transformed)
     else
-      local inlines = markdownToInlines(kOpenShortcode .. code .. kCloseShortcode)
-      local transformed = transformShortcodeInlines(inlines)
-      if transformed ~= nil then
-        return inlinesToString(transformed)
-      else
-        return code
-      end
-    end    
+      return code
+    end
   end)
 
   -- return new element if the text changd
@@ -116,7 +107,20 @@ function transformShortcodeInlines(inlines)
   for i, el in ipairs(inlines) do
 
     if el.t == "Str" then 
-      if endsWith(el.text, kOpenShortcode) then
+
+      -- handle shortcode escape -- e.g. {{</* shortcode_name */>}}
+      if endsWith(el.text, kOpenShortcode .. kOpenShortcodeEscape) then
+        -- This is an escape, so insert the raw shortcode as text (remove the comment chars)
+        transformed = true
+        accum:insert(pandoc.Str(kOpenShortcode))
+        
+
+      elseif startsWith(el.text, kCloseShortcodeEscape .. kCloseShortcode) then 
+        -- This is an escape, so insert the raw shortcode as text (remove the comment chars)
+        transformed = true
+        accum:insert(pandoc.Str(kCloseShortcode))
+
+      elseif endsWith(el.text, kOpenShortcode) then
         -- note that the text might have other text with it (e.g. a case like)
         -- This is my inline ({{< foo bar >}}).
         -- Need to pare off prefix and suffix and preserve them
@@ -294,7 +298,7 @@ function onlyShortcode(contents)
     return nil
   end
 
-  -- has only on close shortcode 
+  -- has only one close shortcode 
   local closeShortcodes = filter(contents, function(el) 
     return el.t == "Str" and el.text == kCloseShortcode  
   end) 
