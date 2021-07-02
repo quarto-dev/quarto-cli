@@ -228,17 +228,21 @@ async function waitForNotaryStatus(
       ],
     );
 
-    const match = result.stdout.match(/Status: (.*)\n/);
-    if (match) {
-      const status = match[1];
-      if (status === "in progress") {
-        // Sleep for 15 seconds between checks
-        await new Promise((resolve) => setTimeout(resolve, 15 * 1000));
-      } else if (status === "success") {
-        notaryResult = "Success";
-      } else {
-        error(result.stderr);
-        throw new Error("Failed to Notarize - " + status);
+    // ignore process errors which happen for things like
+    // transient gateway timeouts
+    if (result.status.success) {
+      const match = result.stdout.match(/Status: (.*)\n/);
+      if (match) {
+        const status = match[1];
+        if (status === "in progress") {
+          // Sleep for 15 seconds between checks
+          await new Promise((resolve) => setTimeout(resolve, 15 * 1000));
+        } else if (status === "success") {
+          notaryResult = "Success";
+        } else {
+          error(result.stderr);
+          throw new Error("Failed to Notarize - " + status);
+        }
       }
     }
   }
