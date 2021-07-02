@@ -59,6 +59,10 @@ jobs:
           popd
 
       - uses: ./.github/workflows/actions/quarto-dev
+      
+      - name: Install Tinytex
+        run: |
+          quarto install tinytex
             
       - name: Smoke Test Commits
         if: github.event.before != ''
