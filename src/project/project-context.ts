@@ -219,6 +219,11 @@ export function projectOutputDir(context: ProjectContext): string {
   }
 }
 
+export function projectIsWebserverTarget(context: ProjectContext): boolean {
+  const projType = projectType(context.config?.project?.[kProjectType]);
+  return !!projType.canServe;
+}
+
 export function projectOffset(context: ProjectContext, input: string) {
   const projDir = Deno.realPathSync(context.dir);
   const inputDir = Deno.realPathSync(dirname(input));
