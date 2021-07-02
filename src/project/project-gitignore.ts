@@ -17,7 +17,7 @@ import { isEnvDir } from "../core/jupyter/capabilities.ts";
 
 export const kQuartoIgnore = [`/${kQuartoScratch}/`];
 
-export async function ensureGitignore(dir: string) {
+export async function ensureGitignore(dir: string): Promise<boolean> {
   // if .gitignore exists, then ensure it has the requisite entries
   const gitignorePath = join(dir, ".gitignore");
   if (await exists(gitignorePath)) {
@@ -31,6 +31,9 @@ export async function ensureGitignore(dir: string) {
     }
     if (requiredEntries.length > 0) {
       writeGitignore(dir, gitignore.concat(requiredEntries));
+      return true;
+    } else {
+      return false;
     }
   } else if (which("git")) {
     // if it doesn't exist then auto-create if we are in a git project
@@ -42,7 +45,12 @@ export async function ensureGitignore(dir: string) {
     });
     if (result.success) {
       await createGitignore(dir);
+      return true;
+    } else {
+      return false;
     }
+  } else {
+    return false;
   }
 }
 
