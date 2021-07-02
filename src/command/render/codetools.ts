@@ -70,9 +70,9 @@ export function keepSourceBlock(format: Format, source: string) {
       "\n" + kKeepSourceSentinel + "\n\n```$1\n",
     );
 
-    const kKeepSourceBackticks = "```````````````";
+    const kKeepSourceBackticks = "```````````````````";
     return `${kMarkdownBlockSeparator}::: {.${kEmbeddedSourceClass}}\n${kKeepSourceBackticks}` +
-      `{.markdown}\n${code}` +
+      `{.markdown shortcodes="false"}\n${code}` +
       `${kKeepSourceBackticks}\n:::\n`;
   } else {
     return "";
