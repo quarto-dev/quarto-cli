@@ -60,6 +60,7 @@ export interface ExecutionEngine {
   dependencies: (options: DependenciesOptions) => Promise<DependenciesResult>;
   postprocess: (options: PostProcessOptions) => Promise<void>;
   canFreeze: boolean;
+  canKeepSource?: (target: ExecutionTarget) => boolean;
   keepFiles?: (input: string) => string[] | undefined;
   ignoreGlobs?: () => string[] | undefined;
   devServerRenderOnChange?: (
@@ -167,6 +168,13 @@ export function executionEngineKeepMd(input: string) {
     const [dir, stem] = dirAndStem(input);
     return join(dir, stem + keepSuffix);
   }
+}
+
+export function executionEngineCanKeepSource(
+  engine: ExecutionEngine,
+  target: ExecutionTarget,
+) {
+  return !engine.canKeepSource || engine.canKeepSource(target);
 }
 
 export function executionEngineKeepFiles(

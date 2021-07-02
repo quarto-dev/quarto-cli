@@ -51,6 +51,7 @@ export const kFigAlign = "fig-align";
 export const kCodeFold = "code-fold";
 export const kCodeSummary = "code-summary";
 export const kCodeLink = "code-link";
+export const kCodeTools = "code-tools";
 export const kMergeIncludes = "merge-includes";
 export const kPreferHtml = "prefer-html";
 export const kSelfContainedMath = "self-contained-math";
@@ -104,6 +105,7 @@ export const kRenderDefaultsKeys = [
   kCodeFold,
   kCodeLink,
   kCodeSummary,
+  kCodeTools,
   kSelfContainedMath,
   kLatexAutoMk,
   kLatexAutoInstall,

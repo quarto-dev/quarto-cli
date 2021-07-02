@@ -45,6 +45,8 @@ import {
   formatPageLayout,
 } from "../../../format/html/format-html-bootstrap.ts";
 
+import { kDataQuartoSourceUrl } from "../../../command/render/codetools.ts";
+
 import {
   kProjectType,
   ProjectConfig,
@@ -305,7 +307,7 @@ function navigationHtmlPostprocessor(project: ProjectContext, source: string) {
     }
 
     // Hide the title when it will appear in the secondary nav
-    const title = doc.querySelector("header > .title");
+    const title = doc.querySelector("header .title");
     const sidebar = doc.getElementById("quarto-sidebar");
 
     if (sidebar) {
@@ -349,8 +351,8 @@ function navigationHtmlPostprocessor(project: ProjectContext, source: string) {
       }
     }
 
-    // append repo actions to toc
-    addRepoActions(doc, sourceRelative, project.config);
+    // handle repo links
+    handleRepoLinks(doc, sourceRelative, project.config);
 
     // resolve resource refs
     const forceRoot = href === "/404.html" ? websitePath(project.config) : null;
@@ -358,52 +360,69 @@ function navigationHtmlPostprocessor(project: ProjectContext, source: string) {
   };
 }
 
-function addRepoActions(doc: Document, source: string, config?: ProjectConfig) {
+function handleRepoLinks(
+  doc: Document,
+  source: string,
+  config?: ProjectConfig,
+) {
   const repoActions = websiteConfigActions(
     kSiteRepoActions,
     kSite,
     config,
   );
-  if (repoActions.length > 0) {
+
+  const elRepoSource = doc.querySelector(
+    "[" + kDataQuartoSourceUrl + '="repo"]',
+  );
+
+  if (repoActions.length > 0 || elRepoSource) {
     const repoUrl = websiteRepoUrl(config);
     if (repoUrl) {
       if (isGithubRepoUrl(repoUrl)) {
-        // find the toc
-        const toc = doc.querySelector(`nav[role="doc-toc"]`);
-        if (toc) {
-          // get the action links
-          const links = repoActionLinks(
-            repoActions,
-            repoUrl,
-            websiteRepoBranch(config),
-            source,
+        if (repoActions.length > 0) {
+          // find the toc
+          const toc = doc.querySelector(`nav[role="doc-toc"]`);
+          if (toc) {
+            // get the action links
+            const links = repoActionLinks(
+              repoActions,
+              repoUrl,
+              websiteRepoBranch(config),
+              source,
+            );
+            const actionsDiv = doc.createElement("div");
+            actionsDiv.classList.add("toc-actions");
+            const iconDiv = doc.createElement("div");
+            const iconEl = doc.createElement("i");
+            iconEl.classList.add("bi").add("bi-github");
+            iconDiv.appendChild(iconEl);
+            actionsDiv.appendChild(iconDiv);
+            const linksDiv = doc.createElement("div");
+            linksDiv.classList.add("action-links");
+            links.forEach((link) => {
+              const a = doc.createElement("a");
+              a.setAttribute("href", link.url);
+              a.innerHTML = link.text;
+              const p = doc.createElement("p");
+              p.appendChild(a);
+              linksDiv.appendChild(p);
+            });
+            actionsDiv.appendChild(linksDiv);
+            toc.appendChild(actionsDiv);
+          }
+        }
+        if (elRepoSource) {
+          elRepoSource.setAttribute(
+            kDataQuartoSourceUrl,
+            `${repoUrl}blob/${websiteRepoBranch(config)}/${source}`,
           );
-          const actionsDiv = doc.createElement("div");
-          actionsDiv.classList.add("toc-actions");
-          const iconDiv = doc.createElement("div");
-          const iconEl = doc.createElement("i");
-          iconEl.classList.add("bi").add("bi-github");
-          iconDiv.appendChild(iconEl);
-          actionsDiv.appendChild(iconDiv);
-          const linksDiv = doc.createElement("div");
-          linksDiv.classList.add("action-links");
-          links.forEach((link) => {
-            const a = doc.createElement("a");
-            a.setAttribute("href", link.url);
-            a.innerHTML = link.text;
-            const p = doc.createElement("p");
-            p.appendChild(a);
-            linksDiv.appendChild(p);
-          });
-          actionsDiv.appendChild(linksDiv);
-          toc.appendChild(actionsDiv);
         }
       } else {
-        warnOnce(`${kSiteRepoActions} requires a github.com ${kSiteRepoUrl}`);
+        warnOnce(`Repository links require a github.com ${kSiteRepoUrl}`);
       }
     } else {
       warnOnce(
-        `${kSiteRepoActions} requires that you also specify a ${kSiteRepoUrl}`,
+        `Repository links require that you specify a ${kSiteRepoUrl}`,
       );
     }
   }
