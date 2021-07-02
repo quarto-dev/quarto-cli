@@ -42,9 +42,14 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   const viewSource = window.document.getElementById('quarto-view-source') ||
                      window.document.getElementById('quarto-code-tools-source');
   if (viewSource) {
-    viewSource.addEventListener("click", function() {
-      const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
-      modal.show();
+    const sourceUrl = viewSource.getAttribute("data-source-url");
+    viewSource.addEventListener("click", function(e) {
+      if (sourceUrl) {
+        window.location.href = sourceUrl;
+      } else {
+        const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+        modal.show();
+      }
       return false;
     });
   }
