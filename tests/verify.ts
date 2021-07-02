@@ -17,13 +17,28 @@ import { outputForInput } from "./utils.ts";
 import { unzip } from "../src/core/zip.ts";
 import { dirAndStem } from "../src/core/path.ts";
 
-export const noErrorsOrWarnings = {
+export const noErrorsOrWarnings: Verify = {
   name: "No Errors or Warnings",
   verify: (outputs: ExecuteOutput[]) => {
-    const errorsOrWarnings = outputs.some((output) =>
-      output.levelName === "warning" || output.levelName === "error"
-    );
-    assert(!errorsOrWarnings, "An error or warning occurred during execution");
+    const isErrorOrWarning = (output: ExecuteOutput) => {
+      return output.levelName.toLowerCase() === "warning" ||
+        output.levelName.toLowerCase() === "error";
+    };
+
+    const errorsOrWarnings = outputs.some(isErrorOrWarning);
+
+    // Output an error or warning if it exists
+    if (errorsOrWarnings) {
+      const messages = outputs.filter(isErrorOrWarning).map((outputs) =>
+        outputs.msg
+      ).join("\n");
+
+      assert(
+        !errorsOrWarnings,
+        `Error or Warnings During Execution\n|${messages}|`,
+      );
+    }
+
     return Promise.resolve();
   },
 };
