@@ -27,6 +27,7 @@ h6:hover > .anchorjs-link,
 
 #title-block-header {
   margin-block-end: 1rem;
+  position: relative;
 }
 
 #title-block-header a {
@@ -39,10 +40,29 @@ h6:hover > .anchorjs-link,
   margin-block-end: 0.2rem;
 }
 
+#title-block-header > .quarto-title-block {
+  display: flex;
+}
+
+#title-block-header > .quarto-title-block > h1 {
+  flex-grow: 1;
+}
+
+#title-block-header > .quarto-title-block > button {
+  flex-shrink: 0;
+  height: 2.25rem;
+  margin-top: 5px;
+}
+
 // utterances
 .utterances {
   max-width: none;
   margin-left: -8px;
+}
+
+// details
+.cell > details > summary {
+  color: $text-muted;
 }
 
 // codeCopy
@@ -107,6 +127,11 @@ code a:any-link {
   text-decoration-color: $table-border-color;
 }
 */
+
+// embedded source code
+.quarto-embedded-source-code {
+  display: none;
+}
 
 // tippy
 

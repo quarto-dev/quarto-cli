@@ -279,6 +279,10 @@ export const jupyterEngine: ExecutionEngine = {
     return ["**/venv/**", "**/env/**"];
   },
 
+  canKeepSource: (targbet: ExecutionTarget) => {
+    return !isJupyterNotebook(targbet.source);
+  },
+
   keepFiles: (input: string) => {
     if (!isJupyterNotebook(input) && !input.endsWith(`.${kJupyterEngine}.md`)) {
       const [fileDir, fileStem] = dirAndStem(input);
