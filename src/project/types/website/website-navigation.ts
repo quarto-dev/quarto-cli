@@ -325,7 +325,14 @@ function navigationHtmlPostprocessor(project: ProjectContext, source: string) {
         if (title) {
           secondaryNavTitle.innerHTML = title.innerHTML;
         } else {
-          secondaryNavTitle.innerHTML = "(untitled)";
+          secondaryNavTitle.innerHTML = "(Untitled)";
+        }
+        // hide the entire title block (encompassing code button) if we have it
+        const titleBlock = doc.querySelector("header > .quarto-title-block");
+        if (titleBlock) {
+          // hide below lg
+          titleBlock.classList.add("d-none");
+          titleBlock.classList.add("d-lg-block");
         }
       }
     }
