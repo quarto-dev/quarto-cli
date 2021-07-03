@@ -18,10 +18,12 @@ import {
   PostProcessOptions,
 } from "./engine.ts";
 
+export const kMarkdownEngine = "markdown";
+
 export const kMdExtensions = [".md", ".markdown"];
 
 export const markdownEngine: ExecutionEngine = {
-  name: "none",
+  name: kMarkdownEngine,
 
   defaultExt: ".qmd",
 

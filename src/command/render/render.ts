@@ -45,6 +45,7 @@ import {
   kBibliography,
   kCache,
   kCss,
+  kEngine,
   kExecuteDaemon,
   kExecuteDaemonRestart,
   kExecuteDebug,
@@ -376,9 +377,10 @@ export async function renderFormats(
 ): Promise<Record<string, Format>> {
   const contexts = await renderContexts(file, { flags: { to } }, project);
   const formats: Record<string, Format> = {};
-  Object.keys(contexts).forEach((context) => {
+  Object.keys(contexts).forEach((formatName) => {
     // get the format
-    const format = contexts[context].format;
+    const context = contexts[formatName];
+    const format = context.format;
     // remove other formats
     delete format.metadata.format;
     // remove project level metadata
@@ -388,7 +390,9 @@ export async function renderFormats(
       const [_dir, stem] = dirAndStem(file);
       format.pandoc[kOutputFile] = `${stem}.${format.render[kOutputExt]}`;
     }
-    formats[context] = format;
+    // provide engine
+    format.execute[kEngine] = context.engine.name;
+    formats[formatName] = format;
   });
   return formats;
 }

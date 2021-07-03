@@ -13,6 +13,7 @@ import { executionEngine, executionEngines } from "../../execute/engine.ts";
 
 import { projectCreate } from "../../project/project-create.ts";
 import { projectTypes } from "../../project/types/project-types.ts";
+import { kMarkdownEngine } from "../../execute/markdown.ts";
 
 const kProjectTypes = projectTypes();
 const kExecutionEngines = executionEngines().reverse();
@@ -46,7 +47,7 @@ export const createProjectCommand = new Command()
     `Use execution engine (${kExecutionEngines.join(", ")})`,
     {
       value: (value: string): string[] => {
-        value = value || "none";
+        value = value || kMarkdownEngine;
         const engine = executionEngine(value);
         if (!engine) {
           throw new Error(`Unknown --engine: ${value}`);
@@ -102,7 +103,7 @@ export const createProjectCommand = new Command()
       type: options.type,
       title: options.title || basename(dir),
       scaffold: !!options.scaffold,
-      engine: engine[0] || "none",
+      engine: engine[0] || kMarkdownEngine,
       kernel: engine[1],
     });
   });

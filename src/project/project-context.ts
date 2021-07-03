@@ -34,6 +34,8 @@ import {
   executionEngineKeepFiles,
   fileExecutionEngine,
 } from "../execute/engine.ts";
+import { kMarkdownEngine } from "../execute/markdown.ts";
+
 import { projectResourceFiles } from "./project-resources.ts";
 import { gitignoreEntries } from "./project-gitignore.ts";
 
@@ -46,6 +48,7 @@ export const kProjectResources = "resources";
 
 export interface ProjectContext {
   dir: string;
+  engines: string[];
   files: {
     input: string[];
     resources?: string[];
@@ -123,7 +126,7 @@ export async function projectContext(
     if (configFile) {
       let projectConfig: ProjectConfig = readYaml(configFile) as ProjectConfig;
       projectConfig.project = projectConfig.project || {};
-      const { metadata, files } = includedMetadata(dir, projectConfig);
+      const { metadata } = includedMetadata(dir, projectConfig);
       projectConfig = mergeConfigs(projectConfig, metadata);
       delete projectConfig[kMetadataFile];
       delete projectConfig[kMetadataFiles];
@@ -154,10 +157,12 @@ export async function projectContext(
         if (type.config) {
           projectConfig = await type.config(dir, projectConfig, forceHtml);
         }
+        const { files, engines } = projectInputFiles(dir, projectConfig);
         return {
           dir,
+          engines,
           files: {
-            input: projectInputFiles(dir, projectConfig),
+            input: files,
             resources: projectResourceFiles(dir, projectConfig),
             config: [configFile].concat(files),
             configResources: projectConfigResources(dir, type, projectConfig),
@@ -166,11 +171,13 @@ export async function projectContext(
           formatExtras: type.formatExtras,
         };
       } else {
+        const { files, engines } = projectInputFiles(dir);
         return {
           dir,
+          engines,
           config: projectConfig,
           files: {
-            input: projectInputFiles(dir),
+            input: files,
           },
         };
       }
@@ -178,15 +185,26 @@ export async function projectContext(
       const nextDir = dirname(dir);
       if (nextDir === dir) {
         if (force) {
-          return {
+          const context: ProjectContext = {
             dir: originalDir,
+            engines: [],
             config: { project: {} },
             files: {
-              input: Deno.statSync(path).isDirectory
-                ? projectInputFiles(originalDir)
-                : [Deno.realPathSync(path)],
+              input: [],
             },
           };
+          if (Deno.statSync(path).isDirectory) {
+            const { files, engines } = projectInputFiles(originalDir);
+            context.engines = engines;
+            context.files.input = files;
+          } else {
+            const input = Deno.realPathSync(path);
+            context.engines = [
+              fileExecutionEngine(input)?.name || kMarkdownEngine,
+            ];
+            context.files.input = [input];
+          }
+          return context;
         } else {
           return undefined;
         }
@@ -305,8 +323,12 @@ export async function projectMetadataForInputFile(
   return fixupPaths(projConfig) as Metadata;
 }
 
-function projectInputFiles(dir: string, metadata?: ProjectConfig) {
+function projectInputFiles(
+  dir: string,
+  metadata?: ProjectConfig,
+): { files: string[]; engines: string[] } {
   const files: string[] = [];
+  const engines: string[] = [];
   const keepFiles: string[] = [];
 
   const outputDir = metadata?.project[kProjectOutputDir];
@@ -325,6 +347,9 @@ function projectInputFiles(dir: string, metadata?: ProjectConfig) {
     if (!outputDir || !file.startsWith(join(dir, outputDir))) {
       const engine = fileExecutionEngine(file);
       if (engine) {
+        if (!engines.includes(engine.name)) {
+          engines.push(engine.name);
+        }
         files.push(file);
         const keep = executionEngineKeepFiles(engine, file);
         if (keep) {
@@ -378,7 +403,7 @@ function projectInputFiles(dir: string, metadata?: ProjectConfig) {
     ld.uniq(keepFiles),
   ) as string[];
 
-  return inputFiles;
+  return { files: inputFiles, engines };
 }
 
 function projectConfigResources(
