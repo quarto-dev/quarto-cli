@@ -5,26 +5,28 @@
 *
 */
 
-import { binaryPath } from "./resources.ts";
 import { execProcess } from "./process.ts";
 
 export async function esbuildCompile(
   input: string,
-  workingDir: string
-): Promise<string | undefined>
-{
+  workingDir: string,
+): Promise<string | undefined> {
   const args = [
     "--bundle",
-    "--format=esm"
+    "--format=esm",
   ];
-  
+
   return await esbuildCommand(args, input, workingDir);
 }
 
-async function esbuildCommand(args: string[], input: string, workingDir: string) {
+async function esbuildCommand(
+  args: string[],
+  input: string,
+  workingDir: string,
+) {
   const cmd = [
     "esbuild",
-    ...args
+    ...args,
   ];
 
   const result = await execProcess(

@@ -14,7 +14,8 @@ import { make, simple } from "acorn/walk";
 import { parse as parseES6 } from "acorn/acorn";
 
 import { parseError } from "./errors.ts";
-import { esbuildCompile } from "../esbuild.ts";
+
+import { esbuildCompile } from "../../core/esbuild.ts";
 
 // we need to patch the base walker ourselves because OJS sometimes
 // emits Program nodes with "cells" rather than "body"
@@ -168,8 +169,7 @@ export async function extractSelfContainedResources(
   ojsSource: string,
   mdFilename: string,
   projectRoot?: string,
-)
-{
+) {
   const imports: Map<string, string> = new Map();
   const wd = dirname(mdFilename);
 
@@ -191,7 +191,7 @@ export async function extractSelfContainedResources(
   }
 
   literalFileAttachments(ojsAST)
-    .forEach(path => {
+    .forEach((path) => {
       const attachment = Deno.readTextFileSync(path);
       const mimeType = lookup(path);
       const b64Src = base64Encode(attachment);
