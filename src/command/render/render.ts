@@ -33,8 +33,6 @@ import {
 } from "../../core/path.ts";
 import { warnOnce } from "../../core/log.ts";
 
-import { observableExecuteResult } from "../../core/observable/compile.ts";
-
 import {
   formatFromMetadata,
   includedMetadata,
@@ -104,6 +102,7 @@ import {
   kProjectFreezeDir,
   removeFreezeResults,
 } from "./freeze.ts";
+import { observableExecuteResult } from "../../execute/observable/compile.ts";
 
 // options for render
 export interface RenderOptions {

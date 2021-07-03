@@ -18,12 +18,8 @@ import {
 import { logError } from "../../core/log.ts";
 import { breakQuartoMd } from "../../core/break-quarto-md.ts";
 import { ExecuteResult, PandocIncludes } from "../../execute/engine.ts";
-import { formatResourcePath } from "../resources.ts";
 import { resolveDependencies } from "../../command/render/pandoc.ts";
 import { kIncludeAfterBody, kIncludeInHeader } from "../../config/constants.ts";
-import { sessionTempFile } from "../temp.ts";
-import { languagesInMarkdown } from "../jupyter/jupyter.ts";
-import { asHtmlId } from "../html.ts";
 import {
   extractResources,
   extractSelfContainedResources,
@@ -49,9 +45,13 @@ import {
 } from "../../config/constants.ts";
 
 import { RenderContext } from "../../command/render/render.ts";
-import { mergeConfigs } from "../config.ts";
 import { ProjectContext } from "../../project/project-context.ts";
-import { quartoConfig } from "../quarto.ts";
+import { languagesInMarkdown } from "../../core/jupyter/jupyter.ts";
+import { asHtmlId } from "../../core/html.ts";
+import { sessionTempFile } from "../../core/temp.ts";
+import { quartoConfig } from "../../core/quarto.ts";
+import { mergeConfigs } from "../../core/config.ts";
+import { formatResourcePath } from "../../core/resources.ts";
 
 export interface ObservableCompileOptions {
   source: string;
