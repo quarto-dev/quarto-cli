@@ -41,7 +41,7 @@ h6:hover > .anchorjs-link,
 }
 
 #title-block-header > .quarto-title-block {
-  display: flex;
+  display: flex !important;
 }
 
 #title-block-header > .quarto-title-block > h1 {
