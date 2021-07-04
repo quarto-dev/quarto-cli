@@ -140,6 +140,7 @@ export function breakQuartoMd(
         }
       }
       inMathBlock = !inMathBlock;
+      lineBuffer.push(line);
     } else {
       lineBuffer.push(line);
     }
