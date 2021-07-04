@@ -149,12 +149,11 @@ export async function observableCompile(
     ]);
     if (
       cell.cell_type === "raw" ||
-      cell.cell_type === "markdown"
+      cell.cell_type === "markdown" ||
+      cell.cell_type === "math"
     ) {
       // The lua filter is in charge of this, we're a NOP.
       ls.push(cellSrcStr);
-    } else if (cell.cell_type === "math") {
-      ls.push("\n$$", cellSrcStr, "$$\n");
     } else if (cell.cell_type?.language === "ojs") {
       const userCellId = () => {
         const chooseId = (label: string) => {
