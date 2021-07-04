@@ -126,7 +126,9 @@ export async function projectContext(
     if (configFile) {
       let projectConfig: ProjectConfig = readYaml(configFile) as ProjectConfig;
       projectConfig.project = projectConfig.project || {};
-      const { metadata } = includedMetadata(dir, projectConfig);
+      const includedMeta = includedMetadata(dir, projectConfig);
+      const metadata = includedMeta.metadata;
+      const metadataFileRefs = includedMeta.files;
       projectConfig = mergeConfigs(projectConfig, metadata);
       delete projectConfig[kMetadataFile];
       delete projectConfig[kMetadataFiles];
@@ -164,7 +166,7 @@ export async function projectContext(
           files: {
             input: files,
             resources: projectResourceFiles(dir, projectConfig),
-            config: [configFile].concat(files),
+            config: [configFile].concat(metadataFileRefs),
             configResources: projectConfigResources(dir, type, projectConfig),
           },
           config: projectConfig,
