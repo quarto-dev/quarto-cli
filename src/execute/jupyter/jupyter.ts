@@ -45,12 +45,10 @@ import {
   kIncludeInHeader,
   kKeepHidden,
   kKeepIpynb,
-  kPreferHtml,
 } from "../../config/constants.ts";
 import {
   Format,
   isHtmlCompatible,
-  isHtmlOutput,
   isLatexOutput,
   isMarkdownOutput,
 } from "../../config/format.ts";
