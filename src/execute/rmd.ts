@@ -14,17 +14,7 @@ import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 
 import { kCodeLink } from "../config/constants.ts";
 
-import {
-  DependenciesOptions,
-  DependenciesResult,
-  ExecuteOptions,
-  ExecuteResult,
-  ExecutionEngine,
-  kQmdExtensions,
-  PostProcessOptions,
-  postProcessRestorePreservedHtml,
-  RunOptions,
-} from "./engine.ts";
+import { postProcessRestorePreservedHtml } from "./engine.ts";
 import { sessionTempFile } from "../core/temp.ts";
 import {
   knitrCapabilities,
@@ -32,6 +22,15 @@ import {
   knitrInstallationMessage,
   rInstallationMessage,
 } from "../core/knitr.ts";
+import {
+  DependenciesOptions,
+  DependenciesResult,
+  ExecuteOptions,
+  ExecuteResult,
+  ExecutionEngine,
+  PostProcessOptions,
+  RunOptions,
+} from "./types.ts";
 
 const kRmdExtensions = [".rmd", ".rmarkdown"];
 
@@ -44,7 +43,7 @@ export const knitrEngine: ExecutionEngine = {
 
   defaultYaml: () => [],
 
-  validExtensions: () => kRmdExtensions.concat(kQmdExtensions),
+  validExtensions: () => kRmdExtensions.concat(kRmdExtensions),
 
   claimsExtension: (ext: string) => {
     return kRmdExtensions.includes(ext.toLowerCase());

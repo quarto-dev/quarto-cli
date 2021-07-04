@@ -16,17 +16,7 @@ import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
 import { dirAndStem, removeIfExists } from "../../core/path.ts";
 import { runningInCI } from "../../core/ci-info.ts";
 
-import {
-  DependenciesOptions,
-  ExecuteOptions,
-  ExecuteResult,
-  ExecutionEngine,
-  ExecutionTarget,
-  kQmdExtensions,
-  PandocIncludes,
-  PostProcessOptions,
-  postProcessRestorePreservedHtml,
-} from "../engine.ts";
+import { postProcessRestorePreservedHtml } from "../engine.ts";
 import {
   isJupyterNotebook,
   jupyterAssets,
@@ -62,7 +52,17 @@ import {
   JupyterWidgetDependencies,
 } from "../../core/jupyter/widgets.ts";
 
-import { RenderOptions } from "../../command/render/render.ts";
+import { RenderOptions } from "../../command/render/types.ts";
+import {
+  DependenciesOptions,
+  ExecuteOptions,
+  ExecuteResult,
+  ExecutionEngine,
+  ExecutionTarget,
+  kQmdExtensions,
+  PandocIncludes,
+  PostProcessOptions,
+} from "../types.ts";
 
 const kJupyterEngine = "jupyter";
 

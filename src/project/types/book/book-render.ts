@@ -28,14 +28,16 @@ import {
 import { Format, isHtmlOutput } from "../../../config/format.ts";
 
 import {
-  ExecutedFile,
   removePandocTo,
-  RenderContext,
   renderContexts,
-  RenderedFile,
-  RenderOptions,
   renderPandoc,
 } from "../../../command/render/render.ts";
+import {
+  ExecutedFile,
+  RenderContext,
+  RenderedFile,
+  RenderOptions,
+} from "../../../command/render/types.ts";
 import { outputRecipe } from "../../../command/render/output.ts";
 import { renderCleanup } from "../../../command/render/cleanup.ts";
 

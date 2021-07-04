@@ -17,7 +17,7 @@ import {
 } from "../../config/format.ts";
 import { logError } from "../../core/log.ts";
 import { breakQuartoMd } from "../../core/break-quarto-md.ts";
-import { ExecuteResult, PandocIncludes } from "../../execute/engine.ts";
+import { ExecuteResult, PandocIncludes } from "../../execute/types.ts";
 import { resolveDependencies } from "../../command/render/pandoc.ts";
 import { kIncludeAfterBody, kIncludeInHeader } from "../../config/constants.ts";
 import {
@@ -44,7 +44,7 @@ import {
   kOutput,
 } from "../../config/constants.ts";
 
-import { RenderContext } from "../../command/render/render.ts";
+import { RenderContext } from "../../command/render/types.ts";
 import { ProjectContext } from "../../project/project-context.ts";
 import { languagesInMarkdown } from "../../core/jupyter/jupyter.ts";
 import { asHtmlId } from "../../core/html.ts";

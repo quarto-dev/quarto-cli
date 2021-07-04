@@ -16,7 +16,7 @@ import {
   ExecutionEngine,
   kQmdExtensions,
   PostProcessOptions,
-} from "./engine.ts";
+} from "./types.ts";
 
 export const kMarkdownEngine = "markdown";
 

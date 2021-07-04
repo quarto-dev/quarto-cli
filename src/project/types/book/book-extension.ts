@@ -9,7 +9,7 @@ import { dirname, join } from "path/mod.ts";
 
 import { Format } from "../../../config/format.ts";
 
-import { RenderedFile } from "../../../command/render/render.ts";
+import { RenderedFile } from "../../../command/render/types.ts";
 
 import { kOutputFile } from "../../../config/constants.ts";
 

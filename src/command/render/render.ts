@@ -64,12 +64,8 @@ import {
 } from "../../config/constants.ts";
 import { Format, FormatPandoc } from "../../config/format.ts";
 import {
-  ExecuteResult,
-  ExecutionEngine,
   executionEngineKeepMd,
-  ExecutionTarget,
   fileExecutionEngine,
-  PandocIncludes,
 } from "../../execute/engine.ts";
 
 import { defaultWriterFormat } from "../../format/formats.ts";
@@ -79,20 +75,17 @@ import { formatHasBootstrap } from "../../format/html/format-html-bootstrap.ts";
 import { PandocOptions, runPandoc } from "./pandoc.ts";
 import { removePandocToArg, RenderFlags, resolveParams } from "./flags.ts";
 import { renderCleanup } from "./cleanup.ts";
-import { OutputRecipe, outputRecipe } from "./output.ts";
+import { outputRecipe } from "./output.ts";
 import {
   deleteProjectMetadata,
   kProjectLibDir,
   kProjectType,
   ProjectContext,
-  projectContext,
-  projectContextForDirectory,
   projectMetadataForInputFile,
   projectOffset,
 } from "../../project/project-context.ts";
 import { projectType } from "../../project/types/project-types.ts";
 
-import { renderProject } from "./project.ts";
 import {
   copyFromProjectFreezer,
   copyToProjectFreezer,
@@ -104,128 +97,22 @@ import {
   removeFreezeResults,
 } from "./freeze.ts";
 import { observableExecuteResult } from "../../execute/observable/compile.ts";
-
-// options for render
-export interface RenderOptions {
-  flags?: RenderFlags;
-  pandocArgs?: string[];
-  useFreezer?: boolean;
-  devServerReload?: boolean;
-}
-
-// context for render
-export interface RenderContext {
-  target: ExecutionTarget;
-  options: RenderOptions;
-  engine: ExecutionEngine;
-  format: Format;
-  libDir: string;
-  project?: ProjectContext;
-}
-
-export interface RunPandocResult {
-  resources: string[];
-  htmlPostprocessors: Array<(doc: Document) => Promise<string[]>>;
-}
-
-export interface RenderResourceFiles {
-  globs: string[];
-  files: string[];
-}
-
-export interface RenderResult {
-  baseDir?: string;
-  outputDir?: string;
-  files: RenderResultFile[];
-  error?: Error;
-}
-
-export interface RenderResultFile {
-  input: string;
-  markdown: string;
-  format: Format;
-  file: string;
-  supporting?: string[];
-  resourceFiles: string[];
-}
-
-export async function render(
-  path: string,
-  options: RenderOptions,
-): Promise<RenderResult> {
-  // determine target context/files
-  const context = await projectContext(path);
-
-  if (Deno.statSync(path).isDirectory) {
-    // if the path is a sub-directory of the project, then create
-    // a files list that is only those files in the subdirectory
-    let files: string[] | undefined;
-    if (context) {
-      const renderDir = Deno.realPathSync(path);
-      const projectDir = Deno.realPathSync(context.dir);
-      if (renderDir !== projectDir) {
-        files = context.files.input.filter((file) =>
-          file.startsWith(renderDir)
-        );
-      }
-    }
-
-    // all directories are considered projects
-    return renderProject(
-      context || await projectContextForDirectory(path),
-      options,
-      files,
-    );
-  } else if (context?.config) {
-    // if there is a project file then treat this as a project render
-    // if the passed file is in the render list
-    const renderPath = Deno.realPathSync(path);
-    if (
-      context.files.input.map((file) => Deno.realPathSync(file)).includes(
-        renderPath,
-      )
-    ) {
-      return renderProject(context, options, [path]);
-    }
-  }
-
-  // otherwise it's just a file render
-  const result = await renderFiles([path], options);
-  return {
-    files: result.files.map((result) => {
-      return {
-        input: result.input,
-        markdown: result.markdown,
-        format: result.format,
-        file: result.file,
-        supporting: result.supporting,
-        resourceFiles: [],
-      };
-    }),
-    error: result.error,
-  };
-}
-
-export interface RenderedFile {
-  input: string;
-  markdown: string;
-  format: Format;
-  file: string;
-  supporting?: string[];
-  resourceFiles: RenderResourceFiles;
-  selfContained: boolean;
-}
-
-export interface PandocRenderer {
-  onBeforeExecute: (format: Format) => RenderExecuteOptions;
-  onRender: (format: string, file: ExecutedFile) => Promise<void>;
-  onComplete: (error?: boolean) => Promise<RenderFilesResult>;
-}
-
-export interface RenderFilesResult {
-  files: RenderedFile[];
-  error?: Error;
-}
+import {
+  ExecutedFile,
+  PandocRenderer,
+  RenderContext,
+  RenderedFile,
+  RenderExecuteOptions,
+  RenderFilesResult,
+  RenderOptions,
+  RenderResult,
+} from "./types.ts";
+import {
+  ExecuteResult,
+  ExecutionEngine,
+  ExecutionTarget,
+  PandocIncludes,
+} from "../../execute/types.ts";
 
 export async function renderFiles(
   files: string[],
@@ -396,11 +283,6 @@ export async function renderFormats(
   return formats;
 }
 
-export interface RenderExecuteOptions {
-  resolveDependencies?: boolean;
-  alwaysExecute?: boolean;
-}
-
 export async function renderExecute(
   context: RenderContext,
   output: string,
@@ -545,13 +427,6 @@ export async function renderExecute(
   return executeResult;
 }
 
-export interface ExecutedFile {
-  context: RenderContext;
-  recipe: OutputRecipe;
-  executeResult: ExecuteResult;
-  resourceFiles: string[];
-}
-
 export async function renderPandoc(
   file: ExecutedFile,
 ): Promise<RenderedFile> {
@@ -679,7 +554,7 @@ export async function renderPandoc(
     markdown: executeResult.markdown,
     format,
     supporting: filesDir
-      ? executeResult.supporting.filter(existsSync).map((file) =>
+      ? executeResult.supporting.filter(existsSync).map((file: string) =>
         context.project ? relative(context.project.dir, file) : file
       )
       : undefined,

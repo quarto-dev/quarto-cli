@@ -33,7 +33,7 @@ import {
 
 import { fileExecutionEngine } from "../../execute/engine.ts";
 
-import { RenderResult } from "../render/render.ts";
+import { RenderResult } from "../render/types.ts";
 
 import {
   copyProjectForServe,

@@ -9,11 +9,8 @@ import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
 
 import { kCodeTools, kKeepSource } from "../../config/constants.ts";
 import { Format, isHtmlOutput } from "../../config/format.ts";
-import {
-  ExecutionEngine,
-  executionEngineCanKeepSource,
-  ExecutionTarget,
-} from "../../execute/engine.ts";
+import { executionEngineCanKeepSource } from "../../execute/engine.ts";
+import { ExecutionEngine, ExecutionTarget } from "../../execute/types.ts";
 import { formatHasBootstrap } from "../../format/html/format-html-bootstrap.ts";
 import { kMarkdownBlockSeparator } from "./pandoc.ts";
 

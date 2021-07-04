@@ -28,7 +28,7 @@ import {
   kIncludeInHeader,
 } from "../../config/constants.ts";
 
-import { ExecuteResult } from "../../execute/engine.ts";
+import { ExecuteResult } from "../../execute/types.ts";
 
 import {
   kProjectLibDir,

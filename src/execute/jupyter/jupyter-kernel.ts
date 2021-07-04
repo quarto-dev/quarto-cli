@@ -30,7 +30,7 @@ import {
   kExecuteDebug,
 } from "../../config/constants.ts";
 
-import { ExecuteOptions } from "../engine.ts";
+import { ExecuteOptions } from "../types.ts";
 
 export async function executeKernelOneshot(
   options: ExecuteOptions,

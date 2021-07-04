@@ -83,7 +83,7 @@ import {
 import { sessionTempFile } from "../../core/temp.ts";
 import { cssImports, cssResources } from "../../core/css.ts";
 
-import { RunPandocResult } from "./render.ts";
+import { RunPandocResult } from "./types.ts";
 import { compileSass } from "./sass.ts";
 import { crossrefFilterActive } from "./crossref.ts";
 import { kQuartoHtmlDependency } from "../../format/html/format-html.ts";

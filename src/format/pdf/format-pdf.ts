@@ -28,7 +28,7 @@ import { Format, FormatExtras } from "../../config/format.ts";
 
 import { createFormat } from "../formats.ts";
 
-import { RenderedFile } from "../../command/render/render.ts";
+import { RenderedFile } from "../../command/render/types.ts";
 import { ProjectContext } from "../../project/project-context.ts";
 import { BookExtension } from "../../project/types/book/book-extension.ts";
 import { PandocFlags } from "../../config/flags.ts";
