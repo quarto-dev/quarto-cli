@@ -25,6 +25,7 @@ import {
   initializeLogger,
   logOptions,
 } from "../../src/core/log.ts";
+import { cyclicDependencies } from "./common/cyclic-dependencies.ts";
 
 // Core command dispatch
 export async function quartoBld(args: string[]) {
@@ -84,7 +85,7 @@ function getCommands() {
   commands.push(
     packageCommand(prepareDist)
       .name("prepare-dist")
-      .description("Prepares the distribution directory for packaging.")
+      .description("Prepares the distribution directory for packaging."),
   );
   commands.push(
     packageCommand(makeInstallerMac)
@@ -103,6 +104,11 @@ function getCommands() {
   );
   commands.push(
     compileQuartoLatexmkCommand(),
+  );
+  commands.push(
+    packageCommand(cyclicDependencies)
+      .name("cyclic-dependencies")
+      .description("Searches for cyclic dependencies in quarto.ts"),
   );
   return commands;
 }
