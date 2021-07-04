@@ -14,7 +14,10 @@ import { execProcess, ProcessResult } from "../../../core/process.ts";
 
 import { PdfEngine } from "../../../config/pdf.ts";
 import { PackageManager } from "./pkgmgr.ts";
-import { kLatexBodyMessageOptions, kLatexHeaderMessageOptions } from "./pdf.ts";
+import {
+  kLatexBodyMessageOptions,
+  kLatexHeaderMessageOptions,
+} from "./types.ts";
 
 export interface LatexCommandReponse {
   log: string;

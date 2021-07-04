@@ -24,26 +24,14 @@ import {
   kOutputFile,
 } from "../../../config/constants.ts";
 import { Format } from "../../../config/format.ts";
-import { PdfEngine, pdfEngine } from "../../../config/pdf.ts";
+import { pdfEngine } from "../../../config/pdf.ts";
 
 import { PandocOptions } from "../pandoc.ts";
 import { RenderOptions } from "../render.ts";
 import { kStdOut, RenderFlags, replacePandocArg } from "../flags.ts";
 import { OutputRecipe } from "../output.ts";
 import { generatePdf } from "./pdf.ts";
-
-// latexmk options
-export interface LatexmkOptions {
-  input: string;
-  engine: PdfEngine;
-  autoInstall?: boolean;
-  autoMk?: boolean;
-  minRuns?: number;
-  maxRuns?: number;
-  outputDir?: string;
-  clean?: boolean;
-  quiet?: boolean;
-}
+import { LatexmkOptions } from "./types.ts";
 
 export function useQuartoLatexmk(
   format: Format,

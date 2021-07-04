@@ -8,9 +8,9 @@
 import { ld } from "lodash/mod.ts";
 
 import { ProcessResult } from "../../../core/process.ts";
-import { LatexmkOptions } from "./latexmk.ts";
 
 import { findPackages, installPackages, updatePackages } from "./texlive.ts";
+import { LatexmkOptions } from "./types.ts";
 
 export interface PackageManager {
   autoInstall: boolean;
