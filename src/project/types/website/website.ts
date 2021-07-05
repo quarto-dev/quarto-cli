@@ -14,13 +14,9 @@ import { dirAndStem } from "../../../core/path.ts";
 import { isHtmlContent } from "../../../core/mime.ts";
 
 import { kProject404File, ProjectContext } from "../../types.ts";
-import { projectOffset, projectOutputDir } from "../../project-shared.ts";
+import { ProjectCreate, ProjectOutputFile, ProjectType } from "../types.ts";
 
-import {
-  ProjectCreate,
-  ProjectOutputFile,
-  ProjectType,
-} from "../project-type.ts";
+import { projectOffset, projectOutputDir } from "../../project-shared.ts";
 
 import {
   Format,

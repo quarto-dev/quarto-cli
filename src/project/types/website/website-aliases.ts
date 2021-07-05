@@ -7,7 +7,7 @@
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { dirname, extname, join, relative } from "path/mod.ts";
 
-import { ProjectOutputFile } from "../project-type.ts";
+import { ProjectOutputFile } from "../types.ts";
 
 import { ProjectContext } from "../../types.ts";
 import { projectOutputDir } from "../../project-shared.ts";

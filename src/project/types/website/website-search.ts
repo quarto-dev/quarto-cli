@@ -18,12 +18,12 @@ import { resourcePath } from "../../../core/resources.ts";
 import { isHtmlContent } from "../../../core/mime.ts";
 
 import { FormatDependency } from "../../../config/types.ts";
+import { ProjectContext } from "../../types.ts";
+import { ProjectOutputFile } from "../types.ts";
 
 import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
-import { ProjectContext } from "../../types.ts";
 import { projectOutputDir } from "../../project-shared.ts";
 import { projectOffset } from "../../project-shared.ts";
-import { ProjectOutputFile } from "../project-type.ts";
 
 import { inputFileHref, websiteNavigationConfig } from "./website-shared.ts";
 import { websitePath, websiteTitle } from "./website-config.ts";

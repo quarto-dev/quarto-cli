@@ -1,5 +1,5 @@
 /*
-* project-type.ts
+* types.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
@@ -7,10 +7,8 @@
 
 import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
-
 import { PandocRenderer, RenderOptions } from "../../command/render/types.ts";
 import { PandocOptions } from "../../command/render/types.ts";
-
 import { ProjectConfig, ProjectContext } from "../types.ts";
 
 export interface ProjectType {

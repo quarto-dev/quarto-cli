@@ -37,7 +37,7 @@ import { disabledTableOfContents } from "../../../config/toc.ts";
 import { PandocOptions } from "../../../command/render/types.ts";
 import { pandocMetadataPath } from "../../../command/render/render-shared.ts";
 
-import { ProjectCreate, ProjectType } from "../project-type.ts";
+import { ProjectCreate, ProjectType } from "../types.ts";
 import { ProjectContext } from "../../types.ts";
 import {
   crossrefIndexForOutputFile,

@@ -7,7 +7,6 @@
 
 import { copySync, ensureDirSync, existsSync } from "fs/mod.ts";
 import { dirname, extname, join, relative } from "path/mod.ts";
-
 import { ld } from "lodash/mod.ts";
 
 import { resolvePathGlobs } from "../core/path.ts";
@@ -19,6 +18,7 @@ import {
   kProjectResources,
   ProjectConfig,
 } from "./types.ts";
+
 import { kQuartoIgnore } from "./project-gitignore.ts";
 
 export function projectResourceFiles(

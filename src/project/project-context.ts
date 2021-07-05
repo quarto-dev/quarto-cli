@@ -7,14 +7,23 @@
 
 import { dirname, globToRegExp, isAbsolute, join, relative } from "path/mod.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
-
 import { ld } from "lodash/mod.ts";
+
+import { ProjectType } from "./types/types.ts";
+import { Metadata } from "../config/types.ts";
+import {
+  kProjectLibDir,
+  kProjectOutputDir,
+  kProjectRender,
+  kProjectType,
+  ProjectConfig,
+  ProjectContext,
+} from "./types.ts";
 
 import { readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { kSkipHidden, pathWithForwardSlashes } from "../core/path.ts";
 
-import { Metadata } from "../config/types.ts";
 import { includedMetadata } from "../config/metadata.ts";
 import {
   kHtmlMathMethod,
@@ -23,7 +32,6 @@ import {
   kQuartoVarsKey,
 } from "../config/constants.ts";
 
-import { ProjectType } from "./types/project-type.ts";
 import { projectType } from "./types/project-types.ts";
 
 import { resolvePathGlobs } from "../core/path.ts";
@@ -37,14 +45,7 @@ import { kMarkdownEngine } from "../execute/markdown.ts";
 
 import { projectResourceFiles } from "./project-resources.ts";
 import { gitignoreEntries } from "./project-gitignore.ts";
-import {
-  kProjectLibDir,
-  kProjectOutputDir,
-  kProjectRender,
-  kProjectType,
-  ProjectConfig,
-  ProjectContext,
-} from "./types.ts";
+
 import { projectConfigFile, projectVarsFile } from "./project-shared.ts";
 
 export function deleteProjectMetadata(metadata: Metadata) {
