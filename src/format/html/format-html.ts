@@ -30,9 +30,9 @@ import {
   kDependencies,
   kHtmlPostprocessors,
   kSassBundles,
+  PandocFlags,
   SassBundle,
 } from "../../config/types.ts";
-import { PandocFlags } from "../../config/flags.ts";
 import { kTheme } from "../../config/constants.ts";
 
 import { print, sassVariable } from "../../command/render/sass.ts";

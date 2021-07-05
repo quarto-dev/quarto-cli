@@ -7,7 +7,7 @@
 
 import { Document } from "deno_dom/deno-dom-wasm.ts";
 
-import { Format } from "../../config/types.ts";
+import { Format, PandocFlags } from "../../config/types.ts";
 import {
   ExecuteResult,
   ExecutionEngine,
@@ -15,7 +15,6 @@ import {
 } from "../../execute/types.ts";
 import { Metadata } from "../../config/types.ts";
 
-import { RenderFlags } from "./flags.ts";
 import { ProjectContext } from "../../project/project-shared.ts";
 import { OutputRecipe } from "./output.ts";
 
@@ -127,4 +126,20 @@ export interface PandocOptions {
 
   // optional offset from file to project dir
   offset?: string;
+}
+
+// command line flags that we need to inspect
+export interface RenderFlags extends PandocFlags {
+  // quarto flags
+  executeDir?: string;
+  execute?: boolean;
+  executeCache?: true | false | "refresh";
+  executeDaemon?: number;
+  executeDaemonRestart?: boolean;
+  executeDebug?: boolean;
+  metadata?: { [key: string]: unknown };
+  params?: { [key: string]: unknown };
+  paramsFile?: string;
+  debug?: boolean;
+  quiet?: boolean;
 }

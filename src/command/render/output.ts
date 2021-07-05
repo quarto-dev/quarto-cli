@@ -34,13 +34,8 @@ import {
   useQuartoLatexmk,
 } from "./latexmk/latexmk.ts";
 
-import {
-  havePandocArg,
-  kStdOut,
-  RenderFlags,
-  replacePandocArg,
-} from "./flags.ts";
-import { PandocOptions, RenderContext } from "./types.ts";
+import { havePandocArg, kStdOut, replacePandocArg } from "./flags.ts";
+import { PandocOptions, RenderContext, RenderFlags } from "./types.ts";
 import { resolveKeepSource } from "./codetools.ts";
 
 // render commands imply the --output argument for pandoc and the final

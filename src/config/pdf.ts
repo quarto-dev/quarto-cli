@@ -6,8 +6,7 @@
 */
 
 // union of metadata and command line flags which determine
-import { FormatPandoc, FormatRender } from "./types.ts";
-import { PandocFlags } from "./flags.ts";
+import { FormatPandoc, FormatRender, PandocFlags } from "./types.ts";
 import {
   kCiteMethod,
   kLatexMakeIndex,

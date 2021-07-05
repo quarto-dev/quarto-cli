@@ -30,12 +30,14 @@ import {
   kFilterParams,
   kFilters,
   kFreeze,
+  kGladtex,
   kHighlightStyle,
   kHtmlMathMethod,
   kInclude,
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
+  kKatex,
   kKeepHidden,
   kKeepIpynb,
   kKeepYaml,
@@ -50,6 +52,8 @@ import {
   kLatexTlmgrOpts,
   kListings,
   kMarkdownHeadings,
+  kMathjax,
+  kMathml,
   kMergeIncludes,
   kNumberOffset,
   kNumberSections,
@@ -71,6 +75,7 @@ import {
   kVariables,
   kVariant,
   kWarning,
+  kWebtex,
 } from "../config/constants.ts";
 
 import {
@@ -85,8 +90,6 @@ import {
   kOutputExt,
   kPageWidth,
 } from "./constants.ts";
-
-import { PandocFlags } from "./flags.ts";
 
 export const kDependencies = "dependencies";
 export const kSassBundles = "sass-bundles";
@@ -262,4 +265,31 @@ export interface FormatPandoc {
   [kHtmlMathMethod]?: string | { method: string; url: string };
   [kTopLevelDivision]?: string;
   [kShiftHeadingLevelBy]?: number;
+}
+
+export interface PandocFlags {
+  to?: string;
+  output?: string;
+  [kSelfContained]?: boolean;
+  pdfEngine?: string;
+  pdfEngineOpts?: string[];
+  makeIndexOpts?: string[];
+  tlmgrOpts?: string[];
+  natbib?: boolean;
+  biblatex?: boolean;
+  [kToc]?: boolean;
+  [kTocTitle]?: string;
+  [kListings]?: boolean;
+  [kNumberSections]?: boolean;
+  [kNumberOffset]?: number[];
+  [kTopLevelDivision]?: string;
+  [kShiftHeadingLevelBy]?: string;
+  [kIncludeInHeader]?: string;
+  [kIncludeBeforeBody]?: string;
+  [kIncludeAfterBody]?: string;
+  [kMathjax]?: boolean;
+  [kKatex]?: boolean;
+  [kMathml]?: boolean;
+  [kGladtex]?: boolean;
+  [kWebtex]?: boolean;
 }

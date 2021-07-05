@@ -12,7 +12,7 @@ import {
   kNumberSections,
 } from "../../config/constants.ts";
 import { FormatPandoc } from "../../config/types.ts";
-import { PandocFlags } from "../../config/flags.ts";
+import { PandocFlags } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 
 import { PandocOptions } from "./types.ts";

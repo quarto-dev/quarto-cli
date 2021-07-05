@@ -71,9 +71,9 @@ import { defaultWriterFormat } from "../../format/formats.ts";
 
 import { formatHasBootstrap } from "../../format/html/format-html-bootstrap.ts";
 
-import { PandocOptions } from "./types.ts";
+import { PandocOptions, RenderFlags } from "./types.ts";
 import { runPandoc } from "./pandoc.ts";
-import { removePandocToArg, RenderFlags, resolveParams } from "./flags.ts";
+import { removePandocToArg, resolveParams } from "./flags.ts";
 import { renderCleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
 import {

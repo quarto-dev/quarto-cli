@@ -27,7 +27,7 @@ import {
   kSassBundles,
 } from "../../config/types.ts";
 import { isHtmlOutput } from "../../config/format.ts";
-import { PandocFlags } from "../../config/flags.ts";
+import { PandocFlags } from "../../config/types.ts";
 import {
   hasTableOfContents,
   hasTableOfContentsTitle,

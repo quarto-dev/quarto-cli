@@ -22,7 +22,7 @@ import {
   isHtmlOutput,
   isLatexOutput,
 } from "../../../config/format.ts";
-import { PandocFlags } from "../../../config/flags.ts";
+import { PandocFlags } from "../../../config/types.ts";
 import {
   kCrossref,
   kCrossrefChapters,

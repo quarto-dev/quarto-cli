@@ -24,14 +24,13 @@ import {
   kTopLevelDivision,
   kWarning,
 } from "../../config/constants.ts";
-import { Format, FormatExtras } from "../../config/types.ts";
+import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
 
 import { createFormat } from "../formats.ts";
 
 import { RenderedFile } from "../../command/render/types.ts";
 import { ProjectContext } from "../../project/project-shared.ts";
 import { BookExtension } from "../../project/types/book/book-shared.ts";
-import { PandocFlags } from "../../config/flags.ts";
 
 export function pdfFormat(): Format {
   return mergeConfigs(
