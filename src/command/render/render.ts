@@ -36,7 +36,6 @@ import { warnOnce } from "../../core/log.ts";
 import {
   formatFromMetadata,
   includedMetadata,
-  Metadata,
   metadataAsFormat,
 } from "../../config/metadata.ts";
 import {
@@ -72,7 +71,8 @@ import { defaultWriterFormat } from "../../format/formats.ts";
 
 import { formatHasBootstrap } from "../../format/html/format-html-bootstrap.ts";
 
-import { PandocOptions, runPandoc } from "./pandoc.ts";
+import { PandocOptions } from "./types.ts";
+import { runPandoc } from "./pandoc.ts";
 import { removePandocToArg, RenderFlags, resolveParams } from "./flags.ts";
 import { renderCleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
@@ -115,6 +115,7 @@ import {
   ExecutionTarget,
   PandocIncludes,
 } from "../../execute/types.ts";
+import { Metadata } from "../../config/types.ts";
 
 export async function renderFiles(
   files: string[],

@@ -17,7 +17,7 @@ import {
 } from "../../core/css.ts";
 
 import { SassBundle, SassLayer } from "../../config/format.ts";
-import { Metadata } from "../../config/metadata.ts";
+import { Metadata } from "../../config/types.ts";
 import { kTheme } from "../../config/constants.ts";
 
 import {

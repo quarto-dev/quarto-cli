@@ -39,8 +39,7 @@ import {
   RenderFlags,
   replacePandocArg,
 } from "./flags.ts";
-import { PandocOptions } from "./pandoc.ts";
-import { RenderContext } from "./types.ts";
+import { PandocOptions, RenderContext } from "./types.ts";
 import { resolveKeepSource } from "./codetools.ts";
 
 // render commands imply the --output argument for pandoc and the final

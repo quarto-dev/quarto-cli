@@ -26,8 +26,7 @@ import {
 import { Format } from "../../../config/format.ts";
 import { pdfEngine } from "../../../config/pdf.ts";
 
-import { PandocOptions } from "../pandoc.ts";
-import { RenderOptions } from "../types.ts";
+import { PandocOptions, RenderOptions } from "../types.ts";
 import { kStdOut, RenderFlags, replacePandocArg } from "../flags.ts";
 import { OutputRecipe } from "../output.ts";
 import { generatePdf } from "./pdf.ts";

@@ -18,7 +18,7 @@ import { execProcess } from "../../../core/process.ts";
 import { binaryPath } from "../../../core/resources.ts";
 
 import { kBibliography, kCsl } from "../../../config/constants.ts";
-import { Metadata } from "../../../config/metadata.ts";
+import { Metadata } from "../../../config/types.ts";
 
 import {
   kProjectRender,

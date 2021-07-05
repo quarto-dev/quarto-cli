@@ -12,7 +12,7 @@ import { fileExecutionEngine } from "../execute/engine.ts";
 import { dirAndStem, pathWithForwardSlashes } from "../core/path.ts";
 import { PartitionedMarkdown } from "../core/pandoc/pandoc-partition.ts";
 
-import { Metadata } from "../config/metadata.ts";
+import { Metadata } from "../config/types.ts";
 import { Format } from "../config/format.ts";
 
 import { kOutputFile, kTitle } from "../config/constants.ts";

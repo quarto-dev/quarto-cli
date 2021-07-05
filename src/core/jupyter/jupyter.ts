@@ -66,7 +66,7 @@ import {
 import { removeAndPreserveHtml } from "./preserve.ts";
 import { FormatExecute } from "../../config/format.ts";
 import { pandocAsciify, pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
-import { Metadata } from "../../config/metadata.ts";
+import { Metadata } from "../../config/types.ts";
 import {
   kCellAutoscroll,
   kCellClasses,

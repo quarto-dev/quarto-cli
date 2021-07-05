@@ -17,6 +17,7 @@ import {
 import { RenderFlags } from "./flags.ts";
 import { ProjectContext } from "../../project/project-shared.ts";
 import { OutputRecipe } from "./output.ts";
+import { Metadata } from "../../config/types.ts";
 
 // options for render
 export interface RenderOptions {
@@ -93,4 +94,37 @@ export interface PandocRenderer {
 export interface RenderFilesResult {
   files: RenderedFile[];
   error?: Error;
+}
+
+// options required to run pandoc
+export interface PandocOptions {
+  // markdown input
+  markdown: string;
+
+  // original source file
+  source: string;
+
+  // original metadata
+  metadata: Metadata;
+
+  // output file that will be written
+  output: string;
+
+  // lib dir for converstion
+  libDir: string;
+
+  // target format
+  format: Format;
+  // command line args for pandoc
+  args: string[];
+
+  // optoinal project context
+  project?: ProjectContext;
+
+  // command line flags (e.g. could be used
+  // to specify e.g. quiet or pdf engine)
+  flags?: RenderFlags;
+
+  // optional offset from file to project dir
+  offset?: string;
 }

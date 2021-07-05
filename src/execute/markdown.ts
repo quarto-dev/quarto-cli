@@ -8,7 +8,7 @@
 import { readYamlFromMarkdownFile } from "../core/yaml.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 
-import { Metadata } from "../config/metadata.ts";
+import { Metadata } from "../config/types.ts";
 
 import {
   DependenciesOptions,

@@ -20,7 +20,7 @@ import {
   kOutputDivs,
 } from "../../config/constants.ts";
 import { Format, FormatPandoc } from "../../config/format.ts";
-import { Metadata } from "../../config/metadata.ts";
+import { Metadata } from "../../config/types.ts";
 import { bibEngine } from "../../config/pdf.ts";
 import { resourcePath } from "../../core/resources.ts";
 import {
@@ -29,7 +29,8 @@ import {
   crossrefFilterParams,
 } from "./crossref.ts";
 import { layoutFilter, layoutFilterParams } from "./layout.ts";
-import { pandocMetadataPath, PandocOptions } from "./pandoc.ts";
+import { PandocOptions } from "./types.ts";
+import { pandocMetadataPath } from "./render-shared.ts";
 import { removePandocArgs } from "./flags.ts";
 import { ld } from "lodash/mod.ts";
 import { mergeConfigs } from "../../core/config.ts";

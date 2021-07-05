@@ -30,10 +30,7 @@ import {
   kRenderDefaultsKeys,
 } from "./constants.ts";
 import { Format } from "./format.ts";
-
-export type Metadata = {
-  [key: string]: unknown;
-};
+import { Metadata } from "./types.ts";
 
 export function includedMetadata(
   dir: string,

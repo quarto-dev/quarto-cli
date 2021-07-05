@@ -12,7 +12,7 @@ import {
   kIncludeInHeader,
 } from "../config/constants.ts";
 import { Format } from "../config/format.ts";
-import { Metadata } from "../config/metadata.ts";
+import { Metadata } from "../config/types.ts";
 import { PartitionedMarkdown } from "../core/pandoc/pandoc-partition.ts";
 import { ProjectContext } from "../project/project-shared.ts";
 

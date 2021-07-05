@@ -4,10 +4,12 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+import { pathWithForwardSlashes } from "../../core/path.ts";
 import {
   projectContext,
   projectContextForDirectory,
 } from "../../project/project-context.ts";
+
 import { renderProject } from "./project.ts";
 import { renderFiles } from "./render.ts";
 import { RenderOptions, RenderResult } from "./types.ts";
@@ -67,4 +69,8 @@ export async function render(
     }),
     error: result.error,
   };
+}
+
+export function pandocMetadataPath(path: string) {
+  return pathWithForwardSlashes(path);
 }

@@ -48,6 +48,8 @@ export interface ProjectConfig {
   [key: string]: unknown;
 }
 
+export const kProject404File = "404.html";
+
 export function projectOutputDir(context: ProjectContext): string {
   let outputDir = context.config?.project[kProjectOutputDir];
   if (outputDir) {

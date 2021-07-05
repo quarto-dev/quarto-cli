@@ -7,10 +7,10 @@
 
 import { PandocFlags } from "../../config/flags.ts";
 import { Format, FormatExtras } from "../../config/format.ts";
-import { Metadata } from "../../config/metadata.ts";
+import { Metadata } from "../../config/types.ts";
 
 import { PandocRenderer, RenderOptions } from "../../command/render/types.ts";
-import { PandocOptions } from "../../command/render/pandoc.ts";
+import { PandocOptions } from "../../command/render/types.ts";
 
 import { ProjectConfig, ProjectContext } from "../project-shared.ts";
 

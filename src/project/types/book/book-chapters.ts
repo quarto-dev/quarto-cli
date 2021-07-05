@@ -16,7 +16,7 @@ import {
   kToc,
 } from "../../../config/constants.ts";
 import { Format } from "../../../config/format.ts";
-import { Metadata } from "../../../config/metadata.ts";
+import { Metadata } from "../../../config/types.ts";
 
 import { ProjectConfig, ProjectContext } from "../../project-shared.ts";
 

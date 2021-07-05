@@ -11,7 +11,7 @@ import { basename, join } from "path/mod.ts";
 import { ld } from "lodash/mod.ts";
 
 import { safeExistsSync } from "../../../core/path.ts";
-import { Metadata } from "../../../config/metadata.ts";
+import { Metadata } from "../../../config/types.ts";
 
 import {
   engineValidExtensions,

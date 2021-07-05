@@ -13,9 +13,9 @@ import {
 } from "../../config/constants.ts";
 import { FormatPandoc } from "../../config/format.ts";
 import { PandocFlags } from "../../config/flags.ts";
-import { Metadata } from "../../config/metadata.ts";
+import { Metadata } from "../../config/types.ts";
 
-import { PandocOptions } from "./pandoc.ts";
+import { PandocOptions } from "./types.ts";
 
 export function crossrefFilter() {
   return resourcePath("filters/crossref/crossref.lua");

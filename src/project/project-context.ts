@@ -14,7 +14,8 @@ import { readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { kSkipHidden, pathWithForwardSlashes } from "../core/path.ts";
 
-import { includedMetadata, Metadata } from "../config/metadata.ts";
+import { Metadata } from "../config/types.ts";
+import { includedMetadata } from "../config/metadata.ts";
 import {
   kHtmlMathMethod,
   kMetadataFile,

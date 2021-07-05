@@ -32,10 +32,8 @@ import {
 } from "../../../config/constants.ts";
 import { disabledTableOfContents } from "../../../config/toc.ts";
 
-import {
-  pandocMetadataPath,
-  PandocOptions,
-} from "../../../command/render/pandoc.ts";
+import { PandocOptions } from "../../../command/render/types.ts";
+import { pandocMetadataPath } from "../../../command/render/render-shared.ts";
 
 import { ProjectCreate, ProjectType } from "../project-type.ts";
 import { ProjectContext } from "../../project-shared.ts";

@@ -74,7 +74,7 @@ import {
   kWarning,
 } from "../config/constants.ts";
 
-import { Metadata } from "./metadata.ts";
+import { Metadata } from "./types.ts";
 
 import {
   kError,
