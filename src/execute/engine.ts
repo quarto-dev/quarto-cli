@@ -16,18 +16,13 @@ import {
 import { dirAndStem } from "../core/path.ts";
 
 import { languagesInMarkdown } from "../core/jupyter/jupyter.ts";
-import { restorePreservedHtml } from "../core/jupyter/preserve.ts";
 import { metadataAsFormat } from "../config/metadata.ts";
 import { kEngine } from "../config/constants.ts";
 
 import { knitrEngine } from "./rmd.ts";
 import { jupyterEngine } from "./jupyter/jupyter.ts";
 import { markdownEngine } from "./markdown.ts";
-import {
-  ExecutionEngine,
-  ExecutionTarget,
-  PostProcessOptions,
-} from "./types.ts";
+import { ExecutionEngine, ExecutionTarget } from "./types.ts";
 
 const kEngines: ExecutionEngine[] = [
   knitrEngine,
@@ -171,18 +166,4 @@ export function engineIgnoreGlobs() {
     }
   });
   return ignoreGlobs;
-}
-
-export function postProcessRestorePreservedHtml(options: PostProcessOptions) {
-  // read the output file
-  let output = Deno.readTextFileSync(options.output);
-
-  // substitute
-  output = restorePreservedHtml(
-    output,
-    options.preserve,
-  );
-
-  // re-write the output
-  Deno.writeTextFileSync(options.output, output);
 }

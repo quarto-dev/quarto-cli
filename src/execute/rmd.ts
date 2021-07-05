@@ -14,7 +14,6 @@ import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 
 import { kCodeLink } from "../config/constants.ts";
 
-import { postProcessRestorePreservedHtml } from "./engine.ts";
 import { sessionTempFile } from "../core/temp.ts";
 import {
   knitrCapabilities,
@@ -31,6 +30,7 @@ import {
   PostProcessOptions,
   RunOptions,
 } from "./types.ts";
+import { postProcessRestorePreservedHtml } from "./engine-shared.ts";
 
 const kRmdExtensions = [".rmd", ".rmarkdown"];
 

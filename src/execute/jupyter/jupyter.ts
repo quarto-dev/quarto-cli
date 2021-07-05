@@ -16,7 +16,6 @@ import { partitionMarkdown } from "../../core/pandoc/pandoc-partition.ts";
 import { dirAndStem, removeIfExists } from "../../core/path.ts";
 import { runningInCI } from "../../core/ci-info.ts";
 
-import { postProcessRestorePreservedHtml } from "../engine.ts";
 import {
   isJupyterNotebook,
   jupyterAssets,
@@ -63,6 +62,7 @@ import {
   PandocIncludes,
   PostProcessOptions,
 } from "../types.ts";
+import { postProcessRestorePreservedHtml } from "../engine-shared.ts";
 
 const kJupyterEngine = "jupyter";
 
