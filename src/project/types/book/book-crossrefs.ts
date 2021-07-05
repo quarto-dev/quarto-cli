@@ -21,7 +21,7 @@ import {
 } from "../../../config/constants.ts";
 import { defaultWriterFormat } from "../../../format/formats.ts";
 import { ProjectContext } from "../../types.ts";
-import { projectOutputDir } from "../../project-context.ts";
+import { projectOutputDir } from "../../project-shared.ts";
 import { crossrefIndexForOutputFile } from "../../project-crossrefs.ts";
 import { WebsiteProjectOutputFile } from "../website/website.ts";
 

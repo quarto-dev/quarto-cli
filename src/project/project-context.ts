@@ -185,20 +185,6 @@ export function projectContextForDirectory(
   return projectContext(path, true) as Promise<ProjectContext>;
 }
 
-export function projectOutputDir(context: ProjectContext): string {
-  let outputDir = context.config?.project[kProjectOutputDir];
-  if (outputDir) {
-    outputDir = join(context.dir, outputDir);
-  } else {
-    outputDir = context.dir;
-  }
-  if (existsSync(outputDir)) {
-    return Deno.realPathSync(outputDir);
-  } else {
-    return outputDir;
-  }
-}
-
 export function projectIsWebserverTarget(context: ProjectContext): boolean {
   const projType = projectType(context.config?.project?.[kProjectType]);
   return !!projType.canServe;
