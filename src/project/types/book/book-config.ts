@@ -50,7 +50,12 @@ import {
 } from "../website/website-config.ts";
 import { kSidebarLogo } from "../website/website-navigation.ts";
 
-import { isMultiFileBookFormat, isNumberedChapter } from "./book-shared.ts";
+import {
+  bookConfig,
+  isMultiFileBookFormat,
+  isNumberedChapter,
+  kBook,
+} from "./book-shared.ts";
 import { kOutputExt, kTitle } from "../../../config/constants.ts";
 
 import { binaryPath } from "../../../core/resources.ts";
@@ -58,7 +63,6 @@ import { execProcess } from "../../../core/process.ts";
 
 const kAppendicesSectionLabel = "Appendices";
 
-export const kBook = "book";
 export const kBookChapters = "chapters";
 export const kBookAppendix = "appendices";
 export const kBookReferences = "references";
@@ -70,29 +74,10 @@ export const kBookDownloads = "downloads";
 export const kBookTools = "tools";
 export const kBookSearch = "search";
 export const kBookAttribution = "attribution";
-export const kBookCoverImage = "cover-image";
 
 export const kBookItemChapter = "chapter";
 export const kBookItemAppendix = "appendix";
 export const kBookItemPart = "part";
-
-export type BookConfigKey =
-  | "output-file"
-  | "chapters"
-  | "references"
-  | "appendices"
-  | "render"
-  | "repo-actions"
-  | "sharing"
-  | "downloads"
-  | "tools"
-  | "title"
-  | "subtitle"
-  | "author"
-  | "description"
-  | "date"
-  | "abstract"
-  | "cover-image";
 
 export async function bookProjectConfig(
   projectDir: string,
@@ -214,24 +199,6 @@ export async function bookProjectConfig(
 
   // return config
   return config;
-}
-
-export function bookConfig(
-  name: BookConfigKey,
-  project?: ProjectConfig,
-) {
-  const book = project?.[kBook] as
-    | Record<string, unknown>
-    | undefined;
-  if (book) {
-    return book[name] as
-      | Array<unknown>
-      | Record<string, unknown>
-      | string
-      | undefined;
-  } else {
-    return undefined;
-  }
 }
 
 export function bookConfigRenderItems(

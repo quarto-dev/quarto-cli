@@ -52,10 +52,10 @@ import {
   bookPandocRenderer,
   bookPostRender,
 } from "./book-render.ts";
-import { bookProjectConfig, kBook } from "./book-config.ts";
+import { bookProjectConfig } from "./book-config.ts";
 
 import { chapterInfoForInput, formatChapterHtmlNav } from "./book-chapters.ts";
-import { isMultiFileBookFormat } from "./book-shared.ts";
+import { isMultiFileBookFormat, kBook } from "./book-shared.ts";
 import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
 import { formatHasBootstrap } from "../../../format/html/format-html-bootstrap.ts";
 

@@ -10,6 +10,27 @@ import { Format } from "../../../config/types.ts";
 import { PartitionedMarkdown } from "../../../core/pandoc/types.ts";
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 
+export type BookConfigKey =
+  | "output-file"
+  | "chapters"
+  | "references"
+  | "appendices"
+  | "render"
+  | "repo-actions"
+  | "sharing"
+  | "downloads"
+  | "tools"
+  | "title"
+  | "subtitle"
+  | "author"
+  | "description"
+  | "date"
+  | "abstract"
+  | "cover-image";
+
+export const kBook = "book";
+export const kBookCoverImage = "cover-image";
+
 export interface BookExtension {
   // bool extensions are single file by default but can elect to be multi file
   multiFile?: boolean;
@@ -22,6 +43,24 @@ export interface BookExtension {
     project: ProjectContext,
     file: RenderedFile,
   ) => void;
+}
+
+export function bookConfig(
+  name: BookConfigKey,
+  project?: ProjectConfig,
+) {
+  const book = project?.[kBook] as
+    | Record<string, unknown>
+    | undefined;
+  if (book) {
+    return book[name] as
+      | Array<unknown>
+      | Record<string, unknown>
+      | string
+      | undefined;
+  } else {
+    return undefined;
+  }
 }
 
 export function isNumberedChapter(partitioned: PartitionedMarkdown) {

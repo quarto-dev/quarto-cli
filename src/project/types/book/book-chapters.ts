@@ -20,11 +20,8 @@ import { Metadata } from "../../../config/types.ts";
 
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 
-import {
-  bookConfig,
-  bookConfigRenderItems,
-  kBookItemAppendix,
-} from "./book-config.ts";
+import { bookConfigRenderItems, kBookItemAppendix } from "./book-config.ts";
+import { bookConfig } from "./book-shared.ts";
 
 export function withChapterMetadata(
   format: Format,

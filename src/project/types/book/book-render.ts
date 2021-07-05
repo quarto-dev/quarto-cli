@@ -54,13 +54,10 @@ import {
   onSingleFileBookPreRender,
 } from "./book-extension.ts";
 import {
-  bookConfig,
-  BookConfigKey,
   bookConfigRenderItems,
   bookOutputStem,
   BookRenderItem,
   isBookIndexPage,
-  kBookCoverImage,
   kBookItemAppendix,
   kBookItemPart,
 } from "./book-config.ts";
@@ -70,7 +67,13 @@ import {
   isListedChapter,
   withChapterMetadata,
 } from "./book-chapters.ts";
-import { isMultiFileBookFormat, isNumberedChapter } from "./book-shared.ts";
+import {
+  bookConfig,
+  BookConfigKey,
+  isMultiFileBookFormat,
+  isNumberedChapter,
+  kBookCoverImage,
+} from "./book-shared.ts";
 import { bookCrossrefsPostRender } from "./book-crossrefs.ts";
 import { bookBibliographyPostRender } from "./book-bibliography.ts";
 
