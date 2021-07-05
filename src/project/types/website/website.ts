@@ -14,7 +14,7 @@ import { dirAndStem } from "../../../core/path.ts";
 import { isHtmlContent } from "../../../core/mime.ts";
 
 import { ProjectContext } from "../../project-shared.ts";
-import { projectOffset, projectOutputDir } from "../../project-context.ts";
+import { projectOffset, projectOutputDir } from "../../project-shared.ts";
 import { kProject404File } from "../../project-resources.ts";
 
 import {

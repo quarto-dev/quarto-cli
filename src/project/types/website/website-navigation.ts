@@ -49,7 +49,7 @@ import {
   ProjectContext,
   projectOutputDir,
 } from "../../project-shared.ts";
-import { projectOffset } from "../../project-context.ts";
+import { projectOffset } from "../../project-shared.ts";
 import { resolveInputTarget } from "../../project-index.ts";
 import {
   kCollapseBelow,

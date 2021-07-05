@@ -21,7 +21,7 @@ import { FormatDependency } from "../../../config/format.ts";
 
 import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
 import { ProjectContext, projectOutputDir } from "../../project-shared.ts";
-import { projectOffset } from "../../project-context.ts";
+import { projectOffset } from "../../project-shared.ts";
 import { ProjectOutputFile } from "../project-type.ts";
 
 import { inputFileHref, websiteNavigationConfig } from "./website-shared.ts";

@@ -6,9 +6,10 @@
 */
 
 import { existsSync } from "fs/exists.ts";
-import { join } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 import { PandocFlags } from "../config/flags.ts";
 import { Format, FormatExtras } from "../config/format.ts";
+import { pathWithForwardSlashes } from "../core/path.ts";
 
 export const kProjectType = "type";
 export const kProjectRender = "render";
@@ -71,4 +72,11 @@ export function projectVarsFile(dir: string): string | undefined {
   return ["_variables.yml", "_variables.yaml"]
     .map((file) => join(dir, file))
     .find(existsSync);
+}
+
+export function projectOffset(context: ProjectContext, input: string) {
+  const projDir = Deno.realPathSync(context.dir);
+  const inputDir = Deno.realPathSync(dirname(input));
+  const offset = relative(inputDir, projDir) || ".";
+  return pathWithForwardSlashes(offset);
 }

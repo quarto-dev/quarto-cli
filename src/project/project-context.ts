@@ -203,13 +203,6 @@ export function projectIsWebserverTarget(context: ProjectContext): boolean {
   return !!projType.canServe;
 }
 
-export function projectOffset(context: ProjectContext, input: string) {
-  const projDir = Deno.realPathSync(context.dir);
-  const inputDir = Deno.realPathSync(dirname(input));
-  const offset = relative(inputDir, projDir) || ".";
-  return pathWithForwardSlashes(offset);
-}
-
 export function projectIgnoreGlobs(dir: string) {
   return engineIgnoreGlobs().concat(
     gitignoreEntries(dir).map((ignore) => `**/${ignore}**`),
