@@ -11,7 +11,7 @@ import { Metadata } from "../../config/types.ts";
 import { PandocRenderer, RenderOptions } from "../../command/render/types.ts";
 import { PandocOptions } from "../../command/render/types.ts";
 
-import { ProjectConfig, ProjectContext } from "../project-shared.ts";
+import { ProjectConfig, ProjectContext } from "../types.ts";
 
 export interface ProjectType {
   type: string;

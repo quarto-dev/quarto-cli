@@ -19,11 +19,8 @@ import { kOutputFile, kTitle } from "../config/constants.ts";
 
 import { renderFormats } from "../command/render/render.ts";
 
-import {
-  projectConfigFile,
-  ProjectContext,
-  projectOutputDir,
-} from "./project-shared.ts";
+import { ProjectContext } from "./types.ts";
+import { projectConfigFile, projectOutputDir } from "./project-shared.ts";
 
 import { projectScratchPath } from "./project-scratch.ts";
 

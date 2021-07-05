@@ -42,7 +42,7 @@ import {
 import { outputRecipe } from "../../../command/render/output.ts";
 import { renderCleanup } from "../../../command/render/cleanup.ts";
 
-import { ProjectConfig, ProjectContext } from "../../project-shared.ts";
+import { ProjectConfig, ProjectContext } from "../../types.ts";
 import { ProjectOutputFile } from "../project-type.ts";
 
 import { executionEngineKeepMd } from "../../../execute/engine.ts";

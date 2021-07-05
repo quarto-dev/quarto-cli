@@ -9,7 +9,7 @@ import { join } from "path/mod.ts";
 
 import { dirAndStem, pathWithForwardSlashes } from "../../../core/path.ts";
 
-import { ProjectContext } from "../../project-shared.ts";
+import { ProjectContext } from "../../types.ts";
 import { Navbar, Sidebar } from "../../project-config.ts";
 import {
   kSiteFooter,

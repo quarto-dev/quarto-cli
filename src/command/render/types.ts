@@ -14,9 +14,7 @@ import {
   ExecutionTarget,
 } from "../../execute/types.ts";
 import { Metadata } from "../../config/types.ts";
-
-import { ProjectContext } from "../../project/project-shared.ts";
-import { OutputRecipe } from "./output.ts";
+import { ProjectContext } from "../../project/types.ts";
 
 // options for render
 export interface RenderOptions {
@@ -142,4 +140,17 @@ export interface RenderFlags extends PandocFlags {
   paramsFile?: string;
   debug?: boolean;
   quiet?: boolean;
+}
+
+export interface OutputRecipe {
+  // --output file that pandoc will produce
+  output: string;
+  // transformed pandoc args reflecting 'output'
+  args: string[];
+  // modifications to format spec
+  format: Format;
+  // callback for completing the output recipe (e.g. might run pdflatex, etc.).
+  // can optionally return an alternate output path. passed the actual
+  // options used to run pandoc (for deducing e.g. pdf engine options)
+  complete: (options: PandocOptions) => Promise<string | void>;
 }

@@ -14,7 +14,7 @@ import {
 } from "../../../config/constants.ts";
 import { isHtmlOutput } from "../../../config/format.ts";
 
-import { ProjectConfig } from "../../project-shared.ts";
+import { ProjectConfig } from "../../types.ts";
 
 export const kSite = "site";
 

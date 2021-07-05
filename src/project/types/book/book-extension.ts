@@ -15,11 +15,8 @@ import { kOutputFile } from "../../../config/constants.ts";
 
 import { defaultWriterFormat } from "../../../format/formats.ts";
 
-import {
-  ProjectConfig,
-  ProjectContext,
-  projectOutputDir,
-} from "../../project-shared.ts";
+import { ProjectConfig, ProjectContext } from "../../types.ts";
+import { projectOutputDir } from "../../project-shared.ts";
 import { inputTargetIndex } from "../../project-index.ts";
 import { bookConfigRenderItems } from "./book-config.ts";
 import { BookRenderItem } from "./book-config.ts";

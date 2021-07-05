@@ -19,7 +19,7 @@ import { Format, FormatExtras } from "../../../config/types.ts";
 import { Metadata } from "../../../config/types.ts";
 import { mergeConfigs } from "../../../core/config.ts";
 import PngImage from "../../../core/png.ts";
-import { ProjectContext } from "../../project-shared.ts";
+import { ProjectContext } from "../../types.ts";
 import {
   kCardStyle,
   kCreator,

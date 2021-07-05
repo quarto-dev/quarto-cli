@@ -43,12 +43,8 @@ import {
 
 import { kDataQuartoSourceUrl } from "../../../command/render/codetools.ts";
 
-import {
-  kProjectType,
-  ProjectConfig,
-  ProjectContext,
-  projectOutputDir,
-} from "../../project-shared.ts";
+import { kProjectType, ProjectConfig, ProjectContext } from "../../types.ts";
+import { projectOutputDir } from "../../project-shared.ts";
 import { projectOffset } from "../../project-shared.ts";
 import { resolveInputTarget } from "../../project-index.ts";
 import {

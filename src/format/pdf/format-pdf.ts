@@ -29,7 +29,7 @@ import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
 import { createFormat } from "../formats.ts";
 
 import { RenderedFile } from "../../command/render/types.ts";
-import { ProjectContext } from "../../project/project-shared.ts";
+import { ProjectContext } from "../../project/types.ts";
 import { BookExtension } from "../../project/types/book/book-shared.ts";
 
 export function pdfFormat(): Format {

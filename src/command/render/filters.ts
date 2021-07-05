@@ -19,8 +19,10 @@ import {
   kMergeIncludes,
   kOutputDivs,
 } from "../../config/constants.ts";
+import { PandocOptions } from "./types.ts";
 import { Format, FormatPandoc } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
+import { kProjectType } from "../../project/types.ts";
 import { bibEngine } from "../../config/pdf.ts";
 import { resourcePath } from "../../core/resources.ts";
 import {
@@ -29,12 +31,10 @@ import {
   crossrefFilterParams,
 } from "./crossref.ts";
 import { layoutFilter, layoutFilterParams } from "./layout.ts";
-import { PandocOptions } from "./types.ts";
 import { pandocMetadataPath } from "./render-shared.ts";
 import { removePandocArgs } from "./flags.ts";
 import { ld } from "lodash/mod.ts";
 import { mergeConfigs } from "../../core/config.ts";
-import { kProjectType } from "../../project/project-shared.ts";
 import { projectType } from "../../project/types/project-types.ts";
 
 const kQuartoParams = "quarto-params";

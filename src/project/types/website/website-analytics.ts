@@ -10,7 +10,7 @@ import { kTitle } from "../../../config/constants.ts";
 import { Metadata } from "../../../config/types.ts";
 import { projectTypeResourcePath } from "../../../core/resources.ts";
 import { sessionTempFile } from "../../../core/temp.ts";
-import { ProjectContext } from "../../project-shared.ts";
+import { ProjectContext } from "../../types.ts";
 import { kSite } from "./website-config.ts";
 
 // tracking id for google analytics

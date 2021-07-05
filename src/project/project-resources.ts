@@ -18,7 +18,7 @@ import {
   kProjectOutputDir,
   kProjectResources,
   ProjectConfig,
-} from "./project-shared.ts";
+} from "./types.ts";
 import { kQuartoIgnore } from "./project-gitignore.ts";
 
 export function projectResourceFiles(

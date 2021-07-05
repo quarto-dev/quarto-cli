@@ -42,7 +42,7 @@ import {
 } from "../../config/constants.ts";
 
 import { RenderContext } from "../../command/render/types.ts";
-import { ProjectContext } from "../../project/project-shared.ts";
+import { ProjectContext } from "../../project/types.ts";
 import { languagesInMarkdown } from "../../core/jupyter/jupyter.ts";
 import { asHtmlId } from "../../core/html.ts";
 import { sessionTempFile } from "../../core/temp.ts";

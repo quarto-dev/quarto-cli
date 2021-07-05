@@ -19,11 +19,8 @@ import { isRStudioServer } from "../../core/platform.ts";
 
 import { logError } from "../../core/log.ts";
 
-import {
-  kProjectLibDir,
-  ProjectContext,
-  projectOutputDir,
-} from "../../project/project-shared.ts";
+import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
+import { projectOutputDir } from "../../project/project-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
 
 import {

@@ -14,7 +14,7 @@ import {
 import { Format } from "../config/types.ts";
 import { Metadata } from "../config/types.ts";
 import { PartitionedMarkdown } from "../core/pandoc/pandoc-partition.ts";
-import { ProjectContext } from "../project/project-shared.ts";
+import { ProjectContext } from "../project/types.ts";
 
 export const kQmdExtensions = [".qmd"];
 

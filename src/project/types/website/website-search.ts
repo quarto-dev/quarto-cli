@@ -20,7 +20,8 @@ import { isHtmlContent } from "../../../core/mime.ts";
 import { FormatDependency } from "../../../config/types.ts";
 
 import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
-import { ProjectContext, projectOutputDir } from "../../project-shared.ts";
+import { ProjectContext } from "../../types.ts";
+import { projectOutputDir } from "../../project-shared.ts";
 import { projectOffset } from "../../project-shared.ts";
 import { ProjectOutputFile } from "../project-type.ts";
 

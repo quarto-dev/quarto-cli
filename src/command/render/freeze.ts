@@ -30,10 +30,7 @@ import {
 
 import { ExecuteResult } from "../../execute/types.ts";
 
-import {
-  kProjectLibDir,
-  ProjectContext,
-} from "../../project/project-shared.ts";
+import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
 import { projectScratchPath } from "../../project/project-scratch.ts";
 
 export const kProjectFreezeDir = "_freeze";

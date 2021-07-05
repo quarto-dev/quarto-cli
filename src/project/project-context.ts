@@ -43,10 +43,9 @@ import {
   kProjectRender,
   kProjectType,
   ProjectConfig,
-  projectConfigFile,
   ProjectContext,
-  projectVarsFile,
-} from "./project-shared.ts";
+} from "./types.ts";
+import { projectConfigFile, projectVarsFile } from "./project-shared.ts";
 
 export function deleteProjectMetadata(metadata: Metadata) {
   // see if the active project type wants to filter the config printed

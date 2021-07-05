@@ -43,7 +43,7 @@ import {
   readYamlFromMarkdown,
 } from "../../core/yaml.ts";
 
-import { ProjectContext } from "../../project/project-shared.ts";
+import { ProjectContext } from "../../project/types.ts";
 import { deleteProjectMetadata } from "../../project/project-context.ts";
 import { deleteCrossrefMetadata } from "../../project/project-crossrefs.ts";
 

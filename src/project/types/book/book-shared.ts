@@ -8,7 +8,7 @@
 import { RenderedFile } from "../../../command/render/types.ts";
 import { Format } from "../../../config/types.ts";
 import { PartitionedMarkdown } from "../../../core/pandoc/pandoc-partition.ts";
-import { ProjectConfig, ProjectContext } from "../../project-shared.ts";
+import { ProjectConfig, ProjectContext } from "../../types.ts";
 
 export interface BookExtension {
   // bool extensions are single file by default but can elect to be multi file

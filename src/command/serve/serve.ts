@@ -24,16 +24,16 @@ import { logError } from "../../core/log.ts";
 import { PromiseQueue } from "../../core/promise.ts";
 
 import {
+  kProject404File,
   kProjectLibDir,
   ProjectContext,
-  projectOutputDir,
-} from "../../project/project-shared.ts";
+} from "../../project/types.ts";
+import { projectOutputDir } from "../../project/project-shared.ts";
 import {
   projectContext,
   projectIgnoreRegexes,
 } from "../../project/project-context.ts";
 import { inputFileForOutputFile } from "../../project/project-index.ts";
-import { kProject404File } from "../../project/project-shared.ts";
 
 import { websitePath } from "../../project/types/website/website-config.ts";
 

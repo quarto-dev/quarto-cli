@@ -21,7 +21,7 @@ import {
   kProjectOutputDir,
   kProjectType,
   ProjectContext,
-} from "../../project/project-shared.ts";
+} from "../../project/types.ts";
 
 import { projectType } from "../../project/types/project-types.ts";
 import { copyResourceFile } from "../../project/project-resources.ts";

@@ -7,7 +7,7 @@
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { kProjectType } from "../../project/project-shared.ts";
+import { kProjectType } from "../../project/types.ts";
 import { projectContext } from "../../project/project-context.ts";
 import { projectType } from "../../project/types/project-types.ts";
 import { findOpenPort } from "./port.ts";

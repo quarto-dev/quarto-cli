@@ -80,8 +80,8 @@ import {
   kProjectLibDir,
   kProjectType,
   ProjectContext,
-  projectOffset,
-} from "../../project/project-shared.ts";
+} from "../../project/types.ts";
+import { projectOffset } from "../../project/project-shared.ts";
 import {
   deleteProjectMetadata,
   projectMetadataForInputFile,

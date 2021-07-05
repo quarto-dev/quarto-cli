@@ -18,7 +18,7 @@ import {
 import { Format } from "../../../config/types.ts";
 import { Metadata } from "../../../config/types.ts";
 
-import { ProjectConfig, ProjectContext } from "../../project-shared.ts";
+import { ProjectConfig, ProjectContext } from "../../types.ts";
 
 import {
   bookConfig,
