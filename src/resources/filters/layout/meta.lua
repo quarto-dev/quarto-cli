@@ -29,6 +29,7 @@ function layoutMetaInject()
   }
   .quarto-layout-row {
     display: flex;
+    flex-direction: row;
     align-items: flex-start;
   }
   .quarto-layout-valign-top {

@@ -67,6 +67,13 @@ $code-background-color: color.adjust(
   $code-background-color: $code-background;
 }
 
+// stack layout panels on mobile devices
+@include media-breakpoint-down(md) {
+  .quarto-layout-row {
+    flex-direction: column !important;
+  }
+}
+
 .tab-content {
   margin-top: 0px;
   border-left: $border-color 1px solid;

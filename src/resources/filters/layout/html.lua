@@ -46,7 +46,7 @@ function htmlPanel(divEl, layout, caption)
       local width = cellDiv.attr.attributes["width"]
       local align = cellDiv.attr.attributes[kLayoutAlign]
       cellDiv.attr.attributes[kLayoutAlign] = nil
-      cellDivStyle = cellDivStyle .. "width: " .. width .. ";"
+      cellDivStyle = cellDivStyle .. "flex-basis: " .. width .. ";"
       cellDiv.attr.attributes["width"] = nil
       local justify = flexAlign(align)
       cellDivStyle = cellDivStyle .. "justify-content: " .. justify .. ";"
