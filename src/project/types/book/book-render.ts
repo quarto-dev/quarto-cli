@@ -49,7 +49,6 @@ import { executionEngineKeepMd } from "../../../execute/engine.ts";
 import { websiteOutputFiles, websitePostRender } from "../website/website.ts";
 
 import {
-  isMultiFileBookFormat,
   onSingleFileBookPostRender,
   onSingleFileBookPreRender,
 } from "./book-extension.ts";
@@ -68,9 +67,9 @@ import {
 import {
   chapterInfoForInput,
   isListedChapter,
-  isNumberedChapter,
   withChapterMetadata,
 } from "./book-chapters.ts";
+import { isMultiFileBookFormat, isNumberedChapter } from "./book-shared.ts";
 import { bookCrossrefsPostRender } from "./book-crossrefs.ts";
 import { bookBibliographyPostRender } from "./book-bibliography.ts";
 

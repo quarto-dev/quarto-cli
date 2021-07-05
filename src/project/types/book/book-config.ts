@@ -50,10 +50,9 @@ import {
 } from "../website/website-config.ts";
 import { kSidebarLogo } from "../website/website-navigation.ts";
 
-import { isNumberedChapter } from "./book-chapters.ts";
+import { isMultiFileBookFormat, isNumberedChapter } from "./book-shared.ts";
 import { kOutputExt, kTitle } from "../../../config/constants.ts";
 
-import { isMultiFileBookFormat } from "./book-extension.ts";
 import { binaryPath } from "../../../core/resources.ts";
 import { execProcess } from "../../../core/process.ts";
 

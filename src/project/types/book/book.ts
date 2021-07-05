@@ -55,7 +55,7 @@ import {
 import { bookProjectConfig, kBook } from "./book-config.ts";
 
 import { chapterInfoForInput, formatChapterHtmlNav } from "./book-chapters.ts";
-import { isMultiFileBookFormat } from "./book-extension.ts";
+import { isMultiFileBookFormat } from "./book-shared.ts";
 import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
 import { formatHasBootstrap } from "../../../format/html/format-html-bootstrap.ts";
 

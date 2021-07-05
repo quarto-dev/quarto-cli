@@ -30,7 +30,7 @@ import { createFormat } from "../formats.ts";
 
 import { RenderedFile } from "../../command/render/types.ts";
 import { ProjectContext } from "../../project/project-context.ts";
-import { BookExtension } from "../../project/types/book/book-extension.ts";
+import { BookExtension } from "../../project/types/book/book-shared.ts";
 import { PandocFlags } from "../../config/flags.ts";
 
 export function pdfFormat(): Format {
