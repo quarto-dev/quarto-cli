@@ -10,16 +10,15 @@ import { dirname, join, relative, resolve } from "path/mod.ts";
 
 import { parseModule } from "observablehq/parser";
 
-import {
-  Format,
-  isJavascriptCompatible,
-  kDependencies,
-} from "../../config/format.ts";
-import { logError } from "../../core/log.ts";
-import { breakQuartoMd } from "../../core/break-quarto-md.ts";
-import { ExecuteResult, PandocIncludes } from "../../execute/engine.ts";
-import { resolveDependencies } from "../../command/render/pandoc.ts";
+import { Format, kDependencies } from "../../config/types.ts";
+import { ExecuteResult, PandocIncludes } from "../../execute/types.ts";
 import { kIncludeAfterBody, kIncludeInHeader } from "../../config/constants.ts";
+import { RenderContext } from "../../command/render/types.ts";
+import { ProjectContext } from "../../project/types.ts";
+
+import { isJavascriptCompatible } from "../../config/format.ts";
+
+import { resolveDependencies } from "../../command/render/pandoc.ts";
 import {
   extractResources,
   extractSelfContainedResources,
@@ -44,14 +43,14 @@ import {
   kOutput,
 } from "../../config/constants.ts";
 
-import { RenderContext } from "../../command/render/render.ts";
-import { ProjectContext } from "../../project/project-context.ts";
 import { languagesInMarkdown } from "../../core/jupyter/jupyter.ts";
 import { asHtmlId } from "../../core/html.ts";
 import { sessionTempFile } from "../../core/temp.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
+import { logError } from "../../core/log.ts";
+import { breakQuartoMd } from "../../core/break-quarto-md.ts";
 
 export interface ObservableCompileOptions {
   source: string;

@@ -24,7 +24,7 @@ import {
   quartoMdToJupyter,
 } from "../../core/jupyter/jupyter.ts";
 import { partitionCellOptions } from "../../core/partition-cell-options.ts";
-import { Metadata } from "../../config/metadata.ts";
+import { Metadata } from "../../config/types.ts";
 
 export async function markdownToJupyterNotebook(
   file: string,

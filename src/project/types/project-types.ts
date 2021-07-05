@@ -4,10 +4,10 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+import { ProjectType } from "./types.ts";
 
 import { bookProjectType } from "./book/book.ts";
 import { defaultProjectType } from "./project-default.ts";
-import { ProjectType } from "./project-type.ts";
 import { websiteProjectType } from "./website/website.ts";
 
 function kTypes() {

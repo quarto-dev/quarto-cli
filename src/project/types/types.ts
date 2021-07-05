@@ -1,18 +1,15 @@
 /*
-* project-type.ts
+* types.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
 
-import { PandocFlags } from "../../config/flags.ts";
-import { Format, FormatExtras } from "../../config/format.ts";
-import { Metadata } from "../../config/metadata.ts";
-
-import { PandocRenderer, RenderOptions } from "../../command/render/render.ts";
-import { PandocOptions } from "../../command/render/pandoc.ts";
-
-import { ProjectConfig, ProjectContext } from "../project-context.ts";
+import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
+import { Metadata } from "../../config/types.ts";
+import { PandocRenderer, RenderOptions } from "../../command/render/types.ts";
+import { PandocOptions } from "../../command/render/types.ts";
+import { ProjectConfig, ProjectContext } from "../types.ts";
 
 export interface ProjectType {
   type: string;

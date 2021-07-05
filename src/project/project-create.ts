@@ -14,9 +14,10 @@ import { jupyterKernelspec } from "../core/jupyter/kernels.ts";
 import { projectType } from "./types/project-types.ts";
 import { renderEjs } from "../core/ejs.ts";
 
-import { ExecutionEngine, executionEngine } from "../execute/engine.ts";
+import { executionEngine } from "../execute/engine.ts";
+import { ExecutionEngine } from "../execute/types.ts";
 
-import { projectConfigFile } from "./project-context.ts";
+import { projectConfigFile } from "./project-shared.ts";
 import { ensureGitignore } from "./project-gitignore.ts";
 
 export interface ProjectCreateOptions {

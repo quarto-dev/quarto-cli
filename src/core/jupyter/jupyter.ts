@@ -64,9 +64,9 @@ import {
   JupyterWidgetDependencies,
 } from "./widgets.ts";
 import { removeAndPreserveHtml } from "./preserve.ts";
-import { FormatExecute } from "../../config/format.ts";
+import { FormatExecute } from "../../config/types.ts";
 import { pandocAsciify, pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
-import { Metadata } from "../../config/metadata.ts";
+import { Metadata } from "../../config/types.ts";
 import {
   kCellAutoscroll,
   kCellClasses,
@@ -110,10 +110,10 @@ import {
 } from "../../config/constants.ts";
 import {
   isJupyterKernelspec,
-  JupyterKernelspec,
   jupyterKernelspec,
   jupyterKernelspecs,
 } from "./kernels.ts";
+import { JupyterKernelspec } from "./types.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
 import { lines } from "../text.ts";
 import { readYamlFromMarkdown, readYamlFromMarkdownFile } from "../yaml.ts";

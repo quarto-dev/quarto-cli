@@ -5,8 +5,6 @@
 *
 */
 
-// deno-lint-ignore-file camelcase
-
 import { basename, join } from "path/mod.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
 
@@ -14,12 +12,7 @@ import { debug } from "log/mod.ts";
 
 import { execProcess } from "../process.ts";
 import { jupyterExec } from "./exec.ts";
-
-export interface JupyterKernelspec {
-  name: string;
-  language: string;
-  display_name: string;
-}
+import { JupyterKernelspec } from "./types.ts";
 
 // deno-lint-ignore no-explicit-any
 export function isJupyterKernelspec(x: any): x is JupyterKernelspec {

@@ -9,15 +9,15 @@ import { join } from "path/mod.ts";
 import { info } from "log/mod.ts";
 
 import { createSessionTempDir } from "../../core/temp.ts";
-import { render } from "../render/render.ts";
+import { render } from "../render/render-shared.ts";
+import { JupyterCapabilities } from "../../core/jupyter/types.ts";
+import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
 import {
-  JupyterCapabilities,
-  jupyterCapabilities,
   jupyterCapabilitiesMessage,
   jupyterInstallationMessage,
   jupyterUnactivatedEnvMessage,
   pythonInstallationMessage,
-} from "../../core/jupyter/capabilities.ts";
+} from "../../core/jupyter/jupyter-shared.ts";
 import { completeMessage, withSpinner } from "../../core/console.ts";
 import {
   KnitrCapabilities,

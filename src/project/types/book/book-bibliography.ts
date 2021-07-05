@@ -18,13 +18,10 @@ import { execProcess } from "../../../core/process.ts";
 import { binaryPath } from "../../../core/resources.ts";
 
 import { kBibliography, kCsl } from "../../../config/constants.ts";
-import { Metadata } from "../../../config/metadata.ts";
+import { Metadata } from "../../../config/types.ts";
 
-import {
-  kProjectRender,
-  ProjectContext,
-  projectOutputDir,
-} from "../../project-context.ts";
+import { kProjectRender, ProjectContext } from "../../types.ts";
+import { projectOutputDir } from "../../project-shared.ts";
 import { inputTargetIndex, resolveInputTarget } from "../../project-index.ts";
 import { WebsiteProjectOutputFile } from "../website/website.ts";
 import { bookMultiFileHtmlOutputs } from "./book-extension.ts";

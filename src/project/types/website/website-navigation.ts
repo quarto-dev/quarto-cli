@@ -11,11 +11,7 @@ import { ld } from "lodash/mod.ts";
 
 import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
 
-import {
-  dirAndStem,
-  pathWithForwardSlashes,
-  safeExistsSync,
-} from "../../../core/path.ts";
+import { safeExistsSync } from "../../../core/path.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { warnOnce } from "../../../core/log.ts";
@@ -31,29 +27,25 @@ import {
   kDependencies,
   kHtmlPostprocessors,
   kSassBundles,
+  PandocFlags,
   SassBundle,
-} from "../../../config/format.ts";
-import { PandocFlags } from "../../../config/flags.ts";
+} from "../../../config/types.ts";
 import {
   hasTableOfContents,
   hasTableOfContentsTitle,
   kTocFloat,
 } from "../../../config/toc.ts";
 
-import { kBootstrapDependencyName } from "../../../format/html/format-html.ts";
+import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
 import {
   formatPageLayout,
 } from "../../../format/html/format-html-bootstrap.ts";
 
 import { kDataQuartoSourceUrl } from "../../../command/render/codetools.ts";
 
-import {
-  kProjectType,
-  ProjectConfig,
-  ProjectContext,
-  projectOffset,
-  projectOutputDir,
-} from "../../project-context.ts";
+import { kProjectType, ProjectConfig, ProjectContext } from "../../types.ts";
+import { projectOutputDir } from "../../project-shared.ts";
+import { projectOffset } from "../../project-shared.ts";
 import { resolveInputTarget } from "../../project-index.ts";
 import {
   kCollapseBelow,
@@ -79,20 +71,15 @@ import { resolveResourceRefs } from "./website-resources.ts";
 import {
   isGithubRepoUrl,
   kSite,
-  kSiteFooter,
-  kSiteNavbar,
-  kSitePageNavigation,
   kSiteRepoActions,
   kSiteRepoUrl,
-  kSiteSidebar,
-  websiteConfig,
   websiteConfigActions,
   websitePath,
   websiteRepoBranch,
   websiteRepoUrl,
   websiteTitle,
 } from "./website-config.ts";
-import { cookieConsentEnabled } from "./website-analytics.ts";
+import { inputFileHref, websiteNavigationConfig } from "./website-shared.ts";
 
 interface Navigation {
   navbar?: Navbar;
@@ -136,33 +123,6 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   navigation.sidebars = resolveNavReferences(navigation.sidebars) as Sidebar[];
   navigation.pageNavigation = pageNavigation;
   navigation.footer = footer as string;
-}
-
-export function websiteNavigationConfig(project: ProjectContext) {
-  // read navbar
-  let navbar = websiteConfig(kSiteNavbar, project.config) as Navbar | undefined;
-  if (typeof (navbar) !== "object") {
-    navbar = undefined;
-  }
-
-  // read sidebar
-  const sidebar = websiteConfig(kSiteSidebar, project.config);
-  const sidebars =
-    (Array.isArray(sidebar)
-      ? sidebar
-      : typeof (sidebar) == "object"
-      ? [sidebar]
-      : undefined) as Sidebar[] | undefined;
-
-  // read the page navigation
-  const pageNavigation = !!websiteConfig(kSitePageNavigation, project.config);
-
-  // read any footer
-  const footer = websiteConfig(kSiteFooter, project.config) ||
-    (cookieConsentEnabled(project) ? "&nbsp;" : undefined);
-
-  // return
-  return { navbar, sidebars, pageNavigation, footer };
 }
 
 export function websiteNavigationExtras(
@@ -273,12 +233,6 @@ export function writeRedirectPage(path: string, href: string) {
     url: href,
   });
   Deno.writeTextFileSync(path, redirectHtml);
-}
-
-export function inputFileHref(href: string) {
-  const [hrefDir, hrefStem] = dirAndStem(href);
-  const htmlHref = "/" + join(hrefDir, `${hrefStem}.html`);
-  return pathWithForwardSlashes(htmlHref);
 }
 
 function navigationHtmlPostprocessor(project: ProjectContext, source: string) {

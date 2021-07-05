@@ -15,7 +15,7 @@ import {
   logError,
   logOptions,
 } from "../../../core/log.ts";
-import { LatexmkOptions } from "./latexmk.ts";
+import { LatexmkOptions } from "./types.ts";
 import { generatePdf } from "./pdf.ts";
 import {
   kExeDescription,

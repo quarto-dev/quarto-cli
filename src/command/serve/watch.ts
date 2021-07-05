@@ -19,12 +19,9 @@ import { isRStudioServer } from "../../core/platform.ts";
 
 import { logError } from "../../core/log.ts";
 
-import {
-  kProjectLibDir,
-  ProjectContext,
-  projectContext,
-  projectOutputDir,
-} from "../../project/project-context.ts";
+import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
+import { projectOutputDir } from "../../project/project-shared.ts";
+import { projectContext } from "../../project/project-context.ts";
 
 import {
   inputFileForOutputFile,
@@ -33,23 +30,15 @@ import {
 
 import { fileExecutionEngine } from "../../execute/engine.ts";
 
-import { RenderResult } from "../render/render.ts";
+import { RenderResult } from "../render/types.ts";
 
 import {
   copyProjectForServe,
   maybeDisplaySocketError,
-  ServeOptions,
-} from "./serve.ts";
+} from "./serve-shared.ts";
 
 import { kLocalhost } from "./port.ts";
-
-export interface ProjectWatcher {
-  handle: (req: ServerRequest) => boolean;
-  connect: (req: ServerRequest) => Promise<void>;
-  injectClient: (file: Uint8Array) => Uint8Array;
-  serveProject: () => ProjectContext;
-  refreshProject: () => Promise<ProjectContext>;
-}
+import { ProjectWatcher, ServeOptions } from "./types.ts";
 
 export async function watchProject(
   project: ProjectContext,

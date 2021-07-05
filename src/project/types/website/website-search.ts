@@ -17,20 +17,15 @@ import { DOMParser, Element } from "deno_dom/deno-dom-wasm.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { isHtmlContent } from "../../../core/mime.ts";
 
-import { FormatDependency } from "../../../config/format.ts";
+import { FormatDependency } from "../../../config/types.ts";
+import { ProjectContext } from "../../types.ts";
+import { ProjectOutputFile } from "../types.ts";
 
-import { kBootstrapDependencyName } from "../../../format/html/format-html.ts";
-import {
-  ProjectContext,
-  projectOffset,
-  projectOutputDir,
-} from "../../project-context.ts";
-import { ProjectOutputFile } from "../project-type.ts";
+import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
+import { projectOutputDir } from "../../project-shared.ts";
+import { projectOffset } from "../../project-shared.ts";
 
-import {
-  inputFileHref,
-  websiteNavigationConfig,
-} from "./website-navigation.ts";
+import { inputFileHref, websiteNavigationConfig } from "./website-shared.ts";
 import { websitePath, websiteTitle } from "./website-config.ts";
 
 const kSearch = "search";

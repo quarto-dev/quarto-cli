@@ -8,13 +8,14 @@
 import { dirname, join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
+import { PdfEngine } from "../../../config/types.ts";
+import { kLatexHeaderMessageOptions, LatexmkOptions } from "./types.ts";
+
 import { dirAndStem } from "../../../core/path.ts";
-import { PdfEngine } from "../../../config/pdf.ts";
 import { ProcessResult } from "../../../core/process.ts";
 
 import { hasTexLive } from "./texlive.ts";
 import { runBibEngine, runIndexEngine, runPdfEngine } from "./latex.ts";
-import { LatexmkOptions } from "./latexmk.ts";
 import { PackageManager, packageManager } from "./pkgmgr.ts";
 import {
   findIndexError,
@@ -26,8 +27,6 @@ import {
 } from "./parse-error.ts";
 import { info, warning } from "log/mod.ts";
 
-export const kLatexHeaderMessageOptions = { bold: true };
-export const kLatexBodyMessageOptions = { indent: 2 };
 export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {
   if (!mkOptions.quiet) {
     info(

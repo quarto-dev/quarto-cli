@@ -9,12 +9,16 @@ import { basename, join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { error, info } from "log/mod.ts";
 
+import { PdfEngine } from "../../../config/types.ts";
+
 import { dirAndStem } from "../../../core/path.ts";
 import { execProcess, ProcessResult } from "../../../core/process.ts";
 
-import { PdfEngine } from "../../../config/pdf.ts";
 import { PackageManager } from "./pkgmgr.ts";
-import { kLatexBodyMessageOptions, kLatexHeaderMessageOptions } from "./pdf.ts";
+import {
+  kLatexBodyMessageOptions,
+  kLatexHeaderMessageOptions,
+} from "./types.ts";
 
 export interface LatexCommandReponse {
   log: string;

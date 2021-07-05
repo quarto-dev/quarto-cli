@@ -1,6 +1,6 @@
 import { ld } from "lodash/mod.ts";
 
-import { PartitionedMarkdown } from "../../../core/pandoc/pandoc-partition.ts";
+import { PartitionedMarkdown } from "../../../core/pandoc/types.ts";
 
 import {
   kCrossref,
@@ -15,16 +15,13 @@ import {
   kTitle,
   kToc,
 } from "../../../config/constants.ts";
-import { Format } from "../../../config/format.ts";
-import { Metadata } from "../../../config/metadata.ts";
+import { Format } from "../../../config/types.ts";
+import { Metadata } from "../../../config/types.ts";
 
-import { ProjectConfig, ProjectContext } from "../../project-context.ts";
+import { ProjectConfig, ProjectContext } from "../../types.ts";
 
-import {
-  bookConfig,
-  bookConfigRenderItems,
-  kBookItemAppendix,
-} from "./book-config.ts";
+import { bookConfigRenderItems, kBookItemAppendix } from "./book-config.ts";
+import { bookConfig } from "./book-shared.ts";
 
 export function withChapterMetadata(
   format: Format,
@@ -74,11 +71,6 @@ export function withChapterMetadata(
   }
 
   return format;
-}
-
-export function isNumberedChapter(partitioned: PartitionedMarkdown) {
-  return !partitioned.headingAttr ||
-    !partitioned.headingAttr.classes.includes("unnumbered");
 }
 
 export function isListedChapter(partitioned: PartitionedMarkdown) {

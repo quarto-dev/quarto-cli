@@ -20,13 +20,14 @@ import {
   kOutputFile,
 } from "../../../config/constants.ts";
 import { defaultWriterFormat } from "../../../format/formats.ts";
-import { ProjectContext, projectOutputDir } from "../../project-context.ts";
+import { ProjectContext } from "../../types.ts";
+import { projectOutputDir } from "../../project-shared.ts";
 import { crossrefIndexForOutputFile } from "../../project-crossrefs.ts";
 import { WebsiteProjectOutputFile } from "../website/website.ts";
 
 import { inputTargetIndex } from "../../project-index.ts";
 import { bookConfigRenderItems } from "./book-config.ts";
-import { isMultiFileBookFormat } from "./book-extension.ts";
+import { isMultiFileBookFormat } from "./book-shared.ts";
 
 export async function bookCrossrefsPostRender(
   context: ProjectContext,

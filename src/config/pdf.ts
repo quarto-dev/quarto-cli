@@ -6,8 +6,7 @@
 */
 
 // union of metadata and command line flags which determine
-import { FormatPandoc, FormatRender } from "./format.ts";
-import { PandocFlags } from "./flags.ts";
+import { FormatPandoc, FormatRender, PandocFlags, PdfEngine } from "./types.ts";
 import {
   kCiteMethod,
   kLatexMakeIndex,
@@ -17,16 +16,6 @@ import {
   kPdfEngineOpt,
   kPdfEngineOpts,
 } from "./constants.ts";
-
-// the requested pdf engine, it's options, and the bib engine
-export interface PdfEngine {
-  pdfEngine: string;
-  pdfEngineOpts?: string[];
-  bibEngine?: "natbib" | "biblatex";
-  indexEngine?: string;
-  indexEngineOpts?: string[];
-  tlmgrOpts?: string[];
-}
 
 export function bibEngine(defaults: FormatPandoc, flags?: PandocFlags) {
   return flags?.natbib

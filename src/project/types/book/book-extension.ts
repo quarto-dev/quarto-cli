@@ -7,46 +7,21 @@
 
 import { dirname, join } from "path/mod.ts";
 
-import { Format } from "../../../config/format.ts";
+import { Format } from "../../../config/types.ts";
 
-import { RenderedFile } from "../../../command/render/render.ts";
+import { RenderedFile } from "../../../command/render/types.ts";
 
 import { kOutputFile } from "../../../config/constants.ts";
 
 import { defaultWriterFormat } from "../../../format/formats.ts";
 
-import {
-  ProjectConfig,
-  ProjectContext,
-  projectOutputDir,
-} from "../../project-context.ts";
+import { ProjectConfig, ProjectContext } from "../../types.ts";
+import { projectOutputDir } from "../../project-shared.ts";
 import { inputTargetIndex } from "../../project-index.ts";
 import { bookConfigRenderItems } from "./book-config.ts";
 import { BookRenderItem } from "./book-config.ts";
 import { isHtmlOutput } from "../../../config/format.ts";
-
-export interface BookExtension {
-  // bool extensions are single file by default but can elect to be multi file
-  multiFile?: boolean;
-
-  // book extensions can modify the format before render
-  onSingleFilePreRender?: (format: Format, config?: ProjectConfig) => Format;
-
-  // book extensions can post-process the final rendered file
-  onSingleFilePostRender?: (
-    project: ProjectContext,
-    file: RenderedFile,
-  ) => void;
-}
-
-export function isMultiFileBookFormat(format: Format) {
-  const extension = format.extensions?.book as BookExtension;
-  if (extension) {
-    return extension.multiFile;
-  } else {
-    return false;
-  }
-}
+import { BookExtension, isMultiFileBookFormat } from "./book-shared.ts";
 
 export function onSingleFileBookPreRender(
   format: Format,

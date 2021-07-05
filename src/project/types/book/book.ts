@@ -14,13 +14,15 @@ import { mergeConfigs } from "../../../core/config.ts";
 import {
   Format,
   FormatExtras,
+  kHtmlPostprocessors,
+  kSassBundles,
+} from "../../../config/types.ts";
+import {
   isEpubOutput,
   isHtmlOutput,
   isLatexOutput,
-  kHtmlPostprocessors,
-  kSassBundles,
 } from "../../../config/format.ts";
-import { PandocFlags } from "../../../config/flags.ts";
+import { PandocFlags } from "../../../config/types.ts";
 import {
   kCrossref,
   kCrossrefChapters,
@@ -32,13 +34,11 @@ import {
 } from "../../../config/constants.ts";
 import { disabledTableOfContents } from "../../../config/toc.ts";
 
-import {
-  pandocMetadataPath,
-  PandocOptions,
-} from "../../../command/render/pandoc.ts";
+import { PandocOptions } from "../../../command/render/types.ts";
+import { pandocMetadataPath } from "../../../command/render/render-shared.ts";
 
-import { ProjectCreate, ProjectType } from "../project-type.ts";
-import { ProjectContext } from "../../project-context.ts";
+import { ProjectCreate, ProjectType } from "../types.ts";
+import { ProjectContext } from "../../types.ts";
 import {
   crossrefIndexForOutputFile,
   kCrossrefIndexFile,
@@ -52,11 +52,11 @@ import {
   bookPandocRenderer,
   bookPostRender,
 } from "./book-render.ts";
-import { bookProjectConfig, kBook } from "./book-config.ts";
+import { bookProjectConfig } from "./book-config.ts";
 
 import { chapterInfoForInput, formatChapterHtmlNav } from "./book-chapters.ts";
-import { isMultiFileBookFormat } from "./book-extension.ts";
-import { kBootstrapDependencyName } from "../../../format/html/format-html.ts";
+import { isMultiFileBookFormat, kBook } from "./book-shared.ts";
+import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
 import { formatHasBootstrap } from "../../../format/html/format-html-bootstrap.ts";
 
 const kSingleFileBook = "single-file-book";

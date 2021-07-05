@@ -7,20 +7,19 @@
 
 import { copySync, ensureDirSync, existsSync } from "fs/mod.ts";
 import { dirname, extname, join, relative } from "path/mod.ts";
-
 import { ld } from "lodash/mod.ts";
 
 import { resolvePathGlobs } from "../core/path.ts";
 import { kCssImportRegex, kCssUrlRegex } from "../core/css.ts";
 
 import {
+  kProject404File,
   kProjectOutputDir,
   kProjectResources,
   ProjectConfig,
-} from "./project-context.ts";
-import { kQuartoIgnore } from "./project-gitignore.ts";
+} from "./types.ts";
 
-export const kProject404File = "404.html";
+import { kQuartoIgnore } from "./project-gitignore.ts";
 
 export function projectResourceFiles(
   dir: string,

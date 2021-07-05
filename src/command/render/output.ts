@@ -26,21 +26,16 @@ import {
   kTemplate,
   kVariant,
 } from "../../config/constants.ts";
-import { Format, isHtmlOutput } from "../../config/format.ts";
+import { Format } from "../../config/types.ts";
+import { isHtmlOutput } from "../../config/format.ts";
 
 import {
   quartoLatexmkOutputRecipe,
   useQuartoLatexmk,
 } from "./latexmk/latexmk.ts";
 
-import {
-  havePandocArg,
-  kStdOut,
-  RenderFlags,
-  replacePandocArg,
-} from "./flags.ts";
-import { PandocOptions } from "./pandoc.ts";
-import { RenderContext } from "./render.ts";
+import { havePandocArg, kStdOut, replacePandocArg } from "./flags.ts";
+import { OutputRecipe, RenderContext, RenderFlags } from "./types.ts";
 import { resolveKeepSource } from "./codetools.ts";
 
 // render commands imply the --output argument for pandoc and the final
@@ -51,19 +46,6 @@ import { resolveKeepSource } from "./codetools.ts";
 // step after pandoc e.g. for latexmk)
 
 export const kPatchedTemplateExt = ".patched";
-
-export interface OutputRecipe {
-  // --output file that pandoc will produce
-  output: string;
-  // transformed pandoc args reflecting 'output'
-  args: string[];
-  // modifications to format spec
-  format: Format;
-  // callback for completing the output recipe (e.g. might run pdflatex, etc.).
-  // can optionally return an alternate output path. passed the actual
-  // options used to run pandoc (for deducing e.g. pdf engine options)
-  complete: (options: PandocOptions) => Promise<string | void>;
-}
 
 export async function outputRecipe(
   context: RenderContext,

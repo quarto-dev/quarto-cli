@@ -7,9 +7,10 @@
 import { ensureDirSync, existsSync } from "fs/mod.ts";
 import { dirname, extname, join, relative } from "path/mod.ts";
 
-import { ProjectOutputFile } from "../project-type.ts";
+import { ProjectOutputFile } from "../types.ts";
 
-import { ProjectContext, projectOutputDir } from "../../project-context.ts";
+import { ProjectContext } from "../../types.ts";
+import { projectOutputDir } from "../../project-shared.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { inputTargetIndex, resolveInputTarget } from "../../project-index.ts";

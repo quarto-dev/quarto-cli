@@ -21,13 +21,13 @@ import {
 import {
   Format,
   FormatExtras,
-  isHtmlOutput,
   kBodyEnvelope,
   kDependencies,
   kHtmlPostprocessors,
   kSassBundles,
-} from "../../config/format.ts";
-import { PandocFlags } from "../../config/flags.ts";
+} from "../../config/types.ts";
+import { isHtmlOutput } from "../../config/format.ts";
+import { PandocFlags } from "../../config/types.ts";
 import {
   hasTableOfContents,
   hasTableOfContentsTitle,
@@ -42,7 +42,7 @@ import {
   kPageLayoutArticle,
   kPageLayoutCustom,
   kPageLayoutNone,
-} from "./format-html.ts";
+} from "./format-html-shared.ts";
 
 export function formatHasBootstrap(format: Format) {
   if (format && isHtmlOutput(format.pandoc, true)) {

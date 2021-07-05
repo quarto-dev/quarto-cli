@@ -8,7 +8,8 @@
 import { extname } from "path/mod.ts";
 import { stringify } from "encoding/yaml.ts";
 
-import { FormatPandoc, isLatexOutput } from "../../config/format.ts";
+import { FormatPandoc } from "../../config/types.ts";
+import { isLatexOutput } from "../../config/format.ts";
 
 import {
   kFilters,
@@ -25,7 +26,7 @@ import {
 } from "../../config/constants.ts";
 
 import { kPatchedTemplateExt } from "./output.ts";
-import { PandocOptions } from "./pandoc.ts";
+import { PandocOptions } from "./types.ts";
 import { crossrefFilter } from "./crossref.ts";
 import { layoutFilter } from "./layout.ts";
 import {

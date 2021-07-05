@@ -25,40 +25,39 @@ import {
   kTitle,
   kToc,
 } from "../../../config/constants.ts";
-import { Format, isHtmlOutput } from "../../../config/format.ts";
+import { Format } from "../../../config/types.ts";
+import { isHtmlOutput } from "../../../config/format.ts";
 
 import {
-  ExecutedFile,
   removePandocTo,
-  RenderContext,
   renderContexts,
-  RenderedFile,
-  RenderOptions,
   renderPandoc,
 } from "../../../command/render/render.ts";
+import {
+  ExecutedFile,
+  RenderContext,
+  RenderedFile,
+  RenderOptions,
+} from "../../../command/render/types.ts";
 import { outputRecipe } from "../../../command/render/output.ts";
 import { renderCleanup } from "../../../command/render/cleanup.ts";
 
-import { ProjectConfig, ProjectContext } from "../../project-context.ts";
-import { ProjectOutputFile } from "../project-type.ts";
+import { ProjectConfig, ProjectContext } from "../../types.ts";
+import { ProjectOutputFile } from "../types.ts";
 
 import { executionEngineKeepMd } from "../../../execute/engine.ts";
 
 import { websiteOutputFiles, websitePostRender } from "../website/website.ts";
 
 import {
-  isMultiFileBookFormat,
   onSingleFileBookPostRender,
   onSingleFileBookPreRender,
 } from "./book-extension.ts";
 import {
-  bookConfig,
-  BookConfigKey,
   bookConfigRenderItems,
   bookOutputStem,
   BookRenderItem,
   isBookIndexPage,
-  kBookCoverImage,
   kBookItemAppendix,
   kBookItemPart,
 } from "./book-config.ts";
@@ -66,9 +65,15 @@ import {
 import {
   chapterInfoForInput,
   isListedChapter,
-  isNumberedChapter,
   withChapterMetadata,
 } from "./book-chapters.ts";
+import {
+  bookConfig,
+  BookConfigKey,
+  isMultiFileBookFormat,
+  isNumberedChapter,
+  kBookCoverImage,
+} from "./book-shared.ts";
 import { bookCrossrefsPostRender } from "./book-crossrefs.ts";
 import { bookBibliographyPostRender } from "./book-bibliography.ts";
 

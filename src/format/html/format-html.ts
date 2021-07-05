@@ -30,40 +30,32 @@ import {
   kDependencies,
   kHtmlPostprocessors,
   kSassBundles,
+  PandocFlags,
   SassBundle,
-} from "../../config/format.ts";
-import { PandocFlags } from "../../config/flags.ts";
+} from "../../config/types.ts";
 import { kTheme } from "../../config/constants.ts";
 
 import { print, sassVariable } from "../../command/render/sass.ts";
 import { formatHasCodeTools } from "../../command/render/codetools.ts";
 
-import { createHtmlFormat } from "./../formats.ts";
+import { createHtmlFormat } from "./../formats-shared.ts";
 
 import { boostrapExtras, formatHasBootstrap } from "./format-html-bootstrap.ts";
 
 import {
+  kAnchorSections,
+  kBootstrapDependencyName,
+  kCodeCopy,
+  kComments,
+  kDocumentCss,
+  kHoverCitations,
+  kHoverFootnotes,
+  kHypothesis,
+  kUtterances,
   quartoFunctions,
   quartoGlobalCssVariableRules,
   quartoRules,
-} from "./format-html-scss.ts";
-
-export const kCodeCopy = "code-copy";
-export const kAnchorSections = "anchor-sections";
-export const kPageLayout = "page-layout";
-export const kPageLayoutArticle = "article";
-export const kPageLayoutCustom = "custom";
-export const kPageLayoutNone = "none";
-export const kHoverCitations = "hover-citations";
-export const kHoverFootnotes = "hover-footnotes";
-export const kComments = "comments";
-export const kHypothesis = "hypothesis";
-export const kUtterances = "utterances";
-
-export const kFootnoteSectionTitle = "footnote-section-title";
-
-export const kDocumentCss = "document-css";
-export const kBootstrapDependencyName = "bootstrap";
+} from "./format-html-shared.ts";
 
 export function htmlFormat(
   figwidth: number,

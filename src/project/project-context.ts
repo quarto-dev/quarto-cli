@@ -7,24 +7,31 @@
 
 import { dirname, globToRegExp, isAbsolute, join, relative } from "path/mod.ts";
 import { existsSync, walkSync } from "fs/mod.ts";
-
 import { ld } from "lodash/mod.ts";
+
+import { ProjectType } from "./types/types.ts";
+import { Metadata } from "../config/types.ts";
+import {
+  kProjectLibDir,
+  kProjectOutputDir,
+  kProjectRender,
+  kProjectType,
+  ProjectConfig,
+  ProjectContext,
+} from "./types.ts";
 
 import { readYaml } from "../core/yaml.ts";
 import { mergeConfigs } from "../core/config.ts";
 import { kSkipHidden, pathWithForwardSlashes } from "../core/path.ts";
 
-import { includedMetadata, Metadata } from "../config/metadata.ts";
+import { includedMetadata } from "../config/metadata.ts";
 import {
   kHtmlMathMethod,
   kMetadataFile,
   kMetadataFiles,
   kQuartoVarsKey,
 } from "../config/constants.ts";
-import { Format, FormatExtras } from "../config/format.ts";
-import { PandocFlags } from "../config/flags.ts";
 
-import { ProjectType } from "./types/project-type.ts";
 import { projectType } from "./types/project-types.ts";
 
 import { resolvePathGlobs } from "../core/path.ts";
@@ -39,54 +46,7 @@ import { kMarkdownEngine } from "../execute/markdown.ts";
 import { projectResourceFiles } from "./project-resources.ts";
 import { gitignoreEntries } from "./project-gitignore.ts";
 
-export const kProjectType = "type";
-export const kProjectRender = "render";
-export const kProjectExecuteDir = "execute-dir";
-export const kProjectOutputDir = "output-dir";
-export const kProjectLibDir = "lib-dir";
-export const kProjectResources = "resources";
-
-export interface ProjectContext {
-  dir: string;
-  engines: string[];
-  files: {
-    input: string[];
-    resources?: string[];
-    config?: string[];
-    configResources?: string[];
-  };
-  config?: ProjectConfig;
-  formatExtras?: (
-    project: ProjectContext,
-    source: string,
-    flags: PandocFlags,
-    format: Format,
-  ) => Promise<FormatExtras>;
-}
-
-export interface ProjectConfig {
-  project: {
-    [kProjectType]?: string;
-    [kProjectRender]?: string[];
-    [kProjectExecuteDir]?: "file" | "project";
-    [kProjectOutputDir]?: string;
-    [kProjectLibDir]?: string;
-    [kProjectResources]?: string[];
-  };
-  [key: string]: unknown;
-}
-
-export function projectConfigFile(dir: string): string | undefined {
-  return ["_quarto.yml", "_quarto.yaml"]
-    .map((file) => join(dir, file))
-    .find(existsSync);
-}
-
-export function projectVarsFile(dir: string): string | undefined {
-  return ["_variables.yml", "_variables.yaml"]
-    .map((file) => join(dir, file))
-    .find(existsSync);
-}
+import { projectConfigFile, projectVarsFile } from "./project-shared.ts";
 
 export function deleteProjectMetadata(metadata: Metadata) {
   // see if the active project type wants to filter the config printed
@@ -225,30 +185,9 @@ export function projectContextForDirectory(
   return projectContext(path, true) as Promise<ProjectContext>;
 }
 
-export function projectOutputDir(context: ProjectContext): string {
-  let outputDir = context.config?.project[kProjectOutputDir];
-  if (outputDir) {
-    outputDir = join(context.dir, outputDir);
-  } else {
-    outputDir = context.dir;
-  }
-  if (existsSync(outputDir)) {
-    return Deno.realPathSync(outputDir);
-  } else {
-    return outputDir;
-  }
-}
-
 export function projectIsWebserverTarget(context: ProjectContext): boolean {
   const projType = projectType(context.config?.project?.[kProjectType]);
   return !!projType.canServe;
-}
-
-export function projectOffset(context: ProjectContext, input: string) {
-  const projDir = Deno.realPathSync(context.dir);
-  const inputDir = Deno.realPathSync(dirname(input));
-  const offset = relative(inputDir, projDir) || ".";
-  return pathWithForwardSlashes(offset);
 }
 
 export function projectIgnoreGlobs(dir: string) {

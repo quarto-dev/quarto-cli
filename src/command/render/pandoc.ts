@@ -26,8 +26,6 @@ import {
   Format,
   FormatExtras,
   FormatPandoc,
-  isHtmlOutput,
-  isLatexOutput,
   kBodyEnvelope,
   kDependencies,
   kHtmlPostprocessors,
@@ -35,12 +33,9 @@ import {
   kSassBundles,
   kTextHighlightingMode,
   SassBundle,
-} from "../../config/format.ts";
-import {
-  isQuartoMetadata,
-  Metadata,
-  metadataGetDeep,
-} from "../../config/metadata.ts";
+} from "../../config/types.ts";
+import { isHtmlOutput, isLatexOutput } from "../../config/format.ts";
+import { isQuartoMetadata, metadataGetDeep } from "../../config/metadata.ts";
 import { binaryPath, resourcePath } from "../../core/resources.ts";
 import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
 import {
@@ -48,13 +43,11 @@ import {
   readYamlFromMarkdown,
 } from "../../core/yaml.ts";
 
-import {
-  deleteProjectMetadata,
-  ProjectContext,
-} from "../../project/project-context.ts";
+import { ProjectContext } from "../../project/types.ts";
+import { deleteProjectMetadata } from "../../project/project-context.ts";
 import { deleteCrossrefMetadata } from "../../project/project-crossrefs.ts";
 
-import { removePandocArgs, RenderFlags } from "./flags.ts";
+import { removePandocArgs } from "./flags.ts";
 import {
   generateDefaults,
   pandocDefaultsMessage,
@@ -83,7 +76,11 @@ import {
 import { sessionTempFile } from "../../core/temp.ts";
 import { cssImports, cssResources } from "../../core/css.ts";
 
-import { RunPandocResult } from "./render.ts";
+import {
+  kMarkdownBlockSeparator,
+  PandocOptions,
+  RunPandocResult,
+} from "./types.ts";
 import { compileSass } from "./sass.ts";
 import { crossrefFilterActive } from "./crossref.ts";
 import { kQuartoHtmlDependency } from "../../format/html/format-html.ts";
@@ -93,41 +90,8 @@ import {
   formatHasCodeTools,
   keepSourceBlock,
 } from "./codetools.ts";
-
-export const kMarkdownBlockSeparator = "\n\n<!-- -->\n\n";
-
-// options required to run pandoc
-export interface PandocOptions {
-  // markdown input
-  markdown: string;
-
-  // original source file
-  source: string;
-
-  // original metadata
-  metadata: Metadata;
-
-  // output file that will be written
-  output: string;
-
-  // lib dir for converstion
-  libDir: string;
-
-  // target format
-  format: Format;
-  // command line args for pandoc
-  args: string[];
-
-  // optoinal project context
-  project?: ProjectContext;
-
-  // command line flags (e.g. could be used
-  // to specify e.g. quiet or pdf engine)
-  flags?: RenderFlags;
-
-  // optional offset from file to project dir
-  offset?: string;
-}
+import { pandocMetadataPath } from "./render-shared.ts";
+import { Metadata } from "../../config/types.ts";
 
 export async function runPandoc(
   options: PandocOptions,
@@ -452,10 +416,6 @@ export async function runPandoc(
   } else {
     return null;
   }
-}
-
-export function pandocMetadataPath(path: string) {
-  return pathWithForwardSlashes(path);
 }
 
 async function resolveExtras(

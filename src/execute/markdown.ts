@@ -8,7 +8,7 @@
 import { readYamlFromMarkdownFile } from "../core/yaml.ts";
 import { partitionMarkdown } from "../core/pandoc/pandoc-partition.ts";
 
-import { Metadata } from "../config/metadata.ts";
+import { Metadata } from "../config/types.ts";
 
 import {
   DependenciesOptions,
@@ -16,7 +16,7 @@ import {
   ExecutionEngine,
   kQmdExtensions,
   PostProcessOptions,
-} from "./engine.ts";
+} from "./types.ts";
 
 export const kMarkdownEngine = "markdown";
 

@@ -13,27 +13,18 @@ import { resourcePath } from "../../../core/resources.ts";
 import { dirAndStem } from "../../../core/path.ts";
 import { isHtmlContent } from "../../../core/mime.ts";
 
-import {
-  ProjectContext,
-  projectOffset,
-  projectOutputDir,
-} from "../../project-context.ts";
-import { kProject404File } from "../../project-resources.ts";
-
-import {
-  ProjectCreate,
-  ProjectOutputFile,
-  ProjectType,
-} from "../project-type.ts";
-
+import { kProject404File, ProjectContext } from "../../types.ts";
+import { ProjectCreate, ProjectOutputFile, ProjectType } from "../types.ts";
 import {
   Format,
   FormatExtras,
-  isHtmlOutput,
   kDependencies,
   kHtmlPostprocessors,
-} from "../../../config/format.ts";
-import { PandocFlags } from "../../../config/flags.ts";
+  PandocFlags,
+} from "../../../config/types.ts";
+import { projectOffset, projectOutputDir } from "../../project-shared.ts";
+
+import { isHtmlOutput } from "../../../config/format.ts";
 
 import {
   kIncludeInHeader,

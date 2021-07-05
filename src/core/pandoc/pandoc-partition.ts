@@ -4,10 +4,11 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+import { PandocAttr, PartitionedMarkdown } from "./types.ts";
 
 import { lines } from "../text.ts";
 import { partitionYamlFrontMatter } from "../yaml.ts";
-import { PandocAttr, pandocAttrParseText } from "./pandoc-attr.ts";
+import { pandocAttrParseText } from "./pandoc-attr.ts";
 
 export function firstHeadingFromMarkdownFile(file: string): string | undefined {
   return firstHeadingFromMarkdown(Deno.readTextFileSync(file));
@@ -19,15 +20,6 @@ export function firstHeadingFromMarkdown(markdown: string): string | undefined {
 }
 
 // partition markdown into yaml, the first heading, and the rest of the markdown text
-
-export interface PartitionedMarkdown {
-  yaml?: string;
-  headingText?: string;
-  headingAttr?: PandocAttr;
-  containsRefs: boolean;
-  markdown: string;
-}
-
 export function partitionMarkdown(markdown: string): PartitionedMarkdown {
   const markdownLines: string[] = [];
   let markdownHeading: string | undefined;

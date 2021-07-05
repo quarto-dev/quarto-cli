@@ -6,8 +6,7 @@
 */
 
 import { kTableOfContents, kToc, kTocTitle } from "./constants.ts";
-import { PandocFlags } from "./flags.ts";
-import { Format } from "./format.ts";
+import { Format, PandocFlags } from "./types.ts";
 
 export const kTocFloat = "toc-float";
 

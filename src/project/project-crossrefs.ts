@@ -11,7 +11,7 @@ import {
   kCrossrefChapterId,
   kCrossrefChaptersAlpha,
 } from "../config/constants.ts";
-import { Metadata } from "../config/metadata.ts";
+import { Metadata } from "../config/types.ts";
 
 import { projectScratchPath } from "./project-scratch.ts";
 

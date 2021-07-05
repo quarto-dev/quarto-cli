@@ -8,7 +8,7 @@ import { info } from "log/mod.ts";
 import { ld } from "lodash/mod.ts";
 
 import { execProcess } from "../../../core/process.ts";
-import { kLatexHeaderMessageOptions } from "./pdf.ts";
+import { kLatexHeaderMessageOptions } from "./types.ts";
 import { lines } from "../../../core/text.ts";
 
 const tlmgr = Deno.build.os === "windows"

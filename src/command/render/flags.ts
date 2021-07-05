@@ -25,26 +25,10 @@ import {
   kTocTitle,
   kTopLevelDivision,
 } from "../../config/constants.ts";
-import { PandocFlags } from "../../config/flags.ts";
 import { isQuartoMetadata } from "../../config/metadata.ts";
+import { RenderFlags } from "./types.ts";
 
 export const kStdOut = "-";
-
-// command line flags that we need to inspect
-export interface RenderFlags extends PandocFlags {
-  // quarto flags
-  executeDir?: string;
-  execute?: boolean;
-  executeCache?: true | false | "refresh";
-  executeDaemon?: number;
-  executeDaemonRestart?: boolean;
-  executeDebug?: boolean;
-  metadata?: { [key: string]: unknown };
-  params?: { [key: string]: unknown };
-  paramsFile?: string;
-  debug?: boolean;
-  quiet?: boolean;
-}
 
 export function parseRenderFlags(args: string[]) {
   const flags: RenderFlags = {};

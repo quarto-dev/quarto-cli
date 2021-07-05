@@ -5,7 +5,7 @@
 *
 */
 import { assert } from "testing/asserts.ts";
-import { Metadata } from "../../../src/config/metadata.ts";
+import { Metadata } from "../../../src/config/types.ts";
 import { ExecuteOutput, testQuartoCmd } from "../../test.ts";
 import { docs } from "../../utils.ts";
 import { noErrorsOrWarnings, printsJson } from "../../verify.ts";

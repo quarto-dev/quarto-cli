@@ -9,7 +9,7 @@ import { join } from "path/mod.ts";
 
 import { resourcePath } from "../../core/resources.ts";
 
-import { ProjectCreate, ProjectType } from "./project-type.ts";
+import { ProjectCreate, ProjectType } from "./types.ts";
 
 export const defaultProjectType: ProjectType = {
   type: "default",

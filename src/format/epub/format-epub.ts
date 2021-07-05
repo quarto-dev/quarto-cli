@@ -5,16 +5,18 @@
 *
 */
 
-import { Format } from "../../config/format.ts";
-import { mergeConfigs } from "../../core/config.ts";
+import { Format } from "../../config/types.ts";
+import { ProjectConfig } from "../../project/types.ts";
 import { kEPubCoverImage } from "../../config/constants.ts";
-import { ProjectConfig } from "../../project/project-context.ts";
+
+import { mergeConfigs } from "../../core/config.ts";
+
 import {
   bookConfig,
+  BookExtension,
   kBookCoverImage,
-} from "../../project/types/book/book-config.ts";
-import { BookExtension } from "../../project/types/book/book-extension.ts";
-import { createEbookFormat } from "../formats.ts";
+} from "../../project/types/book/book-shared.ts";
+import { createEbookFormat } from "../formats-shared.ts";
 
 export function epubFormat(): Format {
   return mergeConfigs(
