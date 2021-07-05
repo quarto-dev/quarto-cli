@@ -16,6 +16,8 @@ import {
 import { Metadata } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 
+export const kMarkdownBlockSeparator = "\n\n<!-- -->\n\n";
+
 // options for render
 export interface RenderOptions {
   flags?: RenderFlags;

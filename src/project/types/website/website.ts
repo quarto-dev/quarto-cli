@@ -15,9 +15,6 @@ import { isHtmlContent } from "../../../core/mime.ts";
 
 import { kProject404File, ProjectContext } from "../../types.ts";
 import { ProjectCreate, ProjectOutputFile, ProjectType } from "../types.ts";
-
-import { projectOffset, projectOutputDir } from "../../project-shared.ts";
-
 import {
   Format,
   FormatExtras,
@@ -25,6 +22,8 @@ import {
   kHtmlPostprocessors,
   PandocFlags,
 } from "../../../config/types.ts";
+import { projectOffset, projectOutputDir } from "../../project-shared.ts";
+
 import { isHtmlOutput } from "../../../config/format.ts";
 
 import {

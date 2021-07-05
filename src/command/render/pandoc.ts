@@ -76,7 +76,11 @@ import {
 import { sessionTempFile } from "../../core/temp.ts";
 import { cssImports, cssResources } from "../../core/css.ts";
 
-import { PandocOptions, RunPandocResult } from "./types.ts";
+import {
+  kMarkdownBlockSeparator,
+  PandocOptions,
+  RunPandocResult,
+} from "./types.ts";
 import { compileSass } from "./sass.ts";
 import { crossrefFilterActive } from "./crossref.ts";
 import { kQuartoHtmlDependency } from "../../format/html/format-html.ts";
@@ -88,8 +92,6 @@ import {
 } from "./codetools.ts";
 import { pandocMetadataPath } from "./render-shared.ts";
 import { Metadata } from "../../config/types.ts";
-
-export const kMarkdownBlockSeparator = "\n\n<!-- -->\n\n";
 
 export async function runPandoc(
   options: PandocOptions,

@@ -7,13 +7,14 @@
 
 import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
 
-import { kCodeTools, kKeepSource } from "../../config/constants.ts";
+import { kMarkdownBlockSeparator } from "./types.ts";
 import { Format } from "../../config/types.ts";
+import { kCodeTools, kKeepSource } from "../../config/constants.ts";
+import { ExecutionEngine, ExecutionTarget } from "../../execute/types.ts";
+
 import { isHtmlOutput } from "../../config/format.ts";
 import { executionEngineCanKeepSource } from "../../execute/engine.ts";
-import { ExecutionEngine, ExecutionTarget } from "../../execute/types.ts";
 import { formatHasBootstrap } from "../../format/html/format-html-bootstrap.ts";
-import { kMarkdownBlockSeparator } from "./pandoc.ts";
 
 const kHideAllCodeLinkId = "quarto-hide-all-code";
 const kShowAllCodeLinkId = "quarto-show-all-code";

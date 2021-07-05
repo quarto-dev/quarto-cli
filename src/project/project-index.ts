@@ -7,21 +7,18 @@
 
 import { dirname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
-import { fileExecutionEngine } from "../execute/engine.ts";
-
-import { dirAndStem, pathWithForwardSlashes } from "../core/path.ts";
-import { PartitionedMarkdown } from "../core/pandoc/types.ts";
-
-import { Metadata } from "../config/types.ts";
-import { Format } from "../config/types.ts";
-
-import { kOutputFile, kTitle } from "../config/constants.ts";
-
-import { renderFormats } from "../command/render/render.ts";
 
 import { ProjectContext } from "./types.ts";
-import { projectConfigFile, projectOutputDir } from "./project-shared.ts";
+import { Metadata } from "../config/types.ts";
+import { Format } from "../config/types.ts";
+import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 
+import { dirAndStem, pathWithForwardSlashes } from "../core/path.ts";
+import { kOutputFile, kTitle } from "../config/constants.ts";
+import { renderFormats } from "../command/render/render.ts";
+import { fileExecutionEngine } from "../execute/engine.ts";
+
+import { projectConfigFile, projectOutputDir } from "./project-shared.ts";
 import { projectScratchPath } from "./project-scratch.ts";
 
 export interface InputTargetIndex extends Metadata {
