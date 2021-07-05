@@ -26,7 +26,7 @@ import {
 } from "../../config/constants.ts";
 import { Format, FormatExtras, PandocFlags } from "../../config/types.ts";
 
-import { createFormat } from "../formats.ts";
+import { createFormat } from "../formats-shared.ts";
 
 import { RenderedFile } from "../../command/render/types.ts";
 import { ProjectContext } from "../../project/types.ts";

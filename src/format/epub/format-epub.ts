@@ -14,7 +14,7 @@ import {
   kBookCoverImage,
 } from "../../project/types/book/book-config.ts";
 import { BookExtension } from "../../project/types/book/book-shared.ts";
-import { createEbookFormat } from "../formats.ts";
+import { createEbookFormat } from "../formats-shared.ts";
 
 export function epubFormat(): Format {
   return mergeConfigs(

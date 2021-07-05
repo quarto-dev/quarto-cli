@@ -38,7 +38,7 @@ import { kTheme } from "../../config/constants.ts";
 import { print, sassVariable } from "../../command/render/sass.ts";
 import { formatHasCodeTools } from "../../command/render/codetools.ts";
 
-import { createHtmlFormat } from "./../formats.ts";
+import { createHtmlFormat } from "./../formats-shared.ts";
 
 import { boostrapExtras, formatHasBootstrap } from "./format-html-bootstrap.ts";
 
