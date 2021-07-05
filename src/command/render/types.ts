@@ -15,7 +15,7 @@ import {
 } from "../../execute/types.ts";
 
 import { RenderFlags } from "./flags.ts";
-import { ProjectContext } from "../../project/project-context.ts";
+import { ProjectContext } from "../../project/project-shared.ts";
 import { OutputRecipe } from "./output.ts";
 
 // options for render

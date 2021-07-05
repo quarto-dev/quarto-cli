@@ -25,7 +25,7 @@ import {
   SidebarItem,
   SidebarTool,
 } from "../../project-config.ts";
-import { kProjectRender, ProjectConfig } from "../../project-context.ts";
+import { kProjectRender, ProjectConfig } from "../../project-shared.ts";
 
 import {
   isGithubRepoUrl,

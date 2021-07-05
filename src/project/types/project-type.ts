@@ -12,7 +12,7 @@ import { Metadata } from "../../config/metadata.ts";
 import { PandocRenderer, RenderOptions } from "../../command/render/types.ts";
 import { PandocOptions } from "../../command/render/pandoc.ts";
 
-import { ProjectConfig, ProjectContext } from "../project-context.ts";
+import { ProjectConfig, ProjectContext } from "../project-shared.ts";
 
 export interface ProjectType {
   type: string;

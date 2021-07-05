@@ -22,9 +22,9 @@ import { logError } from "../../core/log.ts";
 import {
   kProjectLibDir,
   ProjectContext,
-  projectContext,
   projectOutputDir,
-} from "../../project/project-context.ts";
+} from "../../project/project-shared.ts";
+import { projectContext } from "../../project/project-context.ts";
 
 import {
   inputFileForOutputFile,

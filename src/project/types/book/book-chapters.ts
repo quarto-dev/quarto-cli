@@ -18,7 +18,7 @@ import {
 import { Format } from "../../../config/format.ts";
 import { Metadata } from "../../../config/metadata.ts";
 
-import { ProjectConfig, ProjectContext } from "../../project-context.ts";
+import { ProjectConfig, ProjectContext } from "../../project-shared.ts";
 
 import {
   bookConfig,
@@ -74,11 +74,6 @@ export function withChapterMetadata(
   }
 
   return format;
-}
-
-export function isNumberedChapter(partitioned: PartitionedMarkdown) {
-  return !partitioned.headingAttr ||
-    !partitioned.headingAttr.classes.includes("unnumbered");
 }
 
 export function isListedChapter(partitioned: PartitionedMarkdown) {

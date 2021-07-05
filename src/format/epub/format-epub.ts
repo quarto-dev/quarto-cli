@@ -8,7 +8,7 @@
 import { Format } from "../../config/format.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { kEPubCoverImage } from "../../config/constants.ts";
-import { ProjectConfig } from "../../project/project-context.ts";
+import { ProjectConfig } from "../../project/project-shared.ts";
 import {
   bookConfig,
   kBookCoverImage,

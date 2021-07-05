@@ -38,7 +38,7 @@ import {
 } from "../../../command/render/pandoc.ts";
 
 import { ProjectCreate, ProjectType } from "../project-type.ts";
-import { ProjectContext } from "../../project-context.ts";
+import { ProjectContext } from "../../project-shared.ts";
 import {
   crossrefIndexForOutputFile,
   kCrossrefIndexFile,

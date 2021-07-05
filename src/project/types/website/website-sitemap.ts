@@ -10,7 +10,7 @@ import { join, relative } from "path/mod.ts";
 
 import { ElementInfo, SAXParser } from "xmlp/mod.ts";
 
-import { ProjectContext, projectOutputDir } from "../../project-context.ts";
+import { ProjectContext, projectOutputDir } from "../../project-shared.ts";
 import { pathWithForwardSlashes, removeIfExists } from "../../../core/path.ts";
 
 import { renderEjs } from "../../../core/ejs.ts";

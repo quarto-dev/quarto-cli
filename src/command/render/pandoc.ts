@@ -48,10 +48,8 @@ import {
   readYamlFromMarkdown,
 } from "../../core/yaml.ts";
 
-import {
-  deleteProjectMetadata,
-  ProjectContext,
-} from "../../project/project-context.ts";
+import { ProjectContext } from "../../project/project-shared.ts";
+import { deleteProjectMetadata } from "../../project/project-context.ts";
 import { deleteCrossrefMetadata } from "../../project/project-crossrefs.ts";
 
 import { removePandocArgs, RenderFlags } from "./flags.ts";

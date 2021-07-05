@@ -17,7 +17,7 @@ import {
   kProjectOutputDir,
   kProjectResources,
   ProjectConfig,
-} from "./project-context.ts";
+} from "./project-shared.ts";
 import { kQuartoIgnore } from "./project-gitignore.ts";
 
 export const kProject404File = "404.html";

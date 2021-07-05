@@ -23,7 +23,7 @@ import {
   projectConfigFile,
   ProjectContext,
   projectOutputDir,
-} from "./project-context.ts";
+} from "./project-shared.ts";
 
 import { projectScratchPath } from "./project-scratch.ts";
 

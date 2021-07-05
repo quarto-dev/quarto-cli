@@ -21,8 +21,6 @@ import {
   kMetadataFiles,
   kQuartoVarsKey,
 } from "../config/constants.ts";
-import { Format, FormatExtras } from "../config/format.ts";
-import { PandocFlags } from "../config/flags.ts";
 
 import { ProjectType } from "./types/project-type.ts";
 import { projectType } from "./types/project-types.ts";
@@ -38,55 +36,16 @@ import { kMarkdownEngine } from "../execute/markdown.ts";
 
 import { projectResourceFiles } from "./project-resources.ts";
 import { gitignoreEntries } from "./project-gitignore.ts";
-
-export const kProjectType = "type";
-export const kProjectRender = "render";
-export const kProjectExecuteDir = "execute-dir";
-export const kProjectOutputDir = "output-dir";
-export const kProjectLibDir = "lib-dir";
-export const kProjectResources = "resources";
-
-export interface ProjectContext {
-  dir: string;
-  engines: string[];
-  files: {
-    input: string[];
-    resources?: string[];
-    config?: string[];
-    configResources?: string[];
-  };
-  config?: ProjectConfig;
-  formatExtras?: (
-    project: ProjectContext,
-    source: string,
-    flags: PandocFlags,
-    format: Format,
-  ) => Promise<FormatExtras>;
-}
-
-export interface ProjectConfig {
-  project: {
-    [kProjectType]?: string;
-    [kProjectRender]?: string[];
-    [kProjectExecuteDir]?: "file" | "project";
-    [kProjectOutputDir]?: string;
-    [kProjectLibDir]?: string;
-    [kProjectResources]?: string[];
-  };
-  [key: string]: unknown;
-}
-
-export function projectConfigFile(dir: string): string | undefined {
-  return ["_quarto.yml", "_quarto.yaml"]
-    .map((file) => join(dir, file))
-    .find(existsSync);
-}
-
-export function projectVarsFile(dir: string): string | undefined {
-  return ["_variables.yml", "_variables.yaml"]
-    .map((file) => join(dir, file))
-    .find(existsSync);
-}
+import {
+  kProjectLibDir,
+  kProjectOutputDir,
+  kProjectRender,
+  kProjectType,
+  ProjectConfig,
+  projectConfigFile,
+  ProjectContext,
+  projectVarsFile,
+} from "./project-shared.ts";
 
 export function deleteProjectMetadata(metadata: Metadata) {
   // see if the active project type wants to filter the config printed

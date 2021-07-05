@@ -26,9 +26,11 @@ import { PromiseQueue } from "../../core/promise.ts";
 import {
   kProjectLibDir,
   ProjectContext,
+  projectOutputDir,
+} from "../../project/project-shared.ts";
+import {
   projectContext,
   projectIgnoreRegexes,
-  projectOutputDir,
 } from "../../project/project-context.ts";
 import { inputFileForOutputFile } from "../../project/project-index.ts";
 import { kProject404File } from "../../project/project-resources.ts";

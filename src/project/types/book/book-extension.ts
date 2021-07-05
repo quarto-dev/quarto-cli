@@ -19,7 +19,7 @@ import {
   ProjectConfig,
   ProjectContext,
   projectOutputDir,
-} from "../../project-context.ts";
+} from "../../project-shared.ts";
 import { inputTargetIndex } from "../../project-index.ts";
 import { bookConfigRenderItems } from "./book-config.ts";
 import { BookRenderItem } from "./book-config.ts";

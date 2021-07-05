@@ -24,7 +24,7 @@ import {
   kProjectRender,
   ProjectContext,
   projectOutputDir,
-} from "../../project-context.ts";
+} from "../../project-shared.ts";
 import { inputTargetIndex, resolveInputTarget } from "../../project-index.ts";
 import { WebsiteProjectOutputFile } from "../website/website.ts";
 import { bookMultiFileHtmlOutputs } from "./book-extension.ts";

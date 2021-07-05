@@ -29,7 +29,7 @@ import { Format, FormatExtras } from "../../config/format.ts";
 import { createFormat } from "../formats.ts";
 
 import { RenderedFile } from "../../command/render/types.ts";
-import { ProjectContext } from "../../project/project-context.ts";
+import { ProjectContext } from "../../project/project-shared.ts";
 import { BookExtension } from "../../project/types/book/book-shared.ts";
 import { PandocFlags } from "../../config/flags.ts";
 

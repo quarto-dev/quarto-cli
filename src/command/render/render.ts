@@ -77,10 +77,12 @@ import { removePandocToArg, RenderFlags, resolveParams } from "./flags.ts";
 import { renderCleanup } from "./cleanup.ts";
 import { outputRecipe } from "./output.ts";
 import {
-  deleteProjectMetadata,
   kProjectLibDir,
   kProjectType,
   ProjectContext,
+} from "../../project/project-shared.ts";
+import {
+  deleteProjectMetadata,
   projectMetadataForInputFile,
   projectOffset,
 } from "../../project/project-context.ts";
