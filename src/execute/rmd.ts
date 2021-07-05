@@ -39,7 +39,7 @@ const kKnitrEngine = "knitr";
 export const knitrEngine: ExecutionEngine = {
   name: kKnitrEngine,
 
-  defaultExt: ".Rmd",
+  defaultExt: ".qmd",
 
   defaultYaml: () => [],
 

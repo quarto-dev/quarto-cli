@@ -48,14 +48,14 @@ export const createProjectCommand = new Command()
     {
       value: (value: string): string[] => {
         value = value || kMarkdownEngine;
-        const engine = executionEngine(value);
+        const engine = executionEngine(value.split(":")[0]);
         if (!engine) {
           throw new Error(`Unknown --engine: ${value}`);
         }
         // check for kernel
         const match = value.match(/(\w+)(:(.+))?$/);
         if (match) {
-          return [match[1], match[2]];
+          return [match[1], match[2].slice(1)];
         } else {
           return [value];
         }
