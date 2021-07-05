@@ -11,6 +11,8 @@ import { ld } from "lodash/mod.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 
 import { pandocListFormats } from "../../core/pandoc/pandoc-formats.ts";
+import { jupyterKernelspecs } from "../../core/jupyter/kernels.ts";
+
 import {
   JupyterCapabilities,
   jupyterCapabilities,
@@ -23,11 +25,15 @@ export interface Capabilities {
 }
 
 export async function capabilities(): Promise<Capabilities> {
-  return {
+  const caps = {
     formats: await formats(),
     themes: await themes(),
     python: await jupyterCapabilities(),
   };
+  if (caps.python?.jupyter_core) {
+    caps.python.kernels = Array.from((await jupyterKernelspecs()).values());
+  }
+  return caps;
 }
 
 async function formats() {

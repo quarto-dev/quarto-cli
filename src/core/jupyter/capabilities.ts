@@ -33,6 +33,7 @@ export interface JupyterCapabilities {
   nbformat: string | null;
   nbclient: string | null;
   ipykernel: string | null;
+  kernels?: JupyterKernelspec[];
 }
 
 // cache capabiliites per-process
