@@ -4,17 +4,16 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-
-import { RenderOptions } from "../command/render/types.ts";
 import {
   kIncludeAfterBody,
   kIncludeBeforeBody,
   kIncludeInHeader,
 } from "../config/constants.ts";
-import { Format } from "../config/types.ts";
-import { Metadata } from "../config/types.ts";
-import { PartitionedMarkdown } from "../core/pandoc/pandoc-partition.ts";
+import { Format, Metadata } from "../config/types.ts";
+
+import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 import { ProjectContext } from "../project/types.ts";
+import { RenderOptions } from "../command/render/types.ts";
 
 export const kQmdExtensions = [".qmd"];
 

@@ -10,7 +10,7 @@ import { existsSync } from "fs/mod.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
 
 import { dirAndStem, pathWithForwardSlashes } from "../core/path.ts";
-import { PartitionedMarkdown } from "../core/pandoc/pandoc-partition.ts";
+import { PartitionedMarkdown } from "../core/pandoc/types.ts";
 
 import { Metadata } from "../config/types.ts";
 import { Format } from "../config/types.ts";

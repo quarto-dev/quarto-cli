@@ -5,11 +5,7 @@
 *
 */
 
-export interface PandocAttr {
-  id: string;
-  classes: string[];
-  keyvalue: Array<[string, string]>;
-}
+import { PandocAttr } from "./types.ts";
 
 export function pandocAttrParseText(attr: string): PandocAttr | null {
   attr = attr.trim();

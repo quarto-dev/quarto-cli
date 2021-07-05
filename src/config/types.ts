@@ -293,3 +293,13 @@ export interface PandocFlags {
   [kGladtex]?: boolean;
   [kWebtex]?: boolean;
 }
+
+// the requested pdf engine, it's options, and the bib engine
+export interface PdfEngine {
+  pdfEngine: string;
+  pdfEngineOpts?: string[];
+  bibEngine?: "natbib" | "biblatex";
+  indexEngine?: string;
+  indexEngineOpts?: string[];
+  tlmgrOpts?: string[];
+}

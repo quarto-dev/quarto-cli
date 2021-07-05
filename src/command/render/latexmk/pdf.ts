@@ -8,8 +8,10 @@
 import { dirname, join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
+import { PdfEngine } from "../../../config/types.ts";
+import { kLatexHeaderMessageOptions, LatexmkOptions } from "./types.ts";
+
 import { dirAndStem } from "../../../core/path.ts";
-import { PdfEngine } from "../../../config/pdf.ts";
 import { ProcessResult } from "../../../core/process.ts";
 
 import { hasTexLive } from "./texlive.ts";
@@ -24,7 +26,6 @@ import {
   needsRecompilation,
 } from "./parse-error.ts";
 import { info, warning } from "log/mod.ts";
-import { kLatexHeaderMessageOptions, LatexmkOptions } from "./types.ts";
 
 export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {
   if (!mkOptions.quiet) {

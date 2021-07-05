@@ -7,7 +7,7 @@
 
 import { RenderedFile } from "../../../command/render/types.ts";
 import { Format } from "../../../config/types.ts";
-import { PartitionedMarkdown } from "../../../core/pandoc/pandoc-partition.ts";
+import { PartitionedMarkdown } from "../../../core/pandoc/types.ts";
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 
 export interface BookExtension {

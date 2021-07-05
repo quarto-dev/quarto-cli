@@ -4,7 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { PdfEngine } from "../../../config/pdf.ts";
+import { PdfEngine } from "../../../config/types.ts";
 
 export const kLatexHeaderMessageOptions = { bold: true };
 export const kLatexBodyMessageOptions = { indent: 2 };

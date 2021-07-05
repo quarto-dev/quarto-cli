@@ -1,6 +1,6 @@
 import { ld } from "lodash/mod.ts";
 
-import { PartitionedMarkdown } from "../../../core/pandoc/pandoc-partition.ts";
+import { PartitionedMarkdown } from "../../../core/pandoc/types.ts";
 
 import {
   kCrossref,
