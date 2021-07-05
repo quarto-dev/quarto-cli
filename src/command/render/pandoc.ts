@@ -26,8 +26,6 @@ import {
   Format,
   FormatExtras,
   FormatPandoc,
-  isHtmlOutput,
-  isLatexOutput,
   kBodyEnvelope,
   kDependencies,
   kHtmlPostprocessors,
@@ -35,7 +33,8 @@ import {
   kSassBundles,
   kTextHighlightingMode,
   SassBundle,
-} from "../../config/format.ts";
+} from "../../config/types.ts";
+import { isHtmlOutput, isLatexOutput } from "../../config/format.ts";
 import { isQuartoMetadata, metadataGetDeep } from "../../config/metadata.ts";
 import { binaryPath, resourcePath } from "../../core/resources.ts";
 import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";

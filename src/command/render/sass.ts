@@ -11,7 +11,7 @@ import { createHash } from "hash/mod.ts";
 import { quartoCacheDir } from "../../core/appdirs.ts";
 import { sessionTempFile } from "../../core/temp.ts";
 
-import { SassBundle, SassLayer } from "../../config/format.ts";
+import { SassBundle, SassLayer } from "../../config/types.ts";
 import { dartCompile } from "../../core/dart-sass.ts";
 
 import { ld } from "lodash/mod.ts";

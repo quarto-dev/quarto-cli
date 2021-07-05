@@ -16,7 +16,7 @@ import {
   asCssSize,
 } from "../../core/css.ts";
 
-import { SassBundle, SassLayer } from "../../config/format.ts";
+import { SassBundle, SassLayer } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 import { kTheme } from "../../config/constants.ts";
 

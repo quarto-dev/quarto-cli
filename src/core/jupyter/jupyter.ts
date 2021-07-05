@@ -64,7 +64,7 @@ import {
   JupyterWidgetDependencies,
 } from "./widgets.ts";
 import { removeAndPreserveHtml } from "./preserve.ts";
-import { FormatExecute } from "../../config/format.ts";
+import { FormatExecute } from "../../config/types.ts";
 import { pandocAsciify, pandocAutoIdentifier } from "../pandoc/pandoc-id.ts";
 import { Metadata } from "../../config/types.ts";
 import {

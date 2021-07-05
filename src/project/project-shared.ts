@@ -8,7 +8,7 @@
 import { existsSync } from "fs/exists.ts";
 import { dirname, join, relative } from "path/mod.ts";
 import { PandocFlags } from "../config/flags.ts";
-import { Format, FormatExtras } from "../config/format.ts";
+import { Format, FormatExtras } from "../config/types.ts";
 import { pathWithForwardSlashes } from "../core/path.ts";
 
 export const kProjectType = "type";

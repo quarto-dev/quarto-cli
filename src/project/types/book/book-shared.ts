@@ -6,7 +6,7 @@
 */
 
 import { RenderedFile } from "../../../command/render/types.ts";
-import { Format } from "../../../config/format.ts";
+import { Format } from "../../../config/types.ts";
 import { PartitionedMarkdown } from "../../../core/pandoc/pandoc-partition.ts";
 import { ProjectConfig, ProjectContext } from "../../project-shared.ts";
 

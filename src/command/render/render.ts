@@ -61,7 +61,7 @@ import {
   kSelfContained,
   kTheme,
 } from "../../config/constants.ts";
-import { Format, FormatPandoc } from "../../config/format.ts";
+import { Format, FormatPandoc } from "../../config/types.ts";
 import {
   executionEngineKeepMd,
   fileExecutionEngine,

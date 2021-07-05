@@ -5,7 +5,7 @@
 *
 */
 
-import { Format } from "../../config/format.ts";
+import { Format } from "../../config/types.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { kEPubCoverImage } from "../../config/constants.ts";
 import { ProjectConfig } from "../../project/project-shared.ts";

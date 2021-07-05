@@ -25,7 +25,8 @@ import {
   kTitle,
   kToc,
 } from "../../../config/constants.ts";
-import { Format, isHtmlOutput } from "../../../config/format.ts";
+import { Format } from "../../../config/types.ts";
+import { isHtmlOutput } from "../../../config/format.ts";
 
 import {
   removePandocTo,

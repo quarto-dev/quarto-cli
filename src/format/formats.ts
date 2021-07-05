@@ -56,7 +56,7 @@ import {
   kWarning,
 } from "../config/constants.ts";
 
-import { Format } from "../config/format.ts";
+import { Format } from "../config/types.ts";
 
 import { htmlFormat } from "./html/format-html.ts";
 import { beamerFormat, latexFormat, pdfFormat } from "./pdf/format-pdf.ts";

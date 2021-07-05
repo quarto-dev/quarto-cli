@@ -8,7 +8,8 @@
 import { extname } from "path/mod.ts";
 import { stringify } from "encoding/yaml.ts";
 
-import { FormatPandoc, isLatexOutput } from "../../config/format.ts";
+import { FormatPandoc } from "../../config/types.ts";
+import { isLatexOutput } from "../../config/format.ts";
 
 import {
   kFilters,

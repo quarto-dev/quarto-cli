@@ -7,7 +7,7 @@
 
 import { dirname, join } from "path/mod.ts";
 
-import { Format } from "../../../config/format.ts";
+import { Format } from "../../../config/types.ts";
 
 import { RenderedFile } from "../../../command/render/types.ts";
 

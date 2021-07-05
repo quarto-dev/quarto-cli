@@ -23,7 +23,7 @@ import {
   kOutputExt,
   kOutputFile,
 } from "../../../config/constants.ts";
-import { Format } from "../../../config/format.ts";
+import { Format } from "../../../config/types.ts";
 import { pdfEngine } from "../../../config/pdf.ts";
 
 import { PandocOptions, RenderOptions } from "../types.ts";

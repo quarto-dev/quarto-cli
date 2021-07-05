@@ -29,8 +29,7 @@ import {
   kRenderDefaults,
   kRenderDefaultsKeys,
 } from "./constants.ts";
-import { Format } from "./format.ts";
-import { Metadata } from "./types.ts";
+import { Format, Metadata } from "./types.ts";
 
 export function includedMetadata(
   dir: string,

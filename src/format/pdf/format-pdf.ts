@@ -24,7 +24,7 @@ import {
   kTopLevelDivision,
   kWarning,
 } from "../../config/constants.ts";
-import { Format, FormatExtras } from "../../config/format.ts";
+import { Format, FormatExtras } from "../../config/types.ts";
 
 import { createFormat } from "../formats.ts";
 

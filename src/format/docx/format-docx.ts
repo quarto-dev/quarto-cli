@@ -6,7 +6,7 @@
 */
 
 import { kFilterParams } from "../../config/constants.ts";
-import { Format } from "../../config/format.ts";
+import { Format } from "../../config/types.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { createWordprocessorFormat } from "../formats.ts";

@@ -11,7 +11,8 @@ import { dirname, join } from "path/mod.ts";
 import { removeIfEmptyDir, removeIfExists } from "../../core/path.ts";
 import { figuresDir, inputFilesDir } from "../../core/render.ts";
 
-import { Format, isHtmlOutput } from "../../config/format.ts";
+import { Format } from "../../config/types.ts";
+import { isHtmlOutput } from "../../config/format.ts";
 import { kKeepMd, kKeepTex } from "../../config/constants.ts";
 
 import { filesDirLibDir } from "./render.ts";

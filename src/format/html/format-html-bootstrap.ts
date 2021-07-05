@@ -21,12 +21,12 @@ import {
 import {
   Format,
   FormatExtras,
-  isHtmlOutput,
   kBodyEnvelope,
   kDependencies,
   kHtmlPostprocessors,
   kSassBundles,
-} from "../../config/format.ts";
+} from "../../config/types.ts";
+import { isHtmlOutput } from "../../config/format.ts";
 import { PandocFlags } from "../../config/flags.ts";
 import {
   hasTableOfContents,

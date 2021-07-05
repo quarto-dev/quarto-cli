@@ -31,7 +31,7 @@ import {
   kHtmlPostprocessors,
   kSassBundles,
   SassBundle,
-} from "../../config/format.ts";
+} from "../../config/types.ts";
 import { PandocFlags } from "../../config/flags.ts";
 import { kTheme } from "../../config/constants.ts";
 

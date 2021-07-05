@@ -19,7 +19,7 @@ import {
   kMergeIncludes,
   kOutputDivs,
 } from "../../config/constants.ts";
-import { Format, FormatPandoc } from "../../config/format.ts";
+import { Format, FormatPandoc } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 import { bibEngine } from "../../config/pdf.ts";
 import { resourcePath } from "../../core/resources.ts";

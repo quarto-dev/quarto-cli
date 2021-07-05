@@ -29,10 +29,10 @@ import {
 import {
   Format,
   FormatExtras,
-  isHtmlOutput,
   kDependencies,
   kHtmlPostprocessors,
-} from "../../../config/format.ts";
+} from "../../../config/types.ts";
+import { isHtmlOutput } from "../../../config/format.ts";
 import { PandocFlags } from "../../../config/flags.ts";
 
 import {

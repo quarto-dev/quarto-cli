@@ -14,11 +14,13 @@ import { mergeConfigs } from "../../../core/config.ts";
 import {
   Format,
   FormatExtras,
+  kHtmlPostprocessors,
+  kSassBundles,
+} from "../../../config/types.ts";
+import {
   isEpubOutput,
   isHtmlOutput,
   isLatexOutput,
-  kHtmlPostprocessors,
-  kSassBundles,
 } from "../../../config/format.ts";
 import { PandocFlags } from "../../../config/flags.ts";
 import {

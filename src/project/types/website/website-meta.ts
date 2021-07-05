@@ -15,7 +15,7 @@ import {
   kTitle,
   kTitlePrefix,
 } from "../../../config/constants.ts";
-import { Format, FormatExtras } from "../../../config/format.ts";
+import { Format, FormatExtras } from "../../../config/types.ts";
 import { Metadata } from "../../../config/types.ts";
 import { mergeConfigs } from "../../../core/config.ts";
 import PngImage from "../../../core/png.ts";

@@ -11,7 +11,7 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
 } from "../config/constants.ts";
-import { Format } from "../config/format.ts";
+import { Format } from "../config/types.ts";
 import { Metadata } from "../config/types.ts";
 import { PartitionedMarkdown } from "../core/pandoc/pandoc-partition.ts";
 import { ProjectContext } from "../project/project-shared.ts";

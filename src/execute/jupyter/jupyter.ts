@@ -35,8 +35,8 @@ import {
   kKeepHidden,
   kKeepIpynb,
 } from "../../config/constants.ts";
+import { Format } from "../../config/types.ts";
 import {
-  Format,
   isHtmlCompatible,
   isLatexOutput,
   isMarkdownOutput,

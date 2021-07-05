@@ -6,7 +6,7 @@
 */
 
 import { PandocFlags } from "../../config/flags.ts";
-import { Format, FormatExtras } from "../../config/format.ts";
+import { Format, FormatExtras } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 
 import { PandocRenderer, RenderOptions } from "../../command/render/types.ts";

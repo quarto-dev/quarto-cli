@@ -17,7 +17,7 @@ import { DOMParser, Element } from "deno_dom/deno-dom-wasm.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { isHtmlContent } from "../../../core/mime.ts";
 
-import { FormatDependency } from "../../../config/format.ts";
+import { FormatDependency } from "../../../config/types.ts";
 
 import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
 import { ProjectContext, projectOutputDir } from "../../project-shared.ts";

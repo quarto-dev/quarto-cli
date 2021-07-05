@@ -8,7 +8,7 @@
 import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
 
 import { kPageWidth } from "../../config/constants.ts";
-import { Format } from "../../config/format.ts";
+import { Format } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 import { resourcePath } from "../../core/resources.ts";
 

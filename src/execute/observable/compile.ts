@@ -10,11 +10,8 @@ import { dirname, join, relative, resolve } from "path/mod.ts";
 
 import { parseModule } from "observablehq/parser";
 
-import {
-  Format,
-  isJavascriptCompatible,
-  kDependencies,
-} from "../../config/format.ts";
+import { Format, kDependencies } from "../../config/types.ts";
+import { isJavascriptCompatible } from "../../config/format.ts";
 import { logError } from "../../core/log.ts";
 import { breakQuartoMd } from "../../core/break-quarto-md.ts";
 import { ExecuteResult, PandocIncludes } from "../../execute/types.ts";

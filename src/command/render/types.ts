@@ -7,17 +7,17 @@
 
 import { Document } from "deno_dom/deno-dom-wasm.ts";
 
-import { Format } from "../../config/format.ts";
+import { Format } from "../../config/types.ts";
 import {
   ExecuteResult,
   ExecutionEngine,
   ExecutionTarget,
 } from "../../execute/types.ts";
+import { Metadata } from "../../config/types.ts";
 
 import { RenderFlags } from "./flags.ts";
 import { ProjectContext } from "../../project/project-shared.ts";
 import { OutputRecipe } from "./output.ts";
-import { Metadata } from "../../config/types.ts";
 
 // options for render
 export interface RenderOptions {
