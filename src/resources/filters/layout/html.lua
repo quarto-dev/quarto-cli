@@ -3,9 +3,6 @@
 
 function htmlPanel(divEl, layout, caption)
   
-  -- set flag indicating we need figure css
-  layoutState.layoutCss = true
-  
   -- outer panel to contain css and figure panel
   local panel = pandoc.Div({}, pandoc.Attr(divEl.attr.id, divEl.attr.classes))
   panel.attr.classes:insert("quarto-layout-panel")
@@ -147,9 +144,6 @@ end
 
 
 function renderHtmlFigure(el, render)
-
-   -- set flag indicating we need figure css
-  layoutState.layoutCss = true
   
   -- capture relevant figure attributes then strip them
   local align = figAlignAttribute(el)

@@ -70,7 +70,7 @@ $code-background-color: color.adjust(
 // stack layout panels on mobile devices
 @include media-breakpoint-down(md) {
   .quarto-layout-row {
-    flex-direction: column !important;
+    flex-direction: column;
   }
 }
 

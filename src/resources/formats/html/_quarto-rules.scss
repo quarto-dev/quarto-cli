@@ -1,3 +1,90 @@
+// hidden
+
+.hidden {
+  display: none;
+}
+
+// layout and figures
+
+.quarto-layout-panel > figure {
+  width: 100%;
+}
+.quarto-layout-panel > figure > figcaption,
+.quarto-layout-panel > .panel-caption {
+  margin-top: 10pt;
+}
+.quarto-layout-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+.quarto-layout-valign-top {
+  align-items: flex-start;
+}
+.quarto-layout-valign-bottom {
+  align-items: flex-end;
+}
+.quarto-layout-valign-center {
+  align-items: center;
+}
+.quarto-layout-cell {
+  position: relative;
+  margin-right: 20px;
+}
+.quarto-layout-cell:last-child {
+  margin-right: 0;
+}
+.quarto-layout-cell figure,
+.quarto-layout-cell > p {
+  margin: 0.2em;
+}
+.quarto-layout-cell img {
+  max-width: 100%;
+}
+.quarto-layout-cell .html-widget {
+  width: 100% !important;
+}
+.quarto-layout-cell div figure p {
+  margin: 0;
+}
+.quarto-layout-cell figure {
+  display: inline-block;
+  margin-inline-start: 0;
+  margin-inline-end: 0;
+}
+.quarto-layout-cell table {
+  display: inline-table;
+}
+.quarto-layout-cell-subref figcaption {
+  text-align: center;
+  font-style: italic;
+}
+.quarto-figure {
+  position: relative;
+}
+.quarto-figure > figure {
+  width: 100%;
+}
+.quarto-figure-left > figure > p {
+  text-align: left;
+}
+.quarto-figure-center > figure > p {
+  text-align: center;
+}
+.quarto-figure-right > figure > p {
+  text-align: right;
+}
+figure > p:empty {
+  display: none;
+}
+figure > p:first-child {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+figure > figcaption {
+  margin-top: 0.5em;
+}
+
 // anchor
 
 // anchor js
@@ -61,6 +148,13 @@ h6:hover > .anchorjs-link,
 }
 
 // details
+details {
+  margin-bottom: 1em;
+}
+details[show] {
+  margin-bottom: 0;
+}
+
 .cell > details > summary {
   color: $text-muted;
 }
@@ -128,11 +222,6 @@ code a:any-link {
 }
 */
 
-// embedded source code
-.quarto-embedded-source-code {
-  display: none;
-}
-
 // tippy
 
 [data-tippy-root] {
@@ -141,4 +230,26 @@ code a:any-link {
 
 .tippy-content .footnote-back {
   display: none;
+}
+
+// embedded source code
+.quarto-embedded-source-code {
+  display: none;
+}
+
+// unresolved crossrefs
+.quarto-unresolved-ref {
+  font-weight: 600;
+}
+
+// html cover image injection
+.quarto-cover-image {
+  max-width: 35%;
+  float: right;
+  margin-left: 30px;
+}
+
+// fix for selectize inputs getting their contents clipped
+.cell-output-display:not(.no-overflow-x) {
+  overflow-x: auto;
 }
