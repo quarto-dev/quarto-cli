@@ -24,10 +24,7 @@ import { ProjectContext, projectOutputDir } from "../../project-shared.ts";
 import { projectOffset } from "../../project-context.ts";
 import { ProjectOutputFile } from "../project-type.ts";
 
-import {
-  inputFileHref,
-  websiteNavigationConfig,
-} from "./website-navigation.ts";
+import { inputFileHref, websiteNavigationConfig } from "./website-shared.ts";
 import { websitePath, websiteTitle } from "./website-config.ts";
 
 const kSearch = "search";
