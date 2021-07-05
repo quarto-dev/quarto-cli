@@ -1,3 +1,10 @@
+/*
+* types.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
+
 import { RenderOptions } from "../command/render/types.ts";
 import {
   kIncludeAfterBody,

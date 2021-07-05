@@ -1,3 +1,9 @@
+/*
+* types.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
 import { PdfEngine } from "../../../config/pdf.ts";
 
 export const kLatexHeaderMessageOptions = { bold: true };
