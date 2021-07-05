@@ -8,7 +8,7 @@ import { stringify } from "encoding/yaml.ts";
 import { dirname, join } from "path/mod.ts";
 import { assert } from "testing/asserts.ts";
 
-import { Metadata } from "../../../src/config/metadata.ts";
+import { Metadata } from "../../../src/config/types.ts";
 import { removeIfEmptyDir } from "../../../src/core/path.ts";
 import { quarto } from "../../../src/quarto.ts";
 import { ExecuteOutput, Verify } from "../../test.ts";

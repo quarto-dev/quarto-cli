@@ -7,7 +7,7 @@
 import { exists, existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 
-import { Metadata } from "../../../src/config/metadata.ts";
+import { Metadata } from "../../../src/config/types.ts";
 
 import { testQuartoCmd, Verify } from "../../test.ts";
 import { docs } from "../../utils.ts";
