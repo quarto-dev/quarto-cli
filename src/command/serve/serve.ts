@@ -14,46 +14,30 @@ import { Response, serve, ServerRequest } from "http/server.ts";
 
 import { openUrl } from "../../core/shell.ts";
 import { contentType, isHtmlContent } from "../../core/mime.ts";
-import {
-  copyMinimal,
-  kSkipHidden,
-  pathWithForwardSlashes,
-} from "../../core/path.ts";
-import { createSessionTempDir } from "../../core/temp.ts";
+import { pathWithForwardSlashes } from "../../core/path.ts";
 import { logError } from "../../core/log.ts";
 import { PromiseQueue } from "../../core/promise.ts";
 
-import {
-  kProject404File,
-  kProjectLibDir,
-  ProjectContext,
-} from "../../project/types.ts";
+import { kProject404File, ProjectContext } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
-import {
-  projectContext,
-  projectIgnoreRegexes,
-} from "../../project/project-context.ts";
+import { projectContext } from "../../project/project-context.ts";
 import { inputFileForOutputFile } from "../../project/project-index.ts";
 
 import { websitePath } from "../../project/types/website/website-config.ts";
 
 import { renderProject } from "../render/project.ts";
 import { renderResultFinalOutput } from "../render/render.ts";
-import { projectFreezerDir } from "../render/freeze.ts";
 
 import { kLocalhost } from "./port.ts";
-import { ProjectWatcher, watchProject } from "./watch.ts";
+import { ProjectWatcher, ServeOptions } from "./types.ts";
+import {
+  copyProjectForServe,
+  maybeDisplaySocketError,
+} from "./serve-shared.ts";
+import { watchProject } from "./watch.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
-
-export type ServeOptions = {
-  port: number;
-  render: string;
-  browse?: boolean;
-  watch?: boolean;
-  navigate?: boolean;
-};
 
 export async function serveProject(
   project: ProjectContext,
@@ -185,54 +169,6 @@ export async function serveProject(
   // wait for requests
   for await (const req of server) {
     handler(req);
-  }
-}
-
-export function copyProjectForServe(
-  project: ProjectContext,
-  copyOutput: boolean,
-  serveDir?: string,
-) {
-  serveDir = serveDir || createSessionTempDir();
-
-  // output dir
-  const outputDir = projectOutputDir(project);
-  // lib dir
-  const libDirConfig = project.config?.project[kProjectLibDir];
-  const libDir = libDirConfig ? join(project.dir, libDirConfig) : undefined;
-
-  const projectIgnore = projectIgnoreRegexes(project.dir);
-
-  const filter = (path: string) => {
-    if (
-      !copyOutput &&
-      (path.startsWith(outputDir) || (libDir && path.startsWith(libDir)))
-    ) {
-      return false;
-    }
-    const pathRelative = pathWithForwardSlashes(relative(project.dir, path));
-    return !projectIgnore.some((regex: RegExp) => regex.test(pathRelative));
-  };
-
-  copyMinimal(
-    project.dir,
-    serveDir,
-    [kSkipHidden],
-    filter,
-  );
-  copyMinimal(
-    projectFreezerDir(project.dir, true),
-    projectFreezerDir(serveDir, true),
-  );
-  return Deno.realPathSync(serveDir);
-}
-
-export function maybeDisplaySocketError(e: unknown) {
-  if (
-    !(e instanceof Deno.errors.BrokenPipe) &&
-    !(e instanceof Deno.errors.ConnectionAborted)
-  ) {
-    logError(e as Error);
   }
 }
 

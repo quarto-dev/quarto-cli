@@ -35,18 +35,10 @@ import { RenderResult } from "../render/types.ts";
 import {
   copyProjectForServe,
   maybeDisplaySocketError,
-  ServeOptions,
-} from "./serve.ts";
+} from "./serve-shared.ts";
 
 import { kLocalhost } from "./port.ts";
-
-export interface ProjectWatcher {
-  handle: (req: ServerRequest) => boolean;
-  connect: (req: ServerRequest) => Promise<void>;
-  injectClient: (file: Uint8Array) => Uint8Array;
-  serveProject: () => ProjectContext;
-  refreshProject: () => Promise<ProjectContext>;
-}
+import { ProjectWatcher, ServeOptions } from "./types.ts";
 
 export async function watchProject(
   project: ProjectContext,
