@@ -55,7 +55,7 @@ export const createProjectCommand = new Command()
         // check for kernel
         const match = value.match(/(\w+)(:(.+))?$/);
         if (match) {
-          return [match[1], match[2].slice(1)];
+          return [match[1], match[3]];
         } else {
           return [value];
         }
