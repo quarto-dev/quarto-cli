@@ -19,7 +19,7 @@ import { isHtmlContent } from "../../../core/mime.ts";
 
 import { FormatDependency } from "../../../config/format.ts";
 
-import { kBootstrapDependencyName } from "../../../format/html/format-html.ts";
+import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
 import {
   ProjectContext,
   projectOffset,

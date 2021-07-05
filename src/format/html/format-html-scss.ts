@@ -20,7 +20,6 @@ import { SassBundle, SassLayer } from "../../config/format.ts";
 import { Metadata } from "../../config/metadata.ts";
 import { kTheme } from "../../config/constants.ts";
 
-import { kBootstrapDependencyName, kCodeCopy } from "./format-html.ts";
 import {
   mergeLayers,
   print,
@@ -33,6 +32,16 @@ import {
   kSite,
   kSiteSidebar,
 } from "../../project/types/website/website-config.ts";
+import {
+  kBootstrapDependencyName,
+  kCodeCopy,
+  quartoBootstrapFunctions,
+  quartoBootstrapMixins,
+  quartoBootstrapRules,
+  quartoFunctions,
+  quartoGlobalCssVariableRules,
+  quartoRules,
+} from "./format-html-shared.ts";
 
 export function resolveBootstrapScss(
   input: string,
@@ -234,44 +243,3 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
   // So they provide the defaults
   return variables.reverse().join("\n");
 };
-
-export const quartoRules = () =>
-  Deno.readTextFileSync(formatResourcePath(
-    "html",
-    "_quarto-rules.scss",
-  ));
-
-export const quartoGlobalCssVariableRules = () => {
-  return `
-  $font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !default;
-  /*! quarto-variables-start */
-  :root {
-    --quarto-font-monospace: #{inspect($font-family-monospace)};
-  }
-  /*! quarto-variables-end */
-  `;
-};
-
-export const quartoBootstrapRules = () =>
-  Deno.readTextFileSync(formatResourcePath(
-    "html",
-    join("bootstrap", "_bootstrap-rules.scss"),
-  ));
-
-export const quartoBootstrapMixins = () =>
-  Deno.readTextFileSync(formatResourcePath(
-    "html",
-    join("bootstrap", "_bootstrap-mixins.scss"),
-  ));
-
-export const quartoBootstrapFunctions = () =>
-  Deno.readTextFileSync(formatResourcePath(
-    "html",
-    join("bootstrap", "_bootstrap-functions.scss"),
-  ));
-
-export const quartoFunctions = () =>
-  Deno.readTextFileSync(formatResourcePath(
-    "html",
-    "_quarto-functions.scss",
-  ));

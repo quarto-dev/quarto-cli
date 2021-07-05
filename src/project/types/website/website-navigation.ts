@@ -40,7 +40,7 @@ import {
   kTocFloat,
 } from "../../../config/toc.ts";
 
-import { kBootstrapDependencyName } from "../../../format/html/format-html.ts";
+import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
 import {
   formatPageLayout,
 } from "../../../format/html/format-html-bootstrap.ts";

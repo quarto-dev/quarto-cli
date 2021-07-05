@@ -42,7 +42,7 @@ import {
   kPageLayoutArticle,
   kPageLayoutCustom,
   kPageLayoutNone,
-} from "./format-html.ts";
+} from "./format-html-shared.ts";
 
 export function formatHasBootstrap(format: Format) {
   if (format && isHtmlOutput(format.pandoc, true)) {

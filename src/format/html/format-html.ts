@@ -43,27 +43,19 @@ import { createHtmlFormat } from "./../formats.ts";
 import { boostrapExtras, formatHasBootstrap } from "./format-html-bootstrap.ts";
 
 import {
+  kAnchorSections,
+  kBootstrapDependencyName,
+  kCodeCopy,
+  kComments,
+  kDocumentCss,
+  kHoverCitations,
+  kHoverFootnotes,
+  kHypothesis,
+  kUtterances,
   quartoFunctions,
   quartoGlobalCssVariableRules,
   quartoRules,
-} from "./format-html-scss.ts";
-
-export const kCodeCopy = "code-copy";
-export const kAnchorSections = "anchor-sections";
-export const kPageLayout = "page-layout";
-export const kPageLayoutArticle = "article";
-export const kPageLayoutCustom = "custom";
-export const kPageLayoutNone = "none";
-export const kHoverCitations = "hover-citations";
-export const kHoverFootnotes = "hover-footnotes";
-export const kComments = "comments";
-export const kHypothesis = "hypothesis";
-export const kUtterances = "utterances";
-
-export const kFootnoteSectionTitle = "footnote-section-title";
-
-export const kDocumentCss = "document-css";
-export const kBootstrapDependencyName = "bootstrap";
+} from "./format-html-shared.ts";
 
 export function htmlFormat(
   figwidth: number,
