@@ -47,7 +47,7 @@ export function pdfFormat(): Format {
 export function beamerFormat(): Format {
   return createFormat(
     "pdf",
-    createPdfFormat(false),
+    createPdfFormat(false, false),
     {
       execute: {
         [kFigWidth]: 10,
@@ -66,7 +66,7 @@ export function latexFormat(): Format {
   );
 }
 
-function createPdfFormat(autoShiftHeadings = true): Format {
+function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
   return createFormat(
     "pdf",
     {
@@ -84,14 +84,16 @@ function createPdfFormat(autoShiftHeadings = true): Format {
         },
       },
       formatExtras: (_input: string, flags: PandocFlags, format: Format) => {
+        const extras: FormatExtras = {};
+
         // default to KOMA article class. we do this here rather than
         // above so that projectExtras can override us
-        const extras: FormatExtras = {
-          metadata: {
+        if (koma) {
+          extras.metadata = {
             [kDocumentClass]: "scrartcl",
             [kPaperSize]: "letter",
-          },
-        };
+          };
+        }
 
         // pdfs with no other heading level oriented options get their heading level shifted by -1
         if (
