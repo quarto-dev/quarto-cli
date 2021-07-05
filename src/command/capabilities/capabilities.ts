@@ -11,12 +11,9 @@ import { ld } from "lodash/mod.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 
 import { pandocListFormats } from "../../core/pandoc/pandoc-formats.ts";
+import { JupyterCapabilities } from "../../core/jupyter/types.ts";
+import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
 import { jupyterKernelspecs } from "../../core/jupyter/kernels.ts";
-
-import {
-  JupyterCapabilities,
-  jupyterCapabilities,
-} from "../../core/jupyter/capabilities.ts";
 
 export interface Capabilities {
   formats: string[];

@@ -15,14 +15,14 @@ import { quartoDataDir, quartoRuntimeDir } from "../../core/appdirs.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { pythonExec } from "../../core/jupyter/exec.ts";
+import { JupyterCapabilities } from "../../core/jupyter/types.ts";
+import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
 import {
-  JupyterCapabilities,
-  jupyterCapabilities,
   jupyterCapabilitiesMessage,
   jupyterInstallationMessage,
   jupyterUnactivatedEnvMessage,
   pythonInstallationMessage,
-} from "../../core/jupyter/capabilities.ts";
+} from "../../core/jupyter/jupyter-shared.ts";
 
 import {
   kExecuteDaemon,

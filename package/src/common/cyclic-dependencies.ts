@@ -22,12 +22,10 @@ interface Cycle {
 }
 
 function DiscoverCyclicDependencies(config: Configuration) {
-  const text = Deno.readTextFileSync("/Users/charlesteague/Desktop/out.txt");
+  // Read the debug output and create alases for module numbers
+  const out = join(config.directoryInfo.pkg, "src", "out.txt");
+  const text = Deno.readTextFileSync(out);
   if (text) {
-    // Read the debug output and create alases for module numbers
-    const out = join(config.directoryInfo.pkg, "src", "out.txt");
-    const text = Deno.readTextFileSync(out);
-
     const moduleRegex = /\(ModuleId\(([0-9]+)\)\) <.+:\/\/(.*)>/gm;
     const circularRegex =
       /DEBUG RS - swc_bundler::bundler::chunk.*Circular dep:*.ModuleId\(([0-9]+)\) => ModuleId\(([0-9]+)\)/gm;
