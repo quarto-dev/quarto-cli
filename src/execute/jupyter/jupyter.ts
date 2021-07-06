@@ -75,6 +75,24 @@ export const jupyterEngine: ExecutionEngine = {
     `jupyter: ${kernel || "python3"}`,
   ],
 
+  defaultContent: (kernel?: string) => {
+    kernel = kernel || "python3";
+    const lang = kernel.startsWith("python")
+      ? "python"
+      : kernel.startsWith("julia")
+      ? "julia"
+      : undefined;
+    if (lang) {
+      return [
+        "```{" + lang + "}",
+        "1 + 1",
+        "```",
+      ];
+    } else {
+      return [];
+    }
+  },
+
   validExtensions: () => kJupyterNotebookExtensions.concat(kQmdExtensions),
 
   claimsExtension: (ext: string) => {

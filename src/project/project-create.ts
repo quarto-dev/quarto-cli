@@ -154,6 +154,13 @@ function projectMarkdownFile(
   // content
   lines.push(content);
 
+  // see if the engine has defautl content
+  const engineContent = engine.defaultContent(kernel);
+  if (engineContent.length > 0) {
+    lines.push("");
+    lines.push(...engineContent);
+  }
+
   // write file and return it's name
   name = name + engine.defaultExt;
   const path = join(dir, name);

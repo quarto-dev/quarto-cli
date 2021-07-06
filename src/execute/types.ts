@@ -21,6 +21,7 @@ export interface ExecutionEngine {
   name: string;
   defaultExt: string;
   defaultYaml: (kernel?: string) => string[];
+  defaultContent: (kernel?: string) => string[];
   validExtensions: () => string[];
   claimsExtension: (ext: string) => boolean;
   claimsLanguage: (language: string) => boolean;

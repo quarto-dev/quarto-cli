@@ -43,6 +43,12 @@ export const knitrEngine: ExecutionEngine = {
 
   defaultYaml: () => [],
 
+  defaultContent: () => [
+    "```{r}",
+    "1 + 1",
+    "```",
+  ],
+
   validExtensions: () => kRmdExtensions.concat(kRmdExtensions),
 
   claimsExtension: (ext: string) => {

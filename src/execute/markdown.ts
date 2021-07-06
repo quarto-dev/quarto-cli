@@ -29,6 +29,8 @@ export const markdownEngine: ExecutionEngine = {
 
   defaultYaml: () => [],
 
+  defaultContent: () => [],
+
   validExtensions: () => kQmdExtensions.concat(kMdExtensions),
 
   claimsExtension: (ext: string) => {
