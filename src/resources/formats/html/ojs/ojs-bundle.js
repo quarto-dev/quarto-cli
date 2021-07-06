@@ -115,7 +115,7 @@ export class OJSInABox {
         // this behavior appears inconsistent with OHQ's interpreter, so we
         // shouldn't be surprised to see this fail in the future.
         if (
-          cell.id?.type === "ViewExpression" &&
+          (cell.id && (cell.id.type === "ViewExpression")) &&
           !name.startsWith("viewof ")
         ) {
           element.style.display = "none";
@@ -202,7 +202,6 @@ function defaultResolveImportPath(path) {
   });
 }
 
-
 /*
   importPathResolver encodes the rules for quarto ojs to resolve
   import statements. We use the same name from observable's runtime
@@ -231,9 +230,8 @@ function defaultResolveImportPath(path) {
   statement inside observable notebooks (we actually defer to their function
   call.)
 
-  FIXME FINISH THIS  
+  FIXME FINISH THIS
 */
-
 
 function importPathResolver(paths, localResolverMap) {
   // NB: only resolve the field values in paths when calling rootPath
@@ -369,12 +367,12 @@ class OjsButtonInput /*extends ShinyInput*/ {
 }
 
 export function initOjsShinyRuntime() {
-  class BindingAdapter extends Shiny.InputBinding {
-    static value_sym = Symbol("value");
-    static callback_sym = Symbol("callback");
-    static instance_sym = Symbol("instance");
-    static values = new WeakMap();
+  const value_sym = Symbol("value");
+  const callback_sym = Symbol("callback");
+  const instance_sym = Symbol("instance");
+  const values = new WeakMap();
 
+  class BindingAdapter extends Shiny.InputBinding {
     constructor(x) {
       super();
       this.x = x;
@@ -514,8 +512,8 @@ export function createRuntime() {
     if (localResolver[n]) {
       return localResolver[n];
     }
-    
-    if (n.startsWith('/')) {
+
+    if (n.startsWith("/")) {
       return `${quartoOjsGlobal.paths.docToRoot}${n}`;
     } else {
       return n;

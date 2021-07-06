@@ -141,11 +141,7 @@ export async function ojsCompile(
   // now we convert it back
   for (const cell of output.cells) {
     const cellSrcStr = cell.source.join("");
-    const errorVal = firstDefined([
-      cell.options?.[kError],
-      options.format.execute[kError],
-      false,
-    ]);
+    const errorVal = cell.options?.[kError] ?? options.format.execute[kError] ?? false;
     if (
       cell.cell_type === "raw" ||
       cell.cell_type === "markdown" ||
@@ -316,30 +312,11 @@ export async function ojsCompile(
         ],
         attrs,
       });
-      const evalVal = firstDefined([
-        cell.options?.[kEval],
-        options.format.execute[kEval],
-        true,
-      ]);
-      const echoVal = firstDefined([
-        cell.options?.[kEcho],
-        options.format.execute[kEcho],
-        true,
-      ]);
-      const outputVal = firstDefined([
-        cell.options?.[kOutput],
-        options.format.execute[kOutput],
-        true,
-      ]);
-      const keepHiddenVal = firstDefined([
-        options.format.render[kKeepHidden],
-        false,
-      ]);
-      const includeVal = firstDefined([
-        cell.options?.[kInclude],
-        options.format.execute[kInclude],
-        true,
-      ]);
+      const evalVal = cell.options?.[kEval] ?? options.format.execute[kEval] ?? true;
+      const echoVal = cell.options?.[kEcho] ?? options.format.execute[kEcho] ?? true;
+      const outputVal = cell.options?.[kOutput] ?? options.format.execute[kOutput] ?? true;
+      const keepHiddenVal = options.format.render[kKeepHidden] ?? false;
+      const includeVal = cell.options?.[kInclude] ?? options.format.execute[kInclude] ?? true;
 
       if (hasFigureCaption() && !hasFigureLabel()) {
         throw new Error("Cannot have figure caption without figure label");
@@ -379,12 +356,8 @@ export async function ojsCompile(
 
         // options.format.render?.[kCodeFold] appears to use "none"
         // for "not set", so we interpret "none" as undefined
-        if (
-          firstDefined([
-            asUndefined(options.format.render?.[kCodeFold], "none"),
-            cell.options?.[kFold],
-          ])
-        ) {
+        if (asUndefined(options.format.render?.[kCodeFold], "none") ??
+          cell.options?.[kFold]) {
           attrs.push('fold="true"');
         }
 
@@ -585,16 +558,6 @@ function asUndefined(value: any, test: any) {
     return undefined;
   }
   return value;
-}
-
-// deno-lint-ignore no-explicit-any
-function firstDefined(lst: any[]) {
-  for (const el of lst) {
-    if (el !== undefined) {
-      return el;
-    }
-  }
-  return undefined;
 }
 
 function ojsFormatDependency(selfContained: boolean) {
