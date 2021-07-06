@@ -63,6 +63,10 @@ export const createProjectCommand = new Command()
     },
   )
   .option(
+    "--with-venv",
+    "Create a Python virtual environment for this project",
+  )
+  .option(
     "--no-scaffold",
     "Don't create initial project file(s)",
   )
@@ -87,6 +91,10 @@ export const createProjectCommand = new Command()
     "quarto create-project mysite --type site --engine jupyter",
   )
   .example(
+    "Create a website project with jupyter and a virtual environment",
+    "quarto create-project mysite --type site --engine jupyter --with-venv",
+  )
+  .example(
     "Create a website project with jupyter + kernel",
     "quarto create-project mysite --type site --engine jupyter:python3",
   )
@@ -105,5 +113,6 @@ export const createProjectCommand = new Command()
       scaffold: !!options.scaffold,
       engine: engine[0] || kMarkdownEngine,
       kernel: engine[1],
+      venv: options.withVenv,
     });
   });

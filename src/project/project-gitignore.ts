@@ -17,14 +17,17 @@ import { isEnvDir } from "../core/jupyter/capabilities.ts";
 
 export const kQuartoIgnore = [`/${kQuartoScratch}/`];
 
-export async function ensureGitignore(dir: string): Promise<boolean> {
+export async function ensureGitignore(
+  dir: string,
+  forceEnv = false,
+): Promise<boolean> {
   // if .gitignore exists, then ensure it has the requisite entries
   const gitignorePath = join(dir, ".gitignore");
   if (await exists(gitignorePath)) {
     const gitignore = lines(Deno.readTextFileSync(gitignorePath))
       .map((line) => line.trim());
     const requiredEntries: string[] = [];
-    for (const requiredEntry of gitignoreEntries(dir)) {
+    for (const requiredEntry of gitignoreEntries(dir, forceEnv)) {
       if (!gitignore.includes(requiredEntry)) {
         requiredEntries.push(requiredEntry);
       }
@@ -35,8 +38,11 @@ export async function ensureGitignore(dir: string): Promise<boolean> {
     } else {
       return false;
     }
+  } else if (forceEnv) {
+    await createGitignore(dir, forceEnv);
+    return true;
   } else if (which("git")) {
-    // if it doesn't exist then auto-create if we are in a git project
+    // if it doesn't exist then auto-create if we are in a git project or we had the force flag
     const result = await execProcess({
       cmd: ["git", "status"],
       cwd: dir,
@@ -44,7 +50,7 @@ export async function ensureGitignore(dir: string): Promise<boolean> {
       stderr: "piped",
     });
     if (result.success) {
-      await createGitignore(dir);
+      await createGitignore(dir, forceEnv);
       return true;
     } else {
       return false;
@@ -54,14 +60,14 @@ export async function ensureGitignore(dir: string): Promise<boolean> {
   }
 }
 
-export function createGitignore(dir: string) {
-  writeGitignore(dir, gitignoreEntries(dir));
+export function createGitignore(dir: string, forceEnv = false) {
+  writeGitignore(dir, gitignoreEntries(dir, forceEnv));
 }
 
-export function gitignoreEntries(dir: string) {
+export function gitignoreEntries(dir: string, forceEnv = false) {
   // detect virtual environment
   const kEnv = "env/";
-  if (isEnvDir(join(dir, kEnv))) {
+  if (forceEnv || isEnvDir(join(dir, kEnv))) {
     return kQuartoIgnore.concat(kEnv);
   } else {
     return kQuartoIgnore;

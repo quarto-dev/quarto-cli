@@ -45,6 +45,24 @@ export async function jupyterCapabilities() {
   return cachedJupyterCaps;
 }
 
+export async function jupyterCapabilitiesNoConda() {
+  if (isWindows()) {
+    return await getPyLauncherJupyterCapabilities();
+  } else {
+    const caps = await getJupyterCapabilities(["python3"]);
+    if (caps) {
+      if (caps?.conda) {
+        return await getJupyterCapabilities(["/usr/local/bin/python3"]) ||
+          await getJupyterCapabilities(["/usr/bin/python3"]);
+      } else {
+        return caps;
+      }
+    } else {
+      return undefined;
+    }
+  }
+}
+
 export function isEnvDir(dir: string) {
   return existsSync(join(dir, "pyvenv.cfg")) ||
     existsSync(join(dir, "conda-meta"));

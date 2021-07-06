@@ -22,7 +22,7 @@ export const defaultProjectType: ProjectType = {
       scaffold: [{
         name: title,
         content:
-          "This is a Quarto document. To learn more about Quarto visit https://quarto.org.",
+          "This is a Quarto document. To learn more about Quarto visit <https://quarto.org>.",
         title,
       }],
     };
