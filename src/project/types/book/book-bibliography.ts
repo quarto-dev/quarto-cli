@@ -6,6 +6,7 @@
 */
 
 import { dirname, join, relative } from "path/mod.ts";
+import { existsSync } from "fs/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 import { stringify } from "encoding/yaml.ts";
@@ -99,14 +100,16 @@ export async function bookBibliographyPostRender(
           if (
             outputFiles.findIndex((file) => file.file === htmlOutput) === -1
           ) {
-            const doc = new DOMParser().parseFromString(
-              Deno.readTextFileSync(htmlOutput),
-              "text/html",
-            );
-            if (doc) {
-              forEachCite(doc, (cite: Element) => {
-                citeIds.push(...citeIdsFromCite(cite));
-              });
+            if (existsSync(htmlOutput)) {
+              const doc = new DOMParser().parseFromString(
+                Deno.readTextFileSync(htmlOutput),
+                "text/html",
+              );
+              if (doc) {
+                forEachCite(doc, (cite: Element) => {
+                  citeIds.push(...citeIdsFromCite(cite));
+                });
+              }
             }
           }
         });
