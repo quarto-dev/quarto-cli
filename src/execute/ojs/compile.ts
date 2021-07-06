@@ -79,7 +79,6 @@ export async function ojsCompile(
   const { markdown, project } = options;
   const projDir = project?.dir;
   const selfContained = !(project || (project && projectIsWebserverTarget(project)));
-  console.log({ projDir, selfContained });
 
   if (!isJavascriptCompatible(options.format)) {
     return { markdown };
