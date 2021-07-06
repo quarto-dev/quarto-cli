@@ -217,7 +217,9 @@ export function bookPandocRenderer(
         cleanupExecutedFiles();
         return {
           files: renderedFiles,
-          error: error || new Error(),
+          error: error
+            ? typeof (error) === "string" ? new Error(error) : error
+            : new Error(),
         };
       }
     },
