@@ -799,7 +799,9 @@ async function runHtmlPostprocessors(
 ): Promise<string[]> {
   const resourceRefs: string[] = [];
   if (htmlPostprocessors.length > 0) {
-    const outputFile = join(dirname(options.source), options.output);
+    const outputFile = isAbsolute(options.output)
+      ? options.output
+      : join(dirname(options.source), options.output);
     const htmlInput = Deno.readTextFileSync(outputFile);
     const doctypeMatch = htmlInput.match(/^<!DOCTYPE.*?>/);
     const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
