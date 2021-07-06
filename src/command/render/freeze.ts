@@ -149,11 +149,13 @@ export function copyToProjectFreezer(
     for (const dir of Deno.readDirSync(srcFilesDir)) {
       if (dir.name === kFreezeExecuteResults) {
         const resultsDir = join(srcFilesDir, dir.name);
+        const destResultsDir = join(destFilesDir, kFreezeExecuteResults);
+        ensureDirSync(destResultsDir);
         for (const json of Deno.readDirSync(resultsDir)) {
           if (json.isFile) {
             Deno.copyFileSync(
               join(resultsDir, json.name),
-              join(destFilesDir, kFreezeExecuteResults, json.name),
+              join(destResultsDir, json.name),
             );
           }
         }
