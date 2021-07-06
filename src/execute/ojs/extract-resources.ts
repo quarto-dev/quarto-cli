@@ -183,7 +183,7 @@ export async function extractSelfContainedResources(
   }
   for (const importPath of localES6Imports(ojsAST)) {
     const moduleSrc = Deno.readTextFileSync(join(wdToMd, importPath));
-    const moduleBundle = await esbuildCompile(moduleSrc, mdDir);
+    const moduleBundle = await esbuildCompile(moduleSrc, mdDir, ["--target=es2018"]);
     if (moduleBundle) {
       const b64Src = base64Encode(moduleBundle);
       const contents = `data:application/javascript;base64,${b64Src}`;

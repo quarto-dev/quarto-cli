@@ -10,13 +10,15 @@ import { execProcess } from "./process.ts";
 export async function esbuildCompile(
   input: string,
   workingDir: string,
+  args?: string[],
 ): Promise<string | undefined> {
-  const args = [
+  const fullArgs = [
     "--bundle",
     "--format=esm",
+    ...(args || [])
   ];
 
-  return await esbuildCommand(args, input, workingDir);
+  return await esbuildCommand(fullArgs, input, workingDir);
 }
 
 async function esbuildCommand(
