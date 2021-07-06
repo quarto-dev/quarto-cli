@@ -145,7 +145,29 @@ export function copyToProjectFreezer(
   const freezerDir = projectFreezerDir(project.dir, hidden);
   const srcFilesDir = join(project.dir, file);
   const destFilesDir = join(freezerDir, asFreezerDir(file));
-  copy(srcFilesDir, destFilesDir, incremental);
+  if (incremental) {
+    for (const dir of Deno.readDirSync(srcFilesDir)) {
+      if (dir.name === kFreezeExecuteResults) {
+        const resultsDir = join(srcFilesDir, dir.name);
+        for (const json of Deno.readDirSync(resultsDir)) {
+          if (json.isFile) {
+            Deno.copyFileSync(
+              join(resultsDir, json.name),
+              join(destFilesDir, kFreezeExecuteResults, json.name),
+            );
+          }
+        }
+      } else {
+        copy(
+          join(srcFilesDir, dir.name),
+          join(destFilesDir, dir.name),
+          incremental,
+        );
+      }
+    }
+  } else {
+    copy(srcFilesDir, destFilesDir, incremental);
+  }
 }
 
 export function copyFromProjectFreezer(

@@ -304,7 +304,7 @@ async function mergeExecutedFiles(
       if (item.file) {
         const itemInputPath = join(project.dir, item.file);
         const file = files.find((file) =>
-          file.context.target.input === itemInputPath
+          file.context.target.source === itemInputPath
         );
         if (file) {
           itemMarkdown = bookItemMetadata(project, item, file) +
