@@ -5,7 +5,7 @@
 *
 */
 
-import { walkSync } from "fs/mod.ts";
+import { existsSync, walkSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
 import { quartoConfig } from "./quarto.ts";
 
@@ -55,4 +55,23 @@ export function rBinaryPath(binary: string): string {
 
 export function projectTypeResourcePath(projectType: string) {
   return resourcePath(join("projects", projectType));
+}
+
+const kDarkSuffix = "dark";
+const kLightSuffix = "light";
+
+export function textHighlightThemePath(
+  theme: string,
+  style?: "dark" | "light",
+) {
+  // First try the style specific version of the theme, otherwise
+  // fall back to the plain name
+  const names = [
+    `${theme}-${style === "dark" ? kDarkSuffix : kLightSuffix}`,
+    theme,
+  ];
+  const themePath = names.map((name) => {
+    return resourcePath(join("pandoc", "highlight-styles", `${name}.theme`));
+  }).find((path) => existsSync(path));
+  return themePath;
 }

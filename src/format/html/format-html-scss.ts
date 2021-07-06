@@ -119,7 +119,7 @@ export function resolveBootstrapScss(
   // light
   sassBundles.push(
     layerQuartoScss(
-      "theme-light",
+      "quarto-theme",
       kBootstrapDependencyName,
       themeSassLayers.light,
       metadata,
