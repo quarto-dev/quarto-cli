@@ -5,26 +5,83 @@
 *
 */
 import { createHash } from "hash/mod.ts";
-import { join } from "path/mod.ts";
+import { basename, isAbsolute, join } from "path/mod.ts";
+import { Command } from "cliffy/command/mod.ts";
 
 import { runCmd } from "../util/cmd.ts";
-import { Configuration } from "./config.ts";
+import { Configuration, readConfiguration } from "./config.ts";
+import { info } from "log/mod.ts";
+import { progressBar } from "../../../src/core/console.ts";
+
+export function cycleDependenciesCommand() {
+  return new Command()
+    .name("cycle-dependencies")
+    .description(
+      "Debugging tool for helping discover cyclic dependencies in quarto",
+    )
+    .option(
+      "-o, --output",
+      "Path to write json output",
+    )
+    .action(async (args) => {
+      const configuration = readConfiguration();
+      info("Using configuration:");
+      info(configuration);
+      info("");
+      await cyclicDependencies(args.output, configuration);
+    });
+}
+
+export function parseSwcLogCommand() {
+  return new Command()
+    .name("parse-swc-log")
+    .description(
+      "Parses SWC bundler debug log to discover cyclic dependencies in quarto",
+    )
+    .option(
+      "-i, --input",
+      "Path to text file containing swc bundler debug output",
+    )
+    .option(
+      "-o, --output",
+      "Path to write json output",
+    )
+    .action((args) => {
+      const configuration = readConfiguration();
+      info("Using configuration:");
+      info(configuration);
+      info("");
+      parseSwcBundlerLog(args.input, args.output, configuration);
+    });
+}
 
 export async function cyclicDependencies(
+  out: string,
   config: Configuration,
 ) {
-  await DiscoverCyclicDependencies(config);
+  const modules = await loadModules(config);
+  findCyclicDependencies(modules, out, config);
 }
 
-interface Cycle {
-  stack: string[];
-  count: number;
-}
+// Parses the debug output from the SWC bundler
+// (enable --log-level debug when call deno bundle to emit this and redirect stderr/stdout to a file)
+// Will create a table of module id and path as well as any circular dependencies
+// that SWC complains about
+function parseSwcBundlerLog(
+  log: string,
+  out: string,
+  config: Configuration,
+) {
+  // TODO: This should accept a log output file from the swc bundler
+  // and a target results file (rather than being hard coded)
 
-function DiscoverCyclicDependencies(config: Configuration) {
+  // TODO: Consider just outputting this after prepare-dist
+
   // Read the debug output and create alases for module numbers
-  const out = join(config.directoryInfo.pkg, "src", "out.txt");
-  const text = Deno.readTextFileSync(out);
+  const logPath = isAbsolute(log) ? log : join(Deno.cwd(), log);
+  const outPath = isAbsolute(out) ? out : join(Deno.cwd(), out);
+
+  const text = Deno.readTextFileSync(logPath);
   if (text) {
     const moduleRegex = /\(ModuleId\(([0-9]+)\)\) <.+:\/\/(.*)>/gm;
     const circularRegex =
@@ -41,6 +98,7 @@ function DiscoverCyclicDependencies(config: Configuration) {
       match = moduleRegex.exec(text);
     }
 
+    // Function to make a pretty name for this module
     const name = (moduleId: string) => {
       const name = moduleMap[moduleId];
       if (name) {
@@ -50,111 +108,36 @@ function DiscoverCyclicDependencies(config: Configuration) {
       }
     };
 
-    const dependencyMap: Record<string, string> = {};
+    // Find any circular reference complains and read the modules, use the map
+    // to find the names of the circularlities, and then add to the cycle map
+    const cycleMap: Record<string, string> = {};
     let circularMatch = circularRegex.exec(text);
     while (circularMatch) {
+      // Add this match to the circular list
       const baseModule = circularMatch[1];
       const depModule = circularMatch[2];
-      dependencyMap[name(baseModule)] = name(depModule);
+      cycleMap[name(baseModule)] = name(depModule);
+
+      // Search again
       circularMatch = circularRegex.exec(text);
     }
-
-    // Read the debug output and find circular imports
 
     // Create a human readable map of circulars
     const outputObj = {
       modules: moduleMap,
-      circulars: dependencyMap,
+      circulars: cycleMap,
     };
 
+    // Write the output
     Deno.writeTextFileSync(
-      "/Users/charlesteague/Desktop/circulars.json",
+      outPath,
       JSON.stringify(outputObj, undefined, 2),
     );
+    info("Log written to: " + outPath);
   }
-
-  /*
-  const deps = await createDependencyList(config);
-  info(`Scanning dependencies for ${Object.keys(deps).length} modules.`);
-
-  const dependencyGraph = listToGraph(deps);
-  console.log(dependencyGraph);
-  const cycles = filterGraph(dependencyGraph);
-
-  
-  // Stores the list of discovered cyclic dependencies
-  const cycles: Record<string, Cycle> = {};
-  const noteCycle = (stack: string[]) => {
-    const hash = pathHash(stack);
-    let cycle = cycles[hash];
-    if (cycle) {
-      cycle.count = cycle.count + 1;
-    } else {
-      cycle = {
-        stack,
-        count: 1,
-      };
-    }
-    cycles[hash] = cycle;
-  };
-
-  // Stores the current module stack and walks
-  const currentStack: string[] = [];
-  const walk = (path: string) => {
-    // See if this path is already in the currentStack.
-
-    const existingIndex = currentStack.findIndex((item) => item === path);
-
-    // If it is, stop looking and return
-    if (existingIndex !== -1) {
-      noteCycle([...currentStack.slice(existingIndex), path]);
-      //throw new Error();
-    } else {
-      currentStack.push(path);
-
-      const dependencies = deps[path];
-      if (dependencies) {
-        for (const dependency of dependencies) {
-          walk(dependency);
-        }
-      }
-      currentStack.pop();
-    }
-  };
-
-  const paths = Object.keys(deps);
-  const prog = progressBar(paths.length, `Detecting cycles`);
-  let count = 0;
-  for (const path of paths) {
-    // const status = `${Object.keys(cycles).length} cycles`;
-    const match = path.match(/.*\/src\/(.*)/);
-    const status = match ? match[1] : path;
-    try {
-      walk(path);
-    } catch {
-      // console.log(`${currentStack[0]} cycle`);
-    } finally {
-      currentStack.splice(0, currentStack.length);
-      count = count + 1;
-      prog.update(count, status);
-    }
-  }
-
-  const cycleCount = Object.keys(cycles).length;
-  const status = cycleCount > 0
-    ? `\n${cycleCount} Cyclic Dependencies Detected\nSee 'cycles.json' for details.\n`
-    : `\nNo cyclic dependencies detected.\n`;
-  prog.complete(status);
-
-  Deno.writeTextFileSync("cycles.json", JSON.stringify(cycles, undefined, 2));
-  */
 }
-
-// Creates a unique list of imports ([0] importing, [1] imported)
-async function createDependencyList(
-  config: Configuration,
-): Promise<Array<[string, string]>> {
-  // Run deno --info on quarto.ts
+async function loadModules(config: Configuration) {
+  info("Reading modules");
   const result = await runCmd(
     join(config.directoryInfo.bin, "deno"),
     [
@@ -165,104 +148,97 @@ async function createDependencyList(
     ],
   );
 
-  // Capture its output and parse it
-  const depTxt = result.stdout;
-  const json = JSON.parse(depTxt || "");
+  const rawOutput = result.stdout;
+  const jsonOutput = JSON.parse(rawOutput || "");
 
-  // Generate a set of modules and dependencies
-  const dependencySet = new Set<string>();
-  const separator = ",";
-
-  let count = 0;
-  for (const mod of json["modules"]) {
-    // Filter non-file dependencies (e.g. from the import map)
-    if (
-      mod.specifier && mod.specifier.startsWith("file:")
-    ) {
-      const importingPath = mod.specifier;
-      mod.dependencies.forEach((element: { code: string }) => {
-        if (element.code && element.code.startsWith("file:")) {
-          const exportingPath = element.code;
-          const dependency = [importingPath, exportingPath].join(separator);
-          dependencySet.add(dependency);
-        }
-      });
-      count = count + 1;
-      if (count >= 105) {
-        break;
-      }
-    }
+  // module path, array of import paths
+  const modules: Record<string, string[]> = {};
+  for (const mod of jsonOutput["modules"]) {
+    modules[mod.specifier] = mod.dependencies.map((dep: { code: string }) => {
+      return dep.code;
+    }).filter((p: unknown) => p !== undefined);
   }
 
-  const uniqueImports = Array.from(dependencySet.values());
-  return uniqueImports.map((imp) => imp.split(separator)) as Array<
-    [string, string]
-  >;
+  return modules;
 }
 
-function listToGraph(items: Array<[string, string]>) {
-  return items.reduce((graph, [sourceNode, targetNode]) => {
-    graph[sourceNode] = graph[sourceNode] || new Set();
-    graph[sourceNode].add(targetNode);
-
-    return graph;
-  }, {} as Record<string, Set<string>>);
+// Holds a detected cycle (with a handful of stacks / sample stacks)
+interface Cycle {
+  cycle: [string, string];
+  stacks: [string[]];
 }
 
-function filterGraph(graph: Record<string, Set<string>>) {
-  const without = (firstSet: Set<string>, secondSet: Set<string>) => (
-    new Set(Array.from(firstSet).filter((it) => !secondSet.has(it)))
-  );
+function findCyclicDependencies(
+  modules: Record<string, string[]>,
+  out: string,
+  _config: Configuration,
+) {
+  const outPath = isAbsolute(out) ? out : join(Deno.cwd(), out);
 
-  const mergeSets = (sets: Array<Set<string>>) => {
-    const sumSet = new Set<string>();
-    sets.forEach((set) => {
-      Array.from(set.values()).forEach((value) => {
-        sumSet.add(value);
-      });
-    });
-    return sumSet;
+  const cycles: Record<string, Cycle> = {};
+
+  // creates a hash for a set of paths (a cycle)
+  const hash = (paths: string[]) => {
+    const string = paths.join(" ");
+    return createHash("md5").update(string).toString();
   };
 
-  const stripTerminalNodes = (graph: Record<string, Set<string>>) => {
-    const allSources = new Set(Object.keys(graph));
-    const allTargets = mergeSets(Object.values(graph));
+  // The current import stack
+  const stack: string[] = [];
 
-    const terminalSources = without(allSources, allTargets);
-    const terminalTargets = without(allTargets, allSources);
-
-    const newGraph = Object.entries(graph).reduce(
-      (smallerGraph, [source, targets]) => {
-        if (!terminalSources.has(source)) {
-          const nonTerminalTargets = without(targets, terminalTargets);
-
-          if (nonTerminalTargets.size > 0) {
-            smallerGraph[source] = nonTerminalTargets;
-          }
+  const walkImports = (path: string, modules: Record<string, string[]>) => {
+    // See if this path is already in the stack.
+    const existingIndex = stack.findIndex((item) => item === path);
+    // If it is, stop looking and return
+    if (existingIndex !== -1) {
+      // Log the cycle
+      const substack = [...stack.slice(existingIndex), path];
+      const key = [stack[existingIndex], substack[substack.length - 1]];
+      const currentCycle = cycles[hash(key)] || { cycle: key, stacks: [] };
+      // Add the first 5 example stacks
+      if (currentCycle.stacks.length < 5) {
+        currentCycle.stacks.push(substack);
+      }
+      cycles[hash(key)] = currentCycle;
+    } else {
+      stack.push(path);
+      const dependencies = modules[path];
+      if (dependencies) {
+        for (const dependency of dependencies) {
+          walkImports(dependency, modules);
         }
-
-        return smallerGraph;
-      },
-      {} as Record<string, Set<string>>,
-    );
-
-    return newGraph;
-  };
-
-  const calculateGraphSize = (graph: Record<string, Set<string>>) =>
-    mergeSets(Object.values(graph)).size;
-
-  const miminizeGraph = (graph: Record<string, Set<string>>) => {
-    const smallerGraph = stripTerminalNodes(graph);
-    if (calculateGraphSize(smallerGraph) < calculateGraphSize(graph)) {
-      miminizeGraph(smallerGraph);
+      }
+      stack.pop();
     }
-    return smallerGraph;
   };
 
-  return miminizeGraph(graph);
-}
+  const paths = Object.keys(modules);
+  const prog = progressBar(paths.length, `Detecting cycles`);
+  let count = 0;
+  for (const path of paths) {
+    if (path.endsWith("quarto.ts")) {
+      continue;
+    }
+    const status = `scanning ${basename(path)} | total of ${
+      Object.keys(cycles).length
+    } cycles`;
+    prog.update(count, status);
+    try {
+      walkImports(path, modules);
+    } catch {
+      // console.log(`${stack[0]} cycle`);
+    } finally {
+      stack.splice(0, stack.length);
+    }
 
-function pathHash(paths: string[]) {
-  return createHash("md5").update(paths.join(" ")).toString();
+    count = count + 1;
+
+    if (Object.keys(cycles).length > 100) {
+      break;
+    }
+  }
+  prog.complete();
+
+  Deno.writeTextFileSync(outPath, JSON.stringify(cycles, undefined, 2));
+  info("Log written to: " + outPath);
 }
