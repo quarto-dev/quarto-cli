@@ -17,6 +17,6 @@ format:
   html:
     theme: cosmo
   pdf:
-    documentclass: report
+    documentclass: scrreport
   epub:
     cover-image: cover.png

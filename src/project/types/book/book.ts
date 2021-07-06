@@ -73,19 +73,25 @@ export const bookProjectType: ProjectType = {
       scaffold: [
         {
           name: "index",
-          content: "## Preface {.unnumbered} ",
+          content: "# Preface {.unnumbered}\n\n" +
+            "This is a Quarto book.\n\n" +
+            "To learn more about Quarto books visit <https://quarto.org/docs/books>.",
         },
         {
           name: "intro",
-          content: "# Introduction",
+          content: "# Introduction\n\n" +
+            "This is a book created from markdown and executable code.\n\n" +
+            "See @knuth84 for additional discussion of literate programming.",
         },
         {
           name: "summary",
-          content: "# Summary",
+          content:
+            "# Summary\n\nIn summary, this book has no content whatsoever.",
         },
         {
           name: "references",
           content: "# References {.unnumbered}\n\n::: {#refs}\n:::\n",
+          noEngineContent: true,
         },
       ],
 

@@ -71,5 +71,6 @@ export interface ProjectCreate {
 export interface ProjectScaffoldFile {
   name: string;
   content: string;
+  noEngineContent?: boolean;
   title?: string;
 }

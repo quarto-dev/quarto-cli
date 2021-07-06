@@ -66,12 +66,13 @@ export const websiteProjectType: ProjectType = {
       scaffold: [
         {
           name: "index",
-          content: "Home page",
+          content:
+            "This is a Quarto website.\n\nTo learn more about Quarto websites visit <https://quarto.org/docs/websites>.",
           title,
         },
         {
           name: "about",
-          content: "## About this site",
+          content: "About this site",
           title: "About",
         },
       ],

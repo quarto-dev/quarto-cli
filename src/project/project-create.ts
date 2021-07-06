@@ -79,6 +79,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
         engine,
         options.kernel,
         scaffold.title,
+        scaffold.noEngineContent,
       );
       if (md) {
         info("- Created " + md, { indent: 2 });
@@ -133,6 +134,7 @@ function projectMarkdownFile(
   engine: ExecutionEngine,
   kernel?: string,
   title?: string,
+  noEngineContent?: boolean,
 ): string | undefined {
   // yaml/title
   const lines: string[] = ["---"];
@@ -155,10 +157,12 @@ function projectMarkdownFile(
   lines.push(content);
 
   // see if the engine has defautl content
-  const engineContent = engine.defaultContent(kernel);
-  if (engineContent.length > 0) {
-    lines.push("");
-    lines.push(...engineContent);
+  if (!noEngineContent) {
+    const engineContent = engine.defaultContent(kernel);
+    if (engineContent.length > 0) {
+      lines.push("");
+      lines.push(...engineContent);
+    }
   }
 
   // write file and return it's name

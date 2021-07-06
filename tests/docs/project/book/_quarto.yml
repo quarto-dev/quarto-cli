@@ -3,7 +3,7 @@ project:
 
 book:
   title: "book"
-  author: "Jane Doe"
+  author: "Jane Smith"
   date: "6/4/2021"
   chapters:
     - index.qmd
@@ -17,7 +17,6 @@ format:
   html:
     theme: cosmo
   pdf:
-    documentclass: report
+    documentclass: scrreport
   epub:
     cover-image: cover.png
-

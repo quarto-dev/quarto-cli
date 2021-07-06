@@ -21,7 +21,8 @@ export const defaultProjectType: ProjectType = {
       resourceDir,
       scaffold: [{
         name: title,
-        content: "",
+        content:
+          "This is a Quarto document. To learn more about Quarto visit https://quarto.org.",
         title,
       }],
     };
