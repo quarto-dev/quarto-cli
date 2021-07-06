@@ -23,7 +23,6 @@ import { parseModule } from "https://cdn.skypack.dev/@observablehq/parser";
 import { button } from "https://cdn.skypack.dev/@observablehq/inputs";
 
 //////////////////////////////////////////////////////////////////////////////
-// previously observable-in-a-box.js
 
 export class OJSInABox {
   constructor({
@@ -85,11 +84,11 @@ export class OJSInABox {
   clearImportModuleWait() {
     const array = Array.from(
       document.querySelectorAll(
-        ".observable-in-a-box-waiting-for-module-import",
+        ".ojs-in-a-box-waiting-for-module-import",
       ),
     );
     for (const node of array) {
-      node.classList.remove("observable-in-a-box-waiting-for-module-import");
+      node.classList.remove("ojs-in-a-box-waiting-for-module-import");
     }
   }
 
@@ -122,7 +121,7 @@ export class OJSInABox {
           element.style.display = "none";
         }
 
-        element.classList.add("observable-in-a-box-waiting-for-module-import");
+        element.classList.add("ojs-in-a-box-waiting-for-module-import");
 
         return new this.inspectorClass(element);
       };
@@ -164,9 +163,9 @@ export class OJSInABox {
   }
 }
 
-// here we need to convert from an ES6 module to an ObservableHQ module
+// here we need to convert from an ES6 module to an observable module
 // in, well, a best-effort kind of way.
-function es6ImportAsObservable(m) {
+function es6ImportAsObservableModule(m) {
   return function (runtime, observer) {
     const main = runtime.module();
 
@@ -179,7 +178,9 @@ function es6ImportAsObservable(m) {
   };
 }
 
-// this is Observable's import resolution
+// this is the import resolution code from observable's runtime. we'd
+// like to use it from their modules directly but they don't export
+// it.
 function defaultResolveImportPath(path) {
   const extractPath = (path) => {
     let source = path;
@@ -200,6 +201,39 @@ function defaultResolveImportPath(path) {
     return m.default;
   });
 }
+
+
+/*
+  importPathResolver encodes the rules for quarto ojs to resolve
+  import statements. We use the same name from observable's runtime
+  (because we need to actually pass this function in as a parameter).
+  However, note that the name is misleading. importPathResolver not
+  only resolves import paths but performs module imports as well. This
+  is useful for us because it allows us to extend the meaning of ojs's
+  import statement, but it makes the name confusing.
+
+  Here are the rules for our version of the import statement.
+
+  The function returned by importPathResolver expects a "module specifier", and
+  produces a module as defined by observable's runtime.
+
+  A module specifier is a string, interpreted differently depending on the following properties:
+
+  - it starts with "." or "/", in which case we call it a "local module"
+
+  - it is a well-defined URL which does _not_ match the regexp:
+    /^https:\/\/(api\.|beta\.|)observablehq\.com\//i
+    in which case we call it a "remote import"
+
+  - otherwise, it is an "observable import"
+
+  If the string is an observable import, it behaves exactly like the import
+  statement inside observable notebooks (we actually defer to their function
+  call.)
+
+  FIXME FINISH THIS  
+*/
+
 
 function importPathResolver(paths, localResolverMap) {
   // NB: only resolve the field values in paths when calling rootPath
@@ -242,7 +276,7 @@ function importPathResolver(paths, localResolverMap) {
       // assert(path.startsWith("."))
       path = relativePath(path);
     }
-    return import(path).then((m) => es6ImportAsObservable(m));
+    return import(path).then((m) => es6ImportAsObservableModule(m));
   };
 }
 
@@ -279,7 +313,7 @@ export function extendObservableStdlib(lib) {
     return function (name) {
       const dummySpan = document.createElement("div");
       dummySpan.id = name;
-      dummySpan.classList.add("observablehq-variable-writer");
+      dummySpan.classList.add("ojs-variable-writer");
       window._ojs.shinyElementRoot.appendChild(dummySpan);
       return lib.Generators.observe((change) => {
         Shiny.outputBindings.register(
@@ -304,9 +338,9 @@ export class ShinyInspector extends Inspector {
 
 const { Generators } = new Library();
 
-class ObservableButtonInput /*extends ShinyInput*/ {
+class OjsButtonInput /*extends ShinyInput*/ {
   find(_scope) {
-    return document.querySelectorAll(".observablehq-inputs-button");
+    return document.querySelectorAll(".ojs-inputs-button");
   }
 
   init(el, change) {
@@ -334,7 +368,7 @@ class ObservableButtonInput /*extends ShinyInput*/ {
   }
 }
 
-export function initObservableShinyRuntime() {
+export function initOjsShinyRuntime() {
   class BindingAdapter extends Shiny.InputBinding {
     static value_sym = Symbol("value");
     static callback_sym = Symbol("callback");
@@ -397,14 +431,13 @@ export function initObservableShinyRuntime() {
     return false;
   }
 
-  Shiny.inputBindings.register(new BindingAdapter(new ObservableButtonInput()));
+  Shiny.inputBindings.register(new BindingAdapter(new OjsButtonInput()));
   Shiny.outputBindings.register(new InspectorOutputBinding());
 
   return true;
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// previously quarto-observable.js
 
 export function createRuntime() {
   const quartoOjsGlobal = window._ojs;
@@ -413,14 +446,14 @@ export function createRuntime() {
   // Are we shiny?
   if (isShiny) {
     quartoOjsGlobal.hasShiny = true;
-    initObservableShinyRuntime();
+    initOjsShinyRuntime();
 
     const span = document.createElement("span");
     window._ojs.shinyElementRoot = span;
     document.body.appendChild(span);
   }
 
-  // we use the trick described here to extend observable's standard library
+  // we use the trick described here to extend observable runtime's standard library
   // https://talk.observablehq.com/t/embedded-width/1063
 
   // our stdlib

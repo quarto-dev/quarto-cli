@@ -98,7 +98,7 @@ import {
   kProjectFreezeDir,
   removeFreezeResults,
 } from "./freeze.ts";
-import { observableExecuteResult } from "../../execute/observable/compile.ts";
+import { ojsExecuteResult } from "../../execute/ojs/compile.ts";
 import {
   ExecutedFile,
   PandocRenderer,
@@ -181,8 +181,8 @@ export async function renderFiles(
           executeOptions,
         );
 
-        // process observable
-        const { executeResult, resourceFiles } = await observableExecuteResult(
+        // process ojs
+        const { executeResult, resourceFiles } = await ojsExecuteResult(
           context,
           baseExecuteResult,
         );

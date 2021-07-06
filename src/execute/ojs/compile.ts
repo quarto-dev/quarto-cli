@@ -52,7 +52,7 @@ import { formatResourcePath } from "../../core/resources.ts";
 import { logError } from "../../core/log.ts";
 import { breakQuartoMd } from "../../core/break-quarto-md.ts";
 
-export interface ObservableCompileOptions {
+export interface OjsCompileOptions {
   source: string;
   format: Format;
   markdown: string;
@@ -60,7 +60,7 @@ export interface ObservableCompileOptions {
   project?: ProjectContext;
 }
 
-export interface ObservableCompileResult {
+export interface OjsCompileResult {
   markdown: string;
   filters?: string[];
   includes?: PandocIncludes;
@@ -72,10 +72,10 @@ interface SubfigureSpec {
 }
 
 // TODO decide how source code is presented, we've lost this
-// feature from the observable-engine move
-export async function observableCompile(
-  options: ObservableCompileOptions,
-): Promise<ObservableCompileResult> {
+// feature from the ojs-engine move
+export async function ojsCompile(
+  options: OjsCompileOptions,
+): Promise<OjsCompileResult> {
   const { markdown, project } = options;
   const projDir = project?.dir;
   const selfContained = !(project && projectIsWebserverTarget(project));
@@ -97,7 +97,7 @@ export async function observableCompile(
 
   const ojsRuntimeDir = resolve(
     dirname(options.source),
-    options.libDir + "/observable",
+    options.libDir + "/ojs",
   );
   const docDir = dirname(options.source);
   const rootDir = "./";
@@ -503,7 +503,7 @@ export async function observableCompile(
   const extras = resolveDependencies(
     {
       html: {
-        [kDependencies]: [observableFormatDependency(selfContained)],
+        [kDependencies]: [ojsFormatDependency(selfContained)],
       },
     },
     dirname(options.source),
@@ -515,7 +515,7 @@ export async function observableCompile(
   if (selfContained) {
     const ojsBundleFilename = join(
       quartoConfig.sharePath(),
-      "formats/html/observable/ojs-bundle.js",
+      "formats/html/ojs/ojs-bundle.js",
     );
     const ojsBundle = [
       `<script type="module">`,
@@ -528,7 +528,7 @@ export async function observableCompile(
     ojsBundleTempFiles.push(filename);
   }
 
-  // copy observable dependencies and inject references to them into the head
+  // copy ojs dependencies and inject references to them into the head
   const includeInHeader = [
     ...(extras?.[kIncludeInHeader] || []),
     ...ojsBundleTempFiles,
@@ -547,15 +547,15 @@ export async function observableCompile(
   };
 }
 
-export async function observableExecuteResult(
+export async function ojsExecuteResult(
   context: RenderContext,
   executeResult: ExecuteResult,
 ) {
   executeResult = ld.cloneDeep(executeResult);
 
-  // evaluate observable chunks
+  // evaluate ojs chunks
   const { markdown, includes, filters, resourceFiles } =
-    await observableCompile({
+    await ojsCompile({
       source: context.target.source,
       format: context.format,
       markdown: executeResult.markdown,
@@ -598,18 +598,18 @@ function firstDefined(lst: any[]) {
   return undefined;
 }
 
-function observableFormatDependency(selfContained: boolean) {
-  const observableResource = (resource: string) =>
+function ojsFormatDependency(selfContained: boolean) {
+  const ojsResource = (resource: string) =>
     formatResourcePath(
       "html",
-      join("observable", resource),
+      join("ojs", resource),
     );
-  const observableDependency = (
+  const ojsDependency = (
     resource: string,
     attribs?: Record<string, string>,
   ) => ({
     name: resource,
-    path: observableResource(resource),
+    path: ojsResource(resource),
     attribs,
   });
 
@@ -617,11 +617,11 @@ function observableFormatDependency(selfContained: boolean) {
   // them to be inline in case we are running in a file:/// context.
   const scripts = selfContained
     ? []
-    : [observableDependency("ojs-bundle.js", { type: "module" })];
+    : [ojsDependency("ojs-bundle.js", { type: "module" })];
   return {
-    name: "quarto-observable",
+    name: "quarto-ojs",
     stylesheets: [
-      observableDependency("quarto-observable.css"),
+      ojsDependency("quarto-ojs.css"),
     ],
     scripts,
   };

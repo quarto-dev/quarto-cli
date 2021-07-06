@@ -44,5 +44,3 @@ async function esbuildCommand(
     throw new Error("esbuild command failed");
   }
 }
-
-// esbuild --bundle observable-in-a-box.js --outfile=ojs-bundle.js --format=esm

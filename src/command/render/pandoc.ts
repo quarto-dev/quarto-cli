@@ -135,7 +135,7 @@ export async function runPandoc(
   const formatFilterParams = {} as Record<string, unknown>;
 
   // the "ojs" filter is a special value that results in us
-  // just signaling our standard filter chain that the observable-js
+  // just signaling our standard filter chain that the ojs
   // filter should be active
   const kOJSFilter = "ojs";
   if (sysFilters.includes(kOJSFilter)) {
