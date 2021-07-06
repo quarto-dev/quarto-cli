@@ -10,13 +10,15 @@ import { execProcess } from "./process.ts";
 export async function esbuildCompile(
   input: string,
   workingDir: string,
+  args?: string[],
 ): Promise<string | undefined> {
-  const args = [
+  const fullArgs = [
     "--bundle",
     "--format=esm",
+    ...(args || [])
   ];
 
-  return await esbuildCommand(args, input, workingDir);
+  return await esbuildCommand(fullArgs, input, workingDir);
 }
 
 async function esbuildCommand(
@@ -44,5 +46,3 @@ async function esbuildCommand(
     throw new Error("esbuild command failed");
   }
 }
-
-// esbuild --bundle observable-in-a-box.js --outfile=ojs-bundle.js --format=esm

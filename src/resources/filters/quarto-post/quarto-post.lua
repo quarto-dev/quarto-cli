@@ -19,7 +19,7 @@ import("bootstrap.lua")
 import("latexdiv.lua")
 import("foldcode.lua")
 import("book-cleanup.lua")
-import("observable.lua")
+import("ojs.lua")
 import("../common/params.lua")
 import("../common/table.lua")
 import("../common/pandoc.lua")
@@ -38,7 +38,7 @@ return {
     foldCode(),
     bootstrap()
   }),
-  observable()
+  ojs()
 }
 
 

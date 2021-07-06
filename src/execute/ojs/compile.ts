@@ -12,7 +12,7 @@ import { parseModule } from "observablehq/parser";
 
 import { Format, kDependencies } from "../../config/types.ts";
 import { ExecuteResult, PandocIncludes } from "../../execute/types.ts";
-import { kIncludeAfterBody, kIncludeInHeader } from "../../config/constants.ts";
+import { kIncludeAfterBody, kIncludeInHeader, kSelfContained } from "../../config/constants.ts";
 import { RenderContext } from "../../command/render/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 
@@ -52,7 +52,7 @@ import { formatResourcePath } from "../../core/resources.ts";
 import { logError } from "../../core/log.ts";
 import { breakQuartoMd } from "../../core/break-quarto-md.ts";
 
-export interface ObservableCompileOptions {
+export interface OjsCompileOptions {
   source: string;
   format: Format;
   markdown: string;
@@ -60,7 +60,7 @@ export interface ObservableCompileOptions {
   project?: ProjectContext;
 }
 
-export interface ObservableCompileResult {
+export interface OjsCompileResult {
   markdown: string;
   filters?: string[];
   includes?: PandocIncludes;
@@ -72,13 +72,13 @@ interface SubfigureSpec {
 }
 
 // TODO decide how source code is presented, we've lost this
-// feature from the observable-engine move
-export async function observableCompile(
-  options: ObservableCompileOptions,
-): Promise<ObservableCompileResult> {
+// feature from the ojs-engine move
+export async function ojsCompile(
+  options: OjsCompileOptions,
+): Promise<OjsCompileResult> {
   const { markdown, project } = options;
   const projDir = project?.dir;
-  const selfContained = !(project && projectIsWebserverTarget(project));
+  const selfContained = !(project || (project && projectIsWebserverTarget(project)));
 
   if (!isJavascriptCompatible(options.format)) {
     return { markdown };
@@ -97,7 +97,7 @@ export async function observableCompile(
 
   const ojsRuntimeDir = resolve(
     dirname(options.source),
-    options.libDir + "/observable",
+    options.libDir + "/ojs",
   );
   const docDir = dirname(options.source);
   const rootDir = "./";
@@ -141,11 +141,7 @@ export async function observableCompile(
   // now we convert it back
   for (const cell of output.cells) {
     const cellSrcStr = cell.source.join("");
-    const errorVal = firstDefined([
-      cell.options?.[kError],
-      options.format.execute[kError],
-      false,
-    ]);
+    const errorVal = (cell.options?.[kError] ?? options.format.execute?.[kError] ?? false) as boolean;
     if (
       cell.cell_type === "raw" ||
       cell.cell_type === "markdown" ||
@@ -208,8 +204,7 @@ export async function observableCompile(
       if (selfContained) {
         const selfContainedCellResources = await extractSelfContainedResources(
           cellSrcStr,
-          options.source,
-          projDir,
+          options.source
         );
         selfContainedPageResources = new Map([
           ...selfContainedPageResources,
@@ -317,30 +312,11 @@ export async function observableCompile(
         ],
         attrs,
       });
-      const evalVal = firstDefined([
-        cell.options?.[kEval],
-        options.format.execute[kEval],
-        true,
-      ]);
-      const echoVal = firstDefined([
-        cell.options?.[kEcho],
-        options.format.execute[kEcho],
-        true,
-      ]);
-      const outputVal = firstDefined([
-        cell.options?.[kOutput],
-        options.format.execute[kOutput],
-        true,
-      ]);
-      const keepHiddenVal = firstDefined([
-        options.format.render[kKeepHidden],
-        false,
-      ]);
-      const includeVal = firstDefined([
-        cell.options?.[kInclude],
-        options.format.execute[kInclude],
-        true,
-      ]);
+      const evalVal = cell.options?.[kEval] ?? options.format.execute[kEval] ?? true;
+      const echoVal = cell.options?.[kEcho] ?? options.format.execute[kEcho] ?? true;
+      const outputVal = cell.options?.[kOutput] ?? options.format.execute[kOutput] ?? true;
+      const keepHiddenVal = options.format.render[kKeepHidden] ?? false;
+      const includeVal = cell.options?.[kInclude] ?? options.format.execute[kInclude] ?? true;
 
       if (hasFigureCaption() && !hasFigureLabel()) {
         throw new Error("Cannot have figure caption without figure label");
@@ -380,12 +356,8 @@ export async function observableCompile(
 
         // options.format.render?.[kCodeFold] appears to use "none"
         // for "not set", so we interpret "none" as undefined
-        if (
-          firstDefined([
-            asUndefined(options.format.render?.[kCodeFold], "none"),
-            cell.options?.[kFold],
-          ])
-        ) {
+        if (asUndefined(options.format.render?.[kCodeFold], "none") ??
+          cell.options?.[kFold]) {
           attrs.push('fold="true"');
         }
 
@@ -503,7 +475,7 @@ export async function observableCompile(
   const extras = resolveDependencies(
     {
       html: {
-        [kDependencies]: [observableFormatDependency(selfContained)],
+        [kDependencies]: [ojsFormatDependency(selfContained)],
       },
     },
     dirname(options.source),
@@ -515,7 +487,7 @@ export async function observableCompile(
   if (selfContained) {
     const ojsBundleFilename = join(
       quartoConfig.sharePath(),
-      "formats/html/observable/ojs-bundle.js",
+      "formats/html/ojs/ojs-bundle.js",
     );
     const ojsBundle = [
       `<script type="module">`,
@@ -528,7 +500,7 @@ export async function observableCompile(
     ojsBundleTempFiles.push(filename);
   }
 
-  // copy observable dependencies and inject references to them into the head
+  // copy ojs dependencies and inject references to them into the head
   const includeInHeader = [
     ...(extras?.[kIncludeInHeader] || []),
     ...ojsBundleTempFiles,
@@ -547,15 +519,15 @@ export async function observableCompile(
   };
 }
 
-export async function observableExecuteResult(
+export async function ojsExecuteResult(
   context: RenderContext,
   executeResult: ExecuteResult,
 ) {
   executeResult = ld.cloneDeep(executeResult);
 
-  // evaluate observable chunks
+  // evaluate ojs chunks
   const { markdown, includes, filters, resourceFiles } =
-    await observableCompile({
+    await ojsCompile({
       source: context.target.source,
       format: context.format,
       markdown: executeResult.markdown,
@@ -588,28 +560,18 @@ function asUndefined(value: any, test: any) {
   return value;
 }
 
-// deno-lint-ignore no-explicit-any
-function firstDefined(lst: any[]) {
-  for (const el of lst) {
-    if (el !== undefined) {
-      return el;
-    }
-  }
-  return undefined;
-}
-
-function observableFormatDependency(selfContained: boolean) {
-  const observableResource = (resource: string) =>
+function ojsFormatDependency(selfContained: boolean) {
+  const ojsResource = (resource: string) =>
     formatResourcePath(
       "html",
-      join("observable", resource),
+      join("ojs", resource),
     );
-  const observableDependency = (
+  const ojsDependency = (
     resource: string,
     attribs?: Record<string, string>,
   ) => ({
     name: resource,
-    path: observableResource(resource),
+    path: ojsResource(resource),
     attribs,
   });
 
@@ -617,11 +579,11 @@ function observableFormatDependency(selfContained: boolean) {
   // them to be inline in case we are running in a file:/// context.
   const scripts = selfContained
     ? []
-    : [observableDependency("ojs-bundle.js", { type: "module" })];
+    : [ojsDependency("ojs-bundle.js", { type: "module" })];
   return {
-    name: "quarto-observable",
+    name: "quarto-ojs",
     stylesheets: [
-      observableDependency("quarto-observable.css"),
+      ojsDependency("quarto-ojs.css"),
     ],
     scripts,
   };

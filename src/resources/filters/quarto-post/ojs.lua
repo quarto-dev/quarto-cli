@@ -1,17 +1,17 @@
--- observable.lua
+-- ojs.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
-function observable()
+function ojs()
 
   local uid = 0
   local cells = pandoc.List:new()
 
   function uniqueId()
     uid = uid + 1
-    return "observable-element-id-" .. uid
+    return "ojs-element-id-" .. uid
   end
 
-  function observableInline(src)
+  function ojsInline(src)
     local id = uniqueId()
     cells:insert({
         src = src,
@@ -161,7 +161,7 @@ function observable()
           inlines:remove(i+1)
           inlines[i] = pandoc.Span({
               pandoc.Str(beforeFirst),
-              observableInline(stringifyTokens(slice)),
+              ojsInline(stringifyTokens(slice)),
               pandoc.Str(afterLast)
           })
         end
@@ -172,7 +172,7 @@ function observable()
     return inlines
   end  
 
-  if (param("observable", false)) then
+  if (param("ojs", false)) then
     return {
       Inlines = function (inlines)
         return inlines_rec(inlines)
@@ -205,7 +205,7 @@ function observable()
         if s then
           return pandoc.Span({
               pandoc.Str(string.sub(el.text, 1, b - 1)),
-              observableInline(s),
+              ojsInline(s),
               pandoc.Str(string.sub(el.text, e + 1, -1))
           })
         end
