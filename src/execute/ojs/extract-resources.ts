@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, relative, resolve } from "path/mod.ts";
+import { dirname, join, relative, resolve } from "path/mod.ts";
 import { encode as base64Encode } from "encoding/base64.ts";
 import { lookup } from "media_types/mod.ts";
 
@@ -167,11 +167,12 @@ export function extractResources(
 
 export async function extractSelfContainedResources(
   ojsSource: string,
-  mdFilename: string,
-  projectRoot?: string,
+  mdFilename: string
 ) {
   const imports: Map<string, string> = new Map();
-  const wd = dirname(mdFilename);
+  const wd = Deno.cwd();
+  const mdDir = dirname(mdFilename);
+  const wdToMd = relative(wd, mdDir);
 
   let ojsAST;
   try {
@@ -181,8 +182,8 @@ export async function extractSelfContainedResources(
     throw new Error();
   }
   for (const importPath of localES6Imports(ojsAST)) {
-    const moduleSrc = Deno.readTextFileSync(importPath);
-    const moduleBundle = await esbuildCompile(moduleSrc, wd);
+    const moduleSrc = Deno.readTextFileSync(join(wdToMd, importPath));
+    const moduleBundle = await esbuildCompile(moduleSrc, mdDir);
     if (moduleBundle) {
       const b64Src = base64Encode(moduleBundle);
       const contents = `data:application/javascript;base64,${b64Src}`;
@@ -192,7 +193,8 @@ export async function extractSelfContainedResources(
 
   literalFileAttachments(ojsAST)
     .forEach((path) => {
-      const attachment = Deno.readTextFileSync(path);
+      console.log({path});
+      const attachment = Deno.readTextFileSync(join(wdToMd, path));
       const mimeType = lookup(path);
       const b64Src = base64Encode(attachment);
       const contents = `data:${mimeType};base64,${b64Src}`;

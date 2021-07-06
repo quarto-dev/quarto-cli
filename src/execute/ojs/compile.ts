@@ -12,7 +12,7 @@ import { parseModule } from "observablehq/parser";
 
 import { Format, kDependencies } from "../../config/types.ts";
 import { ExecuteResult, PandocIncludes } from "../../execute/types.ts";
-import { kIncludeAfterBody, kIncludeInHeader } from "../../config/constants.ts";
+import { kIncludeAfterBody, kIncludeInHeader, kSelfContained } from "../../config/constants.ts";
 import { RenderContext } from "../../command/render/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 
@@ -78,7 +78,8 @@ export async function ojsCompile(
 ): Promise<OjsCompileResult> {
   const { markdown, project } = options;
   const projDir = project?.dir;
-  const selfContained = !(project && projectIsWebserverTarget(project));
+  const selfContained = !(project || (project && projectIsWebserverTarget(project)));
+  console.log({ projDir, selfContained });
 
   if (!isJavascriptCompatible(options.format)) {
     return { markdown };
@@ -208,8 +209,7 @@ export async function ojsCompile(
       if (selfContained) {
         const selfContainedCellResources = await extractSelfContainedResources(
           cellSrcStr,
-          options.source,
-          projDir,
+          options.source
         );
         selfContainedPageResources = new Map([
           ...selfContainedPageResources,
