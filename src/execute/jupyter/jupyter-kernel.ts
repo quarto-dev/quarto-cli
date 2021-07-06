@@ -113,6 +113,8 @@ export async function executeKernelKeepalive(
             info(msg.data, { newline: false });
             if (msg.type === "error") {
               trace(options, "Error response received");
+              info("");
+              printExecDiagnostics(msg.data);
               return Promise.reject();
             } else if (msg.type == "restart") {
               trace(options, "Restart request received");

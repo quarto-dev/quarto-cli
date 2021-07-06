@@ -5,6 +5,7 @@
 *
 */
 import { join } from "path/mod.ts";
+import { existsSync } from "fs/mod.ts";
 
 import * as colors from "fmt/colors.ts";
 
@@ -73,6 +74,20 @@ export function jupyterUnactivatedEnvMessage(
       }
     }
   }
+  // perhaps they haven't yet restored from requirements.txt or environment.yaml
+  const kRequirementsTxt = "requirements.txt";
+  const kEnvironmentYaml = "environment.yml";
+  for (const envFile of [kRequirementsTxt, kEnvironmentYaml]) {
+    if (existsSync(join(Deno.cwd(), envFile))) {
+      return indent + "There is a " + colors.bold(envFile) +
+        " file in this directory. " +
+        "Is this for a " + (envFile === kRequirementsTxt
+          ? "venv"
+          : "conda env") +
+        " that you need to restore?";
+    }
+  }
+
   return undefined;
 }
 
