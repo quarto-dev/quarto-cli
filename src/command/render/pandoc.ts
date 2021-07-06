@@ -186,7 +186,9 @@ export async function runPandoc(
     htmlPostprocessors.push(...(extras.html?.[kHtmlPostprocessors] || []));
 
     // add a post-processor for fixing overflow-x in cell output display
-    htmlPostprocessors.push(selectInputPostprocessor);
+    if (isHtmlOutput(options.format.pandoc, true)) {
+      htmlPostprocessors.push(selectInputPostprocessor);
+    }
 
     // provide default toc-title if necessary
     if (extras[kTocTitle]) {
