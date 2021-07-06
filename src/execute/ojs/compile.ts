@@ -141,7 +141,7 @@ export async function ojsCompile(
   // now we convert it back
   for (const cell of output.cells) {
     const cellSrcStr = cell.source.join("");
-    const errorVal = cell.options?.[kError] ?? options.format.execute[kError] ?? false;
+    const errorVal = (cell.options?.[kError] ?? options.format.execute?.[kError] ?? false) as boolean;
     if (
       cell.cell_type === "raw" ||
       cell.cell_type === "markdown" ||
