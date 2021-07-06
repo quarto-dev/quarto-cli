@@ -11,6 +11,8 @@ import { basename, dirname, join } from "path/mod.ts";
 import { info } from "log/mod.ts";
 
 import { jupyterKernelspec } from "../core/jupyter/kernels.ts";
+import { jupyterCreateVenv } from "../core/jupyter/venv.ts";
+
 import { projectType } from "./types/project-types.ts";
 import { renderEjs } from "../core/ejs.ts";
 
@@ -27,6 +29,7 @@ export interface ProjectCreateOptions {
   scaffold: boolean;
   engine: string;
   kernel?: string;
+  venv?: boolean;
 }
 
 export async function projectCreate(options: ProjectCreateOptions) {
@@ -61,7 +64,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
     "- Created _quarto.yml",
     { indent: 2 },
   );
-  if (await ensureGitignore(options.dir)) {
+  if (await ensureGitignore(options.dir, !!options.venv)) {
     info(
       "- Created .gitignore",
       { indent: 2 },
@@ -97,6 +100,11 @@ export async function projectCreate(options: ProjectCreateOptions) {
       info("- Created " + supporting, { indent: 2 });
     }
   }
+
+  // create venv if requested
+  if (options.venv) {
+    await jupyterCreateVenv(options.dir);
+  }
 }
 
 // validate and potentialy provide some defaults
@@ -111,6 +119,11 @@ async function readOptions(options: ProjectCreateOptions) {
       throw new Error(
         `Specified jupyter kernel ('${kernel}') not found.`,
       );
+    }
+  } else {
+    // error to create a venv outside of jupyter
+    if (options.venv) {
+      throw new Error("You can only use --with-venv with the jupyter engine");
     }
   }
 

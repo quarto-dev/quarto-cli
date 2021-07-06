@@ -16,12 +16,15 @@ export interface JupyterCapabilities {
   executable: string;
   conda: boolean;
   pyLauncher: boolean;
-  // deno-lint-ignore camelcase
   jupyter_core: string | null;
   nbformat: string | null;
   nbclient: string | null;
   ipykernel: string | null;
+}
+
+export interface JupyterCapabilitiesEx extends JupyterCapabilities {
   kernels?: JupyterKernelspec[];
+  venv?: boolean;
 }
 
 export interface JupyterKernelspec {

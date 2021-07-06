@@ -11,14 +11,17 @@ import { ld } from "lodash/mod.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 
 import { pandocListFormats } from "../../core/pandoc/pandoc-formats.ts";
-import { JupyterCapabilities } from "../../core/jupyter/types.ts";
-import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
+import { JupyterCapabilitiesEx } from "../../core/jupyter/types.ts";
+import {
+  jupyterCapabilities,
+  jupyterCapabilitiesNoConda,
+} from "../../core/jupyter/capabilities.ts";
 import { jupyterKernelspecs } from "../../core/jupyter/kernels.ts";
 
 export interface Capabilities {
   formats: string[];
   themes: string[];
-  python?: JupyterCapabilities;
+  python?: JupyterCapabilitiesEx;
 }
 
 export async function capabilities(): Promise<Capabilities> {
@@ -27,9 +30,20 @@ export async function capabilities(): Promise<Capabilities> {
     themes: await themes(),
     python: await jupyterCapabilities(),
   };
-  if (caps.python?.jupyter_core) {
-    caps.python.kernels = Array.from((await jupyterKernelspecs()).values());
+
+  // provide extended capabilities
+  if (caps.python) {
+    const pythonEx = caps.python as JupyterCapabilitiesEx;
+    if (pythonEx.jupyter_core) {
+      pythonEx.kernels = Array.from((await jupyterKernelspecs()).values());
+    }
+    if (!pythonEx.conda) {
+      pythonEx.venv = true;
+    } else {
+      pythonEx.venv = !!await jupyterCapabilitiesNoConda();
+    }
   }
+
   return caps;
 }
 
