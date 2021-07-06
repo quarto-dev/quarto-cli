@@ -43,16 +43,18 @@ import {
   quartoRules,
 } from "./format-html-shared.ts";
 
-export function resolveBootstrapScss(
-  input: string,
-  metadata: Metadata,
-): SassBundle {
-  // Quarto built in css
-  const quartoThemesDir = formatResourcePath(
-    "html",
-    join("bootstrap", "themes"),
-  );
+export interface Themes {
+  light: string[];
+  dark?: string[];
+}
 
+function layerQuartoScss(
+  key: string,
+  dependency: string,
+  sassLayer: SassLayer,
+  metadata: Metadata,
+  dark?: SassLayer,
+): SassBundle {
   const bootstrapDistDir = formatResourcePath(
     "html",
     join("bootstrap", "dist"),
@@ -65,17 +67,10 @@ export function resolveBootstrapScss(
     "bootstrap.scss",
   );
 
-  // Resolve the provided themes to a set of variables and styles
-  const themeRaw = metadata[kTheme] || [];
-  const themes = Array.isArray(themeRaw)
-    ? themeRaw
-    : [String(metadata[kTheme])];
-  const themeLayer = resolveThemeLayer(input, themes, quartoThemesDir);
-
   return {
-    dependency: kBootstrapDependencyName,
-    key: themes.join("|"),
-    user: themeLayer,
+    dependency,
+    key,
+    user: sassLayer,
     quarto: {
       use: ["sass:color", "sass:map"],
       defaults: [
@@ -98,32 +93,114 @@ export function resolveBootstrapScss(
       rules: Deno.readTextFileSync(boostrapRules),
     },
     loadPath: dirname(boostrapRules),
+    dark: {
+      user: dark,
+    },
   };
+}
+
+export function resolveBootstrapScss(
+  input: string,
+  metadata: Metadata,
+): SassBundle[] {
+  // Quarto built in css
+  const quartoThemesDir = formatResourcePath(
+    "html",
+    join("bootstrap", "themes"),
+  );
+
+  // Resolve the provided themes to a set of variables and styles
+  const theme = metadata[kTheme] || [];
+  const themeSassLayers = resolveThemeLayer(input, theme, quartoThemesDir);
+
+  // Find light and dark sass layers
+  const sassBundles: SassBundle[] = [];
+
+  // light
+  sassBundles.push(
+    layerQuartoScss(
+      "theme-light",
+      kBootstrapDependencyName,
+      themeSassLayers.light,
+      metadata,
+      themeSassLayers.dark,
+    ),
+  );
+
+  return sassBundles;
+}
+
+export interface ThemeSassLayer {
+  light: SassLayer;
+  dark?: SassLayer;
+}
+
+function layerTheme(
+  input: string,
+  themes: string[],
+  quartoThemesDir: string,
+): SassLayer[] {
+  return themes.map((theme) => {
+    // The directory for this theme
+    const resolvedThemePath = join(quartoThemesDir, `${theme}.scss`);
+    // Read the sass layers
+    if (existsSync(resolvedThemePath)) {
+      // The theme appears to be a built in theme
+      return sassLayer(resolvedThemePath);
+    } else {
+      const themePath = join(dirname(input), theme);
+      if (existsSync(themePath)) {
+        return sassLayer(themePath);
+      } else {
+        return {
+          defaults: "",
+          functions: "",
+          mixins: "",
+          rules: "",
+        };
+      }
+    }
+  });
 }
 
 function resolveThemeLayer(
   input: string,
-  themes: string[],
+  themes: string | string[] | Themes | unknown,
   quartoThemesDir: string,
-): SassLayer {
-  const themeLayers: SassLayer[] = [];
-
-  themes.forEach((theme) => {
-    // The directory for this theme
-    const resolvedThemePath = join(quartoThemesDir, `${theme}.scss`);
-
-    // Read the sass layers
-    if (existsSync(resolvedThemePath)) {
-      // The theme appears to be a built in theme
-      themeLayers.push(sassLayer(resolvedThemePath));
-    } else {
-      const themePath = join(dirname(input), theme);
-      if (existsSync(themePath)) {
-        themeLayers.push(sassLayer(themePath));
+): ThemeSassLayer {
+  let theme = undefined;
+  if (typeof (themes) === "string") {
+    theme = { light: [themes] };
+  } else if (Array.isArray(themes)) {
+    theme = { light: themes };
+  } else if (typeof (themes) === "object") {
+    const themeArr = (theme?: unknown): string[] => {
+      const themes: string[] = [];
+      if (theme) {
+        if (typeof (theme) === "string") {
+          themes.push(theme);
+        } else if (Array.isArray(theme)) {
+          themes.push(...theme);
+        }
       }
-    }
-  });
-  return mergeLayers(...themeLayers);
+      return themes;
+    };
+
+    const themeObj = themes as Record<string, unknown>;
+    theme = {
+      light: themeArr(themeObj.light),
+      dark: themeObj.dark ? themeArr(themeObj.dark) : undefined,
+    };
+  } else {
+    theme = { light: [] };
+  }
+  const themeSassLayer = {
+    light: mergeLayers(...layerTheme(input, theme.light, quartoThemesDir)),
+    dark: theme.dark
+      ? mergeLayers(...layerTheme(input, theme.dark, quartoThemesDir))
+      : undefined,
+  };
+  return themeSassLayer;
 }
 
 function pandocVariablesToBootstrapDefaults(

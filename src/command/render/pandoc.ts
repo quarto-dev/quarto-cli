@@ -77,6 +77,7 @@ import { sessionTempFile } from "../../core/temp.ts";
 import { cssImports, cssResources } from "../../core/css.ts";
 
 import {
+  kDefaultHighlightStyle,
   kMarkdownBlockSeparator,
   PandocOptions,
   RunPandocResult,
@@ -482,10 +483,10 @@ export function resolveDependencies(
     `<meta name="<%- name %>" content="<%- value %>"/>`,
   );
   const scriptTemplate = ld.template(
-    `<script <%- attribs %> src="<%- href %>"></script>`,
+    `<script <%= attribs %> src="<%- href %>"></script>`,
   );
   const stylesheetTempate = ld.template(
-    `<link <%- attribs %> href="<%- href %>" rel="stylesheet" />`,
+    `<link <%= attribs %> href="<%- href %>" rel="stylesheet" />`,
   );
   const rawLinkTemplate = ld.template(
     `<link href="<%- href %>" rel="<%- rel %>" />`,
@@ -499,19 +500,24 @@ export function resolveDependencies(
         : dependency.name;
       const targetDir = join(inputDir, libDir, dir);
       // deno-lint-ignore no-explicit-any
-      const copyDep = (file: DependencyFile, template?: any) => {
+      const copyDep = (
+        file: DependencyFile,
+        template?: any,
+      ) => {
         const targetPath = join(targetDir, file.name);
         ensureDirSync(dirname(targetPath));
         Deno.copyFileSync(file.path, targetPath);
         if (template) {
           const attribs = file.attribs
             ? Object.entries(file.attribs).map((entry) => {
-              const attrib = `${entry[0]}=${entry[1]}`;
+              const attrib = `${entry[0]}="${entry[1]}"`;
               return attrib;
             }).join(" ")
             : "";
           const href = join(libDir, dir, file.name);
-          lines.push(template({ href: pathWithForwardSlashes(href), attribs }));
+          lines.push(
+            template({ href: pathWithForwardSlashes(href), attribs }),
+          );
         }
       };
       if (dependency.meta) {
@@ -523,9 +529,12 @@ export function resolveDependencies(
         dependency.scripts.forEach((script) => copyDep(script, scriptTemplate));
       }
       if (dependency.stylesheets) {
-        dependency.stylesheets.forEach((stylesheet) =>
-          copyDep(stylesheet, stylesheetTempate)
-        );
+        dependency.stylesheets.forEach((stylesheet) => {
+          copyDep(
+            stylesheet,
+            stylesheetTempate,
+          );
+        });
       }
       if (dependency.links) {
         dependency.links.forEach((link) => {
@@ -582,6 +591,12 @@ function resolveBodyEnvelope(extras: FormatExtras) {
   return extras;
 }
 
+interface SassTarget {
+  name: string;
+  bundles: SassBundle[];
+  attribs: Record<string, string>;
+}
+
 async function resolveSassBundles(
   extras: FormatExtras,
   formatBundles?: SassBundle[],
@@ -591,6 +606,8 @@ async function resolveSassBundles(
   extras = ld.cloneDeep(extras);
 
   const mergedBundles: Record<string, SassBundle[]> = {};
+
+  // groups the bundles by dependency name
   const group = (
     bundles: SassBundle[],
     groupedBundles: Record<string, SassBundle[]>,
@@ -602,10 +619,13 @@ async function resolveSassBundles(
       groupedBundles[bundle.dependency].push(bundle);
     });
   };
+
+  // group project provided bundles
   if (projectBundles) {
     group(projectBundles, mergedBundles);
   }
 
+  // group format provided bundles
   if (formatBundles) {
     group(formatBundles, mergedBundles);
   }
@@ -614,68 +634,132 @@ async function resolveSassBundles(
   for (const dependency of Object.keys(mergedBundles)) {
     // compile the cssPath
     const bundles = mergedBundles[dependency];
-    let cssPath = await compileSass(bundles);
-    const cssName = `${dependency}.min.css`;
 
-    // look for a sentinel 'dark' value, extract variables
-    cssPath = processCssIntoExtras(cssPath, extras);
+    // See if any bundles are providing dark specific css
+    const hasDark = bundles.some((bundle) => bundle.dark !== undefined);
 
-    // Find any imported stylesheets or url references
-    // (These could come from user scss that is merged into our theme, for example)
-    const css = Deno.readTextFileSync(cssPath);
-    const toDependencies = (paths: string[]) => {
-      return paths.map((path) => {
-        return {
-          name: path,
-          path: project ? join(project.dir, path) : path,
-        };
+    const targets: SassTarget[] = [{
+      name: `${dependency}.min.css`,
+      bundles,
+      attribs: {},
+    }];
+    if (hasDark) {
+      // Note that the other bundle provides light
+      targets[0].attribs.media = "(prefers-color-scheme: light)";
+
+      // Provide a dark bundle for this
+      const darkBundles = bundles.map((bundle) => {
+        bundle = ld.cloneDeep(bundle);
+        bundle.user = bundle.dark?.user || bundle.user;
+        bundle.quarto = bundle.dark?.quarto || bundle.quarto;
+        bundle.framework = bundle.dark?.framework || bundle.framework;
+        return bundle;
       });
-    };
-    const resources = toDependencies(cssResources(css));
-    const imports = toDependencies(cssImports(css));
+      targets.push({
+        name: `${dependency}-dark.min.css`,
+        bundles: darkBundles,
+        attribs: { media: "(prefers-color-scheme: dark)" },
+      });
 
-    // Push the compiled Css onto the dependency
-    const extraDeps = extras.html?.[kDependencies];
-
-    if (extraDeps) {
-      const existingDependency = extraDeps.find((extraDep) =>
-        extraDep.name === dependency
-      );
-
-      if (existingDependency) {
-        if (!existingDependency.stylesheets) {
-          existingDependency.stylesheets = [];
+      // Also inject styles css
+      const theme = extras.pandoc?.[kHighlightStyle] || kDefaultHighlightStyle;
+      if (theme) {
+        const highlightCssLight = generateThemeCssClasses(theme, "light");
+        if (highlightCssLight) {
+          targets[0].bundles.push({
+            key: "",
+            dependency: "",
+            quarto: {
+              defaults: "",
+              functions: "",
+              mixins: "",
+              rules: highlightCssLight,
+            },
+          });
         }
-        existingDependency.stylesheets.push({
-          name: cssName,
-          path: cssPath,
-        });
+        const highlightCssDark = generateThemeCssClasses(theme, "dark");
+        if (highlightCssDark) {
+          targets[1].bundles.push({
+            key: "",
+            dependency: "",
+            quarto: {
+              defaults: "",
+              functions: "",
+              mixins: "",
+              rules: highlightCssDark,
+            },
+          });
+        }
+      }
+    }
 
-        // Add any css references
-        existingDependency.stylesheets.push(...imports);
-        existingDependency.resources?.push(...resources);
-      } else {
-        extraDeps.push({
-          name: dependency,
-          stylesheets: [{
-            name: cssName,
-            path: cssPath,
-          }, ...imports],
-          resources,
+    for (const target of targets) {
+      let cssPath = await compileSass(target.bundles);
+
+      // look for a sentinel 'dark' value, extract variables
+      cssPath = processCssIntoExtras(cssPath, extras);
+
+      // Find any imported stylesheets or url references
+      // (These could come from user scss that is merged into our theme, for example)
+      const css = Deno.readTextFileSync(cssPath);
+      const toDependencies = (paths: string[]) => {
+        return paths.map((path) => {
+          return {
+            name: path,
+            path: project ? join(project.dir, path) : path,
+            attribs: target.attribs,
+          };
         });
+      };
+      const resources = toDependencies(cssResources(css));
+      const imports = toDependencies(cssImports(css));
+
+      // Push the compiled Css onto the dependency
+      const extraDeps = extras.html?.[kDependencies];
+
+      if (extraDeps) {
+        const existingDependency = extraDeps.find((extraDep) =>
+          extraDep.name === dependency
+        );
+
+        if (existingDependency) {
+          if (!existingDependency.stylesheets) {
+            existingDependency.stylesheets = [];
+          }
+          existingDependency.stylesheets.push({
+            name: target.name,
+            path: cssPath,
+            attribs: target.attribs,
+          });
+
+          // Add any css references
+          existingDependency.stylesheets.push(...imports);
+          existingDependency.resources?.push(...resources);
+        } else {
+          extraDeps.push({
+            name: dependency,
+            stylesheets: [{
+              name: target.name,
+              path: cssPath,
+              attribs: target.attribs,
+            }, ...imports],
+            resources,
+          });
+        }
       }
     }
   }
   return extras;
 }
 
+// TODO: Deal with dark mode
 async function resolveQuartoCssVariables(extras: FormatExtras) {
   extras = ld.cloneDeep(extras);
   // Generate and inject the text highlighting css
   const kCssVariablesName = "quarto-css-variables";
   const theme = extras.pandoc?.[kHighlightStyle] || kDefaultHighlightStyle;
   if (theme) {
-    const highlightCss = generateThemeCssVars(theme);
+    const highlightCss = generateThemeCssVars(theme, "default");
     const extraVariables = extras.html?.[kQuartoCssVariables] || [];
 
     if (highlightCss) {
@@ -750,7 +834,6 @@ function runPandocMessage(
   }
 }
 
-const kDefaultHighlightStyle = "arrow";
 const kDarkSuffix = "dark";
 const kLightSuffix = "light";
 
@@ -816,9 +899,12 @@ function processCssIntoExtras(cssPath: string, extras: FormatExtras) {
 const kVariablesRegex =
   /\/\*\! quarto-variables-start \*\/([\S\s]*)\/\*\! quarto-variables-end \*\//g;
 
-function generateThemeCssVars(theme: string) {
-  if (existsSync(theme)) {
-    const themeRaw = Deno.readTextFileSync(theme);
+function generateThemeCssVars(
+  theme: string,
+  style: "default" | "light" | "dark",
+) {
+  const themeRaw = readTheme(theme, style);
+  if (themeRaw) {
     const themeJson = JSON.parse(themeRaw);
     const textStyles = themeJson["text-styles"];
     if (textStyles) {
@@ -842,6 +928,95 @@ function generateThemeCssVars(theme: string) {
         }
       });
       lines.push("}");
+      return lines.join("\n");
+    }
+  }
+  return undefined;
+}
+
+function readTheme(theme: string, style: "default" | "light" | "dark") {
+  const themeFile = highlightFileForStyle(
+    theme,
+    style === "default" ? undefined : style,
+  );
+  if (themeFile && existsSync(themeFile)) {
+    return Deno.readTextFileSync(themeFile);
+  } else {
+    return undefined;
+  }
+}
+
+function generateCssKeyValues(textValues: Record<string, string>) {
+  const lines: string[] = [];
+  Object.keys(textValues).forEach((textAttr) => {
+    switch (textAttr) {
+      case "text-color":
+        lines.push(
+          `color: ${textValues[textAttr]};`,
+        );
+        break;
+      case "background":
+        lines.push(
+          `background-color: ${textValues[textAttr]};`,
+        );
+        break;
+
+      case "bold":
+        if (textValues[textAttr]) {
+          lines.push("font-weight: bold;");
+        }
+        break;
+      case "italic":
+        if (textValues[textAttr]) {
+          lines.push("font-style: italic;");
+        }
+        break;
+      case "underline":
+        if (textValues[textAttr]) {
+          lines.push("text-decoration: underline;");
+        }
+        break;
+    }
+  });
+  return lines;
+}
+
+function generateThemeCssClasses(
+  theme: string,
+  style: "default" | "light" | "dark",
+) {
+  console.log(theme);
+  // TODO: Note that switching highlight styles isn't working - need to figure out where to safely read kHightlihgtStyle
+  // TODO: Need to generate light and dark css variables
+  // TODO: Cleanup - be sure that we're generating the css dependency the proper way for highlight styles
+  // TODO: 'format:' is formatted weird for arrow, be sure that is ok
+  // TODO: Test with array of themes dark and light
+  const themeRaw = readTheme(theme, style);
+  if (themeRaw) {
+    const themeJson = JSON.parse(themeRaw);
+    const textStyles = themeJson["text-styles"];
+    if (textStyles) {
+      const lines: string[] = [];
+
+      Object.keys(textStyles).forEach((styleName) => {
+        const abbr = kAbbrevs[styleName];
+        if (abbr !== undefined) {
+          const textValues = textStyles[styleName];
+          const cssValues = generateCssKeyValues(textValues);
+
+          if (abbr !== "") {
+            lines.push(`\ncode span.${abbr} {`);
+            lines.push(...cssValues);
+            lines.push("}\n");
+          } else {
+            ["code span", "div.sourceCode"].forEach((selector) => {
+              lines.push(`\n${selector} {`);
+              lines.push(...cssValues);
+              lines.push("}\n");
+            });
+          }
+        }
+      });
       return lines.join("\n");
     }
   }

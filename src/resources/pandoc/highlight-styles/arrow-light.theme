@@ -4,6 +4,9 @@
     "line-number-color": "#aaaaaa",
     "line-number-background-color": null,
     "text-styles": {
+        "Normal": {
+            "text-color": "#007BA5"
+        },
         "Other": {
             "text-color": "#007BA5",
             "background-color": null,

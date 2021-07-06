@@ -139,6 +139,12 @@ export interface SassBundle {
   quarto?: SassLayer;
   framework?: SassLayer;
   loadPath?: string;
+  dark?: {
+    user?: SassLayer;
+    quarto?: SassLayer;
+    framework?: SassLayer;
+  };
+  attribs?: Record<string, string>;
 }
 
 export interface FormatExtras {
