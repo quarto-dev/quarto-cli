@@ -298,15 +298,21 @@ dependencies_from_render <-function(input, files_dir, knit_meta) {
   # check for runtime
   front_matter <- rmarkdown::yaml_front_matter(input)
   runtime <- front_matter$runtime
-  if (is.null(runtime))
-    runtime <- "static"
+  server <- front_matter[["server"]]
+  if (is.null(runtime)) {
+    if (is_shiny_prerendered(runtime, server)) {
+      runtime <- "shinyrmd"
+    } else {
+      runtime <- "static"
+    }
+  }
 
   # dependencies to return
   dependencies <- list()
 
   # determine dependency resolver (special resolver for shiny_prerendered)
   resolver <- rmarkdown:::html_dependency_resolver
-  if (rmarkdown:::is_shiny_prerendered(runtime)) {
+  if (is_shiny_prerendered(runtime, server)) {
     resolver <- function(deps) {
       dependencies$shiny <<- list(
         deps = deps,
@@ -362,6 +368,17 @@ html_dependencies_as_string <- function(dependencies, files_dir) {
   return(htmltools::renderDependencies(dependencies, "file", encodeFunc = identity))
 }
 
+is_shiny_prerendered <- function(runtime, server) {
+  if (identical(runtime, "shinyrmd") || identical(runtime, "shiny_prerendered")) {
+    TRUE
+  } else if (identical(server, "shiny")) {
+    TRUE
+  } else if (is.list(server) && identical(server[["type"]], "shiny")) {
+    TRUE
+  } else {
+    FALSE
+  }
+}
 
 create_pandoc_includes <- function(includes, tempDir) {
   pandoc <- list()
