@@ -67,13 +67,11 @@ jobs:
       - name: Smoke Test Commits
         if: github.event.before != ''
         run: |
-          for commit in $(git rev-list ${{ github.event.before}}..${{ github.sha}}); do
-              git checkout $commit
-              pushd tests
-              ./run-tests.sh
-              popd
-          done
-          
+          git checkout ${{ github.sha}}
+          pushd tests
+          ./run-tests.sh
+          popd
+
       - name: Smoke Test Head
         if: github.event.before == ''
         run: |
