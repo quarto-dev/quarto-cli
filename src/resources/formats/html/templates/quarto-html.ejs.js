@@ -52,8 +52,12 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
   }
 
-  const hasDarkSentinel = () => {
-    let darkSentinel = window.localStorage.getItem("quarto-color-scheme");
+  const isFileUrl = () => { 
+    return window.location.protocol === 'file:';
+  }
+
+  const hasDarkSentinel = () => {  
+    let darkSentinel = getDarkSentinel();
     if (darkSentinel !== null) {
       return darkSentinel === "dark";
     } else {
@@ -62,18 +66,23 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
 
   const setDarkSentinel = (toDark) => {
-    if (toDark) {
-      window.localStorage.setItem("quarto-color-scheme", "dark");
-    } else { 
-      window.localStorage.setItem("quarto-color-scheme", "light");
+    const value = toDark ? "dark" : "light";
+    if (!isFileUrl()) {
+      window.localStorage.setItem("quarto-color-scheme", value);
+    } else {
+      localDarkSentinel = value;
     }
   }
 
-  // Switch to dark mode if need be
-  if (hasDarkSentinel()) {
-    toggleColorMode(true);
-  } 
-   
+  const getDarkSentinel = () => {
+    if (!isFileUrl()) {
+      return window.localStorage.getItem("quarto-color-scheme");
+    } else {
+      return localDarkSentinel;
+    }
+  }
+  let localDarkSentinel = null;
+  
   // Dark / light mode switch
   window.quartoToggleColorScheme = () => {
     // Read the current dark / light value 
@@ -81,6 +90,27 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     toggleColorMode(toDark);
     setDarkSentinel(toDark);
   };
+
+  // Ensure there is a toggle, if there isn't float one in the top right
+  if (window.document.getElementById('quarto-color-scheme-toggle') === null) {
+    const a = window.document.createElement('a');
+    a.id = "quarto-color-scheme-toggle";
+    a.classList.add('top-right');
+    a.href = "";
+    a.onclick = function() { window.quartoToggleColorScheme(); return false; };
+
+    const i = window.document.createElement("i");
+    i.classList.add('bi');
+    a.appendChild(i);
+
+    window.document.body.appendChild(a);
+  }
+
+  // Switch to dark mode if need be
+  if (hasDarkSentinel()) {
+    toggleColorMode(true);
+  } 
+  
 
   <% } %>
 
