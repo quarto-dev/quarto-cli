@@ -40,7 +40,11 @@ import { formatHasCodeTools } from "../../command/render/codetools.ts";
 
 import { createHtmlFormat } from "./../formats-shared.ts";
 
-import { boostrapExtras, formatHasBootstrap } from "./format-html-bootstrap.ts";
+import {
+  boostrapExtras,
+  formatDarkMode,
+  formatHasBootstrap,
+} from "./format-html-bootstrap.ts";
 
 import {
   kAnchorSections,
@@ -229,6 +233,10 @@ function htmlFormatExtras(format: Format): FormatExtras {
     options.hoverFootnotes = format.metadata[kHoverFootnotes] || false;
   }
   options.codeTools = formatHasCodeTools(format);
+  const darkMode = formatDarkMode(format);
+  if (darkMode !== undefined) {
+    options.darkMode = darkMode;
+  }
 
   // quarto.js helpers
   scripts.push({

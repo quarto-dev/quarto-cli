@@ -175,7 +175,11 @@ export async function resolveSassBundles(
 
   if (hasDarkStyles) {
     // Provide dark variables for this
-    extras = await resolveQuartoSyntaxHighlighting(extras, pandoc, "dark");
+    extras = await resolveQuartoSyntaxHighlighting(
+      extras,
+      pandoc,
+      "dark",
+    );
   }
 
   // We'll take care of text highlighting for HTML
@@ -439,16 +443,29 @@ const kAbbrevs: Record<string, string> = {
   "Normal": "",
 };
 
-// The media attribute for a style tag
+// Attributes for the style tag
+// Note that we default disable the dark mode and rely on JS to enable it
 function attribForThemeStyle(
   style: "dark" | "light" | "default",
 ): Record<string, string> {
-  if (style === "dark") {
-    return { media: "(prefers-color-scheme: dark)" };
-  } else if (style === "light") {
-    return { media: "(prefers-color-scheme: light)" };
-  } else {
-    return {};
+  const colorModeAttrs = (mode: string, disabled: boolean) => {
+    const attr: Record<string, string> = {
+      class: `quarto-color-scheme ${mode}`,
+    };
+    if (disabled) {
+      attr.disabled = "true";
+    }
+    return attr;
+  };
+
+  switch (style) {
+    case "dark":
+      return colorModeAttrs("dark", true);
+    case "light":
+      return colorModeAttrs("light", false);
+    case "default":
+    default:
+      return {};
   }
 }
 

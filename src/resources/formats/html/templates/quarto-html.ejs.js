@@ -2,6 +2,71 @@
 
 window.document.addEventListener("DOMContentLoaded", function (event) {
 
+  <% if (darkMode !== undefined) { %> 
+
+  const disableEls = (els) => {
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      el.disabled = true;
+    }
+  }
+
+  const enableEls = (els) => {
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      el.removeAttribute("disabled");
+    }
+  }
+
+  const toggleColorMode = (dark) => {
+    const toggle = window.document.getElementById('quarto-color-scheme-toggle');
+    const lightEls = window.document.querySelectorAll('link.quarto-color-scheme.light');
+    const darkEls = window.document.querySelectorAll('link.quarto-color-scheme.dark');
+    if (dark) {
+      enableEls(darkEls);
+      disableEls(lightEls);
+      toggle.classList.remove("light");
+      toggle.classList.add("dark");     
+    } else {
+      enableEls(lightEls);
+      disableEls(darkEls);
+      toggle.classList.remove("dark");
+      toggle.classList.add("light");
+    }
+  }
+
+  const hasDarkSentinel = () => {
+    let darkSentinel = window.localStorage.getItem("quarto-color-scheme");
+    if (darkSentinel !== null) {
+      return darkSentinel === "dark";
+    } else {
+      return <%= darkMode %>;
+    }
+  }
+
+  const setDarkSentinel = (toDark) => {
+    if (toDark) {
+      window.localStorage.setItem("quarto-color-scheme", "dark");
+    } else { 
+      window.localStorage.setItem("quarto-color-scheme", "light");
+    }
+  }
+
+  // Switch to dark mode if need be
+  if (hasDarkSentinel()) {
+    toggleColorMode(true);
+  } 
+   
+  // Dark / light mode switch
+  window.quartoToggleColorScheme = () => {
+    // Read the current dark / light value 
+    let toDark = !hasDarkSentinel();
+    toggleColorMode(toDark);
+    setDarkSentinel(toDark);
+  };
+
+  <% } %>
+
   <% if (anchors) { %>
 
   const icon = "<%= anchors === true ? '' : anchors %>";
