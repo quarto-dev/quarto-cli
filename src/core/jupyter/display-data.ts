@@ -96,8 +96,12 @@ export function displayDataIsImage(mimeType: string) {
   return [kImagePng, kImageJpeg, kImageSvg, kApplicationPdf].includes(mimeType);
 }
 
+export function displayDataIsTextPlain(mimeType: string) {
+  return [kTextPlain].includes(mimeType);
+}
+
 export function displayDataIsMarkdown(mimeType: string) {
-  return [kTextMarkdown, kTextPlain].includes(mimeType);
+  return [kTextMarkdown].includes(mimeType);
 }
 
 export function displayDataIsLatex(mimeType: string) {

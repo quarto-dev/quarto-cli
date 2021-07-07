@@ -38,6 +38,8 @@ export const defaultProjectType: ProjectType = {
             file[0].noEngineContent = true;
             file[0].content += `
 
+## Data Frames
+
 Render data frames with:
 
 \`\`\`{python}
@@ -46,18 +48,21 @@ import pandas as pd
 d = {'one' : [1., 2., 3., 4.],
      'two' : [4., 3., 2., 1.]}
 df = pd.DataFrame(d)
-df
+df.to_html(index = False)
 \`\`\``;
           }
           if (packages.includes("matplotlib")) {
             file[0].noEngineContent = true;
             file[0].content += `
 
-Render plots as figures with:
+## Plots
+
+See @fig-polar for an example of rendering plots as figures:
 
 \`\`\`{python}
 #| label: fig-polar
 #| fig.cap: "A line plot on a polar axis"
+#| fold: true
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -71,7 +76,7 @@ ax.grid(True)
 plt.show()
 \`\`\`
 
-For illustration see @fig-polar.`;
+Note that we included the cell option \`fold: true\` to hide the code by default (click the *Code* button to show it).`;
           }
         }
 
