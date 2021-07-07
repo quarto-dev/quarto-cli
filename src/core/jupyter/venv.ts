@@ -1,7 +1,16 @@
+/*
+* venv.ts
+*
+* Copyright (C) 2020 by RStudio, PBC
+*
+*/
+
 import { info } from "log/mod.ts";
 import { join } from "path/mod.ts";
 
 import * as colors from "fmt/colors.ts";
+
+import { ld } from "lodash/mod.ts";
 
 import { isWindows } from "../platform.ts";
 import { execProcess } from "../process.ts";
@@ -25,7 +34,7 @@ export async function jupyterCreateVenv(dir: string, packages?: string[]) {
       kEnvDir,
       isWindows() ? "Scripts\\pip.exe" : "bin/pip3",
     );
-    packages = ["jupyter"].concat(packages || []);
+    packages = ld.uniq(["jupyter"].concat(packages || []));
     const installResult = await execProcess({
       cmd: [pip3, "install", ...packages],
       cwd: dir,
