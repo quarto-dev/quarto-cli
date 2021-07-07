@@ -18,20 +18,42 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
   }
 
+  const manageTransitions = (selector, allowTransitions) => {
+    const els = window.document.querySelectorAll(selector);
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      if (allowTransitions) {
+        console.log("remove");
+        console.log(el);
+        el.classList.remove('notransition');
+      } else {
+                console.log("add");
+        console.log(el);
+
+        el.classList.add('notransition');
+      }
+    }
+  }
+
   const toggleColorMode = (dark) => {
     const toggle = window.document.getElementById('quarto-color-scheme-toggle');
-    const lightEls = window.document.querySelectorAll('link.quarto-color-scheme.light');
-    const darkEls = window.document.querySelectorAll('link.quarto-color-scheme.dark');
-    if (dark) {
-      enableEls(darkEls);
-      disableEls(lightEls);
-      toggle.classList.remove("light");
-      toggle.classList.add("dark");     
-    } else {
-      enableEls(lightEls);
-      disableEls(darkEls);
-      toggle.classList.remove("dark");
-      toggle.classList.add("light");
+    if (toggle) {
+      const lightEls = window.document.querySelectorAll('link.quarto-color-scheme.light');
+      const darkEls = window.document.querySelectorAll('link.quarto-color-scheme.dark');
+
+      manageTransitions('div.sidebar-toc .nav-link', false);
+      if (dark) {
+        enableEls(darkEls);
+        disableEls(lightEls);
+        toggle.classList.remove("light");
+        toggle.classList.add("dark");     
+      } else {
+        enableEls(lightEls);
+        disableEls(darkEls);
+        toggle.classList.remove("dark");
+        toggle.classList.add("light");
+      }
+      manageTransitions('.quarto-toc-sidebar .nav-link', true);
     }
   }
 
