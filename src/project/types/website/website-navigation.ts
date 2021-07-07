@@ -38,6 +38,7 @@ import {
 
 import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
 import {
+  formatDarkMode,
   formatPageLayout,
 } from "../../../format/html/format-html-bootstrap.ts";
 
@@ -186,6 +187,12 @@ export function websiteNavigationExtras(
   // forward the footer
   if (navigation.footer) {
     nav.footer = navigation.footer;
+  }
+
+  // determine whether to show the dark toggle
+  const darkMode = formatDarkMode(format);
+  if (darkMode !== undefined && nav.navbar) {
+    (nav.navbar as Record<string, unknown>).darkToggle = true;
   }
 
   const projTemplate = (template: string) =>

@@ -39,6 +39,7 @@ export interface Navbar {
   collapse?: boolean;
   pinned?: boolean;
   [kCollapseBelow]?: LayoutBreak;
+  darkToggle?: boolean;
 }
 
 export interface NavbarItem {

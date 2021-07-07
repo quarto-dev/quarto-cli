@@ -233,10 +233,7 @@ function htmlFormatExtras(format: Format): FormatExtras {
     options.hoverFootnotes = format.metadata[kHoverFootnotes] || false;
   }
   options.codeTools = formatHasCodeTools(format);
-  const darkMode = formatDarkMode(format);
-  if (darkMode !== undefined) {
-    options.darkMode = darkMode;
-  }
+  options.darkMode = formatDarkMode(format);
 
   // quarto.js helpers
   scripts.push({

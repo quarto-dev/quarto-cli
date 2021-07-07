@@ -23,13 +23,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     for (let i=0; i < els.length; i++) {
       const el = els[i];
       if (allowTransitions) {
-        console.log("remove");
-        console.log(el);
         el.classList.remove('notransition');
       } else {
-                console.log("add");
-        console.log(el);
-
         el.classList.add('notransition');
       }
     }
