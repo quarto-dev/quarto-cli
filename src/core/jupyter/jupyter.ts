@@ -55,6 +55,7 @@ import {
   displayDataIsJson,
   displayDataIsLatex,
   displayDataIsMarkdown,
+  displayDataIsTextPlain,
   displayDataMimeType,
   isCaptionableData,
   isDisplayData,
@@ -1136,6 +1137,17 @@ function mdOutputDisplayData(
         options,
         figureOptions,
       );
+    } else if (displayDataIsTextPlain(mimeType)) {
+      const lines = output.data[mimeType] as string[];
+      // pandas inexplicably outputs html tables as text/plain with an enclosing single-quote
+      if (
+        lines.length === 1 &&
+        lines[0].startsWith("'<table") &&
+        lines[0].endsWith("</table>'")
+      ) {
+        lines[0] = lines[0].slice(1, -1);
+      }
+      return mdMarkdownOutput(lines);
     } else if (displayDataIsMarkdown(mimeType)) {
       return mdMarkdownOutput(output.data[mimeType] as string[]);
     } else if (displayDataIsLatex(mimeType)) {
