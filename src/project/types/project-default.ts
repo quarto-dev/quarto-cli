@@ -38,6 +38,8 @@ export const defaultProjectType: ProjectType = {
             file[0].noEngineContent = true;
             file[0].content += `
 
+## Data Frames
+
 Render data frames with:
 
 \`\`\`{python}
@@ -52,6 +54,8 @@ df.to_html(index = False)
           if (packages.includes("matplotlib")) {
             file[0].noEngineContent = true;
             file[0].content += `
+
+## Plots
 
 See @fig-polar for an example of rendering plots as figures:
 
