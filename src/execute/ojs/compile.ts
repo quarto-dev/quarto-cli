@@ -40,7 +40,7 @@ import {
   kKeepHidden,
   kLayoutNcol,
   kLayoutNrow,
-  kOutput,
+  kOutput
 } from "../../config/constants.ts";
 
 import { languagesInMarkdown } from "../../core/jupyter/jupyter.ts";
@@ -78,7 +78,9 @@ export async function ojsCompile(
 ): Promise<OjsCompileResult> {
   const { markdown, project } = options;
   const projDir = project?.dir;
-  const selfContained = !(project || (project && projectIsWebserverTarget(project)));
+
+  const selfContained = options.format.pandoc?.[kSelfContained] ?? false;
+  // const selfContained = !(project || (project && projectIsWebserverTarget(project)));
 
   if (!isJavascriptCompatible(options.format)) {
     return { markdown };
