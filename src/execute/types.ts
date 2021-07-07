@@ -17,6 +17,10 @@ import { RenderOptions } from "../command/render/types.ts";
 
 export const kQmdExtensions = [".qmd"];
 
+export const kMarkdownEngine = "markdown";
+export const kKnitrEngine = "knitr";
+export const kJupyterEngine = "jupyter";
+
 export interface ExecutionEngine {
   name: string;
   defaultExt: string;

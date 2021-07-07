@@ -64,7 +64,11 @@ export interface ProjectOutputFile {
 export interface ProjectCreate {
   configTemplate: string;
   resourceDir: string;
-  scaffold?: ProjectScaffoldFile[];
+  scaffold?: (
+    engine: string,
+    kernel?: string,
+    packages?: string[],
+  ) => ProjectScaffoldFile[];
   supporting?: string[];
 }
 

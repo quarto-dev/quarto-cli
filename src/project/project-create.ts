@@ -30,6 +30,7 @@ export interface ProjectCreateOptions {
   engine: string;
   kernel?: string;
   venv?: boolean;
+  venvPackages?: string[];
 }
 
 export async function projectCreate(options: ProjectCreateOptions) {
@@ -74,7 +75,13 @@ export async function projectCreate(options: ProjectCreateOptions) {
   // create scaffold files if we aren't creating a project within the
   // current working directory (which presumably already has files)
   if (options.scaffold && projCreate.scaffold) {
-    for (const scaffold of projCreate.scaffold) {
+    for (
+      const scaffold of projCreate.scaffold(
+        options.engine,
+        options.kernel,
+        options.venvPackages,
+      )
+    ) {
       const md = projectMarkdownFile(
         options.dir,
         scaffold.name,
@@ -103,7 +110,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
 
   // create venv if requested
   if (options.venv) {
-    await jupyterCreateVenv(options.dir);
+    await jupyterCreateVenv(options.dir, options.venvPackages);
   }
 }
 

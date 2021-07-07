@@ -58,13 +58,12 @@ import {
   ExecuteResult,
   ExecutionEngine,
   ExecutionTarget,
+  kJupyterEngine,
   kQmdExtensions,
   PandocIncludes,
   PostProcessOptions,
 } from "../types.ts";
 import { postProcessRestorePreservedHtml } from "../engine-shared.ts";
-
-const kJupyterEngine = "jupyter";
 
 export const jupyterEngine: ExecutionEngine = {
   name: kJupyterEngine,

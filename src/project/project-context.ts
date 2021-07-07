@@ -41,7 +41,7 @@ import {
   executionEngineKeepFiles,
   fileExecutionEngine,
 } from "../execute/engine.ts";
-import { kMarkdownEngine } from "../execute/markdown.ts";
+import { kMarkdownEngine } from "../execute/types.ts";
 
 import { projectResourceFiles } from "./project-resources.ts";
 import { gitignoreEntries } from "./project-gitignore.ts";

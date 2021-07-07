@@ -63,7 +63,7 @@ export const websiteProjectType: ProjectType = {
     return {
       configTemplate: join(resourceDir, "templates", "_quarto.ejs.yml"),
       resourceDir,
-      scaffold: [
+      scaffold: () => [
         {
           name: "index",
           content:

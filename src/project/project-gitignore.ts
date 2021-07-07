@@ -68,7 +68,7 @@ export function gitignoreEntries(dir: string, forceEnv = false) {
   // detect virtual environment
   const kEnv = "env/";
   if (forceEnv || isEnvDir(join(dir, kEnv))) {
-    return kQuartoIgnore.concat(kEnv);
+    return ["/" + kEnv].concat(kQuartoIgnore);
   } else {
     return kQuartoIgnore;
   }

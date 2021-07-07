@@ -27,14 +27,13 @@ import {
   ExecuteOptions,
   ExecuteResult,
   ExecutionEngine,
+  kKnitrEngine,
   PostProcessOptions,
   RunOptions,
 } from "./types.ts";
 import { postProcessRestorePreservedHtml } from "./engine-shared.ts";
 
 const kRmdExtensions = [".rmd", ".rmarkdown"];
-
-const kKnitrEngine = "knitr";
 
 export const knitrEngine: ExecutionEngine = {
   name: kKnitrEngine,

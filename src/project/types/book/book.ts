@@ -70,7 +70,7 @@ export const bookProjectType: ProjectType = {
     return {
       configTemplate: join(resourceDir, "templates", "_quarto.ejs.yml"),
       resourceDir,
-      scaffold: [
+      scaffold: () => [
         {
           name: "index",
           content: "# Preface {.unnumbered}\n\n" +

@@ -13,7 +13,7 @@ import { executionEngine, executionEngines } from "../../execute/engine.ts";
 
 import { projectCreate } from "../../project/project-create.ts";
 import { projectTypes } from "../../project/types/project-types.ts";
-import { kMarkdownEngine } from "../../execute/markdown.ts";
+import { kMarkdownEngine } from "../../execute/types.ts";
 
 const kProjectTypes = projectTypes();
 const kExecutionEngines = executionEngines().reverse();
@@ -63,8 +63,11 @@ export const createProjectCommand = new Command()
     },
   )
   .option(
-    "--with-venv",
+    "--with-venv [packages:string]",
     "Create a Python virtual environment for this project",
+    {
+      default: "none",
+    },
   )
   .option(
     "--no-scaffold",
@@ -91,10 +94,6 @@ export const createProjectCommand = new Command()
     "quarto create-project mysite --type site --engine jupyter",
   )
   .example(
-    "Create a website project with jupyter and a virtual environment",
-    "quarto create-project mysite --type site --engine jupyter --with-venv",
-  )
-  .example(
     "Create a website project with jupyter + kernel",
     "quarto create-project mysite --type site --engine jupyter:python3",
   )
@@ -102,10 +101,23 @@ export const createProjectCommand = new Command()
     "Create a book project with knitr",
     "quarto create-project mybook --type book --engine knitr",
   )
+  .example(
+    "Create a jupyter project with a virtual environment ",
+    "quarto create-project--engine jupyter --with-venv",
+  )
+  .example(
+    "Create a jupyter project with a virtual environment + packages",
+    "quarto create-project--engine jupyter --with-venv pandas,matplotlib",
+  )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, dir?: string) => {
     dir = dir || Deno.cwd();
     const engine = options.engine || [];
+
+    const venvPackages = options.withVenv && options.withVenv !== "none"
+      ? options.withVenv.split(",").map((pkg: string) => pkg.trim())
+      : undefined;
+
     await projectCreate({
       dir,
       type: options.type,
@@ -114,5 +126,6 @@ export const createProjectCommand = new Command()
       engine: engine[0] || kMarkdownEngine,
       kernel: engine[1],
       venv: options.withVenv,
+      venvPackages,
     });
   });

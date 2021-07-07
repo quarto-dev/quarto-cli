@@ -14,11 +14,10 @@ import {
   DependenciesOptions,
   ExecuteOptions,
   ExecutionEngine,
+  kMarkdownEngine,
   kQmdExtensions,
   PostProcessOptions,
 } from "./types.ts";
-
-export const kMarkdownEngine = "markdown";
 
 export const kMdExtensions = [".md", ".markdown"];
 

@@ -7,7 +7,7 @@ import { isWindows } from "../platform.ts";
 import { execProcess } from "../process.ts";
 import { jupyterCapabilitiesNoConda } from "./capabilities.ts";
 
-export async function jupyterCreateVenv(dir: string) {
+export async function jupyterCreateVenv(dir: string, packages?: string[]) {
   const kEnvDir = "env";
   info(`Creating virtual environment at ${colors.bold(kEnvDir + "/")}:`);
   const caps = await jupyterCapabilitiesNoConda();
@@ -25,8 +25,9 @@ export async function jupyterCreateVenv(dir: string) {
       kEnvDir,
       isWindows() ? "Scripts\\pip.exe" : "bin/pip3",
     );
+    packages = ["jupyter"].concat(packages || []);
     const installResult = await execProcess({
-      cmd: [pip3, "install", "jupyter"],
+      cmd: [pip3, "install", ...packages],
       cwd: dir,
     });
     if (!installResult.success) {
