@@ -193,6 +193,8 @@ export function websiteNavigationExtras(
   const darkMode = formatDarkMode(format);
   if (darkMode !== undefined && nav.navbar) {
     (nav.navbar as Record<string, unknown>).darkToggle = true;
+  } else if (darkMode !== undefined && nav.sidebar) {
+    (nav.sidebar as Record<string, unknown>).darkToggle = true;
   }
 
   const projTemplate = (template: string) =>
