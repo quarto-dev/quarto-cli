@@ -861,7 +861,7 @@ async function resolveFormats(
 
     // resolve theme (project-level bootstrap theme always wins)
     if (project && formatHasBootstrap(projFormat)) {
-      if (formatHasBootstrap(inputFormat)) {
+      if (projFormat.metadata[kTheme] && formatHasBootstrap(inputFormat)) {
         delete inputFormat.metadata[kTheme];
       } else {
         delete projFormat.metadata[kTheme];
