@@ -24,6 +24,16 @@ import { button } from "https://cdn.skypack.dev/@observablehq/inputs";
 
 //////////////////////////////////////////////////////////////////////////////
 
+class EmptyInspector {
+  pending() {
+  }
+  fulfilled(_value, _name) {
+  }
+  rejected(_error, _name) {
+    // FIXME we should probably communicate this upstream somehow.
+  }
+}
+
 export class OJSInABox {
   constructor({
     paths,
@@ -101,6 +111,46 @@ export class OJSInABox {
       });
   }
 
+  interpretWithRunner(src, runner) {
+    try {
+      const parse = parseModule(src);
+      const chunkPromise = Promise.all(parse.cells.map(runner));
+      this.chunkPromises.push(chunkPromise);
+      return chunkPromise;
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+
+  waitOnImports(cell, promise) {
+    if (cell.body.type !== "ImportDeclaration") {
+      return promise;
+    } else {
+      this.mainModuleHasImports = true;
+      this.mainModuleOutstandingImportCount++;
+      return promise.then((result) => {
+        this.mainModuleOutstandingImportCount--;
+        if (this.mainModuleOutstandingImportCount === 0) {
+          this.clearImportModuleWait();
+        }
+        return result;
+      });
+    }
+  }
+
+  interpretQuiet(src) {
+    const runCell = (cell) => {
+      const cellSrc = src.slice(cell.start, cell.end);
+      const promise = this.interpreter.module(
+        cellSrc,
+        undefined,
+        (_name) => new EmptyInspector(),
+      );
+      return this.waitOnImports(cell, promise);
+    };
+    return this.interpretWithRunner(src, runCell);
+  }
+
   interpret(src, elementGetter, elementCreator) {
     const observer = (targetElement, cell) => {
       return (name) => {
@@ -131,35 +181,14 @@ export class OJSInABox {
         ? elementGetter()
         : elementGetter;
       const cellSrc = src.slice(cell.start, cell.end);
-      let promise = this.interpreter.module(
+      const promise = this.interpreter.module(
         cellSrc,
         undefined,
         observer(targetElement, cell),
       );
-      if (cell.body.type === "ImportDeclaration") {
-        this.mainModuleHasImports = true;
-        this.mainModuleOutstandingImportCount++;
-        promise = promise.then((result) => {
-          this.mainModuleOutstandingImportCount--;
-          if (this.mainModuleOutstandingImportCount === 0) {
-            this.clearImportModuleWait();
-          }
-          return result;
-        });
-      }
-      return promise;
+      return this.waitOnImports(cell, promise);
     };
-
-    let parse;
-    try {
-      parse = parseModule(src);
-    } catch (error) {
-      return Promise.reject(error);
-    }
-
-    const chunkPromise = Promise.all(parse.cells.map(runCell));
-    this.chunkPromises.push(chunkPromise);
-    return chunkPromise;
+    return this.interpretWithRunner(src, runCell);
   }
 }
 
@@ -345,16 +374,6 @@ function importPathResolver(paths, localResolverMap) {
   };
 }
 
-class EmptyInspector {
-  pending() {
-  }
-  fulfilled(_value, _name) {
-  }
-  rejected(_error, _name) {
-    // FIXME we should probably communicate this upstream somehow.
-  }
-}
-
 /*
  * Given a URL, fetches the text content and creates a new observable module
  * exporting all of the names as variables
@@ -379,6 +398,7 @@ async function importOjs(path) {
 // previously quarto-observable-shiny.js
 
 const shinyInputVars = new Set();
+let shinyInitialValue = {};
 
 export function extendObservableStdlib(lib) {
   class NamedVariableOutputBinding extends Shiny.OutputBinding {
@@ -398,9 +418,24 @@ export function extendObservableStdlib(lib) {
     }
   }
 
+  $(document).on("shiny:connected", function (_event) {
+    Object.entries(shinyInitialValue).map(([k, v]) => {
+      window.Shiny.setInputValue(k, v);
+    });
+    shinyInitialValue = {};
+  });
+
   lib.shinyInput = function () {
     return (name) => {
       shinyInputVars.add(name);
+      window._ojs.obsInABox.mainModule.value(name)
+        .then((val) => {
+          if (window.Shiny && window.Shiny.setInputValue) {
+            window.Shiny.setInputValue(name, val);
+          } else {
+            shinyInitialValue[name] = val;
+          }
+        });
     };
   };
 
@@ -425,7 +460,11 @@ export class ShinyInspector extends Inspector {
   }
   fulfilled(value, name) {
     if (shinyInputVars.has(name) && window.Shiny) {
-      window.Shiny.setInputValue(name, value);
+      if (window.Shiny.setInputValue === undefined) {
+        shinyInitialValue[name] = value;
+      } else {
+        window.Shiny.setInputValue(name, value);
+      }
     }
     return super.fulfilled(value, name);
   }
@@ -679,6 +718,9 @@ export function createRuntime() {
           getElement().append(errorDiv);
           return e;
         });
+    },
+    interpretQuiet(src) {
+      return obsInABox.interpretQuiet(src);
     },
   };
 

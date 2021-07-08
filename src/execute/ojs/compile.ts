@@ -31,6 +31,8 @@ import {
 } from "./extract-resources.ts";
 import { parseError } from "./errors.ts";
 
+import { ojsSimpleWalker } from "./ojs-tools.ts";
+
 import {
   kCellFigCap,
   kCellFigSubCap,
@@ -85,7 +87,6 @@ export async function ojsCompile(
   const projDir = project?.dir;
 
   const selfContained = options.format.pandoc?.[kSelfContained] ?? false;
-  // const selfContained = !(project || (project && projectIsWebserverTarget(project)));
 
   if (!isJavascriptCompatible(options.format)) {
     return { markdown };
@@ -144,6 +145,8 @@ export async function ojsCompile(
   const ls: string[] = [];
   const resourceFiles: string[] = [];
   const pageResources: ResourceDescription[] = [];
+  const ojsViews = new Set<string>();
+  const ojsIdentifiers = new Set<string>();
 
   // now we convert it back
   for (const cell of output.cells) {
@@ -213,8 +216,20 @@ export async function ojsCompile(
       // very heavyweight for what we need it, but this way we can signal syntax errors
       // as well.
       let nCells = 0;
+
       try {
-        nCells = parseModule(cellSrcStr).cells.length;
+        const parse = parseModule(cellSrcStr);
+        ojsSimpleWalker(parse, {
+          // deno-lint-ignore no-explicit-any
+          Cell(node: any) {
+            if (node.id && node.id.type === "ViewExpression") {
+              ojsViews.add(node.id.id.name);
+            } else if (node.id && node.id.type === "Identifier") {
+              ojsIdentifiers.add(node.id.name);
+            }
+          },
+        });
+        nCells = parse.cells.length;
       } catch (e) {
         if (e instanceof SyntaxError) {
           parseError(cellSrcStr);
@@ -464,6 +479,61 @@ export async function ojsCompile(
     for (const resource of uniqueResources(pageResources)) {
       resourceFiles.push(resource.filename);
     }
+  }
+
+  // Handle shiny input and output YAML declarations
+  // deno-lint-ignore no-explicit-any
+  const serverMetadata = options.format.metadata?.server as any;
+  const shinyInputMetadata = (serverMetadata["type"] === "shiny") &&
+    serverMetadata["ojs-exports"];
+  const shinyInputs = new Set<string>();
+  const shinyInputExcludes = new Set<string>();
+  const shinyEverything = new Set<string>();
+  const shinyOutputMetadata = (serverMetadata["type"] === "shiny") &&
+    serverMetadata["ojs-imports"];
+
+  let importAllViews = !shinyInputMetadata ||
+    (shinyInputMetadata.indexOf("viewof") !== -1);
+  let importEverything = false;
+
+  for (const shinyInput of (shinyInputMetadata ?? [])) {
+    if (shinyInput === "viewof") {
+      importAllViews = true;
+    } else if (shinyInput === "all") {
+      importEverything = true;
+    } else if (shinyInput.startsWith("!")) {
+      shinyInputExcludes.add(shinyInput.slice(1));
+    } else {
+      shinyInputs.add(shinyInput);
+    }
+  }
+
+  const resultSet = new Set<string>();
+  if (importEverything) {
+    for (const el of shinyEverything) {
+      resultSet.add(el);
+    }
+  }
+  if (importAllViews) {
+    for (const el of ojsViews) {
+      resultSet.add(el);
+    }
+  }
+  for (const el of shinyInputs) {
+    resultSet.add(el);
+  }
+  for (const el of shinyInputExcludes) {
+    resultSet.delete(el);
+  }
+  for (const el of resultSet) {
+    scriptContents.push(
+      `window._ojs.runtime.interpretQuiet("shinyInput('${el}')");`,
+    );
+  }
+  for (const el of (shinyOutputMetadata ?? [])) {
+    scriptContents.push(
+      `window._ojs.runtime.interpretQuiet("${el} = shinyOutput('${el}')");`,
+    );
   }
 
   // finish script by calling runtime's "done with new source" handler,
