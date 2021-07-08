@@ -206,7 +206,7 @@ export async function ojsCompile(
 
       pageResources.push(...extractResources(
         cellSrcStr,
-        options.source,
+        dirname(options.source),
         projDir,
       ));
 

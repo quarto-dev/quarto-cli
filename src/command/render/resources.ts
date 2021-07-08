@@ -8,6 +8,7 @@
 import { ResolvedPathGlobs, resolvePathGlobs } from "../../core/path.ts";
 import { engineIgnoreGlobs } from "../../execute/engine.ts";
 import { kQuartoScratch } from "../../project/project-scratch.ts";
+import { extractResourcesFromQmd } from "../../execute/ojs/extract-resources.ts";
 
 export function resourcesFromMetadata(resourcesMetadata?: unknown) {
   // interrogate / typecast raw yaml resources into array of strings
@@ -26,19 +27,24 @@ export function resourcesFromMetadata(resourcesMetadata?: unknown) {
 
 export function resolveFileResources(
   rootDir: string,
+  fileDir: string,
   markdown: string,
   globs: string[],
 ): ResolvedPathGlobs {
   const ignore = engineIgnoreGlobs()
     .concat(kQuartoScratch + "/")
     .concat(["**/.*", "**/.*/**"]); // hidden (dot prefix))
-  const resources = resolvePathGlobs(rootDir, globs, ignore);
+  const resources = resolvePathGlobs(fileDir, globs, ignore);
   if (markdown.length > 0) {
-    resources.include.push(...ojsResources(rootDir, markdown));
+    resources.include.push(...ojsResources(rootDir, fileDir, markdown));
   }
   return resources;
 }
 
-function ojsResources(rootDir: string, markdown: string): string[] {
-  return [];
+function ojsResources(
+  rootDir: string,
+  fileDir: string,
+  markdown: string,
+): string[] {
+  return extractResourcesFromQmd(markdown, fileDir, rootDir);
 }

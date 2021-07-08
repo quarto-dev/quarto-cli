@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, relative, resolve } from "path/mod.ts";
+import { dirname, join, relative, resolve } from "path/mod.ts";
 import { encode as base64Encode } from "encoding/base64.ts";
 import { lookup } from "media_types/mod.ts";
 
@@ -16,6 +16,7 @@ import { parse as parseES6 } from "acorn/acorn";
 import { parseError } from "./errors.ts";
 
 import { esbuildCompile } from "../../core/esbuild.ts";
+import { breakQuartoMd } from "../../core/break-quarto-md.ts";
 
 // we need to patch the base walker ourselves because OJS sometimes
 // emits Program nodes with "cells" rather than "body"
@@ -97,29 +98,49 @@ function literalFileAttachments(parse: any) {
   return result;
 }
 
+interface ResolvedES6Path {
+  pathType: "root-relative" | "relative";
+  resolvedImportPath: string;
+}
+
 function resolveES6Path(
   path: string,
-  origin: string,
+  originDir: string,
   projectRoot?: string,
-) {
+): ResolvedES6Path {
   if (path.startsWith("/")) {
     if (projectRoot === undefined) {
-      return resolve(dirname(origin), `.${path}`);
+      return {
+        pathType: "root-relative",
+        resolvedImportPath: resolve(originDir, `.${path}`),
+      };
     } else {
-      return resolve(projectRoot, `.${path}`);
+      return {
+        pathType: "root-relative",
+        resolvedImportPath: resolve(projectRoot, `.${path}`),
+      };
     }
   } else {
     // assert(path.startsWith('.'));
-    return resolve(dirname(origin), path);
+    return {
+      pathType: "relative",
+      resolvedImportPath: resolve(originDir, path),
+    };
   }
+}
+
+interface DirectDependency {
+  resolvedImportPath: string;
+  pathType: "relative" | "root-relative";
+  importPath: string;
 }
 
 function directDependencies(
   source: string,
-  filename: string,
+  fileDir: string,
   language: "js" | "ojs",
   projectRoot?: string,
-) {
+): DirectDependency[] {
   let ast;
   if (language === "js") {
     try {
@@ -142,14 +163,14 @@ function directDependencies(
   }
 
   return localImports(ast).map((importPath) => {
-    const resolvedImportPath = resolveES6Path(
+    const { resolvedImportPath, pathType } = resolveES6Path(
       importPath,
-      filename,
+      fileDir,
       projectRoot,
     );
     return {
       resolvedImportPath,
-      filename,
+      pathType,
       importPath,
     };
   });
@@ -162,33 +183,81 @@ export interface ResourceDescription {
   // we need that in case of self-contained files to build local resolvers
   // correctly.
   importPath?: string;
-  type: string;
+  pathType: "relative" | "root-relative";
+  resourceType: "import" | "FileAttachment";
+}
+
+// we need both the filename of the markdown and the project root
+// because these have different semantics wrt resolving relative paths
+export function extractResourcesFromQmd(
+  markdown: string,
+  mdDir: string,
+  projectRoot: string,
+) {
+  const pageResources = [];
+
+  for (const cell of breakQuartoMd(markdown).cells) {
+    if (
+      cell.cell_type !== "markdown" &&
+      cell.cell_type !== "raw" &&
+      cell.cell_type !== "math" &&
+      cell.cell_type?.language === "ojs"
+    ) {
+      const cellSrcStr = cell.source.join("");
+      pageResources.push(...extractResources(
+        cellSrcStr,
+        mdDir,
+        projectRoot,
+      ));
+    }
+  }
+
+  const projectToMd = relative(projectRoot, mdDir);
+
+  // after converting root-relative and relative paths
+  // all to root-relative, we might once again have duplicates.
+  // We need another pass here.
+  const result = new Set<string>();
+  for (const resource of uniqueResources(pageResources)) {
+    let filename;
+    if (resource.pathType === "root-relative") {
+      filename = resource.filename.slice(1);
+    } else {
+      filename = relative(projectRoot, join(projectToMd, resource.filename));
+    }
+    result.add(filename);
+  }
+  return Array.from(result);
 }
 
 export function extractResources(
   ojsSource: string,
-  mdFilename: string,
+  mdDir: string,
   projectRoot?: string,
 ) {
   let result: ResourceDescription[] = [];
   const handled: Set<string> = new Set();
   const imports: Map<string, ResourceDescription> = new Map();
 
+  // FIXME get a uuid here
+  const rootReferent = `${mdDir}/<<root>>.qmd`;
+
   // we're assuming that we always start in an {ojs} block.
   for (
-    const { resolvedImportPath, filename, importPath } of directDependencies(
+    const { resolvedImportPath, pathType, importPath } of directDependencies(
       ojsSource,
-      mdFilename,
+      mdDir,
       "ojs",
       projectRoot,
     )
   ) {
     if (!imports.has(resolvedImportPath)) {
-      const v = {
+      const v: ResourceDescription = {
         filename: resolvedImportPath,
-        referent: mdFilename,
+        referent: rootReferent,
+        pathType,
         importPath,
-        type: "import",
+        resourceType: "import",
       };
       result.push(v);
       imports.set(resolvedImportPath, v);
@@ -214,19 +283,20 @@ export function extractResources(
     }
 
     for (
-      const { resolvedImportPath, filename, importPath } of directDependencies(
+      const { resolvedImportPath, pathType, importPath } of directDependencies(
         source,
-        thisResolvedImportPath,
+        dirname(thisResolvedImportPath),
         language as ("js" | "ojs"),
         projectRoot,
       )
     ) {
       if (!imports.has(resolvedImportPath)) {
-        const v = {
+        const v: ResourceDescription = {
           filename: resolvedImportPath,
           referent: thisResolvedImportPath,
+          pathType,
           importPath,
-          type: "import",
+          resourceType: "import",
         };
         result.push(v);
         imports.set(resolvedImportPath, v);
@@ -234,37 +304,65 @@ export function extractResources(
     }
   }
 
-  // add FileAttachment literals, which are always relative
   const fileAttachments = [];
   for (const importFile of result) {
     if (importFile.filename.endsWith(".ojs")) {
       const ast = parseModule(Deno.readTextFileSync(importFile.filename));
-      fileAttachments.push(...literalFileAttachments(ast));
+      for (const attachment of literalFileAttachments(ast)) {
+        fileAttachments.push({
+          filename: attachment,
+          referent: importFile.filename,
+        });
+      }
     }
   }
   // also do it for the current .ojs chunk.
   const ast = parseModule(ojsSource);
-  fileAttachments.push(...literalFileAttachments(ast));
+  for (const attachment of literalFileAttachments(ast)) {
+    fileAttachments.push({
+      filename: attachment,
+      referent: rootReferent,
+    });
+  }
 
-  // convert resolved paths to relative paths
+  // convert relative resolved paths to relative paths
   result = result.map((description) => {
-    const { referent, type, importPath } = description;
-    let relName = relative(dirname(mdFilename), description.filename);
-    if (!relName.startsWith(".")) {
-      relName = `./${relName}`;
+    const { referent, resourceType, importPath, pathType } = description;
+    if (pathType === "relative") {
+      let relName = relative(mdDir, description.filename);
+      if (!relName.startsWith(".")) {
+        relName = `./${relName}`;
+      }
+      return {
+        filename: relName,
+        referent,
+        importPath,
+        pathType,
+        resourceType,
+      };
+    } else {
+      return description;
     }
-    return {
-      filename: relName,
-      referent,
-      importPath,
-      type,
-    };
   });
 
-  result.push(...fileAttachments.map((filename) => ({
-    filename,
-    type: "FileAttachment",
-  })));
+  result.push(...fileAttachments.map(({ filename, referent }) => {
+    let pathType;
+    if (filename.startsWith("/")) {
+      pathType = "root-relative";
+    } else {
+      pathType = "relative";
+    }
+
+    // FIXME why can't the TypeScript typechecker realize this cast is unneeded?
+    // it complains about pathType and resourceType being strings
+    // rather than one of their two respectively allowed values.
+    return ({
+      referent,
+      filename,
+      pathType,
+      resourceType: "FileAttachment",
+    }) as ResourceDescription;
+  }));
   return result;
 }
 
@@ -297,12 +395,12 @@ export async function makeSelfContainedResources(
   const uniqResources = uniqueResources(resourceList);
 
   const jsFiles = uniqResources.filter((r) =>
-    r.type === "import" && r.filename.endsWith(".js")
+    r.resourceType === "import" && r.filename.endsWith(".js")
   );
   const ojsFiles = uniqResources.filter((r) =>
-    r.type === "import" && r.filename.endsWith("ojs")
+    r.resourceType === "import" && r.filename.endsWith("ojs")
   );
-  const attachments = uniqResources.filter((r) => r.type !== "import");
+  const attachments = uniqResources.filter((r) => r.resourceType !== "import");
 
   const jsModuleResolves = [];
   if (jsFiles.length > 0) {
