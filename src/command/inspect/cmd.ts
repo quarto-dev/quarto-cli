@@ -12,9 +12,8 @@ import { ld } from "lodash/mod.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { readYamlFromMarkdown } from "../../core/yaml.ts";
-
 import { kResources } from "../../config/constants.ts";
+import { Format } from "../../config/types.ts";
 
 import { projectContext } from "../../project/project-context.ts";
 
@@ -69,25 +68,26 @@ export const inspectCommand = new Command()
     } else {
       const engine = fileExecutionEngine(path);
       if (engine) {
-        const formats = await renderFormats(path);
-
         // partition markdown
         const partitioned = await engine.partitionedMarkdown(path);
 
-        // compute resources
-        const resources: string[] = [];
-        if (partitioned.yaml) {
-          const frontMatter = readYamlFromMarkdown(partitioned.yaml);
-          if (frontMatter[kResources]) {
-            resources.push(
-              ...resolveResources(
-                Deno.realPathSync(dirname(path)),
-                partitioned.markdown,
-                resourcesFromMetadata(frontMatter[kResources]),
-              ),
-            );
-          }
-        }
+        // get formats
+        const formats = await renderFormats(path);
+
+        // accumulate resources from formats then resolve them
+        const resourceConfig: string[] = Object.values(formats).reduce(
+          (resources: string[], format: Format) => {
+            return ld.uniq(resources.concat(
+              resourcesFromMetadata(format.metadata[kResources]),
+            ));
+          },
+          [],
+        );
+        const resources = resolveResources(
+          Deno.realPathSync(dirname(path)),
+          partitioned.markdown,
+          resourceConfig,
+        );
 
         // data to write
         config = {
