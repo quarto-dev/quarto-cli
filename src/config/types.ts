@@ -266,7 +266,7 @@ export interface FormatPandoc {
   [kListings]?: boolean;
   [kNumberSections]?: boolean;
   [kNumberOffset]?: number[];
-  [kHighlightStyle]?: string;
+  [kHighlightStyle]?: string | null;
   [kSectionDivs]?: boolean;
   [kHtmlMathMethod]?: string | { method: string; url: string };
   [kTopLevelDivision]?: string;
