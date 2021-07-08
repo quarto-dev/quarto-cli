@@ -11,8 +11,6 @@ import { warning } from "log/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
-import { resolvePathGlobs } from "../../core/path.ts";
-
 import { kKeepMd } from "../../config/constants.ts";
 
 import {
@@ -26,6 +24,7 @@ import {
 import { projectType } from "../../project/types/project-types.ts";
 import { copyResourceFile } from "../../project/project-resources.ts";
 import { ensureGitignore } from "../../project/project-gitignore.ts";
+import { partitionedMarkdownForInput } from "../../project/project-config.ts";
 
 import { renderFiles } from "./render.ts";
 import { RenderOptions, RenderResult } from "./types.ts";
@@ -35,6 +34,7 @@ import {
   pruneProjectFreezer,
   pruneProjectFreezerDir,
 } from "./freeze.ts";
+import { resolveFileResources } from "./resources.ts";
 
 export async function renderProject(
   context: ProjectContext,
@@ -171,7 +171,9 @@ export async function renderProject(
       let keepLibsDir = false;
 
       // move/copy projResults to output_dir
-      fileResults.files.forEach((renderedFile) => {
+      for (let i = 0; i < fileResults.files.length; i++) {
+        const renderedFile = fileResults.files[i];
+
         // move the renderedFile to the output dir
         const outputFile = join(outputDirAbsolute, renderedFile.file);
         ensureDirSync(dirname(outputFile));
@@ -190,14 +192,17 @@ export async function renderProject(
 
         // resource files
         const resourceDir = join(projDir, dirname(renderedFile.file));
+        const partitioned = await partitionedMarkdownForInput(
+          projDir,
+          renderedFile.input,
+        );
+        const markdown = partitioned ? partitioned.markdown : "";
         const globs = renderedFile.resourceFiles.globs;
-        const fileResourceFiles = globs.length > 0
-          ? resolvePathGlobs(
-            resourceDir,
-            renderedFile.resourceFiles.globs,
-            [],
-          )
-          : { include: [], exclude: [] };
+        const fileResourceFiles = resolveFileResources(
+          resourceDir,
+          markdown,
+          globs,
+        );
 
         // add the explicitly discovered files (if they exist and
         // the output isn't self-contained)
@@ -236,7 +241,7 @@ export async function renderProject(
           supporting: renderedFile.supporting,
           resourceFiles,
         });
-      });
+      }
 
       // move or copy the lib dir if we have one (move one subdirectory at a time
       // so that we can merge with what's already there)

@@ -13,18 +13,17 @@ import { ld } from "lodash/mod.ts";
 import { Command } from "cliffy/command/mod.ts";
 
 import { readYamlFromMarkdown } from "../../core/yaml.ts";
-import { resolvePathGlobs } from "../../core/path.ts";
 
 import { kResources } from "../../config/constants.ts";
 
-import { kQuartoIgnore } from "../../project/project-gitignore.ts";
 import { projectContext } from "../../project/project-context.ts";
 
-import {
-  engineIgnoreGlobs,
-  fileExecutionEngine,
-} from "../../execute/engine.ts";
+import { fileExecutionEngine } from "../../execute/engine.ts";
 import { renderFormats } from "../render/render.ts";
+import {
+  resolveFileResources,
+  resourcesFromMetadata,
+} from "../render/resources.ts";
 
 export const inspectCommand = new Command()
   .name("inspect")
@@ -83,7 +82,8 @@ export const inspectCommand = new Command()
             resources.push(
               ...resolveResources(
                 Deno.realPathSync(dirname(path)),
-                frontMatter[kResources],
+                partitioned.markdown,
+                resourcesFromMetadata(frontMatter[kResources]),
               ),
             );
           }
@@ -108,20 +108,12 @@ export const inspectCommand = new Command()
     );
   });
 
-function resolveResources(rootDir: string, entries: unknown): string[] {
-  const globs: string[] = [];
-  if (Array.isArray(entries)) {
-    for (const file of entries) {
-      globs.push(String(file));
-    }
-  } else {
-    globs.push(String(entries));
-  }
-  const ignore = engineIgnoreGlobs()
-    .concat(kQuartoIgnore)
-    .concat(["**/.*", "**/.*/**"]); // hidden (dot prefix))
-  const resolved = resolvePathGlobs(rootDir, globs, ignore);
-
+function resolveResources(
+  rootDir: string,
+  markdown: string,
+  resources: string[],
+): string[] {
+  const resolved = resolveFileResources(rootDir, markdown, resources);
   return (ld.difference(resolved.include, resolved.exclude) as string[])
     .map((file) => relative(rootDir, file));
 }

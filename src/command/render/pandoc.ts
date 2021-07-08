@@ -92,6 +92,7 @@ import {
 } from "./codetools.ts";
 import { pandocMetadataPath } from "./render-shared.ts";
 import { Metadata } from "../../config/types.ts";
+import { resourcesFromMetadata } from "./resources.ts";
 
 export async function runPandoc(
   options: PandocOptions,
@@ -396,18 +397,9 @@ export async function runPandoc(
   );
 
   // resolve resource files from metadata
-  const resources: string[] = [];
-  if (options.format.metadata[kResources]) {
-    const files = options.format.metadata[kResources];
-    if (Array.isArray(files)) {
-      for (const file of files) {
-        resources.push(String(file));
-      }
-    } else {
-      resources.push(String(files));
-    }
-  }
-
+  const resources: string[] = resourcesFromMetadata(
+    options.format.metadata[kResources],
+  );
   if (result.success) {
     return {
       resources,
