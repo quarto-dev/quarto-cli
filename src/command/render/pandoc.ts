@@ -648,12 +648,10 @@ function resolveTextHighlightStyle(
 
       break;
     case "none":
-      // This is the defaults file equivalent of the 'no-highlight' flag.
-      // see https://github.com/jgm/pandoc/issues/5989
-      pandoc[kHighlightStyle] = null;
       // Clear the highlighting
+      delete pandoc[kHighlightStyle];
       if (extras.pandoc) {
-        extras.pandoc[kHighlightStyle] = null;
+        delete extras.pandoc[kHighlightStyle];
       }
       break;
     case undefined:
