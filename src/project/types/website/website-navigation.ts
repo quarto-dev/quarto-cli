@@ -72,8 +72,10 @@ import { resolveResourceRefs } from "./website-resources.ts";
 import {
   isGithubRepoUrl,
   kSite,
+  kSiteNavbar,
   kSiteRepoActions,
   kSiteRepoUrl,
+  kSiteSidebar,
   websiteConfigActions,
   websitePath,
   websiteRepoBranch,
@@ -149,14 +151,20 @@ export function websiteNavigationExtras(
     sassBundles.push(websiteSearchSassBundle());
   }
 
+  // Check to see whether the navbar or sidebar have been disabled on this page
+  const disableNavbar = format.metadata[kSiteNavbar] !== undefined &&
+    format.metadata[kSiteNavbar] === false;
+  const disableSidebar = format.metadata[kSiteSidebar] !== undefined &&
+    format.metadata[kSiteSidebar] === false;
+
   // determine body envelope
   const href = inputFileHref(inputRelative);
   const sidebar = sidebarForHref(href);
   const nav: Record<string, unknown> = {
     toc: hasTableOfContents(flags, format),
     layout: formatPageLayout(format),
-    navbar: navigation.navbar,
-    sidebar: expandedSidebar(href, sidebar),
+    navbar: disableNavbar ? undefined : navigation.navbar,
+    sidebar: disableSidebar ? undefined : expandedSidebar(href, sidebar),
   };
 
   // Determine the previous and next page
