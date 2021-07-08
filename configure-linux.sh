@@ -28,7 +28,12 @@ wget -q --show-progress -O $DENOFILE $DENOURL/$DENO/$DENOFILE
 unzip -o $DENOFILE
 rm $DENOFILE
 
-deno cache --reload ../../../src/quarto.ts --unstable --importmap=../../../src/import_map.json
+# If a canary commit is provided, upgrade to that
+if [ ! -z "$DENO_CANARY_COMMIT" ]; then
+	echo [Upgrading Deno to Canary]
+	./deno upgrade --canary --version $DENO_CANARY_COMMIT
+fi
+./deno cache --reload ../../../src/quarto.ts --unstable --importmap=../../../src/import_map.json
 
 popd
 popd
