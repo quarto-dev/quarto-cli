@@ -19,8 +19,8 @@ if (sidebar.align === "center") {
     <% if (sidebar.logo) { %>
     <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo py-0 d-lg-inline d-none"/>
      <% if (sidebar.tools && !sidebar.title) { %>
-      <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main' })%>
-     <% } %>
+      <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle })%>
+     <% } %> 
     <% } %>
     
     <% if (sidebar.title) { %>
@@ -29,8 +29,8 @@ if (sidebar.align === "center") {
       <%- sidebar.title %>
       </a>
       <% if (sidebar.tools) { %>
-        <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main' })%>
-      <% } %>
+        <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle })%>
+      <% } %>  
     </div>
 
     <% } %>
@@ -42,7 +42,7 @@ if (sidebar.align === "center") {
       <% partial('navsearch.ejs', { search: sidebar.search }) %>
       </div>
       <% if (sidebar.tools) { %>
-        <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-collapse' })%>
+        <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-collapse', darkToggle: sidebar.darkToggle })%>
       <% } %>
     </div>
   <% } %>
