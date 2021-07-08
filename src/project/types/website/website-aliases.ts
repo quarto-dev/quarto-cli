@@ -9,11 +9,12 @@ import { dirname, extname, join, relative } from "path/mod.ts";
 
 import { ProjectOutputFile } from "../types.ts";
 
-import { ProjectContext } from "../../types.ts";
+import { kProjectOutputDir, ProjectContext } from "../../types.ts";
 import { projectOutputDir } from "../../project-shared.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { inputTargetIndex, resolveInputTarget } from "../../project-index.ts";
+import { warning } from "log/mod.ts";
 
 const kAliases = "aliases";
 
@@ -24,6 +25,7 @@ export async function updateAliases(
 ) {
   // Generate a map of the redirect files and targetHrefs redirect data
   const redirectMap: Record<string, Anchor[]> = {};
+  const allOutputFiles: string[] = [];
   const outputDir = projectOutputDir(context);
 
   // First go through any files that were rendered and add any Aliases
@@ -35,10 +37,9 @@ export async function updateAliases(
     }
   }
 
-  // If this is incremental, go through the project inputs and for any of the inputs
-  // that would need to contribute to one of the redirect files generated above, add
-  // their aliases to the redirect data structure
-  if (incremental && Object.keys(redirectMap).length > 0) {
+  // Walk through the outputs (to make sure we're not overwriting one with an alias file and
+  // to see if they have any aliases to contribute)
+  if (Object.keys(redirectMap).length > 0) {
     for (const file of context.files.input) {
       const relativePath = relative(context.dir, file);
       const inputIndexEntry = await inputTargetIndex(
@@ -56,16 +57,36 @@ export async function updateAliases(
           false,
         );
         if (outputTarget) {
-          // Read the aliases and process them
-          const aliases = format.metadata[kAliases];
-          if (aliases && Array.isArray(aliases)) {
-            addRedirectsToMap(
-              aliases,
-              join(outputDir, outputTarget.outputHref),
-              outputDir,
-              false,
-              redirectMap,
-            );
+          // Note the full path to the outputs of this project
+          const fileFullPath =
+            context.config?.project[kProjectOutputDir] !== undefined
+              ? join(
+                context.config?.project[kProjectOutputDir]!,
+                outputTarget.outputHref,
+              )
+              : outputTarget.outputHref;
+          allOutputFiles.push(
+            join(
+              context.dir,
+              fileFullPath,
+            ),
+          );
+
+          // If this is incremental, go through the project inputs and for any of the inputs
+          // that would need to contribute to one of the redirect files generated above, add
+          // their aliases to the redirect data structure
+          if (incremental) {
+            // Read the aliases and process them
+            const aliases = format.metadata[kAliases];
+            if (aliases && Array.isArray(aliases)) {
+              addRedirectsToMap(
+                aliases,
+                join(outputDir, outputTarget.outputHref),
+                outputDir,
+                false,
+                redirectMap,
+              );
+            }
           }
         }
       }
@@ -81,6 +102,7 @@ export async function updateAliases(
     for (const targetHref of targetHrefs) {
       // Resolve the href to the file
       const aliasHref = relative(dirname(targetFile), targetHref.outputFile);
+
       redirects[targetHref.hash || ""] = aliasHref;
     }
 
@@ -90,7 +112,15 @@ export async function updateAliases(
     }
 
     // Write the redirect file
-    writeMultipleRedirectPage(targetFile, redirects);
+    if (allOutputFiles.find((outputFile) => outputFile === targetFile)) {
+      // Do not, this is the same name as an output file!
+      warning(
+        `Aliases that you have created would overwrite the output file ${targetFile}. The aliases file was not created.`,
+      );
+    } else {
+      // Write, this is a safe file
+      writeMultipleRedirectPage(targetFile, redirects);
+    }
   }
 }
 
