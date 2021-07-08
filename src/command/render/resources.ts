@@ -26,19 +26,24 @@ export function resourcesFromMetadata(resourcesMetadata?: unknown) {
 
 export function resolveFileResources(
   rootDir: string,
+  fileDir: string,
   markdown: string,
   globs: string[],
 ): ResolvedPathGlobs {
   const ignore = engineIgnoreGlobs()
     .concat(kQuartoScratch + "/")
     .concat(["**/.*", "**/.*/**"]); // hidden (dot prefix))
-  const resources = resolvePathGlobs(rootDir, globs, ignore);
+  const resources = resolvePathGlobs(fileDir, globs, ignore);
   if (markdown.length > 0) {
-    resources.include.push(...ojsResources(rootDir, markdown));
+    resources.include.push(...ojsResources(rootDir, fileDir, markdown));
   }
   return resources;
 }
 
-function ojsResources(rootDir: string, markdown: string): string[] {
+function ojsResources(
+  rootDir: string,
+  fileDir: string,
+  markdown: string,
+): string[] {
   return [];
 }

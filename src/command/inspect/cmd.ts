@@ -83,8 +83,12 @@ export const inspectCommand = new Command()
           },
           [],
         );
+
+        const context = await projectContext(path);
+        const fileDir = Deno.realPathSync(dirname(path));
         const resources = resolveResources(
-          Deno.realPathSync(dirname(path)),
+          context ? context.dir : fileDir,
+          fileDir,
           partitioned.markdown,
           resourceConfig,
         );
@@ -110,10 +114,11 @@ export const inspectCommand = new Command()
 
 function resolveResources(
   rootDir: string,
+  fileDir: string,
   markdown: string,
   resources: string[],
 ): string[] {
-  const resolved = resolveFileResources(rootDir, markdown, resources);
+  const resolved = resolveFileResources(rootDir, fileDir, markdown, resources);
   return (ld.difference(resolved.include, resolved.exclude) as string[])
     .map((file) => relative(rootDir, file));
 }

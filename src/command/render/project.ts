@@ -199,6 +199,7 @@ export async function renderProject(
         const markdown = partitioned ? partitioned.markdown : "";
         const globs = renderedFile.resourceFiles.globs;
         const fileResourceFiles = resolveFileResources(
+          projDir,
           resourceDir,
           markdown,
           globs,
