@@ -28,9 +28,12 @@ QUARTO_DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-e
 Rscript -e "if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')"
 Rscript -e "renv::restore()"
 
+# Ensure that we've actived the python env
+source bin/activate
+python3 -m pip install -r requirements.txt 
+
 # Ensure that tinytex is installed
 quarto install tinytex
-
 
 ${DENO_DIR}/deno test ${QUARTO_DENO_OPTIONS} ${QUARTO_IMPORT_ARGMAP} $@
 
