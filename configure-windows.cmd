@@ -38,7 +38,10 @@ DEL %DENO_FILE%
 
 
 ECHO .
-
+REM  Update to deno canary commit if it is set
+if NOT %DENO_CANARY_COMMIT%=="" (
+	deno upgrade --canary --version %DENO_CANARY_COMMIT%
+)
 deno cache --reload ..\..\..\src\quarto.ts --unstable --importmap=..\..\..\src\import_map.json
 
 SET FINAL_BIN_PATH=%cd%
