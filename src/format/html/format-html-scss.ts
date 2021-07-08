@@ -53,7 +53,7 @@ function layerQuartoScss(
   dependency: string,
   sassLayer: SassLayer,
   metadata: Metadata,
-  dark?: SassLayer,
+  darkLayer?: SassLayer,
 ): SassBundle {
   const bootstrapDistDir = formatResourcePath(
     "html",
@@ -93,9 +93,11 @@ function layerQuartoScss(
       rules: Deno.readTextFileSync(boostrapRules),
     },
     loadPath: dirname(boostrapRules),
-    dark: {
-      user: dark,
-    },
+    dark: darkLayer
+      ? {
+        user: darkLayer,
+      }
+      : undefined,
   };
 }
 
