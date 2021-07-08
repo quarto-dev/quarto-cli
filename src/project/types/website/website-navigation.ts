@@ -38,6 +38,7 @@ import {
 
 import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
 import {
+  formatDarkMode,
   formatPageLayout,
 } from "../../../format/html/format-html-bootstrap.ts";
 
@@ -71,8 +72,10 @@ import { resolveResourceRefs } from "./website-resources.ts";
 import {
   isGithubRepoUrl,
   kSite,
+  kSiteNavbar,
   kSiteRepoActions,
   kSiteRepoUrl,
+  kSiteSidebar,
   websiteConfigActions,
   websitePath,
   websiteRepoBranch,
@@ -148,14 +151,20 @@ export function websiteNavigationExtras(
     sassBundles.push(websiteSearchSassBundle());
   }
 
+  // Check to see whether the navbar or sidebar have been disabled on this page
+  const disableNavbar = format.metadata[kSiteNavbar] !== undefined &&
+    format.metadata[kSiteNavbar] === false;
+  const disableSidebar = format.metadata[kSiteSidebar] !== undefined &&
+    format.metadata[kSiteSidebar] === false;
+
   // determine body envelope
   const href = inputFileHref(inputRelative);
   const sidebar = sidebarForHref(href);
   const nav: Record<string, unknown> = {
     toc: hasTableOfContents(flags, format),
     layout: formatPageLayout(format),
-    navbar: navigation.navbar,
-    sidebar: expandedSidebar(href, sidebar),
+    navbar: disableNavbar ? undefined : navigation.navbar,
+    sidebar: disableSidebar ? undefined : expandedSidebar(href, sidebar),
   };
 
   // Determine the previous and next page
@@ -186,6 +195,14 @@ export function websiteNavigationExtras(
   // forward the footer
   if (navigation.footer) {
     nav.footer = navigation.footer;
+  }
+
+  // determine whether to show the dark toggle
+  const darkMode = formatDarkMode(format);
+  if (darkMode !== undefined && nav.navbar) {
+    (nav.navbar as Record<string, unknown>).darkToggle = true;
+  } else if (darkMode !== undefined && nav.sidebar) {
+    (nav.sidebar as Record<string, unknown>).darkToggle = true;
   }
 
   const projTemplate = (template: string) =>

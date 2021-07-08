@@ -19,8 +19,7 @@ header.headroom--unpinned {
 .navbar-brand {
   text-overflow: ellipsis;
   overflow: hidden;
-  flex-basis: 70%;
-  flex-grow: 1;
+  max-width: calc(100% - 85px);
 }
 
 .navbar-toggler {

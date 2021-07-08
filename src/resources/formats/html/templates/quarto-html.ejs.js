@@ -2,6 +2,118 @@
 
 window.document.addEventListener("DOMContentLoaded", function (event) {
 
+  <% if (darkMode !== undefined) { %> 
+
+  const disableEls = (els) => {
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      el.disabled = true;
+    }
+  }
+
+  const enableEls = (els) => {
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      el.removeAttribute("disabled");
+    }
+  }
+
+  const manageTransitions = (selector, allowTransitions) => {
+    const els = window.document.querySelectorAll(selector);
+    for (let i=0; i < els.length; i++) {
+      const el = els[i];
+      if (allowTransitions) {
+        el.classList.remove('notransition');
+      } else {
+        el.classList.add('notransition');
+      }
+    }
+  }
+
+  const toggleColorMode = (dark) => {
+    const toggle = window.document.getElementById('quarto-color-scheme-toggle');
+    if (toggle) {
+      const lightEls = window.document.querySelectorAll('link.quarto-color-scheme.light');
+      const darkEls = window.document.querySelectorAll('link.quarto-color-scheme.dark');
+
+      manageTransitions('div.sidebar-toc .nav-link', false);
+      if (dark) {
+        enableEls(darkEls);
+        disableEls(lightEls);
+        toggle.classList.remove("light");
+        toggle.classList.add("dark");     
+      } else {
+        enableEls(lightEls);
+        disableEls(darkEls);
+        toggle.classList.remove("dark");
+        toggle.classList.add("light");
+      }
+      manageTransitions('.quarto-toc-sidebar .nav-link', true);
+    }
+  }
+
+  const isFileUrl = () => { 
+    return window.location.protocol === 'file:';
+  }
+
+  const hasDarkSentinel = () => {  
+    let darkSentinel = getDarkSentinel();
+    if (darkSentinel !== null) {
+      return darkSentinel === "dark";
+    } else {
+      return <%= darkMode %>;
+    }
+  }
+
+  const setDarkSentinel = (toDark) => {
+    const value = toDark ? "dark" : "light";
+    if (!isFileUrl()) {
+      window.localStorage.setItem("quarto-color-scheme", value);
+    } else {
+      localDarkSentinel = value;
+    }
+  }
+
+  const getDarkSentinel = () => {
+    if (!isFileUrl()) {
+      return window.localStorage.getItem("quarto-color-scheme");
+    } else {
+      return localDarkSentinel;
+    }
+  }
+  let localDarkSentinel = null;
+  
+  // Dark / light mode switch
+  window.quartoToggleColorScheme = () => {
+    // Read the current dark / light value 
+    let toDark = !hasDarkSentinel();
+    toggleColorMode(toDark);
+    setDarkSentinel(toDark);
+  };
+
+  // Ensure there is a toggle, if there isn't float one in the top right
+  if (window.document.getElementById('quarto-color-scheme-toggle') === null) {
+    const a = window.document.createElement('a');
+    a.id = "quarto-color-scheme-toggle";
+    a.classList.add('top-right');
+    a.href = "";
+    a.onclick = function() { window.quartoToggleColorScheme(); return false; };
+
+    const i = window.document.createElement("i");
+    i.classList.add('bi');
+    a.appendChild(i);
+
+    window.document.body.appendChild(a);
+  }
+
+  // Switch to dark mode if need be
+  if (hasDarkSentinel()) {
+    toggleColorMode(true);
+  } 
+  
+
+  <% } %>
+
   <% if (anchors) { %>
 
   const icon = "<%= anchors === true ? '' : anchors %>";

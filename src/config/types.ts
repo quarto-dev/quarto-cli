@@ -139,6 +139,12 @@ export interface SassBundle {
   quarto?: SassLayer;
   framework?: SassLayer;
   loadPath?: string;
+  dark?: {
+    user?: SassLayer;
+    quarto?: SassLayer;
+    framework?: SassLayer;
+  };
+  attribs?: Record<string, string>;
 }
 
 export interface FormatExtras {
@@ -158,7 +164,7 @@ export interface FormatExtras {
     [kSassBundles]?: SassBundle[];
     [kBodyEnvelope]?: BodyEnvelope;
     [kHtmlPostprocessors]?: Array<(doc: Document) => Promise<string[]>>;
-    [kTextHighlightingMode]?: "dark" | "light" | undefined;
+    [kTextHighlightingMode]?: "light" | "dark" | "none" | undefined;
     [kQuartoCssVariables]?: string[];
   };
 }

@@ -10,7 +10,7 @@ import { Command } from "cliffy/command/mod.ts";
 
 import { runCmd } from "../util/cmd.ts";
 import { Configuration, readConfiguration } from "./config.ts";
-import { info } from "log/mod.ts";
+import { error, info } from "log/mod.ts";
 import { progressBar } from "../../../src/core/console.ts";
 
 export function cycleDependenciesCommand() {
@@ -225,8 +225,8 @@ function findCyclicDependencies(
     prog.update(count, status);
     try {
       walkImports(path, modules);
-    } catch {
-      // console.log(`${stack[0]} cycle`);
+    } catch (er) {
+      error(er);
     } finally {
       stack.splice(0, stack.length);
     }
