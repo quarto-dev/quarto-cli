@@ -21,8 +21,10 @@ export async function bundle(
   denoBundleCmd.push(
     "--importmap=" + configuration.importmap,
   );
+  /*
   denoBundleCmd.push("--log-level");
   denoBundleCmd.push("debug");
+  */
 
   denoBundleCmd.push(input);
   denoBundleCmd.push(output);

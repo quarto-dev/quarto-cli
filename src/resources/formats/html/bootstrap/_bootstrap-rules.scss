@@ -626,7 +626,7 @@ $callouts: (
 }
 
 // dark mode
-.navbar #quarto-color-scheme-toggle {
+.navbar .quarto-color-scheme-toggle {
   @include media-breakpoint-up(lg) {
     padding-left: 0.5rem;
     padding-right: 0.5rem;
@@ -637,7 +637,7 @@ $callouts: (
   }
 }
 
-#quarto-color-scheme-toggle .bi::before {
+.quarto-color-scheme-toggle .bi::before {
   display: inline-block;
   height: 1rem;
   width: 1rem;
@@ -646,45 +646,45 @@ $callouts: (
   background-size: 1rem 1rem;
 }
 
-.sidebar-navigation #quarto-color-scheme-toggle .bi::before {
+.sidebar-navigation .quarto-color-scheme-toggle .bi::before {
   padding-top: 0.1rem;
   margin-bottom: -0.1rem;
 }
 
-.navbar #quarto-color-scheme-toggle .bi::before {
+.navbar .quarto-color-scheme-toggle .bi::before {
   padding-top: 0.2rem;
   margin-bottom: -0.2rem;
 }
 
-.navbar-dark #quarto-color-scheme-toggle:not(.dark) .bi::before {
+.navbar-dark .quarto-color-scheme-toggle:not(.dark) .bi::before {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGBA($navbar-dark-color)}" class="bi bi-toggle-off" viewBox="0 0 16 16"><path d="M11 4a4 4 0 0 1 0 8H8a4.992 4.992 0 0 0 2-4 4.992 4.992 0 0 0-2-4h3zm-6 8a4 4 0 1 1 0-8 4 4 0 0 1 0 8zM0 8a5 5 0 0 0 5 5h6a5 5 0 0 0 0-10H5a5 5 0 0 0-5 5z"/></svg>');
 }
 
-.navbar-dark #quarto-color-scheme-toggle.dark .bi::before {
+.navbar-dark .quarto-color-scheme-toggle.dark .bi::before {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGBA($navbar-dark-color)}" class="bi bi-toggle-on" viewBox="0 0 16 16"><path d="M5 3a5 5 0 0 0 0 10h6a5 5 0 0 0 0-10H5zm6 9a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/></svg>');
 }
 
-.navbar-light #quarto-color-scheme-toggle:not(.dark) .bi::before {
+.navbar-light .quarto-color-scheme-toggle:not(.dark) .bi::before {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGBA($navbar-light-color)}" class="bi bi-toggle-off" viewBox="0 0 16 16"><path d="M11 4a4 4 0 0 1 0 8H8a4.992 4.992 0 0 0 2-4 4.992 4.992 0 0 0-2-4h3zm-6 8a4 4 0 1 1 0-8 4 4 0 0 1 0 8zM0 8a5 5 0 0 0 5 5h6a5 5 0 0 0 0-10H5a5 5 0 0 0-5 5z"/></svg>');
 }
 
-.navbar-light #quarto-color-scheme-toggle.dark .bi::before {
+.navbar-light .quarto-color-scheme-toggle.dark .bi::before {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGBA($navbar-light-color)}" class="bi bi-toggle-on" viewBox="0 0 16 16"><path d="M5 3a5 5 0 0 0 0 10h6a5 5 0 0 0 0-10H5zm6 9a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/></svg>');
 }
 
-.sidebar-navigation #quarto-color-scheme-toggle:not(.dark) .bi::before {
+.sidebar-navigation .quarto-color-scheme-toggle:not(.dark) .bi::before {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGBA(theme-dim($body-color, 10%))}" class="bi bi-toggle-off" viewBox="0 0 16 16"><path d="M11 4a4 4 0 0 1 0 8H8a4.992 4.992 0 0 0 2-4 4.992 4.992 0 0 0-2-4h3zm-6 8a4 4 0 1 1 0-8 4 4 0 0 1 0 8zM0 8a5 5 0 0 0 5 5h6a5 5 0 0 0 0-10H5a5 5 0 0 0-5 5z"/></svg>');
 }
 
-.sidebar-navigation #quarto-color-scheme-toggle.dark .bi::before {
+.sidebar-navigation .quarto-color-scheme-toggle.dark .bi::before {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGBA(theme-dim($body-color, 10%))}" class="bi bi-toggle-on" viewBox="0 0 16 16"><path d="M5 3a5 5 0 0 0 0 10h6a5 5 0 0 0 0-10H5zm6 9a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/></svg>');
 }
 
-#quarto-color-scheme-toggle:not(.dark).top-right .bi::before {
+.quarto-color-scheme-toggle:not(.dark).top-right .bi::before {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGBA(theme-dim($body-color, 35%))}" class="bi bi-toggle-off" viewBox="0 0 16 16"><path d="M11 4a4 4 0 0 1 0 8H8a4.992 4.992 0 0 0 2-4 4.992 4.992 0 0 0-2-4h3zm-6 8a4 4 0 1 1 0-8 4 4 0 0 1 0 8zM0 8a5 5 0 0 0 5 5h6a5 5 0 0 0 0-10H5a5 5 0 0 0-5 5z"/></svg>');
 }
 
-#quarto-color-scheme-toggle.dark.top-right .bi::before {
+.quarto-color-scheme-toggle.dark.top-right .bi::before {
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#{colorToRGBA(theme-dim($body-color, 20%))}" class="bi bi-toggle-on" viewBox="0 0 16 16"><path d="M5 3a5 5 0 0 0 0 10h6a5 5 0 0 0 0-10H5zm6 9a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/></svg>');
 }
 

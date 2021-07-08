@@ -165,6 +165,7 @@ function layerTheme(
   });
 }
 
+// Resolve the themes into a ThemeSassLayer
 function resolveThemeLayer(
   input: string,
   themes: string | string[] | Themes | unknown,
@@ -172,10 +173,14 @@ function resolveThemeLayer(
 ): ThemeSassLayer {
   let theme = undefined;
   if (typeof (themes) === "string") {
+    // The themes is just a string
     theme = { light: [themes] };
   } else if (Array.isArray(themes)) {
+    // The themes is an array
     theme = { light: themes };
   } else if (typeof (themes) === "object") {
+    // The themes are an object  - look at each key and
+    // deal with them either as a string or a string[]
     const themeArr = (theme?: unknown): string[] => {
       const themes: string[] = [];
       if (theme) {

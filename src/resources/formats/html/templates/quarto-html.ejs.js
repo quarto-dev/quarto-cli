@@ -31,24 +31,27 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
 
   const toggleColorMode = (dark) => {
-    const toggle = window.document.getElementById('quarto-color-scheme-toggle');
-    if (toggle) {
-      const lightEls = window.document.querySelectorAll('link.quarto-color-scheme.light');
-      const darkEls = window.document.querySelectorAll('link.quarto-color-scheme.dark');
+    const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+    for (let i=0; i < toggles.length; i++) {
+      const toggle = toggles[i];
+      if (toggle) {
+        const lightEls = window.document.querySelectorAll('link.quarto-color-scheme.light');
+        const darkEls = window.document.querySelectorAll('link.quarto-color-scheme.dark');
 
-      manageTransitions('div.sidebar-toc .nav-link', false);
-      if (dark) {
-        enableEls(darkEls);
-        disableEls(lightEls);
-        toggle.classList.remove("light");
-        toggle.classList.add("dark");     
-      } else {
-        enableEls(lightEls);
-        disableEls(darkEls);
-        toggle.classList.remove("dark");
-        toggle.classList.add("light");
+        manageTransitions('div.sidebar-toc .nav-link', false);
+        if (dark) {
+          enableEls(darkEls);
+          disableEls(lightEls);
+          toggle.classList.remove("light");
+          toggle.classList.add("dark");     
+        } else {
+          enableEls(lightEls);
+          disableEls(darkEls);
+          toggle.classList.remove("dark");
+          toggle.classList.add("light");
+        }
+        manageTransitions('.quarto-toc-sidebar .nav-link', true);
       }
-      manageTransitions('.quarto-toc-sidebar .nav-link', true);
     }
   }
 
@@ -92,7 +95,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   };
 
   // Ensure there is a toggle, if there isn't float one in the top right
-  if (window.document.getElementById('quarto-color-scheme-toggle') === null) {
+  if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
     const a = window.document.createElement('a');
     a.id = "quarto-color-scheme-toggle";
     a.classList.add('top-right');
