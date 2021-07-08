@@ -671,17 +671,17 @@ const kStandaloneExtensions = kStandaloneExtensionNames.map((name) =>
   `.${name}`
 );
 
+export function isSelfContained(flags: RenderFlags, format: Format) {
+  return !!(flags[kSelfContained] || format.pandoc[kSelfContained]);
+}
+
 export function isSelfContainedOutput(
   flags: RenderFlags,
   format: Format,
   finalOutput: string,
 ) {
-  // determine if we will be self contained
-  const selfContained = flags[kSelfContained] ||
-    (format.pandoc && format.pandoc[kSelfContained]) ||
+  return isSelfContained(flags, format) ||
     kStandaloneExtensions.includes(extname(finalOutput));
-
-  return selfContained;
 }
 
 export function isStandaloneFormat(format: Format) {
