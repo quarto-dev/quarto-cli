@@ -9,6 +9,7 @@ import { ResolvedPathGlobs, resolvePathGlobs } from "../../core/path.ts";
 import { engineIgnoreGlobs } from "../../execute/engine.ts";
 import { kQuartoScratch } from "../../project/project-scratch.ts";
 import { extractResourcesFromQmd } from "../../execute/ojs/extract-resources.ts";
+import { dirname, basename, relative, join } from "path/mod.ts";
 
 export function resourcesFromMetadata(resourcesMetadata?: unknown) {
   // interrogate / typecast raw yaml resources into array of strings
@@ -46,5 +47,6 @@ function ojsResources(
   fileDir: string,
   markdown: string,
 ): string[] {
-  return extractResourcesFromQmd(markdown, fileDir, rootDir);
+  const projRelativeResources = extractResourcesFromQmd(markdown, fileDir, rootDir);
+  return projRelativeResources.map(resource => relative(fileDir, join(rootDir, resource)));
 }
