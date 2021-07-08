@@ -30,10 +30,10 @@ Rscript -e "renv::restore()"
 
 # Ensure that we've actived the python env
 source bin/activate
-python3 -m pip install -r requirements.txt 
+python3 -m pip install -r requirements.txt -q
 
 # Ensure that tinytex is installed
-quarto install tinytex
+quarto install tinytex -q
 
 ${DENO_DIR}/deno test ${QUARTO_DENO_OPTIONS} ${QUARTO_IMPORT_ARGMAP} $@
 
