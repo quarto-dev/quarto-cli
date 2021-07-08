@@ -65,9 +65,6 @@ export const createProjectCommand = new Command()
   .option(
     "--with-venv [packages:string]",
     "Create a Python virtual environment for this project",
-    {
-      default: "none",
-    },
   )
   .option(
     "--no-scaffold",
@@ -114,7 +111,7 @@ export const createProjectCommand = new Command()
     dir = dir || Deno.cwd();
     const engine = options.engine || [];
 
-    const venvPackages = options.withVenv && options.withVenv !== "none"
+    const venvPackages = typeof (options.withVenv) === "string"
       ? options.withVenv.split(",").map((pkg: string) => pkg.trim())
       : undefined;
 
@@ -125,7 +122,7 @@ export const createProjectCommand = new Command()
       scaffold: !!options.scaffold,
       engine: engine[0] || kMarkdownEngine,
       kernel: engine[1],
-      venv: options.withVenv,
+      venv: !!options.withVenv,
       venvPackages,
     });
   });
