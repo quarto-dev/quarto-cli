@@ -105,14 +105,14 @@ interface ResolvedES6Path {
 
 function resolveES6Path(
   path: string,
-  origin: string,
+  originDir: string,
   projectRoot?: string,
 ): ResolvedES6Path {
   if (path.startsWith("/")) {
     if (projectRoot === undefined) {
       return {
         pathType: "root-relative",
-        resolvedImportPath: resolve(dirname(origin), `.${path}`),
+        resolvedImportPath: resolve(originDir, `.${path}`),
       };
     } else {
       return {
@@ -124,21 +124,20 @@ function resolveES6Path(
     // assert(path.startsWith('.'));
     return {
       pathType: "relative",
-      resolvedImportPath: resolve(dirname(origin), path),
+      resolvedImportPath: resolve(originDir, path),
     };
   }
 }
 
 interface DirectDependency {
   resolvedImportPath: string;
-  filename: string;
   pathType: "relative" | "root-relative";
   importPath: string;
 }
 
 function directDependencies(
   source: string,
-  filename: string,
+  fileDir: string,
   language: "js" | "ojs",
   projectRoot?: string,
 ): DirectDependency[] {
@@ -166,12 +165,11 @@ function directDependencies(
   return localImports(ast).map((importPath) => {
     const { resolvedImportPath, pathType } = resolveES6Path(
       importPath,
-      filename,
+      fileDir,
       projectRoot,
     );
     return {
       resolvedImportPath,
-      filename,
       pathType,
       importPath,
     };
@@ -193,7 +191,7 @@ export interface ResourceDescription {
 // because these have different semantics wrt resolving relative paths
 export function extractResourcesFromQmd(
   markdown: string,
-  mdFilename: string,
+  mdDir: string,
   projectRoot: string,
 ) {
   const pageResources = [];
@@ -208,13 +206,12 @@ export function extractResourcesFromQmd(
       const cellSrcStr = cell.source.join("");
       pageResources.push(...extractResources(
         cellSrcStr,
-        mdFilename,
+        mdDir,
         projectRoot,
       ));
     }
   }
 
-  const mdDir = dirname(mdFilename);
   const projectToMd = relative(projectRoot, mdDir);
 
   // after converting root-relative and relative paths
@@ -235,27 +232,29 @@ export function extractResourcesFromQmd(
 
 export function extractResources(
   ojsSource: string,
-  mdFilename: string,
+  mdDir: string,
   projectRoot?: string,
 ) {
   let result: ResourceDescription[] = [];
   const handled: Set<string> = new Set();
   const imports: Map<string, ResourceDescription> = new Map();
 
+  // FIXME get a uuid here
+  const rootReferent = `${mdDir}/<<root>>.qmd`;
+
   // we're assuming that we always start in an {ojs} block.
   for (
-    const { resolvedImportPath, filename, pathType, importPath }
-      of directDependencies(
-        ojsSource,
-        mdFilename,
-        "ojs",
-        projectRoot,
-      )
+    const { resolvedImportPath, pathType, importPath } of directDependencies(
+      ojsSource,
+      mdDir,
+      "ojs",
+      projectRoot,
+    )
   ) {
     if (!imports.has(resolvedImportPath)) {
       const v: ResourceDescription = {
         filename: resolvedImportPath,
-        referent: mdFilename,
+        referent: rootReferent,
         pathType,
         importPath,
         resourceType: "import",
@@ -284,13 +283,12 @@ export function extractResources(
     }
 
     for (
-      const { resolvedImportPath, pathType, filename, importPath }
-        of directDependencies(
-          source,
-          thisResolvedImportPath,
-          language as ("js" | "ojs"),
-          projectRoot,
-        )
+      const { resolvedImportPath, pathType, importPath } of directDependencies(
+        source,
+        dirname(thisResolvedImportPath),
+        language as ("js" | "ojs"),
+        projectRoot,
+      )
     ) {
       if (!imports.has(resolvedImportPath)) {
         const v: ResourceDescription = {
@@ -323,7 +321,7 @@ export function extractResources(
   for (const attachment of literalFileAttachments(ast)) {
     fileAttachments.push({
       filename: attachment,
-      referent: mdFilename,
+      referent: rootReferent,
     });
   }
 
@@ -331,7 +329,7 @@ export function extractResources(
   result = result.map((description) => {
     const { referent, resourceType, importPath, pathType } = description;
     if (pathType === "relative") {
-      let relName = relative(dirname(mdFilename), description.filename);
+      let relName = relative(mdDir, description.filename);
       if (!relName.startsWith(".")) {
         relName = `./${relName}`;
       }

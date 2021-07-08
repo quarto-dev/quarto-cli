@@ -25,7 +25,6 @@ import { isJavascriptCompatible } from "../../config/format.ts";
 import { resolveDependencies } from "../../command/render/pandoc.ts";
 import {
   extractResources,
-  extractResourcesFromQmd,
   makeSelfContainedResources,
   ResourceDescription,
   uniqueResources,
@@ -87,14 +86,6 @@ export async function ojsCompile(
 
   const selfContained = options.format.pandoc?.[kSelfContained] ?? false;
   // const selfContained = !(project || (project && projectIsWebserverTarget(project)));
-
-  if (projDir) {
-    console.log(extractResourcesFromQmd(
-      markdown,
-      options.source,
-      projDir,
-    ));
-  }
 
   if (!isJavascriptCompatible(options.format)) {
     return { markdown };
@@ -215,7 +206,7 @@ export async function ojsCompile(
 
       pageResources.push(...extractResources(
         cellSrcStr,
-        options.source,
+        dirname(options.source),
         projDir,
       ));
 
