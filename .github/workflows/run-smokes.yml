@@ -2,11 +2,11 @@ name: Run Smoke Tests
 
 on: 
   workflow_dispatch:
-#  pull_request:
-#    branches: [ main ]
-#  push:
+  pull_request:
+    branches: [ main ]
+  push:
      # only trigger on branches, not on tags
-#    branches: [ main ]
+    branches: [ main ]
 env:
   RENV_PATHS_ROOT: ~/.local/share/renv
   
