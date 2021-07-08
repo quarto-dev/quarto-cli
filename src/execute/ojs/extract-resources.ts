@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, join, relative, resolve } from "path/mod.ts";
+import { dirname, relative, resolve } from "path/mod.ts";
 import { encode as base64Encode } from "encoding/base64.ts";
 import { lookup } from "media_types/mod.ts";
 
@@ -52,8 +52,12 @@ const walkerBase = make({
   },
 });
 
+/*
+ * localImports walks the AST of either OJS source code
+ * or JS source code to extract local imports
+ */
 // deno-lint-ignore no-explicit-any
-function localES6Imports(parse: any) {
+function localImports(parse: any) {
   const result: string[] = [];
   simple(parse, {
     // deno-lint-ignore no-explicit-any
@@ -110,96 +114,230 @@ function resolveES6Path(
   }
 }
 
+function directDependencies(
+  source: string,
+  filename: string,
+  language: "js" | "ojs",
+  projectRoot?: string,
+) {
+  let ast;
+  if (language === "js") {
+    try {
+      ast = parseES6(source, {
+        ecmaVersion: "2020",
+        sourceType: "module",
+      });
+    } catch (_e) {
+      parseError(source);
+      throw new Error();
+    }
+  } else {
+    // language === "ojs"
+    try {
+      ast = parseModule(source);
+    } catch (_e) {
+      parseError(source);
+      throw new Error();
+    }
+  }
+
+  return localImports(ast).map((importPath) => {
+    const resolvedImportPath = resolveES6Path(
+      importPath,
+      filename,
+      projectRoot,
+    );
+    return {
+      resolvedImportPath,
+      filename,
+      importPath,
+    };
+  });
+}
+
+export interface ResourceDescription {
+  filename: string;
+  referent?: string;
+  // import statements have importPaths, the actual in-ast name used.
+  // we need that in case of self-contained files to build local resolvers
+  // correctly.
+  importPath?: string;
+  type: string;
+}
+
 export function extractResources(
   ojsSource: string,
   mdFilename: string,
   projectRoot?: string,
 ) {
-  // ES6 module walk
-  let result: string[] = [];
-  const imports: Map<string, string> = new Map();
-  let ojsAST;
-  try {
-    ojsAST = parseModule(ojsSource);
-  } catch (_e) {
-    parseError(ojsSource);
-    throw new Error();
-  }
-  for (const importPath of localES6Imports(ojsAST)) {
-    const resolvedImportPath = resolveES6Path(
-      importPath,
+  let result: ResourceDescription[] = [];
+  const handled: Set<string> = new Set();
+  const imports: Map<string, ResourceDescription> = new Map();
+
+  // we're assuming that we always start in an {ojs} block.
+  for (
+    const { resolvedImportPath, filename, importPath } of directDependencies(
+      ojsSource,
       mdFilename,
+      "ojs",
       projectRoot,
-    );
+    )
+  ) {
     if (!imports.has(resolvedImportPath)) {
-      imports.set(resolvedImportPath, mdFilename);
-      result.push(resolvedImportPath);
+      const v = {
+        filename: resolvedImportPath,
+        referent: mdFilename,
+        importPath,
+        type: "import",
+      };
+      result.push(v);
+      imports.set(resolvedImportPath, v);
     }
   }
+
   while (imports.size > 0) {
-    const [currentImport, origin] = imports.entries().next().value;
-    imports.delete(currentImport);
-    const contents = Deno.readTextFileSync(currentImport);
-    const es6AST = parseES6(contents, {
-      ecmaVersion: "2020",
-      sourceType: "module",
-    });
-    const localImports = localES6Imports(es6AST);
-    for (const importPath of localImports) {
-      const resolvedImportPath = resolveES6Path(
-        importPath,
-        origin,
+    const [thisResolvedImportPath, _resource] = imports.entries().next().value;
+    imports.delete(thisResolvedImportPath);
+    if (handled.has(thisResolvedImportPath)) {
+      continue;
+    }
+    handled.add(thisResolvedImportPath);
+    const source = Deno.readTextFileSync(thisResolvedImportPath);
+
+    let language;
+    if (thisResolvedImportPath.endsWith(".js")) {
+      language = "js";
+    } else if (thisResolvedImportPath.endsWith(".ojs")) {
+      language = "ojs";
+    } else {
+      throw new Error(`Unknown language in file ${thisResolvedImportPath}`);
+    }
+
+    for (
+      const { resolvedImportPath, filename, importPath } of directDependencies(
+        source,
+        thisResolvedImportPath,
+        language as ("js" | "ojs"),
         projectRoot,
-      );
+      )
+    ) {
       if (!imports.has(resolvedImportPath)) {
-        imports.set(resolvedImportPath, currentImport);
-        result.push(resolvedImportPath);
+        const v = {
+          filename: resolvedImportPath,
+          referent: thisResolvedImportPath,
+          importPath,
+          type: "import",
+        };
+        result.push(v);
+        imports.set(resolvedImportPath, v);
       }
     }
   }
-  // convert ES6 resolved paths to relative paths
-  result = result.map((path) => relative(dirname(mdFilename), path));
 
   // add FileAttachment literals, which are always relative
-  result.push(...literalFileAttachments(ojsAST));
+  const fileAttachments = [];
+  for (const importFile of result) {
+    if (importFile.filename.endsWith(".ojs")) {
+      const ast = parseModule(Deno.readTextFileSync(importFile.filename));
+      fileAttachments.push(...literalFileAttachments(ast));
+    }
+  }
+  // also do it for the current .ojs chunk.
+  const ast = parseModule(ojsSource);
+  fileAttachments.push(...literalFileAttachments(ast));
+
+  // convert resolved paths to relative paths
+  result = result.map((description) => {
+    const { referent, type, importPath } = description;
+    let relName = relative(dirname(mdFilename), description.filename);
+    if (!relName.startsWith(".")) {
+      relName = `./${relName}`;
+    }
+    return {
+      filename: relName,
+      referent,
+      importPath,
+      type,
+    };
+  });
+
+  result.push(...fileAttachments.map((filename) => ({
+    filename,
+    type: "FileAttachment",
+  })));
   return result;
 }
 
-export async function extractSelfContainedResources(
-  ojsSource: string,
-  mdFilename: string
+export function uniqueResources(
+  resourceList: ResourceDescription[],
 ) {
-  const imports: Map<string, string> = new Map();
-  const wd = Deno.cwd();
-  const mdDir = dirname(mdFilename);
-  const wdToMd = relative(wd, mdDir);
-
-  let ojsAST;
-  try {
-    ojsAST = parseModule(ojsSource);
-  } catch (_e) {
-    parseError(ojsSource);
-    throw new Error();
-  }
-  for (const importPath of localES6Imports(ojsAST)) {
-    const moduleSrc = Deno.readTextFileSync(join(wdToMd, importPath));
-    const moduleBundle = await esbuildCompile(moduleSrc, mdDir, ["--target=es2018"]);
-    if (moduleBundle) {
-      const b64Src = base64Encode(moduleBundle);
-      const contents = `data:application/javascript;base64,${b64Src}`;
-      imports.set(importPath, contents);
+  const result = [];
+  const uniqResources = new Map<string, ResourceDescription>();
+  for (const resource of resourceList) {
+    if (!uniqResources.has(resource.filename)) {
+      result.push(resource);
+      uniqResources.set(resource.filename, resource);
     }
   }
+  return result;
+}
 
-  literalFileAttachments(ojsAST)
-    .forEach((path) => {
-      console.log({path});
-      const attachment = Deno.readTextFileSync(join(wdToMd, path));
-      const mimeType = lookup(path);
-      const b64Src = base64Encode(attachment);
-      const contents = `data:${mimeType};base64,${b64Src}`;
-      imports.set(path, contents);
-    });
+function asDataURL(
+  content: string,
+  mimeType: string,
+) {
+  const b64Src = base64Encode(content);
+  return `data:${mimeType};base64,${b64Src}`;
+}
 
-  return imports;
+export async function makeSelfContainedResources(
+  resourceList: ResourceDescription[],
+  wd: string,
+) {
+  const uniqResources = uniqueResources(resourceList);
+
+  const jsFiles = uniqResources.filter((r) =>
+    r.type === "import" && r.filename.endsWith(".js")
+  );
+  const ojsFiles = uniqResources.filter((r) =>
+    r.type === "import" && r.filename.endsWith("ojs")
+  );
+  const attachments = uniqResources.filter((r) => r.type !== "import");
+
+  const jsModuleResolves = [];
+  if (jsFiles.length > 0) {
+    const bundleInput = jsFiles
+      .map((r) => `export * from "${r.filename}";`)
+      .join("\n");
+    const es6BundledModule = await esbuildCompile(
+      bundleInput,
+      wd,
+      ["--target=es2018"],
+    );
+
+    const jsModule = asDataURL(
+      es6BundledModule as string,
+      "application/javascript",
+    );
+    jsModuleResolves.push(...jsFiles.map((f) => [f.importPath, jsModule])); // inefficient but browser caching makes it correct
+  }
+  const result = [
+    ...jsModuleResolves,
+    ...ojsFiles.map(
+      (f) => [
+        f.importPath,
+        asDataURL(
+          Deno.readTextFileSync(f.filename),
+          "application/ojs-javascript",
+        ),
+      ],
+    ),
+    ...attachments.map(
+      (f) => [
+        f.filename,
+        asDataURL(Deno.readTextFileSync(f.filename), lookup(f.filename)!),
+      ],
+    ),
+  ];
+  return result;
 }

@@ -12,7 +12,11 @@ import { parseModule } from "observablehq/parser";
 
 import { Format, kDependencies } from "../../config/types.ts";
 import { ExecuteResult, PandocIncludes } from "../../execute/types.ts";
-import { kIncludeAfterBody, kIncludeInHeader, kSelfContained } from "../../config/constants.ts";
+import {
+  kIncludeAfterBody,
+  kIncludeInHeader,
+  kSelfContained,
+} from "../../config/constants.ts";
 import { RenderContext } from "../../command/render/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 
@@ -21,10 +25,11 @@ import { isJavascriptCompatible } from "../../config/format.ts";
 import { resolveDependencies } from "../../command/render/pandoc.ts";
 import {
   extractResources,
-  extractSelfContainedResources,
+  makeSelfContainedResources,
+  ResourceDescription,
+  uniqueResources,
 } from "./extract-resources.ts";
 import { parseError } from "./errors.ts";
-import { projectIsWebserverTarget } from "../../project/project-context.ts";
 
 import {
   kCellFigCap,
@@ -78,7 +83,9 @@ export async function ojsCompile(
 ): Promise<OjsCompileResult> {
   const { markdown, project } = options;
   const projDir = project?.dir;
-  const selfContained = !(project || (project && projectIsWebserverTarget(project)));
+
+  const selfContained = options.format.pandoc?.[kSelfContained] ?? false;
+  // const selfContained = !(project || (project && projectIsWebserverTarget(project)));
 
   if (!isJavascriptCompatible(options.format)) {
     return { markdown };
@@ -136,12 +143,14 @@ export async function ojsCompile(
   }
   const ls: string[] = [];
   const resourceFiles: string[] = [];
-  let selfContainedPageResources: Map<string, string> = new Map();
+  const pageResources: ResourceDescription[] = [];
 
   // now we convert it back
   for (const cell of output.cells) {
     const cellSrcStr = cell.source.join("");
-    const errorVal = (cell.options?.[kError] ?? options.format.execute?.[kError] ?? false) as boolean;
+    const errorVal =
+      (cell.options?.[kError] ?? options.format.execute?.[kError] ??
+        false) as boolean;
     if (
       cell.cell_type === "raw" ||
       cell.cell_type === "markdown" ||
@@ -195,28 +204,11 @@ export async function ojsCompile(
         return cell.options?.[kCellFigSubCap];
       };
 
-      // when running in contexts outside of a web project (eg when
-      // self-contained), we must treat resources differently,
-      // bundling all OJS and JS into single modules, and adding all
-      // other files into a data structure that can be referred to by
-      // the FileAttachment mechanism in our OJS runtime.
-
-      if (selfContained) {
-        const selfContainedCellResources = await extractSelfContainedResources(
-          cellSrcStr,
-          options.source
-        );
-        selfContainedPageResources = new Map([
-          ...selfContainedPageResources,
-          ...selfContainedCellResources,
-        ]);
-      } else {
-        resourceFiles.push(...extractResources(
-          cellSrcStr,
-          options.source,
-          projDir,
-        ));
-      }
+      pageResources.push(...extractResources(
+        cellSrcStr,
+        options.source,
+        projDir,
+      ));
 
       // very heavyweight for what we need it, but this way we can signal syntax errors
       // as well.
@@ -312,11 +304,15 @@ export async function ojsCompile(
         ],
         attrs,
       });
-      const evalVal = cell.options?.[kEval] ?? options.format.execute[kEval] ?? true;
-      const echoVal = cell.options?.[kEcho] ?? options.format.execute[kEcho] ?? true;
-      const outputVal = cell.options?.[kOutput] ?? options.format.execute[kOutput] ?? true;
+      const evalVal = cell.options?.[kEval] ?? options.format.execute[kEval] ??
+        true;
+      const echoVal = cell.options?.[kEcho] ?? options.format.execute[kEcho] ??
+        true;
+      const outputVal = cell.options?.[kOutput] ??
+        options.format.execute[kOutput] ?? true;
       const keepHiddenVal = options.format.render[kKeepHidden] ?? false;
-      const includeVal = cell.options?.[kInclude] ?? options.format.execute[kInclude] ?? true;
+      const includeVal = cell.options?.[kInclude] ??
+        options.format.execute[kInclude] ?? true;
 
       if (hasFigureCaption() && !hasFigureLabel()) {
         throw new Error("Cannot have figure caption without figure label");
@@ -356,8 +352,10 @@ export async function ojsCompile(
 
         // options.format.render?.[kCodeFold] appears to use "none"
         // for "not set", so we interpret "none" as undefined
-        if (asUndefined(options.format.render?.[kCodeFold], "none") ??
-          cell.options?.[kFold]) {
+        if (
+          asUndefined(options.format.render?.[kCodeFold], "none") ??
+            cell.options?.[kFold]
+        ) {
           attrs.push('fold="true"');
         }
 
@@ -452,12 +450,20 @@ export async function ojsCompile(
   }
 
   if (selfContained) {
+    const selfContainedPageResources = await makeSelfContainedResources(
+      pageResources,
+      docDir,
+    );
     const resolver = JSON.stringify(
       Object.fromEntries(Array.from(selfContainedPageResources)),
     );
     scriptContents.unshift(
       `window._ojs.runtime.setLocalResolver(${resolver});`,
     );
+  } else {
+    for (const resource of uniqueResources(pageResources)) {
+      resourceFiles.push(resource.filename);
+    }
   }
 
   // finish script by calling runtime's "done with new source" handler,
@@ -526,14 +532,13 @@ export async function ojsExecuteResult(
   executeResult = ld.cloneDeep(executeResult);
 
   // evaluate ojs chunks
-  const { markdown, includes, filters, resourceFiles } =
-    await ojsCompile({
-      source: context.target.source,
-      format: context.format,
-      markdown: executeResult.markdown,
-      libDir: context.libDir,
-      project: context.project,
-    });
+  const { markdown, includes, filters, resourceFiles } = await ojsCompile({
+    source: context.target.source,
+    format: context.format,
+    markdown: executeResult.markdown,
+    libDir: context.libDir,
+    project: context.project,
+  });
 
   // merge in results
   executeResult.markdown = markdown;

@@ -216,11 +216,14 @@ function defaultResolveImportPath(path) {
   The function returned by importPathResolver expects a "module specifier", and
   produces a module as defined by observable's runtime.
 
-  A module specifier is a string, interpreted differently depending on the following properties:
+  ## Local vs remote vs observable imports
+
+  A module specifier is a string, interpreted differently depending on
+  the following properties:
 
   - it starts with "." or "/", in which case we call it a "local module"
 
-  - it is a well-defined URL which does _not_ match the regexp:
+  - it is a well-defined absolute URL which does _not_ match the regexp:
     /^https:\/\/(api\.|beta\.|)observablehq\.com\//i
     in which case we call it a "remote import"
 
@@ -228,9 +231,41 @@ function defaultResolveImportPath(path) {
 
   If the string is an observable import, it behaves exactly like the import
   statement inside observable notebooks (we actually defer to their function
-  call.)
+  call.) Otherwise, the import statement first retrieves the text content
+  of the resource referenced by the path, and then interprets it.
 
-  FIXME FINISH THIS
+  ## where resources come from
+
+  When operating in non-self-contained mode, local and remote import
+  paths are then interpreted as relative URLs (RFC 1808) with base URL
+  window.location (specifically as "relative path" and "absolute path"
+  relative URLs).
+
+  In self-contained mode, these paths are interpreted as paths in the
+  quarto project, either as root-relative or relative paths. The
+  contents of these files are converted to data URLs and stored in a
+  local resolution map.
+
+  ## how are contents interpreted
+
+  The contents of the resource are then interpreted differently
+  depending on the file type of the requested resource.
+
+  For non-self-contained imports, the file type is determined by the
+  extension of the URL pathname. If the extension is "js", we take the
+  specifier to mean an ES module; If the extension is "ojs", we take
+  the specifier to mean an "ojs" module (a collection of observable
+  statements packaged into a module, suitable for reuse).
+
+  For self-contained imports, the file type is determined by the MIME
+  type of the data URL. "application/javascript" is interpreted to
+  mean an ES module, and "application/ojs-javascript" is interpreted
+  to mean an "ojs" module.
+
+  The resources are finally retrieved, compiled into modules
+  compatible with the observable runtime, and returned as
+  the result of the import statement.
+
 */
 
 function importPathResolver(paths, localResolverMap) {
@@ -258,23 +293,85 @@ function importPathResolver(paths, localResolverMap) {
   }
 
   return (path) => {
-    if (!(path.startsWith("/") || path.startsWith("."))) {
+    const isLocalModule = path.startsWith("/") || path.startsWith(".");
+    const isImportFromObservableWebsite = path.match(
+      /^https:\/\/(api\.|beta\.|)observablehq\.com\//i,
+    );
+
+    if (!isLocalModule || isImportFromObservableWebsite) {
       return defaultResolveImportPath(path);
     }
 
-    if (localResolverMap) {
+    let moduleType;
+    if (window._ojs.selfContained) {
       const resolved = localResolverMap.get(path);
       if (resolved === undefined) {
         throw new Error(`missing local file ${path} in self-contained mode`);
       }
       path = resolved;
-    } else if (path.startsWith("/")) {
-      path = rootPath(path);
+
+      // we have a data URL here.
+      const mimeType = resolved.match(/data:(.*);base64/)[1];
+      switch (mimeType) {
+        case "application/javascript":
+          moduleType = "js";
+          break;
+        case "application/ojs-javascript":
+          moduleType = "ojs";
+          break;
+        default:
+          throw new Error(`unrecognized MIME type ${mimeType}`);
+      }
     } else {
-      // assert(path.startsWith("."))
-      path = relativePath(path);
+      // we have a relative URL here
+      const resourceURL = new URL(path, window.location);
+      moduleType = resourceURL.pathname.match(/\.(ojs|js)$/)[1];
+
+      // resolve path according to quarto path resolution rules.
+      if (path.startsWith("/")) {
+        path = rootPath(path);
+      } else {
+        path = relativePath(path);
+      }
     }
-    return import(path).then((m) => es6ImportAsObservableModule(m));
+
+    if (moduleType === "js") {
+      return import(path).then((m) => es6ImportAsObservableModule(m));
+    } else if (moduleType === "ojs") {
+      return importOjs(path);
+    } else {
+      throw new Error(`internal error, unrecognized module type ${moduleType}`);
+    }
+  };
+}
+
+class EmptyInspector {
+  pending() {
+  }
+  fulfilled(_value, _name) {
+  }
+  rejected(_error, _name) {
+    // FIXME we should probably communicate this upstream somehow.
+  }
+}
+
+/*
+ * Given a URL, fetches the text content and creates a new observable module
+ * exporting all of the names as variables
+ */
+async function importOjs(path) {
+  const r = await fetch(path);
+  const src = await r.text();
+
+  return (runtime, _observer) => {
+    const newModule = runtime.module();
+    const interpreter = window._ojs.obsInABox.interpreter;
+    const _cells = interpreter.module(
+      src,
+      newModule,
+      (_name) => new EmptyInspector(),
+    ); // await?
+    return newModule;
   };
 }
 
@@ -367,10 +464,10 @@ class OjsButtonInput /*extends ShinyInput*/ {
 }
 
 export function initOjsShinyRuntime() {
-  const value_sym = Symbol("value");
-  const callback_sym = Symbol("callback");
-  const instance_sym = Symbol("instance");
-  const values = new WeakMap();
+  const valueSym = Symbol("value");
+  const callbackSym = Symbol("callback");
+  const instanceSym = Symbol("instance");
+  // const values = new WeakMap(); // unused?
 
   class BindingAdapter extends Shiny.InputBinding {
     constructor(x) {
@@ -391,24 +488,24 @@ export function initOjsShinyRuntime() {
     }
     initialize(el) {
       const changeHandler = (value) => {
-        el[BindingAdapter.value_sym] = value;
-        el[BindingAdapter.callback_sym]();
+        el[valueSym] = value;
+        el[callbackSym]();
       };
       const instance = this.x.init(el, changeHandler);
-      el[BindingAdapter.instance_sym] = instance;
+      el[instanceSym] = instance;
     }
     getValue(el) {
-      return el[BindingAdapter.value_sym];
+      return el[valueSym];
     }
     setValue(el, value) {
-      el[BindingAdapter.value_sym] = value;
-      el[BindingAdapter.instance_sym].onSetValue(value);
+      el[valueSym] = value;
+      el[instanceSym].onSetValue(value);
     }
     subscribe(el, callback) {
-      el[BindingAdapter.callback_sym] = callback;
+      el[callbackSym] = callback;
     }
     unsubscribe(el) {
-      el[BindingAdapter.instance_sym].dispose();
+      el[instanceSym].dispose();
     }
   }
 
