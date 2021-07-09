@@ -4,13 +4,12 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { uninstallTool } from "../../../src/command/install/install.ts";
 import { testQuartoCmd } from "../../test.ts";
 import { noErrorsOrWarnings, printsMessage } from "../../verify.ts";
 
 testQuartoCmd(
-  "install",
-  ["--list-tools"],
+  "tools",
+  ["list"],
   [
     noErrorsOrWarnings,
     printsMessage("INFO", /^tinytex\s+/),
