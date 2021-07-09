@@ -484,12 +484,12 @@ export async function ojsCompile(
   // Handle shiny input and output YAML declarations
   // deno-lint-ignore no-explicit-any
   const serverMetadata = options.format.metadata?.server as any;
-  const shinyInputMetadata = (serverMetadata["type"] === "shiny") &&
+  const shinyInputMetadata = (serverMetadata && serverMetadata["type"] === "shiny") &&
     serverMetadata["ojs-exports"];
   const shinyInputs = new Set<string>();
   const shinyInputExcludes = new Set<string>();
   const shinyEverything = new Set<string>();
-  const shinyOutputMetadata = (serverMetadata["type"] === "shiny") &&
+  const shinyOutputMetadata = (serverMetadata && serverMetadata["type"] === "shiny") &&
     serverMetadata["ojs-imports"];
 
   let importAllViews = !shinyInputMetadata ||
