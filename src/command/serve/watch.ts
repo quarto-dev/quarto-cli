@@ -252,9 +252,6 @@ export async function watchProject(
         }
       }
 
-      // normalize index.html
-      reloadTarget = reloadTarget.replace(/\/index\.html$/, "");
-
       // clear out the modified list
       modified.splice(0, modified.length);
 
