@@ -34,7 +34,7 @@ class EmptyInspector {
   }
 }
 
-export class OJSInABox {
+export class OJSConnector {
   constructor({
     paths,
     inspectorClass,
@@ -91,6 +91,14 @@ export class OJSInABox {
     }).define([name], (val) => val);
   }
 
+  async value(val, module = undefined) {
+    if (!module) {
+      module = this.mainModule;
+    }
+    const result = await module.value(val);
+    return result;
+  }
+
   clearImportModuleWait() {
     const array = Array.from(
       document.querySelectorAll(
@@ -103,7 +111,7 @@ export class OJSInABox {
   }
 
   finishInterpreting() {
-    Promise.all(this.chunkPromises)
+    return Promise.all(this.chunkPromises)
       .then(() => {
         if (!this.mainModuleHasImports) {
           this.clearImportModuleWait();
@@ -384,7 +392,7 @@ async function importOjs(path) {
 
   return (runtime, _observer) => {
     const newModule = runtime.module();
-    const interpreter = window._ojs.obsInABox.interpreter;
+    const interpreter = window._ojs.ojsConnector.interpreter;
     const _cells = interpreter.module(
       src,
       newModule,
@@ -428,7 +436,7 @@ export function extendObservableStdlib(lib) {
   lib.shinyInput = function () {
     return (name) => {
       shinyInputVars.add(name);
-      window._ojs.obsInABox.mainModule.value(name)
+      window._ojs.ojsConnector.mainModule.value(name)
         .then((val) => {
           if (window.Shiny && window.Shiny.setInputValue) {
             window.Shiny.setInputValue(name, val);
@@ -657,12 +665,12 @@ export function createRuntime() {
   }
   lib.FileAttachment = () => FileAttachments(fileAttachmentPathResolver);
 
-  const obsInABox = new OJSInABox({
+  const ojsConnector = new OJSConnector({
     paths: quartoOjsGlobal.paths,
     inspectorClass: isShiny ? ShinyInspector : undefined,
     library: lib,
   });
-  quartoOjsGlobal.obsInABox = obsInABox;
+  quartoOjsGlobal.ojsConnector = ojsConnector;
 
   const subfigIdMap = new Map();
   function getSubfigId(elementId) {
@@ -678,13 +686,24 @@ export function createRuntime() {
   const result = {
     setLocalResolver(obj) {
       localResolver = obj;
-      obsInABox.setLocalResolver(obj);
+      ojsConnector.setLocalResolver(obj);
     },
     finishInterpreting() {
-      obsInABox.finishInterpreting();
+      return ojsConnector.finishInterpreting();
     },
 
-    // FIXME clarify what's the expected behavior of the 'error' option
+    // return the latest value of the named reactive variable in the main module
+    async value(name) {
+      await this.finishInterpreting();
+      const result = await ojsConnector.value(name);
+      return result;
+      // return this.finishInterpreting()
+      //   .then(() => {
+      //     return ojsConnector.value(name);
+      //   });
+    },
+
+    // fixme clarify what's the expected behavior of the 'error' option
     // when evaluation is at client-time
     interpretLenient(src, targetElementId, inline) {
       return result.interpret(src, targetElementId, inline)
@@ -711,7 +730,7 @@ export function createRuntime() {
         );
       };
 
-      return obsInABox.interpret(src, getElement, makeElement)
+      return ojsConnector.interpret(src, getElement, makeElement)
         .catch((e) => {
           const errorDiv = document.createElement("pre");
           errorDiv.innerText = `${e.name}: ${e.message}`;
@@ -720,7 +739,7 @@ export function createRuntime() {
         });
     },
     interpretQuiet(src) {
-      return obsInABox.interpretQuiet(src);
+      return ojsConnector.interpretQuiet(src);
     },
   };
 
@@ -729,7 +748,7 @@ export function createRuntime() {
 
 // FIXME: "obs" or "ojs"? Inconsistent naming.
 window._ojs = {
-  obsInABox: undefined,
+  ojsConnector: undefined,
 
   paths: {}, // placeholder for per-quarto-file paths
   // necessary for module resolution
