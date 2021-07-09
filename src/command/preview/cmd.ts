@@ -1,21 +1,17 @@
 /*
-* preview.ts
+* cmd.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
 
 import { existsSync } from "fs/mod.ts";
-import { dirname, join } from "path/mod.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
 import { findOpenPort } from "../../core/port.ts";
 import { fixupPandocArgs, parseRenderFlags } from "../render/flags.ts";
-import { render } from "../render/render-shared.ts";
-import { inputFilesDir } from "../../core/render.ts";
-import { RenderResultFile } from "../render/types.ts";
-import { cssFileResourceReferences } from "../../core/html.ts";
+import { preview } from "./preview.ts";
 
 export const previewCommand = new Command()
   .name("preview")
@@ -23,6 +19,10 @@ export const previewCommand = new Command()
   .option(
     "-p, --port <port:number>",
     "Port to listen on (defaults to 4848).",
+  )
+  .option(
+    "--no-browse",
+    "Don't open a browser to preview the site.",
   )
   .arguments("[file:string] [...args:string]")
   .description(
@@ -35,11 +35,19 @@ export const previewCommand = new Command()
     "quarto preview document.qmd",
   )
   .example(
+    "Preview document using specific port",
+    "quarto preview --port 4444",
+  )
+  .example(
+    "Preview document but don't open a browser",
+    "quarto preview --no-browse",
+  )
+  .example(
     "Preview document with render command line args",
     "quarto preview document.qmd --toc --number-sections",
   )
   // deno-lint-ignore no-explicit-any
-  .action(async (_options: any, file: string, args: string[]) => {
+  .action(async (options: any, file: string, args: string[]) => {
     if (!existsSync(file)) {
       throw new Error(`${file} not found`);
     }
@@ -53,6 +61,10 @@ export const previewCommand = new Command()
       port = parseInt(args[portPos + 1]);
       args.splice(portPos, 2);
     }
+    const noBrowsePos = args.indexOf("--no-browse");
+    if (noBrowsePos !== -1) {
+      args.splice(noBrowsePos, 1);
+    }
 
     // select a port if we need to
     if (!port) {
@@ -64,23 +76,9 @@ export const previewCommand = new Command()
     const flags = parseRenderFlags(args);
     args = fixupPandocArgs(args, flags);
 
-    const renderResult = await render(file, {
-      flags,
-      pandocArgs: args,
+    // run preview
+    await preview(file, flags, args, {
+      port,
+      browse: !!options.browse,
     });
-
-    // determine files to watch for reload (filter out the files dir)
-    file = Deno.realPathSync(file);
-    const filesDir = join(dirname(file), inputFilesDir(file));
-    const resourceFiles = renderResult.files.reduce(
-      (resourceFiles: string[], file: RenderResultFile) => {
-        const resources = file.resourceFiles.concat(
-          cssFileResourceReferences(file.resourceFiles),
-        );
-        return resourceFiles.concat(
-          resources.filter((resFile) => !resFile.startsWith(filesDir)),
-        );
-      },
-      [],
-    );
   });

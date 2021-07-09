@@ -65,7 +65,7 @@ export const serveCommand = new Command()
   )
   .example(
     "Serve but don't open a browser",
-    "quarto serve --no-browser",
+    "quarto serve --no-browse",
   )
   .example(
     "Fully render all formats then serve",

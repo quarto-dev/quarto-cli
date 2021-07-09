@@ -18,6 +18,7 @@ import { pathWithForwardSlashes, removeIfExists } from "../../core/path.ts";
 import { isRStudioServer } from "../../core/platform.ts";
 
 import { logError } from "../../core/log.ts";
+import { maybeDisplaySocketError } from "../../core/http.ts";
 
 import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
@@ -32,10 +33,7 @@ import { fileExecutionEngine } from "../../execute/engine.ts";
 
 import { RenderResult } from "../render/types.ts";
 
-import {
-  copyProjectForServe,
-  maybeDisplaySocketError,
-} from "./serve-shared.ts";
+import { copyProjectForServe } from "./serve-shared.ts";
 
 import { kLocalhost } from "../../core/port.ts";
 import { ProjectWatcher, ServeOptions } from "./types.ts";

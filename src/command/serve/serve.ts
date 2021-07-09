@@ -8,7 +8,7 @@
 import * as colors from "fmt/colors.ts";
 import { error, info } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
-import { basename, extname, join, posix, relative } from "path/mod.ts";
+import { basename, extname, join, relative } from "path/mod.ts";
 
 import { Response, serve, ServerRequest } from "http/server.ts";
 
@@ -29,11 +29,9 @@ import { renderProject } from "../render/project.ts";
 import { renderResultFinalOutput } from "../render/render.ts";
 
 import { kLocalhost } from "../../core/port.ts";
+import { maybeDisplaySocketError, normalizeURL } from "../../core/http.ts";
 import { ProjectWatcher, ServeOptions } from "./types.ts";
-import {
-  copyProjectForServe,
-  maybeDisplaySocketError,
-} from "./serve-shared.ts";
+import { copyProjectForServe } from "./serve-shared.ts";
 import { watchProject } from "./watch.ts";
 
 export const kRenderNone = "none";
@@ -304,35 +302,4 @@ function printUrl(url: string, found = true) {
   } else if (!found) {
     info(urlDisplay, { dim: found, format, indent: 2 });
   }
-}
-
-function normalizeURL(url: string): string {
-  let normalizedUrl = url;
-  try {
-    normalizedUrl = decodeURI(normalizedUrl);
-  } catch (e) {
-    if (!(e instanceof URIError)) {
-      throw e;
-    }
-  }
-
-  try {
-    //allowed per https://www.w3.org/Protocols/rfc2616/rfc2616-sec5.html
-    const absoluteURI = new URL(normalizedUrl);
-    normalizedUrl = absoluteURI.pathname;
-  } catch (e) { //wasn't an absoluteURI
-    if (!(e instanceof TypeError)) {
-      throw e;
-    }
-  }
-
-  if (normalizedUrl[0] !== "/") {
-    throw new URIError("The request URI is malformed.");
-  }
-
-  normalizedUrl = posix.normalize(normalizedUrl);
-  const startOfParams = normalizedUrl.indexOf("?");
-  return startOfParams > -1
-    ? normalizedUrl.slice(0, startOfParams)
-    : normalizedUrl;
 }

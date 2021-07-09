@@ -20,15 +20,6 @@ import { projectOutputDir } from "../../project/project-shared.ts";
 import { projectIgnoreRegexes } from "../../project/project-context.ts";
 import { projectFreezerDir } from "../render/freeze.ts";
 
-export function maybeDisplaySocketError(e: unknown) {
-  if (
-    !(e instanceof Deno.errors.BrokenPipe) &&
-    !(e instanceof Deno.errors.ConnectionAborted)
-  ) {
-    logError(e as Error);
-  }
-}
-
 export function copyProjectForServe(
   project: ProjectContext,
   copyOutput: boolean,
