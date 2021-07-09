@@ -16,7 +16,7 @@ const kSpinerCompleteContainerChars = ["[", "]"];
 const kSpinnerCompleteChar = Deno.build.os !== "windows" ? "✓" : ">";
 const kProgressIncrementChar = "#";
 const kProgressContainerChars = ["[", "]"];
-const kProgressBarWidth = 50;
+const kProgressBarWidth = 35;
 
 // A progressBar display for the console
 // Includes optional prefix message as well as status text and a final state
