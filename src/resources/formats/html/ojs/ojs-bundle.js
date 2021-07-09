@@ -54,6 +54,10 @@ export class OJSInABox {
     // so any variables that are still missing do cause "x is not defined"
     // errors.
     this.pendingGlobals = {};
+    // When true, the mechanism described in the `this.pendingGlobals` comment
+    // is used. When false, the result of accessing undefined variables is just
+    // "x is not defined". This should be considered private, only settable via
+    // constructor or `killPendingGlobals`.
     this.allowPendingGlobals = allowPendingGlobals;
     // NB it looks like Runtime makes a local copy of the library object,
     // such that mutating library after this is initializaed doesn't actually
@@ -72,6 +76,13 @@ export class OJSInABox {
     this.chunkPromises = [];
   }
 
+  // Customizes the Runtime's behavior when an undefined variable is accessed.
+  // This is needed for cases where the ojs graph is not all present at the
+  // time of initialization; in particular, the case where a dependent cell
+  // starts executing before one or more of its dependencies have been defined.
+  // Without this customization, the user would see a flash of errors while the
+  // graph is constructed; with this customization, the dependents stay blank
+  // while they wait.
   global(name) {
     if (typeof window[name] !== "undefined") {
       return window[name];
@@ -81,6 +92,9 @@ export class OJSInABox {
     }
 
     if (!this.pendingGlobals.hasOwnProperty(name)) {
+      // This is a pending global we haven't seen before. Stash a new promise,
+      // along with its resolve/reject callbacks, in an object and remember it
+      // for later.
       const info = {};
       info.promise = new Promise((resolve, reject) => {
         info.resolve = resolve;
@@ -91,6 +105,10 @@ export class OJSInABox {
     return this.pendingGlobals[name].promise;
   }
 
+  // Signals the end of the "pending globals" phase. Any promises we've handed
+  // out from the global() method now are rejected. (We never resolve these
+  // promises to values; if these variables made an appearance, it would've
+  // been as variables on modules.)
   killPendingGlobals() {
     this.allowPendingGlobals = false;
     for (const [name, { reject }] of Object.entries(this.pendingGlobals)) {
@@ -603,11 +621,16 @@ export function initOjsShinyRuntime() {
   Shiny.inputBindings.register(new BindingAdapter(new OjsButtonInput()));
   Shiny.outputBindings.register(new InspectorOutputBinding());
 
+  // Handle requests from the server to export Shiny outputs to ojs.
   Shiny.addCustomMessageHandler("ojs-export", ({ name }) => {
     window._ojs.obsInABox.mainModule.redefine(
       name,
       window._ojs.obsInABox.library.shinyOutput()(name),
     );
+    // shinyOutput() creates an output DOM element, but we have to cause it to
+    // be actually bound. I don't love this code being here, I'd prefer if we
+    // could receive Shiny outputs without using output bindings at all (for
+    // this case, not for things that truly are DOM-oriented outputs).
     Shiny.bindAll(document.body);
   });
 
@@ -708,8 +731,18 @@ export function createRuntime() {
   });
   quartoOjsGlobal.obsInABox = obsInABox;
   if (isShiny) {
+    // When isShiny, OJSInABox is constructed with allowPendingGlobals:true.
+    // Our guess is that most shiny-to-ojs exports will have been defined
+    // by the time the server function finishes executing (i.e. session init
+    // completion); so we call `killPendingGlobals()` to show errors for
+    // variables that are still undefined.
     $(document).one("shiny:idle", () => {
+      // "shiny:idle" is not late enough; it is raised before the resulting
+      // outputs are received from the server.
       $(document).one("shiny:message", () => {
+        // "shiny:message" is not late enough; it is raised after the message
+        // is received, but before it is processed (i.e. variables are still
+        // not actually defined).
         setTimeout(() => {
           obsInABox.killPendingGlobals();
         }, 0);
