@@ -153,9 +153,17 @@ export const jupyterEngine: ExecutionEngine = {
         // if a specific ipynb execution policy is set then reflect it
       } else if (typeof (format.execute[kExecuteIpynb]) === "boolean") {
         executeEnabled = format.execute[kExecuteIpynb];
+
+        // if a specific execution policy is set then reflect it
+      } else if (typeof (format.execute[kExecuteEnabled]) == "boolean") {
+        executeEnabled = format.execute[kExecuteEnabled];
+
+        // otherwise default to NOT executing
+      } else {
+        executeEnabled = false;
       }
 
-      // if we had an override then return a format with it
+      // return format w/ execution policy
       if (executeEnabled !== undefined) {
         return {
           ...format,
