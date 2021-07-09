@@ -28,7 +28,7 @@ import { websitePath } from "../../project/types/website/website-config.ts";
 import { renderProject } from "../render/project.ts";
 import { renderResultFinalOutput } from "../render/render.ts";
 
-import { kLocalhost } from "./port.ts";
+import { kLocalhost } from "../../core/port.ts";
 import { ProjectWatcher, ServeOptions } from "./types.ts";
 import {
   copyProjectForServe,

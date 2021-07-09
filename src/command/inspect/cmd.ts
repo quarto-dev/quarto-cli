@@ -23,6 +23,7 @@ import {
   resolveFileResources,
   resourcesFromMetadata,
 } from "../render/resources.ts";
+import { cssFileResourceReferences } from "../../core/html.ts";
 
 export const inspectCommand = new Command()
   .name("inspect")
@@ -116,9 +117,13 @@ function resolveResources(
   rootDir: string,
   fileDir: string,
   markdown: string,
-  resources: string[],
+  globs: string[],
 ): string[] {
-  const resolved = resolveFileResources(rootDir, fileDir, markdown, resources);
-  return (ld.difference(resolved.include, resolved.exclude) as string[])
-    .map((file) => relative(rootDir, file));
+  const resolved = resolveFileResources(rootDir, fileDir, markdown, globs);
+  const resources = ld.difference(
+    resolved.include,
+    resolved.exclude,
+  ) as string[];
+  const allResources = resources.concat(cssFileResourceReferences(resources));
+  return allResources.map((file) => relative(rootDir, file));
 }

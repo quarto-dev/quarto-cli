@@ -34,7 +34,7 @@ import {
   pruneProjectFreezer,
   pruneProjectFreezerDir,
 } from "./freeze.ts";
-import { resolveFileResources } from "./resources.ts";
+import { resourceFilesFromRenderedFile } from "./render-shared.ts";
 
 export async function renderProject(
   context: ProjectContext,
@@ -191,46 +191,14 @@ export async function renderProject(
         }
 
         // resource files
-        const resourceDir = join(projDir, dirname(renderedFile.file));
         const partitioned = await partitionedMarkdownForInput(
           projDir,
           renderedFile.input,
         );
-        const markdown = partitioned ? partitioned.markdown : "";
-        const globs = renderedFile.resourceFiles.globs;
-        const fileResourceFiles = resolveFileResources(
+        const resourceFiles = resourceFilesFromRenderedFile(
           projDir,
-          resourceDir,
-          markdown,
-          globs,
-        );
-
-        // add the explicitly discovered files (if they exist and
-        // the output isn't self-contained)
-        if (!renderedFile.selfContained) {
-          const resultFiles = renderedFile.resourceFiles.files
-            .map((file) => join(resourceDir, file))
-            .filter(existsSync)
-            .map(Deno.realPathSync);
-          fileResourceFiles.include.push(...resultFiles);
-        }
-
-        // apply removes and filter files dir
-        const resourceFiles = fileResourceFiles.include.filter(
-          (file: string) => {
-            if (fileResourceFiles.exclude.includes(file)) {
-              return false;
-            } else if (
-              renderedFile.supporting &&
-              renderedFile.supporting.some((support) =>
-                file.startsWith(join(projDir, support))
-              )
-            ) {
-              return false;
-            } else {
-              return true;
-            }
-          },
+          renderedFile,
+          partitioned,
         );
 
         // render file renderedFile

@@ -10,7 +10,7 @@ import { Command } from "cliffy/command/mod.ts";
 import { kProjectType } from "../../project/types.ts";
 import { projectContext } from "../../project/project-context.ts";
 import { projectType } from "../../project/types/project-types.ts";
-import { findOpenPort } from "./port.ts";
+import { findOpenPort } from "../../core/port.ts";
 
 import { kRenderNone, serveProject } from "./serve.ts";
 
@@ -102,7 +102,7 @@ export const serveCommand = new Command()
 
     // select a port if we need to
     if (!options.port) {
-      options.port = findOpenPort();
+      options.port = findOpenPort(4848);
     } else {
       options.port = parseInt(options.port);
     }

@@ -5,12 +5,98 @@
 *
 */
 
+import { dirname, extname, join } from "path/mod.ts";
+
+import { existsSync } from "fs/mod.ts";
+
 import { generate as generateUuid } from "uuid/v4.ts";
 
+import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
+
 import { pandocAutoIdentifier } from "./pandoc/pandoc-id.ts";
+import { cssImports, cssResources } from "./css.ts";
 
 export function asHtmlId(text: string) {
   return pandocAutoIdentifier(text, false);
+}
+
+export const kHtmlResourceTags: Record<string, string> = {
+  "a": "href",
+  "img": "src",
+  "link": "href",
+  "script": "src",
+  "embed": "src",
+};
+
+export function discoverResourceRefs(doc: Document): Promise<string[]> {
+  // first handle tags
+  const refs: string[] = [];
+  Object.keys(kHtmlResourceTags).forEach((tag) => {
+    refs.push(...resolveResourceTag(doc, tag, kHtmlResourceTags[tag]));
+  });
+  // css references (import/url)
+  const styles = doc.querySelectorAll("style");
+  for (let i = 0; i < styles.length; i++) {
+    const style = styles[i] as Element;
+    if (style.innerHTML) {
+      refs.push(...cssFileRefs(style.innerHTML));
+    }
+  }
+  return Promise.resolve(refs);
+}
+
+export function isFileRef(href: string) {
+  return !/^\w+:/.test(href) && !href.startsWith("#");
+}
+
+export function processFileResourceRefs(
+  doc: Document,
+  tag: string,
+  attrib: string,
+  onRef: (tag: Element, ref: string) => void,
+) {
+  const tags = doc.querySelectorAll(tag);
+  for (let i = 0; i < tags.length; i++) {
+    const tag = tags[i] as Element;
+    const href = tag.getAttribute(attrib);
+    if (href !== null && href.length > 0 && isFileRef(href)) {
+      onRef(tag, href);
+    }
+  }
+}
+
+export function cssFileResourceReferences(files: string[]) {
+  return files.reduce((allRefs: string[], file: string) => {
+    if (extname(file).toLowerCase() === ".css") {
+      if (existsSync(file)) {
+        file = Deno.realPathSync(file);
+        const css = Deno.readTextFileSync(file);
+        const cssRefs = cssFileRefs(css).map((ref) => join(dirname(file), ref));
+        allRefs.push(...cssRefs);
+        allRefs.push(...cssFileResourceReferences(cssRefs));
+      }
+    }
+    return allRefs;
+  }, []);
+}
+
+function cssFileRefs(css: string) {
+  return cssImports(css).concat(cssResources(css)).filter(isFileRef);
+}
+
+function resolveResourceTag(
+  doc: Document,
+  tag: string,
+  attrib: string,
+) {
+  const refs: string[] = [];
+  processFileResourceRefs(
+    doc,
+    tag,
+    attrib,
+    (_tag: Element, ref: string) => refs.push(ref),
+  );
+  return refs;
 }
 
 export function placeholderHtml(context: string, html: string) {

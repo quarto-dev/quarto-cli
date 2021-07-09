@@ -16,6 +16,7 @@ import {
   updateCommand,
 } from "./install/cmd.ts";
 import { serveCommand } from "./serve/cmd.ts";
+import { previewCommand } from "./preview/cmd.ts";
 import { convertCommand } from "./convert/cmd.ts";
 import { capabilitiesCommand } from "./capabilities/cmd.ts";
 import { checkCommand } from "./check/cmd.ts";
@@ -30,6 +31,7 @@ export function commands(): Command[] {
     updateCommand,
     uninstallCommand,
     serveCommand,
+    previewCommand,
     convertCommand,
     capabilitiesCommand,
     checkCommand,

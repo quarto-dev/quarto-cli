@@ -6,6 +6,10 @@
 */
 
 import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
+import {
+  kHtmlResourceTags,
+  processFileResourceRefs,
+} from "../../../core/html.ts";
 
 import { fixupCssReferences } from "../../project-resources.ts";
 
@@ -18,15 +22,10 @@ export function resolveResourceRefs(
   const refs: string[] = [];
 
   // resolve tags with resource refs
-  const tags: Record<string, string> = {
-    "a": "href",
-    "img": "src",
-    "link": "href",
-    "script": "src",
-    "embed": "src",
-  };
-  Object.keys(tags).forEach((tag) => {
-    refs.push(...resolveTag(doc, offset, tag, tags[tag], forceRoot));
+  Object.keys(kHtmlResourceTags).forEach((tag) => {
+    refs.push(
+      ...resolveTag(doc, offset, tag, kHtmlResourceTags[tag], forceRoot),
+    );
   });
 
   // css references (import/url)
@@ -54,27 +53,18 @@ function resolveTag(
   forceRoot: string | null,
 ) {
   const refs: string[] = [];
-  const tags = doc.querySelectorAll(tag);
-  for (let i = 0; i < tags.length; i++) {
-    const tag = tags[i] as Element;
-    let href = tag.getAttribute(attrib);
-    if (href && isSiteRef(href)) {
-      if (forceRoot) {
-        if (!href.startsWith("/")) {
-          tag.setAttribute(attrib, forceRoot + href);
-        } else if (!href.startsWith(forceRoot)) {
-          tag.setAttribute(attrib, forceRoot + href.slice(1));
-        }
-      } else if (href.startsWith("/")) {
-        href = offset + href;
-        tag.setAttribute(attrib, href);
+  processFileResourceRefs(doc, tag, attrib, (tag: Element, href: string) => {
+    if (forceRoot) {
+      if (!href.startsWith("/")) {
+        tag.setAttribute(attrib, forceRoot + href);
+      } else if (!href.startsWith(forceRoot)) {
+        tag.setAttribute(attrib, forceRoot + href.slice(1));
       }
-      refs.push(href!);
+    } else if (href.startsWith("/")) {
+      href = offset + href;
+      tag.setAttribute(attrib, href);
     }
-  }
+    refs.push(href!);
+  });
   return refs;
-}
-
-function isSiteRef(href: string) {
-  return !/^\w+:/.test(href) && !href.startsWith("#");
 }

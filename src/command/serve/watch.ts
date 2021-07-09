@@ -37,7 +37,7 @@ import {
   maybeDisplaySocketError,
 } from "./serve-shared.ts";
 
-import { kLocalhost } from "./port.ts";
+import { kLocalhost } from "../../core/port.ts";
 import { ProjectWatcher, ServeOptions } from "./types.ts";
 
 export async function watchProject(

@@ -76,6 +76,7 @@ import {
   kVariables,
 } from "../../config/constants.ts";
 import { sessionTempFile } from "../../core/temp.ts";
+import { discoverResourceRefs } from "../../core/html.ts";
 
 import {
   kDefaultHighlightStyle,
@@ -190,6 +191,12 @@ export async function runPandoc(
     // add a post-processor for fixing overflow-x in cell output display
     if (isHtmlOutput(options.format.pandoc, true)) {
       htmlPostprocessors.push(selectInputPostprocessor);
+    }
+
+    // add a resource discovery postProcessor if we are not in a project
+    // (projects already take care of this)
+    if (!options.project) {
+      htmlPostprocessors.push(discoverResourceRefs);
     }
 
     // provide default toc-title if necessary

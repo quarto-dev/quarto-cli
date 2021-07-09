@@ -9,9 +9,9 @@ import { getAvailablePortSync, isPortAvailableSync } from "port/mod.ts";
 
 export const kLocalhost = "127.0.0.1";
 
-export function findOpenPort() {
-  if (isPortAvailableSync({ port: 4848, hostname: kLocalhost })) {
-    return 4848;
+export function findOpenPort(defaultPort: number) {
+  if (isPortAvailableSync({ port: defaultPort, hostname: kLocalhost })) {
+    return defaultPort;
   } else {
     while (true) {
       const port = getAvailablePortSync({

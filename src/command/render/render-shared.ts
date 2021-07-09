@@ -4,6 +4,10 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+
+import { dirname, join, relative } from "path/mod.ts";
+import { existsSync } from "fs/mod.ts";
+
 import { pathWithForwardSlashes } from "../../core/path.ts";
 import {
   projectContext,
@@ -12,7 +16,10 @@ import {
 
 import { renderProject } from "./project.ts";
 import { renderFiles } from "./render.ts";
-import { RenderOptions, RenderResult } from "./types.ts";
+import { resolveFileResources } from "./resources.ts";
+import { RenderedFile, RenderOptions, RenderResult } from "./types.ts";
+import { PartitionedMarkdown } from "../../core/pandoc/types.ts";
+import { fileExecutionEngine } from "../../execute/engine.ts";
 
 export async function render(
   path: string,
@@ -56,21 +63,76 @@ export async function render(
 
   // otherwise it's just a file render
   const result = await renderFiles([path], options);
+
+  const engine = fileExecutionEngine(path);
+  const partitioned = engine
+    ? await engine.partitionedMarkdown(path)
+    : undefined;
+  const resultFile = result.files[0];
+  const resourceFiles = resourceFilesFromRenderedFile(
+    dirname(path),
+    resultFile,
+    partitioned,
+  );
+
   return {
-    files: result.files.map((result) => {
-      return {
-        input: result.input,
-        markdown: result.markdown,
-        format: result.format,
-        file: result.file,
-        supporting: result.supporting,
-        resourceFiles: [],
-      };
-    }),
+    files: [{
+      input: resultFile.input,
+      markdown: resultFile.markdown,
+      format: resultFile.format,
+      file: resultFile.file,
+      supporting: resultFile.supporting,
+      resourceFiles,
+    }],
     error: result.error,
   };
 }
 
 export function pandocMetadataPath(path: string) {
   return pathWithForwardSlashes(path);
+}
+
+export function resourceFilesFromRenderedFile(
+  baseDir: string,
+  renderedFile: RenderedFile,
+  partitioned?: PartitionedMarkdown,
+) {
+  const resourceDir = join(baseDir, dirname(renderedFile.file));
+  const markdown = partitioned ? partitioned.markdown : "";
+  const globs = renderedFile.resourceFiles.globs;
+  const fileResourceFiles = resolveFileResources(
+    baseDir,
+    resourceDir,
+    markdown,
+    globs,
+  );
+
+  // add the explicitly discovered files (if they exist and
+  // the output isn't self-contained)
+  if (!renderedFile.selfContained) {
+    const resultFiles = renderedFile.resourceFiles.files
+      .map((file) => join(resourceDir, file))
+      .filter(existsSync)
+      .map(Deno.realPathSync);
+    fileResourceFiles.include.push(...resultFiles);
+  }
+
+  // apply removes and filter files dir
+  const resourceFiles = fileResourceFiles.include.filter(
+    (file: string) => {
+      if (fileResourceFiles.exclude.includes(file)) {
+        return false;
+      } else if (
+        renderedFile.supporting &&
+        renderedFile.supporting.some((support) =>
+          file.startsWith(join(baseDir, support))
+        )
+      ) {
+        return false;
+      } else {
+        return true;
+      }
+    },
+  );
+  return resourceFiles;
 }
