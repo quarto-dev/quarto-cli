@@ -68,7 +68,7 @@ export function defaultWriterFormat(to: string): Format {
       writerFormat = htmlPresentationFormat(9.5, 6.5);
       break;
     case "revealjs":
-      writerFormat = htmlPresentationFormat(9, 5);
+      writerFormat = revealjsFormat();
       break;
 
     case "markdown":
@@ -190,6 +190,17 @@ function htmlPresentationFormat(figwidth: number, figheight: number): Format {
       execute: {
         [kEcho]: false,
         [kWarning]: false,
+      },
+    },
+  );
+}
+
+function revealjsFormat() {
+  return mergeConfigs(
+    htmlPresentationFormat(9, 5),
+    {
+      metadata: {
+        hash: true,
       },
     },
   );
