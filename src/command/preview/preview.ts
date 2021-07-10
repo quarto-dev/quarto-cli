@@ -5,7 +5,7 @@
 *
 */
 
-import { basename, dirname, join } from "path/mod.ts";
+import { dirname, join } from "path/mod.ts";
 
 import { info } from "log/mod.ts";
 
