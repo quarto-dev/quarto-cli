@@ -49,11 +49,13 @@ export async function preview(
     openUrl(siteUrl);
   }
 
-  // handle requests
+  // setup request handler
   const handler = httpFileRequestHandler({
     baseDir: dirname(file),
     defaultFile: result.outputFile,
   });
+
+  // handle requests
   for await (const req of server) {
     await handler(req);
   }
@@ -70,7 +72,9 @@ async function renderForPreview(
     pandocArgs: pandocArgs,
   });
 
-  // determine files to watch for reload (filter out the files dir)
+  // determine files to watch for reload -- take the resource
+  // files detected during render, chase down additional references
+  // in css files, then fitler out the _files dir
   file = Deno.realPathSync(file);
   const filesDir = join(dirname(file), inputFilesDir(file));
   const resourceFiles = renderResult.files.reduce(
