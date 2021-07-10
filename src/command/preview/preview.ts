@@ -28,7 +28,6 @@ import { inputFilesDir } from "../../core/render.ts";
 import { render } from "../render/render-shared.ts";
 import { RenderFlags, RenderResultFile } from "../render/types.ts";
 import { renderFormats } from "../render/render.ts";
-import { isHtmlOutput } from "../../config/format.ts";
 import { replacePandocArg } from "../render/flags.ts";
 import { kOutputFile } from "../../config/constants.ts";
 
