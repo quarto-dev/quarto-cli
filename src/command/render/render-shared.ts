@@ -64,26 +64,29 @@ export async function render(
   // otherwise it's just a file render
   const result = await renderFiles([path], options);
 
+  // get partitioned markdown if we had result files
   const engine = fileExecutionEngine(path);
-  const partitioned = engine
+  const partitioned = (engine && result.files.length > 0)
     ? await engine.partitionedMarkdown(path)
     : undefined;
-  const resultFile = result.files[0];
-  const resourceFiles = resourceFilesFromRenderedFile(
-    dirname(path),
-    resultFile,
-    partitioned,
-  );
 
+  // return files
   return {
-    files: [{
-      input: resultFile.input,
-      markdown: resultFile.markdown,
-      format: resultFile.format,
-      file: resultFile.file,
-      supporting: resultFile.supporting,
-      resourceFiles,
-    }],
+    files: result.files.map((file) => {
+      const resourceFiles = resourceFilesFromRenderedFile(
+        dirname(path),
+        file,
+        partitioned,
+      );
+      return {
+        input: file.input,
+        markdown: file.markdown,
+        format: file.format,
+        file: file.file,
+        supporting: file.supporting,
+        resourceFiles,
+      };
+    }),
     error: result.error,
   };
 }
