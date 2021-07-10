@@ -6,6 +6,7 @@
 */
 
 import { execProcess } from "./process.ts";
+import { binaryPath } from "./resources.ts";
 
 export async function esbuildCompile(
   input: string,
@@ -15,7 +16,7 @@ export async function esbuildCompile(
   const fullArgs = [
     "--bundle",
     "--format=esm",
-    ...(args || [])
+    ...(args || []),
   ];
 
   return await esbuildCommand(fullArgs, input, workingDir);
@@ -27,7 +28,7 @@ async function esbuildCommand(
   workingDir: string,
 ) {
   const cmd = [
-    "esbuild",
+    binaryPath("esbuild"),
     ...args,
   ];
 
