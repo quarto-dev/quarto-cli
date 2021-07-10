@@ -10,95 +10,75 @@ import { Confirm } from "cliffy/prompt/mod.ts";
 import { info } from "log/mod.ts";
 
 import { formatLine, withSpinner } from "../../core/console.ts";
-import { ToolSummaryData } from "./install.ts";
 
 import {
   installableTools,
   installTool,
   toolSummary,
+  ToolSummaryData,
   uninstallTool,
   updateTool,
-} from "./install.ts";
+} from "./tools.ts";
+
+// quarto tools install tinytex
+// quarto tools uninstall tinytex
+// quarto tools update tinytex
 
 // The quarto install command
-export const installCommand = new Command()
-  .name("install")
-  .arguments("[name:string]")
+export const toolsCommand = new Command()
+  .name("tools")
+  .arguments("[command:string] [name:string]")
   .description(
-    `Installs tools, extensions, and templates.\n\nTools that can be installed include:\n${
-      installableTools().map((name) => "  " + name).join("\n")
+    `Manages quarto tools.\n\nTools that can be installed include:\n${
+      installableTools().map((name: string) => "  " + name).join("\n")
     }`,
-  )
-  .option(
-    "-lt, --list-tools",
-    "List installable tools and their status",
   )
   .example(
     "Install TinyTex",
-    "quarto install tinytex",
+    "quarto tools install tinytex",
   )
   // deno-lint-ignore no-explicit-any
-  .action(async (options: any, name: string) => {
-    if (options.listTools) {
-      await outputTools();
-    } else if (name) {
-      await installTool(name);
+  .action(async (options: any, command: string, name?: string) => {
+    switch (command) {
+      case "install":
+        if (name) {
+          await installTool(name);
+        }
+        break;
+      case "uninstall":
+        if (name) {
+          await confirmDestructiveAction(
+            name,
+            `This will remove ${name} and all of its files. Are you sure?`,
+            async () => {
+              await uninstallTool(name);
+            },
+            false,
+            await toolSummary(name),
+          );
+        }
+        break;
+      case "update":
+        if (name) {
+          const summary = await toolSummary(name);
+          await confirmDestructiveAction(
+            name,
+            `This will update ${name} from ${summary?.installedVersion} to ${
+              summary?.latestRelease.version
+            }. Are you sure?`,
+            async () => {
+              await updateTool(name);
+            },
+            true,
+            summary,
+          );
+        }
+        break;
+      default:
+      case "list":
+        await outputTools();
+        break;
     }
-  });
-
-// The quarto uninstall command
-export const uninstallCommand = new Command()
-  .name("uninstall")
-  .arguments("<name:string>")
-  .description(
-    `Uninstalls tools, extensions, and templates.\n\nTools that can be uninstalled include:\n${
-      installableTools().map((name) => "  " + name).join("\n")
-    }`,
-  )
-  .example(
-    "Uninstall TinyTex",
-    "quarto uninstall tinytex",
-  )
-  // deno-lint-ignore no-explicit-any
-  .action(async (_options: any, name: string) => {
-    await confirmDestructiveAction(
-      name,
-      `This will remove ${name} and all of its files. Are you sure?`,
-      async () => {
-        await uninstallTool(name);
-      },
-      false,
-      await toolSummary(name),
-    );
-  });
-
-// The quarto update command
-export const updateCommand = new Command()
-  .name("update")
-  .arguments("<name: string>")
-  .description(
-    `Updates tools, extensions, and templates.\n\nTools that can be updated include:\n${
-      installableTools().map((name) => "  " + name).join("\n")
-    }`,
-  )
-  .example(
-    "Update TinyTex",
-    "quarto update tinytex",
-  )
-  // deno-lint-ignore no-explicit-any
-  .action(async (_options: any, name: string) => {
-    const summary = await toolSummary(name);
-    await confirmDestructiveAction(
-      name,
-      `This will update ${name} from ${summary?.installedVersion} to ${
-        summary?.latestRelease.version
-      }. Are you sure?`,
-      async () => {
-        await updateTool(name);
-      },
-      true,
-      summary,
-    );
   });
 
 async function confirmDestructiveAction(

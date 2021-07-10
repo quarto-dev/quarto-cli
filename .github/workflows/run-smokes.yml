@@ -1,19 +1,19 @@
 name: Run Smoke Tests
 
-on: 
+on:
   workflow_dispatch:
   pull_request:
-    branches: [ main ]
+    branches: [main]
   push:
-     # only trigger on branches, not on tags
-    branches: [ main ]
+    # only trigger on branches, not on tags
+    branches: [main]
 env:
   RENV_PATHS_ROOT: ~/.local/share/renv
-  
+
 # Ubuntu: ~/.local/share/renv
 # macOS: ~/Library/Application Support/renv
-# Windows: %LOCALAPPDATA%/renv 
-  
+# Windows: %LOCALAPPDATA%/renv
+
 jobs:
   run-smokes:
     runs-on: ubuntu-latest
@@ -25,10 +25,10 @@ jobs:
           # checkout full tree
           fetch-depth: 0
 
-      - name: Set up R 
+      - name: Set up R
         uses: r-lib/actions/setup-r@v1
-        with: 
-          r-version: '4.1.0'
+        with:
+          r-version: "4.1.0"
 
       - name: Cache packages
         uses: actions/cache@v1
@@ -44,12 +44,12 @@ jobs:
           Rscript -e "if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')"
           Rscript -e "renv::restore()"
           popd
-          
+
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.x'
-          
+          python-version: "3.x"
+
       - name: Python Dependencies
         run: |
           pushd tests
@@ -60,11 +60,11 @@ jobs:
           popd
 
       - uses: ./.github/workflows/actions/quarto-dev
-      
+
       - name: Install Tinytex
         run: |
-          quarto install tinytex
-            
+          quarto tools install tinytex
+
       - name: Smoke Test Commits
         if: github.event.before != ''
         run: |
@@ -80,4 +80,3 @@ jobs:
           quarto render docs/test.qmd --to pdf
           ./run-tests.sh
           popd
-        

@@ -35,7 +35,7 @@ class EmptyInspector {
   }
 }
 
-export class OJSInABox {
+export class OJSConnector {
   constructor({ paths, inspectorClass, library, allowPendingGlobals = false }) {
     this.library = library || new Library();
 
@@ -144,6 +144,14 @@ export class OJSInABox {
     }).define([name], (val) => val);
   }
 
+  async value(val, module = undefined) {
+    if (!module) {
+      module = this.mainModule;
+    }
+    const result = await module.value(val);
+    return result;
+  }
+
   clearImportModuleWait() {
     const array = Array.from(
       document.querySelectorAll(
@@ -156,7 +164,7 @@ export class OJSInABox {
   }
 
   finishInterpreting() {
-    Promise.all(this.chunkPromises)
+    return Promise.all(this.chunkPromises)
       .then(() => {
         if (!this.mainModuleHasImports) {
           this.clearImportModuleWait();
@@ -437,7 +445,7 @@ async function importOjs(path) {
 
   return (runtime, _observer) => {
     const newModule = runtime.module();
-    const interpreter = window._ojs.obsInABox.interpreter;
+    const interpreter = window._ojs.ojsConnector.interpreter;
     const _cells = interpreter.module(
       src,
       newModule,
@@ -481,7 +489,7 @@ export function extendObservableStdlib(lib) {
   lib.shinyInput = function () {
     return (name) => {
       shinyInputVars.add(name);
-      window._ojs.obsInABox.mainModule.value(name)
+      window._ojs.ojsConnector.mainModule.value(name)
         .then((val) => {
           if (window.Shiny && window.Shiny.setInputValue) {
             window.Shiny.setInputValue(name, val);
@@ -623,9 +631,9 @@ export function initOjsShinyRuntime() {
 
   // Handle requests from the server to export Shiny outputs to ojs.
   Shiny.addCustomMessageHandler("ojs-export", ({ name }) => {
-    window._ojs.obsInABox.mainModule.redefine(
+    window._ojs.ojsConnector.mainModule.redefine(
       name,
-      window._ojs.obsInABox.library.shinyOutput()(name),
+      window._ojs.ojsConnector.library.shinyOutput()(name),
     );
     // shinyOutput() creates an output DOM element, but we have to cause it to
     // be actually bound. I don't love this code being here, I'd prefer if we
@@ -723,15 +731,15 @@ export function createRuntime() {
   }
   lib.FileAttachment = () => FileAttachments(fileAttachmentPathResolver);
 
-  const obsInABox = new OJSInABox({
+  const ojsConnector = new OJSConnector({
     paths: quartoOjsGlobal.paths,
     inspectorClass: isShiny ? ShinyInspector : undefined,
     library: lib,
     allowPendingGlobals: isShiny,
   });
-  quartoOjsGlobal.obsInABox = obsInABox;
+  quartoOjsGlobal.ojsConnector = ojsConnector;
   if (isShiny) {
-    // When isShiny, OJSInABox is constructed with allowPendingGlobals:true.
+    // When isShiny, OJSConnector is constructed with allowPendingGlobals:true.
     // Our guess is that most shiny-to-ojs exports will have been defined
     // by the time the server function finishes executing (i.e. session init
     // completion); so we call `killPendingGlobals()` to show errors for
@@ -744,7 +752,7 @@ export function createRuntime() {
         // is received, but before it is processed (i.e. variables are still
         // not actually defined).
         setTimeout(() => {
-          obsInABox.killPendingGlobals();
+          ojsConnector.killPendingGlobals();
         }, 0);
       });
     });
@@ -764,13 +772,24 @@ export function createRuntime() {
   const result = {
     setLocalResolver(obj) {
       localResolver = obj;
-      obsInABox.setLocalResolver(obj);
+      ojsConnector.setLocalResolver(obj);
     },
     finishInterpreting() {
-      obsInABox.finishInterpreting();
+      return ojsConnector.finishInterpreting();
     },
 
-    // FIXME clarify what's the expected behavior of the 'error' option
+    // return the latest value of the named reactive variable in the main module
+    async value(name) {
+      await this.finishInterpreting();
+      const result = await ojsConnector.value(name);
+      return result;
+      // return this.finishInterpreting()
+      //   .then(() => {
+      //     return ojsConnector.value(name);
+      //   });
+    },
+
+    // fixme clarify what's the expected behavior of the 'error' option
     // when evaluation is at client-time
     interpretLenient(src, targetElementId, inline) {
       return result.interpret(src, targetElementId, inline)
@@ -797,7 +816,7 @@ export function createRuntime() {
         );
       };
 
-      return obsInABox.interpret(src, getElement, makeElement)
+      return ojsConnector.interpret(src, getElement, makeElement)
         .catch((e) => {
           const errorDiv = document.createElement("pre");
           errorDiv.innerText = `${e.name}: ${e.message}`;
@@ -806,7 +825,7 @@ export function createRuntime() {
         });
     },
     interpretQuiet(src) {
-      return obsInABox.interpretQuiet(src);
+      return ojsConnector.interpretQuiet(src);
     },
   };
 
@@ -815,7 +834,7 @@ export function createRuntime() {
 
 // FIXME: "obs" or "ojs"? Inconsistent naming.
 window._ojs = {
-  obsInABox: undefined,
+  ojsConnector: undefined,
 
   paths: {}, // placeholder for per-quarto-file paths
   // necessary for module resolution
