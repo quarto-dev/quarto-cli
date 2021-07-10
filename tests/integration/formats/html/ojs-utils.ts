@@ -12,7 +12,11 @@ import { inPuppeteer } from "../../../puppeteer.ts";
 import { assert } from "testing/asserts.ts";
 
 // deno-lint-ignore no-explicit-any
-export function verifyOjsValue(url: string, valName: string, value: any): Verify {
+export function verifyOjsValue(
+  url: string,
+  valName: string,
+  value: any,
+): Verify {
   // deno-lint-ignore no-explicit-any
   const window = (undefined as any); // appease the TypeScript typechecker
   return {
@@ -29,4 +33,4 @@ export function verifyOjsValue(url: string, valName: string, value: any): Verify
       );
     },
   };
-};
+}

@@ -27,4 +27,4 @@ export function inPuppeteer(url: string, f: any) {
     await browser.close();
     return clientSideResult;
   });
-};
+}
