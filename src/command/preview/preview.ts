@@ -74,7 +74,9 @@ export async function preview(
             }, true);
           }
         } catch (e) {
-          logError(e);
+          if (e.message) {
+            logError(e);
+          }
         }
       }, 50),
     },
