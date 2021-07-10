@@ -43,8 +43,8 @@ export function contentType(path: string): string | undefined {
   return MEDIA_TYPES[extname(path.toLowerCase())];
 }
 
-export function isHtmlContent(path: string) {
-  return contentType(path) === kTextHtml;
+export function isHtmlContent(path?: string) {
+  return path && (contentType(path) === kTextHtml);
 }
 
 const MEDIA_TYPES: Record<string, string> = {

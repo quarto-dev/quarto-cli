@@ -27,6 +27,10 @@ import { inputFilesDir } from "../../core/render.ts";
 
 import { render } from "../render/render-shared.ts";
 import { RenderFlags, RenderResultFile } from "../render/types.ts";
+import { renderFormats } from "../render/render.ts";
+import { isHtmlOutput } from "../../config/format.ts";
+import { replacePandocArg } from "../render/flags.ts";
+import { kOutputFile } from "../../config/constants.ts";
 
 interface PreviewOptions {
   port: number;
@@ -40,6 +44,16 @@ export async function preview(
   pandocArgs: string[],
   options: PreviewOptions,
 ) {
+  // determine the target format if there isn't one in the command line args
+  // (current we force the use of an html based format)
+  const formats = await renderFormats(file);
+  const format = flags.to || Object.keys(formats).find((name) => {
+    const format = formats[name];
+    return isHtmlContent(format.pandoc[kOutputFile]);
+  }) || "html";
+  flags.to = format;
+  replacePandocArg(pandocArgs, "--to", format);
+
   // render for preview
   const result = await renderForPreview(file, flags, pandocArgs, options);
 
