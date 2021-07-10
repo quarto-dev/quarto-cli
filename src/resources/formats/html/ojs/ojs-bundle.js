@@ -18,6 +18,7 @@ import {
   Inspector,
   Library,
   Runtime,
+  RuntimeError,
 } from "https://cdn.skypack.dev/@observablehq/runtime";
 import { parseModule } from "https://cdn.skypack.dev/@observablehq/parser";
 import { button } from "https://cdn.skypack.dev/@observablehq/inputs";
@@ -35,21 +36,33 @@ class EmptyInspector {
 }
 
 export class OJSConnector {
-  constructor({
-    paths,
-    inspectorClass,
-    library,
-  }) {
+  constructor({ paths, inspectorClass, library, allowPendingGlobals = false }) {
     this.library = library || new Library();
 
     // this map contains a mapping from resource names to data URLs
     // that governs fileAttachment and import() resolutions in the
     // case of self-contained files.
     this.localResolverMap = new Map();
+    // Keeps track of variables that have been requested by ojs code, but do
+    // not exist (not in the module, not in the library, not on window).
+    // The keys are variable names, the values are {promise, resolve, reject}.
+    // This is intended to allow for a (hopefully brief) phase during startup
+    // in which, if an ojs code chunk references a variable that is not defined,
+    // instead of treating it as an "x is not defined" error we instead
+    // take a wait-and-see approach, in case the variable dynamically becomes
+    // defined later. When the phase ends, killPendingGlobals() must be called
+    // so any variables that are still missing do cause "x is not defined"
+    // errors.
+    this.pendingGlobals = {};
+    // When true, the mechanism described in the `this.pendingGlobals` comment
+    // is used. When false, the result of accessing undefined variables is just
+    // "x is not defined". This should be considered private, only settable via
+    // constructor or `killPendingGlobals`.
+    this.allowPendingGlobals = allowPendingGlobals;
     // NB it looks like Runtime makes a local copy of the library object,
     // such that mutating library after this is initializaed doesn't actually
     // work.
-    this.runtime = new Runtime(this.library);
+    this.runtime = new Runtime(this.library, (name) => this.global(name));
     this.mainModule = this.runtime.module();
     this.interpreter = new Interpreter({
       module: this.mainModule,
@@ -61,6 +74,46 @@ export class OJSConnector {
     this.mainModuleHasImports = false;
     this.mainModuleOutstandingImportCount = 0;
     this.chunkPromises = [];
+  }
+
+  // Customizes the Runtime's behavior when an undefined variable is accessed.
+  // This is needed for cases where the ojs graph is not all present at the
+  // time of initialization; in particular, the case where a dependent cell
+  // starts executing before one or more of its dependencies have been defined.
+  // Without this customization, the user would see a flash of errors while the
+  // graph is constructed; with this customization, the dependents stay blank
+  // while they wait.
+  global(name) {
+    if (typeof window[name] !== "undefined") {
+      return window[name];
+    }
+    if (!this.allowPendingGlobals) {
+      return undefined;
+    }
+
+    if (!this.pendingGlobals.hasOwnProperty(name)) {
+      // This is a pending global we haven't seen before. Stash a new promise,
+      // along with its resolve/reject callbacks, in an object and remember it
+      // for later.
+      const info = {};
+      info.promise = new Promise((resolve, reject) => {
+        info.resolve = resolve;
+        info.reject = reject;
+      });
+      this.pendingGlobals[name] = info;
+    }
+    return this.pendingGlobals[name].promise;
+  }
+
+  // Signals the end of the "pending globals" phase. Any promises we've handed
+  // out from the global() method now are rejected. (We never resolve these
+  // promises to values; if these variables made an appearance, it would've
+  // been as variables on modules.)
+  killPendingGlobals() {
+    this.allowPendingGlobals = false;
+    for (const [name, { reject }] of Object.entries(this.pendingGlobals)) {
+      reject(new RuntimeError(`${name} is not defined`));
+    }
   }
 
   setLocalResolver(map) {
@@ -576,6 +629,19 @@ export function initOjsShinyRuntime() {
   Shiny.inputBindings.register(new BindingAdapter(new OjsButtonInput()));
   Shiny.outputBindings.register(new InspectorOutputBinding());
 
+  // Handle requests from the server to export Shiny outputs to ojs.
+  Shiny.addCustomMessageHandler("ojs-export", ({ name }) => {
+    window._ojs.ojsConnector.mainModule.redefine(
+      name,
+      window._ojs.ojsConnector.library.shinyOutput()(name),
+    );
+    // shinyOutput() creates an output DOM element, but we have to cause it to
+    // be actually bound. I don't love this code being here, I'd prefer if we
+    // could receive Shiny outputs without using output bindings at all (for
+    // this case, not for things that truly are DOM-oriented outputs).
+    Shiny.bindAll(document.body);
+  });
+
   return true;
 }
 
@@ -669,8 +735,28 @@ export function createRuntime() {
     paths: quartoOjsGlobal.paths,
     inspectorClass: isShiny ? ShinyInspector : undefined,
     library: lib,
+    allowPendingGlobals: isShiny,
   });
   quartoOjsGlobal.ojsConnector = ojsConnector;
+  if (isShiny) {
+    // When isShiny, OJSConnector is constructed with allowPendingGlobals:true.
+    // Our guess is that most shiny-to-ojs exports will have been defined
+    // by the time the server function finishes executing (i.e. session init
+    // completion); so we call `killPendingGlobals()` to show errors for
+    // variables that are still undefined.
+    $(document).one("shiny:idle", () => {
+      // "shiny:idle" is not late enough; it is raised before the resulting
+      // outputs are received from the server.
+      $(document).one("shiny:message", () => {
+        // "shiny:message" is not late enough; it is raised after the message
+        // is received, but before it is processed (i.e. variables are still
+        // not actually defined).
+        setTimeout(() => {
+          ojsConnector.killPendingGlobals();
+        }, 0);
+      });
+    });
+  }
 
   const subfigIdMap = new Map();
   function getSubfigId(elementId) {
