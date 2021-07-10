@@ -15,6 +15,8 @@ import { serve, ServerRequest } from "http/server.ts";
 
 import { ld } from "lodash/mod.ts";
 
+import { kOutputFile } from "../../config/constants.ts";
+
 import { cssFileResourceReferences } from "../../core/html.ts";
 import { logError } from "../../core/log.ts";
 import { kLocalhost } from "../../core/port.ts";
@@ -29,7 +31,6 @@ import { render } from "../render/render-shared.ts";
 import { RenderFlags, RenderResultFile } from "../render/types.ts";
 import { renderFormats } from "../render/render.ts";
 import { replacePandocArg } from "../render/flags.ts";
-import { kOutputFile } from "../../config/constants.ts";
 
 interface PreviewOptions {
   port: number;
@@ -59,34 +60,54 @@ export async function preview(
   // create client reloader
   const reloader = httpReloader(options.port);
 
-  // create filesystem watcher
+  // create filesystem watcher (re-create if the list of targeted files change)
   const renderQueue = new PromiseQueue();
-  previewWatcher([
-    // re-render on source file changed
-    {
-      files: [file],
-      handler: ld.debounce(async () => {
-        try {
-          if (options.render) {
-            await renderQueue.enqueue(() => {
-              return renderForPreview(file, flags, pandocArgs, options);
-            }, true);
-          }
-        } catch (e) {
-          if (e.message) {
-            logError(e);
-          }
-        }
-      }, 50),
-    },
-    // reload on output or resource changed
-    {
-      files: [result.outputFile].concat(result.resourceFiles),
-      handler: ld.debounce(async () => {
-        await reloader.reloadClients();
-      }, 50),
-    },
-  ]).start();
+  let watcher: Watcher | undefined;
+  let lastResult = result;
+  const syncWatcher = (result: RenderForPreviewResult) => {
+    const requiresSync = !watcher || !lastResult ||
+      !ld.isEqual(result, lastResult);
+    lastResult = result;
+    if (requiresSync) {
+      if (watcher) {
+        watcher.stop();
+      }
+      watcher = previewWatcher([
+        // re-render on source file changed
+        {
+          files: [file],
+          handler: ld.debounce(async () => {
+            try {
+              if (options.render) {
+                await renderQueue.enqueue(async () => {
+                  const result = await renderForPreview(
+                    file,
+                    flags,
+                    pandocArgs,
+                    options,
+                  );
+                  syncWatcher(result);
+                }, true);
+              }
+            } catch (e) {
+              if (e.message) {
+                logError(e);
+              }
+            }
+          }, 50),
+        },
+        // reload on output or resource changed
+        {
+          files: [result.outputFile].concat(result.resourceFiles),
+          handler: ld.debounce(async () => {
+            await reloader.reloadClients();
+          }, 50),
+        },
+      ]);
+      watcher.start();
+    }
+  };
+  syncWatcher(result);
 
   // file request handler (hook clients up to reloader)
   const handler = httpFileRequestHandler({
@@ -121,12 +142,18 @@ export async function preview(
   }
 }
 
+interface RenderForPreviewResult {
+  file: string;
+  outputFile: string;
+  resourceFiles: string[];
+}
+
 async function renderForPreview(
   file: string,
   flags: RenderFlags,
   pandocArgs: string[],
   options: PreviewOptions,
-) {
+): Promise<RenderForPreviewResult> {
   // render
   const renderResult = await render(file, {
     flags,
@@ -161,6 +188,7 @@ async function renderForPreview(
     [],
   );
   return {
+    file,
     outputFile: join(dirname(file), renderResult.files[0].file),
     resourceFiles,
   };
@@ -171,7 +199,12 @@ interface Watch {
   handler: () => Promise<void>;
 }
 
-function previewWatcher(watches: Watch[]) {
+interface Watcher {
+  start: VoidFunction;
+  stop: VoidFunction;
+}
+
+function previewWatcher(watches: Watch[]): Watcher {
   watches = watches.map((watch) => {
     return {
       ...watch,
@@ -185,9 +218,9 @@ function previewWatcher(watches: Watch[]) {
 
   // create the watcher
   const files = watches.flatMap((watch) => watch.files);
-  const watcher = Deno.watchFs(files);
+  const fsWatcher = Deno.watchFs(files);
   const watchForChanges = async () => {
-    for await (const event of watcher) {
+    for await (const event of fsWatcher) {
       try {
         if (event.kind === "modify") {
           const handlers = new Set<() => Promise<void>>();
@@ -211,6 +244,6 @@ function previewWatcher(watches: Watch[]) {
 
   return {
     start: watchForChanges,
-    close: () => watcher.close(),
+    stop: () => fsWatcher.close(),
   };
 }
