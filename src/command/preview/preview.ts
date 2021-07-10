@@ -31,6 +31,7 @@ import { RenderFlags, RenderResultFile } from "../render/types.ts";
 interface PreviewOptions {
   port: number;
   browse: boolean;
+  render: boolean;
 }
 
 export async function preview(
@@ -53,9 +54,11 @@ export async function preview(
       files: [file],
       handler: ld.debounce(async () => {
         try {
-          await renderQueue.enqueue(() => {
-            return renderForPreview(file, flags, pandocArgs, options);
-          }, true);
+          if (options.render) {
+            await renderQueue.enqueue(() => {
+              return renderForPreview(file, flags, pandocArgs, options);
+            }, true);
+          }
         } catch (e) {
           logError(e);
         }

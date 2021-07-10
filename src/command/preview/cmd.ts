@@ -7,6 +7,8 @@
 
 import { existsSync } from "fs/mod.ts";
 
+import * as colors from "fmt/colors.ts";
+
 import { Command } from "cliffy/command/mod.ts";
 
 import { findOpenPort } from "../../core/port.ts";
@@ -21,6 +23,10 @@ export const previewCommand = new Command()
     "Port to listen on (defaults to 4848).",
   )
   .option(
+    "--no-render",
+    "Do not re-render when the source file changes.",
+  )
+  .option(
     "--no-browse",
     "Don't open a browser to preview the site.",
   )
@@ -28,23 +34,30 @@ export const previewCommand = new Command()
   .description(
     "Render and preview a Quarto document. Automatically re-renders the document when the source\n" +
       "file changes. Automatically reloads the browser when document resources (e.g. CSS) change.\n\n" +
-      "You can pass arbitrary command line arguments to be forwarded to quarto render.",
+      "Pass --no-render to prevent re-rendering when the source file changes (note that even when\n" +
+      "this option is provided the document will be rendered once before previewing).\n\n" +
+      "You can also include arbitrary command line arguments to be forwarded to " +
+      colors.bold("quarto render") + ".",
   )
   .example(
     "Preview document",
-    "quarto preview document.qmd",
+    "quarto preview doc.qmd",
   )
   .example(
-    "Preview document using specific port",
-    "quarto preview --port 4444",
+    "Preview using specific port",
+    "quarto preview doc.qmd --port 4444",
   )
   .example(
-    "Preview document but don't open a browser",
-    "quarto preview --no-browse",
+    "Preview (don't open a browser)",
+    "quarto preview doc.qmd --no-browse",
   )
   .example(
-    "Preview document with render command line args",
-    "quarto preview document.qmd --toc --number-sections",
+    "Preview (don't re-render on source change)",
+    "quarto preview doc.qmd --no-render",
+  )
+  .example(
+    "Preview with render command line args",
+    "quarto preview doc.qmd --toc --number-sections",
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, file: string, args: string[]) => {
@@ -63,9 +76,14 @@ export const previewCommand = new Command()
     }
     const noBrowsePos = args.indexOf("--no-browse");
     if (noBrowsePos !== -1) {
+      options.browse = false;
       args.splice(noBrowsePos, 1);
     }
-
+    const noRenderPos = args.indexOf("--no-render");
+    if (noRenderPos !== -1) {
+      options.render = false;
+      args.splice(noRenderPos, 1);
+    }
     // select a port if we need to
     if (!port) {
       port = findOpenPort(4848);
@@ -80,5 +98,6 @@ export const previewCommand = new Command()
     await preview(file, flags, args, {
       port,
       browse: !!options.browse,
+      render: !!options.render,
     });
   });
