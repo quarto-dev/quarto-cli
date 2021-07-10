@@ -10,16 +10,11 @@ import { ServerRequest } from "http/server.ts";
 import { extname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
-import { acceptWebSocket, WebSocket } from "ws/mod.ts";
-
 import { ld } from "lodash/mod.ts";
 
 import { pathWithForwardSlashes, removeIfExists } from "../../core/path.ts";
-import { isRStudioServer } from "../../core/platform.ts";
 
 import { logError } from "../../core/log.ts";
-import { maybeDisplaySocketError } from "../../core/http.ts";
-
 import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
@@ -35,8 +30,8 @@ import { RenderResult } from "../render/types.ts";
 
 import { copyProjectForServe } from "./serve-shared.ts";
 
-import { kLocalhost } from "../../core/port.ts";
 import { ProjectWatcher, ServeOptions } from "./types.ts";
+import { httpReloader } from "../../core/http-reload.ts";
 
 export async function watchProject(
   project: ProjectContext,
@@ -175,12 +170,8 @@ export async function watchProject(
     }
   };
 
-  // track clients
-  interface Client {
-    path: string;
-    socket: WebSocket;
-  }
-  const clients: Client[] = [];
+  // http reloader
+  const reloader = httpReloader(options.port);
 
   // debounced function for notifying all clients of a change
   // (ensures that we wait for bulk file copying to complete
@@ -253,30 +244,8 @@ export async function watchProject(
       // clear out the modified list
       modified.splice(0, modified.length);
 
-      for (let i = clients.length - 1; i >= 0; i--) {
-        const socket = clients[i].socket;
-        try {
-          // if this is rstudio server then we might need to include
-          // a port proxy url prefix
-          if (isRStudioServer()) {
-            const prefix = clients[i].path.match(/^\/p\/\w+/);
-            if (prefix) {
-              if (!reloadTarget.startsWith("/")) {
-                reloadTarget = "/" + reloadTarget;
-              }
-              reloadTarget = prefix[0] + reloadTarget;
-            }
-          }
-          await socket.send(`reload${reloadTarget}`);
-        } catch (e) {
-          maybeDisplaySocketError(e);
-        } finally {
-          if (!socket.isClosed) {
-            socket.close().catch(maybeDisplaySocketError);
-          }
-          clients.splice(i, 1);
-        }
-      }
+      // reload clients
+      reloader.reloadClients(reloadTarget);
     } catch (e) {
       logError(e);
     }
@@ -304,33 +273,12 @@ export async function watchProject(
   // return watcher interface
   return {
     handle: (req: ServerRequest) => {
-      return !!options.watch && (req.headers.get("upgrade") === "websocket");
+      return !!options.watch && reloader.handle(req);
     },
-    connect: async (req: ServerRequest) => {
-      const { conn, r: bufReader, w: bufWriter, headers } = req;
-      try {
-        const socket = await acceptWebSocket({
-          conn,
-          bufReader,
-          bufWriter,
-          headers,
-        });
-        clients.push({ path: req.url, socket });
-      } catch (e) {
-        maybeDisplaySocketError(e);
-      }
-    },
+    connect: reloader.connect,
     injectClient: (file: Uint8Array) => {
       if (options.watch) {
-        const scriptContents = new TextEncoder().encode(
-          watchClientScript(options.port),
-        );
-        const fileWithScript = new Uint8Array(
-          file.length + scriptContents.length,
-        );
-        fileWithScript.set(file);
-        fileWithScript.set(scriptContents, file.length);
-        return fileWithScript;
+        return reloader.injectClient(file);
       } else {
         return file;
       }
@@ -341,25 +289,4 @@ export async function watchProject(
       return serveProject;
     },
   };
-}
-
-function watchClientScript(port: number): string {
-  return `
-<script>
-  const socket = new WebSocket('ws://${kLocalhost}:${port}' + window.location.pathname );
-  socket.onopen = () => {
-    console.log('Socket connection open. Listening for events.');
-  };
-  socket.onmessage = (msg) => {
-    if (msg.data.startsWith('reload')) {
-      socket.close();
-      const target = msg.data.replace(/^reload/, "");
-      if (target && (target !== window.location.pathname)) {
-        window.location.replace(target.replace(/index\.html$/, ""))
-      } else {
-        window.location.reload(true);
-      }
-    } 
-  };
-</script>`;
 }
