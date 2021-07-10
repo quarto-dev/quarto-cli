@@ -15,8 +15,11 @@ export class PromiseQueue<T = unknown> {
   private queue = new Array<PendingPromise<T>>();
   private running = false;
 
-  public enqueue(promise: () => Promise<T>) {
+  public enqueue(promise: () => Promise<T>, clearPending = false) {
     return new Promise<T>((resolve, reject) => {
+      if (clearPending) {
+        this.queue.splice(0, this.queue.length);
+      }
       this.queue.push({
         promise,
         resolve,

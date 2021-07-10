@@ -5,22 +5,28 @@
 *
 */
 
-import { dirname, join } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 
 import { info } from "log/mod.ts";
 
 import * as colors from "fmt/colors.ts";
 
-import { serve } from "http/server.ts";
+import { serve, ServerRequest } from "http/server.ts";
 
-import { render } from "../render/render-shared.ts";
-import { inputFilesDir } from "../../core/render.ts";
-import { RenderFlags, RenderResultFile } from "../render/types.ts";
+import { ld } from "lodash/mod.ts";
+
 import { cssFileResourceReferences } from "../../core/html.ts";
 import { logError } from "../../core/log.ts";
 import { kLocalhost } from "../../core/port.ts";
 import { openUrl } from "../../core/shell.ts";
 import { httpFileRequestHandler } from "../../core/http.ts";
+import { httpReloader } from "../../core/http-reload.ts";
+import { isHtmlContent } from "../../core/mime.ts";
+import { PromiseQueue } from "../../core/promise.ts";
+import { inputFilesDir } from "../../core/render.ts";
+
+import { render } from "../render/render-shared.ts";
+import { RenderFlags, RenderResultFile } from "../render/types.ts";
 
 interface PreviewOptions {
   port: number;
@@ -36,8 +42,55 @@ export async function preview(
   // render for preview
   const result = await renderForPreview(file, flags, pandocArgs);
 
-  // serve project (open browser if requested)
-  console.log(options);
+  // create client reloader
+  const reloader = httpReloader(options.port);
+
+  // create filesystem watcher
+  const renderQueue = new PromiseQueue();
+  previewWatcher([
+    // re-render on source file changed
+    {
+      files: [file],
+      handler: ld.debounce(async () => {
+        try {
+          await renderQueue.enqueue(() => {
+            return renderForPreview(file, flags, pandocArgs);
+          }, true);
+        } catch (e) {
+          logError(e);
+        }
+      }, 100),
+    },
+    // reload on output or resource changed
+    {
+      files: [result.outputFile].concat(result.resourceFiles),
+      handler: ld.debounce(async () => {
+        await reloader.reloadClients();
+      }, 100),
+    },
+  ]).start();
+
+  // file request handler (hook clients up to reloader)
+  const handler = httpFileRequestHandler({
+    baseDir: dirname(file),
+    defaultFile: relative(dirname(file), result.outputFile),
+    onRequest: async (req: ServerRequest) => {
+      if (reloader.handle(req)) {
+        await reloader.connect(req);
+        return true;
+      } else {
+        return false;
+      }
+    },
+    onFile: async (file: string) => {
+      if (isHtmlContent(file)) {
+        const fileContents = await Deno.readFile(file);
+        return reloader.injectClient(fileContents);
+      }
+    },
+  });
+
+  // serve project
   const server = serve({ port: options.port, hostname: kLocalhost });
   const siteUrl = `http://localhost:${options.port}/`;
   info("Watching files for reload on changes");
@@ -48,12 +101,6 @@ export async function preview(
   if (options.browse) {
     openUrl(siteUrl);
   }
-
-  // setup request handler
-  const handler = httpFileRequestHandler({
-    baseDir: dirname(file),
-    defaultFile: result.outputFile,
-  });
 
   // handle requests
   for await (const req of server) {
@@ -88,40 +135,46 @@ async function renderForPreview(
     },
     [],
   );
-
   return {
-    outputFile: renderResult.files[0].file,
+    outputFile: join(dirname(file), renderResult.files[0].file),
     resourceFiles,
   };
 }
 
 interface Watch {
   files: string[];
-  handler: VoidFunction;
+  handler: () => Promise<void>;
 }
 
 function previewWatcher(watches: Watch[]) {
-  // accumulate the files to watch
-  const files = watches.flatMap((watch) => watch.files);
+  watches = watches.map((watch) => {
+    return {
+      ...watch,
+      files: watch.files.map(Deno.realPathSync),
+    };
+  });
   const handlerForFile = (file: string) => {
     const watch = watches.find((watch) => watch.files.includes(file));
     return watch?.handler;
   };
 
   // create the watcher
+  const files = watches.flatMap((watch) => watch.files);
   const watcher = Deno.watchFs(files);
   const watchForChanges = async () => {
     for await (const event of watcher) {
       try {
         if (event.kind === "modify") {
-          const handlers = new Set<VoidFunction>();
+          const handlers = new Set<() => Promise<void>>();
           event.paths.forEach((path) => {
             const handler = handlerForFile(path);
             if (handler && !handlers.has(handler)) {
               handlers.add(handler);
             }
           });
-          handlers.forEach((handler) => handler());
+          for (const handler of handlers) {
+            await handler();
+          }
         }
       } catch (e) {
         logError(e);

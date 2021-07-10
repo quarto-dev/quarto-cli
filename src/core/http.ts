@@ -164,7 +164,8 @@ export function normalizeURL(url: string): string {
 export function maybeDisplaySocketError(e: unknown) {
   if (
     !(e instanceof Deno.errors.BrokenPipe) &&
-    !(e instanceof Deno.errors.ConnectionAborted)
+    !(e instanceof Deno.errors.ConnectionAborted) &&
+    !(e instanceof Deno.errors.ConnectionReset)
   ) {
     logError(e as Error);
   }
