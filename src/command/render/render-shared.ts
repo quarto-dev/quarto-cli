@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, join, relative } from "path/mod.ts";
+import { dirname, join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { pathWithForwardSlashes } from "../../core/path.ts";

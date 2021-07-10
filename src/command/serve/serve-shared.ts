@@ -13,7 +13,6 @@ import {
   pathWithForwardSlashes,
 } from "../../core/path.ts";
 import { createSessionTempDir } from "../../core/temp.ts";
-import { logError } from "../../core/log.ts";
 
 import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
