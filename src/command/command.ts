@@ -10,11 +10,7 @@ import type { Command } from "cliffy/command/mod.ts";
 import { renderCommand } from "./render/cmd.ts";
 import { runCommand } from "./run/cmd.ts";
 import { createProjectCommand } from "./create-project/cmd.ts";
-import {
-  installCommand,
-  uninstallCommand,
-  updateCommand,
-} from "./install/cmd.ts";
+import { toolsCommand } from "./tools/cmd.ts";
 import { serveCommand } from "./serve/cmd.ts";
 import { previewCommand } from "./preview/cmd.ts";
 import { convertCommand } from "./convert/cmd.ts";
@@ -27,14 +23,12 @@ export function commands(): Command[] {
     renderCommand,
     runCommand,
     createProjectCommand,
-    installCommand,
-    updateCommand,
-    uninstallCommand,
     serveCommand,
     previewCommand,
     convertCommand,
     capabilitiesCommand,
     checkCommand,
     inspectCommand,
+    toolsCommand,
   ];
 }

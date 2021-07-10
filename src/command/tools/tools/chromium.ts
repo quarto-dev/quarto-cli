@@ -15,7 +15,7 @@ import {
   withSpinner,
 } from "../../../core/console.ts";
 
-import { InstallableTool, InstallContext, PackageInfo } from "../install.ts";
+import { InstallableTool, InstallContext, PackageInfo } from "../tools.ts";
 
 export const chromiumInstallable: InstallableTool = {
   name: "Chromium",

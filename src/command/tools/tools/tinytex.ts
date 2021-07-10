@@ -21,7 +21,7 @@ import {
   InstallContext,
   PackageInfo,
   RemotePackageInfo,
-} from "../install.ts";
+} from "../tools.ts";
 import { getLatestRelease } from "../github.ts";
 
 // This the https texlive repo that we use by default
