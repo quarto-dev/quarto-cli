@@ -117,6 +117,9 @@ async function renderForPreview(
     flags,
     pandocArgs: pandocArgs,
   });
+  if (renderResult.error) {
+    throw renderResult.error;
+  }
 
   // print status
   const siteUrl = `http://localhost:${options.port}/`;
