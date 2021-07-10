@@ -40,7 +40,7 @@ export async function preview(
   options: PreviewOptions,
 ) {
   // render for preview
-  const result = await renderForPreview(file, flags, pandocArgs);
+  const result = await renderForPreview(file, flags, pandocArgs, options);
 
   // create client reloader
   const reloader = httpReloader(options.port);
@@ -54,19 +54,19 @@ export async function preview(
       handler: ld.debounce(async () => {
         try {
           await renderQueue.enqueue(() => {
-            return renderForPreview(file, flags, pandocArgs);
+            return renderForPreview(file, flags, pandocArgs, options);
           }, true);
         } catch (e) {
           logError(e);
         }
-      }, 100),
+      }, 50),
     },
     // reload on output or resource changed
     {
       files: [result.outputFile].concat(result.resourceFiles),
       handler: ld.debounce(async () => {
         await reloader.reloadClients();
-      }, 100),
+      }, 50),
     },
   ]).start();
 
@@ -74,6 +74,7 @@ export async function preview(
   const handler = httpFileRequestHandler({
     baseDir: dirname(file),
     defaultFile: relative(dirname(file), result.outputFile),
+    printUrls: "404",
     onRequest: async (req: ServerRequest) => {
       if (reloader.handle(req)) {
         await reloader.connect(req);
@@ -92,14 +93,8 @@ export async function preview(
 
   // serve project
   const server = serve({ port: options.port, hostname: kLocalhost });
-  const siteUrl = `http://localhost:${options.port}/`;
-  info("Watching files for reload on changes");
-  info(`Browse preview at `, {
-    newline: false,
-  });
-  info(`${siteUrl}`, { format: colors.underline });
   if (options.browse) {
-    openUrl(siteUrl);
+    openUrl(`http://localhost:${options.port}/`);
   }
 
   // handle requests
@@ -112,12 +107,21 @@ async function renderForPreview(
   file: string,
   flags: RenderFlags,
   pandocArgs: string[],
+  options: PreviewOptions,
 ) {
   // render
   const renderResult = await render(file, {
     flags,
     pandocArgs: pandocArgs,
   });
+
+  // print status
+  const siteUrl = `http://localhost:${options.port}/`;
+  info("Watching files for changes");
+  info(`Browse at `, {
+    newline: false,
+  });
+  info(`${siteUrl}`, { format: colors.underline });
 
   // determine files to watch for reload -- take the resource
   // files detected during render, chase down additional references

@@ -18,6 +18,7 @@ import { logError } from "./log.ts";
 export interface HttpFileRequestOptions {
   baseDir: string;
   defaultFile?: string;
+  printUrls?: "all" | "404";
   onRequest?: (req: ServerRequest) => Promise<boolean>;
   onFile?: (file: string) => Promise<Uint8Array | undefined>;
   on404?: (url: string) => { print?: boolean; body?: Uint8Array };
@@ -68,6 +69,7 @@ export function httpFileRequestHandler(
         ? options.on404(url)
         : { print: true, body: encoder.encode("Not Found") };
       handle404.print = handle404.print &&
+        !!options.printUrls &&
         basename(fsPath) !== "favicon.ico" &&
         extname(fsPath) !== ".map";
       if (handle404.print) {
@@ -112,7 +114,9 @@ export function httpFileRequestHandler(
         response = serveRedirect(normalizedUrl + "/");
       } else {
         response = await serveFile(fsPath!);
-        printUrl(normalizedUrl);
+        if (options.printUrls === "all") {
+          printUrl(normalizedUrl);
+        }
       }
     } catch (e) {
       response = await serveFallback(

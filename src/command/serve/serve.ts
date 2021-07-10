@@ -94,6 +94,9 @@ export async function serveProject(
     //  base dir
     baseDir: serveOutputDir,
 
+    // print all urls
+    printUrls: "all",
+
     // handle websocket upgrade requests
     onRequest: async (req: ServerRequest) => {
       if (watcher.handle(req)) {
