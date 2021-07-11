@@ -11,6 +11,7 @@ import { mergeConfigs } from "../../core/config.ts";
 import { texSafeFilename } from "../../core/tex.ts";
 
 import {
+  kClassOption,
   kDocumentClass,
   kEcho,
   kFigDpi,
@@ -90,6 +91,7 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
         if (koma) {
           extras.metadata = {
             [kDocumentClass]: "scrartcl",
+            [kClassOption]: ["DIV=11"],
             [kPaperSize]: "letter",
           };
         }

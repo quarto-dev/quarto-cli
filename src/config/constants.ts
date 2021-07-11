@@ -189,6 +189,7 @@ export const kIncludeAfter = "include-after";
 export const kTocTitle = "toc-title";
 export const kLinkCitations = "link-citations";
 export const kDocumentClass = "documentclass";
+export const kClassOption = "classoption";
 
 export const kTheme = "theme";
 export const kCrossref = "crossref";

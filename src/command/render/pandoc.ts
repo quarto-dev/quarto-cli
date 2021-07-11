@@ -57,6 +57,7 @@ import {
 } from "./defaults.ts";
 import { filterParamsJson, removeFilterParmas } from "./filters.ts";
 import {
+  kClassOption,
   kDocumentClass,
   kFilterParams,
   kHighlightStyle,
@@ -234,6 +235,10 @@ export async function runPandoc(
       printMetadata = mergeConfigs(extras.metadata, printMetadata);
       cleanMetadataForPrinting(printMetadata);
     }
+
+    // more cleanup
+    options.format.metadata = cleanupPandocMetadata(options.format.metadata);
+    printMetadata = cleanupPandocMetadata(printMetadata);
 
     if (extras[kIncludeInHeader]) {
       allDefaults = {
@@ -418,6 +423,23 @@ export async function runPandoc(
   } else {
     return null;
   }
+}
+
+function cleanupPandocMetadata(metadata: Metadata) {
+  const cleaned = ld.cloneDeep(metadata);
+
+  // pdf classoption can end up with duplicaed options
+  const classoption = cleaned[kClassOption];
+  if (Array.isArray(classoption)) {
+    cleaned[kClassOption] = ld.uniqBy(
+      classoption.reverse(),
+      (option: string) => {
+        return option.replace(/=.+$/, "");
+      },
+    ).reverse();
+  }
+
+  return cleaned;
 }
 
 async function resolveExtras(
