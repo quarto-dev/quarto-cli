@@ -37,19 +37,7 @@ export function httpFileRequestHandler(
       fileContents = Deno.readFileSync(filePath);
     }
 
-    // content headers
-    const headers = new Headers();
-    headers.set("Content-Length", fileContents.byteLength.toString());
-    const contentTypeValue = contentType(filePath);
-    if (contentTypeValue) {
-      headers.set("Content-Type", contentTypeValue);
-    }
-    headers.set("Cache-Control", "no-store, max-age=0");
-    return Promise.resolve({
-      status: 200,
-      body: fileContents,
-      headers,
-    });
+    return httpContentResponse(fileContents, contentType(filePath));
   }
 
   function serveFallback(
@@ -131,6 +119,27 @@ export function httpFileRequestHandler(
         maybeDisplaySocketError(e);
       }
     }
+  };
+}
+
+export function httpContentResponse(
+  content: Uint8Array | string,
+  contentType?: string,
+): Response {
+  if (typeof (content) === "string") {
+    content = new TextEncoder().encode(content);
+  }
+  // content headers
+  const headers = new Headers();
+  headers.set("Content-Length", content.byteLength.toString());
+  if (contentType) {
+    headers.set("Content-Type", contentType);
+  }
+  headers.set("Cache-Control", "no-store, max-age=0");
+  return {
+    status: 200,
+    body: content,
+    headers,
   };
 }
 

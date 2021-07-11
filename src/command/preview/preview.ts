@@ -22,6 +22,7 @@ import { logError } from "../../core/log.ts";
 import { kLocalhost } from "../../core/port.ts";
 import { openUrl } from "../../core/shell.ts";
 import {
+  httpContentResponse,
   httpFileRequestHandler,
   HttpFileRequestOptions,
 } from "../../core/http.ts";
@@ -62,14 +63,25 @@ export async function preview(
   const reloader = httpReloader(options.port);
 
   // watch for changes and re-render / re-load as necessary
-  watchForChanges(result, reloader, options.render ? render : undefined);
+  const changeHandler = createChangeHandler(
+    result,
+    reloader,
+    render,
+    options.render,
+  );
+
+  // function to call when a special http request asks for a render
+  const renderHandler = async () => {
+    const result = await render();
+    changeHandler.sync(result);
+  };
 
   // create file request handler (hook clients up to reloader)
   // behavior various depending on whether we are previewing html or pdf
   const isHtml = isHtmlContent(result.outputFile);
   const handler = isPdfContent(result.outputFile)
-    ? pdfFileRequestHandler(result.outputFile, reloader)
-    : htmlFileRequestHandler(result.outputFile, reloader);
+    ? pdfFileRequestHandler(result.outputFile, reloader, renderHandler)
+    : htmlFileRequestHandler(result.outputFile, reloader, renderHandler);
 
   // serve project
   const server = serve({ port: options.port, hostname: kLocalhost });
@@ -153,15 +165,20 @@ async function renderForPreview(
   };
 }
 
-function watchForChanges(
+interface ChangeHandler {
+  sync: (result: RenderForPreviewResult) => void;
+}
+
+function createChangeHandler(
   result: RenderForPreviewResult,
   reloader: HttpReloader,
-  render?: () => Promise<RenderForPreviewResult>,
-) {
+  render: () => Promise<RenderForPreviewResult>,
+  renderOnChange: boolean,
+): ChangeHandler {
   const renderQueue = new PromiseQueue();
   let watcher: Watcher | undefined;
   let lastResult = result;
-  const syncWatcher = (result: RenderForPreviewResult) => {
+  const sync = (result: RenderForPreviewResult) => {
     const requiresSync = !watcher || !lastResult ||
       !ld.isEqual(result, lastResult);
     lastResult = result;
@@ -169,45 +186,52 @@ function watchForChanges(
       if (watcher) {
         watcher.stop();
       }
-      // only watch the output file if this is a pdf
+
+      // render handler
+      const renderHandler = ld.debounce(async () => {
+        try {
+          await renderQueue.enqueue(async () => {
+            const result = await render();
+            sync(result);
+          }, true);
+        } catch (e) {
+          if (e.message) {
+            logError(e);
+          }
+        }
+      }, 50);
+
+      const watches: Watch[] = [];
+      if (renderOnChange) {
+        watches.push({
+          files: [result.file],
+          handler: renderHandler,
+        });
+      }
+
+      // reload on output or resource changed (but wait for
+      // the render queue to finish, as sometimes pdfs are
+      // modified and even removed by pdflatex during render)
       const reloadFiles = isHtmlContent(result.outputFile)
         ? htmlReloadFiles(result)
         : pdfReloadFiles(result);
-      watcher = previewWatcher([
-        // re-render on source file changed
-        {
-          files: [result.file],
-          handler: ld.debounce(async () => {
-            try {
-              if (render) {
-                await renderQueue.enqueue(async () => {
-                  const result = await render();
-                  syncWatcher(result);
-                }, true);
-              }
-            } catch (e) {
-              if (e.message) {
-                logError(e);
-              }
-            }
-          }, 50),
-        },
-        // reload on output or resource changed (but wait for
-        // the render queue to finish, as sometimes pdfs are
-        // modified and even removed by pdflatex during render)
-        {
-          files: reloadFiles,
-          handler: ld.debounce(async () => {
-            await renderQueue.enqueue(async () => {
-              await reloader.reloadClients();
-            });
-          }, 50),
-        },
-      ]);
+      watches.push({
+        files: reloadFiles,
+        handler: ld.debounce(async () => {
+          await renderQueue.enqueue(async () => {
+            await reloader.reloadClients();
+          });
+        }, 50),
+      });
+
+      watcher = previewWatcher(watches);
       watcher.start();
     }
   };
-  syncWatcher(result);
+  sync(result);
+  return {
+    sync,
+  };
 }
 
 interface Watch {
@@ -267,15 +291,17 @@ function previewWatcher(watches: Watch[]): Watcher {
 function htmlFileRequestHandler(
   htmlFile: string,
   reloader: HttpReloader,
+  renderHandler: () => Promise<void>,
 ) {
   return httpFileRequestHandler(
-    htmlFileRequestHandlerOptions(htmlFile, reloader),
+    htmlFileRequestHandlerOptions(htmlFile, reloader, renderHandler),
   );
 }
 
 function htmlFileRequestHandlerOptions(
   htmlFile: string,
   reloader: HttpReloader,
+  renderHandler: () => Promise<void>,
 ): HttpFileRequestOptions {
   return {
     baseDir: dirname(htmlFile),
@@ -284,6 +310,10 @@ function htmlFileRequestHandlerOptions(
     onRequest: async (req: ServerRequest) => {
       if (reloader.handle(req)) {
         await reloader.connect(req);
+        return true;
+      } else if (req.url.startsWith("/quarto-render/")) {
+        await req.respond(httpContentResponse("rendered"));
+        await renderHandler();
         return true;
       } else {
         return false;
@@ -315,9 +345,14 @@ const kPdfJsDefaultFile = "compressed.tracemonkey-pldi-09.pdf";
 function pdfFileRequestHandler(
   pdfFile: string,
   reloader: HttpReloader,
+  renderHandler: () => Promise<void>,
 ) {
   // start w/ the html handler (as we still need it's http reload injection)
-  const pdfOptions = htmlFileRequestHandlerOptions(pdfFile, reloader);
+  const pdfOptions = htmlFileRequestHandlerOptions(
+    pdfFile,
+    reloader,
+    renderHandler,
+  );
 
   // change the baseDir to the pdfjs directory
   pdfOptions.baseDir = formatResourcePath("pdf", "pdfjs");
