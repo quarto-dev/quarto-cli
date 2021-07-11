@@ -302,7 +302,7 @@ function htmlReloadFiles(result: RenderForPreviewResult) {
   return [result.outputFile].concat(result.resourceFiles);
 }
 
-const kPdfJsInitialPath = "web/viewer.html";
+const kPdfJsInitialPath = "pdf/viewer.html";
 const kPdfJsDefaultFile = "compressed.tracemonkey-pldi-09.pdf";
 
 // NOTE: pdfjs uses the \pdftrailerid{} (if defined, and this macro only works for pdflatex)
@@ -324,6 +324,18 @@ function pdfFileRequestHandler(
 
   // leave the default file alone for now (not currently relevant
   // since we are currently sending users directly to web/viewer.html)
+
+  // tweak the request handler to remap /pdf/ to /web/
+  const htmlOnRequest = pdfOptions.onRequest!;
+  pdfOptions.onRequest = async (req: ServerRequest) => {
+    const handled = await htmlOnRequest(req);
+    if (handled) {
+      return handled;
+    } else {
+      req.url = req.url.replace(/^\/pdf\//, "/web/");
+      return false;
+    }
+  };
 
   // tweak the file handler to substitute our pdf for the default one
   const htmlOnFile = pdfOptions.onFile;
