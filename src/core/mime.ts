@@ -43,6 +43,10 @@ export function contentType(path: string): string | undefined {
   return MEDIA_TYPES[extname(path.toLowerCase())];
 }
 
+export function isPdfContent(path?: string) {
+  return path && contentType(path) === kApplicationPdf;
+}
+
 export function isHtmlContent(path?: string) {
   return path && (contentType(path) === kTextHtml);
 }

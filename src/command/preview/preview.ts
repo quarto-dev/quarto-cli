@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, join, relative } from "path/mod.ts";
+import { basename, dirname, join } from "path/mod.ts";
 
 import { info } from "log/mod.ts";
 
@@ -21,9 +21,12 @@ import { cssFileResourceReferences } from "../../core/html.ts";
 import { logError } from "../../core/log.ts";
 import { kLocalhost } from "../../core/port.ts";
 import { openUrl } from "../../core/shell.ts";
-import { httpFileRequestHandler } from "../../core/http.ts";
-import { httpReloader } from "../../core/http-reload.ts";
-import { isHtmlContent } from "../../core/mime.ts";
+import {
+  httpFileRequestHandler,
+  HttpFileRequestOptions,
+} from "../../core/http.ts";
+import { HttpReloader, httpReloader } from "../../core/http-reload.ts";
+import { isHtmlContent, isPdfContent } from "../../core/mime.ts";
 import { PromiseQueue } from "../../core/promise.ts";
 import { inputFilesDir } from "../../core/render.ts";
 
@@ -31,6 +34,7 @@ import { render } from "../render/render-shared.ts";
 import { RenderFlags, RenderResultFile } from "../render/types.ts";
 import { renderFormats } from "../render/render.ts";
 import { replacePandocArg } from "../render/flags.ts";
+import { formatResourcePath } from "../../core/resources.ts";
 
 interface PreviewOptions {
   port: number;
@@ -45,101 +49,65 @@ export async function preview(
   options: PreviewOptions,
 ) {
   // determine the target format if there isn't one in the command line args
-  // (current we force the use of an html based format)
-  const formats = await renderFormats(file);
-  const format = flags.to || Object.keys(formats).find((name) => {
-    const format = formats[name];
-    return isHtmlContent(format.pandoc[kOutputFile]);
-  }) || "html";
-  flags.to = format;
-  replacePandocArg(pandocArgs, "--to", format);
+  // (current we force the use of an html or pdf based format)
+  await resolvePreviewFormat(file, flags, pandocArgs);
 
-  // render for preview
-  const result = await renderForPreview(file, flags, pandocArgs, options);
+  // render for preview (create function we can pass to watcher then call it)
+  const render = async () => {
+    return await renderForPreview(file, flags, pandocArgs);
+  };
+  const result = await render();
 
   // create client reloader
   const reloader = httpReloader(options.port);
 
-  // create filesystem watcher (re-create if the list of targeted files change)
-  const renderQueue = new PromiseQueue();
-  let watcher: Watcher | undefined;
-  let lastResult = result;
-  const syncWatcher = (result: RenderForPreviewResult) => {
-    const requiresSync = !watcher || !lastResult ||
-      !ld.isEqual(result, lastResult);
-    lastResult = result;
-    if (requiresSync) {
-      if (watcher) {
-        watcher.stop();
-      }
-      watcher = previewWatcher([
-        // re-render on source file changed
-        {
-          files: [file],
-          handler: ld.debounce(async () => {
-            try {
-              if (options.render) {
-                await renderQueue.enqueue(async () => {
-                  const result = await renderForPreview(
-                    file,
-                    flags,
-                    pandocArgs,
-                    options,
-                  );
-                  syncWatcher(result);
-                }, true);
-              }
-            } catch (e) {
-              if (e.message) {
-                logError(e);
-              }
-            }
-          }, 50),
-        },
-        // reload on output or resource changed
-        {
-          files: [result.outputFile].concat(result.resourceFiles),
-          handler: ld.debounce(async () => {
-            await reloader.reloadClients();
-          }, 50),
-        },
-      ]);
-      watcher.start();
-    }
-  };
-  syncWatcher(result);
+  // watch for changes and re-render / re-load as necessary
+  watchForChanges(result, reloader, options.render ? render : undefined);
 
-  // file request handler (hook clients up to reloader)
-  const handler = httpFileRequestHandler({
-    baseDir: dirname(file),
-    defaultFile: relative(dirname(file), result.outputFile),
-    printUrls: "404",
-    onRequest: async (req: ServerRequest) => {
-      if (reloader.handle(req)) {
-        await reloader.connect(req);
-        return true;
-      } else {
-        return false;
-      }
-    },
-    onFile: async (file: string) => {
-      if (isHtmlContent(file)) {
-        const fileContents = await Deno.readFile(file);
-        return reloader.injectClient(fileContents);
-      }
-    },
-  });
+  // create file request handler (hook clients up to reloader)
+  // behavior various depending on whether we are previewing html or pdf
+  const isHtml = isHtmlContent(result.outputFile);
+  const handler = isPdfContent(result.outputFile)
+    ? pdfFileRequestHandler(result.outputFile, reloader)
+    : htmlFileRequestHandler(result.outputFile, reloader);
 
   // serve project
   const server = serve({ port: options.port, hostname: kLocalhost });
+
+  // open browser if requested
+  const initialPath = isHtml ? "" : kPdfJsInitialPath;
+  const url = `http://localhost:${options.port}/${initialPath}`;
   if (options.browse) {
-    openUrl(`http://localhost:${options.port}/`);
+    openUrl(url);
   }
+
+  // print status
+  info("Watching files for changes");
+  info(`Browse at `, {
+    newline: false,
+  });
+  info(`${url}`, { format: colors.underline });
 
   // handle requests
   for await (const req of server) {
     await handler(req);
   }
+}
+
+// determine the format to preview (modifies flags and pandocArgs in place)
+async function resolvePreviewFormat(
+  file: string,
+  flags: RenderFlags,
+  pandocArgs: string[],
+) {
+  const formats = await renderFormats(file);
+  const format = flags.to || Object.keys(formats).find((name) => {
+    const format = formats[name];
+    const outputFile = format.pandoc[kOutputFile];
+    return isHtmlContent(outputFile) || isPdfContent(outputFile);
+  }) || "html";
+  flags.to = format;
+  replacePandocArg(pandocArgs, "--to", format);
 }
 
 interface RenderForPreviewResult {
@@ -152,7 +120,6 @@ async function renderForPreview(
   file: string,
   flags: RenderFlags,
   pandocArgs: string[],
-  options: PreviewOptions,
 ): Promise<RenderForPreviewResult> {
   // render
   const renderResult = await render(file, {
@@ -162,14 +129,6 @@ async function renderForPreview(
   if (renderResult.error) {
     throw renderResult.error;
   }
-
-  // print status
-  const siteUrl = `http://localhost:${options.port}/`;
-  info("Watching files for changes");
-  info(`Browse at `, {
-    newline: false,
-  });
-  info(`${siteUrl}`, { format: colors.underline });
 
   // determine files to watch for reload -- take the resource
   // files detected during render, chase down additional references
@@ -192,6 +151,63 @@ async function renderForPreview(
     outputFile: join(dirname(file), renderResult.files[0].file),
     resourceFiles,
   };
+}
+
+function watchForChanges(
+  result: RenderForPreviewResult,
+  reloader: HttpReloader,
+  render?: () => Promise<RenderForPreviewResult>,
+) {
+  const renderQueue = new PromiseQueue();
+  let watcher: Watcher | undefined;
+  let lastResult = result;
+  const syncWatcher = (result: RenderForPreviewResult) => {
+    const requiresSync = !watcher || !lastResult ||
+      !ld.isEqual(result, lastResult);
+    lastResult = result;
+    if (requiresSync) {
+      if (watcher) {
+        watcher.stop();
+      }
+      // only watch the output file if this is a pdf
+      const reloadFiles = isHtmlContent(result.outputFile)
+        ? htmlReloadFiles(result)
+        : pdfReloadFiles(result);
+      watcher = previewWatcher([
+        // re-render on source file changed
+        {
+          files: [result.file],
+          handler: ld.debounce(async () => {
+            try {
+              if (render) {
+                await renderQueue.enqueue(async () => {
+                  const result = await render();
+                  syncWatcher(result);
+                }, true);
+              }
+            } catch (e) {
+              if (e.message) {
+                logError(e);
+              }
+            }
+          }, 50),
+        },
+        // reload on output or resource changed (but wait for
+        // the render queue to finish, as sometimes pdfs are
+        // modified and even removed by pdflatex during render)
+        {
+          files: reloadFiles,
+          handler: ld.debounce(async () => {
+            await renderQueue.enqueue(async () => {
+              await reloader.reloadClients();
+            });
+          }, 50),
+        },
+      ]);
+      watcher.start();
+    }
+  };
+  syncWatcher(result);
 }
 
 interface Watch {
@@ -246,4 +262,103 @@ function previewWatcher(watches: Watch[]): Watcher {
     start: watchForChanges,
     stop: () => fsWatcher.close(),
   };
+}
+
+function htmlFileRequestHandler(
+  htmlFile: string,
+  reloader: HttpReloader,
+) {
+  return httpFileRequestHandler(
+    htmlFileRequestHandlerOptions(htmlFile, reloader),
+  );
+}
+
+function htmlFileRequestHandlerOptions(
+  htmlFile: string,
+  reloader: HttpReloader,
+): HttpFileRequestOptions {
+  return {
+    baseDir: dirname(htmlFile),
+    defaultFile: basename(htmlFile),
+    printUrls: "404",
+    onRequest: async (req: ServerRequest) => {
+      if (reloader.handle(req)) {
+        await reloader.connect(req);
+        return true;
+      } else {
+        return false;
+      }
+    },
+    onFile: async (file: string) => {
+      if (isHtmlContent(file)) {
+        const fileContents = await Deno.readFile(file);
+        return reloader.injectClient(fileContents);
+      }
+    },
+  };
+}
+
+function htmlReloadFiles(result: RenderForPreviewResult) {
+  return [result.outputFile].concat(result.resourceFiles);
+}
+
+const kPdfJsInitialPath = "web/viewer.html";
+const kPdfJsDefaultFile = "compressed.tracemonkey-pldi-09.pdf";
+
+// NOTE: pdfjs uses the \pdftrailerid{} (if defined, and this macro only works for pdflatex)
+// as the context for persisting user prefs. this is read in the "fingerprint" method of
+// PDFDocument (on ~ line 12100 of pdf.worker.js). if we want to preserve the user's prefs
+// (e.g. zoom level, sidebar, etc.) we need to provide this either by injecting \pdftrailerid
+// into rendered pdfs or by patching PDFDocument to always return the same fingerprint
+// (which is what we do below)
+
+function pdfFileRequestHandler(
+  pdfFile: string,
+  reloader: HttpReloader,
+) {
+  // start w/ the html handler (as we still need it's http reload injection)
+  const pdfOptions = htmlFileRequestHandlerOptions(pdfFile, reloader);
+
+  // change the baseDir to the pdfjs directory
+  pdfOptions.baseDir = formatResourcePath("pdf", "pdfjs");
+
+  // leave the default file alone for now (not currently relevant
+  // since we are currently sending users directly to web/viewer.html)
+
+  // tweak the file handler to substitute our pdf for the default one
+  const htmlOnFile = pdfOptions.onFile;
+  pdfOptions.onFile = async (file: string) => {
+    // base behavior (injects the reloader into html files)
+    const contents = await htmlOnFile!(file);
+    if (contents) {
+      return contents;
+    }
+
+    // tweak viewer.js to point to our pdf
+    if (file === join(pdfOptions.baseDir, "web", "viewer.js")) {
+      const viewerJs = Deno.readTextFileSync(file).replace(
+        kPdfJsDefaultFile,
+        basename(pdfFile),
+      );
+      return new TextEncoder().encode(viewerJs);
+
+      // tweak pdf.worker.js to always return the same fingerprint
+      // (preserve user viewer prefs across reloads)
+    } else if (file === join(pdfOptions.baseDir, "build", "pdf.worker.js")) {
+      const workerJs = Deno.readTextFileSync(file).replace(
+        /(key: "fingerprint",\s+get: function get\(\) {\s+)(var hash;)/,
+        `$1return "quarto-pdf-preview"; $2`,
+      );
+      return new TextEncoder().encode(workerJs);
+    } // read requests for our pdf for the pdfFile
+    else if (file === (join(pdfOptions.baseDir, "web", basename(pdfFile)))) {
+      return Deno.readFileSync(pdfFile);
+    }
+  };
+
+  return httpFileRequestHandler(pdfOptions);
+}
+
+function pdfReloadFiles(result: RenderForPreviewResult) {
+  return [result.outputFile];
 }

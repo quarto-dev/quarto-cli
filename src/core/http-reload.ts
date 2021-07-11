@@ -13,7 +13,15 @@ import { isRStudioServer } from "./platform.ts";
 import { kLocalhost } from "./port.ts";
 
 // track a set of http clients and notify them when to reload themselves
-export function httpReloader(port: number) {
+
+export interface HttpReloader {
+  handle: (req: ServerRequest) => boolean;
+  connect: (req: ServerRequest) => Promise<void>;
+  injectClient: (file: Uint8Array) => Uint8Array;
+  reloadClients: (reloadTarget?: string) => Promise<void>;
+}
+
+export function httpReloader(port: number): HttpReloader {
   // track clients
   interface Client {
     path: string;
