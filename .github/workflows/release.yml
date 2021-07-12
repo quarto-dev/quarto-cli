@@ -26,7 +26,7 @@ jobs:
       tag_name:  v${{steps.config.outputs.version}}.${{ github.run_number }}
       release: Daily (v${{steps.config.outputs.version}} Build ${{ github.run_number }})
       changes: ${{ steps.config.outputs.changes }}  
-      
+    if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     steps:
     - uses: actions/checkout@v2
       with:
