@@ -70,24 +70,17 @@ export async function preview(
     options.render,
   );
 
-  // function to call when a special http request asks for a render
-  const renderHandler = async () => {
-    const result = await render();
-    changeHandler.sync(result);
-  };
-
-  // create file request handler (hook clients up to reloader)
-  // behavior various depending on whether we are previewing html or pdf
-  const isHtml = isHtmlContent(result.outputFile);
+  // create file request handler (hook clients up to reloader, provide
+  // function to be used if a render request comes in)
   const handler = isPdfContent(result.outputFile)
-    ? pdfFileRequestHandler(result.outputFile, reloader, renderHandler)
-    : htmlFileRequestHandler(result.outputFile, reloader, renderHandler);
+    ? pdfFileRequestHandler(result.outputFile, reloader, changeHandler.render)
+    : htmlFileRequestHandler(result.outputFile, reloader, changeHandler.render);
 
   // serve project
   const server = serve({ port: options.port, hostname: kLocalhost });
 
   // open browser if requested
-  const initialPath = isHtml ? "" : kPdfJsInitialPath;
+  const initialPath = isPdfContent(result.outputFile) ? kPdfJsInitialPath : "";
   const url = `http://localhost:${options.port}/${initialPath}`;
   if (options.browse) {
     openUrl(url);
@@ -166,7 +159,7 @@ async function renderForPreview(
 }
 
 interface ChangeHandler {
-  sync: (result: RenderForPreviewResult) => void;
+  render: () => Promise<void>;
 }
 
 function createChangeHandler(
@@ -178,6 +171,21 @@ function createChangeHandler(
   const renderQueue = new PromiseQueue();
   let watcher: Watcher | undefined;
   let lastResult = result;
+
+  // render handler
+  const renderHandler = ld.debounce(async () => {
+    try {
+      await renderQueue.enqueue(async () => {
+        const result = await render();
+        sync(result);
+      }, true);
+    } catch (e) {
+      if (e.message) {
+        logError(e);
+      }
+    }
+  }, 50);
+
   const sync = (result: RenderForPreviewResult) => {
     const requiresSync = !watcher || !lastResult ||
       !ld.isEqual(result, lastResult);
@@ -186,20 +194,6 @@ function createChangeHandler(
       if (watcher) {
         watcher.stop();
       }
-
-      // render handler
-      const renderHandler = ld.debounce(async () => {
-        try {
-          await renderQueue.enqueue(async () => {
-            const result = await render();
-            sync(result);
-          }, true);
-        } catch (e) {
-          if (e.message) {
-            logError(e);
-          }
-        }
-      }, 50);
 
       const watches: Watch[] = [];
       if (renderOnChange) {
@@ -230,7 +224,7 @@ function createChangeHandler(
   };
   sync(result);
   return {
-    sync,
+    render: renderHandler,
   };
 }
 
