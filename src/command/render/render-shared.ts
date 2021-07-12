@@ -23,6 +23,7 @@ import { resolveFileResources } from "./resources.ts";
 import { RenderedFile, RenderOptions, RenderResult } from "./types.ts";
 import { PartitionedMarkdown } from "../../core/pandoc/types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
+import { isRStudioServer } from "../../core/platform.ts";
 
 export async function render(
   path: string,
@@ -149,9 +150,11 @@ export function printWatchingForChangesMessage() {
 }
 
 export function printBrowsePreviewMessage(url: string) {
-  info(`Browse at `, {
-    newline: false,
-    format: colors.green,
-  });
+  if (!isRStudioServer()) {
+    info(`Browse at `, {
+      newline: false,
+      format: colors.green,
+    });
+  }
   info(url, { format: (str: string) => colors.underline(colors.green(str)) });
 }
