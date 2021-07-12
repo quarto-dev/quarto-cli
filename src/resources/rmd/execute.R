@@ -2,7 +2,7 @@
 # Copyright (C) 2020 by RStudio, PBC
 
 # execute rmarkdown::render
-execute <- function(input, format, tempDir, libDir, dependencies, cwd, params) {
+execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, resourceDir) {
 
   # calculate knit_root_dir (before we setwd below)
   knit_root_dir <- if (!is.null(cwd)) tools::file_path_as_absolute(cwd) else NULL
@@ -51,17 +51,24 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params) {
   # fixup options for cache
   knitr <- knitr_options_with_cache(input, format, knitr)
 
-  # This truly awful hack ensures that rmarkdown doesn't tell us we're
-  # producing HTML widgets when targeting a non-html format (doing this
-  # is triggered by the "prefer-html" options)
-  post_knit <- NULL
-  if (format$render$`prefer-html`) {
-    post_knit <- function(...) {
+
+  post_knit <- function(...) {
+    # This truly awful hack ensures that rmarkdown doesn't tell us we're
+    # producing HTML widgets when targeting a non-html format (doing this
+    # is triggered by the "prefer-html" options)
+    if (format$render$`prefer-html`) {
       render_env <- parent.env(parent.frame())
       render_env$front_matter$always_allow_html <- TRUE
-      NULL
     }
+
+    # append ojs integration code
+    code <- readLines(file.path(resourceDir, "rmd", "ojs.R"))
+    rmarkdown::shiny_prerendered_chunk("server", code, singleton = TRUE)
+    
+    # return null
+    NULL
   }
+ 
 
   # synthesize rmarkdown output format
   output_format <- rmarkdown::output_format(

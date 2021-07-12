@@ -131,7 +131,7 @@
     result <- spin(params$input)
     result <- paste(result, collapse = '\n')
   } else if (request$action == "execute") {
-    result <- execute(params$target$input, params$format, params$tempDir,  params$libDir, params$dependencies, params$cwd, params$params)
+    result <- execute(params$target$input, params$format, params$tempDir,  params$libDir, params$dependencies, params$cwd, params$params, params$resourceDir)
   } else if (request$action == "dependencies") {
     result <- dependencies(params$target$input, params$format, params$output, params$tempDir, params$libDir, params$dependencies, params$quiet)
   } else if (request$action == "postprocess") {
