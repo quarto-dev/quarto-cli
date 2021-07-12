@@ -161,6 +161,11 @@ async function callR<T>(
       const resultsJson = JSON.parse(results);
       return resultsJson as T;
     } else {
+      // quiet means don't print in normal cases, but
+      // we still need to report errors
+      if (quiet) {
+        error(result.stderr || "");
+      }
       if (reportError) {
         await printCallRDiagnostics();
       }
