@@ -7,10 +7,6 @@
 
 import { basename, dirname, join } from "path/mod.ts";
 
-import { info } from "log/mod.ts";
-
-import * as colors from "fmt/colors.ts";
-
 import { serve, ServerRequest } from "http/server.ts";
 
 import { ld } from "lodash/mod.ts";

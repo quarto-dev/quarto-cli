@@ -19,8 +19,9 @@ export const previewCommand = new Command()
   .name("preview")
   .stopEarly()
   .option(
-    "-p, --port <port:number>",
-    "Port to listen on (defaults to 4848).",
+    "-p, --port [port:number]",
+    "Suggested port to listen on (defaults to random value between 3000 and 8000).\n" +
+      "If the port is not available then a random port between 3000 and 8000 will be selected.",
   )
   .option(
     "--no-render",
@@ -42,10 +43,6 @@ export const previewCommand = new Command()
   .example(
     "Preview document",
     "quarto preview doc.qmd",
-  )
-  .example(
-    "Preview using specific port",
-    "quarto preview doc.qmd --port 4444",
   )
   .example(
     "Preview (don't open a browser)",
@@ -84,9 +81,12 @@ export const previewCommand = new Command()
       options.render = false;
       args.splice(noRenderPos, 1);
     }
-    // select a port if we need to
-    if (!port) {
-      port = findOpenPort(4848);
+
+    // select a port
+    if (!options.port) {
+      options.port = findOpenPort();
+    } else {
+      options.port = findOpenPort(parseInt(options.port));
     }
 
     // extract pandoc flag values we know/care about, then fixup args as
@@ -96,7 +96,7 @@ export const previewCommand = new Command()
 
     // run preview
     await preview(file, flags, args, {
-      port,
+      port: options.port,
       browse: !!options.browse,
       render: !!options.render,
     });

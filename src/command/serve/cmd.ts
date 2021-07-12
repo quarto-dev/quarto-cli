@@ -29,7 +29,8 @@ export const serveCommand = new Command()
   )
   .option(
     "-p, --port [port:number]",
-    "Port to listen on (defaults to 4848).",
+    "Suggested port to listen on (defaults to random value between 3000 and 8000).\n" +
+      "If the port is not available then a random port between 3000 and 8000 will be selected.",
   )
   .option(
     "--render [to:string]",
@@ -100,11 +101,11 @@ export const serveCommand = new Command()
       );
     }
 
-    // select a port if we need to
+    // select a port
     if (!options.port) {
-      options.port = findOpenPort(4848);
+      options.port = findOpenPort();
     } else {
-      options.port = parseInt(options.port);
+      options.port = findOpenPort(parseInt(options.port));
     }
 
     await serveProject(context, {

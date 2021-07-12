@@ -7,15 +7,28 @@
 
 import { getAvailablePortSync, isPortAvailableSync } from "port/mod.ts";
 
+import { ld } from "lodash/mod.ts";
+
+import { randomInt } from "./random.ts";
+
 export const kLocalhost = "127.0.0.1";
 
-export function findOpenPort(defaultPort: number): number {
+const kMinPort = 3000;
+const kMaxPort = 8000;
+
+export function findOpenPort(defaultPort?: number): number {
+  defaultPort = defaultPort || randomInt(kMinPort, kMaxPort);
   if (isPortAvailableSync({ port: defaultPort, hostname: kLocalhost })) {
     return defaultPort;
   } else {
+    let ports = new Array<number>(kMaxPort - kMinPort);
+    for (let i = 0; i < ports.length; i++) {
+      ports[i] = kMinPort + i;
+    }
+    ports = ld.shuffle(ports);
     while (true) {
       const port = getAvailablePortSync({
-        port: { start: 3000, end: 8000 },
+        port: ports,
         hostname: kLocalhost,
       });
       if (port === undefined) {
