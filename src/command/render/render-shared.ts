@@ -111,6 +111,7 @@ export function resourceFilesFromRenderedFile(
     resourceDir,
     markdown,
     globs,
+    true,
   );
 
   // add the explicitly discovered files (if they exist and
