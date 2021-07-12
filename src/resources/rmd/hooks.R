@@ -1,7 +1,7 @@
 # hooks.R
 # Copyright (C) 2020 by RStudio, PBC
 
-knitr_hooks <- function(format) {
+knitr_hooks <- function(format, resourceDir) {
 
   knit_hooks <- list()
   opts_hooks <- list()
@@ -25,6 +25,14 @@ knitr_hooks <- function(format) {
       options[["results"]] <- "markup"
     } else if (identical(options[["output"]], FALSE)) {
       options[["results"]] <- "hide"
+    }
+    options
+  }
+  
+  opts_hooks[["context"]] <- function(options) {
+    if (options[["context"]] == "server") {
+      code <- readLines(file.path(resourceDir, "rmd", "ojs.R"))
+      rmarkdown::shiny_prerendered_chunk("server", code, TRUE)
     }
     options
   }

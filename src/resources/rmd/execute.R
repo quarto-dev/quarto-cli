@@ -46,29 +46,22 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   }
 
   # get kntir options
-  knitr <- knitr_options(format)
+  knitr <- knitr_options(format, resourceDir)
 
   # fixup options for cache
   knitr <- knitr_options_with_cache(input, format, knitr)
 
-
-  post_knit <- function(...) {
-    # This truly awful hack ensures that rmarkdown doesn't tell us we're
-    # producing HTML widgets when targeting a non-html format (doing this
-    # is triggered by the "prefer-html" options)
-    if (format$render$`prefer-html`) {
+  # This truly awful hack ensures that rmarkdown doesn't tell us we're
+  # producing HTML widgets when targeting a non-html format (doing this
+  # is triggered by the "prefer-html" options)
+  post_knit <- NULL
+  if (format$render$`prefer-html`) {
+    post_knit <- function(...) {
       render_env <- parent.env(parent.frame())
       render_env$front_matter$always_allow_html <- TRUE
+      NULL
     }
-
-    # append ojs integration code
-    code <- readLines(file.path(resourceDir, "rmd", "ojs.R"))
-    rmarkdown::shiny_prerendered_chunk("server", code, singleton = TRUE)
-    
-    # return null
-    NULL
   }
- 
 
   # synthesize rmarkdown output format
   output_format <- rmarkdown::output_format(
@@ -166,7 +159,7 @@ pandoc_options <- function(format) {
 }
 
 # knitr options for format
-knitr_options <- function(format) {
+knitr_options <- function(format, resourceDir) {
 
   # may need some knit hooks
   knit_hooks <- list()
@@ -233,7 +226,7 @@ knitr_options <- function(format) {
   if (is.list(format$metadata$knitr)) {
     knitr <- format$metadata$knitr
   }
-  hooks <- knitr_hooks(format)
+  hooks <- knitr_hooks(format, resourceDir)
   rmarkdown::knitr_options(
     opts_knit = rmarkdown:::merge_lists(opts_knit, knitr$opts_knit),
     opts_chunk = rmarkdown:::merge_lists(opts_chunk, knitr$opts_chunk),
