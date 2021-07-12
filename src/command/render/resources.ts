@@ -31,13 +31,16 @@ export function resolveFileResources(
   fileDir: string,
   markdown: string,
   globs: string[],
+  projectRelative = false,
 ): ResolvedPathGlobs {
   const ignore = engineIgnoreGlobs()
     .concat(kQuartoScratch + "/")
     .concat(["**/.*", "**/.*/**"]); // hidden (dot prefix))
   const resources = resolvePathGlobs(fileDir, globs, ignore);
   if (markdown.length > 0) {
-    resources.include.push(...ojsResources(rootDir, fileDir, markdown));
+    resources.include.push(
+      ...ojsResources(rootDir, fileDir, markdown, projectRelative),
+    );
   }
   return resources;
 }
@@ -46,6 +49,7 @@ function ojsResources(
   rootDir: string,
   fileDir: string,
   markdown: string,
+  projectRelative = false,
 ): string[] {
   const projRelativeResources = extractResourcesFromQmd(
     markdown,
@@ -53,6 +57,6 @@ function ojsResources(
     rootDir,
   );
   return projRelativeResources.map((resource) =>
-    relative(fileDir, join(rootDir, resource))
+    relative(projectRelative ? rootDir : fileDir, join(rootDir, resource))
   );
 }
