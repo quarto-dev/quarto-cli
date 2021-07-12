@@ -31,7 +31,11 @@ import { isHtmlContent, isPdfContent } from "../../core/mime.ts";
 import { PromiseQueue } from "../../core/promise.ts";
 import { inputFilesDir } from "../../core/render.ts";
 
-import { render } from "../render/render-shared.ts";
+import {
+  printBrowsePreviewMessage,
+  printWatchingForChangesMessage,
+  render,
+} from "../render/render-shared.ts";
 import { RenderFlags, RenderResultFile } from "../render/types.ts";
 import { renderFormats } from "../render/render.ts";
 import { replacePandocArg } from "../render/flags.ts";
@@ -87,11 +91,7 @@ export async function preview(
   }
 
   // print status
-  info("Watching files for changes");
-  info(`Browse at `, {
-    newline: false,
-  });
-  info(`${url}`, { format: colors.underline });
+  printBrowsePreviewMessage(url);
 
   // handle requests
   for await (const req of server) {
@@ -134,6 +134,9 @@ async function renderForPreview(
   if (renderResult.error) {
     throw renderResult.error;
   }
+
+  // notify user we are watching for reload
+  printWatchingForChangesMessage();
 
   // determine files to watch for reload -- take the resource
   // files detected during render, chase down additional references
@@ -209,11 +212,15 @@ function createChangeHandler(
       const reloadFiles = isHtmlContent(result.outputFile)
         ? htmlReloadFiles(result)
         : pdfReloadFiles(result);
+      const reloadTarget = isHtmlContent(result.outputFile)
+        ? ""
+        : kPdfJsInitialPath;
+
       watches.push({
         files: reloadFiles,
         handler: ld.debounce(async () => {
           await renderQueue.enqueue(async () => {
-            await reloader.reloadClients();
+            await reloader.reloadClients(reloadTarget);
           });
         }, 50),
       });

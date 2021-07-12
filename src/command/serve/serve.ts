@@ -33,6 +33,10 @@ import { httpFileRequestHandler } from "../../core/http.ts";
 import { ServeOptions } from "./types.ts";
 import { copyProjectForServe } from "./serve-shared.ts";
 import { watchProject } from "./watch.ts";
+import {
+  printBrowsePreviewMessage,
+  printWatchingForChangesMessage,
+} from "../render/render-shared.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -184,12 +188,9 @@ export async function serveProject(
 
   // print status
   if (options.watch) {
-    info("Watching project for reload on changes");
+    printWatchingForChangesMessage();
   }
-  info(`Browse preview at `, {
-    newline: false,
-  });
-  info(`${siteUrl}`, { format: colors.underline });
+  printBrowsePreviewMessage(siteUrl);
 
   // open browser if requested
   if (options.browse) {

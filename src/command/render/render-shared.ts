@@ -8,6 +8,9 @@
 import { dirname, join } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
+import { info } from "log/mod.ts";
+import * as colors from "fmt/colors.ts";
+
 import { pathWithForwardSlashes } from "../../core/path.ts";
 import {
   projectContext,
@@ -138,4 +141,16 @@ export function resourceFilesFromRenderedFile(
     },
   );
   return resourceFiles;
+}
+
+export function printWatchingForChangesMessage() {
+  info("Watching files for changes", { format: colors.green });
+}
+
+export function printBrowsePreviewMessage(url: string) {
+  info(`Browse at `, {
+    newline: false,
+    format: colors.green,
+  });
+  info(url, { format: (str: string) => colors.underline(colors.green(str)) });
 }
