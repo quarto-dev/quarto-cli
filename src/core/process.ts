@@ -5,7 +5,7 @@
 *
 */
 
-import { MuxAsyncIterator } from "async/mod.ts";
+import { MuxAsyncIterator, pooledMap } from "async/mod.ts";
 import { iter } from "io/mod.ts";
 import { info } from "log/mod.ts";
 
@@ -20,6 +20,7 @@ export async function execProcess(
   options: Deno.RunOptions,
   stdin?: string,
   mergeOutput?: "stderr>stdout" | "stdout>stderr",
+  stderrFilter?: (output: string) => string,
 ): Promise<ProcessResult> {
   // define process
   try {
@@ -53,13 +54,19 @@ export async function execProcess(
       >();
 
       // Add streams to the multiplexer
-      const addStream = (stream: (Deno.Reader & Deno.Closer) | null) => {
+      const addStream = (
+        stream: (Deno.Reader & Deno.Closer) | null,
+        filter?: (output: string) => string,
+      ) => {
         if (stream !== null) {
-          multiplexIterator.add(iter(stream));
+          const streamIter = filter
+            ? filteredAsyncIterator(iter(stream), filter)
+            : iter(stream);
+          multiplexIterator.add(streamIter);
         }
       };
       addStream(process.stdout);
-      addStream(process.stderr);
+      addStream(process.stderr, stderrFilter);
 
       // Process the output
       const allOutput = await processOutput(
@@ -93,8 +100,11 @@ export async function execProcess(
       }
 
       if (process.stderr != null) {
+        const iterator = stderrFilter
+          ? filteredAsyncIterator(iter(process.stderr), stderrFilter)
+          : iter(process.stderr);
         stderrText = await processOutput(
-          iter(process.stderr),
+          iterator,
           options.stderr,
         );
         process.stderr.close();
@@ -123,6 +133,19 @@ export function processSuccessResult(): ProcessResult {
     success: true,
     code: 0,
   };
+}
+
+function filteredAsyncIterator(
+  iterator: AsyncIterableIterator<Uint8Array>,
+  filter: (output: string) => string,
+): AsyncIterableIterator<Uint8Array> {
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+  return pooledMap(1, iterator, (data: Uint8Array) => {
+    return Promise.resolve(
+      encoder.encode(filter(decoder.decode(data))),
+    );
+  });
 }
 
 // Processes ouptut from an interator (stderr, stdout, etc...)

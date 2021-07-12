@@ -7,6 +7,8 @@
 
 import { error, info, warning } from "log/mod.ts";
 
+import * as colors from "fmt/colors.ts";
+
 import { execProcess } from "../core/process.ts";
 import { rBinaryPath, resourcePath } from "../core/resources.ts";
 import { readYamlFromMarkdownFile } from "../core/yaml.ts";
@@ -150,6 +152,7 @@ async function callR<T>(
       },
       input,
       "stdout>stderr",
+      colors.red,
     );
 
     if (result.success) {
