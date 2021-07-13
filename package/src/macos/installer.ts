@@ -28,25 +28,37 @@ export interface PackageInfo {
 
 export async function makeInstallerMac(config: Configuration) {
   const packageName = `quarto-${config.version}-macos.pkg`;
-  const unsignedPackageName = `quarto-${config.version}-unsigned-macos.pkg`;
+  const corePackageName = `quarto-core.pkg`;
   const packageIdentifier = "org.rstudio.quarto";
   const bundleIdentifier = "org.rstudio.quarto.cli";
 
   // Target package
-  const unsignedPackagePath = join(
+  const packagePath = join(
     config.directoryInfo.out,
-    unsignedPackageName,
+    packageName,
   );
 
-  info(`Packaging into ${unsignedPackagePath}`);
+  const corePackagePath = join(
+    config.directoryInfo.out,
+    corePackageName,
+  );
+
+  const distXml = join(
+    config.directoryInfo.pkg,
+    "scripts",
+    "macos",
+    "distribution.xml",
+  );
+
+  info(`Packaging into ${packagePath}`);
 
   // Clean any existing package
-  if (existsSync(unsignedPackagePath)) {
-    Deno.removeSync(unsignedPackagePath);
+  if (existsSync(packagePath)) {
+    Deno.removeSync(packagePath);
   }
 
   // Make the output dir
-  ensureDirSync(dirname(unsignedPackagePath));
+  ensureDirSync(dirname(packagePath));
 
   // The application cert developer Id
   const applicationDevId = getEnv("QUARTO_APPLE_APP_DEV_ID", "");
@@ -89,6 +101,31 @@ export async function makeInstallerMac(config: Configuration) {
     "--install-location",
     "/Library/Quarto",
   ];
+
+  // Installer signature configuration
+  const installerDevId = getEnv("QUARTO_APPLE_INST_DEV_ID", "");
+  const signInstaller = installerDevId.length > 0;
+  const performSign = async (file: string) => {
+    if (signInstaller) {
+      info("Signing file");
+      info(packagePath);
+
+      const targetPath = join(dirname(file), "signing.out");
+      await signPackage(
+        installerDevId,
+        file,
+        targetPath,
+      );
+
+      info("Signing file");
+      info(file);
+
+      info("Cleaning unsigned file");
+      Deno.removeSync(file);
+      Deno.renameSync(targetPath, file);
+    }
+  };
+
   await runCmd(
     "pkgbuild",
     [
@@ -101,32 +138,52 @@ export async function makeInstallerMac(config: Configuration) {
       ...packageArgs,
       "--ownership",
       "recommended",
-      unsignedPackagePath,
+      corePackagePath,
     ],
   );
 
+  // Maybe sign the package
+  await performSign(corePackagePath);
+
+  // Use productbuild to create an improved install experience
+  const distXmlContents = Deno.readTextFileSync(distXml);
+  const localDistXml = join(dirname(packagePath), "distribution.xml");
+  const replacedContents = distXmlContents.replace("$PATH$", corePackagePath);
+  info(`Local dist file: ${localDistXml}`);
+  Deno.writeTextFileSync(
+    localDistXml,
+    replacedContents,
+  );
+
+  const oldWd = Deno.cwd();
+  Deno.chdir(config.directoryInfo.out);
+  await runCmd(
+    "productbuild",
+    [
+      "--package-path",
+      corePackagePath,
+      "--distribution",
+      localDistXml,
+      packagePath,
+    ],
+  );
+  Deno.chdir(oldWd);
+
+  // Remove core file
+  Deno.removeSync(corePackagePath);
+  Deno.removeSync(localDistXml);
+
+  //sign product build output
+  await performSign(packagePath);
+
   // The application cert developer Id
-  const installerDevId = getEnv("QUARTO_APPLE_INST_DEV_ID", "");
-  const signInstaller = installerDevId.length > 0;
-  const signedPackage = join(config.directoryInfo.out, packageName);
   if (signInstaller) {
-    info("Signing file");
-    info(unsignedPackagePath);
-
-    await signPackage(
-      installerDevId,
-      unsignedPackagePath,
-      signedPackage,
-    );
-    info("Cleaning unsigned file");
-    Deno.removeSync(unsignedPackagePath);
-
     // Submit package for notary
     const username = getEnv("QUARTO_APPLE_CONNECT_UN", "");
     const password = getEnv("QUARTO_APPLE_CONNECT_PW", "");
     if (username.length > 0 && password.length > 0) {
       const requestId = await submitNotary(
-        signedPackage,
+        packagePath,
         bundleIdentifier,
         username,
         password,
@@ -140,7 +197,7 @@ export async function makeInstallerMac(config: Configuration) {
       await waitForNotaryStatus(requestId, username, password);
 
       // Staple the notary to the package
-      await stapleNotary(signedPackage);
+      await stapleNotary(packagePath);
     } else {
       warning("Missing Connect credentials, not notarizing");
     }
