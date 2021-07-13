@@ -63,15 +63,11 @@ export function httpReloader(port: number): HttpReloader {
       for (let i = clients.length - 1; i >= 0; i--) {
         const socket = clients[i].socket;
         try {
-          // if this is rstudio server then we might need to include
-          // a port proxy url prefix
-          if (isRStudioServer()) {
-            const prefix = clients[i].path.match(/^\/p\/\w+/);
+          // if this is rstudio server then we might need to include a port proxy
+          if (isRStudioServer() && reloadTarget) {
+            const prefix = clients[i].path.match(/^\/p\/\w+\//);
             if (prefix) {
-              if (!reloadTarget.startsWith("/")) {
-                reloadTarget = "/" + reloadTarget;
-              }
-              reloadTarget = prefix[0] + reloadTarget;
+              reloadTarget = prefix[0] + reloadTarget.replace(/^\//, "");
             }
           }
           await socket.send(`reload${reloadTarget}`);
