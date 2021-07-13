@@ -1,4 +1,4 @@
-/*global Shiny, $
+/*global Shiny, $, DOMParser
 *
 * ojs-bundle.js
 *
@@ -345,12 +345,16 @@ function defaultResolveImportPath(path) {
   extension of the URL pathname. If the extension is "js", we take the
   specifier to mean an ES module; If the extension is "ojs", we take
   the specifier to mean an "ojs" module (a collection of observable
-  statements packaged into a module, suitable for reuse).
+  statements packaged into a module, suitable for reuse). Finally,
+  if the extension is "qmd", we take the specifier
+  to mean an "implicit ojs module", equivalent to extracting all
+  the ojs statements from the .qmd file and producing an OJS module.
 
   For self-contained imports, the file type is determined by the MIME
   type of the data URL. "application/javascript" is interpreted to
   mean an ES module, and "application/ojs-javascript" is interpreted
-  to mean an "ojs" module.
+  to mean an "ojs" module. (.qmd imports will have been
+  translated to ojs modules by the compilation step.)
 
   The resources are finally retrieved, compiled into modules
   compatible with the observable runtime, and returned as
@@ -415,7 +419,7 @@ function importPathResolver(paths, localResolverMap) {
     } else {
       // we have a relative URL here
       const resourceURL = new URL(path, window.location);
-      moduleType = resourceURL.pathname.match(/\.(ojs|js)$/)[1];
+      moduleType = resourceURL.pathname.match(/\.(ojs|js|qmd)$/)[1];
 
       // resolve path according to quarto path resolution rules.
       if (path.startsWith("/")) {
@@ -428,21 +432,32 @@ function importPathResolver(paths, localResolverMap) {
     if (moduleType === "js") {
       return import(path).then((m) => es6ImportAsObservableModule(m));
     } else if (moduleType === "ojs") {
-      return importOjs(path);
+      return importOjsFromURL(path);
+    } else if (moduleType === "qmd") {
+      const htmlPath = `${path.slice(0, -4)}.html`;
+      return fetch(htmlPath)
+        .then((response) => response.text())
+        .then(createOjsModuleFromHTMLSrc);
     } else {
       throw new Error(`internal error, unrecognized module type ${moduleType}`);
     }
   };
 }
 
-/*
- * Given a URL, fetches the text content and creates a new observable module
- * exporting all of the names as variables
- */
-async function importOjs(path) {
-  const r = await fetch(path);
-  const src = await r.text();
+function createOjsModuleFromHTMLSrc(text) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(text, "text/html");
+  const scripts = doc.querySelectorAll('script[type="ojs-module-contents"]');
+  const ojsSource = [];
+  for (const content of scripts) {
+    for (const cell of JSON.parse(content.text).contents) {
+      ojsSource.push(cell.source);
+    }
+  }
+  return createOjsModuleFromSrc(ojsSource.join("\n"));
+}
 
+function createOjsModuleFromSrc(src) {
   return (runtime, _observer) => {
     const newModule = runtime.module();
     const interpreter = window._ojs.ojsConnector.interpreter;
@@ -450,9 +465,19 @@ async function importOjs(path) {
       src,
       newModule,
       (_name) => new EmptyInspector(),
-    ); // await?
+    );
     return newModule;
   };
+}
+
+/*
+ * Given a URL, fetches the text content and creates a new observable module
+ * exporting all of the names as variables
+ */
+async function importOjsFromURL(path) {
+  const r = await fetch(path);
+  const src = await r.text();
+  return createOjsModuleFromSrc(src);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -826,6 +851,31 @@ export function createRuntime() {
     },
     interpretQuiet(src) {
       return ojsConnector.interpretQuiet(src);
+    },
+    interpretFromScriptTags() {
+      for (
+        const el of document.querySelectorAll(
+          "script[type='ojs-module-contents']",
+        )
+      ) {
+        for (const call of JSON.parse(el.text).contents) {
+          switch (call.methodName) {
+            case "interpret":
+              this.interpret(call.source, call.cellName, call.inline);
+              break;
+            case "interpretLenient":
+              this.interpretLenient(call.source, call.cellName, call.inline);
+              break;
+            case "interpretQuiet":
+              this.interpretQuiet(call.source);
+              break;
+            default:
+              throw new Error(
+                `Don't know how to call method ${call.methodName}`,
+              );
+          }
+        }
+      }
     },
   };
 

@@ -119,15 +119,23 @@ export async function ojsCompile(
     `window._ojs.selfContained = ${selfContained};`,
   );
 
+  interface ModuleCell {
+    methodName: string;
+    cellName?: string;
+    inline?: boolean;
+    source: string;
+  }
+  const moduleContents: ModuleCell[] = [];
+
   function interpret(jsSrc: string[], inline: boolean, lenient: boolean) {
     const inlineStr = inline ? "inline-" : "";
     const methodName = lenient ? "interpretLenient" : "interpret";
-    const content = [
-      `window._ojs.runtime.${methodName}("" + `,
-      jsSrc.map((s) => JSON.stringify(s)).join(" + "),
-      `, "ojs-${inlineStr}cell-${ojsCellID}", ${inline});`,
-    ];
-    return content.join("");
+    moduleContents.push({
+      methodName,
+      cellName: `ojs-${inlineStr}cell-${ojsCellID}`,
+      inline,
+      source: jsSrc.join(""),
+    });
   }
 
   const inlineOJSInterpRE = /\$\{([^}]+)\}([^$])/g;
@@ -138,7 +146,7 @@ export async function ojsCompile(
         `<span id="ojs-inline-cell-${ojsCellID}" class="ojs-inline"></span>`,
         g2,
       ];
-      scriptContents.push(interpret([g1], true, lenient));
+      interpret([g1], true, lenient);
       return result.join("");
     });
   }
@@ -382,7 +390,7 @@ export async function ojsCompile(
 
       // only emit interpret if eval is true
       if (evalVal) {
-        scriptContents.push(interpret(cell.source, false, errorVal));
+        interpret(cell.source, false, errorVal);
       }
 
       // handle output of computation
@@ -528,21 +536,30 @@ export async function ojsCompile(
     resultSet.delete(el);
   }
   for (const el of resultSet) {
-    scriptContents.push(
-      `window._ojs.runtime.interpretQuiet("shinyInput('${el}')");`,
-    );
+    moduleContents.push({
+      methodName: "interpretQuiet",
+      source: `shinyInput('${el}')`,
+    });
   }
   for (const el of (shinyOutputMetadata ?? [])) {
-    scriptContents.push(
-      `window._ojs.runtime.interpretQuiet("${el} = shinyOutput('${el}')");`,
-    );
+    moduleContents.push({
+      methodName: "interpretQuiet",
+      source: `${el} = shinyOutput('${el}')`,
+    });
   }
 
   // finish script by calling runtime's "done with new source" handler,
-  scriptContents.push("window._ojs.runtime.finishInterpreting();");
+  scriptContents.push("window._ojs.runtime.interpretFromScriptTags();");
 
   // script to append
-  const afterBody = [`<script type="module">`, ...scriptContents, `</script>`]
+  const afterBody = [
+    `<script type="ojs-module-contents">`,
+    JSON.stringify({ contents: moduleContents }),
+    `</script>`,
+    `<script type="module">`,
+    ...scriptContents,
+    `</script>`,
+  ]
     .join("\n");
   const includeAfterBodyFile = sessionTempFile();
   Deno.writeTextFileSync(includeAfterBodyFile, afterBody);
