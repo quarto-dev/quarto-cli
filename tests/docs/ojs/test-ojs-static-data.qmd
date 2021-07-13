@@ -1,0 +1,28 @@
+---
+title: "Communicating static data to ojs"
+self-contained: true
+format: html
+---
+
+```{r}
+write.csv(iris, "iris.csv")
+```
+
+```{ojs}
+v = FileAttachment("iris.csv").csv()
+v2 = {
+  let result = -1000;
+  for (const row of v) {
+    result = Math.max(result, row["Petal.Length"]);
+  }
+  return result;
+}
+v3 = FileAttachment("/iris.csv").csv()
+v4 = {
+  let result = -1000;
+  for (const row of v3) {
+    result = Math.max(result, row["Petal.Length"]);
+  }
+  return result;
+}
+```

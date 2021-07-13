@@ -8,7 +8,7 @@
 *
 */
 
-import { ExecuteOutput, Verify } from "../../../test.ts";
+import { ExecuteOutput } from "../../../test.ts";
 import { inPuppeteer } from "../../../puppeteer.ts";
 import { assert } from "testing/asserts.ts";
 import { testRender } from "../../../smoke/render/render.ts";
@@ -19,28 +19,28 @@ import { localFileURL } from "../../../puppeteer.ts";
 // deno-lint-ignore no-explicit-any
 const window = (undefined as any);
 
-testRender("docs/ojs/test-no-ojs.md", "html", false, [
+testRender("docs/ojs/test-no-ojs.qmd", "html", false, [
   {
     name: "OJS runtime is absent",
     verify: async (_output: ExecuteOutput[]) => {
-      const url = localFileURL("docs/ojs/test-no-ojs.md");
-      const result = await inPuppeteer(url, async () => {
+      const url = localFileURL("docs/ojs/test-no-ojs.qmd");
+      const result = await inPuppeteer(url, () => {
         return (window._ojs === undefined);
       })();
       assert(result === true, `Expected true, got false instead`);
-    }
-  }
+    },
+  },
 ]);
 
-testRender("docs/ojs/test-ojs-es-modules.md", "html", false, [
+testRender("docs/ojs/test-ojs-es-modules.qmd", "html", false, [
   {
     name: "OJS runtime is absent",
     verify: async (_output: ExecuteOutput[]) => {
-      const url = localFileURL("docs/ojs/test-ojs-es-modules.md");
-      const result = await inPuppeteer(url, async () => {
+      const url = localFileURL("docs/ojs/test-ojs-es-modules.qmd");
+      const result = await inPuppeteer(url, () => {
         return (window._ojs !== undefined);
       })();
       assert(result === true, `Expected true, got false instead`);
-    }
-  }
+    },
+  },
 ]);
