@@ -25,7 +25,7 @@ import { inputFileForOutputFile } from "../../project/project-index.ts";
 import { websitePath } from "../../project/types/website/website-config.ts";
 
 import { renderProject } from "../render/project.ts";
-import { renderResultFinalOutput } from "../render/render.ts";
+import { renderResultFinalOutput } from "../render/render-shared.ts";
 
 import { httpFileRequestHandler } from "../../core/http.ts";
 import { ServeOptions } from "./types.ts";

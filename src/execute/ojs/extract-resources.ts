@@ -5,94 +5,62 @@
 *
 */
 
-import { dirname, join, relative, resolve } from "path/mod.ts";
+import { dirname, relative, resolve } from "path/mod.ts";
 import { encode as base64Encode } from "encoding/base64.ts";
 import { lookup } from "media_types/mod.ts";
 
 import { parseModule } from "observablehq/parser";
 import { parse as parseES6 } from "acorn/acorn";
 
-import { parseError } from "./errors.ts";
-
 import { esbuildCompile } from "../../core/esbuild.ts";
 import { breakQuartoMd } from "../../core/break-quarto-md.ts";
 
+import { parseError } from "./errors.ts";
 import { ojsSimpleWalker } from "./ojs-tools.ts";
 
-/*
- * localImports walks the AST of either OJS source code
- * or JS source code to extract local imports
- */
-// deno-lint-ignore no-explicit-any
-function localImports(parse: any) {
-  const result: string[] = [];
-  ojsSimpleWalker(parse, {
-    // deno-lint-ignore no-explicit-any
-    ImportDeclaration(node: any) {
-      const source = node.source?.value as string;
-      if (source.startsWith("/") || source.startsWith(".")) {
-        result.push(source);
-      }
-    },
-  });
-  return result;
+// ResourceDescription filenames are always project-relative
+export interface ResourceDescription {
+  filename: string;
+  referent?: string;
+  // import statements have importPaths, the actual in-ast name used.
+  // we need that in case of self-contained files to build local resolvers
+  // correctly.
+  importPath?: string;
+  pathType: "relative" | "root-relative";
+  resourceType: "import" | "FileAttachment";
 }
 
-// deno-lint-ignore no-explicit-any
-function literalFileAttachments(parse: any) {
-  const result: string[] = [];
-  ojsSimpleWalker(parse, {
-    // deno-lint-ignore no-explicit-any
-    CallExpression(node: any) {
-      if (node.callee?.type !== "Identifier") {
-        return;
-      }
-      if (node.callee?.name !== "FileAttachment") {
-        return;
-      }
-      // deno-lint-ignore no-explicit-any
-      const args = (node.arguments || []) as any[];
-      if (args.length < 1) {
-        return;
-      }
-      if (args[0]?.type !== "Literal") {
-        return;
-      }
-      result.push(args[0]?.value);
-    },
-  });
-  return result;
-}
-
-interface ResolvedES6Path {
-  pathType: "root-relative" | "relative";
-  resolvedImportPath: string;
-}
-
-function resolveES6Path(
-  path: string,
-  originDir: string,
-  projectRoot?: string,
-): ResolvedES6Path {
-  if (path.startsWith("/")) {
-    if (projectRoot === undefined) {
-      return {
-        pathType: "root-relative",
-        resolvedImportPath: resolve(originDir, `.${path}`),
-      };
-    } else {
-      return {
-        pathType: "root-relative",
-        resolvedImportPath: resolve(projectRoot, `.${path}`),
-      };
-    }
+// resolves a ResourceDescription's filename to its absolute path
+export function resolveResourceFilename(
+  resource: ResourceDescription,
+  rootDir: string,
+): string {
+  if (resource.pathType == "relative") {
+    return resolve(rootDir, dirname(resource.referent!), resource.filename);
+  } else if (resource.pathType === "root-relative") {
+    return resolve(
+      rootDir,
+      dirname(resource.referent!),
+      `.${resource.filename}`,
+    );
   } else {
-    // assert(path.startsWith('.'));
-    return {
-      pathType: "relative",
-      resolvedImportPath: resolve(originDir, path),
-    };
+    throw new Error(`Unrecognized pathType ${resource.pathType}`);
   }
+}
+
+// drops resources with project-relative filenames
+export function uniqueResources(
+  resourceList: ResourceDescription[],
+) {
+  const result = [];
+  const uniqResources = new Map<string, ResourceDescription>();
+  for (const resource of resourceList) {
+    if (!uniqResources.has(resource.filename)) {
+      result.push(resource);
+      uniqResources.set(resource.filename, resource);
+    }
+  }
+  return result;
 }
 
 interface DirectDependency {
@@ -101,12 +69,63 @@ interface DirectDependency {
   importPath: string;
 }
 
+// Extracts the dependencies from a single js or ojs file
 function directDependencies(
   source: string,
   fileDir: string,
   language: "js" | "ojs",
   projectRoot?: string,
 ): DirectDependency[] {
+  interface ResolvedES6Path {
+    pathType: "root-relative" | "relative";
+    resolvedImportPath: string;
+  }
+
+  const resolveES6Path = (
+    path: string,
+    originDir: string,
+    projectRoot?: string,
+  ): ResolvedES6Path => {
+    if (path.startsWith("/")) {
+      if (projectRoot === undefined) {
+        return {
+          pathType: "root-relative",
+          resolvedImportPath: resolve(originDir, `.${path}`),
+        };
+      } else {
+        return {
+          pathType: "root-relative",
+          resolvedImportPath: resolve(projectRoot, `.${path}`),
+        };
+      }
+    } else {
+      // Here, it's always the case that path.startsWith('.')
+      return {
+        pathType: "relative",
+        resolvedImportPath: resolve(originDir, path),
+      };
+    }
+  };
+
+  /*
+  * localImports walks the AST of either OJS source code
+  * or JS source code to extract local imports
+  */
+  // deno-lint-ignore no-explicit-any
+  const localImports = (parse: any) => {
+    const result: string[] = [];
+    ojsSimpleWalker(parse, {
+      // deno-lint-ignore no-explicit-any
+      ImportDeclaration(node: any) {
+        const source = node.source?.value as string;
+        if (source.startsWith("/") || source.startsWith(".")) {
+          result.push(source);
+        }
+      },
+    });
+    return result;
+  };
+
   let ast;
   if (language === "js") {
     try {
@@ -142,20 +161,7 @@ function directDependencies(
   });
 }
 
-export interface ResourceDescription {
-  filename: string;
-  referent?: string;
-  // import statements have importPaths, the actual in-ast name used.
-  // we need that in case of self-contained files to build local resolvers
-  // correctly.
-  importPath?: string;
-  pathType: "relative" | "root-relative";
-  resourceType: "import" | "FileAttachment";
-}
-
-// we need both the filename of the markdown and the project root
-// because these have different semantics wrt resolving relative paths
-export function extractResourcesFromQmd(
+export function extractResolvedResourceFilenamesFromQmd(
   markdown: string,
   mdDir: string,
   projectRoot: string,
@@ -170,7 +176,7 @@ export function extractResourcesFromQmd(
       cell.cell_type?.language === "ojs"
     ) {
       const cellSrcStr = cell.source.join("");
-      pageResources.push(...extractResources(
+      pageResources.push(...extractResourceDescriptionsFromOJSChunk(
         cellSrcStr,
         mdDir,
         projectRoot,
@@ -178,29 +184,51 @@ export function extractResourcesFromQmd(
     }
   }
 
-  const projectToMd = relative(projectRoot, mdDir);
-
   // after converting root-relative and relative paths
-  // all to root-relative, we might once again have duplicates.
-  // We need another pass here.
+  // all to absolute, we might once again have duplicates.
+  // We need another uniquing pass here.
   const result = new Set<string>();
   for (const resource of uniqueResources(pageResources)) {
-    let filename;
-    if (resource.pathType === "root-relative") {
-      filename = resource.filename.slice(1);
-    } else {
-      filename = relative(projectRoot, join(projectToMd, resource.filename));
-    }
-    result.add(filename);
+    result.add(resolveResourceFilename(resource, Deno.cwd()));
   }
   return Array.from(result);
 }
 
-export function extractResources(
+export function extractResourceDescriptionsFromOJSChunk(
   ojsSource: string,
   mdDir: string,
   projectRoot?: string,
 ) {
+  /*
+  * literalFileAttachments walks the AST to extract the filenames
+  * in 'FileAttachment(string)' expressions
+  */
+  // deno-lint-ignore no-explicit-any
+  const literalFileAttachments = (parse: any) => {
+    const result: string[] = [];
+    ojsSimpleWalker(parse, {
+      // deno-lint-ignore no-explicit-any
+      CallExpression(node: any) {
+        if (node.callee?.type !== "Identifier") {
+          return;
+        }
+        if (node.callee?.name !== "FileAttachment") {
+          return;
+        }
+        // deno-lint-ignore no-explicit-any
+        const args = (node.arguments || []) as any[];
+        if (args.length < 1) {
+          return;
+        }
+        if (args[0]?.type !== "Literal") {
+          return;
+        }
+        result.push(args[0]?.value);
+      },
+    });
+    return result;
+  };
+
   let result: ResourceDescription[] = [];
   const handled: Set<string> = new Set();
   const imports: Map<string, ResourceDescription> = new Map();
@@ -332,32 +360,21 @@ export function extractResources(
   return result;
 }
 
-export function uniqueResources(
-  resourceList: ResourceDescription[],
-) {
-  const result = [];
-  const uniqResources = new Map<string, ResourceDescription>();
-  for (const resource of resourceList) {
-    if (!uniqResources.has(resource.filename)) {
-      result.push(resource);
-      uniqResources.set(resource.filename, resource);
-    }
-  }
-  return result;
-}
-
-function asDataURL(
-  content: string,
-  mimeType: string,
-) {
-  const b64Src = base64Encode(content);
-  return `data:${mimeType};base64,${b64Src}`;
-}
-
+/* creates a list of [project-relative-name, data-url] values suitable
+* for inclusion in self-contained files
+*/
 export async function makeSelfContainedResources(
   resourceList: ResourceDescription[],
   wd: string,
 ) {
+  const asDataURL = (
+    content: string,
+    mimeType: string,
+  ) => {
+    const b64Src = base64Encode(content);
+    return `data:${mimeType};base64,${b64Src}`;
+  };
+
   const uniqResources = uniqueResources(resourceList);
 
   const jsFiles = uniqResources.filter((r) =>
@@ -385,10 +402,12 @@ export async function makeSelfContainedResources(
     );
     jsModuleResolves.push(...jsFiles.map((f) => [f.importPath, jsModule])); // inefficient but browser caching makes it correct
   }
+
   const result = [
     ...jsModuleResolves,
     ...ojsFiles.map(
       (f) => [
+        // FIXME is this one also wrong?
         f.importPath,
         asDataURL(
           Deno.readTextFileSync(f.filename),
@@ -397,10 +416,16 @@ export async function makeSelfContainedResources(
       ],
     ),
     ...attachments.map(
-      (f) => [
-        f.filename,
-        asDataURL(Deno.readTextFileSync(f.filename), lookup(f.filename)!),
-      ],
+      (f) => {
+        const resolvedFileName = resolveResourceFilename(f, Deno.cwd());
+        return [
+          f.filename,
+          asDataURL(
+            Deno.readTextFileSync(resolvedFileName),
+            lookup(resolvedFileName)!,
+          ),
+        ];
+      },
     ),
   ];
   return result;

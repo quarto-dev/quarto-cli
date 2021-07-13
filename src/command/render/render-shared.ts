@@ -5,7 +5,7 @@
 *
 */
 
-import { dirname, join } from "path/mod.ts";
+import { dirname, join, relative } from "path/mod.ts";
 import { existsSync } from "fs/mod.ts";
 
 import { info } from "log/mod.ts";
@@ -112,7 +112,6 @@ export function resourceFilesFromRenderedFile(
     resourceDir,
     markdown,
     globs,
-    true,
   );
 
   // add the explicitly discovered files (if they exist and
@@ -143,6 +142,53 @@ export function resourceFilesFromRenderedFile(
     },
   );
   return resourceFiles;
+}
+
+export function renderResultFinalOutput(
+  renderResults: RenderResult,
+  relativeToInputDir?: string,
+) {
+  // final output defaults to the first output of the first result
+  let result = renderResults.files[0];
+  if (!result) {
+    return undefined;
+  }
+
+  // see if we can find an index.html instead
+  for (const fileResult of renderResults.files) {
+    if (fileResult.file === "index.html") {
+      result = fileResult;
+      break;
+    }
+  }
+
+  // determine final output
+  let finalInput = result.input;
+  let finalOutput = result.file;
+
+  if (renderResults.baseDir) {
+    finalInput = join(renderResults.baseDir, finalInput);
+    if (renderResults.outputDir) {
+      finalOutput = join(
+        renderResults.baseDir,
+        renderResults.outputDir,
+        finalOutput,
+      );
+    } else {
+      finalOutput = join(renderResults.baseDir, finalOutput);
+    }
+  } else {
+    finalOutput = join(dirname(finalInput), finalOutput);
+  }
+
+  // return a path relative to the input file
+  if (relativeToInputDir) {
+    const inputRealPath = Deno.realPathSync(relativeToInputDir);
+    const outputRealPath = Deno.realPathSync(finalOutput);
+    return relative(inputRealPath, outputRealPath);
+  } else {
+    return finalOutput;
+  }
 }
 
 export function printWatchingForChangesMessage() {

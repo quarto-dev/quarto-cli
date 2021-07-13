@@ -24,7 +24,7 @@ import { isJavascriptCompatible } from "../../config/format.ts";
 
 import { resolveDependencies } from "../../command/render/pandoc.ts";
 import {
-  extractResources,
+  extractResourceDescriptionsFromOJSChunk,
   makeSelfContainedResources,
   ResourceDescription,
   uniqueResources,
@@ -207,7 +207,7 @@ export async function ojsCompile(
         return cell.options?.[kCellFigSubCap];
       };
 
-      pageResources.push(...extractResources(
+      pageResources.push(...extractResourceDescriptionsFromOJSChunk(
         cellSrcStr,
         dirname(options.source),
         projDir,
@@ -484,12 +484,14 @@ export async function ojsCompile(
   // Handle shiny input and output YAML declarations
   // deno-lint-ignore no-explicit-any
   const serverMetadata = options.format.metadata?.server as any;
-  const shinyInputMetadata = (serverMetadata && serverMetadata["type"] === "shiny") &&
+  const shinyInputMetadata =
+    (serverMetadata && serverMetadata["type"] === "shiny") &&
     serverMetadata["ojs-exports"];
   const shinyInputs = new Set<string>();
   const shinyInputExcludes = new Set<string>();
   const shinyEverything = new Set<string>();
-  const shinyOutputMetadata = (serverMetadata && serverMetadata["type"] === "shiny") &&
+  const shinyOutputMetadata =
+    (serverMetadata && serverMetadata["type"] === "shiny") &&
     serverMetadata["ojs-imports"];
 
   let importAllViews = !shinyInputMetadata ||
