@@ -486,13 +486,13 @@ export async function ojsCompile(
   const serverMetadata = options.format.metadata?.server as any;
   const shinyInputMetadata =
     (serverMetadata && serverMetadata["type"] === "shiny") &&
-    serverMetadata["ojs-exports"];
+    serverMetadata["ojs-export"];
   const shinyInputs = new Set<string>();
   const shinyInputExcludes = new Set<string>();
   const shinyEverything = new Set<string>();
   const shinyOutputMetadata =
     (serverMetadata && serverMetadata["type"] === "shiny") &&
-    serverMetadata["ojs-imports"];
+    serverMetadata["ojs-import"];
 
   let importAllViews = !shinyInputMetadata ||
     (shinyInputMetadata.indexOf("viewof") !== -1);
