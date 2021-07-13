@@ -19,6 +19,7 @@ export interface ProjectWatcher {
 
 export type ServeOptions = {
   port: number;
+  host: string;
   render: string;
   browse?: boolean;
   watch?: boolean;

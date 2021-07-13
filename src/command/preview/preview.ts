@@ -6,6 +6,7 @@
 */
 
 import { basename, dirname, join } from "path/mod.ts";
+import { createHash } from "hash/mod.ts";
 
 import { serve, ServerRequest } from "http/server.ts";
 
@@ -15,7 +16,6 @@ import { kOutputFile } from "../../config/constants.ts";
 
 import { cssFileResourceReferences } from "../../core/html.ts";
 import { logError } from "../../core/log.ts";
-import { kLocalhost } from "../../core/port.ts";
 import { openUrl } from "../../core/shell.ts";
 import {
   httpContentResponse,
@@ -39,6 +39,7 @@ import { formatResourcePath } from "../../core/resources.ts";
 
 interface PreviewOptions {
   port: number;
+  host: string;
   browse: boolean;
   render: boolean;
 }
@@ -77,7 +78,7 @@ export async function preview(
     : htmlFileRequestHandler(result.outputFile, reloader, changeHandler.render);
 
   // serve project
-  const server = serve({ port: options.port, hostname: kLocalhost });
+  const server = serve({ port: options.port, hostname: options.host });
 
   // open browser if requested
   const initialPath = isPdfContent(result.outputFile) ? kPdfJsInitialPath : "";
@@ -371,27 +372,39 @@ function pdfFileRequestHandler(
 
   // tweak the file handler to substitute our pdf for the default one
   const htmlOnFile = pdfOptions.onFile;
-  pdfOptions.onFile = async (file: string) => {
+  pdfOptions.onFile = async (file: string, req: ServerRequest) => {
     // base behavior (injects the reloader into html files)
-    const contents = await htmlOnFile!(file);
+    const contents = await htmlOnFile!(file, req);
     if (contents) {
       return contents;
     }
-
-    // tweak viewer.js to point to our pdf
+    // tweak viewer.js to point to our pdf and force the sidebar off
     if (file === join(pdfOptions.baseDir, "web", "viewer.js")) {
-      const viewerJs = Deno.readTextFileSync(file).replace(
-        kPdfJsDefaultFile,
-        basename(pdfFile),
-      );
+      let viewerJs = Deno.readTextFileSync(file)
+        .replace(
+          kPdfJsDefaultFile,
+          basename(pdfFile),
+        );
+      // always hide the sidebar in the viewer pane
+      const referrer = req.headers.get("Referer");
+      const isViewer = referrer && referrer.includes("viewer_pane=1");
+      if (isViewer) {
+        viewerJs = viewerJs.replace(
+          "sidebarView: sidebarView",
+          "sidebarView: _ui_utils.SidebarView.NONE",
+        );
+      }
+
       return new TextEncoder().encode(viewerJs);
 
       // tweak pdf.worker.js to always return the same fingerprint
       // (preserve user viewer prefs across reloads)
     } else if (file === join(pdfOptions.baseDir, "build", "pdf.worker.js")) {
+      const filePathHash = "quarto-preview-pdf-" +
+        createHash("md5").update(pdfFile).toString();
       const workerJs = Deno.readTextFileSync(file).replace(
         /(key: "fingerprint",\s+get: function get\(\) {\s+)(var hash;)/,
-        `$1return "quarto-pdf-preview"; $2`,
+        `$1return "${filePathHash}"; $2`,
       );
       return new TextEncoder().encode(workerJs);
     } // read requests for our pdf for the pdfFile

@@ -10,7 +10,7 @@ import { Command } from "cliffy/command/mod.ts";
 import { kProjectType } from "../../project/types.ts";
 import { projectContext } from "../../project/project-context.ts";
 import { projectType } from "../../project/types/project-types.ts";
-import { findOpenPort } from "../../core/port.ts";
+import { findOpenPort, kLocalhost } from "../../core/port.ts";
 
 import { kRenderNone, serveProject } from "./serve.ts";
 
@@ -28,9 +28,13 @@ export const serveCommand = new Command()
       'serving pass the --render option with "all" or a comma-separated list of formats to render.\n',
   )
   .option(
-    "-p, --port [port:number]",
+    "--port [port:number]",
     "Suggested port to listen on (defaults to random value between 3000 and 8000).\n" +
       "If the port is not available then a random port between 3000 and 8000 will be selected.",
+  )
+  .option(
+    "--host [host:string]",
+    "Hostname to bind to (defaults to 127.0.0.1)",
   )
   .option(
     "--render [to:string]",
@@ -101,6 +105,9 @@ export const serveCommand = new Command()
       );
     }
 
+    // default host if needed
+    options.host = options.host || kLocalhost;
+
     // select a port
     if (!options.port) {
       options.port = findOpenPort();
@@ -110,6 +117,7 @@ export const serveCommand = new Command()
 
     await serveProject(context, {
       port: options.port,
+      host: options.host,
       render: options.render,
       browse: options.browse,
       watch: options.watch,

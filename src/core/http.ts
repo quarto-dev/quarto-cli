@@ -20,18 +20,24 @@ export interface HttpFileRequestOptions {
   defaultFile?: string;
   printUrls?: "all" | "404";
   onRequest?: (req: ServerRequest) => Promise<boolean>;
-  onFile?: (file: string) => Promise<Uint8Array | undefined>;
+  onFile?: (
+    file: string,
+    req: ServerRequest,
+  ) => Promise<Uint8Array | undefined>;
   on404?: (url: string) => { print?: boolean; body?: Uint8Array };
 }
 
 export function httpFileRequestHandler(
   options: HttpFileRequestOptions,
 ) {
-  async function serveFile(filePath: string): Promise<Response> {
+  async function serveFile(
+    filePath: string,
+    req: ServerRequest,
+  ): Promise<Response> {
     // read file (allow custom handler first shot at html files)
     let fileContents: Uint8Array | undefined;
     if (options.onFile) {
-      fileContents = await options.onFile(filePath);
+      fileContents = await options.onFile(filePath, req);
     }
     if (!fileContents) {
       fileContents = Deno.readFileSync(filePath);
@@ -101,7 +107,7 @@ export function httpFileRequestHandler(
       if (fileInfo?.isDirectory && !normalizedUrl.endsWith("/")) {
         response = serveRedirect(normalizedUrl + "/");
       } else {
-        response = await serveFile(fsPath!);
+        response = await serveFile(fsPath!, req);
         if (options.printUrls === "all") {
           printUrl(normalizedUrl);
         }
