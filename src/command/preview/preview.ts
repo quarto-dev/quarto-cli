@@ -372,25 +372,35 @@ function pdfFileRequestHandler(
 
   // tweak the file handler to substitute our pdf for the default one
   const htmlOnFile = pdfOptions.onFile;
-  pdfOptions.onFile = async (file: string) => {
+  pdfOptions.onFile = async (file: string, req: ServerRequest) => {
     // base behavior (injects the reloader into html files)
-    const contents = await htmlOnFile!(file);
+    const contents = await htmlOnFile!(file, req);
     if (contents) {
       return contents;
     }
-
-    // tweak viewer.js to point to our pdf
+    // tweak viewer.js to point to our pdf and force the sidebar off
     if (file === join(pdfOptions.baseDir, "web", "viewer.js")) {
-      const viewerJs = Deno.readTextFileSync(file).replace(
-        kPdfJsDefaultFile,
-        basename(pdfFile),
-      );
+      let viewerJs = Deno.readTextFileSync(file)
+        .replace(
+          kPdfJsDefaultFile,
+          basename(pdfFile),
+        );
+      // always hide the sidebar in the viewer pane
+      const referrer = req.headers.get("Referer");
+      const isViewer = referrer && referrer.includes("viewer_pane=1");
+      if (isViewer) {
+        viewerJs = viewerJs.replace(
+          "sidebarView: sidebarView",
+          "sidebarView: _ui_utils.SidebarView.NONE",
+        );
+      }
+
       return new TextEncoder().encode(viewerJs);
 
       // tweak pdf.worker.js to always return the same fingerprint
       // (preserve user viewer prefs across reloads)
     } else if (file === join(pdfOptions.baseDir, "build", "pdf.worker.js")) {
-      const filePathHash = "quarto-pdf-preview-" +
+      const filePathHash = "quarto-preview-pdf-" +
         createHash("md5").update(pdfFile).toString();
       const workerJs = Deno.readTextFileSync(file).replace(
         /(key: "fingerprint",\s+get: function get\(\) {\s+)(var hash;)/,
