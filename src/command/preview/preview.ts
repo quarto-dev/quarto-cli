@@ -6,6 +6,7 @@
 */
 
 import { basename, dirname, join } from "path/mod.ts";
+import { createHash } from "hash/mod.ts";
 
 import { serve, ServerRequest } from "http/server.ts";
 
@@ -389,9 +390,11 @@ function pdfFileRequestHandler(
       // tweak pdf.worker.js to always return the same fingerprint
       // (preserve user viewer prefs across reloads)
     } else if (file === join(pdfOptions.baseDir, "build", "pdf.worker.js")) {
+      const filePathHash = "quarto-pdf-preview-" +
+        createHash("md5").update(pdfFile).toString();
       const workerJs = Deno.readTextFileSync(file).replace(
         /(key: "fingerprint",\s+get: function get\(\) {\s+)(var hash;)/,
-        `$1return "quarto-pdf-preview"; $2`,
+        `$1return "${filePathHash}"; $2`,
       );
       return new TextEncoder().encode(workerJs);
     } // read requests for our pdf for the pdfFile
