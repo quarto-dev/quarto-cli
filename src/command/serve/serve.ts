@@ -5,7 +5,6 @@
 *
 */
 
-import * as colors from "fmt/colors.ts";
 import { error, info } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
 import { basename, join, relative } from "path/mod.ts";
@@ -28,7 +27,6 @@ import { websitePath } from "../../project/types/website/website-config.ts";
 import { renderProject } from "../render/project.ts";
 import { renderResultFinalOutput } from "../render/render.ts";
 
-import { kLocalhost } from "../../core/port.ts";
 import { httpFileRequestHandler } from "../../core/http.ts";
 import { ServeOptions } from "./types.ts";
 import { copyProjectForServe } from "./serve-shared.ts";
@@ -181,7 +179,7 @@ export async function serveProject(
   });
 
   // serve project
-  const server = serve({ port: options.port, hostname: kLocalhost });
+  const server = serve({ port: options.port, hostname: options.host });
 
   // compute site url
   const siteUrl = `http://localhost:${options.port}/`;

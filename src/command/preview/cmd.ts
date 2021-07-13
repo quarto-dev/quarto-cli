@@ -11,7 +11,7 @@ import * as colors from "fmt/colors.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { findOpenPort } from "../../core/port.ts";
+import { findOpenPort, kLocalhost } from "../../core/port.ts";
 import { fixupPandocArgs, parseRenderFlags } from "../render/flags.ts";
 import { preview } from "./preview.ts";
 
@@ -19,9 +19,13 @@ export const previewCommand = new Command()
   .name("preview")
   .stopEarly()
   .option(
-    "-p, --port [port:number]",
+    "--port [port:number]",
     "Suggested port to listen on (defaults to random value between 3000 and 8000).\n" +
       "If the port is not available then a random port between 3000 and 8000 will be selected.",
+  )
+  .option(
+    "--host [host:string]",
+    "Hostname to bind to (defaults to 127.0.0.1)",
   )
   .option(
     "--no-render",
@@ -65,11 +69,16 @@ export const previewCommand = new Command()
     args = args || [];
 
     // pull out our command line args
-    let port: number | undefined;
     const portPos = args.indexOf("--port");
     if (portPos !== -1) {
-      port = parseInt(args[portPos + 1]);
+      options.port = parseInt(args[portPos + 1]);
       args.splice(portPos, 2);
+    }
+    // pull out our command line args
+    const hostPos = args.indexOf("--host");
+    if (hostPos !== -1) {
+      options.host = parseInt(args[hostPos + 1]);
+      args.splice(hostPos, 2);
     }
     const noBrowsePos = args.indexOf("--no-browse");
     if (noBrowsePos !== -1) {
@@ -81,6 +90,9 @@ export const previewCommand = new Command()
       options.render = false;
       args.splice(noRenderPos, 1);
     }
+
+    // default host if not specified
+    options.host = options.host || kLocalhost;
 
     // select a port
     if (!options.port) {
@@ -97,6 +109,7 @@ export const previewCommand = new Command()
     // run preview
     await preview(file, flags, args, {
       port: options.port,
+      host: options.host,
       browse: !!options.browse,
       render: !!options.render,
     });

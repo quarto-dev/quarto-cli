@@ -16,7 +16,6 @@ import { kOutputFile } from "../../config/constants.ts";
 
 import { cssFileResourceReferences } from "../../core/html.ts";
 import { logError } from "../../core/log.ts";
-import { kLocalhost } from "../../core/port.ts";
 import { openUrl } from "../../core/shell.ts";
 import {
   httpContentResponse,
@@ -40,6 +39,7 @@ import { formatResourcePath } from "../../core/resources.ts";
 
 interface PreviewOptions {
   port: number;
+  host: string;
   browse: boolean;
   render: boolean;
 }
@@ -78,7 +78,7 @@ export async function preview(
     : htmlFileRequestHandler(result.outputFile, reloader, changeHandler.render);
 
   // serve project
-  const server = serve({ port: options.port, hostname: kLocalhost });
+  const server = serve({ port: options.port, hostname: options.host });
 
   // open browser if requested
   const initialPath = isPdfContent(result.outputFile) ? kPdfJsInitialPath : "";
