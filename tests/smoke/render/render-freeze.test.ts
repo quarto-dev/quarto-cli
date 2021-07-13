@@ -15,7 +15,7 @@ import { ExecuteOutput, Verify } from "../../test.ts";
 import { outputCreated } from "../../verify.ts";
 import { testRender } from "./render.ts";
 
-const regex = /^output file: .*\.knit\.md$/m;
+const regex = /output file: .*\.knit\.md/m;
 
 const testFileName = "freeze-test";
 const tempDir = Deno.makeTempDirSync();
