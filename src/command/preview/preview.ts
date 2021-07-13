@@ -219,7 +219,7 @@ function createChangeHandler(
         : pdfReloadFiles(result);
       const reloadTarget = isHtmlContent(result.outputFile)
         ? ""
-        : kPdfJsInitialPath;
+        : "/" + kPdfJsInitialPath;
 
       watches.push({
         files: reloadFiles,
