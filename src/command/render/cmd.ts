@@ -12,8 +12,7 @@ import { info } from "log/mod.ts";
 
 import { fixupPandocArgs, kStdOut, parseRenderFlags } from "./flags.ts";
 
-import { renderResultFinalOutput } from "./render.ts";
-import { render } from "./render-shared.ts";
+import { render, renderResultFinalOutput } from "./render-shared.ts";
 import { RenderResult } from "./types.ts";
 
 export const renderCommand = new Command()
