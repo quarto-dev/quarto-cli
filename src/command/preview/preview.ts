@@ -7,6 +7,7 @@
 
 import { basename, dirname, join } from "path/mod.ts";
 import { createHash } from "hash/mod.ts";
+import { info } from "log/mod.ts";
 
 import { serve, ServerRequest } from "http/server.ts";
 
@@ -31,6 +32,7 @@ import {
   printBrowsePreviewMessage,
   printWatchingForChangesMessage,
   render,
+  renderResultFinalOutput,
 } from "../render/render-shared.ts";
 import { RenderFlags, RenderResultFile } from "../render/types.ts";
 import { renderFormats } from "../render/render.ts";
@@ -130,6 +132,12 @@ async function renderForPreview(
   });
   if (renderResult.error) {
     throw renderResult.error;
+  }
+
+  // print output created
+  const finalOutput = renderResultFinalOutput(renderResult, dirname(file));
+  if (finalOutput) {
+    info("Output created: " + finalOutput + "\n");
   }
 
   // notify user we are watching for reload
