@@ -69,11 +69,11 @@ interface DirectDependency {
   importPath: string;
 }
 
-// Extracts the dependencies from a single js or ojs file
+// Extracts the direct dependencies from a single js, ojs or qmd file
 function directDependencies(
   source: string,
   fileDir: string,
-  language: "js" | "ojs",
+  language: "js" | "ojs" | "qmd",
   projectRoot?: string,
 ): DirectDependency[] {
   interface ResolvedES6Path {
@@ -137,14 +137,26 @@ function directDependencies(
       parseError(source);
       throw new Error();
     }
-  } else {
-    // language === "ojs"
+  } else if (language === "ojs") {
     try {
       ast = parseModule(source);
     } catch (_e) {
       parseError(source);
       throw new Error();
     }
+  } else {
+    // language === "qmd"
+    const ojsCellsSrc = breakQuartoMd(source)
+      .cells
+      .filter((cell) =>
+        cell.cell_type !== "markdown" &&
+        cell.cell_type !== "raw" &&
+        cell.cell_type !== "math" &&
+        cell.cell_type?.language !== "ojs"
+      )
+      .flatMap((v) => v) // (concat)
+      .join("");
+    return directDependencies(ojsCellsSrc, fileDir, "ojs", projectRoot);
   }
 
   return localImports(ast).map((importPath) => {
@@ -272,6 +284,8 @@ export function extractResourceDescriptionsFromOJSChunk(
       language = "js";
     } else if (thisResolvedImportPath.endsWith(".ojs")) {
       language = "ojs";
+    } else if (thisResolvedImportPath.endsWith(".qmd")) {
+      language = "qmd";
     } else {
       throw new Error(`Unknown language in file ${thisResolvedImportPath}`);
     }
@@ -280,7 +294,7 @@ export function extractResourceDescriptionsFromOJSChunk(
       const { resolvedImportPath, pathType, importPath } of directDependencies(
         source,
         dirname(thisResolvedImportPath),
-        language as ("js" | "ojs"),
+        language as ("js" | "ojs" | "qmd"),
         projectRoot,
       )
     ) {
