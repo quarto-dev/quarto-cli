@@ -356,6 +356,10 @@ function htmlReloadFiles(result: RenderForPreviewResult) {
 
 const kPdfJsInitialPath = "web/viewer.html";
 const kPdfJsDefaultFile = "compressed.tracemonkey-pldi-09.pdf";
+const kPdfJsViewerToolbarButtonSelector = `.toolbarButton,
+.dropdownToolbarButton,
+.secondaryToolbarButton,
+.overlayButton {`;
 
 // NOTE: pdfjs uses the \pdftrailerid{} (if defined, and this macro only works for pdflatex)
 // as the context for persisting user prefs. this is read in the "fingerprint" method of
@@ -408,6 +412,13 @@ function pdfFileRequestHandler(
       }
 
       return new TextEncoder().encode(viewerJs);
+    } else if (file == join(pdfOptions.baseDir, "web", "viewer.css")) {
+      const viewerCss = Deno.readTextFileSync(file)
+        .replace(
+          kPdfJsViewerToolbarButtonSelector,
+          kPdfJsViewerToolbarButtonSelector + "\n  z-index: 199;",
+        );
+      return new TextEncoder().encode(viewerCss);
 
       // tweak pdf.worker.js to always return the same fingerprint
       // (preserve user viewer prefs across reloads)
