@@ -8,7 +8,7 @@
   <conclusion file="conclusion.html" mime-type="text/html" />
   <license file="LICENSE.txt" />
   -->
-  <options customize="never" allow-external-scripts="no" />
+  <options customize="always" allow-external-scripts="no" />
   <domains enable_currentUserHome="true" enable_localSystem="true" />
   <choices-outline>
     <line choice="Quarto" />
