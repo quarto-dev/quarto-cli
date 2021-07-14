@@ -23,7 +23,7 @@ import {
   resolveFileResources,
   resourcesFromMetadata,
 } from "../render/resources.ts";
-import { cssFileResourceReferences } from "../../core/html.ts";
+import { cssFileResourceReferences } from "../../core/css.ts";
 
 export const inspectCommand = new Command()
   .name("inspect")

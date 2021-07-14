@@ -5,16 +5,13 @@
 *
 */
 
-import { dirname, extname, join } from "path/mod.ts";
-
-import { existsSync } from "fs/mod.ts";
-
 import { generate as generateUuid } from "uuid/v4.ts";
 
 import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
 
 import { pandocAutoIdentifier } from "./pandoc/pandoc-id.ts";
-import { cssImports, cssResources } from "./css.ts";
+import { isFileRef } from "./http.ts";
+import { cssFileRefs } from "./css.ts";
 
 export function asHtmlId(text: string) {
   return pandocAutoIdentifier(text, false);
@@ -45,10 +42,6 @@ export function discoverResourceRefs(doc: Document): Promise<string[]> {
   return Promise.resolve(refs);
 }
 
-export function isFileRef(href: string) {
-  return !/^\w+:/.test(href) && !href.startsWith("#");
-}
-
 export function processFileResourceRefs(
   doc: Document,
   tag: string,
@@ -63,25 +56,6 @@ export function processFileResourceRefs(
       onRef(tag, href);
     }
   }
-}
-
-export function cssFileResourceReferences(files: string[]) {
-  return files.reduce((allRefs: string[], file: string) => {
-    if (extname(file).toLowerCase() === ".css") {
-      if (existsSync(file)) {
-        file = Deno.realPathSync(file);
-        const css = Deno.readTextFileSync(file);
-        const cssRefs = cssFileRefs(css).map((ref) => join(dirname(file), ref));
-        allRefs.push(...cssRefs);
-        allRefs.push(...cssFileResourceReferences(cssRefs));
-      }
-    }
-    return allRefs;
-  }, []);
-}
-
-function cssFileRefs(css: string) {
-  return cssImports(css).concat(cssResources(css)).filter(isFileRef);
 }
 
 function resolveResourceTag(
