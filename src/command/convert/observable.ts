@@ -217,7 +217,7 @@ function consumeFrontMatter(
   }
 
   if (date) {
-    lines.push("date: " + new Date(date).toLocaleDateString());
+    lines.push('date: "' + new Date(date).toISOString().slice(0, 10) + '"');
   }
 
   lines.push("license: " + String(license));
