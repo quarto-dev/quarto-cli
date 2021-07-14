@@ -15,7 +15,7 @@ import { ld } from "lodash/mod.ts";
 
 import { kOutputFile } from "../../config/constants.ts";
 
-import { cssFileResourceReferences } from "../../core/html.ts";
+import { cssFileResourceReferences } from "../../core/css.ts";
 import { logError } from "../../core/log.ts";
 import { openUrl } from "../../core/shell.ts";
 import {
