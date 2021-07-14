@@ -502,6 +502,13 @@ export function extendObservableStdlib(lib) {
     renderValue(_el, data) {
       this._change(data);
     }
+    onValueError(el, err) {
+      const group = `Shiny error in ${el.id}`;
+      console.groupCollapsed(`%c${group}`, 'color:red');
+      console.log(`${err.message}`);
+      console.log(`call: ${err.call}`);
+      console.groupEnd(group);
+    }
   }
 
   $(document).on("shiny:connected", function (_event) {
