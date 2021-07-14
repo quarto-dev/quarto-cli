@@ -25,6 +25,7 @@ export async function observableNotebookToMarkdown(
   output?: string,
 ) {
   // convert end-user url to api url if necessary
+  const originalUrl = url;
   if (url.startsWith(kObservableSiteUrl)) {
     const nbPath = url.slice(kObservableSiteUrl.length).replace(/^d\//, "");
     url = `${kObservableApiUrl}document/${nbPath}`;
@@ -94,7 +95,13 @@ export async function observableNotebookToMarkdown(
 
     // consume and write front matter if this is the first cell
     if (i === 0) {
-      const skip = consumeFrontMatter(mode, value, nb.nodes[1], lines);
+      const skip = consumeFrontMatter(
+        originalUrl,
+        mode,
+        value,
+        nb.nodes[1],
+        lines,
+      );
       if (skip > 0) {
         i = skip - 1;
         continue;
@@ -105,8 +112,8 @@ export async function observableNotebookToMarkdown(
     switch (mode) {
       case "js":
         lines.push("```{ojs}");
-        if (!node.pinned) {
-          lines.push("//| echo: false");
+        if (node.pinned) {
+          lines.push("//| echo: true");
         }
         lines.push(value);
         lines.push("```");
@@ -141,6 +148,7 @@ export async function observableNotebookToMarkdown(
 }
 
 function consumeFrontMatter(
+  url: string,
   mode: string,
   value: string,
   nextNode: { mode: string; value: string } | undefined,
@@ -185,9 +193,14 @@ function consumeFrontMatter(
     }
   }
 
+  lines.push(`observablehq-url: ${url}`);
+
   if (needFormat) {
     lines.push(kFormatHtml);
   }
+
+  lines.push("execute:");
+  lines.push("  echo: false");
 
   lines.push("---");
   lines.push("");
