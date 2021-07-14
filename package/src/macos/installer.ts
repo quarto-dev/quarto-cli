@@ -138,6 +138,8 @@ export async function makeInstallerMac(config: Configuration) {
       ...packageArgs,
       "--ownership",
       "recommended",
+      "--install-location",
+      "/Application",
       corePackagePath,
     ],
   );
