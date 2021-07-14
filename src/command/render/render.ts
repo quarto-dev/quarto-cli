@@ -616,6 +616,12 @@ export function renderResultFinalOutput(
     finalOutput = join(dirname(finalInput), finalOutput);
   }
 
+  // if the final output doesn't exist then we must have been targetin stdout,
+  // so return undefined
+  if (!existsSync(finalOutput)) {
+    return undefined;
+  }
+
   // return a path relative to the input file
   if (relativeToInputDir) {
     const inputRealPath = Deno.realPathSync(relativeToInputDir);

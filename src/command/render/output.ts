@@ -165,7 +165,7 @@ export async function outputRecipe(
       // output to stdout: direct pandoc to write to a temp file then we'll
       // forward to stdout (necessary b/c a postprocesor may need to act on
       // the output before its complete)
-      recipe.output = sessionTempFile({ suffix: "." + ext });
+      updateOutput(sessionTempFile({ suffix: "." + ext }));
       completeActions.push(() => {
         writeFileToStdout(recipe.output);
         Deno.removeSync(recipe.output);
