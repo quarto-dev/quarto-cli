@@ -38,6 +38,11 @@ import { RenderFlags, RenderResultFile } from "../render/types.ts";
 import { renderFormats } from "../render/render.ts";
 import { replacePandocArg } from "../render/flags.ts";
 import { formatResourcePath } from "../../core/resources.ts";
+import {
+  projectContext,
+  projectIsWebserverTarget,
+} from "../../project/project-context.ts";
+import { kProjectType } from "../../project/types.ts";
 
 interface PreviewOptions {
   port: number;
@@ -52,6 +57,15 @@ export async function preview(
   pandocArgs: string[],
   options: PreviewOptions,
 ) {
+  // see if this is in a project that should be previewed w/ serve
+  const project = await projectContext(file);
+  if (project && projectIsWebserverTarget(project)) {
+    throw new Error(
+      `Target file ${basename(file)} is in a ${project.config?.project
+        ?.[kProjectType]} project (preview this file using quarto serve).`,
+    );
+  }
+
   // determine the target format if there isn't one in the command line args
   // (current we force the use of an html or pdf based format)
   await resolvePreviewFormat(file, flags, pandocArgs);
@@ -255,7 +269,9 @@ function previewWatcher(watches: Watch[]): Watcher {
   watches = watches.map((watch) => {
     return {
       ...watch,
-      files: watch.files.map(Deno.realPathSync),
+      files: watch.files.map((file) => {
+        return Deno.realPathSync(file);
+      }),
     };
   });
   const handlerForFile = (file: string) => {
