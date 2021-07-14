@@ -16,5 +16,5 @@
   <choice id="Quarto" title="Quarto">
     <pkg-ref id="quarto-core.pkg" />
   </choice>
-  <pkg-ref id="quarto-core.pkg" auth="Root">$PATH$</pkg-ref>
+  <pkg-ref id="quarto-core.pkg" auth="none">$PATH$</pkg-ref>
 </installer-script>
