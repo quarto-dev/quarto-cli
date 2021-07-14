@@ -136,9 +136,10 @@ async function renderForPreview(
 
   // print output created
   const finalOutput = renderResultFinalOutput(renderResult, dirname(file));
-  if (finalOutput) {
-    info("Output created: " + finalOutput + "\n");
+  if (!finalOutput) {
+    throw new Error("No output created by quarto render " + basename(file));
   }
+  info("Output created: " + finalOutput + "\n");
 
   // notify user we are watching for reload
   printWatchingForChangesMessage();
@@ -161,7 +162,7 @@ async function renderForPreview(
   );
   return {
     file,
-    outputFile: join(dirname(file), renderResult.files[0].file),
+    outputFile: join(dirname(file), finalOutput),
     resourceFiles,
   };
 }
