@@ -51,16 +51,23 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   # fixup options for cache
   knitr <- knitr_options_with_cache(input, format, knitr)
 
-  # This truly awful hack ensures that rmarkdown doesn't tell us we're
-  # producing HTML widgets when targeting a non-html format (doing this
-  # is triggered by the "prefer-html" options)
-  post_knit <- NULL
-  if (format$render$`prefer-html`) {
-    post_knit <- function(...) {
+  post_knit <- function(...) {
+    # provide ojs integration for shiny prerendered
+    if (is_shiny_prerendered(knitr::opts_knit$get("rmarkdown.runtime"))) {
+      code <- readLines(file.path(resourceDir, "rmd", "ojs.R"))
+      rmarkdown::shiny_prerendered_chunk("server-extras", code, TRUE)
+    }
+    
+    # This truly awful hack ensures that rmarkdown doesn't tell us we're
+    # producing HTML widgets when targeting a non-html format (doing this
+    # is triggered by the "prefer-html" options)
+    if (format$render$`prefer-html`) {
       render_env <- parent.env(parent.frame())
       render_env$front_matter$always_allow_html <- TRUE
-      NULL
     }
+    
+    # return no new pandoc args
+    NULL
   }
 
   # synthesize rmarkdown output format
@@ -368,7 +375,7 @@ html_dependencies_as_string <- function(dependencies, files_dir) {
   return(htmltools::renderDependencies(dependencies, "file", encodeFunc = identity))
 }
 
-is_shiny_prerendered <- function(runtime, server) {
+is_shiny_prerendered <- function(runtime, server = NULL) {
   if (identical(runtime, "shinyrmd") || identical(runtime, "shiny_prerendered")) {
     TRUE
   } else if (identical(server, "shiny")) {

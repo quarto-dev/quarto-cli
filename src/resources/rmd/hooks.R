@@ -28,14 +28,6 @@ knitr_hooks <- function(format, resourceDir) {
     }
     options
   }
-  
-  opts_hooks[["context"]] <- function(options) {
-    if (options[["context"]] == "server") {
-      code <- readLines(file.path(resourceDir, "rmd", "ojs.R"))
-      rmarkdown::shiny_prerendered_chunk("server", code, TRUE)
-    }
-    options
-  }
 
   # automatically set gifski hook for fig.animate
   opts_hooks[["fig.show"]] <- function(options) {
