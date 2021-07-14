@@ -139,7 +139,7 @@ export async function makeInstallerMac(config: Configuration) {
       "--ownership",
       "recommended",
       "--install-location",
-      "/Application",
+      "/Applications/quarto",
       corePackagePath,
     ],
   );
