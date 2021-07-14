@@ -27,6 +27,10 @@ export interface HttpFileRequestOptions {
   on404?: (url: string) => { print?: boolean; body?: Uint8Array };
 }
 
+export function isFileRef(href: string) {
+  return !/^\w+:/.test(href) && !href.startsWith("#");
+}
+
 export function httpFileRequestHandler(
   options: HttpFileRequestOptions,
 ) {

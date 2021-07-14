@@ -7,7 +7,7 @@
 
 import { existsSync } from "fs/exists.ts";
 
-import { parse } from "encoding/yaml.ts";
+import { JSON_SCHEMA, parse } from "encoding/yaml.ts";
 
 const kRegExYAML =
   /(^)(---[ \t]*[\r\n]+(?![ \t]*[\r\n]+)[\W\w]*?[\r\n]+(?:---|\.\.\.))([ \t]*)$/gm;
@@ -19,14 +19,14 @@ export function readYaml(file: string) {
   if (existsSync(file)) {
     const decoder = new TextDecoder("utf-8");
     const yml = Deno.readFileSync(file);
-    return parse(decoder.decode(yml));
+    return parse(decoder.decode(yml), { schema: JSON_SCHEMA });
   } else {
     throw new Error(`YAML file ${file} not found.`);
   }
 }
 
 export function readYamlFromString(yml: string) {
-  return parse(yml);
+  return parse(yml, { schema: JSON_SCHEMA });
 }
 
 export function readYamlFromMarkdown(
@@ -45,7 +45,7 @@ export function readYamlFromMarkdown(
       const yamlBlock = removeYamlDelimiters(match[2]);
       try {
         // make sure it parses before we add it
-        parse(yamlBlock, { json: true });
+        parse(yamlBlock, { json: true, schema: JSON_SCHEMA });
         // add it
         yaml += yamlBlock;
       } catch {
@@ -56,7 +56,7 @@ export function readYamlFromMarkdown(
     kRegExYAML.lastIndex = 0;
 
     // parse the yaml
-    const metadata = parse(yaml, { json: true });
+    const metadata = parse(yaml, { json: true, schema: JSON_SCHEMA });
     return (metadata || {}) as { [key: string]: unknown };
   } else {
     return {};

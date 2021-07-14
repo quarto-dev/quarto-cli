@@ -1,8 +1,12 @@
 #!/bin/sh
 
 
-# Create quarto symlink
+if [[ $EUID -eq 0 ]]; then
 ln -fs $2/bin/quarto /usr/local/bin/quarto
+else
+ln -fs $2/bin/quarto ~/bin/quarto
+echo 'export PATH="'$2'/bin:$PATH"' >> ~/.zshrc
+fi
 
 exit 0
 

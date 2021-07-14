@@ -5,9 +5,9 @@
 *
 */
 
+import { info } from "log/mod.ts";
 import { basename, dirname, join } from "path/mod.ts";
 import { createHash } from "hash/mod.ts";
-import { info } from "log/mod.ts";
 
 import { serve, ServerRequest } from "http/server.ts";
 
@@ -15,7 +15,7 @@ import { ld } from "lodash/mod.ts";
 
 import { kOutputFile } from "../../config/constants.ts";
 
-import { cssFileResourceReferences } from "../../core/html.ts";
+import { cssFileResourceReferences } from "../../core/css.ts";
 import { logError } from "../../core/log.ts";
 import { openUrl } from "../../core/shell.ts";
 import {
@@ -32,10 +32,9 @@ import {
   printBrowsePreviewMessage,
   printWatchingForChangesMessage,
   render,
-  renderResultFinalOutput,
 } from "../render/render-shared.ts";
 import { RenderFlags, RenderResultFile } from "../render/types.ts";
-import { renderFormats } from "../render/render.ts";
+import { renderFormats, renderResultFinalOutput } from "../render/render.ts";
 import { replacePandocArg } from "../render/flags.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import {

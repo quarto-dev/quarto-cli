@@ -71,6 +71,15 @@ export async function observableNotebookToMarkdown(
     attachments.push(file.name);
   }
 
+  // determine default echo setting
+  const pinned = nb.nodes.reduce(
+    (pinned: number, node: { pinned: boolean }) => {
+      return pinned + (node.pinned ? 1 : 0);
+    },
+    0,
+  );
+  const echo = pinned > (nb.nodes.length / 2);
+
   // generate markdown
   const kModePrefixes = ["md", "html", "tex"].map((prefix) => ({
     prefix,
@@ -97,6 +106,10 @@ export async function observableNotebookToMarkdown(
     if (i === 0) {
       const skip = consumeFrontMatter(
         originalUrl,
+        nb.creator,
+        nb.publish_time,
+        nb.license || "unknown",
+        echo,
         mode,
         value,
         nb.nodes[1],
@@ -112,8 +125,10 @@ export async function observableNotebookToMarkdown(
     switch (mode) {
       case "js":
         lines.push("```{ojs}");
-        if (node.pinned) {
+        if (node.pinned && !echo) {
           lines.push("//| echo: true");
+        } else if (!node.pinned && echo) {
+          lines.push("// echo: false");
         }
         lines.push(value);
         lines.push("```");
@@ -149,6 +164,10 @@ export async function observableNotebookToMarkdown(
 
 function consumeFrontMatter(
   url: string,
+  creator: { name?: string } | undefined,
+  date: string | undefined,
+  license: string,
+  echo: boolean,
   mode: string,
   value: string,
   nextNode: { mode: string; value: string } | undefined,
@@ -193,14 +212,26 @@ function consumeFrontMatter(
     }
   }
 
+  if (creator?.name) {
+    lines.push('author: "' + String(creator?.name) + '"');
+  }
+
+  if (date) {
+    lines.push("date: " + new Date(date).toISOString().slice(0, 10));
+  }
+
+  lines.push("license: " + String(license));
+
   lines.push(`observablehq-url: ${url}`);
 
   if (needFormat) {
     lines.push(kFormatHtml);
   }
 
-  lines.push("execute:");
-  lines.push("  echo: false");
+  if (echo == false) {
+    lines.push("execute:");
+    lines.push("  echo: false");
+  }
 
   lines.push("---");
   lines.push("");

@@ -47,14 +47,6 @@ export const convertCommand = new Command()
     "Convert notebook to markdown, writing to file",
     "quarto convert mydocument.ipynb --output mydoc.qmd",
   )
-  .example(
-    "Convert observable to markdown",
-    "quarto convert https://observablehq.com/@d3/learn-d3",
-  )
-  .example(
-    "Convert observable to markdown, writing to dir",
-    "quarto convert https://observablehq.com/@d3/learn-d3 --output d3",
-  )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, input: string) => {
     // separate codepath for observable urls
