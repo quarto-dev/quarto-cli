@@ -35,6 +35,15 @@ testRender(inputVars, "html", false, [
   ]),
 ]);
 
+const inputVarsLinks = docs(join("shortcodes", "vars-links.qmd"));
+const outputVarsLinks = outputForInput(inputVarsLinks, "html");
+testRender(inputVarsLinks, "html", false, [
+  ensureFileRegexMatches(outputVarsLinks.outputPath, [
+    /http\:\/\/www\.test\.com\/bar/,
+    /images\/beach\.jpg\?bar/,
+  ], []),
+]);
+
 const inputVarsErr = docs(join("shortcodes", "vars-error.qmd"));
 const outputVarsErr = outputForInput(inputVarsErr, "html");
 testRender(inputVarsErr, "html", false, [
