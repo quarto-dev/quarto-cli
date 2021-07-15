@@ -1,0 +1,10 @@
+---
+title: Var Test
+basic-value: "Hello World"
+_quarto-vars:
+  foo: bar
+---
+
+[This is a test of {{< var foo >}}](http://www.test.com/{{< var foo >}})
+
+![Image {{< var foo >}}](images/beach.jpg?{{< var foo >}})
