@@ -4,7 +4,13 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { ensureDir, ensureDirSync, existsSync } from "fs/mod.ts";
+import {
+  copySync,
+  ensureDir,
+  ensureDirSync,
+  existsSync,
+  moveSync,
+} from "fs/mod.ts";
 import { info } from "log/mod.ts";
 import { join } from "path/mod.ts";
 import { projectTypeResourcePath } from "../../../src/core/resources.ts";
@@ -114,6 +120,12 @@ export async function updateHtmlDepedencies(config: Configuration) {
   );
   cleanSourceMap(tippyJs);
 
+  // Update PDF JS
+  updatePdfJs(
+    config,
+    workingDir,
+  );
+
   // Cookie-Consent
   await updateCookieConsent(config, "4.0.0", workingDir);
 
@@ -153,6 +165,43 @@ export async function updateHtmlDepedencies(config: Configuration) {
   info(
     "\n** Done- please commit any files that have been updated. **\n",
   );
+}
+
+async function updatePdfJs(
+  config: Configuration,
+  working: string,
+) {
+  const version = Deno.env.get("PDF_JS");
+
+  info("Updating pdf.js...");
+  const basename = `pdfjs-${version}-legacy-dist`;
+  const fileName = `${basename}.zip`;
+  const distUrl =
+    `https://github.com/mozilla/pdf.js/releases/download/v${version}/${fileName}`;
+  const zipFile = join(working, fileName);
+
+  // Download and unzip the release
+  const pdfjsDir = join(working, "pdfjs");
+  ensureDirSync(pdfjsDir);
+
+  info(`Downloading ${distUrl}`);
+  await download(distUrl, zipFile);
+  await unzip(zipFile, pdfjsDir);
+
+  // Remove extraneous files
+  const removeFiles = ["web/compressed.tracemonkey-pldi-09.pdf"];
+  removeFiles.forEach((file) => Deno.removeSync(join(pdfjsDir, file)));
+
+  const from = pdfjsDir;
+  const to = join(
+    config.directoryInfo.src,
+    "resources",
+    "formats",
+    "pdf",
+    "pdfjs",
+  );
+  moveSync(from, to, { overwrite: true });
+  info("Done\n");
 }
 
 async function updateCookieConsent(

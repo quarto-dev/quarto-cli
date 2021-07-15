@@ -21,6 +21,7 @@ export ANCHOR_JS=4.3.0
 export POPPER_JS=2.9.1
 export CLIPBOARD_JS=2.0.8
 export TIPPY_JS=6.3.0
+export PDF_JS=2.8.335
 
 # Quarto Info Version
 export QUARTO_VERSION=0.1
