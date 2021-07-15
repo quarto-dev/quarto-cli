@@ -18,7 +18,32 @@ function shortCodes()
     Code = transformShortcodeCode,
 
     CodeBlock =  transformShortcodeCode,
+
+    Link = transformLink,
+
+    Image = transformImage,
+    
   }
+end
+
+-- transforms shortcodes in link targets
+function transformLink(el)
+  local target = urldecode(el.target)
+  local tranformed = transformString(target);
+  if tranformed ~= nil then
+    el.target = tranformed
+    return el
+  end
+end
+
+-- transforms shortcodes in img srcs
+function transformImage(el)
+  local target = urldecode(el.src)
+  local tranformed = transformString(target);
+  if tranformed ~= nil then
+    el.src = tranformed
+    return el
+  end
 end
 
 -- transforms shortcodes inside code
@@ -184,6 +209,22 @@ function transformShortcodeInlines(inlines)
     return nil
   end
 
+end
+
+-- transforms shorts in a string
+function transformString(str)
+  local parsed = pandoc.read(str)
+  if parsed ~= nil then 
+    local blocks = parsed.blocks
+    if #blocks > 0 then
+      local targetInlines = parsed.blocks[1].content
+      local mutatedTarget = transformShortcodeInlines(targetInlines)
+      if mutatedTarget ~= nil then
+        return inlinesToString(mutatedTarget)
+      end      
+    end
+  end
+  return nil
 end
 
 -- processes inlines into a shortcode data structure

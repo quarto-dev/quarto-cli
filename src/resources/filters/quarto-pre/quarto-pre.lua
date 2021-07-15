@@ -56,6 +56,7 @@ import("../common/debug.lua")
 import("../common/string.lua")
 import("../common/list.lua")
 import("../common/log.lua")
+import("../common/url.lua")
 -- [/import]
 
 initParams()
