@@ -1,4 +1,5 @@
 name: Test Smokes
+description: Tests a broad set of Quarto functionality that users are likely to encounter. A failure indicates some signficant portion of functionality is likely to be broken.
 
 on:
   workflow_dispatch:
