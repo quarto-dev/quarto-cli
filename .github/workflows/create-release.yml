@@ -54,6 +54,8 @@ jobs:
     needs: [configure]
 
     steps:
+    - uses: actions/checkout@v2
+
     - name: Configure
       run: |
         ./configure-linux.sh
