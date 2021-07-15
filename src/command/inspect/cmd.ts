@@ -12,7 +12,7 @@ import { ld } from "lodash/mod.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { kResources } from "../../config/constants.ts";
+import { kCss, kResources } from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
 
 import { projectContext } from "../../project/project-context.ts";
@@ -78,9 +78,17 @@ export const inspectCommand = new Command()
         // accumulate resources from formats then resolve them
         const resourceConfig: string[] = Object.values(formats).reduce(
           (resources: string[], format: Format) => {
-            return ld.uniq(resources.concat(
+            resources = ld.uniq(resources.concat(
               resourcesFromMetadata(format.metadata[kResources]),
             ));
+            // include css specified in metadata
+            if (format.pandoc[kCss]) {
+              return ld.uniq(resources.concat(
+                resourcesFromMetadata(format.pandoc[kCss]),
+              ));
+            } else {
+              return resources;
+            }
           },
           [],
         );
