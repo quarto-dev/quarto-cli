@@ -22,9 +22,9 @@ jobs:
   configure:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{steps.config.outputs.version}}.${{ github.run_number }}
-      tag_name:  v${{steps.config.outputs.version}}.${{ github.run_number }}
-      release: Daily (v${{steps.config.outputs.version}} Build ${{ github.run_number }})
+      version: ${{steps.config.outputs.version}}.${{ github.run_number + 400 }}
+      tag_name:  v${{steps.config.outputs.version}}.${{ github.run_number + 400 }}
+      release: Daily (v${{steps.config.outputs.version}} Build ${{ github.run_number + 400 }})
       changes: ${{ steps.config.outputs.changes }}  
     if: github.event_name != 'schedule' || (github.event_name == 'schedule' && github.repository == 'quarto-dev/quarto-cli')
     steps:
@@ -229,7 +229,7 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} 
         asset_path: ./Release Tarball/quarto-${{needs.configure.outputs.version}}.tar.gz
-        asset_name: quarto-${{needs.configure.outputs.version}}-amd64.tar.gz
+        asset_name: quarto-${{needs.configure.outputs.version}}.tar.gz
         asset_content_type: application/gzip
 
     - name: Attach Debian Installer
