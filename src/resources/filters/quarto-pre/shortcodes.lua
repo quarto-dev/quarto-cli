@@ -213,17 +213,15 @@ end
 
 -- transforms shorts in a string
 function transformString(str)
-  local parsed = pandoc.read(str)
-  if parsed ~= nil then 
-    local blocks = parsed.blocks
-    if #blocks > 0 then
-      local targetInlines = parsed.blocks[1].content
-      local mutatedTarget = transformShortcodeInlines(targetInlines)
+  if string.find(str, kOpenShortcode) then
+    local inlines = markdownToInlines(str)
+    if inlines ~= nil then 
+      local mutatedTarget = transformShortcodeInlines(inlines)
       if mutatedTarget ~= nil then
         return inlinesToString(mutatedTarget)
       end      
     end
-  end
+  end  
   return nil
 end
 
