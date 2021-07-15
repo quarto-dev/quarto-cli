@@ -9,7 +9,7 @@
   <license file="LICENSE.txt" />
   -->
   <options customize="never" allow-external-scripts="no" />
-  <domains enable_currentUserHome="true" enable_localSystem="true" enable_anywhere="true" />
+  <domains enable_currentUserHome="true" enable_localSystem="true" />
   <choices-outline>
     <line choice="Quarto" />
   </choices-outline>
