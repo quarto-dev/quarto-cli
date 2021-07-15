@@ -1,0 +1,40 @@
+name: Run Smoke Tests
+
+on:
+  workflow_dispatch:
+#  pull_request:
+#    branches: [main]
+#  push:
+    # only trigger on branches, not on tags
+#    branches: [main]
+
+
+jobs:
+  test-bundle:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        with:
+          # checkout full tree
+          fetch-depth: 0
+
+      - name: Set Path
+        shell: bash
+        run: |
+          echo "$HOME/bin" >> $GITHUB_PATH
+      
+      - name: Configure Quarto
+        shell: bash
+        run: |
+          ./configure-linux.sh
+
+      - name: Test Bundle
+        shell: bash
+        run: |
+          pushd package/src
+          ./quarto-bld prepare-dist
+          mv ../../src/quarto.ts ../../src/quarto1.ts 
+          quarto --version
+
