@@ -131,8 +131,8 @@ function ojs()
     return table.concat(result, "")
   end
 
-  function escape_backticks(str)
-    local sub, _ = string.gsub(str, "`", "\\`")
+  function escape_quotes(str)
+    local sub, _ = string.gsub(str, '"', '\\"')
     return sub
   end
   
@@ -180,7 +180,8 @@ function ojs()
       
       Pandoc = function(doc)
         if uid > 0 then
-          doc.blocks:insert(pandoc.RawBlock("html", "<script type='module'>"))
+          doc.blocks:insert(pandoc.RawBlock("html", "<script type='ojs-module-contents'>"))
+          doc.blocks:insert(pandoc.RawBlock("html", '{"contents":['))
           for i, v in ipairs(cells) do
             local inlineStr = ''
             if v.inline then
@@ -188,13 +189,16 @@ function ojs()
             else
               inlineStr = 'false'
             end
+            if i > 1 then
+              doc.blocks:insert(",")
+            end
             doc.blocks:insert(
               pandoc.RawBlock(
                 "html",
-                ("  window._ojsRuntime.interpret(`" ..
-                 escape_backticks(v.src) ..
-                 "`, '" .. v.id .. "', " .. inlineStr .. ");")))
+                ('  {"methodName":"interpret","inline":"true","source":"htl.html`<span>${' ..
+                 escape_quotes(v.src) .. '}</span>`", "cellName":"' .. v.id .. '"}')))
           end
+          doc.blocks:insert(pandoc.RawBlock("html", ']}'))
           doc.blocks:insert(pandoc.RawBlock("html", "</script>"))
         end
         return doc

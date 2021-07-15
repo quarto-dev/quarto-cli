@@ -1,0 +1,12 @@
+---
+title: "Tests if an ojs computation shows up correctly in an inline OJS span."
+format: html
+self-contained: true
+---
+
+```{ojs}
+x = 5
+y = x * x
+```
+
+Test if this value is truly 25: <tt id="test-value">${y}</tt>.
