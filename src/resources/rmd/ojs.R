@@ -2,6 +2,9 @@ ojs_define <- function(..., .session = shiny::getDefaultReactiveDomain()) {
   quos <- rlang::enquos(...)
   vars <- rlang::list2(...)
   nm <- names(vars)
+  if (is.null(nm)) {
+    nm <- rep_len("", length(vars))
+  }
   mapply(function(q, nm, val) {
     # Infer name, if possible
     if (nm == "") {
@@ -16,6 +19,6 @@ ojs_define <- function(..., .session = shiny::getDefaultReactiveDomain()) {
     outputOptions(.session$output, nm, suspendWhenHidden = FALSE)
     .session$sendCustomMessage("ojs-export", list(name = nm))
     NULL
-  }, quos, names(vars), vars, SIMPLIFY = FALSE, USE.NAMES = FALSE)
+  }, quos, nm, vars, SIMPLIFY = FALSE, USE.NAMES = FALSE)
   invisible()
 }
