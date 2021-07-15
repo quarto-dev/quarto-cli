@@ -133,15 +133,15 @@ function directDependencies(
         ecmaVersion: "2020",
         sourceType: "module",
       });
-    } catch (_e) {
-      parseError(source);
+    } catch (e) {
+      parseError(source, language, e.message);
       throw new Error();
     }
   } else if (language === "ojs") {
     try {
       ast = parseModule(source);
-    } catch (_e) {
-      parseError(source);
+    } catch (e) {
+      parseError(source, language, e.message);
       throw new Error();
     }
   } else {
