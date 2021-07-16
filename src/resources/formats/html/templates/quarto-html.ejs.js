@@ -4,17 +4,17 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 
   <% if (darkMode !== undefined) { %> 
 
-  const disableEls = (els) => {
-    for (let i=0; i < els.length; i++) {
-      const el = els[i];
-      el.disabled = true;
+  const disableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'prefetch';
     }
   }
 
-  const enableEls = (els) => {
-    for (let i=0; i < els.length; i++) {
-      const el = els[i];
-      el.removeAttribute("disabled");
+  const enableStylesheet = (stylesheets) => {
+    for (let i=0; i < stylesheets.length; i++) {
+      const stylesheet = stylesheets[i];
+      stylesheet.rel = 'stylesheet';
     }
   }
 
@@ -30,27 +30,27 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }
   }
 
-  const toggleColorMode = (dark) => {
+  const toggleColorMode = (alternate) => {
+    // Switch the stylesheets
+    const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+    manageTransitions('div.sidebar-toc .nav-link', false);
+    if (alternate) {
+      enableStylesheet(alternateStylesheets);
+    } else {
+      disableStylesheet(alternateStylesheets);
+    }
+    manageTransitions('.quarto-toc-sidebar .nav-link', true);
+
+    // Switch the toggles
     const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
     for (let i=0; i < toggles.length; i++) {
       const toggle = toggles[i];
       if (toggle) {
-        const lightEls = window.document.querySelectorAll('link.quarto-color-scheme.light');
-        const darkEls = window.document.querySelectorAll('link.quarto-color-scheme.dark');
-
-        manageTransitions('div.sidebar-toc .nav-link', false);
-        if (dark) {
-          enableEls(darkEls);
-          disableEls(lightEls);
-          toggle.classList.remove("light");
-          toggle.classList.add("dark");     
+        if (alternate) {
+          toggle.classList.add("alternate");     
         } else {
-          enableEls(lightEls);
-          disableEls(darkEls);
-          toggle.classList.remove("dark");
-          toggle.classList.add("light");
+          toggle.classList.remove("alternate");
         }
-        manageTransitions('.quarto-toc-sidebar .nav-link', true);
       }
     }
   }
@@ -59,39 +59,39 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     return window.location.protocol === 'file:';
   }
 
-  const hasDarkSentinel = () => {  
-    let darkSentinel = getDarkSentinel();
-    if (darkSentinel !== null) {
-      return darkSentinel === "dark";
+  const hasAlternateSentinel = () => {  
+    let styleSentinel = getColorSchemeSentinel();
+    if (styleSentinel !== null) {
+      return styleSentinel === "alternate";
     } else {
-      return <%= darkMode %>;
+      return false;
     }
   }
 
-  const setDarkSentinel = (toDark) => {
-    const value = toDark ? "dark" : "light";
+  const setStyleSentinel = (alternate) => {
+    const value = alternate ? "alternate" : "default";
     if (!isFileUrl()) {
       window.localStorage.setItem("quarto-color-scheme", value);
     } else {
-      localDarkSentinel = value;
+      localAlternateSentinel = value;
     }
   }
 
-  const getDarkSentinel = () => {
+  const getColorSchemeSentinel = () => {
     if (!isFileUrl()) {
       return window.localStorage.getItem("quarto-color-scheme");
     } else {
-      return localDarkSentinel;
+      return localAlternateSentinel;
     }
   }
-  let localDarkSentinel = null;
+  let localAlternateSentinel = null;
   
   // Dark / light mode switch
   window.quartoToggleColorScheme = () => {
     // Read the current dark / light value 
-    let toDark = !hasDarkSentinel();
-    toggleColorMode(toDark);
-    setDarkSentinel(toDark);
+    let toAlternate = !hasAlternateSentinel();
+    toggleColorMode(toAlternate);
+    setStyleSentinel(toAlternate);
   };
 
   // Ensure there is a toggle, if there isn't float one in the top right
@@ -100,7 +100,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     a.id = "quarto-color-scheme-toggle";
     a.classList.add('top-right');
     a.href = "";
-    a.onclick = function() { window.quartoToggleColorScheme(); return false; };
+    a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
 
     const i = window.document.createElement("i");
     i.classList.add('bi');
@@ -110,7 +110,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
 
   // Switch to dark mode if need be
-  if (hasDarkSentinel()) {
+  if (hasAlternateSentinel()) {
     toggleColorMode(true);
   } 
   
