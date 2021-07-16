@@ -108,7 +108,7 @@ export async function ojsCompile(
     options.libDir + "/ojs",
   );
   const docDir = dirname(options.source);
-  const rootDir = "./";
+  const rootDir = projDir ?? "./";
   const runtimeToDoc = relative(ojsRuntimeDir, docDir);
   const runtimeToRoot = relative(ojsRuntimeDir, rootDir);
   const docToRoot = relative(docDir, rootDir);
@@ -240,7 +240,7 @@ export async function ojsCompile(
         nCells = parse.cells.length;
       } catch (e) {
         if (e instanceof SyntaxError) {
-          parseError(cellSrcStr);
+          parseError(cellSrcStr, "ojs", e.message);
         } else {
           logError(e);
         }
