@@ -36,6 +36,7 @@ import { removePandocArgs } from "./flags.ts";
 import { ld } from "lodash/mod.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { projectType } from "../../project/types/project-types.ts";
+import { kCrossrefIndexFile } from "../../project/project-crossrefs.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -60,7 +61,7 @@ export function filterParamsJson(
     ...includes,
     ...projectFilterParams(options),
     ...quartoFilterParams(options.format),
-    ...crossrefFilterParams(options.flags, defaults, options.format.metadata),
+    ...crossrefFilterParams(options, defaults),
     ...layoutFilterParams(options.format),
     ...filterParams,
   };

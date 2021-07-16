@@ -116,12 +116,6 @@ export const bookProjectType: ProjectType = {
   filterParams: (options: PandocOptions) => {
     if (isMultiFileBookFormat(options.format)) {
       return {
-        [kCrossrefIndexFile]: pandocMetadataPath(
-          crossrefIndexForOutputFile(
-            options.project!.dir,
-            join(dirname(options.source), options.output),
-          ),
-        ),
         [kCrossrefResolveRefs]: false,
       };
     } else {

@@ -144,6 +144,10 @@ function writeIndex()
               number = v.order.order,
             }
           }
+          -- add caption if we have one
+          if v.caption ~= nil then
+            entry.caption = inlinesToString(v.caption)
+          end
           -- add section if we have one
           if v.order.section ~= nil then
             entry.order.section = v.order.section

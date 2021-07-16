@@ -4,6 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
+import { dirname, join } from "path/mod.ts";
 import { resourcePath } from "../../core/resources.ts";
 import {
   kListings,
@@ -16,6 +17,11 @@ import { PandocFlags } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 
 import { PandocOptions } from "./types.ts";
+import {
+  crossrefIndexForOutputFile,
+  kCrossrefIndexFile,
+} from "../../project/project-crossrefs.ts";
+import { pandocMetadataPath } from "./render-shared.ts";
 
 export function crossrefFilter() {
   return resourcePath("filters/crossref/crossref.lua");
@@ -26,10 +32,11 @@ export function crossrefFilterActive(options: PandocOptions) {
 }
 
 export function crossrefFilterParams(
-  flags?: PandocFlags,
+  options: PandocOptions,
   defaults?: FormatPandoc,
-  metadata?: Metadata,
 ) {
+  const flags = options.flags;
+  const metadata = options.format.metadata;
   const kCrossrefFilterParams = [kListings, kNumberSections, kNumberOffset];
   const params: Metadata = {};
   kCrossrefFilterParams.forEach((option) => {
@@ -52,6 +59,23 @@ export function crossrefFilterParams(
 
   // Read the number depth
   params[kNumberDepth] = metadata?.[kNumberDepth];
+
+  // always create crossref index for projects
+  if (options.project) {
+    params[kCrossrefIndexFile] = pandocMetadataPath(
+      crossrefIndexForOutputFile(
+        options.project!.dir,
+        join(dirname(options.source), options.output),
+      ),
+    );
+    // caller may have requested that a crossref index be written
+  } else {
+    const crossrefIndex = Deno.env.get("QUARTO_CROSSREF_INDEX_PATH");
+    if (crossrefIndex) {
+      params[kCrossrefIndexFile] = pandocMetadataPath(crossrefIndex);
+    }
+  }
+
   return params;
 }
 
