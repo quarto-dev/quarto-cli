@@ -756,7 +756,13 @@ export function createRuntime() {
     }
 
     if (n.startsWith("/")) {
-      return `${quartoOjsGlobal.paths.docToRoot}${n}`;
+      // docToRoot can be empty, in which case naive concatenation creates
+      // an absolute path.
+      if (quartoOjsGlobal.paths.docToRoot === "") {
+        return `.${n}`;
+      } else {
+        return `${quartoOjsGlobal.paths.docToRoot}${n}`;
+      }
     } else {
       return n;
     }
