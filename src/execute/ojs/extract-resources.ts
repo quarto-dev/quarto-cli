@@ -287,7 +287,7 @@ export function extractResourceDescriptionsFromOJSChunk(
     } else if (thisResolvedImportPath.endsWith(".qmd")) {
       language = "qmd";
     } else {
-      throw new Error(`Unknown language in file ${thisResolvedImportPath}`);
+      throw new Error(`Unknown language "${language}" in file "${thisResolvedImportPath}"`);
     }
 
     for (
