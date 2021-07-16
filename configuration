@@ -24,7 +24,7 @@ export TIPPY_JS=6.3.0
 export PDF_JS=2.8.335
 
 # Quarto Info Version
-export QUARTO_VERSION=0.11
+export QUARTO_VERSION=0.2
 export QUARTO_NAME=Quarto
 
 # Configuration Target Directories
