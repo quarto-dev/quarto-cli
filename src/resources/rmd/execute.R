@@ -14,20 +14,23 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
   input <- basename(input)
 
   # give the input an .Rmd extension if it doesn't already have one
-  # (this is a temporary copy which we'll remove before exiting)
-  if (!tolower(xfun::file_ext(input)) %in% c("r", "rmd", "rmarkdown")) {
-    rmd_input <- paste0(xfun::sans_ext(input), ".Rmd")
-    if (file.exists(rmd_input)) {
-      stop("Unable to render ", input, 
-           ": Not using Rmd extension and Rmd with the same file stem already exists")
+  # (this is a temporary copy which we'll remove before exiting). note
+  # that we only need to do this for older versions of rmarkdown
+  if (utils::packageVersion("rmarkdown") < "2.9.4") {
+    if (!tolower(xfun::file_ext(input)) %in% c("r", "rmd", "rmarkdown")) {
+      rmd_input <- paste0(xfun::sans_ext(input), "-", Sys.getpid(), ".Rmd")
+      if (file.exists(rmd_input)) {
+        stop("Unable to render ", input, 
+             ": Not using Rmd extension and Rmd with the same file stem already exists")
+      }
+      # swap out the input
+      file.copy(input, rmd_input)
+      input <- rmd_input
+      
+      # remove the rmd input on exit
+      rmd_input_path <- rmarkdown:::abs_path(rmd_input)
+      on.exit(unlink(rmd_input_path))
     }
-    # swap out the input
-    file.copy(input, rmd_input)
-    input <- rmd_input
-    
-    # remove the rmd input on exit
-    rmd_input_path <- rmarkdown:::abs_path(rmd_input)
-    on.exit(unlink(rmd_input_path))
   }
   
   # pass through ojs chunks
