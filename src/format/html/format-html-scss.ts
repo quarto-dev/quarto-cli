@@ -54,6 +54,7 @@ function layerQuartoScss(
   sassLayer: SassLayer,
   metadata: Metadata,
   darkLayer?: SassLayer,
+  darkDefault?: boolean,
 ): SassBundle {
   const bootstrapDistDir = formatResourcePath(
     "html",
@@ -96,6 +97,7 @@ function layerQuartoScss(
     dark: darkLayer
       ? {
         user: darkLayer,
+        default: darkDefault,
       }
       : undefined,
   };
@@ -113,7 +115,11 @@ export function resolveBootstrapScss(
 
   // Resolve the provided themes to a set of variables and styles
   const theme = metadata[kTheme] || [];
-  const themeSassLayers = resolveThemeLayer(input, theme, quartoThemesDir);
+  const [themeSassLayers, defaultDark] = resolveThemeLayer(
+    input,
+    theme,
+    quartoThemesDir,
+  );
 
   // Find light and dark sass layers
   const sassBundles: SassBundle[] = [];
@@ -126,6 +132,7 @@ export function resolveBootstrapScss(
       themeSassLayers.light,
       metadata,
       themeSassLayers.dark,
+      defaultDark,
     ),
   );
 
@@ -170,8 +177,9 @@ function resolveThemeLayer(
   input: string,
   themes: string | string[] | Themes | unknown,
   quartoThemesDir: string,
-): ThemeSassLayer {
+): [ThemeSassLayer, boolean] {
   let theme = undefined;
+  let defaultDark = false;
   if (typeof (themes) === "string") {
     // The themes is just a string
     theme = { light: [themes] };
@@ -194,6 +202,11 @@ function resolveThemeLayer(
     };
 
     const themeObj = themes as Record<string, unknown>;
+
+    // See whether the dark or light theme is the default
+    const keyList = Object.keys(themeObj);
+    defaultDark = keyList.length > 1 && keyList[0] === "dark";
+
     theme = {
       light: themeArr(themeObj.light),
       dark: themeObj.dark ? themeArr(themeObj.dark) : undefined,
@@ -207,7 +220,7 @@ function resolveThemeLayer(
       ? mergeLayers(...layerTheme(input, theme.dark, quartoThemesDir))
       : undefined,
   };
-  return themeSassLayer;
+  return [themeSassLayer, defaultDark];
 }
 
 function pandocVariablesToBootstrapDefaults(

@@ -143,6 +143,7 @@ export interface SassBundle {
     user?: SassLayer;
     quarto?: SassLayer;
     framework?: SassLayer;
+    default?: boolean;
   };
   attribs?: Record<string, string>;
 }

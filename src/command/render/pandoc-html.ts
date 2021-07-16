@@ -73,12 +73,18 @@ export async function resolveSassBundles(
 
   // Go through and compile the cssPath for each dependency
   let hasDarkStyles = false;
+  let defaultStyle: "dark" | "light" | undefined = undefined;
   for (const dependency of Object.keys(mergedBundles)) {
     // compile the cssPath
     const bundles = mergedBundles[dependency];
 
     // See if any bundles are providing dark specific css
     const hasDark = bundles.some((bundle) => bundle.dark !== undefined);
+    defaultStyle = bundles.some((bundle) =>
+        bundle.dark !== undefined && bundle.dark.default
+      )
+      ? "dark"
+      : "light";
 
     const targets: SassTarget[] = [{
       name: `${dependency}.min.css`,
@@ -89,7 +95,7 @@ export async function resolveSassBundles(
       // Note that the other bundle provides light
       targets[0].attribs = {
         ...targets[0].attribs,
-        ...attribForThemeStyle("light"),
+        ...attribForThemeStyle("light", defaultStyle),
       };
 
       // Provide a dark bundle for this
@@ -103,7 +109,7 @@ export async function resolveSassBundles(
       targets.push({
         name: `${dependency}-dark.min.css`,
         bundles: darkBundles,
-        attribs: attribForThemeStyle("dark"),
+        attribs: attribForThemeStyle("dark", defaultStyle),
       });
 
       hasDarkStyles = true;
@@ -171,6 +177,7 @@ export async function resolveSassBundles(
     extras,
     pandoc,
     hasDarkStyles ? "light" : "default",
+    defaultStyle,
   );
 
   if (hasDarkStyles) {
@@ -179,6 +186,7 @@ export async function resolveSassBundles(
       extras,
       pandoc,
       "dark",
+      defaultStyle,
     );
   }
 
@@ -193,11 +201,12 @@ async function resolveQuartoSyntaxHighlighting(
   extras: FormatExtras,
   pandoc: FormatPandoc,
   style: "dark" | "light" | "default",
+  defaultStyle?: "dark" | "light",
 ) {
   extras = ld.cloneDeep(extras);
 
   // If we're using default highlighting, use theme darkness to select highlight style
-  const mediaAttr = attribForThemeStyle(style);
+  const mediaAttr = attribForThemeStyle(style, defaultStyle);
   if (style === "default") {
     if (extras.html?.[kTextHighlightingMode] === "dark") {
       style = "dark";
@@ -447,20 +456,23 @@ const kAbbrevs: Record<string, string> = {
 // Note that we default disable the dark mode and rely on JS to enable it
 function attribForThemeStyle(
   style: "dark" | "light" | "default",
+  defaultStyle?: "dark" | "light",
 ): Record<string, string> {
   const colorModeAttrs = (mode: string, disabled: boolean) => {
     const attr: Record<string, string> = {
-      class: `quarto-color-scheme ${mode}`,
+      class: `quarto-color-scheme ${
+        mode === "dark" ? " quarto-color-alternate" : ""
+      }`,
     };
     if (disabled) {
-      attr.disabled = "true";
+      attr.rel = "prefetch";
     }
     return attr;
   };
 
   switch (style) {
     case "dark":
-      return colorModeAttrs("dark", true);
+      return colorModeAttrs("dark", defaultStyle !== "dark");
     case "light":
       return colorModeAttrs("light", false);
     case "default":
