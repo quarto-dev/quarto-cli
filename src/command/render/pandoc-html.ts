@@ -460,7 +460,7 @@ function attribForThemeStyle(
 ): Record<string, string> {
   const colorModeAttrs = (mode: string, disabled: boolean) => {
     const attr: Record<string, string> = {
-      class: `quarto-color-scheme ${
+      class: `quarto-color-scheme${
         mode === "dark" ? " quarto-color-alternate" : ""
       }`,
     };
