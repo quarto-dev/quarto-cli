@@ -18,6 +18,12 @@ import { projectScratchPath } from "./project-scratch.ts";
 export const kCrossrefIndexFile = "crossref-index-file";
 export const kCrossrefResolveRefs = "crossref-resolve-refs";
 
+const kCrossrefDir = "crossref";
+
+export function projectCrossrefDir(dir: string) {
+  return projectScratchPath(dir, kCrossrefDir);
+}
+
 export function crossrefIndexForOutputFile(
   projectDir: string,
   input: string,
@@ -28,7 +34,7 @@ export function crossrefIndexForOutputFile(
   }
   return projectScratchPath(
     projectDir,
-    join("crossref", input, `${basename(output)}.json`),
+    join(kCrossrefDir, input, `${basename(output)}.json`),
   );
 }
 
