@@ -147,6 +147,8 @@ function writeIndex()
           -- add caption if we have one
           if v.caption ~= nil then
             entry.caption = inlinesToString(v.caption)
+          else
+            entry.caption = ""
           end
           -- add section if we have one
           if v.order.section ~= nil then
