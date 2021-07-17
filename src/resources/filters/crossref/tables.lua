@@ -157,7 +157,7 @@ end
 function processMarkdownTableEntry(divEl, el, label, caption)
   
   -- clone the caption so we can add a clean copy to our index
-  local captionClone = caption:clone()
+  local captionClone = caption.content:clone()
 
   -- determine order / insert prefix
   local order
