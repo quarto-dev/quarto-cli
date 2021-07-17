@@ -756,7 +756,13 @@ export function createRuntime() {
     }
 
     if (n.startsWith("/")) {
-      return `${quartoOjsGlobal.paths.docToRoot}${n}`;
+      // docToRoot can be empty, in which case naive concatenation creates
+      // an absolute path.
+      if (quartoOjsGlobal.paths.docToRoot === "") {
+        return `.${n}`;
+      } else {
+        return `${quartoOjsGlobal.paths.docToRoot}${n}`;
+      }
     } else {
       return n;
     }
@@ -860,6 +866,7 @@ export function createRuntime() {
       return ojsConnector.interpretQuiet(src);
     },
     interpretFromScriptTags() {
+      // source definitions
       for (
         const el of document.querySelectorAll(
           "script[type='ojs-module-contents']",
@@ -881,6 +888,15 @@ export function createRuntime() {
                 `Don't know how to call method ${call.methodName}`,
               );
           }
+        }
+      }
+
+      // static data definitions
+      for (const el of document.querySelectorAll(
+        "script[type='ojs-define']",
+      )) {
+        for (const {name, value} of JSON.parse(el.text).contents) {
+          ojsConnector.define(name[0])(value);
         }
       }
     },
