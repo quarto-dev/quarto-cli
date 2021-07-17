@@ -38,6 +38,7 @@ except Exception:
   pass
 
 
+
 # output kernel dependencies
 kernel_deps = dict()
 for module in list(sys.modules.values()):
@@ -58,3 +59,23 @@ print(json.dumps(kernel_deps))
 
 # reset state
 %reset
+
+def ojs_define(**kwargs):
+  import json
+  from IPython.core.display import display, HTML
+
+  # do some minor magic for convenience when handling pandas
+  # dataframes
+  def convert(v):
+    try:
+      import pandas as pd
+    except ModuleNotFoundError: # don't do the magic when pandas is not available
+      return v
+    if type(v) == pd.DataFrame:
+      return json.loads(v.to_json(orient='records'))
+    else:
+      return v
+  
+  v = dict(contents=list(dict(name=[key], value=convert(value)) for (key, value) in kwargs.items()))
+  display(HTML('<script type="ojs-define">' + json.dumps(v) + '</script>'))
+globals()["ojs_define"] = ojs_define
