@@ -65,7 +65,8 @@ export function crossrefFilterParams(
     params[kCrossrefIndexFile] = pandocMetadataPath(
       crossrefIndexForOutputFile(
         options.project!.dir,
-        join(dirname(options.source), options.output),
+        options.source,
+        options.output,
       ),
     );
     // caller may have requested that a crossref index be written
