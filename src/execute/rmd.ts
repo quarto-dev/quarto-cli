@@ -128,7 +128,7 @@ async function callR<T>(
   action: string,
   params: unknown,
   quiet?: boolean,
-  reportError?: boolean,
+  reportError = true,
 ): Promise<T> {
   // create a temp file for writing the results
   const resultsFile = sessionTempFile(
