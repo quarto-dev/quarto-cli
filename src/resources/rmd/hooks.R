@@ -19,13 +19,24 @@ knitr_hooks <- function(format, resourceDir) {
     }
   }
 
-  # forward 'output' to 'results'
-  opts_hooks[["results"]] <- function(options) {
-    if (identical(options[["output"]], TRUE)) {
-      options[["results"]] <- "markup"
-    } else if (identical(options[["output"]], FALSE)) {
+  # forward 'output' to various options. For mainline output, TRUE means flip them
+  # from hide, FALSE means hide. For message/warning TRUE means use the
+  # global default, FALSE means shut them off entirely)
+  opts_hooks[["output"]] <- function(options) {
+    output <- options[["output"]]
+    if (!output) {
       options[["results"]] <- "hide"
+      options[["fig.show"]] <- "hide"
+    } else {
+      if (identical(options[["results"]], "hide")) {
+         options[["results"]] <- "markup"
+      }
+      if (identical(options[["fig.show"]], "hide")) {
+         options[["fig.show"]] <- "asis"
+      }
     }
+    options[["message"]] <- ifelse(output, knitr::opts_chunk$get("message"), FALSE)
+    options[["warning"]] <- ifelse(output, knitr::opts_chunk$get("warning"), FALSE)
     options
   }
 
