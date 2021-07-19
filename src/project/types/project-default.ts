@@ -15,6 +15,8 @@ import { ProjectCreate, ProjectScaffoldFile, ProjectType } from "./types.ts";
 export const defaultProjectType: ProjectType = {
   type: "default",
 
+  formatLibDirs: () => ["bootstrap", "quarto-html"],
+
   create: (title: string): ProjectCreate => {
     const resourceDir = resourcePath(join("projects", "default"));
     return {

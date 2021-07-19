@@ -8,6 +8,8 @@
 import { existsSync } from "fs/mod.ts";
 import { dirname, join } from "path/mod.ts";
 
+import { ld } from "lodash/mod.ts";
+
 import { removeIfEmptyDir, removeIfExists } from "../../core/path.ts";
 import { figuresDir, inputFilesDir } from "../../core/render.ts";
 
@@ -46,7 +48,7 @@ export function renderCleanup(
     }
 
     // clean supporting
-    supporting.forEach((path) => {
+    ld.uniq(supporting).forEach((path) => {
       if (existsSync(path)) {
         Deno.removeSync(path, { recursive: true });
       }
