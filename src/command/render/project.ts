@@ -194,7 +194,11 @@ export async function renderProject(
 
         // remove empty files dir
         if (!keepFiles) {
-          const filesDir = join(projDir, inputFilesDir(renderedFile.file));
+          const filesDir = join(
+            projDir,
+            dirname(renderedFile.file),
+            inputFilesDir(renderedFile.file),
+          );
           removeIfEmptyDir(filesDir);
         }
 
