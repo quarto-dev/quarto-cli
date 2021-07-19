@@ -13,6 +13,7 @@ import { ProjectConfig, ProjectContext } from "../types.ts";
 
 export interface ProjectType {
   type: string;
+  inheritsType?: string;
   create: (title: string) => ProjectCreate;
   config?: (
     projectDir: string,
@@ -21,7 +22,6 @@ export interface ProjectType {
   ) => Promise<ProjectConfig>;
   libDir?: string;
   outputDir?: string;
-  canServe?: boolean;
   formatLibDirs?: () => string[];
   formatExtras?: (
     context: ProjectContext,

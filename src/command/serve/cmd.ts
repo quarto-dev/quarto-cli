@@ -8,7 +8,10 @@
 import { Command } from "cliffy/command/mod.ts";
 
 import { kProjectType } from "../../project/types.ts";
-import { projectContext } from "../../project/project-context.ts";
+import {
+  projectContext,
+  projectIsWebsite,
+} from "../../project/project-context.ts";
 import { projectType } from "../../project/types/project-types.ts";
 import { findOpenPort, kLocalhost } from "../../core/port.ts";
 
@@ -96,11 +99,9 @@ export const serveCommand = new Command()
     }
 
     // confirm that it's a project type that can be served
-    const type = context.config.project[kProjectType];
-    const projType = projectType(type);
-    if (!projType.canServe) {
+    if (!projectIsWebsite(context)) {
       throw new Error(
-        `Cannot serve project of type '${type ||
+        `Cannot serve project of type '${context.config.project[kProjectType] ||
           "default"}' (try using project type 'site').`,
       );
     }

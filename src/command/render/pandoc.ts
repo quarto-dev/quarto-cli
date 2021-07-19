@@ -46,7 +46,10 @@ import {
 } from "../../core/yaml.ts";
 
 import { ProjectContext } from "../../project/types.ts";
-import { deleteProjectMetadata } from "../../project/project-context.ts";
+import {
+  deleteProjectMetadata,
+  projectIsWebsite,
+} from "../../project/project-context.ts";
 import { deleteCrossrefMetadata } from "../../project/project-crossrefs.ts";
 
 import { removePandocArgs } from "./flags.ts";
@@ -194,9 +197,8 @@ export async function runPandoc(
       htmlPostprocessors.push(selectInputPostprocessor);
     }
 
-    // add a resource discovery postProcessor if we are not in a project
-    // (projects already take care of this)
-    if (!options.project) {
+    // add a resource discovery postProcessor if we are not in a website project
+    if (!projectIsWebsite(options.project)) {
       htmlPostprocessors.push(discoverResourceRefs);
     }
 

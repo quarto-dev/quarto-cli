@@ -90,8 +90,6 @@ export const websiteProjectType: ProjectType = {
   formatLibDirs: () =>
     defaultProjectType.formatLibDirs!().concat(["quarto-nav", "quarto-search"]),
 
-  canServe: true,
-
   config: websiteProjectConfig,
 
   metadataFields: websiteMetadataFields,
