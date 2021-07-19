@@ -896,7 +896,6 @@ export function createRuntime() {
         "script[type='ojs-define']",
       )) {
         for (const {name, value} of JSON.parse(el.text).contents) {
-          console.log({name, value});
           ojsConnector.define(name)(value);
         }
       }
