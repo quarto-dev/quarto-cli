@@ -7,7 +7,7 @@ ojs_define <- function(...) {
   }
   knitr:::knit_print(knitr:::asis_output(
     c("<script type=\"ojs-define\">",
-      jsonlite::toJSON(list(contents = mapply(
+      jsonlite::toJSON(list(contents = I(mapply(
         function(q, nm, val) {
           # Infer name, if possible
           if (nm == "") {
@@ -20,5 +20,6 @@ ojs_define <- function(...) {
           }
           list(name=nm, value=val)
         }, quos, nm, vars, SIMPLIFY = FALSE, USE.NAMES=FALSE))),
+        dataframe = "columns", null = "null", na = "null", auto_unbox = TRUE),
       "</script>")));
 }

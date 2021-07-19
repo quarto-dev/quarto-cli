@@ -72,10 +72,11 @@ def ojs_define(**kwargs):
     except ModuleNotFoundError: # don't do the magic when pandas is not available
       return v
     if type(v) == pd.DataFrame:
-      return json.loads(v.to_json(orient='records'))
+      j = json.loads(v.T.to_json(orient='split'))
+      return dict((k,v) for (k,v) in zip(j["index"], j["data"]))
     else:
       return v
   
-  v = dict(contents=list(dict(name=[key], value=convert(value)) for (key, value) in kwargs.items()))
+  v = dict(contents=list(dict(name=key, value=convert(value)) for (key, value) in kwargs.items()))
   display(HTML('<script type="ojs-define">' + json.dumps(v) + '</script>'))
 globals()["ojs_define"] = ojs_define
