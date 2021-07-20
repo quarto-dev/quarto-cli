@@ -14,6 +14,7 @@ import * as colors from "fmt/colors.ts";
 import { Response, ServerRequest } from "http/server.ts";
 import { contentType, isHtmlContent } from "./mime.ts";
 import { logError } from "./log.ts";
+import { pathWithForwardSlashes } from "./path.ts";
 
 export interface HttpFileRequestOptions {
   baseDir: string;
@@ -53,7 +54,7 @@ export function httpFileRequestHandler(
   function serveFallback(
     req: ServerRequest,
     e: Error,
-    fsPath: string,
+    fsPath?: string,
   ): Promise<Response> {
     const encoder = new TextEncoder();
     if (e instanceof URIError) {
@@ -68,8 +69,10 @@ export function httpFileRequestHandler(
         : { print: true, body: encoder.encode("Not Found") };
       handle404.print = handle404.print &&
         !!options.printUrls &&
-        basename(fsPath) !== "favicon.ico" &&
-        extname(fsPath) !== ".map";
+        (!fsPath || (
+          basename(fsPath) !== "favicon.ico" &&
+          extname(fsPath) !== ".map"
+        ));
       if (handle404.print) {
         printUrl(url, false);
       }
@@ -98,20 +101,23 @@ export function httpFileRequestHandler(
     let response: Response | undefined;
     let fsPath: string | undefined;
     try {
+      // establish base dir and fsPath (w/ slashes normalized to /)
+      const baseDir = pathWithForwardSlashes(options.baseDir);
       const normalizedUrl = normalizeURL(req.url);
-      fsPath = options.baseDir + normalizedUrl!;
+      fsPath = pathWithForwardSlashes(baseDir + normalizedUrl!);
+
       // don't let the path escape the serveDir
-      if (fsPath!.indexOf(options.baseDir) !== 0) {
-        fsPath = options.baseDir;
+      if (fsPath.indexOf(baseDir) !== 0) {
+        fsPath = baseDir;
       }
-      const fileInfo = existsSync(fsPath) ? Deno.statSync(fsPath!) : undefined;
+      const fileInfo = existsSync(fsPath) ? Deno.statSync(fsPath) : undefined;
       if (fileInfo && fileInfo.isDirectory) {
         fsPath = join(fsPath, options.defaultFile || "index.html");
       }
       if (fileInfo?.isDirectory && !normalizedUrl.endsWith("/")) {
         response = serveRedirect(normalizedUrl + "/");
       } else {
-        response = await serveFile(fsPath!, req);
+        response = await serveFile(fsPath, req);
         if (options.printUrls === "all") {
           printUrl(normalizedUrl);
         }
@@ -120,7 +126,7 @@ export function httpFileRequestHandler(
       response = await serveFallback(
         req,
         e,
-        fsPath!,
+        fsPath,
       );
     } finally {
       try {

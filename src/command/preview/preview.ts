@@ -42,6 +42,8 @@ import {
   projectIsWebsite,
 } from "../../project/project-context.ts";
 import { kProjectType } from "../../project/types.ts";
+import { pathWithForwardSlashes } from "../../core/path.ts";
+import { normalizeNewlines } from "../../core/text.ts";
 
 interface PreviewOptions {
   port: number;
@@ -394,8 +396,12 @@ function pdfFileRequestHandler(
     if (contents) {
       return contents;
     }
+    const previewPath = (dir: string, file: string) => {
+      return pathWithForwardSlashes(join(pdfOptions.baseDir, dir, file));
+    };
+
     // tweak viewer.js to point to our pdf and force the sidebar off
-    if (file === join(pdfOptions.baseDir, "web", "viewer.js")) {
+    if (file === previewPath("web", "viewer.js")) {
       let viewerJs = Deno.readTextFileSync(file)
         .replace(
           kPdfJsDefaultFile,
@@ -412,8 +418,8 @@ function pdfFileRequestHandler(
       }
 
       return new TextEncoder().encode(viewerJs);
-    } else if (file == join(pdfOptions.baseDir, "web", "viewer.css")) {
-      const viewerCss = Deno.readTextFileSync(file)
+    } else if (file == previewPath("web", "viewer.css")) {
+      const viewerCss = normalizeNewlines(Deno.readTextFileSync(file))
         .replace(
           kPdfJsViewerToolbarButtonSelector,
           kPdfJsViewerToolbarButtonSelector + "\n  z-index: 199;",
@@ -422,7 +428,7 @@ function pdfFileRequestHandler(
 
       // tweak pdf.worker.js to always return the same fingerprint
       // (preserve user viewer prefs across reloads)
-    } else if (file === join(pdfOptions.baseDir, "build", "pdf.worker.js")) {
+    } else if (file === previewPath("build", "pdf.worker.js")) {
       const filePathHash = "quarto-preview-pdf-" +
         createHash("md5").update(pdfFile).toString();
       const workerJs = Deno.readTextFileSync(file).replace(
@@ -431,7 +437,7 @@ function pdfFileRequestHandler(
       );
       return new TextEncoder().encode(workerJs);
     } // read requests for our pdf for the pdfFile
-    else if (file === (join(pdfOptions.baseDir, "web", basename(pdfFile)))) {
+    else if (file === previewPath("web", basename(pdfFile))) {
       return Deno.readFileSync(pdfFile);
     }
   };
