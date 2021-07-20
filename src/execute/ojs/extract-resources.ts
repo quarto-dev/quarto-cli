@@ -155,7 +155,7 @@ function directDependencies(
         cell.cell_type?.language === "ojs"
       )
       .flatMap((v) => v.source) // (concat)
-      .join("");
+      .join("\n");
     return directDependencies(ojsCellsSrc, fileDir, "ojs", projectRoot);
   }
 
