@@ -152,9 +152,9 @@ function directDependencies(
         cell.cell_type !== "markdown" &&
         cell.cell_type !== "raw" &&
         cell.cell_type !== "math" &&
-        cell.cell_type?.language !== "ojs"
+        cell.cell_type?.language === "ojs"
       )
-      .flatMap((v) => v) // (concat)
+      .flatMap((v) => v.source) // (concat)
       .join("");
     return directDependencies(ojsCellsSrc, fileDir, "ojs", projectRoot);
   }

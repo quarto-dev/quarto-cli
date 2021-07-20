@@ -1,0 +1,13 @@
+---
+title: "test dependency traversal 2"
+format: html
+---
+
+```{r}
+print(c(1,2,3))
+```
+
+```{ojs}
+foo = 3
+```
+
