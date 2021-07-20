@@ -86,6 +86,21 @@ export function createHtmlFormat(
   });
 }
 
+export function createHtmlPresentationFormat(
+  figwidth: number,
+  figheight: number,
+): Format {
+  return mergeConfigs(
+    createHtmlFormat(figwidth, figheight),
+    {
+      execute: {
+        [kEcho]: false,
+        [kWarning]: false,
+      },
+    },
+  );
+}
+
 export function createEbookFormat(ext: string): Format {
   return createFormat(ext, {
     formatExtras: () => {

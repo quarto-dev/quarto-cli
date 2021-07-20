@@ -30,9 +30,10 @@ import { docxFormat } from "./docx/format-docx.ts";
 import {
   createEbookFormat,
   createFormat,
-  createHtmlFormat,
+  createHtmlPresentationFormat,
   createWordprocessorFormat,
 } from "./formats-shared.ts";
+import { revealjsFormat } from "./reveal/format-reveal.ts";
 
 export function defaultWriterFormat(to: string): Format {
   // to can sometimes have a variant, don't include that in the lookup here
@@ -65,7 +66,7 @@ export function defaultWriterFormat(to: string): Format {
     case "dzslides":
     case "slidy":
     case "slideous":
-      writerFormat = htmlPresentationFormat(9.5, 6.5);
+      writerFormat = createHtmlPresentationFormat(9.5, 6.5);
       break;
     case "revealjs":
       writerFormat = revealjsFormat();
@@ -181,29 +182,6 @@ export function defaultWriterFormat(to: string): Format {
 
   // return the createFormat
   return writerFormat;
-}
-
-function htmlPresentationFormat(figwidth: number, figheight: number): Format {
-  return mergeConfigs(
-    createHtmlFormat(figwidth, figheight),
-    {
-      execute: {
-        [kEcho]: false,
-        [kWarning]: false,
-      },
-    },
-  );
-}
-
-function revealjsFormat() {
-  return mergeConfigs(
-    htmlPresentationFormat(9, 5),
-    {
-      metadata: {
-        hash: true,
-      },
-    },
-  );
 }
 
 function hugoFormat(): Format {
