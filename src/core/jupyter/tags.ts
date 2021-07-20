@@ -34,7 +34,13 @@ export function hideWarnings(
   cell: JupyterCellWithOptions,
   options: JupyterToMarkdownOptions,
 ) {
-  return shouldHide(cell, options, kWarning);
+  // if global output is false and local output is true then we
+  // should hide warnings
+  if (options.execute[kOutput] === false && cell.options[kOutput] === true) {
+    return cell.options[kWarning] || false;
+  } else {
+    return shouldHide(cell, options, kWarning);
+  }
 }
 
 export function includeCell(
@@ -74,11 +80,16 @@ export function includeWarnings(
   cell: JupyterCellWithOptions,
   options: JupyterToMarkdownOptions,
 ) {
-  return shouldInclude(
-    cell,
-    options,
-    kWarning,
-  );
+  // if global output is false and local output is true then we shouldn't include warnings
+  if (options.execute[kOutput] === false && cell.options[kOutput] === true) {
+    return cell.options[kWarning] || false;
+  } else {
+    return shouldInclude(
+      cell,
+      options,
+      kWarning,
+    );
+  }
 }
 
 function shouldHide(

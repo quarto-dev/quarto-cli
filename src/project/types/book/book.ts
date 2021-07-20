@@ -7,7 +7,7 @@
 
 import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
 
-import { dirname, join } from "path/mod.ts";
+import { join } from "path/mod.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { mergeConfigs } from "../../../core/config.ts";
 
@@ -35,15 +35,10 @@ import {
 import { disabledTableOfContents } from "../../../config/toc.ts";
 
 import { PandocOptions } from "../../../command/render/types.ts";
-import { pandocMetadataPath } from "../../../command/render/render-shared.ts";
 
 import { ProjectCreate, ProjectType } from "../types.ts";
 import { ProjectContext } from "../../types.ts";
-import {
-  crossrefIndexForOutputFile,
-  kCrossrefIndexFile,
-  kCrossrefResolveRefs,
-} from "../../project-crossrefs.ts";
+import { kCrossrefResolveRefs } from "../../project-crossrefs.ts";
 
 import { websiteProjectType } from "../website/website.ts";
 
@@ -63,6 +58,8 @@ const kSingleFileBook = "single-file-book";
 
 export const bookProjectType: ProjectType = {
   type: "book",
+
+  inheritsType: websiteProjectType.type,
 
   create: (_title: string): ProjectCreate => {
     const resourceDir = resourcePath(join("projects", "book"));
@@ -144,7 +141,6 @@ export const bookProjectType: ProjectType = {
   preRender: websiteProjectType.preRender,
   postRender: bookPostRender,
   formatLibDirs: websiteProjectType.formatLibDirs,
-  canServe: true,
   metadataFields: () => [...websiteProjectType.metadataFields!(), "book"],
   resourceIgnoreFields: () => [
     ...websiteProjectType.resourceIgnoreFields!(),

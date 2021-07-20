@@ -54,6 +54,7 @@ import {
   cookieConsentDependencies,
   websiteAnalyticsScriptFile,
 } from "./website-analytics.ts";
+import { defaultProjectType } from "../project-default.ts";
 
 export const websiteProjectType: ProjectType = {
   type: "site",
@@ -86,10 +87,8 @@ export const websiteProjectType: ProjectType = {
   libDir: "site_libs",
   outputDir: "_site",
 
-  formatLibDirs:
-    () => ["bootstrap", "quarto-nav", "quarto-search", "quarto-html"],
-
-  canServe: true,
+  formatLibDirs: () =>
+    defaultProjectType.formatLibDirs!().concat(["quarto-nav", "quarto-search"]),
 
   config: websiteProjectConfig,
 

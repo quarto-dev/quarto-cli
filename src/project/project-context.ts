@@ -185,9 +185,13 @@ export function projectContextForDirectory(
   return projectContext(path, true) as Promise<ProjectContext>;
 }
 
-export function projectIsWebserverTarget(context: ProjectContext): boolean {
-  const projType = projectType(context.config?.project?.[kProjectType]);
-  return !!projType.canServe;
+export function projectIsWebsite(context?: ProjectContext): boolean {
+  if (context) {
+    const projType = projectType(context.config?.project?.[kProjectType]);
+    return projType.type === "site" || projType.inheritsType === "site";
+  } else {
+    return false;
+  }
 }
 
 export function projectIgnoreGlobs(dir: string) {

@@ -39,7 +39,7 @@ import { replacePandocArg } from "../render/flags.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import {
   projectContext,
-  projectIsWebserverTarget,
+  projectIsWebsite,
 } from "../../project/project-context.ts";
 import { kProjectType } from "../../project/types.ts";
 
@@ -58,7 +58,7 @@ export async function preview(
 ) {
   // see if this is in a project that should be previewed w/ serve
   const project = await projectContext(file);
-  if (project && projectIsWebserverTarget(project)) {
+  if (project && projectIsWebsite(project)) {
     throw new Error(
       `Target file ${basename(file)} is in a ${project.config?.project
         ?.[kProjectType]} project (preview this file using quarto serve).`,

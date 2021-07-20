@@ -518,20 +518,39 @@ export async function renderPandoc(
     finalOutput,
   );
 
+  // compute the relative path to the files dir
+  let filesDir: string | undefined = inputFilesDir(context.target.source);
+  // undefine it if it doesn't exist
+  filesDir = existsSync(join(dirname(context.target.source), filesDir))
+    ? filesDir
+    : undefined;
+
+  // add any injected libs to supporting
+  let supporting = filesDir ? executeResult.supporting : undefined;
+  if (filesDir) {
+    const filesDirAbsolute = join(dirname(context.target.source), filesDir);
+    if (
+      existsSync(filesDirAbsolute) &&
+      (!supporting || !supporting.includes(filesDirAbsolute))
+    ) {
+      const filesLibs = join(dirname(context.target.source), context.libDir);
+      if (
+        existsSync(filesLibs) &&
+        (!supporting || !supporting.includes(filesLibs))
+      ) {
+        supporting = supporting || [];
+        supporting.push(filesLibs);
+      }
+    }
+  }
+
   renderCleanup(
     context.target.input,
     finalOutput,
     format,
-    selfContained ? executeResult.supporting : undefined,
+    selfContained ? supporting : undefined,
     executionEngineKeepMd(context.target.input),
   );
-
-  // determine if we have a files dir
-  const relativeFilesDir = inputFilesDir(context.target.source);
-  const filesDir =
-    existsSync(join(dirname(context.target.source), relativeFilesDir))
-      ? relativeFilesDir
-      : undefined;
 
   // if there is a project context then return paths relative to the project
   const projectPath = (path: string) => {
@@ -556,8 +575,8 @@ export async function renderPandoc(
     input: projectPath(context.target.source),
     markdown: executeResult.markdown,
     format,
-    supporting: filesDir
-      ? executeResult.supporting.filter(existsSync).map((file: string) =>
+    supporting: supporting
+      ? supporting.filter(existsSync).map((file: string) =>
         context.project ? relative(context.project.dir, file) : file
       )
       : undefined,

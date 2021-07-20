@@ -211,9 +211,12 @@ knitr_options <- function(format, resourceDir) {
     comment = NA
   )
 
+  # forward output: false option to results, fig.show, warning, and message
   if (!isTRUE(format$execute[["output"]])) {
     opts_chunk$results <- "hide"
     opts_chunk$fig.show <- "hide"
+    opts_chunk$warning <- FALSE
+    opts_chunk$message <- FALSE
   }
 
 

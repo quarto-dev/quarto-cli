@@ -35,6 +35,8 @@ import {
   pruneProjectFreezerDir,
 } from "./freeze.ts";
 import { resourceFilesFromRenderedFile } from "./render-shared.ts";
+import { inputFilesDir } from "../../core/render.ts";
+import { removeIfEmptyDir } from "../../core/path.ts";
 
 export async function renderProject(
   context: ProjectContext,
@@ -188,6 +190,16 @@ export async function renderProject(
           } else {
             renderedFile.supporting.map((file) => moveDir(file));
           }
+        }
+
+        // remove empty files dir
+        if (!keepFiles) {
+          const filesDir = join(
+            projDir,
+            dirname(renderedFile.file),
+            inputFilesDir(renderedFile.file),
+          );
+          removeIfEmptyDir(filesDir);
         }
 
         // resource files
