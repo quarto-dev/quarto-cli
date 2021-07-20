@@ -91,6 +91,7 @@ export class OJSConnector {
       return undefined;
     }
 
+    // deno-lint-ignore no-prototype-builtins
     if (!this.pendingGlobals.hasOwnProperty(name)) {
       // This is a pending global we haven't seen before. Stash a new promise,
       // along with its resolve/reject callbacks, in an object and remember it
@@ -404,7 +405,7 @@ function importPathResolver(paths, localResolverMap) {
   function fetchRelativePath(path) {
     return path;
   }
-  
+
   return (path) => {
     const isLocalModule = path.startsWith("/") || path.startsWith(".");
     const isImportFromObservableWebsite = path.match(
@@ -415,7 +416,6 @@ function importPathResolver(paths, localResolverMap) {
       return defaultResolveImportPath(path);
     }
 
-    
     let importPath, fetchPath;
     let moduleType;
     if (window._ojs.selfContained) {
@@ -459,7 +459,6 @@ function importPathResolver(paths, localResolverMap) {
     } else if (moduleType === "ojs") {
       return importOjsFromURL(fetchPath);
     } else if (moduleType === "qmd") {
-      debugger;
       const htmlPath = `${fetchPath.slice(0, -4)}.html`;
       return fetch(htmlPath)
         .then((response) => response.text())
@@ -471,7 +470,6 @@ function importPathResolver(paths, localResolverMap) {
 }
 
 function createOjsModuleFromHTMLSrc(text) {
-  debugger;
   const parser = new DOMParser();
   const doc = parser.parseFromString(text, "text/html");
   const staticDefns = [];
@@ -479,7 +477,9 @@ function createOjsModuleFromHTMLSrc(text) {
     staticDefns.push(el.text);
   }
   const ojsSource = [];
-  for (const content of doc.querySelectorAll('script[type="ojs-module-contents"]')) {
+  for (
+    const content of doc.querySelectorAll('script[type="ojs-module-contents"]')
+  ) {
     for (const cell of JSON.parse(content.text).contents) {
       ojsSource.push(cell.source);
     }
@@ -497,7 +497,7 @@ function createOjsModuleFromSrc(src, staticDefns = []) {
       (_name) => new EmptyInspector(),
     );
     for (const defn of staticDefns) {
-      for (const {name, value} of JSON.parse(defn).contents) {
+      for (const { name, value } of JSON.parse(defn).contents) {
         window._ojs.ojsConnector.define(name, newModule)(value);
       }
     }
@@ -539,7 +539,7 @@ export function extendObservableStdlib(lib) {
     }
     onValueError(el, err) {
       const group = `Shiny error in ${el.id}`;
-      console.groupCollapsed(`%c${group}`, 'color:red');
+      console.groupCollapsed(`%c${group}`, "color:red");
       console.log(`${err.message}`);
       console.log(`call: ${err.call}`);
       console.groupEnd(group);
@@ -927,10 +927,12 @@ export function createRuntime() {
       }
 
       // static data definitions
-      for (const el of document.querySelectorAll(
-        "script[type='ojs-define']",
-      )) {
-        for (const {name, value} of JSON.parse(el.text).contents) {
+      for (
+        const el of document.querySelectorAll(
+          "script[type='ojs-define']",
+        )
+      ) {
+        for (const { name, value } of JSON.parse(el.text).contents) {
           ojsConnector.define(name)(value);
         }
       }
