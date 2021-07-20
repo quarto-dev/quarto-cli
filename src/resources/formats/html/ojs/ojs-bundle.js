@@ -368,7 +368,10 @@ function importPathResolver(paths, localResolverMap) {
   // const declarations outside, then we will capture the
   // uninitialized values.
 
-  function rootPath(path) {
+  // fetch() and import() have different relative path semantics, so
+  // we need different paths for each use case
+
+  function importRootPath(path) {
     const { runtimeToRoot } = paths;
     if (!runtimeToRoot) {
       return path;
@@ -377,7 +380,7 @@ function importPathResolver(paths, localResolverMap) {
     }
   }
 
-  function relativePath(path) {
+  function importRelativePath(path) {
     const { runtimeToDoc } = paths;
     if (!runtimeToDoc) {
       return path;
@@ -386,6 +389,22 @@ function importPathResolver(paths, localResolverMap) {
     }
   }
 
+  // a fetch path of a root-relative path is resolved wrt to
+  // the document root
+  function fetchRootPath(path) {
+    const { docToRoot } = paths;
+    if (!docToRoot) {
+      return path;
+    } else {
+      return `${docToRoot}/${path}`;
+    }
+  }
+
+  // a fetch path of a relative path is resolved the naive way
+  function fetchRelativePath(path) {
+    return path;
+  }
+  
   return (path) => {
     const isLocalModule = path.startsWith("/") || path.startsWith(".");
     const isImportFromObservableWebsite = path.match(
@@ -396,13 +415,17 @@ function importPathResolver(paths, localResolverMap) {
       return defaultResolveImportPath(path);
     }
 
+    
+    let importPath, fetchPath;
     let moduleType;
     if (window._ojs.selfContained) {
       const resolved = localResolverMap.get(path);
       if (resolved === undefined) {
         throw new Error(`missing local file ${path} in self-contained mode`);
       }
-      path = resolved;
+      // self-contained resolves to data URLs, so they behave the same.
+      importPath = resolved;
+      fetchPath = resolved;
 
       // we have a data URL here.
       const mimeType = resolved.match(/data:(.*);base64/)[1];
@@ -423,18 +446,21 @@ function importPathResolver(paths, localResolverMap) {
 
       // resolve path according to quarto path resolution rules.
       if (path.startsWith("/")) {
-        path = rootPath(path);
+        importPath = importRootPath(path);
+        fetchPath = fetchRootPath(path);
       } else {
-        path = relativePath(path);
+        importPath = importRelativePath(path);
+        fetchPath = fetchRelativePath(path);
       }
     }
 
     if (moduleType === "js") {
-      return import(path).then((m) => es6ImportAsObservableModule(m));
+      return import(importPath).then((m) => es6ImportAsObservableModule(m));
     } else if (moduleType === "ojs") {
-      return importOjsFromURL(path);
+      return importOjsFromURL(fetchPath);
     } else if (moduleType === "qmd") {
-      const htmlPath = `${path.slice(0, -4)}.html`;
+      debugger;
+      const htmlPath = `${fetchPath.slice(0, -4)}.html`;
       return fetch(htmlPath)
         .then((response) => response.text())
         .then(createOjsModuleFromHTMLSrc);
@@ -445,19 +471,23 @@ function importPathResolver(paths, localResolverMap) {
 }
 
 function createOjsModuleFromHTMLSrc(text) {
+  debugger;
   const parser = new DOMParser();
   const doc = parser.parseFromString(text, "text/html");
-  const scripts = doc.querySelectorAll('script[type="ojs-module-contents"]');
+  const staticDefns = [];
+  for (const el of doc.querySelectorAll('script[type="ojs-define"]')) {
+    staticDefns.push(el.text);
+  }
   const ojsSource = [];
-  for (const content of scripts) {
+  for (const content of doc.querySelectorAll('script[type="ojs-module-contents"]')) {
     for (const cell of JSON.parse(content.text).contents) {
       ojsSource.push(cell.source);
     }
   }
-  return createOjsModuleFromSrc(ojsSource.join("\n"));
+  return createOjsModuleFromSrc(ojsSource.join("\n"), staticDefns);
 }
 
-function createOjsModuleFromSrc(src) {
+function createOjsModuleFromSrc(src, staticDefns = []) {
   return (runtime, _observer) => {
     const newModule = runtime.module();
     const interpreter = window._ojs.ojsConnector.interpreter;
@@ -466,6 +496,11 @@ function createOjsModuleFromSrc(src) {
       newModule,
       (_name) => new EmptyInspector(),
     );
+    for (const defn of staticDefns) {
+      for (const {name, value} of JSON.parse(defn).contents) {
+        window._ojs.ojsConnector.define(name, newModule)(value);
+      }
+    }
     return newModule;
   };
 }
