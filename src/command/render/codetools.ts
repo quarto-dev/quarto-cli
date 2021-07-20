@@ -94,10 +94,12 @@ export function codeToolsPostprocessor(format: Format) {
             i += 2;
             const codeBlockLine = lines[i] as Element;
             const codeSpan = codeBlockLine.lastChild as Element;
-            codeSpan.innerHTML = codeSpan.innerHTML.replace(
-              /```(\w+)/,
-              "```{$1}",
-            );
+            if (codeSpan.innerHTML) {
+              codeSpan.innerHTML = codeSpan.innerHTML.replace(
+                /```(\w+)/,
+                "```{$1}",
+              );
+            }
             newLines.push(codeBlockLine);
           } else {
             newLines.push(line);
@@ -124,8 +126,10 @@ export function codeToolsPostprocessor(format: Format) {
           const header = (title as Element).parentElement;
           const titleDiv = doc.createElement("div");
           titleDiv.classList.add("quarto-title-block");
+          const layoutDiv = doc.createElement("div");
+          titleDiv.appendChild(layoutDiv);
           header?.replaceChild(titleDiv, title);
-          titleDiv.appendChild(title);
+          layoutDiv.appendChild(title);
           const button = doc.createElement("button");
           button.setAttribute("type", "button");
           button.classList.add("btn").add("code-tools-button");
@@ -135,7 +139,7 @@ export function codeToolsPostprocessor(format: Format) {
           if (codeTools.caption !== "none") {
             button.appendChild(doc.createTextNode(" " + codeTools.caption));
           }
-          titleDiv.appendChild(button);
+          layoutDiv.appendChild(button);
           header!.appendChild(titleDiv);
           if (codeTools.toggle) {
             button.setAttribute("id", kCodeToolsMenuButtonId);
