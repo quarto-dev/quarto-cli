@@ -287,6 +287,7 @@ export async function ojsCompile(
       };
 
       const keysToSkip = new Set([
+        "echo",
         "label",
         "fig.cap",
         "fig.subcap",
