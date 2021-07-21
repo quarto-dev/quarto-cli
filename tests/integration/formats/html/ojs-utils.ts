@@ -8,6 +8,7 @@
 */
 
 import { ExecuteOutput, Verify } from "../../../test.ts";
+import puppeteer from "puppeteer/mod.ts";
 import { inPuppeteer } from "../../../puppeteer.ts";
 import { assert } from "testing/asserts.ts";
 
@@ -55,5 +56,46 @@ export function verifyOjsValue(
         `Expected ${value} in ojs variable ${valName}, got ${ojsVal} instead`,
       );
     },
+  };
+}
+
+export function verifyClickingDoesNotThrow(url: string, selector: string): Verify {
+  return {
+    name: "page does not throw when selected element is clicked",
+    verify: (async (...params: any[]) => {
+      const browser = await puppeteer.launch();
+      try {
+        const page = await browser.newPage();
+        try {
+          await page.goto(url);
+        } catch (e) {
+          console.log(`(Test error) page not found: ${url}`);
+          console.log(e);
+          assert(false);
+        }
+        let threwError = false;
+        page.on("pageerror", function(err) {  
+          const theTempValue = err.toString();
+          console.log("Page error: " + theTempValue);
+          threwError = true;
+        });
+        page.on("error", err => {
+          const theTempValue = err.toString();
+          console.log("Error: " + theTempValue);
+          threwError = true;
+        });
+        try {
+          await page.click(selector);
+          console.log("close");
+        } catch (e) {
+          console.log("Test error: puppeteer threw exception");
+          console.log(e);
+          assert(false);
+        }
+        assert(!threwError);
+      } finally {
+        await browser.close();
+      }
+    }),
   };
 }
