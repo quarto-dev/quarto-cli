@@ -180,7 +180,7 @@ export function codeToolsPostprocessor(format: Format) {
                 );
               }
             }
-            titleDiv.appendChild(ul);
+            layoutDiv.appendChild(ul);
           } else {
             // no toggle, so just a button to show source code
             button.setAttribute("id", kCodeToolsSourceButtonId);
