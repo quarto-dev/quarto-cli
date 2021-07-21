@@ -346,12 +346,11 @@ export async function ojsCompile(
         );
       }
 
-      // handle source
       if (
-        !evalVal || // always produce div when not evaluating
-        keepHiddenVal || // always produce div with keepHidden
-        echoVal || // if echo
-        includeVal
+        includeVal &&
+        (!evalVal || // always produce div when not evaluating
+          keepHiddenVal || // always produce div with keepHidden
+          echoVal) // if echo
       ) {
         const classes = ["js", "cell-code"];
         const attrs = [];
@@ -369,7 +368,7 @@ export async function ojsCompile(
         // simplify the logic above to be correct for the cases where
         // we are here, and we get !echoVal
 
-        if (!echoVal || !includeVal) {
+        if (!echoVal) {
           classes.push("hidden");
         }
 

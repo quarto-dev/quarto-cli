@@ -13,10 +13,10 @@ import { localFileURL } from "../../../puppeteer.ts";
 
 const qmd1 = "docs/ojs/test-ojs-echo-false-codetools-dropdown.qmd";
 testRender(qmd1, "html", false, [
-  verifyClickingDoesNotThrow(localFileURL(qmd1), "#quarto-code-tools-menu"),
+  verifyClickingDoesNotThrow(localFileURL(qmd1), "#quarto-code-tools-source, #quarto-code-tools-menu"),
 ]);
 
 const qmd2 = "docs/ojs/test-ojs-echo-false-codetools-dropdown-2.qmd";
 testRender(qmd2, "html", false, [
-  verifyClickingDoesNotThrow(localFileURL(qmd2), "#quarto-code-tools-source"),
+  verifyClickingDoesNotThrow(localFileURL(qmd2), "#quarto-code-tools-source, #quarto-code-tools-menu"),
 ]);
