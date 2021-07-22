@@ -28,3 +28,4 @@ export function inPuppeteer(url: string, f: any) {
     return clientSideResult;
   });
 }
+

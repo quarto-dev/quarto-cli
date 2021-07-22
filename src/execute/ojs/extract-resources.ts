@@ -155,7 +155,7 @@ function directDependencies(
         cell.cell_type?.language === "ojs"
       )
       .flatMap((v) => v.source) // (concat)
-      .join("");
+      .join("\n");
     return directDependencies(ojsCellsSrc, fileDir, "ojs", projectRoot);
   }
 
@@ -287,7 +287,9 @@ export function extractResourceDescriptionsFromOJSChunk(
     } else if (thisResolvedImportPath.endsWith(".qmd")) {
       language = "qmd";
     } else {
-      throw new Error(`Unknown language "${language}" in file "${thisResolvedImportPath}"`);
+      throw new Error(
+        `Unknown language "${language}" in file "${thisResolvedImportPath}"`,
+      );
     }
 
     for (
@@ -332,6 +334,16 @@ export function extractResourceDescriptionsFromOJSChunk(
       referent: rootReferent,
     });
   }
+
+  // while traversing the reference graph, we want to
+  // keep around the ".qmd" references which arise from
+  // import ... from "[...].qmd". But we don't want
+  // qmd files to end up as actual resources to be copied
+  // to _site, so we filter them out here.
+
+  result = result.filter((description) =>
+    !description.filename.endsWith(".qmd")
+  );
 
   // convert relative resolved paths to relative paths
   result = result.map((description) => {

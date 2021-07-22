@@ -1,0 +1,10 @@
+---
+title: Reproing a bug on codetools dropdown
+code-tools: true
+---
+
+Without `echo: false`, the codetools menu works fine.
+
+```{ojs}
+x = 5
+```
