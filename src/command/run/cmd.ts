@@ -13,11 +13,8 @@ export const runCommand = new Command()
   .name("run")
   .arguments("<input:string>")
   .option(
-    "--render [render:boolean]",
-    "Render the document before running.",
-    {
-      default: true,
-    },
+    "--no-render",
+    "Do not render the document before running.",
   )
   .option(
     "-p, --port [port:number]",
