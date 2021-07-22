@@ -234,7 +234,7 @@ export async function ensureIndexPage(project: ProjectContext) {
     const firstInput = project.files.input[0];
     if (firstInput) {
       const firstInputHref = relative(project.dir, firstInput);
-      const resolved = await resolveInputTarget(project, firstInputHref);
+      const resolved = await resolveInputTarget(project, firstInputHref, false);
       if (resolved) {
         writeRedirectPage(indexPage, resolved.outputHref);
       }
