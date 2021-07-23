@@ -368,6 +368,17 @@ dependencies_from_render <-function(input, files_dir, knit_meta) {
     dependencies$includes$in_header <- rmarkdown:::latex_dependencies_as_string(latex_dependencies)
   }
 
+  # extract static ojs definitions
+  ojs_defines <- rmarkdown:::flatten_dependencies(
+    knit_meta,
+    function(dep) {
+      inherits(dep, "ojs-define")
+    })
+  ojs_define_str <- paste(unlist(ojs_defines), collapse='\n')
+  if (ojs_define_str != "") {
+    dependencies$includes$in_header <- paste(c(dependencies$includes$in_header, ojs_define_str), collapse='\n')
+  }
+
   # return dependencies
   dependencies
 
