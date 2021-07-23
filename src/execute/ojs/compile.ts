@@ -57,7 +57,7 @@ import { quartoConfig } from "../../core/quarto.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import { logError } from "../../core/log.ts";
-import { breakQuartoMd } from "../../core/break-quarto-md.ts";
+import { breakQuartoMd, QuartoMdCell } from "../../core/break-quarto-md.ts";
 
 export interface OjsCompileOptions {
   source: string;
@@ -92,7 +92,8 @@ export async function ojsCompile(
     return { markdown };
   }
 
-  if (!languagesInMarkdown(markdown).has("ojs")) {
+  const languages = languagesInMarkdown(markdown);
+  if (!languages.has("ojs") && !languages.has("dot")) {
     return { markdown };
   }
 
@@ -158,18 +159,15 @@ export async function ojsCompile(
 
   // now we convert it back
   for (const cell of output.cells) {
-    const cellSrcStr = cell.source.join("");
     const errorVal =
       (cell.options?.[kError] ?? options.format.execute?.[kError] ??
         false) as boolean;
-    if (
-      cell.cell_type === "raw" ||
-      cell.cell_type === "markdown" ||
-      cell.cell_type === "math"
-    ) {
-      // The lua filter is in charge of this, we're a NOP.
-      ls.push(cellSrcStr);
-    } else if (cell.cell_type?.language === "ojs") {
+    const handleOJSCell = (
+      cell: QuartoMdCell,
+      cellSrcInMd?: string,
+      mdClassList?: string[],
+    ) => {
+      const cellSrcStr = cell.source.join("");
       const userCellId = () => {
         const chooseId = (label: string) => {
           const htmlLabel = asHtmlId(label as string);
@@ -353,7 +351,7 @@ export async function ojsCompile(
           keepHiddenVal || // always produce div with keepHidden
           echoVal) // if echo
       ) {
-        const classes = ["js", "cell-code"];
+        const classes = mdClassList ?? ["js", "cell-code"];
         const attrs = [];
 
         //  evalVal keepHiddenVal echoVal
@@ -384,7 +382,7 @@ export async function ojsCompile(
 
         const innerDiv = pandocCode({ classes, attrs });
 
-        innerDiv.push(pandocRawStr(cellSrcStr));
+        innerDiv.push(pandocRawStr(cellSrcInMd ?? cellSrcStr));
         div.push(innerDiv);
       }
 
@@ -463,6 +461,26 @@ export async function ojsCompile(
       }
 
       div.emit(ls);
+    };
+
+    if (
+      cell.cell_type === "raw" ||
+      cell.cell_type === "markdown" ||
+      cell.cell_type === "math"
+    ) {
+      // The lua filter is in charge of this, we're a NOP.
+      ls.push(cell.source.join(""));
+    } else if (cell.cell_type?.language === "dot") {
+      const newCell = {
+        ...cell,
+        "cell_type": {
+          language: "ojs",
+        },
+        source: ["dot`\n", ...cell.source, "\n`"],
+      };
+      handleOJSCell(newCell, cell.source.join(""), ["dot", "cell-code"]);
+    } else if (cell.cell_type?.language === "ojs") {
+      handleOJSCell(cell);
     } else {
       ls.push(`\n\`\`\`{${cell.cell_type.language}}`);
       ls.push(
