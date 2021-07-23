@@ -40,7 +40,9 @@ nav .dropdown-item i {
 
 .navbar #quarto-search {
   width: 11em;
-  margin-left: 0.5rem;
+  @include media-breakpoint-up(lg) {
+    margin-left: 0.5rem;
+  }
 }
 
 .sidebar #quarto-search {
