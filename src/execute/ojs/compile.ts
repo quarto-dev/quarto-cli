@@ -651,7 +651,8 @@ export async function ojsExecuteResult(
   executeResult.markdown = markdown;
   if (includes) {
     executeResult.includes = mergeConfigs(
-      (executeResult.includes || {}, includes),
+      includes,
+      executeResult.includes || {},
     );
   }
   if (filters) {
