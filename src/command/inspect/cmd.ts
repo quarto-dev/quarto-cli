@@ -24,6 +24,7 @@ import {
   resourcesFromMetadata,
 } from "../render/resources.ts";
 import { cssFileResourceReferences } from "../../core/css.ts";
+import { kLocalDevelopment, quartoConfig } from "../../core/quarto.ts";
 
 export const inspectCommand = new Command()
   .name("inspect")
@@ -53,6 +54,12 @@ export const inspectCommand = new Command()
       throw new Error(`${path} not found`);
     }
 
+    // get quarto version
+    let version = quartoConfig.version();
+    if (version === kLocalDevelopment) {
+      version = "99.9.9";
+    }
+
     // deno-lint-ignore no-explicit-any
     let config: any | undefined;
     const stat = Deno.statSync(path);
@@ -60,6 +67,9 @@ export const inspectCommand = new Command()
       const context = await projectContext(path);
       if (context?.config) {
         config = {
+          quarto: {
+            version,
+          },
           engines: context.engines,
           config: context.config,
         };
@@ -104,7 +114,10 @@ export const inspectCommand = new Command()
 
         // data to write
         config = {
-          engine: engine.name,
+          quarto: {
+            version,
+          },
+          engines: [engine.name],
           formats,
           resources,
         };

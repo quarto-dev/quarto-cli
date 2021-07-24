@@ -9,6 +9,8 @@ import { join } from "path/mod.ts";
 
 import { getenv } from "./env.ts";
 
+export const kLocalDevelopment = "(Local Development)";
+
 export interface QuartoConfig {
   binPath(): string;
   sharePath(): string;
@@ -24,7 +26,7 @@ export const quartoConfig = {
     if (existsSync(versionPath)) {
       return Deno.readTextFileSync(versionPath);
     } else {
-      return "(Local Development)";
+      return kLocalDevelopment;
     }
   },
 };
