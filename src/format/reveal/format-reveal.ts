@@ -46,7 +46,7 @@ function revealHtmlPostprocessor() {
         // quote slideNumber
         scriptEl.innerText = scriptEl.innerText.replace(
           /slideNumber: (h[\.\/]v|c(?:\/t)?)/,
-          "slideNumber: '($1)'",
+          "slideNumber: '$1'",
         );
       }
     }
