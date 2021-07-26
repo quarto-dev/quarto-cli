@@ -116,6 +116,15 @@ function directDependencies(
     const result: string[] = [];
     ojsSimpleWalker(parse, {
       // deno-lint-ignore no-explicit-any
+      ExportNamedDeclaration(node: any) {
+        if (node.source?.value) {
+          const source = node.source?.value as string;
+          if (source.startsWith("/") || source.startsWith(".")) {
+            result.push(source);
+          }
+        }
+      },
+      // deno-lint-ignore no-explicit-any
       ImportDeclaration(node: any) {
         const source = node.source?.value as string;
         if (source.startsWith("/") || source.startsWith(".")) {
