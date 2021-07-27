@@ -36,13 +36,19 @@ export function resolveResourceFilename(
   rootDir: string,
 ): string {
   if (resource.pathType == "relative") {
-    return resolve(rootDir, dirname(resource.referent!), resource.filename);
+    const result = resolve(
+      rootDir,
+      dirname(resource.referent!),
+      resource.filename,
+    );
+    return result;
   } else if (resource.pathType === "root-relative") {
-    return resolve(
+    const result = resolve(
       rootDir,
       dirname(resource.referent!),
       `.${resource.filename}`,
     );
+    return result;
   } else {
     throw new Error(`Unrecognized pathType ${resource.pathType}`);
   }
@@ -115,6 +121,15 @@ function directDependencies(
   const localImports = (parse: any) => {
     const result: string[] = [];
     ojsSimpleWalker(parse, {
+      // deno-lint-ignore no-explicit-any
+      ExportNamedDeclaration(node: any) {
+        if (node.source?.value) {
+          const source = node.source?.value as string;
+          if (source.startsWith("/") || source.startsWith(".")) {
+            result.push(source);
+          }
+        }
+      },
       // deno-lint-ignore no-explicit-any
       ImportDeclaration(node: any) {
         const source = node.source?.value as string;
@@ -271,13 +286,24 @@ export function extractResourceDescriptionsFromOJSChunk(
   }
 
   while (imports.size > 0) {
-    const [thisResolvedImportPath, _resource] = imports.entries().next().value;
+    const [thisResolvedImportPath, importResource] =
+      imports.entries().next().value;
     imports.delete(thisResolvedImportPath);
     if (handled.has(thisResolvedImportPath)) {
       continue;
     }
     handled.add(thisResolvedImportPath);
-    const source = Deno.readTextFileSync(thisResolvedImportPath);
+    let source;
+    try {
+      source = Deno.readTextFileSync(thisResolvedImportPath);
+    } catch (_e) {
+      console.error(
+        `WARNING: While following dependencies, could not resolve reference:`,
+      );
+      console.error(`  Reference: ${importResource.importPath}`);
+      console.error(`  In file: ${importResource.referent}`);
+      continue;
+    }
 
     let language;
     if (thisResolvedImportPath.endsWith(".js")) {
