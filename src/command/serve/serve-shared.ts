@@ -18,6 +18,7 @@ import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { projectIgnoreRegexes } from "../../project/project-context.ts";
 import { projectFreezerDir } from "../render/freeze.ts";
+import { projectCrossrefDir } from "../../project/project-crossrefs.ts";
 
 export function copyProjectForServe(
   project: ProjectContext,
@@ -45,15 +46,22 @@ export function copyProjectForServe(
     return !projectIgnore.some((regex: RegExp) => regex.test(pathRelative));
   };
 
+  // copy source files (skip output if requested)
   copyMinimal(
     project.dir,
     serveDir,
     [kSkipHidden],
     filter,
   );
+  // copy freezer
   copyMinimal(
     projectFreezerDir(project.dir, true),
     projectFreezerDir(serveDir, true),
+  );
+  // copy crossrefs
+  copyMinimal(
+    projectCrossrefDir(project.dir),
+    projectCrossrefDir(serveDir),
   );
   return Deno.realPathSync(serveDir);
 }

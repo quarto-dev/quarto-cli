@@ -196,7 +196,7 @@ export function copyMinimal(
 ) {
   skip = skip || [];
 
-  // build list of src fiels
+  // build list of src files
   const srcFiles: string[] = [];
   for (
     const walk of walkSync(
