@@ -36,7 +36,7 @@ import { removePandocArgs } from "./flags.ts";
 import { ld } from "lodash/mod.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { projectType } from "../../project/types/project-types.ts";
-import { kCrossrefIndexFile } from "../../project/project-crossrefs.ts";
+import { isWindows } from "../../core/platform.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -206,7 +206,10 @@ function quartoFilterParams(format: Format) {
 export function resolveFilters(filters: string[], options: PandocOptions) {
   // build list of quarto filters
   const quartoFilters: string[] = [];
-  quartoFilters.push(quartoInitFilter());
+  // windows needs the init filter to patch utf8 filename handling
+  if (isWindows()) {
+    quartoFilters.push(quartoInitFilter());
+  }
   quartoFilters.push(quartoPreFilter());
   if (crossrefFilterActive(options)) {
     quartoFilters.push(crossrefFilter());
