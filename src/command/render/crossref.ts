@@ -4,7 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { dirname, join } from "path/mod.ts";
+
 import { resourcePath } from "../../core/resources.ts";
 import {
   kListings,
