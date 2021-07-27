@@ -73,6 +73,10 @@ export function removeFilterParmas(metadata: Metadata) {
   delete metadata[kQuartoParams];
 }
 
+export function quartoInitFilter() {
+  return resourcePath("filters/init/init.lua");
+}
+
 export function quartoPreFilter() {
   return resourcePath("filters/quarto-pre/quarto-pre.lua");
 }
@@ -202,6 +206,7 @@ function quartoFilterParams(format: Format) {
 export function resolveFilters(filters: string[], options: PandocOptions) {
   // build list of quarto filters
   const quartoFilters: string[] = [];
+  quartoFilters.push(quartoInitFilter());
   quartoFilters.push(quartoPreFilter());
   if (crossrefFilterActive(options)) {
     quartoFilters.push(crossrefFilter());
