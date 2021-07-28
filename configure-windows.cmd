@@ -34,7 +34,7 @@ tar -xf %DENO_FILE%
 REM If tar failed, try unzipping it.
 IF %ERRORLEVEL% NEQ 0 ( 
 	ECHO tar failed; trying to unzip...
-	REM unzip %DENO_FILE%	
+	unzip %DENO_FILE%	
 )
 
 REM If both failed, exit with error.
