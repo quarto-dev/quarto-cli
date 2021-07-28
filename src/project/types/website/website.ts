@@ -100,7 +100,7 @@ export const websiteProjectType: ProjectType = {
     await initWebsiteNavigation(context);
   },
 
-  formatExtras: (
+  formatExtras: async (
     project: ProjectContext,
     source: string,
     flags: PandocFlags,
@@ -109,7 +109,7 @@ export const websiteProjectType: ProjectType = {
     if (isHtmlOutput(format.pandoc)) {
       // navigation extras for bootstrap enabled formats
       const extras = formatHasBootstrap(format)
-        ? websiteNavigationExtras(project, source, flags, format)
+        ? await websiteNavigationExtras(project, source, flags, format)
         : {};
 
       // add some title related variables

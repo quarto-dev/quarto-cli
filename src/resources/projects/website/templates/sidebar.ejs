@@ -15,6 +15,8 @@ if (sidebar.align === "center") {
 %>
 
 <nav class="<%- mCss %> py-2 <%- styleCss %> <%- textStyleCss %> overflow-scroll">
+  
+   <% if (sidebar.logo || (sidebar.title && !navbar) || sidebar.tools) { %>
   <div class="px-3 pt-lg-2 mt-1 <%= alignCss %> sidebar-header<%= sidebar.logo && sidebar.title ? ' sidebar-header-stacked' : '' %>">
     <% if (sidebar.logo) { %>
     <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo py-0 d-lg-inline d-none"/>
@@ -23,19 +25,24 @@ if (sidebar.align === "center") {
      <% } %> 
     <% } %>
     
+    <% if (!navbar || sidebar.tools) { %>
     <% if (sidebar.title) { %>
     <div class="sidebar-title mb-0 py-0">
+      <% if (!navbar) { %>
       <a href="/">
       <%- sidebar.title %>
-      </a>
+      </a> 
+      <% } %>  
       <% if (sidebar.tools) { %>
         <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle })%>
       <% } %>  
     </div>
-
+    <% } %>
     <% } %>
 
   </div>
+  <% } %>
+
   <% if (sidebar.search) { %>
     <div class="d-flex px-3 mt-2 flex-shrink-0 align-items-center">
       <div class="sidebar-search">

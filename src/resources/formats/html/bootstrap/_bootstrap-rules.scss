@@ -631,7 +631,7 @@ $callouts: (
     padding-left: 0.5rem;
     padding-right: 0.5rem;
   }
-  @include media-breakpoint-down(med) {
+  @include media-breakpoint-down(md) {
     padding-left: 0;
     padding-right: 0;
   }
