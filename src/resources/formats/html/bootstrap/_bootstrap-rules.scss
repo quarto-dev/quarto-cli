@@ -354,12 +354,6 @@ div.hanging-indent {
   margin-bottom: 0;
 }
 
-// don't wrap code elmeents in tables (make sure identifiers with dashes
-// stay on the same line)
-.table code {
-  white-space: pre;
-}
-
 .table a {
   word-break: break-word;
 }
