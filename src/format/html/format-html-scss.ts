@@ -306,25 +306,6 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     }
   }
 
-  // Forward navbar background color
-  const navbar = (metadata[kSite] as Metadata)?.[kSiteNavbar] as Metadata;
-  if (navbar) {
-    const navbarBackground = navbar[kBackground];
-    if (navbarBackground !== undefined) {
-      variables.push(
-        print(
-          sassVariable(
-            "navbar-bg",
-            navbarBackground,
-            typeof (navbarBackground) === "string"
-              ? asBootstrapColor
-              : undefined,
-          ),
-        ),
-      );
-    }
-  }
-
   // Forward codeleft-border
   const codeblockLeftBorder = metadata[kCodeBorderLeft];
   const codeblockBackground = metadata[kCodeBlockBackground];
