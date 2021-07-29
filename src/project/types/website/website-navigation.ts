@@ -174,8 +174,6 @@ export async function websiteNavigationExtras(
     nav.prevPage = pageNavigation.prevPage;
     nav.nextPage = pageNavigation.nextPage;
 
-    console.log(pageNavigation);
-
     // Inject link tags with rel nest/prev for the page
     const metaLinks = [];
     if (pageNavigation.nextPage?.href) {
@@ -661,10 +659,7 @@ function nextAndPrevious(
           isSeparator(item);
       },
     );
-    console.log(href);
     const index = sidebarItems.findIndex((item) => item.href === href);
-    console.log(index);
-    console.log(sidebarItems.length);
     const nextPage = index > -1 && index < sidebarItems.length - 1 &&
         !isSeparator(sidebarItems[index + 1])
       ? sidebarItems[index + 1]
