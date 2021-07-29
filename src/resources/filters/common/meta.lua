@@ -17,7 +17,12 @@ end
 
 -- add a header include as a raw block
 function addInclude(meta, format, includes, include)
-  meta[includes]:insert(pandoc.MetaBlocks(pandoc.RawBlock(format, include)))
+  if isHtmlOutput() then
+    blockFormat = "html"
+  else
+    blockFormat = format
+  end  
+  meta[includes]:insert(pandoc.MetaBlocks(pandoc.RawBlock(blockFormat, include)))
 end
 
 -- conditionally include a package
