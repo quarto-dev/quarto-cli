@@ -696,8 +696,9 @@ async function navbarEjsData(
     pinned: navbar.pinned !== undefined ? !!navbar.pinned : false,
   };
 
-  // if there is no navbar title OR navbar logo, then use site title
-  if (!data.title && !data.logo) {
+  // if there is no navbar title and it hasn't been set to 'false'
+  // then use the site title
+  if (!data.title && data.title !== false) {
     data.title = websiteTitle(project.config);
   }
   data.title = data.title || "";
