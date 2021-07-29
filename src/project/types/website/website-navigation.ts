@@ -760,14 +760,6 @@ async function navigationItem(
       );
     }
 
-    // text or icon is required
-    if (!navItem.text && !navItem.icon) {
-      throw Error(
-        `"${navItem.text ||
-          ""}" menu: you must specify a 'text' or 'icon' option for menus`,
-      );
-    }
-
     // recursively normalize nav items
     for (let i = 0; i < navItem.menu.length; i++) {
       navItem.menu[i] = await navigationItem(

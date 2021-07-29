@@ -619,6 +619,12 @@ $callouts: (
   }
 }
 
+.navbar .dropdown-header {
+  font-size: 1rem;
+  padding-left: 0.5rem;
+  padding-right: 0.1rem;
+}
+
 // dark mode
 .navbar .quarto-color-scheme-toggle {
   @include media-breakpoint-up(lg) {
