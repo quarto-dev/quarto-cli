@@ -128,12 +128,12 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   navigation.footer = footer as string;
 }
 
-export function websiteNavigationExtras(
+export async function websiteNavigationExtras(
   project: ProjectContext,
   source: string,
   flags: PandocFlags,
   format: Format,
-): FormatExtras {
+): Promise<FormatExtras> {
   // find the relative path for this input
   const inputRelative = relative(project.dir, source);
 
@@ -158,7 +158,8 @@ export function websiteNavigationExtras(
     format.metadata[kSiteSidebar] === false;
 
   // determine body envelope
-  const href = inputFileHref(inputRelative);
+  const target = await resolveInputTarget(project, inputRelative);
+  const href = target?.outputHref || inputFileHref(inputRelative);
   const sidebar = sidebarForHref(href);
   const nav: Record<string, unknown> = {
     toc: hasTableOfContents(flags, format),
@@ -267,7 +268,7 @@ function navigationHtmlPostprocessor(project: ProjectContext, source: string) {
       const navLinkHref = navLink.getAttribute("href");
 
       const sidebarLink = doc.querySelector(
-        '.sidebar-navigation a[href="' + href + '"]',
+        '.sidebar-navigation a[href="' + navLinkHref + '"]',
       );
       // if the link is either for the current window href or appears on the
       // sidebar then set it to active
@@ -689,18 +690,23 @@ async function navbarEjsData(
   const collapse = navbar.collapse !== undefined ? !!navbar.collapse : true;
   const data: Navbar = {
     ...navbar,
-    title: navbar.title !== undefined
-      ? navbar.title
-      : websiteTitle(project.config) || "",
     search: websiteSearch(project) === "navbar" ? navbar.search : false,
     type: navbar.type || "dark",
     background: navbar.background || "primary",
     logo: resolveLogo(navbar.logo),
     collapse,
-    [kCollapseBelow]: !collapse ? ""
-    : ("-" + (navbar[kCollapseBelow] || "lg")) as LayoutBreak,
+    [kCollapseBelow]: !collapse
+      ? ""
+      : ("-" + (navbar[kCollapseBelow] || "lg")) as LayoutBreak,
     pinned: navbar.pinned !== undefined ? !!navbar.pinned : false,
   };
+
+  // if there is no navbar title and it hasn't been set to 'false'
+  // then use the site title
+  if (!data.title && data.title !== false) {
+    data.title = websiteTitle(project.config);
+  }
+  data.title = data.title || "";
 
   // normalize nav contents
   if (navbar.left) {
@@ -756,14 +762,6 @@ async function navigationItem(
     if (level > 0) {
       throw Error(
         `"${navItem.text || ""}" menu: this menu does not support sub-menus`,
-      );
-    }
-
-    // text or icon is required
-    if (!navItem.text && !navItem.icon) {
-      throw Error(
-        `"${navItem.text ||
-          ""}" menu: you must specify a 'text' or 'icon' option for menus`,
       );
     }
 
@@ -931,7 +929,7 @@ function resolveNavReferences(
         assign(resolveNavReferences(value));
       } else if (typeof (value) === "object") {
         assign(resolveNavReferences(value as Record<string, unknown>));
-      } else if (index === "href" && typeof (value) === "string") {
+      } else if (typeof (value) === "string") {
         const navRef = resolveNavReference(value);
         if (navRef) {
           const navItem = collection as Record<string, unknown>;

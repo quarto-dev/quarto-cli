@@ -24,7 +24,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   // activate the anchor for a section associated with this TOC entry
   tocLinks.forEach(link => {
     link.addEventListener('click', () => {
-      if (link.href.contains('#')) {
+      if (link.href.indexOf('#') !== -1) {
         const anchor = link.href.split('#')[1];
         const heading = window.document.querySelector(`[data-anchor-id=${anchor}]`);
         if (heading) {

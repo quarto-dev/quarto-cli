@@ -21,7 +21,7 @@ export const kCollapseBelow = "collapse-below";
 export type LayoutBreak = "" | "sm" | "md" | "lg" | "xl" | "xxl";
 
 export interface Navbar {
-  title?: string;
+  title?: string | false;
   logo?: string;
   type?: "dark" | "light";
   background:
