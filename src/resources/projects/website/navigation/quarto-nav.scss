@@ -281,7 +281,13 @@ nav .dropdown-item i {
 
   .sidebar-navigation > nav {
     max-width: 300px;
-    min-width: 250px;
+    min-width: 248px;
+  }
+
+  @include media-breakpoint-up(xl) {
+    .sidebar-navigation > nav {
+      min-width: 270px;
+    }
   }
 
   .sidebar.sidebar-navigation {
