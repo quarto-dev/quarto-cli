@@ -664,7 +664,7 @@ function nextAndPrevious(
         !isSeparator(sidebarItems[index + 1])
       ? sidebarItems[index + 1]
       : undefined;
-    const prevPage = index > -1 && index < sidebarItems.length - 1 &&
+    const prevPage = index > -1 && index <= sidebarItems.length - 1 &&
         !isSeparator(sidebarItems[index - 1])
       ? sidebarItems[index - 1]
       : undefined;

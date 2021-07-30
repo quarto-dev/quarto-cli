@@ -59,12 +59,9 @@ $code-border-left-color: $table-border-color !default;
 }
 
 // sort out background color
-$code-background-color: color.adjust(
-  $progress-bg,
-  $alpha: $code-background-alpha
-) !default;
-@if type_of($code-background) == color {
-  $code-background-color: $code-background;
+$code-bg-color: color.adjust($progress-bg, $alpha: $code-bg-alpha) !default;
+@if type_of($code-bg) == color {
+  $code-bg-color: $code-bg;
 }
 
 // stack layout panels on mobile devices
@@ -123,9 +120,9 @@ $code-background-color: color.adjust(
 
 div.sourceCode {
   // Clear code background if is not specified
-  @if $code-background {
-    background-color: $code-background-color;
-    border: 1px solid $code-background-color;
+  @if $code-bg {
+    background-color: $code-bg-color;
+    border: 1px solid $code-bg-color;
     border-radius: $border-radius;
   } @else {
     background-color: $body-bg !important;
@@ -143,8 +140,8 @@ pre.sourceCode {
   } @else {
     border: none;
   }
-  @if $code-background {
-    padding: $code-background-padding;
+  @if $code-bg {
+    padding: $code-bg-padding;
   }
 }
 
