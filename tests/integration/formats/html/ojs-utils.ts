@@ -8,9 +8,10 @@
 */
 
 import { ExecuteOutput, Verify } from "../../../test.ts";
-import puppeteer from "puppeteer/mod.ts";
+import { Browser } from "puppeteer/mod.ts";
 import { inPuppeteer } from "../../../puppeteer.ts";
 import { assert } from "testing/asserts.ts";
+import { withHeadlessBrowser } from "../../../../src/core/puppeteer.ts";
 
 // deno-lint-ignore no-explicit-any
 const window = (undefined as any); // appease the TypeScript typechecker
@@ -20,7 +21,7 @@ const document = (undefined as any); // appease the TypeScript typechecker
 export function verifyDomTextValue(
   url: string,
   elementName: string,
-  value: string
+  value: string,
 ): Verify {
   return {
     name: "DOM value is as expected",
@@ -33,7 +34,7 @@ export function verifyDomTextValue(
         textVal === value,
         `Expected ${value} in document element ${elementName}, got ${textVal} instead`,
       );
-    }
+    },
   };
 }
 
@@ -59,12 +60,14 @@ export function verifyOjsValue(
   };
 }
 
-export function verifyClickingDoesNotThrow(url: string, selector: string): Verify {
+export function verifyClickingDoesNotThrow(
+  url: string,
+  selector: string,
+): Verify {
   return {
     name: "page does not throw when selected element is clicked",
     verify: (async (...params: any[]) => {
-      const browser = await puppeteer.launch();
-      try {
+      return await withHeadlessBrowser<void>(async (browser: Browser) => {
         const page = await browser.newPage();
         try {
           await page.goto(url);
@@ -74,12 +77,12 @@ export function verifyClickingDoesNotThrow(url: string, selector: string): Verif
           assert(false);
         }
         let threwError = false;
-        page.on("pageerror", function(err) {  
+        page.on("pageerror", function (err) {
           const theTempValue = err.toString();
           console.log("Page error: " + theTempValue);
           threwError = true;
         });
-        page.on("error", err => {
+        page.on("error", (err) => {
           const theTempValue = err.toString();
           console.log("Error: " + theTempValue);
           threwError = true;
@@ -93,9 +96,7 @@ export function verifyClickingDoesNotThrow(url: string, selector: string): Verif
           assert(false);
         }
         assert(!threwError);
-      } finally {
-        await browser.close();
-      }
+      });
     }),
   };
 }
