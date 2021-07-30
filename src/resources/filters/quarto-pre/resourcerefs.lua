@@ -7,8 +7,8 @@ function resourceRefs()
       local file = currentFileMetadataState().file
       if file ~= nil then
         el.src = resourceRef(el.src, file.resourceDir)
-        return el
       end
+      return el
     end,
 
     RawInline = handleRawElement,
@@ -47,7 +47,7 @@ end
 function resourceRef(ref, resourceDir)
   -- if the ref starts with / then just strip if off
   if string.find(ref, "^/") then
-    return text.sub(src, 2, #ref)
+    return text.sub(ref, 2, #ref)
   end
   -- if it's a relative ref then prepend the resource dir
   if isRelativeRef(ref) then
