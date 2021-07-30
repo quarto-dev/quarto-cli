@@ -272,7 +272,7 @@ div.sourceCode {
 }
 
 .sidebar-toc > nav > h2 {
-  font-size: $nav-font-size;
+  font-size: $toc-font-size;
   font-weight: 400;
   margin-bottom: 0.5rem;
   margin-top: 0.3rem;
@@ -289,7 +289,7 @@ div.sourceCode {
 .sidebar-toc > nav ul {
   padding-left: 0;
   list-style: none;
-  font-size: $nav-font-size;
+  font-size: $toc-font-size;
   font-weight: 300;
 }
 
