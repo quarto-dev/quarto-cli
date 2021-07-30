@@ -22,17 +22,17 @@ $callout-margin-top: 1.25rem !default;
 $callout-margin-bottom: 1.25rem !default;
 
 // code-left-border
-$code-border-left: false !default;
-$code-border-left-style: solid !default;
-$code-border-left-size: 3px !default;
-$code-padding-left: 0.6em !default;
+$code-block-border-left: false !default;
+$code-block-border-left-style: solid !default;
+$code-block-border-left-size: 3px !default;
+$code-block-padding-left: 0.6em !default;
 
 // code-bg
-$code-bg: true !default;
-$code-bg-padding: 0.4em !default;
-$code-bg-alpha: -0.35 !default;
+$code-block-bg: true !default;
+$code-block-bg-padding: 0.4em !default;
+$code-block-bg-alpha: -0.35 !default;
 
-$code-theme-dark-threshhold: 40% !default;
+$code-block-theme-dark-threshhold: 40% !default;
 
 // The sidebar background color
 // If by default we don't have a body background, then use white

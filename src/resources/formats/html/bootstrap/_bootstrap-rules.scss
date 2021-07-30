@@ -52,16 +52,22 @@ caption,
   font-size: 1rem;
 }
 
+// sort out font size
+$code-block-font-size: $small-font-size !default;
+
 // sort out border color
-$code-border-left-color: $table-border-color !default;
-@if type_of($code-border-left) == color {
-  $code-border-left-color: $code-border-left;
+$code-block-border-left-color: $table-border-color !default;
+@if type_of($code-block-border-left) == color {
+  $code-block-border-left-color: $code-block-border-left;
 }
 
 // sort out background color
-$code-bg-color: color.adjust($progress-bg, $alpha: $code-bg-alpha) !default;
-@if type_of($code-bg) == color {
-  $code-bg-color: $code-bg;
+$code-block-bg-color: color.adjust(
+  $progress-bg,
+  $alpha: $code-block-bg-alpha
+) !default;
+@if type_of($code-block-bg) == color {
+  $code-block-bg-color: $code-block-bg;
 }
 
 // stack layout panels on mobile devices
@@ -120,29 +126,31 @@ $code-bg-color: color.adjust($progress-bg, $alpha: $code-bg-alpha) !default;
 
 div.sourceCode {
   // Clear code background if is not specified
-  @if $code-bg {
-    background-color: $code-bg-color;
-    border: 1px solid $code-bg-color;
+  @if $code-block-bg {
+    background-color: $code-block-bg-color;
+    border: 1px solid $code-block-bg-color;
     border-radius: $border-radius;
   } @else {
     background-color: $body-bg !important;
     border: none;
   }
+  font-size: $code-block-font-size;
 }
 
 pre.sourceCode {
   // Apply border, if specified
-  @if $code-border-left {
-    border-left: $code-border-left-size;
-    border-left-style: $code-border-left-style;
-    border-left-color: $code-border-left-color;
-    padding-left: $code-padding-left;
+  @if $code-block-border-left {
+    border-left: $code-block-border-left-size;
+    border-left-style: $code-block-border-left-style;
+    border-left-color: $code-block-border-left-color;
+    padding-left: $code-block-padding-left;
   } @else {
     border: none;
   }
-  @if $code-bg {
-    padding: $code-bg-padding;
+  @if $code-block-bg {
+    padding: $code-block-bg-padding;
   }
+  font-size: $code-block-font-size;
 }
 
 // no border inside callouts
@@ -178,6 +186,19 @@ div.sourceCode {
   pre:not(.sourceCode),
   samp {
     background-color: $mono-background-color;
+    padding: 0.2em;
+  }
+}
+
+// Default padding if background is set
+code:not(.sourceCode) {
+  @if variable-exists(code-bg) {
+    background-color: $code-bg;
+  }
+
+  @if variable-exists(code-padding) {
+    padding: $code-padding;
+  } @else if variable-exists(code-bg) {
     padding: 0.2em;
   }
 }
@@ -355,7 +376,7 @@ div.hanging-indent {
   word-break: break-word;
 }
 
-@if $code-border-left {
+@if $code-block-border-left {
   // Align source code and callout text (not border) with main body text when there is room
   @include media-breakpoint-up(lg) {
     // Cards with header
@@ -368,7 +389,10 @@ div.hanging-indent {
     }
 
     div.sourceCode {
-      margin-left: add(add(-$code-padding-left, -$code-border-left-size), 2px);
+      margin-left: add(
+        add(-$code-block-padding-left, -$code-block-border-left-size),
+        2px
+      );
     }
   }
 }
@@ -466,7 +490,7 @@ div.hanging-indent {
   margin-bottom: 0;
 }
 
-$code-border-left-color: $table-border-color !default;
+$code-block-border-left-color: $table-border-color !default;
 
 .callout.callout-style-simple .callout-icon::before,
 .callout.callout-style-simple .callout-toggle::before {
@@ -581,7 +605,7 @@ $callouts: (
   }
 
   div.callout-#{$name}.callout-style-default .callout-header {
-    @if (color.blackness($body-bg) > $code-theme-dark-threshhold) {
+    @if (color.blackness($body-bg) > $code-block-theme-dark-threshhold) {
       background-color: shift-color(map.get($info, "color"), 70%);
     } @else {
       background-color: shift-color(map.get($info, "color"), -90%);
@@ -687,7 +711,7 @@ $callouts: (
 
 // This is a sentinel value that renderers can use to determine
 // whether the theme is dark or light
-@if (color.blackness($body-bg) > $code-theme-dark-threshhold) {
+@if (color.blackness($body-bg) > $code-block-theme-dark-threshhold) {
   /*! dark */
 } @else {
   /*! light */
