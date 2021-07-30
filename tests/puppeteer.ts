@@ -8,7 +8,8 @@
 */
 
 import { join } from "path/mod.ts";
-import puppeteer from "puppeteer/mod.ts";
+import { Browser } from "puppeteer/mod.ts";
+import { withHeadlessBrowser } from "../src/core/puppeteer.ts";
 
 export function localFileURL(path: string) {
   const match = path.match(/^(.+)\.[^.]+$/)!;
@@ -20,12 +21,11 @@ export function localFileURL(path: string) {
 export function inPuppeteer(url: string, f: any) {
   // deno-lint-ignore no-explicit-any
   return (async (...params: any[]) => {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    await page.goto(url);
-    const clientSideResult = await page.evaluate(f, ...params);
-    await browser.close();
-    return clientSideResult;
+    return await withHeadlessBrowser(async (browser: Browser) => {
+      const page = await browser.newPage();
+      await page.goto(url);
+      const clientSideResult = await page.evaluate(f, ...params);
+      return clientSideResult;
+    });
   });
 }
-

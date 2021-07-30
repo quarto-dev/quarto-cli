@@ -4,13 +4,9 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { warning } from "log/mod.ts";
 
-import { which } from "../../core/path.ts";
-import { readRegistryKey } from "../../core/windows.ts";
-import { installed } from "../install/tools/chromium.ts";
-
-import puppeteer, { Browser } from "puppeteer/mod.ts";
+import { Browser } from "puppeteer/mod.ts";
+import { withHeadlessBrowser } from "../../core/puppeteer.ts";
 
 // The region within the viewport to screenshot
 export interface ScreenshotRegion {
@@ -50,7 +46,7 @@ export async function screenshot(
   target: ScreenshotTarget,
   options?: ScreenshotOptions,
 ) {
-  await withHeadlessBrowser(async (browser: Browser) => {
+  await withHeadlessBrowser<void>(async (browser: Browser) => {
     await browserScreenshot(browser, target, options);
     return Promise.resolve();
   });
@@ -60,25 +56,12 @@ export async function screenshots(
   targets: ScreenshotTarget[],
   options?: ScreenshotOptions,
 ) {
-  await withHeadlessBrowser(async (browser: Browser) => {
+  await withHeadlessBrowser<void>(async (browser: Browser) => {
     for (const target of targets) {
       await browserScreenshot(browser, target, options);
     }
     return Promise.resolve();
   });
-}
-
-async function withHeadlessBrowser(
-  fn: (browser: Browser) => Promise<void>,
-) {
-  const browser = await fetchBrowser();
-  if (browser !== undefined) {
-    try {
-      await fn(browser);
-    } finally {
-      browser.close();
-    }
-  }
 }
 
 async function browserScreenshot(
@@ -102,48 +85,4 @@ async function browserScreenshot(
   });
 
   await page.close();
-}
-
-async function findChrome(): Promise<string | undefined> {
-  let path;
-  if (Deno.build.os === "darwin") {
-    path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-  } else if (Deno.build.os === "linux") {
-    path = await which("google-chrome");
-    if (!path) {
-      path = await which("chromium-browser");
-    }
-  } else if (Deno.build.os === "windows") {
-    // Try the HKLM key
-    path = await readRegistryKey(
-      "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\chrome.exe",
-      "(Default)",
-    );
-
-    // Try the HKCR key
-    if (!path) {
-      path = await readRegistryKey(
-        "HKCR\\ChromeHTML\\shell\\open\\command",
-        "(Default)",
-      );
-    }
-  }
-  return path;
-}
-
-async function fetchBrowser() {
-  // Cook up a new instance
-  const isChromiumInstalled = await installed();
-  const executablePath = !isChromiumInstalled ? await findChrome() : undefined;
-  if (isChromiumInstalled || executablePath) {
-    return await puppeteer.launch({
-      product: "chrome",
-      executablePath,
-    });
-  } else {
-    warning(
-      "Screenshotting of embedded web content disabled. Please use `quarto install chromium` to install the required version of Chromium",
-    );
-    return undefined;
-  }
 }

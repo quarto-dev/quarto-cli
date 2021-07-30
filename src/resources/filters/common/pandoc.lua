@@ -88,27 +88,45 @@ function attribute(el, name, default)
   return default
 end
 
--- combine a set of filters together (so they can be processed in parallel)
-function combineFilters(filters)
-  local combined = {}
+function combineFilters(filters) 
+
+  -- the final list of filters
+  local filterList = {}
   for _, filter in ipairs(filters) do
     for key,func in pairs(filter) do
-      local combinedFunc = combined[key]
-      if combinedFunc then
-        combined[key] = function(x)
-          local result = combinedFunc(x)
-          if result then
-            return func(result)
-          else
-            return func(x)
-          end
-         end
-      else
-        combined[key] = func
+
+      -- ensure that there is a list for this key
+      if filterList[key] == nil then
+        filterList[key] = pandoc.List:new()
       end
+
+      -- add the current function to the list
+      filterList[key]:insert(func)
     end
   end
-  return combined
+
+  local combinedFilters = {}
+  for key,fns in pairs(filterList) do
+
+    combinedFilters[key] = function(x) 
+      -- capture the current value
+      local current = x
+
+      -- iterate through functions for this key
+      for _, fn in ipairs(fns) do
+        local result = fn(current)
+        if result ~= nil then
+          -- if there is a result from this function
+          -- update the current value with the result
+          current = result
+        end
+      end
+
+      -- return result from calling the functions
+      return current
+    end
+  end
+  return combinedFilters
 end
 
 function inlinesToString(inlines)
