@@ -54,6 +54,8 @@ import {
   cookieConsentDependencies,
   websiteAnalyticsScriptFile,
 } from "./website-analytics.ts";
+import { htmlResourceResolverPostprocessor } from "./website-resources.ts";
+
 import { defaultProjectType } from "../project-default.ts";
 
 export const websiteProjectType: ProjectType = {
@@ -138,9 +140,10 @@ export const websiteProjectType: ProjectType = {
       // html metadata
       extras.html = extras.html || {};
       extras.html[kHtmlPostprocessors] = extras.html[kHtmlPostprocessors] || [];
-      extras.html[kHtmlPostprocessors]?.push(
+      extras.html[kHtmlPostprocessors]?.push(...[
         metadataHtmlPostProcessor(source, project, format, extras),
-      );
+        htmlResourceResolverPostprocessor(source, project),
+      ]);
 
       // Add html analytics extras, if any
       const analyticsDependency = websiteAnalyticsScriptFile(project);

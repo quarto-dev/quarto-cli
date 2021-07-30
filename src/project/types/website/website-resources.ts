@@ -12,6 +12,26 @@ import {
 } from "../../../core/html.ts";
 
 import { fixupCssReferences } from "../../project-resources.ts";
+import { ProjectContext } from "../../types.ts";
+import { projectOffset } from "../../project-shared.ts";
+import { relative } from "path/mod.ts";
+import { inputFileHref } from "./website-shared.ts";
+import { websitePath } from "./website-config.ts";
+
+export function htmlResourceResolverPostprocessor(
+  source: string,
+  project: ProjectContext,
+) {
+  const sourceRelative = relative(project.dir, source);
+  const offset = projectOffset(project, source);
+  const href = inputFileHref(sourceRelative);
+
+  return (doc: Document) => {
+    const forceRoot = href === "/404.html" ? websitePath(project.config) : null;
+    // resolve resource refs
+    return Promise.resolve(resolveResourceRefs(doc, offset, forceRoot));
+  };
+}
 
 export function resolveResourceRefs(
   doc: Document,
