@@ -15,6 +15,7 @@ import { partitionYamlFrontMatter } from "../../core/yaml.ts";
 import { execProcess } from "../../core/process.ts";
 import { binaryPath } from "../../core/resources.ts";
 import { createSessionTempDir, sessionTempFile } from "../../core/temp.ts";
+import { quartoConfig } from "../../core/quarto.ts";
 
 import {
   kHtmlMathMethod,
@@ -234,6 +235,12 @@ async function patchHtmlTemplate(
         }
       }
     }
+
+    // replace generator
+    patchedTemplate = patchedTemplate.replace(
+      /<meta name="generator" content="pandoc" \/>/,
+      `<meta name="generator" content="quarto-${quartoConfig.version()}" \/>`,
+    );
 
     return patchedTemplate;
   });
