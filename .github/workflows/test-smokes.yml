@@ -65,6 +65,10 @@ jobs:
       - name: Install Tinytex
         run: |
           quarto tools install tinytex
+          
+      - name: Install Chromium
+        run: |
+          quarto tools install chromium
 
       - name: Smoke Test Commits
         if: github.event.before != ''
