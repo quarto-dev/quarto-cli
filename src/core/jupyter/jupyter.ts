@@ -509,7 +509,13 @@ export async function jupyterKernelspecFromFile(
 export function jupyterFromFile(input: string): JupyterNotebook {
   // parse the notebook
   const nbContents = Deno.readTextFileSync(input);
-  const nb = JSON.parse(nbContents) as JupyterNotebook;
+  const nbJSON = JSON.parse(nbContents);
+  const nb = nbJSON as JupyterNotebook;
+
+  // vscode doesn't write a language to the kernelspec so also try language_info
+  if (!nb.metadata.kernelspec.language) {
+    nb.metadata.kernelspec.language = nbJSON.metadata.language_info?.name;
+  }
 
   // validate that we have a language
   if (!nb.metadata.kernelspec.language) {
