@@ -48,6 +48,8 @@ function figures()
           image.attr.attributes["fig.alt"] = nil
           return image
         end
+      else 
+        return image
       end
     end
   }
