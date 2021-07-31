@@ -303,6 +303,8 @@ export async function renderProject(
           if (Deno.statSync(file).isFile) {
             copyResourceFile(context.dir, file, destPath);
           }
+        } else if (!existsSync(destPath)) {
+          warning(`File '${sourcePath}' was not found.`);
         }
       });
     } else {
