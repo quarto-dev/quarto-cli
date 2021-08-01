@@ -185,6 +185,10 @@ export async function renderProject(
         const keepFiles = !!renderedFile.format.execute[kKeepMd];
         keepLibsDir = keepLibsDir || keepFiles;
         if (renderedFile.supporting) {
+          // lib-dir is handled separately for projects so filter it out of supporting
+          renderedFile.supporting = renderedFile.supporting.filter((file) =>
+            file !== libDir
+          );
           if (keepFiles) {
             renderedFile.supporting.map((file) => copyDir(file));
           } else {
