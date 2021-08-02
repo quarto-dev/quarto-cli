@@ -37,6 +37,27 @@ export function removeIfEmptyDir(dir: string) {
   }
 }
 
+export function isModifiedAfter(file: string, otherFile: string) {
+  // handle paths that don't exist
+  if (!existsSync(file)) {
+    throw new Error(`${file} does not exist`);
+  }
+  if (!existsSync(otherFile)) {
+    return true;
+  }
+
+  // stat
+  const fileInfo = Deno.statSync(file);
+  const otherfileInfo = Deno.statSync(otherFile);
+
+  // if there is no mtime for either then return true
+  if (fileInfo.mtime === null || otherfileInfo.mtime === null) {
+    return true;
+  } else {
+    return fileInfo.mtime > otherfileInfo.mtime;
+  }
+}
+
 export function dirAndStem(file: string) {
   return [
     dirname(file),

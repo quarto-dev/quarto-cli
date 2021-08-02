@@ -26,8 +26,6 @@ import {
 
 import { fileExecutionEngine } from "../../execute/engine.ts";
 
-import { RenderResult } from "../render/types.ts";
-
 import { copyProjectForServe } from "./serve-shared.ts";
 
 import { ProjectWatcher, ServeOptions } from "./types.ts";
@@ -36,7 +34,7 @@ import { httpReloader } from "../../core/http-reload.ts";
 export async function watchProject(
   project: ProjectContext,
   serveProject: ProjectContext,
-  renderResult: RenderResult,
+  resourceFiles: string[],
   options: ServeOptions,
 ): Promise<ProjectWatcher> {
   // track renderOnChange inputs
@@ -96,17 +94,11 @@ export async function watchProject(
     // exclude libdir
     if (libDirSource && path.startsWith(libDirSource)) {
       return false;
-    }
-    if (renderResult) {
-      if (project.files.resources?.includes(path)) {
-        return true;
-      } else {
-        return renderResult.files.some((file) =>
-          file.resourceFiles.includes(path)
-        );
-      }
     } else {
-      return false;
+      // check project resources and resources derived from
+      // indvidual files
+      return project.files.resources?.includes(path) ||
+        resourceFiles.includes(path);
     }
   };
 

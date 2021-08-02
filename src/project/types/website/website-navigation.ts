@@ -45,8 +45,7 @@ import {
 import { kDataQuartoSourceUrl } from "../../../command/render/codetools.ts";
 
 import { kProjectType, ProjectConfig, ProjectContext } from "../../types.ts";
-import { projectOutputDir } from "../../project-shared.ts";
-import { projectOffset } from "../../project-shared.ts";
+import { projectOffset, projectOutputDir } from "../../project-shared.ts";
 import { resolveInputTarget } from "../../project-index.ts";
 import {
   kCollapseBelow,
@@ -67,7 +66,6 @@ import {
   websiteSearchDependency,
   websiteSearchSassBundle,
 } from "./website-search.ts";
-import { resolveResourceRefs } from "./website-resources.ts";
 
 import {
   isGithubRepoUrl,
@@ -77,7 +75,6 @@ import {
   kSiteRepoUrl,
   kSiteSidebar,
   websiteConfigActions,
-  websitePath,
   websiteRepoBranch,
   websiteRepoUrl,
   websiteTitle,
@@ -333,9 +330,7 @@ function navigationHtmlPostprocessor(project: ProjectContext, source: string) {
     // handle repo links
     handleRepoLinks(doc, sourceRelative, project.config);
 
-    // resolve resource refs
-    const forceRoot = href === "/404.html" ? websitePath(project.config) : null;
-    return Promise.resolve(resolveResourceRefs(doc, offset, forceRoot));
+    return Promise.resolve([]);
   };
 }
 

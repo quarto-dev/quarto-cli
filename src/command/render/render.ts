@@ -132,7 +132,8 @@ export async function renderFiles(
     options = ld.cloneDeep(options);
 
     // see if we should be using file-by-file progress
-    const progress = project && (files.length > 1) && !options.flags?.quiet;
+    const progress = options.progress ||
+      (project && (files.length > 1) && !options.flags?.quiet);
 
     if (progress) {
       options.flags = options.flags || {};

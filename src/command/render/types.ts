@@ -23,6 +23,7 @@ export const kDefaultHighlightStyle = "arrow";
 export interface RenderOptions {
   flags?: RenderFlags;
   pandocArgs?: string[];
+  progress?: boolean;
   useFreezer?: boolean;
   devServerReload?: boolean;
 }

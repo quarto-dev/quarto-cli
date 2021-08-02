@@ -185,6 +185,10 @@ export async function renderProject(
         const keepFiles = !!renderedFile.format.execute[kKeepMd];
         keepLibsDir = keepLibsDir || keepFiles;
         if (renderedFile.supporting) {
+          // lib-dir is handled separately for projects so filter it out of supporting
+          renderedFile.supporting = renderedFile.supporting.filter((file) =>
+            file !== libDir
+          );
           if (keepFiles) {
             renderedFile.supporting.map((file) => copyDir(file));
           } else {
@@ -303,6 +307,8 @@ export async function renderProject(
           if (Deno.statSync(file).isFile) {
             copyResourceFile(context.dir, file, destPath);
           }
+        } else if (!existsSync(destPath)) {
+          warning(`File '${sourcePath}' was not found.`);
         }
       });
     } else {
