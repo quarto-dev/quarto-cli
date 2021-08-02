@@ -12,7 +12,6 @@ import {
   projectContext,
   projectIsWebsite,
 } from "../../project/project-context.ts";
-import { projectType } from "../../project/types/project-types.ts";
 import { findOpenPort, kLocalhost } from "../../core/port.ts";
 
 import { kRenderNone, serveProject } from "./serve.ts";
