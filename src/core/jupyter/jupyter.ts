@@ -91,6 +91,7 @@ import {
   kCellLinesToNext,
   kCellLstCap,
   kCellLstLabel,
+  kCellMdIndent,
   kCellName,
   kCellOutHeight,
   kCellOutWidth,
@@ -192,6 +193,7 @@ export interface JupyterCellOptions extends JupyterOutputFigureOptions {
   [kCellClasses]?: string;
   [kCellFold]?: string;
   [kCellSummary]?: string;
+  [kCellMdIndent]?: string;
   [kEval]?: true | false | null;
   [kEcho]?: boolean;
   [kWarning]?: boolean;
@@ -233,6 +235,7 @@ export const kJupyterCellInternalOptionKeys = [
   kCellLstCap,
   kCellOutWidth,
   kCellOutHeight,
+  kCellMdIndent,
 ];
 
 export const kJupyterCellOptionKeys = kJupyterCellInternalOptionKeys.concat([
@@ -293,15 +296,18 @@ export async function quartoMdToJupyter(
   const yamlRegEx = /^---\s*$/;
   /^\s*```+\s*\{([a-zA-Z0-9_]+)( *[ ,].*)?\}\s*$/;
   const startCodeCellRegEx = new RegExp(
-    "^\\s*```+\\s*\\{" + kernelspec.language + "( *[ ,].*)?\\}\\s*$",
+    "^(\\s*)```+\\s*\\{" + kernelspec.language + "( *[ ,].*)?\\}\\s*$",
   );
-  const startCodeRegEx = /^```/;
-  const endCodeRegEx = /^```\s*$/;
+  const startCodeRegEx = /^(\s*)```/;
+  const endCodeRegEx = (indent = "") => {
+    return new RegExp("^" + indent + "```\\s*$");
+  };
 
   // read the file into lines
   const inputContent = Deno.readTextFileSync(input);
 
-  // line buffer
+  // line buffer & code indent
+  let codeIndent = "";
   const lineBuffer: string[] = [];
   const flushLineBuffer = (
     cell_type: "markdown" | "code" | "raw",
@@ -316,8 +322,11 @@ export async function quartoMdToJupyter(
       }
       const cell: JupyterCell = {
         cell_type,
-        metadata: {},
+        metadata: codeIndent.length > 0 ? { [kCellMdIndent]: codeIndent } : {},
         source: lineBuffer.map((line, index) => {
+          if (codeIndent.length > 0) {
+            line = line.replace(codeIndent, "");
+          }
           return line + (index < (lineBuffer.length - 1) ? "\n" : "");
         }),
       };
@@ -414,13 +423,15 @@ export async function quartoMdToJupyter(
     else if (startCodeCellRegEx.test(line)) {
       flushLineBuffer("markdown");
       inCodeCell = true;
+      codeIndent = line.match(startCodeCellRegEx)![1];
 
       // end code block: ^``` (tolerate trailing ws)
-    } else if (endCodeRegEx.test(line)) {
+    } else if (endCodeRegEx(codeIndent).test(line)) {
       // in a code cell, flush it
       if (inCodeCell) {
         inCodeCell = false;
         flushLineBuffer("code");
+        codeIndent = "";
 
         // otherwise this flips the state of in-code
       } else {
@@ -430,6 +441,7 @@ export async function quartoMdToJupyter(
 
       // begin code block: ^```
     } else if (startCodeRegEx.test(line)) {
+      codeIndent = line.match(startCodeRegEx)![1];
       inCode = true;
       lineBuffer.push(line);
     } else {
@@ -1083,6 +1095,18 @@ function mdFromCodeCell(
 
     // lines to next cell
     md.push("\n".repeat((cell.metadata.lines_to_next_cell || 1)));
+  }
+
+  // if we have kCellMdIndent then join, split on \n, apply indent, then re-join
+  if (cell.options[kCellMdIndent]) {
+    const indent = String(cell.options[kCellMdIndent]);
+    const mdWithIndent = md
+      .join("")
+      .split("\n")
+      .map((line) => indent + line)
+      .join("\n");
+    md.splice(0, md.length - 1);
+    md.push(...mdWithIndent);
   }
 
   return md;
