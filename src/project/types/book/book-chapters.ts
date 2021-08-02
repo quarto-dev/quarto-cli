@@ -1,6 +1,6 @@
 import { ld } from "lodash/mod.ts";
 
-import { PartitionedMarkdown } from "../../../core/pandoc/types.ts";
+import { PandocAttr } from "../../../core/pandoc/types.ts";
 
 import {
   kCrossref,
@@ -25,14 +25,15 @@ import { bookConfig } from "./book-shared.ts";
 
 export function withChapterMetadata(
   format: Format,
-  partitioned: PartitionedMarkdown,
+  headingText: string,
+  headingAttr?: PandocAttr,
   chapterInfo?: ChapterInfo,
   config?: ProjectConfig,
 ) {
   format = ld.cloneDeep(format);
-  if (partitioned.headingText) {
+  if (headingText) {
     format.metadata[kTitle] = formatChapterTitle(
-      partitioned.headingText,
+      headingText,
       format,
       chapterInfo,
     );
@@ -43,8 +44,8 @@ export function withChapterMetadata(
   const crossref = format.metadata[kCrossref] as Metadata;
 
   // if we have an id set the chapter id
-  if (partitioned.headingAttr?.id) {
-    crossref[kCrossrefChapterId] = partitioned.headingAttr?.id;
+  if (headingAttr?.id) {
+    crossref[kCrossrefChapterId] = headingAttr?.id;
   }
 
   if (chapterInfo) {
@@ -59,7 +60,7 @@ export function withChapterMetadata(
     format.pandoc[kNumberSections] = false;
   }
 
-  format.pandoc[kToc] = isListedChapter(partitioned);
+  format.pandoc[kToc] = isListedChapter(headingAttr);
 
   // never show doi in chapters
   delete format.metadata[kDoi];
@@ -69,13 +70,12 @@ export function withChapterMetadata(
   if (description) {
     format.metadata[kDescription] = description;
   }
-
   return format;
 }
 
-export function isListedChapter(partitioned: PartitionedMarkdown) {
-  return !partitioned.headingAttr ||
-    !partitioned.headingAttr.classes.includes("unlisted");
+export function isListedChapter(headingAttr?: PandocAttr) {
+  return !headingAttr ||
+    !headingAttr.classes.includes("unlisted");
 }
 
 export interface ChapterInfo {

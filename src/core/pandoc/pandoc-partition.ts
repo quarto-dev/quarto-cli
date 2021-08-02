@@ -19,6 +19,45 @@ export function firstHeadingFromMarkdown(markdown: string): string | undefined {
   return partitioned.headingText;
 }
 
+export function parsePandocTitle(title: string) {
+  let beginAttrPos = -1;
+  let escaped = false;
+  for (let i = 0; i < title.length; i++) {
+    const ch = title.charAt(i);
+    if (ch === "{" && !escaped) {
+      beginAttrPos = i;
+      break;
+    } else if (ch === "\\") {
+      escaped = !escaped;
+    }
+  }
+
+  let markdownHeading = beginAttrPos !== -1
+    ? title.slice(0, beginAttrPos)
+    : title;
+  markdownHeading = markdownHeading.trim().replace(
+    /^#{1,}\s*/,
+    "",
+  );
+
+  let markdownHeadingAttr;
+  if (beginAttrPos !== -1) {
+    const endAttrPos = title.lastIndexOf("}");
+    if (endAttrPos !== -1) {
+      const attr = title.slice(beginAttrPos + 1, endAttrPos);
+      const parsed = pandocAttrParseText(attr);
+      if (parsed) {
+        markdownHeadingAttr = parsed;
+      }
+    }
+  }
+
+  return {
+    heading: markdownHeading,
+    attr: markdownHeadingAttr,
+  };
+}
+
 // partition markdown into yaml, the first heading, and the rest of the markdown text
 export function partitionMarkdown(markdown: string): PartitionedMarkdown {
   const markdownLines: string[] = [];
@@ -35,34 +74,9 @@ export function partitionMarkdown(markdown: string): PartitionedMarkdown {
 
     if (!markdownHeading) {
       if (line.startsWith("#")) {
-        let beginAttrPos = -1;
-        let escaped = false;
-        for (let i = 0; i < line.length; i++) {
-          const ch = line.charAt(i);
-          if (ch === "{" && !escaped) {
-            beginAttrPos = i;
-            break;
-          } else if (ch === "\\") {
-            escaped = !escaped;
-          }
-        }
-        markdownHeading = beginAttrPos !== -1
-          ? line.slice(0, beginAttrPos)
-          : line;
-        markdownHeading = markdownHeading.trim().replace(
-          /^#{1,}\s*/,
-          "",
-        );
-        if (beginAttrPos !== -1) {
-          const endAttrPos = line.lastIndexOf("}");
-          if (endAttrPos !== -1) {
-            const attr = line.slice(beginAttrPos + 1, endAttrPos);
-            const parsed = pandocAttrParseText(attr);
-            if (parsed) {
-              markdownHeadingAttr = parsed;
-            }
-          }
-        }
+        const parsedHeading = parsePandocTitle(line);
+        markdownHeading = parsedHeading.heading;
+        markdownHeadingAttr = parsedHeading.attr;
       } else if (line.match(/^=+\s*$/) || line.match(/^-+\s*$/)) {
         const prevLine = markdownLines[markdownLines.length - 1];
         if (prevLine) {
