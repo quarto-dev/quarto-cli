@@ -20,7 +20,12 @@ import {
 import { renderProject } from "./project.ts";
 import { renderFiles } from "./render.ts";
 import { resolveFileResources } from "./resources.ts";
-import { RenderedFile, RenderOptions, RenderResult } from "./types.ts";
+import {
+  RenderedFile,
+  RenderOptions,
+  RenderResourceFiles,
+  RenderResult,
+} from "./types.ts";
 import { PartitionedMarkdown } from "../../core/pandoc/types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import { isRStudioServer } from "../../core/platform.ts";
@@ -104,9 +109,27 @@ export function resourceFilesFromRenderedFile(
   renderedFile: RenderedFile,
   partitioned?: PartitionedMarkdown,
 ) {
-  const resourceDir = join(baseDir, dirname(renderedFile.file));
+  return resourceFilesFromFile(
+    baseDir,
+    renderedFile.file,
+    renderedFile.resourceFiles,
+    renderedFile.selfContained,
+    renderedFile.supporting,
+    partitioned,
+  );
+}
+
+export function resourceFilesFromFile(
+  baseDir: string,
+  file: string,
+  resources: RenderResourceFiles,
+  selfContained: boolean,
+  supporting?: string[],
+  partitioned?: PartitionedMarkdown,
+) {
+  const resourceDir = join(baseDir, dirname(file));
   const markdown = partitioned ? partitioned.markdown : "";
-  const globs = renderedFile.resourceFiles.globs;
+  const globs = resources.globs;
   const fileResourceFiles = resolveFileResources(
     baseDir,
     resourceDir,
@@ -116,8 +139,8 @@ export function resourceFilesFromRenderedFile(
 
   // add the explicitly discovered files (if they exist and
   // the output isn't self-contained)
-  if (!renderedFile.selfContained) {
-    const resultFiles = renderedFile.resourceFiles.files
+  if (!selfContained) {
+    const resultFiles = resources.files
       .map((file) => join(resourceDir, file))
       .filter(existsSync)
       .map(Deno.realPathSync);
@@ -130,10 +153,8 @@ export function resourceFilesFromRenderedFile(
       if (fileResourceFiles.exclude.includes(file)) {
         return false;
       } else if (
-        renderedFile.supporting &&
-        renderedFile.supporting.some((support) =>
-          file.startsWith(join(baseDir, support))
-        )
+        supporting &&
+        supporting.some((support) => file.startsWith(join(baseDir, support)))
       ) {
         return false;
       } else {

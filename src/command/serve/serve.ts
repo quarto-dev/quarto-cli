@@ -5,22 +5,30 @@
 *
 */
 
-import { error, info } from "log/mod.ts";
+import { error, info, warning } from "log/mod.ts";
 import { existsSync } from "fs/mod.ts";
-import { basename, join, relative } from "path/mod.ts";
+import { basename, dirname, join, relative } from "path/mod.ts";
 
 import { serve, ServerRequest } from "http/server.ts";
 
+import { ld } from "lodash/mod.ts";
+import { DOMParser } from "deno_dom/deno-dom-wasm.ts";
+
 import { openUrl } from "../../core/shell.ts";
 import { isHtmlContent } from "../../core/mime.ts";
-import { pathWithForwardSlashes } from "../../core/path.ts";
+import { isModifiedAfter, pathWithForwardSlashes } from "../../core/path.ts";
 import { logError } from "../../core/log.ts";
 import { PromiseQueue } from "../../core/promise.ts";
 
 import { kProject404File, ProjectContext } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
-import { inputFileForOutputFile } from "../../project/project-index.ts";
+import { partitionedMarkdownForInput } from "../../project/project-config.ts";
+
+import {
+  inputFileForOutputFile,
+  resolveInputTarget,
+} from "../../project/project-index.ts";
 
 import { websitePath } from "../../project/types/website/website-config.ts";
 
@@ -34,7 +42,13 @@ import { watchProject } from "./watch.ts";
 import {
   printBrowsePreviewMessage,
   printWatchingForChangesMessage,
+  resourceFilesFromFile,
 } from "../render/render-shared.ts";
+import { htmlResourceResolverPostprocessor } from "../../project/types/website/website-resources.ts";
+import { inputFilesDir } from "../../core/render.ts";
+import { kResources } from "../../config/constants.ts";
+import { resourcesFromMetadata } from "../render/resources.ts";
+import { readYamlFromMarkdown } from "../../core/yaml.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -51,23 +65,32 @@ export async function serveProject(
     ...options,
   };
 
-  // show progress indicating what we are doing to prepare for serving
+  // are we rendering?
   const render = options.render !== kRenderNone;
   if (render) {
     info("Rendering:");
   } else {
-    info("Preparing to serve:");
+    info("Preparing to serve");
   }
+
+  // if we are in render 'none' mode then only render files whose output
+  // isn't up to date. for those files we aren't rendering, compute their
+  // resource files so we can watch them for changes
+  const { files, resourceFiles } = render
+    ? { files: undefined, resourceFiles: new Array<string>() }
+    : await serveFiles(project);
 
   // render in the main directory
   const renderResult = await renderProject(
     project,
     {
+      progress: true,
       useFreezer: !render,
       flags: (render && options.render !== kRenderDefault)
         ? { to: options.render }
         : {},
     },
+    files,
   );
 
   // exit if there was an error
@@ -79,11 +102,16 @@ export async function serveProject(
   const serveDir = copyProjectForServe(project, true);
   const serveProject = (await projectContext(serveDir, false, true))!;
 
+  // append resource files from render results
+  resourceFiles.push(...ld.uniq(
+    renderResult.files.flatMap((file) => file.resourceFiles),
+  ) as string[]);
+
   // create project watcher
   const watcher = await watchProject(
     project,
     serveProject,
-    renderResult,
+    resourceFiles,
     options,
   );
 
@@ -200,6 +228,8 @@ export async function serveProject(
           finalOutput,
         ));
         openUrl(targetPath === "index.html" ? siteUrl : siteUrl + targetPath);
+      } else {
+        openUrl(siteUrl);
       }
     } else {
       openUrl(siteUrl);
@@ -210,4 +240,57 @@ export async function serveProject(
   for await (const req of server) {
     handler(req);
   }
+}
+
+async function serveFiles(
+  project: ProjectContext,
+): Promise<{ files: string[]; resourceFiles: string[] }> {
+  const files: string[] = [];
+  const resourceFiles: string[] = [];
+  for (let i = 0; i < project.files.input.length; i++) {
+    const inputFile = project.files.input[i];
+    const projRelative = relative(project.dir, inputFile);
+    const target = await resolveInputTarget(project, projRelative, false);
+    if (target) {
+      const outputFile = join(projectOutputDir(project), target?.outputHref);
+      if (isModifiedAfter(inputFile, outputFile)) {
+        // render this file
+        files.push(inputFile);
+      } else {
+        // we aren't rendering this file, so we need to compute it's resource files
+        // for monitoring during serve
+
+        // resource files referenced in html
+        const htmlInput = Deno.readTextFileSync(outputFile);
+        const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
+        const resolver = htmlResourceResolverPostprocessor(inputFile, project);
+        const files = await resolver(doc);
+
+        // partition markdown and read globs
+        const partitioned = await partitionedMarkdownForInput(
+          project.dir,
+          projRelative,
+        );
+        const globs: string[] = [];
+        if (partitioned?.yaml) {
+          const metadata = readYamlFromMarkdown(partitioned.yaml);
+          globs.push(...resourcesFromMetadata(metadata[kResources]));
+        }
+
+        // compute resource refs and add them
+        resourceFiles.push(...resourceFilesFromFile(
+          project.dir,
+          projRelative,
+          { files, globs },
+          false, // selfContained,
+          [join(dirname(projRelative), inputFilesDir(projRelative))],
+          partitioned,
+        ));
+      }
+    } else {
+      warning("Unabled to resolve output target for " + inputFile);
+    }
+  }
+
+  return { files, resourceFiles: ld.uniq(resourceFiles) as string[] };
 }
