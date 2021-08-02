@@ -48,6 +48,7 @@ import {
 import { ProjectContext } from "../../project/types.ts";
 import {
   deleteProjectMetadata,
+  projectIsBook,
   projectIsWebsite,
 } from "../../project/project-context.ts";
 import { deleteCrossrefMetadata } from "../../project/project-crossrefs.ts";
@@ -99,6 +100,7 @@ import { pandocMetadataPath } from "./render-shared.ts";
 import { Metadata } from "../../config/types.ts";
 import { resourcesFromMetadata } from "./resources.ts";
 import { resolveSassBundles } from "./pandoc-html.ts";
+import { parsePandocTitle } from "../../core/pandoc/pandoc-partition.ts";
 
 export async function runPandoc(
   options: PandocOptions,
@@ -354,9 +356,12 @@ export async function runPandoc(
   // computed from inline r expressions gets included @ the bottom).
   const pandocMetadata = ld.cloneDeep(options.format.metadata || {});
   for (const key of Object.keys(engineMetadata)) {
-    // if it's standard pandoc metadata and NOT contained in a format specific
-    // override then use the engine metadata value
-    if (!isQuartoMetadata(key)) {
+    const isChapterTitle = key === kTitle && projectIsBook(options.project);
+
+    if (!isQuartoMetadata(key) && !isChapterTitle) {
+      // if it's standard pandoc metadata and NOT contained in a format specific
+      // override then use the engine metadata value
+
       // don't do if they've overridden the value in a format
       const formats = engineMetadata[kMetadataFormat] as Metadata;
       if (ld.isObject(formats) && metadataGetDeep(formats, key).length > 0) {

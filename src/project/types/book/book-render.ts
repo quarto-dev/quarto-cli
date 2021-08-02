@@ -11,7 +11,10 @@ import { encode as base64Encode } from "encoding/base64.ts";
 
 import { ld } from "lodash/mod.ts";
 
-import { partitionMarkdown } from "../../../core/pandoc/pandoc-partition.ts";
+import {
+  parsePandocTitle,
+  partitionMarkdown,
+} from "../../../core/pandoc/pandoc-partition.ts";
 
 import {
   kAbstract,
@@ -76,6 +79,10 @@ import {
 } from "./book-shared.ts";
 import { bookCrossrefsPostRender } from "./book-crossrefs.ts";
 import { bookBibliographyPostRender } from "./book-bibliography.ts";
+import {
+  partitionYamlFrontMatter,
+  readYamlFromMarkdown,
+} from "../../../core/yaml.ts";
 
 export function bookPandocRenderer(
   options: RenderOptions,
@@ -126,7 +133,7 @@ export function bookPandocRenderer(
           if (!isNumberedChapter(partitioned)) {
             file.recipe.format.pandoc[kNumberSections] = false;
           }
-          if (!isListedChapter(partitioned)) {
+          if (!isListedChapter(partitioned.headingAttr)) {
             file.recipe.format.pandoc[kToc] = false;
           }
 
@@ -149,18 +156,33 @@ export function bookPandocRenderer(
             ? chapterInfoForInput(project, fileRelative)
             : undefined;
 
-          // provide title metadata
-          if (partitioned.headingText) {
+          // see if there is a 'title' in the yaml, if there isn't one, then we
+          // try to extract via partitioned.headingText
+          const titleInMetadata = frontMatterTitle(file.executeResult.markdown);
+          if (titleInMetadata) {
+            const parsedHeading = parsePandocTitle(titleInMetadata);
             file.recipe.format = withChapterMetadata(
               file.recipe.format,
-              partitioned,
+              parsedHeading.heading,
+              parsedHeading.attr,
               chapterInfo,
               project.config,
             );
-          }
+          } else {
+            // provide title metadata
+            if (partitioned.headingText) {
+              file.recipe.format = withChapterMetadata(
+                file.recipe.format,
+                partitioned.headingText,
+                partitioned.headingAttr,
+                chapterInfo,
+                project.config,
+              );
+            }
 
-          // provide markdown
-          file.executeResult.markdown = partitioned.markdown;
+            // provide markdown
+            file.executeResult.markdown = partitioned.markdown;
+          }
         }
 
         // perform the render
@@ -309,7 +331,10 @@ async function mergeExecutedFiles(
           file.context.target.source === itemInputPath
         );
         if (file) {
-          itemMarkdown = bookItemMetadata(project, item, file) +
+          const frontTitle = frontMatterTitle(file.executeResult.markdown);
+          const titleMarkdown = frontTitle ? `# ${frontTitle}\n\n` : "";
+
+          itemMarkdown = bookItemMetadata(project, item, file) + titleMarkdown +
             file.executeResult.markdown;
         } else {
           throw new Error(
@@ -513,4 +538,14 @@ function withBookTitleMetadata(format: Format, config?: ProjectConfig): Format {
     setMetadata(kDescription);
   }
   return format;
+}
+
+function frontMatterTitle(markdown: string): string | undefined {
+  const partitioned = partitionYamlFrontMatter(markdown);
+  if (partitioned?.yaml) {
+    const yaml = readYamlFromMarkdown(partitioned?.yaml);
+    return yaml[kTitle] as string | undefined;
+  } else {
+    return undefined;
+  }
 }

@@ -20,6 +20,7 @@ import { fileExecutionEngine } from "../execute/engine.ts";
 
 import { projectConfigFile, projectOutputDir } from "./project-shared.ts";
 import { projectScratchPath } from "./project-scratch.ts";
+import { parsePandocTitle } from "../core/pandoc/pandoc-partition.ts";
 
 export interface InputTargetIndex extends Metadata {
   title?: string;
@@ -62,8 +63,12 @@ export async function inputTargetIndex(
     formats,
   };
 
-  // if there is no title then try to extract it from a header
-  if (!index.title) {
+  // if we got a title, make sure it doesn't carry attributes
+  if (index.title) {
+    const parsedTitle = parsePandocTitle(index.title);
+    index.title = parsedTitle.heading;
+  } else {
+    // if there is no title then try to extract it from a header
     index.title = index.markdown.headingText;
   }
 

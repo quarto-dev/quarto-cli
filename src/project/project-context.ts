@@ -194,6 +194,15 @@ export function projectIsWebsite(context?: ProjectContext): boolean {
   }
 }
 
+export function projectIsBook(context?: ProjectContext): boolean {
+  if (context) {
+    const projType = projectType(context.config?.project?.[kProjectType]);
+    return projType.type === "book";
+  } else {
+    return false;
+  }
+}
+
 export function projectIgnoreGlobs(dir: string) {
   return engineIgnoreGlobs().concat(
     gitignoreEntries(dir).map((ignore) => `**/${ignore}**`),

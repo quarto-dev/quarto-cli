@@ -30,7 +30,6 @@ import {
 
 import {
   kSite,
-  kSiteNavbar,
   kSiteSidebar,
 } from "../../project/types/website/website-config.ts";
 import {
@@ -275,8 +274,8 @@ function pandocVariablesToBootstrapDefaults(
   return explicitVars;
 }
 
-const kCodeBorderLeft = "code-border-left";
-const kCodeBlockBackground = "code-bg";
+const kCodeBorderLeft = "code-block-border-left";
+const kCodeBlockBackground = "code-block-bg";
 const kBackground = "background";
 
 // Quarto variables and styles

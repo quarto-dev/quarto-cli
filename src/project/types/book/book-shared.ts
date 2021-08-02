@@ -6,8 +6,11 @@
 */
 
 import { RenderedFile } from "../../../command/render/types.ts";
+import { kTitle } from "../../../config/constants.ts";
 import { Format } from "../../../config/types.ts";
+import { parsePandocTitle } from "../../../core/pandoc/pandoc-partition.ts";
 import { PartitionedMarkdown } from "../../../core/pandoc/types.ts";
+import { readYamlFromMarkdown } from "../../../core/yaml.ts";
 import { ProjectConfig, ProjectContext } from "../../types.ts";
 
 export type BookConfigKey =
@@ -64,6 +67,13 @@ export function bookConfig(
 }
 
 export function isNumberedChapter(partitioned: PartitionedMarkdown) {
+  if (partitioned?.yaml) {
+    const yaml = readYamlFromMarkdown(partitioned?.yaml);
+    if (typeof yaml[kTitle] === "string") {
+      const parsedTitle = parsePandocTitle(yaml[kTitle] as string);
+      return !parsedTitle.attr?.classes.includes("unnumbered");
+    }
+  }
   return !partitioned.headingAttr ||
     !partitioned.headingAttr.classes.includes("unnumbered");
 }
