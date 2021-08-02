@@ -76,6 +76,10 @@ import {
 } from "./book-shared.ts";
 import { bookCrossrefsPostRender } from "./book-crossrefs.ts";
 import { bookBibliographyPostRender } from "./book-bibliography.ts";
+import {
+  partitionYamlFrontMatter,
+  readYamlFromMarkdown,
+} from "../../../core/yaml.ts";
 
 export function bookPandocRenderer(
   options: RenderOptions,
@@ -309,7 +313,10 @@ async function mergeExecutedFiles(
           file.context.target.source === itemInputPath
         );
         if (file) {
-          itemMarkdown = bookItemMetadata(project, item, file) +
+          const frontTitle = frontMatterTitle(file.executeResult.markdown);
+          const titleMarkdown = frontTitle ? `# ${frontTitle}\n\n` : "";
+
+          itemMarkdown = bookItemMetadata(project, item, file) + titleMarkdown +
             file.executeResult.markdown;
         } else {
           throw new Error(
@@ -513,4 +520,14 @@ function withBookTitleMetadata(format: Format, config?: ProjectConfig): Format {
     setMetadata(kDescription);
   }
   return format;
+}
+
+function frontMatterTitle(markdown: string): string | undefined {
+  const partitioned = partitionYamlFrontMatter(markdown);
+  if (partitioned?.yaml) {
+    const yaml = readYamlFromMarkdown(partitioned?.yaml);
+    return yaml[kTitle] as string | undefined;
+  } else {
+    return undefined;
+  }
 }
