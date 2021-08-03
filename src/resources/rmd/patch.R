@@ -98,6 +98,15 @@ wrap_asis_output <- function(options, x) {
   classes <- paste0("cell-output-display")
   if (isTRUE(options[["output.hidden"]]))
     classes <- paste0(classes, " .hidden")
+  
+  # if this is an html table then wrap it further in ```{=html}
+  # (necessary b/c we no longer do this by overriding kable_html,
+  # which is in turn necessary to allow kableExtra to parse
+  # the return value of kable_html as valid xml)
+  if (grepl("^<table>", x) && grepl("<\\/table>\\s*$", x)) {
+    x <- paste0("`````{=html}\n", x, "\n`````")
+  }
+  
   output_div(x, output_label_placeholder(options), classes)
 }
 add_html_caption <- function(options, x) {
@@ -214,7 +223,19 @@ kable_html <- function(...) {
   x <- knitr_kable_html(...)
   knitr_raw_block(x, "html")
 }
-assignInNamespace("kable_html", kable_html, ns = "knitr")
+
+# kableExtra::kable_styling parses/post-processes the output of kable_html
+# as xml. e.g. see https://github.com/haozhu233/kableExtra/blob/a6af5c067c2b4ca8317736f4a3e6c0f7db508fef/R/kable_styling.R#L216
+# this means that we can't simply inject pandoc RawBlock delimiters into 
+# the return value of kable_html, as it will cause the xml parser to fail,
+# e.g. see https://github.com/quarto-dev/quarto-cli/issues/75. As a result
+# we no longer do this processing (see commented out assignInNamespace below)
+# note that we did this mostly for consistency of markdown output (raw HTML
+# always marked up correctly). as a practical matter pandoc I believe that
+# pandoc will successfully parse the RawBlock into it's AST so we won't lose
+# any functionality (e.g. crossref table caption handling)
+
+# assignInNamespace("kable_html", kable_html, ns = "knitr")
 
 
 
