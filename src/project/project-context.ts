@@ -121,12 +121,6 @@ export async function projectContext(
         }
         const { files, engines } = projectInputFiles(dir, projectConfig);
 
-        // if we are attemping to get the projectConext for a file and the
-        // file isn't in list of input files then return undefined
-        if (Deno.statSync(path).isFile && !files.includes(path)) {
-          return undefined;
-        }
-
         return {
           dir,
           engines,
