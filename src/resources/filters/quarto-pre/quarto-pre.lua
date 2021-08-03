@@ -14,7 +14,8 @@ preState = {
     resourceFiles = pandoc.List:new({})
   },
   file = nil,
-  appendix = false
+  appendix = false,
+  fileSectionIds = {}
 }
 
 -- [import]
@@ -31,6 +32,7 @@ import("figures.lua")
 import("theorems.lua")
 import("resourcerefs.lua")
 import("book-numbering.lua")
+import("book-links.lua")
 import("meta.lua")
 import("callout.lua")
 import("panel-sidebar.lua")
@@ -69,6 +71,7 @@ return {
   outputs(),
   combineFilters({
     fileMetadata(),
+    indexBookFileTargets(),
     bookNumbering(),
     resourceRefs(),
     figures(),
@@ -78,6 +81,10 @@ return {
     panelTabset(),
     panelLayout(),
     panelSidebar(),
+  }),
+  combineFilters({
+    fileMetadata(),
+    resolveBookFileTargets(),
   }),
   quartoPreMetaInject(),
 }
