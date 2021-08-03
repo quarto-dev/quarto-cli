@@ -1,6 +1,6 @@
 {
     "text-color": null,
-    "background-color": null,
+    "background-color": "#f1f3f5",
     "line-number-color": "#aaaaaa",
     "line-number-background-color": null,
     "text-styles": {
