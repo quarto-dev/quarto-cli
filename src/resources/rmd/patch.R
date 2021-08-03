@@ -98,6 +98,15 @@ wrap_asis_output <- function(options, x) {
   classes <- paste0("cell-output-display")
   if (isTRUE(options[["output.hidden"]]))
     classes <- paste0(classes, " .hidden")
+  
+  # if this is an html table then wrap it further in ```{=html}
+  # (necessary b/c we no longer do this by overriding kable_html,
+  # which is in turn necessary to allow kableExtra to parse
+  # the return value of kable_html as valid xml)
+  if (grepl("^<table>", x) && grepl("<\\/table>\\s*$", x)) {
+    x <- paste0("`````{=html}\n", x, "\n`````")
+  }
+  
   output_div(x, output_label_placeholder(options), classes)
 }
 add_html_caption <- function(options, x) {
