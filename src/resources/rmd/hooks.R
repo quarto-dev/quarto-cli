@@ -215,7 +215,7 @@ knitr_hooks <- function(format, resourceDir) {
                      "layout", "layout.nrow", "layout.ncol", "layout.align",
                      "output", "include.hidden", "source.hidden", "plot.hidden", "output.hidden")
     other_opts <- c("eval", "out.width", "code", "params.src", 
-                    "out.width.px", "out.height.px")
+                    "out.width.px", "out.height.px", "indent")
     known_opts <- c(knitr_default_opts, quarto_opts, other_opts)
     unknown_opts <- setdiff(names(options), known_opts)
     unknown_opts <- Filter(Negate(is.null), unknown_opts)
@@ -243,7 +243,11 @@ knitr_hooks <- function(format, resourceDir) {
     classes <- sapply(classes, function(clz) ifelse(startsWith(clz, "."), clz, paste0(".", clz)))
 
     # return cell
-    paste0("::: {", labelId(label), paste(classes, collapse = " ") ,forwardAttr, "}\n", x, "\n", cell.cap ,":::")
+    paste0(
+      options[["indent"]], "::: {", 
+      labelId(label), paste(classes, collapse = " ") ,forwardAttr, "}\n", x, "\n", cell.cap ,
+      options[["indent"]], ":::"
+    )
   })
   knit_hooks$source <- function(x, options) {
     x <- knitr:::one_string(c('', x))

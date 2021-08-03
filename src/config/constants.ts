@@ -313,6 +313,7 @@ export const kCellOutWidth = "out.width";
 export const kCellOutHeight = "out.height";
 export const kCellFold = "fold";
 export const kCellSummary = "summary";
+export const kCellMdIndent = "md_indent";
 
 export const kCellColab = "colab";
 export const kCellColabType = "colab_type";
