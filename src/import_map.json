@@ -15,7 +15,7 @@
     "ws/": "https://deno.land/std@0.97.0/ws/",
     "datetime/": "https://deno.land/std@0.97.0/datetime/",
     "xmlp/": "https://deno.land/x/xmlp/",
-    "cliffy/": "https://deno.land/x/cliffy/",
+    "cliffy/": "https://deno.land/x/cliffy@v0.19.3/",
     "lodash/": "https://deno.land/x/deno_lodash/",
     "fuse/": "https://deno.land/x/fuse/",
     "deno_dom/": "https://deno.land/x/deno_dom/",
