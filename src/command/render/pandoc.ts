@@ -482,13 +482,6 @@ async function resolveExtras(
       project,
     );
 
-    // Set the highlighting theme (if any)
-    extras.pandoc = extras.pandoc || {};
-    extras = resolveTextHighlightStyle(
-      extras,
-      format.pandoc,
-    );
-
     // resolve dependencies
     extras = resolveDependencies(extras, inputDir, libDir);
 
@@ -500,6 +493,12 @@ async function resolveExtras(
   } else {
     delete extras.html;
   }
+
+  // Resolve the highlighting theme (if any)
+  extras = resolveTextHighlightStyle(
+    extras,
+    format.pandoc,
+  );
 
   return extras;
 }

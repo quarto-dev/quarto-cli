@@ -12,6 +12,7 @@ import { texSafeFilename } from "../../core/tex.ts";
 
 import {
   kClassOption,
+  kColorLinks,
   kDocumentClass,
   kEcho,
   kFigDpi,
@@ -19,6 +20,7 @@ import {
   kFigHeight,
   kFigWidth,
   kKeepTex,
+  kLinkColor,
   kNumberSections,
   kPaperSize,
   kShiftHeadingLevelBy,
@@ -95,6 +97,14 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
             [kPaperSize]: "letter",
           };
         }
+
+        // we do this here rather than
+        // above so that projectExtras can override us
+        extras.metadata = {
+          ...extras.metadata,
+          [kColorLinks]: true,
+          [kLinkColor]: "blue",
+        };
 
         // pdfs with no other heading level oriented options get their heading level shifted by -1
         if (
