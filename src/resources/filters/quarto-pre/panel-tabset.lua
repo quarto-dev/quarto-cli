@@ -9,6 +9,8 @@ function panelTabset()
     Div = function(div)
       if hasBootstrap() and div.attr.classes:find("panel-tabset") then
         return tabsetDiv(div)
+      elseif isLatexOutput() or isDocxOutput() or isEpubOutput() then
+        return tabsetLatex(div)
       else
         return div
       end  
@@ -100,4 +102,24 @@ function tabsetDiv(div)
     })
 
   end 
+end
+
+function tabsetLatex(div)
+  -- find the first heading in the tabset
+  local heading = div.content:find_if(function(el) return el.t == "Header" end)
+  if heading ~= nil then
+    local level = heading.level
+    if level < 4 then
+      heading.level = 4
+
+      for i=1,#div.content do 
+        local el = div.content[i]
+        if el.t == "Header" and el.level == level then
+          el.level = 4
+        end
+      end 
+    end
+  end
+
+  return div
 end
