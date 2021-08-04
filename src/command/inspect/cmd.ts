@@ -60,11 +60,13 @@ export const inspectCommand = new Command()
       version = "99.9.9";
     }
 
+    // get project context (if any)
+    const context = await projectContext(path);
+
     // deno-lint-ignore no-explicit-any
     let config: any | undefined;
     const stat = Deno.statSync(path);
     if (stat.isDirectory) {
-      const context = await projectContext(path);
       if (context?.config) {
         config = {
           quarto: {
@@ -121,6 +123,11 @@ export const inspectCommand = new Command()
           formats,
           resources,
         };
+
+        // if there is a project then add it
+        if (context) {
+          config.project = relative(dirname(path), context.dir);
+        }
       } else {
         throw new Error(`${path} is not a valid Quarto input document`);
       }
