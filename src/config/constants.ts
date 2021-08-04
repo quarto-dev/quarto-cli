@@ -180,6 +180,8 @@ export const kDoi = "doi";
 export const kAbstract = "abstract";
 export const kDescription = "description";
 
+export const kServer = "server";
+
 export const kPageTitle = "pagetitle";
 export const kTitlePrefix = "title-prefix";
 export const kCsl = "csl";
