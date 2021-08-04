@@ -62,6 +62,7 @@ import {
 import { filterParamsJson, removeFilterParmas } from "./filters.ts";
 import {
   kClassOption,
+  kColorLinks,
   kDocumentClass,
   kFilterParams,
   kHighlightStyle,
@@ -69,6 +70,7 @@ import {
   kIncludeBeforeBody,
   kIncludeInHeader,
   kKeepSource,
+  kLinkColor,
   kMetadataFormat,
   kNumberOffset,
   kNumberSections,
@@ -369,6 +371,24 @@ export async function runPandoc(
       }
       // perform the override
       pandocMetadata[key] = engineMetadata[key];
+    }
+  }
+
+  // If there are no specified options for link coloring in PDF, set them
+  // do not color links for obviously printed book output
+  if (isLatexOutput(options.format.pandoc)) {
+    const docClass = pandocMetadata[kDocumentClass];
+    const isPrintDocumentClass = docClass &&
+      ["book", "scrbook"].includes(docClass);
+
+    if (!isPrintDocumentClass) {
+      if (pandocMetadata[kColorLinks] === undefined) {
+        pandocMetadata[kColorLinks] = true;
+      }
+
+      if (pandocMetadata[kLinkColor] === undefined) {
+        pandocMetadata[kLinkColor] = "blue";
+      }
     }
   }
 
