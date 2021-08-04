@@ -313,6 +313,7 @@ export const kCellFigAlt = "fig.alt";
 export const kCellLstLabel = "lst.label";
 export const kCellLstCap = "lst.cap";
 export const kCellClasses = "classes";
+export const kCellPanel = "panel";
 export const kCellOutWidth = "out.width";
 export const kCellOutHeight = "out.height";
 export const kCellFold = "fold";

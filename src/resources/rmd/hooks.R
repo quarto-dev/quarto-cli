@@ -211,7 +211,7 @@ knitr_hooks <- function(format, resourceDir) {
     knitr_default_opts <- names(knitr::opts_chunk$get())
     quarto_opts <- c("label","fig.cap","fig.subcap","fig.scap","fig.link", "fig.alt",
                      "fig.align","fig.env","fig.pos","fig.num", "lst.cap", 
-                     "lst.label", "layout.align", "layout.valign", "classes", "fold", "summary",
+                     "lst.label", "layout.align", "layout.valign", "classes", "panel", "fold", "summary",
                      "layout", "layout.nrow", "layout.ncol", "layout.align",
                      "output", "include.hidden", "source.hidden", "plot.hidden", "output.hidden")
     other_opts <- c("eval", "out.width", "code", "params.src", 
@@ -237,6 +237,8 @@ knitr_hooks <- function(format, resourceDir) {
    
     # handle classes
     classes <- c("cell",options[["classes"]] )
+    if (is.character(options[["panel"]]))
+      classes <- c(classes, paste0("panel-", options[["panel"]]))
     if (isTRUE(options[["include.hidden"]])) {
       classes <- c(classes, "hidden")
     }

@@ -95,6 +95,7 @@ import {
   kCellName,
   kCellOutHeight,
   kCellOutWidth,
+  kCellPanel,
   kCellSummary,
   kCellTags,
   kEcho,
@@ -191,6 +192,7 @@ export interface JupyterCellOptions extends JupyterOutputFigureOptions {
   [kCellLstLabel]?: string;
   [kCellLstCap]?: string;
   [kCellClasses]?: string;
+  [kCellPanel]?: string;
   [kCellFold]?: string;
   [kCellSummary]?: string;
   [kCellMdIndent]?: string;
@@ -221,6 +223,7 @@ export const kJupyterCellInternalOptionKeys = [
   kInclude,
   kCellLabel,
   kCellClasses,
+  kCellPanel,
   kCellFold,
   kCellSummary,
   kCellFigCap,
@@ -913,9 +916,12 @@ function mdFromCodeCell(
   }
 
   // css classes
-  if (cell.options[kCellClasses]) {
-    const cellClasses = cell.options[kCellClasses]!;
+  if (cell.options[kCellClasses] || cell.options[kCellPanel]) {
+    const cellClasses = cell.options[kCellClasses]! || new Array<string>();
     const classes = Array.isArray(cellClasses) ? cellClasses : [cellClasses];
+    if (typeof cell.options[kCellPanel] === "string") {
+      classes.push(`panel-${cell.options[kCellPanel]}`);
+    }
     const classText = classes
       .map((clz: string) => {
         clz = ld.toString(clz) as string;
