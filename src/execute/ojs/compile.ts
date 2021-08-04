@@ -296,7 +296,6 @@ export async function ojsCompile(
         "fig.pos",
         "fig.num",
         "fig.alt", // FIXME see if it's possible to do this right wrt accessibility
-        "classes",
         "output",
         "include.hidden",
         "source.hidden",
@@ -308,6 +307,7 @@ export async function ojsCompile(
         "fold",
         "summary",
         "classes",
+        "panel",
       ]);
 
       for (const [key, value] of Object.entries(cell.options || {})) {
@@ -318,11 +318,15 @@ export async function ojsCompile(
       if (cell.options?.[kCellLstCap]) {
         attrs.push(`caption="${cell.options?.[kCellLstCap]}"`);
       }
+      const classes = (cell.options?.classes as (undefined | string[])) || [];
+      if (typeof cell.options?.panel === "string") {
+        classes.push(`panel-${cell.options?.panel}`);
+      }
       const div = pandocDiv({
         id: idPlacement() === "outer" ? userId : undefined,
         classes: [
           "cell",
-          ...((cell.options?.classes as (undefined | string[])) || []),
+          ...classes,
         ],
         attrs,
       });
