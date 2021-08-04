@@ -103,7 +103,7 @@ export async function projectContext(
         );
       }
 
-      if (projectConfig?.project?.[kProjectType]) {
+      if (projectConfig?.project) {
         // get project config and type
 
         const type = projectType(projectConfig.project?.[kProjectType]);
