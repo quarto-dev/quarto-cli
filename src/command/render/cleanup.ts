@@ -6,7 +6,7 @@
 */
 
 import { existsSync } from "fs/mod.ts";
-import { dirname, join } from "path/mod.ts";
+import { dirname, isAbsolute, join } from "path/mod.ts";
 
 import { ld } from "lodash/mod.ts";
 
@@ -26,6 +26,11 @@ export function renderCleanup(
   supporting?: string[],
   keepMd?: string,
 ) {
+  // resolve output (could be either input relative or absolute)
+  if (!isAbsolute(output)) {
+    output = join(dirname(input), output);
+  }
+
   // cleanup md if necessary
   if (keepMd && !format.execute[kKeepMd] && keepMd !== output) {
     removeIfExists(keepMd);
