@@ -124,5 +124,6 @@ export interface RunOptions {
   input: string;
   render: boolean;
   port?: number;
+  host?: string;
   quiet?: boolean;
 }

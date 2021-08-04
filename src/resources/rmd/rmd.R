@@ -97,10 +97,12 @@
     }
   }
 
-  run <- function(input, port) {
+  run <- function(input, port, host) {
     shiny_args <- list()
     if (!is.null(port))
       shiny_args$port <- port
+    if (!is.null(host))
+      shiny_args$host <- host
 
     # we already ran quarto render before the call to run
     Sys.setenv(RMARKDOWN_RUN_PRERENDER = "0")
@@ -137,7 +139,7 @@
   } else if (request$action == "postprocess") {
     result <- postprocess(params$target$input, params$format, params$output, params$preserve)
   } else if (request$action == "run") {
-    result <- run(params$input, params$port)
+    result <- run(params$input, params$port, params$host)
   }
 
   # write results
