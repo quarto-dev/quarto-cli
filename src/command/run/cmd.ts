@@ -20,6 +20,10 @@ export const runCommand = new Command()
     "-p, --port [port:number]",
     "The TCP port that the application should listen on.",
   )
+  .option(
+    "--host [host:string]",
+    "Hostname to bind to (defaults to 127.0.0.1)",
+  )
   .description(
     "Run an interactive document.\n\nBy default, the document will be rendered first and then run. " +
       "If you have previously rendered the document, pass --no-render to skip the rendering step.",
@@ -38,6 +42,7 @@ export const runCommand = new Command()
       input,
       render: options.render,
       port: options.port,
+      host: options.host,
     });
 
     if (!result.success) {

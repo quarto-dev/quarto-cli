@@ -5,12 +5,15 @@
 *
 */
 
+import { dirname, join } from "path/mod.ts";
+
 import { restorePreservedHtml } from "../core/jupyter/preserve.ts";
 import { PostProcessOptions } from "./types.ts";
 
 export function postProcessRestorePreservedHtml(options: PostProcessOptions) {
   // read the output file
-  let output = Deno.readTextFileSync(options.output);
+  const outputPath = join(dirname(options.target.input), options.output);
+  let output = Deno.readTextFileSync(outputPath);
 
   // substitute
   output = restorePreservedHtml(
@@ -19,5 +22,5 @@ export function postProcessRestorePreservedHtml(options: PostProcessOptions) {
   );
 
   // re-write the output
-  Deno.writeTextFileSync(options.output, output);
+  Deno.writeTextFileSync(outputPath, output);
 }

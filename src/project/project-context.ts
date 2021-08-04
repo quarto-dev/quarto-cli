@@ -120,6 +120,14 @@ export async function projectContext(
           projectConfig = await type.config(dir, projectConfig, forceHtml);
         }
         const { files, engines } = projectInputFiles(dir, projectConfig);
+
+        // if we are attemping to get the projectConext for a file and the
+        // file isn't in list of input files then return undefined
+        const fullPath = Deno.realPathSync(path);
+        if (Deno.statSync(fullPath).isFile && !files.includes(fullPath)) {
+          return undefined;
+        }
+
         return {
           dir,
           engines,

@@ -42,6 +42,7 @@ import {
   kBibliography,
   kCache,
   kCss,
+  kEcho,
   kEngine,
   kExecuteDaemon,
   kExecuteDaemonRestart,
@@ -59,6 +60,7 @@ import {
   kOutputExt,
   kOutputFile,
   kSelfContained,
+  kServer,
   kTheme,
 } from "../../config/constants.ts";
 import { Format, FormatPandoc } from "../../config/types.ts";
@@ -894,11 +896,24 @@ async function resolveFormats(
       }
     }
 
+    // combine user formats
+    const userFormat = mergeConfigs(
+      projFormat || {},
+      inputFormat || {},
+    );
+
+    // if there is no "echo" set by the user then default
+    // to false for documents with a server
+    if (userFormat.execute[kEcho] === undefined) {
+      if (userFormat.metadata[kServer] !== undefined) {
+        userFormat.execute[kEcho] = false;
+      }
+    }
+
     // do the merge
     mergedFormats[format] = mergeConfigs(
       defaultWriterFormat(format),
-      projFormat || {},
-      inputFormat || {},
+      userFormat,
     );
   });
 

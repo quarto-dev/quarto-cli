@@ -103,7 +103,7 @@ wrap_asis_output <- function(options, x) {
   # (necessary b/c we no longer do this by overriding kable_html,
   # which is in turn necessary to allow kableExtra to parse
   # the return value of kable_html as valid xml)
-  if (grepl("^<table>", x) && grepl("<\\/table>\\s*$", x)) {
+  if (grepl("^<\\w+[ >]", x) && grepl("<\\/\\w+>\\s*$", x)) {
     x <- paste0("`````{=html}\n", x, "\n`````")
   }
   
