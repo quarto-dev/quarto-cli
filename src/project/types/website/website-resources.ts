@@ -29,7 +29,8 @@ export function htmlResourceResolverPostprocessor(
   return (doc: Document) => {
     const forceRoot = href === "/404.html" ? websitePath(project.config) : null;
     // resolve resource refs
-    return Promise.resolve(resolveResourceRefs(doc, offset, forceRoot));
+    const refs = resolveResourceRefs(doc, offset, forceRoot);
+    return Promise.resolve(refs);
   };
 }
 
@@ -44,7 +45,8 @@ export function resolveResourceRefs(
   // resolve tags with resource refs
   Object.keys(kHtmlResourceTags).forEach((tag) => {
     refs.push(
-      ...resolveTag(doc, offset, tag, kHtmlResourceTags[tag], forceRoot),
+      ...resolveTag(doc, offset, tag, kHtmlResourceTags[tag], forceRoot)
+        .map((ref) => ref.replace(/\/$/, "/index.html")),
     );
   });
 

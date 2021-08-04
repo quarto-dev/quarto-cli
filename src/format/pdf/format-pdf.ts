@@ -98,14 +98,6 @@ function createPdfFormat(autoShiftHeadings = true, koma = true): Format {
           };
         }
 
-        // we do this here rather than
-        // above so that projectExtras can override us
-        extras.metadata = {
-          ...extras.metadata,
-          [kColorLinks]: true,
-          [kLinkColor]: "blue",
-        };
-
         // pdfs with no other heading level oriented options get their heading level shifted by -1
         if (
           autoShiftHeadings &&
