@@ -268,9 +268,9 @@ knitr_hooks <- function(format, resourceDir) {
       id = NULL
     }
     if (identical(options[["code-overflow"]], "wrap"))
-      class <- paste(class, "code-wrap")
+      class <- paste(class, "code-overflow-wrap")
     else if (identical(options[["code-overflow"]], "scroll"))
-      class <- paste(class, "code-scroll")
+      class <- paste(class, "code-overflow-scroll")
     fold <- options[["code-fold"]]
     if (!is.null(fold)) {
       attr <- paste(attr, paste0('code-fold="', tolower(as.character(fold)), '"'))

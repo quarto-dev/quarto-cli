@@ -196,11 +196,11 @@ pre > code.sourceCode {
   white-space: $code-white-space;
 }
 
-pre.code-wrap > code.sourceCode {
+pre.code-overflow-wrap > code.sourceCode {
   white-space: pre-wrap;
 }
 
-pre.code-scroll > code.sourceCode {
+pre.code-overflow-scroll > code.sourceCode {
   white-space: pre;
 }
 

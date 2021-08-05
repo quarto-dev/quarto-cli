@@ -386,9 +386,9 @@ export async function ojsCompile(
         }
 
         if (cell.options?.[kCodeOverflow] === "wrap") {
-          classes.push("code-wrap");
+          classes.push("code-overflow-wrap");
         } else if (cell.options?.[kCodeOverflow] === "scroll") {
-          classes.push("code-scroll");
+          classes.push("code-overflow-scroll");
         }
 
         // options.format.render?.[kCodeFold] appears to use "none"

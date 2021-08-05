@@ -972,9 +972,9 @@ function mdFromCodeCell(
     }
 
     if (cell.options[kCodeOverflow] === "wrap") {
-      md.push(" .code-wrap");
+      md.push(" .code-overflow-wrap");
     } else if (cell.options[kCodeOverflow] === "scroll") {
-      md.push(" .code-scroll");
+      md.push(" .code-overflow-scroll");
     }
 
     if (typeof cell.options[kCellLstCap] === "string") {
