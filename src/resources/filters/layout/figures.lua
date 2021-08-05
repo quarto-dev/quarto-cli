@@ -1,7 +1,7 @@
 -- figures.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
--- extended figure features including fig.align, fig.env, etc.
+-- extended figure features including fig-align, fig-env, etc.
 function extendedFigures() 
   return {
     
