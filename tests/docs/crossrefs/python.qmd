@@ -6,7 +6,7 @@ title: Python Crossref Test
 
 ```{python}
 #| label: fig-plot
-#| fig.cap: "Plot"
+#| fig-cap: "Plot"
 
 import matplotlib.pyplot as plt
 plt.plot([1,23,2,4])

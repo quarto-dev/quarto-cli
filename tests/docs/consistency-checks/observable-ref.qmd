@@ -33,52 +33,52 @@ name
 name
 ```
 
-### `fig.cap`
+### `fig-cap`
 
 ```{ojs}
 //| label: fig-caption-test
-//| fig.cap: A caption for the figure
+//| fig-cap: A caption for the figure
 name
 ```
 
 **(Styling Bug?) Centering of images appears inconsistent depending on whether they have captions?**
 
-### `fig.subcap`
+### `fig-subcap`
 
 ```{ojs}
 //| label: fig-subcap-test
-//| fig.cap: Big caption
-//| fig.subcap: 
+//| fig-cap: Big caption
+//| fig-subcap: 
 //|   - Caption 1
 //|   - Caption 2
 name + " 1"
 name + " 2"
 ```
 
-**(Python Bug?) Sub-captions don't show up unless `fig.cap` is also there:**
+**(Python Bug?) Sub-captions don't show up unless `fig-cap` is also there:**
 
 ```{ojs}
-//| fig.subcap: 
+//| fig-subcap: 
 //|   - Caption 1
 //|   - Caption 2
 name + " 1"
 name + " 2"
 ```
 
-### `fold` and `summary`
+### `code-fold` and `code-summary`
 
 **(Inconsistency?) The R engine sets fold and summary for both the outer and inner div; The Python engine only forwards it to the inner div.**
 
 Fold:
 
 ```{ojs}
-//| fold: true
+//| code-fold: true
 name
 ```
 
 Summary:
 
 ```{ojs}
-//| summary: "some text"
+//| code-summary: "some text"
 name
 ```

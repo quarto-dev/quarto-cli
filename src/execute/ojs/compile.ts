@@ -13,6 +13,16 @@ import { parseModule } from "observablehq/parser";
 import { Format, kDependencies } from "../../config/types.ts";
 import { ExecuteResult, PandocIncludes } from "../../execute/types.ts";
 import {
+  kCellClasses,
+  kCellFigAlign,
+  kCellFigAlt,
+  kCellFigEnv,
+  kCellFigLink,
+  kCellFigPos,
+  kCellFigScap,
+  kCellLabel,
+  kCellPanel,
+  kCodeSummary,
   kIncludeAfterBody,
   kIncludeInHeader,
   kSelfContained,
@@ -42,7 +52,6 @@ import {
   kEcho,
   kError,
   kEval,
-  kFold,
   kInclude,
   kKeepHidden,
   kLayoutNcol,
@@ -207,7 +216,7 @@ export async function ojsCompile(
       };
       const hasFigureSubCaptions = () => {
         // FIXME figure out runtime type validation. This should check
-        // if fig.subcap is an array of strings.
+        // if fig-subcap is an array of strings.
         //
         // WAITING for YAML schemas + validation
         return cell.options?.[kCellFigSubCap];
@@ -285,29 +294,28 @@ export async function ojsCompile(
       };
 
       const keysToSkip = new Set([
-        "echo",
-        "label",
-        "fig.cap",
-        "fig.subcap",
-        "fig.scap",
-        "fig.link",
-        "fig.align",
-        "fig.env",
-        "fig.pos",
-        "fig.num",
-        "fig.alt", // FIXME see if it's possible to do this right wrt accessibility
-        "output",
+        kEcho,
+        kCellLabel,
+        kCellFigCap,
+        kCellFigSubCap,
+        kCellFigScap,
+        kCellFigLink,
+        kCellFigAlign,
+        kCellFigEnv,
+        kCellFigPos,
+        kCellFigAlt, // FIXME see if it's possible to do this right wrt accessibility
+        kOutput,
+        kCellLstCap,
+        kCellLstLabel,
+        kCodeFold,
+        kCodeSummary,
+        kCellClasses,
+        kCellPanel,
         "include.hidden",
         "source.hidden",
         "plot.hidden",
         "output.hidden",
         "echo.hidden",
-        "lst.cap",
-        "lst.label",
-        "fold",
-        "summary",
-        "classes",
-        "panel",
       ]);
 
       for (const [key, value] of Object.entries(cell.options || {})) {
@@ -379,9 +387,9 @@ export async function ojsCompile(
         // for "not set", so we interpret "none" as undefined
         if (
           asUndefined(options.format.render?.[kCodeFold], "none") ??
-            cell.options?.[kFold]
+            cell.options?.[kCodeFold]
         ) {
-          attrs.push('fold="true"');
+          attrs.push(`${kCodeFold}="true"`);
         }
 
         const innerDiv = pandocCode({ classes, attrs });
