@@ -80,6 +80,9 @@ import {
   websiteTitle,
 } from "./website-config.ts";
 import { inputFileHref, websiteNavigationConfig } from "./website-shared.ts";
+import { visitLines } from "../../../core/file.ts";
+import { isBookIndexPage } from "../book/book-config.ts";
+import { projectIsBook } from "../../project-context.ts";
 
 interface Navigation {
   navbar?: Navbar;
@@ -220,7 +223,9 @@ export async function websiteNavigationExtras(
       [kSassBundles]: sassBundles,
       [kDependencies]: dependencies,
       [kBodyEnvelope]: bodyEnvelope,
-      [kHtmlPostprocessors]: [navigationHtmlPostprocessor(project, source)],
+      [kHtmlPostprocessors]: [
+        navigationHtmlPostprocessor(project, source),
+      ],
     },
   };
 }
@@ -250,10 +255,16 @@ export function writeRedirectPage(path: string, href: string) {
   Deno.writeTextFileSync(path, redirectHtml);
 }
 
-function navigationHtmlPostprocessor(project: ProjectContext, source: string) {
+function navigationHtmlPostprocessor(
+  project: ProjectContext,
+  source: string,
+) {
   const sourceRelative = relative(project.dir, source);
   const offset = projectOffset(project, source);
   const href = inputFileHref(sourceRelative);
+
+  // Read the fully rendered titles for the files
+  const resolveTitle = renderedDocumentTitle(project);
 
   return async (doc: Document) => {
     // latch active nav link
@@ -327,10 +338,161 @@ function navigationHtmlPostprocessor(project: ProjectContext, source: string) {
       }
     }
 
+    // For any sidebar links whose title was read from the yaml directly
+    // we should update the title with the rendered title (that will have)
+    // any markdown rendered by pandoc
+    const sidebarItems = doc.querySelectorAll(
+      "li.sidebar-item > a[data-resolve-title]",
+    );
+    for (let i = 0; i < sidebarItems.length; i++) {
+      const link = sidebarItems[i] as Element;
+      const href = link.getAttribute("href");
+
+      if (href !== null) {
+        let resolvedTitle = await resolveTitle(href);
+        if (resolvedTitle) {
+          // Titles are generated with the chapters marked up
+          // Replace the class with the proper sidebar markup
+          resolvedTitle = resolvedTitle.replace(
+            /class="chapter-number-title"|class="header-section-number"/,
+            'class="chapter-number"',
+          );
+
+          // Only replace the HTML if it has changed
+          if (resolvedTitle !== link.innerHTML) {
+            link.innerHTML = resolvedTitle;
+          }
+
+          // Remove the resolve signal attribute
+          link.removeAttribute("data-resolve-title");
+        }
+      }
+    }
+
     // handle repo links
     handleRepoLinks(doc, sourceRelative, project.config);
 
     return Promise.resolve([]);
+  };
+}
+
+const kH1WithClassRegex =
+  /^<[hH]1.*?class=(?:'|")(.*?)(?:'|").*?>(.*)<\/[Hh]1>$/;
+const kTitleClassRegex = /(?:^|\s)title(?:$|\s)/;
+const kHeadingRegex = /<[hH][123456].*?>(.*)<\/[Hh][123456]>/;
+
+// This is kept static to cache the titles
+// as multiple files are rendered.
+const staticResolvedTitles: Record<string, string | null> = {};
+function renderedDocumentTitle(
+  project: ProjectContext,
+): (input: string) => Promise<string | undefined | null> {
+  return async (input: string) => {
+    input = input.startsWith("/") ? input.slice(1) : input;
+
+    // Parses a line of text and reads the main title out of it
+    const mainTitle = (line: string) => {
+      const match = line.trim().match(kH1WithClassRegex);
+      if (match) {
+        const classes = match[1];
+        if (classes.match(kTitleClassRegex)) {
+          return match[2];
+        }
+      }
+      return undefined;
+    };
+
+    // Parses a line of text and reads any heading out of it
+    const headingTitle = (line: string) => {
+      const match = line.trim().match(kHeadingRegex);
+      if (match) {
+        return match[1];
+      }
+      return undefined;
+    };
+
+    // The full path to the file
+    const outputPath = join(
+      projectOutputDir(project),
+      input,
+    );
+
+    // If we haven't yet scanned this file, scan it
+    if (staticResolvedTitles[outputPath] === undefined) {
+      if (projectIsBook(project) && isBookIndexPage(input)) {
+        // In the case of books and their main page
+        // they may have a book title on the index page.
+        // If so, use the first subsequent heading as the title
+        let visitedMainTitle = false;
+        let firstHeading;
+        let pageTitle;
+        await visitLines(
+          outputPath,
+          (line: string | null, _count: number) => {
+            // Read until we find the main title for this page,
+            // then look for the next heading and use that as the
+            // title.
+            if (line !== null) {
+              // Once we've visited the main title, start looking for the next
+              // heading
+              if (visitedMainTitle) {
+                const heading = headingTitle(line);
+                if (heading !== undefined) {
+                  firstHeading = heading;
+                  return false;
+                } else {
+                  return true;
+                }
+              } else {
+                // Note that we've seen the main title
+                // We can now start looking for the next heading
+                const title = mainTitle(line);
+                if (title !== undefined) {
+                  pageTitle = title;
+                  visitedMainTitle = true;
+                }
+                return true;
+              }
+            } else {
+              return true;
+            }
+          },
+        );
+
+        // For book index pages, try to use the first heading as the book title
+        // otherwise, just use the main title
+        if (pageTitle !== undefined && firstHeading !== undefined) {
+          staticResolvedTitles[outputPath] = firstHeading;
+        } else if (pageTitle !== undefined) {
+          staticResolvedTitles[outputPath] = pageTitle;
+        }
+      } else {
+        // Find the main title
+        await visitLines(
+          outputPath,
+          (line: string | null, _count: number) => {
+            // Read until we find the main title for this page
+            if (line !== null) {
+              const title = mainTitle(line);
+              if (title !== undefined) {
+                staticResolvedTitles[outputPath] = title;
+                return false;
+              } else {
+                return true;
+              }
+            } else {
+              return true;
+            }
+          },
+        );
+        // We read all the lines and never found a title, just
+        // write null to signal not to re-parse this file
+        if (staticResolvedTitles[outputPath] === undefined) {
+          staticResolvedTitles[outputPath] = null;
+        }
+      }
+    }
+    return staticResolvedTitles[outputPath];
   };
 }
 
@@ -795,6 +957,7 @@ async function resolveItem(
         ...item,
         href: resolved.outputHref,
         text: item.text || resolved.title || basename(resolved.outputHref),
+        resolveTitle: (item.text === undefined && resolved.title !== undefined),
       };
 
       const projType = projectType(project.config?.project?.[kProjectType]);

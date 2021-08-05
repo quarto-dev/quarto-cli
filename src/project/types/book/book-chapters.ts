@@ -22,6 +22,7 @@ import { ProjectConfig, ProjectContext } from "../../types.ts";
 
 import { bookConfigRenderItems, kBookItemAppendix } from "./book-config.ts";
 import { bookConfig } from "./book-shared.ts";
+import { isHtmlOutput } from "../../../config/format.ts";
 
 export function withChapterMetadata(
   format: Format,
@@ -126,7 +127,7 @@ export function formatChapterTitle(
         : " —";
       return `${title} ${info.labelPrefix}${delim} ${label}`;
     } else {
-      return `${info.labelPrefix}\u00A0 ${label}`;
+      return `[${info.labelPrefix}]{.chapter-number-title}\u00A0 ${label}`;
     }
   } else {
     return label;
