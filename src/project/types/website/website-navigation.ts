@@ -287,9 +287,12 @@ function navigationHtmlPostprocessor(
     }
 
     // Hide the title when it will appear in the secondary nav
-    const title = doc.querySelector("header .title");
-    const sidebar = doc.getElementById("quarto-sidebar");
+    // Try to read into the container span, or just take any contents
+    const title = doc.querySelector(
+      "header .title .quarto-section-identifier",
+    ) || doc.querySelector("header .title");
 
+    const sidebar = doc.getElementById("quarto-sidebar");
     if (sidebar) {
       // hide below lg
       if (title) {
@@ -301,6 +304,7 @@ function navigationHtmlPostprocessor(
       const secondaryNavTitle = doc.querySelector(
         ".quarto-secondary-nav .quarto-secondary-nav-title",
       );
+
       if (secondaryNavTitle) {
         if (title) {
           secondaryNavTitle.innerHTML = title.innerHTML;
@@ -380,6 +384,8 @@ const kH1WithClassRegex =
   /^<[hH]1.*?class=(?:'|")(.*?)(?:'|").*?>(.*)<\/[Hh]1>$/;
 const kTitleClassRegex = /(?:^|\s)title(?:$|\s)/;
 const kHeadingRegex = /<[hH][123456].*?>(.*)<\/[Hh][123456]>/;
+const kHeadingIdSpanRegex =
+  /^<[sS][pP][aA][nN] id=".*?">(.*)<\/[sS][pP][aA][nN]>/;
 
 // This is kept static to cache the titles
 // as multiple files are rendered.
@@ -390,13 +396,24 @@ function renderedDocumentTitle(
   return async (input: string) => {
     input = input.startsWith("/") ? input.slice(1) : input;
 
+    // Remove an outer span with an id
+    const stripIdSpan = (contents: string) => {
+      const contentMatch = contents.match(kHeadingIdSpanRegex);
+      if (contentMatch) {
+        // This heading contains a span that sets the id. We need to strip this span
+        return contentMatch[1];
+      } else {
+        return contents;
+      }
+    };
+
     // Parses a line of text and reads the main title out of it
     const mainTitle = (line: string) => {
       const match = line.trim().match(kH1WithClassRegex);
       if (match) {
         const classes = match[1];
         if (classes.match(kTitleClassRegex)) {
-          return match[2];
+          return stripIdSpan(match[2]);
         }
       }
       return undefined;
@@ -406,7 +423,7 @@ function renderedDocumentTitle(
     const headingTitle = (line: string) => {
       const match = line.trim().match(kHeadingRegex);
       if (match) {
-        return match[1];
+        return stripIdSpan(match[1]);
       }
       return undefined;
     };

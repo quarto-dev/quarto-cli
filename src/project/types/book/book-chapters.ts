@@ -22,7 +22,6 @@ import { ProjectConfig, ProjectContext } from "../../types.ts";
 
 import { bookConfigRenderItems, kBookItemAppendix } from "./book-config.ts";
 import { bookConfig } from "./book-shared.ts";
-import { isHtmlOutput } from "../../../config/format.ts";
 
 export function withChapterMetadata(
   format: Format,
@@ -34,8 +33,9 @@ export function withChapterMetadata(
   format = ld.cloneDeep(format);
   if (headingText) {
     format.metadata[kTitle] = formatChapterTitle(
-      headingText,
       format,
+      headingText,
+      headingAttr,
       chapterInfo,
     );
   }
@@ -114,10 +114,19 @@ export function chapterInfoForInput(
 }
 
 export function formatChapterTitle(
-  label: string,
   format: Format,
+  label: string,
+  attr?: PandocAttr,
   info?: ChapterInfo,
 ) {
+  const withIdSpan = (text: string) => {
+    if (!attr?.id) {
+      return text;
+    } else {
+      return `[${text}]{#${attr.id} .quarto-section-identifier}`;
+    }
+  };
+
   if (info) {
     if (info.appendix) {
       const crossref = format.metadata?.crossref as Metadata;
@@ -125,12 +134,14 @@ export function formatChapterTitle(
       const delim = crossref?.[kCrossrefAppendixDelim] !== undefined
         ? crossref?.[kCrossrefAppendixDelim]
         : " —";
-      return `${title} ${info.labelPrefix}${delim} ${label}`;
+      return withIdSpan(`${title} ${info.labelPrefix}${delim} ${label}`);
     } else {
-      return `[${info.labelPrefix}]{.chapter-number-title}\u00A0 ${label}`;
+      return withIdSpan(
+        `[${info.labelPrefix}]{.chapter-number-title}\u00A0 ${label}`,
+      );
     }
   } else {
-    return label;
+    return withIdSpan(label);
   }
 }
 
