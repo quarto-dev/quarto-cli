@@ -6,11 +6,11 @@ title: Python Subfig Test
 
 ```{python}
 #| label: fig-plots
-#| fig.cap: "Plots" 
-#| fig.subcap:
+#| fig-cap: "Plots" 
+#| fig-subcap:
 #|   - "Plot 1"
 #|   - "Plot 2" 
-#| layout.ncol: 2
+#| layout-ncol: 2
 
 import matplotlib.pyplot as plt
 plt.plot([1,23,2,4])

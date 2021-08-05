@@ -2,7 +2,7 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- constants for list attributes
-kLstCap = "lst.cap"
+kLstCap = "lst-cap"
 
 -- process all listings
 function listings()

@@ -4,8 +4,8 @@ title: Knitr Table Test
 
 ```{r}
 #| label: tbl-tables
-#| tbl.cap: "Tables"
-#| layout.ncol: 2
+#| tbl-cap: "Tables"
+#| layout-ncol: 2
 
 library(knitr)
 kable(head(cars), caption = "Cars {#tbl-cars}")

@@ -8,7 +8,7 @@ function figures()
    
     Div = function(el)
       
-      -- propagate fig.cap on figure div to figure caption 
+      -- propagate fig-cap on figure div to figure caption 
       if hasFigureRef(el) then
         local figCap = attribute(el, kFigCap, nil)
         if figCap ~= nil then
@@ -38,14 +38,14 @@ function figures()
       
     end,
 
-    -- propagate fig.alt
+    -- propagate fig-alt
     Image = function(image)
       if isHtmlOutput() then
-        -- read the fig.alt text and set the image alt
+        -- read the fig-alt text and set the image alt
         local altText = attribute(image, kFigAlt, nil);
         if altText ~= nil then
           image.attr.attributes["alt"] = altText
-          image.attr.attributes["fig.alt"] = nil
+          image.attr.attributes[kFigAlt] = nil
           return image
         end
       else 

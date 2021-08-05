@@ -63,8 +63,8 @@ See @fig-polar for an example of rendering plots as figures:
 
 \`\`\`{python}
 #| label: fig-polar
-#| fig.cap: "A line plot on a polar axis"
-#| fold: true
+#| fig-cap: "A line plot on a polar axis"
+#| code-fold: true
 
 import numpy as np
 import matplotlib.pyplot as plt

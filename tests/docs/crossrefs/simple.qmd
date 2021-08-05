@@ -10,7 +10,7 @@ See @fig-elephant for an illustration
 
 ## Simple Sub Figure
 
-::: {#fig-elephants layout.ncol=2}
+::: {#fig-elephants layout-ncol=2}
 
 ![Surus](img/surus.jpg){#fig-surus}
 
