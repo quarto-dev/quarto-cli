@@ -49,6 +49,7 @@ import {
   kCellLstCap,
   kCellLstLabel,
   kCodeFold,
+  kCodeOverflow,
   kEcho,
   kError,
   kEval,
@@ -309,6 +310,7 @@ export async function ojsCompile(
         kCellLstLabel,
         kCodeFold,
         kCodeSummary,
+        kCodeOverflow,
         kCellClasses,
         kCellPanel,
         "include.hidden",
@@ -381,6 +383,12 @@ export async function ojsCompile(
 
         if (!echoVal) {
           classes.push("hidden");
+        }
+
+        if (cell.options?.[kCodeOverflow] === "wrap") {
+          classes.push("code-wrap");
+        } else if (cell.options?.[kCodeOverflow] === "scroll") {
+          classes.push("code-scroll");
         }
 
         // options.format.render?.[kCodeFold] appears to use "none"

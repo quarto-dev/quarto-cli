@@ -49,6 +49,7 @@ export const kPageWidth = "page-width";
 export const kFigAlign = "fig-align";
 export const kCodeFold = "code-fold";
 export const kCodeSummary = "code-summary";
+export const kCodeOverflow = "code-overflow";
 export const kCodeLink = "code-link";
 export const kCodeTools = "code-tools";
 export const kMergeIncludes = "merge-includes";
@@ -104,6 +105,7 @@ export const kRenderDefaultsKeys = [
   kCodeFold,
   kCodeLink,
   kCodeSummary,
+  kCodeOverflow,
   kCodeTools,
   kSelfContainedMath,
   kLatexAutoMk,

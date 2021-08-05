@@ -97,6 +97,7 @@ import {
   kCellPanel,
   kCellTags,
   kCodeFold,
+  kCodeOverflow,
   kCodeSummary,
   kEcho,
   kError,
@@ -195,6 +196,7 @@ export interface JupyterCellOptions extends JupyterOutputFigureOptions {
   [kCellPanel]?: string;
   [kCodeFold]?: string;
   [kCodeSummary]?: string;
+  [kCodeOverflow]?: string;
   [kCellMdIndent]?: string;
   [kEval]?: true | false | null;
   [kEcho]?: boolean;
@@ -239,6 +241,7 @@ export const kJupyterCellInternalOptionKeys = [
   kCellMdIndent,
   kCodeFold,
   kCodeSummary,
+  kCodeOverflow,
 ];
 
 export const kJupyterCellOptionKeys = kJupyterCellInternalOptionKeys.concat([
@@ -967,6 +970,13 @@ function mdFromCodeCell(
     if (hideCode(cell, options)) {
       md.push(" .hidden");
     }
+
+    if (cell.options[kCodeOverflow] === "wrap") {
+      md.push(" .code-wrap");
+    } else if (cell.options[kCodeOverflow] === "scroll") {
+      md.push(" .code-scroll");
+    }
+
     if (typeof cell.options[kCellLstCap] === "string") {
       md.push(` caption=\"${cell.options[kCellLstCap]}\"`);
     }

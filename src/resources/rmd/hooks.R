@@ -211,7 +211,7 @@ knitr_hooks <- function(format, resourceDir) {
     knitr_default_opts <- names(knitr::opts_chunk$get())
     quarto_opts <- c("label","fig.cap","fig.subcap","fig.scap","fig.link", "fig.alt",
                      "fig.align","fig.env","fig.pos","fig.num", "lst-cap", 
-                     "lst-label", "classes", "panel", "code-fold", "code-summary",
+                     "lst-label", "classes", "panel", "code-fold", "code-summary", "code-overflow",
                      "layout", "layout-nrow", "layout-ncol", "layout-align", "layout-valign", 
                      "output", "include.hidden", "source.hidden", "plot.hidden", "output.hidden")
     other_opts <- c("eval", "out.width", "code", "params.src", 
@@ -267,6 +267,10 @@ knitr_hooks <- function(format, resourceDir) {
     } else {
       id = NULL
     }
+    if (identical(options[["code-overflow"]], "wrap"))
+      class <- paste(class, "code-wrap")
+    else if (identical(options[["code-overflow"]], "scroll"))
+      class <- paste(class, "code-scroll")
     fold <- options[["code-fold"]]
     if (!is.null(fold)) {
       attr <- paste(attr, paste0('code-fold="', tolower(as.character(fold)), '"'))
