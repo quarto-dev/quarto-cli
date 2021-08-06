@@ -1192,8 +1192,10 @@ function mdOutputDisplayData(
         lines[0].endsWith("</table>'")
       ) {
         lines[0] = lines[0].slice(1, -1);
+        return mdMarkdownOutput(lines);
+      } else {
+        return mdCodeOutput(lines);
       }
-      return mdMarkdownOutput(lines);
     } else if (displayDataIsMarkdown(mimeType)) {
       return mdMarkdownOutput(output.data[mimeType] as string[]);
     } else if (displayDataIsLatex(mimeType)) {
