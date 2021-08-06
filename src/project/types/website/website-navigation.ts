@@ -348,6 +348,27 @@ function navigationHtmlPostprocessor(
     const sidebarItems = doc.querySelectorAll(
       "li.sidebar-item > a[data-resolve-title]",
     );
+
+    // Updates the title of the next or previous paginator
+    // if the href matches
+    const updatePaginator = (
+      dir: "next" | "previous",
+    ) => {
+      const linkSelector = `.page-navigation .nav-page-${dir} a`;
+      const paginatorLink = doc.querySelector(linkSelector);
+      return (href: string, title: string) => {
+        if (paginatorLink?.getAttribute("href") === href) {
+          const textEl = doc.querySelector(`${linkSelector} .nav-page-text`);
+          if (textEl) {
+            textEl.innerHTML = title;
+          }
+        }
+      };
+    };
+
+    const updateNextPageTitle = updatePaginator("next");
+    const updatePreviousPageTitle = updatePaginator("previous");
+
     for (let i = 0; i < sidebarItems.length; i++) {
       const link = sidebarItems[i] as Element;
       const href = link.getAttribute("href");
@@ -365,6 +386,8 @@ function navigationHtmlPostprocessor(
           // Only replace the HTML if it has changed
           if (resolvedTitle !== link.innerHTML) {
             link.innerHTML = resolvedTitle;
+            updateNextPageTitle(href, resolvedTitle);
+            updatePreviousPageTitle(href, resolvedTitle);
           }
 
           // Remove the resolve signal attribute
