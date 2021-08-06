@@ -15,7 +15,7 @@ import { safeExistsSync } from "../../../core/path.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { warnOnce } from "../../../core/log.ts";
-
+import { visitLines } from "../../../core/file.ts";
 import { asHtmlId } from "../../../core/html.ts";
 
 import { kTocTitle } from "../../../config/constants.ts";
@@ -80,8 +80,7 @@ import {
   websiteTitle,
 } from "./website-config.ts";
 import { inputFileHref, websiteNavigationConfig } from "./website-shared.ts";
-import { visitLines } from "../../../core/file.ts";
-import { isBookIndexPage } from "../book/book-config.ts";
+import { isBookIndexPage } from "../book/book-shared.ts";
 import { projectIsBook } from "../../project-context.ts";
 
 interface Navigation {

@@ -52,6 +52,7 @@ import { kSidebarLogo } from "../website/website-navigation.ts";
 
 import {
   bookConfig,
+  isBookIndexPage,
   isMultiFileBookFormat,
   isNumberedChapter,
   kBook,
@@ -208,10 +209,6 @@ export function bookConfigRenderItems(
     kBookRender,
     project,
   ) as BookRenderItem[];
-}
-
-export function isBookIndexPage(target?: string): boolean {
-  return target !== undefined && target.startsWith("index.");
 }
 
 export type BookRenderItemType = "index" | "chapter" | "appendix" | "part";

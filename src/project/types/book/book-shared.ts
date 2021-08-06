@@ -66,6 +66,10 @@ export function bookConfig(
   }
 }
 
+export function isBookIndexPage(target?: string): boolean {
+  return target !== undefined && target.startsWith("index.");
+}
+
 export function isNumberedChapter(partitioned: PartitionedMarkdown) {
   if (partitioned?.yaml) {
     const yaml = readYamlFromMarkdown(partitioned?.yaml);

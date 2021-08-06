@@ -60,7 +60,6 @@ import {
   bookConfigRenderItems,
   bookOutputStem,
   BookRenderItem,
-  isBookIndexPage,
   kBookItemAppendix,
   kBookItemPart,
 } from "./book-config.ts";
@@ -73,6 +72,7 @@ import {
 import {
   bookConfig,
   BookConfigKey,
+  isBookIndexPage,
   isMultiFileBookFormat,
   isNumberedChapter,
   kBookCoverImage,
