@@ -1,10 +1,10 @@
 -- layout.lua
 -- Copyright (C) 2020 by RStudio, PBC
 
-kLayoutAlign = "layout-align"
-kLayoutVAlign = "layout-valign"
-kLayoutNcol = "layout-ncol"
-kLayoutNrow = "layout-nrow"
+kLayoutAlign = "layout.align"
+kLayoutVAlign = "layout.valign"
+kLayoutNcol = "layout.ncol"
+kLayoutNrow = "layout.nrow"
 kLayout = "layout"
 
 

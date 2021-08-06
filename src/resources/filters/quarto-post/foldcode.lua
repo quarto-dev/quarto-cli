@@ -9,8 +9,8 @@ function foldCode()
           local fold = foldAttribute(block)
           local summary = summaryAttribute(block)
           if fold ~= nil or summary ~= nil then
-            block.attr.attributes["code-fold"] = nil
-            block.attr.attributes["code-summary"] = nil
+            block.attr.attributes["fold"] = nil
+            block.attr.attributes["summary"] = nil
             if fold ~= "none" then 
               local blocks = pandoc.List:new()
               postState.codeFoldingCss = true
@@ -44,7 +44,7 @@ function foldAttribute(el)
   else
     default = "none"
   end
-  local fold = attribute(el, "code-fold", default)
+  local fold = attribute(el, "fold", default)
   if fold == true or fold == "true" or fold == "1" then
     return "hide"
   elseif fold == nil or fold == false or fold == "false" or fold == "0" then
@@ -61,7 +61,7 @@ function summaryAttribute(el)
   else
     default = "Code"
   end
-  return attribute(el, "code-summary", default)
+  return attribute(el, "summary", default)
 end
 
 

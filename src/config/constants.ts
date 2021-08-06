@@ -26,6 +26,7 @@ export const kOutput = "output";
 export const kWarning = "warning";
 export const kError = "error";
 export const kInclude = "include";
+export const kFold = "fold";
 
 export const kResources = "resources";
 
@@ -49,7 +50,6 @@ export const kPageWidth = "page-width";
 export const kFigAlign = "fig-align";
 export const kCodeFold = "code-fold";
 export const kCodeSummary = "code-summary";
-export const kCodeOverflow = "code-overflow";
 export const kCodeLink = "code-link";
 export const kCodeTools = "code-tools";
 export const kMergeIncludes = "merge-includes";
@@ -105,7 +105,6 @@ export const kRenderDefaultsKeys = [
   kCodeFold,
   kCodeLink,
   kCodeSummary,
-  kCodeOverflow,
   kCodeTools,
   kSelfContainedMath,
   kLatexAutoMk,
@@ -303,28 +302,30 @@ export const kRawMimeType = "raw_mimetype";
 
 export const kCellId = "id";
 export const kCellLabel = "label";
-export const kCellFigCap = "fig-cap";
-export const kCellFigSubCap = "fig-subcap";
-export const kCellFigScap = "fig-scap";
-export const kCellFigLink = "fig-link";
-export const kCellFigAlign = "fig-align";
-export const kCellFigEnv = "fig-env";
-export const kCellFigPos = "fig-pos";
-export const kCellFigAlt = "fig-alt";
-export const kCellLstLabel = "lst-label";
-export const kCellLstCap = "lst-cap";
+export const kCellFigCap = "fig.cap";
+export const kCellFigSubCap = "fig.subcap";
+export const kCellFigScap = "fig.scap";
+export const kCellFigLink = "fig.link";
+export const kCellFigAlign = "fig.align";
+export const kCellFigEnv = "fig.env";
+export const kCellFigPos = "fig.pos";
+export const kCellFigAlt = "fig.alt";
+export const kCellLstLabel = "lst.label";
+export const kCellLstCap = "lst.cap";
 export const kCellClasses = "classes";
 export const kCellPanel = "panel";
-export const kCellOutWidth = "out-width";
-export const kCellOutHeight = "out-height";
-export const kCellMdIndent = "md-indent";
+export const kCellOutWidth = "out.width";
+export const kCellOutHeight = "out.height";
+export const kCellFold = "fold";
+export const kCellSummary = "summary";
+export const kCellMdIndent = "md_indent";
 
 export const kCellColab = "colab";
 export const kCellColabType = "colab_type";
 export const kCellColbOutputId = "outputId";
 
-export const kLayoutAlign = "layout-align";
-export const kLayoutVAlign = "layout-valign";
-export const kLayoutNcol = "layout-ncol";
-export const kLayoutNrow = "layout-nrow";
+export const kLayoutAlign = "layout.align";
+export const kLayoutVAlign = "layout.valign";
+export const kLayoutNcol = "layout.ncol";
+export const kLayoutNrow = "layout.nrow";
 export const kLayout = "layout";

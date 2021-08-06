@@ -35,6 +35,7 @@ import {
 } from "../../config/types.ts";
 import { kTheme } from "../../config/constants.ts";
 
+import { print, sassVariable } from "../../command/render/sass.ts";
 import { formatHasCodeTools } from "../../command/render/codetools.ts";
 
 import { createHtmlFormat } from "./../formats-shared.ts";
@@ -55,7 +56,6 @@ import {
   kHoverFootnotes,
   kHypothesis,
   kUtterances,
-  quartoDefaults,
   quartoFunctions,
   quartoGlobalCssVariableRules,
   quartoRules,
@@ -326,12 +326,20 @@ function htmlFormatExtras(format: Format): FormatExtras {
 
     // add quarto sass bundle of we aren't in bootstrap
     if (!bootstrap) {
+      const quartoDefaults = print(
+        sassVariable(
+          "code-copy-selector",
+          format.metadata[kCodeCopy] === "hover"
+            ? '"pre.sourceCode:hover > "'
+            : '""',
+        ),
+      );
       sassBundles.push({
         dependency: kQuartoHtmlDependency,
         key: kQuartoHtmlDependency,
         quarto: {
           use: ["sass:color"],
-          defaults: quartoDefaults(format),
+          defaults: quartoDefaults,
           functions: quartoFunctions(),
           mixins: "",
           rules: quartoRules(),

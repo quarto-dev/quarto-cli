@@ -169,7 +169,7 @@ details[show] {
   margin-bottom: 0;
 }
 
-details > summary {
+.cell > details > summary {
   color: $text-muted;
 }
 
@@ -180,28 +180,8 @@ code.sourceCode {
   overflow-y: hidden;
 }
 
-// default to scrolling <code> output rather than wrapping, since
-// multi-column tabular output (very common for R & Python) is
-// unreadable when wrapped.
-code {
-  white-space: pre;
-}
-@media print {
-  code {
-    white-space: pre-wrap;
-  }
-}
-
 pre > code.sourceCode {
-  white-space: $code-white-space;
-}
-
-pre.code-overflow-wrap > code.sourceCode {
   white-space: pre-wrap;
-}
-
-pre.code-overflow-scroll > code.sourceCode {
-  white-space: pre;
 }
 
 pre.sourceCode.code-with-copy {

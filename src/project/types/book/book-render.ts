@@ -142,7 +142,6 @@ export function bookPandocRenderer(
             bookConfig(kBookCoverImage, project.config)) as
               | string
               | undefined;
-
           if (coverImage) {
             const title = file.recipe.format.metadata[kTitle] || "";
             file.executeResult.markdown =
@@ -159,7 +158,7 @@ export function bookPandocRenderer(
 
           // see if there is a 'title' in the yaml, if there isn't one, then we
           // try to extract via partitioned.headingText
-          const titleInMetadata = frontMatterTitle(partitioned.yaml);
+          const titleInMetadata = frontMatterTitle(file.executeResult.markdown);
           if (titleInMetadata) {
             const parsedHeading = parsePandocTitle(titleInMetadata);
             file.recipe.format = withChapterMetadata(
@@ -332,10 +331,7 @@ async function mergeExecutedFiles(
           file.context.target.source === itemInputPath
         );
         if (file) {
-          const partitioned = partitionYamlFrontMatter(
-            file.executeResult.markdown,
-          );
-          const frontTitle = frontMatterTitle(partitioned?.yaml);
+          const frontTitle = frontMatterTitle(file.executeResult.markdown);
           const titleMarkdown = frontTitle ? `# ${frontTitle}\n\n` : "";
 
           itemMarkdown = bookItemMetadata(project, item, file) + titleMarkdown +
@@ -544,9 +540,10 @@ function withBookTitleMetadata(format: Format, config?: ProjectConfig): Format {
   return format;
 }
 
-function frontMatterTitle(yamlStr?: string): string | undefined {
-  if (yamlStr) {
-    const yaml = readYamlFromMarkdown(yamlStr);
+function frontMatterTitle(markdown: string): string | undefined {
+  const partitioned = partitionYamlFrontMatter(markdown);
+  if (partitioned?.yaml) {
+    const yaml = readYamlFromMarkdown(partitioned?.yaml);
     return yaml[kTitle] as string | undefined;
   } else {
     return undefined;

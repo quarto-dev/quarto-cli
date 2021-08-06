@@ -33,9 +33,8 @@ export function withChapterMetadata(
   format = ld.cloneDeep(format);
   if (headingText) {
     format.metadata[kTitle] = formatChapterTitle(
-      format,
       headingText,
-      headingAttr,
+      format,
       chapterInfo,
     );
   }
@@ -114,19 +113,10 @@ export function chapterInfoForInput(
 }
 
 export function formatChapterTitle(
-  format: Format,
   label: string,
-  attr?: PandocAttr,
+  format: Format,
   info?: ChapterInfo,
 ) {
-  const withIdSpan = (text: string) => {
-    if (!attr?.id) {
-      return text;
-    } else {
-      return `[${text}]{#${attr.id} .quarto-section-identifier}`;
-    }
-  };
-
   if (info) {
     if (info.appendix) {
       const crossref = format.metadata?.crossref as Metadata;
@@ -134,14 +124,12 @@ export function formatChapterTitle(
       const delim = crossref?.[kCrossrefAppendixDelim] !== undefined
         ? crossref?.[kCrossrefAppendixDelim]
         : " —";
-      return withIdSpan(`${title} ${info.labelPrefix}${delim} ${label}`);
+      return `${title} ${info.labelPrefix}${delim} ${label}`;
     } else {
-      return withIdSpan(
-        `[${info.labelPrefix}]{.chapter-number-title}\u00A0 ${label}`,
-      );
+      return `${info.labelPrefix}\u00A0 ${label}`;
     }
   } else {
-    return withIdSpan(label);
+    return label;
   }
 }
 

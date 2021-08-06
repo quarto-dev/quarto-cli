@@ -13,7 +13,6 @@ import {
   kCiteproc,
   kCodeFold,
   kCodeLink,
-  kCodeOverflow,
   kCodeSummary,
   kCodeTools,
   kCss,
@@ -198,7 +197,6 @@ export interface FormatRender {
   [kFigAlign]?: "left" | "right" | "center" | "default";
   [kCodeFold]?: "none" | "show" | "hide" | boolean;
   [kCodeSummary]?: string;
-  [kCodeOverflow]?: "wrap" | "scroll";
   [kCodeLink]?: boolean;
   [kCodeTools]?: boolean | {
     source?: boolean;

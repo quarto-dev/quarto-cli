@@ -5,9 +5,6 @@
 *
 */
 import { join } from "path/mod.ts";
-import { print, sassVariable } from "../../core/sass.ts";
-import { kCodeOverflow } from "../../config/constants.ts";
-import { Format } from "../../config/types.ts";
 
 import { formatResourcePath } from "../../core/resources.ts";
 
@@ -68,27 +65,3 @@ export const quartoFunctions = () =>
     "html",
     "_quarto-functions.scss",
   ));
-
-export const quartoDefaults = (format: Format) => {
-  const defaults: string[] = [];
-  defaults.push(
-    print(
-      sassVariable(
-        "code-copy-selector",
-        format.metadata[kCodeCopy] === undefined ||
-          format.metadata[kCodeCopy] === "hover"
-          ? '"pre.sourceCode:hover > "'
-          : '""',
-      ),
-    ),
-  );
-  defaults.push(
-    print(
-      sassVariable(
-        "code-white-space",
-        format.render[kCodeOverflow] === "wrap" ? "pre-wrap" : "pre",
-      ),
-    ),
-  );
-  return defaults.join("\n");
-};

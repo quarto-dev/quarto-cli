@@ -84,6 +84,7 @@ import {
   kCellFigPos,
   kCellFigScap,
   kCellFigSubCap,
+  kCellFold,
   kCellFormat,
   kCellId,
   kCellLabel,
@@ -95,10 +96,8 @@ import {
   kCellOutHeight,
   kCellOutWidth,
   kCellPanel,
+  kCellSummary,
   kCellTags,
-  kCodeFold,
-  kCodeOverflow,
-  kCodeSummary,
   kEcho,
   kError,
   kEval,
@@ -194,9 +193,8 @@ export interface JupyterCellOptions extends JupyterOutputFigureOptions {
   [kCellLstCap]?: string;
   [kCellClasses]?: string;
   [kCellPanel]?: string;
-  [kCodeFold]?: string;
-  [kCodeSummary]?: string;
-  [kCodeOverflow]?: string;
+  [kCellFold]?: string;
+  [kCellSummary]?: string;
   [kCellMdIndent]?: string;
   [kEval]?: true | false | null;
   [kEcho]?: boolean;
@@ -226,6 +224,8 @@ export const kJupyterCellInternalOptionKeys = [
   kCellLabel,
   kCellClasses,
   kCellPanel,
+  kCellFold,
+  kCellSummary,
   kCellFigCap,
   kCellFigSubCap,
   kCellFigScap,
@@ -239,9 +239,6 @@ export const kJupyterCellInternalOptionKeys = [
   kCellOutWidth,
   kCellOutHeight,
   kCellMdIndent,
-  kCodeFold,
-  kCodeSummary,
-  kCodeOverflow,
 ];
 
 export const kJupyterCellOptionKeys = kJupyterCellInternalOptionKeys.concat([
@@ -970,21 +967,14 @@ function mdFromCodeCell(
     if (hideCode(cell, options)) {
       md.push(" .hidden");
     }
-
-    if (cell.options[kCodeOverflow] === "wrap") {
-      md.push(" .code-overflow-wrap");
-    } else if (cell.options[kCodeOverflow] === "scroll") {
-      md.push(" .code-overflow-scroll");
-    }
-
     if (typeof cell.options[kCellLstCap] === "string") {
       md.push(` caption=\"${cell.options[kCellLstCap]}\"`);
     }
-    if (typeof cell.options[kCodeFold] !== "undefined") {
-      md.push(` code-fold=\"${cell.options[kCodeFold]}\"`);
+    if (typeof cell.options[kCellFold] !== "undefined") {
+      md.push(` fold=\"${cell.options[kCellFold]}\"`);
     }
-    if (typeof cell.options[kCodeSummary] !== "undefined") {
-      md.push(` code-summary=\"${cell.options[kCodeSummary]}\"`);
+    if (typeof cell.options[kCellSummary] !== "undefined") {
+      md.push(` summary=\"${cell.options[kCellSummary]}\"`);
     }
     md.push("}\n");
     md.push(...mdTrimEmptyLines(cell.source), "\n");
@@ -1041,12 +1031,12 @@ function mdFromCodeCell(
       const figureOptions: JupyterOutputFigureOptions = {};
       const broadcastFigureOption = (
         name:
-          | "fig-align"
-          | "fig-link"
-          | "fig-env"
-          | "fig-pos"
-          | "fig-scap"
-          | "fig-alt",
+          | "fig.align"
+          | "fig.link"
+          | "fig.env"
+          | "fig.pos"
+          | "fig.scap"
+          | "fig.alt",
       ) => {
         const value = cell.options[name];
         if (value) {
@@ -1192,10 +1182,8 @@ function mdOutputDisplayData(
         lines[0].endsWith("</table>'")
       ) {
         lines[0] = lines[0].slice(1, -1);
-        return mdMarkdownOutput(lines);
-      } else {
-        return mdCodeOutput(lines);
       }
+      return mdMarkdownOutput(lines);
     } else if (displayDataIsMarkdown(mimeType)) {
       return mdMarkdownOutput(output.data[mimeType] as string[]);
     } else if (displayDataIsLatex(mimeType)) {

@@ -2,7 +2,7 @@
 title: Listings Test
 ---
 
-```{#lst-customers .sql lst-cap="Customers Query"}
+```{#lst-customers .sql lst.cap="Customers Query"}
 SELECT * FROM Customers
 ```
 

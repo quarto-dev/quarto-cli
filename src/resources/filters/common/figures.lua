@@ -2,12 +2,12 @@
 -- Copyright (C) 2020 by RStudio, PBC
 
 -- constants for figure attributes
-kFigAlign = "fig-align"
-kFigEnv = "fig-env"
-kFigAlt = "fig-alt"
-kFigPos = "fig-pos"
-kFigCap = "fig-cap"
-kFigScap = "fig-scap"
+kFigAlign = "fig.align"
+kFigEnv = "fig.env"
+kFigAlt = "fig.alt"
+kFigPos = "fig.pos"
+kFigCap = "fig.cap"
+kFigScap = "fig.scap"
 kResizeWidth = "resize.width"
 kResizeHeight = "resize.height"
 
@@ -18,7 +18,7 @@ end
 
 function figAlignAttribute(el)
   local default = pandoc.utils.stringify(
-    param(kFigAlign, pandoc.Str("default"))
+    param("fig-align", pandoc.Str("default"))
   )
   local align = attribute(el, kFigAlign, default)
   if align == "default" then

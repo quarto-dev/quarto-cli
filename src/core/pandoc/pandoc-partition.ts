@@ -29,8 +29,6 @@ export function parsePandocTitle(title: string) {
       break;
     } else if (ch === "\\") {
       escaped = !escaped;
-    } else if (ch !== "{" && escaped) {
-      escaped = false;
     }
   }
 

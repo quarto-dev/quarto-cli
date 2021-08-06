@@ -32,11 +32,11 @@ plt.plot([1,2,3,4])
 plt.show()
 ```
 
-### `fig-cap`
+### `fig.cap`
 
 ```{python}
 #| label: fig-caption-test
-#| fig-cap: A caption for the figure
+#| fig.cap: A caption for the figure
 
 plt.plot([1,2,3,4])
 plt.show()
@@ -44,12 +44,12 @@ plt.show()
 
 **(Styling Bug?) Centering of images appears inconsistent depending on whether they have captions?**
 
-### `fig-subcap`
+### `fig.subcap`
 
 ```{python}
 #| label: fig-big-caption-test
-#| fig-cap: Big caption
-#| fig-subcap: 
+#| fig.cap: Big caption
+#| fig.subcap: 
 #|   - Caption 1
 #|   - Caption 2
 plt.plot([4,3,2,1])
@@ -62,7 +62,7 @@ plt.show()
 
 ```{python}
 #| label: fig-no-big-caption-test
-#| fig-subcap: 
+#| fig.subcap: 
 #|   - Caption 1
 #|   - Caption 2
 plt.plot([4,3,2,1])
@@ -71,14 +71,14 @@ plt.plot([1,2,3,4])
 plt.show()
 ```
 
-### `code-fold` and `code-summary`
+### `fold` and `summary`
 
-**(Inconsistency?) The R engine sets code-fold and code-summary for both the outer and inner div; The Python engine only forwards it to the inner div.**
+**(Inconsistency?) The R engine sets fold and summary for both the outer and inner div; The Python engine only forwards it to the inner div.**
 
 Fold:
 
 ```{python}
-#| code-fold: true
+#| fold: true
 plt.plot([1,2,3,4])
 plt.show()
 ```
@@ -86,7 +86,7 @@ plt.show()
 Summary:
 
 ```{python}
-#| code-summary: "Some text"
+#| summary: "Some text"
 plt.plot([1,2,3,4])
 plt.show()
 ```

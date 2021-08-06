@@ -165,7 +165,7 @@ export function boostrapExtras(
       : undefined,
 
     html: {
-      [kSassBundles]: resolveBootstrapScss(input, format),
+      [kSassBundles]: resolveBootstrapScss(input, format.metadata),
       [kDependencies]: [bootstrapFormatDependency()],
       [kBodyEnvelope]: bodyEnvelope,
       [kHtmlPostprocessors]: [
