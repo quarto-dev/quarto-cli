@@ -6,29 +6,32 @@
 */
 
 import { TextProtoReader } from "textproto/mod.ts";
-import { BufReader } from "io/bufio.ts";
+import { BufReader } from "io/mod.ts";
+import { exists } from "fs/mod.ts";
 
 export async function visitLines(
   path: string,
   visitor: (line: string | null, count: number) => boolean,
 ) {
-  const file = await Deno.open(path, { read: true });
-  try {
-    const reader = new TextProtoReader(BufReader.create(file));
+  if (await exists(path)) {
+    const file = await Deno.open(path, { read: true });
+    try {
+      const reader = new TextProtoReader(BufReader.create(file));
 
-    let count = 0;
-    while (true) {
-      const line = await reader.readLine();
-      if (line !== null) {
-        if (!visitor(line, count)) {
+      let count = 0;
+      while (true) {
+        const line = await reader.readLine();
+        if (line !== null) {
+          if (!visitor(line, count)) {
+            break;
+          }
+        } else {
           break;
         }
-      } else {
-        break;
+        count += 1;
       }
-      count += 1;
+    } finally {
+      file.close();
     }
-  } finally {
-    file.close();
   }
 }
