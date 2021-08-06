@@ -29,52 +29,52 @@ plot(1:10)
 plot(1:10)
 ```
 
-### `fig.cap`
+### `fig-cap`
 
 ```{r}
-#| fig.cap: A caption for the figure
+#| fig-cap: A caption for the figure
 
 plot(1:10)
 ```
 
 **(Styling Bug?) Centering of images appears inconsistent depending on whether they have captions?**
 
-### `fig.subcap`
+### `fig-subcap`
 
 ```{r}
 #| label: fig-big-caption-test
-#| fig.cap: Big caption
-#| fig.subcap: 
+#| fig-cap: Big caption
+#| fig-subcap: 
 #|   - Caption 1
 #|   - Caption 2
 plot(1:10)
 plot(10:1)
 ```
 
-**(Python Bug?) Sub-captions don't show up unless `fig.cap` is also there:**
+**(Python Bug?) Sub-captions don't show up unless `fig-cap` is also there:**
 
 ```{r}
-#| fig.subcap: 
+#| fig-subcap: 
 #|   - Caption 1
 #|   - Caption 2
 plot(1:10)
 plot(10:1)
 ```
 
-### `fold` and `summary`
+### `code-fold` and `code-summary`
 
 **(Inconsistency?) The R engine sets fold and summary for both the outer and inner div; The Python engine only forwards it to the inner div.**
 
 Fold:
 
 ```{r}
-#| fold: true
+#| code-fold: true
 plot(1:10)
 ```
 
 Summary:
 
 ```{r}
-#| summary: "some text"
+#| code-summary: "some text"
 plot(1:10)
 ```

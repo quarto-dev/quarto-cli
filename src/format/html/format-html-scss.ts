@@ -16,17 +16,13 @@ import {
   asCssSize,
 } from "../../core/css.ts";
 
-import { SassBundle, SassLayer } from "../../config/types.ts";
+import { print, SassVariable, sassVariable } from "../../core/sass.ts";
+
+import { Format, SassBundle, SassLayer } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
 import { kTheme } from "../../config/constants.ts";
 
-import {
-  mergeLayers,
-  print,
-  sassLayer,
-  SassVariable,
-  sassVariable,
-} from "../../command/render/sass.ts";
+import { mergeLayers, sassLayer } from "../../command/render/sass.ts";
 
 import {
   kSite,
@@ -34,10 +30,10 @@ import {
 } from "../../project/types/website/website-config.ts";
 import {
   kBootstrapDependencyName,
-  kCodeCopy,
   quartoBootstrapFunctions,
   quartoBootstrapMixins,
   quartoBootstrapRules,
+  quartoDefaults,
   quartoFunctions,
   quartoGlobalCssVariableRules,
   quartoRules,
@@ -52,7 +48,7 @@ function layerQuartoScss(
   key: string,
   dependency: string,
   sassLayer: SassLayer,
-  metadata: Metadata,
+  format: Format,
   darkLayer?: SassLayer,
   darkDefault?: boolean,
 ): SassBundle {
@@ -75,7 +71,8 @@ function layerQuartoScss(
     quarto: {
       use: ["sass:color", "sass:map"],
       defaults: [
-        quartoBootstrapDefaults(metadata),
+        quartoDefaults(format),
+        quartoBootstrapDefaults(format.metadata),
       ].join("\n"),
       functions: [quartoFunctions(), quartoBootstrapFunctions()].join("\n"),
       mixins: quartoBootstrapMixins(),
@@ -86,9 +83,11 @@ function layerQuartoScss(
       ].join("\n"),
     },
     framework: {
-      defaults: pandocVariablesToBootstrapDefaults(metadata).map((variable) => {
-        return print(variable, false);
-      }).join("\n"),
+      defaults: pandocVariablesToBootstrapDefaults(format.metadata).map(
+        (variable) => {
+          return print(variable, false);
+        },
+      ).join("\n"),
       functions: "",
       mixins: "",
       rules: Deno.readTextFileSync(boostrapRules),
@@ -105,7 +104,7 @@ function layerQuartoScss(
 
 export function resolveBootstrapScss(
   input: string,
-  metadata: Metadata,
+  format: Format,
 ): SassBundle[] {
   // Quarto built in css
   const quartoThemesDir = formatResourcePath(
@@ -114,7 +113,7 @@ export function resolveBootstrapScss(
   );
 
   // Resolve the provided themes to a set of variables and styles
-  const theme = metadata[kTheme] || [];
+  const theme = format.metadata[kTheme] || [];
   const [themeSassLayers, defaultDark] = resolveThemeLayer(
     input,
     theme,
@@ -130,7 +129,7 @@ export function resolveBootstrapScss(
       "quarto-theme",
       kBootstrapDependencyName,
       themeSassLayers.light,
-      metadata,
+      format,
       themeSassLayers.dark,
       defaultDark,
     ),
@@ -240,14 +239,6 @@ function pandocVariablesToBootstrapDefaults(
       defaults.push(sassVar);
     }
   };
-  // code copy selector
-  add(
-    explicitVars,
-    "code-copy-selector",
-    metadata[kCodeCopy] === undefined || metadata[kCodeCopy] === "hover"
-      ? '"pre.sourceCode:hover > "'
-      : '""',
-  );
 
   // Pass through to some bootstrap variables
   add(explicitVars, "line-height-base", metadata["linestretch"], asCssNumber);

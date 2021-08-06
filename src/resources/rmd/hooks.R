@@ -112,7 +112,7 @@ knitr_hooks <- function(format, resourceDir) {
     # read some options
     label <- output_label(options)
     fig.cap <- options[["fig.cap"]]
-    tbl.cap <- options[["tbl.cap"]]
+    tbl.cap <- options[["tbl-cap"]]
     cell.cap <- NULL
     fig.subcap = options[["fig.subcap"]]
     
@@ -173,25 +173,25 @@ knitr_hooks <- function(format, resourceDir) {
       }
       options[["layout"]] <- fig.layout
       
-    # populate layout.ncol from fig.ncol
+    # populate layout-ncol from fig.ncol
     } else if (!is.null(fig.ncol)) {
-      options[["layout.ncol"]] = fig.ncol
+      options[["layout-ncol"]] = fig.ncol
     }
     
-    # alias fig.align to layout.align
+    # alias fig.align to layout-align
     fig.align = options[["fig.align"]]
     if (!is.null(fig.align) && !identical(fig.align, "default")) {
-      options["layout.align"] = fig.align
+      options["layout-align"] = fig.align
     }
 
-    # alias fig.valign to layout.valign
+    # alias fig.valign to layout-valign
     fig.valign = options[["fig.valign"]]
     if (!is.null(fig.valign) && !identical(fig.valign, "default")) {
-      options["layout.valign"] = fig.valign
+      options["layout-valign"] = fig.valign
     }
 
     # forward selected attributes
-    forward <- c("layout", "layout.nrow", "layout.ncol", "layout.align")
+    forward <- c("layout", "layout-nrow", "layout-ncol", "layout-align")
     forwardAttr <- character()
     for (attr in forward) {
       value = options[[attr]]
@@ -210,9 +210,9 @@ knitr_hooks <- function(format, resourceDir) {
     # forward any other unknown attributes
     knitr_default_opts <- names(knitr::opts_chunk$get())
     quarto_opts <- c("label","fig.cap","fig.subcap","fig.scap","fig.link", "fig.alt",
-                     "fig.align","fig.env","fig.pos","fig.num", "lst.cap", 
-                     "lst.label", "layout.align", "layout.valign", "classes", "panel", "fold", "summary",
-                     "layout", "layout.nrow", "layout.ncol", "layout.align",
+                     "fig.align","fig.env","fig.pos","fig.num", "lst-cap", 
+                     "lst-label", "classes", "panel", "code-fold", "code-summary", "code-overflow",
+                     "layout", "layout-nrow", "layout-ncol", "layout-align", "layout-valign", 
                      "output", "include.hidden", "source.hidden", "plot.hidden", "output.hidden")
     other_opts <- c("eval", "out.width", "code", "params.src", 
                     "out.width.px", "out.height.px", "indent")
@@ -260,20 +260,24 @@ knitr_hooks <- function(format, resourceDir) {
       class <- paste(class, "hidden")
     }
     if (!identical(format$metadata[["crossref"]], FALSE)) {
-      id <- options[["lst.label"]]
-      if (!is.null(options[["lst.cap"]])) {
-        attr <- paste(attr, paste0('caption="', options[["lst.cap"]], '"'))
+      id <- options[["lst-label"]]
+      if (!is.null(options[["lst-cap"]])) {
+        attr <- paste(attr, paste0('caption="', options[["lst-cap"]], '"'))
       }
     } else {
       id = NULL
     }
-    fold <- options[["fold"]]
+    if (identical(options[["code-overflow"]], "wrap"))
+      class <- paste(class, "code-overflow-wrap")
+    else if (identical(options[["code-overflow"]], "scroll"))
+      class <- paste(class, "code-overflow-scroll")
+    fold <- options[["code-fold"]]
     if (!is.null(fold)) {
-      attr <- paste(attr, paste0('fold="', tolower(as.character(fold)), '"'))
+      attr <- paste(attr, paste0('code-fold="', tolower(as.character(fold)), '"'))
     }
-    fold <- options[["summary"]]
+    fold <- options[["code-summary"]]
     if (!is.null(fold)) {
-      attr <- paste(attr, paste0('summary="', as.character(fold), '"'))
+      attr <- paste(attr, paste0('code-summary="', as.character(fold), '"'))
     }
     attrs <- block_attr(
       id = id,
@@ -339,23 +343,23 @@ knitr_plot_hook <- function(htmlOutput) {
     keyvalue <- c()
     fig.align <- options[['fig.align']]
     if (!identical(fig.align, "default")) {
-      keyvalue <- c(keyvalue, sprintf("fig.align='%s'", fig.align))
+      keyvalue <- c(keyvalue, sprintf("fig-align='%s'", fig.align))
     }
     fig.env <- options[['fig.env']]
     if (!identical(fig.env, "figure")) {
-      keyvalue <- c(keyvalue, sprintf("fig.env='%s'", fig.env))
+      keyvalue <- c(keyvalue, sprintf("fig-env='%s'", fig.env))
     }
     fig.pos <- options[['fig.pos']]
     if (nzchar(fig.pos)) {
-      keyvalue <- c(keyvalue, sprintf("fig.pos='%s'", fig.pos))
+      keyvalue <- c(keyvalue, sprintf("fig-pos='%s'", fig.pos))
     }
     fig.alt <- options[["fig.alt"]]
     if (!is.null(fig.alt) && nzchar(fig.alt)) {
-       keyvalue <- c(keyvalue, sprintf("fig.alt='%s'", fig.alt))
+       keyvalue <- c(keyvalue, sprintf("fig-alt='%s'", fig.alt))
     }
     fig.scap <- options[['fig.scap']]
     if (!is.null(fig.scap)) {
-      keyvalue <- c(keyvalue, sprintf("fig.scap='%s'", fig.scap))
+      keyvalue <- c(keyvalue, sprintf("fig-scap='%s'", fig.scap))
     }
     resize.width <- options[['resize.width']]
     if (!is.null(resize.width)) {
@@ -455,7 +459,12 @@ knitr_options_hook <- function(options) {
   # partition yaml options
   results <- partition_yaml_options(options$engine, options$code)
   if (!is.null(results$yaml)) {
+    # convert any option with fig- into fig. and out- to out.
+    names(results$yaml) <- sub("^fig-", "fig.", names(results$yaml))
+    names(results$yaml) <- sub("^out-", "out.", names(results$yaml))
+    # merge with other options
     options <- knitr:::merge_list(options, results$yaml)
+    # set code
     options$code <- results$code
   } 
   

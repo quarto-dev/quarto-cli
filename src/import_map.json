@@ -13,6 +13,7 @@
     "http/": "https://deno.land/std@0.97.0/http/",
     "signal/": "https://deno.land/std@0.97.0/signal/",
     "ws/": "https://deno.land/std@0.97.0/ws/",
+    "textproto/": "https://deno.land/std@0.97.0/textproto/",
     "datetime/": "https://deno.land/std@0.97.0/datetime/",
     "xmlp/": "https://deno.land/x/xmlp/",
     "cliffy/": "https://deno.land/x/cliffy@v0.19.3/",
