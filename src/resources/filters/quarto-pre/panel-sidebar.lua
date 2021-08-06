@@ -1,66 +1,79 @@
 -- panel-sidebar.lua
 -- Copyright (C) 2021 by RStudio, PBC
 
-
 function panelSidebar() 
   return {
     Blocks = function(blocks)
       if hasBootstrap() then
-        -- see if there is a sidebar
-        local sidebarLeft = false
-        local sidebar = nil
-        local mainPanel = pandoc.List:new()
+
+        -- functions to determine if an element has a layout class
+        function isSidebar(el)
+          return el.t == "Div" and el.attr.classes:includes("panel-sidebar")
+        end
+        function isContainer(el)
+          return el.t == "Div" and 
+                 (el.attr.classes:includes("panel-fill") or el.attr.classes:includes("panel-center"))
+        end
+
+        -- bail if there are no sidebars
+        if not blocks:find_if(isSidebar) then
+          return blocks
+        end
+
+        -- there are sidebars so we need to build a new list that folds together
+        -- the sidebars with their adjacent layout blocks
+        local rowClasses = {
+          "row", 
+          "layout-sidebar",
+          "ms-md-0", 
+          "m-1" 
+        }
+        local sidebarClasses = {
+          "card",
+          "bg-light",
+          "p-2",
+          "col",
+          "col-12",
+          "col-lg-3"
+        }
+        local containerClasses = {
+          "col",
+          "col-12",
+          "col-lg-9",
+          "pt-3",
+          "pt-lg-0",
+          "ps-0",
+          "ps-lg-3"
+        }
+        local newBlocks = pandoc.List:new()
+        local pendingSidebar = nil
         for i,el in ipairs(blocks) do 
-          if sidebar == nil and el.t == "Div" and el.attr.classes:find("panel-sidebar") then
-            sidebar = el
-            sidebarLeft = i == 1
+          if isSidebar(el) then
+            -- if the previous item is a container then wrap it up with the sidebar
+            if #newBlocks > 0 and isContainer(newBlocks[#newBlocks]) then
+              local container = newBlocks:remove(#newBlocks)
+              tappend(container.attr.classes, containerClasses)
+              tappend(el.attr.classes, sidebarClasses)
+              newBlocks:insert(pandoc.Div({ container, sidebar }, pandoc.Attr("", rowClasses)))
+            else 
+              pendingSidebar = el
+            end
+          elseif pendingSidebar ~= nil and isContainer(el) then
+            tappend(pendingSidebar.attr.classes, sidebarClasses)
+            tappend(el.attr.classes, containerClasses)
+            newBlocks:insert(pandoc.Div({ pendingSidebar, el }, pandoc.Attr("", rowClasses)))
+            pendingSidebar = nil
           else
-            mainPanel:insert(el)
+            if pendingSidebar ~= nil then
+              newBlocks:insert(pendingSidebar)
+              pendingSidebar = nil
+            end
+            newBlocks:insert(el)
           end
         end
 
-        -- if there is a sidebar then cleave up the div as appropriate
-        if sidebar then
-
-          -- add std sidebar classes
-          tappend(sidebar.attr.classes, {
-            "card",
-            "bg-light",
-            "p-2",
-            "col",
-            "col-12",
-            "col-lg-3"
-          })
-
-          local row = pandoc.Div({}, pandoc.Attr("", { 
-            "row", 
-            "layout-sidebar",
-            "ms-md-0", 
-            "m-1" 
-          }))
-          if sidebarLeft then
-            row.content:insert(sidebar)
-          end
-          row.content:insert(pandoc.Div(mainPanel, pandoc.Attr("", {
-            "col",
-            "col-12",
-            "col-lg-9",
-            "pt-3",
-            "pt-lg-0",
-            "ps-0",
-            "ps-lg-3"
-          })))
-          if not sidebarLeft then
-            row.content:insert(sidebar)
-          end
-
-          return pandoc.List({ row })
-        end
+        return newBlocks
       end
-
-      -- failsafe
-      return blocks
-
     end
   }
 end
