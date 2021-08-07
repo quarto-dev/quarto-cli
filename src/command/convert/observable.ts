@@ -6,7 +6,9 @@
 */
 
 import { info, warning } from "log/mod.ts";
-import { basename, join } from "path/mod.ts";
+import * as colors from "fmt/colors.ts";
+
+import { basename, dirname, join } from "path/mod.ts";
 import { writeAll } from "io/mod.ts";
 import { ensureDirSync } from "fs/mod.ts";
 import { pandocAutoIdentifier } from "../../core/pandoc/pandoc-id.ts";
@@ -51,11 +53,27 @@ export async function observableNotebookToMarkdown(
   }
 
   // determine/ensure output directory
-  if (!output) {
-    output = file;
+  let outputFile = output;
+  let outputDir = output ? dirname(output) : undefined;
+  if (!outputDir) {
+    if (nb.files.length > 0) {
+      outputDir = file;
+    } else {
+      outputDir = Deno.cwd();
+    }
   }
-  ensureDirSync(output);
-  info(`Writing to ${output}/`);
+  if (!outputFile) {
+    outputFile = join(outputDir, file + ".qmd");
+  }
+
+  ensureDirSync(outputDir);
+  info(
+    `Writing to ${
+      nb.files.length > 0
+        ? colors.bold(basename(outputDir) + "/")
+        : basename(outputFile)
+    }`,
+  );
 
   // download attachments
   const attachments: string[] = [];
@@ -64,7 +82,7 @@ export async function observableNotebookToMarkdown(
     info("  " + file.name + " (attachment)");
     const res = await fetch(file.download_url);
     const contents = new Uint8Array(await res.arrayBuffer());
-    const downloadTo = await Deno.create(join(output, file.name));
+    const downloadTo = await Deno.create(join(outputDir, file.name));
     await writeAll(downloadTo, contents);
     Deno.close(downloadTo.rid);
     // record attachment in list
@@ -157,9 +175,10 @@ export async function observableNotebookToMarkdown(
   lines.push("");
 
   // write markdown
-  const qmdFile = join(output, file + ".qmd");
-  info("  " + basename(qmdFile));
-  Deno.writeTextFileSync(qmdFile, lines.join("\n"));
+  if (nb.files.length > 0) {
+    info("  " + basename(outputFile));
+  }
+  Deno.writeTextFileSync(outputFile, lines.join("\n"));
 }
 
 function consumeFrontMatter(
