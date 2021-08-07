@@ -15,10 +15,8 @@ import { safeExistsSync } from "../../../core/path.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { warnOnce } from "../../../core/log.ts";
-import { visitLines } from "../../../core/file.ts";
 import { asHtmlId } from "../../../core/html.ts";
 
-import { kTocTitle } from "../../../config/constants.ts";
 import {
   Format,
   FormatDependency,
@@ -26,7 +24,9 @@ import {
   kBodyEnvelope,
   kDependencies,
   kHtmlPostprocessors,
+  kMarkdownAfterBody,
   kSassBundles,
+  Metadata,
   PandocFlags,
   SassBundle,
 } from "../../../config/types.ts";
@@ -80,8 +80,7 @@ import {
   websiteTitle,
 } from "./website-config.ts";
 import { inputFileHref, websiteNavigationConfig } from "./website-shared.ts";
-import { isBookIndexPage } from "../book/book-shared.ts";
-import { projectIsBook } from "../../project-context.ts";
+import { kTitle, kTocTitle } from "../../../config/constants.ts";
 
 interface Navigation {
   navbar?: Navbar;
@@ -168,8 +167,8 @@ export async function websiteNavigationExtras(
   };
 
   // Determine the previous and next page
+  const pageNavigation = nextAndPrevious(href, sidebar);
   if (navigation.pageNavigation) {
-    const pageNavigation = nextAndPrevious(href, sidebar);
     nav.prevPage = pageNavigation.prevPage;
     nav.nextPage = pageNavigation.nextPage;
 
@@ -225,9 +224,20 @@ export async function websiteNavigationExtras(
       [kHtmlPostprocessors]: [
         navigationHtmlPostprocessor(project, source),
       ],
+      [kMarkdownAfterBody]: [
+        createMarkdownEnvelope(format, navigation, pageNavigation, sidebar),
+      ],
     },
   };
 }
+
+const kPageTitleId = "quarto-int-page-title";
+const kSidebarTitleId = "quarto-int-sidebar-title";
+const kNavbarTitleId = "quarto-int-navbar-title";
+const kNavNextId = "quarto-int-next";
+const kNavPrevId = "quarto-int-prev";
+const kSidebarIdPrefix = "quarto-int-sidebar:";
+const kNavbarIdPrefix = "quarto-int-navbar:";
 
 export async function ensureIndexPage(project: ProjectContext) {
   const outputDir = projectOutputDir(project);
@@ -262,10 +272,10 @@ function navigationHtmlPostprocessor(
   const offset = projectOffset(project, source);
   const href = inputFileHref(sourceRelative);
 
-  // Read the fully rendered titles for the files
-  const resolveTitle = renderedDocumentTitle(project);
-
   return async (doc: Document) => {
+    // Process any markdown rendered through the render envelope
+    processMarkdownEnvelope(doc);
+
     // latch active nav link
     const navLinks = doc.querySelectorAll("a.nav-link");
     for (let i = 0; i < navLinks.length; i++) {
@@ -341,197 +351,10 @@ function navigationHtmlPostprocessor(
       }
     }
 
-    // For any sidebar links whose title was read from the yaml directly
-    // we should update the title with the rendered title (that will have)
-    // any markdown rendered by pandoc
-    const sidebarItems = doc.querySelectorAll(
-      "li.sidebar-item > a[data-resolve-title]",
-    );
-
-    // Updates the title of the next or previous paginator
-    // if the href matches
-    const updatePaginator = (
-      dir: "next" | "previous",
-    ) => {
-      const linkSelector = `.page-navigation .nav-page-${dir} a`;
-      const paginatorLink = doc.querySelector(linkSelector);
-      return (href: string, title: string) => {
-        if (paginatorLink?.getAttribute("href") === href) {
-          const textEl = doc.querySelector(`${linkSelector} .nav-page-text`);
-          if (textEl) {
-            textEl.innerHTML = title;
-          }
-        }
-      };
-    };
-
-    const updateNextPageTitle = updatePaginator("next");
-    const updatePreviousPageTitle = updatePaginator("previous");
-
-    for (let i = 0; i < sidebarItems.length; i++) {
-      const link = sidebarItems[i] as Element;
-      const href = link.getAttribute("href");
-
-      if (href !== null) {
-        let resolvedTitle = await resolveTitle(href);
-        if (resolvedTitle) {
-          // Titles are generated with the chapters marked up
-          // Replace the class with the proper sidebar markup
-          resolvedTitle = resolvedTitle.replace(
-            /class="chapter-number-title"|class="header-section-number"/,
-            'class="chapter-number"',
-          );
-
-          // Only replace the HTML if it has changed
-          if (resolvedTitle !== link.innerHTML) {
-            link.innerHTML = resolvedTitle;
-            updateNextPageTitle(href, resolvedTitle);
-            updatePreviousPageTitle(href, resolvedTitle);
-          }
-
-          // Remove the resolve signal attribute
-          link.removeAttribute("data-resolve-title");
-        }
-      }
-    }
-
     // handle repo links
     handleRepoLinks(doc, sourceRelative, project.config);
 
     return Promise.resolve([]);
-  };
-}
-
-const kH1WithClassRegex =
-  /^<[hH]1.*?class=(?:'|")(.*?)(?:'|").*?>(.*)<\/[Hh]1>$/;
-const kTitleClassRegex = /(?:^|\s)title(?:$|\s)/;
-const kHeadingRegex = /<[hH][123456].*?>(.*)<\/[Hh][123456]>/;
-const kHeadingIdSpanRegex =
-  /^<[sS][pP][aA][nN] id=".*?">(.*)<\/[sS][pP][aA][nN]>/;
-
-// This is kept static to cache the titles
-// as multiple files are rendered.
-const staticResolvedTitles: Record<string, string | null> = {};
-function renderedDocumentTitle(
-  project: ProjectContext,
-): (input: string) => Promise<string | undefined | null> {
-  return async (input: string) => {
-    input = input.startsWith("/") ? input.slice(1) : input;
-
-    // Remove an outer span with an id
-    const stripIdSpan = (contents: string) => {
-      const contentMatch = contents.match(kHeadingIdSpanRegex);
-      if (contentMatch) {
-        // This heading contains a span that sets the id. We need to strip this span
-        return contentMatch[1];
-      } else {
-        return contents;
-      }
-    };
-
-    // Parses a line of text and reads the main title out of it
-    const mainTitle = (line: string) => {
-      const match = line.trim().match(kH1WithClassRegex);
-      if (match) {
-        const classes = match[1];
-        if (classes.match(kTitleClassRegex)) {
-          return stripIdSpan(match[2]);
-        }
-      }
-      return undefined;
-    };
-
-    // Parses a line of text and reads any heading out of it
-    const headingTitle = (line: string) => {
-      const match = line.trim().match(kHeadingRegex);
-      if (match) {
-        return stripIdSpan(match[1]);
-      }
-      return undefined;
-    };
-
-    // The full path to the file
-    const outputPath = join(
-      projectOutputDir(project),
-      input,
-    );
-
-    // If we haven't yet scanned this file, scan it
-    if (staticResolvedTitles[outputPath] === undefined) {
-      if (projectIsBook(project) && isBookIndexPage(input)) {
-        // In the case of books and their main page
-        // they may have a book title on the index page.
-        // If so, use the first subsequent heading as the title
-        let visitedMainTitle = false;
-        let firstHeading;
-        let pageTitle;
-        await visitLines(
-          outputPath,
-          (line: string | null, _count: number) => {
-            // Read until we find the main title for this page,
-            // then look for the next heading and use that as the
-            // title.
-            if (line !== null) {
-              // Once we've visited the main title, start looking for the next
-              // heading
-              if (visitedMainTitle) {
-                const heading = headingTitle(line);
-                if (heading !== undefined) {
-                  firstHeading = heading;
-                  return false;
-                } else {
-                  return true;
-                }
-              } else {
-                // Note that we've seen the main title
-                // We can now start looking for the next heading
-                const title = mainTitle(line);
-                if (title !== undefined) {
-                  pageTitle = title;
-                  visitedMainTitle = true;
-                }
-                return true;
-              }
-            } else {
-              return true;
-            }
-          },
-        );
-
-        // For book index pages, try to use the first heading as the book title
-        // otherwise, just use the main title
-        if (pageTitle !== undefined && firstHeading !== undefined) {
-          staticResolvedTitles[outputPath] = firstHeading;
-        } else if (pageTitle !== undefined) {
-          staticResolvedTitles[outputPath] = pageTitle;
-        }
-      } else {
-        // Find the main title
-        await visitLines(
-          outputPath,
-          (line: string | null, _count: number) => {
-            // Read until we find the main title for this page
-            if (line !== null) {
-              const title = mainTitle(line);
-              if (title !== undefined) {
-                staticResolvedTitles[outputPath] = title;
-                return false;
-              } else {
-                return true;
-              }
-            } else {
-              return true;
-            }
-          },
-        );
-        // We read all the lines and never found a title, just
-        // write null to signal not to re-parse this file
-        if (staticResolvedTitles[outputPath] === undefined) {
-          staticResolvedTitles[outputPath] = null;
-        }
-      }
-    }
-    return staticResolvedTitles[outputPath];
   };
 }
 
@@ -842,10 +665,15 @@ function isSeparator(item?: SidebarItem) {
   return !!item && !!item.text?.match(/^\-\-\-[\-\s]*$/);
 }
 
+interface NextAndPrevious {
+  nextPage?: SidebarItem;
+  prevPage?: SidebarItem;
+}
+
 function nextAndPrevious(
   href: string,
   sidebar?: Sidebar,
-): { prevPage?: SidebarItem; nextPage?: SidebarItem } {
+): NextAndPrevious {
   if (sidebar?.contents) {
     const sidebarItems = flattenItems(
       sidebar?.contents,
@@ -996,7 +824,6 @@ async function resolveItem(
         ...item,
         href: resolved.outputHref,
         text: item.text || resolved.title || basename(resolved.outputHref),
-        resolveTitle: (item.text === undefined && resolved.title !== undefined),
       };
 
       const projType = projectType(project.config?.project?.[kProjectType]);
@@ -1161,3 +988,283 @@ function findFirstItem(item: SidebarItem): SidebarItem | undefined {
     return undefined;
   }
 }
+interface MarkdownRenderContext {
+  format: Format;
+  sidebar?: Sidebar;
+  navigation?: Navigation;
+  nextAndPrev: NextAndPrevious;
+}
+
+interface MarkdownRenderHandler {
+  getUnrendered: (context: MarkdownRenderContext) => Record<string, string>;
+  processRendered: (rendered: Record<string, Element>, doc: Document) => void;
+}
+
+function title(format: Format) {
+  const site = (format.metadata[kSite] as Metadata);
+  if (
+    site[kTitle] &&
+    typeof (site[kTitle]) !== "object"
+  ) {
+    return String(site[kTitle]);
+  } else if (
+    format.metadata[kTitle] &&
+    typeof (format.metadata[kTitle]) !== "object"
+  ) {
+    return String(format.metadata[kTitle]);
+  }
+}
+
+const sidebarTitleHandler = {
+  getUnrendered(context: MarkdownRenderContext) {
+    if (context.sidebar?.title) {
+      return {
+        [kSidebarTitleId]: context.sidebar.title,
+      };
+    } else {
+      const mainTitle = title(context.format);
+      if (mainTitle) {
+        return {
+          [kSidebarTitleId]: mainTitle,
+        };
+      }
+    }
+  },
+  processRendered(rendered: Record<string, Element>, doc: Document) {
+    const renderedEl = rendered[kSidebarTitleId];
+    if (renderedEl) {
+      const sidebarTitleEl =
+        doc.querySelector("#quarto-sidebar .sidebar-title a") ||
+        doc.querySelector("#quarto-sidebar .sidebar-title");
+      if (sidebarTitleEl) {
+        sidebarTitleEl.innerHTML = renderedEl.innerHTML;
+      }
+    }
+  },
+};
+
+const navbarTitleHandler = {
+  getUnrendered(context: MarkdownRenderContext) {
+    if (context.navigation?.navbar?.title) {
+      return { [kNavbarTitleId]: context.navigation.navbar.title };
+    } else {
+      const mainTitle = title(context.format);
+      if (mainTitle) {
+        return {
+          [kNavbarTitleId]: mainTitle,
+        };
+      }
+    }
+  },
+  processRendered(rendered: Record<string, Element>, doc: Document) {
+    const renderedEl = rendered[kSidebarTitleId];
+    if (renderedEl) {
+      const sidebarTitleEl =
+        doc.querySelector("#quarto-sidebar .sidebar-title a") ||
+        doc.querySelector("#quarto-sidebar .sidebar-title");
+      if (sidebarTitleEl) {
+        sidebarTitleEl.innerHTML = renderedEl.innerHTML;
+      }
+    }
+  },
+};
+
+const nextPageTitleHandler = {
+  getUnrendered(context: MarkdownRenderContext) {
+    if (context.nextAndPrev.nextPage?.text) {
+      return { [kNavNextId]: context.nextAndPrev.nextPage.text };
+    }
+  },
+  processRendered(rendered: Record<string, Element>, doc: Document) {
+    const renderedEl = rendered[kNavNextId];
+    if (renderedEl) {
+      const el = doc.querySelector(
+        `.page-navigation .nav-page-next a`,
+      );
+      if (el) {
+        el.innerHTML = renderedEl.innerHTML;
+      }
+    }
+  },
+};
+
+const prevPageTitleHandler = {
+  getUnrendered(context: MarkdownRenderContext) {
+    if (context.nextAndPrev.prevPage?.text) {
+      return { [kNavPrevId]: context.nextAndPrev.prevPage.text };
+    }
+  },
+  processRendered(rendered: Record<string, Element>, doc: Document) {
+    const renderedEl = rendered[kNavPrevId];
+    if (renderedEl) {
+      const el = doc.querySelector(
+        `.page-navigation .nav-page-previous a`,
+      );
+      if (el) {
+        el.innerHTML = renderedEl.innerHTML;
+      }
+    }
+  },
+};
+
+const sidebarContentsHandler = {
+  getUnrendered(context: MarkdownRenderContext) {
+    if (context.sidebar?.contents) {
+      const sidebarItems = flattenItems(context.sidebar?.contents, (_) => {
+        return true;
+      });
+
+      const markdown: Record<string, string> = {};
+      sidebarItems.forEach((item) => {
+        if (item.text) {
+          markdown[`${kSidebarIdPrefix}${item.href || item.text}`] = item.text;
+        }
+      });
+      return markdown;
+    }
+  },
+  processRendered(rendered: Record<string, Element>, doc: Document) {
+    const sidebarItemEls = doc.querySelectorAll(
+      "li.sidebar-item > a",
+    );
+    for (let i = 0; i < sidebarItemEls.length; i++) {
+      const link = sidebarItemEls[i] as Element;
+      const href = link.getAttribute("href");
+      const sidebarText =
+        rendered[`${kSidebarIdPrefix}${href || link.innerText}`];
+      if (sidebarText) {
+        link.innerHTML = sidebarText?.innerHTML;
+      }
+    }
+
+    const sidebarSectionEls = doc.querySelectorAll(
+      "ul.sidebar-section a.sidebar-section-item",
+    );
+    for (let i = 0; i < sidebarSectionEls.length; i++) {
+      const link = sidebarSectionEls[i] as Element;
+      const href = link.getAttribute("href");
+      const div = link.querySelector("div.sidebar-section-item");
+
+      if (div) {
+        const id = href || div.innerText;
+        if (id) {
+          const sectionText = rendered[`${kSidebarIdPrefix}${id}`];
+          if (sectionText) {
+            div.innerHTML = sectionText?.innerHTML;
+          }
+        }
+      }
+    }
+  },
+};
+
+const navbarContentsHandler = {
+  getUnrendered(context: MarkdownRenderContext) {
+    if (context.navigation?.navbar) {
+      const markdown: Record<string, string> = {};
+      const entries = [
+        ...context.navigation.navbar.left || [],
+        ...context.navigation.navbar.right || [],
+      ];
+      entries.forEach((entry) => {
+        if (entry.text) {
+          markdown[`${kNavbarIdPrefix}${entry.href || entry.text}`] =
+            entry.text;
+        }
+      });
+      return markdown;
+    }
+  },
+  processRendered(rendered: Record<string, Element>, doc: Document) {
+    const navItemEls = doc.querySelectorAll(
+      ".navbar-nav .nav-item a.nav-link",
+    );
+    for (let i = 0; i < navItemEls.length; i++) {
+      const link = navItemEls[i] as Element;
+      const href = link.getAttribute("href");
+      const id = href || link.innerText;
+      if (id) {
+        const renderedEl = rendered[`${kNavbarIdPrefix}${id}`];
+        if (renderedEl) {
+          link.innerHTML = renderedEl?.innerHTML;
+        }
+      }
+    }
+  },
+};
+
+const handlers = [
+  sidebarTitleHandler,
+  navbarTitleHandler,
+  nextPageTitleHandler,
+  prevPageTitleHandler,
+  sidebarContentsHandler,
+  navbarContentsHandler,
+];
+
+function createMarkdownEnvelope(
+  format: Format,
+  navigation: Navigation,
+  nextAndPrev: NextAndPrevious,
+  sidebar?: Sidebar,
+) {
+  const envelope = markdownEnvelopeWriter();
+  handlers.forEach((handler) => {
+    const markdownRecords: Record<string, string> | undefined = handler
+      .getUnrendered({
+        format,
+        sidebar,
+        navigation,
+        nextAndPrev,
+      });
+    if (markdownRecords) {
+      Object.keys(markdownRecords).forEach((key) => {
+        envelope.add(key, markdownRecords[key]);
+      });
+    }
+  });
+  return envelope.toMarkdown();
+}
+
+function processMarkdownEnvelope(doc: Document) {
+  // Reader for getting rendered elements
+  const renderedMarkdown = readEnvelope(doc);
+  handlers.forEach((handler) => {
+    handler.processRendered(renderedMarkdown, doc);
+  });
+}
+
+const kQuartoEnvelopeId = "quarto-render-envelope";
+const readEnvelope = (doc: Document) => {
+  const envelope = doc.getElementById(kQuartoEnvelopeId);
+  const contents: Record<string, Element> = {};
+  if (envelope) {
+    const nodes = envelope.querySelectorAll("span[data-render-id]");
+    nodes.forEach((node) => {
+      const el = node as Element;
+      const id = el.getAttribute("data-render-id");
+      if (id) {
+        contents[id] = el;
+      }
+    });
+    envelope.remove();
+  }
+  return contents;
+};
+
+const markdownEnvelopeWriter = () => {
+  const renderList: string[] = [];
+  const hiddenSpan = (id: string, contents: string) => {
+    return `[${contents}]{.hidden render-id="${id}"}`;
+  };
+
+  return {
+    add: (id: string, value: string) => {
+      renderList.push(hiddenSpan(id, value));
+    },
+    toMarkdown: () => {
+      const contents = renderList.join("\n");
+      return `\n:::{#${kQuartoEnvelopeId} .hidden}\n${contents}\n:::\n`;
+    },
+  };
+};
