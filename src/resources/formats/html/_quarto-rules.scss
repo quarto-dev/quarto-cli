@@ -14,6 +14,10 @@
 
 // layout and figures
 
+.quarto-layout-panel {
+  margin-bottom: 1em;
+}
+
 .quarto-layout-panel > figure {
   width: 100%;
 }
@@ -281,6 +285,11 @@ code a:any-link {
   max-width: 35%;
   float: right;
   margin-left: 30px;
+}
+
+// provide margin below jupyter widgets
+.cell-output-display .widget-subarea {
+  margin-bottom: 1em;
 }
 
 // fix for selectize inputs getting their contents clipped
