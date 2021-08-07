@@ -1036,7 +1036,7 @@ const sidebarTitleHandler = {
       const sidebarTitleEl =
         doc.querySelector("#quarto-sidebar .sidebar-title a") ||
         doc.querySelector("#quarto-sidebar .sidebar-title");
-      if (sidebarTitleEl) {
+      if (sidebarTitleEl && sidebarTitleEl.innerText) {
         sidebarTitleEl.innerHTML = renderedEl.innerHTML;
       }
     }
@@ -1057,13 +1057,13 @@ const navbarTitleHandler = {
     }
   },
   processRendered(rendered: Record<string, Element>, doc: Document) {
-    const renderedEl = rendered[kSidebarTitleId];
+    const renderedEl = rendered[kNavbarTitleId];
     if (renderedEl) {
-      const sidebarTitleEl =
-        doc.querySelector("#quarto-sidebar .sidebar-title a") ||
-        doc.querySelector("#quarto-sidebar .sidebar-title");
-      if (sidebarTitleEl) {
-        sidebarTitleEl.innerHTML = renderedEl.innerHTML;
+      const navbarTitleEl = doc.querySelector(
+        "#quarto-header .navbar-brand .navbar-title",
+      );
+      if (navbarTitleEl && navbarTitleEl.innerText) {
+        navbarTitleEl.innerHTML = renderedEl.innerHTML;
       }
     }
   },
