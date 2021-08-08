@@ -160,6 +160,7 @@ export async function renderFiles(
       const contexts = await renderContexts(
         file,
         options,
+        true,
         project,
       );
 
@@ -216,6 +217,7 @@ export async function renderFiles(
 export async function renderContexts(
   file: string,
   options: RenderOptions,
+  forExecute: boolean,
   project?: ProjectContext,
 ): Promise<Record<string, RenderContext>> {
   // clone options (b/c we will modify them)
@@ -258,6 +260,10 @@ export async function renderContexts(
       project,
       libDir: libDir!,
     };
+    // if this isn't for execute then cleanup context
+    if (!forExecute && engine.executeTargetSkipped) {
+      engine.executeTargetSkipped(target, formats[format]);
+    }
   });
   return contexts;
 }
@@ -267,7 +273,12 @@ export async function renderFormats(
   to = "all",
   project?: ProjectContext,
 ): Promise<Record<string, Format>> {
-  const contexts = await renderContexts(file, { flags: { to } }, project);
+  const contexts = await renderContexts(
+    file,
+    { flags: { to } },
+    false,
+    project,
+  );
   const formats: Record<string, Format> = {};
   Object.keys(contexts).forEach((formatName) => {
     // get the format

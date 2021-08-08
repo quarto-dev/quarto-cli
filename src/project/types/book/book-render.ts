@@ -467,6 +467,7 @@ export async function bookIncrementalRenderAll(
     const contexts = await renderContexts(
       files[i],
       options,
+      false,
       context,
     );
 
