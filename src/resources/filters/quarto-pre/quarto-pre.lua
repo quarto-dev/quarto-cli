@@ -35,6 +35,7 @@ import("book-numbering.lua")
 import("book-links.lua")
 import("meta.lua")
 import("callout.lua")
+import("engine-escape.lua")
 import("panel-sidebar.lua")
 import("panel-tabset.lua")
 import("panel-input.lua")
@@ -77,6 +78,7 @@ return {
     figures(),
     theorems(),
     callout(),
+    engineEscape(),
     panelInput(),
     panelTabset(),
     panelLayout(),
