@@ -146,7 +146,7 @@ export async function observableNotebookToMarkdown(
         if (node.pinned && !echo) {
           lines.push("//| echo: true");
         } else if (!node.pinned && echo) {
-          lines.push("// echo: false");
+          lines.push("//| echo: false");
         }
         lines.push(value);
         lines.push("```");
