@@ -25,8 +25,7 @@ function panelSidebar()
         local rowClasses = {
           "row", 
           "layout-sidebar",
-          "ms-md-0", 
-          "m-1" 
+          "ms-md-0"
         }
         local sidebarClasses = {
           "card",
