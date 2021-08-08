@@ -786,7 +786,7 @@ function containsHref(href: string, items: SidebarItem[]) {
         return true;
       }
     } else {
-      if (items[i].href === href) {
+      if (itemHasNavTarget(items[i], href)) {
         return true;
       }
     }
@@ -801,7 +801,7 @@ function expandedSidebar(href: string, sidebar?: Sidebar): Sidebar | undefined {
     const resolveExpandedItems = (href: string, items: SidebarItem[]) => {
       for (let i = 0; i < items.length; i++) {
         const item = items[i];
-        item.active = item.href === href;
+        item.active = itemHasNavTarget(item, href);
         if (Object.keys(item).includes("contents")) {
           if (resolveExpandedItems(href, item.contents || [])) {
             item.expanded = true;
@@ -819,6 +819,11 @@ function expandedSidebar(href: string, sidebar?: Sidebar): Sidebar | undefined {
     resolveExpandedItems(href, expandedSidebar.contents);
     return expandedSidebar;
   }
+}
+
+function itemHasNavTarget(item: SidebarItem, href: string) {
+  return item.href === href ||
+    item.href === href.replace(/index\.html$/, "");
 }
 
 function flattenItems(
