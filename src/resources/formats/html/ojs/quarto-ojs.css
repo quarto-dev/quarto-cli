@@ -1,39 +1,39 @@
 span.ojs-inline span div {
-    display: inline-block;
+  display: inline-block;
 }
 
 /* add some breathing room between display outputs and text especially */
 div.cell-output-display div.observablehq {
-    margin-bottom: 1rem;
+  margin-bottom: 1rem;
 }
 
 .observablehq .observablehq--inspect {
-    font-family: var(--bs-font-monospace);
-    font-size: .8em;
+  font-family: var(--bs-font-monospace);
+  font-size: 0.8em;
 }
 
 .observablehq--field {
-    margin-left: 1rem;
+  margin-left: 1rem;
 }
 
 .observablehq--caret {
-    margin-right: 2px;
-    vertical-align: baseline;
+  margin-right: 2px;
+  vertical-align: baseline;
 }
 
 .observablehq--collapsed,
 .observablehq--expanded.observablehq--inspect a {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 /* classes directly from observable's runtime */
 .observablehq--key,
 .observablehq--index {
-    color: var(--quarto-hl-dt-color);
+  color: var(--quarto-hl-dt-color);
 }
 
 .observablehq--string {
-    color: var(--quarto-hl-st-color);
+  color: var(--quarto-hl-st-color);
 }
 
 .observablehq--bigint,
@@ -41,14 +41,14 @@ div.cell-output-display div.observablehq {
 .observablehq--number,
 .observablehq--regexp,
 .observablehq--symbol {
-    color: var(--quarto-hl-dv-color);
+  color: var(--quarto-hl-dv-color);
 }
 
 .observablehq--null,
 .observablehq--boolean,
 .observablehq--undefined,
 .observablehq--keyword {
-    color: var(--quarto-hl-kw-color);
+  color: var(--quarto-hl-kw-color);
 }
 
 /* In addition, their import statements specifically come highlighted by hljs.
@@ -65,40 +65,45 @@ div.cell-output-display div.observablehq {
 */
 
 code.javascript span.im {
-    color: var(--quarto-hl-kw-color);
+  color: var(--quarto-hl-kw-color);
 }
 
 pre.observablehq--md-pre span.hljs-keyword {
-    color: var(--quarto-hl-kw-color);
+  color: var(--quarto-hl-kw-color);
 }
 
 pre.observablehq--md-pre span.hljs-string {
-    color: var(--quarto-hl-st-color);
+  color: var(--quarto-hl-st-color);
 }
 
 pre.observablehq--md-pre .span.hljs-date,
 pre.observablehq--md-pre .span.hljs-number,
 pre.observablehq--md-pre .span.hljs-regexp,
 pre.observablehq--md-pre .span.hljs-symbol {
-    color: var(--quarto-hl-dv-color);
+  color: var(--quarto-hl-dv-color);
 }
 
 /* Other general niceties, but it's possible that we should do this on a page-by-page basis */
 
 input {
-    vertical-align: middle;
+  vertical-align: middle;
 }
 
-input[type='radio'],input[type='checkbox']
-{
-    margin: 0px 0px 3px 0px;
+input[type="radio"],
+input[type="checkbox"] {
+  margin: 0px 0px 3px 0px;
 }
 
 /* likely that this only makes sense with bootstrap. FIXME check with charles */
 table.table {
-    font-size: .75em;
+  font-size: 0.75em;
 }
 
 .observable-in-a-box-waiting-for-module-import {
-    visibility: hidden;
+  visibility: hidden;
+}
+
+/* play nicely w/ sidebar layout */
+.panel-sidebar .observablehq > form[class^="oi-"] {
+  flex-wrap: wrap !important;
 }
