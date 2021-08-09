@@ -16,7 +16,12 @@ function readOption(options, name, default)
   if value == nil then
     value = default
   end
-  return value
+
+  if value ~= nil and type(value) == "table" then
+    return value:clone()
+  else
+    return value;
+  end
 end
 
 
