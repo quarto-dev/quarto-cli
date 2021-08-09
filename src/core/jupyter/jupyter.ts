@@ -721,6 +721,11 @@ export function jupyterCellWithOptions(
     ...yaml,
   };
 
+  // if we have 'layout' and it's not a character then json encode it
+  if (options[kLayout] && typeof (options[kLayout]) !== "string") {
+    options[kLayout] = JSON.stringify(options[kLayout]);
+  }
+
   return {
     ...cell,
     source,
