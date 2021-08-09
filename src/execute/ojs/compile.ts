@@ -334,6 +334,11 @@ export async function ojsCompile(
           }
         }
       }
+      const outputVal = cell.options?.[kOutput] ??
+        options.format.execute[kOutput] ?? true;
+      if (outputVal === "auto") {
+        attrs.push(`output="auto"`);
+      }
       if (cell.options?.[kCellLstCap]) {
         attrs.push(`caption="${cell.options?.[kCellLstCap]}"`);
       }
@@ -353,8 +358,6 @@ export async function ojsCompile(
         true;
       const echoVal = cell.options?.[kEcho] ?? options.format.execute[kEcho] ??
         true;
-      const outputVal = cell.options?.[kOutput] ??
-        options.format.execute[kOutput] ?? true;
       const keepHiddenVal = options.format.render[kKeepHidden] ?? false;
       const includeVal = cell.options?.[kInclude] ??
         options.format.execute[kInclude] ?? true;
