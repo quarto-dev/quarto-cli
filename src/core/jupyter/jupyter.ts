@@ -1094,6 +1094,19 @@ function mdFromCodeCell(
       // terminate div
       md.push(`:::\n`);
     }
+    // not including output...still check if there are ojs_define outputs to write
+    // (ojs_define should evade output: false)
+  } else if (cell.outputs) {
+    cell.outputs
+      .filter(isDisplayData)
+      .filter((output) =>
+        (output as JupyterOutputDisplayData).metadata.ojs_define
+      )
+      .forEach((ojs_define) => {
+        const ojs_html = (ojs_define as JupyterOutputDisplayData)
+          .data[kTextHtml] as string[];
+        md.push("\n" + mdHtmlOutput(ojs_html));
+      });
   }
 
   // write md w/ div enclosure (if there is any md to write)
