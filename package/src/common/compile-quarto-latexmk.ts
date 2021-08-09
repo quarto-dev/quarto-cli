@@ -131,7 +131,7 @@ export async function compileQuartoLatexmk(
       await compile(
         entryPointPath(config),
         output,
-        [...kFlags, "--lite"],
+        [...kFlags],
         config,
       );
       info(output + "\n");

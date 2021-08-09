@@ -57,10 +57,15 @@ import {
   isNumberedChapter,
   kBook,
 } from "./book-shared.ts";
-import { kOutputExt, kTitle } from "../../../config/constants.ts";
+import {
+  kOutputExt,
+  kQuartoVarsKey,
+  kTitle,
+} from "../../../config/constants.ts";
 
 import { binaryPath } from "../../../core/resources.ts";
 import { execProcess } from "../../../core/process.ts";
+import { texSafeFilename } from "../../../core/tex.ts";
 
 const kAppendicesSectionLabel = "Appendices";
 
@@ -200,6 +205,19 @@ export async function bookProjectConfig(
 
   // return config
   return config;
+}
+
+const variableRegex = /{{<\s*var\s+(.*?)\s*>}}/gm;
+function resolveVariables(value: string, config: ProjectConfig) {
+  variableRegex.lastIndex = 0;
+  return value.replaceAll(variableRegex, (_: string, varName: string) => {
+    const vars = config[kQuartoVarsKey] as Record<string, unknown>;
+    if (vars && vars[varName] !== undefined) {
+      return String(vars[varName]);
+    } else {
+      return `?var:${varName}`;
+    }
+  });
 }
 
 export function bookConfigRenderItems(
@@ -389,6 +407,11 @@ function downloadTools(
   // Form the menu (or single item download button)
   if (downloads.length === 0) {
     return undefined;
+  } else if (downloads.length === 1) {
+    return [{
+      icon: "download",
+      ...downloads[0],
+    }];
   } else {
     return [{
       icon: "download",
@@ -401,7 +424,12 @@ function downloadTools(
 export function bookOutputStem(projectDir: string, config?: ProjectConfig) {
   const outputFile = (bookConfig(kBookOutputFile, config) ||
     bookConfig(kTitle, config) || basename(projectDir)) as string;
-  return outputFile;
+
+  // Resolve any variables that appear in the title (since the title
+  // may be used as things like file name in the case of a single file output)
+  return texSafeFilename(
+    config !== undefined ? resolveVariables(outputFile, config) : outputFile,
+  );
 }
 
 function sharingTools(

@@ -21,16 +21,18 @@ export function firstHeadingFromMarkdown(markdown: string): string | undefined {
 
 export function parsePandocTitle(title: string) {
   let beginAttrPos = -1;
-  let escaped = false;
+  let skipNext = false;
   for (let i = 0; i < title.length; i++) {
     const ch = title.charAt(i);
-    if (ch === "{" && !escaped) {
+    if (ch === "{" && !skipNext) {
       beginAttrPos = i;
       break;
     } else if (ch === "\\") {
-      escaped = !escaped;
-    } else if (ch !== "{" && escaped) {
-      escaped = false;
+      skipNext = !skipNext;
+    } else if (["]"].includes(ch)) {
+      skipNext = true;
+    } else if (ch !== "{" && skipNext) {
+      skipNext = false;
     }
   }
 
