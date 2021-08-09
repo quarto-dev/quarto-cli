@@ -29,6 +29,7 @@ import {
   kBodyEnvelope,
   kDependencies,
   kHtmlPostprocessors,
+  kMarkdownAfterBody,
   kSassBundles,
   kTextHighlightingMode,
 } from "../../config/types.ts";
@@ -156,6 +157,7 @@ export async function runPandoc(
 
   // see if there are extras
   const htmlPostprocessors: Array<(doc: Document) => Promise<string[]>> = [];
+  const htmlRenderAfterBody: string[] = [];
   if (
     sysFilters.length > 0 || options.format.formatExtras ||
     options.project?.formatExtras
@@ -205,6 +207,9 @@ export async function runPandoc(
     if (!projectIsWebsite(options.project)) {
       htmlPostprocessors.push(discoverResourceRefs);
     }
+
+    // Capture markdown that should be appended post body
+    htmlRenderAfterBody.push(...(extras.html?.[kMarkdownAfterBody] || []));
 
     // provide default toc-title if necessary
     if (extras[kTocTitle]) {
@@ -392,11 +397,17 @@ export async function runPandoc(
     }
   }
 
+  // If the format provides any additional markdown to render after the body
+  // then append that before rendering
+  const markdownWithRenderAfter =
+    isHtmlOutput(options.format.pandoc) && htmlRenderAfterBody.length > 0
+      ? markdown + "\n" + htmlRenderAfterBody.join("\n")
+      : markdown;
+
   // append keep-source (if requested) + the metadata to the file (this is so that
   // our fully resolved metadata, which incorporates project and format-specific
   // values, overrides the metadata contained within the file).
-
-  const input = markdown +
+  const input = markdownWithRenderAfter +
     keepSourceBlock(options.format, options.source) +
     kMarkdownBlockSeparator +
     `\n---\n${

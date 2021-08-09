@@ -98,6 +98,7 @@ export const kHtmlPostprocessors = "html-postprocessors";
 export const kBodyEnvelope = "body-envelope";
 export const kTextHighlightingMode = "text-highlighting-mode";
 export const kQuartoCssVariables = "css-variables";
+export const kMarkdownAfterBody = "render-after-body";
 
 export type Metadata = {
   [key: string]: unknown;
@@ -168,6 +169,7 @@ export interface FormatExtras {
     [kHtmlPostprocessors]?: Array<(doc: Document) => Promise<string[]>>;
     [kTextHighlightingMode]?: "light" | "dark" | "none" | undefined;
     [kQuartoCssVariables]?: string[];
+    [kMarkdownAfterBody]?: string[];
   };
 }
 
