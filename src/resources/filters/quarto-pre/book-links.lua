@@ -26,7 +26,7 @@ end
 function resolveBookFileTargets() 
   if not param("single-file-book", false) then
     return {} 
-  else 
+  else
     return {
       Link = function(el)
         local linkTarget = el.target
@@ -51,6 +51,11 @@ function resolveBookFileTargets()
             el.target = target
           else
             -- Deal with bare file links
+            -- escape windows paths if present
+            package.config:sub(1,1)
+            
+            -- Paths are always using '/' separator (even on windows)
+            linkTarget = linkTarget:gsub("\\", "/")
             local sectionId = preState.fileSectionIds[linkTarget];
             if sectionId ~= nil then
               el.target = '#' .. sectionId
