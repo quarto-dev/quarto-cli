@@ -203,13 +203,6 @@ export async function bookProjectConfig(
     config.project[kProjectRender]!.push(`404${ext404}`);
   }
 
-  // Resolve any variables that appear in the title (since the title
-  // may be used as things like file name in the case of a single file output)
-  const title = book[kTitle];
-  if (title !== undefined && typeof (title) === "string") {
-    book[kTitle] = resolveVariables(title, config);
-  }
-
   // return config
   return config;
 }
@@ -432,7 +425,11 @@ export function bookOutputStem(projectDir: string, config?: ProjectConfig) {
   const outputFile = (bookConfig(kBookOutputFile, config) ||
     bookConfig(kTitle, config) || basename(projectDir)) as string;
 
-  return texSafeFilename(outputFile);
+  // Resolve any variables that appear in the title (since the title
+  // may be used as things like file name in the case of a single file output)
+  return texSafeFilename(
+    config !== undefined ? resolveVariables(outputFile, config) : outputFile,
+  );
 }
 
 function sharingTools(
