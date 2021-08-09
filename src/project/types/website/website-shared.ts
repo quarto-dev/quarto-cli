@@ -12,7 +12,7 @@ import { ld } from "lodash/mod.ts";
 import { dirAndStem, pathWithForwardSlashes } from "../../../core/path.ts";
 
 import { ProjectContext } from "../../types.ts";
-import { Navbar, Sidebar } from "../../project-config.ts";
+import { Navbar, Sidebar, SidebarItem } from "../../project-config.ts";
 import {
   kSiteFooter,
   kSiteNavbar,
@@ -21,6 +21,18 @@ import {
   websiteConfig,
 } from "./website-config.ts";
 import { cookieConsentEnabled } from "./website-analytics.ts";
+
+export interface Navigation {
+  navbar?: Navbar;
+  sidebars: Sidebar[];
+  pageNavigation?: boolean;
+  footer?: string;
+}
+
+export interface NavigationPagination {
+  nextPage?: SidebarItem;
+  prevPage?: SidebarItem;
+}
 
 export function inputFileHref(href: string) {
   const [hrefDir, hrefStem] = dirAndStem(href);
@@ -68,4 +80,21 @@ export function websiteNavigationConfig(project: ProjectContext) {
 
   // return
   return { navbar, sidebars, pageNavigation, footer };
+}
+
+export function flattenItems(
+  sidebarItems: SidebarItem[],
+  includeItem: (item: SidebarItem) => boolean,
+) {
+  const items: SidebarItem[] = [];
+  const flatten = (sidebarItem: SidebarItem) => {
+    if (includeItem(sidebarItem)) {
+      items.push(sidebarItem);
+    }
+    if (sidebarItem.contents) {
+      items.push(...flattenItems(sidebarItem.contents, includeItem));
+    }
+  };
+  sidebarItems.forEach(flatten);
+  return items;
 }
