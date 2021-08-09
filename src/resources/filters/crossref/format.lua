@@ -10,7 +10,7 @@ function titleString(type, default)
 end
 
 function titlePrefix(type, default, order)
-  local prefix = title(type, default)
+  local prefix = title(type, default):clone()
   table.insert(prefix, pandoc.Space())
   tappend(prefix, numberOption(type, order))
   tappend(prefix, titleDelim())
