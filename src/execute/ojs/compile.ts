@@ -648,9 +648,6 @@ export async function ojsCompile(
     ...ojsBundleTempFiles,
   ];
 
-  // DONOTCOMMIT
-  Deno.writeTextFileSync("/tmp/out.md", ls.join("\n"));
-
   return {
     markdown: ls.join("\n"),
     filters: [
