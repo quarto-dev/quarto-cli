@@ -243,7 +243,7 @@ export async function renderProject(
           // Is there even a meaningful performance win here? We don't know
           // If there is a performance issue created by this non-incremental
           // copying we should investigate whethere to just use copyMinimal
-          const libsIncremental = false; // !!(incremental || options.useFreezer);
+          const libsIncremental = !!(incremental || options.useFreezer);
 
           // determine format lib dirs (for pruning)
           const formatLibDirs = projType.formatLibDirs

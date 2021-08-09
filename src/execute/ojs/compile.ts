@@ -322,7 +322,16 @@ export async function ojsCompile(
 
       for (const [key, value] of Object.entries(cell.options || {})) {
         if (!keysToSkip.has(key)) {
-          attrs.push(`${key}="${value}"`);
+          const t = typeof value;
+          if (t === "object") {
+            attrs.push(`${key}="${JSON.stringify(value)}"`);
+          } else if (t === "string") {
+            attrs.push(`${key}=${JSON.stringify(value)}`);
+          } else if (t === "number") {
+            attrs.push(`${key}="${value}"`);
+          } else {
+            throw new Error(`Can't serialize yaml metadata value of type ${t}`);
+          }
         }
       }
       if (cell.options?.[kCellLstCap]) {
@@ -638,6 +647,9 @@ export async function ojsCompile(
     ...(extras?.[kIncludeInHeader] || []),
     ...ojsBundleTempFiles,
   ];
+
+  // DONOTCOMMIT
+  Deno.writeTextFileSync("/tmp/out.md", ls.join("\n"));
 
   return {
     markdown: ls.join("\n"),
