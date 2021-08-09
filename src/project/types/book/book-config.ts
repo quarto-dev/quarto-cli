@@ -414,6 +414,11 @@ function downloadTools(
   // Form the menu (or single item download button)
   if (downloads.length === 0) {
     return undefined;
+  } else if (downloads.length === 1) {
+    return [{
+      icon: "download",
+      ...downloads[0],
+    }];
   } else {
     return [{
       icon: "download",
