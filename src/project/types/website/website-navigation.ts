@@ -89,7 +89,7 @@ import { kTocTitle } from "../../../config/constants.ts";
 import {
   createMarkdownEnvelope,
   processMarkdownEnvelope,
-} from "./website-navigation-markdown.ts";
+} from "./website-navigation-md.ts";
 
 // static navigation (initialized during project preRender)
 const navigation: Navigation = {
