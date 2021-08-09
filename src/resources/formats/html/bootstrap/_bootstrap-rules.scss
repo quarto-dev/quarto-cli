@@ -675,6 +675,11 @@ $callouts: (
   background-size: 1rem 1rem;
 }
 
+.navbar-collapse .quarto-color-scheme-toggle {
+  padding-left: 0;
+  padding-right: 0;
+}
+
 .sidebar-navigation .quarto-color-scheme-toggle .bi::before {
   padding-top: 0.1rem;
   margin-bottom: -0.1rem;
