@@ -25,20 +25,6 @@ const kNavPrevId = "quarto-int-prev";
 const kSidebarIdPrefix = "quarto-int-sidebar:";
 const kNavbarIdPrefix = "quarto-int-navbar:";
 
-interface MarkdownRenderContext {
-  format: Format;
-  sidebar?: Sidebar;
-  navigation?: Navigation;
-  nextAndPrev: NavigationPagination;
-}
-
-interface MarkdownRenderHandler {
-  getUnrendered: (
-    context: MarkdownRenderContext,
-  ) => Record<string, string> | undefined;
-  processRendered: (rendered: Record<string, Element>, doc: Document) => void;
-}
-
 export function createMarkdownEnvelope(
   format: Format,
   navigation: Navigation,
@@ -88,6 +74,20 @@ const readEnvelope = (doc: Document) => {
   }
   return contents;
 };
+
+interface MarkdownRenderContext {
+  format: Format;
+  sidebar?: Sidebar;
+  navigation?: Navigation;
+  nextAndPrev: NavigationPagination;
+}
+
+interface MarkdownRenderHandler {
+  getUnrendered: (
+    context: MarkdownRenderContext,
+  ) => Record<string, string> | undefined;
+  processRendered: (rendered: Record<string, Element>, doc: Document) => void;
+}
 
 const markdownEnvelopeWriter = () => {
   const renderList: string[] = [];

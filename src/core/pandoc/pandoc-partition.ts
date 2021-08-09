@@ -29,7 +29,7 @@ export function parsePandocTitle(title: string) {
       break;
     } else if (ch === "\\") {
       skipNext = !skipNext;
-    } else if (["[", "]"].includes(ch)) {
+    } else if (["]"].includes(ch)) {
       skipNext = true;
     } else if (ch !== "{" && skipNext) {
       skipNext = false;
