@@ -233,7 +233,7 @@ export class OJSConnector {
           element.style.display = "none";
         }
 
-        // determine if we need to handle output:auto
+        // determine if we need to handle output:all
         let el = targetElement;
         let cellOutputDisplay;
         while (el !== null && !el.classList.contains("cell")) {
@@ -244,8 +244,8 @@ export class OJSConnector {
         }
         // we may fail to find a cell in inline settings; but inline
         // settings don't have inspectors anyway, so in this case we
-        // skip the check for output:auto anyway.
-        if (el && el.dataset.output === "auto") {
+        // skip the check for output:all anyway.
+        if (el && el.dataset.output !== "all") {
           const config = { childList: true };
           const callback = function(mutationsList, observer) {
             for (const mutation of mutationsList) {
@@ -258,7 +258,7 @@ export class OJSConnector {
           const observer = new MutationObserver(callback);
           observer.observe(element, config);
           if (cellOutputDisplay === undefined) {
-            throw new Error("Internal error: Couldn't find output display cell while handling output:auto");
+            throw new Error("Internal error: Couldn't find output display cell while handling output:!all");
           }
         }
         
