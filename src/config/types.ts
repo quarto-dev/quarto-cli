@@ -51,6 +51,8 @@ import {
   kLatexMinRuns,
   kLatexOutputDir,
   kLatexTlmgrOpts,
+  kLinkExternalIcon,
+  kLinkExternalNewwindow,
   kListings,
   kMarkdownHeadings,
   kMathjax,
@@ -219,6 +221,8 @@ export interface FormatRender {
   [kLatexMakeIndexOpts]?: string[];
   [kLatexTlmgrOpts]?: string[];
   [kLatexOutputDir]?: string | null;
+  [kLinkExternalIcon]?: string | boolean;
+  [kLinkExternalNewwindow]?: boolean;
 }
 
 export interface FormatExecute {

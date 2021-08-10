@@ -44,6 +44,8 @@ import {
   kLatexMaxRuns,
   kLatexOutputDir,
   kLatexTlmgrOpts,
+  kLinkExternalIcon,
+  kLinkExternalNewwindow,
   kMergeIncludes,
   kOutput,
   kOutputDivs,
@@ -179,6 +181,8 @@ function defaultFormat(): Format {
       [kLatexMakeIndexOpts]: [],
       [kLatexTlmgrOpts]: [],
       [kLatexOutputDir]: null,
+      [kLinkExternalIcon]: false,
+      [kLinkExternalNewwindow]: false,
     },
     pandoc: {
       from: "markdown",

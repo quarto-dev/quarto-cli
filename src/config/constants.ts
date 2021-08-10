@@ -68,6 +68,9 @@ export const kLatexMakeIndexOpts = "latex-makeindex-opts";
 export const kLatexTlmgrOpts = "latex-tlmgr-opts";
 export const kLatexOutputDir = "latex-output-dir";
 
+export const kLinkExternalIcon = "link-external-icon";
+export const kLinkExternalNewwindow = "link-external-newwindow";
+
 export const kExecuteDefaultsKeys = [
   kFigWidth,
   kFigHeight,
@@ -117,6 +120,8 @@ export const kRenderDefaultsKeys = [
   kLatexMakeIndexOpts,
   kLatexTlmgrOpts,
   kLatexOutputDir,
+  kLinkExternalIcon,
+  kLinkExternalNewwindow,
 ];
 
 // 'defaults' fields
