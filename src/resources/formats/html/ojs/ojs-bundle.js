@@ -246,47 +246,45 @@ export class OJSConnector {
         // settings don't have inspectors anyway, so in this case we
         // skip the check for output:all anyway.
         
-        if (el && el.dataset.output !== "all") {
-          const config = { childList: true };
-          const callback = function(mutationsList, observer) {
-            for (const mutation of mutationsList) {
-              if (el && el.dataset.output !== "all") {
-                if (mutation.target.classList.contains("observablehq--error")) {
-                  cellOutputDisplay.style.display = null;
-                } else {
-                  if (Array.from(mutation.target.childNodes).every(
-                    n => n.classList.contains("observablehq--inspect"))) {
-                    cellOutputDisplay.style.display = "none";
-                  }
-                  Array.from(mutation.target.childNodes)
-                    .filter(
-                      n => n.classList.contains("observablehq--inspect"))
-                    .forEach(
-                      n => n.classList.add("quarto-ojs-hide")
-                    );
+        const config = { childList: true };
+        const callback = function(mutationsList, observer) {
+          for (const mutation of mutationsList) {
+            if (el && el.dataset.output !== "all") {
+              if (mutation.target.classList.contains("observablehq--error")) {
+                cellOutputDisplay.classList.remove("quarto-ojs-hide");
+              } else {
+                if (Array.from(mutation.target.childNodes).every(
+                  n => n.classList.contains("observablehq--inspect"))) {
+                  cellOutputDisplay.classList.add("quarto-ojs-hide");
                 }
-              }
-              // don't echo the import statement
-              for (const added of mutation.addedNodes) {
-                // We search here for code.javascript and node span.hljs-... because
-                // at this point in the DOM, observable's runtime hasn't called
-                // HLJS yet. if you inspect the DOM yourself, you're likely to see
-                // HLJS, so this comment is here to prevent future confusion.
-                const result = added.querySelectorAll("code.javascript");
-                if (result.length !== 1) {
-                  continue;
-                }
-                if (result[0].innerText.trim().startsWith("import")) {
-                  mutation.target.classList.add("quarto-ojs-hide");
-                }
+                Array.from(mutation.target.childNodes)
+                  .filter(
+                    n => n.classList.contains("observablehq--inspect"))
+                  .forEach(
+                    n => n.classList.add("quarto-ojs-hide")
+                  );
               }
             }
-          };
-          const observer = new MutationObserver(callback);
-          observer.observe(element, config);
-          if (cellOutputDisplay === undefined) {
-            throw new Error("Internal error: Couldn't find output display cell while handling output:!all");
+            // don't echo the import statement
+            for (const added of mutation.addedNodes) {
+              // We search here for code.javascript and node span.hljs-... because
+              // at this point in the DOM, observable's runtime hasn't called
+              // HLJS yet. if you inspect the DOM yourself, you're likely to see
+              // HLJS, so this comment is here to prevent future confusion.
+              const result = added.querySelectorAll("code.javascript");
+              if (result.length !== 1) {
+                continue;
+              }
+              if (result[0].innerText.trim().startsWith("import")) {
+                mutation.target.parentElement.parentElement.parentElement.classList.add("quarto-ojs-hide");
+              }
+            }
           }
+        };
+        const observer = new MutationObserver(callback);
+        observer.observe(element, config);
+        if (cellOutputDisplay === undefined) {
+          throw new Error("Internal error: Couldn't find output display cell while handling output:!all");
         }
         
         element.classList.add("ojs-in-a-box-waiting-for-module-import");
@@ -328,7 +326,7 @@ function es6ImportAsObservableModule(m) {
 // this is essentially the import resolution code from observable's
 // runtime. we change it to add a license check for permissive
 // open-source licenses before resolving the import
-async function defaultResolveImportPath(path) {
+function defaultResolveImportPath(path) {
   const extractPath = (path) => {
     let source = path;
     let m;
@@ -346,6 +344,20 @@ async function defaultResolveImportPath(path) {
   const source = extractPath(path);
   const metadataURL = `https://api.observablehq.com/document/${source}`;
   const moduleURL = `https://api.observablehq.com/${source}.js?v=3`;
+
+  // return fetch(metadataURL, { mode: 'no-cors' })
+  //   .then(r => r.json())
+  //   .then(json => {
+  //     if (["isc", "mit", "bsd-3-clause", "apache-2.0"].indexOf(json.license) === -1) {
+  //       throw new Error(`Notebook doesn't have a permissive open-source license`);
+  //     }
+  //     return import(moduleURL);
+  //   })
+  //   .then(m => m.default);
+
+  return import(moduleURL)
+    .then(m => m.default);
+
   /*
   const metadata = await fetch(metadataURL, { mode: 'no-cors' });
   const nbJson = metadata.json();
@@ -353,8 +365,8 @@ async function defaultResolveImportPath(path) {
     throw new Error(`Notebook doesn't have a permissive open-source license`);
   }
   */
-  const m = await import(moduleURL);
-  return m.default;
+  // const m = await import(moduleURL);
+  // return m.default;
 }
 
 /*
