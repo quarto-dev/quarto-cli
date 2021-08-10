@@ -260,5 +260,31 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   
 
   <% } %>
- 
+
+
+  <% if (linkExternalIcon || linkExternalNewwindow) { %>
+  var isInternal = new RegExp('/' + window.location.host + '/');
+  // Inspect non-navigation links and adorn them if external
+  var links = window.document.querySelectorAll('a:not(.nav-link)');
+  for (var i=0; i<links.length; i++) {
+    const link = links[i];
+    if (!isInternal.test(link.href)) {
+      <% if (linkExternalNewwindow) { %> 
+        // target, if specified
+        link.setAttribute("target", "_blank");
+      <% } %>
+
+      <% if (linkExternalIcon && typeof(linkExternalIcon) === 'string') { %> 
+        // external icon, if provided
+        var extIcon = window.document.createElement('i');
+        extIcon.classList.add('bi-<%=linkExternalIcon%>');
+        extIcon.classList.add('quarto-ext-icon');
+        link.parentNode.insertBefore(extIcon, link.nextSibling)
+      <% } else if (linkExternalIcon) { %>
+        // default icon
+        link.classList.add("quarto-ext-link");
+      <% } %>
+    }
+  }
+  <% } %>
 });

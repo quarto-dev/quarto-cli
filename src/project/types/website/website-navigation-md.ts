@@ -185,10 +185,12 @@ const nextPageTitleHandler = {
     const renderedEl = rendered[kNavNextId];
     if (renderedEl) {
       const el = doc.querySelector(
-        `.page-navigation .nav-page-next a`,
+        `.page-navigation .nav-page-next a .nav-page-text`,
       );
       if (el) {
+        console.log(el.innerHTML);
         el.innerHTML = renderedEl.innerHTML;
+        console.log(el.innerHTML);
       }
     }
   },
@@ -204,7 +206,7 @@ const prevPageTitleHandler = {
     const renderedEl = rendered[kNavPrevId];
     if (renderedEl) {
       const el = doc.querySelector(
-        `.page-navigation .nav-page-previous a`,
+        `.page-navigation .nav-page-previous .nav-page-text a`,
       );
       if (el) {
         el.innerHTML = renderedEl.innerHTML;
