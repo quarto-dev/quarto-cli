@@ -344,6 +344,14 @@ nav .nav-item.compact .nav-link {
   flex-grow: 1;
 }
 
+#quarto-sidebar .sidebar-menu-container {
+  padding-top: 8px;
+}
+
+#quarto-content main {
+  padding-top: 0px;
+}
+
 .sidebar nav .dropdown-menu .dropdown-item .bi::before {
   width: 1em;
 }
