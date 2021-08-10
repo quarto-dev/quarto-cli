@@ -94,11 +94,6 @@ input[type="checkbox"] {
   margin: 0px 0px 3px 0px;
 }
 
-/* likely that this only makes sense with bootstrap. FIXME check with charles */
-table.table {
-  font-size: 0.75em;
-}
-
 .observable-in-a-box-waiting-for-module-import {
   visibility: hidden;
 }
@@ -106,4 +101,9 @@ table.table {
 /* play nicely w/ sidebar layout */
 .panel-sidebar .observablehq > form[class^="oi-"] {
   flex-wrap: wrap !important;
+}
+
+/* likely that this only makes sense with bootstrap. FIXME check with charles */
+.observablehq table {
+  font-size: 0.9em !important;
 }
