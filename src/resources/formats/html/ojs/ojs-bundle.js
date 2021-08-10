@@ -319,12 +319,15 @@ async function defaultResolveImportPath(path) {
   const source = extractPath(path);
   const metadataURL = `https://api.observablehq.com/document/${source}`;
   const moduleURL = `https://api.observablehq.com/${source}.js?v=3`;
+  /*
   const metadata = await fetch(metadataURL, { mode: 'no-cors' });
+
   const nbJson = metadata.json();
   if (["isc", "mit", "bsd-3-clause", "apache-2.0"].indexOf(nbJson.license) === -1) {
     throw new Error(`Notebook doesn't have a permissive open-source license`);
   }
-  const m = await import(path);
+  */
+  const m = await import(moduleURL);
   return m.default;
 }
 
