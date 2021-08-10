@@ -1,7 +1,7 @@
 
 
 <% if (item.href) { %>
-  <li class="nav-item">
+  <li class="nav-item<%- item.text === undefined ? ' compact' : '' %>">
     <a class="nav-link" href="<%- item.href %>"><% partial('navicon.ejs', { item }) %> <%- item.text %></a>
   </li>  
 <% } else if (item.menu) { %>

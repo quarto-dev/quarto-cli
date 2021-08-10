@@ -37,6 +37,7 @@ export interface Navbar {
   left?: NavbarItem[];
   right?: NavbarItem[];
   collapse?: boolean;
+  tools?: SidebarTool[];
   pinned?: boolean;
   [kCollapseBelow]?: LayoutBreak;
   darkToggle?: boolean;

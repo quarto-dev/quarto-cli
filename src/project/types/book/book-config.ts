@@ -20,6 +20,7 @@ import {
 import { defaultWriterFormat } from "../../../format/formats.ts";
 
 import {
+  Navbar,
   normalizeSidebarItem,
   partitionedMarkdownForInput,
   SidebarItem,
@@ -161,31 +162,27 @@ export async function bookProjectConfig(
   siteSidebar[kSiteSidebarStyle] = siteSidebar[kSiteSidebarStyle] || "floating";
 
   // if we have tools then fold those into the sidebar
-  siteSidebar[kBookTools] = siteSidebar[kBookTools] || [];
-  if (book[kBookTools]) {
-    (siteSidebar[kBookTools] as []).push(...book[kBookTools] as []);
-  }
 
-  // Prorcess the repo-url (github or journal-code)
+  // Prorcess the repo-url (github or journal-code) and other
+  const tools = [];
   if (site[kSiteRepoUrl]) {
     const repoUrl = site[kSiteRepoUrl] as string;
     const icon = isGithubRepoUrl(repoUrl) ? "github" : "journal-code";
-    (siteSidebar[kBookTools] as SidebarTool[]).push({
+    tools.push({
       text: "Source Code",
       icon,
       href: repoUrl,
     });
   }
+  tools.push(...(downloadTools(projectDir, config) || []));
+  tools.push(...(sharingTools(config) || []));
 
-  // Create any download tools
-  (siteSidebar[kBookTools] as SidebarTool[]).push(
-    ...(downloadTools(projectDir, config) || []),
-  );
-
-  // Create any sharing options
-  (siteSidebar[kBookTools] as SidebarTool[]).push(
-    ...(sharingTools(config) || []),
-  );
+  if (site[kSiteNavbar]) {
+    (site[kSiteNavbar] as Navbar)[kBookTools] = tools;
+  } else {
+    siteSidebar[kBookTools] = siteSidebar[kBookTools] || [];
+    (siteSidebar[kBookTools] as SidebarTool[]).push(...tools);
+  }
 
   // save our own render list (which has more fine grained info about parts,
   // appendices, numbering, etc.) and popuplate the main config render list
