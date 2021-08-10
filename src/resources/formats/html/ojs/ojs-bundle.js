@@ -245,14 +245,25 @@ export class OJSConnector {
         // we may fail to find a cell in inline settings; but inline
         // settings don't have inspectors anyway, so in this case we
         // skip the check for output:all anyway.
+        
         if (el && el.dataset.output !== "all") {
           const config = { childList: true };
           const callback = function(mutationsList, observer) {
             for (const mutation of mutationsList) {
-              if (Array.from(mutation.addedNodes).filter(
-                n => n.classList.contains("observablehq--inspect")).length > 0) {
+              if (mutation.target.classList.contains("observablehq--error")) {
+                cellOutputDisplay.style.display = null;
+                continue;
+              }
+              if (Array.from(mutation.target.childNodes).every(
+                n => n.classList.contains("observablehq--inspect"))) {
                 cellOutputDisplay.style.display = "none";
               }
+              Array.from(mutation.target.childNodes)
+                .filter(
+                  n => n.classList.contains("observablehq--inspect"))
+                .forEach(
+                  n => n.style.display = "none"
+                );
             }
           };
           const observer = new MutationObserver(callback);
@@ -321,7 +332,6 @@ async function defaultResolveImportPath(path) {
   const moduleURL = `https://api.observablehq.com/${source}.js?v=3`;
   /*
   const metadata = await fetch(metadataURL, { mode: 'no-cors' });
-
   const nbJson = metadata.json();
   if (["isc", "mit", "bsd-3-clause", "apache-2.0"].indexOf(nbJson.license) === -1) {
     throw new Error(`Notebook doesn't have a permissive open-source license`);
