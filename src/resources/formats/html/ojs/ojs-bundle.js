@@ -236,16 +236,16 @@ export class OJSConnector {
         // determine if we need to handle output:auto
         let el = targetElement;
         let cellOutputDisplay;
-        while (!el.classList.contains("cell") && el !== null) {
+        while (el !== null && !el.classList.contains("cell")) {
           el = el.parentElement;
-          if (el.classList.contains("cell-output-display")) {
+          if (el && el.classList.contains("cell-output-display")) {
             cellOutputDisplay = el;
           }
         }
-        if (el === null) {
-          throw new Error("Internal error: Couldn't find container cell while handling output:auto");
-        }
-        if (el.dataset.output === "auto") {
+        // we may fail to find a cell in inline settings; but inline
+        // settings don't have inspectors anyway, so in this case we
+        // skip the check for output:auto anyway.
+        if (el && el.dataset.output === "auto") {
           const config = { childList: true };
           const callback = function(mutationsList, observer) {
             for (const mutation of mutationsList) {
@@ -298,10 +298,10 @@ function es6ImportAsObservableModule(m) {
   };
 }
 
-// this is the import resolution code from observable's runtime. we'd
-// like to use it from their modules directly but they don't export
-// it.
-function defaultResolveImportPath(path) {
+// this is essentially the import resolution code from observable's
+// runtime. we change it to add a license check for permissive
+// open-source licenses before resolving the import
+async function defaultResolveImportPath(path) {
   const extractPath = (path) => {
     let source = path;
     let m;
@@ -317,9 +317,15 @@ function defaultResolveImportPath(path) {
     return source;
   };
   const source = extractPath(path);
-  return import(`https://api.observablehq.com/${source}.js?v=3`).then((m) => {
-    return m.default;
-  });
+  const metadataURL = `https://api.observablehq.com/document/${source}`;
+  const moduleURL = `https://api.observablehq.com/${source}.js?v=3`;
+  const metadata = await fetch(metadataURL, { mode: 'no-cors' });
+  const nbJson = metadata.json();
+  if (["isc", "mit", "bsd-3-clause", "apache-2.0"].indexOf(nbJson.license) === -1) {
+    throw new Error(`Notebook doesn't have a permissive open-source license`);
+  }
+  const m = await import(path);
+  return m.default;
 }
 
 /*

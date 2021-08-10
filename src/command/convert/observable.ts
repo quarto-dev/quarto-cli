@@ -33,11 +33,18 @@ export async function observableNotebookToMarkdown(
     url = `${kObservableApiUrl}document/${nbPath}`;
   }
 
-  // retreive and parse json
+  // retrieve and parse json
   const res = await fetch(url);
+  if (res.status === 404) {
+    throw new Error(`Convert ${url} failed with error: ${res.statusText}`);
+  }
   const body = new Uint8Array(await res.arrayBuffer());
   const json = new TextDecoder().decode(body);
   const nb = JSON.parse(json);
+
+  if (["isc", "mit", "bsd-3-clause", "apache-2.0"].indexOf(nb.license) === -1) {
+    throw new Error(`Convert ${url} failed: notebook doesn't have a permissive open-source license`);
+  }
 
   // see if we can determine a default file name
   let file = output ? basename(output) : undefined;
