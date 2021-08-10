@@ -336,8 +336,8 @@ export async function ojsCompile(
       }
       const outputVal = cell.options?.[kOutput] ??
         options.format.execute[kOutput] ?? true;
-      if (outputVal === "auto") {
-        attrs.push(`output="auto"`);
+      if (outputVal === "all") {
+        attrs.push(`output="all"`);
       }
       if (cell.options?.[kCellLstCap]) {
         attrs.push(`caption="${cell.options?.[kCellLstCap]}"`);

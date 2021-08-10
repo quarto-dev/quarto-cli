@@ -553,9 +553,6 @@ export function languagesInMarkdownFile(file: string) {
 }
 
 export function languagesInMarkdown(markdown: string) {
-  // strip out code block intended to contain other code blocks
-  markdown = markdown.replaceAll(/^(`{4,})[^`][\S\s]+\1$/gm, "\n\n");
-
   // see if there are any code chunks in the file
   const languages = new Set<string>();
   const kChunkRegex = /^[\t >]*```+\s*\{([a-zA-Z0-9_]+)( *[ ,].*)?\}\s*$/gm;

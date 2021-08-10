@@ -242,7 +242,7 @@ export interface FormatExecute {
   [kEval]?: true | false | null;
   [kError]?: boolean;
   [kEcho]?: boolean;
-  [kOutput]?: boolean;
+  [kOutput]?: boolean | "all";
   [kWarning]?: boolean;
   [kInclude]?: boolean;
   [kKeepMd]?: boolean;
