@@ -107,3 +107,7 @@ input[type="checkbox"] {
 .observablehq table {
   font-size: 0.9em !important;
 }
+
+.quarto-ojs-hide {
+  display: none;
+}

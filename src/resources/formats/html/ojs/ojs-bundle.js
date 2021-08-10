@@ -250,20 +250,36 @@ export class OJSConnector {
           const config = { childList: true };
           const callback = function(mutationsList, observer) {
             for (const mutation of mutationsList) {
-              if (mutation.target.classList.contains("observablehq--error")) {
-                cellOutputDisplay.style.display = null;
-                continue;
+              if (el && el.dataset.output !== "all") {
+                if (mutation.target.classList.contains("observablehq--error")) {
+                  cellOutputDisplay.style.display = null;
+                } else {
+                  if (Array.from(mutation.target.childNodes).every(
+                    n => n.classList.contains("observablehq--inspect"))) {
+                    cellOutputDisplay.style.display = "none";
+                  }
+                  Array.from(mutation.target.childNodes)
+                    .filter(
+                      n => n.classList.contains("observablehq--inspect"))
+                    .forEach(
+                      n => n.classList.add("quarto-ojs-hide")
+                    );
+                }
               }
-              if (Array.from(mutation.target.childNodes).every(
-                n => n.classList.contains("observablehq--inspect"))) {
-                cellOutputDisplay.style.display = "none";
+              // don't echo the import statement
+              for (const added of mutation.addedNodes) {
+                // We search here for code.javascript and node span.hljs-... because
+                // at this point in the DOM, observable's runtime hasn't called
+                // HLJS yet. if you inspect the DOM yourself, you're likely to see
+                // HLJS, so this comment is here to prevent future confusion.
+                const result = added.querySelectorAll("code.javascript");
+                if (result.length !== 1) {
+                  continue;
+                }
+                if (result[0].innerText.trim().startsWith("import")) {
+                  mutation.target.classList.add("quarto-ojs-hide");
+                }
               }
-              Array.from(mutation.target.childNodes)
-                .filter(
-                  n => n.classList.contains("observablehq--inspect"))
-                .forEach(
-                  n => n.style.display = "none"
-                );
             }
           };
           const observer = new MutationObserver(callback);
