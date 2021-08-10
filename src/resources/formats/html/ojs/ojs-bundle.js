@@ -233,6 +233,35 @@ export class OJSConnector {
           element.style.display = "none";
         }
 
+        // determine if we need to handle output:auto
+        let el = targetElement;
+        let cellOutputDisplay;
+        while (!el.classList.contains("cell") && el !== null) {
+          el = el.parentElement;
+          if (el.classList.contains("cell-output-display")) {
+            cellOutputDisplay = el;
+          }
+        }
+        if (el === null) {
+          throw new Error("Internal error: Couldn't find container cell while handling output:auto");
+        }
+        if (el.dataset.output === "auto") {
+          const config = { childList: true };
+          const callback = function(mutationsList, observer) {
+            for (const mutation of mutationsList) {
+              if (Array.from(mutation.addedNodes).filter(
+                n => n.classList.contains("observablehq--inspect")).length > 0) {
+                cellOutputDisplay.style.display = "none";
+              }
+            }
+          };
+          const observer = new MutationObserver(callback);
+          observer.observe(element, config);
+          if (cellOutputDisplay === undefined) {
+            throw new Error("Internal error: Couldn't find output display cell while handling output:auto");
+          }
+        }
+        
         element.classList.add("ojs-in-a-box-waiting-for-module-import");
 
         return new this.inspectorClass(element);
@@ -717,11 +746,6 @@ export function initOjsShinyRuntime() {
 export function createRuntime() {
   const quartoOjsGlobal = window._ojs;
   const isShiny = window.Shiny !== undefined;
-
-  // replace all data attributes for output with classes
-  for (const cell of document.querySelectorAll("div.cell[data-output='auto']")) {
-    cell.classList.add("auto-output");
-  }
 
   // Are we shiny?
   if (isShiny) {
