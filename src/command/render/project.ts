@@ -236,13 +236,6 @@ export async function renderProject(
           // if this is an incremental render or we are uzing the freezer, then
           // copy lib dirs incrementally (don't replace the whole directory).
           // otherwise, replace the whole thing so we get a clean start
-          // NOTE: we are disabling incremental render b/c in spite of the
-          // potential performance gains there are scenarios where a lib_dir
-          // has only partial contents and the incremental approach can
-          // never "fix" the partial contents in the destination
-          // Is there even a meaningful performance win here? We don't know
-          // If there is a performance issue created by this non-incremental
-          // copying we should investigate whethere to just use copyMinimal
           const libsIncremental = !!(incremental || options.useFreezer);
 
           // determine format lib dirs (for pruning)
