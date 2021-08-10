@@ -121,7 +121,7 @@ export const websiteProjectType: ProjectType = {
       // title prefix if the project has a title and this isn't the home page
       const title = websiteTitle(project.config);
       if (title) {
-        extras.metadata = {
+        extras.pandoc = {
           [kTitlePrefix]: title,
         };
       }

@@ -263,12 +263,12 @@ function previewTitle(format: Format, extras: FormatExtras) {
   const meta = extras.metadata || {};
   if (meta[kPageTitle] !== undefined) {
     return meta[kPageTitle];
-  } else if (meta[kTitlePrefix] !== undefined) {
+  } else if (extras.pandoc?.[kTitlePrefix] !== undefined) {
     // If the title prefix is the same as the title, don't include it as a prefix
-    if (meta[kTitlePrefix] === format.metadata[kTitle]) {
+    if (extras.pandoc?.[kTitlePrefix] === format.metadata[kTitle]) {
       return format.metadata[kTitle];
     } else if (format.metadata[kTitle]) {
-      return meta[kTitlePrefix] + " - " + format.metadata[kTitle];
+      return extras.pandoc?.[kTitlePrefix] + " - " + format.metadata[kTitle];
     } else {
       return undefined;
     }

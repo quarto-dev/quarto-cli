@@ -303,8 +303,7 @@ export async function runPandoc(
     options.format.metadata[kTitle];
   const pageTitle = allDefaults?.[kVariables]?.[kPageTitle] ||
     options.format.metadata[kPageTitle];
-  const titlePrefix = allDefaults?.[kVariables]?.[kTitlePrefix] ||
-    options.format.metadata[kTitlePrefix];
+  const titlePrefix = allDefaults?.[kTitlePrefix];
 
   // provide default page title if necessary
   if (!title && !pageTitle) {
@@ -315,10 +314,12 @@ export async function runPandoc(
     );
   }
 
-  // don't ever duplicate title and title-prefix
-  if (title === titlePrefix) {
-    delete allDefaults?.[kVariables]?.[kTitlePrefix];
-    delete options.format.metadata[kTitlePrefix];
+  // don't ever duplicate pagetite/title and title-prefix
+  if (
+    (pageTitle !== undefined && pageTitle === titlePrefix) ||
+    (pageTitle === undefined && title === titlePrefix)
+  ) {
+    delete allDefaults[kTitlePrefix];
   }
 
   // determine path to crossref file

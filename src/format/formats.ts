@@ -5,8 +5,6 @@
 *
 */
 
-import { mergeConfigs } from "../core/config.ts";
-
 import {
   kEcho,
   kFigFormat,

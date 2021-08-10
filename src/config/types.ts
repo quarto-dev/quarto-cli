@@ -70,6 +70,7 @@ import {
   kShiftHeadingLevelBy,
   kTableOfContents,
   kTemplate,
+  kTitlePrefix,
   kToc,
   kTocTitle,
   kTopLevelDivision,
@@ -276,6 +277,7 @@ export interface FormatPandoc {
   [kHtmlMathMethod]?: string | { method: string; url: string };
   [kTopLevelDivision]?: string;
   [kShiftHeadingLevelBy]?: number;
+  [kTitlePrefix]?: string;
 }
 
 export interface PandocFlags {
