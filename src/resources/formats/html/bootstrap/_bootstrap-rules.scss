@@ -488,8 +488,8 @@ div.hanging-indent {
   align-items: center;
 }
 
-.callout.callout-captioned .callout-body > :last-child,
-.callout.callout-captioned .callout-body > div > :last-child {
+.callout.callout-captioned .callout-body > :last-child:not(.sourceCode),
+.callout.callout-captioned .callout-body > div > :last-child:not(.sourceCode) {
   margin-bottom: 0.5rem;
 }
 
