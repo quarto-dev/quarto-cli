@@ -5,7 +5,7 @@
 *
 */
 import { join } from "path/mod.ts";
-import { print, sassVariable } from "../../core/sass.ts";
+import { outputVariable, sassVariable } from "../../core/sass.ts";
 import { kCodeOverflow } from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
 
@@ -72,7 +72,7 @@ export const quartoFunctions = () =>
 export const quartoDefaults = (format: Format) => {
   const defaults: string[] = [];
   defaults.push(
-    print(
+    outputVariable(
       sassVariable(
         "code-copy-selector",
         format.metadata[kCodeCopy] === undefined ||
@@ -83,7 +83,7 @@ export const quartoDefaults = (format: Format) => {
     ),
   );
   defaults.push(
-    print(
+    outputVariable(
       sassVariable(
         "code-white-space",
         format.render[kCodeOverflow] === "wrap" ? "pre-wrap" : "pre",

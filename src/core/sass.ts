@@ -22,6 +22,9 @@ export function sassVariable(
 }
 
 // prints a Sass variable
-export function print(variable: SassVariable, isDefault = true): string {
+export function outputVariable(
+  variable: SassVariable,
+  isDefault = true,
+): string {
   return `$${variable.name}: ${variable.value}${isDefault ? " !default" : ""};`;
 }

@@ -16,7 +16,7 @@ import {
   asCssSize,
 } from "../../core/css.ts";
 
-import { print, SassVariable, sassVariable } from "../../core/sass.ts";
+import { outputVariable, SassVariable, sassVariable } from "../../core/sass.ts";
 
 import { Format, SassBundle, SassLayer } from "../../config/types.ts";
 import { Metadata } from "../../config/types.ts";
@@ -85,7 +85,7 @@ function layerQuartoScss(
     framework: {
       defaults: pandocVariablesToBootstrapDefaults(format.metadata).map(
         (variable) => {
-          return print(variable, false);
+          return outputVariable(variable, false);
         },
       ).join("\n"),
       functions: "",
@@ -289,7 +289,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     const sidebarBackground = sidebar[kBackground];
     if (sidebarBackground !== undefined) {
       variables.push(
-        print(
+        outputVariable(
           sassVariable(
             "sidebar-bg",
             sidebarBackground,
@@ -308,7 +308,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
 
   if (codeblockLeftBorder !== undefined) {
     variables.push(
-      print(
+      outputVariable(
         sassVariable(
           kCodeBorderLeft,
           codeblockLeftBorder,
@@ -320,13 +320,13 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     );
 
     if (codeblockBackground === undefined && codeblockLeftBorder !== false) {
-      variables.push(print(sassVariable(kCodeBlockBackground, false)));
+      variables.push(outputVariable(sassVariable(kCodeBlockBackground, false)));
     }
   }
 
   // code background color
   if (codeblockBackground !== undefined) {
-    variables.push(print(sassVariable(
+    variables.push(outputVariable(sassVariable(
       kCodeBlockBackground,
       codeblockBackground,
       typeof (codeblockBackground) === "string" ? asBootstrapColor : undefined,
