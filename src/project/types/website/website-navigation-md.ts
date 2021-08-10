@@ -188,9 +188,7 @@ const nextPageTitleHandler = {
         `.page-navigation .nav-page-next a .nav-page-text`,
       );
       if (el) {
-        console.log(el.innerHTML);
         el.innerHTML = renderedEl.innerHTML;
-        console.log(el.innerHTML);
       }
     }
   },
