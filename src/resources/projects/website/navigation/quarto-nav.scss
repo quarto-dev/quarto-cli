@@ -38,6 +38,11 @@ nav .dropdown-item i {
   padding-right: 1px;
 }
 
+nav .nav-item.compact .nav-link {
+  padding-left: 0;
+  padding-right: 0.5rem;
+}
+
 .navbar #quarto-search {
   width: 11em;
   @include media-breakpoint-up(lg) {

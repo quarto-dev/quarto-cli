@@ -47,6 +47,7 @@ import { kProjectType, ProjectConfig, ProjectContext } from "../../types.ts";
 import { projectOffset, projectOutputDir } from "../../project-shared.ts";
 import { resolveInputTarget } from "../../project-index.ts";
 import {
+  kAriaLabel,
   kCollapseBelow,
   kCollapseLevel,
   LayoutBreak,
@@ -724,7 +725,29 @@ async function navbarEjsData(
     }
   }
 
+  if (navbar.tools) {
+    await resolveSidebarTools(
+      project,
+      navbar.tools,
+    );
+
+    data.right?.push(...navbar.tools.map((tool) => {
+      const navItem = tool as NavbarItem;
+      navItem[kAriaLabel] = navItem.text;
+      delete navItem.text;
+      resolveIcon(navItem);
+      return navItem;
+    }));
+  }
+
   return data;
+}
+
+function resolveIcon(navItem: NavbarItem) {
+  // resolve icon
+  navItem.icon = navItem.icon
+    ? !navItem.icon.startsWith("bi-") ? `bi-${navItem.icon}` : navItem.icon
+    : navItem.icon;
 }
 
 async function navigationItem(
@@ -745,10 +768,7 @@ async function navigationItem(
     }
   }
 
-  // resolve icon
-  navItem.icon = navItem.icon
-    ? !navItem.icon.startsWith("bi-") ? `bi-${navItem.icon}` : navItem.icon
-    : navItem.icon;
+  resolveIcon(navItem);
 
   resolveHrefAttribute(navItem);
   if (navItem.href) {
