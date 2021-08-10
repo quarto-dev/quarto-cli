@@ -5,7 +5,7 @@
     <a class="nav-link" href="<%- item.href %>"><% partial('navicon.ejs', { item }) %> <%- item.text %></a>
   </li>  
 <% } else if (item.menu) { %>
-  <li class="nav-item dropdown">
+  <li class="nav-item dropdown <%- item.text === undefined ? ' compact' : '' %>">
     <a class="nav-link dropdown-toggle" href="#" id="<%- item.id %>" role="button" data-bs-toggle="dropdown" aria-expanded="false">
       <% partial('navicon.ejs', { item }) %> <%- item.text %>
     </a>
