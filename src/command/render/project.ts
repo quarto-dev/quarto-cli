@@ -252,7 +252,7 @@ export async function renderProject(
 
           // lib dir to freezer
           const freezeLibDir = (hidden: boolean) => {
-            copyToProjectFreezer(context, libDir, hidden, libsIncremental);
+            copyToProjectFreezer(context, libDir, hidden, false);
             pruneProjectFreezerDir(context, libDir, formatLibDirs, hidden);
             pruneProjectFreezer(context, hidden);
           };

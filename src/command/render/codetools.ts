@@ -168,8 +168,8 @@ export function codeToolsPostprocessor(format: Format) {
               li.appendChild(hr);
               ul.appendChild(li);
             };
-            addListItem(kHideAllCodeLinkId, "Hide All Code");
             addListItem(kShowAllCodeLinkId, "Show All Code");
+            addListItem(kHideAllCodeLinkId, "Hide All Code");
             if (codeTools.source) {
               addDivider();
               const vsLi = addListItem(kViewSourceLinkId, "View Source");
