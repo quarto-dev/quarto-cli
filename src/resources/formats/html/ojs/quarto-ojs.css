@@ -107,3 +107,7 @@ table.table {
 .panel-sidebar .observablehq > form[class^="oi-"] {
   flex-wrap: wrap !important;
 }
+
+div.cell.auto-output .observablehq--inspect {
+  display: none;
+}

@@ -1,0 +1,12 @@
+---
+title: "Tests if an complex layout gets forwarded as strings to Lua filters"
+format: html
+self-contained: true
+---
+
+```{ojs}
+//| layout: [[1, 1], [2]]
+a = 1
+b = 2
+c = 3
+```

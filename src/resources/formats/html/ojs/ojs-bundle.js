@@ -718,6 +718,11 @@ export function createRuntime() {
   const quartoOjsGlobal = window._ojs;
   const isShiny = window.Shiny !== undefined;
 
+  // replace all data attributes for output with classes
+  for (const cell of document.querySelectorAll("div.cell[data-output='auto']")) {
+    cell.classList.add("auto-output");
+  }
+
   // Are we shiny?
   if (isShiny) {
     quartoOjsGlobal.hasShiny = true;
@@ -737,6 +742,14 @@ export function createRuntime() {
     extendObservableStdlib(lib);
   }
 
+  function transpose(df) {
+    const keys = Object.keys(df);
+    return df[keys[0]]
+      .map((v, i) => Object.fromEntries(keys.map(key => [key, df[key][i] || undefined])))
+      .filter(v => Object.values(v).every(e => e !== undefined));
+  }
+  lib.transpose = () => transpose;
+  
   const mainEl = document.querySelector("main");
   function width() {
     return lib.Generators.observe(function (change) {
