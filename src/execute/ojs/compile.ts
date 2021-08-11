@@ -556,7 +556,7 @@ export async function ojsCompile(
     (shinyInputMetadata.indexOf("viewof") !== -1);
   let importEverything = false;
 
-  for (const shinyInput of (shinyInputMetadata ?? [])) {
+  for (const shinyInput of (shinyInputMetadata || [])) {
     if (shinyInput === "viewof") {
       importAllViews = true;
     } else if (shinyInput === "all") {
@@ -591,7 +591,7 @@ export async function ojsCompile(
       source: `shinyInput('${el}')`,
     });
   }
-  for (const el of (shinyOutputMetadata ?? [])) {
+  for (const el of (shinyOutputMetadata || [])) {
     moduleContents.push({
       methodName: "interpretQuiet",
       source: `${el} = shinyOutput('${el}')`,
