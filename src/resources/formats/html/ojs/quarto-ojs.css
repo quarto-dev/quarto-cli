@@ -3,8 +3,8 @@ span.ojs-inline span div {
 }
 
 /* add some breathing room between display outputs and text especially */
-div.cell-output-display div.observablehq {
-  margin-bottom: 1rem;
+div.cell + section, div.cell + h1, div.cell + h2, div.cell + h3, div.cell + h4, div.cell + h5, div.cell + h6, div.cell + p {
+  margin-top: 1rem;
 }
 
 .observablehq .observablehq--inspect {
