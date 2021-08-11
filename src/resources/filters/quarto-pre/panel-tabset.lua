@@ -96,10 +96,10 @@ function tabsetDiv(div)
     nav:insert(pandoc.RawInline('html', '</ul>'))
 
     -- return tabset
-    return pandoc.List({
+    return pandoc.Div({
       pandoc.Plain(nav),
       panes
-    })
+    }, div.attr:clone())
 
   end 
 end
