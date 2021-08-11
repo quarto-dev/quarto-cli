@@ -232,6 +232,7 @@ export async function ojsCompile(
       // very heavyweight for what we need it, but this way we can signal syntax errors
       // as well.
       let nCells = 0;
+      let cellTypes: any[] = [];
 
       try {
         const parse = parseModule(cellSrcStr);
@@ -242,6 +243,11 @@ export async function ojsCompile(
               ojsViews.add(node.id.id.name);
             } else if (node.id && node.id.type === "Identifier") {
               ojsIdentifiers.add(node.id.name);
+            }
+            if (node.id === null) {
+              cellTypes.push("expression");
+            } else {
+              cellTypes.push("declaration");
             }
           },
         });
@@ -444,6 +450,7 @@ export async function ojsCompile(
           });
           const ojsDiv = pandocDiv({
             id: `${ojsId}-${subfigIx}`,
+            attrs: [`nodetype="${cellTypes[subfigIx-1]}"`]
           });
           subfigIx++;
           outputDiv.push(outputInnerDiv);

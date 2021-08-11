@@ -260,11 +260,15 @@ export class OJSConnector {
             const ojsDiv = mutation.target;
 
             if (cell && cell.dataset.output !== "all") {
-              // hide the inner inspect outputs
+              // hide the inner inspect outputs that aren't errors or declarations
               Array.from(mutation.target.childNodes)
                 .filter(
-                  n => (n.classList.contains("observablehq--inspect")) &&
-                    !n.parentNode.classList.contains("observablehq--error"))
+                  n => {
+                    return (n.classList.contains("observablehq--inspect")) &&
+                      !n.parentNode.classList.contains("observablehq--error") &&
+                      (n.parentNode.parentNode.dataset.nodetype !== "expression");
+                  }
+                )
                 .forEach(
                   n => n.classList.add("quarto-ojs-hide")
                 );
@@ -272,8 +276,10 @@ export class OJSConnector {
               // if the ojsDiv shows an error, don't hide it.
               if (ojsDiv.classList.contains("observablehq--error")) {
                 ojsDiv.classList.remove("quarto-ojs-hide");
-              } else if (Array.from(ojsDiv.childNodes).every(
-                n => n.classList.contains("observablehq--inspect"))) {
+              } else if (
+                (ojsDiv.parentNode.dataset.nodetype !== "expression") &&
+                  Array.from(ojsDiv.childNodes).every(
+                    n => n.classList.contains("observablehq--inspect"))) {
                 // if every child is an inspect output, hide the ojsDiv
                 ojsDiv.classList.add("quarto-ojs-hide");
               }
@@ -914,6 +920,14 @@ export function createRuntime() {
     }
   }
   lib.FileAttachment = () => FileAttachments(fileAttachmentPathResolver);
+
+  // lib.require = () => require;
+  // lib.Inputs = () => require("@observablehq/inputs@0.8.0/dist/inputs.umd.min.js");
+  // lib.Plot = () => require("@observablehq/plot@0.1.0/dist/plot.umd.min.js");
+  // lib._ = () => require("lodash@4.17.21/lodash.min.js");
+  // lib.d3 = () => require("d3@6.7.0/dist/d3.min.js");
+  // lib.dot = () => require("@observablehq/graphviz@0.2.1/dist/graphviz.min.js");
+  // lib.htl = () => require("htl@0.2.5/dist/htl.min.js");
 
   const ojsConnector = new OJSConnector({
     paths: quartoOjsGlobal.paths,
