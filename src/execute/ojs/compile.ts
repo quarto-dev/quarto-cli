@@ -259,17 +259,11 @@ export async function ojsCompile(
         // if ncol and nrow are positive integers
         //
         // WAITING for YAML schemas + validation
-        return cell.options?.[kLayoutNcol] ||
-          cell.options?.[kLayoutNrow] ||
+        const cols = cell.options?.[kLayoutNcol];
+        const rows = cell.options?.[kLayoutNrow];
+        return  (Number(cols) && (Number(cols) > 1)) ||
+          (Number(rows) && (Number(rows) > 1)) ||
           (nCells > 1);
-      };
-      const nRow = () => {
-        const row = cell.options
-          ?.[kLayoutNrow] as (string | number | undefined);
-        if (!row) {
-          return nCells;
-        }
-        return Number(row);
       };
       const nCol = () => {
         const col = cell.options
@@ -278,6 +272,14 @@ export async function ojsCompile(
           return 1;
         }
         return Number(col);
+      };
+      const nRow = () => {
+        const row = cell.options
+          ?.[kLayoutNrow] as (string | number | undefined);
+        if (!row) {
+          return Math.ceil(nCells / nCol());
+        }
+        return Number(row);
       };
       const hasSubFigures = () => {
         return hasFigureSubCaptions() ||
