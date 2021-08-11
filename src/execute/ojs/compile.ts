@@ -419,7 +419,7 @@ export async function ojsCompile(
           asUndefined(options.format.render?.[kCodeFold], "none") ??
             cell.options?.[kCodeFold]
         ) {
-          attrs.push(`${kCodeFold}="true"`);
+          attrs.push(`${kCodeFold}="${cell.options?.[kCodeFold]}"`);
         }
 
         const innerDiv = pandocCode({ classes, attrs });
