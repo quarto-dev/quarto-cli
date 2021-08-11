@@ -37,7 +37,6 @@ class EmptyInspector {
 
 export class OJSConnector {
   constructor({ paths, inspectorClass, library, allowPendingGlobals = false }) {
-    debugger;
     this.library = library || new Library();
 
     // this map contains a mapping from resource names to data URLs
