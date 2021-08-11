@@ -915,8 +915,6 @@ export function createRuntime() {
   }
   lib.FileAttachment = () => FileAttachments(fileAttachmentPathResolver);
 
-  lib.require = () => require;
-
   const ojsConnector = new OJSConnector({
     paths: quartoOjsGlobal.paths,
     inspectorClass: isShiny ? ShinyInspector : undefined,
