@@ -214,7 +214,7 @@ export class OJSConnector {
   }
 
   interpret(src, elementGetter, elementCreator) {
-    const observer = (targetElement, cell) => {
+    const observer = (targetElement, ojsCell) => {
       return (name) => {
         const element = typeof elementCreator === "function"
           ? elementCreator()
@@ -227,45 +227,59 @@ export class OJSConnector {
         // this behavior appears inconsistent with OHQ's interpreter, so we
         // shouldn't be surprised to see this fail in the future.
         if (
-          (cell.id && (cell.id.type === "ViewExpression")) &&
+          (ojsCell.id && (ojsCell.id.type === "ViewExpression")) &&
           !name.startsWith("viewof ")
         ) {
-          element.style.display = "none";
+          element.classList.add("quarto-ojs-hide");
         }
 
-        // determine if we need to handle output:all
-        let el = targetElement;
+        // handle output:all hiding
+        //
+        // if every output from a cell is is not displayed, then we
+        // must also not display the cell output display element
+        // itself.
+        
+        // collect the cell element as well as the cell output display
+        // element
+        
+        let cell = targetElement;
         let cellOutputDisplay;
-        while (el !== null && !el.classList.contains("cell")) {
-          el = el.parentElement;
-          if (el && el.classList.contains("cell-output-display")) {
-            cellOutputDisplay = el;
+        while (cell !== null && !cell.classList.contains("cell")) {
+          cell = cell.parentElement;
+          if (cell && cell.classList.contains("cell-output-display")) {
+            cellOutputDisplay = cell;
           }
         }
-        // we may fail to find a cell in inline settings; but inline
-        // settings don't have inspectors anyway, so in this case we
-        // skip the check for output:all anyway.
         
         const config = { childList: true };
         const callback = function(mutationsList, observer) {
+          // we may fail to find a cell in inline settings; but
+          // inline cells won't have inspectors, so in that case
+          // we never hide
           for (const mutation of mutationsList) {
-            if (el && el.dataset.output !== "all") {
-              if (mutation.target.classList.contains("observablehq--error")) {
-                cellOutputDisplay.classList.remove("quarto-ojs-hide");
-              } else {
-                if (Array.from(mutation.target.childNodes).every(
-                  n => n.classList.contains("observablehq--inspect"))) {
-                  cellOutputDisplay.classList.add("quarto-ojs-hide");
-                }
-                Array.from(mutation.target.childNodes)
-                  .filter(
-                    n => n.classList.contains("observablehq--inspect"))
-                  .forEach(
-                    n => n.classList.add("quarto-ojs-hide")
-                  );
+            const ojsDiv = mutation.target;
+
+            if (cell && cell.dataset.output !== "all") {
+              // hide the inner inspect outputs
+              Array.from(mutation.target.childNodes)
+                .filter(
+                  n => (n.classList.contains("observablehq--inspect")) &&
+                    !n.parentNode.classList.contains("observablehq--error"))
+                .forEach(
+                  n => n.classList.add("quarto-ojs-hide")
+                );
+
+              // if the ojsDiv shows an error, don't hide it.
+              if (ojsDiv.classList.contains("observablehq--error")) {
+                ojsDiv.classList.remove("quarto-ojs-hide");
+              } else if (Array.from(ojsDiv.childNodes).every(
+                n => n.classList.contains("observablehq--inspect"))) {
+                // if every child is an inspect output, hide the ojsDiv
+                ojsDiv.classList.add("quarto-ojs-hide");
               }
             }
-            // don't echo the import statement
+
+            // hide import statements even if output === "all"
             for (const added of mutation.addedNodes) {
               // We search here for code.javascript and node span.hljs-... because
               // at this point in the DOM, observable's runtime hasn't called
@@ -276,12 +290,28 @@ export class OJSConnector {
                 continue;
               }
               if (result[0].innerText.trim().startsWith("import")) {
-                mutation.target.parentElement.parentElement.parentElement.classList.add("quarto-ojs-hide");
+                ojsDiv.classList.add("quarto-ojs-hide");
               }
             }
           }
+          
+          // after all mutations are handled, we check the full cell for hiding
+          if (Array.from(cell.childNodes)
+              .filter(n => n.nodeType !== n.TEXT_NODE)
+              .every(n => {
+            return n.classList.contains("quarto-ojs-hide");
+          })) {
+            cellOutputDisplay.classList.add("quarto-ojs-hide");
+          } else {
+            cellOutputDisplay.classList.remove("quarto-ojs-hide");
+          }
         };
         const observer = new MutationObserver(callback);
+        // 'element' is the outer div given to observable's runtime to insert their output
+        // every quarto cell will have either one or two such divs.
+        // The parent of these divs should always be a div corresponding to an ojs "cell"
+        // (with ids "ojs-cell-*")
+        
         observer.observe(element, config);
         if (cellOutputDisplay === undefined) {
           throw new Error("Internal error: Couldn't find output display cell while handling output:!all");
