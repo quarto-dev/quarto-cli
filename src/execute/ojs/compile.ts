@@ -331,6 +331,8 @@ export async function ojsCompile(
             attrs.push(`${key}=${JSON.stringify(value)}`);
           } else if (t === "number") {
             attrs.push(`${key}="${value}"`);
+          } else if (t === "boolean") {
+            attrs.push(`${key}=${value}`);
           } else {
             throw new Error(`Can't serialize yaml metadata value of type ${t}`);
           }
