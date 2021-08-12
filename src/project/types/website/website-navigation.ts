@@ -21,6 +21,7 @@ import {
   Format,
   FormatDependency,
   FormatExtras,
+  FormatPandoc,
   kBodyEnvelope,
   kDependencies,
   kHtmlPostprocessors,
@@ -86,7 +87,7 @@ import {
   NavigationPagination,
   websiteNavigationConfig,
 } from "./website-shared.ts";
-import { kTocTitle } from "../../../config/constants.ts";
+import { kNumberSections, kTocTitle } from "../../../config/constants.ts";
 import {
   createMarkdownEnvelope,
   processMarkdownEnvelope,
@@ -225,7 +226,7 @@ export async function websiteNavigationExtras(
       [kDependencies]: dependencies,
       [kBodyEnvelope]: bodyEnvelope,
       [kHtmlPostprocessors]: [
-        navigationHtmlPostprocessor(project, source),
+        navigationHtmlPostprocessor(project, source, format.pandoc),
       ],
       [kMarkdownAfterBody]: [
         createMarkdownEnvelope(format, navigation, pageNavigation, sidebar),
@@ -262,6 +263,7 @@ export function writeRedirectPage(path: string, href: string) {
 function navigationHtmlPostprocessor(
   project: ProjectContext,
   source: string,
+  pandoc: FormatPandoc,
 ) {
   const sourceRelative = relative(project.dir, source);
   const offset = projectOffset(project, source);
@@ -348,6 +350,25 @@ function navigationHtmlPostprocessor(
 
     // handle repo links
     handleRepoLinks(doc, sourceRelative, project.config);
+
+    // if needed, remove the chapter numbers
+    const numberSections = pandoc[kNumberSections];
+    if (numberSections === false) {
+      // Look through sidebar items and remove the chapter number (and separator)
+      // and replace with the title only
+      const sidebarItems = doc.querySelectorAll("li.sidebar-item a");
+      for (let i = 0; i < sidebarItems.length; i++) {
+        const sidebarItem = sidebarItems[i] as Element;
+        const numberSpan = sidebarItem.querySelector(".chapter-number");
+        const titleSpan = sidebarItem.querySelector(".chapter-title");
+        if (numberSpan && titleSpan) {
+          if (numberSpan && titleSpan) {
+            sidebarItem.innerHTML = "";
+            sidebarItem.appendChild(titleSpan);
+          }
+        }
+      }
+    }
 
     return Promise.resolve([]);
   };

@@ -147,7 +147,7 @@ export function formatChapterTitle(
 
 export function formatChapterHtmlNav(label: string, info?: ChapterInfo) {
   if (info) {
-    return `<span class='chapter-number'>${info.labelPrefix}</span>\u00A0 ${label}`;
+    return `<span class='chapter-number'>${info.labelPrefix}</span>\u00A0 <span class='chapter-title'>${label}</span>`;
   } else {
     return label;
   }
