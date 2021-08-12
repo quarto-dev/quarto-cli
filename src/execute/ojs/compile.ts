@@ -253,11 +253,11 @@ export async function ojsCompile(
             }
             if (node.id === null &&
               node.body.type !== "ImportDeclaration") {
-              seqSrc.push(node.input.substring(node.start, node.end));
+              seqSrc.push([node.start, node.end]);
               flushSeqSrc();
               cellTypes.push("expression");
             } else {
-              seqSrc.push(node.input.substring(node.start, node.end));
+              seqSrc.push([node.start, node.end]);
               cellTypes.push("declaration");
             }
           },
@@ -477,7 +477,9 @@ export async function ojsCompile(
           const innerSrc = cellSrcs[subfigIx-1];
           if (innerSrc !== null && srcConfig !== undefined) {
             const srcDiv = pandocCode(srcConfig);
-            srcDiv.push(pandocRawStr(innerSrc.join("\n")));
+            srcDiv.push(pandocRawStr(
+              cellSrcStr.substring(innerSrc[0][0],
+                                   innerSrc[innerSrc.length-1][1])));
             div.push(srcDiv);
           }
           subfigIx++;
@@ -521,7 +523,7 @@ export async function ojsCompile(
         const innerSrc = cellSrcs[0];
         if (innerSrc !== null && srcConfig !== undefined) {
           const srcDiv = pandocCode(srcConfig);
-          srcDiv.push(pandocRawStr(innerSrc));
+          srcDiv.push(pandocRawStr(cellSrcStr.substring(innerSrc[0][0], innerSrc[0][1])));
           div.push(srcDiv);
         }
         const outputDiv = pandocDiv({
