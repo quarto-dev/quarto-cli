@@ -49,6 +49,7 @@ import { inputFilesDir } from "../../core/render.ts";
 import { kResources } from "../../config/constants.ts";
 import { resourcesFromMetadata } from "../render/resources.ts";
 import { readYamlFromMarkdown } from "../../core/yaml.ts";
+import { RenderResult } from "../render/types.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -116,7 +117,7 @@ export async function serveProject(
   );
 
   // create a promise queue so we only do one renderProject at a time
-  const renderQueue = new PromiseQueue();
+  const renderQueue = new PromiseQueue<RenderResult>();
 
   // file request handler
   const serveOutputDir = projectOutputDir(serveProject);
@@ -159,7 +160,7 @@ export async function serveProject(
         }
         if (inputFile) {
           try {
-            await renderQueue.enqueue(() =>
+            const result = await renderQueue.enqueue(() =>
               renderProject(
                 watcher.serveProject(),
                 {
@@ -170,6 +171,9 @@ export async function serveProject(
                 [inputFile!],
               )
             );
+            if (result.error) {
+              logError(result.error);
+            }
           } catch (e) {
             logError(e);
           }
