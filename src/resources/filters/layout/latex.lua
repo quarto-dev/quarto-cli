@@ -178,12 +178,6 @@ function renderLatexFigure(el, render)
 end
 
 
-function isReferenceable(figEl)
-  return figEl.attr.identifier ~= "" and 
-         not isAnonymousFigId(figEl.attr.identifier)
-end
-
-
 function markupLatexCaption(el, caption)
   
   -- caption prefix (includes \\caption macro + optional [subcap] + {)

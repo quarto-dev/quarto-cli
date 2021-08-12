@@ -100,4 +100,9 @@ function isAnonymousFigId(identifier)
   return string.find(identifier, "^fig%-anonymous-")
 end
 
+function isReferenceableFig(figEl)
+  return figEl.attr.identifier ~= "" and 
+         not isAnonymousFigId(figEl.attr.identifier)
+end
+
 
