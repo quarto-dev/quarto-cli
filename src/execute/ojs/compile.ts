@@ -662,7 +662,7 @@ export async function ojsCompile(
   const includeAfterBodyFile = sessionTempFile();
   Deno.writeTextFileSync(includeAfterBodyFile, afterBody);
 
-  // we need to inline ojs-bundle.js rather than link to it in order
+  // we need to inline esbuild-bundle.js rather than link to it in order
   // for ojs to work in non-webserver contexts. <script type="module"></script> runs into CORS restrictions
 
   const extras = resolveDependencies(
@@ -680,8 +680,9 @@ export async function ojsCompile(
   if (selfContained) {
     const ojsBundleFilename = join(
       quartoConfig.sharePath(),
-      "formats/html/ojs/ojs-bundle.js",
-      "formats/html/ojs/stdlib.js",
+      "formats/html/ojs/esbuild-bundle.js",
+      // "formats/html/ojs/ojs-bundle.js",
+      // "formats/html/ojs/stdlib.js",
     );
     const ojsBundle = [
       `<script type="module">`,
@@ -773,8 +774,10 @@ function ojsFormatDependency(selfContained: boolean) {
   // them to be inline in case we are running in a file:/// context.
   const scripts = selfContained
     ? []
-    : [ojsDependency("ojs-bundle.js", { type: "module" }),
-       ojsDependency("stdlib.js", { type: "module" }),
+    : [
+      ojsDependency("esbuild-bundle.js", { type: "module" })
+      // ojsDependency("ojs-bundle.js", { type: "module" }),
+      // ojsDependency("stdlib.js", { type: "module" })
       ];
   return {
     name: "quarto-ojs",

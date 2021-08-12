@@ -12,15 +12,18 @@
 *
 */
 
+// to bundle this with the d3-require stdlib:
+//
+// $ esbuild --bundle ojs-bundle.js --outfile=esbuild-bundle.js --format=esm
+
 import { Interpreter } from "https://cdn.skypack.dev/@alex.garcia/unofficial-observablehq-compiler";
-import { FileAttachments } from "https://cdn.skypack.dev/@observablehq/stdlib";
 import {
   Inspector,
   Runtime,
   RuntimeError,
 } from "https://cdn.skypack.dev/@observablehq/runtime";
 import {
-  Library
+  FileAttachments, Library
 } from "./stdlib.js";
 import { parseModule } from "https://cdn.skypack.dev/@observablehq/parser";
 import { button } from "https://cdn.skypack.dev/@observablehq/inputs";
