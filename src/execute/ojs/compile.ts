@@ -681,6 +681,7 @@ export async function ojsCompile(
     const ojsBundleFilename = join(
       quartoConfig.sharePath(),
       "formats/html/ojs/ojs-bundle.js",
+      "formats/html/ojs/stdlib.js",
     );
     const ojsBundle = [
       `<script type="module">`,
@@ -772,7 +773,9 @@ function ojsFormatDependency(selfContained: boolean) {
   // them to be inline in case we are running in a file:/// context.
   const scripts = selfContained
     ? []
-    : [ojsDependency("ojs-bundle.js", { type: "module" })];
+    : [ojsDependency("ojs-bundle.js", { type: "module" }),
+       ojsDependency("stdlib.js", { type: "module" }),
+      ];
   return {
     name: "quarto-ojs",
     stylesheets: [
