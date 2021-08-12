@@ -300,11 +300,10 @@ export class OJSConnector {
               }
             }
           }
-          
+
+          const children = Array.from(cellOutputDisplay.querySelectorAll("div.observablehq"));
           // after all mutations are handled, we check the full cell for hiding
-          if (Array.from(cell.childNodes)
-              .filter(n => n.nodeType !== n.TEXT_NODE)
-              .every(n => {
+          if (children.every(n => {
             return n.classList.contains("quarto-ojs-hide");
           })) {
             cellOutputDisplay.classList.add("quarto-ojs-hide");
