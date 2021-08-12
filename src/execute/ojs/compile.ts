@@ -229,12 +229,20 @@ export async function ojsCompile(
         projDir,
       ));
 
-      // very heavyweight for what we need it, but this way we can signal syntax errors
-      // as well.
       let nCells = 0;
+      let cellTypes: any[] = [];
+      let cellSrcs: any[] = [];
 
       try {
         const parse = parseModule(cellSrcStr);
+        let seqSrc: any[] = [];
+        const flushSeqSrc = () => {
+          cellSrcs.push(seqSrc);
+          for (let i = 1; i < seqSrc.length; ++i) {
+            cellSrcs.push(null);
+          }
+          seqSrc = [];
+        };
         ojsSimpleWalker(parse, {
           // deno-lint-ignore no-explicit-any
           Cell(node: any) {
@@ -243,9 +251,21 @@ export async function ojsCompile(
             } else if (node.id && node.id.type === "Identifier") {
               ojsIdentifiers.add(node.id.name);
             }
+            if (node.id === null &&
+              node.body.type !== "ImportDeclaration") {
+              seqSrc.push(node.input.substring(node.start, node.end));
+              flushSeqSrc();
+              cellTypes.push("expression");
+            } else {
+              seqSrc.push(node.input.substring(node.start, node.end));
+              cellTypes.push("declaration");
+            }
           },
         });
         nCells = parse.cells.length;
+        if (seqSrc.length > 0) {
+          flushSeqSrc();
+        }
       } catch (e) {
         if (e instanceof SyntaxError) {
           parseError(cellSrcStr, "ojs", e.message);
@@ -254,22 +274,17 @@ export async function ojsCompile(
         }
         throw new Error();
       }
+
       const hasManyRowsCols = () => {
         // FIXME figure out runtime type validation. This should check
         // if ncol and nrow are positive integers
         //
         // WAITING for YAML schemas + validation
-        return cell.options?.[kLayoutNcol] ||
-          cell.options?.[kLayoutNrow] ||
+        const cols = cell.options?.[kLayoutNcol];
+        const rows = cell.options?.[kLayoutNrow];
+        return  (Number(cols) && (Number(cols) > 1)) ||
+          (Number(rows) && (Number(rows) > 1)) ||
           (nCells > 1);
-      };
-      const nRow = () => {
-        const row = cell.options
-          ?.[kLayoutNrow] as (string | number | undefined);
-        if (!row) {
-          return nCells;
-        }
-        return Number(row);
       };
       const nCol = () => {
         const col = cell.options
@@ -278,6 +293,14 @@ export async function ojsCompile(
           return 1;
         }
         return Number(col);
+      };
+      const nRow = () => {
+        const row = cell.options
+          ?.[kLayoutNrow] as (string | number | undefined);
+        if (!row) {
+          return Math.ceil(nCells / nCol());
+        }
+        return Number(row);
       };
       const hasSubFigures = () => {
         return hasFigureSubCaptions() ||
@@ -329,6 +352,8 @@ export async function ojsCompile(
             attrs.push(`${key}=${JSON.stringify(value)}`);
           } else if (t === "number") {
             attrs.push(`${key}="${value}"`);
+          } else if (t === "boolean") {
+            attrs.push(`${key}=${value}`);
           } else {
             throw new Error(`Can't serialize yaml metadata value of type ${t}`);
           }
@@ -371,6 +396,13 @@ export async function ojsCompile(
         );
       }
 
+      interface SrcConfig {
+        attrs: string[],
+        classes: string[]
+      };
+
+      let srcConfig: undefined | SrcConfig;
+
       if (
         includeVal &&
         (!evalVal || // always produce div when not evaluating
@@ -409,13 +441,13 @@ export async function ojsCompile(
           asUndefined(options.format.render?.[kCodeFold], "none") ??
             cell.options?.[kCodeFold]
         ) {
-          attrs.push(`${kCodeFold}="true"`);
+          attrs.push(`${kCodeFold}="${cell.options?.[kCodeFold]}"`);
         }
 
-        const innerDiv = pandocCode({ classes, attrs });
-
-        innerDiv.push(pandocRawStr(cellSrcInMd ?? cellSrcStr));
-        div.push(innerDiv);
+        srcConfig = {
+          classes: classes.slice(),
+          attrs: attrs.slice()
+        };
       }
 
       // only emit interpret if eval is true
@@ -440,7 +472,14 @@ export async function ojsCompile(
           });
           const ojsDiv = pandocDiv({
             id: `${ojsId}-${subfigIx}`,
+            attrs: [`nodetype="${cellTypes[subfigIx-1]}"`]
           });
+          const innerSrc = cellSrcs[subfigIx-1];
+          if (innerSrc !== null && srcConfig !== undefined) {
+            const srcDiv = pandocCode(srcConfig);
+            srcDiv.push(pandocRawStr(innerSrc.join("\n")));
+            div.push(srcDiv);
+          }
           subfigIx++;
           outputDiv.push(outputInnerDiv);
           outputInnerDiv.push(ojsDiv);
@@ -479,6 +518,12 @@ export async function ojsCompile(
           div.push(pandocRawStr(cell.options[kCellFigCap] as string));
         }
       } else {
+        const innerSrc = cellSrcs[0];
+        if (innerSrc !== null && srcConfig !== undefined) {
+          const srcDiv = pandocCode(srcConfig);
+          srcDiv.push(pandocRawStr(innerSrc));
+          div.push(srcDiv);
+        }
         const outputDiv = pandocDiv({
           id: idPlacement() === "inner" ? userId : undefined,
           classes: outputCellClasses,
@@ -486,6 +531,7 @@ export async function ojsCompile(
         div.push(outputDiv);
         outputDiv.push(pandocDiv({
           id: ojsId,
+          attrs: [`nodetype="${cellTypes[0]}"`]
         }));
         if (cell.options?.[kCellFigCap]) {
           outputDiv.push(pandocRawStr(cell.options[kCellFigCap] as string));
@@ -556,7 +602,7 @@ export async function ojsCompile(
     (shinyInputMetadata.indexOf("viewof") !== -1);
   let importEverything = false;
 
-  for (const shinyInput of (shinyInputMetadata ?? [])) {
+  for (const shinyInput of (shinyInputMetadata || [])) {
     if (shinyInput === "viewof") {
       importAllViews = true;
     } else if (shinyInput === "all") {
@@ -591,7 +637,7 @@ export async function ojsCompile(
       source: `shinyInput('${el}')`,
     });
   }
-  for (const el of (shinyOutputMetadata ?? [])) {
+  for (const el of (shinyOutputMetadata || [])) {
     moduleContents.push({
       methodName: "interpretQuiet",
       source: `${el} = shinyOutput('${el}')`,

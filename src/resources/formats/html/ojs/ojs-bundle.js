@@ -214,7 +214,7 @@ export class OJSConnector {
   }
 
   interpret(src, elementGetter, elementCreator) {
-    const observer = (targetElement, cell) => {
+    const observer = (targetElement, ojsCell) => {
       return (name) => {
         const element = typeof elementCreator === "function"
           ? elementCreator()
@@ -227,40 +227,97 @@ export class OJSConnector {
         // this behavior appears inconsistent with OHQ's interpreter, so we
         // shouldn't be surprised to see this fail in the future.
         if (
-          (cell.id && (cell.id.type === "ViewExpression")) &&
+          (ojsCell.id && (ojsCell.id.type === "ViewExpression")) &&
           !name.startsWith("viewof ")
         ) {
-          element.style.display = "none";
+          element.classList.add("quarto-ojs-hide");
         }
 
-        // determine if we need to handle output:all
-        let el = targetElement;
+        // handle output:all hiding
+        //
+        // if every output from a cell is is not displayed, then we
+        // must also not display the cell output display element
+        // itself.
+        
+        // collect the cell element as well as the cell output display
+        // element
+        
+        let cell = targetElement;
         let cellOutputDisplay;
-        while (el !== null && !el.classList.contains("cell")) {
-          el = el.parentElement;
-          if (el && el.classList.contains("cell-output-display")) {
-            cellOutputDisplay = el;
+        while (cell !== null && !cell.classList.contains("cell")) {
+          cell = cell.parentElement;
+          if (cell && cell.classList.contains("cell-output-display")) {
+            cellOutputDisplay = cell;
           }
         }
-        // we may fail to find a cell in inline settings; but inline
-        // settings don't have inspectors anyway, so in this case we
-        // skip the check for output:all anyway.
-        if (el && el.dataset.output !== "all") {
-          const config = { childList: true };
-          const callback = function(mutationsList, observer) {
-            for (const mutation of mutationsList) {
-              if (Array.from(mutation.addedNodes).filter(
-                n => n.classList.contains("observablehq--inspect")).length > 0) {
-                cellOutputDisplay.style.display = "none";
+        
+        const config = { childList: true };
+        const callback = function(mutationsList, observer) {
+          // we may fail to find a cell in inline settings; but
+          // inline cells won't have inspectors, so in that case
+          // we never hide
+          for (const mutation of mutationsList) {
+            const ojsDiv = mutation.target;
+
+            if (cell && cell.dataset.output !== "all") {
+              // hide the inner inspect outputs that aren't errors or declarations
+              Array.from(mutation.target.childNodes)
+                .filter(
+                  n => {
+                    return (n.classList.contains("observablehq--inspect")) &&
+                      !n.parentNode.classList.contains("observablehq--error") &&
+                      (n.parentNode.parentNode.dataset.nodetype !== "expression");
+                  }
+                )
+                .forEach(
+                  n => n.classList.add("quarto-ojs-hide")
+                );
+
+              // if the ojsDiv shows an error, don't hide it.
+              if (ojsDiv.classList.contains("observablehq--error")) {
+                ojsDiv.classList.remove("quarto-ojs-hide");
+              } else if (
+                (ojsDiv.parentNode.dataset.nodetype !== "expression") &&
+                  Array.from(ojsDiv.childNodes).every(
+                    n => n.classList.contains("observablehq--inspect"))) {
+                // if every child is an inspect output, hide the ojsDiv
+                ojsDiv.classList.add("quarto-ojs-hide");
               }
             }
-          };
-          const observer = new MutationObserver(callback);
-          observer.observe(element, config);
-          if (cellOutputDisplay === undefined) {
-            throw new Error("Internal error: Couldn't find output display cell while handling output:!all");
+
+            // hide import statements even if output === "all"
+            for (const added of mutation.addedNodes) {
+              // We search here for code.javascript and node span.hljs-... because
+              // at this point in the DOM, observable's runtime hasn't called
+              // HLJS yet. if you inspect the DOM yourself, you're likely to see
+              // HLJS, so this comment is here to prevent future confusion.
+              const result = added.querySelectorAll("code.javascript");
+              if (result.length !== 1) {
+                continue;
+              }
+              if (result[0].innerText.trim().startsWith("import")) {
+                ojsDiv.classList.add("quarto-ojs-hide");
+              }
+            }
           }
-        }
+
+          const children = Array.from(cellOutputDisplay.querySelectorAll("div.observablehq"));
+          // after all mutations are handled, we check the full cell for hiding
+          if (children.every(n => {
+            return n.classList.contains("quarto-ojs-hide");
+          })) {
+            cellOutputDisplay.classList.add("quarto-ojs-hide");
+          } else {
+            cellOutputDisplay.classList.remove("quarto-ojs-hide");
+          }
+        };
+        const observer = new MutationObserver(callback);
+        // 'element' is the outer div given to observable's runtime to insert their output
+        // every quarto cell will have either one or two such divs.
+        // The parent of these divs should always be a div corresponding to an ojs "cell"
+        // (with ids "ojs-cell-*")
+        
+        observer.observe(element, config);
         
         element.classList.add("ojs-in-a-box-waiting-for-module-import");
 
@@ -301,7 +358,7 @@ function es6ImportAsObservableModule(m) {
 // this is essentially the import resolution code from observable's
 // runtime. we change it to add a license check for permissive
 // open-source licenses before resolving the import
-async function defaultResolveImportPath(path) {
+function defaultResolveImportPath(path) {
   const extractPath = (path) => {
     let source = path;
     let m;
@@ -319,13 +376,29 @@ async function defaultResolveImportPath(path) {
   const source = extractPath(path);
   const metadataURL = `https://api.observablehq.com/document/${source}`;
   const moduleURL = `https://api.observablehq.com/${source}.js?v=3`;
+
+  // return fetch(metadataURL, { mode: 'no-cors' })
+  //   .then(r => r.json())
+  //   .then(json => {
+  //     if (["isc", "mit", "bsd-3-clause", "apache-2.0"].indexOf(json.license) === -1) {
+  //       throw new Error(`Notebook doesn't have a permissive open-source license`);
+  //     }
+  //     return import(moduleURL);
+  //   })
+  //   .then(m => m.default);
+
+  return import(moduleURL)
+    .then(m => m.default);
+
+  /*
   const metadata = await fetch(metadataURL, { mode: 'no-cors' });
   const nbJson = metadata.json();
   if (["isc", "mit", "bsd-3-clause", "apache-2.0"].indexOf(nbJson.license) === -1) {
     throw new Error(`Notebook doesn't have a permissive open-source license`);
   }
-  const m = await import(path);
-  return m.default;
+  */
+  // const m = await import(moduleURL);
+  // return m.default;
 }
 
 /*
@@ -847,6 +920,14 @@ export function createRuntime() {
   }
   lib.FileAttachment = () => FileAttachments(fileAttachmentPathResolver);
 
+  // lib.require = () => require;
+  // lib.Inputs = () => require("@observablehq/inputs@0.8.0/dist/inputs.umd.min.js");
+  // lib.Plot = () => require("@observablehq/plot@0.1.0/dist/plot.umd.min.js");
+  // lib._ = () => require("lodash@4.17.21/lodash.min.js");
+  // lib.d3 = () => require("d3@6.7.0/dist/d3.min.js");
+  // lib.dot = () => require("@observablehq/graphviz@0.2.1/dist/graphviz.min.js");
+  // lib.htl = () => require("htl@0.2.5/dist/htl.min.js");
+
   const ojsConnector = new OJSConnector({
     paths: quartoOjsGlobal.paths,
     inspectorClass: isShiny ? ShinyInspector : undefined,
@@ -998,3 +1079,179 @@ window._ojs = {
   // via DOM
 };
 window._ojs.runtime = createRuntime();
+
+//////////////////////////////////////////////////////////////////////////////
+// this is our patched d3-require
+
+const metas = new Map;
+const queue = [];
+const map = queue.map;
+const some = queue.some;
+const hasOwnProperty = queue.hasOwnProperty;
+const origin = "https://cdn.jsdelivr.net/npm/";
+const identifierRe = /^((?:@[^/@]+\/)?[^/@]+)(?:@([^/]+))?(?:\/(.*))?$/;
+const versionRe = /^\d+\.\d+\.\d+(-[\w-.+]+)?$/;
+const extensionRe = /\.[^/]*$/;
+const mains = ["unpkg", "jsdelivr", "browser", "main"];
+
+export class RequireError extends Error {
+  constructor(message) {
+    super(message);
+  }
+}
+
+RequireError.prototype.name = RequireError.name;
+
+function main(meta) {
+  for (const key of mains) {
+    const value = meta[key];
+    if (typeof value === "string") {
+      return extensionRe.test(value) ? value : `${value}.js`;
+    }
+  }
+}
+
+function parseIdentifier(identifier) {
+  const match = identifierRe.exec(identifier);
+  return match && {
+    name: match[1],
+    version: match[2],
+    path: match[3]
+  };
+}
+
+function resolveMeta(target) {
+  const url = `${origin}${target.name}${target.version ? `@${target.version}` : ""}/package.json`;
+  let meta = metas.get(url);
+  if (!meta) metas.set(url, meta = fetch(url).then(response => {
+    if (!response.ok) throw new RequireError("unable to load package.json");
+    if (response.redirected && !metas.has(response.url)) metas.set(response.url, meta);
+    return response.json();
+  }));
+  return meta;
+}
+
+async function resolve(name, base) {
+  if (name.startsWith(origin)) name = name.substring(origin.length);
+  if (/^(\w+:)|\/\//i.test(name)) return name;
+  if (/^[.]{0,2}\//i.test(name)) return new URL(name, base == null ? location : base).href;
+  if (!name.length || /^[\s._]/.test(name) || /\s$/.test(name)) throw new RequireError("illegal name");
+  const target = parseIdentifier(name);
+  if (!target) return `${origin}${name}`;
+  if (!target.version && base != null && base.startsWith(origin)) {
+    const meta = await resolveMeta(parseIdentifier(base.substring(origin.length)));
+    target.version = meta.dependencies && meta.dependencies[target.name] || meta.peerDependencies && meta.peerDependencies[target.name];
+  }
+  if (target.path && !extensionRe.test(target.path)) target.path += ".js";
+  if (target.path && target.version && versionRe.test(target.version)) return `${origin}${target.name}@${target.version}/${target.path}`;
+  const meta = await resolveMeta(target);
+  return `${origin}${meta.name}@${meta.version}/${target.path || main(meta) || "index.js"}`;
+}
+
+export var require = requireFrom(resolve);
+
+export function requireFrom(resolver) {
+  const cache = new Map;
+  const requireBase = requireRelative(null);
+
+  function requireAbsolute(url) {
+    if (typeof url !== "string") return url;
+    let module = cache.get(url);
+    if (!module) cache.set(url, module = new Promise((resolve, reject) => {
+      const needsSave = define !== window.define;
+      const prevDefine = window.define;
+      const script = document.createElement("script");
+      script.onload = () => {
+        try { resolve(queue.pop()(requireRelative(url))); }
+        catch (error) { reject(new RequireError("invalid module")); }
+        script.remove();
+        if (needsSave) {
+          window.define = prevDefine;
+        }
+      };
+      script.onerror = () => {
+        reject(new RequireError("unable to load module"));
+        script.remove();
+        if (needsSave) {
+          window.define = prevDefine;
+        }
+      };
+      script.async = true;
+      script.src = url;
+      window.define = define;
+      document.head.appendChild(script);
+    }));
+    return module;
+  }
+
+  function requireRelative(base) {
+    return name => Promise.resolve(resolver(name, base)).then(requireAbsolute);
+  }
+
+  function requireAlias(aliases) {
+    return requireFrom((name, base) => {
+      if (name in aliases) {
+        name = aliases[name], base = null;
+        if (typeof name !== "string") return name;
+      }
+      return resolver(name, base);
+    });
+  }
+
+  function require(name) {
+    return arguments.length > 1
+        ? Promise.all(map.call(arguments, requireBase)).then(merge)
+        : requireBase(name);
+  }
+
+  require.alias = requireAlias;
+  require.resolve = resolver;
+
+  return require;
+}
+
+function merge(modules) {
+  const o = {};
+  for (const m of modules) {
+    for (const k in m) {
+      if (hasOwnProperty.call(m, k)) {
+        if (m[k] == null) Object.defineProperty(o, k, {get: getter(m, k)});
+        else o[k] = m[k];
+      }
+    }
+  }
+  return o;
+}
+
+function getter(object, name) {
+  return () => object[name];
+}
+
+function isbuiltin(name) {
+  name = name + "";
+  return name === "exports" || name === "module";
+}
+
+function define(name, dependencies, factory) {
+  const n = arguments.length;
+  if (n < 2) factory = name, dependencies = [];
+  else if (n < 3) factory = dependencies, dependencies = typeof name === "string" ? [] : name;
+  queue.push(some.call(dependencies, isbuiltin) ? require => {
+    const exports = {};
+    const module = {exports};
+    return Promise.all(map.call(dependencies, name => {
+      name = name + "";
+      return name === "exports" ? exports : name === "module" ? module : require(name);
+    })).then(dependencies => {
+      factory.apply(null, dependencies);
+      return module.exports;
+    });
+  } : require => {
+    return Promise.all(map.call(dependencies, require)).then(dependencies => {
+      return typeof factory === "function" ? factory.apply(null, dependencies) : factory;
+    });
+  });
+}
+
+define.amd = {};
+

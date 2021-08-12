@@ -12,7 +12,9 @@ function panelSidebar()
         end
         function isContainer(el)
           return el.t == "Div" and 
-                 (el.attr.classes:includes("panel-fill") or el.attr.classes:includes("panel-center"))
+                 (el.attr.classes:includes("panel-fill") or 
+                  el.attr.classes:includes("panel-center") or
+                  el.attr.classes:includes("panel-tabset"))
         end
 
         -- bail if there are no sidebars

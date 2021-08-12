@@ -99,6 +99,13 @@ $code-block-bg-color: color.adjust(
   margin-bottom: 1em;
 }
 
+@include media-breakpoint-down(md) {
+  .layout-sidebar {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
 .panel-sidebar,
 .panel-sidebar .form-control,
 .panel-input,

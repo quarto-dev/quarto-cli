@@ -10,9 +10,9 @@ import { dirname, extname, join } from "path/mod.ts";
 import { isFileRef } from "./http.ts";
 
 export const kCssUrlRegex =
-  /url\((?!['"]?(?:data|https?):)(['"])?([^'"]*)\1\)/g;
+  /url\((?!['"]?(?:data|https?):)(['"])?([^'"]*?)\1\)/g;
 export const kCssImportRegex =
-  /@import\s(?!['"](?:data|https?):)(['"])([^'"]*)\1/g;
+  /@import\s(?!['"](?:data|https?):)(['"])([^'"]*?)\1/g;
 
 export function cssFileResourceReferences(files: string[]) {
   return files.reduce((allRefs: string[], file: string) => {

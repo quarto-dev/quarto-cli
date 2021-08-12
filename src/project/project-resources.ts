@@ -9,7 +9,7 @@ import { copySync, ensureDirSync, existsSync } from "fs/mod.ts";
 import { dirname, extname, join, relative } from "path/mod.ts";
 import { ld } from "lodash/mod.ts";
 
-import { resolvePathGlobs } from "../core/path.ts";
+import { resolvePathGlobs, safeExistsSync } from "../core/path.ts";
 import { kCssImportRegex, kCssUrlRegex } from "../core/css.ts";
 
 import {
@@ -120,7 +120,7 @@ function handleCssReferences(
   // function that can be used to copy a ref
   const copyRef = (ref: string) => {
     const refPath = join(dirname(srcFile), ref);
-    if (existsSync(refPath)) {
+    if (safeExistsSync(refPath)) {
       const refDestPath = join(dirname(destFile), ref);
       copyResourceFile(rootDir, refPath, refDestPath);
     }
