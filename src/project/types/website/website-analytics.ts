@@ -172,14 +172,16 @@ export function cookieConsentDependencies(project: ProjectContext) {
           // inject one
           const prefsAnchor = doc.getElementById(anchorId);
           if (!prefsAnchor) {
-            const footer = doc.querySelector("div.nav-footer");
+            const footer = doc.querySelector(
+              "div.nav-footer .nav-footer-center",
+            );
             if (footer) {
               // The anchor
               const anchor = doc.createElement("a");
               anchor.setAttribute("href", "#");
               anchor.setAttribute("id", anchorId);
               anchor.innerHTML = changePrefsText ||
-                "Change your cookie preferences";
+                "Cookie Preferences";
 
               // A div to hold it
               const anchorContainer = doc.createElement("div");
@@ -213,14 +215,14 @@ export function cookieConsentEnabled(project: ProjectContext) {
 
 // Provides a configuration with appropriate default values
 function cookieConsentConfiguration(
-  siteName: string,
+  _siteName: string,
   type?: string,
   style?: string,
   palette?: string,
   policyUrl?: string,
 ) {
   return {
-    siteName,
+    siteName: "",
     type: type || "implied",
     style: style || "simple",
     palette: palette || "light",

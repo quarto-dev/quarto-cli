@@ -12,7 +12,7 @@ import { ld } from "lodash/mod.ts";
 import { dirAndStem, pathWithForwardSlashes } from "../../../core/path.ts";
 
 import { ProjectContext } from "../../types.ts";
-import { Navbar, Sidebar, SidebarItem } from "../../project-config.ts";
+import { Navbar, NavItem, Sidebar, SidebarItem } from "../../project-config.ts";
 import {
   kSiteFooter,
   kSiteNavbar,
@@ -26,7 +26,15 @@ export interface Navigation {
   navbar?: Navbar;
   sidebars: Sidebar[];
   pageNavigation?: boolean;
-  footer?: string;
+  footer?: NavigationFooter;
+}
+
+export interface NavigationFooter {
+  background?: string;
+  border?: string;
+  left?: string | (NavItem | string)[];
+  center?: string | (NavItem | string)[];
+  right?: string | (NavItem | string)[];
 }
 
 export interface NavigationPagination {
@@ -75,8 +83,34 @@ export function websiteNavigationConfig(project: ProjectContext) {
   const pageNavigation = !!websiteConfig(kSitePageNavigation, project.config);
 
   // read any footer
-  const footer = websiteConfig(kSiteFooter, project.config) ||
-    (cookieConsentEnabled(project) ? "&nbsp;" : undefined);
+  const footerValue = (
+    value?: unknown,
+  ): string | NavItem[] | undefined => {
+    if (typeof (value) === "string") {
+      return value as string;
+    } else if (Array.isArray(value)) {
+      return value as NavItem[];
+    } else {
+      return undefined;
+    }
+  };
+
+  const footer: NavigationFooter = {};
+  const footerConfig = websiteConfig(kSiteFooter, project.config);
+  if (typeof (footerConfig) === "string") {
+    // place the markdown in the center
+    footer.center = footerConfig;
+  } else {
+    // Map left center and right to the footer
+    footer.left = footerValue(footerConfig?.left);
+    footer.center = footerValue(footerConfig?.center);
+    footer.right = footerValue(footerConfig?.right);
+  }
+
+  // Ensure there is a spot for cookie-consent to place a link
+  if (footer.center === undefined && cookieConsentEnabled(project)) {
+    footer.center = " ";
+  }
 
   // return
   return { navbar, sidebars, pageNavigation, footer };

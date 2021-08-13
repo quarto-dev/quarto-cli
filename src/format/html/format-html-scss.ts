@@ -26,6 +26,7 @@ import { mergeLayers, sassLayer } from "../../command/render/sass.ts";
 
 import {
   kSite,
+  kSiteFooter,
   kSiteSidebar,
 } from "../../project/types/website/website-config.ts";
 import {
@@ -268,6 +269,7 @@ function pandocVariablesToBootstrapDefaults(
 const kCodeBorderLeft = "code-block-border-left";
 const kCodeBlockBackground = "code-block-bg";
 const kBackground = "background";
+const kBorder = "border";
 
 // Quarto variables and styles
 export const quartoBootstrapDefaults = (metadata: Metadata) => {
@@ -296,6 +298,37 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
             typeof (sidebarBackground) === "string"
               ? asBootstrapColor
               : undefined,
+          ),
+        ),
+      );
+    }
+  }
+
+  const footer = (metadata[kSite] as Metadata)?.[kSiteFooter] as Metadata;
+  if (footer !== undefined && typeof (footer) === "object") {
+    // Forward footer color
+    const footerBg = footer[kBackground];
+    if (footerBg !== undefined) {
+      variables.push(
+        outputVariable(
+          sassVariable(
+            "footer-bg",
+            footerBg,
+            typeof (footerBg) === "string" ? asBootstrapColor : undefined,
+          ),
+        ),
+      );
+    }
+
+    // Forward footer border
+    const footerBorder = footer[kBorder];
+    if (footerBorder !== undefined) {
+      variables.push(
+        outputVariable(
+          sassVariable(
+            "footer-border",
+            footerBorder,
+            typeof (footerBg) === "string" ? asBootstrapColor : undefined,
           ),
         ),
       );

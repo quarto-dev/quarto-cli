@@ -1,0 +1,10 @@
+
+<% if (Array.isArray(contents)) { %> 
+  <ul class="footer-items list-unstyled">
+  <% for(const item of contents) { %>
+    <% partial('nav-footer-navitem.ejs', { item, align: 'left' }) %> 
+  <% } %>
+</ul>
+<% } else { %>
+  <div class='footer-contents'><%=contents%></div>  
+<% } %>

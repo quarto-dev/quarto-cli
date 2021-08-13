@@ -54,6 +54,7 @@ import {
   LayoutBreak,
   Navbar,
   NavbarItem,
+  NavItem,
   normalizeSidebarItem,
   resolveHrefAttribute,
   Sidebar,
@@ -84,6 +85,7 @@ import {
   flattenItems,
   inputFileHref,
   Navigation,
+  NavigationFooter,
   NavigationPagination,
   websiteNavigationConfig,
 } from "./website-shared.ts";
@@ -127,7 +129,7 @@ export async function initWebsiteNavigation(project: ProjectContext) {
   navigation.navbar = resolveNavReferences(navigation.navbar) as Navbar;
   navigation.sidebars = resolveNavReferences(navigation.sidebars) as Sidebar[];
   navigation.pageNavigation = pageNavigation;
-  navigation.footer = footer as string;
+  navigation.footer = await resolveFooter(project, footer);
 }
 
 export async function websiteNavigationExtras(
@@ -168,6 +170,7 @@ export async function websiteNavigationExtras(
     layout: formatPageLayout(format),
     navbar: disableNavbar ? undefined : navigation.navbar,
     sidebar: disableSidebar ? undefined : expandedSidebar(href, sidebar),
+    footer: navigation.footer,
   };
 
   // Determine the previous and next page
@@ -359,19 +362,22 @@ function navigationHtmlPostprocessor(
       const sidebarItems = doc.querySelectorAll("li.sidebar-item a");
       for (let i = 0; i < sidebarItems.length; i++) {
         const sidebarItem = sidebarItems[i] as Element;
-        const numberSpan = sidebarItem.querySelector(".chapter-number");
-        const titleSpan = sidebarItem.querySelector(".chapter-title");
-        if (numberSpan && titleSpan) {
-          if (numberSpan && titleSpan) {
-            sidebarItem.innerHTML = "";
-            sidebarItem.appendChild(titleSpan);
-          }
-        }
+        removeChapterNumber(sidebarItem);
       }
     }
-
     return Promise.resolve([]);
   };
+}
+
+export function removeChapterNumber(item: Element) {
+  const numberSpan = item.querySelector(".chapter-number");
+  const titleSpan = item.querySelector(".chapter-title");
+  if (numberSpan && titleSpan) {
+    if (numberSpan && titleSpan) {
+      item.innerHTML = "";
+      item.appendChild(titleSpan);
+    }
+  }
 }
 
 function handleRepoLinks(
@@ -474,6 +480,34 @@ function repoActionLinks(
   }).filter((action) => action !== null) as Array<
     { text: string; url: string }
   >;
+}
+
+async function resolveFooter(
+  project: ProjectContext,
+  footer?: NavigationFooter,
+) {
+  const resolveItems = async (
+    contents: string | (string | NavItem)[] | undefined,
+  ) => {
+    if (Array.isArray(contents)) {
+      const resolvedItems = [];
+      for (let i = 0; i < contents.length; i++) {
+        const item = contents[i];
+        const navItem = await navigationItem(project, item);
+        resolvedItems.push(navItem);
+      }
+      return resolvedItems;
+    } else {
+      return contents;
+    }
+  };
+
+  if (footer) {
+    footer.left = await resolveItems(footer.left);
+    footer.center = await resolveItems(footer.center);
+    footer.right = await resolveItems(footer.right);
+  }
+  return footer;
 }
 
 async function sidebarsEjsData(project: ProjectContext, sidebars: Sidebar[]) {
@@ -773,7 +807,7 @@ function resolveIcon(navItem: NavbarItem) {
 
 async function navigationItem(
   project: ProjectContext,
-  navItem: NavbarItem,
+  navItem: NavbarItem | string,
   level = 0,
 ) {
   // make a copy we can mutate

@@ -24,16 +24,31 @@
 
 </div>
 
-<% if (nav.footer) { %>
-  <div class="row nav-footer">
-    <div class="nav-footer-contents"><%=nav.footer%></div>
-  </div>
-<% } %>
-
 
 </div> <!-- /main column -->
 
 </div> <!-- /row -->
+<% if (nav.footer && nav.footer.left && nav.footer.center && nav.footer.right) { %>
+<div class="row">
+  <div class="nav-footer">
+    <% if (nav.footer.left) { %> 
+    <div class="nav-footer-left me-auto">
+      <% partial('nav-footer-section.ejs', { contents: nav.footer.left })%>
+    </div>   
+    <% } %>
+    <% if (nav.footer.center) { %> 
+      <div class="nav-footer-center me-auto ms-auto">
+        <% partial('nav-footer-section.ejs', { contents: nav.footer.center}) %>
+      </div>
+    <% } %>
+    <% if (nav.footer.right) { %> 
+    <div class="nav-footer-right ms-auto">
+      <% partial('nav-footer-section.ejs', { contents: nav.footer.right}) %>
+    </div>
+    <% } %> 
+  </div>
+</div>
+<% } %>
 
 </div> <!-- /container fluid -->
 

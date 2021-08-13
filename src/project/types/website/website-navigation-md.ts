@@ -8,7 +8,7 @@
 import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
 
 import { Format, Metadata } from "../../../config/types.ts";
-import { Sidebar } from "../../project-config.ts";
+import { NavItem, Sidebar } from "../../project-config.ts";
 
 import { kSite } from "./website-config.ts";
 import { kTitle } from "../../../config/constants.ts";
@@ -17,6 +17,7 @@ import {
   Navigation,
   NavigationPagination,
 } from "./website-shared.ts";
+import { removeChapterNumber } from "./website-navigation.ts";
 
 const kSidebarTitleId = "quarto-int-sidebar-title";
 const kNavbarTitleId = "quarto-int-navbar-title";
@@ -299,6 +300,75 @@ const navbarContentsHandler = {
   },
 };
 
+const kNavFooterPrefix = "footer-";
+const footerHandler = {
+  getUnrendered(context: MarkdownRenderContext) {
+    if (context.navigation?.footer) {
+      const markdown: Record<string, string> = {};
+      const addEntry = (key: string, value: string | (string | NavItem)[]) => {
+        if (typeof (value) === "string") {
+          markdown[`${kNavFooterPrefix}${key}`] = value;
+        } else {
+          value.forEach((navItem) => {
+            if (typeof (navItem) === "object") {
+              if (navItem.text) {
+                markdown[
+                  `${kNavFooterPrefix}${key}-${navItem.href || navItem.text}`
+                ] = navItem.text;
+              }
+            }
+          });
+        }
+      };
+
+      if (context.navigation.footer.left) {
+        addEntry("left", context.navigation.footer.left);
+      }
+      if (context.navigation.footer.center) {
+        addEntry("center", context.navigation.footer.center);
+      }
+      if (context.navigation.footer.right) {
+        addEntry("right", context.navigation.footer.right);
+      }
+
+      return markdown;
+    }
+  },
+  processRendered(rendered: Record<string, Element>, doc: Document) {
+    const process = (key: string) => {
+      // Process any simple markdown
+      const footerEl = doc.querySelector(`.nav-footer .nav-footer-${key}`);
+      if (footerEl) {
+        const footer = rendered[`${kNavFooterPrefix}${key}`];
+        if (footer) {
+          footerEl.innerHTML = footer.innerHTML;
+        }
+      }
+
+      // Process any items
+      const navItemEls = doc.querySelectorAll(
+        ".nav-footer .nav-item a.nav-link",
+      );
+      for (let i = 0; i < navItemEls.length; i++) {
+        const link = navItemEls[i] as Element;
+        const href = link.getAttribute("href");
+        const id = href || link.innerText;
+        if (id) {
+          const renderedEl = rendered[`${kNavFooterPrefix}${key}-${id}`];
+
+          if (renderedEl) {
+            removeChapterNumber(renderedEl);
+            link.innerHTML = renderedEl?.innerHTML;
+          }
+        }
+      }
+    };
+    process("left");
+    process("center");
+    process("right");
+  },
+};
+
 const handlers: MarkdownRenderHandler[] = [
   sidebarTitleHandler,
   navbarTitleHandler,
@@ -306,4 +376,5 @@ const handlers: MarkdownRenderHandler[] = [
   prevPageTitleHandler,
   sidebarContentsHandler,
   navbarContentsHandler,
+  footerHandler,
 ];

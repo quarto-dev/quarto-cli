@@ -1,7 +1,3 @@
-div.quarto-container {
-  min-height: 100vh;
-}
-
 // headroom
 header.headroom {
   will-change: transform;
@@ -406,6 +402,7 @@ nav .nav-item.compact .nav-link {
   text-align: center;
   padding-top: 0.5rem;
   padding-bottom: 0.25rem;
+  margin-top: 1px;
 }
 
 .nav-footer-contents {
@@ -474,4 +471,52 @@ nav .nav-item.compact .nav-link {
 
 .sidebar-toc .header-section-number {
   display: none;
+}
+
+// border weight
+// border style
+.nav-footer {
+  @if variable-exists(footer-bg) {
+    background-color: $footer-bg;
+  }
+  @if variable-exists(footer-border) {
+    border-top: 1px solid $footer-border;
+  } @else {
+    border-top: 1px solid $table-border-color;
+  }
+}
+
+.nav-footer,
+.nav-footer a {
+  @if variable-exists(footer-color) {
+    color: $footer-color;
+  } @else {
+    color: $text-muted;
+  }
+}
+
+.nav-footer .nav-footer-left {
+  font-size: $footer-left-font-size;
+}
+
+.nav-footer .nav-footer-center {
+  font-size: $footer-center-font-size;
+}
+
+.nav-footer .nav-footer-right {
+  font-size: $footer-right-font-size;
+}
+
+.nav-footer-left .footer-items,
+.nav-footer-center .footer-items,
+.nav-footer-right .footer-items {
+  display: flex;
+  margin-bottom: 0;
+}
+
+.nav-footer-left .footer-items .nav-link,
+.nav-footer-center .footer-items .nav-link,
+.nav-footer-right .footer-items .nav-link {
+  padding-left: 0.8em;
+  padding-right: 0em;
 }

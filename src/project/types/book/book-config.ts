@@ -113,6 +113,9 @@ export async function bookProjectConfig(
     site[kTwitterCard] = book[kTwitterCard];
     site[kImage] = book[kImage];
 
+    // If there is an explicitly set footer use that
+    if (book[kSiteFooter]) {
+      site[kSiteFooter] = book[kSiteFooter];
     }
   }
 
