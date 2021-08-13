@@ -43,19 +43,21 @@ export interface Navbar {
   darkToggle?: boolean;
 }
 
-export interface NavbarItem {
-  // core identification
-  id?: string;
-  text?: string;
-
+export interface NavItem {
   // href + more readable/understndable aliases
+  icon?: string;
   href?: string;
   file?: string;
+  text?: string;
   url?: string;
+  [kAriaLabel]?: string;
+}
+
+export interface NavbarItem extends NavItem {
+  // core identification
+  id?: string;
 
   // more
-  icon?: string;
-  [kAriaLabel]?: string;
   menu?: NavbarItem[];
 }
 
@@ -85,19 +87,12 @@ export interface Sidebar {
   pinned?: boolean;
 }
 
-export interface SidebarItem {
+export interface SidebarItem extends NavItem {
   // core structure/contents
   section?: string;
-  text?: string;
   contents?: SidebarItem[];
 
-  // href + more readable/understndable aliases
-  href?: string;
-  file?: string;
-  url?: string;
-
   // more
-  [kAriaLabel]?: string;
   expanded?: boolean;
   active?: boolean;
 }
