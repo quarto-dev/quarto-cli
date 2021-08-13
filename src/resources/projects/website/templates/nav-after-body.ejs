@@ -28,7 +28,7 @@
 </div> <!-- /main column -->
 
 </div> <!-- /row -->
-<% if (nav.footer && nav.footer.left && nav.footer.center && nav.footer.right) { %>
+<% if (nav.footer && (nav.footer.left || nav.footer.center || nav.footer.right)) { %>
 <div class="row">
   <div class="nav-footer">
     <% if (nav.footer.left) { %> 
