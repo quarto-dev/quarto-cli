@@ -842,14 +842,14 @@ function resolveSidebarRef(navItem: NavbarItem) {
                   ? subItem.contents[0]
                   : undefined
                 : subItem;
-              if (targetItem) {
+              if (targetItem?.href) {
                 navItem.menu.push({
                   text: subItem.text,
                   href: targetItem.href,
                 });
               }
             }
-          } else {
+          } else if (item.href) {
             navItem.menu.push({
               text: item.text,
               href: item.href,
