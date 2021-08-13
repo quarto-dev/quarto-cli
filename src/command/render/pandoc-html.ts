@@ -104,6 +104,9 @@ export async function resolveSassBundles(
         bundle.user = bundle.dark?.user || bundle.user;
         bundle.quarto = bundle.dark?.quarto || bundle.quarto;
         bundle.framework = bundle.dark?.framework || bundle.framework;
+
+        // Mark this bundle with a dark key so it is differentiated from the light theme
+        bundle.key = bundle.key + "-dark";
         return bundle;
       });
       targets.push({
