@@ -103,7 +103,6 @@ import { pandocMetadataPath } from "./render-shared.ts";
 import { Metadata } from "../../config/types.ts";
 import { resourcesFromMetadata } from "./resources.ts";
 import { resolveSassBundles } from "./pandoc-html.ts";
-import { parsePandocTitle } from "../../core/pandoc/pandoc-partition.ts";
 
 export async function runPandoc(
   options: PandocOptions,
