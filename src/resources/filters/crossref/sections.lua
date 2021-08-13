@@ -44,7 +44,7 @@ function sections()
       end
       
       -- number the section if required
-      if (numberSections() and level <= numberDepth() + 1) then
+      if (numberSections() and level <= numberDepth()) then
         local section = sectionNumber(crossref.index.section, level)
         el.attr.attributes["number"] = section
 
