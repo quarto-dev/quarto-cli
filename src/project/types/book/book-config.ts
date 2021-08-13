@@ -80,7 +80,6 @@ export const kBookSharing = "sharing";
 export const kBookDownloads = "downloads";
 export const kBookTools = "tools";
 export const kBookSearch = "search";
-export const kBookAttribution = "attribution";
 
 export const kBookItemChapter = "chapter";
 export const kBookItemAppendix = "appendix";
@@ -114,15 +113,6 @@ export async function bookProjectConfig(
     site[kTwitterCard] = book[kTwitterCard];
     site[kImage] = book[kImage];
 
-    // Conver the attribution markdown into html and place it into the footer
-    const attributionMarkdown = book[kBookAttribution];
-    if (attributionMarkdown && typeof (attributionMarkdown) === "string") {
-      // render the markdown
-      const markdown = await renderMarkdown(
-        attributionMarkdown,
-        kBookAttribution,
-      );
-      site[kSiteFooter] = markdown;
     }
   }
 
