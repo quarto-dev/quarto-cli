@@ -18,6 +18,8 @@ export const kAriaLabel = "aria-label";
 export const kCollapseLevel = "collapse-level";
 export const kCollapseBelow = "collapse-below";
 
+export const kSidebarMenus = "sidebar-menus";
+
 export type LayoutBreak = "" | "sm" | "md" | "lg" | "xl" | "xxl";
 
 export interface Navbar {
@@ -40,6 +42,7 @@ export interface Navbar {
   tools?: SidebarTool[];
   pinned?: boolean;
   [kCollapseBelow]?: LayoutBreak;
+  [kSidebarMenus]?: boolean;
   darkToggle?: boolean;
 }
 
