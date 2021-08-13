@@ -55,6 +55,12 @@ window.document.addEventListener("DOMContentLoaded", function() {
       }
     });
 
+    // allow space for footer
+    const mainContainer = window.document.querySelector(".quarto-container");
+    if (mainContainer) {
+      mainContainer.style.minHeight = "calc(100vh - " + offset + "px)";
+    }
+
     // link offset
     let linkStyle = window.document.querySelector("#quarto-target-style");
     if (!linkStyle) {
