@@ -247,21 +247,25 @@ export function copyMinimal(
       continue;
     }
     const destFile = join(destDir, relative(srcDir, srcFile));
-    ensureDirSync(dirname(destFile));
-    if (existsSync(destFile)) {
-      const srcInfo = Deno.statSync(srcFile);
-      const destInfo = Deno.statSync(destFile);
-      if (!srcInfo.mtime || !destInfo.mtime || destInfo.mtime < srcInfo.mtime) {
-        copySync(srcFile, destFile, {
-          overwrite: true,
-          preserveTimestamps: true,
-        });
-      }
-    } else {
+    copyFileIfNewer(srcFile, destFile);
+  }
+}
+
+export function copyFileIfNewer(srcFile: string, destFile: string) {
+  ensureDirSync(dirname(destFile));
+  if (existsSync(destFile)) {
+    const srcInfo = Deno.statSync(srcFile);
+    const destInfo = Deno.statSync(destFile);
+    if (!srcInfo.mtime || !destInfo.mtime || destInfo.mtime < srcInfo.mtime) {
       copySync(srcFile, destFile, {
         overwrite: true,
         preserveTimestamps: true,
       });
     }
+  } else {
+    copySync(srcFile, destFile, {
+      overwrite: true,
+      preserveTimestamps: true,
+    });
   }
 }

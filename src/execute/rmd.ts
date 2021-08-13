@@ -112,8 +112,8 @@ export const knitrEngine: ExecutionEngine = {
 
   canFreeze: true,
 
-  ignoreGlobs: () => {
-    return ["**/renv/**", "**/packrat/**", "**/rsconnect/**"];
+  ignoreDirs: () => {
+    return ["renv", "packrat", "rsconnect"];
   },
 
   run: (options: RunOptions) => {
