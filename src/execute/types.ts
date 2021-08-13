@@ -46,7 +46,7 @@ export interface ExecutionEngine {
   canFreeze: boolean;
   canKeepSource?: (target: ExecutionTarget) => boolean;
   keepFiles?: (input: string) => string[] | undefined;
-  ignoreGlobs?: () => string[] | undefined;
+  ignoreDirs?: () => string[] | undefined;
   devServerRenderOnChange?: (
     input: string,
     context: ProjectContext,

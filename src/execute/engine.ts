@@ -154,16 +154,20 @@ function engineForMarkdownWithNoLanguages(markdown: string) {
   }
 }
 
-export function engineIgnoreGlobs() {
-  const ignoreGlobs: string[] = [];
+export function engineIgnoreDirs() {
+  const ignoreDirs: string[] = [];
   executionEngines().forEach((name) => {
     const engine = executionEngine(name);
-    if (engine && engine.ignoreGlobs) {
-      const engineIgnores = engine.ignoreGlobs();
-      if (engineIgnores) {
-        ignoreGlobs.push(...engineIgnores);
+    if (engine && engine.ignoreDirs) {
+      const ignores = engine.ignoreDirs();
+      if (ignores) {
+        ignoreDirs.push(...ignores);
       }
     }
   });
-  return ignoreGlobs;
+  return ignoreDirs;
+}
+
+export function engineIgnoreGlobs() {
+  return engineIgnoreDirs().map((ignore) => `**/${ignore}/**`);
 }

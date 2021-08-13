@@ -5,20 +5,16 @@
 *
 */
 
-import { join, relative } from "path/mod.ts";
+import { basename, join } from "path/mod.ts";
 
-import {
-  copyMinimal,
-  kSkipHidden,
-  pathWithForwardSlashes,
-} from "../../core/path.ts";
+import { copyFileIfNewer, copyMinimal, kSkipHidden } from "../../core/path.ts";
 import { createSessionTempDir } from "../../core/temp.ts";
 
 import { kProjectLibDir, ProjectContext } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
-import { projectIgnoreRegexes } from "../../project/project-context.ts";
 import { projectFreezerDir } from "../render/freeze.ts";
 import { projectCrossrefDir } from "../../project/project-crossrefs.ts";
+import { engineIgnoreDirs } from "../../execute/engine.ts";
 
 export function copyProjectForServe(
   project: ProjectContext,
@@ -33,7 +29,7 @@ export function copyProjectForServe(
   const libDirConfig = project.config?.project[kProjectLibDir];
   const libDir = libDirConfig ? join(project.dir, libDirConfig) : undefined;
 
-  const projectIgnore = projectIgnoreRegexes(project.dir);
+  const ignoreDirs = engineIgnoreDirs();
 
   const filter = (path: string) => {
     if (
@@ -42,17 +38,29 @@ export function copyProjectForServe(
     ) {
       return false;
     }
-    const pathRelative = pathWithForwardSlashes(relative(project.dir, path));
-    return !projectIgnore.some((regex: RegExp) => regex.test(pathRelative));
+    const name = basename(path);
+    return !ignoreDirs.includes(name) && !name.startsWith(".");
   };
 
-  // copy source files (skip output if requested)
-  copyMinimal(
-    project.dir,
-    serveDir,
-    [kSkipHidden],
-    filter,
-  );
+  // copy source files -- apply filter at top level so that we skip
+  // potentially expensive top level dirs (like renv/venv) entirely
+  for (const entry of Deno.readDirSync(project.dir)) {
+    const srcPath = join(project.dir, entry.name);
+    if (filter(srcPath)) {
+      const destPath = join(serveDir!, entry.name);
+      if (entry.isDirectory) {
+        copyMinimal(
+          srcPath,
+          destPath,
+          [kSkipHidden],
+          filter,
+        );
+      } else {
+        copyFileIfNewer(srcPath, destPath);
+      }
+    }
+  }
+
   // copy freezer
   copyMinimal(
     projectFreezerDir(project.dir, true),

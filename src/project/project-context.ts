@@ -217,12 +217,6 @@ export function projectIgnoreGlobs(dir: string) {
   );
 }
 
-export function projectIgnoreRegexes(dir: string) {
-  return projectIgnoreGlobs(dir).map((glob) =>
-    globToRegExp(glob, { extended: true, globstar: true })
-  );
-}
-
 export async function projectMetadataForInputFile(
   input: string,
   project?: ProjectContext,

@@ -298,8 +298,8 @@ export const jupyterEngine: ExecutionEngine = {
 
   canFreeze: true,
 
-  ignoreGlobs: () => {
-    return ["**/venv/**", "**/env/**"];
+  ignoreDirs: () => {
+    return ["venv", "env"];
   },
 
   canKeepSource: (targbet: ExecutionTarget) => {
