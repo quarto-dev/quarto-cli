@@ -354,17 +354,22 @@ function numberStyle(
 }
 
 function sectionNumber(options: BookCrossrefOptions, section: number[]) {
-  const num: string[] = [];
-  for (let i = 0; i < section.length; i++) {
+  let lastIndex = 0;
+  for (let i = (section.length - 1); i >= 0; i--) {
     if (section[i] > 0) {
-      if (i === 0) {
-        const chapIndex = formatChapterIndex(options, section[i]);
-        if (chapIndex) {
-          num.push(chapIndex);
-        }
-      } else {
-        num.push(section[i].toString());
+      lastIndex = i;
+      break;
+    }
+  }
+  const num: string[] = [];
+  for (let i = 0; i <= lastIndex; i++) {
+    if (i === 0) {
+      const chapIndex = formatChapterIndex(options, section[i]);
+      if (chapIndex) {
+        num.push(chapIndex);
       }
+    } else {
+      num.push(section[i].toString());
     }
   }
   return num.join(".");

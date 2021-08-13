@@ -161,23 +161,31 @@ function numberOption(type, order, default)
 end
 
 function sectionNumber(section, maxLevel)
+
   local num = ""
   if crossref.maxHeading == 1 then
     num = formatChapterIndex(section[1])
   end
-  for i=2,#section do
-    if maxLevel and i>maxLevel then
-      break
-    end
+
+  local endIndex = #section
+  if maxLevel then
+    endIndex = maxLevel
+  end
+  local lastIndex = 1
+  for i=endIndex,2,-1 do
     if section[i] > 0 then
-      if num ~= '' then
-        num = num .. "."
-      end
-      num = num .. tostring(section[i])
-    else
+      lastIndex = i
       break
     end
   end
+
+  for i=2,lastIndex do
+    if num ~= '' then
+      num = num .. "."
+    end
+    num = num .. tostring(section[i])
+  end
+
   return num
 end
 
