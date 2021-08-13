@@ -364,6 +364,12 @@ function navigationHtmlPostprocessor(
         const sidebarItem = sidebarItems[i] as Element;
         removeChapterNumber(sidebarItem);
       }
+
+      // remove the chapter number from the title
+      const titleEl = doc.querySelector("h1.title");
+      if (titleEl) {
+        removeChapterNumber(titleEl);
+      }
     }
     return Promise.resolve([]);
   };
