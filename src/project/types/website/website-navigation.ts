@@ -51,6 +51,7 @@ import {
   kAriaLabel,
   kCollapseBelow,
   kCollapseLevel,
+  kSidebarMenus,
   LayoutBreak,
   Navbar,
   NavbarItem,
@@ -111,23 +112,24 @@ export async function initWebsiteNavigation(project: ProjectContext) {
     return;
   }
 
-  // navbar
-  if (navbar) {
-    navigation.navbar = await navbarEjsData(project, navbar);
-  } else {
-    navigation.navbar = undefined;
-  }
-
   // sidebars
   if (sidebars) {
     navigation.sidebars = await sidebarsEjsData(project, sidebars);
+    navigation.sidebars = resolveNavReferences(
+      navigation.sidebars,
+    ) as Sidebar[];
   } else {
     navigation.sidebars = [];
   }
 
-  // resolve nav references
-  navigation.navbar = resolveNavReferences(navigation.navbar) as Navbar;
-  navigation.sidebars = resolveNavReferences(navigation.sidebars) as Sidebar[];
+  // navbar
+  if (navbar) {
+    navigation.navbar = await navbarEjsData(project, navbar);
+    navigation.navbar = resolveNavReferences(navigation.navbar) as Navbar;
+  } else {
+    navigation.navbar = undefined;
+  }
+
   navigation.pageNavigation = pageNavigation;
   navigation.footer = await resolveFooter(project, footer);
 }
@@ -767,13 +769,16 @@ async function navbarEjsData(
   data.title = data.title || "";
 
   // normalize nav contents
+  const sidebarMenus = navbar[kSidebarMenus] !== false;
   if (navbar.left) {
     if (!Array.isArray(navbar.left)) {
       throw new Error("navbar 'left' must be an array of nav items");
     }
     data.left = new Array<NavbarItem>();
     for (let i = 0; i < navbar.left.length; i++) {
-      data.left.push(await navigationItem(project, navbar.left[i]));
+      data.left.push(
+        await navigationItem(project, navbar.left[i], 0, sidebarMenus),
+      );
     }
   }
   if (navbar.right) {
@@ -782,7 +787,9 @@ async function navbarEjsData(
     }
     data.right = new Array<NavbarItem>();
     for (let i = 0; i < navbar.right.length; i++) {
-      data.right.push(await navigationItem(project, navbar.right[i]));
+      data.right.push(
+        await navigationItem(project, navbar.right[i], 0, sidebarMenus),
+      );
     }
   }
 
@@ -811,10 +818,60 @@ function resolveIcon(navItem: NavbarItem) {
     : navItem.icon;
 }
 
+function resolveSidebarRef(navItem: NavbarItem) {
+  // see if this is a sidebar link
+  const ref = navItem.href || navItem.text;
+  if (ref) {
+    const id = sidebarTargetId(ref);
+    if (id) {
+      const sidebar = navigation.sidebars.find(sidebarHasId(id));
+      if (sidebar) {
+        // wipe out the href and replace with a menu
+        navItem.href = undefined;
+        navItem.text = sidebar.title || id;
+        navItem.menu = new Array<NavbarItem>();
+        for (const item of sidebar.contents) {
+          // not fully recursive, we only take the first level of the sidebar
+          if (item.text && item.contents) {
+            if (navItem.menu.length > 0) {
+              navItem.menu.push({
+                text: "---",
+              });
+            }
+            navItem.menu.push({
+              text: item.text,
+            });
+            for (const subItem of item.contents) {
+              // if this is turn has contents then target the first sub-item of those
+              const targetItem = subItem.contents?.length
+                ? !subItem.contents[0].contents
+                  ? subItem.contents[0]
+                  : undefined
+                : subItem;
+              if (targetItem) {
+                navItem.menu.push({
+                  text: subItem.text,
+                  href: targetItem.href,
+                });
+              }
+            }
+          } else {
+            navItem.menu.push({
+              text: item.text,
+              href: item.href,
+            });
+          }
+        }
+      }
+    }
+  }
+}
+
 async function navigationItem(
   project: ProjectContext,
   navItem: NavbarItem | string,
   level = 0,
+  sidebarMenus = false,
 ) {
   // make a copy we can mutate
   navItem = ld.cloneDeep(navItem);
@@ -832,6 +889,11 @@ async function navigationItem(
   resolveIcon(navItem);
 
   resolveHrefAttribute(navItem);
+
+  if (level === 0 && sidebarMenus) {
+    resolveSidebarRef(navItem);
+  }
+
   if (navItem.href) {
     return await resolveItem(project, navItem.href, navItem);
   } else if (navItem.menu) {
@@ -848,6 +910,7 @@ async function navigationItem(
         project,
         navItem.menu[i],
         level + 1,
+        false,
       );
     }
 
@@ -1020,10 +1083,9 @@ function resolveNavReferences(
 }
 
 function resolveNavReference(href: string) {
-  const match = href.match(/^sidebar:([^\s]+).*$/);
-  if (match) {
-    const id = match[1];
-    const sidebar = navigation.sidebars.find((sidebar) => sidebar.id === id);
+  const id = sidebarTargetId(href);
+  if (id) {
+    const sidebar = navigation.sidebars.find(sidebarHasId(id));
     if (sidebar && sidebar.contents?.length) {
       const item = findFirstItem(sidebar.contents[0]);
       if (item) {
@@ -1035,6 +1097,25 @@ function resolveNavReference(href: string) {
     }
   }
   return undefined;
+}
+
+function sidebarTargetId(href?: string) {
+  if (href) {
+    const match = href.match(/^sidebar:([^\s]+).*$/);
+    if (match) {
+      return match[1];
+    } else {
+      return undefined;
+    }
+  } else {
+    return undefined;
+  }
+}
+
+function sidebarHasId(id: string) {
+  return (sidebar: Sidebar) => {
+    return sidebar.id === id;
+  };
 }
 
 function findFirstItem(item: SidebarItem): SidebarItem | undefined {
