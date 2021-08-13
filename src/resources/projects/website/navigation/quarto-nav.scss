@@ -33,14 +33,19 @@ header.headroom--unpinned {
   padding-right: 6px;
 }
 
+nav .nav-item:not(.compact) {
+  padding-top: 2px;
+}
+
 nav .nav-link i,
 nav .dropdown-item i {
   padding-right: 1px;
 }
 
 nav .nav-item.compact .nav-link {
-  padding-left: 0;
+  padding-left: 0.5rem;
   padding-right: 0.5rem;
+  font-size: 1.2rem;
 }
 
 .navbar #quarto-search {
