@@ -99,7 +99,7 @@ export function defrostExecuteResult(
     if (force || hash === freezeInputHash(source)) {
       // full path to supporting
       result.supporting = result.supporting.map((file) =>
-        Deno.realPathSync(join(dirname(source), file))
+        join(Deno.realPathSync(dirname(source)), file)
       );
 
       // convert includes to files

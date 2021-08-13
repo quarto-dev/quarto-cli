@@ -73,9 +73,12 @@
 }
 .quarto-figure {
   position: relative;
+  margin-bottom: 1em;
 }
+
 .quarto-figure > figure {
   width: 100%;
+  margin-bottom: 0;
 }
 .quarto-figure-left > figure > p {
   text-align: left;

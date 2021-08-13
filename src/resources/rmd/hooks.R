@@ -462,6 +462,10 @@ knitr_options_hook <- function(options) {
     # convert any option with fig- into fig. and out- to out.
     names(results$yaml) <- sub("^fig-", "fig.", names(results$yaml))
     names(results$yaml) <- sub("^out-", "out.", names(results$yaml))
+    # alias 'warning' explicitly set here to 'message'
+    if (!is.null(results$yaml[["warning"]])) {
+      options[["message"]] = results$yaml[["warning"]]
+    }
     # merge with other options
     options <- knitr:::merge_list(options, results$yaml)
     # set code

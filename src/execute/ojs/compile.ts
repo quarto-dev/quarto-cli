@@ -253,11 +253,11 @@ export async function ojsCompile(
             }
             if (node.id === null &&
               node.body.type !== "ImportDeclaration") {
-              seqSrc.push(node.input.substring(node.start, node.end));
+              seqSrc.push([node.start, node.end]);
               flushSeqSrc();
               cellTypes.push("expression");
             } else {
-              seqSrc.push(node.input.substring(node.start, node.end));
+              seqSrc.push([node.start, node.end]);
               cellTypes.push("declaration");
             }
           },
@@ -477,7 +477,9 @@ export async function ojsCompile(
           const innerSrc = cellSrcs[subfigIx-1];
           if (innerSrc !== null && srcConfig !== undefined) {
             const srcDiv = pandocCode(srcConfig);
-            srcDiv.push(pandocRawStr(innerSrc.join("\n")));
+            srcDiv.push(pandocRawStr(
+              cellSrcStr.substring(innerSrc[0][0],
+                                   innerSrc[innerSrc.length-1][1])));
             div.push(srcDiv);
           }
           subfigIx++;
@@ -521,7 +523,7 @@ export async function ojsCompile(
         const innerSrc = cellSrcs[0];
         if (innerSrc !== null && srcConfig !== undefined) {
           const srcDiv = pandocCode(srcConfig);
-          srcDiv.push(pandocRawStr(innerSrc));
+          srcDiv.push(pandocRawStr(cellSrcStr.substring(innerSrc[0][0], innerSrc[0][1])));
           div.push(srcDiv);
         }
         const outputDiv = pandocDiv({
@@ -660,7 +662,7 @@ export async function ojsCompile(
   const includeAfterBodyFile = sessionTempFile();
   Deno.writeTextFileSync(includeAfterBodyFile, afterBody);
 
-  // we need to inline ojs-bundle.js rather than link to it in order
+  // we need to inline esbuild-bundle.js rather than link to it in order
   // for ojs to work in non-webserver contexts. <script type="module"></script> runs into CORS restrictions
 
   const extras = resolveDependencies(
@@ -678,7 +680,9 @@ export async function ojsCompile(
   if (selfContained) {
     const ojsBundleFilename = join(
       quartoConfig.sharePath(),
-      "formats/html/ojs/ojs-bundle.js",
+      "formats/html/ojs/esbuild-bundle.js",
+      // "formats/html/ojs/ojs-bundle.js",
+      // "formats/html/ojs/stdlib.js",
     );
     const ojsBundle = [
       `<script type="module">`,
@@ -770,7 +774,11 @@ function ojsFormatDependency(selfContained: boolean) {
   // them to be inline in case we are running in a file:/// context.
   const scripts = selfContained
     ? []
-    : [ojsDependency("ojs-bundle.js", { type: "module" })];
+    : [
+      ojsDependency("esbuild-bundle.js", { type: "module" })
+      // ojsDependency("ojs-bundle.js", { type: "module" }),
+      // ojsDependency("stdlib.js", { type: "module" })
+      ];
   return {
     name: "quarto-ojs",
     stylesheets: [

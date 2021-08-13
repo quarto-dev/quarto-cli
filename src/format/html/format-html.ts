@@ -314,20 +314,6 @@ function htmlFormatExtras(format: Format): FormatExtras {
   );
 
   if (quartoHtmlRequired) {
-    // html orchestration script
-    const quartoHtmlScript = sessionTempFile();
-    Deno.writeTextFileSync(
-      quartoHtmlScript,
-      renderEjs(
-        formatResourcePath("html", join("templates", "quarto-html.ejs.js")),
-        options,
-      ),
-    );
-    scripts.push({
-      name: "quarto-html.js",
-      path: quartoHtmlScript,
-    });
-
     // add quarto sass bundle of we aren't in bootstrap
     if (!bootstrap) {
       sassBundles.push({
@@ -375,6 +361,20 @@ function htmlFormatExtras(format: Format): FormatExtras {
 
   // after body
   const includeAfterBody: string[] = [];
+
+  // quarto html helpers
+  if (quartoHtmlRequired) {
+    // html orchestration script
+    const quartoHtmlScript = sessionTempFile();
+    Deno.writeTextFileSync(
+      quartoHtmlScript,
+      renderEjs(
+        formatResourcePath("html", join("templates", "quarto-html.ejs")),
+        options,
+      ),
+    );
+    includeAfterBody.push(quartoHtmlScript);
+  }
 
   // utterances
   if (options.utterances) {
