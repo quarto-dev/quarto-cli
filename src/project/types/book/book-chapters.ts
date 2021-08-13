@@ -137,7 +137,7 @@ export function formatChapterTitle(
       return withIdSpan(`${title} ${info.labelPrefix}${delim} ${label}`);
     } else {
       return withIdSpan(
-        `[${info.labelPrefix}]{.chapter-number-title}\u00A0 ${label}`,
+        `[${info.labelPrefix}]{.chapter-number}\u00A0 [${label}]{.chapter-title}`,
       );
     }
   } else {
