@@ -149,7 +149,9 @@ export function htmlFormatPostprocessor(format: Format) {
               for (let i = 0; i < headings.length; i++) {
                 const heading = headings[i] as Element;
                 if (heading.id !== "toc-title") {
-                  heading.classList.add("anchored");
+                  if (!heading.classList.contains("no-anchor")) {
+                    heading.classList.add("anchored");
+                  }
                 }
               }
             },
