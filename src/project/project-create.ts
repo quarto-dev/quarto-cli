@@ -67,7 +67,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
   );
   if (await ensureGitignore(options.dir, !!options.venv)) {
     info(
-      "- Created .gitignore",
+      "- Created .gitignore\n" + "- Created .gitattributes",
       { indent: 2 },
     );
   }
