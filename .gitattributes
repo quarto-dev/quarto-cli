@@ -1,0 +1,4 @@
+*.qmd linguist-language=markdown
+
+src/resources/formats/html/bootstrap linguist-vendored
+src/resources/formats/pdf/pdfjs linguist-vendored
