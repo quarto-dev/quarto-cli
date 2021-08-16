@@ -240,10 +240,10 @@ export async function ojsCompile(
         let info: SourceInfo[] = [];
         const flushSeqSrc = () => {
           parsedCells.push({ info });
-          info = [];
           for (let i = 1; i < info.length; ++i) {
-            parsedCells.push({ info });
+            parsedCells.push({ info: [] });
           }
+          info = [];
         };
         ojsSimpleWalker(parse, {
           // deno-lint-ignore no-explicit-any
@@ -469,7 +469,6 @@ export async function ojsCompile(
 
       const makeSubFigures = (specs: SubfigureSpec[]) => {
         let subfigIx = 1;
-        console.log({specs, parsedCells});
         for (const spec of specs) {
           const outputDiv = pandocDiv({
             classes: outputCellClasses,
@@ -477,11 +476,11 @@ export async function ojsCompile(
           const outputInnerDiv = pandocDiv({
             id: userId && `${userId}-${subfigIx}`,
           });
-          console.log({spec, subfigIx});
           const innerInfo = parsedCells[subfigIx-1].info;
+          const attrs = innerInfo.length ? [`nodetype="${innerInfo[innerInfo.length-1].cellType}"`] : [];
           const ojsDiv = pandocDiv({
             id: `${ojsId}-${subfigIx}`,
-            attrs: [`nodetype="${innerInfo[innerInfo.length-1].cellType}"`]
+            attrs
           });
           if (innerInfo.length > 0 && srcConfig !== undefined) {
             const srcDiv = pandocCode(srcConfig);
