@@ -223,25 +223,27 @@ export async function ojsCompile(
         return cell.options?.[kCellFigSubCap];
       };
 
-      pageResources.push(...extractResourceDescriptionsFromOJSChunk(
-        cellSrcStr,
-        dirname(options.source),
-        projDir,
-      ));
-
+      interface SourceInfo {
+        start: number,
+        end: number,
+        cellType: string
+      };
+      interface ParsedCellInfo {
+        info: SourceInfo[]
+      };
+      
       let nCells = 0;
-      let cellTypes: any[] = [];
-      let cellSrcs: any[] = [];
+      let parsedCells: ParsedCellInfo[] = [];
 
       try {
         const parse = parseModule(cellSrcStr);
-        let seqSrc: any[] = [];
+        let info: SourceInfo[] = [];
         const flushSeqSrc = () => {
-          cellSrcs.push(seqSrc);
-          for (let i = 1; i < seqSrc.length; ++i) {
-            cellSrcs.push(null);
+          parsedCells.push({ info });
+          info = [];
+          for (let i = 1; i < info.length; ++i) {
+            parsedCells.push({ info });
           }
-          seqSrc = [];
         };
         ojsSimpleWalker(parse, {
           // deno-lint-ignore no-explicit-any
@@ -253,17 +255,15 @@ export async function ojsCompile(
             }
             if (node.id === null &&
               node.body.type !== "ImportDeclaration") {
-              seqSrc.push([node.start, node.end]);
+              info.push({start: node.start, end: node.end, cellType: "expression"})
               flushSeqSrc();
-              cellTypes.push("expression");
             } else {
-              seqSrc.push([node.start, node.end]);
-              cellTypes.push("declaration");
+              info.push({start: node.start, end: node.end, cellType: "declaration"})
             }
           },
         });
         nCells = parse.cells.length;
-        if (seqSrc.length > 0) {
+        if (info.length > 0) {
           flushSeqSrc();
         }
       } catch (e) {
@@ -274,6 +274,12 @@ export async function ojsCompile(
         }
         throw new Error();
       }
+      
+      pageResources.push(...extractResourceDescriptionsFromOJSChunk(
+        cellSrcStr,
+        dirname(options.source),
+        projDir,
+      ));
 
       const hasManyRowsCols = () => {
         // FIXME figure out runtime type validation. This should check
@@ -463,6 +469,7 @@ export async function ojsCompile(
 
       const makeSubFigures = (specs: SubfigureSpec[]) => {
         let subfigIx = 1;
+        console.log({specs, parsedCells});
         for (const spec of specs) {
           const outputDiv = pandocDiv({
             classes: outputCellClasses,
@@ -470,16 +477,17 @@ export async function ojsCompile(
           const outputInnerDiv = pandocDiv({
             id: userId && `${userId}-${subfigIx}`,
           });
+          console.log({spec, subfigIx});
+          const innerInfo = parsedCells[subfigIx-1].info;
           const ojsDiv = pandocDiv({
             id: `${ojsId}-${subfigIx}`,
-            attrs: [`nodetype="${cellTypes[subfigIx-1]}"`]
+            attrs: [`nodetype="${innerInfo[innerInfo.length-1].cellType}"`]
           });
-          const innerSrc = cellSrcs[subfigIx-1];
-          if (innerSrc !== null && srcConfig !== undefined) {
+          if (innerInfo.length > 0 && srcConfig !== undefined) {
             const srcDiv = pandocCode(srcConfig);
             srcDiv.push(pandocRawStr(
-              cellSrcStr.substring(innerSrc[0][0],
-                                   innerSrc[innerSrc.length-1][1])));
+              cellSrcStr.substring(innerInfo[0].start,
+                                   innerInfo[innerInfo.length-1].end)));
             div.push(srcDiv);
           }
           subfigIx++;
@@ -520,10 +528,10 @@ export async function ojsCompile(
           div.push(pandocRawStr(cell.options[kCellFigCap] as string));
         }
       } else {
-        const innerSrc = cellSrcs[0];
-        if (innerSrc !== null && srcConfig !== undefined) {
+        const innerInfo = parsedCells[0].info;
+        if (innerInfo.length > 0 && srcConfig !== undefined) {
           const srcDiv = pandocCode(srcConfig);
-          srcDiv.push(pandocRawStr(cellSrcStr.substring(innerSrc[0][0], innerSrc[0][1])));
+          srcDiv.push(pandocRawStr(cellSrcStr.substring(innerInfo[0].start, innerInfo[0].end)));
           div.push(srcDiv);
         }
         const outputDiv = pandocDiv({
@@ -533,7 +541,7 @@ export async function ojsCompile(
         div.push(outputDiv);
         outputDiv.push(pandocDiv({
           id: ojsId,
-          attrs: [`nodetype="${cellTypes[0]}"`]
+          attrs: [`nodetype="${innerInfo[0].cellType}"`]
         }));
         if (cell.options?.[kCellFigCap]) {
           outputDiv.push(pandocRawStr(cell.options[kCellFigCap] as string));
