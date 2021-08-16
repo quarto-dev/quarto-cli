@@ -606,7 +606,6 @@ export async function ojsCompile(
   const shinyOutputMetadata = normalizeMetadata("ojs-import", []);
   const shinyInputs = new Set<string>();
   const shinyInputExcludes = new Set<string>();
-  const shinyEverything = new Set<string>();
 
   if (serverMetadata?.["ojs-exports"]) {
     throw new Error("Document metadata contains server.ojs-exports; did you mean 'ojs-export' instead?")
@@ -632,7 +631,10 @@ export async function ojsCompile(
 
   const resultSet = new Set<string>();
   if (importEverything) {
-    for (const el of shinyEverything) {
+    for (const el of ojsViews) {
+      resultSet.add(el);
+    }
+    for (const el of ojsIdentifiers) {
       resultSet.add(el);
     }
   }
@@ -647,7 +649,7 @@ export async function ojsCompile(
   for (const el of shinyInputExcludes) {
     resultSet.delete(el);
   }
-  
+
   for (const el of resultSet) {
     moduleContents.push({
       methodName: "interpretQuiet",
