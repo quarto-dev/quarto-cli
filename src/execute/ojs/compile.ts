@@ -608,10 +608,10 @@ export async function ojsCompile(
   const shinyInputExcludes = new Set<string>();
   const shinyEverything = new Set<string>();
 
-  if (serverMetadata?.serverMetadata["ojs-exports"]) {
+  if (serverMetadata?.["ojs-exports"]) {
     throw new Error("Document metadata contains server.ojs-exports; did you mean 'ojs-export' instead?")
   }
-  if (serverMetadata?.serverMetadata["ojs-imports"]) {
+  if (serverMetadata?.["ojs-imports"]) {
     throw new Error("Document metadata contains server.ojs-exports; did you mean 'ojs-export' instead?")
   }
 
