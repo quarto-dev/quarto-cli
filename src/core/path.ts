@@ -167,48 +167,6 @@ export function pathWithForwardSlashes(path: string) {
   return path.replace(/\\/g, "/");
 }
 
-export function move(
-  src: string,
-  dest: string,
-  incremental = false,
-) {
-  relocate(src, dest, true, incremental);
-}
-
-export function copy(
-  src: string,
-  dest: string,
-  incremental = false,
-) {
-  relocate(src, dest, false, incremental);
-}
-
-export function relocate(
-  src: string,
-  dest: string,
-  move = false,
-  incremental = false,
-) {
-  if (!incremental) {
-    if (existsSync(dest)) {
-      Deno.removeSync(dest, { recursive: true });
-    }
-    ensureDirSync(dirname(dest));
-    if (move) {
-      Deno.renameSync(src, dest);
-    } else {
-      copySync(src, dest, { overwrite: true, preserveTimestamps: true });
-    }
-  } else {
-    for (const path of Deno.readDirSync(src)) {
-      if (path.isDirectory) {
-        const srcPath = join(src, path.name);
-        relocate(srcPath, join(dest, path.name), move);
-      }
-    }
-  }
-}
-
 export function copyMinimal(
   srcDir: string,
   destDir: string,

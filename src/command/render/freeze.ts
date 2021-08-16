@@ -20,7 +20,11 @@ import { ld } from "lodash/mod.ts";
 
 import { inputFilesDir } from "../../core/render.ts";
 import { sessionTempFile } from "../../core/temp.ts";
-import { copy, removeIfEmptyDir, removeIfExists } from "../../core/path.ts";
+import {
+  copyMinimal,
+  removeIfEmptyDir,
+  removeIfExists,
+} from "../../core/path.ts";
 
 import {
   kIncludeAfterBody,
@@ -160,15 +164,14 @@ export function copyToProjectFreezer(
           }
         }
       } else {
-        copy(
+        copyMinimal(
           join(srcFilesDir, dir.name),
           join(destFilesDir, dir.name),
-          incremental,
         );
       }
     }
   } else {
-    copy(srcFilesDir, destFilesDir, incremental);
+    copyMinimal(srcFilesDir, destFilesDir);
   }
 }
 
@@ -176,7 +179,6 @@ export function copyFromProjectFreezer(
   project: ProjectContext,
   file: string,
   hidden: boolean,
-  incremental: boolean,
 ) {
   const freezerDir = projectFreezerDir(project.dir, hidden);
   const srcFilesDir = join(
@@ -185,7 +187,7 @@ export function copyFromProjectFreezer(
   );
   const destFilesDir = join(project.dir, file);
   if (existsSync(srcFilesDir)) {
-    copy(srcFilesDir, destFilesDir, incremental);
+    copyMinimal(srcFilesDir, destFilesDir);
   }
 }
 

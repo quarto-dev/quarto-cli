@@ -343,7 +343,6 @@ export async function renderExecute(
         context.project,
         projRelativeFilesDir!,
         hidden,
-        false,
       );
 
       const thawedResult = defrostExecuteResult(
@@ -355,7 +354,7 @@ export async function renderExecute(
         // copy the site_libs dir from the freezer
         const libDir = context.project?.config?.project[kProjectLibDir];
         if (libDir) {
-          copyFromProjectFreezer(context.project, libDir, hidden, true);
+          copyFromProjectFreezer(context.project, libDir, hidden);
         }
 
         // remove the results dir
