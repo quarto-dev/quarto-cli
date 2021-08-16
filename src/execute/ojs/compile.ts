@@ -598,26 +598,39 @@ export async function ojsCompile(
   // Handle shiny input and output YAML declarations
   // deno-lint-ignore no-explicit-any
   const serverMetadata = options.format.metadata?.server as any;
-  const shinyInputMetadata =
-    (serverMetadata && serverMetadata["type"] === "shiny") &&
-    serverMetadata["ojs-export"];
+  const normalizeMetadata = (key: string, def: string[]) => {
+    if (!serverMetadata ||
+      (serverMetadata["type"] !== "shiny") ||
+      !serverMetadata[key]) {
+      return def;
+    }
+    if (typeof serverMetadata[key] === "string") {
+      return [serverMetadata[key]];
+    } else {
+      return serverMetadata[key];
+    }
+  };
+  const shinyInputMetadata = normalizeMetadata("ojs-export", ["viewof"]);
+  const shinyOutputMetadata = normalizeMetadata("ojs-import", []);
   const shinyInputs = new Set<string>();
   const shinyInputExcludes = new Set<string>();
-  const shinyEverything = new Set<string>();
-  const shinyOutputMetadata =
-    (serverMetadata && serverMetadata["type"] === "shiny") &&
-    serverMetadata["ojs-import"];
 
-  let importAllViews = !shinyInputMetadata ||
-    (shinyInputMetadata.indexOf("viewof") !== -1);
+  if (serverMetadata?.["ojs-exports"]) {
+    throw new Error("Document metadata contains server.ojs-exports; did you mean 'ojs-export' instead?")
+  }
+  if (serverMetadata?.["ojs-imports"]) {
+    throw new Error("Document metadata contains server.ojs-exports; did you mean 'ojs-export' instead?")
+  }
+
+  let importAllViews = false;
   let importEverything = false;
 
-  for (const shinyInput of (shinyInputMetadata || [])) {
+  for (const shinyInput of shinyInputMetadata) {
     if (shinyInput === "viewof") {
       importAllViews = true;
     } else if (shinyInput === "all") {
       importEverything = true;
-    } else if (shinyInput.startsWith("!")) {
+    } else if (shinyInput.startsWith("~")) {
       shinyInputExcludes.add(shinyInput.slice(1));
     } else {
       shinyInputs.add(shinyInput);
@@ -626,7 +639,10 @@ export async function ojsCompile(
 
   const resultSet = new Set<string>();
   if (importEverything) {
-    for (const el of shinyEverything) {
+    for (const el of ojsViews) {
+      resultSet.add(el);
+    }
+    for (const el of ojsIdentifiers) {
       resultSet.add(el);
     }
   }
@@ -641,13 +657,15 @@ export async function ojsCompile(
   for (const el of shinyInputExcludes) {
     resultSet.delete(el);
   }
+
   for (const el of resultSet) {
     moduleContents.push({
       methodName: "interpretQuiet",
       source: `shinyInput('${el}')`,
     });
   }
-  for (const el of (shinyOutputMetadata || [])) {
+  
+  for (const el of shinyOutputMetadata) {
     moduleContents.push({
       methodName: "interpretQuiet",
       source: `${el} = shinyOutput('${el}')`,
