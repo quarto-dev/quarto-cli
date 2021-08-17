@@ -237,7 +237,6 @@ export async function ojsCompile(
           classes: ["quarto-ojs-syntax-error"],
         });
         const msg = String(err).split("\n")[0].trim().replace(/ *\(\d+:\d+\)$/, '');
-        div.push(pandocRawStr(`<p>${msg}.</p>`));
         ojsParseError(err, cellSrc);
 
         const preDiv = pandocBlock("````")({
@@ -246,6 +245,11 @@ export async function ojsCompile(
         });
         preDiv.push(pandocRawStr("```{ojs}\n" + cellSrc + "\n```"));
         div.push(preDiv);
+        const errMsgDiv = pandocDiv({
+          classes: ['cell-output-error']
+        })
+        errMsgDiv.push(pandocRawStr(`<pre><code>${msg} (line ${err.loc.line}, column ${err.loc.column})</code></pre>`));
+        div.push(errMsgDiv);
         div.emit(ls);
       }
       
