@@ -39,7 +39,7 @@ import {
   ResourceDescription,
   uniqueResources,
 } from "./extract-resources.ts";
-import { parseError } from "./errors.ts";
+import { ojsParseError } from "./errors.ts";
 
 import { ojsSimpleWalker } from "./ojs-tools.ts";
 
@@ -231,10 +231,27 @@ export async function ojsCompile(
       interface ParsedCellInfo {
         info: SourceInfo[]
       };
+
+      const handleError = (err: any, cellSrc: string) => {
+        const div = pandocBlock(':::::')({
+          classes: ["quarto-ojs-syntax-error"],
+        });
+        const msg = String(err).split("\n")[0].trim().replace(/ *\(\d+:\d+\)$/, '');
+        div.push(pandocRawStr(`<p>${msg}.</p>`));
+        ojsParseError(err, cellSrc);
+
+        const preDiv = pandocBlock("````")({
+          classes: ["numberLines", "java"],
+          attrs: ['startFrom="0"']
+        });
+        preDiv.push(pandocRawStr("```{ojs}\n" + cellSrc + "\n```"));
+        div.push(preDiv);
+        div.emit(ls);
+      }
       
       let nCells = 0;
       let parsedCells: ParsedCellInfo[] = [];
-
+      
       try {
         const parse = parseModule(cellSrcStr);
         let info: SourceInfo[] = [];
@@ -268,13 +285,14 @@ export async function ojsCompile(
         }
       } catch (e) {
         if (e instanceof SyntaxError) {
-          parseError(cellSrcStr, "ojs", e.message);
+          handleError(e, cellSrcStr);
+          return;
         } else {
           logError(e);
+          throw new Error();
         }
-        throw new Error();
       }
-      
+
       pageResources.push(...extractResourceDescriptionsFromOJSChunk(
         cellSrcStr,
         dirname(options.source),
@@ -726,6 +744,8 @@ export async function ojsCompile(
     ...ojsBundleTempFiles,
   ];
 
+  Deno.writeTextFileSync("/tmp/out.md", ls.join("\n"));
+  
   return {
     markdown: ls.join("\n"),
     filters: [

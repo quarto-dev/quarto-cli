@@ -111,3 +111,12 @@ input[type="checkbox"] {
 .quarto-ojs-hide {
   display: none;
 }
+
+.quarto-ojs-syntax-error .quarto-ojs-error-pinpoint {
+  text-decoration: underline;
+  font-weight: 700;
+}
+
+code span.quarto-ojs-error-pinpoint {
+  color: inherit;
+}

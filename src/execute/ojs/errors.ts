@@ -7,25 +7,35 @@
 
 import { error } from "log/mod.ts";
 
+export function ojsParseError(
+  acornError: any, // we can't use SyntaxError here because acorn injects extra properties
+  ojsSource: string
+) {
+  const acornMsg = String(acornError).split("\n")[0].trim().replace(/ *\(\d+:\d+\)$/, '');
+  const errMsg = `OJS parsing failed on cell line ${acornError.loc.line}, column ${acornError.loc.column}`;
+  error(errMsg);
+  error(acornMsg);
+  error("----- OJS Source:");
+  const ojsSourceSplit = ojsSource.split("\n");
+  for (let i = 0; i < ojsSourceSplit.length; ++i) {
+    error(ojsSourceSplit[i]);
+    if (i + 1 === acornError.loc.line) {
+      error(" ".repeat(acornError.loc.column) + "^");
+    }
+  }
+  error("-----");
+}
+
 // FIXME Figure out line numbering story for error reporting
-export function parseError(
-  ojsSource: string,
-  language: "js" | "ojs",
+export function jsParseError(
+  jsSource: string,
   errorMessage: string
 ) {
-  if (language === "js") {
-    error(
-      "Parse error occurred while parsing the following statement in a Javascript code block.",
-    );
-    error(errorMessage);
-    error("---------- Source:");
-    error(`\n${ojsSource}`);
-  } else {
-    error(
-      "Parse error occurred while parsing the following statement in an OJS code block.",
-    );
-    error(errorMessage);
-    error("---------- Source:");
-    error(`\n${ojsSource}`);
-  }
+  error(
+    "Parse error occurred while parsing the following statement in a Javascript code block.",
+  );
+  error(errorMessage);
+  error("----- Source:");
+  error(`\n${jsSource}`);
+  error("-----");
 }

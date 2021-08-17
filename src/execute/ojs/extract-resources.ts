@@ -15,7 +15,7 @@ import { parse as parseES6 } from "acorn/acorn";
 import { esbuildCompile } from "../../core/esbuild.ts";
 import { breakQuartoMd } from "../../core/break-quarto-md.ts";
 
-import { parseError } from "./errors.ts";
+import { jsParseError, ojsParseError } from "./errors.ts";
 import { ojsSimpleWalker } from "./ojs-tools.ts";
 
 // ResourceDescription filenames are always project-relative
@@ -149,14 +149,14 @@ function directDependencies(
         sourceType: "module",
       });
     } catch (e) {
-      parseError(source, language, e.message);
+      jsParseError(source, e.message);
       throw new Error();
     }
   } else if (language === "ojs") {
     try {
       ast = parseModule(source);
     } catch (e) {
-      parseError(source, language, e.message);
+      ojsParseError(e, source);
       throw new Error();
     }
   } else {
