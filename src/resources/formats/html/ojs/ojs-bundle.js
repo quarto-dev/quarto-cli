@@ -28,6 +28,8 @@ import {
 import { parseModule } from "https://cdn.skypack.dev/@observablehq/parser";
 import { button } from "https://cdn.skypack.dev/@observablehq/inputs";
 
+import { PandocCodeDecorator } from "./pandoc-code-decorator.js";
+
 //////////////////////////////////////////////////////////////////////////////
 
 class EmptyInspector {
@@ -695,7 +697,16 @@ export function extendObservableStdlib(lib) {
   };
 }
 
-export class ShinyInspector extends Inspector {
+export class QuartoInspector extends Inspector {
+  constructor(node) {
+    super(node);
+  }
+  rejected(error) {
+    return super.rejected(error);
+  }
+}
+
+export class ShinyInspector extends QuartoInspector {
   constructor(node) {
     super(node);
   }
@@ -927,7 +938,7 @@ export function createRuntime() {
 
   const ojsConnector = new OJSConnector({
     paths: quartoOjsGlobal.paths,
-    inspectorClass: isShiny ? ShinyInspector : undefined,
+    inspectorClass: isShiny ? ShinyInspector : QuartoInspector,
     library: lib,
     allowPendingGlobals: isShiny,
   });
@@ -963,6 +974,21 @@ export function createRuntime() {
     return `${elementId}-${nextIx}`;
   }
 
+  const sourceNodes = document.querySelectorAll("pre.sourceCode code.sourceCode");
+  const decorators = Array.from(sourceNodes)
+        .map(n => {
+          n = n.parentElement;
+          return new PandocCodeDecorator(n);
+        });
+  // handle build-time syntax error
+  decorators.forEach(n => {
+    if (n._node.parentElement.dataset.syntaxErrorPosition === undefined) {
+      return;
+    }
+    const offset = Number(n._node.parentElement.dataset.syntaxErrorPosition);
+    n.decorateSpan(offset, offset+1, ["quarto-ojs-error-pinpoint"]);
+  });
+  
   const result = {
     setLocalResolver(obj) {
       localResolver = obj;

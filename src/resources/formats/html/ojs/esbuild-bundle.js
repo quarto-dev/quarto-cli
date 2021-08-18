@@ -616,6 +616,97 @@ function he([e2, t2]) {
 // ojs-bundle.js
 import { parseModule } from "https://cdn.skypack.dev/@observablehq/parser";
 import { button } from "https://cdn.skypack.dev/@observablehq/inputs";
+
+// pandoc-code-decorator.js
+var PandocCodeDecorator = class {
+  constructor(node) {
+    this._node = node;
+    this._spans = [];
+    this.normalizeCodeRange();
+    this.initializeEntryPoints();
+  }
+  normalizeCodeRange() {
+    const n2 = this._node;
+    const lines = n2.querySelectorAll("code > span");
+    for (const line of lines) {
+      Array.from(line.childNodes).filter((n22) => n22.nodeType === n22.TEXT_NODE).forEach((n22) => {
+        const newSpan = document.createElement("span");
+        newSpan.innerText = n22.wholeText;
+        n22.replaceWith(newSpan);
+      });
+    }
+  }
+  initializeEntryPoints() {
+    const lines = this._node.querySelectorAll("code > span");
+    let result = [];
+    let offset = this._node.parentElement.dataset.sourceOffset && -Number(this._node.parentElement.dataset.sourceOffset) || 0;
+    for (const line of lines) {
+      Array.from(line.childNodes).filter((n2) => n2.nodeType === n2.ELEMENT_NODE && n2.nodeName === "SPAN").forEach((n2) => {
+        result.push({
+          offset,
+          node: n2
+        });
+        offset += n2.innerText.length;
+      });
+      offset += 1;
+    }
+    this._elementEntryPoints = result;
+  }
+  locateEntry(offset) {
+    let candidate;
+    for (let i2 = 0; i2 < this._elementEntryPoints.length; ++i2) {
+      const entry = this._elementEntryPoints[i2];
+      if (entry.offset > offset) {
+        return { entry: candidate, index: i2 - 1 };
+      }
+      candidate = entry;
+    }
+    return void 0;
+  }
+  ensureExactSpan(start, end) {
+    const splitEntry = (entry, offset) => {
+      const newSpan = document.createElement("span");
+      for (const cssClass of entry.node.classList) {
+        newSpan.classList.add(cssClass);
+      }
+      const beforeText = entry.node.innerText.slice(0, offset - entry.offset);
+      const afterText = entry.node.innerText.slice(offset - entry.offset);
+      entry.node.innerText = beforeText;
+      newSpan.innerText = afterText;
+      entry.node.after(newSpan);
+      this._elementEntryPoints.push({
+        offset,
+        node: newSpan
+      });
+      this._elementEntryPoints.sort((a2, b2) => a2.offset - b2.offset);
+    };
+    const startEntry = this.locateEntry(start);
+    if (startEntry !== void 0 && startEntry.entry.offset != start) {
+      splitEntry(startEntry.entry, start);
+    }
+    const endEntry = this.locateEntry(end);
+    if (endEntry !== void 0 && endEntry.entry.offset !== end) {
+      splitEntry(endEntry.entry, end);
+    }
+  }
+  decorateSpan(start, end, classes) {
+    this.ensureExactSpan(start, end);
+    const startEntry = this.locateEntry(start);
+    const endEntry = this.locateEntry(end);
+    if (startEntry === void 0) {
+      return;
+    }
+    const startIndex = startEntry.index;
+    const endIndex = endEntry && endEntry.index || this._elementEntryPoints.length;
+    for (let i2 = startIndex; i2 < endIndex; ++i2) {
+      for (const cssClass of classes) {
+        this._elementEntryPoints[i2].node.classList.add(cssClass);
+      }
+    }
+  }
+};
+
+// ojs-bundle.js
 var EmptyInspector = class {
   pending() {
   }
@@ -1001,7 +1092,15 @@ function extendObservableStdlib(lib) {
     };
   };
 }
-var ShinyInspector = class extends Inspector {
+var QuartoInspector = class extends Inspector {
+  constructor(node) {
+    super(node);
+  }
+  rejected(error) {
+    return super.rejected(error);
+  }
+};
+var ShinyInspector = class extends QuartoInspector {
   constructor(node) {
     super(node);
   }
@@ -1184,7 +1283,7 @@ function createRuntime() {
   lib.FileAttachment = () => W(fileAttachmentPathResolver);
   const ojsConnector = new OJSConnector({
     paths: quartoOjsGlobal.paths,
-    inspectorClass: isShiny ? ShinyInspector : void 0,
+    inspectorClass: isShiny ? ShinyInspector : QuartoInspector,
     library: lib,
     allowPendingGlobals: isShiny
   });
@@ -1208,6 +1307,18 @@ function createRuntime() {
     subfigIdMap.set(elementId, nextIx);
     return `${elementId}-${nextIx}`;
   }
+  const sourceNodes = document.querySelectorAll("pre.sourceCode code.sourceCode");
+  const decorators = Array.from(sourceNodes).map((n2) => {
+    n2 = n2.parentElement;
+    return new PandocCodeDecorator(n2);
+  });
+  decorators.forEach((n2) => {
+    if (n2._node.parentElement.dataset.syntaxErrorPosition === void 0) {
+      return;
+    }
+    const offset = Number(n2._node.parentElement.dataset.syntaxErrorPosition);
+    n2.decorateSpan(offset, offset + 1, ["quarto-ojs-error-pinpoint"]);
+  });
   const result = {
     setLocalResolver(obj) {
       localResolver = obj;
@@ -1287,6 +1398,7 @@ window._ojs = {
 window._ojs.runtime = createRuntime();
 export {
   OJSConnector,
+  QuartoInspector,
   ShinyInspector,
   createRuntime,
   extendObservableStdlib,

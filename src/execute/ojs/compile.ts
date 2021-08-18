@@ -241,7 +241,7 @@ export async function ojsCompile(
 
         const preDiv = pandocBlock("````")({
           classes: ["numberLines", "java"],
-          attrs: ['startFrom="0"']
+          attrs: ['startFrom="0"', `syntax-error-position="${err.pos}"`, `source-offset="9"`]
         });
         preDiv.push(pandocRawStr("```{ojs}\n" + cellSrc + "\n```"));
         div.push(preDiv);
