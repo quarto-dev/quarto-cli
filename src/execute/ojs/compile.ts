@@ -248,7 +248,13 @@ export async function ojsCompile(
         const errMsgDiv = pandocDiv({
           classes: ['cell-output-error']
         })
-        errMsgDiv.push(pandocRawStr(`<pre><code>${msg} (line ${err.loc.line}, column ${err.loc.column})</code></pre>`));
+        const calloutDiv = pandocBlock(":::")({
+          classes: ["callout-important"]
+        });
+        const [heading, fullMsg] = msg.split(': ');
+        calloutDiv.push(pandocRawStr(`#### OJS Error: ${heading}`));
+        calloutDiv.push(pandocRawStr(`${fullMsg} (line ${err.loc.line}, column ${err.loc.column})`))
+        errMsgDiv.push(calloutDiv);
         div.push(errMsgDiv);
         div.emit(ls);
       }
@@ -748,8 +754,6 @@ export async function ojsCompile(
     ...ojsBundleTempFiles,
   ];
 
-  Deno.writeTextFileSync("/tmp/out.md", ls.join("\n"));
-  
   return {
     markdown: ls.join("\n"),
     filters: [

@@ -707,6 +707,39 @@ var PandocCodeDecorator = class {
 };
 
 // ojs-bundle.js
+function calloutBlock(opts) {
+  const {
+    type,
+    heading,
+    message
+  } = opts;
+  const outerBlock = document.createElement("div");
+  outerBlock.classList.add(`callout-${type}`, "callout", "callout-style-default", "callout-captioned");
+  const header = document.createElement("div");
+  header.classList.add("callout-header", "d-flex", "align-content-center");
+  const iconContainer = document.createElement("div");
+  iconContainer.classList.add("callout-icon-container");
+  const icon = document.createElement("i");
+  icon.classList.add("callout-icon");
+  iconContainer.appendChild(icon);
+  header.appendChild(iconContainer);
+  const headingDiv = document.createElement("div");
+  headingDiv.classList.add("callout-caption-container", "flex-fill");
+  headingDiv.innerText = heading;
+  header.appendChild(headingDiv);
+  outerBlock.appendChild(header);
+  const container = document.createElement("div");
+  container.classList.add("callout-body-container", "callout-body");
+  if (typeof message === "string") {
+    const p2 = document.createElement("p");
+    p2.innerText = message;
+    container.appendChild(p2);
+  } else {
+    container.append(message);
+  }
+  outerBlock.appendChild(container);
+  return outerBlock;
+}
 var EmptyInspector = class {
   pending() {
   }
@@ -857,7 +890,26 @@ var OJSConnector = class {
                 return n2.classList.contains("observablehq--inspect") && !n2.parentNode.classList.contains("observablehq--error") && n2.parentNode.parentNode.dataset.nodetype !== "expression";
               }).forEach((n2) => n2.classList.add("quarto-ojs-hide"));
               if (ojsDiv.classList.contains("observablehq--error")) {
-                ojsDiv.classList.remove("quarto-ojs-hide");
+                ojsDiv.querySelector(".observablehq--inspect").style.display = "none";
+                if (ojsDiv.querySelectorAll(".callout-important").length === 0) {
+                  const inspectChild = ojsDiv.querySelector(".observablehq--inspect");
+                  let [heading, message] = inspectChild.innerText.split(": ");
+                  if (message.match(/^(.+) is not defined$/)) {
+                    const [varName, ...rest] = message.split(" ");
+                    const p2 = document.createElement("p");
+                    const tt = document.createElement("tt");
+                    tt.innerText = varName;
+                    p2.appendChild(tt);
+                    p2.appendChild(document.createTextNode(" " + rest.join(" ")));
+                    message = p2;
+                  }
+                  const callout = calloutBlock({
+                    type: "important",
+                    heading: `OJS Error: ${heading}`,
+                    message
+                  });
+                  ojsDiv.appendChild(callout);
+                }
               } else if (ojsDiv.parentNode.dataset.nodetype !== "expression" && Array.from(ojsDiv.childNodes).every((n2) => n2.classList.contains("observablehq--inspect"))) {
                 ojsDiv.classList.add("quarto-ojs-hide");
               }

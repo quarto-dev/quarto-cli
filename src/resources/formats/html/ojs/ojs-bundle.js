@@ -32,6 +32,47 @@ import { PandocCodeDecorator } from "./pandoc-code-decorator.js";
 
 //////////////////////////////////////////////////////////////////////////////
 
+function calloutBlock(opts)
+{
+  const {
+    type,
+    heading,
+    message
+  } = opts;
+  
+  const outerBlock = document.createElement("div");
+  outerBlock.classList.add(`callout-${type}`, "callout", "callout-style-default", "callout-captioned");
+  const header = document.createElement("div");
+  header.classList.add("callout-header", "d-flex", "align-content-center");
+  const iconContainer = document.createElement("div");
+  iconContainer.classList.add("callout-icon-container");
+  const icon = document.createElement("i");
+  icon.classList.add("callout-icon");
+  iconContainer.appendChild(icon);
+  header.appendChild(iconContainer);
+
+  const headingDiv = document.createElement("div");
+  headingDiv.classList.add("callout-caption-container", "flex-fill");
+  headingDiv.innerText = heading;
+  header.appendChild(headingDiv);
+  outerBlock.appendChild(header);
+
+  const container = document.createElement("div");
+  container.classList.add("callout-body-container", "callout-body");
+  if (typeof message === "string") {
+    const p = document.createElement("p");
+    p.innerText = message;
+    container.appendChild(p);
+  } else {
+    container.append(message);
+  }
+  outerBlock.appendChild(container);
+  
+  return outerBlock;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
 class EmptyInspector {
   pending() {
   }
@@ -280,9 +321,30 @@ export class OJSConnector {
                   n => n.classList.add("quarto-ojs-hide")
                 );
 
-              // if the ojsDiv shows an error, don't hide it.
+              // if the ojsDiv shows an error, display a callout block instead of it.
               if (ojsDiv.classList.contains("observablehq--error")) {
-                ojsDiv.classList.remove("quarto-ojs-hide");
+                // we don't use quarto-ojs-hide here because that would confuse
+                // the code which depends on that class for its logic.
+                ojsDiv.querySelector(".observablehq--inspect").style.display = "none";
+                if (ojsDiv.querySelectorAll(".callout-important").length === 0) {
+                  const inspectChild = ojsDiv.querySelector(".observablehq--inspect");
+                  let [heading, message] = inspectChild.innerText.split(": ");
+                  if (message.match(/^(.+) is not defined$/)) {
+                    const [varName, ...rest] = message.split(" ");
+                    const p = document.createElement("p");
+                    const tt = document.createElement("tt");
+                    tt.innerText = varName;
+                    p.appendChild(tt);
+                    p.appendChild(document.createTextNode(" " + rest.join(" ")));
+                    message = p;
+                  }
+                  const callout = calloutBlock({
+                    type: "important",
+                    heading: `OJS Error: ${heading}`,
+                    message
+                  });
+                  ojsDiv.appendChild(callout);
+                }
               } else if (
                 (ojsDiv.parentNode.dataset.nodetype !== "expression") &&
                   Array.from(ojsDiv.childNodes).every(

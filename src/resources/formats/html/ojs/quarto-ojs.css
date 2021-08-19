@@ -113,10 +113,21 @@ input[type="checkbox"] {
 }
 
 .quarto-ojs-syntax-error .quarto-ojs-error-pinpoint {
-  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-decoration-color: red;
+  text-decoration-line: underline;
   font-weight: 700;
 }
 
 code span.quarto-ojs-error-pinpoint {
   color: inherit;
+}
+
+.observablehq--error .observablehq--inspect {
+  font-size: 0.875em !important;
+}
+
+.observablehq--error .callout {
+  margin-bottom: 0;
+  margin-top: 0;
 }
