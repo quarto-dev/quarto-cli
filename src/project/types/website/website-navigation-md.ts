@@ -110,6 +110,7 @@ const markdownEnvelopeWriter = () => {
 function title(format: Format) {
   const site = (format.metadata[kSite] as Metadata);
   if (
+    site &&
     site[kTitle] &&
     typeof (site[kTitle]) !== "object"
   ) {
