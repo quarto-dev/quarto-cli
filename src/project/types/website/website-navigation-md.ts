@@ -206,7 +206,7 @@ const prevPageTitleHandler = {
     const renderedEl = rendered[kNavPrevId];
     if (renderedEl) {
       const el = doc.querySelector(
-        `.page-navigation .nav-page-previous .nav-page-text a`,
+        `.page-navigation .nav-page-previous a .nav-page-text`,
       );
       if (el) {
         el.innerHTML = renderedEl.innerHTML;
