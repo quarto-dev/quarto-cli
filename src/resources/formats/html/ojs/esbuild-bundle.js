@@ -641,12 +641,17 @@ var PandocCodeDecorator = class {
     let result = [];
     let offset = this._node.parentElement.dataset.sourceOffset && -Number(this._node.parentElement.dataset.sourceOffset) || 0;
     for (const line of lines) {
+      let lineNumber = Number(line.id.split("-").pop());
+      let column = 1;
       Array.from(line.childNodes).filter((n2) => n2.nodeType === n2.ELEMENT_NODE && n2.nodeName === "SPAN").forEach((n2) => {
         result.push({
           offset,
+          line: lineNumber,
+          column,
           node: n2
         });
         offset += n2.innerText.length;
+        column += n2.innerText.length;
       });
       offset += 1;
     }
@@ -662,6 +667,13 @@ var PandocCodeDecorator = class {
       candidate = entry;
     }
     return void 0;
+  }
+  offsetToLineColumn(offset) {
+    const entry = this.locateEntry(offset);
+    return {
+      line: entry.entry.line,
+      column: entry.entry.column + offset - entry.entry.offset
+    };
   }
   ensureExactSpan(start, end) {
     const splitEntry = (entry, offset) => {
@@ -866,26 +878,26 @@ var OJSConnector = class {
     return this.interpretWithRunner(src, runCell);
   }
   interpret(src, elementGetter, elementCreator) {
-    const observer = (targetElement, ojsCell) => {
+    const observer = (targetElement, ojsAst) => {
       return (name) => {
         const element = typeof elementCreator === "function" ? elementCreator() : elementCreator;
         targetElement.appendChild(element);
-        if (ojsCell.id && ojsCell.id.type === "ViewExpression" && !name.startsWith("viewof ")) {
+        if (ojsAst.id && ojsAst.id.type === "ViewExpression" && !name.startsWith("viewof ")) {
           element.classList.add("quarto-ojs-hide");
         }
-        let cell = targetElement;
+        let cellDiv = targetElement;
         let cellOutputDisplay;
-        while (cell !== null && !cell.classList.contains("cell")) {
-          cell = cell.parentElement;
-          if (cell && cell.classList.contains("cell-output-display")) {
-            cellOutputDisplay = cell;
+        while (cellDiv !== null && !cellDiv.classList.contains("cell")) {
+          cellDiv = cellDiv.parentElement;
+          if (cellDiv && cellDiv.classList.contains("cell-output-display")) {
+            cellOutputDisplay = cellDiv;
           }
         }
         const config = { childList: true };
         const callback = function(mutationsList, observer3) {
           for (const mutation of mutationsList) {
             const ojsDiv = mutation.target;
-            if (cell && cell.dataset.output !== "all") {
+            if (cellDiv && cellDiv.dataset.output !== "all") {
               Array.from(mutation.target.childNodes).filter((n2) => {
                 return n2.classList.contains("observablehq--inspect") && !n2.parentNode.classList.contains("observablehq--error") && n2.parentNode.parentNode.dataset.nodetype !== "expression";
               }).forEach((n2) => n2.classList.add("quarto-ojs-hide"));
@@ -896,7 +908,29 @@ var OJSConnector = class {
                   let [heading, message] = inspectChild.innerText.split(": ");
                   if (heading === "RuntimeError") {
                     heading = "OJS Runtime Error";
-                    if (message.match(/^(.+) is not defined$/) || message.match(/^(.+) could not be resolved$/) || message.match(/^(.+) is defined more than once$/)) {
+                    if (message.match(/^(.+) is not defined$/)) {
+                      const [varName, ...rest] = message.split(" ");
+                      const p2 = document.createElement("p");
+                      const tt = document.createElement("tt");
+                      tt.innerText = varName;
+                      p2.appendChild(tt);
+                      p2.appendChild(document.createTextNode(" " + rest.join(" ")));
+                      let preDiv;
+                      let cellStart = 0;
+                      for (const candidate of cellDiv.querySelectorAll("pre.sourceCode")) {
+                        if (candidate.compareDocumentPosition(ojsDiv) & ojsDiv.DOCUMENT_POSITION_FOLLOWING) {
+                          preDiv = candidate;
+                        } else {
+                          break;
+                        }
+                      }
+                      preDiv.classList.add("numberSource");
+                      const missingRef = ojsAst.references.find((n2) => n2.name === varName);
+                      const { line, column } = preDiv._decorator.offsetToLineColumn(missingRef.start - cellStart);
+                      heading = `${heading} (line ${line}, column ${column})`;
+                      preDiv._decorator.decorateSpan(missingRef.start - cellStart, missingRef.end - cellStart, ["quarto-ojs-error-pinpoint"]);
+                      message = p2;
+                    } else if (message.match(/^(.+) could not be resolved$/) || message.match(/^(.+) is defined more than once$/)) {
                       const [varName, ...rest] = message.split(" ");
                       const p2 = document.createElement("p");
                       const tt = document.createElement("tt");
@@ -950,7 +984,7 @@ var OJSConnector = class {
         const observer2 = new MutationObserver(callback);
         observer2.observe(element, config);
         element.classList.add("ojs-in-a-box-waiting-for-module-import");
-        return new this.inspectorClass(element);
+        return new this.inspectorClass(element, ojsAst);
       };
     };
     const runCell = (cell) => {
@@ -1159,8 +1193,9 @@ function extendObservableStdlib(lib) {
   };
 }
 var QuartoInspector = class extends Inspector {
-  constructor(node) {
+  constructor(node, cellAst) {
     super(node);
+    this._cellAst = cellAst;
   }
   rejected(error) {
     return super.rejected(error);
@@ -1376,7 +1411,9 @@ function createRuntime() {
   const sourceNodes = document.querySelectorAll("pre.sourceCode code.sourceCode");
   const decorators = Array.from(sourceNodes).map((n2) => {
     n2 = n2.parentElement;
-    return new PandocCodeDecorator(n2);
+    const decorator = new PandocCodeDecorator(n2);
+    n2._decorator = decorator;
+    return decorator;
   });
   decorators.forEach((n2) => {
     if (n2._node.parentElement.dataset.syntaxErrorPosition === void 0) {

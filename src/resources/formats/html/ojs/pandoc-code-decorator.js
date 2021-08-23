@@ -22,12 +22,17 @@ var PandocCodeDecorator = class {
     let result = [];
     let offset = this._node.parentElement.dataset.sourceOffset && -Number(this._node.parentElement.dataset.sourceOffset) || 0;
     for (const line of lines) {
+      let lineNumber = Number(line.id.split("-").pop());
+      let column = 1;
       Array.from(line.childNodes).filter((n) => n.nodeType === n.ELEMENT_NODE && n.nodeName === "SPAN").forEach((n) => {
         result.push({
           offset,
+          line: lineNumber,
+          column,
           node: n
         });
         offset += n.innerText.length;
+        column += n.innerText.length;
       });
       offset += 1;
     }
@@ -43,6 +48,13 @@ var PandocCodeDecorator = class {
       candidate = entry;
     }
     return void 0;
+  }
+  offsetToLineColumn(offset) {
+    const entry = this.locateEntry(offset);
+    return {
+      line: entry.entry.line,
+      column: entry.entry.column + offset - entry.entry.offset
+    };
   }
   ensureExactSpan(start, end) {
     const splitEntry = (entry, offset) => {

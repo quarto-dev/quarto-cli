@@ -252,8 +252,8 @@ export async function ojsCompile(
           classes: ["callout-important"]
         });
         const [heading, fullMsg] = msg.split(': ');
-        calloutDiv.push(pandocRawStr(`#### OJS Syntax Error`));
-        calloutDiv.push(pandocRawStr(`${fullMsg} (line ${err.loc.line}, column ${err.loc.column})`))
+        calloutDiv.push(pandocRawStr(`#### OJS Syntax Error (line ${err.loc.line}, column ${err.loc.column})`));
+        calloutDiv.push(pandocRawStr(`${fullMsg}`))
         errMsgDiv.push(calloutDiv);
         div.push(errMsgDiv);
         div.emit(ls);
@@ -511,7 +511,12 @@ export async function ojsCompile(
             attrs
           });
           if (innerInfo.length > 0 && srcConfig !== undefined) {
-            const srcDiv = pandocCode(srcConfig);
+            const ourAttrs = srcConfig.attrs.slice();
+            ourAttrs.push(`source-offset="-${innerInfo[0].start}"`);
+            const srcDiv = pandocCode({
+              attrs: ourAttrs,
+              classes: srcConfig.classes
+            });
             srcDiv.push(pandocRawStr(
               cellSrcStr.substring(innerInfo[0].start,
                                    innerInfo[innerInfo.length-1].end)));
@@ -557,7 +562,12 @@ export async function ojsCompile(
       } else {
         const innerInfo = parsedCells[0].info;
         if (innerInfo.length > 0 && srcConfig !== undefined) {
-          const srcDiv = pandocCode(srcConfig);
+          const ourAttrs = srcConfig.attrs.slice();
+          ourAttrs.push(`source-offset="-${innerInfo[0].start}"`);
+          const srcDiv = pandocCode({
+            attrs: ourAttrs,
+            classes: srcConfig.classes
+          });
           srcDiv.push(pandocRawStr(cellSrcStr.substring(innerInfo[0].start, innerInfo[0].end)));
           div.push(srcDiv);
         }
