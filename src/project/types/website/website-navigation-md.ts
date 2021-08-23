@@ -8,7 +8,7 @@
 import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
 
 import { Format, Metadata } from "../../../config/types.ts";
-import { NavItem, Sidebar } from "../../project-config.ts";
+import { NavbarItem, NavItem, Sidebar } from "../../project-config.ts";
 
 import { kSite } from "./website-config.ts";
 import { kTitle } from "../../../config/constants.ts";
@@ -274,30 +274,45 @@ const navbarContentsHandler = {
         ...context.navigation.navbar.left || [],
         ...context.navigation.navbar.right || [],
       ];
-      entries.forEach((entry) => {
+
+      const addEntry = (entry: NavbarItem) => {
         if (entry.text) {
-          markdown[`${kNavbarIdPrefix}${entry.href || entry.text}`] =
-            entry.text;
+          markdown[`${kNavbarIdPrefix}${entry.text.trim()}`] = entry.text;
         }
+        if (entry.menu?.entries) {
+          for (const childEntry of entry.menu) {
+            addEntry(childEntry);
+          }
+        }
+      };
+
+      entries.forEach((entry) => {
+        addEntry(entry);
       });
+      console.log(markdown);
       return markdown;
     }
   },
   processRendered(rendered: Record<string, Element>, doc: Document) {
-    const navItemEls = doc.querySelectorAll(
+    const selectors = [
       ".navbar-nav .nav-item a.nav-link",
-    );
-    for (let i = 0; i < navItemEls.length; i++) {
-      const link = navItemEls[i] as Element;
-      const href = link.getAttribute("href");
-      const id = href || link.innerText;
-      if (id) {
-        const renderedEl = rendered[`${kNavbarIdPrefix}${id}`];
-        if (renderedEl) {
-          link.innerHTML = renderedEl?.innerHTML;
+      ".navbar-nav .dropdown-menu .dropdown-item",
+      ".navbar-nav .dropdown-menu .dropdown-header",
+    ];
+
+    selectors.forEach((selector) => {
+      const navItemEls = doc.querySelectorAll(selector);
+      for (let i = 0; i < navItemEls.length; i++) {
+        const link = navItemEls[i] as Element;
+        const id = link.innerText.trim();
+        if (id) {
+          const renderedEl = rendered[`${kNavbarIdPrefix}${id}`];
+          if (renderedEl) {
+            link.innerHTML = renderedEl?.innerHTML;
+          }
         }
       }
-    }
+    });
   },
 };
 
