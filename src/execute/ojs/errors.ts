@@ -8,11 +8,17 @@
 import { error } from "log/mod.ts";
 
 export function ojsParseError(
+  // deno-lint-ignore no-explicit-any
   acornError: any, // we can't use SyntaxError here because acorn injects extra properties
-  ojsSource: string
+  ojsSource: string,
+  startingLoc: number = 0,
 ) {
-  const acornMsg = String(acornError).split("\n")[0].trim().replace(/ *\(\d+:\d+\)$/, '');
-  const errMsg = `OJS parsing failed on cell line ${acornError.loc.line}, column ${acornError.loc.column}`;
+  const acornMsg = String(acornError).split("\n")[0].trim().replace(
+    / *\(\d+:\d+\)$/,
+    "",
+  );
+  const errMsg = `OJS parsing failed on line ${acornError.loc.line +
+    startingLoc}, column ${acornError.loc.column}`;
   error(errMsg);
   error(acornMsg);
   error("----- OJS Source:");
@@ -29,7 +35,7 @@ export function ojsParseError(
 // FIXME Figure out line numbering story for error reporting
 export function jsParseError(
   jsSource: string,
-  errorMessage: string
+  errorMessage: string,
 ) {
   error(
     "Parse error occurred while parsing the following statement in a Javascript code block.",

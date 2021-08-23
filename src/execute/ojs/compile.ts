@@ -224,44 +224,56 @@ export async function ojsCompile(
       };
 
       interface SourceInfo {
-        start: number,
-        end: number,
-        cellType: string
-      };
+        start: number;
+        end: number;
+        cellType: string;
+      }
       interface ParsedCellInfo {
-        info: SourceInfo[]
-      };
+        info: SourceInfo[];
+      }
 
       const handleError = (err: any, cellSrc: string) => {
-        const div = pandocBlock(':::::')({
+        const div = pandocBlock(":::::")({
           classes: ["quarto-ojs-syntax-error"],
         });
-        const msg = String(err).split("\n")[0].trim().replace(/ *\(\d+:\d+\)$/, '');
-        ojsParseError(err, cellSrc);
+        const msg = String(err).split("\n")[0].trim().replace(
+          / *\(\d+:\d+\)$/,
+          "",
+        );
+        ojsParseError(err, cellSrc, cell.startingLoc);
 
         const preDiv = pandocBlock("````")({
           classes: ["numberLines", "java"],
-          attrs: ['startFrom="0"', `syntax-error-position="${err.pos}"`, `source-offset="9"`]
+          attrs: [
+            `startFrom="${cell.startingLoc}"`,
+            `syntax-error-position="${err.pos}"`,
+            `source-offset="9"`,
+          ],
         });
         preDiv.push(pandocRawStr("```{ojs}\n" + cellSrc + "\n```"));
         div.push(preDiv);
         const errMsgDiv = pandocDiv({
-          classes: ['cell-output-error']
-        })
-        const calloutDiv = pandocBlock(":::")({
-          classes: ["callout-important"]
+          classes: ["cell-output-error"],
         });
-        const [heading, fullMsg] = msg.split(': ');
-        calloutDiv.push(pandocRawStr(`#### OJS Syntax Error (line ${err.loc.line}, column ${err.loc.column})`));
-        calloutDiv.push(pandocRawStr(`${fullMsg}`))
+        const calloutDiv = pandocBlock(":::")({
+          classes: ["callout-important"],
+        });
+        const [heading, fullMsg] = msg.split(": ");
+        calloutDiv.push(
+          pandocRawStr(
+            `#### OJS Syntax Error (line ${err.loc.line +
+              cell.startingLoc}, column ${err.loc.column})`,
+          ),
+        );
+        calloutDiv.push(pandocRawStr(`${fullMsg}`));
         errMsgDiv.push(calloutDiv);
         div.push(errMsgDiv);
         div.emit(ls);
-      }
-      
+      };
+
       let nCells = 0;
       let parsedCells: ParsedCellInfo[] = [];
-      
+
       try {
         const parse = parseModule(cellSrcStr);
         let info: SourceInfo[] = [];
@@ -280,12 +292,22 @@ export async function ojsCompile(
             } else if (node.id && node.id.type === "Identifier") {
               ojsIdentifiers.add(node.id.name);
             }
-            if (node.id === null &&
-              node.body.type !== "ImportDeclaration") {
-              info.push({start: node.start, end: node.end, cellType: "expression"})
+            if (
+              node.id === null &&
+              node.body.type !== "ImportDeclaration"
+            ) {
+              info.push({
+                start: node.start,
+                end: node.end,
+                cellType: "expression",
+              });
               flushSeqSrc();
             } else {
-              info.push({start: node.start, end: node.end, cellType: "declaration"})
+              info.push({
+                start: node.start,
+                end: node.end,
+                cellType: "declaration",
+              });
             }
           },
         });
@@ -316,7 +338,7 @@ export async function ojsCompile(
         // WAITING for YAML schemas + validation
         const cols = cell.options?.[kLayoutNcol];
         const rows = cell.options?.[kLayoutNrow];
-        return  (Number(cols) && (Number(cols) > 1)) ||
+        return (Number(cols) && (Number(cols) > 1)) ||
           (Number(rows) && (Number(rows) > 1)) ||
           (nCells > 1);
       };
@@ -431,9 +453,9 @@ export async function ojsCompile(
       }
 
       interface SrcConfig {
-        attrs: string[],
-        classes: string[]
-      };
+        attrs: string[];
+        classes: string[];
+      }
 
       let srcConfig: undefined | SrcConfig;
 
@@ -480,7 +502,7 @@ export async function ojsCompile(
 
         srcConfig = {
           classes: classes.slice(),
-          attrs: attrs.slice()
+          attrs: attrs.slice(),
         };
       }
 
@@ -504,22 +526,32 @@ export async function ojsCompile(
           const outputInnerDiv = pandocDiv({
             id: userId && `${userId}-${subfigIx}`,
           });
-          const innerInfo = parsedCells[subfigIx-1].info;
-          const attrs = innerInfo.length ? [`nodetype="${innerInfo[innerInfo.length-1].cellType}"`] : [];
+          const innerInfo = parsedCells[subfigIx - 1].info;
+          const attrs = innerInfo.length
+            ? [`nodetype="${innerInfo[innerInfo.length - 1].cellType}"`]
+            : [];
           const ojsDiv = pandocDiv({
             id: `${ojsId}-${subfigIx}`,
-            attrs
+            attrs,
           });
           if (innerInfo.length > 0 && srcConfig !== undefined) {
             const ourAttrs = srcConfig.attrs.slice();
+            // compute offset from cell start to div start
+            const linesSkipped =
+              cellSrcStr.substring(0, innerInfo[0].start).split("\n").length;
+
+            ourAttrs.push(`startFrom="${cell.startingLoc + linesSkipped}"`);
             ourAttrs.push(`source-offset="-${innerInfo[0].start}"`);
             const srcDiv = pandocCode({
               attrs: ourAttrs,
-              classes: srcConfig.classes
+              classes: srcConfig.classes,
             });
             srcDiv.push(pandocRawStr(
-              cellSrcStr.substring(innerInfo[0].start,
-                                   innerInfo[innerInfo.length-1].end)));
+              cellSrcStr.substring(
+                innerInfo[0].start,
+                innerInfo[innerInfo.length - 1].end,
+              ),
+            ));
             div.push(srcDiv);
           }
           subfigIx++;
@@ -563,12 +595,20 @@ export async function ojsCompile(
         const innerInfo = parsedCells[0].info;
         if (innerInfo.length > 0 && srcConfig !== undefined) {
           const ourAttrs = srcConfig.attrs.slice();
+          // compute offset from cell start to div start
+          const linesSkipped =
+            cellSrcStr.substring(0, innerInfo[0].start).split("\n").length;
+          ourAttrs.push(`startFrom="${cell.startingLoc + linesSkipped}"`);
           ourAttrs.push(`source-offset="-${innerInfo[0].start}"`);
           const srcDiv = pandocCode({
             attrs: ourAttrs,
-            classes: srcConfig.classes
+            classes: srcConfig.classes,
           });
-          srcDiv.push(pandocRawStr(cellSrcStr.substring(innerInfo[0].start, innerInfo[0].end)));
+          srcDiv.push(
+            pandocRawStr(
+              cellSrcStr.substring(innerInfo[0].start, innerInfo[0].end),
+            ),
+          );
           div.push(srcDiv);
         }
         const outputDiv = pandocDiv({
@@ -578,7 +618,7 @@ export async function ojsCompile(
         div.push(outputDiv);
         outputDiv.push(pandocDiv({
           id: ojsId,
-          attrs: [`nodetype="${innerInfo[0].cellType}"`]
+          attrs: [`nodetype="${innerInfo[0].cellType}"`],
         }));
         if (cell.options?.[kCellFigCap]) {
           outputDiv.push(pandocRawStr(cell.options[kCellFigCap] as string));
@@ -636,9 +676,11 @@ export async function ojsCompile(
   // deno-lint-ignore no-explicit-any
   const serverMetadata = options.format.metadata?.server as any;
   const normalizeMetadata = (key: string, def: string[]) => {
-    if (!serverMetadata ||
+    if (
+      !serverMetadata ||
       (serverMetadata["type"] !== "shiny") ||
-      !serverMetadata[key]) {
+      !serverMetadata[key]
+    ) {
       return def;
     }
     if (typeof serverMetadata[key] === "string") {
@@ -653,10 +695,14 @@ export async function ojsCompile(
   const shinyInputExcludes = new Set<string>();
 
   if (serverMetadata?.["ojs-exports"]) {
-    throw new Error("Document metadata contains server.ojs-exports; did you mean 'ojs-export' instead?")
+    throw new Error(
+      "Document metadata contains server.ojs-exports; did you mean 'ojs-export' instead?",
+    );
   }
   if (serverMetadata?.["ojs-imports"]) {
-    throw new Error("Document metadata contains server.ojs-exports; did you mean 'ojs-export' instead?")
+    throw new Error(
+      "Document metadata contains server.ojs-exports; did you mean 'ojs-export' instead?",
+    );
   }
 
   let importAllViews = false;
@@ -701,7 +747,7 @@ export async function ojsCompile(
       source: `shinyInput('${el}')`,
     });
   }
-  
+
   for (const el of shinyOutputMetadata) {
     moduleContents.push({
       methodName: "interpretQuiet",
@@ -835,13 +881,11 @@ function ojsFormatDependency(selfContained: boolean) {
 
   // we potentially skip scripts here because we might need to force
   // them to be inline in case we are running in a file:/// context.
-  const scripts = selfContained
-    ? []
-    : [
-      ojsDependency("esbuild-bundle.js", { type: "module" })
-      // ojsDependency("ojs-bundle.js", { type: "module" }),
-      // ojsDependency("stdlib.js", { type: "module" })
-      ];
+  const scripts = selfContained ? [] : [
+    ojsDependency("esbuild-bundle.js", { type: "module" }),
+    // ojsDependency("ojs-bundle.js", { type: "module" }),
+    // ojsDependency("stdlib.js", { type: "module" })
+  ];
   return {
     name: "quarto-ojs",
     stylesheets: [
