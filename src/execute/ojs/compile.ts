@@ -252,7 +252,7 @@ export async function ojsCompile(
           classes: ["callout-important"]
         });
         const [heading, fullMsg] = msg.split(': ');
-        calloutDiv.push(pandocRawStr(`#### OJS Error: ${heading}`));
+        calloutDiv.push(pandocRawStr(`#### OJS Syntax Error`));
         calloutDiv.push(pandocRawStr(`${fullMsg} (line ${err.loc.line}, column ${err.loc.column})`))
         errMsgDiv.push(calloutDiv);
         div.push(errMsgDiv);

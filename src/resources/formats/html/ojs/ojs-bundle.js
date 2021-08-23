@@ -329,18 +329,35 @@ export class OJSConnector {
                 if (ojsDiv.querySelectorAll(".callout-important").length === 0) {
                   const inspectChild = ojsDiv.querySelector(".observablehq--inspect");
                   let [heading, message] = inspectChild.innerText.split(": ");
-                  if (message.match(/^(.+) is not defined$/)) {
-                    const [varName, ...rest] = message.split(" ");
-                    const p = document.createElement("p");
-                    const tt = document.createElement("tt");
-                    tt.innerText = varName;
-                    p.appendChild(tt);
-                    p.appendChild(document.createTextNode(" " + rest.join(" ")));
+                  if (heading === "RuntimeError") {
+                    heading = "OJS Runtime Error";
+                    if (message.match(/^(.+) is not defined$/) ||
+                        message.match(/^(.+) could not be resolved$/) ||
+                        message.match(/^(.+) is defined more than once$/)
+                       ) {
+                      const [varName, ...rest] = message.split(" ");
+                      const p = document.createElement("p");
+                      const tt = document.createElement("tt");
+                      tt.innerText = varName;
+                      p.appendChild(tt);
+                      p.appendChild(document.createTextNode(" " + rest.join(" ")));
+                      message = p;
+                    } else if (message === "circular definition") {
+                      const p = document.createElement("p");
+                      p.appendChild(document.createTextNode("circular definition"));
+                      message = p;
+                    } else {
+                      throw new Error(`Internal error, could not parse OJS error message "${message}"`);
+                    }
+                  } else {
+                    heading = "OJS Error";
+                    const p = document.createNode("p");
+                    p.appendChild(document.createTextNode(inspectChild.innerText));
                     message = p;
                   }
                   const callout = calloutBlock({
                     type: "important",
-                    heading: `OJS Error: ${heading}`,
+                    heading,
                     message
                   });
                   ojsDiv.appendChild(callout);
