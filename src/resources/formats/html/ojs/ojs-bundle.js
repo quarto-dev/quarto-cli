@@ -306,14 +306,17 @@ export class OJSConnector {
             }
           }
 
-          const children = Array.from(cellOutputDisplay.querySelectorAll("div.observablehq"));
-          // after all mutations are handled, we check the full cell for hiding
-          if (children.every(n => {
-            return n.classList.contains("quarto-ojs-hide");
-          })) {
-            cellOutputDisplay.classList.add("quarto-ojs-hide");
-          } else {
-            cellOutputDisplay.classList.remove("quarto-ojs-hide");
+          // cellOutputDisplay doesn't exist in inline spans, so we must check it explicitly
+          if (cellOutputDisplay) {
+            const children = Array.from(cellOutputDisplay.querySelectorAll("div.observablehq"));
+            // after all mutations are handled, we check the full cell for hiding
+            if (children.every(n => {
+              return n.classList.contains("quarto-ojs-hide");
+            })) {
+              cellOutputDisplay.classList.add("quarto-ojs-hide");
+            } else {
+              cellOutputDisplay.classList.remove("quarto-ojs-hide");
+            }
           }
         };
         const observer = new MutationObserver(callback);
