@@ -9,7 +9,7 @@
 
 
 
-<nav class="navbar navbar-expand<%- nav.navbar["collapse-below"] %> navbar-<%- nav.navbar.type %> bg-<%- nav.navbar.background %> <%- nav.navbar.background === "none" || nav.navbar.background === "body" ? "border-bottom" : "" %>">
+<nav class="navbar navbar-expand<%- nav.navbar["collapse-below"] %> navbar-<%- nav.navbar.type %> <%- nav.navbar.background === "none" || nav.navbar.background === "body" ? "border-bottom" : "" %>">
   <% if (nav.sidebar && nav.sidebar.style === "floating") { %>
     <div class="container-fluid mx-auto">
   <% } else { %>

@@ -12,6 +12,18 @@ header.headroom--unpinned {
   transform: translateY(-100%);
 }
 
+.navbar {
+  background-color: $navbar-bg;
+}
+
+.navbar-light {
+  background-color: $navbar-light-bg;
+}
+
+.navbar-dark {
+  background-color: $navbar-dark-bg;
+}
+
 .navbar-brand {
   text-overflow: ellipsis;
   overflow: hidden;

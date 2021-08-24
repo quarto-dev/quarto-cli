@@ -27,6 +27,7 @@ import { mergeLayers, sassLayer } from "../../command/render/sass.ts";
 import {
   kSite,
   kSiteFooter,
+  kSiteNavbar,
   kSiteSidebar,
 } from "../../project/types/website/website-config.ts";
 import {
@@ -278,6 +279,25 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     join("bootstrap", "_bootstrap-variables.scss"),
   );
   const variables = [Deno.readTextFileSync(varFilePath)];
+
+  // Forward navbar background color
+  const navbar = (metadata[kSite] as Metadata)?.[kSiteNavbar];
+  if (navbar && typeof (navbar) === "object") {
+    const navbarBackground = (navbar as Record<string, unknown>)[kBackground];
+    if (navbarBackground !== undefined) {
+      variables.push(
+        outputVariable(
+          sassVariable(
+            "navbar-bg",
+            navbarBackground,
+            typeof (navbarBackground) === "string"
+              ? asBootstrapColor
+              : undefined,
+          ),
+        ),
+      );
+    }
+  }
 
   // Forward background color
   const sidebars = (metadata[kSite] as Metadata)?.[kSiteSidebar];
