@@ -4,13 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import {
-  copySync,
-  ensureDir,
-  ensureDirSync,
-  existsSync,
-  moveSync,
-} from "fs/mod.ts";
+import { ensureDir, ensureDirSync, existsSync, moveSync } from "fs/mod.ts";
 import { info } from "log/mod.ts";
 import { join } from "path/mod.ts";
 import { lines } from "../../../src/core/text.ts";
@@ -34,13 +28,8 @@ export async function updateHtmlDepedencies(config: Configuration) {
   if (!bsIconVersion) {
     throw new Error(`BOOTSTRAP_FONT is not defined`);
   }
-  const bSwatchVersion = Deno.env.get("BOOTSWATCH");
-  if (!bSwatchVersion) {
-    throw new Error(`BOOTSWATCH is not defined`);
-  }
   info(`Boostrap: ${bsCommit}`);
   info(`Boostrap Icon: ${bsIconVersion}`);
-  info(`Bootswatch: ${bSwatchVersion}`);
 
   // the bootstrap and dist/themes dir
   const formatDir = join(
@@ -145,16 +134,16 @@ export async function updateHtmlDepedencies(config: Configuration) {
   };
 
   // Update bootstrap
-  await updateBootstrap(bsCommit, workingSubDir("bsdist"), bsDistDir);
+  await updateBootstrapFromBslib(
+    bsCommit,
+    workingSubDir("bsdist"),
+    bsDistDir,
+    bsThemesDir,
+  );
   await updateBoostrapIcons(
     bsIconVersion,
     workingSubDir("bsicons"),
     bsDistDir,
-  );
-  await updateBootswatch(
-    bSwatchVersion,
-    workingSubDir("bootswatch"),
-    bsThemesDir,
   );
 
   // Update Pandoc themes
@@ -228,52 +217,11 @@ async function updateCookieConsent(
   await Deno.copyFile(tempPath, join(targetDir, fileName));
 }
 
-async function updateBootswatch(
-  version: string,
-  working: string,
-  themesDir: string,
-) {
-  info("Updating Bootswatch themes...");
-  const fileName = `v${version}.zip`;
-  const distUrl =
-    `https://github.com/thomaspark/bootswatch/archive/refs/tags/${fileName}`;
-  const zipFile = join(working, fileName);
-  const exclude = ["4"];
-
-  // Download and unpack the source code
-  info(`Downloading ${distUrl}`);
-  await download(distUrl, zipFile);
-  await unzip(zipFile, working);
-
-  // Read each bootswatch theme directory and merge the scss files
-  // into a single theme file for Quarto
-  info("Merging themes:");
-  const distPath = join(working, `bootswatch-${version}`, "dist");
-  for (const dirEntry of Deno.readDirSync(distPath)) {
-    if (dirEntry.isDirectory && !exclude.includes(dirEntry.name)) {
-      // this is a theme directory
-      const theme = dirEntry.name;
-      const themeDir = join(distPath, theme);
-
-      info(`${theme}`);
-      const layer = mergedSassLayer(
-        join(themeDir, "_functions.scss"),
-        join(themeDir, "_variables.scss"),
-        join(themeDir, "_mixins.scss"),
-        join(themeDir, "_bootswatch.scss"),
-      );
-
-      const themeOut = join(themesDir, `${theme}.scss`);
-      Deno.writeTextFileSync(themeOut, layer);
-    }
-  }
-  info("Done\n");
-}
-
-async function updateBootstrap(
+async function updateBootstrapFromBslib(
   commit: string,
   working: string,
   distDir: string,
+  themesDir: string,
 ) {
   info("Updating Bootstrap Scss Files...");
   await withRepo(
@@ -319,6 +267,30 @@ async function updateBootstrap(
             to,
           );
         });
+
+      // Merge the bootswatch themes
+      info("Merging themes:");
+      const exclude = ["4"];
+      const distPath = join(repo.dir, "inst", "lib", "bsw5", "dist");
+      for (const dirEntry of Deno.readDirSync(distPath)) {
+        if (dirEntry.isDirectory && !exclude.includes(dirEntry.name)) {
+          // this is a theme directory
+          const theme = dirEntry.name;
+          const themeDir = join(distPath, theme);
+
+          info(`${theme}`);
+          const layer = mergedSassLayer(
+            join(themeDir, "_functions.scss"),
+            join(themeDir, "_variables.scss"),
+            join(themeDir, "_mixins.scss"),
+            join(themeDir, "_bootswatch.scss"),
+          );
+
+          const themeOut = join(themesDir, `${theme}.scss`);
+          Deno.writeTextFileSync(themeOut, layer);
+        }
+      }
+      info("Done\n");
     },
   );
 }
