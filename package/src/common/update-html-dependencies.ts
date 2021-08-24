@@ -13,9 +13,9 @@ import {
 } from "fs/mod.ts";
 import { info } from "log/mod.ts";
 import { join } from "path/mod.ts";
-import { projectTypeResourcePath } from "../../../src/core/resources.ts";
 import { lines } from "../../../src/core/text.ts";
 import { runCmd } from "../util/cmd.ts";
+import { Repo, withRepo } from "../util/git.ts";
 
 import { download, unzip } from "../util/utils.ts";
 import { Configuration } from "./config.ts";
@@ -25,8 +25,9 @@ export async function updateHtmlDepedencies(config: Configuration) {
 
   // Read the version information from the environment
   const workingDir = Deno.makeTempDirSync();
-  const bsVersion = Deno.env.get("BOOTSTRAP");
-  if (!bsVersion) {
+
+  const bsCommit = Deno.env.get("BOOTSTRAP");
+  if (!bsCommit) {
     throw new Error(`BOOTSTRAP is not defined`);
   }
   const bsIconVersion = Deno.env.get("BOOTSTRAP_FONT");
@@ -37,7 +38,7 @@ export async function updateHtmlDepedencies(config: Configuration) {
   if (!bSwatchVersion) {
     throw new Error(`BOOTSWATCH is not defined`);
   }
-  info(`Boostrap: ${bsVersion}`);
+  info(`Boostrap: ${bsCommit}`);
   info(`Boostrap Icon: ${bsIconVersion}`);
   info(`Bootswatch: ${bSwatchVersion}`);
 
@@ -121,7 +122,7 @@ export async function updateHtmlDepedencies(config: Configuration) {
   cleanSourceMap(tippyJs);
 
   // Update PDF JS
-  updatePdfJs(
+  await updatePdfJs(
     config,
     workingDir,
   );
@@ -144,8 +145,7 @@ export async function updateHtmlDepedencies(config: Configuration) {
   };
 
   // Update bootstrap
-  await updateBootstrapDist(bsVersion, workingSubDir("bsdist"), bsDistDir);
-  await updateBootstrapSass(bsVersion, workingSubDir("bssass"), bsDistDir);
+  await updateBootstrap(bsCommit, workingSubDir("bsdist"), bsDistDir);
   await updateBoostrapIcons(
     bsIconVersion,
     workingSubDir("bsicons"),
@@ -270,62 +270,57 @@ async function updateBootswatch(
   info("Done\n");
 }
 
-async function updateBootstrapSass(
-  version: string,
+async function updateBootstrap(
+  commit: string,
   working: string,
   distDir: string,
 ) {
   info("Updating Bootstrap Scss Files...");
+  await withRepo(
+    working,
+    "https://github.com/rstudio/bslib.git",
+    async (repo: Repo) => {
+      // Checkout the appropriate version
+      await repo.checkout(commit);
 
-  const dirName = `bootstrap-${version}`;
-  const fileName = `v${version}.zip`;
-  const distUrl =
-    `https://github.com/twbs/bootstrap/archive/refs/tags/${fileName}`;
-  const zipFile = join(working, fileName);
+      // Copy the scss files
+      info("Copying scss files");
+      const from = join(repo.dir, "inst", "lib", "bs5", "scss");
+      const to = join(distDir, "scss");
+      info(`Moving ${from} to ${to}`);
+      Deno.renameSync(from, to);
 
-  // Download and unzip the bootstrap source code
-  info(`Downloading ${distUrl}`);
-  await download(distUrl, zipFile);
-  await unzip(zipFile, working);
-
-  // Move the scss directory from the source into our repo
-  const from = join(working, dirName, "scss");
-  const to = join(distDir, "scss");
-  info(`Moving ${from} to ${to}`);
-  Deno.renameSync(from, to);
-}
-
-async function updateBootstrapDist(
-  version: string,
-  working: string,
-  distDir: string,
-) {
-  info("Updating Bootstrap Distribution Files...");
-
-  const dirName = `bootstrap-${version}-dist`;
-  const fileName = `${dirName}.zip`;
-  const distUrl =
-    `https://github.com/twbs/bootstrap/releases/download/v${version}/${fileName}`;
-  const zipFile = join(working, fileName);
-
-  // Download and unzip the release
-  info(`Downloading ${distUrl}`);
-  await download(distUrl, zipFile);
-  await unzip(zipFile, working);
-
-  // Grab the js file that we need
-  ["bootstrap.min.js"]
-    .forEach((file) => {
-      const from = join(working, dirName, "js", file);
-      const to = join(distDir, file);
-      info(`Copying ${from} to ${to}`);
-      Deno.copyFileSync(
-        from,
-        to,
-      );
-    });
-
-  info("Done\n");
+      // Grab the js file that we need
+      info("Copying dist files");
+      [
+        {
+          from: "bootstrap.bundle.min.js",
+          to: "bootstrap.min.js",
+        },
+        {
+          from: "bootstrap.bundle.min.js.map",
+          to: "bootstrap.min.js.map",
+        },
+      ]
+        .forEach((file) => {
+          const from = join(
+            repo.dir,
+            "inst",
+            "lib",
+            "bs5",
+            "dist",
+            "js",
+            file.from,
+          );
+          const to = join(distDir, file.to);
+          info(`Copying ${from} to ${to}`);
+          Deno.copyFileSync(
+            from,
+            to,
+          );
+        });
+    },
+  );
 }
 
 async function updateBoostrapIcons(

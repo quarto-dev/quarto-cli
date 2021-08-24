@@ -13,10 +13,13 @@ export PANDOC=2.14.0.3
 export DARTSASS=1.32.8
 export ESBUILD=0.12.10
 
-# Bootstrap / javascript HTML dependencies
-export BOOTSTRAP=5.0.1
+# Bootstrap dependencies from bslib
+# (use commit hash from bslib repo)
+export BOOTSTRAP=1991ad3ea7aca3b6fcbfcdc074b86cfc2f70dd45
 export BOOTSTRAP_FONT=1.5.0
 export BOOTSWATCH=5.0.1
+
+# javascript HTML dependencies
 export ANCHOR_JS=4.3.0
 export POPPER_JS=2.9.1
 export CLIPBOARD_JS=2.0.8
