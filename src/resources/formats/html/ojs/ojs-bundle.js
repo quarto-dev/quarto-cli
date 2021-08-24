@@ -329,7 +329,7 @@ export class OJSConnector {
         
         const buildCallout = (ojsDiv) => {
           const inspectChild = ojsDiv.querySelector(".observablehq--inspect");
-          let [heading, message] = inspectChild.innerText.split(": ");
+          let [heading, message] = inspectChild.textContent.split(": ");
           if (heading === "RuntimeError") {
             heading = "OJS Runtime Error";
             if (message.match(/^(.+) is not defined$/)) {
@@ -375,7 +375,7 @@ export class OJSConnector {
           } else {
             heading = "OJS Error";
             const p = document.createNode("p");
-            p.appendChild(document.createTextNode(inspectChild.innerText));
+            p.appendChild(document.createTextNode(inspectChild.textContent));
             message = p;
           }
           const callout = calloutBlock({
@@ -452,7 +452,7 @@ export class OJSConnector {
               if (result.length !== 1) {
                 continue;
               }
-              if (result[0].innerText.trim().startsWith("import")) {
+              if (result[0].textContent.trim().startsWith("import")) {
                 ojsDiv.classList.add("quarto-ojs-hide");
               }
             }

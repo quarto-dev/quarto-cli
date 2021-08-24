@@ -12,7 +12,7 @@ var PandocCodeDecorator = class {
     for (const line of lines) {
       Array.from(line.childNodes).filter((n2) => n2.nodeType === n2.TEXT_NODE).forEach((n2) => {
         const newSpan = document.createElement("span");
-        newSpan.innerText = n2.wholeText;
+        newSpan.textContent = n2.wholeText;
         n2.replaceWith(newSpan);
       });
     }
@@ -31,8 +31,8 @@ var PandocCodeDecorator = class {
           column,
           node: n
         });
-        offset += n.innerText.length;
-        column += n.innerText.length;
+        offset += n.textContent.length;
+        column += n.textContent.length;
       });
       offset += 1;
     }
@@ -58,7 +58,7 @@ var PandocCodeDecorator = class {
       const last = entries[entries.length - 1];
       return {
         line: last.line,
-        column: last.column + Math.min(last.node.innerText.length, offset - last.offset)
+        column: last.column + Math.min(last.node.textContent.length, offset - last.offset)
       };
     }
     return {
@@ -72,10 +72,10 @@ var PandocCodeDecorator = class {
       for (const cssClass of entry.node.classList) {
         newSpan.classList.add(cssClass);
       }
-      const beforeText = entry.node.innerText.slice(0, offset - entry.offset);
-      const afterText = entry.node.innerText.slice(offset - entry.offset);
-      entry.node.innerText = beforeText;
-      newSpan.innerText = afterText;
+      const beforeText = entry.node.textContent.slice(0, offset - entry.offset);
+      const afterText = entry.node.textContent.slice(offset - entry.offset);
+      entry.node.textContent = beforeText;
+      newSpan.textContent = afterText;
       entry.node.after(newSpan);
       this._elementEntryPoints.push({
         offset,

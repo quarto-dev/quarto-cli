@@ -631,7 +631,7 @@ var PandocCodeDecorator = class {
     for (const line of lines) {
       Array.from(line.childNodes).filter((n22) => n22.nodeType === n22.TEXT_NODE).forEach((n22) => {
         const newSpan = document.createElement("span");
-        newSpan.innerText = n22.wholeText;
+        newSpan.textContent = n22.wholeText;
         n22.replaceWith(newSpan);
       });
     }
@@ -650,8 +650,8 @@ var PandocCodeDecorator = class {
           column,
           node: n2
         });
-        offset += n2.innerText.length;
-        column += n2.innerText.length;
+        offset += n2.textContent.length;
+        column += n2.textContent.length;
       });
       offset += 1;
     }
@@ -677,7 +677,7 @@ var PandocCodeDecorator = class {
       const last = entries[entries.length - 1];
       return {
         line: last.line,
-        column: last.column + Math.min(last.node.innerText.length, offset - last.offset)
+        column: last.column + Math.min(last.node.textContent.length, offset - last.offset)
       };
     }
     return {
@@ -691,10 +691,10 @@ var PandocCodeDecorator = class {
       for (const cssClass of entry.node.classList) {
         newSpan.classList.add(cssClass);
       }
-      const beforeText = entry.node.innerText.slice(0, offset - entry.offset);
-      const afterText = entry.node.innerText.slice(offset - entry.offset);
-      entry.node.innerText = beforeText;
-      newSpan.innerText = afterText;
+      const beforeText = entry.node.textContent.slice(0, offset - entry.offset);
+      const afterText = entry.node.textContent.slice(offset - entry.offset);
+      entry.node.textContent = beforeText;
+      newSpan.textContent = afterText;
       entry.node.after(newSpan);
       this._elementEntryPoints.push({
         offset,
@@ -943,7 +943,7 @@ var OJSConnector = class {
         };
         const buildCallout = (ojsDiv) => {
           const inspectChild = ojsDiv.querySelector(".observablehq--inspect");
-          let [heading, message] = inspectChild.innerText.split(": ");
+          let [heading, message] = inspectChild.textContent.split(": ");
           if (heading === "RuntimeError") {
             heading = "OJS Runtime Error";
             if (message.match(/^(.+) is not defined$/)) {
@@ -959,6 +959,7 @@ var OJSConnector = class {
               if (missingRef !== void 0) {
                 const { line, column } = preDiv._decorator.offsetToLineColumn(missingRef.start);
                 heading = `${heading} (line ${line}, column ${column})`;
+                debugger;
                 preDiv._decorator.decorateSpan(missingRef.start, missingRef.end, ["quarto-ojs-error-pinpoint"]);
               }
               message = p2;
@@ -980,7 +981,7 @@ var OJSConnector = class {
           } else {
             heading = "OJS Error";
             const p2 = document.createNode("p");
-            p2.appendChild(document.createTextNode(inspectChild.innerText));
+            p2.appendChild(document.createTextNode(inspectChild.textContent));
             message = p2;
           }
           const callout = calloutBlock({
@@ -1018,7 +1019,7 @@ var OJSConnector = class {
               if (result.length !== 1) {
                 continue;
               }
-              if (result[0].innerText.trim().startsWith("import")) {
+              if (result[0].textContent.trim().startsWith("import")) {
                 ojsDiv.classList.add("quarto-ojs-hide");
               }
             }
