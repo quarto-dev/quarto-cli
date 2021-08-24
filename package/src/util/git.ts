@@ -71,7 +71,6 @@ async function clone(workingDir: string, url: string) {
 
     // Forward the output
     info(outputTxt);
-    console.log("Matching", outputTxt);
 
     // Find the directory that we cloned into and return that
     const match = outputTxt.match(/^Cloning into '(.*)'\.\.\.$/m);

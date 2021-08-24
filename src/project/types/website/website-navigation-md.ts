@@ -289,7 +289,6 @@ const navbarContentsHandler = {
       entries.forEach((entry) => {
         addEntry(entry);
       });
-      console.log(markdown);
       return markdown;
     }
   },
