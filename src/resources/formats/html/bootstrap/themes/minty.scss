@@ -42,7 +42,8 @@ $min-contrast-ratio:   1.45 !default;
 
 // Body
 
-$body-color:                $gray-600 !default;
+$body-color:                $gray-700 !default;
+$color-contrast-dark:       $body-color !default; // Prefer $body-color over $black inside color-contrast()
 
 // Components
 
@@ -134,57 +135,6 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;50
 
 .btn {
   font-family: $headings-font-family;
-
-  &,
-  &:hover {
-    color: $white;
-  }
-
-  &-light,
-  &-light:hover {
-    color: $gray-700;
-  }
-
-  &-link,
-  &-link:hover {
-    color: $primary;
-  }
-
-  &-link.disabled:hover {
-    color: $gray-600;
-  }
-
-  &-outline-primary {
-    color: $primary;
-  }
-
-  &-outline-secondary {
-    color: $secondary;
-  }
-
-  &-outline-success {
-    color: $success;
-  }
-
-  &-outline-info {
-    color: $info;
-  }
-
-  &-outline-warning {
-    color: $warning;
-  }
-
-  &-outline-danger {
-    color: $danger;
-  }
-
-  &-outline-dark {
-    color: $dark;
-  }
-
-  &-outline-light {
-    color: $light;
-  }
 }
 
 // Forms

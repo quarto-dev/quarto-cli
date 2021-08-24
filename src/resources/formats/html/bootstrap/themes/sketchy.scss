@@ -322,8 +322,12 @@ select.form-control {
 }
 
 [type="checkbox"] {
-  position: relative;
+  position: relative !important;
   appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  -o-appearance: none;
   width: 0;
   height: 0;
   border: none;
@@ -359,8 +363,12 @@ select.form-control {
 }
 
 [type="radio"] {
-  position: relative;
+  position: relative !important;
   appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  -o-appearance: none;
   width: 0;
   height: 0;
   border: none;
