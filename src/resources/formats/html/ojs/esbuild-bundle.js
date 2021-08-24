@@ -931,8 +931,15 @@ var OJSConnector = class {
         };
         const clearCallout = (ojsDiv) => {
           const preDiv = locatePreDiv(ojsDiv);
+          if (preDiv === void 0) {
+            return;
+          }
           preDiv.classList.remove("numberSource");
-          preDiv._decorator.clearSpan(0, Infinity, ["quarto-ojs-error-pinpoint"]);
+          let startingOffset = 0;
+          if (preDiv.parentElement.dataset.sourceOffset) {
+            startingOffset = -Number(preDiv.parentElement.dataset.sourceOffset);
+          }
+          preDiv._decorator.clearSpan(startingOffset, Infinity, ["quarto-ojs-error-pinpoint"]);
         };
         const buildCallout = (ojsDiv) => {
           const inspectChild = ojsDiv.querySelector(".observablehq--inspect");
@@ -949,9 +956,11 @@ var OJSConnector = class {
               const preDiv = locatePreDiv(ojsDiv);
               preDiv.classList.add("numberSource");
               const missingRef = ojsAst.references.find((n2) => n2.name === varName);
-              const { line, column } = preDiv._decorator.offsetToLineColumn(missingRef.start);
-              heading = `${heading} (line ${line}, column ${column})`;
-              preDiv._decorator.decorateSpan(missingRef.start, missingRef.end, ["quarto-ojs-error-pinpoint"]);
+              if (missingRef !== void 0) {
+                const { line, column } = preDiv._decorator.offsetToLineColumn(missingRef.start);
+                heading = `${heading} (line ${line}, column ${column})`;
+                preDiv._decorator.decorateSpan(missingRef.start, missingRef.end, ["quarto-ojs-error-pinpoint"]);
+              }
               message = p2;
             } else if (message.match(/^(.+) could not be resolved$/) || message.match(/^(.+) is defined more than once$/)) {
               const [varName, ...rest] = message.split(" ");

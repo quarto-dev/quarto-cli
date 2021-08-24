@@ -315,8 +315,16 @@ export class OJSConnector {
         
         const clearCallout = (ojsDiv) => {
           const preDiv = locatePreDiv(ojsDiv);
+          if (preDiv === undefined) {
+            return;
+          }
           preDiv.classList.remove("numberSource");
-          preDiv._decorator.clearSpan(0, Infinity, ["quarto-ojs-error-pinpoint"]);
+          let startingOffset = 0;
+          if (preDiv.parentElement.dataset.sourceOffset) {
+            startingOffset = -Number(preDiv.parentElement.dataset.sourceOffset);
+          }
+          preDiv._decorator.clearSpan(
+            startingOffset, Infinity, ["quarto-ojs-error-pinpoint"]);
         };
         
         const buildCallout = (ojsDiv) => {
@@ -337,11 +345,16 @@ export class OJSConnector {
               // force line numbers to show
               preDiv.classList.add("numberSource");
               const missingRef = ojsAst.references.find(n => n.name === varName);
-              const {line, column} = preDiv._decorator.offsetToLineColumn(missingRef.start);
-              heading = `${heading} (line ${line}, column ${column})`;
-              preDiv._decorator.decorateSpan(
-                missingRef.start,
-                missingRef.end, ["quarto-ojs-error-pinpoint"]);
+              // FIXME when missingRef === undefined, it likely means an unresolved
+              // import reference. For now we will leave things as is, but
+              // this needs better handling.
+              if (missingRef !== undefined) {
+                const {line, column} = preDiv._decorator.offsetToLineColumn(missingRef.start);
+                heading = `${heading} (line ${line}, column ${column})`;
+                preDiv._decorator.decorateSpan(
+                  missingRef.start,
+                  missingRef.end, ["quarto-ojs-error-pinpoint"]);
+              }
               message = p;
             } else if (message.match(/^(.+) could not be resolved$/) ||
                        message.match(/^(.+) is defined more than once$/)) {
