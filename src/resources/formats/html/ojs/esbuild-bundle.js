@@ -668,7 +668,11 @@ var PandocCodeDecorator = class {
       }
       candidate = entry;
     }
-    return void 0;
+    if (offset < candidate.offset + candidate.node.textContent.length) {
+      return { entry: candidate, index: this._elementEntryPoints.length - 1 };
+    } else {
+      return void 0;
+    }
   }
   offsetToLineColumn(offset) {
     let entry = this.locateEntry(offset);
@@ -902,7 +906,117 @@ var OJSConnector = class {
     };
     return this.interpretWithRunner(src, runCell);
   }
+  locatePreDiv(cellDiv, ojsDiv) {
+    let preDiv;
+    for (const candidate of cellDiv.querySelectorAll("pre.sourceCode")) {
+      if (candidate.compareDocumentPosition(ojsDiv) & ojsDiv.DOCUMENT_POSITION_FOLLOWING) {
+        preDiv = candidate;
+      } else {
+        break;
+      }
+    }
+    return preDiv;
+  }
+  findCellOutputDisplay(ojsDiv) {
+    while (ojsDiv && !ojsDiv.classList.contains("cell-output-display")) {
+      ojsDiv = ojsDiv.parentElement;
+    }
+    if (!ojsDiv) {
+      throw new Error("Internal error: couldn't find output display div");
+    }
+    return ojsDiv;
+  }
+  clearErrorPinpoints(cellDiv, ojsDiv) {
+    console.log("Clearing callout");
+    const preDiv = this.locatePreDiv(cellDiv, ojsDiv);
+    if (preDiv === void 0) {
+      return;
+    }
+    preDiv.classList.remove("numberSource");
+    let startingOffset = 0;
+    if (preDiv.parentElement.dataset.sourceOffset) {
+      startingOffset = -Number(preDiv.parentElement.dataset.sourceOffset);
+    }
+    preDiv._decorator.clearSpan(startingOffset, Infinity, ["quarto-ojs-error-pinpoint"]);
+  }
+  decorateOjsDivWithErrorPinpoint(ojsDiv, start, end) {
+    const cellOutputDisplay = this.findCellOutputDisplay(ojsDiv);
+    if (cellOutputDisplay._errorSpans === void 0) {
+      cellOutputDisplay._errorSpans = [];
+    }
+    cellOutputDisplay._errorSpans.push({ start, end });
+  }
+  decorateSource(cellDiv, ojsDiv) {
+    debugger;
+    this.clearErrorPinpoints(cellDiv, ojsDiv);
+    const preDiv = this.locatePreDiv(cellDiv, ojsDiv);
+    let div = preDiv.parentElement.nextElementSibling;
+    while (div !== null && div.classList.contains("cell-output-display")) {
+      for (const errorSpan of div._errorSpans || []) {
+        preDiv._decorator.decorateSpan(errorSpan.start, errorSpan.end, ["quarto-ojs-error-pinpoint"]);
+      }
+      div = div.nextElementSibling;
+    }
+  }
+  clearError(ojsDiv) {
+    const cellOutputDisplay = this.findCellOutputDisplay(ojsDiv);
+    cellOutputDisplay._errorSpans = [];
+  }
+  signalError(cellDiv, ojsDiv, ojsAst) {
+    const buildCallout = (ojsDiv2) => {
+      console.log("Building callout");
+      const inspectChild = ojsDiv2.querySelector(".observablehq--inspect");
+      let [heading, message] = inspectChild.textContent.split(": ");
+      if (heading === "RuntimeError") {
+        heading = "OJS Runtime Error";
+        if (message.match(/^(.+) is not defined$/)) {
+          const [varName, ...rest] = message.split(" ");
+          const p2 = document.createElement("p");
+          const tt = document.createElement("tt");
+          tt.innerText = varName;
+          p2.appendChild(tt);
+          p2.appendChild(document.createTextNode(" " + rest.join(" ")));
+          const preDiv = this.locatePreDiv(cellDiv, ojsDiv2);
+          preDiv.classList.add("numberSource");
+          const missingRef = ojsAst.references.find((n2) => n2.name === varName);
+          if (missingRef !== void 0) {
+            const { line, column } = preDiv._decorator.offsetToLineColumn(missingRef.start);
+            heading = `${heading} (line ${line}, column ${column})`;
+            this.decorateOjsDivWithErrorPinpoint(ojsDiv2, missingRef.start, missingRef.end);
+          }
+          message = p2;
+        } else if (message.match(/^(.+) could not be resolved$/) || message.match(/^(.+) is defined more than once$/)) {
+          const [varName, ...rest] = message.split(" ");
+          const p2 = document.createElement("p");
+          const tt = document.createElement("tt");
+          tt.innerText = varName;
+          p2.appendChild(tt);
+          p2.appendChild(document.createTextNode(" " + rest.join(" ")));
+          message = p2;
+        } else if (message === "circular definition") {
+          const p2 = document.createElement("p");
+          p2.appendChild(document.createTextNode("circular definition"));
+          message = p2;
+        } else {
+          throw new Error(`Internal error, could not parse OJS error message "${message}"`);
+        }
+      } else {
+        heading = "OJS Error";
+        const p2 = document.createNode("p");
+        p2.appendChild(document.createTextNode(inspectChild.textContent));
+        message = p2;
+      }
+      const callout = calloutBlock({
+        type: "important",
+        heading,
+        message
+      });
+      ojsDiv2.appendChild(callout);
+    };
+    buildCallout(ojsDiv);
+  }
   interpret(src, elementGetter, elementCreator) {
+    const that = this;
     const observer = (targetElement, ojsAst) => {
       return (name) => {
         const element = typeof elementCreator === "function" ? elementCreator() : elementCreator;
@@ -918,79 +1032,6 @@ var OJSConnector = class {
             cellOutputDisplay = cellDiv;
           }
         }
-        const locatePreDiv = (ojsDiv) => {
-          let preDiv;
-          for (const candidate of cellDiv.querySelectorAll("pre.sourceCode")) {
-            if (candidate.compareDocumentPosition(ojsDiv) & ojsDiv.DOCUMENT_POSITION_FOLLOWING) {
-              preDiv = candidate;
-            } else {
-              break;
-            }
-          }
-          return preDiv;
-        };
-        const clearCallout = (ojsDiv) => {
-          const preDiv = locatePreDiv(ojsDiv);
-          if (preDiv === void 0) {
-            return;
-          }
-          preDiv.classList.remove("numberSource");
-          let startingOffset = 0;
-          if (preDiv.parentElement.dataset.sourceOffset) {
-            startingOffset = -Number(preDiv.parentElement.dataset.sourceOffset);
-          }
-          preDiv._decorator.clearSpan(startingOffset, Infinity, ["quarto-ojs-error-pinpoint"]);
-        };
-        const buildCallout = (ojsDiv) => {
-          const inspectChild = ojsDiv.querySelector(".observablehq--inspect");
-          let [heading, message] = inspectChild.textContent.split(": ");
-          if (heading === "RuntimeError") {
-            heading = "OJS Runtime Error";
-            if (message.match(/^(.+) is not defined$/)) {
-              const [varName, ...rest] = message.split(" ");
-              const p2 = document.createElement("p");
-              const tt = document.createElement("tt");
-              tt.innerText = varName;
-              p2.appendChild(tt);
-              p2.appendChild(document.createTextNode(" " + rest.join(" ")));
-              const preDiv = locatePreDiv(ojsDiv);
-              preDiv.classList.add("numberSource");
-              const missingRef = ojsAst.references.find((n2) => n2.name === varName);
-              if (missingRef !== void 0) {
-                const { line, column } = preDiv._decorator.offsetToLineColumn(missingRef.start);
-                heading = `${heading} (line ${line}, column ${column})`;
-                debugger;
-                preDiv._decorator.decorateSpan(missingRef.start, missingRef.end, ["quarto-ojs-error-pinpoint"]);
-              }
-              message = p2;
-            } else if (message.match(/^(.+) could not be resolved$/) || message.match(/^(.+) is defined more than once$/)) {
-              const [varName, ...rest] = message.split(" ");
-              const p2 = document.createElement("p");
-              const tt = document.createElement("tt");
-              tt.innerText = varName;
-              p2.appendChild(tt);
-              p2.appendChild(document.createTextNode(" " + rest.join(" ")));
-              message = p2;
-            } else if (message === "circular definition") {
-              const p2 = document.createElement("p");
-              p2.appendChild(document.createTextNode("circular definition"));
-              message = p2;
-            } else {
-              throw new Error(`Internal error, could not parse OJS error message "${message}"`);
-            }
-          } else {
-            heading = "OJS Error";
-            const p2 = document.createNode("p");
-            p2.appendChild(document.createTextNode(inspectChild.textContent));
-            message = p2;
-          }
-          const callout = calloutBlock({
-            type: "important",
-            heading,
-            message
-          });
-          ojsDiv.appendChild(callout);
-        };
         const config = { childList: true };
         const callback = function(mutationsList, observer3) {
           for (const mutation of mutationsList) {
@@ -1002,18 +1043,19 @@ var OJSConnector = class {
               Array.from(mutation.target.childNodes).filter((n2) => {
                 return n2.classList.contains("observablehq--inspect") && !n2.parentNode.classList.contains("observablehq--error") && n2.parentNode.parentNode.dataset.nodetype === "expression";
               }).forEach((n2) => n2.classList.remove("quarto-ojs-hide"));
-              if (ojsDiv.classList.contains("observablehq--error")) {
-                ojsDiv.querySelector(".observablehq--inspect").style.display = "none";
-                if (ojsDiv.querySelectorAll(".callout-important").length === 0) {
-                  buildCallout(ojsDiv);
-                }
-              } else {
-                clearCallout(ojsDiv);
-                if (ojsDiv.parentNode.dataset.nodetype !== "expression" && Array.from(ojsDiv.childNodes).every((n2) => n2.classList.contains("observablehq--inspect"))) {
-                  ojsDiv.classList.add("quarto-ojs-hide");
-                }
+            }
+            if (ojsDiv.classList.contains("observablehq--error")) {
+              ojsDiv.querySelector(".observablehq--inspect").style.display = "none";
+              if (ojsDiv.querySelectorAll(".callout-important").length === 0) {
+                that.signalError(cellDiv, ojsDiv, ojsAst);
+              }
+            } else {
+              that.clearError(ojsDiv);
+              if (ojsDiv.parentNode.dataset.nodetype !== "expression" && Array.from(ojsDiv.childNodes).every((n2) => n2.classList.contains("observablehq--inspect"))) {
+                ojsDiv.classList.add("quarto-ojs-hide");
               }
             }
+            that.decorateSource(cellDiv, ojsDiv);
             for (const added of mutation.addedNodes) {
               const result = added.querySelectorAll("code.javascript");
               if (result.length !== 1) {

@@ -49,7 +49,11 @@ var PandocCodeDecorator = class {
       }
       candidate = entry;
     }
-    return void 0;
+    if (offset < candidate.offset + candidate.node.textContent.length) {
+      return { entry: candidate, index: this._elementEntryPoints.length - 1 };
+    } else {
+      return void 0;
+    }
   }
   offsetToLineColumn(offset) {
     let entry = this.locateEntry(offset);
