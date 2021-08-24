@@ -1,6 +1,8 @@
 .breadcrumb {
   display: flex;
+  display: -webkit-flex;
   flex-wrap: wrap;
+  -webkit-flex-wrap: wrap;
   padding: $breadcrumb-padding-y $breadcrumb-padding-x;
   margin-bottom: $breadcrumb-margin-bottom;
   @include font-size($breadcrumb-font-size);

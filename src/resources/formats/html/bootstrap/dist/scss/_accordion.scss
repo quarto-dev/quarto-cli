@@ -5,7 +5,9 @@
 .accordion-button {
   position: relative;
   display: flex;
+  display: -webkit-flex;
   align-items: center;
+  -webkit-align-items: center;
   width: 100%;
   padding: $accordion-button-padding-y $accordion-button-padding-x;
   @include font-size($font-size-base);
@@ -31,6 +33,7 @@
   // Accordion icon
   &::after {
     flex-shrink: 0;
+    -webkit-flex-shrink: 0;
     width: $accordion-icon-width;
     height: $accordion-icon-width;
     margin-left: auto;

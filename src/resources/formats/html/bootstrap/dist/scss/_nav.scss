@@ -5,7 +5,9 @@
 
 .nav {
   display: flex;
+  display: -webkit-flex;
   flex-wrap: wrap;
+  -webkit-flex-wrap: wrap;
   padding-left: 0;
   margin-bottom: 0;
   list-style: none;
@@ -18,12 +20,20 @@
   font-weight: $nav-link-font-weight;
   color: $nav-link-color;
   text-decoration: if($link-decoration == none, null, none);
+  -webkit-text-decoration: if($link-decoration == none, null, none);
+  -moz-text-decoration: if($link-decoration == none, null, none);
+  -ms-text-decoration: if($link-decoration == none, null, none);
+  -o-text-decoration: if($link-decoration == none, null, none);
   @include transition($nav-link-transition);
 
   &:hover,
   &:focus {
     color: $nav-link-hover-color;
     text-decoration: if($link-hover-decoration == underline, none, null);
+    -webkit-text-decoration: if($link-hover-decoration == underline, none, null);
+    -moz-text-decoration: if($link-hover-decoration == underline, none, null);
+    -ms-text-decoration: if($link-hover-decoration == underline, none, null);
+    -o-text-decoration: if($link-hover-decoration == underline, none, null);
   }
 
   // Disabled state lightens text
@@ -104,6 +114,7 @@
   > .nav-link,
   .nav-item {
     flex: 1 1 auto;
+    -webkit-flex: 1 1 auto;
     text-align: center;
   }
 }
@@ -112,7 +123,9 @@
   > .nav-link,
   .nav-item {
     flex-basis: 0;
+    -webkit-flex-basis: 0;
     flex-grow: 1;
+    -webkit-flex-grow: 1;
     text-align: center;
   }
 }

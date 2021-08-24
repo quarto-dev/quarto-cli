@@ -2,7 +2,7 @@
 // Labels
 //
 
-.form-label {
+.form-label, .shiny-input-container .control-label {
   margin-bottom: $form-label-margin-bottom;
   @include font-size($form-label-font-size);
   font-style: $form-label-font-style;

@@ -1,3 +1,11 @@
+$shiny-check: ".shiny-input-container .checkbox";
+$shiny-check-inline: $shiny-check + "-inline";
+$shiny-radio: ".shiny-input-container .radio";
+$shiny-radio-inline: $shiny-radio + "-inline";
+$form-check-input-selector: ".form-check-input, " +
+  $shiny-check + " input, " + $shiny-check-inline + " input, " +
+  $shiny-radio + " input, " + $shiny-radio-inline + " input, ";
+
 @import "forms/labels";
 @import "forms/form-text";
 @import "forms/form-control";

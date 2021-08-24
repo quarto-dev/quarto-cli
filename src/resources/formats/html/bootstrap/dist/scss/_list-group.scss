@@ -4,7 +4,9 @@
 
 .list-group {
   display: flex;
+  display: -webkit-flex;
   flex-direction: column;
+  -webkit-flex-direction: column;
 
   // No need to set list-style: none; since .list-group-item is block level
   padding-left: 0; // reset padding because ul and ol
@@ -60,6 +62,10 @@
   padding: $list-group-item-padding-y $list-group-item-padding-x;
   color: $list-group-color;
   text-decoration: if($link-decoration == none, null, none);
+  -webkit-text-decoration: if($link-decoration == none, null, none);
+  -moz-text-decoration: if($link-decoration == none, null, none);
+  -ms-text-decoration: if($link-decoration == none, null, none);
+  -o-text-decoration: if($link-decoration == none, null, none);
   background-color: $list-group-bg;
   border: $list-group-border-width solid $list-group-border-color;
 
@@ -107,6 +113,7 @@
 
     .list-group-horizontal#{$infix} {
       flex-direction: row;
+      -webkit-flex-direction: row;
 
       > .list-group-item {
         &:first-child {

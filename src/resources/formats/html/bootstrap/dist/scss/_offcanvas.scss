@@ -3,7 +3,9 @@
   bottom: 0;
   z-index: $zindex-offcanvas;
   display: flex;
+  display: -webkit-flex;
   flex-direction: column;
+  -webkit-flex-direction: column;
   max-width: 100%;
   color: $offcanvas-color;
   visibility: hidden;
@@ -16,13 +18,18 @@
 
 .offcanvas-header {
   display: flex;
+  display: -webkit-flex;
   align-items: center;
+  -webkit-align-items: center;
   justify-content: space-between;
+  -webkit-justify-content: space-between;
   padding: $offcanvas-padding-y $offcanvas-padding-x;
 
   .btn-close {
-    padding: ($offcanvas-padding-y / 2) ($offcanvas-padding-x / 2);
-    margin: ($offcanvas-padding-y / -2) ($offcanvas-padding-x / -2) ($offcanvas-padding-y / -2) auto;
+    padding: ($offcanvas-padding-y * .5) ($offcanvas-padding-x * .5);
+    margin-top: $offcanvas-padding-y * -.5;
+    margin-right: $offcanvas-padding-x * -.5;
+    margin-bottom: $offcanvas-padding-y * -.5;
   }
 }
 
@@ -33,6 +40,7 @@
 
 .offcanvas-body {
   flex-grow: 1;
+  -webkit-flex-grow: 1;
   padding: $offcanvas-padding-y $offcanvas-padding-x;
   overflow-y: auto;
 }
