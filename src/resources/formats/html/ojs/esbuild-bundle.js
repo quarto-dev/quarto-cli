@@ -1066,13 +1066,15 @@ var OJSConnector = class {
               }
             }
           }
-          const children = Array.from(cellOutputDisplay.querySelectorAll("div.observablehq"));
-          if (children.every((n2) => {
-            return n2.classList.contains("quarto-ojs-hide");
-          })) {
-            cellOutputDisplay.classList.add("quarto-ojs-hide");
-          } else {
-            cellOutputDisplay.classList.remove("quarto-ojs-hide");
+          if (cellOutputDisplay) {
+            const children = Array.from(cellOutputDisplay.querySelectorAll("div.observablehq"));
+            if (children.every((n2) => {
+              return n2.classList.contains("quarto-ojs-hide");
+            })) {
+              cellOutputDisplay.classList.add("quarto-ojs-hide");
+            } else {
+              cellOutputDisplay.classList.remove("quarto-ojs-hide");
+            }
           }
         };
         const observer2 = new MutationObserver(callback);
