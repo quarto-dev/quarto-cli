@@ -519,6 +519,7 @@ export async function ojsCompile(
 
       const makeSubFigures = (specs: SubfigureSpec[]) => {
         let subfigIx = 1;
+        let cellInfo = ([] as SourceInfo[]).concat(...(parsedCells.map(n => n.info)));
         for (const spec of specs) {
           const outputDiv = pandocDiv({
             classes: outputCellClasses,
@@ -527,12 +528,9 @@ export async function ojsCompile(
             id: userId && `${userId}-${subfigIx}`,
           });
           const innerInfo = parsedCells[subfigIx - 1].info;
-          const attrs = innerInfo.length
-            ? [`nodetype="${innerInfo[innerInfo.length - 1].cellType}"`]
-            : [];
           const ojsDiv = pandocDiv({
             id: `${ojsId}-${subfigIx}`,
-            attrs,
+            attrs: [`nodetype="${cellInfo[subfigIx-1].cellType}"`]
           });
           if (innerInfo.length > 0 && srcConfig !== undefined) {
             const ourAttrs = srcConfig.attrs.slice();

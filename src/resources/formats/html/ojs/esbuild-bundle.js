@@ -659,6 +659,8 @@ var PandocCodeDecorator = class {
   }
   locateEntry(offset) {
     let candidate;
+    if (offset === Infinity)
+      return void 0;
     for (let i2 = 0; i2 < this._elementEntryPoints.length; ++i2) {
       const entry = this._elementEntryPoints[i2];
       if (entry.offset > offset) {
@@ -669,7 +671,15 @@ var PandocCodeDecorator = class {
     return void 0;
   }
   offsetToLineColumn(offset) {
-    const entry = this.locateEntry(offset);
+    let entry = this.locateEntry(offset);
+    if (entry === void 0) {
+      const entries = this._elementEntryPoints;
+      const last = entries[entries.length - 1];
+      return {
+        line: last.line,
+        column: last.column + Math.min(last.node.innerText.length, offset - last.offset)
+      };
+    }
     return {
       line: entry.entry.line,
       column: entry.entry.column + offset - entry.entry.offset
@@ -713,6 +723,21 @@ var PandocCodeDecorator = class {
     for (let i2 = startIndex; i2 < endIndex; ++i2) {
       for (const cssClass of classes) {
         this._elementEntryPoints[i2].node.classList.add(cssClass);
+      }
+    }
+  }
+  clearSpan(start, end, classes) {
+    this.ensureExactSpan(start, end);
+    const startEntry = this.locateEntry(start);
+    const endEntry = this.locateEntry(end);
+    if (startEntry === void 0) {
+      return;
+    }
+    const startIndex = startEntry.index;
+    const endIndex = endEntry && endEntry.index || this._elementEntryPoints.length;
+    for (let i2 = startIndex; i2 < endIndex; ++i2) {
+      for (const cssClass of classes) {
+        this._elementEntryPoints[i2].node.classList.remove(cssClass);
       }
     }
   }
@@ -893,6 +918,69 @@ var OJSConnector = class {
             cellOutputDisplay = cellDiv;
           }
         }
+        const locatePreDiv = (ojsDiv) => {
+          let preDiv;
+          for (const candidate of cellDiv.querySelectorAll("pre.sourceCode")) {
+            if (candidate.compareDocumentPosition(ojsDiv) & ojsDiv.DOCUMENT_POSITION_FOLLOWING) {
+              preDiv = candidate;
+            } else {
+              break;
+            }
+          }
+          return preDiv;
+        };
+        const clearCallout = (ojsDiv) => {
+          const preDiv = locatePreDiv(ojsDiv);
+          preDiv.classList.remove("numberSource");
+          preDiv._decorator.clearSpan(0, Infinity, ["quarto-ojs-error-pinpoint"]);
+        };
+        const buildCallout = (ojsDiv) => {
+          const inspectChild = ojsDiv.querySelector(".observablehq--inspect");
+          let [heading, message] = inspectChild.innerText.split(": ");
+          if (heading === "RuntimeError") {
+            heading = "OJS Runtime Error";
+            if (message.match(/^(.+) is not defined$/)) {
+              const [varName, ...rest] = message.split(" ");
+              const p2 = document.createElement("p");
+              const tt = document.createElement("tt");
+              tt.innerText = varName;
+              p2.appendChild(tt);
+              p2.appendChild(document.createTextNode(" " + rest.join(" ")));
+              const preDiv = locatePreDiv(ojsDiv);
+              preDiv.classList.add("numberSource");
+              const missingRef = ojsAst.references.find((n2) => n2.name === varName);
+              const { line, column } = preDiv._decorator.offsetToLineColumn(missingRef.start);
+              heading = `${heading} (line ${line}, column ${column})`;
+              preDiv._decorator.decorateSpan(missingRef.start, missingRef.end, ["quarto-ojs-error-pinpoint"]);
+              message = p2;
+            } else if (message.match(/^(.+) could not be resolved$/) || message.match(/^(.+) is defined more than once$/)) {
+              const [varName, ...rest] = message.split(" ");
+              const p2 = document.createElement("p");
+              const tt = document.createElement("tt");
+              tt.innerText = varName;
+              p2.appendChild(tt);
+              p2.appendChild(document.createTextNode(" " + rest.join(" ")));
+              message = p2;
+            } else if (message === "circular definition") {
+              const p2 = document.createElement("p");
+              p2.appendChild(document.createTextNode("circular definition"));
+              message = p2;
+            } else {
+              throw new Error(`Internal error, could not parse OJS error message "${message}"`);
+            }
+          } else {
+            heading = "OJS Error";
+            const p2 = document.createNode("p");
+            p2.appendChild(document.createTextNode(inspectChild.innerText));
+            message = p2;
+          }
+          const callout = calloutBlock({
+            type: "important",
+            heading,
+            message
+          });
+          ojsDiv.appendChild(callout);
+        };
         const config = { childList: true };
         const callback = function(mutationsList, observer3) {
           for (const mutation of mutationsList) {
@@ -901,65 +989,19 @@ var OJSConnector = class {
               Array.from(mutation.target.childNodes).filter((n2) => {
                 return n2.classList.contains("observablehq--inspect") && !n2.parentNode.classList.contains("observablehq--error") && n2.parentNode.parentNode.dataset.nodetype !== "expression";
               }).forEach((n2) => n2.classList.add("quarto-ojs-hide"));
+              Array.from(mutation.target.childNodes).filter((n2) => {
+                return n2.classList.contains("observablehq--inspect") && !n2.parentNode.classList.contains("observablehq--error") && n2.parentNode.parentNode.dataset.nodetype === "expression";
+              }).forEach((n2) => n2.classList.remove("quarto-ojs-hide"));
               if (ojsDiv.classList.contains("observablehq--error")) {
                 ojsDiv.querySelector(".observablehq--inspect").style.display = "none";
                 if (ojsDiv.querySelectorAll(".callout-important").length === 0) {
-                  const inspectChild = ojsDiv.querySelector(".observablehq--inspect");
-                  let [heading, message] = inspectChild.innerText.split(": ");
-                  if (heading === "RuntimeError") {
-                    heading = "OJS Runtime Error";
-                    if (message.match(/^(.+) is not defined$/)) {
-                      const [varName, ...rest] = message.split(" ");
-                      const p2 = document.createElement("p");
-                      const tt = document.createElement("tt");
-                      tt.innerText = varName;
-                      p2.appendChild(tt);
-                      p2.appendChild(document.createTextNode(" " + rest.join(" ")));
-                      let preDiv;
-                      let cellStart = 0;
-                      for (const candidate of cellDiv.querySelectorAll("pre.sourceCode")) {
-                        if (candidate.compareDocumentPosition(ojsDiv) & ojsDiv.DOCUMENT_POSITION_FOLLOWING) {
-                          preDiv = candidate;
-                        } else {
-                          break;
-                        }
-                      }
-                      preDiv.classList.add("numberSource");
-                      const missingRef = ojsAst.references.find((n2) => n2.name === varName);
-                      const { line, column } = preDiv._decorator.offsetToLineColumn(missingRef.start - cellStart);
-                      heading = `${heading} (line ${line}, column ${column})`;
-                      preDiv._decorator.decorateSpan(missingRef.start - cellStart, missingRef.end - cellStart, ["quarto-ojs-error-pinpoint"]);
-                      message = p2;
-                    } else if (message.match(/^(.+) could not be resolved$/) || message.match(/^(.+) is defined more than once$/)) {
-                      const [varName, ...rest] = message.split(" ");
-                      const p2 = document.createElement("p");
-                      const tt = document.createElement("tt");
-                      tt.innerText = varName;
-                      p2.appendChild(tt);
-                      p2.appendChild(document.createTextNode(" " + rest.join(" ")));
-                      message = p2;
-                    } else if (message === "circular definition") {
-                      const p2 = document.createElement("p");
-                      p2.appendChild(document.createTextNode("circular definition"));
-                      message = p2;
-                    } else {
-                      throw new Error(`Internal error, could not parse OJS error message "${message}"`);
-                    }
-                  } else {
-                    heading = "OJS Error";
-                    const p2 = document.createNode("p");
-                    p2.appendChild(document.createTextNode(inspectChild.innerText));
-                    message = p2;
-                  }
-                  const callout = calloutBlock({
-                    type: "important",
-                    heading,
-                    message
-                  });
-                  ojsDiv.appendChild(callout);
+                  buildCallout(ojsDiv);
                 }
-              } else if (ojsDiv.parentNode.dataset.nodetype !== "expression" && Array.from(ojsDiv.childNodes).every((n2) => n2.classList.contains("observablehq--inspect"))) {
-                ojsDiv.classList.add("quarto-ojs-hide");
+              } else {
+                clearCallout(ojsDiv);
+                if (ojsDiv.parentNode.dataset.nodetype !== "expression" && Array.from(ojsDiv.childNodes).every((n2) => n2.classList.contains("observablehq--inspect"))) {
+                  ojsDiv.classList.add("quarto-ojs-hide");
+                }
               }
             }
             for (const added of mutation.addedNodes) {
