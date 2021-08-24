@@ -430,6 +430,7 @@ function handleRepoLinks(
             links.forEach((link) => {
               const a = doc.createElement("a");
               a.setAttribute("href", link.url);
+              a.classList.add("toc-action");
               a.innerHTML = link.text;
               const p = doc.createElement("p");
               p.appendChild(a);

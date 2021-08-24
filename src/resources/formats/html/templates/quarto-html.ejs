@@ -265,7 +265,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   <% if (linkExternalIcon || linkExternalNewwindow) { %>
   var isInternal = new RegExp('/' + window.location.host + '/');
   // Inspect non-navigation links and adorn them if external
-  var links = window.document.querySelectorAll('a:not(.nav-link)');
+  var links = window.document.querySelectorAll('a:not(.nav-link):not(.toc-action)');
   for (var i=0; i<links.length; i++) {
     const link = links[i];
     if (!isInternal.test(link.href)) {
