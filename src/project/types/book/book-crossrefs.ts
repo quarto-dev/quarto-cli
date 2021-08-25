@@ -208,7 +208,7 @@ async function bookCrossrefIndexes(
         if (isMultiFileBookFormat(defaultWriterFormat(formatName))) {
           const format = index.formats[formatName];
           if (format.pandoc[kOutputFile]) {
-            const outputFile = format.pandoc[kOutputFile]!;
+            const outputFile = join(dirname(file), format.pandoc[kOutputFile]!);
             const indexFile = crossrefIndexForOutputFile(
               context.dir,
               file,
