@@ -74,12 +74,13 @@ export function breakQuartoMd(
 
       if (cell_type === "code" && (language === "ojs" || language === "dot")) {
         // see if there is embedded metadata we should forward into the cell metadata
-        const { yaml, source } = partitionCellOptions(
+        const { yaml, source, yamlLength } = partitionCellOptions(
           "js",
           cell.source,
         );
         cell.source = source;
         cell.options = yaml;
+        cell.startingLoc += yamlLength;
       }
 
       // if the source is empty then don't add it

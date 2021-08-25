@@ -16,7 +16,6 @@ export function partitionCellOptions(
   const commentChars = langCommentChars(language);
   const optionPrefix = optionCommentPrefix(commentChars[0]);
   const optionSuffix = commentChars[1] || "";
-
   // find the yaml lines
   const yamlLines: string[] = [];
   for (const line of source) {
@@ -52,6 +51,7 @@ export function partitionCellOptions(
   return {
     yaml: yaml as Record<string, unknown> | undefined,
     source: source.slice(yamlLines.length),
+    yamlLength: yamlLines.length
   };
 }
 

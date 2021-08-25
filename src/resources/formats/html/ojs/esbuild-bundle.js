@@ -701,8 +701,10 @@ var PandocCodeDecorator = class {
       newSpan.textContent = afterText;
       entry.node.after(newSpan);
       this._elementEntryPoints.push({
-        offset,
-        node: newSpan
+        column: entry.column + offset - entry.offset,
+        line: entry.line,
+        node: newSpan,
+        offset
       });
       this._elementEntryPoints.sort((a2, b2) => a2.offset - b2.offset);
     };
@@ -748,6 +750,7 @@ var PandocCodeDecorator = class {
 };
 
 // ojs-bundle.js
+var kQuartoModuleWaitClass = "ojs-in-a-box-waiting-for-module-import";
 function calloutBlock(opts) {
   const {
     type,
@@ -861,14 +864,14 @@ var OJSConnector = class {
     return result;
   }
   clearImportModuleWait() {
-    const array = Array.from(document.querySelectorAll(".ojs-in-a-box-waiting-for-module-import"));
+    const array = Array.from(document.querySelectorAll(`.${kQuartoModuleWaitClass}`));
     for (const node of array) {
-      node.classList.remove("ojs-in-a-box-waiting-for-module-import");
+      node.classList.remove(kQuartoModuleWaitClass);
     }
   }
   finishInterpreting() {
     return Promise.all(this.chunkPromises).then(() => {
-      if (!this.mainModuleHasImports) {
+      if (this.mainModuleHasImports) {
         this.clearImportModuleWait();
       }
     });
@@ -927,7 +930,6 @@ var OJSConnector = class {
     return ojsDiv;
   }
   clearErrorPinpoints(cellDiv, ojsDiv) {
-    console.log("Clearing callout");
     const preDiv = this.locatePreDiv(cellDiv, ojsDiv);
     if (preDiv === void 0) {
       return;
@@ -947,9 +949,11 @@ var OJSConnector = class {
     cellOutputDisplay._errorSpans.push({ start, end });
   }
   decorateSource(cellDiv, ojsDiv) {
-    debugger;
     this.clearErrorPinpoints(cellDiv, ojsDiv);
     const preDiv = this.locatePreDiv(cellDiv, ojsDiv);
+    if (preDiv === void 0) {
+      return;
+    }
     let div = preDiv.parentElement.nextElementSibling;
     while (div !== null && div.classList.contains("cell-output-display")) {
       for (const errorSpan of div._errorSpans || []) {
@@ -964,7 +968,6 @@ var OJSConnector = class {
   }
   signalError(cellDiv, ojsDiv, ojsAst) {
     const buildCallout = (ojsDiv2) => {
-      console.log("Building callout");
       const inspectChild = ojsDiv2.querySelector(".observablehq--inspect");
       let [heading, message] = inspectChild.textContent.split(": ");
       if (heading === "RuntimeError") {
@@ -976,15 +979,20 @@ var OJSConnector = class {
           tt.innerText = varName;
           p2.appendChild(tt);
           p2.appendChild(document.createTextNode(" " + rest.join(" ")));
-          const preDiv = this.locatePreDiv(cellDiv, ojsDiv2);
-          preDiv.classList.add("numberSource");
-          const missingRef = ojsAst.references.find((n2) => n2.name === varName);
-          if (missingRef !== void 0) {
-            const { line, column } = preDiv._decorator.offsetToLineColumn(missingRef.start);
-            heading = `${heading} (line ${line}, column ${column})`;
-            this.decorateOjsDivWithErrorPinpoint(ojsDiv2, missingRef.start, missingRef.end);
-          }
           message = p2;
+          const preDiv = this.locatePreDiv(cellDiv, ojsDiv2);
+          if (preDiv !== void 0) {
+            preDiv.classList.add("numberSource");
+            const missingRef = ojsAst.references.find((n2) => n2.name === varName);
+            if (missingRef !== void 0) {
+              const { line, column } = preDiv._decorator.offsetToLineColumn(missingRef.start);
+              if (line === void 0) {
+                debugger;
+              }
+              heading = `${heading} (line ${line}, column ${column})`;
+              this.decorateOjsDivWithErrorPinpoint(ojsDiv2, missingRef.start, missingRef.end);
+            }
+          }
         } else if (message.match(/^(.+) could not be resolved$/) || message.match(/^(.+) is defined more than once$/)) {
           const [varName, ...rest] = message.split(" ");
           const p2 = document.createElement("p");
@@ -1079,7 +1087,7 @@ var OJSConnector = class {
         };
         const observer2 = new MutationObserver(callback);
         observer2.observe(element, config);
-        element.classList.add("ojs-in-a-box-waiting-for-module-import");
+        element.classList.add(kQuartoModuleWaitClass);
         return new this.inspectorClass(element, ojsAst);
       };
     };
@@ -1102,25 +1110,26 @@ function es6ImportAsObservableModule(m2) {
     return main;
   };
 }
-function defaultResolveImportPath(path) {
+async function defaultResolveImportPath(path) {
   const extractPath = (path2) => {
     let source2 = path2;
-    let m2;
-    if (m2 = /\.js(\?|$)/i.exec(source2)) {
-      source2 = source2.slice(0, m2.index);
+    let m3;
+    if (m3 = /\.js(\?|$)/i.exec(source2)) {
+      source2 = source2.slice(0, m3.index);
     }
-    if (m2 = /^[0-9a-f]{16}$/i.test(source2)) {
+    if (m3 = /^[0-9a-f]{16}$/i.test(source2)) {
       source2 = `d/${source2}`;
     }
-    if (m2 = /^https:\/\/(api\.|beta\.|)observablehq\.com\//i.exec(source2)) {
-      source2 = source2.slice(m2[0].length);
+    if (m3 = /^https:\/\/(api\.|beta\.|)observablehq\.com\//i.exec(source2)) {
+      source2 = source2.slice(m3[0].length);
     }
     return source2;
   };
   const source = extractPath(path);
   const metadataURL = `https://api.observablehq.com/document/${source}`;
   const moduleURL = `https://api.observablehq.com/${source}.js?v=3`;
-  return import(moduleURL).then((m2) => m2.default);
+  const m2 = await import(moduleURL);
+  return m2.default;
 }
 function importPathResolver(paths, localResolverMap) {
   function importRootPath(path) {

@@ -439,7 +439,8 @@ export async function ojsCompile(
         true;
       const echoVal = cell.options?.[kEcho] ?? options.format.execute[kEcho] ??
         true;
-      const keepHiddenVal = options.format.render[kKeepHidden] ?? false;
+      // We always keep-hidden to enable runtime error pinpointing
+      const keepHiddenVal = true; // options.format.render[kKeepHidden] ?? false;
       const includeVal = cell.options?.[kInclude] ??
         options.format.execute[kInclude] ?? true;
 

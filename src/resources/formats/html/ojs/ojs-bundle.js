@@ -32,6 +32,8 @@ import { PandocCodeDecorator } from "./pandoc-code-decorator.js";
 
 //////////////////////////////////////////////////////////////////////////////
 
+const kQuartoModuleWaitClass = "ojs-in-a-box-waiting-for-module-import";
+
 function calloutBlock(opts)
 {
   const {
@@ -149,7 +151,7 @@ export class OJSConnector {
         info.resolve = resolve;
         info.reject = reject;
       });
-      this.pendingGlobals[name] = info;
+      this.pendingGlobals[name] = info
     }
     return this.pendingGlobals[name].promise;
   }
@@ -204,18 +206,18 @@ export class OJSConnector {
   clearImportModuleWait() {
     const array = Array.from(
       document.querySelectorAll(
-        ".ojs-in-a-box-waiting-for-module-import",
+        `.${kQuartoModuleWaitClass}`
       ),
     );
     for (const node of array) {
-      node.classList.remove("ojs-in-a-box-waiting-for-module-import");
+      node.classList.remove(kQuartoModuleWaitClass);
     }
   }
 
   finishInterpreting() {
     return Promise.all(this.chunkPromises)
       .then(() => {
-        if (!this.mainModuleHasImports) {
+        if (this.mainModuleHasImports) {
           this.clearImportModuleWait();
         }
       });
@@ -294,7 +296,6 @@ export class OJSConnector {
   }
   
   clearErrorPinpoints(cellDiv, ojsDiv) {
-    console.log("Clearing callout");
     const preDiv = this.locatePreDiv(cellDiv, ojsDiv);
     if (preDiv === undefined) {
       return;
@@ -319,6 +320,12 @@ export class OJSConnector {
   decorateSource(cellDiv, ojsDiv) {
     this.clearErrorPinpoints(cellDiv, ojsDiv);
     const preDiv = this.locatePreDiv(cellDiv, ojsDiv);
+    // sometimes the source code is not echoed.
+    // FIXME: should ojs source always be "hidden" so we can show it
+    // in case of runtime errors?
+    if (preDiv === undefined) {
+      return;
+    }
     // now find all ojsDivs that contain errors that need to be decorated
     // on preDiv
     let div = preDiv.parentElement.nextElementSibling;
@@ -338,7 +345,6 @@ export class OJSConnector {
   
   signalError(cellDiv, ojsDiv, ojsAst) {
     const buildCallout = (ojsDiv) => {
-      console.log("Building callout");
       const inspectChild = ojsDiv.querySelector(".observablehq--inspect");
       let [heading, message] = inspectChild.textContent.split(": ");
       if (heading === "RuntimeError") {
@@ -350,24 +356,29 @@ export class OJSConnector {
           tt.innerText = varName;
           p.appendChild(tt);
           p.appendChild(document.createTextNode(" " + rest.join(" ")));
+          message = p;
           
           const preDiv = this.locatePreDiv(cellDiv, ojsDiv);
-
-          // force line numbers to show
-          preDiv.classList.add("numberSource");
-          const missingRef = ojsAst.references.find(n => n.name === varName);
-          // FIXME when missingRef === undefined, it likely means an unresolved
-          // import reference. For now we will leave things as is, but
-          // this needs better handling.
-          if (missingRef !== undefined) {
-            const {line, column} = preDiv._decorator.offsetToLineColumn(missingRef.start);
-            heading = `${heading} (line ${line}, column ${column})`;
-            this.decorateOjsDivWithErrorPinpoint(ojsDiv, missingRef.start, missingRef.end);
-            // preDiv._decorator.decorateSpan(
-            //   missingRef.start,
-            //   missingRef.end, ["quarto-ojs-error-pinpoint"]);
+          // preDiv might not be exist in case source isn't echoed to HTML
+          if (preDiv !== undefined) {
+            // force line numbers to show
+            preDiv.classList.add("numberSource");
+            const missingRef = ojsAst.references.find(n => n.name === varName);
+            // FIXME when missingRef === undefined, it likely means an unresolved
+            // import reference. For now we will leave things as is, but
+            // this needs better handling.
+            if (missingRef !== undefined) {
+              const {line, column} = preDiv._decorator.offsetToLineColumn(missingRef.start);
+              if (line === undefined) {
+                debugger;
+              }
+              heading = `${heading} (line ${line}, column ${column})`;
+              this.decorateOjsDivWithErrorPinpoint(ojsDiv, missingRef.start, missingRef.end);
+              // preDiv._decorator.decorateSpan(
+              //   missingRef.start,
+              //   missingRef.end, ["quarto-ojs-error-pinpoint"]);
+            }
           }
-          message = p;
         } else if (message.match(/^(.+) could not be resolved$/) ||
                    message.match(/^(.+) is defined more than once$/)) {
           const [varName, ...rest] = message.split(" ");
@@ -531,7 +542,7 @@ export class OJSConnector {
         
         observer.observe(element, config);
         
-        element.classList.add("ojs-in-a-box-waiting-for-module-import");
+        element.classList.add(kQuartoModuleWaitClass);
 
         return new this.inspectorClass(element, ojsAst);
       };
@@ -570,7 +581,7 @@ function es6ImportAsObservableModule(m) {
 // this is essentially the import resolution code from observable's
 // runtime. we change it to add a license check for permissive
 // open-source licenses before resolving the import
-function defaultResolveImportPath(path) {
+async function defaultResolveImportPath(path) {
   const extractPath = (path) => {
     let source = path;
     let m;
@@ -599,8 +610,8 @@ function defaultResolveImportPath(path) {
   //   })
   //   .then(m => m.default);
 
-  return import(moduleURL)
-    .then(m => m.default);
+  const m = await import(moduleURL);
+  return m.default;
 
   /*
   const metadata = await fetch(metadataURL, { mode: 'no-cors' });
