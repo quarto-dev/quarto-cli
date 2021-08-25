@@ -13,15 +13,15 @@ header.headroom--unpinned {
 }
 
 .navbar {
-  background-color: $navbar-bg;
+  background-color: if($navbar-bg, $navbar-bg, $primary);
 }
 
 .navbar-light {
-  background-color: $navbar-light-bg;
+  background-color: if($navbar-light-bg, $navbar-light-bg, $primary);
 }
 
 .navbar-dark {
-  background-color: $navbar-dark-bg;
+  background-color: if($navbar-dark-bg, $navbar-dark-bg, $primary);
 }
 
 .navbar-brand {
