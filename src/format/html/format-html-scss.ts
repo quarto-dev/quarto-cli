@@ -270,6 +270,7 @@ function pandocVariablesToBootstrapDefaults(
 const kCodeBorderLeft = "code-block-border-left";
 const kCodeBlockBackground = "code-block-bg";
 const kBackground = "background";
+const kColor = "color";
 const kBorder = "border";
 
 // Quarto variables and styles
@@ -361,6 +362,20 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
           sassVariable(
             "footer-border-color",
             footerBorder,
+            asBootstrapColor,
+          ),
+        ),
+      );
+    }
+
+    // Forward any footer color
+    const footerColor = footer[kColor];
+    if (footerColor && typeof (footerColor) === "string") {
+      variables.push(
+        outputVariable(
+          sassVariable(
+            "footer-color",
+            footerColor,
             asBootstrapColor,
           ),
         ),
