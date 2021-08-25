@@ -432,21 +432,6 @@ nav .nav-item.compact .nav-link {
   padding-bottom: 0.75em;
 }
 
-.nav-footer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding-top: 0.5rem;
-  padding-bottom: 0.25rem;
-  margin-top: 1px;
-}
-
-.nav-footer-contents {
-  color: $text-muted;
-  margin-top: 0.25rem;
-}
-
 .nav-page .bi {
   font-size: 1.8rem;
   vertical-align: middle;
@@ -513,14 +498,27 @@ nav .nav-item.compact .nav-link {
 // border weight
 // border style
 .nav-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding-top: 0.5rem;
+  padding-bottom: 0.25rem;
   @if variable-exists(footer-bg) {
     background-color: $footer-bg;
   }
-  @if variable-exists(footer-border) {
-    border-top: 1px solid $footer-border;
-  } @else {
-    border-top: 1px solid $table-border-color;
+  @if variable-exists(footer-border) and $footer-border {
+    @if variable-exists(footer-border-color) {
+      border-top: 1px solid $footer-border-color;
+    } @else {
+      border-top: 1px solid $table-border-color;
+    }
   }
+}
+
+.nav-footer-contents {
+  color: $text-muted;
+  margin-top: 0.25rem;
 }
 
 .nav-footer,
@@ -532,16 +530,22 @@ nav .nav-item.compact .nav-link {
   }
 }
 
-.nav-footer .nav-footer-left {
-  font-size: $footer-left-font-size;
+@if variable-exists(footer-left-font-size) {
+  .nav-footer .nav-footer-left {
+    font-size: $footer-left-font-size;
+  }
 }
 
-.nav-footer .nav-footer-center {
-  font-size: $footer-center-font-size;
+@if variable-exists(footer-center-font-size) {
+  .nav-footer .nav-footer-center {
+    font-size: $footer-center-font-size;
+  }
 }
 
-.nav-footer .nav-footer-right {
-  font-size: $footer-right-font-size;
+@if variable-exists(footer-right-font-size) {
+  .nav-footer .nav-footer-right {
+    font-size: $footer-right-font-size;
+  }
 }
 
 .nav-footer-left .footer-items,

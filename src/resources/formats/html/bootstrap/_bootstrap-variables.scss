@@ -49,13 +49,6 @@ $nav-font-size: 0.925rem !default;
 $nav-font-size-enlarged: 1rem !default;
 $nav-font-weight: 300 !default;
 
-$footer-font-size: 0.9em !default;
-// $footer-color: (defaults to body)
-
-$footer-left-font-size: $footer-font-size !default;
-$footer-center-font-size: $footer-font-size !default;
-$footer-right-font-size: $footer-font-size !default;
-
 $enable-smooth-scroll: false !default;
 
 // Our default callout colors unless the theme is providing custom
@@ -67,3 +60,8 @@ $callout-color-caution: $orange !default;
 $callout-color-warning: $yellow !default;
 $callout-color-important: $red !default;
 */
+
+$footer-font-size: 0.9em !default;
+$footer-left-font-size: $footer-font-size !default;
+$footer-center-font-size: $footer-font-size !default;
+$footer-right-font-size: $footer-font-size !default;

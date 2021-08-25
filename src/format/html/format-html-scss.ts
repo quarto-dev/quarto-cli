@@ -342,13 +342,26 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
 
     // Forward footer border
     const footerBorder = footer[kBorder];
-    if (footerBorder !== undefined) {
+    // Enable the border unless it is explicitly disabled
+    if (footerBorder !== false) {
       variables.push(
         outputVariable(
           sassVariable(
             "footer-border",
+            true,
+          ),
+        ),
+      );
+    }
+
+    // If the footer border is a color, set that
+    if (footerBorder !== undefined && typeof (footerBorder) === "string") {
+      variables.push(
+        outputVariable(
+          sassVariable(
+            "footer-border-color",
             footerBorder,
-            typeof (footerBg) === "string" ? asBootstrapColor : undefined,
+            asBootstrapColor,
           ),
         ),
       );
