@@ -151,7 +151,7 @@ export class OJSConnector {
         info.resolve = resolve;
         info.reject = reject;
       });
-      this.pendingGlobals[name] = info
+      this.pendingGlobals[name] = info;
     }
     return this.pendingGlobals[name].promise;
   }
@@ -430,7 +430,6 @@ export class OJSConnector {
     buildCallout(ojsDiv);
   }
 
-  
   interpret(src, elementGetter, elementCreator) {
     const that = this;
     const observer = (targetElement, ojsAst) => {
@@ -755,7 +754,7 @@ function importPathResolver(paths, localResolverMap) {
     return path;
   }
 
-  return (path) => {
+  return async (path) => {
     const isLocalModule = path.startsWith("/") || path.startsWith(".");
     const isImportFromObservableWebsite = path.match(
       /^https:\/\/(api\.|beta\.|)observablehq\.com\//i,
@@ -804,14 +803,15 @@ function importPathResolver(paths, localResolverMap) {
     }
 
     if (moduleType === "js") {
-      return import(importPath).then((m) => es6ImportAsObservableModule(m));
+      const m = await import(importPath);
+      return es6ImportAsObservableModule(m);
     } else if (moduleType === "ojs") {
       return importOjsFromURL(fetchPath);
     } else if (moduleType === "qmd") {
       const htmlPath = `${fetchPath.slice(0, -4)}.html`;
-      return fetch(htmlPath)
-        .then((response) => response.text())
-        .then(createOjsModuleFromHTMLSrc);
+      const response = await fetch(htmlPath);
+      const text = await response.text();
+      return createOjsModuleFromHTMLSrc(text);
     } else {
       throw new Error(`internal error, unrecognized module type ${moduleType}`);
     }
@@ -1240,10 +1240,6 @@ export function createRuntime() {
       await this.finishInterpreting();
       const result = await ojsConnector.value(name);
       return result;
-      // return this.finishInterpreting()
-      //   .then(() => {
-      //     return ojsConnector.value(name);
-      //   });
     },
 
     // fixme clarify what's the expected behavior of the 'error' option

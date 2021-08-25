@@ -1176,7 +1176,7 @@ function importPathResolver(paths, localResolverMap) {
   function fetchRelativePath(path) {
     return path;
   }
-  return (path) => {
+  return async (path) => {
     const isLocalModule = path.startsWith("/") || path.startsWith(".");
     const isImportFromObservableWebsite = path.match(/^https:\/\/(api\.|beta\.|)observablehq\.com\//i);
     if (!isLocalModule || isImportFromObservableWebsite) {
@@ -1214,12 +1214,15 @@ function importPathResolver(paths, localResolverMap) {
       }
     }
     if (moduleType === "js") {
-      return import(importPath).then((m2) => es6ImportAsObservableModule(m2));
+      const m2 = await import(importPath);
+      return es6ImportAsObservableModule(m2);
     } else if (moduleType === "ojs") {
       return importOjsFromURL(fetchPath);
     } else if (moduleType === "qmd") {
       const htmlPath = `${fetchPath.slice(0, -4)}.html`;
-      return fetch(htmlPath).then((response) => response.text()).then(createOjsModuleFromHTMLSrc);
+      const response = await fetch(htmlPath);
+      const text = await response.text();
+      return createOjsModuleFromHTMLSrc(text);
     } else {
       throw new Error(`internal error, unrecognized module type ${moduleType}`);
     }
