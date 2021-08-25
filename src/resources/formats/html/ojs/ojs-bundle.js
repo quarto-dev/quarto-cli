@@ -294,13 +294,28 @@ export class OJSConnector {
     }
     return ojsDiv;
   }
+
+  setPreDivClasses(preDiv, hasErrors) {
+    if (!hasErrors) {
+      preDiv.classList.remove("numberSource");
+      if (preDiv._hidden === true) {
+        preDiv.parentElement.classList.add("hidden");
+      }
+    } else {
+      preDiv.classList.add("numberSource");
+      if (preDiv.parentElement.classList.contains("hidden")) {
+        preDiv._hidden = true;
+        preDiv.parentElement.classList.remove("hidden");
+      }
+    }
+  }
   
   clearErrorPinpoints(cellDiv, ojsDiv) {
     const preDiv = this.locatePreDiv(cellDiv, ojsDiv);
     if (preDiv === undefined) {
       return;
     }
-    preDiv.classList.remove("numberSource");
+    this.setPreDivClasses(preDiv, false);
     let startingOffset = 0;
     if (preDiv.parentElement.dataset.sourceOffset) {
       startingOffset = -Number(preDiv.parentElement.dataset.sourceOffset);
@@ -329,13 +344,16 @@ export class OJSConnector {
     // now find all ojsDivs that contain errors that need to be decorated
     // on preDiv
     let div = preDiv.parentElement.nextElementSibling;
+    let foundErrors = false;
     while (div !== null && div.classList.contains("cell-output-display")) {
       for (const errorSpan of (div._errorSpans || [])) {
         preDiv._decorator.decorateSpan(
           errorSpan.start, errorSpan.end, ["quarto-ojs-error-pinpoint"]);
+        foundErrors = true;
       }
       div = div.nextElementSibling;
     }
+    this.setPreDivClasses(preDiv, foundErrors);
   }
 
   clearError(ojsDiv) {

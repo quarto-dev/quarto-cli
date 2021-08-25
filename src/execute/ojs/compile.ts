@@ -439,8 +439,8 @@ export async function ojsCompile(
         true;
       const echoVal = cell.options?.[kEcho] ?? options.format.execute[kEcho] ??
         true;
-      // We always keep-hidden to enable runtime error pinpointing
-      const keepHiddenVal = true; // options.format.render[kKeepHidden] ?? false;
+
+      const keepHiddenVal = options.format.render[kKeepHidden] ?? false;
       const includeVal = cell.options?.[kInclude] ??
         options.format.execute[kInclude] ?? true;
 
@@ -453,59 +453,38 @@ export async function ojsCompile(
         );
       }
 
-      interface SrcConfig {
-        attrs: string[];
-        classes: string[];
+      const srcClasses = mdClassList ?? ["js", "cell-code"];
+      const srcAttrs = [];
+
+      // the only effect of echoVal in OJS blocks
+      // is to hide the div. We need source always to pinpoint
+      // errors in source in case of runtime errors.
+      // 
+      // FIXME This is
+      // potentially wrong in the presence of !includeVal
+      if (!echoVal) {
+        srcClasses.push("hidden");
       }
 
-      let srcConfig: undefined | SrcConfig;
+      if (cell.options?.[kCodeOverflow] === "wrap") {
+        srcClasses.push("code-overflow-wrap");
+      } else if (cell.options?.[kCodeOverflow] === "scroll") {
+        srcClasses.push("code-overflow-scroll");
+      }
 
+      // options.format.render?.[kCodeFold] appears to use "none"
+      // for "not set", so we interpret "none" as undefined
       if (
-        includeVal &&
-        (!evalVal || // always produce div when not evaluating
-          keepHiddenVal || // always produce div with keepHidden
-          echoVal) // if echo
+        asUndefined(options.format.render?.[kCodeFold], "none") ??
+          cell.options?.[kCodeFold]
       ) {
-        const classes = mdClassList ?? ["js", "cell-code"];
-        const attrs = [];
-
-        //  evalVal keepHiddenVal echoVal
-        //  F       F             F       => add hidden
-        //  F       F             T       => don't add hidden
-        //  F       T             F       => add hidden
-        //  F       T             T       => don't add hidden
-        //  T       F             F       => never gets here
-        //  T       F             T       => don't add hidden
-        //  T       T             F       => add hidden
-        //  T       T             T       => don't add hidden
-        //
-        // simplify the logic above to be correct for the cases where
-        // we are here, and we get !echoVal
-
-        if (!echoVal) {
-          classes.push("hidden");
-        }
-
-        if (cell.options?.[kCodeOverflow] === "wrap") {
-          classes.push("code-overflow-wrap");
-        } else if (cell.options?.[kCodeOverflow] === "scroll") {
-          classes.push("code-overflow-scroll");
-        }
-
-        // options.format.render?.[kCodeFold] appears to use "none"
-        // for "not set", so we interpret "none" as undefined
-        if (
-          asUndefined(options.format.render?.[kCodeFold], "none") ??
-            cell.options?.[kCodeFold]
-        ) {
-          attrs.push(`${kCodeFold}="${cell.options?.[kCodeFold]}"`);
-        }
-
-        srcConfig = {
-          classes: classes.slice(),
-          attrs: attrs.slice(),
-        };
+        srcAttrs.push(`${kCodeFold}="${cell.options?.[kCodeFold]}"`);
       }
+
+      const srcConfig = {
+        classes: srcClasses.slice(),
+        attrs: srcAttrs.slice(),
+      };
 
       // only emit interpret if eval is true
       if (evalVal) {
