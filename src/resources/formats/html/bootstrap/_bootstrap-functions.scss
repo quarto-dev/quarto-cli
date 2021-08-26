@@ -9,6 +9,12 @@
 
 // Provides a contrast color for a given color
 @function theme-contrast($baseColor) {
+  // These will be defined in bootstrap, but creating values here
+  // That will make this function accessible to callers prior to bootstrap variables
+  // being set
+  $black: rgb(0, 0, 0) !default;
+  $white: rgb(255, 255, 255) !default;
+
   @if tone($baseColor) == "light" {
     @return accessibleContrast($baseColor, $black);
   } @else {

@@ -34,10 +34,6 @@ $code-block-bg-alpha: -0.35 !default;
 
 $code-block-theme-dark-threshhold: 40% !default;
 
-// The sidebar background color
-// If by default we don't have a body background, then use white
-$body-bg: #fff !default;
-
 // Adjust the base font size up a little
 $font-size-root: 18px !default;
 
@@ -57,9 +53,7 @@ $callout-color-important: $red !default;
 */
 
 // Sidebar coloring
-// By default, the sidebar background will match the body color
-// By default, the sidebar foreground color will be a contrast color against the background
-$sidebar-bg: $body-bg !default;
+$sidebar-bg: if(variable-exists(secondary), $secondary, #f8f9fa) !default;
 $sidebar-fg: theme-contrast($sidebar-bg) !default;
 $sidebar-hl: null;
 $sidebar-font-size: 0.875rem !default;
@@ -67,9 +61,39 @@ $sidebar-font-size-section: 1rem !default;
 $sidebar-font-size-collapse: 1rem !default;
 
 // Footer coloring
-$footer-bg: $body-bg !default;
+$footer-bg: if(variable-exists(body-bg), $body-bg, #fff) !default;
 $footer-fg: theme-contrast($footer-bg) !default;
 $footer-font-size: 0.825em !default;
 $footer-left-font-size: $footer-font-size !default;
 $footer-center-font-size: $footer-font-size !default;
 $footer-right-font-size: $footer-font-size !default;
+
+// Navbar
+$navbar-bg: if(variable-exists(primary), $primary, #4f789e) !default;
+$navbar-fg: theme-contrast($navbar-bg) !default;
+$navbar-hl: if(
+  variable-exists(link-color),
+  color.mix($navbar-bg, $link-color, 80%),
+  $navbar-fg
+) !default;
+@debug $navbar-bg;
+@debug $navbar-fg;
+
+$navbar-dark-color: $navbar-fg !default;
+$navbar-dark-hover-color: rgba($navbar-hl, 0.8) !default;
+$navbar-dark-active-color: $navbar-hl !default;
+$navbar-dark-disabled-color: rgba($navbar-fg, 0.75) !default;
+$navbar-dark-toggler-icon-bg: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><path stroke='#{$navbar-fg}' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg>") !default;
+$navbar-dark-toggler-border-color: rgba($navbar-fg, 0.1) !default;
+
+$navbar-light-color: $navbar-fg !default;
+$navbar-light-hover-color: rgba($navbar-hl, 0.8) !default;
+$navbar-light-active-color: $navbar-hl !default;
+$navbar-light-disabled-color: rgba($navbar-fg, 0.75) !default;
+$navbar-light-toggler-icon-bg: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><path stroke='#{$navbar-fg}' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg>") !default;
+$navbar-light-toggler-border-color: rgba($navbar-fg, 0.1) !default;
+
+$navbar-light-brand-color: $navbar-hl !default;
+$navbar-light-brand-hover-color: $navbar-hl !default;
+$navbar-dark-brand-color: $navbar-hl !default;
+$navbar-dark-brand-hover-color: $navbar-hl !default;
