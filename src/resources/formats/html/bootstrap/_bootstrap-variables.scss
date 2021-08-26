@@ -37,17 +37,12 @@ $code-block-theme-dark-threshhold: 40% !default;
 // The sidebar background color
 // If by default we don't have a body background, then use white
 $body-bg: #fff !default;
-$sidebar-bg: $body-bg !default;
 
 // Adjust the base font size up a little
 $font-size-root: 18px !default;
 
 // Font size for navigational elements
 $toc-font-size: 0.875rem !default;
-$nav-font-size: 0.925rem !default;
-// Used when rendering a responsive navigation (for example for phone size screens)
-$nav-font-size-enlarged: 1rem !default;
-$nav-font-weight: 300 !default;
 
 $enable-smooth-scroll: false !default;
 
@@ -60,6 +55,16 @@ $callout-color-caution: $orange !default;
 $callout-color-warning: $yellow !default;
 $callout-color-important: $red !default;
 */
+
+// Sidebar coloring
+// By default, the sidebar background will match the body color
+// By default, the sidebar foreground color will be a contrast color against the background
+$sidebar-bg: $body-bg !default;
+$sidebar-fg: theme-contrast($sidebar-bg) !default;
+$sidebar-hl: null;
+$sidebar-font-size: 0.875rem !default;
+$sidebar-font-size-section: 1rem !default;
+$sidebar-font-size-collapse: 1rem !default;
 
 $footer-font-size: 0.9em !default;
 $footer-left-font-size: $footer-font-size !default;
