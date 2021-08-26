@@ -322,7 +322,7 @@ function htmlFormatExtras(format: Format): FormatExtras {
         dependency: kQuartoHtmlDependency,
         key: kQuartoHtmlDependency,
         quarto: {
-          use: ["sass:color"],
+          use: ["sass:color", "sass:math"],
           defaults: quartoDefaults(format),
           functions: quartoFunctions(),
           mixins: "",

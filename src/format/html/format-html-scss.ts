@@ -71,7 +71,7 @@ function layerQuartoScss(
     key,
     user: sassLayer,
     quarto: {
-      use: ["sass:color", "sass:map"],
+      use: ["sass:color", "sass:map", "sass:math"],
       defaults: [
         quartoDefaults(format),
         quartoBootstrapDefaults(format.metadata),
