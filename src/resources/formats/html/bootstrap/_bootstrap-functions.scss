@@ -33,12 +33,6 @@
   @while ($contrastRatio < $goalContrastRatio and $percentMix > 0) {
     $contrastColor: mix($color, $mixColor, percentage($percentMix/100));
     $contrastRatio: contrast($color, $contrastColor);
-
-    @debug $percentMix;
-    @debug $contrastColor;
-    @debug $contrastRatio;
-    @debug $goalContrastRatio;
-
     $percentMix: $percentMix - 1;
   }
   @return $contrastColor;
