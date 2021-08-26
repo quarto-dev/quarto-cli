@@ -238,6 +238,13 @@ async function updateBootstrapFromBslib(
       info(`Moving ${from} to ${to}`);
       Deno.renameSync(from, to);
 
+      // Copy utils
+      info("Copying scss files");
+      const utilsFrom = join(repo.dir, "inst", "sass-utils");
+      const utilsTo = join(distDir, "sass-utils");
+      info(`Moving ${utilsFrom} to ${utilsTo}`);
+      Deno.renameSync(utilsFrom, utilsTo);
+
       // Grab the js file that we need
       info("Copying dist files");
       [
