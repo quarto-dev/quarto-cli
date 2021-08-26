@@ -531,7 +531,7 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
   align-items: center;
   text-align: center;
   padding-top: 0.5rem;
-  padding-bottom: 0.25rem;
+  padding-bottom: 0.5rem;
   @if variable-exists(footer-bg) {
     background-color: $footer-bg;
   }
@@ -551,10 +551,8 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
 
 .nav-footer,
 .nav-footer a {
-  @if variable-exists(footer-color) {
-    color: $footer-color;
-  } @else {
-    color: $text-muted;
+  @if variable-exists(footer-fg) {
+    color: $footer-fg;
   }
 }
 
