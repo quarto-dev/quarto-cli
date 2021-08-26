@@ -66,6 +66,12 @@ function layerQuartoScss(
     "bootstrap.scss",
   );
 
+  const sassUtil = (name: string) => {
+    const path = join(bootstrapDistDir, "sass-utils", name);
+    return Deno.readTextFileSync(path);
+  };
+  const sassUtils = [sassUtil("color-contrast.scss")].join("\n");
+
   return {
     dependency,
     key,
@@ -90,7 +96,7 @@ function layerQuartoScss(
           return outputVariable(variable, false);
         },
       ).join("\n"),
-      functions: "",
+      functions: sassUtils,
       mixins: "",
       rules: Deno.readTextFileSync(boostrapRules),
     },
