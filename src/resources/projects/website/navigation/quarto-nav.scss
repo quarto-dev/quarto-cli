@@ -62,7 +62,7 @@ nav .nav-item.compact .nav-link {
 }
 
 .navbar-light .navbar-nav .nav-link.dropdown-toggle::after {
-  color: $text-muted;
+  opacity: 0.75;
   vertical-align: 0.175em;
 }
 
