@@ -66,7 +66,13 @@ export function jupyterNotebookToMarkdown(file: string, includeIds: boolean) {
 
           break;
         case "code":
-          md.push(...mdFromCodeCell(kernelspec.language, cell, includeIds));
+          md.push(
+            ...mdFromCodeCell(
+              kernelspec.language.toLowerCase(),
+              cell,
+              includeIds,
+            ),
+          );
           break;
         default:
           throw new Error("Unexpected cell type " + cell.cell_type);

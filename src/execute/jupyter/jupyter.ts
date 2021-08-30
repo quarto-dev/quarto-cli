@@ -229,7 +229,7 @@ export const jupyterEngine: ExecutionEngine = {
     const result = jupyterToMarkdown(
       nb,
       {
-        language: nb.metadata.kernelspec.language,
+        language: nb.metadata.kernelspec.language.toLowerCase(),
         assets,
         execute: options.format.execute,
         keepHidden: options.format.render[kKeepHidden],
