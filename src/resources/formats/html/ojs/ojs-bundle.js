@@ -28,6 +28,51 @@ import {
 import { parseModule } from "https://cdn.skypack.dev/@observablehq/parser";
 import { button } from "https://cdn.skypack.dev/@observablehq/inputs";
 
+import { PandocCodeDecorator } from "./pandoc-code-decorator.js";
+
+//////////////////////////////////////////////////////////////////////////////
+
+const kQuartoModuleWaitClass = "ojs-in-a-box-waiting-for-module-import";
+
+function calloutBlock(opts)
+{
+  const {
+    type,
+    heading,
+    message
+  } = opts;
+  
+  const outerBlock = document.createElement("div");
+  outerBlock.classList.add(`callout-${type}`, "callout", "callout-style-default", "callout-captioned");
+  const header = document.createElement("div");
+  header.classList.add("callout-header", "d-flex", "align-content-center");
+  const iconContainer = document.createElement("div");
+  iconContainer.classList.add("callout-icon-container");
+  const icon = document.createElement("i");
+  icon.classList.add("callout-icon");
+  iconContainer.appendChild(icon);
+  header.appendChild(iconContainer);
+
+  const headingDiv = document.createElement("div");
+  headingDiv.classList.add("callout-caption-container", "flex-fill");
+  headingDiv.innerText = heading;
+  header.appendChild(headingDiv);
+  outerBlock.appendChild(header);
+
+  const container = document.createElement("div");
+  container.classList.add("callout-body-container", "callout-body");
+  if (typeof message === "string") {
+    const p = document.createElement("p");
+    p.innerText = message;
+    container.appendChild(p);
+  } else {
+    container.append(message);
+  }
+  outerBlock.appendChild(container);
+  
+  return outerBlock;
+}
+
 //////////////////////////////////////////////////////////////////////////////
 
 class EmptyInspector {
@@ -161,18 +206,18 @@ export class OJSConnector {
   clearImportModuleWait() {
     const array = Array.from(
       document.querySelectorAll(
-        ".ojs-in-a-box-waiting-for-module-import",
+        `.${kQuartoModuleWaitClass}`
       ),
     );
     for (const node of array) {
-      node.classList.remove("ojs-in-a-box-waiting-for-module-import");
+      node.classList.remove(kQuartoModuleWaitClass);
     }
   }
 
   finishInterpreting() {
     return Promise.all(this.chunkPromises)
       .then(() => {
-        if (!this.mainModuleHasImports) {
+        if (this.mainModuleHasImports) {
           this.clearImportModuleWait();
         }
       });
@@ -218,8 +263,176 @@ export class OJSConnector {
     return this.interpretWithRunner(src, runCell);
   }
 
+
+  ////////////////////////////////////////////////////////////////////////////
+  // Error tracking/reporting
+  //
+  // FIXME this should all be moved into a class of its own, so OJSConnector
+  // remains agnostic to the presentation layer.
+
+  locatePreDiv(cellDiv, ojsDiv) {
+    // locate the correct pre div with the pandocDecorator
+    // of all potential divs, we need to find the one that most
+    // immediately precedes `ojsDiv` in the DOM.
+    let preDiv;
+    for (const candidate of cellDiv.querySelectorAll("pre.sourceCode")) {
+      if (candidate.compareDocumentPosition(ojsDiv) & ojsDiv.DOCUMENT_POSITION_FOLLOWING) {
+        preDiv = candidate;
+      } else {
+        break;
+      }
+    }
+    return preDiv;
+  };
+
+  findCellOutputDisplay(ojsDiv) {
+    while (ojsDiv && !ojsDiv.classList.contains("cell-output-display")) {
+      ojsDiv = ojsDiv.parentElement;
+    }
+    if (!ojsDiv) {
+      throw new Error("Internal error: couldn't find output display div");
+    }
+    return ojsDiv;
+  }
+
+  setPreDivClasses(preDiv, hasErrors) {
+    if (!hasErrors) {
+      preDiv.classList.remove("numberSource");
+      if (preDiv._hidden === true) {
+        preDiv.parentElement.classList.add("hidden");
+      }
+    } else {
+      preDiv.classList.add("numberSource");
+      if (preDiv.parentElement.classList.contains("hidden")) {
+        preDiv._hidden = true;
+        preDiv.parentElement.classList.remove("hidden");
+      }
+    }
+  }
+  
+  clearErrorPinpoints(cellDiv, ojsDiv) {
+    const preDiv = this.locatePreDiv(cellDiv, ojsDiv);
+    if (preDiv === undefined) {
+      return;
+    }
+    this.setPreDivClasses(preDiv, false);
+    let startingOffset = 0;
+    if (preDiv.parentElement.dataset.sourceOffset) {
+      startingOffset = -Number(preDiv.parentElement.dataset.sourceOffset);
+    }
+    preDiv._decorator.clearSpan(
+      startingOffset, Infinity, ["quarto-ojs-error-pinpoint"]);
+  };
+  
+  decorateOjsDivWithErrorPinpoint(ojsDiv, start, end) {
+    const cellOutputDisplay = this.findCellOutputDisplay(ojsDiv);
+    if (cellOutputDisplay._errorSpans === undefined) {
+      cellOutputDisplay._errorSpans = [];
+    }
+    cellOutputDisplay._errorSpans.push({start, end});
+  }
+
+  decorateSource(cellDiv, ojsDiv) {
+    this.clearErrorPinpoints(cellDiv, ojsDiv);
+    const preDiv = this.locatePreDiv(cellDiv, ojsDiv);
+    // sometimes the source code is not echoed.
+    // FIXME: should ojs source always be "hidden" so we can show it
+    // in case of runtime errors?
+    if (preDiv === undefined) {
+      return;
+    }
+    // now find all ojsDivs that contain errors that need to be decorated
+    // on preDiv
+    let div = preDiv.parentElement.nextElementSibling;
+    let foundErrors = false;
+    while (div !== null && div.classList.contains("cell-output-display")) {
+      for (const errorSpan of (div._errorSpans || [])) {
+        preDiv._decorator.decorateSpan(
+          errorSpan.start, errorSpan.end, ["quarto-ojs-error-pinpoint"]);
+        foundErrors = true;
+      }
+      div = div.nextElementSibling;
+    }
+    this.setPreDivClasses(preDiv, foundErrors);
+  }
+
+  clearError(ojsDiv) {
+    const cellOutputDisplay = this.findCellOutputDisplay(ojsDiv);
+    cellOutputDisplay._errorSpans = [];
+  }
+  
+  signalError(cellDiv, ojsDiv, ojsAst) {
+    const buildCallout = (ojsDiv) => {
+      const inspectChild = ojsDiv.querySelector(".observablehq--inspect");
+      let [heading, message] = inspectChild.textContent.split(": ");
+      if (heading === "RuntimeError") {
+        heading = "OJS Runtime Error";
+        if (message.match(/^(.+) is not defined$/)) {
+          const [varName, ...rest] = message.split(" ");
+          const p = document.createElement("p");
+          const tt = document.createElement("tt");
+          tt.innerText = varName;
+          p.appendChild(tt);
+          p.appendChild(document.createTextNode(" " + rest.join(" ")));
+          message = p;
+          
+          const preDiv = this.locatePreDiv(cellDiv, ojsDiv);
+          // preDiv might not be exist in case source isn't echoed to HTML
+          if (preDiv !== undefined) {
+            // force line numbers to show
+            preDiv.classList.add("numberSource");
+            const missingRef = ojsAst.references.find(n => n.name === varName);
+            // FIXME when missingRef === undefined, it likely means an unresolved
+            // import reference. For now we will leave things as is, but
+            // this needs better handling.
+            if (missingRef !== undefined) {
+              const {line, column} = preDiv._decorator.offsetToLineColumn(missingRef.start);
+              if (line === undefined) {
+                debugger;
+              }
+              heading = `${heading} (line ${line}, column ${column})`;
+              this.decorateOjsDivWithErrorPinpoint(ojsDiv, missingRef.start, missingRef.end);
+              // preDiv._decorator.decorateSpan(
+              //   missingRef.start,
+              //   missingRef.end, ["quarto-ojs-error-pinpoint"]);
+            }
+          }
+        } else if (message.match(/^(.+) could not be resolved$/) ||
+                   message.match(/^(.+) is defined more than once$/)) {
+          const [varName, ...rest] = message.split(" ");
+          const p = document.createElement("p");
+          const tt = document.createElement("tt");
+          tt.innerText = varName;
+          p.appendChild(tt);
+          p.appendChild(document.createTextNode(" " + rest.join(" ")));
+          message = p;
+        } else if (message === "circular definition") {
+          const p = document.createElement("p");
+          p.appendChild(document.createTextNode("circular definition"));
+          message = p;
+        } else {
+          throw new Error(`Internal error, could not parse OJS error message "${message}"`);
+        }
+      } else {
+        heading = "OJS Error";
+        const p = document.createNode("p");
+        p.appendChild(document.createTextNode(inspectChild.textContent));
+        message = p;
+      }
+      const callout = calloutBlock({
+        type: "important",
+        heading,
+        message
+      });
+      ojsDiv.appendChild(callout);
+    };
+
+    buildCallout(ojsDiv);
+  }
+
   interpret(src, elementGetter, elementCreator) {
-    const observer = (targetElement, ojsCell) => {
+    const that = this;
+    const observer = (targetElement, ojsAst) => {
       return (name) => {
         const element = typeof elementCreator === "function"
           ? elementCreator()
@@ -232,7 +445,7 @@ export class OJSConnector {
         // this behavior appears inconsistent with OHQ's interpreter, so we
         // shouldn't be surprised to see this fail in the future.
         if (
-          (ojsCell.id && (ojsCell.id.type === "ViewExpression")) &&
+          (ojsAst.id && (ojsAst.id.type === "ViewExpression")) &&
           !name.startsWith("viewof ")
         ) {
           element.classList.add("quarto-ojs-hide");
@@ -246,16 +459,15 @@ export class OJSConnector {
         
         // collect the cell element as well as the cell output display
         // element
-        
-        let cell = targetElement;
+        let cellDiv = targetElement;
         let cellOutputDisplay;
-        while (cell !== null && !cell.classList.contains("cell")) {
-          cell = cell.parentElement;
-          if (cell && cell.classList.contains("cell-output-display")) {
-            cellOutputDisplay = cell;
+        while (cellDiv !== null && !cellDiv.classList.contains("cell")) {
+          cellDiv = cellDiv.parentElement;
+          if (cellDiv && cellDiv.classList.contains("cell-output-display")) {
+            cellOutputDisplay = cellDiv;
           }
         }
-        
+
         const config = { childList: true };
         const callback = function(mutationsList, observer) {
           // we may fail to find a cell in inline settings; but
@@ -264,32 +476,52 @@ export class OJSConnector {
           for (const mutation of mutationsList) {
             const ojsDiv = mutation.target;
 
-            if (cell && cell.dataset.output !== "all") {
-              // hide the inner inspect outputs that aren't errors or declarations
+            if (cellDiv && cellDiv.dataset.output !== "all") {
+              // hide the inner inspect outputs that aren't errors or
+              // declarations
               Array.from(mutation.target.childNodes)
-                .filter(
-                  n => {
-                    return (n.classList.contains("observablehq--inspect")) &&
-                      !n.parentNode.classList.contains("observablehq--error") &&
-                      (n.parentNode.parentNode.dataset.nodetype !== "expression");
-                  }
-                )
-                .forEach(
-                  n => n.classList.add("quarto-ojs-hide")
-                );
+                .filter(n => {
+                  return (n.classList.contains("observablehq--inspect")) &&
+                    !n.parentNode.classList.contains("observablehq--error") &&
+                    (n.parentNode.parentNode.dataset.nodetype !== "expression");
+                })
+                .forEach(n => n.classList.add("quarto-ojs-hide"));
 
-              // if the ojsDiv shows an error, don't hide it.
-              if (ojsDiv.classList.contains("observablehq--error")) {
-                ojsDiv.classList.remove("quarto-ojs-hide");
-              } else if (
+              // show the inspect outputs that aren't errors and are
+              // expressions (they might have been hidden in the past,
+              // since errors can clear)
+              Array.from(mutation.target.childNodes)
+                .filter(n => {
+                  return (n.classList.contains("observablehq--inspect")) &&
+                    !n.parentNode.classList.contains("observablehq--error") &&
+                    (n.parentNode.parentNode.dataset.nodetype === "expression");
+                })
+                .forEach(n => n.classList.remove("quarto-ojs-hide"));
+            }
+
+            // if the ojsDiv shows an error, display a callout block instead of it.
+            if (ojsDiv.classList.contains("observablehq--error")) {
+              // we don't use quarto-ojs-hide here because that would confuse
+              // the code which depends on that class for its logic.
+              ojsDiv.querySelector(".observablehq--inspect").style.display = "none";
+              
+              if (ojsDiv.querySelectorAll(".callout-important").length === 0) {
+                that.signalError(cellDiv, ojsDiv, ojsAst);
+              }
+            } else {
+              that.clearError(ojsDiv);
+              // if the ojsDiv no longer has errors, then we remove the display="none" style
+              if (
                 (ojsDiv.parentNode.dataset.nodetype !== "expression") &&
                   Array.from(ojsDiv.childNodes).every(
                     n => n.classList.contains("observablehq--inspect"))) {
                 // if every child is an inspect output, hide the ojsDiv
                 ojsDiv.classList.add("quarto-ojs-hide");
-              }
+              } 
             }
 
+            that.decorateSource(cellDiv, ojsDiv);
+            
             // hide import statements even if output === "all"
             for (const added of mutation.addedNodes) {
               // We search here for code.javascript and node span.hljs-... because
@@ -300,7 +532,7 @@ export class OJSConnector {
               if (result.length !== 1) {
                 continue;
               }
-              if (result[0].innerText.trim().startsWith("import")) {
+              if (result[0].textContent.trim().startsWith("import")) {
                 ojsDiv.classList.add("quarto-ojs-hide");
               }
             }
@@ -327,9 +559,9 @@ export class OJSConnector {
         
         observer.observe(element, config);
         
-        element.classList.add("ojs-in-a-box-waiting-for-module-import");
+        element.classList.add(kQuartoModuleWaitClass);
 
-        return new this.inspectorClass(element);
+        return new this.inspectorClass(element, ojsAst);
       };
     };
     const runCell = (cell) => {
@@ -366,7 +598,7 @@ function es6ImportAsObservableModule(m) {
 // this is essentially the import resolution code from observable's
 // runtime. we change it to add a license check for permissive
 // open-source licenses before resolving the import
-function defaultResolveImportPath(path) {
+async function defaultResolveImportPath(path) {
   const extractPath = (path) => {
     let source = path;
     let m;
@@ -395,8 +627,8 @@ function defaultResolveImportPath(path) {
   //   })
   //   .then(m => m.default);
 
-  return import(moduleURL)
-    .then(m => m.default);
+  const m = await import(moduleURL);
+  return m.default;
 
   /*
   const metadata = await fetch(metadataURL, { mode: 'no-cors' });
@@ -522,7 +754,7 @@ function importPathResolver(paths, localResolverMap) {
     return path;
   }
 
-  return (path) => {
+  return async (path) => {
     const isLocalModule = path.startsWith("/") || path.startsWith(".");
     const isImportFromObservableWebsite = path.match(
       /^https:\/\/(api\.|beta\.|)observablehq\.com\//i,
@@ -571,14 +803,15 @@ function importPathResolver(paths, localResolverMap) {
     }
 
     if (moduleType === "js") {
-      return import(importPath).then((m) => es6ImportAsObservableModule(m));
+      const m = await import(importPath);
+      return es6ImportAsObservableModule(m);
     } else if (moduleType === "ojs") {
       return importOjsFromURL(fetchPath);
     } else if (moduleType === "qmd") {
       const htmlPath = `${fetchPath.slice(0, -4)}.html`;
-      return fetch(htmlPath)
-        .then((response) => response.text())
-        .then(createOjsModuleFromHTMLSrc);
+      const response = await fetch(htmlPath);
+      const text = await response.text();
+      return createOjsModuleFromHTMLSrc(text);
     } else {
       throw new Error(`internal error, unrecognized module type ${moduleType}`);
     }
@@ -698,7 +931,17 @@ export function extendObservableStdlib(lib) {
   };
 }
 
-export class ShinyInspector extends Inspector {
+export class QuartoInspector extends Inspector {
+  constructor(node, cellAst) {
+    super(node);
+    this._cellAst = cellAst;
+  }
+  rejected(error) {
+    return super.rejected(error);
+  }
+}
+
+export class ShinyInspector extends QuartoInspector {
   constructor(node) {
     super(node);
   }
@@ -930,7 +1173,7 @@ export function createRuntime() {
 
   const ojsConnector = new OJSConnector({
     paths: quartoOjsGlobal.paths,
-    inspectorClass: isShiny ? ShinyInspector : undefined,
+    inspectorClass: isShiny ? ShinyInspector : QuartoInspector,
     library: lib,
     allowPendingGlobals: isShiny,
   });
@@ -966,6 +1209,23 @@ export function createRuntime() {
     return `${elementId}-${nextIx}`;
   }
 
+  const sourceNodes = document.querySelectorAll("pre.sourceCode code.sourceCode");
+  const decorators = Array.from(sourceNodes)
+        .map(n => {
+          n = n.parentElement;
+          const decorator = new PandocCodeDecorator(n);
+          n._decorator = decorator;
+          return decorator;
+        });
+  // handle build-time syntax error
+  decorators.forEach(n => {
+    if (n._node.parentElement.dataset.syntaxErrorPosition === undefined) {
+      return;
+    }
+    const offset = Number(n._node.parentElement.dataset.syntaxErrorPosition);
+    n.decorateSpan(offset, offset+1, ["quarto-ojs-error-pinpoint"]);
+  });
+  
   const result = {
     setLocalResolver(obj) {
       localResolver = obj;
@@ -980,10 +1240,6 @@ export function createRuntime() {
       await this.finishInterpreting();
       const result = await ojsConnector.value(name);
       return result;
-      // return this.finishInterpreting()
-      //   .then(() => {
-      //     return ojsConnector.value(name);
-      //   });
     },
 
     // fixme clarify what's the expected behavior of the 'error' option
