@@ -113,9 +113,7 @@ input[type="checkbox"] {
 }
 
 .quarto-ojs-error-pinpoint {
-  text-decoration-thickness: 3px;
-  text-decoration-color: red;
-  text-decoration-line: underline;
+  border-bottom: 2px dotted #e51400;
   font-weight: 700;
 }
 
