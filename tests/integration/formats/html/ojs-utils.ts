@@ -28,6 +28,9 @@ export function verifyDomTextValue(
     verify: async (_output: ExecuteOutput[]) => {
       const textVal = await inPuppeteer(url, async (name: any) => {
         await window._ojs.runtime.finishInterpreting();
+        // ojs hasn't updated the inspector yet.
+        // FIXME this doesn't seem robust in the long run
+        await new Promise(resolve => setTimeout(resolve, 1000)); 
         return document.getElementById(name).innerText;
       })(elementName);
       assert(
@@ -49,6 +52,7 @@ export function verifyOjsValue(
     verify: async (_output: ExecuteOutput[]) => {
       // deno-lint-ignore no-explicit-any
       const ojsVal = await inPuppeteer(url, async (name: any) => {
+        await window._ojs.runtime.finishInterpreting();
         const val = await window._ojs.runtime.value(name);
         return val;
       })(valName);

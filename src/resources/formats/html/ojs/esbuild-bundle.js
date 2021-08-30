@@ -616,6 +616,174 @@ function he([e2, t2]) {
 // ojs-bundle.js
 import { parseModule } from "https://cdn.skypack.dev/@observablehq/parser";
 import { button } from "https://cdn.skypack.dev/@observablehq/inputs";
+
+// pandoc-code-decorator.js
+var PandocCodeDecorator = class {
+  constructor(node) {
+    this._node = node;
+    this._spans = [];
+    this.normalizeCodeRange();
+    this.initializeEntryPoints();
+  }
+  normalizeCodeRange() {
+    const n2 = this._node;
+    const lines = n2.querySelectorAll("code > span");
+    for (const line of lines) {
+      Array.from(line.childNodes).filter((n22) => n22.nodeType === n22.TEXT_NODE).forEach((n22) => {
+        const newSpan = document.createElement("span");
+        newSpan.textContent = n22.wholeText;
+        n22.replaceWith(newSpan);
+      });
+    }
+  }
+  initializeEntryPoints() {
+    const lines = this._node.querySelectorAll("code > span");
+    let result = [];
+    let offset = this._node.parentElement.dataset.sourceOffset && -Number(this._node.parentElement.dataset.sourceOffset) || 0;
+    for (const line of lines) {
+      let lineNumber = Number(line.id.split("-").pop());
+      let column = 1;
+      Array.from(line.childNodes).filter((n2) => n2.nodeType === n2.ELEMENT_NODE && n2.nodeName === "SPAN").forEach((n2) => {
+        result.push({
+          offset,
+          line: lineNumber,
+          column,
+          node: n2
+        });
+        offset += n2.textContent.length;
+        column += n2.textContent.length;
+      });
+      offset += 1;
+    }
+    this._elementEntryPoints = result;
+  }
+  locateEntry(offset) {
+    let candidate;
+    if (offset === Infinity)
+      return void 0;
+    for (let i2 = 0; i2 < this._elementEntryPoints.length; ++i2) {
+      const entry = this._elementEntryPoints[i2];
+      if (entry.offset > offset) {
+        return { entry: candidate, index: i2 - 1 };
+      }
+      candidate = entry;
+    }
+    if (offset < candidate.offset + candidate.node.textContent.length) {
+      return { entry: candidate, index: this._elementEntryPoints.length - 1 };
+    } else {
+      return void 0;
+    }
+  }
+  offsetToLineColumn(offset) {
+    let entry = this.locateEntry(offset);
+    if (entry === void 0) {
+      const entries = this._elementEntryPoints;
+      const last = entries[entries.length - 1];
+      return {
+        line: last.line,
+        column: last.column + Math.min(last.node.textContent.length, offset - last.offset)
+      };
+    }
+    return {
+      line: entry.entry.line,
+      column: entry.entry.column + offset - entry.entry.offset
+    };
+  }
+  ensureExactSpan(start, end) {
+    const splitEntry = (entry, offset) => {
+      const newSpan = document.createElement("span");
+      for (const cssClass of entry.node.classList) {
+        newSpan.classList.add(cssClass);
+      }
+      const beforeText = entry.node.textContent.slice(0, offset - entry.offset);
+      const afterText = entry.node.textContent.slice(offset - entry.offset);
+      entry.node.textContent = beforeText;
+      newSpan.textContent = afterText;
+      entry.node.after(newSpan);
+      this._elementEntryPoints.push({
+        column: entry.column + offset - entry.offset,
+        line: entry.line,
+        node: newSpan,
+        offset
+      });
+      this._elementEntryPoints.sort((a2, b2) => a2.offset - b2.offset);
+    };
+    const startEntry = this.locateEntry(start);
+    if (startEntry !== void 0 && startEntry.entry.offset != start) {
+      splitEntry(startEntry.entry, start);
+    }
+    const endEntry = this.locateEntry(end);
+    if (endEntry !== void 0 && endEntry.entry.offset !== end) {
+      splitEntry(endEntry.entry, end);
+    }
+  }
+  decorateSpan(start, end, classes) {
+    this.ensureExactSpan(start, end);
+    const startEntry = this.locateEntry(start);
+    const endEntry = this.locateEntry(end);
+    if (startEntry === void 0) {
+      return;
+    }
+    const startIndex = startEntry.index;
+    const endIndex = endEntry && endEntry.index || this._elementEntryPoints.length;
+    for (let i2 = startIndex; i2 < endIndex; ++i2) {
+      for (const cssClass of classes) {
+        this._elementEntryPoints[i2].node.classList.add(cssClass);
+      }
+    }
+  }
+  clearSpan(start, end, classes) {
+    this.ensureExactSpan(start, end);
+    const startEntry = this.locateEntry(start);
+    const endEntry = this.locateEntry(end);
+    if (startEntry === void 0) {
+      return;
+    }
+    const startIndex = startEntry.index;
+    const endIndex = endEntry && endEntry.index || this._elementEntryPoints.length;
+    for (let i2 = startIndex; i2 < endIndex; ++i2) {
+      for (const cssClass of classes) {
+        this._elementEntryPoints[i2].node.classList.remove(cssClass);
+      }
+    }
+  }
+};
+
+// ojs-bundle.js
+var kQuartoModuleWaitClass = "ojs-in-a-box-waiting-for-module-import";
+function calloutBlock(opts) {
+  const {
+    type,
+    heading,
+    message
+  } = opts;
+  const outerBlock = document.createElement("div");
+  outerBlock.classList.add(`callout-${type}`, "callout", "callout-style-default", "callout-captioned");
+  const header = document.createElement("div");
+  header.classList.add("callout-header", "d-flex", "align-content-center");
+  const iconContainer = document.createElement("div");
+  iconContainer.classList.add("callout-icon-container");
+  const icon = document.createElement("i");
+  icon.classList.add("callout-icon");
+  iconContainer.appendChild(icon);
+  header.appendChild(iconContainer);
+  const headingDiv = document.createElement("div");
+  headingDiv.classList.add("callout-caption-container", "flex-fill");
+  headingDiv.innerText = heading;
+  header.appendChild(headingDiv);
+  outerBlock.appendChild(header);
+  const container = document.createElement("div");
+  container.classList.add("callout-body-container", "callout-body");
+  if (typeof message === "string") {
+    const p2 = document.createElement("p");
+    p2.innerText = message;
+    container.appendChild(p2);
+  } else {
+    container.append(message);
+  }
+  outerBlock.appendChild(container);
+  return outerBlock;
+}
 var EmptyInspector = class {
   pending() {
   }
@@ -696,14 +864,14 @@ var OJSConnector = class {
     return result;
   }
   clearImportModuleWait() {
-    const array = Array.from(document.querySelectorAll(".ojs-in-a-box-waiting-for-module-import"));
+    const array = Array.from(document.querySelectorAll(`.${kQuartoModuleWaitClass}`));
     for (const node of array) {
-      node.classList.remove("ojs-in-a-box-waiting-for-module-import");
+      node.classList.remove(kQuartoModuleWaitClass);
     }
   }
   finishInterpreting() {
     return Promise.all(this.chunkPromises).then(() => {
-      if (!this.mainModuleHasImports) {
+      if (this.mainModuleHasImports) {
         this.clearImportModuleWait();
       }
     });
@@ -741,59 +909,203 @@ var OJSConnector = class {
     };
     return this.interpretWithRunner(src, runCell);
   }
+  locatePreDiv(cellDiv, ojsDiv) {
+    let preDiv;
+    for (const candidate of cellDiv.querySelectorAll("pre.sourceCode")) {
+      if (candidate.compareDocumentPosition(ojsDiv) & ojsDiv.DOCUMENT_POSITION_FOLLOWING) {
+        preDiv = candidate;
+      } else {
+        break;
+      }
+    }
+    return preDiv;
+  }
+  findCellOutputDisplay(ojsDiv) {
+    while (ojsDiv && !ojsDiv.classList.contains("cell-output-display")) {
+      ojsDiv = ojsDiv.parentElement;
+    }
+    if (!ojsDiv) {
+      throw new Error("Internal error: couldn't find output display div");
+    }
+    return ojsDiv;
+  }
+  setPreDivClasses(preDiv, hasErrors) {
+    if (!hasErrors) {
+      preDiv.classList.remove("numberSource");
+      if (preDiv._hidden === true) {
+        preDiv.parentElement.classList.add("hidden");
+      }
+    } else {
+      preDiv.classList.add("numberSource");
+      if (preDiv.parentElement.classList.contains("hidden")) {
+        preDiv._hidden = true;
+        preDiv.parentElement.classList.remove("hidden");
+      }
+    }
+  }
+  clearErrorPinpoints(cellDiv, ojsDiv) {
+    const preDiv = this.locatePreDiv(cellDiv, ojsDiv);
+    if (preDiv === void 0) {
+      return;
+    }
+    this.setPreDivClasses(preDiv, false);
+    let startingOffset = 0;
+    if (preDiv.parentElement.dataset.sourceOffset) {
+      startingOffset = -Number(preDiv.parentElement.dataset.sourceOffset);
+    }
+    preDiv._decorator.clearSpan(startingOffset, Infinity, ["quarto-ojs-error-pinpoint"]);
+  }
+  decorateOjsDivWithErrorPinpoint(ojsDiv, start, end) {
+    const cellOutputDisplay = this.findCellOutputDisplay(ojsDiv);
+    if (cellOutputDisplay._errorSpans === void 0) {
+      cellOutputDisplay._errorSpans = [];
+    }
+    cellOutputDisplay._errorSpans.push({ start, end });
+  }
+  decorateSource(cellDiv, ojsDiv) {
+    this.clearErrorPinpoints(cellDiv, ojsDiv);
+    const preDiv = this.locatePreDiv(cellDiv, ojsDiv);
+    if (preDiv === void 0) {
+      return;
+    }
+    let div = preDiv.parentElement.nextElementSibling;
+    let foundErrors = false;
+    while (div !== null && div.classList.contains("cell-output-display")) {
+      for (const errorSpan of div._errorSpans || []) {
+        preDiv._decorator.decorateSpan(errorSpan.start, errorSpan.end, ["quarto-ojs-error-pinpoint"]);
+        foundErrors = true;
+      }
+      div = div.nextElementSibling;
+    }
+    this.setPreDivClasses(preDiv, foundErrors);
+  }
+  clearError(ojsDiv) {
+    const cellOutputDisplay = this.findCellOutputDisplay(ojsDiv);
+    cellOutputDisplay._errorSpans = [];
+  }
+  signalError(cellDiv, ojsDiv, ojsAst) {
+    const buildCallout = (ojsDiv2) => {
+      const inspectChild = ojsDiv2.querySelector(".observablehq--inspect");
+      let [heading, message] = inspectChild.textContent.split(": ");
+      if (heading === "RuntimeError") {
+        heading = "OJS Runtime Error";
+        if (message.match(/^(.+) is not defined$/)) {
+          const [varName, ...rest] = message.split(" ");
+          const p2 = document.createElement("p");
+          const tt = document.createElement("tt");
+          tt.innerText = varName;
+          p2.appendChild(tt);
+          p2.appendChild(document.createTextNode(" " + rest.join(" ")));
+          message = p2;
+          const preDiv = this.locatePreDiv(cellDiv, ojsDiv2);
+          if (preDiv !== void 0) {
+            preDiv.classList.add("numberSource");
+            const missingRef = ojsAst.references.find((n2) => n2.name === varName);
+            if (missingRef !== void 0) {
+              const { line, column } = preDiv._decorator.offsetToLineColumn(missingRef.start);
+              if (line === void 0) {
+                debugger;
+              }
+              heading = `${heading} (line ${line}, column ${column})`;
+              this.decorateOjsDivWithErrorPinpoint(ojsDiv2, missingRef.start, missingRef.end);
+            }
+          }
+        } else if (message.match(/^(.+) could not be resolved$/) || message.match(/^(.+) is defined more than once$/)) {
+          const [varName, ...rest] = message.split(" ");
+          const p2 = document.createElement("p");
+          const tt = document.createElement("tt");
+          tt.innerText = varName;
+          p2.appendChild(tt);
+          p2.appendChild(document.createTextNode(" " + rest.join(" ")));
+          message = p2;
+        } else if (message === "circular definition") {
+          const p2 = document.createElement("p");
+          p2.appendChild(document.createTextNode("circular definition"));
+          message = p2;
+        } else {
+          throw new Error(`Internal error, could not parse OJS error message "${message}"`);
+        }
+      } else {
+        heading = "OJS Error";
+        const p2 = document.createNode("p");
+        p2.appendChild(document.createTextNode(inspectChild.textContent));
+        message = p2;
+      }
+      const callout = calloutBlock({
+        type: "important",
+        heading,
+        message
+      });
+      ojsDiv2.appendChild(callout);
+    };
+    buildCallout(ojsDiv);
+  }
   interpret(src, elementGetter, elementCreator) {
-    const observer = (targetElement, ojsCell) => {
+    const that = this;
+    const observer = (targetElement, ojsAst) => {
       return (name) => {
         const element = typeof elementCreator === "function" ? elementCreator() : elementCreator;
         targetElement.appendChild(element);
-        if (ojsCell.id && ojsCell.id.type === "ViewExpression" && !name.startsWith("viewof ")) {
+        if (ojsAst.id && ojsAst.id.type === "ViewExpression" && !name.startsWith("viewof ")) {
           element.classList.add("quarto-ojs-hide");
         }
-        let cell = targetElement;
+        let cellDiv = targetElement;
         let cellOutputDisplay;
-        while (cell !== null && !cell.classList.contains("cell")) {
-          cell = cell.parentElement;
-          if (cell && cell.classList.contains("cell-output-display")) {
-            cellOutputDisplay = cell;
+        while (cellDiv !== null && !cellDiv.classList.contains("cell")) {
+          cellDiv = cellDiv.parentElement;
+          if (cellDiv && cellDiv.classList.contains("cell-output-display")) {
+            cellOutputDisplay = cellDiv;
           }
         }
         const config = { childList: true };
         const callback = function(mutationsList, observer3) {
           for (const mutation of mutationsList) {
             const ojsDiv = mutation.target;
-            if (cell && cell.dataset.output !== "all") {
+            if (cellDiv && cellDiv.dataset.output !== "all") {
               Array.from(mutation.target.childNodes).filter((n2) => {
                 return n2.classList.contains("observablehq--inspect") && !n2.parentNode.classList.contains("observablehq--error") && n2.parentNode.parentNode.dataset.nodetype !== "expression";
               }).forEach((n2) => n2.classList.add("quarto-ojs-hide"));
-              if (ojsDiv.classList.contains("observablehq--error")) {
-                ojsDiv.classList.remove("quarto-ojs-hide");
-              } else if (ojsDiv.parentNode.dataset.nodetype !== "expression" && Array.from(ojsDiv.childNodes).every((n2) => n2.classList.contains("observablehq--inspect"))) {
+              Array.from(mutation.target.childNodes).filter((n2) => {
+                return n2.classList.contains("observablehq--inspect") && !n2.parentNode.classList.contains("observablehq--error") && n2.parentNode.parentNode.dataset.nodetype === "expression";
+              }).forEach((n2) => n2.classList.remove("quarto-ojs-hide"));
+            }
+            if (ojsDiv.classList.contains("observablehq--error")) {
+              ojsDiv.querySelector(".observablehq--inspect").style.display = "none";
+              if (ojsDiv.querySelectorAll(".callout-important").length === 0) {
+                that.signalError(cellDiv, ojsDiv, ojsAst);
+              }
+            } else {
+              that.clearError(ojsDiv);
+              if (ojsDiv.parentNode.dataset.nodetype !== "expression" && Array.from(ojsDiv.childNodes).every((n2) => n2.classList.contains("observablehq--inspect"))) {
                 ojsDiv.classList.add("quarto-ojs-hide");
               }
             }
+            that.decorateSource(cellDiv, ojsDiv);
             for (const added of mutation.addedNodes) {
               const result = added.querySelectorAll("code.javascript");
               if (result.length !== 1) {
                 continue;
               }
-              if (result[0].innerText.trim().startsWith("import")) {
+              if (result[0].textContent.trim().startsWith("import")) {
                 ojsDiv.classList.add("quarto-ojs-hide");
               }
             }
           }
-          const children = Array.from(cellOutputDisplay.querySelectorAll("div.observablehq"));
-          if (children.every((n2) => {
-            return n2.classList.contains("quarto-ojs-hide");
-          })) {
-            cellOutputDisplay.classList.add("quarto-ojs-hide");
-          } else {
-            cellOutputDisplay.classList.remove("quarto-ojs-hide");
+          if (cellOutputDisplay) {
+            const children = Array.from(cellOutputDisplay.querySelectorAll("div.observablehq"));
+            if (children.every((n2) => {
+              return n2.classList.contains("quarto-ojs-hide");
+            })) {
+              cellOutputDisplay.classList.add("quarto-ojs-hide");
+            } else {
+              cellOutputDisplay.classList.remove("quarto-ojs-hide");
+            }
           }
         };
         const observer2 = new MutationObserver(callback);
         observer2.observe(element, config);
-        element.classList.add("ojs-in-a-box-waiting-for-module-import");
-        return new this.inspectorClass(element);
+        element.classList.add(kQuartoModuleWaitClass);
+        return new this.inspectorClass(element, ojsAst);
       };
     };
     const runCell = (cell) => {
@@ -815,25 +1127,26 @@ function es6ImportAsObservableModule(m2) {
     return main;
   };
 }
-function defaultResolveImportPath(path) {
+async function defaultResolveImportPath(path) {
   const extractPath = (path2) => {
     let source2 = path2;
-    let m2;
-    if (m2 = /\.js(\?|$)/i.exec(source2)) {
-      source2 = source2.slice(0, m2.index);
+    let m3;
+    if (m3 = /\.js(\?|$)/i.exec(source2)) {
+      source2 = source2.slice(0, m3.index);
     }
-    if (m2 = /^[0-9a-f]{16}$/i.test(source2)) {
+    if (m3 = /^[0-9a-f]{16}$/i.test(source2)) {
       source2 = `d/${source2}`;
     }
-    if (m2 = /^https:\/\/(api\.|beta\.|)observablehq\.com\//i.exec(source2)) {
-      source2 = source2.slice(m2[0].length);
+    if (m3 = /^https:\/\/(api\.|beta\.|)observablehq\.com\//i.exec(source2)) {
+      source2 = source2.slice(m3[0].length);
     }
     return source2;
   };
   const source = extractPath(path);
   const metadataURL = `https://api.observablehq.com/document/${source}`;
   const moduleURL = `https://api.observablehq.com/${source}.js?v=3`;
-  return import(moduleURL).then((m2) => m2.default);
+  const m2 = await import(moduleURL);
+  return m2.default;
 }
 function importPathResolver(paths, localResolverMap) {
   function importRootPath(path) {
@@ -863,7 +1176,7 @@ function importPathResolver(paths, localResolverMap) {
   function fetchRelativePath(path) {
     return path;
   }
-  return (path) => {
+  return async (path) => {
     const isLocalModule = path.startsWith("/") || path.startsWith(".");
     const isImportFromObservableWebsite = path.match(/^https:\/\/(api\.|beta\.|)observablehq\.com\//i);
     if (!isLocalModule || isImportFromObservableWebsite) {
@@ -901,12 +1214,15 @@ function importPathResolver(paths, localResolverMap) {
       }
     }
     if (moduleType === "js") {
-      return import(importPath).then((m2) => es6ImportAsObservableModule(m2));
+      const m2 = await import(importPath);
+      return es6ImportAsObservableModule(m2);
     } else if (moduleType === "ojs") {
       return importOjsFromURL(fetchPath);
     } else if (moduleType === "qmd") {
       const htmlPath = `${fetchPath.slice(0, -4)}.html`;
-      return fetch(htmlPath).then((response) => response.text()).then(createOjsModuleFromHTMLSrc);
+      const response = await fetch(htmlPath);
+      const text = await response.text();
+      return createOjsModuleFromHTMLSrc(text);
     } else {
       throw new Error(`internal error, unrecognized module type ${moduleType}`);
     }
@@ -1001,7 +1317,16 @@ function extendObservableStdlib(lib) {
     };
   };
 }
-var ShinyInspector = class extends Inspector {
+var QuartoInspector = class extends Inspector {
+  constructor(node, cellAst) {
+    super(node);
+    this._cellAst = cellAst;
+  }
+  rejected(error) {
+    return super.rejected(error);
+  }
+};
+var ShinyInspector = class extends QuartoInspector {
   constructor(node) {
     super(node);
   }
@@ -1184,7 +1509,7 @@ function createRuntime() {
   lib.FileAttachment = () => W(fileAttachmentPathResolver);
   const ojsConnector = new OJSConnector({
     paths: quartoOjsGlobal.paths,
-    inspectorClass: isShiny ? ShinyInspector : void 0,
+    inspectorClass: isShiny ? ShinyInspector : QuartoInspector,
     library: lib,
     allowPendingGlobals: isShiny
   });
@@ -1208,6 +1533,20 @@ function createRuntime() {
     subfigIdMap.set(elementId, nextIx);
     return `${elementId}-${nextIx}`;
   }
+  const sourceNodes = document.querySelectorAll("pre.sourceCode code.sourceCode");
+  const decorators = Array.from(sourceNodes).map((n2) => {
+    n2 = n2.parentElement;
+    const decorator = new PandocCodeDecorator(n2);
+    n2._decorator = decorator;
+    return decorator;
+  });
+  decorators.forEach((n2) => {
+    if (n2._node.parentElement.dataset.syntaxErrorPosition === void 0) {
+      return;
+    }
+    const offset = Number(n2._node.parentElement.dataset.syntaxErrorPosition);
+    n2.decorateSpan(offset, offset + 1, ["quarto-ojs-error-pinpoint"]);
+  });
   const result = {
     setLocalResolver(obj) {
       localResolver = obj;
@@ -1287,6 +1626,7 @@ window._ojs = {
 window._ojs.runtime = createRuntime();
 export {
   OJSConnector,
+  QuartoInspector,
   ShinyInspector,
   createRuntime,
   extendObservableStdlib,

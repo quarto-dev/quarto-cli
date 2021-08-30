@@ -111,3 +111,21 @@ input[type="checkbox"] {
 .quarto-ojs-hide {
   display: none;
 }
+
+.quarto-ojs-error-pinpoint {
+  border-bottom: 2px dotted #e51400;
+  font-weight: 700;
+}
+
+code span.quarto-ojs-error-pinpoint {
+  color: inherit;
+}
+
+.observablehq--error .observablehq--inspect {
+  font-size: 0.875em !important;
+}
+
+.observablehq--error .callout {
+  margin-bottom: 0;
+  margin-top: 0;
+}
