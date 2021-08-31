@@ -6,21 +6,18 @@ Quarto is an open-source scientific and technical publishing system built on [Pa
 
 In addition to the core capabilities of Pandoc, Quarto includes:
 
-1.  Support for embedding output from Python, R, and Julia via integration with [Jupyter](https://jupyter.org/) and [Knitr](https://yihui.org/knitr/) .
+1.  Embedding code and output from Python, R, and JavaScript via integration with [Jupyter](https://jupyter.org/), [Knitr](https://yihui.org/knitr/), and [Observable](https://github.com/observablehq/).
 
-2.  A variety of extensions to Pandoc markdown useful for technical writing including callouts (admonitions), cross-references, sub-figures, layout panels, hover-able citations and footnotes, and more.
+2.  A variety of extensions to Pandoc markdown useful for technical writing including cross-references, sub-figures, layout panels, hoverable citations and footnotes, callouts, and more.
 
-3.  A project system for rendering groups of documents at once, sharing options across documents, and producing aggregate output like books and websites.
+3.  A project system for rendering groups of documents at once, sharing options across documents, and producing aggregate output like [websites](https://quarto.org/docs/websites/website-basics.qmd) and [books](docs/books/book-basics.qmd).
 
-4.  HTML output based on [Bootstrap](https://getbootstrap.com/) (including support for [Bootswatch](https://bootswatch.com/) themes).
+4.  Authoring using a wide variety of editors and notebooks including [JupyterLab](https://quarto.org/docs/tools/jupyter-lab.qmd), [RStudio](https://quarto.org/docs/tools/rstudio.qmd), and [VS Code](https://quarto.org/docs/tools/vscode.qmd).
 
-5.  Automatic installation of required LaTeX packages when rendering PDF output.
+5.  A [visual markdown editor](https://quarto.org/docs/visual-editor/) that provides a productive writing interface for composing long-form documents.
 
 Learn more about Quarto at <https://quarto.org>.
 
 The overall design of Quarto is influenced heavily by [R Markdown](https://rmarkdown.rstudio.com/), however unlike R Markdown the architecture is language agnostic. In it's current iteration, Quarto can render plain markdown, Jupyter Notebooks, and Knitr (Rmd) documents.
 
-Quarto is open source software licensed under v2 of the GNU GPL (https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html).
-
-
-
+Quarto is open source software licensed under v2 of the GNU GPL (<https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html>).

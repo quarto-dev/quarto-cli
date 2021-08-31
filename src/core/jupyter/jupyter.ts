@@ -302,7 +302,8 @@ export async function quartoMdToJupyter(
   const yamlRegEx = /^---\s*$/;
   /^\s*```+\s*\{([a-zA-Z0-9_]+)( *[ ,].*)?\}\s*$/;
   const startCodeCellRegEx = new RegExp(
-    "^(\\s*)```+\\s*\\{" + kernelspec.language + "( *[ ,].*)?\\}\\s*$",
+    "^(\\s*)```+\\s*\\{" + kernelspec.language.toLowerCase() +
+      "( *[ ,].*)?\\}\\s*$",
   );
   const startCodeRegEx = /^(\s*)```/;
   const endCodeRegEx = (indent = "") => {
@@ -358,7 +359,7 @@ export async function quartoMdToJupyter(
       } else if (cell_type === "code") {
         // see if there is embedded metadata we should forward into the cell metadata
         const { yaml, source } = partitionCellOptions(
-          kernelspec.language,
+          kernelspec.language.toLowerCase(),
           cell.source,
         );
         if (yaml) {
@@ -385,7 +386,7 @@ export async function quartoMdToJupyter(
           // if we hit at least one we need to re-write the source
           if (Object.keys(yaml).length < yamlKeys.length) {
             const yamlOutput = jupyterCellOptionsAsComment(
-              kernelspec.language,
+              kernelspec.language.toLowerCase(),
               yaml,
             );
             cell.source = yamlOutput.concat(source);
@@ -475,7 +476,7 @@ export async function jupyterKernelspecFromFile(
     const kernelspecs = await jupyterKernelspecs();
     for (const language of languages) {
       for (const kernelspec of kernelspecs.values()) {
-        if (kernelspec.language === language) {
+        if (kernelspec.language.toLowerCase() === language) {
           return [kernelspec, {}];
         }
       }
@@ -559,7 +560,7 @@ export function languagesInMarkdown(markdown: string) {
   kChunkRegex.lastIndex = 0;
   let match = kChunkRegex.exec(markdown);
   while (match) {
-    const language = match[1];
+    const language = match[1].toLowerCase();
     if (!languages.has(language)) {
       languages.add(language);
     }
@@ -665,7 +666,7 @@ export function jupyterToMarkdown(
   for (let i = 0; i < nb.cells.length; i++) {
     // convert cell yaml to cell metadata
     const cell = jupyterCellWithOptions(
-      nb.metadata.kernelspec.language,
+      nb.metadata.kernelspec.language.toLowerCase(),
       nb.cells[i],
     );
 
