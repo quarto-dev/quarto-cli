@@ -679,7 +679,7 @@ export async function ojsCompile(
   }
   if (serverMetadata?.["ojs-imports"]) {
     throw new Error(
-      "Document metadata contains server.ojs-exports; did you mean 'ojs-export' instead?",
+      "Document metadata contains server.ojs-imports; did you mean 'ojs-import' instead?",
     );
   }
 
