@@ -88,19 +88,29 @@ export function jupyterNotebookToMarkdown(file: string, includeIds: boolean) {
   // join into source
   const mdSource = md.join("");
 
-  // add jupyter kernelspec to front-matter
-  if (frontMatter) {
-    const yaml = readYamlFromMarkdown(frontMatter);
-    yaml.jupyter = notebook.metadata;
-    const yamlText = stringify(yaml, {
-      indent: 2,
-      sortKeys: false,
-      skipInvalid: true,
-    });
-    return `---\n${yamlText}---\n\n${mdSource}`;
-  } else {
-    return mdSource;
-  }
+  // read any yaml front matter defined in a 'raw' cell
+  const yaml: Metadata = frontMatter ? readYamlFromMarkdown(frontMatter) : {};
+
+  // forward qmd-relevant notebook metadata. known metadata we exclude:
+  //   - toc: Jupyter UI specific metadata
+  //   - language_info: Jupyter UI specific metadata
+  //   - widgets: Output artifacts that don't belong in qmd source
+  // for jupytext we provide a full kernelspec + jupytext metadata,
+  // otherwise we provide an abbreviated spec w/ just the kernel name
+  yaml.jupyter = notebook.metadata.jupytext
+    ? {
+      jupytext: notebook.metadata.jupytext,
+      kernelspec: notebook.metadata.kernelspec,
+    }
+    : notebook.metadata.kernelspec.name;
+
+  // return yaml + markdown
+  const yamlText = stringify(yaml, {
+    indent: 2,
+    sortKeys: false,
+    skipInvalid: true,
+  });
+  return `---\n${yamlText}---\n\n${mdSource}`;
 }
 
 function mdFromCodeCell(
