@@ -93,11 +93,11 @@ targetDiv = !nav.sidebar || nav.sidebar.style === "floating"
 <div class="row flex-fill" <%= !targetDiv ? 'id="quarto-content"' : "" %>>
 
 <% marginCss = "mx-auto" %>
+<% bodyXxlPadding = (nav.sidebar && nav.sidebar.style === "floating") ? " ps-xxl-3" : " ps-xxl-0" %>
 <% if (nav.sidebar) { %>
   <% borderColor = nav.sidebar['border-color'] ? "border-" + nav.sidebar['border-color'] : "" %>
   <% marginCss = nav.sidebar.style === "floating" ? "mx-auto" : "me-auto" %>
-  <% bodyXxlPadding = nav.sidebar.style === "floating" ? " ps-xxl-3" : " ps-xxl-0" %>
-
+  
   <div id="quarto-sidebar" class="col col-12 col-lg-3 d-lg-flex px-0 pt-0 sidebar collapse sidebar-navigation">
     <% partial('sidebar.ejs', { sidebar: nav.sidebar, navbar: !!nav.navbar }) %>
   </div>
