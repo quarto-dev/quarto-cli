@@ -17,26 +17,29 @@ import {
   lines
 } from "../../core/text.ts";
 
+import {
+  isJupyterNotebook
+} from "../../core/jupyter/jupyter.ts";
+
 interface OJSLineNumbersAnnotation {
   patchedSource?: string
 };
 
-import { dirname } from "path/mod.ts";
+import { dirname, extname } from "path/mod.ts";
 
 export function annotateOjsLineNumbers(
   context: RenderContext
 ): OJSLineNumbersAnnotation
 {
-  // FIXME Check for ipynb later
-  const canPatch = true;
+  const ext = extname(context.target.source);
+  const canPatch = !isJupyterNotebook(context.target.source);
 
   if (canPatch) {
     const dir = dirname(context.target.source);
     
-    // FIXME use correct extension, we might be ".rmd" or ".md"
     const patchedFileName = Deno.makeTempFileSync({
       dir,
-      suffix: ".qmd"
+      suffix: ext
     });
     
     const source = lines(Deno.readTextFileSync(context.target.source));
@@ -44,8 +47,12 @@ export function annotateOjsLineNumbers(
     const output: string[] = [];
     let waitingForOjs = false;
     let lineNumber = 0;
+
+    // we're using a regexp based on knitr, tweaked to what we actually need here:
+    // https://github.com/yihui/knitr/blob/3237add034368a3018ff26fa9f4d0ca89a4afd78/R/pattern.R#L32
+    const chunkBegin = /^[\t ]*```+\s*\{(ojs( *[ ,].*)?)\}\s*$/;
+
     source.forEach(line => {
-      // FIXME use a better regexp
       if (line === "```{ojs}") {
         waitingForOjs = true;
       } else if (waitingForOjs && !line.startsWith("//|")) {
