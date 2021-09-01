@@ -76,8 +76,6 @@ $navbar-hl: if(
   color.mix($navbar-bg, $link-color, 80%),
   $navbar-fg
 ) !default;
-@debug $navbar-bg;
-@debug $navbar-fg;
 
 $navbar-dark-color: $navbar-fg !default;
 $navbar-dark-hover-color: rgba($navbar-hl, 0.8) !default;
