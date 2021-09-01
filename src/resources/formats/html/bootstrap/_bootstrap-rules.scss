@@ -139,21 +139,20 @@ $code-block-bg-color: color.adjust(
   padding-top: 1em;
 }
 
-div.sourceCode {
+pre.sourceCode {
   // Clear code background if is not specified
   @if $code-block-bg {
     background-color: $code-block-bg-color;
     border: 1px solid $code-block-bg-color;
     border-radius: $border-radius;
+    padding: $code-block-bg-padding;
   } @else {
     background-color: $body-bg !important;
     border: none;
+    padding: 0;
   }
-  font-size: $code-block-font-size;
-}
 
-pre.sourceCode {
-  // Apply border, if specified
+  // Border
   @if $code-block-border-left {
     border-left: $code-block-border-left-size;
     border-left-style: $code-block-border-left-style;
@@ -162,19 +161,20 @@ pre.sourceCode {
   } @else {
     border: none;
   }
-  @if $code-block-bg {
-    padding: $code-block-bg-padding;
-  }
+
   font-size: $code-block-font-size;
+  overflow: visible !important;
+}
+
+pre.sourceCode > code.sourceCode {
+  @if not $code-block-bg {
+    padding: 0;
+  }
 }
 
 // no border inside callouts
 .callout pre.sourceCode {
   padding-left: 0;
-}
-
-pre.sourceCode {
-  overflow: visible !important;
 }
 
 div.sourceCode {

@@ -205,6 +205,7 @@ code {
 
 pre > code.sourceCode {
   white-space: $code-white-space;
+  display: block;
 }
 
 pre.code-overflow-wrap > code.sourceCode {
