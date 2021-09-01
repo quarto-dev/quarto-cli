@@ -302,8 +302,8 @@ export const jupyterEngine: ExecutionEngine = {
     return ["venv", "env"];
   },
 
-  canKeepSource: (targbet: ExecutionTarget) => {
-    return !isJupyterNotebook(targbet.source);
+  canKeepSource: (target: ExecutionTarget) => {
+    return !isJupyterNotebook(target.source);
   },
 
   keepFiles: (input: string) => {
