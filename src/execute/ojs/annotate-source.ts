@@ -31,18 +31,18 @@ export function annotateOjsLineNumbers(
   context: RenderContext
 ): OJSLineNumbersAnnotation
 {
-  const ext = extname(context.target.source);
-  const canPatch = !isJupyterNotebook(context.target.source);
+  const ext = extname(context.target.input);
+  const canPatch = !isJupyterNotebook(context.target.input);
 
   if (canPatch) {
-    const dir = dirname(context.target.source);
+    const dir = dirname(context.target.input);
     
     const patchedFileName = Deno.makeTempFileSync({
       dir,
       suffix: ext
     });
     
-    const source = lines(Deno.readTextFileSync(context.target.source));
+    const source = lines(Deno.readTextFileSync(context.target.input));
 
     const output: string[] = [];
     let waitingForOjs = false;
