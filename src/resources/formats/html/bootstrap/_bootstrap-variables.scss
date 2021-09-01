@@ -69,7 +69,7 @@ $footer-center-font-size: $footer-font-size !default;
 $footer-right-font-size: $footer-font-size !default;
 
 // Navbar
-$navbar-bg: if(variable-exists(primary), $primary, #4f789e) !default;
+$navbar-bg: if(variable-exists(body-bg), $body-bg, #fff) !default;
 $navbar-fg: theme-contrast($navbar-bg) !default;
 $navbar-hl: if(
   variable-exists(link-color),
