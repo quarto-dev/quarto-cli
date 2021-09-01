@@ -70,7 +70,7 @@ export const convertCommand = new Command()
 
       // perform conversion
       const converted = srcFormat === kNotebookFormat
-        ? jupyterNotebookToMarkdown(input, withIds)
+        ? await jupyterNotebookToMarkdown(input, withIds)
         : await markdownToJupyterNotebook(input, withIds);
 
       // write output

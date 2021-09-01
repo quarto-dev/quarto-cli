@@ -25,6 +25,7 @@ import {
 } from "../../core/jupyter/jupyter.ts";
 import { partitionCellOptions } from "../../core/partition-cell-options.ts";
 import { Metadata } from "../../config/types.ts";
+import { jupyterKernelspec } from "../../core/jupyter/kernels.ts";
 
 export async function markdownToJupyterNotebook(
   file: string,
@@ -34,7 +35,10 @@ export async function markdownToJupyterNotebook(
   return JSON.stringify(notebook, null, 2);
 }
 
-export function jupyterNotebookToMarkdown(file: string, includeIds: boolean) {
+export async function jupyterNotebookToMarkdown(
+  file: string,
+  includeIds: boolean,
+) {
   // read notebook & alias kernelspec
   const notebook = jupyterFromFile(file);
   const kernelspec = notebook.metadata.kernelspec;
@@ -103,6 +107,15 @@ export function jupyterNotebookToMarkdown(file: string, includeIds: boolean) {
       kernelspec: notebook.metadata.kernelspec,
     }
     : notebook.metadata.kernelspec.name;
+
+  // if we are using the string shorthand make sure we have this kernelspec locally
+  if (typeof yaml.jupyter === "string") {
+    if (!await jupyterKernelspec(yaml.jupyter)) {
+      yaml.jupyter = {
+        kernelspec: notebook.metadata.kernelspec,
+      };
+    }
+  }
 
   // return yaml + markdown
   const yamlText = stringify(yaml, {
