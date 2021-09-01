@@ -191,6 +191,12 @@ code.sourceCode {
   overflow-y: hidden;
 }
 
+pre.sourceCode.numberSource,
+pre.sourceCode.numberSource code.sourceCode {
+  overflow-y: visible;
+  white-space: pre;
+}
+
 // default to scrolling <code> output rather than wrapping, since
 // multi-column tabular output (very common for R & Python) is
 // unreadable when wrapped.
