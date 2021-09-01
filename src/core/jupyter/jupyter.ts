@@ -289,11 +289,11 @@ export async function quartoMdToJupyter(
 
   // notebook to return
   const nb: JupyterNotebook = {
+    cells: [],
     metadata: {
       kernelspec,
       ...metadata,
     },
-    cells: [],
     nbformat: 4,
     nbformat_minor: includeIds ? 5 : 4,
   };
