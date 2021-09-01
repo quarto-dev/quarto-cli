@@ -231,6 +231,7 @@ export async function ojsCompile(
       interface ParsedCellInfo {
         info: SourceInfo[];
       }
+      const cellStartingLoc = Number(cell.options!["internal-chunk-line-number"] as string);
 
       const handleError = (err: any, cellSrc: string) => {
         const div = pandocBlock(":::::")({
@@ -240,12 +241,12 @@ export async function ojsCompile(
           / *\(\d+:\d+\)$/,
           "",
         );
-        ojsParseError(err, cellSrc, cell.startingLoc);
+        ojsParseError(err, cellSrc, cellStartingLoc);
 
         const preDiv = pandocBlock("````")({
           classes: ["numberLines", "java"],
           attrs: [
-            `startFrom="${cell.startingLoc}"`,
+            `startFrom="${cellStartingLoc}"`,
             `syntax-error-position="${err.pos}"`,
             `source-offset="9"`,
           ],
@@ -262,7 +263,7 @@ export async function ojsCompile(
         calloutDiv.push(
           pandocRawStr(
             `#### OJS Syntax Error (line ${err.loc.line +
-              cell.startingLoc}, column ${err.loc.column})`,
+              cellStartingLoc}, column ${err.loc.column})`,
           ),
         );
         calloutDiv.push(pandocRawStr(`${fullMsg}`));
@@ -397,6 +398,7 @@ export async function ojsCompile(
         "plot.hidden",
         "output.hidden",
         "echo.hidden",
+        "internal-chunk-line-number",
       ]);
 
       for (const [key, value] of Object.entries(cell.options || {})) {
@@ -518,7 +520,7 @@ export async function ojsCompile(
             const linesSkipped =
               cellSrcStr.substring(0, innerInfo[0].start).split("\n").length;
 
-            ourAttrs.push(`startFrom="${cell.startingLoc + linesSkipped}"`);
+            ourAttrs.push(`startFrom="${cellStartingLoc + linesSkipped}"`);
             ourAttrs.push(`source-offset="-${innerInfo[0].start}"`);
             const srcDiv = pandocCode({
               attrs: ourAttrs,
@@ -576,7 +578,7 @@ export async function ojsCompile(
           // compute offset from cell start to div start
           const linesSkipped =
             cellSrcStr.substring(0, innerInfo[0].start).split("\n").length;
-          ourAttrs.push(`startFrom="${cell.startingLoc + linesSkipped}"`);
+          ourAttrs.push(`startFrom="${cellStartingLoc + linesSkipped}"`);
           ourAttrs.push(`source-offset="-${innerInfo[0].start}"`);
           const srcDiv = pandocCode({
             attrs: ourAttrs,

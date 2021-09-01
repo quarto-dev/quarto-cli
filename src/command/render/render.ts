@@ -22,6 +22,8 @@ import { Document, DOMParser } from "deno_dom/deno-dom-wasm.ts";
 
 import { info } from "log/mod.ts";
 
+import { shortUuid } from "../../core/uuid.ts";
+
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { createSessionTempDir } from "../../core/temp.ts";
@@ -101,6 +103,7 @@ import {
   removeFreezeResults,
 } from "./freeze.ts";
 import { ojsExecuteResult } from "../../execute/ojs/compile.ts";
+import { annotateOjsLineNumbers } from "../../execute/ojs/annotate-source.ts";
 import {
   ExecutedFile,
   PandocRenderer,
@@ -178,6 +181,18 @@ export async function renderFiles(
           pandocRenderer.onBeforeExecute(recipe.format),
         );
 
+        // patch source file
+        const { patchedSource } = annotateOjsLineNumbers(context);
+        const oldTarget = context.target;
+        if (patchedSource) {
+          const newTarget = {
+            ...context.target,
+            source: patchedSource,
+            input: patchedSource
+          };
+          context.target = newTarget;
+        }
+        
         // execute
         const baseExecuteResult = await renderExecute(
           context,
@@ -190,6 +205,12 @@ export async function renderFiles(
           context,
           baseExecuteResult,
         );
+
+        // restore context, remove patched source
+        context.target = oldTarget;
+        if (patchedSource) {
+          removeIfExists(patchedSource);
+        }
 
         // callback
         await pandocRenderer.onRender(format, {
