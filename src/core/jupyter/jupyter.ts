@@ -342,19 +342,24 @@ export async function quartoMdToJupyter(
       }
       if (cell_type === "raw" && frontMatter) {
         // delete 'jupyter' metadata since we've already transferred it
-        const yaml = readYamlFromMarkdown(cell.source.join("\n"));
+        const yaml = readYamlFromMarkdown(cell.source.join(""));
         if (yaml.jupyter) {
           delete yaml.jupyter;
-          const yamlFrontMatter = mdTrimEmptyLines(lines(stringify(yaml, {
-            indent: 2,
-            sortKeys: false,
-            skipInvalid: true,
-          })));
-          cell.source = [
-            "---\n",
-            ...(yamlFrontMatter.map((line) => line + "\n")),
-            "---",
-          ];
+          // write the cell only if there is metadata to write
+          if (Object.keys(yaml).length > 0) {
+            const yamlFrontMatter = mdTrimEmptyLines(lines(stringify(yaml, {
+              indent: 2,
+              sortKeys: false,
+              skipInvalid: true,
+            })));
+            cell.source = [
+              "---\n",
+              ...(yamlFrontMatter.map((line) => line + "\n")),
+              "---",
+            ];
+          } else {
+            cell.source = [];
+          }
         }
       } else if (cell_type === "code") {
         // see if there is embedded metadata we should forward into the cell metadata
