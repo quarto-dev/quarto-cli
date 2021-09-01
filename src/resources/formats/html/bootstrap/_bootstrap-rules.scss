@@ -139,31 +139,41 @@ $code-block-bg-color: color.adjust(
   padding-top: 1em;
 }
 
-pre.sourceCode {
+div.sourceCode {
   // Clear code background if is not specified
   @if $code-block-bg {
     background-color: $code-block-bg-color;
     border: 1px solid $code-block-bg-color;
     border-radius: $border-radius;
-    padding: $code-block-bg-padding;
   } @else {
     background-color: $body-bg !important;
     border: none;
     padding: 0;
   }
+}
 
+pre.sourceCode {
+  background-color: transparent;
+}
+
+pre.sourceCode {
   // Border
   @if $code-block-border-left {
     border-left: $code-block-border-left-size;
     border-left-style: $code-block-border-left-style;
     border-left-color: $code-block-border-left-color;
     padding-left: $code-block-padding-left;
+    border-right: none;
+    border-top: none;
+    border-bottom: none;
   } @else {
     border: none;
   }
-
   font-size: $code-block-font-size;
   overflow: visible !important;
+  @if $code-block-bg {
+    padding: $code-block-bg-padding;
+  }
 }
 
 pre.sourceCode > code.sourceCode {
@@ -401,13 +411,6 @@ div.hanging-indent {
 
     .callout {
       margin-left: add(-0.4em, -$callout-border-width);
-    }
-
-    div.sourceCode {
-      margin-left: add(
-        add(-$code-block-padding-left, -$code-block-border-left-size),
-        2px
-      );
     }
   }
 }
