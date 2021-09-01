@@ -16,6 +16,14 @@
   }
 }
 
+// Add fg contrasts for each bg utility
+$bg-colors: map-get($utilities, background-color);
+@each $key, $val in map-get($bg-colors, values) {
+  .bg-#{$key} {
+    color: color-contrast($val);
+  }
+}
+
 // RFS rescaling
 @media (min-width: $rfs-mq-value) {
   @each $breakpoint in map-keys($grid-breakpoints) {

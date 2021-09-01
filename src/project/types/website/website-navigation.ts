@@ -430,6 +430,7 @@ function handleRepoLinks(
             links.forEach((link) => {
               const a = doc.createElement("a");
               a.setAttribute("href", link.url);
+              a.classList.add("toc-action");
               a.innerHTML = link.text;
               const p = doc.createElement("p");
               p.appendChild(a);
@@ -724,14 +725,20 @@ function nextAndPrevious(
           isSeparator(item);
       },
     );
-    const index = sidebarItems.findIndex((item) => item.href === href);
-    const nextPage = index > -1 && index < sidebarItems.length - 1 &&
-        !isSeparator(sidebarItems[index + 1])
-      ? sidebarItems[index + 1]
+
+    // Don't allow the same href to appear in the flattened list multiple times
+    const sidebarItemsUniq = ld.uniqBy(sidebarItems, (sidebarItem: SidebarItem) => {
+      return sidebarItem.href;
+    });
+
+    const index = sidebarItemsUniq.findIndex((item) => item.href === href);
+    const nextPage = index > -1 && index < sidebarItemsUniq.length - 1 &&
+        !isSeparator(sidebarItemsUniq[index + 1])
+      ? sidebarItemsUniq[index + 1]
       : undefined;
-    const prevPage = index > -1 && index <= sidebarItems.length - 1 &&
-        !isSeparator(sidebarItems[index - 1])
-      ? sidebarItems[index - 1]
+    const prevPage = index > -1 && index <= sidebarItemsUniq.length - 1 &&
+        !isSeparator(sidebarItemsUniq[index - 1])
+      ? sidebarItemsUniq[index - 1]
       : undefined;
 
     return {

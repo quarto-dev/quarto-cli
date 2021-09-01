@@ -62,7 +62,7 @@ nav .nav-item.compact .nav-link {
 }
 
 .navbar-light .navbar-nav .nav-link.dropdown-toggle::after {
-  color: $text-muted;
+  opacity: 0.75;
   vertical-align: 0.175em;
 }
 
@@ -107,11 +107,6 @@ nav .nav-item.compact .nav-link {
 
 .sidebar-header-stacked .sidebar-title {
   margin-top: 0.6rem;
-}
-
-.sidebar-navigation .active {
-  color: inherit;
-  color: $link-color;
 }
 
 .sidebar-logo {
@@ -166,7 +161,7 @@ nav .nav-item.compact .nav-link {
 }
 
 .sidebar-navigation .sidebar-section-item {
-  font-size: 0.8rem;
+  font-size: $sidebar-font-size-section;
   padding-bottom: 0.1rem;
 }
 
@@ -188,7 +183,7 @@ nav .nav-item.compact .nav-link {
   padding-left: 0px;
   padding-right: 0px;
   padding-bottom: 0.25rem;
-  font-weight: $nav-font-weight;
+  font-weight: 400;
 }
 
 .sidebar-navigation .sidebar-divider {
@@ -226,8 +221,39 @@ nav .nav-item.compact .nav-link {
   padding-top: 4px;
 }
 
+$sidebar-hl: if($sidebar-hl, sidebar-hl, $nav-link-color);
+$sidebar-color: rgba($sidebar-fg, 1) !default;
+$sidebar-hover-color: rgba($sidebar-hl, 0.8) !default;
+$sidebar-active-color: $sidebar-hl !default;
+$sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
+
+.sidebar.sidebar-navigation {
+  color: $sidebar-color;
+  .sidebar-item {
+    color: $sidebar-color;
+
+    &:hover,
+    &:focus {
+      color: $sidebar-hover-color;
+    }
+
+    &.disabled {
+      color: $sidebar-disabled-color;
+    }
+  }
+
+  .active,
+  .show > .nav-link {
+    color: $sidebar-active-color;
+  }
+}
+
 .sidebar.sidebar-navigation nav {
-  background-color: $sidebar-bg;
+  @if $sidebar-bg {
+    background-color: $sidebar-bg;
+  } @else {
+    background-color: $body-bg;
+  }
 }
 
 .sidebar.sidebar-navigation nav:not(.floating) {
@@ -240,7 +266,7 @@ nav .nav-item.compact .nav-link {
   .nav-page .nav-page-text,
   .sidebar-navigation,
   .sidebar-navigation .sidebar-menu-container a {
-    font-size: $nav-font-size-enlarged;
+    font-size: $sidebar-font-size-collapse;
   }
 
   .sidebar-logo {
@@ -277,7 +303,11 @@ nav .nav-item.compact .nav-link {
   }
 
   nav.quarto-secondary-nav {
-    background-color: $sidebar-bg;
+    @if $sidebar-bg {
+      background-color: $sidebar-bg;
+    } @else {
+      background-color: $body-bg;
+    }
     border-bottom: 1px solid $table-border-color;
   }
 
@@ -303,11 +333,10 @@ nav .nav-item.compact .nav-link {
 
 @include media-breakpoint-up(lg) {
   .sidebar-navigation .sidebar-item a,
-  .sidebar-navigation ul.sidebar-section.depth1 .sidebar-section-item,
   .nav-page .nav-page-text,
   .sidebar-navigation,
   .sidebar-navigation .sidebar-menu-container a {
-    font-size: $nav-font-size;
+    font-size: $sidebar-font-size;
   }
 
   .sidebar-navigation > nav {
@@ -420,21 +449,6 @@ nav .nav-item.compact .nav-link {
   padding-bottom: 0.75em;
 }
 
-.nav-footer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding-top: 0.5rem;
-  padding-bottom: 0.25rem;
-  margin-top: 1px;
-}
-
-.nav-footer-contents {
-  color: $text-muted;
-  margin-top: 0.25rem;
-}
-
 .nav-page .bi {
   font-size: 1.8rem;
   vertical-align: middle;
@@ -443,7 +457,6 @@ nav .nav-item.compact .nav-link {
 .nav-page .nav-page-text {
   padding-left: 0.25em;
   padding-right: 0.25em;
-  margin-bottom: 5px;
 }
 
 .nav-page a {
@@ -469,7 +482,7 @@ nav .nav-item.compact .nav-link {
 .toc-actions a {
   text-decoration: none;
   color: inherit;
-  font-weight: $nav-font-weight;
+  font-weight: 400;
 }
 
 .toc-actions a:hover {
@@ -491,7 +504,7 @@ nav .nav-item.compact .nav-link {
 }
 
 .sidebar-toc .toc-actions p {
-  font-size: $nav-font-size;
+  font-size: $toc-font-size;
 }
 
 .sidebar-toc .header-section-number {
@@ -501,35 +514,52 @@ nav .nav-item.compact .nav-link {
 // border weight
 // border style
 .nav-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
   @if variable-exists(footer-bg) {
     background-color: $footer-bg;
   }
-  @if variable-exists(footer-border) {
-    border-top: 1px solid $footer-border;
-  } @else {
-    border-top: 1px solid $table-border-color;
+  @if variable-exists(footer-border) and $footer-border {
+    @if variable-exists(footer-border-color) {
+      border-top: 1px solid $footer-border-color;
+    } @else {
+      border-top: 1px solid $table-border-color;
+    }
   }
+}
+
+.nav-footer-contents {
+  color: $text-muted;
+  margin-top: 0.25rem;
 }
 
 .nav-footer,
 .nav-footer a {
-  @if variable-exists(footer-color) {
-    color: $footer-color;
-  } @else {
-    color: $text-muted;
+  @if variable-exists(footer-fg) {
+    color: $footer-fg;
   }
 }
 
-.nav-footer .nav-footer-left {
-  font-size: $footer-left-font-size;
+@if variable-exists(footer-left-font-size) {
+  .nav-footer .nav-footer-left {
+    font-size: $footer-left-font-size;
+  }
 }
 
-.nav-footer .nav-footer-center {
-  font-size: $footer-center-font-size;
+@if variable-exists(footer-center-font-size) {
+  .nav-footer .nav-footer-center {
+    font-size: $footer-center-font-size;
+  }
 }
 
-.nav-footer .nav-footer-right {
-  font-size: $footer-right-font-size;
+@if variable-exists(footer-right-font-size) {
+  .nav-footer .nav-footer-right {
+    font-size: $footer-right-font-size;
+  }
 }
 
 .nav-footer-left .footer-items,

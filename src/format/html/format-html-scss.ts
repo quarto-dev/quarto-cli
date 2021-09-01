@@ -27,6 +27,7 @@ import { mergeLayers, sassLayer } from "../../command/render/sass.ts";
 import {
   kSite,
   kSiteFooter,
+  kSiteNavbar,
   kSiteSidebar,
 } from "../../project/types/website/website-config.ts";
 import {
@@ -65,12 +66,18 @@ function layerQuartoScss(
     "bootstrap.scss",
   );
 
+  const sassUtil = (name: string) => {
+    const path = join(bootstrapDistDir, "sass-utils", name);
+    return Deno.readTextFileSync(path);
+  };
+  const sassUtils = [sassUtil("color-contrast.scss")].join("\n");
+
   return {
     dependency,
     key,
     user: sassLayer,
     quarto: {
-      use: ["sass:color", "sass:map"],
+      use: ["sass:color", "sass:map", "sass:math"],
       defaults: [
         quartoDefaults(format),
         quartoBootstrapDefaults(format.metadata),
@@ -89,7 +96,7 @@ function layerQuartoScss(
           return outputVariable(variable, false);
         },
       ).join("\n"),
-      functions: "",
+      functions: sassUtils,
       mixins: "",
       rules: Deno.readTextFileSync(boostrapRules),
     },
@@ -269,6 +276,7 @@ function pandocVariablesToBootstrapDefaults(
 const kCodeBorderLeft = "code-block-border-left";
 const kCodeBlockBackground = "code-block-bg";
 const kBackground = "background";
+const kColor = "color";
 const kBorder = "border";
 
 // Quarto variables and styles
@@ -278,6 +286,25 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     join("bootstrap", "_bootstrap-variables.scss"),
   );
   const variables = [Deno.readTextFileSync(varFilePath)];
+
+  // Forward navbar background color
+  const navbar = (metadata[kSite] as Metadata)?.[kSiteNavbar];
+  if (navbar && typeof (navbar) === "object") {
+    const navbarBackground = (navbar as Record<string, unknown>)[kBackground];
+    if (navbarBackground !== undefined) {
+      variables.push(
+        outputVariable(
+          sassVariable(
+            "navbar-bg",
+            navbarBackground,
+            typeof (navbarBackground) === "string"
+              ? asBootstrapColor
+              : undefined,
+          ),
+        ),
+      );
+    }
+  }
 
   // Forward background color
   const sidebars = (metadata[kSite] as Metadata)?.[kSiteSidebar];
@@ -322,13 +349,40 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
 
     // Forward footer border
     const footerBorder = footer[kBorder];
-    if (footerBorder !== undefined) {
+    // Enable the border unless it is explicitly disabled
+    if (footerBorder !== false) {
       variables.push(
         outputVariable(
           sassVariable(
             "footer-border",
+            true,
+          ),
+        ),
+      );
+    }
+
+    // If the footer border is a color, set that
+    if (footerBorder !== undefined && typeof (footerBorder) === "string") {
+      variables.push(
+        outputVariable(
+          sassVariable(
+            "footer-border-color",
             footerBorder,
-            typeof (footerBg) === "string" ? asBootstrapColor : undefined,
+            asBootstrapColor,
+          ),
+        ),
+      );
+    }
+
+    // Forward any footer color
+    const footerColor = footer[kColor];
+    if (footerColor && typeof (footerColor) === "string") {
+      variables.push(
+        outputVariable(
+          sassVariable(
+            "footer-color",
+            footerColor,
+            asBootstrapColor,
           ),
         ),
       );

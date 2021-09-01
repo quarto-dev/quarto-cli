@@ -2,7 +2,6 @@
 
 let mCss = sidebar.style === "floating" ? "ms-lg-auto" : "me-lg-auto";
 let styleCss = sidebar.style === "floating" ? "floating" : "docked";
-let textStyleCss = sidebar.type ? sidebar.type === "dark" ? "text-light" : "text-dark" :  "";
 
 let alignCss = ""
 if (sidebar.align === "center") {
@@ -14,7 +13,7 @@ if (sidebar.align === "center") {
 }
 %>
 
-<nav class="<%- mCss %> py-2 <%- styleCss %> <%- textStyleCss %> overflow-scroll">
+<nav class="<%- mCss %> py-2 <%- styleCss %> overflow-auto">
   
    <% if (sidebar.logo || (sidebar.title && !navbar) || sidebar.tools) { %>
   <div class="px-3 pt-lg-2 mt-1 <%= alignCss %> sidebar-header<%= sidebar.logo && sidebar.title ? ' sidebar-header-stacked' : '' %>">
@@ -57,7 +56,7 @@ if (sidebar.align === "center") {
   <div class="sidebar-menu-container"> 
   <ul class="list-unstyled mt-1 px-3">
   <% sidebar.contents.forEach(item => { %>
-      <% partial('sidebaritem.ejs', { item, depth: 1, collapse: sidebar['collapse-level'], borderColor: borderColor, textStyleCss: textStyleCss }) %>
+      <% partial('sidebaritem.ejs', { item, depth: 1, collapse: sidebar['collapse-level'], borderColor: borderColor }) %>
   <% }) %>
   </ul>
   </div>

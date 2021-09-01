@@ -143,6 +143,10 @@ p {
 abbr[title],
 abbr[data-bs-original-title] { // 1
   text-decoration: underline dotted; // 2
+  -webkit-text-decoration: underline dotted; // 2
+  -moz-text-decoration: underline dotted; // 2
+  -ms-text-decoration: underline dotted; // 2
+  -o-text-decoration: underline dotted; // 2
   cursor: help; // 3
   text-decoration-skip-ink: none; // 4
 }
@@ -194,6 +198,13 @@ dd {
 
 blockquote {
   margin: 0 0 1rem;
+  padding: ($blockquote-font-size / 2) $blockquote-font-size;
+  border-left: $blockquote-border-width solid $blockquote-border-color;
+  p, ul, ol {
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
 }
 
 
@@ -246,10 +257,18 @@ sup { top: -.5em; }
 a {
   color: $link-color;
   text-decoration: $link-decoration;
+  -webkit-text-decoration: $link-decoration;
+  -moz-text-decoration: $link-decoration;
+  -ms-text-decoration: $link-decoration;
+  -o-text-decoration: $link-decoration;
 
   &:hover {
     color: $link-hover-color;
     text-decoration: $link-hover-decoration;
+    -webkit-text-decoration: $link-hover-decoration;
+    -moz-text-decoration: $link-hover-decoration;
+    -ms-text-decoration: $link-hover-decoration;
+    -o-text-decoration: $link-hover-decoration;
   }
 }
 
@@ -290,9 +309,14 @@ pre {
   overflow: auto; // 3
   @include font-size($code-font-size);
   color: $pre-color;
+  background-color: $pre-bg;
+  padding: $spacer / 2;
+  border: $pre-border;
+  @include border-radius($border-radius);
 
   // Account for some code outputs that place code tags in pre tags
   code {
+    background-color: transparent;
     @include font-size(inherit);
     color: inherit;
     word-break: normal;
@@ -302,6 +326,9 @@ pre {
 code {
   @include font-size($code-font-size);
   color: $code-color;
+  background-color: $code-bg;
+  @include border-radius($border-radius);
+  padding: $spacer/8 $spacer/4;
   word-wrap: break-word;
 
   // Streamline the style when inside anchors to avoid broken underline and more

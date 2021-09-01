@@ -2,22 +2,22 @@
 // Check/radio
 //
 
-.form-check {
+.form-check, #{$shiny-check}, #{$shiny-radio} {
   display: block;
   min-height: $form-check-min-height;
   padding-left: $form-check-padding-start;
   margin-bottom: $form-check-margin-bottom;
 
-  .form-check-input {
+  .form-check-input, #{$shiny-check} input, #{$shiny-radio} input {
     float: left;
     margin-left: $form-check-padding-start * -1;
   }
 }
 
-.form-check-input {
+#{$form-check-input-selector} {
   width: $form-check-input-width;
   height: $form-check-input-width;
-  margin-top: ($line-height-base - $form-check-input-width) / 2; // line-height minus check height
+  margin-top: ($line-height-base - $form-check-input-width) * .5; // line-height minus check height
   vertical-align: top;
   background-color: $form-check-input-bg;
   background-repeat: no-repeat;
@@ -25,7 +25,12 @@
   background-size: contain;
   border: $form-check-input-border;
   appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  -ms-appearance: none;
+  -o-appearance: none;
   color-adjust: exact; // Keep themed appearance for print
+  -webkit-print-color-adjust: exact; // Keep themed appearance for print
   @include transition($form-check-transition);
 
   &[type="checkbox"] {
@@ -131,7 +136,7 @@
   }
 }
 
-.form-check-inline {
+.form-check-inline, #{$shiny-check-inline}, #{$shiny-radio-inline} {
   display: inline-block;
   margin-right: $form-check-inline-margin-end;
 }

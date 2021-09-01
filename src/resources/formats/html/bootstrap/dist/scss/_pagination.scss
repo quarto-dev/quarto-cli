@@ -1,5 +1,6 @@
 .pagination {
   display: flex;
+  display: -webkit-flex;
   @include list-unstyled();
 }
 
@@ -8,6 +9,10 @@
   display: block;
   color: $pagination-color;
   text-decoration: if($link-decoration == none, null, none);
+  -webkit-text-decoration: if($link-decoration == none, null, none);
+  -moz-text-decoration: if($link-decoration == none, null, none);
+  -ms-text-decoration: if($link-decoration == none, null, none);
+  -o-text-decoration: if($link-decoration == none, null, none);
   background-color: $pagination-bg;
   border: $pagination-border-width solid $pagination-border-color;
   @include transition($pagination-transition);
@@ -16,6 +21,10 @@
     z-index: 2;
     color: $pagination-hover-color;
     text-decoration: if($link-hover-decoration == underline, none, null);
+    -webkit-text-decoration: if($link-hover-decoration == underline, none, null);
+    -moz-text-decoration: if($link-hover-decoration == underline, none, null);
+    -ms-text-decoration: if($link-hover-decoration == underline, none, null);
+    -o-text-decoration: if($link-hover-decoration == underline, none, null);
     background-color: $pagination-hover-bg;
     border-color: $pagination-hover-border-color;
   }

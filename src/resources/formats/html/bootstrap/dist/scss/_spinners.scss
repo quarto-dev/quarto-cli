@@ -64,6 +64,10 @@
     .spinner-border,
     .spinner-grow {
       animation-duration: $spinner-animation-speed * 2;
+      -webkit-animation-duration: $spinner-animation-speed * 2;
+      -moz-animation-duration: $spinner-animation-speed * 2;
+      -ms-animation-duration: $spinner-animation-speed * 2;
+      -o-animation-duration: $spinner-animation-speed * 2;
     }
   }
 }

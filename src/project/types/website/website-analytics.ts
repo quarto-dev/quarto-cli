@@ -78,26 +78,28 @@ export function websiteAnalyticsScriptFile(
   const siteMeta = project.config?.[kSite] as Metadata;
 
   // The google analytics metadata (either from the page or the site)
-  const siteGa = siteMeta[kGoogleAnalytics];
-
   // Deal with page and site options
   let gaConfig: GaConfiguration | undefined = undefined;
-  if (typeof (siteGa) === "object") {
-    const siteGaMeta = siteGa as Metadata;
-    // Merge the site and page options and then layer over defaults
-    const trackingId = siteGaMeta[kTrackingId] as string;
-    const storage = siteGaMeta[kStorage] as string;
-    const anonymizedIp = siteGaMeta[kAnonymizeIp] as boolean;
-    const version = siteGaMeta[kVersion] as number;
-    gaConfig = googleAnalyticsConfig(
-      project,
-      trackingId,
-      storage,
-      anonymizedIp,
-      version,
-    );
-  } else if (siteGa && typeof (siteGa) === "string") {
-    gaConfig = googleAnalyticsConfig(project, siteGa as string);
+
+  if (siteMeta) {
+    const siteGa = siteMeta[kGoogleAnalytics];
+    if (typeof (siteGa) === "object") {
+      const siteGaMeta = siteGa as Metadata;
+      // Merge the site and page options and then layer over defaults
+      const trackingId = siteGaMeta[kTrackingId] as string;
+      const storage = siteGaMeta[kStorage] as string;
+      const anonymizedIp = siteGaMeta[kAnonymizeIp] as boolean;
+      const version = siteGaMeta[kVersion] as number;
+      gaConfig = googleAnalyticsConfig(
+        project,
+        trackingId,
+        storage,
+        anonymizedIp,
+        version,
+      );
+    } else if (siteGa && typeof (siteGa) === "string") {
+      gaConfig = googleAnalyticsConfig(project, siteGa as string);
+    }
   }
 
   // Generate the actual GA dependencies

@@ -17,9 +17,13 @@
 .navbar {
   position: relative;
   display: flex;
+  display: -webkit-flex;
   flex-wrap: wrap; // allow us to do the line break for collapsing content
+  -webkit-flex-wrap: wrap; // allow us to do the line break for collapsing content
   align-items: center;
+  -webkit-align-items: center;
   justify-content: space-between; // space out brand from logo
+  -webkit-justify-content: space-between; // space out brand from logo
   padding-top: $navbar-padding-y;
   padding-right: $navbar-padding-x; // default: null
   padding-bottom: $navbar-padding-y;
@@ -31,9 +35,13 @@
   // The `flex-wrap` property is inherited to simplify the expanded navbars
   %container-flex-properties {
     display: flex;
+    display: -webkit-flex;
     flex-wrap: inherit;
+    -webkit-flex-wrap: inherit;
     align-items: center;
+    -webkit-align-items: center;
     justify-content: space-between;
+    -webkit-justify-content: space-between;
   }
 
   > .container,
@@ -59,11 +67,19 @@
   margin-right: $navbar-brand-margin-end;
   @include font-size($navbar-brand-font-size);
   text-decoration: if($link-decoration == none, null, none);
+  -webkit-text-decoration: if($link-decoration == none, null, none);
+  -moz-text-decoration: if($link-decoration == none, null, none);
+  -ms-text-decoration: if($link-decoration == none, null, none);
+  -o-text-decoration: if($link-decoration == none, null, none);
   white-space: nowrap;
 
   &:hover,
   &:focus {
     text-decoration: if($link-hover-decoration == underline, none, null);
+    -webkit-text-decoration: if($link-hover-decoration == underline, none, null);
+    -moz-text-decoration: if($link-hover-decoration == underline, none, null);
+    -ms-text-decoration: if($link-hover-decoration == underline, none, null);
+    -o-text-decoration: if($link-hover-decoration == underline, none, null);
   }
 }
 
@@ -74,7 +90,9 @@
 
 .navbar-nav {
   display: flex;
+  display: -webkit-flex;
   flex-direction: column; // cannot use `inherit` to get the `.navbar`s value
+  -webkit-flex-direction: column; // cannot use `inherit` to get the `.navbar`s value
   padding-left: 0;
   margin-bottom: 0;
   list-style: none;
@@ -110,10 +128,13 @@
 // on the `.navbar` parent.
 .navbar-collapse {
   flex-basis: 100%;
+  -webkit-flex-basis: 100%;
   flex-grow: 1;
+  -webkit-flex-grow: 1;
   // For always expanded or extra full navbars, ensure content aligns itself
   // properly vertically. Can be easily overridden with flex utilities.
   align-items: center;
+  -webkit-align-items: center;
 }
 
 // Button for toggling the navbar when in its collapsed state
@@ -166,10 +187,13 @@
     &#{$infix} {
       @include media-breakpoint-up($next) {
         flex-wrap: nowrap;
+        -webkit-flex-wrap: nowrap;
         justify-content: flex-start;
+        -webkit-justify-content: flex-start;
 
         .navbar-nav {
           flex-direction: row;
+          -webkit-flex-direction: row;
 
           .dropdown-menu {
             position: absolute;
@@ -187,7 +211,9 @@
 
         .navbar-collapse {
           display: flex !important; // stylelint-disable-line declaration-no-important
+          display: -webkit-flex !important; // stylelint-disable-line declaration-no-important
           flex-basis: auto;
+          -webkit-flex-basis: auto;
         }
 
         .navbar-toggler {
@@ -206,6 +232,7 @@
 
 // Dark links against a light background
 .navbar-light {
+  background-color: $navbar-light-bg; // not !important so .bg-* utilities can still override
   .navbar-brand {
     color: $navbar-light-brand-color;
 
@@ -257,6 +284,7 @@
 
 // White links against a dark background
 .navbar-dark {
+  background-color: $navbar-dark-bg; // not !important so .bg-* utilities can still override
   .navbar-brand {
     color: $navbar-dark-brand-color;
 
@@ -281,6 +309,7 @@
     }
 
     .show > .nav-link,
+    .active > .nav-link,
     .nav-link.active {
       color: $navbar-dark-active-color;
     }

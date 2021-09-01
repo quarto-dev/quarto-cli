@@ -151,7 +151,7 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,
     .dropdown-item.active,
     .dropdown-item:hover,
     .dropdown-item:focus {
-      background-color: darken($primary, 5%);
+      background-color: shade-color($primary, 10%);
       color: $white;
     }
   }
@@ -171,7 +171,7 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,
     .dropdown-item.active,
     .dropdown-item:hover,
     .dropdown-item:focus  {
-      background-color: darken($gray-800, 5%);
+      background-color: shade-color($gray-800, 10%);
       color: $white;
     }
   }
@@ -189,7 +189,7 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,
     .dropdown-item.active,
     .dropdown-item:hover,
     .dropdown-item:focus  {
-      background-color: lighten($gray-200, 5%);
+      background-color: tint-color($gray-200, 10%);
       color: $navbar-light-hover-color;
     }
   }
@@ -199,37 +199,41 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,
 
 .btn {
   &-primary {
-    border-color: darken($primary, 5%);
+    border-color: shade-color($primary, 10%);
+  }
+
+  &-default {
+    border-color: shade-color($secondary, 10%);
   }
 
   &-secondary {
-    border-color: darken($secondary, 5%);
+    border-color: shade-color($secondary, 10%);
   }
 
   &-success {
-    border-color: darken($success, 5%);
+    border-color: shade-color($success, 10%);
   }
 
   &-info {
-    border-color: darken($info, 5%);
+    border-color: shade-color($info, 10%);
     color: $white;
   }
 
   &-danger {
-    border-color: darken($danger, 5%);
+    border-color: shade-color($danger, 10%);
   }
 
   &-warning {
-    border-color: darken($warning, 5%);
+    border-color: shade-color($warning, 10%);
     color: $white;
   }
 
   &-light {
-    border-color: darken($light, 5%);
+    border-color: shade-color($light, 10%);
   }
 
   &-dark {
-    border-color: darken($dark, 5%);
+    border-color: shade-color($dark, 10%);
   }
 }
 
@@ -241,7 +245,7 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,
   .dropdown-toggle {
     &.btn-primary ~ .dropdown-menu {
       background-color: $primary;
-      border-color: darken($primary, 5%);
+      border-color: shade-color($primary, 10%);
 
       .dropdown-item {
         color: $white;
@@ -249,13 +253,13 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,
 
       .dropdown-item:hover,
       .dropdown-item:focus {
-        background-color: darken($primary, 8%);
+        background-color: shade-color($primary, 16%);
       }
     }
 
     &.btn-secondary ~ .dropdown-menu {
       background-color: $secondary;
-      border-color: darken($secondary, 5%);
+      border-color: shade-color($secondary, 10%);
 
       .dropdown-item {
         color: $body-color;
@@ -263,13 +267,13 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,
 
       .dropdown-item:hover,
       .dropdown-item:focus {
-        background-color: darken($secondary, 8%);
+        background-color: shade-color($secondary, 16%);
       }
     }
 
     &.btn-success ~ .dropdown-menu {
       background-color: $success;
-      border-color: darken($success, 5%);
+      border-color: shade-color($success, 10%);
 
       .dropdown-item {
         color: $white;
@@ -277,13 +281,13 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,
 
       .dropdown-item:hover,
       .dropdown-item:focus {
-        background-color: darken($success, 8%);
+        background-color: shade-color($success, 16%);
       }
     }
 
     &.btn-info ~ .dropdown-menu {
       background-color: $info;
-      border-color: darken($info, 5%);
+      border-color: shade-color($info, 10%);
 
       .dropdown-item {
         color: $white;
@@ -291,13 +295,13 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,
 
       .dropdown-item:hover,
       .dropdown-item:focus {
-        background-color: darken($info, 8%);
+        background-color: shade-color($info, 16%);
       }
     }
 
     &.btn-warning ~ .dropdown-menu {
       background-color: $warning;
-      border-color: darken($warning, 5%);
+      border-color: shade-color($warning, 10%);
 
       .dropdown-item {
         color: $white;
@@ -305,13 +309,13 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,
 
       .dropdown-item:hover,
       .dropdown-item:focus {
-        background-color: darken($warning, 8%);
+        background-color: shade-color($warning, 16%);
       }
     }
 
     &.btn-danger ~ .dropdown-menu {
       background-color: $danger;
-      border-color: darken($danger, 5%);
+      border-color: shade-color($danger, 10%);
 
       .dropdown-item {
         color: $white;
@@ -319,7 +323,7 @@ $web-font-path: "https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,
 
       .dropdown-item:hover,
       .dropdown-item:focus {
-        background-color: darken($danger, 8%);
+        background-color: shade-color($danger, 16%);
       }
     }
   }
@@ -372,13 +376,13 @@ label,
 
   .nav-link:hover,
   .nav-link:focus {
-    background-color: lighten($gray-200, 5%);
+    background-color: tint-color($gray-200, 10%);
   }
 }
 
 .nav-pills {
   .active {
-    border: 1px solid darken($primary, 5%);
+    border: 1px solid shade-color($primary, 10%);
   }
 }
 

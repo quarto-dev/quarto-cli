@@ -29,36 +29,58 @@ $green:   #62c462 !default;
 $teal:    #20c997 !default;
 $cyan:    #5bc0de !default;
 
-$primary:       $gray-800 !default;
-$secondary:     $gray-600 !default;
+// Body
+
+@function body-mix($weight) {
+    @return mix($gray-900, $gray-600, $weight);
+}
+$body-bg:                   body-mix(100%) !default;
+$body-color:                body-mix(0%) !default;
+
+$contrast-bg: color-contrast($body-bg) !default;
+$contrast-fg: color-contrast($contrast-bg) !default;
+@function lighten($color, $percent) {
+   @return mix($contrast-bg, $color, $percent);
+}
+@function darken($color, $percent) {
+   @return mix($contrast-fg, $color, $percent);
+}
+
+$primary:       body-mix(66.7%) !default;
+$secondary:     body-mix(0%) !default;
 $success:       $green !default;
 $info:          $cyan !default;
 $warning:       $yellow !default;
 $danger:        $red !default;
-$light:         $gray-200 !default;
-$dark:          $gray-900 !default;
+// This is inconsistent with Bootstrap semantics. That is, $dark
+// should actually be a light color in a dark mode setting, :shrug:
+// https://github.com/thomaspark/bootswatch/issues/989
+$light:         lighten($body-color, 50%) !default;
+$dark:          $body-bg !default;
 
 $min-contrast-ratio:   2 !default;
 
-// Body
+$enable-shadows: true !default;
+$enable-gradients: true !default;
 
-$body-bg:                   $gray-900 !default;
-$body-color:                #aaa !default;
+// Components
+
+$component-active-color:    $contrast-bg !default;
 
 // Links
 
-$link-color:                $white !default;
+$link-color:                $contrast-bg !default;
 
 // Fonts
 
 // Tables
 
-$table-color:                 $white !default;
-$table-accent-bg:             rgba($white, .05) !default;
-$table-hover-bg:              rgba($white, .075) !default;
-$table-border-color:          rgba($black, .6) !default;
+$table-color:                 $contrast-bg !default;
+$table-accent-bg:             rgba($contrast-bg, .05) !default;
+$table-hover-bg:              rgba($contrast-bg, .075) !default;
+$table-border-color:          rgba($contrast-fg, .6) !default;
 $table-dark-border-color:     $table-border-color !default;
-$table-dark-color:            $white !default;
+$table-dark-color:            $contrast-bg !default;
 
 $table-bg-scale:              0 !default;
 
@@ -69,55 +91,55 @@ $input-btn-padding-x:         1rem !default;
 
 // Forms
 
-$input-disabled-bg:                     #ccc !default;
+$input-disabled-bg:          mix($contrast-bg, $contrast-fg, 80%) !default;
 
 $input-color:                       $gray-900 !default;
 
-$form-check-input-bg:                     $white !default;
+$form-check-input-bg:                     $contrast-bg !default;
 
 // Dropdowns
 
-$dropdown-bg:                       $gray-800 !default;
-$dropdown-border-color:             rgba($black, .6) !default;
-$dropdown-divider-bg:               rgba($black, .15) !default;
+$dropdown-bg:                       body-mix(66.7%) !default;
+$dropdown-border-color:             rgba($contrast-fg, .6) !default;
+$dropdown-divider-bg:               rgba($contrast-fg, .15) !default;
 $dropdown-link-color:               $body-color !default;
-$dropdown-link-hover-color:         $white !default;
+$dropdown-link-hover-color:         $contrast-bg !default;
 $dropdown-link-hover-bg:            $body-bg !default;
 $dropdown-link-active-color:        $dropdown-link-hover-color !default;
 $dropdown-link-active-bg:           $dropdown-link-hover-bg !default;
 
 // Navs
 
-$nav-tabs-border-color:             rgba($black, .6) !default;
+$nav-tabs-border-color:             rgba($contrast-fg, .6) !default;
 $nav-tabs-link-hover-border-color:  $nav-tabs-border-color !default;
-$nav-tabs-link-active-color:        $white !default;
+$nav-tabs-link-active-color:        $contrast-bg !default;
 $nav-tabs-link-active-border-color: $nav-tabs-border-color !default;
 
 // Navbar
 
 $navbar-padding-y:                  0 !default;
-$navbar-dark-hover-color:           $white !default;
-$navbar-light-hover-color:          $gray-800 !default;
-$navbar-light-active-color:         $gray-800 !default;
+$navbar-dark-hover-color:           $contrast-bg !default;
+$navbar-light-hover-color:          body-mix(66.7%) !default;
+$navbar-light-active-color:         body-mix(66.7%) !default;
 
 
 // Pagination
 
-$pagination-color:                  $white !default;
+$pagination-color:                  $contrast-bg !default;
 $pagination-bg:                     transparent !default;
-$pagination-border-color:           rgba($black, .6) !default;
-$pagination-hover-color:            $white !default;
+$pagination-border-color:           rgba($contrast-fg, .6) !default;
+$pagination-hover-color:            $contrast-bg !default;
 $pagination-hover-bg:               transparent !default;
-$pagination-hover-border-color:     rgba($black, .6) !default;
+$pagination-hover-border-color:     rgba($contrast-fg, .6) !default;
 $pagination-active-bg:              transparent !default;
-$pagination-active-border-color:    rgba($black, .6) !default;
+$pagination-active-border-color:    rgba($contrast-fg, .6) !default;
 $pagination-disabled-bg:            transparent !default;
-$pagination-disabled-border-color:  rgba($black, .6) !default;
+$pagination-disabled-border-color:  rgba($contrast-fg, .6) !default;
 
 // Cards
 
-$card-border-color:                 rgba($black, .6) !default;
-$card-cap-bg:                       lighten($gray-800, 10%) !default;
+$card-border-color:                 rgba($contrast-fg, .6) !default;
+$card-cap-bg:                       lighten(body-mix(66.7%), 10%) !default;
 $card-bg:                           lighten($body-bg, 5%) !default;
 
 // Popovers
@@ -127,7 +149,7 @@ $popover-bg:                        lighten($body-bg, 5%) !default;
 // Toasts
 
 $toast-background-color:            lighten($body-bg, 5%) !default;
-$toast-border-color:                rgba(0, 0, 0, .2) !default;
+$toast-border-color:                rgba($contrast-bg, .2) !default;
 $toast-header-color:                $body-color !default;
 $toast-header-background-color:     $toast-background-color !default;
 $toast-header-border-color:         $toast-border-color !default;
@@ -135,24 +157,24 @@ $toast-header-border-color:         $toast-border-color !default;
 // Modals
 
 $modal-content-bg:                  lighten($body-bg, 5%) !default;
-$modal-header-border-color:         rgba(0, 0, 0, .2) !default;
+$modal-header-border-color:         rgba($contrast-bg, .2) !default;
 
 // Progress bars
 
 $progress-bg:                       darken($gray-900, 5%) !default;
-$progress-bar-color:                $gray-600 !default;
+$progress-bar-color:                body-mix(0%) !default;
 
 // List group
 
-$list-group-color:                  $white !default;
+$list-group-color:                  $contrast-bg !default;
 $list-group-bg:                     lighten($body-bg, 5%) !default;
-$list-group-border-color:           rgba($black, .6) !default;
+$list-group-border-color:           rgba($contrast-fg, .6) !default;
 $list-group-hover-bg:               lighten($body-bg, 10%) !default;
-$list-group-active-color:           $white !default;
+$list-group-active-color:           $contrast-bg !default;
 $list-group-active-bg:              $list-group-hover-bg !default;
 $list-group-active-border-color:    $list-group-border-color !default;
 $list-group-disabled-color:         $gray-700 !default;
-$list-group-action-color:           $white !default;
+$list-group-action-color:           $contrast-bg !default;
 
 // Breadcrumbs
 
@@ -173,27 +195,27 @@ $pre-color:                         inherit !default;
 // Mixins
 
 @mixin btn-shadow($color){
-  @include gradient-y-three-colors(lighten($color, 6%), $color, 60%, darken($color, 4%));
+  @include gradient-y-three-colors(tint-color($color, 12%), $color, 60%, shade-color($color, 8%));
   filter: none;
 }
 
 @mixin btn-shadow-inverse($color){
-  @include gradient-y-three-colors(darken($color, 18%), darken($color, 15%), 40%, darken($color, 13%));
+  @include gradient-y-three-colors(shade-color($color, 36%), shade-color($color, 30%), 40%, shade-color($color, 26%));
   filter: none;
 }
 
 // Navbar
 
 .navbar {
-  border: 1px solid rgba(0, 0, 0, .6);
-  text-shadow: 1px 1px 1px rgba(0, 0, 0, .3);
+  border: 1px solid rgba($contrast-fg, .6);
+  text-shadow: 1px 1px 1px rgba($contrast-fg, .3);
 
   .container {
     padding: 0;
   }
 
   .navbar-toggler {
-    border-color: rgba(0, 0, 0, .6);
+    border-color: rgba($contrast-fg, .6);
   }
 
   &-fixed-top {
@@ -206,25 +228,25 @@ $pre-color:                         inherit !default;
 
   .nav-link {
     padding: 1rem;
-    border-left: 1px solid rgba(255, 255, 255, .1);
-    border-right: 1px solid rgba(0, 0, 0, .2);
+    border-left: 1px solid rgba($contrast-bg, .1);
+    border-right: 1px solid rgba($contrast-fg, .2);
 
     &:hover,
     &:focus {
-      @include btn-shadow-inverse($gray-800);
-      border-left: 1px solid rgba(0, 0, 0, .2);
+      @include btn-shadow-inverse(body-mix(100%));
+      border-left: 1px solid rgba($contrast-fg, .2);
     }
   }
 
   &-brand {
     padding: .75rem 1rem subtract(24px, .75rem);
     margin-right: 0;
-    border-right: 1px solid rgba(0, 0, 0, .2);
+    border-right: 1px solid rgba($contrast-fg, .2);
   }
 
   .nav-item.active .nav-link {
-    background-color: rgba(0, 0, 0, .3);
-    border-left: 1px solid rgba(0, 0, 0, .2);
+    background-color: rgba($contrast-fg, .3);
+    border-left: 1px solid rgba($contrast-fg, .2);
   }
 
   &-nav .nav-item + .nav-item {
@@ -232,13 +254,13 @@ $pre-color:                         inherit !default;
   }
 
   &.bg-light {
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, .1);
+    text-shadow: 1px 1px 1px rgba($contrast-fg, .1);
 
     .nav-link {
       &:hover,
       &:focus {
-        @include btn-shadow-inverse($gray-600);
-        border-left: 1px solid rgba(0, 0, 0, .2);
+        @include btn-shadow-inverse($body-color);
+        border-left: 1px solid rgba($contrast-fg, .2);
       }
     }
   }
@@ -274,12 +296,12 @@ $pre-color:                         inherit !default;
 // Buttons
 
 .btn {
-  border-color: rgba(0, 0, 0, .6);
-  text-shadow: 1px 1px 1px rgba(0, 0, 0, .3);
+  border-color: rgba($contrast-fg, .6);
+  text-shadow: 1px 1px 1px rgba($contrast-fg, .3);
 
   &:not([disabled]):not(.disabled).active,
   &.disabled {
-    border-color: rgba(0, 0, 0, .6);
+    border-color: rgba($contrast-fg, .6);
     box-shadow: none;
   }
 
@@ -288,7 +310,7 @@ $pre-color:                         inherit !default;
   &:not([disabled]):not(.disabled):active,
   &:not([disabled]):not(.disabled):active:hover,
   &:not([disabled]):not(.disabled).active:hover {
-    border-color: rgba(0, 0, 0, .6);
+    border-color: rgba($contrast-fg, .6);
   }
 }
 
@@ -300,6 +322,20 @@ $pre-color:                         inherit !default;
   &:not([disabled]):not(.disabled):active:hover,
   &:not([disabled]):not(.disabled).active:hover {
     @include btn-shadow-inverse($primary);
+  }
+}
+
+@if variable-exists("default") {
+  .btn-default {
+    @include btn-shadow($default);
+    color: $contrast-bg;
+
+    &:not([disabled]):not(.disabled):hover,
+    &:not([disabled]):not(.disabled):focus,
+    &:not([disabled]):not(.disabled):active,
+    &:not([disabled]):not(.disabled).active {
+      @include btn-shadow-inverse($default);
+    }
   }
 }
 
@@ -316,7 +352,7 @@ $pre-color:                         inherit !default;
 
 .btn-success {
   @include btn-shadow($success);
-  color: $white;
+  color: $contrast-bg;
 
   &:not([disabled]):not(.disabled):hover,
   &:not([disabled]):not(.disabled):focus,
@@ -328,7 +364,7 @@ $pre-color:                         inherit !default;
 
 .btn-info {
   @include btn-shadow($info);
-  color: $white;
+  color: $contrast-bg;
 
   &:not([disabled]):not(.disabled):hover,
   &:not([disabled]):not(.disabled):focus,
@@ -340,7 +376,7 @@ $pre-color:                         inherit !default;
 
 .btn-warning {
   @include btn-shadow($warning);
-  color: $white;
+  color: $contrast-bg;
 
   &:not([disabled]):not(.disabled):hover,
   &:not([disabled]):not(.disabled):focus,
@@ -363,7 +399,7 @@ $pre-color:                         inherit !default;
 
 .btn-outline {
   &-primary {
-    color: $white;
+    color: $contrast-bg;
   }
 }
 
@@ -375,7 +411,7 @@ $pre-color:                         inherit !default;
 .btn-group,
 .btn-group-vertical {
   .btn.active {
-    border-color: rgba(0, 0, 0, .6);
+    border-color: rgba($contrast-fg, .6);
   }
 }
 
@@ -387,102 +423,102 @@ h3,
 h4,
 h5,
 h6 {
-  text-shadow: -1px -1px 0 rgba(0, 0, 0, .3);
+  text-shadow: -1px -1px 0 rgba($contrast-fg, .3);
 }
 
 // Forms
 
 legend {
-  color: $white;
+  color: $contrast-bg;
 }
 
 .input-group-addon {
   @include btn-shadow($secondary);
-  text-shadow: 1px 1px 1px rgba(0, 0, 0, .3);
-  color: $white;
+  text-shadow: 1px 1px 1px rgba($contrast-fg, .3);
+  color: $contrast-bg;
 }
 
 // Navs
 
 .nav-tabs {
   .nav-link {
-    @include btn-shadow-inverse($gray-800);
-    border: 1px solid rgba(0, 0, 0, .6);
+    @include btn-shadow-inverse(body-mix(100%));
+    border: 1px solid rgba($contrast-fg, .6);
 
     &:not([disabled]):not(.disabled):hover,
     &:not([disabled]):not(.disabled):focus,
     &:not([disabled]):not(.disabled):active,
     &:not([disabled]):not(.disabled).active {
-      @include btn-shadow($gray-800);
+      @include btn-shadow(body-mix(100%));
     }
 
     &.disabled {
-      border: 1px solid rgba(0, 0, 0, .6);
+      border: 1px solid rgba($contrast-fg, .6);
     }
   }
 
   .nav-link,
   .nav-link:hover {
-    color: $white;
+    color: $contrast-bg;
   }
 }
 
 .nav-pills {
   .nav-link {
-    @include btn-shadow($gray-800);
-    border: 1px solid rgba(0, 0, 0, .6);
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, .3);
-    color: $white;
+    @include btn-shadow(body-mix(100%));
+    border: 1px solid rgba($contrast-fg, .6);
+    text-shadow: 1px 1px 1px rgba($contrast-fg, .3);
+    color: $contrast-bg;
 
     &:hover {
-      @include btn-shadow-inverse($gray-800);
-      border: 1px solid rgba(0, 0, 0, .6);
+      @include btn-shadow-inverse(body-mix(100%));
+      border: 1px solid rgba($contrast-fg, .6);
     }
   }
 
   .nav-link.active,
   .nav-link:hover {
     background-color: transparent;
-    @include btn-shadow-inverse($gray-800);
-    border: 1px solid rgba(0, 0, 0, .6);
+    @include btn-shadow-inverse(body-mix(100%));
+    border: 1px solid rgba($contrast-fg, .6);
   }
 
   .nav-link.disabled,
   .nav-link.disabled:hover {
-    @include btn-shadow($gray-800);
+    @include btn-shadow(body-mix(100%));
     color: $nav-link-disabled-color;
   }
 }
 
 .pagination {
   .page-link {
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, .3);
-    @include btn-shadow($gray-800);
+    text-shadow: 1px 1px 1px rgba($contrast-fg, .3);
+    @include btn-shadow(body-mix(100%));
 
     &:hover {
-      @include btn-shadow-inverse($gray-800);
+      @include btn-shadow-inverse(body-mix(100%));
       text-decoration: none;
     }
   }
 
   .page-item.active .page-link {
-    @include btn-shadow-inverse($gray-800);
+    @include btn-shadow-inverse(body-mix(100%));
   }
 
   .page-item.disabled .page-link {
-    @include btn-shadow($gray-800);
+    @include btn-shadow(body-mix(100%));
   }
 }
 
 .breadcrumb {
-  border: 1px solid rgba(0, 0, 0, .6);
-  text-shadow: 1px 1px 1px rgba(0, 0, 0, .3);
+  border: 1px solid rgba($contrast-fg, .6);
+  text-shadow: 1px 1px 1px rgba($contrast-fg, .3);
   background-color: transparent;
-  @include btn-shadow($gray-800);
+  @include btn-shadow(body-mix(100%));
 
   a,
   a:hover {
-    color: $white;
+    color: $contrast-bg;
   }
 }
 
@@ -490,11 +526,11 @@ legend {
 
 .alert {
   border: none;
-  color: $white;
+  color: $contrast-bg;
 
   a,
   .alert-link {
-    color: $white;
+    color: $contrast-bg;
     text-decoration: underline;
   }
 
@@ -523,7 +559,7 @@ legend {
 
 .list-group {
   &-item-action:hover {
-    background-color: darken($gray-900, 5%);
+    background-color: shade-color($gray-900, 10%);
   }
 }
 

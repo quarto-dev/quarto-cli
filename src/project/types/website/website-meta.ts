@@ -105,10 +105,11 @@ export function metadataHtmlPostProcessor(
 
       // If not explicitly enabled, skip this provider
       const siteMeta = format.metadata[kSite] as Metadata;
-      if (!format.metadata[provider.key] && !siteMeta[provider.key]) {
+      if (
+        !format.metadata[provider.key] && (!siteMeta || !siteMeta[provider.key])
+      ) {
         return;
       }
-
       // If there is no title, skip this provider
       if (metadata[kTitle] === undefined) {
         return;
@@ -236,7 +237,9 @@ function mergedSiteAndDocumentData(
 ): boolean | Metadata {
   const siteData = format.metadata[kSite] as Metadata;
 
-  const siteMetadata = siteData[key] !== undefined ? siteData[key] : false;
+  const siteMetadata = siteData && siteData[key] !== undefined
+    ? siteData[key]
+    : false;
   const docMetadata = format.metadata[key] !== undefined
     ? format.metadata[key]
     : false;

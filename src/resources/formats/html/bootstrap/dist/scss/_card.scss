@@ -5,7 +5,9 @@
 .card {
   position: relative;
   display: flex;
+  display: -webkit-flex;
   flex-direction: column;
+  -webkit-flex-direction: column;
   min-width: 0; // See https://github.com/twbs/bootstrap/pull/22740#issuecomment-305868106
   height: $card-height;
   word-wrap: break-word;
@@ -46,6 +48,7 @@
   // Enable `flex-grow: 1` for decks and groups so that card blocks take up
   // as much space as possible, ensuring footers are aligned to the bottom.
   flex: 1 1 auto;
+  -webkit-flex: 1 1 auto;
   padding: $card-spacer-y $card-spacer-x;
   color: $card-color;
 }
@@ -55,7 +58,7 @@
 }
 
 .card-subtitle {
-  margin-top: -$card-title-spacer-y / 2;
+  margin-top: -$card-title-spacer-y * .5;
   margin-bottom: 0;
 }
 
@@ -106,9 +109,9 @@
 //
 
 .card-header-tabs {
-  margin-right: -$card-cap-padding-x / 2;
+  margin-right: -$card-cap-padding-x * .5;
   margin-bottom: -$card-cap-padding-y;
-  margin-left: -$card-cap-padding-x / 2;
+  margin-left: -$card-cap-padding-x * .5;
   border-bottom: 0;
 
   @if $nav-tabs-link-active-bg != $card-bg {
@@ -120,8 +123,8 @@
 }
 
 .card-header-pills {
-  margin-right: -$card-cap-padding-x / 2;
-  margin-left: -$card-cap-padding-x / 2;
+  margin-right: -$card-cap-padding-x * .5;
+  margin-left: -$card-cap-padding-x * .5;
 }
 
 // Card image
@@ -165,12 +168,15 @@
 
   @include media-breakpoint-up(sm) {
     display: flex;
+    display: -webkit-flex;
     flex-flow: row wrap;
+    -webkit-flex-flow: row wrap;
     // The child selector allows nested `.card` within `.card-group`
     // to display properly.
     > .card {
       // Flexbugs #4: https://github.com/philipwalton/flexbugs#flexbug-4
       flex: 1 0 0%;
+      -webkit-flex: 1 0 0%;
       margin-bottom: 0;
 
       + .card {

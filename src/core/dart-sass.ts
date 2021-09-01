@@ -8,9 +8,10 @@ import { join } from "path/mod.ts";
 
 import { binaryPath } from "./resources.ts";
 import { execProcess } from "./process.ts";
+import { sessionTempFile } from "./temp.ts";
 
-export async function dartSassInstallDir() {
-  return await binaryPath("dart-sass");
+export function dartSassInstallDir() {
+  return binaryPath("dart-sass");
 }
 
 export async function dartSassVersion() {
@@ -22,8 +23,12 @@ export async function dartCompile(
   loadPaths?: string[],
   compressed?: boolean,
 ): Promise<string | undefined> {
+  // Write the scss to a file
+  // We were previously passing it via stdin, but that can be overflowed
+  const inputFilePath = sessionTempFile({ suffix: "scss" });
+  Deno.writeTextFileSync(inputFilePath, input);
   const args = [
-    "--stdin",
+    inputFilePath,
     "--style",
     compressed ? "compressed" : "expanded",
   ];
@@ -34,10 +39,10 @@ export async function dartCompile(
     });
   }
 
-  return await dartCommand(args, input);
+  return await dartCommand(args);
 }
 
-async function dartCommand(args: string[], stdin?: string) {
+async function dartCommand(args: string[]) {
   const command = Deno.build.os === "windows" ? "sass.bat" : "sass";
   const sass = binaryPath(join("dart-sass", command));
   const cmd = [
@@ -51,7 +56,6 @@ async function dartCommand(args: string[], stdin?: string) {
       cmd,
       stdout: "piped",
     },
-    stdin,
   );
 
   if (result.success) {

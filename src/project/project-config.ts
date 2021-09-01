@@ -81,7 +81,6 @@ export interface Sidebar {
     | "light"
     | "dark"
     | "white";
-  type?: "light" | "dark";
   search?: boolean | string;
   [kCollapseLevel]?: number;
   contents: SidebarItem[];

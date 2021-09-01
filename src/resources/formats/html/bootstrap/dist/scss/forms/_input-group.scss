@@ -5,14 +5,18 @@
 .input-group {
   position: relative;
   display: flex;
+  display: -webkit-flex;
   flex-wrap: wrap; // For form validation feedback
+  -webkit-flex-wrap: wrap; // For form validation feedback
   align-items: stretch;
+  -webkit-align-items: stretch;
   width: 100%;
 
   > .form-control,
   > .form-select {
     position: relative; // For focus state's z-index
     flex: 1 1 auto;
+    -webkit-flex: 1 1 auto;
     width: 1%;
     min-width: 0; // https://stackoverflow.com/questions/36247140/why-dont-flex-items-shrink-past-content-size
   }
@@ -44,7 +48,9 @@
 
 .input-group-text {
   display: flex;
+  display: -webkit-flex;
   align-items: center;
+  -webkit-align-items: center;
   padding: $input-group-addon-padding-y $input-group-addon-padding-x;
   @include font-size($input-font-size); // Match inputs
   font-weight: $input-group-addon-font-weight;

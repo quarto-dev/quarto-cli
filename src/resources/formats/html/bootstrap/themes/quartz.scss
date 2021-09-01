@@ -227,7 +227,7 @@ $btn-close-color:            $white !default;
 
 // Variables
 
-$body-bg-image: linear-gradient(90deg, darken($cyan, 10%), darken($purple, 10%), darken($pink, 5%)) !default;
+$body-bg-image: linear-gradient(90deg, shade-color($cyan, 10%), shade-color($purple, 10%), shade-color($pink, 5%)) !default;
 $frosted-opacity: .3 !default;
 
 @mixin glass($opacity: $frosted-opacity, $bg: $white) {
@@ -248,6 +248,10 @@ $frosted-opacity: .3 !default;
   background-color: transparent;
   background-image: linear-gradient(125deg, rgba($bg, ($opacity)), rgba($bg, ($opacity - .1)) 70%);
   backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  -moz-backdrop-filter: blur(5px);
+  -ms-backdrop-filter: blur(5px);
+  -o-backdrop-filter: blur(5px);
 }
 
 // Body
@@ -302,6 +306,10 @@ body {
   background-image: linear-gradient(125deg, rgba($white, .3), rgba($white, .2) 70%);
   border: none;
   backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  -moz-backdrop-filter: blur(5px);
+  -ms-backdrop-filter: blur(5px);
+  -o-backdrop-filter: blur(5px);
 }
 
 .input-group-text {
@@ -465,6 +473,10 @@ body {
 
 .tooltip {
   backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  -moz-backdrop-filter: blur(5px);
+  -ms-backdrop-filter: blur(5px);
+  -o-backdrop-filter: blur(5px);
 }
 
 .modal-content {
