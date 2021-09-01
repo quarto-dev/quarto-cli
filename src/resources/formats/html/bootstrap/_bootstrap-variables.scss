@@ -53,7 +53,7 @@ $callout-color-important: $red !default;
 */
 
 // Sidebar coloring
-$sidebar-bg: if(variable-exists(body-bg), $body-bg, #fff) !default;
+$sidebar-bg: if(variable-exists(light), $light, #fff) !default;
 $sidebar-fg: theme-contrast($sidebar-bg) !default;
 $sidebar-hl: null;
 $sidebar-font-size: 0.875rem !default;
