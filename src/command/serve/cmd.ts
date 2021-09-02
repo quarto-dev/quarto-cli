@@ -20,8 +20,8 @@ export const serveCommand = new Command()
   .name("serve")
   .arguments("[path:string]")
   .description(
-    "Serve a website project for local development. Uses port 4848 by default if it's available,\n" +
-      "otherwise chooses a random free port number (use --port to specify a specific port).\n\n" +
+    "Serve a website or book project for local development.\n\n" +
+      "Chooses a random free port number (use --port to specify a specific port).\n\n" +
       "Automatically opens a browser, watches the filesystem for site changes, and reloads the\n" +
       "browser when changes occur (use --no-browse and --no-watch to disable these behaviors)." +
       "\n\n" +

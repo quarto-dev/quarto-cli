@@ -25,7 +25,6 @@ export type LayoutBreak = "" | "sm" | "md" | "lg" | "xl" | "xxl";
 export interface Navbar {
   title?: string | false;
   logo?: string;
-  type?: "dark" | "light";
   background:
     | "primary"
     | "secondary"
