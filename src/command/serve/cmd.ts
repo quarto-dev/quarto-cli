@@ -7,17 +7,13 @@
 
 import { Command } from "cliffy/command/mod.ts";
 
-import { kProjectType } from "../../project/types.ts";
-import {
-  projectContext,
-  projectIsWebsite,
-} from "../../project/project-context.ts";
 import { findOpenPort, kLocalhost } from "../../core/port.ts";
 
 import { kRenderNone, serveProject } from "./serve.ts";
 
 export const serveCommand = new Command()
   .name("serve")
+  .hidden()
   .arguments("[path:string]")
   .description(
     "Serve a website or book project for local development.\n\n" +
@@ -57,11 +53,6 @@ export const serveCommand = new Command()
     "--no-navigate",
     "Don't navigate the browser automatically.",
   )
-  .option(
-    "--debug",
-    "Print debug output.",
-    { hidden: true },
-  )
   .example(
     "Serve with most recent execution results",
     "quarto serve",
@@ -92,18 +83,6 @@ export const serveCommand = new Command()
     if (!stat.isDirectory) {
       throw new Error(`${projDir} is not a directory`);
     }
-    const context = await projectContext(projDir, false, true);
-    if (!context?.config) {
-      throw new Error(`${projDir} is not a project`);
-    }
-
-    // confirm that it's a project type that can be served
-    if (!projectIsWebsite(context)) {
-      throw new Error(
-        `Cannot serve project of type '${context.config.project[kProjectType] ||
-          "default"}' (try using project type 'site').`,
-      );
-    }
 
     // default host if needed
     options.host = options.host || kLocalhost;
@@ -115,7 +94,7 @@ export const serveCommand = new Command()
       options.port = findOpenPort(parseInt(options.port));
     }
 
-    await serveProject(context, {
+    await serveProject(projDir, {}, [], {
       port: options.port,
       host: options.host,
       render: options.render,

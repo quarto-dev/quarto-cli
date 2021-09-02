@@ -14,6 +14,7 @@ import { Command } from "cliffy/command/mod.ts";
 import { findOpenPort, kLocalhost } from "../../core/port.ts";
 import { fixupPandocArgs, parseRenderFlags } from "../render/flags.ts";
 import { preview } from "./preview.ts";
+import { kRenderDefault, kRenderNone, serveProject } from "../serve/serve.ts";
 
 export const previewCommand = new Command()
   .name("preview")
@@ -28,15 +29,27 @@ export const previewCommand = new Command()
     "Hostname to bind to (defaults to 127.0.0.1)",
   )
   .option(
+    "--render [to:string]",
+    "Render to the specified format(s) before previewing",
+    {
+      default: kRenderNone,
+      hidden: true,
+    },
+  )
+  .option(
     "--no-watch",
-    "Do not re-render when the source file changes.",
+    "Do not udpate preview when source files change.",
   )
   .option(
     "--no-render",
-    "Do not re-render when the source file changes.",
+    "Do not update preview when source files change.",
     {
       hidden: true,
     },
+  )
+  .option(
+    "--no-navigate",
+    "Don't navigate the browser automatically.",
   )
   .option(
     "--no-browse",
@@ -44,10 +57,12 @@ export const previewCommand = new Command()
   )
   .arguments("[file:string] [...args:string]")
   .description(
-    "Render and preview a Quarto document. Automatically re-renders the document when the source\n" +
-      "file changes. Automatically reloads the browser when document resources (e.g. CSS) change.\n\n" +
-      "Pass --no-watch to prevent re-rendering when the source file changes (note that even when\n" +
-      "this option is provided the document will be rendered once before previewing).\n\n" +
+    "Render and preview a Quarto document or website project. Automatically reloads the browser when\n" +
+      "input files are re-rendered or document resources (e.g. CSS) change.\n\n" +
+      "For website preview, the most recent execution results of computational documents are used to render\n" +
+      "the site (this is to optimize startup time). If you want to perform a full render prior to\n" +
+      'previewing pass the --render option with "all" or a comma-separated list of formats to render.\n\n' +
+      "For document preview, input file changes will result in a re-render (pass --no-watch to prevent).\n\n" +
       "You can also include arbitrary command line arguments to be forwarded to " +
       colors.bold("quarto render") + ".",
   )
@@ -56,19 +71,36 @@ export const previewCommand = new Command()
     "quarto preview doc.qmd",
   )
   .example(
-    "Preview (don't open a browser)",
-    "quarto preview doc.qmd --no-browse",
+    "Preview document with render command line args",
+    "quarto preview doc.qmd --toc",
   )
   .example(
-    "Preview (don't watch for source changes)",
+    "Preview document (don't watch for source changes)",
     "quarto preview doc.qmd --no-watch",
   )
   .example(
-    "Preview with render command line args",
-    "quarto preview doc.qmd --toc --number-sections",
+    "Preview website with most recent execution results",
+    "quarto preview",
+  )
+  .example(
+    "Previewing website using a specific port",
+    "quarto preview --port 4444",
+  )
+  .example(
+    "Preview website (don't open a browser)",
+    "quarto preview --no-browse",
+  )
+  .example(
+    "Fully render all website/book formats then preview",
+    "quarto preview --render all",
+  )
+  .example(
+    "Fully render the html format then preview",
+    "quarto preview --render html",
   )
   // deno-lint-ignore no-explicit-any
   .action(async (options: any, file: string, args: string[]) => {
+    file = file || Deno.cwd();
     if (!existsSync(file)) {
       throw new Error(`${file} not found`);
     }
@@ -81,11 +113,15 @@ export const previewCommand = new Command()
       options.port = parseInt(args[portPos + 1]);
       args.splice(portPos, 2);
     }
-    // pull out our command line args
     const hostPos = args.indexOf("--host");
     if (hostPos !== -1) {
       options.host = parseInt(args[hostPos + 1]);
       args.splice(hostPos, 2);
+    }
+    const renderPos = args.indexOf("--render");
+    if (renderPos !== -1) {
+      options.render = String(args[renderPos + 1]);
+      args.splice(renderPos, 2);
     }
     const noBrowsePos = args.indexOf("--no-browse");
     if (noBrowsePos !== -1) {
@@ -101,6 +137,11 @@ export const previewCommand = new Command()
     if (noRenderPos !== -1) {
       options.watch = false;
       args.splice(noRenderPos, 1);
+    }
+    const noNavigatePos = args.indexOf("--no-navigate");
+    if (noNavigatePos !== -1) {
+      options.navigate = false;
+      args.splice(noNavigatePos, 1);
     }
 
     // default host if not specified
@@ -118,11 +159,31 @@ export const previewCommand = new Command()
     const flags = parseRenderFlags(args);
     args = fixupPandocArgs(args, flags);
 
-    // run preview
-    await preview(file, flags, args, {
-      port: options.port,
-      host: options.host,
-      browse: !!options.browse,
-      watch: !!options.watch,
-    });
+    // see if we are serving a project or a file
+    if (Deno.statSync(file).isDirectory) {
+      // project preview
+      await serveProject(file, flags, args, {
+        port: options.port,
+        host: options.host,
+        render: options.render,
+        browse: options.browse,
+        watch: options.watch,
+        navigate: options.navigate,
+      });
+    } else {
+      // single file preview
+      if (
+        options.render !== kRenderNone &&
+        options.render !== kRenderDefault &&
+        args.indexOf("--to") === -1
+      ) {
+        args.push("--to", options.render);
+      }
+      await preview(file, flags, args, {
+        port: options.port,
+        host: options.host,
+        browse: !!options.browse,
+        watch: !!options.watch,
+      });
+    }
   });

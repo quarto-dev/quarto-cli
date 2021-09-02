@@ -20,9 +20,16 @@ import { isModifiedAfter, pathWithForwardSlashes } from "../../core/path.ts";
 import { logError } from "../../core/log.ts";
 import { PromiseQueue } from "../../core/promise.ts";
 
-import { kProject404File, ProjectContext } from "../../project/types.ts";
+import {
+  kProject404File,
+  kProjectType,
+  ProjectContext,
+} from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
-import { projectContext } from "../../project/project-context.ts";
+import {
+  projectContext,
+  projectIsWebsite,
+} from "../../project/project-context.ts";
 import { partitionedMarkdownForInput } from "../../project/project-config.ts";
 
 import {
@@ -49,15 +56,30 @@ import { inputFilesDir } from "../../core/render.ts";
 import { kResources } from "../../config/constants.ts";
 import { resourcesFromMetadata } from "../render/resources.ts";
 import { readYamlFromMarkdown } from "../../core/yaml.ts";
-import { RenderResult } from "../render/types.ts";
+import { RenderFlags, RenderResult } from "../render/types.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
 
 export async function serveProject(
-  project: ProjectContext,
+  projDir: string,
+  flags: RenderFlags,
+  pandocArgs: string[],
   options: ServeOptions,
 ) {
+  const project = await projectContext(projDir, false, true);
+  if (!project?.config) {
+    throw new Error(`${projDir} is not a project`);
+  }
+
+  // confirm that it's a project type that can be served
+  if (!projectIsWebsite(project)) {
+    throw new Error(
+      `Cannot serve project of type '${project.config.project[kProjectType] ||
+        "default"}' (try using project type 'site').`,
+    );
+  }
+
   // provide defaults
   options = {
     browse: true,
@@ -71,7 +93,7 @@ export async function serveProject(
   if (render) {
     info("Rendering:");
   } else {
-    info("Preparing to serve");
+    info("Preparing to preview");
   }
 
   // if we are in render 'none' mode then only render files whose output
@@ -87,9 +109,13 @@ export async function serveProject(
     {
       progress: true,
       useFreezer: !render,
-      flags: (render && options.render !== kRenderDefault)
-        ? { to: options.render }
-        : {},
+      flags: {
+        ...flags,
+        ...(render && options.render !== kRenderDefault)
+          ? { to: options.render }
+          : {},
+      },
+      pandocArgs,
     },
     files,
   );
