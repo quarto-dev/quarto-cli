@@ -28,7 +28,7 @@ export const previewCommand = new Command()
     "Hostname to bind to (defaults to 127.0.0.1)",
   )
   .option(
-    "--no-render",
+    "--no-watch",
     "Do not re-render when the source file changes.",
   )
   .option(
@@ -39,7 +39,7 @@ export const previewCommand = new Command()
   .description(
     "Render and preview a Quarto document. Automatically re-renders the document when the source\n" +
       "file changes. Automatically reloads the browser when document resources (e.g. CSS) change.\n\n" +
-      "Pass --no-render to prevent re-rendering when the source file changes (note that even when\n" +
+      "Pass --no-watch to prevent re-rendering when the source file changes (note that even when\n" +
       "this option is provided the document will be rendered once before previewing).\n\n" +
       "You can also include arbitrary command line arguments to be forwarded to " +
       colors.bold("quarto render") + ".",
@@ -53,8 +53,8 @@ export const previewCommand = new Command()
     "quarto preview doc.qmd --no-browse",
   )
   .example(
-    "Preview (don't re-render on source change)",
-    "quarto preview doc.qmd --no-render",
+    "Preview (don't watch for source changes)",
+    "quarto preview doc.qmd --no-watch",
   )
   .example(
     "Preview with render command line args",
@@ -85,10 +85,10 @@ export const previewCommand = new Command()
       options.browse = false;
       args.splice(noBrowsePos, 1);
     }
-    const noRenderPos = args.indexOf("--no-render");
-    if (noRenderPos !== -1) {
-      options.render = false;
-      args.splice(noRenderPos, 1);
+    const noWatchPos = args.indexOf("--no-watch");
+    if (noWatchPos !== -1) {
+      options.watch = false;
+      args.splice(noWatchPos, 1);
     }
 
     // default host if not specified
@@ -111,6 +111,6 @@ export const previewCommand = new Command()
       port: options.port,
       host: options.host,
       browse: !!options.browse,
-      render: !!options.render,
+      watch: !!options.watch,
     });
   });

@@ -49,7 +49,7 @@ interface PreviewOptions {
   port: number;
   host: string;
   browse: boolean;
-  render: boolean;
+  watch: boolean;
 }
 
 export async function preview(
@@ -85,7 +85,7 @@ export async function preview(
     result,
     reloader,
     render,
-    options.render,
+    options.watch,
   );
 
   // create file request handler (hook clients up to reloader, provide
