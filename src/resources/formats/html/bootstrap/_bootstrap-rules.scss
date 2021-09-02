@@ -412,6 +412,13 @@ div.hanging-indent {
     .callout {
       margin-left: add(-0.4em, -$callout-border-width);
     }
+
+    div.sourceCode {
+      margin-left: add(
+        add(-$code-block-padding-left, -$code-block-border-left-size),
+        2px
+      );
+    }
   }
 }
 
