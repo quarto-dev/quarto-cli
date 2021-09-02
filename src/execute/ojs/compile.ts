@@ -233,10 +233,12 @@ export async function ojsCompile(
       interface ParsedCellInfo {
         info: SourceInfo[];
       }
-      
+
       const cellStartingLoc = ojsBlockLineNumbers[ojsBlockIndex++] || 0;
       if (cellStartingLoc === 0) {
-        warnOnce("OJS block count mismatch. Line number reporting is likely to be wrong");
+        warnOnce(
+          "OJS block count mismatch. Line number reporting is likely to be wrong",
+        );
       }
 
       const handleError = (err: any, cellSrc: string) => {
@@ -403,7 +405,7 @@ export async function ojsCompile(
         "source.hidden",
         "plot.hidden",
         "output.hidden",
-        "echo.hidden"
+        "echo.hidden",
       ]);
 
       for (const [key, value] of Object.entries(cell.options || {})) {
@@ -466,7 +468,7 @@ export async function ojsCompile(
       // the only effect of echoVal in OJS blocks
       // is to hide the div. We need source always to pinpoint
       // errors in source in case of runtime errors.
-      // 
+      //
       // FIXME This is
       // potentially wrong in the presence of !includeVal
       if (!echoVal) {
@@ -506,7 +508,9 @@ export async function ojsCompile(
 
       const makeSubFigures = (specs: SubfigureSpec[]) => {
         let subfigIx = 1;
-        let cellInfo = ([] as SourceInfo[]).concat(...(parsedCells.map(n => n.info)));
+        let cellInfo = ([] as SourceInfo[]).concat(
+          ...(parsedCells.map((n) => n.info)),
+        );
         for (const spec of specs) {
           const outputDiv = pandocDiv({
             classes: outputCellClasses,
@@ -517,7 +521,7 @@ export async function ojsCompile(
           const innerInfo = parsedCells[subfigIx - 1].info;
           const ojsDiv = pandocDiv({
             id: `${ojsId}-${subfigIx}`,
-            attrs: [`nodetype="${cellInfo[subfigIx-1].cellType}"`]
+            attrs: [`nodetype="${cellInfo[subfigIx - 1].cellType}"`],
           });
           if (innerInfo.length > 0 && srcConfig !== undefined) {
             const ourAttrs = srcConfig.attrs.slice();
@@ -811,7 +815,7 @@ export async function ojsCompile(
 export async function ojsExecuteResult(
   context: RenderContext,
   executeResult: ExecuteResult,
-  ojsBlockLineNumbers: number[]
+  ojsBlockLineNumbers: number[],
 ) {
   executeResult = ld.cloneDeep(executeResult);
 
@@ -822,7 +826,7 @@ export async function ojsExecuteResult(
     markdown: executeResult.markdown,
     libDir: context.libDir,
     project: context.project,
-    ojsBlockLineNumbers
+    ojsBlockLineNumbers,
   });
 
   // merge in results

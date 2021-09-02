@@ -22,8 +22,6 @@ import { Document, DOMParser } from "deno_dom/deno-dom-wasm.ts";
 
 import { info } from "log/mod.ts";
 
-import { shortUuid } from "../../core/uuid.ts";
-
 import { mergeConfigs } from "../../core/config.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { createSessionTempDir } from "../../core/temp.ts";
@@ -183,7 +181,7 @@ export async function renderFiles(
 
         // patch source file
         const { ojsBlockLineNumbers } = annotateOjsLineNumbers(context);
-        
+
         // execute
         const baseExecuteResult = await renderExecute(
           context,
@@ -195,7 +193,7 @@ export async function renderFiles(
         const { executeResult, resourceFiles } = await ojsExecuteResult(
           context,
           baseExecuteResult,
-          ojsBlockLineNumbers
+          ojsBlockLineNumbers,
         );
 
         // callback
