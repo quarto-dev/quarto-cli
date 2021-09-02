@@ -33,6 +33,9 @@ $code-block-bg-padding: 0.4em !default;
 $code-block-bg-alpha: -0.35 !default;
 
 // code-bg
+// pink will also be defined in Bootstrap, but define it here
+// so we'll use whatever pink is defined in a theme
+$pink: #d63384 !default;
 $code-color: $pink !default;
 
 $code-block-theme-dark-threshhold: 40% !default;
