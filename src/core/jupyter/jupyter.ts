@@ -895,9 +895,14 @@ function mdFromCodeCell(
   }
 
   // ouptut: asis should just include raw markup w/ no enclosures
-  const asis = cell.options[kOutput] === "asis" ||
-    options.execute[kOutput] === "asis" &&
-      cell.options[kOutput] === undefined;
+  const asis =
+    // specified as an explicit option for this cell
+    cell.options[kOutput] === "asis" ||
+    // specified globally with no output override for this cell
+    (options.execute[kOutput] === "asis" &&
+      cell.options[kOutput] === undefined) ||
+    // all outputs are raw markdown
+    outputs.every((output) => isMarkdown(output, options));
 
   // markdown to return
   const md: string[] = [];
@@ -1165,19 +1170,31 @@ function mdFromCodeCell(
   return md;
 }
 
-function isImage(output: JupyterOutput, options: JupyterToMarkdownOptions) {
+function isDisplayDataType(
+  output: JupyterOutput,
+  options: JupyterToMarkdownOptions,
+  checkFn: (mimeType: string) => boolean,
+) {
   if (isDisplayData(output)) {
     const mimeType = displayDataMimeType(
       output as JupyterOutputDisplayData,
       options,
     );
     if (mimeType) {
-      if (displayDataIsImage(mimeType)) {
+      if (checkFn(mimeType)) {
         return true;
       }
     }
   }
   return false;
+}
+
+function isImage(output: JupyterOutput, options: JupyterToMarkdownOptions) {
+  return isDisplayDataType(output, options, displayDataIsImage);
+}
+
+function isMarkdown(output: JupyterOutput, options: JupyterToMarkdownOptions) {
+  return isDisplayDataType(output, options, displayDataIsMarkdown);
 }
 
 function mdOutputStream(output: JupyterOutputStream) {
