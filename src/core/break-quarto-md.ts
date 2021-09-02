@@ -22,8 +22,6 @@ export interface QuartoMdCell {
   cell_type: CodeCellType | "markdown" | "raw" | "math";
   options?: Record<string, unknown>;
   source: string[];
-
-  startingLoc: number;
 }
 
 export interface QuartoMdChunks {
@@ -48,8 +46,6 @@ export function breakQuartoMd(
   const delimitMathBlockRegEx = /^\$\$/;
   let language = ""; // current language block
 
-  let loc = 0;
-  let blockStartingLoc = 1;
   // line buffer
   const lineBuffer: string[] = [];
   const flushLineBuffer = (
@@ -69,18 +65,16 @@ export function breakQuartoMd(
         source: lineBuffer.map((line, index) => {
           return line + (index < (lineBuffer.length - 1) ? "\n" : "");
         }),
-        startingLoc: blockStartingLoc,
       };
 
       if (cell_type === "code" && (language === "ojs" || language === "dot")) {
         // see if there is embedded metadata we should forward into the cell metadata
-        const { yaml, source, yamlLength } = partitionCellOptions(
+        const { yaml, source } = partitionCellOptions(
           "js",
           cell.source,
         );
         cell.source = source;
         cell.options = yaml;
-        cell.startingLoc += yamlLength;
       }
 
       // if the source is empty then don't add it
@@ -90,7 +84,6 @@ export function breakQuartoMd(
       }
 
       lineBuffer.splice(0, lineBuffer.length);
-      blockStartingLoc = loc;
     }
   };
 
@@ -100,7 +93,6 @@ export function breakQuartoMd(
     inCodeCell = false,
     inCode = false;
   for (const line of lines(src)) {
-    loc += 1;
     // yaml front matter
     if (yamlRegEx.test(line) && !inCodeCell && !inCode && !inMathBlock) {
       if (inYaml) {

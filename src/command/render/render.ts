@@ -101,6 +101,7 @@ import {
   removeFreezeResults,
 } from "./freeze.ts";
 import { ojsExecuteResult } from "../../execute/ojs/compile.ts";
+import { annotateOjsLineNumbers } from "../../execute/ojs/annotate-source.ts";
 import {
   ExecutedFile,
   PandocRenderer,
@@ -178,6 +179,9 @@ export async function renderFiles(
           pandocRenderer.onBeforeExecute(recipe.format),
         );
 
+        // patch source file
+        const { ojsBlockLineNumbers } = annotateOjsLineNumbers(context);
+
         // execute
         const baseExecuteResult = await renderExecute(
           context,
@@ -189,6 +193,7 @@ export async function renderFiles(
         const { executeResult, resourceFiles } = await ojsExecuteResult(
           context,
           baseExecuteResult,
+          ojsBlockLineNumbers,
         );
 
         // callback

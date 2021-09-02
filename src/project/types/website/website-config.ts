@@ -6,6 +6,7 @@
 */
 
 import { ld } from "lodash/mod.ts";
+import { formatKeys } from "../../../command/render/render.ts";
 
 import {
   kDescription,
@@ -13,8 +14,14 @@ import {
   kTitle,
 } from "../../../config/constants.ts";
 import { isHtmlOutput } from "../../../config/format.ts";
+import {
+  formatFromMetadata,
+  metadataAsFormat,
+} from "../../../config/metadata.ts";
+import { Format, Metadata } from "../../../config/types.ts";
+import { mergeConfigs } from "../../../core/config.ts";
 
-import { ProjectConfig } from "../../types.ts";
+import { ProjectConfig, ProjectContext } from "../../types.ts";
 
 export const kSite = "site";
 
@@ -235,4 +242,11 @@ export function websiteProjectConfig(
     config[kMetadataFormat] = "html";
   }
   return Promise.resolve(config);
+}
+
+export function websiteHtmlFormat(project: ProjectContext): Format {
+  const projConfig: Metadata = project.config || {};
+  const baseFormat = metadataAsFormat(projConfig);
+  const format = formatFromMetadata(baseFormat, formatKeys(projConfig)[0]);
+  return mergeConfigs(baseFormat, format);
 }
