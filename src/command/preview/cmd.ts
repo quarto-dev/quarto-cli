@@ -32,6 +32,13 @@ export const previewCommand = new Command()
     "Do not re-render when the source file changes.",
   )
   .option(
+    "--no-render",
+    "Do not re-render when the source file changes.",
+    {
+      hidden: true,
+    },
+  )
+  .option(
     "--no-browse",
     "Don't open a browser to preview the site.",
   )
@@ -89,6 +96,11 @@ export const previewCommand = new Command()
     if (noWatchPos !== -1) {
       options.watch = false;
       args.splice(noWatchPos, 1);
+    }
+    const noRenderPos = args.indexOf("--no-render");
+    if (noRenderPos !== -1) {
+      options.watch = false;
+      args.splice(noRenderPos, 1);
     }
 
     // default host if not specified
