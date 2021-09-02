@@ -276,6 +276,7 @@ function pandocVariablesToBootstrapDefaults(
 const kCodeBorderLeft = "code-block-border-left";
 const kCodeBlockBackground = "code-block-bg";
 const kBackground = "background";
+const kForeground = "foreground";
 const kColor = "color";
 const kBorder = "border";
 
@@ -287,9 +288,9 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
   );
   const variables = [Deno.readTextFileSync(varFilePath)];
 
-  // Forward navbar background color
   const navbar = (metadata[kSite] as Metadata)?.[kSiteNavbar];
   if (navbar && typeof (navbar) === "object") {
+    // Forward navbar background color
     const navbarBackground = (navbar as Record<string, unknown>)[kBackground];
     if (navbarBackground !== undefined) {
       variables.push(
@@ -304,9 +305,24 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
         ),
       );
     }
+
+    // Forward navbar foreground color
+    const navbarForeground = (navbar as Record<string, unknown>)[kForeground];
+    if (navbarForeground !== undefined) {
+      variables.push(
+        outputVariable(
+          sassVariable(
+            "navbar-fg",
+            navbarForeground,
+            typeof (navbarForeground) === "string"
+              ? asBootstrapColor
+              : undefined,
+          ),
+        ),
+      );
+    }
   }
 
-  // Forward background color
   const sidebars = (metadata[kSite] as Metadata)?.[kSiteSidebar];
   const sidebar = Array.isArray(sidebars)
     ? sidebars[0]
@@ -315,6 +331,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     : undefined;
 
   if (sidebar) {
+    // Forward background color
     const sidebarBackground = sidebar[kBackground];
     if (sidebarBackground !== undefined) {
       variables.push(
@@ -323,6 +340,28 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
             "sidebar-bg",
             sidebarBackground,
             typeof (sidebarBackground) === "string"
+              ? asBootstrapColor
+              : undefined,
+          ),
+        ),
+      );
+    } else if (sidebar.style === "floating" || navbar) {
+      // If this is a floating sidebar or there is a navbar present,
+      // default to a body colored sidebar
+      variables.push(
+        `$sidebar-bg: if(variable-exists(body-bg), $body-bg, #fff) !default;`,
+      );
+    }
+
+    // Forward foreground color
+    const sidebarForeground = sidebar[kForeground];
+    if (sidebarForeground !== undefined) {
+      variables.push(
+        outputVariable(
+          sassVariable(
+            "sidebar-fg",
+            sidebarForeground,
+            typeof (sidebarForeground) === "string"
               ? asBootstrapColor
               : undefined,
           ),
@@ -342,6 +381,20 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
             "footer-bg",
             footerBg,
             typeof (footerBg) === "string" ? asBootstrapColor : undefined,
+          ),
+        ),
+      );
+    }
+
+    // Forward footer foreground
+    const footerFg = footer[kForeground];
+    if (footerFg !== undefined) {
+      variables.push(
+        outputVariable(
+          sassVariable(
+            "footer-fg",
+            footerFg,
+            typeof (footerFg) === "string" ? asBootstrapColor : undefined,
           ),
         ),
       );

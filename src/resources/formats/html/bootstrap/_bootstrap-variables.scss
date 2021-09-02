@@ -82,14 +82,14 @@ $navbar-dark-hover-color: rgba($navbar-hl, 0.8) !default;
 $navbar-dark-active-color: $navbar-hl !default;
 $navbar-dark-disabled-color: rgba($navbar-fg, 0.75) !default;
 $navbar-dark-toggler-icon-bg: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><path stroke='#{$navbar-fg}' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg>") !default;
-$navbar-dark-toggler-border-color: rgba($navbar-fg, 0.1) !default;
+$navbar-dark-toggler-border-color: rgba($navbar-fg, 0.4) !default;
 
 $navbar-light-color: $navbar-fg !default;
 $navbar-light-hover-color: rgba($navbar-hl, 0.8) !default;
 $navbar-light-active-color: $navbar-hl !default;
 $navbar-light-disabled-color: rgba($navbar-fg, 0.75) !default;
 $navbar-light-toggler-icon-bg: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><path stroke='#{$navbar-fg}' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg>") !default;
-$navbar-light-toggler-border-color: rgba($navbar-fg, 0.1) !default;
+$navbar-light-toggler-border-color: rgba($navbar-fg, 0.4) !default;
 
 $navbar-light-brand-color: $navbar-hl !default;
 $navbar-light-brand-hover-color: $navbar-hl !default;

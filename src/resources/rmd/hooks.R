@@ -24,9 +24,11 @@ knitr_hooks <- function(format, resourceDir) {
   # global default, FALSE means shut them off entirely)
   opts_hooks[["output"]] <- function(options) {
     output <- options[["output"]]
-    if (!output) {
+    if (isFALSE(output)) {
       options[["results"]] <- "hide"
       options[["fig.show"]] <- "hide"
+    } else if (identical(output, "asis")) {
+      options[["results"]] <- "asis"
     } else {
       if (identical(options[["results"]], "hide")) {
          options[["results"]] <- "markup"
@@ -35,8 +37,8 @@ knitr_hooks <- function(format, resourceDir) {
          options[["fig.show"]] <- "asis"
       }
     }
-    options[["message"]] <- ifelse(output, knitr::opts_chunk$get("message"), FALSE)
-    options[["warning"]] <- ifelse(output, knitr::opts_chunk$get("warning"), FALSE)
+    options[["message"]] <- ifelse(!isFALSE(output), knitr::opts_chunk$get("message"), FALSE)
+    options[["warning"]] <- ifelse(!isFALSE(output), knitr::opts_chunk$get("warning"), FALSE)
     options
   }
 
@@ -92,12 +94,16 @@ knitr_hooks <- function(format, resourceDir) {
   }
   delegating_output_hook = function(type, classes) {
     delegating_hook(type, function(x, options) {
-      # prefix for classes
-      classes <- paste0("cell-output-", classes)
-      # add .hidden class if keep-hidden hook injected an option
-      if (isTRUE(options[[paste0(type,".hidden")]]))
-        classes <- c(classes, "hidden")
-      output_div(x, NULL, classes)
+      if (identical(options[["results"]], "asis")) {
+        x
+      } else {
+        # prefix for classes
+        classes <- paste0("cell-output-", classes)
+        # add .hidden class if keep-hidden hook injected an option
+        if (isTRUE(options[[paste0(type,".hidden")]]))
+          classes <- c(classes, "hidden")
+        output_div(x, NULL, classes)
+      }
     })
   }
 
@@ -106,6 +112,11 @@ knitr_hooks <- function(format, resourceDir) {
     
     # ojs engine should return output unadorned
     if (startsWith(x, "```{ojs}") && endsWith(x, "```")) {
+      return(x)
+    }
+
+    # asis output should do nothing
+    if (identical(options[["results"]], "asis")) {
       return(x)
     }
 

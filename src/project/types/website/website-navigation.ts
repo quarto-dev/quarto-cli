@@ -727,9 +727,12 @@ function nextAndPrevious(
     );
 
     // Don't allow the same href to appear in the flattened list multiple times
-    const sidebarItemsUniq = ld.uniqBy(sidebarItems, (sidebarItem: SidebarItem) => {
-      return sidebarItem.href;
-    });
+    const sidebarItemsUniq = ld.uniqBy(
+      sidebarItems,
+      (sidebarItem: SidebarItem) => {
+        return sidebarItem.href;
+      },
+    );
 
     const index = sidebarItemsUniq.findIndex((item) => item.href === href);
     const nextPage = index > -1 && index < sidebarItemsUniq.length - 1 &&
@@ -758,7 +761,6 @@ async function navbarEjsData(
   const data: Navbar = {
     ...navbar,
     search: websiteSearch(project) === "navbar" ? navbar.search : false,
-    type: navbar.type || "dark",
     background: navbar.background || "primary",
     logo: resolveLogo(navbar.logo),
     collapse,
