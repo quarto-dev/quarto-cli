@@ -20,10 +20,10 @@ import { dirname, extname } from "path/mod.ts";
 export function annotateOjsLineNumbers(
   context: RenderContext,
 ): OJSLineNumbersAnnotation {
-  const canPatch = !isJupyterNotebook(context.target.input);
+  const canPatch = !isJupyterNotebook(context.target.source);
 
   if (canPatch) {
-    const source = lines(Deno.readTextFileSync(context.target.input));
+    const source = lines(Deno.readTextFileSync(context.target.source));
 
     const ojsBlockLineNumbers: number[] = [];
     let waitingForOjs = false;
