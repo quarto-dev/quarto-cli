@@ -22,7 +22,7 @@ import {
 } from "../../core/jupyter/jupyter.ts";
 
 interface OJSLineNumbersAnnotation {
-  patchedSource?: string
+  ojsBlockLineNumbers: number[],
 };
 
 import { dirname, extname } from "path/mod.ts";
@@ -37,14 +37,9 @@ export function annotateOjsLineNumbers(
   if (canPatch) {
     const dir = dirname(context.target.input);
     
-    const patchedFileName = Deno.makeTempFileSync({
-      dir,
-      suffix: ext
-    });
-    
     const source = lines(Deno.readTextFileSync(context.target.input));
 
-    const output: string[] = [];
+    const ojsBlockLineNumbers: number[] = [];
     let waitingForOjs = false;
     let lineNumber = 0;
 
@@ -56,19 +51,19 @@ export function annotateOjsLineNumbers(
       if (line === "```{ojs}") {
         waitingForOjs = true;
       } else if (waitingForOjs && !line.startsWith("//|")) {
-        output.push(`//| internal-chunk-line-number: ${lineNumber}`);
         waitingForOjs = false;
+        ojsBlockLineNumbers.push(lineNumber);
       }
       lineNumber++;
-      output.push(line);
     });
 
-    Deno.writeTextFileSync(patchedFileName, output.join("\n"));
 
     return {
-      patchedSource: patchedFileName,
+      ojsBlockLineNumbers
     };
   } else {
-    return {};
+    return {
+      ojsBlockLineNumbers: []
+    };
   }
 }

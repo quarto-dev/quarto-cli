@@ -182,16 +182,7 @@ export async function renderFiles(
         );
 
         // patch source file
-        const { patchedSource } = annotateOjsLineNumbers(context);
-        const oldTarget = context.target;
-        if (patchedSource) {
-          const newTarget = {
-            ...context.target,
-            source: patchedSource,
-            input: patchedSource
-          };
-          context.target = newTarget;
-        }
+        const { ojsBlockLineNumbers } = annotateOjsLineNumbers(context);
         
         // execute
         const baseExecuteResult = await renderExecute(
@@ -204,13 +195,8 @@ export async function renderFiles(
         const { executeResult, resourceFiles } = await ojsExecuteResult(
           context,
           baseExecuteResult,
+          ojsBlockLineNumbers
         );
-
-        // restore context, remove patched source
-        context.target = oldTarget;
-        if (patchedSource) {
-          removeIfExists(patchedSource);
-        }
 
         // callback
         await pandocRenderer.onRender(format, {

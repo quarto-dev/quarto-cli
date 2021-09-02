@@ -66,7 +66,7 @@ import { sessionTempFile } from "../../core/temp.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
-import { logError } from "../../core/log.ts";
+import { logError, warnOnce } from "../../core/log.ts";
 import { breakQuartoMd, QuartoMdCell } from "../../core/break-quarto-md.ts";
 
 export interface OjsCompileOptions {
@@ -75,6 +75,7 @@ export interface OjsCompileOptions {
   markdown: string;
   libDir: string;
   project?: ProjectContext;
+  ojsBlockLineNumbers: number[];
 }
 
 export interface OjsCompileResult {
@@ -93,7 +94,7 @@ interface SubfigureSpec {
 export async function ojsCompile(
   options: OjsCompileOptions,
 ): Promise<OjsCompileResult> {
-  const { markdown, project } = options;
+  const { markdown, project, ojsBlockLineNumbers } = options;
   const projDir = project?.dir;
 
   const selfContained = options.format.pandoc?.[kSelfContained] ?? false;
@@ -110,6 +111,7 @@ export async function ojsCompile(
   const output = breakQuartoMd(markdown);
 
   let ojsCellID = 0;
+  let ojsBlockIndex = 0; // this is different from ojsCellID because of inline cells.
   const userIds: Set<string> = new Set();
 
   const scriptContents: string[] = [];
@@ -231,7 +233,11 @@ export async function ojsCompile(
       interface ParsedCellInfo {
         info: SourceInfo[];
       }
-      const cellStartingLoc = Number(cell.options!["internal-chunk-line-number"] as string);
+      
+      const cellStartingLoc = ojsBlockLineNumbers[ojsBlockIndex++] || 0;
+      if (cellStartingLoc === 0) {
+        warnOnce("OJS block count mismatch. Line number reporting is likely to be wrong");
+      }
 
       const handleError = (err: any, cellSrc: string) => {
         const div = pandocBlock(":::::")({
@@ -263,7 +269,7 @@ export async function ojsCompile(
         calloutDiv.push(
           pandocRawStr(
             `#### OJS Syntax Error (line ${err.loc.line +
-              cellStartingLoc}, column ${err.loc.column})`,
+              cellStartingLoc}, column ${err.loc.column + 1})`,
           ),
         );
         calloutDiv.push(pandocRawStr(`${fullMsg}`));
@@ -397,8 +403,7 @@ export async function ojsCompile(
         "source.hidden",
         "plot.hidden",
         "output.hidden",
-        "echo.hidden",
-        "internal-chunk-line-number",
+        "echo.hidden"
       ]);
 
       for (const [key, value] of Object.entries(cell.options || {})) {
@@ -806,6 +811,7 @@ export async function ojsCompile(
 export async function ojsExecuteResult(
   context: RenderContext,
   executeResult: ExecuteResult,
+  ojsBlockLineNumbers: number[]
 ) {
   executeResult = ld.cloneDeep(executeResult);
 
@@ -816,6 +822,7 @@ export async function ojsExecuteResult(
     markdown: executeResult.markdown,
     libDir: context.libDir,
     project: context.project,
+    ojsBlockLineNumbers
   });
 
   // merge in results
