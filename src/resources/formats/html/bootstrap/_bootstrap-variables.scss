@@ -32,6 +32,9 @@ $code-block-bg: true !default;
 $code-block-bg-padding: 0.4em !default;
 $code-block-bg-alpha: -0.35 !default;
 
+// code-bg
+$code-color: $pink !default;
+
 $code-block-theme-dark-threshhold: 40% !default;
 
 // Adjust the base font size up a little
@@ -95,5 +98,3 @@ $navbar-light-brand-color: $navbar-hl !default;
 $navbar-light-brand-hover-color: $navbar-hl !default;
 $navbar-dark-brand-color: $navbar-hl !default;
 $navbar-dark-brand-hover-color: $navbar-hl !default;
-
-$code-color: $pink !default;
