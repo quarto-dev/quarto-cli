@@ -27,6 +27,7 @@ import {
   kHtmlPostprocessors,
   kMarkdownAfterBody,
   kSassBundles,
+  Metadata,
   PandocFlags,
   SassBundle,
 } from "../../../config/types.ts";
@@ -78,6 +79,7 @@ import {
   kSiteRepoUrl,
   kSiteSidebar,
   websiteConfigActions,
+  websiteHtmlFormat,
   websiteRepoBranch,
   websiteRepoUrl,
   websiteTitle,
@@ -95,6 +97,12 @@ import {
   createMarkdownEnvelope,
   processMarkdownEnvelope,
 } from "./website-navigation-md.ts";
+import {
+  formatFromMetadata,
+  metadataAsFormat,
+} from "../../../config/metadata.ts";
+import { formatKeys } from "../../../command/render/render.ts";
+import { mergeConfigs } from "../../../core/config.ts";
 
 // static navigation (initialized during project preRender)
 const navigation: Navigation = {
@@ -231,7 +239,7 @@ export async function websiteNavigationExtras(
       [kDependencies]: dependencies,
       [kBodyEnvelope]: bodyEnvelope,
       [kHtmlPostprocessors]: [
-        navigationHtmlPostprocessor(project, source, format.pandoc),
+        navigationHtmlPostprocessor(project, source),
       ],
       [kMarkdownAfterBody]: [
         createMarkdownEnvelope(format, navigation, pageNavigation, sidebar),
@@ -268,7 +276,6 @@ export function writeRedirectPage(path: string, href: string) {
 function navigationHtmlPostprocessor(
   project: ProjectContext,
   source: string,
-  pandoc: FormatPandoc,
 ) {
   const sourceRelative = relative(project.dir, source);
   const offset = projectOffset(project, source);
@@ -356,8 +363,9 @@ function navigationHtmlPostprocessor(
     // handle repo links
     handleRepoLinks(doc, sourceRelative, project.config);
 
-    // if needed, remove the chapter numbers
-    const numberSections = pandoc[kNumberSections];
+    // remove section numbers from sidebar if they have been turned off in the project file
+    const numberSections =
+      websiteHtmlFormat(project).pandoc[kNumberSections] !== false;
     if (numberSections === false) {
       // Look through sidebar items and remove the chapter number (and separator)
       // and replace with the title only
