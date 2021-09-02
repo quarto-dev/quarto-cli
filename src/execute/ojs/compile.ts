@@ -66,7 +66,7 @@ import { sessionTempFile } from "../../core/temp.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
-import { logError } from "../../core/log.ts";
+import { logError, warnOnce } from "../../core/log.ts";
 import { breakQuartoMd, QuartoMdCell } from "../../core/break-quarto-md.ts";
 
 export interface OjsCompileOptions {
@@ -75,6 +75,7 @@ export interface OjsCompileOptions {
   markdown: string;
   libDir: string;
   project?: ProjectContext;
+  ojsBlockLineNumbers: number[];
 }
 
 export interface OjsCompileResult {
@@ -93,7 +94,7 @@ interface SubfigureSpec {
 export async function ojsCompile(
   options: OjsCompileOptions,
 ): Promise<OjsCompileResult> {
-  const { markdown, project } = options;
+  const { markdown, project, ojsBlockLineNumbers } = options;
   const projDir = project?.dir;
 
   const selfContained = options.format.pandoc?.[kSelfContained] ?? false;
@@ -110,6 +111,7 @@ export async function ojsCompile(
   const output = breakQuartoMd(markdown);
 
   let ojsCellID = 0;
+  let ojsBlockIndex = 0; // this is different from ojsCellID because of inline cells.
   const userIds: Set<string> = new Set();
 
   const scriptContents: string[] = [];
@@ -232,6 +234,13 @@ export async function ojsCompile(
         info: SourceInfo[];
       }
 
+      const cellStartingLoc = ojsBlockLineNumbers[ojsBlockIndex++] || 0;
+      if (cellStartingLoc === 0) {
+        warnOnce(
+          "OJS block count mismatch. Line number reporting is likely to be wrong",
+        );
+      }
+
       const handleError = (err: any, cellSrc: string) => {
         const div = pandocBlock(":::::")({
           classes: ["quarto-ojs-syntax-error"],
@@ -240,12 +249,12 @@ export async function ojsCompile(
           / *\(\d+:\d+\)$/,
           "",
         );
-        ojsParseError(err, cellSrc, cell.startingLoc);
+        ojsParseError(err, cellSrc, cellStartingLoc);
 
         const preDiv = pandocBlock("````")({
           classes: ["numberLines", "java"],
           attrs: [
-            `startFrom="${cell.startingLoc}"`,
+            `startFrom="${cellStartingLoc}"`,
             `syntax-error-position="${err.pos}"`,
             `source-offset="9"`,
           ],
@@ -262,7 +271,7 @@ export async function ojsCompile(
         calloutDiv.push(
           pandocRawStr(
             `#### OJS Syntax Error (line ${err.loc.line +
-              cell.startingLoc}, column ${err.loc.column})`,
+              cellStartingLoc}, column ${err.loc.column + 1})`,
           ),
         );
         calloutDiv.push(pandocRawStr(`${fullMsg}`));
@@ -459,7 +468,7 @@ export async function ojsCompile(
       // the only effect of echoVal in OJS blocks
       // is to hide the div. We need source always to pinpoint
       // errors in source in case of runtime errors.
-      // 
+      //
       // FIXME This is
       // potentially wrong in the presence of !includeVal
       if (!echoVal) {
@@ -499,7 +508,9 @@ export async function ojsCompile(
 
       const makeSubFigures = (specs: SubfigureSpec[]) => {
         let subfigIx = 1;
-        let cellInfo = ([] as SourceInfo[]).concat(...(parsedCells.map(n => n.info)));
+        let cellInfo = ([] as SourceInfo[]).concat(
+          ...(parsedCells.map((n) => n.info)),
+        );
         for (const spec of specs) {
           const outputDiv = pandocDiv({
             classes: outputCellClasses,
@@ -510,7 +521,7 @@ export async function ojsCompile(
           const innerInfo = parsedCells[subfigIx - 1].info;
           const ojsDiv = pandocDiv({
             id: `${ojsId}-${subfigIx}`,
-            attrs: [`nodetype="${cellInfo[subfigIx-1].cellType}"`]
+            attrs: [`nodetype="${cellInfo[subfigIx - 1].cellType}"`],
           });
           if (innerInfo.length > 0 && srcConfig !== undefined) {
             const ourAttrs = srcConfig.attrs.slice();
@@ -518,7 +529,7 @@ export async function ojsCompile(
             const linesSkipped =
               cellSrcStr.substring(0, innerInfo[0].start).split("\n").length;
 
-            ourAttrs.push(`startFrom="${cell.startingLoc + linesSkipped}"`);
+            ourAttrs.push(`startFrom="${cellStartingLoc + linesSkipped}"`);
             ourAttrs.push(`source-offset="-${innerInfo[0].start}"`);
             const srcDiv = pandocCode({
               attrs: ourAttrs,
@@ -576,7 +587,7 @@ export async function ojsCompile(
           // compute offset from cell start to div start
           const linesSkipped =
             cellSrcStr.substring(0, innerInfo[0].start).split("\n").length;
-          ourAttrs.push(`startFrom="${cell.startingLoc + linesSkipped}"`);
+          ourAttrs.push(`startFrom="${cellStartingLoc + linesSkipped}"`);
           ourAttrs.push(`source-offset="-${innerInfo[0].start}"`);
           const srcDiv = pandocCode({
             attrs: ourAttrs,
@@ -804,6 +815,7 @@ export async function ojsCompile(
 export async function ojsExecuteResult(
   context: RenderContext,
   executeResult: ExecuteResult,
+  ojsBlockLineNumbers: number[],
 ) {
   executeResult = ld.cloneDeep(executeResult);
 
@@ -814,6 +826,7 @@ export async function ojsExecuteResult(
     markdown: executeResult.markdown,
     libDir: context.libDir,
     project: context.project,
+    ojsBlockLineNumbers,
   });
 
   // merge in results
