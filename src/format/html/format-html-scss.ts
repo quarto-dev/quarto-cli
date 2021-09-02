@@ -345,6 +345,12 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
           ),
         ),
       );
+    } else if (sidebar.style === "floating" || navbar) {
+      // If this is a floating sidebar or there is a navbar present,
+      // default to a body colored sidebar
+      variables.push(
+        `$sidebar-bg: if(variable-exists(body-bg), $body-bg, #fff) !default;`,
+      );
     }
 
     // Forward foreground color
