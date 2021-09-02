@@ -36,7 +36,7 @@ export function hideWarnings(
 ) {
   // if global output is false and local output is true then we
   // should hide warnings
-  if (options.execute[kOutput] === false && cell.options[kOutput] === true) {
+  if (options.execute[kOutput] === false && cell.options[kOutput] !== false) {
     return cell.options[kWarning] || false;
   } else {
     return shouldHide(cell, options, kWarning);
@@ -81,7 +81,7 @@ export function includeWarnings(
   options: JupyterToMarkdownOptions,
 ) {
   // if global output is false and local output is true then we shouldn't include warnings
-  if (options.execute[kOutput] === false && cell.options[kOutput] === true) {
+  if (options.execute[kOutput] === false && cell.options[kOutput] !== false) {
     return cell.options[kWarning] || false;
   } else {
     return shouldInclude(

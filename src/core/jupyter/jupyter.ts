@@ -202,7 +202,7 @@ export interface JupyterCellOptions extends JupyterOutputFigureOptions {
   [kEcho]?: boolean;
   [kWarning]?: boolean;
   [kError]?: boolean;
-  [kOutput]?: boolean;
+  [kOutput]?: boolean | "all" | "asis";
   [kInclude]?: boolean;
   [key: string]: unknown;
 }
@@ -894,6 +894,11 @@ function mdFromCodeCell(
     return [];
   }
 
+  // ouptut: asis should just include raw markup w/ no enclosures
+  const asis = cell.options[kOutput] === "asis" ||
+    options.execute[kOutput] === "asis" &&
+      cell.options[kOutput] === undefined;
+
   // markdown to return
   const md: string[] = [];
 
@@ -999,7 +1004,7 @@ function mdFromCodeCell(
     md.push("```\n");
   }
 
-  // write output if approproate
+  // write output if approproate (output: asis gets special handling)
   if (includeOutput(cell, options)) {
     // compute label prefix for output (in case we need it for files, etc.)
     const labelName = label
@@ -1016,34 +1021,38 @@ function mdFromCodeCell(
         output: value,
       }))
     ) {
-      // leading newline and beginning of div
-      md.push("\n::: {");
-
-      // include label/id if appropriate
+      // compute output label
       const outputLabel = label && labelCellContainer && isDisplayData(output)
         ? (label + "-" + nextOutputSuffix++)
         : label;
-      if (outputLabel && shouldLabelOutputContainer(output, options)) {
-        md.push(outputLabel + " ");
-      }
 
-      // add output class name
-      if (output.output_type === "stream") {
-        const stream = output as JupyterOutputStream;
-        md.push(`.cell-output-${stream.name}`);
-      } else {
-        md.push(`.${outputTypeCssClass(output.output_type)}`);
-      }
+      // leading newline and beginning of div
+      if (!asis) {
+        md.push("\n::: {");
 
-      // add hidden if necessary
-      if (
-        hideOutput(cell, options) ||
-        (isWarningOutput(output) && hideWarnings(cell, options))
-      ) {
-        md.push(` .hidden`);
-      }
+        // include label/id if appropriate
+        if (outputLabel && shouldLabelOutputContainer(output, options)) {
+          md.push(outputLabel + " ");
+        }
 
-      md.push("}\n");
+        // add output class name
+        if (output.output_type === "stream") {
+          const stream = output as JupyterOutputStream;
+          md.push(`.cell-output-${stream.name}`);
+        } else {
+          md.push(`.${outputTypeCssClass(output.output_type)}`);
+        }
+
+        // add hidden if necessary
+        if (
+          hideOutput(cell, options) ||
+          (isWarningOutput(output) && hideWarnings(cell, options))
+        ) {
+          md.push(` .hidden`);
+        }
+
+        md.push("}\n");
+      }
 
       // broadcast figure options
       const figureOptions: JupyterOutputFigureOptions = {};
@@ -1076,7 +1085,12 @@ function mdFromCodeCell(
 
       // produce output
       if (output.output_type === "stream") {
-        md.push(mdOutputStream(output as JupyterOutputStream));
+        const stream = output as JupyterOutputStream;
+        if (asis && stream.name === "stdout") {
+          md.push(stream.text.join(""));
+        } else {
+          md.push(mdOutputStream(stream));
+        }
       } else if (output.output_type === "error") {
         md.push(mdOutputError(output as JupyterOutputError));
       } else if (isDisplayData(output)) {
@@ -1100,7 +1114,9 @@ function mdFromCodeCell(
       }
 
       // terminate div
-      md.push(`:::\n`);
+      if (!asis) {
+        md.push(`:::\n`);
+      }
     }
     // not including output...still check if there are ojs_define outputs to write
     // (ojs_define should evade output: false)
@@ -1118,7 +1134,7 @@ function mdFromCodeCell(
   }
 
   // write md w/ div enclosure (if there is any md to write)
-  if (md.length > 0) {
+  if (md.length > 0 && !asis) {
     // begin
     md.unshift(divBeginMd);
 
@@ -1129,10 +1145,10 @@ function mdFromCodeCell(
 
     // end div
     md.push(":::\n");
-
-    // lines to next cell
-    md.push("\n".repeat((cell.metadata.lines_to_next_cell || 1)));
   }
+
+  // lines to next cell
+  md.push("\n".repeat((cell.metadata.lines_to_next_cell || 1)));
 
   // if we have kCellMdIndent then join, split on \n, apply indent, then re-join
   if (cell.options[kCellMdIndent]) {
