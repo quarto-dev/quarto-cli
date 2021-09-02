@@ -7,6 +7,7 @@
 
 import { ld } from "lodash/mod.ts";
 import { dirname, join, relative, resolve } from "path/mod.ts";
+import { warning } from "log/mod.ts";
 
 import { parseModule } from "observablehq/parser";
 
@@ -66,7 +67,7 @@ import { sessionTempFile } from "../../core/temp.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { formatResourcePath } from "../../core/resources.ts";
-import { logError, warnOnce } from "../../core/log.ts";
+import { logError } from "../../core/log.ts";
 import { breakQuartoMd, QuartoMdCell } from "../../core/break-quarto-md.ts";
 
 export interface OjsCompileOptions {
@@ -236,7 +237,7 @@ export async function ojsCompile(
 
       const cellStartingLoc = ojsBlockLineNumbers[ojsBlockIndex++] || 0;
       if (cellStartingLoc === 0) {
-        warnOnce(
+        warning(
           "OJS block count mismatch. Line number reporting is likely to be wrong",
         );
       }
