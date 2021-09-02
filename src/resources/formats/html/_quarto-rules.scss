@@ -188,13 +188,6 @@ details > summary {
 pre.sourceCode,
 code.sourceCode {
   position: relative;
-  overflow-y: hidden;
-}
-
-pre.sourceCode.numberSource,
-pre.sourceCode.numberSource code.sourceCode {
-  overflow-y: visible;
-  white-space: pre;
 }
 
 // default to scrolling <code> output rather than wrapping, since
