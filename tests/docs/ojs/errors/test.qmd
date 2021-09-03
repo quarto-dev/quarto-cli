@@ -1,0 +1,112 @@
+---
+title: "ojs syntax error"
+format: html
+---
+
+## Let's add some knitr line number interference
+
+This should make it harder for the lines to come out right:
+
+```{r}
+rnorm(100)
+```
+
+## Syntax Error here
+
+```{ojs}
+// Let's forget this is JS to force a syntax error
+viewof x = Inputs.range([0, 100], label = "hello!", value = 20)
+```
+
+## But this will still work
+
+```{ojs}
+y = 300
+y
+```
+
+### Undefined error
+
+Easy mode:
+
+```{ojs}
+foo1 = {
+  function f(z) {
+    let x = 3;
+    return x * z;
+  }
+  return undefinedReference * f(y % 1);
+}
+```
+
+Medium mode:
+
+```{ojs}
+foo2 = {
+  function f(z) {
+    let x = 3;
+    return x * z;
+  }
+  return undefinedReference * f(y % 1);
+}
+nuisance2 = 3
+```
+
+Hard mode:
+
+```{ojs}
+nuisance3 = 3
+foo3 = {
+  function f(z) {
+    let x = 3;
+    return x * z;
+  }
+  return undefinedReference * f(y % 1);
+}
+```
+
+Harder mode:
+
+```{ojs}
+nuisance4 = 5
+nuisance4
+foo4 = {
+  function f(z) {
+    let x = 3;
+    return x * z;
+  }
+  return undefinedReference * f(y % 1);
+}
+```
+
+Souls mode:
+
+```{ojs}
+nuisance5 = 5
+nuisance5
+nuisance6 = 5
+foo5 = {
+  function f(z) {
+    let x = 3;
+    return x * z;
+  }
+  return undefinedReference * f(y % 1);
+}
+```
+
+
+### Circular definition
+
+```{ojs}
+recursion = {
+  return recursion;
+};
+```
+
+## R errors
+
+```{r}
+#| error: true
+1 + "a"
+```
+

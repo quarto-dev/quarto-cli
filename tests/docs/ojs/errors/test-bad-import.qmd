@@ -1,0 +1,14 @@
+---
+title: "Arquero"
+format:
+  html:
+    code-tools: true
+---
+
+Simple demonstration of [Arquero](https://uwdata.github.io/arquero/) using Allison Horst's [Palmer Penguins](https://allisonhorst.github.io/palmerpenguins/) dataset. 
+
+```{ojs}
+import { aq, op, badImport } from '@uwdata/arquero'
+badImport
+```
+

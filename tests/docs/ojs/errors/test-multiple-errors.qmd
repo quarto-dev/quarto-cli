@@ -1,0 +1,19 @@
+---
+title: "Arquero"
+format: html
+---
+
+Test if multiple errors are reported correctly in a single cell:
+
+```{ojs}
+b = missing1
+a = missing2
+```
+
+Test if multiple errors are reported correctly once some of them are cleared:
+
+```{ojs}
+import { aq, op } from '@uwdata/arquero'
+c = aq
+missing3
+```
