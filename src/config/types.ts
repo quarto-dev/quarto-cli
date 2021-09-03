@@ -241,7 +241,7 @@ export interface FormatExecute {
   [kEngine]?: string;
   [kEval]?: true | false | null;
   [kError]?: boolean;
-  [kEcho]?: boolean;
+  [kEcho]?: boolean | "fenced";
   [kOutput]?: boolean | "all" | "asis";
   [kWarning]?: boolean;
   [kInclude]?: boolean;

@@ -32,6 +32,7 @@ import {
 import PngImage from "../png.ts";
 
 import {
+  echoFenced,
   hideCell,
   hideCode,
   hideOutput,
@@ -199,7 +200,7 @@ export interface JupyterCellOptions extends JupyterOutputFigureOptions {
   [kCodeOverflow]?: string;
   [kCellMdIndent]?: string;
   [kEval]?: true | false | null;
-  [kEcho]?: boolean;
+  [kEcho]?: boolean | "fenced";
   [kWarning]?: boolean;
   [kError]?: boolean;
   [kOutput]?: boolean | "all" | "asis";
@@ -975,7 +976,10 @@ function mdFromCodeCell(
 
   // write code if appropriate
   if (includeCode(cell, options)) {
-    md.push("``` {");
+    const fenced = echoFenced(cell, options);
+    const ticks = fenced ? "````" : "```";
+
+    md.push(ticks + " {");
     if (typeof cell.options[kCellLstLabel] === "string") {
       let label = cell.options[kCellLstLabel]!;
       if (!label.startsWith("#")) {
@@ -983,7 +987,9 @@ function mdFromCodeCell(
       }
       md.push(label + " ");
     }
-    md.push("." + options.language);
+    if (!fenced) {
+      md.push("." + options.language);
+    }
     md.push(" .cell-code");
     if (hideCode(cell, options)) {
       md.push(" .hidden");
@@ -1005,8 +1011,13 @@ function mdFromCodeCell(
       md.push(` code-summary=\"${cell.options[kCodeSummary]}\"`);
     }
     md.push("}\n");
-    md.push(...mdTrimEmptyLines(cell.source), "\n");
-    md.push("```\n");
+    const source = mdTrimEmptyLines(cell.source);
+    if (fenced) {
+      source.unshift("```{{" + options.language + "}}\n");
+      source.push("\n```\n");
+    }
+    md.push(...source, "\n");
+    md.push(ticks + "\n");
   }
 
   // write output if approproate (output: asis gets special handling)
