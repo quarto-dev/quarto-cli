@@ -620,16 +620,18 @@ export async function ojsCompile(
               linesSkipped}"`,
           );
           ourAttrs.push(`source-offset="-${innerInfo[0].start}"`);
-          const srcDiv = pandocCode({
-            attrs: ourAttrs,
-            classes: srcConfig.classes,
-          });
-          srcDiv.push(
-            pandocRawStr(
-              cellSrcStr.substring(innerInfo[0].start, innerInfo[0].end),
-            ),
-          );
-          div.push(srcDiv);
+          if (echoVal !== "fenced") {
+            const srcDiv = pandocCode({
+              attrs: ourAttrs,
+              classes: srcConfig.classes,
+            });
+            srcDiv.push(
+              pandocRawStr(
+                cellSrcStr.substring(innerInfo[0].start, innerInfo[0].end),
+              ),
+            );
+            div.push(srcDiv);
+          }
         }
         const outputDiv = pandocDiv({
           id: idPlacement() === "inner" ? userId : undefined,
