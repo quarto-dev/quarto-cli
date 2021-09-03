@@ -249,7 +249,7 @@ export async function ojsCompile(
           / *\(\d+:\d+\)$/,
           "",
         );
-        ojsParseError(err, cellSrc, cellStartingLoc);
+        ojsParseError(err, cellSrc, cellStartingLoc + cell.sourceStartLine - 1);
 
         const preDiv = pandocBlock("````")({
           classes: ["numberLines", "java"],
@@ -271,7 +271,8 @@ export async function ojsCompile(
         calloutDiv.push(
           pandocRawStr(
             `#### OJS Syntax Error (line ${err.loc.line +
-              cellStartingLoc}, column ${err.loc.column + 1})`,
+              cellStartingLoc + cell.sourceStartLine -
+              1}, column ${err.loc.column + 1})`,
           ),
         );
         calloutDiv.push(pandocRawStr(`${fullMsg}`));
@@ -513,7 +514,7 @@ export async function ojsCompile(
         const ourClasses = srcConfig.classes.filter((d) => d !== "js");
         ourClasses.push("java");
         ourAttrs.push(
-          `startFrom="${cellStartingLoc - cell.yamlLength}"`,
+          `startFrom="${cellStartingLoc - 1}"`,
           `source-offset="${cell.sourceOffset}"`,
         );
         const srcDiv = pandocBlock("````")({
@@ -553,7 +554,10 @@ export async function ojsCompile(
             const linesSkipped =
               cellSrcStr.substring(0, innerInfo[0].start).split("\n").length;
 
-            ourAttrs.push(`startFrom="${cellStartingLoc + linesSkipped}"`);
+            ourAttrs.push(
+              `startFrom="${cellStartingLoc + cell.sourceStartLine - 1 +
+                linesSkipped}"`,
+            );
             ourAttrs.push(`source-offset="-${innerInfo[0].start}"`);
             const srcDiv = pandocCode({
               attrs: ourAttrs,
@@ -611,7 +615,10 @@ export async function ojsCompile(
           // compute offset from cell start to div start
           const linesSkipped =
             cellSrcStr.substring(0, innerInfo[0].start).split("\n").length;
-          ourAttrs.push(`startFrom="${cellStartingLoc + linesSkipped}"`);
+          ourAttrs.push(
+            `startFrom="${cellStartingLoc + cell.sourceStartLine - 1 +
+              linesSkipped}"`,
+          );
           ourAttrs.push(`source-offset="-${innerInfo[0].start}"`);
           const srcDiv = pandocCode({
             attrs: ourAttrs,

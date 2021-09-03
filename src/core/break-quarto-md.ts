@@ -25,7 +25,7 @@ export interface QuartoMdCell {
   source: string[];
   sourceVerbatim: string; // for error reporting and echo: fenced
   sourceOffset: number;
-  yamlLength: number;
+  sourceStartLine: number;
 }
 
 export interface QuartoMdChunks {
@@ -56,9 +56,6 @@ export function breakQuartoMd(
     cell_type: "markdown" | "code" | "raw" | "math",
   ) => {
     if (lineBuffer.length) {
-      if (lineBuffer[0] === "") {
-        lineBuffer.splice(0, 1);
-      }
       if (lineBuffer[lineBuffer.length - 1] === "") {
         lineBuffer.splice(lineBuffer.length - 1, 1);
       }
@@ -72,27 +69,28 @@ export function breakQuartoMd(
         cell_type: cell_type === "code" ? { language } : cell_type,
         source: sourceLines,
         sourceOffset: 0,
-        yamlLength: 0,
+        sourceStartLine: 0,
         sourceVerbatim: sourceLines.join(""),
       };
 
       if (cell_type === "code" && (language === "ojs" || language === "dot")) {
         // see if there is embedded metadata we should forward into the cell metadata
-        const { yaml, source, yamlLength } = partitionCellOptions(
+        const { yaml, source, sourceStartLine } = partitionCellOptions(
           "js",
           cell.source,
         );
-        cell.sourceOffset = cell.source.slice(0, yamlLength).join("").length +
+        cell.sourceOffset =
+          cell.source.slice(0, sourceStartLine).join("").length +
           "```{ojs}\n".length;
         cell.sourceVerbatim = "```{ojs}\n" + cell.sourceVerbatim + "\n```";
         cell.source = source;
         cell.options = yaml;
-        cell.yamlLength = yamlLength;
+        cell.sourceStartLine = sourceStartLine;
       }
 
+      // cell.source = mdTrimEmptyLines(cell.source);
       // if the source is empty then don't add it
-      cell.source = mdTrimEmptyLines(cell.source);
-      if (cell.source.length > 0) {
+      if (mdTrimEmptyLines(cell.source).length > 0) {
         nb.cells.push(cell);
       }
 

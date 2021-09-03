@@ -1476,6 +1476,9 @@ function createRuntime() {
         nextLineSpan.style = `counter-reset: source-line ${lineNumber - 1}`;
       }
     }
+    const sourceDiv = lineSpan.parentElement.parentElement.parentElement;
+    const oldOffset = Number(sourceDiv.dataset.sourceOffset);
+    sourceDiv.dataset.sourceOffset = oldOffset - "//| echo: fenced\n".length;
     lineSpan.remove();
     lineBreak.remove();
   });

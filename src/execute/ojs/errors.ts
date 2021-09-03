@@ -11,14 +11,14 @@ export function ojsParseError(
   // deno-lint-ignore no-explicit-any
   acornError: any, // we can't use SyntaxError here because acorn injects extra properties
   ojsSource: string,
-  startingLoc: number = 0,
+  startingLoc = 0,
 ) {
   const acornMsg = String(acornError).split("\n")[0].trim().replace(
     / *\(\d+:\d+\)$/,
     "",
   );
   const errMsg = `OJS parsing failed on line ${acornError.loc.line +
-    startingLoc}, column ${acornError.loc.column}`;
+    startingLoc}, column ${acornError.loc.column + 1}`;
   error(errMsg);
   error(acornMsg);
   error("----- OJS Source:");
