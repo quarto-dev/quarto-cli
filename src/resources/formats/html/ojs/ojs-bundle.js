@@ -467,7 +467,8 @@ export class OJSConnector {
             cellOutputDisplay = cellDiv;
           }
         }
-
+        const forceShowDeclarations = !(cellDiv && cellDiv.dataset.output !== "all");
+        
         const config = { childList: true };
         const callback = function(mutationsList, observer) {
           // we may fail to find a cell in inline settings; but
@@ -475,8 +476,9 @@ export class OJSConnector {
           // we never hide
           for (const mutation of mutationsList) {
             const ojsDiv = mutation.target;
+            console.log(cellDiv);
 
-            if (cellDiv && cellDiv.dataset.output !== "all") {
+            if (!forceShowDeclarations) {
               // hide the inner inspect outputs that aren't errors or
               // declarations
               Array.from(mutation.target.childNodes)
@@ -510,9 +512,9 @@ export class OJSConnector {
               }
             } else {
               that.clearError(ojsDiv);
-              // if the ojsDiv no longer has errors, then we remove the display="none" style
               if (
                 (ojsDiv.parentNode.dataset.nodetype !== "expression") &&
+                  !forceShowDeclarations &&
                   Array.from(ojsDiv.childNodes).every(
                     n => n.classList.contains("observablehq--inspect"))) {
                 // if every child is an inspect output, hide the ojsDiv

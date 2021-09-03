@@ -1057,11 +1057,13 @@ var OJSConnector = class {
             cellOutputDisplay = cellDiv;
           }
         }
+        const forceShowDeclarations = !(cellDiv && cellDiv.dataset.output !== "all");
         const config = { childList: true };
         const callback = function(mutationsList, observer3) {
           for (const mutation of mutationsList) {
             const ojsDiv = mutation.target;
-            if (cellDiv && cellDiv.dataset.output !== "all") {
+            console.log(cellDiv);
+            if (!forceShowDeclarations) {
               Array.from(mutation.target.childNodes).filter((n2) => {
                 return n2.classList.contains("observablehq--inspect") && !n2.parentNode.classList.contains("observablehq--error") && n2.parentNode.parentNode.dataset.nodetype !== "expression";
               }).forEach((n2) => n2.classList.add("quarto-ojs-hide"));
@@ -1076,7 +1078,7 @@ var OJSConnector = class {
               }
             } else {
               that.clearError(ojsDiv);
-              if (ojsDiv.parentNode.dataset.nodetype !== "expression" && Array.from(ojsDiv.childNodes).every((n2) => n2.classList.contains("observablehq--inspect"))) {
+              if (ojsDiv.parentNode.dataset.nodetype !== "expression" && !forceShowDeclarations && Array.from(ojsDiv.childNodes).every((n2) => n2.classList.contains("observablehq--inspect"))) {
                 ojsDiv.classList.add("quarto-ojs-hide");
               }
             }
