@@ -1466,6 +1466,19 @@ function createRuntime() {
     });
   }
   lib.width = width;
+  Array.from(document.querySelectorAll("span.co")).filter((n2) => n2.textContent === "//| echo: fenced").forEach((n2) => {
+    const lineSpan = n2.parentElement;
+    const lineBreak = lineSpan.nextSibling;
+    if (lineBreak) {
+      const nextLineSpan = lineBreak.nextSibling;
+      if (nextLineSpan) {
+        const lineNumber = Number(nextLineSpan.id.split("-")[1]);
+        nextLineSpan.style = `counter-reset: source-line ${lineNumber - 1}`;
+      }
+    }
+    lineSpan.remove();
+    lineBreak.remove();
+  });
   const layoutDivs = Array.from(document.querySelectorAll("div.quarto-layout-panel div[id]"));
   function layoutWidth() {
     return lib.Generators.observe(function(change) {

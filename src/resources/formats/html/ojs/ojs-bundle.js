@@ -1120,6 +1120,25 @@ export function createRuntime() {
   }
   lib.width = width;
 
+  // hack for "echo: fenced": remove all "//| echo: fenced" lines the hard way, but keep
+  // the right line numbers around.
+  Array.from(document.querySelectorAll("span.co"))
+    .filter(n => n.textContent === "//| echo: fenced")
+    .forEach(n => {
+      const lineSpan = n.parentElement;
+      const lineBreak = lineSpan.nextSibling;
+      if (lineBreak) {
+        const nextLineSpan = lineBreak.nextSibling;
+        if (nextLineSpan) {
+          const lineNumber = Number(nextLineSpan.id.split("-")[1]);
+          nextLineSpan.style = `counter-reset: source-line ${lineNumber-1}`;
+        }
+      }
+      lineSpan.remove();
+      lineBreak.remove();
+    });
+  
+
   // select all panel elements with ids
   const layoutDivs = Array.from(
     document.querySelectorAll("div.quarto-layout-panel div[id]"),

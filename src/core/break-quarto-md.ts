@@ -21,7 +21,11 @@ export interface QuartoMdCell {
   // deno-lint-ignore camelcase
   cell_type: CodeCellType | "markdown" | "raw" | "math";
   options?: Record<string, unknown>;
+
   source: string[];
+  sourceVerbatim: string; // for error reporting and echo: fenced
+  sourceOffset: number;
+  yamlLength: number;
 }
 
 export interface QuartoMdChunks {
@@ -59,22 +63,31 @@ export function breakQuartoMd(
         lineBuffer.splice(lineBuffer.length - 1, 1);
       }
 
+      const sourceLines = lineBuffer.map((line, index) => {
+        return line + (index < (lineBuffer.length - 1) ? "\n" : "");
+      });
+
       const cell: QuartoMdCell = {
         // deno-lint-ignore camelcase
         cell_type: cell_type === "code" ? { language } : cell_type,
-        source: lineBuffer.map((line, index) => {
-          return line + (index < (lineBuffer.length - 1) ? "\n" : "");
-        }),
+        source: sourceLines,
+        sourceOffset: 0,
+        yamlLength: 0,
+        sourceVerbatim: sourceLines.join(""),
       };
 
       if (cell_type === "code" && (language === "ojs" || language === "dot")) {
         // see if there is embedded metadata we should forward into the cell metadata
-        const { yaml, source } = partitionCellOptions(
+        const { yaml, source, yamlLength } = partitionCellOptions(
           "js",
           cell.source,
         );
+        cell.sourceOffset = cell.source.slice(0, yamlLength).join("").length +
+          "```{ojs}\n".length;
+        cell.sourceVerbatim = "```{ojs}\n" + cell.sourceVerbatim + "\n```";
         cell.source = source;
         cell.options = yaml;
+        cell.yamlLength = yamlLength;
       }
 
       // if the source is empty then don't add it

@@ -55,7 +55,6 @@ import {
   kError,
   kEval,
   kInclude,
-  kKeepHidden,
   kLayoutNcol,
   kLayoutNrow,
   kOutput,
@@ -177,7 +176,6 @@ export async function ojsCompile(
         false) as boolean;
     const handleOJSCell = (
       cell: QuartoMdCell,
-      cellSrcInMd?: string,
       mdClassList?: string[],
     ) => {
       const cellSrcStr = cell.source.join("");
@@ -242,6 +240,7 @@ export async function ojsCompile(
         );
       }
 
+      // deno-lint-ignore no-explicit-any
       const handleError = (err: any, cellSrc: string) => {
         const div = pandocBlock(":::::")({
           classes: ["quarto-ojs-syntax-error"],
@@ -255,12 +254,12 @@ export async function ojsCompile(
         const preDiv = pandocBlock("````")({
           classes: ["numberLines", "java"],
           attrs: [
-            `startFrom="${cellStartingLoc}"`,
+            `startFrom="${cellStartingLoc - 1}"`,
             `syntax-error-position="${err.pos}"`,
-            `source-offset="9"`,
+            `source-offset="${cell.sourceOffset}"`,
           ],
         });
-        preDiv.push(pandocRawStr("```{ojs}\n" + cellSrc + "\n```"));
+        preDiv.push(pandocRawStr(cell.sourceVerbatim));
         div.push(preDiv);
         const errMsgDiv = pandocDiv({
           classes: ["cell-output-error"],
@@ -268,7 +267,7 @@ export async function ojsCompile(
         const calloutDiv = pandocBlock(":::")({
           classes: ["callout-important"],
         });
-        const [heading, fullMsg] = msg.split(": ");
+        const [_heading, fullMsg] = msg.split(": ");
         calloutDiv.push(
           pandocRawStr(
             `#### OJS Syntax Error (line ${err.loc.line +
@@ -282,7 +281,7 @@ export async function ojsCompile(
       };
 
       let nCells = 0;
-      let parsedCells: ParsedCellInfo[] = [];
+      const parsedCells: ParsedCellInfo[] = [];
 
       try {
         const parse = parseModule(cellSrcStr);
@@ -437,6 +436,11 @@ export async function ojsCompile(
       if (typeof cell.options?.panel === "string") {
         classes.push(`panel-${cell.options?.panel}`);
       }
+      const evalVal = cell.options?.[kEval] ?? options.format.execute[kEval] ??
+        true;
+      const echoVal = cell.options?.[kEcho] ?? options.format.execute[kEcho] ??
+        true;
+
       const div = pandocDiv({
         id: idPlacement() === "outer" ? userId : undefined,
         classes: [
@@ -445,12 +449,7 @@ export async function ojsCompile(
         ],
         attrs,
       });
-      const evalVal = cell.options?.[kEval] ?? options.format.execute[kEval] ??
-        true;
-      const echoVal = cell.options?.[kEcho] ?? options.format.execute[kEcho] ??
-        true;
 
-      const keepHiddenVal = options.format.render[kKeepHidden] ?? false;
       const includeVal = cell.options?.[kInclude] ??
         options.format.execute[kInclude] ?? true;
 
@@ -507,9 +506,27 @@ export async function ojsCompile(
         outputCellClasses.push("hidden");
       }
 
+      if (echoVal === "fenced") {
+        const ourAttrs = srcConfig.attrs.slice();
+        // we replace js with java so that we "fool" pandoc by having it
+        // not recognize triple backticks
+        const ourClasses = srcConfig.classes.filter((d) => d !== "js");
+        ourClasses.push("java");
+        ourAttrs.push(
+          `startFrom="${cellStartingLoc - cell.yamlLength}"`,
+          `source-offset="${cell.sourceOffset}"`,
+        );
+        const srcDiv = pandocBlock("````")({
+          classes: ourClasses,
+          attrs: ourAttrs,
+        });
+        srcDiv.push(pandocRawStr(cell.sourceVerbatim));
+        div.push(srcDiv);
+      }
+
       const makeSubFigures = (specs: SubfigureSpec[]) => {
         let subfigIx = 1;
-        let cellInfo = ([] as SourceInfo[]).concat(
+        const cellInfo = ([] as SourceInfo[]).concat(
           ...(parsedCells.map((n) => n.info)),
         );
         for (const spec of specs) {
@@ -524,7 +541,13 @@ export async function ojsCompile(
             id: `${ojsId}-${subfigIx}`,
             attrs: [`nodetype="${cellInfo[subfigIx - 1].cellType}"`],
           });
-          if (innerInfo.length > 0 && srcConfig !== undefined) {
+
+          if (
+            // if "echo: fenced", then we've already printed the source
+            // and it's neatly localized: don't repeat it
+            echoVal !== "fenced" &&
+            innerInfo.length > 0 && srcConfig !== undefined
+          ) {
             const ourAttrs = srcConfig.attrs.slice();
             // compute offset from cell start to div start
             const linesSkipped =
@@ -633,7 +656,7 @@ export async function ojsCompile(
         },
         source: ["dot`\n", ...cell.source, "\n`"],
       };
-      handleOJSCell(newCell, cell.source.join(""), ["dot", "cell-code"]);
+      handleOJSCell(newCell, ["dot", "cell-code"]);
     } else if (cell.cell_type?.language === "ojs") {
       handleOJSCell(cell);
     } else {
