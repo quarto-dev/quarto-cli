@@ -28,6 +28,7 @@ import { createSessionTempDir } from "../../core/temp.ts";
 import { figuresDir, inputFilesDir } from "../../core/render.ts";
 import {
   dirAndStem,
+  pathWithForwardSlashes,
   removeIfEmptyDir,
   removeIfExists,
 } from "../../core/path.ts";
@@ -667,6 +668,20 @@ export function renderResultFinalOutput(
   } else {
     return finalOutput;
   }
+}
+
+export function renderResultUrlPath(renderResult: RenderResult) {
+  if (renderResult.baseDir && renderResult.outputDir) {
+    const finalOutput = renderResultFinalOutput(renderResult);
+    if (finalOutput) {
+      const targetPath = pathWithForwardSlashes(relative(
+        join(renderResult.baseDir, renderResult.outputDir),
+        finalOutput,
+      ));
+      return targetPath;
+    }
+  }
+  return undefined;
 }
 
 // default pandoc renderer immediately renders each execute result

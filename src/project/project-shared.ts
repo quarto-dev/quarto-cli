@@ -25,6 +25,13 @@ export function projectOutputDir(context: ProjectContext): string {
   }
 }
 
+export function isProjectInputFile(path: string, context: ProjectContext) {
+  const renderPath = Deno.realPathSync(path);
+  return context.files.input.map((file) => Deno.realPathSync(file)).includes(
+    renderPath,
+  );
+}
+
 export function projectConfigFile(dir: string): string | undefined {
   return ["_quarto.yml", "_quarto.yaml"]
     .map((file) => join(dir, file))

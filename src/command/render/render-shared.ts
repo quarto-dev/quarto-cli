@@ -29,6 +29,7 @@ import {
 import { PartitionedMarkdown } from "../../core/pandoc/types.ts";
 import { fileExecutionEngine } from "../../execute/engine.ts";
 import { isRStudioServer } from "../../core/platform.ts";
+import { isProjectInputFile } from "../../project/project-shared.ts";
 
 export async function render(
   path: string,
@@ -60,12 +61,7 @@ export async function render(
   } else if (context?.config) {
     // if there is a project file then treat this as a project render
     // if the passed file is in the render list
-    const renderPath = Deno.realPathSync(path);
-    if (
-      context.files.input.map((file) => Deno.realPathSync(file)).includes(
-        renderPath,
-      )
-    ) {
+    if (isProjectInputFile(path, context)) {
       return renderProject(context, options, [path]);
     }
   }
