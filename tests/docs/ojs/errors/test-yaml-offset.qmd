@@ -1,0 +1,64 @@
+---
+title: "ojs syntax error"
+format: html
+code-tools: true
+---
+
+## Let's add some knitr line number interference
+
+This should make it harder for the lines to come out right:
+
+```{r}
+rnorm(100)
+```
+
+## Syntax Errors in cell with YAML
+
+```{ojs}
+//| echo: true
+
+
+// Let's forget this is JS to force a syntax error
+viewof x = Inputs.range([0, 100], label = "hello!", value = 20)
+```
+
+### Fenced test
+
+```{ojs}
+//| echo: fenced
+
+
+300 + 50
+forceError_line_32
+"good output 2"
+forceError_line_34
+```
+
+```{ojs}
+//| echo: fenced
+//| some-yaml-to: ignore
+300 + 50
+forceError_line_41
+"good output 2"
+forceError_line_43
+```
+
+### non-fenced test
+
+```{ojs}
+//| echo: true
+300 + 50
+forceError_line_51
+"good output 2"
+forceError_line_53
+```
+
+```{ojs}
+//| echo: true
+
+
+forceError_line_60
+forceError_line_61
+"good output 2"
+forceError_line_63
+```
