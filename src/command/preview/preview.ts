@@ -34,16 +34,22 @@ import {
   render,
 } from "../render/render-shared.ts";
 import { RenderFlags, RenderResultFile } from "../render/types.ts";
-import { renderFormats, renderResultFinalOutput } from "../render/render.ts";
+import {
+  renderFormats,
+  renderResultFinalOutput,
+  renderResultUrlPath,
+} from "../render/render.ts";
 import { replacePandocArg } from "../render/flags.ts";
 import { formatResourcePath } from "../../core/resources.ts";
 import {
   projectContext,
   projectIsWebsite,
 } from "../../project/project-context.ts";
-import { kProjectType } from "../../project/types.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 import { normalizeNewlines } from "../../core/text.ts";
+import { isProjectInputFile } from "../../project/project-shared.ts";
+import { renderProject } from "../render/project.ts";
+import { kRenderNone, serveProject } from "../serve/serve.ts";
 
 interface PreviewOptions {
   port: number;
@@ -59,12 +65,26 @@ export async function preview(
   options: PreviewOptions,
 ) {
   // see if this is in a project that should be previewed w/ serve
-  const project = await projectContext(file);
+  const project = await projectContext(file, false, true);
   if (project && projectIsWebsite(project)) {
-    throw new Error(
-      `Target file ${basename(file)} is in a ${project.config?.project
-        ?.[kProjectType]} project (preview this file using quarto serve).`,
-    );
+    if (isProjectInputFile(file, project)) {
+      const result = await renderProject(project, { flags, pandocArgs }, [
+        file,
+      ]);
+      if (result.error) {
+        throw result.error;
+      }
+      const targetPath = renderResultUrlPath(result);
+      await serveProject(project, flags, pandocArgs, {
+        port: options.port,
+        host: options.host,
+        render: kRenderNone,
+        browse: options.browse ? targetPath || true : false,
+        watch: options.watch,
+        navigate: true,
+      });
+      return;
+    }
   }
 
   // determine the target format if there isn't one in the command line args

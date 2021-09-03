@@ -21,7 +21,7 @@ export type ServeOptions = {
   port: number;
   host: string;
   render: string;
-  browse?: boolean;
+  browse?: boolean | string;
   watch?: boolean;
   navigate?: boolean;
 };

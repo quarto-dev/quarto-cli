@@ -40,7 +40,7 @@ import {
 import { websitePath } from "../../project/types/website/website-config.ts";
 
 import { renderProject } from "../render/project.ts";
-import { renderResultFinalOutput } from "../render/render.ts";
+import { renderResultUrlPath } from "../render/render.ts";
 
 import { httpFileRequestHandler } from "../../core/http.ts";
 import { ServeOptions } from "./types.ts";
@@ -62,20 +62,25 @@ export const kRenderNone = "none";
 export const kRenderDefault = "default";
 
 export async function serveProject(
-  projDir: string,
+  target: string | ProjectContext,
   flags: RenderFlags,
   pandocArgs: string[],
   options: ServeOptions,
 ) {
-  const project = await projectContext(projDir, false, true);
-  if (!project?.config) {
-    throw new Error(`${projDir} is not a project`);
+  let project: ProjectContext | undefined;
+  if (typeof (target) === "string") {
+    project = await projectContext(target, false, true);
+    if (!project || !project?.config) {
+      throw new Error(`${target} is not a project`);
+    }
+  } else {
+    project = target;
   }
 
   // confirm that it's a project type that can be served
   if (!projectIsWebsite(project)) {
     throw new Error(
-      `Cannot serve project of type '${project.config.project[kProjectType] ||
+      `Cannot serve project of type '${project?.config?.project[kProjectType] ||
         "default"}' (try using project type 'site').`,
     );
   }
@@ -220,7 +225,7 @@ export async function serveProject(
       if (existsSync(custom404)) {
         let content404 = Deno.readTextFileSync(custom404);
         // replace site-path references with / so they work in dev server mode
-        const sitePath = websitePath(project.config);
+        const sitePath = websitePath(project?.config);
         if (sitePath !== "/") {
           content404 = content404.replaceAll(
             new RegExp('((?:content|ref|src)=")(' + sitePath + ")", "g"),
@@ -250,17 +255,11 @@ export async function serveProject(
 
   // open browser if requested
   if (options.browse) {
-    if (renderResult.baseDir && renderResult.outputDir) {
-      const finalOutput = renderResultFinalOutput(renderResult);
-      if (finalOutput) {
-        const targetPath = pathWithForwardSlashes(relative(
-          join(renderResult.baseDir, renderResult.outputDir),
-          finalOutput,
-        ));
-        openUrl(targetPath === "index.html" ? siteUrl : siteUrl + targetPath);
-      } else {
-        openUrl(siteUrl);
-      }
+    const targetPath = typeof (options.browse) === "string"
+      ? options.browse
+      : renderResultUrlPath(renderResult);
+    if (targetPath) {
+      openUrl(targetPath === "index.html" ? siteUrl : siteUrl + targetPath);
     } else {
       openUrl(siteUrl);
     }
