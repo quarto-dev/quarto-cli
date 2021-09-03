@@ -1,0 +1,10 @@
+---
+title: "No Echo + Error"
+format: html
+---
+
+```{ojs}
+//| echo: false
+import { aq, op, badImport } from '@uwdata/arquero'
+x = badImport
+```
