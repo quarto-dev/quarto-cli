@@ -55,7 +55,6 @@ import {
   kError,
   kEval,
   kInclude,
-  kKeepHidden,
   kLayoutNcol,
   kLayoutNrow,
   kOutput,
@@ -177,7 +176,7 @@ export async function ojsCompile(
         false) as boolean;
     const handleOJSCell = (
       cell: QuartoMdCell,
-      cellSrcInMd?: string,
+      _cellSrcInMd?: string,
       mdClassList?: string[],
     ) => {
       const cellSrcStr = cell.source.join("");
@@ -242,6 +241,7 @@ export async function ojsCompile(
         );
       }
 
+      // deno-lint-ignore no-explicit-any
       const handleError = (err: any, cellSrc: string) => {
         const div = pandocBlock(":::::")({
           classes: ["quarto-ojs-syntax-error"],
@@ -268,7 +268,7 @@ export async function ojsCompile(
         const calloutDiv = pandocBlock(":::")({
           classes: ["callout-important"],
         });
-        const [heading, fullMsg] = msg.split(": ");
+        const [_heading, fullMsg] = msg.split(": ");
         calloutDiv.push(
           pandocRawStr(
             `#### OJS Syntax Error (line ${err.loc.line +
@@ -282,7 +282,7 @@ export async function ojsCompile(
       };
 
       let nCells = 0;
-      let parsedCells: ParsedCellInfo[] = [];
+      const parsedCells: ParsedCellInfo[] = [];
 
       try {
         const parse = parseModule(cellSrcStr);
@@ -450,7 +450,6 @@ export async function ojsCompile(
       const echoVal = cell.options?.[kEcho] ?? options.format.execute[kEcho] ??
         true;
 
-      const keepHiddenVal = options.format.render[kKeepHidden] ?? false;
       const includeVal = cell.options?.[kInclude] ??
         options.format.execute[kInclude] ?? true;
 
@@ -509,7 +508,7 @@ export async function ojsCompile(
 
       const makeSubFigures = (specs: SubfigureSpec[]) => {
         let subfigIx = 1;
-        let cellInfo = ([] as SourceInfo[]).concat(
+        const cellInfo = ([] as SourceInfo[]).concat(
           ...(parsedCells.map((n) => n.info)),
         );
         for (const spec of specs) {
