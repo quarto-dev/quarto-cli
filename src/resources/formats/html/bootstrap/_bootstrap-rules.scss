@@ -203,10 +203,18 @@ div.sourceCode {
   @include body-secondary;
 }
 
+pre {
+  background-color: initial;
+  padding: initial;
+  border: initial;
+  color: initial;
+}
+
 // Maps the pandoc 'monobackgroundcolor' to bootstrap
 // Note this only targets code outside of sourceCode blocks
 @if variable-exists(mono-background-color) {
-  code:not(.sourceCode),
+  p code:not(.sourceCode),
+  li code:not(.sourceCode),
   kbd,
   pre:not(.sourceCode),
   samp {
@@ -216,7 +224,8 @@ div.sourceCode {
 }
 
 // Default padding if background is set
-code:not(.sourceCode) {
+p code:not(.sourceCode),
+li code:not(.sourceCode) {
   @if variable-exists(code-bg) {
     background-color: $code-bg;
   }
