@@ -15,8 +15,6 @@ interface OJSLineNumbersAnnotation {
   ojsBlockLineNumbers: number[];
 }
 
-import { dirname, extname } from "path/mod.ts";
-
 export function annotateOjsLineNumbers(
   context: RenderContext,
 ): OJSLineNumbersAnnotation {
