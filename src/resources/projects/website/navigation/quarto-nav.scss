@@ -1,3 +1,16 @@
+/*-- scss:defaults --*/
+$content-padding-top: 14px !default;
+// top-paading
+
+/*-- scss:rules --*/
+
+// content padding
+#quarto-sidebar nav,
+#quarto-toc-sidebar nav,
+#quarto-content main {
+  padding-top: $content-padding-top;
+}
+
 // headroom
 header.headroom {
   will-change: transform;
@@ -400,11 +413,7 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
 }
 
 #quarto-sidebar .sidebar-menu-container {
-  padding-top: 8px;
-}
-
-#quarto-content main {
-  padding-top: 0px;
+  padding-top: 14px;
 }
 
 .sidebar nav .dropdown-menu .dropdown-item .bi::before {

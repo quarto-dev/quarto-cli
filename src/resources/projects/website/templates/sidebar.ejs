@@ -13,10 +13,10 @@ if (sidebar.align === "center") {
 }
 %>
 
-<nav class="<%- mCss %> py-2 <%- styleCss %> overflow-auto">
+<nav class="<%- mCss %> <%- styleCss %> overflow-auto">
   
    <% if (sidebar.logo || (sidebar.title && !navbar) || sidebar.tools) { %>
-  <div class="px-3 pt-lg-2 mt-1 <%= alignCss %> sidebar-header<%= sidebar.logo && sidebar.title ? ' sidebar-header-stacked' : '' %>">
+  <div class="px-3 pt-lg-2 mt-2 <%= alignCss %> sidebar-header<%= sidebar.logo && sidebar.title ? ' sidebar-header-stacked' : '' %>">
     <% if (sidebar.logo) { %>
     <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo py-0 d-lg-inline d-none"/>
      <% if (sidebar.tools && !sidebar.title) { %>

@@ -103,6 +103,7 @@ import {
 } from "../../../config/metadata.ts";
 import { formatKeys } from "../../../command/render/render.ts";
 import { mergeConfigs } from "../../../core/config.ts";
+import { sassLayer } from "../../../command/render/sass.ts";
 
 // static navigation (initialized during project preRender)
 const navigation: Navigation = {
@@ -1026,15 +1027,13 @@ function websiteHeadroom(project: ProjectContext) {
 const kDependencyName = "quarto-nav";
 function websiteNavigationSassBundle() {
   const scssPath = navigationDependency("quarto-nav.scss").path;
+  const navSassLayer = sassLayer(scssPath);
   return {
     dependency: kBootstrapDependencyName,
     key: scssPath,
     quarto: {
+      ...navSassLayer,
       name: "quarto-nav.css",
-      defaults: "",
-      functions: "",
-      mixins: "",
-      rules: Deno.readTextFileSync(scssPath),
     },
   };
 }
