@@ -65,6 +65,15 @@ export function includeCode(
   );
 }
 
+export function echoFenced(
+  cell: JupyterCellWithOptions,
+  options: JupyterToMarkdownOptions,
+) {
+  const fenced = cell.options.echo === "fenced" ||
+    (cell.options.echo === undefined && options.execute.echo === "fenced");
+  return fenced;
+}
+
 export function includeOutput(
   cell: JupyterCellWithOptions,
   options: JupyterToMarkdownOptions,

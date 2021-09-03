@@ -32,6 +32,7 @@ import {
 import PngImage from "../png.ts";
 
 import {
+  echoFenced,
   hideCell,
   hideCode,
   hideOutput,
@@ -168,6 +169,7 @@ export interface JupyterCellMetadata {
 
 export interface JupyterCellWithOptions extends JupyterCell {
   options: JupyterCellOptions;
+  optionsSource: string[];
 }
 
 export interface JupyterOutput {
@@ -199,7 +201,7 @@ export interface JupyterCellOptions extends JupyterOutputFigureOptions {
   [kCodeOverflow]?: string;
   [kCellMdIndent]?: string;
   [kEval]?: true | false | null;
-  [kEcho]?: boolean;
+  [kEcho]?: boolean | "fenced";
   [kWarning]?: boolean;
   [kError]?: boolean;
   [kOutput]?: boolean | "all" | "asis";
@@ -707,7 +709,10 @@ export function jupyterCellWithOptions(
   language: string,
   cell: JupyterCell,
 ): JupyterCellWithOptions {
-  const { yaml, source } = partitionCellOptions(language, cell.source);
+  const { yaml, optionsSource, source } = partitionCellOptions(
+    language,
+    cell.source,
+  );
 
   // read any options defined in cell metadata
   const metadataOptions: Record<string, unknown> = kJupyterCellOptionKeys
@@ -732,6 +737,7 @@ export function jupyterCellWithOptions(
   return {
     ...cell,
     source,
+    optionsSource,
     options,
   };
 }
@@ -975,7 +981,10 @@ function mdFromCodeCell(
 
   // write code if appropriate
   if (includeCode(cell, options)) {
-    md.push("``` {");
+    const fenced = echoFenced(cell, options);
+    const ticks = fenced ? "````" : "```";
+
+    md.push(ticks + " {");
     if (typeof cell.options[kCellLstLabel] === "string") {
       let label = cell.options[kCellLstLabel]!;
       if (!label.startsWith("#")) {
@@ -983,7 +992,9 @@ function mdFromCodeCell(
       }
       md.push(label + " ");
     }
-    md.push("." + options.language);
+    if (!fenced) {
+      md.push("." + options.language);
+    }
     md.push(" .cell-code");
     if (hideCode(cell, options)) {
       md.push(" .hidden");
@@ -1005,8 +1016,22 @@ function mdFromCodeCell(
       md.push(` code-summary=\"${cell.options[kCodeSummary]}\"`);
     }
     md.push("}\n");
-    md.push(...mdTrimEmptyLines(cell.source), "\n");
-    md.push("```\n");
+    let source = ld.cloneDeep(cell.source);
+    if (fenced) {
+      const optionsSource = cell.optionsSource.filter((line) =>
+        line.search(/echo:\s+fenced/) === -1
+      );
+      if (optionsSource.length > 0) {
+        source = mdTrimEmptyLines(source, "trailing");
+      } else {
+        source = mdTrimEmptyLines(source, "all");
+      }
+      source.unshift(...optionsSource);
+      source.unshift("```{{" + options.language + "}}\n");
+      source.push("\n```\n");
+    }
+    md.push(...source, "\n");
+    md.push(ticks + "\n");
   }
 
   // write output if approproate (output: asis gets special handling)
@@ -1388,25 +1413,31 @@ function mdScriptOutput(mimeType: string, script: string[]) {
   return mdHtmlOutput(scriptTag);
 }
 
-function mdTrimEmptyLines(lines: string[]) {
+function mdTrimEmptyLines(
+  lines: string[],
+  trim: "leading" | "trailing" | "all" = "all",
+) {
   // trim leading lines
-  const firstNonEmpty = lines.findIndex((line) => line.trim().length > 0);
-  if (firstNonEmpty === -1) {
-    return [];
+  if (trim === "all" || trim === "leading") {
+    const firstNonEmpty = lines.findIndex((line) => line.trim().length > 0);
+    if (firstNonEmpty === -1) {
+      return [];
+    }
+    lines = lines.slice(firstNonEmpty);
   }
-  lines = lines.slice(firstNonEmpty);
 
   // trim trailing lines
-  let lastNonEmpty = -1;
-  for (let i = lines.length - 1; i >= 0; i--) {
-    if (lines[i].trim().length > 0) {
-      lastNonEmpty = i;
-      break;
+  if (trim === "all" || trim === "trailing") {
+    let lastNonEmpty = -1;
+    for (let i = lines.length - 1; i >= 0; i--) {
+      if (lines[i].trim().length > 0) {
+        lastNonEmpty = i;
+        break;
+      }
     }
-  }
-
-  if (lastNonEmpty > -1) {
-    lines = lines.slice(0, lastNonEmpty + 1);
+    if (lastNonEmpty > -1) {
+      lines = lines.slice(0, lastNonEmpty + 1);
+    }
   }
 
   return lines;

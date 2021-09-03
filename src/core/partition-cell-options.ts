@@ -18,6 +18,7 @@ export function partitionCellOptions(
   const optionSuffix = commentChars[1] || "";
 
   // find the yaml lines
+  const optionsSource: string[] = [];
   const yamlLines: string[] = [];
   for (const line of source) {
     if (line.startsWith(optionPrefix)) {
@@ -31,6 +32,7 @@ export function partitionCellOptions(
           );
         }
         yamlLines.push(yamlOption);
+        optionsSource.push(line);
         continue;
       }
     }
@@ -51,6 +53,7 @@ export function partitionCellOptions(
 
   return {
     yaml: yaml as Record<string, unknown> | undefined,
+    optionsSource,
     source: source.slice(yamlLines.length),
     sourceStartLine: yamlLines.length,
   };
