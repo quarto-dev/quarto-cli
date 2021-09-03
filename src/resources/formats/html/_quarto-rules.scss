@@ -205,6 +205,10 @@ pre > code {
   display: block;
 }
 
+td > code:not(.sourceCode) {
+  white-space: pre-wrap;
+}
+
 pre > code.sourceCode {
   white-space: $code-white-space;
 }

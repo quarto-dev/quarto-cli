@@ -14,39 +14,43 @@ $max-width: 1400px !default;
 // Speed up the default transition for the navbar
 $transition-collapse: height 0.2s ease !default;
 
-// callout colors
-$callout-border-width: 5px !default;
-$callout-border-scale: 0% !default;
-$callout-icon-scale: 10% !default;
-$callout-margin-top: 1.25rem !default;
-$callout-margin-bottom: 1.25rem !default;
-
-// code-left-border
-$code-block-border-left: false !default;
-$code-block-border-left-style: solid !default;
-$code-block-border-left-size: 3px !default;
-$code-block-padding-left: 0.6em !default;
-
-// code-bg
-$code-block-bg: true !default;
-$code-block-bg-padding: 0.4em !default;
-$code-block-bg-alpha: -0.35 !default;
-
-// code-bg
-// pink will also be defined in Bootstrap, but define it here
-// so we'll use whatever pink is defined in a theme
-$pink: #d63384 !default;
-$code-color: $pink !default;
-
-$code-block-theme-dark-threshhold: 40% !default;
-
 // Adjust the base font size up a little
 $font-size-root: 18px !default;
 
 // Font size for navigational elements
 $toc-font-size: 0.875rem !default;
 
+// Disable smooth scrolling
 $enable-smooth-scroll: false !default;
+
+/* Code Block Formatting */
+// Code Block Border Treatment
+$code-block-border-left: false !default;
+$code-block-border-left-style: solid !default;
+$code-block-border-left-size: 3px !default;
+$code-block-padding-left: 0.6em !default;
+
+// Code Block Background Treatment
+// $code-block-bg, $code-block-bg-padding, $code-block-bg-alpha
+$code-block-bg: true !default;
+$code-block-bg-padding: 0.4em !default;
+$code-block-bg-alpha: -0.35 !default;
+
+// Controls when the code block will switch to a dark
+// version of a theme
+$code-block-theme-dark-threshhold: 40% !default;
+
+/* Inline Code Formatting */
+// $code-bg, $code-color, $code-padding
+$code-color: #9954bb !default;
+
+/* Callout customization */
+// Formatting
+$callout-border-width: 5px !default;
+$callout-border-scale: 0% !default;
+$callout-icon-scale: 10% !default;
+$callout-margin-top: 1.25rem !default;
+$callout-margin-bottom: 1.25rem !default;
 
 // Our default callout colors unless the theme is providing custom
 // colors
@@ -57,22 +61,6 @@ $callout-color-caution: $orange !default;
 $callout-color-warning: $yellow !default;
 $callout-color-important: $red !default;
 */
-
-// Sidebar coloring
-$sidebar-bg: if(variable-exists(light), $light, #fff) !default;
-$sidebar-fg: theme-contrast($sidebar-bg) !default;
-$sidebar-hl: null;
-$sidebar-font-size: 0.875rem !default;
-$sidebar-font-size-section: 1rem !default;
-$sidebar-font-size-collapse: 1rem !default;
-
-// Footer coloring
-$footer-bg: if(variable-exists(body-bg), $body-bg, #fff) !default;
-$footer-fg: theme-contrast($footer-bg) !default;
-$footer-font-size: 0.825em !default;
-$footer-left-font-size: $footer-font-size !default;
-$footer-center-font-size: $footer-font-size !default;
-$footer-right-font-size: $footer-font-size !default;
 
 // Navbar
 $navbar-bg: if(variable-exists(primary), $primary, #fff) !default;
@@ -101,3 +89,19 @@ $navbar-light-brand-color: $navbar-hl !default;
 $navbar-light-brand-hover-color: $navbar-hl !default;
 $navbar-dark-brand-color: $navbar-hl !default;
 $navbar-dark-brand-hover-color: $navbar-hl !default;
+
+// Sidebar coloring
+$sidebar-bg: if(variable-exists(light), $light, #fff) !default;
+$sidebar-fg: theme-contrast($sidebar-bg) !default;
+$sidebar-hl: null;
+$sidebar-font-size: 0.875rem !default;
+$sidebar-font-size-section: 1rem !default;
+$sidebar-font-size-collapse: 1rem !default;
+
+// Footer coloring
+$footer-bg: if(variable-exists(body-bg), $body-bg, #fff) !default;
+$footer-fg: theme-contrast($footer-bg) !default;
+$footer-font-size: 0.825em !default;
+$footer-left-font-size: $footer-font-size !default;
+$footer-center-font-size: $footer-font-size !default;
+$footer-right-font-size: $footer-font-size !default;
