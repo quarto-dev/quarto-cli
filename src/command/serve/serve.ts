@@ -16,7 +16,7 @@ import { DOMParser } from "deno_dom/deno-dom-wasm.ts";
 
 import { openUrl } from "../../core/shell.ts";
 import { isHtmlContent } from "../../core/mime.ts";
-import { isModifiedAfter, pathWithForwardSlashes } from "../../core/path.ts";
+import { isModifiedAfter } from "../../core/path.ts";
 import { logError } from "../../core/log.ts";
 import { PromiseQueue } from "../../core/promise.ts";
 

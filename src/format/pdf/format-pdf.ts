@@ -12,7 +12,6 @@ import { texSafeFilename } from "../../core/tex.ts";
 
 import {
   kClassOption,
-  kColorLinks,
   kDocumentClass,
   kEcho,
   kFigDpi,
@@ -20,7 +19,6 @@ import {
   kFigHeight,
   kFigWidth,
   kKeepTex,
-  kLinkColor,
   kNumberSections,
   kPaperSize,
   kShiftHeadingLevelBy,

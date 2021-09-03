@@ -1,0 +1,25 @@
+---
+title: "Arquero"
+format:
+  html:
+    code-tools: true
+---
+
+Simple demonstration of [Arquero](https://uwdata.github.io/arquero/) using Allison Horst's [Palmer Penguins](https://allisonhorst.github.io/palmerpenguins/) dataset. 
+
+```{ojs}
+import { aq, op } from '@uwdata/arquero'
+penguins = aq.loadCSV("palmer-penguins.csv")
+
+penguins.view()
+
+penguins
+  .groupby('species')
+  .filter(p => p.body_mass > 0)
+  .rollup({
+    count: op.count(),
+    avg_mass: op.average('body_mass')
+   })
+  .view()
+```
+

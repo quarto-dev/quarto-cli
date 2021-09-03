@@ -44,6 +44,7 @@ if (requireNamespace("htmlwidgets", quietly = TRUE)) {
 # override parse_block to assign chunk labels from yaml options
 knitr_parse_block <- knitr:::parse_block
 parse_block = function(code, header, params.src, markdown_mode = out_format('markdown')) {
+  originalParamsSrc <- params.src
   engine = sub('^([a-zA-Z0-9_]+).*$', '\\1', params.src)
   partitioned <- partition_yaml_options(engine, code)
   params = sub('^([a-zA-Z0-9_]+)', '', params.src)
@@ -83,7 +84,11 @@ parse_block = function(code, header, params.src, markdown_mode = out_format('mar
   }
   
   # proceed
-  knitr_parse_block(code, header, params.src, markdown_mode)
+  block <- knitr_parse_block(code, header, params.src, markdown_mode)
+  block[["params"]][["original.params.src"]] <- originalParamsSrc
+  block[["params"]][["chunk.echo"]] <- isTRUE(params[["echo"]]) || 
+                                       isTRUE(partitioned$yaml[["echo"]])
+  block
 }
 assignInNamespace("parse_block", parse_block, ns = "knitr")
 
