@@ -169,6 +169,7 @@ export interface JupyterCellMetadata {
 
 export interface JupyterCellWithOptions extends JupyterCell {
   options: JupyterCellOptions;
+  optionsSource: string[];
 }
 
 export interface JupyterOutput {
@@ -708,7 +709,10 @@ export function jupyterCellWithOptions(
   language: string,
   cell: JupyterCell,
 ): JupyterCellWithOptions {
-  const { yaml, source } = partitionCellOptions(language, cell.source);
+  const { yaml, optionsSource, source } = partitionCellOptions(
+    language,
+    cell.source,
+  );
 
   // read any options defined in cell metadata
   const metadataOptions: Record<string, unknown> = kJupyterCellOptionKeys
@@ -733,6 +737,7 @@ export function jupyterCellWithOptions(
   return {
     ...cell,
     source,
+    optionsSource,
     options,
   };
 }
@@ -1011,8 +1016,17 @@ function mdFromCodeCell(
       md.push(` code-summary=\"${cell.options[kCodeSummary]}\"`);
     }
     md.push("}\n");
-    const source = mdTrimEmptyLines(cell.source);
+    let source = ld.cloneDeep(cell.source);
     if (fenced) {
+      const optionsSource = cell.optionsSource.filter((line) =>
+        line.search(/echo:\s+fenced/) === -1
+      );
+      if (optionsSource.length > 0) {
+        source = mdTrimEmptyLines(source, "trailing");
+      } else {
+        source = mdTrimEmptyLines(source, "all");
+      }
+      source.unshift(...optionsSource);
       source.unshift("```{{" + options.language + "}}\n");
       source.push("\n```\n");
     }
@@ -1399,25 +1413,31 @@ function mdScriptOutput(mimeType: string, script: string[]) {
   return mdHtmlOutput(scriptTag);
 }
 
-function mdTrimEmptyLines(lines: string[]) {
+function mdTrimEmptyLines(
+  lines: string[],
+  trim: "leading" | "trailing" | "all" = "all",
+) {
   // trim leading lines
-  const firstNonEmpty = lines.findIndex((line) => line.trim().length > 0);
-  if (firstNonEmpty === -1) {
-    return [];
+  if (trim === "all" || trim === "leading") {
+    const firstNonEmpty = lines.findIndex((line) => line.trim().length > 0);
+    if (firstNonEmpty === -1) {
+      return [];
+    }
+    lines = lines.slice(firstNonEmpty);
   }
-  lines = lines.slice(firstNonEmpty);
 
   // trim trailing lines
-  let lastNonEmpty = -1;
-  for (let i = lines.length - 1; i >= 0; i--) {
-    if (lines[i].trim().length > 0) {
-      lastNonEmpty = i;
-      break;
+  if (trim === "all" || trim === "trailing") {
+    let lastNonEmpty = -1;
+    for (let i = lines.length - 1; i >= 0; i--) {
+      if (lines[i].trim().length > 0) {
+        lastNonEmpty = i;
+        break;
+      }
     }
-  }
-
-  if (lastNonEmpty > -1) {
-    lines = lines.slice(0, lastNonEmpty + 1);
+    if (lastNonEmpty > -1) {
+      lines = lines.slice(0, lastNonEmpty + 1);
+    }
   }
 
   return lines;

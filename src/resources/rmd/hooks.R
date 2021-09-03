@@ -27,6 +27,15 @@ knitr_hooks <- function(format, resourceDir) {
     } else if (isTRUE(options[["chunk.echo"]])) {
       options[["fenced.echo"]] <- FALSE
     }
+    # fenced.echo implies hold (if another explicit override isn't there)
+    if (isTRUE(options[["fenced.echo"]])) {
+      if (identical(options[["fig.show"]], "asis")) {
+        options[["fig.show"]] <- "hold"
+      }
+      if (identical(options[["results"]], "markup")) {
+        options[["results"]] <- "hold"
+      }
+    }
     options
   }
 
@@ -236,7 +245,7 @@ knitr_hooks <- function(format, resourceDir) {
                      "lst-label", "classes", "panel", "code-fold", "code-summary", "code-overflow",
                      "layout", "layout-nrow", "layout-ncol", "layout-align", "layout-valign", 
                      "output", "include.hidden", "source.hidden", "plot.hidden", "output.hidden")
-    other_opts <- c("eval", "out.width", "code", "params.src", "original.params.src", 
+    other_opts <- c("eval", "out.width", "yaml.code", "code", "params.src", "original.params.src", 
                     "fenced.echo", "chunk.echo",
                     "out.width.px", "out.height.px", "indent")
     known_opts <- c(knitr_default_opts, quarto_opts, other_opts)
@@ -312,7 +321,15 @@ knitr_hooks <- function(format, resourceDir) {
         attr = attr
       )
       ticks <- "````"
-      x <- paste0("\n```{{", options[["original.params.src"]], "}}", x, '\n```')
+      yamlCode <- options[["yaml.code"]]
+      if (!is.null(yamlCode)) {
+        yamlCode <- Filter(function(line) !grepl("echo:\\s+fenced", line), yamlCode)
+        yamlCode <- paste(yamlCode, collapse = "\n")
+        if (!nzchar(yamlCode)) {
+          x <- trimws(x, "left")
+        }
+      }
+      x <- paste0("\n```{{", options[["original.params.src"]], "}}\n", yamlCode, x, '\n```')
     } else {
        attrs <- block_attr(
         id = id,
@@ -509,6 +526,7 @@ knitr_options_hook <- function(options) {
     # set code
     options$code <- results$code
   } 
+  options[["yaml.code"]] <- results$yamlSource
   
   # some aliases
   if (!is.null(options[["fig.format"]])) {
@@ -529,6 +547,7 @@ partition_yaml_options <- function(engine, code) {
   if (length(code) == 0) {
     return(list(
       yaml = NULL,
+      yamlSource = NULL,
       code = code
     ))
   }
@@ -590,23 +609,23 @@ partition_yaml_options <- function(engine, code) {
     
     # divide into yaml and code
     if (all(matched_lines)) {
-      yaml <- code
+      yamlSource <- code
       code <- c()
     } else {
       last_match <- which.min(matched_lines) - 1
-      yaml <- code[1:last_match]
+      yamlSource <- code[1:last_match]
       code <- code[(last_match+1):length(code)]
     }
     
     # trim right
     if (any(match_end)) {
-      yaml <- trimws(yaml, "right")
+      yamlSource <- trimws(yamlSource, "right")
     }
   
     # extract yaml from comments, then parse it
-    yaml <- substr(yaml, 
+    yaml <- substr(yamlSource, 
                    nchar(comment_start) + 1, 
-                   nchar(yaml) - nchar(comment_end))
+                   nchar(yamlSource) - nchar(comment_end))
     yaml_options <- yaml::yaml.load(yaml, eval.expr = TRUE)
     if (!is.list(yaml_options) || length(names(yaml_options)) == 0) {
       warning("Invalid YAML option format in chunk: \n", paste(yaml, collapse = "\n"), "\n")
@@ -616,15 +635,18 @@ partition_yaml_options <- function(engine, code) {
     # extract code
     if (length(code) > 0 && knitr:::is_blank(code[[1]])) {
       code <- code[-1]
+      yamlSource <- c(yamlSource, "")
     }
     
     list(
       yaml = yaml_options,
+      yamlSource = yamlSource,
       code = code
     )
   } else {
     list(
       yaml = NULL,
+      yamlSource = NULL,
       code = code
     )
   }
