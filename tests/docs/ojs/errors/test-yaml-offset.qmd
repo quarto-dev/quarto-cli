@@ -62,3 +62,163 @@ forceError_line_61
 "good output 2"
 forceError_line_63
 ```
+
+## Errors in cells with varying amounts of YAML
+
+```{ojs}
+import { aq, op, badImport } from '@uwdata/arquero'
+badImport
+```
+
+```{ojs}
+
+
+// Let's forget this is JS to force a syntax error
+viewof x = Inputs.range([0, 100], label = "hello!", value = 20)
+```
+
+```{ojs}
+//| some: yaml
+
+
+// Let's forget this is JS to force a syntax error
+viewof x = Inputs.range([0, 100], label = "hello!", value = 20)
+```
+
+```{ojs}
+//| some: yaml
+//| more: yaml
+
+
+// Let's forget this is JS to force a syntax error
+viewof x = Inputs.range([0, 100], label = "hello!", value = 20)
+```
+
+
+## Runtime errors with varying amounts of yaml and whitespace
+
+```{ojs}
+line_101
+```
+
+```{ojs}
+//| echo: true
+line_106
+```
+
+```{ojs}
+//| echo: true
+//| more: yaml
+line_112
+```
+
+```{ojs}
+
+line_117
+```
+
+```{ojs}
+//| echo: true
+
+line_123
+```
+
+```{ojs}
+//| echo: true
+//| more: yaml
+
+line_130
+```
+
+```{ojs}
+
+
+line_136
+```
+
+```{ojs}
+//| echo: true
+
+
+line_143
+```
+
+```{ojs}
+//| echo: true
+//| more: yaml
+
+
+line_151
+```
+
+## Runtime errors with varying amounts of yaml and whitespace and multiple values
+
+```{ojs}
+line_157
+line_158 = 1
+line_159
+```
+
+```{ojs}
+//| echo: true
+line_164
+line_165 = 1
+line_166
+```
+
+```{ojs}
+//| echo: true
+//| more: yaml
+line_172
+line_173 = 1
+line_174
+```
+
+```{ojs}
+
+line_179
+line_180 = 1
+line_181
+```
+
+```{ojs}
+//| echo: true
+
+line_187
+line_188 = 1
+line_189
+```
+
+```{ojs}
+//| echo: true
+//| more: yaml
+
+line_196
+line_197 = 1
+line_198
+```
+
+```{ojs}
+
+
+line_204
+line_205 = 1
+line_206
+```
+
+```{ojs}
+//| echo: true
+
+
+line_213
+```
+
+```{ojs}
+//| echo: true
+//| more: yaml
+
+
+line_221
+```
+
+
