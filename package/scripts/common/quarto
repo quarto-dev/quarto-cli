@@ -39,6 +39,6 @@ fi
 
 
 QUARTO_DENO_EXTRA_OPTIONS=""
-QUARTO_DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env --allow-net --no-check"
+QUARTO_DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env --allow-net"
 
 ${SCRIPT_PATH}/deno ${QUARTO_ACTION} ${QUARTO_DENO_OPTIONS} ${QUARTO_DENO_EXTRA_OPTIONS} ${QUARTO_IMPORT_ARGMAP} ${QUARTO_TARGET} "$@"
