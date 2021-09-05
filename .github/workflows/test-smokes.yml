@@ -68,7 +68,6 @@ jobs:
 
       - name: Install Chrome
         uses: browser-actions/setup-chrome@latest
-        run: chrome --version
 
       - name: Smoke Test Commits
         if: github.event.before != ''
