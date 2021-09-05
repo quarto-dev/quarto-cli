@@ -6,7 +6,6 @@
     "log/": "https://deno.land/std@0.97.0/log/",
     "path/": "https://deno.land/std@0.97.0/path/",
     "fs/": "https://deno.land/std@0.97.0/fs/",
-    "hash/": "https://deno.land/std@0.97.0/hash/",
     "io/": "https://deno.land/std@0.97.0/io/",
     "encoding/": "https://deno.land/std@0.97.0/encoding/",
     "uuid/": "https://deno.land/std@0.97.0/uuid/",
@@ -26,6 +25,7 @@
     "media_types/": "https://deno.land/x/media_types@v2.10.1/",
     "observablehq/parser": "https://cdn.skypack.dev/@observablehq/parser@4.4.4",
     "acorn/walk": "https://cdn.skypack.dev/acorn-walk@8.1.1",
-    "acorn/acorn": "https://cdn.skypack.dev/acorn@8.4.1"
+    "acorn/acorn": "https://cdn.skypack.dev/acorn@8.4.1",
+    "blueimpMd5": "https://cdn.skypack.dev/blueimp-md5"
   }
 }

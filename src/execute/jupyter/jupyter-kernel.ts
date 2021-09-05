@@ -7,12 +7,12 @@
 
 import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
-import { createHash } from "hash/mod.ts";
 import { error, info, warning } from "log/mod.ts";
 
 import { sleep } from "../../core/async.ts";
 import { quartoDataDir, quartoRuntimeDir } from "../../core/appdirs.ts";
 import { execProcess, ProcessResult } from "../../core/process.ts";
+import { md5Hash } from "../../core/hash.ts";
 import { resourcePath } from "../../core/resources.ts";
 import { pythonExec } from "../../core/jupyter/exec.ts";
 import { JupyterCapabilities } from "../../core/jupyter/types.ts";
@@ -254,9 +254,7 @@ interface KernelTransport {
 function kernelTransportFile(target: string) {
   const transportsDir = quartoRuntimeDir("jt");
   const targetFile = Deno.realPathSync(target);
-  const hasher = createHash("md5");
-  hasher.update(targetFile);
-  const hash = hasher.toString("hex").slice(0, 20);
+  const hash = md5Hash(targetFile).slice(0, 20);
   return join(transportsDir, hash);
 }
 

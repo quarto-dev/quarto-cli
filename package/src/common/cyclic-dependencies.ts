@@ -4,7 +4,6 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { createHash } from "hash/mod.ts";
 import { basename, isAbsolute, join } from "path/mod.ts";
 import { Command } from "cliffy/command/mod.ts";
 
@@ -12,6 +11,7 @@ import { runCmd } from "../util/cmd.ts";
 import { Configuration, readConfiguration } from "./config.ts";
 import { error, info } from "log/mod.ts";
 import { progressBar } from "../../../src/core/console.ts";
+import { md5Hash } from "../../../src/core/hash.ts";
 
 export function cycleDependenciesCommand() {
   return new Command()
@@ -180,7 +180,7 @@ function findCyclicDependencies(
   // creates a hash for a set of paths (a cycle)
   const hash = (paths: string[]) => {
     const string = paths.join(" ");
-    return createHash("md5").update(string).toString();
+    return md5Hash(string);
   };
 
   // The current import stack

@@ -7,7 +7,6 @@
 
 import { info } from "log/mod.ts";
 import { basename, dirname, join } from "path/mod.ts";
-import { createHash } from "hash/mod.ts";
 
 import { serve, ServerRequest } from "http/server.ts";
 
@@ -47,6 +46,7 @@ import {
 } from "../../project/project-context.ts";
 import { pathWithForwardSlashes } from "../../core/path.ts";
 import { normalizeNewlines } from "../../core/text.ts";
+import { md5Hash } from "../../core/hash.ts";
 import { isProjectInputFile } from "../../project/project-shared.ts";
 import { renderProject } from "../render/project.ts";
 import { kRenderNone, serveProject } from "../serve/serve.ts";
@@ -450,7 +450,7 @@ function pdfFileRequestHandler(
       // (preserve user viewer prefs across reloads)
     } else if (file === previewPath("build", "pdf.worker.js")) {
       const filePathHash = "quarto-preview-pdf-" +
-        createHash("md5").update(pdfFile).toString();
+        md5Hash(pdfFile);
       const workerJs = Deno.readTextFileSync(file).replace(
         /(key: "fingerprint",\s+get: function get\(\) {\s+)(var hash;)/,
         `$1return "${filePathHash}"; $2`,
