@@ -21,7 +21,6 @@
     "fuse/": "https://deno.land/x/fuse@v6.4.1/",
     "deno_dom/": "https://deno.land/x/deno_dom@v0.1.13-alpha/",
     "port/": "https://deno.land/x/port@1.0.0/",
-    "puppeteer/": "https://deno.land/x/puppeteer@9.0.1/",
     "media_types/": "https://deno.land/x/media_types@v2.10.1/",
     "observablehq/parser": "https://cdn.skypack.dev/@observablehq/parser@4.4.4",
     "acorn/walk": "https://cdn.skypack.dev/acorn-walk@8.1.1",

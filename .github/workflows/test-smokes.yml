@@ -1,4 +1,4 @@
-# Tests a broad set of Quarto functionality that users are likely to encounter. 
+# Tests a broad set of Quarto functionality that users are likely to encounter.
 # A failure indicates some signficant portion of functionality is likely to be broken.
 name: Test Smokes
 on:
@@ -65,10 +65,10 @@ jobs:
       - name: Install Tinytex
         run: |
           quarto tools install tinytex
-          
-      - name: Install Chromium
-        run: |
-          quarto tools install chromium
+
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@latest
+        run: chrome --version
 
       - name: Smoke Test Commits
         if: github.event.before != ''

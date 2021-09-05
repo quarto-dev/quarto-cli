@@ -8,10 +8,9 @@
 */
 
 import { ExecuteOutput, Verify } from "../../../test.ts";
-import { Browser } from "puppeteer/mod.ts";
-import { inPuppeteer } from "../../../puppeteer.ts";
+import { Browser } from "https://deno.land/x/puppeteer@9.0.1/mod.ts";
+import { inPuppeteer, withHeadlessBrowser } from "../../../puppeteer.ts";
 import { assert } from "testing/asserts.ts";
-import { withHeadlessBrowser } from "../../../../src/core/puppeteer.ts";
 
 // deno-lint-ignore no-explicit-any
 const window = (undefined as any); // appease the TypeScript typechecker
@@ -30,7 +29,7 @@ export function verifyDomTextValue(
         await window._ojs.runtime.finishInterpreting();
         // ojs hasn't updated the inspector yet.
         // FIXME this doesn't seem robust in the long run
-        await new Promise(resolve => setTimeout(resolve, 1000)); 
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         return document.getElementById(name).innerText;
       })(elementName);
       assert(
