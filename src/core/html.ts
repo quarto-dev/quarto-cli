@@ -7,11 +7,25 @@
 
 import { generate as generateUuid } from "uuid/v4.ts";
 
-import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
+import {
+  Document,
+  Element,
+  initParser,
+} from "deno_dom/deno-dom-wasm-noinit.ts";
 
 import { pandocAutoIdentifier } from "./pandoc/pandoc-id.ts";
 import { isFileRef } from "./http.ts";
 import { cssFileRefs } from "./css.ts";
+
+// one time init
+// deno-lint-ignore camelcase
+let s_DenoDomInitialized = false;
+export async function initDenoDom() {
+  if (!s_DenoDomInitialized) {
+    await initParser();
+    s_DenoDomInitialized = true;
+  }
+}
 
 export function asHtmlId(text: string) {
   return pandocAutoIdentifier(text, false);

@@ -6,7 +6,7 @@
 */
 
 import { existsSync } from "fs/exists.ts";
-import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
+import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { dirname, join, relative } from "path/mod.ts";
 import {
   kDescription,

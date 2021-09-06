@@ -1,5 +1,6 @@
 import { existsSync } from "fs/mod.ts";
 import { warning } from "log/mod.ts";
+import { initDenoDom } from "../src/core/html.ts";
 
 import { cleanupLogger, initializeLogger } from "../src/core/log.ts";
 import { quarto } from "../src/quarto.ts";
@@ -98,6 +99,7 @@ export function test(test: TestDescriptor) {
     : `[${test.type}] > ${test.name}`;
 
   Deno.test(testName, async () => {
+    await initDenoDom();
     const runTest = !test.context.prereq || await test.context.prereq();
     if (runTest) {
       if (test.context.setup) {

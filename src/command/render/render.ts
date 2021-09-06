@@ -18,7 +18,7 @@ import {
 
 import { ld } from "lodash/mod.ts";
 
-import { Document, DOMParser } from "deno_dom/deno-dom-wasm.ts";
+import { Document, DOMParser } from "deno_dom/deno-dom-wasm-noinit.ts";
 
 import { info } from "log/mod.ts";
 
@@ -120,6 +120,8 @@ import {
   PandocIncludes,
 } from "../../execute/types.ts";
 import { Metadata } from "../../config/types.ts";
+import { isHtmlCompatible, isHtmlOutput } from "../../config/format.ts";
+import { initDenoDom } from "../../core/html.ts";
 
 export async function renderFiles(
   files: string[],
@@ -168,6 +170,11 @@ export async function renderFiles(
 
       for (const format of Object.keys(contexts)) {
         const context = contexts[format];
+
+        // one time denoDom init for html compatible formats
+        if (isHtmlCompatible(context.format)) {
+          await initDenoDom();
+        }
 
         // get output recipe
         const recipe = await outputRecipe(context);
