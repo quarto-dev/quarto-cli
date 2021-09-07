@@ -1149,7 +1149,7 @@ var OJSConnector = class {
         }
       } else {
         heading = "OJS Error";
-        const p2 = document.createNode("p");
+        const p2 = document.createElement("p");
         p2.appendChild(document.createTextNode(inspectChild.textContent));
         message = p2;
       }

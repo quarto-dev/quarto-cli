@@ -1,0 +1,12 @@
+---
+title: "Tests how we report a FileAttachment error."
+format:
+  html:
+    code-tools: true
+---
+
+```{ojs}
+import { aq, op } from '@uwdata/arquero'
+penguins = aq.loadCSV("this-should-cause-an-error-line-10.csv")
+penguins2 = FileAttachment("this-should-cause-an-error-line-11.csv").csv()
+```

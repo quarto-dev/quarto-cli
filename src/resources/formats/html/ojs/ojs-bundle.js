@@ -415,7 +415,7 @@ export class OJSConnector {
         }
       } else {
         heading = "OJS Error";
-        const p = document.createNode("p");
+        const p = document.createElement("p");
         p.appendChild(document.createTextNode(inspectChild.textContent));
         message = p;
       }
