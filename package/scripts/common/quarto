@@ -31,7 +31,7 @@ if [ -f "$DEV_PATH" ]; then
   export QUARTO_DEBUG=true
 
   if [ $1 == "--version" ]; then
-    echo "(Local Development)"
+    echo "99.9.9"
     exit 0
   fi
 
