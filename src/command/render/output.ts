@@ -132,23 +132,23 @@ export async function outputRecipe(
       };
     }
 
-    // complete hook for keep-yaml (to: markdown already implements keep-yaml by default)
-    if (
-      format.render[kKeepYaml] &&
-      !/^markdown(\+|$)/.test(format.pandoc.to || "") &&
-      !format.pandoc.to?.startsWith("gfm")
-    ) {
+    // complete hook for keep-yaml
+    if (format.render[kKeepYaml]) {
       completeActions.push(() => {
         // read yaml and output markdown
-        const yamlMd = partitionYamlFrontMatter(
+        const inputMd = partitionYamlFrontMatter(
           Deno.readTextFileSync(input),
         );
-        if (yamlMd) {
-          const outputMd = Deno.readTextFileSync(recipe.output);
-          Deno.writeTextFileSync(
-            recipe.output,
-            yamlMd.yaml + "\n\n" + outputMd,
+        if (inputMd) {
+          const outputMd = partitionYamlFrontMatter(
+            Deno.readTextFileSync(recipe.output),
           );
+          if (outputMd) {
+            Deno.writeTextFileSync(
+              recipe.output,
+              inputMd.yaml + "\n\n" + outputMd.markdown,
+            );
+          }
         }
       });
     }
