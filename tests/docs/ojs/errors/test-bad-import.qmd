@@ -9,6 +9,6 @@ Simple demonstration of [Arquero](https://uwdata.github.io/arquero/) using Allis
 
 ```{ojs}
 import { aq, op, badImport } from '@uwdata/arquero'
-badImport
+badImportOnLine12
 ```
 

@@ -1,13 +1,13 @@
 ---
-title: "Arquero"
+title: "Tests multiple errors"
 format: html
 ---
 
-Test if multiple errors are reported correctly in a single cell:
+Tests if multiple errors are reported correctly in a single cell:
 
 ```{ojs}
-b = missing1
-a = missing2
+b = missingOnLine9
+a = missingOnLine10
 ```
 
 Test if multiple errors are reported correctly once some of them are cleared:
@@ -15,5 +15,5 @@ Test if multiple errors are reported correctly once some of them are cleared:
 ```{ojs}
 import { aq, op } from '@uwdata/arquero'
 c = aq
-missing3
+missingOnLine18
 ```

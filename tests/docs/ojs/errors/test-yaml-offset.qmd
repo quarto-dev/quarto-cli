@@ -19,7 +19,7 @@ rnorm(100)
 
 
 // Let's forget this is JS to force a syntax error
-viewof x = Inputs.range([0, 100], label = "hello!", value = 20)
+viewof x = Inputs.range([0, 100], line22 = "hello!", value = 20)
 ```
 
 ### Fenced test
@@ -66,15 +66,15 @@ forceError_line_63
 ## Errors in cells with varying amounts of YAML
 
 ```{ojs}
-import { aq, op, badImport } from '@uwdata/arquero'
-badImport
+import { aq, op, badImportOnLine70 } from '@uwdata/arquero'
+badImportOnLine70
 ```
 
 ```{ojs}
 
 
 // Let's forget this is JS to force a syntax error
-viewof x = Inputs.range([0, 100], label = "hello!", value = 20)
+viewof x = Inputs.range([0, 100], line77 = "hello!", value = 20)
 ```
 
 ```{ojs}
@@ -82,7 +82,7 @@ viewof x = Inputs.range([0, 100], label = "hello!", value = 20)
 
 
 // Let's forget this is JS to force a syntax error
-viewof x = Inputs.range([0, 100], label = "hello!", value = 20)
+viewof x = Inputs.range([0, 100], line85 = "hello!", value = 20)
 ```
 
 ```{ojs}
@@ -91,7 +91,7 @@ viewof x = Inputs.range([0, 100], label = "hello!", value = 20)
 
 
 // Let's forget this is JS to force a syntax error
-viewof x = Inputs.range([0, 100], label = "hello!", value = 20)
+viewof x = Inputs.range([0, 100], line94 = "hello!", value = 20)
 ```
 
 

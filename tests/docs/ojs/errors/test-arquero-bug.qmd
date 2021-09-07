@@ -1,11 +1,11 @@
 ---
-title: "Arquero"
+title: "Tests whether we clear all errors when we should."
 format:
   html:
     code-tools: true
 ---
 
-Simple demonstration of [Arquero](https://uwdata.github.io/arquero/) using Allison Horst's [Palmer Penguins](https://allisonhorst.github.io/palmerpenguins/) dataset. 
+There should be (eventually) no errors in this execution.
 
 ```{ojs}
 import { aq, op } from '@uwdata/arquero'

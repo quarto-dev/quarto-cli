@@ -3,8 +3,10 @@ title: "No Echo + Error"
 format: html
 ---
 
+Tests if an import with `echo: false` eventually shows source on error.
+
 ```{ojs}
 //| echo: false
 import { aq, op, badImport } from '@uwdata/arquero'
-x = badImport
+x = badImportOnLine11
 ```
