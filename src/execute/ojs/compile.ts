@@ -242,7 +242,7 @@ export async function ojsCompile(
 
       // deno-lint-ignore no-explicit-any
       const handleError = (err: any, cellSrc: string) => {
-        const div = pandocBlock(":::::")({
+        const div = pandocDiv({
           classes: ["quarto-ojs-syntax-error"],
         });
         const msg = String(err).split("\n")[0].trim().replace(
@@ -264,7 +264,7 @@ export async function ojsCompile(
         const errMsgDiv = pandocDiv({
           classes: ["cell-output-error"],
         });
-        const calloutDiv = pandocBlock(":::")({
+        const calloutDiv = pandocDiv({
           classes: ["callout-important"],
         });
         const [_heading, fullMsg] = msg.split(": ");
@@ -931,6 +931,52 @@ function pandocRawStr(content: string) {
   };
 }
 
+function pandocHtmlBlock(elementName: string) {
+  return function (
+    opts: {
+      id?: string;
+      classes?: string[];
+      attrs?: string[];
+    } | undefined,
+  ) {
+    let { id, classes, attrs } = opts || {};
+    if (classes === undefined) {
+      classes = [];
+    }
+    if (attrs === undefined) {
+      attrs = [];
+    }
+
+    const contents: PandocNode[] = [];
+    function attrString() {
+      const strs = [];
+      if (id) {
+        strs.push(`id="${id}"`);
+      }
+      if (classes) {
+        strs.push(`class="${classes.join(" ")}"`);
+      }
+      if (attrs) {
+        strs.push(...attrs.map((attr) => `data-${attr}`));
+      }
+      return strs.join(" ");
+    }
+
+    return {
+      push: function (s: PandocNode) {
+        contents.push(s);
+      },
+      emit: function (ls: string[]) {
+        ls.push(`\n<${elementName} ${attrString()}>`);
+        for (const entry of contents) {
+          entry.emit(ls);
+        }
+        ls.push(`\n</${elementName}>\n`);
+      },
+    };
+  };
+}
+
 function pandocBlock(delimiter: string) {
   return function (
     opts: {
@@ -981,5 +1027,5 @@ function pandocBlock(delimiter: string) {
   };
 }
 
-const pandocDiv = pandocBlock(":::");
+const pandocDiv = pandocHtmlBlock("div");
 const pandocCode = pandocBlock("```");

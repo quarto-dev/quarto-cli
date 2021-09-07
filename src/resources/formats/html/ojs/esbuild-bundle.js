@@ -7,139 +7,258 @@ import {
 } from "https://cdn.skypack.dev/@observablehq/runtime";
 
 // stdlib.js
-var e = new Map();
-var t = [];
-var n = t.map;
-var r = t.some;
-var o = t.hasOwnProperty;
-var i = "https://cdn.jsdelivr.net/npm/";
-var a = /^((?:@[^/@]+\/)?[^/@]+)(?:@([^/]+))?(?:\/(.*))?$/;
-var s = /^\d+\.\d+\.\d+(-[\w-.+]+)?$/;
-var u = /\.[^/]*$/;
-var l = ["unpkg", "jsdelivr", "browser", "main"];
+var e = {};
+var t = {};
+function n(e2) {
+  return new Function("d", "return {" + e2.map(function(e3, t2) {
+    return JSON.stringify(e3) + ": d[" + t2 + '] || ""';
+  }).join(",") + "}");
+}
+function r(e2) {
+  var t2 = Object.create(null), n2 = [];
+  return e2.forEach(function(e3) {
+    for (var r2 in e3)
+      r2 in t2 || n2.push(t2[r2] = r2);
+  }), n2;
+}
+function o(e2, t2) {
+  var n2 = e2 + "", r2 = n2.length;
+  return r2 < t2 ? new Array(t2 - r2 + 1).join(0) + n2 : n2;
+}
+function i(e2) {
+  var t2, n2 = e2.getUTCHours(), r2 = e2.getUTCMinutes(), i2 = e2.getUTCSeconds(), a2 = e2.getUTCMilliseconds();
+  return isNaN(e2) ? "Invalid Date" : ((t2 = e2.getUTCFullYear()) < 0 ? "-" + o(-t2, 6) : t2 > 9999 ? "+" + o(t2, 6) : o(t2, 4)) + "-" + o(e2.getUTCMonth() + 1, 2) + "-" + o(e2.getUTCDate(), 2) + (a2 ? "T" + o(n2, 2) + ":" + o(r2, 2) + ":" + o(i2, 2) + "." + o(a2, 3) + "Z" : i2 ? "T" + o(n2, 2) + ":" + o(r2, 2) + ":" + o(i2, 2) + "Z" : r2 || n2 ? "T" + o(n2, 2) + ":" + o(r2, 2) + "Z" : "");
+}
+function a(o2) {
+  var a2 = new RegExp('["' + o2 + "\n\r]"), s2 = o2.charCodeAt(0);
+  function u2(n2, r2) {
+    var o3, i2 = [], a3 = n2.length, u3 = 0, l3 = 0, c3 = a3 <= 0, f3 = false;
+    function d2() {
+      if (c3)
+        return t;
+      if (f3)
+        return f3 = false, e;
+      var r3, o4, i3 = u3;
+      if (n2.charCodeAt(i3) === 34) {
+        for (; u3++ < a3 && n2.charCodeAt(u3) !== 34 || n2.charCodeAt(++u3) === 34; )
+          ;
+        return (r3 = u3) >= a3 ? c3 = true : (o4 = n2.charCodeAt(u3++)) === 10 ? f3 = true : o4 === 13 && (f3 = true, n2.charCodeAt(u3) === 10 && ++u3), n2.slice(i3 + 1, r3 - 1).replace(/""/g, '"');
+      }
+      for (; u3 < a3; ) {
+        if ((o4 = n2.charCodeAt(r3 = u3++)) === 10)
+          f3 = true;
+        else if (o4 === 13)
+          f3 = true, n2.charCodeAt(u3) === 10 && ++u3;
+        else if (o4 !== s2)
+          continue;
+        return n2.slice(i3, r3);
+      }
+      return c3 = true, n2.slice(i3, a3);
+    }
+    for (n2.charCodeAt(a3 - 1) === 10 && --a3, n2.charCodeAt(a3 - 1) === 13 && --a3; (o3 = d2()) !== t; ) {
+      for (var h2 = []; o3 !== e && o3 !== t; )
+        h2.push(o3), o3 = d2();
+      r2 && (h2 = r2(h2, l3++)) == null || i2.push(h2);
+    }
+    return i2;
+  }
+  function l2(e2, t2) {
+    return e2.map(function(e3) {
+      return t2.map(function(t3) {
+        return f2(e3[t3]);
+      }).join(o2);
+    });
+  }
+  function c2(e2) {
+    return e2.map(f2).join(o2);
+  }
+  function f2(e2) {
+    return e2 == null ? "" : e2 instanceof Date ? i(e2) : a2.test(e2 += "") ? '"' + e2.replace(/"/g, '""') + '"' : e2;
+  }
+  return { parse: function(e2, t2) {
+    var r2, o3, i2 = u2(e2, function(e3, i3) {
+      if (r2)
+        return r2(e3, i3 - 1);
+      o3 = e3, r2 = t2 ? function(e4, t3) {
+        var r3 = n(e4);
+        return function(n2, o4) {
+          return t3(r3(n2), o4, e4);
+        };
+      }(e3, t2) : n(e3);
+    });
+    return i2.columns = o3 || [], i2;
+  }, parseRows: u2, format: function(e2, t2) {
+    return t2 == null && (t2 = r(e2)), [t2.map(f2).join(o2)].concat(l2(e2, t2)).join("\n");
+  }, formatBody: function(e2, t2) {
+    return t2 == null && (t2 = r(e2)), l2(e2, t2).join("\n");
+  }, formatRows: function(e2) {
+    return e2.map(c2).join("\n");
+  }, formatRow: c2, formatValue: f2 };
+}
+var s = a(",");
+var u = s.parse;
+var l = s.parseRows;
+var c = a("	");
+var f = c.parse;
+var d = c.parseRows;
+function h(e2) {
+  for (var t2 in e2) {
+    var n2, r2, o2 = e2[t2].trim();
+    if (o2)
+      if (o2 === "true")
+        o2 = true;
+      else if (o2 === "false")
+        o2 = false;
+      else if (o2 === "NaN")
+        o2 = NaN;
+      else if (isNaN(n2 = +o2)) {
+        if (!(r2 = o2.match(/^([-+]\d{2})?\d{4}(-\d{2}(-\d{2})?)?(T\d{2}:\d{2}(:\d{2}(\.\d{3})?)?(Z|[-+]\d{2}:\d{2})?)?$/)))
+          continue;
+        m && r2[4] && !r2[7] && (o2 = o2.replace(/-/g, "/").replace(/T/, " ")), o2 = new Date(o2);
+      } else
+        o2 = n2;
+    else
+      o2 = null;
+    e2[t2] = o2;
+  }
+  return e2;
+}
+var m = new Date("2019-01-01T00:00").getHours() || new Date("2019-07-01T00:00").getHours();
+var p = new Map();
+var w = [];
+var v = w.map;
+var y = w.some;
+var g = w.hasOwnProperty;
+var b = "https://cdn.jsdelivr.net/npm/";
+var x = /^((?:@[^/@]+\/)?[^/@]+)(?:@([^/]+))?(?:\/(.*))?$/;
+var j = /^\d+\.\d+\.\d+(-[\w-.+]+)?$/;
+var E = /\.[^/]*$/;
+var P = ["unpkg", "jsdelivr", "browser", "main"];
 var RequireError = class extends Error {
   constructor(e2) {
     super(e2);
   }
 };
-function c(e2) {
-  const t2 = a.exec(e2);
+function C(e2) {
+  const t2 = x.exec(e2);
   return t2 && { name: t2[1], version: t2[2], path: t2[3] };
 }
-function f(t2) {
-  const n2 = `${i}${t2.name}${t2.version ? `@${t2.version}` : ""}/package.json`;
-  let r2 = e.get(n2);
-  return r2 || e.set(n2, r2 = fetch(n2).then((t3) => {
-    if (!t3.ok)
+function A(e2) {
+  const t2 = `${b}${e2.name}${e2.version ? `@${e2.version}` : ""}/package.json`;
+  let n2 = p.get(t2);
+  return n2 || p.set(t2, n2 = fetch(t2).then((e3) => {
+    if (!e3.ok)
       throw new RequireError("unable to load package.json");
-    return t3.redirected && !e.has(t3.url) && e.set(t3.url, r2), t3.json();
-  })), r2;
+    return e3.redirected && !p.has(e3.url) && p.set(e3.url, n2), e3.json();
+  })), n2;
 }
 RequireError.prototype.name = RequireError.name;
-var d = h(async function(e2, t2) {
-  if (e2.startsWith(i) && (e2 = e2.substring(i.length)), /^(\w+:)|\/\//i.test(e2))
+var O = N(async function(e2, t2) {
+  if (e2.startsWith(b) && (e2 = e2.substring(b.length)), /^(\w+:)|\/\//i.test(e2))
     return e2;
   if (/^[.]{0,2}\//i.test(e2))
     return new URL(e2, t2 == null ? location : t2).href;
   if (!e2.length || /^[\s._]/.test(e2) || /\s$/.test(e2))
     throw new RequireError("illegal name");
-  const n2 = c(e2);
+  const n2 = C(e2);
   if (!n2)
-    return `${i}${e2}`;
-  if (!n2.version && t2 != null && t2.startsWith(i)) {
-    const e3 = await f(c(t2.substring(i.length)));
+    return `${b}${e2}`;
+  if (!n2.version && t2 != null && t2.startsWith(b)) {
+    const e3 = await A(C(t2.substring(b.length)));
     n2.version = e3.dependencies && e3.dependencies[n2.name] || e3.peerDependencies && e3.peerDependencies[n2.name];
   }
-  if (n2.path && !u.test(n2.path) && (n2.path += ".js"), n2.path && n2.version && s.test(n2.version))
-    return `${i}${n2.name}@${n2.version}/${n2.path}`;
-  const r2 = await f(n2);
-  return `${i}${r2.name}@${r2.version}/${n2.path || function(e3) {
-    for (const t3 of l) {
+  if (n2.path && !E.test(n2.path) && (n2.path += ".js"), n2.path && n2.version && j.test(n2.version))
+    return `${b}${n2.name}@${n2.version}/${n2.path}`;
+  const r2 = await A(n2);
+  return `${b}${r2.name}@${r2.version}/${n2.path || function(e3) {
+    for (const t3 of P) {
       const n3 = e3[t3];
       if (typeof n3 == "string")
-        return u.test(n3) ? n3 : `${n3}.js`;
+        return E.test(n3) ? n3 : `${n3}.js`;
     }
   }(r2) || "index.js"}`;
 });
-function h(e2) {
-  const r2 = new Map(), o2 = u2(null);
-  let i2, a2 = 0;
-  function s2(e3) {
+function N(e2) {
+  const t2 = new Map(), n2 = a2(null);
+  let r2, o2 = 0;
+  function i2(e3) {
     if (typeof e3 != "string")
       return e3;
-    let n2 = r2.get(e3);
-    return n2 || r2.set(e3, n2 = new Promise((n3, r3) => {
-      const o3 = document.createElement("script");
-      o3.onload = () => {
+    let n3 = t2.get(e3);
+    return n3 || t2.set(e3, n3 = new Promise((t3, n4) => {
+      const i3 = document.createElement("script");
+      i3.onload = () => {
         try {
-          n3(t.pop()(u2(e3)));
+          t3(w.pop()(a2(e3)));
         } catch (e4) {
-          r3(new RequireError("invalid module"));
+          n4(new RequireError("invalid module"));
         }
-        o3.remove(), a2--, a2 === 0 && (window.define = i2);
-      }, o3.onerror = () => {
-        r3(new RequireError("unable to load module")), o3.remove(), a2--, a2 === 0 && (window.define = i2);
-      }, o3.async = true, o3.src = e3, a2 === 0 && (i2 = window.define, window.define = p), a2++, document.head.appendChild(o3);
-    })), n2;
+        i3.remove(), o2--, o2 === 0 && (window.define = r2);
+      }, i3.onerror = () => {
+        n4(new RequireError("unable to load module")), i3.remove(), o2--, o2 === 0 && (window.define = r2);
+      }, i3.async = true, i3.src = e3, o2 === 0 && (r2 = window.define, window.define = k), o2++, document.head.appendChild(i3);
+    })), n3;
   }
-  function u2(t2) {
-    return (n2) => Promise.resolve(e2(n2, t2)).then(s2);
+  function a2(t3) {
+    return (n3) => Promise.resolve(e2(n3, t3)).then(i2);
   }
-  function l2(e3) {
-    return arguments.length > 1 ? Promise.all(n.call(arguments, o2)).then(m) : o2(e3);
+  function s2(e3) {
+    return arguments.length > 1 ? Promise.all(v.call(arguments, n2)).then(L) : n2(e3);
   }
-  return l2.alias = function(t2) {
-    return h((n2, r3) => n2 in t2 && (r3 = null, typeof (n2 = t2[n2]) != "string") ? n2 : e2(n2, r3));
-  }, l2.resolve = e2, l2;
+  return s2.alias = function(t3) {
+    return N((n3, r3) => n3 in t3 && (r3 = null, typeof (n3 = t3[n3]) != "string") ? n3 : e2(n3, r3));
+  }, s2.resolve = e2, s2;
 }
-function m(e2) {
+function L(e2) {
   const t2 = {};
   for (const n2 of e2)
     for (const e3 in n2)
-      o.call(n2, e3) && (n2[e3] == null ? Object.defineProperty(t2, e3, { get: w(n2, e3) }) : t2[e3] = n2[e3]);
+      g.call(n2, e3) && (n2[e3] == null ? Object.defineProperty(t2, e3, { get: R(n2, e3) }) : t2[e3] = n2[e3]);
   return t2;
 }
-function w(e2, t2) {
+function R(e2, t2) {
   return () => e2[t2];
 }
-function v(e2) {
+function $2(e2) {
   return (e2 += "") === "exports" || e2 === "module";
 }
-function p(e2, o2, i2) {
-  const a2 = arguments.length;
-  a2 < 2 ? (i2 = e2, o2 = []) : a2 < 3 && (i2 = o2, o2 = typeof e2 == "string" ? [] : e2), t.push(r.call(o2, v) ? (e3) => {
-    const t2 = {}, r2 = { exports: t2 };
-    return Promise.all(n.call(o2, (n2) => (n2 += "") === "exports" ? t2 : n2 === "module" ? r2 : e3(n2))).then((e4) => (i2.apply(null, e4), r2.exports));
-  } : (e3) => Promise.all(n.call(o2, e3)).then((e4) => typeof i2 == "function" ? i2.apply(null, e4) : i2));
+function k(e2, t2, n2) {
+  const r2 = arguments.length;
+  r2 < 2 ? (n2 = e2, t2 = []) : r2 < 3 && (n2 = t2, t2 = typeof e2 == "string" ? [] : e2), w.push(y.call(t2, $2) ? (e3) => {
+    const r3 = {}, o2 = { exports: r3 };
+    return Promise.all(v.call(t2, (t3) => (t3 += "") === "exports" ? r3 : t3 === "module" ? o2 : e3(t3))).then((e4) => (n2.apply(null, e4), o2.exports));
+  } : (e3) => Promise.all(v.call(t2, e3)).then((e4) => typeof n2 == "function" ? n2.apply(null, e4) : n2));
 }
-function y(e2, t2, n2) {
+function T(e2, t2, n2) {
   return { resolve: (r2 = n2) => `https://cdn.jsdelivr.net/npm/${e2}@${t2}/${r2}` };
 }
-p.amd = {};
-var g = y("d3", "6.7.0", "dist/d3.min.js");
-var b = y("d3-dsv", "2.0.0", "dist/d3-dsv.min.js");
-var x = y("@observablehq/inputs", "0.8.0", "dist/inputs.umd.min.js");
-var j = y("@observablehq/plot", "0.1.0", "dist/plot.umd.min.js");
-var E = y("@observablehq/graphviz", "0.2.1", "dist/graphviz.min.js");
-var P = y("@observablehq/highlight.js", "2.0.0", "highlight.min.js");
-var L = y("@observablehq/katex", "0.11.1", "dist/katex.min.js");
-var O = y("lodash", "4.17.21", "lodash.min.js");
-var $2 = y("htl", "0.2.5", "dist/htl.min.js");
-var R = y("marked", "0.3.12", "marked.min.js");
-var k = y("sql.js", "1.5.0", "dist/sql-wasm.js");
-var A = y("vega", "5.20.2", "build/vega.min.js");
-var N = y("vega-lite", "5.1.0", "build/vega-lite.min.js");
-var C = y("vega-lite-api", "5.0.0", "build/vega-lite-api.min.js");
-var q = y("apache-arrow", "4.0.1", "Arrow.es2015.min.js");
-async function U(e2) {
-  return (await e2(k.resolve()))({ locateFile: (e3) => k.resolve(`dist/${e3}`) });
+k.amd = {};
+var U = T("d3", "7.0.1", "dist/d3.min.js");
+var q = T("@observablehq/inputs", "0.9.1", "dist/inputs.min.js");
+var M = T("@observablehq/plot", "0.2.0", "dist/plot.umd.min.js");
+var S = T("@observablehq/graphviz", "0.2.1", "dist/graphviz.min.js");
+var _ = T("@observablehq/highlight.js", "2.0.0", "highlight.min.js");
+var D = T("@observablehq/katex", "0.11.1", "dist/katex.min.js");
+var F = T("lodash", "4.17.21", "lodash.min.js");
+var B = T("htl", "0.3.0", "dist/htl.min.js");
+var z = T("jszip", "3.7.1", "dist/jszip.min.js");
+var H = T("marked", "0.3.12", "marked.min.js");
+var W = T("sql.js", "1.6.1", "dist/sql-wasm.js");
+var I = T("vega", "5.20.2", "build/vega.min.js");
+var Z = T("vega-lite", "5.1.0", "build/vega-lite.min.js");
+var Q = T("vega-lite-api", "5.0.0", "build/vega-lite-api.min.js");
+var V = T("apache-arrow", "4.0.1", "Arrow.es2015.min.js");
+var J = T("arquero", "4.8.4", "dist/arquero.min.js");
+var X = T("topojson-client", "3.1.0", "dist/topojson-client.min.js");
+async function Y(e2) {
+  return (await e2(W.resolve()))({ locateFile: (e3) => W.resolve(`dist/${e3}`) });
 }
 var SQLiteDatabaseClient = class {
   constructor(e2) {
     Object.defineProperties(this, { _db: { value: e2 } });
   }
   static async open(e2) {
-    const [t2, n2] = await Promise.all([U(d), Promise.resolve(e2).then(M)]);
+    const [t2, n2] = await Promise.all([Y(O), Promise.resolve(e2).then(G)]);
     return new SQLiteDatabaseClient(new t2.Database(n2));
   }
   async query(e2, t2) {
@@ -155,20 +274,20 @@ var SQLiteDatabaseClient = class {
     return (await this.query(e2, t2))[0] || null;
   }
   async explain(e2, t2) {
-    return S("pre", { className: "observablehq--inspect" }, [_((await this.query(`EXPLAIN QUERY PLAN ${e2}`, t2)).map((e3) => e3.detail).join("\n"))]);
+    return K("pre", { className: "observablehq--inspect" }, [ee((await this.query(`EXPLAIN QUERY PLAN ${e2}`, t2)).map((e3) => e3.detail).join("\n"))]);
   }
   async describe(e2) {
     const t2 = await (e2 === void 0 ? this.query("SELECT name FROM sqlite_master WHERE type = 'table'") : this.query("SELECT * FROM pragma_table_info(?)", [e2]));
     if (!t2.length)
       throw new Error("Not found");
     const { columns: n2 } = t2;
-    return S("table", { value: t2 }, [S("thead", [S("tr", n2.map((e3) => S("th", [_(e3)])))]), S("tbody", t2.map((e3) => S("tr", n2.map((t3) => S("td", [_(e3[t3])])))))]);
+    return K("table", { value: t2 }, [K("thead", [K("tr", n2.map((e3) => K("th", [ee(e3)])))]), K("tbody", t2.map((e3) => K("tr", n2.map((t3) => K("td", [ee(e3[t3])])))))]);
   }
 };
-function M(e2) {
-  return typeof e2 == "string" ? fetch(e2).then(M) : e2 instanceof Response || e2 instanceof Blob ? e2.arrayBuffer().then(M) : e2 instanceof ArrayBuffer ? new Uint8Array(e2) : e2;
+function G(e2) {
+  return typeof e2 == "string" ? fetch(e2).then(G) : e2 instanceof Response || e2 instanceof Blob ? e2.arrayBuffer().then(G) : e2 instanceof ArrayBuffer ? new Uint8Array(e2) : e2;
 }
-function S(e2, t2, n2) {
+function K(e2, t2, n2) {
   arguments.length === 2 && (n2 = t2, t2 = void 0);
   const r2 = document.createElement(e2);
   if (t2 !== void 0)
@@ -179,46 +298,43 @@ function S(e2, t2, n2) {
       r2.appendChild(e3);
   return r2;
 }
-function _(e2) {
+function ee(e2) {
   return document.createTextNode(e2);
 }
-async function T(e2) {
-  return await e2("jszip@3.6.0/dist/jszip.min.js");
-}
-async function F(e2) {
+async function te(e2) {
   const t2 = await fetch(await e2.url());
   if (!t2.ok)
     throw new Error(`Unable to load file: ${e2.name}`);
   return t2;
 }
-async function D(e2, t2, { array: n2 = false, typed: r2 = false } = {}) {
-  const [o2, i2] = await Promise.all([e2.text(), d(b.resolve())]);
-  return (t2 === "	" ? n2 ? i2.tsvParseRows : i2.tsvParse : n2 ? i2.csvParseRows : i2.csvParse)(o2, r2 && i2.autoType);
+async function ne(e2, t2, { array: n2 = false, typed: r2 = false } = {}) {
+  const o2 = await e2.text();
+  return (t2 === "	" ? n2 ? d : f : n2 ? l : u)(o2, r2 && h);
 }
-var z = class {
+var re = class {
   constructor(e2) {
     Object.defineProperty(this, "name", { value: e2, enumerable: true });
   }
   async blob() {
-    return (await F(this)).blob();
+    return (await te(this)).blob();
   }
   async arrayBuffer() {
-    return (await F(this)).arrayBuffer();
+    return (await te(this)).arrayBuffer();
   }
   async text() {
-    return (await F(this)).text();
+    return (await te(this)).text();
   }
   async json() {
-    return (await F(this)).json();
+    return (await te(this)).json();
   }
   async stream() {
-    return (await F(this)).body;
+    return (await te(this)).body;
   }
   async csv(e2) {
-    return D(this, ",", e2);
+    return ne(this, ",", e2);
   }
   async tsv(e2) {
-    return D(this, "	", e2);
+    return ne(this, "	", e2);
   }
   async image() {
     const e2 = await this.url();
@@ -228,18 +344,24 @@ var z = class {
     });
   }
   async arrow() {
-    const [e2, t2] = await Promise.all([d(q.resolve()), F(this)]);
+    const [e2, t2] = await Promise.all([O(V.resolve()), te(this)]);
     return e2.Table.from(t2);
   }
   async sqlite() {
-    return SQLiteDatabaseClient.open(F(this));
+    return SQLiteDatabaseClient.open(te(this));
   }
   async zip() {
-    const [e2, t2] = await Promise.all([T(d), this.arrayBuffer()]);
+    const [e2, t2] = await Promise.all([O(z.resolve()), this.arrayBuffer()]);
     return new ZipArchive(await e2.loadAsync(t2));
   }
+  async xml(e2 = "application/xml") {
+    return new DOMParser().parseFromString(await this.text(), e2);
+  }
+  async html() {
+    return this.xml("text/html");
+  }
 };
-var FileAttachment = class extends z {
+var FileAttachment = class extends re {
   constructor(e2, t2) {
     super(t2), Object.defineProperty(this, "_url", { value: e2 });
   }
@@ -247,10 +369,10 @@ var FileAttachment = class extends z {
     return await this._url + "";
   }
 };
-function B(e2) {
+function oe(e2) {
   throw new Error(`File not found: ${e2}`);
 }
-function W(e2) {
+function ie(e2) {
   return Object.assign((t2) => {
     const n2 = e2(t2 += "");
     if (n2 == null)
@@ -269,7 +391,7 @@ var ZipArchive = class {
     return new ZipArchiveEntry(t2);
   }
 };
-var ZipArchiveEntry = class extends z {
+var ZipArchiveEntry = class extends re {
   constructor(e2) {
     super(e2.name), Object.defineProperty(this, "_", { value: e2 }), Object.defineProperty(this, "_url", { writable: true });
   }
@@ -289,15 +411,15 @@ var ZipArchiveEntry = class extends z {
     return JSON.parse(await this.text());
   }
 };
-var H = { math: "http://www.w3.org/1998/Math/MathML", svg: "http://www.w3.org/2000/svg", xhtml: "http://www.w3.org/1999/xhtml", xlink: "http://www.w3.org/1999/xlink", xml: "http://www.w3.org/XML/1998/namespace", xmlns: "http://www.w3.org/2000/xmlns/" };
-var I = 0;
-function Q(e2) {
+var ae = { math: "http://www.w3.org/1998/Math/MathML", svg: "http://www.w3.org/2000/svg", xhtml: "http://www.w3.org/1999/xhtml", xlink: "http://www.w3.org/1999/xlink", xml: "http://www.w3.org/XML/1998/namespace", xmlns: "http://www.w3.org/2000/xmlns/" };
+var se = 0;
+function ue(e2) {
   this.id = e2, this.href = new URL(`#${e2}`, location) + "";
 }
-Q.prototype.toString = function() {
+ue.prototype.toString = function() {
   return "url(" + this.href + ")";
 };
-var V = { canvas: function(e2, t2) {
+var le = { canvas: function(e2, t2) {
   var n2 = document.createElement("canvas");
   return n2.width = e2, n2.height = t2, n2;
 }, context2d: function(e2, t2, n2) {
@@ -328,10 +450,10 @@ var V = { canvas: function(e2, t2) {
 }, element: function(e2, t2) {
   var n2, r2 = e2 += "", o2 = r2.indexOf(":");
   o2 >= 0 && (r2 = e2.slice(0, o2)) !== "xmlns" && (e2 = e2.slice(o2 + 1));
-  var i2 = H.hasOwnProperty(r2) ? document.createElementNS(H[r2], e2) : document.createElement(e2);
+  var i2 = ae.hasOwnProperty(r2) ? document.createElementNS(ae[r2], e2) : document.createElement(e2);
   if (t2)
     for (var a2 in t2)
-      o2 = (r2 = a2).indexOf(":"), n2 = t2[a2], o2 >= 0 && (r2 = a2.slice(0, o2)) !== "xmlns" && (a2 = a2.slice(o2 + 1)), H.hasOwnProperty(r2) ? i2.setAttributeNS(H[r2], a2, n2) : i2.setAttribute(a2, n2);
+      o2 = (r2 = a2).indexOf(":"), n2 = t2[a2], o2 >= 0 && (r2 = a2.slice(0, o2)) !== "xmlns" && (a2 = a2.slice(o2 + 1)), ae.hasOwnProperty(r2) ? i2.setAttributeNS(ae[r2], a2, n2) : i2.setAttribute(a2, n2);
   return i2;
 }, input: function(e2) {
   var t2 = document.createElement("input");
@@ -352,9 +474,9 @@ var V = { canvas: function(e2, t2) {
 }, text: function(e2) {
   return document.createTextNode(e2);
 }, uid: function(e2) {
-  return new Q("O-" + (e2 == null ? "" : e2 + "-") + ++I);
+  return new ue("O-" + (e2 == null ? "" : e2 + "-") + ++se);
 } };
-var X = { buffer: function(e2) {
+var ce = { buffer: function(e2) {
   return new Promise(function(t2, n2) {
     var r2 = new FileReader();
     r2.onload = function() {
@@ -376,16 +498,16 @@ var X = { buffer: function(e2) {
     }, r2.onerror = n2, r2.readAsDataURL(e2);
   });
 } };
-function G() {
+function fe() {
   return this;
 }
-function J(e2, t2) {
+function de(e2, t2) {
   let n2 = false;
   if (typeof t2 != "function")
     throw new Error("dispose is not a function");
-  return { [Symbol.iterator]: G, next: () => n2 ? { done: true } : (n2 = true, { done: false, value: e2 }), return: () => (n2 = true, t2(e2), { done: true }), throw: () => ({ done: n2 = true }) };
+  return { [Symbol.iterator]: fe, next: () => n2 ? { done: true } : (n2 = true, { done: false, value: e2 }), return: () => (n2 = true, t2(e2), { done: true }), throw: () => ({ done: n2 = true }) };
 }
-function Y(e2) {
+function he(e2) {
   let t2, n2, r2 = false;
   const o2 = e2(function(e3) {
     n2 ? (n2(e3), n2 = null) : r2 = true;
@@ -393,11 +515,11 @@ function Y(e2) {
   });
   if (o2 != null && typeof o2 != "function")
     throw new Error(typeof o2.then == "function" ? "async initializers are not supported" : "initializer returned something, but not a dispose function");
-  return { [Symbol.iterator]: G, throw: () => ({ done: true }), return: () => (o2 != null && o2(), { done: true }), next: function() {
+  return { [Symbol.iterator]: fe, throw: () => ({ done: true }), return: () => (o2 != null && o2(), { done: true }), next: function() {
     return { done: false, value: r2 ? (r2 = false, Promise.resolve(t2)) : new Promise((e3) => n2 = e3) };
   } };
 }
-function K(e2) {
+function me(e2) {
   switch (e2.type) {
     case "range":
     case "number":
@@ -414,11 +536,11 @@ function K(e2) {
       return e2.value;
   }
 }
-var Z = { disposable: J, filter: function* (e2, t2) {
+var pe = { disposable: de, filter: function* (e2, t2) {
   for (var n2, r2 = -1; !(n2 = e2.next()).done; )
     t2(n2.value, ++r2) && (yield n2.value);
 }, input: function(e2) {
-  return Y(function(t2) {
+  return he(function(t2) {
     var n2 = function(e3) {
       switch (e3.type) {
         case "button":
@@ -430,9 +552,9 @@ var Z = { disposable: J, filter: function* (e2, t2) {
         default:
           return "input";
       }
-    }(e2), r2 = K(e2);
+    }(e2), r2 = me(e2);
     function o2() {
-      t2(K(e2));
+      t2(me(e2));
     }
     return e2.addEventListener(n2, o2), r2 !== void 0 && t2(r2), function() {
       e2.removeEventListener(n2, o2);
@@ -441,7 +563,7 @@ var Z = { disposable: J, filter: function* (e2, t2) {
 }, map: function* (e2, t2) {
   for (var n2, r2 = -1; !(n2 = e2.next()).done; )
     yield t2(n2.value, ++r2);
-}, observe: Y, queue: function(e2) {
+}, observe: he, queue: function(e2) {
   let t2;
   const n2 = [], r2 = e2(function(e3) {
     n2.push(e3), t2 && (t2(n2.shift()), t2 = null);
@@ -449,7 +571,7 @@ var Z = { disposable: J, filter: function* (e2, t2) {
   });
   if (r2 != null && typeof r2 != "function")
     throw new Error(typeof r2.then == "function" ? "async initializers are not supported" : "initializer returned something, but not a dispose function");
-  return { [Symbol.iterator]: G, throw: () => ({ done: true }), return: () => (r2 != null && r2(), { done: true }), next: function() {
+  return { [Symbol.iterator]: fe, throw: () => ({ done: true }), return: () => (r2 != null && r2(), { done: true }), next: function() {
     return { done: false, value: n2.length ? Promise.resolve(n2.shift()) : new Promise((e3) => t2 = e3) };
   } };
 }, range: function* (e2, t2, n2) {
@@ -464,11 +586,11 @@ var Z = { disposable: J, filter: function* (e2, t2) {
   }
 }, worker: function(e2) {
   const t2 = URL.createObjectURL(new Blob([e2], { type: "text/javascript" })), n2 = new Worker(t2);
-  return J(n2, () => {
+  return de(n2, () => {
     n2.terminate(), URL.revokeObjectURL(t2);
   });
 } };
-function ee(e2, t2) {
+function we(e2, t2) {
   return function(n2) {
     var r2, o2, i2, a2, s2, u2, l2, c2, f2 = n2[0], d2 = [], h2 = null, m2 = -1;
     for (s2 = 1, u2 = arguments.length; s2 < u2; ++s2) {
@@ -491,28 +613,28 @@ function ee(e2, t2) {
     return h2.childNodes.length === 1 ? h2.removeChild(h2.firstChild) : h2.nodeType === 11 ? ((o2 = t2()).appendChild(h2), o2) : h2;
   };
 }
-var te = ee(function(e2) {
+var ve = we(function(e2) {
   var t2 = document.createElement("template");
   return t2.innerHTML = e2.trim(), document.importNode(t2.content, true);
 }, function() {
   return document.createElement("span");
 });
-function ne(e2) {
+function ye(e2) {
   let t2;
-  Object.defineProperties(this, { generator: { value: Y((e3) => {
+  Object.defineProperties(this, { generator: { value: he((e3) => {
     t2 = e3;
   }) }, value: { get: () => e2, set: (n2) => t2(e2 = n2) } }), e2 !== void 0 && t2(e2);
 }
-function* re() {
+function* ge() {
   for (; ; )
     yield Date.now();
 }
-var oe = new Map();
-function ie(e2, t2) {
+var be = new Map();
+function xe(e2, t2) {
   var n2;
-  return (n2 = oe.get(e2 = +e2)) ? n2.then(() => t2) : (n2 = Date.now()) >= e2 ? Promise.resolve(t2) : function(e3, t3) {
+  return (n2 = be.get(e2 = +e2)) ? n2.then(() => t2) : (n2 = Date.now()) >= e2 ? Promise.resolve(t2) : function(e3, t3) {
     var n3 = new Promise(function(n4) {
-      oe.delete(t3);
+      be.delete(t3);
       var r2 = t3 - e3;
       if (!(r2 > 0))
         throw new Error("invalid time");
@@ -520,19 +642,19 @@ function ie(e2, t2) {
         throw new Error("too long to wait");
       setTimeout(n4, r2);
     });
-    return oe.set(t3, n3), n3;
+    return be.set(t3, n3), n3;
   }(n2, e2).then(() => t2);
 }
-var ae = { delay: function(e2, t2) {
+var je = { delay: function(e2, t2) {
   return new Promise(function(n2) {
     setTimeout(function() {
       n2(t2);
     }, e2);
   });
 }, tick: function(e2, t2) {
-  return ie(Math.ceil((Date.now() + 1) / e2) * e2, t2);
-}, when: ie };
-function se(e2, t2) {
+  return xe(Math.ceil((Date.now() + 1) / e2) * e2, t2);
+}, when: xe };
+function Ee(e2, t2) {
   if (/^(\w+:)|\/\//i.test(e2))
     return e2;
   if (/^[.]{0,2}\//i.test(e2))
@@ -541,18 +663,18 @@ function se(e2, t2) {
     throw new Error("illegal name");
   return "https://unpkg.com/" + e2;
 }
-function ue(e2) {
-  return e2 == null ? d : h(e2);
+function Pe(e2) {
+  return e2 == null ? O : N(e2);
 }
-var le = ee(function(e2) {
+var Ce = we(function(e2) {
   var t2 = document.createElementNS("http://www.w3.org/2000/svg", "g");
   return t2.innerHTML = e2.trim(), t2;
 }, function() {
   return document.createElementNS("http://www.w3.org/2000/svg", "g");
 });
-var ce = String.raw;
-function fe() {
-  return Y(function(e2) {
+var Ae = String.raw;
+function Oe() {
+  return he(function(e2) {
     var t2 = e2(document.body.clientWidth);
     function n2() {
       var n3 = document.body.clientWidth;
@@ -563,23 +685,23 @@ function fe() {
     };
   });
 }
-var de = Object.assign(function(e2) {
-  const t2 = ue(e2);
+var Ne = Object.assign(function(e2) {
+  const t2 = Pe(e2);
   var n2;
-  Object.defineProperties(this, (n2 = { FileAttachment: () => B, Arrow: () => t2(q.resolve()), Inputs: () => t2(x.resolve()), Mutable: () => ne, Plot: () => t2(j.resolve()), SQLite: () => U(t2), SQLiteDatabaseClient: () => SQLiteDatabaseClient, _: () => t2(O.resolve()), d3: () => t2(g.resolve()), dot: () => t2(E.resolve()), htl: () => t2($2.resolve()), html: () => te, md: () => function(e3) {
-    return e3(R.resolve()).then(function(t3) {
-      return ee(function(n3) {
+  Object.defineProperties(this, (n2 = { FileAttachment: () => oe, Arrow: () => t2(V.resolve()), Inputs: () => t2(q.resolve()), Mutable: () => ye, Plot: () => t2(M.resolve()), SQLite: () => Y(t2), SQLiteDatabaseClient: () => SQLiteDatabaseClient, _: () => t2(F.resolve()), aq: () => t2.alias({ "apache-arrow": V.resolve() })(J.resolve()), d3: () => t2(U.resolve()), dot: () => t2(S.resolve()), htl: () => t2(B.resolve()), html: () => ve, md: () => function(e3) {
+    return e3(H.resolve()).then(function(t3) {
+      return we(function(n3) {
         var r2 = document.createElement("div");
         r2.innerHTML = t3(n3, { langPrefix: "" }).trim();
         var o2 = r2.querySelectorAll("pre code[class]");
-        return o2.length > 0 && e3(P.resolve()).then(function(t4) {
+        return o2.length > 0 && e3(_.resolve()).then(function(t4) {
           o2.forEach(function(n4) {
             function r3() {
               t4.highlightBlock(n4), n4.parentNode.classList.add("observablehq--md-pre");
             }
-            t4.getLanguage(n4.className) ? r3() : e3(P.resolve("async-languages/index.js")).then((r4) => {
+            t4.getLanguage(n4.className) ? r3() : e3(_.resolve("async-languages/index.js")).then((r4) => {
               if (r4.has(n4.className))
-                return e3(P.resolve("async-languages/" + r4.get(n4.className))).then((e4) => {
+                return e3(_.resolve("async-languages/" + r4.get(n4.className))).then((e4) => {
                   t4.registerLanguage(n4.className, e4);
                 });
             }).then(r3, r3);
@@ -589,8 +711,8 @@ var de = Object.assign(function(e2) {
         return document.createElement("div");
       });
     });
-  }(t2), now: re, require: () => t2, resolve: () => se, svg: () => le, tex: () => function(e3) {
-    return Promise.all([e3(L.resolve()), (t3 = L.resolve("dist/katex.min.css"), new Promise(function(e4, n3) {
+  }(t2), now: ge, require: () => t2, resolve: () => Ee, svg: () => Ce, tex: () => function(e3) {
+    return Promise.all([e3(D.resolve()), (t3 = D.resolve("dist/katex.min.css"), new Promise(function(e4, n3) {
       var r2 = document.createElement("link");
       r2.rel = "stylesheet", r2.href = t3, r2.onerror = n3, r2.onload = e4, document.head.appendChild(r2);
     }))]).then(function(e4) {
@@ -598,18 +720,18 @@ var de = Object.assign(function(e2) {
       function r2(e5) {
         return function() {
           var n4 = document.createElement("div");
-          return t4.render(ce.apply(String, arguments), n4, e5), n4.removeChild(n4.firstChild);
+          return t4.render(Ae.apply(String, arguments), n4, e5), n4.removeChild(n4.firstChild);
         };
       }
       return n3.options = r2, n3.block = r2({ displayMode: true }), n3;
     });
     var t3;
-  }(t2), vl: () => async function(e3) {
-    const [t3, n3, r2] = await Promise.all([A, N, C].map((t4) => e3(t4.resolve())));
+  }(t2), topojson: () => t2(X.resolve()), vl: () => async function(e3) {
+    const [t3, n3, r2] = await Promise.all([I, Z, Q].map((t4) => e3(t4.resolve())));
     return r2.register(t3, n3);
-  }(t2), width: fe, DOM: V, Files: X, Generators: Z, Promises: ae }, Object.fromEntries(Object.entries(n2).map(he))));
-}, { resolve: d.resolve });
-function he([e2, t2]) {
+  }(t2), width: Oe, DOM: le, Files: ce, Generators: pe, Promises: je }, Object.fromEntries(Object.entries(n2).map(Le))));
+}, { resolve: O.resolve });
+function Le([e2, t2]) {
   return [e2, { value: t2, writable: true, enumerable: true }];
 }
 
@@ -794,7 +916,7 @@ var EmptyInspector = class {
 };
 var OJSConnector = class {
   constructor({ paths, inspectorClass, library, allowPendingGlobals = false }) {
-    this.library = library || new de();
+    this.library = library || new Ne();
     this.localResolverMap = new Map();
     this.pendingGlobals = {};
     this.allowPendingGlobals = allowPendingGlobals;
@@ -1062,7 +1184,6 @@ var OJSConnector = class {
         const callback = function(mutationsList, observer3) {
           for (const mutation of mutationsList) {
             const ojsDiv = mutation.target;
-            console.log(cellDiv);
             if (!forceShowDeclarations) {
               Array.from(mutation.target.childNodes).filter((n2) => {
                 return n2.classList.contains("observablehq--inspect") && !n2.parentNode.classList.contains("observablehq--error") && n2.parentNode.parentNode.dataset.nodetype !== "expression";
@@ -1343,7 +1464,7 @@ var ShinyInspector = class extends QuartoInspector {
     return super.fulfilled(value, name);
   }
 };
-var { Generators } = new de();
+var { Generators } = new Ne();
 var OjsButtonInput = class {
   find(_scope) {
     return document.querySelectorAll(".ojs-inputs-button");
@@ -1443,7 +1564,7 @@ function createRuntime() {
     window._ojs.shinyElementRoot = span;
     document.body.appendChild(span);
   }
-  const lib = new de();
+  const lib = new Ne();
   if (isShiny) {
     extendObservableStdlib(lib);
   }
@@ -1524,7 +1645,7 @@ function createRuntime() {
       return n2;
     }
   }
-  lib.FileAttachment = () => W(fileAttachmentPathResolver);
+  lib.FileAttachment = () => ie(fileAttachmentPathResolver);
   const ojsConnector = new OJSConnector({
     paths: quartoOjsGlobal.paths,
     inspectorClass: isShiny ? ShinyInspector : QuartoInspector,
