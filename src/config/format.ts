@@ -63,9 +63,12 @@ export function isHtmlOutput(
   }
 }
 
-export function isMarkdownOutput(format: FormatPandoc) {
+export function isMarkdownOutput(
+  format: FormatPandoc,
+  flavors = ["markdown", "gfm", "commonmark"],
+) {
   const to = (format.to || "").replace(/[\+\-_].*$/, "");
-  return ["markdown", "gfm", "commonmark"].includes(to);
+  return flavors.includes(to);
 }
 
 export function isHtmlCompatible(format: Format) {
