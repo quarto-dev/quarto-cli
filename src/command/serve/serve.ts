@@ -15,7 +15,7 @@ import { ld } from "lodash/mod.ts";
 import { DOMParser } from "deno_dom/deno-dom-wasm-noinit.ts";
 
 import { openUrl } from "../../core/shell.ts";
-import { isHtmlContent } from "../../core/mime.ts";
+import { isHtmlContent, isPdfContent } from "../../core/mime.ts";
 import { isModifiedAfter } from "../../core/path.ts";
 import { logError } from "../../core/log.ts";
 import { PromiseQueue } from "../../core/promise.ts";
@@ -172,8 +172,8 @@ export async function serveProject(
 
     // handle html file requests w/ re-renders
     onFile: async (file: string) => {
-      // if this is an html file then re-render (using the freezer)
-      if (isHtmlContent(file)) {
+      // if this is an html file or a pdef then re-render (using the freezer)
+      if (isHtmlContent(file) || isPdfContent(file)) {
         // find the input file associated with this output and render it
         // if we can't find an input file for this .html file it may have
         // been an input added after the server started running, to catch
@@ -294,10 +294,16 @@ async function serveFiles(
         // for monitoring during serve
 
         // resource files referenced in html
-        const htmlInput = Deno.readTextFileSync(outputFile);
-        const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
-        const resolver = htmlResourceResolverPostprocessor(inputFile, project);
-        const files = await resolver(doc);
+        const files: string[] = [];
+        if (isHtmlContent(outputFile)) {
+          const htmlInput = Deno.readTextFileSync(outputFile);
+          const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
+          const resolver = htmlResourceResolverPostprocessor(
+            inputFile,
+            project,
+          );
+          files.push(...await resolver(doc));
+        }
 
         // partition markdown and read globs
         const partitioned = await partitionedMarkdownForInput(
