@@ -10,6 +10,6 @@
         "path/": "https://deno.land/std@0.97.0/path/",
         "lodash/": "https://deno.land/x/deno_lodash/",
         "async/": "https://deno.land/std@0.97.0/async/",
-        "hash/": "https://deno.land/std@0.97.0/hash/"
+        "blueimpMd5": "https://cdn.skypack.dev/blueimp-md5"
     }
 }

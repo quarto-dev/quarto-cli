@@ -5,7 +5,7 @@
 *
 */
 
-import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
+import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 
 import { kPageWidth } from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";

@@ -4,7 +4,7 @@
 * Copyright (C) 2020 by RStudio, PBC
 *
 */
-import { Document } from "deno_dom/deno-dom-wasm.ts";
+import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { join } from "path/mod.ts";
 import { kTitle } from "../../../config/constants.ts";
 import { Metadata } from "../../../config/types.ts";

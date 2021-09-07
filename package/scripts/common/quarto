@@ -29,12 +29,24 @@ if [ -f "$DEV_PATH" ]; then
   export QUARTO_BIN_PATH=$SCRIPT_PATH
   export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../../../src/resources/";pwd`"
   export QUARTO_DEBUG=true
+
+  if [ $1 == "--version" ]; then
+    echo "(Local Development)"
+    exit 0
+  fi
+
 else 
   
   QUARTO_ACTION=run
   QUARTO_TARGET=${SCRIPT_PATH}/quarto.js
   export QUARTO_BIN_PATH=$SCRIPT_PATH
   export QUARTO_SHARE_PATH="`cd "$SCRIPT_PATH/../share";pwd`"
+
+  if [ $1 == "--version" ]; then
+    echo `cat "$QUARTO_SHARE_PATH/version"`
+    exit 0
+  fi
+
 fi
 
 

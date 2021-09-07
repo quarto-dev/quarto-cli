@@ -52,8 +52,15 @@ export const previewCommand = new Command()
     "Don't navigate the browser automatically.",
   )
   .option(
+    "--no-browser",
+    "Don't open a browser to preview the site.",
+  )
+  .option(
     "--no-browse",
     "Don't open a browser to preview the site.",
+    {
+      hidden: true,
+    },
   )
   .arguments("[file:string] [...args:string]")
   .description(
@@ -88,7 +95,7 @@ export const previewCommand = new Command()
   )
   .example(
     "Preview website (don't open a browser)",
-    "quarto preview --no-browse",
+    "quarto preview --no-browser",
   )
   .example(
     "Fully render all website/book formats then preview",
@@ -128,6 +135,11 @@ export const previewCommand = new Command()
       options.browse = false;
       args.splice(noBrowsePos, 1);
     }
+    const noBrowserPos = args.indexOf("--no-browser");
+    if (noBrowserPos !== -1) {
+      options.browser = false;
+      args.splice(noBrowserPos, 1);
+    }
     const noWatchPos = args.indexOf("--no-watch");
     if (noWatchPos !== -1) {
       options.watch = false;
@@ -166,7 +178,7 @@ export const previewCommand = new Command()
         port: options.port,
         host: options.host,
         render: options.render,
-        browse: options.browse,
+        browse: !!(options.browser && options.browse),
         watch: options.watch,
         navigate: options.navigate,
       });
@@ -182,7 +194,7 @@ export const previewCommand = new Command()
       await preview(file, flags, args, {
         port: options.port,
         host: options.host,
-        browse: !!options.browse,
+        browse: !!(options.browser && options.browse),
         watch: !!options.watch,
       });
     }

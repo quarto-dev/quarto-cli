@@ -467,7 +467,8 @@ export class OJSConnector {
             cellOutputDisplay = cellDiv;
           }
         }
-
+        const forceShowDeclarations = !(cellDiv && cellDiv.dataset.output !== "all");
+        
         const config = { childList: true };
         const callback = function(mutationsList, observer) {
           // we may fail to find a cell in inline settings; but
@@ -475,8 +476,9 @@ export class OJSConnector {
           // we never hide
           for (const mutation of mutationsList) {
             const ojsDiv = mutation.target;
+            console.log(cellDiv);
 
-            if (cellDiv && cellDiv.dataset.output !== "all") {
+            if (!forceShowDeclarations) {
               // hide the inner inspect outputs that aren't errors or
               // declarations
               Array.from(mutation.target.childNodes)
@@ -510,9 +512,9 @@ export class OJSConnector {
               }
             } else {
               that.clearError(ojsDiv);
-              // if the ojsDiv no longer has errors, then we remove the display="none" style
               if (
                 (ojsDiv.parentNode.dataset.nodetype !== "expression") &&
+                  !forceShowDeclarations &&
                   Array.from(ojsDiv.childNodes).every(
                     n => n.classList.contains("observablehq--inspect"))) {
                 // if every child is an inspect output, hide the ojsDiv
@@ -1119,6 +1121,31 @@ export function createRuntime() {
     });
   }
   lib.width = width;
+
+  // hack for "echo: fenced": remove all "//| echo: fenced" lines the hard way, but keep
+  // the right line numbers around.
+  Array.from(document.querySelectorAll("span.co"))
+    .filter(n => n.textContent === "//| echo: fenced")
+    .forEach(n => {
+      const lineSpan = n.parentElement;
+      const lineBreak = lineSpan.nextSibling;
+      if (lineBreak) {
+        const nextLineSpan = lineBreak.nextSibling;
+        if (nextLineSpan) {
+          const lineNumber = Number(nextLineSpan.id.split("-")[1]);
+          nextLineSpan.style = `counter-reset: source-line ${lineNumber-1}`;
+        }
+      }
+
+      // update the source offset variable with the new right amount
+      const sourceDiv = lineSpan.parentElement.parentElement.parentElement;
+      const oldOffset = Number(sourceDiv.dataset.sourceOffset);
+      sourceDiv.dataset.sourceOffset = oldOffset - "//| echo: fenced\n".length;
+
+      lineSpan.remove();
+      lineBreak.remove();
+    });
+  
 
   // select all panel elements with ids
   const layoutDivs = Array.from(

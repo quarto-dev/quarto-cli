@@ -24,21 +24,17 @@ export function annotateOjsLineNumbers(
     const source = lines(Deno.readTextFileSync(context.target.source));
 
     const ojsBlockLineNumbers: number[] = [];
-    let waitingForOjs = false;
-    let lineNumber = 0;
+    let lineNumber = 1;
 
     // we're using a regexp based on knitr, tweaked to what we actually need here:
     // https://github.com/yihui/knitr/blob/3237add034368a3018ff26fa9f4d0ca89a4afd78/R/pattern.R#L32
     const chunkBegin = /^[\t ]*```+\s*\{(ojs( *[ ,].*)?)\}\s*$/;
 
     source.forEach((line) => {
+      lineNumber++;
       if (line.match(chunkBegin)) {
-        waitingForOjs = true;
-      } else if (waitingForOjs && !line.startsWith("//|")) {
-        waitingForOjs = false;
         ojsBlockLineNumbers.push(lineNumber);
       }
-      lineNumber++;
     });
 
     return {

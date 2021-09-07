@@ -5,7 +5,7 @@
 *
 */
 
-import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
+import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 
 import { Format, Metadata } from "../../../config/types.ts";
 import { NavbarItem, NavItem, Sidebar } from "../../project-config.ts";

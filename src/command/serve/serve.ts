@@ -12,7 +12,7 @@ import { basename, dirname, join, relative } from "path/mod.ts";
 import { serve, ServerRequest } from "http/server.ts";
 
 import { ld } from "lodash/mod.ts";
-import { DOMParser } from "deno_dom/deno-dom-wasm.ts";
+import { DOMParser } from "deno_dom/deno-dom-wasm-noinit.ts";
 
 import { openUrl } from "../../core/shell.ts";
 import { isHtmlContent } from "../../core/mime.ts";
@@ -57,6 +57,7 @@ import { kResources } from "../../config/constants.ts";
 import { resourcesFromMetadata } from "../render/resources.ts";
 import { readYamlFromMarkdown } from "../../core/yaml.ts";
 import { RenderFlags, RenderResult } from "../render/types.ts";
+import { initDenoDom } from "../../core/html.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -274,6 +275,9 @@ export async function serveProject(
 async function serveFiles(
   project: ProjectContext,
 ): Promise<{ files: string[]; resourceFiles: string[] }> {
+  // one time denoDom init
+  await initDenoDom();
+
   const files: string[] = [];
   const resourceFiles: string[] = [];
   for (let i = 0; i < project.files.input.length; i++) {

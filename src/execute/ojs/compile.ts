@@ -176,7 +176,6 @@ export async function ojsCompile(
         false) as boolean;
     const handleOJSCell = (
       cell: QuartoMdCell,
-      _cellSrcInMd?: string,
       mdClassList?: string[],
     ) => {
       const cellSrcStr = cell.source.join("");
@@ -250,17 +249,17 @@ export async function ojsCompile(
           / *\(\d+:\d+\)$/,
           "",
         );
-        ojsParseError(err, cellSrc, cellStartingLoc);
+        ojsParseError(err, cellSrc, cellStartingLoc + cell.sourceStartLine - 1);
 
         const preDiv = pandocBlock("````")({
           classes: ["numberLines", "java"],
           attrs: [
-            `startFrom="${cellStartingLoc}"`,
+            `startFrom="${cellStartingLoc - 1}"`,
             `syntax-error-position="${err.pos}"`,
-            `source-offset="9"`,
+            `source-offset="${cell.sourceOffset}"`,
           ],
         });
-        preDiv.push(pandocRawStr("```{ojs}\n" + cellSrc + "\n```"));
+        preDiv.push(pandocRawStr(cell.sourceVerbatim));
         div.push(preDiv);
         const errMsgDiv = pandocDiv({
           classes: ["cell-output-error"],
@@ -272,7 +271,8 @@ export async function ojsCompile(
         calloutDiv.push(
           pandocRawStr(
             `#### OJS Syntax Error (line ${err.loc.line +
-              cellStartingLoc}, column ${err.loc.column + 1})`,
+              cellStartingLoc + cell.sourceStartLine -
+              1}, column ${err.loc.column + 1})`,
           ),
         );
         calloutDiv.push(pandocRawStr(`${fullMsg}`));
@@ -437,6 +437,11 @@ export async function ojsCompile(
       if (typeof cell.options?.panel === "string") {
         classes.push(`panel-${cell.options?.panel}`);
       }
+      const evalVal = cell.options?.[kEval] ?? options.format.execute[kEval] ??
+        true;
+      const echoVal = cell.options?.[kEcho] ?? options.format.execute[kEcho] ??
+        true;
+
       const div = pandocDiv({
         id: idPlacement() === "outer" ? userId : undefined,
         classes: [
@@ -445,10 +450,6 @@ export async function ojsCompile(
         ],
         attrs,
       });
-      const evalVal = cell.options?.[kEval] ?? options.format.execute[kEval] ??
-        true;
-      const echoVal = cell.options?.[kEcho] ?? options.format.execute[kEcho] ??
-        true;
 
       const includeVal = cell.options?.[kInclude] ??
         options.format.execute[kInclude] ?? true;
@@ -506,6 +507,24 @@ export async function ojsCompile(
         outputCellClasses.push("hidden");
       }
 
+      if (echoVal === "fenced") {
+        const ourAttrs = srcConfig.attrs.slice();
+        // we replace js with java so that we "fool" pandoc by having it
+        // not recognize triple backticks
+        const ourClasses = srcConfig.classes.filter((d) => d !== "js");
+        ourClasses.push("java");
+        ourAttrs.push(
+          `startFrom="${cellStartingLoc - 1}"`,
+          `source-offset="${cell.sourceOffset}"`,
+        );
+        const srcDiv = pandocBlock("````")({
+          classes: ourClasses,
+          attrs: ourAttrs,
+        });
+        srcDiv.push(pandocRawStr(cell.sourceVerbatim));
+        div.push(srcDiv);
+      }
+
       const makeSubFigures = (specs: SubfigureSpec[]) => {
         let subfigIx = 1;
         const cellInfo = ([] as SourceInfo[]).concat(
@@ -523,13 +542,22 @@ export async function ojsCompile(
             id: `${ojsId}-${subfigIx}`,
             attrs: [`nodetype="${cellInfo[subfigIx - 1].cellType}"`],
           });
-          if (innerInfo.length > 0 && srcConfig !== undefined) {
+
+          if (
+            // if "echo: fenced", then we've already printed the source
+            // and it's neatly localized: don't repeat it
+            echoVal !== "fenced" &&
+            innerInfo.length > 0 && srcConfig !== undefined
+          ) {
             const ourAttrs = srcConfig.attrs.slice();
             // compute offset from cell start to div start
             const linesSkipped =
               cellSrcStr.substring(0, innerInfo[0].start).split("\n").length;
 
-            ourAttrs.push(`startFrom="${cellStartingLoc + linesSkipped}"`);
+            ourAttrs.push(
+              `startFrom="${cellStartingLoc + cell.sourceStartLine - 1 +
+                linesSkipped}"`,
+            );
             ourAttrs.push(`source-offset="-${innerInfo[0].start}"`);
             const srcDiv = pandocCode({
               attrs: ourAttrs,
@@ -587,18 +615,23 @@ export async function ojsCompile(
           // compute offset from cell start to div start
           const linesSkipped =
             cellSrcStr.substring(0, innerInfo[0].start).split("\n").length;
-          ourAttrs.push(`startFrom="${cellStartingLoc + linesSkipped}"`);
-          ourAttrs.push(`source-offset="-${innerInfo[0].start}"`);
-          const srcDiv = pandocCode({
-            attrs: ourAttrs,
-            classes: srcConfig.classes,
-          });
-          srcDiv.push(
-            pandocRawStr(
-              cellSrcStr.substring(innerInfo[0].start, innerInfo[0].end),
-            ),
+          ourAttrs.push(
+            `startFrom="${cellStartingLoc + cell.sourceStartLine - 1 +
+              linesSkipped}"`,
           );
-          div.push(srcDiv);
+          ourAttrs.push(`source-offset="-${innerInfo[0].start}"`);
+          if (echoVal !== "fenced") {
+            const srcDiv = pandocCode({
+              attrs: ourAttrs,
+              classes: srcConfig.classes,
+            });
+            srcDiv.push(
+              pandocRawStr(
+                cellSrcStr.substring(innerInfo[0].start, innerInfo[0].end),
+              ),
+            );
+            div.push(srcDiv);
+          }
         }
         const outputDiv = pandocDiv({
           id: idPlacement() === "inner" ? userId : undefined,
@@ -632,7 +665,7 @@ export async function ojsCompile(
         },
         source: ["dot`\n", ...cell.source, "\n`"],
       };
-      handleOJSCell(newCell, cell.source.join(""), ["dot", "cell-code"]);
+      handleOJSCell(newCell, ["dot", "cell-code"]);
     } else if (cell.cell_type?.language === "ojs") {
       handleOJSCell(cell);
     } else {

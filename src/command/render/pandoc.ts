@@ -15,7 +15,7 @@ import { stringify } from "encoding/yaml.ts";
 
 import { ld } from "lodash/mod.ts";
 
-import { Document } from "deno_dom/deno-dom-wasm.ts";
+import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 
 import { execProcess } from "../../core/process.ts";
 import { dirAndStem, pathWithForwardSlashes } from "../../core/path.ts";

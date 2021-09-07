@@ -5,7 +5,7 @@
 *
 */
 
-import { Document, Element } from "deno_dom/deno-dom-wasm.ts";
+import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import {
   kHtmlResourceTags,
   processFileResourceRefs,

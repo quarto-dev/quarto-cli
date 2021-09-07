@@ -6,7 +6,6 @@
 */
 import { existsSync } from "fs/mod.ts";
 import { join } from "path/mod.ts";
-import { createHash } from "hash/mod.ts";
 
 import { quartoCacheDir } from "../../core/appdirs.ts";
 import { sessionTempFile } from "../../core/temp.ts";
@@ -16,6 +15,7 @@ import { dartCompile } from "../../core/dart-sass.ts";
 
 import { ld } from "lodash/mod.ts";
 import { lines } from "../../core/text.ts";
+import { md5Hash } from "../../core/hash.ts";
 
 export async function compileSass(bundles: SassBundle[], minified = true) {
   const imports = ld.uniq(bundles.flatMap((bundle) => {
@@ -247,8 +247,8 @@ async function compileWithCache(
 ) {
   if (cacheIdentifier) {
     // Calculate a hash for the input and identifier
-    const identifierHash = createHash("md5").update(cacheIdentifier).toString();
-    const inputHash = createHash("md5").update(input).toString();
+    const identifierHash = md5Hash(cacheIdentifier);
+    const inputHash = md5Hash(input);
 
     // check the cache
     const cacheDir = quartoCacheDir("sass");
