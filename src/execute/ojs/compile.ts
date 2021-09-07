@@ -31,7 +31,10 @@ import {
 import { RenderContext } from "../../command/render/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 
-import { isJavascriptCompatible } from "../../config/format.ts";
+import {
+  isJavascriptCompatible,
+  isMarkdownOutput,
+} from "../../config/format.ts";
 
 import { resolveDependencies } from "../../command/render/pandoc.ts";
 import {
@@ -95,18 +98,20 @@ export async function ojsCompile(
   options: OjsCompileOptions,
 ): Promise<OjsCompileResult> {
   const { markdown, project, ojsBlockLineNumbers } = options;
-  const projDir = project?.dir;
-
-  const selfContained = options.format.pandoc?.[kSelfContained] ?? false;
-
   if (!isJavascriptCompatible(options.format)) {
     return { markdown };
   }
-
   const languages = languagesInMarkdown(markdown);
   if (!languages.has("ojs") && !languages.has("dot")) {
     return { markdown };
   }
+
+  const projDir = project?.dir;
+  const selfContained = options.format.pandoc?.[kSelfContained] ?? false;
+  const isHtmlMarkdown = isMarkdownOutput(options.format.pandoc, [
+    "gfm",
+    "commonmark",
+  ]);
 
   const output = breakQuartoMd(markdown);
 
@@ -169,7 +174,6 @@ export async function ojsCompile(
   const ojsViews = new Set<string>();
   const ojsIdentifiers = new Set<string>();
 
-  // now we convert it back
   for (const cell of output.cells) {
     const errorVal =
       (cell.options?.[kError] ?? options.format.execute?.[kError] ??
@@ -525,6 +529,17 @@ export async function ojsCompile(
         div.push(srcDiv);
       }
 
+      // if "echo: fenced", then we've already printed the source
+      // and it's neatly localized: don't repeat it
+      //
+      // in addition, if we're emitting html-friendly markdown
+      // (as opposed to "html", which is what we do most of the time),
+      // then pandoc will clobber our classes and our runtime error
+      // reporting things will break anyway. So just don't emit
+      // the source in that case.
+      const shouldEmitSource = (echoVal !== "fenced" &&
+        !(echoVal === false && isHtmlMarkdown));
+
       const makeSubFigures = (specs: SubfigureSpec[]) => {
         let subfigIx = 1;
         const cellInfo = ([] as SourceInfo[]).concat(
@@ -544,9 +559,7 @@ export async function ojsCompile(
           });
 
           if (
-            // if "echo: fenced", then we've already printed the source
-            // and it's neatly localized: don't repeat it
-            echoVal !== "fenced" &&
+            shouldEmitSource &&
             innerInfo.length > 0 && srcConfig !== undefined
           ) {
             const ourAttrs = srcConfig.attrs.slice();
@@ -620,7 +633,7 @@ export async function ojsCompile(
               linesSkipped}"`,
           );
           ourAttrs.push(`source-offset="-${innerInfo[0].start}"`);
-          if (echoVal !== "fenced") {
+          if (shouldEmitSource) {
             const srcDiv = pandocCode({
               attrs: ourAttrs,
               classes: srcConfig.classes,
