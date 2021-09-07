@@ -10,6 +10,11 @@ SET QUARTO_TS_PATH=%SRC_PATH%quarto.ts
 
 IF EXIST "%QUARTO_TS_PATH%" (
 	
+	IF "%1"=="--version" (
+		ECHO 99.9.9
+		GOTO end
+	)
+
 	IF "%QUARTO_ACTION%"=="" (
 		SET QUARTO_ACTION=run
 	)
@@ -23,6 +28,12 @@ IF EXIST "%QUARTO_TS_PATH%" (
 	SET "QUARTO_SHARE_PATH=%SRC_PATH%resources\"
 	SET QUARTO_DEBUG=true
 ) ELSE (
+
+	IF "%1"=="--version" (
+		TYPE "%SCRIPT_DIR%..\share\version"
+		GOTO end
+	)
+	
 	SET QUARTO_ACTION=run
 	SET QUARTO_TARGET="%SCRIPT_DIR%quarto.js"
 	SET "QUARTO_BIN_PATH=%SCRIPT_DIR%"
@@ -37,3 +48,4 @@ SET NO_COLOR=TRUE
 SET QUARTO_DENO_OPTIONS=--unstable --allow-read --allow-write --allow-run --allow-env --allow-net
 "%SCRIPT_DIR%deno" %QUARTO_ACTION% %QUARTO_DENO_OPTIONS% %QUARTO_DENO_EXTRA_OPTIONS% %QUARTO_IMPORT_ARGMAP% %QUARTO_TARGET% %*
 
+:end
