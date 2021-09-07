@@ -1184,7 +1184,6 @@ var OJSConnector = class {
         const callback = function(mutationsList, observer3) {
           for (const mutation of mutationsList) {
             const ojsDiv = mutation.target;
-            console.log(cellDiv);
             if (!forceShowDeclarations) {
               Array.from(mutation.target.childNodes).filter((n2) => {
                 return n2.classList.contains("observablehq--inspect") && !n2.parentNode.classList.contains("observablehq--error") && n2.parentNode.parentNode.dataset.nodetype !== "expression";

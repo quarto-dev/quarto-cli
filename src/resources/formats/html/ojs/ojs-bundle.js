@@ -476,7 +476,6 @@ export class OJSConnector {
           // we never hide
           for (const mutation of mutationsList) {
             const ojsDiv = mutation.target;
-            console.log(cellDiv);
 
             if (!forceShowDeclarations) {
               // hide the inner inspect outputs that aren't errors or
