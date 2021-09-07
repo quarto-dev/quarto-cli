@@ -33,6 +33,7 @@ import {
   kSiteUrl,
   kTwitterCard,
 } from "./website-config.ts";
+import { getDecodedAttribute } from "../../../core/html.ts";
 
 const kCard = "card";
 
@@ -359,7 +360,7 @@ function findPreviewImg(
   // look for an image explicitly marked as the preview image (.class .quarto-preview)
   const match = doc.querySelector("img.preview-image");
   if (match) {
-    const src = match.getAttribute("src");
+    const src = getDecodedAttribute(match, "src");
     if (src !== null) {
       image = src;
     }
@@ -370,7 +371,7 @@ function findPreviewImg(
     const imgs = doc.querySelectorAll("img");
     for (let i = 0; i < imgs.length; i++) {
       const img = imgs[i] as Element;
-      const src = img.getAttribute("src");
+      const src = getDecodedAttribute(img, "src");
       if (src !== null && kNamedFileRegex.test(src)) {
         image = src;
         break;

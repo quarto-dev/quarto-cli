@@ -44,10 +44,12 @@ export function resolveResourceRefs(
 
   // resolve tags with resource refs
   Object.keys(kHtmlResourceTags).forEach((tag) => {
-    refs.push(
-      ...resolveTag(doc, offset, tag, kHtmlResourceTags[tag], forceRoot)
-        .map((ref) => ref.replace(/\/$/, "/index.html")),
-    );
+    for (const attrib of kHtmlResourceTags[tag]) {
+      refs.push(
+        ...resolveTag(doc, offset, tag, attrib, forceRoot)
+          .map((ref) => ref.replace(/\/$/, "/index.html")),
+      );
+    }
   });
 
   // css references (import/url)

@@ -21,6 +21,7 @@ function handleRawElement(el)
     local file = currentFileMetadataState().file
     if file ~= nil then
       el.text = handleHtmlRefs(el.text, file.resourceDir, "img", "src")
+      el.text = handleHtmlRefs(el.text, file.resourceDir, "img", "data-src")
       el.text = handleHtmlRefs(el.text, file.resourceDir, "link", "href")
       el.text = handleHtmlRefs(el.text, file.resourceDir, "script", "src")
       el.text = handleHtmlRefs(el.text, file.resourceDir, "source", "src")

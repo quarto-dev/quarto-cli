@@ -31,19 +31,30 @@ export function asHtmlId(text: string) {
   return pandocAutoIdentifier(text, false);
 }
 
-export const kHtmlResourceTags: Record<string, string> = {
-  "a": "href",
-  "img": "src",
-  "link": "href",
-  "script": "src",
-  "embed": "src",
+export function getDecodedAttribute(element: Element, attrib: string) {
+  const value = element.getAttribute(attrib);
+  if (value) {
+    return decodeURI(value);
+  } else {
+    return value;
+  }
+}
+
+export const kHtmlResourceTags: Record<string, string[]> = {
+  "a": ["href"],
+  "img": ["src", "data-src"],
+  "link": ["href"],
+  "script": ["src"],
+  "embed": ["src"],
 };
 
 export function discoverResourceRefs(doc: Document): Promise<string[]> {
   // first handle tags
   const refs: string[] = [];
   Object.keys(kHtmlResourceTags).forEach((tag) => {
-    refs.push(...resolveResourceTag(doc, tag, kHtmlResourceTags[tag]));
+    for (const attrib in kHtmlResourceTags[tag]) {
+      refs.push(...resolveResourceTag(doc, tag, attrib));
+    }
   });
   // css references (import/url)
   const styles = doc.querySelectorAll("style");
@@ -65,7 +76,7 @@ export function processFileResourceRefs(
   const tags = doc.querySelectorAll(tag);
   for (let i = 0; i < tags.length; i++) {
     const tag = tags[i] as Element;
-    const href = tag.getAttribute(attrib);
+    const href = getDecodedAttribute(tag, attrib);
     if (href !== null && href.length > 0 && isFileRef(href)) {
       onRef(tag, href);
     }

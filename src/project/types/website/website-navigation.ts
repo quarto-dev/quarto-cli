@@ -15,7 +15,7 @@ import { safeExistsSync } from "../../../core/path.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { warnOnce } from "../../../core/log.ts";
-import { asHtmlId } from "../../../core/html.ts";
+import { asHtmlId, getDecodedAttribute } from "../../../core/html.ts";
 
 import {
   Format,
@@ -344,7 +344,7 @@ function navigationHtmlPostprocessor(
     const links = doc.querySelectorAll("a[href]");
     for (let i = 0; i < links.length; i++) {
       const link = links[i] as Element;
-      const href = link.getAttribute("href");
+      const href = getDecodedAttribute(link, "href");
       if (href && !isExternalPath(href)) {
         let projRelativeHref = href.startsWith("/")
           ? href.slice(1)
