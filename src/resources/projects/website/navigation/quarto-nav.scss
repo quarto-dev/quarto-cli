@@ -11,6 +11,22 @@ $content-padding-top: 14px !default;
   padding-top: $content-padding-top;
 }
 
+@include media-breakpoint-up(lg) {
+  #quarto-content main {
+    padding-top: $content-padding-top;
+  }
+}
+
+@include media-breakpoint-down(lg) {
+  #quarto-content main {
+    padding-top: 0;
+  }
+
+  #quarto-content main .subtitle {
+    padding-top: $content-padding-top;
+  }
+}
+
 // headroom
 header.headroom {
   will-change: transform;

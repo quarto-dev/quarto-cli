@@ -104,5 +104,11 @@ function watchClientScript(port: number): string {
       }
     } 
   };
+  if (window.parent.postMessage) {
+    window.parent.postMessage({
+      type: "navigate",
+      href: window.location.href
+    }, "*");
+  }
 </script>`;
 }
