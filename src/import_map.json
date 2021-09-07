@@ -23,8 +23,8 @@
     "port/": "https://deno.land/x/port@1.0.0/",
     "media_types/": "https://deno.land/x/media_types@v2.10.1/",
     "observablehq/parser": "https://cdn.skypack.dev/@observablehq/parser@4.5.0",
-    "acorn/walk": "https://cdn.skypack.dev/acorn-walk@7.0.0",
-    "acorn/acorn": "https://cdn.skypack.dev/acorn@7.1.1",
+    "acorn/walk": "https://cdn.skypack.dev/acorn-walk@7.2.0",
+    "acorn/acorn": "https://cdn.skypack.dev/acorn@7.4.1",
     "blueimpMd5": "https://cdn.skypack.dev/blueimp-md5"
   }
 }
