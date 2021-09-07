@@ -143,7 +143,7 @@ end
 function processMarkdownTable(divEl)
   for i,el in pairs(divEl.content) do
     if el.t == "Table" then
-      if el.caption.long ~= nil then
+      if el.caption.long ~= nil and #el.caption.long > 0 then
         local label = divEl.attr.identifier
         local caption = el.caption.long[#el.caption.long]
         processMarkdownTableEntry(divEl, el, label, caption)
