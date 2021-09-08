@@ -12,7 +12,7 @@ import { ProjectContext } from "../../project/types.ts";
 export interface ProjectWatcher {
   handle: (req: ServerRequest) => boolean;
   connect: (req: ServerRequest) => Promise<void>;
-  injectClient: (file: Uint8Array) => Uint8Array;
+  injectClient: (file: Uint8Array, inputFile: string) => Uint8Array;
   serveProject: () => ProjectContext;
   refreshProject: () => Promise<ProjectContext>;
 }

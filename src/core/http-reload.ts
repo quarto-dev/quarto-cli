@@ -17,7 +17,7 @@ import { kLocalhost } from "./port.ts";
 export interface HttpReloader {
   handle: (req: ServerRequest) => boolean;
   connect: (req: ServerRequest) => Promise<void>;
-  injectClient: (file: Uint8Array) => Uint8Array;
+  injectClient: (file: Uint8Array, inputFile: string) => Uint8Array;
   reloadClients: (reloadTarget?: string) => Promise<void>;
 }
 
@@ -47,9 +47,9 @@ export function httpReloader(port: number): HttpReloader {
         maybeDisplaySocketError(e);
       }
     },
-    injectClient: (file: Uint8Array) => {
+    injectClient: (file: Uint8Array, inputFile: string) => {
       const scriptContents = new TextEncoder().encode(
-        watchClientScript(port),
+        watchClientScript(port, inputFile),
       );
       const fileWithScript = new Uint8Array(
         file.length + scriptContents.length,
@@ -86,7 +86,7 @@ export function httpReloader(port: number): HttpReloader {
   };
 }
 
-function watchClientScript(port: number): string {
+function watchClientScript(port: number, inputFile: string): string {
   return `
 <script>
   const socket = new WebSocket('ws://${kLocalhost}:${port}' + window.location.pathname );
@@ -104,7 +104,31 @@ function watchClientScript(port: number): string {
       }
     } 
   };
+
   if (window.parent.postMessage) {
+    // wait for message providing confirmation we are in a devhost
+    window.addEventListener("message", function(event) {
+      if (event.data.type === "devhost-init") {
+        window.quartoDevhost = {
+          openInputFile: function(line, column, highlight) {
+            window.parent.postMessage({
+              type: "openfile",
+              file: "${inputFile}",
+              line: line,
+              column: column,
+              highlight: highlight
+            }, event.origin);
+          }
+        };
+        // navigate-src
+        window.parent.postMessage({
+          type: "navigate-src",
+          file: "${inputFile}"
+        }, event.origin);
+      }
+    }, true);
+
+    // notify host of navigation (e.g. for 'pop out' command)
     window.parent.postMessage({
       type: "navigate",
       href: window.location.href

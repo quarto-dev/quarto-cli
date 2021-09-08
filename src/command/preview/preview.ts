@@ -111,8 +111,18 @@ export async function preview(
   // create file request handler (hook clients up to reloader, provide
   // function to be used if a render request comes in)
   const handler = isPdfContent(result.outputFile)
-    ? pdfFileRequestHandler(result.outputFile, reloader, changeHandler.render)
-    : htmlFileRequestHandler(result.outputFile, reloader, changeHandler.render);
+    ? pdfFileRequestHandler(
+      result.outputFile,
+      Deno.realPathSync(file),
+      reloader,
+      changeHandler.render,
+    )
+    : htmlFileRequestHandler(
+      result.outputFile,
+      Deno.realPathSync(file),
+      reloader,
+      changeHandler.render,
+    );
 
   // serve project
   const server = serve({ port: options.port, hostname: options.host });
@@ -334,16 +344,18 @@ function previewWatcher(watches: Watch[]): Watcher {
 
 function htmlFileRequestHandler(
   htmlFile: string,
+  inputFile: string,
   reloader: HttpReloader,
   renderHandler: () => Promise<void>,
 ) {
   return httpFileRequestHandler(
-    htmlFileRequestHandlerOptions(htmlFile, reloader, renderHandler),
+    htmlFileRequestHandlerOptions(htmlFile, inputFile, reloader, renderHandler),
   );
 }
 
 function htmlFileRequestHandlerOptions(
   htmlFile: string,
+  inputFile: string,
   reloader: HttpReloader,
   renderHandler: () => Promise<void>,
 ): HttpFileRequestOptions {
@@ -366,7 +378,7 @@ function htmlFileRequestHandlerOptions(
     onFile: async (file: string) => {
       if (isHtmlContent(file)) {
         const fileContents = await Deno.readFile(file);
-        return reloader.injectClient(fileContents);
+        return reloader.injectClient(fileContents, inputFile);
       }
     },
   };
@@ -392,12 +404,14 @@ const kPdfJsViewerToolbarButtonSelector = `.toolbarButton,
 
 function pdfFileRequestHandler(
   pdfFile: string,
+  inputFile: string,
   reloader: HttpReloader,
   renderHandler: () => Promise<void>,
 ) {
   // start w/ the html handler (as we still need it's http reload injection)
   const pdfOptions = htmlFileRequestHandlerOptions(
     pdfFile,
+    inputFile,
     reloader,
     renderHandler,
   );

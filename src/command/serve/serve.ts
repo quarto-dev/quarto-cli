@@ -172,7 +172,7 @@ export async function serveProject(
 
     // handle html file requests w/ re-renders
     onFile: async (file: string) => {
-      // if this is an html file or a pdef then re-render (using the freezer)
+      // if this is an html file or a pdf then re-render (using the freezer)
       if (isHtmlContent(file) || isPdfContent(file)) {
         // find the input file associated with this output and render it
         // if we can't find an input file for this .html file it may have
@@ -211,8 +211,19 @@ export async function serveProject(
           }
         }
 
+        // read the output file
         const fileContents = Deno.readFileSync(file);
-        return watcher.injectClient(fileContents);
+
+        // inject watcher client for html
+        if (isHtmlContent(file) && inputFile) {
+          const projInputFile = join(
+            project!.dir,
+            relative(watcher.serveProject().dir, inputFile),
+          );
+          return watcher.injectClient(fileContents, projInputFile);
+        } else {
+          return fileContents;
+        }
       } else {
         return undefined;
       }

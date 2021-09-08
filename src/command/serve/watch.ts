@@ -268,9 +268,9 @@ export async function watchProject(
       return !!options.watch && reloader.handle(req);
     },
     connect: reloader.connect,
-    injectClient: (file: Uint8Array) => {
+    injectClient: (file: Uint8Array, inputFile: string) => {
       if (options.watch) {
-        return reloader.injectClient(file);
+        return reloader.injectClient(file, inputFile);
       } else {
         return file;
       }
