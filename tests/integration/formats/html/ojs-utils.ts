@@ -28,6 +28,49 @@ export function verifyDomTextValue(
     verify: async (_output: ExecuteOutput[]) => {
       // deno-lint-ignore no-explicit-any
       const textVal = await inPuppeteer(url, async (name: any) => {
+        // NB: we need to copy this defn instead of referring to it
+        // because the function is evaluated in a browser context, and
+        // we need the definitions to be there (same in the
+        // fieldsExist reference below). We should consider including
+        // a library of puppeteer utilities in ojs-bundle.js
+        function fieldsExist(obj: any, names: string[], timeout = 1000)
+        {
+          names = names.slice();
+          // deno-lint-ignore no-explicit-any
+          let accept: any, reject: any;
+          const promise = new Promise((a, r) => {
+            accept = a;
+            reject = r;
+          });
+          const delay = 100;
+          if (names.length === 0) {
+            accept(obj);
+            return promise;
+          }
+          let name = names[0];
+          function tick() {
+            if (obj.hasOwnProperty(name)) {
+              names = names.slice(1);
+              if (names.length === 0) {
+                accept(obj);
+              } else {
+                obj = obj[name];
+                name = names[0];
+                window.setTimeout(tick, delay);
+              }
+            } else {
+              timeout -= delay;
+              if (timeout < 0) {
+                reject();
+              } else {
+                window.setTimeout(tick, delay);
+              }
+            }
+          }
+          tick();
+          return promise;
+        }
+        await fieldsExist(window, ["_ojs", "runtime"]);
         await window._ojs.runtime.finishInterpreting();
         // ojs hasn't updated the inspector yet.
         // FIXME this doesn't seem robust in the long run
@@ -42,6 +85,7 @@ export function verifyDomTextValue(
   };
 }
 
+
 export function verifyOjsValue(
   url: string,
   valName: string,
@@ -53,6 +97,45 @@ export function verifyOjsValue(
     verify: async (_output: ExecuteOutput[]) => {
       // deno-lint-ignore no-explicit-any
       const ojsVal = await inPuppeteer(url, async (name: any) => {
+        function fieldsExist(obj: any, names: string[], timeout = 1000)
+        {
+          names = names.slice();
+          // deno-lint-ignore no-explicit-any
+          let accept: any, reject: any;
+          const promise = new Promise((a, r) => {
+            accept = a;
+            reject = r;
+          });
+          const delay = 100;
+          if (names.length === 0) {
+            accept(obj);
+            return promise;
+          }
+          let name = names[0];
+          function tick() {
+            if (obj.hasOwnProperty(name)) {
+              names = names.slice(1);
+              if (names.length === 0) {
+                accept(obj);
+              } else {
+                obj = obj[name];
+                name = names[0];
+                window.setTimeout(tick, delay);
+              }
+            } else {
+              timeout -= delay;
+              if (timeout < 0) {
+                reject();
+              } else {
+                window.setTimeout(tick, delay);
+              }
+            }
+          }
+          tick();
+          return promise;
+        }
+        await fieldsExist(window, ["_ojs", "runtime"]);
+        // await new Promise((resolve) => setTimeout(resolve, 3000));
         await window._ojs.runtime.finishInterpreting();
         const val = await window._ojs.runtime.value(name);
         return val;
