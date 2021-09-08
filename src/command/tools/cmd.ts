@@ -38,7 +38,7 @@ export const toolsCommand = new Command()
     "quarto tools install tinytex",
   )
   // deno-lint-ignore no-explicit-any
-  .action(async (options: any, command: string, name?: string) => {
+  .action(async (_options: any, command: string, name?: string) => {
     switch (command) {
       case "install":
         if (name) {

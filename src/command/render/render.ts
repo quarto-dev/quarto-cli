@@ -120,7 +120,7 @@ import {
   PandocIncludes,
 } from "../../execute/types.ts";
 import { Metadata } from "../../config/types.ts";
-import { isHtmlCompatible, isHtmlOutput } from "../../config/format.ts";
+import { isHtmlCompatible } from "../../config/format.ts";
 import { initDenoDom } from "../../core/html.ts";
 
 export async function renderFiles(

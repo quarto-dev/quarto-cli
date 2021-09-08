@@ -21,13 +21,11 @@ import {
   Format,
   FormatDependency,
   FormatExtras,
-  FormatPandoc,
   kBodyEnvelope,
   kDependencies,
   kHtmlPostprocessors,
   kMarkdownAfterBody,
   kSassBundles,
-  Metadata,
   PandocFlags,
   SassBundle,
 } from "../../../config/types.ts";
@@ -97,12 +95,6 @@ import {
   createMarkdownEnvelope,
   processMarkdownEnvelope,
 } from "./website-navigation-md.ts";
-import {
-  formatFromMetadata,
-  metadataAsFormat,
-} from "../../../config/metadata.ts";
-import { formatKeys } from "../../../command/render/render.ts";
-import { mergeConfigs } from "../../../core/config.ts";
 import { sassLayer } from "../../../command/render/sass.ts";
 
 // static navigation (initialized during project preRender)

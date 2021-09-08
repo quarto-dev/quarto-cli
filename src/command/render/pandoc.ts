@@ -563,9 +563,9 @@ export function resolveDependencies(
         ? `${dependency.name}-${dependency.version}`
         : dependency.name;
       const targetDir = join(inputDir, libDir, dir);
-      // deno-lint-ignore no-explicit-any
       const copyDep = (
         file: DependencyFile,
+        // deno-lint-ignore no-explicit-any
         template?: any,
       ) => {
         const targetPath = join(targetDir, file.name);

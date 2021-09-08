@@ -14,6 +14,7 @@ import { assert } from "testing/asserts.ts";
 
 // deno-lint-ignore no-explicit-any
 const window = (undefined as any); // appease the TypeScript typechecker
+// deno-lint-ignore no-explicit-any
 const document = (undefined as any); // appease the TypeScript typechecker
 
 // this works for dynamically-determined values in the DOM
@@ -25,6 +26,7 @@ export function verifyDomTextValue(
   return {
     name: "DOM value is as expected",
     verify: async (_output: ExecuteOutput[]) => {
+      // deno-lint-ignore no-explicit-any
       const textVal = await inPuppeteer(url, async (name: any) => {
         await window._ojs.runtime.finishInterpreting();
         // ojs hasn't updated the inspector yet.
@@ -40,10 +42,10 @@ export function verifyDomTextValue(
   };
 }
 
-// deno-lint-ignore no-explicit-any
 export function verifyOjsValue(
   url: string,
   valName: string,
+  // deno-lint-ignore no-explicit-any
   value: any,
 ): Verify {
   return {
@@ -69,7 +71,8 @@ export function verifyClickingDoesNotThrow(
 ): Verify {
   return {
     name: "page does not throw when selected element is clicked",
-    verify: (async (...params: any[]) => {
+    // deno-lint-ignore no-explicit-any
+    verify: (async (..._params: any[]) => {
       return await withHeadlessBrowser<void>(async (browser: Browser) => {
         const page = await browser.newPage();
         try {
