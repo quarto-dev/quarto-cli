@@ -25,6 +25,7 @@ export function localFileURL(path: string) {
 export function inPuppeteer(url: string, f: any) {
   const allowedErrorMessages = [
     "Navigation failed because browser has disconnected!",
+    "Navigation timeout of 30000 ms exceeded",
     "Evaluation failed: undefined"
   ];
     
