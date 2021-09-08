@@ -111,7 +111,14 @@ export async function updateHtmlDepedencies(config: Configuration) {
   cleanSourceMap(tippyCss);
 
   // Fuse
-  const fuseJs = join(formatDir, "fuse", "fuse.min.js");
+  const fuseJs = join(
+    config.directoryInfo.src,
+    "resources",
+    "projects",
+    "website",
+    "search",
+    "fuse.min.js",
+  );
   await updateGithubSourceCodeDependency(
     "fusejs",
     "krisk/Fuse",
@@ -131,7 +138,14 @@ export async function updateHtmlDepedencies(config: Configuration) {
   cleanSourceMap(fuseJs);
 
   // Autocomplete
-  const autocompleteJs = join(formatDir, "autocomplete", "autocomplete.min.js");
+  const autocompleteJs = join(
+    config.directoryInfo.src,
+    "resources",
+    "projects",
+    "website",
+    "search",
+    "autocomplete.min.js",
+  );
   await updateUnpkgDependency(
     "AUTOCOMPLETE_JS",
     "@algolia/autocomplete-js",
