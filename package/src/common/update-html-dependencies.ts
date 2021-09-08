@@ -6,7 +6,7 @@
 */
 import { ensureDir, ensureDirSync, existsSync, moveSync } from "fs/mod.ts";
 import { info } from "log/mod.ts";
-import { join } from "path/mod.ts";
+import { dirname, join } from "path/mod.ts";
 import { lines } from "../../../src/core/text.ts";
 import { runCmd } from "../util/cmd.ts";
 import { Repo, withRepo } from "../util/git.ts";
@@ -101,14 +101,57 @@ export async function updateHtmlDepedencies(config: Configuration) {
   );
   cleanSourceMap(tippyUmdJs);
 
-  const tippyJs = join(formatDir, "tippy", "tippy.css");
+  const tippyCss = join(formatDir, "tippy", "tippy.css");
   await updateUnpkgDependency(
     "TIPPY_JS",
     "tippy.js",
     "dist/tippy.css",
-    tippyJs,
+    tippyCss,
   );
-  cleanSourceMap(tippyJs);
+  cleanSourceMap(tippyCss);
+
+  // Fuse
+  const fuseJs = join(
+    config.directoryInfo.src,
+    "resources",
+    "projects",
+    "website",
+    "search",
+    "fuse.min.js",
+  );
+  await updateGithubSourceCodeDependency(
+    "fusejs",
+    "krisk/Fuse",
+    "FUSE_JS",
+    workingDir,
+    (dir: string, version: string) => {
+      console.log(dir);
+
+      // Copy the js file
+      ensureDirSync(dirname(fuseJs));
+      Deno.copyFileSync(
+        join(dir, `Fuse-${version}`, "dist", "fuse.min.js"),
+        fuseJs,
+      );
+    },
+  );
+  cleanSourceMap(fuseJs);
+
+  // Autocomplete
+  const autocompleteJs = join(
+    config.directoryInfo.src,
+    "resources",
+    "projects",
+    "website",
+    "search",
+    "autocomplete.min.js",
+  );
+  await updateUnpkgDependency(
+    "AUTOCOMPLETE_JS",
+    "@algolia/autocomplete-js",
+    "dist/umd/index.production.js",
+    autocompleteJs,
+  );
 
   // Update PDF JS
   await updatePdfJs(
@@ -384,9 +427,13 @@ async function updateUnpkgDependency(
 ) {
   const version = Deno.env.get(versionEnvVar);
   if (version) {
+    info(`Updating ${pkg}...`);
     const url = `https://unpkg.com/${pkg}@${version}/${filename}`;
 
+    info(`Downloading ${url} to ${target}`);
+    ensureDirSync(dirname(target));
     await download(url, target);
+    info("done\n");
   } else {
     throw new Error(`${versionEnvVar} is not defined`);
   }
