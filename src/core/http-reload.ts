@@ -120,18 +120,14 @@ function watchClientScript(port: number, inputFile: string): string {
             }, event.origin);
           }
         };
-        // navigate-src
-        window.parent.postMessage({
-          type: "navigate-src",
-          file: "${inputFile}"
-        }, event.origin);
       }
     }, true);
 
     // notify host of navigation (e.g. for 'pop out' command)
     window.parent.postMessage({
       type: "navigate",
-      href: window.location.href
+      href: window.location.href,
+      file: "${inputFile}"
     }, "*");
   }
 </script>`;
