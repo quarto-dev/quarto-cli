@@ -165,6 +165,15 @@ $quarto-search-input-width-focused: 400px !default;
   max-height: 65vh;
   overflow-y: auto;
   border: solid $input-border-color 1px;
+  font-size: 0.925rem;
+}
+
+#quarto-search-results .aa-SourceNoResults {
+  width: $quarto-search-input-width-focused;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 #quarto-search-results .search-result-text {
@@ -214,26 +223,4 @@ $quarto-search-input-width-focused: 400px !default;
 
 #quarto-search-results .aa-Item .card .search-result-title {
   margin-bottom: 0.1rem;
-}
-
-.algolia-autocomplete .aa-Item .aa-suggestion.aa-cursor .card {
-  background-color: theme-fade(
-    $component-active-bg,
-    $popover-bg,
-    5%
-  ) !important;
-  color: $component-active-color !important;
-}
-
-.algolia-autocomplete
-  .aa-Item
-  .aa-suggestion.aa-cursor
-  .card
-  .search-result-section {
-  color: theme-dim($component-active-color, 15%) !important;
-}
-
-.algolia-autocomplete .aa-Item .aa-suggestion em {
-  font-weight: 500;
-  font-style: normal;
 }

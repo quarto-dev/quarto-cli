@@ -124,6 +124,13 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
               });
             },
             templates: {
+              noResults({ createElement }) {
+                return createElement(
+                  "div",
+                  { class: "quarto-search-no-results" },
+                  "No results."
+                );
+              },
               item({ item, createElement }) {
                 const descEl = createElement("p", {
                   class: "search-result-text fw-light small",
