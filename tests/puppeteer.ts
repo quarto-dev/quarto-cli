@@ -23,14 +23,33 @@ export function localFileURL(path: string) {
 
 // deno-lint-ignore no-explicit-any
 export function inPuppeteer(url: string, f: any) {
+  const allowedErrorMessages = [
+    "Navigation failed because browser has disconnected!",
+    "Navigation timeout of 30000 ms exceeded",
+    "Evaluation failed: undefined"
+  ];
+    
   // deno-lint-ignore no-explicit-any
   return (async (...params: any[]) => {
-    return await withHeadlessBrowser(async (browser: Browser) => {
-      const page = await browser.newPage();
-      await page.goto(url);
-      const clientSideResult = await page.evaluate(f, ...params);
-      return clientSideResult;
-    });
+    let attempts = 0;
+    let maxAttempts = 5;
+    while (attempts++ < maxAttempts) {
+      try {
+        return await withHeadlessBrowser(async (browser: Browser) => {
+          const page = await browser.newPage();
+          await page.goto(url);
+          const clientSideResult = await page.evaluate(f, ...params);
+          return clientSideResult;
+        });
+      } catch (error) {
+        if ((allowedErrorMessages.indexOf(error.message) !== -1) &&
+          (attempts < maxAttempts)) {
+          console.log(`\nEncountered a bad error message from puppeteer: "${error.message}"\n Retrying ${attempts}/${maxAttempts}`);
+        } else {
+          throw error;
+        }
+      }
+    }
   });
 }
 
