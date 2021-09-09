@@ -3,7 +3,7 @@ const searchOptions = {
   isCaseSensitive: false,
   shouldSort: true,
   minMatchCharLength: 2,
-  limit: 20,
+  limit: 25,
 };
 
 window.document.addEventListener("DOMContentLoaded", function (_event) {
@@ -78,7 +78,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       defaultActiveItemId: 0,
       panelContainer: "#quarto-search-results",
       panelPlacement: "start",
-      debug: false,
+      debug: true,
       classNames: {
         form: "d-flex",
       },
@@ -130,6 +130,11 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
                   { class: "quarto-search-no-results" },
                   "No results."
                 );
+              },
+              header({ items }) {
+                if (items.length > 0) {
+                  return `${items.length} matching items.`;
+                }
               },
               item({ item, createElement }) {
                 const descEl = createElement("p", {
