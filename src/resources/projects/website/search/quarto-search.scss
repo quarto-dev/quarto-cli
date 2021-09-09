@@ -161,66 +161,68 @@ $quarto-search-input-width-focused: 400px !default;
   }
 }
 
-#quarto-search-results .aa-Panel {
-  max-height: 65vh;
-  overflow-y: auto;
-  border: solid $input-border-color 1px;
-  font-size: 0.925rem;
-}
+#quarto-search-results {
+  .aa-Panel {
+    max-height: 65vh;
+    overflow-y: auto;
+    border: solid $input-border-color 1px;
+    font-size: 0.925rem;
+  }
 
-#quarto-search-results .aa-SourceNoResults {
-  width: $quarto-search-input-width-focused;
-  height: 60px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+  .aa-SourceNoResults {
+    width: $quarto-search-input-width-focused;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 
-#quarto-search-results .search-result-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2; /* number of lines to show */
-  -webkit-box-orient: vertical;
-  line-height: 1.2rem; /* fallback */
-  max-height: 2.4rem; /* fallback */
-}
+  .search-result-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* number of lines to show */
+    -webkit-box-orient: vertical;
+    line-height: 1.2rem; /* fallback */
+    max-height: 2.4rem; /* fallback */
+  }
 
-#quarto-search-results .search-result-section {
-  color: theme-dim($popover-body-color, 25%);
-  font-size: 0.925rem;
-}
+  .aa-Item {
+    cursor: pointer;
+  }
 
-#quarto-search-results .aa-Item {
-  cursor: pointer;
-}
+  .search-result-section {
+    color: theme-dim($popover-body-color, 25%);
+    font-size: 0.925rem;
+  }
 
-#quarto-search-results a.search-result-link {
-  color: inherit;
-  text-decoration: none;
-}
+  a.search-result-link {
+    color: inherit;
+    text-decoration: none;
+  }
 
-#quarto-search-results .aa-Item .card {
-  padding: 8px 16px;
-  padding-bottom: 8px;
-  border-left: none;
-  border-right: none;
-  border-top: none;
-  background-color: $popover-bg;
-  border-color: $input-border-color;
-  color: $popover-body-color;
-}
+  .aa-Item .card {
+    padding: 8px 16px;
+    padding-bottom: 8px;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    background-color: $popover-bg;
+    border-color: $input-border-color;
+    color: $popover-body-color;
+  }
 
-#quarto-search-results li.aa-Item[aria-selected="true"] .card {
-  background-color: $component-active-bg;
-  color: $component-active-color;
-}
+  li.aa-Item[aria-selected="true"] .card {
+    background-color: $component-active-bg;
+    color: $component-active-color;
+  }
 
-#quarto-search-results .aa-Item .card p {
-  margin-top: 0;
-  margin-bottom: 0;
-}
+  .aa-Item .card p {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
 
-#quarto-search-results .aa-Item .card .search-result-title {
-  margin-bottom: 0.1rem;
+  .aa-Item .card .search-result-title {
+    margin-bottom: 0.1rem;
+  }
 }
