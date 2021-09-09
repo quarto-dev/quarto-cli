@@ -120,6 +120,10 @@ function watchClientScript(port: number, inputFile: string): string {
             }, event.origin);
           }
         };
+      } else if (event.data.type === "goback") {
+        window.history.back()
+      } else if (event.data.type === "goforward") {
+        window.history.forward()
       }
     }, true);
 
