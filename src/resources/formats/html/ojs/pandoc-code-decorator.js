@@ -70,6 +70,33 @@ var PandocCodeDecorator = class {
       column: entry.entry.column + offset - entry.entry.offset
     };
   }
+  *spanSelection(start, end) {
+    this.ensureExactSpan(start, end);
+    const startEntry = this.locateEntry(start);
+    const endEntry = this.locateEntry(end);
+    if (startEntry === void 0) {
+      return;
+    }
+    const startIndex = startEntry.index;
+    const endIndex = endEntry && endEntry.index || this._elementEntryPoints.length;
+    for (let i = startIndex; i < endIndex; ++i) {
+      yield this._elementEntryPoints[i];
+    }
+  }
+  decorateSpan(start, end, classes) {
+    for (const entryPoint of this.spanSelection(start, end)) {
+      for (const cssClass of classes) {
+        entryPoint.node.classList.add(cssClass);
+      }
+    }
+  }
+  clearSpan(start, end, classes) {
+    for (const entryPoint of this.spanSelection(start, end)) {
+      for (const cssClass of classes) {
+        entryPoint.node.classList.remove(cssClass);
+      }
+    }
+  }
   ensureExactSpan(start, end) {
     const splitEntry = (entry, offset) => {
       const newSpan = document.createElement("span");
@@ -96,21 +123,6 @@ var PandocCodeDecorator = class {
     const endEntry = this.locateEntry(end);
     if (endEntry !== void 0 && endEntry.entry.offset !== end) {
       splitEntry(endEntry.entry, end);
-    }
-  }
-  decorateSpan(start, end, classes) {
-    this.ensureExactSpan(start, end);
-    const startEntry = this.locateEntry(start);
-    const endEntry = this.locateEntry(end);
-    if (startEntry === void 0) {
-      return;
-    }
-    const startIndex = startEntry.index;
-    const endIndex = endEntry && endEntry.index || this._elementEntryPoints.length;
-    for (let i = startIndex; i < endIndex; ++i) {
-      for (const cssClass of classes) {
-        this._elementEntryPoints[i].node.classList.add(cssClass);
-      }
     }
   }
   clearSpan(start, end, classes) {

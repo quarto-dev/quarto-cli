@@ -1,4 +1,4 @@
-/*global Shiny, $, DOMParser
+/*global Shiny, $, DOMParser, MutationObserver, URL
 *
 * ojs-bundle.js
 *
@@ -39,7 +39,8 @@ function calloutBlock(opts)
   const {
     type,
     heading,
-    message
+    message,
+    onclick
   } = opts;
   
   const outerBlock = document.createElement("div");
@@ -55,7 +56,12 @@ function calloutBlock(opts)
 
   const headingDiv = document.createElement("div");
   headingDiv.classList.add("callout-caption-container", "flex-fill");
-  headingDiv.innerText = heading;
+  // we assume heading is either a string or a span
+  if (typeof heading === "string") {
+    headingDiv.innerText = heading;
+  } else {
+    headingDiv.appendChild(heading);
+  }
   header.appendChild(headingDiv);
   outerBlock.appendChild(header);
 
@@ -69,6 +75,11 @@ function calloutBlock(opts)
     container.append(message);
   }
   outerBlock.appendChild(container);
+
+  if (onclick) {
+    outerBlock.onclick = onclick;
+    outerBlock.style.cursor = "pointer";
+  }
   
   return outerBlock;
 }
@@ -84,6 +95,17 @@ class EmptyInspector {
     // FIXME we should probably communicate this upstream somehow.
   }
 }
+
+const makeDevhostErrorClickHandler = (line, column) => {
+  return function() {
+    if (!window.quartoDevhost) {
+      return false;
+    }
+    debugger;
+    window.quartoDevhost.openInputFile(line, column, true);
+    return false;
+  };
+};
 
 export class OJSConnector {
   constructor({ paths, inspectorClass, library, allowPendingGlobals = false }) {
@@ -320,16 +342,24 @@ export class OJSConnector {
     if (preDiv.parentElement.dataset.sourceOffset) {
       startingOffset = -Number(preDiv.parentElement.dataset.sourceOffset);
     }
-    preDiv._decorator.clearSpan(
-      startingOffset, Infinity, ["quarto-ojs-error-pinpoint"]);
+    for (const entryPoint of preDiv._decorator.spanSelection(startingOffset, Infinity)) {
+      const { node } = entryPoint;
+      node.classList.remove("quarto-ojs-error-pinpoint");
+      node.onclick = null;
+    }
   };
   
-  decorateOjsDivWithErrorPinpoint(ojsDiv, start, end) {
+  decorateOjsDivWithErrorPinpoint(ojsDiv, start, end, line, column) {
     const cellOutputDisplay = this.findCellOutputDisplay(ojsDiv);
     if (cellOutputDisplay._errorSpans === undefined) {
       cellOutputDisplay._errorSpans = [];
     }
-    cellOutputDisplay._errorSpans.push({start, end});
+    cellOutputDisplay._errorSpans.push({
+      start,
+      end,
+      line,
+      column
+    });
   }
 
   decorateSource(cellDiv, ojsDiv) {
@@ -347,8 +377,14 @@ export class OJSConnector {
     let foundErrors = false;
     while (div !== null && div.classList.contains("cell-output-display")) {
       for (const errorSpan of (div._errorSpans || [])) {
-        preDiv._decorator.decorateSpan(
-          errorSpan.start, errorSpan.end, ["quarto-ojs-error-pinpoint"]);
+        for (const entryPoint of preDiv._decorator.spanSelection(errorSpan.start, errorSpan.end)) {
+          const { node } = entryPoint;
+          node.classList.add("quarto-ojs-error-pinpoint");
+          node.onclick = makeDevhostErrorClickHandler(
+            errorSpan.line,
+            errorSpan.column
+          );
+        }
         foundErrors = true;
       }
       div = div.nextElementSibling;
@@ -363,6 +399,7 @@ export class OJSConnector {
   
   signalError(cellDiv, ojsDiv, ojsAst) {
     const buildCallout = (ojsDiv) => {
+      let onclick;
       const inspectChild = ojsDiv.querySelector(".observablehq--inspect");
       let [heading, message] = inspectChild.textContent.split(": ");
       if (heading === "RuntimeError") {
@@ -386,15 +423,19 @@ export class OJSConnector {
             // import reference. For now we will leave things as is, but
             // this needs better handling.
             if (missingRef !== undefined) {
-              const {line, column} = preDiv._decorator.offsetToLineColumn(missingRef.start);
-              if (line === undefined) {
-                debugger;
+              const { line, column } = preDiv._decorator.offsetToLineColumn(missingRef.start);
+              const headingSpan = document.createElement("span");
+              const headingTextEl = document.createTextNode(`${heading} (line ${line}, column ${column}) `);
+              headingSpan.appendChild(headingTextEl);
+              if (window.quartoDevhost) {
+                const clicker = document.createElement("a");
+                clicker.href = "#"; // this forces the right CSS to apply
+                clicker.innerText = "(source)";
+                onclick = makeDevhostErrorClickHandler(line, column);
+                headingSpan.appendChild(clicker);
               }
-              heading = `${heading} (line ${line}, column ${column})`;
-              this.decorateOjsDivWithErrorPinpoint(ojsDiv, missingRef.start, missingRef.end);
-              // preDiv._decorator.decorateSpan(
-              //   missingRef.start,
-              //   missingRef.end, ["quarto-ojs-error-pinpoint"]);
+              heading = headingSpan;
+              this.decorateOjsDivWithErrorPinpoint(ojsDiv, missingRef.start, missingRef.end, line, column);
             }
           }
         } else if (message.match(/^(.+) could not be resolved$/) ||
@@ -422,7 +463,8 @@ export class OJSConnector {
       const callout = calloutBlock({
         type: "important",
         heading,
-        message
+        message,
+        onclick
       });
       ojsDiv.appendChild(callout);
     };

@@ -811,6 +811,33 @@ var PandocCodeDecorator = class {
       column: entry.entry.column + offset - entry.entry.offset
     };
   }
+  *spanSelection(start, end) {
+    this.ensureExactSpan(start, end);
+    const startEntry = this.locateEntry(start);
+    const endEntry = this.locateEntry(end);
+    if (startEntry === void 0) {
+      return;
+    }
+    const startIndex = startEntry.index;
+    const endIndex = endEntry && endEntry.index || this._elementEntryPoints.length;
+    for (let i2 = startIndex; i2 < endIndex; ++i2) {
+      yield this._elementEntryPoints[i2];
+    }
+  }
+  decorateSpan(start, end, classes) {
+    for (const entryPoint of this.spanSelection(start, end)) {
+      for (const cssClass of classes) {
+        entryPoint.node.classList.add(cssClass);
+      }
+    }
+  }
+  clearSpan(start, end, classes) {
+    for (const entryPoint of this.spanSelection(start, end)) {
+      for (const cssClass of classes) {
+        entryPoint.node.classList.remove(cssClass);
+      }
+    }
+  }
   ensureExactSpan(start, end) {
     const splitEntry = (entry, offset) => {
       const newSpan = document.createElement("span");
@@ -839,21 +866,6 @@ var PandocCodeDecorator = class {
       splitEntry(endEntry.entry, end);
     }
   }
-  decorateSpan(start, end, classes) {
-    this.ensureExactSpan(start, end);
-    const startEntry = this.locateEntry(start);
-    const endEntry = this.locateEntry(end);
-    if (startEntry === void 0) {
-      return;
-    }
-    const startIndex = startEntry.index;
-    const endIndex = endEntry && endEntry.index || this._elementEntryPoints.length;
-    for (let i2 = startIndex; i2 < endIndex; ++i2) {
-      for (const cssClass of classes) {
-        this._elementEntryPoints[i2].node.classList.add(cssClass);
-      }
-    }
-  }
   clearSpan(start, end, classes) {
     this.ensureExactSpan(start, end);
     const startEntry = this.locateEntry(start);
@@ -877,7 +889,8 @@ function calloutBlock(opts) {
   const {
     type,
     heading,
-    message
+    message,
+    onclick
   } = opts;
   const outerBlock = document.createElement("div");
   outerBlock.classList.add(`callout-${type}`, "callout", "callout-style-default", "callout-captioned");
@@ -891,7 +904,11 @@ function calloutBlock(opts) {
   header.appendChild(iconContainer);
   const headingDiv = document.createElement("div");
   headingDiv.classList.add("callout-caption-container", "flex-fill");
-  headingDiv.innerText = heading;
+  if (typeof heading === "string") {
+    headingDiv.innerText = heading;
+  } else {
+    headingDiv.appendChild(heading);
+  }
   header.appendChild(headingDiv);
   outerBlock.appendChild(header);
   const container = document.createElement("div");
@@ -904,6 +921,10 @@ function calloutBlock(opts) {
     container.append(message);
   }
   outerBlock.appendChild(container);
+  if (onclick) {
+    outerBlock.onclick = onclick;
+    outerBlock.style.cursor = "pointer";
+  }
   return outerBlock;
 }
 var EmptyInspector = class {
@@ -913,6 +934,16 @@ var EmptyInspector = class {
   }
   rejected(_error, _name) {
   }
+};
+var makeDevhostErrorClickHandler = (line, column) => {
+  return function() {
+    if (!window.quartoDevhost) {
+      return false;
+    }
+    debugger;
+    window.quartoDevhost.openInputFile(line, column, true);
+    return false;
+  };
 };
 var OJSConnector = class {
   constructor({ paths, inspectorClass, library, allowPendingGlobals = false }) {
@@ -1075,14 +1106,23 @@ var OJSConnector = class {
     if (preDiv.parentElement.dataset.sourceOffset) {
       startingOffset = -Number(preDiv.parentElement.dataset.sourceOffset);
     }
-    preDiv._decorator.clearSpan(startingOffset, Infinity, ["quarto-ojs-error-pinpoint"]);
+    for (const entryPoint of preDiv._decorator.spanSelection(startingOffset, Infinity)) {
+      const { node } = entryPoint;
+      node.classList.remove("quarto-ojs-error-pinpoint");
+      node.onclick = null;
+    }
   }
-  decorateOjsDivWithErrorPinpoint(ojsDiv, start, end) {
+  decorateOjsDivWithErrorPinpoint(ojsDiv, start, end, line, column) {
     const cellOutputDisplay = this.findCellOutputDisplay(ojsDiv);
     if (cellOutputDisplay._errorSpans === void 0) {
       cellOutputDisplay._errorSpans = [];
     }
-    cellOutputDisplay._errorSpans.push({ start, end });
+    cellOutputDisplay._errorSpans.push({
+      start,
+      end,
+      line,
+      column
+    });
   }
   decorateSource(cellDiv, ojsDiv) {
     this.clearErrorPinpoints(cellDiv, ojsDiv);
@@ -1094,7 +1134,11 @@ var OJSConnector = class {
     let foundErrors = false;
     while (div !== null && div.classList.contains("cell-output-display")) {
       for (const errorSpan of div._errorSpans || []) {
-        preDiv._decorator.decorateSpan(errorSpan.start, errorSpan.end, ["quarto-ojs-error-pinpoint"]);
+        for (const entryPoint of preDiv._decorator.spanSelection(errorSpan.start, errorSpan.end)) {
+          const { node } = entryPoint;
+          node.classList.add("quarto-ojs-error-pinpoint");
+          node.onclick = makeDevhostErrorClickHandler(errorSpan.line, errorSpan.column);
+        }
         foundErrors = true;
       }
       div = div.nextElementSibling;
@@ -1107,6 +1151,7 @@ var OJSConnector = class {
   }
   signalError(cellDiv, ojsDiv, ojsAst) {
     const buildCallout = (ojsDiv2) => {
+      let onclick;
       const inspectChild = ojsDiv2.querySelector(".observablehq--inspect");
       let [heading, message] = inspectChild.textContent.split(": ");
       if (heading === "RuntimeError") {
@@ -1125,11 +1170,18 @@ var OJSConnector = class {
             const missingRef = ojsAst.references.find((n2) => n2.name === varName);
             if (missingRef !== void 0) {
               const { line, column } = preDiv._decorator.offsetToLineColumn(missingRef.start);
-              if (line === void 0) {
-                debugger;
+              const headingSpan = document.createElement("span");
+              const headingTextEl = document.createTextNode(`${heading} (line ${line}, column ${column}) `);
+              headingSpan.appendChild(headingTextEl);
+              if (window.quartoDevhost) {
+                const clicker = document.createElement("a");
+                clicker.href = "#";
+                clicker.innerText = "(source)";
+                onclick = makeDevhostErrorClickHandler(line, column);
+                headingSpan.appendChild(clicker);
               }
-              heading = `${heading} (line ${line}, column ${column})`;
-              this.decorateOjsDivWithErrorPinpoint(ojsDiv2, missingRef.start, missingRef.end);
+              heading = headingSpan;
+              this.decorateOjsDivWithErrorPinpoint(ojsDiv2, missingRef.start, missingRef.end, line, column);
             }
           }
         } else if (message.match(/^(.+) could not be resolved$/) || message.match(/^(.+) is defined more than once$/)) {
@@ -1156,7 +1208,8 @@ var OJSConnector = class {
       const callout = calloutBlock({
         type: "important",
         heading,
-        message
+        message,
+        onclick
       });
       ojsDiv2.appendChild(callout);
     };

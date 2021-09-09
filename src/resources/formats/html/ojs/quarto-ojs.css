@@ -115,6 +115,7 @@ input[type="checkbox"] {
 .quarto-ojs-error-pinpoint {
   border-bottom: 2px dotted #e51400;
   font-weight: 700;
+  cursor: pointer;
 }
 
 code span.quarto-ojs-error-pinpoint {
