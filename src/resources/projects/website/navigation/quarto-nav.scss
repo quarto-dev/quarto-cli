@@ -79,7 +79,6 @@ nav .nav-item.compact .nav-link {
 }
 
 .navbar #quarto-search {
-  width: 11em;
   @include media-breakpoint-up(lg) {
     margin-left: 0.6rem;
   }

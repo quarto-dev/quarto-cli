@@ -27,6 +27,7 @@ import { projectOffset } from "../../project-shared.ts";
 
 import { inputFileHref, websiteNavigationConfig } from "./website-shared.ts";
 import { websitePath, websiteTitle } from "./website-config.ts";
+import { sassLayer } from "../../../command/render/sass.ts";
 
 const kSearch = "search";
 
@@ -165,15 +166,13 @@ export function websiteSearch(project: ProjectContext) {
 const kDependencyName = "quarto-search";
 export function websiteSearchSassBundle() {
   const scssPath = searchDependency("quarto-search.scss").path;
+  const layer = sassLayer(scssPath);
   return {
     dependency: kBootstrapDependencyName,
     key: scssPath,
     quarto: {
       name: "quarto-search.css",
-      functions: "",
-      mixins: "",
-      rules: Deno.readTextFileSync(scssPath),
-      defaults: "",
+      ...layer,
     },
   };
 }

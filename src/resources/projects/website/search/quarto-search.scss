@@ -1,26 +1,170 @@
-#quarto-search {
-  font-size: 0.925rem;
-  padding: 0.3rem 0.6rem;
-}
+/*-- scss:defaults --*/
+$quarto-search-input-width: 150px !default;
+$quarto-search-input-width-focused: 400px !default;
 
-#quarto-search:focus {
-  box-shadow: none;
+/*-- scss:rules --*/
+#quarto-search-results ul.aa-List {
+  list-style: none;
+  padding-left: 0;
 }
 
 #quarto-search-results {
-  width: 400px;
-  max-width: 85vw;
-  position: relative;
-  z-index: 2000;
 }
 
-#quarto-search-results .algolia-autocomplete {
+#quarto-search-results .aa-Panel {
+  background-color: $body-bg;
+  position: absolute;
+  z-index: 2000;
+  max-width: $quarto-search-input-width-focused;
+}
+
+#quarto-search {
+  font-size: 0.925rem;
+  // padding: 0.3rem 0.6rem;
+}
+
+#quarto-search .aa-Form {
+  align-items: center;
+  background-color: $input-bg;
+  border: $input-border-width solid $input-border-color;
+  border-radius: $input-border-radius;
+  display: flex;
+  line-height: 1em;
+  margin: 0;
+  position: relative;
   width: 100%;
 }
 
-#quarto-search-results .algolia-autocomplete .aa-dropdown-menu {
+#quarto-search .aa-SubmitButton {
+  appearance: none;
+  background: none;
+  border: 0;
+  margin: 0;
+}
+
+.aa-Autocomplete,
+.aa-DetachedFormContainer {
+  width: $quarto-search-input-width;
+  transition: width 50ms;
+  &:focus-within {
+    width: $quarto-search-input-width-focused;
+  }
+
+  // Search box
+  .aa-Form {
+    align-items: center;
+    background-color: $input-bg;
+    border: $input-border-width solid $input-border-color;
+    border-radius: $input-border-radius;
+    display: flex;
+    line-height: 1em;
+    margin: 0;
+    position: relative;
+    width: 100%;
+    &:focus-within {
+      box-shadow: rgba($primary, 0.6) 0 0 0 1px;
+      outline: currentColor none medium;
+    }
+    .aa-InputWrapperPrefix {
+      align-items: center;
+      display: flex;
+      flex-shrink: 0;
+      order: 1;
+      // Container for search and loading icons
+      .aa-Label,
+      .aa-LoadingIndicator {
+        cursor: initial;
+        flex-shrink: 0;
+        padding: 0;
+        text-align: left;
+        svg {
+          color: $input-color;
+          opacity: 0.5;
+        }
+      }
+      .aa-SubmitButton {
+        appearance: none;
+        background: none;
+        border: 0;
+        margin: 0;
+      }
+      .aa-LoadingIndicator {
+        align-items: center;
+        display: flex;
+        justify-content: center;
+        &[hidden] {
+          display: none;
+        }
+      }
+    }
+    .aa-InputWrapper {
+      order: 3;
+      position: relative;
+      width: 100%;
+
+      // Search box input (with placeholder and query)
+      .aa-Input {
+        appearance: none;
+        background: none;
+        border: 0;
+        color: $input-color;
+        font: inherit;
+        height: calc(1.5em + (0.1rem + 2px));
+        padding: 0;
+        width: 100%;
+        &::placeholder {
+          color: $input-color;
+          opacity: 0.8;
+        }
+        // Focus is set and styled on the parent, it isn't necessary here
+        &:focus {
+          border-color: none;
+          box-shadow: none;
+          outline: none;
+        }
+        // Remove native appearence
+        &::-webkit-search-decoration,
+        &::-webkit-search-cancel-button,
+        &::-webkit-search-results-button,
+        &::-webkit-search-results-decoration {
+          display: none;
+        }
+      }
+    }
+    .aa-InputWrapperSuffix {
+      align-items: center;
+      display: flex;
+      order: 4;
+      // Accelerator to clear the query
+      .aa-ClearButton {
+        align-items: center;
+        background: none;
+        border: 0;
+        color: $input-color;
+        opacity: 0.8;
+        cursor: pointer;
+        display: flex;
+        margin: 0;
+        &:hover,
+        &:focus {
+          color: $input-color;
+          opacity: 0.8;
+        }
+        &[hidden] {
+          display: none;
+        }
+        svg {
+          width: $input-height;
+        }
+      }
+    }
+  }
+}
+
+#quarto-search-results .aa-Panel {
   max-height: 65vh;
   overflow-y: auto;
+  border: solid $input-border-color 1px;
 }
 
 #quarto-search-results .search-result-text {
@@ -38,31 +182,41 @@
   font-size: 0.925rem;
 }
 
-#quarto-search-results .aa-suggestion {
+#quarto-search-results .aa-Item {
   cursor: pointer;
 }
 
-#quarto-search-results .aa-suggestion .card {
+#quarto-search-results a.search-result-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+#quarto-search-results .aa-Item .card {
   padding: 8px 16px;
   padding-bottom: 8px;
   border-left: none;
   border-right: none;
   border-top: none;
   background-color: $popover-bg;
-  border-color: $popover-border-color;
+  border-color: $input-border-color;
   color: $popover-body-color;
 }
 
-#quarto-search-results .aa-suggestion .card p {
+#quarto-search-results li.aa-Item[aria-selected="true"] .card {
+  background-color: $component-active-bg;
+  color: $component-active-color;
+}
+
+#quarto-search-results .aa-Item .card p {
   margin-top: 0;
   margin-bottom: 0;
 }
 
-#quarto-search-results .aa-suggestion .card .search-result-title {
+#quarto-search-results .aa-Item .card .search-result-title {
   margin-bottom: 0.1rem;
 }
 
-.algolia-autocomplete .aa-dropdown-menu .aa-suggestion.aa-cursor .card {
+.algolia-autocomplete .aa-Item .aa-suggestion.aa-cursor .card {
   background-color: theme-fade(
     $component-active-bg,
     $popover-bg,
@@ -72,14 +226,14 @@
 }
 
 .algolia-autocomplete
-  .aa-dropdown-menu
+  .aa-Item
   .aa-suggestion.aa-cursor
   .card
   .search-result-section {
   color: theme-dim($component-active-color, 15%) !important;
 }
 
-.algolia-autocomplete .aa-dropdown-menu .aa-suggestion em {
+.algolia-autocomplete .aa-Item .aa-suggestion em {
   font-weight: 500;
   font-style: normal;
 }
