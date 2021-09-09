@@ -28,7 +28,7 @@ export const convertCommand = new Command()
     "Convert documents to alternate representations.",
   )
   .option(
-    "--output [path:string]",
+    "-o, --output [path:string]",
     "Write output to PATH.",
   )
   .option(

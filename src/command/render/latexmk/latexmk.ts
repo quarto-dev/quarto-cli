@@ -27,7 +27,7 @@ import { Format } from "../../../config/types.ts";
 import { pdfEngine } from "../../../config/pdf.ts";
 
 import { PandocOptions, RenderFlags, RenderOptions } from "../types.ts";
-import { kStdOut, replacePandocArg } from "../flags.ts";
+import { kStdOut, replacePandocOutputArg } from "../flags.ts";
 import { OutputRecipe } from "../types.ts";
 import { generatePdf } from "./pdf.ts";
 import { LatexmkOptions } from "./types.ts";
@@ -76,7 +76,7 @@ export function quartoLatexmkOutputRecipe(
   let args = options.pandocArgs || [];
   const pandoc = { ...format.pandoc };
   if (options.flags?.output) {
-    args = replacePandocArg(args, "--output", output);
+    args = replacePandocOutputArg(args, output);
   } else {
     pandoc[kOutputFile] = output;
   }

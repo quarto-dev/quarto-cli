@@ -306,6 +306,16 @@ export function replacePandocArg(
   return newArgs;
 }
 
+export function replacePandocOutputArg(pandocArgs: string[], output: string) {
+  if (havePandocArg(pandocArgs, "--output")) {
+    return replacePandocArg(pandocArgs, "--output", output);
+  } else if (havePandocArg(pandocArgs, "-o")) {
+    return replacePandocArg(pandocArgs, "-o", output);
+  } else {
+    return pandocArgs;
+  }
+}
+
 // repair 'damage' done to pandoc args by cliffy (e.g. the - after --output is dropped)
 export function fixupPandocArgs(pandocArgs: string[], flags: RenderFlags) {
   // --output - gets eaten by cliffy, re-inject it if necessary
@@ -375,6 +385,7 @@ export function removePandocArgs(
 export function removePandocToArg(args: string[]) {
   const removeArgs = new Map<string, boolean>();
   removeArgs.set("--to", true);
+  removeArgs.set("-t", true);
   return removePandocArgs(args, removeArgs);
 }
 

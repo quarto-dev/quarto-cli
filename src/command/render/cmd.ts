@@ -24,11 +24,11 @@ export const renderCommand = new Command()
     "Render input file(s) to various document types.",
   )
   .option(
-    "--to",
+    "-t, --to",
     "Specify output format(s).",
   )
   .option(
-    "--output",
+    "-o, --output",
     "Write output to FILE (use '--output -' for stdout).",
   )
   .option(

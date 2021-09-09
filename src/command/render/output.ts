@@ -35,7 +35,7 @@ import {
   useQuartoLatexmk,
 } from "./latexmk/latexmk.ts";
 
-import { havePandocArg, kStdOut, replacePandocArg } from "./flags.ts";
+import { havePandocArg, kStdOut, replacePandocOutputArg } from "./flags.ts";
 import { OutputRecipe, RenderContext, RenderFlags } from "./types.ts";
 import { resolveKeepSource } from "./codetools.ts";
 
@@ -109,7 +109,7 @@ export async function outputRecipe(
     const updateOutput = (output: string) => {
       recipe.output = output;
       if (options.flags?.output) {
-        recipe.args = replacePandocArg(recipe.args, "--output", output);
+        recipe.args = replacePandocOutputArg(recipe.args, output);
       } else {
         format.pandoc[kOutputFile] = output;
       }
