@@ -131,9 +131,19 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
                   "No results."
                 );
               },
-              header({ items }) {
+              header({ items, createElement }) {
                 if (items.length > 0) {
-                  return `${items.length} matching items.`;
+                  return createElement(
+                    "div",
+                    { class: "search-result-header" },
+                    `${items.length} matching items.`
+                  );
+                } else {
+                  return createElement(
+                    "div",
+                    { class: "search-result-header-no-results" },
+                    ``
+                  );
                 }
               },
               item({ item, createElement }) {
