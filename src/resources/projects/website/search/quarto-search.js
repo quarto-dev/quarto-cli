@@ -45,7 +45,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       defaultActiveItemId: 0,
       panelContainer: "#quarto-search-results",
       panelPlacement: "start",
-      debug: true,
+      debug: false,
       classNames: {
         form: "d-flex",
       },
@@ -111,8 +111,8 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
                 title: isExpanded
                   ? `Hide additional matches`
                   : remainingCount === 1
-                  ? `${remainingCount} more match in document`
-                  : `${remainingCount} more matches in document`,
+                  ? `${remainingCount} more match on this page`
+                  : `${remainingCount} more matches on this page`,
                 type: kItemTypeMore,
               });
 

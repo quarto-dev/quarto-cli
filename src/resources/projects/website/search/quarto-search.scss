@@ -199,10 +199,6 @@ $quarto-search-input-width-focused: 400px !default;
     display: none;
   }
 
-  .search-result-title-container {
-    display: flex;
-  }
-
   .search-result-section {
     font-size: 0.875em;
   }
@@ -221,8 +217,6 @@ $quarto-search-input-width-focused: 400px !default;
     cursor: pointer;
 
     .search-item {
-      padding: 8px 16px;
-      padding-bottom: 8px;
       border-left: none;
       border-right: none;
       border-top: none;
@@ -238,7 +232,8 @@ $quarto-search-input-width-focused: 400px !default;
       }
 
       i.bi {
-        padding-right: 10px;
+        padding-left: 4px;
+        padding-right: 6px;
       }
 
       .search-result-title {
@@ -246,18 +241,30 @@ $quarto-search-input-width-focused: 400px !default;
       }
     }
 
+    .search-result-title-container {
+      font-size: 1em;
+      display: flex;
+      background-color: $body-bg;
+      color: $body-color;
+      padding: 4px 4px 0px 4px;
+    }
+
     .search-result-text-container {
-      padding-top: 6px;
-      margin-left: 28px;
+      padding-top: 3px;
+      padding-bottom: 3px;
+      margin-left: 32px;
     }
 
     .search-result-doc-section,
     .search-result-more {
-      padding-left: 42px;
+      padding-top: 3px;
+      padding-bottom: 3px;
+      padding-left: 32px;
     }
 
     .search-result-more {
-      font-size: 0.875em;
+      font-size: 0.8em;
+      font-weight: 400;
     }
 
     .search-result-doc {
