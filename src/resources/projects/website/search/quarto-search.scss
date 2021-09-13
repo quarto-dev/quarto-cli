@@ -3,43 +3,40 @@ $quarto-search-input-width: 150px !default;
 $quarto-search-input-width-focused: 400px !default;
 
 /*-- scss:rules --*/
-#quarto-search-results ul.aa-List {
-  list-style: none;
-  padding-left: 0;
-}
-
 #quarto-search-results {
-}
+  ul.aa-List {
+    list-style: none;
+    padding-left: 0;
+  }
 
-#quarto-search-results .aa-Panel {
-  background-color: $body-bg;
-  position: absolute;
-  z-index: 2000;
-  max-width: $quarto-search-input-width-focused;
+  .aa-Panel {
+    background-color: $body-bg;
+    position: absolute;
+    z-index: 2000;
+    max-width: $quarto-search-input-width-focused;
+  }
 }
 
 #quarto-search {
   font-size: 0.925rem;
-  // padding: 0.3rem 0.6rem;
-}
+  .aa-Form {
+    align-items: center;
+    background-color: $input-bg;
+    border: $input-border-width solid $input-border-color;
+    border-radius: $input-border-radius;
+    display: flex;
+    line-height: 1em;
+    margin: 0;
+    position: relative;
+    width: 100%;
+  }
 
-#quarto-search .aa-Form {
-  align-items: center;
-  background-color: $input-bg;
-  border: $input-border-width solid $input-border-color;
-  border-radius: $input-border-radius;
-  display: flex;
-  line-height: 1em;
-  margin: 0;
-  position: relative;
-  width: 100%;
-}
-
-#quarto-search .aa-SubmitButton {
-  appearance: none;
-  background: none;
-  border: 0;
-  margin: 0;
+  .aa-SubmitButton {
+    appearance: none;
+    background: none;
+    border: 0;
+    margin: 0;
+  }
 }
 
 .aa-Autocomplete,
@@ -189,15 +186,17 @@ $quarto-search-input-width-focused: 400px !default;
     max-height: 2.4rem; /* fallback */
   }
 
-  .aa-SourceHeader .search-result-header {
-    font-size: 0.875rem;
-    background-color: $light;
-    padding-left: 14px;
-    padding-bottom: 4px;
-  }
+  .aa-SourceHeader {
+    .search-result-header {
+      font-size: 0.875rem;
+      background-color: $light;
+      padding-left: 14px;
+      padding-bottom: 4px;
+    }
 
-  .aa-SourceHeader .search-result-header-no-results {
-    display: none;
+    .search-result-header-no-results {
+      display: none;
+    }
   }
 
   .search-result-section {
