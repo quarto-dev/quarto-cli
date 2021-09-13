@@ -165,12 +165,13 @@ $quarto-search-input-width-focused: 400px !default;
   .aa-Panel {
     max-height: 65vh;
     overflow-y: auto;
-    border: solid $input-border-color 1px;
+    border: solid $input-border-color $input-border-width;
     font-size: 0.925rem;
   }
 
   .aa-SourceNoResults {
-    width: $quarto-search-input-width-focused;
+    width: 100%;
+    width: $quarto-search-input-width-focused - 2 * $input-border-width;
     height: 60px;
     display: flex;
     justify-content: center;
