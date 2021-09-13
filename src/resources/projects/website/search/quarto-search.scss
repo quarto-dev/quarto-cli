@@ -190,9 +190,9 @@ $quarto-search-input-width-focused: 400px !default;
 
   .aa-SourceHeader .search-result-header {
     font-size: 0.875rem;
-    height: 1.5rem;
     background-color: $light;
     padding-left: 14px;
+    padding-bottom: 4px;
   }
 
   .aa-SourceHeader .search-result-header-no-results {
