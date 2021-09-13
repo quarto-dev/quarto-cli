@@ -12,39 +12,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   var searchEl = window.document.getElementById("quarto-search");
   if (!searchEl) return;
 
-  // create the index
-  function createFuseIndex() {
-    // create fuse index
-    var options = {
-      keys: [
-        { name: "title", weight: 20 },
-        { name: "section", weight: 20 },
-        { name: "text", weight: 10 },
-      ],
-      ignoreLocation: true,
-      threshold: 0.1,
-    };
-    var fuse = new window.Fuse([], options);
-
-    // fetch the main search.json
-    return fetch(offsetURL("search.json")).then(function (response) {
-      if (response.status == 200) {
-        return response.json().then(function (articles) {
-          articles.forEach(function (article) {
-            fuse.add(article);
-          });
-          return fuse;
-        });
-      } else {
-        return Promise.reject(
-          new Error(
-            "Unexpected status from search index request: " + response.status
-          )
-        );
-      }
-    });
-  }
-
   // create index then initialize autocomplete
   createFuseIndex().then(function (fuse) {
     // initialize autocomplete
@@ -85,6 +52,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       initialState: {
         query,
       },
+      getItemUrl({ item }) {
+        return item.href;
+      },
       onStateChange({ state }) {
         // Perhaps reset highlighting
         resetHighlighting(state.query);
@@ -92,18 +62,120 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
         // If the panel just opened, ensure the panel is positioned properly
         if (state.isOpen) {
           if (lastState && !lastState.isOpen) {
-            console.log(state);
             setTimeout(positionPanel, 100);
           }
         }
         lastState = state;
       },
+      reshape({ sources, state }) {
+        return sources.map((source) => {
+          const items = source.getItems();
+
+          // group the items by document
+          const groupedItems = new Map();
+          items.forEach((item) => {
+            const hrefParts = item.href.split("#");
+            const baseHref = hrefParts[0];
+
+            const items = groupedItems.get(baseHref);
+            if (!items) {
+              groupedItems.set(baseHref, [item]);
+            } else {
+              items.push(item);
+              groupedItems.set(baseHref, items);
+            }
+          });
+
+          const reshapedItems = [];
+          let count = 1;
+          for (const [_key, value] of groupedItems) {
+            const firstItem = value[0];
+            reshapedItems.push({
+              type: kItemTypeDoc,
+              title: firstItem.title,
+              href: firstItem.href,
+              text: firstItem.text,
+              section: firstItem.section,
+            });
+
+            if (value.length > 1) {
+              const target = `search-more-${count}`;
+              const isExpanded =
+                state.context.expanded &&
+                state.context.expanded.includes(target);
+
+              const remainingCount = value.length - 1;
+
+              reshapedItems.push({
+                target,
+                title: isExpanded
+                  ? `Hide additional matches`
+                  : remainingCount === 1
+                  ? `${remainingCount} more match in document`
+                  : `${remainingCount} more matches in document`,
+                type: kItemTypeMore,
+              });
+
+              if (isExpanded) {
+                for (let i = 1; i < value.length; i++) {
+                  reshapedItems.push({
+                    ...value[i],
+                    type: kItemTypeItem,
+                    target,
+                  });
+                }
+              }
+            }
+            count += 1;
+          }
+
+          return {
+            ...source,
+            getItems() {
+              return reshapedItems;
+            },
+          };
+        });
+      },
       getSources() {
         return [
           {
             sourceId: "documents",
+            onSelect({
+              item,
+              state,
+              setIsOpen,
+              setContext,
+              setActiveItemId,
+              refresh,
+            }) {
+              if (item.type !== kItemTypeMore) {
+                setIsOpen(false);
+              } else {
+                setIsOpen(true);
+                const expanded = state.context.expanded || [];
+                if (expanded.includes(item.target)) {
+                  setContext({
+                    expanded: expanded.filter(
+                      (target) => target !== item.target
+                    ),
+                  });
+                } else {
+                  setContext({ expanded: [...expanded, item.target] });
+                }
+                refresh();
+
+                // TODO: Need to potentially use
+                // a variable or something to hang onto this state
+                setActiveItemId(item.__autocomplete_id);
+              }
+            },
             getItemUrl({ item }) {
-              return offsetURL(item.href);
+              if (item.href) {
+                return offsetURL(item.href);
+              } else {
+                return undefined;
+              }
             },
             getItems({ query }) {
               return fuse.search(query, searchOptions).map((result) => {
@@ -132,11 +204,16 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
                 );
               },
               header({ items, createElement }) {
-                if (items.length > 0) {
+                // count the documents
+                const count = items.filter((item) => {
+                  return item.type === kItemTypeDoc;
+                }).length;
+
+                if (count > 0) {
                   return createElement(
                     "div",
                     { class: "search-result-header" },
-                    `${items.length} matching items.`
+                    `${count} matching documents.`
                   );
                 } else {
                   return createElement(
@@ -147,35 +224,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
                 }
               },
               item({ item, createElement }) {
-                const descEl = createElement("p", {
-                  class: "search-result-text fw-light small",
-                  dangerouslySetInnerHTML: {
-                    __html: item.text,
-                  },
-                });
-
-                const titleEl = createElement(
-                  "p",
-                  { class: "search-result-title" },
-                  `${item.section} — ${item.title}`
-                );
-
-                const linkEl = createElement(
-                  "a",
-                  {
-                    href: offsetURL(item.href),
-                    class: "search-result-link",
-                  },
-                  [titleEl, descEl]
-                );
-
-                return createElement(
-                  "div",
-                  {
-                    class: "card",
-                  },
-                  linkEl
-                );
+                return renderItem(item, createElement);
               },
             },
           },
@@ -184,6 +233,171 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     });
   });
 });
+
+/* Search Index Handling */
+// create the index
+async function createFuseIndex() {
+  // create fuse index
+  var options = {
+    keys: [
+      { name: "title", weight: 20 },
+      { name: "section", weight: 20 },
+      { name: "text", weight: 10 },
+    ],
+    ignoreLocation: true,
+    threshold: 0.1,
+  };
+  var fuse = new window.Fuse([], options);
+
+  // fetch the main search.json
+  const response = await fetch(offsetURL("search.json"));
+  if (response.status == 200) {
+    return response.json().then(function (articles) {
+      articles.forEach(function (article) {
+        fuse.add(article);
+      });
+      return fuse;
+    });
+  } else {
+    return Promise.reject(
+      new Error(
+        "Unexpected status from search index request: " + response.status
+      )
+    );
+  }
+}
+
+/* Panels */
+const kItemTypeDoc = "document";
+const kItemTypeMore = "document-more";
+const kItemTypeItem = "document-item";
+
+function renderItem(item, createElement) {
+  switch (item.type) {
+    case kItemTypeDoc:
+      console.log(item);
+      return createDocumentCard(
+        createElement,
+        "file-richtext",
+        item.title,
+        item.section,
+        item.text,
+        item.href
+      );
+    case kItemTypeMore:
+      return createMoreCard(createElement, item.title);
+    case kItemTypeItem:
+      return createSectionCard(
+        createElement,
+        item.section,
+        item.text,
+        item.href
+      );
+    default:
+      return undefined;
+  }
+}
+
+function createDocumentCard(createElement, icon, title, section, text, href) {
+  const iconEl = createElement("i", {
+    class: `bi bi-${icon} search-result-icon`,
+  });
+  const titleEl = createElement("p", { class: "search-result-title" }, title);
+  const titleContainerEl = createElement(
+    "div",
+    { class: "search-result-title-container" },
+    [iconEl, titleEl]
+  );
+
+  const textEls = [];
+  if (section) {
+    const sectionEl = createElement(
+      "p",
+      { class: "search-result-section" },
+      section
+    );
+    textEls.push(sectionEl);
+  }
+  const descEl = createElement("p", {
+    class: "search-result-text",
+    dangerouslySetInnerHTML: {
+      __html: text,
+    },
+  });
+  textEls.push(descEl);
+
+  const textContainerEl = createElement(
+    "div",
+    { class: "search-result-text-container" },
+    textEls
+  );
+
+  const containerEl = createElement(
+    "div",
+    {
+      class: "search-result-container",
+    },
+    [titleContainerEl, textContainerEl]
+  );
+
+  const linkEl = createElement(
+    "a",
+    {
+      href: offsetURL(href),
+      class: "search-result-link",
+    },
+    containerEl
+  );
+
+  return createElement(
+    "div",
+    {
+      class: "search-result-doc search-item",
+    },
+    linkEl
+  );
+}
+
+function createMoreCard(createElement, title) {
+  return createElement(
+    "div",
+    {
+      class: "search-result-more search-item",
+    },
+    title
+  );
+}
+
+function createSectionCard(createElement, section, text, href) {
+  const sectionEl = createSection(createElement, section, text, href);
+  return createElement(
+    "div",
+    {
+      class: "search-result-doc-section search-item",
+    },
+    sectionEl
+  );
+}
+
+function createSection(createElement, title, text, href) {
+  const descEl = createElement("p", {
+    class: "search-result-text",
+    dangerouslySetInnerHTML: {
+      __html: text,
+    },
+  });
+
+  const titleEl = createElement("p", { class: "search-result-section" }, title);
+  const linkEl = createElement(
+    "a",
+    {
+      href: offsetURL(href),
+      class: "search-result-link",
+    },
+    [titleEl, descEl]
+  );
+  return linkEl;
+}
 
 function positionPanel() {
   const panelEl = window.document.querySelector(
@@ -197,6 +411,7 @@ function positionPanel() {
   }
 }
 
+/* Highlighting */
 // highlighting functions
 function highlightMatch(query, text) {
   const start = text.toLowerCase().indexOf(query.toLowerCase());
@@ -285,6 +500,7 @@ function highlight(term, el) {
   }
 }
 
+/* Link Handling */
 // get the offset from this page for a given site root relative url
 function offsetURL(url) {
   var offset = getMeta("quarto:offset");

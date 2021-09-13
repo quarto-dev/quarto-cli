@@ -178,6 +178,7 @@ $quarto-search-input-width-focused: 400px !default;
   }
 
   .search-result-text {
+    font-weight: 300;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
@@ -192,20 +193,18 @@ $quarto-search-input-width-focused: 400px !default;
     height: 1.5rem;
     background-color: $light;
     padding-left: 14px;
-    border-bottom: $input-border-width solid $input-border-color;
   }
 
   .aa-SourceHeader .search-result-header-no-results {
     display: none;
   }
 
-  .aa-Item {
-    cursor: pointer;
+  .search-result-title-container {
+    display: flex;
   }
 
   .search-result-section {
-    color: theme-dim($popover-body-color, 25%);
-    font-size: 0.925rem;
+    font-size: 0.875em;
   }
 
   a.search-result-link {
@@ -213,28 +212,56 @@ $quarto-search-input-width-focused: 400px !default;
     text-decoration: none;
   }
 
-  .aa-Item .card {
-    padding: 8px 16px;
-    padding-bottom: 8px;
-    border-left: none;
-    border-right: none;
-    border-top: none;
-    background-color: $popover-bg;
-    border-color: $input-border-color;
-    color: $popover-body-color;
-  }
-
-  li.aa-Item[aria-selected="true"] .card {
+  li.aa-Item[aria-selected="true"] .search-item {
     background-color: $component-active-bg;
     color: $component-active-color;
   }
 
-  .aa-Item .card p {
-    margin-top: 0;
-    margin-bottom: 0;
-  }
+  .aa-Item {
+    cursor: pointer;
 
-  .aa-Item .card .search-result-title {
-    margin-bottom: 0.1rem;
+    .search-item {
+      padding: 8px 16px;
+      padding-bottom: 8px;
+      border-left: none;
+      border-right: none;
+      border-top: none;
+      background-color: $popover-bg;
+      border-color: $input-border-color;
+      color: $popover-body-color;
+    }
+
+    .search-item {
+      p {
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+
+      i.bi {
+        padding-right: 10px;
+      }
+
+      .search-result-title {
+        margin-bottom: 0.1rem;
+      }
+    }
+
+    .search-result-text-container {
+      padding-top: 6px;
+      margin-left: 28px;
+    }
+
+    .search-result-doc-section,
+    .search-result-more {
+      padding-left: 42px;
+    }
+
+    .search-result-more {
+      font-size: 0.875em;
+    }
+
+    .search-result-doc {
+      border-top: $input-border-width solid $input-border-color;
+    }
   }
 }
