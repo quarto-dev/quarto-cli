@@ -209,9 +209,23 @@ $quarto-search-input-width-focused: 400px !default;
     text-decoration: none;
   }
 
-  li.aa-Item[aria-selected="true"] .search-item {
-    background-color: $component-active-bg;
-    color: $component-active-color;
+  li.aa-Item[aria-selected="true"] {
+    .search-item {
+      background-color: $component-active-bg;
+      color: $component-active-color;
+
+      mark.search-match {
+        color: $component-active-color;
+        background-color: theme-fade($component-active-bg, $body-bg, 8%);
+      }
+    }
+  }
+
+  li.aa-Item[aria-selected="false"] {
+    mark.search-match {
+      color: inherit;
+      background-color: theme-fade($component-active-bg, $body-bg, 42%);
+    }
   }
 
   .aa-Item {
@@ -253,6 +267,7 @@ $quarto-search-input-width-focused: 400px !default;
     .search-result-text-container {
       padding-top: 3px;
       padding-bottom: 3px;
+      padding-right: 8px;
       margin-left: 32px;
     }
 

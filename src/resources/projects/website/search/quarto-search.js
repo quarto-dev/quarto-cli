@@ -424,9 +424,9 @@ function highlightMatch(query, text) {
     const end = start + query.length;
     text =
       text.slice(0, start) +
-      "<em>" +
+      "<mark class='search-match'>" +
       text.slice(start, end) +
-      "</em>" +
+      "</mark>" +
       text.slice(end);
     const clipStart = Math.max(start - 50, 0);
     const clipEnd = clipStart + 200;
