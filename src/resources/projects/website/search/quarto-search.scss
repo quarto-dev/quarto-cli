@@ -142,6 +142,7 @@ $quarto-search-input-width-focused: 400px !default;
         cursor: pointer;
         display: flex;
         margin: 0;
+        width: calc(1.5em + (0.1rem + 2px));
         &:hover,
         &:focus {
           color: $input-color;
