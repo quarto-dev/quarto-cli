@@ -39,7 +39,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     };
 
     let lastState = null;
-    autocomplete({
+    const { setIsOpen } = autocomplete({
       container: searchEl,
       detachedMediaQuery: "none",
       defaultActiveItemId: 0,
@@ -231,6 +231,12 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
         ];
       },
     });
+
+    // If the main document scrolls dismiss the search results
+    // (otherwise, since they're floating in the document they can scroll with the document)
+    window.document.body.onscroll = () => {
+      setIsOpen(false);
+    };
   });
 });
 
@@ -275,7 +281,6 @@ const kItemTypeItem = "document-item";
 function renderItem(item, createElement) {
   switch (item.type) {
     case kItemTypeDoc:
-      console.log(item);
       return createDocumentCard(
         createElement,
         "file-richtext",
