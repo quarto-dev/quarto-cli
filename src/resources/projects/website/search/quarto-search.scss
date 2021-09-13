@@ -258,7 +258,7 @@ $quarto-search-input-width-focused: 400px !default;
     .search-result-title-container {
       font-size: 1em;
       display: flex;
-      background-color: $body-bg;
+      background-color: $popover-bg;
       color: $body-color;
       padding: 4px 4px 0px 4px;
     }
