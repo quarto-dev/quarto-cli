@@ -155,6 +155,27 @@ $quarto-search-input-width-focused: 400px !default;
           width: $input-height;
         }
       }
+
+      .aa-CopyButton {
+        border: none;
+        align-items: center;
+        background: none;
+        color: $input-color;
+        opacity: 0.8;
+        font-size: 0.875rem;
+        cursor: pointer;
+        display: none;
+        margin: 0;
+        width: calc(1em + (0.1rem + 2px));
+        &:hover,
+        &:focus {
+          color: $input-color;
+          opacity: 0.8;
+        }
+        &[hidden] {
+          display: none;
+        }
+      }
     }
   }
 }

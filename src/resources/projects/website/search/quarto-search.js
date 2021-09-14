@@ -6,6 +6,9 @@ const searchOptions = {
   limit: 25,
 };
 
+const kQueryArg = "q";
+const kResultsArg = "showResults";
+
 window.document.addEventListener("DOMContentLoaded", function (_event) {
   // Ensure that search is available on this page. If it isn't,
   // should return early and not do anything
@@ -20,7 +23,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     // Used to determine highlighting behavior for this page
     // A `q` query param is expected when the user follows a search
     // to this page
-    const query = new URL(window.location).searchParams.get("q");
+    const currentUrl = new URL(window.location);
+    const query = currentUrl.searchParams.get(kQueryArg);
+    const showSearchResults = currentUrl.searchParams.get(kResultsArg);
     const mainEl = window.document.querySelector("main");
 
     // highlight matches on the page
@@ -63,6 +68,18 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
         if (state.isOpen) {
           if (lastState && !lastState.isOpen) {
             setTimeout(positionPanel, 100);
+          }
+        }
+
+        // If there is a query, show the link icon
+        const copyButtonEl = window.document.body.querySelector(
+          ".aa-Form .aa-InputWrapperSuffix .aa-CopyButton"
+        );
+        if (copyButtonEl) {
+          if (state.query) {
+            copyButtonEl.style.display = "flex";
+          } else {
+            copyButtonEl.style.display = "none";
           }
         }
         lastState = state;
@@ -190,7 +207,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
                 return {
                   title: result.item.title,
                   section: result.item.section,
-                  href: addParam(result.item.href, "q", query),
+                  href: addParam(result.item.href, kQueryArg, query),
                   text: highlightMatch(query, result.item.text),
                 };
               });
@@ -237,6 +254,60 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     window.document.body.onscroll = () => {
       setIsOpen(false);
     };
+
+    const inputEl = window.document.body.querySelector(".aa-Form .aa-Input");
+    if (showSearchResults) {
+      if (inputEl) {
+        inputEl.focus();
+      }
+    }
+
+    // Insert share icon
+    const inputSuffixEl = window.document.body.querySelector(
+      ".aa-Form .aa-InputWrapperSuffix"
+    );
+    if (inputSuffixEl) {
+      const copyButtonEl = window.document.createElement("button");
+      copyButtonEl.setAttribute("class", "aa-CopyButton");
+      copyButtonEl.setAttribute("type", "button");
+      copyButtonEl.setAttribute("title", "Share");
+      copyButtonEl.onmousedown = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      };
+
+      const linkIcon = "bi-clipboard";
+      const checkIcon = "bi-check2";
+
+      const shareIconEl = window.document.createElement("i");
+      shareIconEl.setAttribute("class", `bi ${linkIcon}`);
+      copyButtonEl.appendChild(shareIconEl);
+      inputSuffixEl.prepend(copyButtonEl);
+
+      const clipboard = new window.ClipboardJS(".aa-CopyButton", {
+        text: function (_trigger) {
+          const copyUrl = new URL(window.location);
+          copyUrl.searchParams.set(kQueryArg, lastState.query);
+          copyUrl.searchParams.set(kResultsArg, "1");
+          return copyUrl.toString();
+        },
+      });
+      clipboard.on("success", function (e) {
+        // Focus the input
+
+        // button target
+        const button = e.trigger;
+        const icon = button.querySelector("i.bi");
+
+        // flash "checked"
+        icon.classList.add(checkIcon);
+        icon.classList.remove(linkIcon);
+        setTimeout(function () {
+          icon.classList.remove(checkIcon);
+          icon.classList.add(linkIcon);
+        }, 1000);
+      });
+    }
   });
 });
 

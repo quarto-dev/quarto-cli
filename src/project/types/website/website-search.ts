@@ -21,7 +21,10 @@ import { FormatDependency } from "../../../config/types.ts";
 import { ProjectContext } from "../../types.ts";
 import { ProjectOutputFile } from "../types.ts";
 
-import { kBootstrapDependencyName } from "../../../format/html/format-html-shared.ts";
+import {
+  clipboardDependency,
+  kBootstrapDependencyName,
+} from "../../../format/html/format-html-shared.ts";
 import { projectOutputDir } from "../../project-shared.ts";
 import { projectOffset } from "../../project-shared.ts";
 
@@ -180,13 +183,15 @@ export function websiteSearchSassBundle() {
 export function websiteSearchDependency(
   project: ProjectContext,
   source: string,
-): FormatDependency | undefined {
+): FormatDependency[] {
+  const searchDependencies: FormatDependency[] = [];
   if (websiteSearch(project) !== "none") {
     const sourceRelative = relative(project.dir, source);
     const offset = projectOffset(project, source);
     const href = inputFileHref(sourceRelative);
 
-    return {
+    searchDependencies.push(clipboardDependency());
+    searchDependencies.push({
       name: kDependencyName,
       meta: {
         "quarto:offset": href === "/404.html"
@@ -199,10 +204,9 @@ export function websiteSearchDependency(
         searchDependency("fuse.min.js"),
         searchDependency("quarto-search.js"),
       ],
-    };
-  } else {
-    return undefined;
+    });
   }
+  return searchDependencies;
 }
 
 function searchDependency(resource: string) {

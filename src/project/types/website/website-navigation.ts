@@ -154,7 +154,7 @@ export async function websiteNavigationExtras(
 
   const searchDep = websiteSearchDependency(project, source);
   if (searchDep) {
-    dependencies.push(searchDep);
+    dependencies.push(...searchDep);
     sassBundles.push(websiteSearchSassBundle());
   }
 
