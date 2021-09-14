@@ -125,8 +125,6 @@ export async function updateHtmlDepedencies(config: Configuration) {
     "FUSE_JS",
     workingDir,
     (dir: string, version: string) => {
-      console.log(dir);
-
       // Copy the js file
       ensureDirSync(dirname(fuseJs));
       Deno.copyFileSync(
