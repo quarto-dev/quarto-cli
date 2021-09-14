@@ -577,7 +577,13 @@ export function resolveDependencies(
 
   const lines: string[] = [];
   if (extras.html?.[kDependencies]) {
+    const copiedDependencies: string[] = [];
     for (const dependency of extras.html?.[kDependencies]!) {
+      // Ensure that we copy (and render HTML for) each named dependency only once
+      if (copiedDependencies.includes(dependency.name)) {
+        continue;
+      }
+
       const dir = dependency.version
         ? `${dependency.name}-${dependency.version}`
         : dependency.name;
@@ -627,6 +633,9 @@ export function resolveDependencies(
       if (dependency.resources) {
         dependency.resources.forEach((resource) => copyDep(resource));
       }
+
+      // Note that we've copied this dependency
+      copiedDependencies.push(dependency.name);
     }
     delete extras.html?.[kDependencies];
 
