@@ -54,9 +54,20 @@ export function updateSearchIndex(
     : undefined;
 
   // start with a set of search docs if this is incremental
+  let searchJsonRestructured = false;
   const searchDocs = new Array<SearchDoc>();
   if (incremental && searchJson) {
-    searchDocs.push(...(JSON.parse(searchJson) as SearchDoc[]));
+    // Read the existing index
+    // Older versions of Quarto used to store just a simple array of search docs
+    // Newer versions moved this into an object property so additional options could
+    // be passed along as well
+    const existingSearchJson = JSON.parse(searchJson);
+    if (Array.isArray(existingSearchJson)) {
+      searchDocs.push(...(existingSearchJson as SearchDoc[]));
+      searchJsonRestructured = true;
+    } else if (existingSearchJson.docs) {
+      searchDocs.push(...(existingSearchJson.docs as SearchDoc[]));
+    }
   }
 
   // create search docs
@@ -145,8 +156,13 @@ export function updateSearchIndex(
   );
 
   // write search docs if they have changed
-  if (updatedSearchDocs.length > 0) {
-    const updatedSearchJson = JSON.stringify(updatedSearchDocs, undefined, 2);
+  if (updatedSearchDocs.length > 0 || searchJsonRestructured) {
+    const searchData = {
+      docs: updatedSearchDocs,
+      options: {},
+    };
+
+    const updatedSearchJson = JSON.stringify(searchData, undefined, 2);
     if (searchJson !== updatedSearchJson) {
       Deno.writeTextFileSync(searchJsonPath, updatedSearchJson);
     }

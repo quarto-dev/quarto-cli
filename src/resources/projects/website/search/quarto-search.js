@@ -46,7 +46,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     let lastState = null;
     const { setIsOpen } = autocomplete({
       container: searchEl,
-      detachedMediaQuery: "none",
+      detachedMediaQuery: "(max-width: 680px)",
       defaultActiveItemId: 0,
       panelContainer: "#quarto-search-results",
       panelPlacement: "start",
@@ -329,9 +329,11 @@ async function createFuseIndex() {
   // fetch the main search.json
   const response = await fetch(offsetURL("search.json"));
   if (response.status == 200) {
-    return response.json().then(function (articles) {
-      articles.forEach(function (article) {
-        fuse.add(article);
+    return response.json().then(function (searchData) {
+      const searchDocs = searchData.docs;
+      console.log(searchData);
+      searchDocs.forEach(function (searchDoc) {
+        fuse.add(searchDoc);
       });
       return fuse;
     });
