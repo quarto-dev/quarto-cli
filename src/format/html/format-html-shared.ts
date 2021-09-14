@@ -7,7 +7,7 @@
 import { join } from "path/mod.ts";
 import { outputVariable, sassVariable } from "../../core/sass.ts";
 import { kCodeOverflow } from "../../config/constants.ts";
-import { Format } from "../../config/types.ts";
+import { Format, FormatDependency } from "../../config/types.ts";
 
 import { formatResourcePath } from "../../core/resources.ts";
 
@@ -27,6 +27,16 @@ export const kFootnoteSectionTitle = "footnote-section-title";
 
 export const kDocumentCss = "document-css";
 export const kBootstrapDependencyName = "bootstrap";
+
+export const clipboardDependency = () => {
+  const dependency: FormatDependency = { name: "clipboard" };
+  dependency.scripts = [];
+  dependency.scripts.push({
+    name: "clipboard.min.js",
+    path: formatResourcePath("html", join("clipboard", "clipboard.min.js")),
+  });
+  return dependency;
+};
 
 export const quartoRules = () =>
   Deno.readTextFileSync(formatResourcePath(
