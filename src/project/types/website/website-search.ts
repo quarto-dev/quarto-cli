@@ -187,16 +187,20 @@ export function updateSearchIndex(
 function searchOptions(project: ProjectContext): SearchOptions {
   const searchConfig: Metadata = project.config?.[kSearch] as Metadata || {};
 
+  // Sort out collapsing (by default, show 2 sections per document)
   const collapseMatches: number | boolean =
     typeof (searchConfig[kCollapseMatches]) === "number"
       ? searchConfig[kCollapseMatches] as number
-      : searchConfig[kCollapseMatches] !== false;
+      : searchConfig[kCollapseMatches] !== false
+      ? 2
+      : false;
 
+  // The location of the search input
   const location = searchInputLocation(project);
 
   return {
     [kLocation]: location,
-    [kCopyLink]: searchConfig[kCopyLink] !== false,
+    [kCopyLink]: searchConfig[kCopyLink] === true,
     [kInputStyle]: searchConfig[kInputStyle] === "icon" ? "icon" : "input",
     [kCollapseMatches]: collapseMatches,
     [kPanelPlacement]: location === "navbar" ? "end" : "start",

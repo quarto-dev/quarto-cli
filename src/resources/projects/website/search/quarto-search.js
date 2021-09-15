@@ -30,7 +30,13 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
     // highlight matches on the page
     if (query !== null && mainEl) {
+      // perform any highlighting
       highlight(query, mainEl);
+
+      // fix up the URL to remove the q query param
+      const replacementUrl = new URL(window.location);
+      replacementUrl.searchParams.delete(kQueryArg);
+      window.history.replaceState({}, "", replacementUrl);
     }
 
     // function to clear highlighting on the page when the search query changes
