@@ -16,7 +16,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   if (!searchEl) return;
 
   // create index then initialize autocomplete
-  createFuseIndex().then(function (fuse) {
+  readSearchData().then(function ({ fuse, options }) {
     // initialize autocomplete
     const { autocomplete } = window["@algolia/autocomplete-js"];
 
@@ -76,7 +76,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
           ".aa-Form .aa-InputWrapperSuffix .aa-CopyButton"
         );
         if (copyButtonEl) {
-          if (state.query) {
+          if (state.query && options["copy-link"]) {
             copyButtonEl.style.display = "flex";
           } else {
             copyButtonEl.style.display = "none";
@@ -115,26 +115,32 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
               section: firstItem.section,
             });
 
+            const collapseMatches = options["collapse-matches"];
+            const collapseCount =
+              typeof collapseMatches === "number" ? collapseMatches : 1;
+
             if (value.length > 1) {
               const target = `search-more-${count}`;
               const isExpanded =
                 state.context.expanded &&
                 state.context.expanded.includes(target);
 
-              const remainingCount = value.length - 1;
+              const remainingCount = value.length - collapseCount;
 
-              reshapedItems.push({
-                target,
-                title: isExpanded
-                  ? `Hide additional matches`
-                  : remainingCount === 1
-                  ? `${remainingCount} more match on this page`
-                  : `${remainingCount} more matches on this page`,
-                type: kItemTypeMore,
-              });
+              for (let i = 1; i < value.length; i++) {
+                if (collapseMatches && i === collapseCount) {
+                  reshapedItems.push({
+                    target,
+                    title: isExpanded
+                      ? `Hide additional matches`
+                      : remainingCount === 1
+                      ? `${remainingCount} more match on this page`
+                      : `${remainingCount} more matches on this page`,
+                    type: kItemTypeMore,
+                  });
+                }
 
-              if (isExpanded) {
-                for (let i = 1; i < value.length; i++) {
+                if (isExpanded || !collapseMatches || i < collapseCount) {
                   reshapedItems.push({
                     ...value[i],
                     type: kItemTypeItem,
@@ -313,7 +319,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
 /* Search Index Handling */
 // create the index
-async function createFuseIndex() {
+async function readSearchData() {
   // create fuse index
   var options = {
     keys: [
@@ -331,11 +337,11 @@ async function createFuseIndex() {
   if (response.status == 200) {
     return response.json().then(function (searchData) {
       const searchDocs = searchData.docs;
-      console.log(searchData);
       searchDocs.forEach(function (searchDoc) {
+        console.log(searchDoc);
         fuse.add(searchDoc);
       });
-      return fuse;
+      return { fuse, options: searchData.options };
     });
   } else {
     return Promise.reject(

@@ -17,7 +17,7 @@ import { DOMParser, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { isHtmlContent } from "../../../core/mime.ts";
 
-import { FormatDependency } from "../../../config/types.ts";
+import { FormatDependency, Metadata } from "../../../config/types.ts";
 import { ProjectContext } from "../../types.ts";
 import { ProjectOutputFile } from "../types.ts";
 
@@ -32,6 +32,10 @@ import { inputFileHref, websiteNavigationConfig } from "./website-shared.ts";
 import { websitePath, websiteTitle } from "./website-config.ts";
 import { sassLayer } from "../../../command/render/sass.ts";
 
+const kLocation = "location";
+const kInputStyle = "input-style";
+const kCopyLink = "copy-link";
+const kCollapseMatches = "collapse-matches";
 const kSearch = "search";
 
 interface SearchDoc {
@@ -40,6 +44,15 @@ interface SearchDoc {
   section: string;
   text: string;
 }
+
+interface SearchOptions {
+  [kLocation]: SearchInputLocation;
+  [kCopyLink]: boolean;
+  [kInputStyle]: "icon" | "input";
+  [kCollapseMatches]: boolean | number;
+}
+
+export type SearchInputLocation = "none" | "navbar" | "sidebar";
 
 export function updateSearchIndex(
   context: ProjectContext,
@@ -159,7 +172,7 @@ export function updateSearchIndex(
   if (updatedSearchDocs.length > 0 || searchJsonRestructured) {
     const searchData = {
       docs: updatedSearchDocs,
-      options: {},
+      options: searchOptions(context),
     };
 
     const updatedSearchJson = JSON.stringify(searchData, undefined, 2);
@@ -169,16 +182,37 @@ export function updateSearchIndex(
   }
 }
 
-export type WebsiteSearch = "none" | "navbar" | "sidebar";
+function searchOptions(project: ProjectContext): SearchOptions {
+  const searchConfig: Metadata = project.config?.[kSearch] as Metadata || {};
 
-export function websiteSearch(project: ProjectContext) {
-  const { navbar, sidebars } = websiteNavigationConfig(project);
-  if (navbar?.search) {
-    return "navbar";
-  } else if (sidebars) {
-    return sidebars.some((sidebar) => !!sidebar.search) ? "sidebar" : "none";
+  const collapseMatches: number | boolean =
+    typeof (searchConfig[kCollapseMatches]) === "number"
+      ? searchConfig[kCollapseMatches] as number
+      : searchConfig[kCollapseMatches] !== false;
+
+  return {
+    [kLocation]: searchInputLocation(project),
+    [kCopyLink]: searchConfig[kCopyLink] !== false,
+    [kInputStyle]: searchConfig[kInputStyle] === "icon" ? "icon" : "input",
+    [kCollapseMatches]: collapseMatches,
+  };
+}
+
+export function searchInputLocation(
+  project: ProjectContext,
+): SearchInputLocation {
+  const searchConfig: Metadata = project.config?.[kSearch] as Metadata || {};
+  if (searchConfig) {
+    return searchConfig[kLocation] === "navbar" ? "navbar" : "sidebar";
   } else {
-    return "none";
+    const { navbar, sidebars } = websiteNavigationConfig(project);
+    if (navbar) {
+      return "navbar";
+    } else if (sidebars) {
+      return "sidebar";
+    } else {
+      return "none";
+    }
   }
 }
 
@@ -201,7 +235,7 @@ export function websiteSearchDependency(
   source: string,
 ): FormatDependency[] {
   const searchDependencies: FormatDependency[] = [];
-  if (websiteSearch(project) !== "none") {
+  if (searchInputLocation(project) !== "none") {
     const sourceRelative = relative(project.dir, source);
     const offset = projectOffset(project, source);
     const href = inputFileHref(sourceRelative);
