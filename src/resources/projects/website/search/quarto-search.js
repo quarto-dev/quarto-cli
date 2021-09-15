@@ -49,7 +49,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       detachedMediaQuery: "(max-width: 680px)",
       defaultActiveItemId: 0,
       panelContainer: "#quarto-search-results",
-      panelPlacement: "start",
+      panelPlacement: options["panel-placement"],
       debug: false,
       classNames: {
         form: "d-flex",
@@ -67,7 +67,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
         // If the panel just opened, ensure the panel is positioned properly
         if (state.isOpen) {
           if (lastState && !lastState.isOpen) {
-            setTimeout(positionPanel, 150);
+            setTimeout(() => {
+              positionPanel(options["panel-placement"]);
+            }, 150);
           }
         }
 
@@ -279,7 +281,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       const copyButtonEl = window.document.createElement("button");
       copyButtonEl.setAttribute("class", "aa-CopyButton");
       copyButtonEl.setAttribute("type", "button");
-      copyButtonEl.setAttribute("title", "Share");
+      copyButtonEl.setAttribute("title", "Copy link to search");
       copyButtonEl.onmousedown = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -341,7 +343,6 @@ async function readSearchData() {
     return response.json().then(function (searchData) {
       const searchDocs = searchData.docs;
       searchDocs.forEach(function (searchDoc) {
-        console.log(searchDoc);
         fuse.add(searchDoc);
       });
       return { fuse, options: searchData.options };
@@ -486,7 +487,7 @@ function createSection(createElement, title, text, href) {
   return linkEl;
 }
 
-function positionPanel() {
+function positionPanel(pos) {
   const panelEl = window.document.querySelector(
     "#quarto-search-results .aa-Panel"
   );
@@ -494,7 +495,11 @@ function positionPanel() {
     "#quarto-search .aa-Autocomplete"
   );
   if (panelEl && inputEl) {
-    panelEl.style.left = `${inputEl.offsetLeft}px`;
+    if (pos === "start") {
+      panelEl.style.left = `${inputEl.offsetLeft}px`;
+    } else {
+      panelEl.style.right = `${inputEl.offsetRight}px`;
+    }
   }
 }
 

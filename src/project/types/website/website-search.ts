@@ -36,6 +36,7 @@ const kLocation = "location";
 const kInputStyle = "input-style";
 const kCopyLink = "copy-link";
 const kCollapseMatches = "collapse-matches";
+const kPanelPlacement = "panel-placement";
 const kSearch = "search";
 
 interface SearchDoc {
@@ -50,6 +51,7 @@ interface SearchOptions {
   [kCopyLink]: boolean;
   [kInputStyle]: "icon" | "input";
   [kCollapseMatches]: boolean | number;
+  [kPanelPlacement]: "start" | "end" | "full-width" | "input-wrapper-width";
 }
 
 export type SearchInputLocation = "none" | "navbar" | "sidebar";
@@ -190,11 +192,14 @@ function searchOptions(project: ProjectContext): SearchOptions {
       ? searchConfig[kCollapseMatches] as number
       : searchConfig[kCollapseMatches] !== false;
 
+  const location = searchInputLocation(project);
+
   return {
-    [kLocation]: searchInputLocation(project),
+    [kLocation]: location,
     [kCopyLink]: searchConfig[kCopyLink] !== false,
     [kInputStyle]: searchConfig[kInputStyle] === "icon" ? "icon" : "input",
     [kCollapseMatches]: collapseMatches,
+    [kPanelPlacement]: location === "navbar" ? "end" : "start",
   };
 }
 
