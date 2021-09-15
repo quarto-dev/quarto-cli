@@ -67,7 +67,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
         // If the panel just opened, ensure the panel is positioned properly
         if (state.isOpen) {
           if (lastState && !lastState.isOpen) {
-            setTimeout(positionPanel, 100);
+            setTimeout(positionPanel, 150);
           }
         }
 
@@ -261,11 +261,14 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       setIsOpen(false);
     };
 
-    const inputEl = window.document.body.querySelector(".aa-Form .aa-Input");
     if (showSearchResults) {
-      if (inputEl) {
-        inputEl.focus();
-      }
+      setTimeout(() => {
+        const inputEl =
+          window.document.body.querySelector(".aa-Form .aa-Input");
+        if (inputEl) {
+          inputEl.focus();
+        }
+      }, 50);
     }
 
     // Insert share icon
