@@ -1,6 +1,10 @@
 /*-- scss:defaults --*/
-$quarto-search-input-width: 150px !default;
-$quarto-search-input-width-focused: 400px !default;
+$quarto-navbar-search-input-width: 150px !default;
+$quarto-navbar-search-input-width-focused: 400px !default;
+
+$quarto-sidebar-search-input-width: 100% !default;
+
+$quarto-search-results-width: $quarto-navbar-search-input-width-focused !default;
 
 /*-- scss:rules --*/
 #quarto-search-results {
@@ -13,7 +17,7 @@ $quarto-search-input-width-focused: 400px !default;
     background-color: $body-bg;
     position: absolute;
     z-index: 2000;
-    max-width: $quarto-search-input-width-focused;
+    max-width: $quarto-search-results-width;
   }
 }
 
@@ -39,14 +43,20 @@ $quarto-search-input-width-focused: 400px !default;
   }
 }
 
-.aa-Autocomplete,
-.aa-DetachedFormContainer {
-  width: $quarto-search-input-width;
+#quarto-sidebar .sidebar-search .aa-Autocomplete {
+  width: $quarto-sidebar-search-input-width;
+}
+
+.navbar .aa-Autocomplete {
+  width: $quarto-navbar-search-input-width;
   transition: width 50ms;
   &:focus-within {
-    width: $quarto-search-input-width-focused;
+    width: $quarto-navbar-search-input-width-focused;
   }
+}
 
+.aa-Autocomplete,
+.aa-DetachedFormContainer {
   // Search box
   .aa-Form {
     align-items: center;
@@ -190,7 +200,7 @@ $quarto-search-input-width-focused: 400px !default;
 
   .aa-SourceNoResults {
     width: 100%;
-    width: $quarto-search-input-width-focused - 2 * $input-border-width;
+    width: $quarto-search-results-width - 2 * $input-border-width;
     height: 60px;
     display: flex;
     justify-content: center;
