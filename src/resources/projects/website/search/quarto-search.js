@@ -527,10 +527,11 @@ function positionPanel(pos) {
     "#quarto-search .aa-Autocomplete"
   );
   if (panelEl && inputEl) {
+    panelEl.style.top = `${Math.round(panelEl.offsetTop)}px`;
     if (pos === "start") {
-      panelEl.style.left = `${inputEl.offsetLeft}px`;
+      panelEl.style.left = `${Math.round(inputEl.offsetLeft)}px`;
     } else {
-      panelEl.style.right = `${inputEl.offsetRight}px`;
+      panelEl.style.right = `${Math.round(inputEl.offsetRight)}px`;
     }
   }
 }
