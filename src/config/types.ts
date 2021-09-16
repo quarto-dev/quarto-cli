@@ -80,7 +80,7 @@ import {
   kVariant,
   kWarning,
   kWebtex,
-} from "../config/constants.ts";
+} from "../config/constants.ts"; // FIXME: huh? compare to the import below.
 
 import {
   kError,
