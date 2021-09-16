@@ -32,12 +32,29 @@ import { inputFileHref, websiteNavigationConfig } from "./website-shared.ts";
 import { websitePath, websiteTitle } from "./website-config.ts";
 import { sassLayer } from "../../../command/render/sass.ts";
 
-const kLocation = "location";
-const kInputStyle = "input-style";
-const kCopyLink = "copy-link";
-const kCollapseMatches = "collapse-matches";
-const kPanelPlacement = "panel-placement";
+// The main search key
 const kSearch = "search";
+
+// The user facing options
+// Should the search input appear on the sidebar or the navbar
+const kLocation = "location";
+// Show a copy button to copy the search url to the clipboard
+const kCopyLink = "copy-link";
+// Collapse sections of the same documents when showing them in the results
+const kCollapseMatches = "collapse-matches";
+// Where to place the search results
+const kPanelPlacement = "panel-placement";
+const kType = "type";
+
+interface SearchOptions {
+  [kLocation]: SearchInputLocation;
+  [kCopyLink]: boolean;
+  [kCollapseMatches]: boolean | number;
+  [kPanelPlacement]: "start" | "end" | "full-width" | "input-wrapper-width";
+  [kType]: "input" | "collapsed" | "detached";
+}
+
+export type SearchInputLocation = "none" | "navbar" | "sidebar";
 
 interface SearchDoc {
   href: string;
@@ -45,16 +62,6 @@ interface SearchDoc {
   section: string;
   text: string;
 }
-
-interface SearchOptions {
-  [kLocation]: SearchInputLocation;
-  [kCopyLink]: boolean;
-  [kInputStyle]: "icon" | "input";
-  [kCollapseMatches]: boolean | number;
-  [kPanelPlacement]: "start" | "end" | "full-width" | "input-wrapper-width";
-}
-
-export type SearchInputLocation = "none" | "navbar" | "sidebar";
 
 export function updateSearchIndex(
   context: ProjectContext,
@@ -198,12 +205,31 @@ function searchOptions(project: ProjectContext): SearchOptions {
   // The location of the search input
   const location = searchInputLocation(project);
 
+  // The appearance of the search UI
+  const searchType = (
+    userType: unknown,
+  ): "detached" | "collapsed" | "input" => {
+    if (userType && typeof (userType) === "string") {
+      switch (userType) {
+        case "detached":
+          return "detached";
+        case "collapsed":
+          return "collapsed";
+        default:
+        case "input":
+          return "input";
+      }
+    } else {
+      return "input";
+    }
+  };
+
   return {
     [kLocation]: location,
     [kCopyLink]: searchConfig[kCopyLink] === true,
-    [kInputStyle]: searchConfig[kInputStyle] === "icon" ? "icon" : "input",
     [kCollapseMatches]: collapseMatches,
     [kPanelPlacement]: location === "navbar" ? "end" : "start",
+    [kType]: searchType(searchConfig[kType]),
   };
 }
 

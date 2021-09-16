@@ -78,12 +78,6 @@ nav .nav-item.compact .nav-link {
   font-size: 1.1rem;
 }
 
-.navbar #quarto-search {
-  @include media-breakpoint-up(lg) {
-    margin-left: 0.6rem;
-  }
-}
-
 .navbar-nav .dropdown-menu {
   min-width: 190px;
   font-size: 0.9rem;

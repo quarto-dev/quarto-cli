@@ -263,6 +263,25 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       },
     });
 
+    // Add support for collapsed type search input
+    searchEl.classList.add(`type-${options.type}`);
+    if (options.type === "collapsed") {
+      const inputEl = inputElement();
+      if (inputEl.value === "") {
+        searchEl.classList.add("hide");
+      }
+      searchEl.onclick = () => {
+        focusSearchInput();
+        searchEl.classList.remove("hide");
+      };
+
+      inputEl.onblur = () => {
+        if (inputEl.value === "") {
+          searchEl.classList.add("hide");
+        }
+      };
+    }
+
     // If the main document scrolls dismiss the search results
     // (otherwise, since they're floating in the document they can scroll with the document)
     window.document.body.onscroll = () => {
@@ -270,13 +289,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     };
 
     if (showSearchResults) {
-      setTimeout(() => {
-        const inputEl =
-          window.document.body.querySelector(".aa-Form .aa-Input");
-        if (inputEl) {
-          inputEl.focus();
-        }
-      }, 50);
+      focusSearchInput();
     }
 
     // Insert share icon
@@ -360,6 +373,19 @@ async function readSearchData() {
       )
     );
   }
+}
+
+function inputElement() {
+  return window.document.body.querySelector(".aa-Form .aa-Input");
+}
+
+function focusSearchInput() {
+  setTimeout(() => {
+    const inputEl = inputElement();
+    if (inputEl) {
+      inputEl.focus();
+    }
+  }, 50);
 }
 
 /* Panels */

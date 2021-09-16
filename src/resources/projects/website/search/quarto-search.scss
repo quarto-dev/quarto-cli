@@ -20,23 +20,17 @@ $quarto-search-results-width: 400px !default;
 
 #quarto-search {
   font-size: 0.925rem;
-  .aa-Form {
-    align-items: center;
-    background-color: $input-bg;
-    border: $input-border-width solid $input-border-color;
-    border-radius: $input-border-radius;
-    display: flex;
-    line-height: 1em;
-    margin: 0;
-    position: relative;
-    width: 100%;
-  }
+}
 
-  .aa-SubmitButton {
-    appearance: none;
-    background: none;
-    border: 0;
-    margin: 0;
+.navbar #quarto-search {
+  @include media-breakpoint-up(lg) {
+    margin-left: 0.6rem;
+  }
+}
+
+#quarto-search.type-collapsed.hide {
+  @include media-breakpoint-up(lg) {
+    margin-left: 0.1rem;
   }
 }
 
@@ -46,6 +40,46 @@ $quarto-search-results-width: 400px !default;
 
 .navbar .aa-Autocomplete {
   width: $quarto-navbar-search-input-width;
+}
+
+#quarto-search.type-collapsed.hide {
+  .aa-Autocomplete {
+    width: 40px;
+    .aa-Form {
+      background-color: inherit;
+      border: none;
+      &:focus-within {
+        box-shadow: none;
+        outline: none;
+      }
+      .aa-InputWrapper {
+        display: none;
+        &:focus-within {
+          display: inherit;
+        }
+      }
+
+      .aa-Label,
+      .aa-LoadingIndicator {
+        svg {
+          color: $navbar-fg;
+          opacity: 1;
+        }
+      }
+    }
+  }
+}
+
+#quarto-search.type-collapsed {
+  .aa-Autocomplete {
+    transition: all 0.25s ease-out;
+    .aa-Form {
+      transition: all 0.25s ease-out;
+      .aa-InputWrapper {
+        transition: all 0.25s ease-out;
+      }
+    }
+  }
 }
 
 .aa-Autocomplete,
@@ -285,7 +319,7 @@ $quarto-search-results-width: 400px !default;
       display: flex;
       background-color: $popover-bg;
       color: $body-color;
-      padding: 4px 4px 0px 4px;
+      padding: 12px 4px 2px 4px;
     }
 
     .search-result-text-container {
