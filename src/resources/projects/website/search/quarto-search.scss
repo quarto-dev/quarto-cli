@@ -36,7 +36,7 @@ $quarto-search-results-width: 400px !default;
   width: $quarto-navbar-search-input-width;
 }
 
-#quarto-search.type-collapsed.hide {
+.navbar #quarto-search.type-collapsed.hide {
   .aa-Autocomplete {
     width: 40px;
     .aa-Form {
