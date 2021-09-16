@@ -17,7 +17,7 @@ import { DOMParser, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { resourcePath } from "../../../core/resources.ts";
 import { isHtmlContent } from "../../../core/mime.ts";
 
-import { FormatDependency, Metadata } from "../../../config/types.ts";
+import { FormatDependency } from "../../../config/types.ts";
 import { ProjectContext } from "../../types.ts";
 import { ProjectOutputFile } from "../types.ts";
 
@@ -29,7 +29,7 @@ import { projectOutputDir } from "../../project-shared.ts";
 import { projectOffset } from "../../project-shared.ts";
 
 import { inputFileHref, websiteNavigationConfig } from "./website-shared.ts";
-import { websitePath, websiteTitle } from "./website-config.ts";
+import { websiteConfig, websitePath, websiteTitle } from "./website-config.ts";
 import { sassLayer } from "../../../command/render/sass.ts";
 
 // The main search key
@@ -192,54 +192,74 @@ export function updateSearchIndex(
 }
 
 function searchOptions(project: ProjectContext): SearchOptions {
-  const searchConfig: Metadata = project.config?.[kSearch] as Metadata || {};
-
-  // Sort out collapsing (by default, show 2 sections per document)
-  const collapseMatches: number | boolean =
-    typeof (searchConfig[kCollapseMatches]) === "number"
-      ? searchConfig[kCollapseMatches] as number
-      : searchConfig[kCollapseMatches] !== false
-      ? 2
-      : false;
+  const searchConfig = websiteConfig(kSearch, project.config);
 
   // The location of the search input
   const location = searchInputLocation(project);
 
-  // The appearance of the search UI
-  const searchType = (
-    userType: unknown,
-  ): "detached" | "collapsed" | "input" => {
-    if (userType && typeof (userType) === "string") {
-      switch (userType) {
-        case "detached":
-          return "detached";
-        case "collapsed":
-          return "collapsed";
-        default:
-        case "input":
-          return "input";
-      }
-    } else {
-      return "input";
-    }
-  };
+  if (searchConfig && typeof (searchConfig) === "object") {
+    // Sort out collapsing (by default, show 2 sections per document)
+    const collapseMatches: number | boolean =
+      typeof (searchConfig[kCollapseMatches]) === "number"
+        ? searchConfig[kCollapseMatches] as number
+        : searchConfig[kCollapseMatches] !== false
+        ? 2
+        : false;
 
-  return {
-    [kLocation]: location,
-    [kCopyLink]: searchConfig[kCopyLink] === true,
-    [kCollapseMatches]: collapseMatches,
-    [kPanelPlacement]: location === "navbar" ? "end" : "start",
-    [kType]: searchType(searchConfig[kType]),
-  };
+    // The appearance of the search UI
+    const searchType = (
+      userType: unknown,
+    ): "detached" | "collapsed" | "input" => {
+      if (userType && typeof (userType) === "string") {
+        switch (userType) {
+          case "detached":
+            return "detached";
+          case "collapsed":
+            return "collapsed";
+          default:
+          case "input":
+            return "input";
+        }
+      } else {
+        return "input";
+      }
+    };
+
+    return {
+      [kLocation]: location,
+      [kCopyLink]: searchConfig[kCopyLink] === true,
+      [kCollapseMatches]: collapseMatches,
+      [kPanelPlacement]: location === "navbar" ? "end" : "start",
+      [kType]: searchType(searchConfig[kType]),
+    };
+  } else {
+    return {
+      [kLocation]: location,
+      [kCopyLink]: false,
+      [kCollapseMatches]: 2,
+      [kPanelPlacement]: location === "navbar" ? "end" : "start",
+      [kType]: "input",
+    };
+  }
 }
 
 export function searchInputLocation(
   project: ProjectContext,
 ): SearchInputLocation {
-  const searchConfig: Metadata = project.config?.[kSearch] as Metadata || {};
-  if (searchConfig) {
-    return searchConfig[kLocation] === "navbar" ? "navbar" : "sidebar";
-  } else {
+  const searchConfig = websiteConfig(kSearch, project.config);
+  if (
+    searchConfig && typeof (searchConfig) === "object" &&
+    searchConfig[kLocation]
+  ) {
+    switch (searchConfig[kLocation]) {
+      case "navbar":
+        return "navbar";
+      case "sidebar":
+        return "sidebar";
+      default:
+        return "none";
+    }
+  } else if (searchConfig === undefined || searchConfig) {
     const { navbar, sidebars } = websiteNavigationConfig(project);
     if (navbar) {
       return "navbar";
@@ -248,6 +268,8 @@ export function searchInputLocation(
     } else {
       return "none";
     }
+  } else {
+    return "none";
   }
 }
 
