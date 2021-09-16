@@ -28,12 +28,6 @@ $quarto-search-results-width: 400px !default;
   }
 }
 
-#quarto-search.type-collapsed.hide {
-  @include media-breakpoint-up(lg) {
-    margin-left: 0.1rem;
-  }
-}
-
 #quarto-sidebar .sidebar-search .aa-Autocomplete {
   width: $quarto-sidebar-search-input-width;
 }
@@ -62,6 +56,9 @@ $quarto-search-results-width: 400px !default;
       .aa-Label,
       .aa-LoadingIndicator {
         svg {
+          width: 26px;
+          height: 26px;
+
           color: $navbar-fg;
           opacity: 1;
         }

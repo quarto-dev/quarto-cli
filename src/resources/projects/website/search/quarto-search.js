@@ -142,8 +142,8 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
                     title: isExpanded
                       ? `Hide additional matches`
                       : remainingCount === 1
-                      ? `${remainingCount} more match on this page`
-                      : `${remainingCount} more matches on this page`,
+                      ? `${remainingCount} more match in this document`
+                      : `${remainingCount} more matches in this document`,
                     type: kItemTypeMore,
                   });
                 }
