@@ -229,12 +229,16 @@ $quarto-search-collapse-icon-size: 26px !default;
     }
   }
 }
+
+#quarto-search-results .aa-Panel {
+  border: solid $input-border-color $input-border-width;
+}
+
 .aa-DetachedOverlay,
 #quarto-search-results {
   .aa-Panel {
     max-height: 65vh;
     overflow-y: auto;
-    border: solid $input-border-color $input-border-width;
     font-size: 0.925rem;
   }
 
