@@ -9,6 +9,13 @@ const searchOptions = {
 const kQueryArg = "q";
 const kResultsArg = "showResults";
 
+// If items don't provide a URL, then both the navigator and the onSelect
+// function aren't called (and therefore, the default implementation is used)
+//
+// We're using this sentinel URL to signal to those handlers that this
+// item is a more item (along with the type) and can be handled appropriately
+const kItemTypeMoreHref = "0767FDFD-0422-4E5A-BC8A-3BE11E5BBA05";
+
 window.document.addEventListener("DOMContentLoaded", function (_event) {
   // Ensure that search is available on this page. If it isn't,
   // should return early and not do anything
@@ -49,14 +56,16 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       }
     };
 
+    // TODO: Media query for responsive (vs none)
+    const detachedMediaQuery = options.type === "detached" ? "all" : "none";
     let lastState = null;
     const { setIsOpen } = autocomplete({
       container: searchEl,
-      detachedMediaQuery: "(max-width: 680px)",
+      detachedMediaQuery: detachedMediaQuery,
       defaultActiveItemId: 0,
       panelContainer: "#quarto-search-results",
       panelPlacement: options["panel-placement"],
-      debug: false,
+      debug: true,
       classNames: {
         form: "d-flex",
       },
@@ -79,17 +88,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
           }
         }
 
-        // If there is a query, show the link icon
-        const copyButtonEl = window.document.body.querySelector(
-          ".aa-Form .aa-InputWrapperSuffix .aa-CopyButton"
-        );
-        if (copyButtonEl) {
-          if (state.query && options["copy-link"]) {
-            copyButtonEl.style.display = "flex";
-          } else {
-            copyButtonEl.style.display = "none";
-          }
-        }
+        // Perhaps show the copy link
+        showCopyLink(state.query, options);
+
         lastState = state;
       },
       reshape({ sources, state }) {
@@ -145,6 +146,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
                       ? `${remainingCount} more match in this document`
                       : `${remainingCount} more matches in this document`,
                     type: kItemTypeMore,
+                    href: kItemTypeMoreHref,
                   });
                 }
 
@@ -168,44 +170,57 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
           };
         });
       },
-      getSources() {
+      navigator: {
+        navigate({ itemUrl }) {
+          if (itemUrl !== offsetURL(kItemTypeMoreHref)) {
+            window.location.assign(itemUrl);
+          }
+        },
+        navigateNewTab({ itemUrl }) {
+          if (itemUrl !== offsetURL(kItemTypeMoreHref)) {
+            const windowReference = window.open(itemUrl, "_blank", "noopener");
+            if (windowReference) {
+              windowReference.focus();
+            }
+          }
+        },
+        navigateNewWindow({ itemUrl }) {
+          if (itemUrl !== offsetURL(kItemTypeMoreHref)) {
+            window.open(itemUrl, "_blank", "noopener");
+          }
+        },
+      },
+      getSources({ state, setContext, setActiveItemId, refresh }) {
         return [
           {
             sourceId: "documents",
-            onSelect({
-              item,
-              state,
-              setIsOpen,
-              setContext,
-              setActiveItemId,
-              refresh,
-            }) {
-              if (item.type !== kItemTypeMore) {
-                setIsOpen(false);
-              } else {
-                setIsOpen(true);
-                const expanded = state.context.expanded || [];
-                if (expanded.includes(item.target)) {
-                  setContext({
-                    expanded: expanded.filter(
-                      (target) => target !== item.target
-                    ),
-                  });
-                } else {
-                  setContext({ expanded: [...expanded, item.target] });
-                }
-                refresh();
-
-                // TODO: Need to potentially use
-                // a variable or something to hang onto this state
-                setActiveItemId(item.__autocomplete_id);
-              }
-            },
             getItemUrl({ item }) {
               if (item.href) {
                 return offsetURL(item.href);
               } else {
                 return undefined;
+              }
+            },
+            onSelect({
+              item,
+              state,
+              setContext,
+              setIsOpen,
+              setActiveItemId,
+              refresh,
+            }) {
+              if (item.type === kItemTypeMore) {
+                console.log("TOGGLE");
+                toggleExpanded(
+                  item,
+                  state,
+                  setContext,
+                  setActiveItemId,
+                  refresh
+                );
+
+                // Toggle more
+                setIsOpen(true);
               }
             },
             getItems({ query }) {
@@ -255,7 +270,14 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
                 }
               },
               item({ item, createElement }) {
-                return renderItem(item, createElement);
+                return renderItem(
+                  item,
+                  createElement,
+                  state,
+                  setActiveItemId,
+                  setContext,
+                  refresh
+                );
               },
             },
           },
@@ -290,14 +312,26 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
     if (showSearchResults) {
       focusSearchInput();
+      setIsOpen(true);
     }
+  });
+});
 
-    // Insert share icon
-    const inputSuffixEl = window.document.body.querySelector(
-      ".aa-Form .aa-InputWrapperSuffix"
+let lastQuery = null;
+function showCopyLink(query, options) {
+  lastQuery = query;
+  // Insert share icon
+  const inputSuffixEl = window.document.body.querySelector(
+    ".aa-Form .aa-InputWrapperSuffix"
+  );
+
+  if (inputSuffixEl) {
+    let copyButtonEl = window.document.body.querySelector(
+      ".aa-Form .aa-InputWrapperSuffix .aa-CopyButton"
     );
-    if (inputSuffixEl) {
-      const copyButtonEl = window.document.createElement("button");
+
+    if (copyButtonEl === null) {
+      copyButtonEl = window.document.createElement("button");
       copyButtonEl.setAttribute("class", "aa-CopyButton");
       copyButtonEl.setAttribute("type", "button");
       copyButtonEl.setAttribute("title", "Copy link to search");
@@ -317,7 +351,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       const clipboard = new window.ClipboardJS(".aa-CopyButton", {
         text: function (_trigger) {
           const copyUrl = new URL(window.location);
-          copyUrl.searchParams.set(kQueryArg, lastState.query);
+          copyUrl.searchParams.set(kQueryArg, lastQuery);
           copyUrl.searchParams.set(kResultsArg, "1");
           return copyUrl.toString();
         },
@@ -338,8 +372,17 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
         }, 1000);
       });
     }
-  });
-});
+
+    // If there is a query, show the link icon
+    if (copyButtonEl) {
+      if (lastQuery && options["copy-link"]) {
+        copyButtonEl.style.display = "flex";
+      } else {
+        copyButtonEl.style.display = "none";
+      }
+    }
+  }
+}
 
 /* Search Index Handling */
 // create the index
@@ -393,7 +436,14 @@ const kItemTypeDoc = "document";
 const kItemTypeMore = "document-more";
 const kItemTypeItem = "document-item";
 
-function renderItem(item, createElement) {
+function renderItem(
+  item,
+  createElement,
+  state,
+  setActiveItemId,
+  setContext,
+  refresh
+) {
   switch (item.type) {
     case kItemTypeDoc:
       return createDocumentCard(
@@ -405,7 +455,14 @@ function renderItem(item, createElement) {
         item.href
       );
     case kItemTypeMore:
-      return createMoreCard(createElement, item.title);
+      return createMoreCard(
+        createElement,
+        item,
+        state,
+        setActiveItemId,
+        setContext,
+        refresh
+      );
     case kItemTypeItem:
       return createSectionCard(
         createElement,
@@ -478,14 +535,43 @@ function createDocumentCard(createElement, icon, title, section, text, href) {
   );
 }
 
-function createMoreCard(createElement, title) {
-  return createElement(
+function createMoreCard(
+  createElement,
+  item,
+  state,
+  setActiveItemId,
+  setContext,
+  refresh
+) {
+  const moreCardEl = createElement(
     "div",
     {
       class: "search-result-more search-item",
+      onClick: (e) => {
+        // Handle expanding the sections by adding the expanded
+        // section to the list of expanded sections
+        toggleExpanded(item, state, setContext, setActiveItemId, refresh);
+        e.stopPropagation();
+      },
     },
-    title
+    item.title
   );
+
+  return moreCardEl;
+}
+
+function toggleExpanded(item, state, setContext, setActiveItemId, refresh) {
+  const expanded = state.context.expanded || [];
+  if (expanded.includes(item.target)) {
+    setContext({
+      expanded: expanded.filter((target) => target !== item.target),
+    });
+  } else {
+    setContext({ expanded: [...expanded, item.target] });
+  }
+
+  refresh();
+  setActiveItemId(item.__autocomplete_id);
 }
 
 function createSectionCard(createElement, section, text, href) {

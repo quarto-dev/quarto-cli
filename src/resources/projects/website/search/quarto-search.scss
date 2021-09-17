@@ -3,7 +3,10 @@ $quarto-navbar-search-input-width: 180px !default;
 $quarto-sidebar-search-input-width: 100% !default;
 $quarto-search-results-width: 400px !default;
 
+$quarto-search-collapse-icon-size: 26px !default;
+
 /*-- scss:rules --*/
+.aa-DetachedOverlay,
 #quarto-search-results {
   ul.aa-List {
     list-style: none;
@@ -14,6 +17,10 @@ $quarto-search-results-width: 400px !default;
     background-color: $body-bg;
     position: absolute;
     z-index: 2000;
+  }
+}
+#quarto-search-results {
+  .aa-Panel {
     max-width: $quarto-search-results-width;
   }
 }
@@ -24,7 +31,7 @@ $quarto-search-results-width: 400px !default;
 
 .navbar #quarto-search {
   @include media-breakpoint-up(lg) {
-    margin-left: 0.6rem;
+    margin-left: 1rem;
   }
 }
 
@@ -36,6 +43,7 @@ $quarto-search-results-width: 400px !default;
   width: $quarto-navbar-search-input-width;
 }
 
+.navbar #quarto-search.type-detached,
 .navbar #quarto-search.type-collapsed.hide {
   .aa-Autocomplete {
     width: 40px;
@@ -56,13 +64,21 @@ $quarto-search-results-width: 400px !default;
       .aa-Label,
       .aa-LoadingIndicator {
         svg {
-          width: 26px;
-          height: 26px;
+          width: $quarto-search-collapse-icon-size;
+          height: $quarto-search-collapse-icon-size;
 
           color: $navbar-fg;
           opacity: 1;
         }
       }
+    }
+
+    svg.aa-SubmitIcon {
+      width: $quarto-search-collapse-icon-size;
+      height: $quarto-search-collapse-icon-size;
+
+      color: $navbar-fg;
+      opacity: 1;
     }
   }
 }
@@ -213,7 +229,7 @@ $quarto-search-results-width: 400px !default;
     }
   }
 }
-
+.aa-DetachedOverlay,
 #quarto-search-results {
   .aa-Panel {
     max-height: 65vh;
@@ -342,4 +358,119 @@ $quarto-search-results-width: 400px !default;
       border-top: $input-border-width solid $input-border-color;
     }
   }
+}
+
+// Detached Mode
+.navbar {
+  .aa-DetachedSearchButton {
+    background: none;
+    border: none;
+    .aa-DetachedSearchButtonIcon {
+      color: $navbar-fg;
+    }
+
+    .aa-DetachedSearchButtonPlaceholder {
+      display: none;
+    }
+  }
+}
+
+.aa-DetachedContainer {
+  background: rgba($body-bg, 0.65);
+  width: 90%;
+  bottom: 0;
+  box-shadow: rgba($input-border-color, 0.6) 0 0 0 1px;
+  outline: currentColor none medium;
+  display: flex;
+  flex-direction: column;
+  left: 0;
+  margin: 0;
+  overflow: hidden;
+  padding: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 1101;
+  &::after {
+    height: 32px;
+  }
+  .aa-SourceHeader {
+    margin: var(--aa-spacing-half) 0 var(--aa-spacing-half) 2px;
+  }
+  .aa-Panel {
+    background-color: rgba($body-bg, 1);
+    border-radius: 0;
+    box-shadow: none;
+    flex-grow: 1;
+    margin: 0;
+    padding: 0;
+    position: relative;
+  }
+  .aa-PanelLayout {
+    bottom: 0;
+    box-shadow: none;
+    left: 0;
+    margin: 0;
+    max-height: none;
+    overflow-y: auto;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 100%;
+  }
+  @at-root .aa-DetachedFormContainer {
+    background-color: rgba($body-bg, 1);
+    border-bottom: $input-border-width solid $input-border-color;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin: 0;
+    padding: 0.5em;
+    @at-root .aa-DetachedCancelButton {
+      background: none;
+      font-size: 0.8em;
+      border: 0;
+      border-radius: 3px;
+      color: $input-color;
+      cursor: pointer;
+      margin: 0 0 0 0.5em;
+      padding: 0 0.5em;
+      &:hover,
+      &:focus {
+        box-shadow: rgba($primary, 0.6) 0 0 0 1px;
+        outline: currentColor none medium;
+      }
+    }
+  }
+  @at-root .aa-DetachedContainer--modal {
+    border-radius: 6px;
+    bottom: inherit;
+    height: auto;
+    margin: 0 auto;
+    max-width: 850px;
+    position: absolute;
+    top: 100px;
+    .aa-PanelLayout {
+      max-height: var(--aa-detached-modal-max-height);
+      padding-bottom: var(--aa-spacing-half);
+      position: static;
+    }
+  }
+}
+
+.aa-Detached {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.aa-DetachedOverlay {
+  background-color: rgba($body-color, 0.4);
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  z-index: 1100;
 }
