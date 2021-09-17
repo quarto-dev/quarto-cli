@@ -234,6 +234,10 @@ $quarto-search-collapse-icon-size: 26px !default;
   border: solid $input-border-color $input-border-width;
 }
 
+#quarto-search-results .aa-SourceNoResults {
+  width: $quarto-search-results-width - 2 * $input-border-width;
+}
+
 .aa-DetachedOverlay,
 #quarto-search-results {
   .aa-Panel {
@@ -243,8 +247,6 @@ $quarto-search-collapse-icon-size: 26px !default;
   }
 
   .aa-SourceNoResults {
-    width: 100%;
-    width: $quarto-search-results-width - 2 * $input-border-width;
     height: 60px;
     display: flex;
     justify-content: center;
