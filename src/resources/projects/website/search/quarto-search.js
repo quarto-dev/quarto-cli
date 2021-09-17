@@ -311,8 +311,8 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     };
 
     if (showSearchResults) {
-      focusSearchInput();
       setIsOpen(true);
+      focusSearchInput();
     }
   });
 });
