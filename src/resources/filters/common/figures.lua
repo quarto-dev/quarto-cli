@@ -13,7 +13,7 @@ kResizeHeight = "resize.height"
 
 
 function isFigAttribute(name)
-  return string.find(name, "^fig%.")
+  return string.find(name, "^fig%-")
 end
 
 function figAlignAttribute(el)
