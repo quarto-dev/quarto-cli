@@ -1,10 +1,15 @@
-// ojs-bundle.js
-import { Interpreter } from "https://cdn.skypack.dev/@alex.garcia/unofficial-observablehq-compiler";
+// quarto-ojs.js
 import {
-  Inspector,
-  Runtime,
-  RuntimeError
+  Interpreter as Interpreter2
+} from "https://cdn.skypack.dev/@alex.garcia/unofficial-observablehq-compiler";
+import {
+  Inspector as Inspector4,
+  Runtime as Runtime2,
+  RuntimeError as RuntimeError2
 } from "https://cdn.skypack.dev/@observablehq/runtime";
+import {
+  parseModule as parseModule2
+} from "https://cdn.skypack.dev/@observablehq/parser";
 
 // stdlib.js
 var e = {};
@@ -735,10 +740,6 @@ function Le([e2, t2]) {
   return [e2, { value: t2, writable: true, enumerable: true }];
 }
 
-// ojs-bundle.js
-import { parseModule } from "https://cdn.skypack.dev/@observablehq/parser";
-import { button } from "https://cdn.skypack.dev/@observablehq/inputs";
-
 // pandoc-code-decorator.js
 var PandocCodeDecorator = class {
   constructor(node) {
@@ -883,50 +884,203 @@ var PandocCodeDecorator = class {
   }
 };
 
-// ojs-bundle.js
-var kQuartoModuleWaitClass = "ojs-in-a-box-waiting-for-module-import";
-function calloutBlock(opts) {
-  const {
-    type,
-    heading,
-    message,
-    onclick
-  } = opts;
-  const outerBlock = document.createElement("div");
-  outerBlock.classList.add(`callout-${type}`, "callout", "callout-style-default", "callout-captioned");
-  const header = document.createElement("div");
-  header.classList.add("callout-header", "d-flex", "align-content-center");
-  const iconContainer = document.createElement("div");
-  iconContainer.classList.add("callout-icon-container");
-  const icon = document.createElement("i");
-  icon.classList.add("callout-icon");
-  iconContainer.appendChild(icon);
-  header.appendChild(iconContainer);
-  const headingDiv = document.createElement("div");
-  headingDiv.classList.add("callout-caption-container", "flex-fill");
-  if (typeof heading === "string") {
-    headingDiv.innerText = heading;
-  } else {
-    headingDiv.appendChild(heading);
+// quarto-observable-shiny.js
+import {
+  Inspector as Inspector2
+} from "https://cdn.skypack.dev/@observablehq/runtime";
+import {
+  button
+} from "https://cdn.skypack.dev/@observablehq/inputs";
+
+// quarto-inspector.js
+import {
+  Inspector
+} from "https://cdn.skypack.dev/@observablehq/runtime";
+var QuartoInspector = class extends Inspector {
+  constructor(node, cellAst) {
+    super(node);
+    this._cellAst = cellAst;
   }
-  header.appendChild(headingDiv);
-  outerBlock.appendChild(header);
-  const container = document.createElement("div");
-  container.classList.add("callout-body-container", "callout-body");
-  if (typeof message === "string") {
-    const p2 = document.createElement("p");
-    p2.innerText = message;
-    container.appendChild(p2);
-  } else {
-    container.append(message);
+  rejected(error) {
+    return super.rejected(error);
   }
-  outerBlock.appendChild(container);
-  if (onclick) {
-    outerBlock.onclick = onclick;
-    outerBlock.style.cursor = "pointer";
+};
+
+// quarto-observable-shiny.js
+var shinyInputVars = new Set();
+var shinyInitialValue = {};
+function extendObservableStdlib(lib) {
+  class NamedVariableOutputBinding extends Shiny.OutputBinding {
+    constructor(name, change) {
+      super();
+      this._name = name;
+      this._change = change;
+    }
+    find(scope) {
+      return $(scope).find("#" + this._name);
+    }
+    getId(el) {
+      return el.id;
+    }
+    renderValue(_el, data) {
+      this._change(data);
+    }
+    onValueError(el, err) {
+      const group = `Shiny error in ${el.id}`;
+      console.groupCollapsed(`%c${group}`, "color:red");
+      console.log(`${err.message}`);
+      console.log(`call: ${err.call}`);
+      console.groupEnd(group);
+    }
   }
-  return outerBlock;
+  $(document).on("shiny:connected", function(_event) {
+    Object.entries(shinyInitialValue).map(([k2, v2]) => {
+      window.Shiny.setInputValue(k2, v2);
+    });
+    shinyInitialValue = {};
+  });
+  lib.shinyInput = function() {
+    return (name) => {
+      shinyInputVars.add(name);
+      window._ojs.ojsConnector.mainModule.value(name).then((val) => {
+        if (window.Shiny && window.Shiny.setInputValue) {
+          window.Shiny.setInputValue(name, val);
+        } else {
+          shinyInitialValue[name] = val;
+        }
+      });
+    };
+  };
+  lib.shinyOutput = function() {
+    return function(name) {
+      const dummySpan = document.createElement("div");
+      dummySpan.id = name;
+      dummySpan.classList.add("ojs-variable-writer");
+      window._ojs.shinyElementRoot.appendChild(dummySpan);
+      return lib.Generators.observe((change) => {
+        Shiny.outputBindings.register(new NamedVariableOutputBinding(name, change));
+      });
+    };
+  };
 }
+var ShinyInspector = class extends QuartoInspector {
+  constructor(node) {
+    super(node);
+  }
+  fulfilled(value, name) {
+    if (shinyInputVars.has(name) && window.Shiny) {
+      if (window.Shiny.setInputValue === void 0) {
+        shinyInitialValue[name] = value;
+      } else {
+        window.Shiny.setInputValue(name, value);
+      }
+    }
+    return super.fulfilled(value, name);
+  }
+};
+var { Generators } = new Ne();
+var OjsButtonInput = class {
+  find(_scope) {
+    return document.querySelectorAll(".ojs-inputs-button");
+  }
+  init(el, change) {
+    const btn = button(el.textContent);
+    el.innerHTML = "";
+    el.appendChild(btn);
+    const obs = Generators.input(el.firstChild);
+    (async function() {
+      await obs.next().value;
+      for (const x2 of obs) {
+        change(await x2);
+      }
+    })();
+    return {
+      onSetValue: (_value) => {
+      },
+      dispose: () => {
+        obs.return();
+      }
+    };
+  }
+};
+function initOjsShinyRuntime() {
+  const valueSym = Symbol("value");
+  const callbackSym = Symbol("callback");
+  const instanceSym = Symbol("instance");
+  class BindingAdapter extends Shiny.InputBinding {
+    constructor(x2) {
+      super();
+      this.x = x2;
+    }
+    find(scope) {
+      const matches = this.x.find(scope);
+      return $(matches);
+    }
+    getId(el) {
+      if (this.x.getId) {
+        return this.x.getId(el);
+      } else {
+        return super.getId(el);
+      }
+    }
+    initialize(el) {
+      const changeHandler = (value) => {
+        el[valueSym] = value;
+        el[callbackSym]();
+      };
+      const instance = this.x.init(el, changeHandler);
+      el[instanceSym] = instance;
+    }
+    getValue(el) {
+      return el[valueSym];
+    }
+    setValue(el, value) {
+      el[valueSym] = value;
+      el[instanceSym].onSetValue(value);
+    }
+    subscribe(el, callback) {
+      el[callbackSym] = callback;
+    }
+    unsubscribe(el) {
+      el[instanceSym].dispose();
+    }
+  }
+  class InspectorOutputBinding extends Shiny.OutputBinding {
+    find(scope) {
+      return $(scope).find(".observablehq-inspector");
+    }
+    getId(el) {
+      return el.id;
+    }
+    renderValue(el, data) {
+      new Inspector2(el).fulfilled(data);
+    }
+  }
+  if (window.Shiny === void 0) {
+    console.warn("Shiny runtime not found; Shiny features won't work.");
+    return false;
+  }
+  Shiny.inputBindings.register(new BindingAdapter(new OjsButtonInput()));
+  Shiny.outputBindings.register(new InspectorOutputBinding());
+  Shiny.addCustomMessageHandler("ojs-export", ({ name }) => {
+    window._ojs.ojsConnector.mainModule.redefine(name, window._ojs.ojsConnector.library.shinyOutput()(name));
+    Shiny.bindAll(document.body);
+  });
+  return true;
+}
+
+// ojs-connector.js
+import {
+  Interpreter
+} from "https://cdn.skypack.dev/@alex.garcia/unofficial-observablehq-compiler";
+import {
+  Inspector as Inspector3,
+  Runtime,
+  RuntimeError
+} from "https://cdn.skypack.dev/@observablehq/runtime";
+import {
+  parseModule
+} from "https://cdn.skypack.dev/@observablehq/parser";
 var EmptyInspector = class {
   pending() {
   }
@@ -935,16 +1089,150 @@ var EmptyInspector = class {
   rejected(_error, _name) {
   }
 };
-var makeDevhostErrorClickHandler = (line, column) => {
-  return function() {
-    if (!window.quartoDevhost) {
-      return false;
-    }
-    debugger;
-    window.quartoDevhost.openInputFile(line, column, true);
-    return false;
+function es6ImportAsObservableModule(m2) {
+  return function(runtime, observer) {
+    const main = runtime.module();
+    Object.keys(m2).forEach((key) => {
+      const v2 = m2[key];
+      main.variable(observer(key)).define(key, [], () => v2);
+    });
+    return main;
   };
-};
+}
+async function defaultResolveImportPath(path) {
+  const extractPath = (path2) => {
+    let source2 = path2;
+    let m3;
+    if (m3 = /\.js(\?|$)/i.exec(source2)) {
+      source2 = source2.slice(0, m3.index);
+    }
+    if (m3 = /^[0-9a-f]{16}$/i.test(source2)) {
+      source2 = `d/${source2}`;
+    }
+    if (m3 = /^https:\/\/(api\.|beta\.|)observablehq\.com\//i.exec(source2)) {
+      source2 = source2.slice(m3[0].length);
+    }
+    return source2;
+  };
+  const source = extractPath(path);
+  const metadataURL = `https://api.observablehq.com/document/${source}`;
+  const moduleURL = `https://api.observablehq.com/${source}.js?v=3`;
+  const m2 = await import(moduleURL);
+  return m2.default;
+}
+function importPathResolver(paths, localResolverMap) {
+  function importRootPath(path) {
+    const { runtimeToRoot } = paths;
+    if (!runtimeToRoot) {
+      return path;
+    } else {
+      return `${runtimeToRoot}/${path}`;
+    }
+  }
+  function importRelativePath(path) {
+    const { runtimeToDoc } = paths;
+    if (!runtimeToDoc) {
+      return path;
+    } else {
+      return `${runtimeToDoc}/${path}`;
+    }
+  }
+  function fetchRootPath(path) {
+    const { docToRoot } = paths;
+    if (!docToRoot) {
+      return path;
+    } else {
+      return `${docToRoot}/${path}`;
+    }
+  }
+  function fetchRelativePath(path) {
+    return path;
+  }
+  return async (path) => {
+    const isLocalModule = path.startsWith("/") || path.startsWith(".");
+    const isImportFromObservableWebsite = path.match(/^https:\/\/(api\.|beta\.|)observablehq\.com\//i);
+    if (!isLocalModule || isImportFromObservableWebsite) {
+      return defaultResolveImportPath(path);
+    }
+    let importPath, fetchPath;
+    let moduleType;
+    if (window._ojs.selfContained) {
+      const resolved = localResolverMap.get(path);
+      if (resolved === void 0) {
+        throw new Error(`missing local file ${path} in self-contained mode`);
+      }
+      importPath = resolved;
+      fetchPath = resolved;
+      const mimeType = resolved.match(/data:(.*);base64/)[1];
+      switch (mimeType) {
+        case "application/javascript":
+          moduleType = "js";
+          break;
+        case "application/ojs-javascript":
+          moduleType = "ojs";
+          break;
+        default:
+          throw new Error(`unrecognized MIME type ${mimeType}`);
+      }
+    } else {
+      const resourceURL = new URL(path, window.location);
+      moduleType = resourceURL.pathname.match(/\.(ojs|js|qmd)$/)[1];
+      if (path.startsWith("/")) {
+        importPath = importRootPath(path);
+        fetchPath = fetchRootPath(path);
+      } else {
+        importPath = importRelativePath(path);
+        fetchPath = fetchRelativePath(path);
+      }
+    }
+    if (moduleType === "js") {
+      const m2 = await import(importPath);
+      return es6ImportAsObservableModule(m2);
+    } else if (moduleType === "ojs") {
+      return importOjsFromURL(fetchPath);
+    } else if (moduleType === "qmd") {
+      const htmlPath = `${fetchPath.slice(0, -4)}.html`;
+      const response = await fetch(htmlPath);
+      const text = await response.text();
+      return createOjsModuleFromHTMLSrc(text);
+    } else {
+      throw new Error(`internal error, unrecognized module type ${moduleType}`);
+    }
+  };
+}
+function createOjsModuleFromHTMLSrc(text) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(text, "text/html");
+  const staticDefns = [];
+  for (const el of doc.querySelectorAll('script[type="ojs-define"]')) {
+    staticDefns.push(el.text);
+  }
+  const ojsSource = [];
+  for (const content of doc.querySelectorAll('script[type="ojs-module-contents"]')) {
+    for (const cell of JSON.parse(content.text).contents) {
+      ojsSource.push(cell.source);
+    }
+  }
+  return createOjsModuleFromSrc(ojsSource.join("\n"), staticDefns);
+}
+function createOjsModuleFromSrc(src, staticDefns = []) {
+  return (runtime, _observer) => {
+    const newModule = runtime.module();
+    const interpreter = window._ojs.ojsConnector.interpreter;
+    const _cells = interpreter.module(src, newModule, (_name) => new EmptyInspector());
+    for (const defn of staticDefns) {
+      for (const { name, value } of JSON.parse(defn).contents) {
+        window._ojs.ojsConnector.define(name, newModule)(value);
+      }
+    }
+    return newModule;
+  };
+}
+async function importOjsFromURL(path) {
+  const r2 = await fetch(path);
+  const src = await r2.text();
+  return createOjsModuleFromSrc(src);
+}
 var OJSConnector = class {
   constructor({ paths, inspectorClass, library, allowPendingGlobals = false }) {
     this.library = library || new Ne();
@@ -957,7 +1245,7 @@ var OJSConnector = class {
       module: this.mainModule,
       resolveImportPath: importPathResolver(paths, this.localResolverMap)
     });
-    this.inspectorClass = inspectorClass || Inspector;
+    this.inspectorClass = inspectorClass || Inspector3;
     this.mainModuleHasImports = false;
     this.mainModuleOutstandingImportCount = 0;
     this.chunkPromises = [];
@@ -1016,18 +1304,8 @@ var OJSConnector = class {
     const result = await module.value(val);
     return result;
   }
-  clearImportModuleWait() {
-    const array = Array.from(document.querySelectorAll(`.${kQuartoModuleWaitClass}`));
-    for (const node of array) {
-      node.classList.remove(kQuartoModuleWaitClass);
-    }
-  }
   finishInterpreting() {
-    return Promise.all(this.chunkPromises).then(() => {
-      if (this.mainModuleHasImports) {
-        this.clearImportModuleWait();
-      }
-    });
+    return Promise.all(this.chunkPromises);
   }
   interpretWithRunner(src, runner) {
     try {
@@ -1061,6 +1339,78 @@ var OJSConnector = class {
       return this.waitOnImports(cell, promise);
     };
     return this.interpretWithRunner(src, runCell);
+  }
+};
+
+// quarto-ojs.js
+var makeDevhostErrorClickHandler = (line, column) => {
+  return function() {
+    if (!window.quartoDevhost) {
+      return false;
+    }
+    window.quartoDevhost.openInputFile(line, column, true);
+    return false;
+  };
+};
+function calloutBlock(opts) {
+  const {
+    type,
+    heading,
+    message,
+    onclick
+  } = opts;
+  const outerBlock = document.createElement("div");
+  outerBlock.classList.add(`callout-${type}`, "callout", "callout-style-default", "callout-captioned");
+  const header = document.createElement("div");
+  header.classList.add("callout-header", "d-flex", "align-content-center");
+  const iconContainer = document.createElement("div");
+  iconContainer.classList.add("callout-icon-container");
+  const icon = document.createElement("i");
+  icon.classList.add("callout-icon");
+  iconContainer.appendChild(icon);
+  header.appendChild(iconContainer);
+  const headingDiv = document.createElement("div");
+  headingDiv.classList.add("callout-caption-container", "flex-fill");
+  if (typeof heading === "string") {
+    headingDiv.innerText = heading;
+  } else {
+    headingDiv.appendChild(heading);
+  }
+  header.appendChild(headingDiv);
+  outerBlock.appendChild(header);
+  const container = document.createElement("div");
+  container.classList.add("callout-body-container", "callout-body");
+  if (typeof message === "string") {
+    const p2 = document.createElement("p");
+    p2.innerText = message;
+    container.appendChild(p2);
+  } else {
+    container.append(message);
+  }
+  outerBlock.appendChild(container);
+  if (onclick) {
+    outerBlock.onclick = onclick;
+    outerBlock.style.cursor = "pointer";
+  }
+  return outerBlock;
+}
+var kQuartoModuleWaitClass = "ojs-in-a-box-waiting-for-module-import";
+var QuartoOJSConnector = class extends OJSConnector {
+  constructor(opts) {
+    super(opts);
+  }
+  clearImportModuleWait() {
+    const array = Array.from(document.querySelectorAll(`.${kQuartoModuleWaitClass}`));
+    for (const node of array) {
+      node.classList.remove(kQuartoModuleWaitClass);
+    }
+  }
+  finishInterpreting() {
+    return super.finishInterpreting().then(() => {
+      if (this.mainModuleHasImports) {
+        this.clearImportModuleWait();
+      }
+    });
   }
   locatePreDiv(cellDiv, ojsDiv) {
     let preDiv;
@@ -1293,320 +1643,6 @@ var OJSConnector = class {
     return this.interpretWithRunner(src, runCell);
   }
 };
-function es6ImportAsObservableModule(m2) {
-  return function(runtime, observer) {
-    const main = runtime.module();
-    Object.keys(m2).forEach((key) => {
-      const v2 = m2[key];
-      main.variable(observer(key)).define(key, [], () => v2);
-    });
-    return main;
-  };
-}
-async function defaultResolveImportPath(path) {
-  const extractPath = (path2) => {
-    let source2 = path2;
-    let m3;
-    if (m3 = /\.js(\?|$)/i.exec(source2)) {
-      source2 = source2.slice(0, m3.index);
-    }
-    if (m3 = /^[0-9a-f]{16}$/i.test(source2)) {
-      source2 = `d/${source2}`;
-    }
-    if (m3 = /^https:\/\/(api\.|beta\.|)observablehq\.com\//i.exec(source2)) {
-      source2 = source2.slice(m3[0].length);
-    }
-    return source2;
-  };
-  const source = extractPath(path);
-  const metadataURL = `https://api.observablehq.com/document/${source}`;
-  const moduleURL = `https://api.observablehq.com/${source}.js?v=3`;
-  const m2 = await import(moduleURL);
-  return m2.default;
-}
-function importPathResolver(paths, localResolverMap) {
-  function importRootPath(path) {
-    const { runtimeToRoot } = paths;
-    if (!runtimeToRoot) {
-      return path;
-    } else {
-      return `${runtimeToRoot}/${path}`;
-    }
-  }
-  function importRelativePath(path) {
-    const { runtimeToDoc } = paths;
-    if (!runtimeToDoc) {
-      return path;
-    } else {
-      return `${runtimeToDoc}/${path}`;
-    }
-  }
-  function fetchRootPath(path) {
-    const { docToRoot } = paths;
-    if (!docToRoot) {
-      return path;
-    } else {
-      return `${docToRoot}/${path}`;
-    }
-  }
-  function fetchRelativePath(path) {
-    return path;
-  }
-  return async (path) => {
-    const isLocalModule = path.startsWith("/") || path.startsWith(".");
-    const isImportFromObservableWebsite = path.match(/^https:\/\/(api\.|beta\.|)observablehq\.com\//i);
-    if (!isLocalModule || isImportFromObservableWebsite) {
-      return defaultResolveImportPath(path);
-    }
-    let importPath, fetchPath;
-    let moduleType;
-    if (window._ojs.selfContained) {
-      const resolved = localResolverMap.get(path);
-      if (resolved === void 0) {
-        throw new Error(`missing local file ${path} in self-contained mode`);
-      }
-      importPath = resolved;
-      fetchPath = resolved;
-      const mimeType = resolved.match(/data:(.*);base64/)[1];
-      switch (mimeType) {
-        case "application/javascript":
-          moduleType = "js";
-          break;
-        case "application/ojs-javascript":
-          moduleType = "ojs";
-          break;
-        default:
-          throw new Error(`unrecognized MIME type ${mimeType}`);
-      }
-    } else {
-      const resourceURL = new URL(path, window.location);
-      moduleType = resourceURL.pathname.match(/\.(ojs|js|qmd)$/)[1];
-      if (path.startsWith("/")) {
-        importPath = importRootPath(path);
-        fetchPath = fetchRootPath(path);
-      } else {
-        importPath = importRelativePath(path);
-        fetchPath = fetchRelativePath(path);
-      }
-    }
-    if (moduleType === "js") {
-      const m2 = await import(importPath);
-      return es6ImportAsObservableModule(m2);
-    } else if (moduleType === "ojs") {
-      return importOjsFromURL(fetchPath);
-    } else if (moduleType === "qmd") {
-      const htmlPath = `${fetchPath.slice(0, -4)}.html`;
-      const response = await fetch(htmlPath);
-      const text = await response.text();
-      return createOjsModuleFromHTMLSrc(text);
-    } else {
-      throw new Error(`internal error, unrecognized module type ${moduleType}`);
-    }
-  };
-}
-function createOjsModuleFromHTMLSrc(text) {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(text, "text/html");
-  const staticDefns = [];
-  for (const el of doc.querySelectorAll('script[type="ojs-define"]')) {
-    staticDefns.push(el.text);
-  }
-  const ojsSource = [];
-  for (const content of doc.querySelectorAll('script[type="ojs-module-contents"]')) {
-    for (const cell of JSON.parse(content.text).contents) {
-      ojsSource.push(cell.source);
-    }
-  }
-  return createOjsModuleFromSrc(ojsSource.join("\n"), staticDefns);
-}
-function createOjsModuleFromSrc(src, staticDefns = []) {
-  return (runtime, _observer) => {
-    const newModule = runtime.module();
-    const interpreter = window._ojs.ojsConnector.interpreter;
-    const _cells = interpreter.module(src, newModule, (_name) => new EmptyInspector());
-    for (const defn of staticDefns) {
-      for (const { name, value } of JSON.parse(defn).contents) {
-        window._ojs.ojsConnector.define(name, newModule)(value);
-      }
-    }
-    return newModule;
-  };
-}
-async function importOjsFromURL(path) {
-  const r2 = await fetch(path);
-  const src = await r2.text();
-  return createOjsModuleFromSrc(src);
-}
-var shinyInputVars = new Set();
-var shinyInitialValue = {};
-function extendObservableStdlib(lib) {
-  class NamedVariableOutputBinding extends Shiny.OutputBinding {
-    constructor(name, change) {
-      super();
-      this._name = name;
-      this._change = change;
-    }
-    find(scope) {
-      return $(scope).find("#" + this._name);
-    }
-    getId(el) {
-      return el.id;
-    }
-    renderValue(_el, data) {
-      this._change(data);
-    }
-    onValueError(el, err) {
-      const group = `Shiny error in ${el.id}`;
-      console.groupCollapsed(`%c${group}`, "color:red");
-      console.log(`${err.message}`);
-      console.log(`call: ${err.call}`);
-      console.groupEnd(group);
-    }
-  }
-  $(document).on("shiny:connected", function(_event) {
-    Object.entries(shinyInitialValue).map(([k2, v2]) => {
-      window.Shiny.setInputValue(k2, v2);
-    });
-    shinyInitialValue = {};
-  });
-  lib.shinyInput = function() {
-    return (name) => {
-      shinyInputVars.add(name);
-      window._ojs.ojsConnector.mainModule.value(name).then((val) => {
-        if (window.Shiny && window.Shiny.setInputValue) {
-          window.Shiny.setInputValue(name, val);
-        } else {
-          shinyInitialValue[name] = val;
-        }
-      });
-    };
-  };
-  lib.shinyOutput = function() {
-    return function(name) {
-      const dummySpan = document.createElement("div");
-      dummySpan.id = name;
-      dummySpan.classList.add("ojs-variable-writer");
-      window._ojs.shinyElementRoot.appendChild(dummySpan);
-      return lib.Generators.observe((change) => {
-        Shiny.outputBindings.register(new NamedVariableOutputBinding(name, change));
-      });
-    };
-  };
-}
-var QuartoInspector = class extends Inspector {
-  constructor(node, cellAst) {
-    super(node);
-    this._cellAst = cellAst;
-  }
-  rejected(error) {
-    return super.rejected(error);
-  }
-};
-var ShinyInspector = class extends QuartoInspector {
-  constructor(node) {
-    super(node);
-  }
-  fulfilled(value, name) {
-    if (shinyInputVars.has(name) && window.Shiny) {
-      if (window.Shiny.setInputValue === void 0) {
-        shinyInitialValue[name] = value;
-      } else {
-        window.Shiny.setInputValue(name, value);
-      }
-    }
-    return super.fulfilled(value, name);
-  }
-};
-var { Generators } = new Ne();
-var OjsButtonInput = class {
-  find(_scope) {
-    return document.querySelectorAll(".ojs-inputs-button");
-  }
-  init(el, change) {
-    const btn = button(el.textContent);
-    el.innerHTML = "";
-    el.appendChild(btn);
-    const obs = Generators.input(el.firstChild);
-    (async function() {
-      await obs.next().value;
-      for (const x2 of obs) {
-        change(await x2);
-      }
-    })();
-    return {
-      onSetValue: (_value) => {
-      },
-      dispose: () => {
-        obs.return();
-      }
-    };
-  }
-};
-function initOjsShinyRuntime() {
-  const valueSym = Symbol("value");
-  const callbackSym = Symbol("callback");
-  const instanceSym = Symbol("instance");
-  class BindingAdapter extends Shiny.InputBinding {
-    constructor(x2) {
-      super();
-      this.x = x2;
-    }
-    find(scope) {
-      const matches = this.x.find(scope);
-      return $(matches);
-    }
-    getId(el) {
-      if (this.x.getId) {
-        return this.x.getId(el);
-      } else {
-        return super.getId(el);
-      }
-    }
-    initialize(el) {
-      const changeHandler = (value) => {
-        el[valueSym] = value;
-        el[callbackSym]();
-      };
-      const instance = this.x.init(el, changeHandler);
-      el[instanceSym] = instance;
-    }
-    getValue(el) {
-      return el[valueSym];
-    }
-    setValue(el, value) {
-      el[valueSym] = value;
-      el[instanceSym].onSetValue(value);
-    }
-    subscribe(el, callback) {
-      el[callbackSym] = callback;
-    }
-    unsubscribe(el) {
-      el[instanceSym].dispose();
-    }
-  }
-  class InspectorOutputBinding extends Shiny.OutputBinding {
-    find(scope) {
-      return $(scope).find(".observablehq-inspector");
-    }
-    getId(el) {
-      return el.id;
-    }
-    renderValue(el, data) {
-      new Inspector(el).fulfilled(data);
-    }
-  }
-  if (window.Shiny === void 0) {
-    console.warn("Shiny runtime not found; Shiny features won't work.");
-    return false;
-  }
-  Shiny.inputBindings.register(new BindingAdapter(new OjsButtonInput()));
-  Shiny.outputBindings.register(new InspectorOutputBinding());
-  Shiny.addCustomMessageHandler("ojs-export", ({ name }) => {
-    window._ojs.ojsConnector.mainModule.redefine(name, window._ojs.ojsConnector.library.shinyOutput()(name));
-    Shiny.bindAll(document.body);
-  });
-  return true;
-}
 function createRuntime() {
   const quartoOjsGlobal = window._ojs;
   const isShiny = window.Shiny !== void 0;
@@ -1699,7 +1735,7 @@ function createRuntime() {
     }
   }
   lib.FileAttachment = () => ie(fileAttachmentPathResolver);
-  const ojsConnector = new OJSConnector({
+  const ojsConnector = new QuartoOJSConnector({
     paths: quartoOjsGlobal.paths,
     inspectorClass: isShiny ? ShinyInspector : QuartoInspector,
     library: lib,
@@ -1817,10 +1853,5 @@ window._ojs = {
 };
 window._ojs.runtime = createRuntime();
 export {
-  OJSConnector,
-  QuartoInspector,
-  ShinyInspector,
-  createRuntime,
-  extendObservableStdlib,
-  initOjsShinyRuntime
+  createRuntime
 };
