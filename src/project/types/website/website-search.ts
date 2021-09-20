@@ -209,6 +209,7 @@ export function searchOptions(project: ProjectContext): SearchOptions {
     // The appearance of the search UI
     const searchType = (
       userType: unknown,
+      location: SearchInputLocation,
     ): "detached" | "collapsed" | "input" => {
       if (userType && typeof (userType) === "string") {
         switch (userType) {
@@ -221,7 +222,11 @@ export function searchOptions(project: ProjectContext): SearchOptions {
             return "input";
         }
       } else {
-        return "input";
+        if (location === "sidebar") {
+          return "input";
+        } else {
+          return "detached";
+        }
       }
     };
 
@@ -230,7 +235,7 @@ export function searchOptions(project: ProjectContext): SearchOptions {
       [kCopyLink]: searchConfig[kCopyLink] === true,
       [kCollapseMatches]: collapseMatches,
       [kPanelPlacement]: location === "navbar" ? "end" : "start",
-      [kType]: searchType(searchConfig[kType]),
+      [kType]: searchType(searchConfig[kType], location),
     };
   } else {
     return {
