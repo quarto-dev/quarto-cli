@@ -128,7 +128,7 @@ jobs:
     - name: Make Installer
       run: |
         pushd package\src\
-        .\quarto-bld.cmd make-installer-win --set-version ${{needs.configure.outputs.version}} --log-level info
+        .\quarto-bld.cmd make-installer-win --set-version ${{needs.configure.outputs.version}} --log-level debug
         popd     
       env:
         QUARTO_WIN_PFX: ${{ secrets.WIN_PFX }}
