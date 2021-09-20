@@ -210,7 +210,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
               refresh,
             }) {
               if (item.type === kItemTypeMore) {
-                console.log("TOGGLE");
                 toggleExpanded(
                   item,
                   state,
