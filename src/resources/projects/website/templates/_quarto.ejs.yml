@@ -16,3 +16,5 @@ format:
     theme: cosmo
     css: styles.css
     toc: true
+
+<% if(editor){ %>editor: <%= editor %><% } %>

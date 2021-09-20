@@ -88,7 +88,6 @@ import { discoverResourceRefs } from "../../core/html.ts";
 
 import {
   kDefaultHighlightStyle,
-  kMarkdownBlockSeparator,
   PandocOptions,
   RunPandocResult,
 } from "./types.ts";
@@ -404,24 +403,44 @@ export async function runPandoc(
       ? markdown + "\n" + htmlRenderAfterBody.join("\n")
       : markdown;
 
-  // append keep-source (if requested) + the metadata to the file (this is so that
-  // our fully resolved metadata, which incorporates project and format-specific
-  // values, overrides the metadata contained within the file).
+  // append render after + keep-source if requested
   const input = markdownWithRenderAfter +
-    keepSourceBlock(options.format, options.source) +
-    kMarkdownBlockSeparator +
-    `\n---\n${
-      stringify(pandocMetadata, {
-        indent: 2,
-        sortKeys: false,
-        skipInvalid: true,
-      })
-    }\n---\n`;
+    keepSourceBlock(options.format, options.source);
 
   // write input to temp file and pass it to pandoc
   const inputTemp = sessionTempFile({ prefix: "quarto-input", suffix: ".md" });
   Deno.writeTextFileSync(inputTemp, input);
   cmd.push(inputTemp);
+
+  // Pass metadata to Pandoc. This metadata reflects all of our merged project and format
+  // metadata + the user's original metadata from the top of the document. Note that we
+  // used to append this to the end of the file (so it would always 'win' over the front-matter
+  // at the top) however we ran into problems w/ the pandoc parser seeing an hr (------)
+  // followed by text on the next line as the beginning of a table that was terminated
+  // with our yaml block! Note that subsequent to the original implementation we started
+  // stripping the yaml from the top, see:
+  //   https://github.com/quarto-dev/quarto-cli/commit/35f4729defb20ceb8b45e08d0a97c079e7a3bab6
+  // The way this yaml is now processed relative to other yaml sources is described in
+  // the docs for --metadata-file:
+  //   Values in files specified later on the command line will be preferred over those
+  //   specified in earlier files. Metadata values specified inside the document, or by
+  //   using -M, overwrite values specified with this option.
+  // This gives the semantics we want, as our metadata is 'logically' at the top of the
+  // file and subsequent blocks within the file should indeed override it (as should
+  // user invocations of --metadata-file or -M, which are included below in pandocArgs)
+  const metadataTemp = sessionTempFile({
+    prefix: "quarto-metadata",
+    suffix: ".yml",
+  });
+  Deno.writeTextFileSync(
+    metadataTemp,
+    stringify(pandocMetadata, {
+      indent: 2,
+      sortKeys: false,
+      skipInvalid: true,
+    }),
+  );
+  cmd.push("--metadata-file", metadataTemp);
 
   // add user command line args
   cmd.push(...pandocArgs);
