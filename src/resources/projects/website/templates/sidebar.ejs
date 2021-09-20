@@ -11,20 +11,40 @@ if (sidebar.align === "center") {
 } else {
   alignCss = "text-left";
 }
+
+// Whether there are tools that should be displayed to the user
+let needsTools = !!(sidebar.tools || (sidebar.search && sidebar.search === 'detached') || sidebar.darkToggle);
+// Where the tools should be added (depending upon what elements are present, the tools)
+// may be displayed in different locations, so this will determine where to display the tools
+// "logo", "title", "search", "fallthrough"
+
+let toolsLocation;
+// Under the title if that will be displayed
+if (sidebar.title && !navbar) {
+  toolsLocation = "title";
+} else if (sidebar.logo) {
+  toolsLocation = "logo";
+} else if (sidebar.search && sidebar.search !== "detached") {
+  toolsLocation = "search";
+} else {
+  toolsLocation = "fallthrough";
+}
+console.log(needsTools);
+console.log(toolsLocation);
 %>
 
 <nav class="<%- mCss %> <%- styleCss %> overflow-auto">
   
-   <% if (sidebar.logo || (sidebar.title && !navbar) || sidebar.tools) { %>
+   <% if (sidebar.logo || (sidebar.title && !navbar)) { %>
   <div class="px-3 pt-lg-2 mt-2 <%= alignCss %> sidebar-header<%= sidebar.logo && sidebar.title ? ' sidebar-header-stacked' : '' %>">
     <% if (sidebar.logo) { %>
     <img src="<%- sidebar.logo %>" alt="" class="sidebar-logo py-0 d-lg-inline d-none"/>
-     <% if (sidebar.tools && !sidebar.title) { %>
-      <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle })%>
-     <% } %> 
     <% } %>
+    <% if (needsTools && toolsLocation === "logo") { %>
+      <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search })%>
+     <% } %> 
     
-    <% if (!navbar || sidebar.tools) { %>
+    <% if (!navbar) { %>
     <% if (sidebar.title) { %>
     <div class="sidebar-title mb-0 py-0">
       <% if (!navbar) { %>
@@ -32,8 +52,8 @@ if (sidebar.align === "center") {
       <%- sidebar.title %>
       </a> 
       <% } %>  
-      <% if (sidebar.tools) { %>
-        <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle })%>
+      <% if (needsTools && toolsLocation === "title") { %>
+        <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search })%>
       <% } %>  
     </div>
     <% } %>
@@ -44,13 +64,18 @@ if (sidebar.align === "center") {
 
   <% if (sidebar.search) { %>
     <div class="d-flex px-3 mt-2 flex-shrink-0 align-items-center">
+      <% if (sidebar.search !== "detached") { %>
       <div class="sidebar-search">
-      <% partial('navsearch.ejs') %>
+      <% partial('navsearch.ejs',  { classes: '' }) %>
       </div>
-      <% if (sidebar.tools) { %>
-        <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-collapse', darkToggle: sidebar.darkToggle })%>
       <% } %>
+      <% if (needsTools && toolsLocation === "search") { %>
+      <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-collapse', darkToggle: sidebar.darkToggle, search: sidebar.search })%>
+      <% } %>  
     </div>
+  <% } %>
+  <% if (needsTools && toolsLocation === "fallthrough") { %>
+      <% partial('sidebartools.ejs', { tools: sidebar.tools, className: 'sidebar-tools-main', darkToggle: sidebar.darkToggle, search: sidebar.search })%>
   <% } %>
 
   <div class="sidebar-menu-container"> 

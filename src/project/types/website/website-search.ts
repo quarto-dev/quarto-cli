@@ -191,7 +191,7 @@ export function updateSearchIndex(
   }
 }
 
-function searchOptions(project: ProjectContext): SearchOptions {
+export function searchOptions(project: ProjectContext): SearchOptions {
   const searchConfig = websiteConfig(kSearch, project.config);
 
   // The location of the search input
@@ -243,7 +243,7 @@ function searchOptions(project: ProjectContext): SearchOptions {
   }
 }
 
-export function searchInputLocation(
+function searchInputLocation(
   project: ProjectContext,
 ): SearchInputLocation {
   const searchConfig = websiteConfig(kSearch, project.config);

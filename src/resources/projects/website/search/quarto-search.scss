@@ -25,7 +25,7 @@ $quarto-search-collapse-icon-size: 26px !default;
   }
 }
 
-#quarto-search {
+#quarto-search input {
   font-size: 0.925rem;
 }
 
@@ -367,20 +367,35 @@ $quarto-search-collapse-icon-size: 26px !default;
 }
 
 // Detached Mode
+.aa-DetachedSearchButton {
+  background: none;
+  border: none;
+
+  .aa-DetachedSearchButtonPlaceholder {
+    display: none;
+  }
+}
 .navbar {
   .aa-DetachedSearchButton {
-    background: none;
-    border: none;
     .aa-DetachedSearchButtonIcon {
       color: $navbar-fg;
-    }
-
-    .aa-DetachedSearchButtonPlaceholder {
-      display: none;
     }
   }
 }
 
+.sidebar-tools-main {
+  #quarto-search {
+    display: inline;
+    .aa-Autocomplete {
+      display: inline;
+    }
+    .aa-DetachedSearchButton {
+      .aa-DetachedSearchButtonIcon {
+        color: $sidebar-fg;
+      }
+    }
+  }
+}
 .aa-DetachedContainer {
   background: rgba($body-bg, 0.65);
   width: 90%;

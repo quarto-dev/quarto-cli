@@ -28,7 +28,7 @@
           </div>
         <% } %>    
         <% if (nav.navbar.search) { %>
-          <% partial('navsearch.ejs') %>
+          <% partial('navsearch.ejs',  { classes: '' }) %>
         <% } %>
       </div> <!-- /navcollapse -->
     <% } else { %>
@@ -40,7 +40,7 @@
         </div>
       <% } %>    
       <% if (nav.navbar.search) { %>
-        <% partial('navsearch.ejs') %>
+        <% partial('navsearch.ejs',  { classes: '' }) %>
       <% } %>
     <% } %> 
   <% } else { %>
@@ -50,7 +50,7 @@
       </div>
     <% } %>    
     <% if (nav.navbar.search) { %>
-      <% partial('navsearch.ejs') %>
+      <% partial('navsearch.ejs',  { classes: '' }) %>
     <% } %>
   <% } %>
 

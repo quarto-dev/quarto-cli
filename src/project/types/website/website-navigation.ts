@@ -64,7 +64,7 @@ import {
 import { projectType } from "../project-types.ts";
 
 import {
-  searchInputLocation,
+  searchOptions,
   websiteSearchDependency,
   websiteSearchSassBundle,
 } from "./website-search.ts";
@@ -539,7 +539,9 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
   // ensure title and search are present
   sidebar.title = sidebarTitle(sidebar, project) as string | undefined;
   sidebar.logo = resolveLogo(sidebar.logo);
-  sidebar.search = searchInputLocation(project) === "sidebar";
+
+  const searchOpts = searchOptions(project);
+  sidebar.search = searchOpts.location === "sidebar" ? searchOpts.type : false;
 
   // ensure collapse & alignment are defaulted
   sidebar[kCollapseLevel] = sidebar[kCollapseLevel] || 2;
@@ -759,7 +761,7 @@ async function navbarEjsData(
   const collapse = navbar.collapse !== undefined ? !!navbar.collapse : true;
   const data: Navbar = {
     ...navbar,
-    search: searchInputLocation(project) === "navbar",
+    search: searchOptions(project).location === "navbar",
     background: navbar.background || "primary",
     logo: resolveLogo(navbar.logo),
     collapse,

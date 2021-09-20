@@ -1,6 +1,7 @@
 
 
 <% toolCount = 0 %>
+<% tools = tools || [] %>
 <div class="<%- className %>">
 <% tools.forEach(tool => {  %>
 
@@ -25,7 +26,11 @@
     <a href="<%- tool.href %>" title="<%- tool.text %>" class="sidebar-tool px-1"><i class="bi bi-<%- tool.icon %>"></i></a>
   <% } %>
 <% }) %>
+
 <% if (darkToggle) { %>
-  <% partial('navdarktoggle.ejs', { classes: '' }) %>
+  <% partial('navdarktoggle.ejs', { classes: 'sidebar-tool' }) %>
 <% } %>    
+<% if (search && search === "detached") { %>
+    <% partial('navsearch.ejs', { classes: 'sidebar-tool' }) %>
+<% } %>
 </div>
