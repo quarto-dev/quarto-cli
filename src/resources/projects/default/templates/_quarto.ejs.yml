@@ -1,2 +1,4 @@
 project:
   title: "<%= title %>"
+
+<% if(editor){ %>editor: <%= editor %><% } %>

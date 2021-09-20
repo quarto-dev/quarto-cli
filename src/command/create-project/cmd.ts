@@ -7,7 +7,7 @@
 
 import { basename } from "path/mod.ts";
 
-import { Command } from "cliffy/command/mod.ts";
+import { Command, EnumType } from "cliffy/command/mod.ts";
 
 import { executionEngine, executionEngines } from "../../execute/engine.ts";
 
@@ -18,13 +18,18 @@ import { kMarkdownEngine } from "../../execute/types.ts";
 const kProjectTypes = projectTypes();
 const kExecutionEngines = executionEngines().reverse();
 
+const editorType = new EnumType(["visual", "source"]);
+const engineType = new EnumType(kExecutionEngines);
+
 export const createProjectCommand = new Command()
+  .type("editor", editorType)
+  .type("engine", engineType)
   .name("create-project")
   .description("Create a project for rendering multiple documents")
   .arguments("[dir:string]")
   .option(
     "--title <title:string>",
-    "Project title (defaults to directory name)",
+    "Project title",
   )
   .option(
     "--type <type:string>",
@@ -42,9 +47,9 @@ export const createProjectCommand = new Command()
       },
     },
   )
-  .option(
-    "--engine <engine:string>",
-    `Use execution engine (${kExecutionEngines.join(", ")})`,
+  .option<{ engine: typeof engineType }>(
+    "--engine <engine:engine>",
+    "Engine for project documents",
     {
       value: (value: string): string[] => {
         value = value || kMarkdownEngine;
@@ -62,9 +67,13 @@ export const createProjectCommand = new Command()
       },
     },
   )
+  .option<{ editor: typeof editorType }>(
+    "--editor <editor:editor>",
+    "Default editor for project",
+  )
   .option(
     "--with-venv [packages:string]",
-    "Create a Python virtual environment for this project",
+    "Create a virtualenv for this project",
   )
   .option(
     "--no-scaffold",
@@ -99,11 +108,11 @@ export const createProjectCommand = new Command()
     "quarto create-project mybook --type book --engine knitr",
   )
   .example(
-    "Create a jupyter project with a virtual environment ",
+    "Create jupyter project with venv ",
     "quarto create-project--engine jupyter --with-venv",
   )
   .example(
-    "Create a jupyter project with a virtual environment + packages",
+    "Create jupyter project with venv + packages",
     "quarto create-project--engine jupyter --with-venv pandas,matplotlib",
   )
   // deno-lint-ignore no-explicit-any
@@ -122,6 +131,7 @@ export const createProjectCommand = new Command()
       scaffold: !!options.scaffold,
       engine: engine[0] || kMarkdownEngine,
       kernel: engine[1],
+      editor: options.editor,
       venv: !!options.withVenv,
       venvPackages,
     });

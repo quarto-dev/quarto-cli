@@ -29,6 +29,7 @@ export interface ProjectCreateOptions {
   scaffold: boolean;
   engine: string;
   kernel?: string;
+  editor?: string;
   venv?: boolean;
   venvPackages?: string[];
 }
@@ -58,6 +59,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
   // create the initial project config
   const quartoConfig = renderEjs(projCreate.configTemplate, {
     title: options.title,
+    editor: options.editor,
     ext: engine.defaultExt,
   }, false);
   await Deno.writeTextFileSync(join(options.dir, "_quarto.yml"), quartoConfig);
