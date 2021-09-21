@@ -382,7 +382,7 @@ $quarto-search-collapse-icon-size: 26px !default;
     }
   }
 }
-
+.sidebar-tools-collapse,
 .sidebar-tools-main {
   #quarto-search {
     display: inline;
@@ -390,8 +390,13 @@ $quarto-search-collapse-icon-size: 26px !default;
       display: inline;
     }
     .aa-DetachedSearchButton {
+      padding-left: 4px;
+      padding-right: 4px;
       .aa-DetachedSearchButtonIcon {
         color: $sidebar-fg;
+        .aa-SubmitIcon {
+          margin-top: -3px;
+        }
       }
     }
   }

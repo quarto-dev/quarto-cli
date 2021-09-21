@@ -155,10 +155,6 @@ nav .nav-item.compact .nav-link {
   vertical-align: middle;
 }
 
-.sidebar-tools-collapse {
-  display: none;
-}
-
 .sidebar-section .bi {
   font-size: 0.7rem;
   text-align: center;
@@ -345,7 +341,6 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
 
   .sidebar-tools-collapse {
     display: block;
-    padding-left: 1rem;
   }
 }
 
