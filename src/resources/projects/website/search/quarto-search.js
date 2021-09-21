@@ -74,7 +74,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       defaultActiveItemId: 0,
       panelContainer: "#quarto-search-results",
       panelPlacement: options["panel-placement"],
-      debug: true,
+      debug: false,
       classNames: {
         form: "d-flex",
       },
@@ -292,25 +292,6 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
         ];
       },
     });
-
-    // Add support for collapsed type search input
-    searchEl.classList.add(`type-${options.type}`);
-    if (options.type === "collapsed") {
-      const inputEl = inputElement();
-      if (inputEl.value === "") {
-        searchEl.classList.add("hide");
-      }
-      searchEl.onclick = () => {
-        focusSearchInput();
-        searchEl.classList.remove("hide");
-      };
-
-      inputEl.onblur = () => {
-        if (inputEl.value === "") {
-          searchEl.classList.add("hide");
-        }
-      };
-    }
 
     // If the main document scrolls dismiss the search results
     // (otherwise, since they're floating in the document they can scroll with the document)
