@@ -56,13 +56,17 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       }
     };
 
-    // TODO: Media query for responsive (vs none)
+    // Responsively switch to overlay mode if the search is present on the navbar
+    // Note that switching the sidebar to overlay mode requires more coordinate (not just
+    // the media query since we generate different HTML for sidebar overlays than we do
+    // for sidebar input UI)
     const detachedMediaQuery =
       options.type === "overlay"
         ? "all"
         : options.location === "navbar"
         ? "(max-width: 991px)"
         : "none";
+
     let lastState = null;
     const { setIsOpen } = autocomplete({
       container: searchEl,
