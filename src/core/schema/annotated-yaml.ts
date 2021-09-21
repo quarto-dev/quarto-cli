@@ -9,6 +9,7 @@
 */
 
 import { JSON_SCHEMA, parse } from "encoding/yaml.ts";
+import { MappedString } from "../mapped-text.ts";
 
 export interface AnnotatedParse
 {
@@ -18,6 +19,22 @@ export interface AnnotatedParse
   kind: string,
   components: AnnotatedParse[]
 };
+
+export function readAnnotatedYamlFromMappedString(yml: MappedString)
+{
+  const result = readAnnotatedYamlFromString(yml.value);
+
+  function walkAndFix(annotation: AnnotatedParse)
+  {
+    annotation.start = yml.mapClosest(annotation.start)!;
+    annotation.end = yml.mapClosest(annotation.end)!;
+    for (const c of annotation.components) {
+      walkAndFix(c);
+    }
+  }
+  
+  return result;
+}
 
 export function readAnnotatedYamlFromString(yml: string)
 {

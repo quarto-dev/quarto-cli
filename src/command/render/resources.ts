@@ -9,6 +9,7 @@ import { ResolvedPathGlobs, resolvePathGlobs } from "../../core/path.ts";
 import { engineIgnoreGlobs } from "../../execute/engine.ts";
 import { kQuartoScratch } from "../../project/project-scratch.ts";
 import { extractResolvedResourceFilenamesFromQmd } from "../../execute/ojs/extract-resources.ts";
+import { asMappedString } from "../../core/mapped-text.ts";
 
 export function resourcesFromMetadata(resourcesMetadata?: unknown) {
   // interrogate / typecast raw yaml resources into array of strings
@@ -25,6 +26,8 @@ export function resourcesFromMetadata(resourcesMetadata?: unknown) {
   return resources;
 }
 
+// FIXME markdown should come as a MappedString but we don't want to port
+// over the entirety of quarto just yet.
 export function resolveFileResources(
   rootDir: string,
   fileDir: string,
@@ -37,7 +40,7 @@ export function resolveFileResources(
   const resources = resolvePathGlobs(rootDir, globs, ignore);
   if (markdown.length > 0) {
     resources.include.push(
-      ...extractResolvedResourceFilenamesFromQmd(rootDir, fileDir, markdown),
+      ...extractResolvedResourceFilenamesFromQmd(asMappedString(markdown), fileDir, rootDir),
     );
   }
   return resources;

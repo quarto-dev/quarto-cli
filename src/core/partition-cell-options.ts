@@ -7,7 +7,10 @@
 *
 */
 import { readYamlFromString } from "./yaml.ts";
+import { readAnnotatedYamlFromMappedString } from "./schema/annotated-yaml.ts";
 import { warnOnce } from "./log.ts";
+import { rangedLines, rangedSubstring, RangedSubstring, Range } from "./ranged-text.ts";
+import { mappedString, MappedString } from "./mapped-text.ts";
 
 export function partitionCellOptions(
   language: string,
@@ -58,6 +61,78 @@ export function partitionCellOptions(
     sourceStartLine: yamlLines.length,
   };
 }
+
+export function partitionCellOptionsMapped(
+  language: string,
+  source: MappedString,
+) {
+  const commentChars = langCommentChars(language);
+  const optionPrefix = optionCommentPrefix(commentChars[0]);
+  const optionSuffix = commentChars[1] || "";
+
+  // find the yaml lines
+  const optionsSource: RangedSubstring[] = []; // includes comments
+  const yamlLines: RangedSubstring[] = []; // strips comments
+
+  let endOfYaml = 0;
+  for (const line of rangedLines(source.value)) {
+    if (line.substring.startsWith(optionPrefix)) {
+      if (!optionSuffix || line.substring.trimRight().endsWith(optionSuffix)) {
+        let yamlOption = line.substring.substring(optionPrefix.length);
+        if (optionSuffix) {
+          yamlOption = yamlOption.trimRight();
+          yamlOption = yamlOption.substring(
+            0,
+            yamlOption.length - optionSuffix.length,
+          );
+        }
+        endOfYaml = optionPrefix.length + yamlOption.length - optionSuffix.length
+        const rangedYamlOption = {
+          substring: yamlOption,
+          range: {
+            start: optionPrefix.length,
+            end: endOfYaml
+          }
+        }
+        yamlLines.push(rangedYamlOption);
+        optionsSource.push(line);
+        continue;
+      }
+    }
+    break;
+  }
+
+  let yaml = yamlLines.length > 0
+    ? readAnnotatedYamlFromMappedString(mappedSource(source, yamlLines)) // readYamlFromString(yamlLines.join("\n"))
+    : undefined;
+
+  // check that we got what we expected
+  if (
+    yaml !== undefined && (typeof (yaml) !== "object" || Array.isArray(yaml))
+  ) {
+    warnOnce("Invalid YAML option format in cell:\n" + yamlLines.join("\n"));
+    yaml = undefined;
+  }
+
+  return {
+    yaml: yaml as Record<string, unknown> | undefined,
+    optionsSource,
+    source: mappedString(source, [{ start: endOfYaml, end: source.value.length }]), // .slice(yamlLines.length),
+    sourceStartLine: yamlLines.length,
+  };
+}
+
+function mappedSource(source: MappedString | string, substrs: RangedSubstring[])
+{
+  const params: (Range | string)[] = [];
+  for (const { range } of substrs) {
+    params.push(range);
+    params.push("\n");
+  }
+  params.pop(); // pop the last "\n"; easier than checking for last iteration
+  return mappedString(source, params);
+}
+
 
 function langCommentChars(lang: string): string[] {
   const chars = kLangCommentChars[lang] || "#";

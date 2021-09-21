@@ -6,23 +6,29 @@
 */
 
 import { error } from "log/mod.ts";
+import { MappedString } from "../../core/mapped-text.ts";
+import { lineNumbers } from "../../core/text.ts";
 
 export function ojsParseError(
   // deno-lint-ignore no-explicit-any
   acornError: any, // we can't use SyntaxError here because acorn injects extra properties
-  ojsSource: string,
+  ojsSource: MappedString,
   startingLoc = 0,
 ) {
   const acornMsg = String(acornError).split("\n")[0].trim().replace(
     / *\(\d+:\d+\)$/,
     "",
   );
-  const errMsg = `OJS parsing failed on line ${acornError.loc.line +
-    startingLoc}, column ${acornError.loc.column + 1}`;
+
+  const { line, column } = lineNumbers(
+    ojsSource.originalString
+  )(ojsSource.mapClosest(acornError.pos) as number);
+  
+  const errMsg = `OJS parsing failed on line ${line + 1}, column ${column + 1}`;
   error(errMsg);
   error(acornMsg);
   error("----- OJS Source:");
-  const ojsSourceSplit = ojsSource.split("\n");
+  const ojsSourceSplit = ojsSource.value.split("\n");
   for (let i = 0; i < ojsSourceSplit.length; ++i) {
     error(ojsSourceSplit[i]);
     if (i + 1 === acornError.loc.line) {

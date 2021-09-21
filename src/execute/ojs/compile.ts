@@ -72,6 +72,8 @@ import { formatResourcePath } from "../../core/resources.ts";
 import { logError } from "../../core/log.ts";
 import { breakQuartoMd, QuartoMdCell } from "../../core/break-quarto-md.ts";
 
+import { MappedString, mappedString, asMappedString } from "../../core/mapped-text.ts";
+
 export interface OjsCompileOptions {
   source: string;
   format: Format;
@@ -113,7 +115,7 @@ export async function ojsCompile(
     "commonmark",
   ]);
 
-  const output = breakQuartoMd(markdown);
+  const output = breakQuartoMd(asMappedString(markdown));
 
   let ojsCellID = 0;
   let ojsBlockIndex = 0; // this is different from ojsCellID because of inline cells.
@@ -141,33 +143,42 @@ export async function ojsCompile(
     methodName: string;
     cellName?: string;
     inline?: boolean;
-    source: string;
+    source: string; // FIXME we want this to be the serialization output of a MappedString;
   }
   const moduleContents: ModuleCell[] = [];
 
-  function interpret(jsSrc: string[], inline: boolean, lenient: boolean) {
+  function interpret(jsSrc: MappedString, inline: boolean, lenient: boolean) {
     const inlineStr = inline ? "inline-" : "";
     const methodName = lenient ? "interpretLenient" : "interpret";
     moduleContents.push({
       methodName,
       cellName: `ojs-${inlineStr}cell-${ojsCellID}`,
       inline,
-      source: jsSrc.join(""),
+      
+      // FIXME This here is the big problem now. We'd like to send
+      // jsSrc as is,
+      // 
+      // but moduleContents needs to be JSON-serializable in order for
+      // the runtime to interpret it. But that gives problems with
+      // respect to our ability to compute offsets etc. 
+      source: jsSrc.value,
     });
   }
 
   const inlineOJSInterpRE = /\$\{([^}]+)\}([^$])/g;
-  function inlineInterpolation(str: string, lenient: boolean) {
-    return str.replaceAll(inlineOJSInterpRE, function (_m, g1, g2) {
-      ojsCellID += 1;
-      const result = [
-        `<span id="ojs-inline-cell-${ojsCellID}" class="ojs-inline"></span>`,
-        g2,
-      ];
-      interpret([g1], true, lenient);
-      return result.join("");
-    });
-  }
+  // FIXME: all inline interpolation is the business of the Lua filters.
+  // 
+  // function inlineInterpolation(str: string, lenient: boolean) {
+  //   return str.replaceAll(inlineOJSInterpRE, function (_m, g1, g2) {
+  //     ojsCellID += 1;
+  //     const result = [
+  //       `<span id="ojs-inline-cell-${ojsCellID}" class="ojs-inline"></span>`,
+  //       g2,
+  //     ];
+  //     interpret([g1], true, lenient);
+  //     return result.join("");
+  //   });
+  // }
   const ls: string[] = [];
   const resourceFiles: string[] = [];
   const pageResources: ResourceDescription[] = [];
@@ -182,7 +193,7 @@ export async function ojsCompile(
       cell: QuartoMdCell,
       mdClassList?: string[],
     ) => {
-      const cellSrcStr = cell.source.join("");
+      const cellSrcStr = cell.source;
       const userCellId = () => {
         const chooseId = (label: string) => {
           const htmlLabel = asHtmlId(label as string);
@@ -245,7 +256,7 @@ export async function ojsCompile(
       }
 
       // deno-lint-ignore no-explicit-any
-      const handleError = (err: any, cellSrc: string) => {
+      const handleError = (err: any, cellSrc: MappedString) => {
         const div = pandocDiv({
           classes: ["quarto-ojs-syntax-error"],
         });
@@ -263,7 +274,7 @@ export async function ojsCompile(
             `source-offset="${cell.sourceOffset}"`,
           ],
         });
-        preDiv.push(pandocRawStr(cell.sourceVerbatim));
+        preDiv.push(pandocRawStr(cell.sourceVerbatim.value));
         div.push(preDiv);
         const errMsgDiv = pandocDiv({
           classes: ["cell-output-error"],
@@ -289,7 +300,7 @@ export async function ojsCompile(
       const parsedCells: ParsedCellInfo[] = [];
 
       try {
-        const parse = parseModule(cellSrcStr);
+        const parse = parseModule(cellSrcStr.value);
         let info: SourceInfo[] = [];
         const flushSeqSrc = () => {
           parsedCells.push({ info });
@@ -525,7 +536,7 @@ export async function ojsCompile(
           classes: ourClasses,
           attrs: ourAttrs,
         });
-        srcDiv.push(pandocRawStr(cell.sourceVerbatim));
+        srcDiv.push(pandocRawStr(cell.sourceVerbatim.value));
         div.push(srcDiv);
       }
 
@@ -565,7 +576,7 @@ export async function ojsCompile(
             const ourAttrs = srcConfig.attrs.slice();
             // compute offset from cell start to div start
             const linesSkipped =
-              cellSrcStr.substring(0, innerInfo[0].start).split("\n").length;
+              cellSrcStr.value.substring(0, innerInfo[0].start).split("\n").length;
 
             ourAttrs.push(
               `startFrom="${cellStartingLoc + cell.sourceStartLine - 1 +
@@ -577,7 +588,7 @@ export async function ojsCompile(
               classes: srcConfig.classes,
             });
             srcDiv.push(pandocRawStr(
-              cellSrcStr.substring(
+              cellSrcStr.value.substring(
                 innerInfo[0].start,
                 innerInfo[innerInfo.length - 1].end,
               ),
@@ -627,7 +638,7 @@ export async function ojsCompile(
           const ourAttrs = srcConfig.attrs.slice();
           // compute offset from cell start to div start
           const linesSkipped =
-            cellSrcStr.substring(0, innerInfo[0].start).split("\n").length;
+            cellSrcStr.value.substring(0, innerInfo[0].start).split("\n").length;
           ourAttrs.push(
             `startFrom="${cellStartingLoc + cell.sourceStartLine - 1 +
               linesSkipped}"`,
@@ -640,7 +651,7 @@ export async function ojsCompile(
             });
             srcDiv.push(
               pandocRawStr(
-                cellSrcStr.substring(innerInfo[0].start, innerInfo[0].end),
+                cellSrcStr.value.substring(innerInfo[0].start, innerInfo[0].end),
               ),
             );
             div.push(srcDiv);
@@ -669,24 +680,26 @@ export async function ojsCompile(
       cell.cell_type === "math"
     ) {
       // The lua filter is in charge of this, we're a NOP.
-      ls.push(cell.source.join(""));
+      ls.push(cell.source.value);
     } else if (cell.cell_type?.language === "dot") {
       const newCell = {
         ...cell,
         "cell_type": {
           language: "ojs",
         },
-        source: ["dot`\n", ...cell.source, "\n`"],
+        source: mappedString(cell.source, ["dot`\n", { start: 0, end: cell.source.value.length }, "\n`"]),
       };
       handleOJSCell(newCell, ["dot", "cell-code"]);
     } else if (cell.cell_type?.language === "ojs") {
       handleOJSCell(cell);
     } else {
-      ls.push(`\n\`\`\`{${cell.cell_type.language}}`);
-      ls.push(
-        cell.source.map((s) => inlineInterpolation(s, errorVal)).join(""),
-      );
-      ls.push("```");
+      // FIXME I think this was just wrong anyway, but must review before merge.
+      throw new Error("internal error: should never have arrived here.");
+      // ls.push(`\n\`\`\`{${cell.cell_type.language}}`);
+      // ls.push(
+      //   cell.source.map((s) => inlineInterpolation(s, errorVal)).join(""),
+      // );
+      // ls.push("```");
     }
   }
 

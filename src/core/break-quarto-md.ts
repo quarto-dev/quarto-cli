@@ -4,12 +4,15 @@
 * Breaks up a qmd file into a list of chunks of related text: YAML
 * front matter, "pure" markdown, triple-backtick sections, and so on.
 *
-* Copyright (C) 2020 by RStudio, PBC
+* Copyright (C) 2021 by RStudio, PBC
 *
 */
 
 import { lines } from "./text.ts";
-import { partitionCellOptions } from "./partition-cell-options.ts";
+import { rangedLines, rangedSubstring, RangedSubstring } from "./ranged-text.ts";
+import { mappedString, MappedString, mappedConcat } from "./mapped-text.ts";
+
+import { partitionCellOptionsMapped } from "./partition-cell-options.ts";
 
 export interface CodeCellType {
   language: string;
@@ -22,9 +25,13 @@ export interface QuartoMdCell {
   cell_type: CodeCellType | "markdown" | "raw" | "math";
   options?: Record<string, unknown>;
 
-  source: string[];
-  sourceVerbatim: string; // for error reporting and echo: fenced
-  sourceOffset: number;
+  // source: string[];
+  // sourceVerbatim: string; // for error reporting and echo: fenced
+
+  source: MappedString,
+  sourceVerbatim: MappedString,
+
+  sourceOffset: number; // FIXME these might be unnecessary now. Check back
   sourceStartLine: number;
 }
 
@@ -33,7 +40,7 @@ export interface QuartoMdChunks {
 }
 
 export function breakQuartoMd(
-  src: string,
+  src: MappedString,
 ) {
   // notebook to return
   const nb: QuartoMdChunks = {
@@ -51,46 +58,50 @@ export function breakQuartoMd(
   let language = ""; // current language block
 
   // line buffer
-  const lineBuffer: string[] = [];
+  const lineBuffer: RangedSubstring[] = [];
   const flushLineBuffer = (
     cell_type: "markdown" | "code" | "raw" | "math",
   ) => {
     if (lineBuffer.length) {
-      if (lineBuffer[lineBuffer.length - 1] === "") {
+      if (lineBuffer[lineBuffer.length - 1].substring === "") {
         lineBuffer.splice(lineBuffer.length - 1, 1);
       }
 
-      const sourceLines = lineBuffer.map((line, index) => {
-        return line + (index < (lineBuffer.length - 1) ? "\n" : "");
-      });
+      const source = mappedString(src, [...lineBuffer.map(line => line.range), "\n"]);
+      // const sourceLines = lineBuffer.map((line, index) => {
+      //   return mappedString(line + (index < (lineBuffer.length - 1) ? "\n" : "");
+      // });
 
       const cell: QuartoMdCell = {
         // deno-lint-ignore camelcase
         cell_type: cell_type === "code" ? { language } : cell_type,
-        source: sourceLines,
+        source: source,
         sourceOffset: 0,
         sourceStartLine: 0,
-        sourceVerbatim: sourceLines.join(""),
+        sourceVerbatim: source,
       };
 
       if (cell_type === "code" && (language === "ojs" || language === "dot")) {
         // see if there is embedded metadata we should forward into the cell metadata
-        const { yaml, source, sourceStartLine } = partitionCellOptions(
+        const { yaml, source, sourceStartLine } = partitionCellOptionsMapped(
           "js",
           cell.source,
         );
-        cell.sourceOffset =
-          cell.source.slice(0, sourceStartLine).join("").length +
-          "```{ojs}\n".length;
-        cell.sourceVerbatim = "```{ojs}\n" + cell.sourceVerbatim + "\n```";
+        cell.sourceVerbatim = mappedString(
+          cell.sourceVerbatim, [
+            "```{ojs}\n",
+            { start: 0, end: cell.sourceVerbatim.value.length },
+            "\n```"
+          ]);
         cell.source = source;
         cell.options = yaml;
+        cell.sourceOffset = 0; // FIXME this will require reworking all of our source offset stuff 
         cell.sourceStartLine = sourceStartLine;
       }
 
       // cell.source = mdTrimEmptyLines(cell.source);
       // if the source is empty then don't add it
-      if (mdTrimEmptyLines(cell.source).length > 0) {
+      if (mdTrimEmptyLines(lines(cell.source.value)).length > 0) {
         nb.cells.push(cell);
       }
 
@@ -103,9 +114,9 @@ export function breakQuartoMd(
     inMathBlock = false,
     inCodeCell = false,
     inCode = false;
-  for (const line of lines(src)) {
+  for (const line of rangedLines(src.value)) {
     // yaml front matter
-    if (yamlRegEx.test(line) && !inCodeCell && !inCode && !inMathBlock) {
+    if (yamlRegEx.test(line.substring) && !inCodeCell && !inCode && !inMathBlock) {
       if (inYaml) {
         lineBuffer.push(line);
         flushLineBuffer("raw");
@@ -116,14 +127,14 @@ export function breakQuartoMd(
         inYaml = true;
       }
     } // begin code cell: ^```python
-    else if (startCodeCellRegEx.test(line)) {
-      const m = line.match(startCodeCellRegEx);
+    else if (startCodeCellRegEx.test(line.substring)) {
+      const m = line.substring.match(startCodeCellRegEx);
       language = (m as string[])[1];
       flushLineBuffer("markdown");
       inCodeCell = true;
 
       // end code block: ^``` (tolerate trailing ws)
-    } else if (endCodeRegEx.test(line)) {
+    } else if (endCodeRegEx.test(line.substring)) {
       // in a code cell, flush it
       if (inCodeCell) {
         inCodeCell = false;
@@ -136,10 +147,10 @@ export function breakQuartoMd(
       }
 
       // begin code block: ^```
-    } else if (startCodeRegEx.test(line)) {
+    } else if (startCodeRegEx.test(line.substring)) {
       inCode = true;
       lineBuffer.push(line);
-    } else if (delimitMathBlockRegEx.test(line)) {
+    } else if (delimitMathBlockRegEx.test(line.substring)) {
       if (inMathBlock) {
         flushLineBuffer("math");
       } else {

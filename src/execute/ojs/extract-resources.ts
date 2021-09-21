@@ -17,6 +17,7 @@ import { breakQuartoMd } from "../../core/break-quarto-md.ts";
 
 import { jsParseError, ojsParseError } from "./errors.ts";
 import { ojsSimpleWalker } from "./ojs-tools.ts";
+import { MappedString, mappedConcat, asMappedString } from "../../core/mapped-text.ts";
 
 // ResourceDescription filenames are always project-relative
 export interface ResourceDescription {
@@ -77,7 +78,7 @@ interface DirectDependency {
 
 // Extracts the direct dependencies from a single js, ojs or qmd file
 function directDependencies(
-  source: string,
+  source: MappedString,
   fileDir: string,
   language: "js" | "ojs" | "qmd",
   projectRoot?: string,
@@ -149,7 +150,7 @@ function directDependencies(
         sourceType: "module",
       });
     } catch (e) {
-      jsParseError(source, e.message);
+      jsParseError(source.value, e.message);
       throw new Error();
     }
   } else if (language === "ojs") {
@@ -169,9 +170,8 @@ function directDependencies(
         cell.cell_type !== "math" &&
         cell.cell_type?.language === "ojs"
       )
-      .flatMap((v) => v.source) // (concat)
-      .join("\n");
-    return directDependencies(ojsCellsSrc, fileDir, "ojs", projectRoot);
+      .flatMap((v) => v.source); // (concat)
+    return directDependencies(mappedConcat(ojsCellsSrc), fileDir, "ojs", projectRoot);
   }
 
   return localImports(ast).map((importPath) => {
@@ -189,7 +189,7 @@ function directDependencies(
 }
 
 export function extractResolvedResourceFilenamesFromQmd(
-  markdown: string,
+  markdown: MappedString,
   mdDir: string,
   projectRoot: string,
 ) {
@@ -202,9 +202,8 @@ export function extractResolvedResourceFilenamesFromQmd(
       cell.cell_type !== "math" &&
       cell.cell_type?.language === "ojs"
     ) {
-      const cellSrcStr = cell.source.join("");
       pageResources.push(...extractResourceDescriptionsFromOJSChunk(
-        cellSrcStr,
+        cell.source,
         mdDir,
         projectRoot,
       ));
@@ -222,7 +221,7 @@ export function extractResolvedResourceFilenamesFromQmd(
 }
 
 export function extractResourceDescriptionsFromOJSChunk(
-  ojsSource: string,
+  ojsSource: MappedString,
   mdDir: string,
   projectRoot?: string,
 ) {
@@ -320,7 +319,7 @@ export function extractResourceDescriptionsFromOJSChunk(
 
     for (
       const { resolvedImportPath, pathType, importPath } of directDependencies(
-        source,
+        asMappedString(source),
         dirname(thisResolvedImportPath),
         language as ("js" | "ojs" | "qmd"),
         projectRoot,
@@ -353,7 +352,7 @@ export function extractResourceDescriptionsFromOJSChunk(
     }
   }
   // also do it for the current .ojs chunk.
-  const ast = parseModule(ojsSource);
+  const ast = parseModule(ojsSource.value);
   for (const attachment of literalFileAttachments(ast)) {
     fileAttachments.push({
       filename: attachment,
