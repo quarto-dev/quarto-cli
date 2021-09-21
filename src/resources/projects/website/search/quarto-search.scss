@@ -35,12 +35,20 @@ $quarto-search-collapse-icon-size: 26px !default;
   }
 }
 
-#quarto-sidebar .sidebar-search .aa-Autocomplete {
-  width: $quarto-sidebar-search-input-width;
+#quarto-sidebar {
+  .sidebar-search {
+    .aa-Autocomplete {
+      width: $quarto-sidebar-search-input-width;
+    }
+  }
 }
 
-.navbar .aa-Autocomplete {
-  width: $quarto-navbar-search-input-width;
+.navbar {
+  .aa-Autocomplete {
+    .aa-Form {
+      width: $quarto-navbar-search-input-width;
+    }
+  }
 }
 
 .navbar #quarto-search.type-detached,
