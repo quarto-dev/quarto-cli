@@ -52,7 +52,7 @@ export function discoverResourceRefs(doc: Document): Promise<string[]> {
   // first handle tags
   const refs: string[] = [];
   Object.keys(kHtmlResourceTags).forEach((tag) => {
-    for (const attrib in kHtmlResourceTags[tag]) {
+    for (const attrib of kHtmlResourceTags[tag]) {
       refs.push(...resolveResourceTag(doc, tag, attrib));
     }
   });

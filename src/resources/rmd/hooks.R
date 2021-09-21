@@ -114,7 +114,8 @@ knitr_hooks <- function(format, resourceDir) {
   }
   delegating_output_hook = function(type, classes) {
     delegating_hook(type, function(x, options) {
-      if (identical(options[["results"]], "asis")) {
+      if (identical(options[["results"]], "asis") ||
+          isTRUE(options[["collapse"]])) {
         x
       } else {
         # prefix for classes
@@ -347,7 +348,7 @@ knitr_hooks <- function(format, resourceDir) {
   knit_hooks$message <- delegating_output_hook("message", c("stderr"))
   knit_hooks$plot <- knitr_plot_hook(knitr:::is_html_output(format$pandoc$to))
   knit_hooks$error <- delegating_output_hook("error", c("error"))
-
+  
   list(
     knit = knit_hooks,
     opts = opts_hooks

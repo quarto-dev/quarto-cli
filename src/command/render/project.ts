@@ -27,7 +27,7 @@ import { ensureGitignore } from "../../project/project-gitignore.ts";
 import { partitionedMarkdownForInput } from "../../project/project-config.ts";
 
 import { renderFiles } from "./render.ts";
-import { RenderOptions, RenderResult } from "./types.ts";
+import { RenderedFile, RenderOptions, RenderResult } from "./types.ts";
 import {
   copyToProjectFreezer,
   kProjectFreezeDir,
@@ -135,6 +135,21 @@ export async function renderProject(
   // track the lib dir
   const libDir = context.config?.project[kProjectLibDir];
 
+  // function to extract resource files from rendered file
+  const resourcesFrom = async (file: RenderedFile) => {
+    // resource files
+    const partitioned = await partitionedMarkdownForInput(
+      projDir,
+      file.input,
+    );
+    const resourceFiles = resourceFilesFromRenderedFile(
+      projDir,
+      file,
+      partitioned,
+    );
+    return resourceFiles;
+  };
+
   // set QUARTO_PROJECT_DIR
   Deno.env.set("QUARTO_PROJECT_DIR", projDir);
   try {
@@ -206,17 +221,6 @@ export async function renderProject(
           removeIfEmptyDir(filesDir);
         }
 
-        // resource files
-        const partitioned = await partitionedMarkdownForInput(
-          projDir,
-          renderedFile.input,
-        );
-        const resourceFiles = resourceFilesFromRenderedFile(
-          projDir,
-          renderedFile,
-          partitioned,
-        );
-
         // render file renderedFile
         projResults.files.push({
           input: renderedFile.input,
@@ -224,7 +228,7 @@ export async function renderProject(
           format: renderedFile.format,
           file: renderedFile.file,
           supporting: renderedFile.supporting,
-          resourceFiles,
+          resourceFiles: await resourcesFrom(renderedFile),
         });
       }
 
@@ -312,17 +316,17 @@ export async function renderProject(
         }
       });
     } else {
-      // track output files
-      projResults.files.push(
-        ...fileResults.files.map((result) => ({
+      for (const result of fileResults.files) {
+        const resourceFiles = await resourcesFrom(result);
+        projResults.files.push({
           input: result.input,
           markdown: result.markdown,
           format: result.format,
           file: result.file,
           supporting: result.supporting,
-          resourceFiles: [],
-        })),
-      );
+          resourceFiles,
+        });
+      }
     }
 
     // forward error to projResults
