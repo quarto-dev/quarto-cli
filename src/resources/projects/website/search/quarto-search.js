@@ -56,6 +56,18 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       }
     };
 
+    // Clear search highlighting when the user scrolls sufficiently
+    const resetFn = () => {
+      resetHighlighting("");
+      window.removeEventListener("quarto-hrChanged", resetFn);
+      window.removeEventListener("quarto-sectionChanged", resetFn);
+    };
+
+    // Register this event after the initial scrolling and settling of events
+    // on the page
+    window.addEventListener("quarto-hrChanged", resetFn);
+    window.addEventListener("quarto-sectionChanged", resetFn);
+
     // Responsively switch to overlay mode if the search is present on the navbar
     // Note that switching the sidebar to overlay mode requires more coordinate (not just
     // the media query since we generate different HTML for sidebar overlays than we do
