@@ -541,7 +541,9 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
   sidebar.logo = resolveLogo(sidebar.logo);
 
   const searchOpts = searchOptions(project);
-  sidebar.search = searchOpts.location === "sidebar" ? searchOpts.type : false;
+  sidebar.search = searchOpts && searchOpts.location === "sidebar"
+    ? searchOpts.type
+    : false;
 
   // ensure collapse & alignment are defaulted
   sidebar[kCollapseLevel] = sidebar[kCollapseLevel] || 2;
@@ -759,15 +761,19 @@ async function navbarEjsData(
   navbar: Navbar,
 ): Promise<Navbar> {
   const collapse = navbar.collapse !== undefined ? !!navbar.collapse : true;
+
+  const searchOpts = searchOptions(project);
+
   const data: Navbar = {
     ...navbar,
-    search: searchOptions(project).location === "navbar",
+    search: searchOpts && searchOpts.location === "navbar"
+      ? searchOpts.type
+      : false,
     background: navbar.background || "primary",
     logo: resolveLogo(navbar.logo),
     collapse,
-    [kCollapseBelow]: !collapse
-      ? ""
-      : ("-" + (navbar[kCollapseBelow] || "lg")) as LayoutBreak,
+    [kCollapseBelow]: !collapse ? ""
+    : ("-" + (navbar[kCollapseBelow] || "lg")) as LayoutBreak,
     pinned: navbar.pinned !== undefined ? !!navbar.pinned : false,
   };
 

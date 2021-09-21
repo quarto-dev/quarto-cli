@@ -57,7 +57,12 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     };
 
     // TODO: Media query for responsive (vs none)
-    const detachedMediaQuery = options.type === "detached" ? "all" : "none";
+    const detachedMediaQuery =
+      options.type === "overlay"
+        ? "all"
+        : options.location === "navbar"
+        ? "(max-width: 991px)"
+        : "none";
     let lastState = null;
     const { setIsOpen } = autocomplete({
       container: searchEl,
@@ -124,7 +129,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
               section: firstItem.section,
             });
 
-            const collapseMatches = options["collapse-matches"];
+            const collapseMatches = options["collapse-after"];
             const collapseCount =
               typeof collapseMatches === "number" ? collapseMatches : 1;
 
@@ -374,7 +379,7 @@ function showCopyLink(query, options) {
 
     // If there is a query, show the link icon
     if (copyButtonEl) {
-      if (lastQuery && options["copy-link"]) {
+      if (lastQuery && options["copy-button"]) {
         copyButtonEl.style.display = "flex";
       } else {
         copyButtonEl.style.display = "none";

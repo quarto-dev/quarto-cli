@@ -24,7 +24,7 @@ if (sidebar.title && !navbar) {
   toolsLocation = "title";
 } else if (sidebar.logo) {
   toolsLocation = "logo";
-} else if (sidebar.search && sidebar.search !== "detached") {
+} else if (sidebar.search && sidebar.search !== "textbox") {
   toolsLocation = "search";
 } else {
   toolsLocation = "fallthrough";
@@ -62,7 +62,7 @@ if (sidebar.title && !navbar) {
 
   <% if (sidebar.search) { %>
     <div class="d-flex px-3 mt-2 flex-shrink-0 align-items-center">
-      <% if (sidebar.search !== "detached") { %>
+      <% if (sidebar.search !== "overlay") { %>
       <div class="sidebar-search">
       <% partial('navsearch.ejs',  { classes: '' }) %>
       </div>

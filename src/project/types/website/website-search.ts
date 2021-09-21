@@ -35,26 +35,31 @@ import { sassLayer } from "../../../command/render/sass.ts";
 // The main search key
 const kSearch = "search";
 
+// The type of search UI (e.g. overlay or textbox)
+const kType = "type";
+
 // The user facing options
 // Should the search input appear on the sidebar or the navbar
 const kLocation = "location";
+
 // Show a copy button to copy the search url to the clipboard
-const kCopyLink = "copy-link";
+const kCopyButton = "copy-button";
+
 // Collapse sections of the same documents when showing them in the results
-const kCollapseMatches = "collapse-matches";
+const kCollapseAfter = "collapse-after";
+
 // Where to place the search results
 const kPanelPlacement = "panel-placement";
-const kType = "type";
 
 interface SearchOptions {
   [kLocation]: SearchInputLocation;
-  [kCopyLink]: boolean;
-  [kCollapseMatches]: boolean | number;
+  [kCopyButton]: boolean;
+  [kCollapseAfter]: boolean | number;
+  [kType]: "textbox" | "overlay";
   [kPanelPlacement]: "start" | "end" | "full-width" | "input-wrapper-width";
-  [kType]: "input" | "collapsed" | "detached";
 }
 
-export type SearchInputLocation = "none" | "navbar" | "sidebar";
+export type SearchInputLocation = "navbar" | "sidebar";
 
 interface SearchDoc {
   href: string;
@@ -191,59 +196,60 @@ export function updateSearchIndex(
   }
 }
 
-export function searchOptions(project: ProjectContext): SearchOptions {
+export function searchOptions(
+  project: ProjectContext,
+): SearchOptions | undefined {
   const searchConfig = websiteConfig(kSearch, project.config);
 
   // The location of the search input
   const location = searchInputLocation(project);
 
+  // The appearance of the search UI
+  const searchType = (
+    userType: unknown,
+    location: SearchInputLocation,
+  ): "overlay" | "textbox" => {
+    if (userType && typeof (userType) === "string") {
+      switch (userType) {
+        case "overlay":
+          return "overlay";
+        default:
+        case "textbox":
+          return "textbox";
+      }
+    } else {
+      if (location === "sidebar") {
+        return "textbox";
+      } else {
+        return "overlay";
+      }
+    }
+  };
+
   if (searchConfig && typeof (searchConfig) === "object") {
     // Sort out collapsing (by default, show 2 sections per document)
     const collapseMatches: number | boolean =
-      typeof (searchConfig[kCollapseMatches]) === "number"
-        ? searchConfig[kCollapseMatches] as number
-        : searchConfig[kCollapseMatches] !== false
+      typeof (searchConfig[kCollapseAfter]) === "number"
+        ? searchConfig[kCollapseAfter] as number
+        : searchConfig[kCollapseAfter] !== false
         ? 2
         : false;
 
-    // The appearance of the search UI
-    const searchType = (
-      userType: unknown,
-      location: SearchInputLocation,
-    ): "detached" | "collapsed" | "input" => {
-      if (userType && typeof (userType) === "string") {
-        switch (userType) {
-          case "detached":
-            return "detached";
-          case "collapsed":
-            return "collapsed";
-          default:
-          case "input":
-            return "input";
-        }
-      } else {
-        if (location === "sidebar") {
-          return "input";
-        } else {
-          return "detached";
-        }
-      }
-    };
-
     return {
       [kLocation]: location,
-      [kCopyLink]: searchConfig[kCopyLink] === true,
-      [kCollapseMatches]: collapseMatches,
+      [kCopyButton]: searchConfig[kCopyButton] === true,
+      [kCollapseAfter]: collapseMatches,
       [kPanelPlacement]: location === "navbar" ? "end" : "start",
       [kType]: searchType(searchConfig[kType], location),
     };
-  } else {
+  } else if (searchConfig === undefined || !!searchConfig) {
+    // The default configuration if search is undefined or true
     return {
       [kLocation]: location,
-      [kCopyLink]: false,
-      [kCollapseMatches]: 2,
+      [kCopyButton]: false,
+      [kCollapseAfter]: 2,
       [kPanelPlacement]: location === "navbar" ? "end" : "start",
-      [kType]: "input",
+      [kType]: searchType(undefined, location),
     };
   }
 }
@@ -257,24 +263,19 @@ function searchInputLocation(
     searchConfig[kLocation]
   ) {
     switch (searchConfig[kLocation]) {
-      case "navbar":
-        return "navbar";
       case "sidebar":
         return "sidebar";
+      case "navbar":
       default:
-        return "none";
-    }
-  } else if (searchConfig === undefined || searchConfig) {
-    const { navbar, sidebars } = websiteNavigationConfig(project);
-    if (navbar) {
-      return "navbar";
-    } else if (sidebars) {
-      return "sidebar";
-    } else {
-      return "none";
+        return "navbar";
     }
   } else {
-    return "none";
+    const { navbar } = websiteNavigationConfig(project);
+    if (navbar) {
+      return "navbar";
+    } else {
+      return "sidebar";
+    }
   }
 }
 
@@ -297,7 +298,7 @@ export function websiteSearchDependency(
   source: string,
 ): FormatDependency[] {
   const searchDependencies: FormatDependency[] = [];
-  if (searchInputLocation(project) !== "none") {
+  if (searchOptions(project)) {
     const sourceRelative = relative(project.dir, source);
     const offset = projectOffset(project, source);
     const href = inputFileHref(sourceRelative);
