@@ -101,7 +101,9 @@ function writeIndex()
 end
 
 function writeKeysIndex(indexFile)
-  local index = pandoc.List:new()
+  local index = {
+    entries = pandoc.List:new(),
+  }
   for k,v in pairs(crossref.index.entries) do
     -- create entry 
     local entry = {
@@ -114,7 +116,7 @@ function writeKeysIndex(indexFile)
       entry.caption = ""
     end
     -- add entry
-    index:insert(entry)
+    index.entries:insert(entry)
   end
  
   -- write the index
