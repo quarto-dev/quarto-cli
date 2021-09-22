@@ -8,7 +8,8 @@
 *
 */
 
-import { Range } from "./ranged-text.ts";
+import { Range, rangedLines } from "./ranged-text.ts";
+import { lines } from "./text.ts";
 
 export interface MappedString {
   value: string,
@@ -18,6 +19,7 @@ export interface MappedString {
 };
 
 import bounds from "binary-search-bounds";
+import { diffLines } from "diff";
 
 export type StringChunk = string | Range;
 
@@ -241,4 +243,43 @@ export function mappedConcat(strings: MappedString[]): MappedString
       return strings[ix].mapClosest(offset - offsets[ix]);
     }
   };
+}
+
+// uses a diff algorithm to map on a line-by-line basis target lines
+// for `target` to `source`, allowing us to mostly recover
+// MappedString information from third-party tools like knitr.
+export function mappedDiff(
+  source: MappedString,
+  target: string
+)
+{
+  const sourceLineRanges = rangedLines(source.value).map(x => x.range);
+  const targetLineRanges = rangedLines(target);
+  
+  // const sourceLines = lines(source.value);
+  // const targetLines = lines(target);
+
+  let sourceCursor = 0;
+
+  const resultChunks: (string | Range)[] = [];
+
+  for (const action of diffLines(source.value, target)) {
+    if (action.removed) {
+      // skip this many lines from the source
+      sourceCursor += action.count;
+    } else if (action.added) {
+      resultChunks.push(action.value);
+    } else {
+      // it's from the source
+      const start = sourceLineRanges[sourceCursor].start
+      const nextCursor = sourceCursor + action.count;
+      const end = nextCursor < sourceLineRanges.length ?
+        sourceLineRanges[nextCursor].start :
+        sourceLineRanges[sourceLineRanges.length - 1].end; // 
+      sourceCursor = nextCursor;
+      resultChunks.push({ start, end });
+    }
+  }
+
+  return mappedString(source, resultChunks);
 }

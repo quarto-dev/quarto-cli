@@ -9,7 +9,7 @@
 */
 
 import { lines } from "./text.ts";
-import { rangedLines, rangedSubstring, RangedSubstring } from "./ranged-text.ts";
+import { rangedLines, rangedSubstring, RangedSubstring, Range } from "./ranged-text.ts";
 import { mappedString, MappedString, mappedConcat } from "./mapped-text.ts";
 
 import { partitionCellOptionsMapped } from "./partition-cell-options.ts";
@@ -67,7 +67,14 @@ export function breakQuartoMd(
         lineBuffer.splice(lineBuffer.length - 1, 1);
       }
 
-      const source = mappedString(src, [...lineBuffer.map(line => line.range), "\n"]);
+      const mappedChunks: (string | Range)[] = [];
+      for (const line of lineBuffer) {
+        mappedChunks.push(line.range);
+        mappedChunks.push("\n");
+      }
+      mappedChunks.pop();
+      const source = mappedString(src, mappedChunks);
+      
       // const sourceLines = lineBuffer.map((line, index) => {
       //   return mappedString(line + (index < (lineBuffer.length - 1) ? "\n" : "");
       // });

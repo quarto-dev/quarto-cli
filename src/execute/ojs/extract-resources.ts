@@ -145,20 +145,33 @@ function directDependencies(
   let ast;
   if (language === "js") {
     try {
-      ast = parseES6(source, {
+      ast = parseES6(source.value, {
         ecmaVersion: "2020",
         sourceType: "module",
       });
     } catch (e) {
-      jsParseError(source.value, e.message);
-      throw new Error();
+      if (!(e instanceof SyntaxError)) {
+        throw e;
+      }
+      return [];
     }
   } else if (language === "ojs") {
+    // console.log("WE ARE HERE");
+    // console.log(source.value);
+    // console.log("======");
+    // console.log(source.originalString);
+    // console.log("======");
     try {
-      ast = parseModule(source);
+      ast = parseModule(source.value);
     } catch (e) {
-      ojsParseError(e, source);
-      throw new Error();
+      // we don't chase dependencies if there are parse errors.
+      // we also don't report errors, because that would have happened elsewhere.
+      // ojsParseError(e, source);
+      // throw new Error();
+      if (!(e instanceof SyntaxError)) {
+        throw e;
+      }
+      return [];
     }
   } else {
     // language === "qmd"
@@ -342,22 +355,35 @@ export function extractResourceDescriptionsFromOJSChunk(
   const fileAttachments = [];
   for (const importFile of result) {
     if (importFile.filename.endsWith(".ojs")) {
-      const ast = parseModule(Deno.readTextFileSync(importFile.filename));
-      for (const attachment of literalFileAttachments(ast)) {
-        fileAttachments.push({
-          filename: attachment,
-          referent: importFile.filename,
-        });
+      try {
+        const ast = parseModule(Deno.readTextFileSync(importFile.filename));
+        for (const attachment of literalFileAttachments(ast)) {
+          fileAttachments.push({
+            filename: attachment,
+            referent: importFile.filename,
+          });
+        }
+      } catch (e) {
+        if (!(e instanceof SyntaxError)) {
+          throw e;
+        }
       }
     }
   }
   // also do it for the current .ojs chunk.
-  const ast = parseModule(ojsSource.value);
-  for (const attachment of literalFileAttachments(ast)) {
-    fileAttachments.push({
-      filename: attachment,
-      referent: rootReferent,
-    });
+  try {
+    const ast = parseModule(ojsSource.value);
+    for (const attachment of literalFileAttachments(ast)) {
+      fileAttachments.push({
+        filename: attachment,
+        referent: rootReferent,
+      });
+    }
+  } catch (e) {
+    // ignore parse errors
+    if (!(e instanceof SyntaxError)) {
+      throw e;
+    }
   }
 
   // while traversing the reference graph, we want to

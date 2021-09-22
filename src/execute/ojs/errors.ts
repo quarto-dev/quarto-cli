@@ -13,13 +13,17 @@ export function ojsParseError(
   // deno-lint-ignore no-explicit-any
   acornError: any, // we can't use SyntaxError here because acorn injects extra properties
   ojsSource: MappedString,
-  startingLoc = 0,
 ) {
   const acornMsg = String(acornError).split("\n")[0].trim().replace(
     / *\(\d+:\d+\)$/,
     "",
   );
 
+  // console.log({
+  //   ojsSource,
+  //   pos: acornError.pos
+  // });
+  
   const { line, column } = lineNumbers(
     ojsSource.originalString
   )(ojsSource.mapClosest(acornError.pos) as number);

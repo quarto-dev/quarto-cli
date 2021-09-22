@@ -22,11 +22,13 @@
     "deno_dom/": "https://deno.land/x/deno_dom@v0.1.14-alpha/",
     "port/": "https://deno.land/x/port@1.0.0/",
     "media_types/": "https://deno.land/x/media_types@v2.10.1/",
+      
     "acorn/walk": "https://cdn.skypack.dev/acorn-walk@7.2.0",
     "acorn/acorn": "https://cdn.skypack.dev/acorn@7.4.1",
     "ajv": "https://cdn.skypack.dev/ajv",
     "binary-search-bounds": "https://cdn.skypack.dev/binary-search-bounds",
-      "blueimpMd5": "https://cdn.skypack.dev/blueimp-md5",
+    "blueimpMd5": "https://cdn.skypack.dev/blueimp-md5",
+    "diff": "https://cdn.skypack.dev/diff",
     "observablehq/parser": "https://cdn.skypack.dev/@observablehq/parser@4.5.0"
   }
 }

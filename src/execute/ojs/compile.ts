@@ -72,12 +72,12 @@ import { formatResourcePath } from "../../core/resources.ts";
 import { logError } from "../../core/log.ts";
 import { breakQuartoMd, QuartoMdCell } from "../../core/break-quarto-md.ts";
 
-import { MappedString, mappedString, asMappedString } from "../../core/mapped-text.ts";
+import { MappedString, mappedString, asMappedString, mappedDiff } from "../../core/mapped-text.ts";
 
 export interface OjsCompileOptions {
   source: string;
   format: Format;
-  markdown: string;
+  markdown: MappedString;
   libDir: string;
   project?: ProjectContext;
   ojsBlockLineNumbers: number[];
@@ -100,12 +100,13 @@ export async function ojsCompile(
   options: OjsCompileOptions,
 ): Promise<OjsCompileResult> {
   const { markdown, project, ojsBlockLineNumbers } = options;
+
   if (!isJavascriptCompatible(options.format)) {
-    return { markdown };
+    return { markdown: markdown.value };
   }
-  const languages = languagesInMarkdown(markdown);
+  const languages = languagesInMarkdown(markdown.value);
   if (!languages.has("ojs") && !languages.has("dot")) {
-    return { markdown };
+    return { markdown: markdown.value };
   }
 
   const projDir = project?.dir;
@@ -114,9 +115,9 @@ export async function ojsCompile(
     "gfm",
     "commonmark",
   ]);
-
-  const output = breakQuartoMd(asMappedString(markdown));
-
+  
+  const output = breakQuartoMd(markdown);
+  
   let ojsCellID = 0;
   let ojsBlockIndex = 0; // this is different from ojsCellID because of inline cells.
   const userIds: Set<string> = new Set();
@@ -264,7 +265,7 @@ export async function ojsCompile(
           / *\(\d+:\d+\)$/,
           "",
         );
-        ojsParseError(err, cellSrc, cellStartingLoc + cell.sourceStartLine - 1);
+        ojsParseError(err, cellSrc);
 
         const preDiv = pandocBlock("````")({
           classes: ["numberLines", "java"],
@@ -878,11 +879,15 @@ export async function ojsExecuteResult(
 ) {
   executeResult = ld.cloneDeep(executeResult);
 
+  const source = Deno.readTextFileSync(context.target.source);
+  
+  const mappedMarkdown = mappedDiff(asMappedString(source), executeResult.markdown);
+  
   // evaluate ojs chunks
   const { markdown, includes, filters, resourceFiles } = await ojsCompile({
     source: context.target.source,
     format: context.format,
-    markdown: executeResult.markdown,
+    markdown: mappedMarkdown,
     libDir: context.libDir,
     project: context.project,
     ojsBlockLineNumbers,

@@ -17,17 +17,16 @@ export function normalizeNewlines(text: string) {
 
 export function lineNumbers(text: string) {
   const lineOffsets = [0];
-  for (const m in text.matchAll(/\r?\n/g)) {
-    // wtf typescript
-    console.log(m);
+  for (const m of text.matchAll(/\r?\n/g)) {
+    // FIXME Why is typescript getting the types wrong here?
     lineOffsets.push(m[0].length + (m as any).index);
   }
   lineOffsets.push(text.length);
-  // const lineOffsets = [0, ...Array.from(text.matchAll(/\r?\n/g)).map(
-  //   m => m[0].length + m!.index), text.length];
 
   return function(offset: number) {
-    const startIndex = bounds.le(offset);
+    const startIndex = bounds.le(lineOffsets, offset);
+    // console.log({offset, lineOffsets, startIndex});
+    // console.log(text);
     
     return {
       line: startIndex,
