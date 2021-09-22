@@ -142,13 +142,29 @@ export async function updateHtmlDepedencies(config: Configuration) {
     "projects",
     "website",
     "search",
-    "autocomplete.min.js",
+    "autocomplete.umd.js",
   );
   await updateUnpkgDependency(
     "AUTOCOMPLETE_JS",
     "@algolia/autocomplete-js",
     "dist/umd/index.production.js",
     autocompleteJs,
+  );
+
+  // Algolia search client
+  const algoliaJs = join(
+    config.directoryInfo.src,
+    "resources",
+    "projects",
+    "website",
+    "search",
+    "algoliasearch-lite.umd.js",
+  );
+  await updateJsDelivrDependency(
+    "ALGOLIA_SEARCH_JS",
+    "algoliasearch",
+    "dist/algoliasearch-lite.umd.js",
+    algoliaJs,
   );
 
   // Update PDF JS
@@ -427,6 +443,26 @@ async function updateUnpkgDependency(
   if (version) {
     info(`Updating ${pkg}...`);
     const url = `https://unpkg.com/${pkg}@${version}/${filename}`;
+
+    info(`Downloading ${url} to ${target}`);
+    ensureDirSync(dirname(target));
+    await download(url, target);
+    info("done\n");
+  } else {
+    throw new Error(`${versionEnvVar} is not defined`);
+  }
+}
+
+async function updateJsDelivrDependency(
+  versionEnvVar: string,
+  pkg: string,
+  filename: string,
+  target: string,
+) {
+  const version = Deno.env.get(versionEnvVar);
+  if (version) {
+    info(`Updating ${pkg}...`);
+    const url = `https://cdn.jsdelivr.net/npm/${pkg}@${version}/${filename}`;
 
     info(`Downloading ${url} to ${target}`);
     ensureDirSync(dirname(target));

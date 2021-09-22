@@ -342,7 +342,7 @@ export function websiteSearchDependency(
       },
       stylesheets: [],
       scripts: [
-        searchDependency("autocomplete.min.js"),
+        searchDependency("autocomplete.umd.js"),
         searchDependency("fuse.min.js"),
         searchDependency("quarto-search.js"),
       ],
