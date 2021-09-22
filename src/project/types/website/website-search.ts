@@ -32,6 +32,7 @@ import { inputFileHref, websiteNavigationConfig } from "./website-shared.ts";
 import { websiteConfig, websitePath, websiteTitle } from "./website-config.ts";
 import { sassLayer } from "../../../command/render/sass.ts";
 import { sessionTempFile } from "../../../core/temp.ts";
+import { warning } from "log/mod.ts";
 
 // The main search key
 const kSearch = "search";
@@ -327,10 +328,30 @@ export function websiteSearchDependency(
   source: string,
 ): FormatDependency[] {
   const searchDependencies: FormatDependency[] = [];
-  if (searchOptions(project)) {
+  const options = searchOptions(project);
+  if (options) {
     const sourceRelative = relative(project.dir, source);
     const offset = projectOffset(project, source);
     const href = inputFileHref(sourceRelative);
+
+    const scripts = [
+      searchDependency("autocomplete.umd.js"),
+      searchDependency("fuse.min.js"),
+      searchDependency("quarto-search.js"),
+    ];
+
+    // If there are Algoia options specified, check that they are complete
+    // and add the algolia search dependency
+    const algoliaOpts = options[kAlgolia];
+    if (algoliaOpts) {
+      if (algoliaOpts[kSearchApplicationId] && algoliaOpts[kSearchOnlyApiKey]) {
+        scripts.push(searchDependency("algoliasearch-lite.umd.js"));
+      } else {
+        warning(
+          "Algolia search is misconfigured. Please ensure that you provide both an application-id and search-only-api-key.",
+        );
+      }
+    }
 
     searchDependencies.push(clipboardDependency());
     searchDependencies.push({
@@ -341,11 +362,7 @@ export function websiteSearchDependency(
           : offset + "/",
       },
       stylesheets: [],
-      scripts: [
-        searchDependency("autocomplete.umd.js"),
-        searchDependency("fuse.min.js"),
-        searchDependency("quarto-search.js"),
-      ],
+      scripts,
     });
   }
   return searchDependencies;
