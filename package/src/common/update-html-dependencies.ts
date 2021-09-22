@@ -151,6 +151,22 @@ export async function updateHtmlDepedencies(config: Configuration) {
     autocompleteJs,
   );
 
+  // Autocomplete preset
+  const autocompletePresetJs = join(
+    config.directoryInfo.src,
+    "resources",
+    "projects",
+    "website",
+    "search",
+    "autocomplete-preset-algolia.umd.js",
+  );
+  await updateUnpkgDependency(
+    "AUTOCOMPLETE_JS",
+    "@algolia/autocomplete-preset-algolia",
+    "dist/umd/index.production.js",
+    autocompletePresetJs,
+  );
+
   // Algolia search client
   const algoliaJs = join(
     config.directoryInfo.src,

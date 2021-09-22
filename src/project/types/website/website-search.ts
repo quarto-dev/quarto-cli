@@ -346,6 +346,7 @@ export function websiteSearchDependency(
     if (algoliaOpts) {
       if (algoliaOpts[kSearchApplicationId] && algoliaOpts[kSearchOnlyApiKey]) {
         scripts.push(searchDependency("algoliasearch-lite.umd.js"));
+        scripts.push(searchDependency("autocomplete-preset-algolia.umd.js"));
       } else {
         warning(
           "Algolia search is misconfigured. Please ensure that you provide both an application-id and search-only-api-key.",
