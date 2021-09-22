@@ -11,6 +11,11 @@ function startsWith(str, starting)
   return starting == "" or str:sub(1, #starting) == starting
 end
 
+-- trim a string
+function trim(s)
+  return (string.gsub(s, "^%s*(.-)%s*$", "%1"))
+end
+
 -- splits a string on a separator
 function split(str, sep)
   local fields = {}

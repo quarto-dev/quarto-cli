@@ -49,6 +49,12 @@ else
 
 fi
 
+if [ $1 == "--paths" ]; then
+  echo "$QUARTO_BIN_PATH"
+  echo "$QUARTO_SHARE_PATH"
+  exit 0
+fi
+
 
 QUARTO_DENO_EXTRA_OPTIONS=""
 QUARTO_DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env --allow-net"

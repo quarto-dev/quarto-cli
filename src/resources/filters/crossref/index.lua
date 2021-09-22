@@ -90,81 +90,114 @@ function writeIndex()
     Pandoc = function(doc)
       local indexFile = param("crossref-index-file")
       if indexFile ~= nil then
-        -- create an index data structure to serialize for this file 
-        local index = {
-          entries = pandoc.List:new(),
-          headings = crossref.index.headings:clone()
-        }
-
-        -- add options if we have them
-        if next(crossref.options) then
-          index.options = {}
-          for k,v in pairs(crossref.options) do
-            if type(v) == "table" then
-              if tisarray(v) and not v.t == "MetaInlines" then
-                index.options[k] = v:map(function(item) return pandoc.utils.stringify(item) end)
-              else
-                index.options[k] = pandoc.utils.stringify(v)
-              end
-            else
-              index.options[k] = v
-            end
-          end
-        end
-
-        -- write a special entry if this is a multi-file chapter with an id
-        local chapterId = crossrefOption("chapter-id")
-        
-        if chapterId then
-          chapterId = pandoc.utils.stringify(chapterId)
-
-           -- chapter heading
-          index.headings:insert(chapterId)
-
-          -- chapter entry
-          if refType(chapterId) == "sec" and param("number-offset") ~= nil then
-            local chapterEntry = {
-              key = chapterId,
-              parent = nil,
-              order = {
-                number = 1,
-                section = crossref.index.numberOffset
-              }
-            }
-            index.entries:insert(chapterEntry)
-          end
-        end
-
-        for k,v in pairs(crossref.index.entries) do
-          -- create entry 
-          local entry = {
-            key = k,
-            parent = v.parent,
-            order = {
-              number = v.order.order,
-            }
-          }
-          -- add caption if we have one
-          if v.caption ~= nil then
-            entry.caption = inlinesToString(v.caption)
-          else
-            entry.caption = ""
-          end
-          -- add section if we have one
-          if v.order.section ~= nil then
-            entry.order.section = v.order.section
-          end
-          -- add entry
-          index.entries:insert(entry)
-        end
-       
-        -- write the index
-        local json = jsonEncode(index)
-        local file = io.open(indexFile, "w")
-        file:write(json)
-        file:close()
-        
+        if isQmdInput() then
+          writeKeysIndex(indexFile)
+        else
+          writeFullIndex(indexFile)
+        end   
       end
     end
   }
+end
+
+function writeKeysIndex(indexFile)
+  local index = {
+    entries = pandoc.List:new(),
+  }
+  for k,v in pairs(crossref.index.entries) do
+    -- create entry 
+    local entry = {
+      key = k,
+    }
+    -- add caption if we have one
+    if v.caption ~= nil then
+      entry.caption = inlinesToString(v.caption)
+    else
+      entry.caption = ""
+    end
+    -- add entry
+    index.entries:insert(entry)
+  end
+ 
+  -- write the index
+  local json = jsonEncode(index)
+  local file = io.open(indexFile, "w")
+  file:write(json)
+  file:close()
+end
+
+function writeFullIndex(indexFile)
+  -- create an index data structure to serialize for this file 
+  local index = {
+    entries = pandoc.List:new(),
+    headings = crossref.index.headings:clone()
+  }
+
+  -- add options if we have them
+  if next(crossref.options) then
+    index.options = {}
+    for k,v in pairs(crossref.options) do
+      if type(v) == "table" then
+        if tisarray(v) and not v.t == "MetaInlines" then
+          index.options[k] = v:map(function(item) return pandoc.utils.stringify(item) end)
+        else
+          index.options[k] = pandoc.utils.stringify(v)
+        end
+      else
+        index.options[k] = v
+      end
+    end
+  end
+
+  -- write a special entry if this is a multi-file chapter with an id
+  local chapterId = crossrefOption("chapter-id")
+  
+  if chapterId then
+    chapterId = pandoc.utils.stringify(chapterId)
+
+     -- chapter heading
+    index.headings:insert(chapterId)
+
+    -- chapter entry
+    if refType(chapterId) == "sec" and param("number-offset") ~= nil then
+      local chapterEntry = {
+        key = chapterId,
+        parent = nil,
+        order = {
+          number = 1,
+          section = crossref.index.numberOffset
+        }
+      }
+      index.entries:insert(chapterEntry)
+    end
+  end
+
+  for k,v in pairs(crossref.index.entries) do
+    -- create entry 
+    local entry = {
+      key = k,
+      parent = v.parent,
+      order = {
+        number = v.order.order,
+      }
+    }
+    -- add caption if we have one
+    if v.caption ~= nil then
+      entry.caption = inlinesToString(v.caption)
+    else
+      entry.caption = ""
+    end
+    -- add section if we have one
+    if v.order.section ~= nil then
+      entry.order.section = v.order.section
+    end
+    -- add entry
+    index.entries:insert(entry)
+  end
+ 
+  -- write the index
+  local json = jsonEncode(index)
+  local file = io.open(indexFile, "w")
+  file:write(json)
+  file:close()
 end
