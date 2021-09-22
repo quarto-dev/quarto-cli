@@ -27,7 +27,7 @@ export TIPPY_JS=6.3.0
 export PDF_JS=2.8.335
 
 # javascript search dependencies
-export AUTOCOMPLETE_JS=1.3.0
+export AUTOCOMPLETE_JS=1.4.0
 export FUSE_JS=6.4.6
 
 # Quarto Info Version
