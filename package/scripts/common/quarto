@@ -49,6 +49,11 @@ else
 
 fi
 
+if [ $1 == "--resources" ]; then
+  echo "$QUARTO_SHARE_PATH"
+  exit 0
+fi
+
 
 QUARTO_DENO_EXTRA_OPTIONS=""
 QUARTO_DENO_OPTIONS="--unstable --allow-read --allow-write --allow-run --allow-env --allow-net"

@@ -40,6 +40,11 @@ IF EXIST "%QUARTO_TS_PATH%" (
 	SET "QUARTO_SHARE_PATH=%SCRIPT_DIR%..\share"
 )
 
+IF "%1"=="--resources" (
+	ECHO %QUARTO_SHARE_PATH%
+	GOTO end
+)
+
 echo %PSModulePath% | findstr %USERPROFILE% >NUL
 IF %ERRORLEVEL% EQU 0 (
 SET NO_COLOR=TRUE
