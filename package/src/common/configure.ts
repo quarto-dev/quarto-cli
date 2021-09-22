@@ -60,10 +60,14 @@ export async function configure(
     for (let i = 0; i < symlinkPaths.length; i++) {
       const symlinkPath = symlinkPaths[i];
       info(`> Trying ${symlinkPath}`);
-      if (existsSync(symlinkPath)) {
-        Deno.removeSync(symlinkPath);
+      try {
+        if (existsSync(symlinkPath)) {
+          Deno.removeSync(symlinkPath);
+        }
+      } catch (error) {
+        info(error);
+        info("\n> Failed to remove existing symlink.\n> Did you previously install with sudo? Run 'which quarto' to test which version will be used.");
       }
-
       try {
         // for the last path, try even creating a directory as a last ditch effort
         if (i === symlinkPaths.length - 1) {
