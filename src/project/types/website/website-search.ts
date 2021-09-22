@@ -31,6 +31,7 @@ import { projectOffset } from "../../project-shared.ts";
 import { inputFileHref, websiteNavigationConfig } from "./website-shared.ts";
 import { websiteConfig, websitePath, websiteTitle } from "./website-config.ts";
 import { sassLayer } from "../../../command/render/sass.ts";
+import { sessionTempFile } from "../../../core/temp.ts";
 
 // The main search key
 const kSearch = "search";
@@ -81,20 +82,11 @@ export function updateSearchIndex(
     : undefined;
 
   // start with a set of search docs if this is incremental
-  let searchJsonRestructured = false;
   const searchDocs = new Array<SearchDoc>();
   if (incremental && searchJson) {
     // Read the existing index
-    // Older versions of Quarto used to store just a simple array of search docs
-    // Newer versions moved this into an object property so additional options could
-    // be passed along as well
     const existingSearchJson = JSON.parse(searchJson);
-    if (Array.isArray(existingSearchJson)) {
-      searchDocs.push(...(existingSearchJson as SearchDoc[]));
-      searchJsonRestructured = true;
-    } else if (existingSearchJson.docs) {
-      searchDocs.push(...(existingSearchJson.docs as SearchDoc[]));
-    }
+    searchDocs.push(...(existingSearchJson as SearchDoc[]));
   }
 
   // create search docs
@@ -183,13 +175,8 @@ export function updateSearchIndex(
   );
 
   // write search docs if they have changed
-  if (updatedSearchDocs.length > 0 || searchJsonRestructured) {
-    const searchData = {
-      docs: updatedSearchDocs,
-      options: searchOptions(context),
-    };
-
-    const updatedSearchJson = JSON.stringify(searchData, undefined, 2);
+  if (updatedSearchDocs.length > 0) {
+    const updatedSearchJson = JSON.stringify(updatedSearchDocs, undefined, 2);
     if (searchJson !== updatedSearchJson) {
       Deno.writeTextFileSync(searchJsonPath, updatedSearchJson);
     }
@@ -291,6 +278,18 @@ export function websiteSearchSassBundle() {
       ...layer,
     },
   };
+}
+
+export function websiteSearchIncludeInHeader(project: ProjectContext) {
+  // Generates a script tag that contains the options for configuring search
+  // which is ready in quarto-search.js
+  const websiteSearchScript = sessionTempFile({ suffix: "html" });
+  const options = searchOptions(project);
+  const searchOptionsJson = JSON.stringify(options, null, 2);
+  const scriptHtml =
+    `<script id="quarto-search-options" type="application/json">${searchOptionsJson}</script>`;
+  Deno.writeTextFileSync(websiteSearchScript, scriptHtml);
+  return websiteSearchScript;
 }
 
 export function websiteSearchDependency(

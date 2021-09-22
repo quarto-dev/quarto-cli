@@ -403,12 +403,19 @@ async function readSearchData() {
   // fetch the main search.json
   const response = await fetch(offsetURL("search.json"));
   if (response.status == 200) {
-    return response.json().then(function (searchData) {
-      const searchDocs = searchData.docs;
+    return response.json().then(function (searchDocs) {
       searchDocs.forEach(function (searchDoc) {
         fuse.add(searchDoc);
       });
-      return { fuse, options: searchData.options };
+      let options = {};
+      const searchOptionEl = window.document.getElementById(
+        "quarto-search-options"
+      );
+      if (searchOptionEl) {
+        const jsonStr = searchOptionEl.textContent;
+        options = JSON.parse(jsonStr);
+      }
+      return { fuse, options };
     });
   } else {
     return Promise.reject(

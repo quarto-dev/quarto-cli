@@ -66,6 +66,7 @@ import { projectType } from "../project-types.ts";
 import {
   searchOptions,
   websiteSearchDependency,
+  websiteSearchIncludeInHeader,
   websiteSearchSassBundle,
 } from "./website-search.ts";
 
@@ -90,7 +91,11 @@ import {
   NavigationPagination,
   websiteNavigationConfig,
 } from "./website-shared.ts";
-import { kNumberSections, kTocTitle } from "../../../config/constants.ts";
+import {
+  kIncludeInHeader,
+  kNumberSections,
+  kTocTitle,
+} from "../../../config/constants.ts";
 import {
   createMarkdownEnvelope,
   processMarkdownEnvelope,
@@ -149,6 +154,9 @@ export async function websiteNavigationExtras(
     websiteNavigationDependency(project),
   ];
 
+  // the contents of anything before the head
+  const includeInHeader = [];
+
   // Determine any sass bundles
   const sassBundles: SassBundle[] = [websiteNavigationSassBundle()];
 
@@ -156,6 +164,7 @@ export async function websiteNavigationExtras(
   if (searchDep) {
     dependencies.push(...searchDep);
     sassBundles.push(websiteSearchSassBundle());
+    includeInHeader.push(websiteSearchIncludeInHeader(project));
   }
 
   // Check to see whether the navbar or sidebar have been disabled on this page
@@ -223,6 +232,7 @@ export async function websiteNavigationExtras(
 
   // return extras with bodyEnvelope
   return {
+    [kIncludeInHeader]: includeInHeader,
     [kTocTitle]: !hasTableOfContentsTitle(flags, format) &&
         format.metadata[kTocFloat] !== false
       ? "On this page"
