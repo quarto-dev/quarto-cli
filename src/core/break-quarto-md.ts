@@ -98,17 +98,19 @@ export function breakQuartoMd(
         // that we have mapped strings infrastructure
         const breaks = Array.from(cell.source.value.matchAll(/\r?\n/g));
         let strUpToLastBreak = "";
-        if (breaks.length) {
-          // FIXME matchAll apparently breaks typechecking?
-          // "error: TS2538 [ERROR]: Type 'RegExpMatchArray' cannot be used as an index type.
-          // deno-lint-ignore no-explicit-any
-          const lastBreak = breaks[Math.min(sourceStartLine, breaks.length - 1)] as any;
-          const pos = lastBreak.index + lastBreak[0].length;
-          strUpToLastBreak = cell.source.value.substring(0, pos);
-        } else {
-          strUpToLastBreak = cell.source.value;
+        if (sourceStartLine > 0) {
+          if (breaks.length) {
+            // FIXME matchAll apparently breaks typechecking?
+            // "error: TS2538 [ERROR]: Type 'RegExpMatchArray' cannot be used as an index type.
+            // deno-lint-ignore no-explicit-any
+            const lastBreak = breaks[Math.min(sourceStartLine - 1, breaks.length - 1)] as any;
+            const pos = lastBreak.index + lastBreak[0].length;
+            strUpToLastBreak = cell.source.value.substring(0, pos);
+          } else {
+            strUpToLastBreak = cell.source.value;
+          }
         }
-        cell.sourceOffset = strUpToLastBreak.length;
+        cell.sourceOffset = strUpToLastBreak.length + "```{ojs}\n".length;
         cell.sourceVerbatim = mappedString(
           cell.sourceVerbatim, [
             "```{ojs}\n",
