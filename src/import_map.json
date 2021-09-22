@@ -2,6 +2,7 @@
   "imports": {
     "async/": "https://deno.land/std@0.97.0/async/",
     "fmt/": "https://deno.land/std@0.97.0/fmt/",
+    "fmt": "https://deno.land/std@0.97.0/fmt",
     "flags/": "https://deno.land/std@0.97.0/flags/",
     "log/": "https://deno.land/std@0.97.0/log/",
     "path/": "https://deno.land/std@0.97.0/path/",

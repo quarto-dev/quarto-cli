@@ -6,6 +6,7 @@
 */
 
 import bounds from "binary-search-bounds";
+import { sprintf } from "fmt/printf.ts";
 
 export function lines(text: string): string[] {
   return text.split(/\r?\n/);
@@ -33,4 +34,35 @@ export function lineNumbers(text: string) {
       column: offset - lineOffsets[startIndex]
     }
   }
+}
+
+import {
+  rgb24
+} from "fmt/colors.ts";
+
+export function formatLineRange(
+  text: string, firstLine: number, lastLine: number
+)
+{
+  const lineWidth = Math.max(
+    String(firstLine + 1).length,
+    String(lastLine + 1).length);
+
+  const ls = lines(text);
+  
+  const result = [];
+  for (let i = firstLine; i <= lastLine; ++i)
+  {
+    const numberStr = rgb24(sprintf(`%${lineWidth}d: `, i + 1), 0x800000);
+    const lineStr = rgb24(ls[i], 0xff0000);
+    result.push({
+      lineNumber: i,
+      content: numberStr + lineStr,
+      rawLine: ls[i]
+    });
+  }
+  return {
+    prefixWidth: lineWidth + 2,
+    lines: result
+  };
 }

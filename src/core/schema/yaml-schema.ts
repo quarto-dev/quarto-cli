@@ -9,7 +9,9 @@
 */
 
 import Ajv from 'ajv';
-import { AnnotatedParse, readAnnotatedYamlFromString } from "./annotated-yaml.ts";
+import { AnnotatedParse, readAnnotatedYamlFromString, readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
+import { Range } from "../ranged-text.ts";
+import { MappedString, mappedLineNumbers } from "../mapped-text.ts";
 
 const ajv = new Ajv({ allErrors: true });
 
@@ -21,25 +23,32 @@ export type JSONSchema = any;
 // NB we change the params field from the URL above to be able to inspect the
 // value
 export interface ErrorObject {
-  keyword: string // validation keyword.
-  instancePath: string // JSON Pointer to the location in the data instance (e.g., `"/prop/1/subProp"`).
-  schemaPath: string // JSON Pointer to the location of the failing keyword in the schema
+  keyword: string; // validation keyword.
+  instancePath: string; // JSON Pointer to the location in the data instance (e.g., `"/prop/1/subProp"`).
+  schemaPath: string; // JSON Pointer to the location of the failing keyword in the schema
 // deno-lint-ignore no-explicit-any
-  params: any, // type is defined by keyword value, see below
+  params: any; // type is defined by keyword value, see below
   // params property is the object with the additional information about error
   // it can be used to generate error messages
   // (e.g., using [ajv-i18n](https://github.com/ajv-validator/ajv-i18n) package).
   // See below for parameters set by all keywords.
-  propertyName?: string // set for errors in `propertyNames` keyword schema.
-                        // `instancePath` still points to the object in this case.
-  message?: string // the error message (can be excluded with option `messages: false`).
+  propertyName?: string; // set for errors in `propertyNames` keyword schema.
+                         // `instancePath` still points to the object in this case.
+  message?: string; // the error message (can be excluded with option `messages: false`).
   // Options below are added with `verbose` option:
   // deno-lint-ignore no-explicit-any
-  schema?: any // the value of the failing keyword in the schema.
-  parentSchema?: object // the schema containing the keyword.
+  schema?: any; // the value of the failing keyword in the schema.
+  parentSchema?: object; // the schema containing the keyword.
   // deno-lint-ignore no-explicit-any
   data?: any // the data validated by the keyword.
 }
+
+export interface LocalizedError {
+  source: MappedString;
+  violatingObject: AnnotatedParse;
+  instancePath: string;
+  message: string;
+};
 
 function navigate(
   path: string[],
@@ -67,24 +76,45 @@ function navigate(
   }
 }
 
-function localizeError(
+function localizeErrors(
   annotation: AnnotatedParse,
   validationErrors: ErrorObject[],
+  source: MappedString,
   _schema: JSONSchema // a JSON-schema object
 ) {
+  const result: LocalizedError[] = [];
+  const locF = mappedLineNumbers(source);
+  
   for (const error of validationErrors) {
+    const instancePath = error.instancePath;
     const path = error.instancePath.split("/").slice(1);
     const violatingObject = navigate(path, annotation);
+    let message = "";
 
-    // This is where we'll put our big case analysis.
+    // this is going to be a big case analysis of possible validation errors.
     if (error.keyword === "type") {
-      console.log(`Expected field ${error.instancePath} at ${violatingObject.start}--${violatingObject.end} to have type ${error.params.type}, but found ${violatingObject.kind} instead`);
+      const start = locF(violatingObject.start);
+      const end = locF(violatingObject.end);
+      
+      message = `Expected field ${instancePath} (starting at ${start.line + 1}:${start.column + 1} and ending at ${end.line + 1}:${end.column + 1}) to have type ${error.params.type}, but found ${violatingObject.kind} instead`;
     } else {
-      throw new Error(`Don't know how to handle error "${error.keyword}"`);
+      console.log({error});
+      console.log(`Internal error! Don't know how to handle error "${error.keyword}"`);
+      // throw new Error(`Don't know how to handle error "${error.keyword}"`);
+      continue;
     }
+    
+    result.push({
+      instancePath,
+      violatingObject,
+      message,
+      source
+    });
   }
+  return result;
 }
 
+// FIXME YAMLSchema is not reentrant because ajv isn't (!)
 export class YAMLSchema
 {
   schema: JSONSchema; // FIXME: I haven't found typescript typings for JSON Schema
@@ -97,21 +127,19 @@ export class YAMLSchema
     this.validate = ajv.compile(schema);
   }
 
-  parseAndValidate(src: string)
+  parseAndValidate(src: MappedString)
   {
-    const annotation = readAnnotatedYamlFromString(src);
+    const annotation = readAnnotatedYamlFromMappedString(src);
+    let errors: LocalizedError[] = [];
     if (!this.validate(annotation.result)) {
-      console.log("---\nValidation failed.\n");
-      console.log("Schema:");
-      console.log(this.schema);
-      console.log("Source:");
-      console.log(src);
-      console.log("Result:");
-      console.log(annotation.result);
-      console.log("\nErrors:")
-
-      localizeError(annotation, this.validate.errors, this.schema);
-      console.log("---\n");
+      errors = localizeErrors(
+        annotation, this.validate.errors,
+        src, this.schema);
+    }
+    return {
+      result: annotation.result,
+      errors
     };
   }
+  
 }

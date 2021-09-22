@@ -123,6 +123,8 @@ import { Metadata } from "../../config/types.ts";
 import { isHtmlCompatible } from "../../config/format.ts";
 import { initDenoDom } from "../../core/html.ts";
 
+import { validateYAMLFrontMatter } from "../../core/schema/front-matter.ts";
+
 export async function renderFiles(
   files: string[],
   options: RenderOptions,
@@ -187,7 +189,13 @@ export async function renderFiles(
           pandocRenderer.onBeforeExecute(recipe.format),
         );
 
-        // patch source file
+        // validate the YAML front matter in the document
+        validateYAMLFrontMatter(context);
+        
+        // FIXME it should be possible to infer this directly now
+        // based on the information in the mapped strings.
+        //
+        // collect line numbers to facilitate runtime error reporting
         const { ojsBlockLineNumbers } = annotateOjsLineNumbers(context);
 
         // execute

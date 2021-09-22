@@ -18,6 +18,7 @@ export type Schema = any;
 export const BooleanSchema = { "type": "boolean" };
 export const NumberSchema = { "type": "number" };
 export const StringSchema = { "type": "string" };
+export const anySchema = { };
 
 // NB this is different from a schema that accepts nothing
 // this schema accepts `null`

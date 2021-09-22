@@ -9,7 +9,7 @@
 */
 
 import { Range, rangedLines } from "./ranged-text.ts";
-import { lines } from "./text.ts";
+import { lines, lineNumbers } from "./text.ts";
 
 export interface MappedString {
   value: string,
@@ -282,4 +282,16 @@ export function mappedDiff(
   }
 
   return mappedString(source, resultChunks);
+}
+
+export function mappedLineNumbers(text: MappedString) {
+  const f = lineNumbers(text.originalString);
+  
+  return function(offset: number) {
+    const n = text.mapClosest(offset);
+    if (n === undefined) {
+      throw new Error("Internal Error: bad offset in mappedLineNumbers");
+    }
+    return f(n);
+  }
 }
