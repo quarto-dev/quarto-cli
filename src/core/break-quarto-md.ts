@@ -94,6 +94,21 @@ export function breakQuartoMd(
           "js",
           cell.source,
         );
+        // FIXME I'd prefer for this not to depend on sourceStartLine now
+        // that we have mapped strings infrastructure
+        const breaks = Array.from(cell.source.value.matchAll(/\r?\n/g));
+        let strUpToLastBreak = "";
+        if (breaks.length) {
+          // FIXME matchAll apparently breaks typechecking?
+          // "error: TS2538 [ERROR]: Type 'RegExpMatchArray' cannot be used as an index type.
+          // deno-lint-ignore no-explicit-any
+          const lastBreak = breaks[Math.min(sourceStartLine, breaks.length - 1)] as any;
+          const pos = lastBreak.index + lastBreak[0].length;
+          strUpToLastBreak = cell.source.value.substring(0, pos);
+        } else {
+          strUpToLastBreak = cell.source.value;
+        }
+        cell.sourceOffset = strUpToLastBreak.length;
         cell.sourceVerbatim = mappedString(
           cell.sourceVerbatim, [
             "```{ojs}\n",
@@ -102,7 +117,6 @@ export function breakQuartoMd(
           ]);
         cell.source = source;
         cell.options = yaml;
-        cell.sourceOffset = 0; // FIXME this will require reworking all of our source offset stuff 
         cell.sourceStartLine = sourceStartLine;
       }
 
