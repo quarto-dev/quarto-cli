@@ -52,12 +52,25 @@ const kCollapseAfter = "collapse-after";
 // Where to place the search results
 const kPanelPlacement = "panel-placement";
 
+// Any aloglia configuration
+const kAlgolia = "algolia";
+
 interface SearchOptions {
   [kLocation]: SearchInputLocation;
   [kCopyButton]: boolean;
   [kCollapseAfter]: boolean | number;
   [kType]: "textbox" | "overlay";
   [kPanelPlacement]: "start" | "end" | "full-width" | "input-wrapper-width";
+  [kAlgolia]?: SearchOptionsAlgolia;
+}
+
+const kSearchOnlyApiKey = "search-only-api-key";
+const kSearchApplicationId = "application-id";
+const kSearchParams = "params";
+interface SearchOptionsAlgolia {
+  [kSearchOnlyApiKey]?: string;
+  [kSearchApplicationId]?: string;
+  [kSearchParams]?: Record<string, unknown>;
 }
 
 export type SearchInputLocation = "navbar" | "sidebar";
@@ -191,28 +204,6 @@ export function searchOptions(
   // The location of the search input
   const location = searchInputLocation(project);
 
-  // The appearance of the search UI
-  const searchType = (
-    userType: unknown,
-    location: SearchInputLocation,
-  ): "overlay" | "textbox" => {
-    if (userType && typeof (userType) === "string") {
-      switch (userType) {
-        case "overlay":
-          return "overlay";
-        default:
-        case "textbox":
-          return "textbox";
-      }
-    } else {
-      if (location === "sidebar") {
-        return "textbox";
-      } else {
-        return "overlay";
-      }
-    }
-  };
-
   if (searchConfig && typeof (searchConfig) === "object") {
     // Sort out collapsing (by default, show 2 sections per document)
     const collapseMatches: number | boolean =
@@ -228,6 +219,7 @@ export function searchOptions(
       [kCollapseAfter]: collapseMatches,
       [kPanelPlacement]: location === "navbar" ? "end" : "start",
       [kType]: searchType(searchConfig[kType], location),
+      [kAlgolia]: algoliaOptions(searchConfig),
     };
   } else if (searchConfig === undefined || !!searchConfig) {
     // The default configuration if search is undefined or true
@@ -238,6 +230,44 @@ export function searchOptions(
       [kPanelPlacement]: location === "navbar" ? "end" : "start",
       [kType]: searchType(undefined, location),
     };
+  }
+}
+
+function searchType(
+  userType: unknown,
+  location: SearchInputLocation,
+): "overlay" | "textbox" {
+  if (userType && typeof (userType) === "string") {
+    switch (userType) {
+      case "overlay":
+        return "overlay";
+      default:
+      case "textbox":
+        return "textbox";
+    }
+  } else {
+    if (location === "sidebar") {
+      return "textbox";
+    } else {
+      return "overlay";
+    }
+  }
+}
+
+function algoliaOptions(searchConfig: Record<string, unknown>) {
+  const algoliaRaw = searchConfig[kAlgolia];
+  if (algoliaRaw && typeof (algoliaRaw) === "object") {
+    const algoliaObj = algoliaRaw as SearchOptionsAlgolia;
+    const applicationId = algoliaObj[kSearchApplicationId];
+    const apiKey = algoliaObj[kSearchOnlyApiKey];
+    const params = algoliaObj[kSearchParams];
+    return {
+      [kSearchApplicationId]: applicationId,
+      [kSearchOnlyApiKey]: apiKey,
+      [kSearchParams]: params,
+    };
+  } else {
+    return undefined;
   }
 }
 
