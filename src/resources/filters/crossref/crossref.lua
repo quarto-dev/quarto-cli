@@ -25,6 +25,7 @@ import("tables.lua")
 import("equations.lua")
 import("listings.lua")
 import("theorems.lua")
+import("qmd.lua")
 import("refs.lua")
 import("meta.lua")
 import("format.lua")
@@ -40,6 +41,7 @@ import("../common/figures.lua")
 import("../common/theorems.lua")
 import("../common/meta.lua")
 import("../common/table.lua")
+import("../common/string.lua")
 import("../common/debug.lua")
 import("../common/json.lua")
 -- [/import]
@@ -58,7 +60,8 @@ return {
     tables(),
     equations(),
     listings(),
-    theorems()
+    theorems(),
+    qmd()
   }),
   resolveRefs(),
   crossrefMetaInject(),
