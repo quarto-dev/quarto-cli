@@ -1,5 +1,5 @@
 // Fuse search options
-const searchOptions = {
+const fuseOptions = {
   isCaseSensitive: false,
   shouldSort: true,
   minMatchCharLength: 2,
@@ -244,22 +244,12 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
               }
             },
             getItems({ query }) {
-              return fuse.search(query, searchOptions).map((result) => {
-                const addParam = (url, name, value) => {
-                  const anchorParts = url.split("#");
-                  const baseUrl = anchorParts[0];
-                  const sep = baseUrl.search("\\?") > 0 ? "&" : "?";
-                  anchorParts[0] = baseUrl + sep + name + "=" + value;
-                  return anchorParts.join("#");
-                };
-
-                return {
-                  title: result.item.title,
-                  section: result.item.section,
-                  href: addParam(result.item.href, kQueryArg, query),
-                  text: highlightMatch(query, result.item.text),
-                };
-              });
+              const algoliaOptions = options.algolia;
+              if (algoliaOptions) {
+                return algoliaSearch(query, algoliaOptions);
+              } else {
+                return fuseSearch(query, fuseOptions);
+              }
             },
             templates: {
               noResults({ createElement }) {
@@ -735,4 +725,46 @@ function getMeta(metaName) {
     }
   }
   return "";
+}
+
+function algoliaSearch(query, algoliaOptions) {
+  const applicationId = algoliaOptions["application-id"];
+  const searchOnlyApiKey = algoliaOptions["search-only-api-key"];
+  const indexName = algoliaOptions["index-name"];
+  const searchClient = window.algoliasearch(applicationId, searchOnlyApiKey);
+  const searchParams = algoliaOptions["params"];
+
+  const { getAlgoliaResults } = window["@algolia/autocomplete-preset-algolia"];
+  return getAlgoliaResults({
+    searchClient,
+    queries: [
+      {
+        indexName: indexName,
+        query,
+        params: {
+          hitsPerPage: 20,
+          ...searchParams,
+        },
+      },
+    ],
+  });
+}
+
+function fuseSearch(query, fuseOptions) {
+  return fuse.search(query, fuseOptions).map((result) => {
+    const addParam = (url, name, value) => {
+      const anchorParts = url.split("#");
+      const baseUrl = anchorParts[0];
+      const sep = baseUrl.search("\\?") > 0 ? "&" : "?";
+      anchorParts[0] = baseUrl + sep + name + "=" + value;
+      return anchorParts.join("#");
+    };
+
+    return {
+      title: result.item.title,
+      section: result.item.section,
+      href: addParam(result.item.href, kQueryArg, query),
+      text: highlightMatch(query, result.item.text),
+    };
+  });
 }

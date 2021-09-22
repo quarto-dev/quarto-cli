@@ -68,9 +68,11 @@ interface SearchOptions {
 const kSearchOnlyApiKey = "search-only-api-key";
 const kSearchApplicationId = "application-id";
 const kSearchParams = "params";
+const kSearchIndexName = "index-name";
 interface SearchOptionsAlgolia {
   [kSearchOnlyApiKey]?: string;
   [kSearchApplicationId]?: string;
+  [kSearchIndexName]?: string;
   [kSearchParams]?: Record<string, unknown>;
 }
 
@@ -261,10 +263,12 @@ function algoliaOptions(searchConfig: Record<string, unknown>) {
     const algoliaObj = algoliaRaw as SearchOptionsAlgolia;
     const applicationId = algoliaObj[kSearchApplicationId];
     const apiKey = algoliaObj[kSearchOnlyApiKey];
+    const indexName = algoliaObj[kSearchIndexName];
     const params = algoliaObj[kSearchParams];
     return {
       [kSearchApplicationId]: applicationId,
       [kSearchOnlyApiKey]: apiKey,
+      [kSearchIndexName]: indexName,
       [kSearchParams]: params,
     };
   } else {
@@ -344,12 +348,16 @@ export function websiteSearchDependency(
     // and add the algolia search dependency
     const algoliaOpts = options[kAlgolia];
     if (algoliaOpts) {
-      if (algoliaOpts[kSearchApplicationId] && algoliaOpts[kSearchOnlyApiKey]) {
+      if (
+        algoliaOpts[kSearchApplicationId] &&
+        algoliaOpts[kSearchOnlyApiKey] &&
+        algoliaOpts[kSearchIndexName]
+      ) {
         scripts.push(searchDependency("algoliasearch-lite.umd.js"));
         scripts.push(searchDependency("autocomplete-preset-algolia.umd.js"));
       } else {
         warning(
-          "Algolia search is misconfigured. Please ensure that you provide both an application-id and search-only-api-key.",
+          "Algolia search is misconfigured. Please ensure that you provide an application-id, search-only-api-key, and index-name.",
         );
       }
     }
