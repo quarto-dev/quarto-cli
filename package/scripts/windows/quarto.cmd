@@ -40,7 +40,8 @@ IF EXIST "%QUARTO_TS_PATH%" (
 	SET "QUARTO_SHARE_PATH=%SCRIPT_DIR%..\share"
 )
 
-IF "%1"=="--resources" (
+IF "%1"=="--paths" (
+	ECHO %QUARTO_BIN_PATH%
 	ECHO %QUARTO_SHARE_PATH%
 	GOTO end
 )
