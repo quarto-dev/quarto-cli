@@ -84,7 +84,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     defaultActiveItemId: 0,
     panelContainer: "#quarto-search-results",
     panelPlacement: quartoSearchOptions["panel-placement"],
-    debug: false,
+    debug: true,
     classNames: {
       form: "d-flex",
     },
@@ -114,78 +114,100 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     },
     reshape({ sources, state }) {
       return sources.map((source) => {
-        const items = source.getItems();
+        try {
+          const items = source.getItems();
 
-        // group the items by document
-        const groupedItems = new Map();
-        items.forEach((item) => {
-          const hrefParts = item.href.split("#");
-          const baseHref = hrefParts[0];
+          // Validate the items
+          validateItems(items);
 
-          const items = groupedItems.get(baseHref);
-          if (!items) {
-            groupedItems.set(baseHref, [item]);
-          } else {
-            items.push(item);
-            groupedItems.set(baseHref, items);
-          }
-        });
+          // group the items by document
+          const groupedItems = new Map();
+          items.forEach((item) => {
+            const hrefParts = item.href.split("#");
+            const baseHref = hrefParts[0];
 
-        const reshapedItems = [];
-        let count = 1;
-        for (const [_key, value] of groupedItems) {
-          const firstItem = value[0];
-          reshapedItems.push({
-            type: kItemTypeDoc,
-            title: firstItem.title,
-            href: firstItem.href,
-            text: firstItem.text,
-            section: firstItem.section,
+            const items = groupedItems.get(baseHref);
+            if (!items) {
+              groupedItems.set(baseHref, [item]);
+            } else {
+              items.push(item);
+              groupedItems.set(baseHref, items);
+            }
           });
 
-          const collapseMatches = quartoSearchOptions["collapse-after"];
-          const collapseCount =
-            typeof collapseMatches === "number" ? collapseMatches : 1;
+          const reshapedItems = [];
+          let count = 1;
+          for (const [_key, value] of groupedItems) {
+            const firstItem = value[0];
+            reshapedItems.push({
+              type: kItemTypeDoc,
+              title: firstItem.title,
+              href: firstItem.href,
+              text: firstItem.text,
+              section: firstItem.section,
+            });
 
-          if (value.length > 1) {
-            const target = `search-more-${count}`;
-            const isExpanded =
-              state.context.expanded && state.context.expanded.includes(target);
+            const collapseMatches = quartoSearchOptions["collapse-after"];
+            const collapseCount =
+              typeof collapseMatches === "number" ? collapseMatches : 1;
 
-            const remainingCount = value.length - collapseCount;
+            if (value.length > 1) {
+              const target = `search-more-${count}`;
+              const isExpanded =
+                state.context.expanded &&
+                state.context.expanded.includes(target);
 
-            for (let i = 1; i < value.length; i++) {
-              if (collapseMatches && i === collapseCount) {
-                reshapedItems.push({
-                  target,
-                  title: isExpanded
-                    ? `Hide additional matches`
-                    : remainingCount === 1
-                    ? `${remainingCount} more match in this document`
-                    : `${remainingCount} more matches in this document`,
-                  type: kItemTypeMore,
-                  href: kItemTypeMoreHref,
-                });
-              }
+              const remainingCount = value.length - collapseCount;
 
-              if (isExpanded || !collapseMatches || i < collapseCount) {
-                reshapedItems.push({
-                  ...value[i],
-                  type: kItemTypeItem,
-                  target,
-                });
+              for (let i = 1; i < value.length; i++) {
+                if (collapseMatches && i === collapseCount) {
+                  reshapedItems.push({
+                    target,
+                    title: isExpanded
+                      ? `Hide additional matches`
+                      : remainingCount === 1
+                      ? `${remainingCount} more match in this document`
+                      : `${remainingCount} more matches in this document`,
+                    type: kItemTypeMore,
+                    href: kItemTypeMoreHref,
+                  });
+                }
+
+                if (isExpanded || !collapseMatches || i < collapseCount) {
+                  reshapedItems.push({
+                    ...value[i],
+                    type: kItemTypeItem,
+                    target,
+                  });
+                }
               }
             }
+            count += 1;
           }
-          count += 1;
-        }
 
-        return {
-          ...source,
-          getItems() {
-            return reshapedItems;
-          },
-        };
+          return {
+            ...source,
+            getItems() {
+              return reshapedItems;
+            },
+          };
+        } catch (error) {
+          // Some form of error occurred
+          return {
+            ...source,
+            getItems() {
+              return [
+                {
+                  title: error.name || "An Error Occurred While Searching",
+                  text:
+                    error.message ||
+                    "An unknown error occurred while attempting to perform the requested search.",
+                  type: kItemTypeError,
+                },
+              ];
+            },
+          };
+        }
       });
     },
     navigator: {
@@ -308,6 +330,41 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     focusSearchInput();
   }
 });
+
+function validateItems(items) {
+  // Validate the first item
+  if (items.length > 0) {
+    const item = items[0];
+    const missingFields = [];
+    if (item.href === undefined) {
+      missingFields.push("href");
+    }
+    if (item.title === undefined) {
+      missingFields.push("title");
+    }
+    if (item.text === undefined) {
+      missingFields.push("text");
+    }
+
+    if (missingFields.length === 1) {
+      throw {
+        name: `Error: Search index is missing the <code>${missingFields[0]}</code> field.`,
+        message: `The items being returned for this search do not include all the required fields. Please ensure that your index items include the <code>${missingFields[0]}</code> field or use <code>index-fields</code> in your <code>_quarto.yml</code> file to specify the field names.`,
+      };
+    } else if (missingFields.length > 1) {
+      const missingFieldList = missingFields
+        .map((field) => {
+          return `<code>${field}</code>`;
+        })
+        .join(", ");
+
+      throw {
+        name: `Error: Search index is missing the following fields: ${missingFieldList}.`,
+        message: `The items being returned for this search do not include all the required fields. Please ensure that your index items includes the following fields: ${missingFieldList}, or use <code>index-fields</code> in your <code>_quarto.yml</code> file to specify the field names.`,
+      };
+    }
+  }
+}
 
 let lastQuery = null;
 function showCopyLink(query, options) {
@@ -432,6 +489,7 @@ function focusSearchInput() {
 const kItemTypeDoc = "document";
 const kItemTypeMore = "document-more";
 const kItemTypeItem = "document-item";
+const kItemTypeError = "error";
 
 function renderItem(
   item,
@@ -467,6 +525,8 @@ function renderItem(
         item.text,
         item.href
       );
+    case kItemTypeError:
+      return createErrorCard(createElement, item.title, item.text);
     default:
       return undefined;
   }
@@ -602,6 +662,27 @@ function createSection(createElement, title, text, href) {
   return linkEl;
 }
 
+function createErrorCard(createElement, title, text) {
+  const descEl = createElement("p", {
+    class: "search-error-text",
+    dangerouslySetInnerHTML: {
+      __html: text,
+    },
+  });
+
+  const titleEl = createElement("p", {
+    class: "search-error-title",
+    dangerouslySetInnerHTML: {
+      __html: `<i class="bi bi-exclamation-circle search-error-icon"></i> ${title}`,
+    },
+  });
+  const errorEl = createElement("div", { class: "search-error" }, [
+    titleEl,
+    descEl,
+  ]);
+  return errorEl;
+}
+
 function positionPanel(pos) {
   const panelEl = window.document.querySelector(
     "#quarto-search-results .aa-Panel"
@@ -622,19 +703,23 @@ function positionPanel(pos) {
 /* Highlighting */
 // highlighting functions
 function highlightMatch(query, text) {
-  const start = text.toLowerCase().indexOf(query.toLowerCase());
-  if (start !== -1) {
-    const end = start + query.length;
-    text =
-      text.slice(0, start) +
-      "<mark class='search-match'>" +
-      text.slice(start, end) +
-      "</mark>" +
-      text.slice(end);
-    const clipStart = Math.max(start - 50, 0);
-    const clipEnd = clipStart + 200;
-    text = text.slice(clipStart, clipEnd);
-    return text.slice(text.indexOf(" ") + 1);
+  if (text) {
+    const start = text.toLowerCase().indexOf(query.toLowerCase());
+    if (start !== -1) {
+      const end = start + query.length;
+      text =
+        text.slice(0, start) +
+        "<mark class='search-match'>" +
+        text.slice(start, end) +
+        "</mark>" +
+        text.slice(end);
+      const clipStart = Math.max(start - 50, 0);
+      const clipEnd = clipStart + 200;
+      text = text.slice(clipStart, clipEnd);
+      return text.slice(text.indexOf(" ") + 1);
+    } else {
+      return text;
+    }
   } else {
     return text;
   }

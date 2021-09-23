@@ -248,6 +248,24 @@ $quarto-search-collapse-icon-size: 26px !default;
     align-items: center;
   }
 
+  .search-error {
+    padding-top: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    cursor: default;
+    .search-error-title {
+      height: 2rem;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      .search-error-icon {
+        margin-right: 8px;
+      }
+    }
+    .search-error-text {
+      font-weight: 300;
+    }
+  }
+
   .search-result-text {
     font-weight: 300;
     overflow: hidden;
