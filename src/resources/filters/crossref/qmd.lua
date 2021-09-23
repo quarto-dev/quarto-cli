@@ -10,22 +10,12 @@ function qmd()
     return {
       -- for qmd, look for label: and fig-cap: inside code block text
       CodeBlock = function(el)
-        local label = el.text:match("|%slabel:%s(%a+%-%a+)\n")
-        if label ~= nil and isFigureRef(label) then
-          local figCap = el.text:match("|%sfig%-cap:%s(.-)\n")
-          if figCap ~= nil then
-            -- remove enclosing quotes (if any)
-            if figCap:sub(1, 1) == '"' then
-              figCap = figCap:sub(2, #figCap)
-            end
-            if figCap:sub(#figCap, #figCap) == '"' then
-              figCap = figCap:sub(1, #figCap - 1)
-            end
-            -- replace escaped quotes
-            figCap = figCap:gsub('\\"', '"')
-            -- add to index
-            local order = indexNextOrder("fig")
-            indexAddEntry(label, nil, order, stringToInlines(figCap))
+        local label = el.text:match("|%slabel:%s(%a+%-[^\n]+)\n")
+        if label ~= nil and (isFigureRef(label) or isTableRef(label)) then
+          local type, caption = parseCaption(label, el.text)
+          if type == "fig" or type == "tbl" then
+            local order = indexNextOrder(type)
+            indexAddEntry(label, nil, order, stringToInlines(caption))
           end
         end
         return el
@@ -34,4 +24,25 @@ function qmd()
   else
     return {}
   end
+end
+
+function parseCaption(label, elText)
+  local type, caption = elText:match("|%s(%a+)%-cap:%s(.-)\n")
+  if caption ~= nil then
+    -- remove enclosing quotes (if any)
+    if caption:sub(1, 1) == '"' then
+      caption = caption:sub(2, #caption)
+    end
+    if caption:sub(#caption, #caption) == '"' then
+      caption = caption:sub(1, #caption - 1)
+    end
+    -- replace escaped quotes
+    caption = caption:gsub('\\"', '"')
+
+    -- return
+    return type, caption
+  else
+    return nil
+  end
+  
 end
