@@ -73,7 +73,7 @@ const kSearchOnlyApiKey = "search-only-api-key";
 const kSearchApplicationId = "application-id";
 const kSearchParams = "params";
 const kSearchIndexName = "index-name";
-const kIndexKeys = "index-keys";
+const kIndexFields = "index-fields";
 const kHref = "href";
 const kSection = "section";
 const kTitle = "title";
@@ -83,7 +83,7 @@ interface SearchOptionsAlgolia {
   [kSearchOnlyApiKey]?: string;
   [kSearchApplicationId]?: string;
   [kSearchIndexName]?: string;
-  [kIndexKeys]?: {
+  [kIndexFields]?: {
     [kHref]?: string;
     [kSection]?: string;
     [kTitle]?: string;
@@ -295,13 +295,13 @@ function algoliaOptions(searchConfig: Record<string, unknown>) {
     const apiKey = algoliaObj[kSearchOnlyApiKey];
     const indexName = algoliaObj[kSearchIndexName];
     const params = algoliaObj[kSearchParams];
-    const indexKeys = algoliaObj[kIndexKeys];
+    const indexKeys = algoliaObj[kIndexFields];
     return {
       [kSearchApplicationId]: applicationId,
       [kSearchOnlyApiKey]: apiKey,
       [kSearchIndexName]: indexName,
       [kSearchParams]: params,
-      [kIndexKeys]: indexKeys,
+      [kIndexFields]: indexKeys,
     };
   } else {
     return undefined;

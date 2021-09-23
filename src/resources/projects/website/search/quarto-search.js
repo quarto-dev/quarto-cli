@@ -732,7 +732,7 @@ function algoliaSearch(query, limit, algoliaOptions) {
   const applicationId = algoliaOptions["application-id"];
   const searchOnlyApiKey = algoliaOptions["search-only-api-key"];
   const indexName = algoliaOptions["index-name"];
-  const indexKeys = algoliaOptions["index-keys"];
+  const indexFields = algoliaOptions["index-fields"];
   const searchClient = window.algoliasearch(applicationId, searchOnlyApiKey);
   const searchParams = algoliaOptions["params"];
 
@@ -749,14 +749,14 @@ function algoliaSearch(query, limit, algoliaOptions) {
       },
     ],
     transformResponse: (response) => {
-      if (!indexKeys) {
+      if (!indexFields) {
         return response.hits;
       } else {
         const remappedHits = response.hits.map((hit) => {
           return hit.map((item) => {
             const newItem = { ...item };
             ["href", "section", "title", "text"].forEach((keyName) => {
-              const mappedName = indexKeys[keyName];
+              const mappedName = indexFields[keyName];
               if (
                 mappedName &&
                 item[mappedName] !== undefined &&
