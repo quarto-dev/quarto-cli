@@ -15,39 +15,85 @@
 // deno-lint-ignore no-explicit-any
 export type Schema = any;
 
-export const BooleanSchema = { "type": "boolean" };
-export const NumberSchema = { "type": "number" };
-export const StringSchema = { "type": "string" };
-export const anySchema = { };
+export const BooleanSchema = {
+  "type": "boolean",
+  "description": "be a boolean value"
+};
+
+export const NumberSchema = {
+  "type": "number",
+  "description": "be a number"
+};
+
+export const StringSchema = {
+  "type": "string",
+  "description": "be a string"
+};
+
+export const anySchema = {
+  "description": "be anything"
+};
 
 // NB this is different from a schema that accepts nothing
 // this schema accepts `null`
-export const NullSchema = { "type": "null" }; 
+export const NullSchema = {
+  "type": "null",
+  "description": "be the null value"
+}; 
 
 export function enumSchema(...args: string[])
 {
-  return { "enum": args };
+  if (args.length === 0) {
+    throw new Error("Internal Error: Empty enum schema not supported.");
+  }
+  return {
+    "enum": args,
+    "description": args.length > 1 ? `be one of: ${args.map(x => "'" + x + "'").join(", ")}` : `be '${args[0]}'`
+  };
 }
 
 export function oneOfSchema(...args: Schema[])
 {
-  return { "oneOf": args };
+  return {
+    "oneOf": args,
+    "description": `be exactly one of: ${args.map(x => x.description.slice(3, )).join(", ")}`
+  };
+}
+
+export function anyOfSchema(...args: Schema[])
+{
+  return {
+    "anyOf": args,
+    "description": `be at least one of: ${args.map(x => x.description.slice(3, )).join(", ")}`
+  };
 }
 
 // FIXME: add dynamic check for requiredProps being a subset of the
 // keys in properties
-export function objectSchema(
+export function objectSchema(params: {
   properties?: { [k: string]: Schema },
-  requiredProps?: string[],
-  additionalProperties?: Schema
-) 
+  required?: string[],
+  additionalProperties?: Schema,
+  description?: string
+} = {}) 
 {
-  const result: Schema = { "type": "object" };
+  let {
+    properties, required, additionalProperties, description
+  } = params;
+  required = required || [];
+  properties = properties || {};
+  description = description || "be an object";
+  
+  const result: Schema = {
+    "type": "object",
+    description
+  };
+  
   if (properties) {
     result.properties = properties;
   }
-  if (requiredProps && requiredProps.length > 0) {
-    result.required = requiredProps;
+  if (required && required.length > 0) {
+    result.required = required;
   }
   // this is useful to characterize Record<string, foo> types: use
   // objectSchema({}, [], foo)
@@ -60,8 +106,15 @@ export function objectSchema(
 export function arraySchema(items?: Schema)
 {
   if (items) {
-    return { "type": "array", items };
+    return {
+      "type": "array",
+      "description": `be an array of values, where each element should ` + items.description,
+      items
+    };
   } else {
-    return { "type": "array" };
+    return {
+      "type": "array",
+      "description": `be an array of values`
+    };
   }
 }

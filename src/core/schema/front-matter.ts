@@ -54,10 +54,15 @@ import {
   error
 } from "log/mod.ts";
 
-export const htmlOptionsSchema = anyS;
+import { formatExecuteOptionsSchema } from "./types.ts";
+
+export const htmlOptionsSchema = formatExecuteOptionsSchema;
 
 export const htmlFormatSchema = objectS({
-  "html": htmlOptionsSchema
+  properties: {
+    "html": htmlOptionsSchema
+  },
+  description: "be an HTML format object"
 });
 
 export const frontMatterFormatSchema = oneOfS(
@@ -96,34 +101,5 @@ export function validateYAMLFrontMatter(context: RenderContext)
     [{ start: lineRanges[1].range.start, end: lineRanges[lineRanges.length - 2].range.end }]
   );
 
-  const result = frontMatter.parseAndValidate(frontMatterText);
-  const locF = mappedLineNumbers(frontMatterText);
-  const nLines = lines(frontMatterText.originalString).length;
-  if (result.errors.length) {
-    error("Validation of YAML front matter failed.");
-    for (const err of result.errors) {
-      error(err.message);
-      error(rgb24("=====", 0x800000));
-      const start = locF(err.violatingObject.start);
-      const end = locF(err.violatingObject.end);
-      const {
-        prefixWidth,
-        lines
-      } = formatLineRange(
-        frontMatterText.originalString,
-        Math.max(0, start.line - 1),
-        Math.min(end.line + 1, nLines - 1))
-      for (const { lineNumber, content, rawLine } of lines) {
-        error(content);
-        if (lineNumber >= start.line && lineNumber <= end.line) {
-          const startColumn = (lineNumber > start.line ? 0 : start.column);
-          const endColumn = (lineNumber < end.line ? rawLine.length : end.column);
-          error(" ".repeat(prefixWidth + startColumn + 1) + "^".repeat(endColumn - startColumn));
-        }
-      }
-      error(rgb24("=====", 0x800000));
-    }
-    throw new Error();
-  }
-  
+  return frontMatter.parseAndValidateWithErrors(frontMatterText, "Validation of YAML front matter failed.");
 }

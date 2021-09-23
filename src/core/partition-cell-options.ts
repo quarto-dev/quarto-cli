@@ -12,6 +12,9 @@ import { warnOnce } from "./log.ts";
 import { rangedLines, rangedSubstring, RangedSubstring, Range } from "./ranged-text.ts";
 import { mappedString, MappedString } from "./mapped-text.ts";
 
+import { LocalizedError } from "./schema/yaml-schema.ts";
+import { languageChunkValidators } from "./schema/chunk-metadata.ts";
+
 export function partitionCellOptions(
   language: string,
   source: string[],
@@ -65,6 +68,7 @@ export function partitionCellOptions(
 export function partitionCellOptionsMapped(
   language: string,
   source: MappedString,
+  validate = false
 ) {
   const commentChars = langCommentChars(language);
   const optionPrefix = optionCommentPrefix(commentChars[0]);
@@ -102,20 +106,32 @@ export function partitionCellOptionsMapped(
     break;
   }
 
-  let yaml = yamlLines.length > 0
-    ? readAnnotatedYamlFromMappedString(mappedSource(source, yamlLines)) // readYamlFromString(yamlLines.join("\n"))
-    : undefined;
-
-  // check that we got what we expected
-  if (
-    yaml !== undefined && (typeof (yaml) !== "object" || Array.isArray(yaml))
-  ) {
-    warnOnce("Invalid YAML option format in cell:\n" + yamlLines.join("\n"));
-    yaml = undefined;
+  let yaml = undefined;
+  let yamlValidationErrors: LocalizedError[] = [];
+  
+  if (yamlLines.length) {
+    let yamlMappedString = mappedSource(source, yamlLines);
+    const validator = languageChunkValidators[language];
+    
+    if (validator === undefined || !validate) {
+      yaml = readAnnotatedYamlFromMappedString(yamlMappedString);
+    } else {
+      const valResult = validator.parseAndValidate(yamlMappedString);
+      if (valResult.errors.length > 0) {
+        yamlValidationErrors = valResult.errors;
+      } else {
+        yaml = valResult.result;
+      }
+      validator.reportErrorsInSource(
+        valResult, yamlMappedString,
+        `Validation of YAML ${language} chunk options failed`
+      );
+    }
   }
 
   return {
     yaml: yaml as Record<string, unknown> | undefined,
+    yamlValidationErrors,
     optionsSource,
     source: mappedString(source, [{ start: endOfYaml, end: source.value.length }]), // .slice(yamlLines.length),
     sourceStartLine: yamlLines.length,
@@ -187,4 +203,5 @@ const kLangCommentChars: Record<string, string | string[]> = {
   asy: "//",
   haskell: "--",
   dot: "//",
+  ojs: "//"
 };

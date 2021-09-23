@@ -116,7 +116,7 @@ export async function ojsCompile(
     "commonmark",
   ]);
   
-  const output = breakQuartoMd(markdown);
+  const output = breakQuartoMd(markdown, true);
   
   let ojsCellID = 0;
   let ojsBlockIndex = 0; // this is different from ojsCellID because of inline cells.

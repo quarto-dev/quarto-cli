@@ -12,6 +12,9 @@ import Ajv from 'ajv';
 import { AnnotatedParse, readAnnotatedYamlFromString, readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 import { Range } from "../ranged-text.ts";
 import { MappedString, mappedLineNumbers } from "../mapped-text.ts";
+import { formatLineRange, lines } from "../text.ts";
+import { error } from "log/mod.ts";
+import { rgb24 } from "fmt/colors.ts";
 
 const ajv = new Ajv({ allErrors: true });
 
@@ -72,37 +75,89 @@ function navigate(
     const searchKey = Number(path[pathIndex]);
     return navigate(path, annotation.components[searchKey], pathIndex + 1);
   } else {
-    throw new Error(`Unexpected kind: ${annotation.kind}`);
+    throw new Error(`Internal error: unexpected kind ${annotation.kind}`);
   }
 }
 
-function localizeErrors(
+function navigateSchema(
+  path: string[],
+  schema: JSONSchema,
+  pathIndex = 0): JSONSchema
+{
+  if (pathIndex >= path.length - 1) {
+    return schema;
+  }
+  const pathVal = path[pathIndex];
+  if (pathVal === "properties") {
+    const key = path[pathIndex + 1];
+    const subSchema = schema.properties[key];
+    return navigateSchema(path, subSchema, pathIndex + 2);
+  } else if (pathVal === "anyOf") {
+    const key = Number(path[pathIndex + 1]);
+    const subSchema = schema.anyOf[key];
+    return navigateSchema(path, subSchema, pathIndex + 2);
+  } else if (pathVal === "oneOf") {
+    const key = Number(path[pathIndex + 1]);
+    const subSchema = schema.oneOf[key];
+    return navigateSchema(path, subSchema, pathIndex + 2);
+  } else {
+    console.log({path});
+    throw new Error("Internal error: Failed to navigate schema path");
+  }
+}
+
+function isProperPrefix(a: string, b:string)
+{
+  return (b.length > a.length) && b.substring(0, a.length) === a;
+}
+
+function localizeAndPruneErrors(
   annotation: AnnotatedParse,
   validationErrors: ErrorObject[],
   source: MappedString,
-  _schema: JSONSchema // a JSON-schema object
+  schema: JSONSchema
 ) {
   const result: LocalizedError[] = [];
   const locF = mappedLineNumbers(source);
-  
+
   for (const error of validationErrors) {
     const instancePath = error.instancePath;
+    
     const path = error.instancePath.split("/").slice(1);
-    const violatingObject = navigate(path, annotation);
-    let message = "";
 
-    // this is going to be a big case analysis of possible validation errors.
-    if (error.keyword === "type") {
-      const start = locF(violatingObject.start);
-      const end = locF(violatingObject.end);
-      
-      message = `Expected field ${instancePath} (starting at ${start.line + 1}:${start.column + 1} and ending at ${end.line + 1}:${end.column + 1}) to have type ${error.params.type}, but found ${violatingObject.kind} instead`;
-    } else {
-      console.log({error});
-      console.log(`Internal error! Don't know how to handle error "${error.keyword}"`);
-      // throw new Error(`Don't know how to handle error "${error.keyword}"`);
+    // FIXME these are O(n^2) checks; maybe we can avoid the
+    // performance trouble by building the tree of instancePaths and
+    // the associated errors?
+
+    // we skip anyOf and oneOf errors that have other more localized errors inside them
+    if (["oneOf", "anyOf"].indexOf(error.keyword) !== -1 &&
+      validationErrors.filter(
+        otherError => isProperPrefix(
+          instancePath, otherError.instancePath)).length > 0) {
       continue;
     }
+
+    // we skip enums and types if there is a broader oneOf or anyOf which
+    // matches our instancePath
+    if (["enum", "type"].indexOf(error.keyword) !== -1 &&
+      validationErrors.some(
+        (otherError => instancePath === otherError.instancePath &&
+          ["oneOf", "anyOf"].indexOf(otherError.keyword) !== -1))) {
+      continue;
+    }
+    const schemaPath = error.schemaPath.split("/").slice(1);
+    const violatingObject = navigate(path, annotation);
+    const innerSchema = navigateSchema(schemaPath, schema);
+    let message = "";
+
+    const start = locF(violatingObject.start);
+    const end = locF(violatingObject.end);
+    
+    const locStr = (start.line === end.line ?
+      `(line ${start.line + 1}, columns ${start.column + 1}--${end.column + 1})`
+      : `(line ${start.line + 1}, column ${start.column + 1} through line ${end.line + 1}, column ${end.column + 1})`);
+
+    message = `${locStr}: Expected field ${instancePath} to ${innerSchema.description}`;
     
     result.push({
       instancePath,
@@ -111,8 +166,15 @@ function localizeErrors(
       source
     });
   }
+  result.sort((a, b) => a.violatingObject.start - b.violatingObject.start);
   return result;
 }
+
+interface ValidatedParseResult
+{
+  result: any,
+  errors: LocalizedError[]
+};
 
 // FIXME YAMLSchema is not reentrant because ajv isn't (!)
 export class YAMLSchema
@@ -132,7 +194,7 @@ export class YAMLSchema
     const annotation = readAnnotatedYamlFromMappedString(src);
     let errors: LocalizedError[] = [];
     if (!this.validate(annotation.result)) {
-      errors = localizeErrors(
+      errors = localizeAndPruneErrors(
         annotation, this.validate.errors,
         src, this.schema);
     }
@@ -140,6 +202,71 @@ export class YAMLSchema
       result: annotation.result,
       errors
     };
+  }
+
+  reportErrorsInSource(
+    result: ValidatedParseResult,
+    src: MappedString,
+    message: string
+  )
+  {
+    if (result.errors.length) {
+      const locF = mappedLineNumbers(src);
+      const nLines = lines(src.originalString).length;
+      error(message);
+      for (const err of result.errors) {
+        console.log(err.message);
+        // attempt to trim whitespace from error report
+        let startO = err.violatingObject.start;
+        let endO = err.violatingObject.end;
+        while (
+          (src.mapClosest(startO)! < src.originalString.length - 1) &&
+            src.originalString[src.mapClosest(startO)!].match(/\s/)
+        ) {
+          startO++;
+        }
+        while (
+          (src.mapClosest(endO)! > src.mapClosest(startO)!) &&
+            src.originalString[src.mapClosest(endO)!].match(/\s/)
+        ) {
+          endO--;
+        }
+        // FIXME figure out why we're off by one at the end of subM here.
+        // console.log({
+        //   startO, endO, originalString: src.originalString, char: src.originalString[startO],
+        //   sub: src.originalString.substring(startO, endO),
+        //   subM: src.originalString.substring(src.mapClosest(startO)!, src.mapClosest(endO)!)
+        // });
+        const start = locF(startO);
+        const end = locF(endO);
+        const {
+          prefixWidth,
+          lines
+        } = formatLineRange(
+          src.originalString,
+          Math.max(0, start.line - 1),
+          Math.min(end.line + 1, nLines - 1));
+        for (const { lineNumber, content, rawLine } of lines) {
+          console.log(content);
+          if (lineNumber >= start.line && lineNumber <= end.line) {
+            const startColumn = (lineNumber > start.line ? 0 : start.column);
+            const endColumn = (lineNumber < end.line ? rawLine.length : end.column);
+            console.log(" ".repeat(prefixWidth + startColumn) + "^".repeat(endColumn - startColumn + 1));
+          }
+        }
+      }
+    }
+    return result;
+  }
+  
+  parseAndValidateWithErrors(
+    src: MappedString,
+    message: string
+  )
+  {
+    const result = this.parseAndValidate(src);
+    this.reportErrorsInSource(result, src, message);
+    return result;
   }
   
 }
