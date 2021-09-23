@@ -84,7 +84,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     defaultActiveItemId: 0,
     panelContainer: "#quarto-search-results",
     panelPlacement: quartoSearchOptions["panel-placement"],
-    debug: true,
+    debug: false,
     classNames: {
       form: "d-flex",
     },
