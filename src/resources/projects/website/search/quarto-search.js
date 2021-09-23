@@ -1,11 +1,3 @@
-// Fuse search options
-const fuseOptions = {
-  isCaseSensitive: false,
-  shouldSort: true,
-  minMatchCharLength: 2,
-  limit: 25,
-};
-
 const kQueryArg = "q";
 const kResultsArg = "showResults";
 
@@ -22,290 +14,299 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   var searchEl = window.document.getElementById("quarto-search");
   if (!searchEl) return;
 
-  // create index then initialize autocomplete
-  readSearchData().then(function ({ fuse, options }) {
-    // initialize autocomplete
-    const { autocomplete } = window["@algolia/autocomplete-js"];
+  const { autocomplete } = window["@algolia/autocomplete-js"];
 
-    // Used to determine highlighting behavior for this page
-    // A `q` query param is expected when the user follows a search
-    // to this page
-    const currentUrl = new URL(window.location);
-    const query = currentUrl.searchParams.get(kQueryArg);
-    const showSearchResults = currentUrl.searchParams.get(kResultsArg);
-    const mainEl = window.document.querySelector("main");
+  let quartoSearchOptions = {};
+  const searchOptionEl = window.document.getElementById(
+    "quarto-search-options"
+  );
+  if (searchOptionEl) {
+    const jsonStr = searchOptionEl.textContent;
+    quartoSearchOptions = JSON.parse(jsonStr);
+  }
 
-    // highlight matches on the page
-    if (query !== null && mainEl) {
-      // perform any highlighting
-      highlight(query, mainEl);
+  // Used to determine highlighting behavior for this page
+  // A `q` query param is expected when the user follows a search
+  // to this page
+  const currentUrl = new URL(window.location);
+  const query = currentUrl.searchParams.get(kQueryArg);
+  const showSearchResults = currentUrl.searchParams.get(kResultsArg);
+  const mainEl = window.document.querySelector("main");
 
-      // fix up the URL to remove the q query param
-      const replacementUrl = new URL(window.location);
-      replacementUrl.searchParams.delete(kQueryArg);
-      window.history.replaceState({}, "", replacementUrl);
+  // highlight matches on the page
+  if (query !== null && mainEl) {
+    // perform any highlighting
+    highlight(query, mainEl);
+
+    // fix up the URL to remove the q query param
+    const replacementUrl = new URL(window.location);
+    replacementUrl.searchParams.delete(kQueryArg);
+    window.history.replaceState({}, "", replacementUrl);
+  }
+
+  // function to clear highlighting on the page when the search query changes
+  // (e.g. if the user edits the query or clears it)
+  let highlighting = true;
+  const resetHighlighting = (searchTerm) => {
+    if (mainEl && highlighting && query !== null && searchTerm !== query) {
+      clearHighlight(query, mainEl);
+      highlighting = false;
     }
+  };
 
-    // function to clear highlighting on the page when the search query changes
-    // (e.g. if the user edits the query or clears it)
-    let highlighting = true;
-    const resetHighlighting = (searchTerm) => {
-      if (mainEl && highlighting && query !== null && searchTerm !== query) {
-        clearHighlight(query, mainEl);
-        highlighting = false;
-      }
-    };
+  // Clear search highlighting when the user scrolls sufficiently
+  const resetFn = () => {
+    resetHighlighting("");
+    window.removeEventListener("quarto-hrChanged", resetFn);
+    window.removeEventListener("quarto-sectionChanged", resetFn);
+  };
 
-    // Clear search highlighting when the user scrolls sufficiently
-    const resetFn = () => {
-      resetHighlighting("");
-      window.removeEventListener("quarto-hrChanged", resetFn);
-      window.removeEventListener("quarto-sectionChanged", resetFn);
-    };
+  // Register this event after the initial scrolling and settling of events
+  // on the page
+  window.addEventListener("quarto-hrChanged", resetFn);
+  window.addEventListener("quarto-sectionChanged", resetFn);
 
-    // Register this event after the initial scrolling and settling of events
-    // on the page
-    window.addEventListener("quarto-hrChanged", resetFn);
-    window.addEventListener("quarto-sectionChanged", resetFn);
+  // Responsively switch to overlay mode if the search is present on the navbar
+  // Note that switching the sidebar to overlay mode requires more coordinate (not just
+  // the media query since we generate different HTML for sidebar overlays than we do
+  // for sidebar input UI)
+  const detachedMediaQuery =
+    quartoSearchOptions.type === "overlay"
+      ? "all"
+      : quartoSearchOptions.location === "navbar"
+      ? "(max-width: 991px)"
+      : "none";
 
-    // Responsively switch to overlay mode if the search is present on the navbar
-    // Note that switching the sidebar to overlay mode requires more coordinate (not just
-    // the media query since we generate different HTML for sidebar overlays than we do
-    // for sidebar input UI)
-    const detachedMediaQuery =
-      options.type === "overlay"
-        ? "all"
-        : options.location === "navbar"
-        ? "(max-width: 991px)"
-        : "none";
+  let lastState = null;
+  const { setIsOpen } = autocomplete({
+    container: searchEl,
+    detachedMediaQuery: detachedMediaQuery,
+    defaultActiveItemId: 0,
+    panelContainer: "#quarto-search-results",
+    panelPlacement: quartoSearchOptions["panel-placement"],
+    debug: false,
+    classNames: {
+      form: "d-flex",
+    },
+    initialState: {
+      query,
+    },
+    getItemUrl({ item }) {
+      return item.href;
+    },
+    onStateChange({ state }) {
+      // Perhaps reset highlighting
+      resetHighlighting(state.query);
 
-    let lastState = null;
-    const { setIsOpen } = autocomplete({
-      container: searchEl,
-      detachedMediaQuery: detachedMediaQuery,
-      defaultActiveItemId: 0,
-      panelContainer: "#quarto-search-results",
-      panelPlacement: options["panel-placement"],
-      debug: false,
-      classNames: {
-        form: "d-flex",
-      },
-      initialState: {
-        query,
-      },
-      getItemUrl({ item }) {
-        return item.href;
-      },
-      onStateChange({ state }) {
-        // Perhaps reset highlighting
-        resetHighlighting(state.query);
-
-        // If the panel just opened, ensure the panel is positioned properly
-        if (state.isOpen) {
-          if (lastState && !lastState.isOpen) {
-            setTimeout(() => {
-              positionPanel(options["panel-placement"]);
-            }, 150);
-          }
+      // If the panel just opened, ensure the panel is positioned properly
+      if (state.isOpen) {
+        if (lastState && !lastState.isOpen) {
+          setTimeout(() => {
+            positionPanel(quartoSearchOptions["panel-placement"]);
+          }, 150);
         }
+      }
 
-        // Perhaps show the copy link
-        showCopyLink(state.query, options);
+      // Perhaps show the copy link
+      showCopyLink(state.query, quartoSearchOptions);
 
-        lastState = state;
-      },
-      reshape({ sources, state }) {
-        return sources.map((source) => {
-          const items = source.getItems();
+      lastState = state;
+    },
+    reshape({ sources, state }) {
+      return sources.map((source) => {
+        const items = source.getItems();
 
-          // group the items by document
-          const groupedItems = new Map();
-          items.forEach((item) => {
-            const hrefParts = item.href.split("#");
-            const baseHref = hrefParts[0];
+        // group the items by document
+        const groupedItems = new Map();
+        items.forEach((item) => {
+          const hrefParts = item.href.split("#");
+          const baseHref = hrefParts[0];
 
-            const items = groupedItems.get(baseHref);
-            if (!items) {
-              groupedItems.set(baseHref, [item]);
-            } else {
-              items.push(item);
-              groupedItems.set(baseHref, items);
-            }
+          const items = groupedItems.get(baseHref);
+          if (!items) {
+            groupedItems.set(baseHref, [item]);
+          } else {
+            items.push(item);
+            groupedItems.set(baseHref, items);
+          }
+        });
+
+        const reshapedItems = [];
+        let count = 1;
+        for (const [_key, value] of groupedItems) {
+          const firstItem = value[0];
+          reshapedItems.push({
+            type: kItemTypeDoc,
+            title: firstItem.title,
+            href: firstItem.href,
+            text: firstItem.text,
+            section: firstItem.section,
           });
 
-          const reshapedItems = [];
-          let count = 1;
-          for (const [_key, value] of groupedItems) {
-            const firstItem = value[0];
-            reshapedItems.push({
-              type: kItemTypeDoc,
-              title: firstItem.title,
-              href: firstItem.href,
-              text: firstItem.text,
-              section: firstItem.section,
-            });
+          const collapseMatches = quartoSearchOptions["collapse-after"];
+          const collapseCount =
+            typeof collapseMatches === "number" ? collapseMatches : 1;
 
-            const collapseMatches = options["collapse-after"];
-            const collapseCount =
-              typeof collapseMatches === "number" ? collapseMatches : 1;
+          if (value.length > 1) {
+            const target = `search-more-${count}`;
+            const isExpanded =
+              state.context.expanded && state.context.expanded.includes(target);
 
-            if (value.length > 1) {
-              const target = `search-more-${count}`;
-              const isExpanded =
-                state.context.expanded &&
-                state.context.expanded.includes(target);
+            const remainingCount = value.length - collapseCount;
 
-              const remainingCount = value.length - collapseCount;
+            for (let i = 1; i < value.length; i++) {
+              if (collapseMatches && i === collapseCount) {
+                reshapedItems.push({
+                  target,
+                  title: isExpanded
+                    ? `Hide additional matches`
+                    : remainingCount === 1
+                    ? `${remainingCount} more match in this document`
+                    : `${remainingCount} more matches in this document`,
+                  type: kItemTypeMore,
+                  href: kItemTypeMoreHref,
+                });
+              }
 
-              for (let i = 1; i < value.length; i++) {
-                if (collapseMatches && i === collapseCount) {
-                  reshapedItems.push({
-                    target,
-                    title: isExpanded
-                      ? `Hide additional matches`
-                      : remainingCount === 1
-                      ? `${remainingCount} more match in this document`
-                      : `${remainingCount} more matches in this document`,
-                    type: kItemTypeMore,
-                    href: kItemTypeMoreHref,
-                  });
-                }
-
-                if (isExpanded || !collapseMatches || i < collapseCount) {
-                  reshapedItems.push({
-                    ...value[i],
-                    type: kItemTypeItem,
-                    target,
-                  });
-                }
+              if (isExpanded || !collapseMatches || i < collapseCount) {
+                reshapedItems.push({
+                  ...value[i],
+                  type: kItemTypeItem,
+                  target,
+                });
               }
             }
-            count += 1;
           }
+          count += 1;
+        }
 
-          return {
-            ...source,
-            getItems() {
-              return reshapedItems;
-            },
-          };
-        });
+        return {
+          ...source,
+          getItems() {
+            return reshapedItems;
+          },
+        };
+      });
+    },
+    navigator: {
+      navigate({ itemUrl }) {
+        if (itemUrl !== offsetURL(kItemTypeMoreHref)) {
+          window.location.assign(itemUrl);
+        }
       },
-      navigator: {
-        navigate({ itemUrl }) {
-          if (itemUrl !== offsetURL(kItemTypeMoreHref)) {
-            window.location.assign(itemUrl);
+      navigateNewTab({ itemUrl }) {
+        if (itemUrl !== offsetURL(kItemTypeMoreHref)) {
+          const windowReference = window.open(itemUrl, "_blank", "noopener");
+          if (windowReference) {
+            windowReference.focus();
           }
-        },
-        navigateNewTab({ itemUrl }) {
-          if (itemUrl !== offsetURL(kItemTypeMoreHref)) {
-            const windowReference = window.open(itemUrl, "_blank", "noopener");
-            if (windowReference) {
-              windowReference.focus();
+        }
+      },
+      navigateNewWindow({ itemUrl }) {
+        if (itemUrl !== offsetURL(kItemTypeMoreHref)) {
+          window.open(itemUrl, "_blank", "noopener");
+        }
+      },
+    },
+    getSources({ state, setContext, setActiveItemId, refresh }) {
+      return [
+        {
+          sourceId: "documents",
+          getItemUrl({ item }) {
+            if (item.href) {
+              return offsetURL(item.href);
+            } else {
+              return undefined;
             }
-          }
-        },
-        navigateNewWindow({ itemUrl }) {
-          if (itemUrl !== offsetURL(kItemTypeMoreHref)) {
-            window.open(itemUrl, "_blank", "noopener");
-          }
-        },
-      },
-      getSources({ state, setContext, setActiveItemId, refresh }) {
-        return [
-          {
-            sourceId: "documents",
-            getItemUrl({ item }) {
-              if (item.href) {
-                return offsetURL(item.href);
-              } else {
-                return undefined;
-              }
-            },
-            onSelect({
-              item,
-              state,
-              setContext,
-              setIsOpen,
-              setActiveItemId,
-              refresh,
-            }) {
-              if (item.type === kItemTypeMore) {
-                toggleExpanded(
-                  item,
-                  state,
-                  setContext,
-                  setActiveItemId,
-                  refresh
-                );
+          },
+          onSelect({
+            item,
+            state,
+            setContext,
+            setIsOpen,
+            setActiveItemId,
+            refresh,
+          }) {
+            if (item.type === kItemTypeMore) {
+              toggleExpanded(item, state, setContext, setActiveItemId, refresh);
 
-                // Toggle more
-                setIsOpen(true);
-              }
+              // Toggle more
+              setIsOpen(true);
+            }
+          },
+          getItems({ query }) {
+            const limit = quartoSearchOptions.limit;
+            const algoliaOptions = quartoSearchOptions.algolia;
+            if (algoliaOptions) {
+              return algoliaSearch(query, limit, algoliaOptions);
+            } else {
+              // Fuse search options
+              const fuseSearchOptions = {
+                isCaseSensitive: false,
+                shouldSort: true,
+                minMatchCharLength: 2,
+                limit: limit,
+              };
+
+              return readSearchData().then(function (fuse) {
+                return fuseSearch(query, fuse, fuseSearchOptions);
+              });
+            }
+          },
+          templates: {
+            noResults({ createElement }) {
+              return createElement(
+                "div",
+                { class: "quarto-search-no-results" },
+                "No results."
+              );
             },
-            getItems({ query }) {
-              const algoliaOptions = options.algolia;
-              if (algoliaOptions) {
-                return algoliaSearch(query, algoliaOptions);
-              } else {
-                return fuseSearch(query, fuseOptions);
-              }
-            },
-            templates: {
-              noResults({ createElement }) {
+            header({ items, createElement }) {
+              // count the documents
+              const count = items.filter((item) => {
+                return item.type === kItemTypeDoc;
+              }).length;
+
+              if (count > 0) {
                 return createElement(
                   "div",
-                  { class: "quarto-search-no-results" },
-                  "No results."
+                  { class: "search-result-header" },
+                  `${count} matching documents.`
                 );
-              },
-              header({ items, createElement }) {
-                // count the documents
-                const count = items.filter((item) => {
-                  return item.type === kItemTypeDoc;
-                }).length;
-
-                if (count > 0) {
-                  return createElement(
-                    "div",
-                    { class: "search-result-header" },
-                    `${count} matching documents.`
-                  );
-                } else {
-                  return createElement(
-                    "div",
-                    { class: "search-result-header-no-results" },
-                    ``
-                  );
-                }
-              },
-              item({ item, createElement }) {
-                return renderItem(
-                  item,
-                  createElement,
-                  state,
-                  setActiveItemId,
-                  setContext,
-                  refresh
+              } else {
+                return createElement(
+                  "div",
+                  { class: "search-result-header-no-results" },
+                  ``
                 );
-              },
+              }
+            },
+            item({ item, createElement }) {
+              return renderItem(
+                item,
+                createElement,
+                state,
+                setActiveItemId,
+                setContext,
+                refresh
+              );
             },
           },
-        ];
-      },
-    });
-
-    // If the main document scrolls dismiss the search results
-    // (otherwise, since they're floating in the document they can scroll with the document)
-    window.document.body.onscroll = () => {
-      setIsOpen(false);
-    };
-
-    if (showSearchResults) {
-      setIsOpen(true);
-      focusSearchInput();
-    }
+        },
+      ];
+    },
   });
+
+  // If the main document scrolls dismiss the search results
+  // (otherwise, since they're floating in the document they can scroll with the document)
+  window.document.body.onscroll = () => {
+    setIsOpen(false);
+  };
+
+  if (showSearchResults) {
+    setIsOpen(true);
+    focusSearchInput();
+  }
 });
 
 let lastQuery = null;
@@ -377,43 +378,41 @@ function showCopyLink(query, options) {
 
 /* Search Index Handling */
 // create the index
+var fuseIndex = undefined;
 async function readSearchData() {
-  // create fuse index
-  var options = {
-    keys: [
-      { name: "title", weight: 20 },
-      { name: "section", weight: 20 },
-      { name: "text", weight: 10 },
-    ],
-    ignoreLocation: true,
-    threshold: 0.1,
-  };
-  var fuse = new window.Fuse([], options);
+  // Initialize the search index on demand
+  if (fuseIndex === undefined) {
+    // create fuse index
+    const options = {
+      keys: [
+        { name: "title", weight: 20 },
+        { name: "section", weight: 20 },
+        { name: "text", weight: 10 },
+      ],
+      ignoreLocation: true,
+      threshold: 0.1,
+    };
+    const fuse = new window.Fuse([], options);
 
-  // fetch the main search.json
-  const response = await fetch(offsetURL("search.json"));
-  if (response.status == 200) {
-    return response.json().then(function (searchDocs) {
-      searchDocs.forEach(function (searchDoc) {
-        fuse.add(searchDoc);
+    // fetch the main search.json
+    const response = await fetch(offsetURL("search.json"));
+    if (response.status == 200) {
+      return response.json().then(function (searchDocs) {
+        searchDocs.forEach(function (searchDoc) {
+          fuse.add(searchDoc);
+        });
+        fuseIndex = fuse;
+        return fuseIndex;
       });
-      let options = {};
-      const searchOptionEl = window.document.getElementById(
-        "quarto-search-options"
+    } else {
+      return Promise.reject(
+        new Error(
+          "Unexpected status from search index request: " + response.status
+        )
       );
-      if (searchOptionEl) {
-        const jsonStr = searchOptionEl.textContent;
-        options = JSON.parse(jsonStr);
-      }
-      return { fuse, options };
-    });
-  } else {
-    return Promise.reject(
-      new Error(
-        "Unexpected status from search index request: " + response.status
-      )
-    );
+    }
   }
+  return fuseIndex;
 }
 
 function inputElement() {
@@ -727,14 +726,16 @@ function getMeta(metaName) {
   return "";
 }
 
-function algoliaSearch(query, algoliaOptions) {
+function algoliaSearch(query, limit, algoliaOptions) {
+  const { getAlgoliaResults } = window["@algolia/autocomplete-preset-algolia"];
+
   const applicationId = algoliaOptions["application-id"];
   const searchOnlyApiKey = algoliaOptions["search-only-api-key"];
   const indexName = algoliaOptions["index-name"];
+  const indexKeys = algoliaOptions["index-keys"];
   const searchClient = window.algoliasearch(applicationId, searchOnlyApiKey);
   const searchParams = algoliaOptions["params"];
 
-  const { getAlgoliaResults } = window["@algolia/autocomplete-preset-algolia"];
   return getAlgoliaResults({
     searchClient,
     queries: [
@@ -742,15 +743,39 @@ function algoliaSearch(query, algoliaOptions) {
         indexName: indexName,
         query,
         params: {
-          hitsPerPage: 20,
+          hitsPerPage: limit,
           ...searchParams,
         },
       },
     ],
+    transformResponse: (response) => {
+      if (!indexKeys) {
+        return response.hits;
+      } else {
+        const remappedHits = response.hits.map((hit) => {
+          return hit.map((item) => {
+            const newItem = { ...item };
+            ["href", "section", "title", "text"].forEach((keyName) => {
+              const mappedName = indexKeys[keyName];
+              if (
+                mappedName &&
+                item[mappedName] !== undefined &&
+                mappedName !== keyName
+              ) {
+                newItem[keyName] = item[mappedName];
+                delete newItem[mappedName];
+              }
+            });
+            return newItem;
+          });
+        });
+        return remappedHits;
+      }
+    },
   });
 }
 
-function fuseSearch(query, fuseOptions) {
+function fuseSearch(query, fuse, fuseOptions) {
   return fuse.search(query, fuseOptions).map((result) => {
     const addParam = (url, name, value) => {
       const anchorParts = url.split("#");

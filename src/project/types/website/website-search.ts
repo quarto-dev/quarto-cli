@@ -53,6 +53,9 @@ const kCollapseAfter = "collapse-after";
 // Where to place the search results
 const kPanelPlacement = "panel-placement";
 
+// The number of results to return
+const kLimit = "limit";
+
 // Any aloglia configuration
 const kAlgolia = "algolia";
 
@@ -62,6 +65,7 @@ interface SearchOptions {
   [kCollapseAfter]: boolean | number;
   [kType]: "textbox" | "overlay";
   [kPanelPlacement]: "start" | "end" | "full-width" | "input-wrapper-width";
+  [kLimit]?: number;
   [kAlgolia]?: SearchOptionsAlgolia;
 }
 
@@ -69,10 +73,22 @@ const kSearchOnlyApiKey = "search-only-api-key";
 const kSearchApplicationId = "application-id";
 const kSearchParams = "params";
 const kSearchIndexName = "index-name";
+const kIndexKeys = "index-keys";
+const kHref = "href";
+const kSection = "section";
+const kTitle = "title";
+const kText = "text";
+
 interface SearchOptionsAlgolia {
   [kSearchOnlyApiKey]?: string;
   [kSearchApplicationId]?: string;
   [kSearchIndexName]?: string;
+  [kIndexKeys]?: {
+    [kHref]?: string;
+    [kSection]?: string;
+    [kTitle]?: string;
+    [kText]?: string;
+  };
   [kSearchParams]?: Record<string, unknown>;
 }
 
@@ -222,6 +238,7 @@ export function searchOptions(
       [kCollapseAfter]: collapseMatches,
       [kPanelPlacement]: location === "navbar" ? "end" : "start",
       [kType]: searchType(searchConfig[kType], location),
+      [kLimit]: searchInputLimit(searchConfig),
       [kAlgolia]: algoliaOptions(searchConfig),
     };
   } else if (searchConfig === undefined || !!searchConfig) {
@@ -232,8 +249,22 @@ export function searchOptions(
       [kCollapseAfter]: 2,
       [kPanelPlacement]: location === "navbar" ? "end" : "start",
       [kType]: searchType(undefined, location),
+      [kLimit]: searchInputLimit(undefined),
     };
   }
+}
+
+function searchInputLimit(
+  searchConfig: string | Record<string, unknown> | undefined,
+) {
+  console.log(searchConfig);
+  if (searchConfig && typeof (searchConfig) === "object") {
+    const limit = searchConfig[kLimit];
+    if (typeof (limit) === "number") {
+      return limit;
+    }
+  }
+  return 25;
 }
 
 function searchType(
@@ -265,11 +296,13 @@ function algoliaOptions(searchConfig: Record<string, unknown>) {
     const apiKey = algoliaObj[kSearchOnlyApiKey];
     const indexName = algoliaObj[kSearchIndexName];
     const params = algoliaObj[kSearchParams];
+    const indexKeys = algoliaObj[kIndexKeys];
     return {
       [kSearchApplicationId]: applicationId,
       [kSearchOnlyApiKey]: apiKey,
       [kSearchIndexName]: indexName,
       [kSearchParams]: params,
+      [kIndexKeys]: indexKeys,
     };
   } else {
     return undefined;
