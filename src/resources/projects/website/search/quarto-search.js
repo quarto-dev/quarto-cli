@@ -25,6 +25,13 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     quartoSearchOptions = JSON.parse(jsonStr);
   }
 
+  // note the search mode
+  if (quartoSearchOptions.type === "overlay") {
+    searchOptionEl.classList.add("type-overlay");
+  } else {
+    searchOptionEl.classList.add("type-textbox");
+  }
+
   // Used to determine highlighting behavior for this page
   // A `q` query param is expected when the user follows a search
   // to this page

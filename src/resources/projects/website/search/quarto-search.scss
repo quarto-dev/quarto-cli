@@ -51,7 +51,7 @@ $quarto-search-collapse-icon-size: 26px !default;
   }
 }
 
-.navbar #quarto-search {
+.navbar #quarto-search.type-overlay {
   .aa-Autocomplete {
     width: 40px;
     .aa-Form {
