@@ -766,6 +766,7 @@ function algoliaSearch(query, limit, algoliaOptions) {
                 delete newItem[mappedName];
               }
             });
+            newItem.text = highlightMatch(query, newItem.text);
             return newItem;
           });
         });

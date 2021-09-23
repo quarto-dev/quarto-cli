@@ -257,7 +257,6 @@ export function searchOptions(
 function searchInputLimit(
   searchConfig: string | Record<string, unknown> | undefined,
 ) {
-  console.log(searchConfig);
   if (searchConfig && typeof (searchConfig) === "object") {
     const limit = searchConfig[kLimit];
     if (typeof (limit) === "number") {
