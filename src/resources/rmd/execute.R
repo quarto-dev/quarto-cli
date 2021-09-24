@@ -205,7 +205,8 @@ knitr_options <- function(format, resourceDir) {
     fenced.echo = identical(format$execute[["echo"]], "fenced"),
     warning = isTRUE(format$execute[["warning"]]),
     message = isTRUE(format$execute[["warning"]]),
-    include = isTRUE(format$execute[["include"]])
+    include = isTRUE(format$execute[["include"]]),
+    comment = NA
   )
 
   # forward output: false option to results, fig.show, warning, and message
