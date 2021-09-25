@@ -1,15 +1,15 @@
 // deno-lint-ignore-file
 
-window.QuartoEditorToolsYaml = {
+window.QuartoYamlEditorTools = {
 
-  getCompletions: function(params) {
+  getCompletions: function(context) {
 
     const {
       location,  // "file" | "front-matter" | "cell"
       line,      // editing line up to the cursor
       code,      // full contents of the buffer
       position   // row/column of cursor (0-based)
-    } = params;
+    } = context;
    
     return new Promise(function(resolve, reject) {
 
@@ -56,6 +56,26 @@ window.QuartoEditorToolsYaml = {
         // want to immediately show available values for that key)
         suggest_on_accept: false
       })
-    })
+    });
+  },
+
+  getDiagnostics: function(context) {
+
+    const {
+      location,  // "file" | "front-matter" | "cell"
+      line,      // editing line up to the cursor
+      code,      // full contents of the buffer
+      position   // row/column of cursor (0-based)
+    } = context;
+   
+    return new Promise(function(resolve, reject) {
+
+      // resolve no diagnostics 
+      // TODO: remove this code once real diagnostics work
+      resolve(null);
+      return;
+
+     
+    });
   }
-}
+};
