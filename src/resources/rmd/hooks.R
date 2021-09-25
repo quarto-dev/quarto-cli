@@ -330,7 +330,17 @@ knitr_hooks <- function(format, resourceDir) {
           x <- trimws(x, "left")
         }
       }
-      x <- paste0("\n```{{", options[["original.params.src"]], "}}\n", yamlCode, x, '\n```')
+
+      # add the engine back in if knitr handled the yaml options
+      params_src <- trimws(options[["original.params.src"]])
+      if (knitr_has_yaml_chunk_options()) {
+        if (nzchar(params_src))
+          params_src <- paste0(tolower(options[["engine"]]), ", ", params_src)
+        else
+          params_src <- tolower(options[["engine"]])
+      }
+      
+      x <- paste0("\n```{{", params_src, "}}\n", yamlCode, x, '\n```')
     } else {
        attrs <- block_attr(
         id = id,
@@ -512,32 +522,52 @@ knitr_plot_hook <- function(htmlOutput) {
 
 knitr_options_hook <- function(options) {
 
-  # partition yaml options
-  results <- partition_yaml_options(options$engine, options$code)
-  if (!is.null(results$yaml)) {
-    # convert any option with fig- into fig. and out- to out.
-    names(results$yaml) <- sub("^fig-", "fig.", names(results$yaml))
-    names(results$yaml) <- sub("^out-", "out.", names(results$yaml))
-    # alias 'warning' explicitly set here to 'message'
-    if (!is.null(results$yaml[["warning"]])) {
-      options[["message"]] = results$yaml[["warning"]]
+  if (!knitr_has_yaml_chunk_options()) {
+    # partition yaml options
+    results <- partition_yaml_options(options$engine, options$code)
+    if (!is.null(results$yaml)) {
+      # convert any option with fig- into fig. and out- to out.
+      # we need to do this to the yaml options prior to merging
+      # so that the correctly interact with standard fig. and
+      # out. options provided within knitr
+      results$yaml <- alias_dash_options(results$yaml)
+      # alias 'warning' explicitly set here to 'message'
+      if (!is.null(results$yaml[["warning"]])) {
+        options[["message"]] = results$yaml[["warning"]]
+      }
+      # merge with other options
+      options <- knitr:::merge_list(options, results$yaml)
+      # set code
+      options$code <- results$code
+    } 
+    options[["yaml.code"]] <- results$yamlSource
+    
+    # some aliases
+    if (!is.null(options[["fig.format"]])) {
+      options[["dev"]] <- options[["fig.format"]]
     }
-    # merge with other options
-    options <- knitr:::merge_list(options, results$yaml)
-    # set code
-    options$code <- results$code
-  } 
-  options[["yaml.code"]] <- results$yamlSource
-  
-  # some aliases
-  if (!is.null(options[["fig.format"]])) {
-    options[["dev"]] <- options[["fig.format"]]
-  }
-  if (!is.null(options[["fig.dpi"]])) {
-    options[["dpi"]] <- options[["fig.dpi"]]
+    if (!is.null(options[["fig.dpi"]])) {
+      options[["dpi"]] <- options[["fig.dpi"]]
+    }
+  } else {
+    # convert any option with fig- into fig. and out- to out.
+    options <- alias_dash_options(options)
   }
   
   # return options  
+  options
+}
+
+# convert any option with fig- into fig. and out- to out.
+# we do this so that all downstream code can consume a single
+# variation of these functions. We support both syntaxes because
+# quarto/pandoc generally uses - as a delimeter everywhere,
+# however we want to support all existing knitr code as well
+# as support all documented knitr chunk options without the user
+# needing to replace . with -
+alias_dash_options <- function(options) {
+  names(options) <- sub("^fig-", "fig.", names(options))
+  names(options) <- sub("^out-", "out.", names(options))
   options
 }
 
