@@ -5,7 +5,7 @@ window.QuartoYamlEditorTools = {
   getCompletions: function(context) {
 
     const {
-      location,  // "file" | "front-matter" | "cell"
+      filetype,  // "yaml" | "markdown" | "script"
       line,      // editing line up to the cursor
       code,      // full contents of the buffer
       position   // row/column of cursor (0-based)
@@ -59,10 +59,10 @@ window.QuartoYamlEditorTools = {
     });
   },
 
-  getDiagnostics: function(context) {
+  getLint: function(context) {
 
     const {
-      location,  // "file" | "front-matter" | "cell"
+      filetype,  // "yaml" | "markdown" | "script"
       line,      // editing line up to the cursor
       code,      // full contents of the buffer
       position   // row/column of cursor (0-based)
