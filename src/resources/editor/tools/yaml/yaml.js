@@ -2,12 +2,14 @@
 
 window.QuartoEditorToolsYaml = {
 
-  getCompletions: function(
-    location,  // "file" | "front-matter" | "cell"
-    line,      // editing line up to the cursor
-    code,      // full contents of the buffer
-    position   // row/column of cursor (0-based)
-  ) {
+  getCompletions: function(params) {
+
+    const {
+      location,  // "file" | "front-matter" | "cell"
+      line,      // editing line up to the cursor
+      code,      // full contents of the buffer
+      position   // row/column of cursor (0-based)
+    } = params;
    
     return new Promise(function(resolve, reject) {
 
