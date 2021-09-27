@@ -25,6 +25,26 @@ export const NumberSchema = {
   "description": "be a number"
 };
 
+export const IntegerSchema = {
+  "type": "integer",
+  "description": "be an integral number"
+};
+
+export function numericSchema(obj: {
+  "type": "integer" | "number",
+  "minimum"?: number,
+  "maximum"?: number,
+  "exclusiveMinimum"?: number,
+  "exclusiveMaximum"?: number,
+  "multipleOf"?: number
+  "description"?: string
+}) {
+  return Object.assign({
+    description: "be a number"
+  }, obj);
+}
+  
+
 export const StringSchema = {
   "type": "string",
   "description": "be a string"
@@ -68,39 +88,82 @@ export function anyOfSchema(...args: Schema[])
   };
 }
 
+
+export function allOfSchema(...args: Schema[])
+{
+  return {
+    "allOf": args,
+    "description": `be all of: ${args.map(x => x.description.slice(3, )).join(", ")}`
+  };
+}
+
 // FIXME: add dynamic check for requiredProps being a subset of the
 // keys in properties
 export function objectSchema(params: {
   properties?: { [k: string]: Schema },
   required?: string[],
   additionalProperties?: Schema,
-  description?: string
+  description?: string,
+  baseSchema?: any // FIXME this should have the type of the result of objectSchema()
 } = {}) 
 {
   let {
-    properties, required, additionalProperties, description
+    properties, required, additionalProperties, description, baseSchema
   } = params;
   required = required || [];
   properties = properties || {};
+  const hasDescription = description !== undefined;
   description = description || "be an object";
-  
-  const result: Schema = {
-    "type": "object",
-    description
-  };
-  
-  if (properties) {
-    result.properties = properties;
+
+  if (baseSchema) {
+    if (baseSchema.type !== "object") {
+      throw new Error("Internal Error: can only extend other object Schema");
+    }
+    const result: Schema = Object.assign({}, baseSchema);
+    if (hasDescription) {
+      result.description = description;
+    }
+    if (properties) {
+      result.properties = Object.assign(
+        {},
+        result.properties);
+      Object.assign(result.properties, properties);
+    }
+    if (required) {
+      result.required = (result.required ?? []).slice();
+      result.required.push(...required);
+    }
+    if (additionalProperties) {
+      // FIXME Review. This is likely to be confusing, but I think
+      // it's the correct semantics
+      if (result.additionalProperties) {
+        result.additionalProperties = allOfSchema(
+          result.additionalProperties,
+          additionalProperties);
+      } else {
+        result.additionalProperties = additionalProperties;
+      }
+    }
+    return result;
+  } else {
+    const result: Schema = {
+      "type": "object",
+      description
+    };
+    
+    if (properties) {
+      result.properties = properties;
+    }
+    if (required && required.length > 0) {
+      result.required = required;
+    }
+    // this is useful to characterize Record<string, foo> types: use
+    // objectSchema({}, [], foo)
+    if (additionalProperties) {
+      result.additionalProperties = additionalProperties;
+    }
+    return result;
   }
-  if (required && required.length > 0) {
-    result.required = required;
-  }
-  // this is useful to characterize Record<string, foo> types: use
-  // objectSchema({}, [], foo)
-  if (additionalProperties) {
-    result.additionalProperties = additionalProperties;
-  }
-  return result;
 }
 
 export function arraySchema(items?: Schema)
