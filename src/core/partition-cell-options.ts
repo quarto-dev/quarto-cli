@@ -13,7 +13,7 @@ import { rangedLines, rangedSubstring, RangedSubstring, Range } from "./ranged-t
 import { mappedString, MappedString } from "./mapped-text.ts";
 
 import { LocalizedError } from "./schema/yaml-schema.ts";
-import { languageChunkValidators } from "./schema/chunk-metadata.ts";
+import { languageOptionsValidators } from "./schema/chunk-metadata.ts";
 
 export function partitionCellOptions(
   language: string,
@@ -90,11 +90,11 @@ export function partitionCellOptionsMapped(
             yamlOption.length - optionSuffix.length,
           );
         }
-        endOfYaml = optionPrefix.length + yamlOption.length - optionSuffix.length
+        endOfYaml = line.range.start + optionPrefix.length + yamlOption.length - optionSuffix.length;
         const rangedYamlOption = {
           substring: yamlOption,
           range: {
-            start: optionPrefix.length,
+            start: line.range.start + optionPrefix.length,
             end: endOfYaml
           }
         }
@@ -111,7 +111,7 @@ export function partitionCellOptionsMapped(
   
   if (yamlLines.length) {
     let yamlMappedString = mappedSource(source, yamlLines);
-    const validator = languageChunkValidators[language];
+    const validator = languageOptionsValidators[language];
     
     if (validator === undefined || !validate) {
       yaml = readAnnotatedYamlFromMappedString(yamlMappedString);
