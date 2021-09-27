@@ -1,6 +1,11 @@
 # patch.R
 # Copyright (C) 2020 by RStudio, PBC
 
+# check whether knitr has native yaml chunk option parsing
+knitr_has_yaml_chunk_options <- function() {
+  packageVersion("knitr") >= "1.34.2"
+}
+
 # only works w/ htmltools >= 0.5.0.9003 so overwrite in the meantime
 options(htmltools.preserve.raw = TRUE)
 
@@ -41,56 +46,58 @@ if (requireNamespace("htmlwidgets", quietly = TRUE)) {
 }
 
 
-# override parse_block to assign chunk labels from yaml options
-knitr_parse_block <- knitr:::parse_block
-parse_block = function(code, header, params.src, markdown_mode = out_format('markdown')) {
-  originalParamsSrc <- params.src
-  engine = sub('^([a-zA-Z0-9_]+).*$', '\\1', params.src)
-  partitioned <- partition_yaml_options(engine, code)
-  params = sub('^([a-zA-Z0-9_]+)', '', params.src)
-  params <- knitr:::parse_params(params)
-  unnamed_label <- knitr::opts_knit$get('unnamed.chunk.label')
-  if (startsWith(params$label, unnamed_label)) {
-    label <- partitioned$yaml[["label"]] %||% partitioned$yaml[["id"]]
-    if (!is.null(label)) {
-      params.src <- sub("^[a-zA-Z0-9_]+ *[ ,]?", 
-                        paste0(engine, " ", label, ", "), 
-                        params.src)
+if (!knitr_has_yaml_chunk_options()) {
+  # override parse_block to assign chunk labels from yaml options
+  knitr_parse_block <- knitr:::parse_block
+  parse_block = function(code, header, params.src, markdown_mode = out_format('markdown')) {
+    originalParamsSrc <- params.src
+    engine = sub('^([a-zA-Z0-9_]+).*$', '\\1', params.src)
+    partitioned <- partition_yaml_options(engine, code)
+    params = sub('^([a-zA-Z0-9_]+)', '', params.src)
+    params <- knitr:::parse_params(params)
+    unnamed_label <- knitr::opts_knit$get('unnamed.chunk.label')
+    if (startsWith(params$label, unnamed_label)) {
+      label <- partitioned$yaml[["label"]] %||% partitioned$yaml[["id"]]
+      if (!is.null(label)) {
+        params.src <- sub("^[a-zA-Z0-9_]+ *[ ,]?", 
+                          paste0(engine, " ", label, ", "), 
+                          params.src)
+      }
+    } 
+    
+    # strip trailing comma and whitespace
+    params.src <- sub("\\s*,?\\s*$", "", params.src)
+    
+    # look for other options to forward. note that ideally we could extract *all*
+    # parameters and then pass partitioned$code below, however we can construct
+    # cases where deparsed versions of the options include a newline, which causes
+    # an error. we'll wait and see if this capability is incorporated natively
+    # into knitr parse_block -- if it's not then we can pursue more robust versions
+    # of textual option forwarding that don't run into newlines 
+    extra_opts <- list()
+    for (opt in c("ref.label")) {
+      if (!is.null(partitioned$yaml[[opt]])) {
+        extra_opts[[opt]] <- paste(gsub("\n", " ", deparse(partitioned$yaml[[opt]], 
+                                                           width.cutoff = 500, 
+                                                           nlines = 1), fixed = TRUE), 
+                                   collapse = " ") 
+      }
     }
-  } 
-  
-  # strip trailing comma and whitespace
-  params.src <- sub("\\s*,?\\s*$", "", params.src)
-  
-  # look for other options to forward. note that ideally we could extract *all*
-  # parameters and then pass partitioned$code below, however we can construct
-  # cases where deparsed versions of the options include a newline, which causes
-  # an error. we'll wait and see if this capability is incorporated natively
-  # into knitr parse_block -- if it's not then we can pursue more robust versions
-  # of textual option forwarding that don't run into newlines 
-  extra_opts <- list()
-  for (opt in c("ref.label")) {
-    if (!is.null(partitioned$yaml[[opt]])) {
-      extra_opts[[opt]] <- paste(gsub("\n", " ", deparse(partitioned$yaml[[opt]], 
-                                                   width.cutoff = 500, 
-                                                   nlines = 1), fixed = TRUE), 
-                                 collapse = " ") 
+    if (length(extra_opts) > 0) {
+      extra_opts <- paste(paste0(names(extra_opts), "=", as.character(extra_opts), ", "), 
+                          collapse = "")
+      params.src <- paste0(params.src, ", ", sub(",\\s*$", "", extra_opts))
     }
+    
+    # proceed
+    block <- knitr_parse_block(code, header, params.src, markdown_mode)
+    block[["params"]][["original.params.src"]] <- originalParamsSrc
+    block[["params"]][["chunk.echo"]] <- isTRUE(params[["echo"]]) || 
+      isTRUE(partitioned$yaml[["echo"]])
+    block
   }
-  if (length(extra_opts) > 0) {
-    extra_opts <- paste(paste0(names(extra_opts), "=", as.character(extra_opts), ", "), 
-                        collapse = "")
-    params.src <- paste0(params.src, ", ", sub(",\\s*$", "", extra_opts))
-  }
-  
-  # proceed
-  block <- knitr_parse_block(code, header, params.src, markdown_mode)
-  block[["params"]][["original.params.src"]] <- originalParamsSrc
-  block[["params"]][["chunk.echo"]] <- isTRUE(params[["echo"]]) || 
-                                       isTRUE(partitioned$yaml[["echo"]])
-  block
+  assignInNamespace("parse_block", parse_block, ns = "knitr")
 }
-assignInNamespace("parse_block", parse_block, ns = "knitr")
 
 # override wrapping behavior for knitr_asis output (including htmlwidgets)
 # to provide for enclosing output div and support for figure captions
