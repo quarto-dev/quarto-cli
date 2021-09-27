@@ -1,6 +1,6 @@
 {
   "R": {
-    "Version": "4.1.0",
+    "Version": "4.0.3",
     "Repositories": [
       {
         "Name": "CRAN",
@@ -60,10 +60,15 @@
     },
     "knitr": {
       "Package": "knitr",
-      "Version": "1.33",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "0bc1b5da1b0eb07cd4b727e95e9ff0b8"
+      "Version": "1.34.4",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "knitr",
+      "RemoteUsername": "yihui",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "b4ee20c911f584c9ef9e246e24ffa1e4c2de2a67",
+      "Hash": "c97e07db82036b89a39ce52fdc8eb515"
     },
     "magrittr": {
       "Package": "magrittr",
@@ -71,20 +76,6 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "41287f1ac7d28a92f0a286ed507928d3"
-    },
-    "markdown": {
-      "Package": "markdown",
-      "Version": "1.1",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "61e4a10781dd00d7d81dd06ca9b94e95"
-    },
-    "mime": {
-      "Package": "mime",
-      "Version": "0.11",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "8974a907200fc9948d636fe7d85ca9fb"
     },
     "renv": {
       "Package": "renv",
@@ -109,10 +100,10 @@
     },
     "stringi": {
       "Package": "stringi",
-      "Version": "1.6.2",
+      "Version": "1.7.4",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "9df5e6f9a7fa11b84adf0429961de66a"
+      "Hash": "ebaccb577da50829a3bb1b8296f318a5"
     },
     "stringr": {
       "Package": "stringr",
@@ -130,10 +121,10 @@
     },
     "xfun": {
       "Package": "xfun",
-      "Version": "0.24",
+      "Version": "0.26",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "88cdb9779a657ad80ad942245fffba31"
+      "Hash": "a270216f7ffda25e53298293046d1d05"
     },
     "yaml": {
       "Package": "yaml",
