@@ -97,6 +97,7 @@ interface SearchOptionsAlgolia {
 export type SearchInputLocation = "navbar" | "sidebar";
 
 interface SearchDoc {
+  objectID: string;
   href: string;
   title: string;
   section: string;
@@ -120,6 +121,8 @@ export function updateSearchIndex(
   if (incremental && searchJson) {
     // Read the existing index
     const existingSearchJson = JSON.parse(searchJson);
+
+    // Ensure that existing documents include an object Id
     searchDocs.push(...(existingSearchJson as SearchDoc[]));
   }
 
@@ -129,6 +132,7 @@ export function updateSearchIndex(
       // find file/href
       const file = outputFile.file;
       const href = relative(outputDir, file);
+      const objectID = href;
 
       // if this is excluded then remove and return
       if (outputFile.format.metadata[kSearch] === false) {
@@ -184,6 +188,7 @@ export function updateSearchIndex(
             const sectionTitle = h2.textContent;
             h2.remove();
             updateDoc({
+              objectID,
               href: `${href}#${section.id}`,
               title,
               section: sectionTitle,
@@ -195,6 +200,7 @@ export function updateSearchIndex(
         const main = doc.querySelector("main");
         if (main) {
           updateDoc({
+            objectID,
             href,
             title,
             section: "",
@@ -393,7 +399,7 @@ export function websiteSearchDependency(
       searchDependency("quarto-search.js"),
     ];
 
-    // If there are Algoia options specified, check that they are complete
+    // If there are Algolia options specified, check that they are complete
     // and add the algolia search dependency
     const algoliaOpts = options[kAlgolia];
     if (algoliaOpts) {
@@ -402,8 +408,6 @@ export function websiteSearchDependency(
         algoliaOpts[kSearchOnlyApiKey] &&
         algoliaOpts[kSearchIndexName]
       ) {
-        // generate objectID in search.json (use href - ensure valid characters for id)
-
         // The autocomplete algolia plugin
         scripts.push(searchDependency("autocomplete-preset-algolia.umd.js"));
       } else {
