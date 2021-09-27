@@ -61,7 +61,7 @@ if (sidebar.title && !navbar) {
   <% } %>
 
   <% if (sidebar.search) { %>
-    <div class="d-flex px-3 mt-2 flex-shrink-0 align-items-center">
+    <div class="<%- sidebar.search === "overlay" ? "d-flex " : "" %>px-3 mt-2 flex-shrink-0 align-items-center">
       <% if (sidebar.search !== "overlay") { %>
       <div class="sidebar-search">
       <% partial('navsearch.ejs',  { classes: '' }) %>
