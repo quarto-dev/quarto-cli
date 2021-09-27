@@ -78,6 +78,7 @@ const kHref = "href";
 const kSection = "section";
 const kTitle = "title";
 const kText = "text";
+const kAnalyticsEvents = "analytics-events";
 
 interface SearchOptionsAlgolia {
   [kSearchOnlyApiKey]?: string;
@@ -90,6 +91,7 @@ interface SearchOptionsAlgolia {
     [kText]?: string;
   };
   [kSearchParams]?: Record<string, unknown>;
+  [kAnalyticsEvents]?: boolean;
 }
 
 export type SearchInputLocation = "navbar" | "sidebar";
@@ -296,12 +298,14 @@ function algoliaOptions(searchConfig: Record<string, unknown>) {
     const indexName = algoliaObj[kSearchIndexName];
     const params = algoliaObj[kSearchParams];
     const indexKeys = algoliaObj[kIndexFields];
+    const analytics = !!algoliaObj[kAnalyticsEvents];
     return {
       [kSearchApplicationId]: applicationId,
       [kSearchOnlyApiKey]: apiKey,
       [kSearchIndexName]: indexName,
       [kSearchParams]: params,
       [kIndexFields]: indexKeys,
+      [kAnalyticsEvents]: analytics,
     };
   } else {
     return undefined;
@@ -353,9 +357,22 @@ export function websiteSearchIncludeInHeader(project: ProjectContext) {
   const websiteSearchScript = sessionTempFile({ suffix: "html" });
   const options = searchOptions(project);
   const searchOptionsJson = JSON.stringify(options, null, 2);
-  const scriptHtml =
+  const searchOptionsScript =
     `<script id="quarto-search-options" type="application/json">${searchOptionsJson}</script>`;
-  Deno.writeTextFileSync(websiteSearchScript, scriptHtml);
+  const includes = [searchOptionsScript];
+
+  if (options) {
+    const algoliaOpts = options[kAlgolia];
+    if (algoliaOpts) {
+      includes.push(kAlogioSearchApiScript);
+      if (algoliaOpts[kAnalyticsEvents]) {
+        includes.push(kAlogiaSearchInsightsScript);
+        includes.push(kAutocompleteInsightsPluginScript);
+      }
+    }
+  }
+
+  Deno.writeTextFileSync(websiteSearchScript, includes.join("\n"));
   return websiteSearchScript;
 }
 
@@ -385,7 +402,9 @@ export function websiteSearchDependency(
         algoliaOpts[kSearchOnlyApiKey] &&
         algoliaOpts[kSearchIndexName]
       ) {
-        scripts.push(searchDependency("algoliasearch-lite.umd.js"));
+        // generate objectID in search.json (use href - ensure valid characters for id)
+
+        // The autocomplete algolia plugin
         scripts.push(searchDependency("autocomplete-preset-algolia.umd.js"));
       } else {
         warning(
@@ -415,3 +434,24 @@ function searchDependency(resource: string) {
     path: resourcePath(`projects/website/search/${resource}`),
   };
 }
+
+const kAutocompleteInsightsPluginScript =
+  `<script src="https://cdn.jsdelivr.net/npm/@algolia/autocomplete-plugin-algolia-insights"></script>
+<script>
+  const { createAlgoliaInsightsPlugin } = window[
+    '@algolia/autocomplete-plugin-algolia-insights'
+  ];
+</script>`;
+
+const kAlogiaSearchInsightsScript = `<script>
+var ALGOLIA_INSIGHTS_SRC = "https://cdn.jsdelivr.net/npm/search-insights/dist/search-insights.iife.min.js";
+
+!function(e,a,t,n,s,i,c){e.AlgoliaAnalyticsObject=s,e[s]=e[s]||function(){
+(e[s].queue=e[s].queue||[]).push(arguments)},i=a.createElement(t),c=a.getElementsByTagName(t)[0],
+i.async=1,i.src=n,c.parentNode.insertBefore(i,c)
+}(window,document,"script",ALGOLIA_INSIGHTS_SRC,"aa");
+</script>`;
+
+const kAlogioSearchApiScript =
+  `<script src="https://cdn.jsdelivr.net/npm/algoliasearch@4.5.1/dist/algoliasearch-lite.umd.js"></script>
+`;

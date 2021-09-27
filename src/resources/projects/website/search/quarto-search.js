@@ -84,6 +84,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       ? "(max-width: 991px)"
       : "none";
 
+  // If configured, include the analytics client to send insights
+  const plugins = configurePlugins(quartoSearchOptions);
+
   let lastState = null;
   const { setIsOpen } = autocomplete({
     container: searchEl,
@@ -92,6 +95,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     panelContainer: "#quarto-search-results",
     panelPlacement: quartoSearchOptions["panel-placement"],
     debug: false,
+    plugins,
     classNames: {
       form: "d-flex",
     },
@@ -147,11 +151,8 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
           for (const [_key, value] of groupedItems) {
             const firstItem = value[0];
             reshapedItems.push({
+              ...firstItem,
               type: kItemTypeDoc,
-              title: firstItem.title,
-              href: firstItem.href,
-              text: firstItem.text,
-              section: firstItem.section,
             });
 
             const collapseMatches = quartoSearchOptions["collapse-after"];
@@ -265,9 +266,8 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
           },
           getItems({ query }) {
             const limit = quartoSearchOptions.limit;
-            const algoliaOptions = quartoSearchOptions.algolia;
-            if (algoliaOptions) {
-              return algoliaSearch(query, limit, algoliaOptions);
+            if (quartoSearchOptions.algolia) {
+              return algoliaSearch(query, limit, quartoSearchOptions.algolia);
             } else {
               // Fuse search options
               const fuseSearchOptions = {
@@ -337,6 +337,37 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     focusSearchInput();
   }
 });
+
+function configurePlugins(quartoSearchOptions) {
+  const autocompletePlugins = [];
+  const algoliaOptions = quartoSearchOptions.algolia;
+  if (
+    algoliaOptions &&
+    algoliaOptions["analytics-events"] &&
+    algoliaOptions["search-only-api-key"] &&
+    algoliaOptions["application-id"]
+  ) {
+    const apiKey = algoliaOptions["search-only-api-key"];
+    const appId = algoliaOptions["application-id"];
+    window.aa("init", {
+      appId,
+      apiKey,
+      useCookie: true,
+    });
+
+    const { createAlgoliaInsightsPlugin } =
+      window["@algolia/autocomplete-plugin-algolia-insights"];
+
+    // Register the insights client
+    const algoliaInsightsPlugin = createAlgoliaInsightsPlugin({
+      insightsClient: window.aa,
+    });
+
+    // Add the plugin
+    autocompletePlugins.push(algoliaInsightsPlugin);
+    return autocompletePlugins;
+  }
+}
 
 function validateItems(items) {
   // Validate the first item
@@ -827,6 +858,7 @@ function algoliaSearch(query, limit, algoliaOptions) {
   const indexFields = algoliaOptions["index-fields"];
   const searchClient = window.algoliasearch(applicationId, searchOnlyApiKey);
   const searchParams = algoliaOptions["params"];
+  const searchAnalytics = !!algoliaOptions["analytics-events"];
 
   return getAlgoliaResults({
     searchClient,
@@ -836,6 +868,7 @@ function algoliaSearch(query, limit, algoliaOptions) {
         query,
         params: {
           hitsPerPage: limit,
+          clickAnalytics: searchAnalytics,
           ...searchParams,
         },
       },
