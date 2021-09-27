@@ -1,5 +1,5 @@
 const kQueryArg = "q";
-const kResultsArg = "showResults";
+const kResultsArg = "show-results";
 
 // If items don't provide a URL, then both the navigator and the onSelect
 // function aren't called (and therefore, the default implementation is used)
