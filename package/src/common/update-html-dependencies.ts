@@ -150,6 +150,7 @@ export async function updateHtmlDepedencies(config: Configuration) {
     "dist/umd/index.production.js",
     autocompleteJs,
   );
+  cleanSourceMap(autocompleteJs);
 
   // Autocomplete preset
   const autocompletePresetJs = join(
@@ -166,6 +167,7 @@ export async function updateHtmlDepedencies(config: Configuration) {
     "dist/umd/index.production.js",
     autocompletePresetJs,
   );
+  cleanSourceMap(autocompletePresetJs);
 
   // Algolia search client
   const algoliaJs = join(
@@ -182,6 +184,41 @@ export async function updateHtmlDepedencies(config: Configuration) {
     "dist/algoliasearch-lite.umd.js",
     algoliaJs,
   );
+  cleanSourceMap(algoliaJs);
+
+  // Algolia analytics integration
+  const algoliaAnalytics = join(
+    config.directoryInfo.src,
+    "resources",
+    "projects",
+    "website",
+    "search",
+    "autocomplete-plugin-algolia-insights.umd.js",
+  );
+  await updateJsDelivrDependency(
+    "AUTOCOMPLETE_JS",
+    "@algolia/autocomplete-plugin-algolia-insights",
+    "dist/umd/index.production.js",
+    algoliaAnalytics,
+  );
+  cleanSourceMap(algoliaAnalytics);
+
+  // Algolia insights integration
+  const algoliaSearchInsights = join(
+    config.directoryInfo.src,
+    "resources",
+    "projects",
+    "website",
+    "search",
+    "search-insights.min.js",
+  );
+  await updateUnpkgDependency(
+    "ALGOLIA_SEARCH_INSIGHTS_JS",
+    "search-insights",
+    "dist/search-insights.min.js",
+    algoliaSearchInsights,
+  );
+  cleanSourceMap(algoliaSearchInsights);
 
   // Update PDF JS
   await updatePdfJs(

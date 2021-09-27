@@ -30,6 +30,7 @@ export PDF_JS=2.8.335
 export AUTOCOMPLETE_JS=1.4.0
 export FUSE_JS=6.4.6
 export ALGOLIA_SEARCH_JS=4.5.1
+export ALGOLIA_SEARCH_INSIGHTS_JS=2.0.3
 
 
 # Quarto Info Version
