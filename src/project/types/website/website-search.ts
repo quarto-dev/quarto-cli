@@ -132,7 +132,6 @@ export function updateSearchIndex(
       // find file/href
       const file = outputFile.file;
       const href = relative(outputDir, file);
-      const objectID = href;
 
       // if this is excluded then remove and return
       if (outputFile.format.metadata[kSearch] === false) {
@@ -186,10 +185,11 @@ export function updateSearchIndex(
           const h2 = section.querySelector("h2");
           if (h2 && section.id) {
             const sectionTitle = h2.textContent;
+            const hrefWithAnchor = `${href}#${section.id}`;
             h2.remove();
             updateDoc({
-              objectID,
-              href: `${href}#${section.id}`,
+              objectID: hrefWithAnchor,
+              href: hrefWithAnchor,
               title,
               section: sectionTitle,
               text: section.textContent.trim(),
@@ -200,7 +200,7 @@ export function updateSearchIndex(
         const main = doc.querySelector("main");
         if (main) {
           updateDoc({
-            objectID,
+            objectID: href,
             href,
             title,
             section: "",
