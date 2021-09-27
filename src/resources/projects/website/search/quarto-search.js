@@ -374,13 +374,13 @@ function validateItems(items) {
   if (items.length > 0) {
     const item = items[0];
     const missingFields = [];
-    if (item.href === undefined) {
+    if (!item.href) {
       missingFields.push("href");
     }
-    if (item.title === undefined) {
+    if (!item.title) {
       missingFields.push("title");
     }
-    if (item.text === undefined) {
+    if (!item.text) {
       missingFields.push("text");
     }
 
@@ -875,7 +875,14 @@ function algoliaSearch(query, limit, algoliaOptions) {
     ],
     transformResponse: (response) => {
       if (!indexFields) {
-        return response.hits;
+        return response.hits.map((hit) => {
+          return hit.map((item) => {
+            return {
+              ...item,
+              text: highlightMatch(query, item.text),
+            };
+          });
+        });
       } else {
         const remappedHits = response.hits.map((hit) => {
           return hit.map((item) => {
