@@ -399,7 +399,7 @@ export async function ojsCompile(
         }
       };
 
-      const keysToSkip = new Set([
+      const keysToNotSerialize = new Set([
         kEcho,
         kCellLabel,
         kCellFigCap,
@@ -426,7 +426,7 @@ export async function ojsCompile(
       ]);
 
       for (const [key, value] of Object.entries(cell.options || {})) {
-        if (!keysToSkip.has(key)) {
+        if (!keysToNotSerialize.has(key)) {
           const t = typeof value;
           if (t === "object") {
             attrs.push(`${key}="${JSON.stringify(value)}"`);
