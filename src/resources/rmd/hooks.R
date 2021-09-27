@@ -330,17 +330,7 @@ knitr_hooks <- function(format, resourceDir) {
           x <- trimws(x, "left")
         }
       }
-
-      # add the engine back in if knitr handled the yaml options
-      params_src <- trimws(options[["original.params.src"]])
-      if (knitr_has_yaml_chunk_options()) {
-        if (nzchar(params_src))
-          params_src <- paste0(tolower(options[["engine"]]), ", ", params_src)
-        else
-          params_src <- tolower(options[["engine"]])
-      }
-      
-      x <- paste0("\n```{{", params_src, "}}\n", yamlCode, x, '\n```')
+      x <- paste0("\n```{{", options[["original.params.src"]], "}}\n", yamlCode, x, '\n```')
     } else {
        attrs <- block_attr(
         id = id,

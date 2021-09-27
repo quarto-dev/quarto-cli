@@ -60,15 +60,15 @@
     },
     "knitr": {
       "Package": "knitr",
-      "Version": "1.34.2",
+      "Version": "1.34.3",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "knitr",
       "RemoteUsername": "yihui",
       "RemoteRef": "HEAD",
-      "RemoteSha": "c9b7e3acae3248e5a48beddd49e98d37d1cf1517",
-      "Hash": "827d1b5bcdcecc344cd48d8b05faa562"
+      "RemoteSha": "c081ef9c07bda8718479dd2821cc16a7b9eaf405",
+      "Hash": "41bf06eb9bf20a36c2b572410336f4ff"
     },
     "magrittr": {
       "Package": "magrittr",
