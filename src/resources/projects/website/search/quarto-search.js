@@ -357,10 +357,20 @@ function configurePlugins(quartoSearchOptions) {
 
     const { createAlgoliaInsightsPlugin } =
       window["@algolia/autocomplete-plugin-algolia-insights"];
-
     // Register the insights client
     const algoliaInsightsPlugin = createAlgoliaInsightsPlugin({
       insightsClient: window.aa,
+      onItemsChange({ insights, insightsEvents }) {
+        const events = insightsEvents.map((event) => {
+          const maxEvents = event.objectIDs.slice(0, 20);
+          return {
+            ...event,
+            objectIDs: maxEvents,
+          };
+        });
+
+        insights.viewedObjectIDs(...events);
+      },
     });
 
     // Add the plugin
