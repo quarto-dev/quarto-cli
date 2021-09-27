@@ -9,6 +9,9 @@
 */
 
 import { JSON_SCHEMA, parse } from "encoding/yaml.ts";
+
+import { YAMLError } from "encoding/_yaml/error.ts";
+
 import { MappedString } from "../mapped-text.ts";
 
 export interface AnnotatedParse
@@ -75,7 +78,16 @@ export function readAnnotatedYamlFromString(yml: string)
     }
   }
 
-  const parsed = parse(yml, { listener });
+  try {
+    const parsed = parse(yml, { listener });
+  } catch (e) {
+    if (e instanceof YAMLError) {
+      // FIXME handle this correctly by taking advantage of mark informationq
+      console.log("YAML Parse error!");
+      console.log(yml);
+    }
+    throw e;
+  }
   if (results.length !== 1) {
     throw new Error(`Internal Error - expected a single result, got ${results.length} instead`);
   }
