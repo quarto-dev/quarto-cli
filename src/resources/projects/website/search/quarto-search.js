@@ -27,9 +27,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
   // note the search mode
   if (quartoSearchOptions.type === "overlay") {
-    searchOptionEl.classList.add("type-overlay");
+    searchEl.classList.add("type-overlay");
   } else {
-    searchOptionEl.classList.add("type-textbox");
+    searchEl.classList.add("type-textbox");
   }
 
   // Used to determine highlighting behavior for this page
