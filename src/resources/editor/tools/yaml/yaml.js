@@ -8,7 +8,6 @@
 //   markdown  - markdown file that may have embedded YAML front matter as 
 //               well as code chunks that include script w/ YAML
 
-
 window.QuartoYamlEditorTools = {
 
   getCompletions: function(context) {
