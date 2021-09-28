@@ -6,13 +6,18 @@
 */
 
 import { ServerRequest } from "http/server.ts";
+import { Format } from "../../config/types.ts";
 
 import { ProjectContext } from "../../project/types.ts";
 
 export interface ProjectWatcher {
   handle: (req: ServerRequest) => boolean;
   connect: (req: ServerRequest) => Promise<void>;
-  injectClient: (file: Uint8Array, inputFile: string) => Uint8Array;
+  injectClient: (
+    file: Uint8Array,
+    inputFile: string,
+    format: Format,
+  ) => Uint8Array;
   serveProject: () => ProjectContext;
   refreshProject: () => Promise<ProjectContext>;
 }

@@ -1,20 +1,4 @@
 <script type="text/javascript">
-  const socket = new WebSocket('ws://<%- localhost %>:<%- port %>' + window.location.pathname);
-  socket.onopen = () => {
-    console.log('Socket connection open. Listening for events.');
-  };
-  socket.onmessage = (msg) => {
-    if (msg.data.startsWith('reload')) {
-      socket.close();
-      const target = msg.data.replace(/^reload/, "").replace(/index\.html$/, "");
-      if (target && (target !== window.location.pathname)) {
-        window.location.replace(target.replace(/index\.html$/, ""))
-      } else {
-        window.location.reload(true);
-      }
-    }
-  };
-
   if (window.parent.postMessage) {
     // wait for message providing confirmation we are in a devhost
     window.addEventListener("message", function (event) {
@@ -30,6 +14,8 @@
             }, event.origin);
           }
         };
+
+
       } else if (event.data.type === "goback") {
         window.history.back()
       } else if (event.data.type === "goforward") {

@@ -48,6 +48,13 @@ export const previewCommand = new Command()
     },
   )
   .option(
+    "--presentation",
+    "Preview in presentation mode",
+    {
+      hidden: true,
+    },
+  )
+  .option(
     "--no-navigate",
     "Don't navigate the browser automatically.",
   )
@@ -130,6 +137,13 @@ export const previewCommand = new Command()
       options.render = String(args[renderPos + 1]);
       args.splice(renderPos, 2);
     }
+    const presentationPos = args.indexOf("--presentation");
+    if (presentationPos !== -1) {
+      options.presentation = true;
+      args.splice(presentationPos, 1);
+    } else {
+      options.presentation = false;
+    }
     const noBrowsePos = args.indexOf("--no-browse");
     if (noBrowsePos !== -1) {
       options.browse = false;
@@ -195,6 +209,7 @@ export const previewCommand = new Command()
         port: options.port,
         host: options.host,
         browse: !!(options.browser && options.browse),
+        presentation: options.presentation,
         watch: !!options.watch,
       });
     }
