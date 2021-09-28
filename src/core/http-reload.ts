@@ -8,9 +8,11 @@
 import { ServerRequest } from "http/server.ts";
 
 import { acceptWebSocket, WebSocket } from "ws/mod.ts";
+import { renderEjs } from "./ejs.ts";
 import { maybeDisplaySocketError } from "./http.ts";
 import { isRStudioServer } from "./platform.ts";
 import { kLocalhost } from "./port.ts";
+import { resourcePath } from "./resources.ts";
 
 // track a set of http clients and notify them when to reload themselves
 
@@ -49,7 +51,7 @@ export function httpReloader(port: number): HttpReloader {
     },
     injectClient: (file: Uint8Array, inputFile: string) => {
       const scriptContents = new TextEncoder().encode(
-        watchClientScript(port, inputFile),
+        "\n" + watchClientScript(port, inputFile),
       );
       const fileWithScript = new Uint8Array(
         file.length + scriptContents.length,
@@ -87,52 +89,9 @@ export function httpReloader(port: number): HttpReloader {
 }
 
 function watchClientScript(port: number, inputFile: string): string {
-  return `
-<script>
-  const socket = new WebSocket('ws://${kLocalhost}:${port}' + window.location.pathname );
-  socket.onopen = () => {
-    console.log('Socket connection open. Listening for events.');
-  };
-  socket.onmessage = (msg) => {
-    if (msg.data.startsWith('reload')) {
-      socket.close();
-      const target = msg.data.replace(/^reload/, "").replace(/index\.html$/, "");
-      if (target && (target !== window.location.pathname)) {
-        window.location.replace(target.replace(/index\.html$/, ""))
-      } else {
-        window.location.reload(true);
-      }
-    } 
-  };
-
-  if (window.parent.postMessage) {
-    // wait for message providing confirmation we are in a devhost
-    window.addEventListener("message", function(event) {
-      if (event.data.type === "devhost-init") {
-        window.quartoDevhost = {
-          openInputFile: function(line, column, highlight) {
-            window.parent.postMessage({
-              type: "openfile",
-              file: "${inputFile}",
-              line: line,
-              column: column,
-              highlight: highlight
-            }, event.origin);
-          }
-        };
-      } else if (event.data.type === "goback") {
-        window.history.back()
-      } else if (event.data.type === "goforward") {
-        window.history.forward()
-      }
-    }, true);
-
-    // notify host of navigation (e.g. for 'pop out' command)
-    window.parent.postMessage({
-      type: "navigate",
-      href: window.location.href,
-      file: "${inputFile}"
-    }, "*");
-  }
-</script>`;
+  return renderEjs(resourcePath("editor/devserver/devserver.html"), {
+    localhost: kLocalhost,
+    port,
+    inputFile,
+  });
 }
