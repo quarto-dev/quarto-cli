@@ -349,34 +349,103 @@ function configurePlugins(quartoSearchOptions) {
   ) {
     const apiKey = algoliaOptions["search-only-api-key"];
     const appId = algoliaOptions["application-id"];
-    window.aa("init", {
-      appId,
-      apiKey,
-      useCookie: true,
-    });
 
-    const { createAlgoliaInsightsPlugin } =
-      window["@algolia/autocomplete-plugin-algolia-insights"];
-    // Register the insights client
-    const algoliaInsightsPlugin = createAlgoliaInsightsPlugin({
-      insightsClient: window.aa,
-      onItemsChange({ insights, insightsEvents }) {
-        const events = insightsEvents.map((event) => {
-          const maxEvents = event.objectIDs.slice(0, 20);
-          return {
-            ...event,
-            objectIDs: maxEvents,
-          };
+    // Aloglia insights may not be loaded because they require cookie consent
+    // Use deferred loading so events will start being recorded when/if consent
+    // is granted.
+    const algoliaInsightsDeferredPlugin = deferredLoadPlugin(() => {
+      if (
+        window.aa &&
+        window["@algolia/autocomplete-plugin-algolia-insights"]
+      ) {
+        window.aa("init", {
+          appId,
+          apiKey,
+          useCookie: true,
         });
 
-        insights.viewedObjectIDs(...events);
-      },
+        const { createAlgoliaInsightsPlugin } =
+          window["@algolia/autocomplete-plugin-algolia-insights"];
+        // Register the insights client
+        const algoliaInsightsPlugin = createAlgoliaInsightsPlugin({
+          insightsClient: window.aa,
+          onItemsChange({ insights, insightsEvents }) {
+            const events = insightsEvents.map((event) => {
+              const maxEvents = event.objectIDs.slice(0, 20);
+              return {
+                ...event,
+                objectIDs: maxEvents,
+              };
+            });
+
+            insights.viewedObjectIDs(...events);
+          },
+        });
+        return algoliaInsightsPlugin;
+      }
     });
 
     // Add the plugin
-    autocompletePlugins.push(algoliaInsightsPlugin);
+    autocompletePlugins.push(algoliaInsightsDeferredPlugin);
     return autocompletePlugins;
   }
+}
+
+// For plugins that may not load immediately, create a wrapper
+// plugin and forward events and plugin data once the plugin
+// is initialized. This is useful for cases like cookie consent
+// which may prevent the analytics insights event plugin from initializing
+// immediately.
+function deferredLoadPlugin(createPlugin) {
+  let plugin = undefined;
+  let subscribeObj = undefined;
+  const wrappedPlugin = () => {
+    if (!plugin && subscribeObj) {
+      plugin = createPlugin();
+      if (plugin && plugin.subscribe) {
+        plugin.subscribe(subscribeObj);
+      }
+    }
+    return plugin;
+  };
+
+  return {
+    subscribe: (obj) => {
+      subscribeObj = obj;
+    },
+    onStateChange: (obj) => {
+      const plugin = wrappedPlugin();
+      if (plugin && plugin.onStateChange) {
+        plugin.onStateChange(obj);
+      }
+    },
+    onSubmit: (obj) => {
+      const plugin = wrappedPlugin();
+      if (plugin && plugin.onSubmit) {
+        plugin.onSubmit(obj);
+      }
+    },
+    onReset: (obj) => {
+      const plugin = wrappedPlugin();
+      if (plugin && plugin.onReset) {
+        plugin.onReset(obj);
+      }
+    },
+    getSources: (obj) => {
+      const plugin = wrappedPlugin();
+      if (plugin && plugin.getSources) {
+        return plugin.getSources(obj);
+      } else {
+        return Promise.resolve([]);
+      }
+    },
+    data: (obj) => {
+      const plugin = wrappedPlugin();
+      if (plugin && plugin.data) {
+        plugin.data(obj);
+      }
+    },
+  };
 }
 
 function validateItems(items) {
