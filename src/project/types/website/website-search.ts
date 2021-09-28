@@ -275,7 +275,7 @@ function searchInputLimit(
       return limit;
     }
   }
-  return 25;
+  return 20;
 }
 
 function searchType(
