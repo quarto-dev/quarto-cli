@@ -12,10 +12,6 @@ import {
 } from "fmt/colors.ts";
 
 import {
-  formatExecuteOptionsSchema as execute
-} from "./types.ts";
-
-import {
   StringSchema as StringS,
   oneOfSchema as oneOfS,
   anySchema as anyS,
@@ -54,9 +50,9 @@ import {
   error
 } from "log/mod.ts";
 
-import { formatExecuteOptionsSchema } from "./types.ts";
+import { formatExecuteOptionsSchema as execute } from "./types.ts";
 
-export const htmlOptionsSchema = formatExecuteOptionsSchema;
+export const htmlOptionsSchema = execute;
 
 export const htmlFormatSchema = objectS({
   properties: {
