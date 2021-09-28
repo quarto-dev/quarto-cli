@@ -125,8 +125,6 @@ export async function updateHtmlDepedencies(config: Configuration) {
     "FUSE_JS",
     workingDir,
     (dir: string, version: string) => {
-      console.log(dir);
-
       // Copy the js file
       ensureDirSync(dirname(fuseJs));
       Deno.copyFileSync(
@@ -144,7 +142,7 @@ export async function updateHtmlDepedencies(config: Configuration) {
     "projects",
     "website",
     "search",
-    "autocomplete.min.js",
+    "autocomplete.umd.js",
   );
   await updateUnpkgDependency(
     "AUTOCOMPLETE_JS",
@@ -152,6 +150,24 @@ export async function updateHtmlDepedencies(config: Configuration) {
     "dist/umd/index.production.js",
     autocompleteJs,
   );
+  cleanSourceMap(autocompleteJs);
+
+  // Autocomplete preset
+  const autocompletePresetJs = join(
+    config.directoryInfo.src,
+    "resources",
+    "projects",
+    "website",
+    "search",
+    "autocomplete-preset-algolia.umd.js",
+  );
+  await updateUnpkgDependency(
+    "AUTOCOMPLETE_JS",
+    "@algolia/autocomplete-preset-algolia",
+    "dist/umd/index.production.js",
+    autocompletePresetJs,
+  );
+  cleanSourceMap(autocompletePresetJs);
 
   // Update PDF JS
   await updatePdfJs(
@@ -429,6 +445,26 @@ async function updateUnpkgDependency(
   if (version) {
     info(`Updating ${pkg}...`);
     const url = `https://unpkg.com/${pkg}@${version}/${filename}`;
+
+    info(`Downloading ${url} to ${target}`);
+    ensureDirSync(dirname(target));
+    await download(url, target);
+    info("done\n");
+  } else {
+    throw new Error(`${versionEnvVar} is not defined`);
+  }
+}
+
+async function updateJsDelivrDependency(
+  versionEnvVar: string,
+  pkg: string,
+  filename: string,
+  target: string,
+) {
+  const version = Deno.env.get(versionEnvVar);
+  if (version) {
+    info(`Updating ${pkg}...`);
+    const url = `https://cdn.jsdelivr.net/npm/${pkg}@${version}/${filename}`;
 
     info(`Downloading ${url} to ${target}`);
     ensureDirSync(dirname(target));

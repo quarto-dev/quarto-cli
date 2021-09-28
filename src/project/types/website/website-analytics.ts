@@ -56,15 +56,17 @@ export function scriptTagWithConsent(
   consentRequired: boolean,
   consentlevel: ConsentLevel,
   contents: string,
+  src?: string,
 ) {
+  const srcAttr = src ? ` src="${src}"` : "";
   if (consentRequired) {
     return `
-<script type="text/plain" cookie-consent="${consentlevel}">
+<script type="text/plain" cookie-consent="${consentlevel}"${srcAttr}>
 ${contents}
 </script>`;
   } else {
     return `
-<script type="text/javascript">
+<script type="text/javascript"${srcAttr}>
 ${contents}
 </script>`;
   }
@@ -328,6 +330,10 @@ gtag('js', new Date());`);
 function cookieConsentScript(
   config: CookieConsentConfiguration,
 ) {
+  const consentLevels = (config.type === "implied")
+    ? `["strictly-necessary","functionality","tracking","targeting"]`
+    : `["strictly-necessary"]`;
+
   const privacyJs = config.policyUrl !== undefined
     ? `,\n"website_privacy_policy_url":"${config.policyUrl}"`
     : "";
@@ -340,7 +346,7 @@ cookieconsent.run({
   "consent_type":"${config.type}",
   "palette":"${config.palette === "dark" ? "dark" : "light"}",
   "language":"en",
-  "page_load_consent_levels":["strictly-necessary","functionality","tracking","targeting"],
+  "page_load_consent_levels":${consentLevels},
   "notice_banner_reject_button_hide":false,
   "preferences_center_close_button_hide":false,
   "website_name":"${config.siteName}"${privacyJs}

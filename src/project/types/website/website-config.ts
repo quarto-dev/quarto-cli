@@ -99,7 +99,8 @@ export function websiteConfig(
     | "navbar"
     | "sidebar"
     | "page-navigation"
-    | "footer",
+    | "footer"
+    | "search",
   project?: ProjectConfig,
 ) {
   const site = project?.[kSite] as
