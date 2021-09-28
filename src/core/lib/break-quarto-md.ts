@@ -8,9 +8,9 @@
 *
 */
 
-import { lines } from "./lib/text.ts";
-import { rangedLines, rangedSubstring, RangedSubstring, Range } from "./lib/ranged-text.ts";
-import { mappedString, MappedString, mappedConcat } from "./lib/mapped-text.ts";
+import { lines } from "/text.ts";
+import { rangedLines, rangedSubstring, RangedSubstring, Range } from "/ranged-text.ts";
+import { mappedString, MappedString, mappedConcat } from "./mapped-text.ts";
 
 import { partitionCellOptionsMapped } from "./partition-cell-options.ts";
 
@@ -23,7 +23,7 @@ export interface QuartoMdCell {
 
   // deno-lint-ignore camelcase
   cell_type: CodeCellType | "markdown" | "raw" | "math";
-  options?: Record<string, unknown>;
+  options?: MappedString;
 
   source: MappedString,
   sourceVerbatim: MappedString,
@@ -121,7 +121,6 @@ export function breakQuartoMd(
         cell.sourceStartLine = sourceStartLine;
       }
 
-      // cell.source = mdTrimEmptyLines(cell.source);
       // if the source is empty then don't add it
       if (mdTrimEmptyLines(lines(cell.source.value)).length > 0) {
         nb.cells.push(cell);
