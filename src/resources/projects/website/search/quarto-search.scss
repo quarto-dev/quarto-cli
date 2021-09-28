@@ -1,85 +1,514 @@
-#quarto-search {
-  font-size: 0.925rem;
-  padding: 0.3rem 0.6rem;
-}
+/*-- scss:defaults --*/
+$quarto-navbar-search-input-width: 180px !default;
+$quarto-sidebar-search-input-width: 100% !default;
+$quarto-search-results-width: 400px !default;
 
-#quarto-search:focus {
-  box-shadow: none;
-}
+$quarto-search-collapse-icon-size: 26px !default;
 
+/*-- scss:rules --*/
+.aa-DetachedOverlay,
 #quarto-search-results {
-  width: 400px;
-  max-width: 85vw;
-  position: relative;
-  z-index: 2000;
+  ul.aa-List {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .aa-Panel {
+    background-color: $body-bg;
+    position: absolute;
+    z-index: 2000;
+  }
+}
+#quarto-search-results {
+  .aa-Panel {
+    max-width: $quarto-search-results-width;
+  }
 }
 
-#quarto-search-results .algolia-autocomplete {
-  width: 100%;
-}
-
-#quarto-search-results .algolia-autocomplete .aa-dropdown-menu {
-  max-height: 65vh;
-  overflow-y: auto;
-}
-
-#quarto-search-results .search-result-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2; /* number of lines to show */
-  -webkit-box-orient: vertical;
-  line-height: 1.2rem; /* fallback */
-  max-height: 2.4rem; /* fallback */
-}
-
-#quarto-search-results .search-result-section {
-  color: theme-dim($popover-body-color, 25%);
+#quarto-search input {
   font-size: 0.925rem;
 }
 
-#quarto-search-results .aa-suggestion {
-  cursor: pointer;
+.navbar #quarto-search {
+  @include media-breakpoint-up(lg) {
+    margin-left: 1rem;
+  }
 }
 
-#quarto-search-results .aa-suggestion .card {
-  padding: 8px 16px;
-  padding-bottom: 8px;
-  border-left: none;
-  border-right: none;
-  border-top: none;
-  background-color: $popover-bg;
-  border-color: $popover-border-color;
-  color: $popover-body-color;
+#quarto-sidebar {
+  .sidebar-search {
+    .aa-Autocomplete {
+      width: $quarto-sidebar-search-input-width;
+    }
+  }
 }
 
-#quarto-search-results .aa-suggestion .card p {
-  margin-top: 0;
-  margin-bottom: 0;
+.navbar {
+  .aa-Autocomplete {
+    .aa-Form {
+      width: $quarto-navbar-search-input-width;
+    }
+  }
 }
 
-#quarto-search-results .aa-suggestion .card .search-result-title {
-  margin-bottom: 0.1rem;
+.navbar #quarto-search.type-overlay {
+  .aa-Autocomplete {
+    width: 40px;
+    .aa-Form {
+      background-color: inherit;
+      border: none;
+      &:focus-within {
+        box-shadow: none;
+        outline: none;
+      }
+      .aa-InputWrapper {
+        display: none;
+        &:focus-within {
+          display: inherit;
+        }
+      }
+
+      .aa-Label,
+      .aa-LoadingIndicator {
+        svg {
+          width: $quarto-search-collapse-icon-size;
+          height: $quarto-search-collapse-icon-size;
+
+          color: $navbar-fg;
+          opacity: 1;
+        }
+      }
+    }
+
+    svg.aa-SubmitIcon {
+      width: $quarto-search-collapse-icon-size;
+      height: $quarto-search-collapse-icon-size;
+
+      color: $navbar-fg;
+      opacity: 1;
+    }
+  }
 }
 
-.algolia-autocomplete .aa-dropdown-menu .aa-suggestion.aa-cursor .card {
-  background-color: theme-fade(
-    $component-active-bg,
-    $popover-bg,
-    5%
-  ) !important;
-  color: $component-active-color !important;
+.aa-Autocomplete,
+.aa-DetachedFormContainer {
+  // Search box
+  .aa-Form {
+    align-items: center;
+    background-color: $input-bg;
+    border: $input-border-width solid $input-border-color;
+    border-radius: $input-border-radius;
+    display: flex;
+    line-height: 1em;
+    margin: 0;
+    position: relative;
+    width: 100%;
+    &:focus-within {
+      box-shadow: rgba($primary, 0.6) 0 0 0 1px;
+      outline: currentColor none medium;
+    }
+    .aa-InputWrapperPrefix {
+      align-items: center;
+      display: flex;
+      flex-shrink: 0;
+      order: 1;
+      // Container for search and loading icons
+      .aa-Label,
+      .aa-LoadingIndicator {
+        cursor: initial;
+        flex-shrink: 0;
+        padding: 0;
+        text-align: left;
+        svg {
+          color: $input-color;
+          opacity: 0.5;
+        }
+      }
+      .aa-SubmitButton {
+        appearance: none;
+        background: none;
+        border: 0;
+        margin: 0;
+      }
+      .aa-LoadingIndicator {
+        align-items: center;
+        display: flex;
+        justify-content: center;
+        &[hidden] {
+          display: none;
+        }
+      }
+    }
+    .aa-InputWrapper {
+      order: 3;
+      position: relative;
+      width: 100%;
+
+      // Search box input (with placeholder and query)
+      .aa-Input {
+        appearance: none;
+        background: none;
+        border: 0;
+        color: $input-color;
+        font: inherit;
+        height: calc(1.5em + (0.1rem + 2px));
+        padding: 0;
+        width: 100%;
+        &::placeholder {
+          color: $input-color;
+          opacity: 0.8;
+        }
+        // Focus is set and styled on the parent, it isn't necessary here
+        &:focus {
+          border-color: none;
+          box-shadow: none;
+          outline: none;
+        }
+        // Remove native appearence
+        &::-webkit-search-decoration,
+        &::-webkit-search-cancel-button,
+        &::-webkit-search-results-button,
+        &::-webkit-search-results-decoration {
+          display: none;
+        }
+      }
+    }
+    .aa-InputWrapperSuffix {
+      align-items: center;
+      display: flex;
+      order: 4;
+      // Accelerator to clear the query
+      .aa-ClearButton {
+        align-items: center;
+        background: none;
+        border: 0;
+        color: $input-color;
+        opacity: 0.8;
+        cursor: pointer;
+        display: flex;
+        margin: 0;
+        width: calc(1.5em + (0.1rem + 2px));
+        &:hover,
+        &:focus {
+          color: $input-color;
+          opacity: 0.8;
+        }
+        &[hidden] {
+          display: none;
+        }
+        svg {
+          width: $input-height;
+        }
+      }
+
+      .aa-CopyButton {
+        border: none;
+        align-items: center;
+        background: none;
+        color: $input-color;
+        opacity: 0.4;
+        font-size: 0.7rem;
+        cursor: pointer;
+        display: none;
+        margin: 0;
+        width: calc(1em + (0.1rem + 2px));
+        &:hover,
+        &:focus {
+          color: $input-color;
+          opacity: 0.8;
+        }
+        &[hidden] {
+          display: none;
+        }
+      }
+    }
+  }
 }
 
-.algolia-autocomplete
-  .aa-dropdown-menu
-  .aa-suggestion.aa-cursor
-  .card
+#quarto-search-results .aa-Panel {
+  border: solid $input-border-color $input-border-width;
+}
+
+#quarto-search-results .aa-SourceNoResults {
+  width: $quarto-search-results-width - 2 * $input-border-width;
+}
+
+.aa-DetachedOverlay,
+#quarto-search-results {
+  .aa-Panel {
+    max-height: 65vh;
+    overflow-y: auto;
+    font-size: 0.925rem;
+  }
+
+  .aa-SourceNoResults {
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .search-error {
+    padding-top: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    cursor: default;
+    .search-error-title {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      .search-error-icon {
+        margin-right: 8px;
+      }
+    }
+    .search-error-text {
+      font-weight: 300;
+    }
+  }
+
+  .search-result-text {
+    font-weight: 300;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* number of lines to show */
+    -webkit-box-orient: vertical;
+    line-height: 1.2rem; /* fallback */
+    max-height: 2.4rem; /* fallback */
+  }
+
+  .aa-SourceHeader {
+    .search-result-header {
+      font-size: 0.875rem;
+      background-color: $light;
+      padding-left: 14px;
+      padding-bottom: 4px;
+    }
+
+    .search-result-header-no-results {
+      display: none;
+    }
+  }
+
   .search-result-section {
-  color: theme-dim($component-active-color, 15%) !important;
+    font-size: 0.875em;
+  }
+
+  a.search-result-link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  li.aa-Item[aria-selected="true"] {
+    .search-item {
+      background-color: $component-active-bg;
+      color: $component-active-color;
+
+      mark.search-match {
+        color: $component-active-color;
+        background-color: theme-fade($component-active-bg, $body-bg, 8%);
+      }
+    }
+  }
+
+  li.aa-Item[aria-selected="false"] {
+    mark.search-match {
+      color: inherit;
+      background-color: theme-fade($component-active-bg, $body-bg, 42%);
+    }
+  }
+
+  .aa-Item {
+    cursor: pointer;
+
+    .search-item {
+      border-left: none;
+      border-right: none;
+      border-top: none;
+      background-color: $popover-bg;
+      border-color: $input-border-color;
+      color: $popover-body-color;
+    }
+
+    .search-item {
+      p {
+        margin-top: 0;
+        margin-bottom: 0;
+      }
+
+      i.bi {
+        padding-left: 4px;
+        padding-right: 6px;
+      }
+
+      .search-result-title {
+        margin-bottom: 0.1rem;
+      }
+    }
+
+    .search-result-title-container {
+      font-size: 1em;
+      display: flex;
+      background-color: $popover-bg;
+      color: $body-color;
+      padding: 12px 4px 2px 4px;
+    }
+
+    .search-result-text-container {
+      padding-top: 8px;
+      padding-bottom: 8px;
+      padding-right: 8px;
+      margin-left: 32px;
+    }
+
+    .search-result-doc-section,
+    .search-result-more {
+      padding-top: 8px;
+      padding-bottom: 8px;
+      padding-left: 32px;
+    }
+
+    .search-result-more {
+      font-size: 0.8em;
+      font-weight: 400;
+    }
+
+    .search-result-doc {
+      border-top: $input-border-width solid $input-border-color;
+    }
+  }
 }
 
-.algolia-autocomplete .aa-dropdown-menu .aa-suggestion em {
-  font-weight: 500;
-  font-style: normal;
+// Detached Mode
+.aa-DetachedSearchButton {
+  background: none;
+  border: none;
+
+  .aa-DetachedSearchButtonPlaceholder {
+    display: none;
+  }
+}
+.navbar {
+  .aa-DetachedSearchButton {
+    .aa-DetachedSearchButtonIcon {
+      color: $navbar-fg;
+    }
+  }
+}
+.sidebar-tools-collapse,
+.sidebar-tools-main {
+  #quarto-search {
+    display: inline;
+    .aa-Autocomplete {
+      display: inline;
+    }
+    .aa-DetachedSearchButton {
+      padding-left: 4px;
+      padding-right: 4px;
+      .aa-DetachedSearchButtonIcon {
+        color: $sidebar-fg;
+        .aa-SubmitIcon {
+          margin-top: -3px;
+        }
+      }
+    }
+  }
+}
+.aa-DetachedContainer {
+  background: rgba($body-bg, 0.65);
+  width: 90%;
+  bottom: 0;
+  box-shadow: rgba($input-border-color, 0.6) 0 0 0 1px;
+  outline: currentColor none medium;
+  display: flex;
+  flex-direction: column;
+  left: 0;
+  margin: 0;
+  overflow: hidden;
+  padding: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 1101;
+  &::after {
+    height: 32px;
+  }
+  .aa-SourceHeader {
+    margin: var(--aa-spacing-half) 0 var(--aa-spacing-half) 2px;
+  }
+  .aa-Panel {
+    background-color: rgba($body-bg, 1);
+    border-radius: 0;
+    box-shadow: none;
+    flex-grow: 1;
+    margin: 0;
+    padding: 0;
+    position: relative;
+  }
+  .aa-PanelLayout {
+    bottom: 0;
+    box-shadow: none;
+    left: 0;
+    margin: 0;
+    max-height: none;
+    overflow-y: auto;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 100%;
+  }
+  @at-root .aa-DetachedFormContainer {
+    background-color: rgba($body-bg, 1);
+    border-bottom: $input-border-width solid $input-border-color;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin: 0;
+    padding: 0.5em;
+    @at-root .aa-DetachedCancelButton {
+      background: none;
+      font-size: 0.8em;
+      border: 0;
+      border-radius: 3px;
+      color: $input-color;
+      cursor: pointer;
+      margin: 0 0 0 0.5em;
+      padding: 0 0.5em;
+      &:hover,
+      &:focus {
+        box-shadow: rgba($primary, 0.6) 0 0 0 1px;
+        outline: currentColor none medium;
+      }
+    }
+  }
+  @at-root .aa-DetachedContainer--modal {
+    border-radius: 6px;
+    bottom: inherit;
+    height: auto;
+    margin: 0 auto;
+    max-width: 850px;
+    position: absolute;
+    top: 100px;
+    .aa-PanelLayout {
+      max-height: var(--aa-detached-modal-max-height);
+      padding-bottom: var(--aa-spacing-half);
+      position: static;
+    }
+  }
+}
+
+.aa-Detached {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.aa-DetachedOverlay {
+  background-color: rgba($body-color, 0.4);
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  z-index: 1100;
 }

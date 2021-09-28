@@ -64,8 +64,9 @@ import {
 import { projectType } from "../project-types.ts";
 
 import {
-  websiteSearch,
+  searchOptions,
   websiteSearchDependency,
+  websiteSearchIncludeInHeader,
   websiteSearchSassBundle,
 } from "./website-search.ts";
 
@@ -90,7 +91,11 @@ import {
   NavigationPagination,
   websiteNavigationConfig,
 } from "./website-shared.ts";
-import { kNumberSections, kTocTitle } from "../../../config/constants.ts";
+import {
+  kIncludeInHeader,
+  kNumberSections,
+  kTocTitle,
+} from "../../../config/constants.ts";
 import {
   createMarkdownEnvelope,
   processMarkdownEnvelope,
@@ -149,13 +154,17 @@ export async function websiteNavigationExtras(
     websiteNavigationDependency(project),
   ];
 
+  // the contents of anything before the head
+  const includeInHeader = [];
+
   // Determine any sass bundles
   const sassBundles: SassBundle[] = [websiteNavigationSassBundle()];
 
   const searchDep = websiteSearchDependency(project, source);
   if (searchDep) {
-    dependencies.push(searchDep);
+    dependencies.push(...searchDep);
     sassBundles.push(websiteSearchSassBundle());
+    includeInHeader.push(websiteSearchIncludeInHeader(project));
   }
 
   // Check to see whether the navbar or sidebar have been disabled on this page
@@ -223,6 +232,7 @@ export async function websiteNavigationExtras(
 
   // return extras with bodyEnvelope
   return {
+    [kIncludeInHeader]: includeInHeader,
     [kTocTitle]: !hasTableOfContentsTitle(flags, format) &&
         format.metadata[kTocFloat] !== false
       ? "On this page"
@@ -539,8 +549,10 @@ async function sidebarEjsData(project: ProjectContext, sidebar: Sidebar) {
   // ensure title and search are present
   sidebar.title = sidebarTitle(sidebar, project) as string | undefined;
   sidebar.logo = resolveLogo(sidebar.logo);
-  sidebar.search = websiteSearch(project) === "sidebar"
-    ? sidebar.search
+
+  const searchOpts = searchOptions(project);
+  sidebar.search = searchOpts && searchOpts.location === "sidebar"
+    ? searchOpts.type
     : false;
 
   // ensure collapse & alignment are defaulted
@@ -759,15 +771,19 @@ async function navbarEjsData(
   navbar: Navbar,
 ): Promise<Navbar> {
   const collapse = navbar.collapse !== undefined ? !!navbar.collapse : true;
+
+  const searchOpts = searchOptions(project);
+
   const data: Navbar = {
     ...navbar,
-    search: websiteSearch(project) === "navbar" ? navbar.search : false,
+    search: searchOpts && searchOpts.location === "navbar"
+      ? searchOpts.type
+      : false,
     background: navbar.background || "primary",
     logo: resolveLogo(navbar.logo),
     collapse,
-    [kCollapseBelow]: !collapse
-      ? ""
-      : ("-" + (navbar[kCollapseBelow] || "lg")) as LayoutBreak,
+    [kCollapseBelow]: !collapse ? ""
+    : ("-" + (navbar[kCollapseBelow] || "lg")) as LayoutBreak,
     pinned: navbar.pinned !== undefined ? !!navbar.pinned : false,
   };
 

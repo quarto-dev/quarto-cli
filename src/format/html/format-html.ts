@@ -28,6 +28,7 @@ import {
 import {
   DependencyFile,
   Format,
+  FormatDependency,
   FormatExtras,
   kDependencies,
   kHtmlPostprocessors,
@@ -48,6 +49,7 @@ import {
 } from "./format-html-bootstrap.ts";
 
 import {
+  clipboardDependency,
   kAnchorSections,
   kBootstrapDependencyName,
   kCodeCopy,
@@ -213,6 +215,7 @@ function htmlFormatExtras(format: Format): FormatExtras {
   const stylesheets: DependencyFile[] = [];
   const bootstrap = formatHasBootstrap(format);
   const sassBundles: SassBundle[] = [];
+  const dependencies: FormatDependency[] = [];
 
   const options: Record<string, unknown> = format.metadata[kComments]
     ? {
@@ -293,10 +296,7 @@ function htmlFormatExtras(format: Format): FormatExtras {
 
   // clipboard.js if required
   if (options.copyCode) {
-    scripts.push({
-      name: "clipboard.min.js",
-      path: formatResourcePath("html", join("clipboard", "clipboard.min.js")),
-    });
+    dependencies.push(clipboardDependency());
   }
 
   // anchors if required
@@ -401,15 +401,16 @@ function htmlFormatExtras(format: Format): FormatExtras {
   }
 
   // return extras
+  dependencies.push({
+    name: kQuartoHtmlDependency,
+    scripts,
+    stylesheets,
+  });
   return {
     [kIncludeInHeader]: includeInHeader,
     [kIncludeAfterBody]: includeAfterBody,
     html: {
-      [kDependencies]: [{
-        name: kQuartoHtmlDependency,
-        scripts,
-        stylesheets,
-      }],
+      [kDependencies]: dependencies,
       [kSassBundles]: sassBundles,
       [kHtmlPostprocessors]: [htmlFormatPostprocessor(format)],
     },

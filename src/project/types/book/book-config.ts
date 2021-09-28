@@ -112,6 +112,7 @@ export async function bookProjectConfig(
     site[kOpenGraph] = book[kOpenGraph];
     site[kTwitterCard] = book[kTwitterCard];
     site[kImage] = book[kImage];
+    site[kBookSearch] = book[kBookSearch];
 
     // If there is an explicitly set footer use that
     if (book[kSiteFooter]) {
