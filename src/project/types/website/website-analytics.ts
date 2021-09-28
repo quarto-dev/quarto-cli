@@ -56,15 +56,17 @@ export function scriptTagWithConsent(
   consentRequired: boolean,
   consentlevel: ConsentLevel,
   contents: string,
+  src?: string,
 ) {
+  const srcAttr = src ? ` src="${src}"` : "";
   if (consentRequired) {
     return `
-<script type="text/plain" cookie-consent="${consentlevel}">
+<script type="text/plain" cookie-consent="${consentlevel}"${srcAttr}>
 ${contents}
 </script>`;
   } else {
     return `
-<script type="text/javascript">
+<script type="text/javascript"${srcAttr}>
 ${contents}
 </script>`;
   }

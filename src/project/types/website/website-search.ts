@@ -33,6 +33,10 @@ import { websiteConfig, websitePath, websiteTitle } from "./website-config.ts";
 import { sassLayer } from "../../../command/render/sass.ts";
 import { sessionTempFile } from "../../../core/temp.ts";
 import { warning } from "log/mod.ts";
+import {
+  cookieConsentEnabled,
+  scriptTagWithConsent,
+} from "./website-analytics.ts";
 
 // The main search key
 const kSearch = "search";
@@ -372,8 +376,9 @@ export function websiteSearchIncludeInHeader(project: ProjectContext) {
     if (algoliaOpts) {
       includes.push(kAlogioSearchApiScript);
       if (algoliaOpts[kAnalyticsEvents]) {
-        includes.push(kAlogiaSearchInsightsScript);
-        includes.push(kAutocompleteInsightsPluginScript);
+        const cookieConsent = cookieConsentEnabled(project);
+        includes.push(algoliaSearchInsightsScript(cookieConsent));
+        includes.push(autocompleteInsightsPluginScript(cookieConsent));
       }
     }
   }
@@ -450,22 +455,26 @@ function searchDependency(resource: string) {
   };
 }
 
-const kAutocompleteInsightsPluginScript =
-  `<script src="https://cdn.jsdelivr.net/npm/@algolia/autocomplete-plugin-algolia-insights"></script>
-<script>
-  const { createAlgoliaInsightsPlugin } = window[
-    '@algolia/autocomplete-plugin-algolia-insights'
-  ];
-</script>`;
+function autocompleteInsightsPluginScript(cookieConsent: boolean) {
+  return scriptTagWithConsent(
+    cookieConsent,
+    "tracking",
+    "",
+    "https://cdn.jsdelivr.net/npm/@algolia/autocomplete-plugin-algolia-insights",
+  );
+}
 
-const kAlogiaSearchInsightsScript = `<script>
-var ALGOLIA_INSIGHTS_SRC = "https://cdn.jsdelivr.net/npm/search-insights/dist/search-insights.iife.min.js";
-
+function algoliaSearchInsightsScript(cookieConsent: boolean) {
+  return scriptTagWithConsent(
+    cookieConsent,
+    "tracking",
+    `var ALGOLIA_INSIGHTS_SRC = "https://cdn.jsdelivr.net/npm/search-insights/dist/search-insights.iife.min.js";
 !function(e,a,t,n,s,i,c){e.AlgoliaAnalyticsObject=s,e[s]=e[s]||function(){
 (e[s].queue=e[s].queue||[]).push(arguments)},i=a.createElement(t),c=a.getElementsByTagName(t)[0],
 i.async=1,i.src=n,c.parentNode.insertBefore(i,c)
-}(window,document,"script",ALGOLIA_INSIGHTS_SRC,"aa");
-</script>`;
+}(window,document,"script",ALGOLIA_INSIGHTS_SRC,"aa");`,
+  );
+}
 
 const kAlogioSearchApiScript =
   `<script src="https://cdn.jsdelivr.net/npm/algoliasearch@4.5.1/dist/algoliasearch-lite.umd.js"></script>
