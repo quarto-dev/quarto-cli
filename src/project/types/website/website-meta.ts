@@ -391,7 +391,8 @@ function findPreviewImg(
   return image;
 }
 
-const kMetaTitleId = "quarto-int-metatitle";
+const kMetaTitleId = "quarto-metatitle";
+const kMetaSideNameId = "quarto-metasitename";
 function metaMarkdownPipeline(format: Format) {
   const titleMetaHandler = {
     getUnrendered() {
@@ -411,19 +412,41 @@ function metaMarkdownPipeline(format: Format) {
           el.innerHTML = renderedEl.innerText;
         }
 
-        // Update any social metadata
-        const valueNames = ["og:title", "twitter:title"];
-        const metaTags = doc.getElementsByTagName("meta");
-        metaTags.forEach((metaTag) => {
-          const name = metaTag.getAttribute("name");
-          if (name !== null) {
-            if (valueNames.includes(name)) {
-              metaTag.setAttribute("content", renderedEl.innerText);
+        ['meta[name="og:title"]', 'meta[name="twitter:title"]'].forEach(
+          (sel) => {
+            const metaEl = doc.querySelector(sel);
+            if (metaEl) {
+              metaEl.setAttribute("content", renderedEl.innerText);
             }
-          }
-        });
+          },
+        );
       }
     },
   };
-  return createMarkdownPipeline("quarto-meta-markdown", [titleMetaHandler]);
+
+  const siteTitleMetaHandler = {
+    getUnrendered() {
+      const siteMeta = format.metadata[kSite] as Metadata;
+      if (siteMeta && siteMeta[kTitle]) {
+        return { [kMetaSideNameId]: siteMeta[kTitle] as string };
+      }
+    },
+    processRendered(rendered: Record<string, Element>, doc: Document) {
+      const renderedEl = rendered[kMetaSideNameId];
+      if (renderedEl) {
+        // Update the document title
+        const el = doc.querySelector(
+          `meta[name="og:site-name"]`,
+        );
+        if (el) {
+          el.setAttribute("content", renderedEl.innerText);
+        }
+      }
+    },
+  };
+
+  return createMarkdownPipeline("quarto-meta-markdown", [
+    titleMetaHandler,
+    siteTitleMetaHandler,
+  ]);
 }
