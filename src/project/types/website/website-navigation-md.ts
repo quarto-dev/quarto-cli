@@ -1,5 +1,5 @@
 /*
-* website-navigation-markdown.ts
+* website-navigation-md.ts
 *
 * Copyright (C) 2020 by RStudio, PBC
 *
@@ -19,6 +19,10 @@ import {
   NavigationPagination,
 } from "./website-shared.ts";
 import { removeChapterNumber } from "./website-navigation.ts";
+import {
+  createMarkdownRenderEnvelope,
+  processMarkdownRenderEnvelope,
+} from "./website-pipeline-md.ts";
 
 const kSidebarTitleId = "quarto-int-sidebar-title";
 const kNavbarTitleId = "quarto-int-navbar-title";
@@ -28,56 +32,41 @@ const kSidebarIdPrefix = "quarto-int-sidebar:";
 const kNavbarIdPrefix = "quarto-int-navbar:";
 const kMetaTitleId = "quarto-int-metatitle";
 
+const kQuartoEnvelopeId = "quarto-render-envelope";
 
-export function createMarkdownEnvelope(
+export function createNavigationMarkdownEnvelope(
   format: Format,
   navigation: Navigation,
   nextAndPrev: NavigationPagination,
   sidebar?: Sidebar,
 ) {
-  const envelope = markdownEnvelopeWriter();
+  // Get all the markdown that needs to be rendered
+  const markdownRecords: Record<string, string> = {};
   handlers.forEach((handler) => {
-    const markdownRecords: Record<string, string> | undefined = handler
-      .getUnrendered({
-        format,
-        sidebar,
-        navigation,
-        nextAndPrev,
-      });
-    if (markdownRecords) {
-      Object.keys(markdownRecords).forEach((key) => {
-        envelope.add(key, markdownRecords[key]);
+    const handlerRecords = handler.getUnrendered({
+      format,
+      sidebar,
+      navigation,
+      nextAndPrev,
+    });
+    if (handlerRecords) {
+      Object.keys(handlerRecords).forEach((key) => {
+        markdownRecords[key] = handlerRecords[key];
       });
     }
   });
-  return envelope.toMarkdown();
+  return createMarkdownRenderEnvelope(kQuartoEnvelopeId, markdownRecords);
 }
 
-export function processMarkdownEnvelope(doc: Document) {
-  // Reader for getting rendered elements
-  const renderedMarkdown = readEnvelope(doc);
-  handlers.forEach((handler) => {
-    handler.processRendered(renderedMarkdown, doc);
-  });
+export function processNavigationMarkdownEnvelope(doc: Document) {
+  processMarkdownRenderEnvelope(
+    doc,
+    kQuartoEnvelopeId,
+    handlers.map((handler) => {
+      return handler.processRendered;
+    }),
+  );
 }
-
-const kQuartoEnvelopeId = "quarto-render-envelope";
-const readEnvelope = (doc: Document) => {
-  const envelope = doc.getElementById(kQuartoEnvelopeId);
-  const contents: Record<string, Element> = {};
-  if (envelope) {
-    const nodes = envelope.querySelectorAll("span[data-render-id]");
-    nodes.forEach((node) => {
-      const el = node as Element;
-      const id = el.getAttribute("data-render-id");
-      if (id) {
-        contents[id] = el;
-      }
-    });
-    envelope.remove();
-  }
-  return contents;
-};
 
 interface MarkdownRenderContext {
   format: Format;
@@ -92,23 +81,6 @@ interface MarkdownRenderHandler {
   ) => Record<string, string> | undefined;
   processRendered: (rendered: Record<string, Element>, doc: Document) => void;
 }
-
-const markdownEnvelopeWriter = () => {
-  const renderList: string[] = [];
-  const hiddenSpan = (id: string, contents: string) => {
-    return `[${contents}]{.hidden render-id="${id}"}`;
-  };
-
-  return {
-    add: (id: string, value: string) => {
-      renderList.push(hiddenSpan(id, value));
-    },
-    toMarkdown: () => {
-      const contents = renderList.join("\n");
-      return `\n:::{#${kQuartoEnvelopeId} .hidden}\n${contents}\n:::\n`;
-    },
-  };
-};
 
 function title(format: Format) {
   const site = (format.metadata[kSite] as Metadata);

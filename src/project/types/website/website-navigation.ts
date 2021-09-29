@@ -97,8 +97,8 @@ import {
   kTocTitle,
 } from "../../../config/constants.ts";
 import {
-  createMarkdownEnvelope,
-  processMarkdownEnvelope,
+  createNavigationMarkdownEnvelope,
+  processNavigationMarkdownEnvelope,
 } from "./website-navigation-md.ts";
 import { sassLayer } from "../../../command/render/sass.ts";
 
@@ -245,7 +245,12 @@ export async function websiteNavigationExtras(
         navigationHtmlPostprocessor(project, source),
       ],
       [kMarkdownAfterBody]: [
-        createMarkdownEnvelope(format, navigation, pageNavigation, sidebar),
+        createNavigationMarkdownEnvelope(
+          format,
+          navigation,
+          pageNavigation,
+          sidebar,
+        ),
       ],
     },
   };
@@ -286,7 +291,7 @@ function navigationHtmlPostprocessor(
 
   return async (doc: Document) => {
     // Process any markdown rendered through the render envelope
-    processMarkdownEnvelope(doc);
+    processNavigationMarkdownEnvelope(doc);
 
     // latch active nav link
     const navLinks = doc.querySelectorAll("a.nav-link");
