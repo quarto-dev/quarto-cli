@@ -38,11 +38,16 @@
 
     function postSlideChanged() {
       postMessage("reveal-slidechange", {
-        href: window.location.href,
         first: Reveal.isFirstSlide(),
         last: Reveal.isLastSlide(),
         slide: slideInfo(Reveal.getCurrentSlide())
       })
+    }
+
+    function postHashChange() {
+      postMessage("reveal-hashchange", {
+        href: window.location.href
+      });
     }
 
     // initialization
@@ -61,6 +66,9 @@
       // fire slidechanged for initial load
       postSlideChanged();
 
+      // forward window hashchange
+      postHashChange();
+      window.addEventListener('hashchange', postHashChange);
     });
 
     // forward slidechanged
