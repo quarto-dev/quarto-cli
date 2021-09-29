@@ -6,6 +6,45 @@
 */
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 
+export interface MarkdownPipelineHandler {
+  getUnrendered: () => Record<string, string> | undefined;
+  processRendered: (rendered: Record<string, Element>, doc: Document) => void;
+}
+
+export interface MarkdownPipeline {
+  markdownAfterBody(): string;
+  processRenderedMarkdown(doc: Document): void;
+}
+
+export const createMarkdownPipeline = (
+  envelopeId: string,
+  handlers: MarkdownPipelineHandler[],
+): MarkdownPipeline => {
+  return {
+    markdownAfterBody() {
+      const markdownRecords: Record<string, string> = {};
+      handlers.forEach((handler) => {
+        const handlerRecords = handler.getUnrendered();
+        if (handlerRecords) {
+          Object.keys(handlerRecords).forEach((key) => {
+            markdownRecords[key] = handlerRecords[key];
+          });
+        }
+      });
+      return createMarkdownRenderEnvelope(envelopeId, markdownRecords);
+    },
+    processRenderedMarkdown(doc: Document) {
+      processMarkdownRenderEnvelope(
+        doc,
+        envelopeId,
+        handlers.map((handler) => {
+          return handler.processRendered;
+        }),
+      );
+    },
+  };
+};
+
 export function createMarkdownRenderEnvelope(
   envelopeId: string,
   records: Record<string, string>,
