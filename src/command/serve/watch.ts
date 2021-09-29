@@ -30,6 +30,7 @@ import { copyProjectForServe } from "./serve-shared.ts";
 
 import { ProjectWatcher, ServeOptions } from "./types.ts";
 import { httpReloader } from "../../core/http-reload.ts";
+import { Format } from "../../config/types.ts";
 
 export async function watchProject(
   project: ProjectContext,
@@ -268,9 +269,9 @@ export async function watchProject(
       return !!options.watch && reloader.handle(req);
     },
     connect: reloader.connect,
-    injectClient: (file: Uint8Array, inputFile: string) => {
+    injectClient: (file: Uint8Array, inputFile: string, format: Format) => {
       if (options.watch) {
-        return reloader.injectClient(file, inputFile);
+        return reloader.injectClient(file, inputFile, format);
       } else {
         return file;
       }

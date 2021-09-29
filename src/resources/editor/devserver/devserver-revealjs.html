@@ -1,0 +1,85 @@
+<script type="text/javascript">
+  (function () {
+
+    function onMessage(message, fn) {
+      window.addEventListener("message", function (event) {
+        if (event.data.message === message) {
+          fn(event.data.data);
+        }
+      });
+    }
+
+    function postMessage(message, data) {
+      if (window.parent.postMessage) {
+        window.parent.postMessage({
+          message: message,
+          data: data
+        }, "*");
+      }
+    }
+
+    function slideInfo(slide) {
+      const titles = slide.querySelectorAll("h1, h2, h3, h4, h5, h6");
+      const indices = Reveal.getIndices(slide);
+      return {
+        id: slide.id || "",
+        title: titles.item(0) ? titles.item(0).textContent : "",
+        h: indices.h,
+        v: indices.v,
+        f: indices.f
+      };
+    }
+
+    function postInit(slides) {
+      postMessage("reveal-init", {
+        slides: slides
+      })
+    }
+
+    function postSlideChanged() {
+      postMessage("reveal-slidechange", {
+        first: Reveal.isFirstSlide(),
+        last: Reveal.isLastSlide(),
+        slide: slideInfo(Reveal.getCurrentSlide())
+      })
+    }
+
+    function postHashChange() {
+      postMessage("reveal-hashchange", {
+        href: window.location.href
+      });
+    }
+
+    // initialization
+    Reveal.on('ready', function () {
+
+      // set some defaults to faciliate tooling
+      Reveal.configure({
+        history: true,
+        fragmentInURL: true
+      });
+
+      // collect up slides ids and titles and call init with them
+      const slides = Reveal.getSlides().map(slideInfo);
+      postInit(slides);
+
+      // fire slidechanged for initial load
+      postSlideChanged();
+
+      // forward window hashchange
+      postHashChange();
+      window.addEventListener('hashchange', postHashChange);
+    });
+
+    // forward slidechanged
+    Reveal.on('slidechanged', postSlideChanged);
+
+    // handle next/previous/navigate/reload
+    onMessage("reveal-next", function () { Reveal.next(); });
+    onMessage("reveal-prev", function () { Reveal.prev(); });
+    onMessage("reveal-slide", function (data) { Reveal.slide(data.h, data.v, data.f); });
+    onMessage("reveal-refresh", function () { window.location.reload(true); });
+    onMessage("reveal-home", function () { Reveal.slide(0, 0, 0); });
+
+  })();
+</script>
