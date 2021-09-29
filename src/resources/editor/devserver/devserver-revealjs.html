@@ -18,6 +18,18 @@
       }
     }
 
+    function slideInfo(slide) {
+      const titles = slide.querySelectorAll("h1, h2, h3, h4, h5, h6");
+      const indices = Reveal.getIndices(slide);
+      return {
+        id: slide.id || "",
+        title: titles.item(0) ? titles.item(0).textContent : "",
+        h: indices.h,
+        v: indices.v,
+        f: indices.f
+      };
+    }
+
     function postInit(slides) {
       postMessage("reveal-init", {
         slides: slides
@@ -25,10 +37,11 @@
     }
 
     function postSlideChanged() {
-      postMessage("reveal-slidechanged", {
-        href: window.location.pathname + window.location.hash,
+      postMessage("reveal-slidechange", {
+        href: window.location.href,
         first: Reveal.isFirstSlide(),
-        last: Reveal.isLastSlide()
+        last: Reveal.isLastSlide(),
+        slide: slideInfo(Reveal.getCurrentSlide())
       })
     }
 
@@ -42,14 +55,7 @@
       });
 
       // collect up slides ids and titles and call init with them
-      const slides = Reveal.getSlides().map(function (slide) {
-        const titles = slide.querySelectorAll("h1, h2, h3, h4, h5, h6");
-        return {
-          id: slide.id || "",
-          title: titles.item(0) ? titles.item(0).textContent : "",
-          indicies: Reveal.getIndices(slide)
-        }
-      });
+      const slides = Reveal.getSlides().map(slideInfo);
       postInit(slides);
 
       // fire slidechanged for initial load
@@ -62,9 +68,10 @@
 
     // handle next/previous/navigate/reload
     onMessage("reveal-next", function () { Reveal.next(); });
-    onMessage("reveal-previous", function () { Reveal.previous(); });
+    onMessage("reveal-previous", function () { Reveal.prev(); });
     onMessage("reveal-navigate", function (data) { Reveal.slide(data.h, data.v, data.f); });
     onMessage("reveal-reload", function () { window.location.reload(true); });
+    onMessage("reveal-home", function () { Reveal.slide(0, 0, 0); });
 
   })();
 </script>
