@@ -8,6 +8,8 @@
 import { ServerRequest } from "http/server.ts";
 
 import { acceptWebSocket, WebSocket } from "ws/mod.ts";
+import { isRevealjsOutput } from "../config/format.ts";
+import { Format } from "../config/types.ts";
 import { renderEjs } from "./ejs.ts";
 import { maybeDisplaySocketError } from "./http.ts";
 import { isRStudioServer } from "./platform.ts";
@@ -19,11 +21,18 @@ import { resourcePath } from "./resources.ts";
 export interface HttpReloader {
   handle: (req: ServerRequest) => boolean;
   connect: (req: ServerRequest) => Promise<void>;
-  injectClient: (file: Uint8Array, inputFile: string) => Uint8Array;
+  injectClient: (
+    file: Uint8Array,
+    inputFile: string,
+    format: Format,
+  ) => Uint8Array;
   reloadClients: (reloadTarget?: string) => Promise<void>;
 }
 
-export function httpReloader(port: number): HttpReloader {
+export function httpReloader(
+  port: number,
+  isPresentation?: boolean,
+): HttpReloader {
   // track clients
   interface Client {
     path: string;
@@ -49,9 +58,9 @@ export function httpReloader(port: number): HttpReloader {
         maybeDisplaySocketError(e);
       }
     },
-    injectClient: (file: Uint8Array, inputFile: string) => {
+    injectClient: (file: Uint8Array, inputFile: string, format: Format) => {
       const scriptContents = new TextEncoder().encode(
-        "\n" + watchClientScript(port, inputFile),
+        "\n" + devServerClientScript(port, inputFile, format, isPresentation),
       );
       const fileWithScript = new Uint8Array(
         file.length + scriptContents.length,
@@ -88,10 +97,34 @@ export function httpReloader(port: number): HttpReloader {
   };
 }
 
-function watchClientScript(port: number, inputFile: string): string {
-  return renderEjs(resourcePath("editor/devserver/devserver.html"), {
-    localhost: kLocalhost,
-    port,
-    inputFile,
-  });
+function devServerClientScript(
+  port: number,
+  inputFile: string,
+  format: Format,
+  isPresentation?: boolean,
+): string {
+  // reload devserver
+  const devserver = [
+    renderEjs(resourcePath("editor/devserver/devserver-reload.html"), {
+      localhost: kLocalhost,
+      port,
+    }),
+  ];
+  if (isPresentation && isRevealjsOutput(format.pandoc)) {
+    // revealjs devserver
+    if (isRevealjsOutput(format.pandoc)) {
+      devserver.push(
+        renderEjs(resourcePath("editor/devserver/devserver-revealjs.html"), {}),
+      );
+    }
+  } else {
+    // viewer devserver
+    devserver.push(
+      renderEjs(resourcePath("editor/devserver/devserver-viewer.html"), {
+        inputFile,
+      }),
+    );
+  }
+
+  return devserver.join("\n");
 }

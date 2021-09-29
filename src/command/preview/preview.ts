@@ -50,11 +50,13 @@ import { md5Hash } from "../../core/hash.ts";
 import { isProjectInputFile } from "../../project/project-shared.ts";
 import { renderProject } from "../render/project.ts";
 import { kRenderNone, serveProject } from "../serve/serve.ts";
+import { Format } from "../../config/types.ts";
 
 interface PreviewOptions {
   port: number;
   host: string;
   browse: boolean;
+  presentation: boolean;
   watch: boolean;
 }
 
@@ -98,7 +100,7 @@ export async function preview(
   const result = await render();
 
   // create client reloader
-  const reloader = httpReloader(options.port);
+  const reloader = httpReloader(options.port, options.presentation);
 
   // watch for changes and re-render / re-load as necessary
   const changeHandler = createChangeHandler(
@@ -114,12 +116,14 @@ export async function preview(
     ? pdfFileRequestHandler(
       result.outputFile,
       Deno.realPathSync(file),
+      result.format,
       reloader,
       changeHandler.render,
     )
     : htmlFileRequestHandler(
       result.outputFile,
       Deno.realPathSync(file),
+      result.format,
       reloader,
       changeHandler.render,
     );
@@ -161,6 +165,7 @@ async function resolvePreviewFormat(
 
 interface RenderForPreviewResult {
   file: string;
+  format: Format;
   outputFile: string;
   resourceFiles: string[];
 }
@@ -207,6 +212,7 @@ async function renderForPreview(
   );
   return {
     file,
+    format: renderResult.files[0].format,
     outputFile: join(dirname(file), finalOutput),
     resourceFiles,
   };
@@ -345,17 +351,25 @@ function previewWatcher(watches: Watch[]): Watcher {
 function htmlFileRequestHandler(
   htmlFile: string,
   inputFile: string,
+  format: Format,
   reloader: HttpReloader,
   renderHandler: () => Promise<void>,
 ) {
   return httpFileRequestHandler(
-    htmlFileRequestHandlerOptions(htmlFile, inputFile, reloader, renderHandler),
+    htmlFileRequestHandlerOptions(
+      htmlFile,
+      inputFile,
+      format,
+      reloader,
+      renderHandler,
+    ),
   );
 }
 
 function htmlFileRequestHandlerOptions(
   htmlFile: string,
   inputFile: string,
+  format: Format,
   reloader: HttpReloader,
   renderHandler: () => Promise<void>,
 ): HttpFileRequestOptions {
@@ -378,7 +392,7 @@ function htmlFileRequestHandlerOptions(
     onFile: async (file: string) => {
       if (isHtmlContent(file)) {
         const fileContents = await Deno.readFile(file);
-        return reloader.injectClient(fileContents, inputFile);
+        return reloader.injectClient(fileContents, inputFile, format);
       }
     },
   };
@@ -405,6 +419,7 @@ const kPdfJsViewerToolbarButtonSelector = `.toolbarButton,
 function pdfFileRequestHandler(
   pdfFile: string,
   inputFile: string,
+  format: Format,
   reloader: HttpReloader,
   renderHandler: () => Promise<void>,
 ) {
@@ -412,6 +427,7 @@ function pdfFileRequestHandler(
   const pdfOptions = htmlFileRequestHandlerOptions(
     pdfFile,
     inputFile,
+    format,
     reloader,
     renderHandler,
   );

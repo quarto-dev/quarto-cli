@@ -190,9 +190,10 @@ export async function serveProject(
             filePathRelative,
           );
         }
+        let result: RenderResult | undefined;
         if (inputFile) {
           try {
-            const result = await renderQueue.enqueue(() =>
+            result = await renderQueue.enqueue(() =>
               renderProject(
                 watcher.serveProject(),
                 {
@@ -215,12 +216,16 @@ export async function serveProject(
         const fileContents = Deno.readFileSync(file);
 
         // inject watcher client for html
-        if (isHtmlContent(file) && inputFile) {
+        if (isHtmlContent(file) && inputFile && result) {
           const projInputFile = join(
             project!.dir,
             relative(watcher.serveProject().dir, inputFile),
           );
-          return watcher.injectClient(fileContents, projInputFile);
+          return watcher.injectClient(
+            fileContents,
+            projInputFile,
+            result.files[0].format,
+          );
         } else {
           return fileContents;
         }
