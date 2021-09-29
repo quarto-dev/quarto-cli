@@ -8,14 +8,13 @@
 import { existsSync } from "fs/exists.ts";
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { dirname, join, relative } from "path/mod.ts";
+import { kDescription, kSubtitle, kTitle } from "../../../config/constants.ts";
 import {
-  kDescription,
-  kPageTitle,
-  kSubtitle,
-  kTitle,
-  kTitlePrefix,
-} from "../../../config/constants.ts";
-import { Format, FormatExtras } from "../../../config/types.ts";
+  Format,
+  FormatExtras,
+  kHtmlPostprocessors,
+  kMarkdownAfterBody,
+} from "../../../config/types.ts";
 import { Metadata } from "../../../config/types.ts";
 import { mergeConfigs } from "../../../core/config.ts";
 import PngImage from "../../../core/png.ts";
@@ -35,6 +34,10 @@ import {
 } from "./website-config.ts";
 import { getDecodedAttribute } from "../../../core/html.ts";
 import { computePageTitle } from "./website-shared.ts";
+import {
+  createMarkdownPipeline,
+  MarkdownPipeline,
+} from "./website-pipeline-md.ts";
 
 const kCard = "card";
 
@@ -46,11 +49,31 @@ interface SocialMetadataProvider {
   resolveDefaults?: (finalMetadata: Metadata) => void;
 }
 
+export function metadataHtmlDependencies(
+  source: string,
+  project: ProjectContext,
+  format: Format,
+  extras: FormatExtras,
+) {
+  const pipeline = metaMarkdownPipeline(format);
+  return {
+    [kHtmlPostprocessors]: metadataHtmlPostProcessor(
+      source,
+      project,
+      format,
+      extras,
+      pipeline,
+    ),
+    [kMarkdownAfterBody]: pipeline.markdownAfterBody(),
+  };
+}
+
 export function metadataHtmlPostProcessor(
   source: string,
   project: ProjectContext,
   format: Format,
   extras: FormatExtras,
+  pipeline: MarkdownPipeline,
 ) {
   return (doc: Document): Promise<string[]> => {
     // read document level metadata
@@ -147,6 +170,9 @@ export function metadataHtmlPostProcessor(
         }
       });
     });
+
+    // Process any pipelined markdown
+    pipeline.processRenderedMarkdown(doc);
 
     return Promise.resolve([]);
   };
@@ -264,24 +290,6 @@ function mergedSiteAndDocumentData(
   }
 }
 
-function previewTitle(format: Format, extras: FormatExtras) {
-  const meta = extras.metadata || {};
-  if (meta[kPageTitle] !== undefined) {
-    return meta[kPageTitle];
-  } else if (extras.pandoc?.[kTitlePrefix] !== undefined) {
-    // If the title prefix is the same as the title, don't include it as a prefix
-    if (extras.pandoc?.[kTitlePrefix] === format.metadata[kTitle]) {
-      return format.metadata[kTitle];
-    } else if (format.metadata[kTitle]) {
-      return extras.pandoc?.[kTitlePrefix] + " - " + format.metadata[kTitle];
-    } else {
-      return undefined;
-    }
-  } else {
-    return format.metadata[kTitle];
-  }
-}
-
 function imageMetadata(
   image: string,
   baseUrl: string,
@@ -381,4 +389,41 @@ function findPreviewImg(
   }
 
   return image;
+}
+
+const kMetaTitleId = "quarto-int-metatitle";
+function metaMarkdownPipeline(format: Format) {
+  const titleMetaHandler = {
+    getUnrendered() {
+      const resolvedTitle = computePageTitle(format);
+      if (resolvedTitle !== undefined) {
+        return { [kMetaTitleId]: resolvedTitle };
+      }
+    },
+    processRendered(rendered: Record<string, Element>, doc: Document) {
+      const renderedEl = rendered[kMetaTitleId];
+      if (renderedEl) {
+        // Update the document title
+        const el = doc.querySelector(
+          `head title`,
+        );
+        if (el) {
+          el.innerHTML = renderedEl.innerText;
+        }
+
+        // Update any social metadata
+        const valueNames = ["og:title", "twitter:title"];
+        const metaTags = doc.getElementsByTagName("meta");
+        metaTags.forEach((metaTag) => {
+          const name = metaTag.getAttribute("name");
+          if (name !== null) {
+            if (valueNames.includes(name)) {
+              metaTag.setAttribute("content", renderedEl.innerText);
+            }
+          }
+        });
+      }
+    },
+  };
+  return createMarkdownPipeline("quarto-meta-markdown", [titleMetaHandler]);
 }

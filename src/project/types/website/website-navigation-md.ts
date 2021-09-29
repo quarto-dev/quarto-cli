@@ -342,39 +342,3 @@ const footerHandler = (context: NavigationPipelineContext) => {
     },
   };
 };
-
-/*
-const kMetaTitleId = "quarto-int-metatitle";
-const titleMetaHandler = {
-  getUnrendered(context: MarkdownRenderContext) {
-    const resolvedTitle = computePageTitle(context.format);
-    if (resolvedTitle !== undefined) {
-      return { [kMetaTitleId]: resolvedTitle };
-    }
-  },
-  processRendered(rendered: Record<string, Element>, doc: Document) {
-    const renderedEl = rendered[kMetaTitleId];
-    if (renderedEl) {
-      // Update the document title
-      const el = doc.querySelector(
-        `head title`,
-      );
-      if (el) {
-        el.innerHTML = renderedEl.innerText;
-      }
-
-      // Update any social metadata
-      const valueNames = ["og:title", "twitter:title"];
-      const metaTags = doc.getElementsByTagName("meta");
-      metaTags.forEach((metaTag) => {
-        const name = metaTag.getAttribute("name");
-        if (name !== null) {
-          if (valueNames.includes(name)) {
-            metaTag.setAttribute("content", renderedEl.innerText);
-          }
-        }
-      });
-    }
-  },
-};
-*/
