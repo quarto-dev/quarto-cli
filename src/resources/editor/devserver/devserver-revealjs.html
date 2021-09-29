@@ -76,9 +76,9 @@
 
     // handle next/previous/navigate/reload
     onMessage("reveal-next", function () { Reveal.next(); });
-    onMessage("reveal-previous", function () { Reveal.prev(); });
-    onMessage("reveal-navigate", function (data) { Reveal.slide(data.h, data.v, data.f); });
-    onMessage("reveal-reload", function () { window.location.reload(true); });
+    onMessage("reveal-prev", function () { Reveal.prev(); });
+    onMessage("reveal-slide", function (data) { Reveal.slide(data.h, data.v, data.f); });
+    onMessage("reveal-refresh", function () { window.location.reload(true); });
     onMessage("reveal-home", function () { Reveal.slide(0, 0, 0); });
 
   })();
