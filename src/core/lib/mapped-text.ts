@@ -10,7 +10,7 @@
 
 import { glb } from "./binary-search.ts";
 import { Range, rangedLines } from "./ranged-text.ts";
-import { lines, lineNumbers } from "./text.ts";
+import { lines, indexToRowCol } from "./text.ts";
 
 export interface MappedString {
   value: string,
@@ -243,8 +243,8 @@ export function mappedConcat(strings: MappedString[]): MappedString
   };
 }
 
-export function mappedLineNumbers(text: MappedString) {
-  const f = lineNumbers(text.originalString);
+export function mappedIndexToRowCol(text: MappedString) {
+  const f = indexToRowCol(text.originalString);
   
   return function(offset: number) {
     const n = text.mapClosest(offset);

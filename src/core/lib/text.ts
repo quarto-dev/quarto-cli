@@ -15,20 +15,33 @@ export function normalizeNewlines(text: string) {
   return lines(text).join("\n");
 }
 
-export function lineNumbers(text: string) {
-  const lineOffsets = [0];
-  for (const m of text.matchAll(/\r?\n/g)) {
-    // FIXME Why is typescript getting the types wrong here?
-    lineOffsets.push(m[0].length + (m as any).index);
+// we can't use matchAll here because we need to support old Chromium
+// in the IDE
+function lineOffsets(text: string) {
+  const offsets = [0];
+  const re = /\r?\n/g;
+  let match;
+  while ((match = re.exec(text)) != null) {
+    offsets.push(match.index);
   }
-  lineOffsets.push(text.length);
+  return offsets;
+}
 
+export function indexToRowCol(text: string) {
+  const offsets = lineOffsets(text);
   return function(offset: number) {
-    const startIndex = glb(lineOffsets, offset);
+    const startIndex = glb(offsets, offset);
     
     return {
       line: startIndex,
-      column: offset - lineOffsets[startIndex]
+      column: offset - offsets[startIndex]
     }
+  }
+}
+
+export function rowColToIndex(text: string) {
+  const offsets = lineOffsets(text);
+  return function(position: { row: number, column: number }) {
+    return offsets[position.row] + position.column;
   }
 }

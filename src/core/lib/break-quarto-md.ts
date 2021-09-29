@@ -8,8 +8,8 @@
 *
 */
 
-import { lines } from "/text.ts";
-import { rangedLines, rangedSubstring, RangedSubstring, Range } from "/ranged-text.ts";
+import { lines } from "./text.ts";
+import { rangedLines, rangedSubstring, RangedSubstring, Range } from "./ranged-text.ts";
 import { mappedString, MappedString, mappedConcat } from "./mapped-text.ts";
 
 import { partitionCellOptionsMapped } from "./partition-cell-options.ts";
