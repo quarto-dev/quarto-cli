@@ -14,6 +14,7 @@ import { dirAndStem, pathWithForwardSlashes } from "../../../core/path.ts";
 import { ProjectContext } from "../../types.ts";
 import { Navbar, NavItem, Sidebar, SidebarItem } from "../../project-config.ts";
 import {
+  kSite,
   kSiteFooter,
   kSiteNavbar,
   kSitePageNavigation,
@@ -21,6 +22,8 @@ import {
   websiteConfig,
 } from "./website-config.ts";
 import { cookieConsentEnabled } from "./website-analytics.ts";
+import { Format, FormatExtras } from "../../../config/types.ts";
+import { kPageTitle, kTitle, kTitlePrefix } from "../../../config/constants.ts";
 
 export interface Navigation {
   navbar?: Navbar;
@@ -40,6 +43,32 @@ export interface NavigationFooter {
 export interface NavigationPagination {
   nextPage?: SidebarItem;
   prevPage?: SidebarItem;
+}
+
+export function computePageTitle(
+  format: Format,
+  extras?: FormatExtras,
+): string | undefined {
+  const meta = extras?.metadata || {};
+  const pageTitle = meta[kPageTitle] || format.metadata[kPageTitle];
+  const titlePrefix = extras?.pandoc?.[kTitlePrefix] ||
+    (format.metadata[kSite] as Record<string, unknown>)?.[kTitle];
+  const title = format.metadata[kTitle];
+
+  if (pageTitle !== undefined) {
+    return pageTitle as string;
+  } else if (titlePrefix !== undefined) {
+    // If the title prefix is the same as the title, don't include it as a prefix
+    if (titlePrefix === title) {
+      return title as string;
+    } else if (title !== undefined) {
+      return titlePrefix + " - " + title;
+    } else {
+      return undefined;
+    }
+  } else {
+    return title as string;
+  }
 }
 
 export function inputFileHref(href: string) {

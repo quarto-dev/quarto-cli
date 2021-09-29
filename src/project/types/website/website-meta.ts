@@ -34,6 +34,7 @@ import {
   kTwitterCard,
 } from "./website-config.ts";
 import { getDecodedAttribute } from "../../../core/html.ts";
+import { computePageTitle } from "./website-shared.ts";
 
 const kCard = "card";
 
@@ -197,7 +198,7 @@ function pageMetadata(
   format: Format,
   extras: FormatExtras,
 ): Record<string, unknown> {
-  const pageTitle = previewTitle(format, extras) as string;
+  const pageTitle = computePageTitle(format, extras) as string;
   const pageDescription = format.metadata[kDescription] as string;
   const pageImage = format.metadata[kImage] as string;
 
