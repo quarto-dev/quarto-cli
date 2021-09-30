@@ -20,6 +20,7 @@ import {
   FormatExtras,
   kDependencies,
   kHtmlPostprocessors,
+  kMarkdownAfterBody,
   PandocFlags,
 } from "../../../config/types.ts";
 import { projectOffset, projectOutputDir } from "../../project-shared.ts";
@@ -49,7 +50,7 @@ import {
   websiteTitle,
 } from "./website-config.ts";
 import { updateAliases } from "./website-aliases.ts";
-import { metadataHtmlPostProcessor } from "./website-meta.ts";
+import { metadataHtmlDependencies } from "./website-meta.ts";
 import {
   cookieConsentDependencies,
   websiteAnalyticsScriptFile,
@@ -141,9 +142,23 @@ export const websiteProjectType: ProjectType = {
       extras.html = extras.html || {};
       extras.html[kHtmlPostprocessors] = extras.html[kHtmlPostprocessors] || [];
       extras.html[kHtmlPostprocessors]?.push(...[
-        metadataHtmlPostProcessor(source, project, format, extras),
         htmlResourceResolverPostprocessor(source, project),
       ]);
+
+      // metadata html dependencies
+      const htmlMetadataDependencies = metadataHtmlDependencies(
+        source,
+        project,
+        format,
+        extras,
+      );
+      extras.html[kHtmlPostprocessors]?.push(
+        htmlMetadataDependencies[kHtmlPostprocessors],
+      );
+      extras.html[kMarkdownAfterBody] = extras.html[kMarkdownAfterBody] || [];
+      extras.html[kMarkdownAfterBody]?.push(
+        htmlMetadataDependencies[kMarkdownAfterBody],
+      );
 
       // Add html analytics extras, if any
       const analyticsDependency = websiteAnalyticsScriptFile(project);
