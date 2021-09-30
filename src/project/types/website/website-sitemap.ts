@@ -50,9 +50,8 @@ export async function updateSitemap(
 
     // helper to create a urlset entry
     const fileLoc = (file: string) =>
-      pathWithForwardSlashes(
-        join(baseUrl as string, relative(outputDir, file)),
-      );
+      baseUrl + pathWithForwardSlashes(relative(outputDir, file));
+
     const fileLastMod = (file: string) =>
       (Deno.statSync(file).mtime || new Date(0))
         .toISOString();
