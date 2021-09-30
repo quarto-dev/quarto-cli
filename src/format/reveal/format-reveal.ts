@@ -21,6 +21,7 @@ export function revealjsFormat() {
     {
       metadata: {
         hash: true,
+        theme: "white",
       },
       formatExtras: (_input: string, _flags: PandocFlags, _format: Format) => {
         return {
