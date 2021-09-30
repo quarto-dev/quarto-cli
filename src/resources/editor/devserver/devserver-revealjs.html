@@ -87,6 +87,7 @@
     onMessage("reveal-slide", function (data) { Reveal.slide(data.h, data.v, data.f); });
     onMessage("reveal-refresh", function () { window.location.reload(true); });
     onMessage("reveal-home", function () { Reveal.slide(0, 0, 0); });
+    onMessage("reveal-fullscreen", function () { Reveal.triggerKey(70); });
 
   })();
 </script>
