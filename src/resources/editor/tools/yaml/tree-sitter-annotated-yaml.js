@@ -1,3 +1,10 @@
+/*
+* tree-sitter-annotated-yaml.ts
+* 
+* Copyright (C) 2021 by RStudio, PBC
+*
+*/
+
 /**
  * given a tree from tree-sitter-yaml, this
  * builds an AnnotatedParse (cf `src/core/schema/annotated-yaml.ts`)

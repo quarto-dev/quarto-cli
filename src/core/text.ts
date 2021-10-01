@@ -9,8 +9,8 @@ import { sprintf } from "fmt/printf.ts";
 import { rgb24 } from "fmt/colors.ts";
 
 // reexports from lib
-import { lines, normalizeNewlines, lineNumbers } from "./lib/text.ts";
-export { lines, normalizeNewlines, lineNumbers } from "./lib/text.ts";
+import { lines, normalizeNewlines, indexToRowCol } from "./lib/text.ts";
+export { lines, normalizeNewlines, indexToRowCol } from "./lib/text.ts";
 
 export function formatLineRange(
   text: string, firstLine: number, lastLine: number

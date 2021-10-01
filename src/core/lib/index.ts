@@ -20,22 +20,30 @@ import { mappedString, asMappedString, mappedConcat, mappedIndexToRowCol } from 
 import { partitionCellOptionsMapped } from "./partition-cell-options.ts";
 import { rangedSubstring, rangedLines } from "./ranged-text.ts";
 import { lines, normalizeNewlines, indexToRowCol, rowColToIndex } from "./text.ts";
+import { schemaType, schemaCompletions } from "./schema.ts";
 
 const result = {
   glb,
+
   breakQuartoMd,
+
   mappedString,
   asMappedString,
   mappedConcat,
   mappedIndexToRowCol,
+
   partitionCellOptionsMapped,
+
   rangedSubstring,
   rangedLines,
+
   lines,
   normalizeNewlines,
-
   indexToRowCol,
-  rowColToIndex
+  rowColToIndex,
+
+  schemaType,
+  schemaCompletions
 };
 
 if (window) {

@@ -11,10 +11,11 @@
 import Ajv from 'ajv';
 import { AnnotatedParse, readAnnotatedYamlFromString, readAnnotatedYamlFromMappedString } from "./annotated-yaml.ts";
 import { Range } from "../ranged-text.ts";
-import { MappedString, mappedLineNumbers } from "../mapped-text.ts";
+import { MappedString, mappedIndexToRowCol } from "../mapped-text.ts";
 import { formatLineRange, lines } from "../text.ts";
 import { error } from "log/mod.ts";
 import { rgb24 } from "fmt/colors.ts";
+import { normalizeSchema } from "../lib/schema.ts";
 
 const ajv = new Ajv({ allErrors: true });
 
@@ -118,7 +119,7 @@ function localizeAndPruneErrors(
   schema: JSONSchema
 ) {
   const result: LocalizedError[] = [];
-  const locF = mappedLineNumbers(source);
+  const locF = mappedIndexToRowCol(source);
 
   for (const error of validationErrors) {
     const instancePath = error.instancePath;
@@ -186,7 +187,7 @@ export class YAMLSchema
   constructor(schema: JSONSchema)
   {
     this.schema = schema;
-    this.validate = ajv.compile(schema);
+    this.validate = ajv.compile(normalizeSchema(schema));
   }
 
   parseAndValidate(src: MappedString)
@@ -211,7 +212,7 @@ export class YAMLSchema
   )
   {
     if (result.errors.length) {
-      const locF = mappedLineNumbers(src);
+      const locF = mappedIndexToRowCol(src);
       const nLines = lines(src.originalString).length;
       error(message);
       for (const err of result.errors) {

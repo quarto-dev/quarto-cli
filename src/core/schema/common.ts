@@ -13,11 +13,13 @@
 
 // FIXME clearly we need to do better here.
 // deno-lint-ignore no-explicit-any
-export type Schema = any;
+
+import { Schema } from "../lib/schema.ts";
 
 export const BooleanSchema = {
   "type": "boolean",
-  "description": "be a boolean value"
+  "description": "be a boolean value",
+  "completions": ["true", "false"]
 };
 
 export const NumberSchema = {
@@ -44,7 +46,6 @@ export function numericSchema(obj: {
   }, obj);
 }
   
-
 export const StringSchema = {
   "type": "string",
   "description": "be a string"
@@ -58,7 +59,8 @@ export const anySchema = {
 // this schema accepts `null`
 export const NullSchema = {
   "type": "null",
-  "description": "be the null value"
+  "description": "be the null value",
+  "completions": ["null"],
 }; 
 
 export function enumSchema(...args: string[])
@@ -68,16 +70,22 @@ export function enumSchema(...args: string[])
   }
   return {
     "enum": args,
-    "description": args.length > 1 ? `be one of: ${args.map(x => "'" + x + "'").join(", ")}` : `be '${args[0]}'`
+    "description": args.length > 1 ? `be one of: ${args.map(x => "'" + x + "'").join(", ")}` : `be '${args[0]}'`,
+    "completions": args
   };
 }
 
 export function oneOfSchema(...args: Schema[])
 {
-  return {
-    "oneOf": args,
-    "description": `be exactly one of: ${args.map(x => x.description.slice(3, )).join(", ")}`
-  };
+  try {
+    return {
+      "oneOf": args,
+      "description": `be exactly one of: ${args.map(x => x.description.slice(3, )).join(", ")}`
+    };
+  } catch (e) {
+    console.log(args);
+    throw e;
+  }
 }
 
 export function anyOfSchema(...args: Schema[])
@@ -87,7 +95,6 @@ export function anyOfSchema(...args: Schema[])
     "description": `be at least one of: ${args.map(x => x.description.slice(3, )).join(", ")}`
   };
 }
-
 
 export function allOfSchema(...args: Schema[])
 {
@@ -128,6 +135,7 @@ export function objectSchema(params: {
         {},
         result.properties);
       Object.assign(result.properties, properties);
+      result.completions = Object.getOwnPropertyNames(result.properties);
     }
     if (required) {
       result.required = (result.required ?? []).slice();
@@ -153,6 +161,7 @@ export function objectSchema(params: {
     
     if (properties) {
       result.properties = properties;
+      result.completions = Object.getOwnPropertyNames(properties);
     }
     if (required && required.length > 0) {
       result.required = required;
@@ -180,4 +189,28 @@ export function arraySchema(items?: Schema)
       "description": `be an array of values`
     };
   }
+}
+
+export function documentSchema(schema: Schema, doc: string)
+{
+  const result = Object.assign({}, schema);
+  result.documentation = doc;
+  return result;
+}
+
+export function idSchema(schema: Schema, id: string)
+{
+  const result = Object.assign({}, schema);
+  result["$id"] = id;
+  return result;
+}
+
+// JSON schemas don't even allow $ref to have descriptions,
+// but we use it here to allow our automatic description creation
+export function refSchema($ref: string, description: string)
+{
+  return {
+    $ref,
+    description
+  };
 }

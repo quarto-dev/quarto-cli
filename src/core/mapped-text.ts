@@ -12,7 +12,7 @@ import {
   mappedString,
   asMappedString,
   mappedConcat,
-  mappedLineNumbers
+  mappedIndexToRowCol,
 } from "./lib/mapped-text.ts";
 
 import * as mt from "./lib/mapped-text.ts";
@@ -24,7 +24,7 @@ export {
   mappedString,
   asMappedString,
   mappedConcat,
-  mappedLineNumbers
+  mappedIndexToRowCol,
 } from "./lib/mapped-text.ts";
 
 // uses a diff algorithm to map on a line-by-line basis target lines

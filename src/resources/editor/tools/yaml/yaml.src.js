@@ -10,9 +10,20 @@
 
 const Parser = window.TreeSitter;
 
+
+let _schemas;
 let _parser;
 
 const core = window._quartoCoreLib;
+
+async function getSchemas() {
+  if (_schemas) {
+    return _schemas;
+  }
+  const response = await fetch('/quarto/resources/editor/tools/yaml/quarto-json-schemas.json');
+  _schemas = response.json();
+  return _schemas;
+}
 
 async function getTreeSitter() {
   if (_parser) {
@@ -29,6 +40,56 @@ async function getTreeSitter() {
   _parser.setLanguage(YAML);
   return _parser;
 };
+
+function navigateSchema(schema, path)
+{
+  const refs = {};
+  function inner(subSchema, index) {
+    if (subSchema.$id) {
+      refs[subSchema.$id] = subSchema;
+    }
+    if (subSchema.$ref) {
+      if (refs[subSchema.$ref] === undefined) {
+        throw new Error(`Internal error: schema reference ${subSchema.$ref} undefined`);
+      }
+      subSchema = refs[subSchema.$ref];
+    }
+    if (index == path.length) {
+      return [subSchema];
+    }
+    const st = core.schemaType(subSchema);
+    if (st === "object") {
+      const key = path[index];
+      if (subSchema.properties[key] === undefined) {
+        return undefined;
+      }
+      return inner(subSchema.properties[key], index + 1);
+    } else if (st === "array") {
+      // arrays are uniformly typed, easy
+      if (subSchema.items === undefined) {
+        // no items schema, can't navigate to expected schema
+        return undefined;
+      }
+      return inner(subSchema.items, index + 1);
+    } else if (st === "anyOf") {
+      return subSchema.anyOf.map(ss => inner(ss, index + 1)).filter(x => x !== undefined);
+    } else if (st === "allOf") {
+      // FIXME
+      throw new Error("Internal error: don't know how to navigate allOf schema :(");
+    } else if (st === "oneOf") {
+      const result = subSchema.oneOf.map(ss => inner(ss, index + 1)).filter(x => x !== undefined);
+      if (result.length !== 1) {
+        return undefined;
+      } else {
+        return result;
+      }
+    } else {
+      // we stop navigation short on YAML terminals
+      return [subSchema];
+    }
+  };
+  return inner(schema, 0);
+}
 
 function locateCursor(annotation, position)
 {
@@ -79,6 +140,7 @@ window.QuartoYamlEditorTools = {
     debugger;
 
     const parser = await getTreeSitter();
+    const schemas = await getSchemas();
     
     const {
       filetype,  // "yaml" | "script" | "markdown"
@@ -93,9 +155,12 @@ window.QuartoYamlEditorTools = {
     const index = core.rowColToIndex(code)(position);
     console.log(doc);
     const path = locateCursor(doc, index);
-
-    // FIXME CONTINUE HERE BY FINDING SUBSCHEMA AND PROPOSING A COMPLETION
+    // FIXME CONTINUE HERE
+    const matchingSchema = navigateSchema(
+      schemas.config, path);
     
+    console.log(matchingSchema.completions);
+
     return new Promise(function(resolve, reject) {
 
       // resolve no completions 

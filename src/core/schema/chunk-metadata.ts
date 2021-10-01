@@ -10,7 +10,7 @@
 import {
   mappedString,
   asMappedString,
-  mappedLineNumbers
+  mappedIndexToRowCol
 } from "../mapped-text.ts";
 
 import {

@@ -495,6 +495,46 @@
     return lines3;
   }
 
+  // schema.ts
+  function schemaType(schema) {
+    const t = schema.type;
+    if (t)
+      return t;
+    if (schema.anyOf) {
+      return "anyOf";
+    }
+    if (schema.aneOf) {
+      return "oneOf";
+    }
+    if (schema.allOf) {
+      return "allOf";
+    }
+    if (schema.enum) {
+      return "enum";
+    }
+    return "any";
+  }
+  function schemaCompletions(schema) {
+    if (schema.completions)
+      return schema.completions;
+    switch (schemaType(schema)) {
+      case "array":
+        if (schema.items) {
+          return schemaCompletions(schema.items);
+        } else {
+          return [];
+        }
+      case "anyOf":
+        return schema.anyOf.map(schemaCompletions).flat();
+      case "oneOf":
+        return schema.oneOf.map(schemaCompletions).flat();
+      case "allOf":
+        return schema.allOf.map(schemaCompletions).flat();
+      default:
+        return [];
+    }
+  }
+
   // index.ts
   var result = {
     glb,
@@ -509,7 +549,9 @@
     lines,
     normalizeNewlines,
     indexToRowCol,
-    rowColToIndex
+    rowColToIndex,
+    schemaType,
+    schemaCompletions
   };
   if (window) {
     window._quartoCoreLib = result;

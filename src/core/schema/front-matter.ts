@@ -8,10 +8,6 @@
 */
 
 import {
-  rgb24
-} from "fmt/colors.ts";
-
-import {
   StringSchema as StringS,
   oneOfSchema as oneOfS,
   anySchema as anyS,
@@ -29,8 +25,7 @@ import {
 
 import {
   mappedString,
-  asMappedString,
-  mappedLineNumbers
+  asMappedString
 } from "../mapped-text.ts";
 
 import {
@@ -66,14 +61,14 @@ export const frontMatterFormatSchema = oneOfS(
   htmlFormatSchema
 );
 
-export const frontMatterSchema = {
-  "type": "object",
+export const frontMatterSchema = objectS({
   properties: {
     title: StringS,
     execute,
     format: frontMatterFormatSchema
-  }
-};
+  },
+  description: "be a Quarto YAML front matter object"
+});
 
 const frontMatter = new YAMLSchema(frontMatterSchema);
 
