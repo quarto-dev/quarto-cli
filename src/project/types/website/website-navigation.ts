@@ -96,11 +96,12 @@ import {
   kNumberSections,
   kTocTitle,
 } from "../../../config/constants.ts";
-import {
-  createMarkdownEnvelope,
-  processMarkdownEnvelope,
-} from "./website-navigation-md.ts";
+import { navigationMarkdownHandlers } from "./website-navigation-md.ts";
 import { sassLayer } from "../../../command/render/sass.ts";
+import {
+  createMarkdownPipeline,
+  MarkdownPipeline,
+} from "./website-pipeline-md.ts";
 
 // static navigation (initialized during project preRender)
 const navigation: Navigation = {
@@ -230,6 +231,17 @@ export async function websiteNavigationExtras(
     after: renderEjs(projTemplate("nav-after-body.ejs"), { nav }),
   };
 
+  const pipelineHandlers = navigationMarkdownHandlers({
+    format,
+    sidebar,
+    navigation,
+    pageNavigation,
+  });
+  const markdownPipeline = createMarkdownPipeline(
+    "quarto-navigation-envelope",
+    pipelineHandlers,
+  );
+
   // return extras with bodyEnvelope
   return {
     [kIncludeInHeader]: includeInHeader,
@@ -242,10 +254,10 @@ export async function websiteNavigationExtras(
       [kDependencies]: dependencies,
       [kBodyEnvelope]: bodyEnvelope,
       [kHtmlPostprocessors]: [
-        navigationHtmlPostprocessor(project, source),
+        navigationHtmlPostprocessor(project, source, markdownPipeline),
       ],
       [kMarkdownAfterBody]: [
-        createMarkdownEnvelope(format, navigation, pageNavigation, sidebar),
+        markdownPipeline.markdownAfterBody(),
       ],
     },
   };
@@ -279,6 +291,7 @@ export function writeRedirectPage(path: string, href: string) {
 function navigationHtmlPostprocessor(
   project: ProjectContext,
   source: string,
+  markdownPipeline: MarkdownPipeline,
 ) {
   const sourceRelative = relative(project.dir, source);
   const offset = projectOffset(project, source);
@@ -286,7 +299,7 @@ function navigationHtmlPostprocessor(
 
   return async (doc: Document) => {
     // Process any markdown rendered through the render envelope
-    processMarkdownEnvelope(doc);
+    markdownPipeline.processRenderedMarkdown(doc);
 
     // latch active nav link
     const navLinks = doc.querySelectorAll("a.nav-link");

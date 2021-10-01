@@ -69,6 +69,13 @@
       // forward window hashchange
       postHashChange();
       window.addEventListener('hashchange', postHashChange);
+
+      // trigger automatic print (using same test/logic as reveal)
+      if ((/print-pdf/gi).test(window.location.search)) {
+        setTimeout(function () {
+          window.print();
+        }, 1000);
+      }
     });
 
     // forward slidechanged
@@ -80,6 +87,7 @@
     onMessage("reveal-slide", function (data) { Reveal.slide(data.h, data.v, data.f); });
     onMessage("reveal-refresh", function () { window.location.reload(true); });
     onMessage("reveal-home", function () { Reveal.slide(0, 0, 0); });
+    onMessage("reveal-fullscreen", function () { Reveal.triggerKey(70); });
 
   })();
 </script>

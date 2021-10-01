@@ -8,14 +8,13 @@
 import { existsSync } from "fs/exists.ts";
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { dirname, join, relative } from "path/mod.ts";
+import { kDescription, kSubtitle, kTitle } from "../../../config/constants.ts";
 import {
-  kDescription,
-  kPageTitle,
-  kSubtitle,
-  kTitle,
-  kTitlePrefix,
-} from "../../../config/constants.ts";
-import { Format, FormatExtras } from "../../../config/types.ts";
+  Format,
+  FormatExtras,
+  kHtmlPostprocessors,
+  kMarkdownAfterBody,
+} from "../../../config/types.ts";
 import { Metadata } from "../../../config/types.ts";
 import { mergeConfigs } from "../../../core/config.ts";
 import PngImage from "../../../core/png.ts";
@@ -34,6 +33,11 @@ import {
   kTwitterCard,
 } from "./website-config.ts";
 import { getDecodedAttribute } from "../../../core/html.ts";
+import { computePageTitle } from "./website-shared.ts";
+import {
+  createMarkdownPipeline,
+  MarkdownPipeline,
+} from "./website-pipeline-md.ts";
 
 const kCard = "card";
 
@@ -45,11 +49,31 @@ interface SocialMetadataProvider {
   resolveDefaults?: (finalMetadata: Metadata) => void;
 }
 
+export function metadataHtmlDependencies(
+  source: string,
+  project: ProjectContext,
+  format: Format,
+  extras: FormatExtras,
+) {
+  const pipeline = metaMarkdownPipeline(format);
+  return {
+    [kHtmlPostprocessors]: metadataHtmlPostProcessor(
+      source,
+      project,
+      format,
+      extras,
+      pipeline,
+    ),
+    [kMarkdownAfterBody]: pipeline.markdownAfterBody(),
+  };
+}
+
 export function metadataHtmlPostProcessor(
   source: string,
   project: ProjectContext,
   format: Format,
   extras: FormatExtras,
+  pipeline: MarkdownPipeline,
 ) {
   return (doc: Document): Promise<string[]> => {
     // read document level metadata
@@ -147,6 +171,9 @@ export function metadataHtmlPostProcessor(
       });
     });
 
+    // Process any pipelined markdown
+    pipeline.processRenderedMarkdown(doc);
+
     return Promise.resolve([]);
   };
 }
@@ -197,7 +224,7 @@ function pageMetadata(
   format: Format,
   extras: FormatExtras,
 ): Record<string, unknown> {
-  const pageTitle = previewTitle(format, extras) as string;
+  const pageTitle = computePageTitle(format, extras) as string;
   const pageDescription = format.metadata[kDescription] as string;
   const pageImage = format.metadata[kImage] as string;
 
@@ -260,24 +287,6 @@ function mergedSiteAndDocumentData(
   } else {
     // All the metadata are false or undefined, return false
     return false;
-  }
-}
-
-function previewTitle(format: Format, extras: FormatExtras) {
-  const meta = extras.metadata || {};
-  if (meta[kPageTitle] !== undefined) {
-    return meta[kPageTitle];
-  } else if (extras.pandoc?.[kTitlePrefix] !== undefined) {
-    // If the title prefix is the same as the title, don't include it as a prefix
-    if (extras.pandoc?.[kTitlePrefix] === format.metadata[kTitle]) {
-      return format.metadata[kTitle];
-    } else if (format.metadata[kTitle]) {
-      return extras.pandoc?.[kTitlePrefix] + " - " + format.metadata[kTitle];
-    } else {
-      return undefined;
-    }
-  } else {
-    return format.metadata[kTitle];
   }
 }
 
@@ -380,4 +389,64 @@ function findPreviewImg(
   }
 
   return image;
+}
+
+const kMetaTitleId = "quarto-metatitle";
+const kMetaSideNameId = "quarto-metasitename";
+function metaMarkdownPipeline(format: Format) {
+  const titleMetaHandler = {
+    getUnrendered() {
+      const resolvedTitle = computePageTitle(format);
+      if (resolvedTitle !== undefined) {
+        return { [kMetaTitleId]: resolvedTitle };
+      }
+    },
+    processRendered(rendered: Record<string, Element>, doc: Document) {
+      const renderedEl = rendered[kMetaTitleId];
+      if (renderedEl) {
+        // Update the document title
+        const el = doc.querySelector(
+          `head title`,
+        );
+        if (el) {
+          el.innerHTML = renderedEl.innerText;
+        }
+
+        ['meta[name="og:title"]', 'meta[name="twitter:title"]'].forEach(
+          (sel) => {
+            const metaEl = doc.querySelector(sel);
+            if (metaEl) {
+              metaEl.setAttribute("content", renderedEl.innerText);
+            }
+          },
+        );
+      }
+    },
+  };
+
+  const siteTitleMetaHandler = {
+    getUnrendered() {
+      const siteMeta = format.metadata[kSite] as Metadata;
+      if (siteMeta && siteMeta[kTitle]) {
+        return { [kMetaSideNameId]: siteMeta[kTitle] as string };
+      }
+    },
+    processRendered(rendered: Record<string, Element>, doc: Document) {
+      const renderedEl = rendered[kMetaSideNameId];
+      if (renderedEl) {
+        // Update the document title
+        const el = doc.querySelector(
+          `meta[name="og:site-name"]`,
+        );
+        if (el) {
+          el.setAttribute("content", renderedEl.innerText);
+        }
+      }
+    },
+  };
+
+  return createMarkdownPipeline("quarto-meta-markdown", [
+    titleMetaHandler,
+    siteTitleMetaHandler,
+  ]);
 }

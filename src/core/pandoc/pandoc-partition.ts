@@ -20,19 +20,59 @@ export function firstHeadingFromMarkdown(markdown: string): string | undefined {
 }
 
 export function parsePandocTitle(title: string) {
+  // trim any whitespace
+  title = title ? title.trim() : title;
+
   let beginAttrPos = -1;
-  let skipNext = false;
-  for (let i = 0; i < title.length; i++) {
+  let previousCh = undefined;
+
+  let state: "none" | "scanning" | "reading" = "none";
+
+  // Find the start of the attributes section
+  // walk from the back until we find the opening character
+  // this doesn't do any depth matching - it simply looks
+  // for the first valid unescaped '{' char once it is scanning
+  // for attributes
+  for (let i = title.length - 1; i > -1; i--) {
     const ch = title.charAt(i);
-    if (ch === "{" && !skipNext) {
-      beginAttrPos = i;
+
+    if (previousCh === undefined && ch !== "}") {
+      // attributes must be at the end of the title
+      // If the string isn't terminated by } then there
+      // are no valid attributes
       break;
-    } else if (ch === "\\") {
-      skipNext = !skipNext;
-    } else if (["]"].includes(ch)) {
-      skipNext = true;
-    } else if (ch !== "{" && skipNext) {
-      skipNext = false;
+    }
+
+    // If the last character is a '}', start scaninng
+    // to determine if this is an attribute
+    if (previousCh === undefined && ch === "}") {
+      state = "scanning";
+      previousCh = ch;
+      continue;
+    }
+
+    // We are scannning to determine whether this is indeed an attribute string
+    if (state === "scanning") {
+      // This is not a valid attribute string (e.g. }}, /}, ]})
+      if (["/", "}", "]"].includes(ch)) {
+        break;
+      }
+
+      // This is an attribute, change state from scanning to reading
+      state = "reading";
+      previousCh = ch;
+      continue;
+    }
+
+    // We're reading the attribute contents to find the opening attribute brace
+    if (state === "reading") {
+      // Wait until we get to the previous character and then confirm that it wasn't
+      // an escape character
+      if (!["/"].includes(ch) && previousCh === "{") {
+        beginAttrPos = i + 1;
+        break;
+      }
+      previousCh = ch;
     }
   }
 
