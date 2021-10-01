@@ -504,7 +504,7 @@
     if (schema.anyOf) {
       return "anyOf";
     }
-    if (schema.aneOf) {
+    if (schema.oneOf) {
       return "oneOf";
     }
     if (schema.allOf) {
@@ -5448,9 +5448,20 @@ if (typeof exports === 'object') {
 
 const Parser = window.TreeSitter;
 
+
+let _schemas;
 let _parser;
 
 const core = window._quartoCoreLib;
+
+async function getSchemas() {
+  if (_schemas) {
+    return _schemas;
+  }
+  const response = await fetch('/quarto/resources/editor/tools/yaml/quarto-json-schemas.json');
+  _schemas = response.json();
+  return _schemas;
+}
 
 async function getTreeSitter() {
   if (_parser) {
@@ -5467,6 +5478,56 @@ async function getTreeSitter() {
   _parser.setLanguage(YAML);
   return _parser;
 };
+
+function navigateSchema(schema, path)
+{
+  const refs = {};
+  function inner(subSchema, index) {
+    if (subSchema.$id) {
+      refs[subSchema.$id] = subSchema;
+    }
+    if (subSchema.$ref) {
+      if (refs[subSchema.$ref] === undefined) {
+        throw new Error(`Internal error: schema reference ${subSchema.$ref} undefined`);
+      }
+      subSchema = refs[subSchema.$ref];
+    }
+    if (index == path.length) {
+      return [subSchema];
+    }
+    const st = core.schemaType(subSchema);
+    if (st === "object") {
+      const key = path[index];
+      if (subSchema.properties[key] === undefined) {
+        return undefined;
+      }
+      return inner(subSchema.properties[key], index + 1);
+    } else if (st === "array") {
+      // arrays are uniformly typed, easy
+      if (subSchema.items === undefined) {
+        // no items schema, can't navigate to expected schema
+        return undefined;
+      }
+      return inner(subSchema.items, index + 1);
+    } else if (st === "anyOf") {
+      return subSchema.anyOf.map(ss => inner(ss, index + 1)).filter(x => x !== undefined);
+    } else if (st === "allOf") {
+      // FIXME
+      throw new Error("Internal error: don't know how to navigate allOf schema :(");
+    } else if (st === "oneOf") {
+      const result = subSchema.oneOf.map(ss => inner(ss, index + 1)).filter(x => x !== undefined);
+      if (result.length !== 1) {
+        return undefined;
+      } else {
+        return result;
+      }
+    } else {
+      // we stop navigation short on YAML terminals
+      return [subSchema];
+    }
+  };
+  return inner(schema, 0);
+}
 
 function locateCursor(annotation, position)
 {
@@ -5517,6 +5578,7 @@ window.QuartoYamlEditorTools = {
     debugger;
 
     const parser = await getTreeSitter();
+    const schemas = (await getSchemas()).schemas;
     
     const {
       filetype,  // "yaml" | "script" | "markdown"
@@ -5526,49 +5588,46 @@ window.QuartoYamlEditorTools = {
     } = context;
 
     const tree = parser.parse(code);
-    console.log(tree.rootNode.toString());
     const doc = buildAnnotated(tree);
     const index = core.rowColToIndex(code)(position);
-    console.log(doc);
     const path = locateCursor(doc, index);
+    
+    const matchingSchemas = navigateSchema(schemas.config, path);
+    let word;
+    if (["-", ":"].indexOf(line.slice(-1)) !== -1) {
+      word = "";
+    } else {
+      word = line.split(" ").slice(-1)[0];
+    }
 
-    // FIXME CONTINUE HERE BY FINDING SUBSCHEMA AND PROPOSING A COMPLETION
+    const completions = matchingSchemas
+          .map(s => core.schemaCompletions(s))
+          .flat()
+          .filter(completion => completion.startsWith(word));
+
+    if (completions.length === 0) {
+      return new Promise(function(r, _) { r(null); });
+    }
     
     return new Promise(function(resolve, reject) {
-
-      // resolve no completions 
-      // TODO: remove this code once real completions works
-      resolve(null);
-      return;
 
       // determine the target token (this will be what is substituted for)
       // e.g. here we just break on spaces but the real implementation will
       // be more syntax aware
-      const token = line.split(" ").slice(-1)[0];
 
       // resolve completions
       resolve({
 
         // token to replace
-        token: token,
+        token: word,
 
         // array of completions
-        completions: [
-          {
-            // subsitute 'value' for the token if this completion is accepted
-            value: token + "foo",
-
-            // additional documentation on this completion (can be null)
-            description: "docs on foo"
-          },
-          {
-            // value
-            value: token + "bar",
-
-            // documentation (note html is accepted)
-            description: "docs on <b>bar</b>"
-          }
-        ],
+        completions: completions.map(completion => {
+          return {
+            value: completion,
+            description: "TBF" // FIXME
+          };
+        }),
 
         // is this cacheable for subsequent results that add to the token
         // see https://github.com/rstudio/rstudio/blob/main/src/gwt/src/org/rstudio/studio/client/workbench/views/console/shell/assist/CompletionCache.java
@@ -5622,6 +5681,13 @@ window.QuartoYamlEditorTools = {
     });
   }
 };
+/*
+* tree-sitter-annotated-yaml.ts
+* 
+* Copyright (C) 2021 by RStudio, PBC
+*
+*/
+
 /**
  * given a tree from tree-sitter-yaml, this
  * builds an AnnotatedParse (cf `src/core/schema/annotated-yaml.ts`)

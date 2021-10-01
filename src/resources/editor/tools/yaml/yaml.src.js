@@ -140,7 +140,7 @@ window.QuartoYamlEditorTools = {
     debugger;
 
     const parser = await getTreeSitter();
-    const schemas = await getSchemas();
+    const schemas = (await getSchemas()).schemas;
     
     const {
       filetype,  // "yaml" | "script" | "markdown"
@@ -150,52 +150,53 @@ window.QuartoYamlEditorTools = {
     } = context;
 
     const tree = parser.parse(code);
-    console.log(tree.rootNode.toString());
-    const doc = buildAnnotated(tree);
-    const index = core.rowColToIndex(code)(position);
-    console.log(doc);
-    const path = locateCursor(doc, index);
-    // FIXME CONTINUE HERE
-    const matchingSchema = navigateSchema(
-      schemas.config, path);
+    let path;
+
+    if (tree.rootNode.type === 'ERROR') {
+      // tree-sitter-yaml's error recovery does not appear to be good enough for us
+      return new Promise((r, _) => r(null));
+    } else {
+      const doc = buildAnnotated(tree);
+      const index = core.rowColToIndex(code)(position);
+      path = locateCursor(doc, index);
+    }    
     
-    console.log(matchingSchema.completions);
+    const matchingSchemas = navigateSchema(schemas.config, path);
+    let word;
+    if (["-", ":"].indexOf(line.slice(-1)) !== -1) {
+      word = "";
+    } else {
+      word = line.split(" ").slice(-1)[0];
+    }
 
+    const completions = matchingSchemas
+          .map(s => core.schemaCompletions(s))
+          .flat()
+          .filter(completion => completion.startsWith(word));
+
+    if (completions.length === 0) {
+      return new Promise(function(r, _) { r(null); });
+    }
+    
     return new Promise(function(resolve, reject) {
-
-      // resolve no completions 
-      // TODO: remove this code once real completions works
-      resolve(null);
-      return;
 
       // determine the target token (this will be what is substituted for)
       // e.g. here we just break on spaces but the real implementation will
       // be more syntax aware
-      const token = line.split(" ").slice(-1)[0];
 
       // resolve completions
       resolve({
 
         // token to replace
-        token: token,
+        token: word,
 
         // array of completions
-        completions: [
-          {
-            // subsitute 'value' for the token if this completion is accepted
-            value: token + "foo",
-
-            // additional documentation on this completion (can be null)
-            description: "docs on foo"
-          },
-          {
-            // value
-            value: token + "bar",
-
-            // documentation (note html is accepted)
-            description: "docs on <b>bar</b>"
-          }
-        ],
+        completions: completions.map(completion => {
+          return {
+            value: completion,
+            description: "TBF" // FIXME
+          };
+        }),
 
         // is this cacheable for subsequent results that add to the token
         // see https://github.com/rstudio/rstudio/blob/main/src/gwt/src/org/rstudio/studio/client/workbench/views/console/shell/assist/CompletionCache.java

@@ -503,7 +503,7 @@
     if (schema.anyOf) {
       return "anyOf";
     }
-    if (schema.aneOf) {
+    if (schema.oneOf) {
       return "oneOf";
     }
     if (schema.allOf) {

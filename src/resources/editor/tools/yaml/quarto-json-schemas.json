@@ -284,26 +284,26 @@
             }
           },
           "completions": [
-            "fig.width",
-            "fig.height",
-            "fig.format",
-            "fig.dpi",
-            "cache",
-            "freeze",
-            "enabled",
-            "ipynb",
-            "daemon",
-            "daemon-restart",
-            "debug",
-            "engine",
-            "eval",
-            "error",
-            "echo",
-            "output",
-            "warning",
-            "include",
-            "keep-md",
-            "keep-ipynb"
+            "fig.width:",
+            "fig.height:",
+            "fig.format:",
+            "fig.dpi:",
+            "cache:",
+            "freeze:",
+            "enabled:",
+            "ipynb:",
+            "daemon:",
+            "daemon-restart:",
+            "debug:",
+            "engine:",
+            "eval:",
+            "error:",
+            "echo:",
+            "output:",
+            "warning:",
+            "include:",
+            "keep-md:",
+            "keep-ipynb:"
           ]
         },
         "format": {
@@ -597,31 +597,31 @@
                     }
                   },
                   "completions": [
-                    "fig.width",
-                    "fig.height",
-                    "fig.format",
-                    "fig.dpi",
-                    "cache",
-                    "freeze",
-                    "enabled",
-                    "ipynb",
-                    "daemon",
-                    "daemon-restart",
-                    "debug",
-                    "engine",
-                    "eval",
-                    "error",
-                    "echo",
-                    "output",
-                    "warning",
-                    "include",
-                    "keep-md",
-                    "keep-ipynb"
+                    "fig.width:",
+                    "fig.height:",
+                    "fig.format:",
+                    "fig.dpi:",
+                    "cache:",
+                    "freeze:",
+                    "enabled:",
+                    "ipynb:",
+                    "daemon:",
+                    "daemon-restart:",
+                    "debug:",
+                    "engine:",
+                    "eval:",
+                    "error:",
+                    "echo:",
+                    "output:",
+                    "warning:",
+                    "include:",
+                    "keep-md:",
+                    "keep-ipynb:"
                   ]
                 }
               },
               "completions": [
-                "html"
+                "html:"
               ]
             }
           ],
@@ -629,9 +629,9 @@
         }
       },
       "completions": [
-        "title",
-        "execute",
-        "format"
+        "title:",
+        "execute:",
+        "format:"
       ]
     },
     "config": {
@@ -671,10 +671,10 @@
             }
           },
           "completions": [
-            "type",
-            "output-dir",
-            "bibliography",
-            "filters"
+            "type:",
+            "output-dir:",
+            "bibliography:",
+            "filters:"
           ]
         },
         "site": {
@@ -775,15 +775,15 @@
                     }
                   },
                   "completions": [
-                    "index-name",
-                    "application-id",
-                    "search-only-api-key",
-                    "analytics-events"
+                    "index-name:",
+                    "application-id:",
+                    "search-only-api-key:",
+                    "analytics-events:"
                   ]
                 }
               },
               "completions": [
-                "algolia"
+                "algolia:"
               ]
             },
             "navbar": {
@@ -841,8 +841,8 @@
                           }
                         },
                         "completions": [
-                          "text",
-                          "href"
+                          "text:",
+                          "href:"
                         ]
                       }
                     ],
@@ -851,12 +851,12 @@
                 }
               },
               "completions": [
-                "background",
-                "logo",
-                "title",
-                "collapse-below",
-                "sidebar-menus",
-                "right"
+                "background:",
+                "logo:",
+                "title:",
+                "collapse-below:",
+                "sidebar-menus:",
+                "right:"
               ]
             },
             "sidebar": {
@@ -914,8 +914,8 @@
                               }
                             },
                             "completions": [
-                              "text",
-                              "href"
+                              "text:",
+                              "href:"
                             ]
                           },
                           {
@@ -927,42 +927,42 @@
                       }
                     },
                     "completions": [
-                      "section",
-                      "contents"
+                      "section:",
+                      "contents:"
                     ],
                     "$id": "/schemas/section"
                   }
                 },
                 "completions": [
-                  "id",
-                  "title",
-                  "sytle",
-                  "collapse-level",
-                  "align",
-                  "contents"
+                  "id:",
+                  "title:",
+                  "sytle:",
+                  "collapse-level:",
+                  "align:",
+                  "contents:"
                 ]
               }
             }
           },
           "completions": [
-            "title",
-            "image",
-            "google-analytics",
-            "open-graph",
-            "twitter-card",
-            "site-url",
-            "repo-url",
-            "repo-actions",
-            "page-navigation",
-            "search",
-            "navbar",
-            "sidebar"
+            "title:",
+            "image:",
+            "google-analytics:",
+            "open-graph:",
+            "twitter-card:",
+            "site-url:",
+            "repo-url:",
+            "repo-actions:",
+            "page-navigation:",
+            "search:",
+            "navbar:",
+            "sidebar:"
           ]
         }
       },
       "completions": [
-        "project",
-        "site"
+        "project:",
+        "site:"
       ]
     }
   }

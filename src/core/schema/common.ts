@@ -161,7 +161,7 @@ export function objectSchema(params: {
     
     if (properties) {
       result.properties = properties;
-      result.completions = Object.getOwnPropertyNames(properties);
+      result.completions = Object.getOwnPropertyNames(properties).map(n => `${n}:`);
     }
     if (required && required.length > 0) {
       result.required = required;
