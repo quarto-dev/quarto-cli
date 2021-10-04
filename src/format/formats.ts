@@ -75,10 +75,14 @@ export function defaultWriterFormat(to: string): Format {
     case "markdown_github":
     case "markdown_mmd":
     case "markdown_strict":
-    case "gfm":
     case "commonmark":
     case "commonmark_x":
       writerFormat = markdownFormat();
+      pandocTo = to;
+      break;
+
+    case "gfm":
+      writerFormat = gfmFormat();
       pandocTo = to;
       break;
 
@@ -197,6 +201,17 @@ function hugoFormat(): Format {
     pandoc: {
       to: "gfm",
       [kOutputFile]: "index.md",
+    },
+  });
+}
+
+function gfmFormat(): Format {
+  return createFormat("md", markdownFormat(), {
+    pandoc: {
+      to: "gfm",
+    },
+    render: {
+      [kVariant]: "+footnotes",
     },
   });
 }
