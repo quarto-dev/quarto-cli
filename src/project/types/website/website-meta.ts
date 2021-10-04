@@ -349,7 +349,11 @@ function imageSize(path: string) {
 function writeMeta(name: string, content: string, doc: Document) {
   // Meta tag
   const m = doc.createElement("META");
-  m.setAttribute("name", name);
+  if (name.startsWith("og:")){
+    m.setAttribute("property", name);
+  } else {
+    m.setAttribute("name", name);
+  }
   m.setAttribute("content", content);
 
   // New Line
