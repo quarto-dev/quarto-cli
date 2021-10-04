@@ -72,6 +72,11 @@
 
       // trigger automatic print (using same test/logic as reveal)
       if ((/print-pdf/gi).test(window.location.search)) {
+        // remove query string so that subsequent reloads don't force a print
+        window.history.replaceState(null, '',
+          window.location.origin + window.location.pathname + window.location.hash
+        );
+
         setTimeout(function () {
           window.print();
         }, 1000);
