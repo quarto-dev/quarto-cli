@@ -53,6 +53,8 @@ for module in list(sys.modules.values()):
     continue
   if path.endswith(".pyc") or path.endswith(".pyo"):
     path = path[:-1]
+  if not os.path.exists(path):
+    continue
   kernel_deps[path] = os.stat(path).st_mtime
 print(json.dumps(kernel_deps))
 

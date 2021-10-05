@@ -181,6 +181,17 @@ export function updateSearchIndex(
         toc.remove();
       }
 
+      // Remove scripts and style sheets (they are not considered searchable)
+      // Note that `innerText` would also ignore stylesheets and script tags
+      // but that also ignores css hidden elements, which we'd like to be searchable
+      // so we're manually stripping these from the indexed doc
+      ["script", "style"].forEach((tag) => {
+        const els = doc.querySelectorAll(tag);
+        if (els) {
+          els.forEach((el) => el.remove());
+        }
+      });
+
       // if there are level 2 sections then create sub-docs for them
       const sections = doc.querySelectorAll("section.level2");
       if (sections.length > 0) {
