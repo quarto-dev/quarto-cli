@@ -249,7 +249,7 @@ export function mappedIndexToRowCol(text: MappedString) {
   return function(offset: number) {
     const n = text.mapClosest(offset);
     if (n === undefined) {
-      throw new Error("Internal Error: bad offset in mappedLineNumbers");
+      throw new Error("Internal Error: bad offset in mappedIndexRowCol");
     }
     return f(n);
   }

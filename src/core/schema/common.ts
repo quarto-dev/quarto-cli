@@ -14,7 +14,7 @@
 // FIXME clearly we need to do better here.
 // deno-lint-ignore no-explicit-any
 
-import { Schema } from "../lib/schema.ts";
+import { Schema, Completion } from "../lib/schema.ts";
 
 export const BooleanSchema = {
   "type": "boolean",
@@ -111,39 +111,70 @@ export function objectSchema(params: {
   required?: string[],
   additionalProperties?: Schema,
   description?: string,
-  baseSchema?: any // FIXME this should have the type of the result of objectSchema()
+  baseSchema?: any,
+  completions?: { [k: string]: string }, // FIXME this should have the type of the result of objectSchema()
 } = {}) 
 {
   let {
-    properties, required, additionalProperties, description, baseSchema
+    properties, required, additionalProperties, description, baseSchema,
+    completions: completionsParam
   } = params;
+  
   required = required || [];
   properties = properties || {};
+  
   const hasDescription = description !== undefined;
   description = description || "be an object";
+  let result: Schema | undefined = undefined;
+  const completions: Completion[] = [];
 
+  const uniqueValues = (lst: Completion[]) => {
+    const obj: Record<string, Completion> = {};
+    for (const c of lst) {
+      obj[c.value] = c;
+    }
+    return Object.getOwnPropertyNames(obj).map(k => obj[k]);
+  }
+  
+  if (completionsParam) {
+    for (const completionKey of Object.getOwnPropertyNames(completionsParam)) {
+      completions.push({
+        value: `${completionKey}:`,
+        description: completionsParam[completionKey]
+      });
+    }
+  } else {
+    completions.push(...(Object.getOwnPropertyNames(properties)
+      .map(s => ({ value: `${s}:`, description: "" }))));
+  }
+  
   if (baseSchema) {
     if (baseSchema.type !== "object") {
       throw new Error("Internal Error: can only extend other object Schema");
     }
-    const result: Schema = Object.assign({}, baseSchema);
+    result = Object.assign({}, baseSchema);
+    
     if (hasDescription) {
       result.description = description;
     }
-    if (properties) {
-      result.properties = Object.assign(
-        {},
-        result.properties);
-      Object.assign(result.properties, properties);
-      result.completions = Object.getOwnPropertyNames(result.properties);
-    }
+    
+    result.properties = Object.assign({}, result.properties, properties);
+
     if (required) {
       result.required = (result.required ?? []).slice();
       result.required.push(...required);
     }
+
+    if ((result.completions && result.completions.length) ||
+      completions.length) {
+      result.completions = result.completions || [];
+      result.completions.push(...completions);
+      result.completions = uniqueValues(result.completions);
+    }
+
     if (additionalProperties) {
       // FIXME Review. This is likely to be confusing, but I think
-      // it's the correct semantics
+      // it's the correct semantics for subclassing
       if (result.additionalProperties) {
         result.additionalProperties = allOfSchema(
           result.additionalProperties,
@@ -152,27 +183,32 @@ export function objectSchema(params: {
         result.additionalProperties = additionalProperties;
       }
     }
-    return result;
   } else {
-    const result: Schema = {
+    result = {
       "type": "object",
       description
     };
     
     if (properties) {
       result.properties = properties;
-      result.completions = Object.getOwnPropertyNames(properties).map(n => `${n}:`);
     }
+    
     if (required && required.length > 0) {
       result.required = required;
     }
+
+    if (completions.length) {
+      result.completions = completions;
+    }
+    
     // this is useful to characterize Record<string, foo> types: use
     // objectSchema({}, [], foo)
     if (additionalProperties) {
       result.additionalProperties = additionalProperties;
     }
-    return result;
   }
+
+  return result;  
 }
 
 export function arraySchema(items?: Schema)
@@ -195,6 +231,15 @@ export function documentSchema(schema: Schema, doc: string)
 {
   const result = Object.assign({}, schema);
   result.documentation = doc;
+  return result;
+}
+
+export function completeSchema(schema: Schema, ...completions: Completion[])
+{
+  const result = Object.assign({}, schema);
+  const prevCompletions = (schema.completions ?? []).slice();
+  prevCompletions.push(...completions);
+  result.completions = completions;
   return result;
 }
 

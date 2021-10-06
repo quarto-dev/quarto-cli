@@ -7,7 +7,7 @@
 
 import { error } from "log/mod.ts";
 import { MappedString } from "../../core/mapped-text.ts";
-import { lineNumbers } from "../../core/text.ts";
+import { indexToRowCol } from "../../core/text.ts";
 
 export function ojsParseError(
   // deno-lint-ignore no-explicit-any
@@ -24,7 +24,7 @@ export function ojsParseError(
   //   pos: acornError.pos
   // });
   
-  const { line, column } = lineNumbers(
+  const { line, column } = indexToRowCol(
     ojsSource.originalString
   )(ojsSource.mapClosest(acornError.pos) as number);
   

@@ -8,6 +8,10 @@
 */
 
 export type Schema = any;
+export interface Completion {
+  value: string,
+  description: string
+};
 
 export function schemaType(schema: Schema)
 {
@@ -29,10 +33,29 @@ export function schemaType(schema: Schema)
   return "any";
 }
 
-export function schemaCompletions(schema: Schema): string[]
+export function schemaCompletions(schema: Schema): Completion[]
 {
-  if (schema.completions)
-    return schema.completions as string[];
+  // FIXME this is slightly inefficient since recursions call
+  // normalize() multiple times
+  
+  // deno-lint-ignore no-explicit-any
+  const normalize = (completions: any) => {
+    // deno-lint-ignore no-explicit-any
+    const result = (schema.completions || []).map((c: any) => {
+      if (typeof c === "string") {
+        return {
+          value: c,
+          description: ""
+        };
+      }
+      return c;
+    });
+    return result;
+  }
+  
+  if (schema.completions && schema.completions.length) {
+    return normalize(schema.completions);
+  }
   
   switch (schemaType(schema)) {
     case "array":
@@ -42,13 +65,17 @@ export function schemaCompletions(schema: Schema): string[]
         return [];
       }
     case "anyOf":
-      return schema.anyOf.map(schemaCompletions).flat() as string[];
+      return schema.anyOf.map(schemaCompletions).flat();
     case "oneOf":
-      return schema.oneOf.map(schemaCompletions).flat() as string[];
+      return schema.oneOf.map(schemaCompletions).flat();
     case "allOf": // FIXME this should be cleverer and keep only the intersection
-      return schema.allOf.map(schemaCompletions).flat() as string[];
+      return schema.allOf.map(schemaCompletions).flat();
     default:
       return [];
+      // return [{
+      //   value: "",
+      //   description: schema.documentation || schema.description.slice(3) // skip "be " prefix
+      // }];
   }
 }
 

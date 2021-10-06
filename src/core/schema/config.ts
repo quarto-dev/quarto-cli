@@ -13,25 +13,34 @@ import {
   StringSchema as StringS,
   anySchema as anyS,
   arraySchema as arrayS,
-  documentSchema as doc,
   enumSchema as enumS,
   idSchema as withId,
   objectSchema as objectS,
   oneOfSchema as oneOfS,
   refSchema as refS,
+  documentSchema as doc,
+  completeSchema as complete,
 } from "./common.ts";
+
+const sidebarEntrySchema = objectS({
+  properties: {
+    text: StringS,
+    href: StringS,
+    icon: StringS
+  },
+  completions: {
+    text: "entry description",
+    href: "URL of the link",
+    icon: "font-awesome icon id"
+  }
+});
 
 const sectionSchema = withId(objectS({
   properties: {
     section: StringS,
     contents: oneOfS(
       StringS,
-      objectS({
-        properties: {
-          text: StringS,
-          href: StringS
-        },
-      }),
+      sidebarEntrySchema,
       refS("/schemas/section", "be a section object")
     )
   }
@@ -80,12 +89,7 @@ const siteSchema = objectS({
         "sidebar-menus": BooleanS,
         "right": arrayS(oneOfS(
           StringS,
-          objectS({
-            properties: {
-              text: StringS,
-              href: StringS
-            }
-          })
+          sidebarEntrySchema
         )),
       }
     }),

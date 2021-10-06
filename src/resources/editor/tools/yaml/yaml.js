@@ -262,7 +262,7 @@
     return function(offset) {
       const n = text.mapClosest(offset);
       if (n === void 0) {
-        throw new Error("Internal Error: bad offset in mappedLineNumbers");
+        throw new Error("Internal Error: bad offset in mappedIndexRowCol");
       }
       return f(n);
     };
@@ -516,8 +516,21 @@
     return "any";
   }
   function schemaCompletions(schema) {
-    if (schema.completions)
-      return schema.completions;
+    const normalize = (completions) => {
+      const result2 = (schema.completions || []).map((c) => {
+        if (typeof c === "string") {
+          return {
+            value: c,
+            description: ""
+          };
+        }
+        return c;
+      });
+      return result2;
+    };
+    if (schema.completions && schema.completions.length) {
+      return normalize(schema.completions);
+    }
     switch (schemaType(schema)) {
       case "array":
         if (schema.items) {
@@ -5492,43 +5505,61 @@ function navigateSchema(schema, path)
       }
       subSchema = refs[subSchema.$ref];
     }
-    if (index == path.length) {
+    if (index === path.length) {
       return [subSchema];
     }
     const st = core.schemaType(subSchema);
     if (st === "object") {
       const key = path[index];
       if (subSchema.properties[key] === undefined) {
-        return undefined;
+        // because we're using this in an autocomplete scenario, there's the "last entry is a prefix of a
+        // valid key" special case.
+        if (index !== path.length - 1) {
+          return [];
+        }
+        const completions = Object.getOwnPropertyNames(subSchema.properties).filter(
+          name => name.startsWith(key));
+        if (completions.length === 0) {
+          return [];
+        }
+        return [subSchema];
       }
       return inner(subSchema.properties[key], index + 1);
     } else if (st === "array") {
       // arrays are uniformly typed, easy
       if (subSchema.items === undefined) {
         // no items schema, can't navigate to expected schema
-        return undefined;
+        return [];
       }
       return inner(subSchema.items, index + 1);
     } else if (st === "anyOf") {
-      return subSchema.anyOf.map(ss => inner(ss, index + 1)).filter(x => x !== undefined);
+      return subSchema.anyOf.map(ss => inner(ss, index));
     } else if (st === "allOf") {
       // FIXME
       throw new Error("Internal error: don't know how to navigate allOf schema :(");
     } else if (st === "oneOf") {
-      const result = subSchema.oneOf.map(ss => inner(ss, index + 1)).filter(x => x !== undefined);
+      const result = subSchema.oneOf.map(ss => inner(ss, index)).flat(Infinity);
       if (result.length !== 1) {
-        return undefined;
+        return [];
       } else {
         return result;
       }
     } else {
-      // we stop navigation short on YAML terminals
-      return [subSchema];
+      // if path wanted to navigate deeper but this is a YAML
+      // "terminal" (not a compound type) then this is not a valid
+      // schema to complete on.
+      return [];
     }
   };
-  return inner(schema, 0);
+  return inner(schema, 0).flat(Infinity);
 }
 
+// locateCursor is lenient wrt locating inside the last character of a
+// range (by using position <= foo instead of position < foo).  That
+// happens because tree-sitter's robust parsing sometimes returns
+// "partial objects" which are missing parts of the tree.  In those
+// cases, we want the cursor to be "inside a null value", and they
+// correspond to the edges of an object, where position == range.end.
 function locateCursor(annotation, position)
 {
   function locate(node, pathSoFar) {
@@ -5536,18 +5567,25 @@ function locateCursor(annotation, position)
       for (let i = 0; i < node.components.length; i += 2) {
         const keyC = node.components[i],
               valueC = node.components[i+1];
-        if (keyC.start <= position && position < keyC.end) {
+        if (keyC.start <= position && position <= keyC.end) {
           return [keyC.result, pathSoFar];
-        } else if (valueC.start <= position && position < valueC.end) {
+        } else if (valueC.start <= position && position <= valueC.end) {
           return locate(valueC, [keyC.result, pathSoFar]);
         }
       }
-      // FIXME: decide what to do if cursor lands exactly on ":"
-      throw new Error("Internal error: cursor outside bounds in mapping locate?");
+      
+      // FIXME: decide what to do if cursor lands exactly on ":"?
+
+      // if we "fell through the pair cracks", that is, if the cursor is inside a mapping
+      // but not inside any of the actual mapping pairs, then we stop the location at the
+      // object itself.
+      
+      return pathSoFar;
+      // throw new Error("Internal error: cursor outside bounds in mapping locate?");
     } else if (node.kind === "block_sequence" || node.kind === "flow_sequence") {
       for (let i = 0; i < node.components.length; ++i) {
         const valueC = node.components[i];
-        if (valueC.start <= position && position < valueC.end) {
+        if (valueC.start <= position && position <= valueC.end) {
           return locate(valueC, [i, pathSoFar]);
         }
         if (valueC.start > position) {
@@ -5571,25 +5609,117 @@ function locateCursor(annotation, position)
   return locate(annotation, []).flat(Infinity).reverse();
 }
 
-window.QuartoYamlEditorTools = {
+// attempt many parses at current line by deleting one character at a
+// time, and yields them in sequence
 
-  getCompletions: async function(context) {
+function* attemptParsesAtLine(context, parser)
+{ 
+  const {
+    filetype,  // "yaml" | "script" | "markdown"
+    line,      // editing line up to the cursor
+    code,      // full contents of the buffer
+    position   // row/column of cursor (0-based)
+  } = context;
+  
+  const tree = parser.parse(code);
+  if (tree.rootNode.type !== 'ERROR') {
+    yield {
+      parse: tree,
+      code: core.asMappedString(code),
+      deletions: 0
+    };
+  }
 
-    debugger;
+  const codeLines = core.rangedLines(code);
 
-    const parser = await getTreeSitter();
-    const schemas = (await getSchemas()).schemas;
+  const currentLine = codeLines[position.row].substring;
+  let currentColumn = position.column;
+  let deletions = 0;
+
+  while (currentColumn > 0) {
+    currentColumn--;
+    deletions++;
+
+    let chunks = [];
+    if (position.row > 0) {
+      chunks.push({
+        start: 0,
+        end: codeLines[position.row - 1].range.end
+      });
+    }
+    chunks.push(currentLine.slice(currentColumn));
+    if (position.row < codeLines.length - 1) {
+      chunks.push({
+        start: codeLines[position.row].range.start,
+        end: codeLines[codeLines.length - 1].range.end
+      });
+    }
+    const newCode = core.mappedString(code, chunks);
     
-    const {
-      filetype,  // "yaml" | "script" | "markdown"
-      line,      // editing line up to the cursor
-      code,      // full contents of the buffer
-      position   // row/column of cursor (0-based)
-    } = context;
+    const tree = parser.parse(newCode.value);
+    if (tree.rootNode.type !== 'ERROR') {
+      yield {
+        parse: tree,
+        code: newCode,
+        deletions
+      };
+    }
+  }
+};
 
-    const tree = parser.parse(code);
-    const doc = buildAnnotated(tree);
-    const index = core.rowColToIndex(code)(position);
+function completionsPromise(opts)
+{
+  const {
+    completions,
+    word
+  } = opts;
+  
+  return new Promise(function(resolve, reject) {
+    // resolve completions
+    resolve({
+
+      // token to replace
+      token: word,
+
+      // array of completions
+      completions,
+
+      // is this cacheable for subsequent results that add to the token
+      // see https://github.com/rstudio/rstudio/blob/main/src/gwt/src/org/rstudio/studio/client/workbench/views/console/shell/assist/CompletionCache.java
+      cacheable: true,
+
+      // should we automatically initiate another completion request when
+      // this one is accepted (e.g. if we complete a yaml key and then
+      // want to immediately show available values for that key)
+      suggest_on_accept: false
+    });
+  });
+}
+
+async function completionsFromGoodParse(context)
+{
+  const schemas = (await getSchemas()).schemas;
+  const noCompletions = new Promise(function(r, _) { r(null); });
+  
+  const {
+    filetype,  // "yaml" | "script" | "markdown"
+    line,      // editing line up to the cursor
+    code,      // full contents of the buffer
+    position   // row/column of cursor (0-based)
+  } = context;
+  const parser = await getTreeSitter();
+
+  for (const parseResult of attemptParsesAtLine(context, parser)) {
+    const {
+      parse: tree,
+      code: mappedCode,
+      deletions
+    } = parseResult;
+    
+    debugger;
+    
+    const doc = buildAnnotated(tree, mappedCode);
+    const index = core.rowColToIndex(mappedCode.value)(position);
     const path = locateCursor(doc, index);
     
     const matchingSchemas = navigateSchema(schemas.config, path);
@@ -5603,42 +5733,28 @@ window.QuartoYamlEditorTools = {
     const completions = matchingSchemas
           .map(s => core.schemaCompletions(s))
           .flat()
-          .filter(completion => completion.startsWith(word));
+          .filter(c => c.value.startsWith(word));
 
     if (completions.length === 0) {
-      return new Promise(function(r, _) { r(null); });
+      return noCompletions;
     }
-    
-    return new Promise(function(resolve, reject) {
 
-      // determine the target token (this will be what is substituted for)
-      // e.g. here we just break on spaces but the real implementation will
-      // be more syntax aware
-
-      // resolve completions
-      resolve({
-
-        // token to replace
-        token: word,
-
-        // array of completions
-        completions: completions.map(completion => {
-          return {
-            value: completion,
-            description: "TBF" // FIXME
-          };
-        }),
-
-        // is this cacheable for subsequent results that add to the token
-        // see https://github.com/rstudio/rstudio/blob/main/src/gwt/src/org/rstudio/studio/client/workbench/views/console/shell/assist/CompletionCache.java
-        cacheable: true,
-
-        // should we automatically initiate another completion request when
-        // this one is accepted (e.g. if we complete a yaml key and then
-        // want to immediately show available values for that key)
-        suggest_on_accept: false
-      });
+    return completionsPromise({
+      completions,
+      word
     });
+  }
+  return null;
+  
+
+};
+
+window.QuartoYamlEditorTools = {
+
+  getCompletions: async function(context) {
+
+    return completionsFromGoodParse(context) ||
+      new Promise(function(r, _) { r(null); });
   },
 
   getLint: function(context) {
@@ -5689,10 +5805,11 @@ window.QuartoYamlEditorTools = {
 */
 
 /**
- * given a tree from tree-sitter-yaml, this
- * builds an AnnotatedParse (cf `src/core/schema/annotated-yaml.ts`)
+ * given a tree from tree-sitter-yaml and the mappedString
+ * corresponding to the source, returns an AnnotatedParse (cf
+ * `src/core/schema/annotated-yaml.ts`)
  */
-function buildAnnotated(tree)
+function buildAnnotated(tree, mappedSource)
 {
   const singletonBuild = (node) => {
     return buildNode(node.firstChild);
@@ -5708,10 +5825,21 @@ function buildAnnotated(tree)
     return dispatch[node.type](node);
   };
 
+  const annotateEmpty = (position) => {
+    const mappedPos = mappedSource.mapClosest(position);
+    return {
+      start: mappedPos,
+      end: mappedPos,
+      result: null,
+      kind: "<<EMPTY>>",
+      components: []
+    };
+  };
+  
   const annotate = (node, result, components) => {
     return {
-      start: node.startIndex,
-      end: node.endIndex,
+      start: mappedSource.mapClosest(node.startIndex),
+      end: mappedSource.mapClosest(node.endIndex),
       result,
       kind: node.type, // FIXME this is almost certainly wrong because it doesn't match js-yaml.
       components
@@ -5738,7 +5866,7 @@ function buildAnnotated(tree)
     },
     "block_sequence_item": (node) => {
       if (node.childCount < 2) {
-        return annotate(node, null, []);
+        return annotateEmpty(node.endIndex);
       } else {
         return buildNode(node.child(1));
       }
@@ -5775,12 +5903,24 @@ function buildAnnotated(tree)
       const result = {}, components = [];
       for (let i = 0; i < node.childCount; ++i) {
         const child = node.child(i);
-        if (child.type !== "block_mapping_pair") {
+        let component;
+        if (child.type === "ERROR") {
+          // attempt to recover from error
+          result[child.text] = "<<ERROR>>";
+          const key = annotate(child, child.text, []);
+          const value = annotateEmpty(child.endIndex);
+          component = annotate(child, {
+            key: key.result,
+            value: value.result
+          }, [key, value]);
+        } else if (child.type !== "block_mapping_pair") {
+          debugger;
           throw new Error(`Internal error: Expected a block_mapping_pair, got ${child.type} instead.`);
+        } else {
+          component = buildNode(child);
         }
-        const component = buildNode(child);
-        const {key, value} = component.result;
-        // FIXME what do we do in the presence of parse errors?
+        const { key, value } = component.result;
+        // FIXME what do we do in the presence of parse errors that result empty keys?
         // if (key === null) { }
         result[key] = value;
         components.push(...component.components);
@@ -5788,9 +5928,21 @@ function buildAnnotated(tree)
       return annotate(node, result, components);
     },
     "block_mapping_pair": (node) => {
-      // FIXME probably broken in the presence of parse errors: test.
-      const key = annotate(node.child(0), node.child(0).text, []);
-      const value = buildNode(node.child(2));
+      let key, value;
+      if (node.childCount === 3) {
+        // when three children exist, we assume a good parse 
+        key = annotate(node.child(0), node.child(0).text, []);
+        value = buildNode(node.child(2));
+      } else if (node.childCount === 2) {
+        // when two children exist, we assume a bad parse with missing value 
+        key = annotate(node.child(0), node.child(0).text, []);
+        value = annotateEmpty(node.endIndex);
+      } else {
+        // otherwise, we assume a bad parse, return empty on both key and value
+        key = annotateEmpty(node.endIndex);
+        value = annotateEmpty(node.endIndex);
+      }
+      
       return annotate(node, {
         key: key.result,
         value: value.result

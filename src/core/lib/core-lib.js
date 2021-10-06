@@ -261,7 +261,7 @@
     return function(offset) {
       const n = text.mapClosest(offset);
       if (n === void 0) {
-        throw new Error("Internal Error: bad offset in mappedLineNumbers");
+        throw new Error("Internal Error: bad offset in mappedIndexRowCol");
       }
       return f(n);
     };
@@ -515,8 +515,21 @@
     return "any";
   }
   function schemaCompletions(schema) {
-    if (schema.completions)
-      return schema.completions;
+    const normalize = (completions) => {
+      const result2 = (schema.completions || []).map((c) => {
+        if (typeof c === "string") {
+          return {
+            value: c,
+            description: ""
+          };
+        }
+        return c;
+      });
+      return result2;
+    };
+    if (schema.completions && schema.completions.length) {
+      return normalize(schema.completions);
+    }
     switch (schemaType(schema)) {
       case "array":
         if (schema.items) {

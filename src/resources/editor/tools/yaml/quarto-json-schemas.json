@@ -284,26 +284,86 @@
             }
           },
           "completions": [
-            "fig.width:",
-            "fig.height:",
-            "fig.format:",
-            "fig.dpi:",
-            "cache:",
-            "freeze:",
-            "enabled:",
-            "ipynb:",
-            "daemon:",
-            "daemon-restart:",
-            "debug:",
-            "engine:",
-            "eval:",
-            "error:",
-            "echo:",
-            "output:",
-            "warning:",
-            "include:",
-            "keep-md:",
-            "keep-ipynb:"
+            {
+              "value": "fig.width:",
+              "description": ""
+            },
+            {
+              "value": "fig.height:",
+              "description": ""
+            },
+            {
+              "value": "fig.format:",
+              "description": ""
+            },
+            {
+              "value": "fig.dpi:",
+              "description": ""
+            },
+            {
+              "value": "cache:",
+              "description": ""
+            },
+            {
+              "value": "freeze:",
+              "description": ""
+            },
+            {
+              "value": "enabled:",
+              "description": ""
+            },
+            {
+              "value": "ipynb:",
+              "description": ""
+            },
+            {
+              "value": "daemon:",
+              "description": ""
+            },
+            {
+              "value": "daemon-restart:",
+              "description": ""
+            },
+            {
+              "value": "debug:",
+              "description": ""
+            },
+            {
+              "value": "engine:",
+              "description": ""
+            },
+            {
+              "value": "eval:",
+              "description": ""
+            },
+            {
+              "value": "error:",
+              "description": ""
+            },
+            {
+              "value": "echo:",
+              "description": ""
+            },
+            {
+              "value": "output:",
+              "description": ""
+            },
+            {
+              "value": "warning:",
+              "description": ""
+            },
+            {
+              "value": "include:",
+              "description": ""
+            },
+            {
+              "value": "keep-md:",
+              "description": ""
+            },
+            {
+              "value": "keep-ipynb:",
+              "description": ""
+            }
           ]
         },
         "format": {
@@ -597,31 +657,94 @@
                     }
                   },
                   "completions": [
-                    "fig.width:",
-                    "fig.height:",
-                    "fig.format:",
-                    "fig.dpi:",
-                    "cache:",
-                    "freeze:",
-                    "enabled:",
-                    "ipynb:",
-                    "daemon:",
-                    "daemon-restart:",
-                    "debug:",
-                    "engine:",
-                    "eval:",
-                    "error:",
-                    "echo:",
-                    "output:",
-                    "warning:",
-                    "include:",
-                    "keep-md:",
-                    "keep-ipynb:"
+                    {
+                      "value": "fig.width:",
+                      "description": ""
+                    },
+                    {
+                      "value": "fig.height:",
+                      "description": ""
+                    },
+                    {
+                      "value": "fig.format:",
+                      "description": ""
+                    },
+                    {
+                      "value": "fig.dpi:",
+                      "description": ""
+                    },
+                    {
+                      "value": "cache:",
+                      "description": ""
+                    },
+                    {
+                      "value": "freeze:",
+                      "description": ""
+                    },
+                    {
+                      "value": "enabled:",
+                      "description": ""
+                    },
+                    {
+                      "value": "ipynb:",
+                      "description": ""
+                    },
+                    {
+                      "value": "daemon:",
+                      "description": ""
+                    },
+                    {
+                      "value": "daemon-restart:",
+                      "description": ""
+                    },
+                    {
+                      "value": "debug:",
+                      "description": ""
+                    },
+                    {
+                      "value": "engine:",
+                      "description": ""
+                    },
+                    {
+                      "value": "eval:",
+                      "description": ""
+                    },
+                    {
+                      "value": "error:",
+                      "description": ""
+                    },
+                    {
+                      "value": "echo:",
+                      "description": ""
+                    },
+                    {
+                      "value": "output:",
+                      "description": ""
+                    },
+                    {
+                      "value": "warning:",
+                      "description": ""
+                    },
+                    {
+                      "value": "include:",
+                      "description": ""
+                    },
+                    {
+                      "value": "keep-md:",
+                      "description": ""
+                    },
+                    {
+                      "value": "keep-ipynb:",
+                      "description": ""
+                    }
                   ]
                 }
               },
               "completions": [
-                "html:"
+                {
+                  "value": "html:",
+                  "description": ""
+                }
               ]
             }
           ],
@@ -629,9 +752,18 @@
         }
       },
       "completions": [
-        "title:",
-        "execute:",
-        "format:"
+        {
+          "value": "title:",
+          "description": ""
+        },
+        {
+          "value": "execute:",
+          "description": ""
+        },
+        {
+          "value": "format:",
+          "description": ""
+        }
       ]
     },
     "config": {
@@ -671,10 +803,22 @@
             }
           },
           "completions": [
-            "type:",
-            "output-dir:",
-            "bibliography:",
-            "filters:"
+            {
+              "value": "type:",
+              "description": ""
+            },
+            {
+              "value": "output-dir:",
+              "description": ""
+            },
+            {
+              "value": "bibliography:",
+              "description": ""
+            },
+            {
+              "value": "filters:",
+              "description": ""
+            }
           ]
         },
         "site": {
@@ -775,15 +919,30 @@
                     }
                   },
                   "completions": [
-                    "index-name:",
-                    "application-id:",
-                    "search-only-api-key:",
-                    "analytics-events:"
+                    {
+                      "value": "index-name:",
+                      "description": ""
+                    },
+                    {
+                      "value": "application-id:",
+                      "description": ""
+                    },
+                    {
+                      "value": "search-only-api-key:",
+                      "description": ""
+                    },
+                    {
+                      "value": "analytics-events:",
+                      "description": ""
+                    }
                   ]
                 }
               },
               "completions": [
-                "algolia:"
+                {
+                  "value": "algolia:",
+                  "description": ""
+                }
               ]
             },
             "navbar": {
@@ -838,11 +997,25 @@
                           "href": {
                             "type": "string",
                             "description": "be a string"
+                          },
+                          "icon": {
+                            "type": "string",
+                            "description": "be a string"
                           }
                         },
                         "completions": [
-                          "text:",
-                          "href:"
+                          {
+                            "value": "text:",
+                            "description": "entry description"
+                          },
+                          {
+                            "value": "href:",
+                            "description": "URL of the link"
+                          },
+                          {
+                            "value": "icon:",
+                            "description": "font-awesome icon id"
+                          }
                         ]
                       }
                     ],
@@ -851,12 +1024,30 @@
                 }
               },
               "completions": [
-                "background:",
-                "logo:",
-                "title:",
-                "collapse-below:",
-                "sidebar-menus:",
-                "right:"
+                {
+                  "value": "background:",
+                  "description": ""
+                },
+                {
+                  "value": "logo:",
+                  "description": ""
+                },
+                {
+                  "value": "title:",
+                  "description": ""
+                },
+                {
+                  "value": "collapse-below:",
+                  "description": ""
+                },
+                {
+                  "value": "sidebar-menus:",
+                  "description": ""
+                },
+                {
+                  "value": "right:",
+                  "description": ""
+                }
               ]
             },
             "sidebar": {
@@ -911,11 +1102,25 @@
                               "href": {
                                 "type": "string",
                                 "description": "be a string"
+                              },
+                              "icon": {
+                                "type": "string",
+                                "description": "be a string"
                               }
                             },
                             "completions": [
-                              "text:",
-                              "href:"
+                              {
+                                "value": "text:",
+                                "description": "entry description"
+                              },
+                              {
+                                "value": "href:",
+                                "description": "URL of the link"
+                              },
+                              {
+                                "value": "icon:",
+                                "description": "font-awesome icon id"
+                              }
                             ]
                           },
                           {
@@ -927,42 +1132,108 @@
                       }
                     },
                     "completions": [
-                      "section:",
-                      "contents:"
+                      {
+                        "value": "section:",
+                        "description": ""
+                      },
+                      {
+                        "value": "contents:",
+                        "description": ""
+                      }
                     ],
                     "$id": "/schemas/section"
                   }
                 },
                 "completions": [
-                  "id:",
-                  "title:",
-                  "sytle:",
-                  "collapse-level:",
-                  "align:",
-                  "contents:"
+                  {
+                    "value": "id:",
+                    "description": ""
+                  },
+                  {
+                    "value": "title:",
+                    "description": ""
+                  },
+                  {
+                    "value": "sytle:",
+                    "description": ""
+                  },
+                  {
+                    "value": "collapse-level:",
+                    "description": ""
+                  },
+                  {
+                    "value": "align:",
+                    "description": ""
+                  },
+                  {
+                    "value": "contents:",
+                    "description": ""
+                  }
                 ]
               }
             }
           },
           "completions": [
-            "title:",
-            "image:",
-            "google-analytics:",
-            "open-graph:",
-            "twitter-card:",
-            "site-url:",
-            "repo-url:",
-            "repo-actions:",
-            "page-navigation:",
-            "search:",
-            "navbar:",
-            "sidebar:"
+            {
+              "value": "title:",
+              "description": ""
+            },
+            {
+              "value": "image:",
+              "description": ""
+            },
+            {
+              "value": "google-analytics:",
+              "description": ""
+            },
+            {
+              "value": "open-graph:",
+              "description": ""
+            },
+            {
+              "value": "twitter-card:",
+              "description": ""
+            },
+            {
+              "value": "site-url:",
+              "description": ""
+            },
+            {
+              "value": "repo-url:",
+              "description": ""
+            },
+            {
+              "value": "repo-actions:",
+              "description": ""
+            },
+            {
+              "value": "page-navigation:",
+              "description": ""
+            },
+            {
+              "value": "search:",
+              "description": ""
+            },
+            {
+              "value": "navbar:",
+              "description": ""
+            },
+            {
+              "value": "sidebar:",
+              "description": ""
+            }
           ]
         }
       },
       "completions": [
-        "project:",
-        "site:"
+        {
+          "value": "project:",
+          "description": ""
+        },
+        {
+          "value": "site:",
+          "description": ""
+        }
       ]
     }
   }

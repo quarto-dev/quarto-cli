@@ -6,10 +6,11 @@
 */
 
 /**
- * given a tree from tree-sitter-yaml, this
- * builds an AnnotatedParse (cf `src/core/schema/annotated-yaml.ts`)
+ * given a tree from tree-sitter-yaml and the mappedString
+ * corresponding to the source, returns an AnnotatedParse (cf
+ * `src/core/schema/annotated-yaml.ts`)
  */
-function buildAnnotated(tree)
+function buildAnnotated(tree, mappedSource)
 {
   const singletonBuild = (node) => {
     return buildNode(node.firstChild);
@@ -25,10 +26,21 @@ function buildAnnotated(tree)
     return dispatch[node.type](node);
   };
 
+  const annotateEmpty = (position) => {
+    const mappedPos = mappedSource.mapClosest(position);
+    return {
+      start: mappedPos,
+      end: mappedPos,
+      result: null,
+      kind: "<<EMPTY>>",
+      components: []
+    };
+  };
+  
   const annotate = (node, result, components) => {
     return {
-      start: node.startIndex,
-      end: node.endIndex,
+      start: mappedSource.mapClosest(node.startIndex),
+      end: mappedSource.mapClosest(node.endIndex),
       result,
       kind: node.type, // FIXME this is almost certainly wrong because it doesn't match js-yaml.
       components
@@ -55,7 +67,7 @@ function buildAnnotated(tree)
     },
     "block_sequence_item": (node) => {
       if (node.childCount < 2) {
-        return annotate(node, null, []);
+        return annotateEmpty(node.endIndex);
       } else {
         return buildNode(node.child(1));
       }
@@ -92,12 +104,24 @@ function buildAnnotated(tree)
       const result = {}, components = [];
       for (let i = 0; i < node.childCount; ++i) {
         const child = node.child(i);
-        if (child.type !== "block_mapping_pair") {
+        let component;
+        if (child.type === "ERROR") {
+          // attempt to recover from error
+          result[child.text] = "<<ERROR>>";
+          const key = annotate(child, child.text, []);
+          const value = annotateEmpty(child.endIndex);
+          component = annotate(child, {
+            key: key.result,
+            value: value.result
+          }, [key, value]);
+        } else if (child.type !== "block_mapping_pair") {
+          debugger;
           throw new Error(`Internal error: Expected a block_mapping_pair, got ${child.type} instead.`);
+        } else {
+          component = buildNode(child);
         }
-        const component = buildNode(child);
-        const {key, value} = component.result;
-        // FIXME what do we do in the presence of parse errors?
+        const { key, value } = component.result;
+        // FIXME what do we do in the presence of parse errors that result empty keys?
         // if (key === null) { }
         result[key] = value;
         components.push(...component.components);
@@ -105,9 +129,21 @@ function buildAnnotated(tree)
       return annotate(node, result, components);
     },
     "block_mapping_pair": (node) => {
-      // FIXME probably broken in the presence of parse errors: test.
-      const key = annotate(node.child(0), node.child(0).text, []);
-      const value = buildNode(node.child(2));
+      let key, value;
+      if (node.childCount === 3) {
+        // when three children exist, we assume a good parse 
+        key = annotate(node.child(0), node.child(0).text, []);
+        value = buildNode(node.child(2));
+      } else if (node.childCount === 2) {
+        // when two children exist, we assume a bad parse with missing value 
+        key = annotate(node.child(0), node.child(0).text, []);
+        value = annotateEmpty(node.endIndex);
+      } else {
+        // otherwise, we assume a bad parse, return empty on both key and value
+        key = annotateEmpty(node.endIndex);
+        value = annotateEmpty(node.endIndex);
+      }
+      
       return annotate(node, {
         key: key.result,
         value: value.result
