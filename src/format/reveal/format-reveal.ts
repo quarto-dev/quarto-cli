@@ -20,7 +20,6 @@ export function revealjsFormat() {
     createHtmlPresentationFormat(9, 5),
     {
       metadata: {
-        hash: true,
         theme: "white",
       },
       formatExtras: (_input: string, _flags: PandocFlags, _format: Format) => {

@@ -228,7 +228,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   for (var i=0; i<noterefs.length; i++) {
     const ref = noterefs[i];
     tippyHover(ref, function() {
-      const id = new URL(ref.getAttribute('href')).hash.replace(/^#/, "");
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#/, "");
       const note = window.document.getElementById(id);
       return note.innerHTML;
     });

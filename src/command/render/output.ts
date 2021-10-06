@@ -111,7 +111,7 @@ export async function outputRecipe(
       if (options.flags?.output) {
         recipe.args = replacePandocOutputArg(recipe.args, output);
       } else {
-        format.pandoc[kOutputFile] = output;
+        recipe.format.pandoc[kOutputFile] = output;
       }
     };
 
