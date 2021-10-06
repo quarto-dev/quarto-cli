@@ -27,47 +27,66 @@ import {
 // The quarto install command
 export const toolsCommand = new Command()
   .name("tools")
-  .arguments("[command:string] [name:string]")
+  .arguments("[command:string] [tool:string]")
   .description(
-    `Manages quarto tools.\n\nTools that can be installed include:\n${
-      installableTools().map((name: string) => "  " + name).join("\n")
-    }`,
+    `Manage the installation, update, and uninstallation of useful tools.
+    
+  tools:\n  ${installableTools().map((name: string) => "  " + name).join("\n")}
+
+  commands:
+    install
+    uninstall
+    update
+    
+Use 'quarto tools' with no arguments to show the status of all tools.`,
   )
   .example(
     "Install TinyTex",
     "quarto tools install tinytex",
   )
+  .example(
+    "Uninstall TinyTex",
+    "quarto tools uninstall tintytex",
+  )
+  .example(
+    "Update TinyTex",
+    "quarto tools update tinytex",
+  )
+  .example(
+    "Show tool status",
+    "quarto tools",
+  )
   // deno-lint-ignore no-explicit-any
-  .action(async (_options: any, command: string, name?: string) => {
+  .action(async (_options: any, command: string, tool?: string) => {
     switch (command) {
       case "install":
-        if (name) {
-          await installTool(name);
+        if (tool) {
+          await installTool(tool);
         }
         break;
       case "uninstall":
-        if (name) {
+        if (tool) {
           await confirmDestructiveAction(
-            name,
-            `This will remove ${name} and all of its files. Are you sure?`,
+            tool,
+            `This will remove ${tool} and all of its files. Are you sure?`,
             async () => {
-              await uninstallTool(name);
+              await uninstallTool(tool);
             },
             false,
-            await toolSummary(name),
+            await toolSummary(tool),
           );
         }
         break;
       case "update":
-        if (name) {
-          const summary = await toolSummary(name);
+        if (tool) {
+          const summary = await toolSummary(tool);
           await confirmDestructiveAction(
-            name,
-            `This will update ${name} from ${summary?.installedVersion} to ${
+            tool,
+            `This will update ${tool} from ${summary?.installedVersion} to ${
               summary?.latestRelease.version
             }. Are you sure?`,
             async () => {
-              await updateTool(name);
+              await updateTool(tool);
             },
             true,
             summary,
