@@ -53,7 +53,7 @@ export async function configure(
   }
 
   // Set up a symlink (if appropriate)
-  const symlinkPaths = ["/usr/local/bin/quarto", expandPath("~/bin/quarto")];
+  const symlinkPaths = ["/usr/local/bin/quarto", expandPath("~/.local/bin/quarto")];
 
   if (Deno.build.os !== "windows") {
     info("Creating Quarto Symlink");
