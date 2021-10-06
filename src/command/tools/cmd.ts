@@ -29,7 +29,7 @@ export const toolsCommand = new Command()
   .name("tools")
   .arguments("[command:string] [tool:string]")
   .description(
-    `Manage the installation, update, and uinstallation of useful tools.
+    `Manage the installation, update, and uninstallation of useful tools.
     
   tools:\n  ${installableTools().map((name: string) => "  " + name).join("\n")}
 
@@ -39,10 +39,6 @@ export const toolsCommand = new Command()
     update
     
 Use 'quarto tools' with no arguments to show the status of all tools.`,
-  )
-  .example(
-    "List Tools and Status",
-    "quarto tools",
   )
   .example(
     "Install TinyTex",
@@ -55,6 +51,10 @@ Use 'quarto tools' with no arguments to show the status of all tools.`,
   .example(
     "Update TinyTex",
     "quarto tools update tinytex",
+  )
+  .example(
+    "Show tool status",
+    "quarto tools",
   )
   // deno-lint-ignore no-explicit-any
   .action(async (_options: any, command: string, tool?: string) => {
