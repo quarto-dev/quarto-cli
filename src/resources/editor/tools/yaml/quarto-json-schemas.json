@@ -1078,70 +1078,78 @@
                     "description": "be a string"
                   },
                   "contents": {
-                    "type": "object",
-                    "description": "be an object",
-                    "properties": {
-                      "section": {
-                        "type": "string",
-                        "description": "be a string"
-                      },
-                      "contents": {
-                        "oneOf": [
-                          {
-                            "type": "string",
-                            "description": "be a string"
-                          },
-                          {
-                            "type": "object",
-                            "description": "be an object",
-                            "properties": {
-                              "text": {
-                                "type": "string",
-                                "description": "be a string"
-                              },
-                              "href": {
-                                "type": "string",
-                                "description": "be a string"
-                              },
-                              "icon": {
-                                "type": "string",
-                                "description": "be a string"
-                              }
+                    "type": "array",
+                    "description": "be an array of values, where each element should be exactly one of: a string, an object, an object",
+                    "items": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "description": "be a string"
+                        },
+                        {
+                          "type": "object",
+                          "description": "be an object",
+                          "properties": {
+                            "text": {
+                              "type": "string",
+                              "description": "be a string"
                             },
-                            "completions": [
-                              {
-                                "value": "text:",
-                                "description": "entry description"
-                              },
-                              {
-                                "value": "href:",
-                                "description": "URL of the link"
-                              },
-                              {
-                                "value": "icon:",
-                                "description": "font-awesome icon id"
-                              }
-                            ]
+                            "href": {
+                              "type": "string",
+                              "description": "be a string"
+                            },
+                            "icon": {
+                              "type": "string",
+                              "description": "be a string"
+                            }
                           },
-                          {
-                            "$ref": "/schemas/section",
-                            "description": "be a section object"
-                          }
-                        ],
-                        "description": "be exactly one of: a string, an object, a section object"
-                      }
-                    },
-                    "completions": [
-                      {
-                        "value": "section:",
-                        "description": ""
-                      },
-                      {
-                        "value": "contents:",
-                        "description": ""
-                      }
-                    ],
-                    "$id": "/schemas/section"
+                          "completions": [
+                            {
+                              "value": "text:",
+                              "description": "entry description"
+                            },
+                            {
+                              "value": "href:",
+                              "description": "URL of the link"
+                            },
+                            {
+                              "value": "icon:",
+                              "description": "font-awesome icon id"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "object",
+                          "description": "be an object",
+                          "properties": {
+                            "section": {
+                              "type": "string",
+                              "description": "be a string"
+                            },
+                            "contents": {
+                              "type": "array",
+                              "description": "be an array of values, where each element should be a section object",
+                              "items": {
+                                "$ref": "/schemas/section",
+                                "description": "be a section object"
+                              }
+                            }
+                          },
+                          "completions": [
+                            {
+                              "value": "section:",
+                              "description": ""
+                            },
+                            {
+                              "value": "contents:",
+                              "description": ""
+                            }
+                          ]
+                        }
+                      ],
+                      "description": "be exactly one of: a string, an object, an object",
+                      "$id": "/schemas/section"
+                    }
                   }
                 },
                 "completions": [

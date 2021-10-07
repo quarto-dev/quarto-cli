@@ -35,16 +35,16 @@ const sidebarEntrySchema = objectS({
   }
 });
 
-const sectionSchema = withId(objectS({
-  properties: {
-    section: StringS,
-    contents: oneOfS(
-      StringS,
-      sidebarEntrySchema,
-      refS("/schemas/section", "be a section object")
-    )
-  }
-}), "/schemas/section");
+const sectionSchema = withId(
+  oneOfS(StringS,
+         sidebarEntrySchema,
+         objectS({
+           properties: {
+             section: StringS,
+             contents: arrayS(refS("/schemas/section", "be a section object"))
+           }
+         })),
+  "/schemas/section");
 
 const sidebarItemSchema = objectS({
   properties: {
@@ -53,7 +53,7 @@ const sidebarItemSchema = objectS({
     sytle: StringS,
     "collapse-level": IntegerS,
     align: StringS,
-    contents: sectionSchema
+    contents: arrayS(sectionSchema)
   }
 });
 

@@ -82,11 +82,20 @@
       range: { start, end }
     };
   }
+  function matchAll(str, regex) {
+    let match;
+    regex = new RegExp(regex);
+    const result2 = [];
+    while ((match = regex.exec(str)) != null) {
+      result2.push(match);
+    }
+    return result2;
+  }
   function rangedLines(text) {
     const regex = /\r?\n/g;
     const result2 = [];
     let startOffset = 0;
-    for (const r of text.matchAll(regex)) {
+    for (const r of matchAll(text, regex)) {
       result2.push({
         substring: text.substring(startOffset, r.index),
         range: {

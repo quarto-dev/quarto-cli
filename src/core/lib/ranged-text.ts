@@ -38,6 +38,17 @@ export function rangedSubstring(
   };
 };
 
+function matchAll(str: string, regex: RegExp)
+{
+  let match;
+  regex = new RegExp(regex); // create new to guarantee freshness wrt exec
+  const result = [];
+  while ((match = regex.exec(str)) != null) {
+    result.push(match);
+  }
+  return result;
+}
+
 // RangedSubstring version of lines()
 export function rangedLines(
   text: string
@@ -47,7 +58,10 @@ export function rangedLines(
   const result: RangedSubstring[] = [];
 
   let startOffset = 0;
-  for (const r of text.matchAll(regex)) {
+  // NB can't use matchAll here because this is getting sent into the IDE
+  // which runs an older version of the js stdlib without matchAll
+  
+  for (const r of matchAll(text, regex)) {
     result.push({
       substring: text.substring(startOffset, r.index!),
       range: {

@@ -10,7 +10,6 @@
 
 const Parser = window.TreeSitter;
 
-
 let _schemas;
 let _parser;
 
@@ -151,8 +150,12 @@ function locateCursor(annotation, position)
 
       throw new Error("Internal error: cursor outside bounds in sequence locate?");
     } else {
-      // can't navigate further, we're done.
-      return pathSoFar;
+      if (node.kind !== "<<EMPTY>>") {
+        return [node.result, pathSoFar];
+      } else {
+        // we're inside an error, don't report that.
+        return pathSoFar;
+      }
     }
   }
   return locate(annotation, []).flat(Infinity).reverse();
@@ -196,10 +199,10 @@ function* attemptParsesAtLine(context, parser)
         end: codeLines[position.row - 1].range.end
       });
     }
-    chunks.push(currentLine.slice(currentColumn));
-    if (position.row < codeLines.length - 1) {
+    chunks.push(`\n${currentLine.substring(0, currentColumn)}\n`);
+    if (position.row + 1 < codeLines.length) {
       chunks.push({
-        start: codeLines[position.row].range.start,
+        start: codeLines[position.row + 1].range.start,
         end: codeLines[codeLines.length - 1].range.end
       });
     }
@@ -218,10 +221,12 @@ function* attemptParsesAtLine(context, parser)
 
 function completionsPromise(opts)
 {
-  const {
+  let {
     completions,
     word
   } = opts;
+  completions = completions.slice();
+  completions.sort((a, b) => a.value.localeCompare(b.value));
   
   return new Promise(function(resolve, reject) {
     // resolve completions
@@ -245,6 +250,128 @@ function completionsPromise(opts)
   });
 }
 
+function getIndent(l)
+{
+  return l.length - l.trimStart().length;
+}
+
+function getYamlIndentTree(code)
+{
+  debugger;
+  const lines = core.lines(code);
+  const predecessor = [];
+  const indents = [];
+
+  let indentation = -1;
+  let prevPredecessor = -1;
+  for (let i = 0; i < lines.length; ++i) {
+    const line = lines[i];
+    const lineIndent = getIndent(line);
+    indents.push(lineIndent);
+
+    if (line.trim().length === 0) {
+      predecessor[i] = predecessor[prevPredecessor];
+    } else if (lineIndent === indentation) {
+      predecessor[i] = predecessor[prevPredecessor];
+      prevPredecessor = i;
+    } else if (lineIndent < indentation) {
+      // go down the predecessor relation
+      let v = prevPredecessor;
+      while (v >= 0 && indents[v] >= lineIndent) {
+        v = predecessor[v];
+      }
+      predecessor[i] = v;
+      prevPredecessor = i;
+      indentation = lineIndent;
+    } else {
+      // pre: lineIndent > indentation
+      predecessor[i] = prevPredecessor;
+      prevPredecessor = i;
+      indentation = lineIndent;
+    }
+  }
+  return {
+    predecessor,
+    indentation: indents
+  };
+}
+
+function locateFromIndentation(context)
+{
+  const {
+    filetype,  // "yaml" | "script" | "markdown"
+    line,      // editing line up to the cursor
+    code,      // full contents of the buffer
+    position   // row/column of cursor (0-based)
+  } = context;
+
+  const { predecessor, indentation } = getYamlIndentTree(code);
+
+  const lines = core.lines(code);
+  let lineNo = position.row;
+  const path = [];
+  let lineIndent = getIndent(line);
+  while (lineNo !== -1) {
+    const trimmed = lines[lineNo].trim();
+
+    // treat whitespace differently: find first non-whitespace line above it and compare indents
+    if (trimmed.length === 0) {
+      let prev = lineNo;
+      while (prev >= 0 && lines[prev].trim().length === 0) {
+        prev--;
+      }
+      if (prev === -1) {
+        // all whitespace..?! we give up.
+        break;
+      }
+      const prevIndent = getIndent(lines[prev]);
+      if (prevIndent < lineIndent) {
+        // we're indented deeper than the previous indent: Locate through that.
+        lineNo = prev;
+        continue;
+      }
+    }
+    if (lineIndent >= indentation[lineNo]) {
+      if (trimmed.startsWith("-")) {
+        // sequence entry
+        // we report the wrong number here, but since we don't
+        // actually need to know which entry in the array this is in
+        // order to navigate the schema, this is fine.
+        path.push(0);
+      } else if (trimmed.endsWith(":")) {
+        // mapping
+        path.push(trimmed.substring(0, trimmed.length - 1));
+      } else if (trimmed.length !== 0) {
+        // parse error?
+        return undefined;
+      }
+    }
+    lineNo = predecessor[lineNo];
+  }
+  path.reverse();
+  return path;
+}
+
+function completionsFromSchemaPathWord(schema, path, word)
+{
+  const noCompletions = new Promise(function(r, _) { r(null); });
+  const matchingSchemas = navigateSchema(schema, path);
+
+  const completions = matchingSchemas
+        .map(s => core.schemaCompletions(s))
+        .flat()
+        .filter(c => c.value.startsWith(word));
+
+  if (completions.length === 0) {
+    return noCompletions;
+  }
+
+  return completionsPromise({
+    completions,
+    word
+  });
+}
+
 async function completionsFromGoodParse(context)
 {
   const schemas = (await getSchemas()).schemas;
@@ -257,45 +384,51 @@ async function completionsFromGoodParse(context)
     position   // row/column of cursor (0-based)
   } = context;
   const parser = await getTreeSitter();
+  let word;
+  if (["-", ":"].indexOf(line.slice(-1)) !== -1) {
+    word = "";
+  } else {
+    word = line.split(" ").slice(-1)[0];
+  }
 
+  if (line.trim().length === 0) {
+    // we're in a pure-whitespace line, we should locate entirely based on indentation
+    const path = locateFromIndentation(context);
+    return completionsFromSchemaPathWord(schemas.config, path, word);
+  }
+  
   for (const parseResult of attemptParsesAtLine(context, parser)) {
     const {
       parse: tree,
       code: mappedCode,
       deletions
     } = parseResult;
-    
-    debugger;
-    
-    const doc = buildAnnotated(tree, mappedCode);
-    const index = core.rowColToIndex(mappedCode.value)(position);
-    const path = locateCursor(doc, index);
-    
-    const matchingSchemas = navigateSchema(schemas.config, path);
-    let word;
-    if (["-", ":"].indexOf(line.slice(-1)) !== -1) {
-      word = "";
+
+    if (line.substring(0, line.length - deletions).trim().length === 0) {
+      // the valid parse we found puts us in a pure-whitespace line, so we should locate
+      // on indentation as well.
+      const path = locateFromIndentation({
+        filetype,
+        line: line.substring(0, deletions),
+        code: mappedCode.value,
+        position: {
+          row: position.row,
+          column: position.column - deletions
+        }
+      });
+      return completionsFromSchemaPathWord(schemas.config, path, word);
     } else {
-      word = line.split(" ").slice(-1)[0];
+      const doc = buildAnnotated(tree, mappedCode);
+      const index = core.rowColToIndex(mappedCode.value)({
+        row: position.row,
+        column: position.column - deletions
+      });
+      const path = locateCursor(doc, index);
+      return completionsFromSchemaPathWord(schemas.config, path, word);
     }
-
-    const completions = matchingSchemas
-          .map(s => core.schemaCompletions(s))
-          .flat()
-          .filter(c => c.value.startsWith(word));
-
-    if (completions.length === 0) {
-      return noCompletions;
-    }
-
-    return completionsPromise({
-      completions,
-      word
-    });
   }
-  return null;
   
-
+  return null;
 };
 
 window.QuartoYamlEditorTools = {
