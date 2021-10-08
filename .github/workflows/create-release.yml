@@ -69,15 +69,15 @@ jobs:
     - name: Make Tarball
       run: |
         pushd package/dist/
-        tar -cvf  ../quarto-${{needs.configure.outputs.version}}-linux.tar .
-        gzip ../quarto-${{needs.configure.outputs.version}}-linux.tar
+        tar -cvf  ../quarto-${{needs.configure.outputs.version}}-linux-amd64.tar .
+        gzip ../quarto-${{needs.configure.outputs.version}}-linux-amd64.tar
         popd
 
     - name: Upload Artifact 
       uses: actions/upload-artifact@v2
       with:
         name: Release Tarball
-        path: ./package/quarto-${{needs.configure.outputs.version}}-linux.tar.gz
+        path: ./package/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
 
   make-installer-deb:
     runs-on: ubuntu-latest
@@ -239,8 +239,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: ./Release Tarball/quarto-${{needs.configure.outputs.version}}-linux.tar.gz
-        asset_name: quarto-${{needs.configure.outputs.version}}-linux.tar.gz
+        asset_path: ./Release Tarball/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
+        asset_name: quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
         asset_content_type: application/gzip
 
     - name: Attach Debian Installer
