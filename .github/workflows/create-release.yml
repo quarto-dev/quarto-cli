@@ -310,6 +310,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: checksum.json
-        asset_name: checksum.json
+        asset_path: quarto-${{needs.configure.outputs.version}}-checksums.txt
+        asset_name: quarto-${{needs.configure.outputs.version}}-checksums.txt
         asset_content_type: application/json
