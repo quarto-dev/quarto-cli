@@ -208,7 +208,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: Mac Zip
-        path: ./package/out/quarto-${{needs.configure.outputs.version}}-macos.zip         
+        path: ./package/out/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
         
   publish-release:
     if: ${{ github.event.inputs.publish-release == 'true' }}
@@ -294,6 +294,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: ./Mac Zip/quarto-${{needs.configure.outputs.version}}-macos.zip
-        asset_name: quarto-${{needs.configure.outputs.version}}-macos.zip
+        asset_path: ./Mac Zip/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
+        asset_name: quarto-${{needs.configure.outputs.version}}-macos.tar.gz
         asset_content_type: application/pkg
