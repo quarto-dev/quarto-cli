@@ -11,6 +11,7 @@ import { dirname } from "path/mod.ts";
 export async function makeTarball(
   input: string,
   output: string,
+  changewd = false,
 ) {
   info("Make Tarball");
   info(`Input: ${input}`);
@@ -19,8 +20,15 @@ export async function makeTarball(
   tarCmd.push("tar");
   tarCmd.push("czvf");
   tarCmd.push(output);
+  if (changewd) {
+    tarCmd.push("-C");
+  }
   tarCmd.push(input);
+  if (changewd) {
+    tarCmd.push(".");
+  }
 
+  info(tarCmd);
   const p = Deno.run({
     cmd: tarCmd,
   });
