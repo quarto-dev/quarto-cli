@@ -1,17 +1,12 @@
 import { info, warning } from "log/mod.ts";
-import { basename, join } from "path/mod.ts";
-import {
-  _createWalkEntry,
-  emptyDirSync,
-  ensureDirSync,
-  existsSync,
-  moveSync,
-} from "fs/mod.ts";
+import { basename, dirname, join } from "path/mod.ts";
+import { emptyDirSync, ensureDirSync, existsSync, moveSync } from "fs/mod.ts";
 
 import { Configuration } from "../common/config.ts";
 import { runCmd } from "../util/cmd.ts";
 import { download, getEnv, unzip } from "../util/utils.ts";
 import { signtool } from "./signtool.ts";
+import { execProcess } from "../../../src/core/process.ts";
 
 export async function makeInstallerWindows(configuration: Configuration) {
   const packageName = `quarto-${configuration.version}-win.msi`;
@@ -38,6 +33,15 @@ export async function makeInstallerWindows(configuration: Configuration) {
       "No Signing information available in environment, skipping signing",
     );
   }
+
+  // Create a zip file
+  info("Creating zip installer");
+  const zipInput = join(configuration.directoryInfo.dist, "*");
+  const zipOutput = join(
+    configuration.directoryInfo.out,
+    `quarto-${configuration.version}-win.zip`,
+  );
+  zip(zipInput, zipOutput);
 
   // Download tools, if necessary
   if (
@@ -176,4 +180,23 @@ export async function makeInstallerWindows(configuration: Configuration) {
 
   // Clean up the working directory
   Deno.remove(workingDir, { recursive: true });
+}
+
+export function zip(input: string, output: string) {
+  const dir = dirname(input);
+  const cmd = [
+    "powershell",
+    "Compress-Archive",
+    input,
+    "-DestinationPath",
+    output,
+  ];
+  info(cmd);
+  return execProcess(
+    {
+      cmd,
+      cwd: dir,
+      stdout: "piped",
+    },
+  );
 }
