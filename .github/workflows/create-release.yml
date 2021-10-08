@@ -217,8 +217,8 @@ jobs:
 
     steps:
     - name: Download Artifacts
-      uses: actions/download-artifact@v2       
-        
+      uses: actions/download-artifact@v2      
+
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
@@ -297,3 +297,29 @@ jobs:
         asset_path: ./Mac Zip/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
         asset_name: quarto-${{needs.configure.outputs.version}}-macos.tar.gz
         asset_content_type: application/pkg
+        
+    - name: Generate Checksums
+      id: generate_checksum
+      run: |
+        find . -type f \( -name "*.tar.gz" -o -name "*.pkg" -o -name "*.zip" -o  -name "*.msi" -o -name "*.deb" \) -exec sha256sum -z {} + \
+        | jq --slurp --raw-input '
+            {
+                files: split("\u0000")
+                    | map(split(" "))
+                    | map([
+                        .[0],
+                        (.[2:] | join(" "))
+                    ])
+                    | map({sha256: .[0], file: ((.[1] | split("/")) | .[-1])})
+            }' > checksum.json        
+
+    - name: Attach Checksum
+      id: attach-checksum
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} 
+        asset_path: checksum.json
+        asset_name: checksum.json
+        asset_content_type: application/json
