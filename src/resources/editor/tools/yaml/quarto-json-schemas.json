@@ -35,7 +35,8 @@
                 "jpeg",
                 "svg",
                 "pdf"
-              ]
+              ],
+              "exhaustiveCompletions": true
             },
             "fig.dpi": {
               "type": "number",
@@ -49,14 +50,16 @@
                   "completions": [
                     "true",
                     "false"
-                  ]
+                  ],
+                  "exhaustiveCompletions": true
                 },
                 {
                   "type": "null",
                   "description": "be the null value",
                   "completions": [
                     "null"
-                  ]
+                  ],
+                  "exhaustiveCompletions": true
                 },
                 {
                   "enum": [
@@ -65,7 +68,8 @@
                   "description": "be 'refresh'",
                   "completions": [
                     "refresh"
-                  ]
+                  ],
+                  "exhaustiveCompletions": true
                 }
               ],
               "description": "be exactly one of: a boolean value, the null value, 'refresh'"
@@ -78,7 +82,8 @@
                   "completions": [
                     "true",
                     "false"
-                  ]
+                  ],
+                  "exhaustiveCompletions": true
                 },
                 {
                   "enum": [
@@ -87,7 +92,8 @@
                   "description": "be 'auto'",
                   "completions": [
                     "auto"
-                  ]
+                  ],
+                  "exhaustiveCompletions": true
                 }
               ],
               "description": "be exactly one of: a boolean value, 'auto'"
@@ -100,14 +106,16 @@
                   "completions": [
                     "true",
                     "false"
-                  ]
+                  ],
+                  "exhaustiveCompletions": true
                 },
                 {
                   "type": "null",
                   "description": "be the null value",
                   "completions": [
                     "null"
-                  ]
+                  ],
+                  "exhaustiveCompletions": true
                 }
               ],
               "description": "be exactly one of: a boolean value, the null value"
@@ -120,14 +128,16 @@
                   "completions": [
                     "true",
                     "false"
-                  ]
+                  ],
+                  "exhaustiveCompletions": true
                 },
                 {
                   "type": "null",
                   "description": "be the null value",
                   "completions": [
                     "null"
-                  ]
+                  ],
+                  "exhaustiveCompletions": true
                 }
               ],
               "description": "be exactly one of: a boolean value, the null value"
@@ -144,14 +154,16 @@
                   "completions": [
                     "true",
                     "false"
-                  ]
+                  ],
+                  "exhaustiveCompletions": true
                 },
                 {
                   "type": "null",
                   "description": "be the null value",
                   "completions": [
                     "null"
-                  ]
+                  ],
+                  "exhaustiveCompletions": true
                 }
               ],
               "description": "be exactly one of: a number, a boolean value, the null value"
@@ -162,7 +174,8 @@
               "completions": [
                 "true",
                 "false"
-              ]
+              ],
+              "exhaustiveCompletions": true
             },
             "debug": {
               "type": "boolean",
@@ -170,7 +183,8 @@
               "completions": [
                 "true",
                 "false"
-              ]
+              ],
+              "exhaustiveCompletions": true
             },
             "engine": {
               "type": "string",
@@ -184,14 +198,16 @@
                   "completions": [
                     "true",
                     "false"
-                  ]
+                  ],
+                  "exhaustiveCompletions": true
                 },
                 {
                   "type": "null",
                   "description": "be the null value",
                   "completions": [
                     "null"
-                  ]
+                  ],
+                  "exhaustiveCompletions": true
                 }
               ],
               "description": "be exactly one of: a boolean value, the null value"
@@ -202,7 +218,8 @@
               "completions": [
                 "true",
                 "false"
-              ]
+              ],
+              "exhaustiveCompletions": true
             },
             "echo": {
               "oneOf": [
@@ -212,7 +229,8 @@
                   "completions": [
                     "true",
                     "false"
-                  ]
+                  ],
+                  "exhaustiveCompletions": true
                 },
                 {
                   "enum": [
@@ -221,7 +239,8 @@
                   "description": "be 'fenced'",
                   "completions": [
                     "fenced"
-                  ]
+                  ],
+                  "exhaustiveCompletions": true
                 }
               ],
               "description": "be exactly one of: a boolean value, 'fenced'"
@@ -234,7 +253,8 @@
                   "completions": [
                     "true",
                     "false"
-                  ]
+                  ],
+                  "exhaustiveCompletions": true
                 },
                 {
                   "enum": [
@@ -245,7 +265,8 @@
                   "completions": [
                     "all",
                     "asis"
-                  ]
+                  ],
+                  "exhaustiveCompletions": true
                 }
               ],
               "description": "be exactly one of: a boolean value, one of: 'all', 'asis'"
@@ -256,7 +277,8 @@
               "completions": [
                 "true",
                 "false"
-              ]
+              ],
+              "exhaustiveCompletions": true
             },
             "include": {
               "type": "boolean",
@@ -264,7 +286,8 @@
               "completions": [
                 "true",
                 "false"
-              ]
+              ],
+              "exhaustiveCompletions": true
             },
             "keep-md": {
               "type": "boolean",
@@ -272,7 +295,8 @@
               "completions": [
                 "true",
                 "false"
-              ]
+              ],
+              "exhaustiveCompletions": true
             },
             "keep-ipynb": {
               "type": "boolean",
@@ -280,89 +304,110 @@
               "completions": [
                 "true",
                 "false"
-              ]
+              ],
+              "exhaustiveCompletions": true
             }
           },
           "completions": [
             {
-              "value": "fig.width:",
-              "description": ""
+              "value": "fig.width: ",
+              "description": "",
+              "suggest_on_accept": false
             },
             {
-              "value": "fig.height:",
-              "description": ""
+              "value": "fig.height: ",
+              "description": "",
+              "suggest_on_accept": false
             },
             {
-              "value": "fig.format:",
-              "description": ""
+              "value": "fig.format: ",
+              "description": "",
+              "suggest_on_accept": true
             },
             {
-              "value": "fig.dpi:",
-              "description": ""
+              "value": "fig.dpi: ",
+              "description": "",
+              "suggest_on_accept": false
             },
             {
-              "value": "cache:",
-              "description": ""
+              "value": "cache: ",
+              "description": "",
+              "suggest_on_accept": true
             },
             {
-              "value": "freeze:",
-              "description": ""
+              "value": "freeze: ",
+              "description": "",
+              "suggest_on_accept": true
             },
             {
-              "value": "enabled:",
-              "description": ""
+              "value": "enabled: ",
+              "description": "",
+              "suggest_on_accept": true
             },
             {
-              "value": "ipynb:",
-              "description": ""
+              "value": "ipynb: ",
+              "description": "",
+              "suggest_on_accept": true
             },
             {
-              "value": "daemon:",
-              "description": ""
+              "value": "daemon: ",
+              "description": "",
+              "suggest_on_accept": false
             },
             {
-              "value": "daemon-restart:",
-              "description": ""
+              "value": "daemon-restart: ",
+              "description": "",
+              "suggest_on_accept": true
             },
             {
-              "value": "debug:",
-              "description": ""
+              "value": "debug: ",
+              "description": "",
+              "suggest_on_accept": true
             },
             {
-              "value": "engine:",
-              "description": ""
+              "value": "engine: ",
+              "description": "",
+              "suggest_on_accept": false
             },
             {
-              "value": "eval:",
-              "description": ""
+              "value": "eval: ",
+              "description": "",
+              "suggest_on_accept": true
             },
             {
-              "value": "error:",
-              "description": ""
+              "value": "error: ",
+              "description": "",
+              "suggest_on_accept": true
             },
             {
-              "value": "echo:",
-              "description": ""
+              "value": "echo: ",
+              "description": "",
+              "suggest_on_accept": true
             },
             {
-              "value": "output:",
-              "description": ""
+              "value": "output: ",
+              "description": "",
+              "suggest_on_accept": true
             },
             {
-              "value": "warning:",
-              "description": ""
+              "value": "warning: ",
+              "description": "",
+              "suggest_on_accept": true
             },
             {
-              "value": "include:",
-              "description": ""
+              "value": "include: ",
+              "description": "",
+              "suggest_on_accept": true
             },
             {
-              "value": "keep-md:",
-              "description": ""
+              "value": "keep-md: ",
+              "description": "",
+              "suggest_on_accept": true
             },
             {
-              "value": "keep-ipynb:",
-              "description": ""
+              "value": "keep-ipynb: ",
+              "description": "",
+              "suggest_on_accept": true
             }
           ]
         },
@@ -375,7 +420,8 @@
               "description": "be 'html'",
               "completions": [
                 "html"
-              ]
+              ],
+              "exhaustiveCompletions": true
             },
             {
               "type": "object",
@@ -408,7 +454,8 @@
                         "jpeg",
                         "svg",
                         "pdf"
-                      ]
+                      ],
+                      "exhaustiveCompletions": true
                     },
                     "fig.dpi": {
                       "type": "number",
@@ -422,14 +469,16 @@
                           "completions": [
                             "true",
                             "false"
-                          ]
+                          ],
+                          "exhaustiveCompletions": true
                         },
                         {
                           "type": "null",
                           "description": "be the null value",
                           "completions": [
                             "null"
-                          ]
+                          ],
+                          "exhaustiveCompletions": true
                         },
                         {
                           "enum": [
@@ -438,7 +487,8 @@
                           "description": "be 'refresh'",
                           "completions": [
                             "refresh"
-                          ]
+                          ],
+                          "exhaustiveCompletions": true
                         }
                       ],
                       "description": "be exactly one of: a boolean value, the null value, 'refresh'"
@@ -451,7 +501,8 @@
                           "completions": [
                             "true",
                             "false"
-                          ]
+                          ],
+                          "exhaustiveCompletions": true
                         },
                         {
                           "enum": [
@@ -460,7 +511,8 @@
                           "description": "be 'auto'",
                           "completions": [
                             "auto"
-                          ]
+                          ],
+                          "exhaustiveCompletions": true
                         }
                       ],
                       "description": "be exactly one of: a boolean value, 'auto'"
@@ -473,14 +525,16 @@
                           "completions": [
                             "true",
                             "false"
-                          ]
+                          ],
+                          "exhaustiveCompletions": true
                         },
                         {
                           "type": "null",
                           "description": "be the null value",
                           "completions": [
                             "null"
-                          ]
+                          ],
+                          "exhaustiveCompletions": true
                         }
                       ],
                       "description": "be exactly one of: a boolean value, the null value"
@@ -493,14 +547,16 @@
                           "completions": [
                             "true",
                             "false"
-                          ]
+                          ],
+                          "exhaustiveCompletions": true
                         },
                         {
                           "type": "null",
                           "description": "be the null value",
                           "completions": [
                             "null"
-                          ]
+                          ],
+                          "exhaustiveCompletions": true
                         }
                       ],
                       "description": "be exactly one of: a boolean value, the null value"
@@ -517,14 +573,16 @@
                           "completions": [
                             "true",
                             "false"
-                          ]
+                          ],
+                          "exhaustiveCompletions": true
                         },
                         {
                           "type": "null",
                           "description": "be the null value",
                           "completions": [
                             "null"
-                          ]
+                          ],
+                          "exhaustiveCompletions": true
                         }
                       ],
                       "description": "be exactly one of: a number, a boolean value, the null value"
@@ -535,7 +593,8 @@
                       "completions": [
                         "true",
                         "false"
-                      ]
+                      ],
+                      "exhaustiveCompletions": true
                     },
                     "debug": {
                       "type": "boolean",
@@ -543,7 +602,8 @@
                       "completions": [
                         "true",
                         "false"
-                      ]
+                      ],
+                      "exhaustiveCompletions": true
                     },
                     "engine": {
                       "type": "string",
@@ -557,14 +617,16 @@
                           "completions": [
                             "true",
                             "false"
-                          ]
+                          ],
+                          "exhaustiveCompletions": true
                         },
                         {
                           "type": "null",
                           "description": "be the null value",
                           "completions": [
                             "null"
-                          ]
+                          ],
+                          "exhaustiveCompletions": true
                         }
                       ],
                       "description": "be exactly one of: a boolean value, the null value"
@@ -575,7 +637,8 @@
                       "completions": [
                         "true",
                         "false"
-                      ]
+                      ],
+                      "exhaustiveCompletions": true
                     },
                     "echo": {
                       "oneOf": [
@@ -585,7 +648,8 @@
                           "completions": [
                             "true",
                             "false"
-                          ]
+                          ],
+                          "exhaustiveCompletions": true
                         },
                         {
                           "enum": [
@@ -594,7 +658,8 @@
                           "description": "be 'fenced'",
                           "completions": [
                             "fenced"
-                          ]
+                          ],
+                          "exhaustiveCompletions": true
                         }
                       ],
                       "description": "be exactly one of: a boolean value, 'fenced'"
@@ -607,7 +672,8 @@
                           "completions": [
                             "true",
                             "false"
-                          ]
+                          ],
+                          "exhaustiveCompletions": true
                         },
                         {
                           "enum": [
@@ -618,7 +684,8 @@
                           "completions": [
                             "all",
                             "asis"
-                          ]
+                          ],
+                          "exhaustiveCompletions": true
                         }
                       ],
                       "description": "be exactly one of: a boolean value, one of: 'all', 'asis'"
@@ -629,7 +696,8 @@
                       "completions": [
                         "true",
                         "false"
-                      ]
+                      ],
+                      "exhaustiveCompletions": true
                     },
                     "include": {
                       "type": "boolean",
@@ -637,7 +705,8 @@
                       "completions": [
                         "true",
                         "false"
-                      ]
+                      ],
+                      "exhaustiveCompletions": true
                     },
                     "keep-md": {
                       "type": "boolean",
@@ -645,7 +714,8 @@
                       "completions": [
                         "true",
                         "false"
-                      ]
+                      ],
+                      "exhaustiveCompletions": true
                     },
                     "keep-ipynb": {
                       "type": "boolean",
@@ -653,97 +723,119 @@
                       "completions": [
                         "true",
                         "false"
-                      ]
+                      ],
+                      "exhaustiveCompletions": true
                     }
                   },
                   "completions": [
                     {
-                      "value": "fig.width:",
-                      "description": ""
+                      "value": "fig.width: ",
+                      "description": "",
+                      "suggest_on_accept": false
                     },
                     {
-                      "value": "fig.height:",
-                      "description": ""
+                      "value": "fig.height: ",
+                      "description": "",
+                      "suggest_on_accept": false
                     },
                     {
-                      "value": "fig.format:",
-                      "description": ""
+                      "value": "fig.format: ",
+                      "description": "",
+                      "suggest_on_accept": true
                     },
                     {
-                      "value": "fig.dpi:",
-                      "description": ""
+                      "value": "fig.dpi: ",
+                      "description": "",
+                      "suggest_on_accept": false
                     },
                     {
-                      "value": "cache:",
-                      "description": ""
+                      "value": "cache: ",
+                      "description": "",
+                      "suggest_on_accept": true
                     },
                     {
-                      "value": "freeze:",
-                      "description": ""
+                      "value": "freeze: ",
+                      "description": "",
+                      "suggest_on_accept": true
                     },
                     {
-                      "value": "enabled:",
-                      "description": ""
+                      "value": "enabled: ",
+                      "description": "",
+                      "suggest_on_accept": true
                     },
                     {
-                      "value": "ipynb:",
-                      "description": ""
+                      "value": "ipynb: ",
+                      "description": "",
+                      "suggest_on_accept": true
                     },
                     {
-                      "value": "daemon:",
-                      "description": ""
+                      "value": "daemon: ",
+                      "description": "",
+                      "suggest_on_accept": false
                     },
                     {
-                      "value": "daemon-restart:",
-                      "description": ""
+                      "value": "daemon-restart: ",
+                      "description": "",
+                      "suggest_on_accept": true
                     },
                     {
-                      "value": "debug:",
-                      "description": ""
+                      "value": "debug: ",
+                      "description": "",
+                      "suggest_on_accept": true
                     },
                     {
-                      "value": "engine:",
-                      "description": ""
+                      "value": "engine: ",
+                      "description": "",
+                      "suggest_on_accept": false
                     },
                     {
-                      "value": "eval:",
-                      "description": ""
+                      "value": "eval: ",
+                      "description": "",
+                      "suggest_on_accept": true
                     },
                     {
-                      "value": "error:",
-                      "description": ""
+                      "value": "error: ",
+                      "description": "",
+                      "suggest_on_accept": true
                     },
                     {
-                      "value": "echo:",
-                      "description": ""
+                      "value": "echo: ",
+                      "description": "",
+                      "suggest_on_accept": true
                     },
                     {
-                      "value": "output:",
-                      "description": ""
+                      "value": "output: ",
+                      "description": "",
+                      "suggest_on_accept": true
                     },
                     {
-                      "value": "warning:",
-                      "description": ""
+                      "value": "warning: ",
+                      "description": "",
+                      "suggest_on_accept": true
                     },
                     {
-                      "value": "include:",
-                      "description": ""
+                      "value": "include: ",
+                      "description": "",
+                      "suggest_on_accept": true
                     },
                     {
-                      "value": "keep-md:",
-                      "description": ""
+                      "value": "keep-md: ",
+                      "description": "",
+                      "suggest_on_accept": true
                     },
                     {
-                      "value": "keep-ipynb:",
-                      "description": ""
+                      "value": "keep-ipynb: ",
+                      "description": "",
+                      "suggest_on_accept": true
                     }
                   ]
                 }
               },
               "completions": [
                 {
-                  "value": "html:",
-                  "description": ""
+                  "value": "html: ",
+                  "description": "",
+                  "suggest_on_accept": false
                 }
               ]
             }
@@ -753,16 +845,19 @@
       },
       "completions": [
         {
-          "value": "title:",
-          "description": ""
+          "value": "title: ",
+          "description": "",
+          "suggest_on_accept": false
         },
         {
-          "value": "execute:",
-          "description": ""
+          "value": "execute: ",
+          "description": "",
+          "suggest_on_accept": false
         },
         {
-          "value": "format:",
-          "description": ""
+          "value": "format: ",
+          "description": "",
+          "suggest_on_accept": false
         }
       ]
     },
@@ -782,6 +877,7 @@
               "completions": [
                 "site"
               ],
+              "exhaustiveCompletions": true,
               "documentation": "type of quarto project"
             },
             "output-dir": {
@@ -804,20 +900,24 @@
           },
           "completions": [
             {
-              "value": "type:",
-              "description": ""
+              "value": "type: ",
+              "description": "",
+              "suggest_on_accept": true
             },
             {
-              "value": "output-dir:",
-              "description": ""
+              "value": "output-dir: ",
+              "description": "",
+              "suggest_on_accept": false
             },
             {
-              "value": "bibliography:",
-              "description": ""
+              "value": "bibliography: ",
+              "description": "",
+              "suggest_on_accept": false
             },
             {
-              "value": "filters:",
-              "description": ""
+              "value": "filters: ",
+              "description": "",
+              "suggest_on_accept": false
             }
           ]
         },
@@ -845,7 +945,8 @@
               "completions": [
                 "true",
                 "false"
-              ]
+              ],
+              "exhaustiveCompletions": true
             },
             "twitter-card": {
               "type": "boolean",
@@ -853,7 +954,8 @@
               "completions": [
                 "true",
                 "false"
-              ]
+              ],
+              "exhaustiveCompletions": true
             },
             "site-url": {
               "type": "string",
@@ -877,7 +979,8 @@
                 "completions": [
                   "edit",
                   "issue"
-                ]
+                ],
+                "exhaustiveCompletions": true
               },
               "documentation": "which github action links to enable"
             },
@@ -887,7 +990,8 @@
               "completions": [
                 "true",
                 "false"
-              ]
+              ],
+              "exhaustiveCompletions": true
             },
             "search": {
               "type": "object",
@@ -915,33 +1019,39 @@
                       "completions": [
                         "true",
                         "false"
-                      ]
+                      ],
+                      "exhaustiveCompletions": true
                     }
                   },
                   "completions": [
                     {
-                      "value": "index-name:",
-                      "description": ""
+                      "value": "index-name: ",
+                      "description": "",
+                      "suggest_on_accept": false
                     },
                     {
-                      "value": "application-id:",
-                      "description": ""
+                      "value": "application-id: ",
+                      "description": "",
+                      "suggest_on_accept": false
                     },
                     {
-                      "value": "search-only-api-key:",
-                      "description": ""
+                      "value": "search-only-api-key: ",
+                      "description": "",
+                      "suggest_on_accept": false
                     },
                     {
-                      "value": "analytics-events:",
-                      "description": ""
+                      "value": "analytics-events: ",
+                      "description": "",
+                      "suggest_on_accept": true
                     }
                   ]
                 }
               },
               "completions": [
                 {
-                  "value": "algolia:",
-                  "description": ""
+                  "value": "algolia: ",
+                  "description": "",
+                  "suggest_on_accept": false
                 }
               ]
             },
@@ -963,7 +1073,8 @@
                   "completions": [
                     "true",
                     "false"
-                  ]
+                  ],
+                  "exhaustiveCompletions": true
                 },
                 "collapse-below": {
                   "type": "string",
@@ -975,7 +1086,8 @@
                   "completions": [
                     "true",
                     "false"
-                  ]
+                  ],
+                  "exhaustiveCompletions": true
                 },
                 "right": {
                   "type": "array",
@@ -1005,16 +1117,19 @@
                         },
                         "completions": [
                           {
-                            "value": "text:",
-                            "description": "entry description"
+                            "value": "text: ",
+                            "description": "entry description",
+                            "suggest_on_accept": false
                           },
                           {
-                            "value": "href:",
-                            "description": "URL of the link"
+                            "value": "href: ",
+                            "description": "URL of the link",
+                            "suggest_on_accept": false
                           },
                           {
-                            "value": "icon:",
-                            "description": "font-awesome icon id"
+                            "value": "icon: ",
+                            "description": "font-awesome icon id",
+                            "suggest_on_accept": false
                           }
                         ]
                       }
@@ -1025,28 +1140,34 @@
               },
               "completions": [
                 {
-                  "value": "background:",
-                  "description": ""
+                  "value": "background: ",
+                  "description": "",
+                  "suggest_on_accept": false
                 },
                 {
-                  "value": "logo:",
-                  "description": ""
+                  "value": "logo: ",
+                  "description": "",
+                  "suggest_on_accept": false
                 },
                 {
-                  "value": "title:",
-                  "description": ""
+                  "value": "title: ",
+                  "description": "",
+                  "suggest_on_accept": true
                 },
                 {
-                  "value": "collapse-below:",
-                  "description": ""
+                  "value": "collapse-below: ",
+                  "description": "",
+                  "suggest_on_accept": false
                 },
                 {
-                  "value": "sidebar-menus:",
-                  "description": ""
+                  "value": "sidebar-menus: ",
+                  "description": "",
+                  "suggest_on_accept": true
                 },
                 {
-                  "value": "right:",
-                  "description": ""
+                  "value": "right: ",
+                  "description": "",
+                  "suggest_on_accept": false
                 }
               ]
             },
@@ -1105,16 +1226,19 @@
                           },
                           "completions": [
                             {
-                              "value": "text:",
-                              "description": "entry description"
+                              "value": "text: ",
+                              "description": "entry description",
+                              "suggest_on_accept": false
                             },
                             {
-                              "value": "href:",
-                              "description": "URL of the link"
+                              "value": "href: ",
+                              "description": "URL of the link",
+                              "suggest_on_accept": false
                             },
                             {
-                              "value": "icon:",
-                              "description": "font-awesome icon id"
+                              "value": "icon: ",
+                              "description": "font-awesome icon id",
+                              "suggest_on_accept": false
                             }
                           ]
                         },
@@ -1137,12 +1261,14 @@
                           },
                           "completions": [
                             {
-                              "value": "section:",
-                              "description": ""
+                              "value": "section: ",
+                              "description": "",
+                              "suggest_on_accept": false
                             },
                             {
-                              "value": "contents:",
-                              "description": ""
+                              "value": "contents: ",
+                              "description": "",
+                              "suggest_on_accept": false
                             }
                           ]
                         }
@@ -1154,28 +1280,34 @@
                 },
                 "completions": [
                   {
-                    "value": "id:",
-                    "description": ""
+                    "value": "id: ",
+                    "description": "",
+                    "suggest_on_accept": false
                   },
                   {
-                    "value": "title:",
-                    "description": ""
+                    "value": "title: ",
+                    "description": "",
+                    "suggest_on_accept": false
                   },
                   {
-                    "value": "sytle:",
-                    "description": ""
+                    "value": "sytle: ",
+                    "description": "",
+                    "suggest_on_accept": false
                   },
                   {
-                    "value": "collapse-level:",
-                    "description": ""
+                    "value": "collapse-level: ",
+                    "description": "",
+                    "suggest_on_accept": false
                   },
                   {
-                    "value": "align:",
-                    "description": ""
+                    "value": "align: ",
+                    "description": "",
+                    "suggest_on_accept": false
                   },
                   {
-                    "value": "contents:",
-                    "description": ""
+                    "value": "contents: ",
+                    "description": "",
+                    "suggest_on_accept": false
                   }
                 ]
               }
@@ -1183,64 +1315,78 @@
           },
           "completions": [
             {
-              "value": "title:",
-              "description": ""
+              "value": "title: ",
+              "description": "",
+              "suggest_on_accept": false
             },
             {
-              "value": "image:",
-              "description": ""
+              "value": "image: ",
+              "description": "",
+              "suggest_on_accept": false
             },
             {
-              "value": "google-analytics:",
-              "description": ""
+              "value": "google-analytics: ",
+              "description": "",
+              "suggest_on_accept": false
             },
             {
-              "value": "open-graph:",
-              "description": ""
+              "value": "open-graph: ",
+              "description": "",
+              "suggest_on_accept": true
             },
             {
-              "value": "twitter-card:",
-              "description": ""
+              "value": "twitter-card: ",
+              "description": "",
+              "suggest_on_accept": true
             },
             {
-              "value": "site-url:",
-              "description": ""
+              "value": "site-url: ",
+              "description": "",
+              "suggest_on_accept": false
             },
             {
-              "value": "repo-url:",
-              "description": ""
+              "value": "repo-url: ",
+              "description": "",
+              "suggest_on_accept": false
             },
             {
-              "value": "repo-actions:",
-              "description": ""
+              "value": "repo-actions: ",
+              "description": "",
+              "suggest_on_accept": false
             },
             {
-              "value": "page-navigation:",
-              "description": ""
+              "value": "page-navigation: ",
+              "description": "",
+              "suggest_on_accept": true
             },
             {
-              "value": "search:",
-              "description": ""
+              "value": "search: ",
+              "description": "",
+              "suggest_on_accept": false
             },
             {
-              "value": "navbar:",
-              "description": ""
+              "value": "navbar: ",
+              "description": "",
+              "suggest_on_accept": false
             },
             {
-              "value": "sidebar:",
-              "description": ""
+              "value": "sidebar: ",
+              "description": "",
+              "suggest_on_accept": false
             }
           ]
         }
       },
       "completions": [
         {
-          "value": "project:",
-          "description": ""
+          "value": "project: ",
+          "description": "",
+          "suggest_on_accept": false
         },
         {
-          "value": "site:",
-          "description": ""
+          "value": "site: ",
+          "description": "",
+          "suggest_on_accept": false
         }
       ]
     }

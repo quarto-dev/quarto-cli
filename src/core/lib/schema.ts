@@ -10,7 +10,8 @@
 export type Schema = any;
 export interface Completion {
   value: string,
-  description: string
+  description: string,
+  suggest_on_accept: boolean
 };
 
 export function schemaType(schema: Schema)
@@ -33,6 +34,20 @@ export function schemaType(schema: Schema)
   return "any";
 }
 
+export function schemaExhaustiveCompletions(schema: Schema)
+{
+  switch (schemaType(schema)) {
+    case "anyOf":
+      return schema.anyOf.every(schemaExhaustiveCompletions);
+    case "oneOf":
+      return schema.oneOf.every(schemaExhaustiveCompletions);
+    case "allOf":
+      return schema.oneOf.every(schemaExhaustiveCompletions);
+    default:
+      return schema.exhaustiveCompletions || false;
+  }
+}
+
 export function schemaCompletions(schema: Schema): Completion[]
 {
   // FIXME this is slightly inefficient since recursions call
@@ -45,7 +60,8 @@ export function schemaCompletions(schema: Schema): Completion[]
       if (typeof c === "string") {
         return {
           value: c,
-          description: ""
+          description: "",
+          suggest_on_accept: false
         };
       }
       return c;
@@ -132,6 +148,9 @@ export function normalizeSchema(schema: Schema): Schema
   walkSchema(result, (schema) => {
     if (schema.completions) {
       delete schema.completions;
+    }
+    if (schema.exhaustiveCompletions) {
+      delete schema.exhaustiveCompletions;
     }
     if (schema.documentation) {
       delete schema.documentation;

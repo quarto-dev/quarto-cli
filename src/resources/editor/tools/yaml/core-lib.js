@@ -529,7 +529,8 @@
         if (typeof c === "string") {
           return {
             value: c,
-            description: ""
+            description: "",
+            suggest_on_accept: false
           };
         }
         return c;

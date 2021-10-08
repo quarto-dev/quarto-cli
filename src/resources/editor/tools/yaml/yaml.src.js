@@ -241,11 +241,6 @@ function completionsPromise(opts)
       // is this cacheable for subsequent results that add to the token
       // see https://github.com/rstudio/rstudio/blob/main/src/gwt/src/org/rstudio/studio/client/workbench/views/console/shell/assist/CompletionCache.java
       cacheable: true,
-
-      // should we automatically initiate another completion request when
-      // this one is accepted (e.g. if we complete a yaml key and then
-      // want to immediately show available values for that key)
-      suggest_on_accept: false
     });
   });
 }
