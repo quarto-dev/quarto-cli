@@ -14,12 +14,15 @@
 // FIXME clearly we need to do better here.
 // deno-lint-ignore no-explicit-any
 
-import { Schema, Completion } from "../lib/schema.ts";
+import {
+  Schema, Completion, schemaExhaustiveCompletions
+} from "../lib/schema.ts";
 
 export const BooleanSchema = {
   "type": "boolean",
   "description": "be a boolean value",
-  "completions": ["true", "false"]
+  "completions": ["true", "false"],
+  "exhaustiveCompletions": true
 };
 
 export const NumberSchema = {
@@ -61,6 +64,7 @@ export const NullSchema = {
   "type": "null",
   "description": "be the null value",
   "completions": ["null"],
+  "exhaustiveCompletions": true
 }; 
 
 export function enumSchema(...args: string[])
@@ -71,7 +75,8 @@ export function enumSchema(...args: string[])
   return {
     "enum": args,
     "description": args.length > 1 ? `be one of: ${args.map(x => "'" + x + "'").join(", ")}` : `be '${args[0]}'`,
-    "completions": args
+    "completions": args,
+    "exhaustiveCompletions": true
   };
 }
 
@@ -109,17 +114,19 @@ export function allOfSchema(...args: Schema[])
 export function objectSchema(params: {
   properties?: { [k: string]: Schema },
   required?: string[],
+  exhaustive?: boolean,
   additionalProperties?: Schema,
   description?: string,
-  baseSchema?: any,
-  completions?: { [k: string]: string }, // FIXME this should have the type of the result of objectSchema()
-} = {}) 
+  baseSchema?: any, // FIXME this should have the type of the result of objectSchema()
+  completions?: { [k: string]: string },
+} = {})
 {
   let {
     properties, required, additionalProperties, description, baseSchema,
+    exhaustive,
     completions: completionsParam
   } = params;
-  
+
   required = required || [];
   properties = properties || {};
   
@@ -133,19 +140,19 @@ export function objectSchema(params: {
     for (const c of lst) {
       obj[c.value] = c;
     }
+    
     return Object.getOwnPropertyNames(obj).map(k => obj[k]);
   }
   
-  if (completionsParam) {
-    for (const completionKey of Object.getOwnPropertyNames(completionsParam)) {
-      completions.push({
-        value: `${completionKey}:`,
-        description: completionsParam[completionKey]
-      });
-    }
-  } else {
-    completions.push(...(Object.getOwnPropertyNames(properties)
-      .map(s => ({ value: `${s}:`, description: "" }))));
+  for (const k of Object.getOwnPropertyNames(
+    completionsParam || properties)) {
+    const valueS = properties[k];
+      
+    completions.push({
+      value: `${k}: `,
+      description: completionsParam?.[k] || "",
+      suggest_on_accept: valueS && schemaExhaustiveCompletions(valueS)
+    });
   }
   
   if (baseSchema) {
@@ -153,6 +160,10 @@ export function objectSchema(params: {
       throw new Error("Internal Error: can only extend other object Schema");
     }
     result = Object.assign({}, baseSchema);
+
+    if (exhaustive && baseSchema.exhaustiveCompletions) {
+      result.exhaustiveCompletions = true;
+    }
     
     if (hasDescription) {
       result.description = description;
@@ -188,6 +199,10 @@ export function objectSchema(params: {
       "type": "object",
       description
     };
+    
+    if (exhaustive) {
+      result.exhaustiveCompletions = true;
+    }
     
     if (properties) {
       result.properties = properties;
