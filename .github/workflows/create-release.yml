@@ -140,6 +140,11 @@ jobs:
         name: Windows Installer
         path: ./package/out/quarto-${{needs.configure.outputs.version}}-win.msi
         
+    - name: Upload Zip 
+      uses: actions/upload-artifact@v2
+      with:
+        name: Windows Zip
+        path: ./package/out/quarto-${{needs.configure.outputs.version}}-win.zip        
 
   make-installer-mac:
     runs-on: macos-latest
@@ -199,6 +204,12 @@ jobs:
         name: Mac Installer
         path: ./package/out/quarto-${{needs.configure.outputs.version}}-macos.pkg
         
+    - name: Upload Zip 
+      uses: actions/upload-artifact@v2
+      with:
+        name: Macos Zip
+        path: ./package/out/quarto-${{needs.configure.outputs.version}}-mac.zip         
+        
   publish-release:
     if: ${{ github.event.inputs.publish-release == 'true' }}
     runs-on: ubuntu-latest   
@@ -254,6 +265,17 @@ jobs:
         asset_name: quarto-${{needs.configure.outputs.version}}-win.msi
         asset_content_type: application/msi
 
+    - name: Attach Windows Zip
+      id: attach-win-zip
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} 
+        asset_path: ./Windows Installer/quarto-${{needs.configure.outputs.version}}-win.zip
+        asset_name: quarto-${{needs.configure.outputs.version}}-win.zip
+        asset_content_type: application/pkg
+
     - name: Attach Mac Installer
       id: attach-mac-installer
       uses: actions/upload-release-asset@v1
@@ -263,4 +285,15 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }} 
         asset_path: ./Mac Installer/quarto-${{needs.configure.outputs.version}}-macos.pkg
         asset_name: quarto-${{needs.configure.outputs.version}}-macos.pkg
+        asset_content_type: application/pkg
+
+    - name: Attach Mac Zip
+      id: attach-mac-zip
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} 
+        asset_path: ./Mac Installer/quarto-${{needs.configure.outputs.version}}-mac.zip
+        asset_name: quarto-${{needs.configure.outputs.version}}-macos.zip
         asset_content_type: application/pkg
