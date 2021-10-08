@@ -1,11 +1,11 @@
 <script type="text/javascript">
-  const socket = new WebSocket('ws://<%- localhost %>:<%- port %>' + window.location.pathname);
-  socket.onopen = () => {
+  const devServerSocket = new WebSocket('ws://<%- localhost %>:<%- port %>' + window.location.pathname);
+  devServerSocket.onopen = () => {
     console.log('Socket connection open. Listening for events.');
   };
-  socket.onmessage = (msg) => {
+  devServerSocket.onmessage = (msg) => {
     if (msg.data.startsWith('reload')) {
-      socket.close();
+      devServerSocket.close();
       const target = msg.data.replace(/^reload/, "").replace(/index\.html$/, "");
       if (target && (target !== window.location.pathname)) {
         window.location.replace(target.replace(/index\.html$/, ""))
