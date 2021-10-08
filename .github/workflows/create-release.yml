@@ -301,17 +301,7 @@ jobs:
     - name: Generate Checksums
       id: generate_checksum
       run: |
-        find . -type f \( -name "*.tar.gz" -o -name "*.pkg" -o -name "*.zip" -o  -name "*.msi" -o -name "*.deb" \) -exec sha256sum -z {} + \
-        | jq --slurp --raw-input '
-            {
-                files: split("\u0000")
-                    | map(split(" "))
-                    | map([
-                        .[0],
-                        (.[2:] | join(" "))
-                    ])
-                    | map({sha256: .[0], file: ((.[1] | split("/")) | .[-1])})
-            }' > checksum.json        
+        find . -type f \( -name "*.tar.gz" -o -name "*.pkg" -o -name "*.zip" -o  -name "*.msi" -o -name "*.deb" \) -exec sha256sum {} + > quarto-${{needs.configure.outputs.version}}-checksums.txt
 
     - name: Attach Checksum
       id: attach-checksum
