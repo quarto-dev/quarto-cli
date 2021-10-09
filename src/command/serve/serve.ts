@@ -70,9 +70,12 @@ export async function serveProject(
 ) {
   let project: ProjectContext | undefined;
   if (typeof (target) === "string") {
+    if (target === ".") {
+      target = Deno.cwd();
+    }
     project = await projectContext(target, false, true);
     if (!project || !project?.config) {
-      throw new Error(`${target} is not a project`);
+      throw new Error(`${target} is not a website or book project`);
     }
   } else {
     project = target;
