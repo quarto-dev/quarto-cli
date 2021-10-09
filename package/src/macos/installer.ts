@@ -17,6 +17,7 @@ import { error, info, warning } from "log/mod.ts";
 import { Configuration } from "../common/config.ts";
 import { runCmd } from "../util/cmd.ts";
 import { getEnv } from "../util/utils.ts";
+import { makeTarball } from "../util/tar.ts";
 
 // Packaging specific configuration
 // (Some things are global others may be platform specific)
@@ -92,6 +93,13 @@ export async function makeInstallerMac(config: Configuration) {
   } else {
     warning("Missing Application Developer Id, not signing");
   }
+
+  // Now that runtimes have been signed, create a zip
+  makeTarball(
+    config.directoryInfo.dist,
+    join(config.directoryInfo.out, `quarto-${config.version}-macos.tar.gz`),
+    true,
+  );
 
   // Installer signature configuration
   const installerDevId = getEnv("QUARTO_APPLE_INST_DEV_ID", "");
