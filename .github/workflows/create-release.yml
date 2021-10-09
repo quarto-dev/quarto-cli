@@ -301,18 +301,30 @@ jobs:
     - name: Generate Checksums
       id: generate_checksum
       run: |
-        find . -type f \( -name "*.tar.gz" -o -name "*.pkg" -o -name "*.zip" -o  -name "*.msi" -o -name "*.deb" \) -exec sha256sum -z {} + \
-        | jq --slurp --raw-input '
-            {
-                files: split("\u0000")
-                    | map(split(" "))
-                    | map([
-                        .[0],
-                        (.[2:] | join(" "))
-                    ])
-                    | map({sha256: .[0], file: ((.[1] | split("/")) | .[-1])})
-            }' > checksum.json        
+        pushd Windows\ Installer
+        sha256sum quarto-${{needs.configure.outputs.version}}-win.msi >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+        popd
+        
+        pushd Windows\ Zip
+        sha256sum quarto-${{needs.configure.outputs.version}}-win.zip >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+        popd
+        
+        pushd Mac\ Zip
+        sha256sum quarto-${{needs.configure.outputs.version}}-macos.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+        popd
 
+        pushd Mac\ Installer
+        sha256sum quarto-${{needs.configure.outputs.version}}-macos.pkg >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+        popd
+        
+        pushd Release\ Tarball
+        sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+        popd        
+        
+        pushd Deb\ Installer
+        sha256sum quarto-${{needs.configure.outputs.version}}-amd64.deb >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+        popd
+        
     - name: Attach Checksum
       id: attach-checksum
       uses: actions/upload-release-asset@v1
@@ -320,6 +332,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: checksum.json
-        asset_name: checksum.json
+        asset_path: quarto-${{needs.configure.outputs.version}}-checksums.txt
+        asset_name: quarto-${{needs.configure.outputs.version}}-checksums.txt
         asset_content_type: application/json
