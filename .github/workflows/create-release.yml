@@ -302,27 +302,27 @@ jobs:
       id: generate_checksum
       run: |
         pushd Windows\ Installer
-        sha256sum quarto-${{needs.configure.outputs.version}}-win.msi >> quarto-${{needs.configure.outputs.version}}-checksums.txt
+        sha256sum quarto-${{needs.configure.outputs.version}}-win.msi >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
         popd
         
         pushd Windows\ Zip
-        sha256sum quarto-${{needs.configure.outputs.version}}-win.zip >> quarto-${{needs.configure.outputs.version}}-checksums.txt
+        sha256sum quarto-${{needs.configure.outputs.version}}-win.zip >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
         popd
         
         pushd Mac\ Zip
-        sha256sum quarto-${{needs.configure.outputs.version}}-macos.tar.gz >> quarto-${{needs.configure.outputs.version}}-checksums.txt
+        sha256sum quarto-${{needs.configure.outputs.version}}-macos.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
         popd
 
         pushd Mac\ Installer
-        sha256sum quarto-${{needs.configure.outputs.version}}-macos.pkg >> quarto-${{needs.configure.outputs.version}}-checksums.txt
+        sha256sum quarto-${{needs.configure.outputs.version}}-macos.pkg >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
         popd
         
         pushd Release\ Tarball
-        sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz >> quarto-${{needs.configure.outputs.version}}-checksums.txt
+        sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
         popd        
         
         pushd Deb\ Installer
-        sha256sum quarto-${{needs.configure.outputs.version}}-amd64.deb >> quarto-${{needs.configure.outputs.version}}-checksums.txt
+        sha256sum quarto-${{needs.configure.outputs.version}}-amd64.deb >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
         popd
         
     - name: Attach Checksum
