@@ -203,6 +203,7 @@ export async function serveProject(
                   useFreezer: true,
                   devServerReload: true,
                   flags: { quiet: true },
+                  pandocArgs,
                 },
                 [inputFile!],
               )
