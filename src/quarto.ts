@@ -39,6 +39,19 @@ export async function quarto(
     })).code;
   }
 
+  // inject implicit cwd arg for quarto preview/render whose
+  // first argument is a command line parmaeter. this allows
+  // us to evade a cliffy cli parsing issue where it requires
+  // at least one defined argument to be parsed before it can
+  // access undefined arguments.
+  if (
+    args.length > 1 &&
+    (args[0] === "render" || args[0] === "preview") &&
+    args[1].startsWith("-")
+  ) {
+    args = [args[0], Deno.cwd(), ...args.slice(1)];
+  }
+
   const quartoCommand = new Command()
     .name("quarto")
     .version(quartoConfig.version() + "\n")
