@@ -80,21 +80,10 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     clean_supporting = TRUE
   )
 
-  # run knitr but not pandoc and capture the results
-  render_params <- list(
-    input = input,
-    output_format = output_format,
-    knit_root_dir = knit_root_dir,
-    run_pandoc = FALSE,
-    envir = new.env()
-  )
-
-  quarto_env <- new.env(parent = globalenv())
-
   # FIXME this test isn't failing in shiny mode, but it doesn't look to be
   # breaking quarto-shiny-ojs. We should make sure this is right.
   if (!is_shiny_prerendered(knitr::opts_knit$get("rmarkdown.runtime"))) {
-    source(file.path(resourceDir, "rmd", "ojs_static.R"), local = quarto_env)
+    source(file.path(resourceDir, "rmd", "ojs_static.R"))
   }
   render_output <- rmarkdown::render(
     input = input,
@@ -102,7 +91,7 @@ execute <- function(input, format, tempDir, libDir, dependencies, cwd, params, r
     knit_root_dir = knit_root_dir,
     params = params,
     run_pandoc = FALSE,
-    envir = new.env(parent = quarto_env)
+    envir = globalenv()
   )
   knit_meta <-  attr(render_output, "knit_meta")
   files_dir <- attr(render_output, "files_dir")
