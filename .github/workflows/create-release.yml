@@ -334,4 +334,4 @@ jobs:
         upload_url: ${{ steps.create_release.outputs.upload_url }} 
         asset_path: quarto-${{needs.configure.outputs.version}}-checksums.txt
         asset_name: quarto-${{needs.configure.outputs.version}}-checksums.txt
-        asset_content_type: application/json
+        asset_content_type: text/plain
