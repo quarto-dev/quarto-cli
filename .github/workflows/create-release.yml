@@ -76,7 +76,7 @@ jobs:
     - name: Upload Artifact 
       uses: actions/upload-artifact@v2
       with:
-        name: Release Tarball
+        name: Deb Zip
         path: ./package/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
 
   make-installer-deb:
@@ -106,7 +106,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: Deb Installer
-        path: ./package/out/quarto-${{needs.configure.outputs.version}}-amd64.deb
+        path: ./package/out/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
         
   make-installer-win:
     runs-on: windows-latest
@@ -217,8 +217,8 @@ jobs:
 
     steps:
     - name: Download Artifacts
-      uses: actions/download-artifact@v2       
-        
+      uses: actions/download-artifact@v2      
+
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
@@ -239,7 +239,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: ./Release Tarball/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
+        asset_path: ./Deb Zip/quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
         asset_name: quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz
         asset_content_type: application/gzip
 
@@ -250,8 +250,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }} 
-        asset_path: ./Deb Installer/quarto-${{needs.configure.outputs.version}}-amd64.deb
-        asset_name: quarto-${{needs.configure.outputs.version}}-amd64.deb
+        asset_path: ./Deb Installer/quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
+        asset_name: quarto-${{needs.configure.outputs.version}}-linux-amd64.deb
         asset_content_type: application/deb
 
     - name: Attach Windows Installer
@@ -297,3 +297,41 @@ jobs:
         asset_path: ./Mac Zip/quarto-${{needs.configure.outputs.version}}-macos.tar.gz
         asset_name: quarto-${{needs.configure.outputs.version}}-macos.tar.gz
         asset_content_type: application/pkg
+        
+    - name: Generate Checksums
+      id: generate_checksum
+      run: |
+        pushd Windows\ Installer
+        sha256sum quarto-${{needs.configure.outputs.version}}-win.msi >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+        popd
+        
+        pushd Windows\ Zip
+        sha256sum quarto-${{needs.configure.outputs.version}}-win.zip >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+        popd
+        
+        pushd Mac\ Zip
+        sha256sum quarto-${{needs.configure.outputs.version}}-macos.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+        popd
+
+        pushd Mac\ Installer
+        sha256sum quarto-${{needs.configure.outputs.version}}-macos.pkg >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+        popd
+        
+        pushd Deb\ Zip
+        sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.tar.gz >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+        popd        
+        
+        pushd Deb\ Installer
+        sha256sum quarto-${{needs.configure.outputs.version}}-linux-amd64.deb >> ../quarto-${{needs.configure.outputs.version}}-checksums.txt
+        popd
+        
+    - name: Attach Checksum
+      id: attach-checksum
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} 
+        asset_path: quarto-${{needs.configure.outputs.version}}-checksums.txt
+        asset_name: quarto-${{needs.configure.outputs.version}}-checksums.txt
+        asset_content_type: text/plain

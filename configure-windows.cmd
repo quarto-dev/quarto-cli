@@ -28,9 +28,20 @@ SET DENO_FILE="deno-x86_64-pc-windows-msvc.zip"
 SET DENO_URL="https://github.com/denoland/deno/releases/download/%DENO%/%DENO_FILE%"
 CURL --fail -L %DENO_URL% -o %DENO_FILE%
 REM Windows doesn't have unzip installed by default, but starting in Windows 10 build 17063 they did 
-REM includ a build in 'tar' command. Windows 10 build 17063 was released in 2017.
+REM include a build in 'tar' command. Windows 10 build 17063 was released in 2017.
 tar -xf %DENO_FILE%
+
+REM If tar failed, try unzipping it.
 IF %ERRORLEVEL% NEQ 0 ( 
+	ECHO tar failed; trying to unzip...
+	unzip %DENO_FILE%	
+)
+
+REM If both failed, exit with error.
+REM These blocks aren't nested because of the way Windows evaluates variables in control blocks;
+REM %ERRORLEVEL% won't update without jumping through more hoops in a nested if.
+IF %ERRORLEVEL% NEQ 0 (
+	ECHO Unable to decompress %DENO_FILE%
 	exit 1
 )
 
