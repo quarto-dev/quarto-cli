@@ -54,7 +54,8 @@ const sidebarItemSchema = objectS({
     "collapse-level": IntegerS,
     align: StringS,
     contents: arrayS(sectionSchema)
-  }
+  },
+  exhaustive: true
 });
 
 const siteSchema = objectS({
@@ -76,9 +77,11 @@ const siteSchema = objectS({
             "application-id": StringS,
             "search-only-api-key": StringS,
             "analytics-events": BooleanS
-          }
+          },
+          exhaustive: true
         })
-      }
+      },
+      exhaustive: true
     }),
     "navbar": objectS({
       properties: {
@@ -91,10 +94,12 @@ const siteSchema = objectS({
           StringS,
           sidebarEntrySchema
         )),
-      }
+      },
+      exhaustive: true
     }),
     "sidebar": arrayS(sidebarItemSchema),
-  }
+  },
+  exhaustive: true
 });
 
 export const configSchema = objectS({
@@ -102,12 +107,12 @@ export const configSchema = objectS({
     project: objectS({
       properties: {
         type: doc(enumS("site"), "type of quarto project"),
-        "output-dir": doc(StringS, "output directory for the project"),
-        "bibliography": StringS,
-        "filters": arrayS(StringS)
+        "output-dir": doc(StringS, "output directory for the project")
       }
     }),
-    site: siteSchema
+    site: siteSchema,
+    "bibliography": StringS,
+    "filters": arrayS(StringS)
   }
 });
 

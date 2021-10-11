@@ -347,16 +347,44 @@ function locateFromIndentation(context)
   return path;
 }
 
-function completionsFromSchemaPathWord(schema, path, word)
+function completions(obj)
 {
+  const {
+    schema,
+    path,
+    word,
+    indent
+  } = obj;
   const noCompletions = new Promise(function(r, _) { r(null); });
   const matchingSchemas = navigateSchema(schema, path);
 
-  const completions = matchingSchemas
-        .map(s => core.schemaCompletions(s))
-        .flat()
-        .filter(c => c.value.startsWith(word));
-
+  // indent mappings and sequences automatically
+  const completions = matchingSchemas.map(schema => {
+    const result = core.schemaCompletions(schema);
+    return result.map(completion => {
+      if (!completion.suggest_on_accept ||
+          core.schemaType(schema) !== "object") {
+        return completion;
+      }
+      
+      const key = completion.value.split(":")[0];
+      const subSchema = schema.properties[key];
+      if (core.schemaType(subSchema) === "object") {
+        return {
+          ...completion,
+          value: completion.value + "\n" + " ".repeat(indent + 2)
+        };
+      } else if (core.schemaType(subSchema) === "array") {
+        return {
+          ...completion,
+          value: completion.value + "\n" + " ".repeat(indent + 2) + "- "
+        };
+      } else {
+        return completion;
+      }
+    });
+  }).flat().filter(c => c.value.startsWith(word));
+  
   if (completions.length === 0) {
     return noCompletions;
   }
@@ -385,12 +413,15 @@ async function completionsFromGoodParse(context)
   } else {
     word = line.split(" ").slice(-1)[0];
   }
+  const schema = schemas.config;
 
   if (line.trim().length === 0) {
     // we're in a pure-whitespace line, we should locate entirely based on indentation
     const path = locateFromIndentation(context);
-    return completionsFromSchemaPathWord(schemas.config, path, word);
+    const indent = line.length;
+    return completions({ schema, path, word, indent });
   }
+  const indent = line.trimEnd().length - line.trim().length;
   
   for (const parseResult of attemptParsesAtLine(context, parser)) {
     const {
@@ -411,7 +442,7 @@ async function completionsFromGoodParse(context)
           column: position.column - deletions
         }
       });
-      return completionsFromSchemaPathWord(schemas.config, path, word);
+      return completions({ schema, path, word, indent });
     } else {
       const doc = buildAnnotated(tree, mappedCode);
       const index = core.rowColToIndex(mappedCode.value)({
@@ -419,7 +450,7 @@ async function completionsFromGoodParse(context)
         column: position.column - deletions
       });
       const path = locateCursor(doc, index);
-      return completionsFromSchemaPathWord(schemas.config, path, word);
+      return completions({ schema, path, word, indent });
     }
   }
   

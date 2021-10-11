@@ -917,7 +917,7 @@
             {
               "value": "filters: ",
               "description": "",
-              "suggest_on_accept": false
+              "suggest_on_accept": true
             }
           ]
         },
@@ -996,10 +996,12 @@
             "search": {
               "type": "object",
               "description": "be an object",
+              "exhaustiveCompletions": true,
               "properties": {
                 "algolia": {
                   "type": "object",
                   "description": "be an object",
+                  "exhaustiveCompletions": true,
                   "properties": {
                     "index-name": {
                       "type": "string",
@@ -1051,13 +1053,14 @@
                 {
                   "value": "algolia: ",
                   "description": "",
-                  "suggest_on_accept": false
+                  "suggest_on_accept": true
                 }
               ]
             },
             "navbar": {
               "type": "object",
               "description": "be an object",
+              "exhaustiveCompletions": true,
               "properties": {
                 "background": {
                   "type": "string",
@@ -1167,7 +1170,7 @@
                 {
                   "value": "right: ",
                   "description": "",
-                  "suggest_on_accept": false
+                  "suggest_on_accept": true
                 }
               ]
             },
@@ -1268,7 +1271,7 @@
                             {
                               "value": "contents: ",
                               "description": "",
-                              "suggest_on_accept": false
+                              "suggest_on_accept": true
                             }
                           ]
                         }
@@ -1307,7 +1310,7 @@
                   {
                     "value": "contents: ",
                     "description": "",
-                    "suggest_on_accept": false
+                    "suggest_on_accept": true
                   }
                 ]
               }
@@ -1352,7 +1355,7 @@
             {
               "value": "repo-actions: ",
               "description": "",
-              "suggest_on_accept": false
+              "suggest_on_accept": true
             },
             {
               "value": "page-navigation: ",
@@ -1362,17 +1365,17 @@
             {
               "value": "search: ",
               "description": "",
-              "suggest_on_accept": false
+              "suggest_on_accept": true
             },
             {
               "value": "navbar: ",
               "description": "",
-              "suggest_on_accept": false
+              "suggest_on_accept": true
             },
             {
               "value": "sidebar: ",
               "description": "",
-              "suggest_on_accept": false
+              "suggest_on_accept": true
             }
           ]
         }

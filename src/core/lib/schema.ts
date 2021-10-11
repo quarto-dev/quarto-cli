@@ -43,6 +43,8 @@ export function schemaExhaustiveCompletions(schema: Schema)
       return schema.oneOf.every(schemaExhaustiveCompletions);
     case "allOf":
       return schema.oneOf.every(schemaExhaustiveCompletions);
+    case "array":
+      return true;
     default:
       return schema.exhaustiveCompletions || false;
   }
