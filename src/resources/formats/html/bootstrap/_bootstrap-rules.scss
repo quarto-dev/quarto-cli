@@ -358,7 +358,7 @@ li code:not(.sourceCode) {
 $toc-indent-depth: 5;
 $indent: 1.2em;
 @for $i from 1 through $toc-indent-depth {
-  $selector-depth: repeat(" ul > li >", $i);
+  $selector-depth: repeat-chars(" ul > li >", $i);
 
   .sidebar-toc > nav ul > li > #{$selector-depth} a {
     padding-left: #{$indent * $i};
