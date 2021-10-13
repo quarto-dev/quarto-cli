@@ -567,6 +567,7 @@
     mappedConcat,
     mappedIndexToRowCol,
     partitionCellOptionsMapped,
+    kLangCommentChars,
     rangedSubstring,
     rangedLines,
     lines,

@@ -884,18 +884,6 @@
               "type": "string",
               "description": "be a string",
               "documentation": "output directory for the project"
-            },
-            "bibliography": {
-              "type": "string",
-              "description": "be a string"
-            },
-            "filters": {
-              "type": "array",
-              "description": "be an array of values, where each element should be a string",
-              "items": {
-                "type": "string",
-                "description": "be a string"
-              }
             }
           },
           "completions": [
@@ -908,22 +896,13 @@
               "value": "output-dir: ",
               "description": "",
               "suggest_on_accept": false
-            },
-            {
-              "value": "bibliography: ",
-              "description": "",
-              "suggest_on_accept": false
-            },
-            {
-              "value": "filters: ",
-              "description": "",
-              "suggest_on_accept": true
             }
           ]
         },
         "site": {
           "type": "object",
           "description": "be an object",
+          "exhaustiveCompletions": true,
           "properties": {
             "title": {
               "type": "string",
@@ -1180,6 +1159,7 @@
               "items": {
                 "type": "object",
                 "description": "be an object",
+                "exhaustiveCompletions": true,
                 "properties": {
                   "id": {
                     "type": "string",
@@ -1378,6 +1358,18 @@
               "suggest_on_accept": true
             }
           ]
+        },
+        "bibliography": {
+          "type": "string",
+          "description": "be a string"
+        },
+        "filters": {
+          "type": "array",
+          "description": "be an array of values, where each element should be a string",
+          "items": {
+            "type": "string",
+            "description": "be a string"
+          }
         }
       },
       "completions": [
@@ -1389,9 +1381,966 @@
         {
           "value": "site: ",
           "description": "",
+          "suggest_on_accept": true
+        },
+        {
+          "value": "bibliography: ",
+          "description": "",
           "suggest_on_accept": false
+        },
+        {
+          "value": "filters: ",
+          "description": "",
+          "suggest_on_accept": true
         }
       ]
+    },
+    "languages": {
+      "ojs": {
+        "schema": {
+          "type": "object",
+          "description": "be an OJS cell options object",
+          "properties": {
+            "label": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "fig-cap": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "be a string"
+                },
+                {
+                  "type": "array",
+                  "description": "be an array of values, where each element should be a string",
+                  "items": {
+                    "type": "string",
+                    "description": "be a string"
+                  }
+                }
+              ],
+              "description": "be at least one of: a string, an array of values, where each element should be a string"
+            },
+            "fig-subcap": {
+              "type": "array",
+              "description": "be an array of values, where each element should be a string",
+              "items": {
+                "type": "string",
+                "description": "be a string"
+              }
+            },
+            "lst-label": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "lst-cap": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "classes": {
+              "type": "array",
+              "description": "be an array of values, where each element should be a string",
+              "items": {
+                "type": "string",
+                "description": "be a string"
+              }
+            },
+            "panel": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "code-fold": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "code-summary": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "code-overflow": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "fig-scap": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "fig-link": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "fig-align": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "fig-env": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "fig-pos": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "fig-alt": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "eval": {
+              "anyOf": [
+                {
+                  "type": "boolean",
+                  "description": "be a boolean value",
+                  "completions": [
+                    "true",
+                    "false"
+                  ],
+                  "exhaustiveCompletions": true
+                },
+                {
+                  "type": "null",
+                  "description": "be the null value",
+                  "completions": [
+                    "null"
+                  ],
+                  "exhaustiveCompletions": true
+                }
+              ],
+              "description": "be at least one of: a boolean value, the null value"
+            },
+            "error": {
+              "type": "boolean",
+              "description": "be a boolean value",
+              "completions": [
+                "true",
+                "false"
+              ],
+              "exhaustiveCompletions": true
+            },
+            "echo": {
+              "anyOf": [
+                {
+                  "type": "boolean",
+                  "description": "be a boolean value",
+                  "completions": [
+                    "true",
+                    "false"
+                  ],
+                  "exhaustiveCompletions": true
+                },
+                {
+                  "enum": [
+                    "fenced"
+                  ],
+                  "description": "be 'fenced'",
+                  "completions": [
+                    "fenced"
+                  ],
+                  "exhaustiveCompletions": true
+                }
+              ],
+              "description": "be at least one of: a boolean value, 'fenced'"
+            },
+            "output": {
+              "anyOf": [
+                {
+                  "type": "boolean",
+                  "description": "be a boolean value",
+                  "completions": [
+                    "true",
+                    "false"
+                  ],
+                  "exhaustiveCompletions": true
+                },
+                {
+                  "enum": [
+                    "all",
+                    "asis"
+                  ],
+                  "description": "be one of: 'all', 'asis'",
+                  "completions": [
+                    "all",
+                    "asis"
+                  ],
+                  "exhaustiveCompletions": true
+                }
+              ],
+              "description": "be at least one of: a boolean value, one of: 'all', 'asis'"
+            },
+            "include": {
+              "type": "boolean",
+              "description": "be a boolean value",
+              "completions": [
+                "true",
+                "false"
+              ],
+              "exhaustiveCompletions": true
+            },
+            "layout-ncol": {
+              "description": "be a number",
+              "type": "integer",
+              "minimum": 1
+            },
+            "layout-nrow": {
+              "description": "be a number",
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "completions": [
+            {
+              "value": "label: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "fig-cap: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "fig-subcap: ",
+              "description": "",
+              "suggest_on_accept": true
+            },
+            {
+              "value": "lst-label: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "lst-cap: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "classes: ",
+              "description": "",
+              "suggest_on_accept": true
+            },
+            {
+              "value": "panel: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "code-fold: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "code-summary: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "code-overflow: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "fig-scap: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "fig-link: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "fig-align: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "fig-env: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "fig-pos: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "fig-alt: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "eval: ",
+              "description": "",
+              "suggest_on_accept": true
+            },
+            {
+              "value": "error: ",
+              "description": "",
+              "suggest_on_accept": true
+            },
+            {
+              "value": "echo: ",
+              "description": "",
+              "suggest_on_accept": true
+            },
+            {
+              "value": "output: ",
+              "description": "",
+              "suggest_on_accept": true
+            },
+            {
+              "value": "include: ",
+              "description": "",
+              "suggest_on_accept": true
+            },
+            {
+              "value": "layout-ncol: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "layout-nrow: ",
+              "description": "",
+              "suggest_on_accept": false
+            }
+          ],
+          "required": []
+        }
+      },
+      "python": {
+        "schema": {
+          "type": "object",
+          "description": "be a Jupyter cell options object",
+          "properties": {
+            "label": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "fig-cap": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "be a string"
+                },
+                {
+                  "type": "array",
+                  "description": "be an array of values, where each element should be a string",
+                  "items": {
+                    "type": "string",
+                    "description": "be a string"
+                  }
+                }
+              ],
+              "description": "be at least one of: a string, an array of values, where each element should be a string"
+            },
+            "fig-subcap": {
+              "type": "array",
+              "description": "be an array of values, where each element should be a string",
+              "items": {
+                "type": "string",
+                "description": "be a string"
+              }
+            },
+            "lst-label": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "lst-cap": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "classes": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "panel": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "code-fold": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "code-summary": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "code-overflow": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "fig-scap": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "fig-link": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "fig-align": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "fig-env": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "fig-pos": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "fig-alt": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "eval": {
+              "anyOf": [
+                {
+                  "type": "boolean",
+                  "description": "be a boolean value",
+                  "completions": [
+                    "true",
+                    "false"
+                  ],
+                  "exhaustiveCompletions": true
+                },
+                {
+                  "type": "null",
+                  "description": "be the null value",
+                  "completions": [
+                    "null"
+                  ],
+                  "exhaustiveCompletions": true
+                }
+              ],
+              "description": "be at least one of: a boolean value, the null value"
+            },
+            "error": {
+              "type": "boolean",
+              "description": "be a boolean value",
+              "completions": [
+                "true",
+                "false"
+              ],
+              "exhaustiveCompletions": true
+            },
+            "echo": {
+              "anyOf": [
+                {
+                  "type": "boolean",
+                  "description": "be a boolean value",
+                  "completions": [
+                    "true",
+                    "false"
+                  ],
+                  "exhaustiveCompletions": true
+                },
+                {
+                  "enum": [
+                    "fenced"
+                  ],
+                  "description": "be 'fenced'",
+                  "completions": [
+                    "fenced"
+                  ],
+                  "exhaustiveCompletions": true
+                }
+              ],
+              "description": "be at least one of: a boolean value, 'fenced'"
+            },
+            "output": {
+              "anyOf": [
+                {
+                  "type": "boolean",
+                  "description": "be a boolean value",
+                  "completions": [
+                    "true",
+                    "false"
+                  ],
+                  "exhaustiveCompletions": true
+                },
+                {
+                  "enum": [
+                    "all",
+                    "asis"
+                  ],
+                  "description": "be one of: 'all', 'asis'",
+                  "completions": [
+                    "all",
+                    "asis"
+                  ],
+                  "exhaustiveCompletions": true
+                }
+              ],
+              "description": "be at least one of: a boolean value, one of: 'all', 'asis'"
+            },
+            "include": {
+              "type": "boolean",
+              "description": "be a boolean value",
+              "completions": [
+                "true",
+                "false"
+              ],
+              "exhaustiveCompletions": true
+            },
+            "layout-ncol": {
+              "description": "be a number",
+              "type": "integer",
+              "minimum": 1
+            },
+            "layout-nrow": {
+              "description": "be a number",
+              "type": "integer",
+              "minimum": 1
+            },
+            "md-indent": {
+              "type": "string",
+              "description": "be a string"
+            },
+            "warning": {
+              "type": "boolean",
+              "description": "be a boolean value",
+              "completions": [
+                "true",
+                "false"
+              ],
+              "exhaustiveCompletions": true
+            }
+          },
+          "completions": [
+            {
+              "value": "label: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "fig-cap: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "fig-subcap: ",
+              "description": "",
+              "suggest_on_accept": true
+            },
+            {
+              "value": "lst-label: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "lst-cap: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "classes: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "panel: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "code-fold: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "code-summary: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "code-overflow: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "fig-scap: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "fig-link: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "fig-align: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "fig-env: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "fig-pos: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "fig-alt: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "eval: ",
+              "description": "",
+              "suggest_on_accept": true
+            },
+            {
+              "value": "error: ",
+              "description": "",
+              "suggest_on_accept": true
+            },
+            {
+              "value": "echo: ",
+              "description": "",
+              "suggest_on_accept": true
+            },
+            {
+              "value": "output: ",
+              "description": "",
+              "suggest_on_accept": true
+            },
+            {
+              "value": "include: ",
+              "description": "",
+              "suggest_on_accept": true
+            },
+            {
+              "value": "layout-ncol: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "layout-nrow: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "md-indent: ",
+              "description": "",
+              "suggest_on_accept": false
+            },
+            {
+              "value": "warning: ",
+              "description": "",
+              "suggest_on_accept": true
+            }
+          ],
+          "required": []
+        }
+      },
+      "r": {
+        "type": "object",
+        "description": "be an object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "description": "be a string"
+          },
+          "fig-cap": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "be a string"
+              },
+              {
+                "type": "array",
+                "description": "be an array of values, where each element should be a string",
+                "items": {
+                  "type": "string",
+                  "description": "be a string"
+                }
+              }
+            ],
+            "description": "be at least one of: a string, an array of values, where each element should be a string"
+          },
+          "fig-subcap": {
+            "type": "array",
+            "description": "be an array of values, where each element should be a string",
+            "items": {
+              "type": "string",
+              "description": "be a string"
+            }
+          },
+          "lst-label": {
+            "type": "string",
+            "description": "be a string"
+          },
+          "lst-cap": {
+            "type": "string",
+            "description": "be a string"
+          },
+          "classes": {
+            "type": "string",
+            "description": "be a string"
+          },
+          "panel": {
+            "type": "string",
+            "description": "be a string"
+          },
+          "code-fold": {
+            "type": "string",
+            "description": "be a string"
+          },
+          "code-summary": {
+            "type": "string",
+            "description": "be a string"
+          },
+          "code-overflow": {
+            "type": "string",
+            "description": "be a string"
+          },
+          "fig-scap": {
+            "type": "string",
+            "description": "be a string"
+          },
+          "fig-link": {
+            "type": "string",
+            "description": "be a string"
+          },
+          "fig-align": {
+            "type": "string",
+            "description": "be a string"
+          },
+          "fig-env": {
+            "type": "string",
+            "description": "be a string"
+          },
+          "fig-pos": {
+            "type": "string",
+            "description": "be a string"
+          },
+          "fig-alt": {
+            "type": "string",
+            "description": "be a string"
+          },
+          "eval": {
+            "anyOf": [
+              {
+                "type": "boolean",
+                "description": "be a boolean value",
+                "completions": [
+                  "true",
+                  "false"
+                ],
+                "exhaustiveCompletions": true
+              },
+              {
+                "type": "null",
+                "description": "be the null value",
+                "completions": [
+                  "null"
+                ],
+                "exhaustiveCompletions": true
+              }
+            ],
+            "description": "be at least one of: a boolean value, the null value"
+          },
+          "error": {
+            "type": "boolean",
+            "description": "be a boolean value",
+            "completions": [
+              "true",
+              "false"
+            ],
+            "exhaustiveCompletions": true
+          },
+          "echo": {
+            "anyOf": [
+              {
+                "type": "boolean",
+                "description": "be a boolean value",
+                "completions": [
+                  "true",
+                  "false"
+                ],
+                "exhaustiveCompletions": true
+              },
+              {
+                "enum": [
+                  "fenced"
+                ],
+                "description": "be 'fenced'",
+                "completions": [
+                  "fenced"
+                ],
+                "exhaustiveCompletions": true
+              }
+            ],
+            "description": "be at least one of: a boolean value, 'fenced'"
+          },
+          "output": {
+            "anyOf": [
+              {
+                "type": "boolean",
+                "description": "be a boolean value",
+                "completions": [
+                  "true",
+                  "false"
+                ],
+                "exhaustiveCompletions": true
+              },
+              {
+                "enum": [
+                  "all",
+                  "asis"
+                ],
+                "description": "be one of: 'all', 'asis'",
+                "completions": [
+                  "all",
+                  "asis"
+                ],
+                "exhaustiveCompletions": true
+              }
+            ],
+            "description": "be at least one of: a boolean value, one of: 'all', 'asis'"
+          },
+          "include": {
+            "type": "boolean",
+            "description": "be a boolean value",
+            "completions": [
+              "true",
+              "false"
+            ],
+            "exhaustiveCompletions": true
+          },
+          "layout-ncol": {
+            "description": "be a number",
+            "type": "integer",
+            "minimum": 1
+          },
+          "layout-nrow": {
+            "description": "be a number",
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "completions": [
+          {
+            "value": "label: ",
+            "description": "",
+            "suggest_on_accept": false
+          },
+          {
+            "value": "fig-cap: ",
+            "description": "",
+            "suggest_on_accept": false
+          },
+          {
+            "value": "fig-subcap: ",
+            "description": "",
+            "suggest_on_accept": true
+          },
+          {
+            "value": "lst-label: ",
+            "description": "",
+            "suggest_on_accept": false
+          },
+          {
+            "value": "lst-cap: ",
+            "description": "",
+            "suggest_on_accept": false
+          },
+          {
+            "value": "classes: ",
+            "description": "",
+            "suggest_on_accept": false
+          },
+          {
+            "value": "panel: ",
+            "description": "",
+            "suggest_on_accept": false
+          },
+          {
+            "value": "code-fold: ",
+            "description": "",
+            "suggest_on_accept": false
+          },
+          {
+            "value": "code-summary: ",
+            "description": "",
+            "suggest_on_accept": false
+          },
+          {
+            "value": "code-overflow: ",
+            "description": "",
+            "suggest_on_accept": false
+          },
+          {
+            "value": "fig-scap: ",
+            "description": "",
+            "suggest_on_accept": false
+          },
+          {
+            "value": "fig-link: ",
+            "description": "",
+            "suggest_on_accept": false
+          },
+          {
+            "value": "fig-align: ",
+            "description": "",
+            "suggest_on_accept": false
+          },
+          {
+            "value": "fig-env: ",
+            "description": "",
+            "suggest_on_accept": false
+          },
+          {
+            "value": "fig-pos: ",
+            "description": "",
+            "suggest_on_accept": false
+          },
+          {
+            "value": "fig-alt: ",
+            "description": "",
+            "suggest_on_accept": false
+          },
+          {
+            "value": "eval: ",
+            "description": "",
+            "suggest_on_accept": true
+          },
+          {
+            "value": "error: ",
+            "description": "",
+            "suggest_on_accept": true
+          },
+          {
+            "value": "echo: ",
+            "description": "",
+            "suggest_on_accept": true
+          },
+          {
+            "value": "output: ",
+            "description": "",
+            "suggest_on_accept": true
+          },
+          {
+            "value": "include: ",
+            "description": "",
+            "suggest_on_accept": true
+          },
+          {
+            "value": "layout-ncol: ",
+            "description": "",
+            "suggest_on_accept": false
+          },
+          {
+            "value": "layout-nrow: ",
+            "description": "",
+            "suggest_on_accept": false
+          }
+        ]
+      }
     }
   }
 }

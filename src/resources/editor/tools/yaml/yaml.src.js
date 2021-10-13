@@ -294,7 +294,6 @@ function getYamlIndentTree(code)
 function locateFromIndentation(context)
 {
   const {
-    filetype,  // "yaml" | "script" | "markdown"
     line,      // editing line up to the cursor
     code,      // full contents of the buffer
     position   // row/column of cursor (0-based)
@@ -353,7 +352,8 @@ function completions(obj)
     schema,
     path,
     word,
-    indent
+    indent,
+    commentPrefix
   } = obj;
   const noCompletions = new Promise(function(r, _) { r(null); });
   const matchingSchemas = navigateSchema(schema, path);
@@ -372,12 +372,12 @@ function completions(obj)
       if (core.schemaType(subSchema) === "object") {
         return {
           ...completion,
-          value: completion.value + "\n" + " ".repeat(indent + 2)
+          value: completion.value + "\n" + commentPrefix + " ".repeat(indent + 2)
         };
       } else if (core.schemaType(subSchema) === "array") {
         return {
           ...completion,
-          value: completion.value + "\n" + " ".repeat(indent + 2) + "- "
+          value: completion.value + "\n" + commentPrefix + " ".repeat(indent + 2) + "- "
         };
       } else {
         return completion;
@@ -395,17 +395,40 @@ function completions(obj)
   });
 }
 
-async function completionsFromGoodParse(context)
+async function completionsFromGoodParseYAML(context)
 {
-  const schemas = (await getSchemas()).schemas;
-  const noCompletions = new Promise(function(r, _) { r(null); });
-  
-  const {
-    filetype,  // "yaml" | "script" | "markdown"
+  let {
     line,      // editing line up to the cursor
     code,      // full contents of the buffer
-    position   // row/column of cursor (0-based)
+    position,  // row/column of cursor (0-based)
+    schema,    // schema of yaml object
+
+    // if this is a yaml inside a language chunk, it will have a comment prefix which we need to know about in order to autocomplete linebreaks correctly.
+    commentPrefix
   } = context;
+
+  commentPrefix = commentPrefix || "";
+  
+  // RStudio sends us here in Visual Editor mode for the YAML front matter
+  // but includes the --- delimiters, so we trim those.
+  if (code.startsWith("---")) {
+    code = code.slice(3);
+    context = { ...context, code };
+    if (position.row === 0) {
+      // user asked for autocomplete on "---": report none
+      return false;
+    }
+  }
+  if (code.endsWith("---")) {
+    const codeLines = core.lines(code);
+    code = code.slice(0, -3);
+    context = { ...context, code };
+    if (position.row === codeLines.length - 1) {
+      // user asked for autocomplete on "---": report none
+      return false;
+    }
+  }
+
   const parser = await getTreeSitter();
   let word;
   if (["-", ":"].indexOf(line.slice(-1)) !== -1) {
@@ -413,13 +436,12 @@ async function completionsFromGoodParse(context)
   } else {
     word = line.split(" ").slice(-1)[0];
   }
-  const schema = schemas.config;
 
   if (line.trim().length === 0) {
     // we're in a pure-whitespace line, we should locate entirely based on indentation
     const path = locateFromIndentation(context);
     const indent = line.length;
-    return completions({ schema, path, word, indent });
+    return completions({ schema, path, word, indent, commentPrefix });
   }
   const indent = line.trimEnd().length - line.trim().length;
   
@@ -434,7 +456,6 @@ async function completionsFromGoodParse(context)
       // the valid parse we found puts us in a pure-whitespace line, so we should locate
       // on indentation as well.
       const path = locateFromIndentation({
-        filetype,
         line: line.substring(0, deletions),
         code: mappedCode.value,
         position: {
@@ -442,7 +463,7 @@ async function completionsFromGoodParse(context)
           column: position.column - deletions
         }
       });
-      return completions({ schema, path, word, indent });
+      return completions({ schema, path, word, indent, commentPrefix });
     } else {
       const doc = buildAnnotated(tree, mappedCode);
       const index = core.rowColToIndex(mappedCode.value)({
@@ -450,19 +471,90 @@ async function completionsFromGoodParse(context)
         column: position.column - deletions
       });
       const path = locateCursor(doc, index);
-      return completions({ schema, path, word, indent });
+      return completions({ schema, path, word, indent, commentPrefix });
     }
   }
   
-  return null;
+  return false;
 };
+
+async function completionsFromGoodParseMarkdown(context)
+{
+  return false;
+}
+
+async function completionsFromGoodParseScript(context)
+{
+  const codeLines = core.rangedLines(context.code);
+  if (codeLines.length < 2) {
+    // need both language and code to autocomplete. length < 2 implies
+    // we're missing one of them at least: skip.
+    return false;
+  }
+  const m = codeLines[0].substring.match(/.*{([a-z]+)}/);
+  if (!m) {
+    // couldn't recognize language in script, return false
+    return false;
+  }
+  const language = m[1];
+  const mappedCode = core.mappedString(
+    context.code,
+    [{ start: codeLines[1].range.start,
+       end: codeLines[codeLines.length-1].range.end }]);
+
+  let {
+    mappedYaml
+  } = core.partitionCellOptionsMapped(
+    language,
+    mappedCode);
+  
+  const schemas = (await getSchemas()).schemas;
+  debugger;
+  const schema = schemas.languages[language];
+  const commentPrefix = core.kLangCommentChars[language] + "| ";
+
+  return completionsFromGoodParseYAML({
+    line: context.line.slice(commentPrefix.length),
+    code: mappedYaml.value,
+    commentPrefix,
+    // NB we get lucky here that the "inverse mapping" of the cursor
+    // position is easy enough to compute explicitly. This might not
+    // hold in the future...
+    position: {
+      // -1 subtract the "{language}" line
+      row: context.position.row - 1,
+      // subtract the "#| " entry
+      column: context.position.column - commentPrefix.length
+    },
+    schema,
+  });
+}
 
 window.QuartoYamlEditorTools = {
 
   getCompletions: async function(context) {
+    const dispatch = {
+      "markdown": completionsFromGoodParseMarkdown,
+      "yaml": completionsFromGoodParseYAML,
+      "script": completionsFromGoodParseScript
+    };
+    if (!dispatch[context.filetype]) {
+      return new Promise(function(r, _) { r(null); });
+    }
+    const schemas = (await getSchemas()).schemas;
+    const schema = ({
+      "yaml": schemas.config,
+      "markdown": null, // can't be known ahead of time
+      "script": null
+    })[context.filetype];
 
-    return completionsFromGoodParse(context) ||
-      new Promise(function(r, _) { r(null); });
+    const result = await dispatch[context.filetype]({
+      ...context,
+      schema
+    });
+    console.log({result});
+    return result ||
+      (new Promise(function(r, _) { r(null); }));
   },
 
   getLint: function(context) {

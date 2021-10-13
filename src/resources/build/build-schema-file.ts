@@ -10,11 +10,13 @@
 
 import { frontMatterSchema } from "../../core/schema/front-matter.ts";
 import { configSchema } from "../../core/schema/config.ts";
+import { languageOptionsValidators } from "../../core/schema/chunk-metadata.ts";
 
 const obj = {
   schemas: {
     "front-matter": frontMatterSchema,
-    "config": configSchema
+    "config": configSchema,
+    "languages": languageOptionsValidators
   }
 };
 

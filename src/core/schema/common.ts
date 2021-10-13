@@ -178,7 +178,7 @@ export function objectSchema(params: {
 
     if ((result.completions && result.completions.length) ||
       completions.length) {
-      result.completions = result.completions || [];
+      result.completions = (result.completions || []).slice();
       result.completions.push(...completions);
       result.completions = uniqueValues(result.completions);
     }

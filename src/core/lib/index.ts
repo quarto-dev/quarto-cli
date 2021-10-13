@@ -17,7 +17,7 @@
 import { glb } from "./binary-search.ts";
 import { breakQuartoMd } from "./break-quarto-md.ts";
 import { mappedString, asMappedString, mappedConcat, mappedIndexToRowCol } from "./mapped-text.ts";
-import { partitionCellOptionsMapped } from "./partition-cell-options.ts";
+import { partitionCellOptionsMapped, kLangCommentChars } from "./partition-cell-options.ts";
 import { rangedSubstring, rangedLines } from "./ranged-text.ts";
 import { lines, normalizeNewlines, indexToRowCol, rowColToIndex } from "./text.ts";
 import { schemaType, schemaCompletions } from "./schema.ts";
@@ -33,6 +33,7 @@ const result = {
   mappedIndexToRowCol,
 
   partitionCellOptionsMapped,
+  kLangCommentChars,
 
   rangedSubstring,
   rangedLines,

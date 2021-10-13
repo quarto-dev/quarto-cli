@@ -143,6 +143,7 @@ export const jupyterCellOptions = new YAMLSchema(jupyterCellOptionsSchema);
 
 export const languageOptionsValidators: Record<string, YAMLSchema> = {
   "ojs": ojsCellOptions,
-  "python": jupyterCellOptions
+  "python": jupyterCellOptions,
+  "r": commonCellOptionsSchema
 };
 
