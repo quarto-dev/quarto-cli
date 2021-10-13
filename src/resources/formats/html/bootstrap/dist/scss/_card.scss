@@ -15,6 +15,7 @@
   background-clip: border-box;
   border: $card-border-width solid $card-border-color;
   @include border-radius($card-border-radius);
+  @include box-shadow($card-box-shadow);
 
   > hr {
     margin-right: 0;
@@ -68,7 +69,11 @@
 
 .card-link {
   &:hover {
-    text-decoration: none;
+    text-decoration: if($link-hover-decoration == underline, none, null);
+    -webkit-text-decoration: if($link-hover-decoration == underline, none, null);
+    -moz-text-decoration: if($link-hover-decoration == underline, none, null);
+    -ms-text-decoration: if($link-hover-decoration == underline, none, null);
+    -o-text-decoration: if($link-hover-decoration == underline, none, null);
   }
 
   + .card-link {
