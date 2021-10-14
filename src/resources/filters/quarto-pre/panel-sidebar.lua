@@ -33,14 +33,12 @@ function panelSidebar()
           "card",
           "bg-light",
           "p-2",
-          "col",
-          "col-12",
-          "col-lg-3"
+          "g-col-24",
+          "g-col-lg-6"
         }
         local containerClasses = {
-          "col",
-          "col-12",
-          "col-lg-9",
+          "g-col-24",
+          "g-col-lg-18",
           "pt-3",
           "pt-lg-0",
           "ps-0",

@@ -97,6 +97,7 @@ $sidebar-hl: null;
 $sidebar-font-size: 0.875rem !default;
 $sidebar-font-size-section: 1rem !default;
 $sidebar-font-size-collapse: 1rem !default;
+$sidebar-font-size-section-collapse: 1.1rem !default;
 
 // Footer coloring
 $footer-bg: if(variable-exists(body-bg), $body-bg, #fff) !default;
@@ -105,3 +106,9 @@ $footer-font-size: 0.825em !default;
 $footer-left-font-size: $footer-font-size !default;
 $footer-center-font-size: $footer-font-size !default;
 $footer-right-font-size: $footer-font-size !default;
+
+// Disable default grid system and switch to CSS grid
+$enable-grid-classes: false;
+$enable-cssgrid: true;
+$grid-gutter-width: 0;
+$grid-columns: 24;

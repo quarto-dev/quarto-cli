@@ -9,7 +9,7 @@
 
 
 
-<nav class="navbar navbar-expand<%- nav.navbar["collapse-below"] %> navbar-light <%- nav.navbar.background === "none" || nav.navbar.background === "body" ? "border-bottom" : "" %>">
+<nav class="navbar navbar-expand<%- nav.navbar["collapse-below"] %> navbar-light <%- nav.navbar.background === "none" || nav.navbar.background === "body" ? "border-bottom" : "" %> px-3">
   <% if (nav.sidebar && nav.sidebar.style === "floating") { %>
     <div class="container-fluid mx-auto">
   <% } else { %>
@@ -63,7 +63,7 @@
 
 <% let textCss = nav.sidebar.type ? nav.sidebar.type === "dark" ? "text-light" : "text-dark" :  "" %>
 
-<nav class="quarto-secondary-nav py-2 d-lg-none d-md-block <%= textCss %>" 
+<nav class="quarto-secondary-nav py-2 px-3 d-lg-none d-md-block <%= textCss %>" 
       data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" 
       aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation"
       onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }"
@@ -90,7 +90,7 @@ targetDiv = !nav.sidebar || nav.sidebar.style === "floating"
 %>
 
 <div class="container-fluid quarto-container d-flex flex-column page-layout-<%- nav.layout %>" <%= targetDiv ? 'id="quarto-content"' : "" %>>
-<div class="row flex-fill" <%= !targetDiv ? 'id="quarto-content"' : "" %>>
+<div class="grid" <%= !targetDiv ? 'id="quarto-content"' : "" %>>
 
 <% marginCss = "mx-auto" %>
 <% bodyXxlPadding = (nav.sidebar && nav.sidebar.style === "floating") ? " ps-xxl-3" : " ps-xxl-0" %>
@@ -98,7 +98,7 @@ targetDiv = !nav.sidebar || nav.sidebar.style === "floating"
   <% borderColor = nav.sidebar['border-color'] ? "border-" + nav.sidebar['border-color'] : "" %>
   <% marginCss = nav.sidebar.style === "floating" ? "mx-auto" : "me-auto" %>
   
-  <div id="quarto-sidebar" class="col col-12 col-lg-3 d-lg-flex px-0 pt-0 sidebar collapse sidebar-navigation">
+  <div id="quarto-sidebar" class="g-col-24 g-col-lg-6 d-lg-flex px-0 pt-0 sidebar collapse sidebar-navigation">
     <% partial('sidebar.ejs', { sidebar: nav.sidebar, navbar: !!nav.navbar }) %>
   </div>
 <% } %>
@@ -106,17 +106,17 @@ targetDiv = !nav.sidebar || nav.sidebar.style === "floating"
 <% if (nav.layout === "article") { %>
 
   <% if (nav.toc) { %>
-  <div id="quarto-toc-sidebar" class=" pt-0 col col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-toc order-last"></div>
-  <div class="col mx-auto col-sm-12 col-md-9 col-lg-<%- nav.sidebar ? '7' : '8' %> col-xl-7 px-lg-4 pe-xxl-4<%- bodyXxlPadding %>">
+  <div id="quarto-toc-sidebar" class=" pt-0 g-col-md-6 g-col-lg-4 d-none d-md-block px-3 sidebar sidebar-toc order-last"></div>
+  <div class="mx-auto px-3 g-col-sm-24 g-col-md-18 g-col-lg-<%- nav.sidebar ? '14' : '16' %> g-col-xl-14 px-lg-4 pe-xxl-4<%- bodyXxlPadding %>">
   <% } else { %>
-  <div class="col mx-auto col-sm-12 col-md-11 col-lg-9 px-lg-4">
+  <div class="mx-auto px-3 g-col-sm-124 g-col-md-22 g-col-lg-18 px-lg-8">
   <% } %>
 
 <% } else { %>
   <% if (nav.sidebar) { %>
-  <div class="col col-12 col-lg-9">
+  <div class="g-col-24 g-col-lg-18 px-3">
   <% } else { %>
-  <div class="col col-12">
+  <div class="g-col-24 px-3">
   <% } %>
 <% } %>
 

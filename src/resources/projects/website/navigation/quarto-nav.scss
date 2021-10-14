@@ -6,23 +6,23 @@ $content-padding-top: 14px !default;
 
 // content padding
 #quarto-sidebar nav,
-#quarto-toc-sidebar nav,
-#quarto-content main {
+#quarto-toc-sidebar,
+#quarto-content {
   padding-top: $content-padding-top;
 }
 
 @include media-breakpoint-up(lg) {
-  #quarto-content main {
+  #quarto-content {
     padding-top: $content-padding-top;
   }
 }
 
 @include media-breakpoint-down(lg) {
-  #quarto-content main {
+  #quarto-content {
     padding-top: 0;
   }
 
-  #quarto-content main .subtitle {
+  #quarto-content .subtitle {
     padding-top: $content-padding-top;
   }
 }
@@ -284,11 +284,14 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
 
 @include media-breakpoint-down(lg) {
   .sidebar-navigation .sidebar-item a,
-  .sidebar-navigation ul.sidebar-section.depth1 .sidebar-section-item,
   .nav-page .nav-page-text,
   .sidebar-navigation,
   .sidebar-navigation .sidebar-menu-container a {
     font-size: $sidebar-font-size-collapse;
+  }
+
+  .sidebar-navigation ul.sidebar-section.depth1 .sidebar-section-item {
+    font-size: $sidebar-font-size-section-collapse;
   }
 
   .sidebar-logo {
@@ -322,6 +325,7 @@ $sidebar-disabled-color: rgba($sidebar-fg, 0.75) !default;
 
   .sidebar.sidebar-navigation {
     transition: height 0.15s linear;
+    width: 100%;
   }
 
   nav.quarto-secondary-nav {

@@ -14,14 +14,12 @@ function panelLayout()
           el.attr.classes = el.attr.classes:filter(function(clz) return clz ~= layoutClass end)
           if fill then
             tappend(div.attr.classes, {
-              "col",
-              "col-12",
+              "g-col-24",
             })
           elseif center then
             tappend(div.attr.classes, {
-              "col",
-              "col-12",
-              "col-lg-10",
+              "g-col-24",
+              "g-col-lg-12",
               "mx-auto"
             })
           end
