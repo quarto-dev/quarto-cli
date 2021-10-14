@@ -19,11 +19,9 @@ const kProjectTypes = projectTypes();
 const kExecutionEngines = executionEngines().reverse();
 
 const editorType = new EnumType(["visual", "source"]);
-const engineType = new EnumType(kExecutionEngines);
 
 export const createProjectCommand = new Command()
   .type("editor", editorType)
-  .type("engine", engineType)
   .name("create-project")
   .description("Create a project for rendering multiple documents")
   .arguments("[dir:string]")
@@ -47,9 +45,9 @@ export const createProjectCommand = new Command()
       },
     },
   )
-  .option<{ engine: typeof engineType }>(
-    "--engine <engine:engine>",
-    "Engine for project documents",
+  .option(
+    "--engine <engine:string>",
+    `Use execution engine (${kExecutionEngines.join(", ")})`,
     {
       value: (value: string): string[] => {
         value = value || kMarkdownEngine;

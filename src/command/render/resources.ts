@@ -37,7 +37,7 @@ export function resolveFileResources(
   const ignore = engineIgnoreGlobs()
     .concat(kQuartoScratch + "/")
     .concat(["**/.*", "**/.*/**"]); // hidden (dot prefix))
-  const resources = resolvePathGlobs(rootDir, globs, ignore);
+  const resources = resolvePathGlobs(fileDir, globs, ignore);
   if (markdown.length > 0) {
     resources.include.push(
       ...extractResolvedResourceFilenamesFromQmd(asMappedString(markdown), fileDir, rootDir),
